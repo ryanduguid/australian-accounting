@@ -44,7 +44,7 @@ NOT_SPACES = ["\t{}", "{}\n", "{}\r", " {}", " {}", " {}", "{}-", "{}A"]
 
 
 def call(name, value):
-    argument = {"validate_abn": "abn", "validate_acn": "acn", "validate_bsb": "bsb"}[name]
+    argument = {"validate_abn": "abn", "validate_acn": "acn", "validate_bsb_format": "bsb"}[name]
     result = asyncio.run(server.mcp.call_tool(name, {argument: value}))
     assert not result.is_error, result.content
     Draft202012Validator(TOOLS[name].output_schema).validate(result.structured_content)
@@ -174,7 +174,7 @@ def test_the_schema_refuses_a_result_claiming_registration(marker, bad):
 
 @pytest.mark.parametrize("value", ["123-456", "123456", "123 456", " 123 - 456 "])
 def test_a_bsb_in_the_published_format_is_valid_however_it_is_spaced(value):
-    result = call("validate_bsb", value)
+    result = call("validate_bsb_format", value)
 
     assert result["result"] == "FORMAT_VALID"
     assert result["formatted"] == "123-456"
@@ -184,30 +184,40 @@ def test_a_bsb_in_the_published_format_is_valid_however_it_is_spaced(value):
     "value",
     [template.format("123456") for template in NOT_SPACES]
     + ["12-3456", "1234-56", "123--456", "-123456", "12345", "1234567", "123-4567", "12A-456",
-       "123–456", "١٢٣-456", "", "   ", "-"],
+       "123–456", "١٢٣-456", "", "   ", "-"]
+    # Full-width digits and hyphen, other dashes (em dash, minus sign, hyphen,
+    # non-breaking hyphen), other whitespace inside, junk at either end, 5 digits
+    # and a trailing hyphen. NFKC normalising or folding dashes would accept some.
+    + ["１２３-４５６", "123－456", "123—456", "123−456",
+       "123‐456", "123‑456", "123\t456", "123　456", "BSB 123-456", "123-456.",
+       "x123456", "123-45", "123-456-"],
 )
 def test_a_malformed_bsb_is_reported_and_never_cleaned_up(value):
-    result = call("validate_bsb", value)
+    result = call("validate_bsb_format", value)
 
     assert result["result"] == "MALFORMED"
     assert result["formatted"] is None
+    assert result["reason"] == ("A BSB is 6 ASCII digits, written XXX-XXX or without the "
+                                "hyphen, optionally separated by spaces.")
 
 
 @pytest.mark.parametrize("value", ["123-456", "nonsense"])
 def test_every_bsb_result_says_the_format_proves_no_institution_or_branch(value):
-    result = call("validate_bsb", value)
+    result = call("validate_bsb_format", value)
 
     assert result["identifier"] == "BSB"
     assert result["institution_established"] is False
     assert result["not_established"] == BSB_NOT_ESTABLISHED
     assert "bsb.auspaynet.com.au" in result["not_established"]
     assert result["source_url"].startswith("https://auspaynet.com.au/")
+    # Position 5 of the record, not of the BSB, which fills positions 2 to 8.
+    assert "positions 2 to 8" in result["source_provision"]
     assert "character position 5" in result["source_provision"]
     assert result["source_checked"] == "2026-11-15"
 
 
 def test_the_bsb_description_states_the_limit():
-    description = " ".join(TOOLS["validate_bsb"].description.split())
+    description = " ".join(TOOLS["validate_bsb_format"].description.split())
 
     assert "format" in description and "proves neither" in description
     assert "BSB Lookup" in description
@@ -216,7 +226,14 @@ def test_the_bsb_description_states_the_limit():
 @pytest.mark.parametrize("marker,bad", [("institution_established", True),
                                         ("result", "CHECK_DIGIT_VALID")])
 def test_the_schema_refuses_a_bsb_result_claiming_more_than_its_format(marker, bad):
-    payload = dict(server.validate_bsb("123-456"))
+    payload = dict(server.validate_bsb_format("123-456"))
     payload[marker] = bad
 
-    assert list(Draft202012Validator(TOOLS["validate_bsb"].output_schema).iter_errors(payload))
+    schema = TOOLS["validate_bsb_format"].output_schema
+    assert list(Draft202012Validator(schema).iter_errors(payload))
+
+
+def test_no_bsb_tool_name_reads_as_a_valid_bsb():
+    # A pass is a format, never a BSB: the name says so, as the result does.
+    assert "validate_bsb_format" in TOOLS
+    assert "validate_bsb" not in TOOLS

@@ -120,7 +120,7 @@ def scope() -> dict[str, Any]:
             "registration.",
             "validate_acn": "Test an ACN's check digit; proves neither ABR nor GST "
             "registration.",
-            "validate_bsb": "Test a BSB's 6 digit format; proves no institution, branch or "
+            "validate_bsb_format": "Test a BSB's 6 digit format; proves no institution, branch or "
             "account, and holds no BSB directory.",
             "calculate_tax_worksheet": "Run one of the bounded calculation_worksheets below.",
             "get_reviewed_rate": "Return one reviewed ATO record for a date in 2025-26 or "

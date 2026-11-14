@@ -29,9 +29,9 @@ SOURCE_CHECKED = "2026-10-31"
 BSB_SOURCE = ("https://auspaynet.com.au/sites/default/files/2026-10/"
               "BECS%20Procedures%20-%20Version%20E072%20-%20Effective%201%20October%202026"
               "%20-%20public_0.pdf")
-BSB_PROVISION = ("AusPayNet BECS Procedures version 072 (effective 1 October 2026), DE file user "
-                 "item specifications, Record Type 1, BSB Number: 'Must be numeric with a hyphen "
-                 "in character position 5'")
+BSB_PROVISION = ("AusPayNet BECS Procedures version 072 (effective 1 October 2026), Annexure C.1 "
+                 "DE File User Item Specifications, Record Type 1, BSB Number in character "
+                 "positions 2 to 8: 'Must be numeric with a hyphen in character position 5'")
 BSB_SOURCE_CHECKED = "2026-11-15"
 
 ABN_NOT_ESTABLISHED = (
@@ -135,7 +135,8 @@ def check_bsb(value: str) -> dict[str, Any]:
     digits = _digits(text, 6)
     if digits is None:
         result, formatted = "MALFORMED", None
-        reason = "A BSB is 6 ASCII digits, written XXX-XXX or without the hyphen."
+        reason = ("A BSB is 6 ASCII digits, written XXX-XXX or without the hyphen, optionally "
+                  "separated by spaces.")
     else:
         result, formatted = "FORMAT_VALID", f"{text[:3]}-{text[3:]}"
         reason = ("The digits match AusPayNet's published BSB format. No institution or branch "

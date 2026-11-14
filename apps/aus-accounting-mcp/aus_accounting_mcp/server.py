@@ -200,7 +200,7 @@ classification of the facts the operator supplied, not a determination.
 - validate_abn and validate_acn run the check digit arithmetic ABR and ASIC publish.
   A valid check digit proves neither ABR nor GST registration: retain not_established
   and send the user to ABN Lookup. Never report a passing number as registered.
-- validate_bsb tests only the 6 digit XXX-XXX format AusPayNet publishes; it holds no
+- validate_bsb_format tests only the 6 digit XXX-XXX format AusPayNet publishes; it holds no
   BSB directory. A valid format proves no institution, branch or account: retain
   not_established and send the user to AusPayNet's BSB Lookup.
 - generate_synthetic_sbr_fixture is only for fabricated integration tests.
@@ -1184,7 +1184,7 @@ def validate_acn(
 
 
 @mcp.tool(annotations=LOCAL_READ_ONLY, title="Test a BSB's format")
-def validate_bsb(
+def validate_bsb_format(
     bsb: Annotated[str, Field(
         max_length=40,
         description="The BSB as written: 6 digits as XXX-XXX or without the hyphen, "

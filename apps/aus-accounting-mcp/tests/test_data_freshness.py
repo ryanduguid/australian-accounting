@@ -37,7 +37,7 @@ NO_BUNDLED_DATA = {
     "refuse_div7a",
     "validate_abn",
     "validate_acn",
-    "validate_bsb",
+    "validate_bsb_format",
     "get_data_freshness",
 }
 

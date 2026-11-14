@@ -44,7 +44,7 @@
     { "name": "get_lodgment_due_dates", "description": "List ATO 2026-27 lodgment program due dates." },
     { "name": "validate_abn", "description": "Test an ABN's check digit. Proves neither ABR nor GST registration." },
     { "name": "validate_acn", "description": "Test an ACN's check digit. Proves neither ABR nor GST registration." },
-    { "name": "validate_bsb", "description": "Test a BSB's 6 digit format. Proves no institution, branch or account." },
+    { "name": "validate_bsb_format", "description": "Test a BSB's 6 digit format. Proves no institution, branch or account." },
     { "name": "get_reviewed_rate", "description": "Return a reviewed ATO rate or threshold for a date, with its source." },
     { "name": "search_accounting_library", "description": "Search the configured local Markdown library." },
     { "name": "read_accounting_library", "description": "Read cited lines from that library." },

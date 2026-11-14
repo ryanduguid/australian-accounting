@@ -180,7 +180,7 @@ copy without a download until the uv cache is cleaned.
 | `generate_synthetic_sbr_fixture` | Synthetic CTR/BAS for agent tests (`synthetic: true`) | local fixture |
 | `validate_abn` | Test an ABN's check digit; proves neither ABR nor GST registration | local arithmetic |
 | `validate_acn` | Test an ACN's check digit; proves neither ABR nor GST registration | local arithmetic |
-| `validate_bsb` | Test a BSB's 6 digit format; proves no institution, branch or account | local format test |
+| `validate_bsb_format` | Test a BSB's 6 digit format; proves no institution, branch or account | local format test |
 | `get_reviewed_rate` | Return a reviewed ATO rate or threshold for a date, with its source and a verbatim quote, or refuse | bundled reviewed records |
 | `get_data_freshness` | Report each bundled dataset's recorded periods, engine version, source URLs and retrieval and review dates, or `UNKNOWN` | every engine above |
 
@@ -195,18 +195,22 @@ a leading zero fails, because ABR's first step of subtracting 1 from the first d
 give an 11 digit number. The arithmetic sits in this facade because no published engine
 holds it, and it has no rate, date or dataset to go stale.
 
-`validate_bsb` returns `FORMAT_VALID` or `MALFORMED`. It tests the BSB format in AusPayNet's
+`validate_bsb_format` returns `FORMAT_VALID` or `MALFORMED`. It tests the BSB format in AusPayNet's
 [BECS Procedures version 072](https://auspaynet.com.au/sites/default/files/2026-10/BECS%20Procedures%20-%20Version%20E072%20-%20Effective%201%20October%202026%20-%20public_0.pdf),
 read on 15 November 2026: 6 digits with a hyphen after the third. Spaces and that one
-hyphen are removed from the input. A BSB has no check digit, and the same procedures
+hyphen are removed from the input; any other character, another dash or a full-width
+digit included, gives `MALFORMED`. `FORMAT_VALID` means the format only, not that the BSB
+is valid. A BSB has no check digit, and the same procedures
 require its first 2 or 3 digits to be an Institution Identifier AusPayNet issued; this
 server bundles no BSB directory, so every result carries `institution_established: false`
 and a `not_established` statement pointing to AusPayNet's
 [BSB Lookup](https://bsb.auspaynet.com.au).
 
-There is no TFN check. The ATO supplies its TFN algorithm only on request to software
-developers ([Obtaining member TFNs](https://www.ato.gov.au/tax-and-super-professionals/for-superannuation-professionals/apra-regulated-funds/managing-member-benefits/taxation-of-member-super-benefits/tax-file-numbers-and-super-contributions/obtaining-member-tfns),
-read on 15 November 2026) and publishes no weights to build it from.
+There is no TFN check. The ATO gives its TFN algorithm only to software developers, through
+its online services for digital service providers or on request
+([Obtaining member TFNs](https://www.ato.gov.au/tax-and-super-professionals/for-superannuation-professionals/apra-regulated-funds/managing-member-benefits/taxation-of-member-super-benefits/tax-file-numbers-and-super-contributions/obtaining-member-tfns);
+section 9 of the [TFN declaration reporting specification 4.0.3](https://softwaredevelopers.ato.gov.au/TFNspecification);
+both read on 15 November 2026), so no published source fixes the check this server would run.
 
 `get_reviewed_rate` takes a `record_id`, such as `concessional-cap-2026-27`, and an
 `as_at` date, and needs no folder. It reads a bundled copy of the records in
