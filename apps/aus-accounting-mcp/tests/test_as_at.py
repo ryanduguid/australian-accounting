@@ -810,10 +810,14 @@ def test_overlapping_compilations_of_a_title_stop_a_dated_call(
             asyncio.run(mcp.call_tool(tool, {**arguments, "as_at": "2098-08-01"}))
 
 
-def test_a_disagreeing_row_of_a_compilation_not_chosen_stops_a_dated_search(two_compilations):
+# "synthetic levy" fully matches the disagreeing row; "synthetic levy receipt" only partly.
+@pytest.mark.parametrize("query", ["synthetic levy", "synthetic levy receipt"])
+def test_a_disagreeing_row_of_a_compilation_not_chosen_stops_a_dated_search(
+    two_compilations, query
+):
     empty = two_compilations / "compilations" / "2098-01-01" / "markdown" / CURRENT
     synthetic_corpus.write(empty / "sections.jsonl", [])
-    result = call(SEARCH, query="synthetic levy", as_at="2098-11-01")
+    result = call(SEARCH, query=query, as_at="2098-11-01")
     assert [hit["text"] for hit in result["matches"]] == [LATEST_TEXT]
     rows = title(CURRENT, "Synthetic Current Act 2098", "2098-07-01", superseded="2098-10-01",
                  texts=(EARLIER_TEXT, TEXTS[1]))
@@ -823,7 +827,23 @@ def test_a_disagreeing_row_of_a_compilation_not_chosen_stops_a_dated_search(two_
     write_compilation(two_compilations, "2098-07-01", rows)
 
     with pytest.raises(ToolError, match="disagree"):
-        asyncio.run(mcp.call_tool(SEARCH, {"query": "synthetic levy", "as_at": "2098-11-01"}))
+        asyncio.run(mcp.call_tool(SEARCH, {"query": query, "as_at": "2098-11-01"}))
+
+
+def test_an_entry_that_cannot_be_inspected_does_not_hide_an_earlier_compilation(
+    two_compilations, monkeypatch
+):
+    listed = Path.iterdir
+
+    def stale_first(self):
+        # An entry removed after the listing: inspecting it raises FileNotFoundError.
+        return iter([self / "0-removed", *sorted(listed(self))])
+
+    monkeypatch.setattr(Path, "iterdir", stale_first)
+
+    assert call(READ, row_id=f"{CURRENT}:0001:1")["section"]["caveats"] == [
+        corpus.EARLIER_CAVEAT
+    ]
 
 
 def test_an_undated_read_survives_a_compilations_folder_it_cannot_list(

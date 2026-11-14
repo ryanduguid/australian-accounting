@@ -1133,17 +1133,25 @@ def _held_earlier(root: Path, register_id: str) -> bool:
     """Whether compilations/ holds an index of the title, for an undated read's caveat.
 
     Only existence is checked and nothing is read, so a folder a dated call would refuse,
-    or one that cannot be listed, does not stop an undated one.
+    or one that cannot be listed, does not stop an undated one. An entry that cannot be
+    inspected is passed over, so it cannot hide an earlier compilation listed after it.
     """
     folder = root / "compilations"
     try:
-        return folder.is_dir() and not _linked(folder) and any(
-            (build / "markdown" / register_id / "sections.jsonl").is_file()
-            for build in folder.iterdir()
-            if not build.name.startswith(".") and not _linked(build)
-        )
+        builds = list(folder.iterdir()) if folder.is_dir() and not _linked(folder) else []
     except OSError:
         return False
+    for build in builds:
+        try:
+            if (
+                not build.name.startswith(".")
+                and not _linked(build)
+                and (build / "markdown" / register_id / "sections.jsonl").is_file()
+            ):
+                return True
+        except OSError:
+            continue
+    return False
 
 
 def _withheld_read(
