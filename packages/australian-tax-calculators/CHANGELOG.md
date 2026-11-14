@@ -50,6 +50,22 @@ intentionally changed.
   `input.signed_amount_invalid` covers its earnings input, and
   `input.field_unknown` refuses a field it does not take, such as an opening
   balance, which the other worksheets ignore.
+- `termination-payment` works out the tax-free part of a genuine redundancy or
+  early retirement scheme payment ($13,598 plus $6,801 for each completed year
+  of service, ITAA 1997 s 83-170) and the Schedule 11 withholding from one life
+  benefit employment termination payment made in 2026-27: the excluded part
+  within the $270,000 ETP cap, then the non-excluded part within the smaller of
+  the ETP cap left and the $180,000 whole-of-income cap less other taxable
+  payments (s 82-10(4) and (7)), at 17% from preservation age at 30 June 2027,
+  32% below it and 47% above the cap, each part rounded to the dollar. Death
+  benefit ETPs, ETPs with a tax-free component, earlier ETPs and the tax
+  assessed on the ETP are outside it. No Python release has it.
+  `tests/parity.rs` drops its catalogue entry before comparing,
+  `tests/termination_payment.rs` holds it to the ATO's Schedule 11 examples 1
+  to 4 and each cap, limit, preservation age and rounding boundary, and
+  the repository's root `tests/test_dated_rates.py` keeps its 4 dollar figures
+  equal to the rate records. The new refusal code `input.years_of_service_invalid` covers its
+  years of service, and `input.field_unknown` refuses a field it does not take.
 - `depreciation` takes an optional `opening_adjustable_value` for an income
   year after the asset's start time (ITAA 1997 ss 40-70(1), 40-72 and 40-75).
   Diminishing value then applies its rate to that value and prime cost to cost,
@@ -92,10 +108,12 @@ intentionally changed.
 - `depreciation` divides once, last, so an exact half cent is not lost: $1,000.50
   over 14 years by diminishing value at 21% taxable use is exactly $30.015,
   now $30.02; Python 0.2.0 gave $30.01. No frozen result changes. The result
-  is exact whenever the effective life's digits and the taxable use's decimal
-  places total 22 or fewer, within the 40-digit working precision; an effective
-  life of 37 or more significant digits can still land a cent either side of
-  the exact value, as before.
+  is exact whenever the effective life's significant digits and the taxable
+  use's decimal places total 22 or fewer, within the 40-digit working
+  precision, and `depreciation` refuses anything longer with
+  `depreciation.precision_exceeded`. Python 0.2.0 accepted it, and an
+  effective life of 37 significant digits could land a cent from the exact
+  value. No frozen call has such an input.
 - `depreciation` refuses a field it does not take with `input.field_unknown`,
   as `division-296` does; Python 0.2.0 ignored it. A misspelt
   `opening_adjustable_value` would otherwise give the start year's result for a

@@ -95,8 +95,8 @@ def get_benchmark_rate(
 # loan the gate passed (src/myr.rs, repayment_within); the pinned 0.3.2 works a
 # lower repayment from it. These copy its conditions, codes and wording. Remove
 # them once review_loan calls an engine release that gives these refusals
-# itself, such as 1.0.0's review-register; its minimum-yearly-repayment takes
-# no loan term and does not. Until then a code the engine gave is not repeated.
+# itself, such as 1.0.0's review-register, or its minimum-yearly-repayment
+# given maximum_term_years. Until then a code the engine gave is not repeated.
 def _remaining_term_refusal(
     gate: GateResult, gate_facts: GateFacts, myr_facts: MyrFacts
 ) -> tuple[str, str] | None:
@@ -122,7 +122,11 @@ def _remaining_term_refusal(
             "term less the years since the loan year (s 109E(6)). Correct the "
             "remaining term or the security facts. Enter a loan secured and "
             "extended under s 109E(3A) as the new amalgamated loan s 109E(3B) "
-            "creates, with its 25-year security facts. No MYR figure is emitted.",
+            "creates, with its 25-year security facts and, in maximum_term_years, "
+            "its agreed term counted from when the loan was first made (at most "
+            "25 years, s 109E(3A)(e)) less the time it had already run before the "
+            "extension, which is how the ATO works the term of such a loan. No "
+            "MYR figure is emitted.",
         )
     term = gate_facts.maximum_term_years
     if term is not None and used > statutory_remaining_term(term):
@@ -181,7 +185,10 @@ def _term_left_refusal(
         "year_loan_made or maximum_term_years. A loan secured and extended under "
         "s 109E(3A) is the new amalgamated loan s 109E(3B) treats as made just "
         "before the start of the later year of income, so its year_loan_made is the "
-        "year before that later year. No MYR figure is emitted.",
+        "year before that later year, and its maximum_term_years, as the ATO works "
+        "it, is its agreed term counted from when the loan was first made (at most "
+        "25 years, s 109E(3A)(e)) less the time it had already run before the "
+        "extension. No MYR figure is emitted.",
     )
 
 

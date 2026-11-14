@@ -263,6 +263,37 @@ class ApplicationSelectionTests(unittest.TestCase):
                     self.assertTrue(self.ci.should_run(app, [*unrelated, path]))
             self.assertTrue(self.ci.should_run(app, []))
 
+    def test_crates_skip_only_for_known_paths_they_do_not_read(self) -> None:
+        from select_package import SHARED_PATHS
+
+        matrix = [f"{crate['root']}/{crate['package']}" for crate in self.ci.crates(ci_yml=True)]
+        unrelated = ["apps/aus-accounting-mcp/README.md", "apps/lodgeit-calculator-adapter/src/main.rs",
+                     "packages/lodgment-calendar/pyproject.toml", "tests/test_components.py",
+                     "tools/fixture-screen/src/main.rs"]
+        self.assertFalse(self.ci.crates_should_run(unrelated))
+        for path in [*(f"{directory}/README.md" for directory in matrix), ".github/ci/rust_crates.py",
+                     *SHARED_PATHS, "Cargo.toml", ".cargo/config.toml", "docs/new.md", "", "../notes",
+                     "tests/../packages/gst-review/src/lib.rs"]:
+            with self.subTest(path=path):
+                self.assertTrue(self.ci.crates_should_run([*unrelated, path]))
+        self.assertTrue(self.ci.crates_should_run([]))
+
+    def test_crates_link_only_each_other_by_path(self) -> None:
+        # A change to any one of these crates runs them all, so a path dependency
+        # outside them would change a crate without selecting it.
+        matrix = [ROOT / crate["root"] / crate["package"] for crate in self.ci.crates(ci_yml=True)]
+        for directory in matrix:
+            metadata = json.loads(subprocess.run(
+                ["cargo", "metadata", "--no-deps", "--offline", "--format-version", "1"],
+                cwd=directory, check=True, capture_output=True, text=True,
+            ).stdout)
+            for package in metadata["packages"]:
+                for dependency in package["dependencies"]:
+                    if "path" in dependency:
+                        path = Path(dependency["path"]).resolve()
+                        with self.subTest(crate=package["name"], dependency=dependency["name"]):
+                            self.assertTrue(any(path.is_relative_to(d.resolve()) for d in matrix), path)
+
     def test_gated_workflows_select_their_former_trigger_paths(self) -> None:
         # These workflows dropped on.pull_request.paths for a changes job, so every pull
         # request reports their gate, and CI_PATHS must still select each path the
@@ -414,9 +445,10 @@ class ApplicationGateTests(unittest.TestCase):
     def test_gate_truth_table_and_every_malformed_or_unsuccessful_job(self) -> None:
         ci = application_ci()
         for app, app_jobs in ci.SELECTED_JOBS.items():
+            selector = ci.SELECTORS.get(app, "changes")
             for selection, result in (("true", "success"), ("false", "skipped")):
                 success = {name: {"result": result} for name in app_jobs}
-                success.update(changes={"result": "success", "outputs": {"run": selection}},
+                success.update({selector: {"result": "success", "outputs": {"run": selection}}},
                                packages={"result": "success"}, future={"result": "success"})
                 ci.check_results(success, "pull_request", app)
                 for name in success:
@@ -433,17 +465,17 @@ class ApplicationGateTests(unittest.TestCase):
                         with self.subTest(name=name, malformed=malformed):
                             with self.assertRaises(ValueError):
                                 ci.check_results({**success, name: malformed}, "pull_request", app)
-                    if name in app_jobs | {"changes"}:
+                    if name in app_jobs | {selector}:
                         with self.assertRaises(ValueError):
                             ci.check_results({k: v for k, v in success.items() if k != name}, "pull_request", app)
                 for invalid in (None, True, False, "TRUE", "false ", "", [], {}):
                     changed = copy.deepcopy(success)
-                    changed["changes"]["outputs"]["run"] = invalid
+                    changed[selector]["outputs"]["run"] = invalid
                     with self.subTest(invalid=invalid), self.assertRaises(ValueError):
                         ci.check_results(changed, "pull_request", app)
                 for malformed in (None, [], "true", {}):
                     changed = copy.deepcopy(success)
-                    changed["changes"]["outputs"] = malformed
+                    changed[selector]["outputs"] = malformed
                     with self.assertRaises(ValueError):
                         ci.check_results(changed, "pull_request", app)
                 if selection == "false":
@@ -454,13 +486,35 @@ class ApplicationGateTests(unittest.TestCase):
                 with self.assertRaises(ValueError):
                     ci.check_results(malformed, "pull_request", app)
 
+    def test_ci_yml_gate_holds_each_selection_to_its_own_jobs(self) -> None:
+        ci = application_ci()
+        app_jobs, crate_jobs = ci.SELECTED_JOBS["aus-accounting-mcp"], ci.SELECTED_JOBS["crates"]
+        for app_run, crates_run in (("true", "false"), ("false", "true"), ("false", "false")):
+            results = {name: {"result": "success" if app_run == "true" else "skipped"} for name in app_jobs}
+            results |= {name: {"result": "success" if crates_run == "true" else "skipped"} for name in crate_jobs}
+            results |= {"changes": {"result": "success", "outputs": {"run": app_run}},
+                        "crates": {"result": "success", "outputs": {"run": crates_run}},
+                        "packages": {"result": "success"}}
+            with self.subTest(app=app_run, crates=crates_run):
+                ci.check_results(results, "pull_request", "aus-accounting-mcp", "crates")
+                # A selection the gate is not told about leaves its skipped jobs failing.
+                if crates_run == "false":
+                    with self.assertRaises(ValueError):
+                        ci.check_results(results, "pull_request", "aus-accounting-mcp")
+                if app_run == "false":
+                    with self.assertRaises(ValueError):
+                        ci.check_results(results, "pull_request", "crates")
+                for event in ("push", "workflow_dispatch"):
+                    with self.assertRaises(ValueError):
+                        ci.check_results(results, event, "aus-accounting-mcp", "crates")
+
     def test_gate_cli_works_with_sparse_checkout_and_rejects_invalid_json(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)
             shutil.copytree(CHECK.parent, root / ".github/ci", ignore=shutil.ignore_patterns("__pycache__"))
             for app, app_jobs in application_ci().SELECTED_JOBS.items():
                 results = {name: {"result": "skipped"} for name in app_jobs}
-                results["changes"] = {"result": "success", "outputs": {"run": "false"}}
+                results[application_ci().SELECTORS.get(app, "changes")] = {"result": "success", "outputs": {"run": "false"}}
                 for raw, gate, expected in ((json.dumps(results), [app], 0), ("{invalid", [app], 1),
                                             ("null", [app], 1), (json.dumps(results), [], 2),
                                             (json.dumps(results), ["unknown-app"], 2)):
@@ -486,7 +540,7 @@ class GateWiringTests(unittest.TestCase):
                 self.assertIn("if: matrix.os == 'ubuntu-latest' && matrix.python == '3.14'", upload)
                 self.assertNotIn("matrix.python == '3.13'", test)
 
-    def test_engine_diff_uses_nul_paths_and_root_retains_all_component_suites(self) -> None:
+    def test_engine_diff_uses_nul_paths_and_root_retains_its_component_suites(self) -> None:
         package = (WORKFLOWS / "ci-package.yml").read_text(encoding="utf-8")
         self.assertIn('git diff --name-only --no-renames -z "$BASE" "$HEAD" --', package)
         self.assertEqual(package.count('"${ON_MAIN[@]}"'), 2)
@@ -510,11 +564,21 @@ class GateWiringTests(unittest.TestCase):
                 self.assertIn("if: needs.changes.result == 'success' && needs.changes.outputs.run == 'true'", job)
                 self.assertNotIn("continue-on-error", job)
             gate = gate_job(workflow, GATES[workflow])
-            self.assertIn(f"run: python3 .github/ci/app_ci.py gate {app}\n", gate)
+            selections = f"{app} crates" if workflow == "ci.yml" else app
+            self.assertIn(f"run: python3 .github/ci/app_ci.py gate {selections}\n", gate)
             self.assertIn(f"check_gates.py .github/workflows/{workflow} {GATES[workflow]} --no-results", gate)
             if workflow == "ci.yml":
                 packages = job_block(text, "packages")
                 self.assertNotIn("needs: changes", packages)
+                crates = job_block(text, "crates")
+                self.assertIn("fetch-depth: 2", crates)
+                self.assertIn('run: python3 .github/ci/app_ci.py select crates >> "$GITHUB_OUTPUT"', crates)
+                self.assertIn("run: ${{ steps.select.outputs.run }}", crates)
+                rust = job_block(text, "rust")
+                self.assertIn("if: needs.crates.result == 'success' && needs.crates.outputs.run == 'true'", rust)
+                parity = job_block(text, "umbrella-parity")
+                self.assertIn("needs: [crates, rust]", parity)
+                self.assertNotIn("if:", parity)
         owner = (WORKFLOWS / "boundaries.yml").read_text(encoding="utf-8")
         self.assertIn("run: uv run --locked --group dev pytest", owner)
         self.assertIn("needs: [boundaries, root-checks, fixture-screen]", owner)

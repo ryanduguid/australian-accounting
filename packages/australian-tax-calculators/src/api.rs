@@ -275,6 +275,19 @@ const COMMAND_ARGS: &[(&str, &[(&str, Kind)])] = &[
         ],
     ),
     (
+        "termination-payment",
+        &[
+            ("redundancy_payment", Dec),
+            ("completed_years_of_service", Raw),
+            ("excluded_payment", Dec),
+            ("non_excluded_payment", Dec),
+            ("other_taxable_payments", Dec),
+            ("date_of_birth", Raw),
+            ("year", Raw),
+            ("scope_confirmed", Raw),
+        ],
+    ),
+    (
         "study-loan-repayment",
         &[
             ("repayment_income", Dec),
@@ -507,11 +520,14 @@ pub fn evaluate_coded(command: &str, v: &Value) -> Result<Value> {
     let Some((_, params)) = COMMAND_ARGS.iter().find(|(c, _)| *c == command) else {
         return refusal("command.unknown", format!("unknown command {command}"));
     };
-    // Division 296 has no Python original whose lenience to keep, and a misspelt
-    // optional depreciation input would silently give the start year's result, so
-    // a field either does not take, such as an opening balance, is refused rather
-    // than ignored.
-    if matches!(command, "division-296" | "depreciation") {
+    // Division 296 and the termination payment worksheet have no Python original
+    // whose lenience to keep, and a misspelt optional depreciation input would
+    // silently give the start year's result, so a field they do not take, such as
+    // an opening balance, is refused rather than ignored.
+    if matches!(
+        command,
+        "division-296" | "depreciation" | "termination-payment"
+    ) {
         let optional = crate::metadata::optional_inputs(command);
         let taken = |key: &String| {
             params.iter().any(|(p, _)| p == key) || optional.iter().any(|(o, _)| o == key)
@@ -581,6 +597,9 @@ pub fn evaluate_coded(command: &str, v: &Value) -> Result<Value> {
         "low-income-tax-offset" => engine::low_income_tax_offset(&a[0], &a[1], &a[2]),
         "division-293" => engine::division_293(&a[0], &a[1], &a[2], &a[3]),
         "division-296" => engine::division_296(&a[0], &a[1], [&a[2], &a[3], &a[4]], &a[5], &a[6]),
+        "termination-payment" => {
+            engine::termination_payment(&a[0], &a[1], &a[2], &a[3], &a[4], &a[5], &a[6], &a[7])
+        }
         "study-loan-repayment" => engine::study_loan_repayment(&a[0], &a[1], &a[2]),
         "contribution-caps" => {
             engine::contribution_caps(&a[0], &a[1], &a[2], &a[3], &a[4], &a[5], &a[6])
