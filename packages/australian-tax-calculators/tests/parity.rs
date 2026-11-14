@@ -406,7 +406,8 @@ fn python_api_corpus_matches() {
         serde_json::from_str(include_str!("data/python-api.json")).expect("corpus parses");
     assert!(corpus.len() > 3000, "corpus too small: {}", corpus.len());
     for command in api::commands() {
-        if NEW_KINDS.iter().any(|(c, _)| *c == command) {
+        // derive is new too; tests/derivation.rs covers it.
+        if command == "derive" || NEW_KINDS.iter().any(|(c, _)| *c == command) {
             continue;
         }
         assert!(
