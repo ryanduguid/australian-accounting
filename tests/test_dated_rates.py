@@ -40,7 +40,7 @@ DATASET = PACKAGES / "au-tax-rates-data" / "data"
 
 # How many engine copies of dataset figures _dataset_pairs() compares. An engine
 # table that starts holding a dataset figure needs its own entry there.
-DATASET_PAIRS = 54
+DATASET_PAIRS = 56
 
 
 def _metadata_literal(name: str):
@@ -122,12 +122,14 @@ def _dataset_pairs() -> list[tuple[str, Decimal, Decimal | None]]:
             (f"{year} non-concessional cap (metadata.rs, 4 x CONTRIBUTION_CAPS)",
              _value(f"non-concessional-cap-{year}"), Decimal(caps[year][0]) * 4),
         ]
-    medicare = _metadata_literal("MEDICARE_LOW_INCOME_THRESHOLDS")["2025-26"]
+    medicare = _metadata_literal("MEDICARE_LOW_INCOME_THRESHOLDS")
     tables = {
         "STUDY_LOAN_REPAYMENT_THRESHOLDS 2026-27":
             dict(_metadata_literal("STUDY_LOAN_REPAYMENT_THRESHOLDS")["2026-27"]),
         "STUDY_LOAN_REPAYMENT_RATES": _metadata_literal("STUDY_LOAN_REPAYMENT_RATES"),
-        "MEDICARE_LOW_INCOME_THRESHOLDS 2025-26": {"threshold": medicare[0], "phase_in": medicare[1]},
+        **{f"MEDICARE_LOW_INCOME_THRESHOLDS {year}":
+           {"threshold": medicare[year][0], "phase_in": medicare[year][1]}
+           for year in ("2025-26", "2026-27")},
         "MEDICARE_LEVY_RATES": _metadata_literal("MEDICARE_LEVY_RATES"),
         "LOW_INCOME_TAX_OFFSET": _metadata_literal("LOW_INCOME_TAX_OFFSET"),
         "DIVISION_293": _metadata_literal("DIVISION_293"),
@@ -145,6 +147,9 @@ def _dataset_pairs() -> list[tuple[str, Decimal, Decimal | None]]:
         ("study-loan-repayment-flat-rate-2026-27", "STUDY_LOAN_REPAYMENT_RATES", "flat"),
         ("medicare-low-income-lower-threshold-2025-26", "MEDICARE_LOW_INCOME_THRESHOLDS 2025-26", "threshold"),
         ("medicare-low-income-upper-threshold-2025-26", "MEDICARE_LOW_INCOME_THRESHOLDS 2025-26", "phase_in"),
+        # The records' notes: Act No. 58, 2026 applies the 2025-26 figures to later years.
+        ("medicare-low-income-lower-threshold-2025-26", "MEDICARE_LOW_INCOME_THRESHOLDS 2026-27", "threshold"),
+        ("medicare-low-income-upper-threshold-2025-26", "MEDICARE_LOW_INCOME_THRESHOLDS 2026-27", "phase_in"),
         ("medicare-levy-rate", "MEDICARE_LEVY_RATES", "levy"),
         ("lito-maximum", "LOW_INCOME_TAX_OFFSET", "maximum"),
         ("lito-income-limit", "LOW_INCOME_TAX_OFFSET", "cut_out"),

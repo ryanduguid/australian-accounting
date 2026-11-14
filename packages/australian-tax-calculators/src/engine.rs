@@ -966,7 +966,7 @@ pub fn medicare_levy(
             ("medicare_levy", levy),
         ])
     })?;
-    result(
+    let mut out = result(
         "medicare_levy",
         &year,
         amounts,
@@ -976,7 +976,17 @@ pub fn medicare_levy(
             rate("threshold_amount", &threshold),
             rate("phase_in_limit", &limit),
         ],
-    )
+    )?;
+    if let Some((_, note)) = texts::MEDICARE_YEAR_WARNINGS
+        .iter()
+        .find(|(y, _)| *y == year)
+    {
+        out["warnings"]
+            .as_array_mut()
+            .expect("warnings")
+            .push(json!(note));
+    }
+    Ok(out)
 }
 
 pub fn low_income_tax_offset(

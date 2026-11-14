@@ -256,6 +256,7 @@ pub const EXTRA_SOURCES: &[(&str, &[&str])] = &[
             "https://www.ato.gov.au/individuals-and-families/medicare-and-private-health-insurance/medicare-levy/medicare-levy-reduction/medicare-levy-reduction-for-low-income-earners",
             "https://www.ato.gov.au/individuals-and-families/your-tax-return/instructions-to-complete-your-tax-return/mytax-instructions/2025/medicare-and-private-health-insurance/medicare-levy-reduction-or-exemption",
             "https://www.ato.gov.au/individuals-and-families/income-deductions-offsets-and-records/income-you-must-declare/lump-sum-payment-in-arrears",
+            "https://www.legislation.gov.au/C2026A00058/asmade/text",
         ],
     ),
     (
@@ -317,6 +318,13 @@ pub const EXTRA_WARNINGS: &[(&str, &[&str])] = &[
         ],
     ),
 ];
+
+/// A `medicare_levy` warning for a year whose thresholds the ATO had not
+/// published when they were read from the Act.
+pub const MEDICARE_YEAR_WARNINGS: &[(&str, &str)] = &[(
+    "2026-27",
+    "2026-27 uses the threshold amount and phase-in limit Medicare Levy Act 1986 s 3(1) sets for 2025-26 and later years (Act No. 58, 2026, Sch 5 item 14). The ATO had not published 2026-27 thresholds when this was checked on 14 November 2026. That Act, assented on 30 June 2026, raised the figures for 2025-26, so a later Act can raise them for 2026-27 and change this result.",
+)];
 
 /// Every refusal code and the failure it names. A code stays when a message is
 /// reworded and never moves to a different failure; a new failure gets a new code.
