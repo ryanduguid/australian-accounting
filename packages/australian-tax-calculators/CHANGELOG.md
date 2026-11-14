@@ -220,12 +220,13 @@ intentionally changed.
   on 14 November 2026) still holds them. Both were read on 14 November 2026,
   when the ATO's low-income page still gave 2025-26 figures only. A 2026-27
   result adds a warning saying so and that a later Act can raise them for
-  2026-27, as Act No. 58 did for 2025-26. The sources add Act No. 58, 2026 and the source check date is 14 November
-  2026. `tests/parity.rs` applies this to the 162 frozen `medicare-levy`
-  results, 6 `periods` results, 10 `worksheet-catalogue` results and the 7
-  refusals that list the supported periods. It skips the 1 frozen call that
-  expected 2026-27 to be refused; `tests/tables.rs` checks 2026-27 at each
-  threshold and that 2027-28 is refused. The catalogue example stays at 2024-25.
+  2026-27, as Act No. 58 did for 2025-26. The sources add Act No. 58, 2026
+  and the source check date is 14 November 2026. `tests/parity.rs` applies
+  this to the 162 frozen `medicare-levy` results, 6 `periods` results, 10
+  `worksheet-catalogue` results and the 7 refusals that list the supported
+  periods. It skips the 1 frozen call that expected 2026-27 to be refused;
+  `tests/tables.rs` checks 2026-27 at each threshold and that 2027-28 is
+  refused. The catalogue example stays at 2024-25.
 
 ### Verification
 
