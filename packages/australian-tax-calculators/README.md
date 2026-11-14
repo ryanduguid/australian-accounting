@@ -172,7 +172,7 @@ The plain commands' output does not change.
 | Division 293 | 2024-25, 2025-26 and 2026-27; established Division 293 income and low tax contributions; no defined benefit interests |
 | Division 296 | 2026-27; one individual's established balance at 30 June 2027 and total superannuation earnings; no defined benefit or other s 296-70 interests; an estimate, as the Commissioner assesses |
 | Termination payment | 2026-27; one life benefit ETP to a resident employee who gave a TFN, paid within 12 months; established genuine redundancy and classified ETP parts; Schedule 11 withholding, not the tax assessed |
-| Schedule 5 withholding | Weekly, fortnightly or monthly pays made from 1 July 2024 to 30 June 2027 that include back payments, commissions or bonuses, on scale 1, 2, 3, 5 or 6; the study and training support loan component for pays from 24 September 2025 |
+| Schedule 5 withholding | Weekly, fortnightly or monthly pays made from 1 July 2024 to 30 June 2027 that include back payments, commissions or bonuses, on scale 1, 2, 3, 5 or 6; the study and training support loan component for pays from 24 September 2025, and from 1 July 2026 in Method B(i) |
 | Working holiday makers | 2024-25 to 2026-27; one weekly, fortnightly or monthly payment to an established working holiday maker; no TFN exemption claimants or labour mobility schemes |
 | Seniors and pensioners | 2024-25 to 2026-27; one weekly, fortnightly or monthly payment to an established senior or pensioner who gave a TFN, by status and Medicare levy exemption; no other tax offsets or Medicare levy adjustment |
 
@@ -481,9 +481,9 @@ Schedule 8 component for the pay, as `study-loan-withholding` gives it: a
 2025-26 pay needs `pay_date`, on or after 24 September 2025, when that year's
 coefficients apply, and 2024-25, with no Schedule 8 here, refuses it.
 `pay_date` without `study_loan` is refused, as it selects nothing else. Method
-B(i) recalculates the earlier periods with the coefficients for this pay's
-date: the schedule says only 'the relevant tax table', and F2025L01016 repealed
-the earlier instrument from 24 September 2025 with no transitional rule. The result gives each step of the method, the
+B(i) refuses a 2025-26 study loan: it recalculates earlier periods, and the
+schedule does not say which coefficients apply to periods before 24 September
+2025; Method A takes it. The result gives each step of the method, the
 withholding on the additional payment and the pay's total. Like
 `division-296`, each command refuses a field it does not take. Working holiday
 makers (Schedule 15), payees without a TFN, withholding variations and a bonus

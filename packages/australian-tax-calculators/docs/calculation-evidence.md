@@ -49,7 +49,7 @@ example evidence; it does not claim a fresh review of every supported period.
 | Division 293 | Not a Library document: ITAA 1997 ss 293-20 and 293-25, the 2013 Imposition Act and the ATO's worked example | 24 August 2026 (ATO page) | Established Division 293 income and low tax contributions for 2024-25 to 2026-27 |
 | Division 296 | `superannuation-contributions-to-superannuation-funds-and-rsas` (superannuation), ¶6-495, with the Explanatory Memorandum's examples 1.1 to 1.3, ITAA 1997 ss 296-15 to 296-55 (compilation 268, 1 October 2026), the 2026 Imposition Act and the ATO's Division 296 page | 30 June 2026; 3 November 2026 (ATO page) | One individual's established balance at 30 June 2027 and total superannuation earnings for 2026-27; working out either, s 296-70 interests and later years excluded |
 | Termination payment | Not a Library document: ATO Schedule 11 examples 1 to 4, with ITAA 1997 ss 82-10 and 83-170 (compilation 268, 1 October 2026), SISR reg 6.01(2) and `tax-examples-assessable-income` (tax-examples), ¶1-420 | 17 June 2026 (Schedule 11); 30 June 2026 (¶1-420) | One life benefit ETP in 2026-27 with established, classified parts; Schedule 11 withholding, not the tax assessed |
-| Schedule 5 withholding | Not a Library document: ATO Schedule 5 (NAT 3348) for payments from 1 July 2024, 1 July 2025 and 1 July 2026, and the 2024, 2025 and 2026 withholding schedules instruments | 17 June 2024, 10 June 2025 and 17 June 2026 (published) | One regular weekly, fortnightly or monthly pay with additional payments by Method A, B(i) or B(ii); the study loan component for pays from 24 September 2025 |
+| Schedule 5 withholding | Not a Library document: ATO Schedule 5 (NAT 3348) for payments from 1 July 2024, 1 July 2025 and 1 July 2026, and the 2024, 2025 and 2026 withholding schedules instruments | 17 June 2024, 10 June 2025 and 17 June 2026 (published) | One regular weekly, fortnightly or monthly pay with additional payments by Method A, B(i) or B(ii); the study loan component for pays from 24 September 2025, and from 1 July 2026 in Method B(i) |
 | Working holiday makers | Not a Library document: ATO Schedule 15 for payments from 1 July 2026, and for 1 July 2024 to 30 June 2026 | 17 June 2026 (published); 17 June 2024 (last updated) | One payment's withholding at the Table A rates or Schedule 1 scale 3 for 2024-25 to 2026-27; visa, registration and TFN status established by the operator |
 | Seniors and pensioners | Not a Library document: ATO Schedule 9 (NAT 4466) for payments from 1 July 2026, and for 1 July 2024 to 30 June 2026, with Schedule 9 of the 2026 and 2025 withholding schedules instruments | 17 June 2026 (published); 17 June 2024 (last updated) | One weekly, fortnightly or monthly payment's withholding on scales 1 to 9 for 2024-25 to 2026-27; eligibility, status and exemption established by the operator; other tax offsets and the Medicare levy adjustment excluded |
 | Study loan withholding | Not a Library document: ATO Schedule 8 (NAT 3539) for payments from 1 July 2026, and Schedule 8 of F2025L01016 for payments from 24 September 2025 | 17 June 2026 (published); 24 September 2025 (commenced) | Schedule 8 component on one regular weekly, fortnightly, monthly or quarterly pay, added to the Schedule 1 amount |
@@ -699,17 +699,18 @@ accepts in place of separate calculations and which gives the same amounts in
 every 2026 example. The 2024 and 2025 examples work the component as the
 earlier percentage of weekly earnings, which F2025L01016 replaced from 24
 September 2025, so the tests hold their PAYG components only. A 2025-26 study
-loan pay takes F2025L01016's coefficients for its `pay_date`, and the tests
-work Jarrod, a Method B(i) pay and a Method B(ii) pay by hand on them (Jarrod:
-$289, $296, $7 x 52 = $364 on the bonus, $653 in all). Method B(i) recalculates
-the earlier periods with the coefficients for the current pay's date. Step 3
-says only 'the relevant tax table'; F2025L01016 commenced on 24 September 2025
-and repealed the earlier instrument with no transitional rule, so a pay made
-from that date has no other Schedule 8. For a back payment that reaches periods
-before 24 September 2025, whose amounts withheld used the earlier percentage,
-this is a reading, not a worked rule: no published example covers it.
-A 2024-25 study loan, a 2025-26 one without its date or before 24 September
-2025, and a pay date without a study loan are refused. Example 4 combines the 2
+loan pay by Method A or B(ii) takes F2025L01016's coefficients for its
+`pay_date`, and the tests work Jarrod and a Method B(ii) pay by hand on them
+(Jarrod: $289, $296, $7 x 52 = $364 on the bonus, $653 in all). Method B(i)
+refuses a 2025-26 study loan. It recalculates each earlier period, and step 3
+says only 'the relevant tax table'. F2025L01016 commenced on 24 September 2025
+and repealed the earlier instrument without a transitional rule, yet its own
+Schedule 5 examples use the study loan tables from 1 July 2024, so neither
+instrument settles which coefficients recalculate a period before that date,
+and the worksheet does not know the periods' dates. Method A, which Schedule 5
+accepts for any additional payment, takes the 2025-26 study loan. A 2024-25
+study loan, a 2025-26 one without its date or before 24 September 2025, and a
+pay date without a study loan are also refused. Example 4 combines the 2
 methods in one pay: the tests run each method and count the earnings' amount
 once, as the example does.
 

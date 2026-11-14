@@ -3149,8 +3149,10 @@ struct AdditionalPay {
 
 /// A study loan component needs a year with Schedule 8 coefficients and the
 /// pay date `study_loan_withholding` requires for it: 2025-26's apply to
-/// payments made from 24 September 2025.
-fn schedule_5_study_loan(year: &str, pay_date: Option<&Arg>) -> Result<()> {
+/// payments made from 24 September 2025. Method B(i) recalculates earlier
+/// periods, and Schedule 5 does not say with which coefficients when they
+/// change during the year, so it takes only a year whose apply from 1 July.
+fn schedule_5_study_loan(kind: &str, year: &str, pay_date: Option<&Arg>) -> Result<()> {
     let years = meta::supported_periods("study_loan_withholding");
     if !years.contains(&year) {
         return refuse(
@@ -3158,6 +3160,15 @@ fn schedule_5_study_loan(year: &str, pay_date: Option<&Arg>) -> Result<()> {
             format!(
                 "study_loan is supported for {} only: there is no Schedule 8 study and training support loan component for {year}.",
                 years.join(", ")
+            ),
+        );
+    }
+    let from = *lookup(meta::STUDY_LOAN_WITHHOLDING_FROM, year);
+    if kind == "schedule_5_method_b_i" && !from.ends_with("-07-01") {
+        return refuse(
+            "period.unsupported",
+            format!(
+                "Method B(i) does not take study_loan for {year}: its Schedule 8 coefficients changed on {from}, and Schedule 5 does not say which recalculate the earlier periods. Method A takes it with the pay date."
             ),
         );
     }
@@ -3180,7 +3191,7 @@ fn additional_pay(
         payg_checks(kind, earnings, pay_period, scale, year, scope_confirmed)?;
     let study_loan = flag(study_loan, "study_loan")?;
     if study_loan {
-        schedule_5_study_loan(&year, pay_date)?;
+        schedule_5_study_loan(kind, &year, pay_date)?;
     } else if pay_date.is_some() {
         return refuse(
             "payg.pay_date_without_study_loan",

@@ -162,11 +162,13 @@ intentionally changed.
   have no quarterly example, so `tests/study_loan_withholding.rs` checks
   hand-worked amounts and the quarterly starting earnings.
 - The 3 Schedule 5 commands take an optional `pay_date` with `study_loan`, so
-  the study loan part covers 2025-26 pays made from 24 September 2025 with
-  F2025L01016's coefficients. A 2025-26 study loan pay without its date, or
-  dated before 24 September 2025 or outside the year, is refused as by
-  `study-loan-withholding`; 2024-25 still refuses `study_loan`. A pay date
-  without `study_loan` is refused with the new code
+  the study loan part of Methods A and B(ii) covers 2025-26 pays made from 24
+  September 2025 with F2025L01016's coefficients. A 2025-26 study loan pay
+  without its date, or dated before 24 September 2025 or outside the year, is
+  refused as by `study-loan-withholding`; 2024-25 still refuses `study_loan`.
+  Method B(i) still refuses a 2025-26 study loan, now saying why: Schedule 5
+  does not say which coefficients recalculate an earlier period from before 24
+  September 2025. A pay date without `study_loan` is refused with the new code
   `payg.pay_date_without_study_loan`.
 - `tests/verdict_cases.rs` turns the edge cases in a published reviewer verdict,
   under CC BY 4.0, the default in the bounty's terms, into fabricated cases, or

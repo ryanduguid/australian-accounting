@@ -162,8 +162,8 @@ fn dated_study_loan(pay_date: &str) -> Value {
 }
 
 /// Each method's study loan part for a 2025-26 pay, worked by hand from the
-/// 1 July 2024 Schedule 1 and F2025L01016's Schedule 8, as the 2025 schedule
-/// has no study loan example on its Schedule 1. Jarrod: $1,400 gives $272 + $17
+/// 1 July 2024 Schedule 1 and F2025L01016's Schedule 8, as no schedule works an
+/// example on F2025L01016's Schedule 8 coefficients. Jarrod: $1,400 gives $272 + $17
 /// = $289; $1,417 gives $277 + $19 = $296; $7 x 52 = $364 under the $423 limit.
 #[test]
 fn method_a_works_a_2025_26_study_loan_with_its_pay_date() {
@@ -181,26 +181,11 @@ fn method_a_works_a_2025_26_study_loan_with_its_pay_date() {
     }
 }
 
-/// Worked by hand, as for Jarrod, on pays above the 2025-26 component's start.
-/// B(i): $1,600 a week for 8 periods with $383 withheld each, then $1,700, and
-/// $100 back pay for each period. Each period recalculated at $1,700 is $430,
-/// so $47 x 8 = $376; $430 on the current pay. B(ii): $3,000 a fortnight,
-/// $30,000 over 10 pays, $2,480 of arrears. $3,000 gives $672, $3,095 gives
-/// $716, so $44 x 26 = $1,144 under the $1,165.60 limit.
+/// Worked by hand, as for Jarrod: $3,000 a fortnight, $30,000 over 10 pays,
+/// $2,480 of arrears. $3,000 gives $672, $3,095 gives $716, so $44 x 26 =
+/// $1,144 under the $1,165.60 limit.
 #[test]
-fn methods_b_i_and_b_ii_work_a_2025_26_study_loan_with_its_pay_date() {
-    let robyn = method_b_i(
-        "2025-26",
-        "1700.00",
-        ["1600.00", "100.00", "383.00"],
-        8,
-        "weekly",
-    );
-    let robyn = run(B_I, &with(robyn, dated_study_loan("2025-09-24")));
-    assert_eq!(
-        amounts(&robyn, B_I_KEYS),
-        ["800.00", "376.00", "430.00", "806.00"]
-    );
+fn method_b_ii_works_a_2025_26_study_loan_with_its_pay_date() {
     let laura = method_b_ii(
         "2025-26",
         "3000.00",
@@ -218,22 +203,59 @@ fn methods_b_i_and_b_ii_work_a_2025_26_study_loan_with_its_pay_date() {
     );
 }
 
+/// Method B(i) recalculates earlier periods, and Schedule 5 does not say with
+/// which Schedule 8 coefficients when they changed during the year, as
+/// 2025-26's did on 24 September 2025, so it refuses a 2025-26 study loan
+/// whatever the pay date. 2026-27's apply from 1 July.
+#[test]
+fn method_b_i_refuses_a_2025_26_study_loan() {
+    let robyn = |year| {
+        method_b_i(
+            year,
+            "1700.00",
+            ["1600.00", "100.00", "371.00"],
+            8,
+            "weekly",
+        )
+    };
+    for overrides in [
+        study_loan(),
+        dated_study_loan("2025-09-24"),
+        dated_study_loan("2026-06-30"),
+    ] {
+        let refused =
+            api::evaluate_coded(B_I, &with(robyn("2025-26"), overrides.clone())).unwrap_err();
+        assert_eq!(
+            (refused.code, refused.message.as_str()),
+            (
+                "period.unsupported",
+                "Method B(i) does not take study_loan for 2025-26: its Schedule 8 coefficients changed on 2025-09-24, and Schedule 5 does not say which recalculate the earlier periods. Method A takes it with the pay date."
+            ),
+            "{overrides}"
+        );
+    }
+    assert_eq!(
+        refusal(
+            B_I,
+            &with(
+                robyn("2025-26"),
+                json!({"study_loan": false, "pay_date": "2025-09-24"})
+            )
+        ),
+        "payg.pay_date_without_study_loan"
+    );
+    assert_eq!(
+        run(B_I, &with(robyn("2026-27"), dated_study_loan("2026-07-01"))),
+        run(B_I, &with(robyn("2026-27"), study_loan()))
+    );
+}
+
 /// The pay date follows study-loan-withholding's rules, and is refused
 /// without a study loan, where it selects nothing.
 #[test]
 fn schedule_5_refuses_a_pay_date_it_cannot_use() {
     let facts = [
         (A, method_a("2025-26", "1400.00", "900.00", 52, "weekly")),
-        (
-            B_I,
-            method_b_i(
-                "2025-26",
-                "1700.00",
-                ["1600.00", "100.00", "383.00"],
-                8,
-                "weekly",
-            ),
-        ),
         (
             B_II,
             method_b_ii(
@@ -253,6 +275,18 @@ fn schedule_5_refuses_a_pay_date_it_cannot_use() {
             ),
             (dated_study_loan("2026-07-01"), "payg.pay_date_outside_year"),
             (dated_study_loan("2025-9-24"), "input.date_invalid"),
+            (
+                json!({"study_loan": true, "pay_date": null}),
+                "input.date_invalid",
+            ),
+            (
+                json!({"study_loan": true, "pay_date": 20250924}),
+                "input.date_invalid",
+            ),
+            (
+                json!({"study_loan": true, "pay_date": ["2025-09-24"]}),
+                "input.date_invalid",
+            ),
             (study_loan(), "input.missing_field"),
             (
                 json!({"study_loan": false, "pay_date": "2025-09-24"}),
@@ -761,6 +795,12 @@ fn every_method_refuses_what_it_does_not_cover() {
         ),
     ];
     for (command, facts) in cases {
+        // Method B(i) refuses a 2025-26 study loan before asking for its date.
+        let undated_2025_26 = if command == B_I {
+            "period.unsupported"
+        } else {
+            "input.missing_field"
+        };
         for (overrides, code) in [
             (json!({"scope_confirmed": false}), "scope.not_confirmed"),
             (json!({"year": "2027-28"}), "period.unsupported"),
@@ -778,7 +818,7 @@ fn every_method_refuses_what_it_does_not_cover() {
             ),
             (
                 json!({"study_loan": true, "year": "2025-26"}),
-                "input.missing_field",
+                undated_2025_26,
             ),
             // A field the method does not take is refused, never ignored.
             (json!({"back_payment": "100.00"}), "input.field_unknown"),

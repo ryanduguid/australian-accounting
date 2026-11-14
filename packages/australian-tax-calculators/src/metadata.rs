@@ -1082,7 +1082,7 @@ pub fn optional_inputs(kind: &str) -> Vec<(&'static str, &'static str)> {
         )],
         "schedule_5_method_a" | "schedule_5_method_b_i" | "schedule_5_method_b_ii" => vec![(
             "pay_date",
-            "YYYY-MM-DD date this pay is made, within the income year, with study_loan true only; required with it for 2025-26, whose Schedule 8 coefficients apply from 24 September 2025",
+            "YYYY-MM-DD date this pay is made, within the income year, with study_loan true only; required with it for 2025-26, whose Schedule 8 coefficients apply from 24 September 2025; Method B(i) refuses a 2025-26 study loan",
         )],
         _ => Vec::new(),
     }
@@ -1103,7 +1103,7 @@ pub fn input_units(kind: &str) -> Vec<(&'static str, &'static str)> {
         ("scale", "integer 1, 2, 3, 5 or 6"),
         (
             "study_loan",
-            "boolean, whether the payee declared a study and training support loan debt; true adds the Schedule 8 component for the pay date to each table amount, for 2026-27 and 2025-26 pays made from 24 September 2025",
+            "boolean, whether the payee declared a study and training support loan debt; true adds the Schedule 8 component for the pay date to each table amount, for 2026-27 and, except in Method B(i), 2025-26 pays made from 24 September 2025",
         ),
     ];
     match kind {
