@@ -468,6 +468,15 @@ fn method_b_i_takes_a_negative_total_as_nil() {
         run(B_I, &netted)["amounts"]["withholding_on_back_payment"],
         "0.00"
     );
+    // In either order: no period's difference is taken as nil on its own.
+    netted["back_payment_periods"]
+        .as_array_mut()
+        .unwrap()
+        .reverse();
+    assert_eq!(
+        run(B_I, &netted)["amounts"]["withholding_on_back_payment"],
+        "0.00"
+    );
 }
 
 /// At most 52 weekly, 26 fortnightly or 11 monthly earlier periods, and each
@@ -572,22 +581,27 @@ fn method_b_ii_counts_earlier_payments_and_their_withholding() {
 }
 
 /// Pay periods to date run from 1 to the most a year holds: 53 weekly, 27
-/// fortnightly or 12 monthly.
+/// fortnightly or 12 monthly. A year of 53 or 27 pays still divides the
+/// additional payments by 52 or 26: $2,480 is $47 or $95 a period.
 #[test]
 fn method_b_ii_takes_pay_periods_to_date_up_to_a_years_pays() {
-    for (pays, pay, accepted) in [
-        (0, "weekly", false),
-        (1, "weekly", true),
-        (53, "weekly", true),
-        (54, "weekly", false),
-        (27, "fortnightly", true),
-        (28, "fortnightly", false),
-        (12, "monthly", true),
-        (13, "monthly", false),
+    for (pays, pay, share) in [
+        (0, "weekly", None),
+        (1, "weekly", Some("47.00")),
+        (53, "weekly", Some("47.00")),
+        (54, "weekly", None),
+        (27, "fortnightly", Some("95.00")),
+        (28, "fortnightly", None),
+        (12, "monthly", Some("206.00")),
+        (13, "monthly", None),
     ] {
         let facts = method_b_ii("2026-27", "1800.00", "2480.00", ("18000.00", pays), pay);
-        if accepted {
-            run(B_II, &facts);
+        if let Some(share) = share {
+            assert_eq!(
+                run(B_II, &facts)["amounts"]["additional_payments_per_period"],
+                share,
+                "{pays} {pay}"
+            );
         } else {
             assert_eq!(
                 refusal(B_II, &facts),
