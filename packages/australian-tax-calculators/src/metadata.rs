@@ -1261,19 +1261,19 @@ pub fn optional_inputs(kind: &str) -> Vec<(&'static str, &'static str)> {
             ),
             (
                 "lowest_fee",
-                "AUD, commercial_parking_station only and required there: the lowest all-day fee a commercial parking station within 1 km charged on each day a benefit was provided (FBTAA s 39C), the same on every one of those days; a fee for another period is converted under s 39E",
+                "AUD, commercial_parking_station only and required there: the lowest all-day fee any commercial parking station within 1 km charged on each day a benefit was provided (FBTAA s 39C), the same on every one of those days; a fee for another period is converted under s 39E",
             ),
             (
                 "first_day_fee",
-                "AUD, average_cost only and required there: the lowest all-day fee a commercial parking station within 1 km charged on the day a car parking benefit was first provided in the FBT year (FBTAA s 39DA(3), A)",
+                "AUD, average_cost only and required there: the lowest all-day fee any commercial parking station within 1 km charged on the day a car parking benefit was first provided in the FBT year (FBTAA s 39DA(3), A)",
             ),
             (
                 "last_day_fee",
-                "AUD, average_cost only and required there: the lowest all-day fee a commercial parking station within 1 km charged on the day a car parking benefit was last provided in the FBT year (FBTAA s 39DA(3), B)",
+                "AUD, average_cost only and required there: the lowest all-day fee any commercial parking station within 1 km charged on the day a car parking benefit was last provided in the FBT year (FBTAA s 39DA(3), B)",
             ),
             (
                 "employee_contribution",
-                "AUD, commercial_parking_station and average_cost only and required there: the recipients' payments for these benefits in total, net of any reimbursement",
+                "AUD, commercial_parking_station and average_cost only and required there: the recipients' payments for these benefits in total, net of any reimbursement, each benefit's payment counted only up to that benefit's value (an excess on one benefit reduces no other)",
             ),
             (
                 "register_value",

@@ -445,22 +445,32 @@ and the result's warning says so.
 employees' unreimbursed contributions, and applies 50% (`50_50_split`, s 37BA)
 or the register percentage (`12_week_register`, s 37CB), kept exact and shown to
 2 places. A register must be in its first valid year or one of the 4 after it
-(s 37CD).
+(s 37CD). The worksheet checks only that; the operator establishes that the
+register was kept as the Act requires, that no earlier year's expenses were more
+than 20% above its first valid year's, and that no later register replaced it.
 
 `fbt_car_parking` gives a nil taxable value unless `first_business_day_fee`,
 the highest of the nearby stations' lowest all-day fees on the first business
-day, is more than the year's car parking threshold (s 39A(1)(a)(iii)).
+day, is more than the year's car parking threshold (s 39A(1)(a)(iii)). It
+takes one premises and the stations within 1 km of it; run it once for each.
 `commercial_parking_station` values each benefit at the
 day's lowest fee (s 39C), the same on every day, and `average_cost` at the
 average of the fees on the days benefits were first and last provided (s 39DA);
-the recipients' payments come off in total, never below nil. `12_week_register`
+the recipients' payments come off in total, each counted only up to its
+benefit's value, never below nil. `12_week_register`
 takes the register's net value times 52 / 12 times the availability period's
-days over 366 (s 39GB), the divisor the Act sets for every year. The market
-value and spaces methods are not covered: one needs a valuer's report, the
-other per-space facts this worksheet does not take.
+days over 366 (s 39GB), the divisor the Act sets for every year. It checks only
+the register's age (s 39GF); the operator establishes the record keeping, that
+the number of benefits rose by no more than 10% on any day of an earlier year,
+and that no later register replaced it. The market value (s 39D) and spaces (s
+39FA) methods are not covered, and a `method` naming either is refused: one
+needs a valuer's report, the other per-space facts this worksheet does not take.
 
-Each worksheet reproduces the ATO's and the Library's worked examples to the
-cent; see [calculation evidence](docs/calculation-evidence.md#fbt-loan).
+Each worksheet reproduces, to the cent, the published examples for the years it
+supports (FBT return 2026 instructions examples 8 and 18, and the Library's
+¶3-100 and ¶3-220) and the employer's guide's car parking examples 15 and 17,
+and reruns the guide's earlier-year loan examples at the supported rates; see
+[calculation evidence](docs/calculation-evidence.md#fbt-loan).
 
 ## Main residence
 
