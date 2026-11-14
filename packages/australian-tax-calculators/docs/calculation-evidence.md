@@ -519,14 +519,20 @@ same apart from the income year in Table A's heading and the examples' dates:
 | 2, monthly | $8,173.20 | $47,000 | 0.30 | 0.30 × 8,173 = 2,451.90, $2,452 |
 
 The columns follow the schedule's words, so $45,000.50 paid before is column 2
-('less than $45,001') and $190,000.50 column 5 ('more than $190,000'). Column 3
-ends at $135,000 and column 4 starts at $135,001, and Table A's bands leave the
-same gap, so payments before of $135,000.01 to $135,000.99 are refused rather
-than placed in either. The schedule does not say what an unregistered employer
+('less than $45,001') and $190,000.50 column 5 ('more than $190,000'), which
+Table A's rate column ('45% on each $1 over $190,000') agrees with. For
+$45,000.01 to $45,000.99 the formula reads differently: payments that 'exceed
+$45,000' go to Table A, whose rate column gives '30% on each $1 over $45,000';
+the worksheet follows column 2, as the schedule accepts either the lookup tool
+or the formula. Column 3 ends at $135,000 and column 4 starts at $135,001, and
+Table A's income bands leave the same gap, which only its rate column ('37% on
+each $1 over $135,000') reaches, so payments before of $135,000.01 to
+$135,000.99 are refused rather than placed in either column, and the refusal
+names the 37% for the payer to confirm with the ATO. The schedule does not say what an unregistered employer
 withholds when no TFN is given, so that case is refused. It says results from
 its formulas may differ slightly from the withholding lookup tool and that
 either is accepted; the tool's spreadsheet was not downloaded, and the
-worksheet follows the formulas. The payee's visa and residency and the
+worksheet applies the formula to the column's rate. The payee's visa and residency and the
 employer's registration are the operator's to establish.
 
 ## Study loan withholding

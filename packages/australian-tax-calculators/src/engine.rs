@@ -2114,9 +2114,9 @@ pub fn borrowing_expenses(
 
 /// Schedule 15's lookup tool column for a registered employer's payment to a
 /// working holiday maker who gave a TFN, and its Table A rate, from the
-/// payments made before it in the income year. Neither the columns nor
-/// Table A place payments before of $135,000.01 to $135,000.99, so they are
-/// refused.
+/// payments made before it in the income year. No column covers payments
+/// before of $135,000.01 to $135,000.99, so they are refused rather than
+/// placed in column 3 or 4.
 fn working_holiday_maker_rate(before: &Decimal) -> Result<(usize, &'static str)> {
     for (index, (low, high, rate_)) in meta::WORKING_HOLIDAY_MAKER_COLUMNS.iter().enumerate() {
         let above = low.map_or(Ok(true), |low| d(low).le(before))?;
@@ -2127,67 +2127,59 @@ fn working_holiday_maker_rate(before: &Decimal) -> Result<(usize, &'static str)>
     }
     refuse(
         "working_holiday_maker.band_unsettled",
-        "payments_before between $135,000 and $135,001 falls between Schedule 15's columns 3 and 4 and Table A's bands, which do not settle its rate.",
+        "payments_before of $135,000.01 to $135,000.99 is in none of Schedule 15's columns: column 3 (30%) ends at $135,000 and column 4 (37%) starts at $135,001. Table A's rate column gives 37% on each $1 over $135,000, but its income bands leave the same gap, so the worksheet does not choose; confirm the rate with the ATO before withholding.",
     )
 }
 
-/// Schedule 15: withholding from one payment to a working holiday maker.
-pub fn working_holiday_maker_withholding(
-    payment: &Arg,
-    payments_before: &Arg,
-    employer_registered: &Arg,
-    tfn_quoted: &Arg,
-    pay_period: &Arg,
-    year: &Arg,
-    scope_confirmed: &Arg,
+const WORKING_HOLIDAY_MAKER: &str = "working_holiday_maker_withholding";
+
+/// Schedule 15 for an unregistered employer, who withholds at the foreign
+/// resident rates: the Schedule 1 scale 3 amount for the pay period.
+fn unregistered_working_holiday_maker(
+    payment: Decimal,
+    period: String,
+    year: String,
+    tfn: bool,
 ) -> Result<Value> {
-    let kind = "working_holiday_maker_withholding";
-    let year = scope(scope_confirmed, year, kind)?;
-    let payment = money(payment)?;
-    let before = money(payments_before)?;
-    let registered = flag(employer_registered, "employer_registered")?;
-    let tfn = flag(tfn_quoted, "tfn_quoted")?;
-    let period = match pay_period.text() {
-        Some(p @ ("weekly" | "fortnightly" | "monthly")) => p.to_string(),
-        _ => {
-            return refuse(
-                "input.pay_period_invalid",
-                "pay_period must be weekly, fortnightly or monthly.",
-            );
-        }
-    };
-    let label = format!("{year} {period}");
-    if !registered {
-        if !tfn {
-            return refuse(
-                "working_holiday_maker.unregistered_no_tfn",
-                "An unregistered employer withholds at foreign resident rates, and this worksheet does not take their rate for a payee who gave no TFN.",
-            );
-        }
-        // An unregistered employer withholds at the foreign resident rates: Schedule 1 scale 3.
-        let foreign = payg_withholding(
-            &Arg::Decimal(payment.clone()),
-            &Arg::Text(period),
-            &Arg::Int(3),
-            &Arg::Text(year),
-            &Arg::Bool(true),
-        )?;
-        let withholding = d(foreign["amounts"]["withholding"]
-            .as_str()
-            .expect("withholding amount"));
-        let mut out = result(
-            kind,
-            &label,
-            vec![("payment_used", payment), ("withholding", withholding)],
-            vec![rate("scale", 3)],
-        )?;
-        out["withholding_basis"] = json!(
-            "unregistered employer: foreign resident rates, the Schedule 1 scale 3 amount for the pay period"
+    if !tfn {
+        return refuse(
+            "working_holiday_maker.unregistered_no_tfn",
+            "An unregistered employer withholds at foreign resident rates, and this worksheet does not take their rate for a payee who gave no TFN.",
         );
-        return Ok(out);
     }
+    let label = format!("{year} {period}");
+    let foreign = payg_withholding(
+        &Arg::Decimal(payment.clone()),
+        &Arg::Text(period),
+        &Arg::Int(3),
+        &Arg::Text(year),
+        &Arg::Bool(true),
+    )?;
+    let withholding = d(foreign["amounts"]["withholding"]
+        .as_str()
+        .expect("withholding amount"));
+    let mut out = result(
+        WORKING_HOLIDAY_MAKER,
+        &label,
+        vec![("payment_used", payment), ("withholding", withholding)],
+        vec![rate("scale", 3)],
+    )?;
+    out["withholding_basis"] = json!(
+        "unregistered employer: foreign resident rates, the Schedule 1 scale 3 amount for the pay period"
+    );
+    Ok(out)
+}
+
+/// Schedule 15 for a registered employer: the column's Table A rate, or 45%
+/// without a TFN, times the payment with cents ignored.
+fn registered_working_holiday_maker(
+    payment: &Decimal,
+    before: &Decimal,
+    tfn: bool,
+    label: &str,
+) -> Result<Value> {
     let (column, rate_) = if tfn {
-        working_holiday_maker_rate(&before)?
+        working_holiday_maker_rate(before)?
     } else {
         (6, meta::WORKING_HOLIDAY_MAKER_NO_TFN_RATE)
     };
@@ -2205,8 +2197,8 @@ pub fn working_holiday_maker_withholding(
         Ok((x, y))
     })?;
     let mut out = result(
-        kind,
-        &label,
+        WORKING_HOLIDAY_MAKER,
+        label,
         vec![("payment_used", x), ("withholding", withholding)],
         vec![rate("rate", &a)],
     )?;
@@ -2215,6 +2207,36 @@ pub fn working_holiday_maker_withholding(
         if tfn { "TFN quoted" } else { "no TFN" }
     ));
     Ok(out)
+}
+
+/// Schedule 15: withholding from one payment to a working holiday maker.
+pub fn working_holiday_maker_withholding(
+    payment: &Arg,
+    payments_before: &Arg,
+    employer_registered: &Arg,
+    tfn_quoted: &Arg,
+    pay_period: &Arg,
+    year: &Arg,
+    scope_confirmed: &Arg,
+) -> Result<Value> {
+    let year = scope(scope_confirmed, year, WORKING_HOLIDAY_MAKER)?;
+    let payment = money(payment)?;
+    let before = money(payments_before)?;
+    let registered = flag(employer_registered, "employer_registered")?;
+    let tfn = flag(tfn_quoted, "tfn_quoted")?;
+    let period = match pay_period.text() {
+        Some(p @ ("weekly" | "fortnightly" | "monthly")) => p.to_string(),
+        _ => {
+            return refuse(
+                "input.pay_period_invalid",
+                "pay_period must be weekly, fortnightly or monthly.",
+            );
+        }
+    };
+    if !registered {
+        return unregistered_working_holiday_maker(payment, period, year, tfn);
+    }
+    registered_working_holiday_maker(&payment, &before, tfn, &format!("{year} {period}"))
 }
 
 const KINDS: [&str; 20] = [

@@ -113,8 +113,8 @@ fn each_band_boundary() {
     }
 }
 
-/// No column or Table A band covers $135,000.01 to $135,000.99, so they are
-/// refused.
+/// No column covers $135,000.01 to $135,000.99, so they are refused, and the
+/// refusal names both columns' rates and Table A's 37% for the payer to confirm.
 #[test]
 fn payments_before_between_columns_3_and_4_are_refused() {
     for before in ["135000.01", "135000.50", "135000.99"] {
@@ -124,6 +124,12 @@ fn payments_before_between_columns_3_and_4_are_refused() {
             "{before}"
         );
     }
+    let refused =
+        api::evaluate_coded(COMMAND, &with(json!({"payments_before": "135000.50"}))).unwrap_err();
+    assert_eq!(
+        refused.message,
+        "payments_before of $135,000.01 to $135,000.99 is in none of Schedule 15's columns: column 3 (30%) ends at $135,000 and column 4 (37%) starts at $135,001. Table A's rate column gives 37% on each $1 over $135,000, but its income bands leave the same gap, so the worksheet does not choose; confirm the rate with the ATO before withholding."
+    );
 }
 
 /// The result is rounded to the nearest dollar, 50 cents up, directly from
