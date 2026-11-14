@@ -490,7 +490,13 @@ pub fn fbt(
 ) -> Result<Value> {
     // `_scope` reports the period as the original's `str(year_ended)`.
     let year = scope(scope_confirmed, &Arg::Text(year_ended.py_str()), "fbt")?;
-    let (type_one, type_two, fbt_rate) = (d("2.0802"), d("1.8868"), d("0.47"));
+    let rates = vec![
+        rate("type_one", "2.0802"),
+        rate("type_two", "1.8868"),
+        rate("fbt_rate", "0.47"),
+    ];
+    // The steps use the rates the result reports.
+    let [type_one, type_two, fbt_rate] = [0, 1, 2].map(|i| d(&rates[i].1));
     let steps = precise(|| {
         let one = money(type_one_value)?;
         let first = one.mul(&type_one)?;
@@ -514,16 +520,7 @@ pub fn fbt(
             ],
         ))
     })?;
-    derived_result(
-        "fbt",
-        &format!("year ended 31 March {year}"),
-        steps,
-        vec![
-            rate("type_one", &type_one),
-            rate("type_two", &type_two),
-            rate("fbt_rate", &fbt_rate),
-        ],
-    )
+    derived_result("fbt", &format!("year ended 31 March {year}"), steps, rates)
 }
 
 /// A car worksheet's FBT year: `year_ended` must be an integer. Returns the
