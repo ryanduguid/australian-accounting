@@ -3,6 +3,7 @@
 
 use australian_tax_calculators::api;
 use australian_tax_calculators::decimal::{Decimal, Rounding};
+use australian_tax_calculators::engine::worksheet_catalogue;
 use serde_json::{Value, json};
 use std::io::Write;
 use std::process::{Command, Stdio};
@@ -10,9 +11,9 @@ use std::process::{Command, Stdio};
 /// Worksheets added after Python 0.2.0, so absent from the frozen corpus;
 /// `tests/fbt_car.rs`, `tests/main_residence.rs`,
 /// `tests/borrowing_expenses.rs`, `tests/division_296.rs`,
-/// `tests/termination_payment.rs`, `tests/schedule_5.rs` and
-/// `tests/working_holiday_maker.rs` cover them.
-const NEW_KINDS: [(&str, &str); 10] = [
+/// `tests/termination_payment.rs`, `tests/schedule_5.rs`,
+/// `tests/working_holiday_maker.rs` and `tests/seniors_pensioners.rs` cover them.
+const NEW_KINDS: [(&str, &str); 11] = [
     ("fbt-car-statutory", "fbt_car_statutory"),
     ("fbt-car-operating-cost", "fbt_car_operating_cost"),
     ("main-residence", "main_residence"),
@@ -25,6 +26,10 @@ const NEW_KINDS: [(&str, &str); 10] = [
     (
         "working-holiday-maker-withholding",
         "working_holiday_maker_withholding",
+    ),
+    (
+        "seniors-pensioners-withholding",
+        "seniors_pensioners_withholding",
     ),
 ];
 
@@ -110,6 +115,7 @@ fn adapt(command: &str, input: &Value, mut expected: Value) -> Value {
         _ => {}
     }
     adapt_payg(command, input, &mut expected);
+    adapt_study_loan_withholding(command, input, &mut expected);
     adapt_fbt(command, input, &mut expected);
     adapt_medicare(command, input, &mut expected);
     adapt_depreciation(command, &mut expected);
@@ -215,6 +221,59 @@ fn adapt_payg(command: &str, input: &Value, expected: &mut Value) {
     }
 }
 
+/// `study-loan-withholding` also accepts 2025-26 pays from 24 September 2025,
+/// with the Schedule 8 coefficients of F2025L01016 (CHANGELOG.md).
+fn adapt_study_loan_withholding(command: &str, input: &Value, expected: &mut Value) {
+    let old_scope = "One regular weekly, fortnightly or monthly payment of salary or wages made from 1 July 2026 to a payee who gave a TFN declaration or withholding declaration saying they have a study and training support loan debt, on scale 1, 2, 3, 5 or 6 as the operator established. Scale 1 uses the Schedule 8 component for a payee who did not claim the tax-free threshold; scales 2, 3, 5 and 6 use the one for a payee who claimed it or is a foreign resident. Earnings include allowances subject to withholding. The result is the Schedule 1 amount plus the Schedule 8 component, each rounded to the dollar; the ATO's combined coefficients can differ by a dollar and it accepts either method. Excludes scale 4, a Medicare levy variation for a spouse or dependants, tax offsets, extra amounts for 53 or 27 pays, quarterly pays, lump sum termination payments, back payments, bonuses and other schedules.";
+    let new_scope = "One regular weekly, fortnightly or monthly payment of salary or wages made from 24 September 2025, in the income year given, to a payee who gave a TFN declaration or withholding declaration saying they have a study and training support loan debt, on scale 1, 2, 3, 5 or 6 as the operator established. The year selects the Schedule 1 coefficients and the Schedule 8 component coefficients for payments made in it; a 2025-26 payment needs its pay date, because the Schedule 8 coefficients of F2025L01016 apply from 24 September 2025. Scale 1 uses the Schedule 8 component for a payee who did not claim the tax-free threshold; scales 2, 3, 5 and 6 use the one for a payee who claimed it or is a foreign resident. Earnings include allowances subject to withholding. The result is the Schedule 1 amount plus the Schedule 8 component, each rounded to the dollar; the ATO's combined coefficients can differ by a dollar and it accepts either method. Excludes 2025-26 payments made before 24 September 2025, scale 4, a Medicare levy variation for a spouse or dependants, tax offsets, extra amounts for 53 or 27 pays, quarterly pays, lump sum termination payments, back payments, bonuses and other schedules.";
+    let added_sources = [
+        "https://www.legislation.gov.au/F2025L01016/asmade/text",
+        "https://www.ato.gov.au/tax-rates-and-codes/schedule-1-tax-table-01-july-2024-to-30-june-2026",
+    ];
+    let passage = "Schedule 8 (NAT 3539) for payments from 1 July 2026, and Schedule 8 of the Taxation Administration (Withholding Schedules) Instrument (No. 2) 2025 (F2025L01016) for payments from 24 September 2025: study and training support loans component rates, calculating fortnightly and monthly amounts, examples 1 to 3, rounding";
+    let year = json!({"id": "2025-26", "basis": "income year", "start": "2025-09-24",
+        "end": "2026-06-30", "arguments": {"year": "2025-26"}});
+    if command == "study-loan-withholding"
+        && let Some(Value::String(error)) = expected.get_mut("error")
+    {
+        *error = error.replace("; supported: 2026-27.", "; supported: 2025-26, 2026-27.");
+    }
+    let record = match command {
+        "study-loan-withholding" => expected.pointer_mut("/ok"),
+        "worksheet-catalogue" => expected.pointer_mut("/ok/study_loan_withholding"),
+        "periods" if input["kind"] == "study_loan_withholding" => {
+            expected["ok"].as_array_mut().unwrap().insert(0, year);
+            return;
+        }
+        _ => None,
+    };
+    let Some(record) = record else {
+        return;
+    };
+    assert_eq!(
+        record["scope"], old_scope,
+        "frozen study loan scope changed"
+    );
+    record["scope"] = json!(new_scope);
+    let sources = record["sources"].as_array_mut().unwrap();
+    sources.extend(added_sources.map(|source| json!(source)));
+    record["source_checked"] = json!("2026-11-14");
+    if command == "worksheet-catalogue" {
+        record["source_passage"] = json!(passage);
+        let periods = record["supported_periods"].as_array_mut().unwrap();
+        periods.insert(0, year);
+        let evidence = &mut record["example_evidence"];
+        evidence["document"] = json!(
+            "ATO Schedule 8 statement of formulas for STSL components, and F2025L01016 Schedule 8 for 2025-26"
+        );
+        evidence["paragraphs"] = json!("component rates, examples 1 to 3 in each");
+        evidence["checked"] = json!("2026-11-14");
+        record["optional_inputs"] = json!({
+            "pay_date": "YYYY-MM-DD date the payment is made, within the income year; required for 2025-26, whose Schedule 8 coefficients apply from 24 September 2025"
+        });
+    }
+}
+
 /// `fbt` also accepts the FBT year ending 31 March 2027, at the same rates
 /// (CHANGELOG.md).
 fn adapt_fbt(command: &str, input: &Value, expected: &mut Value) {
@@ -268,10 +327,17 @@ fn adapt_fbt(command: &str, input: &Value, expected: &mut Value) {
 }
 
 /// `medicare-levy` also accepts 2026-27, at the thresholds Act No. 58, 2026
-/// applies to 2025-26 and later years, and cites that Act (CHANGELOG.md).
+/// applies to 2025-26 and later years, and cites that Act; it also takes the
+/// optional SAPTO and family inputs, so its scope, sources and evidence name
+/// them (CHANGELOG.md). Without those inputs every result is the frozen one.
 fn adapt_medicare(command: &str, input: &Value, expected: &mut Value) {
-    let act = "https://www.legislation.gov.au/C2026A00058/asmade/text";
-    let passage = "Medicare Levy Act 1986 ss 3(1), 6(1) and 7(1) and (2), compilation 53; Treasury Laws Amendment (Delivering an Efficient and Trusted Tax System) Act 2026 Sch 5 item 14 (2025-26 and later years); ATO Medicare levy reduction for low-income earners (2025-26) and myTax 2025 table 2 (2024-25)";
+    let added = [
+        "https://www.legislation.gov.au/C2026A00058/asmade/text",
+        "https://www.ato.gov.au/individuals-and-families/medicare-and-private-health-insurance/medicare-levy/medicare-levy-reduction/medicare-levy-reduction-family-income",
+        "https://www.legislation.gov.au/C2004A03351/2025-03-28/2025-03-28/text/original/epub/OEBPS/document_1/document_1.html",
+        "https://www.legislation.gov.au/C2025A00028/asmade/text",
+    ];
+    let passage = "Medicare Levy Act 1986 ss 3(1) and (3), 6(1), 7(1) and (2) and 8, compilations 52 (2024-25) and 53; Treasury Laws Amendment (More Cost of Living Relief) Act 2025 Sch 2 item 14 (2024-25 and later years); Treasury Laws Amendment (Delivering an Efficient and Trusted Tax System) Act 2026 Sch 5 item 14 (2025-26 and later years); ATO Medicare levy reduction for low-income earners and Medicare levy reduction - family income, with the Ashton example (2025-26); myTax 2025 tables 2 and 3 and worksheet 2 (2024-25)";
     let year = json!({"id": "2026-27", "basis": "income year", "start": "2026-07-01",
         "end": "2027-06-30", "arguments": {"year": "2026-27"}});
     if command == "medicare-levy"
@@ -294,14 +360,35 @@ fn adapt_medicare(command: &str, input: &Value, expected: &mut Value) {
     let Some(record) = record else {
         return;
     };
-    record["sources"].as_array_mut().unwrap().push(json!(act));
+    let catalogue = worksheet_catalogue();
+    let current = &catalogue["medicare_levy"];
+    let scope = record["scope"].as_str().unwrap();
+    assert!(
+        scope.starts_with("Australian resident individual for the full income year, single with no spouse or dependants at any time in the year, not entitled to the seniors and pensioners tax offset,")
+            && scope.ends_with("Excludes the family income reduction, SAPTO thresholds, exemptions, the Medicare levy surcharge, trustees and part-year residence."),
+        "frozen Medicare levy scope changed"
+    );
+    record["scope"] = current["scope"].clone();
+    record["sources"]
+        .as_array_mut()
+        .unwrap()
+        .extend(added.map(|url| json!(url)));
     record["source_checked"] = json!("2026-11-14");
     if command == "worksheet-catalogue" {
         record["source_passage"] = json!(passage);
+        let evidence = &mut record["example_evidence"];
+        evidence["document"] = json!(
+            "ATO Medicare levy reduction for low-income earners; Medicare levy reduction - family income"
+        );
+        evidence["paragraphs"] = json!(
+            "table of single thresholds, example (Angie); family taxable income thresholds, example (Ashton)"
+        );
+        evidence["checked"] = json!("2026-11-14");
         record["supported_periods"]
             .as_array_mut()
             .unwrap()
             .push(year);
+        record["optional_inputs"] = current["optional_inputs"].clone();
     }
 }
 
@@ -348,7 +435,8 @@ fn python_api_corpus_matches() {
         serde_json::from_str(include_str!("data/python-api.json")).expect("corpus parses");
     assert!(corpus.len() > 3000, "corpus too small: {}", corpus.len());
     for command in api::commands() {
-        if NEW_KINDS.iter().any(|(c, _)| *c == command) {
+        // derive is new too; tests/derivation.rs covers it.
+        if command == "derive" || NEW_KINDS.iter().any(|(c, _)| *c == command) {
             continue;
         }
         assert!(

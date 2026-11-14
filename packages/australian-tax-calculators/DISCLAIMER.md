@@ -6,8 +6,8 @@ Australian tax calculators runs 14 bounded worksheets on facts the caller has
 already established: ordinary GST, resident basic income tax, CGT losses and
 the discount, ordinary employer FBT, first-year depreciation, quarterly super
 guarantee, PAYG withholding, super contribution caps, account-based pension
-minimums, study and training loan repayments and withholding, a single
-person's Medicare levy, the low income tax offset and Division 293 tax. It does not provide professional advice. It is not an assessment,
+minimums, study and training loan repayments and withholding, the
+Medicare levy, the low income tax offset and Division 293 tax. It does not provide professional advice. It is not an assessment,
 a private ruling, or a determination.
 
 Outputs can be wrong, incomplete, stale, or unsuitable for a given set of
@@ -30,7 +30,7 @@ The worksheets are deliberately narrow. Unsupported periods fail rather than
 extrapolate. The super guarantee worksheet does not implement the post-June
 2026 Payday entitlement rules; the separate Payday engine reviews timing on a
 supplied liability. SMSF tax, trusts, payroll tax, the Medicare levy surcharge
-and the family and exemption rules of the Medicare levy remain outside these
+and the exemption rules of the Medicare levy remain outside these
 worksheets.
 
 Nothing here lodges a return or any other official form, posts journals, pays

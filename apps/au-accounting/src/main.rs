@@ -5,6 +5,7 @@
 //! hands the remaining arguments to that engine's library exactly as the engine's
 //! own command does: JSON stdin commands, `--api-help` and the engine's CLI.
 
+use australian_tax_calculators::api::Refusal;
 use serde::Deserialize;
 use serde::de::{self, DeserializeSeed, MapAccess, SeqAccess, Visitor};
 use serde_json::Value;
@@ -196,7 +197,26 @@ fn tax(args: &[OsString]) -> Outcome {
         refuse_repeated_keys: true,
         ..FULL_JSON
     };
+    if let [command, flag] = args.as_slice()
+        && flag == "--refusal-json"
+        && commands.contains(&command.as_str())
+    {
+        return tax_refusal_json(command, json);
+    }
     dispatch(&args, &commands, api::evaluate, json, note, usage)
+}
+
+/// The tax engine's `COMMAND --refusal-json`: a refusal also prints its code on stdout.
+fn tax_refusal_json(command: &str, json: Json) -> Outcome {
+    match json_stdin(json)
+        .and_then(|v| australian_tax_calculators::api::evaluate_coded(command, &v))
+    {
+        Ok(v) => (0, format!("{v}\n"), String::new()),
+        Err(Refusal { code, message }) => {
+            let refusal = serde_json::json!({"ok": false, "code": code, "message": message});
+            (2, format!("{refusal}\n"), format!("error: {message}\n"))
+        }
+    }
 }
 
 fn wip(args: &[OsString]) -> Outcome {
@@ -251,24 +271,30 @@ fn dispatch(
     }
 }
 
-/// One JSON stdin command, bounded at 8 MiB as each engine bounds it.
+/// One JSON stdin command.
 fn api(command: &str, evaluate: fn(&str, &Value) -> Result<Value, String>, json: Json) -> Outcome {
-    let mut bytes = Vec::new();
-    if let Err(e) = std::io::stdin().take((8 << 20) + 1).read_to_end(&mut bytes) {
-        return (2, String::new(), format!("error: {e}\n"));
-    }
-    let result = if bytes.len() > 8 << 20 {
-        Err("JSON input exceeds 8 MiB".into())
-    } else {
-        parse_json(&bytes, json)
-            .map_err(|e| format!("invalid JSON: {e}"))
-            .and_then(|v| evaluate(command, &v))
-            .map(|v| order_keys(v, json.preserve_order))
-    };
+    let result = json_stdin(json)
+        .map_err(|refusal| refusal.message)
+        .and_then(|v| evaluate(command, &v))
+        .map(|v| order_keys(v, json.preserve_order));
     match result {
         Ok(v) => (0, format!("{v}\n"), String::new()),
         Err(m) => (2, String::new(), format!("error: {m}\n")),
     }
+}
+
+/// Stdin as JSON, bounded at 8 MiB as each engine bounds it. A refusal carries
+/// the tax engine's code, which only `tax_refusal_json` prints.
+fn json_stdin(json: Json) -> Result<Value, Refusal> {
+    let mut bytes = Vec::new();
+    if let Err(e) = std::io::stdin().take((8 << 20) + 1).read_to_end(&mut bytes) {
+        return Err(Refusal::new("input.unreadable", e.to_string()));
+    }
+    if bytes.len() > 8 << 20 {
+        return Err(Refusal::new("input.too_large", "JSON input exceeds 8 MiB"));
+    }
+    parse_json(&bytes, json)
+        .map_err(|e| Refusal::new("input.invalid_json", format!("invalid JSON: {e}")))
 }
 
 /// Preserve actual object types when an engine does not enable arbitrary

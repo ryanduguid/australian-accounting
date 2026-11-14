@@ -64,18 +64,19 @@ fn financial_year(label: &str, basis: &str) -> Result<Value, String> {
     )
 }
 
-/// The fixed key order of one dataset row; `facts` is
-/// (effective_periods, sources, retrieved, source_checked, provenance).
+/// The fixed key order of one dataset row; `engine` is (engine, engine_version) and
+/// `facts` is (effective_periods, sources, retrieved, source_checked, provenance).
 fn row(
     dataset: String,
     description: String,
     tools: &[&str],
-    engine: (&str, &str),
-    facts: (Value, Value, Value, Value, Value),
+    engine: [&str; 2],
+    facts: [Value; 5],
 ) -> Value {
-    json!({"dataset":dataset,"description":description,"tools":tools,"engine":engine.0,
-        "engine_version":engine.1,"effective_periods":facts.0,"sources":facts.1,"retrieved":facts.2,
-        "source_checked":facts.3,"provenance":facts.4})
+    let [periods, sources, retrieved, checked, provenance] = facts;
+    json!({"dataset":dataset,"description":description,"tools":tools,"engine":engine[0],
+        "engine_version":engine[1],"effective_periods":periods,"sources":sources,"retrieved":retrieved,
+        "source_checked":checked,"provenance":provenance})
 }
 
 fn div7a() -> Result<Value, String> {
@@ -100,15 +101,15 @@ fn div7a() -> Result<Value, String> {
         "div7a_benchmark_rates".into(),
         "Division 7A s 109N(2) benchmark interest rates by year of income.".into(),
         &["get_div7a_benchmark_rate", "review_div7a_loan"],
-        ("div7a-loan-review", engine::VERSION),
-        (
+        ["div7a-loan-review", engine::VERSION],
+        [
             json!(periods),
             urls(&links),
             dates(&retrieved),
             iso_or_unknown(&json!(table.reviewed_on)),
             json!({"reviewed_until":table.reviewed_until.label(),"reviewed_on":table.reviewed_on,
                 "law_content_date":engine::LAW_CONTENT_DATE,"tables":tables}),
-        ),
+        ],
     ))
 }
 
@@ -138,15 +139,15 @@ fn gic() -> Result<Value, String> {
         "payday_gic_rates".into(),
         "General interest charge quarters used for Payday Super notional earnings.".into(),
         &PAYDAY_TOOLS,
-        ("payday-super-checker", payday_super_checker::VERSION),
-        (
+        ["payday-super-checker", payday_super_checker::VERSION],
+        [
             json!(periods),
             urls(quarters.iter().map(|q| &q["verify_at"])),
             dates(quarters.iter().map(|q| &q["seen"])),
             json!(UNKNOWN),
             json!({"summary":table.provenance(),"table":source,
                 "law_content_date":payday_super_checker::LAW_CONTENT_DATE}),
-        ),
+        ],
     ))
 }
 
@@ -161,8 +162,8 @@ fn calendar() -> Result<Value, String> {
         "payday_business_day_calendar".into(),
         "Whole-of-state public holidays under SGAA 1992 s 6(1) for Payday Super deadlines.".into(),
         &PAYDAY_TOOLS,
-        ("payday-super-checker", payday_super_checker::VERSION),
-        (
+        ["payday-super-checker", payday_super_checker::VERSION],
+        [
             json!([{"id":"verified","basis":"calendar verification span",
                 "start":calendar.verified_from.isoformat(),"end":calendar.verified_until.isoformat()}]),
             urls(links),
@@ -171,7 +172,7 @@ fn calendar() -> Result<Value, String> {
             json!({"coverage_until":calendar.coverage_until.isoformat(),
                 "coverage_note":official.get("coverage_note").cloned().unwrap_or(json!(UNKNOWN)),
                 "law_content_date":payday_super_checker::LAW_CONTENT_DATE}),
-        ),
+        ],
     ))
 }
 
@@ -198,8 +199,8 @@ fn sg_parameters() -> Result<Value, String> {
         "SG charge percentage, concessional cap and maximum contributions base by financial year."
             .into(),
         &PAYDAY_TOOLS,
-        ("payday-super-checker", payday_super_checker::VERSION),
-        (
+        ["payday-super-checker", payday_super_checker::VERSION],
+        [
             json!(periods),
             urls(
                 years
@@ -209,7 +210,7 @@ fn sg_parameters() -> Result<Value, String> {
             dates(years.values().map(|e| &e["seen"])),
             json!(UNKNOWN),
             json!({"sources":sources,"law_content_date":payday_super_checker::LAW_CONTENT_DATE}),
-        ),
+        ],
     ))
 }
 
@@ -235,14 +236,14 @@ fn worksheets() -> Result<Vec<Value>, String> {
                 format!("tax_worksheet:{kind}"),
                 format!("Rates and thresholds for the {kind} worksheet."),
                 &["calculate_tax_worksheet"],
-                ("australian-tax-calculators", australian_tax_calculators::engine::VERSION),
-                (
+                ["australian-tax-calculators", australian_tax_calculators::engine::VERSION],
+                [
                     if periods.is_empty() { json!(UNKNOWN) } else { json!(periods) },
                     sources,
                     json!(UNKNOWN),
                     iso_or_unknown(&entry["source_checked"]),
                     json!({"source_passage":entry.get("source_passage").cloned().unwrap_or(json!(UNKNOWN))}),
-                ),
+                ],
             )
         })
         .collect())

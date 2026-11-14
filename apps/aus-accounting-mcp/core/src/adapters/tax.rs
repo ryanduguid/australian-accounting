@@ -168,15 +168,18 @@ fn file_note(facts: &Value, result: &Value) -> Result<String, String> {
     let catalogue = australian_tax_calculators::api::evaluate("worksheet-catalogue", &json!({}))?;
     let calculation = result["calculation"].as_str().unwrap_or_default();
     let passage = shown(&catalogue[calculation]["source_passage"]);
+    let mut lines = facts_relied_on(calculation, facts, result);
+    lines.extend([String::new(), "## Calculation".into(), String::new()]);
+    lines.extend(table("Amount (AUD)", &result["amounts"]));
+    lines.extend(table("Rate", &result["rates"]));
+    lines.extend(sources_and_issues(&passage, result));
+    lines.push(String::new());
+    Ok(lines.join("\n"))
+}
+
+/// The note's heading and its facts relied on, as supplied.
+fn facts_relied_on(calculation: &str, facts: &Value, result: &Value) -> Vec<String> {
     let text = |key: &str| shown(&result[key]);
-    let items = |key: &str| -> Vec<String> {
-        result[key]
-            .as_array()
-            .into_iter()
-            .flatten()
-            .map(shown)
-            .collect()
-    };
     let mut lines = vec![
         format!("# File note: {calculation} worksheet, {}", text("period")),
         String::new(),
@@ -198,10 +201,21 @@ fn file_note(facts: &Value, result: &Value) -> Result<String, String> {
             .flatten()
             .map(|(name, value)| format!("- `{name}`: {}", shown(value))),
     );
-    lines.extend([String::new(), "## Calculation".into(), String::new()]);
-    lines.extend(table("Amount (AUD)", &result["amounts"]));
-    lines.extend(table("Rate", &result["rates"]));
-    lines.extend([
+    lines
+}
+
+/// The note's assumptions, provisions and dated sources, and open issues.
+fn sources_and_issues(passage: &str, result: &Value) -> Vec<String> {
+    let text = |key: &str| shown(&result[key]);
+    let items = |key: &str| -> Vec<String> {
+        result[key]
+            .as_array()
+            .into_iter()
+            .flatten()
+            .map(shown)
+            .collect()
+    };
+    let mut lines = vec![
         "## Assumptions".into(),
         String::new(),
         "The operator confirmed this scope:".into(),
@@ -212,7 +226,7 @@ fn file_note(facts: &Value, result: &Value) -> Result<String, String> {
         String::new(),
         format!("The engine's source check covered: {passage}."),
         String::new(),
-    ]);
+    ];
     let checked = text("source_checked");
     lines.extend(
         items("sources")
@@ -225,8 +239,7 @@ fn file_note(facts: &Value, result: &Value) -> Result<String, String> {
             .into_iter()
             .map(|warning| format!("- {warning}")),
     );
-    lines.push(String::new());
-    Ok(lines.join("\n"))
+    lines
 }
 
 #[cfg(test)]
@@ -281,6 +294,139 @@ mod tests {
                     );
                 }
             }
+        }
+    }
+
+    const GST: &str = r#"{"kind":"gst","scope_confirmed":true,"year":"2025-26","amount":"1100","gst_inclusive":true}"#;
+    const HEADINGS: [&str; 5] = [
+        "## Facts relied on",
+        "## Calculation",
+        "## Assumptions",
+        "## Provisions and sources",
+        "## Open issues",
+    ];
+
+    /// A worksheet result with its file note taken out.
+    fn noted(facts: &Value) -> (Value, String) {
+        let input = json!({ "facts": facts, "file_note": true });
+        let mut result = super::calculate(&input).unwrap();
+        let note = result.as_object_mut().unwrap().remove("file_note").unwrap();
+        (result, note.as_str().unwrap().to_owned())
+    }
+
+    fn headings(note: &str) -> Vec<&str> {
+        note.lines()
+            .filter(|line| line.starts_with("## "))
+            .collect()
+    }
+
+    /// As the Python server's tests/test_file_note.py has it.
+    #[test]
+    fn the_note_is_opt_in_and_leaves_the_result_unchanged() {
+        let facts: Value = serde_json::from_str(GST).unwrap();
+        let plain = super::calculate(&json!({ "facts": facts })).unwrap();
+        assert!(plain.get("file_note").is_none());
+        let declined = super::calculate(&json!({ "facts": facts, "file_note": false }));
+        assert_eq!(declined.unwrap(), plain);
+        assert_eq!(noted(&facts).0, plain);
+    }
+
+    /// The whole note for $1,100 including GST, in the Python server's
+    /// render_file_note order: GST is 1,100 / 11 = $100.00. The scope, sources,
+    /// warnings and source passage are the engine's own words.
+    #[test]
+    fn a_gst_note_restates_the_facts_figures_scope_sources_and_warnings() {
+        let (result, note) = noted(&serde_json::from_str(GST).unwrap());
+        let text = |key: &str| result[key].as_str().unwrap().to_owned();
+        let list = |key: &str| result[key].as_array().unwrap().iter().map(text_of);
+        let catalogue =
+            australian_tax_calculators::api::evaluate("worksheet-catalogue", &json!({})).unwrap();
+        let passage = catalogue["gst"]["source_passage"].as_str().unwrap();
+        let mut expected = vec![
+            "# File note: gst worksheet, 2025-26".to_owned(),
+            String::new(),
+            format!(
+                "Drafted from the {} {} result, which it restates without adding any figure.",
+                text("engine"),
+                text("engine_version")
+            ),
+        ];
+        expected.extend(GST_FACTS_AND_TABLES.lines().map(str::to_owned));
+        expected.push(text("scope"));
+        expected.extend(["", "## Provisions and sources", ""].map(str::to_owned));
+        expected.push(format!("The engine's source check covered: {passage}."));
+        expected.push(String::new());
+        let checked = text("source_checked");
+        expected.extend(list("sources").map(|url| format!("- {url} (checked {checked})")));
+        expected.extend(["", "## Open issues", ""].map(str::to_owned));
+        expected.extend(list("warnings").map(|warning| format!("- {warning}")));
+        expected.push(String::new());
+        assert_eq!(note, expected.join("\n"));
+        assert_eq!(headings(&note), HEADINGS);
+    }
+
+    fn text_of(value: &Value) -> String {
+        value.as_str().unwrap().to_owned()
+    }
+
+    const GST_FACTS_AND_TABLES: &str = "
+## Facts relied on
+
+Established by the operator and not verified by this server.
+
+- `kind`: gst
+- `scope_confirmed`: true
+- `year`: 2025-26
+- `amount`: 1100
+- `gst_inclusive`: true
+
+## Calculation
+
+| Amount (AUD) | Value |
+| --- | --- |
+| `gst` | 100.00 |
+| `exclusive` | 1000.00 |
+| `inclusive` | 1100.00 |
+
+| Rate | Value |
+| --- | --- |
+| `gst_rate` | 0.10 |
+
+## Assumptions
+
+The operator confirmed this scope:
+
+";
+
+    fn numbers(text: &str) -> std::collections::BTreeSet<String> {
+        let number = regex::Regex::new(r"\d+(?:\.\d+)?").unwrap();
+        number
+            .find_iter(text)
+            .map(|m| m.as_str().to_owned())
+            .collect()
+    }
+
+    /// Every advertised kind's note has the 5 sections in order and every amount,
+    /// and states no number beyond the facts, the result and the source passage.
+    #[test]
+    fn every_kind_yields_a_note_whose_every_number_comes_from_the_result() {
+        let catalogue = super::advertised_worksheets().unwrap();
+        for (kind, entry) in catalogue.as_object().unwrap() {
+            let mut facts = entry["example"]["facts"].clone();
+            let first = entry["supported_periods"][0]["arguments"]
+                .as_object()
+                .unwrap();
+            facts.as_object_mut().unwrap().extend(first.clone());
+            let (result, note) = noted(&facts);
+            assert_eq!(headings(&note), HEADINGS, "{kind}");
+            for (name, value) in result["amounts"].as_object().unwrap() {
+                let row = format!("| `{name}` | {} |", super::shown(value));
+                assert!(note.contains(&row), "{kind}: {row}");
+            }
+            let passage = entry["source_passage"].as_str().unwrap_or_default();
+            let stated = numbers(&format!("{facts}{result}{passage}"));
+            let invented: Vec<_> = numbers(&note).difference(&stated).cloned().collect();
+            assert!(invented.is_empty(), "{kind} states {invented:?}");
         }
     }
 }

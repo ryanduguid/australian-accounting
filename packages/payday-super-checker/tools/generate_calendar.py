@@ -35,17 +35,46 @@ JURISDICTIONS = ["ACT", "NSW", "NT", "QLD", "SA", "TAS", "VIC", "WA"]
 YEARS = [2026, 2027, 2028]
 RAW_VERIFIED_UNTIL = date(2026, 7, 1)
 
+# Official dates python-holidays 0.108 gets wrong, applied to its output for
+# one jurisdiction before the whole-of-jurisdiction filter. A name adds or
+# renames the day; None removes it. Removing a date the package does not list
+# raises, so a package update that fixes a date has to drop its entry here.
+CORRECTIONS: dict[tuple[str, date], str | None] = {
+    # WA Act No. 19 of 2026, amending the Public and Bank Holidays Act 1972,
+    # changes WA's holidays from 2028, as the WA page read on 14 November
+    # 2026 lists.
+    # Labour Day moves to the 2nd Monday in March.
+    ("WA", date(2028, 3, 6)): None,
+    ("WA", date(2028, 3, 13)): "Labour Day",
+    # Easter Saturday becomes a public holiday.
+    ("WA", date(2028, 4, 15)): "Easter Saturday",
+    # King's Birthday moves to the 2nd Monday in June.
+    ("WA", date(2028, 6, 12)): "King's Birthday",
+    # Show Day takes King's Birthday's old September date.
+    ("WA", date(2028, 9, 25)): "Show Day",
+    # Western Australia Day moves to the 2nd Monday in November.
+    ("WA", date(2028, 6, 5)): None,
+    ("WA", date(2028, 11, 13)): "Western Australia Day",
+    # The ACT declared an additional holiday on Sunday 25 April 2027 besides
+    # the Monday 26 April substitute (ACT 2027 public holidays PDF, read on
+    # 14 November 2026).
+    ("ACT", date(2027, 4, 25)): "ANZAC Day",
+}
+
 # Entries in python-holidays' PUBLIC category that are NOT public holidays
-# for the whole of their jurisdiction, so must not remove a business day.
-# Match the jurisdiction too: the same holiday name can be whole-of-state in
-# one place and locally substituted in another.
-NOT_WHOLE_OF_JURISDICTION = {
-    ("QLD", "The Royal Queensland Show"),  # Brisbane area only (Ekka)
+# for the whole of their jurisdiction in the years listed, so must not remove
+# a business day. Match the jurisdiction too: the same holiday name can be
+# whole-of-state in one place and locally substituted in another.
+NOT_WHOLE_OF_JURISDICTION: dict[tuple[str, str], list[int]] = {
+    ("QLD", "The Royal Queensland Show"): YEARS,  # Brisbane area only (Ekka)
     # Regional WA areas substitute another day, so the default celebration
-    # date does not apply throughout WA.
-    ("WA", "King's Birthday"),
+    # date does not apply throughout WA. From 2028 King's Birthday is the
+    # 2nd Monday in June throughout WA, and Show Day is the day regions
+    # substitute.
+    ("WA", "King's Birthday"): [2026, 2027],
+    ("WA", "Show Day"): YEARS,
     # Non-metro Victorian councils may arrange an alternate local holiday.
-    ("VIC", "Melbourne Cup Day"),
+    ("VIC", "Melbourne Cup Day"): YEARS,
 }
 
 OFFICIAL_SOURCES = {
@@ -77,9 +106,17 @@ def main() -> None:
     merged: dict[date, dict] = {}
     for jur in JURISDICTIONS:
         cal = holidays.Australia(subdiv=jur, years=YEARS, categories=("public",))
-        for d, name in sorted(cal.items()):
+        days = dict(cal.items())
+        for (corrected_jur, d), name in CORRECTIONS.items():
+            if corrected_jur != jur:
+                continue
+            if name is None:
+                del days[d]
+            else:
+                days[d] = name
+        for d, name in sorted(days.items()):
             name = name.strip()
-            if (jur, name) in NOT_WHOLE_OF_JURISDICTION:
+            if d.year in NOT_WHOLE_OF_JURISDICTION.get((jur, name), []):
                 print(f"SKIP (not whole-of-state): {d} {jur} {name}", file=sys.stderr)
                 continue
             entry = merged.setdefault(d, {"date": d.isoformat(), "names": defaultdict(list)})
@@ -116,7 +153,8 @@ def main() -> None:
             "and REQUIRES hand-checking against the official jurisdiction sources "
             "recorded in this file before shipping. Part-day holidays (SA/QLD/NT "
             "Christmas & New Year's Eve evenings), "
-            "regional holidays, WA King's Birthday and Melbourne Cup Day are excluded "
+            "regional holidays, WA King's Birthday before 2028, WA Show Day from 2028 "
+            "and Melbourne Cup Day are excluded "
             "because they do not apply throughout a jurisdiction. Unconfirmed dates "
             "are retained as provisional reference entries but do not extend deadlines."
         ),

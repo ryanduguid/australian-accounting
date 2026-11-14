@@ -59,13 +59,36 @@ def test_raw_generator_is_provisional_until_the_reviewed_table_confirms_dates():
     assert future["provisional"] is True
 
 
+def test_generator_reproduces_the_reviewed_table_apart_from_its_review_fields():
+    """Regenerating may change only what a reviewer sets: the comment, the
+    horizon, the generation and check dates, the coverage note and each row's
+    provisional flag. Any other difference is a holiday the generator gets
+    wrong, as it did for WA's 2028 changes and the ACT's ANZAC Day 2027."""
+    generated = generate()
+    committed = (ROOT / "data" / "business_days.json").read_text(encoding="utf-8")
+    reviewed = json.loads(committed)
+
+    def rows(doc: dict) -> list[tuple[str, str, list[str]]]:
+        return [(r["date"], r["name"], r["jurisdictions"]) for r in doc["non_business_days"]]
+
+    assert rows(generated) == rows(reviewed)
+
+    for field in ("_comment", "verified_until", "generated", "official_sources"):
+        generated[field] = reviewed[field]
+    for raw, checked in zip(generated["non_business_days"], reviewed["non_business_days"]):
+        raw["provisional"] = checked["provisional"]
+    assert json.dumps(generated, indent=2) + "\n" == committed
+
+
 def test_generator_excludes_locally_substitutable_dates():
-    """WA King's Birthday and Melbourne Cup Day do not apply throughout
-    their respective State according to the official jurisdiction pages."""
+    """WA King's Birthday before 2028, WA Show Day and Melbourne Cup Day do
+    not apply throughout their respective State according to the official
+    jurisdiction pages."""
     generated = generate()
     names = [entry["name"] for entry in generated["non_business_days"]]
 
     assert "Melbourne Cup Day" not in names
+    assert "Show Day" not in names
     assert not any(
         entry["jurisdictions"] == ["WA"] and entry["name"] == "King's Birthday"
         for entry in generated["non_business_days"]
