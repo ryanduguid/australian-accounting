@@ -664,6 +664,8 @@ pub fn evaluate_coded(command: &str, v: &Value) -> Result<Value> {
         .iter()
         .map(|(key, kind)| argument(v, key, *kind))
         .collect::<Result<_>>()?;
+    // Optional: the study loan worksheets' pay date, which selects the Schedule 8 coefficients.
+    let pay_date = v.get("pay_date").map(arg);
     let result = match command {
         "gst" => engine::gst(&a[0], &a[1], &a[2], &a[3]),
         "resident-tax" => engine::resident_tax(&a[0], &a[1], &a[2]),
@@ -726,7 +728,6 @@ pub fn evaluate_coded(command: &str, v: &Value) -> Result<Value> {
             engine::payg_withholding(&a[0], &a[1], &a[2], &a[3], &a[4], &options)
         }
         "study-loan-withholding" => {
-            let pay_date = v.get("pay_date").map(arg);
             engine::study_loan_withholding(&a[0], &a[1], &a[2], &a[3], &a[4], pay_date.as_ref())
         }
         "medicare-levy" => {
@@ -755,19 +756,32 @@ pub fn evaluate_coded(command: &str, v: &Value) -> Result<Value> {
         "termination-payment" => {
             engine::termination_payment(&a[0], &a[1], &a[2], &a[3], &a[4], &a[5], &a[6], &a[7])
         }
-        "schedule-5-method-a" => {
-            engine::schedule_5_method_a(&a[0], &a[1], &a[2], &a[3], &a[4], &a[5], &a[6], &a[7])
-        }
-        "schedule-5-method-b-i" => {
-            engine::schedule_5_method_b_i(&a[0], &a[1], &a[2], &a[3], &a[4], &a[5], &a[6])
-        }
+        "schedule-5-method-a" => engine::schedule_5_method_a(
+            &a[0],
+            &a[1],
+            &a[2],
+            &a[3],
+            &a[4],
+            (&a[5], pay_date.as_ref()),
+            &a[6],
+            &a[7],
+        ),
+        "schedule-5-method-b-i" => engine::schedule_5_method_b_i(
+            &a[0],
+            &a[1],
+            &a[2],
+            &a[3],
+            (&a[4], pay_date.as_ref()),
+            &a[5],
+            &a[6],
+        ),
         "schedule-5-method-b-ii" => engine::schedule_5_method_b_ii(
             &a[0],
             &a[1],
             [&a[2], &a[3], &a[4], &a[5]],
             &a[6],
             &a[7],
-            &a[8],
+            (&a[8], pay_date.as_ref()),
             &a[9],
             &a[10],
         ),
