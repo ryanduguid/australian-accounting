@@ -114,6 +114,7 @@ lists the commands.
 | `pension-minimum` | `account_balance`, `age`, `days`, `year`, `scope_confirmed` |
 | `worksheet-catalogue` | none: send `{}` |
 | `periods` | `kind`, the worksheet name, such as `"payg_withholding"` |
+| `derive` | `command`, one of `fbt`, `fbt-car-statutory` and `fbt-car-operating-cost`, and `input`, that command's arguments; see [Derivations](#derivations) |
 
 The 2 car commands, `main-residence`, `borrowing-expenses`, `division-296`, `termination-payment`, the 3 `schedule-5` commands and `working-holiday-maker-withholding` have no Python original; their arguments follow the same
 rules. `division-296` alone takes a negative amount, in `total_super_earnings`. `main-residence` also takes dates as `YYYY-MM-DD` strings, lists of
@@ -121,6 +122,32 @@ rules. `division-296` alone takes a negative amount, in `total_super_earnings`. 
 for no new home. `borrowing-expenses` takes `loan_start` as a `YYYY-MM-DD`
 string and `loan_term_end` and `repaid_on` as dates or `null`. `termination-payment` takes `completed_years_of_service` as a JSON integer and `date_of_birth` as a `YYYY-MM-DD` string. `schedule-5-method-b-i` takes `back_payment_periods` as a list of `{"earnings", "back_payment", "withheld"}` decimal strings, one for each earlier pay period. Every argument is required, as the Python functions had no defaults, except `depreciation`'s optional `opening_adjustable_value`: give it, as a decimal string, for a year after the asset's start time, as cost less the earlier years' decline in value; and `medicare-levy`'s optional family inputs, described under [Medicare levy](#medicare-levy-and-low-income-tax-offset). `medicare-levy` refuses a field it does not take. `payg-withholding`'s optional inputs are described under [PAYG withholding](#payg-withholding), and `study-loan-withholding`'s `pay_date` under [Study loan withholding](#study-loan-withholding). Input over 8 MiB,
 or a decimal string over 8,192 bytes, is refused.
+
+## Derivations
+
+`derive` shows how each amount of an FBT worksheet was worked out. It takes
+`{"command": "fbt", "input": {...}}`, runs the command on that input and returns
+`{"format": "australian-tax-calculators/derivation/1", "engine", "engine_version",
+"calculation", "input", "steps", "result"}`. `result` is the command's own output,
+byte for byte. `steps` holds one step per amount, in the amounts' order:
+
+```json
+{"id":"return_item_16","authority":"FBT return 2026 instructions, item 16","working":"return_item_15 x fbt_rate = 45644 x 0.47 = 21452.68","value":"21452.68"}
+```
+
+`authority` is the section of the Fringe Benefits Tax Assessment Act 1986
+(FBTAA) or the ATO page that sets the amount. `working` is the formula, the same
+formula on the values it used and its unrounded result. Each name in a formula
+is an input, a rate in `result.rates` or an earlier step, whose unrounded result
+it carries; `x` multiplies, `min` takes the lower, and `cents` and `dollars`
+round half up. `value` is the amount, the result rounded half up to cents. The
+worksheet records each step beside its arithmetic and renders its amounts from
+the steps, so a step cannot differ from its amount; `tests/derivation.rs`
+recomputes every amount from its working alone. A refused input gets the
+command's own refusal, any other command is refused as
+`derivation.unsupported`, and a key other than `command` and `input` as
+`input.field_unknown`. The other worksheets' amounts are not derived yet.
+The plain commands' output does not change.
 
 ## Supported periods
 
