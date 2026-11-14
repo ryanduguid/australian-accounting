@@ -35,6 +35,14 @@ verdicts, codes, reasons and figures with the Python server's results, recorded
 in `tests/fixtures/python-div7a.json`. The draft server needs this adapter, or
 these refusals, before it replaces the Python server.
 
+`main` at 149f98ad widened the engine's PAYG withholding scope to quarterly
+pays, scale 4, tax offsets, the Medicare levy adjustment and 53 or 27 pays. The
+published input schema still admits none of them, so `adapters/tax.rs` now
+narrows the whole new scope to the published 0.2.0 words; without that,
+`every_year_a_scope_names_is_an_advertised_period` fails. The draft's
+`NARROWED_SCOPE` holds the same entry with the old wording, so it needs the
+same change.
+
 ## Check
 
 Use Rust 1.99. From this directory:

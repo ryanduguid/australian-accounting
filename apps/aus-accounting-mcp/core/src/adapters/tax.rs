@@ -26,14 +26,14 @@ const MONEY: &[&str] = &[
     "low_tax_contributions",
 ];
 
-/// The linked engine's scope words for periods the input schema refuses (b4a70733 and
-/// d8f34dc2), each with the published 0.2.0 words for the periods it admits. Remove an
-/// entry when the schema opens its periods.
+/// The linked engine's scope words for periods and inputs the input schema refuses
+/// (b4a70733, d8f34dc2 and 149f98ad), each with the published 0.2.0 words for what it
+/// admits. Remove an entry when the schema opens them.
 const NARROWED_SCOPE: [(&str, &str, &str); 3] = [
     (
         "payg_withholding",
-        "made from 1 July 2024, in the income year given, to a payee who gave a TFN, on scale 1, 2, 3, 5 or 6 as the operator established from the payee's declarations. The year selects the Schedule 1 coefficients for payments made in it.",
-        "made from 1 July 2026 to a payee who gave a TFN, on scale 1, 2, 3, 5 or 6 as the operator established from the payee's declarations.",
+        "One regular weekly, fortnightly, monthly or quarterly payment of salary or wages made from 1 July 2024, in the income year given, on the scale the operator established from the payee's declarations: 1, 2, 3, 5 or 6 for a payee who gave a TFN, or 4 for one who did not, as a resident or foreign resident. The year selects the Schedule 1 coefficients and rules for payments made in it. Earnings include allowances subject to withholding. When given, the yearly tax offsets claimed on a Withholding declaration reduce scales 2, 5 and 6, the Medicare levy adjustment claimed on a Medicare levy variation declaration for a spouse or dependent children reduces scales 2 and 6, and the additional amount a payee asks for in a year of 53 weekly or 27 fortnightly pays is added. Reductions that exceed the amount withheld before them are refused. Excludes a Medicare levy variation that increases withholding, study and training support loans, bi-monthly, daily and casual pays, back payments, bonuses, termination and other schedules.",
+        "One regular weekly, fortnightly or monthly payment of salary or wages made from 1 July 2026 to a payee who gave a TFN, on scale 1, 2, 3, 5 or 6 as the operator established from the payee's declarations. Earnings include allowances subject to withholding. Excludes scale 4, tax offsets, Medicare levy adjustments, study and training support loans, extra amounts for 53 or 27 pays, quarterly and bi-monthly pays, back payments, bonuses, termination and other schedules.",
     ),
     (
         "fbt",
