@@ -156,14 +156,19 @@ fn a_pay_date_outside_the_income_year_or_malformed_is_refused() {
             format!("pay_date {pay_date} is outside the {year} income year.")
         );
     }
-    for pay_date in [
-        json!("2025-9-24"),
-        json!("2025-09-31"),
-        json!(20250924),
-        json!(null),
+    // A malformed date is refused even for 2026-27, where pay_date is optional.
+    for (year, pay_date) in [
+        ("2025-26", json!("2025-9-24")),
+        ("2025-26", json!("2025-09-31")),
+        ("2025-26", json!(20250924)),
+        ("2025-26", json!(null)),
+        ("2026-27", json!("2026-7-01")),
+        ("2026-27", json!("2026-09-31")),
+        ("2026-27", json!(20260701)),
+        ("2026-27", json!(null)),
     ] {
-        let (code, _) = refused("2025-26", json!({"pay_date": pay_date}));
-        assert_eq!(code, "input.date_invalid", "{pay_date}");
+        let (code, _) = refused(year, json!({"pay_date": pay_date}));
+        assert_eq!(code, "input.date_invalid", "{year} {pay_date}");
     }
     let (code, message) = refused("2026-27", json!({"paydate": "2026-07-01"}));
     assert_eq!(code, "input.field_unknown");
