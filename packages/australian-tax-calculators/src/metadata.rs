@@ -1403,7 +1403,7 @@ pub fn input_units(kind: &str) -> Vec<(&'static str, &'static str)> {
             ),
             (
                 "days_without_cover",
-                "integer from 0 to the days in the year, the days on which the person or, for a person with a spouse, the person, the spouse or a dependent child had no appropriate private patient hospital cover (s 3(5)); the days in the year for none",
+                "integer from 0 to the days in the year, the days on which the person or, for a person with a spouse, the person, the spouse or a dependent child had no appropriate private patient hospital cover (s 3(5)), not counting a spouse or child who was then a prescribed person, or would have been but for ITAA 1936 s 251U(2) (s 8D(1)(b)); the days in the year for none",
             ),
         ],
         "low_income_tax_offset" => vec![("taxable_income", "AUD, whole dollars")],

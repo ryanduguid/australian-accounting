@@ -122,6 +122,14 @@ fn the_exemption_follows_the_low_income_and_family_reductions() {
     assert_eq!(result["amounts"]["family_reduction"], "242.97");
     assert_eq!(result["amounts"]["exemption_reduction"], "111.41");
     assert_eq!(result["amounts"]["medicare_levy"], "445.62");
+    // s 8(4) (tests/medicare_family.rs): the spouse's excess leaves 800.00 -
+    // 505.20 + 98.90 = 393.70 after s 8; a whole year of half days halves it.
+    let excess = json!({"spouse_taxable_income": "29000", "spouse_sapto_entitled": false,
+                        "dependent_children": 3, HALF: 365});
+    let result = evaluate("40000", "2025-26", excess);
+    assert_eq!(result["amounts"]["spouse_excess_reduction"], "113.43");
+    assert_eq!(result["amounts"]["exemption_reduction"], "196.85");
+    assert_eq!(result["amounts"]["medicare_levy"], "196.85");
     // Nil after s 7 stays nil.
     assert_eq!(levy("28011", json!({HALF: 100})), "0.00");
 }
