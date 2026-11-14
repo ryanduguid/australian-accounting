@@ -185,6 +185,19 @@ divergences.
   repayment. The reasons for `REFUSED_REMAINING_TERM_ABOVE_MAXIMUM_TERM` and
   `REFUSED_REMAINING_TERM_ABOVE_TERM_LESS_YEARS_ELAPSED` say so. The replay
   applies 33 more changed answers and updates 23 from the earlier changes.
+- The Excel workbook gives the same 3 remaining-term refusals, in the same
+  order, after a nil remaining term and before a nil rate. Earlier 1.0.0
+  workbooks worked a repayment, and could show a shortfall, where the engine
+  refused one. A row with no known `year_loan_made` no longer gets the
+  benchmark-year mismatch as its reason, which the engine gives only with a
+  known loan year. The mixed sample gains a blank `year_of_income_being_tested`
+  column and 6 fabricated rows, L-109 to L-114: one for each refusal, one with
+  no loan year and a nominated benchmark year, a 7-year loan made in 2024-25
+  with 6 years remaining in 2026-27 and a 6.5-year loan made in 2025-26 with 7
+  remaining, each the longest it can have, which still get a figure. The
+  workbook's frozen engine review and model are regenerated for them, and the
+  root workbook test now also holds each refusal's reason to the engine's
+  first reason code.
 
 ### Verification
 
