@@ -66,6 +66,19 @@ intentionally changed.
   the repository's root `tests/test_dated_rates.py` keeps its 4 dollar figures
   equal to the rate records. The new refusal code `input.years_of_service_invalid` covers its
   years of service, and `input.field_unknown` refuses a field it does not take.
+- `schedule-5-method-a`, `schedule-5-method-b-i` and `schedule-5-method-b-ii`
+  work out withholding from a weekly, fortnightly or monthly pay that includes
+  back payments, commissions, bonuses or similar payments by Schedule 5 (NAT
+  3348) Methods A, B(i) and B(ii), for payments made in 2024-25 to 2026-27,
+  using the year's Schedule 1 amounts from `payg-withholding` and, for a payee
+  with a study and training support loan, the Schedule 8 component from
+  `study-loan-withholding` (from 1 July 2026 only). Methods A and B(ii) apply
+  the 47% limit. Like `division-296`, each refuses a field it does not take.
+  No Python release has them. `tests/parity.rs` drops their
+  catalogue entries before comparing, and `tests/schedule_5.rs` holds them to
+  the ATO's examples 1 to 4 in the 2024, 2025 and 2026 schedules and to each
+  rule's boundary. New refusal codes: `input.pay_periods_invalid` and
+  `input.back_payment_periods_invalid`.
 - `depreciation` takes an optional `opening_adjustable_value` for an income
   year after the asset's start time (ITAA 1997 ss 40-70(1), 40-72 and 40-75).
   Diminishing value then applies its rate to that value and prime cost to cost,

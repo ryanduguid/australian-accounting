@@ -286,6 +286,12 @@ pub const TERMINATION_PAYMENT: [(&str, &str); 7] = [
 ];
 pub const TERMINATION_PAYMENT_YEARS: [&str; 1] = ["2026-27"];
 
+/// Schedule 5 (NAT 3348): the schedules for payments from 1 July 2024, 1 July
+/// 2025 and 1 July 2026 state the same methods and limit.
+pub const SCHEDULE_5_YEARS: [&str; 3] = ["2024-25", "2025-26", "2026-27"];
+/// Methods A and B(ii) limit withholding from an additional payment to 47% of it.
+pub const SCHEDULE_5_LIMIT_RATE: &str = "0.47";
+
 pub const CARRY_FORWARD_BALANCE_LIMIT: &str = "500000";
 
 /// Statutory or benchmark interest rate by FBT year ended 31 March, for the
@@ -329,6 +335,9 @@ pub fn supported_periods(kind: &str) -> Vec<&'static str> {
         "division_293" => DIVISION_293_YEARS.to_vec(),
         "division_296" => DIVISION_296_YEARS.to_vec(),
         "termination_payment" => TERMINATION_PAYMENT_YEARS.to_vec(),
+        "schedule_5_method_a" | "schedule_5_method_b_i" | "schedule_5_method_b_ii" => {
+            SCHEDULE_5_YEARS.to_vec()
+        }
         _ => Vec::new(),
     }
 }
@@ -412,6 +421,10 @@ pub fn source_review(kind: &str) -> (&'static str, &'static str) {
         "termination_payment" => (
             "2026-11-14",
             "ATO Schedule 11, tax table for employment termination payments (from 1 July 2026), Table A and examples 1 to 4; ATO Key superannuation rates, tables 17 and 20; ITAA 1997 ss 82-10, 82-130 to 82-160 and 83-170 to 83-180, compilation 268 (1 October 2026); SISR reg 6.01(2), compilation 159 (1 July 2026)",
+        ),
+        "schedule_5_method_a" | "schedule_5_method_b_i" | "schedule_5_method_b_ii" => (
+            "2026-11-14",
+            "Schedule 5 (NAT 3348) for payments from 1 July 2026, from 1 July 2025 to 30 June 2026 and from 1 July 2024 to 30 June 2025: about this schedule, working out the withholding amount (Methods A, B(i) and B(ii), the withholding limit, study and training support loans) and withholding amounts examples 1 to 4",
         ),
         _ => ("", ""),
     }
@@ -534,6 +547,12 @@ pub fn library_evidence(kind: &str) -> [(&'static str, &'static str); 4] {
             "2026-06-17",
             "2026-11-14",
         ),
+        "schedule_5_method_a" | "schedule_5_method_b_i" | "schedule_5_method_b_ii" => (
+            "ATO Schedule 5 (NAT 3348) withholding amounts examples",
+            "examples 1 to 4",
+            "2026-06-17",
+            "2026-11-14",
+        ),
         _ => ("", "", "", ""),
     };
     [
@@ -564,6 +583,14 @@ pub fn input_units(kind: &str) -> Vec<(&'static str, &'static str)> {
         ),
         ("pay_period", "weekly, fortnightly or monthly"),
         ("scale", "integer 1, 2, 3, 5 or 6"),
+    ];
+    let schedule_5_pay = vec![
+        ("pay_period", "weekly, fortnightly or monthly"),
+        ("scale", "integer 1, 2, 3, 5 or 6"),
+        (
+            "study_loan",
+            "boolean, whether the payee declared a study and training support loan debt; true adds the Schedule 8 component to each table amount, for years study-loan-withholding supports",
+        ),
     ];
     match kind {
         "gst" => vec![("amount", "AUD"), ("gst_inclusive", "boolean")],
@@ -808,6 +835,68 @@ pub fn input_units(kind: &str) -> Vec<(&'static str, &'static str)> {
                 "YYYY-MM-DD, the employee's, for their preservation age (SISR reg 6.01(2))",
             ),
         ],
+        "schedule_5_method_a" => [
+            vec![
+                (
+                    "earnings",
+                    "AUD, the pay's gross earnings excluding additional payments; cents are ignored",
+                ),
+                (
+                    "additional_payment",
+                    "AUD, the back payments, commissions, bonuses and similar payments made in this pay",
+                ),
+                (
+                    "pay_periods",
+                    "integer, 52 weekly, 26 fortnightly or 12 monthly pay periods; fewer, from 2, only for a commission, bonus or similar payment for a defined period of less than 12 months: the pay periods it relates to",
+                ),
+            ],
+            schedule_5_pay,
+        ]
+        .concat(),
+        "schedule_5_method_b_i" => [
+            vec![
+                (
+                    "earnings",
+                    "AUD, the current pay's gross earnings excluding additional payments",
+                ),
+                (
+                    "back_payment_periods",
+                    "list of {earnings, back_payment, withheld} decimal strings, one for each earlier pay period in the current financial year the back payment applies to: the normal earnings paid for it, including back payments already applied to it by Method B(i), the part of the back payment for it, and the amount withheld from it, including any study and training support loan component; at most 52 weekly, 26 fortnightly or 11 monthly periods",
+                ),
+            ],
+            schedule_5_pay,
+        ]
+        .concat(),
+        "schedule_5_method_b_ii" => [
+            vec![
+                (
+                    "earnings",
+                    "AUD, the current pay's gross earnings excluding additional payments",
+                ),
+                (
+                    "additional_payment",
+                    "AUD, the additional payment in this pay worked out by Method B(ii)",
+                ),
+                (
+                    "year_to_date_earnings",
+                    "AUD, normal earnings paid in the financial year to date, including the current pay, plus current-year back payments for which Method B(i) was used",
+                ),
+                (
+                    "pay_periods_to_date",
+                    "integer, pay periods in the financial year to date, including the current one: at most 53 weekly, 27 fortnightly or 12 monthly",
+                ),
+                (
+                    "earlier_additional_payments",
+                    "AUD, additional payments made earlier in the financial year for which Method B(ii) was used",
+                ),
+                (
+                    "earlier_additional_withholding",
+                    "AUD, the amounts withheld from those earlier additional payments, including any study and training support loan component",
+                ),
+            ],
+            schedule_5_pay,
+        ]
+        .concat(),
         _ => Vec::new(),
     }
 }
@@ -942,6 +1031,41 @@ pub fn examples(kind: &str) -> Vec<(&'static str, Example)> {
             ("non_excluded_payment", Text("17678.00")),
             ("other_taxable_payments", Text("140000.00")),
             ("date_of_birth", Text("1996-09-01")),
+        ],
+        // Schedule 5's examples 1 to 3 (Jarrod, Robyn and Laura), for payments from 1 July 2026.
+        "schedule_5_method_a" => vec![
+            ("year", Text("2026-27")),
+            ("earnings", Text("1400.00")),
+            ("additional_payment", Text("900.00")),
+            ("pay_periods", Whole(52)),
+            ("pay_period", Text("weekly")),
+            ("scale", Whole(2)),
+            ("study_loan", Flag(true)),
+        ],
+        "schedule_5_method_b_i" => vec![
+            ("year", Text("2026-27")),
+            ("earnings", Text("1700.00")),
+            (
+                "back_payment_periods",
+                Json(
+                    r#"[{"earnings": "1600.00", "back_payment": "100.00", "withheld": "371.00"}, {"earnings": "1600.00", "back_payment": "100.00", "withheld": "371.00"}, {"earnings": "1600.00", "back_payment": "100.00", "withheld": "371.00"}, {"earnings": "1600.00", "back_payment": "100.00", "withheld": "371.00"}, {"earnings": "1600.00", "back_payment": "100.00", "withheld": "371.00"}, {"earnings": "1600.00", "back_payment": "100.00", "withheld": "371.00"}, {"earnings": "1600.00", "back_payment": "100.00", "withheld": "371.00"}, {"earnings": "1600.00", "back_payment": "100.00", "withheld": "371.00"}]"#,
+                ),
+            ),
+            ("pay_period", Text("weekly")),
+            ("scale", Whole(2)),
+            ("study_loan", Flag(true)),
+        ],
+        "schedule_5_method_b_ii" => vec![
+            ("year", Text("2026-27")),
+            ("earnings", Text("1800.00")),
+            ("additional_payment", Text("2480.00")),
+            ("year_to_date_earnings", Text("18000.00")),
+            ("pay_periods_to_date", Whole(10)),
+            ("earlier_additional_payments", Text("0.00")),
+            ("earlier_additional_withholding", Text("0.00")),
+            ("pay_period", Text("fortnightly")),
+            ("scale", Whole(2)),
+            ("study_loan", Flag(false)),
         ],
         _ => Vec::new(),
     }

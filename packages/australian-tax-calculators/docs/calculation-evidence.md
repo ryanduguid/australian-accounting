@@ -49,6 +49,7 @@ example evidence; it does not claim a fresh review of every supported period.
 | Division 293 | Not a Library document: ITAA 1997 ss 293-20 and 293-25, the 2013 Imposition Act and the ATO's worked example | 24 August 2026 (ATO page) | Established Division 293 income and low tax contributions for 2024-25 to 2026-27 |
 | Division 296 | `superannuation-contributions-to-superannuation-funds-and-rsas` (superannuation), ¶6-495, with the Explanatory Memorandum's examples 1.1 to 1.3, ITAA 1997 ss 296-15 to 296-55 (compilation 268, 1 October 2026), the 2026 Imposition Act and the ATO's Division 296 page | 30 June 2026; 3 November 2026 (ATO page) | One individual's established balance at 30 June 2027 and total superannuation earnings for 2026-27; working out either, s 296-70 interests and later years excluded |
 | Termination payment | Not a Library document: ATO Schedule 11 examples 1 to 4, with ITAA 1997 ss 82-10 and 83-170 (compilation 268, 1 October 2026), SISR reg 6.01(2) and `tax-examples-assessable-income` (tax-examples), ¶1-420 | 17 June 2026 (Schedule 11); 30 June 2026 (¶1-420) | One life benefit ETP in 2026-27 with established, classified parts; Schedule 11 withholding, not the tax assessed |
+| Schedule 5 withholding | Not a Library document: ATO Schedule 5 (NAT 3348) for payments from 1 July 2024, 1 July 2025 and 1 July 2026, and the 2024, 2025 and 2026 withholding schedules instruments | 17 June 2024, 10 June 2025 and 17 June 2026 (published) | One regular weekly, fortnightly or monthly pay with additional payments by Method A, B(i) or B(ii); the study loan component from 1 July 2026 only |
 | Study loan withholding | Not a Library document: ATO Schedule 8 (NAT 3539) for payments from 1 July 2026 | 17 June 2026 (published) | Schedule 8 component on one regular weekly, fortnightly or monthly pay, added to the Schedule 1 amount |
 | Study loan repayment | Not a Library document: the ATO minimum repayment income page and Gazette C2026G00249 | 13 October 2026 (ATO page) | Marginal repayment on established repayment income for 2025-26 and 2026-27; the loan-balance limit is outside the worksheet |
 
@@ -549,6 +550,60 @@ tax-free component (an invalidity segment or a pre-July 83 segment, s 82-140),
 earlier ETPs in the year or for the same termination (which reduce the caps,
 s 82-10(4)(a) and (b)), delayed termination payments, payees without a TFN,
 foreign residents and working holiday makers are outside it.
+
+## Schedule 5
+
+These worksheets' evidence is not a Library document. Schedule 5 (NAT 3348),
+'Tax table for back payments, commissions, bonuses and similar payments', was
+read on 14 November 2026 on the ATO's pages for payments from 1 July 2026
+(published 17 June 2026), from 1 July 2025 to 30 June 2026 (published 10 June
+2025) and from 1 July 2024 to 30 June 2025 (last updated 17 June 2024): 'About
+this schedule', 'Working out the withholding amount' and 'Withholding amounts
+examples'. Apart from wording ('payee' for 'employee'), the 3 schedules state
+the same Methods A, B(i) and B(ii), the same 47% limit for Methods A and B(ii),
+the same rule that a negative result is nil, the same 52, 26 or 12 pay periods
+with no adjustment for 53 or 27 pays, and the same choice, for a commission,
+bonus or similar payment for a defined period of less than 12 months, to divide
+by the pay periods it relates to. The same rules (each step's cents, the 47%
+limit, the nil result and the pay periods in a year) and examples are in
+Schedule 5 of the Taxation Administration (Withholding Schedules) Instrument
+2026 (F2026L00716), of the 2025 instrument (F2025L00647) and of the
+Instrument (No. 2) 2025 (F2025L01016), which replaced it from 24 September 2025
+with the same Schedule 5, and of the 2024 instrument (F2024L00664), read on
+legislation.gov.au the same day.
+
+Each schedule works 4 examples on scale 2, which `tests/schedule_5.rs` holds:
+
+| Example | 2026 schedule | 2024 and 2025 schedules |
+| --- | --- | --- |
+| 1, Jarrod, Method A: $900 bonus on $1,400 a week, HELP debt | PAYG $267, $272, $260; HELP $10, $12, $104; limit $423; $364 on the bonus, $641 in all | PAYG $272, $277, $260; HELP $42, $43, $52; $312 on the bonus, $626 in all |
+| 2, Robyn, Method B(i): $800 back pay over 8 weeks, HELP debt | PAYG $363 less $331, $256; HELP $55 less $40, $120; $794 in all | $1,100 then $1,200 a week: PAYG $208 less $175, $264; HELP $12 less $11, $8; $492 in all |
+| 3, Laura, Method B(ii): $2,480 of arrears, $1,800 a fortnight | $212, $95, $242, $780; $992 in all | $222, $95, $252, $780; $1,002 in all |
+| 4, Bradley, Methods B(i) and B(ii): $1,600 this year and $8,800 last year, monthly, FS debt | PAYG $512 and $2,808, FS $242 and $1,296, earnings $1,452 and $182; $6,492 in all | $4,600 then $5,400 a month: PAYG $512 and $2,856, FS $120 and $888, earnings $962 and $108; $5,446 in all |
+
+The examples work the study loan component from the separate study and
+training support loan tax tables; the worksheets add the Schedule 8 component
+to each Schedule 1 amount, as `study-loan-withholding` does, which Schedule 5
+accepts in place of separate calculations and which gives the same amounts in
+every 2026 example. This crate has no Schedule 8 coefficients before 1 July
+2026, so the tests hold the 2024 and 2025 examples' PAYG components only and
+require a study loan in those years to be refused. Example 4 combines the 2
+methods in one pay: the tests run each method and count the earnings' amount
+once, as the example does.
+
+The steps are the schedule's own. Method A ignores the cents of the earnings
+before the table, so a monthly amount ending in 33 cents does not gain the cent
+Schedule 1 adds ($4,346.33 a month is worked as $4,346, $598, not $602); it
+ignores the cents of the share and of the result after the limit. Method B(i)
+takes the amount withheld from each earlier period as the operator's figure,
+nets the periods and has no limit. Method B(ii) ignores the cents of the
+average and of the share, and subtracts what earlier Method B(ii) payments in
+the year had withheld before the limit. The schedule leaves the choice of
+method, whether a payment is a back payment, commission or bonus, the periods
+it relates to and the normal earnings to the payer, and so do the worksheets.
+Working holiday makers, who must use Schedule 15, payees who gave no TFN, who
+have 47% or 45% withheld from the whole payment, withholding variations and
+superannuation income streams are outside them.
 
 ## Study loan withholding
 
