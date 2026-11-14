@@ -19,6 +19,10 @@ pub const SCOPES: &[(&str, &str)] = &[
         "An individual who was an Australian resident when the CGT event happened, disposing of (CGT event A1) one dwelling, with any adjacent land used mainly for private or domestic purposes with it and of up to 2 hectares in total, acquired on or after 20 September 1985 and held as the same ownership interest throughout, with the disposal in the 2024-25, 2025-26 or 2026-27 income year, before the changes from 1 July 2027. The operator establishes the gain (cost base) or loss (reduced cost base) on the whole interest held, before any exemption or discount; the ownership period's first and last days; the days the dwelling was their main residence, including any treated as such from acquisition under s 118-135; the days it or part of it produced assessable income where interest would have been deductible, with the part of the floor area used; the days covered by a choice under s 118-145; and when a new home that became their main residence was acquired. Every day is counted, both ends included. Each day is taxable in full, in part (the floor area used while living there, s 118-190) or not at all. A choice period keeps the dwelling exempt, except a part used to produce income before the move, which stays taxable; income use is covered for 6 years per absence, to the sixth anniversary of its first day inclusive, as the ATO counts it, and counted across breaks within the same absence; later income-producing days are taxable. Under s 118-140 the last 6 months of ownership, from the same day of the month 6 months earlier (or the first of the next month where that day does not exist), or from the new home's acquisition if later, are exempt when the dwelling was the main residence for a continuous 3 months in the 12 months before ownership ended, which start the day after the same date a year earlier, and produced no income in that time while not the main residence. Under s 118-192, when income use first began after 20 August 1996, a full exemption would have applied just before, and the dwelling is only partly exempt because of that use, the ownership period starts on that day and the gain or loss must be worked out from the market value then. The assessable part is the gain or loss times the taxable days over the days in the ownership period (s 118-185). Excludes deciding residence, main residence status, interest deductibility, floor area, the choice itself and market value; inherited dwellings (s 118-195); a spouse or dependant child with a different main residence (s 118-170); building, repairing or renovating (s 118-150) and destroyed dwellings (s 118-155); adjacent land over 2 hectares or sold separately; compulsory acquisitions; marriage or relationship breakdown rollovers; granny flat arrangements; another dwelling treated as the main residence during a choice period except under s 118-140; the CGT discount and its 12-month test; and small business concessions. Refuses income use of part of the dwelling that changed, paused or stopped between its start and a move that starts a choice period, and a partial exemption with causes besides income use where s 118-192 would otherwise apply.",
     ),
     (
+        "hire_purchase_schedule",
+        "One hire purchase agreement whose hirer is the notional buyer (ITAA 1997 s 240-17(2)), starting in the income year given, with a level monthly instalment paid in arrears (at each month's end) or in advance (at its start) and any balloon paid at the end of the term. The operator establishes the amount financed (the notional loan principal: the price less any deposit or trade-in), the instalment, the number of instalments, the balloon and the start date. Each month runs from the start date's day of the month, or the month's last day when it is shorter. Under s 240-60(1) each month's notional interest is the outstanding notional loan principal, less any instalment due at the month's start, times the implicit interest rate: the monthly compound rate at which the payments repay the amount financed, found to 64 halvings of 0 to 100% a month. The payments themselves are not deductible but are taken into account in the notional interest (s 240-55). Each month shows the notional interest to date rounded half up to cents, less what the months before show, so the months add up to the total charges, each is within a cent of its exact amount and the last balance is nil. Refuses a rate below nil or of 100% a month or more, a rate that cannot be found closely enough to leave a nil balance to the cent, more than 360 instalments and a nil amount financed or instalment. Excludes deciding whether Division 240 applies and what is financed; fees, GST and stamp duty; irregular, skipped, weekly or quarterly payments; termination amounts other than the balloon and estimates of them (s 240-60(3) and (4)); apportioning a month that spans 30 June between income years (s 240-60(2)); whether the notional interest is deductible (s 240-50); and the notional seller.",
+    ),
+    (
         "borrowing_expenses",
         "One loan's borrowing expenses under ITAA 1997 s 25-25 for one income year from 2024-25 to 2026-27, before s 26-155 quarantines residential rental deductions from 2027-28. The operator establishes the expenditure the taxpayer incurred for borrowing the money, all in the income year the loan began; the extent the borrowed money is used to produce assessable income, the same throughout the loan; the first day the money was borrowed; the last day of the period the original loan contract specifies; any repayment day; and the income-producing share of the taxpayer's other borrowing expenses incurred in that year. Under s 25-25(6), when the money is used to produce income and this loan's income-producing share plus those other amounts is $100 or less, that share is deducted in the year incurred and later years are refused. Otherwise the period of the loan is the shortest of the contract's period, the period to the repayment day and 5 years from the first day borrowed (s 25-25(5)). Each income year's maximum deduction is the remaining expenditure over the days left in that period, times those days in the year, as determined at the end of the year, so the year of repayment takes all that remains (s 25-25(4)); each maximum is rounded to cents and carried forward at that amount, as the ATO's examples are, and the deduction is the maximum times the income-producing share (s 25-25(2) and (3)). Every day is counted, both ends included, as the ATO and the Library count: 5 years from 3 July end on 2 July. Excludes deciding which costs are borrowing expenses and the money's use; interest; refinancing, redraws and changes in use; expenditure incurred before the income year the loan began; a loan first drawn on 29 February; leisure facilities such as holiday homes unless s 26-50(3) applies at all times in the year; commercial debt forgiveness (Subdivision 245-E); private company loans (Division 7A); and s 26-155.",
     ),
@@ -134,6 +138,10 @@ pub const SOURCES: &[(&str, &str)] = &[
         "https://www.legislation.gov.au/C2004A05138/2026-10-01/2026-10-01/text/original/epub/OEBPS/document_1/document_1.html",
     ),
     (
+        "hire_purchase_schedule",
+        "https://www.ato.gov.au/law/view/document?docid=PAC/19970038/240-60",
+    ),
+    (
         "fbt",
         "https://www.ato.gov.au/businesses-and-organisations/hiring-and-paying-your-workers/fringe-benefits-tax/calculating-your-fbt",
     ),
@@ -242,6 +250,13 @@ pub const EXTRA_SOURCES: &[(&str, &[&str])] = &[
         "borrowing_expenses",
         &[
             "https://www.ato.gov.au/individuals-and-families/investments-and-assets/property-and-land/residential-rental-properties/rental-expenses/borrowing-expenses",
+        ],
+    ),
+    (
+        "hire_purchase_schedule",
+        &[
+            "https://www.ato.gov.au/law/view/document?docid=PAC/19970038/240-17",
+            "https://www.ato.gov.au/law/view/document?docid=PAC/19970038/240-55",
         ],
     ),
     (
@@ -380,6 +395,12 @@ const CAR_REPORTABLE_NOTE: &str = "reportable_taxable_value is this car benefit'
 /// Warnings added after the original's 2, by worksheet.
 pub const EXTRA_WARNINGS: &[(&str, &[&str])] = &[
     ("fbt_car_statutory", &[CAR_REPORTABLE_NOTE]),
+    (
+        "hire_purchase_schedule",
+        &[
+            "Notional interest is shown by month, not by income year: s 240-60(2) relates the part of a month that falls in an income year to it in accordance with generally accepted accounting principles, which this worksheet does not do.",
+        ],
+    ),
     ("fbt_car_operating_cost", &[CAR_REPORTABLE_NOTE]),
     (
         "division_296",
@@ -464,6 +485,26 @@ pub const REFUSAL_CODES: &[(&str, &str)] = &[
         "A car has neither or both of a depreciated value and lease charges.",
     ),
     (
+        "hire_purchase.amount_nil",
+        "A hire purchase agreement's amount financed or instalment is nil.",
+    ),
+    (
+        "hire_purchase.instalments_unsupported",
+        "The number of monthly instalments is not an integer from 1 to 360.",
+    ),
+    (
+        "hire_purchase.rate_imprecise",
+        "The implicit rate cannot be found closely enough to leave a nil balance to the cent, at a high rate over a long term.",
+    ),
+    (
+        "hire_purchase.rate_unsupported",
+        "The payments imply an interest rate below nil or of 100% a month or more.",
+    ),
+    (
+        "hire_purchase.start_outside_year",
+        "A hire purchase agreement starts outside the income year given.",
+    ),
+    (
         "input.age_invalid",
         "An age is not a whole number of years from 0 to 150.",
     ),
@@ -513,7 +554,7 @@ pub const REFUSAL_CODES: &[(&str, &str)] = &[
     ),
     (
         "input.field_unknown",
-        "A field the worksheet or command does not take, or does not take beside the other inputs given, was given (division-296, depreciation, medicare-levy, medicare-levy-surcharge, payg-withholding, termination-payment, the Schedule 5 methods, working-holiday-maker-withholding, study-loan-withholding, seniors-pensioners-withholding, seniors-pensioners-tax-offset and derive only).",
+        "A field the worksheet or command does not take, or does not take beside the other inputs given, was given (division-296, depreciation, medicare-levy, medicare-levy-surcharge, payg-withholding, termination-payment, the Schedule 5 methods, working-holiday-maker-withholding, study-loan-withholding, seniors-pensioners-withholding, seniors-pensioners-tax-offset, hire-purchase-schedule and derive only).",
     ),
     ("input.flag_invalid", "A flag is not a JSON boolean."),
     ("input.fraction_invalid", "A fraction is outside 0 to 1."),
@@ -553,6 +594,10 @@ pub const REFUSAL_CODES: &[(&str, &str)] = &[
     (
         "input.tax_scale_unsupported",
         "The withholding scale is not 1, 2, 3, 5 or 6 (or 4, for payg-withholding), or has no table for the period.",
+    ),
+    (
+        "input.timing_invalid",
+        "A payment timing is not in_arrears or in_advance.",
     ),
     ("input.too_large", "The JSON input exceeds 8 MiB."),
     ("input.unreadable", "Standard input could not be read."),

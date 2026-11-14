@@ -157,6 +157,19 @@ const COMMAND_ARGS: &[(&str, &[(&str, Kind)])] = &[
         ],
     ),
     (
+        "hire-purchase-schedule",
+        &[
+            ("amount_financed", Dec),
+            ("instalment", Dec),
+            ("instalments", Raw),
+            ("balloon", Dec),
+            ("timing", Raw),
+            ("start_date", Raw),
+            ("year", Raw),
+            ("scope_confirmed", Raw),
+        ],
+    ),
+    (
         "fbt",
         &[
             ("type_one_value", Dec),
@@ -671,6 +684,7 @@ pub fn evaluate_coded(command: &str, v: &Value) -> Result<Value> {
             | "study-loan-withholding"
             | "seniors-pensioners-withholding"
             | "seniors-pensioners-tax-offset"
+            | "hire-purchase-schedule"
     ) {
         let optional = crate::metadata::optional_inputs(&command.replace('-', "_"));
         let taken = |key: &String| {
@@ -708,6 +722,9 @@ pub fn evaluate_coded(command: &str, v: &Value) -> Result<Value> {
                 repaid_on: &a[5],
             };
             engine::borrowing_expenses(&a[0], &a[1], &a[2], loan, &a[6], &a[7], &a[8])
+        }
+        "hire-purchase-schedule" => {
+            engine::hire_purchase_schedule(&a[0], &a[1], &a[2], &a[3], &a[4], &a[5], &a[6], &a[7])
         }
         "fbt" => engine::fbt(&a[0], &a[1], &a[2], &a[3]),
         "fbt-car-statutory" => {

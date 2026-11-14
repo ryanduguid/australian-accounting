@@ -901,6 +901,76 @@ fn borrowing_expense_maximums_carry_forward_and_add_up() {
     }
 }
 
+/// A hire purchase schedule adds up: the months' interest to the total
+/// charges, each closing balance to the next opening and the last to nil, and
+/// each month's interest is within a cent of the implicit rate on what it
+/// accrues on (ITAA 1997 s 240-60(1)).
+#[test]
+fn hire_purchase_interest_adds_up_to_the_charges_and_the_balance_to_nil() {
+    let mut rng = Rng(0x2406_0060);
+    let cents = |c: i64| format!("{}.{:02}", c / 100, c % 100);
+    for _ in 0..RUNS {
+        let count = rng.int(1, 360);
+        let financed = rng.int(100, 100_000_000_000);
+        let monthly = rng.int(0, 50_000) as f64 / 1e6;
+        let advance = rng.bool();
+        let balloon = rng.int(0, financed / 2);
+        // The level instalment near that rate, rounded up to the cent so the
+        // payments repay at least the amount financed.
+        let v = (1.0 + monthly).powi(-(count as i32));
+        let annuity = if monthly == 0.0 {
+            count as f64
+        } else if advance {
+            (1.0 - v) / monthly * (1.0 + monthly)
+        } else {
+            (1.0 - v) / monthly
+        };
+        let instalment = ((financed as f64 - balloon as f64 * v) / annuity).ceil() as i64;
+        let facts = json!({
+            "amount_financed": cents(financed), "instalment": cents(instalment.max(1)),
+            "instalments": count, "balloon": cents(balloon),
+            "timing": if advance { "in_advance" } else { "in_arrears" },
+            "start_date": "2026-07-01", "year": "2026-27", "scope_confirmed": true,
+        });
+        let r = run("hire-purchase-schedule", facts.clone());
+        let rate = d(r["rates"]["implicit_monthly_rate"].as_str().unwrap());
+        let rows = r["schedule"].as_array().unwrap();
+        assert_eq!(rows.len() as i64, count, "{facts}");
+        let field = |row: &Value, key: &str| d(row[key].as_str().unwrap());
+        let (mut interest, mut opening) = (n(0), d(&cents(financed)));
+        for row in rows {
+            let charged = field(row, "interest");
+            let payment = field(row, "payment");
+            assert!(eq(&field(row, "opening"), &opening), "{facts}");
+            assert!(
+                eq(&field(row, "principal"), &payment.sub(&charged).unwrap()),
+                "{facts}"
+            );
+            let closing = opening.sub(&field(row, "principal")).unwrap();
+            assert!(eq(&field(row, "closing"), &closing), "{facts}");
+            let base = if advance {
+                opening.sub(&d(&cents(instalment.max(1)))).unwrap()
+            } else {
+                opening.clone()
+            };
+            let off = charged.sub(&base.mul(&rate).unwrap()).unwrap();
+            let within = d("0.02")
+                .add(&base.mul(&d("0.000000000001")).unwrap())
+                .unwrap();
+            assert!(
+                le(&off, &within) && le(&within.neg().unwrap(), &off),
+                "{facts}: {row}"
+            );
+            interest = interest.add(&charged).unwrap();
+            opening = closing;
+        }
+        assert!(eq(&opening, &n(0)), "{facts}");
+        assert!(eq(&interest, &amount(&r, "total_interest")), "{facts}");
+        let charges = amount(&r, "total_payments").sub(&amount(&r, "amount_financed"));
+        assert!(eq(&interest, &charges.unwrap()), "{facts}");
+    }
+}
+
 // Metamorphic relations: how the answer must move when one fact moves.
 
 fn decline(cost: &str, life: &str, days: i64, method: &str) -> Value {

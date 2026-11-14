@@ -3358,6 +3358,9 @@ pub fn borrowing_expenses(
     spread(&year, &loan, &expenditure, &share)
 }
 
+mod hire_purchase;
+pub use hire_purchase::hire_purchase_schedule;
+
 /// One pay that includes an additional payment, as Schedule 5 (NAT 3348) reads it.
 struct AdditionalPay {
     kind: &'static str,
@@ -4184,12 +4187,13 @@ pub fn seniors_pensioners_tax_offset(
     Ok(out)
 }
 
-const KINDS: [&str; 27] = [
+const KINDS: [&str; 28] = [
     "gst",
     "resident_tax",
     "capital_gains",
     "main_residence",
     "borrowing_expenses",
+    "hire_purchase_schedule",
     "fbt",
     "fbt_car_statutory",
     "fbt_car_operating_cost",
