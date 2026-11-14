@@ -60,6 +60,7 @@ packages/australian-tax-calculators/tests/data/python-api.json tfn 799087919 gen
 packages/australian-tax-calculators/tests/data/python-api.json tfn 916902926 generated amount input in the frozen Python differential corpus, not an identifier
 packages/australian-tax-calculators/tests/data/python-api.json tfn 964938228 generated amount input in the frozen Python differential corpus, not an identifier
 packages/australian-tax-calculators/tests/data/python-api.json tfn 997093046 generated amount input in the frozen Python differential corpus, not an identifier
+packages/gst-review/tests/contracts.rs abn 00000090000 leading-zero test value the ABN check must reject, though it divides by 89 with -1 as its first digit
 packages/gst-review/tests/contracts.rs abn 51824753556 ABN Lookup's worked example in Format of the ABN (https://abr.business.gov.au/Help/AbnFormat), read on 14 November 2026
 packages/the-exchequer-tally/tests/data/python-api.json acn 426979437 generated aggregated_turnover input in the frozen Python differential corpus, not an identifier
 packages/the-exchequer-tally/tests/data/python-api.json medicare 4050472082 generated aggregated_turnover input in the frozen Python differential corpus, not an identifier
