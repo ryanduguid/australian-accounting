@@ -138,6 +138,7 @@
       "counts": {
         "unknown_gst_code": 0,
         "gst_differs_from_registration": 0,
+        "supplier_abn_invalid": 0,
         "between_entities": 0,
         "coded": 1,
         "suggested": 3,
@@ -233,6 +234,7 @@
       "counts": {
         "unknown_gst_code": 0,
         "gst_differs_from_registration": 0,
+        "supplier_abn_invalid": 0,
         "between_entities": 0,
         "coded": 0,
         "suggested": 0,
@@ -331,6 +333,7 @@
       "counts": {
         "unknown_gst_code": 0,
         "gst_differs_from_registration": 1,
+        "supplier_abn_invalid": 0,
         "between_entities": 0,
         "coded": 0,
         "suggested": 0,
@@ -426,6 +429,7 @@
       "counts": {
         "unknown_gst_code": 0,
         "gst_differs_from_registration": 0,
+        "supplier_abn_invalid": 0,
         "between_entities": 0,
         "coded": 1,
         "suggested": 0,
@@ -521,6 +525,7 @@
       "counts": {
         "unknown_gst_code": 0,
         "gst_differs_from_registration": 0,
+        "supplier_abn_invalid": 0,
         "between_entities": 0,
         "coded": 1,
         "suggested": 0,
@@ -619,6 +624,7 @@
       "counts": {
         "unknown_gst_code": 0,
         "gst_differs_from_registration": 1,
+        "supplier_abn_invalid": 0,
         "between_entities": 0,
         "coded": 0,
         "suggested": 0,
@@ -717,6 +723,7 @@
       "counts": {
         "unknown_gst_code": 0,
         "gst_differs_from_registration": 1,
+        "supplier_abn_invalid": 0,
         "between_entities": 0,
         "coded": 0,
         "suggested": 0,
@@ -815,6 +822,7 @@
       "counts": {
         "unknown_gst_code": 0,
         "gst_differs_from_registration": 1,
+        "supplier_abn_invalid": 0,
         "between_entities": 0,
         "coded": 0,
         "suggested": 0,
@@ -933,6 +941,7 @@
       "counts": {
         "unknown_gst_code": 0,
         "gst_differs_from_registration": 0,
+        "supplier_abn_invalid": 0,
         "between_entities": 0,
         "coded": 2,
         "suggested": 0,
@@ -1100,6 +1109,7 @@
       "counts": {
         "unknown_gst_code": 0,
         "gst_differs_from_registration": 1,
+        "supplier_abn_invalid": 0,
         "between_entities": 0,
         "coded": 3,
         "suggested": 0,
@@ -1195,6 +1205,7 @@
       "counts": {
         "unknown_gst_code": 1,
         "gst_differs_from_registration": 0,
+        "supplier_abn_invalid": 0,
         "between_entities": 0,
         "coded": 0,
         "suggested": 0,
@@ -1319,6 +1330,7 @@
       "counts": {
         "unknown_gst_code": 1,
         "gst_differs_from_registration": 1,
+        "supplier_abn_invalid": 0,
         "between_entities": 0,
         "coded": 0,
         "suggested": 0,
@@ -1473,6 +1485,7 @@
       "counts": {
         "unknown_gst_code": 0,
         "gst_differs_from_registration": 0,
+        "supplier_abn_invalid": 0,
         "between_entities": 2,
         "coded": 0,
         "suggested": 0,
@@ -1622,6 +1635,7 @@
       "counts": {
         "unknown_gst_code": 0,
         "gst_differs_from_registration": 0,
+        "supplier_abn_invalid": 0,
         "between_entities": 2,
         "coded": 0,
         "suggested": 0,
@@ -1749,6 +1763,7 @@
       "counts": {
         "unknown_gst_code": 0,
         "gst_differs_from_registration": 0,
+        "supplier_abn_invalid": 0,
         "between_entities": 2,
         "coded": 0,
         "suggested": 0,
@@ -1876,6 +1891,7 @@
       "counts": {
         "unknown_gst_code": 0,
         "gst_differs_from_registration": 0,
+        "supplier_abn_invalid": 0,
         "between_entities": 0,
         "coded": 0,
         "suggested": 0,
@@ -2003,6 +2019,7 @@
       "counts": {
         "unknown_gst_code": 0,
         "gst_differs_from_registration": 0,
+        "supplier_abn_invalid": 0,
         "between_entities": 2,
         "coded": 0,
         "suggested": 0,
@@ -2130,6 +2147,7 @@
       "counts": {
         "unknown_gst_code": 0,
         "gst_differs_from_registration": 0,
+        "supplier_abn_invalid": 0,
         "between_entities": 0,
         "coded": 0,
         "suggested": 0,
@@ -2256,6 +2274,7 @@
       "counts": {
         "unknown_gst_code": 0,
         "gst_differs_from_registration": 0,
+        "supplier_abn_invalid": 0,
         "between_entities": 0,
         "coded": 0,
         "suggested": 0,
@@ -2385,6 +2404,7 @@
       "counts": {
         "unknown_gst_code": 0,
         "gst_differs_from_registration": 1,
+        "supplier_abn_invalid": 0,
         "between_entities": 1,
         "coded": 0,
         "suggested": 0,
@@ -2969,6 +2989,7 @@
       "counts": {
         "unknown_gst_code": 0,
         "gst_differs_from_registration": 0,
+        "supplier_abn_invalid": 0,
         "between_entities": 2,
         "coded": 0,
         "suggested": 0,
@@ -3095,6 +3116,7 @@
       "counts": {
         "unknown_gst_code": 0,
         "gst_differs_from_registration": 0,
+        "supplier_abn_invalid": 0,
         "between_entities": 2,
         "coded": 0,
         "suggested": 0,

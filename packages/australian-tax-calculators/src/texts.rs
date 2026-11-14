@@ -44,7 +44,7 @@ pub const SCOPES: &[(&str, &str)] = &[
     ),
     (
         "payg_withholding",
-        "One regular weekly, fortnightly or monthly payment of salary or wages made from 1 July 2024, in the income year given, to a payee who gave a TFN, on scale 1, 2, 3, 5 or 6 as the operator established from the payee's declarations. The year selects the Schedule 1 coefficients for payments made in it. Earnings include allowances subject to withholding. Excludes scale 4, tax offsets, Medicare levy adjustments, study and training support loans, extra amounts for 53 or 27 pays, quarterly and bi-monthly pays, back payments, bonuses, termination and other schedules.",
+        "One regular weekly, fortnightly, monthly or quarterly payment of salary or wages made from 1 July 2024, in the income year given, on the scale the operator established from the payee's declarations: 1, 2, 3, 5 or 6 for a payee who gave a TFN, or 4 for one who did not, as a resident or foreign resident. The year selects the Schedule 1 coefficients and rules for payments made in it. Earnings include allowances subject to withholding. When given, the yearly tax offsets claimed on a Withholding declaration reduce scales 2, 5 and 6, the Medicare levy adjustment claimed on a Medicare levy variation declaration for a spouse or dependent children reduces scales 2 and 6, and the additional amount a payee asks for in a year of 53 weekly or 27 fortnightly pays is added. Reductions that exceed the amount withheld before them are refused. Excludes a Medicare levy variation that increases withholding, study and training support loans, bi-monthly, daily and casual pays, back payments, bonuses, termination and other schedules.",
     ),
     (
         "contribution_caps",
@@ -60,11 +60,11 @@ pub const SCOPES: &[(&str, &str)] = &[
     ),
     (
         "study_loan_withholding",
-        "One regular weekly, fortnightly or monthly payment of salary or wages made from 1 July 2026 to a payee who gave a TFN declaration or withholding declaration saying they have a study and training support loan debt, on scale 1, 2, 3, 5 or 6 as the operator established. Scale 1 uses the Schedule 8 component for a payee who did not claim the tax-free threshold; scales 2, 3, 5 and 6 use the one for a payee who claimed it or is a foreign resident. Earnings include allowances subject to withholding. The result is the Schedule 1 amount plus the Schedule 8 component, each rounded to the dollar; the ATO's combined coefficients can differ by a dollar and it accepts either method. Excludes scale 4, a Medicare levy variation for a spouse or dependants, tax offsets, extra amounts for 53 or 27 pays, quarterly pays, lump sum termination payments, back payments, bonuses and other schedules.",
+        "One regular weekly, fortnightly or monthly payment of salary or wages made from 24 September 2025, in the income year given, to a payee who gave a TFN declaration or withholding declaration saying they have a study and training support loan debt, on scale 1, 2, 3, 5 or 6 as the operator established. The year selects the Schedule 1 coefficients and the Schedule 8 component coefficients for payments made in it; a 2025-26 payment needs its pay date, because the Schedule 8 coefficients of F2025L01016 apply from 24 September 2025. Scale 1 uses the Schedule 8 component for a payee who did not claim the tax-free threshold; scales 2, 3, 5 and 6 use the one for a payee who claimed it or is a foreign resident. Earnings include allowances subject to withholding. The result is the Schedule 1 amount plus the Schedule 8 component, each rounded to the dollar; the ATO's combined coefficients can differ by a dollar and it accepts either method. Excludes 2025-26 payments made before 24 September 2025, scale 4, a Medicare levy variation for a spouse or dependants, tax offsets, extra amounts for 53 or 27 pays, quarterly pays, lump sum termination payments, back payments, bonuses and other schedules.",
     ),
     (
         "medicare_levy",
-        "Australian resident individual for the full income year, single with no spouse or dependants at any time in the year, not entitled to the seniors and pensioners tax offset, and not entitled to any full or half Medicare levy exemption. The operator must also establish whether s 9A applies: from 2024-25 it takes eligible lump sums in arrears out of taxable income when they are at least 10% of normal taxable income and its accrual-year tests are met. A person to whom s 9A applies is refused. Supply established whole-dollar taxable income. Applies the 2% rate and the low-income reduction: no levy at or below the threshold amount, and up to the phase-in limit no more than 10% of the excess over it. Excludes the family income reduction, SAPTO thresholds, exemptions, the Medicare levy surcharge, trustees and part-year residence.",
+        "Australian resident individual for the full income year, not entitled to any full or half Medicare levy exemption. The operator establishes whether they are entitled to the seniors and pensioners tax offset (SAPTO) for the year at more than nil; whether they had a spouse on the last day of the year as s 3(3) reads it (a spouse living separately and apart does not count, but one living apart only because of illness, as in the ATO's Ashton example, does; so does one who died in the year), and if so the spouse's whole-dollar taxable income and SAPTO entitlement; without a spouse, whether they are entitled to the invalid and invalid carer tax offset for their child (ITAA 1997 Subdivision 61-A) or the sole parent notional tax offset (Subdivision 961-B); and the number of dependent children and students (s 961-5(1)(c)) for whom they or their spouse are entitled to the Subdivision 961-A notional tax offset, counting, without a spouse, only those for whom family tax benefit was payable to them. A spouse must also be an Australian resident for the full year, not entitled to any exemption and not a person to whom s 9A applies. Omitting those inputs states a person without SAPTO, spouse or those offsets. The operator must also establish whether s 9A applies: from 2024-25 it takes eligible lump sums in arrears out of taxable income when they are at least 10% of normal taxable income and its accrual-year tests are met. A person to whom s 9A applies is refused. Supply established whole-dollar taxable income. Applies the 2% rate and the low-income reduction (s 7): no levy at or below the threshold amount, and up to the phase-in limit no more than 10% of the excess over it, at SAPTO thresholds for a person entitled to SAPTO. With a spouse or one of those offsets the family reduction (s 8) follows: no levy when family taxable income is at or below the family income threshold, which rises for each dependent child; above it the levy is reduced by 2% of the threshold less 8% of the excess, in the person's share of family taxable income when the spouse's own income is above the spouse's threshold amount, and any part of the spouse's reduction above the spouse's levy also reduces this levy (s 8(4)). Excludes exemptions, the Medicare levy surcharge, trustees and part-year residence.",
     ),
     (
         "low_income_tax_offset",
@@ -77,6 +77,30 @@ pub const SCOPES: &[(&str, &str)] = &[
     (
         "division_296",
         "An estimate of one individual's Division 296 tax (ITAA 1997 Subdivision 296-B; Superannuation (Building a Stronger and Fairer Super System) Imposition Act 2026 s 5) for the 2026-27 income year, its first. The operator establishes the individual's total superannuation balance at the end of 30 June 2027 for Division 296, including reversionary retirement phase interests and Division 296 excluded interests and disregarding any LRBA amount (s 296-260) and interests in foreign superannuation funds (s 307-230(1)(a)); their total superannuation earnings for the year (s 296-55), the total of the relevant superannuation earnings for each of their interests and for each interest supporting a superannuation income stream they receive as a retirement phase recipient because of another person's death (s 296-55(1)), which may be negative, with foreign fund earnings, Division 296 excluded interests and prescribed amounts taken as nil; and whether they were a child recipient of a superannuation income stream at any time in the year (s 296-20), had a structured settlement contribution made in respect of them in that or an earlier year (s 296-25), or died on or before 30 June 2027 (Income Tax (Transitional Provisions) Act 1997 s 296-1(3)), each of which means no tax. For 2026-27 only the balance at the end of the year counts, so the worksheet takes no opening balance (Income Tax (Transitional Provisions) Act 1997 s 296-1(2)). Tax arises only when that balance is greater than the $3,000,000 large superannuation balance threshold and the earnings are greater than nil (s 296-40(1)); otherwise the tax is nil and liability gives the reason. The earnings amounts follow ss 296-40 and 296-45 even when an exception removes the liability, so the very large superannuation balance earnings component can be negative, when it is reported as null, as results carry no negative amounts, and after death by 30 June 2027 the balance is taken to be nil (s 296-50). The shares of the balance above $3,000,000 and above the $10,000,000 very large superannuation balance threshold are each a percentage rounded to 2 decimal places, half up (ss 296-40(3) and 296-45(3)), so a balance just above a threshold can give 0.00. Taxable superannuation earnings are the earnings times the first percentage and the very large superannuation balance earnings component the earnings times the second; the tax is 15% of the first plus 10% of the second (Imposition Act s 5). Excludes working out the balance, fund earnings and their attribution (ss 296-60 to 296-75 and the regulations); defined benefit interests and other interests whose earnings use s 296-70, including income streams with no account balance, and the deferral of tax on a defined benefit interest to a debt account; temporary residents who depart Australia (ss 296-195 to 296-205); assessment, payment, release authorities and interest charges; and income years from 2027-28, whose indexed thresholds are not yet known.",
+    ),
+    (
+        "termination_payment",
+        "The tax-free part of a genuine redundancy or early retirement scheme payment and the PAYG withholding from one life benefit employment termination payment (ETP) under Schedule 11, made in 2026-27 to a resident employee who gave a TFN and is not a working holiday maker, within 12 months of the termination. The operator establishes the redundancy payment as a genuine redundancy payment (ITAA 1997 s 83-175, including dismissal before pension age) or an early retirement scheme payment (s 83-180), above what voluntary termination would have paid; the completed years of service (s 83-170(3)); the rest of the ETP's taxable component, split into excluded payments (s 82-10(6)) and non-excluded payments; and the payer's other taxable payments to the employee in the year. The redundancy payment is tax-free up to $13,598 plus $6,801 for each completed year of service (s 83-170) and the rest of it is an excluded ETP part. The excluded part is taken first and capped at the $270,000 ETP cap; the non-excluded part is capped at the smaller of the ETP cap less the excluded part within it and the whole-of-income cap, $180,000 less the other taxable payments, not below nil (s 82-10(4) and (7); Schedule 11). Withholding is 17% up to the cap if the employee is their preservation age or older on 30 June 2027 (SISR reg 6.01(2)), 32% if younger, and 47% above the cap, each part rounded to the nearest dollar, 50 cents up. Excludes classifying the payments, death benefit ETPs, ETPs with a tax-free component (an invalidity segment or employment before 1 July 1983), earlier ETPs to the employee in the income year or for the same termination, unused annual and long service leave payments, delayed termination payments, payees without a TFN, foreign residents, working holiday makers and the income tax assessed on the ETP.",
+    ),
+    (
+        "schedule_5_method_a",
+        "Withholding under Schedule 5 (NAT 3348) Method A from one regular weekly, fortnightly or monthly pay of salary or wages that includes back payments (including lump sums in arrears), commissions, bonuses or similar payments, made from 1 July 2024 in the income year given, to a payee who gave a TFN, on scale 1, 2, 3, 5 or 6 as the operator established from the payee's declarations. The year selects the Schedule 1 coefficients, as payg-withholding uses them. The operator establishes the pay's gross earnings excluding the additional payments, the additional payments in it and whether the payee declared a study and training support loan debt, when each table amount includes the Schedule 8 component, as Schedule 5 allows, for a year whose Schedule 8 coefficients apply from 1 July, as this method takes no pay date. Cents are ignored in the earnings (so a monthly amount ending in 33 cents gains no cent) and in the additional payments divided by 52 weekly, 26 fortnightly or 12 monthly pay periods, with no adjustment for 53 or 27 pays, or, for a commission, bonus or similar payment for a defined period of less than 12 months, by the pay periods it relates to, which the operator chooses. The extra withheld from the earnings plus that share, times the same pay periods, is limited to 47% of the additional payments, with cents ignored and a negative result taken as nil; the pay's withholding adds it to the earnings' amount. A payment for a single pay period belongs in that pay under Schedule 1, so 1 pay period is refused. Excludes working holiday makers (Schedule 15), payees who gave no TFN (scale 4), withholding variations, tax offsets, Medicare levy adjustments, superannuation income streams, employment termination and unused leave payments, and other schedules.",
+    ),
+    (
+        "schedule_5_method_b_i",
+        "Withholding under Schedule 5 (NAT 3348) Method B(i) from one regular weekly, fortnightly or monthly pay of salary or wages that includes a back payment for earlier pay periods in the current financial year, made from 1 July 2024 in the income year given, to a payee who gave a TFN, on scale 1, 2, 3, 5 or 6 as the operator established from the payee's declarations. The year selects the Schedule 1 coefficients, as payg-withholding uses them. For each earlier pay period the back payment applies to, the operator establishes the normal earnings paid for it (including back payments already applied to it by Method B(i)), the part of the back payment for it and the amount withheld from it; and the current pay's gross earnings excluding additional payments and whether the payee declared a study and training support loan debt, when each table amount includes the Schedule 8 component, as Schedule 5 allows, for a year whose Schedule 8 coefficients apply from 1 July, as this method takes no pay date, and the amounts withheld include it too. Each period's withholding is recalculated on its earnings plus its part of the back payment, less the amount withheld from it; the total is the withholding on the back payment, a negative total taken as nil, with no 47% limit, and the pay's withholding adds it to the current earnings' amount. A financial year holds at most 53 weekly, 27 fortnightly or 12 monthly pays, so at most 52, 26 or 11 earlier periods. When Method B(ii) applies to another additional payment in the same pay, count the earnings' amount once. Excludes back payments for a prior financial year and commissions, bonuses and similar payments (Method A or B(ii)), working holiday makers (Schedule 15), payees who gave no TFN (scale 4), withholding variations, tax offsets, Medicare levy adjustments, superannuation income streams and other schedules.",
+    ),
+    (
+        "schedule_5_method_b_ii",
+        "Withholding under Schedule 5 (NAT 3348) Method B(ii) from one regular weekly, fortnightly or monthly pay of salary or wages that includes a back payment for a prior financial year, or a commission, bonus or similar payment that does not relate to a single pay period, made from 1 July 2024 in the income year given, to a payee who gave a TFN, on scale 1, 2, 3, 5 or 6 as the operator established from the payee's declarations. The year selects the Schedule 1 coefficients, as payg-withholding uses them. The operator establishes the normal earnings paid in the financial year to date, including the current pay, plus current-year back payments for which Method B(i) was used; the pay periods to date, including the current one; the additional payment in this pay; additional payments made earlier in the year for which Method B(ii) was used and the amounts withheld from them; the current pay's gross earnings excluding additional payments; and whether the payee declared a study and training support loan debt, when each table amount includes the Schedule 8 component, as Schedule 5 allows, for a year whose Schedule 8 coefficients apply from 1 July, as this method takes no pay date, and the earlier amounts withheld include it too. Average total earnings are the earnings to date divided by the pay periods to date, cents ignored. All the year's Method B(ii) additional payments are divided by 52 weekly, 26 fortnightly or 12 monthly pay periods, cents ignored, with no adjustment for 53 or 27 pays; the extra withheld from the average plus that share, times those pay periods, less the earlier amounts withheld, is limited to 47% of this additional payment, with cents ignored and a negative result taken as nil; the pay's withholding adds it to the current earnings' amount. When Method B(i) applies to a back payment in the same pay, count the earnings' amount once. Excludes working holiday makers (Schedule 15), payees who gave no TFN (scale 4), withholding variations, tax offsets, Medicare levy adjustments, superannuation income streams, employment termination and unused leave payments, and other schedules.",
+    ),
+    (
+        "working_holiday_maker_withholding",
+        "Withholding under Schedule 15 from one payment to a working holiday maker, made from 1 July 2024 in the income year given: an individual who holds a working holiday visa (subclass 417), a work and holiday visa (subclass 462) or a bridging visa that Schedule 15 covers, as the operator established. The payment is the total for the pay period, including allowances, back payments, commissions, bonuses and other payments Schedule 15 covers; for an employment termination payment, only its taxable component. The operator establishes the payments made to the payee in the income year before this one, whether the employer is registered with the ATO to withhold at working holiday maker rates, and whether the payee quoted a TFN or, within the last 28 days, advised that they applied for one or made an enquiry with the ATO. A registered employer withholds the payment, cents ignored, times the Table A rate for the column the payments before it select: 15% for less than $45,001, 30% from $45,001 to $135,000, 37% from $135,001 to $190,000 and 45% for more than $190,000, rounded to the dollar with 50 cents up, or with cents ignored at 45%; payments before of $135,000.01 to $135,000.99, which no column covers, are refused. Without a TFN any employer withholds 45% of the payment, cents ignored. An unregistered employer withholds at foreign resident rates, the Schedule 1 scale 3 amount for a weekly, fortnightly or monthly pay, as payg-withholding gives it. Every payment needs a weekly, fortnightly or monthly pay period. Excludes a payee who claimed an exemption from quoting a TFN, Medicare levy adjustments and tax offsets, which do not reduce this withholding, the Seasonal Worker Programme, Pacific Labour Scheme and Pacific Australia Labour Mobility scheme, withholding variations, the employer's registration and the payee's visa, residency and annual return.",
+    ),
+    (
+        "seniors_pensioners_withholding",
+        "Withholding under Schedule 9 (NAT 4466), the tax table for seniors and pensioners, from one regular weekly, fortnightly or monthly payment made from 1 July 2024 in the income year given, to a payee the operator established it applies to: a senior or pensioner 67 or older at the end of the financial year, or a veteran with a service pension or a war widow or widower with an income support supplement from the Department of Veterans' Affairs who is at least 60, who gave a Withholding declaration, or its short version for seniors and pensioners, saying they are an Australian resident for tax purposes and answering yes to the questions the schedule names. The year selects the coefficients: 2024-25 and 2025-26 use the schedule for payments from 1 July 2024 to 30 June 2026, and 2026-27 the one for payments from 1 July 2026. Earnings include allowances and irregular payments subject to withholding. The payee's status (single, a member of an illness-separated couple or a member of a couple) and any full or half Medicare levy exemption claimed on a Medicare levy variation declaration select scales 1 to 9. The weekly amount is a x weekly earnings - b, on the weekly earnings in whole dollars plus 99 cents, rounded to the dollar with 50 cents up; a fortnightly pay uses half its earnings and twice the weekly amount, and a monthly pay 3/13 of its earnings, after adding a cent to an amount ending in 33 cents, and 13/3 of the weekly amount, rounded to the dollar. Excludes other tax offsets, which the schedule values only by combining its ready reckoner's weekly amounts, the Medicare levy adjustment, which it leaves to the Medicare levy adjustment weekly tax table, quarterly pays, for which it has no rule, payees who gave no TFN, study and training support loans, lump sum leave loading (Schedule 5), super income streams (also Schedule 13), withholding variations and other schedules.",
     ),
 ];
 
@@ -157,6 +181,30 @@ pub const SOURCES: &[(&str, &str)] = &[
         "division_296",
         "https://www.legislation.gov.au/C2004A05138/2026-10-01/2026-10-01/text/original/epub/OEBPS/document_6/document_6.html",
     ),
+    (
+        "termination_payment",
+        "https://www.ato.gov.au/tax-rates-and-codes/payg-withholding-schedule-11-tax-table-for-employment-termination-payments",
+    ),
+    ("schedule_5_method_a", SCHEDULE_5_METHODS),
+    ("schedule_5_method_b_i", SCHEDULE_5_METHODS),
+    ("schedule_5_method_b_ii", SCHEDULE_5_METHODS),
+    (
+        "working_holiday_maker_withholding",
+        "https://www.ato.gov.au/tax-rates-and-codes/schedule-15-tax-table-for-working-holiday-makers",
+    ),
+    (
+        "seniors_pensioners_withholding",
+        "https://www.ato.gov.au/tax-rates-and-codes/schedule-9-tax-table-for-seniors-and-pensioners",
+    ),
+];
+
+/// Schedule 5 (NAT 3348) for payments from 1 July 2026: its methods, and the
+/// earlier schedules and worked examples the 3 method worksheets also cite.
+const SCHEDULE_5_METHODS: &str = "https://www.ato.gov.au/tax-rates-and-codes/schedule-5-tax-table-for-back-payments-commissions-bonuses-and-similar-payments/working-out-the-withholding-amount";
+const SCHEDULE_5_EXTRA: &[&str] = &[
+    "https://www.ato.gov.au/tax-rates-and-codes/schedule-5-tax-table-for-back-payments-commissions-bonuses-and-similar-payments/withholding-amounts-examples",
+    "https://www.ato.gov.au/tax-rates-and-codes/schedule-5-tax-table-01-july-2025-to-30-june-2026/working-out-the-withholding-amount",
+    "https://www.ato.gov.au/tax-rates-and-codes/payg-withholding-schedule-5-tax-table-01-july-2024-to-30-june-2025/working-out-the-withholding-amount",
 ];
 
 pub const EXTRA_SOURCES: &[(&str, &[&str])] = &[
@@ -216,6 +264,8 @@ pub const EXTRA_SOURCES: &[(&str, &[&str])] = &[
         "study_loan_withholding",
         &[
             "https://www.ato.gov.au/tax-rates-and-codes/payg-withholding-schedule-1-statement-of-formulas-for-calculating-amounts-to-be-withheld",
+            "https://www.legislation.gov.au/F2025L01016/asmade/text",
+            "https://www.ato.gov.au/tax-rates-and-codes/schedule-1-tax-table-01-july-2024-to-30-june-2026",
         ],
     ),
     (
@@ -224,6 +274,10 @@ pub const EXTRA_SOURCES: &[(&str, &[&str])] = &[
             "https://www.ato.gov.au/individuals-and-families/medicare-and-private-health-insurance/medicare-levy/medicare-levy-reduction/medicare-levy-reduction-for-low-income-earners",
             "https://www.ato.gov.au/individuals-and-families/your-tax-return/instructions-to-complete-your-tax-return/mytax-instructions/2025/medicare-and-private-health-insurance/medicare-levy-reduction-or-exemption",
             "https://www.ato.gov.au/individuals-and-families/income-deductions-offsets-and-records/income-you-must-declare/lump-sum-payment-in-arrears",
+            "https://www.legislation.gov.au/C2026A00058/asmade/text",
+            "https://www.ato.gov.au/individuals-and-families/medicare-and-private-health-insurance/medicare-levy/medicare-levy-reduction/medicare-levy-reduction-family-income",
+            "https://www.legislation.gov.au/C2004A03351/2025-03-28/2025-03-28/text/original/epub/OEBPS/document_1/document_1.html",
+            "https://www.legislation.gov.au/C2025A00028/asmade/text",
         ],
     ),
     (
@@ -248,6 +302,33 @@ pub const EXTRA_SOURCES: &[(&str, &[&str])] = &[
             "https://www.ato.gov.au/individuals-and-families/super-for-individuals-and-families/super/growing-and-keeping-track-of-your-super/caps-limits-and-tax-on-super-contributions/division-296-tax/division-296-tax-on-large-super-balances",
         ],
     ),
+    (
+        "termination_payment",
+        &[
+            "https://www.ato.gov.au/tax-rates-and-codes/key-superannuation-rates-and-thresholds/employment-termination-payments",
+            "https://www.ato.gov.au/businesses-and-organisations/hiring-and-paying-your-workers/engaging-a-worker/when-a-worker-leaves-your-business/taxation-of-termination-payments/applying-the-etp-caps",
+            "https://www.legislation.gov.au/C2004A05138/2026-10-01/2026-10-01/text/original/epub/OEBPS/document_3/document_3.html",
+            "https://www.legislation.gov.au/F1996B00580/2026-07-01/2026-07-01/text/original/epub/OEBPS/document_2/document_2.html",
+        ],
+    ),
+    ("schedule_5_method_a", SCHEDULE_5_EXTRA),
+    ("schedule_5_method_b_i", SCHEDULE_5_EXTRA),
+    ("schedule_5_method_b_ii", SCHEDULE_5_EXTRA),
+    (
+        "working_holiday_maker_withholding",
+        &[
+            "https://www.ato.gov.au/tax-rates-and-codes/schedule-15-tax-table-for-working-holiday-makers-01-july-2024-to-30-june-2026",
+            "https://www.ato.gov.au/tax-rates-and-codes/payg-withholding-schedule-1-statement-of-formulas-for-calculating-amounts-to-be-withheld",
+            "https://www.ato.gov.au/tax-rates-and-codes/schedule-1-tax-table-01-july-2024-to-30-june-2026",
+        ],
+    ),
+    (
+        "seniors_pensioners_withholding",
+        &[
+            "https://www.ato.gov.au/tax-rates-and-codes/schedule-9-tax-table-01-july-2024-to-30-june-2026",
+            "https://www.ato.gov.au/tax-rates-and-codes/payg-withholding-schedule-1-statement-of-formulas-for-calculating-amounts-to-be-withheld",
+        ],
+    ),
 ];
 
 /// The car worksheets' reportable fringe benefits note, read from the ATO's
@@ -266,7 +347,23 @@ pub const EXTRA_WARNINGS: &[(&str, &[&str])] = &[
             "Each amount is worked out exactly and rounded half up to cents only for display, so a displayed tax can differ by a cent from its rate applied to the displayed earnings, and the displayed total by a cent from the sum of the displayed taxes.",
         ],
     ),
+    (
+        "termination_payment",
+        &[
+            "Withholding, not the tax payable: on assessment the taxable component is assessable income, a tax offset limits the rate on the part within the cap to 15% or 30% (ITAA 1997 s 82-10(3)), and the Medicare levy applies; the whole-of-income cap then uses taxable income for the whole year, including the excluded part's taxable component (s 82-10(5) and (7)), so the tax can differ from the amount withheld.",
+        ],
+    ),
 ];
+
+/// A `medicare_levy` warning for a year whose thresholds the ATO had not
+/// published when they were read from the Act.
+pub const MEDICARE_YEAR_WARNINGS: &[(&str, &str)] = &[(
+    "2026-27",
+    "2026-27 uses the threshold amounts, phase-in limits and family income thresholds Medicare Levy Act 1986 ss 3(1) and 8 set for 2025-26 and later years (Act No. 58, 2026, Sch 5 item 14). The ATO had not published 2026-27 thresholds when this was checked on 14 November 2026. That Act, assented on 30 June 2026, raised the figures for 2025-26, so a later Act can raise them for 2026-27 and change this result.",
+)];
+
+/// A `medicare_levy` warning when s 8(3) shares the family reduction.
+pub const MEDICARE_SHARED_REDUCTION_NOTE: &str = "The family reduction is shared in proportion to taxable income (s 8(3)) and worked out exactly; each amount is rounded half up to cents only for display, so the displayed levy can differ by a cent from the displayed amounts it is worked out from.";
 
 /// Every refusal code and the failure it names. A code stays when a message is
 /// reworded and never moves to a different failure; a new failure gets a new code.
@@ -310,6 +407,14 @@ pub const REFUSAL_CODES: &[(&str, &str)] = &[
         "A worksheet step exceeded the decimal range.",
     ),
     (
+        "depreciation.precision_exceeded",
+        "An effective life's significant digits and the taxable use's decimal places total more than 22.",
+    ),
+    (
+        "derivation.unsupported",
+        "derive was asked to explain a command whose amounts it does not derive.",
+    ),
+    (
         "fbt_car.cost_basis_conflict",
         "A car has neither or both of a depreciated value and lease charges.",
     ),
@@ -324,6 +429,14 @@ pub const REFUSAL_CODES: &[(&str, &str)] = &[
     (
         "input.amount_not_whole_dollars",
         "An amount the worksheet reads in whole dollars has cents.",
+    ),
+    (
+        "input.back_payment_periods_invalid",
+        "Back payment periods are not a list of 1 to the most earlier pays a year holds, each with exactly earnings, back_payment and withheld as decimal strings.",
+    ),
+    (
+        "input.children_invalid",
+        "A number of dependent children is not a JSON integer from 0.",
     ),
     (
         "input.date_invalid",
@@ -342,6 +455,10 @@ pub const REFUSAL_CODES: &[(&str, &str)] = &[
         "Decimal text cannot be read as a number.",
     ),
     (
+        "input.dependants_invalid",
+        "A count of dependent children is not a non-negative JSON integer.",
+    ),
+    (
         "input.depreciation_method_invalid",
         "The method is neither prime_cost nor diminishing_value.",
     ),
@@ -351,7 +468,7 @@ pub const REFUSAL_CODES: &[(&str, &str)] = &[
     ),
     (
         "input.field_unknown",
-        "A field the worksheet does not take was given (division-296 and depreciation only).",
+        "A field the worksheet does not take, or does not take beside the other inputs given, was given (division-296, depreciation, medicare-levy, payg-withholding, termination-payment, the Schedule 5 methods, working-holiday-maker-withholding, study-loan-withholding and seniors-pensioners-withholding only).",
     ),
     ("input.flag_invalid", "A flag is not a JSON boolean."),
     ("input.fraction_invalid", "A fraction is outside 0 to 1."),
@@ -361,6 +478,10 @@ pub const REFUSAL_CODES: &[(&str, &str)] = &[
     ),
     ("input.invalid_json", "The input is not JSON."),
     ("input.kind_invalid", "A worksheet kind is not a string."),
+    (
+        "input.medicare_levy_exemption_invalid",
+        "A Medicare levy exemption is not none, full or half.",
+    ),
     ("input.missing_field", "A required argument is absent."),
     ("input.not_object", "The JSON input is not an object."),
     (
@@ -369,7 +490,11 @@ pub const REFUSAL_CODES: &[(&str, &str)] = &[
     ),
     (
         "input.pay_period_invalid",
-        "The pay period is not weekly, fortnightly or monthly.",
+        "The pay period is not weekly, fortnightly or monthly (or quarterly, for payg-withholding).",
+    ),
+    (
+        "input.pay_periods_invalid",
+        "A count of pay periods is outside the range the method allows for the pay period.",
     ),
     ("input.quarter_invalid", "A quarter is not 1, 2, 3 or 4."),
     (
@@ -377,11 +502,19 @@ pub const REFUSAL_CODES: &[(&str, &str)] = &[
         "An amount that may be negative is not a finite decimal of at most 2dp within 1e12 of nil.",
     ),
     (
+        "input.status_invalid",
+        "A payee's status is not single, illness_separated or couple.",
+    ),
+    (
         "input.tax_scale_unsupported",
-        "The withholding scale is not 1, 2, 3, 5 or 6, or has no table for the period.",
+        "The withholding scale is not 1, 2, 3, 5 or 6 (or 4, for payg-withholding), or has no table for the period.",
     ),
     ("input.too_large", "The JSON input exceeds 8 MiB."),
     ("input.unreadable", "Standard input could not be read."),
+    (
+        "input.years_of_service_invalid",
+        "A count of completed years of service is not a whole number from 0 to 150.",
+    ),
     (
         "main_residence.absence_choice_period_invalid",
         "An absence choice period does not start the day after a lived period ends, or holds a lived day.",
@@ -463,12 +596,44 @@ pub const REFUSAL_CODES: &[(&str, &str)] = &[
         "Medicare Levy Act 1986 s 9A applies, and the worksheet does not make that adjustment.",
     ),
     (
+        "payg.extra_pays_not_weekly_or_fortnightly",
+        "Additional withholding for 53 or 27 pays was asked for on a pay that is not weekly or fortnightly.",
+    ),
+    (
+        "payg.foreign_resident_not_scale_4",
+        "Residency was given for a scale other than 4, which settles it itself.",
+    ),
+    (
+        "payg.medicare_adjustment_not_allowed",
+        "A Medicare levy adjustment was claimed on a scale other than 2 or 6.",
+    ),
+    (
+        "payg.pay_date_before_schedule",
+        "The pay date is before the first payment the year's Schedule 8 coefficients apply to.",
+    ),
+    (
+        "payg.pay_date_outside_year",
+        "The pay date is outside the income year given.",
+    ),
+    (
+        "payg.reductions_exceed_withholding",
+        "Tax offsets and the Medicare levy adjustment exceed the amount withheld before them.",
+    ),
+    (
+        "payg.tax_offsets_not_allowed",
+        "Tax offsets were claimed on a scale other than 2, 5 or 6.",
+    ),
+    (
         "period.unsupported",
         "The worksheet has no rates for the period.",
     ),
     (
         "scope.not_confirmed",
         "The stated scope conditions were not confirmed.",
+    ),
+    (
+        "working_holiday_maker.band_unsettled",
+        "Payments before are from $135,000.01 to $135,000.99, which none of Schedule 15's columns covers.",
     ),
     ("worksheet.unknown", "The worksheet does not exist."),
 ];

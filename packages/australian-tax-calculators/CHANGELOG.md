@@ -10,6 +10,15 @@ intentionally changed.
 
 ### Added
 
+- `derive` returns an FBT worksheet's result with one step per amount: the
+  FBTAA section or ATO page that sets it, its formula on the values it used,
+  and the amount. It covers `fbt`, `fbt-car-statutory` and
+  `fbt-car-operating-cost`; the worksheets render their amounts from these
+  steps, and `tests/derivation.rs` recomputes each amount from its working.
+  Another command is refused with the new code `derivation.unsupported`, and
+  a key other than `command` and `input` with `input.field_unknown`. The
+  plain commands' output is unchanged, and `tests/parity.rs` skips `derive`,
+  which has no Python original.
 - `--refusal-json`, after a command, adds a stable refusal code on stdout as
   `{"ok":false,"code":...,"message":...}`. The `error:` line, the message and
   exit 2 stay as they were, and stdout stays empty on a refusal without the flag.
@@ -50,6 +59,62 @@ intentionally changed.
   `input.signed_amount_invalid` covers its earnings input, and
   `input.field_unknown` refuses a field it does not take, such as an opening
   balance, which the other worksheets ignore.
+- `termination-payment` works out the tax-free part of a genuine redundancy or
+  early retirement scheme payment ($13,598 plus $6,801 for each completed year
+  of service, ITAA 1997 s 83-170) and the Schedule 11 withholding from one life
+  benefit employment termination payment made in 2026-27: the excluded part
+  within the $270,000 ETP cap, then the non-excluded part within the smaller of
+  the ETP cap left and the $180,000 whole-of-income cap less other taxable
+  payments (s 82-10(4) and (7)), at 17% from preservation age at 30 June 2027,
+  32% below it and 47% above the cap, each part rounded to the dollar. Death
+  benefit ETPs, ETPs with a tax-free component, earlier ETPs and the tax
+  assessed on the ETP are outside it. No Python release has it.
+  `tests/parity.rs` drops its catalogue entry before comparing,
+  `tests/termination_payment.rs` holds it to the ATO's Schedule 11 examples 1
+  to 4 and each cap, limit, preservation age and rounding boundary, and
+  the repository's root `tests/test_dated_rates.py` keeps its 4 dollar figures
+  equal to the rate records. The new refusal code `input.years_of_service_invalid` covers its
+  years of service, and `input.field_unknown` refuses a field it does not take.
+- `schedule-5-method-a`, `schedule-5-method-b-i` and `schedule-5-method-b-ii`
+  work out withholding from a weekly, fortnightly or monthly pay that includes
+  back payments, commissions, bonuses or similar payments by Schedule 5 (NAT
+  3348) Methods A, B(i) and B(ii), for payments made in 2024-25 to 2026-27,
+  using the year's Schedule 1 amounts from `payg-withholding` and, for a payee
+  with a study and training support loan, the Schedule 8 component from
+  `study-loan-withholding` (from 1 July 2026 only). Methods A and B(ii) apply
+  the 47% limit. Like `division-296`, each refuses a field it does not take.
+  No Python release has them. `tests/parity.rs` drops their
+  catalogue entries before comparing, and `tests/schedule_5.rs` holds them to
+  the ATO's examples 1 to 4 in the 2024, 2025 and 2026 schedules and to each
+  rule's boundary. New refusal codes: `input.pay_periods_invalid` and
+  `input.back_payment_periods_invalid`.
+- `working-holiday-maker-withholding` applies Schedule 15 to one weekly,
+  fortnightly or monthly payment to a working holiday maker, for 2024-25 to
+  2026-27: a registered employer's Table A rate (15%, 30%, 37% or 45%, by the
+  column the payments made before it in the income year select), an
+  unregistered employer's foreign resident rates through Schedule 1 scale 3,
+  and 45% from any employer whose payee gave no TFN. It refuses payments before of
+  $135,000.01 to $135,000.99, which no column covers
+  (`working_holiday_maker.band_unsettled`), and, like `division-296`, a field
+  it does not take. No Python release has it. `tests/parity.rs` drops its
+  catalogue entry before comparing, and `tests/working_holiday_maker.rs` holds
+  it to the ATO's lookup tool example and examples 1 and 2, each column
+  boundary and the rounding rules.
+- `seniors-pensioners-withholding` applies Schedule 9 (NAT 4466), the tax
+  table for seniors and pensioners, to one weekly, fortnightly or monthly
+  payment for 2024-25 to 2026-27, by the payee's status (single, a member of an
+  illness-separated couple or a member of a couple) and any full or half
+  Medicare levy exemption: the schedule's 9 scales, with Schedule 1's weekly
+  earnings, formula, rounding and pay period conversions. Other tax offsets and
+  the Medicare levy adjustment are not inputs, and quarterly pays, for which the
+  schedule has no rule, are refused, as, like `division-296`, is a field it does
+  not take. New refusal codes: `input.status_invalid` and
+  `input.medicare_levy_exemption_invalid`. No Python release has it.
+  `tests/parity.rs` drops its catalogue entry before comparing, and
+  `tests/seniors_pensioners.rs` holds it to each schedule's worked example
+  ($662.95 a week), every amount in each schedule's weekly tax table (2,120
+  earnings in 3 columns) and hand-worked amounts on the exemption scales and
+  for fortnightly and monthly pays.
 - `depreciation` takes an optional `opening_adjustable_value` for an income
   year after the asset's start time (ITAA 1997 ss 40-70(1), 40-72 and 40-75).
   Diminishing value then applies its rate to that value and prime cost to cost,
@@ -60,6 +125,38 @@ intentionally changed.
   `tests/depreciation.rs` holds it to the ATO's diminishing value and prime
   cost examples. The new refusal code `input.opening_value_above_cost` covers
   an opening value above cost.
+- `payg-withholding` completes Schedule 1 for 2024-25 to 2026-27: quarterly
+  pays, scale 4 (no tax file number, with a required `foreign_resident`), tax
+  offsets claimed on a withholding declaration (`tax_offsets`, scales 2, 5 and
+  6), the Medicare levy adjustment on scales 2 and 6
+  (`medicare_adjustment_children`, 0 for a spouse only) and the additional
+  amount for a year of 53 weekly or 27 fortnightly pays
+  (`extra_pay_withholding`). The worksheet catalogue lists them under
+  `optional_inputs`; a result gains the new amount keys only when one is given.
+  An option on a scale or period it does not apply to is refused, as are
+  reductions that exceed the amount withheld before them, which Schedule 1 does
+  not provide for; that refusal asks for the declarations and inputs to be
+  checked and, if they are right, for the ATO to be asked. `tests/payg_withholding.rs` reproduces all 1,584 Medicare
+  adjustments in each schedule's scale 2 and scale 6 sample data, transcribed
+  into `tests/data` and checked against the legislative instruments, and every
+  worked example on the schedules' Medicare and examples pages, with each
+  threshold, band and rounding boundary. A Medicare levy variation that
+  increases withholding, bi-monthly, daily and casual pays stay outside it. The
+  0.2.0 wheel the MCP server pins has none of this.
+- `study-loan-withholding` also accepts 2025-26 pays made from 24 September
+  2025, with the component coefficients of Schedule 8 to the Taxation
+  Administration (Withholding Schedules) Instrument (No. 2) 2025 (F2025L01016)
+  and the Schedule 1 coefficients for payments from 1 July 2024 to 30 June 2026.
+  The pay date selects the coefficients within the year: a 2025-26 pay needs
+  `pay_date`, and one before 24 September 2025, when F2025L00647's Schedule 8
+  worked the component as a percentage of weekly earnings, is refused, as is
+  a date outside the income year. `periods` starts 2025-26 on 24 September
+  2025. `tests/study_loan_withholding.rs` holds it to the instrument's examples
+  1 to 3, its starting earnings and pays on 23 and 24 September 2025; the
+  combined coefficient checks in `tests/tables.rs` and `tests/properties.rs`
+  cover both years. The Schedule 5 commands take no pay date, so their
+  `study_loan` stays 2026-27 only and names the 24 September 2025 start when
+  given 2025-26. The 0.2.0 wheel the MCP server pins covers 2026-27 only.
 - `tests/verdict_cases.rs` turns the edge cases in a published reviewer verdict,
   under CC BY 4.0, the default in the bounty's terms, into fabricated cases, or
   states why one does not apply.
@@ -89,10 +186,24 @@ intentionally changed.
   over 8 years by prime cost gave $1,250.13 and $8,750.88, now $8,750.87.
   Carried forward year by year, the old figures wrote off more than cost. No
   frozen result changes.
+- `depreciation` divides once, last, so an exact half cent is not lost: $1,000.50
+  over 14 years by diminishing value at 21% taxable use is exactly $30.015,
+  now $30.02; Python 0.2.0 gave $30.01. No frozen result changes. The result
+  is exact whenever the effective life's significant digits and the taxable
+  use's decimal places total 22 or fewer, within the 40-digit working
+  precision, and `depreciation` refuses anything longer with
+  `depreciation.precision_exceeded`. Python 0.2.0 accepted it, and an
+  effective life of 37 significant digits could land a cent from the exact
+  value. No frozen call has such an input.
 - `depreciation` refuses a field it does not take with `input.field_unknown`,
   as `division-296` does; Python 0.2.0 ignored it. A misspelt
   `opening_adjustable_value` would otherwise give the start year's result for a
   later year. No frozen call passes such a field.
+- `payg-withholding` and `study-loan-withholding` refuse a field they do not
+  take with `input.field_unknown`, as `division-296` does; Python 0.2.0
+  ignored it. A
+  misspelt `tax_offsets` would otherwise withhold too much, and a misspelt
+  `pay_date` would be ignored. No frozen call passes such a field.
 - Python imports, keyword signatures, the `metadata` dictionaries and package
   version lookup are removed. `engine_version` in every result is the Cargo
   version, 1.0.0; Python 0.2.0 reported `0.2.0`. That field is the only
@@ -108,6 +219,9 @@ intentionally changed.
 - The JSON boundary refuses input over 8 MiB, a decimal string over 8,192 bytes
   and a missing argument (`<name> is required`; Python raised `TypeError`). JSON
   uses serde_json's nesting limit and refuses lone Unicode surrogate escapes.
+- A JSON object that repeats a key is refused as `input.invalid_json`, with a
+  message naming the key, instead of keeping the last value and dropping the
+  others. Python 0.2.0 took keyword arguments, which cannot repeat.
 - `periods` with a worksheet name it does not know is refused as
   `unknown worksheet '<name>'`, a missing `kind` as `kind is required` and a
   non-string `kind` as `kind must be a string`; Python raised `KeyError` or
@@ -167,6 +281,16 @@ intentionally changed.
   frozen call that expected 2025-26 to be refused; `tests/tables.rs` now
   checks that 2023-24 and 2027-28 are refused. The catalogue example stays at
   2026-27.
+- `payg-withholding` accepts quarterly pays and scale 4, which Python 0.2.0
+  refused. The scope statement, the source passage, the library evidence and
+  the source check date (14 November 2026) name the new coverage, and the
+  catalogue entry lists the optional inputs; `tests/parity.rs` applies this to
+  the 789 frozen `payg-withholding` results and the 10 `worksheet-catalogue`
+  results. The 36 frozen pay period refusals and 20 scale refusals now list
+  quarterly and scale 4, and the 17 frozen scale 4 calls are refused for want
+  of `foreign_resident`. It skips the 1 frozen call that expected a 2026-27
+  quarterly pay to be refused; `tests/payg_withholding.rs` covers quarterly
+  pays.
 - `fbt` also accepts the FBT year ended 31 March 2027; Python 0.2.0 took 2026
   only. The ATO's FBT rates and thresholds page (updated 20 May 2026, read 4
   November 2026) gives the 47% rate and the 2.0802 and 1.8868 gross-up rates
@@ -183,6 +307,42 @@ intentionally changed.
   refusals that list the supported periods. It skips the 1 frozen call that
   expected 2027 to be refused; `tests/tables.rs` checks 2027 against the ATO's
   MantCo example and that 2028 is refused. The catalogue example stays at 2026.
+- `medicare-levy` also accepts 2026-27; Python 0.2.0 refused it because the
+  ATO had published no thresholds for it. Treasury Laws Amendment (Delivering
+  an Efficient and Trusted Tax System) Act 2026 (No. 58, 2026, assented 30 June
+  2026) Sch 5 item 14 applies the s 3(1) threshold amount and phase-in limit it
+  set, $28,011 and $35,013, to the 2025-26 and later years of income, and the
+  Medicare Levy Act 1986 as compiled at 1 July 2026 (compilation 53, the latest
+  on 14 November 2026) still holds them. Both were read on 14 November 2026,
+  when the ATO's low-income page still gave 2025-26 figures only. A 2026-27
+  result adds a warning saying so and that a later Act can raise them for
+  2026-27, as Act No. 58 did for 2025-26. The sources add Act No. 58, 2026
+  and the source check date is 14 November 2026. `tests/parity.rs` applies
+  this to the 162 frozen `medicare-levy` results, 6 `periods` results, 10
+  `worksheet-catalogue` results and the 7 refusals that list the supported
+  periods. It skips the 1 frozen call that expected 2026-27 to be refused;
+  `tests/tables.rs` checks 2026-27 at each threshold and that 2027-28 is
+  refused. The catalogue example stays at 2024-25.
+- `medicare-levy` takes 5 optional inputs: `sapto_entitled`, which applies the
+  seniors and pensioners thresholds in s 3(1); and `spouse_taxable_income`
+  with `spouse_sapto_entitled`, or `dependant_offset_entitled` for a person
+  without a spouse, with `dependent_children`, which apply the s 8 family
+  reduction for 2024-25 to 2026-27. A spouse whose taxable income is above the
+  spouse's threshold amount shares the reduction by taxable income, and the
+  part of either share above that spouse's levy reduces the other's (s 8(3)
+  and (4)); the result then adds a warning that its amounts are rounded only
+  for display. Without the optional inputs every result is as before, except
+  that its scope now describes them and its sources add the ATO's family
+  income page, compilation 52 and Act No. 28, 2025. Like `depreciation`, it
+  now refuses a field it does not take, and it refuses a spouse input without
+  a spouse, `dependant_offset_entitled` with one and dependent children
+  without either (`input.field_unknown`), and a child count that is not a
+  non-negative integer (`input.dependants_invalid`). The worksheet catalogue
+  lists the inputs under `optional_inputs` and names the family page and its
+  Ashton example. `tests/parity.rs` applies the new scope, sources, passage
+  and evidence to the 162 frozen `medicare-levy` results and 10
+  `worksheet-catalogue` results, and `tests/medicare_family.rs` holds the
+  worksheet to the Ashton example and every threshold.
 
 ### Verification
 

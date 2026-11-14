@@ -43,7 +43,9 @@ uv run --locked --group dev pytest
 Root pyright checks all 9 runtime packages. Root pytest runs the repository checks
 and each component's existing suite in a separate process, from that component's
 directory. This keeps repeated test module names and relative fixture paths
-independent. Component configuration and CI gates remain authoritative.
+independent. It leaves out the crates `ci.yml`'s `rust` job runs, which already
+run the same `cargo test` there. Component configuration and CI gates remain
+authoritative.
 
 Two consequences of the workspace are worth knowing before you run a component's
 own commands:
@@ -203,6 +205,12 @@ release callers require that test job; no second pytest run is needed.
   dependency lists against each application's manifest on every change. The aggregate requires a
   successful selection and exactly the corresponding successful or skipped app jobs.
   Every main push and manual run executes all app checks, preserving release evidence.
+- The `crates` job selects the `rust` crate calls and `umbrella-parity` the same way.
+  A change to any crate the `rust` job checks, to shared policy and workspace files,
+  or to an unknown path runs them all. Only the other components' paths, root `tests/`
+  and `tools/` can skip them. Root pytest checks that those crates link only each other
+  by path. `tests-gates` holds each selection to its own jobs, and every main push and
+  manual run executes all of them.
 - `devcontainer.yml`, `glama-badges.yml` and `readme-quick-start.yml` have no pull request
   path filter, so `devcontainer-gates`, `glama-badges-gates` and `readme-quick-start-gates`
   report on every pull request. Each changes job passes its former trigger paths to
@@ -255,6 +263,13 @@ Separate operating-system artefacts retain fabricated results, failure diagnosti
 the escaped summary, success manifest and replay record for seven days. No private
 checkout or secret is needed. Linux keeps the `public-fixtures` check name; configure
 the added `public-fixtures (Windows)` check separately if it should block merges.
+
+`context7.json` tells [Context7](https://context7.com/docs/library-owners) which
+folders hold the component documentation and gives coding agents rules on
+calculation scope, refusals and privacy. It submits, claims and refreshes nothing. `tests/test_context7.py`
+checks it against Context7's published schema and holds the commands its rules name
+to the tax calculators' command table, so update the rules when a withholding command
+or a `pay_date` argument is added.
 
 - Keep a change inside one component unless it is a root policy or workflow change.
 - Do not move, rename or refactor a component in the same change that alters its

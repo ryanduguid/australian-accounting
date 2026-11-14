@@ -16278,6 +16278,949 @@
      }
     }
    }
+  },
+  {
+   "change": "The holiday table follows the official WA, TAS and ACT pages (14 November 2026). The Public and Bank Holiday Amendment Act 2026 (WA) moves WA's 2028 Labour Day to 13 March, Western Australia Day to 13 November and King's Birthday to 12 June, and adds Easter Saturday; TAS lists Easter Sunday statewide in 2027 and 2028; the ACT holds ANZAC Day 2027 on Sunday 25 April as well as Monday 26 April. Every 2028 row stays provisional and verified_until is unchanged, so only the bundled calendar that load-calendar returns differs: all 134 cases here are load-calendar answers, and the tree that produced them differs from the last one only in data/business_days.json and the workbook model.",
+   "cases": {
+    "0": {
+     "test": "test_exposure_phase_keeps_horizon_and_new_starter_boundaries",
+     "expected": {
+      "fnv": "02d3309e00f93139",
+      "len": 7084
+     }
+    },
+    "2": {
+     "test": "test_report_route_preserves_the_representative_result_object",
+     "expected": {
+      "fnv": "02d3309e00f93139",
+      "len": 7084
+     }
+    },
+    "5": {
+     "test": "test_report_route_preserves_aggregate_validation_order",
+     "expected": {
+      "fnv": "02d3309e00f93139",
+      "len": 7084
+     }
+    },
+    "8": {
+     "test": "test_assessment_rejects_malformed_controls_even_when_the_row_does_not_need_them",
+     "expected": {
+      "fnv": "02d3309e00f93139",
+      "len": 7084
+     }
+    },
+    "109": {
+     "test": "test_literal_controls_work_when_assessment_and_accrual_are_empty",
+     "expected": {
+      "fnv": "02d3309e00f93139",
+      "len": 7084
+     }
+    },
+    "119": {
+     "test": "test_a_declared_override_raises_the_coverage_end_past_verified_until",
+     "expected": {
+      "fnv": "53c84020ba62c38a",
+      "len": 7342
+     }
+    },
+    "120": {
+     "test": "test_an_undeclared_override_does_not_raise_the_coverage_end",
+     "expected": {
+      "fnv": "17a916f1a70cc075",
+      "len": 7342
+     }
+    },
+    "122": {
+     "test": "test_one_far_future_holiday_does_not_cover_the_gap_before_it",
+     "expected": {
+      "fnv": "0d745fa1f0d1dd91",
+      "len": 7172
+     }
+    },
+    "123": {
+     "test": "test_an_override_declaring_an_earlier_date_cannot_shrink_coverage",
+     "expected": {
+      "fnv": "02d3309e00f93139",
+      "len": 7084
+     }
+    },
+    "124": {
+     "test": "test_check_horizon_reads_the_declared_coverage_not_the_verified_date",
+     "expected": {
+      "fnv": "53c84020ba62c38a",
+      "len": 7342
+     }
+    },
+    "141": {
+     "test": "test_a_good_bundled_table_still_loads",
+     "expected": {
+      "fnv": "02d3309e00f93139",
+      "len": 7084
+     }
+    },
+    "142": {
+     "test": "test_a_missing_top_level_key_is_named",
+     "expected": {
+      "fnv": "02d3309e00f93139",
+      "len": 7084
+     }
+    },
+    "143": {
+     "test": "test_a_list_at_the_top_level_is_refused",
+     "expected": {
+      "fnv": "02d3309e00f93139",
+      "len": 7084
+     }
+    },
+    "144": {
+     "test": "test_non_business_days_must_be_a_list",
+     "expected": {
+      "fnv": "02d3309e00f93139",
+      "len": 7084
+     }
+    },
+    "145": {
+     "test": "test_an_unreadable_verified_date_is_named",
+     "expected": {
+      "fnv": "02d3309e00f93139",
+      "len": 7084
+     }
+    },
+    "147": {
+     "test": "test_override_add_and_remove",
+     "expected": {
+      "fnv": "8452e181b3473fd0",
+      "len": 7077
+     }
+    },
+    "161": {
+     "test": "test_a_bundled_calendar_that_is_not_json_is_refused",
+     "expected": {
+      "fnv": "02d3309e00f93139",
+      "len": 7084
+     }
+    },
+    "162": {
+     "test": "test_a_bundled_calendar_with_a_repeated_date_is_refused",
+     "expected": {
+      "fnv": "02d3309e00f93139",
+      "len": 7084
+     }
+    },
+    "774": {
+     "test": "test_verdicts_across_the_fixture",
+     "expected": {
+      "fnv": "02d3309e00f93139",
+      "len": 7084
+     }
+    },
+    "779": {
+     "test": "test_at_risk_line_carries_the_receipt_caveat",
+     "expected": {
+      "fnv": "02d3309e00f93139",
+      "len": 7084
+     }
+    },
+    "784": {
+     "test": "test_late_but_received_line_has_no_shortfall",
+     "expected": {
+      "fnv": "02d3309e00f93139",
+      "len": 7084
+     }
+    },
+    "787": {
+     "test": "test_partial_late_receipt_keeps_the_statutory_base_and_nec_running",
+     "expected": {
+      "fnv": "02d3309e00f93139",
+      "len": 7084
+     }
+    },
+    "791": {
+     "test": "test_near_full_and_full_late_receipts_keep_the_same_base_shortfall",
+     "expected": {
+      "fnv": "02d3309e00f93139",
+      "len": 7084
+     }
+    },
+    "796": {
+     "test": "test_partial_on_time_receipt_reduces_only_the_base_shortfall",
+     "expected": {
+      "fnv": "02d3309e00f93139",
+      "len": 7084
+     }
+    },
+    "800": {
+     "test": "test_partial_stale_prepayment_receives_no_statutory_credit",
+     "expected": {
+      "fnv": "02d3309e00f93139",
+      "len": 7084
+     }
+    },
+    "804": {
+     "test": "test_partial_late_receipt_after_assessment_does_not_reduce_shortfall",
+     "expected": {
+      "fnv": "02d3309e00f93139",
+      "len": 7084
+     }
+    },
+    "808": {
+     "test": "test_partial_receipt_before_assessment_keeps_nec_running_to_assessment",
+     "expected": {
+      "fnv": "02d3309e00f93139",
+      "len": 7084
+     }
+    },
+    "812": {
+     "test": "test_explicit_remitted_amount_without_remittance_date_is_refused",
+     "expected": {
+      "fnv": "02d3309e00f93139",
+      "len": 7084
+     }
+    },
+    "815": {
+     "test": "test_direct_assessment_refuses_invalid_amount_shapes",
+     "expected": {
+      "fnv": "02d3309e00f93139",
+      "len": 7084
+     }
+    },
+    "823": {
+     "test": "test_direct_assessment_refuses_partial_match_with_unbounded_remittance",
+     "expected": {
+      "fnv": "02d3309e00f93139",
+      "len": 7084
+     }
+    },
+    "827": {
+     "test": "test_duplicate_warning_normalises_legacy_and_explicit_full_remittance",
+     "expected": {
+      "fnv": "02d3309e00f93139",
+      "len": 7084
+     }
+    },
+    "832": {
+     "test": "test_assessment_before_receipt_keeps_the_shortfall",
+     "expected": {
+      "fnv": "02d3309e00f93139",
+      "len": 7084
+     }
+    },
+    "837": {
+     "test": "test_notional_earnings_run_to_the_receipt_date",
+     "expected": {
+      "fnv": "02d3309e00f93139",
+      "len": 7084
+     }
+    },
+    "843": {
+     "test": "test_unpaid_line_keeps_the_full_shortfall",
+     "expected": {
+      "fnv": "02d3309e00f93139",
+      "len": 7084
+     }
+    },
+    "848": {
+     "test": "test_item4_extends_the_second_payday_for_a_new_starter",
+     "expected": {
+      "fnv": "02d3309e00f93139",
+      "len": 7084
+     }
+    },
+    "851": {
+     "test": "test_item4_without_an_evidenced_earlier_contribution_fails_closed",
+     "expected": {
+      "fnv": "02d3309e00f93139",
+      "len": 7084
+     }
+    },
+    "854": {
+     "test": "test_item4_remittance_or_late_receipt_is_not_eligible_evidence",
+     "expected": {
+      "fnv": "02d3309e00f93139",
+      "len": 7084
+     }
+    },
+    "859": {
+     "test": "test_item4_on_time_received_and_applied_contribution_is_evidence",
+     "expected": {
+      "fnv": "02d3309e00f93139",
+      "len": 7084
+     }
+    },
+    "865": {
+     "test": "test_same_dates_without_the_extension_are_late",
+     "expected": {
+      "fnv": "02d3309e00f93139",
+      "len": 7084
+     }
+    },
+    "871": {
+     "test": "test_transition_confirmation_is_recorded_on_each_affected_result",
+     "expected": {
+      "fnv": "02d3309e00f93139",
+      "len": 7084
+     }
+    },
+    "874": {
+     "test": "test_post_transition_contribution_needs_no_confirmation",
+     "expected": {
+      "fnv": "02d3309e00f93139",
+      "len": 7084
+     }
+    },
+    "877": {
+     "test": "test_pre_july_prepayment_also_needs_transition_confirmation",
+     "expected": {
+      "fnv": "02d3309e00f93139",
+      "len": 7084
+     }
+    },
+    "887": {
+     "test": "test_console_summary_carries_the_legal_caveats",
+     "expected": {
+      "fnv": "02d3309e00f93139",
+      "len": 7084
+     }
+    },
+    "893": {
+     "test": "test_console_summary_ranks_by_exposure",
+     "expected": {
+      "fnv": "02d3309e00f93139",
+      "len": 7084
+     }
+    },
+    "899": {
+     "test": "test_console_summary_does_not_disclose_employee_identifiers",
+     "expected": {
+      "fnv": "02d3309e00f93139",
+      "len": 7084
+     }
+    },
+    "908": {
+     "test": "test_late_remittance_without_a_receipt_date_is_late",
+     "expected": {
+      "fnv": "02d3309e00f93139",
+      "len": 7084
+     }
+    },
+    "911": {
+     "test": "test_receipt_on_the_due_date_is_on_time",
+     "expected": {
+      "fnv": "02d3309e00f93139",
+      "len": 7084
+     }
+    },
+    "914": {
+     "test": "test_remittance_on_the_due_date_with_no_receipt_is_at_risk",
+     "expected": {
+      "fnv": "02d3309e00f93139",
+      "len": 7084
+     }
+    },
+    "917": {
+     "test": "test_prepayment_inside_the_twelve_month_window_is_on_time",
+     "expected": {
+      "fnv": "02d3309e00f93139",
+      "len": 7084
+     }
+    },
+    "920": {
+     "test": "test_payment_older_than_twelve_months_cannot_offset",
+     "expected": {
+      "fnv": "02d3309e00f93139",
+      "len": 7084
+     }
+    },
+    "923": {
+     "test": "test_receipt_before_remittance_is_rejected",
+     "expected": {
+      "fnv": "02d3309e00f93139",
+      "len": 7084
+     }
+    },
+    "926": {
+     "test": "test_receipt_after_the_as_at_date_is_not_used_to_settle_the_report",
+     "expected": {
+      "fnv": "02d3309e00f93139",
+      "len": 7084
+     }
+    },
+    "930": {
+     "test": "test_remittance_after_the_as_at_date_is_not_used_to_settle_the_report",
+     "expected": {
+      "fnv": "02d3309e00f93139",
+      "len": 7084
+     }
+    },
+    "934": {
+     "test": "test_a_post_as_at_receipt_does_not_claim_no_receipt_was_supplied",
+     "expected": {
+      "fnv": "02d3309e00f93139",
+      "len": 7084
+     }
+    },
+    "937": {
+     "test": "test_a_plain_remitted_only_row_still_carries_the_named_constant",
+     "expected": {
+      "fnv": "02d3309e00f93139",
+      "len": 7084
+     }
+    },
+    "940": {
+     "test": "test_stale_prepayment_keeps_the_full_shortfall",
+     "expected": {
+      "fnv": "02d3309e00f93139",
+      "len": 7084
+     }
+    },
+    "943": {
+     "test": "test_stale_prepayment_before_the_deadline_is_not_yet_assessable",
+     "expected": {
+      "fnv": "02d3309e00f93139",
+      "len": 7084
+     }
+    },
+    "946": {
+     "test": "test_a_stale_prepayment_is_still_quiet_on_the_deadline_date_itself",
+     "expected": {
+      "fnv": "02d3309e00f93139",
+      "len": 7084
+     }
+    },
+    "952": {
+     "test": "test_notional_earnings_stop_before_an_assessment",
+     "expected": {
+      "fnv": "02d3309e00f93139",
+      "len": 7084
+     }
+    },
+    "956": {
+     "test": "test_zero_amount_late_line_does_not_claim_a_receipt",
+     "expected": {
+      "fnv": "02d3309e00f93139",
+      "len": 7084
+     }
+    },
+    "961": {
+     "test": "test_zero_amount_line_with_a_late_receipt_is_not_late",
+     "expected": {
+      "fnv": "02d3309e00f93139",
+      "len": 7084
+     }
+    },
+    "964": {
+     "test": "test_overdue_nil_row_is_not_told_the_deadline_has_not_passed",
+     "expected": {
+      "fnv": "02d3309e00f93139",
+      "len": 7084
+     }
+    },
+    "967": {
+     "test": "test_nil_row_before_its_deadline_still_says_so",
+     "expected": {
+      "fnv": "02d3309e00f93139",
+      "len": 7084
+     }
+    },
+    "974": {
+     "test": "test_mcb_caveat_follows_the_as_at_financial_year",
+     "expected": {
+      "fnv": "02d3309e00f93139",
+      "len": 7084
+     }
+    },
+    "980": {
+     "test": "test_a_missing_cap_year_names_the_year_rather_than_saying_the_annual_cap",
+     "expected": {
+      "fnv": "02d3309e00f93139",
+      "len": 7084
+     }
+    },
+    "985": {
+     "test": "test_an_unreadable_cap_figure_names_the_year_and_the_value",
+     "expected": {
+      "fnv": "02d3309e00f93139",
+      "len": 7084
+     }
+    },
+    "990": {
+     "test": "test_a_later_year_missing_from_the_cap_table_is_named_too",
+     "expected": {
+      "fnv": "02d3309e00f93139",
+      "len": 7084
+     }
+    },
+    "998": {
+     "test": "test_a_june_payday_names_the_financial_year_it_falls_in",
+     "expected": {
+      "fnv": "02d3309e00f93139",
+      "len": 7084
+     }
+    },
+    "1002": {
+     "test": "test_all_date_problems_are_reported_at_once",
+     "expected": {
+      "fnv": "02d3309e00f93139",
+      "len": 7084
+     }
+    },
+    "1005": {
+     "test": "test_unpaid_overdue_line_reports_exposure_and_exit_code",
+     "expected": {
+      "fnv": "02d3309e00f93139",
+      "len": 7084
+     }
+    },
+    "1009": {
+     "test": "test_not_yet_due_line_with_no_dates_stays_unknown",
+     "expected": {
+      "fnv": "02d3309e00f93139",
+      "len": 7084
+     }
+    },
+    "1012": {
+     "test": "test_calendar_caveats_describe_the_aligned_deadline",
+     "expected": {
+      "fnv": "02d3309e00f93139",
+      "len": 7084
+     }
+    },
+    "1015": {
+     "test": "test_receipt_past_the_calendar_horizon_is_not_called_late",
+     "expected": {
+      "fnv": "02d3309e00f93139",
+      "len": 7084
+     }
+    },
+    "1018": {
+     "test": "test_receipt_before_a_past_horizon_deadline_is_on_time",
+     "expected": {
+      "fnv": "02d3309e00f93139",
+      "len": 7084
+     }
+    },
+    "1021": {
+     "test": "test_partial_receipt_before_a_past_horizon_deadline_leaves_due_date_unknown",
+     "expected": {
+      "fnv": "02d3309e00f93139",
+      "len": 7084
+     }
+    },
+    "1024": {
+     "test": "test_partial_receipt_after_a_past_horizon_deadline_keeps_all_three_states_visible",
+     "expected": {
+      "fnv": "02d3309e00f93139",
+      "len": 7084
+     }
+    },
+    "1027": {
+     "test": "test_remittance_before_a_past_horizon_deadline_is_at_risk",
+     "expected": {
+      "fnv": "02d3309e00f93139",
+      "len": 7084
+     }
+    },
+    "1030": {
+     "test": "test_receipt_on_a_past_horizon_deadline_is_on_time",
+     "expected": {
+      "fnv": "02d3309e00f93139",
+      "len": 7084
+     }
+    },
+    "1033": {
+     "test": "test_remittance_past_a_past_horizon_deadline_is_unassessable",
+     "expected": {
+      "fnv": "02d3309e00f93139",
+      "len": 7084
+     }
+    },
+    "1037": {
+     "test": "test_an_unassessable_line_is_not_counted_as_a_plain_data_quality_note",
+     "expected": {
+      "fnv": "02d3309e00f93139",
+      "len": 7084
+     }
+    },
+    "1041": {
+     "test": "test_a_deadline_on_the_last_covered_day_is_still_assessed",
+     "expected": {
+      "fnv": "02d3309e00f93139",
+      "len": 7084
+     }
+    },
+    "1044": {
+     "test": "test_a_deadline_one_day_past_the_last_covered_day_is_not_assessed",
+     "expected": {
+      "fnv": "02d3309e00f93139",
+      "len": 7084
+     }
+    },
+    "1047": {
+     "test": "test_a_deadline_inside_the_horizon_is_still_assessed",
+     "expected": {
+      "fnv": "02d3309e00f93139",
+      "len": 7084
+     }
+    },
+    "1050": {
+     "test": "test_prepayment_past_the_horizon_keeps_its_verdict",
+     "expected": {
+      "fnv": "02d3309e00f93139",
+      "len": 7084
+     }
+    },
+    "1053": {
+     "test": "test_unfunded_payday_past_the_horizon_is_attention_driving_unknown",
+     "expected": {
+      "fnv": "02d3309e00f93139",
+      "len": 7084
+     }
+    },
+    "1056": {
+     "test": "test_stale_prepayment_past_the_horizon_has_no_exposure",
+     "expected": {
+      "fnv": "02d3309e00f93139",
+      "len": 7084
+     }
+    },
+    "1059": {
+     "test": "test_horizon_caveat_says_the_table_may_be_missing_holidays",
+     "expected": {
+      "fnv": "02d3309e00f93139",
+      "len": 7084
+     }
+    },
+    "1063": {
+     "test": "test_case_variant_employee_ids_are_flagged_not_merged",
+     "expected": {
+      "fnv": "02d3309e00f93139",
+      "len": 7084
+     }
+    },
+    "1066": {
+     "test": "test_item4_inherited_from_an_unrecorded_payday_is_flagged",
+     "expected": {
+      "fnv": "02d3309e00f93139",
+      "len": 7084
+     }
+    },
+    "1069": {
+     "test": "test_partial_on_time_receipt_respects_an_unresolved_item4_deadline",
+     "expected": {
+      "fnv": "02d3309e00f93139",
+      "len": 7084
+     }
+    },
+    "1072": {
+     "test": "test_partial_receipt_inside_an_unresolved_item4_window_keeps_outer_bounds",
+     "expected": {
+      "fnv": "02d3309e00f93139",
+      "len": 7084
+     }
+    },
+    "1075": {
+     "test": "test_partial_item4_receipt_after_the_upper_deadline_has_no_not_yet_due_state",
+     "expected": {
+      "fnv": "02d3309e00f93139",
+      "len": 7084
+     }
+    },
+    "1080": {
+     "test": "test_zero_amount_receipt_cannot_seed_item4_but_positive_partial_can",
+     "expected": {
+      "fnv": "02d3309e00f93139",
+      "len": 7084
+     }
+    },
+    "1085": {
+     "test": "test_item4_inherited_caveat_survives_a_post_as_at_donor_payment",
+     "expected": {
+      "fnv": "02d3309e00f93139",
+      "len": 7084
+     }
+    },
+    "1089": {
+     "test": "test_a_nil_payday_does_not_extend_a_later_real_paydays_verdict",
+     "expected": {
+      "fnv": "02d3309e00f93139",
+      "len": 7084
+     }
+    },
+    "1092": {
+     "test": "test_a_nil_donor_does_not_suppress_the_unrecorded_item_4_caveat",
+     "expected": {
+      "fnv": "02d3309e00f93139",
+      "len": 7084
+     }
+    },
+    "1095": {
+     "test": "test_a_supplied_2029_calendar_produces_a_real_verdict",
+     "expected": {
+      "fnv": "53c84020ba62c38a",
+      "len": 7342
+     }
+    },
+    "1099": {
+     "test": "test_a_supplied_2029_calendar_produces_a_real_verdict",
+     "expected": {
+      "fnv": "02d3309e00f93139",
+      "len": 7084
+     }
+    },
+    "1101": {
+     "test": "test_exposure_past_the_horizon_leaves_days_late_blank_and_labels_a_maximum",
+     "expected": {
+      "fnv": "02d3309e00f93139",
+      "len": 7084
+     }
+    },
+    "1104": {
+     "test": "test_days_late_inside_the_horizon_is_still_a_definite_number",
+     "expected": {
+      "fnv": "02d3309e00f93139",
+      "len": 7084
+     }
+    },
+    "1108": {
+     "test": "test_missed_new_starter_flag_is_suggested_on_late_lines",
+     "expected": {
+      "fnv": "02d3309e00f93139",
+      "len": 7084
+     }
+    },
+    "1111": {
+     "test": "test_prepayment_window_is_leap_safe",
+     "expected": {
+      "fnv": "02d3309e00f93139",
+      "len": 7084
+     }
+    },
+    "1114": {
+     "test": "test_identical_rows_are_flagged_as_duplicates",
+     "expected": {
+      "fnv": "02d3309e00f93139",
+      "len": 7084
+     }
+    },
+    "1119": {
+     "test": "test_console_shows_totals_and_caveats",
+     "expected": {
+      "fnv": "02d3309e00f93139",
+      "len": 7084
+     }
+    },
+    "1123": {
+     "test": "test_at_risk_caveats_reach_the_console",
+     "expected": {
+      "fnv": "02d3309e00f93139",
+      "len": 7084
+     }
+    },
+    "1136": {
+     "test": "test_the_universal_at_risk_caveat_does_not_fill_the_listing",
+     "expected": {
+      "fnv": "02d3309e00f93139",
+      "len": 7084
+     }
+    },
+    "1167": {
+     "test": "test_days_late_is_not_truncated_by_the_assessment_date",
+     "expected": {
+      "fnv": "02d3309e00f93139",
+      "len": 7084
+     }
+    },
+    "1170": {
+     "test": "test_stale_prepayment_gets_no_new_starter_hint",
+     "expected": {
+      "fnv": "02d3309e00f93139",
+      "len": 7084
+     }
+    },
+    "1173": {
+     "test": "test_new_starter_hint_wording_matches_the_verdict_it_would_produce",
+     "expected": {
+      "fnv": "02d3309e00f93139",
+      "len": 7084
+     }
+    },
+    "1176": {
+     "test": "test_new_starter_hint_promises_no_verdict_on_partial_evidence",
+     "expected": {
+      "fnv": "02d3309e00f93139",
+      "len": 7084
+     }
+    },
+    "1182": {
+     "test": "test_zero_amount_line_with_late_payment_dates_is_not_exposure",
+     "expected": {
+      "fnv": "02d3309e00f93139",
+      "len": 7084
+     }
+    },
+    "1186": {
+     "test": "test_item4_caveat_only_fires_on_an_aligned_line",
+     "expected": {
+      "fnv": "02d3309e00f93139",
+      "len": 7084
+     }
+    },
+    "1189": {
+     "test": "test_item4_caveat_names_the_deadline_without_the_alignment",
+     "expected": {
+      "fnv": "02d3309e00f93139",
+      "len": 7084
+     }
+    },
+    "1192": {
+     "test": "test_item4_caveat_keeps_an_out_of_cycle_lines_own_deadline",
+     "expected": {
+      "fnv": "02d3309e00f93139",
+      "len": 7084
+     }
+    },
+    "1202": {
+     "test": "test_an_unpaid_row_does_not_claim_no_date_when_one_was_supplied",
+     "expected": {
+      "fnv": "02d3309e00f93139",
+      "len": 7084
+     }
+    },
+    "1205": {
+     "test": "test_a_not_yet_due_row_does_not_claim_no_date_when_one_was_supplied",
+     "expected": {
+      "fnv": "02d3309e00f93139",
+      "len": 7084
+     }
+    },
+    "1221": {
+     "test": "test_join_caveats_survive_the_reader_and_reach_the_report",
+     "expected": {
+      "fnv": "02d3309e00f93139",
+      "len": 7084
+     }
+    },
+    "1338": {
+     "test": "test_a_row_past_the_table_keeps_its_verdict_and_loses_only_the_estimate",
+     "expected": {
+      "fnv": "02d3309e00f93139",
+      "len": 7084
+     }
+    },
+    "1342": {
+     "test": "test_a_table_that_starts_after_the_period_still_fails_the_run",
+     "expected": {
+      "fnv": "02d3309e00f93139",
+      "len": 7084
+     }
+    },
+    "1344": {
+     "test": "test_a_period_inside_the_table_is_unaffected",
+     "expected": {
+      "fnv": "02d3309e00f93139",
+      "len": 7084
+     }
+    },
+    "1347": {
+     "test": "test_a_withheld_estimate_does_not_also_claim_the_rate_was_carried_forward",
+     "expected": {
+      "fnv": "02d3309e00f93139",
+      "len": 7084
+     }
+    },
+    "1357": {
+     "test": "test_a_timely_receipt_with_no_amount_is_unknown_not_on_time",
+     "expected": {
+      "fnv": "02d3309e00f93139",
+      "len": 7084
+     }
+    },
+    "1360": {
+     "test": "test_a_timely_receipt_with_no_amount_before_the_due_date_passes_is_still_unknown",
+     "expected": {
+      "fnv": "02d3309e00f93139",
+      "len": 7084
+     }
+    },
+    "1363": {
+     "test": "test_an_explicit_full_amount_is_on_time",
+     "expected": {
+      "fnv": "02d3309e00f93139",
+      "len": 7084
+     }
+    },
+    "1366": {
+     "test": "test_a_ten_column_part_payment_evidences_its_own_amount",
+     "expected": {
+      "fnv": "02d3309e00f93139",
+      "len": 7084
+     }
+    },
+    "1369": {
+     "test": "test_an_explicit_partial_amount_is_not_on_time",
+     "expected": {
+      "fnv": "02d3309e00f93139",
+      "len": 7084
+     }
+    },
+    "1372": {
+     "test": "test_a_late_receipt_with_no_amount_is_late_and_keeps_the_whole_shortfall",
+     "expected": {
+      "fnv": "02d3309e00f93139",
+      "len": 7084
+     }
+    },
+    "1376": {
+     "test": "test_a_prepayment_with_no_amount_inside_the_window_is_unknown",
+     "expected": {
+      "fnv": "02d3309e00f93139",
+      "len": 7084
+     }
+    },
+    "1379": {
+     "test": "test_a_receipt_after_the_due_date_with_a_possible_item4_extension_stays_unknown",
+     "expected": {
+      "fnv": "02d3309e00f93139",
+      "len": 7084
+     }
+    },
+    "1382": {
+     "test": "test_contradictory_amounts_are_still_refused",
+     "expected": {
+      "fnv": "02d3309e00f93139",
+      "len": 7084
+     }
+    },
+    "1385": {
+     "test": "test_two_receipts_for_one_payday_are_assessed_on_their_own_amounts",
+     "expected": {
+      "fnv": "02d3309e00f93139",
+      "len": 7084
+     }
+    },
+    "1389": {
+     "test": "test_the_new_starter_narrative_names_the_missing_amount",
+     "expected": {
+      "fnv": "02d3309e00f93139",
+      "len": 7084
+     }
+    },
+    "1395": {
+     "test": "test_a_bare_receipt_after_a_past_horizon_deadline_keeps_the_horizon_caveat",
+     "expected": {
+      "fnv": "02d3309e00f93139",
+      "len": 7084
+     }
+    },
+    "1430": {
+     "test": "test_sample_matches_the_engine_line_by_line",
+     "expected": {
+      "fnv": "02d3309e00f93139",
+      "len": 7084
+     }
+    }
+   }
   }
  ]
 }

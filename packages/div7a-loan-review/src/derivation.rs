@@ -15,7 +15,7 @@ use crate::Failure;
 use crate::api;
 use crate::decimal::{Calc, Decimal};
 use crate::money::{ROUNDING, cents_str};
-use crate::myr::{MyrFacts, MyrResult, minimum_yearly_repayment};
+use crate::myr::{MyrFacts, MyrResult, repayment_within};
 
 pub const FORMAT: &str = "div7a-loan-review/derivation/1";
 const CALCULATION: &str = "minimum-yearly-repayment";
@@ -228,8 +228,8 @@ pub fn derive(input: &Value) -> Result<Value, String> {
             ));
         }
     }
-    let facts = api::myr_facts(input)?;
-    let result = minimum_yearly_repayment(&facts, None, None).map_err(failure)?;
+    let (facts, term) = (api::myr_facts(input)?, api::myr_loan_term(input)?);
+    let result = repayment_within(&facts, None, term.as_ref(), None, None).map_err(failure)?;
     Ok(json!({
         "format": FORMAT,
         "engine": "div7a-loan-review",

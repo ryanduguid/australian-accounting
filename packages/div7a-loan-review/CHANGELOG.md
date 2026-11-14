@@ -7,7 +7,7 @@ import API. The `rate`, `gate`, `myr` and `review` commands keep their flags,
 help, validation, text and JSON output, and exit codes. The former API
 functions are JSON stdin subcommands, documented in README.md. No benchmark
 rate, statutory test, formula, rounding, refusal, reason code or message is
-intentionally changed, apart from the 2 refusals added under Documented
+intentionally changed, apart from the 3 refusals added under Documented
 divergences.
 
 ### Added
@@ -80,6 +80,13 @@ divergences.
   Python's `int` does, up to the 4,300 digits Python's `json.loads` accepted. The
   boundary refuses input over 8 MiB and lone Unicode surrogate escapes; its own
   refusals exit 2.
+- The JSON a command reads from standard input or from `verify FILE`, and the
+  input of the WebAssembly build, refuse an object that repeats a key, at any
+  depth, as `invalid JSON: duplicate key "<key>"` (exit 2 on the command
+  line). Python's `json.loads`, and earlier 1.0.0 builds, kept the last value
+  without a word. Keys are compared as decoded, so an escaped spelling counts
+  as a repeat. `au-accounting div7a` gives the same refusal. A rate override
+  file is read as before and still keeps the last value.
 - A reason without its code, and comparing a year of income with a bare
   number, can no longer be written: reasons and codes are built as pairs, and
   years are typed.
@@ -125,11 +132,72 @@ divergences.
   years remaining. For an amalgamated loan, `maximum_term_years` is the longest
   constituent-loan term. Where the remaining term is also past the maximum term,
   only `REFUSED_REMAINING_TERM_ABOVE_MAXIMUM_TERM` is given. The
-  `minimum-yearly-repayment` command, which takes no loan term, is unchanged.
+  `minimum-yearly-repayment` command gives it only when given
+  `maximum_term_years` (below).
   The replay applies 26 more changed generated answers and updates 1 from the
   earlier change. In 2 of them the refused row was the register's only
   undecided one, so the run now exits 2 instead of 0; those cases set
   `exit_code_changes`, which the replay now requires for any changed exit code.
+- A register review also refuses the minimum yearly repayment, with
+  `REFUSED_REMAINING_TERM_ABOVE_TERM_LESS_YEARS_ELAPSED`, where the gate passed
+  the loan, `year_loan_made` is earlier than the year reviewed, and
+  `remaining_term_years`, rounded up, is longer than `maximum_term_years` less
+  the years from the end of the loan year to the end of the year before the one
+  reviewed, rounded up after the subtraction (s 109E(6) paragraph (b)). Python
+  0.3.2 and earlier 1.0.0 builds worked a lower repayment from such a row, such
+  as a 7-year loan made in 2020-21 entered with 7 years remaining in 2025-26,
+  when at most 3 remain. In the first repayment year nothing has elapsed, so the
+  limit is the loan's term and `REFUSED_REMAINING_TERM_ABOVE_LOAN_TERM` covers
+  it; where either earlier refusal applies, only it is given. A row without
+  `year_loan_made` and the `minimum-yearly-repayment` command are unchanged. The
+  years are counted as 12-month years of income, so the count can be out by part
+  of a year for a company whose accounting period changed in between; a
+  substituted accounting period stays outside v1. The refusal tells the caller
+  that a loan secured and extended under s 109E(3A) has the year before the
+  later year of income as its `year_loan_made`, because s 109E(3B) treats the
+  new amalgamated loan as made just before that year starts. The replay applies
+  5 more changed answers and updates 2 from the earlier changes. One is an API
+  call, which the replay can now amend by the hash of its frozen answer. Another
+  reviews `examples/sample_loans_myr_met.csv`, whose remaining terms are those
+  for 2026-27, for 2027-28: all 3 rows are now refused and the run exits 2
+  instead of 0.
+- The `minimum-yearly-repayment` command and `derive` take an optional
+  `maximum_term_years`, the loan's own term, in `facts` or in the `mapping`
+  row, and then give `REFUSED_REMAINING_TERM_ABOVE_LOAN_TERM` and
+  `REFUSED_REMAINING_TERM_ABOVE_TERM_LESS_YEARS_ELAPSED` as a register review
+  does. Without it, a repayment figure carries a caveat that no remaining-term
+  limit was checked, so a derivation saved earlier with a figure no longer
+  verifies. A `maximum_term_years` that cannot be read, which was ignored
+  before, is now an error: in `facts`, one that is not a decimal; in a
+  `mapping` row, one the register would refuse. A saved derivation holding one
+  now fails `verify` with that error. The s 109N(3) maximum-term refusal needs
+  security facts, which the
+  command does not take; a gate that passed the same term has checked it
+  against that maximum.
+- A loan secured and extended under s 109E(3A) is entered with its agreed term
+  counted from when it was first made (at most 25 years, s 109E(3A)(e)) less
+  the time it had already run before the extension as its
+  `maximum_term_years`, which is how the ATO works its term ('Loans by private
+  companies', ato.gov.au, last updated 2 July 2026: 'The maximum term of the
+  loan becomes 25 years less the period of the term already expired when the
+  loan was unsecured'). On a literal reading, s 109E(3B) and (6) allow a remaining
+  term of 25 in the later year of income; the ATO's working gives the higher
+  repayment. The reasons for `REFUSED_REMAINING_TERM_ABOVE_MAXIMUM_TERM` and
+  `REFUSED_REMAINING_TERM_ABOVE_TERM_LESS_YEARS_ELAPSED` say so. The replay
+  applies 33 more changed answers and updates 23 from the earlier changes.
+- The Excel workbook gives the same 3 remaining-term refusals, in the same
+  order, after a nil remaining term and before a nil rate. Earlier 1.0.0
+  workbooks worked a repayment, and could show a shortfall, where the engine
+  refused one. A row with no known `year_loan_made` no longer gets the
+  benchmark-year mismatch as its reason, which the engine gives only with a
+  known loan year. The mixed sample gains a blank `year_of_income_being_tested`
+  column and 6 fabricated rows, L-109 to L-114: one for each refusal, one with
+  no loan year and a nominated benchmark year, a 7-year loan made in 2024-25
+  with 6 years remaining in 2026-27 and a 6.5-year loan made in 2025-26 with 7
+  remaining, each the longest it can have, which still get a figure. The
+  workbook's frozen engine review and model are regenerated for them, and the
+  root workbook test now also holds each refusal's reason to the engine's
+  first reason code.
 
 ### Verification
 

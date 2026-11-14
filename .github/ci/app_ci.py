@@ -12,6 +12,7 @@ import subprocess
 import sys
 from pathlib import Path
 
+from rust_crates import crates
 from select_package import is_shared, parse_changed_paths
 
 # Root pytest checks these lists against the manifests. Its required
@@ -45,17 +46,34 @@ PATH_JOBS = {
     "glama-badges": frozenset({"check", "dependency-audit", "worker"}),
     "readme-quick-start": frozenset({"trial"}),
 }
+# ci.yml's crates job selects the jobs that check the crates rust_crates.py lists
+# for it. Those crates link only each other by path, which root pytest checks.
+CRATE_JOBS = {"crates": frozenset({"rust", "umbrella-parity"})}
+# The job whose run output holds a selection, where it is not changes.
+SELECTORS = {"crates": "crates"}
 # Every selection's jobs, by the name its select and gate commands take.
-SELECTED_JOBS = APP_JOBS | PATH_JOBS
+SELECTED_JOBS = APP_JOBS | PATH_JOBS | CRATE_JOBS
 KNOWN_PREFIXES = tuple(f"packages/{name}/" for name in PACKAGES) + tuple(
     f"apps/{name}/" for name in DEPENDENCIES
 )
+# Root Python tests and the tool workspaces, which none of those crates reads.
+CRATE_UNRELATED_PREFIXES = ("tests/", "tools/")
 
 
 def should_run(app: str, paths: list[str]) -> bool:
     relevant = (f"apps/{app}/", "tests/") + tuple(
         f"packages/{name}/" for name in DEPENDENCIES[app]
     )
+    return change_selects(paths, relevant, KNOWN_PREFIXES)
+
+
+def crates_should_run(paths: list[str]) -> bool:
+    relevant = tuple(f"{crate['root']}/{crate['package']}/" for crate in crates(ci_yml=True))
+    return change_selects(paths, relevant, KNOWN_PREFIXES + CRATE_UNRELATED_PREFIXES)
+
+
+def change_selects(paths: list[str], relevant: tuple[str, ...], known: tuple[str, ...]) -> bool:
+    """True unless every path is known and outside the shared and relevant paths."""
     if not paths:
         return True
     for path in paths:
@@ -63,7 +81,7 @@ def should_run(app: str, paths: list[str]) -> bool:
             return True
         if is_shared(path) or path.startswith(relevant):
             return True
-        if not path.startswith(KNOWN_PREFIXES):
+        if not path.startswith(known):
             return True
     return False
 
@@ -104,24 +122,25 @@ def changed_paths(root: Path) -> list[str]:
         return []
 
 
-def check_results(results: object, event: str, app: str) -> None:
+def check_results(results: object, event: str, *apps: str) -> None:
     if not isinstance(results, dict):
         raise ValueError("Job results must be an object")
-    changes = results.get("changes")
-    if not isinstance(changes, dict) or changes.get("result") != "success":
-        raise ValueError("Application selection did not succeed")
-    outputs = changes.get("outputs")
-    run = outputs.get("run") if isinstance(outputs, dict) else None
-    if run not in ("true", "false") or (event != "pull_request" and run != "true"):
-        raise ValueError("Invalid application selection")
-    app_jobs = SELECTED_JOBS[app]
-    if not app_jobs <= results.keys():
-        raise ValueError("Missing application job results")
-    expected_app = "success" if run == "true" else "skipped"
+    expected = {}
+    for app in apps:
+        changes = results.get(SELECTORS.get(app, "changes"))
+        if not isinstance(changes, dict) or changes.get("result") != "success":
+            raise ValueError("Application selection did not succeed")
+        outputs = changes.get("outputs")
+        run = outputs.get("run") if isinstance(outputs, dict) else None
+        if run not in ("true", "false") or (event != "pull_request" and run != "true"):
+            raise ValueError("Invalid application selection")
+        app_jobs = SELECTED_JOBS[app]
+        if not app_jobs <= results.keys():
+            raise ValueError("Missing application job results")
+        expected.update(dict.fromkeys(app_jobs, "success" if run == "true" else "skipped"))
     failed = [
         name for name, job in results.items()
-        if not isinstance(job, dict)
-        or job.get("result") != (expected_app if name in app_jobs else "success")
+        if not isinstance(job, dict) or job.get("result") != expected.get(name, "success")
     ]
     if failed:
         raise ValueError("Jobs did not satisfy application selection: " + ", ".join(failed))
@@ -130,12 +149,14 @@ def check_results(results: object, event: str, app: str) -> None:
 def main(argv: list[str]) -> int:
     event = os.environ.get("GITHUB_EVENT_NAME", "")
     try:
-        if len(argv) == 3 and argv[1] == "gate" and argv[2] in SELECTED_JOBS:
-            check_results(json.loads(os.environ.get("RESULTS", "")), event, argv[2])
+        if len(argv) >= 3 and argv[1] == "gate" and set(argv[2:]) <= SELECTED_JOBS.keys():
+            check_results(json.loads(os.environ.get("RESULTS", "")), event, *argv[2:])
         elif len(argv) == 3 and argv[1] == "select" and argv[2] in SELECTED_JOBS:
             paths = changed_paths(Path.cwd()) if event == "pull_request" else []
             if argv[2] in PATH_JOBS:
                 selected = path_selected(paths, trigger_paths())
+            elif argv[2] in CRATE_JOBS:
+                selected = crates_should_run(paths)
             else:
                 selected = should_run(argv[2], paths)
             run = event != "pull_request" or selected
@@ -143,7 +164,7 @@ def main(argv: list[str]) -> int:
             print(f"Application checks: {reason}", file=sys.stderr)
             print(f"run={'true' if run else 'false'}")
         else:
-            print(f"usage: {argv[0]} select <app> | gate <app>", file=sys.stderr)
+            print(f"usage: {argv[0]} select <app> | gate <app> [<app> ...]", file=sys.stderr)
             return 2
     except (ValueError, TypeError) as error:
         print(str(error), file=sys.stderr)

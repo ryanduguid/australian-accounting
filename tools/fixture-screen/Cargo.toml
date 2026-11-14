@@ -13,4 +13,4 @@ publish = false
 [dev-dependencies]
 evatt = { git = "https://github.com/ryanduguid/accounting-review-pipeline", rev = "40aac54df997491c9ae4c0475118cb36b908b36b" }
 # zip reads xlsx workbooks part by part, pinned as the workbook builders pin it.
-zip = { version = "=9.3.0", default-features = false, features = ["deflate"] }
+zip = { version = "=9.5.0", default-features = false, features = ["deflate"] }

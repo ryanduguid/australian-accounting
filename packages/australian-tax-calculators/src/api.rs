@@ -9,6 +9,7 @@
 use crate::decimal::Decimal;
 use crate::engine::{self, Arg};
 use serde_json::Value;
+use std::collections::HashSet;
 
 /// A refusal at the JSON boundary: its stable code and the message.
 #[derive(Clone, Debug, PartialEq, Eq)]
@@ -24,6 +25,54 @@ impl Refusal {
             message: message.into(),
         }
     }
+}
+
+/// The first key an object in `bytes` repeats, which decoding into `Value`
+/// resolves silently by keeping the last value. `bytes` must already have
+/// decoded as JSON; each key is compared decoded, so escapes cannot hide a repeat.
+/// This command and `au-accounting tax` both refuse on it, before the worksheet
+/// sees either value, so a repeat is refused whatever the values are.
+pub fn repeated_key(bytes: &[u8]) -> Option<String> {
+    // One entry per open container: an object's keys so far, or None for an array.
+    let mut open: Vec<Option<HashSet<String>>> = Vec::new();
+    let mut key_next = false;
+    let mut i = 0;
+    while i < bytes.len() {
+        match bytes[i] {
+            b'"' => {
+                let start = i;
+                i += 1;
+                while i < bytes.len() && bytes[i] != b'"' {
+                    i += if bytes[i] == b'\\' { 2 } else { 1 };
+                }
+                if key_next && let Some(Some(keys)) = open.last_mut() {
+                    let literal = bytes.get(start..=i).unwrap_or_default();
+                    if let Ok(key) = serde_json::from_slice::<String>(literal)
+                        && !keys.insert(key.clone())
+                    {
+                        return Some(key);
+                    }
+                }
+                key_next = false;
+            }
+            b'{' => {
+                open.push(Some(HashSet::new()));
+                key_next = true;
+            }
+            b'[' => {
+                open.push(None);
+                key_next = false;
+            }
+            b'}' | b']' => {
+                open.pop();
+                key_next = false;
+            }
+            b',' => key_next = matches!(open.last(), Some(Some(_))),
+            _ => {}
+        }
+        i += 1;
+    }
+    None
 }
 
 /// Every refusal code and the failure it names.
@@ -226,6 +275,83 @@ const COMMAND_ARGS: &[(&str, &[(&str, Kind)])] = &[
         ],
     ),
     (
+        "termination-payment",
+        &[
+            ("redundancy_payment", Dec),
+            ("completed_years_of_service", Raw),
+            ("excluded_payment", Dec),
+            ("non_excluded_payment", Dec),
+            ("other_taxable_payments", Dec),
+            ("date_of_birth", Raw),
+            ("year", Raw),
+            ("scope_confirmed", Raw),
+        ],
+    ),
+    (
+        "schedule-5-method-a",
+        &[
+            ("earnings", Dec),
+            ("additional_payment", Dec),
+            ("pay_periods", Raw),
+            ("pay_period", Raw),
+            ("scale", Raw),
+            ("study_loan", Raw),
+            ("year", Raw),
+            ("scope_confirmed", Raw),
+        ],
+    ),
+    (
+        "schedule-5-method-b-i",
+        &[
+            ("earnings", Dec),
+            ("back_payment_periods", Json),
+            ("pay_period", Raw),
+            ("scale", Raw),
+            ("study_loan", Raw),
+            ("year", Raw),
+            ("scope_confirmed", Raw),
+        ],
+    ),
+    (
+        "schedule-5-method-b-ii",
+        &[
+            ("earnings", Dec),
+            ("additional_payment", Dec),
+            ("year_to_date_earnings", Dec),
+            ("pay_periods_to_date", Raw),
+            ("earlier_additional_payments", Dec),
+            ("earlier_additional_withholding", Dec),
+            ("pay_period", Raw),
+            ("scale", Raw),
+            ("study_loan", Raw),
+            ("year", Raw),
+            ("scope_confirmed", Raw),
+        ],
+    ),
+    (
+        "working-holiday-maker-withholding",
+        &[
+            ("payment", Dec),
+            ("payments_before", Dec),
+            ("employer_registered", Raw),
+            ("tfn_quoted", Raw),
+            ("pay_period", Raw),
+            ("year", Raw),
+            ("scope_confirmed", Raw),
+        ],
+    ),
+    (
+        "seniors-pensioners-withholding",
+        &[
+            ("earnings", Dec),
+            ("pay_period", Raw),
+            ("status", Raw),
+            ("medicare_levy_exemption", Raw),
+            ("year", Raw),
+            ("scope_confirmed", Raw),
+        ],
+    ),
+    (
         "study-loan-repayment",
         &[
             ("repayment_income", Dec),
@@ -261,7 +387,46 @@ pub fn commands() -> Vec<&'static str> {
     let mut out: Vec<&'static str> = COMMAND_ARGS.iter().map(|(c, _)| *c).collect();
     out.push("worksheet-catalogue");
     out.push("periods");
+    out.push("derive");
     out
+}
+
+/// The commands `derive` explains: each of their amounts is worked out in a step.
+const DERIVED: [&str; 3] = ["fbt", "fbt-car-statutory", "fbt-car-operating-cost"];
+
+/// `derive`: `{"command", "input"}` gives the command's result with the step
+/// behind each amount. A refused input gives the command's own refusal.
+fn derive(v: &Value) -> Result<Value> {
+    let mut keys = v.as_object().into_iter().flat_map(|o| o.keys());
+    if let Some(key) = keys.find(|k| !matches!(k.as_str(), "command" | "input")) {
+        return refusal(
+            "input.field_unknown",
+            format!("{key} is not an input of derive"),
+        );
+    }
+    let Some(command) = v.get("command") else {
+        return refusal("input.missing_field", "command is required");
+    };
+    let Some(command) = command.as_str().filter(|c| DERIVED.contains(c)) else {
+        return refusal(
+            "derivation.unsupported",
+            format!("derive explains {}, not {command}", DERIVED.join(", ")),
+        );
+    };
+    let Some(input) = v.get("input") else {
+        return refusal("input.missing_field", "input is required");
+    };
+    let (result, steps) = engine::with_steps(|| evaluate_coded(command, input));
+    let result = result?;
+    Ok(serde_json::json!({
+        "format": "australian-tax-calculators/derivation/1",
+        "engine": result["engine"],
+        "engine_version": result["engine_version"],
+        "calculation": result["calculation"],
+        "input": input,
+        "steps": steps,
+        "result": result,
+    }))
 }
 
 /// A JSON value as the Python object the original received.
@@ -438,6 +603,7 @@ pub fn evaluate_coded(command: &str, v: &Value) -> Result<Value> {
     int_limit(v)?;
     match command {
         "worksheet-catalogue" => return Ok(engine::worksheet_catalogue()),
+        "derive" => return derive(v),
         "periods" => {
             let kind = match v.get("kind") {
                 None => return refusal("input.missing_field", "kind is required"),
@@ -458,12 +624,27 @@ pub fn evaluate_coded(command: &str, v: &Value) -> Result<Value> {
     let Some((_, params)) = COMMAND_ARGS.iter().find(|(c, _)| *c == command) else {
         return refusal("command.unknown", format!("unknown command {command}"));
     };
-    // Division 296 has no Python original whose lenience to keep, and a misspelt
-    // optional depreciation input would silently give the start year's result, so
-    // a field either does not take, such as an opening balance, is refused rather
-    // than ignored.
-    if matches!(command, "division-296" | "depreciation") {
-        let optional = crate::metadata::optional_inputs(command);
+    // Division 296, the termination payment, Schedule 5, 9 and 15
+    // worksheets have no Python original whose lenience to keep, and a misspelt
+    // optional depreciation, Medicare levy or PAYG withholding input would
+    // silently give the start year's, a single person's or the result without
+    // it, so a field one does not take, such as an opening balance, another
+    // method's input or a TFN exemption, is refused rather than ignored.
+    if matches!(
+        command,
+        "division-296"
+            | "depreciation"
+            | "medicare-levy"
+            | "payg-withholding"
+            | "termination-payment"
+            | "schedule-5-method-a"
+            | "schedule-5-method-b-i"
+            | "schedule-5-method-b-ii"
+            | "working-holiday-maker-withholding"
+            | "study-loan-withholding"
+            | "seniors-pensioners-withholding"
+    ) {
+        let optional = crate::metadata::optional_inputs(&command.replace('-', "_"));
         let taken = |key: &String| {
             params.iter().any(|(p, _)| p == key) || optional.iter().any(|(o, _)| o == key)
         };
@@ -524,14 +705,78 @@ pub fn evaluate_coded(command: &str, v: &Value) -> Result<Value> {
             )
         }
         "quarterly-sg" => engine::quarterly_sg(&a[0], &a[1], &a[2], &a[3], &a[4]),
-        "payg-withholding" => engine::payg_withholding(&a[0], &a[1], &a[2], &a[3], &a[4]),
-        "study-loan-withholding" => {
-            engine::study_loan_withholding(&a[0], &a[1], &a[2], &a[3], &a[4])
+        "payg-withholding" => {
+            // Optional: each is absent unless the payee's declarations call for it.
+            let offsets = match v.get("tax_offsets") {
+                None => None,
+                Some(_) => Some(argument(v, "tax_offsets", Dec)?),
+            };
+            let [foreign, children, extra] = [
+                "foreign_resident",
+                "medicare_adjustment_children",
+                "extra_pay_withholding",
+            ]
+            .map(|key| v.get(key).map(arg));
+            let options = engine::PaygOptions {
+                foreign_resident: foreign.as_ref(),
+                tax_offsets: offsets.as_ref(),
+                medicare_adjustment_children: children.as_ref(),
+                extra_pay_withholding: extra.as_ref(),
+            };
+            engine::payg_withholding(&a[0], &a[1], &a[2], &a[3], &a[4], &options)
         }
-        "medicare-levy" => engine::medicare_levy(&a[0], &a[1], &a[2], &a[3]),
+        "study-loan-withholding" => {
+            let pay_date = v.get("pay_date").map(arg);
+            engine::study_loan_withholding(&a[0], &a[1], &a[2], &a[3], &a[4], pay_date.as_ref())
+        }
+        "medicare-levy" => {
+            // Optional: each absent for a person without SAPTO, spouse or dependants.
+            let optional =
+                |key: &str, kind: Kind| v.get(key).map(|_| argument(v, key, kind)).transpose();
+            let o = [
+                optional("sapto_entitled", Raw)?,
+                optional("spouse_taxable_income", Dec)?,
+                optional("spouse_sapto_entitled", Raw)?,
+                optional("dependant_offset_entitled", Raw)?,
+                optional("dependent_children", Raw)?,
+            ];
+            let family = engine::MedicareFamily {
+                sapto_entitled: o[0].as_ref(),
+                spouse_taxable_income: o[1].as_ref(),
+                spouse_sapto_entitled: o[2].as_ref(),
+                dependant_offset_entitled: o[3].as_ref(),
+                dependent_children: o[4].as_ref(),
+            };
+            engine::medicare_levy(&a[0], &a[1], &a[2], &a[3], family)
+        }
         "low-income-tax-offset" => engine::low_income_tax_offset(&a[0], &a[1], &a[2]),
         "division-293" => engine::division_293(&a[0], &a[1], &a[2], &a[3]),
         "division-296" => engine::division_296(&a[0], &a[1], [&a[2], &a[3], &a[4]], &a[5], &a[6]),
+        "termination-payment" => {
+            engine::termination_payment(&a[0], &a[1], &a[2], &a[3], &a[4], &a[5], &a[6], &a[7])
+        }
+        "schedule-5-method-a" => {
+            engine::schedule_5_method_a(&a[0], &a[1], &a[2], &a[3], &a[4], &a[5], &a[6], &a[7])
+        }
+        "schedule-5-method-b-i" => {
+            engine::schedule_5_method_b_i(&a[0], &a[1], &a[2], &a[3], &a[4], &a[5], &a[6])
+        }
+        "schedule-5-method-b-ii" => engine::schedule_5_method_b_ii(
+            &a[0],
+            &a[1],
+            [&a[2], &a[3], &a[4], &a[5]],
+            &a[6],
+            &a[7],
+            &a[8],
+            &a[9],
+            &a[10],
+        ),
+        "working-holiday-maker-withholding" => engine::working_holiday_maker_withholding(
+            &a[0], &a[1], &a[2], &a[3], &a[4], &a[5], &a[6],
+        ),
+        "seniors-pensioners-withholding" => {
+            engine::seniors_pensioners_withholding(&a[0], &a[1], &a[2], &a[3], &a[4], &a[5])
+        }
         "study-loan-repayment" => engine::study_loan_repayment(&a[0], &a[1], &a[2]),
         "contribution-caps" => {
             engine::contribution_caps(&a[0], &a[1], &a[2], &a[3], &a[4], &a[5], &a[6])

@@ -29,7 +29,7 @@
 </div>
 
 ```bash
-claude mcp add --scope user aus-accounting -- uvx --from 'aus-accounting-mcp==0.8.0' aus-accounting-mcp
+claude mcp add --scope user aus-accounting -- uvx --from 'aus-accounting-mcp==0.9.0' aus-accounting-mcp
 ```
 
 That connects Claude Code; it needs Python 3.14+ and [uv](https://docs.astral.sh/uv/), and no API key. For Claude Desktop, download the `.mcpb` file from the [bundle releases](https://github.com/ryanduguid/australian-accounting/releases?q=aus-accounting-mcp-bundle&expanded=true) and open it with Claude Desktop. The server runs on your machine, so ChatGPT connectors and the Claude.ai web app, which accept only remote servers, cannot run it. [Other clients](apps/aus-accounting-mcp/README.md#client-integration).
@@ -62,7 +62,7 @@ Missing facts stay unknown: a Payday Super row with a fund-receipt date but no m
   11 August 2026, because NT Picnic Day on 3 August is not a business day. The
   [ATO's worked example](https://www.ato.gov.au/businesses-and-organisations/super-for-employers/paying-super-on-payday/payment-deadlines-for-payday-super)
   gives the same date on the usual 7 business day path. Run and read 5 November 2026.
-- **MCP tools.** Aus Accounting MCP 0.8.0, the published release, listed 25 local tools on
+- **MCP tools.** Aus Accounting MCP 0.8.0 listed 25 local tools on
   12 November 2026, including `validate_abn`, `validate_acn` and `get_reviewed_rate`; 0.7.1
   listed 22. 0.8.0 also adds the `doctor` command.
 
@@ -144,7 +144,7 @@ For the MCP server, install Python 3.14+ and [uv](https://docs.astral.sh/uv/), t
 configure your MCP client to run:
 
 ```bash
-uvx --from 'aus-accounting-mcp==0.8.0' aus-accounting-mcp
+uvx --from 'aus-accounting-mcp==0.9.0' aus-accounting-mcp
 ```
 
 This starts a **local stdio server**; it waits for an MCP client rather than opening
@@ -153,7 +153,7 @@ the tools then use bundled data without network requests or record writes. The
 MCP host you connect it to is a separate boundary: it sends every tool argument
 and result to its model provider, so use fabricated data with a hosted model.
 
-The pin selects the published 0.8.0 release, so a new release does not reach you on
+The pin selects the published 0.9.0 release, so a new release does not reach you on
 its own. To move to a later release, replace the version in your client configuration
 with one from [PyPI](https://pypi.org/project/aus-accounting-mcp/);
 uvx downloads it, and later launches reuse the cached copy without a download until
@@ -268,6 +268,19 @@ you configure. As read on 13 November 2026, these projects cover nearby ground:
   PAYG, GST, super and HECS, which its home page also offers inside ChatGPT and Claude as a plugin.
 - [PayCalculator](https://mcp.paycalculator.com.au/): a remote MCP server in the MCP Registry for
   Australian pay, income tax, super, HECS, family payments and child care subsidy.
+- [aftertaxau/au-compliance-kit](https://github.com/aftertaxau/au-compliance-kit), read on
+  14 November 2026: an MIT-licensed JavaScript library with no dependencies, v0.4.0 of
+  13 November 2026, with a local MCP server and a hosted one at `https://aftertaxau.com/mcp` that
+  needs no key. Both it and this repository cover Schedule 1 withholding with scale 4, quarterly
+  pays, tax offsets and the Medicare levy adjustment, and both test all 432 rows of each year's ATO
+  sample data. It also covers the seniors and pensioners tax offset with its income tests, quarterly
+  pays and study loan components under Schedule 9, overtime and an annual tax estimate with the
+  Medicare levy surcharge, which this repository does not. This repository covers 2024-25
+  withholding, Schedule 9's Medicare levy exemption scales, Schedule 5 Method B, Schedule 15 for
+  working holiday makers and Schedule 11 for termination payments, which the library does not. For
+  2026-27 both apply the 2025-26 Medicare levy low-income thresholds: the library notes that
+  2026-27's are not yet legislated, and this repository applies them as Act No. 58 of 2026 enacts
+  them for 2025-26 and later years.
 
 This repository offers none of those hosted services. It has no connector for ChatGPT or the
 Claude.ai web app, and it ships no ATO guidance or rulings corpus: its rulings tools search a corpus

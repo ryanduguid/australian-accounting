@@ -77,8 +77,9 @@ rather than a number it cannot stand behind.
 | Refused | Why |
 | --- | --- |
 | Forming the amalgamated loan from constituent loans | s 109E(3). v1 takes the unpaid balance at the end of the previous year from the operator. A list of component loans gets `UNKNOWN`. |
-| A remaining term longer than the maximum term, on a loan the gate passed | In a register review, the row's security facts give the s 109N(3) maximum term, before any s 109N(3A) to (3D) reduction, which can only shorten it. Each constituent loan is one s 109N saves (s 109E(3)(b)), so its term is within that maximum (s 109N(1)(c)), and the constituent loans share one maximum term (s 109E(3)(c)). The s 109E(6) remaining term, the longest constituent term less the years since the loan year, cannot be longer. Where the security facts are unknown, nothing is refused. Enter a loan secured and extended under s 109E(3A) as the new amalgamated loan s 109E(3B) creates, with its 25-year security facts. |
-| A remaining term longer than the loan's own term, on a loan the gate passed | The s 109E(6) remaining term is the longest constituent-loan term less the years since the loan year, so it cannot be longer than that term, and a longer one gives a lower repayment than the Act requires. A register review refuses a row whose remaining term, rounded up, is longer than its `maximum_term_years` rounded up. The `minimum-yearly-repayment` JSON command takes no loan term or security facts, so it checks neither this nor the maximum term. |
+| A remaining term longer than the maximum term, on a loan the gate passed | In a register review, the row's security facts give the s 109N(3) maximum term, before any s 109N(3A) to (3D) reduction, which can only shorten it. Each constituent loan is one s 109N saves (s 109E(3)(b)), so its term is within that maximum (s 109N(1)(c)), and the constituent loans share one maximum term (s 109E(3)(c)). The s 109E(6) remaining term, the longest constituent term less the years since the loan year, cannot be longer. Where the security facts are unknown, nothing is refused. Enter a loan secured and extended under s 109E(3A) as the new amalgamated loan s 109E(3B) creates, with its 25-year security facts; see the [extended loan](#a-loan-extended-under-s-109e3a) note for its term. |
+| A remaining term longer than the loan's own term, on a loan the gate passed | The s 109E(6) remaining term is the longest constituent-loan term less the years since the loan year, so it cannot be longer than that term, and a longer one gives a lower repayment than the Act requires. A register review refuses a row whose remaining term, rounded up, is longer than its `maximum_term_years` rounded up. The `minimum-yearly-repayment` JSON command and `derive` apply this limit and the next one when given `maximum_term_years`; without it a repayment figure carries a caveat that no limit was checked. They take no security facts, so they do not give the maximum-term refusal above; a gate that passed the same term has checked it against that maximum. |
+| A remaining term longer than the loan's term less the years since the loan year, on a loan the gate passed | s 109E(6) paragraph (b) takes off 'the number of years between the end of the private company's year of income in which the loan was made and the end of the private company's year of income before the year of income for which the minimum yearly repayment is being worked out'. A register review refuses a row whose remaining term, rounded up, is longer than its `maximum_term_years` less those years, rounded up after the subtraction: a 7-year loan made in 2024-25 has at most 7 years remaining in 2025-26 and 6 in 2026-27. Without `year_loan_made` nothing is refused. Enter a loan secured and extended under s 109E(3A) with the year before the later year of income as `year_loan_made`, because s 109E(3B) treats the new amalgamated loan as made just before that year starts, and with the term the [extended loan](#a-loan-extended-under-s-109e3a) note gives. The count takes each year of income as 12 months (a substituted accounting period is outside v1): where the company's accounting period changed between the loan year and the year reviewed, the years counted can be out by part of a year, so a correct remaining term may be refused or one a year too long accepted. |
 | A minimum yearly repayment for the year the loan was made | s 109E(1)(a) reaches a loan made 'in an earlier year of income'; s 109P puts an amalgamated loan outside s 109D in the year it is made. |
 | A repayment figure for a loan that is not on s 109N terms | A constituent loan is one that would be a s 109D dividend apart from s 109N (s 109E(3)(b)), so a loan that fails s 109N is not one. Absent another Subdivision D exclusion, s 109D(1) treats it as a dividend in the year it was made (s 109D(1AA)). A schedule does not save it. |
 | Whether a payment is a genuine repayment | s 109R turns on what a reasonable person would conclude about intention. The operator asserts the amount applied. Bank credits are not a substitute. |
@@ -98,6 +99,31 @@ rather than a number it cannot stand behind.
 An `UNKNOWN` is never softened into a best-effort guess, and never coerced to
 `false`. A limb that has not been established is a different finding from a
 limb that has failed, and only one of those is a breach.
+
+### A loan extended under s 109E(3A)
+
+Where a constituent loan of a 7-year amalgamated loan is secured by a mortgage
+over real property in a later year of income and its term extended, s 109E(3B)
+treats it as a new amalgamated loan made just before that later year starts.
+Enter it with:
+
+- `year_loan_made`: the year before the later year of income;
+- its 25-year security facts, which give the s 109N(3) maximum term; and
+- `maximum_term_years`: the loan's agreed term counted from when it was first
+  made, which s 109E(3A)(e) caps at 25 years, less the time it had already run
+  before the extension.
+
+The ATO works the term this way: 'The maximum term of the loan becomes 25 years
+less the period of the term already expired when the loan was unsecured'
+([Loans by private companies](https://www.ato.gov.au/businesses-and-organisations/corporate-tax-measures-and-assurance/private-company-benefits-division-7a-dividends/in-detail/division-7a-loans),
+last updated 2 July 2026, read 14 November 2026). s 109E(3A)(e) likewise counts
+the period before the extension in the 25 years. A 7-year loan made on 1 July
+2022 and extended on 1 July 2024 has run 2 years, so it is entered with
+`year_loan_made` 2023-24 and, where the agreed term is the full 25 years, a term
+of 23: its remaining term is 23 in 2024-25 and 22 in 2025-26; an agreed term of
+20 is entered as 18. On a literal reading, s 109E(3B) and (6) would allow 25 in 2024-25,
+a lower repayment than the ATO's working. The ATO does not say how a part year
+already run is counted; the engine takes the term as entered and rounds it up.
 
 ## Unpaid present entitlements after *Bendel*
 
@@ -328,7 +354,7 @@ a message naming the first invalid byte; re-save it from Excel as CSV UTF-8
 | Column | What it asserts |
 | --- | --- |
 | `loan_id` | Your reference for the loan |
-| `year_loan_made` | The year of income the loan was made in |
+| `year_loan_made` | The year of income the loan was made in. For a loan secured and extended under s 109E(3A), the year before the later year of income, because s 109E(3B) treats the new amalgamated loan as made just before that year starts |
 | `written_agreement` | s 109N(1)(a): the agreement is in writing |
 | `terms_in_place_before_lodgment_day` | s 109N(1) chapeau, with s 109D(6). You assert this; the engine does not compute the lodgment day |
 | `maximum_term_years` | The **term of the loan** under the written agreement, in years; for an amalgamated loan, the longest term of its constituent loans (s 109E(6)). It is tested against the maximum term worked out under s 109N(3). The column name follows the published API surface, not the Act's use of 'maximum term' for the statutory cap |
@@ -341,7 +367,7 @@ a message naming the first invalid byte; re-save it from Excel as CSV UTF-8
 | Column | What it asserts |
 | --- | --- |
 | `amalgamated_loan_unpaid_at_end_of_previous_year` | The balance the s 109E(6) formula works on |
-| `remaining_term_years` | s 109E(6): the longest constituent-loan term, less the years from the end of the loan year to the end of the year before the one being reviewed. Rounded up by the engine if it is not whole. Refused where it is longer than the maximum term the row's security facts give or than `maximum_term_years` |
+| `remaining_term_years` | s 109E(6): the longest constituent-loan term, less the years from the end of the loan year to the end of the year before the one being reviewed. Rounded up by the engine if it is not whole. Refused where it is longer than the maximum term the row's security facts give, than `maximum_term_years` or than `maximum_term_years` less the years since `year_loan_made` |
 | `payments_applied_during_the_year` | The amount **you** are treating as applied. The engine does not apply s 109R. If you cannot assert it, leave it `unknown` |
 
 **Optional:**
@@ -358,7 +384,9 @@ Two samples ship with the repository:
   3 complying loans that run to a verdict with no confirmation flags.
 - [`examples/sample_loans_mixed.csv`](examples/sample_loans_mixed.csv) -
   `UNKNOWN` rows, a loan whose rate is below the benchmark, a 25-year loan
-  with 109% cover, a nil remaining term and 2 skipped rows.
+  with 109% cover, a nil remaining term, 4 remaining terms longer than the
+  loan allows (one with no loan year and a nominated benchmark year), 2 at
+  that limit and 2 skipped rows.
 
 Both are fabricated. Every identifier is synthetic.
 
@@ -505,7 +533,7 @@ a file path.
 | --- | --- |
 | `benchmark-rate` | `year_of_income`; optional `table`, `override` |
 | `complying-loan-gate` | `facts` (the `GateFacts` fields) or `mapping` and `where` (a register row); optional `table`, `override` |
-| `minimum-yearly-repayment` | `facts` (the `MyrFacts` fields, `gate_result` as its `verdict`, `benchmark_year_used`, `reasons` and `caveats`) or `mapping`, `year_of_income`, `gate_result` and `where`; optional `table`, `override` |
+| `minimum-yearly-repayment` | `facts` (the `MyrFacts` fields, `gate_result` as its `verdict`, `benchmark_year_used`, `reasons` and `caveats`, and optionally `maximum_term_years`, the loan's own term) or `mapping` (a register row, read with its `maximum_term_years`), `year_of_income`, `gate_result` and `where`; optional `table`, `override` |
 | `minimum-yearly-repayment-amount` | `principal`, `rate`, `remaining_term` |
 | `review-register`, `review-register-file` | `rows` or `path`, `year_of_income`, `gate_only`, `myr_only`, `gate_benchmark_year`, `table`, `override` |
 | `parse-year`, `parse-money`, `parse-rate`, `parse-ratio`, `parse-tristate` | `raw`, `where` |

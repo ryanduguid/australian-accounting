@@ -178,30 +178,176 @@ pub const PAYG_WITHHOLDING_COEFFICIENTS: &[(&str, &[(i64, &[CoefficientRow])])] 
     ("2026-27", SCHEDULE_1_FROM_JULY_2026),
 ];
 
-/// Schedule 8 (NAT 3539) study and training support loan component coefficients.
-pub const STUDY_LOAN_WITHHOLDING_COEFFICIENTS: &[(&str, &[(&str, &[CoefficientRow])])] = &[(
-    "2026-27",
-    &[
+/// One scale's Medicare levy adjustment: from `threshold` whole dollars of
+/// weekly earnings, formula 1 is (x - `formula_1_less`) x `shade_in_rate` below
+/// `shade_in`, formula 2 is x x `levy_rate` below the weekly family threshold
+/// (WFT), and formula 3 is WFT x `levy_rate` - (x - WFT) x `shade_out_rate`
+/// below the shading out point.
+pub struct MedicareScale {
+    pub threshold: i64,
+    pub formula_1_less: &'static str,
+    pub shade_in: i64,
+    pub shade_in_rate: &'static str,
+    pub levy_rate: &'static str,
+    pub shade_out_rate: &'static str,
+}
+
+/// The rules of one Schedule 1 beside its coefficients.
+pub struct Schedule1Rules {
+    /// Scale 4 tax rates: (resident, foreign resident).
+    pub no_tfn_rates: (&'static str, &'static str),
+    /// Share of the yearly tax offsets claimed that each pay is reduced by.
+    pub tax_offset_rates: [(&'static str, &'static str); 4],
+    /// WFT = (family threshold + per child x children) / 52, to the cent; the
+    /// shading out point is WFT x 0.1 / 0.08 in whole dollars.
+    pub family_threshold: i64,
+    pub family_threshold_per_child: i64,
+    pub medicare_scales: [(i64, MedicareScale); 2],
+    /// Additional withholding when a payee asks for it in a year of 53 weekly
+    /// or 27 fortnightly pays: (lowest whole-dollar earnings, amount), lowest first.
+    pub extra_weekly: [(i64, i64); 3],
+    pub extra_fortnightly: [(i64, i64); 3],
+}
+
+const TAX_OFFSET_RATES: [(&str, &str); 4] = [
+    ("weekly", "0.019"),
+    ("fortnightly", "0.038"),
+    ("monthly", "0.083"),
+    ("quarterly", "0.25"),
+];
+
+/// Schedule 1 for payments from 1 July 2024 to 30 June 2026: 'Medicare levy
+/// adjustment', 'Using a formula' and 'Working out the weekly earnings'.
+const SCHEDULE_1_RULES_FROM_JULY_2024: Schedule1Rules = Schedule1Rules {
+    no_tfn_rates: ("0.47", "0.45"),
+    tax_offset_rates: TAX_OFFSET_RATES,
+    family_threshold: 43846,
+    family_threshold_per_child: 4027,
+    medicare_scales: [
         (
-            "threshold_or_foreign",
-            &[
-                (Some(1337), "0", "0"),
-                (Some(2494), "0.15", "200.5615"),
-                (Some(3577), "0.17", "250.4527"),
-                (None, "0.10", "0"),
-            ],
+            2,
+            MedicareScale {
+                threshold: 500,
+                formula_1_less: "500",
+                shade_in: 625,
+                shade_in_rate: "0.1",
+                levy_rate: "0.0200",
+                shade_out_rate: "0.0800",
+            },
         ),
         (
-            "no_threshold",
-            &[
-                (Some(987), "0", "0"),
-                (Some(2144), "0.15", "148.0615"),
-                (Some(2727), "0.17", "190.9527"),
-                (None, "0.10", "0"),
-            ],
+            6,
+            MedicareScale {
+                threshold: 843,
+                formula_1_less: "843.19",
+                shade_in: 1053,
+                shade_in_rate: "0.05",
+                levy_rate: "0.0100",
+                shade_out_rate: "0.0400",
+            },
         ),
     ],
-)];
+    extra_weekly: [(875, 3), (2575, 6), (3650, 12)],
+    extra_fortnightly: [(1750, 12), (5150, 26), (7250, 47)],
+};
+
+/// Schedule 1 for payments from 1 July 2026 (LI 2026/18), the same pages.
+const SCHEDULE_1_RULES_FROM_JULY_2026: Schedule1Rules = Schedule1Rules {
+    no_tfn_rates: ("0.47", "0.45"),
+    tax_offset_rates: TAX_OFFSET_RATES,
+    family_threshold: 47238,
+    family_threshold_per_child: 4338,
+    medicare_scales: [
+        (
+            2,
+            MedicareScale {
+                threshold: 538,
+                formula_1_less: "538.67",
+                shade_in: 673,
+                shade_in_rate: "0.1",
+                levy_rate: "0.0200",
+                shade_out_rate: "0.0800",
+            },
+        ),
+        (
+            6,
+            MedicareScale {
+                threshold: 908,
+                formula_1_less: "908.42",
+                shade_in: 1135,
+                shade_in_rate: "0.05",
+                levy_rate: "0.0100",
+                shade_out_rate: "0.0400",
+            },
+        ),
+    ],
+    extra_weekly: [(875, 3), (2575, 7), (3650, 12)],
+    extra_fortnightly: [(1700, 12), (5200, 27), (7250, 48)],
+};
+
+/// Schedule 1 rules for payments made in each income year, keyed as the coefficients.
+pub const PAYG_WITHHOLDING_RULES: &[(&str, &Schedule1Rules)] = &[
+    ("2024-25", &SCHEDULE_1_RULES_FROM_JULY_2024),
+    ("2025-26", &SCHEDULE_1_RULES_FROM_JULY_2024),
+    ("2026-27", &SCHEDULE_1_RULES_FROM_JULY_2026),
+];
+
+/// Schedule 8 (NAT 3539) study and training support loan component coefficients:
+/// for 2025-26, those of F2025L01016, which commenced on 24 September 2025.
+pub const STUDY_LOAN_WITHHOLDING_COEFFICIENTS: &[(&str, &[(&str, &[CoefficientRow])])] = &[
+    (
+        "2025-26",
+        &[
+            (
+                "threshold_or_foreign",
+                &[
+                    (Some(1288), "0", "0"),
+                    (Some(2403), "0.15", "193.2692"),
+                    (Some(3447), "0.17", "241.3462"),
+                    (None, "0.10", "0"),
+                ],
+            ),
+            (
+                "no_threshold",
+                &[
+                    (Some(938), "0", "0"),
+                    (Some(2053), "0.15", "140.7692"),
+                    (Some(2597), "0.17", "181.8462"),
+                    (None, "0.10", "0"),
+                ],
+            ),
+        ],
+    ),
+    (
+        "2026-27",
+        &[
+            (
+                "threshold_or_foreign",
+                &[
+                    (Some(1337), "0", "0"),
+                    (Some(2494), "0.15", "200.5615"),
+                    (Some(3577), "0.17", "250.4527"),
+                    (None, "0.10", "0"),
+                ],
+            ),
+            (
+                "no_threshold",
+                &[
+                    (Some(987), "0", "0"),
+                    (Some(2144), "0.15", "148.0615"),
+                    (Some(2727), "0.17", "190.9527"),
+                    (None, "0.10", "0"),
+                ],
+            ),
+        ],
+    ),
+];
+
+/// The first pay date each year's Schedule 8 coefficients apply to. Before 24
+/// September 2025, F2025L00647's Schedule 8 used a percentage of weekly
+/// earnings, which this worksheet does not hold.
+pub const STUDY_LOAN_WITHHOLDING_FROM: &[(&str, &str)] =
+    &[("2025-26", "2025-09-24"), ("2026-27", "2026-07-01")];
 
 /// (general concessional cap, general transfer balance cap) per income year.
 pub const CONTRIBUTION_CAPS: &[(&str, (&str, &str))] = &[
@@ -234,12 +380,36 @@ pub const STUDY_LOAN_REPAYMENT_THRESHOLDS: &[(&str, [(&str, &str); 4])] = &[
 pub const STUDY_LOAN_REPAYMENT_RATES: [(&str, &str); 3] =
     [("lower", "0.15"), ("upper", "0.17"), ("flat", "0.10")];
 
-/// Medicare levy (threshold amount, phase-in limit) for a single person.
+/// Medicare levy (threshold amount, phase-in limit) for a single person. Act
+/// No. 58, 2026, Sch 5 item 14 applies the s 3(1) figures to 2025-26 and later
+/// years, so 2026-27 has the 2025-26 figures until an amendment changes them.
 pub const MEDICARE_LOW_INCOME_THRESHOLDS: &[(&str, (&str, &str))] = &[
     ("2024-25", ("27222", "34027")),
     ("2025-26", ("28011", "35013")),
+    ("2026-27", ("28011", "35013")),
 ];
-pub const MEDICARE_LEVY_RATES: [(&str, &str); 2] = [("levy", "0.02"), ("shade_in", "0.10")];
+/// The same for a person entitled to the seniors and pensioners tax offset:
+/// s 3(1) as Act No. 28, 2025, Sch 2 (2024-25 and later years) and Act No. 58,
+/// 2026, Sch 5 (2025-26 and later years) set it.
+pub const MEDICARE_SAPTO_THRESHOLDS: &[(&str, (&str, &str))] = &[
+    ("2024-25", ("43020", "53775")),
+    ("2025-26", ("44268", "55335")),
+    ("2026-27", ("44268", "55335")),
+];
+/// s 8(5) and (7), from the same Acts: the family income threshold, the
+/// threshold for a person entitled to the seniors and pensioners tax offset,
+/// and the increase for each dependent child or student.
+pub const MEDICARE_FAMILY_THRESHOLDS: &[(&str, (&str, &str, &str))] = &[
+    ("2024-25", ("45907", "59886", "4216")),
+    ("2025-26", ("47238", "61623", "4338")),
+    ("2026-27", ("47238", "61623", "4338")),
+];
+/// s 6(1), s 7(2) and the 0.08 in the s 8(2) formula.
+pub const MEDICARE_LEVY_RATES: [(&str, &str); 3] = [
+    ("levy", "0.02"),
+    ("shade_in", "0.10"),
+    ("family_shade_out", "0.08"),
+];
 
 /// ITAA 1997 s 61-115(1) table, in the Python dict's order.
 pub const LOW_INCOME_TAX_OFFSET: [(&str, &str); 7] = [
@@ -266,6 +436,305 @@ pub const DIVISION_296: [(&str, &str); 4] = [
     ("very_large_rate", "0.10"),
 ];
 pub const DIVISION_296_YEARS: [&str; 1] = ["2026-27"];
+
+/// 2026-27 life benefit termination payment figures: the ETP cap amount (ITAA
+/// 1997 s 82-160, indexed), the whole-of-income cap (s 82-10(4)(c)), the
+/// genuine redundancy and early retirement scheme base and service amounts
+/// (s 83-170(3), indexed), all as the ATO publishes them, and Schedule 11
+/// Table A's withholding rates, which include the 2% Medicare levy.
+pub const TERMINATION_PAYMENT: [(&str, &str); 7] = [
+    ("etp_cap", "270000"),
+    ("whole_of_income_cap", "180000"),
+    ("base_amount", "13598"),
+    ("service_amount", "6801"),
+    ("preservation_age_rate", "0.17"),
+    ("under_preservation_age_rate", "0.32"),
+    ("above_cap_rate", "0.47"),
+];
+pub const TERMINATION_PAYMENT_YEARS: [&str; 1] = ["2026-27"];
+
+/// Schedule 5 (NAT 3348): the schedules for payments from 1 July 2024, 1 July
+/// 2025 and 1 July 2026 state the same methods and limit.
+pub const SCHEDULE_5_YEARS: [&str; 3] = ["2024-25", "2025-26", "2026-27"];
+/// Methods A and B(ii) limit withholding from an additional payment to 47% of it.
+pub const SCHEDULE_5_LIMIT_RATE: &str = "0.47";
+
+/// Schedule 15 (working holiday makers), columns 2 to 5, for a registered
+/// employer's payment to a payee who gave a TFN: the payments made to them in
+/// the income year before it that each column covers, lowest and highest
+/// inclusive in cents ('less than $45,001', 'from $45,001 to $135,000', 'from
+/// $135,001 to $190,000' and 'more than $190,000'), with Table A's rate. No
+/// column covers $135,000.01 to $135,000.99. The schedules for payments from
+/// 1 July 2024 and from 1 July 2026 give the same columns and rates.
+pub const WORKING_HOLIDAY_MAKER_COLUMNS: [(Option<&str>, Option<&str>, &str); 4] = [
+    (None, Some("45000.99"), "0.15"),
+    (Some("45001"), Some("135000"), "0.30"),
+    (Some("135001"), Some("190000"), "0.37"),
+    (Some("190000.01"), None, "0.45"),
+];
+/// Schedule 15: 45% of payments to a working holiday maker who gave no TFN.
+pub const WORKING_HOLIDAY_MAKER_NO_TFN_RATE: &str = "0.45";
+pub const WORKING_HOLIDAY_MAKER_YEARS: [&str; 3] = ["2024-25", "2025-26", "2026-27"];
+
+/// Schedule 9 (NAT 4466) weekly coefficients for payments from 1 July 2024 to
+/// 30 June 2026, scales 1 to 9 in order.
+const SCHEDULE_9_FROM_JULY_2024: [&[CoefficientRow]; 9] = [
+    // Scale 1: payee is single.
+    &[
+        (Some(629), "0", "0"),
+        (Some(671), "0.1600", "100.7308"),
+        (Some(721), "0.2850", "184.6707"),
+        (Some(790), "0.2940", "191.1611"),
+        (Some(865), "0.3940", "270.1784"),
+        (Some(987), "0.5277", "385.8803"),
+        (Some(1014), "0.4477", "306.8630"),
+        (Some(1282), "0.3227", "180.0385"),
+        (Some(2596), "0.3200", "176.5769"),
+        (Some(3653), "0.3900", "358.3077"),
+        (None, "0.4700", "650.6154"),
+    ],
+    // Scale 2: payee is a member of an illness-separated couple.
+    &[
+        (Some(606), "0", "0"),
+        (Some(648), "0.1600", "97.0769"),
+        (Some(721), "0.2850", "178.1635"),
+        (Some(790), "0.2940", "184.6538"),
+        (Some(865), "0.3940", "263.6712"),
+        (Some(962), "0.5277", "379.3731"),
+        (Some(987), "0.4027", "259.0558"),
+        (Some(1282), "0.3227", "180.0385"),
+        (Some(2596), "0.3200", "176.5769"),
+        (Some(3653), "0.3900", "358.3077"),
+        (None, "0.4700", "650.6154"),
+    ],
+    // Scale 3: payee is a member of a couple.
+    &[
+        (Some(554), "0", "0"),
+        (Some(596), "0.1600", "88.6538"),
+        (Some(721), "0.2850", "163.1587"),
+        (Some(790), "0.2940", "169.6490"),
+        (Some(842), "0.3940", "248.6663"),
+        (Some(865), "0.2690", "143.3538"),
+        (Some(987), "0.4027", "259.0558"),
+        (Some(1282), "0.3227", "180.0385"),
+        (Some(2596), "0.3200", "176.5769"),
+        (Some(3653), "0.3900", "358.3077"),
+        (None, "0.4700", "650.6154"),
+    ],
+    // Scale 4: payee is single and claiming a FULL Medicare levy exemption.
+    &[
+        (Some(629), "0", "0"),
+        (Some(671), "0.1600", "100.7308"),
+        (Some(721), "0.2850", "184.6707"),
+        (Some(865), "0.2940", "191.1611"),
+        (Some(1014), "0.4277", "306.8630"),
+        (Some(1282), "0.3027", "180.0385"),
+        (Some(2596), "0.3000", "176.5769"),
+        (Some(3653), "0.3700", "358.3077"),
+        (None, "0.4500", "650.6154"),
+    ],
+    // Scale 5: payee is a member of an illness-separated couple and claiming a FULL Medicare levy exemption.
+    &[
+        (Some(606), "0", "0"),
+        (Some(648), "0.1600", "97.0769"),
+        (Some(721), "0.2850", "178.1635"),
+        (Some(865), "0.2940", "184.6538"),
+        (Some(962), "0.4277", "300.3558"),
+        (Some(1282), "0.3027", "180.0385"),
+        (Some(2596), "0.3000", "176.5769"),
+        (Some(3653), "0.3700", "358.3077"),
+        (None, "0.4500", "650.6154"),
+    ],
+    // Scale 6: payee is a member of a couple and claiming a FULL Medicare levy exemption.
+    &[
+        (Some(554), "0", "0"),
+        (Some(596), "0.1600", "88.6538"),
+        (Some(721), "0.2850", "163.1587"),
+        (Some(842), "0.2940", "169.6490"),
+        (Some(865), "0.1690", "64.3365"),
+        (Some(1282), "0.3027", "180.0385"),
+        (Some(2596), "0.3000", "176.5769"),
+        (Some(3653), "0.3700", "358.3077"),
+        (None, "0.4500", "650.6154"),
+    ],
+    // Scale 7: payee is single and claiming a HALF Medicare levy exemption.
+    &[
+        (Some(629), "0", "0"),
+        (Some(671), "0.1600", "100.7308"),
+        (Some(721), "0.2850", "184.6707"),
+        (Some(865), "0.2940", "191.1611"),
+        (Some(1014), "0.4277", "306.8630"),
+        (Some(1099), "0.3027", "180.0385"),
+        (Some(1282), "0.3527", "235.0365"),
+        (Some(1374), "0.3500", "231.5750"),
+        (Some(2596), "0.3100", "176.5769"),
+        (Some(3653), "0.3800", "358.3077"),
+        (None, "0.4600", "650.6154"),
+    ],
+    // Scale 8: payee is a member of an illness-separated couple and claiming a HALF Medicare levy exemption.
+    &[
+        (Some(606), "0", "0"),
+        (Some(648), "0.1600", "97.0769"),
+        (Some(721), "0.2850", "178.1635"),
+        (Some(865), "0.2940", "184.6538"),
+        (Some(962), "0.4277", "300.3558"),
+        (Some(1099), "0.3027", "180.0385"),
+        (Some(1282), "0.3527", "235.0365"),
+        (Some(1374), "0.3500", "231.5750"),
+        (Some(2596), "0.3100", "176.5769"),
+        (Some(3653), "0.3800", "358.3077"),
+        (None, "0.4600", "650.6154"),
+    ],
+    // Scale 9: payee is a member of a couple and claiming a HALF Medicare levy exemption.
+    &[
+        (Some(554), "0", "0"),
+        (Some(596), "0.1600", "88.6538"),
+        (Some(721), "0.2850", "163.1587"),
+        (Some(842), "0.2940", "169.6490"),
+        (Some(865), "0.1690", "64.3365"),
+        (Some(1099), "0.3027", "180.0385"),
+        (Some(1282), "0.3527", "235.0365"),
+        (Some(1374), "0.3500", "231.5750"),
+        (Some(2596), "0.3100", "176.5769"),
+        (Some(3653), "0.3800", "358.3077"),
+        (None, "0.4600", "650.6154"),
+    ],
+];
+
+/// Schedule 9 (NAT 4466) weekly coefficients for payments from 1 July 2026.
+const SCHEDULE_9_FROM_JULY_2026: [&[CoefficientRow]; 9] = [
+    // Scale 1: payee is single.
+    &[
+        (Some(648), "0", "0"),
+        (Some(692), "0.1500", "97.2308"),
+        (Some(721), "0.2750", "183.8510"),
+        (Some(851), "0.2840", "190.3413"),
+        (Some(865), "0.3840", "275.4721"),
+        (Some(1036), "0.5277", "399.8279"),
+        (Some(1064), "0.4027", "270.3231"),
+        (Some(1282), "0.3227", "185.1923"),
+        (Some(2596), "0.3200", "181.7319"),
+        (Some(3653), "0.3900", "363.4627"),
+        (None, "0.4700", "655.7704"),
+    ],
+    // Scale 2: payee is a member of an illness-separated couple.
+    &[
+        (Some(623), "0", "0"),
+        (Some(668), "0.1500", "93.5769"),
+        (Some(721), "0.2750", "177.1514"),
+        (Some(851), "0.2840", "183.6418"),
+        (Some(865), "0.3840", "268.7726"),
+        (Some(982), "0.5277", "393.1284"),
+        (Some(1064), "0.4027", "270.3231"),
+        (Some(1282), "0.3227", "185.1923"),
+        (Some(2596), "0.3200", "181.7319"),
+        (Some(3653), "0.3900", "363.4627"),
+        (None, "0.4700", "655.7704"),
+    ],
+    // Scale 3: payee is a member of a couple.
+    &[
+        (Some(567), "0", "0"),
+        (Some(612), "0.1500", "85.1538"),
+        (Some(721), "0.2750", "161.7091"),
+        (Some(851), "0.2840", "168.1995"),
+        (Some(858), "0.3840", "253.3303"),
+        (Some(865), "0.2590", "145.9673"),
+        (Some(1064), "0.4027", "270.3231"),
+        (Some(1282), "0.3227", "185.1923"),
+        (Some(2596), "0.3200", "181.7319"),
+        (Some(3653), "0.3900", "363.4627"),
+        (None, "0.4700", "655.7704"),
+    ],
+    // Scale 4: payee is single and claiming a FULL Medicare levy exemption.
+    &[
+        (Some(648), "0", "0"),
+        (Some(692), "0.1500", "97.2308"),
+        (Some(721), "0.2750", "183.8510"),
+        (Some(865), "0.2840", "190.3413"),
+        (Some(1036), "0.4277", "314.6971"),
+        (Some(1282), "0.3027", "185.1923"),
+        (Some(2596), "0.3000", "181.7308"),
+        (Some(3653), "0.3700", "363.4615"),
+        (None, "0.4500", "655.7692"),
+    ],
+    // Scale 5: payee is a member of an illness-separated couple and claiming a FULL Medicare levy exemption.
+    &[
+        (Some(623), "0", "0"),
+        (Some(668), "0.1500", "93.5769"),
+        (Some(721), "0.2750", "177.1514"),
+        (Some(865), "0.2840", "183.6418"),
+        (Some(982), "0.4277", "307.9976"),
+        (Some(1282), "0.3027", "185.1923"),
+        (Some(2596), "0.3000", "181.7308"),
+        (Some(3653), "0.3700", "363.4615"),
+        (None, "0.4500", "655.7692"),
+    ],
+    // Scale 6: payee is a member of a couple and claiming a FULL Medicare levy exemption.
+    &[
+        (Some(567), "0", "0"),
+        (Some(612), "0.1500", "85.1538"),
+        (Some(721), "0.2750", "161.7091"),
+        (Some(858), "0.2840", "168.1995"),
+        (Some(865), "0.1590", "60.8365"),
+        (Some(1282), "0.3027", "185.1923"),
+        (Some(2596), "0.3000", "181.7308"),
+        (Some(3653), "0.3700", "363.4615"),
+        (None, "0.4500", "655.7692"),
+    ],
+    // Scale 7: payee is single and claiming a HALF Medicare levy exemption.
+    &[
+        (Some(648), "0", "0"),
+        (Some(692), "0.1500", "97.2308"),
+        (Some(721), "0.2750", "183.8510"),
+        (Some(865), "0.2840", "190.3413"),
+        (Some(1036), "0.4277", "314.6971"),
+        (Some(1185), "0.3027", "185.1923"),
+        (Some(1282), "0.3527", "244.4452"),
+        (Some(1481), "0.3500", "240.9837"),
+        (Some(2596), "0.3100", "181.7308"),
+        (Some(3653), "0.3800", "363.4615"),
+        (None, "0.4600", "655.7692"),
+    ],
+    // Scale 8: payee is a member of an illness-separated couple and claiming a HALF Medicare levy exemption.
+    &[
+        (Some(623), "0", "0"),
+        (Some(668), "0.1500", "93.5769"),
+        (Some(721), "0.2750", "177.1514"),
+        (Some(865), "0.2840", "183.6418"),
+        (Some(982), "0.4277", "307.9976"),
+        (Some(1185), "0.3027", "185.1923"),
+        (Some(1282), "0.3527", "244.4452"),
+        (Some(1481), "0.3500", "240.9837"),
+        (Some(2596), "0.3100", "181.7308"),
+        (Some(3653), "0.3800", "363.4615"),
+        (None, "0.4600", "655.7692"),
+    ],
+    // Scale 9: payee is a member of a couple and claiming a HALF Medicare levy exemption.
+    &[
+        (Some(567), "0", "0"),
+        (Some(612), "0.1500", "85.1538"),
+        (Some(721), "0.2750", "161.7091"),
+        (Some(858), "0.2840", "168.1995"),
+        (Some(865), "0.1590", "60.8365"),
+        (Some(1185), "0.3027", "185.1923"),
+        (Some(1282), "0.3527", "244.4452"),
+        (Some(1481), "0.3500", "240.9837"),
+        (Some(2596), "0.3100", "181.7308"),
+        (Some(3653), "0.3800", "363.4615"),
+        (None, "0.4600", "655.7692"),
+    ],
+];
+
+/// Schedule 9 coefficients for payments made in each income year, scales 1 to
+/// 9: scales 1 to 3 for a payee who is single, a member of an
+/// illness-separated couple or a member of a couple, 4 to 6 for the same
+/// payees claiming a full Medicare levy exemption and 7 to 9 for those claiming
+/// a half exemption. A step with no coefficients ('-') withholds nothing.
+pub const SENIORS_PENSIONERS_COEFFICIENTS: &[(&str, &[&[CoefficientRow]; 9])] = &[
+    ("2024-25", &SCHEDULE_9_FROM_JULY_2024),
+    ("2025-26", &SCHEDULE_9_FROM_JULY_2024),
+    ("2026-27", &SCHEDULE_9_FROM_JULY_2026),
+];
 
 pub const CARRY_FORWARD_BALANCE_LIMIT: &str = "500000";
 
@@ -309,6 +778,12 @@ pub fn supported_periods(kind: &str) -> Vec<&'static str> {
         "low_income_tax_offset" => LOW_INCOME_TAX_OFFSET_YEARS.to_vec(),
         "division_293" => DIVISION_293_YEARS.to_vec(),
         "division_296" => DIVISION_296_YEARS.to_vec(),
+        "termination_payment" => TERMINATION_PAYMENT_YEARS.to_vec(),
+        "schedule_5_method_a" | "schedule_5_method_b_i" | "schedule_5_method_b_ii" => {
+            SCHEDULE_5_YEARS.to_vec()
+        }
+        "working_holiday_maker_withholding" => WORKING_HOLIDAY_MAKER_YEARS.to_vec(),
+        "seniors_pensioners_withholding" => keys(SENIORS_PENSIONERS_COEFFICIENTS),
         _ => Vec::new(),
     }
 }
@@ -354,8 +829,8 @@ pub fn source_review(kind: &str) -> (&'static str, &'static str) {
             "Super guarantee, tables 21 and 24, 2025-26 rows",
         ),
         "payg_withholding" => (
-            "2026-11-04",
-            "Schedule 1 (NAT 1004) for payments from 1 July 2026, and for payments from 1 July 2024 to 30 June 2026: weekly coefficients, using a formula, working out the weekly earnings",
+            "2026-11-14",
+            "Schedule 1 (NAT 1004) for payments from 1 July 2026, and for payments from 1 July 2024 to 30 June 2026: weekly coefficients and scale 4, using a formula (rounding and the 53 and 27 pay tables), working out the weekly earnings (quarterly pays and tax offsets), Medicare levy adjustment, examples of calculating the withholding amounts, sample data",
         ),
         "contribution_caps" => (
             "2026-09-24",
@@ -370,12 +845,12 @@ pub fn source_review(kind: &str) -> (&'static str, &'static str) {
             "Study and training loan minimum repayment income and rates: tables 1 and 2, repayment income, examples 1 to 3; Gazette C2026G00249 for the 2026-27 minimum repayment income and replacement indexable amount",
         ),
         "study_loan_withholding" => (
-            "2026-10-15",
-            "Schedule 8 (NAT 3539) for payments from 1 July 2026: study and training support loans component rates, calculating fortnightly and monthly amounts, examples 1 to 3, rounding",
+            "2026-11-14",
+            "Schedule 8 (NAT 3539) for payments from 1 July 2026, and Schedule 8 of the Taxation Administration (Withholding Schedules) Instrument (No. 2) 2025 (F2025L01016) for payments from 24 September 2025: study and training support loans component rates, calculating fortnightly and monthly amounts, examples 1 to 3, rounding",
         ),
         "medicare_levy" => (
-            "2026-10-15",
-            "Medicare Levy Act 1986 ss 3(1), 6(1) and 7(1) and (2), compilation 53; ATO Medicare levy reduction for low-income earners (2025-26) and myTax 2025 table 2 (2024-25)",
+            "2026-11-14",
+            "Medicare Levy Act 1986 ss 3(1) and (3), 6(1), 7(1) and (2) and 8, compilations 52 (2024-25) and 53; Treasury Laws Amendment (More Cost of Living Relief) Act 2025 Sch 2 item 14 (2024-25 and later years); Treasury Laws Amendment (Delivering an Efficient and Trusted Tax System) Act 2026 Sch 5 item 14 (2025-26 and later years); ATO Medicare levy reduction for low-income earners and Medicare levy reduction - family income, with the Ashton example (2025-26); myTax 2025 tables 2 and 3 and worksheet 2 (2024-25)",
         ),
         "low_income_tax_offset" => (
             "2026-10-15",
@@ -388,6 +863,22 @@ pub fn source_review(kind: &str) -> (&'static str, &'static str) {
         "division_296" => (
             "2026-11-13",
             "ITAA 1997 ss 296-15 to 296-55, compilation 268 (1 October 2026); Imposition Act 2026 s 5; Income Tax (Transitional Provisions) Act 1997 s 296-1; Explanatory Memorandum examples 1.1 to 1.3; ATO Division 296 tax on large super balances",
+        ),
+        "termination_payment" => (
+            "2026-11-14",
+            "ATO Schedule 11, tax table for employment termination payments (from 1 July 2026), Table A and examples 1 to 4; ATO Key superannuation rates, tables 17 and 20; ITAA 1997 ss 82-10, 82-130 to 82-160 and 83-170 to 83-180, compilation 268 (1 October 2026); SISR reg 6.01(2), compilation 159 (1 July 2026)",
+        ),
+        "schedule_5_method_a" | "schedule_5_method_b_i" | "schedule_5_method_b_ii" => (
+            "2026-11-14",
+            "Schedule 5 (NAT 3348) for payments from 1 July 2026, from 1 July 2025 to 30 June 2026 and from 1 July 2024 to 30 June 2025: about this schedule, working out the withholding amount (Methods A, B(i) and B(ii), the withholding limit, study and training support loans) and withholding amounts examples 1 to 4",
+        ),
+        "working_holiday_maker_withholding" => (
+            "2026-11-14",
+            "Schedule 15 (working holiday makers) for payments from 1 July 2026 and for payments from 1 July 2024 to 30 June 2026: using this schedule, working out the withholding amount, registered and unregistered employers, using a formula, Table A, examples 1 and 2, rounding and TFN declarations",
+        ),
+        "seniors_pensioners_withholding" => (
+            "2026-11-14",
+            "Schedule 9 (NAT 4466, seniors and pensioners) for payments from 1 July 2026 and for payments from 1 July 2024 to 30 June 2026: using this schedule, working out the withholding amount and its example, calculating fortnightly or monthly withholding amounts, using a formula and the coefficients for scales 1 to 9, rounding, claiming tax offsets, Medicare levy exemptions and adjustments, and the weekly tax table",
         ),
         _ => ("", ""),
     }
@@ -451,10 +942,10 @@ pub fn library_evidence(kind: &str) -> [(&'static str, &'static str); 4] {
             "2026-09-15",
         ),
         "payg_withholding" => (
-            "ATO Schedule 1 withholding amounts sample data",
-            "weekly, fortnightly and monthly tables",
+            "ATO Schedule 1 sample data",
+            "withholding amounts, Medicare levy adjustment scale 2 and Medicare half-levy adjustment scale 6: weekly, fortnightly and monthly tables",
             "2026-06-17",
-            "2026-09-24",
+            "2026-11-14",
         ),
         "contribution_caps" => (
             "tax-examples-individuals",
@@ -475,16 +966,16 @@ pub fn library_evidence(kind: &str) -> [(&'static str, &'static str); 4] {
             "2026-10-20",
         ),
         "study_loan_withholding" => (
-            "ATO Schedule 8 statement of formulas for STSL components",
-            "component rates, examples 1 to 3",
+            "ATO Schedule 8 statement of formulas for STSL components, and F2025L01016 Schedule 8 for 2025-26",
+            "component rates, examples 1 to 3 in each",
             "2026-06-17",
-            "2026-10-15",
+            "2026-11-14",
         ),
         "medicare_levy" => (
-            "ATO Medicare levy reduction for low-income earners",
-            "table of single thresholds, example (Angie)",
+            "ATO Medicare levy reduction for low-income earners; Medicare levy reduction - family income",
+            "table of single thresholds, example (Angie); family taxable income thresholds, example (Ashton)",
             "2026-06-30",
-            "2026-10-15",
+            "2026-11-14",
         ),
         "low_income_tax_offset" => (
             "ATO low and middle income earner tax offsets",
@@ -504,6 +995,30 @@ pub fn library_evidence(kind: &str) -> [(&'static str, &'static str); 4] {
             "2026-06-30",
             "2026-11-13",
         ),
+        "termination_payment" => (
+            "ATO Schedule 11 tax table for employment termination payments",
+            "examples 1 to 4",
+            "2026-06-17",
+            "2026-11-14",
+        ),
+        "schedule_5_method_a" | "schedule_5_method_b_i" | "schedule_5_method_b_ii" => (
+            "ATO Schedule 5 (NAT 3348) withholding amounts examples",
+            "examples 1 to 4",
+            "2026-06-17",
+            "2026-11-14",
+        ),
+        "working_holiday_maker_withholding" => (
+            "ATO Schedule 15 tax table for working holiday makers",
+            "withholding lookup tool example, examples 1 and 2",
+            "2026-06-17",
+            "2026-11-14",
+        ),
+        "seniors_pensioners_withholding" => (
+            "ATO Schedule 9 tax table for seniors and pensioners (NAT 4466)",
+            "the worked example ($662.95 a week) and every row of the weekly tax table",
+            "2026-06-17",
+            "2026-11-14",
+        ),
         _ => ("", "", "", ""),
     };
     [
@@ -521,6 +1036,50 @@ pub fn optional_inputs(kind: &str) -> Vec<(&'static str, &'static str)> {
             "opening_adjustable_value",
             "AUD, for a year after the start time only: cost less the decline in value of earlier years, not the deductions; omit in the start year",
         )],
+        "medicare_levy" => vec![
+            (
+                "sapto_entitled",
+                "boolean, whether the person is entitled to the seniors and pensioners tax offset for the year at more than nil; true applies the s 3(1) and s 8(7) thresholds; omit for false",
+            ),
+            (
+                "spouse_taxable_income",
+                "AUD, whole dollars, the taxable income of the person's spouse on the last day of the year as s 3(3) reads it (not one living separately and apart, but one living apart only because of illness counts, as does one who died in the year); omit for no spouse",
+            ),
+            (
+                "spouse_sapto_entitled",
+                "boolean, required with spouse_taxable_income and taken only with it: whether the spouse is entitled to the seniors and pensioners tax offset at more than nil",
+            ),
+            (
+                "dependant_offset_entitled",
+                "boolean, for a person without a spouse only: whether they are entitled to the invalid and invalid carer tax offset for their child (ITAA 1997 Subdivision 61-A) or the sole parent notional tax offset (Subdivision 961-B), without which s 8 does not apply to them; omit for false",
+            ),
+            (
+                "dependent_children",
+                "integer, the dependent children and students (ITAA 1997 s 961-5(1)(c)) for whom the person or their spouse is entitled to the Subdivision 961-A notional tax offset; without a spouse, only those for whom family tax benefit was payable to the person (s 8(5) and (6)), and only with dependant_offset_entitled true; omit for none",
+            ),
+        ],
+        "payg_withholding" => vec![
+            (
+                "foreign_resident",
+                "boolean, scale 4 only and required there: true for a payee who is a foreign resident, false for a resident",
+            ),
+            (
+                "tax_offsets",
+                "AUD, scales 2, 5 and 6 only: the yearly total the payee claimed at the tax offsets questions on their Withholding declaration",
+            ),
+            (
+                "medicare_adjustment_children",
+                "integer from 0, scales 2 and 6 only, when the payee's Medicare levy variation declaration claims the adjustment (yes at question 10, and yes at question 9 or 12): the dependent children shown at question 12, or 0 for a spouse and no children",
+            ),
+            (
+                "extra_pay_withholding",
+                "boolean, weekly and fortnightly pays only: true when the financial year has 53 weekly or 27 fortnightly pays and the payee asked for the additional amount",
+            ),
+        ],
+        "study_loan_withholding" => vec![(
+            "pay_date",
+            "YYYY-MM-DD date the payment is made, within the income year; required for 2025-26, whose Schedule 8 coefficients apply from 24 September 2025",
+        )],
         _ => Vec::new(),
     }
 }
@@ -534,6 +1093,14 @@ pub fn input_units(kind: &str) -> Vec<(&'static str, &'static str)> {
         ),
         ("pay_period", "weekly, fortnightly or monthly"),
         ("scale", "integer 1, 2, 3, 5 or 6"),
+    ];
+    let schedule_5_pay = vec![
+        ("pay_period", "weekly, fortnightly or monthly"),
+        ("scale", "integer 1, 2, 3, 5 or 6"),
+        (
+            "study_loan",
+            "boolean, whether the payee declared a study and training support loan debt; true adds the Schedule 8 component to each table amount, for a year whose Schedule 8 coefficients apply from 1 July (Schedule 5 takes no pay date)",
+        ),
     ];
     match kind {
         "gst" => vec![("amount", "AUD"), ("gst_inclusive", "boolean")],
@@ -677,7 +1244,15 @@ pub fn input_units(kind: &str) -> Vec<(&'static str, &'static str)> {
             ("qualifying_contributions", "AUD"),
             ("quarter", "integer from 1 to 4"),
         ],
-        "payg_withholding" | "study_loan_withholding" => payg,
+        "payg_withholding" => vec![
+            payg[0],
+            ("pay_period", "weekly, fortnightly, monthly or quarterly"),
+            (
+                "scale",
+                "integer 1 to 6; scale 4 also needs foreign_resident",
+            ),
+        ],
+        "study_loan_withholding" => payg,
         "contribution_caps" => vec![
             (
                 "total_super_balance",
@@ -750,6 +1325,128 @@ pub fn input_units(kind: &str) -> Vec<(&'static str, &'static str)> {
             (
                 "died_in_year",
                 "boolean, whether the individual died on or before 30 June 2027 (Income Tax (Transitional Provisions) Act 1997 s 296-1(3))",
+            ),
+        ],
+        "termination_payment" => vec![
+            (
+                "redundancy_payment",
+                "AUD, the genuine redundancy payment (s 83-175) or early retirement scheme payment (s 83-180): the part of the termination payment above what voluntary termination would have paid, excluding salary, wages, unused annual and long service leave and payments in lieu of superannuation; 0.00 for none",
+            ),
+            (
+                "completed_years_of_service",
+                "integer from 0 to 150, the whole years in the period of employment the redundancy payment relates to (s 83-170(3))",
+            ),
+            (
+                "excluded_payment",
+                "AUD, the taxable component of any other excluded payment in the termination payment: one that would be a genuine redundancy payment but for the pension age condition, or compensation in a genuine dispute for personal injury, unfair dismissal, harassment or discrimination (s 82-10(6)); not an invalidity payment",
+            ),
+            (
+                "non_excluded_payment",
+                "AUD, the taxable component of the rest of the termination payment, such as a golden handshake, gratuity, payment in lieu of notice, unused sick leave or rostered days off, or a non-genuine redundancy payment",
+            ),
+            (
+                "other_taxable_payments",
+                "AUD, the taxable payments the payer made to the employee in the income year, excluding this termination payment, such as salary, wages and unused leave paid on termination (Schedule 11 step 1)",
+            ),
+            (
+                "date_of_birth",
+                "YYYY-MM-DD, the employee's, for their preservation age (SISR reg 6.01(2))",
+            ),
+        ],
+        "schedule_5_method_a" => [
+            vec![
+                (
+                    "earnings",
+                    "AUD, the pay's gross earnings excluding additional payments; cents are ignored",
+                ),
+                (
+                    "additional_payment",
+                    "AUD, the back payments, commissions, bonuses and similar payments made in this pay",
+                ),
+                (
+                    "pay_periods",
+                    "integer, 52 weekly, 26 fortnightly or 12 monthly pay periods; fewer, from 2, only for a commission, bonus or similar payment for a defined period of less than 12 months: the pay periods it relates to",
+                ),
+            ],
+            schedule_5_pay,
+        ]
+        .concat(),
+        "schedule_5_method_b_i" => [
+            vec![
+                (
+                    "earnings",
+                    "AUD, the current pay's gross earnings excluding additional payments",
+                ),
+                (
+                    "back_payment_periods",
+                    "list of {earnings, back_payment, withheld} decimal strings, one for each earlier pay period in the current financial year the back payment applies to: the normal earnings paid for it, including back payments already applied to it by Method B(i), the part of the back payment for it, and the amount withheld from it, including any study and training support loan component; at most 52 weekly, 26 fortnightly or 11 monthly periods",
+                ),
+            ],
+            schedule_5_pay,
+        ]
+        .concat(),
+        "schedule_5_method_b_ii" => [
+            vec![
+                (
+                    "earnings",
+                    "AUD, the current pay's gross earnings excluding additional payments",
+                ),
+                (
+                    "additional_payment",
+                    "AUD, the additional payment in this pay worked out by Method B(ii)",
+                ),
+                (
+                    "year_to_date_earnings",
+                    "AUD, normal earnings paid in the financial year to date, including the current pay, plus current-year back payments for which Method B(i) was used",
+                ),
+                (
+                    "pay_periods_to_date",
+                    "integer, pay periods in the financial year to date, including the current one: at most 53 weekly, 27 fortnightly or 12 monthly",
+                ),
+                (
+                    "earlier_additional_payments",
+                    "AUD, additional payments made earlier in the financial year for which Method B(ii) was used",
+                ),
+                (
+                    "earlier_additional_withholding",
+                    "AUD, the amounts withheld from those earlier additional payments, including any study and training support loan component",
+                ),
+            ],
+            schedule_5_pay,
+        ]
+        .concat(),
+        "working_holiday_maker_withholding" => vec![
+            (
+                "payment",
+                "AUD, the total payments to the working holiday maker for the pay period: salary, wages, allowances, back payments, bonuses and other payments Schedule 15 covers",
+            ),
+            (
+                "payments_before",
+                "AUD, the total payments made to them in the income year before this payment",
+            ),
+            (
+                "employer_registered",
+                "boolean, whether the employer is registered with the ATO to withhold at working holiday maker rates",
+            ),
+            (
+                "tfn_quoted",
+                "boolean, true when the payee quoted a TFN, or advised on their TFN declaration that they applied for one or made an enquiry with the ATO and 28 days have not passed; false when they did neither, or 28 days passed without a TFN",
+            ),
+            (
+                "pay_period",
+                "weekly, fortnightly or monthly; for an unregistered employer it selects the Schedule 1 foreign resident amounts",
+            ),
+        ],
+        "seniors_pensioners_withholding" => vec![
+            payg[0],
+            payg[1],
+            (
+                "status",
+                "single, illness_separated or couple: the payee's status on their Withholding declaration, which selects column 2, 3 or 4 of the tax table",
+            ),
+            (
+                "medicare_levy_exemption",
+                "none, full or half: the Medicare levy exemption the payee claimed on a Medicare levy variation declaration",
             ),
         ],
         _ => Vec::new(),
@@ -859,6 +1556,7 @@ pub fn examples(kind: &str) -> Vec<(&'static str, Example)> {
         ],
         "study_loan_repayment" => vec![("repayment_income", Text("86380"))],
         "study_loan_withholding" => vec![
+            ("year", Text("2026-27")),
             ("earnings", Text("2000.00")),
             ("pay_period", Text("weekly")),
             ("scale", Whole(2)),
@@ -878,6 +1576,66 @@ pub fn examples(kind: &str) -> Vec<(&'static str, Example)> {
             ("child_recipient", Flag(false)),
             ("structured_settlement_contribution", Flag(false)),
             ("died_in_year", Flag(false)),
+        ],
+        "termination_payment" => vec![
+            ("redundancy_payment", Text("48000.00")),
+            ("completed_years_of_service", Whole(5)),
+            ("excluded_payment", Text("0.00")),
+            ("non_excluded_payment", Text("17678.00")),
+            ("other_taxable_payments", Text("140000.00")),
+            ("date_of_birth", Text("1996-09-01")),
+        ],
+        // Schedule 5's examples 1 to 3 (Jarrod, Robyn and Laura), for payments from 1 July 2026.
+        "schedule_5_method_a" => vec![
+            ("year", Text("2026-27")),
+            ("earnings", Text("1400.00")),
+            ("additional_payment", Text("900.00")),
+            ("pay_periods", Whole(52)),
+            ("pay_period", Text("weekly")),
+            ("scale", Whole(2)),
+            ("study_loan", Flag(true)),
+        ],
+        "schedule_5_method_b_i" => vec![
+            ("year", Text("2026-27")),
+            ("earnings", Text("1700.00")),
+            (
+                "back_payment_periods",
+                Json(
+                    r#"[{"earnings": "1600.00", "back_payment": "100.00", "withheld": "371.00"}, {"earnings": "1600.00", "back_payment": "100.00", "withheld": "371.00"}, {"earnings": "1600.00", "back_payment": "100.00", "withheld": "371.00"}, {"earnings": "1600.00", "back_payment": "100.00", "withheld": "371.00"}, {"earnings": "1600.00", "back_payment": "100.00", "withheld": "371.00"}, {"earnings": "1600.00", "back_payment": "100.00", "withheld": "371.00"}, {"earnings": "1600.00", "back_payment": "100.00", "withheld": "371.00"}, {"earnings": "1600.00", "back_payment": "100.00", "withheld": "371.00"}]"#,
+                ),
+            ),
+            ("pay_period", Text("weekly")),
+            ("scale", Whole(2)),
+            ("study_loan", Flag(true)),
+        ],
+        "schedule_5_method_b_ii" => vec![
+            ("year", Text("2026-27")),
+            ("earnings", Text("1800.00")),
+            ("additional_payment", Text("2480.00")),
+            ("year_to_date_earnings", Text("18000.00")),
+            ("pay_periods_to_date", Whole(10)),
+            ("earlier_additional_payments", Text("0.00")),
+            ("earlier_additional_withholding", Text("0.00")),
+            ("pay_period", Text("fortnightly")),
+            ("scale", Whole(2)),
+            ("study_loan", Flag(false)),
+        ],
+        // Schedule 15's example 2, for payments from 1 July 2026.
+        "working_holiday_maker_withholding" => vec![
+            ("year", Text("2026-27")),
+            ("payment", Text("8173.20")),
+            ("payments_before", Text("47000.00")),
+            ("employer_registered", Flag(true)),
+            ("tfn_quoted", Flag(true)),
+            ("pay_period", Text("monthly")),
+        ],
+        // Schedule 9's worked example, for payments from 1 July 2026.
+        "seniors_pensioners_withholding" => vec![
+            ("year", Text("2026-27")),
+            ("earnings", Text("662.95")),
+            ("pay_period", Text("weekly")),
+            ("status", Text("single")),
+            ("medicare_levy_exemption", Text("none")),
         ],
         _ => Vec::new(),
     }

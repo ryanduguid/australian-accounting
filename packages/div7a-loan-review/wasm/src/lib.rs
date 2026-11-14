@@ -20,9 +20,7 @@ pub fn call(f: fn(&Value) -> Result<Value, String>, input: &[u8]) -> Vec<u8> {
     let result = if input.len() > 8 << 20 {
         Err("JSON input exceeds 8 MiB".to_string())
     } else {
-        serde_json::from_slice(input)
-            .map_err(|e| format!("invalid JSON: {e}"))
-            .and_then(|v| f(&v))
+        div7a_loan_review::api::decode(input).and_then(|v| f(&v))
     };
     let out = match result {
         Ok(v) => json!({"ok": v}),
@@ -93,6 +91,9 @@ mod tests {
         );
         let out: Value = serde_json::from_slice(&call(derivation::derive, b"[")).unwrap();
         assert!(out["error"].as_str().unwrap().starts_with("invalid JSON: "));
+        let repeated = br#"{"facts": {"k": 1, "k": 2}}"#;
+        let out: Value = serde_json::from_slice(&call(derivation::derive, repeated)).unwrap();
+        assert_eq!(out, json!({"error": r#"invalid JSON: duplicate key "k""#}));
         let input = br#"{"facts": {"year_of_income": "2026-27", "year_loan_made": "2023-24",
             "amalgamated_loan_unpaid_at_end_of_previous_year": "100000.00",
             "remaining_term_years": "5", "payments_applied_during_the_year": "25556.00",

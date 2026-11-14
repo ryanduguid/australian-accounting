@@ -6,7 +6,9 @@ name: tests
 # one call of the reusable ci-package.yml for each Python engine under packages/,
 # and one call of ci-rust.yml for each Rust crate. Each ci-package.yml call applies
 # its own package's path filter, so a change to one engine runs that engine's
-# gates and skips the rest.
+# gates and skips the rest. A pull request runs the crate calls and the parity
+# check only when app_ci.py selects them: a change to a crate, a shared file or
+# an unknown path.
 
 on:
   workflow_dispatch:
@@ -76,6 +78,7 @@ jobs:
       ci-matrix: ${{ steps.list.outputs.ci-matrix }}
       parity: ${{ steps.list.outputs.parity }}
       parity-count: ${{ steps.list.outputs.parity-count }}
+      run: ${{ steps.select.outputs.run }}
     steps:
       - uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
         with:
@@ -83,15 +86,20 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
+          fetch-depth: 2
       - id: list
         run: python3 .github/ci/rust_crates.py >> "$GITHUB_OUTPUT"
+      - id: select
+        run: python3 .github/ci/app_ci.py select crates >> "$GITHUB_OUTPUT"
 
   # One ci-rust.yml call for each Rust crate: every packages/*/Cargo.toml and
   # apps/*/Cargo.toml, as rust_crates.py lists them, except a crate whose own
-  # workflow calls it ([package.metadata.ci] workflow).
+  # workflow calls it ([package.metadata.ci] workflow). umbrella-parity skips
+  # with it.
   rust:
     name: ${{ matrix.package }}
     needs: crates
+    if: needs.crates.result == 'success' && needs.crates.outputs.run == 'true'
     strategy:
       fail-fast: false
       matrix: ${{ fromJSON(needs.crates.outputs.ci-matrix) }}
@@ -288,7 +296,7 @@ jobs:
 
   tests-gates:
     # The one context branch protection requires from this workflow. It fails
-    # unless every selected job succeeded and only unselected app jobs skipped,
+    # unless every selected job succeeded and only unselected app and crate jobs skipped,
     # when a job in this file is missing
     # from needs, or when a pull request removes a job without adding a
     # "# removed-jobs: <job>" comment to this file.
@@ -311,7 +319,7 @@ jobs:
       - name: Require selected checks to succeed and unselected checks to skip
         env:
           RESULTS: ${{ toJSON(needs) }}
-        run: python3 .github/ci/app_ci.py gate aus-accounting-mcp
+        run: python3 .github/ci/app_ci.py gate aus-accounting-mcp crates
       - name: Require every job to be listed and kept
         env:
           RESULTS: ${{ toJSON(needs) }}
