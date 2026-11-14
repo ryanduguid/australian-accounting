@@ -2583,15 +2583,13 @@ fn method_b_ii_amounts(
 
 /// Schedule 5 Method B(ii): withholding from a pay that includes an additional
 /// payment for a prior financial year or for no single pay period, averaged
-/// over the financial year.
+/// over the financial year. `to_date` is the year to date's earnings, pay
+/// periods, earlier Method B(ii) additional payments and their withholding.
 #[allow(clippy::too_many_arguments)]
 pub fn schedule_5_method_b_ii(
     earnings: &Arg,
     additional_payment: &Arg,
-    year_to_date_earnings: &Arg,
-    pay_periods_to_date: &Arg,
-    earlier_additional_payments: &Arg,
-    earlier_additional_withholding: &Arg,
+    to_date: [&Arg; 4],
     pay_period: &Arg,
     scale: &Arg,
     study_loan: &Arg,
@@ -2608,11 +2606,12 @@ pub fn schedule_5_method_b_ii(
         scope_confirmed,
     )?;
     let additional = money(additional_payment)?;
+    let [to_date_earnings, pays_to_date, earlier, earlier_withheld] = to_date;
     let to_date = YearToDate {
-        earnings: money(year_to_date_earnings)?,
-        pays: pay_count(pay_periods_to_date, "pay_periods_to_date", 1, pay.most_pays)?,
-        earlier: money(earlier_additional_payments)?,
-        earlier_withheld: money(earlier_additional_withholding)?,
+        earnings: money(to_date_earnings)?,
+        pays: pay_count(pays_to_date, "pay_periods_to_date", 1, pay.most_pays)?,
+        earlier: money(earlier)?,
+        earlier_withheld: money(earlier_withheld)?,
     };
     let amounts = method_b_ii_amounts(&pay, &additional, &to_date)?;
     pay.finish(

@@ -654,7 +654,14 @@ pub fn evaluate_coded(command: &str, v: &Value) -> Result<Value> {
             engine::schedule_5_method_b_i(&a[0], &a[1], &a[2], &a[3], &a[4], &a[5], &a[6])
         }
         "schedule-5-method-b-ii" => engine::schedule_5_method_b_ii(
-            &a[0], &a[1], &a[2], &a[3], &a[4], &a[5], &a[6], &a[7], &a[8], &a[9], &a[10],
+            &a[0],
+            &a[1],
+            [&a[2], &a[3], &a[4], &a[5]],
+            &a[6],
+            &a[7],
+            &a[8],
+            &a[9],
+            &a[10],
         ),
         "study-loan-repayment" => engine::study_loan_repayment(&a[0], &a[1], &a[2]),
         "contribution-caps" => {
