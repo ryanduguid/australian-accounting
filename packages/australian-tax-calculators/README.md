@@ -434,8 +434,8 @@ B(ii) applies the year's additional payments to the average earnings to date,
 for back payments for an earlier year and payments that relate to no single
 pay period. Methods A and B(ii) limit the withholding from the additional
 payment to 47% of it. With `study_loan`, each table amount includes the
-Schedule 8 component, which this crate has for payments from 1 July 2026 only,
-so earlier years refuse it. The result gives each step of the method, the
+Schedule 8 component for 2026-27 only: 2025-26's applies from 24 September
+2025, and these commands take no pay date, so earlier years refuse it. The result gives each step of the method, the
 withholding on the additional payment and the pay's total. Like
 `division-296`, each command refuses a field it does not take. Working holiday
 makers (Schedule 15), payees without a TFN, withholding variations and a bonus

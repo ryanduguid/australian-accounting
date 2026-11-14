@@ -130,7 +130,9 @@ intentionally changed.
   2025. `tests/study_loan_withholding.rs` holds it to the instrument's examples
   1 to 3, its starting earnings and pays on 23 and 24 September 2025; the
   combined coefficient checks in `tests/tables.rs` and `tests/properties.rs`
-  cover both years. The 0.2.0 wheel the MCP server pins covers 2026-27 only.
+  cover both years. The Schedule 5 commands take no pay date, so their
+  `study_loan` stays 2026-27 only and names the 24 September 2025 start when
+  given 2025-26. The 0.2.0 wheel the MCP server pins covers 2026-27 only.
 - `tests/verdict_cases.rs` turns the edge cases in a published reviewer verdict,
   under CC BY 4.0, the default in the bounty's terms, into fabricated cases, or
   states why one does not apply.

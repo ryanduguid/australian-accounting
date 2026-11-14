@@ -785,7 +785,7 @@ pub fn input_units(kind: &str) -> Vec<(&'static str, &'static str)> {
         ("scale", "integer 1, 2, 3, 5 or 6"),
         (
             "study_loan",
-            "boolean, whether the payee declared a study and training support loan debt; true adds the Schedule 8 component to each table amount, for years study-loan-withholding supports",
+            "boolean, whether the payee declared a study and training support loan debt; true adds the Schedule 8 component to each table amount, for a year whose Schedule 8 coefficients apply from 1 July (Schedule 5 takes no pay date)",
         ),
     ];
     match kind {

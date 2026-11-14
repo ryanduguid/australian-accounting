@@ -2579,6 +2579,35 @@ struct AdditionalPay {
     most_pays: i64,
 }
 
+/// Schedule 5's methods take no pay date, so the study loan component is
+/// available only for a year whose Schedule 8 coefficients apply from 1 July.
+fn schedule_5_study_loan_year(year: &str) -> Result<()> {
+    let from = meta::STUDY_LOAN_WITHHOLDING_FROM;
+    let whole_years: Vec<&str> = from
+        .iter()
+        .filter(|(y, start)| *start == format!("{}-07-01", &y[..4]))
+        .map(|(y, _)| *y)
+        .collect();
+    if whole_years.contains(&year) {
+        return Ok(());
+    }
+    let reason = match from.iter().find(|(y, _)| *y == year) {
+        Some((_, start)) => format!(
+            "{year}'s Schedule 8 component applies to payments made on or after {start}, and these methods take no pay date"
+        ),
+        None => {
+            format!("there is no Schedule 8 study and training support loan component for {year}")
+        }
+    };
+    refuse(
+        "period.unsupported",
+        format!(
+            "study_loan is supported for {} only: {reason}.",
+            whole_years.join(", ")
+        ),
+    )
+}
+
 fn additional_pay(
     kind: &'static str,
     earnings: &Arg,
@@ -2591,15 +2620,8 @@ fn additional_pay(
     let (year, earnings, period, scale) =
         payg_checks(kind, earnings, pay_period, scale, year, scope_confirmed)?;
     let study_loan = flag(study_loan, "study_loan")?;
-    let loan_years = meta::supported_periods("study_loan_withholding");
-    if study_loan && !loan_years.contains(&year.as_str()) {
-        return refuse(
-            "period.unsupported",
-            format!(
-                "study_loan is supported for {} only: there is no Schedule 8 study and training support loan component for {year}.",
-                loan_years.join(", ")
-            ),
-        );
+    if study_loan {
+        schedule_5_study_loan_year(&year)?;
     }
     let (per_year, most_pays) = match period.as_str() {
         "weekly" => (52, 53),
