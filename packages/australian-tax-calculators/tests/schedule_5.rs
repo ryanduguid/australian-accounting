@@ -127,8 +127,9 @@ fn jarrod_method_a_gives_the_ato_example_1() {
 }
 
 /// The 2024 and 2025 schedules work Jarrod on the 1 July 2024 Schedule 1:
-/// $272, $17, $277, $5 x 52 = $260. This crate has no Schedule 8 for those
-/// years, so the HELP part is refused rather than worked.
+/// $272, $17, $277, $5 x 52 = $260. The HELP part is refused rather than
+/// worked: this crate has no Schedule 8 for 2024-25, and 2025-26's applies from
+/// 24 September 2025 only, a date Schedule 5's methods do not take.
 #[test]
 fn jarrod_method_a_gives_the_earlier_schedules_payg_figures() {
     for year in ["2024-25", "2025-26"] {
@@ -143,11 +144,14 @@ fn jarrod_method_a_gives_the_earlier_schedules_payg_figures() {
         let refused = api::evaluate_coded(A, &with(jarrod, study_loan())).unwrap_err();
         assert_eq!(refused.code, "period.unsupported");
         // The year is one the worksheet supports, so the message names the study loan.
+        let reason = if year == "2025-26" {
+            "2025-26's Schedule 8 component applies to payments made on or after 2025-09-24, and these methods take no pay date".to_string()
+        } else {
+            format!("there is no Schedule 8 study and training support loan component for {year}")
+        };
         assert_eq!(
             refused.message,
-            format!(
-                "study_loan is supported for 2026-27 only: there is no Schedule 8 study and training support loan component for {year}."
-            )
+            format!("study_loan is supported for 2026-27 only: {reason}.")
         );
     }
 }
