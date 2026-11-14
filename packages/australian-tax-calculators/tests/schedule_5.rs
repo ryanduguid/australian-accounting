@@ -634,6 +634,9 @@ fn every_method_refuses_what_it_does_not_cover() {
                 json!({"study_loan": true, "year": "2025-26"}),
                 "period.unsupported",
             ),
+            // A field the method does not take is refused, never ignored.
+            (json!({"back_payment": "100.00"}), "input.field_unknown"),
+            (json!({"defined_period": true}), "input.field_unknown"),
         ] {
             assert_eq!(
                 refusal(command, &with(facts.clone(), overrides.clone())),

@@ -57,7 +57,8 @@ intentionally changed.
   using the year's Schedule 1 amounts from `payg-withholding` and, for a payee
   with a study and training support loan, the Schedule 8 component from
   `study-loan-withholding` (from 1 July 2026 only). Methods A and B(ii) apply
-  the 47% limit. No Python release has them. `tests/parity.rs` drops their
+  the 47% limit. Like `division-296`, each refuses a field it does not take.
+  No Python release has them. `tests/parity.rs` drops their
   catalogue entries before comparing, and `tests/schedule_5.rs` holds them to
   the ATO's examples 1 to 4 in the 2024, 2025 and 2026 schedules and to each
   rule's boundary. New refusal codes: `input.pay_periods_invalid` and

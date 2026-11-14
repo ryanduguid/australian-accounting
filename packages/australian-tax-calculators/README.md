@@ -380,7 +380,8 @@ pay period. Methods A and B(ii) limit the withholding from the additional
 payment to 47% of it. With `study_loan`, each table amount includes the
 Schedule 8 component, which this crate has for payments from 1 July 2026 only,
 so earlier years refuse it. The result gives each step of the method, the
-withholding on the additional payment and the pay's total. Working holiday
+withholding on the additional payment and the pay's total. Like
+`division-296`, each command refuses a field it does not take. Working holiday
 makers (Schedule 15), payees without a TFN, withholding variations and a bonus
 for a single pay period, which belongs in that pay's `payg-withholding`
 earnings, are outside it. The tests hold the commands to the ATO's 4 worked examples in each year's
