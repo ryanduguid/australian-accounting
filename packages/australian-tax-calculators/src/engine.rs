@@ -1272,62 +1272,38 @@ fn etp_part(
     Ok([within, above, withheld])
 }
 
-#[allow(clippy::too_many_arguments)]
-pub fn termination_payment(
-    redundancy_payment: &Arg,
-    completed_years_of_service: &Arg,
-    excluded_payment: &Arg,
-    non_excluded_payment: &Arg,
-    other_taxable_payments: &Arg,
-    date_of_birth: &Arg,
-    year: &Arg,
-    scope_confirmed: &Arg,
-) -> Result<Value> {
-    let year = scope(scope_confirmed, year, "termination_payment")?;
-    let redundancy = money(redundancy_payment)?;
-    let Some(Some(years)) = completed_years_of_service
-        .int()
-        .filter(|n| n.is_some_and(|n| (0..=150).contains(&n)))
-    else {
-        return refuse(
-            "input.years_of_service_invalid",
-            "completed_years_of_service must be a whole number from 0 to 150.",
-        );
-    };
-    let excluded = money(excluded_payment)?;
-    let non_excluded = money(non_excluded_payment)?;
-    let other = money(other_taxable_payments)?;
-    let born = dates::to_civil(date_arg(date_of_birth, "date_of_birth")?);
-    let [etp_cap, whole_of_income, base, service, older, younger, top] = [
+/// Schedule 11 for one ETP: the tax-free part of the redundancy payment, then
+/// the excluded part (code R) first, under the ETP cap alone, and the
+/// non-excluded part (code O), under the smaller of the ETP cap left and the
+/// whole-of-income cap (s 82-10(4), (6) and (7); Schedule 11).
+fn etp_amounts(
+    redundancy: &Decimal,
+    years: i64,
+    excluded: &Decimal,
+    non_excluded: &Decimal,
+    other: &Decimal,
+    concessional: &Decimal,
+) -> Result<Vec<(&'static str, Decimal)>> {
+    let [etp_cap, whole_of_income, base, service, top] = [
         "etp_cap",
         "whole_of_income_cap",
         "base_amount",
         "service_amount",
-        "preservation_age_rate",
-        "under_preservation_age_rate",
         "above_cap_rate",
     ]
     .map(|key| d(lookup(&meta::TERMINATION_PAYMENT, key)));
-    // s 82-10(3)(a): preservation age or older on the last day of the income year.
-    let age = preservation_age(born);
-    let year_end: i64 = year[..4].parse::<i64>().expect("income year") + 1;
-    let reached = (born.0 + age, born.1, born.2) <= (year_end, 6, 30);
-    let concessional = if reached { older } else { younger };
-    let amounts = precise(|| {
+    precise(|| {
         // s 83-170(3): base amount + service amount x years of service.
         let limit = base.add(&service.mul(&int(years))?)?;
         let tax_free = py_min(redundancy.clone(), limit.clone())?;
-        // The excluded part (code R) is taken first, under the ETP cap alone; the
-        // non-excluded part (code O) follows, under the smaller of the ETP cap left
-        // and the whole-of-income cap (s 82-10(4), (6) and (7); Schedule 11).
-        let excluded_part = redundancy.sub(&tax_free)?.add(&excluded)?;
+        let excluded_part = redundancy.sub(&tax_free)?.add(excluded)?;
         let [r_within, r_above, r_withheld] =
-            etp_part(&excluded_part, &etp_cap, &concessional, &top)?;
+            etp_part(&excluded_part, &etp_cap, concessional, &top)?;
         let remaining = etp_cap.sub(&r_within)?;
-        let calculated = py_max(int(0), whole_of_income.sub(&other)?)?;
+        let calculated = py_max(int(0), whole_of_income.sub(other)?)?;
         let non_excluded_cap = py_min(remaining.clone(), calculated.clone())?;
         let [o_within, o_above, o_withheld] =
-            etp_part(&non_excluded, &non_excluded_cap, &concessional, &top)?;
+            etp_part(non_excluded, &non_excluded_cap, concessional, &top)?;
         let total = r_withheld.add(&o_withheld)?;
         Ok(vec![
             ("tax_free_limit", limit),
@@ -1345,22 +1321,72 @@ pub fn termination_payment(
             ("non_excluded_withholding", o_withheld),
             ("total_withholding", total),
         ])
-    })?;
-    result(
-        "termination_payment",
-        &year,
-        amounts,
-        vec![
-            rate("etp_cap", &etp_cap),
-            rate("whole_of_income_cap_amount", &whole_of_income),
-            rate("redundancy_base_amount", &base),
-            rate("redundancy_service_amount", &service),
-            rate("preservation_age", age),
-            rate("preservation_age_reached", reached),
-            rate("withholding_rate_within_cap", &concessional),
-            rate("withholding_rate_above_cap", &top),
-        ],
-    )
+    })
+}
+
+/// The whole years of service, from 0 to 150, that a redundancy payment relates
+/// to (s 83-170(3)).
+fn years_of_service(value: &Arg) -> Result<i64> {
+    let Some(Some(years)) = value
+        .int()
+        .filter(|n| n.is_some_and(|n| (0..=150).contains(&n)))
+    else {
+        return refuse(
+            "input.years_of_service_invalid",
+            "completed_years_of_service must be a whole number from 0 to 150.",
+        );
+    };
+    Ok(years)
+}
+
+#[allow(clippy::too_many_arguments)]
+pub fn termination_payment(
+    redundancy_payment: &Arg,
+    completed_years_of_service: &Arg,
+    excluded_payment: &Arg,
+    non_excluded_payment: &Arg,
+    other_taxable_payments: &Arg,
+    date_of_birth: &Arg,
+    year: &Arg,
+    scope_confirmed: &Arg,
+) -> Result<Value> {
+    let year = scope(scope_confirmed, year, "termination_payment")?;
+    let redundancy = money(redundancy_payment)?;
+    let years = years_of_service(completed_years_of_service)?;
+    let excluded = money(excluded_payment)?;
+    let non_excluded = money(non_excluded_payment)?;
+    let other = money(other_taxable_payments)?;
+    let born = dates::to_civil(date_arg(date_of_birth, "date_of_birth")?);
+    let figure = |key| lookup(&meta::TERMINATION_PAYMENT, key);
+    // s 82-10(3)(a): preservation age or older on the last day of the income year.
+    let age = preservation_age(born);
+    let year_end: i64 = year[..4].parse::<i64>().expect("income year") + 1;
+    let reached = (born.0 + age, born.1, born.2) <= (year_end, 6, 30);
+    let within_rate = if reached {
+        "preservation_age_rate"
+    } else {
+        "under_preservation_age_rate"
+    };
+    let concessional = d(figure(within_rate));
+    let amounts = etp_amounts(
+        &redundancy,
+        years,
+        &excluded,
+        &non_excluded,
+        &other,
+        &concessional,
+    )?;
+    let rates = vec![
+        rate("etp_cap", figure("etp_cap")),
+        rate("whole_of_income_cap_amount", figure("whole_of_income_cap")),
+        rate("redundancy_base_amount", figure("base_amount")),
+        rate("redundancy_service_amount", figure("service_amount")),
+        rate("preservation_age", age),
+        rate("preservation_age_reached", reached),
+        rate("withholding_rate_within_cap", &concessional),
+        rate("withholding_rate_above_cap", figure("above_cap_rate")),
+    ];
+    result("termination_payment", &year, amounts, rates)
 }
 
 pub fn study_loan_repayment(
