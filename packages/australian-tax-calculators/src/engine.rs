@@ -2715,19 +2715,19 @@ pub fn pension_minimum(
         // pro-rates the factor over a first year that starts after 1 July.
         let (authority, formula, operands, exact): (_, _, &[&Decimal], _) = if days <= 30 {
             ("SISR Schedule 7 cl 4", "0", &[], int(0))
-        } else {
-            let authority = if days < days_in_year {
-                "SISR Schedule 7 cl 1(1) and cl 3"
-            } else {
-                "SISR Schedule 7 cl 1(1)"
-            };
-            let formula = "account_balance_used x percentage_factor x days / days_in_year";
-            let exact = balance.mul(&factor)?.mul(&held)?.div(&length)?;
+        } else if days < days_in_year {
             (
-                authority,
-                formula,
+                "SISR Schedule 7 cl 1(1) and cl 3",
+                "account_balance_used x percentage_factor x days / days_in_year",
                 &[&balance, &factor, &held, &length],
-                exact,
+                balance.mul(&factor)?.mul(&held)?.div(&length)?,
+            )
+        } else {
+            (
+                "SISR Schedule 7 cl 1(1)",
+                "account_balance_used x percentage_factor",
+                &[&balance, &factor],
+                balance.mul(&factor)?,
             )
         };
         let minimum = exact

@@ -528,6 +528,31 @@ fn the_ato_examples_show_their_operands() {
         [&doc["steps"][1]["value"], &doc["steps"][2]["value"]],
         ["6198.63", "6200.00"]
     );
+    // A full year is cl 1(1)'s formula alone: account balance x percentage factor.
+    let doc = derive("pension-minimum", &cases()[19].1);
+    assert_eq!(
+        working(&doc, 1),
+        "account_balance_used x percentage_factor = 600000.00 x 0.05 = 30000.0000"
+    );
+}
+
+/// Each branch's final amount, as its provision sets it.
+#[test]
+fn each_branch_gives_the_amount_its_source_sets() {
+    let amount = |case: usize, id: &str| {
+        let (command, input) = &cases()[case];
+        derive(command, input)["result"]["amounts"][id].clone()
+    };
+    // s 293-20(1): $220,000 does not exceed $250,000; $325,000 exceeds it by
+    // $75,000, so the lesser is the $25,000 of contributions, taxed at 15%.
+    assert_eq!(amount(16, "division_293_tax"), "0.00");
+    assert_eq!(amount(17, "division_293_tax"), "3750.00");
+    // s 293-20(2): nil low tax contributions, so no taxable contributions.
+    assert_eq!(amount(18, "taxable_contributions"), "0.00");
+    // cl 4: started on 1 June, so nothing is required.
+    assert_eq!(amount(21, "minimum_payment"), "0.00");
+    // cl 5: $4,005 ends in an exact $5, so it rounds up to $4,010.
+    assert_eq!(amount(22, "minimum_payment"), "4010.00");
 }
 
 #[test]
