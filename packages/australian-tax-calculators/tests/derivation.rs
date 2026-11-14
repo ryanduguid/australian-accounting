@@ -439,8 +439,8 @@ fn each_step_cites_the_provision_its_branch_applies() {
     let authority = |case: usize, id: &str| {
         let (command, input) = &cases()[case];
         let doc = derive(command, input);
-        let steps = doc["steps"].as_array().unwrap().clone();
-        let step = steps.into_iter().find(|s| s["id"] == id).unwrap();
+        let steps = doc["steps"].as_array().unwrap();
+        let step = steps.iter().find(|s| s["id"] == id).unwrap();
         step["authority"].as_str().unwrap().to_string()
     };
     // s 8A exempts an electric car; a car it does not exempt keeps its s 9 or
@@ -458,6 +458,8 @@ fn each_step_cites_the_provision_its_branch_applies() {
     let owned = "FBTAA s 11(1), (1AA) and (1A)";
     let leased = "FBTAA s 10(3)(a)(iii): owned cars only, so nil for a leased car";
     assert_eq!(authority(10, "deemed_depreciation"), owned);
+    // An owned car with a nil depreciated value is still an owned car.
+    assert_eq!(authority(11, "deemed_depreciation"), owned);
     assert_eq!(authority(13, "deemed_depreciation"), leased);
     assert_eq!(authority(13, "deemed_interest"), leased);
 }
