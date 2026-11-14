@@ -264,6 +264,13 @@ the escaped summary, success manifest and replay record for seven days. No priva
 checkout or secret is needed. Linux keeps the `public-fixtures` check name; configure
 the added `public-fixtures (Windows)` check separately if it should block merges.
 
+`context7.json` tells [Context7](https://context7.com/docs/library-owners) which
+folders hold the component documentation and gives coding agents rules on
+calculation scope, refusals and privacy. It submits, claims and refreshes nothing. `tests/test_context7.py`
+checks it against Context7's published schema and holds the commands its rules name
+to the tax calculators' command table, so update the rules when a withholding command
+or a `pay_date` argument is added.
+
 - Keep a change inside one component unless it is a root policy or workflow change.
 - Do not move, rename or refactor a component in the same change that alters its
   behaviour.

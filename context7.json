@@ -1,0 +1,16 @@
+{
+  "$schema": "https://context7.com/schema/context7.json",
+  "projectTitle": "Australian Accounting",
+  "description": "Australian accounting engines, sourced tax worksheets and local MCP and command-line adapters. Independently versioned components with explicit scope, supported years, warnings and refusal codes.",
+  "folders": ["packages", "apps/aus-accounting-mcp", "apps/au-accounting"],
+  "rules": [
+    "Select the component and its documented interface first. Components have independent versions and releases; repository main is not proof that a capability is in an installed distribution.",
+    "Withholding from one pay: `payg-withholding` (Schedule 1) for a regular pay by pay period and scale, or `working-holiday-maker-withholding` (Schedule 15) for a working holiday maker. Never apply annual tax brackets to one pay.",
+    "Supply explicit supported years and every required scope confirmation. For withholding, give the pay's income year, and its pay date where needed, as `study-loan-withholding` needs in 2025-26. Never infer support for a future year.",
+    "Use decimal strings for money and ratios at the native JSON boundary. Respect the selected engine's rounding and output units rather than reimplementing tax formulas in an adapter.",
+    "Retain engine version, sources, warnings and refusal codes. A refused or unsupported calculation stays refused; never replace it with a plausible estimate without explicitly changing the task and its stated assumptions.",
+    "Worksheets have distinct scopes, such as `study-loan-withholding` (Schedule 8), the 3 Schedule 5 commands for back payments, commissions and bonuses, and `termination-payment` (Schedule 11). No worksheet calculates the Medicare levy surcharge.",
+    "Use fabricated fixtures for examples. Do not send TFNs, client data or other private financial inputs to public calculators, URLs or hosted checkers.",
+    "A worksheet supports human review; it is not an assessment or lodgment. Distinguish a super accrual from evidence of receipt by a fund and distinguish a planning assumption from a statutory calculation."
+  ]
+}
