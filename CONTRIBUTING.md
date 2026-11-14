@@ -131,6 +131,14 @@ commands:
 | AU tax rates data (Rust) | `packages/au-tax-rates-data/` | `cargo fmt --check`; `cargo clippy --locked --all-targets -- -D warnings`; `cargo test --locked`; `cargo run --locked --release -- validate`. These run in the `au-tax-rates-data` job of `.github/workflows/ci.yml` on Ubuntu, Windows and macOS. The dataset is never released on its own. |
 | Repository boundaries | `.` | `python -m unittest -v tests/test_boundaries.py tests/test_shared_blocks.py` |
 
+The undeployed hosted connector in `tools/aus-accounting-connector/` and its core in
+`apps/aus-accounting-mcp/core/` link the tax calculator, Division 7A and Payday Super
+engines by path; their checks are in each README and run from
+`.github/workflows/aus-accounting-connector.yml`. A change to a result those tools serve
+fails the connector's `cargo test` until its reference is recorded again: from
+`tools/aus-accounting-connector/`, run `RECORD_REFERENCE=1 cargo test --locked --test reference`
+and commit `tests/fixtures/reference.json` with the change.
+
 The shared toolchain is pinned to one version per tool in every engine's `pyproject.toml`,
 so a gate behaves the same wherever it runs, and the workspace resolution takes the same
 versions for `just`. Changing a pin means changing both, then relocking twice: `uv lock`

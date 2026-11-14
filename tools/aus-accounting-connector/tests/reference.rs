@@ -118,6 +118,6 @@ fn the_reference_is_this_commits_replies() {
     let committed = fs::read_to_string(FIXTURE).unwrap();
     assert!(
         committed == rebuilt,
-        "tests/fixtures/reference.json is stale: run RECORD_REFERENCE=1 cargo test --locked --test reference"
+        "tests/fixtures/reference.json is stale: from tools/aus-accounting-connector, run RECORD_REFERENCE=1 cargo test --locked --test reference"
     );
 }
