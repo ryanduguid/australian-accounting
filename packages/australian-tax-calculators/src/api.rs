@@ -275,6 +275,72 @@ const COMMAND_ARGS: &[(&str, &[(&str, Kind)])] = &[
         ],
     ),
     (
+        "termination-payment",
+        &[
+            ("redundancy_payment", Dec),
+            ("completed_years_of_service", Raw),
+            ("excluded_payment", Dec),
+            ("non_excluded_payment", Dec),
+            ("other_taxable_payments", Dec),
+            ("date_of_birth", Raw),
+            ("year", Raw),
+            ("scope_confirmed", Raw),
+        ],
+    ),
+    (
+        "schedule-5-method-a",
+        &[
+            ("earnings", Dec),
+            ("additional_payment", Dec),
+            ("pay_periods", Raw),
+            ("pay_period", Raw),
+            ("scale", Raw),
+            ("study_loan", Raw),
+            ("year", Raw),
+            ("scope_confirmed", Raw),
+        ],
+    ),
+    (
+        "schedule-5-method-b-i",
+        &[
+            ("earnings", Dec),
+            ("back_payment_periods", Json),
+            ("pay_period", Raw),
+            ("scale", Raw),
+            ("study_loan", Raw),
+            ("year", Raw),
+            ("scope_confirmed", Raw),
+        ],
+    ),
+    (
+        "schedule-5-method-b-ii",
+        &[
+            ("earnings", Dec),
+            ("additional_payment", Dec),
+            ("year_to_date_earnings", Dec),
+            ("pay_periods_to_date", Raw),
+            ("earlier_additional_payments", Dec),
+            ("earlier_additional_withholding", Dec),
+            ("pay_period", Raw),
+            ("scale", Raw),
+            ("study_loan", Raw),
+            ("year", Raw),
+            ("scope_confirmed", Raw),
+        ],
+    ),
+    (
+        "working-holiday-maker-withholding",
+        &[
+            ("payment", Dec),
+            ("payments_before", Dec),
+            ("employer_registered", Raw),
+            ("tfn_quoted", Raw),
+            ("pay_period", Raw),
+            ("year", Raw),
+            ("scope_confirmed", Raw),
+        ],
+    ),
+    (
         "study-loan-repayment",
         &[
             ("repayment_income", Dec),
@@ -507,13 +573,23 @@ pub fn evaluate_coded(command: &str, v: &Value) -> Result<Value> {
     let Some((_, params)) = COMMAND_ARGS.iter().find(|(c, _)| *c == command) else {
         return refusal("command.unknown", format!("unknown command {command}"));
     };
-    // Division 296 has no Python original whose lenience to keep, and a misspelt
+    // Division 296, the termination payment, Schedule 5 and Schedule 15
+    // worksheets have no Python original whose lenience to keep, and a misspelt
     // optional depreciation or PAYG withholding input would silently give the
-    // result without it, so a field these do not take, such as an opening
-    // balance, is refused rather than ignored.
+    // result without it, so a field one does not take, such as an opening
+    // balance, another method's input or a TFN exemption, is refused rather
+    // than ignored.
     if matches!(
         command,
-        "division-296" | "depreciation" | "payg-withholding" | "study-loan-withholding"
+        "division-296"
+            | "depreciation"
+            | "payg-withholding"
+            | "termination-payment"
+            | "schedule-5-method-a"
+            | "schedule-5-method-b-i"
+            | "schedule-5-method-b-ii"
+            | "working-holiday-maker-withholding"
+            | "study-loan-withholding"
     ) {
         let optional = crate::metadata::optional_inputs(&command.replace('-', "_"));
         let taken = |key: &String| {
@@ -604,6 +680,28 @@ pub fn evaluate_coded(command: &str, v: &Value) -> Result<Value> {
         "low-income-tax-offset" => engine::low_income_tax_offset(&a[0], &a[1], &a[2]),
         "division-293" => engine::division_293(&a[0], &a[1], &a[2], &a[3]),
         "division-296" => engine::division_296(&a[0], &a[1], [&a[2], &a[3], &a[4]], &a[5], &a[6]),
+        "termination-payment" => {
+            engine::termination_payment(&a[0], &a[1], &a[2], &a[3], &a[4], &a[5], &a[6], &a[7])
+        }
+        "schedule-5-method-a" => {
+            engine::schedule_5_method_a(&a[0], &a[1], &a[2], &a[3], &a[4], &a[5], &a[6], &a[7])
+        }
+        "schedule-5-method-b-i" => {
+            engine::schedule_5_method_b_i(&a[0], &a[1], &a[2], &a[3], &a[4], &a[5], &a[6])
+        }
+        "schedule-5-method-b-ii" => engine::schedule_5_method_b_ii(
+            &a[0],
+            &a[1],
+            [&a[2], &a[3], &a[4], &a[5]],
+            &a[6],
+            &a[7],
+            &a[8],
+            &a[9],
+            &a[10],
+        ),
+        "working-holiday-maker-withholding" => engine::working_holiday_maker_withholding(
+            &a[0], &a[1], &a[2], &a[3], &a[4], &a[5], &a[6],
+        ),
         "study-loan-repayment" => engine::study_loan_repayment(&a[0], &a[1], &a[2]),
         "contribution-caps" => {
             engine::contribution_caps(&a[0], &a[1], &a[2], &a[3], &a[4], &a[5], &a[6])

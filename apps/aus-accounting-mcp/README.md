@@ -50,10 +50,10 @@ The listing identifies the distribution; it does not prove a client's installed 
 Requires Python 3.14+ and [uv](https://docs.astral.sh/uv/):
 
 ```bash
-uvx --from 'aus-accounting-mcp==0.8.0' aus-accounting-mcp
+uvx --from 'aus-accounting-mcp==0.9.0' aus-accounting-mcp
 ```
 
-This selects the published [0.8.0 release](https://github.com/ryanduguid/australian-accounting/releases/tag/aus-accounting-mcp/v0.8.0).
+This selects the published [0.9.0 release](https://github.com/ryanduguid/australian-accounting/releases/tag/aus-accounting-mcp/v0.9.0).
 The source checkout may be ahead of the published release. The pin selects the
 server version; it does not lock every transitive dependency.
 
@@ -86,18 +86,18 @@ For Claude Desktop, Cursor, Windsurf and other hosts that run local stdio server
   "mcpServers": {
     "aus-accounting": {
       "command": "uvx",
-      "args": ["--from", "aus-accounting-mcp==0.8.0", "aus-accounting-mcp"]
+      "args": ["--from", "aus-accounting-mcp==0.9.0", "aus-accounting-mcp"]
     }
   }
 }
 ```
 
-[Add to Cursor](https://cursor.com/en/install-mcp?name=aus-accounting&config=eyJjb21tYW5kIjoidXZ4IiwiYXJncyI6WyItLWZyb20iLCJhdXMtYWNjb3VudGluZy1tY3A9PTAuOC4wIiwiYXVzLWFjY291bnRpbmctbWNwIl19),
+[Add to Cursor](https://cursor.com/en/install-mcp?name=aus-accounting&config=eyJjb21tYW5kIjoidXZ4IiwiYXJncyI6WyItLWZyb20iLCJhdXMtYWNjb3VudGluZy1tY3A9PTAuOS4wIiwiYXVzLWFjY291bnRpbmctbWNwIl19),
 or from a terminal:
 
 ```bash
-claude mcp add --scope user aus-accounting -- uvx --from 'aus-accounting-mcp==0.8.0' aus-accounting-mcp
-codex mcp add aus-accounting -- uvx --from 'aus-accounting-mcp==0.8.0' aus-accounting-mcp
+claude mcp add --scope user aus-accounting -- uvx --from 'aus-accounting-mcp==0.9.0' aus-accounting-mcp
+codex mcp add aus-accounting -- uvx --from 'aus-accounting-mcp==0.9.0' aus-accounting-mcp
 ```
 
 The [client setup guide](https://github.com/ryanduguid/australian-accounting/blob/main/apps/aus-accounting-mcp/docs/REFERENCE.md#client-setup)
@@ -228,7 +228,7 @@ release provides 10 through calculators 0.1.8. See the
 package checks.
 
 [Release notes](https://github.com/ryanduguid/australian-accounting/blob/main/apps/aus-accounting-mcp/RELEASE_NOTES.md),
-[v0.8.0 release record](https://github.com/ryanduguid/australian-accounting/releases/tag/aus-accounting-mcp/v0.8.0),
+[v0.9.0 release record](https://github.com/ryanduguid/australian-accounting/releases/tag/aus-accounting-mcp/v0.9.0),
 [CITATION.cff](https://github.com/ryanduguid/australian-accounting/blob/main/apps/aus-accounting-mcp/CITATION.cff).
 
 <sub>Not tax, legal or financial advice. Payday Super and Division 7A reviews are experimental and need human review before consequential accounting action; fixtures are not a lodgement. Ryan Duguid is not a registered tax agent or BAS agent. Support covers software issues reproduced with fabricated data: do not send taxpayer information or ask for advice, return preparation, tax-treatment confirmation or lodgement. See [DISCLAIMER.md](https://github.com/ryanduguid/australian-accounting/blob/main/apps/aus-accounting-mcp/DISCLAIMER.md).</sub>

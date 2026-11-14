@@ -265,9 +265,9 @@ fn the_medicare_adjustment_starts_at_the_weekly_earnings_threshold_and_ends_at_t
 }
 
 /// The schedule has no quarterly worked example or sample data. Its rule: the
-/// weekly equivalent is a thirteenth of the quarter's earnings, and the amount,
-/// the Medicare levy adjustment and the tax offset are 13 times weekly (25% of
-/// the offsets). So a quarter of 13 times each whole-dollar weekly sample point
+/// weekly equivalent is a thirteenth of the quarter's earnings, the amount and
+/// the Medicare levy adjustment are 13 times weekly, and the tax offset
+/// reduction is 25% of the offsets. So a quarter of 13 times each whole-dollar weekly sample point
 /// withholds 13 times the ATO's weekly sample amount.
 #[test]
 fn a_quarterly_pay_withholds_13_times_the_weekly_sample() {
@@ -480,6 +480,16 @@ fn the_additional_amounts_for_53_or_27_pays_follow_each_schedules_table() {
         json!({"extra_pay_withholding": false}),
     );
     assert_eq!(off, run("3000.00", "weekly", 2, "2026-27", json!({})));
+    // Scale 4 takes it too, as the schedule excludes no scale: 47% of $1,000 is
+    // $470, plus $3.
+    let scale_4 = run(
+        "1000.00",
+        "weekly",
+        4,
+        "2026-27",
+        json!({"foreign_resident": false, "extra_pay_withholding": true}),
+    );
+    assert_eq!(dollars(&scale_4, "withholding"), 473);
 }
 
 #[test]
@@ -573,6 +583,31 @@ fn reductions_beyond_the_amount_withheld_are_refused() {
     assert_eq!(code, "payg.reductions_exceed_withholding");
     assert!(
         message.contains("$22.00") && message.contains("$6.00"),
+        "{message}"
+    );
+    // The refusal says what to do next.
+    assert!(
+        message.contains("Check the payee's declarations") && message.contains("ask the ATO"),
+        "{message}"
+    );
+    // The 53 pay amount is added after the reductions, so it cannot cover an
+    // excess: offsets whose 1.9% rounds to $1 more than the amount withheld on
+    // $900.00 a week are refused although the additional amount is $3.
+    let before = dollars(
+        &run("900.00", "weekly", 2, "2026-27", json!({})),
+        "withholding",
+    );
+    let offsets = (before * 1000 + 500 + 18) / 19;
+    let (code, message) = refused(
+        "900.00",
+        "weekly",
+        2,
+        "2026-27",
+        json!({"tax_offsets": offsets.to_string(), "extra_pay_withholding": true}),
+    );
+    assert_eq!(code, "payg.reductions_exceed_withholding");
+    assert!(
+        message.contains(&format!("(${}.00)", before + 1)),
         "{message}"
     );
     // Equal is allowed: offsets of $316 a year reduce $6 by $6.00 (1.9% = 6.004).
