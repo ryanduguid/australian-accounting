@@ -35,6 +35,18 @@ verdicts, codes, reasons and figures with the Python server's results, recorded
 in `tests/fixtures/python-div7a.json`. The draft server needs this adapter, or
 these refusals, before it replaces the Python server.
 
+The engine's output is otherwise left as it is, including one caveat that is
+now untrue: the figure path of `minimum_yearly_repayment` always adds
+'maximum_term_years was not supplied, so this engine has not checked the
+remaining term against the loan's term or that term less the years since the
+loan year (s 109E(6))', even when `maximum_term_years` was supplied and the
+adapter made those checks, and a refusal the adapter adds to a figure the
+engine worked out keeps it. The public API cannot be told the term:
+`repayment_within`, which takes it and drops the caveat, is crate-private, and
+the JSON `minimum-yearly-repayment` command takes the loan's term but not the
+security facts' maximum term. The fix belongs in the engine's public API; the
+draft server gives the same caveat.
+
 `main` at 149f98ad widened the engine's PAYG withholding scope to quarterly
 pays, scale 4, tax offsets, the Medicare levy adjustment and 53 or 27 pays. The
 published input schema still admits none of them, so `adapters/tax.rs` now
@@ -57,6 +69,8 @@ cargo build --locked --release --target wasm32-unknown-unknown
 ```
 
 `cargo test` replays the 32 cases in [`../conformance/cases.json`](../conformance/cases.json)
-through `call`.
+through `call`, and [`tests/validation.rs`](tests/validation.rs) compares the
+argument refusals with the Python server's, recorded in
+`tests/fixtures/python-refusals.json`.
 
 Licensed under the [Ryan Duguid Public Attribution Licence 1.0](../../../LICENSE); see [NOTICE](../../../NOTICE).

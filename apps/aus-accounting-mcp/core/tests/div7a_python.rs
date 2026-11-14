@@ -2,8 +2,9 @@
 // SPDX-License-Identifier: LicenseRef-Duguid-Public-Attribution-1.0
 
 //! `review_div7a_loan` against the Python server on `main`, recorded in
-//! fixtures/python-div7a.json: the Division 7A conformance cases and remaining
-//! terms that cannot hold on a loan the gate passed.
+//! fixtures/python-div7a.json: the Division 7A conformance cases, remaining
+//! terms that cannot hold on a loan the gate passed, and the boundaries of
+//! those refusals.
 use serde_json::Value;
 
 fn runs() -> Vec<(String, Value, Value)> {
@@ -47,7 +48,7 @@ fn a_remaining_term_longer_than_the_maximum_term_is_refused() {
 #[test]
 fn the_gate_and_repayment_verdicts_codes_and_reasons_match_the_python_server() {
     let runs = runs();
-    assert_eq!(runs.len(), 11);
+    assert_eq!(runs.len(), 21);
     for (name, arguments, python) in runs {
         let rust = core(&arguments);
         assert_eq!(rust["gate"]["verdict"], python["gate"]["verdict"], "{name}");
