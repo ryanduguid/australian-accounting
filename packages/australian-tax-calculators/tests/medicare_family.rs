@@ -179,15 +179,19 @@ fn family_thresholds_and_the_top_of_each_shade_in() {
 }
 
 /// The ATO's per-child increase in the upper threshold, $5,423 for 2025-26, is
-/// 1.25 x $4,338 = $5,422.50 rounded up, so with 2 children its upper
-/// threshold, $59,047 + $10,846 = $69,893, is a dollar above the last income
-/// the s 8(2) formula reduces: 2% x 55,914 - 0.08 x 13,979 = -0.04.
+/// 1.25 x $4,338 = $5,422.50 rounded up, so its upper threshold moves 50 cents
+/// a child past the family income where the s 8(2) reduction reaches nil. With
+/// 2 children, $59,047 + $10,846 = $69,893: 2% x 55,914 - 0.08 x 13,979 =
+/// -0.04. With 3, $59,047 + $16,269 = $75,316: 2% x 60,252 - 0.08 x 15,064 =
+/// -0.08.
 #[test]
 fn the_formula_not_the_rounded_upper_threshold_ends_the_reduction() {
-    let family = json!({"dependant_offset_entitled": true, "dependent_children": 2});
-    let result = evaluate("69893", "2025-26", family);
-    assert_eq!(result["amounts"]["family_reduction"], "0.00");
-    assert_eq!(result["amounts"]["medicare_levy"], "1397.86");
+    for (children, ato_upper, full_levy) in [(2, "69893", "1397.86"), (3, "75316", "1506.32")] {
+        let family = json!({"dependant_offset_entitled": true, "dependent_children": children});
+        let result = evaluate(ato_upper, "2025-26", family);
+        assert_eq!(result["amounts"]["family_reduction"], "0.00", "{children}");
+        assert_eq!(result["amounts"]["medicare_levy"], full_levy, "{children}");
+    }
 }
 
 /// s 8(3): when the spouse's taxable income exceeds the spouse's threshold

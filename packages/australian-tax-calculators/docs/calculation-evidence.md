@@ -468,10 +468,14 @@ follows it: s 8(4) passes back the excess of a liable spouse only.
 The ATO's upper thresholds are the threshold times 1.25: $59,047 and $77,028
 for 2025-26, and $57,383 and $74,857 in myTax 2025 worksheet 2, each rounded
 down. Its increase in the upper threshold for each child, $5,423 for 2025-26,
-is $5,422.50 rounded up, so for an even number of children its upper threshold
-is a dollar above the last income the s 8(2) formula reduces: with 2 children,
-$69,893 has a reduction of minus 4 cents. The worksheet applies the formula, so
-$69,893 pays the full levy, and `tests/medicare_family.rs` holds it there. The
+is $5,422.50 rounded up, so each child moves it 50 cents further than the
+family income at which the s 8(2) reduction reaches nil, 1.25 times the family
+income threshold. From 2 children the published 2025-26 upper threshold lies
+past that income, and the gap grows with each child: with 2 children $69,893
+has a reduction of minus 4 cents, and with 3 children $75,316 has minus 8
+cents. Between the 2 points the formula gives no reduction, so the levy is the
+levy after s 7. The worksheet applies the formula, and
+`tests/medicare_family.rs` holds both cases to the full levy. The
 same tests check each SAPTO and family threshold and the top of each shade-in
 for all 3 years, the sharing, the excess passed back between spouses and every
 refusal. No ATO example covers 2024-25 or 2026-27; those cases are worked from
