@@ -7,7 +7,8 @@
 use australian_tax_calculators::api;
 use australian_tax_calculators::decimal::Decimal;
 use australian_tax_calculators::metadata::{
-    PAYG_WITHHOLDING_COEFFICIENTS, RESIDENT_TAX_SCALES, supported_periods,
+    PAYG_WITHHOLDING_COEFFICIENTS, RESIDENT_TAX_SCALES, STUDY_LOAN_WITHHOLDING_FROM,
+    supported_periods,
 };
 use serde_json::{Value, json};
 
@@ -537,7 +538,11 @@ fn medicare_levy_never_falls_as_income_rises() {
 fn study_loan_components_agree_with_the_combined_coefficients_to_a_dollar() {
     // The ATO says the two methods can differ slightly through rounding and accepts
     // either. Every whole-dollar weekly amount to $4,000 stays within $1.
-    for (scale, _, rows) in common::COMBINED {
+    for (year, scale, _, rows) in common::COMBINED {
+        let (_, first_pay_date) = STUDY_LOAN_WITHHOLDING_FROM
+            .iter()
+            .find(|(y, _)| *y == year)
+            .unwrap();
         let mut saw_zero = false;
         for dollars in 0..=4000 {
             let x = n(dollars).add(&d("0.99")).unwrap();
@@ -557,13 +562,39 @@ fn study_loan_components_agree_with_the_combined_coefficients_to_a_dollar() {
             let result = run(
                 "study-loan-withholding",
                 json!({"earnings": dollars.to_string(), "pay_period": "weekly",
-                       "scale": scale, "year": "2026-27", "scope_confirmed": true}),
+                       "scale": scale, "year": year, "scope_confirmed": true,
+                       "pay_date": first_pay_date}),
             );
             let gap = amount(&result, "withholding").sub(&expected).unwrap();
-            assert!(le(&n(-1), &gap) && le(&gap, &n(1)), "{scale} {dollars}");
+            assert!(
+                le(&n(-1), &gap) && le(&gap, &n(1)),
+                "{year} {scale} {dollars}"
+            );
             saw_zero |= gap.is_zero();
         }
-        assert!(saw_zero, "{scale}");
+        assert!(saw_zero, "{year} {scale}");
+    }
+}
+
+#[test]
+fn study_loan_withholding_never_falls_as_weekly_earnings_rise() {
+    // Every whole-dollar weekly amount to $4,000 passes every Schedule 1 and
+    // Schedule 8 bracket edge of each year's tables.
+    for (year, first_pay_date) in STUDY_LOAN_WITHHOLDING_FROM {
+        for scale in [1, 2, 3, 5, 6] {
+            let mut previous = n(0);
+            for dollars in 0..=4000 {
+                let result = run(
+                    "study-loan-withholding",
+                    json!({"earnings": dollars.to_string(), "pay_period": "weekly",
+                           "scale": scale, "year": year, "scope_confirmed": true,
+                           "pay_date": first_pay_date}),
+                );
+                let withheld = amount(&result, "withholding");
+                assert!(le(&previous, &withheld), "{year} {scale} {dollars}");
+                previous = withheld;
+            }
+        }
     }
 }
 

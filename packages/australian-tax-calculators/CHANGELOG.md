@@ -130,6 +130,20 @@ intentionally changed.
   threshold, band and rounding boundary. A Medicare levy variation that
   increases withholding, bi-monthly, daily and casual pays stay outside it. The
   0.2.0 wheel the MCP server pins has none of this.
+- `study-loan-withholding` also accepts 2025-26 pays made from 24 September
+  2025, with the component coefficients of Schedule 8 to the Taxation
+  Administration (Withholding Schedules) Instrument (No. 2) 2025 (F2025L01016)
+  and the Schedule 1 coefficients for payments from 1 July 2024 to 30 June 2026.
+  The pay date selects the coefficients within the year: a 2025-26 pay needs
+  `pay_date`, and one before 24 September 2025, when F2025L00647's Schedule 8
+  worked the component as a percentage of weekly earnings, is refused, as is
+  a date outside the income year. `periods` starts 2025-26 on 24 September
+  2025. `tests/study_loan_withholding.rs` holds it to the instrument's examples
+  1 to 3, its starting earnings and pays on 23 and 24 September 2025; the
+  combined coefficient checks in `tests/tables.rs` and `tests/properties.rs`
+  cover both years. The Schedule 5 commands take no pay date, so their
+  `study_loan` stays 2026-27 only and names the 24 September 2025 start when
+  given 2025-26. The 0.2.0 wheel the MCP server pins covers 2026-27 only.
 - `tests/verdict_cases.rs` turns the edge cases in a published reviewer verdict,
   under CC BY 4.0, the default in the bounty's terms, into fabricated cases, or
   states why one does not apply.
@@ -172,10 +186,11 @@ intentionally changed.
   as `division-296` does; Python 0.2.0 ignored it. A misspelt
   `opening_adjustable_value` would otherwise give the start year's result for a
   later year. No frozen call passes such a field.
-- `payg-withholding` refuses a field it does not take with
-  `input.field_unknown`, as `division-296` does; Python 0.2.0 ignored it. A
-  misspelt `tax_offsets` would otherwise withhold too much. No frozen call
-  passes such a field.
+- `payg-withholding` and `study-loan-withholding` refuse a field they do not
+  take with `input.field_unknown`, as `division-296` does; Python 0.2.0
+  ignored it. A
+  misspelt `tax_offsets` would otherwise withhold too much, and a misspelt
+  `pay_date` would be ignored. No frozen call passes such a field.
 - Python imports, keyword signatures, the `metadata` dictionaries and package
   version lookup are removed. `engine_version` in every result is the Cargo
   version, 1.0.0; Python 0.2.0 reported `0.2.0`. That field is the only
