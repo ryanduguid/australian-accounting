@@ -267,9 +267,48 @@ pub fn gst(amount: &Arg, gst_inclusive: &Arg, scope_confirmed: &Arg, year: &Arg)
 
 pub fn resident_tax(taxable_income: &Arg, year: &Arg, scope_confirmed: &Arg) -> Result<Value> {
     let year = scope(scope_confirmed, year, "resident_tax")?;
+    basic_tax(
+        "resident_tax",
+        taxable_income,
+        &year,
+        meta::RESIDENT_TAX_SCALES,
+    )
+}
+
+pub fn foreign_resident_tax(
+    taxable_income: &Arg,
+    year: &Arg,
+    scope_confirmed: &Arg,
+) -> Result<Value> {
+    let kind = "foreign_resident_tax";
+    let year = scope(scope_confirmed, year, kind)?;
+    let mut out = basic_tax(
+        kind,
+        taxable_income,
+        &year,
+        meta::FOREIGN_RESIDENT_TAX_SCALES,
+    )?;
+    if let Some((_, note)) = texts::FOREIGN_RESIDENT_YEAR_WARNINGS
+        .iter()
+        .find(|(y, _)| *y == year)
+    {
+        out["warnings"]
+            .as_array_mut()
+            .expect("warnings")
+            .push(json!(note));
+    }
+    Ok(out)
+}
+
+/// Tax scales by income year: (lower bound, upper bound, rate) for each band.
+type TaxScales = [(&'static str, &'static [(i64, Option<i64>, &'static str)])];
+
+/// Basic income tax on whole-dollar taxable income: each band of the year's
+/// scale at its rate.
+fn basic_tax(kind: &str, taxable_income: &Arg, year: &str, scales: &TaxScales) -> Result<Value> {
     let income = money(taxable_income)?;
     whole_dollars(&income, "taxable income")?;
-    let scale = lookup(meta::RESIDENT_TAX_SCALES, &year);
+    let scale = lookup(scales, year);
     let tax = precise(|| {
         let mut tax = int(0);
         for (low, high, rate) in scale.iter() {
@@ -283,8 +322,8 @@ pub fn resident_tax(taxable_income: &Arg, year: &Arg, scope_confirmed: &Arg) -> 
         Ok(tax)
     })?;
     result(
-        "resident_tax",
-        &year,
+        kind,
+        year,
         vec![("taxable_income_used", income), ("basic_income_tax", tax)],
         scale
             .iter()
@@ -2764,9 +2803,10 @@ pub fn working_holiday_maker_withholding(
     flat_rate_working_holiday_maker(&payment, &before, registered, tfn, &label)
 }
 
-const KINDS: [&str; 24] = [
+const KINDS: [&str; 25] = [
     "gst",
     "resident_tax",
+    "foreign_resident_tax",
     "capital_gains",
     "main_residence",
     "borrowing_expenses",

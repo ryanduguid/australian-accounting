@@ -79,6 +79,17 @@ intentionally changed.
   the ATO's examples 1 to 4 in the 2024, 2025 and 2026 schedules and to each
   rule's boundary. New refusal codes: `input.pay_periods_invalid` and
   `input.back_payment_periods_invalid`.
+- `foreign-resident-tax` gives a full-year foreign resident's basic income tax
+  for 2024-25 to 2026-27 under Income Tax Rates Act 1986 Schedule 7 Part II:
+  30% to $135,000, 37% to $190,000 and 45% above, with no tax-free threshold.
+  The ATO's foreign resident page has no 2026-27 table, so a 2026-27 result
+  warns that its rates come from the Act. Its scope says that a foreign
+  resident pays no Medicare levy and has no low income tax offset. Like
+  `division-296`, it refuses a field it does not take. No Python release has
+  it. `tests/parity.rs` drops its catalogue entry before comparing, and
+  `tests/foreign_resident_tax.rs` holds it to the ATO's 2024-25 and 2025-26
+  table at every bracket boundary. `resident-tax`, `foreign-resident-tax` and
+  `low-income-tax-offset` share one argument list.
 - `working-holiday-maker-withholding` applies Schedule 15 to one weekly,
   fortnightly or monthly payment to a working holiday maker, for 2024-25 to
   2026-27: a registered employer's Table A rate (15%, 30%, 37% or 45%, by the

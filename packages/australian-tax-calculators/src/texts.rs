@@ -11,6 +11,10 @@ pub const SCOPES: &[(&str, &str)] = &[
         "Full-year Australian resident individual, ordinary taxable income only. Excludes minors' special rates, working holiday makers, offsets, Medicare levy, surcharge, HELP, PAYG credits and tax payable/refundable. Supply established whole-dollar taxable income; this is basic tax before offsets and levies.",
     ),
     (
+        "foreign_resident_tax",
+        "Individual who was a foreign resident at all times in the income year and is a prescribed non-resident (Income Tax Rates Act 1986 s 3(1)): not one paid compensation or a pension, allowance or benefit under the Veterans' Entitlements Act 1986, the Military Rehabilitation and Compensation Act 2004 or the Social Security Act 1991 that is taxed in Australia, who pays resident rates. Ordinary taxable income only. There is no tax-free threshold: Schedule 7 Part II taxes the income to $135,000 at the second resident personal tax rate (30%), to $190,000 at the third (37%) and the rest at 45%. A foreign resident pays no Medicare levy, which ITAA 1936 s 251S(1) charges on a person resident at some time in the year, and is not entitled to the low income tax offset, which ITAA 1997 s 61-110(1) gives only to a resident, so medicare-levy and low-income-tax-offset do not apply. Excludes part-year residents, who are taxed as residents; a working holiday maker at any time in the year (clause 4); minors' special rates; the superannuation and employment termination remainders; a special income component (clauses 2 and 3); trustees and beneficiaries; working out which amounts are assessable to a foreign resident; other offsets, the Medicare levy surcharge, HELP, PAYG credits and tax payable or refundable. Supply established whole-dollar taxable income; this is basic tax before offsets.",
+    ),
+    (
         "capital_gains",
         "Australian resident individual with established ordinary gains and eligible 50% discount gains. Losses apply to non-discount gains first, then discount gains. Excludes asset classification, cost bases, eligibility decisions, collectables, personal-use assets, indexation, exemptions, rollovers, foreign residency and small-business concessions. The result is a net gain, not CGT payable.",
     ),
@@ -110,6 +114,10 @@ pub const SOURCES: &[(&str, &str)] = &[
         "https://www.legislation.gov.au/C2004A03348/2026-07-01/2026-07-01/text/original/epub/OEBPS/document_1/document_1.html",
     ),
     (
+        "foreign_resident_tax",
+        "https://www.legislation.gov.au/C2004A03348/2026-07-01/2026-07-01/text/original/epub/OEBPS/document_1/document_1.html",
+    ),
+    (
         "capital_gains",
         "https://www.ato.gov.au/forms-and-instructions/capital-gains-tax-guide-2014/part-b-completing-the-capital-gains-section-of-your-tax-return/step-6-applying-current-year-capital-losses",
     ),
@@ -200,6 +208,14 @@ const SCHEDULE_5_EXTRA: &[&str] = &[
 ];
 
 pub const EXTRA_SOURCES: &[(&str, &[&str])] = &[
+    (
+        "foreign_resident_tax",
+        &[
+            "https://www.ato.gov.au/tax-rates-and-codes/tax-rates-foreign-residents",
+            "https://www.ato.gov.au/law/view/document?docid=PAC/19360027/251S",
+            "https://www.ato.gov.au/law/view/document?docid=PAC/19970038/61-110",
+        ],
+    ),
     (
         "depreciation",
         &[
@@ -334,6 +350,13 @@ pub const EXTRA_WARNINGS: &[(&str, &[&str])] = &[
         ],
     ),
 ];
+
+/// A `foreign_resident_tax` warning for a year whose rates the ATO had not
+/// published when they were read from the Act.
+pub const FOREIGN_RESIDENT_YEAR_WARNINGS: &[(&str, &str)] = &[(
+    "2026-27",
+    "2026-27 uses the rates Income Tax Rates Act 1986 Schedule 7 Part II sets for the 2024-25 and later years, with the second and third resident personal tax rates for 2026-27 (30% and 37%), as compiled at 1 July 2026 (compilation 66). The ATO had not published 2026-27 foreign resident rates when this was checked on 14 November 2026, and a later Act can change them for 2026-27 and change this result.",
+)];
 
 /// A `medicare_levy` warning for a year whose thresholds the ATO had not
 /// published when they were read from the Act.

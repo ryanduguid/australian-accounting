@@ -42,6 +42,37 @@ pub const RESIDENT_TAX_SCALES: &[(&str, &[(i64, Option<i64>, &str)])] = &[
     ),
 ];
 
+/// Foreign resident basic tax scale per income year, in the same form. Income
+/// Tax Rates Act 1986, Schedule 7 Part II clause 1: the second and third
+/// resident personal tax rates (Part I items 2 and 3 for the year) to $135,000
+/// and $190,000, then 45%, from $0, for the 2024-25 and later years.
+pub const FOREIGN_RESIDENT_TAX_SCALES: &[(&str, &[(i64, Option<i64>, &str)])] = &[
+    (
+        "2024-25",
+        &[
+            (0, Some(135000), "0.30"),
+            (135000, Some(190000), "0.37"),
+            (190000, None, "0.45"),
+        ],
+    ),
+    (
+        "2025-26",
+        &[
+            (0, Some(135000), "0.30"),
+            (135000, Some(190000), "0.37"),
+            (190000, None, "0.45"),
+        ],
+    ),
+    (
+        "2026-27",
+        &[
+            (0, Some(135000), "0.30"),
+            (135000, Some(190000), "0.37"),
+            (190000, None, "0.45"),
+        ],
+    ),
+];
+
 /// Schedule 1 (NAT 1004) weekly coefficients for payments from 1 July 2024 to
 /// 30 June 2026.
 const SCHEDULE_1_FROM_JULY_2024: &[(i64, &[CoefficientRow])] = &[
@@ -337,6 +368,7 @@ pub fn supported_periods(kind: &str) -> Vec<&'static str> {
         "gst" | "capital_gains" | "depreciation" => vec!["2025-26", "2026-27"],
         "quarterly_sg" => vec!["2025-26"],
         "resident_tax" => keys(RESIDENT_TAX_SCALES),
+        "foreign_resident_tax" => keys(FOREIGN_RESIDENT_TAX_SCALES),
         "main_residence" => vec!["2024-25", "2025-26", "2026-27"],
         // s 26-155 quarantines residential rental deductions from 2027-28.
         "borrowing_expenses" => vec!["2024-25", "2025-26", "2026-27"],
@@ -367,6 +399,10 @@ pub fn source_review(kind: &str) -> (&'static str, &'static str) {
         "resident_tax" => (
             "2026-09-10",
             "Income Tax Rates Act 1986, Schedule 7 Part I clause 1",
+        ),
+        "foreign_resident_tax" => (
+            "2026-11-14",
+            "Income Tax Rates Act 1986 s 3(1) (prescribed non-resident, second and third resident personal tax rates) and Schedule 7 Parts I and II clause 1, compilations 63, 65 and 66; ATO Tax rates - foreign resident, 2024-25 and 2025-26; ITAA 1936 s 251S(1); ITAA 1997 s 61-110(1)",
         ),
         "capital_gains" => (
             "2026-09-10",
@@ -466,6 +502,12 @@ pub fn library_evidence(kind: &str) -> [(&'static str, &'static str); 4] {
             "7-010",
             "2025-06-30",
             "2026-09-15",
+        ),
+        "foreign_resident_tax" => (
+            "ATO Tax rates - foreign resident",
+            "foreign resident tax rates 2024-25 and 2025-26",
+            "2026-06-01",
+            "2026-11-14",
         ),
         "capital_gains" => (
             "tax-examples-capital-gains-tax-cgt",
@@ -622,7 +664,7 @@ pub fn input_units(kind: &str) -> Vec<(&'static str, &'static str)> {
     ];
     match kind {
         "gst" => vec![("amount", "AUD"), ("gst_inclusive", "boolean")],
-        "resident_tax" => vec![("taxable_income", "AUD, whole dollars")],
+        "resident_tax" | "foreign_resident_tax" => vec![("taxable_income", "AUD, whole dollars")],
         "capital_gains" => vec![
             ("other_gains", "AUD"),
             ("discount_gains", "AUD"),
@@ -965,7 +1007,7 @@ pub fn examples(kind: &str) -> Vec<(&'static str, Example)> {
     use Example::{Flag, Json, Text, Whole};
     match kind {
         "gst" => vec![("amount", Text("1100.00")), ("gst_inclusive", Flag(true))],
-        "resident_tax" => vec![("taxable_income", Text("45000"))],
+        "resident_tax" | "foreign_resident_tax" => vec![("taxable_income", Text("45000"))],
         "capital_gains" => vec![
             ("other_gains", Text("100.00")),
             ("discount_gains", Text("1000.00")),

@@ -6,9 +6,9 @@
 use australian_tax_calculators::api;
 use australian_tax_calculators::decimal::{Decimal, Rounding};
 use australian_tax_calculators::metadata::{
-    CoefficientRow, LOW_INCOME_TAX_OFFSET, MEDICARE_LOW_INCOME_THRESHOLDS,
-    PAYG_WITHHOLDING_COEFFICIENTS, RESIDENT_TAX_SCALES, STUDY_LOAN_REPAYMENT_THRESHOLDS,
-    STUDY_LOAN_WITHHOLDING_COEFFICIENTS, supported_periods,
+    CoefficientRow, FOREIGN_RESIDENT_TAX_SCALES, LOW_INCOME_TAX_OFFSET,
+    MEDICARE_LOW_INCOME_THRESHOLDS, PAYG_WITHHOLDING_COEFFICIENTS, RESIDENT_TAX_SCALES,
+    STUDY_LOAN_REPAYMENT_THRESHOLDS, STUDY_LOAN_WITHHOLDING_COEFFICIENTS, supported_periods,
 };
 use serde_json::json;
 
@@ -52,6 +52,33 @@ fn every_supported_resident_period_has_its_own_contiguous_scale() {
                 "{year}"
             );
         }
+    }
+}
+
+/// Income Tax Rates Act 1986 Schedule 7 Part II, compilations 63, 65 and 66
+/// (read on 14 November 2026): from $0, the second resident personal tax rate
+/// (Part I item 2 for the year) to $135,000, the third (item 3) to $190,000 and
+/// 45% above, for each year the resident scale covers.
+#[test]
+fn the_foreign_resident_scale_takes_the_years_resident_rates() {
+    let years: Vec<&str> = FOREIGN_RESIDENT_TAX_SCALES
+        .iter()
+        .map(|(y, _)| *y)
+        .collect();
+    assert_eq!(supported_periods("foreign_resident_tax"), years);
+    assert_eq!(supported_periods("resident_tax"), years);
+    for (year, scale) in FOREIGN_RESIDENT_TAX_SCALES {
+        let resident = get(RESIDENT_TAX_SCALES, year);
+        assert_eq!(
+            *scale,
+            [
+                (0, Some(135000), resident[1].2),
+                (135000, Some(190000), resident[2].2),
+                (190000, None, "0.45"),
+            ],
+            "{year}"
+        );
+        assert_eq!((resident[1].0, resident[2].0), (45000, 135000), "{year}");
     }
 }
 

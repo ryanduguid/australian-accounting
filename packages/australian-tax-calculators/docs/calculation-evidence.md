@@ -35,6 +35,7 @@ example evidence; it does not claim a fresh review of every supported period.
 | --- | --- | --- | --- |
 | GST | `tax-examples-gst-and-other-indirect-taxes` (tax-examples), ¶12-020 | 30 June 2026 | Established taxable value and the GST fraction only |
 | Resident tax | `tax-examples-individuals` (tax-examples), ¶7-010, step 2 | 30 June 2025 | Basic tax for 2024–25; later offsets and levies excluded |
+| Foreign resident tax | Not a Library document: Income Tax Rates Act 1986 Schedule 7 Part II (compilations 63, 65 and 66) and the ATO's foreign resident rates page | 1 June 2026 (ATO page) | Basic tax for a full-year foreign resident for 2024-25 to 2026-27; no Medicare levy or low income tax offset applies |
 | Capital gains | `tax-examples-capital-gains-tax-cgt` (tax-examples), ¶2-040 and ¶2-240 | 30 June 2026 | Established ordinary gains, losses and discount entitlement for 2025–26 |
 | FBT | `tax-examples-fringe-benefits-tax-fbt` (tax-examples), ¶3-000 and ¶3-020 | 30 June 2026 | Established taxable values and ordinary gross-up rates; car example ends 31 March 2026 |
 | FBT car benefits | `tax-examples-fringe-benefits-tax-fbt` (tax-examples), ¶3-020 and ¶3-045 (reportable value), with the ATO's FBT return 2026 instructions (item 23), employer's guide (7.8 and 7.9) and reportable fringe benefits page | 30 June 2026; 1 April 2026 (item 23); 12 January 2023 (reportable fringe benefits) | One car's established base value or operating costs for the years ended 31 March 2026 and 2027; the reportable taxable value before the employee's $2,000 threshold and type 2 gross-up |
@@ -82,6 +83,42 @@ credits and refund calculations in the passage are excluded.
 The existing $45,000 boundary gives $4,288 at 16%. At the engine's existing
 2026–27 first rate of 15%, the same arithmetic gives $4,020. The latter is a
 regression of the existing rate, not a rate corroborated by this Library passage.
+
+## Foreign resident tax
+
+This worksheet's evidence is not a Library document. On 14 November 2026 the
+Income Tax Rates Act 1986 was read as compiled at 1 July 2024 (compilation
+63), 28 March 2025 (compilation 65) and 1 July 2026 (compilation 66). In each,
+Schedule 7 Part II clause 1 gives one table for the 2024-25 and later years
+of income: the part of ordinary taxable income to $135,000 at the second
+resident personal tax rate, the part to $190,000 at the third and the rest at
+45%. Section 3(1) defines those rates as items 2 and 3 of the resident table
+for the year, which are 30% and 37% in 2024-25, 2025-26 and 2026-27; the
+2026-27 and 2027-28 resident changes are to item 1 only. The table starts at
+$0, so there is no tax-free threshold. `tests/tables.rs` derives the scale
+from the resident scale for each year.
+
+Part II applies to a prescribed non-resident: a person who was a non-resident
+at all times in the year, other than one paid compensation or a pension,
+allowance or benefit under the Veterans' Entitlements Act 1986, the Military
+Rehabilitation and Compensation Act 2004 or the Social Security Act 1991 that
+is taxed in Australia (s 3(1)). A part-year resident is a resident taxpayer
+there. The worksheet takes both as scope conditions.
+
+The ATO page "Tax rates - foreign resident" (last updated 1 June 2026, read on
+14 November 2026) gives the same table for 2024-25 and 2025-26: 30c for each
+$1 to $135,000, $40,500 plus 37c for each $1 over $135,000, and $60,850 plus
+45c for each $1 over $190,000. It has no 2026-27 table, so a 2026-27 result
+warns that the rates are the Act's and a later Act can change them. It also
+says foreign residents do not pay the Medicare levy. ITAA 1936 s 251S(1),
+read on the ATO's legal database the same day, levies it on the taxable income
+of a person resident at some time in the year, and ITAA 1997 s 61-110(1) gives
+the low income tax offset only to an Australian resident. The worksheet
+therefore gives basic tax only, and its scope says that `medicare-levy` and
+`low-income-tax-offset` do not apply. `tests/foreign_resident_tax.rs` holds it
+to the ATO's table at every bracket boundary, a dollar either side and above
+the top threshold for 2024-25 and 2025-26, and to the Act's rates for 2026-27.
+The 2027-28 scale is refused until the ATO publishes rates for that year.
 
 ## Capital gains
 
