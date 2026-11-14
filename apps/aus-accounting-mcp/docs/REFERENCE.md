@@ -856,7 +856,9 @@ other compilations of the same titles in the same row format. A title is its fol
 which its `row_id`s start with. Each row records its own window: an earlier compilation has
 `version_is_current` false and `superseded_from` the start of the version after it. The
 windows of one title must not overlap, so at most one covers a date; a corpus whose windows
-overlap stops a dated call with an input error.
+overlap stops a dated call with an input error. A dated search also checks the matching
+rows of the compilations it does not answer from, so a row whose window disagrees with its
+index stops the search there too.
 
 With `as_at`, a search and a read answer from the compilation whose window covers the date,
 and a read takes the `row_id` a dated search returned with the same date: `row_id`s repeat

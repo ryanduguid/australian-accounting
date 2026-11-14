@@ -876,9 +876,10 @@ def _dated_search(
     a title here. The status replaces in_force_only: a superseded compilation is the right
     text for a date inside its window. A title answers from the compilation _held chooses
     for on, if its corpus holds more than one. Each is classified from its first row, and
-    _agreeing checks only the rows a page returns or a refusal counts against the first
-    row of their own index, so a dated search parses at most one more row per title than
-    an undated one; refused-title counts stream without retaining result rows.
+    _agreeing checks only the rows a page returns or a refusal counts, and the matching rows
+    of a title's compilations it does not answer from, against the first row of their own
+    index, so a title held once parses at most one more row than in an undated search;
+    refused-title counts stream without retaining result rows.
     """
 
     def in_act(row: dict[str, Any]) -> bool:
@@ -901,6 +902,16 @@ def _dated_search(
         if (held := _held(paths, on)) is not None
         for path, first, windows in [held]
     ]
+    # A compilation not chosen for on gives no row, but a matching row of it that
+    # disagrees with its own first row could be text for on: check those rows as a
+    # refused title's are, so a broken index stops the search instead of being skipped.
+    chosen = {path for path, *_ in titles}
+    unchosen = [
+        path for paths in groups if len(paths) > 1 for path in paths if path not in chosen
+    ]
+    for path in unchosen:
+        if (first := _first_row(path, on)) is not None:
+            _withheld_counts(path, terms, act_terms, in_act, on, first)
     firsts = {
         path: (row, found) for path, row, found, _ in titles if found["status"] == CAPTURED
     }
@@ -1121,15 +1132,18 @@ def _read_rows(
 def _held_earlier(root: Path, register_id: str) -> bool:
     """Whether compilations/ holds an index of the title, for an undated read's caveat.
 
-    Only existence is checked and nothing is read, so a folder a dated call would refuse
-    does not stop an undated one.
+    Only existence is checked and nothing is read, so a folder a dated call would refuse,
+    or one that cannot be listed, does not stop an undated one.
     """
     folder = root / "compilations"
-    return folder.is_dir() and not _linked(folder) and any(
-        (build / "markdown" / register_id / "sections.jsonl").is_file()
-        for build in folder.iterdir()
-        if not build.name.startswith(".") and not _linked(build)
-    )
+    try:
+        return folder.is_dir() and not _linked(folder) and any(
+            (build / "markdown" / register_id / "sections.jsonl").is_file()
+            for build in folder.iterdir()
+            if not build.name.startswith(".") and not _linked(build)
+        )
+    except OSError:
+        return False
 
 
 def _withheld_read(

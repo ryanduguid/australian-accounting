@@ -810,6 +810,35 @@ def test_overlapping_compilations_of_a_title_stop_a_dated_call(
             asyncio.run(mcp.call_tool(tool, {**arguments, "as_at": "2098-08-01"}))
 
 
+def test_a_disagreeing_row_of_a_compilation_not_chosen_stops_a_dated_search(two_compilations):
+    empty = two_compilations / "compilations" / "2098-01-01" / "markdown" / CURRENT
+    synthetic_corpus.write(empty / "sections.jsonl", [])
+    result = call(SEARCH, query="synthetic levy", as_at="2098-11-01")
+    assert [hit["text"] for hit in result["matches"]] == [LATEST_TEXT]
+    rows = title(CURRENT, "Synthetic Current Act 2098", "2098-07-01", superseded="2098-10-01",
+                 texts=(EARLIER_TEXT, TEXTS[1]))
+    # The second row claims the current window, which its index's first row does not hold.
+    rows[1] = {**rows[1], "compilation_date": "2098-10-01", "superseded_from": None,
+               "version_is_current": True}
+    write_compilation(two_compilations, "2098-07-01", rows)
+
+    with pytest.raises(ToolError, match="disagree"):
+        asyncio.run(mcp.call_tool(SEARCH, {"query": "synthetic levy", "as_at": "2098-11-01"}))
+
+
+def test_an_undated_read_survives_a_compilations_folder_it_cannot_list(
+    two_compilations, monkeypatch
+):
+    def unreadable(self):
+        raise PermissionError(self)
+
+    monkeypatch.setattr(Path, "iterdir", unreadable)
+
+    read = call(READ, row_id=f"{CURRENT}:0001:1")["section"]
+    assert read["text"] == LATEST_TEXT
+    assert read["caveats"] == []
+
+
 def test_a_file_or_hidden_folder_under_compilations_is_not_a_compilation(two_compilations):
     (two_compilations / "compilations" / "README.txt").write_text("notes", encoding="utf-8")
     (two_compilations / "compilations" / ".partial").mkdir()
