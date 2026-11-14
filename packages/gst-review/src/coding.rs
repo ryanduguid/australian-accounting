@@ -108,6 +108,13 @@ fn review_inner(input: &Value) -> Result<Value> {
         if !confirmed.is_boolean() || !(supplier.is_boolean() || supplier.is_null()) {
             return Err(format!("Line {} flags must be booleans.", repr(id)));
         }
+        let abn = field(raw, "supplier_abn");
+        if !(abn.is_string() || abn.is_null()) {
+            return Err(format!(
+                "Line {} supplier_abn must be a string or None.",
+                repr(id)
+            ));
+        }
         if confirmed == &Value::Bool(true)
             && !(truth(field(raw, "account")) && truth(field(raw, "gst_code")))
         {
@@ -143,12 +150,46 @@ fn review_inner(input: &Value) -> Result<Value> {
         let r=&registered[entity];
         (entity.into(),json!({"registered_from":r.registered_from.map(|d|d.to_string()),"registered_to":r.registered_to.map(|d|d.to_string())}))
     }).collect();
+    let mut warnings = vec![
+        "Registration dates, coding and supplier status are the caller's facts and are not independently verified.",
+        "Review aid only, not advice, an assessment or a lodgment. Obtain human review.",
+    ];
+    if lines
+        .iter()
+        .any(|l| l.raw.get("supplier_abn").is_some_and(Value::is_string))
+    {
+        warnings.push(ABN_NOT_ESTABLISHED);
+    }
     Ok(
         json!({"ok":true,"engine":"gst-review","engine_version":VERSION,"review":"gst_coding","lines":reviewed,"counts":counts,
         "facts_used":{"registrations":registrations,"match_window_days":window,"gst_codes":codes},
         "not_decided":constants()["coding"]["NOT_DECIDED"],"sources":[constants()["coding"]["GST_ACT"]],"source_checked":constants()["coding"]["SOURCE_CHECKED"],
-        "warnings":["Registration dates, coding and supplier status are the caller's facts and are not independently verified.","Review aid only, not advice, an assessment or a lodgment. Obtain human review."]}),
+        "warnings":warnings}),
     )
+}
+/// The wording of Aus Accounting MCP's `validate_abn` (`identifiers.py`).
+const ABN_NOT_ESTABLISHED: &str = "A valid check digit shows only that the digits pass the arithmetic ABN Lookup publishes. It proves neither that the number was issued to anyone or is active, nor that an entity is registered in the Australian Business Register or registered for GST. ABN Lookup (https://abr.business.gov.au) shows an ABN's status and if and when an entity is registered for GST.";
+/// ABN Lookup's 'Format of the ABN' test (https://abr.business.gov.au/Help/AbnFormat):
+/// subtract 1 from the first digit, weight the 11 digits, and the sum must divide by 89.
+/// As in `identifiers.py`, only ASCII digits and spaces are accepted, because stripping
+/// anything else could turn a malformed ABN into a different, valid one, and a leading
+/// zero fails because 1 cannot be subtracted from it.
+fn abn_check_digit_valid(text: &str) -> bool {
+    const WEIGHTS: [u32; 11] = [10, 1, 3, 5, 7, 9, 11, 13, 15, 17, 19];
+    if !text.bytes().all(|b| b.is_ascii_digit() || b == b' ') {
+        return false;
+    }
+    let digits: Vec<u32> = text
+        .bytes()
+        .filter(u8::is_ascii_digit)
+        .map(|b| u32::from(b - b'0'))
+        .collect();
+    if digits.len() != 11 || digits[0] == 0 {
+        return false;
+    }
+    let total: u32 = digits.iter().zip(WEIGHTS).map(|(d, w)| d * w).sum();
+    // Subtracting 1 from the first digit takes its weight off the sum once.
+    (total - WEIGHTS[0]).is_multiple_of(89)
 }
 fn matching(lines: &[BankLine<'_>], window: i64) -> Result<BTreeMap<String, String>> {
     let mut by_amount: BTreeMap<String, Vec<usize>> = BTreeMap::new();
@@ -237,6 +278,18 @@ fn state(
                 vec!["GST Act s 9-5(d)", "GST Act s 11-5(b)"],
             ));
         }
+    }
+    if let Some(abn) = field(line.raw, "supplier_abn").as_str()
+        && !abn_check_digit_valid(abn)
+    {
+        return Ok((
+            "supplier_abn_invalid",
+            format!(
+                "Supplier ABN {} fails the ABN format and check digit test ABN Lookup publishes, so it is not a valid ABN as written. Check it against its source.",
+                pytext::repr(abn)
+            ),
+            vec![],
+        ));
     }
     if let Some(counterpart) = counterpart {
         return Ok((
