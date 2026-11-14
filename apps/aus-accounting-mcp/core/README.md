@@ -20,14 +20,20 @@ datasets of the tools above; `freshness::report_on` takes the extra rows.
 
 The engines are linked by path, so results follow `packages/` at this commit.
 
-`review_div7a_loan` keeps the draft's adapter, which calls the engine's public
-`minimum_yearly_repayment` and so lacks the remaining-term refusals the Python
-server on `main` adds (`REFUSED_REMAINING_TERM_ABOVE_MAXIMUM_TERM`,
+One change from the draft: `review_div7a_loan` refuses a remaining term that
+cannot hold on a loan the gate passed, as the Python server on `main` does
+(`_remaining_term_refusal`, `_term_left_refusal` and `_refuse` in
+`aus_accounting_mcp/adapters/div7a.py`). The engine's public
+`minimum_yearly_repayment` takes no loan term and checks no remaining-term
+limit, so the draft's adapter worked out a lower repayment for, say, a remaining
+term of 8 years on a loan whose maximum term is 7. `adapters/div7a.rs` now adds
+`REFUSED_REMAINING_TERM_ABOVE_MAXIMUM_TERM`,
 `REFUSED_REMAINING_TERM_ABOVE_LOAN_TERM` and
-`REFUSED_REMAINING_TERM_ABOVE_TERM_LESS_YEARS_ELAPSED`). With a remaining term
-of 8 years on a loan whose maximum term is 7, this core reports the minimum
-yearly repayment as met where the Python server refuses. Close that gap before
-anything serves this tool.
+`REFUSED_REMAINING_TERM_ABOVE_TERM_LESS_YEARS_ELAPSED` with the same conditions
+and wording. [`tests/div7a_python.rs`](tests/div7a_python.rs) compares the
+verdicts, codes, reasons and figures with the Python server's results, recorded
+in `tests/fixtures/python-div7a.json`. The draft server needs this adapter, or
+these refusals, before it replaces the Python server.
 
 ## Check
 
