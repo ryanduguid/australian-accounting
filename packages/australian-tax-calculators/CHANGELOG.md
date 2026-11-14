@@ -101,6 +101,24 @@ intentionally changed.
   `tests/depreciation.rs` holds it to the ATO's diminishing value and prime
   cost examples. The new refusal code `input.opening_value_above_cost` covers
   an opening value above cost.
+- `payg-withholding` completes Schedule 1 for 2024-25 to 2026-27: quarterly
+  pays, scale 4 (no tax file number, with a required `foreign_resident`), tax
+  offsets claimed on a withholding declaration (`tax_offsets`, scales 2, 5 and
+  6), the Medicare levy adjustment on scales 2 and 6
+  (`medicare_adjustment_children`, 0 for a spouse only) and the additional
+  amount for a year of 53 weekly or 27 fortnightly pays
+  (`extra_pay_withholding`). The worksheet catalogue lists them under
+  `optional_inputs`; a result gains the new amount keys only when one is given.
+  An option on a scale or period it does not apply to is refused, as are
+  reductions that exceed the amount withheld before them, which Schedule 1 does
+  not provide for; that refusal asks for the declarations and inputs to be
+  checked and, if they are right, for the ATO to be asked. `tests/payg_withholding.rs` reproduces all 1,584 Medicare
+  adjustments in each schedule's scale 2 and scale 6 sample data, transcribed
+  into `tests/data` and checked against the legislative instruments, and every
+  worked example on the schedules' Medicare and examples pages, with each
+  threshold, band and rounding boundary. A Medicare levy variation that
+  increases withholding, bi-monthly, daily and casual pays stay outside it. The
+  0.2.0 wheel the MCP server pins has none of this.
 - `tests/verdict_cases.rs` turns the edge cases in a published reviewer verdict,
   under CC BY 4.0, the default in the bounty's terms, into fabricated cases, or
   states why one does not apply.
@@ -143,6 +161,10 @@ intentionally changed.
   as `division-296` does; Python 0.2.0 ignored it. A misspelt
   `opening_adjustable_value` would otherwise give the start year's result for a
   later year. No frozen call passes such a field.
+- `payg-withholding` refuses a field it does not take with
+  `input.field_unknown`, as `division-296` does; Python 0.2.0 ignored it. A
+  misspelt `tax_offsets` would otherwise withhold too much. No frozen call
+  passes such a field.
 - Python imports, keyword signatures, the `metadata` dictionaries and package
   version lookup are removed. `engine_version` in every result is the Cargo
   version, 1.0.0; Python 0.2.0 reported `0.2.0`. That field is the only
@@ -220,6 +242,16 @@ intentionally changed.
   frozen call that expected 2025-26 to be refused; `tests/tables.rs` now
   checks that 2023-24 and 2027-28 are refused. The catalogue example stays at
   2026-27.
+- `payg-withholding` accepts quarterly pays and scale 4, which Python 0.2.0
+  refused. The scope statement, the source passage, the library evidence and
+  the source check date (14 November 2026) name the new coverage, and the
+  catalogue entry lists the optional inputs; `tests/parity.rs` applies this to
+  the 789 frozen `payg-withholding` results and the 10 `worksheet-catalogue`
+  results. The 36 frozen pay period refusals and 20 scale refusals now list
+  quarterly and scale 4, and the 17 frozen scale 4 calls are refused for want
+  of `foreign_resident`. It skips the 1 frozen call that expected a 2026-27
+  quarterly pay to be refused; `tests/payg_withholding.rs` covers quarterly
+  pays.
 - `fbt` also accepts the FBT year ended 31 March 2027; Python 0.2.0 took 2026
   only. The ATO's FBT rates and thresholds page (updated 20 May 2026, read 4
   November 2026) gives the 47% rate and the 2.0802 and 1.8868 gross-up rates

@@ -79,8 +79,8 @@ a local SplitMix64 replaces fast-check's generator, so the random cases differ.
 | `test_payg_withholding.py::test_weekly_earnings_ignore_cents_then_add_99_cents` | Frozen replay in `parity.rs` |
 | `test_payg_withholding.py::test_a_monthly_amount_ending_in_33_cents_gains_a_cent` | Frozen replay in `parity.rs` |
 | `test_payg_withholding.py::test_the_result_names_the_coefficients_used` | Frozen replay in `parity.rs` |
-| `test_payg_withholding.py::test_unsupported_scales_are_refused` | Frozen replay in `parity.rs` |
-| `test_payg_withholding.py::test_unsupported_pay_periods_are_refused` | Frozen replay in `parity.rs` |
+| `test_payg_withholding.py::test_unsupported_scales_are_refused` | Frozen replay in `parity.rs`, which applies the new messages: scale 4 now needs `foreign_resident` (`payg_withholding.rs`) |
+| `test_payg_withholding.py::test_unsupported_pay_periods_are_refused` | Frozen replay in `parity.rs`, which applies the new message and skips the frozen quarterly call, as quarterly pays are now accepted (`payg_withholding.rs`) |
 | `test_payg_withholding.py::test_invalid_earnings_are_refused` | Frozen replay in `parity.rs` |
 | `test_payg_withholding.py::test_a_year_without_its_own_coefficients_is_refused` | `tables.rs`: `a_year_without_its_own_coefficients_is_refused` (2023-24 and 2027-28); `parity.rs` skips the frozen 2025-26 call, as that year now has coefficients |
 | `test_properties.py::test_gst_and_the_exclusive_amount_add_to_the_inclusive_amount_to_the_cent` | Frozen replay of its first 60 calls in `parity.rs`; full run in `properties.rs`: `gst_and_the_exclusive_amount_add_to_the_inclusive_amount_to_the_cent` |

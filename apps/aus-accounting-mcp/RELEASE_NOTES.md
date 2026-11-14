@@ -1,3 +1,92 @@
+# v0.9.0
+
+## Fixed
+
+- `review_div7a_loan` refuses a remaining term longer than the Act allows and gives no
+  figure. Before, such a loan got a minimum yearly repayment worked from the longer
+  term, which is lower than the Act requires. It now refuses a remaining term above the
+  s 109N(3) maximum (`REFUSED_REMAINING_TERM_ABOVE_MAXIMUM_TERM`), above the loan's own
+  term (`REFUSED_REMAINING_TERM_ABOVE_LOAN_TERM`), or above that term less the years
+  elapsed since the loan year under s 109E(6)
+  (`REFUSED_REMAINING_TERM_ABOVE_TERM_LESS_YEARS_ELAPSED`). A 7-year loan made in
+  2024-25 accepts 7 for 2025-26 and 6 for 2026-27, and refuses 7 for 2026-27. The pinned
+  `div7a-loan-review` 0.3.2 has none of these refusals, so this server applies them
+  after the engine's answer, with the engine's codes and wording. A call that returned
+  a figure in 0.8.0 can now be refused
+  ([#626](https://github.com/ryanduguid/australian-accounting/pull/626),
+  [#627](https://github.com/ryanduguid/australian-accounting/pull/627)).
+- With no legislation corpus configured, the corpus tools' refusal names PaulGoodman's
+  published `corpus-2026-11-11` snapshot first, which needs no build, and building one
+  second ([#609](https://github.com/ryanduguid/australian-accounting/pull/609)).
+- The README is the PyPI description, and its 10 relative links resolved against
+  pypi.org. They are now absolute GitHub links
+  ([#609](https://github.com/ryanduguid/australian-accounting/pull/609)).
+- The component lock that builds this release takes `opentelemetry-api` 1.45.2, patched
+  for GHSA-mf5v-w3w3-f6cg. The wheel's dependency ranges are unchanged, so an install
+  resolves its own versions
+  ([#646](https://github.com/ryanduguid/australian-accounting/pull/646)).
+
+## Changed
+
+- `search_tax_legislation` and `read_tax_legislation_section` with `as_at` answer each
+  title from the compilation whose window, from its compilation date to the date it was
+  superseded, covers the date. Earlier compilations are read from an optional
+  `compilations/<name>/markdown/` folder beside `markdown/`; calls without `as_at`,
+  `define_tax_term` and `search_tax_rates` still read only `markdown/`. Overlapping
+  windows are an input error. When no window covers the date the title is refused as in
+  0.8.0, and a title held in more than one compilation also lists its windows in the new
+  `held_compilations`. An undated read of a title that `compilations/` also holds carries
+  a caveat. The published snapshot holds one compilation per title, so with it results
+  are unchanged apart from the refusal notice and the tool descriptions
+  ([#644](https://github.com/ryanduguid/australian-accounting/pull/644)).
+- The `review_div7a_loan` descriptions of `year_loan_made`, `maximum_term_years` and
+  `remaining_term_years` give the s 109E(6) limit and, for a loan extended under
+  s 109E(3A), the s 109E(3B) loan year and the term as the ATO works it: the agreed term
+  counted from when the loan was first made, at most 25 years, less the time it had
+  already run. A loan made on 1 July 2022 and extended on 1 July 2024 is entered with 23,
+  not 25 ([#636](https://github.com/ryanduguid/australian-accounting/pull/636)).
+- Aligns citation, compatibility, bundle and MCP Registry metadata with 0.9.0.
+
+## Added
+
+- `get_reviewed_rate` holds 74 reviewed records, adding the Division 296 tax rate of
+  15% on taxable superannuation earnings and the further 10% on very large balances,
+  each from 1 July 2026 ([#608](https://github.com/ryanduguid/australian-accounting/pull/608)).
+  This server has no Division 296 worksheet.
+- An MCP Bundle for Claude Desktop, `aus-accounting-mcp-bundle/v0.9.0`, published as its
+  own release once 0.9.0 is on PyPI. It pins `aus-accounting-mcp==0.9.0`.
+
+## Not in this release
+
+- FBT return dates. `get_lodgment_due_dates` still lists only BAS, IAS and income tax
+  return dates: this server pins `lodgment-calendar` 0.1.0, and the tool gains FBT
+  returns only with a later pin move to 0.2.0 or later.
+- Worksheets and years added to the Rust calculators since 0.2.0, including 2026-27 for
+  the Medicare levy, the Division 296 estimate and Schedules 5 and 15 withholding. They
+  run through the `au-accounting` command; this server pins the Python
+  `australian-tax-calculators` 0.2.0.
+- Retains `payday-super-checker` 0.2.3, `ato-benchmark-compare` 0.2.2,
+  `div7a-loan-review` 0.3.2, `australian-tax-calculators` 0.2.0, `gst-review` 0.1.0 and
+  `lodgment-calendar` 0.1.0 unchanged.
+
+## Known issues
+
+- `calculate_tax_worksheet` refuses the Medicare levy for 2026-27, because the pinned
+  calculators 0.2.0 hold no 2026-27 thresholds.
+- `payg_withholding` applies no Medicare levy variation for scales 2 and 6, has no
+  scale 4 and takes only weekly, fortnightly and monthly pays.
+- `search_ato_rulings` refuses a rulings run whose documents are labelled as Law
+  Companion Rulings, a family it does not list. Runs built so far label them as
+  Practical Compliance Guidelines.
+- Dated reads from `compilations/` have been tested only on fabricated corpora: no
+  published snapshot holds earlier compilations yet, `doctor` does not inspect
+  `compilations/` and the cost of a dated search over many compilations is unmeasured.
+- `reconcile_bas` lists differences from lodged figures but does not say whether a
+  correction can be made on a later BAS within the time and value limits of
+  LI 2023/32.
+- The bundle release carries a SHA-256 checksum but no build provenance attestation.
+- `docs/firm-assessment.md` gives no supplier details under APP 1.7 to 1.9.
+
 # v0.8.0
 
 - Licence: the Ryan Duguid Public Attribution Licence 1.0

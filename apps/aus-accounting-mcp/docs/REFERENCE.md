@@ -54,7 +54,7 @@ The example is fabricated, is not a lodgement or Division 7A determination, and 
 
 Name mapping: public name Aus Accounting MCP; repository australian-accounting; Python distribution aus-accounting-mcp; stdio MCP executable aus-accounting-mcp; demonstration executable aus-accounting-mcp-demo; MCP Registry identity io.github.ryanduguid/aus-accounting.
 
-Release and compatibility references: [CI](https://github.com/ryanduguid/australian-accounting/actions/workflows/ci.yml), [v0.8.0 release](https://github.com/ryanduguid/australian-accounting/releases/tag/aus-accounting-mcp/v0.8.0), [PyPI 0.8.0](https://pypi.org/project/aus-accounting-mcp/0.8.0/), [MCP Registry 0.8.0](https://registry.modelcontextprotocol.io/v0.1/servers/io.github.ryanduguid%2Faus-accounting/versions/0.8.0), and [compatibility.json](https://github.com/ryanduguid/australian-accounting/blob/main/apps/aus-accounting-mcp/compatibility.json). Treat a version as published only after its target resolves and matches the compatibility record. The record links each engine's maintained source and release. The runtime `law_content_date` and `source` fields stay engine-owned.
+Release and compatibility references: [CI](https://github.com/ryanduguid/australian-accounting/actions/workflows/ci.yml), [v0.9.0 release](https://github.com/ryanduguid/australian-accounting/releases/tag/aus-accounting-mcp/v0.9.0), [PyPI 0.9.0](https://pypi.org/project/aus-accounting-mcp/0.9.0/), [MCP Registry 0.9.0](https://registry.modelcontextprotocol.io/v0.1/servers/io.github.ryanduguid%2Faus-accounting/versions/0.9.0), and [compatibility.json](https://github.com/ryanduguid/australian-accounting/blob/main/apps/aus-accounting-mcp/compatibility.json). Treat a version as published only after its target resolves and matches the compatibility record. The record links each engine's maintained source and release. The runtime `law_content_date` and `source` fields stay engine-owned.
 
 ## Client setup
 
@@ -140,7 +140,7 @@ the command waits silently for an MCP client, which is expected.
 
 `aus-accounting-mcp doctor` prints the version, the periods each bundled dataset
 records and each retrieval folder with its row count. It arrived in 0.8.0, so run
-`uvx --from 'aus-accounting-mcp==0.8.0' aus-accounting-mcp doctor`; 0.7.1 and earlier do
+`uvx --from 'aus-accounting-mcp==0.9.0' aus-accounting-mcp doctor`; 0.7.1 and earlier do
 not have it. In a checkout, run `uv run aus-accounting-mcp doctor` from
 `apps/aus-accounting-mcp`. A folder that is not
 set is fine, because all 3 are optional. It exits 1 if a configured folder is broken:
