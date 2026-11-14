@@ -1662,27 +1662,28 @@ fn family_formula(threshold: &Decimal, family_income: &Decimal) -> Calc<Decimal>
     )
 }
 
-/// s 8(2) and (3) for one spouse: the reduction of their levy, shared by
-/// taxable income when the other spouse would be liable to the levy (s 8(3)).
-fn shared_reduction(
+/// s 8(2) and (3): this person's reduction, times family income when s 8(3)
+/// shares it by taxable income (see `family_reductions`).
+fn own_reduction_scaled(
     threshold: &Decimal,
     family_income: &Decimal,
     income: &Decimal,
-    other_liable: bool,
+    shared: bool,
 ) -> Calc<Decimal> {
     let reduction = family_formula(threshold, family_income)?;
-    if other_liable {
-        reduction.mul(income)?.div(family_income)
+    if shared {
+        reduction.mul(income)
     } else {
         Ok(reduction)
     }
 }
 
 /// s 8(4): the part of the spouse's shared reduction above the spouse's levy,
-/// which reduces this person's levy. Only a spouse liable to the levy has one,
-/// and s 8(3) shares it only when this person is liable too; otherwise this
-/// person's own reduction was not shared, and nothing passes to them.
-fn spouse_excess(
+/// which reduces this person's levy, times family income (see
+/// `family_reductions`). Only a spouse liable to the levy has one, and s 8(3)
+/// shares it only when this person is liable too; otherwise this person's own
+/// reduction was not shared, and nothing passes to them.
+fn spouse_excess_scaled(
     spouse: &Spouse,
     year: &str,
     children: i64,
@@ -1692,11 +1693,9 @@ fn spouse_excess(
     if family_income.le(&threshold)? {
         return Ok(int(0));
     }
-    let reduction = shared_reduction(&threshold, family_income, &spouse.income, true)?;
-    py_max(
-        int(0),
-        reduction.sub(&low_income_levy(&spouse.income, year, spouse.sapto)?)?,
-    )
+    let share = family_formula(&threshold, family_income)?.mul(&spouse.income)?;
+    let levy = low_income_levy(&spouse.income, year, spouse.sapto)?;
+    py_max(int(0), share.sub(&levy.mul(family_income)?)?)
 }
 
 /// The s 8 working for one person.
@@ -1707,6 +1706,8 @@ struct FamilyWorking {
     own: Decimal,
     /// The s 8(4) reduction from the spouse's entitlement, no more than the levy left.
     from_spouse: Decimal,
+    /// The levy after s 8.
+    levy: Decimal,
     /// Whether s 8(3) shared this person's reduction.
     shared: bool,
 }
@@ -1726,19 +1727,28 @@ fn family_reductions(
         Some(spouse) => liable(&spouse.income, spouse.sapto)?,
         None => false,
     };
+    // When s 8(3) shares the reduction, every amount is worked times family
+    // income, so each share is a product, and divided once at the end: the
+    // levy is then exact wherever it terminates, and a half cent rounds up.
+    let scale = if spouse_liable {
+        family_income.clone()
+    } else {
+        int(1)
+    };
+    let levy = levy.mul(&scale)?;
     // s 8(1): no levy at or below the threshold.
     let above = family_income.gt(&threshold)?;
     let own = if above {
         py_min(
             levy.clone(),
-            shared_reduction(&threshold, &family_income, income, spouse_liable)?,
+            own_reduction_scaled(&threshold, &family_income, income, spouse_liable)?,
         )?
     } else {
         levy.clone()
     };
     let from_spouse = match &family.spouse {
         Some(spouse) if spouse_liable && liable(income, family.sapto)? => {
-            let excess = spouse_excess(spouse, year, family.children, &family_income)?;
+            let excess = spouse_excess_scaled(spouse, year, family.children, &family_income)?;
             py_min(levy.sub(&own)?, excess)?
         }
         _ => int(0),
@@ -1746,8 +1756,9 @@ fn family_reductions(
     Ok(FamilyWorking {
         family_income,
         threshold,
-        own,
-        from_spouse,
+        levy: levy.sub(&own)?.sub(&from_spouse)?.div(&scale)?,
+        own: own.div(&scale)?,
+        from_spouse: from_spouse.div(&scale)?,
         shared: spouse_liable && above,
     })
 }
@@ -1798,7 +1809,7 @@ fn medicare_working(income: &Decimal, year: &str, family: &Family) -> Calc<Medic
     let mut shared = false;
     if family.reduces() {
         let working = family_reductions(income, &levy, year, family)?;
-        levy = levy.sub(&working.own)?.sub(&working.from_spouse)?;
+        levy = working.levy;
         amounts.push(("family_income", working.family_income));
         amounts.push(("family_reduction", working.own));
         if family.spouse.is_some() {

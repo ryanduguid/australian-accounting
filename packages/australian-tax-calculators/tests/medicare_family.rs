@@ -268,6 +268,21 @@ fn the_spouse_excess_reduces_this_levy() {
     assert_eq!(spouse["amounts"]["medicare_levy"], "0.00");
 }
 
+/// The 2 shares of s 8(3) and (4) are each a fraction of family income, so
+/// their sum must be divided once: here the levy is exactly a half cent.
+/// 2026-27, 7 children, $41,496 (levy 2% = 829.92) and a SAPTO spouse on
+/// $50,568 (levy 10% x 6,300 = 630.00), family income 92,064: this person's
+/// reduction is 2% x 77,604 - 0.08 x 14,460 = 395.28 and the spouse's
+/// 2% x 91,989 - 0.08 x 75 = 1,833.78, so the levy is 829.92 + 630.00 -
+/// (395.28 x 41,496 + 1,833.78 x 50,568) / 92,064 = 1,459.92 - 1,185.405 =
+/// 274.515, rounded half up.
+#[test]
+fn the_shared_levy_is_exact_to_the_half_cent() {
+    let family = json!({"spouse_taxable_income": "50568", "spouse_sapto_entitled": true,
+                        "dependent_children": 7});
+    assert_eq!(levy("41496", "2026-27", family), "274.52");
+}
+
 /// The spouse's excess uses the spouse's own thresholds. 2025-26, no children:
 /// family income 75,000 is above 1.25 x $47,238, so this person (no SAPTO) has
 /// no reduction of their own. A spouse entitled to SAPTO on $45,000 has
