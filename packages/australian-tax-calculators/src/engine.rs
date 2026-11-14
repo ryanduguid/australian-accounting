@@ -2256,6 +2256,7 @@ pub fn borrowing_expenses(
 
 /// One pay that includes an additional payment, as Schedule 5 (NAT 3348) reads it.
 struct AdditionalPay {
+    kind: &'static str,
     year: String,
     earnings: Decimal,
     period: String,
@@ -2269,7 +2270,7 @@ struct AdditionalPay {
 }
 
 fn additional_pay(
-    kind: &str,
+    kind: &'static str,
     earnings: &Arg,
     pay_period: &Arg,
     scale: &Arg,
@@ -2280,18 +2281,23 @@ fn additional_pay(
     let (year, earnings, period, scale) =
         payg_checks(kind, earnings, pay_period, scale, year, scope_confirmed)?;
     let study_loan = flag(study_loan, "study_loan")?;
+    let loan_years = meta::supported_periods("study_loan_withholding");
+    if study_loan && !loan_years.contains(&year.as_str()) {
+        return refuse(
+            "period.unsupported",
+            format!(
+                "study_loan is supported for {} only: there is no Schedule 8 study and training support loan component for {year}.",
+                loan_years.join(", ")
+            ),
+        );
+    }
     let (per_year, most_pays) = match period.as_str() {
         "weekly" => (52, 53),
         "fortnightly" => (26, 27),
-        "monthly" => (12, 12),
-        _ => {
-            return refuse(
-                "input.pay_period_invalid",
-                "pay_period must be weekly, fortnightly or monthly.",
-            );
-        }
+        _ => (12, 12),
     };
     Ok(AdditionalPay {
+        kind,
         year,
         earnings,
         period,
@@ -2326,13 +2332,14 @@ impl AdditionalPay {
             .expect("withholding amount")))
     }
 
-    fn rates(&self, extra: Vec<(String, String)>) -> Vec<(String, String)> {
+    fn finish(&self, amounts: Vec<(&str, Decimal)>, extra: Vec<(String, String)>) -> Result<Value> {
         let mut rates = vec![
             rate("scale", self.scale),
             rate("study_loan", self.study_loan),
         ];
         rates.extend(extra);
-        rates
+        let period = format!("{} {}", self.year, self.period);
+        result(self.kind, &period, amounts, rates)
     }
 }
 
@@ -2346,9 +2353,13 @@ fn pay_count(value: &Arg, name: &str, low: i64, high: i64) -> Result<i64> {
     }
 }
 
-/// Schedule 5: ignore any cents, and treat a negative result as nil.
-fn nil_or_dollars(amount: Decimal) -> Calc<Decimal> {
-    py_max(int(0), amount)?.quantize(0, Rounding::Down)
+/// Methods A and B(ii): 47% of the additional payment, and the lesser of that
+/// and `extra` as the withholding on it, cents ignored and a negative result nil.
+fn within_limit(extra: Decimal, additional: &Decimal) -> Result<(Decimal, Decimal)> {
+    let limit = additional.mul(&d(meta::SCHEDULE_5_LIMIT_RATE))?;
+    let lesser = py_min(extra, limit.clone())?;
+    let on_additional = py_max(int(0), lesser)?.quantize(0, Rounding::Down)?;
+    Ok((limit, on_additional))
 }
 
 /// Method A and B(ii) steps 3 to 7: the additional payments spread over
@@ -2367,6 +2378,32 @@ fn spread_withholding(
     Ok((share, with_share, extra))
 }
 
+/// Method A steps 1 to 10.
+fn method_a_amounts(
+    pay: &AdditionalPay,
+    additional: &Decimal,
+    periods: i64,
+) -> Result<Vec<(&'static str, Decimal)>> {
+    precise(|| {
+        let earnings = pay.earnings.quantize(0, Rounding::Down)?;
+        let on_earnings = pay.table(&earnings)?;
+        let (share, with_share, extra) =
+            spread_withholding(pay, &earnings, &on_earnings, additional, periods)?;
+        let (limit, on_additional) = within_limit(extra.clone(), additional)?;
+        let total = on_earnings.add(&on_additional)?;
+        Ok(vec![
+            ("earnings_used", earnings),
+            ("withholding_on_earnings", on_earnings),
+            ("additional_payment_per_period", share),
+            ("withholding_on_earnings_and_share", with_share),
+            ("withholding_before_limit", extra),
+            ("withholding_limit", limit),
+            ("withholding_on_additional_payment", on_additional),
+            ("withholding", total),
+        ])
+    })
+}
+
 /// Schedule 5 Method A: withholding from a pay that includes back payments,
 /// commissions, bonuses or similar payments, spread over the pay periods.
 #[allow(clippy::too_many_arguments)]
@@ -2380,9 +2417,8 @@ pub fn schedule_5_method_a(
     year: &Arg,
     scope_confirmed: &Arg,
 ) -> Result<Value> {
-    let kind = "schedule_5_method_a";
     let pay = additional_pay(
-        kind,
+        "schedule_5_method_a",
         earnings,
         pay_period,
         scale,
@@ -2393,35 +2429,13 @@ pub fn schedule_5_method_a(
     let additional = money(additional_payment)?;
     // A payment for a single pay period is added to that pay under Schedule 1.
     let periods = pay_count(pay_periods, "pay_periods", 2, pay.per_year)?;
-    let limit_rate = d(meta::SCHEDULE_5_LIMIT_RATE);
-    let amounts = precise(|| {
-        let earnings = pay.earnings.quantize(0, Rounding::Down)?;
-        let on_earnings = pay.table(&earnings)?;
-        let (share, with_share, extra) =
-            spread_withholding(&pay, &earnings, &on_earnings, &additional, periods)?;
-        let limit = additional.mul(&limit_rate)?;
-        let on_additional = nil_or_dollars(py_min(extra.clone(), limit.clone())?)?;
-        let total = on_earnings.add(&on_additional)?;
-        Ok(vec![
-            ("earnings_used", earnings),
-            ("withholding_on_earnings", on_earnings),
-            ("additional_payment_per_period", share),
-            ("withholding_on_earnings_and_share", with_share),
-            ("withholding_before_limit", extra),
-            ("withholding_limit", limit),
-            ("withholding_on_additional_payment", on_additional),
-            ("withholding", total),
-        ])
-    })?;
-    let rates = pay.rates(vec![
-        rate("pay_periods", periods),
-        rate("limit_rate", &limit_rate),
-    ]);
-    result(
-        kind,
-        &format!("{} {}", pay.year, pay.period),
+    let amounts = method_a_amounts(&pay, &additional, periods)?;
+    pay.finish(
         amounts,
-        rates,
+        vec![
+            rate("pay_periods", periods),
+            rate("limit_rate", meta::SCHEDULE_5_LIMIT_RATE),
+        ],
     )
 }
 
@@ -2473,32 +2487,16 @@ fn back_payment_periods(value: &Arg, most: i64) -> Result<Vec<BackPaidPeriod>> {
         .collect()
 }
 
-/// Schedule 5 Method B(i): withholding from a pay that includes a back payment
-/// for earlier pay periods in the same financial year, recalculated period by period.
-pub fn schedule_5_method_b_i(
-    earnings: &Arg,
-    back_payments: &Arg,
-    pay_period: &Arg,
-    scale: &Arg,
-    study_loan: &Arg,
-    year: &Arg,
-    scope_confirmed: &Arg,
-) -> Result<Value> {
-    let kind = "schedule_5_method_b_i";
-    let pay = additional_pay(
-        kind,
-        earnings,
-        pay_period,
-        scale,
-        study_loan,
-        year,
-        scope_confirmed,
-    )?;
-    let periods = back_payment_periods(back_payments, pay.most_pays - 1)?;
-    let amounts = precise(|| {
+/// Method B(i) steps 2 to 7: each earlier period recalculated, less what was
+/// withheld from it, the total nil if negative, with no 47% limit.
+fn method_b_i_amounts(
+    pay: &AdditionalPay,
+    periods: &[BackPaidPeriod],
+) -> Result<Vec<(&'static str, Decimal)>> {
+    precise(|| {
         let mut back_payment = int(0);
         let mut difference = int(0);
-        for period in &periods {
+        for period in periods {
             let recalculated = pay.table(&period.earnings.add(&period.back_payment)?)?;
             difference = difference.add(&recalculated.sub(&period.withheld)?)?;
             back_payment = back_payment.add(&period.back_payment)?;
@@ -2512,14 +2510,75 @@ pub fn schedule_5_method_b_i(
             ("withholding_on_earnings", on_earnings),
             ("withholding", total),
         ])
-    })?;
-    let rates = pay.rates(vec![rate("back_payment_periods", periods.len())]);
-    result(
-        kind,
-        &format!("{} {}", pay.year, pay.period),
-        amounts,
-        rates,
-    )
+    })
+}
+
+/// Schedule 5 Method B(i): withholding from a pay that includes a back payment
+/// for earlier pay periods in the same financial year, recalculated period by period.
+pub fn schedule_5_method_b_i(
+    earnings: &Arg,
+    back_payments: &Arg,
+    pay_period: &Arg,
+    scale: &Arg,
+    study_loan: &Arg,
+    year: &Arg,
+    scope_confirmed: &Arg,
+) -> Result<Value> {
+    let pay = additional_pay(
+        "schedule_5_method_b_i",
+        earnings,
+        pay_period,
+        scale,
+        study_loan,
+        year,
+        scope_confirmed,
+    )?;
+    let periods = back_payment_periods(back_payments, pay.most_pays - 1)?;
+    let amounts = method_b_i_amounts(&pay, &periods)?;
+    pay.finish(amounts, vec![rate("back_payment_periods", periods.len())])
+}
+
+/// The year to date a Method B(ii) payment is averaged against.
+struct YearToDate {
+    earnings: Decimal,
+    pays: i64,
+    /// Earlier additional payments in the year worked by Method B(ii), and
+    /// what was withheld from them.
+    earlier: Decimal,
+    earlier_withheld: Decimal,
+}
+
+/// Method B(ii) steps 1 to 12.
+fn method_b_ii_amounts(
+    pay: &AdditionalPay,
+    additional: &Decimal,
+    to_date: &YearToDate,
+) -> Result<Vec<(&'static str, Decimal)>> {
+    precise(|| {
+        let average = to_date.earnings.div(&int(to_date.pays))?;
+        let average = average.quantize(0, Rounding::Down)?;
+        let on_average = pay.table(&average)?;
+        let all_additional = to_date.earlier.add(additional)?;
+        let (share, with_share, extra) =
+            spread_withholding(pay, &average, &on_average, &all_additional, pay.per_year)?;
+        // Step 8 subtracts what earlier Method B(ii) payments had withheld, and
+        // can be negative; results carry no negative amounts, so it is not shown.
+        let less_earlier = extra.sub(&to_date.earlier_withheld)?;
+        let (limit, on_additional) = within_limit(less_earlier, additional)?;
+        let on_earnings = pay.table(&pay.earnings)?;
+        let total = on_earnings.add(&on_additional)?;
+        Ok(vec![
+            ("average_total_earnings", average),
+            ("withholding_on_average_earnings", on_average),
+            ("additional_payments_per_period", share),
+            ("withholding_on_average_and_share", with_share),
+            ("withholding_for_the_year", extra),
+            ("withholding_limit", limit),
+            ("withholding_on_additional_payment", on_additional),
+            ("withholding_on_earnings", on_earnings),
+            ("withholding", total),
+        ])
+    })
 }
 
 /// Schedule 5 Method B(ii): withholding from a pay that includes an additional
@@ -2539,9 +2598,8 @@ pub fn schedule_5_method_b_ii(
     year: &Arg,
     scope_confirmed: &Arg,
 ) -> Result<Value> {
-    let kind = "schedule_5_method_b_ii";
     let pay = additional_pay(
-        kind,
+        "schedule_5_method_b_ii",
         earnings,
         pay_period,
         scale,
@@ -2550,46 +2608,20 @@ pub fn schedule_5_method_b_ii(
         scope_confirmed,
     )?;
     let additional = money(additional_payment)?;
-    let to_date = money(year_to_date_earnings)?;
-    let pays = pay_count(pay_periods_to_date, "pay_periods_to_date", 1, pay.most_pays)?;
-    let earlier = money(earlier_additional_payments)?;
-    let earlier_withheld = money(earlier_additional_withholding)?;
-    let limit_rate = d(meta::SCHEDULE_5_LIMIT_RATE);
-    let amounts = precise(|| {
-        let average = to_date.div(&int(pays))?.quantize(0, Rounding::Down)?;
-        let on_average = pay.table(&average)?;
-        let all_additional = earlier.add(&additional)?;
-        let (share, with_share, extra) =
-            spread_withholding(&pay, &average, &on_average, &all_additional, pay.per_year)?;
-        // Step 8 subtracts what earlier Method B(ii) payments had withheld, and
-        // can be negative; results carry no negative amounts, so it is not shown.
-        let less_earlier = extra.sub(&earlier_withheld)?;
-        let limit = additional.mul(&limit_rate)?;
-        let on_additional = nil_or_dollars(py_min(less_earlier, limit.clone())?)?;
-        let on_earnings = pay.table(&pay.earnings)?;
-        let total = on_earnings.add(&on_additional)?;
-        Ok(vec![
-            ("average_total_earnings", average),
-            ("withholding_on_average_earnings", on_average),
-            ("additional_payments_per_period", share),
-            ("withholding_on_average_and_share", with_share),
-            ("withholding_for_the_year", extra),
-            ("withholding_limit", limit),
-            ("withholding_on_additional_payment", on_additional),
-            ("withholding_on_earnings", on_earnings),
-            ("withholding", total),
-        ])
-    })?;
-    let rates = pay.rates(vec![
-        rate("pay_periods_to_date", pays),
-        rate("pay_periods", pay.per_year),
-        rate("limit_rate", &limit_rate),
-    ]);
-    result(
-        kind,
-        &format!("{} {}", pay.year, pay.period),
+    let to_date = YearToDate {
+        earnings: money(year_to_date_earnings)?,
+        pays: pay_count(pay_periods_to_date, "pay_periods_to_date", 1, pay.most_pays)?,
+        earlier: money(earlier_additional_payments)?,
+        earlier_withheld: money(earlier_additional_withholding)?,
+    };
+    let amounts = method_b_ii_amounts(&pay, &additional, &to_date)?;
+    pay.finish(
         amounts,
-        rates,
+        vec![
+            rate("pay_periods_to_date", to_date.pays),
+            rate("pay_periods", pay.per_year),
+            rate("limit_rate", meta::SCHEDULE_5_LIMIT_RATE),
+        ],
     )
 }
 

@@ -140,9 +140,14 @@ fn jarrod_method_a_gives_the_earlier_schedules_payg_figures() {
             ],
             "{year}"
         );
+        let refused = api::evaluate_coded(A, &with(jarrod, study_loan())).unwrap_err();
+        assert_eq!(refused.code, "period.unsupported");
+        // The year is one the worksheet supports, so the message names the study loan.
         assert_eq!(
-            refusal(A, &with(jarrod, study_loan())),
-            "period.unsupported"
+            refused.message,
+            format!(
+                "study_loan is supported for 2026-27 only: there is no Schedule 8 study and training support loan component for {year}."
+            )
         );
     }
 }
