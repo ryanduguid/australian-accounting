@@ -590,7 +590,11 @@ is $1,602 at $30,994 and $3,204 at $30,995. The worksheet applies the
 regulation as written; at those incomes the base amount and the low income tax
 offset already cover the tax. Up to $6,000 of the spouse's taxable income the
 worksheet passes the whole base amount under s 12(3)(b)(i), as a resident
-spouse with income below the tax-free threshold has no tax payable. Above it
+spouse whose income is all ordinary taxable income below the tax-free
+threshold has no tax payable. A superannuation or employment termination
+remainder, which Income Tax Rates Act 1986 Sch 7 Part I clause 1(a) and (aa)
+tax at 45%, would leave tax payable, so a spouse with one is outside the
+worksheet. Above $6,000
 s 12(3)(b)(ii)'s formula reaches nil before the spouse's tax, at the 15% or 16%
 lowest rate, reaches the base amount, so the worksheet never needs the
 spouse's tax. A foreign resident spouse, whose unused amount uses their

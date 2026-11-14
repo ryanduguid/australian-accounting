@@ -130,7 +130,7 @@ intentionally changed.
   `tests/seniors_pensioners_offset.rs` holds it to the ATO's 9 examples,
   including the transfer in example 9, its 2024-25 and 2025-26 thresholds and
   every cut-out; `tests/properties.rs` checks that it never rises with rebate
-  income. Schedule 9 and this command share the `status` values and the
+  income without a transfer. Schedule 9 and this command share the `status` values and the
   `input.status_invalid` refusal.
 - `depreciation` takes an optional `opening_adjustable_value` for an income
   year after the asset's start time (ITAA 1997 ss 40-70(1), 40-72 and 40-75).

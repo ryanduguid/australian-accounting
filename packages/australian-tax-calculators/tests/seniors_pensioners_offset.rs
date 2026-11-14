@@ -286,11 +286,15 @@ fn refusals() {
             "spouse_rebate_income is required unless status is single".to_string()
         )
     );
-    let cents = json!({"spouse_rebate_income": "0", "spouse_taxable_income": "1.50"});
-    assert_eq!(
-        refusal(input("39000", "couple", "2025-26", cents)).0,
-        "input.amount_not_whole_dollars"
-    );
+    for cents in [
+        json!({"spouse_rebate_income": "0", "spouse_taxable_income": "1.50"}),
+        json!({"spouse_rebate_income": "1.50"}),
+    ] {
+        assert_eq!(
+            refusal(input("39000", "couple", "2025-26", cents)).0,
+            "input.amount_not_whole_dollars"
+        );
+    }
 }
 
 #[test]

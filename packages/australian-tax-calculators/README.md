@@ -554,7 +554,8 @@ a couple also gives `spouse_rebate_income`: entitlement then tests half the
 couple's rebate income, and the amount the person's own. The offset falls by
 12.5 cents a dollar above the threshold and is rounded up to the dollar, as the
 ATO rounds it. With `spouse_taxable_income`, a spouse entitled to the offset
-and taxed at resident rates passes their unused amount (regulations s 12),
+whose whole taxable income is ordinary taxable income at the resident scale
+passes their unused amount (regulations s 12),
 which raises this person's base amount and threshold once their own offset is
 below its base amount (s 12(1)(e)). A person whose spouse status changed in
 the year, trustees, a person also entitled to the beneficiary tax offset and
