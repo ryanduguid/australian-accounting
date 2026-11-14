@@ -1,0 +1,3221 @@
+{
+  "schema_version": 1,
+  "oracle_base": "56afe0c",
+  "tools": [
+    {
+      "annotations": {
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": false
+      },
+      "description": "Review one contribution against payday-super-checker.\n\nqe_day is the qualifying-earnings (payday) date. as_at is required.\nsg_amount, remitted_amount and matched_amount are AUD decimal strings such\nas \"1000.00\": finite, at most 2 decimal places, at most 1000000000000.00.\nreceived is fund receipt. remitted is the day money was sent. This tool\ndoes not invent clearing-house latency and cannot confirm LCR 2026/1\ntransition allocation. Without a fund-receipt date the statutory test\ncannot return ON_TIME. Returned contributions are not assessed: returned_by_fund\nrefuses the review, and otherwise ON_TIME assumes the fund kept every receipt, and\ncarries verdict_qualification and a caveat saying so, as does an UNKNOWN listing\nON_TIME in horizon_verdicts. Check fund records before relying on it. Returns a\ndeadline, pathway, verdict and caveats;\nassessment_scope is single_contribution. Related contributions, receipt\nallocation and s 18C(2) item 4 alignment are not reviewed by this tool.\nsg_amount is operator-supplied; this tool does not calculate SG entitlement.\nResults are experimental reviews, not compliance determinations. Runs locally\nwithout network access, remitting contributions or changing records.\n",
+      "inputSchema": {
+        "properties": {
+          "qe_day": {
+            "description": "Qualifying-earnings payment date (payday). YYYY-MM-DD; a payroll export shape such as 13/07/2027 or \"9 Jul 2027\" is also read, and a numeric date that could be read either way round is refused. This engine rejects dates before its Payday Super regime.",
+            "maxLength": 40,
+            "title": "Qe Day",
+            "type": "string"
+          },
+          "sg_amount": {
+            "description": "Superannuation guarantee contribution amount for this employee and qualifying-earnings payment.",
+            "maxLength": 60,
+            "pattern": "^\\s*-?[0-9]+(?:\\.[0-9]{1,2})?\\s*$",
+            "title": "Sg Amount",
+            "type": "string"
+          },
+          "as_at": {
+            "description": "Required assessment date, YYYY-MM-DD. Supply explicitly; the tool does not assume today. Reads the same date shapes as qe_day.",
+            "maxLength": 40,
+            "title": "As At",
+            "type": "string"
+          },
+          "remitted": {
+            "anyOf": [
+              {
+                "maxLength": 40,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "description": "Date money was sent, YYYY-MM-DD. Optional; does not prove receipt by the fund or establish ON_TIME. Reads the same date shapes as qe_day.",
+            "title": "Remitted"
+          },
+          "received": {
+            "anyOf": [
+              {
+                "maxLength": 40,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "description": "Actual fund-receipt date, YYYY-MM-DD. Omit or null if unknown; required before the statutory test can return ON_TIME. Reads the same date shapes as qe_day; a stamp carrying Z or a UTC offset is refused, so convert it to the Australian calendar date first.",
+            "title": "Received"
+          },
+          "employee_id": {
+            "default": "mcp-1",
+            "description": "Operator reference echoed in the result; defaults to \"mcp-1\". No employee record is looked up or written.",
+            "maxLength": 120,
+            "title": "Employee Id",
+            "type": "string"
+          },
+          "first_to_fund": {
+            "default": false,
+            "description": "Whether this is the first eligible contribution to this fund after employment starts or recommences (including rehiring a worker under a new arrangement), or after a fund switch. Defaults to false. Establish eligibility before setting true.",
+            "title": "First To Fund",
+            "type": "boolean"
+          },
+          "out_of_cycle": {
+            "default": false,
+            "description": "Whether the payment qualifies for the out-of-cycle pathway. Defaults to false; true requires next_standard_qe_day for an actual subsequent standard QE payment.",
+            "title": "Out Of Cycle",
+            "type": "boolean"
+          },
+          "next_standard_qe_day": {
+            "anyOf": [
+              {
+                "maxLength": 40,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "description": "Subsequent schedule-consistent non-out-of-cycle QE payment date, YYYY-MM-DD; must be after qe_day when out_of_cycle is true. Not an assumed future payday. Reads the same date shapes as qe_day.",
+            "title": "Next Standard Qe Day"
+          },
+          "db_interest": {
+            "default": false,
+            "description": "Whether this is a defined-benefit interest. Defaults to false; true selects the engine pathway that skips lateness testing.",
+            "title": "Db Interest",
+            "type": "boolean"
+          },
+          "remitted_amount": {
+            "anyOf": [
+              {
+                "maxLength": 60,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "description": "Amount sent for this contribution, as an AUD decimal string with at most 2 decimal places. Requires remitted; cannot exceed sg_amount. Omit or null preserves the engine full-remittance convention when remitted is supplied.",
+            "pattern": "^\\s*-?[0-9]+(?:\\.[0-9]{1,2})?\\s*$",
+            "title": "Remitted Amount"
+          },
+          "matched_amount": {
+            "anyOf": [
+              {
+                "maxLength": 60,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "description": "Amount associated with this payday, as an AUD decimal string with at most 2 decimal places; cannot exceed sg_amount. Supply partial amounts even without a remittance date. Caps evidenced receipt and takes precedence over remitted_amount. If both amounts are omitted, a timely receipt remains UNKNOWN; a late receipt remains LATE without reducing the shortfall.",
+            "pattern": "^\\s*-?[0-9]+(?:\\.[0-9]{1,2})?\\s*$",
+            "title": "Matched Amount"
+          },
+          "returned_by_fund": {
+            "default": false,
+            "description": "True when the fund returned some or all of this contribution. The linked checker cannot assess a return, so true refuses the review instead of reading the receipt as kept.",
+            "title": "Returned By Fund",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "qe_day",
+          "sg_amount",
+          "as_at"
+        ],
+        "title": "calc_payday_super_deadlineArguments",
+        "type": "object",
+        "additionalProperties": false
+      },
+      "name": "calc_payday_super_deadline",
+      "outputSchema": {
+        "$defs": {
+          "PaydayAssessment": {
+            "additionalProperties": true,
+            "if": {
+              "anyOf": [
+                {
+                  "properties": {
+                    "verdict": {
+                      "const": "ON_TIME"
+                    }
+                  },
+                  "required": [
+                    "verdict"
+                  ]
+                },
+                {
+                  "properties": {
+                    "horizon_verdicts": {
+                      "contains": {
+                        "const": "ON_TIME"
+                      },
+                      "type": "array"
+                    }
+                  },
+                  "required": [
+                    "horizon_verdicts"
+                  ]
+                }
+              ]
+            },
+            "properties": {
+              "employee_id": {
+                "description": "Operator reference echoed from the input.",
+                "title": "Employee Id",
+                "type": "string"
+              },
+              "qe_day": {
+                "description": "Date in YYYY-MM-DD form.",
+                "format": "date",
+                "pattern": "^[0-9]{4}-(?:0[1-9]|1[0-2])-(?:0[1-9]|[12][0-9]|3[01])$",
+                "title": "Qe Day",
+                "type": "string"
+              },
+              "sg_amount": {
+                "description": "Finite engine decimal string, including exponent notation; retain its precision.",
+                "pattern": "^[+-]?(?:[0-9]+(?:\\.[0-9]*)?|\\.[0-9]+)(?:[eE][+-]?[0-9]+)?$",
+                "title": "Sg Amount",
+                "type": "string"
+              },
+              "remitted_amount": {
+                "anyOf": [
+                  {
+                    "description": "Finite engine decimal string, including exponent notation; retain its precision.",
+                    "pattern": "^[+-]?(?:[0-9]+(?:\\.[0-9]*)?|\\.[0-9]+)(?:[eE][+-]?[0-9]+)?$",
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "description": "Explicit remitted amount; null preserves legacy semantics.",
+                "title": "Remitted Amount"
+              },
+              "matched_amount": {
+                "anyOf": [
+                  {
+                    "description": "Finite engine decimal string, including exponent notation; retain its precision.",
+                    "pattern": "^[+-]?(?:[0-9]+(?:\\.[0-9]*)?|\\.[0-9]+)(?:[eE][+-]?[0-9]+)?$",
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "description": "Amount associated with this payday; null means not supplied.",
+                "title": "Matched Amount"
+              },
+              "remitted": {
+                "anyOf": [
+                  {
+                    "description": "Date in YYYY-MM-DD form.",
+                    "format": "date",
+                    "pattern": "^[0-9]{4}-(?:0[1-9]|1[0-2])-(?:0[1-9]|[12][0-9]|3[01])$",
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "description": "Remittance date, YYYY-MM-DD, or null if unknown.",
+                "title": "Remitted"
+              },
+              "received": {
+                "anyOf": [
+                  {
+                    "description": "Date in YYYY-MM-DD form.",
+                    "format": "date",
+                    "pattern": "^[0-9]{4}-(?:0[1-9]|1[0-2])-(?:0[1-9]|[12][0-9]|3[01])$",
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "description": "Fund-receipt date, YYYY-MM-DD, or null if unknown.",
+                "title": "Received"
+              },
+              "due": {
+                "anyOf": [
+                  {
+                    "description": "Date in YYYY-MM-DD form.",
+                    "format": "date",
+                    "pattern": "^[0-9]{4}-(?:0[1-9]|1[0-2])-(?:0[1-9]|[12][0-9]|3[01])$",
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "description": "Engine deadline, YYYY-MM-DD, or null when not applicable.",
+                "title": "Due"
+              },
+              "pathway": {
+                "description": "Deadline pathway chosen by the engine.",
+                "title": "Pathway",
+                "type": "string"
+              },
+              "verdict": {
+                "description": "Engine contribution verdict; read alongside caveats and pathway, and ON_TIME alongside verdict_qualification.",
+                "title": "Verdict",
+                "type": "string"
+              },
+              "verdict_qualification": {
+                "$ref": "#/$defs/VerdictQualification",
+                "description": "Limit on an ON_TIME verdict or horizon candidate, required with it; check fund records for returns."
+              },
+              "days_late": {
+                "anyOf": [
+                  {
+                    "type": "integer"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "description": "Engine days late, or null when not established.",
+                "title": "Days Late"
+              },
+              "lateness_basis": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "description": "Receipt or assessment basis used to measure lateness.",
+                "title": "Lateness Basis"
+              },
+              "base_shortfall": {
+                "anyOf": [
+                  {
+                    "description": "Finite engine decimal string, including exponent notation; retain its precision.",
+                    "pattern": "^[+-]?(?:[0-9]+(?:\\.[0-9]*)?|\\.[0-9]+)(?:[eE][+-]?[0-9]+)?$",
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "description": "Engine decimal string, or null when unavailable; null is not zero.",
+                "title": "Base Shortfall"
+              },
+              "final_shortfall": {
+                "anyOf": [
+                  {
+                    "description": "Finite engine decimal string, including exponent notation; retain its precision.",
+                    "pattern": "^[+-]?(?:[0-9]+(?:\\.[0-9]*)?|\\.[0-9]+)(?:[eE][+-]?[0-9]+)?$",
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "description": "Engine decimal string, or null when unavailable; null is not zero.",
+                "title": "Final Shortfall"
+              },
+              "notional_earnings": {
+                "anyOf": [
+                  {
+                    "description": "Finite engine decimal string, including exponent notation; retain its precision.",
+                    "pattern": "^[+-]?(?:[0-9]+(?:\\.[0-9]*)?|\\.[0-9]+)(?:[eE][+-]?[0-9]+)?$",
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "description": "Engine decimal string, or null when unavailable; null is not zero.",
+                "title": "Notional Earnings"
+              },
+              "experimental_sgc_low": {
+                "anyOf": [
+                  {
+                    "description": "Finite engine decimal string, including exponent notation; retain its precision.",
+                    "pattern": "^[+-]?(?:[0-9]+(?:\\.[0-9]*)?|\\.[0-9]+)(?:[eE][+-]?[0-9]+)?$",
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "description": "Experimental SG-charge estimate as an engine decimal string, or null when unavailable; null is not zero. Estimates exclude choice loading, the maximum contributions base and post-assessment penalties.",
+                "title": "Experimental Sgc Low"
+              },
+              "experimental_sgc_high": {
+                "anyOf": [
+                  {
+                    "description": "Finite engine decimal string, including exponent notation; retain its precision.",
+                    "pattern": "^[+-]?(?:[0-9]+(?:\\.[0-9]*)?|\\.[0-9]+)(?:[eE][+-]?[0-9]+)?$",
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "description": "Experimental SG-charge estimate as an engine decimal string, or null when unavailable; null is not zero. Estimates exclude choice loading, the maximum contributions base and post-assessment penalties.",
+                "title": "Experimental Sgc High"
+              },
+              "uplift": {
+                "anyOf": [
+                  {
+                    "additionalProperties": {
+                      "additionalProperties": {
+                        "description": "Finite engine decimal string, including exponent notation; retain its precision.",
+                        "pattern": "^[+-]?(?:[0-9]+(?:\\.[0-9]*)?|\\.[0-9]+)(?:[eE][+-]?[0-9]+)?$",
+                        "type": "string"
+                      },
+                      "type": "object"
+                    },
+                    "type": "object"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "description": "Experimental uplift scenarios by history and disclosure timing, or null.",
+                "title": "Uplift"
+              },
+              "notes": {
+                "description": "Engine assessment notes.",
+                "items": {
+                  "type": "string"
+                },
+                "title": "Notes",
+                "type": "array"
+              },
+              "caveats": {
+                "description": "Limitations to retain when presenting the result.",
+                "items": {
+                  "type": "string"
+                },
+                "title": "Caveats",
+                "type": "array"
+              },
+              "horizon_verdicts": {
+                "anyOf": [
+                  {
+                    "items": {
+                      "type": "string"
+                    },
+                    "type": "array"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "description": "Engine horizon verdicts, when available; an ON_TIME candidate carries verdict_qualification.",
+                "title": "Horizon Verdicts"
+              }
+            },
+            "required": [
+              "employee_id",
+              "qe_day",
+              "sg_amount",
+              "remitted_amount",
+              "matched_amount",
+              "remitted",
+              "received",
+              "due",
+              "pathway",
+              "verdict",
+              "days_late",
+              "lateness_basis",
+              "base_shortfall",
+              "final_shortfall",
+              "notional_earnings",
+              "experimental_sgc_low",
+              "experimental_sgc_high",
+              "uplift",
+              "notes",
+              "caveats",
+              "horizon_verdicts"
+            ],
+            "then": {
+              "required": [
+                "verdict_qualification"
+              ]
+            },
+            "title": "PaydayAssessment",
+            "type": "object"
+          },
+          "VerdictQualification": {
+            "additionalProperties": true,
+            "description": "What an ON_TIME verdict or horizon candidate did not assess. Absent otherwise.",
+            "properties": {
+              "code": {
+                "const": "RETURNED_CONTRIBUTIONS_NOT_ASSESSED",
+                "description": "Stable token for this limit.",
+                "title": "Code",
+                "type": "string"
+              },
+              "returned_contributions_assessed": {
+                "const": false,
+                "description": "No tool input records a contribution the fund returned.",
+                "title": "Returned Contributions Assessed",
+                "type": "boolean"
+              },
+              "assumes_fund_kept_every_receipt": {
+                "const": true,
+                "description": "ON_TIME holds only if the fund kept every receipt.",
+                "title": "Assumes Fund Kept Every Receipt",
+                "type": "boolean"
+              },
+              "statement": {
+                "description": "The limit in words, on a pack; rows hold it in caveats.",
+                "title": "Statement",
+                "type": "string"
+              }
+            },
+            "required": [
+              "code",
+              "returned_contributions_assessed",
+              "assumes_fund_kept_every_receipt"
+            ],
+            "title": "VerdictQualification",
+            "type": "object"
+          }
+        },
+        "additionalProperties": true,
+        "properties": {
+          "ok": {
+            "const": true,
+            "description": "The review ran; this does not mean compliance or a known verdict.",
+            "title": "Ok",
+            "type": "boolean"
+          },
+          "engine": {
+            "description": "Delegated distribution that produced this result.",
+            "title": "Engine",
+            "type": "string"
+          },
+          "engine_version": {
+            "description": "Installed version of that engine.",
+            "title": "Engine Version",
+            "type": "string"
+          },
+          "law_content_date": {
+            "description": "Date in YYYY-MM-DD form.",
+            "format": "date",
+            "pattern": "^[0-9]{4}-(?:0[1-9]|1[0-2])-(?:0[1-9]|[12][0-9]|3[01])$",
+            "title": "Law Content Date",
+            "type": "string"
+          },
+          "assessment_scope": {
+            "const": "single_contribution",
+            "description": "Related contributions and SG entitlement were not reviewed.",
+            "title": "Assessment Scope",
+            "type": "string"
+          },
+          "as_at": {
+            "description": "Explicit operator assessment date, YYYY-MM-DD.",
+            "format": "date",
+            "pattern": "^[0-9]{4}-(?:0[1-9]|1[0-2])-(?:0[1-9]|[12][0-9]|3[01])$",
+            "title": "As At",
+            "type": "string"
+          },
+          "disclaimer": {
+            "description": "Experimental review and fund-receipt limitations.",
+            "title": "Disclaimer",
+            "type": "string"
+          },
+          "result": {
+            "$ref": "#/$defs/PaydayAssessment",
+            "description": "Contribution assessment; not a compliance determination."
+          }
+        },
+        "required": [
+          "ok",
+          "engine",
+          "engine_version",
+          "law_content_date",
+          "assessment_scope",
+          "as_at",
+          "disclaimer",
+          "result"
+        ],
+        "title": "PaydayReview",
+        "type": "object"
+      },
+      "title": "Review a Payday Super contribution"
+    },
+    {
+      "annotations": {
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": false,
+        "readOnlyHint": true
+      },
+      "description": "Return the reviewed s 109N(2) rate for a year, or UNKNOWN.\n\nYears use the YYYY-YY form, such as 2026-27. Pass the income year whose\nminimum yearly repayment is being tested, not the year the loan was made.\nThe delegated engine fails\nclosed outside its reviewed frozen table and does not read the network.\nresponse_detail defaults to summary; pass full for the complete provenance\nand statutory trace. Use review_div7a_loan to review supplied loan facts.\nReturns cited data without writes; not advice or a live rate lookup.\n",
+      "inputSchema": {
+        "properties": {
+          "year_of_income": {
+            "description": "Income year being reviewed, YYYY-YY, e.g. \"2025-26\". Years outside the engine reviewed rate table return UNKNOWN.",
+            "maxLength": 7,
+            "title": "Year Of Income",
+            "type": "string"
+          },
+          "response_detail": {
+            "default": "summary",
+            "description": "\"summary\" (default) returns the concise result; \"full\" includes the complete engine audit and provenance.",
+            "enum": [
+              "summary",
+              "full"
+            ],
+            "title": "Response Detail",
+            "type": "string"
+          }
+        },
+        "required": [
+          "year_of_income"
+        ],
+        "type": "object",
+        "title": "get_div7a_benchmark_rateArguments",
+        "additionalProperties": false
+      },
+      "name": "get_div7a_benchmark_rate",
+      "outputSchema": {
+        "type": "object",
+        "$defs": {
+          "Manifest": {
+            "additionalProperties": true,
+            "description": "Which statutory tables a figure was computed from, and their digests.",
+            "properties": {
+              "rate_table_uris": {
+                "description": "Statutory rate tables this answer consumed, each with the digest of what was read. Empty when no rate table was consulted.",
+                "items": {
+                  "$ref": "#/$defs/RateTableSource"
+                },
+                "title": "Rate Table Uris",
+                "type": "array"
+              }
+            },
+            "required": [
+              "rate_table_uris"
+            ],
+            "title": "Manifest",
+            "type": "object"
+          },
+          "RateFull": {
+            "additionalProperties": true,
+            "not": {
+              "required": [
+                "response_detail"
+              ]
+            },
+            "properties": {
+              "ok": {
+                "const": true,
+                "description": "The review ran; this does not mean compliance or a known verdict.",
+                "title": "Ok",
+                "type": "boolean"
+              },
+              "engine": {
+                "description": "Delegated distribution that produced this result.",
+                "title": "Engine",
+                "type": "string"
+              },
+              "engine_version": {
+                "description": "Installed version of that engine.",
+                "title": "Engine Version",
+                "type": "string"
+              },
+              "law_content_date": {
+                "description": "Date in YYYY-MM-DD form.",
+                "format": "date",
+                "pattern": "^[0-9]{4}-(?:0[1-9]|1[0-2])-(?:0[1-9]|[12][0-9]|3[01])$",
+                "title": "Law Content Date",
+                "type": "string"
+              },
+              "law_compilation": {
+                "description": "Compiled law identified by the engine.",
+                "title": "Law Compilation",
+                "type": "string"
+              },
+              "disclaimer": {
+                "description": "Experimental scope and human-review requirements.",
+                "title": "Disclaimer",
+                "type": "string"
+              },
+              "year_of_income": {
+                "description": "Income or dataset year in YYYY-YY form.",
+                "pattern": "^[0-9]{4}-[0-9]{2}$",
+                "title": "Year Of Income",
+                "type": "string"
+              },
+              "verdict": {
+                "description": "Whether the engine has a reviewed rate.",
+                "enum": [
+                  "KNOWN",
+                  "UNKNOWN"
+                ],
+                "title": "Verdict",
+                "type": "string"
+              },
+              "benchmark_rate": {
+                "anyOf": [
+                  {
+                    "description": "Finite engine decimal string, including exponent notation; retain its precision.",
+                    "pattern": "^[+-]?(?:[0-9]+(?:\\.[0-9]*)?|\\.[0-9]+)(?:[eE][+-]?[0-9]+)?$",
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "description": "Decimal fraction, e.g. 0.08 means 8%; null if UNKNOWN.",
+                "title": "Benchmark Rate"
+              },
+              "reason": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "description": "Engine explanation when the rate is unavailable; otherwise null.",
+                "title": "Reason"
+              },
+              "provenance": {
+                "additionalProperties": true,
+                "description": "Unmodified engine source metadata and review provenance.",
+                "title": "Provenance",
+                "type": "object"
+              },
+              "manifest": {
+                "$ref": "#/$defs/Manifest"
+              },
+              "statutory_trace": {
+                "description": "Engine statutory citations and audit trace; full only.",
+                "items": {
+                  "type": "string"
+                },
+                "title": "Statutory Trace",
+                "type": "array"
+              }
+            },
+            "required": [
+              "ok",
+              "engine",
+              "engine_version",
+              "law_content_date",
+              "law_compilation",
+              "disclaimer",
+              "year_of_income",
+              "verdict",
+              "benchmark_rate",
+              "reason",
+              "provenance",
+              "manifest",
+              "statutory_trace"
+            ],
+            "title": "RateFull",
+            "type": "object"
+          },
+          "RateSummary": {
+            "additionalProperties": true,
+            "description": "Concise rate result with source link.",
+            "properties": {
+              "ok": {
+                "const": true,
+                "description": "The review ran; this does not mean compliance or a known verdict.",
+                "title": "Ok",
+                "type": "boolean"
+              },
+              "engine": {
+                "description": "Delegated distribution that produced this result.",
+                "title": "Engine",
+                "type": "string"
+              },
+              "engine_version": {
+                "description": "Installed version of that engine.",
+                "title": "Engine Version",
+                "type": "string"
+              },
+              "law_content_date": {
+                "description": "Date in YYYY-MM-DD form.",
+                "format": "date",
+                "pattern": "^[0-9]{4}-(?:0[1-9]|1[0-2])-(?:0[1-9]|[12][0-9]|3[01])$",
+                "title": "Law Content Date",
+                "type": "string"
+              },
+              "law_compilation": {
+                "description": "Compiled law identified by the engine.",
+                "title": "Law Compilation",
+                "type": "string"
+              },
+              "disclaimer": {
+                "description": "Experimental scope and human-review requirements.",
+                "title": "Disclaimer",
+                "type": "string"
+              },
+              "year_of_income": {
+                "description": "Income or dataset year in YYYY-YY form.",
+                "pattern": "^[0-9]{4}-[0-9]{2}$",
+                "title": "Year Of Income",
+                "type": "string"
+              },
+              "verdict": {
+                "description": "Whether the engine has a reviewed rate.",
+                "enum": [
+                  "KNOWN",
+                  "UNKNOWN"
+                ],
+                "title": "Verdict",
+                "type": "string"
+              },
+              "benchmark_rate": {
+                "anyOf": [
+                  {
+                    "description": "Finite engine decimal string, including exponent notation; retain its precision.",
+                    "pattern": "^[+-]?(?:[0-9]+(?:\\.[0-9]*)?|\\.[0-9]+)(?:[eE][+-]?[0-9]+)?$",
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "description": "Decimal fraction, e.g. 0.08 means 8%; null if UNKNOWN.",
+                "title": "Benchmark Rate"
+              },
+              "reason": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "description": "Engine explanation when the rate is unavailable; otherwise null.",
+                "title": "Reason"
+              },
+              "response_detail": {
+                "const": "summary",
+                "description": "Summary response marker.",
+                "title": "Response Detail",
+                "type": "string"
+              },
+              "source": {
+                "$ref": "#/$defs/VerificationSource",
+                "description": "Concise verification source."
+              }
+            },
+            "required": [
+              "ok",
+              "engine",
+              "engine_version",
+              "law_content_date",
+              "law_compilation",
+              "disclaimer",
+              "year_of_income",
+              "verdict",
+              "benchmark_rate",
+              "reason",
+              "response_detail",
+              "source"
+            ],
+            "title": "RateSummary",
+            "type": "object"
+          },
+          "RateTableSource": {
+            "additionalProperties": true,
+            "properties": {
+              "uri": {
+                "description": "The rate table the engine read.",
+                "title": "Uri",
+                "type": "string"
+              },
+              "sha256": {
+                "description": "SHA-256 of the table text the figure was computed from.",
+                "title": "Sha256",
+                "type": "string"
+              }
+            },
+            "required": [
+              "uri",
+              "sha256"
+            ],
+            "title": "RateTableSource",
+            "type": "object"
+          },
+          "VerificationSource": {
+            "additionalProperties": true,
+            "properties": {
+              "verify_at": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "description": "Engine verification URL; empty or null when none is available.",
+                "title": "Verify At"
+              },
+              "rate_table_uris": {
+                "description": "Statutory rate tables this answer consumed, each with the digest of what was read. Empty when the figure came from the request alone.",
+                "items": {
+                  "$ref": "#/$defs/RateTableSource"
+                },
+                "title": "Rate Table Uris",
+                "type": "array"
+              }
+            },
+            "required": [
+              "verify_at",
+              "rate_table_uris"
+            ],
+            "title": "VerificationSource",
+            "type": "object"
+          }
+        },
+        "anyOf": [
+          {
+            "$ref": "#/$defs/RateSummary"
+          },
+          {
+            "$ref": "#/$defs/RateFull"
+          }
+        ],
+        "title": "Div7aRate"
+      },
+      "title": "Get the Division 7A benchmark rate"
+    },
+    {
+      "annotations": {
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": false,
+        "readOnlyHint": true
+      },
+      "description": "Review one operator-supplied amalgamated Division 7A loan.\n\nThe tool runs the s 109N gate and then the s 109E minimum yearly repayment.\nUnknown facts may be omitted or passed as null; they remain UNKNOWN and are\nnever coerced to false or zero. Rates are decimal strings. Amounts are AUD\ndecimal strings such as \"1000.00\": finite, at most 2 decimal places, absolute\nvalue at most 1000000000000.00; omit or null means not supplied, and \"0.00\"\nis only for an established zero.\nresponse_detail defaults to summary; pass full for the complete engine audit.\nReturns gate and repayment verdicts, reasons and caveats. Use\nget_div7a_benchmark_rate for rate-only lookups; unsupported matters remain\nrefused by refuse_div7a. This tool does not form amalgamated loans or\nclassify payments under s 109R. Runs locally with no network, writes or\nlodgements. Experimental review aid, not a tax determination or advice.\n",
+      "inputSchema": {
+        "properties": {
+          "year_of_income": {
+            "description": "Income year being reviewed, YYYY-YY, e.g. \"2025-26\". Years outside the engine reviewed rate table return UNKNOWN.",
+            "maxLength": 7,
+            "title": "Year Of Income",
+            "type": "string"
+          },
+          "year_loan_made": {
+            "anyOf": [
+              {
+                "maxLength": 7,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "description": "Income year the loan was made, YYYY-YY, e.g. \"2024-25\". Omit or null if unknown.",
+            "title": "Year Loan Made"
+          },
+          "written_agreement": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "description": "Whether the loan agreement is in writing. Omit or null means UNKNOWN, not false.",
+            "title": "Written Agreement"
+          },
+          "terms_in_place_before_lodgment_day": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "description": "Operator assertion that terms were in place before the relevant lodgment day. The engine does not compute that day. Omit or null if unknown.",
+            "title": "Terms In Place Before Lodgment Day"
+          },
+          "maximum_term_years": {
+            "anyOf": [
+              {
+                "maxLength": 30,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "description": "Actual agreed loan term in years as a decimal string, e.g. \"7\"; not the statutory maximum. Omit or null if unknown.",
+            "title": "Maximum Term Years"
+          },
+          "secured_by_registered_mortgage_over_real_property": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "description": "Whether the loan has a registered mortgage over real property. Omit or null means UNKNOWN, not false.",
+            "title": "Secured By Registered Mortgage Over Real Property"
+          },
+          "security_coverage_at_first_made": {
+            "anyOf": [
+              {
+                "maxLength": 30,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "description": "Property market value less prior secured liabilities, divided by the loan at inception; decimal ratio, e.g. \"1.10\" means 110%. Omit or null if unknown.",
+            "title": "Security Coverage At First Made"
+          },
+          "interest_rate_for_years_after_year_loan_made": {
+            "anyOf": [
+              {
+                "maxLength": 30,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "description": "Agreed interest rate as a decimal fraction, e.g. \"0.08\" means 8%, not \"8\". Omit or null if unknown; do not assume a current benchmark rate.",
+            "title": "Interest Rate For Years After Year Loan Made"
+          },
+          "amalgamated_loan_unpaid_at_end_of_previous_year": {
+            "anyOf": [
+              {
+                "maxLength": 60,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "description": "Operator-established amalgamated-loan balance at the end of the preceding income year.The tool does not form amalgamated loans.",
+            "pattern": "^\\s*-?[0-9]+(?:\\.[0-9]{1,2})?\\s*$",
+            "title": "Amalgamated Loan Unpaid At End Of Previous Year"
+          },
+          "remaining_term_years": {
+            "anyOf": [
+              {
+                "maxLength": 30,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "description": "Remaining statutory term for the supplied amalgamated loan, as a decimal string. The engine rounds fractional years up. Omit or null if unknown.",
+            "title": "Remaining Term Years"
+          },
+          "payments_applied_during_the_year": {
+            "anyOf": [
+              {
+                "maxLength": 60,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "description": "Amount the operator establishes as applied during the income year. The tool does not classify payments under s 109R; omit if not established.",
+            "pattern": "^\\s*-?[0-9]+(?:\\.[0-9]{1,2})?\\s*$",
+            "title": "Payments Applied During The Year"
+          },
+          "loan_id": {
+            "default": "mcp-div7a-1",
+            "description": "Operator loan reference echoed in the result; defaults to \"mcp-div7a-1\". No loan record is looked up or written.",
+            "maxLength": 120,
+            "title": "Loan Id",
+            "type": "string"
+          },
+          "response_detail": {
+            "default": "summary",
+            "description": "\"summary\" (default) returns the concise result; \"full\" includes the complete engine audit and provenance.",
+            "enum": [
+              "summary",
+              "full"
+            ],
+            "title": "Response Detail",
+            "type": "string"
+          }
+        },
+        "required": [
+          "year_of_income"
+        ],
+        "type": "object",
+        "title": "review_div7a_loanArguments",
+        "additionalProperties": false
+      },
+      "name": "review_div7a_loan",
+      "outputSchema": {
+        "type": "object",
+        "$defs": {
+          "Div7aGate": {
+            "additionalProperties": true,
+            "properties": {
+              "verdict": {
+                "description": "Reviewed s 109N gate only; UNKNOWN never means false or compliant.",
+                "enum": [
+                  "COMPLYING",
+                  "NOT_COMPLYING",
+                  "UNKNOWN"
+                ],
+                "title": "Verdict",
+                "type": "string"
+              },
+              "loan_id": {
+                "description": "Operator loan reference.",
+                "title": "Loan Id",
+                "type": "string"
+              },
+              "benchmark_year_used": {
+                "anyOf": [
+                  {
+                    "description": "Income or dataset year in YYYY-YY form.",
+                    "pattern": "^[0-9]{4}-[0-9]{2}$",
+                    "type": "string"
+                  },
+                  {
+                    "const": "",
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "description": "Engine benchmark year, YYYY-YY, or empty/null when unknown.",
+                "title": "Benchmark Year Used"
+              },
+              "benchmark_rate": {
+                "anyOf": [
+                  {
+                    "description": "Finite engine decimal string, including exponent notation; retain its precision.",
+                    "pattern": "^[+-]?(?:[0-9]+(?:\\.[0-9]*)?|\\.[0-9]+)(?:[eE][+-]?[0-9]+)?$",
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "description": "Engine decimal string, or null when unavailable; null is not zero.",
+                "title": "Benchmark Rate"
+              },
+              "maximum_term_years_allowed": {
+                "anyOf": [
+                  {
+                    "description": "Finite engine decimal string, including exponent notation; retain its precision.",
+                    "pattern": "^[+-]?(?:[0-9]+(?:\\.[0-9]*)?|\\.[0-9]+)(?:[eE][+-]?[0-9]+)?$",
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "description": "Engine decimal string, or null when unavailable; null is not zero.",
+                "title": "Maximum Term Years Allowed"
+              },
+              "reasons": {
+                "description": "Engine reasons for the reported verdict.",
+                "items": {
+                  "type": "string"
+                },
+                "title": "Reasons",
+                "type": "array"
+              },
+              "reason_codes": {
+                "description": "Stable token per reason, aligned with `reasons` by position.",
+                "items": {
+                  "type": "string"
+                },
+                "title": "Reason Codes",
+                "type": "array"
+              },
+              "caveats": {
+                "description": "Limitations to retain when presenting the result.",
+                "items": {
+                  "type": "string"
+                },
+                "title": "Caveats",
+                "type": "array"
+              }
+            },
+            "required": [
+              "verdict",
+              "loan_id",
+              "benchmark_year_used",
+              "benchmark_rate",
+              "maximum_term_years_allowed",
+              "reasons",
+              "reason_codes",
+              "caveats"
+            ],
+            "title": "Div7aGate",
+            "type": "object"
+          },
+          "Div7aRepayment": {
+            "additionalProperties": true,
+            "properties": {
+              "verdict": {
+                "description": "Engine s 109E outcome, including MYR_MET, MYR_SHORT, UNKNOWN or REFUSED.",
+                "title": "Verdict",
+                "type": "string"
+              },
+              "loan_id": {
+                "description": "Operator loan reference.",
+                "title": "Loan Id",
+                "type": "string"
+              },
+              "year_of_income": {
+                "description": "Income or dataset year in YYYY-YY form.",
+                "pattern": "^[0-9]{4}-[0-9]{2}$",
+                "title": "Year Of Income",
+                "type": "string"
+              },
+              "gate_verdict": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "description": "s 109N gate outcome used in the repayment review.",
+                "title": "Gate Verdict"
+              },
+              "benchmark_rate": {
+                "anyOf": [
+                  {
+                    "description": "Finite engine decimal string, including exponent notation; retain its precision.",
+                    "pattern": "^[+-]?(?:[0-9]+(?:\\.[0-9]*)?|\\.[0-9]+)(?:[eE][+-]?[0-9]+)?$",
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "description": "Engine decimal string, or null when unavailable; null is not zero.",
+                "title": "Benchmark Rate"
+              },
+              "amalgamated_loan_unpaid_at_end_of_previous_year": {
+                "anyOf": [
+                  {
+                    "description": "Finite engine decimal string, including exponent notation; retain its precision.",
+                    "pattern": "^[+-]?(?:[0-9]+(?:\\.[0-9]*)?|\\.[0-9]+)(?:[eE][+-]?[0-9]+)?$",
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "description": "Engine decimal string, or null when unavailable; null is not zero.",
+                "title": "Amalgamated Loan Unpaid At End Of Previous Year"
+              },
+              "remaining_term_years_used": {
+                "anyOf": [
+                  {
+                    "description": "Finite engine decimal string, including exponent notation; retain its precision.",
+                    "pattern": "^[+-]?(?:[0-9]+(?:\\.[0-9]*)?|\\.[0-9]+)(?:[eE][+-]?[0-9]+)?$",
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "description": "Engine decimal string, or null when unavailable; null is not zero.",
+                "title": "Remaining Term Years Used"
+              },
+              "myr_required": {
+                "anyOf": [
+                  {
+                    "description": "Finite engine decimal string, including exponent notation; retain its precision.",
+                    "pattern": "^[+-]?(?:[0-9]+(?:\\.[0-9]*)?|\\.[0-9]+)(?:[eE][+-]?[0-9]+)?$",
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "description": "Required repayment in AUD; null if not determined.",
+                "title": "Myr Required"
+              },
+              "payments_applied": {
+                "anyOf": [
+                  {
+                    "description": "Finite engine decimal string, including exponent notation; retain its precision.",
+                    "pattern": "^[+-]?(?:[0-9]+(?:\\.[0-9]*)?|\\.[0-9]+)(?:[eE][+-]?[0-9]+)?$",
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "description": "Engine decimal string, or null when unavailable; null is not zero.",
+                "title": "Payments Applied"
+              },
+              "shortfall": {
+                "anyOf": [
+                  {
+                    "description": "Finite engine decimal string, including exponent notation; retain its precision.",
+                    "pattern": "^[+-]?(?:[0-9]+(?:\\.[0-9]*)?|\\.[0-9]+)(?:[eE][+-]?[0-9]+)?$",
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "description": "Engine decimal string, or null when unavailable; null is not zero.",
+                "title": "Shortfall"
+              },
+              "experimental_deemed_dividend_exposure": {
+                "anyOf": [
+                  {
+                    "description": "Finite engine decimal string, including exponent notation; retain its precision.",
+                    "pattern": "^[+-]?(?:[0-9]+(?:\\.[0-9]*)?|\\.[0-9]+)(?:[eE][+-]?[0-9]+)?$",
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "description": "Experimental AUD exposure only, not an assessed dividend; null if unknown.",
+                "title": "Experimental Deemed Dividend Exposure"
+              },
+              "rounding": {
+                "description": "Rounding rule reported by the engine.",
+                "title": "Rounding",
+                "type": "string"
+              },
+              "reasons": {
+                "description": "Engine reasons for the reported verdict.",
+                "items": {
+                  "type": "string"
+                },
+                "title": "Reasons",
+                "type": "array"
+              },
+              "reason_codes": {
+                "description": "Stable token per reason, aligned with `reasons` by position.",
+                "items": {
+                  "type": "string"
+                },
+                "title": "Reason Codes",
+                "type": "array"
+              },
+              "caveats": {
+                "description": "Limitations to retain when presenting the result.",
+                "items": {
+                  "type": "string"
+                },
+                "title": "Caveats",
+                "type": "array"
+              }
+            },
+            "required": [
+              "verdict",
+              "loan_id",
+              "year_of_income",
+              "gate_verdict",
+              "benchmark_rate",
+              "amalgamated_loan_unpaid_at_end_of_previous_year",
+              "remaining_term_years_used",
+              "myr_required",
+              "payments_applied",
+              "shortfall",
+              "experimental_deemed_dividend_exposure",
+              "rounding",
+              "reasons",
+              "reason_codes",
+              "caveats"
+            ],
+            "title": "Div7aRepayment",
+            "type": "object"
+          },
+          "GateFull": {
+            "additionalProperties": true,
+            "properties": {
+              "verdict": {
+                "description": "Reviewed s 109N gate only; UNKNOWN never means false or compliant.",
+                "enum": [
+                  "COMPLYING",
+                  "NOT_COMPLYING",
+                  "UNKNOWN"
+                ],
+                "title": "Verdict",
+                "type": "string"
+              },
+              "loan_id": {
+                "description": "Operator loan reference.",
+                "title": "Loan Id",
+                "type": "string"
+              },
+              "benchmark_year_used": {
+                "anyOf": [
+                  {
+                    "description": "Income or dataset year in YYYY-YY form.",
+                    "pattern": "^[0-9]{4}-[0-9]{2}$",
+                    "type": "string"
+                  },
+                  {
+                    "const": "",
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "description": "Engine benchmark year, YYYY-YY, or empty/null when unknown.",
+                "title": "Benchmark Year Used"
+              },
+              "benchmark_rate": {
+                "anyOf": [
+                  {
+                    "description": "Finite engine decimal string, including exponent notation; retain its precision.",
+                    "pattern": "^[+-]?(?:[0-9]+(?:\\.[0-9]*)?|\\.[0-9]+)(?:[eE][+-]?[0-9]+)?$",
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "description": "Engine decimal string, or null when unavailable; null is not zero.",
+                "title": "Benchmark Rate"
+              },
+              "maximum_term_years_allowed": {
+                "anyOf": [
+                  {
+                    "description": "Finite engine decimal string, including exponent notation; retain its precision.",
+                    "pattern": "^[+-]?(?:[0-9]+(?:\\.[0-9]*)?|\\.[0-9]+)(?:[eE][+-]?[0-9]+)?$",
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "description": "Engine decimal string, or null when unavailable; null is not zero.",
+                "title": "Maximum Term Years Allowed"
+              },
+              "reasons": {
+                "description": "Engine reasons for the reported verdict.",
+                "items": {
+                  "type": "string"
+                },
+                "title": "Reasons",
+                "type": "array"
+              },
+              "reason_codes": {
+                "description": "Stable token per reason, aligned with `reasons` by position.",
+                "items": {
+                  "type": "string"
+                },
+                "title": "Reason Codes",
+                "type": "array"
+              },
+              "caveats": {
+                "description": "Limitations to retain when presenting the result.",
+                "items": {
+                  "type": "string"
+                },
+                "title": "Caveats",
+                "type": "array"
+              },
+              "benchmark_provenance": {
+                "anyOf": [
+                  {
+                    "additionalProperties": true,
+                    "description": "Unmodified engine source metadata and review provenance.",
+                    "type": "object"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "title": "Benchmark Provenance"
+              },
+              "manifest": {
+                "$ref": "#/$defs/Manifest"
+              },
+              "limbs": {
+                "description": "Individual s 109N findings.",
+                "items": {
+                  "additionalProperties": {
+                    "type": "string"
+                  },
+                  "type": "object"
+                },
+                "title": "Limbs",
+                "type": "array"
+              },
+              "statutory_trace": {
+                "description": "Engine statutory citations and audit trace; full only.",
+                "items": {
+                  "type": "string"
+                },
+                "title": "Statutory Trace",
+                "type": "array"
+              }
+            },
+            "required": [
+              "verdict",
+              "loan_id",
+              "benchmark_year_used",
+              "benchmark_rate",
+              "maximum_term_years_allowed",
+              "reasons",
+              "reason_codes",
+              "caveats",
+              "benchmark_provenance",
+              "manifest",
+              "limbs",
+              "statutory_trace"
+            ],
+            "title": "GateFull",
+            "type": "object"
+          },
+          "Manifest": {
+            "additionalProperties": true,
+            "description": "Which statutory tables a figure was computed from, and their digests.",
+            "properties": {
+              "rate_table_uris": {
+                "description": "Statutory rate tables this answer consumed, each with the digest of what was read. Empty when no rate table was consulted.",
+                "items": {
+                  "$ref": "#/$defs/RateTableSource"
+                },
+                "title": "Rate Table Uris",
+                "type": "array"
+              }
+            },
+            "required": [
+              "rate_table_uris"
+            ],
+            "title": "Manifest",
+            "type": "object"
+          },
+          "RateTableSource": {
+            "additionalProperties": true,
+            "properties": {
+              "uri": {
+                "description": "The rate table the engine read.",
+                "title": "Uri",
+                "type": "string"
+              },
+              "sha256": {
+                "description": "SHA-256 of the table text the figure was computed from.",
+                "title": "Sha256",
+                "type": "string"
+              }
+            },
+            "required": [
+              "uri",
+              "sha256"
+            ],
+            "title": "RateTableSource",
+            "type": "object"
+          },
+          "RepaymentFull": {
+            "additionalProperties": true,
+            "properties": {
+              "verdict": {
+                "description": "Engine s 109E outcome, including MYR_MET, MYR_SHORT, UNKNOWN or REFUSED.",
+                "title": "Verdict",
+                "type": "string"
+              },
+              "loan_id": {
+                "description": "Operator loan reference.",
+                "title": "Loan Id",
+                "type": "string"
+              },
+              "year_of_income": {
+                "description": "Income or dataset year in YYYY-YY form.",
+                "pattern": "^[0-9]{4}-[0-9]{2}$",
+                "title": "Year Of Income",
+                "type": "string"
+              },
+              "gate_verdict": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "description": "s 109N gate outcome used in the repayment review.",
+                "title": "Gate Verdict"
+              },
+              "benchmark_rate": {
+                "anyOf": [
+                  {
+                    "description": "Finite engine decimal string, including exponent notation; retain its precision.",
+                    "pattern": "^[+-]?(?:[0-9]+(?:\\.[0-9]*)?|\\.[0-9]+)(?:[eE][+-]?[0-9]+)?$",
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "description": "Engine decimal string, or null when unavailable; null is not zero.",
+                "title": "Benchmark Rate"
+              },
+              "amalgamated_loan_unpaid_at_end_of_previous_year": {
+                "anyOf": [
+                  {
+                    "description": "Finite engine decimal string, including exponent notation; retain its precision.",
+                    "pattern": "^[+-]?(?:[0-9]+(?:\\.[0-9]*)?|\\.[0-9]+)(?:[eE][+-]?[0-9]+)?$",
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "description": "Engine decimal string, or null when unavailable; null is not zero.",
+                "title": "Amalgamated Loan Unpaid At End Of Previous Year"
+              },
+              "remaining_term_years_used": {
+                "anyOf": [
+                  {
+                    "description": "Finite engine decimal string, including exponent notation; retain its precision.",
+                    "pattern": "^[+-]?(?:[0-9]+(?:\\.[0-9]*)?|\\.[0-9]+)(?:[eE][+-]?[0-9]+)?$",
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "description": "Engine decimal string, or null when unavailable; null is not zero.",
+                "title": "Remaining Term Years Used"
+              },
+              "myr_required": {
+                "anyOf": [
+                  {
+                    "description": "Finite engine decimal string, including exponent notation; retain its precision.",
+                    "pattern": "^[+-]?(?:[0-9]+(?:\\.[0-9]*)?|\\.[0-9]+)(?:[eE][+-]?[0-9]+)?$",
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "description": "Required repayment in AUD; null if not determined.",
+                "title": "Myr Required"
+              },
+              "payments_applied": {
+                "anyOf": [
+                  {
+                    "description": "Finite engine decimal string, including exponent notation; retain its precision.",
+                    "pattern": "^[+-]?(?:[0-9]+(?:\\.[0-9]*)?|\\.[0-9]+)(?:[eE][+-]?[0-9]+)?$",
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "description": "Engine decimal string, or null when unavailable; null is not zero.",
+                "title": "Payments Applied"
+              },
+              "shortfall": {
+                "anyOf": [
+                  {
+                    "description": "Finite engine decimal string, including exponent notation; retain its precision.",
+                    "pattern": "^[+-]?(?:[0-9]+(?:\\.[0-9]*)?|\\.[0-9]+)(?:[eE][+-]?[0-9]+)?$",
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "description": "Engine decimal string, or null when unavailable; null is not zero.",
+                "title": "Shortfall"
+              },
+              "experimental_deemed_dividend_exposure": {
+                "anyOf": [
+                  {
+                    "description": "Finite engine decimal string, including exponent notation; retain its precision.",
+                    "pattern": "^[+-]?(?:[0-9]+(?:\\.[0-9]*)?|\\.[0-9]+)(?:[eE][+-]?[0-9]+)?$",
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "description": "Experimental AUD exposure only, not an assessed dividend; null if unknown.",
+                "title": "Experimental Deemed Dividend Exposure"
+              },
+              "rounding": {
+                "description": "Rounding rule reported by the engine.",
+                "title": "Rounding",
+                "type": "string"
+              },
+              "reasons": {
+                "description": "Engine reasons for the reported verdict.",
+                "items": {
+                  "type": "string"
+                },
+                "title": "Reasons",
+                "type": "array"
+              },
+              "reason_codes": {
+                "description": "Stable token per reason, aligned with `reasons` by position.",
+                "items": {
+                  "type": "string"
+                },
+                "title": "Reason Codes",
+                "type": "array"
+              },
+              "caveats": {
+                "description": "Limitations to retain when presenting the result.",
+                "items": {
+                  "type": "string"
+                },
+                "title": "Caveats",
+                "type": "array"
+              },
+              "benchmark_provenance": {
+                "anyOf": [
+                  {
+                    "additionalProperties": true,
+                    "description": "Unmodified engine source metadata and review provenance.",
+                    "type": "object"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "title": "Benchmark Provenance"
+              },
+              "manifest": {
+                "$ref": "#/$defs/Manifest"
+              },
+              "statutory_trace": {
+                "description": "Engine statutory citations and audit trace; full only.",
+                "items": {
+                  "type": "string"
+                },
+                "title": "Statutory Trace",
+                "type": "array"
+              }
+            },
+            "required": [
+              "verdict",
+              "loan_id",
+              "year_of_income",
+              "gate_verdict",
+              "benchmark_rate",
+              "amalgamated_loan_unpaid_at_end_of_previous_year",
+              "remaining_term_years_used",
+              "myr_required",
+              "payments_applied",
+              "shortfall",
+              "experimental_deemed_dividend_exposure",
+              "rounding",
+              "reasons",
+              "reason_codes",
+              "caveats",
+              "benchmark_provenance",
+              "manifest",
+              "statutory_trace"
+            ],
+            "title": "RepaymentFull",
+            "type": "object"
+          },
+          "ReviewFull": {
+            "additionalProperties": true,
+            "not": {
+              "required": [
+                "response_detail"
+              ]
+            },
+            "properties": {
+              "ok": {
+                "const": true,
+                "description": "The review ran; this does not mean compliance or a known verdict.",
+                "title": "Ok",
+                "type": "boolean"
+              },
+              "engine": {
+                "description": "Delegated distribution that produced this result.",
+                "title": "Engine",
+                "type": "string"
+              },
+              "engine_version": {
+                "description": "Installed version of that engine.",
+                "title": "Engine Version",
+                "type": "string"
+              },
+              "law_content_date": {
+                "description": "Date in YYYY-MM-DD form.",
+                "format": "date",
+                "pattern": "^[0-9]{4}-(?:0[1-9]|1[0-2])-(?:0[1-9]|[12][0-9]|3[01])$",
+                "title": "Law Content Date",
+                "type": "string"
+              },
+              "law_compilation": {
+                "description": "Compiled law identified by the engine.",
+                "title": "Law Compilation",
+                "type": "string"
+              },
+              "disclaimer": {
+                "description": "Experimental scope and human-review requirements.",
+                "title": "Disclaimer",
+                "type": "string"
+              },
+              "gate": {
+                "$ref": "#/$defs/GateFull",
+                "description": "s 109N gate with full audit fields."
+              },
+              "minimum_yearly_repayment": {
+                "$ref": "#/$defs/RepaymentFull",
+                "description": "s 109E review with full audit fields."
+              }
+            },
+            "required": [
+              "ok",
+              "engine",
+              "engine_version",
+              "law_content_date",
+              "law_compilation",
+              "disclaimer",
+              "gate",
+              "minimum_yearly_repayment"
+            ],
+            "title": "ReviewFull",
+            "type": "object"
+          },
+          "ReviewSummary": {
+            "additionalProperties": true,
+            "properties": {
+              "ok": {
+                "const": true,
+                "description": "The review ran; this does not mean compliance or a known verdict.",
+                "title": "Ok",
+                "type": "boolean"
+              },
+              "engine": {
+                "description": "Delegated distribution that produced this result.",
+                "title": "Engine",
+                "type": "string"
+              },
+              "engine_version": {
+                "description": "Installed version of that engine.",
+                "title": "Engine Version",
+                "type": "string"
+              },
+              "law_content_date": {
+                "description": "Date in YYYY-MM-DD form.",
+                "format": "date",
+                "pattern": "^[0-9]{4}-(?:0[1-9]|1[0-2])-(?:0[1-9]|[12][0-9]|3[01])$",
+                "title": "Law Content Date",
+                "type": "string"
+              },
+              "law_compilation": {
+                "description": "Compiled law identified by the engine.",
+                "title": "Law Compilation",
+                "type": "string"
+              },
+              "disclaimer": {
+                "description": "Experimental scope and human-review requirements.",
+                "title": "Disclaimer",
+                "type": "string"
+              },
+              "response_detail": {
+                "const": "summary",
+                "description": "Summary response marker.",
+                "title": "Response Detail",
+                "type": "string"
+              },
+              "source": {
+                "$ref": "#/$defs/VerificationSource",
+                "description": "Concise verification source."
+              },
+              "gate": {
+                "$ref": "#/$defs/Div7aGate",
+                "description": "s 109N gate outcome and reasons."
+              },
+              "minimum_yearly_repayment": {
+                "$ref": "#/$defs/Div7aRepayment",
+                "description": "s 109E review or refusal."
+              }
+            },
+            "required": [
+              "ok",
+              "engine",
+              "engine_version",
+              "law_content_date",
+              "law_compilation",
+              "disclaimer",
+              "response_detail",
+              "source",
+              "gate",
+              "minimum_yearly_repayment"
+            ],
+            "title": "ReviewSummary",
+            "type": "object"
+          },
+          "VerificationSource": {
+            "additionalProperties": true,
+            "properties": {
+              "verify_at": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "description": "Engine verification URL; empty or null when none is available.",
+                "title": "Verify At"
+              },
+              "rate_table_uris": {
+                "description": "Statutory rate tables this answer consumed, each with the digest of what was read. Empty when the figure came from the request alone.",
+                "items": {
+                  "$ref": "#/$defs/RateTableSource"
+                },
+                "title": "Rate Table Uris",
+                "type": "array"
+              }
+            },
+            "required": [
+              "verify_at",
+              "rate_table_uris"
+            ],
+            "title": "VerificationSource",
+            "type": "object"
+          }
+        },
+        "anyOf": [
+          {
+            "$ref": "#/$defs/ReviewSummary"
+          },
+          {
+            "$ref": "#/$defs/ReviewFull"
+          }
+        ],
+        "title": "Div7aReview"
+      },
+      "title": "Review a Division 7A loan"
+    },
+    {
+      "annotations": {
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": false,
+        "readOnlyHint": true
+      },
+      "description": "Return an explicit refusal for unsupported Division 7A matters.\n\nTakes no arguments: the questions this server refuses arrive with no loan\nfacts, so do not invent a borrower, a lender or a principal to reach it.\n\nUse review_div7a_loan for reviewed s 109N/s 109E loan facts, or\nget_div7a_benchmark_rate for a reviewed rate. This tool always returns\nERR_POLICY_DIV7A_SCOPE_REFUSED with the scope explanation; it never\ncalculates a repayment. No network, writes or lodgements.\n",
+      "inputSchema": {
+        "properties": {},
+        "type": "object",
+        "title": "refuse_div7aArguments",
+        "additionalProperties": false
+      },
+      "name": "refuse_div7a",
+      "outputSchema": {
+        "properties": {
+          "ok": {
+            "const": false,
+            "description": "Unsupported request was refused.",
+            "title": "Ok",
+            "type": "boolean"
+          },
+          "available": {
+            "const": false,
+            "description": "This compatibility tool cannot calculate a repayment.",
+            "title": "Available",
+            "type": "boolean"
+          },
+          "reviewed_engine": {
+            "const": true,
+            "description": "Separate tools expose the reviewed engine scope.",
+            "title": "Reviewed Engine",
+            "type": "boolean"
+          },
+          "code": {
+            "const": "ERR_POLICY_DIV7A_SCOPE_REFUSED",
+            "description": "Machine-readable refusal code.",
+            "title": "Code",
+            "type": "string"
+          },
+          "reason": {
+            "description": "Supported alternatives and excluded matters.",
+            "title": "Reason",
+            "type": "string"
+          }
+        },
+        "required": [
+          "ok",
+          "available",
+          "reviewed_engine",
+          "code",
+          "reason"
+        ],
+        "type": "object",
+        "additionalProperties": true,
+        "title": "ScopeRefusal"
+      },
+      "title": "Refuse an unsupported Division 7A matter"
+    },
+    {
+      "annotations": {
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": false
+      },
+      "description": "Calculate one of fourteen bounded tax and super worksheets, GST to Division 293.\n\nEach kind has a bounded scope and period in aus-accounting://scope. Most cover\n2025-26; resident basic tax also covers 2024-25 and 2026-27. FBT covers the year\nended 31 March 2026. PAYG withholding covers regular pays from 1 July 2026.\nContribution caps and account-based pension minimums cover 2024-25 to 2026-27.\nStudy loan repayments cover 2025-26 and 2026-27 from established repayment income.\nStudy loan withholding adds the Schedule 8 component to regular pays from 1 July 2026.\nThe single Medicare levy covers 2024-25 and 2025-26; the low income tax offset\nand Division 293 tax cover 2024-25 to 2026-27.\nRequire operator-established classifications and eligibility.\nPass scope_confirmed true only after establishing every scope condition listed\nin calculation_worksheets for the kind; resolve missing or uncertain scope first.\nScope confirmation is not evidence of eligibility. Never invent it. Every money\nfield is a non-negative AUD amount in plain decimal notation, such as 1234.56,\nwith at most 2 decimal places and at most 1000000000000.00.\nResults include engine version, source-check date, citations and exclusions.\nWith file_note true the result also carries a Markdown file note that restates\nit for a workpaper; a refused worksheet still returns only its refusal.\nThese worksheets do not prepare a BAS or return, apply Medicare family reductions,\nexemptions or the surcharge, limit a study loan repayment to the loan balance,\nvalue benefits or assets, or establish post-June 2026 SG entitlement.\nAll maths stays in australian-tax-calculators. Local review aid, not advice.\n",
+      "inputSchema": {
+        "$defs": {
+          "CapitalGainsFacts": {
+            "additionalProperties": false,
+            "properties": {
+              "scope_confirmed": {
+                "description": "Scope confirmation for this kind; false is refused.",
+                "title": "Scope Confirmed",
+                "type": "boolean"
+              },
+              "kind": {
+                "const": "capital_gains",
+                "title": "Kind",
+                "type": "string"
+              },
+              "year": {
+                "const": "2025-26",
+                "title": "Year",
+                "type": "string"
+              },
+              "other_gains": {
+                "description": "AUD decimal string.",
+                "maxLength": 60,
+                "pattern": "^\\s*-?[0-9]+(?:\\.[0-9]{1,2})?\\s*$",
+                "title": "Other Gains",
+                "type": "string"
+              },
+              "discount_gains": {
+                "description": "AUD decimal string.",
+                "maxLength": 60,
+                "pattern": "^\\s*-?[0-9]+(?:\\.[0-9]{1,2})?\\s*$",
+                "title": "Discount Gains",
+                "type": "string"
+              },
+              "current_losses": {
+                "description": "AUD decimal string.",
+                "maxLength": 60,
+                "pattern": "^\\s*-?[0-9]+(?:\\.[0-9]{1,2})?\\s*$",
+                "title": "Current Losses",
+                "type": "string"
+              },
+              "prior_losses": {
+                "description": "AUD decimal string.",
+                "maxLength": 60,
+                "pattern": "^\\s*-?[0-9]+(?:\\.[0-9]{1,2})?\\s*$",
+                "title": "Prior Losses",
+                "type": "string"
+              }
+            },
+            "required": [
+              "scope_confirmed",
+              "kind",
+              "year",
+              "other_gains",
+              "discount_gains",
+              "current_losses",
+              "prior_losses"
+            ],
+            "title": "CapitalGainsFacts",
+            "type": "object"
+          },
+          "ContributionCapsFacts": {
+            "additionalProperties": false,
+            "properties": {
+              "scope_confirmed": {
+                "description": "Scope confirmation for this kind; false is refused.",
+                "title": "Scope Confirmed",
+                "type": "boolean"
+              },
+              "kind": {
+                "const": "contribution_caps",
+                "title": "Kind",
+                "type": "string"
+              },
+              "year": {
+                "enum": [
+                  "2024-25",
+                  "2025-26",
+                  "2026-27"
+                ],
+                "title": "Year",
+                "type": "string"
+              },
+              "total_super_balance": {
+                "description": "Total super balance at the 30 June before the year.",
+                "maxLength": 60,
+                "pattern": "^\\s*-?[0-9]+(?:\\.[0-9]{1,2})?\\s*$",
+                "title": "Total Super Balance",
+                "type": "string"
+              },
+              "concessional_contributions": {
+                "description": "AUD decimal string.",
+                "maxLength": 60,
+                "pattern": "^\\s*-?[0-9]+(?:\\.[0-9]{1,2})?\\s*$",
+                "title": "Concessional Contributions",
+                "type": "string"
+              },
+              "unused_concessional_cap": {
+                "description": "Unexpired unused concessional cap from the previous 5 years; 0.00 if none.",
+                "maxLength": 60,
+                "pattern": "^\\s*-?[0-9]+(?:\\.[0-9]{1,2})?\\s*$",
+                "title": "Unused Concessional Cap",
+                "type": "string"
+              },
+              "non_concessional_contributions": {
+                "description": "AUD decimal string.",
+                "maxLength": 60,
+                "pattern": "^\\s*-?[0-9]+(?:\\.[0-9]{1,2})?\\s*$",
+                "title": "Non Concessional Contributions",
+                "type": "string"
+              },
+              "under_75_in_year": {
+                "description": "Whether the person is under 75 at any time in the income year.",
+                "title": "Under 75 In Year",
+                "type": "boolean"
+              }
+            },
+            "required": [
+              "scope_confirmed",
+              "kind",
+              "year",
+              "total_super_balance",
+              "concessional_contributions",
+              "unused_concessional_cap",
+              "non_concessional_contributions",
+              "under_75_in_year"
+            ],
+            "title": "ContributionCapsFacts",
+            "type": "object"
+          },
+          "DepreciationFacts": {
+            "additionalProperties": false,
+            "properties": {
+              "scope_confirmed": {
+                "description": "Scope confirmation for this kind; false is refused.",
+                "title": "Scope Confirmed",
+                "type": "boolean"
+              },
+              "kind": {
+                "const": "depreciation",
+                "title": "Kind",
+                "type": "string"
+              },
+              "year": {
+                "const": "2025-26",
+                "title": "Year",
+                "type": "string"
+              },
+              "cost": {
+                "description": "AUD decimal string.",
+                "maxLength": 60,
+                "pattern": "^\\s*-?[0-9]+(?:\\.[0-9]{1,2})?\\s*$",
+                "title": "Cost",
+                "type": "string"
+              },
+              "effective_life": {
+                "description": "Finite decimal string, not a percentage.",
+                "maxLength": 30,
+                "title": "Effective Life",
+                "type": "string"
+              },
+              "days": {
+                "description": "Days from first use or installation ready for use in 2025-26.",
+                "maximum": 365,
+                "minimum": 0,
+                "title": "Days",
+                "type": "integer"
+              },
+              "taxable_use": {
+                "description": "Finite decimal string, not a percentage.",
+                "maxLength": 30,
+                "title": "Taxable Use",
+                "type": "string"
+              },
+              "method": {
+                "enum": [
+                  "prime_cost",
+                  "diminishing_value"
+                ],
+                "title": "Method",
+                "type": "string"
+              }
+            },
+            "required": [
+              "scope_confirmed",
+              "kind",
+              "year",
+              "cost",
+              "effective_life",
+              "days",
+              "taxable_use",
+              "method"
+            ],
+            "title": "DepreciationFacts",
+            "type": "object"
+          },
+          "Division293Facts": {
+            "additionalProperties": false,
+            "properties": {
+              "scope_confirmed": {
+                "description": "Scope confirmation for this kind; false is refused.",
+                "title": "Scope Confirmed",
+                "type": "boolean"
+              },
+              "kind": {
+                "const": "division_293",
+                "title": "Kind",
+                "type": "string"
+              },
+              "year": {
+                "enum": [
+                  "2024-25",
+                  "2025-26",
+                  "2026-27"
+                ],
+                "title": "Year",
+                "type": "string"
+              },
+              "division_293_income": {
+                "description": "Income for surcharge purposes, disregarding reportable super contributions.",
+                "maxLength": 60,
+                "pattern": "^\\s*-?[0-9]+(?:\\.[0-9]{1,2})?\\s*$",
+                "title": "Division 293 Income",
+                "type": "string"
+              },
+              "low_tax_contributions": {
+                "description": "Low tax contributed amounts less excess concessional contributions.",
+                "maxLength": 60,
+                "pattern": "^\\s*-?[0-9]+(?:\\.[0-9]{1,2})?\\s*$",
+                "title": "Low Tax Contributions",
+                "type": "string"
+              }
+            },
+            "required": [
+              "scope_confirmed",
+              "kind",
+              "year",
+              "division_293_income",
+              "low_tax_contributions"
+            ],
+            "title": "Division293Facts",
+            "type": "object"
+          },
+          "FbtFacts": {
+            "additionalProperties": false,
+            "properties": {
+              "scope_confirmed": {
+                "description": "Scope confirmation for this kind; false is refused.",
+                "title": "Scope Confirmed",
+                "type": "boolean"
+              },
+              "kind": {
+                "const": "fbt",
+                "title": "Kind",
+                "type": "string"
+              },
+              "year_ended": {
+                "description": "FBT year ended 31 March 2026, not an income year.",
+                "maximum": 2026,
+                "minimum": 2026,
+                "title": "Year Ended",
+                "type": "integer"
+              },
+              "type_one_value": {
+                "description": "AUD decimal string.",
+                "maxLength": 60,
+                "pattern": "^\\s*-?[0-9]+(?:\\.[0-9]{1,2})?\\s*$",
+                "title": "Type One Value",
+                "type": "string"
+              },
+              "type_two_value": {
+                "description": "AUD decimal string.",
+                "maxLength": 60,
+                "pattern": "^\\s*-?[0-9]+(?:\\.[0-9]{1,2})?\\s*$",
+                "title": "Type Two Value",
+                "type": "string"
+              }
+            },
+            "required": [
+              "scope_confirmed",
+              "kind",
+              "year_ended",
+              "type_one_value",
+              "type_two_value"
+            ],
+            "title": "FbtFacts",
+            "type": "object"
+          },
+          "GstFacts": {
+            "additionalProperties": false,
+            "properties": {
+              "scope_confirmed": {
+                "description": "Scope confirmation for this kind; false is refused.",
+                "title": "Scope Confirmed",
+                "type": "boolean"
+              },
+              "kind": {
+                "const": "gst",
+                "title": "Kind",
+                "type": "string"
+              },
+              "year": {
+                "const": "2025-26",
+                "title": "Year",
+                "type": "string"
+              },
+              "amount": {
+                "description": "AUD decimal string.",
+                "maxLength": 60,
+                "pattern": "^\\s*-?[0-9]+(?:\\.[0-9]{1,2})?\\s*$",
+                "title": "Amount",
+                "type": "string"
+              },
+              "gst_inclusive": {
+                "description": "Whether the established taxable price includes GST.",
+                "title": "Gst Inclusive",
+                "type": "boolean"
+              }
+            },
+            "required": [
+              "scope_confirmed",
+              "kind",
+              "year",
+              "amount",
+              "gst_inclusive"
+            ],
+            "title": "GstFacts",
+            "type": "object"
+          },
+          "LowIncomeTaxOffsetFacts": {
+            "additionalProperties": false,
+            "properties": {
+              "scope_confirmed": {
+                "description": "Scope confirmation for this kind; false is refused.",
+                "title": "Scope Confirmed",
+                "type": "boolean"
+              },
+              "kind": {
+                "const": "low_income_tax_offset",
+                "title": "Kind",
+                "type": "string"
+              },
+              "year": {
+                "enum": [
+                  "2024-25",
+                  "2025-26",
+                  "2026-27"
+                ],
+                "title": "Year",
+                "type": "string"
+              },
+              "taxable_income": {
+                "description": "AUD decimal string.",
+                "maxLength": 60,
+                "pattern": "^\\s*-?[0-9]+(?:\\.[0-9]{1,2})?\\s*$",
+                "title": "Taxable Income",
+                "type": "string"
+              }
+            },
+            "required": [
+              "scope_confirmed",
+              "kind",
+              "year",
+              "taxable_income"
+            ],
+            "title": "LowIncomeTaxOffsetFacts",
+            "type": "object"
+          },
+          "MedicareLevyFacts": {
+            "additionalProperties": false,
+            "properties": {
+              "scope_confirmed": {
+                "description": "Scope confirmation for this kind; false is refused.",
+                "title": "Scope Confirmed",
+                "type": "boolean"
+              },
+              "kind": {
+                "const": "medicare_levy",
+                "title": "Kind",
+                "type": "string"
+              },
+              "year": {
+                "enum": [
+                  "2024-25",
+                  "2025-26"
+                ],
+                "title": "Year",
+                "type": "string"
+              },
+              "taxable_income": {
+                "description": "AUD decimal string.",
+                "maxLength": 60,
+                "pattern": "^\\s*-?[0-9]+(?:\\.[0-9]{1,2})?\\s*$",
+                "title": "Taxable Income",
+                "type": "string"
+              },
+              "section_9a_adjustment_applies": {
+                "description": "Whether Medicare Levy Act 1986 s 9A takes lump sums in arrears out of taxable income; true is refused.",
+                "title": "Section 9A Adjustment Applies",
+                "type": "boolean"
+              }
+            },
+            "required": [
+              "scope_confirmed",
+              "kind",
+              "year",
+              "taxable_income",
+              "section_9a_adjustment_applies"
+            ],
+            "title": "MedicareLevyFacts",
+            "type": "object"
+          },
+          "PaygWithholdingFacts": {
+            "additionalProperties": false,
+            "properties": {
+              "scope_confirmed": {
+                "description": "Scope confirmation for this kind; false is refused.",
+                "title": "Scope Confirmed",
+                "type": "boolean"
+              },
+              "kind": {
+                "const": "payg_withholding",
+                "title": "Kind",
+                "type": "string"
+              },
+              "year": {
+                "const": "2026-27",
+                "title": "Year",
+                "type": "string"
+              },
+              "earnings": {
+                "description": "AUD decimal string.",
+                "maxLength": 60,
+                "pattern": "^\\s*-?[0-9]+(?:\\.[0-9]{1,2})?\\s*$",
+                "title": "Earnings",
+                "type": "string"
+              },
+              "pay_period": {
+                "enum": [
+                  "weekly",
+                  "fortnightly",
+                  "monthly"
+                ],
+                "title": "Pay Period",
+                "type": "string"
+              },
+              "scale": {
+                "description": "Schedule 1 scale from the payee's declarations; scale 4 is not supported.",
+                "enum": [
+                  1,
+                  2,
+                  3,
+                  5,
+                  6
+                ],
+                "title": "Scale",
+                "type": "integer"
+              }
+            },
+            "required": [
+              "scope_confirmed",
+              "kind",
+              "year",
+              "earnings",
+              "pay_period",
+              "scale"
+            ],
+            "title": "PaygWithholdingFacts",
+            "type": "object"
+          },
+          "PensionMinimumFacts": {
+            "additionalProperties": false,
+            "properties": {
+              "scope_confirmed": {
+                "description": "Scope confirmation for this kind; false is refused.",
+                "title": "Scope Confirmed",
+                "type": "boolean"
+              },
+              "kind": {
+                "const": "pension_minimum",
+                "title": "Kind",
+                "type": "string"
+              },
+              "year": {
+                "enum": [
+                  "2024-25",
+                  "2025-26",
+                  "2026-27"
+                ],
+                "title": "Year",
+                "type": "string"
+              },
+              "account_balance": {
+                "description": "Balance on 1 July, or on the commencement day in the first year.",
+                "maxLength": 60,
+                "pattern": "^\\s*-?[0-9]+(?:\\.[0-9]{1,2})?\\s*$",
+                "title": "Account Balance",
+                "type": "string"
+              },
+              "age": {
+                "description": "Age on the day the account balance is taken.",
+                "maximum": 150,
+                "minimum": 0,
+                "title": "Age",
+                "type": "integer"
+              },
+              "days": {
+                "description": "Days in the year from and including the commencement day; every day of the year for a pension running on 1 July.",
+                "maximum": 365,
+                "minimum": 1,
+                "title": "Days",
+                "type": "integer"
+              }
+            },
+            "required": [
+              "scope_confirmed",
+              "kind",
+              "year",
+              "account_balance",
+              "age",
+              "days"
+            ],
+            "title": "PensionMinimumFacts",
+            "type": "object"
+          },
+          "ResidentTaxFacts": {
+            "additionalProperties": false,
+            "properties": {
+              "scope_confirmed": {
+                "description": "Scope confirmation for this kind; false is refused.",
+                "title": "Scope Confirmed",
+                "type": "boolean"
+              },
+              "kind": {
+                "const": "resident_tax",
+                "title": "Kind",
+                "type": "string"
+              },
+              "year": {
+                "enum": [
+                  "2024-25",
+                  "2025-26",
+                  "2026-27"
+                ],
+                "title": "Year",
+                "type": "string"
+              },
+              "taxable_income": {
+                "description": "AUD decimal string.",
+                "maxLength": 60,
+                "pattern": "^\\s*-?[0-9]+(?:\\.[0-9]{1,2})?\\s*$",
+                "title": "Taxable Income",
+                "type": "string"
+              }
+            },
+            "required": [
+              "scope_confirmed",
+              "kind",
+              "year",
+              "taxable_income"
+            ],
+            "title": "ResidentTaxFacts",
+            "type": "object"
+          },
+          "SgFacts": {
+            "additionalProperties": false,
+            "properties": {
+              "scope_confirmed": {
+                "description": "Scope confirmation for this kind; false is refused.",
+                "title": "Scope Confirmed",
+                "type": "boolean"
+              },
+              "kind": {
+                "const": "quarterly_sg",
+                "title": "Kind",
+                "type": "string"
+              },
+              "year": {
+                "const": "2025-26",
+                "title": "Year",
+                "type": "string"
+              },
+              "quarter": {
+                "description": "1 is Jul-Sep, 2 Oct-Dec, 3 Jan-Mar, 4 Apr-Jun.",
+                "maximum": 4,
+                "minimum": 1,
+                "title": "Quarter",
+                "type": "integer"
+              },
+              "ordinary_time_earnings": {
+                "description": "AUD decimal string.",
+                "maxLength": 60,
+                "pattern": "^\\s*-?[0-9]+(?:\\.[0-9]{1,2})?\\s*$",
+                "title": "Ordinary Time Earnings",
+                "type": "string"
+              },
+              "qualifying_contributions": {
+                "description": "AUD decimal string.",
+                "maxLength": 60,
+                "pattern": "^\\s*-?[0-9]+(?:\\.[0-9]{1,2})?\\s*$",
+                "title": "Qualifying Contributions",
+                "type": "string"
+              }
+            },
+            "required": [
+              "scope_confirmed",
+              "kind",
+              "year",
+              "quarter",
+              "ordinary_time_earnings",
+              "qualifying_contributions"
+            ],
+            "title": "SgFacts",
+            "type": "object"
+          },
+          "StudyLoanRepaymentFacts": {
+            "additionalProperties": false,
+            "properties": {
+              "scope_confirmed": {
+                "description": "Scope confirmation for this kind; false is refused.",
+                "title": "Scope Confirmed",
+                "type": "boolean"
+              },
+              "kind": {
+                "const": "study_loan_repayment",
+                "title": "Kind",
+                "type": "string"
+              },
+              "year": {
+                "enum": [
+                  "2025-26",
+                  "2026-27"
+                ],
+                "title": "Year",
+                "type": "string"
+              },
+              "repayment_income": {
+                "description": "Established repayment income for the year in whole dollars: taxable income excluding assessable FHSS released amounts, plus reportable fringe benefits, total net investment loss, reportable super contributions and exempt foreign employment income.",
+                "maxLength": 60,
+                "pattern": "^\\s*-?[0-9]+(?:\\.[0-9]{1,2})?\\s*$",
+                "title": "Repayment Income",
+                "type": "string"
+              }
+            },
+            "required": [
+              "scope_confirmed",
+              "kind",
+              "year",
+              "repayment_income"
+            ],
+            "title": "StudyLoanRepaymentFacts",
+            "type": "object"
+          },
+          "StudyLoanWithholdingFacts": {
+            "additionalProperties": false,
+            "properties": {
+              "scope_confirmed": {
+                "description": "Scope confirmation for this kind; false is refused.",
+                "title": "Scope Confirmed",
+                "type": "boolean"
+              },
+              "kind": {
+                "const": "study_loan_withholding",
+                "title": "Kind",
+                "type": "string"
+              },
+              "year": {
+                "const": "2026-27",
+                "title": "Year",
+                "type": "string"
+              },
+              "earnings": {
+                "description": "AUD decimal string.",
+                "maxLength": 60,
+                "pattern": "^\\s*-?[0-9]+(?:\\.[0-9]{1,2})?\\s*$",
+                "title": "Earnings",
+                "type": "string"
+              },
+              "pay_period": {
+                "enum": [
+                  "weekly",
+                  "fortnightly",
+                  "monthly"
+                ],
+                "title": "Pay Period",
+                "type": "string"
+              },
+              "scale": {
+                "description": "Schedule 1 scale from the payee's declarations; scale 4 is not supported.",
+                "enum": [
+                  1,
+                  2,
+                  3,
+                  5,
+                  6
+                ],
+                "title": "Scale",
+                "type": "integer"
+              }
+            },
+            "required": [
+              "scope_confirmed",
+              "kind",
+              "year",
+              "earnings",
+              "pay_period",
+              "scale"
+            ],
+            "title": "StudyLoanWithholdingFacts",
+            "type": "object"
+          }
+        },
+        "properties": {
+          "facts": {
+            "description": "Established facts for one worksheet kind. Read calculation_worksheets in aus-accounting://scope before confirming scope. Supply established zero amounts explicitly; do not infer missing facts.",
+            "discriminator": {
+              "mapping": {
+                "capital_gains": "#/$defs/CapitalGainsFacts",
+                "contribution_caps": "#/$defs/ContributionCapsFacts",
+                "depreciation": "#/$defs/DepreciationFacts",
+                "division_293": "#/$defs/Division293Facts",
+                "fbt": "#/$defs/FbtFacts",
+                "gst": "#/$defs/GstFacts",
+                "low_income_tax_offset": "#/$defs/LowIncomeTaxOffsetFacts",
+                "medicare_levy": "#/$defs/MedicareLevyFacts",
+                "payg_withholding": "#/$defs/PaygWithholdingFacts",
+                "pension_minimum": "#/$defs/PensionMinimumFacts",
+                "quarterly_sg": "#/$defs/SgFacts",
+                "resident_tax": "#/$defs/ResidentTaxFacts",
+                "study_loan_repayment": "#/$defs/StudyLoanRepaymentFacts",
+                "study_loan_withholding": "#/$defs/StudyLoanWithholdingFacts"
+              },
+              "propertyName": "kind"
+            },
+            "oneOf": [
+              {
+                "$ref": "#/$defs/GstFacts"
+              },
+              {
+                "$ref": "#/$defs/ResidentTaxFacts"
+              },
+              {
+                "$ref": "#/$defs/CapitalGainsFacts"
+              },
+              {
+                "$ref": "#/$defs/FbtFacts"
+              },
+              {
+                "$ref": "#/$defs/DepreciationFacts"
+              },
+              {
+                "$ref": "#/$defs/SgFacts"
+              },
+              {
+                "$ref": "#/$defs/PaygWithholdingFacts"
+              },
+              {
+                "$ref": "#/$defs/ContributionCapsFacts"
+              },
+              {
+                "$ref": "#/$defs/PensionMinimumFacts"
+              },
+              {
+                "$ref": "#/$defs/StudyLoanRepaymentFacts"
+              },
+              {
+                "$ref": "#/$defs/StudyLoanWithholdingFacts"
+              },
+              {
+                "$ref": "#/$defs/MedicareLevyFacts"
+              },
+              {
+                "$ref": "#/$defs/LowIncomeTaxOffsetFacts"
+              },
+              {
+                "$ref": "#/$defs/Division293Facts"
+              }
+            ],
+            "title": "Facts"
+          },
+          "file_note": {
+            "default": false,
+            "description": "True also returns file_note, a Markdown note restating the result: facts relied on, calculation, assumptions, provisions and dated sources, and open issues. False, the default, leaves the result unchanged.",
+            "title": "File Note",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "facts"
+        ],
+        "title": "calculate_tax_worksheetArguments",
+        "type": "object",
+        "additionalProperties": false
+      },
+      "name": "calculate_tax_worksheet",
+      "outputSchema": {
+        "additionalProperties": true,
+        "properties": {
+          "ok": {
+            "const": true,
+            "description": "The review ran; this does not mean compliance or a known verdict.",
+            "title": "Ok",
+            "type": "boolean"
+          },
+          "engine": {
+            "description": "Delegated distribution that produced this result.",
+            "title": "Engine",
+            "type": "string"
+          },
+          "engine_version": {
+            "description": "Installed version of that engine.",
+            "title": "Engine Version",
+            "type": "string"
+          },
+          "calculation": {
+            "title": "Calculation",
+            "type": "string"
+          },
+          "period": {
+            "title": "Period",
+            "type": "string"
+          },
+          "amounts": {
+            "additionalProperties": {
+              "description": "Finite engine decimal string, including exponent notation; retain its precision.",
+              "pattern": "^[+-]?(?:[0-9]+(?:\\.[0-9]*)?|\\.[0-9]+)(?:[eE][+-]?[0-9]+)?$",
+              "type": "string"
+            },
+            "title": "Amounts",
+            "type": "object"
+          },
+          "rates": {
+            "additionalProperties": {
+              "description": "Finite engine decimal string, including exponent notation; retain its precision.",
+              "pattern": "^[+-]?(?:[0-9]+(?:\\.[0-9]*)?|\\.[0-9]+)(?:[eE][+-]?[0-9]+)?$",
+              "type": "string"
+            },
+            "title": "Rates",
+            "type": "object"
+          },
+          "scope": {
+            "title": "Scope",
+            "type": "string"
+          },
+          "sources": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Sources",
+            "type": "array"
+          },
+          "source_checked": {
+            "description": "Date in YYYY-MM-DD form.",
+            "format": "date",
+            "pattern": "^[0-9]{4}-(?:0[1-9]|1[0-2])-(?:0[1-9]|[12][0-9]|3[01])$",
+            "title": "Source Checked",
+            "type": "string"
+          },
+          "warnings": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Warnings",
+            "type": "array"
+          },
+          "file_note": {
+            "description": "Markdown file note restating this result, present only when requested: facts relied on, calculation, assumptions, provisions and dated sources, and open issues. It adds no figure; retain its caveats.",
+            "title": "File Note",
+            "type": "string"
+          }
+        },
+        "required": [
+          "ok",
+          "engine",
+          "engine_version",
+          "calculation",
+          "period",
+          "amounts",
+          "rates",
+          "scope",
+          "sources",
+          "source_checked",
+          "warnings"
+        ],
+        "title": "TaxCalculation",
+        "type": "object"
+      },
+      "title": "Calculate a bounded Australian tax worksheet"
+    },
+    {
+      "annotations": {
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": false
+      },
+      "description": "Report what the installed release records about each bundled dataset.\n\nFor the ATO benchmarks, Division 7A rates, Payday Super GIC quarters, business-day\ncalendar and SG parameters, each worksheet's rates, the lodgment program, the GST\nreview rules and the reviewed ATO records: the effective periods recorded, the\ninstalled engine version, source URLs and retrieval and review dates, with UNKNOWN\nwhere the engine records none. With as_at, each dataset says whether that date\nfalls inside a recorded period. currency is always NOT_ESTABLISHED: a cached uvx\nrelease can be older than the latest, and official figures can change after a\nsource was checked. Retain the statement. Pass tool to report only the datasets\nthat tool reads. Reads no network and predicts no next change.\n",
+      "inputSchema": {
+        "properties": {
+          "as_at": {
+            "anyOf": [
+              {
+                "maxLength": 10,
+                "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "description": "Optional YYYY-MM-DD date the user names, tested against each dataset's recorded periods. Do not infer today.",
+            "format": "date",
+            "title": "As At"
+          },
+          "tool": {
+            "anyOf": [
+              {
+                "enum": [
+                  "list_ato_benchmark_industries",
+                  "get_ato_benchmarks",
+                  "get_div7a_benchmark_rate",
+                  "review_div7a_loan",
+                  "calc_payday_super_deadline",
+                  "review_payday_super_contributions",
+                  "build_payday_super_evidence_pack",
+                  "calculate_tax_worksheet",
+                  "get_lodgment_due_dates",
+                  "review_gst_coding",
+                  "reconcile_bas",
+                  "get_reviewed_rate"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "description": "Optional: report only the datasets this tool reads.",
+            "title": "Tool"
+          }
+        },
+        "title": "get_data_freshnessArguments",
+        "type": "object",
+        "additionalProperties": false
+      },
+      "name": "get_data_freshness",
+      "outputSchema": {
+        "$defs": {
+          "DatasetFreshness": {
+            "additionalProperties": true,
+            "properties": {
+              "dataset": {
+                "description": "Bundled dataset identifier.",
+                "title": "Dataset",
+                "type": "string"
+              },
+              "description": {
+                "title": "Description",
+                "type": "string"
+              },
+              "tools": {
+                "description": "Tools that read this dataset.",
+                "items": {
+                  "type": "string"
+                },
+                "title": "Tools",
+                "type": "array"
+              },
+              "engine": {
+                "description": "Distribution that ships the dataset.",
+                "title": "Engine",
+                "type": "string"
+              },
+              "engine_version": {
+                "description": "Installed version of that engine, or UNKNOWN.",
+                "title": "Engine Version",
+                "type": "string"
+              },
+              "effective_periods": {
+                "anyOf": [
+                  {
+                    "items": {
+                      "$ref": "#/$defs/FreshnessPeriod"
+                    },
+                    "type": "array"
+                  },
+                  {
+                    "const": "UNKNOWN",
+                    "description": "The installed engine records no such fact.",
+                    "type": "string"
+                  }
+                ],
+                "description": "Periods the installed data records; never a currency claim.",
+                "title": "Effective Periods"
+              },
+              "sources": {
+                "anyOf": [
+                  {
+                    "items": {
+                      "type": "string"
+                    },
+                    "type": "array"
+                  },
+                  {
+                    "const": "UNKNOWN",
+                    "description": "The installed engine records no such fact.",
+                    "type": "string"
+                  }
+                ],
+                "description": "Source URLs the engine records.",
+                "title": "Sources"
+              },
+              "retrieved": {
+                "anyOf": [
+                  {
+                    "items": {
+                      "description": "Date in YYYY-MM-DD form.",
+                      "format": "date",
+                      "pattern": "^[0-9]{4}-(?:0[1-9]|1[0-2])-(?:0[1-9]|[12][0-9]|3[01])$",
+                      "type": "string"
+                    },
+                    "type": "array"
+                  },
+                  {
+                    "const": "UNKNOWN",
+                    "description": "The installed engine records no such fact.",
+                    "type": "string"
+                  }
+                ],
+                "description": "Recorded retrieval or seen dates.",
+                "title": "Retrieved"
+              },
+              "source_checked": {
+                "anyOf": [
+                  {
+                    "description": "Date in YYYY-MM-DD form.",
+                    "format": "date",
+                    "pattern": "^[0-9]{4}-(?:0[1-9]|1[0-2])-(?:0[1-9]|[12][0-9]|3[01])$",
+                    "type": "string"
+                  },
+                  {
+                    "const": "UNKNOWN",
+                    "description": "The installed engine records no such fact.",
+                    "type": "string"
+                  }
+                ],
+                "description": "Recorded source review date.",
+                "title": "Source Checked"
+              },
+              "provenance": {
+                "additionalProperties": true,
+                "description": "Unmodified engine source metadata and review provenance.",
+                "title": "Provenance",
+                "type": "object"
+              },
+              "as_at_status": {
+                "description": "Only with as_at. Inside a recorded period is not current data.",
+                "enum": [
+                  "INSIDE_RECORDED_PERIOD",
+                  "OUTSIDE_RECORDED_PERIOD",
+                  "UNKNOWN"
+                ],
+                "title": "As At Status",
+                "type": "string"
+              }
+            },
+            "required": [
+              "dataset",
+              "description",
+              "tools",
+              "engine",
+              "engine_version",
+              "effective_periods",
+              "sources",
+              "retrieved",
+              "source_checked",
+              "provenance"
+            ],
+            "title": "DatasetFreshness",
+            "type": "object"
+          },
+          "FreshnessPeriod": {
+            "additionalProperties": true,
+            "properties": {
+              "id": {
+                "description": "Engine label for the period.",
+                "title": "Id",
+                "type": "string"
+              },
+              "basis": {
+                "description": "What kind of period the label names.",
+                "title": "Basis",
+                "type": "string"
+              },
+              "start": {
+                "description": "Date in YYYY-MM-DD form.",
+                "format": "date",
+                "pattern": "^[0-9]{4}-(?:0[1-9]|1[0-2])-(?:0[1-9]|[12][0-9]|3[01])$",
+                "title": "Start",
+                "type": "string"
+              },
+              "end": {
+                "description": "Date in YYYY-MM-DD form.",
+                "format": "date",
+                "pattern": "^[0-9]{4}-(?:0[1-9]|1[0-2])-(?:0[1-9]|[12][0-9]|3[01])$",
+                "title": "End",
+                "type": "string"
+              }
+            },
+            "required": [
+              "id",
+              "basis",
+              "start",
+              "end"
+            ],
+            "title": "FreshnessPeriod",
+            "type": "object"
+          }
+        },
+        "additionalProperties": true,
+        "properties": {
+          "ok": {
+            "const": true,
+            "description": "The report ran.",
+            "title": "Ok",
+            "type": "boolean"
+          },
+          "server": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "description": "Installed server distribution and version, or UNKNOWN. A cached release can be older than the latest.",
+            "title": "Server",
+            "type": "object"
+          },
+          "bundled_data": {
+            "const": true,
+            "title": "Bundled Data",
+            "type": "boolean"
+          },
+          "live_lookup": {
+            "const": false,
+            "title": "Live Lookup",
+            "type": "boolean"
+          },
+          "currency": {
+            "const": "NOT_ESTABLISHED",
+            "description": "This tool never establishes that data is current.",
+            "title": "Currency",
+            "type": "string"
+          },
+          "statement": {
+            "description": "Limits to retain when presenting the result.",
+            "title": "Statement",
+            "type": "string"
+          },
+          "as_at": {
+            "anyOf": [
+              {
+                "description": "Date in YYYY-MM-DD form.",
+                "format": "date",
+                "pattern": "^[0-9]{4}-(?:0[1-9]|1[0-2])-(?:0[1-9]|[12][0-9]|3[01])$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "The as_at supplied, or null.",
+            "title": "As At"
+          },
+          "tool": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "The tool filter supplied, or null.",
+            "title": "Tool"
+          },
+          "datasets": {
+            "items": {
+              "$ref": "#/$defs/DatasetFreshness"
+            },
+            "title": "Datasets",
+            "type": "array"
+          },
+          "not_listed": {
+            "description": "Tools whose data is not bundled.",
+            "title": "Not Listed",
+            "type": "string"
+          }
+        },
+        "required": [
+          "ok",
+          "server",
+          "bundled_data",
+          "live_lookup",
+          "currency",
+          "statement",
+          "as_at",
+          "tool",
+          "datasets",
+          "not_listed"
+        ],
+        "title": "DataFreshness",
+        "type": "object"
+      },
+      "title": "Report bundled data periods and sources"
+    }
+  ]
+}

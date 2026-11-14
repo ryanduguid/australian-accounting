@@ -42,6 +42,7 @@ APP_JOBS = {
 # Workflows that once filtered pull requests by path, and the jobs that filter
 # ran. Each one's changes job passes the former trigger paths in CI_PATHS.
 PATH_JOBS = {
+    "aus-accounting-connector": frozenset({"core", "dependency-audit"}),
     "devcontainer": frozenset({"setup"}),
     "glama-badges": frozenset({"check", "dependency-audit", "worker"}),
     "readme-quick-start": frozenset({"trial"}),

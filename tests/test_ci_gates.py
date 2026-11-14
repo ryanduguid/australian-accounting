@@ -23,6 +23,7 @@ CHECK = ROOT / ".github/ci/check_gates.py"
 # Each aggregate that branch protection requires or can require, or that a
 # required one needs.
 GATES = {
+    "aus-accounting-connector.yml": "aus-accounting-connector-gates",
     "boundaries.yml": "boundaries-gates",
     "ci.yml": "tests-gates",
     "ci-lodgeit-adapter.yml": "lodgeit-gates",
@@ -299,6 +300,10 @@ class ApplicationSelectionTests(unittest.TestCase):
         # request reports their gate, and CI_PATHS must still select each path the
         # trigger filter selected.
         former = {
+            "aus-accounting-connector": ("apps/aus-accounting-mcp/core/src/lib.rs",
+                                         "apps/aus-accounting-mcp/conformance/cases.json",
+                                         "packages/div7a-loan-review/src/api.rs",
+                                         ".github/workflows/aus-accounting-connector.yml"),
             "devcontainer": (".devcontainer/devcontainer.json", ".github/workflows/devcontainer.yml",
                              "uv.lock"),
             "glama-badges": ("tools/glama-badge-server/src/main.rs",
