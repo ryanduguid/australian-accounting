@@ -1,0 +1,31 @@
+[package]
+name = "aus-accounting-connector"
+version = "0.1.0"
+edition = "2024"
+rust-version = "1.99"
+description = "Stateless Streamable HTTP MCP Worker for 6 Aus Accounting MCP calculator tools"
+license = "LicenseRef-Duguid-Public-Attribution-1.0"
+repository = "https://github.com/ryanduguid/australian-accounting"
+publish = false
+
+[lib]
+crate-type = ["cdylib", "rlib"]
+
+[dependencies]
+aus-accounting-mcp-core = { path = "../../apps/aus-accounting-mcp/core" }
+base64 = "0.22"
+chrono = { version = "0.4", default-features = false, features = ["std"] }
+serde_json = { version = "1", features = ["preserve_order", "arbitrary_precision"] }
+
+[target.'cfg(target_arch = "wasm32")'.dependencies]
+worker = "=0.8.7"
+futures-util = { version = "0.3", default-features = false, features = ["std", "async-await"] }
+
+[build-dependencies]
+chrono = { version = "0.4", default-features = false, features = ["std", "clock"] }
+serde_json = "1"
+
+[profile.release]
+opt-level = "s"
+lto = true
+codegen-units = 1

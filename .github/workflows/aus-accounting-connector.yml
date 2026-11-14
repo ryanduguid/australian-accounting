@@ -13,6 +13,7 @@ on:
       - packages/australian-tax-calculators/**
       - packages/div7a-loan-review/**
       - packages/payday-super-checker/**
+      - tools/aus-accounting-connector/**
       - .github/workflows/aus-accounting-connector.yml
   workflow_dispatch:
 
@@ -48,6 +49,7 @@ jobs:
             packages/australian-tax-calculators/**
             packages/div7a-loan-review/**
             packages/payday-super-checker/**
+            tools/aus-accounting-connector/**
             .github/workflows/aus-accounting-connector.yml
         run: python3 .github/ci/app_ci.py select aus-accounting-connector >> "$GITHUB_OUTPUT"
 
@@ -76,6 +78,10 @@ jobs:
   dependency-audit:
     needs: changes
     if: needs.changes.result == 'success' && needs.changes.outputs.run == 'true'
+    strategy:
+      fail-fast: false
+      matrix:
+        crate: [apps/aus-accounting-mcp/core, tools/aus-accounting-connector]
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
@@ -87,11 +93,44 @@ jobs:
           tool: cargo-audit@0.22.2
           fallback: none
       - name: Audit Cargo lock
-        working-directory: apps/aus-accounting-mcp/core
+        working-directory: ${{ matrix.crate }}
         run: cargo audit --deny warnings
 
+  # Builds the Worker and its serve_until-expired twin, then runs both in local
+  # workerd. Nothing here deploys or signs in: the dry run only packages.
+  worker:
+    needs: changes
+    if: needs.changes.result == 'success' && needs.changes.outputs.run == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    defaults:
+      run:
+        shell: bash
+        working-directory: tools/aus-accounting-connector
+    env:
+      WRANGLER_SEND_METRICS: 'false'
+      CARGO_BUILD_JOBS: '2'
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 26.11.1
+      - run: rustup toolchain install 1.99 --profile minimal --component rustfmt,clippy --target wasm32-unknown-unknown
+      - run: cargo +1.99 fmt --check
+      - run: cargo +1.99 clippy --locked --all-targets -- -D warnings
+      - run: cargo +1.99 clippy --locked --target wasm32-unknown-unknown --lib -- -D warnings
+      - run: cargo +1.99 test --locked
+      - run: cargo +1.99 install worker-build --version 0.8.7 --locked
+      - run: npm ci --ignore-scripts
+      - run: AUS_ACCOUNTING_CONNECTOR_SERVE_UNTIL=2000-01-01 worker-build --release --out-dir build-expired
+      - run: worker-build --release
+      - run: npm test
+      - run: npm run dry-run
+
   aus-accounting-connector-gates:
-    needs: [changes, core, dependency-audit]
+    needs: [changes, core, dependency-audit, worker]
     if: always()
     permissions:
       contents: read

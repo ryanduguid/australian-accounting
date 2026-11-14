@@ -27,10 +27,21 @@ const MONEY: &[&str] = &[
 ];
 
 /// The linked engine's scope words for periods and inputs the input schema refuses
-/// (b4a70733, d8f34dc2, 149f98ad, 0be34fb0 and 17188fa6), each with the published 0.2.0 words, or
-/// for study loan withholding the words before 0be34fb0, for what it admits. Remove an
+/// (b4a70733, d8f34dc2, 149f98ad, 0be34fb0, 17188fa6 and 87a3f76d), each with the published
+/// 0.2.0 words, or for study loan withholding the words before 0be34fb0 and for the Medicare
+/// levy the words before 87a3f76d, for what it admits. Remove an
 /// entry when the schema opens them.
-const NARROWED_SCOPE: [(&str, &str, &str); 4] = [
+const NARROWED_SCOPE: [(&str, &str, &str); 6] = [
+    (
+        "medicare_levy",
+        "Australian resident individual for the full income year. The operator establishes the days in the year, if any, for which they qualified for a full or a half Medicare levy exemption: a full exemption as a prescribed person under ITAA 1936 s 251U(1) in the medical category (a blind pensioner, or entitled to full free medical treatment under Defence Force or Veterans' Affairs arrangements) or as one not entitled to Medicare benefits, with no dependant outside the exemption categories; a half exemption in the medical category with such a dependant (s 251U(3)); a foreign resident is outside this worksheet. The operator also establishes whether",
+        "Australian resident individual for the full income year, not entitled to any full or half Medicare levy exemption. The operator establishes whether",
+    ),
+    (
+        "medicare_levy",
+        "The levy after ss 7 and 8 is then reduced by the share of the year's days for which the person was a prescribed person (s 9(1)): each full exemption day, and half of each half exemption day; a full exemption for the whole year leaves no levy (s 251T). Excludes foreign residents,",
+        "Excludes exemptions,",
+    ),
     (
         "study_loan_withholding",
         "One regular weekly, fortnightly, monthly or quarterly payment of salary or wages made from 24 September 2025, in the income year given, to a payee who gave a TFN declaration or withholding declaration saying they have a study and training support loan debt, on scale 1, 2, 3, 5 or 6 as the operator established. The year selects the Schedule 1 coefficients and the Schedule 8 component coefficients for payments made in it; a 2025-26 payment needs its pay date, because the Schedule 8 coefficients of F2025L01016 apply from 24 September 2025. Scale 1 uses the Schedule 8 component for a payee who did not claim the tax-free threshold; scales 2, 3, 5 and 6 use the one for a payee who claimed it or is a foreign resident. Earnings include allowances subject to withholding. The result is the Schedule 1 amount plus the Schedule 8 component, each rounded to the dollar; the ATO's combined coefficients can differ by a dollar and it accepts either method. Excludes 2025-26 payments made before 24 September 2025, scale 4, a Medicare levy variation for a spouse or dependants, tax offsets, extra amounts for 53 or 27 pays, lump sum termination payments, back payments, bonuses and other schedules.",
@@ -312,6 +323,25 @@ mod tests {
         for (kind, wide, _) in super::NARROWED_SCOPE {
             let scope = catalogue[kind]["scope"].as_str().unwrap();
             assert!(scope.contains(wide), "{kind}: {wide}");
+        }
+    }
+
+    /// The published Medicare levy facts take no exemption days, so the served scope
+    /// still excludes exemptions, in the catalogue and in a result.
+    #[test]
+    fn the_medicare_levy_scope_excludes_the_exemptions_its_facts_cannot_give() {
+        let catalogue = super::advertised_worksheets().unwrap();
+        let entry = &catalogue["medicare_levy"];
+        let mut facts = entry["example"]["facts"].clone();
+        let first = entry["supported_periods"][0]["arguments"]
+            .as_object()
+            .unwrap();
+        facts.as_object_mut().unwrap().extend(first.clone());
+        let result = super::calculate(&json!({ "facts": facts })).unwrap();
+        for scope in [&entry["scope"], &result["scope"]] {
+            let scope = scope.as_str().unwrap();
+            assert!(scope.contains("not entitled to any full or half Medicare levy exemption"));
+            assert!(scope.contains("Excludes exemptions,"), "{scope}");
         }
     }
 
