@@ -3373,15 +3373,7 @@ pub fn working_holiday_maker_withholding(
     let before = money(payments_before)?;
     let registered = flag(employer_registered, "employer_registered")?;
     let tfn = flag(tfn_quoted, "tfn_quoted")?;
-    let period = match pay_period.text() {
-        Some(p @ ("weekly" | "fortnightly" | "monthly")) => p.to_string(),
-        _ => {
-            return refuse(
-                "input.pay_period_invalid",
-                "pay_period must be weekly, fortnightly or monthly.",
-            );
-        }
-    };
+    let period = weekly_fortnightly_or_monthly(pay_period)?;
     if !registered && tfn {
         return unregistered_working_holiday_maker(payment, period, year);
     }
@@ -3389,7 +3381,81 @@ pub fn working_holiday_maker_withholding(
     flat_rate_working_holiday_maker(&payment, &before, registered, tfn, &label)
 }
 
-const KINDS: [&str; 24] = [
+/// A pay period of a schedule with no quarterly rule.
+fn weekly_fortnightly_or_monthly(pay_period: &Arg) -> Result<String> {
+    match pay_period.text() {
+        Some(p @ ("weekly" | "fortnightly" | "monthly")) => Ok(p.to_string()),
+        _ => refuse(
+            "input.pay_period_invalid",
+            "pay_period must be weekly, fortnightly or monthly.",
+        ),
+    }
+}
+
+const SENIORS_PENSIONERS: &str = "seniors_pensioners_withholding";
+
+/// Schedule 9's scale for the payee's status and Medicare levy exemption:
+/// 1 to 3 (single, illness-separated couple, couple) with the levy, 3 more
+/// with a full exemption and 6 more with a half exemption.
+fn schedule_9_scale(status: &Arg, exemption: &Arg) -> Result<usize> {
+    let position = |value: &Arg, names: [&str; 3]| {
+        value
+            .text()
+            .and_then(|text| names.iter().position(|name| *name == text))
+    };
+    let Some(status) = position(status, ["single", "illness_separated", "couple"]) else {
+        return refuse(
+            "input.status_invalid",
+            "status must be single, illness_separated or couple.",
+        );
+    };
+    let Some(exemption) = position(exemption, ["none", "full", "half"]) else {
+        return refuse(
+            "input.medicare_levy_exemption_invalid",
+            "medicare_levy_exemption must be none, full or half.",
+        );
+    };
+    Ok(exemption * 3 + status + 1)
+}
+
+/// Schedule 9: withholding from one payment to a senior or pensioner, by
+/// Schedule 1's weekly earnings, formula and pay period conversion on
+/// Schedule 9's coefficients.
+pub fn seniors_pensioners_withholding(
+    earnings: &Arg,
+    pay_period: &Arg,
+    status: &Arg,
+    medicare_levy_exemption: &Arg,
+    year: &Arg,
+    scope_confirmed: &Arg,
+) -> Result<Value> {
+    let year = scope(scope_confirmed, year, SENIORS_PENSIONERS)?;
+    let earnings = money(earnings)?;
+    let period = weekly_fortnightly_or_monthly(pay_period)?;
+    let scale = schedule_9_scale(status, medicare_levy_exemption)?;
+    let rows = lookup(meta::SENIORS_PENSIONERS_COEFFICIENTS, &year)[scale - 1];
+    let (amounts, rates) = precise(|| {
+        let x = weekly_earnings(&earnings, &period)?;
+        let (a, b, weekly) = weekly_formula(&x, rows)?;
+        let withholding = for_pay_period(&weekly, &period)?;
+        Ok((
+            vec![
+                ("weekly_earnings_used", x),
+                ("weekly_withholding", weekly),
+                ("withholding", withholding),
+            ],
+            vec![rate("scale", scale), rate("a", a), rate("b", b)],
+        ))
+    })?;
+    result(
+        SENIORS_PENSIONERS,
+        &format!("{year} {period}"),
+        amounts,
+        rates,
+    )
+}
+
+const KINDS: [&str; 25] = [
     "gst",
     "resident_tax",
     "capital_gains",
@@ -3414,6 +3480,7 @@ const KINDS: [&str; 24] = [
     "schedule_5_method_b_i",
     "schedule_5_method_b_ii",
     "working_holiday_maker_withholding",
+    "seniors_pensioners_withholding",
 ];
 
 /// `periods(kind)`: accepted period arguments and inclusive calendar boundaries.

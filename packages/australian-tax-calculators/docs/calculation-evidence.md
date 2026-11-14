@@ -51,6 +51,7 @@ example evidence; it does not claim a fresh review of every supported period.
 | Termination payment | Not a Library document: ATO Schedule 11 examples 1 to 4, with ITAA 1997 ss 82-10 and 83-170 (compilation 268, 1 October 2026), SISR reg 6.01(2) and `tax-examples-assessable-income` (tax-examples), ¶1-420 | 17 June 2026 (Schedule 11); 30 June 2026 (¶1-420) | One life benefit ETP in 2026-27 with established, classified parts; Schedule 11 withholding, not the tax assessed |
 | Schedule 5 withholding | Not a Library document: ATO Schedule 5 (NAT 3348) for payments from 1 July 2024, 1 July 2025 and 1 July 2026, and the 2024, 2025 and 2026 withholding schedules instruments | 17 June 2024, 10 June 2025 and 17 June 2026 (published) | One regular weekly, fortnightly or monthly pay with additional payments by Method A, B(i) or B(ii); the study loan component from 1 July 2026 only |
 | Working holiday makers | Not a Library document: ATO Schedule 15 for payments from 1 July 2026, and for 1 July 2024 to 30 June 2026 | 17 June 2026 (published); 17 June 2024 (last updated) | One payment's withholding at the Table A rates or Schedule 1 scale 3 for 2024-25 to 2026-27; visa, registration and TFN status established by the operator |
+| Seniors and pensioners | Not a Library document: ATO Schedule 9 (NAT 4466) for payments from 1 July 2026, and for 1 July 2024 to 30 June 2026, with Schedule 9 of the 2026 and 2025 withholding schedules instruments | 17 June 2026 (published); 17 June 2024 (last updated) | One weekly, fortnightly or monthly payment's withholding on scales 1 to 9 for 2024-25 to 2026-27; eligibility, status and exemption established by the operator; other tax offsets and the Medicare levy adjustment excluded |
 | Study loan withholding | Not a Library document: ATO Schedule 8 (NAT 3539) for payments from 1 July 2026, and Schedule 8 of F2025L01016 for payments from 24 September 2025 | 17 June 2026 (published); 24 September 2025 (commenced) | Schedule 8 component on one regular weekly, fortnightly or monthly pay, added to the Schedule 1 amount |
 | Study loan repayment | Not a Library document: the ATO minimum repayment income page and Gazette C2026G00249 | 13 October 2026 (ATO page) | Marginal repayment on established repayment income for 2025-26 and 2026-27; the loan-balance limit is outside the worksheet |
 
@@ -708,6 +709,67 @@ worksheet does the same. The workbook's column headings ('$0 - $45,000' to
 $45,000.01 to $45,000.99, $135,000.01 to $135,000.99 or $190,000.01 to
 $190,000.99. The payee's visa and residency and the employer's registration
 are the operator's to establish.
+
+## Seniors and pensioners
+
+This worksheet's evidence is not a Library document. On 14 November 2026 the
+ATO's Schedule 9 (NAT 4466), 'Tax table for seniors and pensioners', for
+payments from 1 July 2026 (published 17 June 2026) and the one for payments
+from 1 July 2024 to 30 June 2026 (last updated 17 June 2024) were read in full,
+with each schedule's PDF and Withholding lookup tool workbook. Schedule 9 of the
+Taxation Administration (Withholding Schedules) Instrument 2026 (F2026L00716)
+and of the 2025 instrument (F2025L00647), whose Schedule 9 says it was last
+updated on 1 July 2024, were read on legislation.gov.au the same day. Each
+instrument's coefficients for scales 1 to 9 equal its ATO page's, and each
+workbook's equal its page's. The 2024 instrument (F2024L00664) was not read; the
+ATO page for 1 July 2024 to 30 June 2026 and the 2025 instrument give the same
+coefficients for both years.
+
+- Columns 2, 3 and 4 of the tax table are for a payee who is single, a member
+  of an illness-separated couple or a member of a couple. The 'Using a formula'
+  section gives scales 1 to 3 for those payees, 4 to 6 for the same payees
+  claiming a full Medicare levy exemption and 7 to 9 for a half exemption;
+  `status` and `medicare_levy_exemption` select one.
+- y = a × x − b, where x is the weekly earnings in whole dollars plus 99 cents,
+  rounded to the nearest dollar with 50 cents up. A step with no coefficients
+  ('–') withholds nothing. The schedule says to read the section with Schedule
+  1, whose weekly earnings rule this is.
+- A fortnightly pay's weekly equivalent is half its earnings, cents ignored,
+  plus 99 cents, and its amount twice the rounded weekly amount; a monthly
+  pay's is 3/13 of its earnings, after adding a cent to an amount ending in 33
+  cents, and its amount 13/3 of the weekly amount, rounded to the dollar. The
+  schedule gives no quarterly rule, so quarterly pays are refused.
+- The schedule incorporates the seniors and pensioners tax offset. Other tax
+  offsets reduce the weekly amount by a value from its ready reckoner, which
+  lists weekly values for some amounts claimed and says to add the values 'for
+  an appropriate combination' otherwise. Different combinations can give
+  different values for the same amount ($230 is $5 as $200 and $30, or $4 as
+  $200, $20 and $10), so the worksheet does not take tax offsets. Each of the
+  46 listed values is Schedule 1's weekly rule, 1.9% of the amount claimed
+  rounded to the dollar, but Schedule 9 does not state that rule. The schedule gives Medicare levy parameters for an adjustment but
+  says to work it out from the Medicare levy adjustment weekly tax table
+  (NAT 1010), whose figures are Schedule 1's, so the worksheet does not take
+  that either.
+- A payee without a TFN has 47% or 45% withheld, as Schedule 1 scale 4 does;
+  study and training support loans, the extra Schedule 13 calculation for a
+  super income stream and lump sum leave loading (Schedule 5) are outside the
+  worksheet.
+
+`tests/seniors_pensioners.rs` holds the worksheet to the schedules' worked
+example and to every row of the weekly tax table in each schedule's PDF:
+
+| Schedule | $662.95 a week: single, illness-separated, couple | Weekly tax table |
+| --- | --- | --- |
+| From 1 July 2026 | $2, $6, $21 | $566 to $2,685, 2,120 rows, 6,360 amounts |
+| 1 July 2024 to 30 June 2026 | $5, $11, $26 | $553 to $2,672, 2,120 rows, 6,360 amounts |
+
+The tax tables cover scales 1 to 3 only. Each schedule's Withholding lookup
+tool works out the exemption scales' amounts from the same coefficients but
+publishes no table of them, so the tests check those against amounts worked by
+hand from the coefficients, as they do the fortnightly and monthly conversions.
+`tests/properties.rs` sweeps every whole-dollar weekly amount to $3,699 for each
+year and status: withholding never falls as earnings rise, and a full exemption
+never withholds more than a half one, nor a half one more than none.
 
 ## Study loan withholding
 
