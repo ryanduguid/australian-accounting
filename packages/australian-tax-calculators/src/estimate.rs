@@ -40,7 +40,7 @@ fn takes_object(command: &str) -> bool {
     !matches!(command, "resident-tax" | "low-income-tax-offset")
 }
 
-const SCOPE: &str = "One individual who was an Australian resident for the full income year and not a working holiday maker, with established whole-dollar taxable income. Composes resident-tax, low-income-tax-offset, medicare-levy and medicare-levy-surcharge, and seniors-pensioners-tax-offset, study-loan-repayment and division-293 when their inputs are given; confirming scope confirms the scope each of them states under components, where each keeps its own sources and warnings. Applies the seniors and pensioners tax offset, then the low income tax offset, against basic income tax only, never below nil (ITAA 1997 s 63-10(1) items 5 and 20); neither reduces the Medicare levy or the surcharge. The total is before PAYG withholding and other credits, refundable offsets, every other tax offset (such as the private health insurance, franking and foreign income tax offsets), the transfer of unused SAPTO to a spouse and any refund or amount payable. Division 293 tax is shown but left out of the total, because it is assessed on its own notice. Takes taxable income as established; does not work it out from income and deductions. Refuses part-year residents, working holiday makers and foreign residents.";
+const SCOPE: &str = "One individual who was an Australian resident for the full income year and not a working holiday maker, with established whole-dollar taxable income. Composes resident-tax, low-income-tax-offset, medicare-levy and medicare-levy-surcharge, and seniors-pensioners-tax-offset, study-loan-repayment and division-293 when their inputs are given; confirming scope confirms the scope each of them states under components, where each keeps its own sources and warnings. Applies the seniors and pensioners tax offset, then the low income tax offset, against basic income tax only, never below nil (ITAA 1997 s 63-10(1) items 5 and 20); neither reduces the Medicare levy or the surcharge. The total is before PAYG withholding and other credits, refundable offsets, every other tax offset (such as the private health insurance, franking and foreign income tax offsets), the transfer of unused SAPTO to a spouse and any refund or amount payable. Division 293 tax is shown but left out of the total, because it is assessed on its own notice. Takes taxable income as established; does not work it out from income and deductions. Refuses part-year residents, working holiday makers and foreign residents, and parts that describe different families: a spouse in one part but not another, 2 spouse taxable incomes, or dependants without a spouse, whom the surcharge worksheet excludes.";
 
 const SOURCES: [&str; 3] = [
     "https://www.ato.gov.au/law/view/document?docid=PAC/19970038/63-10",
@@ -143,6 +143,60 @@ fn check_fields(v: &Value) -> Result<(), Refusal> {
                 ),
             ));
         }
+    }
+    Ok(())
+}
+
+fn family_mismatch(message: String) -> Result<(), Refusal> {
+    Err(Refusal::new("estimate.family_mismatch", message))
+}
+
+/// The parts describe one family: a spouse in each part or in none, one spouse
+/// taxable income, and no dependants without a spouse, a case the surcharge
+/// worksheet excludes (Medicare Levy Act 1986 s 8C). Each part's scope already
+/// rules out a change of spouse during the year.
+fn check_family(v: &Value) -> Result<(), Refusal> {
+    let levy = &v["medicare-levy"];
+    let mut spouse = vec![
+        ("medicare-levy", levy.get("spouse_taxable_income").is_some()),
+        (
+            "medicare-levy-surcharge",
+            v["medicare-levy-surcharge"]
+                .get("spouse_income_for_surcharge_purposes")
+                .is_some(),
+        ),
+    ];
+    if let Some(status) = v[SAPTO]["status"].as_str() {
+        spouse.push((SAPTO, status != "single"));
+    }
+    if let Some((other, _)) = spouse.iter().find(|(_, s)| *s != spouse[0].1) {
+        let (with, without) = if spouse[0].1 {
+            (spouse[0].0, *other)
+        } else {
+            (*other, spouse[0].0)
+        };
+        return family_mismatch(format!(
+            "{with} states a spouse and {without} does not: the parts must describe the same family"
+        ));
+    }
+    let dependants = levy["dependant_offset_entitled"] == json!(true)
+        || levy["dependent_children"].as_i64().is_some_and(|n| n > 0);
+    if dependants && !spouse[0].1 {
+        return family_mismatch(
+            "medicare-levy states dependants without a spouse, which medicare-levy-surcharge excludes (Medicare Levy Act 1986 s 8C)".into(),
+        );
+    }
+    let amount = |x: &Value| {
+        let text = x.as_str().map_or_else(|| x.to_string(), str::to_owned);
+        Decimal::parse(&text).ok()
+    };
+    let spouse_income = |part: &Value| amount(&part["spouse_taxable_income"]);
+    if let (Some(a), Some(b)) = (spouse_income(levy), spouse_income(&v[SAPTO]))
+        && matches!(a.equals(&b), Ok(false))
+    {
+        return family_mismatch(format!(
+            "medicare-levy and {SAPTO} give different spouse_taxable_income: {a} and {b}"
+        ));
     }
     Ok(())
 }
@@ -258,6 +312,7 @@ fn compose_amounts(results: &Map<String, Value>) -> Result<[Decimal; 9], Refusal
 /// every part's own result.
 pub fn compose(v: &Value) -> Result<Value, Refusal> {
     check_fields(v)?;
+    check_family(v)?;
     check_exemption(v)?;
     check_residency(v)?;
     let results = run_parts(v)?;

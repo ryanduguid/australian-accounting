@@ -460,6 +460,10 @@ pub const REFUSAL_CODES: &[(&str, &str)] = &[
         "derive was asked to explain a command whose amounts it does not derive.",
     ),
     (
+        "estimate.family_mismatch",
+        "personal-tax-estimate was given parts that describe different families: a spouse in one but not another, 2 spouse taxable incomes, or dependants without a spouse.",
+    ),
+    (
         "estimate.residency_unsupported",
         "personal-tax-estimate was given a residency other than a full-year resident.",
     ),

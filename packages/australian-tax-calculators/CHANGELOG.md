@@ -19,8 +19,9 @@ intentionally changed.
   every part's result, and shows Division 293 tax outside the total. A part's
   refusal keeps its code and names the part. New codes:
   `estimate.residency_unsupported` (part-year residents, working holiday
-  makers and foreign residents), `estimate.surcharge_with_exemption` and
-  `input.residency_invalid`. `tests/personal_tax_estimate.rs` holds it to the
+  makers and foreign residents), `estimate.surcharge_with_exemption`,
+  `estimate.family_mismatch` (parts that describe different spouses or
+  dependants) and `input.residency_invalid`. `tests/personal_tax_estimate.rs` holds it to the
   ATO's figures, and `tests/properties.rs` to the sum of its parts.
 - `derive` returns an FBT worksheet's result with one step per amount: the
   FBTAA section or ATO page that sets it, its formula on the values it used,

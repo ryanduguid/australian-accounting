@@ -245,6 +245,42 @@ fn a_missing_or_repeated_input_is_refused() {
     }
 }
 
+/// The parts describe one family: a spouse in each or in none, one spouse
+/// taxable income, and no dependants without a spouse, whom the surcharge
+/// worksheet excludes (Medicare Levy Act 1986 s 8C).
+#[test]
+fn parts_that_describe_different_families_are_refused() {
+    let levy = json!({"section_9a_adjustment_applies": false,
+        "spouse_taxable_income": "20000", "spouse_sapto_entitled": true});
+    let surcharge = json!({"reportable_fringe_benefits": "0",
+        "income_for_surcharge_purposes": "30000", "days_without_cover": 0,
+        "spouse_income_for_surcharge_purposes": "20000"});
+    let sapto = json!({"rebate_income": "30000", "status": "couple",
+        "spouse_rebate_income": "20000"});
+    let mut other_spouse = sapto.clone();
+    other_spouse["spouse_taxable_income"] = json!("25000");
+    for extra in [
+        json!({"medicare-levy": levy}),
+        json!({"medicare-levy-surcharge": surcharge}),
+        json!({"seniors-pensioners-tax-offset": sapto}),
+        json!({"medicare-levy": {"section_9a_adjustment_applies": false,
+            "dependant_offset_entitled": true}}),
+        json!({"medicare-levy": {"section_9a_adjustment_applies": false,
+            "dependent_children": 2}}),
+        json!({"medicare-levy": levy, "medicare-levy-surcharge": surcharge,
+            "seniors-pensioners-tax-offset": other_spouse}),
+    ] {
+        let r = refusal(input("2025-26", "30000", extra.clone()));
+        assert_eq!(r.code, "estimate.family_mismatch", "{extra}");
+    }
+    let mut same_spouse = sapto.clone();
+    same_spouse["spouse_taxable_income"] = json!("20000.00");
+    let couple = json!({"medicare-levy": levy, "medicare-levy-surcharge": surcharge,
+        "seniors-pensioners-tax-offset": same_spouse});
+    let out = api::evaluate(COMMAND, &input("2025-26", "30000", couple)).unwrap();
+    assert_eq!(out["ok"], true);
+}
+
 /// The surcharge worksheet's scope excludes anyone in an exemption category.
 #[test]
 fn exemption_days_beside_the_surcharge_are_refused() {
