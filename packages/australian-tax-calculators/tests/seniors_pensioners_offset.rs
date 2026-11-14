@@ -96,22 +96,27 @@ fn ato_couple_examples_2025_26() {
 /// $3,480, puts the s 9(5) amount ($42,731.25) above $37,000, so s 9(6) gives
 /// $12,572 / 0.315 = $39,911.11, rounded up to $39,912, and the offset is
 /// $3,480 - 0.125 x $8,088 = $2,469. The example gives no spouse rebate
-/// income; $10,000 assumes only taxable income.
+/// income: it is at least the $10,000 taxable income and, with the spouse's
+/// offset the full $2,040, at most the $33,732 threshold. Either end gives the
+/// same offset, as it only tests entitlement on half of $58,000 or $81,732.
 #[test]
 fn ato_example_9_transfers_the_spouses_unused_amount() {
-    let result = evaluate(
-        "48000",
-        "illness_separated",
-        "2025-26",
-        json!({"spouse_rebate_income": "10000", "spouse_taxable_income": "10000"}),
-    );
-    assert_eq!(
-        result["amounts"],
-        json!({"rebate_income_used": "48000.00", "rebate_income_tested": "29000.00",
-               "base_rebate_amount": "2040.00", "spouse_unused_amount_transferred": "1440.00",
-               "rebate_threshold": "39912.00", "cut_out_threshold": "50052.00",
-               "seniors_pensioners_tax_offset": "2469.00"})
-    );
+    for (spouse_rebate_income, tested) in [("10000", "29000.00"), ("33732", "40866.00")] {
+        let result = evaluate(
+            "48000",
+            "illness_separated",
+            "2025-26",
+            json!({"spouse_rebate_income": spouse_rebate_income,
+                   "spouse_taxable_income": "10000"}),
+        );
+        assert_eq!(
+            result["amounts"],
+            json!({"rebate_income_used": "48000.00", "rebate_income_tested": tested,
+                   "base_rebate_amount": "2040.00", "spouse_unused_amount_transferred": "1440.00",
+                   "rebate_threshold": "39912.00", "cut_out_threshold": "50052.00",
+                   "seniors_pensioners_tax_offset": "2469.00"})
+        );
+    }
 }
 
 /// Each year's shading-out threshold, cut-out and base amount, and the

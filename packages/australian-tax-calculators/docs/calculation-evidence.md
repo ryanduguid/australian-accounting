@@ -557,9 +557,7 @@ the formulas.
 The ATO page gives the 2025-26 thresholds and cut-outs in this table, and "Do
 you need to lodge a tax return? 2025" (reason 2) the 2024-25 thresholds. The
 2026-27 figures are worked from the formulas: the ATO had not published them,
-and a 2026-27 result warns so. As a check of the formula at another rate, 19%
-gives the ATO's 2022-23 figures from its withholding declaration page: $32,279
-and $50,119, $31,279 and $47,599, and $28,974 and $41,790.
+and a 2026-27 result warns so.
 
 The regulations state no rounding of the offset. The ATO page says it rounds
 the offset up to the whole dollar, and its José and Vanh examples ($1,719.875
@@ -575,8 +573,10 @@ examples: Clare and Roy, Deb and Ivan, Ying and Li Jun, Marko, Simon, José
 $1,440 unused by a spouse with taxable income of $10,000 to a member of an
 illness-separated couple with rebate income of $48,000; the raised base,
 $3,480, brings in s 9(6), giving a threshold of $39,912 and an offset of
-$2,469. The example gives no rebate income for the spouse, which the test
-takes as the $10,000 taxable income. The same tests check every threshold and
+$2,469. The example gives no rebate income for the spouse. It is at least the
+$10,000 taxable income and, as the spouse's offset is the full $2,040, at most
+the $33,732 threshold; it only tests entitlement, so the test checks both ends
+and gets the same result. The same tests check every threshold and
 cut-out above for all 3 years, the offset a dollar below and at each cut-out,
 the transfer at $6,000, $6,001 and $16,680 of the spouse's taxable income, and
 each refusal; `tests/properties.rs` checks that the offset never rises as
@@ -594,7 +594,8 @@ spouse with income below the tax-free threshold has no tax payable. Above it
 s 12(3)(b)(ii)'s formula reaches nil before the spouse's tax, at the 15% or 16%
 lowest rate, reaches the base amount, so the worksheet never needs the
 spouse's tax. A foreign resident spouse, whose unused amount uses their
-marginal rate, is outside it, as are trustees (s 160AAAB), a person whose
+marginal rate, is outside it, as are trustees (s 160AAAB), a person also
+entitled to the beneficiary tax offset (s 160AAA(4)), a person whose
 spouse status changed in the year, the transfer of this person's own unused
 amount and applying the offset against tax payable.
 

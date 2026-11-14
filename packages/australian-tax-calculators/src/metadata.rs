@@ -802,8 +802,9 @@ pub fn supported_periods(kind: &str) -> Vec<&'static str> {
         }
         "working_holiday_maker_withholding" => WORKING_HOLIDAY_MAKER_YEARS.to_vec(),
         "seniors_pensioners_withholding" => keys(SENIORS_PENSIONERS_COEFFICIENTS),
-        // The regulations' thresholds follow each year's Schedule 7 rates.
-        "seniors_pensioners_tax_offset" => keys(RESIDENT_TAX_SCALES),
+        // The years checked against the regulations; the thresholds follow each
+        // year's Schedule 7 rates, but a new year needs its own review.
+        "seniors_pensioners_tax_offset" => vec!["2024-25", "2025-26", "2026-27"],
         _ => Vec::new(),
     }
 }

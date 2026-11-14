@@ -546,9 +546,10 @@ couple's rebate income, and the amount the person's own. The offset falls by
 12.5 cents a dollar above the threshold and is rounded up to the dollar, as the
 ATO rounds it. With `spouse_taxable_income`, a spouse entitled to the offset
 and taxed at resident rates passes their unused amount (regulations s 12),
-which raises this person's base amount and threshold. A person whose spouse
-status changed in the year, trustees and applying the non-refundable offset
-against tax are outside it, and like `division-296` it refuses a field it does
+which raises this person's base amount and threshold once their own offset is
+below its base amount (s 12(1)(e)). A person whose spouse status changed in
+the year, trustees, a person also entitled to the beneficiary tax offset and
+applying the non-refundable offset against tax are outside it, and like `division-296` it refuses a field it does
 not take. An offset of at least $1 is the SAPTO entitlement `medicare-levy`
 takes as `sapto_entitled`. The tests hold it to the ATO's 9 examples, its
 thresholds and every cut-out; see
