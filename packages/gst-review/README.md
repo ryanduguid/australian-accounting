@@ -36,15 +36,16 @@ scale and scientific formatting are retained in reported amounts.
 Dates are canonical `YYYY-MM-DD` strings in years 0001 to 9999. A date field cannot
 contain a time. Optional dates may be absent or null. Objects represent the former
 dataclasses; arrays retain input order. Flags are JSON booleans, with null allowed
-only for `supplier_registered`. Unknown object fields are ignored, like the
-existing native engine adapters. Code tables map strings to the categories below;
+only for `supplier_registered`. `supplier_abn` is a string or null. Unknown
+object fields are ignored, like the existing native engine adapters. Code tables map strings to the categories below;
 an explicit empty object replaces all defaults. Null or an omitted table uses the
 defaults in [src/constants.json](src/constants.json).
 
 This JSON mapping is new. The former library accepted Python `Decimal`, `date`
 and dataclass instances. Python import and packaging identity checks do not apply
 to the Rust command. Its reported `engine_version` is `1.0.0`; the frozen oracle
-reports `0.1.0`. Other review results and validation messages are preserved.
+reports `0.1.0`. The `supplier_abn_invalid` state is new. Other review results and
+validation messages are preserved.
 
 ## Coding review
 
@@ -65,8 +66,8 @@ reports `0.1.0`. Other review results and validation messages are preserved.
 `lines` and `registrations` are required. Each line needs `id`, `entity`, `date`
 and `amount`. Optional fields are `description` (default empty), `account`,
 `gst_code`, `confirmed` (default false), `suggested_account`,
-`suggested_gst_code` and `supplier_registered`. Other optional values default to
-null. Each registration needs `registered_from`, which may be null for never
+`suggested_gst_code`, `supplier_registered` and `supplier_abn`. Other optional
+values default to null. Each registration needs `registered_from`, which may be null for never
 registered, and may supply `registered_to`. Both boundaries are inclusive.
 Every line's entity needs registration facts.
 
@@ -76,6 +77,7 @@ Each line receives the first applicable state in this order:
 | --- | --- |
 | `unknown_gst_code` | The supplied code has no known treatment. |
 | `gst_differs_from_registration` | A taxable code conflicts with entity registration or the supplied status of an outgoing payment's supplier. |
+| `supplier_abn_invalid` | The supplied supplier ABN fails ABN Lookup's format and check digit test. |
 | `between_entities` | An opposite amount in another supplied entity is a likely transfer. |
 | `coded` | An account and GST code are confirmed. |
 | `suggested` | Coding is proposed but unconfirmed. |
@@ -85,6 +87,13 @@ Negative amounts are money out. The actual GST code takes precedence over a
 suggested code, including an actual empty string. `gst_codes` maps codes to
 `taxable`, `gst_free`, `input_taxed` or `outside_gst`. Defaults cover common Xero
 and MYOB AU codes. A confirmed line needs an account and GST code.
+
+A supplied `supplier_abn` must be 11 ASCII digits, optionally separated by spaces,
+that pass the modulus 89 test in ABN Lookup's
+[Format of the ABN](https://abr.business.gov.au/Help/AbnFormat). An omitted or null
+ABN is not checked. When any line supplies one, a warning adds that a valid check
+digit proves neither that the number was issued to anyone or is active, nor that
+an entity is registered in the Australian Business Register or registered for GST.
 
 Pairing is greedy in line order, one to one across entities, within
 `match_window_days` (default 3, integer 0 to 31). It uses numeric Decimal equality,

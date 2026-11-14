@@ -6,6 +6,10 @@ are decimal strings and dates are canonical ISO strings. The Python import packa
 is removed from this checkout; the MCP façade still pins the published 0.1.0.
 The native publisher is pending. No tag, release or package is published here.
 
+`review-coding` accepts an optional `supplier_abn` on each line. One that fails
+ABN Lookup's format and check digit test gives the line the new
+`supplier_abn_invalid` state, after `gst_differs_from_registration` in state order.
+
 Relicensed from Apache-2.0 to FSL-1.1-ALv2 (Functional Source License, with
 Apache-2.0 as the future licence). Released versions keep their licence.
 

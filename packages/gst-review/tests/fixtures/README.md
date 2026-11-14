@@ -10,7 +10,8 @@ replaced by the repository's Rust packaging, independence and CI boundary checks
 Adaptations: Python Decimal values become JSON strings and dates become canonical
 ISO strings. Former Python string-date type failures are tagged objects so they
 remain invalid under the new JSON date representation. Engine version `0.1.0`
-becomes `1.0.0`. Dataclasses become objects and keyword arguments become fields.
+becomes `1.0.0`. Each `counts` object gains `supplier_abn_invalid: 0`, a state
+added after the port that no original case reaches. Dataclasses become objects and keyword arguments become fields.
 The Rust tests verify every row, counts and label ordering and restoration of
 the caller's Decimal precision. Data is entirely fabricated.
 

@@ -36,6 +36,7 @@ fn every_original_behaviour_case_matches_the_python_oracle() {
                         [
                             "unknown_gst_code",
                             "gst_differs_from_registration",
+                            "supplier_abn_invalid",
                             "between_entities",
                             "coded",
                             "suggested",
@@ -152,4 +153,61 @@ fn malformed_json_types_are_refused_without_panics() {
         assert!(api::evaluate("review-coding", &input).is_err());
     }
     assert!(api::evaluate("unknown", &json!({})).is_err());
+}
+
+// ABN Lookup's worked example 51 824 753 556 and a copy with a wrong last digit,
+// from https://abr.business.gov.au/Help/AbnFormat (version 9.9.7, read 14 November 2026).
+#[test]
+fn supplier_abns_failing_the_check_digit_are_findings() {
+    let line = |id: &str, abn: Value| {
+        json!({"id":id,"entity":"A","date":"2026-08-04","amount":"-110.00","account":"400",
+        "gst_code":"GST","confirmed":true,"supplier_abn":abn})
+    };
+    let input = json!({"registrations":{"A":{"registered_from":"2024-07-01"}},"lines":[
+        line("valid", json!("51 824 753 556")),
+        line("wrong", json!("51 824 753 557")),
+        line("short", json!("5182475355")),
+        line("none", Value::Null)]});
+    let result = api::evaluate("review-coding", &input).unwrap();
+    let states: Vec<_> = result["lines"]
+        .as_array()
+        .unwrap()
+        .iter()
+        .map(|l| l["state"].as_str().unwrap())
+        .collect();
+    assert_eq!(
+        states,
+        [
+            "coded",
+            "supplier_abn_invalid",
+            "supplier_abn_invalid",
+            "coded"
+        ]
+    );
+    assert_eq!(
+        result["lines"][1]["reason"],
+        "Supplier ABN '51 824 753 557' fails the ABN format and check digit test ABN Lookup publishes, so it is not a valid ABN as written. Check it against its source."
+    );
+    assert_eq!(result["counts"]["supplier_abn_invalid"], 2);
+    assert!(
+        result["warnings"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .any(|w| w.as_str().unwrap().starts_with(
+                "A valid check digit shows only that the digits pass the arithmetic ABN Lookup publishes."
+            ))
+    );
+    let without = api::evaluate(
+        "review-coding",
+        &json!({"registrations":{"A":{"registered_from":null}},"lines":[line("none", Value::Null)]}),
+    )
+    .unwrap();
+    assert_eq!(without["warnings"].as_array().unwrap().len(), 2);
+    let error = api::evaluate(
+        "review-coding",
+        &json!({"registrations":{"A":{"registered_from":null}},"lines":[line("n", json!(51824753556_u64))]}),
+    )
+    .unwrap_err();
+    assert_eq!(error, "Line 'n' supplier_abn must be a string or None.");
 }
