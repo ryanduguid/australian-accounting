@@ -30,19 +30,26 @@ npm run dry-run
 outbound request recorded and refused. It posts the 32 conformance cases, and
 the tools without required arguments, to `/mcp` in both protocol eras and
 compares each complete `result` byte for byte with
-[`tests/fixtures/reference.json`](tests/fixtures/reference.json), the native
-stdio server's output (see its `source`). The one difference allowed is
+[`tests/fixtures/reference.json`](tests/fixtures/reference.json): the same
+handler's replies, computed natively by `cargo test` from the engines in
+`packages/`. So the WebAssembly build in workerd must answer exactly as the
+native build does. The one difference allowed is
 `_meta["io.modelcontextprotocol/serverInfo"]` on 2026-07-28 results, which
-names the server producing them. `get_data_freshness` without a tool is
-compared after dropping the datasets of engines this Worker does not link.
-`npm run measure` prints local wall times for each case; they are not
-Cloudflare's CPU accounting.
+names the build producing them. `npm run measure` prints local wall times for
+each case; they are not Cloudflare's CPU accounting.
 
-To record the fixture again, build the native server's `aus-accounting-mcp`
-binary and run `node tests/record-reference.mjs <binary> <its commit>`. Draft
-PR 599 needs the core's PAYG withholding entry in `NARROWED_SCOPE` first (see
-[the core README](../../apps/aus-accounting-mcp/core/README.md)); the fixture
-here was recorded with it.
+[`tests/reference.rs`](tests/reference.rs) fails `cargo test` when the fixture
+differs from this commit's replies, as it does after an engine change to a
+served result. Record it again from this directory with:
+
+```sh
+RECORD_REFERENCE=1 cargo test --locked --test reference
+```
+
+The fixture was first recorded from the native stdio server of draft PR 599. It
+is now recorded from this repository alone, so it no longer compares the
+Worker with that server; the core's own tests compare the core with the conformance
+cases and the Python server's recorded refusals and Division 7A results.
 
 `worker` and `worker-build` stay at 0.8.7, as in the badge Worker: the 0.9.0
 build imports its WebAssembly in a form the stable Miniflare 4.20260730.0

@@ -63,7 +63,7 @@ export function metaOf(listResult) {
   return match[1];
 }
 
-// A native 2026-07-28 tool result as a server whose `_meta` text is `mine`
+// A recorded 2026-07-28 tool result as a server whose `_meta` text is `mine`
 // gives it: the same bytes but the closing `_meta`, which names the server.
 export function servedBy(native, nativeMeta, mine) {
   const suffix = `,"_meta":${nativeMeta}}`;

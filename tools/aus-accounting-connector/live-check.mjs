@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: LicenseRef-Duguid-Public-Attribution-1.0
 
 // Check a running connector with fabricated inputs only: the 32 conformance
-// cases, compared byte for byte with the native server's recorded results.
+// cases, compared byte for byte with tests/fixtures/reference.json.
 //   node live-check.mjs <endpoint URL> [expected release, such as aus-accounting-connector/v0.1.0]
 // It sends 34 requests and exits non-zero on the first wrong answer.
 import { readFile } from 'node:fs/promises';
@@ -36,7 +36,7 @@ export async function check(endpoint, release, request = fetch) {
   for (const item of cases) {
     const recorded = reference[MODERN].calls.find(call => call.name === item.id);
     const { result } = await post(checked, 'tools/call', { name: item.tool, arguments: item.arguments });
-    if (result !== servedBy(recorded.result, native, mine)) throw new Error(`${item.id}: the result differs from the native server's`);
+    if (result !== servedBy(recorded.result, native, mine)) throw new Error(`${item.id}: the result differs from the reference`);
     checked += 1;
   }
   return { release: named, cases: checked };

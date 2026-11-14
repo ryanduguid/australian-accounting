@@ -1,9 +1,9 @@
 // Copyright 2026 Ryan Duguid
 // SPDX-License-Identifier: LicenseRef-Duguid-Public-Attribution-1.0
 
-// The built Worker in local workerd, compared byte for byte with the native
-// stdio server's recorded results (tests/fixtures/reference.json), and the
-// transport checks of design Appendix D.
+// The built Worker in local workerd, compared byte for byte with the same
+// handler's replies computed natively (tests/fixtures/reference.json, which
+// tests/reference.rs keeps current), and the transport checks of design Appendix D.
 import assert from 'node:assert/strict';
 import { readFile, readdir, stat } from 'node:fs/promises';
 import { after, before, test } from 'node:test';
@@ -32,21 +32,9 @@ async function send(era, id, method, params, extra, target) {
   return post(body, headers(body, era, extra), '/mcp', target);
 }
 
-function nativeTools(era) {
+function referenceTools(era) {
   const list = reference[era].tools;
-  const array = list.slice(list.indexOf('"tools":[') + 8, -1);
-  return elements(array).filter(entry => SERVED.includes(JSON.parse(entry).name));
-}
-
-// get_data_freshness without a tool also lists engines the connector does not
-// link, so its native result is compared after dropping those datasets.
-function servedOnly(native) {
-  const result = JSON.parse(native);
-  const report = result.structuredContent;
-  assert.equal(result.content[0].text, JSON.stringify(report, null, 2), 'the native text is the pretty report');
-  report.datasets = report.datasets.filter(dataset => dataset.tools.some(tool => SERVED.includes(tool)));
-  result.content[0].text = JSON.stringify(report, null, 2);
-  return result;
+  return elements(list.slice(list.indexOf('"tools":[') + 8, -1));
 }
 
 test('the reference holds every conformance case and the served tools', () => {
@@ -58,7 +46,7 @@ test('the reference holds every conformance case and the served tools', () => {
   }
 });
 
-test('2026-07-28 tool results equal the native server\'s byte for byte', async () => {
+test('2026-07-28 tool results equal the reference byte for byte', async () => {
   const discover = await send(MODERN, 'd', 'server/discover');
   const list = resultText((await send(MODERN, 'l', 'tools/list')).body, 'l');
   const mine = metaOf(list);
@@ -68,33 +56,26 @@ test('2026-07-28 tool results equal the native server\'s byte for byte', async (
     const { response, body } = await send(MODERN, index, 'tools/call', { name: call.tool, arguments: call.arguments });
     assert.equal(response.status, 200, call.name);
     const text = resultText(body, index);
-    // The one difference: `_meta` names the server producing the result.
-    const expected = servedBy(call.result, native, mine);
-    if (call.name === 'freshness_all') {
-      const { _meta, ...result } = JSON.parse(expected);
-      assert.deepEqual(JSON.parse(text), { ...servedOnly(JSON.stringify(result)), _meta }, call.name);
-    } else {
-      assert.equal(text, expected, call.name);
-    }
+    // The one difference: `_meta` names the build producing the result.
+    assert.equal(text, servedBy(call.result, native, mine), call.name);
   }
 });
 
-test('2025-11-25 tool results equal the native server\'s byte for byte', async () => {
+test('2025-11-25 tool results equal the reference byte for byte', async () => {
   const init = await send(LEGACY, 'i', 'initialize', { protocolVersion: LEGACY, capabilities: {}, clientInfo: { name: 'harness', version: '1' } });
   assert.equal(init.response.status, 200);
   for (const [index, call] of reference[LEGACY].calls.entries()) {
     const { response, body } = await send(LEGACY, index, 'tools/call', { name: call.tool, arguments: call.arguments });
     assert.equal(response.status, 200, call.name);
     const text = resultText(body, index);
-    if (call.name === 'freshness_all') assert.deepEqual(JSON.parse(text), servedOnly(call.result), call.name);
-    else assert.equal(text, call.result, call.name);
+    assert.equal(text, call.result, call.name);
   }
 });
 
-test('tools/list gives the native entries for the 6 tools, in order, byte for byte', async () => {
-  const six = nativeTools(MODERN);
+test('tools/list gives the reference entries for the 6 tools, in order, byte for byte', async () => {
+  const six = referenceTools(MODERN);
   assert.deepEqual(six.map(entry => JSON.parse(entry).name).sort(), [...SERVED].sort());
-  assert.deepEqual(nativeTools(LEGACY), six);
+  assert.deepEqual(referenceTools(LEGACY), six);
   const modern = resultText((await send(MODERN, 1, 'tools/list')).body, 1);
   const meta = metaOf(modern);
   assert.equal(modern, `{"resultType":"complete","_meta":${meta},"ttlMs":3600000,"cacheScope":"public","tools":[${six.join(',')}]}`);

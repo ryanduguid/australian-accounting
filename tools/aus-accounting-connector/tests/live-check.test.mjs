@@ -36,13 +36,13 @@ test('the live check fails when one result differs', async () => {
     const text = (await response.text()).replace('"isError":', '"isError" :');
     return new Response(text, { status: response.status, headers: response.headers });
   };
-  await assert.rejects(check(endpoint(), undefined, tampered), /differs from the native server's/);
+  await assert.rejects(check(endpoint(), undefined, tampered), /differs from the reference/);
 });
 
 test('the live check fails against an expired release', async () => {
   const expired = await start({ bundle: 'build-expired' });
   try {
-    await assert.rejects(check(new URL('/mcp', expired.url).href), /differs from the native server's/);
+    await assert.rejects(check(new URL('/mcp', expired.url).href), /differs from the reference/);
   } finally {
     await expired.mf.dispose();
   }
