@@ -44,13 +44,14 @@ example evidence; it does not claim a fresh review of every supported period.
 | Quarterly SG | `superannuation-instant-reference-rates-thresholds-and-checklists` (superannuation), ¶18-600 and ¶18-620 | 30 June 2026 | General 2025–26 rate and quarterly maximum contribution base |
 | Contribution caps | `tax-examples-individuals` (tax-examples), ¶7-278 | 30 June 2025 | First-year bring-forward for 2024–25 only; the later-year nil cap is outside the worksheet |
 | Pension minimum | `superannuation-instant-reference-rates-thresholds-and-checklists` (superannuation), ¶18-500 | 30 June 2026 | Schedule 7 age factors; the pro-rated case is adapted arithmetic |
-| Medicare levy | Not a Library document: Medicare Levy Act 1986 compilation 53 and the ATO's single thresholds | 30 June 2026 (ATO page) | Single person without SAPTO, the 2% rate and the s 7 low-income reduction for 2024-25 to 2026-27 |
+| Medicare levy | Not a Library document: Medicare Levy Act 1986 compilations 52 and 53, the ATO's single and family thresholds and its Ashton example | 30 June 2026 (ATO pages) | The 2% rate, the s 7 low-income reduction at the single or SAPTO thresholds and the s 8 family reduction for 2024-25 to 2026-27, on established SAPTO, spouse and dependant facts |
 | Low income tax offset | Not a Library document: ITAA 1997 s 61-115 compilation 266 and the ATO's worked example | 8 June 2026 (ATO page) | Offset amount from established taxable income for 2024-25 to 2026-27; not applied against tax payable |
 | Division 293 | Not a Library document: ITAA 1997 ss 293-20 and 293-25, the 2013 Imposition Act and the ATO's worked example | 24 August 2026 (ATO page) | Established Division 293 income and low tax contributions for 2024-25 to 2026-27 |
 | Division 296 | `superannuation-contributions-to-superannuation-funds-and-rsas` (superannuation), ¶6-495, with the Explanatory Memorandum's examples 1.1 to 1.3, ITAA 1997 ss 296-15 to 296-55 (compilation 268, 1 October 2026), the 2026 Imposition Act and the ATO's Division 296 page | 30 June 2026; 3 November 2026 (ATO page) | One individual's established balance at 30 June 2027 and total superannuation earnings for 2026-27; working out either, s 296-70 interests and later years excluded |
 | Termination payment | Not a Library document: ATO Schedule 11 examples 1 to 4, with ITAA 1997 ss 82-10 and 83-170 (compilation 268, 1 October 2026), SISR reg 6.01(2) and `tax-examples-assessable-income` (tax-examples), ¶1-420 | 17 June 2026 (Schedule 11); 30 June 2026 (¶1-420) | One life benefit ETP in 2026-27 with established, classified parts; Schedule 11 withholding, not the tax assessed |
 | Schedule 5 withholding | Not a Library document: ATO Schedule 5 (NAT 3348) for payments from 1 July 2024, 1 July 2025 and 1 July 2026, and the 2024, 2025 and 2026 withholding schedules instruments | 17 June 2024, 10 June 2025 and 17 June 2026 (published) | One regular weekly, fortnightly or monthly pay with additional payments by Method A, B(i) or B(ii); the study loan component for pays from 24 September 2025 |
 | Working holiday makers | Not a Library document: ATO Schedule 15 for payments from 1 July 2026, and for 1 July 2024 to 30 June 2026 | 17 June 2026 (published); 17 June 2024 (last updated) | One payment's withholding at the Table A rates or Schedule 1 scale 3 for 2024-25 to 2026-27; visa, registration and TFN status established by the operator |
+| Seniors and pensioners | Not a Library document: ATO Schedule 9 (NAT 4466) for payments from 1 July 2026, and for 1 July 2024 to 30 June 2026, with Schedule 9 of the 2026 and 2025 withholding schedules instruments | 17 June 2026 (published); 17 June 2024 (last updated) | One weekly, fortnightly or monthly payment's withholding on scales 1 to 9 for 2024-25 to 2026-27; eligibility, status and exemption established by the operator; other tax offsets and the Medicare levy adjustment excluded |
 | Study loan withholding | Not a Library document: ATO Schedule 8 (NAT 3539) for payments from 1 July 2026, and Schedule 8 of F2025L01016 for payments from 24 September 2025 | 17 June 2026 (published); 24 September 2025 (commenced) | Schedule 8 component on one regular weekly, fortnightly, monthly or quarterly pay, added to the Schedule 1 amount |
 | Study loan repayment | Not a Library document: the ATO minimum repayment income page and Gazette C2026G00249 | 13 October 2026 (ATO page) | Marginal repayment on established repayment income for 2025-26 and 2026-27; the loan-balance limit is outside the worksheet |
 
@@ -410,8 +411,77 @@ at and above the threshold amount and phase-in limit.
 
 Each published phase-in limit is 1.25 times the threshold amount, rounded down
 to the dollar: that is the income at which 10% of the excess reaches 2% of the
-whole, and the tests derive it. The family income reduction (s 8), exemptions,
-the surcharge, trustees and part-year residence are outside the worksheet.
+whole, and the tests derive it. Exemptions, the surcharge, trustees and
+part-year residence are outside the worksheet.
+
+### SAPTO thresholds and the family reduction
+
+Read on 14 November 2026: the Medicare Levy Act 1986 as compiled at 28 March
+2025 (compilation 52, in force for 2024-25 assessments until 1 July 2026) and
+at 1 July 2026 (compilation 53); the Treasury Laws Amendment (More Cost of
+Living Relief) Act 2025 (No. 28, 2025), whose Sch 2 item 14 applies its
+figures to 2024-25 and later years; Act No. 58, 2026, Sch 5, whose item 14
+applies its figures to 2025-26 and later years; the ATO pages "Medicare levy
+reduction - family income" and "Medicare levy reduction for low-income
+earners" (both last updated 30 June 2026); and myTax 2025 "Medicare levy
+reduction or exemption".
+
+| Figure | 2024-25 | 2025-26 and 2026-27 | Provision |
+| --- | --- | --- | --- |
+| SAPTO threshold amount | $43,020 | $44,268 | s 3(1), threshold amount (a) |
+| SAPTO phase-in limit | $53,775 | $55,335 | s 3(1), phase-in limit (a) |
+| Family income threshold | $45,907 | $47,238 | s 8(5) |
+| With SAPTO | $59,886 | $61,623 | s 8(7) |
+| Each dependent child or student | $4,216 | $4,338 | s 8(5) |
+
+The ATO's 2025-26 pages and myTax 2025 table 2 and worksheet 2 give the same
+lower figures. Section 8 then applies to a person who had a spouse on the last
+day of the year (s 3(3): not one living separately and apart, though the ATO's
+Ashton example counts a spouse living apart because of illness; a spouse who
+died in the year counts), or who is entitled to the invalid and invalid carer tax
+offset for their child (ITAA 1997 Subdivision 61-A) or the sole parent
+notional tax offset (Subdivision 961-B). Family income is the person's taxable
+income plus the spouse's. At or below the family income threshold no levy is
+payable (s 8(1)). Above it the levy after s 7 is reduced by 2% of the
+threshold less 0.08 of the excess (s 8(2)), so the reduction reaches nil where
+family income passes 1.25 times the threshold. When the spouse would also be
+liable, the reduction is shared in proportion to taxable income (s 8(3)), and
+the part of either spouse's share above their own levy reduces the other's
+(s 8(4)).
+
+The worksheet takes SAPTO entitlement, the spouse, the s 8(1)(b) or (c)
+offsets and the number of dependent children as established facts. It does not
+work them out. SAPTO entitlement means an offset above nil: the family page
+says being eligible for SAPTO without receiving it does not bring in the SAPTO
+thresholds. Without a spouse, a child counts only if family tax benefit was
+payable to the person for that child (s 8(6)).
+
+The ATO's example on the family page holds the worksheet: Ashton, entitled
+to SAPTO, has taxable income of $49,700 in 2025-26 and his spouse, also
+entitled, $21,700. His levy after s 7 is 10% of $5,432, $543.20; the family
+reduction is 2% of $61,623 less 0.08 of $9,777, $450.30; his levy is
+**$92.90**, as the ATO's calculator gives. His spouse is below the spouse's
+own threshold amount and pays nothing, so the reduction is not shared. Read
+literally, s 8(3) would also give the spouse a share of the reduction, which
+s 8(4) would then pass back to him, cutting his levy below $92.90. The ATO's result
+shows that only a spouse liable to the levy has a share, and the worksheet
+follows it: s 8(4) passes back the excess of a liable spouse only.
+
+The ATO's upper thresholds are the threshold times 1.25: $59,047 and $77,028
+for 2025-26, and $57,383 and $74,857 in myTax 2025 worksheet 2, each rounded
+down. Its increase in the upper threshold for each child, $5,423 for 2025-26,
+is $5,422.50 rounded up, so each child moves it 50 cents further than the
+family income at which the s 8(2) reduction reaches nil, 1.25 times the family
+income threshold. From 2 children the published 2025-26 upper threshold lies
+past that income, and the gap grows with each child: with 2 children $69,893
+has a reduction of minus 4 cents, and with 3 children $75,316 has minus 8
+cents. Between the 2 points the formula gives no reduction, so the levy is the
+levy after s 7. The worksheet applies the formula, and
+`tests/medicare_family.rs` holds both cases to the full levy. The
+same tests check each SAPTO and family threshold and the top of each shade-in
+for all 3 years, the sharing, the excess passed back between spouses and every
+refusal. No ATO example covers 2024-25 or 2026-27; those cases are worked from
+the Act.
 
 Section 9A, read in the same compilation on 15 October 2026, takes the total
 arrears amount out of taxable income for ss 6(1) and 7 when a person's
@@ -632,9 +702,12 @@ September 2025, so the tests hold their PAYG components only. A 2025-26 study
 loan pay takes F2025L01016's coefficients for its `pay_date`, and the tests
 work Jarrod, a Method B(i) pay and a Method B(ii) pay by hand on them (Jarrod:
 $289, $296, $7 x 52 = $364 on the bonus, $653 in all). Method B(i) recalculates
-the earlier periods with the coefficients for the current pay's date, as the
-schedule directs the tax table for the payment; for a back payment that reaches
-periods before 24 September 2025 this is an interpretation, not a worked rule.
+the earlier periods with the coefficients for the current pay's date. Step 3
+says only 'the relevant tax table'; F2025L01016 commenced on 24 September 2025
+and repealed the earlier instrument with no transitional rule, so a pay made
+from that date has no other Schedule 8. For a back payment that reaches periods
+before 24 September 2025, whose amounts withheld used the earlier percentage,
+this is a reading, not a worked rule: no published example covers it.
 A 2024-25 study loan, a 2025-26 one without its date or before 24 September
 2025, and a pay date without a study loan are refused. Example 4 combines the 2
 methods in one pay: the tests run each method and count the earnings' amount
@@ -716,6 +789,67 @@ worksheet does the same. The workbook's column headings ('$0 - $45,000' to
 $45,000.01 to $45,000.99, $135,000.01 to $135,000.99 or $190,000.01 to
 $190,000.99. The payee's visa and residency and the employer's registration
 are the operator's to establish.
+
+## Seniors and pensioners
+
+This worksheet's evidence is not a Library document. On 14 November 2026 the
+ATO's Schedule 9 (NAT 4466), 'Tax table for seniors and pensioners', for
+payments from 1 July 2026 (published 17 June 2026) and the one for payments
+from 1 July 2024 to 30 June 2026 (last updated 17 June 2024) were read in full,
+with each schedule's PDF and Withholding lookup tool workbook. Schedule 9 of the
+Taxation Administration (Withholding Schedules) Instrument 2026 (F2026L00716)
+and of the 2025 instrument (F2025L00647), whose Schedule 9 says it was last
+updated on 1 July 2024, were read on legislation.gov.au the same day. Each
+instrument's coefficients for scales 1 to 9 equal its ATO page's, and each
+workbook's equal its page's. The 2024 instrument (F2024L00664) was not read; the
+ATO page for 1 July 2024 to 30 June 2026 and the 2025 instrument give the same
+coefficients for both years.
+
+- Columns 2, 3 and 4 of the tax table are for a payee who is single, a member
+  of an illness-separated couple or a member of a couple. The 'Using a formula'
+  section gives scales 1 to 3 for those payees, 4 to 6 for the same payees
+  claiming a full Medicare levy exemption and 7 to 9 for a half exemption;
+  `status` and `medicare_levy_exemption` select one.
+- y = a × x − b, where x is the weekly earnings in whole dollars plus 99 cents,
+  rounded to the nearest dollar with 50 cents up. A step with no coefficients
+  ('–') withholds nothing. The schedule says to read the section with Schedule
+  1, whose weekly earnings rule this is.
+- A fortnightly pay's weekly equivalent is half its earnings, cents ignored,
+  plus 99 cents, and its amount twice the rounded weekly amount; a monthly
+  pay's is 3/13 of its earnings, after adding a cent to an amount ending in 33
+  cents, and its amount 13/3 of the weekly amount, rounded to the dollar. The
+  schedule gives no quarterly rule, so quarterly pays are refused.
+- The schedule incorporates the seniors and pensioners tax offset. Other tax
+  offsets reduce the weekly amount by a value from its ready reckoner, which
+  lists weekly values for some amounts claimed and says to add the values 'for
+  an appropriate combination' otherwise. Different combinations can give
+  different values for the same amount ($230 is $5 as $200 and $30, or $4 as
+  $200, $20 and $10), so the worksheet does not take tax offsets. Each of the
+  46 listed values is Schedule 1's weekly rule, 1.9% of the amount claimed
+  rounded to the dollar, but Schedule 9 does not state that rule. The schedule gives Medicare levy parameters for an adjustment but
+  says to work it out from the Medicare levy adjustment weekly tax table
+  (NAT 1010), whose figures are Schedule 1's, so the worksheet does not take
+  that either.
+- A payee without a TFN has 47% or 45% withheld, as Schedule 1 scale 4 does;
+  study and training support loans, the extra Schedule 13 calculation for a
+  super income stream and lump sum leave loading (Schedule 5) are outside the
+  worksheet.
+
+`tests/seniors_pensioners.rs` holds the worksheet to the schedules' worked
+example and to every row of the weekly tax table in each schedule's PDF:
+
+| Schedule | $662.95 a week: single, illness-separated, couple | Weekly tax table |
+| --- | --- | --- |
+| From 1 July 2026 | $2, $6, $21 | $566 to $2,685, 2,120 rows, 6,360 amounts |
+| 1 July 2024 to 30 June 2026 | $5, $11, $26 | $553 to $2,672, 2,120 rows, 6,360 amounts |
+
+The tax tables cover scales 1 to 3 only. Each schedule's Withholding lookup
+tool works out the exemption scales' amounts from the same coefficients but
+publishes no table of them, so the tests check those against amounts worked by
+hand from the coefficients, as they do the fortnightly and monthly conversions.
+`tests/properties.rs` sweeps every whole-dollar weekly amount to $3,699 for each
+year and status: withholding never falls as earnings rise, and a full exemption
+never withholds more than a half one, nor a half one more than none.
 
 ## Study loan withholding
 

@@ -1160,6 +1160,39 @@ fn working_holiday_maker_withholding_rises_and_stays_within_45_percent() {
     }
 }
 
+/// Schedule 9: for each status, withholding never falls as whole-dollar weekly
+/// earnings rise past the last coefficient step ($3,653), and a full Medicare
+/// levy exemption never withholds more than a half one, nor a half one more
+/// than none.
+#[test]
+fn seniors_pensioners_withholding_rises_and_exemptions_never_raise_it() {
+    for year in ["2024-25", "2025-26", "2026-27"] {
+        for status in ["single", "illness_separated", "couple"] {
+            let mut previous = [n(0), n(0), n(0)];
+            for dollars in 0..3_700 {
+                let withholding = ["full", "half", "none"].map(|exemption| {
+                    let r = run(
+                        "seniors-pensioners-withholding",
+                        json!({"earnings": dollars.to_string(), "pay_period": "weekly",
+                               "status": status, "medicare_levy_exemption": exemption,
+                               "year": year, "scope_confirmed": true}),
+                    );
+                    amount(&r, "withholding")
+                });
+                let [full, half, none] = &withholding;
+                assert!(
+                    le(full, half) && le(half, none),
+                    "{year} {status} {dollars}"
+                );
+                for (before, now) in previous.iter().zip(&withholding) {
+                    assert!(le(before, now), "{year} {status} {dollars}");
+                }
+                previous = withholding;
+            }
+        }
+    }
+}
+
 /// Howard Hinnant's civil_from_days, for generating dates.
 fn civil(day: i64) -> (i64, i64, i64) {
     let z = day + 719_468;

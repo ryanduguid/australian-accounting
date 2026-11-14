@@ -10,6 +10,15 @@ intentionally changed.
 
 ### Added
 
+- `derive` returns an FBT worksheet's result with one step per amount: the
+  FBTAA section or ATO page that sets it, its formula on the values it used,
+  and the amount. It covers `fbt`, `fbt-car-statutory` and
+  `fbt-car-operating-cost`; the worksheets render their amounts from these
+  steps, and `tests/derivation.rs` recomputes each amount from its working.
+  Another command is refused with the new code `derivation.unsupported`, and
+  a key other than `command` and `input` with `input.field_unknown`. The
+  plain commands' output is unchanged, and `tests/parity.rs` skips `derive`,
+  which has no Python original.
 - `--refusal-json`, after a command, adds a stable refusal code on stdout as
   `{"ok":false,"code":...,"message":...}`. The `error:` line, the message and
   exit 2 stay as they were, and stdout stays empty on a refusal without the flag.
@@ -91,6 +100,21 @@ intentionally changed.
   catalogue entry before comparing, and `tests/working_holiday_maker.rs` holds
   it to the ATO's lookup tool example and examples 1 and 2, each column
   boundary and the rounding rules.
+- `seniors-pensioners-withholding` applies Schedule 9 (NAT 4466), the tax
+  table for seniors and pensioners, to one weekly, fortnightly or monthly
+  payment for 2024-25 to 2026-27, by the payee's status (single, a member of an
+  illness-separated couple or a member of a couple) and any full or half
+  Medicare levy exemption: the schedule's 9 scales, with Schedule 1's weekly
+  earnings, formula, rounding and pay period conversions. Other tax offsets and
+  the Medicare levy adjustment are not inputs, and quarterly pays, for which the
+  schedule has no rule, are refused, as, like `division-296`, is a field it does
+  not take. New refusal codes: `input.status_invalid` and
+  `input.medicare_levy_exemption_invalid`. No Python release has it.
+  `tests/parity.rs` drops its catalogue entry before comparing, and
+  `tests/seniors_pensioners.rs` holds it to each schedule's worked example
+  ($662.95 a week), every amount in each schedule's weekly tax table (2,120
+  earnings in 3 columns) and hand-worked amounts on the exemption scales and
+  for fortnightly and monthly pays.
 - `depreciation` takes an optional `opening_adjustable_value` for an income
   year after the asset's start time (ITAA 1997 ss 40-70(1), 40-72 and 40-75).
   Diminishing value then applies its rate to that value and prime cost to cost,
@@ -310,6 +334,26 @@ intentionally changed.
   periods. It skips the 1 frozen call that expected 2026-27 to be refused;
   `tests/tables.rs` checks 2026-27 at each threshold and that 2027-28 is
   refused. The catalogue example stays at 2024-25.
+- `medicare-levy` takes 5 optional inputs: `sapto_entitled`, which applies the
+  seniors and pensioners thresholds in s 3(1); and `spouse_taxable_income`
+  with `spouse_sapto_entitled`, or `dependant_offset_entitled` for a person
+  without a spouse, with `dependent_children`, which apply the s 8 family
+  reduction for 2024-25 to 2026-27. A spouse whose taxable income is above the
+  spouse's threshold amount shares the reduction by taxable income, and the
+  part of either share above that spouse's levy reduces the other's (s 8(3)
+  and (4)); the result then adds a warning that its amounts are rounded only
+  for display. Without the optional inputs every result is as before, except
+  that its scope now describes them and its sources add the ATO's family
+  income page, compilation 52 and Act No. 28, 2025. Like `depreciation`, it
+  now refuses a field it does not take, and it refuses a spouse input without
+  a spouse, `dependant_offset_entitled` with one and dependent children
+  without either (`input.field_unknown`), and a child count that is not a
+  non-negative integer (`input.dependants_invalid`). The worksheet catalogue
+  lists the inputs under `optional_inputs` and names the family page and its
+  Ashton example. `tests/parity.rs` applies the new scope, sources, passage
+  and evidence to the 162 frozen `medicare-levy` results and 10
+  `worksheet-catalogue` results, and `tests/medicare_family.rs` holds the
+  worksheet to the Ashton example and every threshold.
 
 ### Verification
 

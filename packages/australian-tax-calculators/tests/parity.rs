@@ -3,6 +3,7 @@
 
 use australian_tax_calculators::api;
 use australian_tax_calculators::decimal::{Decimal, Rounding};
+use australian_tax_calculators::engine::worksheet_catalogue;
 use serde_json::{Value, json};
 use std::io::Write;
 use std::process::{Command, Stdio};
@@ -10,9 +11,9 @@ use std::process::{Command, Stdio};
 /// Worksheets added after Python 0.2.0, so absent from the frozen corpus;
 /// `tests/fbt_car.rs`, `tests/main_residence.rs`,
 /// `tests/borrowing_expenses.rs`, `tests/division_296.rs`,
-/// `tests/termination_payment.rs`, `tests/schedule_5.rs` and
-/// `tests/working_holiday_maker.rs` cover them.
-const NEW_KINDS: [(&str, &str); 10] = [
+/// `tests/termination_payment.rs`, `tests/schedule_5.rs`,
+/// `tests/working_holiday_maker.rs` and `tests/seniors_pensioners.rs` cover them.
+const NEW_KINDS: [(&str, &str); 11] = [
     ("fbt-car-statutory", "fbt_car_statutory"),
     ("fbt-car-operating-cost", "fbt_car_operating_cost"),
     ("main-residence", "main_residence"),
@@ -25,6 +26,10 @@ const NEW_KINDS: [(&str, &str); 10] = [
     (
         "working-holiday-maker-withholding",
         "working_holiday_maker_withholding",
+    ),
+    (
+        "seniors-pensioners-withholding",
+        "seniors_pensioners_withholding",
     ),
 ];
 
@@ -329,10 +334,17 @@ fn adapt_fbt(command: &str, input: &Value, expected: &mut Value) {
 }
 
 /// `medicare-levy` also accepts 2026-27, at the thresholds Act No. 58, 2026
-/// applies to 2025-26 and later years, and cites that Act (CHANGELOG.md).
+/// applies to 2025-26 and later years, and cites that Act; it also takes the
+/// optional SAPTO and family inputs, so its scope, sources and evidence name
+/// them (CHANGELOG.md). Without those inputs every result is the frozen one.
 fn adapt_medicare(command: &str, input: &Value, expected: &mut Value) {
-    let act = "https://www.legislation.gov.au/C2026A00058/asmade/text";
-    let passage = "Medicare Levy Act 1986 ss 3(1), 6(1) and 7(1) and (2), compilation 53; Treasury Laws Amendment (Delivering an Efficient and Trusted Tax System) Act 2026 Sch 5 item 14 (2025-26 and later years); ATO Medicare levy reduction for low-income earners (2025-26) and myTax 2025 table 2 (2024-25)";
+    let added = [
+        "https://www.legislation.gov.au/C2026A00058/asmade/text",
+        "https://www.ato.gov.au/individuals-and-families/medicare-and-private-health-insurance/medicare-levy/medicare-levy-reduction/medicare-levy-reduction-family-income",
+        "https://www.legislation.gov.au/C2004A03351/2025-03-28/2025-03-28/text/original/epub/OEBPS/document_1/document_1.html",
+        "https://www.legislation.gov.au/C2025A00028/asmade/text",
+    ];
+    let passage = "Medicare Levy Act 1986 ss 3(1) and (3), 6(1), 7(1) and (2) and 8, compilations 52 (2024-25) and 53; Treasury Laws Amendment (More Cost of Living Relief) Act 2025 Sch 2 item 14 (2024-25 and later years); Treasury Laws Amendment (Delivering an Efficient and Trusted Tax System) Act 2026 Sch 5 item 14 (2025-26 and later years); ATO Medicare levy reduction for low-income earners and Medicare levy reduction - family income, with the Ashton example (2025-26); myTax 2025 tables 2 and 3 and worksheet 2 (2024-25)";
     let year = json!({"id": "2026-27", "basis": "income year", "start": "2026-07-01",
         "end": "2027-06-30", "arguments": {"year": "2026-27"}});
     if command == "medicare-levy"
@@ -355,14 +367,35 @@ fn adapt_medicare(command: &str, input: &Value, expected: &mut Value) {
     let Some(record) = record else {
         return;
     };
-    record["sources"].as_array_mut().unwrap().push(json!(act));
+    let catalogue = worksheet_catalogue();
+    let current = &catalogue["medicare_levy"];
+    let scope = record["scope"].as_str().unwrap();
+    assert!(
+        scope.starts_with("Australian resident individual for the full income year, single with no spouse or dependants at any time in the year, not entitled to the seniors and pensioners tax offset,")
+            && scope.ends_with("Excludes the family income reduction, SAPTO thresholds, exemptions, the Medicare levy surcharge, trustees and part-year residence."),
+        "frozen Medicare levy scope changed"
+    );
+    record["scope"] = current["scope"].clone();
+    record["sources"]
+        .as_array_mut()
+        .unwrap()
+        .extend(added.map(|url| json!(url)));
     record["source_checked"] = json!("2026-11-14");
     if command == "worksheet-catalogue" {
         record["source_passage"] = json!(passage);
+        let evidence = &mut record["example_evidence"];
+        evidence["document"] = json!(
+            "ATO Medicare levy reduction for low-income earners; Medicare levy reduction - family income"
+        );
+        evidence["paragraphs"] = json!(
+            "table of single thresholds, example (Angie); family taxable income thresholds, example (Ashton)"
+        );
+        evidence["checked"] = json!("2026-11-14");
         record["supported_periods"]
             .as_array_mut()
             .unwrap()
             .push(year);
+        record["optional_inputs"] = current["optional_inputs"].clone();
     }
 }
 
@@ -409,7 +442,8 @@ fn python_api_corpus_matches() {
         serde_json::from_str(include_str!("data/python-api.json")).expect("corpus parses");
     assert!(corpus.len() > 3000, "corpus too small: {}", corpus.len());
     for command in api::commands() {
-        if NEW_KINDS.iter().any(|(c, _)| *c == command) {
+        // derive is new too; tests/derivation.rs covers it.
+        if command == "derive" || NEW_KINDS.iter().any(|(c, _)| *c == command) {
             continue;
         }
         assert!(
