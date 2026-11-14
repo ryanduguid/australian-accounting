@@ -66,8 +66,13 @@ CORPUS_ROUTES = (
 )
 WITHHELD_CAVEAT = (
     "Text withheld: this title's status for {date} is {status}. Follow as_at.next_step. A "
-    "read without as_at returns the compilation the corpus holds, which is not established as text "
-    "for this date."
+    "read without as_at returns the latest compilation the corpus holds, which is not "
+    "established as text for this date."
+)
+EARLIER_CAVEAT = (
+    "The corpus also holds earlier compilations of this title, whose rows can share this "
+    "row_id, and this is the text of its latest one. To read the text a dated search "
+    "returned, pass the same as_at."
 )
 OMITTED_REFUSALS = (
     "refusals lists {listed} of {total} refused titles, principal Acts first; "
@@ -1091,7 +1096,13 @@ def _read_rows(
         raise InputError("No title index for that row_id in the configured corpus.")
     path, windows = paths[0], []
     if on is not None and len(paths) > 1 and (held := _held(paths, on)) is not None:
-        path, _, windows = held
+        path, (_, chosen), windows = held
+        if chosen["status"] != CAPTURED:
+            # No compilation covers on, so the read is refused. An earlier compilation can
+            # hold a row the latest lacks: cite it from the latest one that holds it.
+            holding = [index for index in paths if _around(index, row_id, 0)[0] is not None]
+            if holding and path not in holding and (cited := _held(holding, on)):
+                path = cited[0]
     found, before, after = _around(path, row_id, neighbours)
     if found is None:
         raise InputError(
@@ -1105,6 +1116,20 @@ def _read_rows(
         for row in (found, *before, *after):
             _agreeing(row, on, first)
     return root, found, before, after, windows
+
+
+def _held_earlier(root: Path, register_id: str) -> bool:
+    """Whether compilations/ holds an index of the title, for an undated read's caveat.
+
+    Only existence is checked and nothing is read, so a folder a dated call would refuse
+    does not stop an undated one.
+    """
+    folder = root / "compilations"
+    return folder.is_dir() and not _linked(folder) and any(
+        (build / "markdown" / register_id / "sections.jsonl").is_file()
+        for build in folder.iterdir()
+        if not build.name.startswith(".") and not _linked(build)
+    )
 
 
 def _withheld_read(
@@ -1161,6 +1186,8 @@ def read_section(
         return [{**_section(item, SEARCH_TEXT_CHARS), "as_at": found} for item in rows]
 
     section, next_start = _part(row, start)
+    if on is None and _held_earlier(root, row_id.split(":", 1)[0]):
+        section["caveats"].append(EARLIER_CAVEAT)
     return {
         "section": section if found is None else {**section, "as_at": found},
         "start": start,

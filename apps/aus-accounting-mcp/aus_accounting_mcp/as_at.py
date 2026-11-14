@@ -47,7 +47,8 @@ REFUSED_NOTICE = (
     "matching_rows and partial_rows in each refusal. A refused title can have zero "
     "matching rows. A refusal is the answer for that date: the corpus holds no text of "
     "that title for it. A title the corpus holds in more than one compilation lists each "
-    "window in held_compilations, and its rows and as_at are those of its latest one."
+    "window in held_compilations, and its as_at and row counts are those of its latest "
+    "compilation, or for a read, of the latest one holding the row read."
 )
 UNCLASSIFIABLE = (
     "as_at needs each row's compilation_date, retrieved and version_is_current, and "

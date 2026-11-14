@@ -837,8 +837,8 @@ refusal. With `as_at`, `act` accepts title words or a Register ID.
 A read of a `captured` title returns its text, with `as_at` on the section and each
 neighbour. Any other status keeps the citation and window, returns empty `text` with the
 stored `total_chars`, no neighbours and null `next_start`, and names the status in
-`refusals`. A read without `as_at` still returns the compilation the corpus holds, which
-is not established as text for that date.
+`refusals`. A read without `as_at` still returns the latest compilation the corpus holds,
+which is not established as text for that date.
 
 A status reads the compilation window, not the law on that date. A compilation does not
 show application, saving or transitional provisions elsewhere, modification by another
@@ -862,9 +862,11 @@ With `as_at`, a search and a read answer from the compilation whose window cover
 and a read takes the `row_id` a dated search returned with the same date: `row_id`s repeat
 across compilations of a title. A title no compilation covers is refused as above, with its
 latest compilation's `as_at` and row counts, and `held_compilations` lists each window held
-(`compilation_date`, `superseded_from`, `retrieved`), earliest first. A title with one
-compilation answers as before, without `held_compilations`. Calls without `as_at`,
-`define_tax_term` and `search_tax_rates` read only `markdown/`.
+(`compilation_date`, `superseded_from`, `retrieved`), earliest first; a read refused this
+way cites its row from the latest compilation that holds it, with that one's `as_at`. A
+title with one compilation answers as before, without `held_compilations`. Calls without
+`as_at`, `define_tax_term` and `search_tax_rates` read only `markdown/`; a read without
+`as_at` of a title `compilations/` also holds carries a caveat saying so.
 
 `as_at` needs every row's window, so a row without its dates, as in an older build, or
 with dates that cannot all be true, or a title whose rows disagree, stops a dated call

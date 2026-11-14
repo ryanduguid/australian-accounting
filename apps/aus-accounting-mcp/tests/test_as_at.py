@@ -778,8 +778,19 @@ def test_a_date_no_compilation_covers_is_refused_naming_each_window_held(
 def test_calls_without_a_date_read_only_the_markdown_compilation(two_compilations):
     result = call(SEARCH, query="synthetic levy", in_force_only=False)
 
+    read = call(READ, row_id=f"{CURRENT}:0001:1")["section"]
     assert [hit["text"] for hit in result["matches"]] == [LATEST_TEXT]
-    assert call(READ, row_id=f"{CURRENT}:0001:1")["section"]["text"] == LATEST_TEXT
+    assert read["text"] == LATEST_TEXT
+    assert read["caveats"] == [corpus.EARLIER_CAVEAT]
+
+
+def test_an_undated_read_of_a_title_held_once_carries_no_earlier_caveat(dated):
+    write_compilation(dated, ".partial", title(
+        CURRENT, "Synthetic Current Act 2098", "2098-01-01", superseded="2098-07-01"
+    ))
+    write_compilation(dated, "2098-01-01", title(LATER, "Synthetic Later Act 2098", "2098-12-01"))
+
+    assert call(READ, row_id=f"{CURRENT}:0001:1")["section"]["caveats"] == []
 
 
 @pytest.mark.parametrize("superseded", ["2098-11-01", None])
@@ -837,6 +848,14 @@ def test_a_row_only_an_earlier_compilation_holds_is_read_only_inside_its_window(
     row_id = f"{CURRENT}:0002:2"
 
     assert call(READ, row_id=row_id, as_at="2098-08-01")["section"]["text"] == TEXTS[1]
+    for on, status in [("2098-06-30", "before_compilation"), ("2099-01-02", "superseded")]:
+        refused = call(READ, row_id=row_id, as_at=on)
+        assert refused["section"]["text"] == ""
+        assert refused["section"]["as_at"]["status"] == status
+        assert refused["section"]["as_at"]["compilation_date"] == "2098-07-01"
+        assert refused["refusals"][0]["held_compilations"] == WINDOWS
+    with pytest.raises(ToolError, match="No section with that row_id"):
+        asyncio.run(mcp.call_tool(READ, {"row_id": f"{CURRENT}:0009:9", "as_at": "2099-01-02"}))
     with pytest.raises(ToolError, match="Search with as_at 2098-11-01 for the row_ids"):
         asyncio.run(mcp.call_tool(READ, {"row_id": row_id, "as_at": "2098-11-01"}))
     with pytest.raises(ToolError, match=r"No section with that row_id in the [a-z ]+\.$"):
