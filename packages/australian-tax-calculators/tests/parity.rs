@@ -13,11 +13,15 @@ use std::process::{Command, Stdio};
 /// `tests/borrowing_expenses.rs`, `tests/division_296.rs`,
 /// `tests/termination_payment.rs`, `tests/schedule_5.rs`,
 /// `tests/working_holiday_maker.rs`, `tests/seniors_pensioners.rs`,
-/// `tests/seniors_pensioners_offset.rs` and `tests/medicare_surcharge.rs`
-/// cover them.
-const NEW_KINDS: [(&str, &str); 13] = [
+/// `tests/seniors_pensioners_offset.rs`, `tests/medicare_surcharge.rs`,
+/// `tests/fbt_loan.rs`, `tests/fbt_meal_entertainment.rs` and
+/// `tests/fbt_car_parking.rs` cover them.
+const NEW_KINDS: [(&str, &str); 16] = [
     ("fbt-car-statutory", "fbt_car_statutory"),
     ("fbt-car-operating-cost", "fbt_car_operating_cost"),
+    ("fbt-loan", "fbt_loan"),
+    ("fbt-meal-entertainment", "fbt_meal_entertainment"),
+    ("fbt-car-parking", "fbt_car_parking"),
     ("main-residence", "main_residence"),
     ("borrowing-expenses", "borrowing_expenses"),
     ("division-296", "division_296"),

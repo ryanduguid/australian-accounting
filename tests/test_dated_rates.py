@@ -40,7 +40,7 @@ DATASET = PACKAGES / "au-tax-rates-data" / "data"
 
 # How many engine copies of dataset figures _dataset_pairs() compares. An engine
 # table that starts holding a dataset figure needs its own entry there.
-DATASET_PAIRS = 56
+DATASET_PAIRS = 57
 
 
 def _metadata_literal(name: str):
@@ -136,6 +136,7 @@ def _dataset_pairs() -> list[tuple[str, Decimal, Decimal | None]]:
         "DIVISION_296": _metadata_literal("DIVISION_296"),
         "TERMINATION_PAYMENT": _metadata_literal("TERMINATION_PAYMENT"),
         "FBT_BENCHMARK_INTEREST_RATES": _metadata_literal("FBT_BENCHMARK_INTEREST_RATES"),
+        "FBT_CAR_PARKING_THRESHOLDS": _metadata_literal("FBT_CAR_PARKING_THRESHOLDS"),
     }
     for name, table, key in (
         ("study-loan-repayment-threshold-2026-27", "STUDY_LOAN_REPAYMENT_THRESHOLDS 2026-27", "minimum"),
@@ -164,6 +165,7 @@ def _dataset_pairs() -> list[tuple[str, Decimal, Decimal | None]]:
         ("genuine-redundancy-base-limit-2026-27", "TERMINATION_PAYMENT", "base_amount"),
         ("genuine-redundancy-service-amount-2026-27", "TERMINATION_PAYMENT", "service_amount"),
         ("fbt-benchmark-interest-rate-fbt-year-2027", "FBT_BENCHMARK_INTEREST_RATES", "2027"),
+        ("fbt-car-parking-threshold-fbt-year-2027", "FBT_CAR_PARKING_THRESHOLDS", "2027"),
     ):
         copy = Decimal(tables[table][key])
         if _record(name)["unit"] == "percent":
