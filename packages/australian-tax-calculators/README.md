@@ -3,7 +3,7 @@
 Australian Tax Calculators 1.0.0 is a standalone Rust binary. It replaces the
 Python `australian-tax-calculators` 0.2.0 package and its `austaxcalc` import
 API, with the same 14 worksheets, results and refusals, and adds 2 FBT car
-worksheets, a main residence worksheet, a borrowing expenses worksheet, a Division 296 estimate, a termination payment worksheet, 3 Schedule 5 withholding worksheets, a Schedule 15 working holiday maker worksheet, a Schedule 9 seniors and pensioners worksheet, a seniors and pensioners tax offset worksheet, a Medicare levy surcharge worksheet and a foreign resident tax worksheet that no Python release contains. Python releases through 0.1.9
+worksheets, FBT loan, meal entertainment and car parking worksheets, a main residence worksheet, a borrowing expenses worksheet, a Division 296 estimate, a termination payment worksheet, 3 Schedule 5 withholding worksheets, a Schedule 15 working holiday maker worksheet, a Schedule 9 seniors and pensioners worksheet, a seniors and pensioners tax offset worksheet, a Medicare levy surcharge worksheet, a foreign resident tax worksheet, a PAYG gross-up worksheet and a hire purchase schedule that no Python release contains. Python releases through 0.1.9
 contain 10 worksheets. Until the MCP server links this crate,
 it uses the 0.2.0 Python release from PyPI; the
 [release handoff](../../apps/aus-accounting-mcp/docs/worksheet-release.md)
@@ -17,10 +17,10 @@ keeps the engine release and MCP integration separate.
 
 </div>
 
-Twenty-eight calculation worksheets for established facts: ordinary GST, resident and foreign
-resident basic income tax, CGT losses and discount, the main residence exemption's taxable share of a gain or loss, one loan's borrowing expenses deduction, ordinary employer FBT, car fringe benefit taxable values
-under the statutory formula and operating cost methods, depreciation in the start year and later years,
-quarterly super guarantee, Schedule 1 PAYG withholding, Schedule 5 withholding from back payments, commissions and bonuses by Methods A, B(i) and B(ii), Schedule 15 withholding for working holiday makers, Schedule 9 withholding for seniors and pensioners, super contribution caps,
+Thirty-three calculation worksheets for established facts: ordinary GST, resident and foreign
+resident basic income tax, CGT losses and discount, the main residence exemption's taxable share of a gain or loss, one loan's borrowing expenses deduction, a hire purchase agreement's monthly notional interest, ordinary employer FBT, car fringe benefit taxable values
+under the statutory formula and operating cost methods, loan, meal entertainment and car parking fringe benefit taxable values, depreciation in the start year and later years,
+quarterly super guarantee, Schedule 1 PAYG withholding and the gross pay that leaves a stated net, Schedule 5 withholding from back payments, commissions and bonuses by Methods A, B(i) and B(ii), Schedule 15 withholding for working holiday makers, Schedule 9 withholding for seniors and pensioners, super contribution caps,
 account-based pension minimums, study and training loan repayments, Schedule 8 study
 loan withholding, the Medicare levy with its low-income, SAPTO and family reductions and full or half exemptions, the Medicare levy surcharge, the low income tax offset, the seniors and pensioners tax offset,
 Division 293 tax, an estimate of Division 296 tax on large super balances and the tax-free part of a genuine redundancy payment with Schedule 11 withholding from an employment termination payment. Callers must establish every scope condition before calculating. `personal-tax-estimate` composes the personal ones into one year's tax and levies.
@@ -94,12 +94,17 @@ lists the commands.
 | `capital-gains` | `other_gains`, `discount_gains`, `current_losses`, `prior_losses`, `scope_confirmed`, `year` |
 | `main-residence` | `capital_gain`, `capital_loss`, `market_value_basis`, `ownership_start`, `ownership_end`, `lived_periods`, `income_use_periods`, `absence_choice_periods`, `new_home_acquired`, `year`, `scope_confirmed` |
 | `borrowing-expenses` | `borrowing_expenses`, `other_borrowing_expenses_in_year`, `income_use`, `loan_start`, `loan_term_end`, `repaid_on`, `section_26_50_applies`, `year`, `scope_confirmed` |
+| `hire-purchase-schedule` | `amount_financed`, `instalment`, `instalments`, `balloon`, `timing`, `start_date`, `year`, `scope_confirmed` |
 | `fbt` | `type_one_value`, `type_two_value`, `year_ended`, `scope_confirmed` |
 | `fbt-car-statutory` | `cost_price`, `later_accessories`, `one_third_reduction`, `days_available`, `employee_contribution`, `electric_car_exempt`, `year_ended`, `scope_confirmed` |
 | `fbt-car-operating-cost` | `running_costs`, `lease_charges`, `depreciated_value`, `effective_life_years`, `days_held`, `business_use`, `employee_contribution`, `statutory_formula_taxable_value`, `electric_car_exempt`, `year_ended`, `scope_confirmed` |
+| `fbt-loan` | `daily_balance_total`, `interest_accrued`, `income_use`, `accrued_interest_deduction`, `year_ended`, `scope_confirmed` |
+| `fbt-meal-entertainment` | `method`, `meal_entertainment_expenditure`, `year_ended`, `scope_confirmed`; with `12_week_register`, `register_fringe_benefits_value`, `register_meal_entertainment_value` and `register_first_year` |
+| `fbt-car-parking` | `method`, `first_business_day_fee`, `year_ended`, `scope_confirmed`; with `commercial_parking_station`, `benefits`, `lowest_fee` and `employee_contribution`; with `average_cost`, `benefits`, `first_day_fee`, `last_day_fee` and `employee_contribution`; with `12_week_register`, `register_value`, `availability_days` and `register_first_year` |
 | `depreciation` | `cost`, `effective_life`, `days`, `taxable_use`, `method`, `scope_confirmed`, `year`; optional `opening_adjustable_value` |
 | `quarterly-sg` | `ordinary_time_earnings`, `qualifying_contributions`, `year`, `quarter`, `scope_confirmed` |
 | `payg-withholding` | `earnings`, `pay_period`, `scale`, `year`, `scope_confirmed`; optional `foreign_resident` (scale 4), `tax_offsets`, `medicare_adjustment_children`, `extra_pay_withholding` |
+| `payg-gross-up` | `net_pay`, `pay_period`, `scale`, `year`, `scope_confirmed`; optional `foreign_resident` (scale 4) |
 | `study-loan-withholding` | `earnings`, `pay_period`, `scale`, `year`, `scope_confirmed`; `pay_date`, required for 2025-26 |
 | `medicare-levy` | `taxable_income`, `section_9a_adjustment_applies`, `year`, `scope_confirmed`; optional `sapto_entitled`, `spouse_taxable_income`, `spouse_sapto_entitled`, `dependant_offset_entitled`, `dependent_children`, `medicare_levy_exemption_full_days`, `medicare_levy_exemption_half_days` |
 | `medicare-levy-surcharge` | `taxable_income`, `reportable_fringe_benefits`, `income_for_surcharge_purposes`, `days_without_cover`, `year`, `scope_confirmed`; optional `spouse_income_for_surcharge_purposes`, `dependent_children` |
@@ -119,13 +124,13 @@ lists the commands.
 | `worksheet-catalogue` | none: send `{}` |
 | `periods` | `kind`, the worksheet name, such as `"payg_withholding"` |
 | `personal-tax-estimate` | `year`, `scope_confirmed`, `residency`, `taxable_income`, and for a full-year resident `medicare-levy` and `medicare-levy-surcharge`; optional `seniors-pensioners-tax-offset`, `study-loan-repayment` and `division-293`; see [Personal tax estimate](#personal-tax-estimate) |
-| `derive` | `command`, one of `fbt`, `fbt-car-statutory`, `fbt-car-operating-cost`, `division-293`, `pension-minimum`, `payg-withholding`, `schedule-5-method-a`, `schedule-5-method-b-i`, `schedule-5-method-b-ii` and `termination-payment`, and `input`, that command's arguments; see [Derivations](#derivations) |
+| `derive` | `command`, one of `fbt`, `fbt-car-statutory`, `fbt-car-operating-cost`, `fbt-loan`, `fbt-meal-entertainment`, `fbt-car-parking`, `division-293`, `pension-minimum`, `payg-withholding`, `schedule-5-method-a`, `schedule-5-method-b-i`, `schedule-5-method-b-ii` and `termination-payment`, and `input`, that command's arguments; see [Derivations](#derivations) |
 
-The 2 car commands, `main-residence`, `borrowing-expenses`, `division-296`, `termination-payment`, the 3 `schedule-5` commands, `working-holiday-maker-withholding`, `seniors-pensioners-withholding`, `seniors-pensioners-tax-offset`, `medicare-levy-surcharge` and `foreign-resident-tax` have no Python original; their arguments follow the same
+The 2 car commands, the 3 FBT benefit commands (`fbt-loan`, `fbt-meal-entertainment` and `fbt-car-parking`), `main-residence`, `borrowing-expenses`, `division-296`, `termination-payment`, the 3 `schedule-5` commands, `working-holiday-maker-withholding`, `seniors-pensioners-withholding`, `seniors-pensioners-tax-offset`, `medicare-levy-surcharge`, `foreign-resident-tax`, `payg-gross-up` and `hire-purchase-schedule` have no Python original; their arguments follow the same
 rules. `division-296` alone takes a negative amount, in `total_super_earnings`. `main-residence` also takes dates as `YYYY-MM-DD` strings, lists of
 `{"start", "end"}` periods (with `"floor_area"` for income use) and `null`
 for no new home. `borrowing-expenses` takes `loan_start` as a `YYYY-MM-DD`
-string and `loan_term_end` and `repaid_on` as dates or `null`. `termination-payment` takes `completed_years_of_service` as a JSON integer and `date_of_birth` as a `YYYY-MM-DD` string. `schedule-5-method-b-i` takes `back_payment_periods` as a list of `{"earnings", "back_payment", "withheld"}` decimal strings, one for each earlier pay period. Every argument is required, as the Python functions had no defaults, except `depreciation`'s optional `opening_adjustable_value`: give it, as a decimal string, for a year after the asset's start time, as cost less the earlier years' decline in value; and `medicare-levy`'s optional family inputs, described under [Medicare levy](#medicare-levy-and-low-income-tax-offset). `medicare-levy` refuses a field it does not take, as does `medicare-levy-surcharge`, whose optional inputs are described under [Medicare levy surcharge](#medicare-levy-surcharge). `payg-withholding`'s optional inputs are described under [PAYG withholding](#payg-withholding), and `study-loan-withholding`'s `pay_date` under [Study loan withholding](#study-loan-withholding), and `seniors-pensioners-tax-offset`'s spouse inputs under [Seniors and pensioners tax offset](#seniors-and-pensioners-tax-offset). Input over 8 MiB,
+string and `loan_term_end` and `repaid_on` as dates or `null`. `hire-purchase-schedule` takes `instalments` as a JSON integer, `timing` as `in_arrears` or `in_advance` and `start_date` as a `YYYY-MM-DD` string, and refuses a field it does not take. `termination-payment` takes `completed_years_of_service` as a JSON integer and `date_of_birth` as a `YYYY-MM-DD` string. `schedule-5-method-b-i` takes `back_payment_periods` as a list of `{"earnings", "back_payment", "withheld"}` decimal strings, one for each earlier pay period. Every argument is required, as the Python functions had no defaults, except `depreciation`'s optional `opening_adjustable_value`: give it, as a decimal string, for a year after the asset's start time, as cost less the earlier years' decline in value; and `medicare-levy`'s optional family inputs, described under [Medicare levy](#medicare-levy-and-low-income-tax-offset). `medicare-levy` refuses a field it does not take, as does `medicare-levy-surcharge`, whose optional inputs are described under [Medicare levy surcharge](#medicare-levy-surcharge). `payg-withholding`'s optional inputs are described under [PAYG withholding](#payg-withholding), `payg-gross-up` under [PAYG gross-up](#payg-gross-up), and `study-loan-withholding`'s `pay_date` under [Study loan withholding](#study-loan-withholding), and `seniors-pensioners-tax-offset`'s spouse inputs under [Seniors and pensioners tax offset](#seniors-and-pensioners-tax-offset). The FBT benefit commands take the inputs their `method` needs and refuse any other, as [FBT loans, meal entertainment and car parking](#fbt-loans-meal-entertainment-and-car-parking) describes. Input over 8 MiB,
 or a decimal string over 8,192 bytes, is refused.
 
 ## Derivations
@@ -182,6 +187,9 @@ which the method uses as rounded.
 | Borrowing expenses | 2024-25 to 2026-27, before s 26-155 from 2027-28; one loan's established expenditure, use and dates |
 | FBT | Years ended 31 March 2026 and 2027; established type 1 and type 2 taxable values, ordinary employer |
 | FBT car benefits | Years ended 31 March 2026 and 2027; one car's established base value or operating costs, the 20% statutory percentage and a deemed depreciation rate of 200% over the established effective life |
+| FBT loans | Years ended 31 March 2026 and 2027 at the statutory interest rate (8.62% and 8.27%); one loan to a current employee, its established daily balances, interest accrued and deductible share |
+| FBT meal entertainment | Years ended 31 March 2026 and 2027; the established year's expenditure, by the 50/50 split or a valid 12 week register |
+| FBT car parking | Years ended 31 March 2026 and 2027 at the car parking threshold ($11.03 and $11.48); the commercial parking station, average cost or 12 week register method; no market value or spaces method |
 | Depreciation | 2025-26 and 2026-27, an ordinary tangible Division 40 asset's start year, or a later year from its established opening adjustable value; established life and use |
 | SG | Complete quarters of 2025-26; established OTE, eligibility and qualifying contributions |
 | Contribution caps | 2024-25 to 2026-27; one individual's classified contributions, no bring-forward period started in the 2 previous years |
@@ -256,6 +264,30 @@ examples; see [calculation evidence](docs/calculation-evidence.md#payg-withholdi
 This worksheet was first published in the 0.1.5 wheel. The 0.2.0 wheel, which
 the MCP server uses, covers weekly, fortnightly and monthly 2026-27 pays on
 scales 1, 2, 3, 5 and 6 only; no release publishes the rest yet.
+
+## PAYG gross-up
+
+`payg_gross_up` finds the gross pay whose Schedule 1 withholding leaves the
+`net_pay` given, as for pay agreed net of tax, on the same `pay_period`,
+`scale`, `year` and, for scale 4, `foreign_resident` as `payg_withholding`.
+It does not invert the formulas: it searches `payg_withholding`'s own results,
+so every rule and refusal of that worksheet applies, and the result gives
+`net_pay`, `gross_pay` and that worksheet's amounts and coefficients for the
+gross. Schedule 1 withholds whole dollars and never less from a higher pay, so
+a gross leaves the net exactly when it is the net plus the withholding on it;
+the search finds every such gross, of which there is always at least one.
+
+Where a gross a dollar higher (for a weekly pay; more for longer pay periods)
+withholds a dollar more, both leave the same net, and the worksheet refuses
+with `payg.gross_up_not_unique`, listing every gross: Schedule 1 does not say
+which one a net-agreed pay means, so take it from the pay agreement. Such ties
+are common: each dollar of withholding added as pay rises makes one. Tax offsets,
+the Medicare levy adjustment, the additional amount for 53 or 27 pays, study
+and training support loans, super and other deductions are not inputs. A net
+above $499,999,999,974.00 is refused, so that every gross the search tries is
+an amount `payg_withholding` takes. The tests gross up the net of every row of
+the ATO's sample data for both schedules to the row's earnings or a tie that
+names them; see [calculation evidence](docs/calculation-evidence.md#payg-gross-up).
 
 ## Super contribution caps and pension minimums
 
@@ -437,6 +469,55 @@ review of another FBT car calculator, as fabricated cars
 ([`tests/data/lodgeit-verdict-cases.json`](tests/data/lodgeit-verdict-cases.json),
 attributed in [NOTICE](NOTICE)). Each has a case, a stated reason or both.
 
+## FBT loans, meal entertainment and car parking
+
+Each worksheet gives one category's taxable value before gross-up, for `fbt`
+to gross up with the others. They take their inputs by name: each method needs
+its own, and an input the method does not use, or one missing, is refused with
+the method named (a string that is not a readable decimal is refused as
+unreadable first). Each derives its amounts (see [Derivations](#derivations)).
+
+`fbt_loan` applies FBTAA ss 18 and 19. `daily_balance_total` is the loan's
+balance at the end of each day the employee owed it, added together, so
+repayments and drawdowns are counted by the day; the notional interest is that
+total times the year's statutory interest rate over the days in the year (s
+136(1)), less the interest accrued. The otherwise deductible rule takes off the
+gross deduction on the notional interest (`income_use` of it) less the
+deduction for the interest accrued, never below nil. A loan benefit is type 2,
+and the result's warning says so.
+
+`fbt_meal_entertainment` takes the year's meal entertainment expenses, net of
+employees' unreimbursed contributions, and applies 50% (`50_50_split`, s 37BA)
+or the register percentage (`12_week_register`, s 37CB), kept exact and shown to
+2 places. A register must be in its first valid year or one of the 4 after it
+(s 37CD). The worksheet checks only that; the operator establishes that the
+register was kept as the Act requires, that no earlier year's expenses were more
+than 20% above its first valid year's, and that no later register replaced it.
+
+`fbt_car_parking` gives a nil taxable value unless `first_business_day_fee`,
+the highest of the nearby stations' lowest all-day fees on the first business
+day, is more than the year's car parking threshold (s 39A(1)(a)(iii)); a nil
+result holds that taxable value alone, with no gross value or payment. It
+takes one premises and the stations within 1 km of it; run it once for each.
+`commercial_parking_station` values each benefit at the
+day's lowest fee (s 39C), the same on every day, and `average_cost` at the
+average of the fees on the days benefits were first and last provided (s 39DA);
+the recipients' payments come off in total, each counted only up to its
+benefit's value, never below nil. `12_week_register`
+takes the register's net value times 52 / 12 times the availability period's
+days over 366 (s 39GB), the divisor the Act sets for every year. It checks only
+the register's age (s 39GF); the operator establishes the record keeping, that
+the number of benefits rose by no more than 10% on any day of an earlier year,
+and that no later register replaced it. The market value (s 39D) and spaces (s
+39FA) methods are not covered, and a `method` naming either is refused: one
+needs a valuer's report, the other per-space facts this worksheet does not take.
+
+Each worksheet reproduces, to the cent, the published examples for the years it
+supports (FBT return 2026 instructions examples 8 and 18, and the Library's
+¶3-100 and ¶3-220) and the employer's guide's car parking examples 15 and 17,
+and reruns the guide's earlier-year loan examples at the supported rates; see
+[calculation evidence](docs/calculation-evidence.md#fbt-loan).
+
 ## Main residence
 
 `main_residence` works out how much of an individual's capital gain or loss on
@@ -483,6 +564,46 @@ in the year, a loan first drawn on 29 February, and income years from 2027-28,
 when s 26-155 quarantines residential rental deductions. The tests hold it to
 the ATO's and the Library's worked examples; see
 [calculation evidence](docs/calculation-evidence.md#borrowing-expenses).
+
+## Hire purchase schedule
+
+`hire_purchase_schedule` sets out a hire purchase agreement month by month
+for the hirer, who is the notional buyer under ITAA 1997 s 240-17(2). The
+caller establishes the amount financed (the price less any deposit or
+trade-in), the level monthly instalment, the number of instalments (1 to
+360), any balloon, whether instalments fall at each month's end
+(`in_arrears`) or start (`in_advance`), and the start date, which must fall in
+the income year given (2024-25 to 2026-27). The worksheet does not take an
+interest rate: it works out the implicit interest rate, the monthly compound
+rate at which the payments repay the amount financed, as step 3 of
+s 240-60(1) does, and each month's notional interest is the outstanding
+notional loan principal, less an instalment due at the month's start, times
+that rate (steps 1, 2 and 4). The payments themselves are not deductible
+(s 240-55).
+
+The result gives the amount financed, the total payments and the total
+interest, the implicit monthly rate and 12 times it as `nominal_annual_rate`
+(both to 16 places),
+`balloon_date` (the end of the term) and `schedule`, one row a month with its
+`period_start`, `period_end`, `payment_date`, `opening`, `interest`,
+`payment` (the instalment, paid on `payment_date`), `balloon` (nil until the
+last month, paid on `balloon_date`: with the last instalment in arrears, a
+month after it in advance), `principal` and `closing`. A month runs to the same day of the next
+month, or that month's last day when it is shorter. Each month shows the
+notional interest to date rounded half up to cents, less what the months
+before show, so a cent of rounding never compounds: the months' interest adds
+up to the total charges, each is within a cent of its amount at the rate
+found, and the last balance is nil. That rate is found to 64 halvings and
+leaves less than half a cent after the last payment, so a month can differ
+from its amount at the exact implicit rate by slightly more than a cent at
+the largest amounts. The worksheet refuses payments that imply a rate below
+nil or of 100% a month or more, and a rate it cannot find closely enough to
+leave a nil balance to the cent. It shows interest by month, not by income
+year: s 240-60(2) relates a month that spans 30 June to each year in
+accordance with accounting principles, which the caller must do. Fees, GST,
+irregular payments, termination amounts other than the balloon and the
+notional seller are out of scope; see
+[calculation evidence](docs/calculation-evidence.md#hire-purchase-schedule).
 
 ## Division 296
 

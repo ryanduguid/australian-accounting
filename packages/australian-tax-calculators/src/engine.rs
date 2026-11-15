@@ -14,6 +14,9 @@ use crate::metadata::{self as meta, CoefficientRow, Example};
 use crate::pytext;
 use crate::texts;
 
+mod fbt_benefits;
+pub use fbt_benefits::{fbt_car_parking, fbt_loan, fbt_meal_entertainment};
+
 pub const VERSION: &str = env!("CARGO_PKG_VERSION");
 const WORKING_PRECISION: i128 = 40;
 
@@ -1764,6 +1767,9 @@ pub fn study_loan_withholding(
         rates,
     )
 }
+
+mod payg_gross_up;
+pub use payg_gross_up::payg_gross_up;
 
 /// The optional `medicare-levy` inputs, each `None` when not given.
 pub struct MedicareFamily<'a> {
@@ -3761,6 +3767,9 @@ pub fn borrowing_expenses(
     spread(&year, &loan, &expenditure, &share)
 }
 
+mod hire_purchase;
+pub use hire_purchase::hire_purchase_schedule;
+
 /// One pay that includes an additional payment, as Schedule 5 (NAT 3348) reads it.
 struct AdditionalPay {
     kind: &'static str,
@@ -4757,19 +4766,24 @@ pub fn seniors_pensioners_tax_offset(
     Ok(out)
 }
 
-const KINDS: [&str; 28] = [
+const KINDS: [&str; 33] = [
     "gst",
     "resident_tax",
     "foreign_resident_tax",
     "capital_gains",
     "main_residence",
     "borrowing_expenses",
+    "hire_purchase_schedule",
     "fbt",
     "fbt_car_statutory",
     "fbt_car_operating_cost",
+    "fbt_loan",
+    "fbt_meal_entertainment",
+    "fbt_car_parking",
     "depreciation",
     "quarterly_sg",
     "payg_withholding",
+    "payg_gross_up",
     "contribution_caps",
     "pension_minimum",
     "study_loan_repayment",
@@ -4904,7 +4918,7 @@ pub fn worksheet_catalogue() -> Value {
             if kind == "depreciation" {
                 json!(["prime_cost", "diminishing_value"])
             } else {
-                json!([])
+                json!(fbt_benefits::methods(kind))
             },
         );
         entry.insert(

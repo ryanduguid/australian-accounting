@@ -39,8 +39,12 @@ example evidence; it does not claim a fresh review of every supported period.
 | Capital gains | `tax-examples-capital-gains-tax-cgt` (tax-examples), ¶2-040 and ¶2-240 | 30 June 2026 | Established ordinary gains, losses and discount entitlement for 2025–26 |
 | FBT | `tax-examples-fringe-benefits-tax-fbt` (tax-examples), ¶3-000 and ¶3-020 | 30 June 2026 | Established taxable values and ordinary gross-up rates; car example ends 31 March 2026 |
 | FBT car benefits | `tax-examples-fringe-benefits-tax-fbt` (tax-examples), ¶3-020 and ¶3-045 (reportable value), with the ATO's FBT return 2026 instructions (item 23), employer's guide (7.8 and 7.9) and reportable fringe benefits page | 30 June 2026; 1 April 2026 (item 23); 12 January 2023 (reportable fringe benefits) | One car's established base value or operating costs for the years ended 31 March 2026 and 2027; the reportable taxable value before the employee's $2,000 threshold and type 2 gross-up |
+| FBT loans | `tax-examples-fringe-benefits-tax-fbt` (tax-examples), ¶3-100, with FBTAA ss 18, 19 and 136(1) (compilation 97, 1 July 2026), the FBT return 2026 instructions (item 23C, example 8), the employer's guide (8.5 and 8.8) and the FBT rates and thresholds page | 30 June 2026; 20 May 2026 (rates page) | One loan to a current employee for the years ended 31 March 2026 and 2027; deciding the loan, exemptions and the deduction itself excluded |
+| FBT meal entertainment | `tax-examples-fringe-benefits-tax-fbt` (tax-examples), ¶3-220, with FBTAA ss 37AB to 37CD (compilation 97) and the FBT return 2026 instructions (item 23P, example 18) | 30 June 2026 | The year's established expenditure by the 50/50 split or a valid 12 week register for the years ended 31 March 2026 and 2027; the actual method excluded |
+| FBT car parking | `tax-examples-fringe-benefits-tax-fbt` (tax-examples), ¶3-055 (the 2026 threshold), with FBTAA ss 39A to 39GF (compilation 97), the employer's guide (chapter 16, examples 12, 13, 15 and 17) and the FBT rates and thresholds page | 30 June 2026; 20 May 2026 (rates page) | Commercial parking station, average cost and 12 week register values for the years ended 31 March 2026 and 2027; market value and spaces methods excluded |
 | Main residence | `tax-examples-capital-gains-tax-cgt` (tax-examples), ¶2-060 and ¶2-075, with the ATO's pages 'Treating former home as main residence' (QC66030) and 'Using your home for rental or business' (QC66033) | 30 June 2026; 22 June 2026 (both ATO pages) | One dwelling's taxable days for CGT events in 2024-25 to 2026-27; cost base, market value and discount excluded |
 | Borrowing expenses | `tax-examples-deductions` (tax-examples), ¶4-160, with ITAA 1997 s 25-25 (compilation 268, 1 October 2026) and the ATO's 'Borrowing expenses' page | 30 June 2026; 22 May 2026 (ATO page) | One loan's established expenditure, use and dates for 2024-25 to 2026-27; classification, interest and refinancing excluded |
+| Hire purchase schedule | Not a Library document: ITAA 1997 ss 240-17, 240-55 and 240-60 on the ATO's legal database and in compilation 268 (1 October 2026) | 15 November 2026 (read) | One agreement's monthly notional interest for the hirer, starting in 2024-25 to 2026-27, from established payments; apportionment to income years under s 240-60(2) excluded |
 | Depreciation | `tax-examples-depreciation` (tax-examples), ¶6-000 and ¶6-020 | 30 June 2025 | First-year formulas and taxable-use apportionment in 2024–25 examples |
 | Quarterly SG | `superannuation-instant-reference-rates-thresholds-and-checklists` (superannuation), ¶18-600 and ¶18-620 | 30 June 2026 | General 2025–26 rate and quarterly maximum contribution base |
 | Contribution caps | `tax-examples-individuals` (tax-examples), ¶7-278 | 30 June 2025 | First-year bring-forward for 2024–25 only; the later-year nil cap is outside the worksheet |
@@ -55,6 +59,7 @@ example evidence; it does not claim a fresh review of every supported period.
 | Schedule 5 withholding | Not a Library document: ATO Schedule 5 (NAT 3348) for payments from 1 July 2024, 1 July 2025 and 1 July 2026, and the 2024, 2025 and 2026 withholding schedules instruments | 17 June 2024, 10 June 2025 and 17 June 2026 (published) | One regular weekly, fortnightly or monthly pay with additional payments by Method A, B(i) or B(ii); the study loan component for pays from 24 September 2025, and from 1 July 2026 in Method B(i) |
 | Working holiday makers | Not a Library document: ATO Schedule 15 for payments from 1 July 2026, and for 1 July 2024 to 30 June 2026 | 17 June 2026 (published); 17 June 2024 (last updated) | One payment's withholding at the Table A rates or Schedule 1 scale 3 for 2024-25 to 2026-27; visa, registration and TFN status established by the operator |
 | Seniors and pensioners | Not a Library document: ATO Schedule 9 (NAT 4466) for payments from 1 July 2026, and for 1 July 2024 to 30 June 2026, with Schedule 9 of the 2026 and 2025 withholding schedules instruments | 17 June 2026 (published); 17 June 2024 (last updated) | One weekly, fortnightly or monthly payment's withholding on scales 1 to 9 for 2024-25 to 2026-27; eligibility, status and exemption established by the operator; other tax offsets and the Medicare levy adjustment excluded |
+| PAYG gross-up | Not a Library document: ATO Schedule 1 (NAT 1004) sample data for payments from 1 July 2026, and for 1 July 2024 to 30 June 2026, through the PAYG withholding worksheet | 17 June 2026 (published); 17 June 2024 (last updated) | The gross of one regular pay whose Schedule 1 withholding leaves an established net; refused where more than one gross does |
 | Study loan withholding | Not a Library document: ATO Schedule 8 (NAT 3539) for payments from 1 July 2026, and Schedule 8 of F2025L01016 for payments from 24 September 2025 | 17 June 2026 (published); 24 September 2025 (commenced) | Schedule 8 component on one regular weekly, fortnightly, monthly or quarterly pay, added to the Schedule 1 amount |
 | Study loan repayment | Not a Library document: the ATO minimum repayment income page and Gazette C2026G00249 | 13 October 2026 (ATO page) | Marginal repayment on established repayment income for 2025-26 and 2026-27; the loan-balance limit is outside the worksheet |
 
@@ -247,6 +252,76 @@ third warning. `tests/fbt_car.rs` checks a taxable car, an exempt electric car
 and a recipient's payment under both methods; `tests/properties.rs` checks the
 equality on every seeded result.
 
+## FBT loan
+
+These worksheets were added on 15 November 2026. Their sources were read that
+morning, 7.58 am to 8.17 am AEDT: the FBTAA as compiled on 1 July 2026
+(C2004A03280, compilation 97, EPUB documents 1 and 2), the FBT return 2026
+instructions' item 23 page, the ATO's FBT rates and thresholds page (last
+updated 20 May 2026), chapters 8, 14 and 16 of 'Fringe benefits tax - a guide
+for employers', and the ATO's 'Loan and debt waiver fringe benefits' and 'Car
+parking and FBT' pages (both last updated 6 March 2025). The rates page gives
+the statutory or benchmark interest rate as 8.62% for the year ended 31 March
+2026 and 8.27% for 2027, and the car parking threshold as $11.03 and $11.48; it
+says these figures are published only there, not in a taxation determination.
+`tests/fbt_loan.rs`, `tests/fbt_meal_entertainment.rs` and
+`tests/fbt_car_parking.rs` hold each case.
+
+Item 23C example 8: $20,000 lent for the whole year at no interest, `20000 ×
+0.0862 = 1724`, **$1,724.00**; the worksheet takes the daily balances' total,
+`7300000 × 0.0862 / 365 = 1724`. ¶3-100 (review date 30 June 2026) lends
+$100,000 for 2025-26 at 3.45%, 40% spent on shares: notional interest `8620`
+less `3450` accrued is `5170`; GD `8620 × 0.4 = 3448` less RD `3450 × 0.4 =
+1380` is a notional deduction of `2068`, for **$3,102.00**. Given to `fbt` as a
+type 2 value, `3102 × 1.8868 = 5852.85`, item 14B **$5,853**, and FBT of
+**$2,750.91**, which the Library rounds to $2,751. The guide's 8.5 example used
+5.65% for 2016-17; its $50,000 at 5% reruns at 8.62% to `4310 − 2500 = 1810` and
+at 8.27% to `4135 − 2500 = 1635`. Its 8.8 examples, $50,000 at 4% with 60% used
+to produce income, rerun at 8.62% to TV `2310`, GD `2586` and ND `2586 − 1200 =
+1386`, for **$924.00**; with the rate set by regard to use, RD is `431` and the
+value **$155.00**.
+
+Notional interest and the gross deduction are each rounded half up to cents: the
+Act gives no rounding, and amounts of interest and deductions are in cents.
+Every other amount is a difference or a minimum of amounts in cents. Item 23C
+says to show zero rather than a negative value, so the reduction stops at the
+gross taxable value; RD above GD leaves no notional deduction.
+
+## FBT meal entertainment
+
+Item 23P example 18: $4,000 of meal entertainment under the 50/50 split,
+**$2,000.00**. ¶3-220 (review date 30 June 2026): $177,500 for 2025-26 gives
+**$88,750.00** under the 50/50 split, and a register showing 40% gives
+**$71,000.00**. The register percentage (s 37CB(2)) is kept exact: a register of
+$1,000 of fringe benefits out of $3,000 shows 33.33% but applies a third, so
+$900 of expenditure gives $300.00, not $299.97. s 37CD makes a register valid for
+its first year and the 4 after it; the worksheet refuses a first year outside
+that window, and the operator establishes the 20% expenditure test and any later
+register.
+
+## FBT car parking
+
+The employer's guide, chapter 16. Example 12: one station's $10 fee above the
+2023 threshold of $9.72 makes benefits arise, and they are valued at another's
+$5.50; the tests apply the same rule with a $12 fee against 2026's $11.03.
+Example 13: a $272 monthly fee over 22 business days is the s 39E daily rate
+`272 / 22 = 12.36`; 22 benefits at that fee give **$271.92**. Example 15, car park
+A: `(17 + 20) / 2 = 18.50` a benefit under the average cost method; car park B,
+`(10 + 15) / 2 = 12.50`, where B's $10 first business day fee was above 2023's
+threshold but is not above 2026's, so the same facts give nil in 2026. Example 17
+(the 12 week register): `2500 × 52 / 12 = 10833.33`, then `× 183 / 366 =
+5416.67`, **$5,416.67**; s 39GB divides by 366 in every year. ¶3-055 (review date
+30 June 2026) cites the $11.03 threshold for 2026. Item 23N example 17 starts
+from a value already worked out, so it tests no method.
+
+s 39A(1)(a)(iii) asks whether any station within 1 km charged a lowest all-day
+fee of more than the threshold on the first business day, so the worksheet
+compares the highest of those fees with it and reports a nil taxable value when
+none is above. The commercial parking station and average cost methods round
+the gross value to cents before the recipients' payments, as the car worksheets
+do. The market value method is left out because it rests on a qualified valuer's
+report; the spaces method was not in this batch.
+
 ## Main residence
 
 This worksheet was added on 1 November 2026; its example evidence was read
@@ -314,6 +389,41 @@ deducted (s 25-25(3), note). No source settles when 5 years from 29 February
 end, so a loan first drawn that day is refused. Treasury Laws Amendment (Tax
 Reform No. 1) Act 2026, Schedule 2 item 5, applies s 26-155 from the 2027-28
 income year, so later years are refused.
+
+## Hire purchase schedule
+
+This worksheet was added on 15 November 2026. ITAA 1997 ss 240-17, 240-55 and
+240-60 were read that day on the ATO's legal database and in compilation 268
+(1 October 2026) on the Federal Register of Legislation. Section 240-60(1)'s
+method statement adds earlier notional interest to the notional loan
+principal (step 1), subtracts arrangement payments made or due (step 2), works
+out the implicit interest rate for the period from the payments and any
+termination amounts (step 3, as substituted by No 79 of 2010 from 1 July 2010)
+and multiplies (step 4). The worksheet takes each month as an arrangement
+payment period, so an instalment in advance is due at the start of its month
+and comes off before the month's interest. It finds the rate by halving 0 to
+100% a month 64 times on the sign of the balance left after the last payment,
+which is nil at the implicit rate, negative below it and positive above it,
+and refuses where that balance does not then round to nil.
+
+`tests/hire_purchase.rs` holds these cases. The ATO's pages and the Library
+give no worked hire purchase schedule. LodgeiT Labs' public repository
+(`lodgeit-labs/clawdog-calculator-api`, `tests/fixtures/hp/anchors_v1_4.json`
+at e00f6f87, read on 15 November 2026) publishes 4 schedules from LodgeiT's
+printed hire purchase reports, each at a stated nominal rate and leaving a
+residual; its `hp:schedule` OpenAPI document and `llms.txt` give no example.
+The last 2 rows below take 2 of those agreements' payments.
+
+| Case | Source | Worksheet |
+| --- | --- | --- |
+| $1,000 financed, $100 a month in arrears for 2 months, $1,000 balloon | Worked by hand: 10% of $1,000 is each $100 instalment | 10% a month; $100.00 interest each month |
+| $1,000 financed, $100 a month in advance for 2 months, $979 balloon | Worked by hand: ($1,000 - $100) × 10% = $90; ($990 - $100) × 10% = $89 | 10% a month; $90.00 and $89.00 |
+| $45,000 financed, $850 a month in arrears for 60 months, $5,000 balloon | Fabricated; an independent calculation from the payments' present value to 60 digits | 0.0068669766960432 a month; first month $309.01, last $39.90; $11,000.00 in all |
+| The same, in advance | As above | 0.0070812410136161 a month; first month $312.64, last $35.16 |
+| $10,000 financed, $500 a month in arrears for 24 months | As above | 0.0151308439023100 a month; first month $151.31, last $7.45; $2,000.00 in all |
+| $1,000 financed, one $1,050 instalment in arrears; and $100 in advance with a $945 balloon | Worked by hand: 5% of $1,000 is $50; ($1,000 - $100) × 5% = $45 | 5% a month; $50.00 and $45.00 |
+| LodgeiT hp/290: $180,630.00 financed, $3,346.99 a month in arrears for 60 months, stated 4.25% a year | LodgeiT's report: first month $639.73, last $11.81, $20,189.64 in all and $0.24 left | 4.25% a year to 2 places; first month within 2 cents, last $11.81; $20,189.40 in all, nil left |
+| LodgeiT hp/235: $252,450.00 financed, 59 instalments of $3,893.76 and a $53,893.16 balloon, stated 3.99% a year | LodgeiT's report: first month $839.40, last $178.60, $31,175.69 in all and $0.69 left | 3.99% a year to 2 places; first month within 2 cents, last $178.60; $31,175.00 in all, nil left |
 
 ## Depreciation
 
@@ -427,6 +537,34 @@ transcription; it does not establish that a payee's scale, allowances or
 declarations are right. Bi-monthly, daily and casual pays, a Medicare levy
 variation that increases withholding, study and training support loans and the
 other schedules are outside this worksheet.
+
+## PAYG gross-up
+
+Schedule 1 states how much to withhold from a gross pay, not which gross leaves
+a given net, so this worksheet has no rule of its own to cite: it takes every
+amount from the PAYG withholding worksheet above, whose evidence applies. A
+gross `g` leaves a net `n` when `g - withholding(g) = n`. Withholding is a whole
+number of dollars, so `g` is `n` plus a whole-dollar `w` with
+`withholding(n + w) = w`. As pay rises a cent, withholding never falls
+(`tests/properties.rs` checks every bracket edge), so the net rises by at most a
+cent and every net from $0 has a gross; but it can rise by a dollar, and then
+2 grosses leave the same net. The search repeats `w = withholding(n + w)` from
+0 up to the least such `w` and from a bound down to the greatest, then tests
+each `w` between. The bound is `n + 52`: every Schedule 1 coefficient `a` is at
+most 0.47 and every `b` at least -1 (the lowest is -0.6702, scale 1 for 2024-25
+and 2025-26), and scale 4 withholds at most 47%, so a week's amount is at most
+`0.47 x + 1.50` after rounding and withholding on a gross `g` at most
+`g / 2 + 26`, the 26 covering a quarter's 13 weeks of that $1.50 and of 47% of
+the 99 cents added to weekly earnings; `tests/payg_gross_up.rs` checks those
+coefficients.
+
+For each row of the ATO's sample data used above (48 earnings points for each
+of 3 pay periods on scales 1, 2, 3, 5 and 6, for both schedules), the tests
+take the row's earnings less its withholding as the net and require the
+worksheet to return the row's earnings or to refuse a tie whose list names
+them. `tests/properties.rs` grosses up random nets on every scale, pay period
+and year, and requires each gross listed to leave the net and no other within
+$60 of withholding either side of them to.
 
 ## Medicare levy
 

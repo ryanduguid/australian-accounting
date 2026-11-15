@@ -23,6 +23,10 @@ pub const SCOPES: &[(&str, &str)] = &[
         "An individual who was an Australian resident when the CGT event happened, disposing of (CGT event A1) one dwelling, with any adjacent land used mainly for private or domestic purposes with it and of up to 2 hectares in total, acquired on or after 20 September 1985 and held as the same ownership interest throughout, with the disposal in the 2024-25, 2025-26 or 2026-27 income year, before the changes from 1 July 2027. The operator establishes the gain (cost base) or loss (reduced cost base) on the whole interest held, before any exemption or discount; the ownership period's first and last days; the days the dwelling was their main residence, including any treated as such from acquisition under s 118-135; the days it or part of it produced assessable income where interest would have been deductible, with the part of the floor area used; the days covered by a choice under s 118-145; and when a new home that became their main residence was acquired. Every day is counted, both ends included. Each day is taxable in full, in part (the floor area used while living there, s 118-190) or not at all. A choice period keeps the dwelling exempt, except a part used to produce income before the move, which stays taxable; income use is covered for 6 years per absence, to the sixth anniversary of its first day inclusive, as the ATO counts it, and counted across breaks within the same absence; later income-producing days are taxable. Under s 118-140 the last 6 months of ownership, from the same day of the month 6 months earlier (or the first of the next month where that day does not exist), or from the new home's acquisition if later, are exempt when the dwelling was the main residence for a continuous 3 months in the 12 months before ownership ended, which start the day after the same date a year earlier, and produced no income in that time while not the main residence. Under s 118-192, when income use first began after 20 August 1996, a full exemption would have applied just before, and the dwelling is only partly exempt because of that use, the ownership period starts on that day and the gain or loss must be worked out from the market value then. The assessable part is the gain or loss times the taxable days over the days in the ownership period (s 118-185). Excludes deciding residence, main residence status, interest deductibility, floor area, the choice itself and market value; inherited dwellings (s 118-195); a spouse or dependant child with a different main residence (s 118-170); building, repairing or renovating (s 118-150) and destroyed dwellings (s 118-155); adjacent land over 2 hectares or sold separately; compulsory acquisitions; marriage or relationship breakdown rollovers; granny flat arrangements; another dwelling treated as the main residence during a choice period except under s 118-140; the CGT discount and its 12-month test; and small business concessions. Refuses income use of part of the dwelling that changed, paused or stopped between its start and a move that starts a choice period, and a partial exemption with causes besides income use where s 118-192 would otherwise apply.",
     ),
     (
+        "hire_purchase_schedule",
+        "One hire purchase agreement whose hirer is the notional buyer (ITAA 1997 s 240-17(2)), starting in the income year given, with a level monthly instalment paid in arrears (at each month's end) or in advance (at its start) and any balloon paid at the end of the term. The operator establishes the amount financed (the notional loan principal: the price less any deposit or trade-in), the instalment, the number of instalments, the balloon and the start date. Each month runs from the start date's day of the month, or the month's last day when it is shorter. Under s 240-60(1) each month's notional interest is the outstanding notional loan principal, less any instalment due at the month's start, times the implicit interest rate: the monthly compound rate at which the payments repay the amount financed, found to 64 halvings of 0 to 100% a month. The payments themselves are not deductible but are taken into account in the notional interest (s 240-55). Each month shows the notional interest to date rounded half up to cents, less what the months before show, so the months add up to the total charges, each is within a cent of its amount at the rate found and the last balance is nil. The balloon is shown apart from the last instalment, on its own date. Refuses a rate below nil or of 100% a month or more, a rate that cannot be found closely enough to leave a nil balance to the cent, more than 360 instalments and a nil amount financed or instalment. Excludes deciding whether Division 240 applies and what is financed; fees, GST and stamp duty; irregular, skipped, weekly or quarterly payments; termination amounts other than the balloon and estimates of them (s 240-60(3) and (4)); apportioning a month that spans 30 June between income years (s 240-60(2)); whether the notional interest is deductible (s 240-50); and the notional seller.",
+    ),
+    (
         "borrowing_expenses",
         "One loan's borrowing expenses under ITAA 1997 s 25-25 for one income year from 2024-25 to 2026-27, before s 26-155 quarantines residential rental deductions from 2027-28. The operator establishes the expenditure the taxpayer incurred for borrowing the money, all in the income year the loan began; the extent the borrowed money is used to produce assessable income, the same throughout the loan; the first day the money was borrowed; the last day of the period the original loan contract specifies; any repayment day; and the income-producing share of the taxpayer's other borrowing expenses incurred in that year. Under s 25-25(6), when the money is used to produce income and this loan's income-producing share plus those other amounts is $100 or less, that share is deducted in the year incurred and later years are refused. Otherwise the period of the loan is the shortest of the contract's period, the period to the repayment day and 5 years from the first day borrowed (s 25-25(5)). Each income year's maximum deduction is the remaining expenditure over the days left in that period, times those days in the year, as determined at the end of the year, so the year of repayment takes all that remains (s 25-25(4)); each maximum is rounded to cents and carried forward at that amount, as the ATO's examples are, and the deduction is the maximum times the income-producing share (s 25-25(2) and (3)). Every day is counted, both ends included, as the ATO and the Library count: 5 years from 3 July end on 2 July. Excludes deciding which costs are borrowing expenses and the money's use; interest; refinancing, redraws and changes in use; expenditure incurred before the income year the loan began; a loan first drawn on 29 February; leisure facilities such as holiday homes unless s 26-50(3) applies at all times in the year; commercial debt forgiveness (Subdivision 245-E); private company loans (Division 7A); and s 26-155.",
     ),
@@ -39,6 +43,18 @@ pub const SCOPES: &[(&str, &str)] = &[
         "One car held by an ordinary taxable employer, as the only provider and for a single holding period, to provide car fringe benefits in the FBT year ended 31 March 2026 or 2027, valued under a written election for the operating cost method. The operator establishes the GST-inclusive car expenses for the holding period under s 10(3) (repairs, maintenance and fuel, and registration and insurance attributable to the period, including those the employee paid, but not insured repair expenses, an owned car's registration and insurance incurred before the provider owned it, or expenses the lessor bears under the lease), the lease charges for a leased car, or for an owned car acquired on or after 10 May 2006 (a hire purchase car is owned) its s 12 depreciated value at the start of the FBT year (cost price less earlier FBT deemed depreciation, or its cost price if acquired in the year) and the effective life in effect when the provider last became its owner, the days in the holding period the car was owned or leased, the business use percentage from log book and odometer records (0 without them), recipient's payments, the same car's statutory formula value and whether the electric cars exemption applies. Deemed depreciation at 200% over the effective life (25% for a car with an 8-year life) and deemed interest at the year's benchmark rate are apportioned to the days held. Non-business accessories fitted before the year belong in depreciated_value; accessories fitted during the year, a car both owned and leased in the year, a car neither owned nor leased by the provider, cars acquired before 10 May 2006, the business use estimate itself, arm's-length deeming, the type 1 or type 2 choice, gross-up and FBT payable are excluded. Only the gross taxable value is rounded to cents, before the recipient's payment, which cannot take the taxable value below nil; an unused excess is shown and reduces no other benefit. Under s 10(5) the result is the lower of this value and the statutory formula value supplied for the same car and holding period; gross_taxable_value, employee_contribution_applied and excess_employee_contribution are the operating cost method's figures, and where the statutory formula value is lower, fbt-car-statutory's applied and excess figures apply. An exempt electric car's taxable value is nil, and taxable_value_before_exemption is the notional value its reportable fringe benefits amount is worked out from, before gross-up.",
     ),
     (
+        "fbt_loan",
+        "One loan an ordinary taxable employer made to a current employee, in the FBT year ended 31 March 2026 or 2027, at that year's statutory interest rate (8.62% for 2026, 8.27% for 2027). The operator establishes the loan's balances at the end of each day in the year the employee owed it, added together; the interest that accrued on it for the year; the share of the notional interest that would have been a once-only income tax deduction to the employee had they paid it; and the deduction that would have been allowable for the interest accrued. Notional interest is the summed daily balances times the rate over the days in the year (s 136(1)), rounded to cents; the gross taxable value is the amount by which it exceeds the interest accrued (s 18). The otherwise deductible rule (s 19) reduces that by the notional deduction: the gross deduction on the notional interest, rounded to cents, less the deduction for the interest accrued, never below nil; the taxable value never falls below nil. The rule applies only to a loan to an employee, not an associate, and the operator establishes that the employee's declaration or documents were obtained. Excludes deciding whether a loan benefit or an exemption (s 17) arises, interest deferred or unpaid (a further loan or a debt waiver), the deduction itself, the type 2 gross-up and FBT payable.",
+    ),
+    (
+        "fbt_meal_entertainment",
+        "An ordinary taxable employer's meal entertainment fringe benefits for the FBT year ended 31 March 2026 or 2027, where the employer elected to apply Division 9A, with no meal entertainment provided under a salary packaging arrangement. The operator establishes the method and the year's total expenses for providing meal entertainment to all persons, excluding contributions by employees or their associates that the employer did not reimburse (s 37AB). The 50/50 split method takes 50% of those expenses (s 37BA). The 12 week register method (s 37CB) applies the register percentage, the value of the register's meal entertainment fringe benefits over the value of all its meal entertainment, worked out exactly and shown to 2 places, to the expenses. A register is valid for the FBT year it was first valid for and the 4 after it (s 37CD), which the worksheet checks; the operator establishes that the register was kept as s 37CE requires, that no earlier year since its first valid year had expenses more than 20% above that year's (it ceases to be valid at the end of such a year) and that no later register replaced it. Excludes deciding what is meal entertainment, the elections themselves, the actual method, exempt benefits, splitting the value between type 1 and type 2 for fbt, gross-up and FBT payable.",
+    ),
+    (
+        "fbt_car_parking",
+        "An ordinary taxable employer's car parking fringe benefits for the FBT year ended 31 March 2026 or 2027, valued by one method: the commercial parking station method (s 39C), the average cost method (s 39DA) or the 12 week record keeping method (s 39GB). The operator establishes that each benefit meets s 39A other than the threshold, such as a car parked for more than 4 hours in a daylight period on the provider's business or associated premises with a commercial parking station within 1 km, for one premises and the stations within 1 km of it (a worksheet for each premises), and the highest of those stations' lowest all-day fees on the first business day of the year: no benefit arises unless it is more than that year's car parking threshold ($11.03 for 2026, $11.48 for 2027; s 39A(1)(a)(iii)). Under the commercial parking station method the benefits are counted and each valued at the lowest all-day fee on its day, which must be the same on every day (a weekly or monthly fee becomes a daily rate under s 39E); under the average cost method each is valued at the average of the lowest fees on the days benefits were first and last provided in the year. Under both, the gross taxable value is rounded to cents before the recipients' payments, which the operator establishes in total, counting each benefit's payment only up to that benefit's value, since an excess on one benefit reduces no other; the payments cannot take the taxable value below nil, and an unused excess is shown. The 12 week register method takes the register's total value of car parking benefits (s 39GC), already net of payments, times 52 / 12, times the days in the car parking availability period over 366, the divisor the Act sets for every year (s 39GB). A register is valid for the FBT year it was first valid for and the 4 after it (s 39GF), which the worksheet checks; the operator establishes that it was kept as s 39GG requires, that the number of benefits rose by no more than 10% on any day of an earlier year since its first valid year (it ceases to be valid at the end of such a year) and that no later register replaced it. Excludes the market value method (s 39D), which needs a qualified valuer's report, the statutory formula (spaces) method, exemptions such as the small business exemption (s 58GA), fees that are not representative (ss 39AA and 39AB), splitting the value between type 1 and type 2 for fbt, gross-up and FBT payable.",
+    ),
+    (
         "depreciation",
         "Ordinary tangible Division 40 asset first held on or after 10 May 2006, in the income year its start time occurs or, given its established opening adjustable value for the year, a later year. Established cost, effective life and taxable-use proportion. Days run from first use or installation ready for use. No second-element costs after the start year, disposals, changed life or other s 40-75(2) adjustment, pooling, immediate write-offs, special assets or Division 43 capital works. Does not determine an effective life from an asset description.",
     ),
@@ -49,6 +65,10 @@ pub const SCOPES: &[(&str, &str)] = &[
     (
         "payg_withholding",
         "One regular weekly, fortnightly, monthly or quarterly payment of salary or wages made from 1 July 2024, in the income year given, on the scale the operator established from the payee's declarations: 1, 2, 3, 5 or 6 for a payee who gave a TFN, or 4 for one who did not, as a resident or foreign resident. The year selects the Schedule 1 coefficients and rules for payments made in it. Earnings include allowances subject to withholding. When given, the yearly tax offsets claimed on a Withholding declaration reduce scales 2, 5 and 6, the Medicare levy adjustment claimed on a Medicare levy variation declaration for a spouse or dependent children reduces scales 2 and 6, and the additional amount a payee asks for in a year of 53 weekly or 27 fortnightly pays is added. Reductions that exceed the amount withheld before them are refused. Excludes a Medicare levy variation that increases withholding, study and training support loans, bi-monthly, daily and casual pays, back payments, bonuses, termination and other schedules.",
+    ),
+    (
+        "payg_gross_up",
+        "The gross pay for one regular weekly, fortnightly, monthly or quarterly payment of salary or wages made from 1 July 2024, in the income year given, whose Schedule 1 withholding on the scale the operator established leaves the net pay given, as for pay agreed net of tax. It searches payg-withholding's own results, so payg-withholding's scope applies, with scale 4 taking foreign_resident as it does there. Excludes tax offsets, the Medicare levy adjustment, the additional amount for 53 or 27 pays, study and training support loans, super and other deductions from pay. Refused where more than one gross leaves the net, as Schedule 1 withholds whole dollars.",
     ),
     (
         "contribution_caps",
@@ -142,6 +162,10 @@ pub const SOURCES: &[(&str, &str)] = &[
         "https://www.legislation.gov.au/C2004A05138/2026-10-01/2026-10-01/text/original/epub/OEBPS/document_1/document_1.html",
     ),
     (
+        "hire_purchase_schedule",
+        "https://www.ato.gov.au/law/view/document?docid=PAC/19970038/240-60",
+    ),
+    (
         "fbt",
         "https://www.ato.gov.au/businesses-and-organisations/hiring-and-paying-your-workers/fringe-benefits-tax/calculating-your-fbt",
     ),
@@ -154,6 +178,18 @@ pub const SOURCES: &[(&str, &str)] = &[
         "https://www.ato.gov.au/law/view/document?DocID=SAV/FBTGEMP/00008",
     ),
     (
+        "fbt_loan",
+        "https://www.ato.gov.au/law/view/document?DocID=SAV/FBTGEMP/00009",
+    ),
+    (
+        "fbt_meal_entertainment",
+        "https://www.ato.gov.au/law/view/document?DocID=SAV/FBTGEMP/00015",
+    ),
+    (
+        "fbt_car_parking",
+        "https://www.ato.gov.au/law/view/document?DocID=SAV/FBTGEMP/00017",
+    ),
+    (
         "depreciation",
         "https://www.ato.gov.au/businesses-and-organisations/income-deductions-and-concessions/depreciation-and-capital-expenses-and-allowances/general-depreciation-rules-capital-allowances/prime-cost-straight-line-and-diminishing-value-methods",
     ),
@@ -163,6 +199,10 @@ pub const SOURCES: &[(&str, &str)] = &[
     ),
     (
         "payg_withholding",
+        "https://www.ato.gov.au/tax-rates-and-codes/payg-withholding-schedule-1-statement-of-formulas-for-calculating-amounts-to-be-withheld",
+    ),
+    (
+        "payg_gross_up",
         "https://www.ato.gov.au/tax-rates-and-codes/payg-withholding-schedule-1-statement-of-formulas-for-calculating-amounts-to-be-withheld",
     ),
     (
@@ -231,6 +271,13 @@ const SCHEDULE_5_EXTRA: &[&str] = &[
     "https://www.ato.gov.au/tax-rates-and-codes/payg-withholding-schedule-5-tax-table-01-july-2024-to-30-june-2025/working-out-the-withholding-amount",
 ];
 
+/// The FBTAA as compiled on 1 July 2026 (compilation 97), the volume with
+/// Divisions 4 to 10A, and the ATO pages the FBT benefit worksheets share.
+const FBTAA_PART_1: &str = "https://www.legislation.gov.au/C2004A03280/2026-07-01/2026-07-01/text/original/epub/OEBPS/document_1/document_1.html";
+const FBT_RETURN_ITEM_23: &str = "https://www.ato.gov.au/forms-and-instructions/fringe-benefits-tax-return-2026-instructions/item-23-fringe-benefit-categories-for-fbt-return-2026";
+const FBT_RATES: &str =
+    "https://www.ato.gov.au/tax-rates-and-codes/fringe-benefits-tax-rates-and-thresholds";
+
 pub const EXTRA_SOURCES: &[(&str, &[&str])] = &[
     (
         "foreign_resident_tax",
@@ -261,6 +308,13 @@ pub const EXTRA_SOURCES: &[(&str, &[&str])] = &[
         ],
     ),
     (
+        "hire_purchase_schedule",
+        &[
+            "https://www.ato.gov.au/law/view/document?docid=PAC/19970038/240-17",
+            "https://www.ato.gov.au/law/view/document?docid=PAC/19970038/240-55",
+        ],
+    ),
+    (
         "fbt",
         &[
             "https://www.ato.gov.au/forms-and-instructions/fringe-benefits-tax-return-2026-instructions/fbt-return-2026-calculation-details-for-taxable-employers",
@@ -283,7 +337,36 @@ pub const EXTRA_SOURCES: &[(&str, &[&str])] = &[
         ],
     ),
     (
+        "fbt_loan",
+        &[
+            FBTAA_PART_1,
+            "https://www.legislation.gov.au/C2004A03280/2026-07-01/2026-07-01/text/original/epub/OEBPS/document_2/document_2.html",
+            FBT_RETURN_ITEM_23,
+            FBT_RATES,
+            "https://www.ato.gov.au/businesses-and-organisations/hiring-and-paying-your-workers/fringe-benefits-tax/types-of-fringe-benefits/loan-and-debt-waiver-fringe-benefits",
+        ],
+    ),
+    (
+        "fbt_meal_entertainment",
+        &[FBTAA_PART_1, FBT_RETURN_ITEM_23],
+    ),
+    (
+        "fbt_car_parking",
+        &[
+            FBTAA_PART_1,
+            FBT_RETURN_ITEM_23,
+            FBT_RATES,
+            "https://www.ato.gov.au/businesses-and-organisations/hiring-and-paying-your-workers/fringe-benefits-tax/types-of-fringe-benefits/fbt-on-cars-other-vehicles-parking-and-tolls/car-parking-and-fbt",
+        ],
+    ),
+    (
         "payg_withholding",
+        &[
+            "https://www.ato.gov.au/tax-rates-and-codes/schedule-1-tax-table-01-july-2024-to-30-june-2026",
+        ],
+    ),
+    (
+        "payg_gross_up",
         &[
             "https://www.ato.gov.au/tax-rates-and-codes/schedule-1-tax-table-01-july-2024-to-30-june-2026",
         ],
@@ -396,7 +479,19 @@ const CAR_REPORTABLE_NOTE: &str = "reportable_taxable_value is this car benefit'
 /// Warnings added after the original's 2, by worksheet.
 pub const EXTRA_WARNINGS: &[(&str, &[&str])] = &[
     ("fbt_car_statutory", &[CAR_REPORTABLE_NOTE]),
+    (
+        "hire_purchase_schedule",
+        &[
+            "Notional interest is shown by month, not by income year: s 240-60(2) relates the part of a month that falls in an income year to it in accordance with generally accepted accounting principles, which this worksheet does not do.",
+        ],
+    ),
     ("fbt_car_operating_cost", &[CAR_REPORTABLE_NOTE]),
+    (
+        "fbt_loan",
+        &[
+            "A loan fringe benefit gives the employer no GST credit, so it is a type 2 benefit: give taxable_value to fbt as part of type_two_value.",
+        ],
+    ),
     (
         "division_296",
         &[
@@ -495,8 +590,40 @@ pub const REFUSAL_CODES: &[(&str, &str)] = &[
         "personal-tax-estimate was given Medicare levy exemption days beside a Medicare levy surcharge input, whose scope excludes them.",
     ),
     (
+        "fbt.register_not_valid",
+        "A 12 week register's first valid FBT year is not the year given or one of the 4 before it.",
+    ),
+    (
         "fbt_car.cost_basis_conflict",
         "A car has neither or both of a depreciated value and lease charges.",
+    ),
+    (
+        "fbt_loan.deduction_exceeds_interest",
+        "The deduction for the interest accrued on a loan exceeds that interest.",
+    ),
+    (
+        "fbt_meal_entertainment.register_values_invalid",
+        "A meal entertainment register's total is nil or less than its fringe benefits' value.",
+    ),
+    (
+        "hire_purchase.amount_nil",
+        "A hire purchase agreement's amount financed or instalment is nil.",
+    ),
+    (
+        "hire_purchase.instalments_unsupported",
+        "The number of monthly instalments is not an integer from 1 to 360.",
+    ),
+    (
+        "hire_purchase.rate_imprecise",
+        "The implicit rate cannot be found closely enough to leave a nil balance to the cent, at a high rate over a long term.",
+    ),
+    (
+        "hire_purchase.rate_unsupported",
+        "The payments imply an interest rate below nil or of 100% a month or more.",
+    ),
+    (
+        "hire_purchase.start_outside_year",
+        "A hire purchase agreement starts outside the income year given.",
     ),
     (
         "input.age_invalid",
@@ -513,6 +640,10 @@ pub const REFUSAL_CODES: &[(&str, &str)] = &[
     (
         "input.back_payment_periods_invalid",
         "Back payment periods are not a list of 1 to the most earlier pays a year holds, each with exactly earnings, back_payment and withheld as decimal strings.",
+    ),
+    (
+        "input.benefit_count_invalid",
+        "A number of fringe benefits is not a JSON integer from 0.",
     ),
     (
         "input.children_invalid",
@@ -547,8 +678,12 @@ pub const REFUSAL_CODES: &[(&str, &str)] = &[
         "An effective life is outside 0.01 to 1000 years.",
     ),
     (
+        "input.fbt_method_invalid",
+        "An FBT benefit worksheet's method is not one it offers.",
+    ),
+    (
         "input.field_unknown",
-        "A field the worksheet or command does not take, or does not take beside the other inputs given, was given (division-296, depreciation, foreign-resident-tax, medicare-levy, medicare-levy-surcharge, payg-withholding, termination-payment, the Schedule 5 methods, working-holiday-maker-withholding, study-loan-withholding, seniors-pensioners-withholding, seniors-pensioners-tax-offset, derive and personal-tax-estimate only).",
+        "A field the worksheet or command does not take, or does not take beside the other inputs given, was given (fbt-loan, fbt-meal-entertainment, fbt-car-parking, division-296, depreciation, foreign-resident-tax, medicare-levy, medicare-levy-surcharge, payg-withholding, payg-gross-up, termination-payment, the Schedule 5 methods, working-holiday-maker-withholding, study-loan-withholding, seniors-pensioners-withholding, seniors-pensioners-tax-offset, hire-purchase-schedule, derive and personal-tax-estimate only).",
     ),
     ("input.flag_invalid", "A flag is not a JSON boolean."),
     ("input.fraction_invalid", "A fraction is outside 0 to 1."),
@@ -592,6 +727,10 @@ pub const REFUSAL_CODES: &[(&str, &str)] = &[
     (
         "input.tax_scale_unsupported",
         "The withholding scale is not 1, 2, 3, 5 or 6 (or 4, for payg-withholding), or has no table for the period.",
+    ),
+    (
+        "input.timing_invalid",
+        "A payment timing is not in_arrears or in_advance.",
     ),
     ("input.too_large", "The JSON input exceeds 8 MiB."),
     ("input.unreadable", "Standard input could not be read."),
@@ -686,6 +825,14 @@ pub const REFUSAL_CODES: &[(&str, &str)] = &[
     (
         "payg.foreign_resident_not_scale_4",
         "Residency was given for a scale other than 4, which settles it itself.",
+    ),
+    (
+        "payg.gross_up_net_too_large",
+        "A net pay to gross up is so large that a gross leaving it could exceed the largest amount payg-withholding takes.",
+    ),
+    (
+        "payg.gross_up_not_unique",
+        "More than one gross pay leaves the net pay given; the refusal lists them.",
     ),
     (
         "payg.medicare_adjustment_not_allowed",
