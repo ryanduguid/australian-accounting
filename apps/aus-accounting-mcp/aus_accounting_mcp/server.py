@@ -65,7 +65,7 @@ from .fixtures.synthetic_sbr import (
     generate_synthetic_ctr_payload,
 )
 from .freshness import DataTool, data_freshness
-from .identifiers import check_abn, check_acn, check_account_number, check_bsb
+from .identifiers import check_abn, check_account_number, check_acn, check_bsb
 from .library import MAX_OFFSET, read_reference, search_references
 from .money import MONEY_SCHEMA, parse_amount
 from .outputs import (
