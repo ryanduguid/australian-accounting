@@ -1,8 +1,8 @@
 // Copyright 2026 Ryan Duguid
 // SPDX-License-Identifier: LicenseRef-Duguid-Public-Attribution-1.0
 
-//! `derive` explains each amount of the worksheets it covers (FBT, Division 293,
-//! the pension minimum, PAYG withholding, Schedule 5 and termination payments) in a step a reader can check alone: every
+//! `derive` explains each amount of the worksheets it covers ([`DERIVED`]) in a
+//! step a reader can check alone: every
 //! name in a step's formula is an input, a rate or an earlier step, its operands
 //! are those values, and they recompute the amount. These tests recompute every
 //! amount that way, independently of the engine's arithmetic.
@@ -13,10 +13,13 @@ use std::io::Write;
 use std::process::{Command, Stdio};
 
 /// The commands `derive` explains.
-const DERIVED: [&str; 10] = [
+const DERIVED: [&str; 29] = [
     "fbt",
     "fbt-car-statutory",
     "fbt-car-operating-cost",
+    "fbt-loan",
+    "fbt-meal-entertainment",
+    "fbt-car-parking",
     "division-293",
     "pension-minimum",
     "payg-withholding",
@@ -24,6 +27,22 @@ const DERIVED: [&str; 10] = [
     "schedule-5-method-b-i",
     "schedule-5-method-b-ii",
     "termination-payment",
+    "working-holiday-maker-withholding",
+    "study-loan-withholding",
+    "seniors-pensioners-withholding",
+    "quarterly-sg",
+    "borrowing-expenses",
+    "resident-tax",
+    "foreign-resident-tax",
+    "low-income-tax-offset",
+    "seniors-pensioners-tax-offset",
+    "medicare-levy",
+    "medicare-levy-surcharge",
+    "division-296",
+    "contribution-caps",
+    "study-loan-repayment",
+    "capital-gains",
+    "main-residence",
 ];
 
 /// (command, input) for each derived kind: the ATO's published examples and
@@ -110,6 +129,52 @@ fn cases() -> Vec<(&'static str, Value)> {
         pension("250000.00", 66, 30),
         // $4,005.00 ends in an exact $5, so cl 5 rounds it up.
         pension("100125.00", 60, 365),
+        // FBT return 2026 instructions, item 23C example 8, and the Library's ¶3-100.
+        benefit(
+            "fbt-loan",
+            json!({"daily_balance_total": "7300000.00", "interest_accrued": "0.00",
+                   "income_use": "0", "accrued_interest_deduction": "0.00"}),
+        ),
+        benefit(
+            "fbt-loan",
+            json!({"daily_balance_total": "36500000.00", "interest_accrued": "3450.00",
+                   "income_use": "0.4", "accrued_interest_deduction": "1380.00"}),
+        ),
+        benefit(
+            "fbt-loan",
+            json!({"daily_balance_total": "18250000.00", "interest_accrued": "2000.00",
+                   "income_use": "1", "accrued_interest_deduction": "0.00", "year_ended": 2027}),
+        ),
+        // Item 23P example 18, and a register percentage that does not terminate.
+        benefit(
+            "fbt-meal-entertainment",
+            json!({"method": "50_50_split", "meal_entertainment_expenditure": "4000.00"}),
+        ),
+        benefit(
+            "fbt-meal-entertainment",
+            json!({"method": "12_week_register", "meal_entertainment_expenditure": "900.00",
+                   "register_fringe_benefits_value": "1000.00",
+                   "register_meal_entertainment_value": "3000.00", "register_first_year": 2026}),
+        ),
+        // The employer's guide, examples 15 and 17, and a fee at the threshold.
+        benefit(
+            "fbt-car-parking",
+            json!({"method": "average_cost", "first_business_day_fee": "17.00", "benefits": 3,
+                   "first_day_fee": "17.25", "last_day_fee": "18.50",
+                   "employee_contribution": "20.00"}),
+        ),
+        benefit(
+            "fbt-car-parking",
+            json!({"method": "12_week_register", "first_business_day_fee": "20.00",
+                   "register_value": "2500.00", "availability_days": 183,
+                   "register_first_year": 2026}),
+        ),
+        benefit(
+            "fbt-car-parking",
+            json!({"method": "commercial_parking_station", "first_business_day_fee": "11.48",
+                   "benefits": 230, "lowest_fee": "18.00", "employee_contribution": "1000.00",
+                   "year_ended": 2027}),
+        ),
     ];
     cases.extend(
         PAYG.iter()
@@ -225,9 +290,15 @@ fn schedule_5(facts: &str) -> Value {
     input
 }
 
-fn schedule_5_doc(name: &str) -> Value {
+/// The command and input of the [`SCHEDULE_5`] case `name`.
+fn schedule_5_case(name: &str) -> (&'static str, Value) {
     let (_, command, facts) = SCHEDULE_5.iter().find(|(n, ..)| *n == name).unwrap();
-    derive(command, &schedule_5(facts))
+    (command, schedule_5(facts))
+}
+
+fn schedule_5_doc(name: &str) -> Value {
+    let (command, input) = schedule_5_case(name);
+    derive(command, &input)
 }
 
 /// Termination payment cases by name: Schedule 11's examples 1 to 4 and the
@@ -418,6 +489,14 @@ fn step_of<'a>(doc: &'a Value, id: &str) -> &'a Value {
         .unwrap_or_else(|| panic!("no step {id}"))
 }
 
+/// An FBT benefit worksheet's input: `facts` for the year ended 31 March 2026
+/// unless they say otherwise.
+fn benefit(command: &'static str, facts: Value) -> (&'static str, Value) {
+    let mut input = json!({"year_ended": 2026, "scope_confirmed": true});
+    merge(&mut input, facts);
+    (command, input)
+}
+
 fn merge(input: &mut Value, overrides: Value) {
     for (key, value) in overrides.as_object().unwrap() {
         input[key] = value.clone();
@@ -555,6 +634,14 @@ impl Evaluator<'_> {
                     ("cents", [a]) => a.quantize(-2, Rounding::HalfUp).unwrap(),
                     ("dollars", [a]) => a.quantize(0, Rounding::HalfUp).unwrap(),
                     ("floor", [a]) => a.quantize(0, Rounding::Down).unwrap(),
+                    ("dollars_up", [a]) => {
+                        let down = a.quantize(0, Rounding::Down).unwrap();
+                        if down.lt(a).unwrap() {
+                            down.add(&Decimal::from_int(1)).unwrap()
+                        } else {
+                            down
+                        }
+                    }
                     other => panic!("unknown function {other:?}"),
                 }
             }
@@ -651,7 +738,12 @@ fn problems(doc: &Value) -> Vec<String> {
             .quantize(-2, Rounding::HalfUp)
             .unwrap()
             .to_string();
-        if step["value"] != json!(cents) {
+        // Division 296's very large component, the one amount a result shows
+        // as null when negative, is null in its step too.
+        let hidden = id == "very_large_balance_earnings_component"
+            && step["value"].is_null()
+            && dec(exact).lt(&dec("0")).unwrap();
+        if step["value"] != json!(cents) && !hidden {
             found.push(format!(
                 "{id}: value {} is not {exact} in cents, {cents}",
                 step["value"]
@@ -768,6 +860,24 @@ fn a_step_value_changed_without_its_amount_is_caught() {
     assert_eq!(
         problems(&edited),
         ["return_item_15: value \"45644.00\" differs from the amount \"45645.00\""]
+    );
+}
+
+#[test]
+fn only_the_very_large_component_may_hide_a_negative_value() {
+    let doc = |id: &str| {
+        let mut doc = json!({
+            "result": {"amounts": {}},
+            "steps": [{"authority": "s 1", "working": "0 - 1 = 0 - 1 = -1", "value": null}],
+        });
+        doc["result"]["amounts"][id] = Value::Null;
+        doc["steps"][0]["id"] = json!(id);
+        doc
+    };
+    assert!(problems(&doc("very_large_balance_earnings_component")).is_empty());
+    assert_eq!(
+        problems(&doc("net_capital_gain")),
+        ["net_capital_gain: value null is not -1 in cents, -1.00"]
     );
 }
 
@@ -1483,6 +1593,35 @@ fn each_schedule_11_branch_gives_the_amount_and_cites_the_rate_its_source_sets()
 }
 
 #[test]
+fn the_fbt_benefit_steps_cite_their_provisions() {
+    let all = cases();
+    let steps = |i: usize| derive(all[i].0, &all[i].1)["steps"].clone();
+    // Item 23C example 8: $20,000 owed on each of 365 days at 8.62%.
+    let loan = steps(23);
+    assert_eq!(
+        loan[0]["working"],
+        "cents(daily_balance_total x statutory_interest_rate / days_in_year) \
+         = cents(7300000.00 x 0.0862 / 365) = 1724.00"
+    );
+    let authority = loan[0]["authority"].as_str().unwrap();
+    assert!(authority.starts_with("FBTAA s 18(1) and s 136(1)"));
+    assert_eq!(
+        loan[7]["authority"],
+        "FBTAA s 19(1), TV - ND; FBT return 2026 instructions, item 23C"
+    );
+    assert_eq!(steps(26)[0]["authority"], "FBTAA s 37BA");
+    assert_eq!(steps(27)[0]["authority"], "FBTAA s 37CB(2)");
+    assert_eq!(steps(28)[0]["authority"], "FBTAA s 39DA(3)");
+    assert_eq!(steps(29)[0]["authority"], "FBTAA s 39GB");
+    // A first business day fee at the threshold gives no car parking benefit.
+    let parking = steps(30);
+    let taxable = parking.as_array().unwrap().last().unwrap();
+    assert_eq!(taxable["working"], "0 = 0 = 0");
+    let authority = taxable["authority"].as_str().unwrap();
+    assert!(authority.starts_with("FBTAA s 39A(1)(a)(iii)"));
+}
+
+#[test]
 fn a_refused_derive_leaves_no_steps_for_the_next() {
     let refused = json!({"command": "fbt-car-statutory", "input": {"days_available": 366}});
     for (command, input) in cases() {
@@ -1533,13 +1672,13 @@ fn a_refused_input_gets_the_commands_own_refusal() {
         refused("payg-withholding", input),
         "payg.reductions_exceed_withholding"
     );
-    let mut input = schedule_5(SCHEDULE_5[0].2);
+    let mut input = schedule_5_case("jarrod").1;
     input["pay_periods"] = json!(1);
     assert_eq!(refused(A, input), "input.pay_periods_invalid");
-    let mut input = schedule_5(SCHEDULE_5[4].2);
+    let mut input = schedule_5_case("robyn").1;
     input["back_payment_periods"] = json!([]);
     assert_eq!(refused(B_I, input), "input.back_payment_periods_invalid");
-    let mut input = schedule_5(SCHEDULE_5[8].2);
+    let mut input = schedule_5_case("laura").1;
     input["scale"] = json!(4);
     assert_eq!(refused(B_II, input), "input.tax_scale_unsupported");
     let mut input = etp(ETP[0].1);
@@ -1578,12 +1717,26 @@ fn derive_refuses_what_it_does_not_explain() {
     let (command, input) = &cases()[0];
     let extra = json!({"command": command, "input": input, "steps": false});
     assert_eq!(code(extra), "input.field_unknown");
+    for command in [
+        "gst",
+        "depreciation",
+        "payg-gross-up",
+        "hire-purchase-schedule",
+    ] {
+        let request = json!({"command": command, "input": {}});
+        assert_eq!(code(request), "derivation.unsupported", "{command}");
+    }
     let message = api::evaluate("derive", &json!({"command": "gst", "input": {}})).unwrap_err();
     assert_eq!(
         message,
-        "derive explains fbt, fbt-car-statutory, fbt-car-operating-cost, division-293, \
-         pension-minimum, payg-withholding, schedule-5-method-a, schedule-5-method-b-i, \
-         schedule-5-method-b-ii, termination-payment, not \"gst\""
+        "derive explains fbt, fbt-car-statutory, fbt-car-operating-cost, fbt-loan, \
+         fbt-meal-entertainment, fbt-car-parking, division-293, pension-minimum, \
+         payg-withholding, schedule-5-method-a, schedule-5-method-b-i, \
+         schedule-5-method-b-ii, termination-payment, working-holiday-maker-withholding, \
+         study-loan-withholding, seniors-pensioners-withholding, quarterly-sg, \
+         borrowing-expenses, resident-tax, foreign-resident-tax, low-income-tax-offset, \
+         seniors-pensioners-tax-offset, medicare-levy, medicare-levy-surcharge, division-296, \
+         contribution-caps, study-loan-repayment, capital-gains, main-residence, not \"gst\""
     );
 }
 
@@ -1626,5 +1779,1886 @@ fn the_binary_derives_and_refuses_with_a_code() {
     assert!(
         help.contains("worksheet-catalogue, periods, derive"),
         "{help}"
+    );
+}
+
+// Working holiday maker, study loan and seniors and pensioners withholding,
+// quarterly SG and borrowing expenses.
+
+const WHM: &str = "working-holiday-maker-withholding";
+const STSL: &str = "study-loan-withholding";
+const SENIORS: &str = "seniors-pensioners-withholding";
+const SG: &str = "quarterly-sg";
+const BORROWING: &str = "borrowing-expenses";
+
+/// Fiona and Max's income-producing share, 170,000 / 209,000, to 40 digits.
+const FIONA_SHARE: &str = "0.8133971291866028708133971291866028708134";
+
+/// (name, command, facts) for these 5 commands: the published examples of
+/// Schedules 8, 9 and 15 of the Withholding Schedules Instrument 2026
+/// (F2026L00716) and of (No. 2) 2025 (F2025L01016), the ATO's maximum quarterly
+/// SG payment and 'Borrowing expenses' examples, all read on 15 November 2026,
+/// and a case for each branch. `facts` change [`withholding_sg_borrowing`]'s
+/// defaults.
+const WITHHOLDING_SG_BORROWING: [(&str, &str, &str); 28] = [
+    // Schedule 15's lookup tool example and examples 1 and 2: $102, $424, $2,452.
+    ("whm_lookup_tool", WHM, "{}"),
+    (
+        "whm_example_1",
+        WHM,
+        r#"{"payment": "2825.75", "pay_period": "monthly"}"#,
+    ),
+    (
+        "whm_example_2",
+        WHM,
+        r#"{"payment": "8173.20", "payments_before": "47000.00", "pay_period": "monthly"}"#,
+    ),
+    // Column 5, without a TFN, and an unregistered employer with and without one.
+    (
+        "whm_top_rate",
+        WHM,
+        r#"{"payment": "1000.99", "payments_before": "190000.01"}"#,
+    ),
+    (
+        "whm_no_tfn",
+        WHM,
+        r#"{"payment": "1000.99", "tfn_quoted": false}"#,
+    ),
+    (
+        "whm_unregistered_no_tfn",
+        WHM,
+        r#"{"payment": "1000.99", "tfn_quoted": false, "employer_registered": false}"#,
+    ),
+    ("whm_unregistered", WHM, r#"{"employer_registered": false}"#),
+    (
+        "whm_unregistered_monthly",
+        WHM,
+        r#"{"payment": "2825.75", "pay_period": "monthly", "year": "2025-26", "employer_registered": false}"#,
+    ),
+    (
+        "whm_unregistered_33_cents",
+        WHM,
+        r#"{"payment": "3066.33", "pay_period": "monthly", "employer_registered": false}"#,
+    ),
+    // Schedule 8's examples 1 to 3, F2025L01016's example 1, a quarterly pay,
+    // the nil row and a monthly amount ending in 33 cents.
+    ("stsl_example_1", STSL, "{}"),
+    (
+        "stsl_example_2",
+        STSL,
+        r#"{"earnings": "4409.75", "pay_period": "fortnightly"}"#,
+    ),
+    (
+        "stsl_example_3",
+        STSL,
+        r#"{"earnings": "10627.88", "pay_period": "monthly", "scale": 1}"#,
+    ),
+    (
+        "stsl_2025_26",
+        STSL,
+        r#"{"year": "2025-26", "pay_date": "2025-09-24"}"#,
+    ),
+    (
+        "stsl_quarterly",
+        STSL,
+        r#"{"earnings": "33908.68", "pay_period": "quarterly"}"#,
+    ),
+    (
+        "stsl_nil",
+        STSL,
+        r#"{"earnings": "1287.99", "year": "2025-26", "pay_date": "2025-09-24"}"#,
+    ),
+    (
+        "stsl_33_cents",
+        STSL,
+        r#"{"earnings": "6000.33", "pay_period": "monthly", "scale": 5}"#,
+    ),
+    // Schedule 9's example, single: $2.00; the pay periods, the nil row and a
+    // half exemption under the 2024 instrument.
+    ("seniors_example", SENIORS, "{}"),
+    (
+        "seniors_fortnightly",
+        SENIORS,
+        r#"{"earnings": "1325.90", "pay_period": "fortnightly"}"#,
+    ),
+    (
+        "seniors_33_cents",
+        SENIORS,
+        r#"{"earnings": "2877.33", "pay_period": "monthly"}"#,
+    ),
+    ("seniors_nil", SENIORS, r#"{"earnings": "647.99"}"#),
+    (
+        "seniors_half_couple",
+        SENIORS,
+        r#"{"earnings": "4500.00", "pay_period": "monthly", "status": "couple", "medicare_levy_exemption": "half", "year": "2024-25"}"#,
+    ),
+    // Earnings over the $62,500 base, whose 12% is the ATO's $7,500.00
+    // maximum; and contributions over the minimum.
+    ("sg_capped", SG, "{}"),
+    (
+        "sg_overpaid",
+        SG,
+        r#"{"ordinary_time_earnings": "10000.00", "qualifying_contributions": "1500.00"}"#,
+    ),
+    // Peter's first year ($318.07), Years 5 and 6, Fiona and Max's Year 6, a
+    // loan repaid early and $100 or less.
+    ("peter_year_1", BORROWING, "{}"),
+    (
+        "peter_year_5",
+        BORROWING,
+        r#"{"loan_start": "2020-07-03", "loan_term_end": "2045-07-02"}"#,
+    ),
+    (
+        "fiona_year_6",
+        BORROWING,
+        r#"{"borrowing_expenses": "1670.00", "income_use": "0.8133971291866028708133971291866028708134", "loan_start": "2020-07-17", "loan_term_end": "2040-07-16", "year": "2025-26"}"#,
+    ),
+    (
+        "repaid_early",
+        BORROWING,
+        r#"{"repaid_on": "2025-12-31", "year": "2025-26"}"#,
+    ),
+    (
+        "not_spread",
+        BORROWING,
+        r#"{"borrowing_expenses": "90.00"}"#,
+    ),
+];
+
+/// The input of a [`WITHHOLDING_SG_BORROWING`] case: its command's defaults
+/// changed by `facts`.
+fn withholding_sg_borrowing(command: &str, facts: &str) -> Value {
+    let mut input = match command {
+        WHM => json!({"payment": "680.70", "payments_before": "0.00",
+                      "employer_registered": true, "tfn_quoted": true,
+                      "pay_period": "weekly", "year": "2026-27"}),
+        STSL => json!({"earnings": "2608.36", "pay_period": "weekly", "scale": 2,
+                       "year": "2026-27"}),
+        SENIORS => json!({"earnings": "662.95", "pay_period": "weekly", "status": "single",
+                          "medicare_levy_exemption": "none", "year": "2026-27"}),
+        SG => json!({"ordinary_time_earnings": "80000.00",
+                     "qualifying_contributions": "2000.00", "year": "2025-26", "quarter": 1}),
+        _ => json!({"borrowing_expenses": "1600.00", "other_borrowing_expenses_in_year": "0.00",
+                    "income_use": "1", "loan_start": "2024-07-03", "loan_term_end": null,
+                    "repaid_on": null, "section_26_50_applies": false, "year": "2024-25"}),
+    };
+    input["scope_confirmed"] = json!(true);
+    merge(&mut input, serde_json::from_str(facts).unwrap());
+    input
+}
+
+/// The derivation of the [`WITHHOLDING_SG_BORROWING`] case `name`.
+fn case_doc(name: &str) -> Value {
+    let (_, command, facts) = WITHHOLDING_SG_BORROWING
+        .iter()
+        .find(|(n, ..)| *n == name)
+        .unwrap();
+    derive(command, &withholding_sg_borrowing(command, facts))
+}
+
+#[test]
+fn each_withholding_sg_and_borrowing_case_derives_its_plain_result() {
+    for (name, command, facts) in WITHHOLDING_SG_BORROWING {
+        let input = withholding_sg_borrowing(command, facts);
+        let plain = api::evaluate(command, &input).unwrap();
+        let doc = derive(command, &input);
+        assert_eq!(doc["result"].to_string(), plain.to_string(), "{name}");
+        let found = problems(&doc);
+        assert!(found.is_empty(), "{name}: {found:#?}");
+    }
+}
+
+/// Schedules 15, 9 and 8, worked as each schedule works its examples.
+#[test]
+fn the_schedule_8_9_and_15_examples_show_their_operands() {
+    let working = |name: &str, id: &str| working_in(&case_doc(name), id);
+    // Schedule 15: y = a x on the payment with cents ignored.
+    assert_eq!(
+        working("whm_lookup_tool", "payment_used"),
+        "floor(payment) = floor(680.70) = 680"
+    );
+    assert_eq!(
+        working("whm_lookup_tool", "withholding"),
+        "dollars(rate x payment_used) = dollars(0.15 x 680) = 102"
+    );
+    assert_eq!(
+        working("whm_example_1", "withholding"),
+        "dollars(rate x payment_used) = dollars(0.15 x 2825) = 424"
+    );
+    assert_eq!(
+        working("whm_example_2", "withholding"),
+        "dollars(rate x payment_used) = dollars(0.30 x 8173) = 2452"
+    );
+    assert_eq!(
+        working("whm_top_rate", "withholding"),
+        "floor(rate x payment_used) = floor(0.45 x 1000) = 450"
+    );
+    // An unregistered employer: Schedule 1 scale 3, 0.3000 x 680.99 - 0.3000
+    // = 203.997, $204; monthly, $2,825.75 x 3 / 13 = 652.10, x = 652.99,
+    // $196, and $196 x 13 / 3 = $849.33, $849.
+    assert_eq!(
+        working("whm_unregistered", "payment_used"),
+        "payment = 680.70 = 680.70"
+    );
+    assert_eq!(
+        working("whm_unregistered", "withholding"),
+        "max(0, dollars(0.3000 x (floor(payment_used) + 0.99) - 0.3000)) \
+         = max(0, dollars(0.3000 x (floor(680.70) + 0.99) - 0.3000)) = 204"
+    );
+    assert_eq!(
+        working("whm_unregistered_monthly", "withholding"),
+        "dollars(max(0, dollars(0.3000 x (floor(payment_used x 3 / 13) + 0.99) - 0.3000)) x 13 / 3) \
+         = dollars(max(0, dollars(0.3000 x (floor(2825.75 x 3 / 13) + 0.99) - 0.3000)) x 13 / 3) = 849"
+    );
+    assert!(
+        working("whm_unregistered_33_cents", "withholding")
+            .contains("(floor((payment_used + 0.01) x 3 / 13) + 0.99)")
+    );
+    // Schedule 9's example: x = 662.99, 0.1500 x 662.99 - 97.2308 = 2.2177, $2.
+    assert_eq!(
+        working("seniors_example", "weekly_earnings_used"),
+        "floor(earnings) + 0.99 = floor(662.95) + 0.99 = 662.99"
+    );
+    assert_eq!(
+        working("seniors_example", "weekly_withholding"),
+        "max(0, dollars(a x weekly_earnings_used - b)) \
+         = max(0, dollars(0.1500 x 662.99 - 97.2308)) = 2"
+    );
+    assert_eq!(
+        working("seniors_example", "withholding"),
+        "weekly_withholding = 2 = 2"
+    );
+    assert_eq!(
+        working("seniors_fortnightly", "weekly_earnings_used"),
+        "floor(earnings / 2) + 0.99 = floor(1325.90 / 2) + 0.99 = 662.99"
+    );
+    assert_eq!(
+        working("seniors_fortnightly", "withholding"),
+        "weekly_withholding x 2 = 2 x 2 = 4"
+    );
+    // $2,877.33 gains a cent: x = 664.99, $3 a week, $13 a month.
+    assert_eq!(
+        working("seniors_33_cents", "weekly_earnings_used"),
+        "floor((earnings + 0.01) x 3 / 13) + 0.99 = floor((2877.33 + 0.01) x 3 / 13) + 0.99 = 664.99"
+    );
+    assert_eq!(
+        working("seniors_33_cents", "withholding"),
+        "dollars(weekly_withholding x 13 / 3) = dollars(3 x 13 / 3) = 13"
+    );
+    assert_eq!(
+        working("seniors_nil", "weekly_withholding"),
+        "max(0, dollars(a x weekly_earnings_used - b)) = max(0, dollars(0 x 647.99 - 0)) = 0"
+    );
+    // Schedule 8's examples 1 to 3: $193, $130 x 2 = $260, $226 x 13 / 3 = $979;
+    // example 1's Schedule 1 amount, 0.3900 x 2,608.99 - 363.4627, is $654.
+    assert_eq!(
+        working("stsl_example_1", "study_loan_component"),
+        "max(0, dollars(component_a x weekly_earnings_used - component_b)) \
+         = max(0, dollars(0.17 x 2608.99 - 250.4527)) = 193"
+    );
+    assert_eq!(
+        working("stsl_example_1", "schedule_1_withholding"),
+        "max(0, dollars(a x weekly_earnings_used - b)) \
+         = max(0, dollars(0.3900 x 2608.99 - 363.4627)) = 654"
+    );
+    assert_eq!(
+        working("stsl_example_1", "withholding"),
+        "schedule_1_withholding + study_loan_component = 654 + 193 = 847"
+    );
+    assert_eq!(
+        working("stsl_example_2", "study_loan_component"),
+        "max(0, dollars(component_a x weekly_earnings_used - component_b)) x 2 \
+         = max(0, dollars(0.15 x 2204.99 - 200.5615)) x 2 = 260"
+    );
+    assert_eq!(
+        working("stsl_example_3", "weekly_earnings_used"),
+        "floor(earnings x 3 / 13) + 0.99 = floor(10627.88 x 3 / 13) + 0.99 = 2452.99"
+    );
+    assert_eq!(
+        working("stsl_example_3", "study_loan_component"),
+        "dollars(max(0, dollars(component_a x weekly_earnings_used - component_b)) x 13 / 3) \
+         = dollars(max(0, dollars(0.17 x 2452.99 - 190.9527)) x 13 / 3) = 979"
+    );
+    // F2025L01016's example 1: 0.17 x 2,608.99 - 241.3462, $202.
+    assert_eq!(
+        case_doc("stsl_2025_26")["result"]["amounts"]["study_loan_component"],
+        "202.00"
+    );
+    // A quarter of 13 weeks of example 1: $654 x 13 = $8,502, and $193 x 13.
+    assert_eq!(
+        working("stsl_quarterly", "schedule_1_withholding"),
+        "max(0, dollars(a x weekly_earnings_used - b)) x 13 \
+         = max(0, dollars(0.3900 x 2608.99 - 363.4627)) x 13 = 8502"
+    );
+    assert_eq!(
+        case_doc("stsl_quarterly")["result"]["amounts"]["withholding"],
+        "11011.00"
+    );
+}
+
+/// Quarterly SG and borrowing expenses, worked as the ATO's pages work them.
+#[test]
+fn the_sg_and_borrowing_examples_show_their_operands() {
+    let working = |name: &str, id: &str| working_in(&case_doc(name), id);
+    assert_eq!(
+        working("sg_capped", "earnings_used"),
+        "min(ordinary_time_earnings, maximum_quarterly_base) = min(80000.00, 62500) = 62500"
+    );
+    assert_eq!(
+        working("sg_capped", "minimum_sg"),
+        "earnings_used x sg_rate = 62500 x 0.12 = 7500.00"
+    );
+    assert_eq!(
+        working("sg_capped", "additional_contribution"),
+        "max(0, minimum_sg - qualifying_contributions) = max(0, 7500.00 - 2000.00) = 5500.00"
+    );
+    assert_eq!(
+        working("sg_overpaid", "additional_contribution"),
+        "max(0, minimum_sg - qualifying_contributions) = max(0, 1200.0000 - 1500.00) = 0"
+    );
+    // Peter's first year: $1,600 x 363 / 1,826, $318.07, the ATO's figure.
+    assert_eq!(
+        working("peter_year_1", "remaining_expenditure"),
+        "borrowing_expenses = 1600.00 = 1600.00"
+    );
+    assert_eq!(
+        working("peter_year_1", "maximum_deduction"),
+        "cents(remaining_expenditure x days_in_year / remaining_loan_period_days) \
+         = cents(1600.00 x 363 / 1826) = 318.07"
+    );
+    // Year 5: each earlier year's maximum, as tests/borrowing_expenses.rs
+    // works them, then $321.58 x 365 / 367, $319.83, leaving the ATO's $1.75.
+    let earlier = "cents(1600.00 x 363 / 1826) - cents(1281.93 x 365 / 1463) \
+                   - cents(962.10 x 365 / 1098) - cents(642.28 x 366 / 733)";
+    assert_eq!(
+        working("peter_year_5", "remaining_expenditure"),
+        format!("borrowing_expenses - {earlier} = 1600.00 - {earlier} = 321.58")
+    );
+    assert_eq!(
+        working("peter_year_5", "maximum_deduction"),
+        "cents(remaining_expenditure x days_in_year / remaining_loan_period_days) \
+         = cents(321.58 x 365 / 367) = 319.83"
+    );
+    assert_eq!(
+        working("peter_year_5", "remaining_expenditure_after_year"),
+        "remaining_expenditure - maximum_deduction = 321.58 - 319.83 = 1.75"
+    );
+    // Fiona and Max's Year 6: $14.63 x their share, $11.90, the ATO's figure.
+    assert_eq!(
+        working("fiona_year_6", "deduction"),
+        format!("cents(maximum_deduction x income_use) = cents(14.63 x {FIONA_SHARE}) = 11.90")
+    );
+    assert_eq!(
+        working("not_spread", "deduction"),
+        "cents(maximum_deduction x income_use) = cents(90.00 x 1) = 90.00"
+    );
+    assert_eq!(
+        working("not_spread", "remaining_expenditure_after_year"),
+        "0 = 0 = 0"
+    );
+}
+
+#[test]
+fn each_withholding_sg_and_borrowing_step_cites_its_branch() {
+    let authority = |name: &str, id: &str| authority_in(&case_doc(name), id);
+    let cites = |name: &str, id: &str, start: &str| {
+        let cited = authority(name, id);
+        assert!(cited.starts_with(start), "{name} {id}: {cited}");
+    };
+    cites(
+        "whm_lookup_tool",
+        "withholding",
+        "Schedule 15, 'Registered employer', 'Using a formula' and Table A",
+    );
+    assert!(authority("whm_lookup_tool", "withholding").ends_with("50 cents up"));
+    assert!(authority("whm_top_rate", "withholding").ends_with("cents in the result are ignored"));
+    cites(
+        "whm_no_tfn",
+        "withholding",
+        "Schedule 15, 'If a TFN has not been provided'",
+    );
+    cites(
+        "whm_unregistered_no_tfn",
+        "withholding",
+        "Schedule 15, 'Unregistered employer'; Schedule 1, scale 4",
+    );
+    cites(
+        "whm_unregistered_no_tfn",
+        "payment_used",
+        "Schedule 1, scale 4",
+    );
+    cites(
+        "whm_lookup_tool",
+        "payment_used",
+        "Schedule 15, 'Using a formula'",
+    );
+    assert!(
+        authority("whm_unregistered", "withholding").contains("'Working out the weekly earnings'")
+    );
+    assert!(
+        authority("whm_unregistered_monthly", "withholding")
+            .contains("'Calculating withholding fortnightly, monthly or quarterly amounts'")
+    );
+    cites(
+        "seniors_example",
+        "weekly_earnings_used",
+        "Schedule 9, 'Using a formula'",
+    );
+    cites(
+        "seniors_example",
+        "withholding",
+        "Schedule 9, 'Working out the withholding amount'",
+    );
+    for id in ["weekly_earnings_used", "withholding"] {
+        cites(
+            "seniors_fortnightly",
+            id,
+            "Schedule 9, 'Calculating fortnightly or monthly withholding amounts'",
+        );
+    }
+    cites(
+        "stsl_example_1",
+        "weekly_earnings_used",
+        "Schedule 8, 'Using a formula'",
+    );
+    cites(
+        "stsl_example_2",
+        "weekly_earnings_used",
+        "Schedule 8, 'Calculating fortnightly, monthly or quarterly withholding amounts'",
+    );
+    cites(
+        "stsl_example_1",
+        "schedule_1_withholding",
+        "Schedule 1, 'Using a formula' and 'Rounding of withholding amounts'",
+    );
+    cites(
+        "stsl_example_1",
+        "study_loan_component",
+        "Schedule 8, 'Study and training support loans component rates'",
+    );
+    cites("stsl_example_1", "withholding", "Schedule 8, 'Software'");
+    cites(
+        "sg_capped",
+        "earnings_used",
+        "SGAA s 6(1), 'ordinary time earnings', paragraph (b)",
+    );
+    cites("sg_capped", "minimum_sg", "SGAA s 19(2), item 13");
+    cites(
+        "sg_capped",
+        "additional_contribution",
+        "SGAA s 23(2) and (10)",
+    );
+    cites(
+        "peter_year_5",
+        "remaining_expenditure",
+        "ITAA 1997 s 25-25(4) step 1",
+    );
+    cites(
+        "peter_year_5",
+        "maximum_deduction",
+        "ITAA 1997 s 25-25(4) steps 2 to 4",
+    );
+    cites("peter_year_5", "deduction", "ITAA 1997 s 25-25(2) and (3)");
+    cites("not_spread", "maximum_deduction", "ITAA 1997 s 25-25(6)");
+    cites("not_spread", "deduction", "ITAA 1997 s 25-25(6)(c) and (d)");
+    assert_eq!(
+        case_doc("repaid_early")["result"]["rates"]["period_of_the_loan"],
+        "s 25-25(5)(b): to the day the loan was repaid"
+    );
+}
+
+#[test]
+fn a_refused_withholding_sg_or_borrowing_input_gets_the_commands_own_refusal() {
+    let refused = |command: &str, facts: &str| {
+        let input = withholding_sg_borrowing(command, facts);
+        let plain = api::evaluate_coded(command, &input).unwrap_err();
+        let derived = api::evaluate_coded("derive", &json!({"command": command, "input": input}));
+        assert_eq!(derived.unwrap_err(), plain);
+        plain.code
+    };
+    assert_eq!(
+        refused(WHM, r#"{"payments_before": "135000.50"}"#),
+        "working_holiday_maker.band_unsettled"
+    );
+    assert_eq!(
+        refused(STSL, r#"{"year": "2025-26"}"#),
+        "input.missing_field"
+    );
+    assert_eq!(
+        refused(SENIORS, r#"{"pay_period": "quarterly"}"#),
+        "input.pay_period_invalid"
+    );
+    assert_eq!(refused(SG, r#"{"quarter": 5}"#), "input.quarter_invalid");
+    assert_eq!(
+        refused(
+            BORROWING,
+            r#"{"borrowing_expenses": "90.00", "year": "2025-26"}"#
+        ),
+        "borrowing.s25_25_6_not_spread"
+    );
+    assert_eq!(
+        refused(
+            BORROWING,
+            r#"{"loan_start": "2020-07-03", "loan_term_end": "2045-07-02", "year": "2026-27"}"#
+        ),
+        "borrowing.loan_period_ended"
+    );
+}
+
+// Basic income tax, the low income and seniors and pensioners tax offsets,
+// the Medicare levy and the Medicare levy surcharge.
+
+/// Cases by name for the personal tax worksheets: the ATO's examples the
+/// worksheets' own tests hold, and a case for each branch. 2025-26 unless a
+/// case names its year.
+const PERSONAL: [(&str, &str, &str); 42] = [
+    // 26,800 at 16% and 55,000 at 30%.
+    (
+        "resident",
+        "resident-tax",
+        r#"{"taxable_income": "100000"}"#,
+    ),
+    (
+        "resident_2026",
+        "resident-tax",
+        r#"{"taxable_income": "200000", "year": "2026-27"}"#,
+    ),
+    (
+        "resident_nil",
+        "resident-tax",
+        r#"{"taxable_income": "18200"}"#,
+    ),
+    // The ATO's foreign resident table: $45,000 at 30%.
+    (
+        "foreign",
+        "foreign-resident-tax",
+        r#"{"taxable_income": "45000"}"#,
+    ),
+    (
+        "foreign_2026",
+        "foreign-resident-tax",
+        r#"{"taxable_income": "200000", "year": "2026-27"}"#,
+    ),
+    // Each item of the s 61-115(1) table, the cut-out and above it.
+    (
+        "lito_1",
+        "low-income-tax-offset",
+        r#"{"taxable_income": "30000"}"#,
+    ),
+    (
+        "lito_2",
+        "low-income-tax-offset",
+        r#"{"taxable_income": "40000"}"#,
+    ),
+    (
+        "lito_3",
+        "low-income-tax-offset",
+        r#"{"taxable_income": "50000"}"#,
+    ),
+    (
+        "lito_cut_out",
+        "low-income-tax-offset",
+        r#"{"taxable_income": "66667"}"#,
+    ),
+    (
+        "lito_none",
+        "low-income-tax-offset",
+        r#"{"taxable_income": "70000"}"#,
+    ),
+    // The ATO's SAPTO examples: José, Clare, Keith, Deb and example 9.
+    (
+        "jose",
+        "seniors-pensioners-tax-offset",
+        r#"{"rebate_income": "39000", "status": "single"}"#,
+    ),
+    (
+        "clare",
+        "seniors-pensioners-tax-offset",
+        r#"{"rebate_income": "23020", "status": "couple", "spouse_rebate_income": "25677"}"#,
+    ),
+    (
+        "keith",
+        "seniors-pensioners-tax-offset",
+        r#"{"rebate_income": "33650", "status": "couple", "spouse_rebate_income": "0"}"#,
+    ),
+    (
+        "deb",
+        "seniors-pensioners-tax-offset",
+        r#"{"rebate_income": "64020", "status": "couple", "spouse_rebate_income": "25677"}"#,
+    ),
+    (
+        "example_9",
+        "seniors-pensioners-tax-offset",
+        r#"{"rebate_income": "48000", "status": "illness_separated", "spouse_rebate_income": "10000", "spouse_taxable_income": "10000"}"#,
+    ),
+    // A spouse at most $6,000 passes the whole base amount; an offset at its
+    // base amount takes nothing.
+    (
+        "whole_transfer",
+        "seniors-pensioners-tax-offset",
+        r#"{"rebate_income": "35000", "status": "couple", "spouse_rebate_income": "5000", "spouse_taxable_income": "5000"}"#,
+    ),
+    (
+        "no_transfer",
+        "seniors-pensioners-tax-offset",
+        r#"{"rebate_income": "25000", "status": "couple", "spouse_rebate_income": "25000", "spouse_taxable_income": "5000"}"#,
+    ),
+    (
+        "sapto_2026",
+        "seniors-pensioners-tax-offset",
+        r#"{"rebate_income": "39000", "status": "single", "year": "2026-27"}"#,
+    ),
+    // s 6(1) above the phase-in limit, s 7(2) and s 7(1).
+    ("levy", "medicare-levy", r#"{"taxable_income": "50000"}"#),
+    (
+        "levy_shade_in",
+        "medicare-levy",
+        r#"{"taxable_income": "29000", "year": "2026-27"}"#,
+    ),
+    (
+        "levy_nil",
+        "medicare-levy",
+        r#"{"taxable_income": "28011"}"#,
+    ),
+    // The ATO's Ashton example: s 7(2), then s 8(2) unshared.
+    (
+        "ashton",
+        "medicare-levy",
+        r#"{"taxable_income": "49700", "sapto_entitled": true, "spouse_taxable_income": "21700", "spouse_sapto_entitled": true}"#,
+    ),
+    // s 8(3) shares the reduction; s 8(4) passes the spouse's excess.
+    (
+        "shared",
+        "medicare-levy",
+        r#"{"taxable_income": "40000", "spouse_taxable_income": "30000", "spouse_sapto_entitled": false, "dependent_children": 3}"#,
+    ),
+    (
+        "spouse_excess",
+        "medicare-levy",
+        r#"{"taxable_income": "40000", "spouse_taxable_income": "29000", "spouse_sapto_entitled": false, "dependent_children": 3}"#,
+    ),
+    (
+        "half_cent",
+        "medicare-levy",
+        r#"{"taxable_income": "41496", "spouse_taxable_income": "50568", "spouse_sapto_entitled": true, "dependent_children": 7, "year": "2026-27"}"#,
+    ),
+    (
+        "spouse_sapto_excess",
+        "medicare-levy",
+        r#"{"taxable_income": "30000", "spouse_taxable_income": "45000", "spouse_sapto_entitled": true}"#,
+    ),
+    // s 8(1): at or below the family income threshold, alone and with a
+    // liable spouse.
+    (
+        "family_nil",
+        "medicare-levy",
+        r#"{"taxable_income": "40000", "dependant_offset_entitled": true, "dependent_children": 2}"#,
+    ),
+    (
+        "shared_nil",
+        "medicare-levy",
+        r#"{"taxable_income": "30000", "spouse_taxable_income": "29000", "spouse_sapto_entitled": false, "dependent_children": 5}"#,
+    ),
+    // s 9(1): Priya's full year, part years, and after ss 8(3) and 8(4).
+    (
+        "priya",
+        "medicare-levy",
+        r#"{"taxable_income": "90000", "medicare_levy_exemption_full_days": 365}"#,
+    ),
+    (
+        "part_year",
+        "medicare-levy",
+        r#"{"taxable_income": "50000", "medicare_levy_exemption_full_days": 100, "medicare_levy_exemption_half_days": 100}"#,
+    ),
+    (
+        "shared_exempt",
+        "medicare-levy",
+        r#"{"taxable_income": "40000", "spouse_taxable_income": "30000", "spouse_sapto_entitled": false, "dependent_children": 3, "medicare_levy_exemption_full_days": 73}"#,
+    ),
+    (
+        "excess_exempt",
+        "medicare-levy",
+        r#"{"taxable_income": "40000", "spouse_taxable_income": "29000", "spouse_sapto_entitled": false, "dependent_children": 3, "medicare_levy_exemption_half_days": 365}"#,
+    ),
+    // The ATO's surcharge examples: Tom, Josh, Jacinta and Kevin.
+    (
+        "tom",
+        "medicare-levy-surcharge",
+        r#"{"taxable_income": "90000", "reportable_fringe_benefits": "27000", "income_for_surcharge_purposes": "117000", "days_without_cover": 365, "year": "2026-27"}"#,
+    ),
+    (
+        "josh",
+        "medicare-levy-surcharge",
+        r#"{"taxable_income": "90000", "reportable_fringe_benefits": "20000", "income_for_surcharge_purposes": "127000", "days_without_cover": 365}"#,
+    ),
+    (
+        "jacinta",
+        "medicare-levy-surcharge",
+        r#"{"taxable_income": "109000", "reportable_fringe_benefits": "0", "income_for_surcharge_purposes": "109000", "days_without_cover": 199}"#,
+    ),
+    (
+        "kevin",
+        "medicare-levy-surcharge",
+        r#"{"taxable_income": "120000", "reportable_fringe_benefits": "0", "income_for_surcharge_purposes": "120000", "days_without_cover": 193, "spouse_income_for_surcharge_purposes": "100000", "dependent_children": 3}"#,
+    ),
+    // Tier 3; under tier 1; a married person on $28,011 of their own, and a
+    // family under the family tier 1 threshold.
+    (
+        "tier_3",
+        "medicare-levy-surcharge",
+        r#"{"taxable_income": "200000", "reportable_fringe_benefits": "0", "income_for_surcharge_purposes": "200000", "days_without_cover": 365}"#,
+    ),
+    (
+        "under_tier_1",
+        "medicare-levy-surcharge",
+        r#"{"taxable_income": "90000", "reportable_fringe_benefits": "0", "income_for_surcharge_purposes": "90000", "days_without_cover": 365}"#,
+    ),
+    (
+        "own_income_low",
+        "medicare-levy-surcharge",
+        r#"{"taxable_income": "28011", "reportable_fringe_benefits": "0", "income_for_surcharge_purposes": "28011", "days_without_cover": 365, "spouse_income_for_surcharge_purposes": "240000"}"#,
+    ),
+    (
+        "family_under_tier_1",
+        "medicare-levy-surcharge",
+        r#"{"taxable_income": "50000", "reportable_fringe_benefits": "0", "income_for_surcharge_purposes": "50000", "days_without_cover": 365, "spouse_income_for_surcharge_purposes": "50000"}"#,
+    ),
+    // A positive exponent in an input stays a number the working can name.
+    (
+        "resident_exponent",
+        "resident-tax",
+        r#"{"taxable_income": "1E+5"}"#,
+    ),
+    (
+        "levy_exponent",
+        "medicare-levy",
+        r#"{"taxable_income": "4E+4", "dependant_offset_entitled": true}"#,
+    ),
+];
+
+/// A personal tax input: `facts` for 2025-26 unless they name the year, with
+/// no s 9A adjustment for the Medicare levy.
+fn personal(command: &str, facts: &str) -> Value {
+    let mut input = json!({"year": "2025-26", "scope_confirmed": true});
+    if command == "medicare-levy" {
+        input["section_9a_adjustment_applies"] = json!(false);
+    }
+    merge(&mut input, serde_json::from_str(facts).unwrap());
+    input
+}
+
+/// The derivation of the `PERSONAL` case `name`.
+fn personal_doc(name: &str) -> Value {
+    let (_, command, facts) = PERSONAL.iter().find(|(n, ..)| *n == name).unwrap();
+    derive(command, &personal(command, facts))
+}
+
+#[test]
+fn each_personal_tax_case_is_recomputed_from_its_working() {
+    let mut wrong = Vec::new();
+    for (name, command, facts) in PERSONAL {
+        let input = personal(command, facts);
+        let doc = derive(command, &input);
+        let plain = api::evaluate(command, &input).unwrap();
+        let (derived, plain) = (doc["result"].to_string(), plain.to_string());
+        if derived != plain {
+            wrong.push(format!("{name}: the result is not the plain one"));
+        }
+        wrong.extend(problems(&doc).into_iter().map(|p| format!("{name}: {p}")));
+    }
+    assert!(wrong.is_empty(), "{wrong:#?}");
+}
+
+/// How a step's text is checked: whole, by its start, by its end or by a part.
+#[derive(Clone, Copy)]
+enum Text {
+    Is,
+    Starts,
+    Ends,
+    Has,
+}
+
+/// Each check of `field` of a `PERSONAL` case's step, failed or not, so one run
+/// shows every one that fails.
+fn mismatches(checks: &[(&str, &str, &str, Text, &str)]) -> Vec<String> {
+    checks
+        .iter()
+        .filter_map(|&(name, id, field, how, expected)| {
+            let found = step_of(&personal_doc(name), id)[field]
+                .as_str()
+                .unwrap()
+                .to_string();
+            let ok = match how {
+                Text::Is => found == expected,
+                Text::Starts => found.starts_with(expected),
+                Text::Ends => found.ends_with(expected),
+                Text::Has => found.contains(expected),
+            };
+            (!ok).then(|| format!("{name} {id} {field}: expected {expected}\n  found {found}"))
+        })
+        .collect()
+}
+
+/// The worked examples, each operand as the worksheet used it.
+#[test]
+fn the_personal_tax_examples_show_their_operands() {
+    use Text::{Ends, Has, Is, Starts};
+    let (w, v) = ("working", "value");
+    let wrong = mismatches(&[
+        // Schedule 7 Part I: 26,800 x 16% + 55,000 x 30% = 20,788.
+        (
+            "resident",
+            "basic_income_tax",
+            w,
+            Is,
+            "max(0, min(taxable_income_used, 45000) - 18200) x over_18200 \
+             + max(0, min(taxable_income_used, 135000) - 45000) x over_45000 \
+             + max(0, min(taxable_income_used, 190000) - 135000) x over_135000 \
+             + max(0, taxable_income_used - 190000) x over_190000 \
+             = max(0, min(100000, 45000) - 18200) x 0.16 + max(0, min(100000, 135000) - 45000) x 0.30 \
+             + max(0, min(100000, 190000) - 135000) x 0.37 + max(0, 100000 - 190000) x 0.45 \
+             = 20788.00",
+        ),
+        // 2026-27: 26,800 x 15% + 90,000 x 30% + 55,000 x 37% + 10,000 x 45%.
+        ("resident_2026", "basic_income_tax", v, Is, "55870.00"),
+        ("resident_nil", "basic_income_tax", v, Is, "0.00"),
+        // Schedule 7 Part II: no tax-free threshold, $45,000 at 30%.
+        (
+            "foreign",
+            "basic_income_tax",
+            w,
+            Is,
+            "max(0, min(taxable_income_used, 135000) - 0) x over_0 \
+             + max(0, min(taxable_income_used, 190000) - 135000) x over_135000 \
+             + max(0, taxable_income_used - 190000) x over_190000 \
+             = max(0, min(45000, 135000) - 0) x 0.30 + max(0, min(45000, 190000) - 135000) x 0.37 \
+             + max(0, 45000 - 190000) x 0.45 = 13500.00",
+        ),
+        ("foreign_2026", "basic_income_tax", v, Is, "65350.00"),
+        // s 61-115(1): $700; $700 less 5% of $2,500; $325 less 1.5% of $5,000;
+        // at $66,667 item 3 gives minus half a cent, so nil.
+        (
+            "lito_1",
+            "low_income_tax_offset",
+            w,
+            Is,
+            "maximum = 700 = 700",
+        ),
+        (
+            "lito_2",
+            "low_income_tax_offset",
+            w,
+            Is,
+            "maximum - (taxable_income_used - first_step) x first_rate \
+             = 700 - (40000 - 37500) x 0.05 = 575.00",
+        ),
+        (
+            "lito_3",
+            "low_income_tax_offset",
+            w,
+            Is,
+            "max(0, second_amount - (taxable_income_used - second_step) x second_rate) \
+             = max(0, 325 - (50000 - 45000) x 0.015) = 250.000",
+        ),
+        ("lito_cut_out", "low_income_tax_offset", v, Is, "0.00"),
+        ("lito_none", "low_income_tax_offset", w, Is, "0 = 0 = 0"),
+        // José: $2,230 less 12.5 cents for each of $4,081 above $34,919,
+        // $1,719.875, rounded up; the cut-out is $2,230 / 0.125 + $34,919.
+        (
+            "jose",
+            "rebate_threshold",
+            w,
+            Is,
+            "dollars_up((rebate_maximum_amount + base_rebate_amount) / lowest_marginal_tax_rate \
+             + tax_free_threshold) = dollars_up((445 + 2230) / 0.16 + 18200) = 34919",
+        ),
+        (
+            "jose",
+            "cut_out_threshold",
+            w,
+            Is,
+            "dollars_up(base_rebate_amount / shade_out_rate + rebate_threshold) \
+             = dollars_up(2230 / 0.125 + 34919) = 52759",
+        ),
+        (
+            "jose",
+            "seniors_pensioners_tax_offset",
+            w,
+            Is,
+            "dollars_up(max(0, base_rebate_amount - max(0, rebate_income_used - rebate_threshold) \
+             x shade_out_rate)) = dollars_up(max(0, 2230 - max(0, 39000 - 34919) x 0.125)) = 1720",
+        ),
+        // Clare is tested on half the couple's $48,697; Deb on half of
+        // $89,697, not below the $43,810 cut-out.
+        (
+            "clare",
+            "rebate_income_tested",
+            w,
+            Is,
+            "(rebate_income_used + spouse_rebate_income) / 2 = (23020 + 25677) / 2 = 24348.5",
+        ),
+        ("keith", "seniors_pensioners_tax_offset", v, Is, "1270.00"),
+        ("deb", "seniors_pensioners_tax_offset", w, Is, "0 = 0 = 0"),
+        // Example 9: $2,040 less 0.15 x $4,000 transferred; s 9(6) on the
+        // raised base gives $12,572 / 0.315, $39,912; the cut-out keeps the
+        // unraised threshold; $3,480 less 0.125 x $8,088 is $2,469.
+        (
+            "example_9",
+            "spouse_unused_amount_transferred",
+            w,
+            Is,
+            "max(0, base_rebate_amount - (spouse_taxable_income - transfer_income_floor) \
+             x transfer_rate) = max(0, 2040 - (10000 - 6000) x 0.15) = 1440.00",
+        ),
+        (
+            "example_9",
+            "rebate_threshold",
+            w,
+            Is,
+            "dollars_up((lowest_marginal_tax_rate x tax_free_threshold + rebate_maximum_amount \
+             + base_rebate_amount + spouse_unused_amount_transferred + rebate_reduction_threshold \
+             x (rebate_reduction_rate + second_lowest_marginal_tax_rate - lowest_marginal_tax_rate)) \
+             / (rebate_reduction_rate + second_lowest_marginal_tax_rate)) \
+             = dollars_up((0.16 x 18200 + 445 + 2040 + 1440.00 + 37000 x (0.015 + 0.30 - 0.16)) \
+             / (0.015 + 0.30)) = 39912",
+        ),
+        (
+            "example_9",
+            "cut_out_threshold",
+            w,
+            Is,
+            "dollars_up(base_rebate_amount / shade_out_rate + dollars_up((rebate_maximum_amount \
+             + base_rebate_amount) / lowest_marginal_tax_rate + tax_free_threshold)) \
+             = dollars_up(2040 / 0.125 + dollars_up((445 + 2040) / 0.16 + 18200)) = 50052",
+        ),
+        (
+            "example_9",
+            "seniors_pensioners_tax_offset",
+            w,
+            Is,
+            "dollars_up(max(0, base_rebate_amount + spouse_unused_amount_transferred \
+             - max(0, rebate_income_used - rebate_threshold) x shade_out_rate)) \
+             = dollars_up(max(0, 2040 + 1440.00 - max(0, 48000 - 39912) x 0.125)) = 2469",
+        ),
+        (
+            "whole_transfer",
+            "spouse_unused_amount_transferred",
+            w,
+            Is,
+            "base_rebate_amount = 1602 = 1602",
+        ),
+        (
+            "no_transfer",
+            "spouse_unused_amount_transferred",
+            w,
+            Is,
+            "0 = 0 = 0",
+        ),
+        // 2026-27 at 15%: (445 + 2,230) / 0.15 + 18,200, rounded up.
+        ("sapto_2026", "rebate_threshold", v, Is, "36034.00"),
+        // Ashton: s 7(2) leaves 10% of $5,432, $543.20; s 8(2) reduces it
+        // by 2% of $61,623 less 0.08 of $9,777, $450.30; $92.90 is left.
+        (
+            "ashton",
+            "low_income_reduction",
+            w,
+            Is,
+            "levy_at_full_rate - min(levy_at_full_rate, (taxable_income_used - threshold_amount) \
+             x shade_in_rate) = 994.00 - min(994.00, (49700 - 44268) x 0.10) = 450.80",
+        ),
+        (
+            "ashton",
+            "family_reduction",
+            w,
+            Is,
+            "min(min(levy_at_full_rate, (taxable_income_used - threshold_amount) x shade_in_rate), \
+             max(0, levy_rate x family_income_threshold - family_shade_out_rate \
+             x (family_income - family_income_threshold))) \
+             = min(min(994.00, (49700 - 44268) x 0.10), max(0, 0.02 x 61623 - 0.08 x (71400 - 61623))) \
+             = 450.30",
+        ),
+        (
+            "ashton",
+            "medicare_levy",
+            w,
+            Is,
+            "levy_at_full_rate - low_income_reduction - family_reduction - spouse_excess_reduction \
+             = 994.00 - 450.80 - 450.30 - 0 = 92.90",
+        ),
+        // s 8(3): this person's share of the family's reduction, worked
+        // times family income and divided by it once.
+        (
+            "shared",
+            "family_reduction",
+            w,
+            Starts,
+            "min(levy_at_full_rate x family_income, max(0, levy_rate x family_income_threshold \
+             - family_shade_out_rate x (family_income - family_income_threshold)) \
+             x taxable_income_used) / family_income",
+        ),
+        ("shared", "medicare_levy", v, Is, "557.03"),
+        // s 8(4): the spouse's share above the spouse's own levy, with the
+        // spouse's threshold amount and family income threshold as figures.
+        (
+            "spouse_excess",
+            "spouse_excess_reduction",
+            w,
+            Has,
+            " x spouse_taxable_income - min(spouse_taxable_income x levy_rate, \
+             (spouse_taxable_income - ",
+        ),
+        ("spouse_excess", "spouse_excess_reduction", v, Is, "113.43"),
+        ("spouse_excess", "medicare_levy", v, Is, "393.70"),
+        // The 2 shares divided once: exactly half a cent, rounded up.
+        ("half_cent", "medicare_levy", w, Ends, " = 274.515"),
+        ("half_cent", "medicare_levy", v, Is, "274.52"),
+        ("spouse_sapto_excess", "medicare_levy", v, Is, "174.72"),
+        // s 9(1): $1,000 x (730 - 200 - 100) / 730.
+        (
+            "part_year",
+            "medicare_levy",
+            w,
+            Starts,
+            "(levy_at_full_rate - low_income_reduction) \
+             x (2 x days_in_year - (2 x exemption_full_days + exemption_half_days)) / (2 x days_in_year) \
+             = (1000.00 - 0.00) x (2 x 365 - (2 x 100 + 100)) / (2 x 365) = 589.04109589",
+        ),
+        ("priya", "medicare_levy", v, Is, "0.00"),
+        ("shared_exempt", "medicare_levy", v, Is, "445.62"),
+        ("excess_exempt", "medicare_levy", v, Is, "196.85"),
+        // Tom: ($90,000 + $27,000) x 1%; Jacinta: $109,000 x 1% x 199 / 365.
+        (
+            "tom",
+            "medicare_levy_surcharge",
+            w,
+            Is,
+            "surcharge_base x surcharge_rate x days_without_cover / days_in_year \
+             = 117000 x 0.01 x 365 / 365 = 1170.00",
+        ),
+        ("josh", "medicare_levy_surcharge", v, Is, "1375.00"),
+        ("jacinta", "medicare_levy_surcharge", v, Is, "594.27"),
+        (
+            "kevin",
+            "family_income_for_surcharge_purposes",
+            w,
+            Is,
+            "income_for_surcharge_purposes + spouse_income_for_surcharge_purposes \
+             = 120000 + 100000 = 220000",
+        ),
+        ("kevin", "medicare_levy_surcharge", v, Is, "634.52"),
+        ("tier_3", "medicare_levy_surcharge", v, Is, "3000.00"),
+    ]);
+    assert!(wrong.is_empty(), "{}", wrong.join("\n"));
+}
+
+#[test]
+fn each_personal_tax_step_cites_the_provision_its_branch_applies() {
+    use Text::{Ends, Has, Is, Starts};
+    let a = "authority";
+    let (lito, sapto, transfer) = (
+        "low_income_tax_offset",
+        "seniors_pensioners_tax_offset",
+        "spouse_unused_amount_transferred",
+    );
+    let (reduction, family, excess, surcharge) = (
+        "low_income_reduction",
+        "family_reduction",
+        "spouse_excess_reduction",
+        "medicare_levy_surcharge",
+    );
+    let wrong = mismatches(&[
+        (
+            "resident",
+            "basic_income_tax",
+            a,
+            Has,
+            "Schedule 7 Part I clause 1(b), the table for the 2024-25 or 2025-26",
+        ),
+        (
+            "resident_2026",
+            "basic_income_tax",
+            a,
+            Has,
+            "Schedule 7 Part I clause 1(b), the table for the 2026-27",
+        ),
+        (
+            "foreign",
+            "basic_income_tax",
+            a,
+            Has,
+            "Schedule 7 Part II clause 1(b)",
+        ),
+        (
+            "lito_1",
+            lito,
+            a,
+            Starts,
+            "ITAA 1997 s 61-115(1), table item 1",
+        ),
+        (
+            "lito_2",
+            lito,
+            a,
+            Starts,
+            "ITAA 1997 s 61-115(1), table item 2",
+        ),
+        (
+            "lito_3",
+            lito,
+            a,
+            Starts,
+            "ITAA 1997 s 61-115(1), table item 3",
+        ),
+        (
+            "lito_cut_out",
+            lito,
+            a,
+            Starts,
+            "ITAA 1997 s 61-115(1), table item 3",
+        ),
+        ("lito_none", lito, a, Starts, "ITAA 1997 s 61-110(1)(b)"),
+        // The 2015 Regulation before 2026-27, the 2025 Regulations from it.
+        (
+            "jose",
+            "rebate_threshold",
+            a,
+            Is,
+            "Income Tax Assessment (1936 Act) Regulation 2015 s 9(4)(a), (5) and (8)",
+        ),
+        (
+            "sapto_2026",
+            "rebate_threshold",
+            a,
+            Starts,
+            "Income Tax Assessment (1936 Act) Regulations 2025 s 9(4)(a)",
+        ),
+        ("example_9", "rebate_threshold", a, Has, "s 12(3)"),
+        (
+            "jose",
+            "base_rebate_amount",
+            a,
+            Ends,
+            "item 1: not a spouse",
+        ),
+        ("clare", "base_rebate_amount", a, Ends, "item 2: a spouse"),
+        ("example_9", "base_rebate_amount", a, Has, "item 3"),
+        (
+            "clare",
+            "rebate_income_tested",
+            a,
+            Starts,
+            "ITAA 1936 s 160AAAA(4)",
+        ),
+        ("deb", sapto, a, Has, "s 10 and ITAA 1936 s 160AAAA(3)"),
+        ("example_9", transfer, a, Has, "(3)(b)(ii) and (4)"),
+        ("whole_transfer", transfer, a, Has, "(3)(b)(i)"),
+        ("no_transfer", transfer, a, Has, "s 12(1)(d) and (e)"),
+        (
+            "levy",
+            reduction,
+            a,
+            Starts,
+            "Medicare Levy Act 1986 ss 6(1) and 7",
+        ),
+        (
+            "levy_shade_in",
+            reduction,
+            a,
+            Starts,
+            "Medicare Levy Act 1986 s 7(2)",
+        ),
+        (
+            "levy_nil",
+            reduction,
+            a,
+            Starts,
+            "Medicare Levy Act 1986 s 7(1)",
+        ),
+        (
+            "ashton",
+            family,
+            a,
+            Starts,
+            "Medicare Levy Act 1986 s 8(2):",
+        ),
+        (
+            "shared",
+            family,
+            a,
+            Starts,
+            "Medicare Levy Act 1986 s 8(2) and (3)",
+        ),
+        (
+            "family_nil",
+            family,
+            a,
+            Starts,
+            "Medicare Levy Act 1986 s 8(1)",
+        ),
+        (
+            "shared_nil",
+            family,
+            a,
+            Starts,
+            "Medicare Levy Act 1986 s 8(1)",
+        ),
+        (
+            "spouse_excess",
+            excess,
+            a,
+            Starts,
+            "Medicare Levy Act 1986 s 8(4)",
+        ),
+        (
+            "ashton",
+            excess,
+            a,
+            Starts,
+            "Medicare Levy Act 1986 s 8(3) and (4)",
+        ),
+        (
+            "part_year",
+            "exemption_reduction",
+            a,
+            Has,
+            "s 9(1) and ITAA 1936 s 251U(3)",
+        ),
+        (
+            "tom",
+            surcharge,
+            a,
+            Starts,
+            "Medicare Levy Act 1986 s 8B(2) to (4)",
+        ),
+        (
+            "under_tier_1",
+            surcharge,
+            a,
+            Has,
+            "singles tier 1 threshold, so nil",
+        ),
+        (
+            "kevin",
+            surcharge,
+            a,
+            Starts,
+            "Medicare Levy Act 1986 s 8D(3), (4)",
+        ),
+        (
+            "own_income_low",
+            surcharge,
+            a,
+            Starts,
+            "Medicare Levy Act 1986 s 8D(3)(c)",
+        ),
+        (
+            "family_under_tier_1",
+            surcharge,
+            a,
+            Has,
+            "family tier 1 threshold, so nil",
+        ),
+    ]);
+    assert!(wrong.is_empty(), "{}", wrong.join("\n"));
+}
+
+#[test]
+fn a_refused_personal_tax_input_gets_the_commands_own_refusal() {
+    let refused = |name: &str, change: Value| {
+        let (_, command, facts) = PERSONAL.iter().find(|(n, ..)| *n == name).unwrap();
+        let mut input = personal(command, facts);
+        merge(&mut input, change);
+        let plain = api::evaluate_coded(command, &input).unwrap_err();
+        let derived = api::evaluate_coded("derive", &json!({"command": command, "input": input}));
+        assert_eq!(derived.unwrap_err(), plain, "{name}");
+        plain.code
+    };
+    let cents = json!({"taxable_income": "100000.50"});
+    assert_eq!(
+        refused("resident", cents.clone()),
+        "input.amount_not_whole_dollars"
+    );
+    assert_eq!(
+        refused("foreign", json!({"year": "2023-24"})),
+        "period.unsupported"
+    );
+    assert_eq!(refused("lito_1", cents), "input.amount_not_whole_dollars");
+    assert_eq!(
+        refused("clare", json!({"status": "single"})),
+        "input.field_unknown"
+    );
+    assert_eq!(
+        refused("levy", json!({"section_9a_adjustment_applies": true})),
+        "medicare.s9a_adjustment_out_of_scope"
+    );
+    assert_eq!(
+        refused("tom", json!({"dependent_children": 1})),
+        "input.field_unknown"
+    );
+}
+
+/// A small seeded generator, so the inputs below are the same on every run.
+struct Seeded(u64);
+
+impl Seeded {
+    fn below(&mut self, n: u64) -> u64 {
+        self.0 = self
+            .0
+            .wrapping_mul(6_364_136_223_846_793_005)
+            .wrapping_add(1_442_695_040_888_963_407);
+        (self.0 >> 33) % n
+    }
+
+    fn dollars(&mut self, most: u64) -> String {
+        self.below(most + 1).to_string()
+    }
+}
+
+/// Seeded inputs across each personal tax worksheet's branches: each derives
+/// to the plain result, or the plain refusal, with every step recomputed.
+#[test]
+fn seeded_personal_tax_inputs_are_recomputed_from_their_working() {
+    let mut rng = Seeded(0x3B15_1126);
+    let years = ["2024-25", "2025-26", "2026-27"];
+    let mut explained = 0;
+    for _ in 0..300 {
+        let year = years[rng.below(3) as usize];
+        let income = rng.dollars(250_000);
+        let mut cases = vec![
+            ("resident-tax", json!({"taxable_income": income})),
+            ("foreign-resident-tax", json!({"taxable_income": income})),
+            (
+                "low-income-tax-offset",
+                json!({"taxable_income": rng.dollars(80_000)}),
+            ),
+        ];
+        let status = ["single", "illness_separated", "couple"][rng.below(3) as usize];
+        let mut sapto = json!({"rebate_income": rng.dollars(70_000), "status": status});
+        if status != "single" {
+            sapto["spouse_rebate_income"] = json!(rng.dollars(70_000));
+            if rng.below(2) == 0 {
+                sapto["spouse_taxable_income"] = json!(rng.dollars(30_000));
+            }
+        }
+        cases.push(("seniors-pensioners-tax-offset", sapto));
+        let mut levy = json!({"taxable_income": rng.dollars(120_000),
+                              "section_9a_adjustment_applies": false,
+                              "sapto_entitled": rng.below(2) == 0});
+        match rng.below(3) {
+            0 => {
+                levy["spouse_taxable_income"] = json!(rng.dollars(90_000));
+                levy["spouse_sapto_entitled"] = json!(rng.below(2) == 0);
+                levy["dependent_children"] = json!(rng.below(6));
+            }
+            1 => {
+                levy["dependant_offset_entitled"] = json!(true);
+                levy["dependent_children"] = json!(rng.below(4));
+            }
+            _ => {}
+        }
+        if rng.below(3) == 0 {
+            let full = rng.below(366);
+            levy["medicare_levy_exemption_full_days"] = json!(full);
+            levy["medicare_levy_exemption_half_days"] = json!(rng.below(366 - full));
+        }
+        cases.push(("medicare-levy", levy));
+        let own = rng.dollars(300_000);
+        let mut surcharge = json!({"taxable_income": rng.dollars(200_000),
+                                   "reportable_fringe_benefits": rng.dollars(40_000),
+                                   "income_for_surcharge_purposes": own,
+                                   "days_without_cover": rng.below(366)});
+        if rng.below(2) == 0 {
+            surcharge["spouse_income_for_surcharge_purposes"] = json!(rng.dollars(300_000));
+            surcharge["dependent_children"] = json!(rng.below(5));
+        }
+        cases.push(("medicare-levy-surcharge", surcharge));
+        for (command, mut input) in cases {
+            input["year"] = json!(year);
+            input["scope_confirmed"] = json!(true);
+            let derived =
+                api::evaluate_coded("derive", &json!({"command": command, "input": input}));
+            match api::evaluate_coded(command, &input) {
+                Ok(plain) => {
+                    let doc = derived.unwrap();
+                    assert_eq!(
+                        doc["result"].to_string(),
+                        plain.to_string(),
+                        "{command} {input}"
+                    );
+                    let found = problems(&doc);
+                    assert!(found.is_empty(), "{command} {input}: {found:#?}");
+                    explained += 1;
+                }
+                Err(plain) => assert_eq!(derived.unwrap_err(), plain, "{command} {input}"),
+            }
+        }
+    }
+    assert!(explained > 1500, "only {explained} explained");
+}
+
+// Division 296, the contribution caps, study loan repayment, capital gains and
+// the main residence exemption.
+
+/// Division 296 cases by name, 2026-27: the Explanatory Memorandum's examples
+/// 1.1 to 1.3 as `tests/division_296.rs` holds them, and each branch.
+const DIVISION_296: [(&str, &str); 8] = [
+    ("jordan", r#"{}"#),
+    (
+        "kelly",
+        r#"{"total_super_balance_end_of_year": "12000000.00", "total_super_earnings": "500000.00"}"#,
+    ),
+    (
+        "kenny",
+        r#"{"total_super_balance_end_of_year": "150000.00", "total_super_earnings": "10000.00"}"#,
+    ),
+    // A cent over $3 million rounds to 0.00%: liable, but nil.
+    (
+        "rounds_to_nil",
+        r#"{"total_super_balance_end_of_year": "3000000.01"}"#,
+    ),
+    // Negative earnings above $10 million: a negative component, shown as null.
+    (
+        "negative",
+        r#"{"total_super_balance_end_of_year": "12000000.00", "total_super_earnings": "-50000.00"}"#,
+    ),
+    (
+        "nil_earnings",
+        r#"{"total_super_balance_end_of_year": "12000000.00", "total_super_earnings": "-0.00"}"#,
+    ),
+    // s 296-20 removes the liability, not the earnings.
+    ("child", r#"{"child_recipient": true}"#),
+    // s 296-50: the balance is nil after death.
+    (
+        "died",
+        r#"{"total_super_balance_end_of_year": "12000000.00", "died_in_year": true}"#,
+    ),
+];
+
+/// A `division-296` input: `facts` over Jordan's $4 million and $100,000.
+fn division_296(facts: &str) -> Value {
+    let mut input = json!({
+        "total_super_balance_end_of_year": "4000000.00", "total_super_earnings": "100000.00",
+        "child_recipient": false, "structured_settlement_contribution": false,
+        "died_in_year": false, "year": "2026-27", "scope_confirmed": true,
+    });
+    merge(&mut input, serde_json::from_str(facts).unwrap());
+    input
+}
+
+/// Contribution caps cases by name, 2025-26 unless they say otherwise.
+const CAPS: [(&str, &str); 7] = [
+    // ¶7-278, Jane: $1.5 million, $240,000 in 2024-25, 3 years brought forward.
+    (
+        "jane",
+        r#"{"total_super_balance": "1500000", "non_concessional_contributions": "240000", "year": "2024-25"}"#,
+    ),
+    // s 291-20(4): $15,000 unused covers $10,000 of excess, then all of it.
+    (
+        "carry_forward",
+        r#"{"concessional_contributions": "40000", "unused_concessional_cap": "15000"}"#,
+    ),
+    (
+        "carry_forward_short",
+        r#"{"concessional_contributions": "50000", "unused_concessional_cap": "15000"}"#,
+    ),
+    // s 291-20(3)(b): not below $500,000.
+    (
+        "no_carry_forward",
+        r#"{"total_super_balance": "500000", "concessional_contributions": "40000", "unused_concessional_cap": "15000"}"#,
+    ),
+    // s 292-85(2)(b): nil at the $2 million transfer balance cap.
+    (
+        "at_transfer_cap",
+        r#"{"total_super_balance": "2000000", "non_concessional_contributions": "1000"}"#,
+    ),
+    // s 292-85(3)(c): no bring forward at 75.
+    (
+        "over_75",
+        r#"{"under_75_in_year": false, "non_concessional_contributions": "200000"}"#,
+    ),
+    // s 292-85(5)(a): $1.8 million leaves cap space of twice the cap or less.
+    (
+        "two_years",
+        r#"{"total_super_balance": "1800000", "non_concessional_contributions": "300000"}"#,
+    ),
+];
+
+fn caps(facts: &str) -> Value {
+    let mut input = json!({
+        "total_super_balance": "450000", "concessional_contributions": "20000",
+        "unused_concessional_cap": "0", "non_concessional_contributions": "0",
+        "under_75_in_year": true, "year": "2025-26", "scope_confirmed": true,
+    });
+    merge(&mut input, serde_json::from_str(facts).unwrap());
+    input
+}
+
+/// Study loan repayment cases: the ATO page's examples 1 to 3 (read on 15
+/// November 2026 at 12:23 AEDT) and the minimum repayment income.
+const STUDY_LOAN: [(&str, &str, &str); 5] = [
+    ("christina", "86380", "2026-27"),
+    ("barry", "137064", "2026-27"),
+    ("priya", "254780", "2026-27"),
+    ("minimum", "69528", "2026-27"),
+    ("upper_2025", "150000", "2025-26"),
+];
+
+fn study_loan(income: &str, year: &str) -> Value {
+    json!({"repayment_income": income, "year": year, "scope_confirmed": true})
+}
+
+/// Capital gains cases: the Library's ¶2-240 summary, the corpus's fabricated
+/// case with $500 and $1,500 of losses, and earlier years' losses alone.
+const CAPITAL_GAINS: [(&str, [&str; 4]); 5] = [
+    ("library", ["8000.00", "21435.00", "8660.00", "0.00"]),
+    ("fabricated", ["100.00", "1000.00", "500.00", "0.00"]),
+    ("absorbed", ["100.00", "1000.00", "1000.00", "500.00"]),
+    ("prior_only", ["0.00", "1000.00", "0.00", "300.00"]),
+    (
+        "negative_zero",
+        ["947075.6", "-0.00", "2385959", "12392.20"],
+    ),
+];
+
+fn capital_gains(amounts: [&str; 4]) -> Value {
+    let [other, discount, current, prior] = amounts;
+    json!({"other_gains": other, "discount_gains": discount, "current_losses": current,
+           "prior_losses": prior, "scope_confirmed": true, "year": "2025-26"})
+}
+
+/// Main residence cases: the ATO's and the Library's examples as
+/// `tests/main_residence.rs` holds them, and a loss.
+const MAIN_RESIDENCE: [(&str, &str); 6] = [
+    (
+        "peter",
+        r#"{"capital_gain": "230000.00", "ownership_start": "2013-10-01", "ownership_end": "2026-03-30",
+            "lived_periods": [{"start": "2016-07-01", "end": "2026-03-30"}],
+            "income_use_periods": [{"start": "2013-10-01", "end": "2016-06-30", "floor_area": "1"}]}"#,
+    ),
+    (
+        "thomas",
+        r#"{"capital_gain": "400000.00", "ownership_start": "2003-07-01", "ownership_end": "2026-06-30",
+            "lived_periods": [{"start": "2003-07-01", "end": "2026-06-30"}],
+            "income_use_periods": [{"start": "2003-07-01", "end": "2026-06-30", "floor_area": "0.35"}]}"#,
+    ),
+    (
+        "fatima",
+        r#"{"capital_gain": "100000.00", "market_value_basis": true, "ownership_start": "1997-12-01",
+            "ownership_end": "2026-05-01", "lived_periods": [{"start": "1997-12-01", "end": "2026-05-01"}],
+            "income_use_periods": [{"start": "2018-11-01", "end": "2022-08-01", "floor_area": "0.4"}]}"#,
+    ),
+    (
+        "roya",
+        r#"{"capital_gain": "320000.00", "market_value_basis": true, "year": "2024-25",
+            "ownership_start": "1995-03-01", "ownership_end": "2024-09-29",
+            "lived_periods": [{"start": "1995-03-01", "end": "1999-09-28"}],
+            "income_use_periods": [{"start": "1999-09-29", "end": "2024-09-29", "floor_area": "1"}],
+            "absence_choice_periods": [{"start": "1999-09-29", "end": "2024-09-29"}]}"#,
+    ),
+    (
+        "medford",
+        r#"{"capital_gain": "500000.00", "ownership_start": "2013-05-01", "ownership_end": "2026-05-01",
+            "lived_periods": [{"start": "2013-05-01", "end": "2025-09-30"}], "new_home_acquired": "2025-10-01"}"#,
+    ),
+    (
+        "loss",
+        r#"{"capital_loss": "10000.00", "ownership_start": "2013-10-01", "ownership_end": "2026-03-30",
+            "lived_periods": [{"start": "2016-07-01", "end": "2026-03-30"}],
+            "income_use_periods": [{"start": "2013-10-01", "end": "2016-06-30", "floor_area": "1"}]}"#,
+    ),
+];
+
+fn main_residence(facts: &str) -> Value {
+    let mut input = json!({
+        "capital_gain": "0.00", "capital_loss": "0.00", "market_value_basis": false,
+        "lived_periods": [], "income_use_periods": [], "absence_choice_periods": [],
+        "new_home_acquired": null, "year": "2025-26", "scope_confirmed": true,
+    });
+    merge(&mut input, serde_json::from_str(facts).unwrap());
+    input
+}
+
+/// Every case above as (name, command, input).
+fn super_and_cgt_cases() -> Vec<(&'static str, &'static str, Value)> {
+    let mut cases = Vec::new();
+    for (name, facts) in DIVISION_296 {
+        cases.push((name, "division-296", division_296(facts)));
+    }
+    for (name, facts) in CAPS {
+        cases.push((name, "contribution-caps", caps(facts)));
+    }
+    for (name, income, year) in STUDY_LOAN {
+        cases.push((name, "study-loan-repayment", study_loan(income, year)));
+    }
+    for (name, amounts) in CAPITAL_GAINS {
+        cases.push((name, "capital-gains", capital_gains(amounts)));
+    }
+    for (name, facts) in MAIN_RESIDENCE {
+        cases.push((name, "main-residence", main_residence(facts)));
+    }
+    cases
+}
+
+fn super_and_cgt_doc(name: &str) -> Value {
+    let cases = super_and_cgt_cases();
+    let (_, command, input) = cases.iter().find(|(n, ..)| *n == name).unwrap();
+    derive(command, input)
+}
+
+#[test]
+fn each_super_and_cgt_case_derives_its_plain_result_from_its_working() {
+    for (name, command, input) in super_and_cgt_cases() {
+        let doc = derive(command, &input);
+        let plain = api::evaluate(command, &input).unwrap();
+        assert_eq!(doc["result"].to_string(), plain.to_string(), "{name}");
+        let found = problems(&doc);
+        assert!(found.is_empty(), "{name}: {found:#?}");
+    }
+}
+
+/// The Explanatory Memorandum's examples 1.1 and 1.2, and each branch's
+/// authority: an exception or a nil balance leaves its own reason.
+#[test]
+fn the_division_296_steps_show_the_memorandum_examples() {
+    let jordan = super_and_cgt_doc("jordan");
+    assert_eq!(
+        working_in(&jordan, "taxable_superannuation_earnings"),
+        "total_super_earnings x taxable_percentage / 100 = 100000.00 x 25.00 / 100 = 25000.0000"
+    );
+    assert_eq!(
+        working_in(&jordan, "division_296_tax"),
+        "tax_on_taxable_superannuation_earnings + tax_on_very_large_balance_earnings_component \
+         = 3750.000000 + 0.00 = 3750.000000"
+    );
+    let kelly = super_and_cgt_doc("kelly");
+    assert_eq!(
+        working_in(&kelly, "very_large_balance_earnings_component"),
+        "total_super_earnings x very_large_percentage / 100 = 500000.00 x 16.67 / 100 = 83350.0000"
+    );
+    assert_eq!(
+        working_in(&kelly, "tax_on_very_large_balance_earnings_component"),
+        "very_large_balance_earnings_component x very_large_rate = 83350.0000 x 0.10 = 8335.000000"
+    );
+    assert_eq!(kelly["result"]["amounts"]["division_296_tax"], "64585.00");
+    assert!(
+        authority_in(&kelly, "tax_on_very_large_balance_earnings_component")
+            .starts_with("Superannuation (Building a Stronger and Fairer Super System) Imposition Act 2026 s 5(b)(ii)")
+    );
+    assert!(
+        authority_in(
+            &super_and_cgt_doc("kenny"),
+            "taxable_superannuation_earnings"
+        )
+        .starts_with("ITAA 1997 s 296-40(1)(a) and (3)")
+    );
+    let child = super_and_cgt_doc("child");
+    assert_eq!(
+        child["result"]["amounts"]["taxable_superannuation_earnings"],
+        "25000.00"
+    );
+    assert_eq!(
+        working_in(&child, "tax_on_taxable_superannuation_earnings"),
+        "0 = 0 = 0"
+    );
+    assert!(authority_in(&child, "tax_on_taxable_superannuation_earnings").ends_with("(s 296-20)"));
+    assert!(
+        authority_in(
+            &super_and_cgt_doc("died"),
+            "taxable_superannuation_earnings"
+        )
+        .starts_with("ITAA 1997 s 296-50")
+    );
+    assert!(
+        authority_in(
+            &super_and_cgt_doc("nil_earnings"),
+            "taxable_superannuation_earnings"
+        )
+        .starts_with("ITAA 1997 s 296-40(1)(b)")
+    );
+    // s 296-45 has no 'greater than nil' condition: a negative component, which
+    // the result and its step show as null.
+    let negative = super_and_cgt_doc("negative");
+    let component = step_of(&negative, "very_large_balance_earnings_component");
+    assert_eq!(
+        component["working"],
+        "total_super_earnings x very_large_percentage / 100 = -50000.00 x 16.67 / 100 = -8335.0000"
+    );
+    assert_eq!(component["value"], Value::Null);
+    assert_eq!(
+        negative["result"]["amounts"]["very_large_balance_earnings_component"],
+        Value::Null
+    );
+}
+
+#[test]
+fn the_contribution_caps_steps_cite_their_subsection() {
+    let jane = super_and_cgt_doc("jane");
+    assert_eq!(
+        working_in(&jane, "non_concessional_available"),
+        "non_concessional_cap x non_concessional_cap_multiple = 120000 x 3 = 360000"
+    );
+    assert!(
+        authority_in(&jane, "non_concessional_available")
+            .starts_with("ITAA 1997 s 292-85(3) and (5)(b)")
+    );
+    assert_eq!(
+        jane["result"]["amounts"]["non_concessional_remaining"],
+        "120000.00"
+    );
+    assert_eq!(
+        working_in(&super_and_cgt_doc("carry_forward"), "carry_forward_applied"),
+        "min(unused_concessional_cap, max(0, concessional_contributions - concessional_cap)) \
+         = min(15000, max(0, 40000 - 30000)) = 10000"
+    );
+    let short = super_and_cgt_doc("carry_forward_short");
+    assert_eq!(
+        working_in(&short, "excess_concessional"),
+        "max(0, concessional_contributions - concessional_available) = max(0, 50000 - 45000) = 5000"
+    );
+    let none = super_and_cgt_doc("no_carry_forward");
+    assert_eq!(working_in(&none, "carry_forward_applied"), "0 = 0 = 0");
+    assert!(authority_in(&none, "carry_forward_applied").starts_with("ITAA 1997 s 291-20(3)(b)"));
+    assert_eq!(none["result"]["amounts"]["excess_concessional"], "10000.00");
+    let multiple =
+        |name: &str| authority_in(&super_and_cgt_doc(name), "non_concessional_available");
+    assert!(multiple("at_transfer_cap").starts_with("ITAA 1997 s 292-85(2)(b)"));
+    assert!(multiple("over_75").starts_with("ITAA 1997 s 292-85(2)(a)"));
+    assert!(multiple("two_years").starts_with("ITAA 1997 s 292-85(3) and (5)(a)"));
+    assert_eq!(
+        super_and_cgt_doc("at_transfer_cap")["result"]["amounts"]["excess_non_concessional"],
+        "1000.00"
+    );
+}
+
+/// The ATO's examples 1 to 3: 15% over $69,528; 17% over $129,717 on the
+/// exact base of $9,028.35, 35 cents above the page's $10,276.99; 10%.
+#[test]
+fn the_study_loan_steps_show_the_ato_examples() {
+    let christina = super_and_cgt_doc("christina");
+    assert_eq!(
+        working_in(&christina, "marginal_amount"),
+        "max(0, min(repayment_income_used, lower_band_top) - minimum_repayment_income) x lower_rate \
+         + max(0, repayment_income_used - lower_band_top) x upper_rate \
+         = max(0, min(86380, 129717) - 69528) x 0.15 + max(0, 86380 - 129717) x 0.17 = 2527.80"
+    );
+    assert_eq!(
+        christina["result"]["amounts"]["compulsory_repayment"],
+        "2527.80"
+    );
+    assert_eq!(
+        super_and_cgt_doc("barry")["result"]["amounts"]["compulsory_repayment"],
+        "10277.34"
+    );
+    let priya = super_and_cgt_doc("priya");
+    assert_eq!(
+        working_in(&priya, "compulsory_repayment"),
+        "ten_percent_of_income = 25478.00 = 25478.00"
+    );
+    assert!(
+        authority_in(&priya, "compulsory_repayment").starts_with("HESA s 154-20(1)(a) and (b)")
+    );
+    let minimum = super_and_cgt_doc("minimum");
+    assert_eq!(working_in(&minimum, "compulsory_repayment"), "0 = 0 = 0");
+    assert!(authority_in(&minimum, "compulsory_repayment").starts_with("HESA s 154-1(1)(a)"));
+}
+
+/// ¶2-240: $8,660 of losses absorb the $8,000 of other gains and $660 of the
+/// discount gains; half of the $20,775 left is $10,387.50.
+#[test]
+fn the_capital_gains_steps_apply_losses_then_the_discount() {
+    let library = super_and_cgt_doc("library");
+    assert_eq!(
+        working_in(&library, "losses_used"),
+        "min(other_gains, current_losses + prior_losses) \
+         + min(discount_gains, current_losses + prior_losses - min(other_gains, current_losses + prior_losses)) \
+         = min(8000.00, 8660.00 + 0.00) + min(21435.00, 8660.00 + 0.00 - min(8000.00, 8660.00 + 0.00)) = 8660.00"
+    );
+    assert_eq!(
+        working_in(&library, "discount_applied"),
+        "(discount_gains - min(discount_gains, current_losses + prior_losses - min(other_gains, current_losses + prior_losses))) \
+         x (1 - discount) \
+         = (21435.00 - min(21435.00, 8660.00 + 0.00 - min(8000.00, 8660.00 + 0.00))) x (1 - 0.50) = 10387.5000"
+    );
+    assert_eq!(library["result"]["amounts"]["net_capital_gain"], "10387.50");
+    assert!(authority_in(&library, "discount_applied").contains("s 115-100(aa)"));
+    let absorbed = super_and_cgt_doc("absorbed");
+    assert_eq!(
+        working_in(&absorbed, "losses_remaining"),
+        "current_losses + prior_losses - min(other_gains, current_losses + prior_losses) \
+         - min(discount_gains, current_losses + prior_losses - min(other_gains, current_losses + prior_losses)) \
+         = 1000.00 + 500.00 - min(100.00, 1000.00 + 500.00) \
+         - min(1000.00, 1000.00 + 500.00 - min(100.00, 1000.00 + 500.00)) = 400.00"
+    );
+    // A discount gain of -0.00 that the losses absorb stays an unsigned nil,
+    // as the Python corpus has it.
+    let negative_zero = super_and_cgt_doc("negative_zero");
+    assert_eq!(
+        negative_zero["result"]["amounts"]["discount_applied"],
+        "0.00"
+    );
+}
+
+/// QC66033's Peter and Fatima, and QC66030's Roya: the gain times the taxable
+/// days over the days in the ownership period.
+#[test]
+fn the_main_residence_steps_apportion_by_days() {
+    let peter = super_and_cgt_doc("peter");
+    assert_eq!(
+        working_in(&peter, "assessable_capital_gain"),
+        "cents(capital_gain x non_main_residence_days / ownership_period_days) \
+         = cents(230000.00 x 1004 / 4564) = 50595.97"
+    );
+    assert_eq!(
+        working_in(&peter, "exempt_capital_gain"),
+        "capital_gain - assessable_capital_gain = 230000.00 - 50595.97 = 179404.03"
+    );
+    assert_eq!(
+        authority_in(&peter, "assessable_capital_gain"),
+        "ITAA 1997 s 118-185(2) and s 118-190(2)"
+    );
+    let fatima = super_and_cgt_doc("fatima");
+    assert_eq!(
+        working_in(&fatima, "assessable_capital_gain"),
+        "cents(capital_gain x non_main_residence_days / ownership_period_days) \
+         = cents(100000.00 x 548.0 / 2739) = 20007.30"
+    );
+    assert!(authority_in(&fatima, "assessable_capital_gain").ends_with("(s 118-192(2))"));
+    assert_eq!(
+        super_and_cgt_doc("roya")["result"]["amounts"]["assessable_capital_gain"],
+        "243162.16"
+    );
+    let loss = super_and_cgt_doc("loss");
+    assert_eq!(
+        working_in(&loss, "exempt_capital_loss"),
+        "capital_loss - assessable_capital_loss = 10000.00 - 2199.82 = 7800.18"
+    );
+}
+
+#[test]
+fn a_refused_super_or_cgt_input_gets_the_commands_own_refusal() {
+    let refused = |command: &str, input: Value| {
+        let plain = api::evaluate_coded(command, &input).unwrap_err();
+        let derived = api::evaluate_coded("derive", &json!({"command": command, "input": input}));
+        assert_eq!(derived.unwrap_err(), plain);
+        plain.code
+    };
+    let mut input = division_296("{}");
+    input["year"] = json!("2027-28");
+    assert_eq!(refused("division-296", input), "period.unsupported");
+    let mut input = caps("{}");
+    input["under_75_in_year"] = json!("yes");
+    assert_eq!(refused("contribution-caps", input), "input.flag_invalid");
+    assert_eq!(
+        refused("study-loan-repayment", study_loan("86380.50", "2026-27")),
+        "input.amount_not_whole_dollars"
+    );
+    let mut input = capital_gains(CAPITAL_GAINS[0].1);
+    input["scope_confirmed"] = json!(false);
+    assert_eq!(refused("capital-gains", input), "scope.not_confirmed");
+    let mut input = main_residence(MAIN_RESIDENCE[2].1);
+    input["market_value_basis"] = json!(false);
+    assert_eq!(
+        refused("main-residence", input),
+        "main_residence.first_income_use_rule_applies"
     );
 }

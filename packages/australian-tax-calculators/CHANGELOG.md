@@ -10,6 +10,39 @@ intentionally changed.
 
 ### Added
 
+- `derive` also covers `resident-tax`, `foreign-resident-tax`,
+  `low-income-tax-offset`, `seniors-pensioners-tax-offset`, `medicare-levy`
+  and `medicare-levy-surcharge`. Their steps cite the Income Tax Rates Act
+  1986 Schedule 7, ITAA 1997 s 4-10 and Subdivision 61-D, ITAA 1936 ss
+  160AAAA and 251U, the Income Tax Assessment (1936 Act) Regulation 2015 and
+  Regulations 2025 ss 9 to 12, the Medicare Levy Act 1986 ss 3 to 9 and the
+  A New Tax System (Medicare Levy Surcharge—Fringe Benefits) Act 1999; a
+  formula may now use `dollars_up`. The kinds' own test files derive each case
+  they run and check the result is the plain output. No command's plain output
+  changes.
+- `derive` also covers `division-296`, `contribution-caps`,
+  `study-loan-repayment`, `capital-gains` and `main-residence`. Their steps cite
+  ITAA 1997 Divisions 102, 115, 118, 291, 292 and 296 as compiled on
+  1 October 2026, the Income Tax (Transitional Provisions) Act 1997 s 296-1,
+  the Superannuation (Building a Stronger and Fairer Super System) Imposition
+  Act 2026 s 5 and HESA ss 154-1 to 154-25. `tests/division_296.rs`,
+  `tests/main_residence.rs`, the main residence property in
+  `tests/properties.rs` and `tests/tables.rs` derive each case of these
+  commands they run and check the result is the plain output; a negative
+  Division 296 very large component is null in its step, as in the result. No
+  command's plain output changes.
+- `fbt-loan`, `fbt-meal-entertainment` and `fbt-car-parking` give the taxable
+  value of loan (FBTAA ss 18 and 19), meal entertainment (Division 9A: the
+  50/50 split and 12 week register methods) and car parking fringe benefits
+  (Division 10A: the commercial parking station, average cost and 12 week
+  register methods, behind the car parking threshold) for the years ended 31
+  March 2026 and 2027, for `fbt` to gross up. They take their inputs by name,
+  refuse an input their method does not use, and derive every amount. New
+  refusal codes: `fbt.register_not_valid`,
+  `fbt_loan.deduction_exceeds_interest`,
+  `fbt_meal_entertainment.register_values_invalid`,
+  `input.benefit_count_invalid` and `input.fbt_method_invalid`. The ATO's and
+  the Library's worked examples are in `docs/calculation-evidence.md`.
 - `personal-tax-estimate` composes one full-year resident's income tax and
   levies for a year from `resident-tax`, `low-income-tax-offset`,
   `medicare-levy`, `medicare-levy-surcharge` and, when given,
@@ -26,6 +59,14 @@ intentionally changed.
   describe different spouses or dependants) and `input.residency_invalid`.
   `tests/personal_tax_estimate.rs` holds it to the ATO's figures, and
   `tests/properties.rs` to the sum of its parts.
+- `derive` also covers `working-holiday-maker-withholding`,
+  `study-loan-withholding`, `seniors-pensioners-withholding`, `quarterly-sg`
+  and `borrowing-expenses`. Their steps cite the headings of Schedules 1, 8, 9
+  and 15 to the Taxation Administration (Withholding Schedules) Instruments
+  2024 to 2026, the Superannuation Guarantee (Administration) Act 1992
+  compilation 77 and ITAA 1997 s 25-25. Their test files derive each case they
+  run and check the result is the plain output. No command's plain output
+  changes.
 - `derive` also covers `payg-withholding`, the 3 `schedule-5` methods and
   `termination-payment`. Their steps cite the headings and method steps of
   Schedules 1, 5, 8 and 11 to the Taxation Administration (Withholding

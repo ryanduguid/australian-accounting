@@ -27,7 +27,15 @@ fn with(overrides: Value) -> Value {
 }
 
 fn evaluate(facts: &Value) -> Value {
-    api::evaluate(COMMAND, facts).unwrap()
+    let result = api::evaluate(COMMAND, facts).unwrap();
+    // derive gives the same result, byte for byte.
+    let doc = api::evaluate("derive", &json!({"command": COMMAND, "input": facts})).unwrap();
+    assert_eq!(
+        doc["result"].to_string(),
+        result.to_string(),
+        "derive {facts}"
+    );
+    result
 }
 
 /// The payment used (cents ignored), the withholding and the rate.

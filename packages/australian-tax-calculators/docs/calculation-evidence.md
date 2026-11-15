@@ -39,6 +39,9 @@ example evidence; it does not claim a fresh review of every supported period.
 | Capital gains | `tax-examples-capital-gains-tax-cgt` (tax-examples), ¶2-040 and ¶2-240 | 30 June 2026 | Established ordinary gains, losses and discount entitlement for 2025–26 |
 | FBT | `tax-examples-fringe-benefits-tax-fbt` (tax-examples), ¶3-000 and ¶3-020 | 30 June 2026 | Established taxable values and ordinary gross-up rates; car example ends 31 March 2026 |
 | FBT car benefits | `tax-examples-fringe-benefits-tax-fbt` (tax-examples), ¶3-020 and ¶3-045 (reportable value), with the ATO's FBT return 2026 instructions (item 23), employer's guide (7.8 and 7.9) and reportable fringe benefits page | 30 June 2026; 1 April 2026 (item 23); 12 January 2023 (reportable fringe benefits) | One car's established base value or operating costs for the years ended 31 March 2026 and 2027; the reportable taxable value before the employee's $2,000 threshold and type 2 gross-up |
+| FBT loans | `tax-examples-fringe-benefits-tax-fbt` (tax-examples), ¶3-100, with FBTAA ss 18, 19 and 136(1) (compilation 97, 1 July 2026), the FBT return 2026 instructions (item 23C, example 8), the employer's guide (8.5 and 8.8) and the FBT rates and thresholds page | 30 June 2026; 20 May 2026 (rates page) | One loan to a current employee for the years ended 31 March 2026 and 2027; deciding the loan, exemptions and the deduction itself excluded |
+| FBT meal entertainment | `tax-examples-fringe-benefits-tax-fbt` (tax-examples), ¶3-220, with FBTAA ss 37AB to 37CD (compilation 97) and the FBT return 2026 instructions (item 23P, example 18) | 30 June 2026 | The year's established expenditure by the 50/50 split or a valid 12 week register for the years ended 31 March 2026 and 2027; the actual method excluded |
+| FBT car parking | `tax-examples-fringe-benefits-tax-fbt` (tax-examples), ¶3-055 (the 2026 threshold), with FBTAA ss 39A to 39GF (compilation 97), the employer's guide (chapter 16, examples 12, 13, 15 and 17) and the FBT rates and thresholds page | 30 June 2026; 20 May 2026 (rates page) | Commercial parking station, average cost and 12 week register values for the years ended 31 March 2026 and 2027; market value and spaces methods excluded |
 | Main residence | `tax-examples-capital-gains-tax-cgt` (tax-examples), ¶2-060 and ¶2-075, with the ATO's pages 'Treating former home as main residence' (QC66030) and 'Using your home for rental or business' (QC66033) | 30 June 2026; 22 June 2026 (both ATO pages) | One dwelling's taxable days for CGT events in 2024-25 to 2026-27; cost base, market value and discount excluded |
 | Borrowing expenses | `tax-examples-deductions` (tax-examples), ¶4-160, with ITAA 1997 s 25-25 (compilation 268, 1 October 2026) and the ATO's 'Borrowing expenses' page | 30 June 2026; 22 May 2026 (ATO page) | One loan's established expenditure, use and dates for 2024-25 to 2026-27; classification, interest and refinancing excluded |
 | Hire purchase schedule | Not a Library document: ITAA 1997 ss 240-17, 240-55 and 240-60 on the ATO's legal database and in compilation 268 (1 October 2026) | 15 November 2026 (read) | One agreement's monthly notional interest for the hirer, starting in 2024-25 to 2026-27, from established payments; apportionment to income years under s 240-60(2) excluded |
@@ -248,6 +251,76 @@ neither, does not decide whether the car is pooled or shared, and says so in a
 third warning. `tests/fbt_car.rs` checks a taxable car, an exempt electric car
 and a recipient's payment under both methods; `tests/properties.rs` checks the
 equality on every seeded result.
+
+## FBT loan
+
+These worksheets were added on 15 November 2026. Their sources were read that
+morning, 7.58 am to 8.17 am AEDT: the FBTAA as compiled on 1 July 2026
+(C2004A03280, compilation 97, EPUB documents 1 and 2), the FBT return 2026
+instructions' item 23 page, the ATO's FBT rates and thresholds page (last
+updated 20 May 2026), chapters 8, 14 and 16 of 'Fringe benefits tax - a guide
+for employers', and the ATO's 'Loan and debt waiver fringe benefits' and 'Car
+parking and FBT' pages (both last updated 6 March 2025). The rates page gives
+the statutory or benchmark interest rate as 8.62% for the year ended 31 March
+2026 and 8.27% for 2027, and the car parking threshold as $11.03 and $11.48; it
+says these figures are published only there, not in a taxation determination.
+`tests/fbt_loan.rs`, `tests/fbt_meal_entertainment.rs` and
+`tests/fbt_car_parking.rs` hold each case.
+
+Item 23C example 8: $20,000 lent for the whole year at no interest, `20000 ×
+0.0862 = 1724`, **$1,724.00**; the worksheet takes the daily balances' total,
+`7300000 × 0.0862 / 365 = 1724`. ¶3-100 (review date 30 June 2026) lends
+$100,000 for 2025-26 at 3.45%, 40% spent on shares: notional interest `8620`
+less `3450` accrued is `5170`; GD `8620 × 0.4 = 3448` less RD `3450 × 0.4 =
+1380` is a notional deduction of `2068`, for **$3,102.00**. Given to `fbt` as a
+type 2 value, `3102 × 1.8868 = 5852.85`, item 14B **$5,853**, and FBT of
+**$2,750.91**, which the Library rounds to $2,751. The guide's 8.5 example used
+5.65% for 2016-17; its $50,000 at 5% reruns at 8.62% to `4310 − 2500 = 1810` and
+at 8.27% to `4135 − 2500 = 1635`. Its 8.8 examples, $50,000 at 4% with 60% used
+to produce income, rerun at 8.62% to TV `2310`, GD `2586` and ND `2586 − 1200 =
+1386`, for **$924.00**; with the rate set by regard to use, RD is `431` and the
+value **$155.00**.
+
+Notional interest and the gross deduction are each rounded half up to cents: the
+Act gives no rounding, and amounts of interest and deductions are in cents.
+Every other amount is a difference or a minimum of amounts in cents. Item 23C
+says to show zero rather than a negative value, so the reduction stops at the
+gross taxable value; RD above GD leaves no notional deduction.
+
+## FBT meal entertainment
+
+Item 23P example 18: $4,000 of meal entertainment under the 50/50 split,
+**$2,000.00**. ¶3-220 (review date 30 June 2026): $177,500 for 2025-26 gives
+**$88,750.00** under the 50/50 split, and a register showing 40% gives
+**$71,000.00**. The register percentage (s 37CB(2)) is kept exact: a register of
+$1,000 of fringe benefits out of $3,000 shows 33.33% but applies a third, so
+$900 of expenditure gives $300.00, not $299.97. s 37CD makes a register valid for
+its first year and the 4 after it; the worksheet refuses a first year outside
+that window, and the operator establishes the 20% expenditure test and any later
+register.
+
+## FBT car parking
+
+The employer's guide, chapter 16. Example 12: one station's $10 fee above the
+2023 threshold of $9.72 makes benefits arise, and they are valued at another's
+$5.50; the tests apply the same rule with a $12 fee against 2026's $11.03.
+Example 13: a $272 monthly fee over 22 business days is the s 39E daily rate
+`272 / 22 = 12.36`; 22 benefits at that fee give **$271.92**. Example 15, car park
+A: `(17 + 20) / 2 = 18.50` a benefit under the average cost method; car park B,
+`(10 + 15) / 2 = 12.50`, where B's $10 first business day fee was above 2023's
+threshold but is not above 2026's, so the same facts give nil in 2026. Example 17
+(the 12 week register): `2500 × 52 / 12 = 10833.33`, then `× 183 / 366 =
+5416.67`, **$5,416.67**; s 39GB divides by 366 in every year. ¶3-055 (review date
+30 June 2026) cites the $11.03 threshold for 2026. Item 23N example 17 starts
+from a value already worked out, so it tests no method.
+
+s 39A(1)(a)(iii) asks whether any station within 1 km charged a lowest all-day
+fee of more than the threshold on the first business day, so the worksheet
+compares the highest of those fees with it and reports a nil taxable value when
+none is above. The commercial parking station and average cost methods round
+the gross value to cents before the recipients' payments, as the car worksheets
+do. The market value method is left out because it rests on a qualified valuer's
+report; the spaces method was not in this batch.
 
 ## Main residence
 
@@ -1256,11 +1329,13 @@ loan repayment thresholds and rates" (last updated 30 June 2026, read on 27
 September 2026), tables 1 (2026-27) and 2 (2025-26), and the 2026-27 minimum
 repayment income of $69,528 and replacement indexable amount of $129,717 were
 checked against Gazette C2026G00249 of 20 April 2026, made under HESA 2003
-ss 154-10 and 154-20. The ATO has since moved and retitled the page "Study and
-training loan minimum repayment income and rates" (last updated 13 October
-2026), which now says "minimum repayment income" where it said "repayment
-threshold". Read again on 20 October 2026, its tables and examples print the
-same figures. The frozen replay in `tests/parity.rs` holds the worksheet to the
+ss 154-10 and 154-20. The page has since moved to
+<https://www.ato.gov.au/tax-rates-and-codes/study-and-training-loan-minimum-repayment-income-and-rates>.
+Read there on 15 November 2026, it keeps the title "Study and training loan
+repayment thresholds and rates", last updated 30 June 2026, and its tables and
+examples print the same figures. Its example 3, for 2026-27, compares
+$254,780 with the 2025-26 threshold of $179,286 rather than 2026-27's
+$186,051; the repayment is 10% either way. The frozen replay in `tests/parity.rs` holds the worksheet to the
 page's examples 1 and 3 ($86,380 gives $2,527.80; $254,780 gives $25,478.00)
 and to every band boundary in both years.
 
