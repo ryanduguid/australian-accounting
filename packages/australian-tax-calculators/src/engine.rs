@@ -476,17 +476,18 @@ pub fn capital_gains(
             .sub(&discount_offset)?
             .mul(&int(1).sub(&discount_rate)?)?;
         let net = other.sub(&other_offset)?.add(&discounted)?;
-        // The operands of OTHER_OFFSET and DISCOUNT_OFFSET, as the formulas use them.
+        // The operands of the 2 offsets, as the formulas write them out.
         let other_offset_of = [&other, &current, &prior];
-        let discount_offset_of: Vec<&Decimal> = [&discount, &current, &prior]
-            .into_iter()
-            .chain(other_offset_of)
-            .collect();
-        let join = |parts: &[&[&Decimal]]| -> Vec<&Decimal> { parts.concat() };
-        let used_of = join(&[&other_offset_of, &discount_offset_of]);
-        let remaining_of = join(&[&[&current, &prior], &other_offset_of, &discount_offset_of]);
-        let discounted_of = join(&[&[&discount], &discount_offset_of, &[&discount_rate]]);
-        let net_of = join(&[&[&other], &other_offset_of, &discounted_of]);
+        let discount_offset_of = [&discount, &current, &prior, &other, &current, &prior];
+        let used_of = [&other_offset_of[..], &discount_offset_of].concat();
+        let remaining_of = [
+            &[&current, &prior][..],
+            &other_offset_of,
+            &discount_offset_of,
+        ]
+        .concat();
+        let discounted_of = [&[&discount][..], &discount_offset_of, &[&discount_rate]].concat();
+        let net_of = [&[&other][..], &other_offset_of, &discounted_of].concat();
         Ok(steps_from(
             &CAPITAL_GAINS_STEPS,
             [
