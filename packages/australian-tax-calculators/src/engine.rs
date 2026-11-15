@@ -1871,7 +1871,13 @@ fn study_loan_component(
         "Schedule 8, 'Study and training support loans component rates' and 'Calculating fortnightly, monthly or quarterly withholding amounts'"
     };
     Ok((
-        step("study_loan_component", authority, &formula, &[&a, x, &b], component),
+        step(
+            "study_loan_component",
+            authority,
+            &formula,
+            &[&a, x, &b],
+            component,
+        ),
         [rate("component_a", a), rate("component_b", b)],
     ))
 }
@@ -5421,7 +5427,13 @@ pub fn seniors_pensioners_withholding(
         ];
         let mut rates = vec![rate("scale", scale), rate("a", a), rate("b", b)];
         let Some(loan_rows) = loan_rows else {
-            steps.push(step("withholding", authority, &formula, &[&weekly], withholding));
+            steps.push(step(
+                "withholding",
+                authority,
+                &formula,
+                &[&weekly],
+                withholding,
+            ));
             return Ok((steps, rates));
         };
         let (component, component_rates) = study_loan_component(&x, &period, loan_rows)?;
