@@ -104,7 +104,14 @@ fn worksheets_opened_for_2026_27_match_2025_26() {
             let mut input = input.clone();
             input["year"] = json!(year);
             input["scope_confirmed"] = json!(true);
-            api::evaluate(command, &input).unwrap()
+            let result = api::evaluate(command, &input).unwrap();
+            // A command derive explains derives to this result, byte for byte.
+            let envelope = json!({"command": command, "input": input});
+            match api::evaluate_coded("derive", &envelope) {
+                Ok(doc) => assert_eq!(doc["result"].to_string(), result.to_string()),
+                Err(refusal) => assert_eq!(refusal.code, "derivation.unsupported"),
+            }
+            result
         };
         let mut later = run("2026-27");
         assert_eq!(later["period"], "2026-27");
@@ -243,11 +250,20 @@ fn keys<T>(table: &[(&'static str, T)]) -> Vec<&'static str> {
 #[test]
 fn medicare_levy_2026_27_applies_the_thresholds_enacted_for_later_years() {
     let run = |income: &str, year: &str| {
-        api::evaluate(
-            "medicare-levy",
-            &json!({"taxable_income": income, "section_9a_adjustment_applies": false,
-                    "year": year, "scope_confirmed": true}),
-        )
+        let input = json!({"taxable_income": income, "section_9a_adjustment_applies": false,
+                           "year": year, "scope_confirmed": true});
+        let result = api::evaluate("medicare-levy", &input);
+        // derive explains the levy: its result is the plain one, byte for byte.
+        let doc = api::evaluate(
+            "derive",
+            &json!({"command": "medicare-levy", "input": input}),
+        );
+        assert_eq!(
+            doc.map(|doc| doc["result"].clone()),
+            result,
+            "derive {input}"
+        );
+        result
     };
     // (taxable income, 2% of it, levy); the reduction is their difference.
     for (income, full, levy) in [
