@@ -1229,11 +1229,13 @@ loan repayment thresholds and rates" (last updated 30 June 2026, read on 27
 September 2026), tables 1 (2026-27) and 2 (2025-26), and the 2026-27 minimum
 repayment income of $69,528 and replacement indexable amount of $129,717 were
 checked against Gazette C2026G00249 of 20 April 2026, made under HESA 2003
-ss 154-10 and 154-20. The ATO has since moved and retitled the page "Study and
-training loan minimum repayment income and rates" (last updated 13 October
-2026), which now says "minimum repayment income" where it said "repayment
-threshold". Read again on 20 October 2026, its tables and examples print the
-same figures. The frozen replay in `tests/parity.rs` holds the worksheet to the
+ss 154-10 and 154-20. The page has since moved to
+<https://www.ato.gov.au/tax-rates-and-codes/study-and-training-loan-minimum-repayment-income-and-rates>.
+Read there on 15 November 2026, it keeps the title "Study and training loan
+repayment thresholds and rates", last updated 30 June 2026, and its tables and
+examples print the same figures. Its example 3, for 2026-27, compares
+$254,780 with the 2025-26 threshold of $179,286 rather than 2026-27's
+$186,051; the repayment is 10% either way. The frozen replay in `tests/parity.rs` holds the worksheet to the
 page's examples 1 and 3 ($86,380 gives $2,527.80; $254,780 gives $25,478.00)
 and to every band boundary in both years.
 
