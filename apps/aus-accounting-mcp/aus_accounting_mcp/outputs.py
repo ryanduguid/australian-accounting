@@ -1234,6 +1234,25 @@ class IdentifierCheck(ResultObject):
     source_checked: DateText
 
 
+class BsbFormatCheck(ResultObject):
+    ok: Annotated[Literal[True], Field(description="The check ran; not that the BSB exists.")]
+    identifier: Literal["BSB"]
+    result: Annotated[
+        Literal["FORMAT_VALID", "MALFORMED"],
+        Field(description="Outcome of the format test; never a directory lookup."),
+    ]
+    formatted: Annotated[str | None, Field(description="The BSB as XXX-XXX; null when malformed.")]
+    reason: str
+    institution_established: Annotated[
+        Literal[False],
+        Field(description="A format test never establishes that AusPayNet issued the BSB."),
+    ]
+    not_established: Annotated[str, Field(description="Retain when presenting the result.")]
+    source_url: str
+    source_provision: str
+    source_checked: DateText
+
+
 class ScopeRefusal(ResultObject):
     ok: Annotated[Literal[False], Field(description="Unsupported request was refused.")]
     available: Annotated[
