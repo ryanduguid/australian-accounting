@@ -26,8 +26,16 @@ fn facts(earnings: &str, period: &str, status: &str, year: &str, loan: Value) ->
     facts
 }
 
+/// The command's result; derive gives the same, byte for byte.
 fn run(facts: &Value) -> Value {
-    api::evaluate(COMMAND, facts).unwrap_or_else(|e| panic!("{facts}: {e}"))
+    let result = api::evaluate(COMMAND, facts).unwrap_or_else(|e| panic!("{facts}: {e}"));
+    let doc = api::evaluate("derive", &json!({"command": COMMAND, "input": facts})).unwrap();
+    assert_eq!(
+        doc["result"].to_string(),
+        result.to_string(),
+        "derive {facts}"
+    );
+    result
 }
 
 fn dollars(result: &Value, key: &str) -> i64 {

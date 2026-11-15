@@ -184,7 +184,11 @@ which the method uses as rounded.
 
 The working holiday maker, study loan and seniors and pensioners steps cite
 the headings of Schedules 15, 8 and 9 of the same instruments, and Schedule 1
-where they apply its formula or scales. The quarterly SG steps cite the
+where they apply its formula or scales. With `study_loan`, a seniors and
+pensioners pay adds a step for Schedule 8's component and a total that cites
+the study and training support loans weekly tax table, to which the ATO's
+Schedule 9 pages refer and the instruments' Schedule 9 does not. The
+quarterly SG steps cite the
 Superannuation Guarantee (Administration) Act 1992 as in force before 1 July
 2026 and the ATO's maximum contribution base, and the borrowing expenses steps
 ITAA 1997 s 25-25. A borrowing expenses step for a later year writes in each

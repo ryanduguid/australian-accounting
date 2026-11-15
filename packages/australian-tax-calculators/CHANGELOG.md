@@ -203,7 +203,8 @@ intentionally changed.
   Schedule 9 amount and their total. Without it the amounts and rates are
   unchanged. `tests/seniors_pensioners_study_loan.rs` holds it to column 2 of
   all 2,616 rows of the table from 1 July 2026, both tables' examples and
-  Schedule 8's examples.
+  Schedule 8's examples, and `derive` shows the component and the total as
+  steps.
 - `seniors-pensioners-tax-offset` works out the seniors and pensioners tax
   offset (ITAA 1936 s 160AAAA) for 2024-25 to 2026-27 by the Income Tax
   Assessment (1936 Act) Regulations 2025 and the 2015 Regulation they replaced

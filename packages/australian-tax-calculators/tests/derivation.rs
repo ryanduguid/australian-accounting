@@ -1800,7 +1800,7 @@ const FIONA_SHARE: &str = "0.8133971291866028708133971291866028708134";
 /// SG payment and 'Borrowing expenses' examples, all read on 15 November 2026,
 /// and a case for each branch. `facts` change [`withholding_sg_borrowing`]'s
 /// defaults.
-const WITHHOLDING_SG_BORROWING: [(&str, &str, &str); 28] = [
+const WITHHOLDING_SG_BORROWING: [(&str, &str, &str); 30] = [
     // Schedule 15's lookup tool example and examples 1 and 2: $102, $424, $2,452.
     ("whm_lookup_tool", WHM, "{}"),
     (
@@ -1891,6 +1891,18 @@ const WITHHOLDING_SG_BORROWING: [(&str, &str, &str); 28] = [
         "seniors_half_couple",
         SENIORS,
         r#"{"earnings": "4500.00", "pay_period": "monthly", "status": "couple", "medicare_levy_exemption": "half", "year": "2024-25"}"#,
+    ),
+    // A study loan on a Schedule 9 pay: Schedule 8's example 1, and its
+    // example 3's earnings with the tax-free threshold under F2025L01016.
+    (
+        "seniors_study_loan",
+        SENIORS,
+        r#"{"earnings": "2608.36", "study_loan": true}"#,
+    ),
+    (
+        "seniors_study_loan_monthly",
+        SENIORS,
+        r#"{"earnings": "10627.88", "pay_period": "monthly", "year": "2025-26", "study_loan": true, "pay_date": "2025-09-24"}"#,
     ),
     // Earnings over the $62,500 base, whose 12% is the ATO's $7,500.00
     // maximum; and contributions over the minimum.
@@ -2048,6 +2060,40 @@ fn the_schedule_8_9_and_15_examples_show_their_operands() {
     assert_eq!(
         working("seniors_nil", "weekly_withholding"),
         "max(0, dollars(a x weekly_earnings_used - b)) = max(0, dollars(0 x 647.99 - 0)) = 0"
+    );
+    // With a study loan, Schedule 9's amount, Schedule 8's component on the
+    // same weekly earnings and their total: x = 2,608.99, 0.3900 x 2,608.99 -
+    // 363.4627 = 654.0434, $654, and 0.17 x 2,608.99 - 250.4527 = 193.0756,
+    // $193, as Schedule 8's example 1, so $847.
+    assert_eq!(
+        working("seniors_study_loan", "schedule_9_withholding"),
+        "weekly_withholding = 654 = 654"
+    );
+    assert_eq!(
+        working("seniors_study_loan", "study_loan_component"),
+        "max(0, dollars(component_a x weekly_earnings_used - component_b)) \
+         = max(0, dollars(0.17 x 2608.99 - 250.4527)) = 193"
+    );
+    assert_eq!(
+        working("seniors_study_loan", "withholding"),
+        "schedule_9_withholding + study_loan_component = 654 + 193 = 847"
+    );
+    // $10,627.88 a month in 2025-26: x = 2,452.99; 0.3200 x 2,452.99 -
+    // 176.5769 = 608.3799, $608 a week, x 13 / 3 = 2,634.67, $2,635; the
+    // component 0.17 x 2,452.99 - 241.3462 = 175.6621, $176 a week, x 13 / 3
+    // = 762.67, $763; $3,398 in all.
+    assert_eq!(
+        working("seniors_study_loan_monthly", "schedule_9_withholding"),
+        "dollars(weekly_withholding x 13 / 3) = dollars(608 x 13 / 3) = 2635"
+    );
+    assert_eq!(
+        working("seniors_study_loan_monthly", "study_loan_component"),
+        "dollars(max(0, dollars(component_a x weekly_earnings_used - component_b)) x 13 / 3) \
+         = dollars(max(0, dollars(0.17 x 2452.99 - 241.3462)) x 13 / 3) = 763"
+    );
+    assert_eq!(
+        working("seniors_study_loan_monthly", "withholding"),
+        "schedule_9_withholding + study_loan_component = 2635 + 763 = 3398"
     );
     // Schedule 8's examples 1 to 3: $193, $130 x 2 = $260, $226 x 13 / 3 = $979;
     // example 1's Schedule 1 amount, 0.3900 x 2,608.99 - 363.4627, is $654.
@@ -2216,6 +2262,26 @@ fn each_withholding_sg_and_borrowing_step_cites_its_branch() {
             "Schedule 9, 'Calculating fortnightly or monthly withholding amounts'",
         );
     }
+    cites(
+        "seniors_study_loan",
+        "schedule_9_withholding",
+        "Schedule 9, 'Working out the withholding amount'",
+    );
+    cites(
+        "seniors_study_loan",
+        "study_loan_component",
+        "Schedule 8, 'Study and training support loans component rates' and 'Rounding",
+    );
+    cites(
+        "seniors_study_loan_monthly",
+        "study_loan_component",
+        "Schedule 8, 'Study and training support loans component rates' and 'Calculating fortnightly, monthly",
+    );
+    cites(
+        "seniors_study_loan",
+        "withholding",
+        "Schedule 9, 'When your payee has a study and training support loan debt', and the study and training support loans weekly tax table",
+    );
     cites(
         "stsl_example_1",
         "weekly_earnings_used",
