@@ -348,8 +348,8 @@ see the [GST Review schemas](packages/gst-review/README.md).
 
 Prebuilt binaries are not published yet, so install from source as above. Release
 Policy's [`release-binary.yml`](https://github.com/ryanduguid/release-policy/blob/main/docs/binary-consumers.md)
-now publishes Windows and Linux executables to GitHub Releases, without crates.io,
-but no crate here has adopted it.
+now publishes Linux, macOS and Windows executables to GitHub Releases, without
+crates.io, but no crate here has adopted it.
 
 ## Working in a component
 
