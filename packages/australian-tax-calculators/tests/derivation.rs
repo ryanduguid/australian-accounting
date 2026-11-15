@@ -13,10 +13,13 @@ use std::io::Write;
 use std::process::{Command, Stdio};
 
 /// The commands `derive` explains.
-const DERIVED: [&str; 26] = [
+const DERIVED: [&str; 29] = [
     "fbt",
     "fbt-car-statutory",
     "fbt-car-operating-cost",
+    "fbt-loan",
+    "fbt-meal-entertainment",
+    "fbt-car-parking",
     "division-293",
     "pension-minimum",
     "payg-withholding",
@@ -126,6 +129,52 @@ fn cases() -> Vec<(&'static str, Value)> {
         pension("250000.00", 66, 30),
         // $4,005.00 ends in an exact $5, so cl 5 rounds it up.
         pension("100125.00", 60, 365),
+        // FBT return 2026 instructions, item 23C example 8, and the Library's ¶3-100.
+        benefit(
+            "fbt-loan",
+            json!({"daily_balance_total": "7300000.00", "interest_accrued": "0.00",
+                   "income_use": "0", "accrued_interest_deduction": "0.00"}),
+        ),
+        benefit(
+            "fbt-loan",
+            json!({"daily_balance_total": "36500000.00", "interest_accrued": "3450.00",
+                   "income_use": "0.4", "accrued_interest_deduction": "1380.00"}),
+        ),
+        benefit(
+            "fbt-loan",
+            json!({"daily_balance_total": "18250000.00", "interest_accrued": "2000.00",
+                   "income_use": "1", "accrued_interest_deduction": "0.00", "year_ended": 2027}),
+        ),
+        // Item 23P example 18, and a register percentage that does not terminate.
+        benefit(
+            "fbt-meal-entertainment",
+            json!({"method": "50_50_split", "meal_entertainment_expenditure": "4000.00"}),
+        ),
+        benefit(
+            "fbt-meal-entertainment",
+            json!({"method": "12_week_register", "meal_entertainment_expenditure": "900.00",
+                   "register_fringe_benefits_value": "1000.00",
+                   "register_meal_entertainment_value": "3000.00", "register_first_year": 2026}),
+        ),
+        // The employer's guide, examples 15 and 17, and a fee at the threshold.
+        benefit(
+            "fbt-car-parking",
+            json!({"method": "average_cost", "first_business_day_fee": "17.00", "benefits": 3,
+                   "first_day_fee": "17.25", "last_day_fee": "18.50",
+                   "employee_contribution": "20.00"}),
+        ),
+        benefit(
+            "fbt-car-parking",
+            json!({"method": "12_week_register", "first_business_day_fee": "20.00",
+                   "register_value": "2500.00", "availability_days": 183,
+                   "register_first_year": 2026}),
+        ),
+        benefit(
+            "fbt-car-parking",
+            json!({"method": "commercial_parking_station", "first_business_day_fee": "11.48",
+                   "benefits": 230, "lowest_fee": "18.00", "employee_contribution": "1000.00",
+                   "year_ended": 2027}),
+        ),
     ];
     cases.extend(
         PAYG.iter()
@@ -438,6 +487,14 @@ fn step_of<'a>(doc: &'a Value, id: &str) -> &'a Value {
         .iter()
         .find(|s| s["id"] == id)
         .unwrap_or_else(|| panic!("no step {id}"))
+}
+
+/// An FBT benefit worksheet's input: `facts` for the year ended 31 March 2026
+/// unless they say otherwise.
+fn benefit(command: &'static str, facts: Value) -> (&'static str, Value) {
+    let mut input = json!({"year_ended": 2026, "scope_confirmed": true});
+    merge(&mut input, facts);
+    (command, input)
 }
 
 fn merge(input: &mut Value, overrides: Value) {
@@ -1536,6 +1593,35 @@ fn each_schedule_11_branch_gives_the_amount_and_cites_the_rate_its_source_sets()
 }
 
 #[test]
+fn the_fbt_benefit_steps_cite_their_provisions() {
+    let all = cases();
+    let steps = |i: usize| derive(all[i].0, &all[i].1)["steps"].clone();
+    // Item 23C example 8: $20,000 owed on each of 365 days at 8.62%.
+    let loan = steps(23);
+    assert_eq!(
+        loan[0]["working"],
+        "cents(daily_balance_total x statutory_interest_rate / days_in_year) \
+         = cents(7300000.00 x 0.0862 / 365) = 1724.00"
+    );
+    let authority = loan[0]["authority"].as_str().unwrap();
+    assert!(authority.starts_with("FBTAA s 18(1) and s 136(1)"));
+    assert_eq!(
+        loan[7]["authority"],
+        "FBTAA s 19(1), TV - ND; FBT return 2026 instructions, item 23C"
+    );
+    assert_eq!(steps(26)[0]["authority"], "FBTAA s 37BA");
+    assert_eq!(steps(27)[0]["authority"], "FBTAA s 37CB(2)");
+    assert_eq!(steps(28)[0]["authority"], "FBTAA s 39DA(3)");
+    assert_eq!(steps(29)[0]["authority"], "FBTAA s 39GB");
+    // A first business day fee at the threshold gives no car parking benefit.
+    let parking = steps(30);
+    let taxable = parking.as_array().unwrap().last().unwrap();
+    assert_eq!(taxable["working"], "0 = 0 = 0");
+    let authority = taxable["authority"].as_str().unwrap();
+    assert!(authority.starts_with("FBTAA s 39A(1)(a)(iii)"));
+}
+
+#[test]
 fn a_refused_derive_leaves_no_steps_for_the_next() {
     let refused = json!({"command": "fbt-car-statutory", "input": {"days_available": 366}});
     for (command, input) in cases() {
@@ -1643,8 +1729,9 @@ fn derive_refuses_what_it_does_not_explain() {
     let message = api::evaluate("derive", &json!({"command": "gst", "input": {}})).unwrap_err();
     assert_eq!(
         message,
-        "derive explains fbt, fbt-car-statutory, fbt-car-operating-cost, division-293, \
-         pension-minimum, payg-withholding, schedule-5-method-a, schedule-5-method-b-i, \
+        "derive explains fbt, fbt-car-statutory, fbt-car-operating-cost, fbt-loan, \
+         fbt-meal-entertainment, fbt-car-parking, division-293, pension-minimum, \
+         payg-withholding, schedule-5-method-a, schedule-5-method-b-i, \
          schedule-5-method-b-ii, termination-payment, working-holiday-maker-withholding, \
          study-loan-withholding, seniors-pensioners-withholding, quarterly-sg, \
          borrowing-expenses, resident-tax, foreign-resident-tax, low-income-tax-offset, \

@@ -43,6 +43,18 @@ pub const SCOPES: &[(&str, &str)] = &[
         "One car held by an ordinary taxable employer, as the only provider and for a single holding period, to provide car fringe benefits in the FBT year ended 31 March 2026 or 2027, valued under a written election for the operating cost method. The operator establishes the GST-inclusive car expenses for the holding period under s 10(3) (repairs, maintenance and fuel, and registration and insurance attributable to the period, including those the employee paid, but not insured repair expenses, an owned car's registration and insurance incurred before the provider owned it, or expenses the lessor bears under the lease), the lease charges for a leased car, or for an owned car acquired on or after 10 May 2006 (a hire purchase car is owned) its s 12 depreciated value at the start of the FBT year (cost price less earlier FBT deemed depreciation, or its cost price if acquired in the year) and the effective life in effect when the provider last became its owner, the days in the holding period the car was owned or leased, the business use percentage from log book and odometer records (0 without them), recipient's payments, the same car's statutory formula value and whether the electric cars exemption applies. Deemed depreciation at 200% over the effective life (25% for a car with an 8-year life) and deemed interest at the year's benchmark rate are apportioned to the days held. Non-business accessories fitted before the year belong in depreciated_value; accessories fitted during the year, a car both owned and leased in the year, a car neither owned nor leased by the provider, cars acquired before 10 May 2006, the business use estimate itself, arm's-length deeming, the type 1 or type 2 choice, gross-up and FBT payable are excluded. Only the gross taxable value is rounded to cents, before the recipient's payment, which cannot take the taxable value below nil; an unused excess is shown and reduces no other benefit. Under s 10(5) the result is the lower of this value and the statutory formula value supplied for the same car and holding period; gross_taxable_value, employee_contribution_applied and excess_employee_contribution are the operating cost method's figures, and where the statutory formula value is lower, fbt-car-statutory's applied and excess figures apply. An exempt electric car's taxable value is nil, and taxable_value_before_exemption is the notional value its reportable fringe benefits amount is worked out from, before gross-up.",
     ),
     (
+        "fbt_loan",
+        "One loan an ordinary taxable employer made to a current employee, in the FBT year ended 31 March 2026 or 2027, at that year's statutory interest rate (8.62% for 2026, 8.27% for 2027). The operator establishes the loan's balances at the end of each day in the year the employee owed it, added together; the interest that accrued on it for the year; the share of the notional interest that would have been a once-only income tax deduction to the employee had they paid it; and the deduction that would have been allowable for the interest accrued. Notional interest is the summed daily balances times the rate over the days in the year (s 136(1)), rounded to cents; the gross taxable value is the amount by which it exceeds the interest accrued (s 18). The otherwise deductible rule (s 19) reduces that by the notional deduction: the gross deduction on the notional interest, rounded to cents, less the deduction for the interest accrued, never below nil; the taxable value never falls below nil. The rule applies only to a loan to an employee, not an associate, and the operator establishes that the employee's declaration or documents were obtained. Excludes deciding whether a loan benefit or an exemption (s 17) arises, interest deferred or unpaid (a further loan or a debt waiver), the deduction itself, the type 2 gross-up and FBT payable.",
+    ),
+    (
+        "fbt_meal_entertainment",
+        "An ordinary taxable employer's meal entertainment fringe benefits for the FBT year ended 31 March 2026 or 2027, where the employer elected to apply Division 9A, with no meal entertainment provided under a salary packaging arrangement. The operator establishes the method and the year's total expenses for providing meal entertainment to all persons, excluding contributions by employees or their associates that the employer did not reimburse (s 37AB). The 50/50 split method takes 50% of those expenses (s 37BA). The 12 week register method (s 37CB) applies the register percentage, the value of the register's meal entertainment fringe benefits over the value of all its meal entertainment, worked out exactly and shown to 2 places, to the expenses. A register is valid for the FBT year it was first valid for and the 4 after it (s 37CD), which the worksheet checks; the operator establishes that the register was kept as s 37CE requires, that no earlier year since its first valid year had expenses more than 20% above that year's (it ceases to be valid at the end of such a year) and that no later register replaced it. Excludes deciding what is meal entertainment, the elections themselves, the actual method, exempt benefits, splitting the value between type 1 and type 2 for fbt, gross-up and FBT payable.",
+    ),
+    (
+        "fbt_car_parking",
+        "An ordinary taxable employer's car parking fringe benefits for the FBT year ended 31 March 2026 or 2027, valued by one method: the commercial parking station method (s 39C), the average cost method (s 39DA) or the 12 week record keeping method (s 39GB). The operator establishes that each benefit meets s 39A other than the threshold, such as a car parked for more than 4 hours in a daylight period on the provider's business or associated premises with a commercial parking station within 1 km, for one premises and the stations within 1 km of it (a worksheet for each premises), and the highest of those stations' lowest all-day fees on the first business day of the year: no benefit arises unless it is more than that year's car parking threshold ($11.03 for 2026, $11.48 for 2027; s 39A(1)(a)(iii)). Under the commercial parking station method the benefits are counted and each valued at the lowest all-day fee on its day, which must be the same on every day (a weekly or monthly fee becomes a daily rate under s 39E); under the average cost method each is valued at the average of the lowest fees on the days benefits were first and last provided in the year. Under both, the gross taxable value is rounded to cents before the recipients' payments, which the operator establishes in total, counting each benefit's payment only up to that benefit's value, since an excess on one benefit reduces no other; the payments cannot take the taxable value below nil, and an unused excess is shown. The 12 week register method takes the register's total value of car parking benefits (s 39GC), already net of payments, times 52 / 12, times the days in the car parking availability period over 366, the divisor the Act sets for every year (s 39GB). A register is valid for the FBT year it was first valid for and the 4 after it (s 39GF), which the worksheet checks; the operator establishes that it was kept as s 39GG requires, that the number of benefits rose by no more than 10% on any day of an earlier year since its first valid year (it ceases to be valid at the end of such a year) and that no later register replaced it. Excludes the market value method (s 39D), which needs a qualified valuer's report, the statutory formula (spaces) method, exemptions such as the small business exemption (s 58GA), fees that are not representative (ss 39AA and 39AB), splitting the value between type 1 and type 2 for fbt, gross-up and FBT payable.",
+    ),
+    (
         "depreciation",
         "Ordinary tangible Division 40 asset first held on or after 10 May 2006, in the income year its start time occurs or, given its established opening adjustable value for the year, a later year. Established cost, effective life and taxable-use proportion. Days run from first use or installation ready for use. No second-element costs after the start year, disposals, changed life or other s 40-75(2) adjustment, pooling, immediate write-offs, special assets or Division 43 capital works. Does not determine an effective life from an asset description.",
     ),
@@ -166,6 +178,18 @@ pub const SOURCES: &[(&str, &str)] = &[
         "https://www.ato.gov.au/law/view/document?DocID=SAV/FBTGEMP/00008",
     ),
     (
+        "fbt_loan",
+        "https://www.ato.gov.au/law/view/document?DocID=SAV/FBTGEMP/00009",
+    ),
+    (
+        "fbt_meal_entertainment",
+        "https://www.ato.gov.au/law/view/document?DocID=SAV/FBTGEMP/00015",
+    ),
+    (
+        "fbt_car_parking",
+        "https://www.ato.gov.au/law/view/document?DocID=SAV/FBTGEMP/00017",
+    ),
+    (
         "depreciation",
         "https://www.ato.gov.au/businesses-and-organisations/income-deductions-and-concessions/depreciation-and-capital-expenses-and-allowances/general-depreciation-rules-capital-allowances/prime-cost-straight-line-and-diminishing-value-methods",
     ),
@@ -247,6 +271,13 @@ const SCHEDULE_5_EXTRA: &[&str] = &[
     "https://www.ato.gov.au/tax-rates-and-codes/payg-withholding-schedule-5-tax-table-01-july-2024-to-30-june-2025/working-out-the-withholding-amount",
 ];
 
+/// The FBTAA as compiled on 1 July 2026 (compilation 97), the volume with
+/// Divisions 4 to 10A, and the ATO pages the FBT benefit worksheets share.
+const FBTAA_PART_1: &str = "https://www.legislation.gov.au/C2004A03280/2026-07-01/2026-07-01/text/original/epub/OEBPS/document_1/document_1.html";
+const FBT_RETURN_ITEM_23: &str = "https://www.ato.gov.au/forms-and-instructions/fringe-benefits-tax-return-2026-instructions/item-23-fringe-benefit-categories-for-fbt-return-2026";
+const FBT_RATES: &str =
+    "https://www.ato.gov.au/tax-rates-and-codes/fringe-benefits-tax-rates-and-thresholds";
+
 pub const EXTRA_SOURCES: &[(&str, &[&str])] = &[
     (
         "foreign_resident_tax",
@@ -303,6 +334,29 @@ pub const EXTRA_SOURCES: &[(&str, &[&str])] = &[
             "https://www.ato.gov.au/forms-and-instructions/fringe-benefits-tax-return-2026-instructions/item-23-fringe-benefit-categories-for-fbt-return-2026",
             "https://www.ato.gov.au/tax-rates-and-codes/fringe-benefits-tax-rates-and-thresholds",
             "https://www.ato.gov.au/businesses-and-organisations/hiring-and-paying-your-workers/fringe-benefits-tax/types-of-fringe-benefits/fbt-on-cars-other-vehicles-parking-and-tolls/electric-cars-exemption",
+        ],
+    ),
+    (
+        "fbt_loan",
+        &[
+            FBTAA_PART_1,
+            "https://www.legislation.gov.au/C2004A03280/2026-07-01/2026-07-01/text/original/epub/OEBPS/document_2/document_2.html",
+            FBT_RETURN_ITEM_23,
+            FBT_RATES,
+            "https://www.ato.gov.au/businesses-and-organisations/hiring-and-paying-your-workers/fringe-benefits-tax/types-of-fringe-benefits/loan-and-debt-waiver-fringe-benefits",
+        ],
+    ),
+    (
+        "fbt_meal_entertainment",
+        &[FBTAA_PART_1, FBT_RETURN_ITEM_23],
+    ),
+    (
+        "fbt_car_parking",
+        &[
+            FBTAA_PART_1,
+            FBT_RETURN_ITEM_23,
+            FBT_RATES,
+            "https://www.ato.gov.au/businesses-and-organisations/hiring-and-paying-your-workers/fringe-benefits-tax/types-of-fringe-benefits/fbt-on-cars-other-vehicles-parking-and-tolls/car-parking-and-fbt",
         ],
     ),
     (
@@ -433,6 +487,12 @@ pub const EXTRA_WARNINGS: &[(&str, &[&str])] = &[
     ),
     ("fbt_car_operating_cost", &[CAR_REPORTABLE_NOTE]),
     (
+        "fbt_loan",
+        &[
+            "A loan fringe benefit gives the employer no GST credit, so it is a type 2 benefit: give taxable_value to fbt as part of type_two_value.",
+        ],
+    ),
+    (
         "division_296",
         &[
             "An estimate, not the tax payable: the Commissioner assesses Division 296 tax from the balances and earnings superannuation funds report, and the notice of assessment sets the amount.",
@@ -530,8 +590,20 @@ pub const REFUSAL_CODES: &[(&str, &str)] = &[
         "personal-tax-estimate was given Medicare levy exemption days beside a Medicare levy surcharge input, whose scope excludes them.",
     ),
     (
+        "fbt.register_not_valid",
+        "A 12 week register's first valid FBT year is not the year given or one of the 4 before it.",
+    ),
+    (
         "fbt_car.cost_basis_conflict",
         "A car has neither or both of a depreciated value and lease charges.",
+    ),
+    (
+        "fbt_loan.deduction_exceeds_interest",
+        "The deduction for the interest accrued on a loan exceeds that interest.",
+    ),
+    (
+        "fbt_meal_entertainment.register_values_invalid",
+        "A meal entertainment register's total is nil or less than its fringe benefits' value.",
     ),
     (
         "hire_purchase.amount_nil",
@@ -570,6 +642,10 @@ pub const REFUSAL_CODES: &[(&str, &str)] = &[
         "Back payment periods are not a list of 1 to the most earlier pays a year holds, each with exactly earnings, back_payment and withheld as decimal strings.",
     ),
     (
+        "input.benefit_count_invalid",
+        "A number of fringe benefits is not a JSON integer from 0.",
+    ),
+    (
         "input.children_invalid",
         "A number of dependent children is not a JSON integer from 0.",
     ),
@@ -602,8 +678,12 @@ pub const REFUSAL_CODES: &[(&str, &str)] = &[
         "An effective life is outside 0.01 to 1000 years.",
     ),
     (
+        "input.fbt_method_invalid",
+        "An FBT benefit worksheet's method is not one it offers.",
+    ),
+    (
         "input.field_unknown",
-        "A field the worksheet or command does not take, or does not take beside the other inputs given, was given (division-296, depreciation, foreign-resident-tax, medicare-levy, medicare-levy-surcharge, payg-withholding, payg-gross-up, termination-payment, the Schedule 5 methods, working-holiday-maker-withholding, study-loan-withholding, seniors-pensioners-withholding, seniors-pensioners-tax-offset, hire-purchase-schedule, derive and personal-tax-estimate only).",
+        "A field the worksheet or command does not take, or does not take beside the other inputs given, was given (fbt-loan, fbt-meal-entertainment, fbt-car-parking, division-296, depreciation, foreign-resident-tax, medicare-levy, medicare-levy-surcharge, payg-withholding, payg-gross-up, termination-payment, the Schedule 5 methods, working-holiday-maker-withholding, study-loan-withholding, seniors-pensioners-withholding, seniors-pensioners-tax-offset, hire-purchase-schedule, derive and personal-tax-estimate only).",
     ),
     ("input.flag_invalid", "A flag is not a JSON boolean."),
     ("input.fraction_invalid", "A fraction is outside 0 to 1."),

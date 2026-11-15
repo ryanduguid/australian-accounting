@@ -814,6 +814,12 @@ pub const CARRY_FORWARD_BALANCE_LIMIT: &str = "500000";
 /// worksheets' supported years; the 20% statutory rate applies in each.
 pub const FBT_BENCHMARK_INTEREST_RATES: &[(&str, &str)] = &[("2026", "0.0862"), ("2027", "0.0827")];
 
+/// Car parking threshold by FBT year ended 31 March, from the ATO's FBT rates
+/// and thresholds page, read on 15 November 2026: the ATO publishes it there
+/// and not in a taxation determination. Its keys are the car parking
+/// worksheet's supported years.
+pub const FBT_CAR_PARKING_THRESHOLDS: &[(&str, &str)] = &[("2026", "11.03"), ("2027", "11.48")];
+
 /// SISR Schedule 7 factors as (lowest age, factor), oldest band first.
 pub const PENSION_MINIMUM_FACTORS: [(i64, &str); 7] = [
     (95, "0.14"),
@@ -840,7 +846,13 @@ pub fn supported_periods(kind: &str) -> Vec<&'static str> {
         // s 26-155 quarantines residential rental deductions from 2027-28.
         "borrowing_expenses" | "hire_purchase_schedule" => vec!["2024-25", "2025-26", "2026-27"],
         "fbt" => vec!["2026", "2027"],
-        "fbt_car_statutory" | "fbt_car_operating_cost" => keys(FBT_BENCHMARK_INTEREST_RATES),
+        "fbt_car_statutory" | "fbt_car_operating_cost" | "fbt_loan" => {
+            keys(FBT_BENCHMARK_INTEREST_RATES)
+        }
+        // The methods use no published rate; the years are those the ATO's
+        // return instructions and rates page were read for.
+        "fbt_meal_entertainment" => vec!["2026", "2027"],
+        "fbt_car_parking" => keys(FBT_CAR_PARKING_THRESHOLDS),
         "payg_withholding" | "payg_gross_up" => keys(PAYG_WITHHOLDING_COEFFICIENTS),
         "contribution_caps" => keys(CONTRIBUTION_CAPS),
         "pension_minimum" => vec!["2024-25", "2025-26", "2026-27"],
@@ -903,6 +915,18 @@ pub fn source_review(kind: &str) -> (&'static str, &'static str) {
         "fbt_car_operating_cost" => (
             "2026-11-06",
             "Fringe benefits tax - a guide for employers, 7.9 operating cost method and example 31; FBT return 2026 instructions, item 23B and example 7; FBT rates and thresholds, benchmark interest rate; Electric cars exemption, reportable fringe benefits; Income Tax Assessment (Effective Life of Depreciating Assets) Determination 2025 (LI 2025/20, F2025L01097) and TR 2022/1, Table B, effective lives of cars",
+        ),
+        "fbt_loan" => (
+            "2026-11-15",
+            "FBTAA ss 16 to 19 and s 136(1), notional amount of interest and statutory interest rate, compilation 97 (1 July 2026); Fringe benefits tax - a guide for employers, 8.5 and 8.8 and their examples; FBT return 2026 instructions, item 23C and example 8; FBT rates and thresholds, statutory or benchmark interest rate; Loan and debt waiver fringe benefits",
+        ),
+        "fbt_meal_entertainment" => (
+            "2026-11-15",
+            "FBTAA ss 37AB, 37BA, 37CB and 37CD, compilation 97 (1 July 2026); Fringe benefits tax - a guide for employers, 14.8 methods of valuing meal entertainment; FBT return 2026 instructions, item 23P and example 18",
+        ),
+        "fbt_car_parking" => (
+            "2026-11-15",
+            "FBTAA ss 39A, 39C, 39DA, 39E and 39GB to 39GF, compilation 97 (1 July 2026); Fringe benefits tax - a guide for employers, chapter 16, examples 12, 13, 15 and 17 and the 12 week register steps; FBT return 2026 instructions, item 23N and example 17; FBT rates and thresholds, car parking threshold; Car parking and FBT",
         ),
         "depreciation" => (
             "2026-11-13",
@@ -1032,6 +1056,24 @@ pub fn library_evidence(kind: &str) -> [(&'static str, &'static str); 4] {
             "3-020",
             "2026-06-30",
             "2026-10-29",
+        ),
+        "fbt_loan" => (
+            "tax-examples-fringe-benefits-tax-fbt",
+            "3-100",
+            "2026-06-30",
+            "2026-11-15",
+        ),
+        "fbt_meal_entertainment" => (
+            "tax-examples-fringe-benefits-tax-fbt",
+            "3-220",
+            "2026-06-30",
+            "2026-11-15",
+        ),
+        "fbt_car_parking" => (
+            "tax-examples-fringe-benefits-tax-fbt",
+            "3-055",
+            "2026-06-30",
+            "2026-11-15",
         ),
         "depreciation" => (
             "tax-examples-depreciation",
@@ -1222,6 +1264,54 @@ pub fn optional_inputs(kind: &str) -> Vec<(&'static str, &'static str)> {
             "pay_date",
             "YYYY-MM-DD date the payment is made, within the income year; required for 2025-26, whose Schedule 8 coefficients apply from 24 September 2025",
         )],
+        "fbt_meal_entertainment" => vec![
+            (
+                "register_fringe_benefits_value",
+                "AUD, 12_week_register only and required there: the total value of the meal entertainment fringe benefits in the 12 week register (FBTAA s 37CB(2))",
+            ),
+            (
+                "register_meal_entertainment_value",
+                "AUD, 12_week_register only and required there: the total value of all meal entertainment in the register, more than nil and at least register_fringe_benefits_value",
+            ),
+            (
+                "register_first_year",
+                "integer, 12_week_register only and required there: the FBT year ended 31 March the register was first valid for, from 4 years before year_ended to year_ended (FBTAA s 37CD); whether it has since ceased to be valid is the operator's to establish",
+            ),
+        ],
+        "fbt_car_parking" => vec![
+            (
+                "benefits",
+                "integer from 0, commercial_parking_station and average_cost only and required there: the car parking fringe benefits provided in the FBT year",
+            ),
+            (
+                "lowest_fee",
+                "AUD, commercial_parking_station only and required there: the lowest all-day fee any commercial parking station within 1 km charged on each day a benefit was provided (FBTAA s 39C), the same on every one of those days; a fee for another period is converted under s 39E",
+            ),
+            (
+                "first_day_fee",
+                "AUD, average_cost only and required there: the lowest all-day fee any commercial parking station within 1 km charged on the day a car parking benefit was first provided in the FBT year (FBTAA s 39DA(3), A)",
+            ),
+            (
+                "last_day_fee",
+                "AUD, average_cost only and required there: the lowest all-day fee any commercial parking station within 1 km charged on the day a car parking benefit was last provided in the FBT year (FBTAA s 39DA(3), B)",
+            ),
+            (
+                "employee_contribution",
+                "AUD, commercial_parking_station and average_cost only and required there: the recipients' payments for these benefits in total, net of any reimbursement, each benefit's payment counted only up to that benefit's value (an excess on one benefit reduces no other)",
+            ),
+            (
+                "register_value",
+                "AUD, 12_week_register only and required there: the total value of car parking benefits (register) under FBTAA s 39GC, the register period's benefits valued by the commercial parking station, market value or average cost method, net of recipients' payments",
+            ),
+            (
+                "availability_days",
+                "integer from 0 to the days in the FBT year, 12_week_register only and required there: the days in the car parking availability period (FBTAA s 39GD), from the first to the last day in the FBT year with a car parking benefit for an employee the election covers",
+            ),
+            (
+                "register_first_year",
+                "integer, 12_week_register only and required there: the FBT year ended 31 March the register was first valid for, from 4 years before year_ended to year_ended (FBTAA s 39GF); whether it has since ceased to be valid is the operator's to establish",
+            ),
+        ],
         "seniors_pensioners_tax_offset" => vec![
             (
                 "spouse_rebate_income",
@@ -1359,6 +1449,41 @@ pub fn input_units(kind: &str) -> Vec<(&'static str, &'static str)> {
             ),
         ],
         "fbt" => vec![("type_one_value", "AUD"), ("type_two_value", "AUD")],
+        "fbt_loan" => vec![
+            (
+                "daily_balance_total",
+                "AUD, the loan's balance at the end of each day in the FBT year on which the employee owed it, added together (a balance of $20,000 for 182 days is 3640000.00)",
+            ),
+            (
+                "interest_accrued",
+                "AUD, the interest that accrued on the loan in respect of the FBT year (FBTAA s 18(1)); 0.00 for an interest-free loan",
+            ),
+            (
+                "income_use",
+                "decimal fraction from 0 to 1, the share of the notional interest that would have been a once-only income tax deduction to the employee had they paid it (FBTAA s 19(1)(b)); 0 for a loan used only privately",
+            ),
+            (
+                "accrued_interest_deduction",
+                "AUD, the once-only deduction that would have been allowable to the employee for the interest accrued (FBTAA s 19(1)(ba), RD), at most interest_accrued; 0.00 when no interest accrued",
+            ),
+        ],
+        "fbt_meal_entertainment" => vec![
+            ("method", "50_50_split or 12_week_register"),
+            (
+                "meal_entertainment_expenditure",
+                "AUD, the employer's total expenses for providing meal entertainment in the FBT year to all persons, excluding amounts employees paid (FBTAA ss 37AB and 37CB(3))",
+            ),
+        ],
+        "fbt_car_parking" => vec![
+            (
+                "method",
+                "commercial_parking_station, average_cost or 12_week_register",
+            ),
+            (
+                "first_business_day_fee",
+                "AUD, the highest of the lowest all-day fees the commercial parking stations within 1 km each charged on the first business day of the FBT year: car parking benefits arise only when one station's lowest fee is more than the car parking threshold (FBTAA s 39A(1)(a)(iii); the employer's guide, example 12), and benefits are valued at their own fee, which can be lower",
+            ),
+        ],
         "fbt_car_statutory" => vec![
             (
                 "cost_price",
@@ -1750,6 +1875,23 @@ pub fn examples(kind: &str) -> Vec<(&'static str, Example)> {
             ("employee_contribution", Text("1500.00")),
             ("statutory_formula_taxable_value", Text("8500.00")),
             ("electric_car_exempt", Flag(false)),
+        ],
+        "fbt_loan" => vec![
+            ("daily_balance_total", Text("7300000.00")),
+            ("interest_accrued", Text("0.00")),
+            ("income_use", Text("0")),
+            ("accrued_interest_deduction", Text("0.00")),
+        ],
+        "fbt_meal_entertainment" => vec![
+            ("method", Text("50_50_split")),
+            ("meal_entertainment_expenditure", Text("4000.00")),
+        ],
+        "fbt_car_parking" => vec![
+            ("method", Text("commercial_parking_station")),
+            ("first_business_day_fee", Text("18.00")),
+            ("benefits", Whole(230)),
+            ("lowest_fee", Text("18.00")),
+            ("employee_contribution", Text("1000.00")),
         ],
         "depreciation" => vec![
             ("cost", Text("3000.00")),
