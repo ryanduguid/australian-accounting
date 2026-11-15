@@ -132,10 +132,8 @@ or a decimal string over 8,192 bytes, is refused.
 
 ## Derivations
 
-`derive` shows how each amount of an FBT, Division 293, pension minimum, PAYG
-withholding, Schedule 5, termination payment, basic income tax, low income or
-seniors and pensioners tax offset, Medicare levy or Medicare levy surcharge
-worksheet was worked out. It takes `{"command": "fbt", "input": {...}}`, runs
+`derive` shows how each amount of a worksheet in the `derive` row of the table
+above was worked out. It takes `{"command": "fbt", "input": {...}}`, runs
 the command on that input and returns
 `{"format": "australian-tax-calculators/derivation/1", "engine", "engine_version",
 "calculation", "input", "steps", "result"}`. `result` is the command's own output,

@@ -1,8 +1,8 @@
 // Copyright 2026 Ryan Duguid
 // SPDX-License-Identifier: LicenseRef-Duguid-Public-Attribution-1.0
 
-//! `derive` explains each amount of the worksheets it covers (FBT, Division 293,
-//! the pension minimum, PAYG withholding, Schedule 5 and termination payments) in a step a reader can check alone: every
+//! `derive` explains each amount of the worksheets it covers ([`DERIVED`]) in a
+//! step a reader can check alone: every
 //! name in a step's formula is an input, a rate or an earlier step, its operands
 //! are those values, and they recompute the amount. These tests recompute every
 //! amount that way, independently of the engine's arithmetic.
