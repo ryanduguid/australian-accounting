@@ -112,7 +112,7 @@ lists the commands.
 | `depreciation` | `cost`, `effective_life`, `days`, `taxable_use`, `method`, `scope_confirmed`, `year`; optional `opening_adjustable_value` |
 | `quarterly-sg` | `ordinary_time_earnings`, `qualifying_contributions`, `year`, `quarter`, `scope_confirmed` |
 | `payg-withholding` | `earnings`, `pay_period`, `scale`, `year`, `scope_confirmed`; optional `foreign_resident` (scale 4), `tax_offsets`, `medicare_adjustment_children`, `extra_pay_withholding` |
-| `payg-gross-up` | `net_pay`, `pay_period`, `scale`, `year`, `scope_confirmed`; optional `foreign_resident` (scale 4) |
+| `payg-gross-up` | `net_pay`, `pay_period`, `scale`, `year`, `scope_confirmed`; optional `foreign_resident` (scale 4), `study_loan`; `pay_date` with `study_loan`, required for 2025-26 |
 | `study-loan-withholding` | `earnings`, `pay_period`, `scale`, `year`, `scope_confirmed`; `pay_date`, required for 2025-26 |
 | `medicare-levy` | `taxable_income`, `section_9a_adjustment_applies`, `year`, `scope_confirmed`; optional `sapto_entitled`, `spouse_taxable_income`, `spouse_sapto_entitled`, `dependant_offset_entitled`, `dependent_children`, `medicare_levy_exemption_full_days`, `medicare_levy_exemption_half_days` |
 | `medicare-levy-surcharge` | `taxable_income`, `reportable_fringe_benefits`, `income_for_surcharge_purposes`, `days_without_cover`, `year`, `scope_confirmed`; optional `spouse_income_for_surcharge_purposes`, `dependent_children` |
@@ -131,7 +131,7 @@ lists the commands.
 | `pension-minimum` | `account_balance`, `age`, `days`, `year`, `scope_confirmed` |
 | `worksheet-catalogue` | none: send `{}` |
 | `periods` | `kind`, the worksheet name, such as `"payg_withholding"` |
-| `personal-tax-estimate` | `year`, `scope_confirmed`, `residency`, `taxable_income`, and for a full-year resident `medicare-levy` and `medicare-levy-surcharge`; optional `seniors-pensioners-tax-offset`, `study-loan-repayment` and `division-293`; see [Personal tax estimate](#personal-tax-estimate) |
+| `personal-tax-estimate` | `year`, `scope_confirmed`, `residency`, `taxable_income` or `assessable_labour_income` (then optional `other_assessable_income`, `work_related_deductions`, `other_deductions`), optional `tax_withheld`, and for a full-year resident `medicare-levy` and `medicare-levy-surcharge`; optional `seniors-pensioners-tax-offset`, `study-loan-repayment` and `division-293`; see [Personal tax estimate](#personal-tax-estimate) |
 | `derive` | `command`, one of `fbt`, `fbt-car-statutory`, `fbt-car-operating-cost`, `fbt-loan`, `fbt-meal-entertainment`, `fbt-car-parking`, `fbt-debt-waiver`, `fbt-expense-payment`, `fbt-property`, `division-293`, `pension-minimum`, `payg-withholding`, `schedule-5-method-a`, `schedule-5-method-b-i`, `schedule-5-method-b-ii`, `termination-payment`, `working-holiday-maker-withholding`, `study-loan-withholding`, `seniors-pensioners-withholding`, `quarterly-sg`, `borrowing-expenses`, `resident-tax`, `foreign-resident-tax`, `low-income-tax-offset`, `seniors-pensioners-tax-offset`, `medicare-levy`, `medicare-levy-surcharge`, `division-296`, `contribution-caps`, `study-loan-repayment`, `capital-gains`, `main-residence`, `fbt-residual`, `fbt-housing`, `fbt-lafha`, `fbt-board`, `fbt-tax-exempt-body-entertainment`, `gst`, `depreciation` and `hire-purchase-schedule`, and `input`, that command's arguments; see [Derivations](#derivations) |
 
 The 2 car commands, the 11 FBT benefit commands (`fbt-loan`, `fbt-meal-entertainment`, `fbt-car-parking`, `fbt-debt-waiver`, `fbt-expense-payment`, `fbt-property`, `fbt-residual`, `fbt-housing`, `fbt-lafha`, `fbt-board` and `fbt-tax-exempt-body-entertainment`), `main-residence`, `borrowing-expenses`, `division-296`, `termination-payment`, the 3 `schedule-5` commands, `working-holiday-maker-withholding`, `seniors-pensioners-withholding`, `seniors-pensioners-tax-offset`, `medicare-levy-surcharge`, `foreign-resident-tax`, `payg-gross-up` and `hire-purchase-schedule` have no Python original; their arguments follow the same
@@ -178,9 +178,10 @@ alone. A refused input gets the
 command's own refusal, any other command is refused as
 `derivation.unsupported`, and a key other than `command` and `input` as
 `input.field_unknown`. `payg-gross-up` is not derived: its gross pay is the one
-whose own Schedule 1 withholding leaves the net, found by search, so no step
-can work it out before the withholding worked on it. `derive` `payg-withholding`
-on its `gross_pay` to see that withholding worked.
+whose own withholding leaves the net, found by search, so no step can work it
+out before the withholding worked on it. `derive` `payg-withholding`, or
+`study-loan-withholding` for a payee with a study loan, on its `gross_pay` to
+see that withholding worked.
 The plain commands' output does not change.
 
 The PAYG withholding, Schedule 5 and termination payment steps cite the
@@ -261,7 +262,7 @@ they have no step.
 | Schedule 5 withholding | Weekly, fortnightly or monthly pays made from 1 July 2024 to 30 June 2027 that include back payments, commissions or bonuses, on scale 1, 2, 3, 5 or 6; the study and training support loan component for pays from 24 September 2025, and from 1 July 2026 in Method B(i) |
 | Working holiday makers | 2024-25 to 2026-27; one weekly, fortnightly or monthly payment to an established working holiday maker; no TFN exemption claimants or labour mobility schemes |
 | Seniors and pensioners | 2024-25 to 2026-27; one weekly, fortnightly or monthly payment to an established senior or pensioner who gave a TFN, by status and Medicare levy exemption; no other tax offsets or Medicare levy adjustment |
-| Personal tax estimate | Each part's own periods: 2024-25 to 2026-27, or 2025-26 and 2026-27 with a study loan; a full-year resident's or full-year foreign resident's tax and levies before credits |
+| Personal tax estimate | Each part's own periods: 2024-25 to 2026-27, or 2025-26 and 2026-27 with a study loan; a full-year resident's or full-year foreign resident's tax and levies before credits, and the refund or amount payable against tax withheld when given |
 
 Unsupported periods fail. The SG worksheet does not implement post-June 2026
 Payday entitlement rules. The separate Payday engine reviews timing on a supplied
@@ -332,17 +333,24 @@ gross. Schedule 1 withholds whole dollars and never less from a higher pay, so
 a gross leaves the net exactly when it is the net plus the withholding on it;
 the search finds every such gross, of which there is always at least one.
 
+For a payee with a study and training support loan, `study_loan` true searches
+`study_loan_withholding`'s results instead, so the gross carries Schedule 8's
+component and that worksheet's `pay_date` rule: required for 2025-26, whose
+coefficients apply from 24 September 2025, and no 2024-25 component. Scale 4
+has no component, so `study_loan` does not take it or `foreign_resident`.
+
 Where a gross a dollar higher (for a weekly pay; more for longer pay periods)
 withholds a dollar more, both leave the same net, and the worksheet refuses
 with `payg.gross_up_not_unique`, listing every gross: Schedule 1 does not say
 which one a net-agreed pay means, so take it from the pay agreement. Such ties
 are common: each dollar of withholding added as pay rises makes one. Tax offsets,
-the Medicare levy adjustment, the additional amount for 53 or 27 pays, study
-and training support loans, super and other deductions are not inputs. A net
-above $499,999,999,974.00 is refused, so that every gross the search tries is
-an amount `payg_withholding` takes. The tests gross up the net of every row of
+the Medicare levy adjustment, the additional amount for 53 or 27 pays, super
+and other deductions are not inputs. A net above $499,999,999,974.00, or
+$333,333,333,300.00 with a study loan, is refused, so that every gross the
+search tries is an amount the withholding worksheet takes. The tests gross up the net of every row of
 the ATO's sample data for both schedules to the row's earnings or a tie that
-names them; see [calculation evidence](docs/calculation-evidence.md#payg-gross-up).
+names them, and the net of each of Schedule 8's examples 1 to 3 to its
+earnings or a tie; see [calculation evidence](docs/calculation-evidence.md#payg-gross-up).
 
 ## Super contribution caps and pension minimums
 
@@ -988,6 +996,23 @@ or the surcharge. `working` names the worksheet and amount behind each line,
 and warnings, and `not_composed` lists the parts not given or not applying, each nil.
 The total is before PAYG withholding and other credits, refundable and other
 offsets, the transfer of unused SAPTO to a spouse and any refund.
+
+In place of `taxable_income` it can take whole-dollar `assessable_labour_income`
+(salary, wages and the other payments ITAA 1997 s 25-130(4) lists) with
+optional `other_assessable_income`, `work_related_deductions` (the kinds
+s 25-130(2)(c) to (g) count) and `other_deductions` (the rest, including the
+insurance premiums and association fees s 25-130(3) leaves out), and work out taxable
+income as assessable income less deductions, nil where they equal or exceed it
+(s 4-15(1)). For a resident from 2026-27 the deductions include the standard
+deduction for work-related expenses: the lesser of $1,000 and assessable labour
+income, reduced, but not below nil, by the work-related deductions (s 25-130,
+inserted by Act No. 49 of 2026, Schedule 4). The amounts then start with
+`total_assessable_income`, `standard_deduction`, `total_deductions` and
+`taxable_income`, and the parts run on that taxable income. Classifying income
+and deductions and any tax loss are the caller's. With `tax_withheld`, the
+year's PAYG withholding credit (TAA 1953 Sch 1 s 18-15(1)), the amounts end
+with `tax_withheld`, `refund` and `amount_payable`, comparing it with
+`total_before_credits`; other credits and refundable offsets are not in it.
 
 A refusal from a part keeps the part's code, and its message starts with the
 part's command, such as a sole parent's `medicare-levy-surcharge:

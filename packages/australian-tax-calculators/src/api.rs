@@ -442,10 +442,11 @@ pub fn commands() -> Vec<&'static str> {
 
 /// The commands `derive` explains: each of their amounts is worked out in a step.
 /// Every worksheet command is here except `payg-gross-up`. Its gross pay is the
-/// one whose own Schedule 1 withholding leaves the net, found by searching
-/// `payg-withholding`'s results: the withholding is worked on the gross, so no
-/// step can work the gross out from the inputs and earlier steps alone.
-/// `derive` of `payg-withholding` on its `gross_pay` shows that withholding.
+/// one whose own withholding leaves the net, found by searching
+/// `payg-withholding`'s results, or `study-loan-withholding`'s for a payee with
+/// a study loan: the withholding is worked on the gross, so no step can work
+/// the gross out from the inputs and earlier steps alone. `derive` of that
+/// command on its `gross_pay` shows that withholding.
 const DERIVED: [&str; 40] = [
     "fbt",
     "fbt-car-statutory",
@@ -681,6 +682,11 @@ fn optional(v: &Value, key: &str, kind: Kind) -> Result<Option<Arg>> {
     v.get(key).map(|_| argument(v, key, kind)).transpose()
 }
 
+/// An optional decimal input, read as every command reads one.
+pub(crate) fn optional_decimal(v: &Value, key: &str) -> Result<Option<Arg>> {
+    optional(v, key, Dec)
+}
+
 /// `json.loads` refuses an integer token of more than 4,300 digits, as
 /// `int(text)` does under Python's default limit.
 fn int_limit(value: &Value) -> Result<()> {
@@ -896,9 +902,19 @@ pub fn evaluate_coded(command: &str, v: &Value) -> Result<Value> {
             engine::payg_withholding(&a[0], &a[1], &a[2], &a[3], &a[4], &options)
         }
         "payg-gross-up" => {
-            // Optional: scale 4's residency, as payg-withholding takes it.
+            // Optional: scale 4's residency, as payg-withholding takes it, and
+            // a study loan with its pay date, as study-loan-withholding takes it.
             let foreign = v.get("foreign_resident").map(arg);
-            engine::payg_gross_up(&a[0], &a[1], &a[2], &a[3], &a[4], foreign.as_ref())
+            let study_loan = v.get("study_loan").map_or(Arg::Bool(false), arg);
+            engine::payg_gross_up(
+                &a[0],
+                &a[1],
+                &a[2],
+                &a[3],
+                &a[4],
+                foreign.as_ref(),
+                (&study_loan, pay_date.as_ref()),
+            )
         }
         "study-loan-withholding" => {
             engine::study_loan_withholding(&a[0], &a[1], &a[2], &a[3], &a[4], pay_date.as_ref())

@@ -4,7 +4,9 @@
 //! `personal-tax-estimate`: the ATO's worked figures for tax with the Medicare
 //! levy (foreign income tax offset guides 2025 and 2026, examples 16 and 17),
 //! the surcharge (Tom) and SAPTO (José), read on 15 November 2026; the order
-//! and limit of the offsets (ITAA 1997 s 63-10(1)); and every refusal
+//! and limit of the offsets (ITAA 1997 s 63-10(1)); taxable income worked out
+//! from labour income with the standard deduction and compared with the tax
+//! withheld, by hand; and every refusal
 //! (docs/calculation-evidence.md#personal-tax-estimate).
 use australian_tax_calculators::api;
 use serde_json::{Value, json};
@@ -394,4 +396,223 @@ fn exemption_days_beside_the_surcharge_are_refused() {
         "medicare_levy_exemption_full_days": 10});
     let r = refusal(input("2025-26", "50000", json!({"medicare-levy": levy})));
     assert_eq!(r.code, "estimate.surcharge_with_exemption");
+}
+
+/// A single full-year resident with hospital cover all year, whose taxable
+/// income is worked out from `income`: the labour income and the inputs beside
+/// it, and `tax_withheld` when given.
+fn from_income(year: &str, surcharge_income: &str, income: Value) -> Value {
+    let mut facts = input(year, "0", income);
+    facts.as_object_mut().unwrap().remove("taxable_income");
+    facts["medicare-levy-surcharge"]["income_for_surcharge_purposes"] = json!(surcharge_income);
+    facts
+}
+
+/// Taxable income from salary, read on 16 November 2026: ITAA 1997 s 4-15(1)
+/// (assessable income less deductions, nil where they equal or exceed it),
+/// s 25-130 as Act No. 49 of 2026 Sch 4 inserted it for 2026-27 and later
+/// years (the lesser of $1,000 and assessable labour income, reduced by the
+/// work-related deductions it lists), and TAA 1953 Sch 1 s 18-15(1) (a credit
+/// for the amounts withheld). Worked by hand: $85,000 salary, $300 of work
+/// expenses, $500 interest and $200 of union fees in 2026-27. The standard
+/// deduction is $1,000 - $300 = $700, so taxable income is $85,500 - $1,200 =
+/// $84,300. Tax is 15% of $26,800 plus 30% of $39,300, $15,810; there is no
+/// low income tax offset above $66,667; the levy is 2%, $1,686; the total is
+/// $17,496, and $16,000 withheld leaves $1,496 to pay.
+#[test]
+fn salary_works_out_taxable_income_with_the_2026_27_standard_deduction() {
+    let income = json!({"assessable_labour_income": "85000", "other_assessable_income": "500",
+        "work_related_deductions": "300", "other_deductions": "200", "tax_withheld": "16000"});
+    let out = api::evaluate(COMMAND, &from_income("2026-27", "84300", income)).unwrap();
+    let a = &out["amounts"];
+    for (key, expected) in [
+        ("total_assessable_income", "85500.00"),
+        ("standard_deduction", "700.00"),
+        ("total_deductions", "1200.00"),
+        ("taxable_income", "84300.00"),
+        ("basic_income_tax", "15810.00"),
+        ("low_income_tax_offset_applied", "0.00"),
+        ("medicare_levy", "1686.00"),
+        ("medicare_levy_surcharge", "0.00"),
+        ("total_before_credits", "17496.00"),
+        ("tax_withheld", "16000.00"),
+        ("refund", "0.00"),
+        ("amount_payable", "1496.00"),
+    ] {
+        assert_eq!(a[key], expected, "{key}");
+    }
+    let keys: Vec<&String> = a.as_object().unwrap().keys().collect();
+    let working: Vec<&String> = out["working"].as_object().unwrap().keys().collect();
+    assert_eq!(keys, working);
+    assert_eq!(
+        keys[..4],
+        [
+            "total_assessable_income",
+            "standard_deduction",
+            "total_deductions",
+            "taxable_income"
+        ]
+    );
+    // The parts run on the taxable income worked out, as if it were given.
+    let given = api::evaluate(COMMAND, &input("2026-27", "84300", json!({}))).unwrap();
+    assert_eq!(out["components"], given["components"]);
+    let sources = out["sources"].as_array().unwrap();
+    for section in [
+        "19970038/4-15",
+        "19970038/25-130",
+        "C2026A00049",
+        "19530001/Sch1-18-15",
+    ] {
+        assert!(
+            sources
+                .iter()
+                .any(|s| s.as_str().unwrap().contains(section)),
+            "{section}"
+        );
+    }
+}
+
+/// s 25-130(2): the lesser of $1,000 and assessable labour income, reduced,
+/// but not below zero, by the work-related deductions; other deductions do
+/// not reduce it.
+#[test]
+fn the_standard_deduction_is_limited_by_labour_income_and_work_deductions() {
+    for (labour, other_income, work, other, standard, taxable) in [
+        ("85000", "0", "0", "0", "1000.00", "84000.00"),
+        ("85000", "0", "1000", "0", "0.00", "84000.00"),
+        ("85000", "0", "1500", "0", "0.00", "83500.00"),
+        ("85000", "0", "0", "5000", "1000.00", "79000.00"),
+        ("600", "30000", "0", "0", "600.00", "30000.00"),
+    ] {
+        let income = json!({"assessable_labour_income": labour,
+            "other_assessable_income": other_income,
+            "work_related_deductions": work, "other_deductions": other});
+        let out = api::evaluate(COMMAND, &from_income("2026-27", taxable, income)).unwrap();
+        assert_eq!(
+            out["amounts"]["standard_deduction"], standard,
+            "{labour} {work}"
+        );
+        assert_eq!(out["amounts"]["taxable_income"], taxable, "{labour} {work}");
+    }
+}
+
+/// Before 2026-27 there is no standard deduction (Act No. 49 of 2026 Sch 4
+/// item 17(1)). $60,000 salary and $300 of work expenses in 2025-26 give
+/// $59,700: tax 16% of $26,800 plus 30% of $14,700, $8,698; the low income tax
+/// offset $325 - 1.5% of $14,700, $104.50; the levy $1,194; a total of
+/// $9,787.50, so $10,000 withheld gives a $212.50 refund. A foreign resident
+/// is not resident at any time in the year (s 25-130(1)(b)), so has none either.
+#[test]
+fn no_standard_deduction_before_2026_27_or_for_a_foreign_resident() {
+    let income = json!({"assessable_labour_income": "60000",
+        "work_related_deductions": "300", "tax_withheld": "10000"});
+    let out = api::evaluate(COMMAND, &from_income("2025-26", "59700", income)).unwrap();
+    let a = &out["amounts"];
+    for (key, expected) in [
+        ("standard_deduction", "0.00"),
+        ("taxable_income", "59700.00"),
+        ("basic_income_tax", "8698.00"),
+        ("low_income_tax_offset_applied", "104.50"),
+        ("medicare_levy", "1194.00"),
+        ("total_before_credits", "9787.50"),
+        ("refund", "212.50"),
+        ("amount_payable", "0.00"),
+    ] {
+        assert_eq!(a[key], expected, "{key}");
+    }
+    let foreign = json!({"year": "2026-27", "scope_confirmed": true,
+        "residency": "foreign_resident", "assessable_labour_income": "60000"});
+    let out = api::evaluate(COMMAND, &foreign).unwrap();
+    assert_eq!(out["amounts"]["standard_deduction"], "0.00");
+    assert_eq!(out["amounts"]["taxable_income"], "60000.00");
+}
+
+/// s 4-15(1) step 3: deductions that equal or exceed assessable income leave
+/// no taxable income. $500 of salary gives a $500 standard deduction, and
+/// $2,000 of gifts leaves $2,500 of deductions against $500.
+#[test]
+fn deductions_at_or_above_income_leave_no_taxable_income() {
+    let income = json!({"assessable_labour_income": "500", "other_deductions": "2000",
+        "tax_withheld": "0"});
+    let out = api::evaluate(COMMAND, &from_income("2026-27", "0", income)).unwrap();
+    let a = &out["amounts"];
+    assert_eq!(a["standard_deduction"], "500.00");
+    assert_eq!(a["total_deductions"], "2500.00");
+    assert_eq!(a["taxable_income"], "0.00");
+    assert_eq!(a["total_before_credits"], "0.00");
+    assert_eq!(
+        (&a["refund"], &a["amount_payable"]),
+        (&json!("0.00"), &json!("0.00"))
+    );
+}
+
+#[test]
+fn tax_withheld_also_compares_with_an_established_taxable_income() {
+    let out = api::evaluate(
+        COMMAND,
+        &input("2025-26", "60000", json!({"tax_withheld": "10000.50"})),
+    )
+    .unwrap();
+    // $8,788 tax less a $100 offset plus a $1,200 levy is $9,888.
+    assert_eq!(out["amounts"]["total_before_credits"], "9888.00");
+    assert_eq!(out["amounts"]["refund"], "112.50");
+    assert!(out["amounts"].get("taxable_income").is_none());
+}
+
+#[test]
+fn income_inputs_that_conflict_or_are_malformed_are_refused() {
+    let salary = |extra: Value| {
+        let mut income = json!({"assessable_labour_income": "85000"});
+        for (k, v) in extra.as_object().unwrap() {
+            income[k] = v.clone();
+        }
+        from_income("2026-27", "85000", income)
+    };
+    let mut both = salary(json!({}));
+    both["taxable_income"] = json!("85000");
+    let r = refusal(both);
+    assert_eq!(r.code, "input.field_unknown");
+    assert!(
+        r.message
+            .starts_with("assessable_labour_income is not an input"),
+        "{}",
+        r.message
+    );
+    let mut alone = input("2026-27", "85000", json!({"other_deductions": "200"}));
+    alone.as_object_mut().unwrap().remove("taxable_income");
+    let r = refusal(alone.clone());
+    assert_eq!(
+        (r.code, r.message.as_str()),
+        (
+            "input.missing_field",
+            "assessable_labour_income is required with other_deductions"
+        )
+    );
+    alone.as_object_mut().unwrap().remove("other_deductions");
+    let r = refusal(alone);
+    assert_eq!(
+        (r.code, r.message.as_str()),
+        (
+            "input.missing_field",
+            "taxable_income or assessable_labour_income is required"
+        )
+    );
+    for (extra, code) in [
+        (
+            json!({"assessable_labour_income": "85000.50"}),
+            "input.amount_not_whole_dollars",
+        ),
+        (
+            json!({"work_related_deductions": "-1"}),
+            "input.amount_invalid",
+        ),
+        (
+            json!({"other_assessable_income": 500}),
+            "input.amount_invalid",
+        ),
+        (json!({"tax_withheld": "1.234"}), "input.amount_invalid"),
+        (json!({"tax_withheld": "ten"}), "input.decimal_unreadable"),
+    ] {
+        assert_eq!(refusal(salary(extra.clone())).code, code, "{extra}");
+    }
 }

@@ -157,7 +157,7 @@ fn sources(kind: &str) -> Vec<&'static str> {
 }
 
 /// `_money`: a finite non-negative Decimal at most 2dp and 1e12.
-fn money(value: &Arg) -> Result<Decimal> {
+pub(crate) fn money(value: &Arg) -> Result<Decimal> {
     let bad = || {
         refuse(
             "input.amount_invalid",
@@ -195,7 +195,7 @@ fn scope(confirmed: &Arg, year: &Arg, kind: &str) -> Result<String> {
     }
 }
 
-fn whole_dollars(income: &Decimal, what: &str) -> Result<()> {
+pub(crate) fn whole_dollars(income: &Decimal, what: &str) -> Result<()> {
     if !income.equals(&income.to_integral_value()?)? {
         return refuse(
             "input.amount_not_whole_dollars",

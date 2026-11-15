@@ -80,7 +80,7 @@ pub const SCOPES: &[(&str, &str)] = &[
     ),
     (
         "payg_gross_up",
-        "The gross pay for one regular weekly, fortnightly, monthly or quarterly payment of salary or wages made from 1 July 2024, in the income year given, whose Schedule 1 withholding on the scale the operator established leaves the net pay given, as for pay agreed net of tax. It searches payg-withholding's own results, so payg-withholding's scope applies, with scale 4 taking foreign_resident as it does there. Excludes tax offsets, the Medicare levy adjustment, the additional amount for 53 or 27 pays, study and training support loans, super and other deductions from pay. Refused where more than one gross leaves the net, as Schedule 1 withholds whole dollars.",
+        "The gross pay for one regular weekly, fortnightly, monthly or quarterly payment of salary or wages made from 1 July 2024, in the income year given, whose Schedule 1 withholding on the scale the operator established leaves the net pay given, as for pay agreed net of tax. It searches payg-withholding's own results, so payg-withholding's scope applies, with scale 4 taking foreign_resident as it does there. With study_loan, it searches study-loan-withholding's results instead, whose scope applies: Schedule 1 with Schedule 8's study and training support loan component, for the pay date where the year needs one, on scales 1, 2, 3, 5 and 6. Excludes tax offsets, the Medicare levy adjustment, the additional amount for 53 or 27 pays, super and other deductions from pay. Refused where more than one gross leaves the net, as Schedule 1 withholds whole dollars.",
     ),
     (
         "contribution_caps",
@@ -467,6 +467,8 @@ pub const EXTRA_SOURCES: &[(&str, &[&str])] = &[
         "payg_gross_up",
         &[
             "https://www.ato.gov.au/tax-rates-and-codes/schedule-1-tax-table-01-july-2024-to-30-june-2026",
+            "https://www.ato.gov.au/tax-rates-and-codes/schedule-8-statement-of-formulas-for-calculating-study-and-training-support-loans-components",
+            "https://www.legislation.gov.au/F2025L01016/asmade/text",
         ],
     ),
     (
@@ -999,11 +1001,11 @@ pub const REFUSAL_CODES: &[(&str, &str)] = &[
     ),
     (
         "payg.foreign_resident_not_scale_4",
-        "Residency was given for a scale other than 4, which settles it itself.",
+        "Residency was given for a scale other than 4, which settles it itself, or beside a study loan, which scale 4 cannot have.",
     ),
     (
         "payg.gross_up_net_too_large",
-        "A net pay to gross up is so large that a gross leaving it could exceed the largest amount payg-withholding takes.",
+        "A net pay to gross up is so large that a gross leaving it could exceed the largest amount the withholding worksheet takes.",
     ),
     (
         "payg.gross_up_not_unique",

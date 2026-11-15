@@ -732,13 +732,33 @@ and 2025-26), and scale 4 withholds at most 47%, so a week's amount is at most
 the 99 cents added to weekly earnings; `tests/payg_gross_up.rs` checks those
 coefficients.
 
+With `study_loan`, the search takes the study loan withholding worksheet's
+amount: the Schedule 1 amount plus Schedule 8's component, each rounded on its
+own, which Schedule 8's 'Software' paragraph accepts in place of its combined
+coefficients. Every component `a` is at most 0.17 and every `b` at least 0, so
+a week's total is at most `0.64 x + 2` and withholding on a gross `g` at most
+`0.64 g + 35`; a fixed point `w` then has `w <= (0.64 n + 35) / 0.36`, below
+`16 m / 9 + 99` for `m` the whole dollars of `n`, so as a whole number of
+dollars `w` is at most `2 m + 98`, the bound. That worksheet's withholding never falls as weekly
+earnings rise to $4,000, past every bracket edge (`tests/properties.rs`). The
+ATO's Schedule 8 for payments from 1 July 2026 (published 17 June 2026) and its
+Schedule 1 weekly coefficients were read on 16 November 2026. Schedule 8 gives
+the component only, so `tests/payg_gross_up.rs` works each total by hand. Its
+examples 1 and 2 (weekly $2,608.36 and fortnightly $4,409.75 on scale 2)
+withhold $654 + $193 = $847 and $1,048 + $260 = $1,308 and gross up to their
+earnings; example 3 (monthly $10,627.88 on scale 1) withholds $3,155 + $979 =
+$4,134, and $10,622.88 leaves the same net, so it is refused as a tie naming
+both. The combined coefficients give the same 3 totals. F2025L01016's example 1
+for 2025-26 withholds $659 + $202 = $861 and ties with $2,609.36 and $2,610.36.
+
 For each row of the ATO's sample data used above (48 earnings points for each
 of 3 pay periods on scales 1, 2, 3, 5 and 6, for both schedules), the tests
 take the row's earnings less its withholding as the net and require the
 worksheet to return the row's earnings or to refuse a tie whose list names
 them. `tests/properties.rs` grosses up random nets on every scale, pay period
 and year, and requires each gross listed to leave the net and no other within
-$60 of withholding either side of them to.
+$60 of withholding either side of them to, and does the same with a study
+loan on every scale and pay period of both Schedule 8 years.
 
 ## Medicare levy
 
@@ -1584,6 +1604,28 @@ liability; the ATO's "Low income tax offset" (last updated 8 June 2026), which
 says the offset "can only reduce your tax payable to $0"; and its "Division 293
 tax on concessional contributions by high-income earners" (last updated
 24 August 2026), under which the ATO sends a separate Division 293 notice.
+These were read again on 16 November 2026 and are unchanged, apart from s 63-10's
+new item 3 for the working Australians tax offset, which applies from 2027-28.
+
+Taxable income from labour income, read on 16 November 2026 on the ATO legal
+database: ITAA 1997 s 4-15(1), taxable income is assessable income less
+deductions, and where the deductions equal or exceed assessable income there is
+no taxable income (step 3); s 25-130, the standard deduction for work-related
+expenses, inserted by Schedule 4 to the Treasury Laws Amendment (Tax Reform
+No. 1) Act 2026 (No. 49 of 2026, assented to 26 June 2026, Schedule 4 commenced
+1 July 2026), whose item 17(1) applies it to assessments for the 2026-27 income
+year and later years, read on the Federal Register of Legislation as made. It
+gives a resident with assessable labour income the lesser of $1,000 and that
+income, reduced, but not below zero, by the deductions in s 25-130(2)(c) to (g),
+so the work-related deductions and the standard deduction together are the
+greater of the work-related deductions and that lesser amount. TAA 1953 Sch 1
+s 18-15(1) gives a credit equal to the amounts withheld in the year once an
+assessment is made. The tests work their figures by hand: $85,000 salary,
+$300 of work expenses, $500 interest and $200 of union fees in 2026-27 give a
+$700 standard deduction, $84,300 taxable income, $15,810 tax, a $1,686 levy and
+$17,496, so $1,496 is payable after $16,000 withheld; $60,000 salary and $300
+of work expenses in 2025-26 give $59,700, $8,698 tax less a $104.50 offset plus
+a $1,194 levy, $9,787.50, and a $212.50 refund after $10,000 withheld.
 
 The foreign income tax offset rules guides for 2025 (2024-25, last updated 29
 May 2025) and 2026 (2025-26, last updated 30 May 2026) give, at step 1 of

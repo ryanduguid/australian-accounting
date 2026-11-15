@@ -90,6 +90,18 @@ intentionally changed.
   describe different spouses or dependants) and `input.residency_invalid`.
   `tests/personal_tax_estimate.rs` holds it to the ATO's figures, and
   `tests/properties.rs` to the sum of its parts.
+- `personal-tax-estimate` can work out taxable income from whole-dollar
+  `assessable_labour_income`, `other_assessable_income`,
+  `work_related_deductions` and `other_deductions` in place of
+  `taxable_income` (ITAA 1997 s 4-15(1)), with the standard deduction for
+  work-related expenses for a resident from 2026-27 (s 25-130, Act No. 49 of
+  2026 Schedule 4), and compare the total with `tax_withheld` (TAA 1953 Sch 1
+  s 18-15(1)) to give `refund` and `amount_payable`. Its sources add those 3
+  sections and the Act. An estimate given neither `taxable_income` nor
+  `assessable_labour_income` is refused as `input.missing_field` with its own
+  message. The result for an established `taxable_income` without
+  `tax_withheld` is unchanged apart from its sources, scope and
+  `source_checked`.
 - `derive` also covers `working-holiday-maker-withholding`,
   `study-loan-withholding`, `seniors-pensioners-withholding`, `quarterly-sg`
   and `borrowing-expenses`. Their steps cite the headings of Schedules 1, 8, 9
@@ -343,6 +355,14 @@ intentionally changed.
   within $60 of withholding does. `tests/refusal_codes.rs` now also reads the
   engine's modules under `src/engine/`, and `payg-withholding` and
   `study-loan-withholding` share one argument list.
+- `payg-gross-up` takes `study_loan` and, with it, `pay_date`: it then
+  searches `study-loan-withholding`'s results, so the gross carries Schedule
+  8's component for 2026-27 and for 2025-26 pays from 24 September 2025. Scale
+  4 and `foreign_resident` are refused with it, as is a net above
+  $333,333,333,300.00. `tests/payg_gross_up.rs` grosses up the net of Schedule
+  8's examples 1 to 3 for 2026-27 and example 1 for 2025-26, worked by hand,
+  and `tests/properties.rs` checks random nets with a study loan as without.
+  The result without `study_loan` is unchanged.
 - `hire-purchase-schedule` sets out a hire purchase agreement month by month
   for the hirer, the notional buyer under ITAA 1997 s 240-17(2), for
   agreements starting in 2024-25 to 2026-27: level monthly instalments in

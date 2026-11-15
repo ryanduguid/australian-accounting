@@ -290,11 +290,14 @@ you configure. As read on 13 November 2026, these projects cover nearby ground:
   study loan component to Schedule 9 pays, as rechecked in v0.4.0's source on 15 November 2026;
   for 2025-26 the library applies the rates from 24 September 2025 when no pay date is given,
   where this repository requires the date.
-  Both compose a year's tax and levies, as rechecked on
-  15 November 2026: the library's `annual_tax_estimate` works taxable income out from salary and
-  deductions, approximates repayment income and income for surcharge purposes by taxable income,
-  and compares the result with tax withheld, which this repository does not. This repository's
-  `personal-tax-estimate` takes those incomes as established, names the worksheet behind each line
+  Both compose a year's tax and levies, work taxable income out from salary and deductions with
+  the $1,000 standard deduction for work-related expenses from 2026-27, and compare the result
+  with tax withheld, as rechecked in the library's source on 16 November 2026. The library's
+  `annual_tax_estimate` approximates repayment income and income for surcharge purposes by taxable
+  income, estimates the tax withheld from one employer's salary and pay frequency, and covers
+  2027-28 with the working Australians tax offset, which this repository does not. This
+  repository's `personal-tax-estimate` takes those incomes and the tax withheld as established,
+  names the worksheet behind each line
   and keeps its sources and refusals, shows Division 293 tax, and refuses part-year residents and
   working holiday makers; both compose a full-year foreign resident's tax without the Medicare
   levy. Both apply full and half Medicare levy exemptions and the Medicare levy
@@ -304,8 +307,9 @@ you configure. As read on 13 November 2026, these projects cover nearby ground:
   examples do. The library also covers a sole parent's surcharge, which this repository refuses.
   Both work back from take-home pay to gross: v0.4.0's `salary_for_take_home`, read on
   15 November 2026, gives the lowest whole-dollar annual salary whose take-home reaches a target,
-  with any study loan component, and `payg-gross-up` gives the gross of one pay whose withholding
-  leaves the net exactly, without one, listing every gross where more than one does.
+  with any study loan component, and `payg-gross-up` gives the gross of one pay, with or without
+  the component, whose withholding leaves the net exactly, listing every gross where more than one
+  does.
   This repository covers 2024-25
   withholding, Schedule 9's Medicare levy exemption scales, Schedule 5 Method B, Schedule 15 for
   working holiday makers and Schedule 11 for termination payments, which the library does not. For
