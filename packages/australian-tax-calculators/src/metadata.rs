@@ -997,7 +997,11 @@ pub fn source_review(kind: &str) -> (&'static str, &'static str) {
             "2026-09-10",
             "Super guarantee, tables 21 and 24, 2025-26 rows",
         ),
-        "payg_withholding" | "payg_gross_up" => (
+        "payg_gross_up" => (
+            "2026-11-16",
+            "Schedule 1 (NAT 1004) and Schedule 8 (NAT 3539) for payments from 1 July 2026: Schedule 1's weekly coefficients, Schedule 8's component rates and its coefficients with the component, examples 1 to 3, calculating fortnightly, monthly and quarterly amounts, rounding and software; earlier payments as payg_withholding and study_loan_withholding record",
+        ),
+        "payg_withholding" => (
             "2026-11-14",
             "Schedule 1 (NAT 1004) for payments from 1 July 2026, and for payments from 1 July 2024 to 30 June 2026: weekly coefficients and scale 4, using a formula (rounding and the 53 and 27 pay tables), working out the weekly earnings (quarterly pays and tax offsets), Medicare levy adjustment, examples of calculating the withholding amounts, sample data",
         ),
@@ -1193,10 +1197,10 @@ pub fn library_evidence(kind: &str) -> [(&'static str, &'static str); 4] {
             "2026-11-14",
         ),
         "payg_gross_up" => (
-            "ATO Schedule 1 sample data",
-            "withholding amounts: weekly, fortnightly and monthly tables, each row's net pay grossed up",
+            "ATO Schedule 1 sample data; ATO Schedule 8 statement of formulas for STSL components, and F2025L01016 Schedule 8 for 2025-26",
+            "withholding amounts: weekly, fortnightly and monthly tables, each row's net pay grossed up; Schedule 8 examples 1 to 3, each pay's net after the Schedule 1 amount and the component grossed up",
             "2026-06-17",
-            "2026-11-15",
+            "2026-11-16",
         ),
         "contribution_caps" => (
             "tax-examples-individuals",
@@ -1369,8 +1373,16 @@ pub fn optional_inputs(kind: &str) -> Vec<(&'static str, &'static str)> {
                 "boolean, weekly and fortnightly pays only: true when the financial year has 53 weekly or 27 fortnightly pays and the payee asked for the additional amount",
             ),
         ],
-        // Scale 4's residency, which payg_withholding lists first.
-        "payg_gross_up" => optional_inputs("payg_withholding")[..1].to_vec(),
+        // Scale 4's residency, which payg_withholding lists first, then a
+        // study loan, with the pay date as seniors_pensioners_withholding takes it.
+        "payg_gross_up" => vec![
+            optional_inputs("payg_withholding")[0],
+            (
+                "study_loan",
+                "boolean, whether the payee declared a study and training support loan debt and claimed no Medicare levy reduction for a spouse or dependants and low family income; true grosses up study-loan-withholding's amount, which adds Schedule 8's component, for 2026-27 and 2025-26 pays made from 24 September 2025; not with scale 4 or foreign_resident; omit for false",
+            ),
+            optional_inputs("seniors_pensioners_withholding")[1],
+        ],
         "study_loan_withholding" => vec![(
             "pay_date",
             "YYYY-MM-DD date the payment is made, within the income year; required for 2025-26, whose Schedule 8 coefficients apply from 24 September 2025",

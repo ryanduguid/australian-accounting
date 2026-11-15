@@ -720,13 +720,32 @@ and 2025-26), and scale 4 withholds at most 47%, so a week's amount is at most
 the 99 cents added to weekly earnings; `tests/payg_gross_up.rs` checks those
 coefficients.
 
+With `study_loan`, the search takes the study loan withholding worksheet's
+amount: the Schedule 1 amount plus Schedule 8's component, each rounded on its
+own, which Schedule 8's 'Software' paragraph accepts in place of its combined
+coefficients. Every component `a` is at most 0.17 and every `b` at least 0, so
+a week's total is at most `0.64 x + 2` and withholding on a gross `g` at most
+`0.64 g + 35`; a fixed point `w` then has `w <= (0.64 n + 35) / 0.36`, so the
+bound is `2 n + 98`. That worksheet's withholding never falls as weekly
+earnings rise to $4,000, past every bracket edge (`tests/properties.rs`). The
+ATO's Schedule 8 for payments from 1 July 2026 (published 17 June 2026) and its
+Schedule 1 weekly coefficients were read on 16 November 2026. Schedule 8 gives
+the component only, so `tests/payg_gross_up.rs` works each total by hand. Its
+examples 1 and 2 (weekly $2,608.36 and fortnightly $4,409.75 on scale 2)
+withhold $654 + $193 = $847 and $1,048 + $260 = $1,308 and gross up to their
+earnings; example 3 (monthly $10,627.88 on scale 1) withholds $3,155 + $979 =
+$4,134, and $10,622.88 leaves the same net, so it is refused as a tie naming
+both. The combined coefficients give the same 3 totals. F2025L01016's example 1
+for 2025-26 withholds $659 + $202 = $861 and ties with $2,609.36 and $2,610.36.
+
 For each row of the ATO's sample data used above (48 earnings points for each
 of 3 pay periods on scales 1, 2, 3, 5 and 6, for both schedules), the tests
 take the row's earnings less its withholding as the net and require the
 worksheet to return the row's earnings or to refuse a tie whose list names
 them. `tests/properties.rs` grosses up random nets on every scale, pay period
 and year, and requires each gross listed to leave the net and no other within
-$60 of withholding either side of them to.
+$60 of withholding either side of them to, and does the same with a study
+loan on every scale and pay period of both Schedule 8 years.
 
 ## Medicare levy
 
