@@ -180,17 +180,6 @@ const SCHEDULE_5: [(&str, &str, &str); 14] = [
         B_I,
         r#"{"earnings": "4346.33", "back_payment_periods": [{"earnings": "4246.33", "back_payment": "100.00", "withheld": "560.00"}], "pay_period": "monthly"}"#,
     ),
-    // Figures in exponent form and negative zeros, as a list item may give them.
-    (
-        "b_i_exponent",
-        B_I,
-        r#"{"earnings": "1.7E+3", "back_payment_periods": [{"earnings": "1.6E+3", "back_payment": "1E+2", "withheld": "3.31E+2"}, {"earnings": "1600.00", "back_payment": "5E+1", "withheld": "-0.00"}], "pay_period": "weekly"}"#,
-    ),
-    (
-        "b_i_negative_zero",
-        B_I,
-        r#"{"earnings": "1700.00", "back_payment_periods": [{"earnings": "1600.00", "back_payment": "-0.00", "withheld": "331.00"}], "pay_period": "weekly"}"#,
-    ),
     // Example 3, Laura: $2,480 of arrears averaged over 26 fortnights.
     (
         "laura",
@@ -213,6 +202,17 @@ const SCHEDULE_5: [(&str, &str, &str); 14] = [
         "b_ii_nil",
         B_II,
         r#"{"earnings": "1800.00", "additional_payment": "2480.00", "year_to_date_earnings": "18000.00", "pay_periods_to_date": 10, "earlier_additional_payments": "1000.00", "earlier_additional_withholding": "9999.00", "pay_period": "fortnightly"}"#,
+    ),
+    // Figures in exponent form and negative zeros, as a list item may give them.
+    (
+        "b_i_exponent",
+        B_I,
+        r#"{"earnings": "1.7E+3", "back_payment_periods": [{"earnings": "1.6E+3", "back_payment": "1E+2", "withheld": "3.31E+2"}, {"earnings": "1600.00", "back_payment": "5E+1", "withheld": "-0.00"}], "pay_period": "weekly"}"#,
+    ),
+    (
+        "b_i_negative_zero",
+        B_I,
+        r#"{"earnings": "1700.00", "back_payment_periods": [{"earnings": "1600.00", "back_payment": "-0.00", "withheld": "331.00"}], "pay_period": "weekly"}"#,
     ),
 ];
 
