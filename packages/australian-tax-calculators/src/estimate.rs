@@ -5,12 +5,62 @@
 //! composed from the worksheets that work out each part. Each part comes from
 //! its own command through [`evaluate_coded`], unchanged, with its own scope,
 //! sources and warnings; this module only applies the offsets against basic
-//! income tax and adds the parts up.
-use crate::api::{Refusal, evaluate_coded, takes};
+//! income tax and adds the parts up. It can work out taxable income from
+//! labour income and deductions first, and compare the total with the tax
+//! withheld.
+use crate::api::{Refusal, evaluate_coded, optional_decimal, takes};
 use crate::decimal::{Decimal, Rounding, Signal};
+use crate::engine;
 use serde_json::{Map, Value, json};
 
 const COMMAND: &str = "personal-tax-estimate";
+
+/// The inputs taxable income is worked out from, in place of
+/// `taxable_income`: the first is required for it, the others optional.
+const INCOME_INPUTS: [&str; 4] = [
+    "assessable_labour_income",
+    "other_assessable_income",
+    "work_related_deductions",
+    "other_deductions",
+];
+
+/// The year from which ITAA 1997 s 25-130 gives the standard deduction for
+/// work-related expenses: Act No. 49 of 2026 Sch 4 item 17(1) applies it to
+/// assessments for the 2026-27 income year and later years.
+const STANDARD_DEDUCTION_FROM: &str = "2026-27";
+
+/// Where each amount worked out before the parts comes from.
+const INCOME_WORKING: [(&str, &str); 4] = [
+    (
+        "total_assessable_income",
+        "assessable_labour_income + other_assessable_income",
+    ),
+    (
+        "standard_deduction",
+        "max(0, min(1000, assessable_labour_income) - work_related_deductions) for a resident from 2026-27 (ITAA 1997 s 25-130(1) and (2)); nil for a foreign resident and before 2026-27",
+    ),
+    (
+        "total_deductions",
+        "work_related_deductions + standard_deduction + other_deductions",
+    ),
+    (
+        "taxable_income",
+        "total_assessable_income - total_deductions, nil where the deductions equal or exceed it (ITAA 1997 s 4-15(1)); any tax loss is not worked out",
+    ),
+];
+
+/// Where each amount compared with the tax withheld comes from.
+const CREDIT_WORKING: [(&str, &str); 3] = [
+    (
+        "tax_withheld",
+        "tax_withheld: the amounts withheld from withholding payments in the year, a credit once assessed (TAA 1953 Sch 1 s 18-15(1))",
+    ),
+    ("refund", "max(0, tax_withheld - total_before_credits)"),
+    (
+        "amount_payable",
+        "max(0, total_before_credits - tax_withheld)",
+    ),
+];
 
 /// The inputs given once, for every part that takes them.
 const SHARED: [&str; 3] = ["year", "scope_confirmed", "taxable_income"];
@@ -87,9 +137,13 @@ fn takes_object(command: &str) -> bool {
     )
 }
 
-const SCOPE: &str = "One individual who was an Australian resident for the full income year and not a working holiday maker, or a foreign resident for the full year, with established whole-dollar taxable income. For a resident, composes resident-tax, low-income-tax-offset, medicare-levy and medicare-levy-surcharge, and seniors-pensioners-tax-offset, study-loan-repayment and division-293 when their inputs are given; confirming scope confirms the scope each of them states under components, where each keeps its own sources and warnings. For a foreign resident, composes foreign-resident-tax and, when its inputs are given, division-293: a foreign resident has no low income tax offset (ITAA 1997 s 61-110(1)(a)) and pays no Medicare levy or surcharge (ITAA 1936 s 251S(1)(a)); the estimate refuses the seniors and pensioners tax offset for one, and a study loan repayment, which for a foreign resident includes the overseas levy on worldwide income that no worksheet here works out. Applies the seniors and pensioners tax offset, then the low income tax offset, against basic income tax only, never below nil (ITAA 1997 s 63-10(1) items 5 and 20); neither reduces the Medicare levy or the surcharge. The total is before PAYG withholding and other credits, refundable offsets, every other tax offset (such as the private health insurance, franking and foreign income tax offsets), the transfer of unused SAPTO to a spouse and any refund or amount payable. Division 293 tax is shown but left out of the total, because it is assessed on its own notice. Takes taxable income as established; does not work it out from income and deductions. Refuses part-year residents and working holiday makers, and parts that describe different families: a spouse in one part but not another, 2 spouse taxable incomes, or dependants without a spouse, whom the surcharge worksheet excludes.";
+const SCOPE: &str = "One individual who was an Australian resident for the full income year and not a working holiday maker, or a foreign resident for the full year, with established whole-dollar taxable income, or with established whole-dollar assessable labour income (ITAA 1997 s 25-130(4)), other assessable income, work-related deductions of the kinds s 25-130(2)(c) to (g) count and other deductions, from which taxable income is worked out (s 4-15(1)), with the standard deduction for work-related expenses (s 25-130) for a resident from 2026-27. For a resident, composes resident-tax, low-income-tax-offset, medicare-levy and medicare-levy-surcharge, and seniors-pensioners-tax-offset, study-loan-repayment and division-293 when their inputs are given; confirming scope confirms the scope each of them states under components, where each keeps its own sources and warnings. For a foreign resident, composes foreign-resident-tax and, when its inputs are given, division-293: a foreign resident has no low income tax offset (ITAA 1997 s 61-110(1)(a)) and pays no Medicare levy or surcharge (ITAA 1936 s 251S(1)(a)); the estimate refuses the seniors and pensioners tax offset for one, and a study loan repayment, which for a foreign resident includes the overseas levy on worldwide income that no worksheet here works out. Applies the seniors and pensioners tax offset, then the low income tax offset, against basic income tax only, never below nil (ITAA 1997 s 63-10(1) items 5 and 20); neither reduces the Medicare levy or the surcharge. The total is before PAYG withholding and other credits, refundable offsets, every other tax offset (such as the private health insurance, franking and foreign income tax offsets), the transfer of unused SAPTO to a spouse and any refund or amount payable. Division 293 tax is shown but left out of the total, because it is assessed on its own notice. When tax_withheld is given, the total is compared with it (TAA 1953 Sch 1 s 18-15(1)) to give a refund or an amount payable before every other credit, refundable offset and amount owed. Classifying income and deductions, any tax loss and the limits on deductions that would create one are the operator's. Refuses part-year residents and working holiday makers, and parts that describe different families: a spouse in one part but not another, 2 spouse taxable incomes, or dependants without a spouse, whom the surcharge worksheet excludes.";
 
-const SOURCES: [&str; 5] = [
+const SOURCES: [&str; 9] = [
+    "https://www.ato.gov.au/law/view/document?docid=PAC/19970038/4-15",
+    "https://www.ato.gov.au/law/view/document?docid=PAC/19970038/25-130",
+    "https://www.legislation.gov.au/C2026A00049/asmade/text",
+    "https://www.ato.gov.au/law/view/document?docid=PAC/19530001/Sch1-18-15",
     "https://www.ato.gov.au/law/view/document?docid=PAC/19970038/63-10",
     "https://www.ato.gov.au/law/view/document?docid=PAC/19970038/61-110",
     "https://www.ato.gov.au/law/view/document?docid=PAC/19360027/251S",
@@ -195,6 +249,8 @@ fn check_residency(v: &Value) -> Result<bool, Refusal> {
 fn check_fields(v: &Value) -> Result<(), Refusal> {
     let taken = |key: &str| {
         key == "residency"
+            || key == "tax_withheld"
+            || INCOME_INPUTS.contains(&key)
             || SHARED.contains(&key)
             || PARTS.iter().any(|(c, ..)| *c == key && takes_object(c))
     };
@@ -407,6 +463,84 @@ fn compose_amounts(results: &Map<String, Value>, foreign: bool) -> Result<[Decim
     ])
 }
 
+/// An optional amount input, refused as every worksheet refuses an amount,
+/// and as a whole number of dollars unless `cents`.
+fn amount_input(v: &Value, key: &str, cents: bool) -> Result<Option<Decimal>, Refusal> {
+    let refused = |e: engine::Error| Refusal::new(e.code(), e.to_string());
+    let Some(given) = optional_decimal(v, key)? else {
+        return Ok(None);
+    };
+    let amount = engine::money(&given).map_err(refused)?;
+    if !cents {
+        engine::whole_dollars(&amount, key).map_err(refused)?;
+    }
+    Ok(Some(amount))
+}
+
+fn greater(a: Decimal, b: Decimal) -> Result<Decimal, Refusal> {
+    Ok(if a.lt(&b).map_err(signal)? { b } else { a })
+}
+
+/// Taxable income worked out from `assessable_labour_income` and the inputs
+/// beside it, as [`INCOME_WORKING`]'s amounts; `None` when `taxable_income`
+/// is given instead, which excludes them.
+fn income_from_labour(v: &Value, foreign: bool) -> Result<Option<[Decimal; 4]>, Refusal> {
+    let given = |key: &str| v.get(key).is_some();
+    if given("taxable_income") {
+        if let Some(key) = INCOME_INPUTS.iter().find(|k| given(k)) {
+            return Err(Refusal::new(
+                "input.field_unknown",
+                format!(
+                    "{key} is not an input of {COMMAND} beside taxable_income: give taxable_income, or assessable_labour_income to work it out"
+                ),
+            ));
+        }
+        return Ok(None);
+    }
+    if !given(INCOME_INPUTS[0]) {
+        if let Some(key) = INCOME_INPUTS[1..].iter().find(|k| given(k)) {
+            return Err(Refusal::new(
+                "input.missing_field",
+                format!("assessable_labour_income is required with {key}"),
+            ));
+        }
+        return Err(Refusal::new(
+            "input.missing_field",
+            "taxable_income or assessable_labour_income is required",
+        ));
+    }
+    let mut inputs = Vec::new();
+    for key in INCOME_INPUTS {
+        inputs.push(amount_input(v, key, false)?.unwrap_or_else(|| Decimal::from_int(0)));
+    }
+    let [labour, other_income, work, other] = <[Decimal; 4]>::try_from(inputs).expect("4 inputs");
+    let calc = |r: Result<Decimal, Signal>| r.map_err(signal);
+    let nil = Decimal::from_int(0);
+    let from_2026_27 = v["year"]
+        .as_str()
+        .is_some_and(|year| year >= STANDARD_DEDUCTION_FROM);
+    let standard = if foreign || !from_2026_27 {
+        nil.clone()
+    } else {
+        let limit = lesser(Decimal::from_int(1000), labour.clone())?;
+        greater(nil.clone(), calc(limit.sub(&work))?)?
+    };
+    let assessable = calc(labour.add(&other_income))?;
+    let deductions = calc(calc(work.add(&standard))?.add(&other))?;
+    let taxable = greater(nil, calc(assessable.sub(&deductions))?)?;
+    Ok(Some([assessable, standard, deductions, taxable]))
+}
+
+/// The refund and amount payable when the total is compared with the tax
+/// withheld, as [`CREDIT_WORKING`]'s amounts.
+fn credit_lines(withheld: Decimal, total: &Decimal) -> Result<[Decimal; 3], Refusal> {
+    let calc = |r: Result<Decimal, Signal>| r.map_err(signal);
+    let nil = Decimal::from_int(0);
+    let refund = greater(nil.clone(), calc(withheld.sub(total))?)?;
+    let payable = greater(nil, calc(total.sub(&withheld))?)?;
+    Ok([withheld, refund, payable])
+}
+
 /// `personal-tax-estimate`: the composed amounts, where each came from, and
 /// every part's own result.
 pub fn compose(v: &Value) -> Result<Value, Refusal> {
@@ -414,26 +548,45 @@ pub fn compose(v: &Value) -> Result<Value, Refusal> {
     let foreign = check_residency(v)?;
     check_family(v)?;
     check_exemption(v)?;
-    let results = run_parts(v, foreign)?;
-    let mut amounts = Map::new();
-    for ((key, _), value) in WORKING.iter().zip(compose_amounts(&results, foreign)?) {
+    let income = income_from_labour(v, foreign)?;
+    let withheld = amount_input(v, "tax_withheld", true)?;
+    let mut facts = v.clone();
+    if let Some(lines) = &income {
+        facts["taxable_income"] = json!(lines[3].to_string());
+    }
+    let results = run_parts(&facts, foreign)?;
+    let composed = compose_amounts(&results, foreign)?;
+    let credits = match withheld {
+        Some(withheld) => Some(credit_lines(withheld, &composed[7])?),
+        None => None,
+    };
+    let mut part_working: Vec<(&str, &str)> = WORKING.to_vec();
+    if foreign {
+        for (key, line) in FOREIGN_WORKING {
+            let at = part_working.iter().position(|(k, _)| *k == key);
+            part_working[at.expect("a WORKING line")].1 = line;
+        }
+    }
+    let lines = income
+        .into_iter()
+        .flat_map(|lines| INCOME_WORKING.into_iter().zip(lines))
+        .chain(part_working.into_iter().zip(composed))
+        .chain(
+            credits
+                .into_iter()
+                .flat_map(|lines| CREDIT_WORKING.into_iter().zip(lines)),
+        );
+    let (mut amounts, mut working) = (Map::new(), Map::new());
+    for ((key, line), value) in lines {
         let cents = value.quantize(-2, Rounding::HalfUp).map_err(signal)?;
-        amounts.insert((*key).into(), json!(cents.to_string()));
+        amounts.insert(key.into(), json!(cents.to_string()));
+        working.insert(key.into(), json!(line));
     }
     let not_composed: Vec<&str> = PARTS
         .iter()
         .map(|&(c, ..)| part_for(c, foreign).unwrap_or(c))
         .filter(|c| !results.contains_key(*c))
         .collect();
-    let mut working: Map<String, Value> = WORKING
-        .iter()
-        .map(|(k, w)| ((*k).into(), json!(w)))
-        .collect();
-    if foreign {
-        for (key, line) in FOREIGN_WORKING {
-            working[key] = json!(line);
-        }
-    }
     let basic = &results[part_for("resident-tax", foreign).expect("basic tax")];
     Ok(json!({
         "ok": true,
@@ -448,7 +601,7 @@ pub fn compose(v: &Value) -> Result<Value, Refusal> {
         "components": results,
         "scope": SCOPE,
         "sources": SOURCES,
-        "source_checked": "2026-11-15",
+        "source_checked": "2026-11-16",
         "warnings": [
             "Operator-confirmed facts and scope; eligibility is not independently verified.",
             "Worksheet only, not advice, an assessment or a lodgment. Obtain human review.",

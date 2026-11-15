@@ -673,6 +673,11 @@ fn optional(v: &Value, key: &str, kind: Kind) -> Result<Option<Arg>> {
     v.get(key).map(|_| argument(v, key, kind)).transpose()
 }
 
+/// An optional decimal input, read as every command reads one.
+pub(crate) fn optional_decimal(v: &Value, key: &str) -> Result<Option<Arg>> {
+    optional(v, key, Dec)
+}
+
 /// `json.loads` refuses an integer token of more than 4,300 digits, as
 /// `int(text)` does under Python's default limit.
 fn int_limit(value: &Value) -> Result<()> {
@@ -888,9 +893,19 @@ pub fn evaluate_coded(command: &str, v: &Value) -> Result<Value> {
             engine::payg_withholding(&a[0], &a[1], &a[2], &a[3], &a[4], &options)
         }
         "payg-gross-up" => {
-            // Optional: scale 4's residency, as payg-withholding takes it.
+            // Optional: scale 4's residency, as payg-withholding takes it, and
+            // a study loan with its pay date, as study-loan-withholding takes it.
             let foreign = v.get("foreign_resident").map(arg);
-            engine::payg_gross_up(&a[0], &a[1], &a[2], &a[3], &a[4], foreign.as_ref())
+            let study_loan = v.get("study_loan").map_or(Arg::Bool(false), arg);
+            engine::payg_gross_up(
+                &a[0],
+                &a[1],
+                &a[2],
+                &a[3],
+                &a[4],
+                foreign.as_ref(),
+                (&study_loan, pay_date.as_ref()),
+            )
         }
         "study-loan-withholding" => {
             engine::study_loan_withholding(&a[0], &a[1], &a[2], &a[3], &a[4], pay_date.as_ref())
