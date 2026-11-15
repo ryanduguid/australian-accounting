@@ -294,11 +294,12 @@ fn cases() -> Vec<(&'static str, Value)> {
                    "eligible_spaces_at_start": 3, "eligible_spaces_at_end": 4,
                    "employee_contribution": "0.00", "year_ended": 2027}),
         ),
-        // Example 17's register: 250 benefits at a $10 market value.
+        // Example 17's register: 250 benefits at a $20 market value, $10 paid
+        // for each.
         benefit(
             "fbt-car-parking",
             json!({"method": "market_value", "first_business_day_fee": "12.00", "benefits": 250,
-                   "market_value": "10.00", "employee_contribution": "0.00"}),
+                   "market_value": "20.00", "employee_contribution": "2500.00"}),
         ),
         // Guide 9.3 and 18.4: the rental's $100 public price, $50 reimbursed.
         benefit(

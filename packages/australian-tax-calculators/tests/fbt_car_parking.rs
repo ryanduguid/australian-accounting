@@ -140,18 +140,20 @@ fn spaces(overrides: Value) -> Result<Value, String> {
 
 #[test]
 fn the_market_value_method_takes_the_valuers_amount_for_each_benefit() {
-    // s 39D(2): the guide's example 17 values its register's 250 benefits at a
-    // $10 market value, $2,500; the recipients' payments come off as under s 39C.
+    // s 39D(2): the guide's example 17 values each of its register's 250
+    // benefits at a $20 arm's length value less a $10 recipient contribution,
+    // $10 a benefit and $2,500 in all; the payments come off as under s 39C.
     let input = json!({"method": "market_value", "first_business_day_fee": "12.00",
-                       "benefits": 250, "market_value": "10.00", "employee_contribution": "0.00"});
+                       "benefits": 250, "market_value": "20.00",
+                       "employee_contribution": "2500.00"});
     let result = parking(input.clone()).unwrap();
     assert_eq!(
         result["amounts"],
-        json!({"gross_taxable_value": "2500.00", "employee_contribution_applied": "0.00",
+        json!({"gross_taxable_value": "5000.00", "employee_contribution_applied": "2500.00",
                "excess_employee_contribution": "0.00", "taxable_value": "2500.00"})
     );
     let mut paid = input.clone();
-    paid["employee_contribution"] = json!("3000.00");
+    paid["employee_contribution"] = json!("5500.00");
     let a = amounts(parking(paid));
     assert_eq!(a["excess_employee_contribution"], "500.00");
     assert_eq!(a["taxable_value"], "0.00");
@@ -348,6 +350,15 @@ fn refusals_name_the_fact_to_establish() {
         (
             station(json!({"lowest_fee": "18.001"})),
             "Amounts must be finite non-negative Decimals, at most 2dp and 1e12.",
+        ),
+        // A list reaches the worksheet as a list, which no amount accepts.
+        (
+            station(json!({"lowest_fee": ["18.00"]})),
+            "Amounts must be finite non-negative Decimals, at most 2dp and 1e12.",
+        ),
+        (
+            station(json!({"benefits": [230]})),
+            "benefits must be a JSON integer from 0.",
         ),
         (
             parking(

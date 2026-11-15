@@ -317,8 +317,8 @@ valid year to the year before the one valued and refuses the register if any
 later year's is more than 1.2 times the first's; the year valued may rise by
 any amount, since the register ceases only at its end. $1,000 then $1,200 is
 exactly 20% higher and stays valid; $1,200.01 ends it
-(`tests/fbt_meal_entertainment.rs`). The employer's guide, 14.8 (last updated
-January 2020), says 'increase by more than 20% in a year', which reads as a
+(`tests/fbt_meal_entertainment.rs`). The employer's guide, 14.8 (chapter 14's
+latest update, January 2020), says 'increase by more than 20% in a year', which reads as a
 year-on-year test; the Act compares every year with the first, and the
 worksheet follows the Act.
 
@@ -351,9 +351,10 @@ AEDT), and the employer's guide, chapter 16 (last updated November 2023, read at
 8.27 am). s 39D(2) values a benefit at 'the amount that the recipient could
 reasonably be expected to have been required to pay' at arm's length, less the
 recipients contribution; s 39D(3) makes the election depend on a qualified
-valuer's report, which the operator establishes. Example 17 values its
-register's 250 benefits at a $10 market value: 250 benefits under the market
-value method give **$2,500.00**.
+valuer's report, which the operator establishes. Example 17 values each of its
+register's 250 benefits at an arm's length value of $20 less a $10 recipient
+contribution: under the market value method, `250 × 20 = 5,000.00` less
+`250 × 10 = 2,500.00` of payments gives **$2,500.00**.
 
 Example 18 (the spaces method): 4 spaces, each at a $10 daily rate amount for
 182 days, `10 × 182 / 366 × 228 = 1,133.77` a space and **$4,535.08** for 4;
@@ -446,7 +447,8 @@ so it is left out rather than guessed.
 In-house residual expense payments were added on 16 November 2026 from FBTAA s
 22A(2) and (3) and ss 48 and 49, compilation 97 (C2026C00332, read through the
 Federal Register of Legislation's API at 8.25 am AEDT), and the guide's 9.3
-(last updated May 2021) and 18.4 (January 2020), read at 8.27 am. s 22A(2)
+and 18.4 (chapters 9 and 18, latest updates May 2021 and January 2020), read
+at 8.27 am. s 22A(2)
 takes the value s 48 or 49 would give 'but for section 52 and Division 14',
 with the recipient's portion as the notional contribution, exactly as s
 22A(1) does for property. s 22A(3) reads s 49 for the recipient's overall

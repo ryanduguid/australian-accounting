@@ -82,8 +82,9 @@ intentionally changed.
   `fbt_car_parking.spaces_without_benefit`,
   `fbt_meal_entertainment.register_ceased` and
   `fbt_meal_entertainment.register_years_invalid`. Each reproduces the
-  employer's guide's example 18 (spaces), example 17's market value and the
-  18.4 rental paid as an expense; see `docs/calculation-evidence.md`.
+  employer's guide's example 18 (spaces), example 17's market value and
+  recipient contribution, and the 18.4 rental paid as an expense; see
+  `docs/calculation-evidence.md`.
 - `personal-tax-estimate` composes one full-year resident's income tax and
   levies for a year from `resident-tax`, `low-income-tax-offset`,
   `medicare-levy`, `medicare-levy-surcharge` and, when given,
