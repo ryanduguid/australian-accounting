@@ -282,7 +282,11 @@ fn deductible_benefit(
     let base = gross.value.clone();
     let rows = payment_rows(rows_authority);
     let mut steps = contribution_steps(gross, contribution, &rows)?;
-    let value = steps.last().expect("value after contribution").value.clone();
+    let value = steps
+        .last()
+        .expect("value after contribution")
+        .value
+        .clone();
     steps.extend(deductible_steps(table, &base, share, deduction, &value)?);
     taxable_steps(steps, available, authority)
 }

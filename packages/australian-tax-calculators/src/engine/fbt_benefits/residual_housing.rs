@@ -92,7 +92,11 @@ pub(super) const ENTERTAINMENT_METHODS: [&str; 2] = ["actual", "per_head"];
 /// The otherwise deductible rule's steps for a residual benefit (s 52).
 const RESIDUAL_DEDUCTIBLE: DeductibleSteps = [
     ("gross_deduction", "FBTAA s 52(1)(b), GD", GROSS_DEDUCTION),
-    ("contribution_deduction_applied", "FBTAA s 52(1)(ba), RD", RD),
+    (
+        "contribution_deduction_applied",
+        "FBTAA s 52(1)(ba), RD",
+        RD,
+    ),
     ("notional_deduction", "FBTAA s 52(1)(ba), ND = GD - RD", ND),
     (
         "reduction_applied",
@@ -103,7 +107,11 @@ const RESIDUAL_DEDUCTIBLE: DeductibleSteps = [
 
 /// The otherwise deductible rule's steps for board (s 37).
 const BOARD_DEDUCTIBLE: DeductibleSteps = [
-    ("gross_deduction", "FBTAA s 37(b), gross deduction", GROSS_DEDUCTION),
+    (
+        "gross_deduction",
+        "FBTAA s 37(b), gross deduction",
+        GROSS_DEDUCTION,
+    ),
     ("contribution_deduction_applied", "FBTAA s 37(c), RD", RD),
     ("notional_deduction", "FBTAA s 37(c), GD - RD", ND),
     (
@@ -528,7 +536,14 @@ pub fn fbt_board(
         gross,
     );
     let authority = "FBTAA s 36 and s 37";
-    let steps = deductible_benefit(gross, &reductions, "FBTAA s 36", &BOARD_DEDUCTIBLE, None, authority)?;
+    let steps = deductible_benefit(
+        gross,
+        &reductions,
+        "FBTAA s 36",
+        &BOARD_DEDUCTIBLE,
+        None,
+        authority,
+    )?;
     let rates = vec![
         rate("adult_meal_value", &adult_value),
         rate("child_meal_value", &child_value),

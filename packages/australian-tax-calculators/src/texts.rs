@@ -325,16 +325,13 @@ const FBTAA_PART_1: &str = "https://www.legislation.gov.au/C2004A03280/2026-07-0
 const FBT_RETURN_ITEM_23: &str = "https://www.ato.gov.au/forms-and-instructions/fringe-benefits-tax-return-2026-instructions/item-23-fringe-benefit-categories-for-fbt-return-2026";
 const FBT_RATES: &str =
     "https://www.ato.gov.au/tax-rates-and-codes/fringe-benefits-tax-rates-and-thresholds";
-/// The FBTAA's volume with s 136, and the employer's guide chapter on
-/// reductions (19.5, the in-house reduction), for the debt waiver, expense
-/// payment and property worksheets.
+/// The FBTAA's volume with s 136, for the definitions the FBT benefit
+/// worksheets apply, and the employer's guide chapter on reductions (19.5, the
+/// in-house reduction), for the debt waiver, expense payment and property
+/// worksheets.
 const FBTAA_PART_2: &str = "https://www.legislation.gov.au/C2004A03280/2026-07-01/2026-07-01/text/original/epub/OEBPS/document_2/document_2.html";
 const FBT_GUIDE_REDUCTIONS: &str =
     "https://www.ato.gov.au/law/view/document?DocID=SAV/FBTGEMP/00020";
-
-/// The FBTAA volume with s 136, for the definitions the batch 2 benefit
-/// worksheets apply.
-const FBTAA_PART_2: &str = "https://www.legislation.gov.au/C2004A03280/2026-07-01/2026-07-01/text/original/epub/OEBPS/document_2/document_2.html";
 
 pub const EXTRA_SOURCES: &[(&str, &[&str])] = &[
     (
@@ -708,6 +705,8 @@ pub const REFUSAL_CODES: &[(&str, &str)] = &[
     (
         "fbt_expense_payment.payment_exceeds_expenditure",
         "An expense payment or reimbursement exceeds the recipient's expenditure.",
+    ),
+    (
         "fbt_housing.base_year_invalid",
         "A housing right's last base year is not one of the 9 FBT years before the year given.",
     ),

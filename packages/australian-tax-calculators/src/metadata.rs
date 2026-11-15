@@ -819,6 +819,7 @@ pub const FBT_CAR_PARKING_THRESHOLDS: &[(&str, &str)] = &[("2026", "11.03"), ("2
 const FBT_LOWEST_PRICE: &str = "AUD, in_house_trade_price and in_house_public_price only and required there: the lowest price at which the provider sold identical property it manufactured, produced, processed or treated, at or about the provision time under an arm's length transaction, to manufacturers, wholesalers or retailers (FBTAA s 42(1)(a)(i)), or failing any such sale the lowest it could reasonably be expected to have sold it for, or to members of the public in similar circumstances (s 42(1)(a)(ii))";
 const FBT_ARMS_LENGTH_PRICE: &str = "AUD, in_house_acquired only and required there: the provider's cost price for property it acquired in the ordinary course of business under an arm's length transaction, otherwise what it could reasonably be expected to have paid under one (FBTAA s 42(2))";
 const FBT_IN_HOUSE_REDUCTION: &str = "AUD from 0 to 1000.00, every in-house method but in_house_salary_packaging and required there: the part of the employee's $1,000 in-house reduction for the FBT year (FBTAA s 62) their other in-house fringe benefits have not used; 1000.00 for their only in-house fringe benefit";
+
 /// Housing indexation factors by FBT year ended 31 March and State or
 /// Territory (FBTAA s 28), from Table 11 of the ATO's FBT rates and thresholds
 /// page (last updated 20 May 2026), read on 15 November 2026: the ATO

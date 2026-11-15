@@ -14,8 +14,8 @@ use super::super::{
 };
 use super::{
     AVAILABLE, DEDUCTIBLE_INPUTS, DeductibleSteps, GROSS_DEDUCTION, ND, RD, REDUCTION,
-    contribution_steps, deductible_benefit, deductible_inputs, deductible_steps, in_house_available,
-    income_use, method, named, payment_rows, take, taxable_steps,
+    contribution_steps, deductible_benefit, deductible_inputs, deductible_steps,
+    in_house_available, income_use, method, named, payment_rows, take, taxable_steps,
 };
 use crate::decimal::Decimal;
 
@@ -204,12 +204,12 @@ fn available<'a>(rule: Rule, input: impl Fn(&str) -> &'a Arg) -> Result<Option<D
 /// The otherwise deductible rule's steps for a property benefit (s 44).
 const PROPERTY_DEDUCTIBLE: DeductibleSteps = [
     ("gross_deduction", "FBTAA s 44(1)(b), GD", GROSS_DEDUCTION),
-    ("contribution_deduction_applied", "FBTAA s 44(1)(ba), RD", RD),
     (
-        "notional_deduction",
-        "FBTAA s 44(1)(ba), ND = GD - RD",
-        ND,
+        "contribution_deduction_applied",
+        "FBTAA s 44(1)(ba), RD",
+        RD,
     ),
+    ("notional_deduction", "FBTAA s 44(1)(ba), ND = GD - RD", ND),
     (
         "reduction_applied",
         "FBTAA s 44(1); FBT return 2026 instructions, item 23K",
