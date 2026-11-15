@@ -76,7 +76,11 @@ jobs:
           url="$(grep -o '\[download the synthetic CSV\]([^)]*)' "$readme" | sed 's/.*(//; s/)$//')"
           test -n "$url"
           curl -fsSL --retry 3 "$url" -o timely_remittance_no_receipt.csv
-          trial="$(grep '^uvx --from payday-super-checker' "$readme")"
+          # Only the command that reads the CSV above, and exactly one line:
+          # bash -c returns the last line's status, so a second command could
+          # fail unseen.
+          trial="$(grep '^uvx --from payday-super-checker[^ ]* payday-super-check timely_remittance_no_receipt\.csv ' "$readme")"
+          test "$(printf '%s\n' "$trial" | wc -l)" -eq 1
           case "$trial" in *" --confirm-remittance-only "* | *" --confirm-remittance-only") ;; *) exit 1 ;; esac
           # The README's **Output:** line names the verdict and the due date.
           output="$(grep '^\*\*Output:\*\*' "$readme")"
