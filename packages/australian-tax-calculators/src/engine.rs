@@ -256,7 +256,7 @@ struct Step {
 
 /// A step whose operands are `formula` with each name in turn replaced by the
 /// next of `operands`. Numbers, operators (`x` multiplies) and the functions
-/// `min`, `max`, `cents` and `dollars` stay as written.
+/// `min`, `max`, `cents`, `dollars` and `floor` stay as written.
 fn step(
     id: &'static str,
     authority: &'static str,
@@ -1376,7 +1376,8 @@ fn payg_options(options: &PaygOptions, scale: i64, period: &str) -> Result<PaygC
 }
 
 /// Schedule 1 'Medicare levy adjustment' for scale 2 or 6: the weekly family
-/// threshold, the shading out point and the weekly levy adjustment, rounded
+/// threshold, the shading out point (the scale's multiplier and divisor in
+/// 'Medicare levy parameters') and the weekly levy adjustment, rounded
 /// straight to the dollar, in the step for `weekly_medicare_levy_adjustment`.
 fn weekly_levy_adjustment(
     x: &Decimal,
@@ -1394,9 +1395,10 @@ fn weekly_levy_adjustment(
         .add(&per_child)?
         .div(&int(52))?
         .quantize(-2, Rounding::HalfUp)?;
+    let (multiplier, divisor) = m.shading_out_point;
     let sop = wft
-        .mul(&d("0.1"))?
-        .div(&d("0.0800"))?
+        .mul(&d(multiplier))?
+        .div(&d(divisor))?
         .quantize(0, Rounding::Down)?;
     let (authority, formula, operands, wla) = if x.lt(&int(m.threshold))? {
         let below = "Schedule 1, 'Medicare levy adjustment': none below the scale's weekly earnings threshold";
@@ -2792,9 +2794,10 @@ fn etp_part(
 /// non-excluded part (code O), under the smaller of the ETP cap left and the
 /// whole-of-income cap (s 82-10(4), (6) and (7); Schedule 11). `reached` is
 /// whether the payee is their preservation age or older at the year's end,
-/// which sets the rate within a cap. The s 83-170(3) formula is an image in
-/// the Act's text; it is read as base amount + service amount x years of
-/// service, as Schedule 11's note 1 and example 4 apply it.
+/// which sets the rate within a cap. The s 83-170(3) formula is
+/// 'Base amount + (Service amount × Years of service)' in the Act's text on
+/// the ATO's legal database (PAC/19970038/83-170), read on 15 November 2026;
+/// Schedule 11's note 1 and example 4 apply it.
 fn etp_steps(
     redundancy: &Decimal,
     years: i64,
@@ -4444,7 +4447,9 @@ fn method_b_i_steps(pay: &AdditionalPay, periods: &[BackPaidPeriod]) -> Result<V
             let e = format!("{} + {}", period.earnings, period.back_payment);
             let (table, _) = pay.table_formula(&total, &e)?;
             differences.push(format!("{table} - {}", period.withheld));
-            paid.push(period.back_payment.to_string());
+            // Written as the total adds it, to 0, so that the working sums to
+            // the total: 5E+1 as 50, and -0.00 as 0.00.
+            paid.push(int(0).add(&period.back_payment)?.to_string());
         }
         let on_back_payment = py_max(int(0), difference)?;
         let on_earnings = pay.table(&pay.earnings)?;

@@ -5,6 +5,7 @@ pub mod api;
 mod dates;
 pub mod decimal;
 pub mod engine;
+mod estimate;
 pub mod metadata;
 mod pytext;
 mod tables;
