@@ -3154,7 +3154,7 @@ pub fn division_296(
     Ok(out)
 }
 
-// SISR reg 6.01(2): 55 for a person born before 1 July 1960, one more for
+/// SISR reg 6.01(2): 55 for a person born before 1 July 1960, one more for
 /// each later year of birth from 1 July, and 60 for one born after 30 June 1964.
 fn preservation_age(born: (i64, i64, i64)) -> i64 {
     let (year, month, _) = born;
@@ -4226,7 +4226,7 @@ fn main_residence_steps(
     Ok(steps)
 }
 
-// The dates that fix the period of a loan under s 25-25(5): the first day
+/// The dates that fix the period of a loan under s 25-25(5): the first day
 /// it was borrowed, the end of its original contract and the day it was
 /// repaid.
 pub struct LoanDates<'a> {
