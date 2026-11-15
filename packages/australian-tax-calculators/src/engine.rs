@@ -4594,7 +4594,7 @@ fn study_loan_year(kind: &str, year: &str, pay_date: Option<&Arg>) -> Result<()>
         return refuse(
             "period.unsupported",
             format!(
-                "study_loan is supported for {} only: there is no Schedule 8 study and training support loan component for {year}.",
+                "study_loan is supported for {} only: this crate does not hold the Schedule 8 study and training support loan component for {year}.",
                 years.join(", ")
             ),
         );

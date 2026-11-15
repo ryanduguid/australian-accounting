@@ -356,7 +356,7 @@ fn what_schedule_8_does_not_cover_here_is_refused() {
     assert_eq!(code, "period.unsupported");
     assert_eq!(
         message,
-        "study_loan is supported for 2025-26, 2026-27 only: there is no Schedule 8 study and training support loan component for 2024-25."
+        "study_loan is supported for 2025-26, 2026-27 only: this crate does not hold the Schedule 8 study and training support loan component for 2024-25."
     );
     let (code, message) = refusal(&facts(
         "2000.00",
