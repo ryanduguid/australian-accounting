@@ -422,33 +422,97 @@ pub fn foreign_resident_tax(
 /// Tax scales by income year: (lower bound, upper bound, rate) for each band.
 type TaxScales = [(&'static str, &'static [(i64, Option<i64>, &'static str)])];
 
+/// [`step`] with each name in `formula` given the value `values` holds for it,
+/// for a formula that names a value more than once.
+fn step_by_name(
+    id: &'static str,
+    authority: &'static str,
+    formula: &str,
+    values: &[(&str, Decimal)],
+    value: Decimal,
+) -> Step {
+    let mut operands = Vec::new();
+    let mut rest = formula;
+    while let Some(start) = rest.find(|c: char| c.is_ascii_lowercase()) {
+        let end = rest[start..]
+            .find(|c: char| !(c.is_ascii_alphanumeric() || c == '_'))
+            .map_or(rest.len(), |n| start + n);
+        let (name, tail) = (&rest[start..end], &rest[end..]);
+        if name != "x" && !tail.starts_with('(') {
+            let (_, value) = values
+                .iter()
+                .find(|(n, _)| *n == name)
+                .unwrap_or_else(|| panic!("a value for {name}"));
+            operands.push(value);
+        }
+        rest = tail;
+    }
+    step(id, authority, formula, &operands, value)
+}
+
+/// The provisions `basic_tax` applies, in ITAA 1997 compilation 268 (1 October
+/// 2026) and the Income Tax Rates Act 1986 compilation 66 (1 July 2026), read
+/// on 15 November 2026.
+fn basic_tax_authority(kind: &str, year: &str) -> &'static str {
+    match (kind, year) {
+        ("foreign_resident_tax", _) => {
+            "ITAA 1997 s 4-10(3) step 2; Income Tax Rates Act 1986 s 12(1) and Schedule 7 Part II clause 1(b), the table for the 2024-25 year of income or a later year: to $135,000 at the second and to $190,000 at the third resident personal tax rate (s 3(1)), then 45%"
+        }
+        (_, "2026-27") => {
+            "ITAA 1997 s 4-10(3) step 2; Income Tax Rates Act 1986 s 12(1) and Schedule 7 Part I clause 1(b), the table for the 2026-27 year of income: each part above the tax-free threshold (s 3(1)) at its rate"
+        }
+        _ => {
+            "ITAA 1997 s 4-10(3) step 2; Income Tax Rates Act 1986 s 12(1) and Schedule 7 Part I clause 1(b), the table for the 2024-25 or 2025-26 year of income: each part above the tax-free threshold (s 3(1)) at its rate"
+        }
+    }
+}
+
 /// Basic income tax on whole-dollar taxable income: each band of the year's
 /// scale at its rate.
 fn basic_tax(kind: &str, taxable_income: &Arg, year: &str, scales: &TaxScales) -> Result<Value> {
     let income = money(taxable_income)?;
     whole_dollars(&income, "taxable income")?;
     let scale = lookup(scales, year);
+    let rates: Vec<(String, String)> = scale
+        .iter()
+        .map(|(low, _, r)| rate(&format!("over_{low}"), r))
+        .collect();
+    let mut values = vec![("taxable_income_used", income.clone())];
+    let mut terms = Vec::new();
     let tax = precise(|| {
         let mut tax = int(0);
-        for (low, high, rate) in scale.iter() {
-            let ceiling = match high {
-                None => income.clone(),
-                Some(high) => py_min(income.clone(), int(*high))?,
+        for ((low, high, rate), (name, _)) in scale.iter().zip(&rates) {
+            let (ceiling, top) = match high {
+                None => (income.clone(), "taxable_income_used".to_string()),
+                Some(high) => (
+                    py_min(income.clone(), int(*high))?,
+                    format!("min(taxable_income_used, {high})"),
+                ),
             };
             let band = py_max(int(0), ceiling.sub(&int(*low))?)?;
             tax = tax.add(&band.mul(&d(rate))?)?;
+            terms.push(format!("max(0, {top} - {low}) x {name}"));
+            values.push((name.as_str(), d(rate)));
         }
         Ok(tax)
     })?;
-    result(
-        kind,
-        year,
-        vec![("taxable_income_used", income), ("basic_income_tax", tax)],
-        scale
-            .iter()
-            .map(|(low, _, r)| rate(&format!("over_{low}"), r))
-            .collect(),
-    )
+    let steps = vec![
+        step(
+            "taxable_income_used",
+            "ITAA 1997 s 4-10(3) step 1: taxable income, as established",
+            "taxable_income",
+            &[&income],
+            income.clone(),
+        ),
+        step_by_name(
+            "basic_income_tax",
+            basic_tax_authority(kind, year),
+            &terms.join(" + "),
+            &values,
+            tax,
+        ),
+    ];
+    derived_result(kind, year, steps, rates)
 }
 
 pub fn capital_gains(
@@ -1939,20 +2003,44 @@ fn medicare_thresholds(year: &str, sapto: bool) -> (Decimal, Decimal) {
     (d(threshold), d(limit))
 }
 
-/// ss 6(1) and 7: the levy on `income` but for ss 8 and 9.
-fn low_income_levy(income: &Decimal, year: &str, sapto: bool) -> Calc<Decimal> {
+/// One person's names in a `medicare-levy` formula: their taxable income, the
+/// levy on it at the full rate, and their s 3(1) threshold amount.
+type LevyNames<'a> = (&'a str, &'a str, &'a str);
+
+/// ss 6(1) and 7: the levy on `income` but for ss 8 and 9, its formula on
+/// `names`, and the provision that sets the low-income reduction. The Medicare
+/// Levy Act 1986 steps cite compilation 53 (1 July 2026), read on 15 November
+/// 2026, whose s 8(2) formula is an image read from its alternative text.
+fn low_income_levy(
+    income: &Decimal,
+    year: &str,
+    sapto: bool,
+    (i, full_name, t): LevyNames,
+) -> Calc<(Decimal, String, &'static str)> {
     let (threshold, limit) = medicare_thresholds(year, sapto);
     let full = income.mul(&medicare_rate("levy"))?;
-    if income.le(&threshold)? {
-        Ok(int(0))
+    Ok(if income.le(&threshold)? {
+        (
+            int(0),
+            "0".to_string(),
+            "Medicare Levy Act 1986 s 7(1): no levy at or below the threshold amount (s 3(1)), so the whole levy",
+        )
     } else if income.le(&limit)? {
-        py_min(
-            full,
-            income.sub(&threshold)?.mul(&medicare_rate("shade_in"))?,
+        (
+            py_min(
+                full,
+                income.sub(&threshold)?.mul(&medicare_rate("shade_in"))?,
+            )?,
+            format!("min({full_name}, ({i} - {t}) x shade_in_rate)"),
+            "Medicare Levy Act 1986 s 7(2): up to the phase-in limit, the levy is no more than 10% of the excess over the threshold amount (s 3(1))",
         )
     } else {
-        Ok(full)
-    }
+        (
+            full,
+            full_name.to_string(),
+            "Medicare Levy Act 1986 ss 6(1) and 7: above the phase-in limit (s 3(1)), none",
+        )
+    })
 }
 
 /// s 8(5) to (7): the family income threshold.
@@ -1961,78 +2049,106 @@ fn family_threshold(year: &str, sapto: bool, children: i64) -> Calc<Decimal> {
     d(if sapto { sapto_base } else { base }).add(&int(children).mul(&d(per_child))?)
 }
 
-/// The s 8(2) formula, nil where it is not positive.
-fn family_formula(threshold: &Decimal, family_income: &Decimal) -> Calc<Decimal> {
-    let start = medicare_rate("levy").mul(threshold)?;
-    let excess = family_income.sub(threshold)?;
-    py_max(
-        int(0),
-        start.sub(&medicare_rate("family_shade_out").mul(&excess)?)?,
-    )
-}
-
-/// s 8(2) and (3): this person's reduction, times family income when s 8(3)
-/// shares it by taxable income (see `family_reductions`).
-fn own_reduction_scaled(
+/// The s 8(2) formula on the family income threshold `threshold`, written `t`,
+/// nil where it is not positive.
+fn family_formula(
     threshold: &Decimal,
     family_income: &Decimal,
-    income: &Decimal,
-    shared: bool,
-) -> Calc<Decimal> {
-    let reduction = family_formula(threshold, family_income)?;
-    if shared {
-        reduction.mul(income)
-    } else {
-        Ok(reduction)
-    }
+    t: &str,
+) -> Calc<(Decimal, String)> {
+    let start = medicare_rate("levy").mul(threshold)?;
+    let excess = family_income.sub(threshold)?;
+    let reduction = py_max(
+        int(0),
+        start.sub(&medicare_rate("family_shade_out").mul(&excess)?)?,
+    )?;
+    let formula =
+        format!("max(0, levy_rate x {t} - family_shade_out_rate x (family_income - {t}))");
+    Ok((reduction, formula))
 }
 
 /// s 8(4): the part of the spouse's shared reduction above the spouse's levy,
 /// which reduces this person's levy, times family income (see
-/// `family_reductions`). Only a spouse liable to the levy has one, and s 8(3)
-/// shares it only when this person is liable too; otherwise this person's own
-/// reduction was not shared, and nothing passes to them.
+/// `family_reductions`), and its formula. Only a spouse liable to the levy has
+/// one, and s 8(3) shares it only when this person is liable too; otherwise
+/// this person's own reduction was not shared, and nothing passes to them. The
+/// spouse's thresholds are written in as figures.
 fn spouse_excess_scaled(
     spouse: &Spouse,
     year: &str,
     children: i64,
     family_income: &Decimal,
-) -> Calc<Decimal> {
+) -> Calc<(Decimal, String)> {
     let threshold = family_threshold(year, spouse.sapto, children)?;
     if family_income.le(&threshold)? {
-        return Ok(int(0));
+        return Ok((int(0), "0".to_string()));
     }
-    let share = family_formula(&threshold, family_income)?.mul(&spouse.income)?;
-    let levy = low_income_levy(&spouse.income, year, spouse.sapto)?;
-    py_max(int(0), share.sub(&levy.mul(family_income)?)?)
+    let (reduction, r) = family_formula(&threshold, family_income, &threshold.to_string())?;
+    let share = reduction.mul(&spouse.income)?;
+    let spouse_threshold = medicare_thresholds(year, spouse.sapto).0.to_string();
+    let names = (
+        "spouse_taxable_income",
+        "spouse_taxable_income x levy_rate",
+        spouse_threshold.as_str(),
+    );
+    let (levy, l, _) = low_income_levy(&spouse.income, year, spouse.sapto, names)?;
+    let excess = py_max(int(0), share.sub(&levy.mul(family_income)?)?)?;
+    let formula = format!(
+        "max(0, {r} x spouse_taxable_income - {} x family_income)",
+        group(&l)
+    );
+    Ok((excess, formula))
 }
+
+const FAMILY_INCOME: &str = "Medicare Levy Act 1986 s 8(5), family income: the person's taxable income and, for a married person, the spouse's";
+const NOT_ABOVE: &str = "Medicare Levy Act 1986 s 8(1): no levy where family income does not exceed the family income threshold (s 8(5) to (7)), so the whole levy";
+const OWN_REDUCTION: &str = "Medicare Levy Act 1986 s 8(2): the levy is reduced by 2% of the family income threshold less 0.08 of the excess over it, up to the levy";
+const SHARED_REDUCTION: &str = "Medicare Levy Act 1986 s 8(2) and (3): the s 8(2) reduction in the person's share of family income, as the spouse is liable to the levy, up to the levy";
+const SPOUSE_EXCESS: &str = "Medicare Levy Act 1986 s 8(4): the part of the spouse's s 8(2) and (3) reduction above the spouse's levy reduces this levy";
+const NO_SPOUSE_EXCESS: &str = "Medicare Levy Act 1986 s 8(3) and (4): only a spouse liable to the levy, whose reduction s 8(3) shares because this person is liable too, passes on an excess; not here, so nil";
 
 /// The s 8 working for one person.
 struct FamilyWorking {
-    family_income: Decimal,
+    /// The steps for family income, this person's own reduction and, with a
+    /// spouse, the spouse's excess reduction.
+    steps: Vec<Step>,
     threshold: Decimal,
-    /// The reduction from this person's own s 8 entitlement, no more than the levy.
-    own: Decimal,
-    /// The s 8(4) reduction from the spouse's entitlement, no more than the levy left.
-    from_spouse: Decimal,
-    /// The levy after s 8, times `scale`.
-    levy: Decimal,
+    /// When s 8(3) shares the reduction: the levy after s 8 times family
+    /// income, and its formula. Otherwise the steps' values give the levy.
+    scaled: Option<(Decimal, String)>,
     /// Family income when s 8(3) shares the reduction, otherwise 1.
     scale: Decimal,
     /// Whether s 8(3) shared this person's reduction.
     shared: bool,
 }
 
-/// s 8 on `levy`, the levy on `income` but for ss 8 and 9.
+/// s 8 on `levy`, the levy on `income` but for ss 8 and 9, written `l`.
+/// `values` holds the names the formulas use and gains family income.
 fn family_reductions(
     income: &Decimal,
-    levy: &Decimal,
+    (levy, l): (&Decimal, &str),
     year: &str,
     family: &Family,
+    values: &mut Vec<(&'static str, Decimal)>,
 ) -> Calc<FamilyWorking> {
-    let spouse_income = family.spouse.as_ref().map_or(int(0), |s| s.income.clone());
-    let family_income = income.add(&spouse_income)?;
+    let (family_income, formula) = match &family.spouse {
+        Some(spouse) => (
+            income.add(&spouse.income)?,
+            "taxable_income_used + spouse_taxable_income",
+        ),
+        None => (income.clone(), "taxable_income_used"),
+    };
+    values.push(("family_income", family_income.clone()));
+    let mut steps = vec![step_by_name(
+        "family_income",
+        FAMILY_INCOME,
+        formula,
+        values,
+        family_income.clone(),
+    )];
     let threshold = family_threshold(year, family.sapto, family.children)?;
+    values.push(("family_income_threshold", threshold.clone()));
+    values.push(("family_shade_out_rate", medicare_rate("family_shade_out")));
     let liable = |amount: &Decimal, sapto: bool| amount.gt(&medicare_thresholds(year, sapto).0);
     let spouse_liable = match &family.spouse {
         Some(spouse) => liable(&spouse.income, spouse.sapto)?,
@@ -2041,35 +2157,79 @@ fn family_reductions(
     // When s 8(3) shares the reduction, every amount is worked times family
     // income, so each share is a product, and divided once at the end: the
     // levy is then exact wherever it terminates, and a half cent rounds up.
-    let scale = if spouse_liable {
-        family_income.clone()
+    let (scale, lx) = if spouse_liable {
+        (
+            family_income.clone(),
+            format!("{} x family_income", group(l)),
+        )
     } else {
-        int(1)
+        (int(1), l.to_string())
     };
     let levy = levy.mul(&scale)?;
     // s 8(1): no levy at or below the threshold.
     let above = family_income.gt(&threshold)?;
-    let own = if above {
-        py_min(
-            levy.clone(),
-            own_reduction_scaled(&threshold, &family_income, income, spouse_liable)?,
-        )?
-    } else {
-        levy.clone()
-    };
-    let from_spouse = match &family.spouse {
-        Some(spouse) if spouse_liable && liable(income, family.sapto)? => {
-            let excess = spouse_excess_scaled(spouse, year, family.children, &family_income)?;
-            py_min(levy.sub(&own)?, excess)?
+    let (own, own_formula, authority) = if above {
+        let (reduction, r) = family_formula(&threshold, &family_income, "family_income_threshold")?;
+        if spouse_liable {
+            (
+                py_min(levy.clone(), reduction.mul(income)?)?,
+                format!("min({lx}, {r} x taxable_income_used)"),
+                SHARED_REDUCTION,
+            )
+        } else {
+            (
+                py_min(levy.clone(), reduction)?,
+                format!("min({lx}, {r})"),
+                OWN_REDUCTION,
+            )
         }
-        _ => int(0),
+    } else {
+        (levy.clone(), lx.clone(), NOT_ABOVE)
     };
+    let per = |formula: &str| {
+        if spouse_liable {
+            format!("{} / family_income", group(formula))
+        } else {
+            formula.to_string()
+        }
+    };
+    steps.push(step_by_name(
+        "family_reduction",
+        authority,
+        &per(&own_formula),
+        values,
+        own.div(&scale)?,
+    ));
+    let mut after = levy.sub(&own)?;
+    let mut after_formula = format!("{lx} - {}", group(&own_formula));
+    if let Some(spouse) = &family.spouse {
+        if spouse_liable && liable(income, family.sapto)? {
+            let (excess, e) = spouse_excess_scaled(spouse, year, family.children, &family_income)?;
+            let from = py_min(after.clone(), excess)?;
+            let from_formula = format!("min({after_formula}, {e})");
+            steps.push(step_by_name(
+                "spouse_excess_reduction",
+                SPOUSE_EXCESS,
+                &per(&from_formula),
+                values,
+                from.div(&scale)?,
+            ));
+            after = after.sub(&from)?;
+            after_formula = format!("{after_formula} - {from_formula}");
+        } else {
+            steps.push(step(
+                "spouse_excess_reduction",
+                NO_SPOUSE_EXCESS,
+                "0",
+                &[],
+                int(0),
+            ));
+        }
+    }
     Ok(FamilyWorking {
-        family_income,
+        steps,
         threshold,
-        levy: levy.sub(&own)?.sub(&from_spouse)?,
-        own: own.div(&scale)?,
-        from_spouse: from_spouse.div(&scale)?,
+        scaled: spouse_liable.then_some((after, after_formula)),
         scale,
         shared: spouse_liable && above,
     })
@@ -2100,8 +2260,8 @@ fn refuse_section_9a(section_9a_adjustment_applies: &Arg) -> Result<()> {
     Ok(())
 }
 
-/// The amounts, the rates and whether s 8(3) shared the family reduction.
-type MedicareWorking = (Vec<(&'static str, Decimal)>, Vec<(String, String)>, bool);
+/// The steps, the rates and whether s 8(3) shared the family reduction.
+type MedicareWorking = (Vec<Step>, Vec<(String, String)>, bool);
 
 fn medicare_working(
     income: &Decimal,
@@ -2117,38 +2277,127 @@ fn medicare_working(
         rate("phase_in_limit", &limit),
     ];
     let full = income.mul(&medicare_rate("levy"))?;
-    let mut levy = low_income_levy(income, year, family.sapto)?;
-    let mut amounts = vec![
+    let names = (
+        "taxable_income_used",
+        "levy_at_full_rate",
+        "threshold_amount",
+    );
+    let (levy, l, authority) = low_income_levy(income, year, family.sapto, names)?;
+    let reduction = full.sub(&levy)?;
+    let mut values = vec![
+        ("taxable_income", income.clone()),
         ("taxable_income_used", income.clone()),
+        ("levy_rate", medicare_rate("levy")),
+        ("shade_in_rate", medicare_rate("shade_in")),
+        ("threshold_amount", threshold),
         ("levy_at_full_rate", full.clone()),
-        ("low_income_reduction", full.sub(&levy)?),
+        ("low_income_reduction", reduction.clone()),
     ];
-    let (mut shared, mut scale) = (false, int(1));
+    if let Some(spouse) = &family.spouse {
+        values.push(("spouse_taxable_income", spouse.income.clone()));
+    }
+    let mut steps = vec![
+        step(
+            "taxable_income_used",
+            "Medicare Levy Act 1986 s 6(1): the levy is on taxable income, as established",
+            "taxable_income",
+            &[income],
+            income.clone(),
+        ),
+        step(
+            "levy_at_full_rate",
+            "Medicare Levy Act 1986 s 6(1): 2%",
+            "taxable_income_used x levy_rate",
+            &[income, &medicare_rate("levy")],
+            full.clone(),
+        ),
+        step_by_name(
+            "low_income_reduction",
+            authority,
+            &format!("levy_at_full_rate - {}", group(&l)),
+            &values,
+            reduction.clone(),
+        ),
+    ];
+    // The levy before s 9 and its formula; when s 8(3) shares the family
+    // reduction, both are times family income, the `scale`.
+    let mut before = full.sub(&reduction)?;
+    let mut before_formula = "levy_at_full_rate - low_income_reduction".to_string();
+    let (mut shared, mut scale, mut times_family_income) = (false, int(1), false);
     if family.reduces() {
-        let working = family_reductions(income, &levy, year, family)?;
-        (levy, scale) = (working.levy, working.scale);
-        amounts.push(("family_income", working.family_income));
-        amounts.push(("family_reduction", working.own));
-        if family.spouse.is_some() {
-            amounts.push(("spouse_excess_reduction", working.from_spouse));
+        let working = family_reductions(income, (&levy, &l), year, family, &mut values)?;
+        if let Some(scaled) = working.scaled {
+            (before, before_formula) = scaled;
+            times_family_income = true;
+        } else {
+            // Unshared, each reduction is exact, so it comes off the levy by name.
+            for reduction in &working.steps[1..] {
+                before = before.sub(&reduction.value)?;
+                before_formula = format!("{before_formula} - {}", reduction.id);
+                values.push((reduction.id, reduction.value.clone()));
+            }
         }
-        rates.push(rate("family_income_threshold", working.threshold));
+        rates.push(rate("family_income_threshold", &working.threshold));
         rates.push(rate(
             "family_shade_out_rate",
             medicare_rate("family_shade_out"),
         ));
-        shared = working.shared;
+        (shared, scale) = (working.shared, working.scale);
+        steps.extend(working.steps);
     }
-    if let Some(exemption) = exemption {
-        let after = levy_after_exemption(&levy, &scale, exemption)?;
-        amounts.push(("exemption_reduction", levy.div(&scale)?.sub(&after)?));
-        rates.push(rate("exemption_full_days", exemption.full));
-        rates.push(rate("exemption_half_days", exemption.half));
-        rates.push(rate("days_in_year", exemption.days_in_year));
-        (levy, scale) = (after, int(1));
-    }
-    amounts.push(("medicare_levy", levy.div(&scale)?));
-    Ok((amounts, rates, shared))
+    let scaled = |formula: &str| {
+        if times_family_income {
+            format!("({formula}) / family_income")
+        } else {
+            formula.to_string()
+        }
+    };
+    let Some(exemption) = exemption else {
+        steps.push(step_by_name(
+            "medicare_levy",
+            if times_family_income {
+                "Medicare Levy Act 1986 ss 6 to 8: the levy after the low-income and family reductions, worked out times family income for s 8(3) and divided by it once"
+            } else if family.reduces() {
+                "Medicare Levy Act 1986 ss 6 to 8: the levy after the low-income and family reductions"
+            } else {
+                "Medicare Levy Act 1986 ss 6 and 7: the levy after the low-income reduction"
+            },
+            &scaled(&before_formula),
+            &values,
+            before.div(&scale)?,
+        ));
+        return Ok((steps, rates, shared));
+    };
+    rates.push(rate("exemption_full_days", exemption.full));
+    rates.push(rate("exemption_half_days", exemption.half));
+    rates.push(rate("days_in_year", exemption.days_in_year));
+    values.push(("exemption_full_days", int(exemption.full)));
+    values.push(("exemption_half_days", int(exemption.half)));
+    values.push(("days_in_year", int(exemption.days_in_year)));
+    let halves = if times_family_income {
+        "family_income x 2 x days_in_year"
+    } else {
+        "2 x days_in_year"
+    };
+    let after = levy_after_exemption(&before, &scale, exemption)?;
+    let after_formula = format!(
+        "({before_formula}) x (2 x days_in_year - (2 x exemption_full_days + exemption_half_days)) / ({halves})"
+    );
+    steps.push(step_by_name(
+        "exemption_reduction",
+        "Medicare Levy Act 1986 s 9(1) and ITAA 1936 s 251U(3): the share of the levy for each full exemption day and half of each half exemption day",
+        &format!("{} - {after_formula}", scaled(&before_formula)),
+        &values,
+        before.div(&scale)?.sub(&after)?,
+    ));
+    steps.push(step_by_name(
+        "medicare_levy",
+        "Medicare Levy Act 1986 s 9(1): the levy after ss 7 and 8 for the days the person was not a prescribed person",
+        &after_formula,
+        &values,
+        after,
+    ));
+    Ok((steps, rates, shared))
 }
 
 pub fn medicare_levy(
@@ -2165,7 +2414,7 @@ pub fn medicare_levy(
     refuse_section_9a(section_9a_adjustment_applies)?;
     let family = medicare_family(&family)?;
     let exemption = medicare_exemption(&exemption, &year)?;
-    let (amounts, rates, shared) = precise(|| {
+    let (steps, rates, shared) = precise(|| {
         Ok(medicare_working(
             &income,
             &year,
@@ -2173,7 +2422,7 @@ pub fn medicare_levy(
             exemption.as_ref(),
         )?)
     })?;
-    let mut out = result("medicare_levy", &year, amounts, rates)?;
+    let mut out = derived_result("medicare_levy", &year, steps, rates)?;
     let warnings = out["warnings"].as_array_mut().expect("warnings");
     if let Some((_, note)) = texts::MEDICARE_YEAR_WARNINGS
         .iter()
@@ -2240,7 +2489,7 @@ fn surcharge_thresholds(year: &str, family: Option<i64>) -> Calc<Vec<Decimal>> {
     singles.iter().map(raise).collect()
 }
 
-type SurchargeWorking = (Vec<(&'static str, Decimal)>, Vec<(String, String)>);
+type SurchargeWorking = (Vec<Step>, Vec<(String, String)>);
 
 /// Medicare Levy Act ss 8B and 8D and the Fringe Benefits Act ss 12, 15 and
 /// 16: the tier is set by income for surcharge purposes (combined with a
@@ -2272,15 +2521,37 @@ fn surcharge_working(facts: &SurchargeFacts, year: &str) -> Calc<SurchargeWorkin
     };
     let base = facts.taxable.add(&facts.fringe)?;
     let surcharge = base.mul(&percentage)?.mul(&int(facts.days))?;
-    let mut amounts = vec![("income_for_surcharge_purposes", facts.own.clone())];
+    let (days, days_in_year) = (int(facts.days), int(facts.days_in_year));
+    let mut steps = vec![step(
+        "income_for_surcharge_purposes",
+        "Medicare Levy Act 1986 s 3(1), income for surcharge purposes: the person's, as established",
+        "income_for_surcharge_purposes",
+        &[&facts.own],
+        facts.own.clone(),
+    )];
     let mut rates = vec![rate("tier", ["base", "1", "2", "3"][tier])];
-    if facts.spouse.is_some() {
-        amounts.push(("family_income_for_surcharge_purposes", income));
+    if let Some((spouse, _)) = &facts.spouse {
+        steps.push(step(
+            "family_income_for_surcharge_purposes",
+            "Medicare Levy Act 1986 s 8D(3)(b) and (5); Fringe Benefits Act s 15(1)(b): the person's and the spouse's income for surcharge purposes",
+            "income_for_surcharge_purposes + spouse_income_for_surcharge_purposes",
+            &[&facts.own, spouse],
+            income,
+        ));
     }
-    amounts.push(("surcharge_base", base));
-    amounts.push((
+    steps.push(step(
+        "surcharge_base",
+        "Medicare Levy Act 1986 ss 8B(2) and 8D(3) and (4): taxable income; Fringe Benefits Act ss 12(2) and (3), 15(1) and 16(4): the reportable fringe benefits total",
+        "taxable_income + reportable_fringe_benefits",
+        &[&facts.taxable, &facts.fringe],
+        base.clone(),
+    ));
+    steps.push(step(
         "medicare_levy_surcharge",
-        surcharge.div(&int(facts.days_in_year))?,
+        surcharge_authority(facts.spouse.is_some(), tier, liable),
+        "surcharge_base x surcharge_rate x days_without_cover / days_in_year",
+        &[&base, &percentage, &days, &days_in_year],
+        surcharge.div(&days_in_year)?,
     ));
     rates.push(rate("surcharge_rate", percentage));
     for (key, threshold) in ["tier_1_threshold", "tier_2_threshold", "tier_3_threshold"]
@@ -2294,7 +2565,32 @@ fn surcharge_working(facts: &SurchargeFacts, year: &str) -> Calc<SurchargeWorkin
     }
     rates.push(rate("days_without_cover", facts.days));
     rates.push(rate("days_in_year", facts.days_in_year));
-    Ok((amounts, rates))
+    Ok((steps, rates))
+}
+
+/// The provisions that set the surcharge's rate for the days without cover,
+/// from the Medicare Levy Act 1986 compilation 53 and A New Tax System
+/// (Medicare Levy Surcharge—Fringe Benefits) Act 1999 (the Fringe Benefits Act)
+/// compilation 42, both of 1 July 2026, read on 15 November 2026. A tier 2 or 3
+/// earner is one under s 3A.
+fn surcharge_authority(married: bool, tier: usize, liable: bool) -> &'static str {
+    match (married, tier, liable) {
+        (false, 0, _) => {
+            "Medicare Levy Act 1986 s 8B(2); Fringe Benefits Act s 12(1)(a): income for surcharge purposes does not exceed the singles tier 1 threshold, so nil"
+        }
+        (false, ..) => {
+            "Medicare Levy Act 1986 s 8B(2) to (4) and s 3A; Fringe Benefits Act s 12(2) to (5): the tier's rate on taxable income and reportable fringe benefits, for the days without cover as a share of the year"
+        }
+        (true, 0, _) => {
+            "Medicare Levy Act 1986 s 8D(3)(b) and (4)(a)(i); Fringe Benefits Act ss 15(1)(b) and 16(2)(b): family income for surcharge purposes does not exceed the family tier 1 threshold, so nil"
+        }
+        (true, _, false) => {
+            "Medicare Levy Act 1986 s 8D(3)(c) and (4)(a)(ii); Fringe Benefits Act ss 15(1)(c) and 16(2)(c): the person's own income for surcharge purposes does not exceed the s 8D(3)(c) amount, so nil"
+        }
+        (true, _, true) => {
+            "Medicare Levy Act 1986 s 8D(3), (4), (4A) and (4B) and s 3A; Fringe Benefits Act ss 15 and 16: the tier's rate on taxable income and reportable fringe benefits, for the days without cover as a share of the year"
+        }
+    }
 }
 
 /// The Medicare levy surcharge on one person's taxable income (Medicare Levy
@@ -2321,8 +2617,8 @@ pub fn medicare_levy_surcharge(
         days_in_year,
         spouse: surcharge_spouse(&family)?,
     };
-    let (amounts, rates) = precise(|| Ok(surcharge_working(&facts, &year)?))?;
-    result(SURCHARGE, &year, amounts, rates)
+    let (steps, rates) = precise(|| Ok(surcharge_working(&facts, &year)?))?;
+    derived_result(SURCHARGE, &year, steps, rates)
 }
 
 pub fn low_income_tax_offset(
@@ -2334,32 +2630,58 @@ pub fn low_income_tax_offset(
     let income = money(taxable_income)?;
     whole_dollars(&income, "taxable income")?;
     let rule = |key: &str| d(lookup(&meta::LOW_INCOME_TAX_OFFSET, key));
-    let offset = precise(|| {
+    // ITAA 1997 compilation 268 (1 October 2026), read on 15 November 2026.
+    let (authority, formula, offset) = precise(|| {
         Ok(if income.le(&rule("first_step"))? {
-            rule("maximum")
+            (
+                "ITAA 1997 s 61-115(1), table item 1",
+                "maximum",
+                rule("maximum"),
+            )
         } else if income.le(&rule("second_step"))? {
-            rule("maximum").sub(&income.sub(&rule("first_step"))?.mul(&rule("first_rate"))?)?
+            (
+                "ITAA 1997 s 61-115(1), table item 2: $700 less 5% of the excess over $37,500",
+                "maximum - (taxable_income_used - first_step) x first_rate",
+                rule("maximum").sub(&income.sub(&rule("first_step"))?.mul(&rule("first_rate"))?)?,
+            )
         } else if income.le(&rule("cut_out"))? {
             // At the cut-out the table gives minus half a cent; the offset is nil.
-            py_max(
-                int(0),
-                rule("second_amount").sub(
-                    &income
-                        .sub(&rule("second_step"))?
-                        .mul(&rule("second_rate"))?,
+            (
+                "ITAA 1997 s 61-115(1), table item 3: $325 less 1.5% of the excess over $45,000, nil where that is negative",
+                "max(0, second_amount - (taxable_income_used - second_step) x second_rate)",
+                py_max(
+                    int(0),
+                    rule("second_amount").sub(
+                        &income
+                            .sub(&rule("second_step"))?
+                            .mul(&rule("second_rate"))?,
+                    )?,
                 )?,
-            )?
+            )
         } else {
-            int(0)
+            (
+                "ITAA 1997 s 61-110(1)(b): no offset where taxable income exceeds $66,667",
+                "0",
+                int(0),
+            )
         })
     })?;
-    result(
+    let mut values = vec![("taxable_income_used", income.clone())];
+    values.extend(meta::LOW_INCOME_TAX_OFFSET.iter().map(|(k, v)| (*k, d(v))));
+    let steps = vec![
+        step(
+            "taxable_income_used",
+            "ITAA 1997 s 61-115(1)(a): an individual's relevant income is their taxable income",
+            "taxable_income",
+            &[&income],
+            income.clone(),
+        ),
+        step_by_name("low_income_tax_offset", authority, formula, &values, offset),
+    ];
+    derived_result(
         "low_income_tax_offset",
         &year,
-        vec![
-            ("taxable_income_used", income),
-            ("low_income_tax_offset", offset),
-        ],
+        steps,
         meta::LOW_INCOME_TAX_OFFSET
             .iter()
             .map(|(k, v)| rate(k, v))
@@ -4605,108 +4927,279 @@ fn rates_act_terms(year: &str) -> (Decimal, Decimal, Decimal) {
     (int(scale[0].0), d(scale[0].2), d(scale[1].2))
 }
 
-/// Regulations s 9(4) to (8): the rebate threshold for a base rebate amount.
-fn rebate_threshold(base: &Decimal, year: &str) -> Calc<Decimal> {
+/// `$rest` of the regulations that set the offset for `$year`: the Income Tax
+/// Assessment (1936 Act) Regulations 2025 (F2025L01060, as made) for a year
+/// starting from 1 October 2025 (their s 23), otherwise the Income Tax
+/// Assessment (1936 Act) Regulation 2015 (F2015L01415, compilation 8), which
+/// number ss 9 to 12 the same. Both read on 15 November 2026, with ITAA 1936
+/// compilation 193 (1 October 2026).
+macro_rules! sapto_regulations {
+    ($year:expr, $rest:literal) => {
+        if $year >= "2026-27" {
+            concat!("Income Tax Assessment (1936 Act) Regulations 2025 ", $rest)
+        } else {
+            concat!("Income Tax Assessment (1936 Act) Regulation 2015 ", $rest)
+        }
+    };
+}
+
+/// Regulations s 9(4) to (8): the rebate threshold for a base rebate amount,
+/// written `base`, its formula and the subsections it applies.
+fn rebate_threshold(base: &Decimal, b: &str, year: &str) -> Calc<(Decimal, String, &'static str)> {
     let (free, lowest, second) = rates_act_terms(year);
     let maximum = sapto_rule("rebate_maximum_amount");
     let reduction_rate = sapto_rule("rebate_reduction_rate");
     let reduction_threshold = sapto_rule("rebate_reduction_threshold");
     let amount = maximum.add(base)?.div(&lowest)?.add(&free)?;
-    let amount = if amount.gt(&reduction_threshold)? {
+    let (amount, formula, authority) = if amount.gt(&reduction_threshold)? {
         // s 9(6), with s 9(7) as its last term.
         let rates = reduction_rate.add(&second)?;
         let last = reduction_threshold.mul(&rates.sub(&lowest)?)?;
-        lowest
+        let amount = lowest
             .mul(&free)?
             .add(&maximum)?
             .add(base)?
             .add(&last)?
-            .div(&rates)?
+            .div(&rates)?;
+        let formula = format!(
+            "(lowest_marginal_tax_rate x tax_free_threshold + rebate_maximum_amount + {b} \
+             + rebate_reduction_threshold x (rebate_reduction_rate + second_lowest_marginal_tax_rate \
+             - lowest_marginal_tax_rate)) / (rebate_reduction_rate + second_lowest_marginal_tax_rate)"
+        );
+        (
+            amount,
+            formula,
+            sapto_regulations!(year, "s 9(4)(b), (6), (7) and (8)"),
+        )
     } else {
-        amount
+        let formula = format!(
+            "(rebate_maximum_amount + {b}) / lowest_marginal_tax_rate + tax_free_threshold"
+        );
+        (
+            amount,
+            formula,
+            sapto_regulations!(year, "s 9(4)(a), (5) and (8)"),
+        )
     };
-    dollars_up(&amount)
+    Ok((
+        dollars_up(&amount)?,
+        format!("dollars_up({formula})"),
+        authority,
+    ))
 }
 
-/// Regulations s 11(2): the base amount less 12.5 cents for each dollar of
-/// rebate income above the threshold, and nil once that reaches the base.
-fn rebate_amount(base: &Decimal, threshold: &Decimal, income: &Decimal) -> Calc<Decimal> {
+/// Regulations s 11(2): the base amount, written `b`, less 12.5 cents for each
+/// dollar of rebate income above the threshold, and nil once that reaches the
+/// base.
+fn rebate_amount(
+    base: &Decimal,
+    b: &str,
+    threshold: &Decimal,
+    income: &Decimal,
+) -> Calc<(Decimal, String)> {
     let excess = py_max(int(0), income.sub(threshold)?)?;
-    py_max(
+    let amount = py_max(
         int(0),
         base.sub(&excess.mul(&sapto_rule("shade_out_rate"))?)?,
-    )
+    )?;
+    let formula =
+        format!("max(0, {b} - max(0, rebate_income_used - rebate_threshold) x shade_out_rate)");
+    Ok((amount, formula))
 }
 
-/// Regulations s 12(3)(b): the spouse's unused base rebate amount. At or below
-/// $6,000 of taxable income, below the tax-free threshold, the resident spouse
-/// pays no tax and the whole base amount is unused (s 12(3)(b)(i)); above it
-/// s 12(3)(b)(ii) takes 15% of the excess.
-fn unused_from_spouse(base: &Decimal, spouse_taxable_income: &Decimal) -> Calc<Decimal> {
+/// Regulations s 12(3)(b): the spouse's unused base rebate amount, its formula
+/// and the provision. At or below $6,000 of taxable income, below the tax-free
+/// threshold, the resident spouse pays no tax and the whole base amount is
+/// unused (s 12(3)(b)(i)); above it s 12(3)(b)(ii) takes 15% of the excess.
+fn unused_from_spouse(
+    base: &Decimal,
+    spouse_taxable_income: &Decimal,
+    year: &str,
+) -> Calc<(Decimal, &'static str, &'static str)> {
     let floor = sapto_rule("transfer_income_floor");
     if spouse_taxable_income.le(&floor)? {
-        return Ok(base.clone());
+        let authority = sapto_regulations!(
+            year,
+            "s 12(1) and (3)(b)(i): the spouse's taxable income is at most $6,000, so no tax and the whole base amount is unused"
+        );
+        return Ok((base.clone(), "base_rebate_amount", authority));
     }
     let reduction = spouse_taxable_income
         .sub(&floor)?
         .mul(&sapto_rule("transfer_rate"))?;
-    py_max(int(0), base.sub(&reduction)?)
+    Ok((
+        py_max(int(0), base.sub(&reduction)?)?,
+        "max(0, base_rebate_amount - (spouse_taxable_income - transfer_income_floor) x transfer_rate)",
+        sapto_regulations!(year, "s 12(1), (3)(b)(ii) and (4)"),
+    ))
 }
 
-/// The amounts and rates for one person's offset.
-type SaptoWorking = (Vec<(&'static str, Decimal)>, Vec<(String, String)>);
+/// The steps and rates for one person's offset.
+type SaptoWorking = (Vec<Step>, Vec<(String, String)>);
 
 fn sapto_working(
     income: &Decimal,
     year: &str,
-    base: &Decimal,
+    (base, status): (&Decimal, usize),
     spouse_rebate_income: Option<&Decimal>,
     spouse_taxable_income: Option<&Decimal>,
 ) -> Calc<SaptoWorking> {
-    let threshold = rebate_threshold(base, year)?;
+    let rates = sapto_rates(year);
+    let mut values: Vec<(&str, Decimal)> = rates.iter().map(|(k, v)| (k.as_str(), d(v))).collect();
+    values.extend([
+        ("rebate_income", income.clone()),
+        ("rebate_income_used", income.clone()),
+        ("base_rebate_amount", base.clone()),
+    ]);
+    let (threshold, threshold_formula, threshold_authority) =
+        rebate_threshold(base, "base_rebate_amount", year)?;
     let cut_out = dollars_up(&base.div(&sapto_rule("shade_out_rate"))?.add(&threshold)?)?;
     // s 160AAAA(4): a spouse is tested on half the couple's rebate income.
-    let tested = match spouse_rebate_income {
-        Some(spouse) => income.add(spouse)?.div(&int(2))?,
-        None => income.clone(),
+    let (tested, tested_formula, tested_authority) = match spouse_rebate_income {
+        Some(spouse) => {
+            values.push(("spouse_rebate_income", spouse.clone()));
+            (
+                income.add(spouse)?.div(&int(2))?,
+                "(rebate_income_used + spouse_rebate_income) / 2",
+                "ITAA 1936 s 160AAAA(4): half the sum of the taxpayer's and the spouse's rebate income",
+            )
+        }
+        None => (
+            income.clone(),
+            "rebate_income_used",
+            "ITAA 1936 s 160AAAA(3): the taxpayer's rebate income",
+        ),
     };
     let entitled = tested.lt(&cut_out)?;
-    let mut amounts = vec![
-        ("rebate_income_used", income.clone()),
-        ("rebate_income_tested", tested),
-        ("base_rebate_amount", base.clone()),
+    let mut steps = vec![
+        step(
+            "rebate_income_used",
+            "ITAA 1936 s 160AAAA(3): the taxpayer's rebate income, as established",
+            "rebate_income",
+            &[income],
+            income.clone(),
+        ),
+        step_by_name(
+            "rebate_income_tested",
+            tested_authority,
+            tested_formula,
+            &values,
+            tested.clone(),
+        ),
+        step(
+            "base_rebate_amount",
+            [
+                sapto_regulations!(year, "s 9(2), table item 1: not a spouse"),
+                sapto_regulations!(
+                    year,
+                    "s 9(2), table item 3: a member of an illness separated couple"
+                ),
+                sapto_regulations!(year, "s 9(2), table item 2: a spouse"),
+            ][status],
+            &base.to_string(),
+            &[],
+            base.clone(),
+        ),
     ];
-    let mut working = (threshold.clone(), rebate_amount(base, &threshold, income)?);
+    let (offset_before, offset_formula) =
+        rebate_amount(base, "base_rebate_amount", &threshold, income)?;
+    let mut working = (
+        threshold.clone(),
+        threshold_formula.clone(),
+        threshold_authority,
+    );
+    let mut offset = (offset_before.clone(), offset_formula);
+    let mut raised_by_transfer = false;
     if let Some(spouse) = spouse_taxable_income {
+        values.push(("spouse_taxable_income", spouse.clone()));
         // s 12(1)(d) and (e): only an entitled person whose offset is below
         // its base amount takes the spouse's unused amount.
-        let unused = if entitled && working.1.lt(base)? {
-            unused_from_spouse(base, spouse)?
+        let (unused, formula, authority) = if entitled && offset_before.lt(base)? {
+            unused_from_spouse(base, spouse, year)?
         } else {
-            int(0)
+            let authority = sapto_regulations!(
+                year,
+                "s 12(1)(d) and (e): only a person entitled to the rebate, and whose rebate is less than its base amount, takes a spouse's unused amount; not here, so nil"
+            );
+            (int(0), "0", authority)
         };
-        amounts.push(("spouse_unused_amount_transferred", unused.clone()));
+        values.push(("spouse_unused_amount_transferred", unused.clone()));
+        steps.push(step_by_name(
+            "spouse_unused_amount_transferred",
+            authority,
+            formula,
+            &values,
+            unused.clone(),
+        ));
         if unused.gt(&int(0))? {
             // s 12(3) adds the unused amount to the base for s 11, not s 10.
             let raised = base.add(&unused)?;
-            let raised_threshold = rebate_threshold(&raised, year)?;
+            let b = "base_rebate_amount + spouse_unused_amount_transferred";
+            let (raised_threshold, formula, _) = rebate_threshold(&raised, b, year)?;
             working = (
                 raised_threshold.clone(),
-                rebate_amount(&raised, &raised_threshold, income)?,
+                formula,
+                sapto_regulations!(
+                    year,
+                    "s 9(4) to (8) and s 12(3): the base amount increased by the spouse's unused amount"
+                ),
             );
+            offset = rebate_amount(&raised, b, &raised_threshold, income)?;
+            raised_by_transfer = true;
         }
     }
-    let (threshold, offset) = working;
-    // The ATO rounds the offset up to the whole dollar.
-    let offset = if entitled {
-        dollars_up(&offset)?
+    let (threshold_used, formula, authority) = working;
+    values.push(("rebate_threshold", threshold_used.clone()));
+    steps.push(step_by_name(
+        "rebate_threshold",
+        authority,
+        &formula,
+        &values,
+        threshold_used,
+    ));
+    // s 10 uses the threshold before any s 12 transfer.
+    let before = if raised_by_transfer {
+        threshold_formula
     } else {
-        int(0)
+        "rebate_threshold".to_string()
     };
-    amounts.push(("rebate_threshold", threshold));
-    amounts.push(("cut_out_threshold", cut_out));
-    amounts.push(("seniors_pensioners_tax_offset", offset));
-    Ok((amounts, sapto_rates(year)))
+    values.push(("cut_out_threshold", cut_out.clone()));
+    steps.push(step_by_name(
+        "cut_out_threshold",
+        sapto_regulations!(
+            year,
+            "s 10: the base rebate amount over 0.125, plus the rebate threshold before any s 12 transfer, rounded up to the dollar"
+        ),
+        &format!("dollars_up(base_rebate_amount / shade_out_rate + {before})"),
+        &values,
+        cut_out,
+    ));
+    // The ATO rounds the offset up to the whole dollar.
+    let step = if entitled {
+        step_by_name(
+            "seniors_pensioners_tax_offset",
+            sapto_regulations!(
+                year,
+                "s 11(2), as s 12 affects it, rounded up to the whole dollar as the ATO does"
+            ),
+            &format!("dollars_up({})", offset.1),
+            &values,
+            dollars_up(&offset.0)?,
+        )
+    } else {
+        step(
+            "seniors_pensioners_tax_offset",
+            sapto_regulations!(
+                year,
+                "s 10 and ITAA 1936 s 160AAAA(3) and (4): the rebate income tested is not less than the cut-out threshold, so no rebate"
+            ),
+            "0",
+            &[],
+            int(0),
+        )
+    };
+    steps.push(step);
+    Ok((steps, rates))
 }
 
 /// The year's Schedule 7 terms and the regulations' constants.
@@ -4735,16 +5228,16 @@ pub fn seniors_pensioners_tax_offset(
     let status = seniors_status(status)?;
     let (spouse_rebate_income, spouse_taxable_income) = sapto_spouse(&spouse, status)?;
     let base = d(meta::SAPTO_BASE_REBATE_AMOUNTS[status]);
-    let (amounts, rates) = precise(|| {
+    let (steps, rates) = precise(|| {
         Ok(sapto_working(
             &income,
             &year,
-            &base,
+            (&base, status),
             spouse_rebate_income.as_ref(),
             spouse_taxable_income.as_ref(),
         )?)
     })?;
-    let mut out = result(SAPTO, &year, amounts, rates)?;
+    let mut out = derived_result(SAPTO, &year, steps, rates)?;
     if year == "2026-27" {
         let warnings = out["warnings"].as_array_mut().expect("warnings");
         warnings.push(json!(texts::SAPTO_2026_27_NOTE));
