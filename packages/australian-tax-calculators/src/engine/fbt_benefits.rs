@@ -456,11 +456,11 @@ pub fn fbt_meal_entertainment(
     derived_result(kind, &period, steps, Vec::new())
 }
 
-/// s 37CB: the register percentage, kept exact, applied to the expenditure.
+/// s 37CB: the register percentage, and the expenditure times the register's
+/// ratio, divided once so that a value on a half cent stays exact.
 fn register_steps(expenditure: &Decimal, benefits: &Decimal, total: &Decimal) -> Result<Vec<Step>> {
-    let hundred = int(100);
-    let percentage = benefits.div(total)?.mul(&hundred)?;
-    let taxable = expenditure.mul(&percentage)?.div(&hundred)?;
+    let percentage = benefits.div(total)?.mul(&int(100))?;
+    let taxable = expenditure.mul(benefits)?.div(total)?;
     Ok(vec![
         step(
             "register_percentage",
@@ -472,8 +472,8 @@ fn register_steps(expenditure: &Decimal, benefits: &Decimal, total: &Decimal) ->
         step(
             "taxable_value",
             "FBTAA s 37CB(1) and (3)",
-            "meal_entertainment_expenditure x register_percentage / 100",
-            &[expenditure, &percentage],
+            "meal_entertainment_expenditure x register_fringe_benefits_value / register_meal_entertainment_value",
+            &[expenditure, benefits, total],
             taxable,
         ),
     ])
@@ -507,11 +507,13 @@ pub fn fbt_car_parking(
         }
         _ => fee_parking(given, &when, method == "average_cost")?,
     };
-    steps.push(if fee.gt(&threshold)? {
-        taxable
+    // Without a benefit there is no gross value or payment to report, only the
+    // nil taxable value; the method's inputs were still checked above.
+    if fee.gt(&threshold)? {
+        steps.push(taxable);
     } else {
-        step("taxable_value", NO_BENEFIT, "0", &[], int(0))
-    });
+        steps = vec![step("taxable_value", NO_BENEFIT, "0", &[], int(0))];
+    }
     let rates = vec![rate("car_parking_threshold", &threshold)];
     derived_result(kind, &period, steps, rates)
 }
@@ -644,7 +646,7 @@ fn register_parking(
     let authority = "FBTAA s 39GB";
     precise(|| {
         let annual = value.mul(&int(52))?.div(&int(12))?;
-        let gross = cents(annual.mul(&days)?.div(&int(366))?)?;
+        let gross = cents(value.mul(&int(52))?.mul(&days)?.div(&int(12 * 366))?)?;
         let steps = vec![
             step(
                 "annual_value",
@@ -656,8 +658,8 @@ fn register_parking(
             step(
                 "gross_taxable_value",
                 authority,
-                "cents(annual_value x availability_days / 366)",
-                &[&annual, &days],
+                "cents(register_value x 52 x availability_days / (12 x 366))",
+                &[&value, &days],
                 gross.clone(),
             ),
         ];

@@ -90,8 +90,7 @@ fn the_average_cost_method_matches_the_employers_guide_example() {
     assert_eq!(a["taxable_value"], "12.50");
     let a = amounts(average(json!({"first_business_day_fee": "10.00",
                                    "first_day_fee": "10.00", "last_day_fee": "15.00"})));
-    assert_eq!(a["gross_taxable_value"], "12.50");
-    assert_eq!(a["taxable_value"], "0.00");
+    assert_eq!(a, json!({"taxable_value": "0.00"}));
     // A half-cent average is kept until the gross value is rounded to cents.
     let a = amounts(average(json!({"benefits": 3, "first_day_fee": "17.25",
                                    "last_day_fee": "18.50"})));
@@ -113,6 +112,12 @@ fn the_12_week_register_matches_the_employers_guide_example() {
     // a little less than 52 / 12 of the register's value.
     let a = amounts(register(json!({"availability_days": 365})));
     assert_eq!(a["gross_taxable_value"], "10803.73");
+    // $26.23 x 52 x 153 / (12 x 366) is exactly $47.515, which rounds half up
+    // to $47.52; dividing by 12 and 366 in turn at working precision gives $47.51.
+    let a = amounts(register(
+        json!({"register_value": "26.23", "availability_days": 153}),
+    ));
+    assert_eq!(a["gross_taxable_value"], "47.52");
 }
 
 #[test]
@@ -139,7 +144,11 @@ fn the_car_parking_threshold_decides_whether_a_benefit_arises() {
     ));
     assert_eq!(a["taxable_value"], "55.00");
     let a = amounts(register(json!({"first_business_day_fee": "9.72"})));
-    assert_eq!(a["taxable_value"], "0.00");
+    assert_eq!(a, json!({"taxable_value": "0.00"}));
+    // With no benefit, the result holds no gross value or payment to copy
+    // into a return: only the nil taxable value.
+    let a = amounts(station(json!({"first_business_day_fee": "11.03"})));
+    assert_eq!(a, json!({"taxable_value": "0.00"}));
 }
 
 #[test]

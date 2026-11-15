@@ -451,7 +451,8 @@ attributed in [NOTICE](NOTICE)). Each has a case, a stated reason or both.
 Each worksheet gives one category's taxable value before gross-up, for `fbt`
 to gross up with the others. They take their inputs by name: each method needs
 its own, and an input the method does not use, or one missing, is refused with
-the method named. Each derives its amounts (see [Derivations](#derivations)).
+the method named (a string that is not a readable decimal is refused as
+unreadable first). Each derives its amounts (see [Derivations](#derivations)).
 
 `fbt_loan` applies FBTAA ss 18 and 19. `daily_balance_total` is the loan's
 balance at the end of each day the employee owed it, added together, so
@@ -472,7 +473,8 @@ than 20% above its first valid year's, and that no later register replaced it.
 
 `fbt_car_parking` gives a nil taxable value unless `first_business_day_fee`,
 the highest of the nearby stations' lowest all-day fees on the first business
-day, is more than the year's car parking threshold (s 39A(1)(a)(iii)). It
+day, is more than the year's car parking threshold (s 39A(1)(a)(iii)); a nil
+result holds that taxable value alone, with no gross value or payment. It
 takes one premises and the stations within 1 km of it; run it once for each.
 `commercial_parking_station` values each benefit at the
 day's lowest fee (s 39C), the same on every day, and `average_cost` at the
