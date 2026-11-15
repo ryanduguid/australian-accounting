@@ -236,9 +236,15 @@ fn schedule_5(facts: &str) -> Value {
     input
 }
 
-fn schedule_5_doc(name: &str) -> Value {
+/// The command and input of the [`SCHEDULE_5`] case `name`.
+fn schedule_5_case(name: &str) -> (&'static str, Value) {
     let (_, command, facts) = SCHEDULE_5.iter().find(|(n, ..)| *n == name).unwrap();
-    derive(command, &schedule_5(facts))
+    (command, schedule_5(facts))
+}
+
+fn schedule_5_doc(name: &str) -> Value {
+    let (command, input) = schedule_5_case(name);
+    derive(command, &input)
 }
 
 /// Termination payment cases by name: Schedule 11's examples 1 to 4 and the
@@ -1552,13 +1558,13 @@ fn a_refused_input_gets_the_commands_own_refusal() {
         refused("payg-withholding", input),
         "payg.reductions_exceed_withholding"
     );
-    let mut input = schedule_5(SCHEDULE_5[0].2);
+    let mut input = schedule_5_case("jarrod").1;
     input["pay_periods"] = json!(1);
     assert_eq!(refused(A, input), "input.pay_periods_invalid");
-    let mut input = schedule_5(SCHEDULE_5[4].2);
+    let mut input = schedule_5_case("robyn").1;
     input["back_payment_periods"] = json!([]);
     assert_eq!(refused(B_I, input), "input.back_payment_periods_invalid");
-    let mut input = schedule_5(SCHEDULE_5[8].2);
+    let mut input = schedule_5_case("laura").1;
     input["scale"] = json!(4);
     assert_eq!(refused(B_II, input), "input.tax_scale_unsupported");
     let mut input = etp(ETP[0].1);
