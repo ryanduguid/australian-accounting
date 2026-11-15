@@ -1591,6 +1591,28 @@ liability; the ATO's "Low income tax offset" (last updated 8 June 2026), which
 says the offset "can only reduce your tax payable to $0"; and its "Division 293
 tax on concessional contributions by high-income earners" (last updated
 24 August 2026), under which the ATO sends a separate Division 293 notice.
+These were read again on 16 November 2026 and are unchanged, apart from s 63-10's
+new item 3 for the working Australians tax offset, which applies from 2027-28.
+
+Taxable income from labour income, read on 16 November 2026 on the ATO legal
+database: ITAA 1997 s 4-15(1), taxable income is assessable income less
+deductions, and where the deductions equal or exceed assessable income there is
+no taxable income (step 3); s 25-130, the standard deduction for work-related
+expenses, inserted by Schedule 4 to the Treasury Laws Amendment (Tax Reform
+No. 1) Act 2026 (No. 49 of 2026, assented to 26 June 2026, Schedule 4 commenced
+1 July 2026), whose item 17(1) applies it to assessments for the 2026-27 income
+year and later years, read on the Federal Register of Legislation as made. It
+gives a resident with assessable labour income the lesser of $1,000 and that
+income, reduced, but not below zero, by the deductions in s 25-130(2)(c) to (g),
+so the work-related deductions and the standard deduction together are the
+greater of the work-related deductions and that lesser amount. TAA 1953 Sch 1
+s 18-15(1) gives a credit equal to the amounts withheld in the year once an
+assessment is made. The tests work their figures by hand: $85,000 salary,
+$300 of work expenses, $500 interest and $200 of union fees in 2026-27 give a
+$700 standard deduction, $84,300 taxable income, $15,810 tax, a $1,686 levy and
+$17,496, so $1,496 is payable after $16,000 withheld; $60,000 salary and $300
+of work expenses in 2025-26 give $59,700, $8,698 tax less a $104.50 offset plus
+a $1,194 levy, $9,787.50, and a $212.50 refund after $10,000 withheld.
 
 The foreign income tax offset rules guides for 2025 (2024-25, last updated 29
 May 2025) and 2026 (2025-26, last updated 30 May 2026) give, at step 1 of

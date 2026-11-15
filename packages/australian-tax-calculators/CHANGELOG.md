@@ -82,6 +82,18 @@ intentionally changed.
   describe different spouses or dependants) and `input.residency_invalid`.
   `tests/personal_tax_estimate.rs` holds it to the ATO's figures, and
   `tests/properties.rs` to the sum of its parts.
+- `personal-tax-estimate` can work out taxable income from whole-dollar
+  `assessable_labour_income`, `other_assessable_income`,
+  `work_related_deductions` and `other_deductions` in place of
+  `taxable_income` (ITAA 1997 s 4-15(1)), with the standard deduction for
+  work-related expenses for a resident from 2026-27 (s 25-130, Act No. 49 of
+  2026 Schedule 4), and compare the total with `tax_withheld` (TAA 1953 Sch 1
+  s 18-15(1)) to give `refund` and `amount_payable`. Its sources add those 3
+  sections and the Act. An estimate given neither `taxable_income` nor
+  `assessable_labour_income` is refused as `input.missing_field` with its own
+  message. The result for an established `taxable_income` without
+  `tax_withheld` is unchanged apart from its sources, scope and
+  `source_checked`.
 - `derive` also covers `working-holiday-maker-withholding`,
   `study-loan-withholding`, `seniors-pensioners-withholding`, `quarterly-sg`
   and `borrowing-expenses`. Their steps cite the headings of Schedules 1, 8, 9
