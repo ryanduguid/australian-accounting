@@ -267,14 +267,15 @@ you configure. As read on 13 November 2026, these projects cover nearby ground:
   read on 15 November 2026 describes it, amortises a hire purchase agreement at a stated nominal
   rate, reports any residual and totals interest by financial year; `hire-purchase-schedule` instead
   works out the implicit rate from the payments, as ITAA 1997 s 240-60 does, and closes at nil, but
-  leaves the caller to split a month that spans 30 June. On 15 November 2026 the listing held 19 FBT
+  leaves the caller to split a month that spans 30 June. On 16 November 2026 the listing held 19 FBT
   calculators, each for `fy2026` only. This repository's engine values car, loan, meal entertainment
-  (50/50 split and 12 week register), car parking (commercial parking station, average cost and 12
-  week register), debt waiver, expense payment, property, residual, housing, living-away-from-home
-  allowance, board and tax-exempt body entertainment benefits for the FBT years ending 31 March 2026
-  and 2027. Of the listing's 19 FBT calculators, the one it has no counterpart for is car parking's
-  statutory formula (spaces) method (FBTAA s 39FA). It also has no car parking market value basis
-  (s 39D), a value the listing's actual records calculator takes as an input.
+  (50/50 split and 12 week register), car parking (commercial parking station, market value, average
+  cost, spaces and 12 week register), debt waiver, expense payment (external, in-house property and
+  in-house residual), property, residual, housing, living-away-from-home allowance, board and
+  tax-exempt body entertainment benefits for the FBT years ending 31 March 2026 and 2027, so each of
+  the listing's 19 FBT calculators has a counterpart here. Its spaces calculator takes one space at
+  a time and leaves the s 39FB reduction to the caller; `fbt-car-parking` takes every space an
+  election covers and applies s 39FB.
 - [AusCalc](https://auscalc.com.au/): free browser calculators for individual and sole trader tax,
   PAYG, GST, super and HECS, which its home page also offers inside ChatGPT and Claude as a plugin.
 - [PayCalculator](https://mcp.paycalculator.com.au/): a remote MCP server in the MCP Registry for

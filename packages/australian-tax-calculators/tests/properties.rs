@@ -5,7 +5,7 @@
 //! seeds, run counts, explicit examples and input domains are the Python
 //! fast-check properties'; the generator is a local SplitMix64.
 use australian_tax_calculators::api;
-use australian_tax_calculators::decimal::Decimal;
+use australian_tax_calculators::decimal::{Decimal, Rounding, with_precision};
 use australian_tax_calculators::metadata::{
     PAYG_WITHHOLDING_COEFFICIENTS, RESIDENT_TAX_SCALES, STUDY_LOAN_WITHHOLDING_FROM,
     supported_periods,
@@ -960,12 +960,16 @@ fn fbt_benefit_values_reconcile_and_never_fall_below_nil() {
         } else {
             total
         };
+        // Earlier years' expenses as the first valid year's, so the register
+        // stays valid (s 37CD(3)).
+        let first = year - rng.int(0, 4);
+        let earlier = vec![expenditure.clone(); (year - first) as usize];
         let result = run(
             "fbt-meal-entertainment",
             json!({"method": "12_week_register", "meal_entertainment_expenditure": expenditure,
                    "register_fringe_benefits_value": benefits,
                    "register_meal_entertainment_value": total,
-                   "register_first_year": year - rng.int(0, 4),
+                   "register_first_year": first, "register_years_expenditure": earlier,
                    "year_ended": year, "scope_confirmed": true}),
         );
         let taxable = amount(&result, "taxable_value");
@@ -973,6 +977,51 @@ fn fbt_benefit_values_reconcile_and_never_fall_below_nil() {
             le(&n(0), &taxable) && le(&taxable, &d(&expenditure)),
             "{result}"
         );
+    }
+}
+
+/// The spaces method's total statutory benefit is each group's daily rate
+/// times its days times 228 times its spaces, over 366, to the cent (s
+/// 39FA(4)); s 39FB never raises it; and the payments reconcile as for the
+/// other car parking methods.
+#[test]
+fn the_spaces_method_reconciles_with_its_formula() {
+    let mut rng = Rng(0x39FA_2026);
+    for _ in 0..RUNS {
+        let year = rng.int(2026, 2027);
+        let mut groups = Vec::new();
+        let mut sum = n(0);
+        for _ in 0..rng.int(1, 4) {
+            let (rate, days, spaces) = (rng.cents(5000), rng.int(1, 365), rng.int(1, 500));
+            let term = d(&rate).mul(&n(days * 228 * spaces)).unwrap();
+            sum = sum.add(&term).unwrap();
+            groups.push(
+                json!({"first_business_day_fee": "20.00", "daily_rate_amount": rate,
+                               "availability_days": days, "spaces": spaces}),
+            );
+        }
+        let contribution = rng.pay();
+        let result = run(
+            "fbt-car-parking",
+            json!({"method": "spaces", "space_groups": groups,
+                   "employees_at_start": rng.int(0, 600), "employees_at_end": rng.int(0, 600),
+                   "eligible_spaces_at_start": rng.int(0, 600),
+                   "eligible_spaces_at_end": rng.int(0, 600),
+                   "employee_contribution": contribution,
+                   "year_ended": year, "scope_confirmed": true}),
+        );
+        let total = with_precision(40, || sum.div(&n(366)).unwrap())
+            .quantize(-2, Rounding::HalfUp)
+            .unwrap();
+        assert!(
+            eq(&amount(&result, "total_statutory_benefit"), &total),
+            "{result}"
+        );
+        assert!(
+            le(&amount(&result, "gross_taxable_value"), &total),
+            "{result}"
+        );
+        check_parking_reconciles(&result, &contribution, true);
     }
 }
 

@@ -66,6 +66,24 @@ intentionally changed.
   `fbt.deduction_exceeds_contribution`, `fbt.in_house_reduction_invalid`,
   `fbt_housing.base_year_invalid`, `fbt_lafha.components_exceed_allowance`,
   `fbt_tax_exempt_body_entertainment.heads_invalid` and `input.state_invalid`.
+- `fbt-car-parking` takes 2 more methods: `market_value` (FBTAA s 39D), each
+  benefit at the valuer's arm's length amount, and `spaces` (ss 39FA to
+  39FE), the statutory formula over groups of spaces in `space_groups`, with
+  the s 39FB reduction where the election's employees average fewer than its
+  eligible spaces. `fbt-expense-payment` takes in-house residual expense
+  payments (s 22A(2) and (3)) by 3 new methods,
+  `in_house_residual_salary_packaging`, `in_house_residual_public_price` and
+  `in_house_residual_other`. `fbt-meal-entertainment`'s `12_week_register`
+  now requires `register_years_expenditure`, each year's expenses since the
+  register's first valid year, and refuses a register that ceased to be valid
+  under s 37CD(3)'s 20% rule. FBT inputs given as a JSON list now reach the
+  worksheet as a list. New codes: `fbt_car_parking.head_counts_invalid`,
+  `fbt_car_parking.space_groups_invalid`,
+  `fbt_car_parking.spaces_without_benefit`,
+  `fbt_meal_entertainment.register_ceased` and
+  `fbt_meal_entertainment.register_years_invalid`. Each reproduces the
+  employer's guide's example 18 (spaces), example 17's market value and the
+  18.4 rental paid as an expense; see `docs/calculation-evidence.md`.
 - `personal-tax-estimate` composes one full-year resident's income tax and
   levies for a year from `resident-tax`, `low-income-tax-offset`,
   `medicare-levy`, `medicare-levy-surcharge` and, when given,
