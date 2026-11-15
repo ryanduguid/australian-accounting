@@ -161,7 +161,7 @@ The plain commands' output does not change.
 The PAYG withholding, Schedule 5 and termination payment steps cite the
 schedules of the Taxation Administration (Withholding Schedules) Instrument for
 the year, made under Schedule 1 to the Taxation Administration Act 1953,
-s 15-25, and the termination payment caps ITAA 1997 s 82-10 and 83-170.
+s 15-25; the termination payment steps also cite ITAA 1997 s 82-10 and 83-170.
 Schedule 1 names its parts by heading, such as 'Using a formula', and the
 steps cite those headings. `floor` drops the cents where a schedule says to
 ignore them. A Schedule 5 step writes in the coefficients of the
