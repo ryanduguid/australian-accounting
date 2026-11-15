@@ -152,8 +152,9 @@ fn matches_the_employers_guide_otherwise_deductible_examples() {
         .clone();
     assert_eq!(a["gross_deduction"], "50.02");
     assert_eq!(a["taxable_value"], "50.01");
-    // RD above GD but within the contribution: RD applies only up to GD, so
-    // ND is nil and the value after the contribution stands.
+    // RD above GD but within the contribution: GD - RD does not exceed nil,
+    // so s 44(1)(ba) allows no reduction and the value after the contribution
+    // stands.
     let a = property(json!({
         "method": "external_notional_value", "lowest_price": null,
         "in_house_reduction_available": null, "notional_value": "500.00",
