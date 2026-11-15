@@ -416,16 +416,22 @@ pub fn commands() -> Vec<&'static str> {
     out.push("worksheet-catalogue");
     out.push("periods");
     out.push("derive");
+    out.push("personal-tax-estimate");
     out
 }
 
 /// The commands `derive` explains: each of their amounts is worked out in a step.
-const DERIVED: [&str; 5] = [
+const DERIVED: [&str; 10] = [
     "fbt",
     "fbt-car-statutory",
     "fbt-car-operating-cost",
     "division-293",
     "pension-minimum",
+    "payg-withholding",
+    "schedule-5-method-a",
+    "schedule-5-method-b-i",
+    "schedule-5-method-b-ii",
+    "termination-payment",
 ];
 
 /// `derive`: `{"command", "input"}` gives the command's result with the step
@@ -629,6 +635,15 @@ fn int_limit(value: &Value) -> Result<()> {
     }
 }
 
+/// Whether `command` takes the input `key`, required or optional.
+pub(crate) fn takes(command: &str, key: &str) -> bool {
+    let optional = crate::metadata::optional_inputs(&command.replace('-', "_"));
+    COMMAND_ARGS
+        .iter()
+        .any(|(c, params)| *c == command && params.iter().any(|(p, _)| *p == key))
+        || optional.iter().any(|(o, _)| *o == key)
+}
+
 /// Run one JSON stdin command: the result value, or the refusal message.
 pub fn evaluate(command: &str, v: &Value) -> std::result::Result<Value, String> {
     evaluate_coded(command, v).map_err(|refusal| refusal.message)
@@ -643,6 +658,7 @@ pub fn evaluate_coded(command: &str, v: &Value) -> Result<Value> {
     match command {
         "worksheet-catalogue" => return Ok(engine::worksheet_catalogue()),
         "derive" => return derive(v),
+        "personal-tax-estimate" => return crate::estimate::compose(v),
         "periods" => {
             let kind = match v.get("kind") {
                 None => return refusal("input.missing_field", "kind is required"),
@@ -688,22 +704,16 @@ pub fn evaluate_coded(command: &str, v: &Value) -> Result<Value> {
             | "seniors-pensioners-withholding"
             | "seniors-pensioners-tax-offset"
             | "hire-purchase-schedule"
-    ) {
-        let optional = crate::metadata::optional_inputs(&command.replace('-', "_"));
-        let taken = |key: &String| {
-            params.iter().any(|(p, _)| p == key) || optional.iter().any(|(o, _)| o == key)
-        };
-        if let Some(key) = v
-            .as_object()
-            .into_iter()
-            .flat_map(|o| o.keys())
-            .find(|k| !taken(k))
-        {
-            return refusal(
-                "input.field_unknown",
-                format!("{key} is not an input of {command}"),
-            );
-        }
+    ) && let Some(key) = v
+        .as_object()
+        .into_iter()
+        .flat_map(|o| o.keys())
+        .find(|k| !takes(command, k))
+    {
+        return refusal(
+            "input.field_unknown",
+            format!("{key} is not an input of {command}"),
+        );
     }
     let a: Vec<Arg> = params
         .iter()

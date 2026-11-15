@@ -277,9 +277,15 @@ you configure. As read on 13 November 2026, these projects cover nearby ground:
   13 November 2026, with a local MCP server and a hosted one at `https://aftertaxau.com/mcp` that
   needs no key. Both it and this repository cover Schedule 1 withholding with scale 4, quarterly
   pays, tax offsets and the Medicare levy adjustment, and both test all 432 rows of each year's ATO
-  sample data. It also covers quarterly pays and study loan components under Schedule 9, overtime
-  and an annual tax estimate, which this
-  repository does not. Both apply full and half Medicare levy exemptions and the Medicare levy
+  sample data. It also covers quarterly pays and study loan components under Schedule 9 and
+  overtime, which this repository does not. Both compose a year's tax and levies, as rechecked on
+  15 November 2026: the library's `annual_tax_estimate` works taxable income out from salary and
+  deductions, approximates repayment income and income for surcharge purposes by taxable income,
+  and compares the result with tax withheld, which this repository does not. This repository's
+  `personal-tax-estimate` takes those incomes as established, names the worksheet behind each line
+  and keeps its sources and refusals, shows Division 293 tax, and refuses part-year residents and
+  working holiday makers; both compose a full-year foreign resident's tax without the Medicare
+  levy. Both apply full and half Medicare levy exemptions and the Medicare levy
   surcharge; the library takes a whole-year exemption and cover status only and applies the
   surcharge rate to all income for surcharge purposes, where this repository apportions both by
   days and applies the rate to taxable income and reportable fringe benefits only, as the ATO's

@@ -213,7 +213,9 @@ pub const PAYG_WITHHOLDING_COEFFICIENTS: &[(&str, &[(i64, &[CoefficientRow])])] 
 /// weekly earnings, formula 1 is (x - `formula_1_less`) x `shade_in_rate` below
 /// `shade_in`, formula 2 is x x `levy_rate` below the weekly family threshold
 /// (WFT), and formula 3 is WFT x `levy_rate` - (x - WFT) x `shade_out_rate`
-/// below the shading out point.
+/// below the shading out point, WFT x the first of `shading_out_point` / the
+/// second in whole dollars (the 'Medicare levy parameters' table's multiplier
+/// and divisor).
 pub struct MedicareScale {
     pub threshold: i64,
     pub formula_1_less: &'static str,
@@ -221,6 +223,7 @@ pub struct MedicareScale {
     pub shade_in_rate: &'static str,
     pub levy_rate: &'static str,
     pub shade_out_rate: &'static str,
+    pub shading_out_point: (&'static str, &'static str),
 }
 
 /// The rules of one Schedule 1 beside its coefficients.
@@ -229,8 +232,7 @@ pub struct Schedule1Rules {
     pub no_tfn_rates: (&'static str, &'static str),
     /// Share of the yearly tax offsets claimed that each pay is reduced by.
     pub tax_offset_rates: [(&'static str, &'static str); 4],
-    /// WFT = (family threshold + per child x children) / 52, to the cent; the
-    /// shading out point is WFT x 0.1 / 0.08 in whole dollars.
+    /// WFT = (family threshold + per child x children) / 52, to the cent.
     pub family_threshold: i64,
     pub family_threshold_per_child: i64,
     pub medicare_scales: [(i64, MedicareScale); 2],
@@ -264,6 +266,7 @@ const SCHEDULE_1_RULES_FROM_JULY_2024: Schedule1Rules = Schedule1Rules {
                 shade_in_rate: "0.1",
                 levy_rate: "0.0200",
                 shade_out_rate: "0.0800",
+                shading_out_point: ("0.1000", "0.0800"),
             },
         ),
         (
@@ -275,6 +278,7 @@ const SCHEDULE_1_RULES_FROM_JULY_2024: Schedule1Rules = Schedule1Rules {
                 shade_in_rate: "0.05",
                 levy_rate: "0.0100",
                 shade_out_rate: "0.0400",
+                shading_out_point: ("0.0500", "0.0400"),
             },
         ),
     ],
@@ -298,6 +302,7 @@ const SCHEDULE_1_RULES_FROM_JULY_2026: Schedule1Rules = Schedule1Rules {
                 shade_in_rate: "0.1",
                 levy_rate: "0.0200",
                 shade_out_rate: "0.0800",
+                shading_out_point: ("0.1000", "0.0800"),
             },
         ),
         (
@@ -309,6 +314,7 @@ const SCHEDULE_1_RULES_FROM_JULY_2026: Schedule1Rules = Schedule1Rules {
                 shade_in_rate: "0.05",
                 levy_rate: "0.0100",
                 shade_out_rate: "0.0400",
+                shading_out_point: ("0.0500", "0.0400"),
             },
         ),
     ],

@@ -76,6 +76,15 @@ fn run(command: &str, input: Value) -> Value {
     let result =
         api::evaluate(command, &input).unwrap_or_else(|e| panic!("{command} {input}: {e}"));
     check_sanity(command, &result);
+    // Every input of a command derive explains derives to this result, byte for byte.
+    match api::evaluate_coded("derive", &json!({"command": command, "input": input})) {
+        Ok(doc) => assert_eq!(
+            doc["result"].to_string(),
+            result.to_string(),
+            "derive {command} {input}"
+        ),
+        Err(refusal) => assert_eq!(refusal.code, "derivation.unsupported", "{command} {input}"),
+    }
     result
 }
 
@@ -1437,4 +1446,99 @@ fn civil(day: i64) -> (i64, i64, i64) {
     let d = doy - (153 * mp + 2) / 5 + 1;
     let m = if mp < 10 { mp + 3 } else { mp - 9 };
     (yoe + era * 400 + i64::from(m <= 2), m, d)
+}
+
+/// One generated person's `personal-tax-estimate` input, with SAPTO, a study
+/// loan and Division 293 each present or not.
+fn estimate_input(rng: &mut Rng, year: &str) -> Value {
+    let income = rng.dollars();
+    let fringe = rng.int(0, 30_000);
+    let mut facts = json!({
+        "year": year, "scope_confirmed": true, "residency": "full_year_resident",
+        "taxable_income": income.to_string(),
+        "medicare-levy": {"section_9a_adjustment_applies": false},
+        "medicare-levy-surcharge": {"reportable_fringe_benefits": fringe.to_string(),
+            "income_for_surcharge_purposes": (income + fringe).to_string(),
+            "days_without_cover": rng.int(0, 365)},
+    });
+    if rng.bool() {
+        facts["seniors-pensioners-tax-offset"] =
+            json!({"rebate_income": rng.int(0, 60_000).to_string(), "status": "single"});
+    }
+    if rng.bool() {
+        facts["study-loan-repayment"] = json!({"repayment_income": (income + fringe).to_string()});
+    }
+    if rng.bool() {
+        facts["division-293"] = json!({"division_293_income": (income + fringe).to_string(),
+            "low_tax_contributions": rng.cents(5_000_000)});
+    }
+    facts
+}
+
+/// A part's amount when called alone with the inputs `out`, the estimate for
+/// `facts`, gave it, checking the estimate kept that part's result unchanged;
+/// nil for an optional part not given.
+fn part_alone(facts: &Value, out: &Value, command: &str, key: &str) -> Decimal {
+    let shared_only = matches!(command, "resident-tax" | "low-income-tax-offset");
+    if facts.get(command).is_none() && !shared_only {
+        assert!(
+            out["components"].get(command).is_none(),
+            "{command} {facts}"
+        );
+        return n(0);
+    }
+    let mut input = facts.get(command).cloned().unwrap_or_else(|| json!({}));
+    input["year"] = facts["year"].clone();
+    input["scope_confirmed"] = json!(true);
+    if shared_only || command.starts_with("medicare") {
+        input["taxable_income"] = facts["taxable_income"].clone();
+    }
+    let sapto = &out["components"]["seniors-pensioners-tax-offset"];
+    if command == "medicare-levy" && !sapto.is_null() {
+        let offset = amount(sapto, "seniors_pensioners_tax_offset");
+        input["sapto_entitled"] = json!(!eq(&offset, &n(0)));
+    }
+    let result = run(command, input);
+    assert_eq!(out["components"][command], result, "{command} {facts}");
+    amount(&result, key)
+}
+
+/// `personal-tax-estimate` keeps each part's result exactly as the part gives
+/// it alone, and its total is the parts' sum: basic tax less SAPTO and then
+/// LITO, each up to the tax left (ITAA 1997 s 63-10(1)), plus the levy, the
+/// surcharge and the study loan repayment. Division 293 tax stays outside it.
+#[test]
+fn the_composed_estimate_is_the_sum_of_its_parts_called_alone() {
+    let mut rng = Rng(0x0015_1126);
+    for _ in 0..400 {
+        let year = *rng.pick(&["2025-26", "2026-27"]);
+        let facts = estimate_input(&mut rng, year);
+        let out = run("personal-tax-estimate", facts.clone());
+        let alone = |command: &str, key: &str| part_alone(&facts, &out, command, key);
+        let basic = alone("resident-tax", "basic_income_tax");
+        let sapto = alone(
+            "seniors-pensioners-tax-offset",
+            "seniors_pensioners_tax_offset",
+        );
+        let lito = alone("low-income-tax-offset", "low_income_tax_offset");
+        let sapto = if le(&sapto, &basic) {
+            sapto
+        } else {
+            basic.clone()
+        };
+        let left = basic.sub(&sapto).unwrap();
+        let lito = if le(&lito, &left) { lito } else { left.clone() };
+        let applied = amount(&out, "seniors_pensioners_tax_offset_applied");
+        assert!(eq(&applied, &sapto), "SAPTO applies first: {facts}");
+        let total = [
+            alone("medicare-levy", "medicare_levy"),
+            alone("medicare-levy-surcharge", "medicare_levy_surcharge"),
+            alone("study-loan-repayment", "compulsory_repayment"),
+        ]
+        .iter()
+        .fold(left.sub(&lito).unwrap(), |sum, part| sum.add(part).unwrap());
+        assert!(eq(&amount(&out, "total_before_credits"), &total), "{facts}");
+        let div293 = alone("division-293", "division_293_tax");
+        assert!(eq(&amount(&out, "division_293_tax"), &div293), "{facts}");
+    }
 }
