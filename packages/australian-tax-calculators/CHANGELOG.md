@@ -22,6 +22,16 @@ intentionally changed.
   `fbt_meal_entertainment.register_values_invalid`,
   `input.benefit_count_invalid` and `input.fbt_method_invalid`. The ATO's and
   the Library's worked examples are in `docs/calculation-evidence.md`.
+- `fbt-residual`, `fbt-housing`, `fbt-lafha`, `fbt-board` and `fbt-tax-exempt-body-entertainment` give the taxable
+  value of residual (Division 12, with the s 62 in-house reduction), housing
+  (Division 6: market value, or the statutory annual value from a base year
+  indexed by the ATO's published factors), living-away-from-home allowance
+  (Division 7), board (Division 9) and tax-exempt body entertainment fringe
+  benefits (Division 10) for the years ended 31 March 2026 and 2027, for
+  `fbt` to gross up, and derive every amount. New refusal codes:
+  `fbt.deduction_exceeds_contribution`, `fbt.in_house_reduction_invalid`,
+  `fbt_housing.base_year_invalid`, `fbt_lafha.components_exceed_allowance`,
+  `fbt_tax_exempt_body_entertainment.heads_invalid` and `input.state_invalid`.
 - `derive` also covers `division-293` and `pension-minimum`. Their steps cite
   ITAA 1997 s 293-20 and the Superannuation (Sustaining the Superannuation
   Contribution Concession) Imposition Act 2013 s 5, and SISR Schedule 7

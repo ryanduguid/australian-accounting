@@ -265,11 +265,11 @@ you configure. As read on 13 November 2026, these projects cover nearby ground:
   ran 12 fabricated Division 7A and FBT car formula cases against the gateway and records each
   outcome, with differences traced to statute. On 15 November 2026 the listing held 19 FBT
   calculators, each for `fy2026` only. This repository's engine values car, loan, meal
-  entertainment (50/50 split and 12 week register) and car parking (commercial parking station,
-  average cost and 12 week register) benefits for the FBT years ending 31 March 2026 and 2027, but
-  not the debt waiver, expense payment, housing, living-away-from-home allowance, board, property,
-  residual or tax-exempt body entertainment benefits, or car parking's statutory formula (spaces)
-  method, each of which the listing names.
+  entertainment (50/50 split and 12 week register), car parking (commercial parking station,
+  average cost and 12 week register), housing, living-away-from-home allowance, board, residual
+  and tax-exempt body entertainment benefits for the FBT years ending 31 March 2026 and 2027, but
+  not the debt waiver, expense payment or property benefits, or car parking's statutory formula
+  (spaces) method, each of which the listing names.
 - [AusCalc](https://auscalc.com.au/): free browser calculators for individual and sole trader tax,
   PAYG, GST, super and HECS, which its home page also offers inside ChatGPT and Claude as a plugin.
 - [PayCalculator](https://mcp.paycalculator.com.au/): a remote MCP server in the MCP Registry for

@@ -25,6 +25,10 @@ pub fn methods(kind: &str) -> &'static [&'static str] {
             "average_cost",
             "12_week_register",
         ],
+        "fbt_residual" => &residual_housing::RESIDUAL_METHODS,
+        "fbt_housing" => &residual_housing::HOUSING_METHODS,
+        "fbt_lafha" => &residual_housing::LAFHA_METHODS,
+        "fbt_tax_exempt_body_entertainment" => &residual_housing::ENTERTAINMENT_METHODS,
         _ => &[],
     }
 }
@@ -448,3 +452,8 @@ fn register_parking(
         Ok((fee, steps, taxable))
     })
 }
+
+mod residual_housing;
+pub use residual_housing::{
+    fbt_board, fbt_housing, fbt_lafha, fbt_residual, fbt_tax_exempt_body_entertainment,
+};
