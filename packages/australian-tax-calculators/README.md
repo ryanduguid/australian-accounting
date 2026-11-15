@@ -132,7 +132,7 @@ lists the commands.
 | `worksheet-catalogue` | none: send `{}` |
 | `periods` | `kind`, the worksheet name, such as `"payg_withholding"` |
 | `personal-tax-estimate` | `year`, `scope_confirmed`, `residency`, `taxable_income`, and for a full-year resident `medicare-levy` and `medicare-levy-surcharge`; optional `seniors-pensioners-tax-offset`, `study-loan-repayment` and `division-293`; see [Personal tax estimate](#personal-tax-estimate) |
-| `derive` | `command`, one of `fbt`, `fbt-car-statutory`, `fbt-car-operating-cost`, `fbt-loan`, `fbt-meal-entertainment`, `fbt-car-parking`, `fbt-debt-waiver`, `fbt-expense-payment`, `fbt-property`, `division-293`, `pension-minimum`, `payg-withholding`, `schedule-5-method-a`, `schedule-5-method-b-i`, `schedule-5-method-b-ii`, `termination-payment`, `working-holiday-maker-withholding`, `study-loan-withholding`, `seniors-pensioners-withholding`, `quarterly-sg`, `borrowing-expenses`, `resident-tax`, `foreign-resident-tax`, `low-income-tax-offset`, `seniors-pensioners-tax-offset`, `medicare-levy`, `medicare-levy-surcharge`, `division-296`, `contribution-caps`, `study-loan-repayment`, `capital-gains`, `main-residence`, `fbt-residual`, `fbt-housing`, `fbt-lafha`, `fbt-board` and `fbt-tax-exempt-body-entertainment`, and `input`, that command's arguments; see [Derivations](#derivations) |
+| `derive` | `command`, one of `fbt`, `fbt-car-statutory`, `fbt-car-operating-cost`, `fbt-loan`, `fbt-meal-entertainment`, `fbt-car-parking`, `fbt-debt-waiver`, `fbt-expense-payment`, `fbt-property`, `division-293`, `pension-minimum`, `payg-withholding`, `schedule-5-method-a`, `schedule-5-method-b-i`, `schedule-5-method-b-ii`, `termination-payment`, `working-holiday-maker-withholding`, `study-loan-withholding`, `seniors-pensioners-withholding`, `quarterly-sg`, `borrowing-expenses`, `resident-tax`, `foreign-resident-tax`, `low-income-tax-offset`, `seniors-pensioners-tax-offset`, `medicare-levy`, `medicare-levy-surcharge`, `division-296`, `contribution-caps`, `study-loan-repayment`, `capital-gains`, `main-residence`, `fbt-residual`, `fbt-housing`, `fbt-lafha`, `fbt-board`, `fbt-tax-exempt-body-entertainment`, `gst`, `depreciation` and `hire-purchase-schedule`, and `input`, that command's arguments; see [Derivations](#derivations) |
 
 The 2 car commands, the 11 FBT benefit commands (`fbt-loan`, `fbt-meal-entertainment`, `fbt-car-parking`, `fbt-debt-waiver`, `fbt-expense-payment`, `fbt-property`, `fbt-residual`, `fbt-housing`, `fbt-lafha`, `fbt-board` and `fbt-tax-exempt-body-entertainment`), `main-residence`, `borrowing-expenses`, `division-296`, `termination-payment`, the 3 `schedule-5` commands, `working-holiday-maker-withholding`, `seniors-pensioners-withholding`, `seniors-pensioners-tax-offset`, `medicare-levy-surcharge`, `foreign-resident-tax`, `payg-gross-up` and `hire-purchase-schedule` have no Python original; their arguments follow the same
 rules. `division-296` alone takes a negative amount, in `total_super_earnings`. `main-residence` also takes dates as `YYYY-MM-DD` strings, lists of
@@ -160,8 +160,9 @@ Act 1997 (ITAA 1997) or of the Superannuation (Sustaining the Superannuation
 Contribution Concession) Imposition Act 2013, a clause of Schedule 7 to the
 Superannuation Industry (Supervision) Regulations 1994 (SISR), a section of the
 Income Tax Rates Act 1986, the Income Tax Assessment Act 1936 (ITAA 1936), the
-Medicare Levy Act 1986 or the A New Tax System (Medicare Levy Surcharge—Fringe
-Benefits) Act 1999, or of the Income Tax Assessment (1936 Act) Regulation 2015
+Medicare Levy Act 1986, the A New Tax System (Medicare Levy Surcharge—Fringe
+Benefits) Act 1999 or the A New Tax System (Goods and Services Tax) Act 1999
+(GST Act), or of the Income Tax Assessment (1936 Act) Regulation 2015
 or Regulations 2025 for the seniors and pensioners tax offset. `working` is the
 formula, the same formula on the values it used and its unrounded result. Each
 name in a formula is an input, a rate in `result.rates` or an earlier step,
@@ -176,7 +177,10 @@ its amount; `tests/derivation.rs` recomputes every amount from its working
 alone. A refused input gets the
 command's own refusal, any other command is refused as
 `derivation.unsupported`, and a key other than `command` and `input` as
-`input.field_unknown`. The other worksheets' amounts are not derived yet.
+`input.field_unknown`. `payg-gross-up` is not derived: its gross pay is the one
+whose own Schedule 1 withholding leaves the net, found by search, so no step
+can work it out before the withholding worked on it. `derive` `payg-withholding`
+on its `gross_pay` to see that withholding worked.
 The plain commands' output does not change.
 
 The PAYG withholding, Schedule 5 and termination payment steps cite the
@@ -212,7 +216,10 @@ ss 154-1 to 154-25, the capital gains steps ITAA 1997 s 102-5, s 102-10,
 s 102-15 and s 115-100, and the main residence steps ss 118-110, 118-185,
 118-190 and 118-192. `non_main_residence_days` in the main residence rates is
 the sum of each day's taxable weight, which the worksheet works out from the
-periods given.
+periods given. The GST steps cite the GST Act ss 9-70 and 9-75, the
+depreciation steps ITAA 1997 ss 40-25, 40-70, 40-72, 40-75 and 40-85, and the
+hire purchase steps ss 240-25 and 240-60. A hire purchase schedule's monthly
+rows and implicit rate are not amounts, so they have no step.
 
 ## Supported periods
 

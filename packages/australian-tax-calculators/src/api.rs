@@ -441,7 +441,12 @@ pub fn commands() -> Vec<&'static str> {
 }
 
 /// The commands `derive` explains: each of their amounts is worked out in a step.
-const DERIVED: [&str; 37] = [
+/// Every worksheet command is here except `payg-gross-up`. Its gross pay is the
+/// one whose own Schedule 1 withholding leaves the net, found by searching
+/// `payg-withholding`'s results: the withholding is worked on the gross, so no
+/// step can work the gross out from the inputs and earlier steps alone.
+/// `derive` of `payg-withholding` on its `gross_pay` shows that withholding.
+const DERIVED: [&str; 40] = [
     "fbt",
     "fbt-car-statutory",
     "fbt-car-operating-cost",
@@ -479,6 +484,9 @@ const DERIVED: [&str; 37] = [
     "fbt-lafha",
     "fbt-board",
     "fbt-tax-exempt-body-entertainment",
+    "gst",
+    "depreciation",
+    "hire-purchase-schedule",
 ];
 
 /// `derive`: `{"command", "input"}` gives the command's result with the step
