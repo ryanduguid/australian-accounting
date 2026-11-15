@@ -186,7 +186,7 @@ fn contribution_steps(
 type DeductibleSteps = [(&'static str, &'static str, &'static str); 4];
 
 /// The formulas of a property, residual or board benefit's [`DeductibleSteps`].
-const GROSS_DEDUCTION: &str = "gross_taxable_value x income_use";
+const GROSS_DEDUCTION: &str = "cents(gross_taxable_value x income_use)";
 const RD: &str = "min(contribution_deduction, gross_deduction)";
 const ND: &str = "gross_deduction - contribution_deduction_applied";
 const REDUCTION: &str = "min(notional_deduction, value_after_contribution)";
@@ -201,7 +201,7 @@ fn deductible_steps(
     value: &Decimal,
 ) -> Result<Vec<Step>> {
     precise(|| {
-        let gd = base.mul(share)?;
+        let gd = cents(base.mul(share)?)?;
         let applied = py_min(rd.clone(), gd.clone())?;
         let nd = gd.sub(&applied)?;
         let reduction = py_min(nd.clone(), value.clone())?;

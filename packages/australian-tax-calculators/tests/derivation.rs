@@ -1793,29 +1793,24 @@ fn the_second_fbt_benefit_steps_cite_their_provisions() {
     );
     assert_eq!(find(&hired, "taxable_value")["value"], "50.00");
     // Housing: s 26(2)(a) annualises the base year; s 26(2)(b) indexes.
-    // Neither statutory annual value is rounded before it is used (s 26).
     let base = steps(39);
-    let working = base[0]["working"].as_str().unwrap();
-    assert!(
-        working.starts_with(
-            "market_value x days_in_year / tenancy_days = 11820.00 x 365 / 274 = 15745.6204"
-        ),
-        "{working}"
+    assert_eq!(
+        base[0]["working"],
+        "cents(market_value x days_in_year / tenancy_days) \
+         = cents(11820.00 x 365 / 274) = 15745.62"
     );
     assert_eq!(base[0]["authority"], "FBTAA s 26(2)(a)");
     assert_eq!(base[1]["authority"], "FBTAA s 26(1)(c)");
     let indexed = steps(40);
-    let working = indexed[0]["working"].as_str().unwrap();
-    assert!(
-        working.starts_with(
-            "prior_statutory_annual_value x indexation_factor = 15745.62 x 1.040 = 16375.4448"
-        ),
-        "{working}"
+    assert_eq!(
+        indexed[0]["working"],
+        "cents(prior_statutory_annual_value x indexation_factor) \
+         = cents(15745.62 x 1.040) = 16375.44"
     );
     assert_eq!(
         find(&indexed, "taxable_value")["value"],
-        "3982.65",
-        "$4,082.65 less $100 rent"
+        "3982.64",
+        "$4,082.64 less $100 rent"
     );
     assert_eq!(steps(41)[0]["authority"], "FBTAA s 26(1)(b)");
     // LAFHA: s 31H's food component; $42 a week from 12 and $21 under.

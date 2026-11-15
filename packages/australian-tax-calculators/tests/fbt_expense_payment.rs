@@ -157,8 +157,7 @@ fn a_contribution_above_the_payment_leaves_nil_and_an_excess() {
     // A wholly deductible expense paid in full: ND equals the value, nil.
     let a = amounts(payment(json!({"income_use": "1"})));
     assert_eq!(a["taxable_value"], "0.00");
-    // The gross deduction is shown to the cent but kept whole: 1200.01 x 0.3333 =
-    // 399.963333, leaving 800.046667.
+    // The gross deduction is rounded to cents: 1200.01 x 0.3333 = 399.963333.
     let a = amounts(payment(json!({
         "recipients_expenditure": "1200.01", "amount_paid": "1200.01", "income_use": "0.3333",
     })));

@@ -10,7 +10,7 @@
 use serde_json::Value;
 
 use super::super::{
-    Arg, Result, Step, d, derived_result, fbt_year, money, precise, py_min, refuse, step,
+    Arg, Result, Step, cents, d, derived_result, fbt_year, money, precise, py_min, refuse, step,
 };
 use super::{
     AVAILABLE, DEDUCTIBLE_INPUTS, DeductibleSteps, GROSS_DEDUCTION, ND, RD, REDUCTION,
@@ -24,7 +24,7 @@ use crate::decimal::Decimal;
 enum Valuation {
     /// The input as it is.
     Whole,
-    /// 75% of the input.
+    /// 75% of the input, rounded to cents.
     ThreeQuarters,
     /// The lesser of the 2 inputs.
     Lesser,
@@ -179,8 +179,8 @@ fn value_step<'a>(rule: Rule, input: impl Fn(&str) -> &'a Arg) -> Result<Step> {
         Ok(match valuation {
             Whole => step(id, authority, names[0], &[&amounts[0]], amounts[0].clone()),
             ThreeQuarters => {
-                let value = amounts[0].mul(&d("0.75"))?;
-                let formula = format!("{} x 0.75", names[0]);
+                let value = cents(amounts[0].mul(&d("0.75"))?)?;
+                let formula = format!("cents({} x 0.75)", names[0]);
                 step(id, authority, &formula, &[&amounts[0]], value)
             }
             Lesser => {
@@ -223,7 +223,7 @@ const EXPENSE_DEDUCTIBLE: DeductibleSteps = [
     (
         "gross_deduction",
         "FBTAA s 24(1)(b)(ii), GD",
-        "recipients_expenditure x income_use",
+        "cents(recipients_expenditure x income_use)",
     ),
     (
         "recipients_portion_deduction_applied",
