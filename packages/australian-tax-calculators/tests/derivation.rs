@@ -13,7 +13,7 @@ use std::io::Write;
 use std::process::{Command, Stdio};
 
 /// The commands `derive` explains.
-const DERIVED: [&str; 10] = [
+const DERIVED: [&str; 15] = [
     "fbt",
     "fbt-car-statutory",
     "fbt-car-operating-cost",
@@ -24,6 +24,11 @@ const DERIVED: [&str; 10] = [
     "schedule-5-method-b-i",
     "schedule-5-method-b-ii",
     "termination-payment",
+    "working-holiday-maker-withholding",
+    "study-loan-withholding",
+    "seniors-pensioners-withholding",
+    "quarterly-sg",
+    "borrowing-expenses",
 ];
 
 /// (command, input) for each derived kind: the ATO's published examples and
@@ -1554,7 +1559,7 @@ fn derive_refuses_what_it_does_not_explain() {
         message,
         "derive explains fbt, fbt-car-statutory, fbt-car-operating-cost, division-293, \
          pension-minimum, payg-withholding, schedule-5-method-a, schedule-5-method-b-i, \
-         schedule-5-method-b-ii, termination-payment, not \"gst\""
+         schedule-5-method-b-ii, termination-payment, working-holiday-maker-withholding,          study-loan-withholding, seniors-pensioners-withholding, quarterly-sg,          borrowing-expenses, not \"gst\""
     );
 }
 
@@ -1597,5 +1602,528 @@ fn the_binary_derives_and_refuses_with_a_code() {
     assert!(
         help.contains("worksheet-catalogue, periods, derive"),
         "{help}"
+    );
+}
+
+// Working holiday maker, study loan and seniors and pensioners withholding,
+// quarterly SG and borrowing expenses.
+
+const WHM: &str = "working-holiday-maker-withholding";
+const STSL: &str = "study-loan-withholding";
+const SENIORS: &str = "seniors-pensioners-withholding";
+const SG: &str = "quarterly-sg";
+const BORROWING: &str = "borrowing-expenses";
+
+/// Fiona and Max's income-producing share, 170,000 / 209,000, to 40 digits.
+const FIONA_SHARE: &str = "0.8133971291866028708133971291866028708134";
+
+/// (name, command, facts) for these 5 commands: the published examples of
+/// Schedules 8, 9 and 15 of the Withholding Schedules Instrument 2026
+/// (F2026L00716) and of (No. 2) 2025 (F2025L01016), the ATO's maximum quarterly
+/// SG payment and 'Borrowing expenses' examples, all read on 15 November 2026,
+/// and a case for each branch. `facts` change [`withholding_sg_borrowing`]'s
+/// defaults.
+const WITHHOLDING_SG_BORROWING: [(&str, &str, &str); 28] = [
+    // Schedule 15's lookup tool example and examples 1 and 2: $102, $424, $2,452.
+    ("whm_lookup_tool", WHM, "{}"),
+    (
+        "whm_example_1",
+        WHM,
+        r#"{"payment": "2825.75", "pay_period": "monthly"}"#,
+    ),
+    (
+        "whm_example_2",
+        WHM,
+        r#"{"payment": "8173.20", "payments_before": "47000.00", "pay_period": "monthly"}"#,
+    ),
+    // Column 5, without a TFN, and an unregistered employer with and without one.
+    (
+        "whm_top_rate",
+        WHM,
+        r#"{"payment": "1000.99", "payments_before": "190000.01"}"#,
+    ),
+    (
+        "whm_no_tfn",
+        WHM,
+        r#"{"payment": "1000.99", "tfn_quoted": false}"#,
+    ),
+    (
+        "whm_unregistered_no_tfn",
+        WHM,
+        r#"{"payment": "1000.99", "tfn_quoted": false, "employer_registered": false}"#,
+    ),
+    ("whm_unregistered", WHM, r#"{"employer_registered": false}"#),
+    (
+        "whm_unregistered_monthly",
+        WHM,
+        r#"{"payment": "2825.75", "pay_period": "monthly", "year": "2025-26", "employer_registered": false}"#,
+    ),
+    (
+        "whm_unregistered_33_cents",
+        WHM,
+        r#"{"payment": "3066.33", "pay_period": "monthly", "employer_registered": false}"#,
+    ),
+    // Schedule 8's examples 1 to 3, F2025L01016's example 1, a quarterly pay,
+    // the nil row and a monthly amount ending in 33 cents.
+    ("stsl_example_1", STSL, "{}"),
+    (
+        "stsl_example_2",
+        STSL,
+        r#"{"earnings": "4409.75", "pay_period": "fortnightly"}"#,
+    ),
+    (
+        "stsl_example_3",
+        STSL,
+        r#"{"earnings": "10627.88", "pay_period": "monthly", "scale": 1}"#,
+    ),
+    (
+        "stsl_2025_26",
+        STSL,
+        r#"{"year": "2025-26", "pay_date": "2025-09-24"}"#,
+    ),
+    (
+        "stsl_quarterly",
+        STSL,
+        r#"{"earnings": "33908.68", "pay_period": "quarterly"}"#,
+    ),
+    (
+        "stsl_nil",
+        STSL,
+        r#"{"earnings": "1287.99", "year": "2025-26", "pay_date": "2025-09-24"}"#,
+    ),
+    (
+        "stsl_33_cents",
+        STSL,
+        r#"{"earnings": "6000.33", "pay_period": "monthly", "scale": 5}"#,
+    ),
+    // Schedule 9's example, single: $2.00; the pay periods, the nil row and a
+    // half exemption under the 2024 instrument.
+    ("seniors_example", SENIORS, "{}"),
+    (
+        "seniors_fortnightly",
+        SENIORS,
+        r#"{"earnings": "1325.90", "pay_period": "fortnightly"}"#,
+    ),
+    (
+        "seniors_33_cents",
+        SENIORS,
+        r#"{"earnings": "2877.33", "pay_period": "monthly"}"#,
+    ),
+    ("seniors_nil", SENIORS, r#"{"earnings": "647.99"}"#),
+    (
+        "seniors_half_couple",
+        SENIORS,
+        r#"{"earnings": "4500.00", "pay_period": "monthly", "status": "couple", "medicare_levy_exemption": "half", "year": "2024-25"}"#,
+    ),
+    // Earnings over the $62,500 base, whose 12% is the ATO's $7,500.00
+    // maximum; and contributions over the minimum.
+    ("sg_capped", SG, "{}"),
+    (
+        "sg_overpaid",
+        SG,
+        r#"{"ordinary_time_earnings": "10000.00", "qualifying_contributions": "1500.00"}"#,
+    ),
+    // Peter's first year ($318.07), Years 5 and 6, Fiona and Max's Year 6, a
+    // loan repaid early and $100 or less.
+    ("peter_year_1", BORROWING, "{}"),
+    (
+        "peter_year_5",
+        BORROWING,
+        r#"{"loan_start": "2020-07-03", "loan_term_end": "2045-07-02"}"#,
+    ),
+    (
+        "fiona_year_6",
+        BORROWING,
+        r#"{"borrowing_expenses": "1670.00", "income_use": "0.8133971291866028708133971291866028708134", "loan_start": "2020-07-17", "loan_term_end": "2040-07-16", "year": "2025-26"}"#,
+    ),
+    (
+        "repaid_early",
+        BORROWING,
+        r#"{"repaid_on": "2025-12-31", "year": "2025-26"}"#,
+    ),
+    (
+        "not_spread",
+        BORROWING,
+        r#"{"borrowing_expenses": "90.00"}"#,
+    ),
+];
+
+/// The input of a [`WITHHOLDING_SG_BORROWING`] case: its command's defaults
+/// changed by `facts`.
+fn withholding_sg_borrowing(command: &str, facts: &str) -> Value {
+    let mut input = match command {
+        WHM => json!({"payment": "680.70", "payments_before": "0.00",
+                      "employer_registered": true, "tfn_quoted": true,
+                      "pay_period": "weekly", "year": "2026-27"}),
+        STSL => json!({"earnings": "2608.36", "pay_period": "weekly", "scale": 2,
+                       "year": "2026-27"}),
+        SENIORS => json!({"earnings": "662.95", "pay_period": "weekly", "status": "single",
+                          "medicare_levy_exemption": "none", "year": "2026-27"}),
+        SG => json!({"ordinary_time_earnings": "80000.00",
+                     "qualifying_contributions": "2000.00", "year": "2025-26", "quarter": 1}),
+        _ => json!({"borrowing_expenses": "1600.00", "other_borrowing_expenses_in_year": "0.00",
+                    "income_use": "1", "loan_start": "2024-07-03", "loan_term_end": null,
+                    "repaid_on": null, "section_26_50_applies": false, "year": "2024-25"}),
+    };
+    input["scope_confirmed"] = json!(true);
+    merge(&mut input, serde_json::from_str(facts).unwrap());
+    input
+}
+
+/// The derivation of the [`WITHHOLDING_SG_BORROWING`] case `name`.
+fn case_doc(name: &str) -> Value {
+    let (_, command, facts) = WITHHOLDING_SG_BORROWING
+        .iter()
+        .find(|(n, ..)| *n == name)
+        .unwrap();
+    derive(command, &withholding_sg_borrowing(command, facts))
+}
+
+#[test]
+fn each_withholding_sg_and_borrowing_case_derives_its_plain_result() {
+    for (name, command, facts) in WITHHOLDING_SG_BORROWING {
+        let input = withholding_sg_borrowing(command, facts);
+        let plain = api::evaluate(command, &input).unwrap();
+        let doc = derive(command, &input);
+        assert_eq!(doc["result"].to_string(), plain.to_string(), "{name}");
+        let found = problems(&doc);
+        assert!(found.is_empty(), "{name}: {found:#?}");
+    }
+}
+
+/// Schedules 15, 9 and 8, worked as each schedule works its examples.
+#[test]
+fn the_schedule_8_9_and_15_examples_show_their_operands() {
+    let working = |name: &str, id: &str| working_in(&case_doc(name), id);
+    // Schedule 15: y = a x on the payment with cents ignored.
+    assert_eq!(
+        working("whm_lookup_tool", "payment_used"),
+        "floor(payment) = floor(680.70) = 680"
+    );
+    assert_eq!(
+        working("whm_lookup_tool", "withholding"),
+        "dollars(rate x payment_used) = dollars(0.15 x 680) = 102"
+    );
+    assert_eq!(
+        working("whm_example_1", "withholding"),
+        "dollars(rate x payment_used) = dollars(0.15 x 2825) = 424"
+    );
+    assert_eq!(
+        working("whm_example_2", "withholding"),
+        "dollars(rate x payment_used) = dollars(0.30 x 8173) = 2452"
+    );
+    assert_eq!(
+        working("whm_top_rate", "withholding"),
+        "floor(rate x payment_used) = floor(0.45 x 1000) = 450"
+    );
+    // An unregistered employer: Schedule 1 scale 3, 0.3000 x 680.99 - 0.3000
+    // = 203.997, $204; monthly, $2,825.75 x 3 / 13 = 652.10, x = 652.99,
+    // $196, and $196 x 13 / 3 = $849.33, $849.
+    assert_eq!(
+        working("whm_unregistered", "payment_used"),
+        "payment = 680.70 = 680.70"
+    );
+    assert_eq!(
+        working("whm_unregistered", "withholding"),
+        "max(0, dollars(0.3000 x (floor(payment_used) + 0.99) - 0.3000)) \
+         = max(0, dollars(0.3000 x (floor(680.70) + 0.99) - 0.3000)) = 204"
+    );
+    assert_eq!(
+        working("whm_unregistered_monthly", "withholding"),
+        "dollars(max(0, dollars(0.3000 x (floor(payment_used x 3 / 13) + 0.99) - 0.3000)) x 13 / 3) \
+         = dollars(max(0, dollars(0.3000 x (floor(2825.75 x 3 / 13) + 0.99) - 0.3000)) x 13 / 3) = 849"
+    );
+    assert!(
+        working("whm_unregistered_33_cents", "withholding")
+            .contains("(floor((payment_used + 0.01) x 3 / 13) + 0.99)")
+    );
+    // Schedule 9's example: x = 662.99, 0.1500 x 662.99 - 97.2308 = 2.2177, $2.
+    assert_eq!(
+        working("seniors_example", "weekly_earnings_used"),
+        "floor(earnings) + 0.99 = floor(662.95) + 0.99 = 662.99"
+    );
+    assert_eq!(
+        working("seniors_example", "weekly_withholding"),
+        "max(0, dollars(a x weekly_earnings_used - b)) \
+         = max(0, dollars(0.1500 x 662.99 - 97.2308)) = 2"
+    );
+    assert_eq!(
+        working("seniors_example", "withholding"),
+        "weekly_withholding = 2 = 2"
+    );
+    assert_eq!(
+        working("seniors_fortnightly", "weekly_earnings_used"),
+        "floor(earnings / 2) + 0.99 = floor(1325.90 / 2) + 0.99 = 662.99"
+    );
+    assert_eq!(
+        working("seniors_fortnightly", "withholding"),
+        "weekly_withholding x 2 = 2 x 2 = 4"
+    );
+    // $2,877.33 gains a cent: x = 664.99, $3 a week, $13 a month.
+    assert_eq!(
+        working("seniors_33_cents", "weekly_earnings_used"),
+        "floor((earnings + 0.01) x 3 / 13) + 0.99 = floor((2877.33 + 0.01) x 3 / 13) + 0.99 = 664.99"
+    );
+    assert_eq!(
+        working("seniors_33_cents", "withholding"),
+        "dollars(weekly_withholding x 13 / 3) = dollars(3 x 13 / 3) = 13"
+    );
+    assert_eq!(
+        working("seniors_nil", "weekly_withholding"),
+        "max(0, dollars(a x weekly_earnings_used - b)) = max(0, dollars(0 x 647.99 - 0)) = 0"
+    );
+    // Schedule 8's examples 1 to 3: $193, $130 x 2 = $260, $226 x 13 / 3 = $979;
+    // example 1's Schedule 1 amount, 0.3900 x 2,608.99 - 363.4627, is $654.
+    assert_eq!(
+        working("stsl_example_1", "study_loan_component"),
+        "max(0, dollars(component_a x weekly_earnings_used - component_b)) \
+         = max(0, dollars(0.17 x 2608.99 - 250.4527)) = 193"
+    );
+    assert_eq!(
+        working("stsl_example_1", "schedule_1_withholding"),
+        "max(0, dollars(a x weekly_earnings_used - b)) \
+         = max(0, dollars(0.3900 x 2608.99 - 363.4627)) = 654"
+    );
+    assert_eq!(
+        working("stsl_example_1", "withholding"),
+        "schedule_1_withholding + study_loan_component = 654 + 193 = 847"
+    );
+    assert_eq!(
+        working("stsl_example_2", "study_loan_component"),
+        "max(0, dollars(component_a x weekly_earnings_used - component_b)) x 2 \
+         = max(0, dollars(0.15 x 2204.99 - 200.5615)) x 2 = 260"
+    );
+    assert_eq!(
+        working("stsl_example_3", "weekly_earnings_used"),
+        "floor(earnings x 3 / 13) + 0.99 = floor(10627.88 x 3 / 13) + 0.99 = 2452.99"
+    );
+    assert_eq!(
+        working("stsl_example_3", "study_loan_component"),
+        "dollars(max(0, dollars(component_a x weekly_earnings_used - component_b)) x 13 / 3) \
+         = dollars(max(0, dollars(0.17 x 2452.99 - 190.9527)) x 13 / 3) = 979"
+    );
+    // F2025L01016's example 1: 0.17 x 2,608.99 - 241.3462, $202.
+    assert_eq!(
+        case_doc("stsl_2025_26")["result"]["amounts"]["study_loan_component"],
+        "202.00"
+    );
+    // A quarter of 13 weeks of example 1: $654 x 13 = $8,502, and $193 x 13.
+    assert_eq!(
+        working("stsl_quarterly", "schedule_1_withholding"),
+        "max(0, dollars(a x weekly_earnings_used - b)) x 13 \
+         = max(0, dollars(0.3900 x 2608.99 - 363.4627)) x 13 = 8502"
+    );
+    assert_eq!(
+        case_doc("stsl_quarterly")["result"]["amounts"]["withholding"],
+        "11011.00"
+    );
+}
+
+/// Quarterly SG and borrowing expenses, worked as the ATO's pages work them.
+#[test]
+fn the_sg_and_borrowing_examples_show_their_operands() {
+    let working = |name: &str, id: &str| working_in(&case_doc(name), id);
+    assert_eq!(
+        working("sg_capped", "earnings_used"),
+        "min(ordinary_time_earnings, maximum_quarterly_base) = min(80000.00, 62500) = 62500"
+    );
+    assert_eq!(
+        working("sg_capped", "minimum_sg"),
+        "earnings_used x sg_rate = 62500 x 0.12 = 7500.00"
+    );
+    assert_eq!(
+        working("sg_capped", "additional_contribution"),
+        "max(0, minimum_sg - qualifying_contributions) = max(0, 7500.00 - 2000.00) = 5500.00"
+    );
+    assert_eq!(
+        working("sg_overpaid", "additional_contribution"),
+        "max(0, minimum_sg - qualifying_contributions) = max(0, 1200.0000 - 1500.00) = 0"
+    );
+    // Peter's first year: $1,600 x 363 / 1,826, $318.07, the ATO's figure.
+    assert_eq!(
+        working("peter_year_1", "remaining_expenditure"),
+        "borrowing_expenses = 1600.00 = 1600.00"
+    );
+    assert_eq!(
+        working("peter_year_1", "maximum_deduction"),
+        "cents(remaining_expenditure x days_in_year / remaining_loan_period_days) \
+         = cents(1600.00 x 363 / 1826) = 318.07"
+    );
+    // Year 5: each earlier year's maximum, as tests/borrowing_expenses.rs
+    // works them, then $321.58 x 365 / 367, $319.83, leaving the ATO's $1.75.
+    let earlier = "cents(1600.00 x 363 / 1826) - cents(1281.93 x 365 / 1463) \
+                   - cents(962.10 x 365 / 1098) - cents(642.28 x 366 / 733)";
+    assert_eq!(
+        working("peter_year_5", "remaining_expenditure"),
+        format!("borrowing_expenses - {earlier} = 1600.00 - {earlier} = 321.58")
+    );
+    assert_eq!(
+        working("peter_year_5", "maximum_deduction"),
+        "cents(remaining_expenditure x days_in_year / remaining_loan_period_days) \
+         = cents(321.58 x 365 / 367) = 319.83"
+    );
+    assert_eq!(
+        working("peter_year_5", "remaining_expenditure_after_year"),
+        "remaining_expenditure - maximum_deduction = 321.58 - 319.83 = 1.75"
+    );
+    // Fiona and Max's Year 6: $14.63 x their share, $11.90, the ATO's figure.
+    assert_eq!(
+        working("fiona_year_6", "deduction"),
+        format!("cents(maximum_deduction x income_use) = cents(14.63 x {FIONA_SHARE}) = 11.90")
+    );
+    assert_eq!(
+        working("not_spread", "deduction"),
+        "cents(maximum_deduction x income_use) = cents(90.00 x 1) = 90.00"
+    );
+    assert_eq!(
+        working("not_spread", "remaining_expenditure_after_year"),
+        "0 = 0 = 0"
+    );
+}
+
+#[test]
+fn each_withholding_sg_and_borrowing_step_cites_its_branch() {
+    let authority = |name: &str, id: &str| authority_in(&case_doc(name), id);
+    let cites = |name: &str, id: &str, start: &str| {
+        let cited = authority(name, id);
+        assert!(cited.starts_with(start), "{name} {id}: {cited}");
+    };
+    cites(
+        "whm_lookup_tool",
+        "withholding",
+        "Schedule 15, 'Registered employer', 'Using a formula' and Table A",
+    );
+    assert!(authority("whm_lookup_tool", "withholding").ends_with("50 cents up"));
+    assert!(authority("whm_top_rate", "withholding").ends_with("cents in the result are ignored"));
+    cites(
+        "whm_no_tfn",
+        "withholding",
+        "Schedule 15, 'If a TFN has not been provided'",
+    );
+    cites(
+        "whm_unregistered_no_tfn",
+        "withholding",
+        "Schedule 15, 'Unregistered employer'; Schedule 1, scale 4",
+    );
+    cites(
+        "whm_unregistered_no_tfn",
+        "payment_used",
+        "Schedule 1, scale 4",
+    );
+    cites(
+        "whm_lookup_tool",
+        "payment_used",
+        "Schedule 15, 'Using a formula'",
+    );
+    assert!(
+        authority("whm_unregistered", "withholding").contains("'Working out the weekly earnings'")
+    );
+    assert!(
+        authority("whm_unregistered_monthly", "withholding")
+            .contains("'Calculating withholding fortnightly, monthly or quarterly amounts'")
+    );
+    cites(
+        "seniors_example",
+        "weekly_earnings_used",
+        "Schedule 9, 'Using a formula'",
+    );
+    cites(
+        "seniors_example",
+        "withholding",
+        "Schedule 9, 'Working out the withholding amount'",
+    );
+    for id in ["weekly_earnings_used", "withholding"] {
+        cites(
+            "seniors_fortnightly",
+            id,
+            "Schedule 9, 'Calculating fortnightly or monthly withholding amounts'",
+        );
+    }
+    cites(
+        "stsl_example_1",
+        "weekly_earnings_used",
+        "Schedule 8, 'Using a formula'",
+    );
+    cites(
+        "stsl_example_2",
+        "weekly_earnings_used",
+        "Schedule 8, 'Calculating fortnightly, monthly or quarterly withholding amounts'",
+    );
+    cites(
+        "stsl_example_1",
+        "schedule_1_withholding",
+        "Schedule 1, 'Using a formula' and 'Rounding of withholding amounts'",
+    );
+    cites(
+        "stsl_example_1",
+        "study_loan_component",
+        "Schedule 8, 'Study and training support loans component rates'",
+    );
+    cites("stsl_example_1", "withholding", "Schedule 8, 'Software'");
+    cites(
+        "sg_capped",
+        "earnings_used",
+        "SGAA s 6(1), 'ordinary time earnings', paragraph (b)",
+    );
+    cites("sg_capped", "minimum_sg", "SGAA s 19(2), item 13");
+    cites(
+        "sg_capped",
+        "additional_contribution",
+        "SGAA s 23(2) and (10)",
+    );
+    cites(
+        "peter_year_5",
+        "remaining_expenditure",
+        "ITAA 1997 s 25-25(4) step 1",
+    );
+    cites(
+        "peter_year_5",
+        "maximum_deduction",
+        "ITAA 1997 s 25-25(4) steps 2 to 4",
+    );
+    cites("peter_year_5", "deduction", "ITAA 1997 s 25-25(2) and (3)");
+    cites("not_spread", "maximum_deduction", "ITAA 1997 s 25-25(6)");
+    cites("not_spread", "deduction", "ITAA 1997 s 25-25(6)(c) and (d)");
+    assert_eq!(
+        case_doc("repaid_early")["result"]["rates"]["period_of_the_loan"],
+        "s 25-25(5)(b): to the day the loan was repaid"
+    );
+}
+
+#[test]
+fn a_refused_withholding_sg_or_borrowing_input_gets_the_commands_own_refusal() {
+    let refused = |command: &str, facts: &str| {
+        let input = withholding_sg_borrowing(command, facts);
+        let plain = api::evaluate_coded(command, &input).unwrap_err();
+        let derived = api::evaluate_coded("derive", &json!({"command": command, "input": input}));
+        assert_eq!(derived.unwrap_err(), plain);
+        plain.code
+    };
+    assert_eq!(
+        refused(WHM, r#"{"payments_before": "135000.50"}"#),
+        "working_holiday_maker.band_unsettled"
+    );
+    assert_eq!(
+        refused(STSL, r#"{"year": "2025-26"}"#),
+        "input.missing_field"
+    );
+    assert_eq!(
+        refused(SENIORS, r#"{"pay_period": "quarterly"}"#),
+        "input.pay_period_invalid"
+    );
+    assert_eq!(refused(SG, r#"{"quarter": 5}"#), "input.quarter_invalid");
+    assert_eq!(
+        refused(
+            BORROWING,
+            r#"{"borrowing_expenses": "90.00", "year": "2025-26"}"#
+        ),
+        "borrowing.s25_25_6_not_spread"
+    );
+    assert_eq!(
+        refused(
+            BORROWING,
+            r#"{"loan_start": "2020-07-03", "loan_term_end": "2045-07-02", "year": "2026-27"}"#
+        ),
+        "borrowing.loan_period_ended"
     );
 }

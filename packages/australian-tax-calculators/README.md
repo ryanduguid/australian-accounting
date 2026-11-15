@@ -118,7 +118,7 @@ lists the commands.
 | `pension-minimum` | `account_balance`, `age`, `days`, `year`, `scope_confirmed` |
 | `worksheet-catalogue` | none: send `{}` |
 | `periods` | `kind`, the worksheet name, such as `"payg_withholding"` |
-| `derive` | `command`, one of `fbt`, `fbt-car-statutory`, `fbt-car-operating-cost`, `division-293`, `pension-minimum`, `payg-withholding`, `schedule-5-method-a`, `schedule-5-method-b-i`, `schedule-5-method-b-ii` and `termination-payment`, and `input`, that command's arguments; see [Derivations](#derivations) |
+| `derive` | `command`, one of `fbt`, `fbt-car-statutory`, `fbt-car-operating-cost`, `division-293`, `pension-minimum`, `payg-withholding`, `schedule-5-method-a`, `schedule-5-method-b-i`, `schedule-5-method-b-ii`, `termination-payment`, `working-holiday-maker-withholding`, `study-loan-withholding`, `seniors-pensioners-withholding`, `quarterly-sg` and `borrowing-expenses`, and `input`, that command's arguments; see [Derivations](#derivations) |
 
 The 2 car commands, `main-residence`, `borrowing-expenses`, `division-296`, `termination-payment`, the 3 `schedule-5` commands, `working-holiday-maker-withholding`, `seniors-pensioners-withholding`, `seniors-pensioners-tax-offset`, `medicare-levy-surcharge` and `foreign-resident-tax` have no Python original; their arguments follow the same
 rules. `division-296` alone takes a negative amount, in `total_super_earnings`. `main-residence` also takes dates as `YYYY-MM-DD` strings, lists of
@@ -168,6 +168,14 @@ ignore them. A Schedule 5 step writes in the coefficients of the
 Schedule 1 (and, for a study loan, Schedule 8) row it used, and Method B(i)
 the figures of each earlier pay period; `cents` wraps a tax-table amount,
 which the method uses as rounded.
+
+The working holiday maker, study loan and seniors and pensioners steps cite
+the headings of Schedules 15, 8 and 9 of the same instruments, and Schedule 1
+where they apply its formula or scales. The quarterly SG steps cite the
+Superannuation Guarantee (Administration) Act 1992 as in force before 1 July
+2026 and the ATO's maximum contribution base, and the borrowing expenses steps
+ITAA 1997 s 25-25. A borrowing expenses step for a later year writes in each
+earlier year's maximum deduction, worked on the figures that year used.
 
 ## Supported periods
 

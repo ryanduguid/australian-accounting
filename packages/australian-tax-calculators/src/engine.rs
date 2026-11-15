@@ -1043,6 +1043,28 @@ pub fn depreciation(
     result("depreciation", &year, amounts, Vec::new())
 }
 
+/// `quarterly_sg`'s amounts: (id, authority, formula). They cite the
+/// Superannuation Guarantee (Administration) Act 1992 (SGAA) compilation 77
+/// (C2026C00146), in force from 27 March to 30 June 2026, and the ATO's 'Super
+/// guarantee' page (updated 17 April 2026), both read on 15 November 2026.
+const QUARTERLY_SG_STEPS: [(&str, &str, &str); 3] = [
+    (
+        "earnings_used",
+        "SGAA s 6(1), 'ordinary time earnings', paragraph (b), and s 15: no more than the quarter's maximum contribution base, $62,500 in 2025-26 (ATO 'Super guarantee', Table 24)",
+        "min(ordinary_time_earnings, maximum_quarterly_base)",
+    ),
+    (
+        "minimum_sg",
+        "SGAA s 19(2), item 13: a charge percentage of 12 for a quarter from 1 July 2025, on the ordinary time earnings base of s 23(2)",
+        "earnings_used x sg_rate",
+    ),
+    (
+        "additional_contribution",
+        "SGAA s 23(2) and (10): contributions in the quarter reduce the charge percentage, never below 0",
+        "max(0, minimum_sg - qualifying_contributions)",
+    ),
+];
+
 pub fn quarterly_sg(
     ordinary_time_earnings: &Arg,
     qualifying_contributions: &Arg,
@@ -1060,23 +1082,26 @@ pub fn quarterly_sg(
             "quarter must be 1 (Jul-Sep), 2, 3 or 4 (Apr-Jun).",
         );
     };
-    let amounts = precise(|| {
-        let earnings = py_min(money(ordinary_time_earnings)?, d("62500"))?;
+    let steps = precise(|| {
+        let (earnings, base) = (money(ordinary_time_earnings)?, d("62500"));
+        let used = py_min(earnings.clone(), base.clone())?;
         let paid = money(qualifying_contributions)?;
-        let minimum = earnings.mul(&d("0.12"))?;
-        Ok(vec![
-            ("earnings_used", earnings),
-            ("minimum_sg", minimum.clone()),
-            (
-                "additional_contribution",
-                py_max(int(0), minimum.sub(&paid)?)?,
-            ),
-        ])
+        let sg_rate = d("0.12");
+        let minimum = used.mul(&sg_rate)?;
+        let additional = py_max(int(0), minimum.sub(&paid)?)?;
+        Ok(steps_from(
+            &QUARTERLY_SG_STEPS,
+            [
+                (&[&earnings, &base], used.clone()),
+                (&[&used, &sg_rate], minimum.clone()),
+                (&[&minimum, &paid], additional),
+            ],
+        ))
     })?;
-    result(
+    derived_result(
         "quarterly_sg",
         &format!("{year} Q{quarter}"),
-        amounts,
+        steps,
         vec![
             rate("sg_rate", "0.12"),
             rate("maximum_quarterly_base", "62500.00"),
@@ -1713,6 +1738,22 @@ fn study_loan_rows(year: &str, scale: i64) -> &'static [CoefficientRow] {
     )
 }
 
+/// [`for_pay_period`] on a weekly formula amount, with its working: the
+/// formula y = a x - b on `weekly_earnings_used`, rounded to the dollar and
+/// never below nil, whose coefficients are the rates named `[a, b]`.
+fn formula_for_pay_period(
+    weekly: &Decimal,
+    period: &str,
+    [a, b]: [&str; 2],
+) -> Calc<(Decimal, String)> {
+    let formula = format!("max(0, dollars({a} x weekly_earnings_used - {b}))");
+    for_pay_period_working(weekly, period, &formula)
+}
+
+/// Schedule 8's component added to the Schedule 1 amount. The steps cite
+/// Schedules 1 and 8 of the Withholding Schedules Instruments (No. 2) 2025
+/// (F2025L01016) and 2026 (F2026L00716), whose headings they share, read on
+/// 15 November 2026.
 pub fn study_loan_withholding(
     earnings: &Arg,
     pay_period: &Arg,
@@ -1732,19 +1773,58 @@ pub fn study_loan_withholding(
     schedule_8_pay_date(pay_date, &year)?;
     let tax_rows = payg_rows(&year, scale).expect("checked scale");
     let loan_rows = study_loan_rows(&year, scale);
-    let (amounts, rates) = precise(|| {
-        let x = weekly_earnings(&earnings, &period)?;
+    let weekly = period == "weekly";
+    let (steps, rates) = precise(|| {
+        let (x, x_formula, _) = weekly_earnings_working(&earnings, &period, "earnings")?;
         let (a, b, weekly_tax) = weekly_formula(&x, tax_rows)?;
         let (loan_a, loan_b, weekly_loan) = weekly_formula(&x, loan_rows)?;
-        let tax = for_pay_period(&weekly_tax, &period)?;
-        let component = for_pay_period(&weekly_loan, &period)?;
+        let (tax, tax_formula) = formula_for_pay_period(&weekly_tax, &period, ["a", "b"])?;
+        let (component, component_formula) =
+            formula_for_pay_period(&weekly_loan, &period, ["component_a", "component_b"])?;
         let total = tax.add(&component)?;
+        let [x_authority, tax_authority, component_authority] = if weekly {
+            [
+                "Schedule 8, 'Using a formula': the weekly earnings in whole dollars plus 99 cents",
+                "Schedule 1, 'Using a formula' and 'Rounding of withholding amounts'",
+                "Schedule 8, 'Study and training support loans component rates' and 'Rounding of withholding amounts'",
+            ]
+        } else {
+            [
+                "Schedule 8, 'Calculating fortnightly, monthly or quarterly withholding amounts'",
+                "Schedule 1, 'Using a formula' and 'Calculating withholding fortnightly, monthly or quarterly amounts'",
+                "Schedule 8, 'Study and training support loans component rates' and 'Calculating fortnightly, monthly or quarterly withholding amounts'",
+            ]
+        };
         Ok((
             vec![
-                ("weekly_earnings_used", x),
-                ("schedule_1_withholding", tax),
-                ("study_loan_component", component),
-                ("withholding", total),
+                step(
+                    "weekly_earnings_used",
+                    x_authority,
+                    &x_formula,
+                    &[&earnings],
+                    x.clone(),
+                ),
+                step(
+                    "schedule_1_withholding",
+                    tax_authority,
+                    &tax_formula,
+                    &[&a, &x, &b],
+                    tax.clone(),
+                ),
+                step(
+                    "study_loan_component",
+                    component_authority,
+                    &component_formula,
+                    &[&loan_a, &x, &loan_b],
+                    component.clone(),
+                ),
+                step(
+                    "withholding",
+                    "Schedule 8, 'Software': the sum of the Schedule 1 amount and the component, which the schedule accepts in place of its combined coefficients",
+                    "schedule_1_withholding + study_loan_component",
+                    &[&tax, &component],
+                    total,
+                ),
             ],
             vec![
                 rate("scale", scale),
@@ -1755,10 +1835,10 @@ pub fn study_loan_withholding(
             ],
         ))
     })?;
-    result(
+    derived_result(
         "study_loan_withholding",
         &format!("{year} {period}"),
-        amounts,
+        steps,
         rates,
     )
 }
@@ -3627,15 +3707,20 @@ impl Loan {
     }
 
     /// For the income year claimed: the remaining expenditure, the maximum
-    /// deduction, the days left in the period of the loan and its days in
-    /// the year.
-    fn maximum_deduction(&self, expenditure: &Decimal) -> Result<(Decimal, Decimal, i64, i64)> {
+    /// deduction, the days left in the period of the loan, its days in the
+    /// year and the remaining expenditure's formula, each earlier year's
+    /// maximum written in.
+    fn maximum_deduction(
+        &self,
+        expenditure: &Decimal,
+    ) -> Result<(Decimal, Decimal, i64, i64, String)> {
         // s 25-25(4), year by year from the one the loan began: the remaining
         // expenditure over the days left, times those days in the year. Each
         // maximum is rounded to cents and carried forward at that amount, as the
         // ATO's examples are.
         precise(|| {
             let mut remaining = expenditure.clone();
+            let mut formula = "borrowing_expenses".to_string();
             let mut from =
                 dates::add_months(self.year_start, 12 * (self.first_year - self.claim_year));
             loop {
@@ -3645,14 +3730,50 @@ impl Loan {
                 let (left, days) = (end - begin + 1, end.min(last) - begin + 1);
                 let maximum = cents(remaining.mul(&int(days))?.div(&int(left))?)?;
                 if from == self.year_start {
-                    return Ok((remaining, maximum, left, days));
+                    return Ok((remaining, maximum, left, days, formula));
                 }
+                formula.push_str(&format!(" - cents({remaining} x {days} / {left})"));
                 remaining = remaining.sub(&maximum)?;
                 from = last + 1;
             }
         })
     }
 }
+
+/// The borrowing expenses steps cite ITAA 1997 s 25-25 in the ATO's legal
+/// database and the ATO's 'Borrowing expenses' page (updated 22 May 2026),
+/// both read on 15 November 2026.
+const BORROWING_EXPENSES: &str =
+    "ITAA 1997 s 25-25(1): the expenditure incurred for borrowing the money";
+
+/// `not_spread`'s amounts: (id, authority, formula).
+const NOT_SPREAD_STEPS: [(&str, &str, &str); 5] = [
+    (
+        "borrowing_expenses",
+        BORROWING_EXPENSES,
+        "borrowing_expenses",
+    ),
+    (
+        "remaining_expenditure",
+        "ITAA 1997 s 25-25(6): not spread, so all of it",
+        "borrowing_expenses",
+    ),
+    (
+        "maximum_deduction",
+        "ITAA 1997 s 25-25(6): deducted for the income year it is incurred",
+        "borrowing_expenses",
+    ),
+    (
+        "deduction",
+        "ITAA 1997 s 25-25(6)(c) and (d): the proportion for the income-producing use, to the cent",
+        "cents(maximum_deduction x income_use)",
+    ),
+    (
+        "remaining_expenditure_after_year",
+        "ITAA 1997 s 25-25(6): nothing is left to spread",
+        "0",
+    ),
+];
 
 /// s 25-25(6): the deduction, not spread, in the income year the expenditure
 /// was incurred.
@@ -3667,19 +3788,23 @@ fn not_spread(year: &str, loan: &Loan, expenditure: &Decimal, share: &Decimal) -
             ),
         );
     }
-    let amounts = precise(|| {
-        Ok(vec![
-            ("borrowing_expenses", expenditure.clone()),
-            ("remaining_expenditure", expenditure.clone()),
-            ("maximum_deduction", expenditure.clone()),
-            ("deduction", cents(expenditure.mul(share)?)?),
-            ("remaining_expenditure_after_year", int(0)),
-        ])
+    let steps = precise(|| {
+        let deduction = cents(expenditure.mul(share)?)?;
+        Ok(steps_from(
+            &NOT_SPREAD_STEPS,
+            [
+                (&[expenditure], expenditure.clone()),
+                (&[expenditure], expenditure.clone()),
+                (&[expenditure], expenditure.clone()),
+                (&[expenditure, share], deduction),
+                (&[], int(0)),
+            ],
+        ))
     })?;
-    result(
+    derived_result(
         "borrowing_expenses",
         year,
-        amounts,
+        steps,
         vec![
             rate("spread", "not spread: $100 or less (s 25-25(6))"),
             rate("income_use", share),
@@ -3690,20 +3815,54 @@ fn not_spread(year: &str, loan: &Loan, expenditure: &Decimal, share: &Decimal) -
 /// s 25-25(4): the expenditure spread by days over the period of the loan.
 fn spread(year: &str, loan: &Loan, expenditure: &Decimal, share: &Decimal) -> Result<Value> {
     let (end, basis) = loan.period(year)?;
-    let (remaining, maximum, days_left, days_in_year) = loan.maximum_deduction(expenditure)?;
-    let amounts = precise(|| {
+    let (remaining, maximum, days_left, days_in_year, earlier) =
+        loan.maximum_deduction(expenditure)?;
+    let steps = precise(|| {
+        let deduction = cents(maximum.mul(share)?)?;
+        let after = remaining.sub(&maximum)?;
+        let (days, left) = (int(days_in_year), int(days_left));
         Ok(vec![
-            ("borrowing_expenses", expenditure.clone()),
-            ("remaining_expenditure", remaining.clone()),
-            ("maximum_deduction", maximum.clone()),
-            ("deduction", cents(maximum.mul(share)?)?),
-            ("remaining_expenditure_after_year", remaining.sub(&maximum)?),
+            step(
+                "borrowing_expenses",
+                BORROWING_EXPENSES,
+                "borrowing_expenses",
+                &[expenditure],
+                expenditure.clone(),
+            ),
+            step(
+                "remaining_expenditure",
+                "ITAA 1997 s 25-25(4) step 1: the expenditure less the maximum deduction for each earlier income year",
+                &earlier,
+                &[expenditure],
+                remaining.clone(),
+            ),
+            step(
+                "maximum_deduction",
+                "ITAA 1997 s 25-25(4) steps 2 to 4, rounded to the cent and carried forward as the ATO's 'Borrowing expenses' examples are",
+                "cents(remaining_expenditure x days_in_year / remaining_loan_period_days)",
+                &[&remaining, &days, &left],
+                maximum.clone(),
+            ),
+            step(
+                "deduction",
+                "ITAA 1997 s 25-25(2) and (3): the proportion for the income-producing use, to the cent",
+                "cents(maximum_deduction x income_use)",
+                &[&maximum, share],
+                deduction,
+            ),
+            step(
+                "remaining_expenditure_after_year",
+                "ITAA 1997 s 25-25(4) step 1: what remains for a later income year",
+                "remaining_expenditure - maximum_deduction",
+                &[&remaining, &maximum],
+                after,
+            ),
         ])
     })?;
-    result(
+    derived_result(
         "borrowing_expenses",
         year,
-        amounts,
+        steps,
         vec![
             rate("spread", "spread over the period of the loan (s 25-25(4))"),
             rate("income_use", share),
@@ -4361,23 +4520,30 @@ fn unregistered_working_holiday_maker(
     year: String,
 ) -> Result<Value> {
     let label = format!("{year} {period}");
-    let foreign = payg_withholding(
-        &Arg::Decimal(payment.clone()),
-        &Arg::Text(period),
-        &Arg::Int(3),
-        &Arg::Text(year),
-        &Arg::Bool(true),
-        &PaygOptions::default(),
-    )?;
-    let withholding = d(foreign["amounts"]["withholding"]
-        .as_str()
-        .expect("withholding amount"));
-    let mut out = result(
-        WORKING_HOLIDAY_MAKER,
-        &label,
-        vec![("payment_used", payment), ("withholding", withholding)],
-        vec![rate("scale", 3)],
-    )?;
+    let rows = payg_rows(&year, 3).expect("scale 3 in every year");
+    let authority = if period == "weekly" {
+        "Schedule 15, 'Unregistered employer'; Schedule 1, scale 3 (foreign residents), 'Working out the weekly earnings', 'Using a formula' and 'Rounding of withholding amounts'"
+    } else {
+        "Schedule 15, 'Unregistered employer'; Schedule 1, scale 3 (foreign residents), 'Using a formula' and 'Calculating withholding fortnightly, monthly or quarterly amounts'"
+    };
+    // Schedule 1 on scale 3, with the row's coefficients written in.
+    let steps = precise(|| {
+        let (x, x_formula, _) = weekly_earnings_working(&payment, &period, "payment_used")?;
+        let (a, b, weekly) = weekly_formula(&x, rows)?;
+        let weekly_formula = format!("max(0, dollars({a} x {} - {b}))", group(&x_formula));
+        let (withholding, formula) = for_pay_period_working(&weekly, &period, &weekly_formula)?;
+        Ok(vec![
+            step(
+                "payment_used",
+                "Schedule 15, 'Unregistered employer': the payment, withheld at foreign resident rates",
+                "payment",
+                &[&payment],
+                payment.clone(),
+            ),
+            step("withholding", authority, &formula, &[&payment], withholding),
+        ])
+    })?;
+    let mut out = derived_result(WORKING_HOLIDAY_MAKER, &label, steps, vec![rate("scale", 3)])?;
     out["withholding_basis"] = json!(
         "unregistered employer: foreign resident rates, the Schedule 1 scale 3 amount for the pay period"
     );
@@ -4401,23 +4567,49 @@ fn flat_rate_working_holiday_maker(
     };
     // Cents are ignored in the result at the top rate (column 5) and without a
     // TFN (column 6); otherwise it is rounded straight to the dollar, 50 cents up.
-    let rounding = if column >= 5 {
-        Rounding::Down
+    let (rounding, formula, authority) = match (column, registered) {
+        (2..=4, _) => (
+            Rounding::HalfUp,
+            "dollars(rate x payment_used)",
+            "Schedule 15, 'Registered employer', 'Using a formula' and Table A, and 'Rounding of withholding amounts': to the nearest dollar, 50 cents up",
+        ),
+        (5, _) => (
+            Rounding::Down,
+            "floor(rate x payment_used)",
+            "Schedule 15, 'Registered employer', 'Using a formula' and Table A, and 'Rounding of withholding amounts': at the top rate, cents in the result are ignored",
+        ),
+        (_, true) => (
+            Rounding::Down,
+            "floor(rate x payment_used)",
+            "Schedule 15, 'If a TFN has not been provided' and 'Rounding of withholding amounts': 45%, cents in the result ignored",
+        ),
+        (_, false) => (
+            Rounding::Down,
+            "floor(rate x payment_used)",
+            "Schedule 15, 'Unregistered employer'; Schedule 1, scale 4 and 'Rounding of withholding amounts': the foreign resident rate without a TFN, cents ignored",
+        ),
+    };
+    let used = if registered {
+        "Schedule 15, 'Using a formula': the total payment for the pay period, ignoring any cents"
     } else {
-        Rounding::HalfUp
+        "Schedule 1, scale 4 and 'Rounding of withholding amounts': cents in earnings are ignored"
     };
     let a = d(rate_);
-    let (x, withholding) = precise(|| {
+    let steps = precise(|| {
         let x = payment.quantize(0, Rounding::Down)?;
         let y = a.mul(&x)?.quantize(0, rounding)?;
-        Ok((x, y))
+        Ok(vec![
+            step(
+                "payment_used",
+                used,
+                "floor(payment)",
+                &[payment],
+                x.clone(),
+            ),
+            step("withholding", authority, formula, &[&a, &x], y),
+        ])
     })?;
-    let mut out = result(
-        WORKING_HOLIDAY_MAKER,
-        label,
-        vec![("payment_used", x), ("withholding", withholding)],
-        vec![rate("rate", &a)],
-    )?;
+    let mut out = derived_result(WORKING_HOLIDAY_MAKER, label, steps, vec![rate("rate", &a)])?;
     out["withholding_basis"] = json!(if registered {
         format!(
             "registered employer, {}: column {column}, rate {a} on the payment with cents ignored",
@@ -4431,7 +4623,10 @@ fn flat_rate_working_holiday_maker(
     Ok(out)
 }
 
-/// Schedule 15: withholding from one payment to a working holiday maker.
+/// Schedule 15: withholding from one payment to a working holiday maker. The
+/// steps cite Schedules 1 and 15 of the Withholding Schedules Instruments 2024
+/// (F2024L00664), (No. 2) 2025 (F2025L01016) and 2026 (F2026L00716), whose
+/// headings they share, read on 15 November 2026.
 pub fn working_holiday_maker_withholding(
     payment: &Arg,
     payments_before: &Arg,
@@ -4502,7 +4697,9 @@ fn schedule_9_scale(status: &Arg, exemption: &Arg) -> Result<usize> {
 
 /// Schedule 9: withholding from one payment to a senior or pensioner, by
 /// Schedule 1's weekly earnings, formula and pay period conversion on
-/// Schedule 9's coefficients.
+/// Schedule 9's coefficients. The steps cite Schedule 9 of the Withholding
+/// Schedules Instruments 2024 (F2024L00664), (No. 2) 2025 (F2025L01016) and
+/// 2026 (F2026L00716), whose headings they share, read on 15 November 2026.
 pub fn seniors_pensioners_withholding(
     earnings: &Arg,
     pay_period: &Arg,
@@ -4516,23 +4713,45 @@ pub fn seniors_pensioners_withholding(
     let period = weekly_fortnightly_or_monthly(pay_period)?;
     let scale = schedule_9_scale(status, medicare_levy_exemption)?;
     let rows = lookup(meta::SENIORS_PENSIONERS_COEFFICIENTS, &year)[scale - 1];
-    let (amounts, rates) = precise(|| {
-        let x = weekly_earnings(&earnings, &period)?;
+    let (x_authority, authority) = if period == "weekly" {
+        (
+            "Schedule 9, 'Using a formula': the weekly earnings in whole dollars plus 99 cents",
+            "Schedule 9, 'Working out the withholding amount'",
+        )
+    } else {
+        let other = "Schedule 9, 'Calculating fortnightly or monthly withholding amounts'";
+        (other, other)
+    };
+    let (steps, rates) = precise(|| {
+        let (x, x_formula, _) = weekly_earnings_working(&earnings, &period, "earnings")?;
         let (a, b, weekly) = weekly_formula(&x, rows)?;
-        let withholding = for_pay_period(&weekly, &period)?;
+        let (withholding, formula) =
+            for_pay_period_working(&weekly, &period, "weekly_withholding")?;
         Ok((
             vec![
-                ("weekly_earnings_used", x),
-                ("weekly_withholding", weekly),
-                ("withholding", withholding),
+                step(
+                    "weekly_earnings_used",
+                    x_authority,
+                    &x_formula,
+                    &[&earnings],
+                    x.clone(),
+                ),
+                step(
+                    "weekly_withholding",
+                    "Schedule 9, 'Using a formula', the scale's coefficients, and 'Rounding of withholding amounts'",
+                    "max(0, dollars(a x weekly_earnings_used - b))",
+                    &[&a, &x, &b],
+                    weekly.clone(),
+                ),
+                step("withholding", authority, &formula, &[&weekly], withholding),
             ],
             vec![rate("scale", scale), rate("a", a), rate("b", b)],
         ))
     })?;
-    result(
+    derived_result(
         SENIORS_PENSIONERS,
         &format!("{year} {period}"),
-        amounts,
+        steps,
         rates,
     )
 }

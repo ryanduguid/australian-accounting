@@ -20,7 +20,17 @@ fn input(earnings: &str, period: &str, scale: i64, year: &str, extra: Value) -> 
 
 fn run(earnings: &str, period: &str, scale: i64, year: &str, extra: Value) -> Value {
     let input = input(earnings, period, scale, year, extra);
-    api::evaluate("study-loan-withholding", &input).unwrap_or_else(|e| panic!("{input}: {e}"))
+    let result =
+        api::evaluate("study-loan-withholding", &input).unwrap_or_else(|e| panic!("{input}: {e}"));
+    // derive gives the same result, byte for byte.
+    let envelope = json!({"command": "study-loan-withholding", "input": input});
+    let doc = api::evaluate("derive", &envelope).unwrap();
+    assert_eq!(
+        doc["result"].to_string(),
+        result.to_string(),
+        "derive {input}"
+    );
+    result
 }
 
 fn refused(year: &str, extra: Value) -> (String, String) {
