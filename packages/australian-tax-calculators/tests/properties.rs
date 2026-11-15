@@ -899,6 +899,123 @@ fn fbt_benefit_values_reconcile_and_never_fall_below_nil() {
     }
 }
 
+/// The amount `key` of `result`, nil where the result has none.
+fn amount_or_nil(result: &Value, key: &str) -> Decimal {
+    result["amounts"]
+        .get(key)
+        .map_or_else(|| n(0), |_| amount(result, key))
+}
+
+/// An expense payment or property result: the contribution splits into its
+/// applied part and excess, the value after it is the gross value less the
+/// applied part, and the taxable value is that less each reduction, never
+/// above it.
+fn check_benefit_reconciles(result: &Value, contribution_key: &str, contribution: &Decimal) {
+    let gross = amount(result, "gross_taxable_value");
+    let applied = amount(result, &format!("{contribution_key}_applied"));
+    let excess = amount(result, &format!("excess_{contribution_key}"));
+    assert!(eq(&applied.add(&excess).unwrap(), contribution), "{result}");
+    let value = amount(result, "value_after_contribution");
+    assert!(eq(&gross.sub(&applied).unwrap(), &value), "{result}");
+    let [odr, in_house] =
+        ["reduction_applied", "in_house_reduction_applied"].map(|key| amount_or_nil(result, key));
+    let taxable = amount(result, "taxable_value");
+    let net = value.sub(&odr).unwrap().sub(&in_house).unwrap();
+    assert!(eq(&taxable, &net) && le(&taxable, &value), "{result}");
+}
+
+/// The in-house and external property rules, in the property worksheet's order.
+const PROPERTY_RULES: [&str; 9] = [
+    "in_house_salary_packaging",
+    "in_house_trade_price",
+    "in_house_public_price",
+    "in_house_produced_other",
+    "in_house_acquired",
+    "in_house_other",
+    "external_cost_price",
+    "external_expenditure",
+    "external_notional_value",
+];
+
+/// `facts` with random inputs for the property rule `method`, and the s 62
+/// reduction left where the rule takes one.
+fn add_rule_facts(rng: &mut Rng, method: &str, facts: &mut Value) {
+    let names: &[&str] = match method {
+        "in_house_trade_price" | "in_house_public_price" => &["lowest_price"],
+        "in_house_acquired" => &["arms_length_price", "notional_value"],
+        "external_cost_price" => &["cost_price"],
+        "external_expenditure" => &["employer_expenditure"],
+        _ => &["notional_value"],
+    };
+    for name in names {
+        facts[*name] = json!(rng.pay());
+    }
+    if method.starts_with("in_house_") && method != "in_house_salary_packaging" {
+        facts["in_house_reduction_available"] = json!(rng.cents(100_000));
+    }
+}
+
+/// The property and expense payment taxable values reconcile with their
+/// contributions and reductions, and neither a contribution, the otherwise
+/// deductible rule nor the in-house reduction takes one below nil.
+#[test]
+fn fbt_property_and_expense_payment_values_reconcile() {
+    let mut rng = Rng(0xFB7_2A26);
+    for _ in 0..RUNS {
+        let year = rng.int(2026, 2027);
+        let share = format!("0.{:04}", rng.int(0, 9999));
+        let method = *rng.pick(&PROPERTY_RULES);
+        let (deduction, contribution) = sorted_dec(rng.pay(), rng.pay());
+        let mut facts = json!({"method": method, "employee_contribution": contribution,
+                               "income_use": share, "contribution_deduction": deduction,
+                               "year_ended": year, "scope_confirmed": true});
+        add_rule_facts(&mut rng, method, &mut facts);
+        let result = run("fbt-property", facts.clone());
+        check_benefit_reconciles(&result, "employee_contribution", &d(&contribution));
+        if let Some(available) = facts["in_house_reduction_available"].as_str() {
+            let applied = amount(&result, "in_house_reduction_applied");
+            assert!(le(&applied, &d(available)), "{result}");
+        }
+
+        let (paid, expenditure) = sorted_dec(rng.pay(), rng.pay());
+        let contribution = rng.pay();
+        let method = if rng.bool() {
+            "external"
+        } else {
+            PROPERTY_RULES[rng.int(0, 5) as usize]
+        };
+        let mut facts = json!({"method": method, "recipients_expenditure": expenditure,
+                               "amount_paid": paid, "employee_contribution": contribution,
+                               "year_ended": year, "scope_confirmed": true});
+        // s 136(1): the recipient's portion, the expenditure less the payment
+        // net of the contribution.
+        let portion = d(&expenditure)
+            .sub(&d(&paid))
+            .unwrap()
+            .add(&d(&contribution))
+            .unwrap();
+        if method == "external" {
+            facts["income_use"] = json!(share);
+            let deduction = if rng.bool() {
+                portion.to_string()
+            } else {
+                "0.00".into()
+            };
+            facts["recipients_portion_deduction"] = json!(deduction);
+            let result = run("fbt-expense-payment", facts);
+            check_benefit_reconciles(&result, "employee_contribution", &d(&contribution));
+        } else {
+            add_rule_facts(&mut rng, method, &mut facts);
+            let result = run("fbt-expense-payment", facts);
+            assert!(
+                eq(&amount(&result, "recipients_portion"), &portion),
+                "{result}"
+            );
+            check_benefit_reconciles(&result, "recipients_portion", &portion);
+        }
+    }
+}
+
 /// Random alternating lived and absent runs, income use on some days and
 /// choice periods after some lived runs. Inputs the worksheet refuses as out
 /// of scope are skipped; the market value basis is retried when it applies.

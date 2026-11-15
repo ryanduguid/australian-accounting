@@ -3,7 +3,7 @@
 Australian Tax Calculators 1.0.0 is a standalone Rust binary. It replaces the
 Python `australian-tax-calculators` 0.2.0 package and its `austaxcalc` import
 API, with the same 14 worksheets, results and refusals, and adds 2 FBT car
-worksheets, FBT loan, meal entertainment and car parking worksheets, a main residence worksheet, a borrowing expenses worksheet, a Division 296 estimate, a termination payment worksheet, 3 Schedule 5 withholding worksheets, a Schedule 15 working holiday maker worksheet, a Schedule 9 seniors and pensioners worksheet, a seniors and pensioners tax offset worksheet, a Medicare levy surcharge worksheet and a foreign resident tax worksheet that no Python release contains. Python releases through 0.1.9
+worksheets, FBT loan, meal entertainment and car parking worksheets, FBT debt waiver, expense payment and property worksheets, a main residence worksheet, a borrowing expenses worksheet, a Division 296 estimate, a termination payment worksheet, 3 Schedule 5 withholding worksheets, a Schedule 15 working holiday maker worksheet, a Schedule 9 seniors and pensioners worksheet, a seniors and pensioners tax offset worksheet, a Medicare levy surcharge worksheet and a foreign resident tax worksheet that no Python release contains. Python releases through 0.1.9
 contain 10 worksheets. Until the MCP server links this crate,
 it uses the 0.2.0 Python release from PyPI; the
 [release handoff](../../apps/aus-accounting-mcp/docs/worksheet-release.md)
@@ -17,9 +17,9 @@ keeps the engine release and MCP integration separate.
 
 </div>
 
-Thirty-one calculation worksheets for established facts: ordinary GST, resident and foreign
+Thirty-four calculation worksheets for established facts: ordinary GST, resident and foreign
 resident basic income tax, CGT losses and discount, the main residence exemption's taxable share of a gain or loss, one loan's borrowing expenses deduction, ordinary employer FBT, car fringe benefit taxable values
-under the statutory formula and operating cost methods, loan, meal entertainment and car parking fringe benefit taxable values, depreciation in the start year and later years,
+under the statutory formula and operating cost methods, loan, meal entertainment and car parking fringe benefit taxable values, debt waiver, expense payment and property fringe benefit taxable values, depreciation in the start year and later years,
 quarterly super guarantee, Schedule 1 PAYG withholding, Schedule 5 withholding from back payments, commissions and bonuses by Methods A, B(i) and B(ii), Schedule 15 withholding for working holiday makers, Schedule 9 withholding for seniors and pensioners, super contribution caps,
 account-based pension minimums, study and training loan repayments, Schedule 8 study
 loan withholding, the Medicare levy with its low-income, SAPTO and family reductions and full or half exemptions, the Medicare levy surcharge, the low income tax offset, the seniors and pensioners tax offset,
@@ -100,6 +100,9 @@ lists the commands.
 | `fbt-loan` | `daily_balance_total`, `interest_accrued`, `income_use`, `accrued_interest_deduction`, `year_ended`, `scope_confirmed` |
 | `fbt-meal-entertainment` | `method`, `meal_entertainment_expenditure`, `year_ended`, `scope_confirmed`; with `12_week_register`, `register_fringe_benefits_value`, `register_meal_entertainment_value` and `register_first_year` |
 | `fbt-car-parking` | `method`, `first_business_day_fee`, `year_ended`, `scope_confirmed`; with `commercial_parking_station`, `benefits`, `lowest_fee` and `employee_contribution`; with `average_cost`, `benefits`, `first_day_fee`, `last_day_fee` and `employee_contribution`; with `12_week_register`, `register_value`, `availability_days` and `register_first_year` |
+| `fbt-debt-waiver` | `amount_waived`, `year_ended`, `scope_confirmed` |
+| `fbt-expense-payment` | `method`, `recipients_expenditure`, `amount_paid`, `employee_contribution`, `year_ended`, `scope_confirmed`; with `external`, `income_use` and `recipients_portion_deduction`; with an in-house method, that method's inputs as for `fbt-property` and, except with `in_house_salary_packaging`, `in_house_reduction_available` |
+| `fbt-property` | `method`, `employee_contribution`, `income_use`, `contribution_deduction`, `year_ended`, `scope_confirmed`; with `in_house_trade_price` or `in_house_public_price`, `lowest_price`; with `in_house_acquired`, `arms_length_price` and `notional_value`; with `external_cost_price`, `cost_price`; with `external_expenditure`, `employer_expenditure`; with another method, `notional_value`; with an in-house method other than `in_house_salary_packaging`, also `in_house_reduction_available` |
 | `depreciation` | `cost`, `effective_life`, `days`, `taxable_use`, `method`, `scope_confirmed`, `year`; optional `opening_adjustable_value` |
 | `quarterly-sg` | `ordinary_time_earnings`, `qualifying_contributions`, `year`, `quarter`, `scope_confirmed` |
 | `payg-withholding` | `earnings`, `pay_period`, `scale`, `year`, `scope_confirmed`; optional `foreign_resident` (scale 4), `tax_offsets`, `medicare_adjustment_children`, `extra_pay_withholding` |
@@ -121,13 +124,13 @@ lists the commands.
 | `pension-minimum` | `account_balance`, `age`, `days`, `year`, `scope_confirmed` |
 | `worksheet-catalogue` | none: send `{}` |
 | `periods` | `kind`, the worksheet name, such as `"payg_withholding"` |
-| `derive` | `command`, one of `fbt`, `fbt-car-statutory`, `fbt-car-operating-cost`, `fbt-loan`, `fbt-meal-entertainment`, `fbt-car-parking`, `division-293` and `pension-minimum`, and `input`, that command's arguments; see [Derivations](#derivations) |
+| `derive` | `command`, one of `fbt`, `fbt-car-statutory`, `fbt-car-operating-cost`, `fbt-loan`, `fbt-meal-entertainment`, `fbt-car-parking`, `fbt-debt-waiver`, `fbt-expense-payment`, `fbt-property`, `division-293` and `pension-minimum`, and `input`, that command's arguments; see [Derivations](#derivations) |
 
-The 2 car commands, the 3 FBT benefit commands (`fbt-loan`, `fbt-meal-entertainment` and `fbt-car-parking`), `main-residence`, `borrowing-expenses`, `division-296`, `termination-payment`, the 3 `schedule-5` commands, `working-holiday-maker-withholding`, `seniors-pensioners-withholding`, `seniors-pensioners-tax-offset`, `medicare-levy-surcharge` and `foreign-resident-tax` have no Python original; their arguments follow the same
+The 2 car commands, the 6 FBT benefit commands (`fbt-loan`, `fbt-meal-entertainment`, `fbt-car-parking`, `fbt-debt-waiver`, `fbt-expense-payment` and `fbt-property`), `main-residence`, `borrowing-expenses`, `division-296`, `termination-payment`, the 3 `schedule-5` commands, `working-holiday-maker-withholding`, `seniors-pensioners-withholding`, `seniors-pensioners-tax-offset`, `medicare-levy-surcharge` and `foreign-resident-tax` have no Python original; their arguments follow the same
 rules. `division-296` alone takes a negative amount, in `total_super_earnings`. `main-residence` also takes dates as `YYYY-MM-DD` strings, lists of
 `{"start", "end"}` periods (with `"floor_area"` for income use) and `null`
 for no new home. `borrowing-expenses` takes `loan_start` as a `YYYY-MM-DD`
-string and `loan_term_end` and `repaid_on` as dates or `null`. `termination-payment` takes `completed_years_of_service` as a JSON integer and `date_of_birth` as a `YYYY-MM-DD` string. `schedule-5-method-b-i` takes `back_payment_periods` as a list of `{"earnings", "back_payment", "withheld"}` decimal strings, one for each earlier pay period. Every argument is required, as the Python functions had no defaults, except `depreciation`'s optional `opening_adjustable_value`: give it, as a decimal string, for a year after the asset's start time, as cost less the earlier years' decline in value; and `medicare-levy`'s optional family inputs, described under [Medicare levy](#medicare-levy-and-low-income-tax-offset). `medicare-levy` refuses a field it does not take, as does `medicare-levy-surcharge`, whose optional inputs are described under [Medicare levy surcharge](#medicare-levy-surcharge). `payg-withholding`'s optional inputs are described under [PAYG withholding](#payg-withholding), and `study-loan-withholding`'s `pay_date` under [Study loan withholding](#study-loan-withholding), and `seniors-pensioners-tax-offset`'s spouse inputs under [Seniors and pensioners tax offset](#seniors-and-pensioners-tax-offset). The FBT benefit commands take the inputs their `method` needs and refuse any other, as [FBT loans, meal entertainment and car parking](#fbt-loans-meal-entertainment-and-car-parking) describes. Input over 8 MiB,
+string and `loan_term_end` and `repaid_on` as dates or `null`. `termination-payment` takes `completed_years_of_service` as a JSON integer and `date_of_birth` as a `YYYY-MM-DD` string. `schedule-5-method-b-i` takes `back_payment_periods` as a list of `{"earnings", "back_payment", "withheld"}` decimal strings, one for each earlier pay period. Every argument is required, as the Python functions had no defaults, except `depreciation`'s optional `opening_adjustable_value`: give it, as a decimal string, for a year after the asset's start time, as cost less the earlier years' decline in value; and `medicare-levy`'s optional family inputs, described under [Medicare levy](#medicare-levy-and-low-income-tax-offset). `medicare-levy` refuses a field it does not take, as does `medicare-levy-surcharge`, whose optional inputs are described under [Medicare levy surcharge](#medicare-levy-surcharge). `payg-withholding`'s optional inputs are described under [PAYG withholding](#payg-withholding), and `study-loan-withholding`'s `pay_date` under [Study loan withholding](#study-loan-withholding), and `seniors-pensioners-tax-offset`'s spouse inputs under [Seniors and pensioners tax offset](#seniors-and-pensioners-tax-offset). The FBT benefit commands take the inputs their `method` needs and refuse any other, as [FBT loans, meal entertainment and car parking](#fbt-loans-meal-entertainment-and-car-parking) and [FBT debt waivers, expense payments and property](#fbt-debt-waivers-expense-payments-and-property) describe. Input over 8 MiB,
 or a decimal string over 8,192 bytes, is refused.
 
 ## Derivations
@@ -176,6 +179,9 @@ The plain commands' output does not change.
 | FBT loans | Years ended 31 March 2026 and 2027 at the statutory interest rate (8.62% and 8.27%); one loan to a current employee, its established daily balances, interest accrued and deductible share |
 | FBT meal entertainment | Years ended 31 March 2026 and 2027; the established year's expenditure, by the 50/50 split or a valid 12 week register |
 | FBT car parking | Years ended 31 March 2026 and 2027 at the car parking threshold ($11.03 and $11.48); the commercial parking station, average cost or 12 week register method; no market value or spaces method |
+| FBT debt waivers | Years ended 31 March 2026 and 2027; the established amount waived |
+| FBT expense payments | Years ended 31 March 2026 and 2027; one external payment or reimbursement with the otherwise deductible rule, or one in-house property expense payment with the $1,000 in-house reduction; no in-house residual expense payment |
+| FBT property | Years ended 31 March 2026 and 2027; one benefit valued by an in-house (s 42) or external (s 43) rule, with the otherwise deductible rule and the $1,000 in-house reduction; no airline transport or car property rules |
 | Depreciation | 2025-26 and 2026-27, an ordinary tangible Division 40 asset's start year, or a later year from its established opening adjustable value; established life and use |
 | SG | Complete quarters of 2025-26; established OTE, eligibility and qualifying contributions |
 | Contribution caps | 2024-25 to 2026-27; one individual's classified contributions, no bring-forward period started in the 2 previous years |
@@ -476,6 +482,51 @@ supports (FBT return 2026 instructions examples 8 and 18, and the Library's
 ¶3-100 and ¶3-220) and the employer's guide's car parking examples 15 and 17,
 and reruns the guide's earlier-year loan examples at the supported rates; see
 [calculation evidence](docs/calculation-evidence.md#fbt-loan).
+
+## FBT debt waivers, expense payments and property
+
+These worksheets also give one category's taxable value before gross-up, for
+`fbt` to gross up, take their inputs by name and derive each amount.
+
+`fbt_debt_waiver` gives the amount waived, principal and interest together
+(FBTAA s 15). The Act sets no contribution or otherwise deductible rule
+against it, so the worksheet takes neither, and a debt waiver is type 2.
+
+`fbt_property` values one benefit under the rule its `method` names. The 6
+in-house rules follow s 42(1): `in_house_salary_packaging` the notional value,
+`in_house_trade_price` the lowest arm's length price to manufacturers,
+wholesalers or retailers, `in_house_public_price` 75% of the lowest price to
+the public, `in_house_produced_other` and `in_house_other` 75% of the notional
+value, and `in_house_acquired` the lesser of the provider's arm's length price
+and the notional value. The 3 external rules follow s 43: `external_cost_price`,
+`external_expenditure` and `external_notional_value`. 75% is rounded to cents.
+The recipient's contribution comes off, never below nil; the otherwise
+deductible rule (s 44) then takes off the gross deduction on the value before
+the contribution (`income_use` of it, rounded to cents) less
+`contribution_deduction`, never below nil. An in-house benefit not salary
+packaged is then reduced by `in_house_reduction_available`, the part of the
+employee's $1,000 for the year (s 62) their other in-house benefits have left,
+so a run for each benefit carries the rest to the next.
+
+`fbt_expense_payment` takes the recipient's expenditure, the amount paid or
+reimbursed and the recipient's contribution, which arises only for a payment
+to a third party (s 20(a)) and is 0.00 for a reimbursement. With `external`,
+the value is the payment less the contribution (s 23), and the otherwise
+deductible rule (s 24) takes off the gross deduction on the expenditure less
+`recipients_portion_deduction`, the deduction for the part the employee bore.
+An in-house method values an in-house property expense payment (s 22A(1)): the
+property's value under that `fbt-property` rule less the recipient's portion,
+the expenditure less the payment net of the contribution, then the s 62
+reduction. In-house residual expense payments (s 22A(2)) and the otherwise
+deductible rule for in-house expense payments are not covered, and an
+`income_use` given with an in-house method is refused.
+
+Which gross-up an expense payment or property benefit takes depends on
+whether the provider is entitled to a GST credit for providing it; the result's
+warning says so. The worksheets reproduce, to the cent, FBT return 2026
+instructions examples 9, 10 and 14, the employer's guide's examples in 8.2,
+9.3, 9.4, 17.3 and 17.5, and the Library's ¶3-240, ¶3-260 and ¶3-340; see
+[calculation evidence](docs/calculation-evidence.md#fbt-debt-waiver).
 
 ## Main residence
 

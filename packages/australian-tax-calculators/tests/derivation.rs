@@ -13,13 +13,16 @@ use std::io::Write;
 use std::process::{Command, Stdio};
 
 /// The commands `derive` explains.
-const DERIVED: [&str; 8] = [
+const DERIVED: [&str; 11] = [
     "fbt",
     "fbt-car-statutory",
     "fbt-car-operating-cost",
     "fbt-loan",
     "fbt-meal-entertainment",
     "fbt-car-parking",
+    "fbt-debt-waiver",
+    "fbt-expense-payment",
+    "fbt-property",
     "division-293",
     "pension-minimum",
 ];
@@ -153,6 +156,44 @@ fn cases() -> Vec<(&'static str, Value)> {
             json!({"method": "commercial_parking_station", "first_business_day_fee": "11.48",
                    "benefits": 230, "lowest_fee": "18.00", "employee_contribution": "1000.00",
                    "year_ended": 2027}),
+        ),
+        // FBT return 2026 instructions, item 23D example 9.
+        benefit("fbt-debt-waiver", json!({"amount_waived": "500.00"})),
+        // The employer's guide, 9.4's first example and 9.3's in-house petrol,
+        // with the employee's $1,000 in-house reduction unused.
+        benefit(
+            "fbt-expense-payment",
+            json!({"method": "external", "recipients_expenditure": "500.00",
+                   "amount_paid": "250.00", "employee_contribution": "0.00", "income_use": "0.8",
+                   "recipients_portion_deduction": "200.00"}),
+        ),
+        benefit(
+            "fbt-expense-payment",
+            json!({"method": "in_house_acquired", "recipients_expenditure": "1000.00",
+                   "amount_paid": "250.00", "employee_contribution": "0.00",
+                   "arms_length_price": "800.00", "notional_value": "1000.00",
+                   "in_house_reduction_available": "1000.00"}),
+        ),
+        // Item 23K example 14, the guide's 17.5 first example, and the
+        // otherwise deductible rule before the in-house reduction.
+        benefit(
+            "fbt-property",
+            json!({"method": "in_house_public_price", "lowest_price": "3600.00",
+                   "employee_contribution": "300.00", "income_use": "0",
+                   "contribution_deduction": "0.00", "in_house_reduction_available": "1000.00"}),
+        ),
+        benefit(
+            "fbt-property",
+            json!({"method": "external_notional_value", "notional_value": "500.00",
+                   "employee_contribution": "250.00", "income_use": "0.8",
+                   "contribution_deduction": "200.00"}),
+        ),
+        benefit(
+            "fbt-property",
+            json!({"method": "in_house_acquired", "arms_length_price": "500.00",
+                   "notional_value": "800.00", "employee_contribution": "0.00",
+                   "income_use": "0.5", "contribution_deduction": "0.00",
+                   "in_house_reduction_available": "100.00", "year_ended": 2027}),
         ),
     ]
 }
@@ -685,6 +726,52 @@ fn the_fbt_benefit_steps_cite_their_provisions() {
 }
 
 #[test]
+fn the_payment_and_property_steps_cite_their_provisions() {
+    let all = cases();
+    let steps = |i: usize| derive(all[i].0, &all[i].1)["steps"].clone();
+    assert_eq!(
+        steps(31)[0]["authority"],
+        "FBTAA s 15; FBT return 2026 instructions, item 23D"
+    );
+    // Guide 9.4: GD $400 on the $500 spent, less RD $200, takes $250 to $50.
+    let external = steps(32);
+    assert_eq!(external[0]["authority"], "FBTAA s 23");
+    assert_eq!(
+        external[4]["working"],
+        "cents(recipients_expenditure x income_use) = cents(500.00 x 0.8) = 400.00"
+    );
+    assert_eq!(
+        external[8]["working"],
+        "value_after_contribution - reduction_applied = 250.00 - 200.00 = 50.00"
+    );
+    // Guide 9.3: s 42(1)(b)'s lesser value, less the recipient's portion, then s 62.
+    let in_house = steps(33);
+    assert_eq!(in_house[0]["authority"], "FBTAA s 42(1)(b) and (2)");
+    assert_eq!(
+        in_house[1]["working"],
+        "recipients_expenditure - amount_paid + employee_contribution \
+         = 1000.00 - 250.00 + 0.00 = 750.00"
+    );
+    assert_eq!(in_house[5]["authority"], "FBTAA s 62(1)");
+    assert_eq!(in_house[6]["authority"], "FBTAA s 22A(1) and s 62(1)");
+    // Item 23K example 14: 75% of $3,600, rounded to cents.
+    let property = steps(34);
+    assert_eq!(
+        property[0]["working"],
+        "cents(lowest_price x 0.75) = cents(3600.00 x 0.75) = 2700.00"
+    );
+    assert_eq!(property[0]["authority"], "FBTAA s 42(1)(a)(ii)");
+    let last = steps(36);
+    let last = last.as_array().unwrap();
+    assert_eq!(
+        last[last.len() - 2]["working"],
+        "min(in_house_reduction_available, value_after_contribution - reduction_applied) \
+         = min(100.00, 500.00 - 250.00) = 100.00"
+    );
+    assert_eq!(steps(35)[0]["authority"], "FBTAA s 43(c)");
+}
+
+#[test]
 fn a_refused_derive_leaves_no_steps_for_the_next() {
     let refused = json!({"command": "fbt-car-statutory", "input": {"days_available": 366}});
     for (command, input) in cases() {
@@ -760,8 +847,8 @@ fn derive_refuses_what_it_does_not_explain() {
     assert_eq!(
         message,
         "derive explains fbt, fbt-car-statutory, fbt-car-operating-cost, fbt-loan, \
-         fbt-meal-entertainment, fbt-car-parking, division-293, pension-minimum, \
-         not \"gst\""
+         fbt-meal-entertainment, fbt-car-parking, fbt-debt-waiver, fbt-expense-payment, \
+         fbt-property, division-293, pension-minimum, not \"gst\""
     );
 }
 

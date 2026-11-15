@@ -42,6 +42,9 @@ example evidence; it does not claim a fresh review of every supported period.
 | FBT loans | `tax-examples-fringe-benefits-tax-fbt` (tax-examples), ¶3-100, with FBTAA ss 18, 19 and 136(1) (compilation 97, 1 July 2026), the FBT return 2026 instructions (item 23C, example 8), the employer's guide (8.5 and 8.8) and the FBT rates and thresholds page | 30 June 2026; 20 May 2026 (rates page) | One loan to a current employee for the years ended 31 March 2026 and 2027; deciding the loan, exemptions and the deduction itself excluded |
 | FBT meal entertainment | `tax-examples-fringe-benefits-tax-fbt` (tax-examples), ¶3-220, with FBTAA ss 37AB to 37CD (compilation 97) and the FBT return 2026 instructions (item 23P, example 18) | 30 June 2026 | The year's established expenditure by the 50/50 split or a valid 12 week register for the years ended 31 March 2026 and 2027; the actual method excluded |
 | FBT car parking | `tax-examples-fringe-benefits-tax-fbt` (tax-examples), ¶3-055 (the 2026 threshold), with FBTAA ss 39A to 39GF (compilation 97), the employer's guide (chapter 16, examples 12, 13, 15 and 17) and the FBT rates and thresholds page | 30 June 2026; 20 May 2026 (rates page) | Commercial parking station, average cost and 12 week register values for the years ended 31 March 2026 and 2027; market value and spaces methods excluded |
+| FBT debt waivers | FBT return 2026 instructions (item 23D, example 9), with FBTAA ss 14 and 15 (compilation 97, 1 July 2026) and the employer's guide (8.1 and 8.2) | 1 April 2026 (item 23); 29 May 2024 (guide) | The amount waived for the years ended 31 March 2026 and 2027; deciding the waiver excluded |
+| FBT expense payments | `tax-examples-fringe-benefits-tax-fbt` (tax-examples), ¶3-240 and ¶3-340, with FBTAA ss 20 to 24, 62 and 136(1) (compilation 97), the FBT return 2026 instructions (item 23E, example 10) and the employer's guide (9.2 to 9.4 and 19.5) | 30 June 2026; 1 April 2026 (item 23); 29 May 2024 (guide) | One external or in-house property expense payment for the years ended 31 March 2026 and 2027; in-house residual payments and the in-house otherwise deductible rule excluded |
+| FBT property | `tax-examples-fringe-benefits-tax-fbt` (tax-examples), ¶3-260, with FBTAA ss 40 to 44, 62 and 136(1) (compilation 97), the FBT return 2026 instructions (item 23K, example 14) and the employer's guide (17.2 to 17.5 and 19.5) | 30 June 2026; 1 April 2026 (item 23); 29 May 2024 (guide) | One benefit under an in-house or external rule for the years ended 31 March 2026 and 2027; airline transport and car property rules excluded |
 | Main residence | `tax-examples-capital-gains-tax-cgt` (tax-examples), ¶2-060 and ¶2-075, with the ATO's pages 'Treating former home as main residence' (QC66030) and 'Using your home for rental or business' (QC66033) | 30 June 2026; 22 June 2026 (both ATO pages) | One dwelling's taxable days for CGT events in 2024-25 to 2026-27; cost base, market value and discount excluded |
 | Borrowing expenses | `tax-examples-deductions` (tax-examples), ¶4-160, with ITAA 1997 s 25-25 (compilation 268, 1 October 2026) and the ATO's 'Borrowing expenses' page | 30 June 2026; 22 May 2026 (ATO page) | One loan's established expenditure, use and dates for 2024-25 to 2026-27; classification, interest and refinancing excluded |
 | Depreciation | `tax-examples-depreciation` (tax-examples), ¶6-000 and ¶6-020 | 30 June 2025 | First-year formulas and taxable-use apportionment in 2024–25 examples |
@@ -319,6 +322,79 @@ none is above. The commercial parking station and average cost methods round
 the gross value to cents before the recipients' payments, as the car worksheets
 do. The market value method is left out because it rests on a qualified valuer's
 report; the spaces method was not in this batch.
+
+## FBT debt waiver
+
+These worksheets were added on 15 November 2026. Their sources were read that
+day, 12.25 pm to 12.31 pm AEDT: the FBTAA as compiled on 1 July 2026
+(C2004A03280, compilation 97, EPUB documents 1 and 2, with the formulas' text
+alternatives for ss 24 and 44, 'GD minus RD' and 'TV minus ND'), the FBT return
+2026 instructions' item 23 page (published 1 April 2026), chapters 2, 8, 9, 17
+and 19 of 'Fringe benefits tax - a guide for employers' (chapters 8, 9 and 17
+last updated 29 May 2024) and the ATO's 'Loan and debt waiver fringe benefits'
+page (last updated 6 March 2025). No ATO-published rate or factor enters them.
+`tests/fbt_debt_waiver.rs`, `tests/fbt_expense_payment.rs` and
+`tests/fbt_property.rs` hold each case.
+
+Item 23D example 9: a $500 debt, principal and interest, waived: **$500.00**,
+which as a type 2 value grosses up to `500 × 1.8868 = 943.40`, item 14B
+**$943**. The guide's 8.2: a $1,000 loan released is **$1,000.00**, and with
+$100 of accrued interest also waived **$1,100.00**. The Act gives the amount
+waived and nothing against it (s 15), and item 23D leaves the contribution and
+reduction columns blank, so the worksheet takes no other input.
+
+## FBT expense payment
+
+Item 23E example 10: a $1,200 telephone bill paid, 60% for business: GD
+`1200 × 0.6 = 720`, so **$480.00**. The guide's 9.4: $500 spent, 80%
+deductible, $250 reimbursed without regard to use: GD `400` less RD
+`(500 − 250) × 0.8 = 200` is a notional deduction of `200`, for **$50.00**; $350
+reimbursed for the business part: RD `400 − 350 = 50`, ND `350`, **nil**. The
+operator gives RD, since the guide's step 3 works it out differently by how the
+reimbursement was set; the worksheet refuses one above the recipient's portion
+(s 136(1)), the expenditure the employee bore. The guide's 9.3 in-house
+petrol: the retailer bought it from the employer for $800 (s 42(1)(b), the
+lesser of that and the $1,000 notional value), less the recipient's portion
+`1000 − 250 = 750`, **$50.00**, and nil once the employee's unused $1,000 s 62
+reduction applies. ¶3-240 (review date 30 June 2026): an associate's $10,000
+HELP debt reimbursed is **$10,000.00**, type 2, `18,868.00` grossed up; ¶3-340:
+$35,000 of mortgage and $24,000 of childcare reimbursements, `59000 × 1.8868`,
+item 14B **$111,321**.
+
+s 22A(1)(b) makes the recipient's expenditure less the provider's portion
+(the payment less the contribution, or the reimbursement) the notional
+contribution, so one formula serves a payment and a reimbursement, with a
+contribution of 0.00 for a reimbursement. The otherwise deductible rule for an
+in-house expense payment (s 24(1)(b)(i)) measures the gross expenditure 'but
+for ... the recipients contribution', which the guide does not work through,
+so it is left out rather than guessed. s 22A(2) values in-house residual
+expense payments by the residual benefit rules (ss 48 and 49), which these
+worksheets do not take.
+
+## FBT property
+
+The guide's 17.3: identical goods sold to wholesalers for $1,000 less 5% for
+early payment, **$950.00**; a desk at a lowest public price of $900 sold to an
+employee for $500, `0.75 × 900 − 500`, **$175.00**; a damaged racquet worth $30
+sold for $5, `0.75 × 30 − 5`, **$17.50**; a television bought for $500, retailed
+at $750 and sold for $400, **$100.00**. 17.5: $500 of goods, $250 paid, 80%
+work use: GD `400` less RD `200`, **$50.00**; with the contribution set for 50%
+use, RD `150`, **nil**. Item 23K example 14: a $2,000 television and a $1,600
+air conditioner at 75%, `2700 − 300 − 1000`, **$1,400.00**, type 1 `2912.28`,
+item 14A **$2,912**. ¶3-260 (review date 30 June 2026): a $2,000 television
+bought for $1,800 is nil with a $300 excess; a $1,200 sound bar bought for
+$600 is **$300.00**, nil after the $1,000 reduction; a $4,000 desktop with the
+$700 of reduction left is **$2,300.00**, Jenny's total.
+
+Item 23K example 14 and ¶3-260 value a retailer's stock at 75% of its lowest
+price to the public. s 42(1)(a)(ii), as compiled, gives that value for
+property the provider manufactured, produced, processed or treated, and
+s 42(1)(b) the lesser of the arm's length purchase price and the notional
+value for property it acquired. The worksheet applies the rule its `method`
+names, and the tests apply `in_house_public_price` as those examples do. The
+otherwise deductible rule comes before s 62: s 44 gives the taxable value 'but
+for Division 14', and s 62 is in Division 14. Benefits provided jointly to an
+employee and an associate (s 44(5), the guide's 17.5A) are not covered.
 
 ## Main residence
 

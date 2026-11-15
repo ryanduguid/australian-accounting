@@ -22,6 +22,18 @@ intentionally changed.
   `fbt_meal_entertainment.register_values_invalid`,
   `input.benefit_count_invalid` and `input.fbt_method_invalid`. The ATO's and
   the Library's worked examples are in `docs/calculation-evidence.md`.
+- `fbt-debt-waiver`, `fbt-expense-payment` and `fbt-property` give the
+  taxable value of debt waiver (FBTAA s 15), expense payment (Division 5:
+  external s 23 and in-house property s 22A(1), with the otherwise
+  deductible rule, s 24, for external payments) and property fringe
+  benefits (Division 11: the 6 in-house rules of s 42(1), the 3 external
+  rules of s 43 and the otherwise deductible rule, s 44) for the years
+  ended 31 March 2026 and 2027, for `fbt` to gross up. In-house benefits
+  take the employee's $1,000 reduction (s 62) left for the year. New
+  refusal codes: `fbt.in_house_reduction_invalid`,
+  `fbt_expense_payment.deduction_exceeds_portion`,
+  `fbt_expense_payment.payment_exceeds_expenditure` and
+  `fbt_property.deduction_exceeds_contribution`.
 - `derive` also covers `division-293` and `pension-minimum`. Their steps cite
   ITAA 1997 s 293-20 and the Superannuation (Sustaining the Superannuation
   Contribution Concession) Imposition Act 2013 s 5, and SISR Schedule 7

@@ -16,6 +16,9 @@ use super::{
 use crate::decimal::Decimal;
 use crate::metadata as meta;
 
+mod expense_property;
+pub use expense_property::{fbt_debt_waiver, fbt_expense_payment, fbt_property};
+
 /// The methods `method` accepts for `kind`, in the catalogue's order.
 pub fn methods(kind: &str) -> &'static [&'static str] {
     match kind {
@@ -25,6 +28,8 @@ pub fn methods(kind: &str) -> &'static [&'static str] {
             "average_cost",
             "12_week_register",
         ],
+        "fbt_expense_payment" => &expense_property::EXPENSE_PAYMENT_METHODS,
+        "fbt_property" => &expense_property::PROPERTY_METHODS,
         _ => &[],
     }
 }
@@ -50,17 +55,45 @@ fn take<'a, const N: usize>(
     when: &str,
     names: [&str; N],
 ) -> Result<[&'a Arg; N]> {
+    let input = named(given, command, when, &names)?;
+    Ok(names.map(input))
+}
+
+/// [`take`] for a list of `names` known only at run time: a lookup of each.
+fn named<'a>(
+    given: &'a [(String, Arg)],
+    command: &str,
+    when: &str,
+    names: &[&str],
+) -> Result<impl Fn(&str) -> &'a Arg> {
     if let Some((name, _)) = given.iter().find(|(n, _)| !names.contains(&n.as_str())) {
         return refuse(
             "input.field_unknown",
             format!("{name} is not an input of {command}{when}"),
         );
     }
-    let found = names.map(|name| given.iter().find(|(n, _)| n == name).map(|(_, arg)| arg));
-    if let Some((name, _)) = names.iter().zip(&found).find(|(_, arg)| arg.is_none()) {
+    if let Some(name) = names
+        .iter()
+        .find(|name| !given.iter().any(|(n, _)| n == *name))
+    {
         return refuse("input.missing_field", format!("{name} is required{when}"));
     }
-    Ok(found.map(|arg| arg.expect("checked present")))
+    Ok(move |name: &str| {
+        let found = given.iter().find(|(n, _)| n == name);
+        &found.expect("checked present").1
+    })
+}
+
+/// `income_use`: the share of an amount that would have been a once-only
+/// income tax deduction to the employee, for the otherwise deductible rule.
+fn income_use(value: &Arg) -> Result<Decimal> {
+    match finite_between(value, "0", "1")? {
+        Some(share) => Ok(share),
+        None => refuse(
+            "input.fraction_invalid",
+            "income_use must be a finite Decimal fraction from 0 to 1.",
+        ),
+    }
 }
 
 /// A 12 week register is valid for the FBT year it was first valid for and
@@ -137,12 +170,7 @@ pub fn fbt_loan(given: &[(String, Arg)], year_ended: &Arg, scope_confirmed: &Arg
     ];
     let [balance, accrued, income_use, deduction] = take(given, "fbt-loan", "", names)?;
     let (balance, accrued) = (money(balance)?, money(accrued)?);
-    let Some(income_use) = finite_between(income_use, "0", "1")? else {
-        return refuse(
-            "input.fraction_invalid",
-            "income_use must be a finite Decimal fraction from 0 to 1.",
-        );
-    };
+    let income_use = self::income_use(income_use)?;
     let deduction = money(deduction)?;
     if deduction.gt(&accrued)? {
         return refuse(

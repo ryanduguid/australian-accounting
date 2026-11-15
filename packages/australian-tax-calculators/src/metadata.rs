@@ -814,6 +814,12 @@ pub const FBT_BENCHMARK_INTEREST_RATES: &[(&str, &str)] = &[("2026", "0.0862"), 
 /// worksheet's supported years.
 pub const FBT_CAR_PARKING_THRESHOLDS: &[(&str, &str)] = &[("2026", "11.03"), ("2027", "11.48")];
 
+/// The in-house property inputs the expense payment and property worksheets
+/// share: they take them only under the in-house methods.
+const FBT_LOWEST_PRICE: &str = "AUD, in_house_trade_price and in_house_public_price only and required there: the lowest price at which the provider sold identical property it manufactured, produced, processed or treated, at or about the provision time under an arm's length transaction, to manufacturers, wholesalers or retailers (FBTAA s 42(1)(a)(i)), or failing any such sale the lowest it could reasonably be expected to have sold it for, or to members of the public in similar circumstances (s 42(1)(a)(ii))";
+const FBT_ARMS_LENGTH_PRICE: &str = "AUD, in_house_acquired only and required there: the provider's cost price for property it acquired in the ordinary course of business under an arm's length transaction, otherwise what it could reasonably be expected to have paid under one (FBTAA s 42(2))";
+const FBT_IN_HOUSE_REDUCTION: &str = "AUD from 0 to 1000.00, every in-house method but in_house_salary_packaging and required there: the part of the employee's $1,000 in-house reduction for the FBT year (FBTAA s 62) their other in-house fringe benefits have not used; 1000.00 for their only in-house fringe benefit";
+
 /// SISR Schedule 7 factors as (lowest age, factor), oldest band first.
 pub const PENSION_MINIMUM_FACTORS: [(i64, &str); 7] = [
     (95, "0.14"),
@@ -847,6 +853,9 @@ pub fn supported_periods(kind: &str) -> Vec<&'static str> {
         // return instructions and rates page were read for.
         "fbt_meal_entertainment" => vec!["2026", "2027"],
         "fbt_car_parking" => keys(FBT_CAR_PARKING_THRESHOLDS),
+        // No published rate; the years are those the ATO's return
+        // instructions and guide were read for.
+        "fbt_debt_waiver" | "fbt_expense_payment" | "fbt_property" => vec!["2026", "2027"],
         "payg_withholding" => keys(PAYG_WITHHOLDING_COEFFICIENTS),
         "contribution_caps" => keys(CONTRIBUTION_CAPS),
         "pension_minimum" => vec!["2024-25", "2025-26", "2026-27"],
@@ -917,6 +926,18 @@ pub fn source_review(kind: &str) -> (&'static str, &'static str) {
         "fbt_car_parking" => (
             "2026-11-15",
             "FBTAA ss 39A, 39C, 39DA, 39E and 39GB to 39GF, compilation 97 (1 July 2026); Fringe benefits tax - a guide for employers, chapter 16, examples 12, 13, 15 and 17 and the 12 week register steps; FBT return 2026 instructions, item 23N and example 17; FBT rates and thresholds, car parking threshold; Car parking and FBT",
+        ),
+        "fbt_debt_waiver" => (
+            "2026-11-15",
+            "FBTAA ss 14 and 15, compilation 97 (1 July 2026); Fringe benefits tax - a guide for employers, 8.1 and 8.2; FBT return 2026 instructions, item 23D and example 9; Loan and debt waiver fringe benefits",
+        ),
+        "fbt_expense_payment" => (
+            "2026-11-15",
+            "FBTAA ss 20, 22A, 23, 24 and 62 and s 136(1), providers portion and recipients portion, compilation 97 (1 July 2026); Fringe benefits tax - a guide for employers, 9.2 to 9.4 and their examples, 17.3 and 19.5; FBT return 2026 instructions, item 23E and example 10",
+        ),
+        "fbt_property" => (
+            "2026-11-15",
+            "FBTAA ss 40, 42, 43, 44 and 62 and s 136(1), notional value, compilation 97 (1 July 2026); Fringe benefits tax - a guide for employers, 17.2 to 17.5 and their examples and 19.5; FBT return 2026 instructions, item 23K and example 14",
         ),
         "depreciation" => (
             "2026-11-13",
@@ -1056,6 +1077,24 @@ pub fn library_evidence(kind: &str) -> [(&'static str, &'static str); 4] {
         "fbt_car_parking" => (
             "tax-examples-fringe-benefits-tax-fbt",
             "3-055",
+            "2026-06-30",
+            "2026-11-15",
+        ),
+        "fbt_debt_waiver" => (
+            "ATO FBT return 2026 instructions, item 23",
+            "item 23D, example 9",
+            "2026-04-01",
+            "2026-11-15",
+        ),
+        "fbt_expense_payment" => (
+            "tax-examples-fringe-benefits-tax-fbt",
+            "3-240, 3-340",
+            "2026-06-30",
+            "2026-11-15",
+        ),
+        "fbt_property" => (
+            "tax-examples-fringe-benefits-tax-fbt",
+            "3-260",
             "2026-06-30",
             "2026-11-15",
         ),
@@ -1288,6 +1327,40 @@ pub fn optional_inputs(kind: &str) -> Vec<(&'static str, &'static str)> {
                 "integer, 12_week_register only and required there: the FBT year ended 31 March the register was first valid for, from 4 years before year_ended to year_ended (FBTAA s 39GF); whether it has since ceased to be valid is the operator's to establish",
             ),
         ],
+        "fbt_expense_payment" => vec![
+            (
+                "income_use",
+                "decimal fraction from 0 to 1, external only and required there: the share of recipients_expenditure that would have been a once-only income tax deduction to the employee had they incurred and paid it unreimbursed (FBTAA s 24(1)(b)(ii), the gross deduction); 0 for an associate or private expenditure",
+            ),
+            (
+                "recipients_portion_deduction",
+                "AUD, external only and required there: the once-only deduction allowable to the employee for the expenditure they bore themselves (FBTAA s 24(1)(ba), RD), at most the recipient's portion, recipients_expenditure less amount_paid net of employee_contribution; 0.00 when they bore none",
+            ),
+            ("lowest_price", FBT_LOWEST_PRICE),
+            (
+                "notional_value",
+                "AUD, in_house_salary_packaging, in_house_produced_other, in_house_acquired and in_house_other only and required there: the amount the recipient could reasonably be expected to have paid to obtain the property from its provider under an arm's length transaction, at the provision time (FBTAA s 136(1))",
+            ),
+            ("arms_length_price", FBT_ARMS_LENGTH_PRICE),
+            ("in_house_reduction_available", FBT_IN_HOUSE_REDUCTION),
+        ],
+        "fbt_property" => vec![
+            ("lowest_price", FBT_LOWEST_PRICE),
+            (
+                "notional_value",
+                "AUD, in_house_salary_packaging, in_house_produced_other, in_house_acquired, in_house_other and external_notional_value only and required there: the amount the recipient could reasonably be expected to have paid to obtain the property from the provider under an arm's length transaction, at the provision time (FBTAA s 136(1))",
+            ),
+            ("arms_length_price", FBT_ARMS_LENGTH_PRICE),
+            (
+                "cost_price",
+                "AUD, external_cost_price only and required there: the cost price to the employer or its associate, as the provider, of property it bought under an arm's length transaction at or about the provision time (FBTAA s 43(a))",
+            ),
+            (
+                "employer_expenditure",
+                "AUD, external_expenditure only and required there: the expenditure the employer or an associate incurred under an arm's length transaction to a provider that is neither, in respect of providing the property (FBTAA s 43(b))",
+            ),
+            ("in_house_reduction_available", FBT_IN_HOUSE_REDUCTION),
+        ],
         "seniors_pensioners_tax_offset" => vec![
             (
                 "spouse_rebate_income",
@@ -1435,6 +1508,46 @@ pub fn input_units(kind: &str) -> Vec<(&'static str, &'static str)> {
             (
                 "first_business_day_fee",
                 "AUD, the highest of the lowest all-day fees the commercial parking stations within 1 km each charged on the first business day of the FBT year: car parking benefits arise only when one station's lowest fee is more than the car parking threshold (FBTAA s 39A(1)(a)(iii); the employer's guide, example 12), and benefits are valued at their own fee, which can be lower",
+            ),
+        ],
+        "fbt_debt_waiver" => vec![(
+            "amount_waived",
+            "AUD, the amounts whose payment or repayment the employer or an associate waived in the FBT year for the employee or an associate, principal and interest together (FBTAA ss 14 and 15); not a genuine bad debt written off for reasons unrelated to the employment",
+        )],
+        "fbt_expense_payment" => vec![
+            (
+                "method",
+                "external, in_house_salary_packaging, in_house_trade_price, in_house_public_price, in_house_produced_other, in_house_acquired or in_house_other",
+            ),
+            (
+                "recipients_expenditure",
+                "AUD, the expenditure the recipient incurred that the payment or reimbursement relates to (FBTAA s 136(1), recipients expenditure)",
+            ),
+            (
+                "amount_paid",
+                "AUD, the employer's or an associate's payment to a third party discharging the recipient's obligation (FBTAA s 20(a)), or its reimbursement of the recipient (s 20(b)), at most recipients_expenditure",
+            ),
+            (
+                "employee_contribution",
+                "AUD, the recipient's contribution: what the recipient or employee paid the provider or employer for the benefit (FBTAA s 136(1)), which arises only for a payment under s 20(a); 0.00 for a reimbursement",
+            ),
+        ],
+        "fbt_property" => vec![
+            (
+                "method",
+                "in_house_salary_packaging, in_house_trade_price, in_house_public_price, in_house_produced_other, in_house_acquired, in_house_other, external_cost_price, external_expenditure or external_notional_value",
+            ),
+            (
+                "employee_contribution",
+                "AUD, the recipient's contribution: the consideration the recipient or employee paid the provider or employer for the property, less any reimbursement of it (FBTAA s 136(1))",
+            ),
+            (
+                "income_use",
+                "decimal fraction from 0 to 1, the share of the value before the contribution that would have been a once-only income tax deduction to the employee had they bought the property for that amount (FBTAA s 44(1)(b), the gross deduction); 0 for an associate, private use or property whose cost would be deducted over more than one year",
+            ),
+            (
+                "contribution_deduction",
+                "AUD, the once-only deduction that would have been allowable to the employee for their contribution had they paid it at the provision time (FBTAA s 44(1)(ba), RD), at most employee_contribution; 0.00 when there is no contribution",
             ),
         ],
         "fbt_car_statutory" => vec![
@@ -1828,6 +1941,23 @@ pub fn examples(kind: &str) -> Vec<(&'static str, Example)> {
             ("benefits", Whole(230)),
             ("lowest_fee", Text("18.00")),
             ("employee_contribution", Text("1000.00")),
+        ],
+        "fbt_debt_waiver" => vec![("amount_waived", Text("500.00"))],
+        "fbt_expense_payment" => vec![
+            ("method", Text("external")),
+            ("recipients_expenditure", Text("1200.00")),
+            ("amount_paid", Text("1200.00")),
+            ("employee_contribution", Text("0.00")),
+            ("income_use", Text("0.6")),
+            ("recipients_portion_deduction", Text("0.00")),
+        ],
+        "fbt_property" => vec![
+            ("method", Text("in_house_public_price")),
+            ("lowest_price", Text("1200.00")),
+            ("employee_contribution", Text("600.00")),
+            ("income_use", Text("0")),
+            ("contribution_deduction", Text("0.00")),
+            ("in_house_reduction_available", Text("0.00")),
         ],
         "depreciation" => vec![
             ("cost", Text("3000.00")),

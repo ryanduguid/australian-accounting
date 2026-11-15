@@ -207,6 +207,9 @@ const COMMAND_ARGS: &[(&str, &[(&str, Kind)])] = &[
     ("fbt-loan", FBT_YEAR_ARGS),
     ("fbt-meal-entertainment", FBT_METHOD_ARGS),
     ("fbt-car-parking", FBT_METHOD_ARGS),
+    ("fbt-debt-waiver", FBT_YEAR_ARGS),
+    ("fbt-expense-payment", FBT_METHOD_ARGS),
+    ("fbt-property", FBT_METHOD_ARGS),
     (
         "depreciation",
         &[
@@ -418,13 +421,16 @@ pub fn commands() -> Vec<&'static str> {
 }
 
 /// The commands `derive` explains: each of their amounts is worked out in a step.
-const DERIVED: [&str; 8] = [
+const DERIVED: [&str; 11] = [
     "fbt",
     "fbt-car-statutory",
     "fbt-car-operating-cost",
     "fbt-loan",
     "fbt-meal-entertainment",
     "fbt-car-parking",
+    "fbt-debt-waiver",
+    "fbt-expense-payment",
+    "fbt-property",
     "division-293",
     "pension-minimum",
 ];
@@ -707,6 +713,9 @@ pub fn evaluate_coded(command: &str, v: &Value) -> Result<Value> {
             | "fbt-loan"
             | "fbt-meal-entertainment"
             | "fbt-car-parking"
+            | "fbt-debt-waiver"
+            | "fbt-expense-payment"
+            | "fbt-property"
     ) {
         let kind = command.replace('-', "_");
         // The catalogue's required and optional inputs, which for the FBT
@@ -766,6 +775,11 @@ pub fn evaluate_coded(command: &str, v: &Value) -> Result<Value> {
         "fbt-car-parking" => {
             engine::fbt_car_parking(&a[0], &benefit_inputs(v, params)?, &a[1], &a[2])
         }
+        "fbt-debt-waiver" => engine::fbt_debt_waiver(&benefit_inputs(v, params)?, &a[0], &a[1]),
+        "fbt-expense-payment" => {
+            engine::fbt_expense_payment(&a[0], &benefit_inputs(v, params)?, &a[1], &a[2])
+        }
+        "fbt-property" => engine::fbt_property(&a[0], &benefit_inputs(v, params)?, &a[1], &a[2]),
         "depreciation" => {
             // Optional: present only for an income year after the asset's start time.
             let key = "opening_adjustable_value";

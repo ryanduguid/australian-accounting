@@ -16,6 +16,7 @@ use crate::texts;
 
 mod fbt_benefits;
 pub use fbt_benefits::{fbt_car_parking, fbt_loan, fbt_meal_entertainment};
+pub use fbt_benefits::{fbt_debt_waiver, fbt_expense_payment, fbt_property};
 
 pub const VERSION: &str = env!("CARGO_PKG_VERSION");
 const WORKING_PRECISION: i128 = 40;
@@ -4288,7 +4289,7 @@ pub fn seniors_pensioners_tax_offset(
     Ok(out)
 }
 
-const KINDS: [&str; 31] = [
+const KINDS: [&str; 34] = [
     "gst",
     "resident_tax",
     "foreign_resident_tax",
@@ -4301,6 +4302,9 @@ const KINDS: [&str; 31] = [
     "fbt_loan",
     "fbt_meal_entertainment",
     "fbt_car_parking",
+    "fbt_debt_waiver",
+    "fbt_expense_payment",
+    "fbt_property",
     "depreciation",
     "quarterly_sg",
     "payg_withholding",
