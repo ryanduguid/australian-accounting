@@ -121,7 +121,7 @@ lists the commands.
 | `worksheet-catalogue` | none: send `{}` |
 | `periods` | `kind`, the worksheet name, such as `"payg_withholding"` |
 | `personal-tax-estimate` | `year`, `scope_confirmed`, `residency`, `taxable_income`, and for a full-year resident `medicare-levy` and `medicare-levy-surcharge`; optional `seniors-pensioners-tax-offset`, `study-loan-repayment` and `division-293`; see [Personal tax estimate](#personal-tax-estimate) |
-| `derive` | `command`, one of `fbt`, `fbt-car-statutory`, `fbt-car-operating-cost`, `division-293`, `pension-minimum`, `payg-withholding`, `schedule-5-method-a`, `schedule-5-method-b-i`, `schedule-5-method-b-ii`, `termination-payment`, `working-holiday-maker-withholding`, `study-loan-withholding`, `seniors-pensioners-withholding`, `quarterly-sg`, `borrowing-expenses`, `resident-tax`, `foreign-resident-tax`, `low-income-tax-offset`, `seniors-pensioners-tax-offset`, `medicare-levy` and `medicare-levy-surcharge`, and `input`, that command's arguments; see [Derivations](#derivations) |
+| `derive` | `command`, one of `fbt`, `fbt-car-statutory`, `fbt-car-operating-cost`, `division-293`, `pension-minimum`, `payg-withholding`, `schedule-5-method-a`, `schedule-5-method-b-i`, `schedule-5-method-b-ii`, `termination-payment`, `working-holiday-maker-withholding`, `study-loan-withholding`, `seniors-pensioners-withholding`, `quarterly-sg`, `borrowing-expenses`, `resident-tax`, `foreign-resident-tax`, `low-income-tax-offset`, `seniors-pensioners-tax-offset`, `medicare-levy`, `medicare-levy-surcharge`, `division-296`, `contribution-caps`, `study-loan-repayment`, `capital-gains` and `main-residence`, and `input`, that command's arguments; see [Derivations](#derivations) |
 
 The 2 car commands, `main-residence`, `borrowing-expenses`, `division-296`, `termination-payment`, the 3 `schedule-5` commands, `working-holiday-maker-withholding`, `seniors-pensioners-withholding`, `seniors-pensioners-tax-offset`, `medicare-levy-surcharge`, `foreign-resident-tax`, `payg-gross-up` and `hire-purchase-schedule` have no Python original; their arguments follow the same
 rules. `division-296` alone takes a negative amount, in `total_super_earnings`. `main-residence` also takes dates as `YYYY-MM-DD` strings, lists of
@@ -186,6 +186,18 @@ Superannuation Guarantee (Administration) Act 1992 as in force before 1 July
 2026 and the ATO's maximum contribution base, and the borrowing expenses steps
 ITAA 1997 s 25-25. A borrowing expenses step for a later year writes in each
 earlier year's maximum deduction, worked on the figures that year used.
+The Division 296 steps cite ITAA 1997 ss 296-15 to 296-50, the Income Tax
+(Transitional Provisions) Act 1997 s 296-1 and the Superannuation (Building a
+Stronger and Fairer Super System) Imposition Act 2026 s 5; a step whose
+amount is nil cites the reason, and a negative very large superannuation
+balance earnings component has the value null, as its amount does. The
+contribution caps steps cite ITAA 1997 s 291-20, s 292-85 and s 292-90, the
+study loan repayment steps the Higher Education Support Act 2003 (HESA)
+ss 154-1 to 154-25, the capital gains steps ITAA 1997 s 102-5, s 102-10,
+s 102-15 and s 115-100, and the main residence steps ss 118-110, 118-185,
+118-190 and 118-192. `non_main_residence_days` in the main residence rates is
+the sum of each day's taxable weight, which the worksheet works out from the
+periods given.
 
 ## Supported periods
 

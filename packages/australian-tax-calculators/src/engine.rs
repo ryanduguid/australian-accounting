@@ -528,32 +528,71 @@ pub fn capital_gains(
     let discount = money(discount_gains)?;
     let current = money(current_losses)?;
     let prior = money(prior_losses)?;
-    let amounts = precise(|| {
+    let rates = vec![rate("discount", "0.50")];
+    let discount_rate = d(&rates[0].1);
+    let steps = precise(|| {
         let losses = current.add(&prior)?;
         let other_offset = py_min(other.clone(), losses.clone())?;
         let discount_offset = py_min(discount.clone(), losses.sub(&other_offset)?)?;
-        let discounted = discount.sub(&discount_offset)?.div(&int(2))?;
-        Ok(vec![
-            ("losses_used", other_offset.add(&discount_offset)?),
-            (
-                "losses_remaining",
-                losses.sub(&other_offset)?.sub(&discount_offset)?,
-            ),
-            (
-                "net_capital_gain",
-                other.sub(&other_offset)?.add(&discounted)?,
-            ),
-            ("discount_applied", discounted),
-        ])
+        let used = other_offset.add(&discount_offset)?;
+        let remaining = losses.sub(&other_offset)?.sub(&discount_offset)?;
+        let discounted = discount
+            .sub(&discount_offset)?
+            .mul(&int(1).sub(&discount_rate)?)?;
+        let net = other.sub(&other_offset)?.add(&discounted)?;
+        // The operands of the 2 offsets, as the formulas write them out.
+        let other_offset_of = [&other, &current, &prior];
+        let discount_offset_of = [&discount, &current, &prior, &other, &current, &prior];
+        let used_of = [&other_offset_of[..], &discount_offset_of].concat();
+        let remaining_of = [
+            &[&current, &prior][..],
+            &other_offset_of,
+            &discount_offset_of,
+        ]
+        .concat();
+        let discounted_of = [&[&discount][..], &discount_offset_of, &[&discount_rate]].concat();
+        let net_of = [&[&other][..], &other_offset_of, &discounted_of].concat();
+        Ok(steps_from(
+            &CAPITAL_GAINS_STEPS,
+            [
+                (&used_of[..], used.clone()),
+                (&remaining_of[..], remaining),
+                (&net_of[..], net),
+                (&discounted_of[..], discounted),
+            ],
+        ))
     })?;
-    result(
-        "capital_gains",
-        &year,
-        amounts,
-        vec![rate("discount", "0.50")],
-    )
+    derived_result("capital_gains", &year, steps, rates)
 }
 
+/// `capital_gains`'s amounts: (id, authority, formula). The losses of the year
+/// and earlier years reduce the other gains first, then the discount gains
+/// (s 102-5(1) step 1 note 3 lets the order within a category be chosen). Each
+/// formula writes the 2 offsets out as the arithmetic takes them, so a nil
+/// amount keeps the sign it is rendered with. The steps cite ITAA 1997
+/// compilation 268 (1 October 2026), read on 15 November 2026.
+const CAPITAL_GAINS_STEPS: [(&str, &str, &str); 4] = [
+    (
+        "losses_used",
+        "ITAA 1997 s 102-5(1) steps 1 and 2: capital losses, then earlier net capital losses, reduce the gains",
+        "min(other_gains, current_losses + prior_losses) + min(discount_gains, current_losses + prior_losses - min(other_gains, current_losses + prior_losses))",
+    ),
+    (
+        "losses_remaining",
+        "ITAA 1997 s 102-10(1) and s 102-15: losses not applied remain a net capital loss",
+        "current_losses + prior_losses - min(other_gains, current_losses + prior_losses) - min(discount_gains, current_losses + prior_losses - min(other_gains, current_losses + prior_losses))",
+    ),
+    (
+        "net_capital_gain",
+        "ITAA 1997 s 102-5(1) steps 5 and 7 and s 115-100(aa): the gains left, each discount gain reduced by the discount percentage",
+        "other_gains - min(other_gains, current_losses + prior_losses) + (discount_gains - min(discount_gains, current_losses + prior_losses - min(other_gains, current_losses + prior_losses))) x (1 - discount)",
+    ),
+    (
+        "discount_applied",
+        "ITAA 1997 s 102-5(1) step 5 and s 115-100(aa): the discount gains left after losses, reduced by the discount percentage",
+        "(discount_gains - min(discount_gains, current_losses + prior_losses - min(other_gains, current_losses + prior_losses))) x (1 - discount)",
+    ),
+];
 /// `fbt`'s amounts: (id, authority, formula). The ATO's MantCo example rounds
 /// each gross-up to the nearest dollar for items 14A and 14B.
 const FBT_STEPS: [(&str, &str, &str); 7] = [
@@ -2923,55 +2962,134 @@ fn division_296_liability(
     })
 }
 
+/// The authority for an earnings amount that is nil because the balance is not
+/// above the threshold: after death it is taken to be nil (s 296-50). The
+/// Division 296 steps cite ITAA 1997 compilation 268 (1 October 2026), the
+/// Income Tax (Transitional Provisions) Act 1997 compilation 104 (1 October
+/// 2026) and the 2026 Imposition Act as made, all read on 15 November 2026.
+fn division_296_nil(died: bool, section: &'static str) -> &'static str {
+    match (died, section) {
+        (true, "296-40") => {
+            "ITAA 1997 s 296-50 and s 296-40(1)(a): none, as the balance is taken to be nil after death"
+        }
+        (true, _) => {
+            "ITAA 1997 s 296-50 and s 296-45(1): none, as the balance is taken to be nil after death"
+        }
+        (false, "296-40") => {
+            "ITAA 1997 s 296-40(1)(a) and (3): none, as the balance is not greater than the large superannuation balance threshold or the percentage rounds to 0.00"
+        }
+        (false, _) => {
+            "ITAA 1997 s 296-45(1) and (3): none, as the balance is not greater than the very large superannuation balance threshold or the percentage rounds to 0.00"
+        }
+    }
+}
+
 /// The earnings amounts ss 296-40 and 296-45 define, whether or not an exception
-/// removes the liability, and the 2 taxes and their total, which only a liability
-/// gives; also whether the very large component is negative. A share is nil when
-/// the balance is not above its threshold, so taxable superannuation earnings
-/// arise only from a nonzero first share and earnings greater than nil
-/// (s 296-40(1)), and s 296-45 has no 'greater than nil' condition.
-fn division_296_amounts(
-    liable: bool,
+/// removes the liability; also whether the very large component is negative. A
+/// share is nil when the balance is not above its threshold, so taxable
+/// superannuation earnings arise only from a nonzero first share and earnings
+/// greater than nil (s 296-40(1)), and s 296-45 has no 'greater than nil'
+/// condition. Results carry no negative amounts, so a negative component is
+/// reported as null, and a zero one, which earnings of -0.00 would sign, as 0.00.
+fn division_296_earnings(
+    died: bool,
     earnings: &Decimal,
     [percentage, very_large_percentage]: [&Decimal; 2],
+) -> Calc<([Step; 2], bool)> {
+    let share = |percentage: &Decimal| earnings.mul(percentage)?.div(&int(100));
+    let taxable = if !earnings.gt(&int(0))? {
+        let none = "ITAA 1997 s 296-40(1)(b): none, as total superannuation earnings are not greater than nil";
+        step("taxable_superannuation_earnings", none, "0", &[], int(0))
+    } else if percentage.is_zero() {
+        let none = division_296_nil(died, "296-40");
+        step("taxable_superannuation_earnings", none, "0", &[], int(0))
+    } else {
+        step(
+            "taxable_superannuation_earnings",
+            "ITAA 1997 s 296-40(1) to (3); Income Tax (Transitional Provisions) Act 1997 s 296-1(2)(a) and (b): the balance at the end of 2026-27",
+            "total_super_earnings x taxable_percentage / 100",
+            &[earnings, percentage],
+            share(percentage)?,
+        )
+    };
+    let id = "very_large_balance_earnings_component";
+    let component = share(very_large_percentage)?;
+    let negative = component.lt(&int(0))?;
+    let very_large = if very_large_percentage.is_zero() {
+        step(id, division_296_nil(died, "296-45"), "0", &[], int(0))
+    } else if component.is_zero() {
+        let none = "ITAA 1997 s 296-45(1): none, as total superannuation earnings are nil";
+        step(id, none, "0", &[], int(0))
+    } else {
+        let authority = if negative {
+            "ITAA 1997 s 296-45, which has no 'greater than nil' condition: negative, so the result shows null"
+        } else {
+            "ITAA 1997 s 296-45; Income Tax (Transitional Provisions) Act 1997 s 296-1(2)(c) and (d): the balance at the end of 2026-27"
+        };
+        let formula = "total_super_earnings x very_large_percentage / 100";
+        step(
+            id,
+            authority,
+            formula,
+            &[earnings, very_large_percentage],
+            component,
+        )
+    };
+    Ok(([taxable, very_large], negative))
+}
+
+/// The 2 taxes and their total, which only a liability gives; `liability` is
+/// the reason for none.
+fn division_296_taxes(
+    (liable, liability): (bool, &'static str),
+    [taxable, component]: [&Decimal; 2],
     [rate_, very_large_rate]: [&Decimal; 2],
-) -> Result<(Vec<(&'static str, Decimal)>, bool)> {
-    precise(|| {
-        let hundred = int(100);
-        let taxable = if earnings.gt(&int(0))? && !percentage.is_zero() {
-            earnings.mul(percentage)?.div(&hundred)?
-        } else {
-            int(0)
-        };
-        let component = if !very_large_percentage.is_zero() {
-            earnings.mul(very_large_percentage)?.div(&hundred)?
-        } else {
-            int(0)
-        };
-        let (tax, further) = if liable {
-            (taxable.mul(rate_)?, component.mul(very_large_rate)?)
-        } else {
-            (int(0), int(0))
-        };
-        let total = tax.add(&further)?;
-        // Results carry no negative amounts, so a negative component is reported as null,
-        // and a zero one, which earnings of -0.00 would sign, as 0.00.
-        let negative = component.lt(&int(0))?;
-        let shown = if negative || component.is_zero() {
-            int(0)
-        } else {
-            component
-        };
-        Ok((
-            vec![
-                ("taxable_superannuation_earnings", taxable),
-                ("very_large_balance_earnings_component", shown),
-                ("tax_on_taxable_superannuation_earnings", tax),
-                ("tax_on_very_large_balance_earnings_component", further),
-                ("division_296_tax", total),
-            ],
-            negative,
-        ))
-    })
+) -> Calc<[Step; 3]> {
+    let act =
+        "Superannuation (Building a Stronger and Fairer Super System) Imposition Act 2026 s 5";
+    let (tax, further) = if liable {
+        (
+            step(
+                "tax_on_taxable_superannuation_earnings",
+                "Superannuation (Building a Stronger and Fairer Super System) Imposition Act 2026 s 5(a) and (b)(i)",
+                "taxable_superannuation_earnings x rate",
+                &[taxable, rate_],
+                taxable.mul(rate_)?,
+            ),
+            step(
+                "tax_on_very_large_balance_earnings_component",
+                "Superannuation (Building a Stronger and Fairer Super System) Imposition Act 2026 s 5(b)(ii); nil without a component (s 5(a))",
+                "very_large_balance_earnings_component x very_large_rate",
+                &[component, very_large_rate],
+                component.mul(very_large_rate)?,
+            ),
+        )
+    } else {
+        (
+            step(
+                "tax_on_taxable_superannuation_earnings",
+                liability,
+                "0",
+                &[],
+                int(0),
+            ),
+            step(
+                "tax_on_very_large_balance_earnings_component",
+                liability,
+                "0",
+                &[],
+                int(0),
+            ),
+        )
+    };
+    let total = step(
+        "division_296_tax",
+        act,
+        "tax_on_taxable_superannuation_earnings + tax_on_very_large_balance_earnings_component",
+        &[&tax.value, &further.value],
+        tax.value.add(&further.value)?,
+    );
+    Ok([tax, further, total])
 }
 
 pub fn division_296(
@@ -2997,18 +3115,23 @@ pub fn division_296(
     let reference = if died { int(0) } else { balance };
     let percentage = percentage_above(&reference, &large)?;
     let very_large_percentage = percentage_above(&reference, &very_large)?;
-    let (liable, liability) =
-        division_296_liability(excepted, &reference, &large, &earnings, &percentage)?;
-    let (amounts, negative_component) = division_296_amounts(
-        liable,
-        &earnings,
-        [&percentage, &very_large_percentage],
-        [&rate_, &very_large_rate],
-    )?;
-    let mut out = result(
+    let liability = division_296_liability(excepted, &reference, &large, &earnings, &percentage)?;
+    let (steps, negative_component) = precise(|| {
+        let ([taxable, component], negative) =
+            division_296_earnings(died, &earnings, [&percentage, &very_large_percentage])?;
+        let taxes = division_296_taxes(
+            liability,
+            [&taxable.value, &component.value],
+            [&rate_, &very_large_rate],
+        )?;
+        let mut steps = vec![taxable, component];
+        steps.extend(taxes);
+        Ok((steps, negative))
+    })?;
+    let mut out = derived_result(
         "division_296",
         &year,
-        amounts,
+        steps,
         vec![
             rate("large_superannuation_balance_threshold", &large),
             rate("very_large_superannuation_balance_threshold", &very_large),
@@ -3019,13 +3142,19 @@ pub fn division_296(
         ],
     )?;
     if negative_component {
-        out["amounts"]["very_large_balance_earnings_component"] = Value::Null;
+        let id = "very_large_balance_earnings_component";
+        out["amounts"][id] = Value::Null;
+        STEPS.with_borrow_mut(|recorded| {
+            if let Some(step) = recorded.iter_mut().flatten().find(|s| s["id"] == id) {
+                step["value"] = Value::Null;
+            }
+        });
     }
-    out["liability"] = json!(liability);
+    out["liability"] = json!(liability.1);
     Ok(out)
 }
 
-/// SISR reg 6.01(2): 55 for a person born before 1 July 1960, one more for
+// SISR reg 6.01(2): 55 for a person born before 1 July 1960, one more for
 /// each later year of birth from 1 July, and 60 for one born after 30 June 1964.
 fn preservation_age(born: (i64, i64, i64)) -> i64 {
     let (year, month, _) = born;
@@ -3277,44 +3406,72 @@ pub fn study_loan_repayment(
     whole_dollars(&income, "repayment income")?;
     let thresholds = lookup(meta::STUDY_LOAN_REPAYMENT_THRESHOLDS, &year);
     let get = |key: &str| *lookup(thresholds, key);
-    let (minimum, step) = (d(get("minimum")), d(get("step")));
+    let (minimum, step_) = (d(get("minimum")), d(get("step")));
     let rates = |key: &str| d(lookup(&meta::STUDY_LOAN_REPAYMENT_RATES, key));
     let (lower, upper, flat) = (rates("lower"), rates("upper"), rates("flat"));
-    let (amounts, base, rate_applied) = precise(|| {
-        let base = step.sub(&minimum)?.mul(&lower)?;
-        let marginal = py_max(int(0), py_min(income.clone(), step.clone())?.sub(&minimum)?)?
-            .mul(&lower)?
-            .add(&py_max(int(0), income.sub(&step)?)?.mul(&upper)?)?;
+    let (steps, base, rate_applied) = precise(|| {
+        let base = step_.sub(&minimum)?.mul(&lower)?;
+        let marginal = py_max(
+            int(0),
+            py_min(income.clone(), step_.clone())?.sub(&minimum)?,
+        )?
+        .mul(&lower)?
+        .add(&py_max(int(0), income.sub(&step_)?)?.mul(&upper)?)?;
         let whole = income.mul(&flat)?;
+        let lesser = "HESA s 154-20(1)(a) and (b): the lesser of the 2; the repayable debt in (c) is outside the worksheet";
         let (rate_applied, repayment) = if income.le(&minimum)? {
-            (int(0), int(0))
+            let none = "HESA s 154-1(1)(a): nothing unless repayment income exceeds the minimum repayment income";
+            (int(0), step("compulsory_repayment", none, "0", &[], int(0)))
         } else if whole.le(&marginal)? {
-            (flat.clone(), whole.clone())
-        } else if income.le(&step)? {
-            (lower.clone(), marginal.clone())
+            let formula = "ten_percent_of_income";
+            (
+                flat.clone(),
+                step(
+                    "compulsory_repayment",
+                    lesser,
+                    formula,
+                    &[&whole],
+                    whole.clone(),
+                ),
+            )
         } else {
-            (upper.clone(), marginal.clone())
+            let rate_applied = if income.le(&step_)? { &lower } else { &upper };
+            let formula = "marginal_amount";
+            let repayment = step(
+                "compulsory_repayment",
+                lesser,
+                formula,
+                &[&marginal],
+                marginal.clone(),
+            );
+            (rate_applied.clone(), repayment)
         };
-        Ok((
-            vec![
-                ("repayment_income_used", income.clone()),
-                ("marginal_amount", marginal),
-                ("ten_percent_of_income", whole),
-                ("compulsory_repayment", repayment),
+        let steps = steps_from(
+            &STUDY_LOAN_REPAYMENT_STEPS,
+            [
+                (&[&income], income.clone()),
+                (
+                    &[&income, &step_, &minimum, &lower, &income, &step_, &upper],
+                    marginal,
+                ),
+                (&[&income, &flat], whole),
             ],
+        );
+        Ok((
+            steps.into_iter().chain([repayment]).collect(),
             base,
             rate_applied,
         ))
     })?;
-    result(
+    derived_result(
         "study_loan_repayment",
         &year,
-        amounts,
+        steps,
         vec![
             rate("rate_applied", &rate_applied),
             rate("minimum_repayment_income", &minimum),
             rate("lower_rate", &lower),
-            rate("lower_band_top", &step),
+            rate("lower_band_top", &step_),
             rate("upper_band_base", &base),
             rate("upper_band_base_as_printed", get("printed_base")),
             rate("upper_rate", &upper),
@@ -3323,6 +3480,30 @@ pub fn study_loan_repayment(
         ],
     )
 }
+
+/// `study_loan_repayment`'s first 3 amounts: (id, authority, formula). The
+/// minimum repayment income and the top of the 15% band are the indexed
+/// amounts of HESA s 154-10 and s 154-20(2) the ATO publishes for the year.
+/// The steps cite HESA compilation 105 (17 October 2026), read on 15 November
+/// 2026 with the ATO's 'Study and training loan repayment thresholds and
+/// rates' page (last updated 30 June 2026).
+const STUDY_LOAN_REPAYMENT_STEPS: [(&str, &str, &str); 3] = [
+    (
+        "repayment_income_used",
+        "HESA s 154-5(1): the repayment income the operator established",
+        "repayment_income",
+    ),
+    (
+        "marginal_amount",
+        "HESA s 154-20(2)(a) and (b), with s 154-10 and s 154-25: 15% of the part above the minimum repayment income to the top of the band, and 17% above it",
+        "max(0, min(repayment_income_used, lower_band_top) - minimum_repayment_income) x lower_rate + max(0, repayment_income_used - lower_band_top) x upper_rate",
+    ),
+    (
+        "ten_percent_of_income",
+        "HESA s 154-20(1)(b)",
+        "repayment_income_used x flat_rate",
+    ),
+];
 
 #[allow(clippy::too_many_arguments)]
 pub fn contribution_caps(
@@ -3343,18 +3524,9 @@ pub fn contribution_caps(
         return refuse("input.flag_invalid", "under_75_in_year must be a boolean.");
     };
     let (cap, transfer) = lookup(meta::CONTRIBUTION_CAPS, &year);
-    let (amounts, rates) = precise(|| {
+    let (steps, rates) = precise(|| {
         let (cap, transfer) = (d(cap), d(transfer));
         let annual = cap.mul(&int(4))?;
-        let carried = if balance.lt(&d(meta::CARRY_FORWARD_BALANCE_LIMIT))? {
-            unused.clone()
-        } else {
-            int(0)
-        };
-        // s 291-20(3)-(4): the unused cap raises this year's cap only by the
-        // excess it covers; unapplied amounts remain subject to 5-year expiry.
-        let applied = py_min(carried.clone(), py_max(int(0), concessional.sub(&cap)?)?)?;
-        let available_concessional = cap.add(&carried)?;
         // s 292-85: nil at or above the transfer balance cap; otherwise the
         // balance band sets how many annual caps the first year can bring forward.
         let multiple: i64 = if balance.compare(&transfer)?.is_ge() {
@@ -3369,30 +3541,15 @@ pub fn contribution_caps(
         } else {
             3
         };
-        let available = annual.mul(&int(multiple))?;
         let triggered = multiple > 1 && non_concessional.gt(&annual)?;
+        let mut steps = concessional_steps(&balance, &concessional, &unused, &cap)?;
+        steps.extend(non_concessional_steps(
+            &non_concessional,
+            &annual,
+            multiple,
+        )?);
         Ok((
-            vec![
-                ("carry_forward_applied", applied),
-                ("concessional_available", available_concessional.clone()),
-                (
-                    "concessional_remaining",
-                    py_max(int(0), available_concessional.sub(&concessional)?)?,
-                ),
-                (
-                    "excess_concessional",
-                    py_max(int(0), concessional.sub(&available_concessional)?)?,
-                ),
-                ("non_concessional_available", available.clone()),
-                (
-                    "non_concessional_remaining",
-                    py_max(int(0), available.sub(&non_concessional)?)?,
-                ),
-                (
-                    "excess_non_concessional",
-                    py_max(int(0), non_concessional.sub(&available)?)?,
-                ),
-            ],
+            steps,
             vec![
                 rate("concessional_cap", &cap),
                 rate("non_concessional_cap", &annual),
@@ -3409,7 +3566,116 @@ pub fn contribution_caps(
             ],
         ))
     })?;
-    result("contribution_caps", &year, amounts, rates)
+    derived_result("contribution_caps", &year, steps, rates)
+}
+
+/// The concessional amounts. s 291-20(3)-(4): the unused cap raises this
+/// year's cap only by the excess it covers, and only below the $500,000
+/// balance; unapplied amounts remain subject to 5-year expiry. The
+/// contribution caps steps cite ITAA 1997 compilation 268 (1 October 2026),
+/// read on 15 November 2026.
+fn concessional_steps(
+    balance: &Decimal,
+    concessional: &Decimal,
+    unused: &Decimal,
+    cap: &Decimal,
+) -> Calc<Vec<Step>> {
+    let excess = py_max(int(0), concessional.sub(cap)?)?;
+    let (applied, available) = if balance.lt(&d(meta::CARRY_FORWARD_BALANCE_LIMIT))? {
+        (
+            step(
+                "carry_forward_applied",
+                "ITAA 1997 s 291-20(3) and (4): the unused cap applied, but not by more than the excess",
+                "min(unused_concessional_cap, max(0, concessional_contributions - concessional_cap))",
+                &[unused, concessional, cap],
+                py_min(unused.clone(), excess)?,
+            ),
+            step(
+                "concessional_available",
+                "ITAA 1997 s 291-20(2) to (4): the cap with the unused cap that can increase it",
+                "concessional_cap + unused_concessional_cap",
+                &[cap, unused],
+                cap.add(unused)?,
+            ),
+        )
+    } else {
+        let below = "ITAA 1997 s 291-20(3)(b): no carry forward unless the total superannuation balance is less than $500,000";
+        (
+            step("carry_forward_applied", below, "0", &[], int(0)),
+            step(
+                "concessional_available",
+                "ITAA 1997 s 291-20(2)",
+                "concessional_cap",
+                &[cap],
+                cap.add(&int(0))?,
+            ),
+        )
+    };
+    let available_value = available.value.clone();
+    Ok(vec![
+        applied,
+        available,
+        step(
+            "concessional_remaining",
+            "ITAA 1997 s 291-20(6): the shortfall below the cap",
+            "max(0, concessional_available - concessional_contributions)",
+            &[&available_value, concessional],
+            py_max(int(0), available_value.sub(concessional)?)?,
+        ),
+        step(
+            "excess_concessional",
+            "ITAA 1997 s 291-20(1): the excess over the cap",
+            "max(0, concessional_contributions - concessional_available)",
+            &[concessional, &available_value],
+            py_max(int(0), concessional.sub(&available_value)?)?,
+        ),
+    ])
+}
+
+/// The non-concessional amounts: the cap the balance band allows, as a
+/// multiple of the general cap (s 292-85(2) to (5)).
+fn non_concessional_steps(
+    non_concessional: &Decimal,
+    annual: &Decimal,
+    multiple: i64,
+) -> Calc<Vec<Step>> {
+    let authority = match multiple {
+        0 => "ITAA 1997 s 292-85(2)(b): nil at or above the general transfer balance cap",
+        1 => {
+            "ITAA 1997 s 292-85(2)(a): 4 times the s 291-20(2) cap; no bring forward under s 292-85(3)(c) or (e)"
+        }
+        2 => {
+            "ITAA 1997 s 292-85(3) and (5)(a): twice the general cap in a first year of bring forward"
+        }
+        _ => {
+            "ITAA 1997 s 292-85(3) and (5)(b): 3 times the general cap in a first year of bring forward"
+        }
+    };
+    let times = int(multiple);
+    let available = annual.mul(&times)?;
+    Ok(vec![
+        step(
+            "non_concessional_available",
+            authority,
+            "non_concessional_cap x non_concessional_cap_multiple",
+            &[annual, &times],
+            available.clone(),
+        ),
+        step(
+            "non_concessional_remaining",
+            "ITAA 1997 s 292-85 and s 292-90: the cap less the non-concessional contributions",
+            "max(0, non_concessional_available - non_concessional_contributions)",
+            &[&available, non_concessional],
+            py_max(int(0), available.sub(non_concessional)?)?,
+        ),
+        step(
+            "excess_non_concessional",
+            "ITAA 1997 s 292-85 and s 292-90: the non-concessional contributions over the cap",
+            "max(0, non_concessional_contributions - non_concessional_available)",
+            &[non_concessional, &available],
+            py_max(int(0), non_concessional.sub(&available)?)?,
+        ),
+    ])
 }
 
 fn is_leap(year: i64) -> bool {
@@ -3876,28 +4142,20 @@ pub fn main_residence(
 
     let period = &weight[at(from)..];
     let counted = period.len() as i64;
-    let (taxable_days, amounts) = precise(|| {
+    let (taxable_days, steps) = precise(|| {
         let mut sum = int(0);
         for w in period {
             sum = sum.add(w)?;
         }
-        let taxable = |amount: &Decimal| amount.mul(&sum)?.div(&int(counted));
-        // Round the taxable share first so the exempt share adds back to it.
-        let (g, l) = (cents(taxable(&gain)?)?, cents(taxable(&loss)?)?);
         Ok((
             sum.clone(),
-            vec![
-                ("assessable_capital_gain", g.clone()),
-                ("exempt_capital_gain", gain.sub(&g)?),
-                ("assessable_capital_loss", l.clone()),
-                ("exempt_capital_loss", loss.sub(&l)?),
-            ],
+            main_residence_steps(&gain, &loss, &sum, counted, applies)?,
         ))
     })?;
-    result(
+    derived_result(
         kind,
         &year,
-        amounts,
+        steps,
         vec![
             rate("ownership_period_from", dates::format(from)),
             rate("ownership_period_to", dates::format(last)),
@@ -3918,7 +4176,57 @@ pub fn main_residence(
     )
 }
 
-/// The dates that fix the period of a loan under s 25-25(5): the first day
+/// The assessable and exempt parts of the gain and of the loss: the taxable
+/// share is rounded to cents first so the exempt share adds back to it. Each
+/// day's weight is 1 when the dwelling was not the main residence (s 118-185)
+/// and the floor area used when part of it produced income (s 118-190).
+/// The steps cite ITAA 1997 compilation 268 (1 October 2026), read on 15
+/// November 2026.
+fn main_residence_steps(
+    gain: &Decimal,
+    loss: &Decimal,
+    taxable_days: &Decimal,
+    counted: i64,
+    applies: bool,
+) -> Calc<Vec<Step>> {
+    let assessable = if applies {
+        "ITAA 1997 s 118-185(2) and s 118-190(2), over the ownership period from the first income use (s 118-192(2))"
+    } else {
+        "ITAA 1997 s 118-185(2) and s 118-190(2)"
+    };
+    let exempt =
+        "ITAA 1997 s 118-110(1) and s 118-185(2): the part the main residence exemption leaves out";
+    let days = int(counted);
+    let mut steps = Vec::new();
+    for (amount, name, [assessable_id, exempt_id]) in [
+        (
+            gain,
+            "capital_gain",
+            ["assessable_capital_gain", "exempt_capital_gain"],
+        ),
+        (
+            loss,
+            "capital_loss",
+            ["assessable_capital_loss", "exempt_capital_loss"],
+        ),
+    ] {
+        let part = cents(amount.mul(taxable_days)?.div(&days)?)?;
+        let rest = amount.sub(&part)?;
+        let share = format!("cents({name} x non_main_residence_days / ownership_period_days)");
+        steps.push(step(
+            assessable_id,
+            assessable,
+            &share,
+            &[amount, taxable_days, &days],
+            part.clone(),
+        ));
+        let formula = format!("{name} - {assessable_id}");
+        steps.push(step(exempt_id, exempt, &formula, &[amount, &part], rest));
+    }
+    Ok(steps)
+}
+
+// The dates that fix the period of a loan under s 25-25(5): the first day
 /// it was borrowed, the end of its original contract and the day it was
 /// repaid.
 pub struct LoanDates<'a> {

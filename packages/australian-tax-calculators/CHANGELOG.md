@@ -20,6 +20,17 @@ intentionally changed.
   formula may now use `dollars_up`. The kinds' own test files derive each case
   they run and check the result is the plain output. No command's plain output
   changes.
+- `derive` also covers `division-296`, `contribution-caps`,
+  `study-loan-repayment`, `capital-gains` and `main-residence`. Their steps cite
+  ITAA 1997 Divisions 102, 115, 118, 291, 292 and 296 as compiled on
+  1 October 2026, the Income Tax (Transitional Provisions) Act 1997 s 296-1,
+  the Superannuation (Building a Stronger and Fairer Super System) Imposition
+  Act 2026 s 5 and HESA ss 154-1 to 154-25. `tests/division_296.rs`,
+  `tests/main_residence.rs`, the main residence property in
+  `tests/properties.rs` and `tests/tables.rs` derive each case of these
+  commands they run and check the result is the plain output; a negative
+  Division 296 very large component is null in its step, as in the result. No
+  command's plain output changes.
 - `personal-tax-estimate` composes one full-year resident's income tax and
   levies for a year from `resident-tax`, `low-income-tax-offset`,
   `medicare-levy`, `medicare-levy-surcharge` and, when given,

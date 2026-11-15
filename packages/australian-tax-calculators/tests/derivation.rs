@@ -13,7 +13,7 @@ use std::io::Write;
 use std::process::{Command, Stdio};
 
 /// The commands `derive` explains.
-const DERIVED: [&str; 21] = [
+const DERIVED: [&str; 26] = [
     "fbt",
     "fbt-car-statutory",
     "fbt-car-operating-cost",
@@ -35,6 +35,11 @@ const DERIVED: [&str; 21] = [
     "seniors-pensioners-tax-offset",
     "medicare-levy",
     "medicare-levy-surcharge",
+    "division-296",
+    "contribution-caps",
+    "study-loan-repayment",
+    "capital-gains",
+    "main-residence",
 ];
 
 /// (command, input) for each derived kind: the ATO's published examples and
@@ -676,7 +681,9 @@ fn problems(doc: &Value) -> Vec<String> {
             .quantize(-2, Rounding::HalfUp)
             .unwrap()
             .to_string();
-        if step["value"] != json!(cents) {
+        // A negative amount the result shows as null is null in its step too.
+        let hidden = step["value"].is_null() && dec(exact).lt(&dec("0")).unwrap();
+        if step["value"] != json!(cents) && !hidden {
             found.push(format!(
                 "{id}: value {} is not {exact} in cents, {cents}",
                 step["value"]
@@ -1611,7 +1618,8 @@ fn derive_refuses_what_it_does_not_explain() {
          schedule-5-method-b-ii, termination-payment, working-holiday-maker-withholding, \
          study-loan-withholding, seniors-pensioners-withholding, quarterly-sg, \
          borrowing-expenses, resident-tax, foreign-resident-tax, low-income-tax-offset, \
-         seniors-pensioners-tax-offset, medicare-levy, medicare-levy-surcharge, not \"gst\""
+         seniors-pensioners-tax-offset, medicare-levy, medicare-levy-surcharge, division-296, \
+         contribution-caps, study-loan-repayment, capital-gains, main-residence, not \"gst\""
     );
 }
 
@@ -3069,4 +3077,471 @@ fn seeded_personal_tax_inputs_are_recomputed_from_their_working() {
         }
     }
     assert!(explained > 1500, "only {explained} explained");
+}
+
+// Division 296, the contribution caps, study loan repayment, capital gains and
+// the main residence exemption.
+
+/// Division 296 cases by name, 2026-27: the Explanatory Memorandum's examples
+/// 1.1 to 1.3 as `tests/division_296.rs` holds them, and each branch.
+const DIVISION_296: [(&str, &str); 8] = [
+    ("jordan", r#"{}"#),
+    (
+        "kelly",
+        r#"{"total_super_balance_end_of_year": "12000000.00", "total_super_earnings": "500000.00"}"#,
+    ),
+    (
+        "kenny",
+        r#"{"total_super_balance_end_of_year": "150000.00", "total_super_earnings": "10000.00"}"#,
+    ),
+    // A cent over $3 million rounds to 0.00%: liable, but nil.
+    (
+        "rounds_to_nil",
+        r#"{"total_super_balance_end_of_year": "3000000.01"}"#,
+    ),
+    // Negative earnings above $10 million: a negative component, shown as null.
+    (
+        "negative",
+        r#"{"total_super_balance_end_of_year": "12000000.00", "total_super_earnings": "-50000.00"}"#,
+    ),
+    (
+        "nil_earnings",
+        r#"{"total_super_balance_end_of_year": "12000000.00", "total_super_earnings": "-0.00"}"#,
+    ),
+    // s 296-20 removes the liability, not the earnings.
+    ("child", r#"{"child_recipient": true}"#),
+    // s 296-50: the balance is nil after death.
+    (
+        "died",
+        r#"{"total_super_balance_end_of_year": "12000000.00", "died_in_year": true}"#,
+    ),
+];
+
+/// A `division-296` input: `facts` over Jordan's $4 million and $100,000.
+fn division_296(facts: &str) -> Value {
+    let mut input = json!({
+        "total_super_balance_end_of_year": "4000000.00", "total_super_earnings": "100000.00",
+        "child_recipient": false, "structured_settlement_contribution": false,
+        "died_in_year": false, "year": "2026-27", "scope_confirmed": true,
+    });
+    merge(&mut input, serde_json::from_str(facts).unwrap());
+    input
+}
+
+/// Contribution caps cases by name, 2025-26 unless they say otherwise.
+const CAPS: [(&str, &str); 7] = [
+    // ¶7-278, Jane: $1.5 million, $240,000 in 2024-25, 3 years brought forward.
+    (
+        "jane",
+        r#"{"total_super_balance": "1500000", "non_concessional_contributions": "240000", "year": "2024-25"}"#,
+    ),
+    // s 291-20(4): $15,000 unused covers $10,000 of excess, then all of it.
+    (
+        "carry_forward",
+        r#"{"concessional_contributions": "40000", "unused_concessional_cap": "15000"}"#,
+    ),
+    (
+        "carry_forward_short",
+        r#"{"concessional_contributions": "50000", "unused_concessional_cap": "15000"}"#,
+    ),
+    // s 291-20(3)(b): not below $500,000.
+    (
+        "no_carry_forward",
+        r#"{"total_super_balance": "500000", "concessional_contributions": "40000", "unused_concessional_cap": "15000"}"#,
+    ),
+    // s 292-85(2)(b): nil at the $2 million transfer balance cap.
+    (
+        "at_transfer_cap",
+        r#"{"total_super_balance": "2000000", "non_concessional_contributions": "1000"}"#,
+    ),
+    // s 292-85(3)(c): no bring forward at 75.
+    (
+        "over_75",
+        r#"{"under_75_in_year": false, "non_concessional_contributions": "200000"}"#,
+    ),
+    // s 292-85(5)(a): $1.8 million leaves cap space of twice the cap or less.
+    (
+        "two_years",
+        r#"{"total_super_balance": "1800000", "non_concessional_contributions": "300000"}"#,
+    ),
+];
+
+fn caps(facts: &str) -> Value {
+    let mut input = json!({
+        "total_super_balance": "450000", "concessional_contributions": "20000",
+        "unused_concessional_cap": "0", "non_concessional_contributions": "0",
+        "under_75_in_year": true, "year": "2025-26", "scope_confirmed": true,
+    });
+    merge(&mut input, serde_json::from_str(facts).unwrap());
+    input
+}
+
+/// Study loan repayment cases: the ATO page's examples 1 to 3 (read on 15
+/// November 2026 at 12:23 AEDT) and the minimum repayment income.
+const STUDY_LOAN: [(&str, &str, &str); 5] = [
+    ("christina", "86380", "2026-27"),
+    ("barry", "137064", "2026-27"),
+    ("priya", "254780", "2026-27"),
+    ("minimum", "69528", "2026-27"),
+    ("upper_2025", "150000", "2025-26"),
+];
+
+fn study_loan(income: &str, year: &str) -> Value {
+    json!({"repayment_income": income, "year": year, "scope_confirmed": true})
+}
+
+/// Capital gains cases: the Library's ¶2-240 summary, the corpus's fabricated
+/// case with $500 and $1,500 of losses, and earlier years' losses alone.
+const CAPITAL_GAINS: [(&str, [&str; 4]); 5] = [
+    ("library", ["8000.00", "21435.00", "8660.00", "0.00"]),
+    ("fabricated", ["100.00", "1000.00", "500.00", "0.00"]),
+    ("absorbed", ["100.00", "1000.00", "1000.00", "500.00"]),
+    ("prior_only", ["0.00", "1000.00", "0.00", "300.00"]),
+    (
+        "negative_zero",
+        ["947075.6", "-0.00", "2385959", "12392.20"],
+    ),
+];
+
+fn capital_gains(amounts: [&str; 4]) -> Value {
+    let [other, discount, current, prior] = amounts;
+    json!({"other_gains": other, "discount_gains": discount, "current_losses": current,
+           "prior_losses": prior, "scope_confirmed": true, "year": "2025-26"})
+}
+
+/// Main residence cases: the ATO's and the Library's examples as
+/// `tests/main_residence.rs` holds them, and a loss.
+const MAIN_RESIDENCE: [(&str, &str); 6] = [
+    (
+        "peter",
+        r#"{"capital_gain": "230000.00", "ownership_start": "2013-10-01", "ownership_end": "2026-03-30",
+            "lived_periods": [{"start": "2016-07-01", "end": "2026-03-30"}],
+            "income_use_periods": [{"start": "2013-10-01", "end": "2016-06-30", "floor_area": "1"}]}"#,
+    ),
+    (
+        "thomas",
+        r#"{"capital_gain": "400000.00", "ownership_start": "2003-07-01", "ownership_end": "2026-06-30",
+            "lived_periods": [{"start": "2003-07-01", "end": "2026-06-30"}],
+            "income_use_periods": [{"start": "2003-07-01", "end": "2026-06-30", "floor_area": "0.35"}]}"#,
+    ),
+    (
+        "fatima",
+        r#"{"capital_gain": "100000.00", "market_value_basis": true, "ownership_start": "1997-12-01",
+            "ownership_end": "2026-05-01", "lived_periods": [{"start": "1997-12-01", "end": "2026-05-01"}],
+            "income_use_periods": [{"start": "2018-11-01", "end": "2022-08-01", "floor_area": "0.4"}]}"#,
+    ),
+    (
+        "roya",
+        r#"{"capital_gain": "320000.00", "market_value_basis": true, "year": "2024-25",
+            "ownership_start": "1995-03-01", "ownership_end": "2024-09-29",
+            "lived_periods": [{"start": "1995-03-01", "end": "1999-09-28"}],
+            "income_use_periods": [{"start": "1999-09-29", "end": "2024-09-29", "floor_area": "1"}],
+            "absence_choice_periods": [{"start": "1999-09-29", "end": "2024-09-29"}]}"#,
+    ),
+    (
+        "medford",
+        r#"{"capital_gain": "500000.00", "ownership_start": "2013-05-01", "ownership_end": "2026-05-01",
+            "lived_periods": [{"start": "2013-05-01", "end": "2025-09-30"}], "new_home_acquired": "2025-10-01"}"#,
+    ),
+    (
+        "loss",
+        r#"{"capital_loss": "10000.00", "ownership_start": "2013-10-01", "ownership_end": "2026-03-30",
+            "lived_periods": [{"start": "2016-07-01", "end": "2026-03-30"}],
+            "income_use_periods": [{"start": "2013-10-01", "end": "2016-06-30", "floor_area": "1"}]}"#,
+    ),
+];
+
+fn main_residence(facts: &str) -> Value {
+    let mut input = json!({
+        "capital_gain": "0.00", "capital_loss": "0.00", "market_value_basis": false,
+        "lived_periods": [], "income_use_periods": [], "absence_choice_periods": [],
+        "new_home_acquired": null, "year": "2025-26", "scope_confirmed": true,
+    });
+    merge(&mut input, serde_json::from_str(facts).unwrap());
+    input
+}
+
+/// Every case above as (name, command, input).
+fn super_and_cgt_cases() -> Vec<(&'static str, &'static str, Value)> {
+    let mut cases = Vec::new();
+    for (name, facts) in DIVISION_296 {
+        cases.push((name, "division-296", division_296(facts)));
+    }
+    for (name, facts) in CAPS {
+        cases.push((name, "contribution-caps", caps(facts)));
+    }
+    for (name, income, year) in STUDY_LOAN {
+        cases.push((name, "study-loan-repayment", study_loan(income, year)));
+    }
+    for (name, amounts) in CAPITAL_GAINS {
+        cases.push((name, "capital-gains", capital_gains(amounts)));
+    }
+    for (name, facts) in MAIN_RESIDENCE {
+        cases.push((name, "main-residence", main_residence(facts)));
+    }
+    cases
+}
+
+fn super_and_cgt_doc(name: &str) -> Value {
+    let cases = super_and_cgt_cases();
+    let (_, command, input) = cases.iter().find(|(n, ..)| *n == name).unwrap();
+    derive(command, input)
+}
+
+#[test]
+fn each_super_and_cgt_case_derives_its_plain_result_from_its_working() {
+    for (name, command, input) in super_and_cgt_cases() {
+        let doc = derive(command, &input);
+        let plain = api::evaluate(command, &input).unwrap();
+        assert_eq!(doc["result"].to_string(), plain.to_string(), "{name}");
+        let found = problems(&doc);
+        assert!(found.is_empty(), "{name}: {found:#?}");
+    }
+}
+
+/// The Explanatory Memorandum's examples 1.1 and 1.2, and each branch's
+/// authority: an exception or a nil balance leaves its own reason.
+#[test]
+fn the_division_296_steps_show_the_memorandum_examples() {
+    let jordan = super_and_cgt_doc("jordan");
+    assert_eq!(
+        working_in(&jordan, "taxable_superannuation_earnings"),
+        "total_super_earnings x taxable_percentage / 100 = 100000.00 x 25.00 / 100 = 25000.0000"
+    );
+    assert_eq!(
+        working_in(&jordan, "division_296_tax"),
+        "tax_on_taxable_superannuation_earnings + tax_on_very_large_balance_earnings_component \
+         = 3750.000000 + 0.00 = 3750.000000"
+    );
+    let kelly = super_and_cgt_doc("kelly");
+    assert_eq!(
+        working_in(&kelly, "very_large_balance_earnings_component"),
+        "total_super_earnings x very_large_percentage / 100 = 500000.00 x 16.67 / 100 = 83350.0000"
+    );
+    assert_eq!(
+        working_in(&kelly, "tax_on_very_large_balance_earnings_component"),
+        "very_large_balance_earnings_component x very_large_rate = 83350.0000 x 0.10 = 8335.000000"
+    );
+    assert_eq!(kelly["result"]["amounts"]["division_296_tax"], "64585.00");
+    assert!(
+        authority_in(&kelly, "tax_on_very_large_balance_earnings_component")
+            .starts_with("Superannuation (Building a Stronger and Fairer Super System) Imposition Act 2026 s 5(b)(ii)")
+    );
+    assert!(
+        authority_in(
+            &super_and_cgt_doc("kenny"),
+            "taxable_superannuation_earnings"
+        )
+        .starts_with("ITAA 1997 s 296-40(1)(a) and (3)")
+    );
+    let child = super_and_cgt_doc("child");
+    assert_eq!(
+        child["result"]["amounts"]["taxable_superannuation_earnings"],
+        "25000.00"
+    );
+    assert_eq!(
+        working_in(&child, "tax_on_taxable_superannuation_earnings"),
+        "0 = 0 = 0"
+    );
+    assert!(authority_in(&child, "tax_on_taxable_superannuation_earnings").ends_with("(s 296-20)"));
+    assert!(
+        authority_in(
+            &super_and_cgt_doc("died"),
+            "taxable_superannuation_earnings"
+        )
+        .starts_with("ITAA 1997 s 296-50")
+    );
+    assert!(
+        authority_in(
+            &super_and_cgt_doc("nil_earnings"),
+            "taxable_superannuation_earnings"
+        )
+        .starts_with("ITAA 1997 s 296-40(1)(b)")
+    );
+    // s 296-45 has no 'greater than nil' condition: a negative component, which
+    // the result and its step show as null.
+    let negative = super_and_cgt_doc("negative");
+    let component = step_of(&negative, "very_large_balance_earnings_component");
+    assert_eq!(
+        component["working"],
+        "total_super_earnings x very_large_percentage / 100 = -50000.00 x 16.67 / 100 = -8335.0000"
+    );
+    assert_eq!(component["value"], Value::Null);
+    assert_eq!(
+        negative["result"]["amounts"]["very_large_balance_earnings_component"],
+        Value::Null
+    );
+}
+
+#[test]
+fn the_contribution_caps_steps_cite_their_subsection() {
+    let jane = super_and_cgt_doc("jane");
+    assert_eq!(
+        working_in(&jane, "non_concessional_available"),
+        "non_concessional_cap x non_concessional_cap_multiple = 120000 x 3 = 360000"
+    );
+    assert!(
+        authority_in(&jane, "non_concessional_available")
+            .starts_with("ITAA 1997 s 292-85(3) and (5)(b)")
+    );
+    assert_eq!(
+        jane["result"]["amounts"]["non_concessional_remaining"],
+        "120000.00"
+    );
+    assert_eq!(
+        working_in(&super_and_cgt_doc("carry_forward"), "carry_forward_applied"),
+        "min(unused_concessional_cap, max(0, concessional_contributions - concessional_cap)) \
+         = min(15000, max(0, 40000 - 30000)) = 10000"
+    );
+    let short = super_and_cgt_doc("carry_forward_short");
+    assert_eq!(
+        working_in(&short, "excess_concessional"),
+        "max(0, concessional_contributions - concessional_available) = max(0, 50000 - 45000) = 5000"
+    );
+    let none = super_and_cgt_doc("no_carry_forward");
+    assert_eq!(working_in(&none, "carry_forward_applied"), "0 = 0 = 0");
+    assert!(authority_in(&none, "carry_forward_applied").starts_with("ITAA 1997 s 291-20(3)(b)"));
+    assert_eq!(none["result"]["amounts"]["excess_concessional"], "10000.00");
+    let multiple =
+        |name: &str| authority_in(&super_and_cgt_doc(name), "non_concessional_available");
+    assert!(multiple("at_transfer_cap").starts_with("ITAA 1997 s 292-85(2)(b)"));
+    assert!(multiple("over_75").starts_with("ITAA 1997 s 292-85(2)(a)"));
+    assert!(multiple("two_years").starts_with("ITAA 1997 s 292-85(3) and (5)(a)"));
+    assert_eq!(
+        super_and_cgt_doc("at_transfer_cap")["result"]["amounts"]["excess_non_concessional"],
+        "1000.00"
+    );
+}
+
+/// The ATO's examples 1 to 3: 15% over $69,528; 17% over $129,717 on the
+/// exact base of $9,028.35, 35 cents above the page's $10,276.99; 10%.
+#[test]
+fn the_study_loan_steps_show_the_ato_examples() {
+    let christina = super_and_cgt_doc("christina");
+    assert_eq!(
+        working_in(&christina, "marginal_amount"),
+        "max(0, min(repayment_income_used, lower_band_top) - minimum_repayment_income) x lower_rate \
+         + max(0, repayment_income_used - lower_band_top) x upper_rate \
+         = max(0, min(86380, 129717) - 69528) x 0.15 + max(0, 86380 - 129717) x 0.17 = 2527.80"
+    );
+    assert_eq!(
+        christina["result"]["amounts"]["compulsory_repayment"],
+        "2527.80"
+    );
+    assert_eq!(
+        super_and_cgt_doc("barry")["result"]["amounts"]["compulsory_repayment"],
+        "10277.34"
+    );
+    let priya = super_and_cgt_doc("priya");
+    assert_eq!(
+        working_in(&priya, "compulsory_repayment"),
+        "ten_percent_of_income = 25478.00 = 25478.00"
+    );
+    assert!(
+        authority_in(&priya, "compulsory_repayment").starts_with("HESA s 154-20(1)(a) and (b)")
+    );
+    let minimum = super_and_cgt_doc("minimum");
+    assert_eq!(working_in(&minimum, "compulsory_repayment"), "0 = 0 = 0");
+    assert!(authority_in(&minimum, "compulsory_repayment").starts_with("HESA s 154-1(1)(a)"));
+}
+
+/// ¶2-240: $8,660 of losses absorb the $8,000 of other gains and $660 of the
+/// discount gains; half of the $20,775 left is $10,387.50.
+#[test]
+fn the_capital_gains_steps_apply_losses_then_the_discount() {
+    let library = super_and_cgt_doc("library");
+    assert_eq!(
+        working_in(&library, "losses_used"),
+        "min(other_gains, current_losses + prior_losses) \
+         + min(discount_gains, current_losses + prior_losses - min(other_gains, current_losses + prior_losses)) \
+         = min(8000.00, 8660.00 + 0.00) + min(21435.00, 8660.00 + 0.00 - min(8000.00, 8660.00 + 0.00)) = 8660.00"
+    );
+    assert_eq!(
+        working_in(&library, "discount_applied"),
+        "(discount_gains - min(discount_gains, current_losses + prior_losses - min(other_gains, current_losses + prior_losses))) \
+         x (1 - discount) \
+         = (21435.00 - min(21435.00, 8660.00 + 0.00 - min(8000.00, 8660.00 + 0.00))) x (1 - 0.50) = 10387.5000"
+    );
+    assert_eq!(library["result"]["amounts"]["net_capital_gain"], "10387.50");
+    assert!(authority_in(&library, "discount_applied").contains("s 115-100(aa)"));
+    let absorbed = super_and_cgt_doc("absorbed");
+    assert_eq!(
+        working_in(&absorbed, "losses_remaining"),
+        "current_losses + prior_losses - min(other_gains, current_losses + prior_losses) \
+         - min(discount_gains, current_losses + prior_losses - min(other_gains, current_losses + prior_losses)) \
+         = 1000.00 + 500.00 - min(100.00, 1000.00 + 500.00) \
+         - min(1000.00, 1000.00 + 500.00 - min(100.00, 1000.00 + 500.00)) = 400.00"
+    );
+    // A discount gain of -0.00 that the losses absorb stays an unsigned nil,
+    // as the Python corpus has it.
+    let negative_zero = super_and_cgt_doc("negative_zero");
+    assert_eq!(
+        negative_zero["result"]["amounts"]["discount_applied"],
+        "0.00"
+    );
+}
+
+/// QC66033's Peter and Fatima, and QC66030's Roya: the gain times the taxable
+/// days over the days in the ownership period.
+#[test]
+fn the_main_residence_steps_apportion_by_days() {
+    let peter = super_and_cgt_doc("peter");
+    assert_eq!(
+        working_in(&peter, "assessable_capital_gain"),
+        "cents(capital_gain x non_main_residence_days / ownership_period_days) \
+         = cents(230000.00 x 1004 / 4564) = 50595.97"
+    );
+    assert_eq!(
+        working_in(&peter, "exempt_capital_gain"),
+        "capital_gain - assessable_capital_gain = 230000.00 - 50595.97 = 179404.03"
+    );
+    assert_eq!(
+        authority_in(&peter, "assessable_capital_gain"),
+        "ITAA 1997 s 118-185(2) and s 118-190(2)"
+    );
+    let fatima = super_and_cgt_doc("fatima");
+    assert_eq!(
+        working_in(&fatima, "assessable_capital_gain"),
+        "cents(capital_gain x non_main_residence_days / ownership_period_days) \
+         = cents(100000.00 x 548.0 / 2739) = 20007.30"
+    );
+    assert!(authority_in(&fatima, "assessable_capital_gain").ends_with("(s 118-192(2))"));
+    assert_eq!(
+        super_and_cgt_doc("roya")["result"]["amounts"]["assessable_capital_gain"],
+        "243162.16"
+    );
+    let loss = super_and_cgt_doc("loss");
+    assert_eq!(
+        working_in(&loss, "exempt_capital_loss"),
+        "capital_loss - assessable_capital_loss = 10000.00 - 2199.82 = 7800.18"
+    );
+}
+
+#[test]
+fn a_refused_super_or_cgt_input_gets_the_commands_own_refusal() {
+    let refused = |command: &str, input: Value| {
+        let plain = api::evaluate_coded(command, &input).unwrap_err();
+        let derived = api::evaluate_coded("derive", &json!({"command": command, "input": input}));
+        assert_eq!(derived.unwrap_err(), plain);
+        plain.code
+    };
+    let mut input = division_296("{}");
+    input["year"] = json!("2027-28");
+    assert_eq!(refused("division-296", input), "period.unsupported");
+    let mut input = caps("{}");
+    input["under_75_in_year"] = json!("yes");
+    assert_eq!(refused("contribution-caps", input), "input.flag_invalid");
+    assert_eq!(
+        refused("study-loan-repayment", study_loan("86380.50", "2026-27")),
+        "input.amount_not_whole_dollars"
+    );
+    let mut input = capital_gains(CAPITAL_GAINS[0].1);
+    input["scope_confirmed"] = json!(false);
+    assert_eq!(refused("capital-gains", input), "scope.not_confirmed");
+    let mut input = main_residence(MAIN_RESIDENCE[2].1);
+    input["market_value_basis"] = json!(false);
+    assert_eq!(
+        refused("main-residence", input),
+        "main_residence.first_income_use_rule_applies"
+    );
 }
