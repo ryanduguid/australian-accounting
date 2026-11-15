@@ -69,6 +69,14 @@ fn the_register_percentage_stays_exact() {
     .unwrap();
     assert_eq!(a["amounts"]["register_percentage"], "33.33");
     assert_eq!(a["amounts"]["taxable_value"], "300.00");
+    // $21,000.07 x 5,000 / 14,000 is exactly $7,500.025, which rounds half up
+    // to $7,500.03; a percentage cut to working precision first gives $7,500.02.
+    let a = register(json!({
+        "meal_entertainment_expenditure": "21000.07",
+        "register_fringe_benefits_value": "5000.00", "register_meal_entertainment_value": "14000.00",
+    }))
+    .unwrap();
+    assert_eq!(a["amounts"]["taxable_value"], "7500.03");
 }
 
 #[test]

@@ -789,8 +789,13 @@ fn car_worksheets_reconcile_and_stay_within_their_bases() {
 
 /// A car parking result: the applied and excess payment make up the payment,
 /// the applied part never exceeds the gross value, and the taxable value is
-/// the gross value less the applied part, or nil when no benefit arises.
+/// the gross value less the applied part; when no benefit arises, a nil
+/// taxable value alone.
 fn check_parking_reconciles(result: &Value, contribution: &str, arises: bool) {
+    if !arises {
+        assert_eq!(result["amounts"], json!({"taxable_value": "0.00"}));
+        return;
+    }
     let gross = amount(result, "gross_taxable_value");
     let applied = amount(result, "employee_contribution_applied");
     let excess = amount(result, "excess_employee_contribution");
@@ -800,8 +805,7 @@ fn check_parking_reconciles(result: &Value, contribution: &str, arises: bool) {
     );
     assert!(le(&applied, &gross), "{result}");
     let net = gross.sub(&applied).unwrap();
-    let expected = if arises { net } else { n(0) };
-    assert!(eq(&amount(result, "taxable_value"), &expected), "{result}");
+    assert!(eq(&amount(result, "taxable_value"), &net), "{result}");
 }
 
 /// The loan, meal entertainment and car parking taxable values are never
