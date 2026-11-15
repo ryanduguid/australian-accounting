@@ -76,6 +76,15 @@ fn run(command: &str, input: Value) -> Value {
     let result =
         api::evaluate(command, &input).unwrap_or_else(|e| panic!("{command} {input}: {e}"));
     check_sanity(command, &result);
+    // Every input of a command derive explains derives to this result, byte for byte.
+    match api::evaluate_coded("derive", &json!({"command": command, "input": input})) {
+        Ok(doc) => assert_eq!(
+            doc["result"].to_string(),
+            result.to_string(),
+            "derive {command} {input}"
+        ),
+        Err(refusal) => assert_eq!(refusal.code, "derivation.unsupported", "{command} {input}"),
+    }
     result
 }
 
