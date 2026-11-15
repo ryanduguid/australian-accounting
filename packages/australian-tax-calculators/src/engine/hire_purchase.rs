@@ -7,11 +7,35 @@
 
 use serde_json::{Value, json};
 
-use super::{Arg, Result, d, date_arg, int, money, precise, rate, refuse, result, scope};
+use super::{
+    Arg, Result, d, date_arg, derived_result, int, money, precise, rate, refuse, scope, steps_from,
+};
 use crate::dates;
 use crate::decimal::{Calc, Decimal, Rounding};
 
 const KIND: &str = "hire_purchase_schedule";
+
+/// The amounts: (id, authority, formula). They cite ITAA 1997 compilation 268
+/// (1 October 2026), read on 16 November 2026. The monthly rows, their
+/// totals by income year and the implicit rate behind them are not amounts, so
+/// no step works them out.
+const STEPS: [(&str, &str, &str); 3] = [
+    (
+        "amount_financed",
+        "ITAA 1997 s 240-25(3): the notional loan principal, as established",
+        "amount_financed",
+    ),
+    (
+        "total_payments",
+        "ITAA 1997 s 240-25(6) and s 240-60(1) step 3: the arrangement payments, each instalment and the balloon",
+        "instalment x instalments + balloon",
+    ),
+    (
+        "total_interest",
+        "ITAA 1997 s 240-25(6) and s 240-60(1): the payments repay the notional loan principal and pay its notional interest at the implicit interest rate, so the notional interest over the term is the payments less the principal",
+        "total_payments - amount_financed",
+    ),
+];
 
 /// 30 years of monthly instalments.
 const MOST_INSTALMENTS: i64 = 360;
@@ -322,26 +346,27 @@ pub fn hire_purchase_schedule(
     let agreement =
         Agreement::from_inputs(amount_financed, instalment, instalments, balloon, timing)?;
     let start = start_in_year(start_date, &year)?;
-    let (r, rows, total, charges, (years, across)) = precise(|| {
+    let (r, rows, steps, (years, across)) = precise(|| {
         let r = agreement.implicit_rate()?;
-        let total = agreement
-            .instalment
-            .mul(&int(agreement.count))?
-            .add(&agreement.balloon)?;
+        let count = int(agreement.count);
+        let total = agreement.instalment.mul(&count)?.add(&agreement.balloon)?;
         let charges = total.sub(&agreement.financed)?;
         let (rows, months) = agreement.schedule(&r, start, &charges)?;
-        Ok((r, rows, total, charges, by_income_year(&months)?))
+        let financed = &agreement.financed;
+        let steps = steps_from(
+            &STEPS,
+            [
+                (&[financed], financed.clone()),
+                (
+                    &[&agreement.instalment, &count, &agreement.balloon],
+                    total.clone(),
+                ),
+                (&[&total, financed], charges),
+            ],
+        );
+        Ok((r, rows, steps, by_income_year(&months)?))
     })?;
-    let mut out = result(
-        KIND,
-        &year,
-        vec![
-            ("amount_financed", agreement.financed),
-            ("total_payments", total),
-            ("total_interest", charges),
-        ],
-        rates(&r)?,
-    )?;
+    let mut out = derived_result(KIND, &year, steps, rates(&r)?)?;
     // The balloon falls due at the end of the term, after an instalment in advance.
     out["balloon_date"] = json!(dates::format(dates::add_months(start, agreement.count)));
     out["schedule"] = Value::Array(rows);
