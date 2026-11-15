@@ -556,7 +556,8 @@ value, less `contribution_deduction`, the deduction the recipient could claim
 for the contribution. An in-house benefit outside salary packaging then takes
 up to `in_house_reduction_available`, what is left of the employee's $1,000
 reduction for the year (s 62). Car residual benefits, airline transport and
-benefits provided jointly to several employees (s 52(5)) are left out.
+benefits provided jointly to an employee and an associate (s 138(3) and
+s 52(5)) are left out.
 
 `fbt_housing` applies Division 6. A unit outside Australia, or one in a
 business that lets identical accommodation to the public, is valued at market
@@ -597,8 +598,11 @@ employer's guide, 15.9). No contribution or reduction applies.
 
 Each worksheet reproduces, to the cent, the FBT return 2026 instructions'
 examples 11, 12, 13, 15 and 16, the employer's guide's examples in 10.5, 11.5,
-11.6, 13.2, 15.9, 18.4 and 18.7, and the Library's ¶3-120, ¶3-160 and ¶3-180;
-see [calculation evidence](docs/calculation-evidence.md#fbt-residual).
+11.6, 13.2, 15.9, 18.4 and 18.7, and the Library's ¶3-120, ¶3-160 and ¶3-180.
+Where the guide misprints 2 figures, the worksheets give the correct amounts:
+$15,685.95 under s 26(2)(a), not 10.5's single-employee $15,687.70, and
+$2,008, 10% of $20,080, where 18.6 prints $2,080; see
+[calculation evidence](docs/calculation-evidence.md#fbt-residual).
 
 ## Main residence
 

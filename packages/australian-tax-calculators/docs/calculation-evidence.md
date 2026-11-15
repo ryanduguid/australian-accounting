@@ -391,12 +391,14 @@ bought for $1,800 is nil with a $300 excess; a $1,200 sound bar bought for
 $600 is **$300.00**, nil after the $1,000 reduction; a $4,000 desktop with the
 $700 of reduction left is **$2,300.00**, Jenny's total.
 
-Item 23K example 14 and ¶3-260 value a retailer's stock at 75% of its lowest
-price to the public. s 42(1)(a)(ii), as compiled, gives that value for
-property the provider manufactured, produced, processed or treated, and
-s 42(1)(b) the lesser of the arm's length purchase price and the notional
-value for property it acquired. The worksheet applies the rule its `method`
-names, and the tests apply `in_house_public_price` as those examples do. The
+Item 23K example 14, an electrical retailer's television and air
+conditioner, and ¶3-260 take 75% of the lowest price to the public without
+saying that the provider made the goods. s 42(1)(a)(ii), as compiled, gives 75%
+of that price only for property the provider manufactured, produced, processed
+or treated; for property it acquired, s 42(1)(b) gives the lesser of the arm's
+length price and the notional value (`in_house_acquired`). The worksheet
+applies the rule its `method` names, and the tests apply
+`in_house_public_price` to reproduce those examples' figures. The
 otherwise deductible rule comes before s 62: s 44 gives the taxable value 'but
 for Division 14', and s 62 is in Division 14. Benefits provided jointly to an
 employee and an associate (s 44(5), the guide's 17.5A) are not covered.
@@ -420,8 +422,10 @@ store hires a video recorder the public rents for $100 and pays $50, `0.75 ×
 100 - 50 = 25`, **$25.00** before the s 62 reduction. Its 18.7: $500 of hired
 goods, a $250 contribution and 80% income use; GD `400` less RD `200` gives
 `250 - 200 = 50`, **$50.00**, and with RD limited to `150` the value is nil. Its
-18.6 vehicle example states 10% of $20,080 as $2,080; the Act gives `20080 ×
-0.1 = 2008`, and the test asserts **$2,008.00**.
+18.6 vehicle example prints `($20,080 × 10%) - $0 = $2,080`; 10% of $20,080
+is `2008`, and the test asserts **$2,008.00**. The same example gives 5,200
+kilometres as both the private and the total travel, so its 10% private use
+does not follow from its facts.
 
 ## FBT housing
 
@@ -429,11 +433,13 @@ Item 23F example 11: a market rent of $41,600 for the year less $5,200 rent,
 **$36,400.00**. The guide's 10.5: $11,820 for 274 days of the base year is a
 statutory annual value of `11820 × 365 / 274 = 15745.62`; indexed by NSW's
 1.040 for 2027, `16375.44`, for 91 days `4082.64`. Its single-employee example,
-$5,200 for 121 days, prints $15,687.70 because it rounds the daily rate first;
-s 26(2)(a) gives `5200 × 365 / 121 = 15685.95`, which the test asserts. The
-guide's later years, at the earlier factors it uses, reproduce its $4,040.17
-and $11,088.60 only when the statutory annual value is rounded to cents, so the
-worksheet rounds it so. ¶3-120 (review
+$5,200 for 121 days, prints `$5,200 ÷ 121 × 365 = $15,687.70`, the figure the daily rate gives when rounded to cents first;
+s 26(2)(a)'s formula, the market value times the days in the year over the
+whole days of the tenancy, gives `5200 × 365 / 121 = 15685.95`, which the test
+asserts. The Act does not round the statutory annual value; the worksheet
+rounds it to cents because `prior_statutory_annual_value` is taken in cents.
+The guide's later years, at the earlier factors it uses, give its $4,040.17
+and $11,088.60 whether or not the value is rounded. ¶3-120 (review
 date 30 June 2026): $350 a week for 39 weeks less $50 a week, **$11,700.00**.
 The indexation factors are the rates page's for each State and Territory for
 2026 and 2027; `tests/fbt_housing.rs` checks all 16.
