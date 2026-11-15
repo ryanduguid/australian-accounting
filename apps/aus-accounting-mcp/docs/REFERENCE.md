@@ -181,6 +181,7 @@ copy without a download until the uv cache is cleaned.
 | `validate_abn` | Test an ABN's check digit; proves neither ABR nor GST registration | local arithmetic |
 | `validate_acn` | Test an ACN's check digit; proves neither ABR nor GST registration | local arithmetic |
 | `validate_bsb_format` | Test a BSB's 6 digit format; proves no institution, branch or account | local format test |
+| `validate_account_number_format` | Test a bank account number against the 9 character BECS field; proves no account, payee or BSB match | local format test |
 | `get_reviewed_rate` | Return a reviewed ATO rate or threshold for a date, with its source and a verbatim quote, or refuse | bundled reviewed records |
 | `get_data_freshness` | Report each bundled dataset's recorded periods, engine version, source URLs and retrieval and review dates, or `UNKNOWN` | every engine above |
 
@@ -205,6 +206,19 @@ require its first 2 or 3 digits to be an Institution Identifier AusPayNet issued
 server bundles no BSB directory, so every result carries `institution_established: false`
 and a `not_established` statement pointing to AusPayNet's
 [BSB Lookup](https://bsb.auspaynet.com.au).
+
+`validate_account_number_format` returns `FORMAT_VALID` or `MALFORMED`. It tests the
+account number field (character positions 9 to 17 of a Record Type 1 detail record) in the
+same BECS Procedures, read on 16 November 2026: letters, digits, hyphens and blanks only,
+not all blanks or all zeros, hyphens edited out where the number exceeds 9 characters, and
+right justified and blank filled in 9 characters. Spaces at either end are removed as that
+fill; spaces inside are kept, as the field allows them. A number of nothing but zeros,
+hyphens and spaces is `MALFORMED`, and so is any other character, such as a full-width
+digit, a dash other than the hyphen or a tab. `formatted` is the number as the field
+carries it. The procedures set no check digit and no shortest length, and require leading
+zeros that are part of a number to be shown, which a format test cannot check. Every result
+carries `account_established: false` and a `not_established` statement: a valid format
+proves no account, payee or BSB match.
 
 There is no TFN check. The ATO gives its TFN algorithm only to software developers, through
 its online services for digital service providers or on request
@@ -425,11 +439,11 @@ Their rules and sources come from `australian-tax-calculators`. Broader classifi
 exemptions, BAS/returns, trusts, partnerships, SMSF fund tax and audit, the transfer
 balance cap and payroll tax remain unsupported. Reference text cannot establish calculation support.
 
-The evaluation includes 41 cases: 10 original workflows, 10 unsupported-topic
+The evaluation includes 42 cases: 10 original workflows, 10 unsupported-topic
 questions, grouped Payday, a tax worksheet, synthetic library retrieval, the
 Payday evidence pack, which needs checker evidence-pack support, a synthetic ruling
 paragraph, GST coding, BAS reconciliation, a lodgment due date, data freshness, a refused
-rate lookup, 2 identifier check digits, a BSB format and 8 synthetic legislation corpus cases covering citation, ranking, reading a long provision in
+rate lookup, 2 identifier check digits, a BSB format, an account number format and 8 synthetic legislation corpus cases covering citation, ranking, reading a long provision in
 parts, rates, definitions, an injected instruction, an undefined term and a
 stored rate's date.
 The unsupported-topic answers require no tool calls. The

@@ -1,13 +1,14 @@
 # Copyright 2026 Ryan Duguid
 # SPDX-License-Identifier: LicenseRef-Duguid-Public-Attribution-1.0
 
-"""ABN and ACN check digits and the BSB format. Arithmetic and format only: no lookup,
-and nothing about registration.
+"""ABN and ACN check digits and the BSB and account number formats. Arithmetic and format
+only: no lookup, and nothing about registration.
 
 These live in the facade because the engines it can reach are the published
 distributions, and none of them holds these rules. They are the published format
 tests of 2 registers and of AusPayNet's BSB, with no rate, date or dataset to go
-stale, so no engine's review scope is copied here. There is no BSB directory here.
+stale, so no engine's review scope is copied here. There is no BSB directory here, and
+nothing about accounts.
 """
 
 from __future__ import annotations
@@ -34,6 +35,15 @@ BSB_PROVISION = ("AusPayNet BECS Procedures version 072 (effective 1 October 202
                  "positions 2 to 8: 'Must be numeric with a hyphen in character position 5'")
 BSB_SOURCE_CHECKED = "2026-11-15"
 
+_ACCOUNT_ALLOWED = frozenset("ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789- ")
+ACCOUNT_PROVISION = ("AusPayNet BECS Procedures version 072 (effective 1 October 2026), Annexure "
+                     "C.1 DE File User Item Specifications, Record Type 1, Account Number to be "
+                     "Credited/Debited in character positions 9 to 17: 'Alpha (26 letters of the "
+                     "alphabet), numeric, hyphens & blanks only are valid. Must not contain all "
+                     "blanks or all zeros. ... Edit out hyphens where account number exceeds nine "
+                     "characters. Right justified. Blank filled.'")
+ACCOUNT_SOURCE_CHECKED = "2026-11-16"
+
 ABN_NOT_ESTABLISHED = (
     "A valid check digit shows only that the digits pass the arithmetic ABN Lookup publishes. "
     "It proves neither that the number was issued to anyone or is active, nor that an entity "
@@ -53,6 +63,14 @@ BSB_NOT_ESTABLISHED = (
     "neither that its first 2 or 3 digits are an Institution Identifier AusPayNet issued, nor "
     "that the BSB exists, is open or accepts payments, nor anything about an account. "
     "AusPayNet's BSB Lookup (https://bsb.auspaynet.com.au) shows a BSB's institution and branch."
+)
+
+ACCOUNT_NOT_ESTABLISHED = (
+    "An account number in the published format shows only that it fits the 9 character "
+    "account number field of AusPayNet's BECS Procedures. It proves neither that the account "
+    "exists, is open or belongs to the payee, nor that it matches a BSB, nor that it carries "
+    "the leading zeros its institution's numbering needs. Confirm bank details with the "
+    "account holder by a separate, trusted channel."
 )
 
 
@@ -152,4 +170,34 @@ def check_bsb(value: str) -> dict[str, Any]:
         "source_url": BSB_SOURCE,
         "source_provision": BSB_PROVISION,
         "source_checked": BSB_SOURCE_CHECKED,
+    }
+
+
+def check_account_number(value: str) -> dict[str, Any]:
+    # Blanks are valid inside the field, so only the outer ones, the field's fill, go.
+    text = value.strip(" ")
+    if len(text) > 9:
+        text = text.replace("-", "")
+    # Hyphens set aside, nothing but zeros and blanks is the all zeros or all blanks
+    # the field refuses.
+    if (_ACCOUNT_ALLOWED.issuperset(value) and len(text) <= 9
+            and text.replace("-", "").strip("0 ")):
+        result, formatted = "FORMAT_VALID", text
+        reason = ("The account number fits the account number field AusPayNet publishes, as "
+                  "formatted shows. No institution or account was looked up.")
+    else:
+        result, formatted = "MALFORMED", None
+        reason = ("An account number is up to 9 ASCII letters, digits, hyphens or spaces, its "
+                  "hyphens removed when it is longer, and not all zeros or blanks.")
+    return {
+        "ok": True,
+        "identifier": "account number",
+        "result": result,
+        "formatted": formatted,
+        "reason": reason,
+        "account_established": False,
+        "not_established": ACCOUNT_NOT_ESTABLISHED,
+        "source_url": BSB_SOURCE,
+        "source_provision": ACCOUNT_PROVISION,
+        "source_checked": ACCOUNT_SOURCE_CHECKED,
     }
