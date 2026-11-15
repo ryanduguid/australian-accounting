@@ -55,7 +55,15 @@ fn with(mut facts: Value, overrides: Value) -> Value {
 }
 
 fn run(command: &str, facts: &Value) -> Value {
-    api::evaluate(command, facts).unwrap_or_else(|e| panic!("{command} {facts}: {e}"))
+    let result = api::evaluate(command, facts).unwrap_or_else(|e| panic!("{command} {facts}: {e}"));
+    // derive gives the same result, byte for byte.
+    let doc = api::evaluate("derive", &json!({"command": command, "input": facts})).unwrap();
+    assert_eq!(
+        doc["result"].to_string(),
+        result.to_string(),
+        "derive {facts}"
+    );
+    result
 }
 
 fn refusal(command: &str, facts: &Value) -> &'static str {
