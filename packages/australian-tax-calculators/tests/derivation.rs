@@ -1,8 +1,8 @@
 // Copyright 2026 Ryan Duguid
 // SPDX-License-Identifier: LicenseRef-Duguid-Public-Attribution-1.0
 
-//! `derive` explains each amount of the worksheets it covers (FBT, Division 293
-//! and the pension minimum) in a step a reader can check alone: every
+//! `derive` explains each amount of the worksheets it covers (FBT, Division 293,
+//! the pension minimum, PAYG withholding, Schedule 5 and termination payments) in a step a reader can check alone: every
 //! name in a step's formula is an input, a rate or an earlier step, its operands
 //! are those values, and they recompute the amount. These tests recompute every
 //! amount that way, independently of the engine's arithmetic.
@@ -13,7 +13,7 @@ use std::io::Write;
 use std::process::{Command, Stdio};
 
 /// The commands `derive` explains.
-const DERIVED: [&str; 8] = [
+const DERIVED: [&str; 13] = [
     "fbt",
     "fbt-car-statutory",
     "fbt-car-operating-cost",
@@ -22,6 +22,11 @@ const DERIVED: [&str; 8] = [
     "fbt-car-parking",
     "division-293",
     "pension-minimum",
+    "payg-withholding",
+    "schedule-5-method-a",
+    "schedule-5-method-b-i",
+    "schedule-5-method-b-ii",
+    "termination-payment",
 ];
 
 /// (command, input) for each derived kind: the ATO's published examples and
@@ -59,7 +64,7 @@ fn cases() -> Vec<(&'static str, Value)> {
         merge(&mut input, overrides);
         ("fbt-car-operating-cost", input)
     };
-    vec![
+    let mut cases = vec![
         // Calculating your FBT, MantCo, in both years.
         ("fbt", fbt("16500.00", "6000.00", 2026)),
         ("fbt", fbt("16500.00", "6000.00", 2027)),
@@ -154,7 +159,312 @@ fn cases() -> Vec<(&'static str, Value)> {
                    "benefits": 230, "lowest_fee": "18.00", "employee_contribution": "1000.00",
                    "year_ended": 2027}),
         ),
-    ]
+    ];
+    cases.extend(
+        PAYG.iter()
+            .map(|(_, facts)| ("payg-withholding", payg(facts))),
+    );
+    cases.extend(
+        SCHEDULE_5
+            .iter()
+            .map(|(_, command, facts)| (*command, schedule_5(facts))),
+    );
+    cases.extend(
+        ETP.iter()
+            .map(|(_, facts)| ("termination-payment", etp(facts))),
+    );
+    cases
+}
+
+const A: &str = "schedule-5-method-a";
+const B_I: &str = "schedule-5-method-b-i";
+const B_II: &str = "schedule-5-method-b-ii";
+
+/// Schedule 5 cases by name, 2026-27 and scale 2 unless they say otherwise:
+/// the instrument's examples 1 to 4 and a case for each branch.
+const SCHEDULE_5: [(&str, &str, &str); 14] = [
+    // Example 1, Jarrod: a $900 bonus on $1,400 a week, without and with HELP.
+    (
+        "jarrod",
+        A,
+        r#"{"earnings": "1400.00", "additional_payment": "900.00", "pay_periods": 52, "pay_period": "weekly"}"#,
+    ),
+    (
+        "jarrod_help",
+        A,
+        r#"{"earnings": "1400.00", "additional_payment": "900.00", "pay_periods": 52, "pay_period": "weekly", "study_loan": true}"#,
+    ),
+    // A commission for 4 weeks, spread over the 4 pay periods it relates to.
+    (
+        "commission",
+        A,
+        r#"{"earnings": "1400.00", "additional_payment": "400.00", "pay_periods": 4, "pay_period": "weekly"}"#,
+    ),
+    // The 47% limit binds.
+    (
+        "limit",
+        A,
+        r#"{"earnings": "4000.00", "additional_payment": "5200.99", "pay_periods": 52, "pay_period": "weekly", "study_loan": true}"#,
+    ),
+    // Example 2, Robyn: $100 back pay for each of 8 weeks, without and with HELP.
+    (
+        "robyn",
+        B_I,
+        r#"{"earnings": "1700.00", "back_payment_periods": [{"earnings": "1600.00", "back_payment": "100.00", "withheld": "331.00"}, {"earnings": "1600.00", "back_payment": "100.00", "withheld": "331.00"}, {"earnings": "1600.00", "back_payment": "100.00", "withheld": "331.00"}, {"earnings": "1600.00", "back_payment": "100.00", "withheld": "331.00"}, {"earnings": "1600.00", "back_payment": "100.00", "withheld": "331.00"}, {"earnings": "1600.00", "back_payment": "100.00", "withheld": "331.00"}, {"earnings": "1600.00", "back_payment": "100.00", "withheld": "331.00"}, {"earnings": "1600.00", "back_payment": "100.00", "withheld": "331.00"}], "pay_period": "weekly"}"#,
+    ),
+    (
+        "robyn_help",
+        B_I,
+        r#"{"earnings": "1700.00", "back_payment_periods": [{"earnings": "1600.00", "back_payment": "100.00", "withheld": "371.00"}, {"earnings": "1600.00", "back_payment": "100.00", "withheld": "371.00"}, {"earnings": "1600.00", "back_payment": "100.00", "withheld": "371.00"}, {"earnings": "1600.00", "back_payment": "100.00", "withheld": "371.00"}, {"earnings": "1600.00", "back_payment": "100.00", "withheld": "371.00"}, {"earnings": "1600.00", "back_payment": "100.00", "withheld": "371.00"}, {"earnings": "1600.00", "back_payment": "100.00", "withheld": "371.00"}, {"earnings": "1600.00", "back_payment": "100.00", "withheld": "371.00"}], "pay_period": "weekly", "study_loan": true}"#,
+    ),
+    // More was withheld than the recalculation gives, so nil.
+    (
+        "b_i_nil",
+        B_I,
+        r#"{"earnings": "1700.00", "back_payment_periods": [{"earnings": "1600.00", "back_payment": "0.00", "withheld": "400.00"}], "pay_period": "weekly"}"#,
+    ),
+    // Monthly amounts ending in 33 cents gain a cent in each table, steps 3 and 6.
+    (
+        "b_i_monthly",
+        B_I,
+        r#"{"earnings": "4346.33", "back_payment_periods": [{"earnings": "4246.33", "back_payment": "100.00", "withheld": "560.00"}], "pay_period": "monthly"}"#,
+    ),
+    // Example 3, Laura: $2,480 of arrears averaged over 26 fortnights.
+    (
+        "laura",
+        B_II,
+        r#"{"earnings": "1800.00", "additional_payment": "2480.00", "year_to_date_earnings": "18000.00", "pay_periods_to_date": 10, "earlier_additional_payments": "0.00", "earlier_additional_withholding": "0.00", "pay_period": "fortnightly"}"#,
+    ),
+    // Example 4, Bradley: last year's $8,800 by B(ii), with an FS debt.
+    (
+        "bradley_fs",
+        B_II,
+        r#"{"earnings": "7000.00", "additional_payment": "8800.00", "year_to_date_earnings": "21000.00", "pay_periods_to_date": 3, "earlier_additional_payments": "0.00", "earlier_additional_withholding": "0.00", "pay_period": "monthly", "study_loan": true}"#,
+    ),
+    // Step 8: what earlier B(ii) payments had withheld comes off; past nil, nil.
+    (
+        "b_ii_earlier",
+        B_II,
+        r#"{"earnings": "1800.00", "additional_payment": "2480.00", "year_to_date_earnings": "18000.00", "pay_periods_to_date": 10, "earlier_additional_payments": "1000.00", "earlier_additional_withholding": "500.00", "pay_period": "fortnightly"}"#,
+    ),
+    (
+        "b_ii_nil",
+        B_II,
+        r#"{"earnings": "1800.00", "additional_payment": "2480.00", "year_to_date_earnings": "18000.00", "pay_periods_to_date": 10, "earlier_additional_payments": "1000.00", "earlier_additional_withholding": "9999.00", "pay_period": "fortnightly"}"#,
+    ),
+    // Figures in exponent form and negative zeros, as a list item may give them.
+    (
+        "b_i_exponent",
+        B_I,
+        r#"{"earnings": "1.7E+3", "back_payment_periods": [{"earnings": "1.6E+3", "back_payment": "1E+2", "withheld": "3.31E+2"}, {"earnings": "1600.00", "back_payment": "5E+1", "withheld": "-0.00"}], "pay_period": "weekly"}"#,
+    ),
+    (
+        "b_i_negative_zero",
+        B_I,
+        r#"{"earnings": "1700.00", "back_payment_periods": [{"earnings": "1600.00", "back_payment": "-0.00", "withheld": "331.00"}], "pay_period": "weekly"}"#,
+    ),
+];
+
+/// A Schedule 5 input: `facts` for scale 2 in 2026-27 without a study loan
+/// unless they say otherwise.
+fn schedule_5(facts: &str) -> Value {
+    let mut input =
+        json!({"scale": 2, "study_loan": false, "year": "2026-27", "scope_confirmed": true});
+    merge(&mut input, serde_json::from_str(facts).unwrap());
+    input
+}
+
+fn schedule_5_doc(name: &str) -> Value {
+    let (_, command, facts) = SCHEDULE_5.iter().find(|(n, ..)| *n == name).unwrap();
+    derive(command, &schedule_5(facts))
+}
+
+/// Termination payment cases by name: Schedule 11's examples 1 to 4 and the
+/// Library's ¶1-420 example as the termination payment tests hold them, and
+/// each cap and rate branch. Born 1 January 1990 unless they say otherwise.
+const ETP: [(&str, &str); 8] = [
+    (
+        "lloyd",
+        r#"{"redundancy_payment": "58598.00", "date_of_birth": "1985-09-01"}"#,
+    ),
+    (
+        "jane",
+        r#"{"non_excluded_payment": "10000.00", "other_taxable_payments": "84000.00", "date_of_birth": "1976-08-01"}"#,
+    ),
+    (
+        "chris",
+        r#"{"non_excluded_payment": "120000.00", "other_taxable_payments": "100000.00"}"#,
+    ),
+    (
+        "alec",
+        r#"{"redundancy_payment": "48000.00", "completed_years_of_service": 5, "non_excluded_payment": "17678.00", "other_taxable_payments": "140000.00", "date_of_birth": "1996-09-01"}"#,
+    ),
+    (
+        "barbra",
+        r#"{"redundancy_payment": "70000.00", "completed_years_of_service": 15, "date_of_birth": "1968-01-15"}"#,
+    ),
+    // Preservation age (60) reached on 30 June 2027, so 17%.
+    (
+        "reached",
+        r#"{"non_excluded_payment": "1000.00", "date_of_birth": "1967-06-30"}"#,
+    ),
+    // A cent over the ETP cap, and no ETP cap left for the other part.
+    (
+        "over_etp_cap",
+        r#"{"excluded_payment": "270000.01", "non_excluded_payment": "1000.00"}"#,
+    ),
+    // Other payments past $180,000 leave no whole-of-income cap.
+    (
+        "no_whole_of_income_cap",
+        r#"{"excluded_payment": "1000.00", "non_excluded_payment": "1000.00", "other_taxable_payments": "250000.00"}"#,
+    ),
+];
+
+fn etp(facts: &str) -> Value {
+    let mut input = json!({
+        "redundancy_payment": "0.00", "completed_years_of_service": 0,
+        "excluded_payment": "0.00", "non_excluded_payment": "0.00",
+        "other_taxable_payments": "0.00", "date_of_birth": "1990-01-01",
+        "year": "2026-27", "scope_confirmed": true,
+    });
+    merge(&mut input, serde_json::from_str(facts).unwrap());
+    input
+}
+
+fn etp_doc(name: &str) -> Value {
+    let (_, facts) = ETP.iter().find(|(n, _)| *n == name).unwrap();
+    derive("termination-payment", &etp(facts))
+}
+
+fn working_in(doc: &Value, id: &str) -> String {
+    step_of(doc, id)["working"].as_str().unwrap().to_string()
+}
+
+fn authority_in(doc: &Value, id: &str) -> String {
+    step_of(doc, id)["authority"].as_str().unwrap().to_string()
+}
+
+/// Schedule 1 cases by name: its examples in the Taxation Administration
+/// (Withholding Schedules) Instrument 2026 (F2026L00716), read on 15 November
+/// 2026, and a case for each branch of its rules. Each is 2026-27 unless it
+/// names its year.
+const PAYG: [(&str, &str); 21] = [
+    // General example 1: $245 less a $26 levy adjustment for 5 children.
+    (
+        "general_1",
+        r#"{"earnings": "1333.45", "pay_period": "weekly", "scale": 2, "medicare_adjustment_children": 5}"#,
+    ),
+    // Weekly levy adjustment examples 1 and 2.
+    (
+        "levy_1",
+        r#"{"earnings": "633.06", "pay_period": "weekly", "scale": 2, "medicare_adjustment_children": 0}"#,
+    ),
+    (
+        "levy_2",
+        r#"{"earnings": "1142.09", "pay_period": "weekly", "scale": 6, "medicare_adjustment_children": 3}"#,
+    ),
+    // The fortnightly and monthly levy adjustment examples.
+    (
+        "levy_fortnightly",
+        r#"{"earnings": "2026.77", "pay_period": "fortnightly", "scale": 2, "medicare_adjustment_children": 1}"#,
+    ),
+    (
+        "levy_monthly",
+        r#"{"earnings": "3066.33", "pay_period": "monthly", "scale": 2, "medicare_adjustment_children": 0}"#,
+    ),
+    // General examples 2 and 3: tax offsets on scales 5 and 2.
+    (
+        "general_2",
+        r#"{"earnings": "1299.30", "pay_period": "fortnightly", "scale": 5, "tax_offsets": "1645"}"#,
+    ),
+    (
+        "general_3",
+        r#"{"earnings": "5400.33", "pay_period": "monthly", "scale": 2, "tax_offsets": "1365"}"#,
+    ),
+    // Scale 4, resident and foreign resident.
+    (
+        "no_tfn",
+        r#"{"earnings": "1000.99", "pay_period": "weekly", "scale": 4, "foreign_resident": false}"#,
+    ),
+    (
+        "no_tfn_foreign",
+        r#"{"earnings": "1000.99", "pay_period": "fortnightly", "scale": 4, "foreign_resident": true}"#,
+    ),
+    (
+        "quarterly",
+        r#"{"earnings": "13000.00", "pay_period": "quarterly", "scale": 1}"#,
+    ),
+    (
+        "monthly",
+        r#"{"earnings": "5000.00", "pay_period": "monthly", "scale": 3}"#,
+    ),
+    // Scale 2's first row, whose coefficients the instrument prints as dashes.
+    (
+        "nil_row",
+        r#"{"earnings": "300.00", "pay_period": "weekly", "scale": 2}"#,
+    ),
+    // No levy adjustment below $538, nor from the shading out point.
+    (
+        "levy_below",
+        r#"{"earnings": "500.00", "pay_period": "weekly", "scale": 2, "medicare_adjustment_children": 0}"#,
+    ),
+    (
+        "levy_above",
+        r#"{"earnings": "1200.00", "pay_period": "weekly", "scale": 2, "medicare_adjustment_children": 0}"#,
+    ),
+    // The 53 and 27 pay tables.
+    (
+        "pays_53",
+        r#"{"earnings": "2600.00", "pay_period": "weekly", "scale": 2, "extra_pay_withholding": true}"#,
+    ),
+    (
+        "pays_27_below",
+        r#"{"earnings": "1699.99", "pay_period": "fortnightly", "scale": 2, "extra_pay_withholding": true}"#,
+    ),
+    (
+        "pays_27_top",
+        r#"{"earnings": "7250.00", "pay_period": "fortnightly", "scale": 1, "extra_pay_withholding": true}"#,
+    ),
+    // 2024-25: the coefficients of the 2024 instrument (F2024L00664).
+    (
+        "year_2024",
+        r#"{"earnings": "1000.00", "pay_period": "weekly", "scale": 2, "year": "2024-25"}"#,
+    ),
+    // Every adjustment at once, under the 2025 instruments' rules.
+    (
+        "all_adjustments",
+        r#"{"earnings": "1100.00", "pay_period": "weekly", "scale": 2, "tax_offsets": "500", "medicare_adjustment_children": 2, "extra_pay_withholding": true, "year": "2025-26"}"#,
+    ),
+    (
+        "levy_quarterly",
+        r#"{"earnings": "13000.00", "pay_period": "quarterly", "scale": 2, "medicare_adjustment_children": 0}"#,
+    ),
+    (
+        "levy_scale_6",
+        r#"{"earnings": "950.00", "pay_period": "weekly", "scale": 6, "medicare_adjustment_children": 0}"#,
+    ),
+];
+
+/// A `payg-withholding` input: `facts` for 2026-27 unless they name the year.
+fn payg(facts: &str) -> Value {
+    let mut input = json!({"year": "2026-27", "scope_confirmed": true});
+    merge(&mut input, serde_json::from_str(facts).unwrap());
+    input
+}
+
+/// The derivation of the `PAYG` case `name`.
+fn payg_doc(name: &str) -> Value {
+    let (_, facts) = PAYG.iter().find(|(n, _)| *n == name).unwrap();
+    derive("payg-withholding", &payg(facts))
+}
+
+/// The step `id` of `doc`.
+fn step_of<'a>(doc: &'a Value, id: &str) -> &'a Value {
+    let steps = doc["steps"].as_array().unwrap();
+    steps
+        .iter()
+        .find(|s| s["id"] == id)
+        .unwrap_or_else(|| panic!("no step {id}"))
 }
 
 /// An FBT benefit worksheet's input: `facts` for the year ended 31 March 2026
@@ -301,6 +611,7 @@ impl Evaluator<'_> {
                     ("max", [a, b]) => if b.gt(a).unwrap() { b } else { a }.clone(),
                     ("cents", [a]) => a.quantize(-2, Rounding::HalfUp).unwrap(),
                     ("dollars", [a]) => a.quantize(0, Rounding::HalfUp).unwrap(),
+                    ("floor", [a]) => a.quantize(0, Rounding::Down).unwrap(),
                     other => panic!("unknown function {other:?}"),
                 }
             }
@@ -655,6 +966,579 @@ fn each_step_cites_the_provision_its_branch_applies() {
     );
 }
 
+/// Schedule 1's published examples, worked as the instrument works them.
+#[test]
+fn the_schedule_1_examples_show_their_operands() {
+    let working = |name: &str, id: &str| {
+        step_of(&payg_doc(name), id)["working"]
+            .as_str()
+            .unwrap()
+            .to_string()
+    };
+    let amount = |name: &str, id: &str| payg_doc(name)["result"]["amounts"][id].clone();
+    // General example 1: x = 1,333.99; y = 0.3200 x 1,333.99 - 181.7319, $245;
+    // formula (3) on WFT $1,325.54 gives $26; $245 - $26 = $219.
+    assert_eq!(
+        working("general_1", "weekly_earnings_used"),
+        "floor(earnings) + 0.99 = floor(1333.45) + 0.99 = 1333.99"
+    );
+    assert_eq!(
+        working("general_1", "weekly_withholding"),
+        "max(0, dollars(a x weekly_earnings_used - b)) \
+         = max(0, dollars(0.3200 x 1333.99 - 181.7319)) = 245"
+    );
+    assert_eq!(
+        working("general_1", "weekly_medicare_levy_adjustment"),
+        "dollars(weekly_family_threshold x 0.0200 - (weekly_earnings_used - weekly_family_threshold) x 0.0800) \
+         = dollars(1325.54 x 0.0200 - (1333.99 - 1325.54) x 0.0800) = 26"
+    );
+    assert_eq!(
+        working("general_1", "withholding"),
+        "withholding_before_adjustments - medicare_levy_adjustment = 245 - 26 = 219"
+    );
+    // Weekly levy adjustment examples 1 and 2: formula (1), $10; formula (2), $11.
+    assert_eq!(
+        working("levy_1", "weekly_medicare_levy_adjustment"),
+        "dollars((weekly_earnings_used - 538.67) x 0.1) = dollars((633.99 - 538.67) x 0.1) = 10"
+    );
+    assert_eq!(
+        working("levy_2", "weekly_medicare_levy_adjustment"),
+        "dollars(weekly_earnings_used x 0.0100) = dollars(1142.99 x 0.0100) = 11"
+    );
+    // The fortnightly example: $1,013.99 against WFT $991.85 gives $18, twice.
+    assert_eq!(
+        working("levy_fortnightly", "weekly_earnings_used"),
+        "floor(earnings / 2) + 0.99 = floor(2026.77 / 2) + 0.99 = 1013.99"
+    );
+    assert_eq!(
+        working("levy_fortnightly", "medicare_levy_adjustment"),
+        "weekly_medicare_levy_adjustment x 2 = 18 x 2 = 36"
+    );
+    // The monthly example: $3,066.33 ends in 33 cents, so a cent is added
+    // first; x = 707.99, $14, and $14 x 13 / 3 is $61.
+    assert_eq!(
+        working("levy_monthly", "weekly_earnings_used"),
+        "floor((earnings + 0.01) x 3 / 13) + 0.99 = floor((3066.33 + 0.01) x 3 / 13) + 0.99 = 707.99"
+    );
+    assert_eq!(
+        working("levy_monthly", "medicare_levy_adjustment"),
+        "dollars(weekly_medicare_levy_adjustment x 13 / 3) = dollars(14 x 13 / 3) = 61"
+    );
+    // General example 2: x = 649.99, $43, $86 a fortnight, less 3.8% of
+    // $1,645, $63: $23.
+    assert_eq!(
+        working("general_2", "weekly_withholding"),
+        "max(0, dollars(a x weekly_earnings_used - b)) \
+         = max(0, dollars(0.1500 x 649.99 - 54.3462)) = 43"
+    );
+    assert_eq!(
+        working("general_2", "tax_offset_reduction"),
+        "dollars(tax_offsets x tax_offset_rate) = dollars(1645 x 0.038) = 63"
+    );
+    assert_eq!(
+        working("general_2", "withholding"),
+        "withholding_before_adjustments - tax_offset_reduction = 86 - 63 = 23"
+    );
+    // General example 3: $5,400.33 gains a cent; x = 1,246.99, $217, $940 a
+    // month, less 8.3% of $1,365, $113: $827.
+    assert_eq!(
+        working("general_3", "withholding_before_adjustments"),
+        "dollars(weekly_withholding x 13 / 3) = dollars(217 x 13 / 3) = 940"
+    );
+    assert_eq!(amount("general_3", "tax_offset_reduction"), "113.00");
+    assert_eq!(amount("general_3", "withholding"), "827.00");
+}
+
+/// Each branch of Schedule 1's rules: the scale 4 rates, the pay periods, the
+/// coefficient rows, the levy adjustment's ranges and the 53 and 27 pay tables.
+#[test]
+fn each_schedule_1_branch_gives_the_amount_its_source_sets() {
+    let working = |name: &str, id: &str| {
+        step_of(&payg_doc(name), id)["working"]
+            .as_str()
+            .unwrap()
+            .to_string()
+    };
+    let amount = |name: &str, id: &str| payg_doc(name)["result"]["amounts"][id].clone();
+    // Scale 4: 47% for a resident, 45% for a foreign resident, cents ignored
+    // in the earnings and the result.
+    assert_eq!(
+        working("no_tfn", "earnings_used"),
+        "floor(earnings) = floor(1000.99) = 1000"
+    );
+    assert_eq!(
+        working("no_tfn", "withholding"),
+        "floor(earnings_used x tax_rate) = floor(1000 x 0.47) = 470"
+    );
+    assert_eq!(amount("no_tfn_foreign", "withholding"), "450.00");
+    // Quarterly: a thirteenth of the earnings, and 13 weekly amounts; scale
+    // 1's row below $2,246 (0.3200, 71.6508).
+    assert_eq!(
+        working("quarterly", "weekly_earnings_used"),
+        "floor(earnings / 13) + 0.99 = floor(13000.00 / 13) + 0.99 = 1000.99"
+    );
+    assert_eq!(
+        working("quarterly", "withholding"),
+        "weekly_withholding x 13 = 249 x 13 = 3237"
+    );
+    // Monthly without 33 cents: no cent added; scale 3's row below $2,596.
+    assert_eq!(
+        working("monthly", "weekly_earnings_used"),
+        "floor(earnings x 3 / 13) + 0.99 = floor(5000.00 x 3 / 13) + 0.99 = 1153.99"
+    );
+    assert_eq!(amount("monthly", "withholding"), "1499.00");
+    // Scale 2 below $362 withholds nothing.
+    assert_eq!(
+        working("nil_row", "weekly_withholding"),
+        "max(0, dollars(a x weekly_earnings_used - b)) = max(0, dollars(0 x 300.99 - 0)) = 0"
+    );
+    // The 2024 instrument's row below $1,282 is 0.3227 and 180.0385, the 2026
+    // instrument's 0.3227 and 185.1935.
+    assert_eq!(amount("year_2024", "withholding"), "143.00");
+    // No levy adjustment below the threshold or from the shading out point
+    // ($908.42 x 0.1 / 0.08, $1,135).
+    assert_eq!(
+        working("levy_below", "weekly_medicare_levy_adjustment"),
+        "0 = 0 = 0"
+    );
+    assert_eq!(
+        working("levy_above", "weekly_medicare_levy_adjustment"),
+        "0 = 0 = 0"
+    );
+    assert_eq!(
+        payg_doc("levy_above")["result"]["rates"]["shading_out_point"],
+        "1135"
+    );
+    // Quarterly levy adjustment: 13 weekly adjustments.
+    assert_eq!(
+        working("levy_quarterly", "medicare_levy_adjustment"),
+        "weekly_medicare_levy_adjustment x 13 = 11 x 13 = 143"
+    );
+    // Scale 6's formula (1): (x - 908.42) x 0.05.
+    assert_eq!(
+        working("levy_scale_6", "weekly_medicare_levy_adjustment"),
+        "dollars((weekly_earnings_used - 908.42) x 0.05) = dollars((950.99 - 908.42) x 0.05) = 2"
+    );
+    // 53 weekly pays: $2,575 to $3,649 adds $7; 27 fortnightly pays: nothing
+    // below $1,700, and $48 from $7,250.
+    assert_eq!(working("pays_53", "additional_withholding"), "7 = 7 = 7");
+    assert_eq!(amount("pays_53", "withholding"), "658.00");
+    assert_eq!(amount("pays_27_below", "additional_withholding"), "0.00");
+    assert_eq!(amount("pays_27_top", "additional_withholding"), "48.00");
+    // Every adjustment: $175, less $10 of offsets and a $12 levy adjustment,
+    // plus $3 for 53 pays.
+    assert_eq!(
+        working("all_adjustments", "withholding"),
+        "withholding_before_adjustments - tax_offset_reduction - medicare_levy_adjustment \
+         + additional_withholding = 175 - 10 - 12 + 3 = 156"
+    );
+}
+
+#[test]
+fn each_schedule_1_step_cites_the_section_its_branch_applies() {
+    let authority = |name: &str, id: &str| {
+        step_of(&payg_doc(name), id)["authority"]
+            .as_str()
+            .unwrap()
+            .to_string()
+    };
+    let levy = "weekly_medicare_levy_adjustment";
+    assert_eq!(
+        authority("general_1", "weekly_earnings_used"),
+        "Schedule 1, 'Working out the weekly earnings'"
+    );
+    let other_periods =
+        "Schedule 1, 'Calculating withholding fortnightly, monthly or quarterly amounts'";
+    assert_eq!(
+        authority("quarterly", "weekly_earnings_used"),
+        other_periods
+    );
+    assert_eq!(authority("quarterly", "withholding"), other_periods);
+    assert_eq!(
+        authority("general_1", "weekly_withholding"),
+        "Schedule 1, 'Using a formula' and 'Rounding of withholding amounts'"
+    );
+    assert!(authority("no_tfn", "withholding").starts_with("Schedule 1, scale 4 tax rate"));
+    assert_eq!(
+        authority("levy_1", levy),
+        "Schedule 1, 'Weekly levy adjustment (WLA)', formula (1)"
+    );
+    assert_eq!(
+        authority("levy_2", levy),
+        "Schedule 1, 'Weekly levy adjustment (WLA)', formula (2)"
+    );
+    assert_eq!(
+        authority("general_1", levy),
+        "Schedule 1, 'Weekly levy adjustment (WLA)', formula (3)"
+    );
+    assert!(authority("levy_below", levy).contains("none below"));
+    assert!(authority("levy_above", levy).contains("none from the shading out point"));
+    assert_eq!(
+        authority("levy_fortnightly", "medicare_levy_adjustment"),
+        "Schedule 1, 'Fortnightly levy adjustment'"
+    );
+    assert_eq!(
+        authority("levy_monthly", "medicare_levy_adjustment"),
+        "Schedule 1, 'Monthly levy adjustment'"
+    );
+    assert_eq!(
+        authority("levy_quarterly", "medicare_levy_adjustment"),
+        "Schedule 1, 'Quarterly levy adjustment'"
+    );
+    assert_eq!(
+        authority("general_2", "tax_offset_reduction"),
+        "Schedule 1, 'Tax offsets'"
+    );
+    assert!(authority("pays_53", "additional_withholding").contains("53 pays"));
+    assert!(authority("pays_27_top", "additional_withholding").contains("27 pays"));
+}
+
+/// Schedule 5's examples 1 to 4 in the 2026 instrument, step by step: each
+/// tax table amount is Schedule 1's formula (and Schedule 8's for a study
+/// loan) with the coefficients of its row written in.
+#[test]
+fn the_schedule_5_examples_show_their_operands() {
+    // Example 1: $1,400 gives $267; $900 / 52 is $17; $1,417 gives $272;
+    // $5 x 52 = $260, under $423; $527 in all.
+    let jarrod = schedule_5_doc("jarrod");
+    assert_eq!(
+        working_in(&jarrod, "earnings_used"),
+        "floor(earnings) = floor(1400.00) = 1400"
+    );
+    assert_eq!(
+        working_in(&jarrod, "withholding_on_earnings"),
+        "cents(max(0, dollars(0.3200 x (floor(earnings_used) + 0.99) - 181.7319))) \
+         = cents(max(0, dollars(0.3200 x (floor(1400) + 0.99) - 181.7319))) = 267.00"
+    );
+    assert_eq!(
+        working_in(&jarrod, "additional_payment_per_period"),
+        "floor(additional_payment / pay_periods) = floor(900.00 / 52) = 17"
+    );
+    assert_eq!(
+        working_in(&jarrod, "withholding_on_earnings_and_share"),
+        "cents(max(0, dollars(0.3200 x (floor(earnings_used + additional_payment_per_period) + 0.99) - 181.7319))) \
+         = cents(max(0, dollars(0.3200 x (floor(1400 + 17) + 0.99) - 181.7319))) = 272.00"
+    );
+    assert_eq!(
+        working_in(&jarrod, "withholding_before_limit"),
+        "(withholding_on_earnings_and_share - withholding_on_earnings) x pay_periods \
+         = (272.00 - 267.00) x 52 = 260.00"
+    );
+    assert_eq!(
+        working_in(&jarrod, "withholding_on_additional_payment"),
+        "floor(max(0, min(withholding_before_limit, withholding_limit))) \
+         = floor(max(0, min(260.00, 423.0000))) = 260"
+    );
+    assert_eq!(jarrod["result"]["amounts"]["withholding"], "527.00");
+    // With HELP, Schedule 8's component is added in each table: $267 + $10 on
+    // $1,400, and $260 + $104 on the bonus; $641 in all.
+    let help = schedule_5_doc("jarrod_help");
+    assert_eq!(
+        working_in(&help, "withholding_on_earnings"),
+        "cents(max(0, dollars(0.3200 x (floor(earnings_used) + 0.99) - 181.7319)) \
+         + max(0, dollars(0.15 x (floor(earnings_used) + 0.99) - 200.5615))) \
+         = cents(max(0, dollars(0.3200 x (floor(1400) + 0.99) - 181.7319)) \
+         + max(0, dollars(0.15 x (floor(1400) + 0.99) - 200.5615))) = 277.00"
+    );
+    assert_eq!(
+        help["result"]["amounts"]["withholding_before_limit"],
+        "364.00"
+    );
+    assert_eq!(help["result"]["amounts"]["withholding"], "641.00");
+    // Example 2: each of 8 weeks recalculated at $1,700, $363 less $331.
+    let robyn = schedule_5_doc("robyn");
+    let week =
+        "cents(max(0, dollars(0.3200 x (floor(1600.00 + 100.00) + 0.99) - 181.7319))) - 331.00";
+    assert_eq!(
+        working_in(&robyn, "withholding_on_back_payment"),
+        format!(
+            "max(0, {}) = max(0, {}) = 256.00",
+            [week; 8].join(" + "),
+            [week; 8].join(" + ")
+        )
+    );
+    assert_eq!(
+        working_in(&robyn, "back_payment"),
+        "100.00 + 100.00 + 100.00 + 100.00 + 100.00 + 100.00 + 100.00 + 100.00 \
+         = 100.00 + 100.00 + 100.00 + 100.00 + 100.00 + 100.00 + 100.00 + 100.00 = 800.00"
+    );
+    assert_eq!(robyn["result"]["amounts"]["withholding"], "619.00");
+    let help = schedule_5_doc("robyn_help");
+    assert_eq!(
+        [
+            &help["result"]["amounts"]["withholding_on_back_payment"],
+            &help["result"]["amounts"]["withholding"]
+        ],
+        ["376.00", "794.00"]
+    );
+    // Example 3: $18,000 over 10 fortnights, $1,800, gives $212; $2,480 / 26
+    // is $95; $1,895 gives $242; $30 x 26 = $780 under $1,165.60; $992.
+    let laura = schedule_5_doc("laura");
+    assert_eq!(
+        working_in(&laura, "average_total_earnings"),
+        "floor(year_to_date_earnings / pay_periods_to_date) = floor(18000.00 / 10) = 1800"
+    );
+    assert_eq!(
+        working_in(&laura, "additional_payments_per_period"),
+        "floor((earlier_additional_payments + additional_payment) / pay_periods) \
+         = floor((0.00 + 2480.00) / 26) = 95"
+    );
+    assert_eq!(
+        working_in(&laura, "withholding_on_average_earnings"),
+        "cents(max(0, dollars(0.3227 x (floor(average_total_earnings / 2) + 0.99) - 185.1935)) x 2) \
+         = cents(max(0, dollars(0.3227 x (floor(1800 / 2) + 0.99) - 185.1935)) x 2) = 212.00"
+    );
+    assert_eq!(laura["result"]["amounts"]["withholding"], "992.00");
+    // Example 4's B(ii) part with FS: $1,634 on $7,000, $4,104 for the year
+    // under the $4,136 limit, $5,738 in all.
+    let bradley = schedule_5_doc("bradley_fs");
+    assert_eq!(
+        working_in(&bradley, "withholding_for_the_year"),
+        "(withholding_on_average_and_share - withholding_on_average_earnings) x pay_periods \
+         = (1976.00 - 1634.00) x 12 = 4104.00"
+    );
+    assert_eq!(bradley["result"]["amounts"]["withholding"], "5738.00");
+}
+
+/// Each branch of Schedule 5's rules: the 47% limit, the pay periods a
+/// commission relates to, a negative result as nil, earlier B(ii) withholding
+/// and the 33 cents Schedule 1 adds to a monthly amount.
+#[test]
+fn each_schedule_5_branch_gives_the_amount_its_source_sets() {
+    let amount = |name: &str, id: &str| schedule_5_doc(name)["result"]["amounts"][id].clone();
+    // The limit: $5,200.99 x 47% = $2,444.4653 is less than $2,964, and its
+    // cents are ignored.
+    let limit = schedule_5_doc("limit");
+    assert_eq!(
+        working_in(&limit, "withholding_on_additional_payment"),
+        "floor(max(0, min(withholding_before_limit, withholding_limit))) \
+         = floor(max(0, min(2964.00, 2444.4653))) = 2444"
+    );
+    assert_eq!(
+        authority_in(&limit, "withholding_limit"),
+        "Schedule 5, Method A step 8 and 'Withholding limit'"
+    );
+    // A 4-week commission: $100 a week, $1,500 gives $299, $32 x 4 = $128.
+    assert_eq!(amount("commission", "withholding_before_limit"), "128.00");
+    // B(i) has no limit, and a negative total is nil.
+    assert_eq!(
+        working_in(&schedule_5_doc("b_i_nil"), "withholding_on_back_payment"),
+        "max(0, cents(max(0, dollars(0.3200 x (floor(1600.00 + 0.00) + 0.99) - 181.7319))) - 400.00) \
+         = max(0, cents(max(0, dollars(0.3200 x (floor(1600.00 + 0.00) + 0.99) - 181.7319))) - 400.00) = 0"
+    );
+    // B(i) monthly: $4,346.33 gains a cent before the table, in the earlier
+    // period's recalculation and on the current pay, $602 each.
+    let monthly = schedule_5_doc("b_i_monthly");
+    assert_eq!(
+        working_in(&monthly, "withholding_on_earnings"),
+        "cents(dollars(max(0, dollars(0.3227 x (floor((earnings + 0.01) x 3 / 13) + 0.99) - 185.1935)) x 13 / 3)) \
+         = cents(dollars(max(0, dollars(0.3227 x (floor((4346.33 + 0.01) x 3 / 13) + 0.99) - 185.1935)) x 13 / 3)) = 602.00"
+    );
+    assert_eq!(
+        amount("b_i_monthly", "withholding_on_back_payment"),
+        "42.00"
+    );
+    // Back payments given as 1E+2 and 5E+1, or -0.00, are written as the
+    // total adds them.
+    let exponent = schedule_5_doc("b_i_exponent");
+    assert_eq!(
+        working_in(&exponent, "back_payment"),
+        "100 + 50 = 100 + 50 = 150"
+    );
+    assert!(
+        working_in(&exponent, "withholding_on_back_payment")
+            .contains("(floor(1.6E+3 + 1E+2) + 0.99)")
+    );
+    // $1,700 gives $363 less $331; $1,650 gives $347 less nothing; $363 on
+    // $1,700 now: $742.
+    assert_eq!(amount("b_i_exponent", "withholding"), "742.00");
+    assert_eq!(
+        working_in(&schedule_5_doc("b_i_negative_zero"), "back_payment"),
+        "0.00 = 0.00 = 0.00"
+    );
+    // B(ii) step 8: $500 already withheld comes off before the limit; more
+    // than the year's withholding leaves nil.
+    let earlier = schedule_5_doc("b_ii_earlier");
+    assert!(
+        working_in(&earlier, "withholding_on_additional_payment").starts_with(
+            "floor(max(0, min(withholding_for_the_year - earlier_additional_withholding, withholding_limit))) \
+             = floor(max(0, min("
+        )
+    );
+    assert!(working_in(&earlier, "withholding_on_additional_payment").contains(" - 500.00, "));
+    assert_eq!(
+        amount("b_ii_nil", "withholding_on_additional_payment"),
+        "0.00"
+    );
+}
+
+#[test]
+fn each_schedule_5_step_cites_its_method_step() {
+    let jarrod = schedule_5_doc("jarrod");
+    let cited: Vec<&str> = jarrod["steps"]
+        .as_array()
+        .unwrap()
+        .iter()
+        .map(|s| s["authority"].as_str().unwrap().split(';').next().unwrap())
+        .collect();
+    assert_eq!(
+        cited,
+        [
+            "Schedule 5, Method A step 1",
+            "Schedule 5, Method A step 2",
+            "Schedule 5, Method A step 3",
+            "Schedule 5, Method A steps 4 and 5",
+            "Schedule 5, Method A steps 6 and 7",
+            "Schedule 5, Method A step 8 and 'Withholding limit'",
+            "Schedule 5, Method A step 9",
+            "Schedule 5, Method A step 10",
+        ]
+    );
+    let robyn = schedule_5_doc("robyn");
+    assert!(
+        authority_in(&robyn, "withholding_on_back_payment")
+            .starts_with("Schedule 5, Method B(i) steps 2 to 5")
+    );
+    assert!(
+        authority_in(&robyn, "withholding_on_earnings")
+            .starts_with("Schedule 5, Method B(i) step 6")
+    );
+    let laura = schedule_5_doc("laura");
+    assert!(
+        authority_in(&laura, "withholding_on_additional_payment")
+            .starts_with("Schedule 5, Method B(ii) steps 8 and 10")
+    );
+    assert!(
+        authority_in(&laura, "withholding_on_earnings")
+            .starts_with("Schedule 5, Method B(ii) step 11")
+    );
+    for doc in [&jarrod, &robyn, &laura] {
+        let tables = doc["steps"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .filter(|s| s["working"].as_str().unwrap().starts_with("cents("));
+        for table in tables {
+            assert!(
+                table["authority"]
+                    .as_str()
+                    .unwrap()
+                    .contains("Schedule 1, 'Using a formula'"),
+                "{table}"
+            );
+        }
+    }
+}
+
+/// Schedule 11's examples 1 to 4 and the tax-free limit of ITAA 1997
+/// s 83-170(3), step by step.
+#[test]
+fn the_schedule_11_examples_show_their_operands() {
+    // Example 4, Alec: $13,598 + 5 x $6,801 = $47,603; $397 over it at 32%,
+    // $127; $40,000 of whole-of-income cap; $17,678 at 32%, $5,657; $5,784.
+    let alec = etp_doc("alec");
+    assert_eq!(
+        working_in(&alec, "tax_free_limit"),
+        "redundancy_base_amount + redundancy_service_amount x completed_years_of_service \
+         = 13598 + 6801 x 5 = 47603"
+    );
+    assert_eq!(
+        working_in(&alec, "excluded_taxable_component"),
+        "redundancy_payment - tax_free_redundancy_amount + excluded_payment \
+         = 48000.00 - 47603 + 0.00 = 397.00"
+    );
+    assert_eq!(
+        working_in(&alec, "excluded_withholding"),
+        "dollars(excluded_within_cap x withholding_rate_within_cap + excluded_above_cap x withholding_rate_above_cap) \
+         = dollars(397.00 x 0.32 + 0.00 x 0.47) = 127"
+    );
+    assert_eq!(
+        working_in(&alec, "remaining_etp_cap"),
+        "etp_cap - excluded_within_cap = 270000 - 397.00 = 269603.00"
+    );
+    assert_eq!(
+        working_in(&alec, "whole_of_income_cap"),
+        "max(0, whole_of_income_cap_amount - other_taxable_payments) = max(0, 180000 - 140000.00) = 40000.00"
+    );
+    assert_eq!(
+        working_in(&alec, "non_excluded_withholding"),
+        "dollars(non_excluded_within_cap x withholding_rate_within_cap + non_excluded_above_cap x withholding_rate_above_cap) \
+         = dollars(17678.00 x 0.32 + 0.00 x 0.47) = 5657"
+    );
+    assert_eq!(alec["result"]["amounts"]["total_withholding"], "5784.00");
+    // Example 3, Chris: $80,000 at 32% and $40,000 over the cap at 47%.
+    assert_eq!(
+        working_in(&etp_doc("chris"), "non_excluded_withholding"),
+        "dollars(non_excluded_within_cap x withholding_rate_within_cap + non_excluded_above_cap x withholding_rate_above_cap) \
+         = dollars(80000.00 x 0.32 + 40000.00 x 0.47) = 44400"
+    );
+    // Example 2, Jane: $180,000 - $84,000 = $96,000, below the ETP cap.
+    assert_eq!(
+        working_in(&etp_doc("jane"), "non_excluded_cap"),
+        "min(remaining_etp_cap, whole_of_income_cap) = min(270000.00, 96000.00) = 96000.00"
+    );
+    // Example 1, Lloyd: $45,000 within the ETP cap at 32%, $14,400.
+    assert_eq!(
+        etp_doc("lloyd")["result"]["amounts"]["total_withholding"],
+        "14400.00"
+    );
+}
+
+#[test]
+fn each_schedule_11_branch_gives_the_amount_and_cites_the_rate_its_source_sets() {
+    // Barbra: the whole redundancy payment is within the s 83-170 limit.
+    let barbra = etp_doc("barbra");
+    assert_eq!(
+        working_in(&barbra, "tax_free_redundancy_amount"),
+        "min(redundancy_payment, tax_free_limit) = min(70000.00, 115613) = 70000.00"
+    );
+    assert_eq!(
+        authority_in(&barbra, "tax_free_redundancy_amount"),
+        "ITAA 1997 s 83-170(2)"
+    );
+    // Preservation age reached: Table A's 17%; under it, 32%.
+    let reached = etp_doc("reached");
+    assert_eq!(
+        working_in(&reached, "non_excluded_withholding"),
+        "dollars(non_excluded_within_cap x withholding_rate_within_cap + non_excluded_above_cap x withholding_rate_above_cap) \
+         = dollars(1000.00 x 0.17 + 0.00 x 0.47) = 170"
+    );
+    assert!(
+        authority_in(&reached, "non_excluded_withholding")
+            .starts_with("Schedule 11, Table A, preservation age or over")
+    );
+    assert!(
+        authority_in(&etp_doc("chris"), "non_excluded_withholding")
+            .starts_with("Schedule 11, Table A, under preservation age")
+    );
+    // A cent over the ETP cap is withheld at 47%, and leaves the other part no cap.
+    let over = etp_doc("over_etp_cap");
+    assert_eq!(
+        working_in(&over, "excluded_above_cap"),
+        "excluded_taxable_component - excluded_within_cap = 270000.01 - 270000 = 0.01"
+    );
+    assert_eq!(
+        working_in(&over, "non_excluded_cap"),
+        "min(remaining_etp_cap, whole_of_income_cap) = min(0, 180000.00) = 0"
+    );
+    assert_eq!(
+        authority_in(&over, "excluded_within_cap"),
+        "ITAA 1997 s 82-10(4)(a), (6) and (7)(a)(i); Schedule 11, 'ETP caps', column 1: the ETP cap alone"
+    );
+    // Other payments over $180,000 leave no whole-of-income cap, which the
+    // excluded part does not use.
+    let none = etp_doc("no_whole_of_income_cap");
+    assert_eq!(
+        working_in(&none, "whole_of_income_cap"),
+        "max(0, whole_of_income_cap_amount - other_taxable_payments) = max(0, 180000 - 250000.00) = 0"
+    );
+    assert_eq!(none["result"]["amounts"]["excluded_within_cap"], "1000.00");
+    assert_eq!(
+        authority_in(&none, "whole_of_income_cap"),
+        "ITAA 1997 s 82-10(4)(c) and (5); Schedule 11, 'Steps to work out smallest cap', steps 1 to 3"
+    );
+}
+
 #[test]
 fn the_fbt_benefit_steps_cite_their_provisions() {
     let all = cases();
@@ -726,6 +1610,30 @@ fn a_refused_input_gets_the_commands_own_refusal() {
     let mut input = cases()[19].1.clone();
     input["days"] = json!(0);
     assert_eq!(refused("pension-minimum", input), "input.day_count_invalid");
+    let mut input = payg(PAYG[7].1);
+    input.as_object_mut().unwrap().remove("foreign_resident");
+    assert_eq!(refused("payg-withholding", input), "input.missing_field");
+    let mut input = payg(PAYG[5].1);
+    input["tax_offsets"] = json!("99999");
+    assert_eq!(
+        refused("payg-withholding", input),
+        "payg.reductions_exceed_withholding"
+    );
+    let mut input = schedule_5(SCHEDULE_5[0].2);
+    input["pay_periods"] = json!(1);
+    assert_eq!(refused(A, input), "input.pay_periods_invalid");
+    let mut input = schedule_5(SCHEDULE_5[4].2);
+    input["back_payment_periods"] = json!([]);
+    assert_eq!(refused(B_I, input), "input.back_payment_periods_invalid");
+    let mut input = schedule_5(SCHEDULE_5[8].2);
+    input["scale"] = json!(4);
+    assert_eq!(refused(B_II, input), "input.tax_scale_unsupported");
+    let mut input = etp(ETP[0].1);
+    input["completed_years_of_service"] = json!(151);
+    assert_eq!(
+        refused("termination-payment", input),
+        "input.years_of_service_invalid"
+    );
 }
 
 #[test]
@@ -761,7 +1669,8 @@ fn derive_refuses_what_it_does_not_explain() {
         message,
         "derive explains fbt, fbt-car-statutory, fbt-car-operating-cost, fbt-loan, \
          fbt-meal-entertainment, fbt-car-parking, division-293, pension-minimum, \
-         not \"gst\""
+         payg-withholding, schedule-5-method-a, schedule-5-method-b-i, \
+         schedule-5-method-b-ii, termination-payment, not \"gst\""
     );
 }
 

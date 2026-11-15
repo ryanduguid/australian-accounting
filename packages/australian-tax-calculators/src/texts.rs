@@ -543,6 +543,18 @@ pub const REFUSAL_CODES: &[(&str, &str)] = &[
         "derive was asked to explain a command whose amounts it does not derive.",
     ),
     (
+        "estimate.family_mismatch",
+        "personal-tax-estimate was given parts that describe different families: a spouse in one but not another, 2 spouse taxable incomes, or dependants without a spouse.",
+    ),
+    (
+        "estimate.residency_unsupported",
+        "personal-tax-estimate was given a part-year resident or a working holiday maker, or a foreign resident with a part it composes for a resident only.",
+    ),
+    (
+        "estimate.surcharge_with_exemption",
+        "personal-tax-estimate was given Medicare levy exemption days beside a Medicare levy surcharge input, whose scope excludes them.",
+    ),
+    (
         "fbt.register_not_valid",
         "A 12 week register's first valid FBT year is not the year given or one of the 4 before it.",
     ),
@@ -616,7 +628,7 @@ pub const REFUSAL_CODES: &[(&str, &str)] = &[
     ),
     (
         "input.field_unknown",
-        "A field the worksheet or command does not take, or does not take beside the other inputs given, was given (fbt-loan, fbt-meal-entertainment, fbt-car-parking, division-296, depreciation, foreign-resident-tax, medicare-levy, medicare-levy-surcharge, payg-withholding, termination-payment, the Schedule 5 methods, working-holiday-maker-withholding, study-loan-withholding, seniors-pensioners-withholding, seniors-pensioners-tax-offset and derive only).",
+        "A field the worksheet or command does not take, or does not take beside the other inputs given, was given (fbt-loan, fbt-meal-entertainment, fbt-car-parking, division-296, depreciation, foreign-resident-tax, medicare-levy, medicare-levy-surcharge, payg-withholding, termination-payment, the Schedule 5 methods, working-holiday-maker-withholding, study-loan-withholding, seniors-pensioners-withholding, seniors-pensioners-tax-offset, derive and personal-tax-estimate only).",
     ),
     ("input.flag_invalid", "A flag is not a JSON boolean."),
     ("input.fraction_invalid", "A fraction is outside 0 to 1."),
@@ -645,6 +657,10 @@ pub const REFUSAL_CODES: &[(&str, &str)] = &[
         "A count of pay periods is outside the range the method allows for the pay period.",
     ),
     ("input.quarter_invalid", "A quarter is not 1, 2, 3 or 4."),
+    (
+        "input.residency_invalid",
+        "A residency is not full_year_resident, part_year_resident, working_holiday_maker or foreign_resident.",
+    ),
     (
         "input.signed_amount_invalid",
         "An amount that may be negative is not a finite decimal of at most 2dp within 1e12 of nil.",

@@ -22,6 +22,29 @@ intentionally changed.
   `fbt_meal_entertainment.register_values_invalid`,
   `input.benefit_count_invalid` and `input.fbt_method_invalid`. The ATO's and
   the Library's worked examples are in `docs/calculation-evidence.md`.
+- `personal-tax-estimate` composes one full-year resident's income tax and
+  levies for a year from `resident-tax`, `low-income-tax-offset`,
+  `medicare-levy`, `medicare-levy-surcharge` and, when given,
+  `seniors-pensioners-tax-offset`, `study-loan-repayment` and `division-293`,
+  each called as it is alone; for a full-year foreign resident, from
+  `foreign-resident-tax` and `division-293`, with no low income tax offset,
+  Medicare levy or surcharge. It applies SAPTO and then LITO against basic tax
+  only (ITAA 1997 s 63-10(1)), names the worksheet behind each line, keeps
+  every part's result, and shows Division 293 tax outside the total. A part's
+  refusal keeps its code and names the part. New codes:
+  `estimate.residency_unsupported` (part-year residents, working holiday
+  makers, and SAPTO or a study loan for a foreign resident),
+  `estimate.surcharge_with_exemption`, `estimate.family_mismatch` (parts that
+  describe different spouses or dependants) and `input.residency_invalid`.
+  `tests/personal_tax_estimate.rs` holds it to the ATO's figures, and
+  `tests/properties.rs` to the sum of its parts.
+- `derive` also covers `payg-withholding`, the 3 `schedule-5` methods and
+  `termination-payment`. Their steps cite the headings and method steps of
+  Schedules 1, 5, 8 and 11 to the Taxation Administration (Withholding
+  Schedules) Instruments 2024 to 2026, and ITAA 1997 s 82-10 and 83-170; a
+  formula may now use `floor`. `tests/properties.rs`, `tests/schedule_5.rs`
+  and `tests/termination_payment.rs` derive each case they run and check the
+  result is the plain output. No command's plain output changes.
 - `derive` also covers `division-293` and `pension-minimum`. Their steps cite
   ITAA 1997 s 293-20 and the Superannuation (Sustaining the Superannuation
   Contribution Concession) Imposition Act 2013 s 5, and SISR Schedule 7

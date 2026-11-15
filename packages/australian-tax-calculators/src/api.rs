@@ -414,11 +414,12 @@ pub fn commands() -> Vec<&'static str> {
     out.push("worksheet-catalogue");
     out.push("periods");
     out.push("derive");
+    out.push("personal-tax-estimate");
     out
 }
 
 /// The commands `derive` explains: each of their amounts is worked out in a step.
-const DERIVED: [&str; 8] = [
+const DERIVED: [&str; 13] = [
     "fbt",
     "fbt-car-statutory",
     "fbt-car-operating-cost",
@@ -427,6 +428,11 @@ const DERIVED: [&str; 8] = [
     "fbt-car-parking",
     "division-293",
     "pension-minimum",
+    "payg-withholding",
+    "schedule-5-method-a",
+    "schedule-5-method-b-i",
+    "schedule-5-method-b-ii",
+    "termination-payment",
 ];
 
 /// `derive`: `{"command", "input"}` gives the command's result with the step
@@ -646,6 +652,21 @@ fn int_limit(value: &Value) -> Result<()> {
     }
 }
 
+/// Whether `command` takes the input `key`, required or optional.
+pub(crate) fn takes(command: &str, key: &str) -> bool {
+    let kind = command.replace('-', "_");
+    // The catalogue's required and optional inputs, which for the FBT benefit
+    // worksheets are more than their positional parameters.
+    let named = [
+        crate::metadata::input_units(&kind),
+        crate::metadata::optional_inputs(&kind),
+    ];
+    COMMAND_ARGS
+        .iter()
+        .any(|(c, params)| *c == command && params.iter().any(|(p, _)| *p == key))
+        || named.iter().flatten().any(|(n, _)| *n == key)
+}
+
 /// Run one JSON stdin command: the result value, or the refusal message.
 pub fn evaluate(command: &str, v: &Value) -> std::result::Result<Value, String> {
     evaluate_coded(command, v).map_err(|refusal| refusal.message)
@@ -660,6 +681,7 @@ pub fn evaluate_coded(command: &str, v: &Value) -> Result<Value> {
     match command {
         "worksheet-catalogue" => return Ok(engine::worksheet_catalogue()),
         "derive" => return derive(v),
+        "personal-tax-estimate" => return crate::estimate::compose(v),
         "periods" => {
             let kind = match v.get("kind") {
                 None => return refusal("input.missing_field", "kind is required"),
@@ -707,28 +729,16 @@ pub fn evaluate_coded(command: &str, v: &Value) -> Result<Value> {
             | "fbt-loan"
             | "fbt-meal-entertainment"
             | "fbt-car-parking"
-    ) {
-        let kind = command.replace('-', "_");
-        // The catalogue's required and optional inputs, which for the FBT
-        // benefit worksheets are more than their positional parameters.
-        let named = [
-            crate::metadata::input_units(&kind),
-            crate::metadata::optional_inputs(&kind),
-        ];
-        let taken = |key: &String| {
-            params.iter().any(|(p, _)| p == key) || named.iter().flatten().any(|(n, _)| n == key)
-        };
-        if let Some(key) = v
-            .as_object()
-            .into_iter()
-            .flat_map(|o| o.keys())
-            .find(|k| !taken(k))
-        {
-            return refusal(
-                "input.field_unknown",
-                format!("{key} is not an input of {command}"),
-            );
-        }
+    ) && let Some(key) = v
+        .as_object()
+        .into_iter()
+        .flat_map(|o| o.keys())
+        .find(|k| !takes(command, k))
+    {
+        return refusal(
+            "input.field_unknown",
+            format!("{key} is not an input of {command}"),
+        );
     }
     let a: Vec<Arg> = params
         .iter()
@@ -931,5 +941,24 @@ mod tests {
             wrong.len(),
             &wrong[..wrong.len().min(10)]
         );
+    }
+
+    /// `takes` reads the catalogue's required inputs so that the FBT benefit
+    /// worksheets' named inputs are taken; every other command's required
+    /// inputs are its parameters, so no other command takes more than before.
+    #[test]
+    fn only_the_fbt_benefit_worksheets_take_inputs_beyond_their_parameters() {
+        let named_only = ["fbt-loan", "fbt-meal-entertainment", "fbt-car-parking"];
+        for (command, params) in COMMAND_ARGS {
+            let extra: Vec<_> = crate::metadata::input_units(&command.replace('-', "_"))
+                .into_iter()
+                .filter(|(n, _)| !params.iter().any(|(p, _)| p == n))
+                .collect();
+            assert_eq!(
+                extra.is_empty(),
+                !named_only.contains(command),
+                "{command} {extra:?}"
+            );
+        }
     }
 }
