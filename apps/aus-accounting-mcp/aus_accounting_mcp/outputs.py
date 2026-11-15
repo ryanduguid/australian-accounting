@@ -1253,6 +1253,29 @@ class BsbFormatCheck(ResultObject):
     source_checked: DateText
 
 
+class AccountNumberFormatCheck(ResultObject):
+    ok: Annotated[Literal[True], Field(description="The check ran; not that the account exists.")]
+    identifier: Literal["account number"]
+    result: Annotated[
+        Literal["FORMAT_VALID", "MALFORMED"],
+        Field(description="Outcome of the format test; never an account lookup."),
+    ]
+    formatted: Annotated[
+        str | None,
+        Field(description="The account number as the BECS field carries it, without its blank "
+                          "fill; null when malformed."),
+    ]
+    reason: str
+    account_established: Annotated[
+        Literal[False],
+        Field(description="A format test never establishes that the account exists."),
+    ]
+    not_established: Annotated[str, Field(description="Retain when presenting the result.")]
+    source_url: str
+    source_provision: str
+    source_checked: DateText
+
+
 class ScopeRefusal(ResultObject):
     ok: Annotated[Literal[False], Field(description="Unsupported request was refused.")]
     available: Annotated[

@@ -65,10 +65,11 @@ from .fixtures.synthetic_sbr import (
     generate_synthetic_ctr_payload,
 )
 from .freshness import DataTool, data_freshness
-from .identifiers import check_abn, check_acn, check_bsb
+from .identifiers import check_abn, check_account_number, check_acn, check_bsb
 from .library import MAX_OFFSET, read_reference, search_references
 from .money import MONEY_SCHEMA, parse_amount
 from .outputs import (
+    AccountNumberFormatCheck,
     BasReconciliation,
     BenchmarkComparison,
     BsbFormatCheck,
@@ -203,6 +204,9 @@ classification of the facts the operator supplied, not a determination.
 - validate_bsb_format tests only the 6 digit XXX-XXX format AusPayNet publishes; it holds no
   BSB directory. A valid format proves no institution, branch or account: retain
   not_established and send the user to AusPayNet's BSB Lookup.
+- validate_account_number_format tests only the format of AusPayNet's account number field:
+  up to 9 letters, digits, hyphens or spaces. A valid format proves no account, payee or
+  BSB match: retain not_established.
 - generate_synthetic_sbr_fixture is only for fabricated integration tests.
   Never use its CTR/BAS output as a real calculation or lodgment.
 Resources carry context without a tool call: aus-accounting://disclaimer for the
@@ -1199,6 +1203,24 @@ def validate_bsb_format(
     not_established and use AusPayNet's BSB Lookup for those. Reads no network.
     """
     return cast(BsbFormatCheck, check_bsb(bsb))
+
+
+@mcp.tool(annotations=LOCAL_READ_ONLY, title="Test a bank account number's format")
+def validate_account_number_format(
+    account_number: Annotated[str, Field(
+        max_length=40,
+        description="The Australian bank account number as written, without the BSB.")],
+) -> AccountNumberFormatCheck:
+    """Test an account number against the account number field in AusPayNet's BECS Procedures.
+
+    result is FORMAT_VALID or MALFORMED. The field takes up to 9 ASCII letters, digits,
+    hyphens or spaces, not all zeros or blanks; hyphens are removed from a longer number, as
+    the procedures direct, and spaces at either end are removed. Any other character is
+    MALFORMED, never cleaned up. The procedures set no check digit and this server holds no
+    account data, so a valid format proves neither that the account exists or belongs to the
+    payee nor that it matches a BSB: retain not_established. Reads no network.
+    """
+    return cast(AccountNumberFormatCheck, check_account_number(account_number))
 
 
 @mcp.tool(annotations=LOCAL_READ_ONLY, title="Search the configured accounting library")
