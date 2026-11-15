@@ -10,10 +10,13 @@
 use serde_json::Value;
 
 use super::super::{
-    APPLIED, Arg, EXCESS, NET, Result, Step, cents, d, derived_result, fbt_year, money, precise,
-    py_min, refuse, step, steps_from,
+    Arg, Result, Step, cents, d, derived_result, fbt_year, money, precise, py_min, refuse, step,
 };
-use super::{income_use, method, named, take};
+use super::{
+    AVAILABLE, DEDUCTIBLE_INPUTS, DeductibleSteps, GROSS_DEDUCTION, ND, RD, REDUCTION,
+    contribution_steps, deductible_benefit, deductible_inputs, deductible_steps, in_house_available,
+    income_use, method, named, payment_rows, take, taxable_steps,
+};
 use crate::decimal::Decimal;
 
 /// How a property valuation rule turns its inputs into a value.
@@ -116,11 +119,6 @@ pub(super) const EXPENSE_PAYMENT_METHODS: [&str; 7] = {
     out
 };
 
-/// The input naming the part of an employee's $1,000 in-house reduction for
-/// the year (s 62) their other in-house fringe benefits have left.
-const AVAILABLE: &str = "in_house_reduction_available";
-const IN_HOUSE_LIMIT: &str = "1000";
-
 /// The debt waiver worksheet's only input.
 const WAIVED: &str = "amount_waived";
 
@@ -200,67 +198,27 @@ fn available<'a>(rule: Rule, input: impl Fn(&str) -> &'a Arg) -> Result<Option<D
     if !reduces(rule) {
         return Ok(None);
     }
-    let available = money(input(AVAILABLE))?;
-    if available.gt(&d(IN_HOUSE_LIMIT))? {
-        return refuse(
-            "fbt.in_house_reduction_invalid",
-            "in_house_reduction_available must be from 0 to 1000.00: the part of the employee's $1,000 in-house reduction for the FBT year that their other in-house fringe benefits have not used (FBTAA s 62(1)).",
-        );
-    }
-    Ok(Some(available))
+    Ok(Some(in_house_available(input(AVAILABLE))?))
 }
 
-/// The steps from `gross`'s step: `contribution` applied to it, never taking
-/// it below nil, any excess, and the value after it, as the `rows` name them.
-fn contribution_steps(
-    gross: Step,
-    contribution: &Decimal,
-    rows: &[(&'static str, &'static str, &str); 3],
-) -> Result<Vec<Step>> {
-    let value = gross.value.clone();
-    precise(|| {
-        let applied = py_min(contribution.clone(), value.clone())?;
-        let excess = contribution.sub(&applied)?;
-        let net = value.sub(&applied)?;
-        let mut steps = vec![gross];
-        steps.extend(steps_from(
-            rows,
-            [
-                (&[contribution, &value], applied.clone()),
-                (&[contribution, &applied], excess),
-                (&[&value, &applied], net),
-            ],
-        ));
-        Ok(steps)
-    })
-}
-
-/// The otherwise deductible rule's steps, (id, authority, formula): the gross
-/// deduction on `base`, the deduction the recipient has (RD), the notional
-/// deduction and the reduction it allows, never more than the value.
-type DeductibleSteps = [(&'static str, &'static str, &'static str); 4];
+/// The otherwise deductible rule's steps for a property benefit (s 44).
 const PROPERTY_DEDUCTIBLE: DeductibleSteps = [
-    (
-        "gross_deduction",
-        "FBTAA s 44(1)(b), GD",
-        "cents(gross_taxable_value x income_use)",
-    ),
-    (
-        "contribution_deduction_applied",
-        "FBTAA s 44(1)(ba), RD",
-        "min(contribution_deduction, gross_deduction)",
-    ),
+    ("gross_deduction", "FBTAA s 44(1)(b), GD", GROSS_DEDUCTION),
+    ("contribution_deduction_applied", "FBTAA s 44(1)(ba), RD", RD),
     (
         "notional_deduction",
         "FBTAA s 44(1)(ba), ND = GD - RD",
-        "gross_deduction - contribution_deduction_applied",
+        ND,
     ),
     (
         "reduction_applied",
         "FBTAA s 44(1); FBT return 2026 instructions, item 23K",
-        "min(notional_deduction, value_after_contribution)",
+        REDUCTION,
     ),
 ];
+
+/// The otherwise deductible rule's steps for an external expense payment
+/// (s 24), on the recipient's expenditure.
 const EXPENSE_DEDUCTIBLE: DeductibleSteps = [
     (
         "gross_deduction",
@@ -280,95 +238,9 @@ const EXPENSE_DEDUCTIBLE: DeductibleSteps = [
     (
         "reduction_applied",
         "FBTAA s 24(1); FBT return 2026 instructions, item 23E",
-        "min(notional_deduction, value_after_contribution)",
+        REDUCTION,
     ),
 ];
-
-/// [`DeductibleSteps`] on `base` at `share`, with the recipient's deduction
-/// `rd`, against `value`, the value after the contribution.
-fn deductible_steps(
-    table: &DeductibleSteps,
-    base: &Decimal,
-    share: &Decimal,
-    rd: &Decimal,
-    value: &Decimal,
-) -> Result<Vec<Step>> {
-    precise(|| {
-        let gd = cents(base.mul(share)?)?;
-        let applied = py_min(rd.clone(), gd.clone())?;
-        let nd = gd.sub(&applied)?;
-        let reduction = py_min(nd.clone(), value.clone())?;
-        Ok(steps_from(
-            table,
-            [
-                (&[base, share], gd.clone()),
-                (&[rd, &gd], applied.clone()),
-                (&[&gd, &applied], nd.clone()),
-                (&[&nd, value], reduction),
-            ],
-        ))
-    })
-}
-
-/// The value after the contribution less each of `reductions`: its formula,
-/// operands and amount.
-fn less(
-    value: &Decimal,
-    reductions: &[(&str, Decimal)],
-) -> Result<(String, Vec<Decimal>, Decimal)> {
-    let mut formula = "value_after_contribution".to_string();
-    let (mut operands, mut net) = (vec![value.clone()], value.clone());
-    for (name, amount) in reductions {
-        formula = format!("{formula} - {name}");
-        operands.push(amount.clone());
-        net = precise(|| Ok(net.sub(amount)?))?;
-    }
-    Ok((formula, operands, net))
-}
-
-/// The last steps: s 62's reduction where `available` is given, then the
-/// taxable value, the value after the contribution less every reduction.
-fn taxable_steps(
-    mut steps: Vec<Step>,
-    available: Option<Decimal>,
-    authority: &'static str,
-) -> Result<Vec<Step>> {
-    let value = steps
-        .iter()
-        .find(|s| s.id == "value_after_contribution")
-        .expect("a value after the contribution")
-        .value
-        .clone();
-    let mut reductions: Vec<(&str, Decimal)> = steps
-        .iter()
-        .filter(|s| s.id == "reduction_applied")
-        .map(|s| (s.id, s.value.clone()))
-        .collect();
-    if let Some(available) = available {
-        let (formula, operands, net) = less(&value, &reductions)?;
-        let applied = precise(|| Ok(py_min(available.clone(), net)?))?;
-        let mut all = vec![&available];
-        all.extend(&operands);
-        let formula = format!("min({AVAILABLE}, {formula})");
-        let id = "in_house_reduction_applied";
-        steps.push(step(id, "FBTAA s 62(1)", &formula, &all, applied.clone()));
-        reductions.push((id, applied));
-    }
-    let (formula, operands, net) = less(&value, &reductions)?;
-    let operands: Vec<&Decimal> = operands.iter().collect();
-    steps.push(step("taxable_value", authority, &formula, &operands, net));
-    Ok(steps)
-}
-
-/// The recipient's contribution applied, its excess and the value after it,
-/// under `authority`.
-fn payment_rows(authority: &'static str) -> [(&'static str, &'static str, &'static str); 3] {
-    [
-        ("employee_contribution_applied", authority, APPLIED),
-        ("excess_employee_contribution", authority, EXCESS),
-        ("value_after_contribution", authority, NET),
-    ]
-}
 
 const PROPERTY: &str = "fbt-property";
 
@@ -385,44 +257,24 @@ pub fn fbt_property(
     let (_, period, _) = fbt_year(scope_confirmed, year_ended, kind)?;
     let rule = rule(method(method_arg, kind)?);
     let when = format!(" with method {}", rule.0);
-    let mut names = vec![
-        "employee_contribution",
-        "income_use",
-        "contribution_deduction",
-    ];
+    let mut names = DEDUCTIBLE_INPUTS.to_vec();
     names.extend(rule_inputs(rule));
     let input = named(given, PROPERTY, &when, &names)?;
     let gross = value_step(rule, &input)?;
-    let contribution = money(input("employee_contribution"))?;
-    let share = income_use(input("income_use"))?;
-    let deduction = money(input("contribution_deduction"))?;
-    if deduction.gt(&contribution)? {
-        return refuse(
-            "fbt_property.deduction_exceeds_contribution",
-            "contribution_deduction cannot exceed employee_contribution: it is the deduction for that consideration (FBTAA s 44(1)(ba), RD).",
-        );
-    }
+    let reductions = deductible_inputs(DEDUCTIBLE_INPUTS.map(&input), "s 44(1)(ba)")?;
     let available = available(rule, &input)?;
-    let base = gross.value.clone();
-    let authority = if rule.0.starts_with("in_house_") {
+    let rows = if rule.0.starts_with("in_house_") {
         "FBTAA s 42(1)"
     } else {
         "FBTAA s 43"
     };
-    let mut steps = contribution_steps(gross, &contribution, &payment_rows(authority))?;
-    let value = steps
-        .last()
-        .expect("value after contribution")
-        .value
-        .clone();
-    let table = &PROPERTY_DEDUCTIBLE;
-    steps.extend(deductible_steps(table, &base, &share, &deduction, &value)?);
     let authority = if available.is_some() {
         "FBTAA s 44(1), TV - ND, and s 62(1); FBT return 2026 instructions, item 23K"
     } else {
         "FBTAA s 44(1), TV - ND; FBT return 2026 instructions, item 23K"
     };
-    let steps = taxable_steps(steps, available, authority)?;
+    let table = &PROPERTY_DEDUCTIBLE;
+    let steps = deductible_benefit(gross, &reductions, rows, table, available, authority)?;
     derived_result(kind, &period, steps, Vec::new())
 }
 

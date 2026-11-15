@@ -225,7 +225,7 @@ fn refusals_name_the_input_or_rule() {
                            "in_house_reduction_available": "0.00", "year_ended": 2026,
                            "scope_confirmed": true});
     let code = |input: &Value| api::evaluate_coded("fbt-property", input).unwrap_err().code;
-    assert_eq!(code(&input), "fbt_property.deduction_exceeds_contribution");
+    assert_eq!(code(&input), "fbt.deduction_exceeds_contribution");
     input["contribution_deduction"] = json!("0.00");
     input["in_house_reduction_available"] = json!("1000.01");
     assert_eq!(code(&input), "fbt.in_house_reduction_invalid");

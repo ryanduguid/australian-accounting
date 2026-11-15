@@ -16,9 +16,11 @@ use std::process::{Command, Stdio};
 /// `tests/seniors_pensioners_offset.rs`, `tests/medicare_surcharge.rs`,
 /// `tests/foreign_resident_tax.rs`, `tests/fbt_loan.rs`,
 /// `tests/fbt_meal_entertainment.rs`, `tests/fbt_car_parking.rs`,
-/// `tests/fbt_debt_waiver.rs`, `tests/fbt_expense_payment.rs` and
-/// `tests/fbt_property.rs` cover them.
-const NEW_KINDS: [(&str, &str); 20] = [
+/// `tests/fbt_debt_waiver.rs`, `tests/fbt_expense_payment.rs`,
+/// `tests/fbt_property.rs`, `tests/fbt_residual.rs`, `tests/fbt_housing.rs`,
+/// `tests/fbt_lafha.rs`, `tests/fbt_board.rs` and
+/// `tests/fbt_tax_exempt_body_entertainment.rs` cover them.
+const NEW_KINDS: [(&str, &str); 25] = [
     ("fbt-car-statutory", "fbt_car_statutory"),
     ("fbt-car-operating-cost", "fbt_car_operating_cost"),
     ("fbt-loan", "fbt_loan"),
@@ -48,6 +50,14 @@ const NEW_KINDS: [(&str, &str); 20] = [
     ),
     ("medicare-levy-surcharge", "medicare_levy_surcharge"),
     ("foreign-resident-tax", "foreign_resident_tax"),
+    ("fbt-residual", "fbt_residual"),
+    ("fbt-housing", "fbt_housing"),
+    ("fbt-lafha", "fbt_lafha"),
+    ("fbt-board", "fbt_board"),
+    (
+        "fbt-tax-exempt-body-entertainment",
+        "fbt_tax_exempt_body_entertainment",
+    ),
 ];
 
 /// The JSON boundary's answer in the corpus encoding: `{"ok": value}` or `{"error": message}`.

@@ -410,6 +410,11 @@ const COMMAND_ARGS: &[(&str, &[(&str, Kind)])] = &[
             ("scope_confirmed", Raw),
         ],
     ),
+    ("fbt-residual", FBT_METHOD_ARGS),
+    ("fbt-housing", FBT_METHOD_ARGS),
+    ("fbt-lafha", FBT_METHOD_ARGS),
+    ("fbt-board", FBT_YEAR_ARGS),
+    ("fbt-tax-exempt-body-entertainment", FBT_METHOD_ARGS),
 ];
 
 pub fn commands() -> Vec<&'static str> {
@@ -421,7 +426,7 @@ pub fn commands() -> Vec<&'static str> {
 }
 
 /// The commands `derive` explains: each of their amounts is worked out in a step.
-const DERIVED: [&str; 11] = [
+const DERIVED: [&str; 16] = [
     "fbt",
     "fbt-car-statutory",
     "fbt-car-operating-cost",
@@ -433,6 +438,11 @@ const DERIVED: [&str; 11] = [
     "fbt-property",
     "division-293",
     "pension-minimum",
+    "fbt-residual",
+    "fbt-housing",
+    "fbt-lafha",
+    "fbt-board",
+    "fbt-tax-exempt-body-entertainment",
 ];
 
 /// `derive`: `{"command", "input"}` gives the command's result with the step
@@ -606,15 +616,15 @@ fn argument(v: &Value, key: &str, kind: Kind) -> Result<Arg> {
     }
 }
 
-/// The inputs `v` gives besides `params`, by name: a string as a decimal, any
-/// other value as given.
+/// The inputs `v` gives besides `params`, by name: a string as a decimal,
+/// except `fbt-housing`'s `state`, any other value as given.
 fn benefit_inputs(v: &Value, params: &[(&str, Kind)]) -> Result<Vec<(String, Arg)>> {
     let named = v.as_object().into_iter().flatten();
     named
         .filter(|(key, _)| !params.iter().any(|(p, _)| p == key))
         .map(|(key, value)| {
             let given = match value {
-                Value::String(_) => argument(v, key, Dec)?,
+                Value::String(_) if key != "state" => argument(v, key, Dec)?,
                 other => arg(other),
             };
             Ok((key.clone(), given))
@@ -716,6 +726,11 @@ pub fn evaluate_coded(command: &str, v: &Value) -> Result<Value> {
             | "fbt-debt-waiver"
             | "fbt-expense-payment"
             | "fbt-property"
+            | "fbt-residual"
+            | "fbt-housing"
+            | "fbt-lafha"
+            | "fbt-board"
+            | "fbt-tax-exempt-body-entertainment"
     ) {
         let kind = command.replace('-', "_");
         // The catalogue's required and optional inputs, which for the FBT
@@ -780,6 +795,14 @@ pub fn evaluate_coded(command: &str, v: &Value) -> Result<Value> {
             engine::fbt_expense_payment(&a[0], &benefit_inputs(v, params)?, &a[1], &a[2])
         }
         "fbt-property" => engine::fbt_property(&a[0], &benefit_inputs(v, params)?, &a[1], &a[2]),
+        "fbt-residual" => engine::fbt_residual(&a[0], &benefit_inputs(v, params)?, &a[1], &a[2]),
+        "fbt-housing" => engine::fbt_housing(&a[0], &benefit_inputs(v, params)?, &a[1], &a[2]),
+        "fbt-lafha" => engine::fbt_lafha(&a[0], &benefit_inputs(v, params)?, &a[1], &a[2]),
+        "fbt-board" => engine::fbt_board(&benefit_inputs(v, params)?, &a[0], &a[1]),
+        "fbt-tax-exempt-body-entertainment" => {
+            let given = benefit_inputs(v, params)?;
+            engine::fbt_tax_exempt_body_entertainment(&a[0], &given, &a[1], &a[2])
+        }
         "depreciation" => {
             // Optional: present only for an income year after the asset's start time.
             let key = "opening_adjustable_value";

@@ -18,6 +18,10 @@ use crate::metadata as meta;
 
 mod expense_property;
 pub use expense_property::{fbt_debt_waiver, fbt_expense_payment, fbt_property};
+mod residual_housing;
+pub use residual_housing::{
+    fbt_board, fbt_housing, fbt_lafha, fbt_residual, fbt_tax_exempt_body_entertainment,
+};
 
 /// The methods `method` accepts for `kind`, in the catalogue's order.
 pub fn methods(kind: &str) -> &'static [&'static str] {
@@ -30,6 +34,10 @@ pub fn methods(kind: &str) -> &'static [&'static str] {
         ],
         "fbt_expense_payment" => &expense_property::EXPENSE_PAYMENT_METHODS,
         "fbt_property" => &expense_property::PROPERTY_METHODS,
+        "fbt_residual" => &residual_housing::RESIDUAL_METHODS,
+        "fbt_housing" => &residual_housing::HOUSING_METHODS,
+        "fbt_lafha" => &residual_housing::LAFHA_METHODS,
+        "fbt_tax_exempt_body_entertainment" => &residual_housing::ENTERTAINMENT_METHODS,
         _ => &[],
     }
 }
@@ -94,6 +102,189 @@ fn income_use(value: &Arg) -> Result<Decimal> {
             "income_use must be a finite Decimal fraction from 0 to 1.",
         ),
     }
+}
+
+/// The input naming the part of an employee's $1,000 in-house reduction for
+/// the year (s 62) their other in-house fringe benefits have left.
+const AVAILABLE: &str = "in_house_reduction_available";
+
+/// `in_house_reduction_available`: from 0 to $1,000.
+fn in_house_available(value: &Arg) -> Result<Decimal> {
+    let available = money(value)?;
+    if available.gt(&int(1000))? {
+        return refuse(
+            "fbt.in_house_reduction_invalid",
+            "in_house_reduction_available must be from 0 to 1000.00: the part of the employee's $1,000 in-house reduction for the FBT year that their other in-house fringe benefits have not used (FBTAA s 62(1)).",
+        );
+    }
+    Ok(available)
+}
+
+/// The inputs every property, residual and board benefit takes for the
+/// contribution and the otherwise deductible rule.
+const DEDUCTIBLE_INPUTS: [&str; 3] = [
+    "employee_contribution",
+    "income_use",
+    "contribution_deduction",
+];
+
+/// The contribution, income use share and deduction for the contribution, the
+/// last at most the contribution (FBTAA `section`, RD).
+fn deductible_inputs(inputs: [&Arg; 3], section: &str) -> Result<[Decimal; 3]> {
+    let contribution = money(inputs[0])?;
+    let share = income_use(inputs[1])?;
+    let deduction = money(inputs[2])?;
+    if deduction.gt(&contribution)? {
+        return refuse(
+            "fbt.deduction_exceeds_contribution",
+            format!(
+                "contribution_deduction cannot exceed employee_contribution: it is the deduction for that consideration (FBTAA {section}, RD)."
+            ),
+        );
+    }
+    Ok([contribution, share, deduction])
+}
+
+/// The recipient's contribution applied, its excess and the value after it,
+/// under `authority`.
+fn payment_rows(authority: &'static str) -> [(&'static str, &'static str, &'static str); 3] {
+    [
+        ("employee_contribution_applied", authority, APPLIED),
+        ("excess_employee_contribution", authority, EXCESS),
+        ("value_after_contribution", authority, NET),
+    ]
+}
+
+/// The steps from `gross`'s step: `contribution` applied to it, never taking
+/// it below nil, any excess, and the value after it, as the `rows` name them.
+fn contribution_steps(
+    gross: Step,
+    contribution: &Decimal,
+    rows: &[(&'static str, &'static str, &str); 3],
+) -> Result<Vec<Step>> {
+    let value = gross.value.clone();
+    precise(|| {
+        let applied = py_min(contribution.clone(), value.clone())?;
+        let excess = contribution.sub(&applied)?;
+        let net = value.sub(&applied)?;
+        let mut steps = vec![gross];
+        steps.extend(steps_from(
+            rows,
+            [
+                (&[contribution, &value], applied.clone()),
+                (&[contribution, &applied], excess),
+                (&[&value, &applied], net),
+            ],
+        ));
+        Ok(steps)
+    })
+}
+
+/// The otherwise deductible rule's steps, (id, authority, formula): the gross
+/// deduction on `base`, the deduction the recipient has (RD), the notional
+/// deduction and the reduction it allows, never more than the value.
+type DeductibleSteps = [(&'static str, &'static str, &'static str); 4];
+
+/// The formulas of a property, residual or board benefit's [`DeductibleSteps`].
+const GROSS_DEDUCTION: &str = "cents(gross_taxable_value x income_use)";
+const RD: &str = "min(contribution_deduction, gross_deduction)";
+const ND: &str = "gross_deduction - contribution_deduction_applied";
+const REDUCTION: &str = "min(notional_deduction, value_after_contribution)";
+
+/// [`DeductibleSteps`] on `base` at `share`, with the recipient's deduction
+/// `rd`, against `value`, the value after the contribution.
+fn deductible_steps(
+    table: &DeductibleSteps,
+    base: &Decimal,
+    share: &Decimal,
+    rd: &Decimal,
+    value: &Decimal,
+) -> Result<Vec<Step>> {
+    precise(|| {
+        let gd = cents(base.mul(share)?)?;
+        let applied = py_min(rd.clone(), gd.clone())?;
+        let nd = gd.sub(&applied)?;
+        let reduction = py_min(nd.clone(), value.clone())?;
+        Ok(steps_from(
+            table,
+            [
+                (&[base, share], gd.clone()),
+                (&[rd, &gd], applied.clone()),
+                (&[&gd, &applied], nd.clone()),
+                (&[&nd, value], reduction),
+            ],
+        ))
+    })
+}
+
+/// The value after the contribution less each of `reductions`: its formula,
+/// operands and amount.
+fn less(
+    value: &Decimal,
+    reductions: &[(&str, Decimal)],
+) -> Result<(String, Vec<Decimal>, Decimal)> {
+    let mut formula = "value_after_contribution".to_string();
+    let (mut operands, mut net) = (vec![value.clone()], value.clone());
+    for (name, amount) in reductions {
+        formula = format!("{formula} - {name}");
+        operands.push(amount.clone());
+        net = precise(|| Ok(net.sub(amount)?))?;
+    }
+    Ok((formula, operands, net))
+}
+
+/// The last steps: s 62's reduction where `available` is given, then the
+/// taxable value, the value after the contribution less every reduction.
+fn taxable_steps(
+    mut steps: Vec<Step>,
+    available: Option<Decimal>,
+    authority: &'static str,
+) -> Result<Vec<Step>> {
+    let value = steps
+        .iter()
+        .find(|s| s.id == "value_after_contribution")
+        .expect("a value after the contribution")
+        .value
+        .clone();
+    let mut reductions: Vec<(&str, Decimal)> = steps
+        .iter()
+        .filter(|s| s.id == "reduction_applied")
+        .map(|s| (s.id, s.value.clone()))
+        .collect();
+    if let Some(available) = available {
+        let (formula, operands, net) = less(&value, &reductions)?;
+        let applied = precise(|| Ok(py_min(available.clone(), net)?))?;
+        let mut all = vec![&available];
+        all.extend(&operands);
+        let formula = format!("min({AVAILABLE}, {formula})");
+        let id = "in_house_reduction_applied";
+        steps.push(step(id, "FBTAA s 62(1)", &formula, &all, applied.clone()));
+        reductions.push((id, applied));
+    }
+    let (formula, operands, net) = less(&value, &reductions)?;
+    let operands: Vec<&Decimal> = operands.iter().collect();
+    steps.push(step("taxable_value", authority, &formula, &operands, net));
+    Ok(steps)
+}
+
+/// A property, residual or board benefit's steps after `gross`: the
+/// contribution (`rows_authority`), the otherwise deductible rule on the gross
+/// value (`table`), s 62 where `available` is given, and the taxable value
+/// (`authority`).
+fn deductible_benefit(
+    gross: Step,
+    [contribution, share, deduction]: &[Decimal; 3],
+    rows_authority: &'static str,
+    table: &DeductibleSteps,
+    available: Option<Decimal>,
+    authority: &'static str,
+) -> Result<Vec<Step>> {
+    let base = gross.value.clone();
+    let rows = payment_rows(rows_authority);
+    let mut steps = contribution_steps(gross, contribution, &rows)?;
+    let value = steps.last().expect("value after contribution").value.clone();
+    steps.extend(deductible_steps(table, &base, share, deduction, &value)?);
+    taxable_steps(steps, available, authority)
 }
 
 /// A 12 week register is valid for the FBT year it was first valid for and

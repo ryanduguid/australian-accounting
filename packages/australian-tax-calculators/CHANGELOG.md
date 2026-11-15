@@ -30,10 +30,19 @@ intentionally changed.
   rules of s 43 and the otherwise deductible rule, s 44) for the years
   ended 31 March 2026 and 2027, for `fbt` to gross up. In-house benefits
   take the employee's $1,000 reduction (s 62) left for the year. New
-  refusal codes: `fbt.in_house_reduction_invalid`,
-  `fbt_expense_payment.deduction_exceeds_portion`,
-  `fbt_expense_payment.payment_exceeds_expenditure` and
-  `fbt_property.deduction_exceeds_contribution`.
+  refusal codes: `fbt_expense_payment.deduction_exceeds_portion` and
+  `fbt_expense_payment.payment_exceeds_expenditure`.
+- `fbt-residual`, `fbt-housing`, `fbt-lafha`, `fbt-board` and `fbt-tax-exempt-body-entertainment` give the taxable
+  value of residual (Division 12, with the s 62 in-house reduction), housing
+  (Division 6: market value, or the statutory annual value from a base year
+  indexed by the ATO's published factors), living-away-from-home allowance
+  (Division 7), board (Division 9) and tax-exempt body entertainment fringe
+  benefits (Division 10) for the years ended 31 March 2026 and 2027, for
+  `fbt` to gross up, and derive every amount. New refusal codes, the
+  first 2 shared with `fbt-property` and `fbt-expense-payment`:
+  `fbt.deduction_exceeds_contribution`, `fbt.in_house_reduction_invalid`,
+  `fbt_housing.base_year_invalid`, `fbt_lafha.components_exceed_allowance`,
+  `fbt_tax_exempt_body_entertainment.heads_invalid` and `input.state_invalid`.
 - `derive` also covers `division-293` and `pension-minimum`. Their steps cite
   ITAA 1997 s 293-20 and the Superannuation (Sustaining the Superannuation
   Contribution Concession) Imposition Act 2013 s 5, and SISR Schedule 7

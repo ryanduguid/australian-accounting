@@ -15,6 +15,9 @@ use crate::pytext;
 use crate::texts;
 
 mod fbt_benefits;
+pub use fbt_benefits::{
+    fbt_board, fbt_housing, fbt_lafha, fbt_residual, fbt_tax_exempt_body_entertainment,
+};
 pub use fbt_benefits::{fbt_car_parking, fbt_loan, fbt_meal_entertainment};
 pub use fbt_benefits::{fbt_debt_waiver, fbt_expense_payment, fbt_property};
 
@@ -4289,7 +4292,7 @@ pub fn seniors_pensioners_tax_offset(
     Ok(out)
 }
 
-const KINDS: [&str; 34] = [
+const KINDS: [&str; 39] = [
     "gst",
     "resident_tax",
     "foreign_resident_tax",
@@ -4324,6 +4327,11 @@ const KINDS: [&str; 34] = [
     "working_holiday_maker_withholding",
     "seniors_pensioners_withholding",
     "seniors_pensioners_tax_offset",
+    "fbt_residual",
+    "fbt_housing",
+    "fbt_lafha",
+    "fbt_board",
+    "fbt_tax_exempt_body_entertainment",
 ];
 
 /// `periods(kind)`: accepted period arguments and inclusive calendar boundaries.

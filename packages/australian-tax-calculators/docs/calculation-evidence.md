@@ -45,6 +45,11 @@ example evidence; it does not claim a fresh review of every supported period.
 | FBT debt waivers | FBT return 2026 instructions (item 23D, example 9), with FBTAA ss 14 and 15 (compilation 97, 1 July 2026) and the employer's guide (8.1 and 8.2) | 1 April 2026 (item 23); 29 May 2024 (guide) | The amount waived for the years ended 31 March 2026 and 2027; deciding the waiver excluded |
 | FBT expense payments | `tax-examples-fringe-benefits-tax-fbt` (tax-examples), ¶3-240 and ¶3-340, with FBTAA ss 20 to 24, 62 and 136(1) (compilation 97), the FBT return 2026 instructions (item 23E, example 10) and the employer's guide (9.2 to 9.4 and 19.5) | 30 June 2026; 1 April 2026 (item 23); 29 May 2024 (guide) | One external or in-house property expense payment for the years ended 31 March 2026 and 2027; in-house residual payments and the in-house otherwise deductible rule excluded |
 | FBT property | `tax-examples-fringe-benefits-tax-fbt` (tax-examples), ¶3-260, with FBTAA ss 40 to 44, 62 and 136(1) (compilation 97), the FBT return 2026 instructions (item 23K, example 14) and the employer's guide (17.2 to 17.5 and 19.5) | 30 June 2026; 1 April 2026 (item 23); 29 May 2024 (guide) | One benefit under an in-house or external rule for the years ended 31 March 2026 and 2027; airline transport and car property rules excluded |
+| FBT residual benefits | Not a Library document: FBTAA ss 45 to 52 and 62 (compilation 97), the FBT return 2026 instructions (item 23M, example 16) and the employer's guide (chapter 18) | 1 April 2026 (item 23) | One benefit's in-house or external value for the years ended 31 March 2026 and 2027; car residual, airline transport and jointly provided benefits excluded |
+| FBT housing | `tax-examples-fringe-benefits-tax-fbt` (tax-examples), ¶3-120, with FBTAA ss 25 to 28 (compilation 97), the FBT return 2026 instructions (item 23F, example 11), the employer's guide (chapter 10) and the FBT rates and thresholds page (housing indexation factors) | 30 June 2026; 20 May 2026 (rates page) | Market value and statutory annual values for the years ended 31 March 2026 and 2027; remote area housing excluded |
+| FBT living-away-from-home allowances | `tax-examples-fringe-benefits-tax-fbt` (tax-examples), ¶3-160 and ¶3-180, with FBTAA ss 30 to 31H and 136(1) (compilation 97), the FBT return 2026 instructions (item 23G, example 12) and the employer's guide (chapter 11) | 30 June 2026 | One allowance's established components and expenses for the years ended 31 March 2026 and 2027; eligibility, declarations and the reasonable food amount established by the operator |
+| FBT board | Not a Library document: FBTAA ss 35 to 37 (compilation 97), the FBT return 2026 instructions (item 23J, example 13) and the employer's guide (chapter 13) | 1 April 2026 (item 23) | Established meals for the years ended 31 March 2026 and 2027 |
+| FBT tax-exempt body entertainment | Not a Library document: FBTAA ss 38 and 39 (compilation 97), the FBT return 2026 instructions (item 23L, example 15) and the employer's guide (chapter 15) | 1 April 2026 (item 23) | Established expenditure for the years ended 31 March 2026 and 2027, actual or per head |
 | Main residence | `tax-examples-capital-gains-tax-cgt` (tax-examples), ¶2-060 and ¶2-075, with the ATO's pages 'Treating former home as main residence' (QC66030) and 'Using your home for rental or business' (QC66033) | 30 June 2026; 22 June 2026 (both ATO pages) | One dwelling's taxable days for CGT events in 2024-25 to 2026-27; cost base, market value and discount excluded |
 | Borrowing expenses | `tax-examples-deductions` (tax-examples), ¶4-160, with ITAA 1997 s 25-25 (compilation 268, 1 October 2026) and the ATO's 'Borrowing expenses' page | 30 June 2026; 22 May 2026 (ATO page) | One loan's established expenditure, use and dates for 2024-25 to 2026-27; classification, interest and refinancing excluded |
 | Depreciation | `tax-examples-depreciation` (tax-examples), ¶6-000 and ¶6-020 | 30 June 2025 | First-year formulas and taxable-use apportionment in 2024–25 examples |
@@ -395,6 +400,64 @@ names, and the tests apply `in_house_public_price` as those examples do. The
 otherwise deductible rule comes before s 62: s 44 gives the taxable value 'but
 for Division 14', and s 62 is in Division 14. Benefits provided jointly to an
 employee and an associate (s 44(5), the guide's 17.5A) are not covered.
+
+## FBT residual
+
+These 5 worksheets were added on 15 November 2026. Their sources were read
+that afternoon, 12.43 pm to 12.52 pm AEDT: the FBTAA as compiled on 1 July 2026
+(C2004A03280, compilation 97, EPUB documents 1 and 2, with the alternative text
+of their formula images), chapters 10, 11, 13, 15 and 18 of 'Fringe benefits
+tax - a guide for employers' (current version 22 November 2024), the ATO's FBT
+rates and thresholds page (last updated 20 May 2026) and the FBT return 2026
+instructions' item 23 page. `tests/fbt_residual.rs`, `tests/fbt_housing.rs`,
+`tests/fbt_lafha.rs`, `tests/fbt_board.rs` and
+`tests/fbt_tax_exempt_body_entertainment.rs` hold each case.
+
+Item 23M example 16: a utility with $8,000 of operating costs used 25%
+privately, `8000 - 6000 = 2000`, **$2,000.00**, the business use taken off as
+the otherwise deductible reduction. The guide's 18.4: an employee of a rental
+store hires a video recorder the public rents for $100 and pays $50, `0.75 ×
+100 - 50 = 25`, **$25.00** before the s 62 reduction. Its 18.7: $500 of hired
+goods, a $250 contribution and 80% income use; GD `400` less RD `200` gives
+`250 - 200 = 50`, **$50.00**, and with RD limited to `150` the value is nil. Its
+18.6 vehicle example states 10% of $20,080 as $2,080; the Act gives `20080 ×
+0.1 = 2008`, and the test asserts **$2,008.00**.
+
+## FBT housing
+
+Item 23F example 11: a market rent of $41,600 for the year less $5,200 rent,
+**$36,400.00**. The guide's 10.5: $11,820 for 274 days of the base year is a
+statutory annual value of `11820 × 365 / 274 = 15745.62`; indexed by NSW's
+1.040 for 2027, `16375.44`, for 91 days `4082.64`. Its single-employee example,
+$5,200 for 121 days, prints $15,687.70 because it rounds the daily rate first;
+s 26(2)(a) gives `5200 × 365 / 121 = 15685.95`, which the test asserts. The
+guide's later years, at the earlier factors it uses, reproduce its $4,040.17
+and $11,088.60 only when the statutory annual value is rounded to cents, so the
+worksheet rounds it so. ¶3-120 (review
+date 30 June 2026): $350 a week for 39 weeks less $50 a week, **$11,700.00**.
+The indexation factors are the rates page's for each State and Territory for
+2026 and 2027; `tests/fbt_housing.rs` checks all 16.
+
+## FBT LAFHA
+
+Item 23G example 12: $591 a week, $350 for accommodation and $241 for food, the
+first 40 weeks reducible: `23640 - 14000 - (9640 - 1680) = 1680`; the other 12
+weeks' $7,092 is taxed whole (s 31B), for the year's **$8,772.00**. The guide's
+11.6 examples give **$0**, **$140**, **$80** and **$147** a week, and its 11.5
+Steve and Helen example an exempt accommodation component of $225 each.
+¶3-160 and ¶3-180 (review date 30 June 2026): $850 and $700 a week, each with
+$200 for total food costs, both **$42.00**.
+
+## FBT board
+
+Item 23J example 13: board valued at **$21,900.00**, 10,950 meals at $2. The
+guide's 13.2: $6 a day towards 3 meals takes each day's value to nil.
+
+## FBT tax-exempt body entertainment
+
+Item 23L example 15: a council's Christmas function, **$5,000.00**. The guide's
+15.9: Mary entertains 3 clients and is reimbursed; her share per head is 1 of
+4, 25%.
 
 ## Main residence
 

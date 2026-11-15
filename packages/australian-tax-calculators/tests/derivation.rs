@@ -13,7 +13,7 @@ use std::io::Write;
 use std::process::{Command, Stdio};
 
 /// The commands `derive` explains.
-const DERIVED: [&str; 11] = [
+const DERIVED: [&str; 16] = [
     "fbt",
     "fbt-car-statutory",
     "fbt-car-operating-cost",
@@ -25,6 +25,11 @@ const DERIVED: [&str; 11] = [
     "fbt-property",
     "division-293",
     "pension-minimum",
+    "fbt-residual",
+    "fbt-housing",
+    "fbt-lafha",
+    "fbt-board",
+    "fbt-tax-exempt-body-entertainment",
 ];
 
 /// (command, input) for each derived kind: the ATO's published examples and
@@ -194,6 +199,57 @@ fn cases() -> Vec<(&'static str, Value)> {
                    "notional_value": "800.00", "employee_contribution": "0.00",
                    "income_use": "0.5", "contribution_deduction": "0.00",
                    "in_house_reduction_available": "100.00", "year_ended": 2027}),
+        ),
+        // The employer's guide, 18.4 and 18.7: an in-house rental with the
+        // $1,000 reduction, and hired goods 80% used to produce income.
+        benefit(
+            "fbt-residual",
+            json!({"method": "in_house_public_price", "lowest_price": "100.00",
+                   "employee_contribution": "50.00", "income_use": "0",
+                   "contribution_deduction": "0.00", "in_house_reduction_available": "10.00"}),
+        ),
+        benefit(
+            "fbt-residual",
+            json!({"method": "external_cost_price", "cost_price": "500.00",
+                   "employee_contribution": "250.00", "income_use": "0.8",
+                   "contribution_deduction": "200.00"}),
+        ),
+        // Guide 10.5: a base year over 274 days, then indexed for NSW, and a
+        // hotel room valued as an in-house benefit.
+        benefit(
+            "fbt-housing",
+            json!({"method": "base_year", "market_value": "11820.00", "tenancy_days": 274,
+                   "employee_contribution": "0.00"}),
+        ),
+        benefit(
+            "fbt-housing",
+            json!({"method": "indexed", "prior_statutory_annual_value": "15745.62",
+                   "state": "NSW", "base_year_ended": 2025, "tenancy_days": 91,
+                   "employee_contribution": "100.00", "year_ended": 2027}),
+        ),
+        benefit(
+            "fbt-housing",
+            json!({"method": "accommodation_business", "market_value": "10000.01",
+                   "in_house": true, "employee_contribution": "0.00"}),
+        ),
+        // Guide 11.6: total food costs, $260 spent, and a child's days.
+        benefit(
+            "fbt-lafha",
+            json!({"method": "maintains_home", "allowance": "900.00",
+                   "accommodation_component": "500.00", "accommodation_expenses": "500.00",
+                   "food_component": "320.00", "food_expenses": "260.00",
+                   "normal_food_amount": "0.00", "adult_days": 7, "child_days": 3}),
+        ),
+        // Board with the otherwise deductible rule; a per head share.
+        benefit(
+            "fbt-board",
+            json!({"adult_meals": 10950, "child_meals": 5, "employee_contribution": "20.00",
+                   "income_use": "0.5", "contribution_deduction": "10.00"}),
+        ),
+        benefit(
+            "fbt-tax-exempt-body-entertainment",
+            json!({"method": "per_head", "entertainment_expenditure": "100.00",
+                   "employee_heads": 1, "total_heads": 3}),
         ),
     ]
 }
@@ -772,6 +828,78 @@ fn the_payment_and_property_steps_cite_their_provisions() {
 }
 
 #[test]
+fn the_second_fbt_benefit_steps_cite_their_provisions() {
+    let all = cases();
+    let steps = |i: usize| derive(all[i].0, &all[i].1)["steps"].clone();
+    let find = |steps: &Value, id: &str| {
+        let found = steps.as_array().unwrap().iter().find(|s| s["id"] == id);
+        found.unwrap().clone()
+    };
+    // Residual: 75% of the public price in-house, s 62's reduction after s 52.
+    let rental = steps(37);
+    assert_eq!(rental[0]["authority"], "FBTAA s 48(a) and s 49(a)");
+    assert_eq!(
+        rental[0]["working"],
+        "cents(0.75 x lowest_price) = cents(0.75 x 100.00) = 75.00"
+    );
+    let reduction = find(&rental, "in_house_reduction_applied");
+    assert_eq!(reduction["authority"], "FBTAA s 62(1)");
+    assert_eq!(reduction["value"], "10.00");
+    let taxable = find(&rental, "taxable_value");
+    assert_eq!(taxable["authority"], "FBTAA s 52(1) and s 62(1)");
+    assert_eq!(taxable["value"], "15.00");
+    let hired = steps(38);
+    assert_eq!(hired[0]["authority"], "FBTAA s 50(a) and s 51(a)");
+    assert_eq!(
+        find(&hired, "contribution_deduction_applied")["authority"],
+        "FBTAA s 52(1)(ba), RD"
+    );
+    assert_eq!(find(&hired, "taxable_value")["value"], "50.00");
+    // Housing: s 26(2)(a) annualises the base year; s 26(2)(b) indexes.
+    let base = steps(39);
+    assert_eq!(
+        base[0]["working"],
+        "cents(market_value x days_in_year / tenancy_days) \
+         = cents(11820.00 x 365 / 274) = 15745.62"
+    );
+    assert_eq!(base[0]["authority"], "FBTAA s 26(2)(a)");
+    assert_eq!(base[1]["authority"], "FBTAA s 26(1)(c)");
+    let indexed = steps(40);
+    assert_eq!(
+        indexed[0]["working"],
+        "cents(prior_statutory_annual_value x indexation_factor) \
+         = cents(15745.62 x 1.040) = 16375.44"
+    );
+    assert_eq!(
+        find(&indexed, "taxable_value")["value"],
+        "3982.64",
+        "$4,082.64 less $100 rent"
+    );
+    assert_eq!(steps(41)[0]["authority"], "FBTAA s 26(1)(b)");
+    // LAFHA: s 31H's food component; $42 a week from 12 and $21 under.
+    let lafha = steps(42);
+    assert_eq!(find(&lafha, "statutory_food_total")["value"], "51.00");
+    assert_eq!(
+        find(&lafha, "exempt_food_component")["authority"],
+        "FBTAA s 31H(1) and (2)"
+    );
+    assert_eq!(find(&lafha, "taxable_value")["value"], "140.00");
+    // Board: s 36's meal values, then s 37.
+    let board = steps(43);
+    assert_eq!(board[0]["authority"], "FBTAA s 36");
+    assert_eq!(board[0]["value"], "21905.00");
+    assert_eq!(
+        find(&board, "taxable_value")["authority"],
+        "FBTAA s 36 and s 37"
+    );
+    // Tax-exempt body entertainment: s 39, per head.
+    let per_head = steps(44);
+    let authority = per_head[0]["authority"].as_str().unwrap();
+    assert!(authority.starts_with("FBTAA s 39; "));
+    assert_eq!(per_head[0]["value"], "33.33");
+}
+
+#[test]
 fn a_refused_derive_leaves_no_steps_for_the_next() {
     let refused = json!({"command": "fbt-car-statutory", "input": {"days_available": 366}});
     for (command, input) in cases() {
@@ -848,7 +976,8 @@ fn derive_refuses_what_it_does_not_explain() {
         message,
         "derive explains fbt, fbt-car-statutory, fbt-car-operating-cost, fbt-loan, \
          fbt-meal-entertainment, fbt-car-parking, fbt-debt-waiver, fbt-expense-payment, \
-         fbt-property, division-293, pension-minimum, not \"gst\""
+         fbt-property, division-293, pension-minimum, fbt-residual, fbt-housing, fbt-lafha, \
+         fbt-board, fbt-tax-exempt-body-entertainment, not \"gst\""
     );
 }
 
