@@ -23,7 +23,16 @@ fn input(income: &str, status: &str, year: &str, spouse: Value) -> Value {
 }
 
 fn evaluate(income: &str, status: &str, year: &str, spouse: Value) -> Value {
-    api::evaluate(COMMAND, &input(income, status, year, spouse)).unwrap()
+    let input = input(income, status, year, spouse);
+    let result = api::evaluate(COMMAND, &input).unwrap();
+    // derive explains this command: its result is the plain one, byte for byte.
+    let doc = api::evaluate("derive", &json!({"command": COMMAND, "input": input})).unwrap();
+    assert_eq!(
+        doc["result"].to_string(),
+        result.to_string(),
+        "derive {input}"
+    );
+    result
 }
 
 fn offset(income: &str, status: &str, year: &str, spouse: Value) -> String {

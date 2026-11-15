@@ -119,7 +119,7 @@ lists the commands.
 | `worksheet-catalogue` | none: send `{}` |
 | `periods` | `kind`, the worksheet name, such as `"payg_withholding"` |
 | `personal-tax-estimate` | `year`, `scope_confirmed`, `residency`, `taxable_income`, and for a full-year resident `medicare-levy` and `medicare-levy-surcharge`; optional `seniors-pensioners-tax-offset`, `study-loan-repayment` and `division-293`; see [Personal tax estimate](#personal-tax-estimate) |
-| `derive` | `command`, one of `fbt`, `fbt-car-statutory`, `fbt-car-operating-cost`, `division-293`, `pension-minimum`, `payg-withholding`, `schedule-5-method-a`, `schedule-5-method-b-i`, `schedule-5-method-b-ii`, `termination-payment`, `working-holiday-maker-withholding`, `study-loan-withholding`, `seniors-pensioners-withholding`, `quarterly-sg` and `borrowing-expenses`, and `input`, that command's arguments; see [Derivations](#derivations) |
+| `derive` | `command`, one of `fbt`, `fbt-car-statutory`, `fbt-car-operating-cost`, `division-293`, `pension-minimum`, `payg-withholding`, `schedule-5-method-a`, `schedule-5-method-b-i`, `schedule-5-method-b-ii`, `termination-payment`, `working-holiday-maker-withholding`, `study-loan-withholding`, `seniors-pensioners-withholding`, `quarterly-sg`, `borrowing-expenses`, `resident-tax`, `foreign-resident-tax`, `low-income-tax-offset`, `seniors-pensioners-tax-offset`, `medicare-levy` and `medicare-levy-surcharge`, and `input`, that command's arguments; see [Derivations](#derivations) |
 
 The 2 car commands, `main-residence`, `borrowing-expenses`, `division-296`, `termination-payment`, the 3 `schedule-5` commands, `working-holiday-maker-withholding`, `seniors-pensioners-withholding`, `seniors-pensioners-tax-offset`, `medicare-levy-surcharge` and `foreign-resident-tax` have no Python original; their arguments follow the same
 rules. `division-296` alone takes a negative amount, in `total_super_earnings`. `main-residence` also takes dates as `YYYY-MM-DD` strings, lists of
@@ -131,7 +131,9 @@ or a decimal string over 8,192 bytes, is refused.
 ## Derivations
 
 `derive` shows how each amount of an FBT, Division 293, pension minimum, PAYG
-withholding, Schedule 5 or termination payment worksheet was worked out. It takes `{"command": "fbt", "input": {...}}`, runs
+withholding, Schedule 5, termination payment, basic income tax, low income or
+seniors and pensioners tax offset, Medicare levy or Medicare levy surcharge
+worksheet was worked out. It takes `{"command": "fbt", "input": {...}}`, runs
 the command on that input and returns
 `{"format": "australian-tax-calculators/derivation/1", "engine", "engine_version",
 "calculation", "input", "steps", "result"}`. `result` is the command's own output,
@@ -144,12 +146,19 @@ byte for byte. `steps` holds one step per amount, in the amounts' order:
 `authority` is the provision or ATO page that sets the amount: a section of the
 Fringe Benefits Tax Assessment Act 1986 (FBTAA), of the Income Tax Assessment
 Act 1997 (ITAA 1997) or of the Superannuation (Sustaining the Superannuation
-Contribution Concession) Imposition Act 2013, or a clause of Schedule 7 to the
-Superannuation Industry (Supervision) Regulations 1994 (SISR). `working` is the
+Contribution Concession) Imposition Act 2013, a clause of Schedule 7 to the
+Superannuation Industry (Supervision) Regulations 1994 (SISR), a section of the
+Income Tax Rates Act 1986, the Income Tax Assessment Act 1936 (ITAA 1936), the
+Medicare Levy Act 1986 or the A New Tax System (Medicare Levy Surcharge—Fringe
+Benefits) Act 1999, or of the Income Tax Assessment (1936 Act) Regulation 2015
+or Regulations 2025 for the seniors and pensioners tax offset. `working` is the
 formula, the same formula on the values it used and its unrounded result. Each
 name in a formula is an input, a rate in `result.rates` or an earlier step,
 whose unrounded result it carries; `x` multiplies, `min` takes the lower, `max`
-the higher, and `cents` and `dollars` round half up. `value` is the amount, the
+the higher, `cents` and `dollars` round half up and `dollars_up` rounds up to
+the dollar. When Medicare Levy Act s 8(3) shares the family reduction, the
+reductions are worked times family income and divided by it once, so the
+working carries `x family_income` and `/ family_income`. `value` is the amount, the
 result rounded half up to cents. The worksheet records each step beside its
 arithmetic and renders its amounts from the steps, so a step cannot differ from
 its amount; `tests/derivation.rs` recomputes every amount from its working

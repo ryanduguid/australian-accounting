@@ -13,7 +13,7 @@ use std::io::Write;
 use std::process::{Command, Stdio};
 
 /// The commands `derive` explains.
-const DERIVED: [&str; 15] = [
+const DERIVED: [&str; 21] = [
     "fbt",
     "fbt-car-statutory",
     "fbt-car-operating-cost",
@@ -29,6 +29,12 @@ const DERIVED: [&str; 15] = [
     "seniors-pensioners-withholding",
     "quarterly-sg",
     "borrowing-expenses",
+    "resident-tax",
+    "foreign-resident-tax",
+    "low-income-tax-offset",
+    "seniors-pensioners-tax-offset",
+    "medicare-levy",
+    "medicare-levy-surcharge",
 ];
 
 /// (command, input) for each derived kind: the ATO's published examples and
@@ -560,6 +566,14 @@ impl Evaluator<'_> {
                     ("cents", [a]) => a.quantize(-2, Rounding::HalfUp).unwrap(),
                     ("dollars", [a]) => a.quantize(0, Rounding::HalfUp).unwrap(),
                     ("floor", [a]) => a.quantize(0, Rounding::Down).unwrap(),
+                    ("dollars_up", [a]) => {
+                        let down = a.quantize(0, Rounding::Down).unwrap();
+                        if down.lt(a).unwrap() {
+                            down.add(&Decimal::from_int(1)).unwrap()
+                        } else {
+                            down
+                        }
+                    }
                     other => panic!("unknown function {other:?}"),
                 }
             }
@@ -1590,7 +1604,8 @@ fn derive_refuses_what_it_does_not_explain() {
          pension-minimum, payg-withholding, schedule-5-method-a, schedule-5-method-b-i, \
          schedule-5-method-b-ii, termination-payment, working-holiday-maker-withholding, \
          study-loan-withholding, seniors-pensioners-withholding, quarterly-sg, \
-         borrowing-expenses, not \"gst\""
+         borrowing-expenses, resident-tax, foreign-resident-tax, low-income-tax-offset, \
+         seniors-pensioners-tax-offset, medicare-levy, medicare-levy-surcharge, not \"gst\""
     );
 }
 
@@ -2157,4 +2172,895 @@ fn a_refused_withholding_sg_or_borrowing_input_gets_the_commands_own_refusal() {
         ),
         "borrowing.loan_period_ended"
     );
+}
+
+// Basic income tax, the low income and seniors and pensioners tax offsets,
+// the Medicare levy and the Medicare levy surcharge.
+
+/// Cases by name for the personal tax worksheets: the ATO's examples the
+/// worksheets' own tests hold, and a case for each branch. 2025-26 unless a
+/// case names its year.
+const PERSONAL: [(&str, &str, &str); 42] = [
+    // 26,800 at 16% and 55,000 at 30%.
+    (
+        "resident",
+        "resident-tax",
+        r#"{"taxable_income": "100000"}"#,
+    ),
+    (
+        "resident_2026",
+        "resident-tax",
+        r#"{"taxable_income": "200000", "year": "2026-27"}"#,
+    ),
+    (
+        "resident_nil",
+        "resident-tax",
+        r#"{"taxable_income": "18200"}"#,
+    ),
+    // The ATO's foreign resident table: $45,000 at 30%.
+    (
+        "foreign",
+        "foreign-resident-tax",
+        r#"{"taxable_income": "45000"}"#,
+    ),
+    (
+        "foreign_2026",
+        "foreign-resident-tax",
+        r#"{"taxable_income": "200000", "year": "2026-27"}"#,
+    ),
+    // Each item of the s 61-115(1) table, the cut-out and above it.
+    (
+        "lito_1",
+        "low-income-tax-offset",
+        r#"{"taxable_income": "30000"}"#,
+    ),
+    (
+        "lito_2",
+        "low-income-tax-offset",
+        r#"{"taxable_income": "40000"}"#,
+    ),
+    (
+        "lito_3",
+        "low-income-tax-offset",
+        r#"{"taxable_income": "50000"}"#,
+    ),
+    (
+        "lito_cut_out",
+        "low-income-tax-offset",
+        r#"{"taxable_income": "66667"}"#,
+    ),
+    (
+        "lito_none",
+        "low-income-tax-offset",
+        r#"{"taxable_income": "70000"}"#,
+    ),
+    // The ATO's SAPTO examples: José, Clare, Keith, Deb and example 9.
+    (
+        "jose",
+        "seniors-pensioners-tax-offset",
+        r#"{"rebate_income": "39000", "status": "single"}"#,
+    ),
+    (
+        "clare",
+        "seniors-pensioners-tax-offset",
+        r#"{"rebate_income": "23020", "status": "couple", "spouse_rebate_income": "25677"}"#,
+    ),
+    (
+        "keith",
+        "seniors-pensioners-tax-offset",
+        r#"{"rebate_income": "33650", "status": "couple", "spouse_rebate_income": "0"}"#,
+    ),
+    (
+        "deb",
+        "seniors-pensioners-tax-offset",
+        r#"{"rebate_income": "64020", "status": "couple", "spouse_rebate_income": "25677"}"#,
+    ),
+    (
+        "example_9",
+        "seniors-pensioners-tax-offset",
+        r#"{"rebate_income": "48000", "status": "illness_separated", "spouse_rebate_income": "10000", "spouse_taxable_income": "10000"}"#,
+    ),
+    // A spouse at most $6,000 passes the whole base amount; an offset at its
+    // base amount takes nothing.
+    (
+        "whole_transfer",
+        "seniors-pensioners-tax-offset",
+        r#"{"rebate_income": "35000", "status": "couple", "spouse_rebate_income": "5000", "spouse_taxable_income": "5000"}"#,
+    ),
+    (
+        "no_transfer",
+        "seniors-pensioners-tax-offset",
+        r#"{"rebate_income": "25000", "status": "couple", "spouse_rebate_income": "25000", "spouse_taxable_income": "5000"}"#,
+    ),
+    (
+        "sapto_2026",
+        "seniors-pensioners-tax-offset",
+        r#"{"rebate_income": "39000", "status": "single", "year": "2026-27"}"#,
+    ),
+    // s 6(1) above the phase-in limit, s 7(2) and s 7(1).
+    ("levy", "medicare-levy", r#"{"taxable_income": "50000"}"#),
+    (
+        "levy_shade_in",
+        "medicare-levy",
+        r#"{"taxable_income": "29000", "year": "2026-27"}"#,
+    ),
+    (
+        "levy_nil",
+        "medicare-levy",
+        r#"{"taxable_income": "28011"}"#,
+    ),
+    // The ATO's Ashton example: s 7(2), then s 8(2) unshared.
+    (
+        "ashton",
+        "medicare-levy",
+        r#"{"taxable_income": "49700", "sapto_entitled": true, "spouse_taxable_income": "21700", "spouse_sapto_entitled": true}"#,
+    ),
+    // s 8(3) shares the reduction; s 8(4) passes the spouse's excess.
+    (
+        "shared",
+        "medicare-levy",
+        r#"{"taxable_income": "40000", "spouse_taxable_income": "30000", "spouse_sapto_entitled": false, "dependent_children": 3}"#,
+    ),
+    (
+        "spouse_excess",
+        "medicare-levy",
+        r#"{"taxable_income": "40000", "spouse_taxable_income": "29000", "spouse_sapto_entitled": false, "dependent_children": 3}"#,
+    ),
+    (
+        "half_cent",
+        "medicare-levy",
+        r#"{"taxable_income": "41496", "spouse_taxable_income": "50568", "spouse_sapto_entitled": true, "dependent_children": 7, "year": "2026-27"}"#,
+    ),
+    (
+        "spouse_sapto_excess",
+        "medicare-levy",
+        r#"{"taxable_income": "30000", "spouse_taxable_income": "45000", "spouse_sapto_entitled": true}"#,
+    ),
+    // s 8(1): at or below the family income threshold, alone and with a
+    // liable spouse.
+    (
+        "family_nil",
+        "medicare-levy",
+        r#"{"taxable_income": "40000", "dependant_offset_entitled": true, "dependent_children": 2}"#,
+    ),
+    (
+        "shared_nil",
+        "medicare-levy",
+        r#"{"taxable_income": "30000", "spouse_taxable_income": "29000", "spouse_sapto_entitled": false, "dependent_children": 5}"#,
+    ),
+    // s 9(1): Priya's full year, part years, and after ss 8(3) and 8(4).
+    (
+        "priya",
+        "medicare-levy",
+        r#"{"taxable_income": "90000", "medicare_levy_exemption_full_days": 365}"#,
+    ),
+    (
+        "part_year",
+        "medicare-levy",
+        r#"{"taxable_income": "50000", "medicare_levy_exemption_full_days": 100, "medicare_levy_exemption_half_days": 100}"#,
+    ),
+    (
+        "shared_exempt",
+        "medicare-levy",
+        r#"{"taxable_income": "40000", "spouse_taxable_income": "30000", "spouse_sapto_entitled": false, "dependent_children": 3, "medicare_levy_exemption_full_days": 73}"#,
+    ),
+    (
+        "excess_exempt",
+        "medicare-levy",
+        r#"{"taxable_income": "40000", "spouse_taxable_income": "29000", "spouse_sapto_entitled": false, "dependent_children": 3, "medicare_levy_exemption_half_days": 365}"#,
+    ),
+    // The ATO's surcharge examples: Tom, Josh, Jacinta and Kevin.
+    (
+        "tom",
+        "medicare-levy-surcharge",
+        r#"{"taxable_income": "90000", "reportable_fringe_benefits": "27000", "income_for_surcharge_purposes": "117000", "days_without_cover": 365, "year": "2026-27"}"#,
+    ),
+    (
+        "josh",
+        "medicare-levy-surcharge",
+        r#"{"taxable_income": "90000", "reportable_fringe_benefits": "20000", "income_for_surcharge_purposes": "127000", "days_without_cover": 365}"#,
+    ),
+    (
+        "jacinta",
+        "medicare-levy-surcharge",
+        r#"{"taxable_income": "109000", "reportable_fringe_benefits": "0", "income_for_surcharge_purposes": "109000", "days_without_cover": 199}"#,
+    ),
+    (
+        "kevin",
+        "medicare-levy-surcharge",
+        r#"{"taxable_income": "120000", "reportable_fringe_benefits": "0", "income_for_surcharge_purposes": "120000", "days_without_cover": 193, "spouse_income_for_surcharge_purposes": "100000", "dependent_children": 3}"#,
+    ),
+    // Tier 3; under tier 1; a married person on $28,011 of their own, and a
+    // family under the family tier 1 threshold.
+    (
+        "tier_3",
+        "medicare-levy-surcharge",
+        r#"{"taxable_income": "200000", "reportable_fringe_benefits": "0", "income_for_surcharge_purposes": "200000", "days_without_cover": 365}"#,
+    ),
+    (
+        "under_tier_1",
+        "medicare-levy-surcharge",
+        r#"{"taxable_income": "90000", "reportable_fringe_benefits": "0", "income_for_surcharge_purposes": "90000", "days_without_cover": 365}"#,
+    ),
+    (
+        "own_income_low",
+        "medicare-levy-surcharge",
+        r#"{"taxable_income": "28011", "reportable_fringe_benefits": "0", "income_for_surcharge_purposes": "28011", "days_without_cover": 365, "spouse_income_for_surcharge_purposes": "240000"}"#,
+    ),
+    (
+        "family_under_tier_1",
+        "medicare-levy-surcharge",
+        r#"{"taxable_income": "50000", "reportable_fringe_benefits": "0", "income_for_surcharge_purposes": "50000", "days_without_cover": 365, "spouse_income_for_surcharge_purposes": "50000"}"#,
+    ),
+    // A positive exponent in an input stays a number the working can name.
+    (
+        "resident_exponent",
+        "resident-tax",
+        r#"{"taxable_income": "1E+5"}"#,
+    ),
+    (
+        "levy_exponent",
+        "medicare-levy",
+        r#"{"taxable_income": "4E+4", "dependant_offset_entitled": true}"#,
+    ),
+];
+
+/// A personal tax input: `facts` for 2025-26 unless they name the year, with
+/// no s 9A adjustment for the Medicare levy.
+fn personal(command: &str, facts: &str) -> Value {
+    let mut input = json!({"year": "2025-26", "scope_confirmed": true});
+    if command == "medicare-levy" {
+        input["section_9a_adjustment_applies"] = json!(false);
+    }
+    merge(&mut input, serde_json::from_str(facts).unwrap());
+    input
+}
+
+/// The derivation of the `PERSONAL` case `name`.
+fn personal_doc(name: &str) -> Value {
+    let (_, command, facts) = PERSONAL.iter().find(|(n, ..)| *n == name).unwrap();
+    derive(command, &personal(command, facts))
+}
+
+#[test]
+fn each_personal_tax_case_is_recomputed_from_its_working() {
+    let mut wrong = Vec::new();
+    for (name, command, facts) in PERSONAL {
+        let input = personal(command, facts);
+        let doc = derive(command, &input);
+        let plain = api::evaluate(command, &input).unwrap();
+        let (derived, plain) = (doc["result"].to_string(), plain.to_string());
+        if derived != plain {
+            wrong.push(format!("{name}: the result is not the plain one"));
+        }
+        wrong.extend(problems(&doc).into_iter().map(|p| format!("{name}: {p}")));
+    }
+    assert!(wrong.is_empty(), "{wrong:#?}");
+}
+
+/// How a step's text is checked: whole, by its start, by its end or by a part.
+#[derive(Clone, Copy)]
+enum Text {
+    Is,
+    Starts,
+    Ends,
+    Has,
+}
+
+/// Each check of `field` of a `PERSONAL` case's step, failed or not, so one run
+/// shows every one that fails.
+fn mismatches(checks: &[(&str, &str, &str, Text, &str)]) -> Vec<String> {
+    checks
+        .iter()
+        .filter_map(|&(name, id, field, how, expected)| {
+            let found = step_of(&personal_doc(name), id)[field]
+                .as_str()
+                .unwrap()
+                .to_string();
+            let ok = match how {
+                Text::Is => found == expected,
+                Text::Starts => found.starts_with(expected),
+                Text::Ends => found.ends_with(expected),
+                Text::Has => found.contains(expected),
+            };
+            (!ok).then(|| format!("{name} {id} {field}: expected {expected}\n  found {found}"))
+        })
+        .collect()
+}
+
+/// The worked examples, each operand as the worksheet used it.
+#[test]
+fn the_personal_tax_examples_show_their_operands() {
+    use Text::{Ends, Has, Is, Starts};
+    let (w, v) = ("working", "value");
+    let wrong = mismatches(&[
+        // Schedule 7 Part I: 26,800 x 16% + 55,000 x 30% = 20,788.
+        (
+            "resident",
+            "basic_income_tax",
+            w,
+            Is,
+            "max(0, min(taxable_income_used, 45000) - 18200) x over_18200 \
+             + max(0, min(taxable_income_used, 135000) - 45000) x over_45000 \
+             + max(0, min(taxable_income_used, 190000) - 135000) x over_135000 \
+             + max(0, taxable_income_used - 190000) x over_190000 \
+             = max(0, min(100000, 45000) - 18200) x 0.16 + max(0, min(100000, 135000) - 45000) x 0.30 \
+             + max(0, min(100000, 190000) - 135000) x 0.37 + max(0, 100000 - 190000) x 0.45 \
+             = 20788.00",
+        ),
+        // 2026-27: 26,800 x 15% + 90,000 x 30% + 55,000 x 37% + 10,000 x 45%.
+        ("resident_2026", "basic_income_tax", v, Is, "55870.00"),
+        ("resident_nil", "basic_income_tax", v, Is, "0.00"),
+        // Schedule 7 Part II: no tax-free threshold, $45,000 at 30%.
+        (
+            "foreign",
+            "basic_income_tax",
+            w,
+            Is,
+            "max(0, min(taxable_income_used, 135000) - 0) x over_0 \
+             + max(0, min(taxable_income_used, 190000) - 135000) x over_135000 \
+             + max(0, taxable_income_used - 190000) x over_190000 \
+             = max(0, min(45000, 135000) - 0) x 0.30 + max(0, min(45000, 190000) - 135000) x 0.37 \
+             + max(0, 45000 - 190000) x 0.45 = 13500.00",
+        ),
+        ("foreign_2026", "basic_income_tax", v, Is, "65350.00"),
+        // s 61-115(1): $700; $700 less 5% of $2,500; $325 less 1.5% of $5,000;
+        // at $66,667 item 3 gives minus half a cent, so nil.
+        (
+            "lito_1",
+            "low_income_tax_offset",
+            w,
+            Is,
+            "maximum = 700 = 700",
+        ),
+        (
+            "lito_2",
+            "low_income_tax_offset",
+            w,
+            Is,
+            "maximum - (taxable_income_used - first_step) x first_rate \
+             = 700 - (40000 - 37500) x 0.05 = 575.00",
+        ),
+        (
+            "lito_3",
+            "low_income_tax_offset",
+            w,
+            Is,
+            "max(0, second_amount - (taxable_income_used - second_step) x second_rate) \
+             = max(0, 325 - (50000 - 45000) x 0.015) = 250.000",
+        ),
+        ("lito_cut_out", "low_income_tax_offset", v, Is, "0.00"),
+        ("lito_none", "low_income_tax_offset", w, Is, "0 = 0 = 0"),
+        // José: $2,230 less 12.5 cents for each of $4,081 above $34,919,
+        // $1,719.875, rounded up; the cut-out is $2,230 / 0.125 + $34,919.
+        (
+            "jose",
+            "rebate_threshold",
+            w,
+            Is,
+            "dollars_up((rebate_maximum_amount + base_rebate_amount) / lowest_marginal_tax_rate \
+             + tax_free_threshold) = dollars_up((445 + 2230) / 0.16 + 18200) = 34919",
+        ),
+        (
+            "jose",
+            "cut_out_threshold",
+            w,
+            Is,
+            "dollars_up(base_rebate_amount / shade_out_rate + rebate_threshold) \
+             = dollars_up(2230 / 0.125 + 34919) = 52759",
+        ),
+        (
+            "jose",
+            "seniors_pensioners_tax_offset",
+            w,
+            Is,
+            "dollars_up(max(0, base_rebate_amount - max(0, rebate_income_used - rebate_threshold) \
+             x shade_out_rate)) = dollars_up(max(0, 2230 - max(0, 39000 - 34919) x 0.125)) = 1720",
+        ),
+        // Clare is tested on half the couple's $48,697; Deb on half of
+        // $89,697, not below the $43,810 cut-out.
+        (
+            "clare",
+            "rebate_income_tested",
+            w,
+            Is,
+            "(rebate_income_used + spouse_rebate_income) / 2 = (23020 + 25677) / 2 = 24348.5",
+        ),
+        ("keith", "seniors_pensioners_tax_offset", v, Is, "1270.00"),
+        ("deb", "seniors_pensioners_tax_offset", w, Is, "0 = 0 = 0"),
+        // Example 9: $2,040 less 0.15 x $4,000 transferred; s 9(6) on the
+        // raised base gives $12,572 / 0.315, $39,912; the cut-out keeps the
+        // unraised threshold; $3,480 less 0.125 x $8,088 is $2,469.
+        (
+            "example_9",
+            "spouse_unused_amount_transferred",
+            w,
+            Is,
+            "max(0, base_rebate_amount - (spouse_taxable_income - transfer_income_floor) \
+             x transfer_rate) = max(0, 2040 - (10000 - 6000) x 0.15) = 1440.00",
+        ),
+        (
+            "example_9",
+            "rebate_threshold",
+            w,
+            Is,
+            "dollars_up((lowest_marginal_tax_rate x tax_free_threshold + rebate_maximum_amount \
+             + base_rebate_amount + spouse_unused_amount_transferred + rebate_reduction_threshold \
+             x (rebate_reduction_rate + second_lowest_marginal_tax_rate - lowest_marginal_tax_rate)) \
+             / (rebate_reduction_rate + second_lowest_marginal_tax_rate)) \
+             = dollars_up((0.16 x 18200 + 445 + 2040 + 1440.00 + 37000 x (0.015 + 0.30 - 0.16)) \
+             / (0.015 + 0.30)) = 39912",
+        ),
+        (
+            "example_9",
+            "cut_out_threshold",
+            w,
+            Is,
+            "dollars_up(base_rebate_amount / shade_out_rate + dollars_up((rebate_maximum_amount \
+             + base_rebate_amount) / lowest_marginal_tax_rate + tax_free_threshold)) \
+             = dollars_up(2040 / 0.125 + dollars_up((445 + 2040) / 0.16 + 18200)) = 50052",
+        ),
+        (
+            "example_9",
+            "seniors_pensioners_tax_offset",
+            w,
+            Is,
+            "dollars_up(max(0, base_rebate_amount + spouse_unused_amount_transferred \
+             - max(0, rebate_income_used - rebate_threshold) x shade_out_rate)) \
+             = dollars_up(max(0, 2040 + 1440.00 - max(0, 48000 - 39912) x 0.125)) = 2469",
+        ),
+        (
+            "whole_transfer",
+            "spouse_unused_amount_transferred",
+            w,
+            Is,
+            "base_rebate_amount = 1602 = 1602",
+        ),
+        (
+            "no_transfer",
+            "spouse_unused_amount_transferred",
+            w,
+            Is,
+            "0 = 0 = 0",
+        ),
+        // 2026-27 at 15%: (445 + 2,230) / 0.15 + 18,200, rounded up.
+        ("sapto_2026", "rebate_threshold", v, Is, "36034.00"),
+        // Ashton: s 7(2) leaves 10% of $5,432, $543.20; s 8(2) reduces it
+        // by 2% of $61,623 less 0.08 of $9,777, $450.30; $92.90 is left.
+        (
+            "ashton",
+            "low_income_reduction",
+            w,
+            Is,
+            "levy_at_full_rate - min(levy_at_full_rate, (taxable_income_used - threshold_amount) \
+             x shade_in_rate) = 994.00 - min(994.00, (49700 - 44268) x 0.10) = 450.80",
+        ),
+        (
+            "ashton",
+            "family_reduction",
+            w,
+            Is,
+            "min(min(levy_at_full_rate, (taxable_income_used - threshold_amount) x shade_in_rate), \
+             max(0, levy_rate x family_income_threshold - family_shade_out_rate \
+             x (family_income - family_income_threshold))) \
+             = min(min(994.00, (49700 - 44268) x 0.10), max(0, 0.02 x 61623 - 0.08 x (71400 - 61623))) \
+             = 450.30",
+        ),
+        (
+            "ashton",
+            "medicare_levy",
+            w,
+            Is,
+            "levy_at_full_rate - low_income_reduction - family_reduction - spouse_excess_reduction \
+             = 994.00 - 450.80 - 450.30 - 0 = 92.90",
+        ),
+        // s 8(3): this person's share of the family's reduction, worked
+        // times family income and divided by it once.
+        (
+            "shared",
+            "family_reduction",
+            w,
+            Starts,
+            "min(levy_at_full_rate x family_income, max(0, levy_rate x family_income_threshold \
+             - family_shade_out_rate x (family_income - family_income_threshold)) \
+             x taxable_income_used) / family_income",
+        ),
+        ("shared", "medicare_levy", v, Is, "557.03"),
+        // s 8(4): the spouse's share above the spouse's own levy, with the
+        // spouse's threshold amount and family income threshold as figures.
+        (
+            "spouse_excess",
+            "spouse_excess_reduction",
+            w,
+            Has,
+            " x spouse_taxable_income - min(spouse_taxable_income x levy_rate, \
+             (spouse_taxable_income - ",
+        ),
+        ("spouse_excess", "spouse_excess_reduction", v, Is, "113.43"),
+        ("spouse_excess", "medicare_levy", v, Is, "393.70"),
+        // The 2 shares divided once: exactly half a cent, rounded up.
+        ("half_cent", "medicare_levy", w, Ends, " = 274.515"),
+        ("half_cent", "medicare_levy", v, Is, "274.52"),
+        ("spouse_sapto_excess", "medicare_levy", v, Is, "174.72"),
+        // s 9(1): $1,000 x (730 - 200 - 100) / 730.
+        (
+            "part_year",
+            "medicare_levy",
+            w,
+            Starts,
+            "(levy_at_full_rate - low_income_reduction) \
+             x (2 x days_in_year - (2 x exemption_full_days + exemption_half_days)) / (2 x days_in_year) \
+             = (1000.00 - 0.00) x (2 x 365 - (2 x 100 + 100)) / (2 x 365) = 589.04109589",
+        ),
+        ("priya", "medicare_levy", v, Is, "0.00"),
+        ("shared_exempt", "medicare_levy", v, Is, "445.62"),
+        ("excess_exempt", "medicare_levy", v, Is, "196.85"),
+        // Tom: ($90,000 + $27,000) x 1%; Jacinta: $109,000 x 1% x 199 / 365.
+        (
+            "tom",
+            "medicare_levy_surcharge",
+            w,
+            Is,
+            "surcharge_base x surcharge_rate x days_without_cover / days_in_year \
+             = 117000 x 0.01 x 365 / 365 = 1170.00",
+        ),
+        ("josh", "medicare_levy_surcharge", v, Is, "1375.00"),
+        ("jacinta", "medicare_levy_surcharge", v, Is, "594.27"),
+        (
+            "kevin",
+            "family_income_for_surcharge_purposes",
+            w,
+            Is,
+            "income_for_surcharge_purposes + spouse_income_for_surcharge_purposes \
+             = 120000 + 100000 = 220000",
+        ),
+        ("kevin", "medicare_levy_surcharge", v, Is, "634.52"),
+        ("tier_3", "medicare_levy_surcharge", v, Is, "3000.00"),
+    ]);
+    assert!(wrong.is_empty(), "{}", wrong.join("\n"));
+}
+
+#[test]
+fn each_personal_tax_step_cites_the_provision_its_branch_applies() {
+    use Text::{Ends, Has, Is, Starts};
+    let a = "authority";
+    let (lito, sapto, transfer) = (
+        "low_income_tax_offset",
+        "seniors_pensioners_tax_offset",
+        "spouse_unused_amount_transferred",
+    );
+    let (reduction, family, excess, surcharge) = (
+        "low_income_reduction",
+        "family_reduction",
+        "spouse_excess_reduction",
+        "medicare_levy_surcharge",
+    );
+    let wrong = mismatches(&[
+        (
+            "resident",
+            "basic_income_tax",
+            a,
+            Has,
+            "Schedule 7 Part I clause 1(b), the table for the 2024-25 or 2025-26",
+        ),
+        (
+            "resident_2026",
+            "basic_income_tax",
+            a,
+            Has,
+            "Schedule 7 Part I clause 1(b), the table for the 2026-27",
+        ),
+        (
+            "foreign",
+            "basic_income_tax",
+            a,
+            Has,
+            "Schedule 7 Part II clause 1(b)",
+        ),
+        (
+            "lito_1",
+            lito,
+            a,
+            Starts,
+            "ITAA 1997 s 61-115(1), table item 1",
+        ),
+        (
+            "lito_2",
+            lito,
+            a,
+            Starts,
+            "ITAA 1997 s 61-115(1), table item 2",
+        ),
+        (
+            "lito_3",
+            lito,
+            a,
+            Starts,
+            "ITAA 1997 s 61-115(1), table item 3",
+        ),
+        (
+            "lito_cut_out",
+            lito,
+            a,
+            Starts,
+            "ITAA 1997 s 61-115(1), table item 3",
+        ),
+        ("lito_none", lito, a, Starts, "ITAA 1997 s 61-110(1)(b)"),
+        // The 2015 Regulation before 2026-27, the 2025 Regulations from it.
+        (
+            "jose",
+            "rebate_threshold",
+            a,
+            Is,
+            "Income Tax Assessment (1936 Act) Regulation 2015 s 9(4)(a), (5) and (8)",
+        ),
+        (
+            "sapto_2026",
+            "rebate_threshold",
+            a,
+            Starts,
+            "Income Tax Assessment (1936 Act) Regulations 2025 s 9(4)(a)",
+        ),
+        ("example_9", "rebate_threshold", a, Has, "s 12(3)"),
+        (
+            "jose",
+            "base_rebate_amount",
+            a,
+            Ends,
+            "item 1: not a spouse",
+        ),
+        ("clare", "base_rebate_amount", a, Ends, "item 2: a spouse"),
+        ("example_9", "base_rebate_amount", a, Has, "item 3"),
+        (
+            "clare",
+            "rebate_income_tested",
+            a,
+            Starts,
+            "ITAA 1936 s 160AAAA(4)",
+        ),
+        ("deb", sapto, a, Has, "s 10 and ITAA 1936 s 160AAAA(3)"),
+        ("example_9", transfer, a, Has, "(3)(b)(ii) and (4)"),
+        ("whole_transfer", transfer, a, Has, "(3)(b)(i)"),
+        ("no_transfer", transfer, a, Has, "s 12(1)(d) and (e)"),
+        (
+            "levy",
+            reduction,
+            a,
+            Starts,
+            "Medicare Levy Act 1986 ss 6(1) and 7",
+        ),
+        (
+            "levy_shade_in",
+            reduction,
+            a,
+            Starts,
+            "Medicare Levy Act 1986 s 7(2)",
+        ),
+        (
+            "levy_nil",
+            reduction,
+            a,
+            Starts,
+            "Medicare Levy Act 1986 s 7(1)",
+        ),
+        (
+            "ashton",
+            family,
+            a,
+            Starts,
+            "Medicare Levy Act 1986 s 8(2):",
+        ),
+        (
+            "shared",
+            family,
+            a,
+            Starts,
+            "Medicare Levy Act 1986 s 8(2) and (3)",
+        ),
+        (
+            "family_nil",
+            family,
+            a,
+            Starts,
+            "Medicare Levy Act 1986 s 8(1)",
+        ),
+        (
+            "shared_nil",
+            family,
+            a,
+            Starts,
+            "Medicare Levy Act 1986 s 8(1)",
+        ),
+        (
+            "spouse_excess",
+            excess,
+            a,
+            Starts,
+            "Medicare Levy Act 1986 s 8(4)",
+        ),
+        (
+            "ashton",
+            excess,
+            a,
+            Starts,
+            "Medicare Levy Act 1986 s 8(3) and (4)",
+        ),
+        (
+            "part_year",
+            "exemption_reduction",
+            a,
+            Has,
+            "s 9(1) and ITAA 1936 s 251U(3)",
+        ),
+        (
+            "tom",
+            surcharge,
+            a,
+            Starts,
+            "Medicare Levy Act 1986 s 8B(2) to (4)",
+        ),
+        (
+            "under_tier_1",
+            surcharge,
+            a,
+            Has,
+            "singles tier 1 threshold, so nil",
+        ),
+        (
+            "kevin",
+            surcharge,
+            a,
+            Starts,
+            "Medicare Levy Act 1986 s 8D(3), (4)",
+        ),
+        (
+            "own_income_low",
+            surcharge,
+            a,
+            Starts,
+            "Medicare Levy Act 1986 s 8D(3)(c)",
+        ),
+        (
+            "family_under_tier_1",
+            surcharge,
+            a,
+            Has,
+            "family tier 1 threshold, so nil",
+        ),
+    ]);
+    assert!(wrong.is_empty(), "{}", wrong.join("\n"));
+}
+
+#[test]
+fn a_refused_personal_tax_input_gets_the_commands_own_refusal() {
+    let refused = |name: &str, change: Value| {
+        let (_, command, facts) = PERSONAL.iter().find(|(n, ..)| *n == name).unwrap();
+        let mut input = personal(command, facts);
+        merge(&mut input, change);
+        let plain = api::evaluate_coded(command, &input).unwrap_err();
+        let derived = api::evaluate_coded("derive", &json!({"command": command, "input": input}));
+        assert_eq!(derived.unwrap_err(), plain, "{name}");
+        plain.code
+    };
+    let cents = json!({"taxable_income": "100000.50"});
+    assert_eq!(
+        refused("resident", cents.clone()),
+        "input.amount_not_whole_dollars"
+    );
+    assert_eq!(
+        refused("foreign", json!({"year": "2023-24"})),
+        "period.unsupported"
+    );
+    assert_eq!(refused("lito_1", cents), "input.amount_not_whole_dollars");
+    assert_eq!(
+        refused("clare", json!({"status": "single"})),
+        "input.field_unknown"
+    );
+    assert_eq!(
+        refused("levy", json!({"section_9a_adjustment_applies": true})),
+        "medicare.s9a_adjustment_out_of_scope"
+    );
+    assert_eq!(
+        refused("tom", json!({"dependent_children": 1})),
+        "input.field_unknown"
+    );
+}
+
+/// A small seeded generator, so the inputs below are the same on every run.
+struct Seeded(u64);
+
+impl Seeded {
+    fn below(&mut self, n: u64) -> u64 {
+        self.0 = self
+            .0
+            .wrapping_mul(6_364_136_223_846_793_005)
+            .wrapping_add(1_442_695_040_888_963_407);
+        (self.0 >> 33) % n
+    }
+
+    fn dollars(&mut self, most: u64) -> String {
+        self.below(most + 1).to_string()
+    }
+}
+
+/// Seeded inputs across each personal tax worksheet's branches: each derives
+/// to the plain result, or the plain refusal, with every step recomputed.
+#[test]
+fn seeded_personal_tax_inputs_are_recomputed_from_their_working() {
+    let mut rng = Seeded(0x3B15_1126);
+    let years = ["2024-25", "2025-26", "2026-27"];
+    let mut explained = 0;
+    for _ in 0..300 {
+        let year = years[rng.below(3) as usize];
+        let income = rng.dollars(250_000);
+        let mut cases = vec![
+            ("resident-tax", json!({"taxable_income": income})),
+            ("foreign-resident-tax", json!({"taxable_income": income})),
+            (
+                "low-income-tax-offset",
+                json!({"taxable_income": rng.dollars(80_000)}),
+            ),
+        ];
+        let status = ["single", "illness_separated", "couple"][rng.below(3) as usize];
+        let mut sapto = json!({"rebate_income": rng.dollars(70_000), "status": status});
+        if status != "single" {
+            sapto["spouse_rebate_income"] = json!(rng.dollars(70_000));
+            if rng.below(2) == 0 {
+                sapto["spouse_taxable_income"] = json!(rng.dollars(30_000));
+            }
+        }
+        cases.push(("seniors-pensioners-tax-offset", sapto));
+        let mut levy = json!({"taxable_income": rng.dollars(120_000),
+                              "section_9a_adjustment_applies": false,
+                              "sapto_entitled": rng.below(2) == 0});
+        match rng.below(3) {
+            0 => {
+                levy["spouse_taxable_income"] = json!(rng.dollars(90_000));
+                levy["spouse_sapto_entitled"] = json!(rng.below(2) == 0);
+                levy["dependent_children"] = json!(rng.below(6));
+            }
+            1 => {
+                levy["dependant_offset_entitled"] = json!(true);
+                levy["dependent_children"] = json!(rng.below(4));
+            }
+            _ => {}
+        }
+        if rng.below(3) == 0 {
+            let full = rng.below(366);
+            levy["medicare_levy_exemption_full_days"] = json!(full);
+            levy["medicare_levy_exemption_half_days"] = json!(rng.below(366 - full));
+        }
+        cases.push(("medicare-levy", levy));
+        let own = rng.dollars(300_000);
+        let mut surcharge = json!({"taxable_income": rng.dollars(200_000),
+                                   "reportable_fringe_benefits": rng.dollars(40_000),
+                                   "income_for_surcharge_purposes": own,
+                                   "days_without_cover": rng.below(366)});
+        if rng.below(2) == 0 {
+            surcharge["spouse_income_for_surcharge_purposes"] = json!(rng.dollars(300_000));
+            surcharge["dependent_children"] = json!(rng.below(5));
+        }
+        cases.push(("medicare-levy-surcharge", surcharge));
+        for (command, mut input) in cases {
+            input["year"] = json!(year);
+            input["scope_confirmed"] = json!(true);
+            let derived =
+                api::evaluate_coded("derive", &json!({"command": command, "input": input}));
+            match api::evaluate_coded(command, &input) {
+                Ok(plain) => {
+                    let doc = derived.unwrap();
+                    assert_eq!(
+                        doc["result"].to_string(),
+                        plain.to_string(),
+                        "{command} {input}"
+                    );
+                    let found = problems(&doc);
+                    assert!(found.is_empty(), "{command} {input}: {found:#?}");
+                    explained += 1;
+                }
+                Err(plain) => assert_eq!(derived.unwrap_err(), plain, "{command} {input}"),
+            }
+        }
+    }
+    assert!(explained > 1500, "only {explained} explained");
 }

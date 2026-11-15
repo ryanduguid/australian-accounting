@@ -23,7 +23,16 @@ fn input(income: &str, year: &str, family: Value) -> Value {
 }
 
 fn evaluate(income: &str, year: &str, family: Value) -> Value {
-    api::evaluate(COMMAND, &input(income, year, family)).unwrap()
+    let input = input(income, year, family);
+    let result = api::evaluate(COMMAND, &input).unwrap();
+    // derive explains this command: its result is the plain one, byte for byte.
+    let doc = api::evaluate("derive", &json!({"command": COMMAND, "input": input})).unwrap();
+    assert_eq!(
+        doc["result"].to_string(),
+        result.to_string(),
+        "derive {input}"
+    );
+    result
 }
 
 fn levy(income: &str, year: &str, family: Value) -> String {
