@@ -811,7 +811,7 @@ fn only_the_very_large_component_may_hide_a_negative_value() {
     let doc = |id: &str| {
         let mut doc = json!({
             "result": {"amounts": {}},
-            "steps": [{"authority": "s 1", "working": "0 - 1 = -1", "value": null}],
+            "steps": [{"authority": "s 1", "working": "0 - 1 = 0 - 1 = -1", "value": null}],
         });
         doc["result"]["amounts"][id] = Value::Null;
         doc["steps"][0]["id"] = json!(id);
