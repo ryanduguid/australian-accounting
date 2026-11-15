@@ -1559,7 +1559,9 @@ fn derive_refuses_what_it_does_not_explain() {
         message,
         "derive explains fbt, fbt-car-statutory, fbt-car-operating-cost, division-293, \
          pension-minimum, payg-withholding, schedule-5-method-a, schedule-5-method-b-i, \
-         schedule-5-method-b-ii, termination-payment, working-holiday-maker-withholding,          study-loan-withholding, seniors-pensioners-withholding, quarterly-sg,          borrowing-expenses, not \"gst\""
+         schedule-5-method-b-ii, termination-payment, working-holiday-maker-withholding, \
+         study-loan-withholding, seniors-pensioners-withholding, quarterly-sg, \
+         borrowing-expenses, not \"gst\""
     );
 }
 
