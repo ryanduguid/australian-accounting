@@ -389,8 +389,9 @@ fn compose_amounts(results: &Map<String, Value>, foreign: bool) -> Result<[Decim
     let calc = |r: Result<Decimal, Signal>| r.map_err(signal);
     let basic = part(0)?;
     let sapto = lesser(part(1)?, basic.clone())?;
-    let lito = lesser(part(2)?, calc(basic.sub(&sapto))?)?;
-    let after = calc(calc(basic.sub(&sapto))?.sub(&lito))?;
+    let less_sapto = calc(basic.sub(&sapto))?;
+    let lito = lesser(part(2)?, less_sapto.clone())?;
+    let after = calc(less_sapto.sub(&lito))?;
     let (levy, surcharge, loan) = (part(3)?, part(4)?, part(5)?);
     let total = calc(calc(calc(after.add(&levy))?.add(&surcharge))?.add(&loan))?;
     Ok([
