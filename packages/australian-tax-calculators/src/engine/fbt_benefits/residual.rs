@@ -4,7 +4,7 @@
 //! The residual worksheet (FBTAA Division 12): a residual benefit's taxable
 //! value, which `fbt` then grosses up with the others. It cites the FBTAA as
 //! compiled on 1 July 2026 (C2004A03280), 'Fringe benefits tax - a guide for
-//! employers', chapter 13, and the FBT return 2026 instructions, item 23, read
+//! employers', chapter 18, and the FBT return 2026 instructions, item 23, read
 //! on 15 November 2026.
 
 use serde_json::Value;

@@ -4,7 +4,7 @@
 //! The housing worksheet (FBTAA Division 6): a housing benefit's taxable
 //! value, which `fbt` then grosses up with the others. It cites the FBTAA as
 //! compiled on 1 July 2026 (C2004A03280), the ATO's FBT rates and thresholds
-//! page, 'Fringe benefits tax - a guide for employers', chapter 11, and the
+//! page, 'Fringe benefits tax - a guide for employers', chapter 10, and the
 //! FBT return 2026 instructions, item 23, read on 15 November 2026.
 
 use serde_json::Value;

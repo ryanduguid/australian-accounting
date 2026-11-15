@@ -5,7 +5,7 @@
 //! entertainment worksheets (FBTAA Divisions 7, 9 and 10): each benefit's
 //! taxable value, which `fbt` then grosses up with the others. They cite the
 //! FBTAA as compiled on 1 July 2026 (C2004A03280), 'Fringe benefits tax - a
-//! guide for employers', chapters 10, 15 and 18, and the FBT return 2026
+//! guide for employers', chapters 11, 13 and 15, and the FBT return 2026
 //! instructions, item 23, read on 15 November 2026.
 
 use serde_json::Value;
