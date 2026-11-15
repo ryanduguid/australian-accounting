@@ -70,7 +70,10 @@ FAMILIES = (
     "Taxation Determination",
     "Law Companion Ruling",
     "GST ruling or determination",
+    # Runs captured before 16 November 2026 wrote "GST determination"; the stage
+    # now writes the Legal Database's name for the family.
     "GST determination",
+    "Goods and Services Tax Determination",
     "Class Ruling",
     "Product Ruling",
     "Practical Compliance Guideline",
