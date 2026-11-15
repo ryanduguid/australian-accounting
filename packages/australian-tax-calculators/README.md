@@ -112,7 +112,7 @@ lists the commands.
 | `depreciation` | `cost`, `effective_life`, `days`, `taxable_use`, `method`, `scope_confirmed`, `year`; optional `opening_adjustable_value` |
 | `quarterly-sg` | `ordinary_time_earnings`, `qualifying_contributions`, `year`, `quarter`, `scope_confirmed` |
 | `payg-withholding` | `earnings`, `pay_period`, `scale`, `year`, `scope_confirmed`; optional `foreign_resident` (scale 4), `tax_offsets`, `medicare_adjustment_children`, `extra_pay_withholding` |
-| `payg-gross-up` | `net_pay`, `pay_period`, `scale`, `year`, `scope_confirmed`; optional `foreign_resident` (scale 4) |
+| `payg-gross-up` | `net_pay`, `pay_period`, `scale`, `year`, `scope_confirmed`; optional `foreign_resident` (scale 4), `study_loan`; `pay_date` with `study_loan`, required for 2025-26 |
 | `study-loan-withholding` | `earnings`, `pay_period`, `scale`, `year`, `scope_confirmed`; `pay_date`, required for 2025-26 |
 | `medicare-levy` | `taxable_income`, `section_9a_adjustment_applies`, `year`, `scope_confirmed`; optional `sapto_entitled`, `spouse_taxable_income`, `spouse_sapto_entitled`, `dependant_offset_entitled`, `dependent_children`, `medicare_levy_exemption_full_days`, `medicare_levy_exemption_half_days` |
 | `medicare-levy-surcharge` | `taxable_income`, `reportable_fringe_benefits`, `income_for_surcharge_purposes`, `days_without_cover`, `year`, `scope_confirmed`; optional `spouse_income_for_surcharge_purposes`, `dependent_children` |
@@ -324,17 +324,24 @@ gross. Schedule 1 withholds whole dollars and never less from a higher pay, so
 a gross leaves the net exactly when it is the net plus the withholding on it;
 the search finds every such gross, of which there is always at least one.
 
+For a payee with a study and training support loan, `study_loan` true searches
+`study_loan_withholding`'s results instead, so the gross carries Schedule 8's
+component and that worksheet's `pay_date` rule: required for 2025-26, whose
+coefficients apply from 24 September 2025, and no 2024-25 component. Scale 4
+has no component, so `study_loan` does not take it or `foreign_resident`.
+
 Where a gross a dollar higher (for a weekly pay; more for longer pay periods)
 withholds a dollar more, both leave the same net, and the worksheet refuses
 with `payg.gross_up_not_unique`, listing every gross: Schedule 1 does not say
 which one a net-agreed pay means, so take it from the pay agreement. Such ties
 are common: each dollar of withholding added as pay rises makes one. Tax offsets,
-the Medicare levy adjustment, the additional amount for 53 or 27 pays, study
-and training support loans, super and other deductions are not inputs. A net
-above $499,999,999,974.00 is refused, so that every gross the search tries is
-an amount `payg_withholding` takes. The tests gross up the net of every row of
+the Medicare levy adjustment, the additional amount for 53 or 27 pays, super
+and other deductions are not inputs. A net above $499,999,999,974.00, or
+$333,333,333,300.00 with a study loan, is refused, so that every gross the
+search tries is an amount the withholding worksheet takes. The tests gross up the net of every row of
 the ATO's sample data for both schedules to the row's earnings or a tie that
-names them; see [calculation evidence](docs/calculation-evidence.md#payg-gross-up).
+names them, and the net of each of Schedule 8's examples 1 to 3 to its
+earnings or a tie; see [calculation evidence](docs/calculation-evidence.md#payg-gross-up).
 
 ## Super contribution caps and pension minimums
 

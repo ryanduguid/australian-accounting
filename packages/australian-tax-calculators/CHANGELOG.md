@@ -335,6 +335,14 @@ intentionally changed.
   within $60 of withholding does. `tests/refusal_codes.rs` now also reads the
   engine's modules under `src/engine/`, and `payg-withholding` and
   `study-loan-withholding` share one argument list.
+- `payg-gross-up` takes `study_loan` and, with it, `pay_date`: it then
+  searches `study-loan-withholding`'s results, so the gross carries Schedule
+  8's component for 2026-27 and for 2025-26 pays from 24 September 2025. Scale
+  4 and `foreign_resident` are refused with it, as is a net above
+  $333,333,333,300.00. `tests/payg_gross_up.rs` grosses up the net of Schedule
+  8's examples 1 to 3 for 2026-27 and example 1 for 2025-26, worked by hand,
+  and `tests/properties.rs` checks random nets with a study loan as without.
+  The result without `study_loan` is unchanged.
 - `hire-purchase-schedule` sets out a hire purchase agreement month by month
   for the hirer, the notional buyer under ITAA 1997 s 240-17(2), for
   agreements starting in 2024-25 to 2026-27: level monthly instalments in

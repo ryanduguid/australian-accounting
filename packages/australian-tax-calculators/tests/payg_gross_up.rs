@@ -5,10 +5,15 @@
 //! (docs/calculation-evidence.md#payg-gross-up): each row's net, its earnings
 //! less its withholding, grosses up to the row's earnings, or is refused as a
 //! tie that names them. Then the coefficient bounds the search relies on, its
-//! refusals and its catalogue example.
+//! refusals and its catalogue example. With a study loan, the net of each of
+//! Schedule 8's examples 1 to 3 grosses up to its earnings, worked by hand
+//! from the ATO's Schedule 1 and Schedule 8 for payments from 1 July 2026,
+//! read on 16 November 2026, and F2025L01016's Schedule 8 for 2025-26.
 use australian_tax_calculators::api;
 use australian_tax_calculators::decimal::Decimal;
-use australian_tax_calculators::metadata::{PAYG_WITHHOLDING_COEFFICIENTS, PAYG_WITHHOLDING_RULES};
+use australian_tax_calculators::metadata::{
+    PAYG_WITHHOLDING_COEFFICIENTS, PAYG_WITHHOLDING_RULES, STUDY_LOAN_WITHHOLDING_COEFFICIENTS,
+};
 use serde_json::{Value, json};
 
 const COMMAND: &str = "payg-gross-up";
@@ -95,6 +100,139 @@ fn every_coefficient_keeps_withholding_within_the_search_bound() {
         for rate in [resident, foreign] {
             assert!(d(rate).le(&most).unwrap(), "{year} scale 4 {rate}");
         }
+    }
+}
+
+/// The study loan search's bound: with every Schedule 8 component `a` at most
+/// 0.17 and every `b` at least 0, no pay withholds more than 64% of its gross
+/// plus $35 (src/engine/payg_gross_up.rs).
+#[test]
+fn every_study_loan_coefficient_keeps_withholding_within_the_search_bound() {
+    for (year, tables) in STUDY_LOAN_WITHHOLDING_COEFFICIENTS {
+        for (table, rows) in *tables {
+            for (limit, a, b) in *rows {
+                let row = format!("{year} {table} below {limit:?}");
+                assert!(d(a).le(&d("0.17")).unwrap(), "{row}: a {a}");
+                assert!(!d(b).lt(&d("0")).unwrap(), "{row}: b {b}");
+            }
+        }
+    }
+}
+
+fn with_loan(net: &str, period: &str, scale: i64, year: &str) -> Value {
+    let mut facts = input(net, period, scale, year);
+    facts["study_loan"] = json!(true);
+    facts
+}
+
+/// Schedule 8's examples 1 to 3 for payments from 1 July 2026, each pay's net
+/// after its Schedule 1 amount and component. The ATO's combined coefficients
+/// with the component give the same totals: 0.56 x 2,608.99 - 613.9154 is
+/// $847; 0.47 x 2,204.99 - 382.2935 is $654, so $1,308; and on scale 1,
+/// 0.56 x 2,452.99 - 419.8343 is $954, so $4,134 a month.
+#[test]
+fn the_schedule_8_examples_gross_up_with_the_study_loan_component() {
+    // Example 1, weekly $2,608.36 on scale 2: x = 2,608.99; Schedule 1
+    // 0.39 x - 363.4627 = 654.0434, so $654; component 0.17 x - 250.4527 =
+    // 193.0756, so $193; $847 withheld leaves $1,761.36.
+    // Example 2, fortnightly $4,409.75 on scale 2: x = 2,204.99; Schedule 1
+    // 0.32 x - 181.7319 = 523.8649, so $524 and $1,048 a fortnight; component
+    // $130, so $260; $1,308 withheld leaves $3,101.75.
+    for (net, period, gross, tax, component) in [
+        ("1761.36", "weekly", "2608.36", "654.00", "193.00"),
+        ("3101.75", "fortnightly", "4409.75", "1048.00", "260.00"),
+    ] {
+        let result = api::evaluate(COMMAND, &with_loan(net, period, 2, "2026-27")).unwrap();
+        let amounts = &result["amounts"];
+        assert_eq!(amounts["net_pay"], net, "{period}");
+        assert_eq!(amounts["gross_pay"], gross, "{period}");
+        assert_eq!(amounts["schedule_1_withholding"], tax, "{period}");
+        assert_eq!(amounts["study_loan_component"], component, "{period}");
+    }
+    // Example 3, monthly $10,627.88 on scale 1: x = 2,452.99; Schedule 1
+    // 0.39 x - 228.8816 = 727.7845, so $728 and $3,154.67, or $3,155, a month;
+    // component $226, so $979; $4,134 withheld leaves $6,493.88. $10,622.88
+    // leaves it too: x = 2,451.99 gives $727 and $226, so $3,150 + $979 = $4,129.
+    let refusal =
+        api::evaluate_coded(COMMAND, &with_loan("6493.88", "monthly", 1, "2026-27")).unwrap_err();
+    assert_eq!(refusal.code, "payg.gross_up_not_unique");
+    assert_eq!(
+        refusal.message,
+        "2 gross pays leave a net of $6493.88 for a 2026-27 monthly pay on scale 1: $10622.88 and $10627.88. Schedule 1 withholds whole dollars, so a gross that withholds a dollar more for each dollar more of pay leaves the same net. Take the gross from the pay agreement."
+    );
+}
+
+#[test]
+fn a_2025_26_study_loan_takes_the_pay_date_and_its_coefficients() {
+    // F2025L01016's example 1, weekly $2,608.36 on scale 2 from 24 September
+    // 2025: x = 2,608.99; Schedule 1 0.39 x - 358.3077 = 659.1984, so $659;
+    // component 0.17 x - 241.3462 = 202.1821, so $202; $861 withheld leaves
+    // $1,747.36. $2,609.36 withholds $660 + $202 = $862 and $2,610.36
+    // withholds $660 + $203 = $863, leaving the same net.
+    let mut facts = with_loan("1747.36", "weekly", 2, "2025-26");
+    let refusal = api::evaluate_coded(COMMAND, &facts).unwrap_err();
+    assert_eq!(refusal.code, "input.missing_field");
+    facts["pay_date"] = json!("2025-09-24");
+    let refusal = api::evaluate_coded(COMMAND, &facts).unwrap_err();
+    assert_eq!(refusal.code, "payg.gross_up_not_unique");
+    assert!(
+        refusal.message.starts_with(
+            "3 gross pays leave a net of $1747.36 for a 2025-26 weekly pay on scale 2: $2608.36, $2609.36 and $2610.36."
+        ),
+        "{}",
+        refusal.message
+    );
+    facts["pay_date"] = json!("2025-09-23");
+    let refusal = api::evaluate_coded(COMMAND, &facts).unwrap_err();
+    assert_eq!(refusal.code, "payg.pay_date_before_schedule");
+}
+
+#[test]
+fn a_study_loan_outside_schedule_8_is_refused() {
+    let code = |facts: &Value| api::evaluate_coded(COMMAND, facts).unwrap_err().code;
+    assert_eq!(
+        code(&with_loan("1761.36", "weekly", 2, "2024-25")),
+        "period.unsupported"
+    );
+    assert_eq!(
+        code(&with_loan("501.00", "weekly", 4, "2026-27")),
+        "input.tax_scale_unsupported"
+    );
+    let mut foreign = with_loan("1761.36", "weekly", 4, "2026-27");
+    foreign["foreign_resident"] = json!(true);
+    assert_eq!(code(&foreign), "payg.foreign_resident_not_scale_4");
+    let mut dated = input("862.00", "weekly", 2, "2026-27");
+    dated["pay_date"] = json!("2026-07-01");
+    assert_eq!(code(&dated), "payg.pay_date_without_study_loan");
+    let mut text = input("862.00", "weekly", 2, "2026-27");
+    text["study_loan"] = json!("yes");
+    assert_eq!(code(&text), "input.flag_invalid");
+    assert_eq!(
+        code(&with_loan("333333333300.01", "weekly", 2, "2026-27")),
+        "payg.gross_up_net_too_large"
+    );
+    // study_loan false is the plain search.
+    let mut plain = input("862.00", "weekly", 2, "2026-27");
+    plain["study_loan"] = json!(false);
+    assert_eq!(
+        api::evaluate(COMMAND, &plain).unwrap(),
+        api::evaluate(COMMAND, &input("862.00", "weekly", 2, "2026-27")).unwrap()
+    );
+}
+
+#[test]
+fn the_largest_net_searched_with_a_study_loan_stays_within_the_amount_limit() {
+    let net = "333333333300.00";
+    match api::evaluate_coded(COMMAND, &with_loan(net, "quarterly", 2, "2026-27")) {
+        Ok(result) => {
+            let gross = d(result["amounts"]["gross_pay"].as_str().unwrap());
+            assert!(gross.le(&d("1000000000000")).unwrap());
+        }
+        Err(refusal) => assert_eq!(
+            refusal.code, "payg.gross_up_not_unique",
+            "{}",
+            refusal.message
+        ),
     }
 }
 
@@ -201,7 +339,7 @@ fn the_catalogue_example_grosses_up_the_payg_example() {
             .unwrap()
             .keys()
             .collect::<Vec<_>>(),
-        ["foreign_resident"]
+        ["foreign_resident", "study_loan", "pay_date"]
     );
     let periods = api::evaluate("periods", &json!({"kind": "payg_gross_up"})).unwrap();
     assert_eq!(periods.as_array().unwrap().len(), 3);
