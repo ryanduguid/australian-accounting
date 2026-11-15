@@ -1009,7 +1009,19 @@ mod tests {
     /// inputs are its parameters, so no other command takes more than before.
     #[test]
     fn only_the_fbt_benefit_worksheets_take_inputs_beyond_their_parameters() {
-        let named_only = ["fbt-loan", "fbt-meal-entertainment", "fbt-car-parking"];
+        let named_only = [
+            "fbt-loan",
+            "fbt-meal-entertainment",
+            "fbt-car-parking",
+            "fbt-debt-waiver",
+            "fbt-expense-payment",
+            "fbt-property",
+            "fbt-residual",
+            "fbt-housing",
+            "fbt-lafha",
+            "fbt-board",
+            "fbt-tax-exempt-body-entertainment",
+        ];
         for (command, params) in COMMAND_ARGS {
             let extra: Vec<_> = crate::metadata::input_units(&command.replace('-', "_"))
                 .into_iter()

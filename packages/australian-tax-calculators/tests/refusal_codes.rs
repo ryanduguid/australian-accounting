@@ -31,15 +31,20 @@ fn every_code_at_a_refusal_site_is_catalogued_and_every_entry_is_used() {
     let read = |name: &str| std::fs::read_to_string(src.join(name)).unwrap();
     let mut used = BTreeSet::new();
     // The engine's worksheets in their own modules refuse as engine.rs does.
-    let modules = std::fs::read_dir(src.join("engine")).unwrap().map(|entry| {
-        let name = entry.unwrap().file_name().into_string().unwrap();
-        (format!("engine/{name}"), &["refuse(", "bad("][..])
-    });
+    let modules = ["engine", "engine/fbt_benefits"]
+        .into_iter()
+        .flat_map(|dir| {
+            std::fs::read_dir(src.join(dir))
+                .unwrap()
+                .filter_map(move |entry| {
+                    let name = entry.unwrap().file_name().into_string().unwrap();
+                    name.ends_with(".rs")
+                        .then(|| (format!("{dir}/{name}"), &["refuse(", "bad("][..]))
+                })
+        });
     for (file, openers) in [
         ("engine.rs", &["refuse(", "bad("][..]),
         ("engine/fbt_benefits.rs", &["refuse("][..]),
-        ("engine/fbt_benefits/expense_property.rs", &["refuse("][..]),
-        ("engine/fbt_benefits/residual_housing.rs", &["refuse("][..]),
         ("api.rs", &["refusal("][..]),
         ("estimate.rs", &["Refusal::new("][..]),
         ("main.rs", &["Refusal::new("][..]),
