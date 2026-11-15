@@ -673,6 +673,11 @@ fn optional(v: &Value, key: &str, kind: Kind) -> Result<Option<Arg>> {
     v.get(key).map(|_| argument(v, key, kind)).transpose()
 }
 
+/// An optional decimal input, read as every command reads one.
+pub(crate) fn optional_decimal(v: &Value, key: &str) -> Result<Option<Arg>> {
+    optional(v, key, Dec)
+}
+
 /// `json.loads` refuses an integer token of more than 4,300 digits, as
 /// `int(text)` does under Python's default limit.
 fn int_limit(value: &Value) -> Result<()> {

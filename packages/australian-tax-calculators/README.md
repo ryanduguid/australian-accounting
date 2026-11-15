@@ -131,7 +131,7 @@ lists the commands.
 | `pension-minimum` | `account_balance`, `age`, `days`, `year`, `scope_confirmed` |
 | `worksheet-catalogue` | none: send `{}` |
 | `periods` | `kind`, the worksheet name, such as `"payg_withholding"` |
-| `personal-tax-estimate` | `year`, `scope_confirmed`, `residency`, `taxable_income`, and for a full-year resident `medicare-levy` and `medicare-levy-surcharge`; optional `seniors-pensioners-tax-offset`, `study-loan-repayment` and `division-293`; see [Personal tax estimate](#personal-tax-estimate) |
+| `personal-tax-estimate` | `year`, `scope_confirmed`, `residency`, `taxable_income` or `assessable_labour_income` (then optional `other_assessable_income`, `work_related_deductions`, `other_deductions`), optional `tax_withheld`, and for a full-year resident `medicare-levy` and `medicare-levy-surcharge`; optional `seniors-pensioners-tax-offset`, `study-loan-repayment` and `division-293`; see [Personal tax estimate](#personal-tax-estimate) |
 | `derive` | `command`, one of `fbt`, `fbt-car-statutory`, `fbt-car-operating-cost`, `fbt-loan`, `fbt-meal-entertainment`, `fbt-car-parking`, `fbt-debt-waiver`, `fbt-expense-payment`, `fbt-property`, `division-293`, `pension-minimum`, `payg-withholding`, `schedule-5-method-a`, `schedule-5-method-b-i`, `schedule-5-method-b-ii`, `termination-payment`, `working-holiday-maker-withholding`, `study-loan-withholding`, `seniors-pensioners-withholding`, `quarterly-sg`, `borrowing-expenses`, `resident-tax`, `foreign-resident-tax`, `low-income-tax-offset`, `seniors-pensioners-tax-offset`, `medicare-levy`, `medicare-levy-surcharge`, `division-296`, `contribution-caps`, `study-loan-repayment`, `capital-gains`, `main-residence`, `fbt-residual`, `fbt-housing`, `fbt-lafha`, `fbt-board` and `fbt-tax-exempt-body-entertainment`, and `input`, that command's arguments; see [Derivations](#derivations) |
 
 The 2 car commands, the 11 FBT benefit commands (`fbt-loan`, `fbt-meal-entertainment`, `fbt-car-parking`, `fbt-debt-waiver`, `fbt-expense-payment`, `fbt-property`, `fbt-residual`, `fbt-housing`, `fbt-lafha`, `fbt-board` and `fbt-tax-exempt-body-entertainment`), `main-residence`, `borrowing-expenses`, `division-296`, `termination-payment`, the 3 `schedule-5` commands, `working-holiday-maker-withholding`, `seniors-pensioners-withholding`, `seniors-pensioners-tax-offset`, `medicare-levy-surcharge`, `foreign-resident-tax`, `payg-gross-up` and `hire-purchase-schedule` have no Python original; their arguments follow the same
@@ -971,6 +971,22 @@ or the surcharge. `working` names the worksheet and amount behind each line,
 and warnings, and `not_composed` lists the parts not given or not applying, each nil.
 The total is before PAYG withholding and other credits, refundable and other
 offsets, the transfer of unused SAPTO to a spouse and any refund.
+
+In place of `taxable_income` it can take whole-dollar `assessable_labour_income`
+(salary, wages and the other payments ITAA 1997 s 25-130(4) lists) with
+optional `other_assessable_income`, `work_related_deductions` (the kinds
+s 25-130(2)(c) to (g) count) and `other_deductions`, and work out taxable
+income as assessable income less deductions, nil where they equal or exceed it
+(s 4-15(1)). For a resident from 2026-27 the deductions include the standard
+deduction for work-related expenses: the lesser of $1,000 and assessable labour
+income, reduced, but not below nil, by the work-related deductions (s 25-130,
+inserted by Act No. 49 of 2026, Schedule 4). The amounts then start with
+`total_assessable_income`, `standard_deduction`, `total_deductions` and
+`taxable_income`, and the parts run on that taxable income. Classifying income
+and deductions and any tax loss are the caller's. With `tax_withheld`, the
+year's PAYG withholding credit (TAA 1953 Sch 1 s 18-15(1)), the amounts end
+with `tax_withheld`, `refund` and `amount_payable`, comparing it with
+`total_before_credits`; other credits and refundable offsets are not in it.
 
 A refusal from a part keeps the part's code, and its message starts with the
 part's command, such as a sole parent's `medicare-levy-surcharge:
