@@ -18,10 +18,12 @@ use crate::metadata as meta;
 
 mod expense_property;
 pub use expense_property::{fbt_debt_waiver, fbt_expense_payment, fbt_property};
-mod residual_housing;
-pub use residual_housing::{
-    fbt_board, fbt_housing, fbt_lafha, fbt_residual, fbt_tax_exempt_body_entertainment,
-};
+mod lafha_board;
+pub use lafha_board::{fbt_board, fbt_lafha, fbt_tax_exempt_body_entertainment};
+mod housing;
+pub use housing::fbt_housing;
+mod residual;
+pub use residual::fbt_residual;
 
 /// The methods `method` accepts for `kind`, in the catalogue's order.
 pub fn methods(kind: &str) -> &'static [&'static str] {
@@ -34,10 +36,10 @@ pub fn methods(kind: &str) -> &'static [&'static str] {
         ],
         "fbt_expense_payment" => &expense_property::EXPENSE_PAYMENT_METHODS,
         "fbt_property" => &expense_property::PROPERTY_METHODS,
-        "fbt_residual" => &residual_housing::RESIDUAL_METHODS,
-        "fbt_housing" => &residual_housing::HOUSING_METHODS,
-        "fbt_lafha" => &residual_housing::LAFHA_METHODS,
-        "fbt_tax_exempt_body_entertainment" => &residual_housing::ENTERTAINMENT_METHODS,
+        "fbt_residual" => &residual::RESIDUAL_METHODS,
+        "fbt_housing" => &housing::HOUSING_METHODS,
+        "fbt_lafha" => &lafha_board::LAFHA_METHODS,
+        "fbt_tax_exempt_body_entertainment" => &lafha_board::ENTERTAINMENT_METHODS,
         _ => &[],
     }
 }
