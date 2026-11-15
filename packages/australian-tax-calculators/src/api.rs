@@ -96,6 +96,15 @@ enum Kind {
 }
 use Kind::{Dec, Json, Raw};
 
+/// The parameters of the worksheets that take one pay's earnings on a scale.
+const PAY_ARGS: &[(&str, Kind)] = &[
+    ("earnings", Dec),
+    ("pay_period", Raw),
+    ("scale", Raw),
+    ("year", Raw),
+    ("scope_confirmed", Raw),
+];
+
 /// The parameters of the worksheets that take taxable income alone.
 const TAXABLE_INCOME_ARGS: &[(&str, Kind)] = &[
     ("taxable_income", Dec),
@@ -153,6 +162,19 @@ const COMMAND_ARGS: &[(&str, &[(&str, Kind)])] = &[
             ("loan_term_end", Json),
             ("repaid_on", Json),
             ("section_26_50_applies", Raw),
+            ("year", Raw),
+            ("scope_confirmed", Raw),
+        ],
+    ),
+    (
+        "hire-purchase-schedule",
+        &[
+            ("amount_financed", Dec),
+            ("instalment", Dec),
+            ("instalments", Raw),
+            ("balloon", Dec),
+            ("timing", Raw),
+            ("start_date", Raw),
             ("year", Raw),
             ("scope_confirmed", Raw),
         ],
@@ -217,26 +239,18 @@ const COMMAND_ARGS: &[(&str, &[(&str, Kind)])] = &[
             ("scope_confirmed", Raw),
         ],
     ),
+    ("payg-withholding", PAY_ARGS),
     (
-        "payg-withholding",
+        "payg-gross-up",
         &[
-            ("earnings", Dec),
+            ("net_pay", Dec),
             ("pay_period", Raw),
             ("scale", Raw),
             ("year", Raw),
             ("scope_confirmed", Raw),
         ],
     ),
-    (
-        "study-loan-withholding",
-        &[
-            ("earnings", Dec),
-            ("pay_period", Raw),
-            ("scale", Raw),
-            ("year", Raw),
-            ("scope_confirmed", Raw),
-        ],
-    ),
+    ("study-loan-withholding", PAY_ARGS),
     (
         "medicare-levy",
         &[
@@ -679,6 +693,7 @@ pub fn evaluate_coded(command: &str, v: &Value) -> Result<Value> {
             | "medicare-levy"
             | "medicare-levy-surcharge"
             | "payg-withholding"
+            | "payg-gross-up"
             | "termination-payment"
             | "schedule-5-method-a"
             | "schedule-5-method-b-i"
@@ -688,6 +703,7 @@ pub fn evaluate_coded(command: &str, v: &Value) -> Result<Value> {
             | "foreign-resident-tax"
             | "seniors-pensioners-withholding"
             | "seniors-pensioners-tax-offset"
+            | "hire-purchase-schedule"
     ) && let Some(key) = v
         .as_object()
         .into_iter()
@@ -720,6 +736,9 @@ pub fn evaluate_coded(command: &str, v: &Value) -> Result<Value> {
                 repaid_on: &a[5],
             };
             engine::borrowing_expenses(&a[0], &a[1], &a[2], loan, &a[6], &a[7], &a[8])
+        }
+        "hire-purchase-schedule" => {
+            engine::hire_purchase_schedule(&a[0], &a[1], &a[2], &a[3], &a[4], &a[5], &a[6], &a[7])
         }
         "fbt" => engine::fbt(&a[0], &a[1], &a[2], &a[3]),
         "fbt-car-statutory" => {
@@ -766,6 +785,11 @@ pub fn evaluate_coded(command: &str, v: &Value) -> Result<Value> {
                 extra_pay_withholding: extra.as_ref(),
             };
             engine::payg_withholding(&a[0], &a[1], &a[2], &a[3], &a[4], &options)
+        }
+        "payg-gross-up" => {
+            // Optional: scale 4's residency, as payg-withholding takes it.
+            let foreign = v.get("foreign_resident").map(arg);
+            engine::payg_gross_up(&a[0], &a[1], &a[2], &a[3], &a[4], foreign.as_ref())
         }
         "study-loan-withholding" => {
             engine::study_loan_withholding(&a[0], &a[1], &a[2], &a[3], &a[4], pay_date.as_ref())

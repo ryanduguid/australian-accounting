@@ -1765,6 +1765,9 @@ pub fn study_loan_withholding(
     )
 }
 
+mod payg_gross_up;
+pub use payg_gross_up::payg_gross_up;
+
 /// The optional `medicare-levy` inputs, each `None` when not given.
 pub struct MedicareFamily<'a> {
     pub sapto_entitled: Option<&'a Arg>,
@@ -3761,6 +3764,9 @@ pub fn borrowing_expenses(
     spread(&year, &loan, &expenditure, &share)
 }
 
+mod hire_purchase;
+pub use hire_purchase::hire_purchase_schedule;
+
 /// One pay that includes an additional payment, as Schedule 5 (NAT 3348) reads it.
 struct AdditionalPay {
     kind: &'static str,
@@ -4757,19 +4763,21 @@ pub fn seniors_pensioners_tax_offset(
     Ok(out)
 }
 
-const KINDS: [&str; 28] = [
+const KINDS: [&str; 30] = [
     "gst",
     "resident_tax",
     "foreign_resident_tax",
     "capital_gains",
     "main_residence",
     "borrowing_expenses",
+    "hire_purchase_schedule",
     "fbt",
     "fbt_car_statutory",
     "fbt_car_operating_cost",
     "depreciation",
     "quarterly_sg",
     "payg_withholding",
+    "payg_gross_up",
     "contribution_caps",
     "pension_minimum",
     "study_loan_repayment",
