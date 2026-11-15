@@ -2570,7 +2570,7 @@ fn division_296_liability(
     })
 }
 
-//// The authority for an earnings amount that is nil because the balance is not
+/// The authority for an earnings amount that is nil because the balance is not
 /// above the threshold: after death it is taken to be nil (s 296-50). The
 /// Division 296 steps cite ITAA 1997 compilation 268 (1 October 2026), the
 /// Income Tax (Transitional Provisions) Act 1997 compilation 104 (1 October
