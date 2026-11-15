@@ -725,8 +725,9 @@ amount: the Schedule 1 amount plus Schedule 8's component, each rounded on its
 own, which Schedule 8's 'Software' paragraph accepts in place of its combined
 coefficients. Every component `a` is at most 0.17 and every `b` at least 0, so
 a week's total is at most `0.64 x + 2` and withholding on a gross `g` at most
-`0.64 g + 35`; a fixed point `w` then has `w <= (0.64 n + 35) / 0.36`, so the
-bound is `2 n + 98`. That worksheet's withholding never falls as weekly
+`0.64 g + 35`; a fixed point `w` then has `w <= (0.64 n + 35) / 0.36`, below
+`16 m / 9 + 99` for `m` the whole dollars of `n`, so as a whole number of
+dollars `w` is at most `2 m + 98`, the bound. That worksheet's withholding never falls as weekly
 earnings rise to $4,000, past every bracket edge (`tests/properties.rs`). The
 ATO's Schedule 8 for payments from 1 July 2026 (published 17 June 2026) and its
 Schedule 1 weekly coefficients were read on 16 November 2026. Schedule 8 gives

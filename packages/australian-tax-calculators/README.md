@@ -253,7 +253,7 @@ periods given.
 | Schedule 5 withholding | Weekly, fortnightly or monthly pays made from 1 July 2024 to 30 June 2027 that include back payments, commissions or bonuses, on scale 1, 2, 3, 5 or 6; the study and training support loan component for pays from 24 September 2025, and from 1 July 2026 in Method B(i) |
 | Working holiday makers | 2024-25 to 2026-27; one weekly, fortnightly or monthly payment to an established working holiday maker; no TFN exemption claimants or labour mobility schemes |
 | Seniors and pensioners | 2024-25 to 2026-27; one weekly, fortnightly or monthly payment to an established senior or pensioner who gave a TFN, by status and Medicare levy exemption; no other tax offsets or Medicare levy adjustment |
-| Personal tax estimate | Each part's own periods: 2024-25 to 2026-27, or 2025-26 and 2026-27 with a study loan; a full-year resident's or full-year foreign resident's tax and levies before credits |
+| Personal tax estimate | Each part's own periods: 2024-25 to 2026-27, or 2025-26 and 2026-27 with a study loan; a full-year resident's or full-year foreign resident's tax and levies before credits, and the refund or amount payable against tax withheld when given |
 
 Unsupported periods fail. The SG worksheet does not implement post-June 2026
 Payday entitlement rules. The separate Payday engine reviews timing on a supplied
@@ -982,7 +982,8 @@ offsets, the transfer of unused SAPTO to a spouse and any refund.
 In place of `taxable_income` it can take whole-dollar `assessable_labour_income`
 (salary, wages and the other payments ITAA 1997 s 25-130(4) lists) with
 optional `other_assessable_income`, `work_related_deductions` (the kinds
-s 25-130(2)(c) to (g) count) and `other_deductions`, and work out taxable
+s 25-130(2)(c) to (g) count) and `other_deductions` (the rest, including the
+insurance premiums and association fees s 25-130(3) leaves out), and work out taxable
 income as assessable income less deductions, nil where they equal or exceed it
 (s 4-15(1)). For a resident from 2026-27 the deductions include the standard
 deduction for work-related expenses: the lesser of $1,000 and assessable labour

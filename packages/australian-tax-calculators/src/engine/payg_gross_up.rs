@@ -24,8 +24,10 @@
 //! a week's total at most `0.64 x + 2`, and the withholding on a gross `g` at
 //! most `0.64 g + 35`, the 35 covering a quarter's 13 weeks of that $2 and of
 //! 64% of the 99 cents. A fixed point `w` then has `w <= 0.64 (net + w) + 35`,
-//! so `w <= (0.64 net + 35) / 0.36`, under `2 net + 98`. Withholding with the
-//! component also never falls as pay rises (`tests/properties.rs`).
+//! so `w <= (0.64 net + 35) / 0.36`, below `(0.64 (m + 1) + 35) / 0.36`,
+//! which is `16 m / 9 + 99`, for `m` the whole dollars of `net`; a
+//! whole-dollar `w` is then at most `2 m + 98`. Withholding with the component also never falls
+//! as pay rises (`tests/properties.rs`).
 
 use serde_json::Value;
 

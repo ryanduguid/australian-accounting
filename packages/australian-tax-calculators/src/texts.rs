@@ -1001,11 +1001,11 @@ pub const REFUSAL_CODES: &[(&str, &str)] = &[
     ),
     (
         "payg.foreign_resident_not_scale_4",
-        "Residency was given for a scale other than 4, which settles it itself.",
+        "Residency was given for a scale other than 4, which settles it itself, or beside a study loan, which scale 4 cannot have.",
     ),
     (
         "payg.gross_up_net_too_large",
-        "A net pay to gross up is so large that a gross leaving it could exceed the largest amount payg-withholding takes.",
+        "A net pay to gross up is so large that a gross leaving it could exceed the largest amount the withholding worksheet takes.",
     ),
     (
         "payg.gross_up_not_unique",
