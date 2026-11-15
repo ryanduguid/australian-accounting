@@ -139,7 +139,7 @@ const B_II: &str = "schedule-5-method-b-ii";
 
 /// Schedule 5 cases by name, 2026-27 and scale 2 unless they say otherwise:
 /// the instrument's examples 1 to 4 and a case for each branch.
-const SCHEDULE_5: [(&str, &str, &str); 12] = [
+const SCHEDULE_5: [(&str, &str, &str); 14] = [
     // Example 1, Jarrod: a $900 bonus on $1,400 a week, without and with HELP.
     (
         "jarrod",
@@ -208,6 +208,17 @@ const SCHEDULE_5: [(&str, &str, &str); 12] = [
         "b_ii_nil",
         B_II,
         r#"{"earnings": "1800.00", "additional_payment": "2480.00", "year_to_date_earnings": "18000.00", "pay_periods_to_date": 10, "earlier_additional_payments": "1000.00", "earlier_additional_withholding": "9999.00", "pay_period": "fortnightly"}"#,
+    ),
+    // Figures in exponent form and negative zeros, as a list item may give them.
+    (
+        "b_i_exponent",
+        B_I,
+        r#"{"earnings": "1.7E+3", "back_payment_periods": [{"earnings": "1.6E+3", "back_payment": "1E+2", "withheld": "3.31E+2"}, {"earnings": "1600.00", "back_payment": "5E+1", "withheld": "-0.00"}], "pay_period": "weekly"}"#,
+    ),
+    (
+        "b_i_negative_zero",
+        B_I,
+        r#"{"earnings": "1700.00", "back_payment_periods": [{"earnings": "1600.00", "back_payment": "-0.00", "withheld": "331.00"}], "pay_period": "weekly"}"#,
     ),
 ];
 
@@ -1283,6 +1294,24 @@ fn each_schedule_5_branch_gives_the_amount_its_source_sets() {
     assert_eq!(
         amount("b_i_monthly", "withholding_on_back_payment"),
         "42.00"
+    );
+    // Back payments given as 1E+2 and 5E+1, or -0.00, are written as the
+    // total adds them.
+    let exponent = schedule_5_doc("b_i_exponent");
+    assert_eq!(
+        working_in(&exponent, "back_payment"),
+        "100 + 50 = 100 + 50 = 150"
+    );
+    assert!(
+        working_in(&exponent, "withholding_on_back_payment")
+            .contains("(floor(1.6E+3 + 1E+2) + 0.99)")
+    );
+    // $1,700 gives $363 less $331; $1,650 gives $347 less nothing; $363 on
+    // $1,700 now: $742.
+    assert_eq!(amount("b_i_exponent", "withholding"), "742.00");
+    assert_eq!(
+        working_in(&schedule_5_doc("b_i_negative_zero"), "back_payment"),
+        "0.00 = 0.00 = 0.00"
     );
     // B(ii) step 8: $500 already withheld comes off before the limit; more
     // than the year's withholding leaves nil.
