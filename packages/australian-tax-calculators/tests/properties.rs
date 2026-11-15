@@ -343,7 +343,12 @@ fn grossed_up(facts: &Value) -> Vec<Decimal> {
 
 /// Every gross whose withholding leaves `net` is listed, and no other within
 /// $60 of withholding either side of them leaves it.
-fn check_grossed_up(net: &Decimal, grosses: &[Decimal], leaves: impl Fn(&Decimal) -> bool, case: &str) {
+fn check_grossed_up(
+    net: &Decimal,
+    grosses: &[Decimal],
+    leaves: impl Fn(&Decimal) -> bool,
+    case: &str,
+) {
     assert!(!grosses.is_empty() && grosses.iter().all(&leaves), "{case}");
     let low = grosses[0].sub(&n(60)).unwrap();
     let mut gross = if low.lt(net).unwrap() {
