@@ -26,6 +26,13 @@ intentionally changed.
   describe different spouses or dependants) and `input.residency_invalid`.
   `tests/personal_tax_estimate.rs` holds it to the ATO's figures, and
   `tests/properties.rs` to the sum of its parts.
+- `derive` also covers `payg-withholding`, the 3 `schedule-5` methods and
+  `termination-payment`. Their steps cite the headings and method steps of
+  Schedules 1, 5, 8 and 11 to the Taxation Administration (Withholding
+  Schedules) Instruments 2024 to 2026, and ITAA 1997 s 82-10 and 83-170; a
+  formula may now use `floor`. `tests/properties.rs`, `tests/schedule_5.rs`
+  and `tests/termination_payment.rs` derive each case they run and check the
+  result is the plain output. No command's plain output changes.
 - `derive` also covers `division-293` and `pension-minimum`. Their steps cite
   ITAA 1997 s 293-20 and the Superannuation (Sustaining the Superannuation
   Contribution Concession) Imposition Act 2013 s 5, and SISR Schedule 7

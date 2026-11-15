@@ -407,12 +407,17 @@ pub fn commands() -> Vec<&'static str> {
 }
 
 /// The commands `derive` explains: each of their amounts is worked out in a step.
-const DERIVED: [&str; 5] = [
+const DERIVED: [&str; 10] = [
     "fbt",
     "fbt-car-statutory",
     "fbt-car-operating-cost",
     "division-293",
     "pension-minimum",
+    "payg-withholding",
+    "schedule-5-method-a",
+    "schedule-5-method-b-i",
+    "schedule-5-method-b-ii",
+    "termination-payment",
 ];
 
 /// `derive`: `{"command", "input"}` gives the command's result with the step

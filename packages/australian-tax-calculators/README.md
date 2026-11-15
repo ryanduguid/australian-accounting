@@ -119,7 +119,7 @@ lists the commands.
 | `worksheet-catalogue` | none: send `{}` |
 | `periods` | `kind`, the worksheet name, such as `"payg_withholding"` |
 | `personal-tax-estimate` | `year`, `scope_confirmed`, `residency`, `taxable_income`, and for a full-year resident `medicare-levy` and `medicare-levy-surcharge`; optional `seniors-pensioners-tax-offset`, `study-loan-repayment` and `division-293`; see [Personal tax estimate](#personal-tax-estimate) |
-| `derive` | `command`, one of `fbt`, `fbt-car-statutory`, `fbt-car-operating-cost`, `division-293` and `pension-minimum`, and `input`, that command's arguments; see [Derivations](#derivations) |
+| `derive` | `command`, one of `fbt`, `fbt-car-statutory`, `fbt-car-operating-cost`, `division-293`, `pension-minimum`, `payg-withholding`, `schedule-5-method-a`, `schedule-5-method-b-i`, `schedule-5-method-b-ii` and `termination-payment`, and `input`, that command's arguments; see [Derivations](#derivations) |
 
 The 2 car commands, `main-residence`, `borrowing-expenses`, `division-296`, `termination-payment`, the 3 `schedule-5` commands, `working-holiday-maker-withholding`, `seniors-pensioners-withholding`, `seniors-pensioners-tax-offset`, `medicare-levy-surcharge` and `foreign-resident-tax` have no Python original; their arguments follow the same
 rules. `division-296` alone takes a negative amount, in `total_super_earnings`. `main-residence` also takes dates as `YYYY-MM-DD` strings, lists of
@@ -130,8 +130,8 @@ or a decimal string over 8,192 bytes, is refused.
 
 ## Derivations
 
-`derive` shows how each amount of an FBT, Division 293 or pension minimum
-worksheet was worked out. It takes `{"command": "fbt", "input": {...}}`, runs
+`derive` shows how each amount of an FBT, Division 293, pension minimum, PAYG
+withholding, Schedule 5 or termination payment worksheet was worked out. It takes `{"command": "fbt", "input": {...}}`, runs
 the command on that input and returns
 `{"format": "australian-tax-calculators/derivation/1", "engine", "engine_version",
 "calculation", "input", "steps", "result"}`. `result` is the command's own output,
@@ -158,6 +158,17 @@ command's own refusal, any other command is refused as
 `derivation.unsupported`, and a key other than `command` and `input` as
 `input.field_unknown`. The other worksheets' amounts are not derived yet.
 The plain commands' output does not change.
+
+The PAYG withholding, Schedule 5 and termination payment steps cite the
+schedules of the Taxation Administration (Withholding Schedules) Instrument for
+the year, made under Schedule 1 to the Taxation Administration Act 1953,
+s 15-25; the termination payment steps also cite ITAA 1997 s 82-10 and 83-170.
+Schedule 1 names its parts by heading, such as 'Using a formula', and the
+steps cite those headings. `floor` drops the cents where a schedule says to
+ignore them. A Schedule 5 step writes in the coefficients of the
+Schedule 1 (and, for a study loan, Schedule 8) row it used, and Method B(i)
+the figures of each earlier pay period; `cents` wraps a tax-table amount,
+which the method uses as rounded.
 
 ## Supported periods
 
