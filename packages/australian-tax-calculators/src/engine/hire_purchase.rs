@@ -147,6 +147,91 @@ impl Agreement {
         }
         Ok(rows)
     }
+
+    /// The agreement's terms from the inputs, refusing a nil amount, a term
+    /// outside 1 to 360 months or an unknown timing.
+    fn from_inputs(
+        amount_financed: &Arg,
+        instalment: &Arg,
+        instalments: &Arg,
+        balloon: &Arg,
+        timing: &Arg,
+    ) -> Result<Self> {
+        let (financed, instalment) = (money(amount_financed)?, money(instalment)?);
+        if financed.is_zero() || instalment.is_zero() {
+            return refuse(
+                "hire_purchase.amount_nil",
+                "amount_financed and instalment must be more than nil.",
+            );
+        }
+        let balloon = money(balloon)?;
+        let count = match instalments.int() {
+            Some(Some(n)) if (1..=MOST_INSTALMENTS).contains(&n) => n,
+            _ => {
+                return refuse(
+                    "hire_purchase.instalments_unsupported",
+                    format!(
+                        "instalments must be an integer from 1 to {MOST_INSTALMENTS}, monthly."
+                    ),
+                );
+            }
+        };
+        let in_advance = match timing.text() {
+            Some("in_arrears") => false,
+            Some("in_advance") => true,
+            _ => {
+                return refuse(
+                    "input.timing_invalid",
+                    "timing must be in_arrears or in_advance.",
+                );
+            }
+        };
+        Ok(Agreement {
+            financed,
+            instalment,
+            count,
+            balloon,
+            in_advance,
+        })
+    }
+}
+
+/// `start_date` as a day number, refused unless it falls in the income year.
+fn start_in_year(start_date: &Arg, year: &str) -> Result<i64> {
+    let start = date_arg(start_date, "start_date")?;
+    let first: i64 = year[..4].parse().expect("income year");
+    let opens = dates::parse(&format!("{first}-07-01")).expect("income year");
+    let closes = dates::parse(&format!("{}-06-30", first + 1)).expect("income year");
+    if start < opens || start > closes {
+        return refuse(
+            "hire_purchase.start_outside_year",
+            format!(
+                "start_date must fall in the {year} income year, 1 July {first} to 30 June {}.",
+                first + 1
+            ),
+        );
+    }
+    Ok(start)
+}
+
+/// The monthly rate `r` and 12 times it, to 16 places, so the rates
+/// reproduce a month's interest to the cent at the largest amount, and
+/// fixed-point, so a nil rate reads 0.0000000000000000.
+fn rates(r: &Decimal) -> Result<Vec<(String, String)>> {
+    precise(|| {
+        Ok(vec![
+            rate(
+                "implicit_monthly_rate",
+                r.quantize(-16, Rounding::HalfUp)?.fixed(16, false),
+            ),
+            rate(
+                "nominal_annual_rate",
+                r.mul(&int(12))?
+                    .quantize(-16, Rounding::HalfUp)?
+                    .fixed(16, false),
+            ),
+        ])
+    })
 }
 
 #[allow(clippy::too_many_arguments)]
@@ -161,91 +246,31 @@ pub fn hire_purchase_schedule(
     scope_confirmed: &Arg,
 ) -> Result<Value> {
     let year = scope(scope_confirmed, year, KIND)?;
-    let (financed, instalment) = (money(amount_financed)?, money(instalment)?);
-    if financed.is_zero() || instalment.is_zero() {
-        return refuse(
-            "hire_purchase.amount_nil",
-            "amount_financed and instalment must be more than nil.",
-        );
-    }
-    let balloon = money(balloon)?;
-    let count = match instalments.int() {
-        Some(Some(n)) if (1..=MOST_INSTALMENTS).contains(&n) => n,
-        _ => {
-            return refuse(
-                "hire_purchase.instalments_unsupported",
-                format!("instalments must be an integer from 1 to {MOST_INSTALMENTS}, monthly."),
-            );
-        }
-    };
-    let in_advance = match timing.text() {
-        Some("in_arrears") => false,
-        Some("in_advance") => true,
-        _ => {
-            return refuse(
-                "input.timing_invalid",
-                "timing must be in_arrears or in_advance.",
-            );
-        }
-    };
-    let start = date_arg(start_date, "start_date")?;
-    let first: i64 = year[..4].parse().expect("income year");
-    let opens = dates::parse(&format!("{first}-07-01")).expect("income year");
-    let closes = dates::parse(&format!("{}-06-30", first + 1)).expect("income year");
-    if start < opens || start > closes {
-        return refuse(
-            "hire_purchase.start_outside_year",
-            format!(
-                "start_date must fall in the {year} income year, 1 July {first} to 30 June {}.",
-                first + 1
-            ),
-        );
-    }
-    let agreement = Agreement {
-        financed: financed.clone(),
-        instalment,
-        count,
-        balloon,
-        in_advance,
-    };
+    let agreement =
+        Agreement::from_inputs(amount_financed, instalment, instalments, balloon, timing)?;
+    let start = start_in_year(start_date, &year)?;
     let (r, rows, total, charges) = precise(|| {
         let r = agreement.implicit_rate()?;
         let total = agreement
             .instalment
-            .mul(&int(count))?
+            .mul(&int(agreement.count))?
             .add(&agreement.balloon)?;
-        let charges = total.sub(&financed)?;
+        let charges = total.sub(&agreement.financed)?;
         let rows = agreement.schedule(&r, start, &charges)?;
         Ok((r, rows, total, charges))
-    })?;
-    // To 16 places, so the rates reproduce a month's interest to the cent at
-    // the largest amount, and fixed-point, so a nil rate reads 0.0000000000000000.
-    let rates = precise(|| {
-        Ok(vec![
-            rate(
-                "implicit_monthly_rate",
-                r.quantize(-16, Rounding::HalfUp)?.fixed(16, false),
-            ),
-            rate(
-                "nominal_annual_rate",
-                r.mul(&int(12))?
-                    .quantize(-16, Rounding::HalfUp)?
-                    .fixed(16, false),
-            ),
-        ])
     })?;
     let mut out = result(
         KIND,
         &year,
         vec![
-            ("amount_financed", financed),
+            ("amount_financed", agreement.financed),
             ("total_payments", total),
             ("total_interest", charges),
         ],
-        rates,
+        rates(&r)?,
     )?;
     // The balloon falls due at the end of the term, after an instalment in advance.
-    out["balloon_date"] = json!(dates::format(dates::add_months(start, count)));
+    out["balloon_date"] = json!(dates::format(dates::add_months(start, agreement.count)));
     out["schedule"] = Value::Array(rows);
     Ok(out)
 }

@@ -132,22 +132,7 @@ pub fn payg_gross_up(
     let answer = pay.at(&withheld[0])?;
     let period = answer["period"].as_str().expect("period");
     if withheld.len() > 1 {
-        let grosses: Vec<String> = precise(|| {
-            withheld
-                .iter()
-                .map(|w| Ok(format!("${}", net.add(w)?.fixed(2, false))))
-                .collect()
-        })?;
-        return refuse(
-            "payg.gross_up_not_unique",
-            format!(
-                "{} gross pays leave a net of ${} for a {period} pay on scale {}: {}. Schedule 1 withholds whole dollars, so a gross that withholds a dollar more for each dollar more of pay leaves the same net. Take the gross from the pay agreement.",
-                withheld.len(),
-                net.fixed(2, false),
-                answer["rates"]["scale"].as_str().expect("scale"),
-                listed(&grosses)
-            ),
-        );
+        return not_unique(&net, &withheld, period, &answer);
     }
     let gross = precise(|| Ok(net.add(&withheld[0])?))?;
     let mut amounts = vec![("net_pay", net), ("gross_pay", gross)];
@@ -161,4 +146,24 @@ pub fn payg_gross_up(
         .map(|(k, v)| (k.clone(), v.as_str().expect("rate").to_string()))
         .collect();
     result(KIND, period, amounts, rates)
+}
+
+/// The refusal for a net that more than one gross leaves, listing each gross.
+fn not_unique(net: &Decimal, withheld: &[Decimal], period: &str, answer: &Value) -> Result<Value> {
+    let grosses: Vec<String> = precise(|| {
+        withheld
+            .iter()
+            .map(|w| Ok(format!("${}", net.add(w)?.fixed(2, false))))
+            .collect()
+    })?;
+    refuse(
+        "payg.gross_up_not_unique",
+        format!(
+            "{} gross pays leave a net of ${} for a {period} pay on scale {}: {}. Schedule 1 withholds whole dollars, so a gross that withholds a dollar more for each dollar more of pay leaves the same net. Take the gross from the pay agreement.",
+            withheld.len(),
+            net.fixed(2, false),
+            answer["rates"]["scale"].as_str().expect("scale"),
+            listed(&grosses)
+        ),
+    )
 }
