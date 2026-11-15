@@ -844,7 +844,7 @@ pub fn supported_periods(kind: &str) -> Vec<&'static str> {
         "foreign_resident_tax" => keys(FOREIGN_RESIDENT_TAX_SCALES),
         "main_residence" => vec!["2024-25", "2025-26", "2026-27"],
         // s 26-155 quarantines residential rental deductions from 2027-28.
-        "borrowing_expenses" => vec!["2024-25", "2025-26", "2026-27"],
+        "borrowing_expenses" | "hire_purchase_schedule" => vec!["2024-25", "2025-26", "2026-27"],
         "fbt" => vec!["2026", "2027"],
         "fbt_car_statutory" | "fbt_car_operating_cost" | "fbt_loan" => {
             keys(FBT_BENCHMARK_INTEREST_RATES)
@@ -853,7 +853,7 @@ pub fn supported_periods(kind: &str) -> Vec<&'static str> {
         // return instructions and rates page were read for.
         "fbt_meal_entertainment" => vec!["2026", "2027"],
         "fbt_car_parking" => keys(FBT_CAR_PARKING_THRESHOLDS),
-        "payg_withholding" => keys(PAYG_WITHHOLDING_COEFFICIENTS),
+        "payg_withholding" | "payg_gross_up" => keys(PAYG_WITHHOLDING_COEFFICIENTS),
         "contribution_caps" => keys(CONTRIBUTION_CAPS),
         "pension_minimum" => vec!["2024-25", "2025-26", "2026-27"],
         "study_loan_repayment" => keys(STUDY_LOAN_REPAYMENT_THRESHOLDS),
@@ -904,6 +904,10 @@ pub fn source_review(kind: &str) -> (&'static str, &'static str) {
             "2026-11-04",
             "ITAA 1997 s 25-25 and s 26-50, compilation 268 (1 October 2026); Borrowing expenses: the Peter and the Fiona and Max examples",
         ),
+        "hire_purchase_schedule" => (
+            "2026-11-15",
+            "ITAA 1997 s 240-17 (the hirer under a hire purchase agreement is the notional buyer), s 240-55 (arrangement payments) and s 240-60 (notional interest: the method statement and the apportionment of a period spanning income years)",
+        ),
         "fbt_car_statutory" => (
             "2026-10-29",
             "Fringe benefits tax - a guide for employers, 7.8 statutory formula method and examples 23 and 26; FBT return 2026 instructions, item 23A and example 6; Electric cars exemption, reportable fringe benefits",
@@ -932,7 +936,7 @@ pub fn source_review(kind: &str) -> (&'static str, &'static str) {
             "2026-09-10",
             "Super guarantee, tables 21 and 24, 2025-26 rows",
         ),
-        "payg_withholding" => (
+        "payg_withholding" | "payg_gross_up" => (
             "2026-11-14",
             "Schedule 1 (NAT 1004) for payments from 1 July 2026, and for payments from 1 July 2024 to 30 June 2026: weekly coefficients and scale 4, using a formula (rounding and the 53 and 27 pay tables), working out the weekly earnings (quarterly pays and tax offsets), Medicare levy adjustment, examples of calculating the withholding amounts, sample data",
         ),
@@ -1041,6 +1045,12 @@ pub fn library_evidence(kind: &str) -> [(&'static str, &'static str); 4] {
             "2026-06-30",
             "2026-11-04",
         ),
+        "hire_purchase_schedule" => (
+            "ATO Legal database, ITAA 1997 Division 240",
+            "s 240-60(1) steps 1 to 4, with s 240-60 as amended by No 79 of 2010",
+            "2026-11-15",
+            "2026-11-15",
+        ),
         "fbt_car_statutory" | "fbt_car_operating_cost" => (
             "tax-examples-fringe-benefits-tax-fbt",
             "3-020",
@@ -1082,6 +1092,12 @@ pub fn library_evidence(kind: &str) -> [(&'static str, &'static str); 4] {
             "withholding amounts, Medicare levy adjustment scale 2 and Medicare half-levy adjustment scale 6: weekly, fortnightly and monthly tables",
             "2026-06-17",
             "2026-11-14",
+        ),
+        "payg_gross_up" => (
+            "ATO Schedule 1 sample data",
+            "withholding amounts: weekly, fortnightly and monthly tables, each row's net pay grossed up",
+            "2026-06-17",
+            "2026-11-15",
         ),
         "contribution_caps" => (
             "tax-examples-individuals",
@@ -1242,6 +1258,8 @@ pub fn optional_inputs(kind: &str) -> Vec<(&'static str, &'static str)> {
                 "boolean, weekly and fortnightly pays only: true when the financial year has 53 weekly or 27 fortnightly pays and the payee asked for the additional amount",
             ),
         ],
+        // Scale 4's residency, which payg_withholding lists first.
+        "payg_gross_up" => optional_inputs("payg_withholding")[..1].to_vec(),
         "study_loan_withholding" => vec![(
             "pay_date",
             "YYYY-MM-DD date the payment is made, within the income year; required for 2025-26, whose Schedule 8 coefficients apply from 24 September 2025",
@@ -1407,6 +1425,29 @@ pub fn input_units(kind: &str) -> Vec<(&'static str, &'static str)> {
                 "boolean, false only when the property is not a leisure facility, or s 26-50(3) applies to it at all times in the income year (such as a holiday home held mainly to produce rent)",
             ),
         ],
+        "hire_purchase_schedule" => vec![
+            (
+                "amount_financed",
+                "AUD, the notional loan principal: the price of the goods less any deposit or trade-in",
+            ),
+            (
+                "instalment",
+                "AUD, the level monthly instalment",
+            ),
+            ("instalments", "integer 1 to 360, monthly"),
+            (
+                "balloon",
+                "AUD, paid at the end of the term (with the last instalment in arrears, a month after it in advance) and shown as the last month's balloon; 0.00 for none",
+            ),
+            (
+                "timing",
+                "in_arrears (each instalment at its month's end) or in_advance (at its start)",
+            ),
+            (
+                "start_date",
+                "YYYY-MM-DD, the day the agreement starts, within the income year",
+            ),
+        ],
         "fbt" => vec![("type_one_value", "AUD"), ("type_two_value", "AUD")],
         "fbt_loan" => vec![
             (
@@ -1515,6 +1556,14 @@ pub fn input_units(kind: &str) -> Vec<(&'static str, &'static str)> {
                 "integer 1 to 6; scale 4 also needs foreign_resident",
             ),
         ],
+        "payg_gross_up" => {
+            let mut units = input_units("payg_withholding");
+            units[0] = (
+                "net_pay",
+                "AUD, the pay for the pay period after Schedule 1 withholding",
+            );
+            units
+        }
         "study_loan_withholding" => vec![
             payg[0],
             ("pay_period", "weekly, fortnightly, monthly or quarterly"),
@@ -1795,6 +1844,15 @@ pub fn examples(kind: &str) -> Vec<(&'static str, Example)> {
             ("repaid_on", Json("null")),
             ("section_26_50_applies", Flag(false)),
         ],
+        "hire_purchase_schedule" => vec![
+            ("year", Text("2026-27")),
+            ("amount_financed", Text("45000.00")),
+            ("instalment", Text("850.00")),
+            ("instalments", Whole(60)),
+            ("balloon", Text("5000.00")),
+            ("timing", Text("in_arrears")),
+            ("start_date", Text("2026-07-15")),
+        ],
         "fbt" => vec![
             ("type_one_value", Text("1000.00")),
             ("type_two_value", Text("1000.00")),
@@ -1851,6 +1909,13 @@ pub fn examples(kind: &str) -> Vec<(&'static str, Example)> {
         "payg_withholding" => vec![
             ("year", Text("2026-27")),
             ("earnings", Text("1000.00")),
+            ("pay_period", Text("weekly")),
+            ("scale", Whole(2)),
+        ],
+        // The net of the payg_withholding example, whose gross is its only one.
+        "payg_gross_up" => vec![
+            ("year", Text("2026-27")),
+            ("net_pay", Text("862.00")),
             ("pay_period", Text("weekly")),
             ("scale", Whole(2)),
         ],

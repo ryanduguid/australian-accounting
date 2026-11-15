@@ -259,6 +259,40 @@ intentionally changed.
   the total of all their reportable benefits at the type 2 gross-up rate when it
   exceeds $2,000, a pooled or shared car is not reportable, and the worksheet
   determines neither. Every other amount and warning is unchanged.
+- `payg-gross-up` finds the gross pay whose Schedule 1 withholding leaves a
+  stated net pay, for one regular pay on the scale, pay period and income year
+  `payg-withholding` takes, with `foreign_resident` for scale 4. It searches
+  `payg-withholding`'s own results rather than inverting the formulas, and
+  refuses with the new code `payg.gross_up_not_unique`, listing every gross,
+  where more than one leaves the net: Schedule 1 withholds whole dollars, so a
+  gross a dollar higher can withhold a dollar more and leave the same net. A
+  net above $499,999,999,974.00 is refused with `payg.gross_up_net_too_large`.
+  No Python release has it. `tests/payg_gross_up.rs` grosses up the net of
+  every row of the ATO's Schedule 1 sample data for both schedules to the
+  row's earnings or a tie that names them, and `tests/properties.rs` checks
+  that withholding on each answer leaves the net and that no other gross
+  within $60 of withholding does. `tests/refusal_codes.rs` now also reads the
+  engine's modules under `src/engine/`, and `payg-withholding` and
+  `study-loan-withholding` share one argument list.
+- `hire-purchase-schedule` sets out a hire purchase agreement month by month
+  for the hirer, the notional buyer under ITAA 1997 s 240-17(2), for
+  agreements starting in 2024-25 to 2026-27: level monthly instalments in
+  arrears or in advance and any balloon at the end of the term. It works out
+  the implicit interest rate from the payments, as s 240-60(1) step 3 does,
+  rather than taking a stated rate, and shows each month's notional interest
+  as the interest to date rounded to cents less what earlier months show, so
+  the months add up to the total charges and the last balance is nil. New
+  codes: `hire_purchase.amount_nil`, `hire_purchase.instalments_unsupported`,
+  `hire_purchase.rate_imprecise`, `hire_purchase.rate_unsupported`,
+  `hire_purchase.start_outside_year` and `input.timing_invalid`. No Python
+  release has it. `tests/hire_purchase.rs` holds it to agreements at exactly
+  10% and 5% a month worked by hand, to fabricated agreements worked
+  independently and to 2 schedules LodgeiT Labs publishes at a stated rate,
+  where it closes at nil as they do not, and `tests/properties.rs` checks that the months add up and
+  that each month's interest is within 2 cents of the rate shown times what
+  it accrues on.
+  `tests/refusal_codes.rs` now also reads the engine's modules under
+  `src/engine/`.
 
 ### Documented divergences
 
