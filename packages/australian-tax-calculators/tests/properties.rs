@@ -76,6 +76,15 @@ fn run(command: &str, input: Value) -> Value {
     let result =
         api::evaluate(command, &input).unwrap_or_else(|e| panic!("{command} {input}: {e}"));
     check_sanity(command, &result);
+    // Every input of a command derive explains derives to this result, byte for byte.
+    match api::evaluate_coded("derive", &json!({"command": command, "input": input})) {
+        Ok(doc) => assert_eq!(
+            doc["result"].to_string(),
+            result.to_string(),
+            "derive {command} {input}"
+        ),
+        Err(refusal) => assert_eq!(refusal.code, "derivation.unsupported", "{command} {input}"),
+    }
     result
 }
 
@@ -307,6 +316,70 @@ fn payg_withholding_never_falls_across_any_bracket_boundary() {
                     previous = amount;
                 }
             }
+        }
+    }
+}
+
+/// The grosses `payg-gross-up` gives for `net`: the one it returns, or those
+/// its refusal of a tie lists.
+fn grossed_up(
+    net: &str,
+    period: &str,
+    scale: i64,
+    year: &str,
+    foreign: Option<bool>,
+) -> Vec<Decimal> {
+    let mut facts = json!({"net_pay": net, "pay_period": period, "scale": scale,
+                           "year": year, "scope_confirmed": true});
+    if let Some(foreign) = foreign {
+        facts["foreign_resident"] = json!(foreign);
+    }
+    match api::evaluate_coded("payg-gross-up", &facts) {
+        Ok(result) => {
+            check_sanity("payg-gross-up", &result);
+            vec![amount(&result, "gross_pay")]
+        }
+        Err(refusal) => {
+            assert_eq!(refusal.code, "payg.gross_up_not_unique", "{facts}");
+            let (_, listed) = refusal.message.split_once(": ").unwrap();
+            let (listed, _) = listed.split_once(". ").unwrap();
+            listed
+                .split([',', ' '])
+                .filter_map(|word| word.strip_prefix('$'))
+                .map(d)
+                .collect()
+        }
+    }
+}
+
+#[test]
+fn withholding_on_the_grossed_up_pay_leaves_the_net() {
+    // Every gross whose withholding leaves the net is listed, and no other
+    // within $60 of withholding either side of them leaves it.
+    let scales = payg_scales();
+    let mut rng = Rng(0x6055);
+    for _ in 0..RUNS {
+        let (year, scale, foreign) = *rng.pick(&scales);
+        let period = *rng.pick(&["weekly", "fortnightly", "monthly", "quarterly"]);
+        let net = d(&rng.pay());
+        let case = format!("{year} {scale} {foreign:?} {period} net {net}");
+        let leaves = |gross: &Decimal| {
+            let withholding = withheld(&gross.fixed(2, false), period, scale, year, foreign);
+            eq(&gross.sub(&withholding).unwrap(), &net)
+        };
+        let grosses = grossed_up(&net.fixed(2, false), period, scale, year, foreign);
+        assert!(!grosses.is_empty() && grosses.iter().all(leaves), "{case}");
+        let low = grosses[0].sub(&n(60)).unwrap();
+        let mut gross = if low.lt(&net).unwrap() {
+            net.clone()
+        } else {
+            low
+        };
+        let high = grosses[grosses.len() - 1].add(&n(60)).unwrap();
+        while le(&gross, &high) {
+            let listed = grosses.iter().any(|g| eq(g, &gross));
+            assert_eq!(leaves(&gross), listed, "{case}: gross {gross}");
+            gross = gross.add(&n(1)).unwrap();
         }
     }
 }
@@ -1264,6 +1337,76 @@ fn borrowing_expense_maximums_carry_forward_and_add_up() {
     }
 }
 
+/// A hire purchase schedule adds up: the months' interest to the total
+/// charges, each closing balance to the next opening and the last to nil, and
+/// each month's interest is within a cent of the implicit rate on what it
+/// accrues on (ITAA 1997 s 240-60(1)).
+#[test]
+fn hire_purchase_interest_adds_up_to_the_charges_and_the_balance_to_nil() {
+    let mut rng = Rng(0x2406_0060);
+    let cents = |c: i64| format!("{}.{:02}", c / 100, c % 100);
+    for _ in 0..RUNS {
+        let count = rng.int(1, 360);
+        let financed = rng.int(100, 100_000_000_000);
+        let monthly = rng.int(0, 50_000) as f64 / 1e6;
+        let advance = rng.bool();
+        let balloon = rng.int(0, financed / 2);
+        // The level instalment near that rate, rounded up to the cent so the
+        // payments repay at least the amount financed.
+        let v = (1.0 + monthly).powi(-(count as i32));
+        let annuity = if monthly == 0.0 {
+            count as f64
+        } else if advance {
+            (1.0 - v) / monthly * (1.0 + monthly)
+        } else {
+            (1.0 - v) / monthly
+        };
+        let instalment = ((financed as f64 - balloon as f64 * v) / annuity).ceil() as i64;
+        let facts = json!({
+            "amount_financed": cents(financed), "instalment": cents(instalment.max(1)),
+            "instalments": count, "balloon": cents(balloon),
+            "timing": if advance { "in_advance" } else { "in_arrears" },
+            "start_date": "2026-07-01", "year": "2026-27", "scope_confirmed": true,
+        });
+        let r = run("hire-purchase-schedule", facts.clone());
+        let rate = d(r["rates"]["implicit_monthly_rate"].as_str().unwrap());
+        let rows = r["schedule"].as_array().unwrap();
+        assert_eq!(rows.len() as i64, count, "{facts}");
+        let field = |row: &Value, key: &str| d(row[key].as_str().unwrap());
+        let (mut interest, mut opening) = (n(0), d(&cents(financed)));
+        for row in rows {
+            let charged = field(row, "interest");
+            let payment = field(row, "payment").add(&field(row, "balloon")).unwrap();
+            assert!(eq(&field(row, "opening"), &opening), "{facts}");
+            assert!(
+                eq(&field(row, "principal"), &payment.sub(&charged).unwrap()),
+                "{facts}"
+            );
+            let closing = opening.sub(&field(row, "principal")).unwrap();
+            assert!(eq(&field(row, "closing"), &closing), "{facts}");
+            let base = if advance {
+                opening.sub(&d(&cents(instalment.max(1)))).unwrap()
+            } else {
+                opening.clone()
+            };
+            let off = charged.sub(&base.mul(&rate).unwrap()).unwrap();
+            let within = d("0.02")
+                .add(&base.mul(&d("0.000000000001")).unwrap())
+                .unwrap();
+            assert!(
+                le(&off, &within) && le(&within.neg().unwrap(), &off),
+                "{facts}: {row}"
+            );
+            interest = interest.add(&charged).unwrap();
+            opening = closing;
+        }
+        assert!(eq(&opening, &n(0)), "{facts}");
+        assert!(eq(&interest, &amount(&r, "total_interest")), "{facts}");
+        let charges = amount(&r, "total_payments").sub(&amount(&r, "amount_financed"));
+        assert!(eq(&interest, &charges.unwrap()), "{facts}");
+    }
+}
+
 // Metamorphic relations: how the answer must move when one fact moves.
 
 fn decline(cost: &str, life: &str, days: i64, method: &str) -> Value {
@@ -1666,4 +1809,99 @@ fn civil(day: i64) -> (i64, i64, i64) {
     let d = doy - (153 * mp + 2) / 5 + 1;
     let m = if mp < 10 { mp + 3 } else { mp - 9 };
     (yoe + era * 400 + i64::from(m <= 2), m, d)
+}
+
+/// One generated person's `personal-tax-estimate` input, with SAPTO, a study
+/// loan and Division 293 each present or not.
+fn estimate_input(rng: &mut Rng, year: &str) -> Value {
+    let income = rng.dollars();
+    let fringe = rng.int(0, 30_000);
+    let mut facts = json!({
+        "year": year, "scope_confirmed": true, "residency": "full_year_resident",
+        "taxable_income": income.to_string(),
+        "medicare-levy": {"section_9a_adjustment_applies": false},
+        "medicare-levy-surcharge": {"reportable_fringe_benefits": fringe.to_string(),
+            "income_for_surcharge_purposes": (income + fringe).to_string(),
+            "days_without_cover": rng.int(0, 365)},
+    });
+    if rng.bool() {
+        facts["seniors-pensioners-tax-offset"] =
+            json!({"rebate_income": rng.int(0, 60_000).to_string(), "status": "single"});
+    }
+    if rng.bool() {
+        facts["study-loan-repayment"] = json!({"repayment_income": (income + fringe).to_string()});
+    }
+    if rng.bool() {
+        facts["division-293"] = json!({"division_293_income": (income + fringe).to_string(),
+            "low_tax_contributions": rng.cents(5_000_000)});
+    }
+    facts
+}
+
+/// A part's amount when called alone with the inputs `out`, the estimate for
+/// `facts`, gave it, checking the estimate kept that part's result unchanged;
+/// nil for an optional part not given.
+fn part_alone(facts: &Value, out: &Value, command: &str, key: &str) -> Decimal {
+    let shared_only = matches!(command, "resident-tax" | "low-income-tax-offset");
+    if facts.get(command).is_none() && !shared_only {
+        assert!(
+            out["components"].get(command).is_none(),
+            "{command} {facts}"
+        );
+        return n(0);
+    }
+    let mut input = facts.get(command).cloned().unwrap_or_else(|| json!({}));
+    input["year"] = facts["year"].clone();
+    input["scope_confirmed"] = json!(true);
+    if shared_only || command.starts_with("medicare") {
+        input["taxable_income"] = facts["taxable_income"].clone();
+    }
+    let sapto = &out["components"]["seniors-pensioners-tax-offset"];
+    if command == "medicare-levy" && !sapto.is_null() {
+        let offset = amount(sapto, "seniors_pensioners_tax_offset");
+        input["sapto_entitled"] = json!(!eq(&offset, &n(0)));
+    }
+    let result = run(command, input);
+    assert_eq!(out["components"][command], result, "{command} {facts}");
+    amount(&result, key)
+}
+
+/// `personal-tax-estimate` keeps each part's result exactly as the part gives
+/// it alone, and its total is the parts' sum: basic tax less SAPTO and then
+/// LITO, each up to the tax left (ITAA 1997 s 63-10(1)), plus the levy, the
+/// surcharge and the study loan repayment. Division 293 tax stays outside it.
+#[test]
+fn the_composed_estimate_is_the_sum_of_its_parts_called_alone() {
+    let mut rng = Rng(0x0015_1126);
+    for _ in 0..400 {
+        let year = *rng.pick(&["2025-26", "2026-27"]);
+        let facts = estimate_input(&mut rng, year);
+        let out = run("personal-tax-estimate", facts.clone());
+        let alone = |command: &str, key: &str| part_alone(&facts, &out, command, key);
+        let basic = alone("resident-tax", "basic_income_tax");
+        let sapto = alone(
+            "seniors-pensioners-tax-offset",
+            "seniors_pensioners_tax_offset",
+        );
+        let lito = alone("low-income-tax-offset", "low_income_tax_offset");
+        let sapto = if le(&sapto, &basic) {
+            sapto
+        } else {
+            basic.clone()
+        };
+        let left = basic.sub(&sapto).unwrap();
+        let lito = if le(&lito, &left) { lito } else { left.clone() };
+        let applied = amount(&out, "seniors_pensioners_tax_offset_applied");
+        assert!(eq(&applied, &sapto), "SAPTO applies first: {facts}");
+        let total = [
+            alone("medicare-levy", "medicare_levy"),
+            alone("medicare-levy-surcharge", "medicare_levy_surcharge"),
+            alone("study-loan-repayment", "compulsory_repayment"),
+        ]
+        .iter()
+        .fold(left.sub(&lito).unwrap(), |sum, part| sum.add(part).unwrap());
+        assert!(eq(&amount(&out, "total_before_credits"), &total), "{facts}");
+        let div293 = alone("division-293", "division_293_tax");
+        assert!(eq(&amount(&out, "division_293_tax"), &div293), "{facts}");
+    }
 }

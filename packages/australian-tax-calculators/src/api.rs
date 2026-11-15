@@ -105,6 +105,15 @@ const FBT_METHOD_ARGS: &[(&str, Kind)] = &[
     ("scope_confirmed", Raw),
 ];
 
+/// The parameters of the worksheets that take one pay's earnings on a scale.
+const PAY_ARGS: &[(&str, Kind)] = &[
+    ("earnings", Dec),
+    ("pay_period", Raw),
+    ("scale", Raw),
+    ("year", Raw),
+    ("scope_confirmed", Raw),
+];
+
 /// The parameters of the worksheets that take taxable income alone.
 const TAXABLE_INCOME_ARGS: &[(&str, Kind)] = &[
     ("taxable_income", Dec),
@@ -162,6 +171,19 @@ const COMMAND_ARGS: &[(&str, &[(&str, Kind)])] = &[
             ("loan_term_end", Json),
             ("repaid_on", Json),
             ("section_26_50_applies", Raw),
+            ("year", Raw),
+            ("scope_confirmed", Raw),
+        ],
+    ),
+    (
+        "hire-purchase-schedule",
+        &[
+            ("amount_financed", Dec),
+            ("instalment", Dec),
+            ("instalments", Raw),
+            ("balloon", Dec),
+            ("timing", Raw),
+            ("start_date", Raw),
             ("year", Raw),
             ("scope_confirmed", Raw),
         ],
@@ -232,26 +254,18 @@ const COMMAND_ARGS: &[(&str, &[(&str, Kind)])] = &[
             ("scope_confirmed", Raw),
         ],
     ),
+    ("payg-withholding", PAY_ARGS),
     (
-        "payg-withholding",
+        "payg-gross-up",
         &[
-            ("earnings", Dec),
+            ("net_pay", Dec),
             ("pay_period", Raw),
             ("scale", Raw),
             ("year", Raw),
             ("scope_confirmed", Raw),
         ],
     ),
-    (
-        "study-loan-withholding",
-        &[
-            ("earnings", Dec),
-            ("pay_period", Raw),
-            ("scale", Raw),
-            ("year", Raw),
-            ("scope_confirmed", Raw),
-        ],
-    ),
+    ("study-loan-withholding", PAY_ARGS),
     (
         "medicare-levy",
         &[
@@ -422,11 +436,12 @@ pub fn commands() -> Vec<&'static str> {
     out.push("worksheet-catalogue");
     out.push("periods");
     out.push("derive");
+    out.push("personal-tax-estimate");
     out
 }
 
 /// The commands `derive` explains: each of their amounts is worked out in a step.
-const DERIVED: [&str; 16] = [
+const DERIVED: [&str; 21] = [
     "fbt",
     "fbt-car-statutory",
     "fbt-car-operating-cost",
@@ -438,6 +453,11 @@ const DERIVED: [&str; 16] = [
     "fbt-property",
     "division-293",
     "pension-minimum",
+    "payg-withholding",
+    "schedule-5-method-a",
+    "schedule-5-method-b-i",
+    "schedule-5-method-b-ii",
+    "termination-payment",
     "fbt-residual",
     "fbt-housing",
     "fbt-lafha",
@@ -662,6 +682,21 @@ fn int_limit(value: &Value) -> Result<()> {
     }
 }
 
+/// Whether `command` takes the input `key`, required or optional.
+pub(crate) fn takes(command: &str, key: &str) -> bool {
+    let kind = command.replace('-', "_");
+    // The catalogue's required and optional inputs, which for the FBT benefit
+    // worksheets are more than their positional parameters.
+    let named = [
+        crate::metadata::input_units(&kind),
+        crate::metadata::optional_inputs(&kind),
+    ];
+    COMMAND_ARGS
+        .iter()
+        .any(|(c, params)| *c == command && params.iter().any(|(p, _)| *p == key))
+        || named.iter().flatten().any(|(n, _)| *n == key)
+}
+
 /// Run one JSON stdin command: the result value, or the refusal message.
 pub fn evaluate(command: &str, v: &Value) -> std::result::Result<Value, String> {
     evaluate_coded(command, v).map_err(|refusal| refusal.message)
@@ -676,6 +711,7 @@ pub fn evaluate_coded(command: &str, v: &Value) -> Result<Value> {
     match command {
         "worksheet-catalogue" => return Ok(engine::worksheet_catalogue()),
         "derive" => return derive(v),
+        "personal-tax-estimate" => return crate::estimate::compose(v),
         "periods" => {
             let kind = match v.get("kind") {
                 None => return refusal("input.missing_field", "kind is required"),
@@ -711,6 +747,7 @@ pub fn evaluate_coded(command: &str, v: &Value) -> Result<Value> {
             | "medicare-levy"
             | "medicare-levy-surcharge"
             | "payg-withholding"
+            | "payg-gross-up"
             | "termination-payment"
             | "schedule-5-method-a"
             | "schedule-5-method-b-i"
@@ -731,28 +768,17 @@ pub fn evaluate_coded(command: &str, v: &Value) -> Result<Value> {
             | "fbt-lafha"
             | "fbt-board"
             | "fbt-tax-exempt-body-entertainment"
-    ) {
-        let kind = command.replace('-', "_");
-        // The catalogue's required and optional inputs, which for the FBT
-        // benefit worksheets are more than their positional parameters.
-        let named = [
-            crate::metadata::input_units(&kind),
-            crate::metadata::optional_inputs(&kind),
-        ];
-        let taken = |key: &String| {
-            params.iter().any(|(p, _)| p == key) || named.iter().flatten().any(|(n, _)| n == key)
-        };
-        if let Some(key) = v
-            .as_object()
-            .into_iter()
-            .flat_map(|o| o.keys())
-            .find(|k| !taken(k))
-        {
-            return refusal(
-                "input.field_unknown",
-                format!("{key} is not an input of {command}"),
-            );
-        }
+            | "hire-purchase-schedule"
+    ) && let Some(key) = v
+        .as_object()
+        .into_iter()
+        .flat_map(|o| o.keys())
+        .find(|k| !takes(command, k))
+    {
+        return refusal(
+            "input.field_unknown",
+            format!("{key} is not an input of {command}"),
+        );
     }
     let a: Vec<Arg> = params
         .iter()
@@ -775,6 +801,9 @@ pub fn evaluate_coded(command: &str, v: &Value) -> Result<Value> {
                 repaid_on: &a[5],
             };
             engine::borrowing_expenses(&a[0], &a[1], &a[2], loan, &a[6], &a[7], &a[8])
+        }
+        "hire-purchase-schedule" => {
+            engine::hire_purchase_schedule(&a[0], &a[1], &a[2], &a[3], &a[4], &a[5], &a[6], &a[7])
         }
         "fbt" => engine::fbt(&a[0], &a[1], &a[2], &a[3]),
         "fbt-car-statutory" => {
@@ -841,6 +870,11 @@ pub fn evaluate_coded(command: &str, v: &Value) -> Result<Value> {
                 extra_pay_withholding: extra.as_ref(),
             };
             engine::payg_withholding(&a[0], &a[1], &a[2], &a[3], &a[4], &options)
+        }
+        "payg-gross-up" => {
+            // Optional: scale 4's residency, as payg-withholding takes it.
+            let foreign = v.get("foreign_resident").map(arg);
+            engine::payg_gross_up(&a[0], &a[1], &a[2], &a[3], &a[4], foreign.as_ref())
         }
         "study-loan-withholding" => {
             engine::study_loan_withholding(&a[0], &a[1], &a[2], &a[3], &a[4], pay_date.as_ref())
@@ -968,5 +1002,24 @@ mod tests {
             wrong.len(),
             &wrong[..wrong.len().min(10)]
         );
+    }
+
+    /// `takes` reads the catalogue's required inputs so that the FBT benefit
+    /// worksheets' named inputs are taken; every other command's required
+    /// inputs are its parameters, so no other command takes more than before.
+    #[test]
+    fn only_the_fbt_benefit_worksheets_take_inputs_beyond_their_parameters() {
+        let named_only = ["fbt-loan", "fbt-meal-entertainment", "fbt-car-parking"];
+        for (command, params) in COMMAND_ARGS {
+            let extra: Vec<_> = crate::metadata::input_units(&command.replace('-', "_"))
+                .into_iter()
+                .filter(|(n, _)| !params.iter().any(|(p, _)| p == n))
+                .collect();
+            assert_eq!(
+                extra.is_empty(),
+                !named_only.contains(command),
+                "{command} {extra:?}"
+            );
+        }
     }
 }

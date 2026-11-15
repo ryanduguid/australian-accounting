@@ -30,16 +30,26 @@ fn every_code_at_a_refusal_site_is_catalogued_and_every_entry_is_used() {
     let src = Path::new(env!("CARGO_MANIFEST_DIR")).join("src");
     let read = |name: &str| std::fs::read_to_string(src.join(name)).unwrap();
     let mut used = BTreeSet::new();
+    // The engine's worksheets in their own modules refuse as engine.rs does.
+    let modules = std::fs::read_dir(src.join("engine")).unwrap().map(|entry| {
+        let name = entry.unwrap().file_name().into_string().unwrap();
+        (format!("engine/{name}"), &["refuse(", "bad("][..])
+    });
     for (file, openers) in [
         ("engine.rs", &["refuse(", "bad("][..]),
         ("engine/fbt_benefits.rs", &["refuse("][..]),
         ("engine/fbt_benefits/expense_property.rs", &["refuse("][..]),
         ("engine/fbt_benefits/residual_housing.rs", &["refuse("][..]),
         ("api.rs", &["refusal("][..]),
+        ("estimate.rs", &["Refusal::new("][..]),
         ("main.rs", &["Refusal::new("][..]),
         ("decimal.rs", &["=> "][..]),
-    ] {
-        let text = read(file);
+    ]
+    .map(|(file, openers)| (file.to_string(), openers))
+    .into_iter()
+    .chain(modules)
+    {
+        let text = read(&file);
         for opener in openers {
             used.extend(
                 codes_after(&text, opener)
@@ -119,9 +129,9 @@ fn every_catalogued_required_input_of_a_strict_command_is_read() {
         checked += 1;
     }
     // The 14 commands that refused an unknown field before the FBT benefit
-    // worksheets (the 3 Schedule 5 methods counted apart), and the 11 FBT
-    // benefit worksheets.
-    assert_eq!(checked, 25);
+    // worksheets (the 3 Schedule 5 methods counted apart), the 11 FBT benefit
+    // worksheets, and payg-gross-up and hire-purchase-schedule.
+    assert_eq!(checked, 27);
 }
 
 /// Every frozen call gives the same answer through either entry point, and

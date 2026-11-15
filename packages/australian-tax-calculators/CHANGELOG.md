@@ -45,6 +45,29 @@ intentionally changed.
   `fbt.deduction_exceeds_contribution`, `fbt.in_house_reduction_invalid`,
   `fbt_housing.base_year_invalid`, `fbt_lafha.components_exceed_allowance`,
   `fbt_tax_exempt_body_entertainment.heads_invalid` and `input.state_invalid`.
+- `personal-tax-estimate` composes one full-year resident's income tax and
+  levies for a year from `resident-tax`, `low-income-tax-offset`,
+  `medicare-levy`, `medicare-levy-surcharge` and, when given,
+  `seniors-pensioners-tax-offset`, `study-loan-repayment` and `division-293`,
+  each called as it is alone; for a full-year foreign resident, from
+  `foreign-resident-tax` and `division-293`, with no low income tax offset,
+  Medicare levy or surcharge. It applies SAPTO and then LITO against basic tax
+  only (ITAA 1997 s 63-10(1)), names the worksheet behind each line, keeps
+  every part's result, and shows Division 293 tax outside the total. A part's
+  refusal keeps its code and names the part. New codes:
+  `estimate.residency_unsupported` (part-year residents, working holiday
+  makers, and SAPTO or a study loan for a foreign resident),
+  `estimate.surcharge_with_exemption`, `estimate.family_mismatch` (parts that
+  describe different spouses or dependants) and `input.residency_invalid`.
+  `tests/personal_tax_estimate.rs` holds it to the ATO's figures, and
+  `tests/properties.rs` to the sum of its parts.
+- `derive` also covers `payg-withholding`, the 3 `schedule-5` methods and
+  `termination-payment`. Their steps cite the headings and method steps of
+  Schedules 1, 5, 8 and 11 to the Taxation Administration (Withholding
+  Schedules) Instruments 2024 to 2026, and ITAA 1997 s 82-10 and 83-170; a
+  formula may now use `floor`. `tests/properties.rs`, `tests/schedule_5.rs`
+  and `tests/termination_payment.rs` derive each case they run and check the
+  result is the plain output. No command's plain output changes.
 - `derive` also covers `division-293` and `pension-minimum`. Their steps cite
   ITAA 1997 s 293-20 and the Superannuation (Sustaining the Superannuation
   Contribution Concession) Imposition Act 2013 s 5, and SISR Schedule 7
@@ -259,6 +282,40 @@ intentionally changed.
   the total of all their reportable benefits at the type 2 gross-up rate when it
   exceeds $2,000, a pooled or shared car is not reportable, and the worksheet
   determines neither. Every other amount and warning is unchanged.
+- `payg-gross-up` finds the gross pay whose Schedule 1 withholding leaves a
+  stated net pay, for one regular pay on the scale, pay period and income year
+  `payg-withholding` takes, with `foreign_resident` for scale 4. It searches
+  `payg-withholding`'s own results rather than inverting the formulas, and
+  refuses with the new code `payg.gross_up_not_unique`, listing every gross,
+  where more than one leaves the net: Schedule 1 withholds whole dollars, so a
+  gross a dollar higher can withhold a dollar more and leave the same net. A
+  net above $499,999,999,974.00 is refused with `payg.gross_up_net_too_large`.
+  No Python release has it. `tests/payg_gross_up.rs` grosses up the net of
+  every row of the ATO's Schedule 1 sample data for both schedules to the
+  row's earnings or a tie that names them, and `tests/properties.rs` checks
+  that withholding on each answer leaves the net and that no other gross
+  within $60 of withholding does. `tests/refusal_codes.rs` now also reads the
+  engine's modules under `src/engine/`, and `payg-withholding` and
+  `study-loan-withholding` share one argument list.
+- `hire-purchase-schedule` sets out a hire purchase agreement month by month
+  for the hirer, the notional buyer under ITAA 1997 s 240-17(2), for
+  agreements starting in 2024-25 to 2026-27: level monthly instalments in
+  arrears or in advance and any balloon at the end of the term. It works out
+  the implicit interest rate from the payments, as s 240-60(1) step 3 does,
+  rather than taking a stated rate, and shows each month's notional interest
+  as the interest to date rounded to cents less what earlier months show, so
+  the months add up to the total charges and the last balance is nil. New
+  codes: `hire_purchase.amount_nil`, `hire_purchase.instalments_unsupported`,
+  `hire_purchase.rate_imprecise`, `hire_purchase.rate_unsupported`,
+  `hire_purchase.start_outside_year` and `input.timing_invalid`. No Python
+  release has it. `tests/hire_purchase.rs` holds it to agreements at exactly
+  10% and 5% a month worked by hand, to fabricated agreements worked
+  independently and to 2 schedules LodgeiT Labs publishes at a stated rate,
+  where it closes at nil as they do not, and `tests/properties.rs` checks that the months add up and
+  that each month's interest is within 2 cents of the rate shown times what
+  it accrues on.
+  `tests/refusal_codes.rs` now also reads the engine's modules under
+  `src/engine/`.
 
 ### Documented divergences
 

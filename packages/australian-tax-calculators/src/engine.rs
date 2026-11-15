@@ -246,7 +246,13 @@ fn result(
 /// compiled on 1 July 2026 (C2004A03280) and ATO pages, read on 14 November 2026.
 /// The Division 293 steps cite ITAA 1997 compilation 266 (1 July 2026) and the
 /// 2013 Imposition Act as made, and the pension minimum steps SISR Schedule 7 as
-/// in force from 1 July 2026, all read on 15 November 2026.
+/// in force from 1 July 2026, all read on 15 November 2026. The PAYG withholding
+/// and Schedule 5 steps cite the headings and method steps of the Taxation
+/// Administration (Withholding Schedules) Instruments 2024 (F2024L00664), 2025
+/// (F2025L00647), (No. 2) 2025 (F2025L01016) and 2026 (F2026L00716), which
+/// share them, and the termination payment steps ITAA 1997 compilation 268
+/// (1 October 2026) and Schedule 11 of those instruments, all read on
+/// 15 November 2026.
 struct Step {
     id: &'static str,
     authority: &'static str,
@@ -257,7 +263,7 @@ struct Step {
 
 /// A step whose operands are `formula` with each name in turn replaced by the
 /// next of `operands`. Numbers, operators (`x` multiplies) and the functions
-/// `min`, `max`, `cents` and `dollars` stay as written.
+/// `min`, `max`, `cents`, `dollars` and `floor` stay as written.
 fn step(
     id: &'static str,
     authority: &'static str,
@@ -1141,22 +1147,60 @@ fn payg_checks(
     Ok((year, earnings, period, scale))
 }
 
+/// `formula` in brackets unless it is a single name, number or call.
+fn group(formula: &str) -> String {
+    let mut depth = 0;
+    let single = formula.chars().all(|c| {
+        match c {
+            '(' => depth += 1,
+            ')' => depth -= 1,
+            _ => {}
+        }
+        c != ' ' || depth > 0
+    });
+    if single {
+        formula.to_string()
+    } else {
+        format!("({formula})")
+    }
+}
+
 /// Schedule 1 and 8: the weekly equivalent in whole dollars plus 99 cents.
 fn weekly_earnings(earnings: &Decimal, pay_period: &str) -> Calc<Decimal> {
-    let weekly = match pay_period {
-        "weekly" => earnings.clone(),
-        "fortnightly" => earnings.div(&int(2))?,
-        "quarterly" => earnings.div(&int(13))?,
-        _ => {
-            // Schedule 1: a monthly amount ending in 33 cents gains a cent first.
-            let mut earnings = earnings.clone();
-            if earnings.rem(&int(1))?.equals(&d("0.33"))? {
-                earnings = earnings.add(&d("0.01"))?;
-            }
-            earnings.mul(&int(3))?.div(&int(13))?
-        }
+    Ok(weekly_earnings_working(earnings, pay_period, "earnings")?.0)
+}
+
+/// [`weekly_earnings`] with its formula on `e`, the formula for the earnings,
+/// and the Schedule 1 section that sets it.
+fn weekly_earnings_working(
+    earnings: &Decimal,
+    pay_period: &str,
+    e: &str,
+) -> Calc<(Decimal, String, &'static str)> {
+    let (weekly, formula) = match pay_period {
+        "weekly" => (earnings.clone(), e.to_string()),
+        "fortnightly" => (earnings.div(&int(2))?, format!("{} / 2", group(e))),
+        "quarterly" => (earnings.div(&int(13))?, format!("{} / 13", group(e))),
+        // Schedule 1: a monthly amount ending in 33 cents gains a cent first.
+        _ if earnings.rem(&int(1))?.equals(&d("0.33"))? => (
+            earnings.add(&d("0.01"))?.mul(&int(3))?.div(&int(13))?,
+            format!("({e} + 0.01) x 3 / 13"),
+        ),
+        _ => (
+            earnings.mul(&int(3))?.div(&int(13))?,
+            format!("{} x 3 / 13", group(e)),
+        ),
     };
-    weekly.quantize(0, Rounding::Down)?.add(&d("0.99"))
+    let authority = if pay_period == "weekly" {
+        "Schedule 1, 'Working out the weekly earnings'"
+    } else {
+        "Schedule 1, 'Calculating withholding fortnightly, monthly or quarterly amounts'"
+    };
+    Ok((
+        weekly.quantize(0, Rounding::Down)?.add(&d("0.99"))?,
+        format!("floor({formula}) + 0.99"),
+        authority,
+    ))
 }
 
 /// y = a * x - b on the first applicable row, rounded straight to the dollar.
@@ -1180,15 +1224,28 @@ fn weekly_formula(x: &Decimal, rows: &[CoefficientRow]) -> Calc<(Decimal, Decima
 /// A rounded weekly amount for the pay period: the withholding amount and the
 /// Medicare levy adjustment convert the same way.
 fn for_pay_period(weekly_amount: &Decimal, pay_period: &str) -> Calc<Decimal> {
-    match pay_period {
-        "weekly" => Ok(weekly_amount.clone()),
-        "fortnightly" => weekly_amount.mul(&int(2)),
-        "quarterly" => weekly_amount.mul(&int(13)),
-        _ => weekly_amount
-            .mul(&int(13))?
-            .div(&int(3))?
-            .quantize(0, Rounding::HalfUp),
-    }
+    Ok(for_pay_period_working(weekly_amount, pay_period, "w")?.0)
+}
+
+/// [`for_pay_period`] with its formula on `w`, the formula for the weekly amount.
+fn for_pay_period_working(
+    weekly_amount: &Decimal,
+    pay_period: &str,
+    w: &str,
+) -> Calc<(Decimal, String)> {
+    let w = group(w);
+    Ok(match pay_period {
+        "weekly" => (weekly_amount.clone(), w),
+        "fortnightly" => (weekly_amount.mul(&int(2))?, format!("{w} x 2")),
+        "quarterly" => (weekly_amount.mul(&int(13))?, format!("{w} x 13")),
+        _ => (
+            weekly_amount
+                .mul(&int(13))?
+                .div(&int(3))?
+                .quantize(0, Rounding::HalfUp)?,
+            format!("dollars({w} x 13 / 3)"),
+        ),
+    })
 }
 
 /// `payg_withholding`'s optional inputs, each `None` when not given.
@@ -1276,14 +1333,15 @@ fn payg_options(options: &PaygOptions, scale: i64, period: &str) -> Result<PaygC
 }
 
 /// Schedule 1 'Medicare levy adjustment' for scale 2 or 6: the weekly family
-/// threshold, the shading out point and the weekly levy adjustment, rounded
-/// straight to the dollar.
+/// threshold, the shading out point (the scale's multiplier and divisor in
+/// 'Medicare levy parameters') and the weekly levy adjustment, rounded
+/// straight to the dollar, in the step for `weekly_medicare_levy_adjustment`.
 fn weekly_levy_adjustment(
     x: &Decimal,
     rules: &meta::Schedule1Rules,
     scale: i64,
     children: i64,
-) -> Calc<(Decimal, Decimal, Decimal)> {
+) -> Calc<(Decimal, Decimal, Step)> {
     let (_, m) = rules
         .medicare_scales
         .iter()
@@ -1294,21 +1352,55 @@ fn weekly_levy_adjustment(
         .add(&per_child)?
         .div(&int(52))?
         .quantize(-2, Rounding::HalfUp)?;
+    let (multiplier, divisor) = m.shading_out_point;
     let sop = wft
-        .mul(&d("0.1"))?
-        .div(&d("0.0800"))?
+        .mul(&d(multiplier))?
+        .div(&d(divisor))?
         .quantize(0, Rounding::Down)?;
-    let wla = if x.lt(&int(m.threshold))? || !x.lt(&sop)? {
-        int(0)
+    let (authority, formula, operands, wla) = if x.lt(&int(m.threshold))? {
+        let below = "Schedule 1, 'Medicare levy adjustment': none below the scale's weekly earnings threshold";
+        (below, "0".to_string(), vec![], int(0))
+    } else if !x.lt(&sop)? {
+        let above = "Schedule 1, 'Weekly levy adjustment (WLA)': none from the shading out point";
+        (above, "0".to_string(), vec![], int(0))
     } else if x.lt(&int(m.shade_in))? {
-        x.sub(&d(m.formula_1_less))?.mul(&d(m.shade_in_rate))?
+        (
+            "Schedule 1, 'Weekly levy adjustment (WLA)', formula (1)",
+            format!(
+                "dollars((weekly_earnings_used - {}) x {})",
+                m.formula_1_less, m.shade_in_rate
+            ),
+            vec![x],
+            x.sub(&d(m.formula_1_less))?.mul(&d(m.shade_in_rate))?,
+        )
     } else if x.lt(&wft)? {
-        x.mul(&d(m.levy_rate))?
+        (
+            "Schedule 1, 'Weekly levy adjustment (WLA)', formula (2)",
+            format!("dollars(weekly_earnings_used x {})", m.levy_rate),
+            vec![x],
+            x.mul(&d(m.levy_rate))?,
+        )
     } else {
         let shading = x.sub(&wft)?.mul(&d(m.shade_out_rate))?;
-        wft.mul(&d(m.levy_rate))?.sub(&shading)?
+        (
+            "Schedule 1, 'Weekly levy adjustment (WLA)', formula (3)",
+            format!(
+                "dollars(weekly_family_threshold x {} - (weekly_earnings_used - weekly_family_threshold) x {})",
+                m.levy_rate, m.shade_out_rate
+            ),
+            vec![&wft, x, &wft],
+            wft.mul(&d(m.levy_rate))?.sub(&shading)?,
+        )
     };
-    Ok((wft, sop, wla.quantize(0, Rounding::HalfUp)?))
+    let rounded = wla.quantize(0, Rounding::HalfUp)?;
+    let wla = step(
+        "weekly_medicare_levy_adjustment",
+        authority,
+        &formula,
+        &operands,
+        rounded,
+    );
+    Ok((wft, sop, wla))
 }
 
 /// The additional amount for a year of 53 weekly or 27 fortnightly pays: the
@@ -1342,17 +1434,21 @@ struct SchedulePay {
     rules: &'static meta::Schedule1Rules,
 }
 
-/// A result's amounts and rates, in the order it lists them.
+/// A result's steps and rates, in the order it lists them.
 struct Workings {
-    amounts: Vec<(&'static str, Decimal)>,
+    steps: Vec<Step>,
     rates: Vec<(String, String)>,
 }
+
+/// A step's arithmetic before its id is known: authority, formula, operands
+/// and value.
+type Working = (&'static str, String, Vec<Decimal>, Decimal);
 
 impl SchedulePay {
     /// The amount before tax offsets and adjustments. Scale 4 (note 3 to the
     /// coefficients) applies its rate to the pay's earnings, ignoring cents in
     /// the earnings and in the result; the other scales use the weekly formula.
-    fn before_adjustments(&self, w: &mut Workings) -> Result<Decimal> {
+    fn before_adjustments(&self, w: &mut Workings) -> Result<Working> {
         if self.scale == 4 {
             let (resident, foreign) = self.rules.no_tfn_rates;
             let tax_rate = if self.choices.foreign == Some(true) {
@@ -1362,19 +1458,49 @@ impl SchedulePay {
             };
             let used = self.earnings.quantize(0, Rounding::Down)?;
             w.rates.push(rate("tax_rate", tax_rate));
-            w.amounts.push(("earnings_used", used.clone()));
+            w.steps.push(step(
+                "earnings_used",
+                "Schedule 1, scale 4 and 'Rounding of withholding amounts': cents in earnings are ignored",
+                "floor(earnings)",
+                &[&self.earnings],
+                used.clone(),
+            ));
             let withheld = used.mul(&d(tax_rate))?.quantize(0, Rounding::Down)?;
-            return Ok(withheld);
+            return Ok((
+                "Schedule 1, scale 4 tax rate and 'Rounding of withholding amounts': cents in the result are ignored",
+                "floor(earnings_used x tax_rate)".to_string(),
+                vec![used, d(tax_rate)],
+                withheld,
+            ));
         }
         let rows = payg_rows(&self.year, self.scale).expect("checked scale");
-        let x = weekly_earnings(&self.earnings, &self.period)?;
+        let (x, formula, authority) =
+            weekly_earnings_working(&self.earnings, &self.period, "earnings")?;
         let (a, b, weekly) = weekly_formula(&x, rows)?;
-        w.rates.push(rate("a", a));
-        w.rates.push(rate("b", b));
-        w.amounts.push(("weekly_earnings_used", x));
-        w.amounts.push(("weekly_withholding", weekly.clone()));
-        let withheld = for_pay_period(&weekly, &self.period)?;
-        Ok(withheld)
+        w.rates.push(rate("a", &a));
+        w.rates.push(rate("b", &b));
+        w.steps.push(step(
+            "weekly_earnings_used",
+            authority,
+            &formula,
+            &[&self.earnings],
+            x.clone(),
+        ));
+        w.steps.push(step(
+            "weekly_withholding",
+            "Schedule 1, 'Using a formula' and 'Rounding of withholding amounts'",
+            "max(0, dollars(a x weekly_earnings_used - b))",
+            &[&a, &x, &b],
+            weekly.clone(),
+        ));
+        let (withheld, formula) =
+            for_pay_period_working(&weekly, &self.period, "weekly_withholding")?;
+        let authority = if self.period == "weekly" {
+            "Schedule 1, 'Using a formula'"
+        } else {
+            "Schedule 1, 'Calculating withholding fortnightly, monthly or quarterly amounts'"
+        };
+        Ok((authority, formula, vec![weekly], withheld))
     }
 
     /// The tax offsets and the Medicare levy adjustment claimed, which reduce
@@ -1386,33 +1512,67 @@ impl SchedulePay {
             let reduction = offsets.mul(&d(share))?.quantize(0, Rounding::HalfUp)?;
             w.rates.push(rate("tax_offset_rate", share));
             reductions = reductions.add(&reduction)?;
-            w.amounts.push(("tax_offset_reduction", reduction));
+            w.steps.push(step(
+                "tax_offset_reduction",
+                "Schedule 1, 'Tax offsets'",
+                "dollars(tax_offsets x tax_offset_rate)",
+                &[offsets, &d(share)],
+                reduction,
+            ));
         }
         if let Some(children) = self.choices.children {
             let x = weekly_earnings(&self.earnings, &self.period)?;
             let (wft, sop, weekly) = weekly_levy_adjustment(&x, self.rules, self.scale, children)?;
-            let adjustment = for_pay_period(&weekly, &self.period)?;
+            let (adjustment, formula) = for_pay_period_working(
+                &weekly.value,
+                &self.period,
+                "weekly_medicare_levy_adjustment",
+            )?;
             w.rates.push(rate("medicare_adjustment_children", children));
             w.rates.push(rate("weekly_family_threshold", wft));
             w.rates.push(rate("shading_out_point", sop));
             reductions = reductions.add(&adjustment)?;
-            w.amounts.push(("weekly_medicare_levy_adjustment", weekly));
-            w.amounts.push(("medicare_levy_adjustment", adjustment));
+            let authority = match self.period.as_str() {
+                "weekly" => "Schedule 1, 'Weekly levy adjustment (WLA)'",
+                "fortnightly" => "Schedule 1, 'Fortnightly levy adjustment'",
+                "monthly" => "Schedule 1, 'Monthly levy adjustment'",
+                _ => "Schedule 1, 'Quarterly levy adjustment'",
+            };
+            let operands = [&weekly.value];
+            let adjustment = step(
+                "medicare_levy_adjustment",
+                authority,
+                &formula,
+                &operands,
+                adjustment,
+            );
+            w.steps.push(weekly);
+            w.steps.push(adjustment);
         }
         Ok(reductions)
     }
 
     fn workings(&self) -> Result<Workings> {
         let mut w = Workings {
-            amounts: Vec::new(),
+            steps: Vec::new(),
             rates: vec![rate("scale", self.scale)],
         };
-        let before = self.before_adjustments(&mut w)?;
+        let (authority, formula, operands, before) = self.before_adjustments(&mut w)?;
+        let operands: Vec<&Decimal> = operands.iter().collect();
         let choices = &self.choices;
-        if choices.offsets.is_some() || choices.children.is_some() || choices.extra {
-            w.amounts
-                .push(("withholding_before_adjustments", before.clone()));
+        let adjusted = choices.offsets.is_some() || choices.children.is_some() || choices.extra;
+        if !adjusted {
+            w.steps
+                .push(step("withholding", authority, &formula, &operands, before));
+            return Ok(w);
         }
+        w.steps.push(step(
+            "withholding_before_adjustments",
+            authority,
+            &formula,
+            &operands,
+            before.clone(),
+        ));
         let reductions = self.reductions(&mut w)?;
         // Schedule 1 says these reduce the amount withheld, not what an excess
         // means, so an excess is refused rather than taken as nil.
@@ -1430,9 +1590,45 @@ impl SchedulePay {
         if choices.extra {
             let additional = extra_pay_amount(&self.earnings, &self.period, self.rules)?;
             withholding = withholding.add(&additional)?;
-            w.amounts.push(("additional_withholding", additional));
+            let authority = if self.period == "weekly" {
+                "Schedule 1, 'When there are 53 pays in a financial year': the band the weekly earnings reach"
+            } else {
+                "Schedule 1, 'When there are 27 pays in a financial year': the band the fortnightly earnings reach"
+            };
+            let amount = additional.to_string();
+            w.steps.push(step(
+                "additional_withholding",
+                authority,
+                &amount,
+                &[],
+                additional,
+            ));
         }
-        w.amounts.push(("withholding", withholding));
+        // The amount before them, less the reductions, plus any additional amount.
+        let mut formula = "withholding_before_adjustments".to_string();
+        let mut operands = Vec::new();
+        for s in &w.steps {
+            let sign = match s.id {
+                "withholding_before_adjustments" => "",
+                "tax_offset_reduction" | "medicare_levy_adjustment" => " - ",
+                "additional_withholding" => " + ",
+                _ => continue,
+            };
+            if !sign.is_empty() {
+                formula.push_str(sign);
+                formula.push_str(s.id);
+            }
+            operands.push(s.value.clone());
+        }
+        let operands: Vec<&Decimal> = operands.iter().collect();
+        let total = step(
+            "withholding",
+            "Schedule 1, 'Tax offsets' and 'Medicare levy adjustment', and the additional amount for 53 or 27 pays",
+            &formula,
+            &operands,
+            withholding,
+        );
+        w.steps.push(total);
         Ok(w)
     }
 }
@@ -1463,10 +1659,10 @@ pub fn payg_withholding(
         scale,
     };
     let w = precise(|| pay.workings())?;
-    result(
+    derived_result(
         "payg_withholding",
         &format!("{} {}", pay.year, pay.period),
-        w.amounts,
+        w.steps,
         w.rates,
     )
 }
@@ -1512,6 +1708,20 @@ fn schedule_8_pay_date(pay_date: Option<&Arg>, year: &str) -> Result<()> {
     Ok(())
 }
 
+/// Schedule 8's component coefficients for a Schedule 1 scale: scale 1 has no
+/// tax-free threshold; the other scales claim it or are foreign residents.
+fn study_loan_rows(year: &str, scale: i64) -> &'static [CoefficientRow] {
+    let table = if scale == 1 {
+        "no_threshold"
+    } else {
+        "threshold_or_foreign"
+    };
+    lookup(
+        lookup(meta::STUDY_LOAN_WITHHOLDING_COEFFICIENTS, year),
+        table,
+    )
+}
+
 pub fn study_loan_withholding(
     earnings: &Arg,
     pay_period: &Arg,
@@ -1529,16 +1739,8 @@ pub fn study_loan_withholding(
         scope_confirmed,
     )?;
     schedule_8_pay_date(pay_date, &year)?;
-    let table = if scale == 1 {
-        "no_threshold"
-    } else {
-        "threshold_or_foreign"
-    };
     let tax_rows = payg_rows(&year, scale).expect("checked scale");
-    let loan_rows = lookup(
-        lookup(meta::STUDY_LOAN_WITHHOLDING_COEFFICIENTS, &year),
-        table,
-    );
+    let loan_rows = study_loan_rows(&year, scale);
     let (amounts, rates) = precise(|| {
         let x = weekly_earnings(&earnings, &period)?;
         let (a, b, weekly_tax) = weekly_formula(&x, tax_rows)?;
@@ -1569,6 +1771,9 @@ pub fn study_loan_withholding(
         rates,
     )
 }
+
+mod payg_gross_up;
+pub use payg_gross_up::payg_gross_up;
 
 /// The optional `medicare-levy` inputs, each `None` when not given.
 pub struct MedicareFamily<'a> {
@@ -2457,15 +2662,20 @@ fn etp_part(
 /// Schedule 11 for one ETP: the tax-free part of the redundancy payment, then
 /// the excluded part (code R) first, under the ETP cap alone, and the
 /// non-excluded part (code O), under the smaller of the ETP cap left and the
-/// whole-of-income cap (s 82-10(4), (6) and (7); Schedule 11).
-fn etp_amounts(
+/// whole-of-income cap (s 82-10(4), (6) and (7); Schedule 11). `reached` is
+/// whether the payee is their preservation age or older at the year's end,
+/// which sets the rate within a cap. The s 83-170(3) formula is
+/// 'Base amount + (Service amount × Years of service)' in the Act's text on
+/// the ATO's legal database (PAC/19970038/83-170), read on 15 November 2026;
+/// Schedule 11's note 1 and example 4 apply it.
+fn etp_steps(
     redundancy: &Decimal,
     years: i64,
     excluded: &Decimal,
     non_excluded: &Decimal,
     other: &Decimal,
-    concessional: &Decimal,
-) -> Result<Vec<(&'static str, Decimal)>> {
+    (concessional, reached): (&Decimal, bool),
+) -> Result<Vec<Step>> {
     let [etp_cap, whole_of_income, base, service, top] = [
         "etp_cap",
         "whole_of_income_cap",
@@ -2474,9 +2684,16 @@ fn etp_amounts(
         "above_cap_rate",
     ]
     .map(|key| d(lookup(&meta::TERMINATION_PAYMENT, key)));
+    let withholding = if reached {
+        "Schedule 11, Table A, preservation age or over, and 'Working out the withholding amount': to the nearest dollar, 50 cents up"
+    } else {
+        "Schedule 11, Table A, under preservation age, and 'Working out the withholding amount': to the nearest dollar, 50 cents up"
+    };
+    let above_cap = "Schedule 11, 'ETP caps': the amount over the cap, at the top rate";
     precise(|| {
         // s 83-170(3): base amount + service amount x years of service.
-        let limit = base.add(&service.mul(&int(years))?)?;
+        let n = int(years);
+        let limit = base.add(&service.mul(&n)?)?;
         let tax_free = py_min(redundancy.clone(), limit.clone())?;
         let excluded_part = redundancy.sub(&tax_free)?.add(excluded)?;
         let [r_within, r_above, r_withheld] =
@@ -2487,21 +2704,109 @@ fn etp_amounts(
         let [o_within, o_above, o_withheld] =
             etp_part(non_excluded, &non_excluded_cap, concessional, &top)?;
         let total = r_withheld.add(&o_withheld)?;
+        let parts = "dollars(excluded_within_cap x withholding_rate_within_cap \
+                     + excluded_above_cap x withholding_rate_above_cap)";
+        let other_parts = "dollars(non_excluded_within_cap x withholding_rate_within_cap \
+                           + non_excluded_above_cap x withholding_rate_above_cap)";
         Ok(vec![
-            ("tax_free_limit", limit),
-            ("tax_free_redundancy_amount", tax_free),
-            ("excluded_taxable_component", excluded_part),
-            ("excluded_within_cap", r_within),
-            ("excluded_above_cap", r_above),
-            ("excluded_withholding", r_withheld),
-            ("remaining_etp_cap", remaining),
-            ("whole_of_income_cap", calculated),
-            ("non_excluded_cap", non_excluded_cap),
-            ("non_excluded_taxable_component", non_excluded.clone()),
-            ("non_excluded_within_cap", o_within),
-            ("non_excluded_above_cap", o_above),
-            ("non_excluded_withholding", o_withheld),
-            ("total_withholding", total),
+            step(
+                "tax_free_limit",
+                "ITAA 1997 s 83-170(3); Schedule 11, 'ETP caps', note 1",
+                "redundancy_base_amount + redundancy_service_amount x completed_years_of_service",
+                &[&base, &service, &n],
+                limit.clone(),
+            ),
+            step(
+                "tax_free_redundancy_amount",
+                "ITAA 1997 s 83-170(2)",
+                "min(redundancy_payment, tax_free_limit)",
+                &[redundancy, &limit],
+                tax_free.clone(),
+            ),
+            step(
+                "excluded_taxable_component",
+                "ITAA 1997 s 83-170(3) note and s 82-10(6): the redundancy payment over its tax-free part, with the other excluded payments",
+                "redundancy_payment - tax_free_redundancy_amount + excluded_payment",
+                &[redundancy, &tax_free, excluded],
+                excluded_part.clone(),
+            ),
+            step(
+                "excluded_within_cap",
+                "ITAA 1997 s 82-10(4)(a), (6) and (7)(a)(i); Schedule 11, 'ETP caps', column 1: the ETP cap alone",
+                "min(excluded_taxable_component, etp_cap)",
+                &[&excluded_part, &etp_cap],
+                r_within.clone(),
+            ),
+            step(
+                "excluded_above_cap",
+                above_cap,
+                "excluded_taxable_component - excluded_within_cap",
+                &[&excluded_part, &r_within],
+                r_above.clone(),
+            ),
+            step(
+                "excluded_withholding",
+                withholding,
+                parts,
+                &[&r_within, concessional, &r_above, &top],
+                r_withheld.clone(),
+            ),
+            step(
+                "remaining_etp_cap",
+                "ITAA 1997 s 82-10(4)(a) and (7)(a)(ii): the ETP cap less the excluded part within it",
+                "etp_cap - excluded_within_cap",
+                &[&etp_cap, &r_within],
+                remaining.clone(),
+            ),
+            step(
+                "whole_of_income_cap",
+                "ITAA 1997 s 82-10(4)(c) and (5); Schedule 11, 'Steps to work out smallest cap', steps 1 to 3",
+                "max(0, whole_of_income_cap_amount - other_taxable_payments)",
+                &[&whole_of_income, other],
+                calculated.clone(),
+            ),
+            step(
+                "non_excluded_cap",
+                "ITAA 1997 s 82-10(4); Schedule 11, 'Steps to work out smallest cap', steps 4 and 5",
+                "min(remaining_etp_cap, whole_of_income_cap)",
+                &[&remaining, &calculated],
+                non_excluded_cap.clone(),
+            ),
+            step(
+                "non_excluded_taxable_component",
+                "ITAA 1997 s 82-10(7)(a)(ii): the part that is not an excluded payment",
+                "non_excluded_payment",
+                &[non_excluded],
+                non_excluded.clone(),
+            ),
+            step(
+                "non_excluded_within_cap",
+                "ITAA 1997 s 82-10(4); Schedule 11, 'ETP caps', column 2",
+                "min(non_excluded_taxable_component, non_excluded_cap)",
+                &[non_excluded, &non_excluded_cap],
+                o_within.clone(),
+            ),
+            step(
+                "non_excluded_above_cap",
+                above_cap,
+                "non_excluded_taxable_component - non_excluded_within_cap",
+                &[non_excluded, &o_within],
+                o_above.clone(),
+            ),
+            step(
+                "non_excluded_withholding",
+                withholding,
+                other_parts,
+                &[&o_within, concessional, &o_above, &top],
+                o_withheld.clone(),
+            ),
+            step(
+                "total_withholding",
+                "Schedule 11, example 4: each part's withholding",
+                "excluded_withholding + non_excluded_withholding",
+                &[&r_withheld, &o_withheld],
+                total,
+            ),
         ])
     })
 }
@@ -2550,13 +2855,13 @@ pub fn termination_payment(
         "under_preservation_age_rate"
     };
     let concessional = d(figure(within_rate));
-    let amounts = etp_amounts(
+    let steps = etp_steps(
         &redundancy,
         years,
         &excluded,
         &non_excluded,
         &other,
-        &concessional,
+        (&concessional, reached),
     )?;
     let rates = vec![
         rate("etp_cap", figure("etp_cap")),
@@ -2568,7 +2873,7 @@ pub fn termination_payment(
         rate("withholding_rate_within_cap", &concessional),
         rate("withholding_rate_above_cap", figure("above_cap_rate")),
     ];
-    result("termination_payment", &year, amounts, rates)
+    derived_result("termination_payment", &year, steps, rates)
 }
 
 pub fn study_loan_repayment(
@@ -3466,6 +3771,9 @@ pub fn borrowing_expenses(
     spread(&year, &loan, &expenditure, &share)
 }
 
+mod hire_purchase;
+pub use hire_purchase::hire_purchase_schedule;
+
 /// One pay that includes an additional payment, as Schedule 5 (NAT 3348) reads it.
 struct AdditionalPay {
     kind: &'static str,
@@ -3579,14 +3887,49 @@ impl AdditionalPay {
             .expect("withholding amount")))
     }
 
-    fn finish(&self, amounts: Vec<(&str, Decimal)>, extra: Vec<(String, String)>) -> Result<Value> {
+    /// How [`Self::table`] works out its amount on `earnings`: Schedule 1's
+    /// formula, plus Schedule 8's component for a study loan, on `e`, the
+    /// formula for those earnings, with the coefficients of the rows the
+    /// earnings fall in written in. The amount is taken in cents, as the
+    /// table's result gives it. Also the number of times `e` appears.
+    fn table_formula(&self, earnings: &Decimal, e: &str) -> Calc<(String, usize)> {
+        let (x, x_formula, _) = weekly_earnings_working(earnings, &self.period, e)?;
+        let x_formula = group(&x_formula);
+        let mut tables = vec![payg_rows(&self.year, self.scale).expect("checked scale")];
+        if self.study_loan {
+            tables.push(study_loan_rows(&self.year, self.scale));
+        }
+        let mut terms = Vec::new();
+        for rows in &tables {
+            let (a, b, weekly) = weekly_formula(&x, rows)?;
+            let weekly_formula = format!("max(0, dollars({a} x {x_formula} - {b}))");
+            terms.push(for_pay_period_working(&weekly, &self.period, &weekly_formula)?.1);
+        }
+        Ok((format!("cents({})", terms.join(" + ")), tables.len()))
+    }
+
+    /// The step for `amount`, [`Self::table`]'s result on `earnings`, whose
+    /// formula is `e` on `operands`.
+    fn table_step(
+        &self,
+        id: &'static str,
+        authority: &'static str,
+        (earnings, e, operands): (&Decimal, &str, &[&Decimal]),
+        amount: Decimal,
+    ) -> Calc<Step> {
+        let (formula, times) = self.table_formula(earnings, e)?;
+        let operands: Vec<&Decimal> = (0..times).flat_map(|_| operands.iter().copied()).collect();
+        Ok(step(id, authority, &formula, &operands, amount))
+    }
+
+    fn finish(&self, steps: Vec<Step>, extra: Vec<(String, String)>) -> Result<Value> {
         let mut rates = vec![
             rate("scale", self.scale),
             rate("study_loan", self.study_loan),
         ];
         rates.extend(extra);
         let period = format!("{} {}", self.year, self.period);
-        result(self.kind, &period, amounts, rates)
+        derived_result(self.kind, &period, steps, rates)
     }
 }
 
@@ -3626,11 +3969,7 @@ fn spread_withholding(
 }
 
 /// Method A steps 1 to 10.
-fn method_a_amounts(
-    pay: &AdditionalPay,
-    additional: &Decimal,
-    periods: i64,
-) -> Result<Vec<(&'static str, Decimal)>> {
+fn method_a_steps(pay: &AdditionalPay, additional: &Decimal, periods: i64) -> Result<Vec<Step>> {
     precise(|| {
         let earnings = pay.earnings.quantize(0, Rounding::Down)?;
         let on_earnings = pay.table(&earnings)?;
@@ -3638,15 +3977,67 @@ fn method_a_amounts(
             spread_withholding(pay, &earnings, &on_earnings, additional, periods)?;
         let (limit, on_additional) = within_limit(extra.clone(), additional)?;
         let total = on_earnings.add(&on_additional)?;
+        let (n, limit_rate) = (int(periods), d(meta::SCHEDULE_5_LIMIT_RATE));
+        let with_share_earnings = earnings.add(&share)?;
         Ok(vec![
-            ("earnings_used", earnings),
-            ("withholding_on_earnings", on_earnings),
-            ("additional_payment_per_period", share),
-            ("withholding_on_earnings_and_share", with_share),
-            ("withholding_before_limit", extra),
-            ("withholding_limit", limit),
-            ("withholding_on_additional_payment", on_additional),
-            ("withholding", total),
+            step(
+                "earnings_used",
+                "Schedule 5, Method A step 1",
+                "floor(earnings)",
+                &[&pay.earnings],
+                earnings.clone(),
+            ),
+            pay.table_step(
+                "withholding_on_earnings",
+                "Schedule 5, Method A step 2; Schedule 1, 'Using a formula', with Schedule 8 for a study loan",
+                (&earnings, "earnings_used", &[&earnings]),
+                on_earnings.clone(),
+            )?,
+            step(
+                "additional_payment_per_period",
+                "Schedule 5, Method A step 3",
+                "floor(additional_payment / pay_periods)",
+                &[additional, &n],
+                share.clone(),
+            ),
+            pay.table_step(
+                "withholding_on_earnings_and_share",
+                "Schedule 5, Method A steps 4 and 5; Schedule 1, 'Using a formula', with Schedule 8 for a study loan",
+                (
+                    &with_share_earnings,
+                    "earnings_used + additional_payment_per_period",
+                    &[&earnings, &share],
+                ),
+                with_share.clone(),
+            )?,
+            step(
+                "withholding_before_limit",
+                "Schedule 5, Method A steps 6 and 7",
+                "(withholding_on_earnings_and_share - withholding_on_earnings) x pay_periods",
+                &[&with_share, &on_earnings, &n],
+                extra.clone(),
+            ),
+            step(
+                "withholding_limit",
+                "Schedule 5, Method A step 8 and 'Withholding limit'",
+                "additional_payment x limit_rate",
+                &[additional, &limit_rate],
+                limit.clone(),
+            ),
+            step(
+                "withholding_on_additional_payment",
+                "Schedule 5, Method A step 9; a negative result is nil ('Available methods')",
+                "floor(max(0, min(withholding_before_limit, withholding_limit)))",
+                &[&extra, &limit],
+                on_additional.clone(),
+            ),
+            step(
+                "withholding",
+                "Schedule 5, Method A step 10",
+                "withholding_on_earnings + withholding_on_additional_payment",
+                &[&on_earnings, &on_additional],
+                total,
+            ),
         ])
     })
 }
@@ -3676,9 +4067,9 @@ pub fn schedule_5_method_a(
     let additional = money(additional_payment)?;
     // A payment for a single pay period is added to that pay under Schedule 1.
     let periods = pay_count(pay_periods, "pay_periods", 2, pay.per_year)?;
-    let amounts = method_a_amounts(&pay, &additional, periods)?;
+    let steps = method_a_steps(&pay, &additional, periods)?;
     pay.finish(
-        amounts,
+        steps,
         vec![
             rate("pay_periods", periods),
             rate("limit_rate", meta::SCHEDULE_5_LIMIT_RATE),
@@ -3734,28 +4125,57 @@ fn back_payment_periods(value: &Arg, most: i64) -> Result<Vec<BackPaidPeriod>> {
         .collect()
 }
 
-/// Method B(i) steps 2 to 7: each earlier period recalculated, less what was
-/// withheld from it, the total nil if negative, with no 47% limit.
-fn method_b_i_amounts(
-    pay: &AdditionalPay,
-    periods: &[BackPaidPeriod],
-) -> Result<Vec<(&'static str, Decimal)>> {
+/// Method B(i) steps 1 to 7: each earlier period recalculated, less what was
+/// withheld from it, the total nil if negative, with no 47% limit. The
+/// periods are a list, so their figures are written into the working.
+fn method_b_i_steps(pay: &AdditionalPay, periods: &[BackPaidPeriod]) -> Result<Vec<Step>> {
     precise(|| {
         let mut back_payment = int(0);
         let mut difference = int(0);
+        let (mut paid, mut differences) = (Vec::new(), Vec::new());
         for period in periods {
-            let recalculated = pay.table(&period.earnings.add(&period.back_payment)?)?;
+            let total = period.earnings.add(&period.back_payment)?;
+            let recalculated = pay.table(&total)?;
             difference = difference.add(&recalculated.sub(&period.withheld)?)?;
             back_payment = back_payment.add(&period.back_payment)?;
+            let e = format!("{} + {}", period.earnings, period.back_payment);
+            let (table, _) = pay.table_formula(&total, &e)?;
+            differences.push(format!("{table} - {}", period.withheld));
+            // Written as the total adds it, to 0, so that the working sums to
+            // the total: 5E+1 as 50, and -0.00 as 0.00.
+            paid.push(int(0).add(&period.back_payment)?.to_string());
         }
         let on_back_payment = py_max(int(0), difference)?;
         let on_earnings = pay.table(&pay.earnings)?;
         let total = on_earnings.add(&on_back_payment)?;
         Ok(vec![
-            ("back_payment", back_payment),
-            ("withholding_on_back_payment", on_back_payment),
-            ("withholding_on_earnings", on_earnings),
-            ("withholding", total),
+            step(
+                "back_payment",
+                "Schedule 5, Method B(i) step 1: the back payment for each earlier pay period",
+                &paid.join(" + "),
+                &[],
+                back_payment,
+            ),
+            step(
+                "withholding_on_back_payment",
+                "Schedule 5, Method B(i) steps 2 to 5; Schedule 1, 'Using a formula', with Schedule 8 for a study loan; a negative total is nil ('Available methods')",
+                &format!("max(0, {})", differences.join(" + ")),
+                &[],
+                on_back_payment.clone(),
+            ),
+            pay.table_step(
+                "withholding_on_earnings",
+                "Schedule 5, Method B(i) step 6; Schedule 1, 'Using a formula', with Schedule 8 for a study loan",
+                (&pay.earnings, "earnings", &[&pay.earnings]),
+                on_earnings.clone(),
+            )?,
+            step(
+                "withholding",
+                "Schedule 5, Method B(i) step 7",
+                "withholding_on_earnings + withholding_on_back_payment",
+                &[&on_earnings, &on_back_payment],
+                total,
+            ),
         ])
     })
 }
@@ -3781,8 +4201,8 @@ pub fn schedule_5_method_b_i(
         scope_confirmed,
     )?;
     let periods = back_payment_periods(back_payments, pay.most_pays - 1)?;
-    let amounts = method_b_i_amounts(&pay, &periods)?;
-    pay.finish(amounts, vec![rate("back_payment_periods", periods.len())])
+    let steps = method_b_i_steps(&pay, &periods)?;
+    pay.finish(steps, vec![rate("back_payment_periods", periods.len())])
 }
 
 /// The year to date a Method B(ii) payment is averaged against.
@@ -3796,11 +4216,11 @@ struct YearToDate {
 }
 
 /// Method B(ii) steps 1 to 12.
-fn method_b_ii_amounts(
+fn method_b_ii_steps(
     pay: &AdditionalPay,
     additional: &Decimal,
     to_date: &YearToDate,
-) -> Result<Vec<(&'static str, Decimal)>> {
+) -> Result<Vec<Step>> {
     precise(|| {
         let average = to_date.earnings.div(&int(to_date.pays))?;
         let average = average.quantize(0, Rounding::Down)?;
@@ -3814,16 +4234,74 @@ fn method_b_ii_amounts(
         let (limit, on_additional) = within_limit(less_earlier, additional)?;
         let on_earnings = pay.table(&pay.earnings)?;
         let total = on_earnings.add(&on_additional)?;
+        let (pays, per_year) = (int(to_date.pays), int(pay.per_year));
+        let limit_rate = d(meta::SCHEDULE_5_LIMIT_RATE);
+        let with_share_earnings = average.add(&share)?;
         Ok(vec![
-            ("average_total_earnings", average),
-            ("withholding_on_average_earnings", on_average),
-            ("additional_payments_per_period", share),
-            ("withholding_on_average_and_share", with_share),
-            ("withholding_for_the_year", extra),
-            ("withholding_limit", limit),
-            ("withholding_on_additional_payment", on_additional),
-            ("withholding_on_earnings", on_earnings),
-            ("withholding", total),
+            step(
+                "average_total_earnings",
+                "Schedule 5, Method B(ii) step 1 and 'Average total earnings'",
+                "floor(year_to_date_earnings / pay_periods_to_date)",
+                &[&to_date.earnings, &pays],
+                average.clone(),
+            ),
+            pay.table_step(
+                "withholding_on_average_earnings",
+                "Schedule 5, Method B(ii) step 2; Schedule 1, 'Using a formula', with Schedule 8 for a study loan",
+                (&average, "average_total_earnings", &[&average]),
+                on_average.clone(),
+            )?,
+            step(
+                "additional_payments_per_period",
+                "Schedule 5, Method B(ii) step 3 and 'Pay periods per financial year'",
+                "floor((earlier_additional_payments + additional_payment) / pay_periods)",
+                &[&to_date.earlier, additional, &per_year],
+                share.clone(),
+            ),
+            pay.table_step(
+                "withholding_on_average_and_share",
+                "Schedule 5, Method B(ii) steps 4 and 5; Schedule 1, 'Using a formula', with Schedule 8 for a study loan",
+                (
+                    &with_share_earnings,
+                    "average_total_earnings + additional_payments_per_period",
+                    &[&average, &share],
+                ),
+                with_share.clone(),
+            )?,
+            step(
+                "withholding_for_the_year",
+                "Schedule 5, Method B(ii) steps 6 and 7",
+                "(withholding_on_average_and_share - withholding_on_average_earnings) x pay_periods",
+                &[&with_share, &on_average, &per_year],
+                extra.clone(),
+            ),
+            step(
+                "withholding_limit",
+                "Schedule 5, Method B(ii) step 9 and 'Withholding limit'",
+                "additional_payment x limit_rate",
+                &[additional, &limit_rate],
+                limit.clone(),
+            ),
+            step(
+                "withholding_on_additional_payment",
+                "Schedule 5, Method B(ii) steps 8 and 10; a negative result is nil ('Available methods')",
+                "floor(max(0, min(withholding_for_the_year - earlier_additional_withholding, withholding_limit)))",
+                &[&extra, &to_date.earlier_withheld, &limit],
+                on_additional.clone(),
+            ),
+            pay.table_step(
+                "withholding_on_earnings",
+                "Schedule 5, Method B(ii) step 11; Schedule 1, 'Using a formula', with Schedule 8 for a study loan",
+                (&pay.earnings, "earnings", &[&pay.earnings]),
+                on_earnings.clone(),
+            )?,
+            step(
+                "withholding",
+                "Schedule 5, Method B(ii) step 12",
+                "withholding_on_earnings + withholding_on_additional_payment",
+                &[&on_earnings, &on_additional],
+                total,
+            ),
         ])
     })
 }
@@ -3860,9 +4338,9 @@ pub fn schedule_5_method_b_ii(
         earlier: money(earlier)?,
         earlier_withheld: money(earlier_withheld)?,
     };
-    let amounts = method_b_ii_amounts(&pay, &additional, &to_date)?;
+    let steps = method_b_ii_steps(&pay, &additional, &to_date)?;
     pay.finish(
-        amounts,
+        steps,
         vec![
             rate("pay_periods_to_date", to_date.pays),
             rate("pay_periods", pay.per_year),
@@ -4292,13 +4770,14 @@ pub fn seniors_pensioners_tax_offset(
     Ok(out)
 }
 
-const KINDS: [&str; 39] = [
+const KINDS: [&str; 41] = [
     "gst",
     "resident_tax",
     "foreign_resident_tax",
     "capital_gains",
     "main_residence",
     "borrowing_expenses",
+    "hire_purchase_schedule",
     "fbt",
     "fbt_car_statutory",
     "fbt_car_operating_cost",
@@ -4311,6 +4790,7 @@ const KINDS: [&str; 39] = [
     "depreciation",
     "quarterly_sg",
     "payg_withholding",
+    "payg_gross_up",
     "contribution_caps",
     "pension_minimum",
     "study_loan_repayment",

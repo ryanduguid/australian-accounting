@@ -25,7 +25,17 @@ fn input(overrides: Value) -> Value {
 }
 
 fn run(overrides: Value) -> Value {
-    api::evaluate("termination-payment", &input(overrides)).unwrap()
+    let facts = input(overrides);
+    let result = api::evaluate("termination-payment", &facts).unwrap();
+    // derive gives the same result, byte for byte.
+    let envelope = json!({"command": "termination-payment", "input": facts});
+    let doc = api::evaluate("derive", &envelope).unwrap();
+    assert_eq!(
+        doc["result"].to_string(),
+        result.to_string(),
+        "derive {facts}"
+    );
+    result
 }
 
 fn code(overrides: Value) -> &'static str {

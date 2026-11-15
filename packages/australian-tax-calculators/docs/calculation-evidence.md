@@ -52,6 +52,7 @@ example evidence; it does not claim a fresh review of every supported period.
 | FBT tax-exempt body entertainment | Not a Library document: FBTAA ss 38 and 39 (compilation 97), the FBT return 2026 instructions (item 23L, example 15) and the employer's guide (chapter 15) | 1 April 2026 (item 23) | Established expenditure for the years ended 31 March 2026 and 2027, actual or per head |
 | Main residence | `tax-examples-capital-gains-tax-cgt` (tax-examples), ¶2-060 and ¶2-075, with the ATO's pages 'Treating former home as main residence' (QC66030) and 'Using your home for rental or business' (QC66033) | 30 June 2026; 22 June 2026 (both ATO pages) | One dwelling's taxable days for CGT events in 2024-25 to 2026-27; cost base, market value and discount excluded |
 | Borrowing expenses | `tax-examples-deductions` (tax-examples), ¶4-160, with ITAA 1997 s 25-25 (compilation 268, 1 October 2026) and the ATO's 'Borrowing expenses' page | 30 June 2026; 22 May 2026 (ATO page) | One loan's established expenditure, use and dates for 2024-25 to 2026-27; classification, interest and refinancing excluded |
+| Hire purchase schedule | Not a Library document: ITAA 1997 ss 240-17, 240-55 and 240-60 on the ATO's legal database and in compilation 268 (1 October 2026) | 15 November 2026 (read) | One agreement's monthly notional interest for the hirer, starting in 2024-25 to 2026-27, from established payments; apportionment to income years under s 240-60(2) excluded |
 | Depreciation | `tax-examples-depreciation` (tax-examples), ¶6-000 and ¶6-020 | 30 June 2025 | First-year formulas and taxable-use apportionment in 2024–25 examples |
 | Quarterly SG | `superannuation-instant-reference-rates-thresholds-and-checklists` (superannuation), ¶18-600 and ¶18-620 | 30 June 2026 | General 2025–26 rate and quarterly maximum contribution base |
 | Contribution caps | `tax-examples-individuals` (tax-examples), ¶7-278 | 30 June 2025 | First-year bring-forward for 2024–25 only; the later-year nil cap is outside the worksheet |
@@ -66,6 +67,7 @@ example evidence; it does not claim a fresh review of every supported period.
 | Schedule 5 withholding | Not a Library document: ATO Schedule 5 (NAT 3348) for payments from 1 July 2024, 1 July 2025 and 1 July 2026, and the 2024, 2025 and 2026 withholding schedules instruments | 17 June 2024, 10 June 2025 and 17 June 2026 (published) | One regular weekly, fortnightly or monthly pay with additional payments by Method A, B(i) or B(ii); the study loan component for pays from 24 September 2025, and from 1 July 2026 in Method B(i) |
 | Working holiday makers | Not a Library document: ATO Schedule 15 for payments from 1 July 2026, and for 1 July 2024 to 30 June 2026 | 17 June 2026 (published); 17 June 2024 (last updated) | One payment's withholding at the Table A rates or Schedule 1 scale 3 for 2024-25 to 2026-27; visa, registration and TFN status established by the operator |
 | Seniors and pensioners | Not a Library document: ATO Schedule 9 (NAT 4466) for payments from 1 July 2026, and for 1 July 2024 to 30 June 2026, with Schedule 9 of the 2026 and 2025 withholding schedules instruments | 17 June 2026 (published); 17 June 2024 (last updated) | One weekly, fortnightly or monthly payment's withholding on scales 1 to 9 for 2024-25 to 2026-27; eligibility, status and exemption established by the operator; other tax offsets and the Medicare levy adjustment excluded |
+| PAYG gross-up | Not a Library document: ATO Schedule 1 (NAT 1004) sample data for payments from 1 July 2026, and for 1 July 2024 to 30 June 2026, through the PAYG withholding worksheet | 17 June 2026 (published); 17 June 2024 (last updated) | The gross of one regular pay whose Schedule 1 withholding leaves an established net; refused where more than one gross does |
 | Study loan withholding | Not a Library document: ATO Schedule 8 (NAT 3539) for payments from 1 July 2026, and Schedule 8 of F2025L01016 for payments from 24 September 2025 | 17 June 2026 (published); 24 September 2025 (commenced) | Schedule 8 component on one regular weekly, fortnightly, monthly or quarterly pay, added to the Schedule 1 amount |
 | Study loan repayment | Not a Library document: the ATO minimum repayment income page and Gazette C2026G00249 | 13 October 2026 (ATO page) | Marginal repayment on established repayment income for 2025-26 and 2026-27; the loan-balance limit is outside the worksheet |
 
@@ -533,6 +535,41 @@ end, so a loan first drawn that day is refused. Treasury Laws Amendment (Tax
 Reform No. 1) Act 2026, Schedule 2 item 5, applies s 26-155 from the 2027-28
 income year, so later years are refused.
 
+## Hire purchase schedule
+
+This worksheet was added on 15 November 2026. ITAA 1997 ss 240-17, 240-55 and
+240-60 were read that day on the ATO's legal database and in compilation 268
+(1 October 2026) on the Federal Register of Legislation. Section 240-60(1)'s
+method statement adds earlier notional interest to the notional loan
+principal (step 1), subtracts arrangement payments made or due (step 2), works
+out the implicit interest rate for the period from the payments and any
+termination amounts (step 3, as substituted by No 79 of 2010 from 1 July 2010)
+and multiplies (step 4). The worksheet takes each month as an arrangement
+payment period, so an instalment in advance is due at the start of its month
+and comes off before the month's interest. It finds the rate by halving 0 to
+100% a month 64 times on the sign of the balance left after the last payment,
+which is nil at the implicit rate, negative below it and positive above it,
+and refuses where that balance does not then round to nil.
+
+`tests/hire_purchase.rs` holds these cases. The ATO's pages and the Library
+give no worked hire purchase schedule. LodgeiT Labs' public repository
+(`lodgeit-labs/clawdog-calculator-api`, `tests/fixtures/hp/anchors_v1_4.json`
+at e00f6f87, read on 15 November 2026) publishes 4 schedules from LodgeiT's
+printed hire purchase reports, each at a stated nominal rate and leaving a
+residual; its `hp:schedule` OpenAPI document and `llms.txt` give no example.
+The last 2 rows below take 2 of those agreements' payments.
+
+| Case | Source | Worksheet |
+| --- | --- | --- |
+| $1,000 financed, $100 a month in arrears for 2 months, $1,000 balloon | Worked by hand: 10% of $1,000 is each $100 instalment | 10% a month; $100.00 interest each month |
+| $1,000 financed, $100 a month in advance for 2 months, $979 balloon | Worked by hand: ($1,000 - $100) × 10% = $90; ($990 - $100) × 10% = $89 | 10% a month; $90.00 and $89.00 |
+| $45,000 financed, $850 a month in arrears for 60 months, $5,000 balloon | Fabricated; an independent calculation from the payments' present value to 60 digits | 0.0068669766960432 a month; first month $309.01, last $39.90; $11,000.00 in all |
+| The same, in advance | As above | 0.0070812410136161 a month; first month $312.64, last $35.16 |
+| $10,000 financed, $500 a month in arrears for 24 months | As above | 0.0151308439023100 a month; first month $151.31, last $7.45; $2,000.00 in all |
+| $1,000 financed, one $1,050 instalment in arrears; and $100 in advance with a $945 balloon | Worked by hand: 5% of $1,000 is $50; ($1,000 - $100) × 5% = $45 | 5% a month; $50.00 and $45.00 |
+| LodgeiT hp/290: $180,630.00 financed, $3,346.99 a month in arrears for 60 months, stated 4.25% a year | LodgeiT's report: first month $639.73, last $11.81, $20,189.64 in all and $0.24 left | 4.25% a year to 2 places; first month within 2 cents, last $11.81; $20,189.40 in all, nil left |
+| LodgeiT hp/235: $252,450.00 financed, 59 instalments of $3,893.76 and a $53,893.16 balloon, stated 3.99% a year | LodgeiT's report: first month $839.40, last $178.60, $31,175.69 in all and $0.69 left | 3.99% a year to 2 places; first month within 2 cents, last $178.60; $31,175.00 in all, nil left |
+
 ## Depreciation
 
 Paragraph ¶6-000 supplies the first-year prime cost and diminishing value
@@ -645,6 +682,34 @@ transcription; it does not establish that a payee's scale, allowances or
 declarations are right. Bi-monthly, daily and casual pays, a Medicare levy
 variation that increases withholding, study and training support loans and the
 other schedules are outside this worksheet.
+
+## PAYG gross-up
+
+Schedule 1 states how much to withhold from a gross pay, not which gross leaves
+a given net, so this worksheet has no rule of its own to cite: it takes every
+amount from the PAYG withholding worksheet above, whose evidence applies. A
+gross `g` leaves a net `n` when `g - withholding(g) = n`. Withholding is a whole
+number of dollars, so `g` is `n` plus a whole-dollar `w` with
+`withholding(n + w) = w`. As pay rises a cent, withholding never falls
+(`tests/properties.rs` checks every bracket edge), so the net rises by at most a
+cent and every net from $0 has a gross; but it can rise by a dollar, and then
+2 grosses leave the same net. The search repeats `w = withholding(n + w)` from
+0 up to the least such `w` and from a bound down to the greatest, then tests
+each `w` between. The bound is `n + 52`: every Schedule 1 coefficient `a` is at
+most 0.47 and every `b` at least -1 (the lowest is -0.6702, scale 1 for 2024-25
+and 2025-26), and scale 4 withholds at most 47%, so a week's amount is at most
+`0.47 x + 1.50` after rounding and withholding on a gross `g` at most
+`g / 2 + 26`, the 26 covering a quarter's 13 weeks of that $1.50 and of 47% of
+the 99 cents added to weekly earnings; `tests/payg_gross_up.rs` checks those
+coefficients.
+
+For each row of the ATO's sample data used above (48 earnings points for each
+of 3 pay periods on scales 1, 2, 3, 5 and 6, for both schedules), the tests
+take the row's earnings less its withholding as the net and require the
+worksheet to return the row's earnings or to refuse a tie whose list names
+them. `tests/properties.rs` grosses up random nets on every scale, pay period
+and year, and requires each gross listed to leave the net and no other within
+$60 of withholding either side of them to.
 
 ## Medicare levy
 
@@ -1449,6 +1514,62 @@ after 1 June (cl 4) and rounds any amount under the Schedule to the nearest $10,
 an exact $5 rounding up (cl 5). Because cl 3 pro-rates the factor, the engine
 rounds once, after pro-rating. The transition to retirement 10% maximum and the
 other pension schedules are outside this worksheet.
+
+## Personal tax estimate
+
+`personal-tax-estimate` adds no rate or threshold: each amount is a
+worksheet's own, and the tests check the composition. Read on 15 November
+2026: ITAA 1997 s 63-10 on the ATO legal database, whose table applies the
+seniors and pensioners tax offset (item 5) before any offset not covered by
+another item (item 20, the low income tax offset) against basic income tax
+liability; the ATO's "Low income tax offset" (last updated 8 June 2026), which
+says the offset "can only reduce your tax payable to $0"; and its "Division 293
+tax on concessional contributions by high-income earners" (last updated
+24 August 2026), under which the ATO sends a separate Division 293 notice.
+
+The foreign income tax offset rules guides for 2025 (2024-25, last updated 29
+May 2025) and 2026 (2025-26, last updated 30 May 2026) give, at step 1 of
+examples 16 and 17, the tax on a taxable income including the Medicare levy
+and disregarding offsets: $16,388 on $80,000, $9,988 on $60,000 and $260.80 on
+$19,830 in both years. The estimate's basic tax and levy give the same, and its
+total then takes off the low income tax offset: $100 at $60,000
+(`325 - 0.015 × 15000`) and all $260.80 at $19,830, where the $700 offset
+leaves nil. Anna's $31,130 is the exception. The 2026 guide gives $2,459.60:
+$2,068.80 tax and a levy of 10% of the excess over $27,222, the 2024-25
+threshold. For 2025-26 the threshold is $28,011, so the estimate gives a
+$311.90 levy and $2,380.70. The 2025 guide's $2,581.80 for 2024-25 likewise
+applies 2023-24's $26,000.
+
+Tom ("Medicare levy surcharge income, thresholds and rates", 2026-27) pays a
+$1,170 surcharge on $90,000 taxable income and $27,000 reportable fringe
+benefits; the estimate adds it to $17,520 tax and a $1,800 levy, $20,490 in
+all. José ("Seniors and pensioners tax offset", last updated 2 October 2026,
+2025-26) has a $1,720 offset on $39,000 rebate income. Taking that as his
+taxable income too, a fabricated assumption, the offset comes off $3,328 tax
+first, the low income tax offset of `700 - 0.05 × 1500 = 625` next, and his
+levy is nil at the SAPTO thresholds, where it would be $780 without them.
+
+For a full-year foreign resident the estimate runs `foreign-resident-tax`.
+Read on 15 November 2026: ITAA 1997 s 61-110(1)(a) gives the low income tax
+offset only to an individual resident at any time in the year; ITAA 1936
+s 251S(1)(a) levies the Medicare levy only on the taxable income of a person
+resident at any time in the year, and the surcharge is an increase in that
+levy (Medicare Levy Act 1986 ss 8B to 8D); and the ATO's "2026 Non-resident
+foreign income" instructions say a foreign resident's study loan repayment may
+be a compulsory repayment, an overseas levy or both, depending on worldwide
+income. `study-loan-repayment` excludes the overseas levy, so the estimate
+refuses a study loan for a foreign resident. ITAA 1936 s 160AAAA sets no
+residence condition and the ATO's SAPTO page works out a foreign resident
+spouse's unused offset, but a foreign resident with a pension assessable here
+is not a prescribed non-resident (Income Tax Rates Act 1986 s 3(1)) and pays
+resident rates, which
+`foreign-resident-tax` excludes; the estimate composes SAPTO for a resident
+only. ITAA 1997 ss 293-15 and 293-20 set no residence condition, so Division
+293 tax is composed as for a resident. On the ATO's "Tax rates - foreign
+resident" (last updated 1 June 2026), $60,000 in 2025-26 gives $18,000, the
+$19,830 of the guide's example 16 gives $5,949 in 2024-25 where a resident pays
+$260.80 and then nothing after the low income tax offset, and $250,000 gives
+$87,850, with Division 293 tax of 15% of $30,000, $4,500, outside the total.
 
 ## Rechecking the evidence
 

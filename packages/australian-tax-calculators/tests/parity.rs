@@ -10,17 +10,17 @@ use std::process::{Command, Stdio};
 
 /// Worksheets added after Python 0.2.0, so absent from the frozen corpus;
 /// `tests/fbt_car.rs`, `tests/main_residence.rs`,
-/// `tests/borrowing_expenses.rs`, `tests/division_296.rs`,
+/// `tests/borrowing_expenses.rs`, `tests/hire_purchase.rs`, `tests/division_296.rs`,
 /// `tests/termination_payment.rs`, `tests/schedule_5.rs`,
 /// `tests/working_holiday_maker.rs`, `tests/seniors_pensioners.rs`,
 /// `tests/seniors_pensioners_offset.rs`, `tests/medicare_surcharge.rs`,
-/// `tests/foreign_resident_tax.rs`, `tests/fbt_loan.rs`,
+/// `tests/foreign_resident_tax.rs`, `tests/payg_gross_up.rs`, `tests/fbt_loan.rs`,
 /// `tests/fbt_meal_entertainment.rs`, `tests/fbt_car_parking.rs`,
 /// `tests/fbt_debt_waiver.rs`, `tests/fbt_expense_payment.rs`,
 /// `tests/fbt_property.rs`, `tests/fbt_residual.rs`, `tests/fbt_housing.rs`,
 /// `tests/fbt_lafha.rs`, `tests/fbt_board.rs` and
 /// `tests/fbt_tax_exempt_body_entertainment.rs` cover them.
-const NEW_KINDS: [(&str, &str); 25] = [
+const NEW_KINDS: [(&str, &str); 27] = [
     ("fbt-car-statutory", "fbt_car_statutory"),
     ("fbt-car-operating-cost", "fbt_car_operating_cost"),
     ("fbt-loan", "fbt_loan"),
@@ -31,6 +31,7 @@ const NEW_KINDS: [(&str, &str); 25] = [
     ("fbt-property", "fbt_property"),
     ("main-residence", "main_residence"),
     ("borrowing-expenses", "borrowing_expenses"),
+    ("hire-purchase-schedule", "hire_purchase_schedule"),
     ("division-296", "division_296"),
     ("termination-payment", "termination_payment"),
     ("schedule-5-method-a", "schedule_5_method_a"),
@@ -50,6 +51,7 @@ const NEW_KINDS: [(&str, &str); 25] = [
     ),
     ("medicare-levy-surcharge", "medicare_levy_surcharge"),
     ("foreign-resident-tax", "foreign_resident_tax"),
+    ("payg-gross-up", "payg_gross_up"),
     ("fbt-residual", "fbt_residual"),
     ("fbt-housing", "fbt_housing"),
     ("fbt-lafha", "fbt_lafha"),
@@ -473,8 +475,11 @@ fn python_api_corpus_matches() {
         serde_json::from_str(include_str!("data/python-api.json")).expect("corpus parses");
     assert!(corpus.len() > 3000, "corpus too small: {}", corpus.len());
     for command in api::commands() {
-        // derive is new too; tests/derivation.rs covers it.
-        if command == "derive" || NEW_KINDS.iter().any(|(c, _)| *c == command) {
+        // derive and personal-tax-estimate are new too; tests/derivation.rs
+        // and tests/personal_tax_estimate.rs cover them.
+        if matches!(command, "derive" | "personal-tax-estimate")
+            || NEW_KINDS.iter().any(|(c, _)| *c == command)
+        {
             continue;
         }
         assert!(
