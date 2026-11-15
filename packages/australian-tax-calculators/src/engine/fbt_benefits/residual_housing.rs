@@ -150,8 +150,8 @@ pub fn fbt_residual(
     let reductions = deductible_inputs(DEDUCTIBLE_INPUTS.map(&given), "s 52(1)(ba)")?;
     let gross = precise(|| {
         Ok(if three_quarters {
-            let formula = format!("cents(0.75 x {input})");
-            let gross = cents(value.mul(&d("0.75"))?)?;
+            let formula = format!("0.75 x {input}");
+            let gross = value.mul(&d("0.75"))?;
             step("gross_taxable_value", authority, &formula, &[&value], gross)
         } else {
             step(
@@ -289,8 +289,8 @@ fn statutory_value<'a>(
                 );
             }
         };
-        let annual = precise(|| Ok(cents(value.mul(&days)?.div(&tenancy)?)?))?;
-        let formula = "cents(market_value x days_in_year / tenancy_days)";
+        let annual = precise(|| Ok(value.mul(&days)?.div(&tenancy)?))?;
+        let formula = "market_value x days_in_year / tenancy_days";
         let annual = step(
             "statutory_annual_value",
             "FBTAA s 26(2)(a)",
@@ -312,8 +312,8 @@ fn statutory_value<'a>(
         let factor = indexation_factor(state, year)?;
         base_year_ended(base, year)?;
         let tenancy = int(day_count(tenancy, days_in_year, "tenancy_days")?);
-        let annual = precise(|| Ok(cents(prior.mul(&factor)?)?))?;
-        let formula = "cents(prior_statutory_annual_value x indexation_factor)";
+        let annual = precise(|| Ok(prior.mul(&factor)?))?;
+        let formula = "prior_statutory_annual_value x indexation_factor";
         let annual = step(
             "statutory_annual_value",
             "FBTAA s 26(2)(b) and s 28; FBT rates and thresholds, housing indexation",

@@ -140,6 +140,16 @@ fn matches_the_employers_guide_otherwise_deductible_examples() {
     let a = external("150.00");
     assert_eq!(a["reduction_applied"], "250.00");
     assert_eq!(a["taxable_value"], "0.00");
+    // s 44 does not round GD: $100.03 x 50% = $50.015 off $100.03 leaves
+    // $50.015, so $50.02 (a GD rounded first, $50.02, would leave $50.01).
+    let a = property(json!({
+        "method": "external_notional_value", "lowest_price": null,
+        "in_house_reduction_available": null, "notional_value": "100.03",
+        "employee_contribution": "0.00", "income_use": "0.5",
+    }))
+    .unwrap()["amounts"]
+        .clone();
+    assert_eq!(a["taxable_value"], "50.02");
 }
 
 #[test]
@@ -155,7 +165,7 @@ fn the_otherwise_deductible_rule_comes_before_the_in_house_reduction() {
     assert_eq!(a["reduction_applied"], "250.00");
     assert_eq!(a["in_house_reduction_applied"], "100.00");
     assert_eq!(a["taxable_value"], "150.00");
-    // 75% is rounded half up to cents: 33.33 x 0.75 = 24.9975.
+    // 75% is shown rounded half up to cents: 33.33 x 0.75 = 24.9975.
     let a = property(json!({"lowest_price": "33.33", "employee_contribution": "0.00"}));
     assert_eq!(a.unwrap()["amounts"]["gross_taxable_value"], "25.00");
     // The external rules take the amount as it is.

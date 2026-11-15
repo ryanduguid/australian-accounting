@@ -94,13 +94,14 @@ fn a_base_year_annualises_the_market_value_for_the_tenancy() {
 #[test]
 fn an_indexed_year_applies_the_published_factor() {
     // Guide 10.5's unit in a later year: $15,745.62 x 1.040 (NSW, 2027) =
-    // $16,375.44, for 91 days of 365, $4,082.64.
+    // $16,375.4448, for 91 days of 365, $4,082.645, so $4,082.65: s 26
+    // carries the statutory annual value unrounded (rounded first, $4,082.64).
     let result = indexed(json!({})).unwrap();
     assert_eq!(
         result["amounts"],
-        json!({"statutory_annual_value": "16375.44", "gross_taxable_value": "4082.64",
+        json!({"statutory_annual_value": "16375.44", "gross_taxable_value": "4082.65",
                "employee_contribution_applied": "0.00",
-               "excess_employee_contribution": "0.00", "taxable_value": "4082.64"})
+               "excess_employee_contribution": "0.00", "taxable_value": "4082.65"})
     );
     assert_eq!(
         result["rates"],

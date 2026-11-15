@@ -550,10 +550,11 @@ wholesalers or retailers, `in_house_public_price` 75% of the lowest price to
 the public, `in_house_produced_other` and `in_house_other` 75% of the notional
 value, and `in_house_acquired` the lesser of the provider's arm's length price
 and the notional value. The 3 external rules follow s 43: `external_cost_price`,
-`external_expenditure` and `external_notional_value`. 75% is rounded to cents.
+`external_expenditure` and `external_notional_value`. No amount is rounded
+before the taxable value, as the Act rounds none; each is shown to the cent.
 The recipient's contribution comes off, never below nil; the otherwise
 deductible rule (s 44) then takes off the gross deduction on the value before
-the contribution (`income_use` of it, rounded to cents) less
+the contribution (`income_use` of it) less
 `contribution_deduction`, never below nil. An in-house benefit not salary
 packaged is then reduced by `in_house_reduction_available`, the part of the
 employee's $1,000 for the year (s 62) their other in-house benefits have left,
@@ -611,7 +612,10 @@ State or Territory's indexation factor from the ATO's rates page (s 26(2)(b)).
 Jervis Bay Territory counts as NSW, and Christmas Island and the Cocos
 (Keeling) Islands as NT (s 28(5)). Rent comes off, never below nil. The
 operator establishes the market value and whether the year is a base year (s
-26(3)). Remote area housing is exempt (s 58ZC), so the worksheet does not value
+26(3)). Neither statutory annual value is rounded before it is used; as
+`prior_statutory_annual_value` is taken to the cent, a value carried from a
+year whose value had a fraction of a cent starts that fraction away from the
+Act's. Remote area housing is exempt (s 58ZC), so the worksheet does not value
 it.
 
 `fbt_lafha` applies Division 7. Where s 31 (an employee who keeps an Australian

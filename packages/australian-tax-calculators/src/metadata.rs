@@ -1542,11 +1542,11 @@ pub fn optional_inputs(kind: &str) -> Vec<(&'static str, &'static str)> {
             ),
             (
                 "adult_days",
-                "integer from 0, maintains_home and fly_in_fly_out only and required there: the days in the period of each eligible family member who was 12 or older before the FBT year began, added together; each has a statutory food amount of $42 a week (FBTAA s 136(1))",
+                "integer from 0 to 1,000,000, maintains_home and fly_in_fly_out only and required there: the days in the period of each eligible family member who was 12 or older before the FBT year began, added together; each has a statutory food amount of $42 a week (FBTAA s 136(1))",
             ),
             (
                 "child_days",
-                "integer from 0, maintains_home and fly_in_fly_out only and required there: the days in the period of each other eligible family member, added together; each has a statutory food amount of $21 a week (FBTAA s 136(1))",
+                "integer from 0 to 1,000,000, maintains_home and fly_in_fly_out only and required there: the days in the period of each other eligible family member, added together; each has a statutory food amount of $21 a week (FBTAA s 136(1))",
             ),
         ],
         "fbt_tax_exempt_body_entertainment" => vec![
@@ -2101,11 +2101,11 @@ pub fn input_units(kind: &str) -> Vec<(&'static str, &'static str)> {
         "fbt_board" => vec![
             (
                 "adult_meals",
-                "integer from 0: the board meals provided in the FBT year to recipients who were 12 or older before it began (FBTAA s 36(a))",
+                "integer from 0 to 100,000,000: the board meals provided in the FBT year to recipients who were 12 or older before it began (FBTAA s 36(a))",
             ),
             (
                 "child_meals",
-                "integer from 0: the board meals provided in the FBT year to other recipients (FBTAA s 36(b))",
+                "integer from 0 to 100,000,000: the board meals provided in the FBT year to other recipients (FBTAA s 36(b))",
             ),
             ("employee_contribution", "AUD, the recipients contribution (FBTAA s 136(1)): consideration the recipient or employee paid for the benefits, net of any reimbursement, each benefit's counted only up to its value: it cannot take the value below nil, and an excess on one benefit reduces no other"),
             (
