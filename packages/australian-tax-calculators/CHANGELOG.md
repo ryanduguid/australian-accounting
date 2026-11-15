@@ -354,6 +354,12 @@ intentionally changed.
   it accrues on.
   `tests/refusal_codes.rs` now also reads the engine's modules under
   `src/engine/`.
+- `hire-purchase-schedule` also gives `interest_by_income_year`, the
+  interest of the months wholly in each income year, and
+  `interest_across_30_june`, each month that spans 30 June with its interest
+  and its days in each year, which s 240-60(2) leaves to accounting
+  principles and the worksheet does not split. `tests/hire_purchase.rs`
+  holds it to agreements worked by hand at 10% a month.
 
 ### Documented divergences
 

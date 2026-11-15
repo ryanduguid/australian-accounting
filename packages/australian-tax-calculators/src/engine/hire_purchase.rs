@@ -110,8 +110,14 @@ impl Agreement {
     /// balance shown is then the balance at `r` rounded, and the last is nil.
     /// The balloon has its own column, as in advance it is paid a month after
     /// the last instalment.
-    fn schedule(&self, r: &Decimal, start: i64, charges: &Decimal) -> Result<Vec<Value>> {
-        let mut rows = Vec::new();
+    /// Beside the rows, each month's period and interest in cents.
+    fn schedule(
+        &self,
+        r: &Decimal,
+        start: i64,
+        charges: &Decimal,
+    ) -> Result<(Vec<Value>, Vec<Month>)> {
+        let (mut rows, mut months) = (Vec::new(), Vec::new());
         let (mut exact, mut to_date, mut shown) = (self.financed.clone(), int(0), int(0));
         let mut balance = self.financed.clone();
         for k in 1..=self.count {
@@ -143,9 +149,15 @@ impl Agreement {
                 "principal": principal.fixed(2, false),
                 "closing": closing.fixed(2, false),
             }));
+            months.push(Month {
+                instalment: k,
+                from,
+                to,
+                interest,
+            });
             balance = closing;
         }
-        Ok(rows)
+        Ok((rows, months))
     }
 
     /// The agreement's terms from the inputs, refusing a nil amount, a term
@@ -194,6 +206,67 @@ impl Agreement {
             in_advance,
         })
     }
+}
+
+/// One schedule month: its instalment number, its period from `from` up to
+/// `to` as day numbers, and its interest as shown.
+struct Month {
+    instalment: i64,
+    from: i64,
+    to: i64,
+    interest: Decimal,
+}
+
+/// The income year `day` falls in, as `2026-27`, and the 1 July that ends it.
+fn income_year(day: i64) -> (String, i64) {
+    let (y, m, _) = dates::to_civil(day);
+    let first = if m >= 7 { y } else { y - 1 };
+    let ends = dates::parse(&format!("{}-07-01", first + 1)).expect("1 July");
+    (format!("{first}-{:02}", (first + 1) % 100), ends)
+}
+
+/// The months' interest by income year (ITAA 1997 s 240-60(2)). A month
+/// wholly in one income year counts in it. A month spanning 30 June is listed
+/// apart, with its days before and from 1 July: s 240-60(2) relates its
+/// interest to each year in accordance with generally accepted accounting
+/// principles, which this worksheet leaves to the caller.
+fn by_income_year(months: &[Month]) -> Result<(Value, Value)> {
+    // (income year, first instalment, last instalment, interest)
+    type Year = (String, i64, i64, Decimal);
+    let (mut years, mut across): (Vec<Year>, Vec<Value>) = (Vec::new(), Vec::new());
+    for month in months {
+        let (year, ends) = income_year(month.from);
+        if month.to > ends {
+            across.push(json!({
+                "instalment": month.instalment,
+                "interest": month.interest.fixed(2, false),
+                "income_years": [year, income_year(ends).0],
+                "days": [ends - month.from, month.to - ends],
+            }));
+        } else if let Some(last) = years.last_mut().filter(|last| last.0 == year) {
+            last.2 = month.instalment;
+            last.3 = last.3.add(&month.interest)?;
+        } else {
+            years.push((
+                year,
+                month.instalment,
+                month.instalment,
+                month.interest.clone(),
+            ));
+        }
+    }
+    let years = years
+        .into_iter()
+        .map(|(year, first, last, interest)| {
+            json!({
+                "income_year": year,
+                "first_instalment": first,
+                "last_instalment": last,
+                "interest": interest.fixed(2, false),
+            })
+        })
+        .collect();
+    Ok((Value::Array(years), Value::Array(across)))
 }
 
 /// `start_date` as a day number, refused unless it falls in the income year.
@@ -249,15 +322,15 @@ pub fn hire_purchase_schedule(
     let agreement =
         Agreement::from_inputs(amount_financed, instalment, instalments, balloon, timing)?;
     let start = start_in_year(start_date, &year)?;
-    let (r, rows, total, charges) = precise(|| {
+    let (r, rows, total, charges, (years, across)) = precise(|| {
         let r = agreement.implicit_rate()?;
         let total = agreement
             .instalment
             .mul(&int(agreement.count))?
             .add(&agreement.balloon)?;
         let charges = total.sub(&agreement.financed)?;
-        let rows = agreement.schedule(&r, start, &charges)?;
-        Ok((r, rows, total, charges))
+        let (rows, months) = agreement.schedule(&r, start, &charges)?;
+        Ok((r, rows, total, charges, by_income_year(&months)?))
     })?;
     let mut out = result(
         KIND,
@@ -272,5 +345,7 @@ pub fn hire_purchase_schedule(
     // The balloon falls due at the end of the term, after an instalment in advance.
     out["balloon_date"] = json!(dates::format(dates::add_months(start, agreement.count)));
     out["schedule"] = Value::Array(rows);
+    out["interest_by_income_year"] = years;
+    out["interest_across_30_june"] = across;
     Ok(out)
 }

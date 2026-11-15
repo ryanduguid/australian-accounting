@@ -764,11 +764,20 @@ leaves less than half a cent after the last payment, so a month can differ
 from its amount at the exact implicit rate by slightly more than a cent at
 the largest amounts. The worksheet refuses payments that imply a rate below
 nil or of 100% a month or more, and a rate it cannot find closely enough to
-leave a nil balance to the cent. It shows interest by month, not by income
-year: s 240-60(2) relates a month that spans 30 June to each year in
-accordance with accounting principles, which the caller must do. Fees, GST,
-irregular payments, termination amounts other than the balloon and the
-notional seller are out of scope; see
+leave a nil balance to the cent.
+
+`interest_by_income_year` totals the interest of the months wholly in each
+income year, one entry a year with its `income_year`, `first_instalment`,
+`last_instalment` and `interest`, each the sum of those rows' `interest`. A
+month runs from `period_start` up to `period_end`, so a month ending on
+1 July falls wholly in the year before. A month that spans 30 June is listed
+in `interest_across_30_june` instead, with its `instalment`, `interest`, the 2
+`income_years` and the `days` it runs in each: s 240-60(2) relates the part
+of a month in an income year to it in accordance with accounting principles,
+which the caller must apply to that month. The years and the spanning months
+add up to the total interest; from a start on the 1st of a month no month
+spans 30 June. Fees, GST, irregular payments, termination amounts other than
+the balloon and the notional seller are out of scope; see
 [calculation evidence](docs/calculation-evidence.md#hire-purchase-schedule).
 
 ## Division 296

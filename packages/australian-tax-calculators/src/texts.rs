@@ -607,7 +607,7 @@ pub const EXTRA_WARNINGS: &[(&str, &[&str])] = &[
     (
         "hire_purchase_schedule",
         &[
-            "Notional interest is shown by month, not by income year: s 240-60(2) relates the part of a month that falls in an income year to it in accordance with generally accepted accounting principles, which this worksheet does not do.",
+            "interest_by_income_year totals only the months wholly in each income year. A month spanning 30 June is listed in interest_across_30_june with its days on each side, not split: s 240-60(2) relates the part of a month that falls in an income year to it in accordance with generally accepted accounting principles, which this worksheet does not apply.",
         ],
     ),
     ("fbt_car_operating_cost", &[CAR_REPORTABLE_NOTE]),

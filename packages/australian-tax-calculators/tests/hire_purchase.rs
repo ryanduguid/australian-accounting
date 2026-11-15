@@ -253,6 +253,94 @@ fn lodgeit_s_published_stated_rate_schedules_close_at_nil_here() {
     }
 }
 
+/// Worked by hand at 10% a month (s 240-60(2)): months wholly in an income
+/// year are totalled in it. From 1 May 2027 each month is a calendar month, so
+/// May and June ($100 each) fall in 2026-27 and July in 2027-28.
+#[test]
+fn interest_by_income_year_totals_the_months_wholly_in_each_year() {
+    let r = run(json!({"amount_financed": "1000.00", "instalment": "100.00", "instalments": 3, "balloon": "1000.00", "start_date": "2027-05-01"})).unwrap();
+    assert_eq!(
+        r["interest_by_income_year"],
+        json!([
+            {"income_year": "2026-27", "first_instalment": 1, "last_instalment": 2, "interest": "200.00"},
+            {"income_year": "2027-28", "first_instalment": 3, "last_instalment": 3, "interest": "100.00"},
+        ])
+    );
+    assert_eq!(r["interest_across_30_june"], json!([]));
+}
+
+/// A month spanning 30 June is set apart with its days in each year, not
+/// split: s 240-60(2) relates it to each year in accordance with accounting
+/// principles. From 15 May 2027 in arrears, the second month runs 16 days to
+/// 1 July and 14 after; in advance from 15 June 2027, the first month spans
+/// 30 June ($90) and 2026-27 has no whole month.
+#[test]
+fn a_month_spanning_30_june_is_shown_apart_with_its_days_in_each_year() {
+    let r = run(json!({"amount_financed": "1000.00", "instalment": "100.00", "instalments": 2, "balloon": "1000.00", "start_date": "2027-05-15"})).unwrap();
+    assert_eq!(
+        r["interest_by_income_year"],
+        json!([{"income_year": "2026-27", "first_instalment": 1, "last_instalment": 1, "interest": "100.00"}])
+    );
+    assert_eq!(
+        r["interest_across_30_june"],
+        json!([{"instalment": 2, "interest": "100.00", "income_years": ["2026-27", "2027-28"], "days": [16, 14]}])
+    );
+    let r = run(json!({"amount_financed": "1000.00", "instalment": "100.00", "instalments": 2, "balloon": "979.00", "timing": "in_advance", "start_date": "2027-06-15"})).unwrap();
+    assert_eq!(
+        r["interest_by_income_year"],
+        json!([{"income_year": "2027-28", "first_instalment": 2, "last_instalment": 2, "interest": "89.00"}])
+    );
+    assert_eq!(
+        r["interest_across_30_june"],
+        json!([{"instalment": 1, "interest": "90.00", "income_years": ["2026-27", "2027-28"], "days": [16, 14]}])
+    );
+}
+
+/// Over 5 years from 15 July 2026, months 12, 24, 36, 48 and 60 span 30 June;
+/// each year's interest is its months' shown interest, and the years and the
+/// spanning months add up to the total interest.
+#[test]
+fn the_years_and_the_spanning_months_add_up_to_the_total_interest() {
+    let r = run(json!({})).unwrap();
+    let dec = |v: &Value| Decimal::parse(v.as_str().unwrap()).unwrap();
+    let years = r["interest_by_income_year"].as_array().unwrap();
+    let across = r["interest_across_30_june"].as_array().unwrap();
+    let labels: Vec<&str> = years
+        .iter()
+        .map(|y| y["income_year"].as_str().unwrap())
+        .collect();
+    assert_eq!(
+        labels,
+        ["2026-27", "2027-28", "2028-29", "2029-30", "2030-31"]
+    );
+    let spanning: Vec<u64> = across
+        .iter()
+        .map(|m| m["instalment"].as_u64().unwrap())
+        .collect();
+    assert_eq!(spanning, [12, 24, 36, 48, 60]);
+    assert_eq!(across[4]["income_years"], json!(["2030-31", "2031-32"]));
+    assert_eq!(across[4]["days"], json!([16, 14]));
+    let mut total = Decimal::from_int(0);
+    for year in years {
+        let (first, last) = (
+            year["first_instalment"].as_u64().unwrap(),
+            year["last_instalment"].as_u64().unwrap(),
+        );
+        let mut months = Decimal::from_int(0);
+        for k in first..=last {
+            months = months
+                .add(&dec(&r["schedule"][k as usize - 1]["interest"]))
+                .unwrap();
+        }
+        assert!(months.equals(&dec(&year["interest"])).unwrap(), "{year}");
+        total = total.add(&months).unwrap();
+    }
+    for month in across {
+        total = total.add(&dec(&month["interest"])).unwrap();
+    }
+    assert!(total.equals(&dec(&r["amounts"]["total_interest"])).unwrap());
+}
+
 #[test]
 fn payments_that_only_repay_the_amount_financed_carry_no_interest() {
     let r = run(json!({"amount_financed": "1200.00", "instalment": "100.00", "instalments": 12, "balloon": "0.00"})).unwrap();
