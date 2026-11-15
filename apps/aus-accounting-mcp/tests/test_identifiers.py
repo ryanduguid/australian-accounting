@@ -178,6 +178,10 @@ def test_a_bsb_in_the_published_format_is_valid_however_it_is_spaced(value):
 
     assert result["result"] == "FORMAT_VALID"
     assert result["formatted"] == "123-456"
+    # The input need not carry the hyphen, so the reason claims the format only for formatted.
+    assert result["reason"] == ("The 6 digits fit AusPayNet's published BSB format, written "
+                                "XXX-XXX as formatted shows. No institution or branch was "
+                                "looked up.")
 
 
 @pytest.mark.parametrize(

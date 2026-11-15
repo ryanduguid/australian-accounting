@@ -139,8 +139,8 @@ def check_bsb(value: str) -> dict[str, Any]:
                   "separated by spaces.")
     else:
         result, formatted = "FORMAT_VALID", f"{text[:3]}-{text[3:]}"
-        reason = ("The digits match AusPayNet's published BSB format. No institution or branch "
-                  "was looked up.")
+        reason = ("The 6 digits fit AusPayNet's published BSB format, written XXX-XXX as "
+                  "formatted shows. No institution or branch was looked up.")
     return {
         "ok": True,
         "identifier": "BSB",
