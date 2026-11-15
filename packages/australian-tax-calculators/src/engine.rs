@@ -1239,13 +1239,9 @@ fn weekly_formula(x: &Decimal, rows: &[CoefficientRow]) -> Calc<(Decimal, Decima
     Ok((a, b, amount))
 }
 
-/// A rounded weekly amount for the pay period: the withholding amount and the
-/// Medicare levy adjustment convert the same way.
-fn for_pay_period(weekly_amount: &Decimal, pay_period: &str) -> Calc<Decimal> {
-    Ok(for_pay_period_working(weekly_amount, pay_period, "w")?.0)
-}
-
-/// [`for_pay_period`] with its formula on `w`, the formula for the weekly amount.
+/// A rounded weekly amount for the pay period, with its formula on `w`, the
+/// formula for the weekly amount: the withholding amount and the Medicare levy
+/// adjustment convert the same way.
 fn for_pay_period_working(
     weekly_amount: &Decimal,
     pay_period: &str,
@@ -1738,7 +1734,7 @@ fn study_loan_rows(year: &str, scale: i64) -> &'static [CoefficientRow] {
     )
 }
 
-/// [`for_pay_period`] on a weekly formula amount, with its working: the
+/// [`for_pay_period_working`] on a weekly formula amount: the
 /// formula y = a x - b on `weekly_earnings_used`, rounded to the dollar and
 /// never below nil, whose coefficients are the rates named `[a, b]`.
 fn formula_for_pay_period(
