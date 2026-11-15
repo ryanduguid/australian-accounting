@@ -37,16 +37,17 @@ fn dates(result: &Value, instalment: usize) -> [&str; 3] {
 #[test]
 fn an_agreement_at_exactly_10_percent_a_month_in_arrears() {
     let r = run(json!({"amount_financed": "1000.00", "instalment": "100.00", "instalments": 2, "balloon": "1000.00"})).unwrap();
-    assert_eq!(r["rates"]["implicit_monthly_rate"], "0.100000000000");
-    assert_eq!(r["rates"]["nominal_annual_rate"], "1.2000000000");
+    assert_eq!(r["rates"]["implicit_monthly_rate"], "0.1000000000000000");
+    assert_eq!(r["rates"]["nominal_annual_rate"], "1.2000000000000000");
     assert_eq!(
         row(&r, 1),
         ["1000.00", "100.00", "100.00", "0.00", "1000.00"]
     );
     assert_eq!(
         row(&r, 2),
-        ["1000.00", "100.00", "1100.00", "1000.00", "0.00"]
+        ["1000.00", "100.00", "100.00", "1000.00", "0.00"]
     );
+    assert_eq!(r["schedule"][1]["balloon"], "1000.00");
     assert_eq!(r["amounts"]["total_payments"], "1200.00");
     assert_eq!(r["amounts"]["total_interest"], "200.00");
 }
@@ -57,12 +58,12 @@ fn an_agreement_at_exactly_10_percent_a_month_in_arrears() {
 #[test]
 fn an_agreement_at_exactly_10_percent_a_month_in_advance() {
     let r = run(json!({"amount_financed": "1000.00", "instalment": "100.00", "instalments": 2, "balloon": "979.00", "timing": "in_advance"})).unwrap();
-    assert_eq!(r["rates"]["implicit_monthly_rate"], "0.100000000000");
+    assert_eq!(r["rates"]["implicit_monthly_rate"], "0.1000000000000000");
     assert_eq!(
         row(&r, 1),
         ["1000.00", "90.00", "100.00", "10.00", "990.00"]
     );
-    assert_eq!(row(&r, 2), ["990.00", "89.00", "1079.00", "990.00", "0.00"]);
+    assert_eq!(row(&r, 2), ["990.00", "89.00", "100.00", "990.00", "0.00"]);
     assert_eq!(dates(&r, 1), ["2026-07-15", "2026-08-15", "2026-07-15"]);
     assert_eq!(dates(&r, 2), ["2026-08-15", "2026-09-15", "2026-08-15"]);
     assert_eq!(r["balloon_date"], "2026-09-15");
@@ -115,8 +116,8 @@ fn the_rates_shown_reproduce_the_first_month_s_interest_to_the_cent() {
 #[test]
 fn a_5_year_agreement_with_a_balloon_in_arrears() {
     let r = run(json!({})).unwrap();
-    assert_eq!(r["rates"]["implicit_monthly_rate"], "0.006866976696");
-    assert_eq!(r["rates"]["nominal_annual_rate"], "0.0824037204");
+    assert_eq!(r["rates"]["implicit_monthly_rate"], "0.0068669766960432");
+    assert_eq!(r["rates"]["nominal_annual_rate"], "0.0824037203525189");
     let schedule = r["schedule"].as_array().unwrap();
     assert_eq!(schedule.len(), 60);
     assert_eq!(
@@ -125,8 +126,9 @@ fn a_5_year_agreement_with_a_balloon_in_arrears() {
     );
     assert_eq!(
         row(&r, 60),
-        ["5810.10", "39.90", "5850.00", "5810.10", "0.00"]
+        ["5810.10", "39.90", "850.00", "5810.10", "0.00"]
     );
+    assert_eq!(r["schedule"][59]["balloon"], "5000.00");
     assert_eq!(dates(&r, 1), ["2026-07-15", "2026-08-15", "2026-08-15"]);
     assert_eq!(dates(&r, 60), ["2031-06-15", "2031-07-15", "2031-07-15"]);
     assert_eq!(r["balloon_date"], "2031-07-15");
@@ -137,15 +139,15 @@ fn a_5_year_agreement_with_a_balloon_in_arrears() {
 #[test]
 fn the_same_agreement_in_advance() {
     let r = run(json!({"timing": "in_advance"})).unwrap();
-    assert_eq!(r["rates"]["implicit_monthly_rate"], "0.007081241014");
-    assert_eq!(r["rates"]["nominal_annual_rate"], "0.0849748922");
+    assert_eq!(r["rates"]["implicit_monthly_rate"], "0.0070812410136161");
+    assert_eq!(r["rates"]["nominal_annual_rate"], "0.0849748921633937");
     assert_eq!(
         row(&r, 1),
         ["45000.00", "312.64", "850.00", "537.36", "44462.64"]
     );
     assert_eq!(
         row(&r, 60),
-        ["5814.84", "35.16", "5850.00", "5814.84", "0.00"]
+        ["5814.84", "35.16", "850.00", "5814.84", "0.00"]
     );
     assert_eq!(dates(&r, 60)[2], "2031-06-15");
     assert_eq!(r["balloon_date"], "2031-07-15");
@@ -154,7 +156,7 @@ fn the_same_agreement_in_advance() {
 #[test]
 fn a_2_year_agreement_without_a_balloon() {
     let r = run(json!({"amount_financed": "10000.00", "instalment": "500.00", "instalments": 24, "balloon": "0.00"})).unwrap();
-    assert_eq!(r["rates"]["implicit_monthly_rate"], "0.015130843902");
+    assert_eq!(r["rates"]["implicit_monthly_rate"], "0.0151308439023100");
     assert_eq!(
         row(&r, 1),
         ["10000.00", "151.31", "500.00", "348.69", "9651.31"]
@@ -173,17 +175,18 @@ fn a_2_year_agreement_without_a_balloon() {
 #[test]
 fn a_1_month_agreement_in_arrears_and_in_advance() {
     let r = run(json!({"amount_financed": "1000.00", "instalment": "1050.00", "instalments": 1, "balloon": "0.00"})).unwrap();
-    assert_eq!(r["rates"]["implicit_monthly_rate"], "0.050000000000");
+    assert_eq!(r["rates"]["implicit_monthly_rate"], "0.0500000000000000");
     assert_eq!(
         row(&r, 1),
         ["1000.00", "50.00", "1050.00", "1000.00", "0.00"]
     );
     let r = run(json!({"amount_financed": "1000.00", "instalment": "100.00", "instalments": 1, "balloon": "945.00", "timing": "in_advance"})).unwrap();
-    assert_eq!(r["rates"]["implicit_monthly_rate"], "0.050000000000");
+    assert_eq!(r["rates"]["implicit_monthly_rate"], "0.0500000000000000");
     assert_eq!(
         row(&r, 1),
-        ["1000.00", "45.00", "1045.00", "1000.00", "0.00"]
+        ["1000.00", "45.00", "100.00", "1000.00", "0.00"]
     );
+    assert_eq!(r["schedule"][0]["balloon"], "945.00");
     assert_eq!(dates(&r, 1)[2], "2026-07-15");
     assert_eq!(r["balloon_date"], "2026-08-15");
 }
@@ -253,7 +256,7 @@ fn lodgeit_s_published_stated_rate_schedules_close_at_nil_here() {
 #[test]
 fn payments_that_only_repay_the_amount_financed_carry_no_interest() {
     let r = run(json!({"amount_financed": "1200.00", "instalment": "100.00", "instalments": 12, "balloon": "0.00"})).unwrap();
-    assert_eq!(r["rates"]["implicit_monthly_rate"], "0.000000000000");
+    assert_eq!(r["rates"]["implicit_monthly_rate"], "0.0000000000000000");
     assert_eq!(r["amounts"]["total_interest"], "0.00");
     assert!(
         r["schedule"]
@@ -343,7 +346,7 @@ fn a_rate_or_term_outside_the_worksheet_is_refused_with_its_code() {
 fn the_longest_term_at_the_largest_amount_still_closes_at_nil() {
     let r = run(json!({"amount_financed": "1000000000000.00", "instalment": "9000000000.00", "instalments": 360, "balloon": "0.00"})).unwrap();
     assert_eq!(r["schedule"].as_array().unwrap().len(), 360);
-    assert_eq!(r["rates"]["implicit_monthly_rate"], "0.008585344600");
+    assert_eq!(r["rates"]["implicit_monthly_rate"], "0.0085853445997730");
     assert_eq!(row(&r, 1)[1], "8585344599.77");
     assert_eq!(
         row(&r, 360),

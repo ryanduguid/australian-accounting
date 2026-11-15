@@ -254,7 +254,8 @@ intentionally changed.
   10% and 5% a month worked by hand, to fabricated agreements worked
   independently and to 2 schedules LodgeiT Labs publishes at a stated rate,
   where it closes at nil as they do not, and `tests/properties.rs` checks that the months add up and
-  that each month's interest is within a cent of the rate on its balance.
+  that each month's interest is within 2 cents of the rate shown times what
+  it accrues on.
   `tests/refusal_codes.rs` now also reads the engine's modules under
   `src/engine/`.
 

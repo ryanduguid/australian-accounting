@@ -103,17 +103,20 @@ impl Agreement {
         Ok(r)
     }
 
-    /// One row a month in cents. Each month's interest is the exact notional
-    /// interest to date rounded half up to cents, less what the months before
-    /// show, so a cent of rounding never compounds: the months add up to the
-    /// total charges and each is within a cent of its exact amount. Every
-    /// balance shown is then the exact balance rounded, and the last is nil.
+    /// One row a month in cents. Each month's interest is the notional
+    /// interest to date at `r` rounded half up to cents, less what the months
+    /// before show, so a cent of rounding never compounds: the months add up to
+    /// the total charges and each is within a cent of its amount at `r`. Every
+    /// balance shown is then the balance at `r` rounded, and the last is nil.
+    /// The balloon has its own column, as in advance it is paid a month after
+    /// the last instalment.
     fn schedule(&self, r: &Decimal, start: i64, charges: &Decimal) -> Result<Vec<Value>> {
         let mut rows = Vec::new();
         let (mut exact, mut to_date, mut shown) = (self.financed.clone(), int(0), int(0));
         let mut balance = self.financed.clone();
         for k in 1..=self.count {
             let payment = self.payment(k)?;
+            let balloon = payment.sub(&self.instalment)?;
             let interest_exact = self.interest_base(&exact)?.mul(r)?;
             to_date = to_date.add(&interest_exact)?;
             exact = exact.add(&interest_exact)?.sub(&payment)?;
@@ -135,7 +138,8 @@ impl Agreement {
                 "payment_date": dates::format(paid),
                 "opening": balance.fixed(2, false),
                 "interest": interest.fixed(2, false),
-                "payment": payment.fixed(2, false),
+                "payment": self.instalment.fixed(2, false),
+                "balloon": balloon.fixed(2, false),
                 "principal": principal.fixed(2, false),
                 "closing": closing.fixed(2, false),
             }));
@@ -214,18 +218,19 @@ pub fn hire_purchase_schedule(
         let rows = agreement.schedule(&r, start, &charges)?;
         Ok((r, rows, total, charges))
     })?;
-    // Fixed-point, so a nil rate reads 0.000000000000 rather than 0E-12.
+    // To 16 places, so the rates reproduce a month's interest to the cent at
+    // the largest amount, and fixed-point, so a nil rate reads 0.0000000000000000.
     let rates = precise(|| {
         Ok(vec![
             rate(
                 "implicit_monthly_rate",
-                r.quantize(-12, Rounding::HalfUp)?.fixed(12, false),
+                r.quantize(-16, Rounding::HalfUp)?.fixed(16, false),
             ),
             rate(
                 "nominal_annual_rate",
                 r.mul(&int(12))?
-                    .quantize(-10, Rounding::HalfUp)?
-                    .fixed(10, false),
+                    .quantize(-16, Rounding::HalfUp)?
+                    .fixed(16, false),
             ),
         ])
     })?;

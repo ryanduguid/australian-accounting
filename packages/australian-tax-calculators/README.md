@@ -514,17 +514,21 @@ that rate (steps 1, 2 and 4). The payments themselves are not deductible
 (s 240-55).
 
 The result gives the amount financed, the total payments and the total
-interest, the implicit monthly rate and 12 times it as `nominal_annual_rate`,
+interest, the implicit monthly rate and 12 times it as `nominal_annual_rate`
+(both to 16 places),
 `balloon_date` (the end of the term) and `schedule`, one row a month with its
 `period_start`, `period_end`, `payment_date`, `opening`, `interest`,
-`payment`, `principal` and `closing`. The last month's `payment` includes the
-balloon, which falls due on `balloon_date`: with the last instalment in
-arrears, a month after it in advance. A month runs to the same day of the next
+`payment` (the instalment, paid on `payment_date`), `balloon` (nil until the
+last month, paid on `balloon_date`: with the last instalment in arrears, a
+month after it in advance), `principal` and `closing`. A month runs to the same day of the next
 month, or that month's last day when it is shorter. Each month shows the
 notional interest to date rounded half up to cents, less what the months
 before show, so a cent of rounding never compounds: the months' interest adds
-up to the total charges, each is within a cent of its exact amount, and the
-last balance is nil. The worksheet refuses payments that imply a rate below
+up to the total charges, each is within a cent of its amount at the rate
+found, and the last balance is nil. That rate is found to 64 halvings and
+leaves less than half a cent after the last payment, so a month can differ
+from its amount at the exact implicit rate by slightly more than a cent at
+the largest amounts. The worksheet refuses payments that imply a rate below
 nil or of 100% a month or more, and a rate it cannot find closely enough to
 leave a nil balance to the cent. It shows interest by month, not by income
 year: s 240-60(2) relates a month that spans 30 June to each year in

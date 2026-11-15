@@ -1004,7 +1004,7 @@ fn hire_purchase_interest_adds_up_to_the_charges_and_the_balance_to_nil() {
         let (mut interest, mut opening) = (n(0), d(&cents(financed)));
         for row in rows {
             let charged = field(row, "interest");
-            let payment = field(row, "payment");
+            let payment = field(row, "payment").add(&field(row, "balloon")).unwrap();
             assert!(eq(&field(row, "opening"), &opening), "{facts}");
             assert!(
                 eq(&field(row, "principal"), &payment.sub(&charged).unwrap()),
