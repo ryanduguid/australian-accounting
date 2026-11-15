@@ -681,8 +681,11 @@ fn problems(doc: &Value) -> Vec<String> {
             .quantize(-2, Rounding::HalfUp)
             .unwrap()
             .to_string();
-        // A negative amount the result shows as null is null in its step too.
-        let hidden = step["value"].is_null() && dec(exact).lt(&dec("0")).unwrap();
+        // Division 296's very large component, the one amount a result shows
+        // as null when negative, is null in its step too.
+        let hidden = id == "very_large_balance_earnings_component"
+            && step["value"].is_null()
+            && dec(exact).lt(&dec("0")).unwrap();
         if step["value"] != json!(cents) && !hidden {
             found.push(format!(
                 "{id}: value {} is not {exact} in cents, {cents}",
@@ -800,6 +803,24 @@ fn a_step_value_changed_without_its_amount_is_caught() {
     assert_eq!(
         problems(&edited),
         ["return_item_15: value \"45644.00\" differs from the amount \"45645.00\""]
+    );
+}
+
+#[test]
+fn only_the_very_large_component_may_hide_a_negative_value() {
+    let doc = |id: &str| {
+        let mut doc = json!({
+            "result": {"amounts": {}},
+            "steps": [{"authority": "s 1", "working": "0 - 1 = -1", "value": null}],
+        });
+        doc["result"]["amounts"][id] = Value::Null;
+        doc["steps"][0]["id"] = json!(id);
+        doc
+    };
+    assert!(problems(&doc("very_large_balance_earnings_component")).is_empty());
+    assert_eq!(
+        problems(&doc("net_capital_gain")),
+        ["net_capital_gain: value null is not -1 in cents, -1.00"]
     );
 }
 
@@ -1610,6 +1631,10 @@ fn derive_refuses_what_it_does_not_explain() {
     let (command, input) = &cases()[0];
     let extra = json!({"command": command, "input": input, "steps": false});
     assert_eq!(code(extra), "input.field_unknown");
+    for command in ["gst", "depreciation", "payg-gross-up", "hire-purchase-schedule"] {
+        let request = json!({"command": command, "input": {}});
+        assert_eq!(code(request), "derivation.unsupported", "{command}");
+    }
     let message = api::evaluate("derive", &json!({"command": "gst", "input": {}})).unwrap_err();
     assert_eq!(
         message,
