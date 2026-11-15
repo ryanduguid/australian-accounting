@@ -117,7 +117,7 @@ lists the commands.
 | `schedule-5-method-b-i` | `earnings`, `back_payment_periods`, `pay_period`, `scale`, `study_loan`, `year`, `scope_confirmed`; `pay_date`, as for Method A |
 | `schedule-5-method-b-ii` | `earnings`, `additional_payment`, `year_to_date_earnings`, `pay_periods_to_date`, `earlier_additional_payments`, `earlier_additional_withholding`, `pay_period`, `scale`, `study_loan`, `year`, `scope_confirmed`; `pay_date`, as for Method A |
 | `working-holiday-maker-withholding` | `payment`, `payments_before`, `employer_registered`, `tfn_quoted`, `pay_period`, `year`, `scope_confirmed` |
-| `seniors-pensioners-withholding` | `earnings`, `pay_period`, `status`, `medicare_levy_exemption`, `year`, `scope_confirmed` |
+| `seniors-pensioners-withholding` | `earnings`, `pay_period`, `status`, `medicare_levy_exemption`, `year`, `scope_confirmed`; optional `study_loan`; `pay_date`, with `study_loan` only and required with it for 2025-26 |
 | `study-loan-repayment` | `repayment_income`, `year`, `scope_confirmed` |
 | `contribution-caps` | `total_super_balance`, `concessional_contributions`, `unused_concessional_cap`, `non_concessional_contributions`, `under_75_in_year`, `year`, `scope_confirmed` |
 | `pension-minimum` | `account_balance`, `age`, `days`, `year`, `scope_confirmed` |
@@ -130,7 +130,7 @@ The 2 car commands, the 3 FBT benefit commands (`fbt-loan`, `fbt-meal-entertainm
 rules. `division-296` alone takes a negative amount, in `total_super_earnings`. `main-residence` also takes dates as `YYYY-MM-DD` strings, lists of
 `{"start", "end"}` periods (with `"floor_area"` for income use) and `null`
 for no new home. `borrowing-expenses` takes `loan_start` as a `YYYY-MM-DD`
-string and `loan_term_end` and `repaid_on` as dates or `null`. `hire-purchase-schedule` takes `instalments` as a JSON integer, `timing` as `in_arrears` or `in_advance` and `start_date` as a `YYYY-MM-DD` string, and refuses a field it does not take. `termination-payment` takes `completed_years_of_service` as a JSON integer and `date_of_birth` as a `YYYY-MM-DD` string. `schedule-5-method-b-i` takes `back_payment_periods` as a list of `{"earnings", "back_payment", "withheld"}` decimal strings, one for each earlier pay period. Every argument is required, as the Python functions had no defaults, except `depreciation`'s optional `opening_adjustable_value`: give it, as a decimal string, for a year after the asset's start time, as cost less the earlier years' decline in value; and `medicare-levy`'s optional family inputs, described under [Medicare levy](#medicare-levy-and-low-income-tax-offset). `medicare-levy` refuses a field it does not take, as does `medicare-levy-surcharge`, whose optional inputs are described under [Medicare levy surcharge](#medicare-levy-surcharge). `payg-withholding`'s optional inputs are described under [PAYG withholding](#payg-withholding), `payg-gross-up` under [PAYG gross-up](#payg-gross-up), and `study-loan-withholding`'s `pay_date` under [Study loan withholding](#study-loan-withholding), and `seniors-pensioners-tax-offset`'s spouse inputs under [Seniors and pensioners tax offset](#seniors-and-pensioners-tax-offset). The FBT benefit commands take the inputs their `method` needs and refuse any other, as [FBT loans, meal entertainment and car parking](#fbt-loans-meal-entertainment-and-car-parking) describes. Input over 8 MiB,
+string and `loan_term_end` and `repaid_on` as dates or `null`. `hire-purchase-schedule` takes `instalments` as a JSON integer, `timing` as `in_arrears` or `in_advance` and `start_date` as a `YYYY-MM-DD` string, and refuses a field it does not take. `termination-payment` takes `completed_years_of_service` as a JSON integer and `date_of_birth` as a `YYYY-MM-DD` string. `schedule-5-method-b-i` takes `back_payment_periods` as a list of `{"earnings", "back_payment", "withheld"}` decimal strings, one for each earlier pay period. Every argument is required, as the Python functions had no defaults, except `depreciation`'s optional `opening_adjustable_value`: give it, as a decimal string, for a year after the asset's start time, as cost less the earlier years' decline in value; and `medicare-levy`'s optional family inputs, described under [Medicare levy](#medicare-levy-and-low-income-tax-offset). `medicare-levy` refuses a field it does not take, as does `medicare-levy-surcharge`, whose optional inputs are described under [Medicare levy surcharge](#medicare-levy-surcharge). `payg-withholding`'s optional inputs are described under [PAYG withholding](#payg-withholding), `payg-gross-up` under [PAYG gross-up](#payg-gross-up), `study-loan-withholding`'s `pay_date` under [Study loan withholding](#study-loan-withholding), `seniors-pensioners-withholding`'s `study_loan` and `pay_date` under [Seniors and pensioners](#seniors-and-pensioners) and `seniors-pensioners-tax-offset`'s spouse inputs under [Seniors and pensioners tax offset](#seniors-and-pensioners-tax-offset). The FBT benefit commands take the inputs their `method` needs and refuse any other, as [FBT loans, meal entertainment and car parking](#fbt-loans-meal-entertainment-and-car-parking) describes. Input over 8 MiB,
 or a decimal string over 8,192 bytes, is refused.
 
 ## Derivations
@@ -184,7 +184,11 @@ which the method uses as rounded.
 
 The working holiday maker, study loan and seniors and pensioners steps cite
 the headings of Schedules 15, 8 and 9 of the same instruments, and Schedule 1
-where they apply its formula or scales. The quarterly SG steps cite the
+where they apply its formula or scales. With `study_loan`, a seniors and
+pensioners pay adds a step for Schedule 8's component and a total that cites
+the study and training support loans weekly tax table, to which the ATO's
+Schedule 9 pages refer and the instruments' Schedule 9 does not. The
+quarterly SG steps cite the
 Superannuation Guarantee (Administration) Act 1992 as in force before 1 July
 2026 and the ATO's maximum contribution base, and the borrowing expenses steps
 ITAA 1997 s 25-25. A borrowing expenses step for a later year writes in each
@@ -742,11 +746,28 @@ offsets, which the schedule values only by combining its ready reckoner's
 weekly amounts, and the Medicare levy adjustment, which it leaves to another
 table, are not inputs, and quarterly pays, for which it has no rule, are
 refused. Like `division-296`, it refuses a field it does not take. Payees who
-gave no TFN (`payg-withholding` scale 4), study and training support loans,
-super income streams (Schedule 13 too) and lump sum leave loading (Schedule 5)
-are outside it. The tests reproduce the worked example and all 6,360 amounts in
-the weekly tax table of each schedule, and check the exemption scales by hand;
-see [calculation evidence](docs/calculation-evidence.md#seniors-and-pensioners).
+gave no TFN (`payg-withholding` scale 4), super income streams (Schedule 13
+too) and lump sum leave loading (Schedule 5) are outside it. The tests
+reproduce the worked example and all 6,360 amounts in the weekly tax table of
+each schedule, and check the exemption scales by hand; see
+[calculation evidence](docs/calculation-evidence.md#seniors-and-pensioners).
+
+For a payee who declared a study and training support loan debt, Schedule 9
+says to refer to the study and training support loans weekly tax table, which
+adds the component for a payee claiming the tax-free threshold, as every
+Schedule 9 payee does, to the withholding amount. With `study_loan` true the
+result adds that component from Schedule 8's formula on the same weekly
+earnings, converted to the pay period as Schedule 8 says, and shows the
+Schedule 9 amount, the component and their total. As in `study-loan-withholding`,
+2025-26 needs the `pay_date`, on or after 24 September 2025, and 2024-25 is
+refused, because Schedule 8 then used a percentage of weekly earnings that
+this crate does not hold. A full or half Medicare levy exemption keeps the
+component; a payee who claimed a Medicare levy reduction for a spouse or
+dependants and low family income has none, so omit `study_loan` for them.
+Without `study_loan`, or with it false, the amounts and rates are as before. The tests
+hold the component to column 2 of every row of the weekly table from 1 July
+2026 ($985 to $3,600), its example and the 2025-26 one, and Schedule 8's
+examples.
 
 ## Seniors and pensioners tax offset
 

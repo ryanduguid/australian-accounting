@@ -1854,6 +1854,34 @@ fn formula_for_pay_period(
     for_pay_period_working(weekly, period, &formula)
 }
 
+/// Schedule 8's component on the weekly earnings `x`, converted to the pay
+/// period, as the `study_loan_component` step, with its coefficients as the
+/// rates `component_a` and `component_b`.
+fn study_loan_component(
+    x: &Decimal,
+    period: &str,
+    rows: &[CoefficientRow],
+) -> Calc<(Step, [(String, String); 2])> {
+    let (a, b, weekly) = weekly_formula(x, rows)?;
+    let (component, formula) =
+        formula_for_pay_period(&weekly, period, ["component_a", "component_b"])?;
+    let authority = if period == "weekly" {
+        "Schedule 8, 'Study and training support loans component rates' and 'Rounding of withholding amounts'"
+    } else {
+        "Schedule 8, 'Study and training support loans component rates' and 'Calculating fortnightly, monthly or quarterly withholding amounts'"
+    };
+    Ok((
+        step(
+            "study_loan_component",
+            authority,
+            &formula,
+            &[&a, x, &b],
+            component,
+        ),
+        [rate("component_a", a), rate("component_b", b)],
+    ))
+}
+
 /// Schedule 8's component added to the Schedule 1 amount. The steps cite
 /// Schedules 1 and 8 of the Withholding Schedules Instruments (No. 2) 2025
 /// (F2025L01016) and 2026 (F2026L00716), whose headings they share, read on
@@ -1881,24 +1909,28 @@ pub fn study_loan_withholding(
     let (steps, rates) = precise(|| {
         let (x, x_formula, _) = weekly_earnings_working(&earnings, &period, "earnings")?;
         let (a, b, weekly_tax) = weekly_formula(&x, tax_rows)?;
-        let (loan_a, loan_b, weekly_loan) = weekly_formula(&x, loan_rows)?;
         let (tax, tax_formula) = formula_for_pay_period(&weekly_tax, &period, ["a", "b"])?;
-        let (component, component_formula) =
-            formula_for_pay_period(&weekly_loan, &period, ["component_a", "component_b"])?;
-        let total = tax.add(&component)?;
-        let [x_authority, tax_authority, component_authority] = if weekly {
+        let (component, component_rates) = study_loan_component(&x, &period, loan_rows)?;
+        let [x_authority, tax_authority] = if weekly {
             [
                 "Schedule 8, 'Using a formula': the weekly earnings in whole dollars plus 99 cents",
                 "Schedule 1, 'Using a formula' and 'Rounding of withholding amounts'",
-                "Schedule 8, 'Study and training support loans component rates' and 'Rounding of withholding amounts'",
             ]
         } else {
             [
                 "Schedule 8, 'Calculating fortnightly, monthly or quarterly withholding amounts'",
                 "Schedule 1, 'Using a formula' and 'Calculating withholding fortnightly, monthly or quarterly amounts'",
-                "Schedule 8, 'Study and training support loans component rates' and 'Calculating fortnightly, monthly or quarterly withholding amounts'",
             ]
         };
+        let total = step(
+            "withholding",
+            "Schedule 8, 'Software': the sum of the Schedule 1 amount and the component, which the schedule accepts in place of its combined coefficients",
+            "schedule_1_withholding + study_loan_component",
+            &[&tax, &component.value],
+            tax.add(&component.value)?,
+        );
+        let mut rates = vec![rate("scale", scale), rate("a", &a), rate("b", &b)];
+        rates.extend(component_rates);
         Ok((
             vec![
                 step(
@@ -1913,30 +1945,12 @@ pub fn study_loan_withholding(
                     tax_authority,
                     &tax_formula,
                     &[&a, &x, &b],
-                    tax.clone(),
+                    tax,
                 ),
-                step(
-                    "study_loan_component",
-                    component_authority,
-                    &component_formula,
-                    &[&loan_a, &x, &loan_b],
-                    component.clone(),
-                ),
-                step(
-                    "withholding",
-                    "Schedule 8, 'Software': the sum of the Schedule 1 amount and the component, which the schedule accepts in place of its combined coefficients",
-                    "schedule_1_withholding + study_loan_component",
-                    &[&tax, &component],
-                    total,
-                ),
+                component,
+                total,
             ],
-            vec![
-                rate("scale", scale),
-                rate("a", a),
-                rate("b", b),
-                rate("component_a", loan_a),
-                rate("component_b", loan_b),
-            ],
+            rates,
         ))
     })?;
     derived_result(
@@ -4577,7 +4591,7 @@ struct AdditionalPay {
 /// payments made from 24 September 2025. Method B(i) recalculates earlier
 /// periods, and Schedule 5 does not say with which coefficients when they
 /// change during the year, so it takes only a year whose apply from 1 July.
-fn schedule_5_study_loan(kind: &str, year: &str, pay_date: Option<&Arg>) -> Result<()> {
+fn study_loan_year(kind: &str, year: &str, pay_date: Option<&Arg>) -> Result<()> {
     let from = |year: &str| *lookup(meta::STUDY_LOAN_WITHHOLDING_FROM, year);
     let b_i = kind == "schedule_5_method_b_i";
     let mut years = meta::supported_periods("study_loan_withholding");
@@ -4586,7 +4600,7 @@ fn schedule_5_study_loan(kind: &str, year: &str, pay_date: Option<&Arg>) -> Resu
         return refuse(
             "period.unsupported",
             format!(
-                "study_loan is supported for {} only: there is no Schedule 8 study and training support loan component for {year}.",
+                "study_loan is supported for {} only: this crate does not hold the Schedule 8 study and training support loan component for {year}.",
                 years.join(", ")
             ),
         );
@@ -4606,6 +4620,20 @@ fn schedule_5_study_loan(kind: &str, year: &str, pay_date: Option<&Arg>) -> Resu
 /// The study loan flag and the pay date, which is given only with it.
 pub type StudyLoan<'a> = (&'a Arg, Option<&'a Arg>);
 
+/// The study loan flag, checked with its pay date for the year.
+fn study_loan_flag(kind: &str, year: &str, (study_loan, pay_date): StudyLoan) -> Result<bool> {
+    let study_loan = flag(study_loan, "study_loan")?;
+    if study_loan {
+        study_loan_year(kind, year, pay_date)?;
+    } else if pay_date.is_some() {
+        return refuse(
+            "payg.pay_date_without_study_loan",
+            "pay_date selects the Schedule 8 study and training support loan component; give it only with study_loan true.",
+        );
+    }
+    Ok(study_loan)
+}
+
 fn additional_pay(
     kind: &'static str,
     earnings: &Arg,
@@ -4617,15 +4645,7 @@ fn additional_pay(
 ) -> Result<AdditionalPay> {
     let (year, earnings, period, scale) =
         payg_checks(kind, earnings, pay_period, scale, year, scope_confirmed)?;
-    let study_loan = flag(study_loan, "study_loan")?;
-    if study_loan {
-        schedule_5_study_loan(kind, &year, pay_date)?;
-    } else if pay_date.is_some() {
-        return refuse(
-            "payg.pay_date_without_study_loan",
-            "pay_date selects the Schedule 8 study and training support loan component; give it only with study_loan true.",
-        );
-    }
+    let study_loan = study_loan_flag(kind, &year, (study_loan, pay_date))?;
     let (per_year, most_pays) = match period.as_str() {
         "weekly" => (52, 53),
         "fortnightly" => (26, 27),
@@ -5335,11 +5355,31 @@ fn schedule_9_scale(status: &Arg, exemption: &Arg) -> Result<usize> {
     Ok(exemption * 3 + status + 1)
 }
 
+/// Schedule 8's component rates for a Schedule 9 payee with a study loan, who
+/// has claimed the tax-free threshold at question 5 of either Withholding
+/// declaration Schedule 9 names.
+fn schedule_9_study_loan_rows(
+    year: &str,
+    study_loan: StudyLoan,
+) -> Result<Option<&'static [CoefficientRow]>> {
+    let study_loan = study_loan_flag(SENIORS_PENSIONERS, year, study_loan)?;
+    Ok(study_loan.then(|| {
+        *lookup(
+            lookup(meta::STUDY_LOAN_WITHHOLDING_COEFFICIENTS, year),
+            "threshold_or_foreign",
+        )
+    }))
+}
+
 /// Schedule 9: withholding from one payment to a senior or pensioner, by
 /// Schedule 1's weekly earnings, formula and pay period conversion on
 /// Schedule 9's coefficients. The steps cite Schedule 9 of the Withholding
 /// Schedules Instruments 2024 (F2024L00664), (No. 2) 2025 (F2025L01016) and
 /// 2026 (F2026L00716), whose headings they share, read on 15 November 2026.
+/// With a study loan, the ATO's Schedule 9 pages refer the payer to the study
+/// and training support loans weekly tax table (NAT 2173), which adds
+/// Schedule 8's component on the same weekly earnings, converted to the pay
+/// period as Schedule 8 says; those pages were read the same day.
 pub fn seniors_pensioners_withholding(
     earnings: &Arg,
     pay_period: &Arg,
@@ -5347,12 +5387,14 @@ pub fn seniors_pensioners_withholding(
     medicare_levy_exemption: &Arg,
     year: &Arg,
     scope_confirmed: &Arg,
+    study_loan: StudyLoan,
 ) -> Result<Value> {
     let year = scope(scope_confirmed, year, SENIORS_PENSIONERS)?;
     let earnings = money(earnings)?;
     let period = weekly_fortnightly_or_monthly(pay_period)?;
     let scale = schedule_9_scale(status, medicare_levy_exemption)?;
     let rows = lookup(meta::SENIORS_PENSIONERS_COEFFICIENTS, &year)[scale - 1];
+    let loan_rows = schedule_9_study_loan_rows(&year, study_loan)?;
     let (x_authority, authority) = if period == "weekly" {
         (
             "Schedule 9, 'Using a formula': the weekly earnings in whole dollars plus 99 cents",
@@ -5367,26 +5409,54 @@ pub fn seniors_pensioners_withholding(
         let (a, b, weekly) = weekly_formula(&x, rows)?;
         let (withholding, formula) =
             for_pay_period_working(&weekly, &period, "weekly_withholding")?;
-        Ok((
-            vec![
-                step(
-                    "weekly_earnings_used",
-                    x_authority,
-                    &x_formula,
-                    &[&earnings],
-                    x.clone(),
-                ),
-                step(
-                    "weekly_withholding",
-                    "Schedule 9, 'Using a formula', the scale's coefficients, and 'Rounding of withholding amounts'",
-                    "max(0, dollars(a x weekly_earnings_used - b))",
-                    &[&a, &x, &b],
-                    weekly.clone(),
-                ),
-                step("withholding", authority, &formula, &[&weekly], withholding),
-            ],
-            vec![rate("scale", scale), rate("a", a), rate("b", b)],
-        ))
+        let mut steps = vec![
+            step(
+                "weekly_earnings_used",
+                x_authority,
+                &x_formula,
+                &[&earnings],
+                x.clone(),
+            ),
+            step(
+                "weekly_withholding",
+                "Schedule 9, 'Using a formula', the scale's coefficients, and 'Rounding of withholding amounts'",
+                "max(0, dollars(a x weekly_earnings_used - b))",
+                &[&a, &x, &b],
+                weekly.clone(),
+            ),
+        ];
+        let mut rates = vec![rate("scale", scale), rate("a", a), rate("b", b)];
+        let Some(loan_rows) = loan_rows else {
+            steps.push(step(
+                "withholding",
+                authority,
+                &formula,
+                &[&weekly],
+                withholding,
+            ));
+            return Ok((steps, rates));
+        };
+        let (component, component_rates) = study_loan_component(&x, &period, loan_rows)?;
+        let total = step(
+            "withholding",
+            "Schedule 9, 'When your payee has a study and training support loan debt', and the study and training support loans weekly tax table it refers to, 'Working out the withholding amount': the component for a payee claiming the tax-free threshold added to the withholding amount",
+            "schedule_9_withholding + study_loan_component",
+            &[&withholding, &component.value],
+            withholding.add(&component.value)?,
+        );
+        steps.extend([
+            step(
+                "schedule_9_withholding",
+                authority,
+                &formula,
+                &[&weekly],
+                withholding,
+            ),
+            component,
+            total,
+        ]);
+        rates.extend(component_rates);
+        Ok((steps, rates))
     })?;
     derived_result(
         SENIORS_PENSIONERS,
