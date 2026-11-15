@@ -616,7 +616,6 @@ fn int_limit(value: &Value) -> Result<()> {
     }
 }
 
-/// Run one JSON stdin command: the result value, or the refusal message.
 /// Whether `command` takes the input `key`, required or optional.
 pub(crate) fn takes(command: &str, key: &str) -> bool {
     let optional = crate::metadata::optional_inputs(&command.replace('-', "_"));
@@ -626,6 +625,7 @@ pub(crate) fn takes(command: &str, key: &str) -> bool {
         || optional.iter().any(|(o, _)| *o == key)
 }
 
+/// Run one JSON stdin command: the result value, or the refusal message.
 pub fn evaluate(command: &str, v: &Value) -> std::result::Result<Value, String> {
     evaluate_coded(command, v).map_err(|refusal| refusal.message)
 }
