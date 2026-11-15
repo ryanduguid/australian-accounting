@@ -26,6 +26,14 @@ intentionally changed.
   describe different spouses or dependants) and `input.residency_invalid`.
   `tests/personal_tax_estimate.rs` holds it to the ATO's figures, and
   `tests/properties.rs` to the sum of its parts.
+- `derive` also covers `working-holiday-maker-withholding`,
+  `study-loan-withholding`, `seniors-pensioners-withholding`, `quarterly-sg`
+  and `borrowing-expenses`. Their steps cite the headings of Schedules 1, 8, 9
+  and 15 to the Taxation Administration (Withholding Schedules) Instruments
+  2024 to 2026, the Superannuation Guarantee (Administration) Act 1992
+  compilation 77 and ITAA 1997 s 25-25. Their test files derive each case they
+  run and check the result is the plain output. No command's plain output
+  changes.
 - `derive` also covers `payg-withholding`, the 3 `schedule-5` methods and
   `termination-payment`. Their steps cite the headings and method steps of
   Schedules 1, 5, 8 and 11 to the Taxation Administration (Withholding
