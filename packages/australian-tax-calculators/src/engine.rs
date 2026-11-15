@@ -471,41 +471,29 @@ pub fn capital_gains(
         let other_offset = py_min(other.clone(), losses.clone())?;
         let discount_offset = py_min(discount.clone(), losses.sub(&other_offset)?)?;
         let used = other_offset.add(&discount_offset)?;
-        let remaining = losses.sub(&used)?;
+        let remaining = losses.sub(&other_offset)?.sub(&discount_offset)?;
         let discounted = discount
-            .sub(&used.sub(&other_offset)?)?
+            .sub(&discount_offset)?
             .mul(&int(1).sub(&discount_rate)?)?;
         let net = other.sub(&other_offset)?.add(&discounted)?;
+        // The operands of OTHER_OFFSET and DISCOUNT_OFFSET, as the formulas use them.
+        let other_offset_of = [&other, &current, &prior];
+        let discount_offset_of: Vec<&Decimal> = [&discount, &current, &prior]
+            .into_iter()
+            .chain(other_offset_of)
+            .collect();
+        let join = |parts: &[&[&Decimal]]| -> Vec<&Decimal> { parts.concat() };
+        let used_of = join(&[&other_offset_of, &discount_offset_of]);
+        let remaining_of = join(&[&[&current, &prior], &other_offset_of, &discount_offset_of]);
+        let discounted_of = join(&[&[&discount], &discount_offset_of, &[&discount_rate]]);
+        let net_of = join(&[&[&other], &other_offset_of, &discounted_of]);
         Ok(steps_from(
             &CAPITAL_GAINS_STEPS,
             [
-                (
-                    &[
-                        &other, &current, &prior, &discount, &current, &prior, &other, &current,
-                        &prior,
-                    ],
-                    used.clone(),
-                ),
-                (&[&current, &prior, &used], remaining),
-                (
-                    &[
-                        &other,
-                        &other,
-                        &current,
-                        &prior,
-                        &discount,
-                        &used,
-                        &other,
-                        &current,
-                        &prior,
-                        &discount_rate,
-                    ],
-                    net,
-                ),
-                (
-                    &[&discount, &used, &other, &current, &prior, &discount_rate],
-                    discounted,
-                ),
+                (&used_of[..], used.clone()),
+                (&remaining_of[..], remaining),
+                (&net_of[..], net),
+                (&discounted_of[..], discounted),
             ],
         ))
     })?;
@@ -514,9 +502,10 @@ pub fn capital_gains(
 
 /// `capital_gains`'s amounts: (id, authority, formula). The losses of the year
 /// and earlier years reduce the other gains first, then the discount gains
-/// (s 102-5(1) step 1 note 3 lets the order within a category be chosen).
-/// The steps cite ITAA 1997 compilation 268 (1 October 2026), read on 15
-/// November 2026.
+/// (s 102-5(1) step 1 note 3 lets the order within a category be chosen). Each
+/// formula writes the 2 offsets out as the arithmetic takes them, so a nil
+/// amount keeps the sign it is rendered with. The steps cite ITAA 1997
+/// compilation 268 (1 October 2026), read on 15 November 2026.
 const CAPITAL_GAINS_STEPS: [(&str, &str, &str); 4] = [
     (
         "losses_used",
@@ -526,20 +515,19 @@ const CAPITAL_GAINS_STEPS: [(&str, &str, &str); 4] = [
     (
         "losses_remaining",
         "ITAA 1997 s 102-10(1) and s 102-15: losses not applied remain a net capital loss",
-        "current_losses + prior_losses - losses_used",
+        "current_losses + prior_losses - min(other_gains, current_losses + prior_losses) - min(discount_gains, current_losses + prior_losses - min(other_gains, current_losses + prior_losses))",
     ),
     (
         "net_capital_gain",
         "ITAA 1997 s 102-5(1) steps 5 and 7 and s 115-100(aa): the gains left, each discount gain reduced by the discount percentage",
-        "other_gains - min(other_gains, current_losses + prior_losses) + (discount_gains - (losses_used - min(other_gains, current_losses + prior_losses))) x (1 - discount)",
+        "other_gains - min(other_gains, current_losses + prior_losses) + (discount_gains - min(discount_gains, current_losses + prior_losses - min(other_gains, current_losses + prior_losses))) x (1 - discount)",
     ),
     (
         "discount_applied",
         "ITAA 1997 s 102-5(1) step 5 and s 115-100(aa): the discount gains left after losses, reduced by the discount percentage",
-        "(discount_gains - (losses_used - min(other_gains, current_losses + prior_losses))) x (1 - discount)",
+        "(discount_gains - min(discount_gains, current_losses + prior_losses - min(other_gains, current_losses + prior_losses))) x (1 - discount)",
     ),
 ];
-
 /// `fbt`'s amounts: (id, authority, formula). The ATO's MantCo example rounds
 /// each gross-up to the nearest dollar for items 14A and 14B.
 const FBT_STEPS: [(&str, &str, &str); 7] = [

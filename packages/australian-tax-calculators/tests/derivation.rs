@@ -1750,11 +1750,15 @@ fn study_loan(income: &str, year: &str) -> Value {
 
 /// Capital gains cases: the Library's ¶2-240 summary, the corpus's fabricated
 /// case with $500 and $1,500 of losses, and earlier years' losses alone.
-const CAPITAL_GAINS: [(&str, [&str; 4]); 4] = [
+const CAPITAL_GAINS: [(&str, [&str; 4]); 5] = [
     ("library", ["8000.00", "21435.00", "8660.00", "0.00"]),
     ("fabricated", ["100.00", "1000.00", "500.00", "0.00"]),
     ("absorbed", ["100.00", "1000.00", "1000.00", "500.00"]),
     ("prior_only", ["0.00", "1000.00", "0.00", "300.00"]),
+    (
+        "negative_zero",
+        ["947075.6", "-0.00", "2385959", "12392.20"],
+    ),
 ];
 
 fn capital_gains(amounts: [&str; 4]) -> Value {
@@ -2012,15 +2016,26 @@ fn the_capital_gains_steps_apply_losses_then_the_discount() {
     );
     assert_eq!(
         working_in(&library, "discount_applied"),
-        "(discount_gains - (losses_used - min(other_gains, current_losses + prior_losses))) x (1 - discount) \
-         = (21435.00 - (8660.00 - min(8000.00, 8660.00 + 0.00))) x (1 - 0.50) = 10387.5000"
+        "(discount_gains - min(discount_gains, current_losses + prior_losses - min(other_gains, current_losses + prior_losses))) \
+         x (1 - discount) \
+         = (21435.00 - min(21435.00, 8660.00 + 0.00 - min(8000.00, 8660.00 + 0.00))) x (1 - 0.50) = 10387.5000"
     );
     assert_eq!(library["result"]["amounts"]["net_capital_gain"], "10387.50");
     assert!(authority_in(&library, "discount_applied").contains("s 115-100(aa)"));
     let absorbed = super_and_cgt_doc("absorbed");
     assert_eq!(
         working_in(&absorbed, "losses_remaining"),
-        "current_losses + prior_losses - losses_used = 1000.00 + 500.00 - 1100.00 = 400.00"
+        "current_losses + prior_losses - min(other_gains, current_losses + prior_losses) \
+         - min(discount_gains, current_losses + prior_losses - min(other_gains, current_losses + prior_losses)) \
+         = 1000.00 + 500.00 - min(100.00, 1000.00 + 500.00) \
+         - min(1000.00, 1000.00 + 500.00 - min(100.00, 1000.00 + 500.00)) = 400.00"
+    );
+    // A discount gain of -0.00 that the losses absorb stays an unsigned nil,
+    // as the Python corpus has it.
+    let negative_zero = super_and_cgt_doc("negative_zero");
+    assert_eq!(
+        negative_zero["result"]["amounts"]["discount_applied"],
+        "0.00"
     );
 }
 
