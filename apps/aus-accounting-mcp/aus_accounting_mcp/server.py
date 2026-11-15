@@ -65,12 +65,13 @@ from .fixtures.synthetic_sbr import (
     generate_synthetic_ctr_payload,
 )
 from .freshness import DataTool, data_freshness
-from .identifiers import check_abn, check_acn
+from .identifiers import check_abn, check_acn, check_bsb
 from .library import MAX_OFFSET, read_reference, search_references
 from .money import MONEY_SCHEMA, parse_amount
 from .outputs import (
     BasReconciliation,
     BenchmarkComparison,
+    BsbFormatCheck,
     DataFreshness,
     Div7aRate,
     Div7aReview,
@@ -199,6 +200,9 @@ classification of the facts the operator supplied, not a determination.
 - validate_abn and validate_acn run the check digit arithmetic ABR and ASIC publish.
   A valid check digit proves neither ABR nor GST registration: retain not_established
   and send the user to ABN Lookup. Never report a passing number as registered.
+- validate_bsb_format tests only the 6 digit XXX-XXX format AusPayNet publishes; it holds no
+  BSB directory. A valid format proves no institution, branch or account: retain
+  not_established and send the user to AusPayNet's BSB Lookup.
 - generate_synthetic_sbr_fixture is only for fabricated integration tests.
   Never use its CTR/BAS output as a real calculation or lodgment.
 Resources carry context without a tool call: aus-accounting://disclaimer for the
@@ -1177,6 +1181,24 @@ def validate_acn(
     for those. Reads no network.
     """
     return cast(IdentifierCheck, check_acn(acn))
+
+
+@mcp.tool(annotations=LOCAL_READ_ONLY, title="Test a BSB's format")
+def validate_bsb_format(
+    bsb: Annotated[str, Field(
+        max_length=40,
+        description="The BSB as written: 6 digits as XXX-XXX or without the hyphen, "
+                    "optionally separated by spaces.")],
+) -> BsbFormatCheck:
+    """Test a BSB against the format AusPayNet's BECS Procedures publish: 6 digits, XXX-XXX.
+
+    result is FORMAT_VALID or MALFORMED. Spaces and one hyphen after the third digit are
+    removed; any other character is MALFORMED, never cleaned up. A BSB has no check digit
+    and this server holds no BSB directory, so a valid format proves neither that
+    AusPayNet issued the BSB nor that it exists or accepts payments: retain
+    not_established and use AusPayNet's BSB Lookup for those. Reads no network.
+    """
+    return cast(BsbFormatCheck, check_bsb(bsb))
 
 
 @mcp.tool(annotations=LOCAL_READ_ONLY, title="Search the configured accounting library")
