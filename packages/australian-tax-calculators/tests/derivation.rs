@@ -1631,7 +1631,12 @@ fn derive_refuses_what_it_does_not_explain() {
     let (command, input) = &cases()[0];
     let extra = json!({"command": command, "input": input, "steps": false});
     assert_eq!(code(extra), "input.field_unknown");
-    for command in ["gst", "depreciation", "payg-gross-up", "hire-purchase-schedule"] {
+    for command in [
+        "gst",
+        "depreciation",
+        "payg-gross-up",
+        "hire-purchase-schedule",
+    ] {
         let request = json!({"command": command, "input": {}});
         assert_eq!(code(request), "derivation.unsupported", "{command}");
     }
