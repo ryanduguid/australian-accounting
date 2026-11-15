@@ -150,6 +150,20 @@ fn matches_the_employers_guide_otherwise_deductible_examples() {
     .unwrap()["amounts"]
         .clone();
     assert_eq!(a["taxable_value"], "50.02");
+    // RD above GD but within the contribution: RD applies only up to GD, so
+    // ND is nil and the value after the contribution stands.
+    let a = property(json!({
+        "method": "external_notional_value", "lowest_price": null,
+        "in_house_reduction_available": null, "notional_value": "500.00",
+        "employee_contribution": "250.00", "income_use": "0.2",
+        "contribution_deduction": "200.00",
+    }))
+    .unwrap()["amounts"]
+        .clone();
+    assert_eq!(a["gross_deduction"], "100.00");
+    assert_eq!(a["contribution_deduction_applied"], "100.00");
+    assert_eq!(a["notional_deduction"], "0.00");
+    assert_eq!(a["taxable_value"], "250.00");
 }
 
 #[test]
