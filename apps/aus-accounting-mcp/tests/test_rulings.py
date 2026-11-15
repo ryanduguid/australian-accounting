@@ -192,6 +192,11 @@ def test_family_filter_and_display_order(runs):
     [
         ("COG/LCR20991/NAT/ATO/00001", "Law Companion Ruling", "LCR 2099/1"),
         ("GSD/GSTD20991/NAT/ATO/00001", "GST determination", "GSTD 2099/1"),
+        (
+            "GSD/GSTD20991/NAT/ATO/00001",
+            "Goods and Services Tax Determination",
+            "GSTD 2099/1",
+        ),
     ],
 )
 def test_every_family_the_rulings_stage_writes_is_served(
