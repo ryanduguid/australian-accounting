@@ -68,7 +68,9 @@ SEARCH_FIELDS = ("title", "heading", "text")
 FAMILIES = (
     "Taxation Ruling",
     "Taxation Determination",
+    "Law Companion Ruling",
     "GST ruling or determination",
+    "GST determination",
     "Class Ruling",
     "Product Ruling",
     "Practical Compliance Guideline",
