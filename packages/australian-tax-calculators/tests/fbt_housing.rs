@@ -94,7 +94,9 @@ fn a_base_year_annualises_the_market_value_for_the_tenancy() {
 #[test]
 fn an_indexed_year_applies_the_published_factor() {
     // Guide 10.5's unit in a later year: $15,745.62 x 1.040 (NSW, 2027) =
-    // $16,375.44, for 91 days of 365, $4,082.64.
+    // $16,375.44, for 91 days of 365, $4,082.64. The statutory annual value is
+    // rounded half up to cents, the package's convention and the amount next
+    // year's prior_statutory_annual_value takes; unrounded, $4,082.65.
     let result = indexed(json!({})).unwrap();
     assert_eq!(
         result["amounts"],
