@@ -42,6 +42,14 @@ example evidence; it does not claim a fresh review of every supported period.
 | FBT loans | `tax-examples-fringe-benefits-tax-fbt` (tax-examples), ¶3-100, with FBTAA ss 18, 19 and 136(1) (compilation 97, 1 July 2026), the FBT return 2026 instructions (item 23C, example 8), the employer's guide (8.5 and 8.8) and the FBT rates and thresholds page | 30 June 2026; 20 May 2026 (rates page) | One loan to a current employee for the years ended 31 March 2026 and 2027; deciding the loan, exemptions and the deduction itself excluded |
 | FBT meal entertainment | `tax-examples-fringe-benefits-tax-fbt` (tax-examples), ¶3-220, with FBTAA ss 37AB to 37CD (compilation 97) and the FBT return 2026 instructions (item 23P, example 18) | 30 June 2026 | The year's established expenditure by the 50/50 split or a valid 12 week register for the years ended 31 March 2026 and 2027; the actual method excluded |
 | FBT car parking | `tax-examples-fringe-benefits-tax-fbt` (tax-examples), ¶3-055 (the 2026 threshold), with FBTAA ss 39A to 39GF (compilation 97), the employer's guide (chapter 16, examples 12, 13, 15 and 17) and the FBT rates and thresholds page | 30 June 2026; 20 May 2026 (rates page) | Commercial parking station, average cost and 12 week register values for the years ended 31 March 2026 and 2027; market value and spaces methods excluded |
+| FBT debt waivers | FBT return 2026 instructions (item 23D, example 9), with FBTAA ss 14 and 15 (compilation 97, 1 July 2026) and the employer's guide (8.1 and 8.2) | 1 April 2026 (item 23); 29 May 2024 (guide) | The amount waived for the years ended 31 March 2026 and 2027; deciding the waiver excluded |
+| FBT expense payments | `tax-examples-fringe-benefits-tax-fbt` (tax-examples), ¶3-240 and ¶3-340, with FBTAA ss 20 to 24, 62 and 136(1) (compilation 97), the FBT return 2026 instructions (item 23E, example 10) and the employer's guide (9.2 to 9.4 and 19.5) | 30 June 2026; 1 April 2026 (item 23); 29 May 2024 (guide) | One external or in-house property expense payment for the years ended 31 March 2026 and 2027; in-house residual payments and the in-house otherwise deductible rule excluded |
+| FBT property | `tax-examples-fringe-benefits-tax-fbt` (tax-examples), ¶3-260, with FBTAA ss 40 to 44, 62 and 136(1) (compilation 97), the FBT return 2026 instructions (item 23K, example 14) and the employer's guide (17.2 to 17.5 and 19.5) | 30 June 2026; 1 April 2026 (item 23); 29 May 2024 (guide) | One benefit under an in-house or external rule for the years ended 31 March 2026 and 2027; airline transport and car property rules excluded |
+| FBT residual benefits | Not a Library document: FBTAA ss 45 to 52 and 62 (compilation 97), the FBT return 2026 instructions (item 23M, example 16) and the employer's guide (chapter 18) | 1 April 2026 (item 23) | One benefit's in-house or external value for the years ended 31 March 2026 and 2027; car residual, airline transport and jointly provided benefits excluded |
+| FBT housing | `tax-examples-fringe-benefits-tax-fbt` (tax-examples), ¶3-120, with FBTAA ss 25 to 28 (compilation 97), the FBT return 2026 instructions (item 23F, example 11), the employer's guide (chapter 10) and the FBT rates and thresholds page (housing indexation factors) | 30 June 2026; 20 May 2026 (rates page) | Market value and statutory annual values for the years ended 31 March 2026 and 2027; remote area housing excluded |
+| FBT living-away-from-home allowances | `tax-examples-fringe-benefits-tax-fbt` (tax-examples), ¶3-160 and ¶3-180, with FBTAA ss 30 to 31H and 136(1) (compilation 97), the FBT return 2026 instructions (item 23G, example 12) and the employer's guide (chapter 11) | 30 June 2026 | One allowance's established components and expenses for the years ended 31 March 2026 and 2027; eligibility, declarations and the reasonable food amount established by the operator |
+| FBT board | Not a Library document: FBTAA ss 35 to 37 (compilation 97), the FBT return 2026 instructions (item 23J, example 13) and the employer's guide (chapter 13) | 1 April 2026 (item 23) | Established meals for the years ended 31 March 2026 and 2027 |
+| FBT tax-exempt body entertainment | Not a Library document: FBTAA ss 38 and 39 (compilation 97), the FBT return 2026 instructions (item 23L, example 15) and the employer's guide (chapter 15) | 1 April 2026 (item 23) | Established expenditure for the years ended 31 March 2026 and 2027, actual or per head |
 | Main residence | `tax-examples-capital-gains-tax-cgt` (tax-examples), ¶2-060 and ¶2-075, with the ATO's pages 'Treating former home as main residence' (QC66030) and 'Using your home for rental or business' (QC66033) | 30 June 2026; 22 June 2026 (both ATO pages) | One dwelling's taxable days for CGT events in 2024-25 to 2026-27; cost base, market value and discount excluded |
 | Borrowing expenses | `tax-examples-deductions` (tax-examples), ¶4-160, with ITAA 1997 s 25-25 (compilation 268, 1 October 2026) and the ATO's 'Borrowing expenses' page | 30 June 2026; 22 May 2026 (ATO page) | One loan's established expenditure, use and dates for 2024-25 to 2026-27; classification, interest and refinancing excluded |
 | Hire purchase schedule | Not a Library document: ITAA 1997 ss 240-17, 240-55 and 240-60 on the ATO's legal database and in compilation 268 (1 October 2026) | 15 November 2026 (read) | One agreement's monthly notional interest for the hirer, starting in 2024-25 to 2026-27, from established payments; apportionment to income years under s 240-60(2) excluded |
@@ -321,6 +329,160 @@ none is above. The commercial parking station and average cost methods round
 the gross value to cents before the recipients' payments, as the car worksheets
 do. The market value method is left out because it rests on a qualified valuer's
 report; the spaces method was not in this batch.
+
+## FBT debt waiver
+
+These worksheets were added on 15 November 2026. Their sources were read that
+day, 12.25 pm to 12.31 pm AEDT: the FBTAA as compiled on 1 July 2026
+(C2004A03280, compilation 97, EPUB documents 1 and 2, with the formulas' text
+alternatives for ss 24 and 44, 'GD minus RD' and 'TV minus ND'), the FBT return
+2026 instructions' item 23 page (published 1 April 2026), chapters 2, 8, 9, 17
+and 19 of 'Fringe benefits tax - a guide for employers' (chapters 8, 9 and 17
+last updated 29 May 2024) and the ATO's 'Loan and debt waiver fringe benefits'
+page (last updated 6 March 2025). No ATO-published rate or factor enters them.
+`tests/fbt_debt_waiver.rs`, `tests/fbt_expense_payment.rs` and
+`tests/fbt_property.rs` hold each case.
+
+Compilation 97 is in force from 1 July 2026. Compilation 96 (C2025C00239), in
+force from 1 April 2025 to 30 June 2026 and read from the same register on 15
+November 2026, gives the same text for every section these worksheets and the
+residual, housing, LAFHA, board and entertainment worksheets apply. The one
+change in them, s 24(1A) (Treasury Laws Amendment (Tax Reform No. 1) Act 2026,
+Sch 4 item 18), applies to FBT years starting on or after 1 April 2027 (item
+20), so to neither year the worksheets cover.
+
+The Act states no rounding. The worksheets round half up to cents each amount
+they show before a later step uses it: a 75% value, a gross deduction under
+ss 24, 37, 44 and 52, and a statutory annual value. The amounts shown then add
+up, as `tests/properties.rs` checks. On a half cent the taxable value can differ by a cent from unrounded
+arithmetic: a $100.03 external property benefit, half deductible, has a gross
+deduction of $50.015, shown and taken off as $50.02, so $50.01, where
+unrounded arithmetic gives $50.02 (`tests/fbt_property.rs`).
+
+Item 23D example 9: a $500 debt, principal and interest, waived: **$500.00**,
+which as a type 2 value grosses up to `500 × 1.8868 = 943.40`, item 14B
+**$943**. The guide's 8.2: a $1,000 loan released is **$1,000.00**, and with
+$100 of accrued interest also waived **$1,100.00**. The Act gives the amount
+waived and nothing against it (s 15), and item 23D leaves the contribution and
+reduction columns blank, so the worksheet takes no other input.
+
+## FBT expense payment
+
+Item 23E example 10: a $1,200 telephone bill paid, 60% for business: GD
+`1200 × 0.6 = 720`, so **$480.00**. The guide's 9.4: $500 spent, 80%
+deductible, $250 reimbursed without regard to use: GD `400` less RD
+`(500 − 250) × 0.8 = 200` is a notional deduction of `200`, for **$50.00**; $350
+reimbursed for the business part: RD `400 − 350 = 50`, ND `350`, **nil**. The
+operator gives RD, since the guide's step 3 works it out differently by how the
+reimbursement was set; the worksheet refuses one above the recipient's portion
+(s 136(1)), the expenditure the employee bore. The guide's 9.3 in-house
+petrol: the retailer bought it from the employer for $800 (s 42(1)(b), the
+lesser of that and the $1,000 notional value), less the recipient's portion
+`1000 − 250 = 750`, **$50.00**, and nil once the employee's unused $1,000 s 62
+reduction applies. ¶3-240 (review date 30 June 2026): an associate's $10,000
+HELP debt reimbursed is **$10,000.00**, type 2, `18,868.00` grossed up; ¶3-340:
+$35,000 of mortgage and $24,000 of childcare reimbursements, `59000 × 1.8868`,
+item 14B **$111,321**.
+
+s 22A(1)(b) makes the recipient's expenditure less the provider's portion
+(the payment less the contribution, or the reimbursement) the notional
+contribution, so one formula serves a payment and a reimbursement, with a
+contribution of 0.00 for a reimbursement. The otherwise deductible rule for an
+in-house expense payment (s 24(1)(b)(i)) measures the gross expenditure 'but
+for ... the recipients contribution', which the guide does not work through,
+so it is left out rather than guessed. s 22A(2) values in-house residual
+expense payments by the residual benefit rules (ss 48 and 49), which these
+worksheets do not take.
+
+## FBT property
+
+The guide's 17.3: identical goods sold to wholesalers for $1,000 less 5% for
+early payment, **$950.00**; a desk at a lowest public price of $900 sold to an
+employee for $500, `0.75 × 900 − 500`, **$175.00**; a damaged racquet worth $30
+sold for $5, `0.75 × 30 − 5`, **$17.50**; a television bought for $500, retailed
+at $750 and sold for $400, **$100.00**. 17.5: $500 of goods, $250 paid, 80%
+work use: GD `400` less RD `200`, **$50.00**; with the contribution set for 50%
+use, RD `150`, **nil**. Item 23K example 14: a $2,000 television and a $1,600
+air conditioner at 75%, `2700 − 300 − 1000`, **$1,400.00**, type 1 `2912.28`,
+item 14A **$2,912**. ¶3-260 (review date 30 June 2026): a $2,000 television
+bought for $1,800 is nil with a $300 excess; a $1,200 sound bar bought for
+$600 is **$300.00**, nil after the $1,000 reduction; a $4,000 desktop with the
+$700 of reduction left is **$2,300.00**, Jenny's total.
+
+Item 23K example 14, an electrical retailer's television and air
+conditioner, and ¶3-260 take 75% of the lowest price to the public without
+saying that the provider made the goods. s 42(1)(a)(ii), as compiled, gives 75%
+of that price only for property the provider manufactured, produced, processed
+or treated; for property it acquired, s 42(1)(b) gives the lesser of the arm's
+length price and the notional value (`in_house_acquired`). The worksheet
+applies the rule its `method` names, and the tests apply
+`in_house_public_price` to reproduce those examples' figures. The
+otherwise deductible rule comes before s 62: s 44 gives the taxable value 'but
+for Division 14', and s 62 is in Division 14. Benefits provided jointly to an
+employee and an associate (s 44(5), the guide's 17.5A) are not covered.
+
+## FBT residual
+
+These 5 worksheets were added on 15 November 2026. Their sources were read
+that afternoon, 12.43 pm to 12.52 pm AEDT: the FBTAA as compiled on 1 July 2026
+(C2004A03280, compilation 97, EPUB documents 1 and 2, with the alternative text
+of their formula images), chapters 10, 11, 13, 15 and 18 of 'Fringe benefits
+tax - a guide for employers' (current version 22 November 2024), the ATO's FBT
+rates and thresholds page (last updated 20 May 2026) and the FBT return 2026
+instructions' item 23 page. `tests/fbt_residual.rs`, `tests/fbt_housing.rs`,
+`tests/fbt_lafha.rs`, `tests/fbt_board.rs` and
+`tests/fbt_tax_exempt_body_entertainment.rs` hold each case.
+
+Item 23M example 16: a utility with $8,000 of operating costs used 25%
+privately, `8000 - 6000 = 2000`, **$2,000.00**, the business use taken off as
+the otherwise deductible reduction. The guide's 18.4: an employee of a rental
+store hires a video recorder the public rents for $100 and pays $50, `0.75 ×
+100 - 50 = 25`, **$25.00** before the s 62 reduction. Its 18.7: $500 of hired
+goods, a $250 contribution and 80% income use; GD `400` less RD `200` gives
+`250 - 200 = 50`, **$50.00**, and with RD limited to `150` the value is nil. Its
+18.6 vehicle example prints `($20,080 × 10%) - $0 = $2,080`; 10% of $20,080
+is `2008`, and the test asserts **$2,008.00**. The same example gives 5,200
+kilometres as both the private and the total travel, so its 10% private use
+does not follow from its facts.
+
+## FBT housing
+
+Item 23F example 11: a market rent of $41,600 for the year less $5,200 rent,
+**$36,400.00**. The guide's 10.5: $11,820 for 274 days of the base year is a
+statutory annual value of `11820 × 365 / 274 = 15745.62`; indexed by NSW's
+1.040 for 2027, `16375.44`, for 91 days `4082.64`; unrounded arithmetic,
+`16375.4448` for 91 days, would give $4,082.65. Its single-employee example,
+$5,200 for 121 days, prints `$5,200 ÷ 121 × 365 = $15,687.70`, the figure the daily rate gives when rounded to cents first;
+s 26(2)(a)'s formula, the market value times the days in the year over the
+whole days of the tenancy, gives `5200 × 365 / 121 = 15685.95`, which the test
+asserts. The Act does not round the statutory annual value; the worksheet
+rounds it to cents because `prior_statutory_annual_value` is taken in cents.
+The guide's later years, at the earlier factors it uses, give its $4,040.17
+and $11,088.60 whether or not the value is rounded. ¶3-120 (review
+date 30 June 2026): $350 a week for 39 weeks less $50 a week, **$11,700.00**.
+The indexation factors are the rates page's for each State and Territory for
+2026 and 2027; `tests/fbt_housing.rs` checks all 16.
+
+## FBT LAFHA
+
+Item 23G example 12: $591 a week, $350 for accommodation and $241 for food, the
+first 40 weeks reducible: `23640 - 14000 - (9640 - 1680) = 1680`; the other 12
+weeks' $7,092 is taxed whole (s 31B), for the year's **$8,772.00**. The guide's
+11.6 examples give **$0**, **$140**, **$80** and **$147** a week, and its 11.5
+Steve and Helen example an exempt accommodation component of $225 each.
+¶3-160 and ¶3-180 (review date 30 June 2026): $850 and $700 a week, each with
+$200 for total food costs, both **$42.00**.
+
+## FBT board
+
+Item 23J example 13: board valued at **$21,900.00**, 10,950 meals at $2. The
+guide's 13.2: $6 a day towards 3 meals takes each day's value to nil.
+
+## FBT tax-exempt body entertainment
+
+Item 23L example 15: a council's Christmas function, **$5,000.00**. The guide's
+15.9: Mary entertains 3 clients and is reimbursed; her share per head is 1 of
+4, 25%.
 
 ## Main residence
 

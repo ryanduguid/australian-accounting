@@ -15,13 +15,20 @@ use std::process::{Command, Stdio};
 /// `tests/working_holiday_maker.rs`, `tests/seniors_pensioners.rs`,
 /// `tests/seniors_pensioners_offset.rs`, `tests/medicare_surcharge.rs`,
 /// `tests/foreign_resident_tax.rs`, `tests/payg_gross_up.rs`, `tests/fbt_loan.rs`,
-/// `tests/fbt_meal_entertainment.rs` and `tests/fbt_car_parking.rs` cover them.
-const NEW_KINDS: [(&str, &str); 19] = [
+/// `tests/fbt_meal_entertainment.rs`, `tests/fbt_car_parking.rs`,
+/// `tests/fbt_debt_waiver.rs`, `tests/fbt_expense_payment.rs`,
+/// `tests/fbt_property.rs`, `tests/fbt_residual.rs`, `tests/fbt_housing.rs`,
+/// `tests/fbt_lafha.rs`, `tests/fbt_board.rs` and
+/// `tests/fbt_tax_exempt_body_entertainment.rs` cover them.
+const NEW_KINDS: [(&str, &str); 27] = [
     ("fbt-car-statutory", "fbt_car_statutory"),
     ("fbt-car-operating-cost", "fbt_car_operating_cost"),
     ("fbt-loan", "fbt_loan"),
     ("fbt-meal-entertainment", "fbt_meal_entertainment"),
     ("fbt-car-parking", "fbt_car_parking"),
+    ("fbt-debt-waiver", "fbt_debt_waiver"),
+    ("fbt-expense-payment", "fbt_expense_payment"),
+    ("fbt-property", "fbt_property"),
     ("main-residence", "main_residence"),
     ("borrowing-expenses", "borrowing_expenses"),
     ("hire-purchase-schedule", "hire_purchase_schedule"),
@@ -45,6 +52,14 @@ const NEW_KINDS: [(&str, &str); 19] = [
     ("medicare-levy-surcharge", "medicare_levy_surcharge"),
     ("foreign-resident-tax", "foreign_resident_tax"),
     ("payg-gross-up", "payg_gross_up"),
+    ("fbt-residual", "fbt_residual"),
+    ("fbt-housing", "fbt_housing"),
+    ("fbt-lafha", "fbt_lafha"),
+    ("fbt-board", "fbt_board"),
+    (
+        "fbt-tax-exempt-body-entertainment",
+        "fbt_tax_exempt_body_entertainment",
+    ),
 ];
 
 /// The JSON boundary's answer in the corpus encoding: `{"ok": value}` or `{"error": message}`.

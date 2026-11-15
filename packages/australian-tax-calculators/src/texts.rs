@@ -55,6 +55,18 @@ pub const SCOPES: &[(&str, &str)] = &[
         "An ordinary taxable employer's car parking fringe benefits for the FBT year ended 31 March 2026 or 2027, valued by one method: the commercial parking station method (s 39C), the average cost method (s 39DA) or the 12 week record keeping method (s 39GB). The operator establishes that each benefit meets s 39A other than the threshold, such as a car parked for more than 4 hours in a daylight period on the provider's business or associated premises with a commercial parking station within 1 km, for one premises and the stations within 1 km of it (a worksheet for each premises), and the highest of those stations' lowest all-day fees on the first business day of the year: no benefit arises unless it is more than that year's car parking threshold ($11.03 for 2026, $11.48 for 2027; s 39A(1)(a)(iii)). Under the commercial parking station method the benefits are counted and each valued at the lowest all-day fee on its day, which must be the same on every day (a weekly or monthly fee becomes a daily rate under s 39E); under the average cost method each is valued at the average of the lowest fees on the days benefits were first and last provided in the year. Under both, the gross taxable value is rounded to cents before the recipients' payments, which the operator establishes in total, counting each benefit's payment only up to that benefit's value, since an excess on one benefit reduces no other; the payments cannot take the taxable value below nil, and an unused excess is shown. The 12 week register method takes the register's total value of car parking benefits (s 39GC), already net of payments, times 52 / 12, times the days in the car parking availability period over 366, the divisor the Act sets for every year (s 39GB). A register is valid for the FBT year it was first valid for and the 4 after it (s 39GF), which the worksheet checks; the operator establishes that it was kept as s 39GG requires, that the number of benefits rose by no more than 10% on any day of an earlier year since its first valid year (it ceases to be valid at the end of such a year) and that no later register replaced it. Excludes the market value method (s 39D), which needs a qualified valuer's report, the statutory formula (spaces) method, exemptions such as the small business exemption (s 58GA), fees that are not representative (ss 39AA and 39AB), splitting the value between type 1 and type 2 for fbt, gross-up and FBT payable.",
     ),
     (
+        "fbt_debt_waiver",
+        "An ordinary taxable employer's debt waiver fringe benefits for the FBT year ended 31 March 2026 or 2027: the employer or an associate waived the obligation of an employee or an associate to pay or repay an amount (s 14). The taxable value is the amount waived, principal and interest together (s 15); the Act allows no recipient's contribution or otherwise deductible rule against it. The operator establishes the amount and that the waiver was for reasons related to the employment, not a genuine bad debt written off for reasons unrelated to it. Excludes deciding whether a waiver is a benefit, interest merely left unpaid (a loan benefit), gross-up and FBT payable.",
+    ),
+    (
+        "fbt_expense_payment",
+        "An ordinary taxable employer's expense payment fringe benefit for the FBT year ended 31 March 2026 or 2027: the employer or an associate paid a third party to discharge the recipient's obligation (s 20(a)) or reimbursed the recipient (s 20(b)). The operator establishes the recipient's expenditure, the amount paid or reimbursed, which cannot exceed it, and the recipient's contribution, which arises only for a payment. An external benefit's taxable value is the payment less the contribution, or the reimbursement (s 23), never below nil, with any excess contribution shown. For an employee, not an associate, the otherwise deductible rule (s 24) then reduces it by the notional deduction: the gross deduction on the recipient's expenditure, rounded to cents, less the deduction for the expenditure the recipient bore (the recipient's portion), never below nil; the operator establishes that the documents and declarations s 24 requires were obtained. An in-house property expense payment (s 22A(1)), for goods identical or similar to those the employer or an associate provides principally to outsiders, where the operator establishes that the recipient obtained documentary evidence of the expenditure and gave it, or a copy, to the employer before the declaration date (s 136(1), paragraph (e) of the definition), takes the property's value under the in-house rule the method names (s 42(1), as fbt_property describes) and reduces it by the recipient's portion, the expenditure less the payment net of the contribution, never below nil; then, unless the property was salary packaged, by the part of the employee's $1,000 in-house reduction for the year (s 62) that the operator establishes is left. Excludes in-house residual expense payments (s 22A(2)), the otherwise deductible rule for in-house expense payments (s 24(1)(b)(i)) and for car expenses, benefits provided jointly to an employee and an associate (s 138(3)), exempt benefits (such as ss 20A, 21, 22 and 58P), other Division 14 reductions, gross-up and FBT payable.",
+    ),
+    (
+        "fbt_property",
+        "An ordinary taxable employer's property fringe benefit for the FBT year ended 31 March 2026 or 2027: property provided free or at a discount (s 40), valued under the rule the method names. In-house property, goods identical or similar to those the provider, or the seller it acquired them from, provides principally to outsiders, is valued under s 42(1): the notional value if salary packaged (aa); for property the provider manufactured, produced, processed or treated, the lowest arm's length price to manufacturers, wholesalers or retailers ((a)(i)), else 75% of the lowest price to the public ((a)(ii)), else 75% of the notional value ((a)(iii)); for property it acquired, the lesser of its arm's length price and the notional value (b); otherwise 75% of the notional value (c). External property is valued under s 43 at the cost price of property the employer or an associate bought at arm's length at or about the provision time (a), the arm's length expenditure the employer or an associate incurred to a third-party provider (b), or the notional value (c). 75% is rounded to cents. The recipient's contribution comes off, never below nil, with any excess shown. For an employee, not an associate, the otherwise deductible rule (s 44) then reduces the value by the notional deduction: the gross deduction on the value before the contribution, rounded to cents, less the deduction for the contribution, never below nil; the operator establishes that the declarations s 44 requires were obtained. An in-house benefit not salary packaged is then reduced by the part of the employee's $1,000 in-house reduction for the year (s 62) that the operator establishes is left. Excludes airline transport (s 42(1)(ab)), car property benefits under s 44's car rules, benefits provided jointly to an employee and an associate (s 138(3)), exempt benefits (such as ss 41 and 58P), other Division 14 reductions, gross-up and FBT payable.",
+    ),
+    (
         "depreciation",
         "Ordinary tangible Division 40 asset first held on or after 10 May 2006, in the income year its start time occurs or, given its established opening adjustable value for the year, a later year. Established cost, effective life and taxable-use proportion. Days run from first use or installation ready for use. No second-element costs after the start year, disposals, changed life or other s 40-75(2) adjustment, pooling, immediate write-offs, special assets or Division 43 capital works. Does not determine an effective life from an asset description.",
     ),
@@ -134,6 +146,26 @@ pub const SCOPES: &[(&str, &str)] = &[
         "seniors_pensioners_tax_offset",
         "The seniors and pensioners tax offset (ITAA 1936 s 160AAAA) of an individual the operator established meets its first condition (s 160AAAA(2)): on a day in the year qualified for the age pension, or of veterans' pension age and eligible for a Veterans' Entitlements Act pension, allowance or benefit, or with an assessable social security or veterans' pension, education entry payment or income support supplement, and not in gaol that day. The operator establishes the whole-dollar rebate income (s 6(1)) and the status that gives the base rebate amount (regulations s 9(2)): $2,230 for a person who is not a spouse at any time in the year, $2,040 for a member of an illness-separated couple and $1,602 for a spouse, spouses living separately and apart permanently counting as not spouses. A person whose spouse status changed in the year is outside the worksheet. The second condition (s 160AAAA(3) and (4)) is rebate income, or for a spouse half the couple's rebate income, less than the cut-out: the base amount divided by 0.125 plus the rebate threshold, rounded up to the dollar (regulations s 10). The rebate threshold is (the $445 rebate maximum amount plus the base amount) divided by the year's lowest marginal tax rate plus the tax-free threshold, or above $37,000 the s 9(6) formula, rounded up to the dollar (s 9(4) to (8)). The offset is the base amount less 12.5 cents for each dollar of the person's own rebate income above the threshold (s 11), rounded up to the whole dollar as the ATO does, and nil without entitlement. With the spouse's taxable income, a spouse entitled to the offset whose whole taxable income is ordinary taxable income taxed at the resident scale (Income Tax Rates Act 1986 Sch 7 Part I) passes their unused base amount (s 12): all of it up to $6,000 of taxable income, then less 15% of the excess, increasing this person's base amount and threshold, but not the cut-out, when this person's own offset is below the base amount. Years from 2026-27 use the 2025 Regulations and earlier years the 2015 Regulation, whose rules are the same. Excludes trustees (s 160AAAB), a person also entitled to the beneficiary tax offset, of which s 160AAA(4) allows only the greater, a part-year spouse, the transfer from a foreign resident spouse or from a spouse with a superannuation or employment termination remainder taxed at 45% (Sch 7 Part I clause 1(a) and (aa)), whose tax can leave less than the whole base amount unused, the transfer out of this person's unused amount, and applying the offset, which is non-refundable, against tax payable.",
     ),
+    (
+        "fbt_residual",
+        "A residual fringe benefit (FBTAA s 45) an ordinary taxable employer provided in respect of an employee's employment in the FBT year ended 31 March 2026 or 2027: a right, privilege, service or facility, or another benefit no other Division covers, such as the use of property. The operator establishes whether it is in-house (identical or similar to what the provider supplies to the public in the ordinary course of business) or external, whether it was provided under a salary packaging arrangement and, for a benefit provided over a period, the part provided in the year. An in-house benefit under a salary packaging arrangement is valued at its notional value (ss 48(aa) and 49(aa)); another in-house benefit at 75% of the lowest price the provider charged the public for an identical benefit (ss 48(a) and 49(a)) or, with no such sale, 75% of its notional value (ss 48(b) and 49(b)), rounded to cents; an external benefit at the arm's length amount the employer or its associate paid as provider (ss 50(a) and 51(a)), the arm's length expenditure it incurred to another provider (ss 50(b) and 51(b)) or otherwise its notional value (ss 50(c) and 51(c)). The recipients contribution reduces that value, never below nil; an unused excess is shown and reduces no other benefit. The otherwise deductible rule (s 52(1)) then takes off the notional deduction: the gross deduction, the share of the value before the contribution that would have been a once-only deduction to the employee had they paid it, rounded to cents, less the deduction for the contribution, never below nil and never taking the value below nil. It applies only to a benefit provided to the employee, not an associate, and the operator establishes the declaration or travel diary s 52 requires. For an in-house benefit outside a salary packaging arrangement the employee's $1,000 in-house reduction (s 62) then applies, as far as their other in-house fringe benefits have left it. Excludes car fringe benefits and benefits exempt under s 47 or Division 13, airline transport fringe benefits (ss 48(ab) and 49(ab)), car residual benefits (s 52(1)(da) and (e)), benefits deemed provided to the employee only under s 138(3) (s 52(5)), the ATO's cents per kilometre values for motor vehicles other than cars, apportioning a period benefit between years, splitting the value between type 1 and type 2 for fbt, gross-up and FBT payable.",
+    ),
+    (
+        "fbt_housing",
+        "A housing fringe benefit (FBTAA s 25): an ordinary taxable employer's housing right, a lease or licence to occupy a unit of accommodation as the employee's usual place of residence, subsisting in the FBT year ended 31 March 2026 or 2027, valued under s 26 by one method. outside_australia: a unit not in a State or internal Territory, at the market value of the recipient's current housing right (s 26(1)(a)). accommodation_business: a caravan or mobile home, or a unit in a hotel, motel, hostel or guesthouse, whose provider let identical or similar units to outsiders in the tenancy period, at that market value, or 75% of it, rounded to cents, where the benefit would otherwise be an in-house residual fringe benefit (s 26(1)(b)). Any other unit is valued at its statutory annual value times the whole days of the tenancy period over the days in the year, rounded to cents (s 26(1)(c)): base_year works that value out as the market value for the tenancy period times the days in the year over its whole days (s 26(2)(a)), and indexed as the year before's statutory annual value, or their weighted average, times the indexation factor for the year and the State or Territory, as the ATO's rates page publishes it (ss 26(2)(b) and 28), each rounded to cents, the amount the next year's prior_statutory_annual_value takes. The operator establishes the market value, disregarding any right to have the occupant's expenses paid and onerous conditions of employment (s 27), and whether the year is a base year: a year after one with no housing fringe benefit in respect of the right or an equivalent one (s 26(3)(b)), a year the employer elected (s 26(3)(aa)), a year after an alteration changed the market value by 10% or more (s 26(5)) or a year after 9 without a base year (s 26(3)(c)), which the worksheet checks. The recipient's rent then reduces the value, never below nil; an unused excess is shown. Excludes remote area housing benefits, which are exempt (s 58ZC), the reduction for temporary accommodation on relocation (s 61C), splitting the value between type 1 and type 2 for fbt, gross-up and FBT payable.",
+    ),
+    (
+        "fbt_lafha",
+        "An ordinary taxable employer's living-away-from-home allowance fringe benefit (FBTAA s 30(1)) for a period in the FBT year ended 31 March 2026 or 2027, valued by one method. maintains_home applies s 31, where the employee keeps a home in Australia they or their spouse have an ownership interest in, available for their use (s 31C), the allowance relates only to the first 12 months they are required to live away from it (s 31D) and the employee gave the declaration (s 31F); fly_in_fly_out applies s 31A, where the employee has accommodation at or near the usual place of employment, works on a fly-in fly-out or drive-in drive-out basis (s 31E) and gave the declaration. Under either, the taxable value is the allowance less the exempt accommodation component, the accommodation component up to the accommodation expenses substantiated under s 31G, and the exempt food component (s 31H): the food component less the applicable statutory food total, never below nil, up to the food expenses incurred, substantiated where s 31G requires. The applicable statutory food total is $42 a week for each eligible family member 12 or older before the year began and $21 a week for each other, for their days in the period, less any normal home food amount taken into account in the food component, never below nil. other applies s 31B, where neither section does, and the taxable value is the allowance. Run the worksheet once for each part of the allowance a different method applies to: under other for a period while the 12 months is paused (s 31(4)), and under maintains_home with food_expenses of nil for days the employee resumed living at the normal residence (s 31(3)). The operator establishes the components, the expenses, the eligible family members (s 136(1)) and the Commissioner's reasonable food amount. Excludes the allowance for an employee on an oil rig or other installation at sea (s 30(2)), living-away-from-home benefits other than an allowance, splitting the value between type 1 and type 2 for fbt, gross-up and FBT payable.",
+    ),
+    (
+        "fbt_board",
+        "An ordinary taxable employer's board fringe benefits (FBTAA s 35) in the FBT year ended 31 March 2026 or 2027: meals provided to employees, or their associates, that are board meals (s 136(1)), such as meals an employee entitled to accommodation and at least 2 meals a day is given, cooked and supplied on the employer's premises and not at a party, reception or other social function. Each meal is valued at $2.00 for a recipient who was 12 or older before the year began and $1.00 for another (s 36), less the recipients contribution for it, which the operator establishes in total, counting each meal's only up to its value; the contributions cannot take the value below nil, and an unused excess is shown. The otherwise deductible rule (s 37) then takes off the gross deduction, the share of the value before contributions that would have been deductible to the employee under ITAA 1997 s 8-1, rounded to cents, less the deduction for the contribution, never below nil and never taking the value below nil; it applies only to meals provided to the employee. Excludes deciding what is a board meal, exempt meals, such as those for an employee in a primary production business in a remote area (the employer's guide, 13.6), food or drink exempt under s 54, gross-up and FBT payable. Board fringe benefits are type 2 (the employer's guide, 13.2).",
+    ),
+    (
+        "fbt_tax_exempt_body_entertainment",
+        "Tax-exempt body entertainment fringe benefits (FBTAA s 38) in the FBT year ended 31 March 2026 or 2027: non-deductible exempt entertainment expenditure (s 136(1)) an employer wholly or partly exempt from income tax, or without assessable income from the activities the entertainment relates to, incurred in entertaining employees or their associates. The taxable value is so much of the expenditure as is attributable to that entertainment (s 39): actual takes the amount the operator attributes to employees and associates; per_head apportions a function's expenditure by the employees and associates entertained over everyone entertained, rounded to cents, where the actual amount cannot easily be worked out (the employer's guide, 15.9). No recipient's contribution or reduction applies (FBT return 2026 instructions, item 23L). Excludes deciding what is entertainment or exempt (such as minor benefits, s 58P), meal entertainment valued under Division 9A (fbt-meal-entertainment), the 50/50 split for entertainment facility leasing expenses (s 152B), splitting the value between type 1 and type 2 for fbt, gross-up and FBT payable.",
+    ),
 ];
 
 pub const SOURCES: &[(&str, &str)] = &[
@@ -188,6 +220,18 @@ pub const SOURCES: &[(&str, &str)] = &[
     (
         "fbt_car_parking",
         "https://www.ato.gov.au/law/view/document?DocID=SAV/FBTGEMP/00017",
+    ),
+    (
+        "fbt_debt_waiver",
+        "https://www.ato.gov.au/law/view/document?DocID=SAV/FBTGEMP/00009",
+    ),
+    (
+        "fbt_expense_payment",
+        "https://www.ato.gov.au/law/view/document?DocID=SAV/FBTGEMP/00010",
+    ),
+    (
+        "fbt_property",
+        "https://www.ato.gov.au/law/view/document?DocID=SAV/FBTGEMP/00018",
     ),
     (
         "depreciation",
@@ -260,6 +304,26 @@ pub const SOURCES: &[(&str, &str)] = &[
         "seniors_pensioners_tax_offset",
         "https://www.ato.gov.au/individuals-and-families/income-deductions-offsets-and-records/tax-offsets/seniors-and-pensioners-tax-offset",
     ),
+    (
+        "fbt_residual",
+        "https://www.ato.gov.au/law/view/document?DocID=SAV/FBTGEMP/00019",
+    ),
+    (
+        "fbt_housing",
+        "https://www.ato.gov.au/law/view/document?DocID=SAV/FBTGEMP/00011",
+    ),
+    (
+        "fbt_lafha",
+        "https://www.ato.gov.au/law/view/document?DocID=SAV/FBTGEMP/00012",
+    ),
+    (
+        "fbt_board",
+        "https://www.ato.gov.au/law/view/document?DocID=SAV/FBTGEMP/00014",
+    ),
+    (
+        "fbt_tax_exempt_body_entertainment",
+        "https://www.ato.gov.au/law/view/document?DocID=SAV/FBTGEMP/00016",
+    ),
 ];
 
 /// Schedule 5 (NAT 3348) for payments from 1 July 2026: its methods, and the
@@ -277,6 +341,13 @@ const FBTAA_PART_1: &str = "https://www.legislation.gov.au/C2004A03280/2026-07-0
 const FBT_RETURN_ITEM_23: &str = "https://www.ato.gov.au/forms-and-instructions/fringe-benefits-tax-return-2026-instructions/item-23-fringe-benefit-categories-for-fbt-return-2026";
 const FBT_RATES: &str =
     "https://www.ato.gov.au/tax-rates-and-codes/fringe-benefits-tax-rates-and-thresholds";
+/// The FBTAA's volume with s 136, for the definitions the FBT benefit
+/// worksheets apply, and the employer's guide chapter on reductions (19.5, the
+/// in-house reduction), for the debt waiver, expense payment and property
+/// worksheets.
+const FBTAA_PART_2: &str = "https://www.legislation.gov.au/C2004A03280/2026-07-01/2026-07-01/text/original/epub/OEBPS/document_2/document_2.html";
+const FBT_GUIDE_REDUCTIONS: &str =
+    "https://www.ato.gov.au/law/view/document?DocID=SAV/FBTGEMP/00020";
 
 pub const EXTRA_SOURCES: &[(&str, &[&str])] = &[
     (
@@ -357,6 +428,33 @@ pub const EXTRA_SOURCES: &[(&str, &[&str])] = &[
             FBT_RETURN_ITEM_23,
             FBT_RATES,
             "https://www.ato.gov.au/businesses-and-organisations/hiring-and-paying-your-workers/fringe-benefits-tax/types-of-fringe-benefits/fbt-on-cars-other-vehicles-parking-and-tolls/car-parking-and-fbt",
+        ],
+    ),
+    (
+        "fbt_debt_waiver",
+        &[
+            FBTAA_PART_1,
+            FBT_RETURN_ITEM_23,
+            "https://www.ato.gov.au/businesses-and-organisations/hiring-and-paying-your-workers/fringe-benefits-tax/types-of-fringe-benefits/loan-and-debt-waiver-fringe-benefits",
+        ],
+    ),
+    (
+        "fbt_expense_payment",
+        &[
+            FBTAA_PART_1,
+            FBTAA_PART_2,
+            FBT_RETURN_ITEM_23,
+            FBT_GUIDE_REDUCTIONS,
+            "https://www.ato.gov.au/law/view/document?DocID=SAV/FBTGEMP/00018",
+        ],
+    ),
+    (
+        "fbt_property",
+        &[
+            FBTAA_PART_1,
+            FBTAA_PART_2,
+            FBT_RETURN_ITEM_23,
+            FBT_GUIDE_REDUCTIONS,
         ],
     ),
     (
@@ -472,6 +570,26 @@ pub const EXTRA_SOURCES: &[(&str, &[&str])] = &[
             "https://www.ato.gov.au/forms-and-instructions/individual-tax-return-2025-instructions/completing-the-individual-tax-return-2025/do-you-need-to-lodge-a-tax-return-2025",
         ],
     ),
+    (
+        "fbt_residual",
+        &[FBTAA_PART_1, FBTAA_PART_2, FBT_RETURN_ITEM_23],
+    ),
+    (
+        "fbt_housing",
+        &[FBTAA_PART_1, FBTAA_PART_2, FBT_RETURN_ITEM_23, FBT_RATES],
+    ),
+    (
+        "fbt_lafha",
+        &[FBTAA_PART_1, FBTAA_PART_2, FBT_RETURN_ITEM_23],
+    ),
+    (
+        "fbt_board",
+        &[FBTAA_PART_1, FBTAA_PART_2, FBT_RETURN_ITEM_23],
+    ),
+    (
+        "fbt_tax_exempt_body_entertainment",
+        &[FBTAA_PART_1, FBTAA_PART_2, FBT_RETURN_ITEM_23],
+    ),
 ];
 
 /// The car worksheets' reportable fringe benefits note, read from the ATO's
@@ -480,6 +598,10 @@ pub const EXTRA_SOURCES: &[(&str, &[&str])] = &[
 const CAR_REPORTABLE_NOTE: &str = "reportable_taxable_value is this car benefit's taxable value before any exemption, not a reportable fringe benefits amount. The employee's reportable fringe benefits amount is the total reportable taxable value of all their reportable fringe benefits for the FBT year multiplied by the type 2 (lower) gross-up rate, when that total exceeds $2,000. A car benefit from the private use of a pooled or shared car is not reportable. This worksheet determines neither.";
 
 /// Warnings added after the original's 2, by worksheet.
+/// Which gross-up an expense payment or property benefit takes (the
+/// employer's guide, 2.5 and 2.6).
+const GST_CREDITABLE_NOTE: &str = "Give taxable_value to fbt as part of type_one_value when the provider, or a member of its GST group, is entitled to a GST credit for providing the benefit (a GST-creditable benefit), and as part of type_two_value otherwise.";
+
 pub const EXTRA_WARNINGS: &[(&str, &[&str])] = &[
     ("fbt_car_statutory", &[CAR_REPORTABLE_NOTE]),
     (
@@ -496,6 +618,14 @@ pub const EXTRA_WARNINGS: &[(&str, &[&str])] = &[
         ],
     ),
     (
+        "fbt_debt_waiver",
+        &[
+            "A debt waiver fringe benefit gives the employer no GST credit, so it is a type 2 benefit: give taxable_value to fbt as part of type_two_value.",
+        ],
+    ),
+    ("fbt_expense_payment", &[GST_CREDITABLE_NOTE]),
+    ("fbt_property", &[GST_CREDITABLE_NOTE]),
+    (
         "division_296",
         &[
             "An estimate, not the tax payable: the Commissioner assesses Division 296 tax from the balances and earnings superannuation funds report, and the notice of assessment sets the amount.",
@@ -506,6 +636,12 @@ pub const EXTRA_WARNINGS: &[(&str, &[&str])] = &[
         "termination_payment",
         &[
             "Withholding, not the tax payable: on assessment the taxable component is assessable income, a tax offset limits the rate on the part within the cap to 15% or 30% (ITAA 1997 s 82-10(3)), and the Medicare levy applies; the whole-of-income cap then uses taxable income for the whole year, including the excluded part's taxable component (s 82-10(5) and (7)), so the tax can differ from the amount withheld.",
+        ],
+    ),
+    (
+        "fbt_board",
+        &[
+            "A board fringe benefit is a type 2 benefit (the employer's guide, 13.2): give taxable_value to fbt as part of type_two_value.",
         ],
     ),
 ];
@@ -593,6 +729,14 @@ pub const REFUSAL_CODES: &[(&str, &str)] = &[
         "personal-tax-estimate was given Medicare levy exemption days beside a Medicare levy surcharge input, whose scope excludes them.",
     ),
     (
+        "fbt.deduction_exceeds_contribution",
+        "A deduction for a recipient's contribution to a property, residual or board fringe benefit exceeds the contribution.",
+    ),
+    (
+        "fbt.in_house_reduction_invalid",
+        "An in-house reduction left for a benefit is more than $1,000.",
+    ),
+    (
         "fbt.register_not_valid",
         "A 12 week register's first valid FBT year is not the year given or one of the 4 before it.",
     ),
@@ -601,12 +745,36 @@ pub const REFUSAL_CODES: &[(&str, &str)] = &[
         "A car has neither or both of a depreciated value and lease charges.",
     ),
     (
+        "fbt_expense_payment.deduction_exceeds_portion",
+        "The deduction for the expenditure an expense payment's recipient bore exceeds the recipient's portion.",
+    ),
+    (
+        "fbt_expense_payment.in_house_deductible_not_covered",
+        "An income use share or recipient's portion deduction was given for an in-house expense payment, whose otherwise deductible rule (FBTAA s 24(1)(b)(i)) the worksheet does not cover.",
+    ),
+    (
+        "fbt_expense_payment.payment_exceeds_expenditure",
+        "An expense payment or reimbursement exceeds the recipient's expenditure.",
+    ),
+    (
+        "fbt_housing.base_year_invalid",
+        "A housing right's last base year is not one of the 9 FBT years before the year given.",
+    ),
+    (
+        "fbt_lafha.components_exceed_allowance",
+        "A living-away-from-home allowance's accommodation and food components together exceed the allowance.",
+    ),
+    (
         "fbt_loan.deduction_exceeds_interest",
         "The deduction for the interest accrued on a loan exceeds that interest.",
     ),
     (
         "fbt_meal_entertainment.register_values_invalid",
         "A meal entertainment register's total is nil or less than its fringe benefits' value.",
+    ),
+    (
+        "fbt_tax_exempt_body_entertainment.heads_invalid",
+        "The employees and associates entertained are not a JSON integer from 0 to everyone entertained, or everyone entertained is not from 1 to 1,000,000.",
     ),
     (
         "hire_purchase.amount_nil",
@@ -686,7 +854,7 @@ pub const REFUSAL_CODES: &[(&str, &str)] = &[
     ),
     (
         "input.field_unknown",
-        "A field the worksheet or command does not take, or does not take beside the other inputs given, was given (fbt-loan, fbt-meal-entertainment, fbt-car-parking, division-296, depreciation, foreign-resident-tax, medicare-levy, medicare-levy-surcharge, payg-withholding, payg-gross-up, termination-payment, the Schedule 5 methods, working-holiday-maker-withholding, study-loan-withholding, seniors-pensioners-withholding, seniors-pensioners-tax-offset, hire-purchase-schedule, derive and personal-tax-estimate only).",
+        "A field the worksheet or command does not take, or does not take beside the other inputs given, was given (fbt-loan, fbt-meal-entertainment, fbt-car-parking, fbt-debt-waiver, fbt-expense-payment, fbt-property, fbt-residual, fbt-housing, fbt-lafha, fbt-board, fbt-tax-exempt-body-entertainment, division-296, depreciation, foreign-resident-tax, medicare-levy, medicare-levy-surcharge, payg-withholding, payg-gross-up, termination-payment, the Schedule 5 methods, working-holiday-maker-withholding, study-loan-withholding, seniors-pensioners-withholding, seniors-pensioners-tax-offset, hire-purchase-schedule, derive and personal-tax-estimate only).",
     ),
     ("input.flag_invalid", "A flag is not a JSON boolean."),
     ("input.fraction_invalid", "A fraction is outside 0 to 1."),
@@ -722,6 +890,10 @@ pub const REFUSAL_CODES: &[(&str, &str)] = &[
     (
         "input.signed_amount_invalid",
         "An amount that may be negative is not a finite decimal of at most 2dp within 1e12 of nil.",
+    ),
+    (
+        "input.state_invalid",
+        "A State or Territory is not one of NSW, VIC, QLD, SA, WA, TAS, NT and ACT.",
     ),
     (
         "input.status_invalid",

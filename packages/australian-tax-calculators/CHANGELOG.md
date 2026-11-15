@@ -43,6 +43,29 @@ intentionally changed.
   `fbt_meal_entertainment.register_values_invalid`,
   `input.benefit_count_invalid` and `input.fbt_method_invalid`. The ATO's and
   the Library's worked examples are in `docs/calculation-evidence.md`.
+- `fbt-debt-waiver`, `fbt-expense-payment` and `fbt-property` give the
+  taxable value of debt waiver (FBTAA s 15), expense payment (Division 5:
+  external s 23 and in-house property s 22A(1), with the otherwise
+  deductible rule, s 24, for external payments) and property fringe
+  benefits (Division 11: the 6 in-house rules of s 42(1), the 3 external
+  rules of s 43 and the otherwise deductible rule, s 44) for the years
+  ended 31 March 2026 and 2027, for `fbt` to gross up. In-house benefits
+  take the employee's $1,000 reduction (s 62) left for the year. New
+  refusal codes: `fbt_expense_payment.deduction_exceeds_portion`,
+  `fbt_expense_payment.in_house_deductible_not_covered` (the otherwise
+  deductible rule for in-house expense payments, s 24(1)(b)(i), is not
+  covered) and `fbt_expense_payment.payment_exceeds_expenditure`.
+- `fbt-residual`, `fbt-housing`, `fbt-lafha`, `fbt-board` and `fbt-tax-exempt-body-entertainment` give the taxable
+  value of residual (Division 12, with the s 62 in-house reduction), housing
+  (Division 6: market value, or the statutory annual value from a base year
+  indexed by the ATO's published factors), living-away-from-home allowance
+  (Division 7), board (Division 9) and tax-exempt body entertainment fringe
+  benefits (Division 10) for the years ended 31 March 2026 and 2027, for
+  `fbt` to gross up, and derive every amount. New refusal codes, the
+  first 2 shared with `fbt-property` and `fbt-expense-payment`:
+  `fbt.deduction_exceeds_contribution`, `fbt.in_house_reduction_invalid`,
+  `fbt_housing.base_year_invalid`, `fbt_lafha.components_exceed_allowance`,
+  `fbt_tax_exempt_body_entertainment.heads_invalid` and `input.state_invalid`.
 - `personal-tax-estimate` composes one full-year resident's income tax and
   levies for a year from `resident-tax`, `low-income-tax-offset`,
   `medicare-levy`, `medicare-levy-surcharge` and, when given,
