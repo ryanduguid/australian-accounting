@@ -17,7 +17,20 @@ fn run(overrides: Value) -> Result<Value, String> {
     for (k, v) in overrides.as_object().unwrap() {
         input[k] = v.clone();
     }
-    api::evaluate("main-residence", &input)
+    evaluate(&input)
+}
+
+/// The plain outcome, which derive gives too: the same result, byte for byte,
+/// or the same refusal.
+fn evaluate(input: &Value) -> Result<Value, String> {
+    let outcome = api::evaluate("main-residence", input);
+    let envelope = json!({"command": "main-residence", "input": input});
+    match (&outcome, api::evaluate("derive", &envelope)) {
+        (Ok(result), Ok(doc)) => assert_eq!(doc["result"].to_string(), result.to_string()),
+        (Err(plain), Err(derived)) => assert_eq!(&derived, plain),
+        (plain, derived) => panic!("{input}: {plain:?} but derive gave {derived:?}"),
+    }
+    outcome
 }
 
 fn lived(start: &str, end: &str) -> Value {
@@ -357,7 +370,7 @@ fn the_catalogue_lists_the_worksheet_with_a_runnable_example() {
     let entry = &catalogue["main_residence"];
     let mut facts = entry["example"]["facts"].clone();
     facts.as_object_mut().unwrap().remove("kind");
-    let r = api::evaluate("main-residence", &facts).unwrap();
+    let r = evaluate(&facts).unwrap();
     assert_eq!(assessable(&r), "50595.97");
     assert_eq!(entry["supported_periods"][0]["id"], "2024-25");
 }

@@ -1027,6 +1027,9 @@ fn main_residence_shares_reconcile_and_stay_within_the_gain() {
             outcome = api::evaluate("main-residence", &input);
         }
         let Ok(r) = outcome else { continue };
+        let envelope = json!({"command": "main-residence", "input": input});
+        let doc = api::evaluate("derive", &envelope).unwrap();
+        assert_eq!(doc["result"].to_string(), r.to_string(), "derive {input}");
         let (taxable, exempt) = (
             amount(&r, "assessable_capital_gain"),
             amount(&r, "exempt_capital_gain"),
