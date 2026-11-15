@@ -800,7 +800,7 @@ pub fn evaluate_coded(command: &str, v: &Value) -> Result<Value> {
         .iter()
         .map(|(key, kind)| argument(v, key, *kind))
         .collect::<Result<_>>()?;
-    // Optional: the study loan worksheets' pay date, which selects the Schedule 8 coefficients.
+    // Optional: the study loan component's pay date, which selects the Schedule 8 coefficients.
     let pay_date = v.get("pay_date").map(arg);
     let result = match command {
         "gst" => engine::gst(&a[0], &a[1], &a[2], &a[3]),
@@ -983,7 +983,17 @@ pub fn evaluate_coded(command: &str, v: &Value) -> Result<Value> {
             &a[0], &a[1], &a[2], &a[3], &a[4], &a[5], &a[6],
         ),
         "seniors-pensioners-withholding" => {
-            engine::seniors_pensioners_withholding(&a[0], &a[1], &a[2], &a[3], &a[4], &a[5])
+            // Optional: absent for a payee who declared no study loan.
+            let study_loan = v.get("study_loan").map_or(Arg::Bool(false), arg);
+            engine::seniors_pensioners_withholding(
+                &a[0],
+                &a[1],
+                &a[2],
+                &a[3],
+                &a[4],
+                &a[5],
+                (&study_loan, pay_date.as_ref()),
+            )
         }
         "study-loan-repayment" => engine::study_loan_repayment(&a[0], &a[1], &a[2]),
         "contribution-caps" => {

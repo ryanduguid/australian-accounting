@@ -218,7 +218,16 @@ intentionally changed.
   `tests/seniors_pensioners.rs` holds it to each schedule's worked example
   ($662.95 a week), every amount in each schedule's weekly tax table (2,120
   earnings in 3 columns) and hand-worked amounts on the exemption scales and
-  for fortnightly and monthly pays.
+  for fortnightly and monthly pays. Its optional `study_loan` adds the study
+  and training support loan component that Schedule 9 sends the payer to the
+  weekly table (NAT 2173) for: Schedule 8's tax-free threshold rates on the
+  same weekly earnings, for 2026-27 and, with `pay_date`, 2025-26 pays from
+  24 September 2025, as `study-loan-withholding` takes them, shown beside the
+  Schedule 9 amount and their total. Without it the amounts and rates are
+  unchanged. `tests/seniors_pensioners_study_loan.rs` holds it to column 2 of
+  all 2,616 rows of the table from 1 July 2026, both tables' examples and
+  Schedule 8's examples, and `derive` shows the component and the total as
+  steps.
 - `seniors-pensioners-tax-offset` works out the seniors and pensioners tax
   offset (ITAA 1936 s 160AAAA) for 2024-25 to 2026-27 by the Income Tax
   Assessment (1936 Act) Regulations 2025 and the 2015 Regulation they replaced

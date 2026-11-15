@@ -248,7 +248,6 @@ fn what_the_schedule_does_not_settle_is_refused() {
         ("tax_offsets", json!("422.00")),
         ("medicare_adjustment_children", json!(1)),
         ("scale", json!(2)),
-        ("study_loan", json!(true)),
     ] {
         assert_eq!(
             refusal(&with(key, value)),
