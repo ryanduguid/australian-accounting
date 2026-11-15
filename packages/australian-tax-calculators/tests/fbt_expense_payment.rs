@@ -182,7 +182,7 @@ fn refusals_name_the_input_or_rule() {
         ),
         (
             in_house(json!({"income_use": "0.5"})),
-            "income_use is not an input of fbt-expense-payment with method in_house_acquired",
+            "income_use is not an input of fbt-expense-payment with method in_house_acquired: the otherwise deductible rule for an in-house expense payment (FBTAA s 24(1)(b)(i)) is not covered, so the taxable value is before any reduction it allows.",
         ),
         (
             payment(json!({"in_house_reduction_available": "1000.00"})),
@@ -222,6 +222,12 @@ fn refusals_name_the_input_or_rule() {
     assert_eq!(
         code(api::evaluate_coded("fbt-expense-payment", &input)),
         "fbt.in_house_reduction_invalid"
+    );
+    input["in_house_reduction_available"] = json!("0.00");
+    input["recipients_portion_deduction"] = json!("0.00");
+    assert_eq!(
+        code(api::evaluate_coded("fbt-expense-payment", &input)),
+        "fbt_expense_payment.in_house_deductible_not_covered"
     );
     let input = json!({"method": "external", "recipients_expenditure": "1.00",
                        "amount_paid": "2.00", "employee_contribution": "0.00",

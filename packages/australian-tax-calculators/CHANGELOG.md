@@ -30,8 +30,10 @@ intentionally changed.
   rules of s 43 and the otherwise deductible rule, s 44) for the years
   ended 31 March 2026 and 2027, for `fbt` to gross up. In-house benefits
   take the employee's $1,000 reduction (s 62) left for the year. New
-  refusal codes: `fbt_expense_payment.deduction_exceeds_portion` and
-  `fbt_expense_payment.payment_exceeds_expenditure`.
+  refusal codes: `fbt_expense_payment.deduction_exceeds_portion`,
+  `fbt_expense_payment.in_house_deductible_not_covered` (the otherwise
+  deductible rule for in-house expense payments, s 24(1)(b)(i), is not
+  covered) and `fbt_expense_payment.payment_exceeds_expenditure`.
 - `fbt-residual`, `fbt-housing`, `fbt-lafha`, `fbt-board` and `fbt-tax-exempt-body-entertainment` give the taxable
   value of residual (Division 12, with the s 62 in-house reduction), housing
   (Division 6: market value, or the statutory annual value from a base year

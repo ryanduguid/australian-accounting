@@ -702,6 +702,10 @@ pub const REFUSAL_CODES: &[(&str, &str)] = &[
         "The deduction for the expenditure an expense payment's recipient bore exceeds the recipient's portion.",
     ),
     (
+        "fbt_expense_payment.in_house_deductible_not_covered",
+        "An income use share or recipient's portion deduction was given for an in-house expense payment, whose otherwise deductible rule (FBTAA s 24(1)(b)(i)) the worksheet does not cover.",
+    ),
+    (
         "fbt_expense_payment.payment_exceeds_expenditure",
         "An expense payment or reimbursement exceeds the recipient's expenditure.",
         "fbt_housing.base_year_invalid",

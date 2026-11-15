@@ -528,8 +528,9 @@ An in-house method values an in-house property expense payment (s 22A(1)): the
 property's value under that `fbt-property` rule less the recipient's portion,
 the expenditure less the payment net of the contribution, then the s 62
 reduction. In-house residual expense payments (s 22A(2)) and the otherwise
-deductible rule for in-house expense payments are not covered, and an
-`income_use` given with an in-house method is refused.
+deductible rule for in-house expense payments (s 24(1)(b)(i)) are not covered,
+and an `income_use` or `recipients_portion_deduction` given with an in-house
+method is refused as `fbt_expense_payment.in_house_deductible_not_covered`.
 
 Which gross-up an expense payment or property benefit takes depends on
 whether the provider is entitled to a GST credit for providing it; the result's

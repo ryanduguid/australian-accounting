@@ -295,13 +295,25 @@ pub fn fbt_expense_payment(
     let method = method(method_arg, kind)?;
     let when = format!(" with method {method}");
     let rule = (method != "external").then(|| rule(method));
+    let deductible = ["income_use", "recipients_portion_deduction"];
+    if let Some((name, _)) = given
+        .iter()
+        .find(|(n, _)| rule.is_some() && deductible.contains(&n.as_str()))
+    {
+        return refuse(
+            "fbt_expense_payment.in_house_deductible_not_covered",
+            format!(
+                "{name} is not an input of {EXPENSE}{when}: the otherwise deductible rule for an in-house expense payment (FBTAA s 24(1)(b)(i)) is not covered, so the taxable value is before any reduction it allows."
+            ),
+        );
+    }
     let mut names = vec![
         "recipients_expenditure",
         "amount_paid",
         "employee_contribution",
     ];
     match rule {
-        None => names.extend(["income_use", "recipients_portion_deduction"]),
+        None => names.extend(deductible),
         Some(rule) => names.extend(rule_inputs(rule)),
     }
     let input = named(given, EXPENSE, &when, &names)?;
