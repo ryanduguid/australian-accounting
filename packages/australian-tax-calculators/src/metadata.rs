@@ -965,8 +965,8 @@ pub fn source_review(kind: &str) -> (&'static str, &'static str) {
             "Schedule 15 (working holiday makers) for payments from 1 July 2026 and for payments from 1 July 2024 to 30 June 2026: using this schedule, working out the withholding amount, registered and unregistered employers, using a formula, Table A, examples 1 and 2, rounding and TFN declarations",
         ),
         "seniors_pensioners_withholding" => (
-            "2026-11-14",
-            "Schedule 9 (NAT 4466, seniors and pensioners) for payments from 1 July 2026 and for payments from 1 July 2024 to 30 June 2026: using this schedule, working out the withholding amount and its example, calculating fortnightly or monthly withholding amounts, using a formula and the coefficients for scales 1 to 9, rounding, claiming tax offsets, Medicare levy exemptions and adjustments, and the weekly tax table",
+            "2026-11-15",
+            "Schedule 9 (NAT 4466, seniors and pensioners) for payments from 1 July 2026 and for payments from 1 July 2024 to 30 June 2026: using this schedule, working out the withholding amount and its example, calculating fortnightly or monthly withholding amounts, using a formula and the coefficients for scales 1 to 9, rounding, claiming tax offsets, Medicare levy exemptions and adjustments, study and training support loan debts, and the weekly tax table; the study and training support loans weekly tax table it refers to (NAT 2173, from 1 July 2026 and from 24 September 2025) with Schedule 8's component rates and conversions",
         ),
         "seniors_pensioners_tax_offset" => (
             "2026-11-14",
@@ -1131,9 +1131,9 @@ pub fn library_evidence(kind: &str) -> [(&'static str, &'static str); 4] {
         ),
         "seniors_pensioners_withholding" => (
             "ATO Schedule 9 tax table for seniors and pensioners (NAT 4466)",
-            "the worked example ($662.95 a week) and every row of the weekly tax table",
+            "the worked example ($662.95 a week) and every row of the weekly tax table; with a study loan, the tax-free threshold column of every row of the study and training support loans weekly tax table (NAT 2173) from 1 July 2026",
             "2026-06-17",
-            "2026-11-14",
+            "2026-11-15",
         ),
         "seniors_pensioners_tax_offset" => (
             "ATO Seniors and pensioners tax offset",
@@ -1222,6 +1222,16 @@ pub fn optional_inputs(kind: &str) -> Vec<(&'static str, &'static str)> {
             "pay_date",
             "YYYY-MM-DD date the payment is made, within the income year; required for 2025-26, whose Schedule 8 coefficients apply from 24 September 2025",
         )],
+        "seniors_pensioners_withholding" => vec![
+            (
+                "study_loan",
+                "boolean, whether the payee declared a study and training support loan debt and claimed no Medicare levy reduction for a spouse or dependants and low family income; true adds Schedule 8's tax-free threshold component for the pay date, for 2026-27 and 2025-26 pays made from 24 September 2025; omit for false",
+            ),
+            (
+                "pay_date",
+                "YYYY-MM-DD date the payment is made, within the income year, with study_loan true only; required with it for 2025-26, whose Schedule 8 coefficients apply from 24 September 2025",
+            ),
+        ],
         "seniors_pensioners_tax_offset" => vec![
             (
                 "spouse_rebate_income",

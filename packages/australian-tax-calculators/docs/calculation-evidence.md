@@ -55,7 +55,7 @@ example evidence; it does not claim a fresh review of every supported period.
 | Termination payment | Not a Library document: ATO Schedule 11 examples 1 to 4, with ITAA 1997 ss 82-10 and 83-170 (compilation 268, 1 October 2026), SISR reg 6.01(2) and `tax-examples-assessable-income` (tax-examples), ¶1-420 | 17 June 2026 (Schedule 11); 30 June 2026 (¶1-420) | One life benefit ETP in 2026-27 with established, classified parts; Schedule 11 withholding, not the tax assessed |
 | Schedule 5 withholding | Not a Library document: ATO Schedule 5 (NAT 3348) for payments from 1 July 2024, 1 July 2025 and 1 July 2026, and the 2024, 2025 and 2026 withholding schedules instruments | 17 June 2024, 10 June 2025 and 17 June 2026 (published) | One regular weekly, fortnightly or monthly pay with additional payments by Method A, B(i) or B(ii); the study loan component for pays from 24 September 2025, and from 1 July 2026 in Method B(i) |
 | Working holiday makers | Not a Library document: ATO Schedule 15 for payments from 1 July 2026, and for 1 July 2024 to 30 June 2026 | 17 June 2026 (published); 17 June 2024 (last updated) | One payment's withholding at the Table A rates or Schedule 1 scale 3 for 2024-25 to 2026-27; visa, registration and TFN status established by the operator |
-| Seniors and pensioners | Not a Library document: ATO Schedule 9 (NAT 4466) for payments from 1 July 2026, and for 1 July 2024 to 30 June 2026, with Schedule 9 of the 2026 and 2025 withholding schedules instruments | 17 June 2026 (published); 17 June 2024 (last updated) | One weekly, fortnightly or monthly payment's withholding on scales 1 to 9 for 2024-25 to 2026-27; eligibility, status and exemption established by the operator; other tax offsets and the Medicare levy adjustment excluded |
+| Seniors and pensioners | Not a Library document: ATO Schedule 9 (NAT 4466) for payments from 1 July 2026, and for 1 July 2024 to 30 June 2026, with Schedule 9 of the 2026 and 2025 withholding schedules instruments | 17 June 2026 (published); 17 June 2024 (last updated) | One weekly, fortnightly or monthly payment's withholding on scales 1 to 9 for 2024-25 to 2026-27, with any study loan component under Schedule 8 for 2026-27 and from 24 September 2025; eligibility, status and exemption established by the operator; other tax offsets and the Medicare levy adjustment excluded |
 | PAYG gross-up | Not a Library document: ATO Schedule 1 (NAT 1004) sample data for payments from 1 July 2026, and for 1 July 2024 to 30 June 2026, through the PAYG withholding worksheet | 17 June 2026 (published); 17 June 2024 (last updated) | The gross of one regular pay whose Schedule 1 withholding leaves an established net; refused where more than one gross does |
 | Study loan withholding | Not a Library document: ATO Schedule 8 (NAT 3539) for payments from 1 July 2026, and Schedule 8 of F2025L01016 for payments from 24 September 2025 | 17 June 2026 (published); 24 September 2025 (commenced) | Schedule 8 component on one regular weekly, fortnightly, monthly or quarterly pay, added to the Schedule 1 amount |
 | Study loan repayment | Not a Library document: the ATO minimum repayment income page and Gazette C2026G00249 | 13 October 2026 (ATO page) | Marginal repayment on established repayment income for 2025-26 and 2026-27; the loan-balance limit is outside the worksheet |
@@ -1144,9 +1144,36 @@ coefficients for both years.
   (NAT 1010), whose figures are Schedule 1's, so the worksheet does not take
   that either.
 - A payee without a TFN has 47% or 45% withheld, as Schedule 1 scale 4 does;
-  study and training support loans, the extra Schedule 13 calculation for a
-  super income stream and lump sum leave loading (Schedule 5) are outside the
-  worksheet.
+  the extra Schedule 13 calculation for a super income stream and lump sum
+  leave loading (Schedule 5) are outside the worksheet.
+- Study and training support loans. Read on 15 November 2026: both ATO
+  Schedule 9 pages say that a payee with a HELP, VSL, FS, SSL or AASL debt may
+  need additional amounts withheld and, 'To calculate additional withholding
+  amounts', to 'refer to Study and training support loans weekly tax table'
+  (Schedule 9 of F2026L00716 has the first sentence but not the referral).
+  That table (NAT 2173, published 17 June 2026; for 24 September 2025 to
+  30 June 2026, last updated 9 September 2025) says to work out the withholding
+  amount, add the component from column 2 for a payee claiming the tax-free
+  threshold, and use Schedule 8's formulas in software. A Schedule 9 payee has
+  answered yes at question 5 of the Withholding declaration or its short
+  version, which both ask whether they claim the tax-free threshold, so the
+  worksheet uses Schedule 8's 'Tax-free threshold claimed or foreign resident'
+  rates. Schedule 8 (F2026L00716 and the ATO page, both read the same day) takes
+  x, the weekly earnings in whole dollars plus 99 cents, with the same
+  fortnightly and monthly conversions as Schedule 9, and withholds no component
+  for a Medicare levy variation declaration claiming a reduction or exemption
+  'for having a spouse or dependants and low family income'; that declaration's
+  exemption categories (questions 5 to 7) are separate from its family income
+  reduction (questions 8 to 10), so a full or half exemption keeps the
+  component, and the worksheet's `study_loan` description tells the caller to
+  omit it for a reduction. 2025-26 uses F2025L01016's rates from 24 September
+  2025, as `study-loan-withholding` does; the 2024-26 Schedule 9 page links to
+  the 2024-25 weekly table, whose percentage method this crate does not hold,
+  so 2024-25 and earlier 2025-26 pays are refused. All 2,616 rows of the table
+  from 1 July 2026 ($985 to $3,600), column 2, equal Schedule 8's formula, and
+  `tests/seniors_pensioners_study_loan.rs` checks them through this worksheet
+  with each status, with the tables' $1,816.23 example ($72, and $79 from
+  24 September 2025), Schedule 8's examples 1 and 2 and each rate's boundary.
 
 `tests/seniors_pensioners.rs` holds the worksheet to the schedules' worked
 example and to every row of the weekly tax table in each schedule's PDF:
