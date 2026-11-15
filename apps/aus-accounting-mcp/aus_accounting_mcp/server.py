@@ -1480,7 +1480,9 @@ def search_ato_rulings(
                     "title, case-insensitive; no regular expressions.")],
     family: Annotated[str | None, Field(max_length=100,
         description="Optional words the document family must contain, such as "
-                    "'taxation ruling' or 'practical compliance guideline'.")] = None,
+                    "'taxation ruling' or 'practical compliance guideline'. 'GST "
+                    "determination' and 'Goods and Services Tax Determination' name one "
+                    "family.")] = None,
     limit: Annotated[int, Field(strict=True, ge=1, le=20,
         description="Maximum paragraphs per page.")] = 5,
     offset: Annotated[int, Field(strict=True, ge=0, le=CORPUS_MAX_OFFSET,

@@ -82,6 +82,8 @@ FAMILIES = (
     "Edited version of private advice",
 )
 EDITED_FAMILY = "Edited version of private advice"
+# A GST determination's 2 labels name one family, so a family filter reads both.
+GST_DETERMINATION = ("GST determination", "Goods and Services Tax Determination")
 LICENCE_BASES = frozenset({"document-notice", "site-notice-via-dc-rights"})
 WITHDRAWAL_STATUSES = frozenset({"UNKNOWN", "NOTICE_PRESENT"})
 NUMBERING = frozenset({"document", "sequential"})
@@ -483,6 +485,13 @@ def _paragraph(
     }
 
 
+def _in_family(row: dict[str, Any], terms: list[str]) -> bool:
+    """Whether the row's family holds every term, reading a GST determination's 2 labels."""
+    family = row.get("family")
+    names = " ".join(GST_DETERMINATION) if family in GST_DETERMINATION else family
+    return _holds({"family": names}, ("family",), terms)
+
+
 def _family_priority(row: dict[str, Any]) -> int:
     family = row.get("family")
     return FAMILIES.index(family) if family in FAMILIES else len(FAMILIES)
@@ -505,7 +514,9 @@ def search_rulings(
     words = _query_words(terms)
     holds_words = _matcher(words)
     tier = _tier(words, ("title", "heading"), ("text",), terms)
-    prefilter = _parts(words) + family_terms
+    # The family's words stay out of the line filter: a GST determination's line holds
+    # only one of its 2 labels.
+    prefilter = _parts(words)
 
     def ranked() -> Iterator[tuple[tuple[int, bool, int], int, dict[str, Any]]]:
         order = 0
@@ -519,7 +530,7 @@ def search_rulings(
                         key = _canonical(_string(row, "docid") or "")
                         if catalogue.owner.get(key) != run.name:
                             continue
-                        if family_terms and not _holds(row, ("family",), family_terms):
+                        if family_terms and not _in_family(row, family_terms):
                             continue
                         if not holds_words(_joined(row, SEARCH_FIELDS)):
                             continue

@@ -6,7 +6,8 @@
   refused a rulings run holding either, although the corpus builder's rulings stage
   writes both. A GST determination is accepted under the label earlier runs wrote,
   `GST determination`, and under the Legal Database's name the stage writes next,
-  `Goods and Services Tax Determination`.
+  `Goods and Services Tax Determination`. A `family` filter naming either label finds
+  both.
 
 ## Added
 

@@ -215,6 +215,34 @@ def test_every_family_the_rulings_stage_writes_is_served(
     assert (match["docid"], match["family"]) == (docid, family)
 
 
+@pytest.mark.parametrize(
+    "family", ["GST determination", "Goods and Services Tax Determination", "gst determination"]
+)
+def test_either_label_of_a_gst_determination_filters_to_both(tmp_path, monkeypatch, family):
+    # Runs before 16 November 2026 wrote the short label; the stage now writes the
+    # Legal Database's name. Neither label holds the other's words.
+    monkeypatch.setenv("AUS_ACCOUNTING_RULINGS_ROOT", str(tmp_path))
+    fixture.write_run(
+        tmp_path / "run-2099-03-01", "2099-03-01",
+        [fixture.document(
+            f"GSD/GSTD2099{n}/NAT/ATO/00001", label, f"GSTD 2099/{n} - Synthetic supply",
+            [("1", "Ruling", "A fabricated supply is synthetic.")],
+            fetched_on="2099-03-01",
+        ) for n, label in [
+            (1, "GST determination"), (2, "Goods and Services Tax Determination"),
+        ]] + [fixture.document(
+            "TXD/TD20991/NAT/ATO/00001", "Taxation Determination",
+            "TD 2099/1 - Synthetic supply",
+            [("1", "Ruling", "A fabricated supply is synthetic.")],
+            fetched_on="2099-03-01",
+        )],
+    )
+    matches = call("search_ato_rulings", query="synthetic supply", family=family)["matches"]
+    assert sorted(match["docid"] for match in matches) == [
+        "GSD/GSTD20991/NAT/ATO/00001", "GSD/GSTD20992/NAT/ATO/00001",
+    ]
+
+
 def test_a_word_only_in_the_address_does_not_match(runs):
     # Every row's source_url holds "docid", and the prefilter reads the raw line.
     result = call("search_ato_rulings", query="docid")
