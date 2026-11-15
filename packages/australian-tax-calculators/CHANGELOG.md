@@ -10,6 +10,17 @@ intentionally changed.
 
 ### Added
 
+- `derive` also covers `division-296`, `contribution-caps`,
+  `study-loan-repayment`, `capital-gains` and `main-residence`. Their steps cite
+  ITAA 1997 Divisions 102, 115, 118, 291, 292 and 296 as compiled on
+  1 October 2026, the Income Tax (Transitional Provisions) Act 1997 s 296-1,
+  the Superannuation (Building a Stronger and Fairer Super System) Imposition
+  Act 2026 s 5 and HESA ss 154-1 to 154-25. `tests/division_296.rs`,
+  `tests/main_residence.rs`, the main residence property in
+  `tests/properties.rs` and `tests/tables.rs` derive each case of these
+  commands they run and check the result is the plain output; a negative
+  Division 296 very large component is null in its step, as in the result. No
+  command's plain output changes.
 - `derive` also covers `payg-withholding`, the 3 `schedule-5` methods and
   `termination-payment`. Their steps cite the headings and method steps of
   Schedules 1, 5, 8 and 11 to the Taxation Administration (Withholding

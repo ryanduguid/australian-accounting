@@ -118,7 +118,7 @@ lists the commands.
 | `pension-minimum` | `account_balance`, `age`, `days`, `year`, `scope_confirmed` |
 | `worksheet-catalogue` | none: send `{}` |
 | `periods` | `kind`, the worksheet name, such as `"payg_withholding"` |
-| `derive` | `command`, one of `fbt`, `fbt-car-statutory`, `fbt-car-operating-cost`, `division-293`, `pension-minimum`, `payg-withholding`, `schedule-5-method-a`, `schedule-5-method-b-i`, `schedule-5-method-b-ii` and `termination-payment`, and `input`, that command's arguments; see [Derivations](#derivations) |
+| `derive` | `command`, one of `fbt`, `fbt-car-statutory`, `fbt-car-operating-cost`, `division-293`, `pension-minimum`, `payg-withholding`, `schedule-5-method-a`, `schedule-5-method-b-i`, `schedule-5-method-b-ii`, `termination-payment`, `division-296`, `contribution-caps`, `study-loan-repayment`, `capital-gains` and `main-residence`, and `input`, that command's arguments; see [Derivations](#derivations) |
 
 The 2 car commands, `main-residence`, `borrowing-expenses`, `division-296`, `termination-payment`, the 3 `schedule-5` commands, `working-holiday-maker-withholding`, `seniors-pensioners-withholding`, `seniors-pensioners-tax-offset`, `medicare-levy-surcharge` and `foreign-resident-tax` have no Python original; their arguments follow the same
 rules. `division-296` alone takes a negative amount, in `total_super_earnings`. `main-residence` also takes dates as `YYYY-MM-DD` strings, lists of
@@ -130,7 +130,8 @@ or a decimal string over 8,192 bytes, is refused.
 ## Derivations
 
 `derive` shows how each amount of an FBT, Division 293, pension minimum, PAYG
-withholding, Schedule 5 or termination payment worksheet was worked out. It takes `{"command": "fbt", "input": {...}}`, runs
+withholding, Schedule 5, termination payment, Division 296, contribution caps,
+study loan repayment, capital gains or main residence worksheet was worked out. It takes `{"command": "fbt", "input": {...}}`, runs
 the command on that input and returns
 `{"format": "australian-tax-calculators/derivation/1", "engine", "engine_version",
 "calculation", "input", "steps", "result"}`. `result` is the command's own output,
@@ -168,6 +169,19 @@ ignore them. A Schedule 5 step writes in the coefficients of the
 Schedule 1 (and, for a study loan, Schedule 8) row it used, and Method B(i)
 the figures of each earlier pay period; `cents` wraps a tax-table amount,
 which the method uses as rounded.
+
+The Division 296 steps cite ITAA 1997 ss 296-15 to 296-50, the Income Tax
+(Transitional Provisions) Act 1997 s 296-1 and the Superannuation (Building a
+Stronger and Fairer Super System) Imposition Act 2026 s 5; a step whose
+amount is nil cites the reason, and a negative very large superannuation
+balance earnings component has the value null, as its amount does. The
+contribution caps steps cite ITAA 1997 s 291-20, s 292-85 and s 292-90, the
+study loan repayment steps the Higher Education Support Act 2003 (HESA)
+ss 154-1 to 154-25, the capital gains steps ITAA 1997 s 102-5, s 102-10,
+s 102-15 and s 115-100, and the main residence steps ss 118-110, 118-185,
+118-190 and 118-192. `non_main_residence_days` in the main residence rates is
+the sum of each day's taxable weight, which the worksheet works out from the
+periods given.
 
 ## Supported periods
 

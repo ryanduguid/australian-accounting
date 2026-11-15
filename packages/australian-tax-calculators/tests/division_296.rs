@@ -16,8 +16,21 @@ fn input(balance: &str, earnings: &str) -> Value {
     })
 }
 
+/// The plain result, which derive gives too, byte for byte.
+fn evaluate(facts: &Value) -> Value {
+    let result = api::evaluate("division-296", facts).unwrap();
+    let envelope = json!({"command": "division-296", "input": facts});
+    let doc = api::evaluate("derive", &envelope).unwrap();
+    assert_eq!(
+        doc["result"].to_string(),
+        result.to_string(),
+        "derive {facts}"
+    );
+    result
+}
+
 fn run(balance: &str, earnings: &str) -> Value {
-    api::evaluate("division-296", &input(balance, earnings)).unwrap()
+    evaluate(&input(balance, earnings))
 }
 
 fn with(overrides: Value) -> Value {
@@ -258,7 +271,7 @@ fn each_exception_means_no_tax() {
     ] {
         let mut facts = with(json!({}));
         facts[flag] = json!(true);
-        let result = api::evaluate("division-296", &facts).unwrap();
+        let result = evaluate(&facts);
         assert_eq!(amounts(&result), expected, "{flag}");
         assert_eq!(percentages(&result), shares, "{flag}");
         assert_eq!(result["liability"], reason, "{flag}");
@@ -267,12 +280,12 @@ fn each_exception_means_no_tax() {
         "total_super_balance_end_of_year": "12000000.00",
         "total_super_earnings": "500000.00", "died_in_year": true,
     }));
-    let result = api::evaluate("division-296", &kelly_died).unwrap();
+    let result = evaluate(&kelly_died);
     assert_eq!(amounts(&result), NIL);
     assert_eq!(percentages(&result), ("0.00", "0.00"));
     // The first exception gives the reason, and death still makes the balance nil.
     let both = with(json!({"child_recipient": true, "died_in_year": true}));
-    let both = api::evaluate("division-296", &both).unwrap();
+    let both = evaluate(&both);
     assert_eq!(
         both["liability"],
         "not liable: a child recipient of a superannuation income stream in the year (s 296-20)"
