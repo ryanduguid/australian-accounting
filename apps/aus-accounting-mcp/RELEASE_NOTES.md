@@ -1,3 +1,17 @@
+# Unreleased
+
+## Fixed
+
+- `search_ato_rulings` serves Law Companion Rulings and GST determinations. Before, it
+  refused a rulings run holding either, although the corpus builder's rulings stage
+  writes both.
+
+## Added
+
+- `validate_bsb_format` tests a BSB against AusPayNet's published 6 digit format,
+  XXX-XXX. It holds no BSB directory, so a valid format proves no institution, branch
+  or account.
+
 # v0.9.0
 
 ## Fixed
