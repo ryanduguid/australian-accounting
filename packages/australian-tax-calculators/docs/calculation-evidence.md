@@ -35,11 +35,24 @@ example evidence; it does not claim a fresh review of every supported period.
 | --- | --- | --- | --- |
 | GST | `tax-examples-gst-and-other-indirect-taxes` (tax-examples), ¶12-020 | 30 June 2026 | Established taxable value and the GST fraction only |
 | Resident tax | `tax-examples-individuals` (tax-examples), ¶7-010, step 2 | 30 June 2025 | Basic tax for 2024–25; later offsets and levies excluded |
+| Foreign resident tax | Not a Library document: Income Tax Rates Act 1986 Schedule 7 Part II (compilations 63, 65 and 66) and the ATO's foreign resident rates page | 1 June 2026 (ATO page) | Basic tax for a full-year foreign resident for 2024-25 to 2026-27; no Medicare levy or low income tax offset applies |
 | Capital gains | `tax-examples-capital-gains-tax-cgt` (tax-examples), ¶2-040 and ¶2-240 | 30 June 2026 | Established ordinary gains, losses and discount entitlement for 2025–26 |
 | FBT | `tax-examples-fringe-benefits-tax-fbt` (tax-examples), ¶3-000 and ¶3-020 | 30 June 2026 | Established taxable values and ordinary gross-up rates; car example ends 31 March 2026 |
 | FBT car benefits | `tax-examples-fringe-benefits-tax-fbt` (tax-examples), ¶3-020 and ¶3-045 (reportable value), with the ATO's FBT return 2026 instructions (item 23), employer's guide (7.8 and 7.9) and reportable fringe benefits page | 30 June 2026; 1 April 2026 (item 23); 12 January 2023 (reportable fringe benefits) | One car's established base value or operating costs for the years ended 31 March 2026 and 2027; the reportable taxable value before the employee's $2,000 threshold and type 2 gross-up |
+| FBT loans | `tax-examples-fringe-benefits-tax-fbt` (tax-examples), ¶3-100, with FBTAA ss 18, 19 and 136(1) (compilation 97, 1 July 2026), the FBT return 2026 instructions (item 23C, example 8), the employer's guide (8.5 and 8.8) and the FBT rates and thresholds page | 30 June 2026; 20 May 2026 (rates page) | One loan to a current employee for the years ended 31 March 2026 and 2027; deciding the loan, exemptions and the deduction itself excluded |
+| FBT meal entertainment | `tax-examples-fringe-benefits-tax-fbt` (tax-examples), ¶3-220, with FBTAA ss 37AB to 37CD (compilation 97) and the FBT return 2026 instructions (item 23P, example 18) | 30 June 2026 | The year's established expenditure by the 50/50 split or a valid 12 week register for the years ended 31 March 2026 and 2027; the actual method excluded |
+| FBT car parking | `tax-examples-fringe-benefits-tax-fbt` (tax-examples), ¶3-055 (the 2026 threshold), with FBTAA ss 39A to 39GF (compilation 97), the employer's guide (chapter 16, examples 12, 13, 15 and 17) and the FBT rates and thresholds page | 30 June 2026; 20 May 2026 (rates page) | Commercial parking station, average cost and 12 week register values for the years ended 31 March 2026 and 2027; market value and spaces methods excluded |
+| FBT debt waivers | FBT return 2026 instructions (item 23D, example 9), with FBTAA ss 14 and 15 (compilation 97, 1 July 2026) and the employer's guide (8.1 and 8.2) | 1 April 2026 (item 23); 29 May 2024 (guide) | The amount waived for the years ended 31 March 2026 and 2027; deciding the waiver excluded |
+| FBT expense payments | `tax-examples-fringe-benefits-tax-fbt` (tax-examples), ¶3-240 and ¶3-340, with FBTAA ss 20 to 24, 62 and 136(1) (compilation 97), the FBT return 2026 instructions (item 23E, example 10) and the employer's guide (9.2 to 9.4 and 19.5) | 30 June 2026; 1 April 2026 (item 23); 29 May 2024 (guide) | One external or in-house property expense payment for the years ended 31 March 2026 and 2027; in-house residual payments and the in-house otherwise deductible rule excluded |
+| FBT property | `tax-examples-fringe-benefits-tax-fbt` (tax-examples), ¶3-260, with FBTAA ss 40 to 44, 62 and 136(1) (compilation 97), the FBT return 2026 instructions (item 23K, example 14) and the employer's guide (17.2 to 17.5 and 19.5) | 30 June 2026; 1 April 2026 (item 23); 29 May 2024 (guide) | One benefit under an in-house or external rule for the years ended 31 March 2026 and 2027; airline transport and car property rules excluded |
+| FBT residual benefits | Not a Library document: FBTAA ss 45 to 52 and 62 (compilation 97), the FBT return 2026 instructions (item 23M, example 16) and the employer's guide (chapter 18) | 1 April 2026 (item 23) | One benefit's in-house or external value for the years ended 31 March 2026 and 2027; car residual, airline transport and jointly provided benefits excluded |
+| FBT housing | `tax-examples-fringe-benefits-tax-fbt` (tax-examples), ¶3-120, with FBTAA ss 25 to 28 (compilation 97), the FBT return 2026 instructions (item 23F, example 11), the employer's guide (chapter 10) and the FBT rates and thresholds page (housing indexation factors) | 30 June 2026; 20 May 2026 (rates page) | Market value and statutory annual values for the years ended 31 March 2026 and 2027; remote area housing excluded |
+| FBT living-away-from-home allowances | `tax-examples-fringe-benefits-tax-fbt` (tax-examples), ¶3-160 and ¶3-180, with FBTAA ss 30 to 31H and 136(1) (compilation 97), the FBT return 2026 instructions (item 23G, example 12) and the employer's guide (chapter 11) | 30 June 2026 | One allowance's established components and expenses for the years ended 31 March 2026 and 2027; eligibility, declarations and the reasonable food amount established by the operator |
+| FBT board | Not a Library document: FBTAA ss 35 to 37 (compilation 97), the FBT return 2026 instructions (item 23J, example 13) and the employer's guide (chapter 13) | 1 April 2026 (item 23) | Established meals for the years ended 31 March 2026 and 2027 |
+| FBT tax-exempt body entertainment | Not a Library document: FBTAA ss 38 and 39 (compilation 97), the FBT return 2026 instructions (item 23L, example 15) and the employer's guide (chapter 15) | 1 April 2026 (item 23) | Established expenditure for the years ended 31 March 2026 and 2027, actual or per head |
 | Main residence | `tax-examples-capital-gains-tax-cgt` (tax-examples), ¶2-060 and ¶2-075, with the ATO's pages 'Treating former home as main residence' (QC66030) and 'Using your home for rental or business' (QC66033) | 30 June 2026; 22 June 2026 (both ATO pages) | One dwelling's taxable days for CGT events in 2024-25 to 2026-27; cost base, market value and discount excluded |
 | Borrowing expenses | `tax-examples-deductions` (tax-examples), ¶4-160, with ITAA 1997 s 25-25 (compilation 268, 1 October 2026) and the ATO's 'Borrowing expenses' page | 30 June 2026; 22 May 2026 (ATO page) | One loan's established expenditure, use and dates for 2024-25 to 2026-27; classification, interest and refinancing excluded |
+| Hire purchase schedule | Not a Library document: ITAA 1997 ss 240-17, 240-55 and 240-60 on the ATO's legal database and in compilation 268 (1 October 2026) | 15 November 2026 (read) | One agreement's monthly notional interest for the hirer, starting in 2024-25 to 2026-27, from established payments; apportionment to income years under s 240-60(2) excluded |
 | Depreciation | `tax-examples-depreciation` (tax-examples), ¶6-000 and ¶6-020 | 30 June 2025 | First-year formulas and taxable-use apportionment in 2024–25 examples |
 | Quarterly SG | `superannuation-instant-reference-rates-thresholds-and-checklists` (superannuation), ¶18-600 and ¶18-620 | 30 June 2026 | General 2025–26 rate and quarterly maximum contribution base |
 | Contribution caps | `tax-examples-individuals` (tax-examples), ¶7-278 | 30 June 2025 | First-year bring-forward for 2024–25 only; the later-year nil cap is outside the worksheet |
@@ -53,7 +66,8 @@ example evidence; it does not claim a fresh review of every supported period.
 | Termination payment | Not a Library document: ATO Schedule 11 examples 1 to 4, with ITAA 1997 ss 82-10 and 83-170 (compilation 268, 1 October 2026), SISR reg 6.01(2) and `tax-examples-assessable-income` (tax-examples), ¶1-420 | 17 June 2026 (Schedule 11); 30 June 2026 (¶1-420) | One life benefit ETP in 2026-27 with established, classified parts; Schedule 11 withholding, not the tax assessed |
 | Schedule 5 withholding | Not a Library document: ATO Schedule 5 (NAT 3348) for payments from 1 July 2024, 1 July 2025 and 1 July 2026, and the 2024, 2025 and 2026 withholding schedules instruments | 17 June 2024, 10 June 2025 and 17 June 2026 (published) | One regular weekly, fortnightly or monthly pay with additional payments by Method A, B(i) or B(ii); the study loan component for pays from 24 September 2025, and from 1 July 2026 in Method B(i) |
 | Working holiday makers | Not a Library document: ATO Schedule 15 for payments from 1 July 2026, and for 1 July 2024 to 30 June 2026 | 17 June 2026 (published); 17 June 2024 (last updated) | One payment's withholding at the Table A rates or Schedule 1 scale 3 for 2024-25 to 2026-27; visa, registration and TFN status established by the operator |
-| Seniors and pensioners | Not a Library document: ATO Schedule 9 (NAT 4466) for payments from 1 July 2026, and for 1 July 2024 to 30 June 2026, with Schedule 9 of the 2026 and 2025 withholding schedules instruments | 17 June 2026 (published); 17 June 2024 (last updated) | One weekly, fortnightly or monthly payment's withholding on scales 1 to 9 for 2024-25 to 2026-27; eligibility, status and exemption established by the operator; other tax offsets and the Medicare levy adjustment excluded |
+| Seniors and pensioners | Not a Library document: ATO Schedule 9 (NAT 4466) for payments from 1 July 2026, and for 1 July 2024 to 30 June 2026, with Schedule 9 of the 2026 and 2025 withholding schedules instruments | 17 June 2026 (published); 17 June 2024 (last updated) | One weekly, fortnightly or monthly payment's withholding on scales 1 to 9 for 2024-25 to 2026-27, with any study loan component under Schedule 8 for 2026-27 and from 24 September 2025; eligibility, status and exemption established by the operator; other tax offsets and the Medicare levy adjustment excluded |
+| PAYG gross-up | Not a Library document: ATO Schedule 1 (NAT 1004) sample data for payments from 1 July 2026, and for 1 July 2024 to 30 June 2026, through the PAYG withholding worksheet | 17 June 2026 (published); 17 June 2024 (last updated) | The gross of one regular pay whose Schedule 1 withholding leaves an established net; refused where more than one gross does |
 | Study loan withholding | Not a Library document: ATO Schedule 8 (NAT 3539) for payments from 1 July 2026, and Schedule 8 of F2025L01016 for payments from 24 September 2025 | 17 June 2026 (published); 24 September 2025 (commenced) | Schedule 8 component on one regular weekly, fortnightly, monthly or quarterly pay, added to the Schedule 1 amount |
 | Study loan repayment | Not a Library document: the ATO minimum repayment income page and Gazette C2026G00249 | 13 October 2026 (ATO page) | Marginal repayment on established repayment income for 2025-26 and 2026-27; the loan-balance limit is outside the worksheet |
 
@@ -85,6 +99,46 @@ credits and refund calculations in the passage are excluded.
 The existing $45,000 boundary gives $4,288 at 16%. At the engine's existing
 2026–27 first rate of 15%, the same arithmetic gives $4,020. The latter is a
 regression of the existing rate, not a rate corroborated by this Library passage.
+
+## Foreign resident tax
+
+This worksheet's evidence is not a Library document. On 14 November 2026 the
+Income Tax Rates Act 1986 was read as compiled at 1 July 2024 (compilation
+63), 28 March 2025 (compilation 65) and 1 July 2026 (compilation 66). In each,
+Schedule 7 Part II clause 1 gives one table for the 2024-25 and later years
+of income: the part of ordinary taxable income to $135,000 at the second
+resident personal tax rate, the part to $190,000 at the third and the rest at
+45%. Section 3(1) defines those rates as items 2 and 3 of the resident table
+for the year, which are 30% and 37% in 2024-25, 2025-26 and 2026-27; the
+2026-27 and 2027-28 resident changes are to item 1 only. The table starts at
+$0, so there is no tax-free threshold. `tests/tables.rs` derives the scale
+from the resident scale for each year.
+
+Part II applies to a prescribed non-resident: a person who was a non-resident
+at all times in the year, other than one to whom, at any time in the year,
+compensation or a pension, allowance or benefit is payable under the Veterans'
+Entitlements Act 1986, subsection 4(6) of the Veterans' Entitlements
+(Transitional Provisions and Consequential Amendments) Act 1986, the Military
+Rehabilitation and Compensation Act 2004 or the Social Security Act 1991 in
+respect of which the person is liable to be assessed and to pay income tax in
+Australia (s 3(1)). A part-year resident is a resident taxpayer there. The
+worksheet takes both as scope conditions.
+
+The ATO page "Tax rates - foreign resident" (last updated 1 June 2026, read on
+14 November 2026) gives the same table for 2024-25 and 2025-26: 30c for each
+$1 to $135,000, $40,500 plus 37c for each $1 over $135,000, and $60,850 plus
+45c for each $1 over $190,000. It has no 2026-27 table, so a 2026-27 result
+warns that the rates are the Act's and a later Act can change them. It also
+says foreign residents do not pay the Medicare levy. ITAA 1936 s 251S(1),
+read on the ATO's legal database the same day, levies it on the taxable income
+of a person resident at some time in the year, and ITAA 1997 s 61-110(1) gives
+the low income tax offset only to an Australian resident. The worksheet
+therefore gives basic tax only, and its scope says that `medicare-levy` and
+`low-income-tax-offset` do not apply. `tests/foreign_resident_tax.rs` holds it
+to the ATO's table at every bracket boundary, a dollar either side and above
+the top threshold for 2024-25 and 2025-26, and to the Act's rates for 2026-27.
+2027-28 is refused, as `resident-tax` refuses it; `tests/tables.rs` keeps the
+2 worksheets' years the same.
 
 ## Capital gains
 
@@ -206,6 +260,230 @@ third warning. `tests/fbt_car.rs` checks a taxable car, an exempt electric car
 and a recipient's payment under both methods; `tests/properties.rs` checks the
 equality on every seeded result.
 
+## FBT loan
+
+These worksheets were added on 15 November 2026. Their sources were read that
+morning, 7.58 am to 8.17 am AEDT: the FBTAA as compiled on 1 July 2026
+(C2004A03280, compilation 97, EPUB documents 1 and 2), the FBT return 2026
+instructions' item 23 page, the ATO's FBT rates and thresholds page (last
+updated 20 May 2026), chapters 8, 14 and 16 of 'Fringe benefits tax - a guide
+for employers', and the ATO's 'Loan and debt waiver fringe benefits' and 'Car
+parking and FBT' pages (both last updated 6 March 2025). The rates page gives
+the statutory or benchmark interest rate as 8.62% for the year ended 31 March
+2026 and 8.27% for 2027, and the car parking threshold as $11.03 and $11.48; it
+says these figures are published only there, not in a taxation determination.
+`tests/fbt_loan.rs`, `tests/fbt_meal_entertainment.rs` and
+`tests/fbt_car_parking.rs` hold each case.
+
+Item 23C example 8: $20,000 lent for the whole year at no interest, `20000 ×
+0.0862 = 1724`, **$1,724.00**; the worksheet takes the daily balances' total,
+`7300000 × 0.0862 / 365 = 1724`. ¶3-100 (review date 30 June 2026) lends
+$100,000 for 2025-26 at 3.45%, 40% spent on shares: notional interest `8620`
+less `3450` accrued is `5170`; GD `8620 × 0.4 = 3448` less RD `3450 × 0.4 =
+1380` is a notional deduction of `2068`, for **$3,102.00**. Given to `fbt` as a
+type 2 value, `3102 × 1.8868 = 5852.85`, item 14B **$5,853**, and FBT of
+**$2,750.91**, which the Library rounds to $2,751. The guide's 8.5 example used
+5.65% for 2016-17; its $50,000 at 5% reruns at 8.62% to `4310 − 2500 = 1810` and
+at 8.27% to `4135 − 2500 = 1635`. Its 8.8 examples, $50,000 at 4% with 60% used
+to produce income, rerun at 8.62% to TV `2310`, GD `2586` and ND `2586 − 1200 =
+1386`, for **$924.00**; with the rate set by regard to use, RD is `431` and the
+value **$155.00**.
+
+Notional interest and the gross deduction are each rounded half up to cents: the
+Act gives no rounding, and amounts of interest and deductions are in cents.
+Every other amount is a difference or a minimum of amounts in cents. Item 23C
+says to show zero rather than a negative value, so the reduction stops at the
+gross taxable value; RD above GD leaves no notional deduction.
+
+## FBT meal entertainment
+
+Item 23P example 18: $4,000 of meal entertainment under the 50/50 split,
+**$2,000.00**. ¶3-220 (review date 30 June 2026): $177,500 for 2025-26 gives
+**$88,750.00** under the 50/50 split, and a register showing 40% gives
+**$71,000.00**. The register percentage (s 37CB(2)) is kept exact: a register of
+$1,000 of fringe benefits out of $3,000 shows 33.33% but applies a third, so
+$900 of expenditure gives $300.00, not $299.97. s 37CD makes a register valid for
+its first year and the 4 after it; the worksheet refuses a first year outside
+that window, and the operator establishes the 20% expenditure test and any later
+register.
+
+## FBT car parking
+
+The employer's guide, chapter 16. Example 12: one station's $10 fee above the
+2023 threshold of $9.72 makes benefits arise, and they are valued at another's
+$5.50; the tests apply the same rule with a $12 fee against 2026's $11.03.
+Example 13: a $272 monthly fee over 22 business days is the s 39E daily rate
+`272 / 22 = 12.36`; 22 benefits at that fee give **$271.92**. Example 15, car park
+A: `(17 + 20) / 2 = 18.50` a benefit under the average cost method; car park B,
+`(10 + 15) / 2 = 12.50`, where B's $10 first business day fee was above 2023's
+threshold but is not above 2026's, so the same facts give nil in 2026. Example 17
+(the 12 week register): `2500 × 52 / 12 = 10833.33`, then `× 183 / 366 =
+5416.67`, **$5,416.67**; s 39GB divides by 366 in every year. ¶3-055 (review date
+30 June 2026) cites the $11.03 threshold for 2026. Item 23N example 17 starts
+from a value already worked out, so it tests no method.
+
+s 39A(1)(a)(iii) asks whether any station within 1 km charged a lowest all-day
+fee of more than the threshold on the first business day, so the worksheet
+compares the highest of those fees with it and reports a nil taxable value when
+none is above. The commercial parking station and average cost methods round
+the gross value to cents before the recipients' payments, as the car worksheets
+do. The market value method is left out because it rests on a qualified valuer's
+report; the spaces method was not in this batch.
+
+## FBT debt waiver
+
+These worksheets were added on 15 November 2026. Their sources were read that
+day, 12.25 pm to 12.31 pm AEDT: the FBTAA as compiled on 1 July 2026
+(C2004A03280, compilation 97, EPUB documents 1 and 2, with the formulas' text
+alternatives for ss 24 and 44, 'GD minus RD' and 'TV minus ND'), the FBT return
+2026 instructions' item 23 page (published 1 April 2026), chapters 2, 8, 9, 17
+and 19 of 'Fringe benefits tax - a guide for employers' (chapters 8, 9 and 17
+last updated 29 May 2024) and the ATO's 'Loan and debt waiver fringe benefits'
+page (last updated 6 March 2025). No ATO-published rate or factor enters them.
+`tests/fbt_debt_waiver.rs`, `tests/fbt_expense_payment.rs` and
+`tests/fbt_property.rs` hold each case.
+
+Compilation 97 is in force from 1 July 2026. Compilation 96 (C2025C00239), in
+force from 1 April 2025 to 30 June 2026 and read from the same register on 15
+November 2026, gives the same text for every section these worksheets and the
+residual, housing, LAFHA, board and entertainment worksheets apply. The one
+change in them, s 24(1A) (Treasury Laws Amendment (Tax Reform No. 1) Act 2026,
+Sch 4 item 18), applies to FBT years starting on or after 1 April 2027 (item
+20), so to neither year the worksheets cover.
+
+The Act states no rounding. The worksheets round half up to cents each amount
+they show before a later step uses it: a 75% value, a gross deduction under
+ss 24, 37, 44 and 52, and a statutory annual value. The amounts shown then add
+up, as `tests/properties.rs` checks. On a half cent the taxable value can differ by a cent from unrounded
+arithmetic: a $100.03 external property benefit, half deductible, has a gross
+deduction of $50.015, shown and taken off as $50.02, so $50.01, where
+unrounded arithmetic gives $50.02 (`tests/fbt_property.rs`).
+
+Item 23D example 9: a $500 debt, principal and interest, waived: **$500.00**,
+which as a type 2 value grosses up to `500 × 1.8868 = 943.40`, item 14B
+**$943**. The guide's 8.2: a $1,000 loan released is **$1,000.00**, and with
+$100 of accrued interest also waived **$1,100.00**. The Act gives the amount
+waived and nothing against it (s 15), and item 23D leaves the contribution and
+reduction columns blank, so the worksheet takes no other input.
+
+## FBT expense payment
+
+Item 23E example 10: a $1,200 telephone bill paid, 60% for business: GD
+`1200 × 0.6 = 720`, so **$480.00**. The guide's 9.4: $500 spent, 80%
+deductible, $250 reimbursed without regard to use: GD `400` less RD
+`(500 − 250) × 0.8 = 200` is a notional deduction of `200`, for **$50.00**; $350
+reimbursed for the business part: RD `400 − 350 = 50`, ND `350`, **nil**. The
+operator gives RD, since the guide's step 3 works it out differently by how the
+reimbursement was set; the worksheet refuses one above the recipient's portion
+(s 136(1)), the expenditure the employee bore. The guide's 9.3 in-house
+petrol: the retailer bought it from the employer for $800 (s 42(1)(b), the
+lesser of that and the $1,000 notional value), less the recipient's portion
+`1000 − 250 = 750`, **$50.00**, and nil once the employee's unused $1,000 s 62
+reduction applies. ¶3-240 (review date 30 June 2026): an associate's $10,000
+HELP debt reimbursed is **$10,000.00**, type 2, `18,868.00` grossed up; ¶3-340:
+$35,000 of mortgage and $24,000 of childcare reimbursements, `59000 × 1.8868`,
+item 14B **$111,321**.
+
+s 22A(1)(b) makes the recipient's expenditure less the provider's portion
+(the payment less the contribution, or the reimbursement) the notional
+contribution, so one formula serves a payment and a reimbursement, with a
+contribution of 0.00 for a reimbursement. The otherwise deductible rule for an
+in-house expense payment (s 24(1)(b)(i)) measures the gross expenditure 'but
+for ... the recipients contribution', which the guide does not work through,
+so it is left out rather than guessed. s 22A(2) values in-house residual
+expense payments by the residual benefit rules (ss 48 and 49), which these
+worksheets do not take.
+
+## FBT property
+
+The guide's 17.3: identical goods sold to wholesalers for $1,000 less 5% for
+early payment, **$950.00**; a desk at a lowest public price of $900 sold to an
+employee for $500, `0.75 × 900 − 500`, **$175.00**; a damaged racquet worth $30
+sold for $5, `0.75 × 30 − 5`, **$17.50**; a television bought for $500, retailed
+at $750 and sold for $400, **$100.00**. 17.5: $500 of goods, $250 paid, 80%
+work use: GD `400` less RD `200`, **$50.00**; with the contribution set for 50%
+use, RD `150`, **nil**. Item 23K example 14: a $2,000 television and a $1,600
+air conditioner at 75%, `2700 − 300 − 1000`, **$1,400.00**, type 1 `2912.28`,
+item 14A **$2,912**. ¶3-260 (review date 30 June 2026): a $2,000 television
+bought for $1,800 is nil with a $300 excess; a $1,200 sound bar bought for
+$600 is **$300.00**, nil after the $1,000 reduction; a $4,000 desktop with the
+$700 of reduction left is **$2,300.00**, Jenny's total.
+
+Item 23K example 14, an electrical retailer's television and air
+conditioner, and ¶3-260 take 75% of the lowest price to the public without
+saying that the provider made the goods. s 42(1)(a)(ii), as compiled, gives 75%
+of that price only for property the provider manufactured, produced, processed
+or treated; for property it acquired, s 42(1)(b) gives the lesser of the arm's
+length price and the notional value (`in_house_acquired`). The worksheet
+applies the rule its `method` names, and the tests apply
+`in_house_public_price` to reproduce those examples' figures. The
+otherwise deductible rule comes before s 62: s 44 gives the taxable value 'but
+for Division 14', and s 62 is in Division 14. Benefits provided jointly to an
+employee and an associate (s 44(5), the guide's 17.5A) are not covered.
+
+## FBT residual
+
+These 5 worksheets were added on 15 November 2026. Their sources were read
+that afternoon, 12.43 pm to 12.52 pm AEDT: the FBTAA as compiled on 1 July 2026
+(C2004A03280, compilation 97, EPUB documents 1 and 2, with the alternative text
+of their formula images), chapters 10, 11, 13, 15 and 18 of 'Fringe benefits
+tax - a guide for employers' (current version 22 November 2024), the ATO's FBT
+rates and thresholds page (last updated 20 May 2026) and the FBT return 2026
+instructions' item 23 page. `tests/fbt_residual.rs`, `tests/fbt_housing.rs`,
+`tests/fbt_lafha.rs`, `tests/fbt_board.rs` and
+`tests/fbt_tax_exempt_body_entertainment.rs` hold each case.
+
+Item 23M example 16: a utility with $8,000 of operating costs used 25%
+privately, `8000 - 6000 = 2000`, **$2,000.00**, the business use taken off as
+the otherwise deductible reduction. The guide's 18.4: an employee of a rental
+store hires a video recorder the public rents for $100 and pays $50, `0.75 ×
+100 - 50 = 25`, **$25.00** before the s 62 reduction. Its 18.7: $500 of hired
+goods, a $250 contribution and 80% income use; GD `400` less RD `200` gives
+`250 - 200 = 50`, **$50.00**, and with RD limited to `150` the value is nil. Its
+18.6 vehicle example prints `($20,080 × 10%) - $0 = $2,080`; 10% of $20,080
+is `2008`, and the test asserts **$2,008.00**. The same example gives 5,200
+kilometres as both the private and the total travel, so its 10% private use
+does not follow from its facts.
+
+## FBT housing
+
+Item 23F example 11: a market rent of $41,600 for the year less $5,200 rent,
+**$36,400.00**. The guide's 10.5: $11,820 for 274 days of the base year is a
+statutory annual value of `11820 × 365 / 274 = 15745.62`; indexed by NSW's
+1.040 for 2027, `16375.44`, for 91 days `4082.64`; unrounded arithmetic,
+`16375.4448` for 91 days, would give $4,082.65. Its single-employee example,
+$5,200 for 121 days, prints `$5,200 ÷ 121 × 365 = $15,687.70`, the figure the daily rate gives when rounded to cents first;
+s 26(2)(a)'s formula, the market value times the days in the year over the
+whole days of the tenancy, gives `5200 × 365 / 121 = 15685.95`, which the test
+asserts. The Act does not round the statutory annual value; the worksheet
+rounds it to cents because `prior_statutory_annual_value` is taken in cents.
+The guide's later years, at the earlier factors it uses, give its $4,040.17
+and $11,088.60 whether or not the value is rounded. ¶3-120 (review
+date 30 June 2026): $350 a week for 39 weeks less $50 a week, **$11,700.00**.
+The indexation factors are the rates page's for each State and Territory for
+2026 and 2027; `tests/fbt_housing.rs` checks all 16.
+
+## FBT LAFHA
+
+Item 23G example 12: $591 a week, $350 for accommodation and $241 for food, the
+first 40 weeks reducible: `23640 - 14000 - (9640 - 1680) = 1680`; the other 12
+weeks' $7,092 is taxed whole (s 31B), for the year's **$8,772.00**. The guide's
+11.6 examples give **$0**, **$140**, **$80** and **$147** a week, and its 11.5
+Steve and Helen example an exempt accommodation component of $225 each.
+¶3-160 and ¶3-180 (review date 30 June 2026): $850 and $700 a week, each with
+$200 for total food costs, both **$42.00**.
+
+## FBT board
+
+Item 23J example 13: board valued at **$21,900.00**, 10,950 meals at $2. The
+guide's 13.2: $6 a day towards 3 meals takes each day's value to nil.
+
+## FBT tax-exempt body entertainment
+
+Item 23L example 15: a council's Christmas function, **$5,000.00**. The guide's
+15.9: Mary entertains 3 clients and is reimbursed; her share per head is 1 of
+4, 25%.
+
 ## Main residence
 
 This worksheet was added on 1 November 2026; its example evidence was read
@@ -273,6 +551,41 @@ deducted (s 25-25(3), note). No source settles when 5 years from 29 February
 end, so a loan first drawn that day is refused. Treasury Laws Amendment (Tax
 Reform No. 1) Act 2026, Schedule 2 item 5, applies s 26-155 from the 2027-28
 income year, so later years are refused.
+
+## Hire purchase schedule
+
+This worksheet was added on 15 November 2026. ITAA 1997 ss 240-17, 240-55 and
+240-60 were read that day on the ATO's legal database and in compilation 268
+(1 October 2026) on the Federal Register of Legislation. Section 240-60(1)'s
+method statement adds earlier notional interest to the notional loan
+principal (step 1), subtracts arrangement payments made or due (step 2), works
+out the implicit interest rate for the period from the payments and any
+termination amounts (step 3, as substituted by No 79 of 2010 from 1 July 2010)
+and multiplies (step 4). The worksheet takes each month as an arrangement
+payment period, so an instalment in advance is due at the start of its month
+and comes off before the month's interest. It finds the rate by halving 0 to
+100% a month 64 times on the sign of the balance left after the last payment,
+which is nil at the implicit rate, negative below it and positive above it,
+and refuses where that balance does not then round to nil.
+
+`tests/hire_purchase.rs` holds these cases. The ATO's pages and the Library
+give no worked hire purchase schedule. LodgeiT Labs' public repository
+(`lodgeit-labs/clawdog-calculator-api`, `tests/fixtures/hp/anchors_v1_4.json`
+at e00f6f87, read on 15 November 2026) publishes 4 schedules from LodgeiT's
+printed hire purchase reports, each at a stated nominal rate and leaving a
+residual; its `hp:schedule` OpenAPI document and `llms.txt` give no example.
+The last 2 rows below take 2 of those agreements' payments.
+
+| Case | Source | Worksheet |
+| --- | --- | --- |
+| $1,000 financed, $100 a month in arrears for 2 months, $1,000 balloon | Worked by hand: 10% of $1,000 is each $100 instalment | 10% a month; $100.00 interest each month |
+| $1,000 financed, $100 a month in advance for 2 months, $979 balloon | Worked by hand: ($1,000 - $100) × 10% = $90; ($990 - $100) × 10% = $89 | 10% a month; $90.00 and $89.00 |
+| $45,000 financed, $850 a month in arrears for 60 months, $5,000 balloon | Fabricated; an independent calculation from the payments' present value to 60 digits | 0.0068669766960432 a month; first month $309.01, last $39.90; $11,000.00 in all |
+| The same, in advance | As above | 0.0070812410136161 a month; first month $312.64, last $35.16 |
+| $10,000 financed, $500 a month in arrears for 24 months | As above | 0.0151308439023100 a month; first month $151.31, last $7.45; $2,000.00 in all |
+| $1,000 financed, one $1,050 instalment in arrears; and $100 in advance with a $945 balloon | Worked by hand: 5% of $1,000 is $50; ($1,000 - $100) × 5% = $45 | 5% a month; $50.00 and $45.00 |
+| LodgeiT hp/290: $180,630.00 financed, $3,346.99 a month in arrears for 60 months, stated 4.25% a year | LodgeiT's report: first month $639.73, last $11.81, $20,189.64 in all and $0.24 left | 4.25% a year to 2 places; first month within 2 cents, last $11.81; $20,189.40 in all, nil left |
+| LodgeiT hp/235: $252,450.00 financed, 59 instalments of $3,893.76 and a $53,893.16 balloon, stated 3.99% a year | LodgeiT's report: first month $839.40, last $178.60, $31,175.69 in all and $0.69 left | 3.99% a year to 2 places; first month within 2 cents, last $178.60; $31,175.00 in all, nil left |
 
 ## Depreciation
 
@@ -386,6 +699,34 @@ transcription; it does not establish that a payee's scale, allowances or
 declarations are right. Bi-monthly, daily and casual pays, a Medicare levy
 variation that increases withholding, study and training support loans and the
 other schedules are outside this worksheet.
+
+## PAYG gross-up
+
+Schedule 1 states how much to withhold from a gross pay, not which gross leaves
+a given net, so this worksheet has no rule of its own to cite: it takes every
+amount from the PAYG withholding worksheet above, whose evidence applies. A
+gross `g` leaves a net `n` when `g - withholding(g) = n`. Withholding is a whole
+number of dollars, so `g` is `n` plus a whole-dollar `w` with
+`withholding(n + w) = w`. As pay rises a cent, withholding never falls
+(`tests/properties.rs` checks every bracket edge), so the net rises by at most a
+cent and every net from $0 has a gross; but it can rise by a dollar, and then
+2 grosses leave the same net. The search repeats `w = withholding(n + w)` from
+0 up to the least such `w` and from a bound down to the greatest, then tests
+each `w` between. The bound is `n + 52`: every Schedule 1 coefficient `a` is at
+most 0.47 and every `b` at least -1 (the lowest is -0.6702, scale 1 for 2024-25
+and 2025-26), and scale 4 withholds at most 47%, so a week's amount is at most
+`0.47 x + 1.50` after rounding and withholding on a gross `g` at most
+`g / 2 + 26`, the 26 covering a quarter's 13 weeks of that $1.50 and of 47% of
+the 99 cents added to weekly earnings; `tests/payg_gross_up.rs` checks those
+coefficients.
+
+For each row of the ATO's sample data used above (48 earnings points for each
+of 3 pay periods on scales 1, 2, 3, 5 and 6, for both schedules), the tests
+take the row's earnings less its withholding as the net and require the
+worksheet to return the row's earnings or to refuse a tie whose list names
+them. `tests/properties.rs` grosses up random nets on every scale, pay period
+and year, and requires each gross listed to leave the net and no other within
+$60 of withholding either side of them to.
 
 ## Medicare levy
 
@@ -1038,9 +1379,36 @@ coefficients for both years.
   (NAT 1010), whose figures are Schedule 1's, so the worksheet does not take
   that either.
 - A payee without a TFN has 47% or 45% withheld, as Schedule 1 scale 4 does;
-  study and training support loans, the extra Schedule 13 calculation for a
-  super income stream and lump sum leave loading (Schedule 5) are outside the
-  worksheet.
+  the extra Schedule 13 calculation for a super income stream and lump sum
+  leave loading (Schedule 5) are outside the worksheet.
+- Study and training support loans. Read on 15 November 2026: both ATO
+  Schedule 9 pages say that a payee with a HELP, VSL, FS, SSL or AASL debt may
+  need additional amounts withheld and, 'To calculate additional withholding
+  amounts', to 'refer to Study and training support loans weekly tax table'
+  (Schedule 9 of F2026L00716 has the first sentence but not the referral).
+  That table (NAT 2173, published 17 June 2026; for 24 September 2025 to
+  30 June 2026, last updated 9 September 2025) says to work out the withholding
+  amount, add the component from column 2 for a payee claiming the tax-free
+  threshold, and use Schedule 8's formulas in software. A Schedule 9 payee has
+  answered yes at question 5 of the Withholding declaration or its short
+  version, which both ask whether they claim the tax-free threshold, so the
+  worksheet uses Schedule 8's 'Tax-free threshold claimed or foreign resident'
+  rates. Schedule 8 (F2026L00716 and the ATO page, both read the same day) takes
+  x, the weekly earnings in whole dollars plus 99 cents, with the same
+  fortnightly and monthly conversions as Schedule 9, and withholds no component
+  for a Medicare levy variation declaration claiming a reduction or exemption
+  'for having a spouse or dependants and low family income'; that declaration's
+  exemption categories (questions 5 to 7) are separate from its family income
+  reduction (questions 8 to 10), so a full or half exemption keeps the
+  component, and the worksheet's `study_loan` description tells the caller to
+  omit it for a reduction. 2025-26 uses F2025L01016's rates from 24 September
+  2025, as `study-loan-withholding` does; the 2024-26 Schedule 9 page links to
+  the 2024-25 weekly table, whose percentage method this crate does not hold,
+  so 2024-25 and earlier 2025-26 pays are refused. All 2,616 rows of the table
+  from 1 July 2026 ($985 to $3,600), column 2, equal Schedule 8's formula, and
+  `tests/seniors_pensioners_study_loan.rs` checks them through this worksheet
+  with each status, with the tables' $1,816.23 example ($72, and $79 from
+  24 September 2025), Schedule 8's examples 1 and 2 and each rate's boundary.
 
 `tests/seniors_pensioners.rs` holds the worksheet to the schedules' worked
 example and to every row of the weekly tax table in each schedule's PDF:
@@ -1123,11 +1491,13 @@ loan repayment thresholds and rates" (last updated 30 June 2026, read on 27
 September 2026), tables 1 (2026-27) and 2 (2025-26), and the 2026-27 minimum
 repayment income of $69,528 and replacement indexable amount of $129,717 were
 checked against Gazette C2026G00249 of 20 April 2026, made under HESA 2003
-ss 154-10 and 154-20. The ATO has since moved and retitled the page "Study and
-training loan minimum repayment income and rates" (last updated 13 October
-2026), which now says "minimum repayment income" where it said "repayment
-threshold". Read again on 20 October 2026, its tables and examples print the
-same figures. The frozen replay in `tests/parity.rs` holds the worksheet to the
+ss 154-10 and 154-20. The page has since moved to
+<https://www.ato.gov.au/tax-rates-and-codes/study-and-training-loan-minimum-repayment-income-and-rates>.
+Read there on 15 November 2026, it keeps the title "Study and training loan
+repayment thresholds and rates", last updated 30 June 2026, and its tables and
+examples print the same figures. Its example 3, for 2026-27, compares
+$254,780 with the 2025-26 threshold of $179,286 rather than 2026-27's
+$186,051; the repayment is 10% either way. The frozen replay in `tests/parity.rs` holds the worksheet to the
 page's examples 1 and 3 ($86,380 gives $2,527.80; $254,780 gives $25,478.00)
 and to every band boundary in both years.
 
@@ -1190,6 +1560,62 @@ after 1 June (cl 4) and rounds any amount under the Schedule to the nearest $10,
 an exact $5 rounding up (cl 5). Because cl 3 pro-rates the factor, the engine
 rounds once, after pro-rating. The transition to retirement 10% maximum and the
 other pension schedules are outside this worksheet.
+
+## Personal tax estimate
+
+`personal-tax-estimate` adds no rate or threshold: each amount is a
+worksheet's own, and the tests check the composition. Read on 15 November
+2026: ITAA 1997 s 63-10 on the ATO legal database, whose table applies the
+seniors and pensioners tax offset (item 5) before any offset not covered by
+another item (item 20, the low income tax offset) against basic income tax
+liability; the ATO's "Low income tax offset" (last updated 8 June 2026), which
+says the offset "can only reduce your tax payable to $0"; and its "Division 293
+tax on concessional contributions by high-income earners" (last updated
+24 August 2026), under which the ATO sends a separate Division 293 notice.
+
+The foreign income tax offset rules guides for 2025 (2024-25, last updated 29
+May 2025) and 2026 (2025-26, last updated 30 May 2026) give, at step 1 of
+examples 16 and 17, the tax on a taxable income including the Medicare levy
+and disregarding offsets: $16,388 on $80,000, $9,988 on $60,000 and $260.80 on
+$19,830 in both years. The estimate's basic tax and levy give the same, and its
+total then takes off the low income tax offset: $100 at $60,000
+(`325 - 0.015 × 15000`) and all $260.80 at $19,830, where the $700 offset
+leaves nil. Anna's $31,130 is the exception. The 2026 guide gives $2,459.60:
+$2,068.80 tax and a levy of 10% of the excess over $27,222, the 2024-25
+threshold. For 2025-26 the threshold is $28,011, so the estimate gives a
+$311.90 levy and $2,380.70. The 2025 guide's $2,581.80 for 2024-25 likewise
+applies 2023-24's $26,000.
+
+Tom ("Medicare levy surcharge income, thresholds and rates", 2026-27) pays a
+$1,170 surcharge on $90,000 taxable income and $27,000 reportable fringe
+benefits; the estimate adds it to $17,520 tax and a $1,800 levy, $20,490 in
+all. José ("Seniors and pensioners tax offset", last updated 2 October 2026,
+2025-26) has a $1,720 offset on $39,000 rebate income. Taking that as his
+taxable income too, a fabricated assumption, the offset comes off $3,328 tax
+first, the low income tax offset of `700 - 0.05 × 1500 = 625` next, and his
+levy is nil at the SAPTO thresholds, where it would be $780 without them.
+
+For a full-year foreign resident the estimate runs `foreign-resident-tax`.
+Read on 15 November 2026: ITAA 1997 s 61-110(1)(a) gives the low income tax
+offset only to an individual resident at any time in the year; ITAA 1936
+s 251S(1)(a) levies the Medicare levy only on the taxable income of a person
+resident at any time in the year, and the surcharge is an increase in that
+levy (Medicare Levy Act 1986 ss 8B to 8D); and the ATO's "2026 Non-resident
+foreign income" instructions say a foreign resident's study loan repayment may
+be a compulsory repayment, an overseas levy or both, depending on worldwide
+income. `study-loan-repayment` excludes the overseas levy, so the estimate
+refuses a study loan for a foreign resident. ITAA 1936 s 160AAAA sets no
+residence condition and the ATO's SAPTO page works out a foreign resident
+spouse's unused offset, but a foreign resident with a pension assessable here
+is not a prescribed non-resident (Income Tax Rates Act 1986 s 3(1)) and pays
+resident rates, which
+`foreign-resident-tax` excludes; the estimate composes SAPTO for a resident
+only. ITAA 1997 ss 293-15 and 293-20 set no residence condition, so Division
+293 tax is composed as for a resident. On the ATO's "Tax rates - foreign
+resident" (last updated 1 June 2026), $60,000 in 2025-26 gives $18,000, the
+$19,830 of the guide's example 16 gives $5,949 in 2024-25 where a resident pays
+$260.80 and then nothing after the low income tax offset, and $250,000 gives
+$87,850, with Division 293 tax of 15% of $30,000, $4,500, outside the total.
 
 ## Rechecking the evidence
 

@@ -62,9 +62,9 @@ Missing facts stay unknown: a Payday Super row with a fund-receipt date but no m
   11 August 2026, because NT Picnic Day on 3 August is not a business day. The
   [ATO's worked example](https://www.ato.gov.au/businesses-and-organisations/super-for-employers/paying-super-on-payday/payment-deadlines-for-payday-super)
   gives the same date on the usual 7 business day path. Run and read 5 November 2026.
-- **MCP tools.** Aus Accounting MCP 0.8.0 listed 25 local tools on
-  12 November 2026, including `validate_abn`, `validate_acn` and `get_reviewed_rate`; 0.7.1
-  listed 22. 0.8.0 also adds the `doctor` command.
+- **MCP tools.** Aus Accounting MCP 0.9.0 listed 25 local tools on
+  15 November 2026, including `validate_abn`, `validate_acn` and `get_reviewed_rate`, as
+  0.8.0 did; 0.7.1 listed 22. 0.8.0 added the `doctor` command.
 
 <details>
 <summary>Commands for the Payday Super date and the tool count</summary>
@@ -80,7 +80,7 @@ uvx --from payday-super-checker==0.2.3 payday-super-check quarterly_remittance_2
 This asks the published server for its tools and prints the count, with `jq` installed:
 
 ```bash
-printf '%s\n' '{"jsonrpc":"2.0","id":1,"method":"initialize","params":{"protocolVersion":"2025-06-18","capabilities":{},"clientInfo":{"name":"check","version":"0"}}}' '{"jsonrpc":"2.0","method":"notifications/initialized"}' '{"jsonrpc":"2.0","id":2,"method":"tools/list"}' | uvx --from 'aus-accounting-mcp==0.8.0' aus-accounting-mcp | tail -1 | jq '.result.tools | length'
+printf '%s\n' '{"jsonrpc":"2.0","id":1,"method":"initialize","params":{"protocolVersion":"2025-06-18","capabilities":{},"clientInfo":{"name":"check","version":"0"}}}' '{"jsonrpc":"2.0","method":"notifications/initialized"}' '{"jsonrpc":"2.0","id":2,"method":"tools/list"}' | uvx --from 'aus-accounting-mcp==0.9.0' aus-accounting-mcp | tail -1 | jq '.result.tools | length'
 ```
 
 </details>
@@ -263,7 +263,18 @@ you configure. As read on 13 November 2026, these projects cover nearby ground:
   an optional adapter for the gateway. A
   [differential](apps/lodgeit-calculator-adapter/docs/differential-2026-11-06.md) of 6 November 2026
   ran 12 fabricated Division 7A and FBT car formula cases against the gateway and records each
-  outcome, with differences traced to statute.
+  outcome, with differences traced to statute. Its `hp:schedule` calculator, as its OpenAPI document
+  read on 15 November 2026 describes it, amortises a hire purchase agreement at a stated nominal
+  rate, reports any residual and totals interest by financial year; `hire-purchase-schedule` instead
+  works out the implicit rate from the payments, as ITAA 1997 s 240-60 does, and closes at nil, but
+  leaves the caller to split a month that spans 30 June. On 15 November 2026 the listing held 19 FBT
+  calculators, each for `fy2026` only. This repository's engine values car, loan, meal entertainment
+  (50/50 split and 12 week register), car parking (commercial parking station, average cost and 12
+  week register), debt waiver, expense payment, property, residual, housing, living-away-from-home
+  allowance, board and tax-exempt body entertainment benefits for the FBT years ending 31 March 2026
+  and 2027. Of the listing's 19 FBT calculators, the one it has no counterpart for is car parking's
+  statutory formula (spaces) method (FBTAA s 39FA). It also has no car parking market value basis
+  (s 39D), a value the listing's actual records calculator takes as an input.
 - [AusCalc](https://auscalc.com.au/): free browser calculators for individual and sole trader tax,
   PAYG, GST, super and HECS, which its home page also offers inside ChatGPT and Claude as a plugin.
 - [PayCalculator](https://mcp.paycalculator.com.au/): a remote MCP server in the MCP Registry for
@@ -273,13 +284,26 @@ you configure. As read on 13 November 2026, these projects cover nearby ground:
   13 November 2026, with a local MCP server and a hosted one at `https://aftertaxau.com/mcp` that
   needs no key. Both it and this repository cover Schedule 1 withholding with scale 4, quarterly
   pays, tax offsets and the Medicare levy adjustment, and both test all 432 rows of each year's ATO
-  sample data. It also covers quarterly pays and study loan components under Schedule 9, overtime
-  and an annual tax estimate, which this
-  repository does not. Both apply full and half Medicare levy exemptions and the Medicare levy
+  sample data. It also covers quarterly pays under Schedule 9 and overtime, which this
+  repository does not. Both add the Schedule 8 study loan component to Schedule 9 pays, as
+  rechecked in v0.4.0's source on 15 November 2026; for 2025-26 the library applies the rates
+  from 24 September 2025 when no pay date is given, where this repository requires the date.
+  Both compose a year's tax and levies, as rechecked on
+  15 November 2026: the library's `annual_tax_estimate` works taxable income out from salary and
+  deductions, approximates repayment income and income for surcharge purposes by taxable income,
+  and compares the result with tax withheld, which this repository does not. This repository's
+  `personal-tax-estimate` takes those incomes as established, names the worksheet behind each line
+  and keeps its sources and refusals, shows Division 293 tax, and refuses part-year residents and
+  working holiday makers; both compose a full-year foreign resident's tax without the Medicare
+  levy. Both apply full and half Medicare levy exemptions and the Medicare levy
   surcharge; the library takes a whole-year exemption and cover status only and applies the
   surcharge rate to all income for surcharge purposes, where this repository apportions both by
   days and applies the rate to taxable income and reportable fringe benefits only, as the ATO's
   examples do. The library also covers a sole parent's surcharge, which this repository refuses.
+  Both work back from take-home pay to gross: v0.4.0's `salary_for_take_home`, read on
+  15 November 2026, gives the lowest whole-dollar annual salary whose take-home reaches a target,
+  with any study loan component, and `payg-gross-up` gives the gross of one pay whose withholding
+  leaves the net exactly, without one, listing every gross where more than one does.
   This repository covers 2024-25
   withholding, Schedule 9's Medicare levy exemption scales, Schedule 5 Method B, Schedule 15 for
   working holiday makers and Schedule 11 for termination payments, which the library does not. For
@@ -324,8 +348,8 @@ see the [GST Review schemas](packages/gst-review/README.md).
 
 Prebuilt binaries are not published yet, so install from source as above. Release
 Policy's [`release-binary.yml`](https://github.com/ryanduguid/release-policy/blob/main/docs/binary-consumers.md)
-now publishes Windows and Linux executables to GitHub Releases, without crates.io,
-but no crate here has adopted it.
+now publishes Linux, macOS and Windows executables to GitHub Releases, without
+crates.io, but no crate here has adopted it.
 
 ## Working in a component
 

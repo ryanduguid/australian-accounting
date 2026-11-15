@@ -42,6 +42,37 @@ pub const RESIDENT_TAX_SCALES: &[(&str, &[(i64, Option<i64>, &str)])] = &[
     ),
 ];
 
+/// Foreign resident basic tax scale per income year, in the same form. Income
+/// Tax Rates Act 1986, Schedule 7 Part II clause 1: the second and third
+/// resident personal tax rates (Part I items 2 and 3 for the year) to $135,000
+/// and $190,000, then 45%, from $0, for the 2024-25 and later years.
+pub const FOREIGN_RESIDENT_TAX_SCALES: &[(&str, &[(i64, Option<i64>, &str)])] = &[
+    (
+        "2024-25",
+        &[
+            (0, Some(135000), "0.30"),
+            (135000, Some(190000), "0.37"),
+            (190000, None, "0.45"),
+        ],
+    ),
+    (
+        "2025-26",
+        &[
+            (0, Some(135000), "0.30"),
+            (135000, Some(190000), "0.37"),
+            (190000, None, "0.45"),
+        ],
+    ),
+    (
+        "2026-27",
+        &[
+            (0, Some(135000), "0.30"),
+            (135000, Some(190000), "0.37"),
+            (190000, None, "0.45"),
+        ],
+    ),
+];
+
 /// Schedule 1 (NAT 1004) weekly coefficients for payments from 1 July 2024 to
 /// 30 June 2026.
 const SCHEDULE_1_FROM_JULY_2024: &[(i64, &[CoefficientRow])] = &[
@@ -182,7 +213,9 @@ pub const PAYG_WITHHOLDING_COEFFICIENTS: &[(&str, &[(i64, &[CoefficientRow])])] 
 /// weekly earnings, formula 1 is (x - `formula_1_less`) x `shade_in_rate` below
 /// `shade_in`, formula 2 is x x `levy_rate` below the weekly family threshold
 /// (WFT), and formula 3 is WFT x `levy_rate` - (x - WFT) x `shade_out_rate`
-/// below the shading out point.
+/// below the shading out point, WFT x the first of `shading_out_point` / the
+/// second in whole dollars (the 'Medicare levy parameters' table's multiplier
+/// and divisor).
 pub struct MedicareScale {
     pub threshold: i64,
     pub formula_1_less: &'static str,
@@ -190,6 +223,7 @@ pub struct MedicareScale {
     pub shade_in_rate: &'static str,
     pub levy_rate: &'static str,
     pub shade_out_rate: &'static str,
+    pub shading_out_point: (&'static str, &'static str),
 }
 
 /// The rules of one Schedule 1 beside its coefficients.
@@ -198,8 +232,7 @@ pub struct Schedule1Rules {
     pub no_tfn_rates: (&'static str, &'static str),
     /// Share of the yearly tax offsets claimed that each pay is reduced by.
     pub tax_offset_rates: [(&'static str, &'static str); 4],
-    /// WFT = (family threshold + per child x children) / 52, to the cent; the
-    /// shading out point is WFT x 0.1 / 0.08 in whole dollars.
+    /// WFT = (family threshold + per child x children) / 52, to the cent.
     pub family_threshold: i64,
     pub family_threshold_per_child: i64,
     pub medicare_scales: [(i64, MedicareScale); 2],
@@ -233,6 +266,7 @@ const SCHEDULE_1_RULES_FROM_JULY_2024: Schedule1Rules = Schedule1Rules {
                 shade_in_rate: "0.1",
                 levy_rate: "0.0200",
                 shade_out_rate: "0.0800",
+                shading_out_point: ("0.1000", "0.0800"),
             },
         ),
         (
@@ -244,6 +278,7 @@ const SCHEDULE_1_RULES_FROM_JULY_2024: Schedule1Rules = Schedule1Rules {
                 shade_in_rate: "0.05",
                 levy_rate: "0.0100",
                 shade_out_rate: "0.0400",
+                shading_out_point: ("0.0500", "0.0400"),
             },
         ),
     ],
@@ -267,6 +302,7 @@ const SCHEDULE_1_RULES_FROM_JULY_2026: Schedule1Rules = Schedule1Rules {
                 shade_in_rate: "0.1",
                 levy_rate: "0.0200",
                 shade_out_rate: "0.0800",
+                shading_out_point: ("0.1000", "0.0800"),
             },
         ),
         (
@@ -278,6 +314,7 @@ const SCHEDULE_1_RULES_FROM_JULY_2026: Schedule1Rules = Schedule1Rules {
                 shade_in_rate: "0.05",
                 levy_rate: "0.0100",
                 shade_out_rate: "0.0400",
+                shading_out_point: ("0.0500", "0.0400"),
             },
         ),
     ],
@@ -777,6 +814,52 @@ pub const CARRY_FORWARD_BALANCE_LIMIT: &str = "500000";
 /// worksheets' supported years; the 20% statutory rate applies in each.
 pub const FBT_BENCHMARK_INTEREST_RATES: &[(&str, &str)] = &[("2026", "0.0862"), ("2027", "0.0827")];
 
+/// Car parking threshold by FBT year ended 31 March, from the ATO's FBT rates
+/// and thresholds page, read on 15 November 2026: the ATO publishes it there
+/// and not in a taxation determination. Its keys are the car parking
+/// worksheet's supported years.
+pub const FBT_CAR_PARKING_THRESHOLDS: &[(&str, &str)] = &[("2026", "11.03"), ("2027", "11.48")];
+
+/// The in-house property inputs the expense payment and property worksheets
+/// share: they take them only under the in-house methods.
+const FBT_LOWEST_PRICE: &str = "AUD, in_house_trade_price and in_house_public_price only and required there: the lowest price at which the provider sold identical property it manufactured, produced, processed or treated, at or about the provision time under an arm's length transaction, to manufacturers, wholesalers or retailers (FBTAA s 42(1)(a)(i)), or failing any such sale the lowest it could reasonably be expected to have sold it for, or to members of the public in similar circumstances (s 42(1)(a)(ii))";
+const FBT_ARMS_LENGTH_PRICE: &str = "AUD, in_house_acquired only and required there: the provider's cost price for property it acquired in the ordinary course of business under an arm's length transaction, otherwise what it could reasonably be expected to have paid under one (FBTAA s 42(2))";
+const FBT_IN_HOUSE_REDUCTION: &str = "AUD from 0 to 1000.00, every in-house method but in_house_salary_packaging and required there: the part of the employee's $1,000 in-house reduction for the FBT year (FBTAA s 62) their other in-house fringe benefits have not used; 1000.00 for their only in-house fringe benefit";
+
+/// Housing indexation factors by FBT year ended 31 March and State or
+/// Territory (FBTAA s 28), from Table 11 of the ATO's FBT rates and thresholds
+/// page (last updated 20 May 2026), read on 15 November 2026: the ATO
+/// publishes them there and not in a taxation determination. Its keys are the
+/// housing worksheet's supported years.
+pub const FBT_HOUSING_INDEXATION: &[(&str, [(&str, &str); 8])] = &[
+    (
+        "2026",
+        [
+            ("NSW", "1.076"),
+            ("VIC", "1.066"),
+            ("QLD", "1.076"),
+            ("SA", "1.060"),
+            ("WA", "1.100"),
+            ("TAS", "0.988"),
+            ("NT", "1.031"),
+            ("ACT", "1.010"),
+        ],
+    ),
+    (
+        "2027",
+        [
+            ("NSW", "1.040"),
+            ("VIC", "1.044"),
+            ("QLD", "1.051"),
+            ("SA", "1.051"),
+            ("WA", "1.073"),
+            ("TAS", "0.999"),
+            ("NT", "1.029"),
+            ("ACT", "1.007"),
+        ],
+    ),
+];
+
 /// SISR Schedule 7 factors as (lowest age, factor), oldest band first.
 pub const PENSION_MINIMUM_FACTORS: [(i64, &str); 7] = [
     (95, "0.14"),
@@ -798,12 +881,22 @@ pub fn supported_periods(kind: &str) -> Vec<&'static str> {
         "gst" | "capital_gains" | "depreciation" => vec!["2025-26", "2026-27"],
         "quarterly_sg" => vec!["2025-26"],
         "resident_tax" => keys(RESIDENT_TAX_SCALES),
+        "foreign_resident_tax" => keys(FOREIGN_RESIDENT_TAX_SCALES),
         "main_residence" => vec!["2024-25", "2025-26", "2026-27"],
         // s 26-155 quarantines residential rental deductions from 2027-28.
-        "borrowing_expenses" => vec!["2024-25", "2025-26", "2026-27"],
+        "borrowing_expenses" | "hire_purchase_schedule" => vec!["2024-25", "2025-26", "2026-27"],
         "fbt" => vec!["2026", "2027"],
-        "fbt_car_statutory" | "fbt_car_operating_cost" => keys(FBT_BENCHMARK_INTEREST_RATES),
-        "payg_withholding" => keys(PAYG_WITHHOLDING_COEFFICIENTS),
+        "fbt_car_statutory" | "fbt_car_operating_cost" | "fbt_loan" => {
+            keys(FBT_BENCHMARK_INTEREST_RATES)
+        }
+        // The methods use no published rate; the years are those the ATO's
+        // return instructions and rates page were read for.
+        "fbt_meal_entertainment" => vec!["2026", "2027"],
+        "fbt_car_parking" => keys(FBT_CAR_PARKING_THRESHOLDS),
+        // No published rate; the years are those the ATO's return
+        // instructions and guide were read for.
+        "fbt_debt_waiver" | "fbt_expense_payment" | "fbt_property" => vec!["2026", "2027"],
+        "payg_withholding" | "payg_gross_up" => keys(PAYG_WITHHOLDING_COEFFICIENTS),
         "contribution_caps" => keys(CONTRIBUTION_CAPS),
         "pension_minimum" => vec!["2024-25", "2025-26", "2026-27"],
         "study_loan_repayment" => keys(STUDY_LOAN_REPAYMENT_THRESHOLDS),
@@ -822,6 +915,12 @@ pub fn supported_periods(kind: &str) -> Vec<&'static str> {
         // The years checked against the regulations; the thresholds follow each
         // year's Schedule 7 rates, but a new year needs its own review.
         "seniors_pensioners_tax_offset" => vec!["2024-25", "2025-26", "2026-27"],
+        // The years the ATO's return instructions and employer's guide were
+        // read for; housing's indexed method also takes the year's factors.
+        "fbt_residual" | "fbt_lafha" | "fbt_board" | "fbt_tax_exempt_body_entertainment" => {
+            vec!["2026", "2027"]
+        }
+        "fbt_housing" => keys(FBT_HOUSING_INDEXATION),
         _ => Vec::new(),
     }
 }
@@ -833,6 +932,10 @@ pub fn source_review(kind: &str) -> (&'static str, &'static str) {
         "resident_tax" => (
             "2026-09-10",
             "Income Tax Rates Act 1986, Schedule 7 Part I clause 1",
+        ),
+        "foreign_resident_tax" => (
+            "2026-11-14",
+            "Income Tax Rates Act 1986 s 3(1) (prescribed non-resident, second and third resident personal tax rates) and Schedule 7 Parts I and II clause 1, compilations 63, 65 and 66; ATO Tax rates - foreign resident, 2024-25 and 2025-26; ITAA 1936 s 251S(1); ITAA 1997 s 61-110(1)",
         ),
         "capital_gains" => (
             "2026-09-10",
@@ -850,6 +953,10 @@ pub fn source_review(kind: &str) -> (&'static str, &'static str) {
             "2026-11-04",
             "ITAA 1997 s 25-25 and s 26-50, compilation 268 (1 October 2026); Borrowing expenses: the Peter and the Fiona and Max examples",
         ),
+        "hire_purchase_schedule" => (
+            "2026-11-15",
+            "ITAA 1997 s 240-17 (the hirer under a hire purchase agreement is the notional buyer), s 240-55 (arrangement payments) and s 240-60 (notional interest: the method statement and the apportionment of a period spanning income years)",
+        ),
         "fbt_car_statutory" => (
             "2026-10-29",
             "Fringe benefits tax - a guide for employers, 7.8 statutory formula method and examples 23 and 26; FBT return 2026 instructions, item 23A and example 6; Electric cars exemption, reportable fringe benefits",
@@ -857,6 +964,30 @@ pub fn source_review(kind: &str) -> (&'static str, &'static str) {
         "fbt_car_operating_cost" => (
             "2026-11-06",
             "Fringe benefits tax - a guide for employers, 7.9 operating cost method and example 31; FBT return 2026 instructions, item 23B and example 7; FBT rates and thresholds, benchmark interest rate; Electric cars exemption, reportable fringe benefits; Income Tax Assessment (Effective Life of Depreciating Assets) Determination 2025 (LI 2025/20, F2025L01097) and TR 2022/1, Table B, effective lives of cars",
+        ),
+        "fbt_loan" => (
+            "2026-11-15",
+            "FBTAA ss 16 to 19 and s 136(1), notional amount of interest and statutory interest rate, compilation 97 (1 July 2026); Fringe benefits tax - a guide for employers, 8.5 and 8.8 and their examples; FBT return 2026 instructions, item 23C and example 8; FBT rates and thresholds, statutory or benchmark interest rate; Loan and debt waiver fringe benefits",
+        ),
+        "fbt_meal_entertainment" => (
+            "2026-11-15",
+            "FBTAA ss 37AB, 37BA, 37CB and 37CD, compilation 97 (1 July 2026); Fringe benefits tax - a guide for employers, 14.8 methods of valuing meal entertainment; FBT return 2026 instructions, item 23P and example 18",
+        ),
+        "fbt_car_parking" => (
+            "2026-11-15",
+            "FBTAA ss 39A, 39C, 39DA, 39E and 39GB to 39GF, compilation 97 (1 July 2026); Fringe benefits tax - a guide for employers, chapter 16, examples 12, 13, 15 and 17 and the 12 week register steps; FBT return 2026 instructions, item 23N and example 17; FBT rates and thresholds, car parking threshold; Car parking and FBT",
+        ),
+        "fbt_debt_waiver" => (
+            "2026-11-15",
+            "FBTAA ss 14 and 15, compilation 97 (1 July 2026); Fringe benefits tax - a guide for employers, 8.1 and 8.2; FBT return 2026 instructions, item 23D and example 9; Loan and debt waiver fringe benefits",
+        ),
+        "fbt_expense_payment" => (
+            "2026-11-15",
+            "FBTAA ss 20, 22A, 23, 24 and 62 and s 136(1), providers portion and recipients portion, compilation 97 (1 July 2026); Fringe benefits tax - a guide for employers, 9.2 to 9.4 and their examples, 17.3 and 19.5; FBT return 2026 instructions, item 23E and example 10",
+        ),
+        "fbt_property" => (
+            "2026-11-15",
+            "FBTAA ss 40, 42, 43, 44 and 62 and s 136(1), notional value, compilation 97 (1 July 2026); Fringe benefits tax - a guide for employers, 17.2 to 17.5 and their examples and 19.5; FBT return 2026 instructions, item 23K and example 14",
         ),
         "depreciation" => (
             "2026-11-13",
@@ -866,7 +997,7 @@ pub fn source_review(kind: &str) -> (&'static str, &'static str) {
             "2026-09-10",
             "Super guarantee, tables 21 and 24, 2025-26 rows",
         ),
-        "payg_withholding" => (
+        "payg_withholding" | "payg_gross_up" => (
             "2026-11-14",
             "Schedule 1 (NAT 1004) for payments from 1 July 2026, and for payments from 1 July 2024 to 30 June 2026: weekly coefficients and scale 4, using a formula (rounding and the 53 and 27 pay tables), working out the weekly earnings (quarterly pays and tax offsets), Medicare levy adjustment, examples of calculating the withholding amounts, sample data",
         ),
@@ -919,12 +1050,32 @@ pub fn source_review(kind: &str) -> (&'static str, &'static str) {
             "Schedule 15 (working holiday makers) for payments from 1 July 2026 and for payments from 1 July 2024 to 30 June 2026: using this schedule, working out the withholding amount, registered and unregistered employers, using a formula, Table A, examples 1 and 2, rounding and TFN declarations",
         ),
         "seniors_pensioners_withholding" => (
-            "2026-11-14",
-            "Schedule 9 (NAT 4466, seniors and pensioners) for payments from 1 July 2026 and for payments from 1 July 2024 to 30 June 2026: using this schedule, working out the withholding amount and its example, calculating fortnightly or monthly withholding amounts, using a formula and the coefficients for scales 1 to 9, rounding, claiming tax offsets, Medicare levy exemptions and adjustments, and the weekly tax table",
+            "2026-11-15",
+            "Schedule 9 (NAT 4466, seniors and pensioners) for payments from 1 July 2026 and for payments from 1 July 2024 to 30 June 2026: using this schedule, working out the withholding amount and its example, calculating fortnightly or monthly withholding amounts, using a formula and the coefficients for scales 1 to 9, rounding, claiming tax offsets, Medicare levy exemptions and adjustments, study and training support loan debts, and the weekly tax table; the study and training support loans weekly tax table it refers to (NAT 2173, from 1 July 2026 and from 24 September 2025) with Schedule 8's component rates and conversions",
         ),
         "seniors_pensioners_tax_offset" => (
             "2026-11-14",
             "ITAA 1936 ss 6(1) (rebate income) and 160AAAA, compilation 193 (1 October 2026); Income Tax Assessment (1936 Act) Regulations 2025 ss 4 and 9 to 12 and 23 (F2025L01060), and the Income Tax Assessment (1936 Act) Regulation 2015 ss 4 and 9 to 12, compilation 8; ATO Seniors and pensioners tax offset: income limits, rates and thresholds for 2025-26, tax offset reduction and rounding, examples and transferring unused SAPTO with example 9; Do you need to lodge a tax return? 2025, reason 2",
+        ),
+        "fbt_residual" => (
+            "2026-11-15",
+            "FBTAA ss 45, 48 to 52 and 62 and s 136(1), notional value and recipients contribution, compilation 97 (1 July 2026); Fringe benefits tax - a guide for employers, chapter 18, 18.4 and 18.7 and their examples; FBT return 2026 instructions, item 23M and example 16",
+        ),
+        "fbt_housing" => (
+            "2026-11-15",
+            "FBTAA ss 25 to 28 and 58ZC and s 136(1), recipients rent and tenancy period, compilation 97 (1 July 2026); Fringe benefits tax - a guide for employers, chapter 10, 10.4 and 10.5 and their examples; FBT return 2026 instructions, item 23F and example 11; FBT rates and thresholds, Table 11, housing indexation",
+        ),
+        "fbt_lafha" => (
+            "2026-11-15",
+            "FBTAA ss 30 to 31H and s 136(1), accommodation component, food component and statutory food amount, compilation 97 (1 July 2026); Fringe benefits tax - a guide for employers, chapter 11, 11.4 to 11.6 and their examples; FBT return 2026 instructions, item 23G and example 12",
+        ),
+        "fbt_board" => (
+            "2026-11-15",
+            "FBTAA ss 35 to 37 and s 136(1), board meal and recipients contribution, compilation 97 (1 July 2026); Fringe benefits tax - a guide for employers, chapter 13 and its example; FBT return 2026 instructions, item 23J and example 13",
+        ),
+        "fbt_tax_exempt_body_entertainment" => (
+            "2026-11-15",
+            "FBTAA ss 38 and 39 and s 136(1), non-deductible exempt entertainment expenditure, compilation 97 (1 July 2026); Fringe benefits tax - a guide for employers, chapter 15, 15.9 and its per head example; FBT return 2026 instructions, item 23L and example 15",
         ),
         _ => ("", ""),
     }
@@ -944,6 +1095,12 @@ pub fn library_evidence(kind: &str) -> [(&'static str, &'static str); 4] {
             "7-010",
             "2025-06-30",
             "2026-09-15",
+        ),
+        "foreign_resident_tax" => (
+            "ATO Tax rates - foreign resident",
+            "foreign resident tax rates 2024-25 and 2025-26",
+            "2026-06-01",
+            "2026-11-14",
         ),
         "capital_gains" => (
             "tax-examples-capital-gains-tax-cgt",
@@ -969,11 +1126,53 @@ pub fn library_evidence(kind: &str) -> [(&'static str, &'static str); 4] {
             "2026-06-30",
             "2026-11-04",
         ),
+        "hire_purchase_schedule" => (
+            "ATO Legal database, ITAA 1997 Division 240",
+            "s 240-60(1) steps 1 to 4, with s 240-60 as amended by No 79 of 2010",
+            "2026-11-15",
+            "2026-11-15",
+        ),
         "fbt_car_statutory" | "fbt_car_operating_cost" => (
             "tax-examples-fringe-benefits-tax-fbt",
             "3-020",
             "2026-06-30",
             "2026-10-29",
+        ),
+        "fbt_loan" => (
+            "tax-examples-fringe-benefits-tax-fbt",
+            "3-100",
+            "2026-06-30",
+            "2026-11-15",
+        ),
+        "fbt_meal_entertainment" => (
+            "tax-examples-fringe-benefits-tax-fbt",
+            "3-220",
+            "2026-06-30",
+            "2026-11-15",
+        ),
+        "fbt_car_parking" => (
+            "tax-examples-fringe-benefits-tax-fbt",
+            "3-055",
+            "2026-06-30",
+            "2026-11-15",
+        ),
+        "fbt_debt_waiver" => (
+            "ATO FBT return 2026 instructions, item 23",
+            "item 23D, example 9",
+            "2026-04-01",
+            "2026-11-15",
+        ),
+        "fbt_expense_payment" => (
+            "tax-examples-fringe-benefits-tax-fbt",
+            "3-240, 3-340",
+            "2026-06-30",
+            "2026-11-15",
+        ),
+        "fbt_property" => (
+            "tax-examples-fringe-benefits-tax-fbt",
+            "3-260",
+            "2026-06-30",
+            "2026-11-15",
         ),
         "depreciation" => (
             "tax-examples-depreciation",
@@ -992,6 +1191,12 @@ pub fn library_evidence(kind: &str) -> [(&'static str, &'static str); 4] {
             "withholding amounts, Medicare levy adjustment scale 2 and Medicare half-levy adjustment scale 6: weekly, fortnightly and monthly tables",
             "2026-06-17",
             "2026-11-14",
+        ),
+        "payg_gross_up" => (
+            "ATO Schedule 1 sample data",
+            "withholding amounts: weekly, fortnightly and monthly tables, each row's net pay grossed up",
+            "2026-06-17",
+            "2026-11-15",
         ),
         "contribution_caps" => (
             "tax-examples-individuals",
@@ -1067,15 +1272,27 @@ pub fn library_evidence(kind: &str) -> [(&'static str, &'static str); 4] {
         ),
         "seniors_pensioners_withholding" => (
             "ATO Schedule 9 tax table for seniors and pensioners (NAT 4466)",
-            "the worked example ($662.95 a week) and every row of the weekly tax table",
+            "the worked example ($662.95 a week) and every row of the weekly tax table; with a study loan, the tax-free threshold column of every row of the study and training support loans weekly tax table (NAT 2173) from 1 July 2026",
             "2026-06-17",
-            "2026-11-14",
+            "2026-11-15",
         ),
         "seniors_pensioners_tax_offset" => (
             "ATO Seniors and pensioners tax offset",
             "rates and thresholds for 2025-26, the examples (Clare and Roy, Deb and Ivan, Ying and Li Jun, Marko, Simon, José, Keith and Jean, Vanh and Mai) and example 9",
             "2026-10-02",
             "2026-11-14",
+        ),
+        "fbt_housing" => (
+            "tax-examples-fringe-benefits-tax-fbt",
+            "3-120",
+            "2026-06-30",
+            "2026-11-15",
+        ),
+        "fbt_lafha" => (
+            "tax-examples-fringe-benefits-tax-fbt",
+            "3-160, 3-180",
+            "2026-06-30",
+            "2026-11-15",
         ),
         _ => ("", "", "", ""),
     };
@@ -1152,10 +1369,104 @@ pub fn optional_inputs(kind: &str) -> Vec<(&'static str, &'static str)> {
                 "boolean, weekly and fortnightly pays only: true when the financial year has 53 weekly or 27 fortnightly pays and the payee asked for the additional amount",
             ),
         ],
+        // Scale 4's residency, which payg_withholding lists first.
+        "payg_gross_up" => optional_inputs("payg_withholding")[..1].to_vec(),
         "study_loan_withholding" => vec![(
             "pay_date",
             "YYYY-MM-DD date the payment is made, within the income year; required for 2025-26, whose Schedule 8 coefficients apply from 24 September 2025",
         )],
+        "seniors_pensioners_withholding" => vec![
+            (
+                "study_loan",
+                "boolean, whether the payee declared a study and training support loan debt and claimed no Medicare levy reduction for a spouse or dependants and low family income; true adds Schedule 8's tax-free threshold component for the pay date, for 2026-27 and 2025-26 pays made from 24 September 2025; omit for false",
+            ),
+            (
+                "pay_date",
+                "YYYY-MM-DD date the payment is made, within the income year, with study_loan true only; required with it for 2025-26, whose Schedule 8 coefficients apply from 24 September 2025",
+            ),
+        ],
+        "fbt_meal_entertainment" => vec![
+            (
+                "register_fringe_benefits_value",
+                "AUD, 12_week_register only and required there: the total value of the meal entertainment fringe benefits in the 12 week register (FBTAA s 37CB(2))",
+            ),
+            (
+                "register_meal_entertainment_value",
+                "AUD, 12_week_register only and required there: the total value of all meal entertainment in the register, more than nil and at least register_fringe_benefits_value",
+            ),
+            (
+                "register_first_year",
+                "integer, 12_week_register only and required there: the FBT year ended 31 March the register was first valid for, from 4 years before year_ended to year_ended (FBTAA s 37CD); whether it has since ceased to be valid is the operator's to establish",
+            ),
+        ],
+        "fbt_car_parking" => vec![
+            (
+                "benefits",
+                "integer from 0, commercial_parking_station and average_cost only and required there: the car parking fringe benefits provided in the FBT year",
+            ),
+            (
+                "lowest_fee",
+                "AUD, commercial_parking_station only and required there: the lowest all-day fee any commercial parking station within 1 km charged on each day a benefit was provided (FBTAA s 39C), the same on every one of those days; a fee for another period is converted under s 39E",
+            ),
+            (
+                "first_day_fee",
+                "AUD, average_cost only and required there: the lowest all-day fee any commercial parking station within 1 km charged on the day a car parking benefit was first provided in the FBT year (FBTAA s 39DA(3), A)",
+            ),
+            (
+                "last_day_fee",
+                "AUD, average_cost only and required there: the lowest all-day fee any commercial parking station within 1 km charged on the day a car parking benefit was last provided in the FBT year (FBTAA s 39DA(3), B)",
+            ),
+            (
+                "employee_contribution",
+                "AUD, commercial_parking_station and average_cost only and required there: the recipients' payments for these benefits in total, net of any reimbursement, each benefit's payment counted only up to that benefit's value (an excess on one benefit reduces no other)",
+            ),
+            (
+                "register_value",
+                "AUD, 12_week_register only and required there: the total value of car parking benefits (register) under FBTAA s 39GC, the register period's benefits valued by the commercial parking station, market value or average cost method, net of recipients' payments",
+            ),
+            (
+                "availability_days",
+                "integer from 0 to the days in the FBT year, 12_week_register only and required there: the days in the car parking availability period (FBTAA s 39GD), from the first to the last day in the FBT year with a car parking benefit for an employee the election covers",
+            ),
+            (
+                "register_first_year",
+                "integer, 12_week_register only and required there: the FBT year ended 31 March the register was first valid for, from 4 years before year_ended to year_ended (FBTAA s 39GF); whether it has since ceased to be valid is the operator's to establish",
+            ),
+        ],
+        "fbt_expense_payment" => vec![
+            (
+                "income_use",
+                "decimal fraction from 0 to 1, external only and required there: the share of recipients_expenditure that would have been a once-only income tax deduction to the employee had they incurred and paid it unreimbursed (FBTAA s 24(1)(b)(ii), the gross deduction); 0 for an associate or private expenditure",
+            ),
+            (
+                "recipients_portion_deduction",
+                "AUD, external only and required there: the once-only deduction allowable to the employee for the expenditure they bore themselves (FBTAA s 24(1)(ba), RD), at most the recipient's portion, recipients_expenditure less amount_paid net of employee_contribution; 0.00 when they bore none",
+            ),
+            ("lowest_price", FBT_LOWEST_PRICE),
+            (
+                "notional_value",
+                "AUD, in_house_salary_packaging, in_house_produced_other, in_house_acquired and in_house_other only and required there: the amount the recipient could reasonably be expected to have paid to obtain the property from its provider under an arm's length transaction, at the provision time (FBTAA s 136(1))",
+            ),
+            ("arms_length_price", FBT_ARMS_LENGTH_PRICE),
+            ("in_house_reduction_available", FBT_IN_HOUSE_REDUCTION),
+        ],
+        "fbt_property" => vec![
+            ("lowest_price", FBT_LOWEST_PRICE),
+            (
+                "notional_value",
+                "AUD, in_house_salary_packaging, in_house_produced_other, in_house_acquired, in_house_other and external_notional_value only and required there: the amount the recipient could reasonably be expected to have paid to obtain the property from the provider under an arm's length transaction, at the provision time (FBTAA s 136(1))",
+            ),
+            ("arms_length_price", FBT_ARMS_LENGTH_PRICE),
+            (
+                "cost_price",
+                "AUD, external_cost_price only and required there: the cost price to the employer or its associate, as the provider, of property it bought under an arm's length transaction at or about the provision time (FBTAA s 43(a))",
+            ),
+            (
+                "employer_expenditure",
+                "AUD, external_expenditure only and required there: the expenditure the employer or an associate incurred under an arm's length transaction to a provider that is neither, in respect of providing the property (FBTAA s 43(b))",
+            ),
+            ("in_house_reduction_available", FBT_IN_HOUSE_REDUCTION),
+        ],
         "seniors_pensioners_tax_offset" => vec![
             (
                 "spouse_rebate_income",
@@ -1170,6 +1481,94 @@ pub fn optional_inputs(kind: &str) -> Vec<(&'static str, &'static str)> {
             "pay_date",
             "YYYY-MM-DD date this pay is made, within the income year, with study_loan true only; required with it for 2025-26, whose Schedule 8 coefficients apply from 24 September 2025; Method B(i) refuses a 2025-26 study loan",
         )],
+        "fbt_residual" => vec![
+            (
+                "notional_value",
+                "AUD, in_house_salary_packaging, in_house_other and external_notional_value only and required there: the amount the recipient could reasonably be expected to have paid the provider for the benefit under an arm's length transaction (FBTAA s 136(1)), for the part of a period benefit provided in the FBT year",
+            ),
+            (
+                "lowest_price",
+                "AUD, in_house_public_price only and required there: the lowest price at which the provider sold an identical benefit to the public in the ordinary course of business, at or about the comparison time and on identical terms other than price (FBTAA s 48(a) and s 49(a)), for the part of a period benefit provided in the FBT year",
+            ),
+            (
+                "cost_price",
+                "AUD, external_cost_price only and required there: the amount the provider, being the employer or its associate, paid or is to pay for the benefit under an arm's length transaction (FBTAA s 50(a) and s 51(a))",
+            ),
+            (
+                "employer_expenditure",
+                "AUD, external_expenditure only and required there: the expenditure the employer or its associate incurred under an arm's length transaction to a provider that is neither (FBTAA s 50(b) and s 51(b))",
+            ),
+            (
+                "in_house_reduction_available",
+                "AUD from 0 to 1000.00, in_house_public_price and in_house_other only and required there: the part of the employee's $1,000 in-house reduction for the FBT year (FBTAA s 62) their other in-house fringe benefits have not used; 1000.00 when this is their only one",
+            ),
+        ],
+        "fbt_housing" => vec![
+            (
+                "market_value",
+                "AUD, outside_australia, accommodation_business and base_year only and required there: the market value of the recipient's current housing right, the right to occupy the unit for the tenancy period in the FBT year, disregarding any right to have the occupant's expenses paid and onerous conditions of employment (FBTAA s 27)",
+            ),
+            (
+                "in_house",
+                "boolean, accommodation_business only and required there: true when the benefit, were it not a housing fringe benefit, would be an in-house residual fringe benefit, so 75% of the market value applies (FBTAA s 26(1)(b)(iv))",
+            ),
+            (
+                "tenancy_days",
+                "integer, base_year and indexed only and required there: the whole days in the FBT year the housing right subsisted (FBTAA s 136(1), tenancy period), from 1 under base_year and from 0 under indexed, up to the days in the year",
+            ),
+            (
+                "prior_statutory_annual_value",
+                "AUD, indexed only and required there: the statutory annual value for the year before for this housing right or an equivalent one, or the weighted average of those values where that year was a base year for 2 or more (FBTAA s 26(2)(b))",
+            ),
+            (
+                "state",
+                "string, indexed only and required there: NSW, VIC, QLD, SA, WA, TAS, NT or ACT, where the unit is; the Jervis Bay Territory is part of NSW, and Christmas Island and the Cocos (Keeling) Islands part of NT (FBTAA s 28(5))",
+            ),
+            (
+                "base_year_ended",
+                "integer, indexed only and required there: the last FBT year ended 31 March that was a base year for this housing right or an equivalent one, from 9 years before year_ended to the year before (FBTAA s 26(3))",
+            ),
+        ],
+        "fbt_lafha" => vec![
+            (
+                "accommodation_component",
+                "AUD, maintains_home and fly_in_fly_out only and required there: the part of the allowance reasonably concluded to compensate for the eligible family members' accommodation expenses in the period (FBTAA s 136(1))",
+            ),
+            (
+                "accommodation_expenses",
+                "AUD, maintains_home and fly_in_fly_out only and required there: the accommodation expenses the employee incurred for eligible family members in the period, substantiated under FBTAA s 31G",
+            ),
+            (
+                "food_component",
+                "AUD, maintains_home and fly_in_fly_out only and required there: the part of the allowance reasonably concluded to compensate for the eligible family members' food or drink expenses in the period (FBTAA s 136(1))",
+            ),
+            (
+                "food_expenses",
+                "AUD, maintains_home and fly_in_fly_out only and required there: the food or drink expenses the employee incurred for eligible family members in the period, substantiated under FBTAA s 31G where they exceed the Commissioner's reasonable amount (where they do not, the ATO accepts the lesser of the food component and that amount: the employer's guide, 11.6); 0.00 for days the employee resumed living at the normal residence (s 31(3))",
+            ),
+            (
+                "normal_food_amount",
+                "AUD, maintains_home and fly_in_fly_out only and required there: the amount reasonably expected to be the eligible family members' normal food or drink expenses at home in the period that was taken into account in working out the food component (FBTAA s 31H(2)); 0.00 when the food component is for total food costs",
+            ),
+            (
+                "adult_days",
+                "integer from 0 to 1,000,000, maintains_home and fly_in_fly_out only and required there: the days in the period of each eligible family member who was 12 or older before the FBT year began, added together; each has a statutory food amount of $42 a week (FBTAA s 136(1))",
+            ),
+            (
+                "child_days",
+                "integer from 0 to 1,000,000, maintains_home and fly_in_fly_out only and required there: the days in the period of each other eligible family member, added together; each has a statutory food amount of $21 a week (FBTAA s 136(1))",
+            ),
+        ],
+        "fbt_tax_exempt_body_entertainment" => vec![
+            (
+                "employee_heads",
+                "integer, per_head only and required there: the employees and their associates entertained, from 0 to total_heads",
+            ),
+            (
+                "total_heads",
+                "integer from 1, per_head only and required there: everyone entertained at the function, employees, their associates and others",
+            ),
+        ],
         _ => Vec::new(),
     }
 }
@@ -1194,7 +1593,7 @@ pub fn input_units(kind: &str) -> Vec<(&'static str, &'static str)> {
     ];
     match kind {
         "gst" => vec![("amount", "AUD"), ("gst_inclusive", "boolean")],
-        "resident_tax" => vec![("taxable_income", "AUD, whole dollars")],
+        "resident_tax" | "foreign_resident_tax" => vec![("taxable_income", "AUD, whole dollars")],
         "capital_gains" => vec![
             ("other_gains", "AUD"),
             ("discount_gains", "AUD"),
@@ -1269,7 +1668,105 @@ pub fn input_units(kind: &str) -> Vec<(&'static str, &'static str)> {
                 "boolean, false only when the property is not a leisure facility, or s 26-50(3) applies to it at all times in the income year (such as a holiday home held mainly to produce rent)",
             ),
         ],
+        "hire_purchase_schedule" => vec![
+            (
+                "amount_financed",
+                "AUD, the notional loan principal: the price of the goods less any deposit or trade-in",
+            ),
+            (
+                "instalment",
+                "AUD, the level monthly instalment",
+            ),
+            ("instalments", "integer 1 to 360, monthly"),
+            (
+                "balloon",
+                "AUD, paid at the end of the term (with the last instalment in arrears, a month after it in advance) and shown as the last month's balloon; 0.00 for none",
+            ),
+            (
+                "timing",
+                "in_arrears (each instalment at its month's end) or in_advance (at its start)",
+            ),
+            (
+                "start_date",
+                "YYYY-MM-DD, the day the agreement starts, within the income year",
+            ),
+        ],
         "fbt" => vec![("type_one_value", "AUD"), ("type_two_value", "AUD")],
+        "fbt_loan" => vec![
+            (
+                "daily_balance_total",
+                "AUD, the loan's balance at the end of each day in the FBT year on which the employee owed it, added together (a balance of $20,000 for 182 days is 3640000.00)",
+            ),
+            (
+                "interest_accrued",
+                "AUD, the interest that accrued on the loan in respect of the FBT year (FBTAA s 18(1)); 0.00 for an interest-free loan",
+            ),
+            (
+                "income_use",
+                "decimal fraction from 0 to 1, the share of the notional interest that would have been a once-only income tax deduction to the employee had they paid it (FBTAA s 19(1)(b)); 0 for a loan used only privately",
+            ),
+            (
+                "accrued_interest_deduction",
+                "AUD, the once-only deduction that would have been allowable to the employee for the interest accrued (FBTAA s 19(1)(ba), RD), at most interest_accrued; 0.00 when no interest accrued",
+            ),
+        ],
+        "fbt_meal_entertainment" => vec![
+            ("method", "50_50_split or 12_week_register"),
+            (
+                "meal_entertainment_expenditure",
+                "AUD, the employer's total expenses for providing meal entertainment in the FBT year to all persons, excluding amounts employees paid (FBTAA ss 37AB and 37CB(3))",
+            ),
+        ],
+        "fbt_car_parking" => vec![
+            (
+                "method",
+                "commercial_parking_station, average_cost or 12_week_register",
+            ),
+            (
+                "first_business_day_fee",
+                "AUD, the highest of the lowest all-day fees the commercial parking stations within 1 km each charged on the first business day of the FBT year: car parking benefits arise only when one station's lowest fee is more than the car parking threshold (FBTAA s 39A(1)(a)(iii); the employer's guide, example 12), and benefits are valued at their own fee, which can be lower",
+            ),
+        ],
+        "fbt_debt_waiver" => vec![(
+            "amount_waived",
+            "AUD, the amounts whose payment or repayment the employer or an associate waived in the FBT year for the employee or an associate, principal and interest together (FBTAA ss 14 and 15); not a genuine bad debt written off for reasons unrelated to the employment",
+        )],
+        "fbt_expense_payment" => vec![
+            (
+                "method",
+                "external, in_house_salary_packaging, in_house_trade_price, in_house_public_price, in_house_produced_other, in_house_acquired or in_house_other",
+            ),
+            (
+                "recipients_expenditure",
+                "AUD, the expenditure the recipient incurred that the payment or reimbursement relates to (FBTAA s 136(1), recipients expenditure)",
+            ),
+            (
+                "amount_paid",
+                "AUD, the employer's or an associate's payment to a third party discharging the recipient's obligation (FBTAA s 20(a)), or its reimbursement of the recipient (s 20(b)), at most recipients_expenditure",
+            ),
+            (
+                "employee_contribution",
+                "AUD, the recipient's contribution: what the recipient or employee paid the provider or employer for the benefit (FBTAA s 136(1)), which arises only for a payment under s 20(a); 0.00 for a reimbursement",
+            ),
+        ],
+        "fbt_property" => vec![
+            (
+                "method",
+                "in_house_salary_packaging, in_house_trade_price, in_house_public_price, in_house_produced_other, in_house_acquired, in_house_other, external_cost_price, external_expenditure or external_notional_value",
+            ),
+            (
+                "employee_contribution",
+                "AUD, the recipient's contribution: the consideration the recipient or employee paid the provider or employer for the property, less any reimbursement of it (FBTAA s 136(1))",
+            ),
+            (
+                "income_use",
+                "decimal fraction from 0 to 1, the share of the value before the contribution that would have been a once-only income tax deduction to the employee had they bought the property for that amount (FBTAA s 44(1)(b), the gross deduction); 0 for an associate, private use or property whose cost would be deducted over more than one year",
+            ),
+            (
+                "contribution_deduction",
+                "AUD, the once-only deduction that would have been allowable to the employee for their contribution had they paid it at the provision time (FBTAA s 44(1)(ba), RD), at most employee_contribution; 0.00 when there is no contribution",
+            ),
+        ],
         "fbt_car_statutory" => vec![
             (
                 "cost_price",
@@ -1342,6 +1839,14 @@ pub fn input_units(kind: &str) -> Vec<(&'static str, &'static str)> {
                 "integer 1 to 6; scale 4 also needs foreign_resident",
             ),
         ],
+        "payg_gross_up" => {
+            let mut units = input_units("payg_withholding");
+            units[0] = (
+                "net_pay",
+                "AUD, the pay for the pay period after Schedule 1 withholding",
+            );
+            units
+        }
         "study_loan_withholding" => vec![
             payg[0],
             ("pay_period", "weekly, fortnightly, monthly or quarterly"),
@@ -1571,6 +2076,64 @@ pub fn input_units(kind: &str) -> Vec<(&'static str, &'static str)> {
                 "single (not a spouse at any time in the year), illness_separated (a member of an illness-separated couple at any time in the year) or couple (a spouse for the whole year, never illness-separated)",
             ),
         ],
+        "fbt_residual" => vec![
+            (
+                "method",
+                "in_house_salary_packaging, in_house_public_price, in_house_other, external_cost_price, external_expenditure or external_notional_value",
+            ),
+            ("employee_contribution", "AUD, the recipients contribution (FBTAA s 136(1)): consideration the recipient or employee paid for the benefits, net of any reimbursement, each benefit's counted only up to its value: it cannot take the value below nil, and an excess on one benefit reduces no other"),
+            (
+                "income_use",
+                "decimal fraction from 0 to 1, the share of the gross taxable value, before the contribution, that would have been a once-only income tax deduction to the employee had they paid it (FBTAA s 52(1)(b)); 0 for a benefit used only privately or provided to an associate",
+            ),
+            (
+                "contribution_deduction",
+                "AUD, at most employee_contribution: the deduction that would have been allowable to the employee for the contribution (FBTAA s 52(1)(ba), RD); 0.00 when there is none",
+            ),
+        ],
+        "fbt_housing" => vec![
+            (
+                "method",
+                "outside_australia, accommodation_business, base_year or indexed",
+            ),
+            (
+                "employee_contribution",
+                "AUD, the recipients rent (FBTAA s 136(1)): rent or other consideration the recipient or employee paid for the housing right in the FBT year, net of any reimbursement; it cannot take the value below nil",
+            ),
+        ],
+        "fbt_lafha" => vec![
+            ("method", "maintains_home, fly_in_fly_out or other"),
+            (
+                "allowance",
+                "AUD, the living-away-from-home allowance fringe benefit for the period: the allowance, or the part of it, in the nature of compensation for the employee's additional non-deductible expenses, and other disadvantages, of living away from the normal residence (FBTAA s 30)",
+            ),
+        ],
+        "fbt_board" => vec![
+            (
+                "adult_meals",
+                "integer from 0 to 100,000,000: the board meals provided in the FBT year to recipients who were 12 or older before it began (FBTAA s 36(a))",
+            ),
+            (
+                "child_meals",
+                "integer from 0 to 100,000,000: the board meals provided in the FBT year to other recipients (FBTAA s 36(b))",
+            ),
+            ("employee_contribution", "AUD, the recipients contribution (FBTAA s 136(1)): consideration the recipient or employee paid for the benefits, net of any reimbursement, each benefit's counted only up to its value: it cannot take the value below nil, and an excess on one benefit reduces no other"),
+            (
+                "income_use",
+                "decimal fraction from 0 to 1, the share of the gross taxable value, before the contribution, that would have been a once-only income tax deduction to the employee had they paid it (FBTAA s 37(b)); 0 for a benefit used only privately or provided to an associate",
+            ),
+            (
+                "contribution_deduction",
+                "AUD, at most employee_contribution: the deduction that would have been allowable to the employee for the contribution (FBTAA s 37(c), RD); 0.00 when there is none",
+            ),
+        ],
+        "fbt_tax_exempt_body_entertainment" => vec![
+            ("method", "actual or per_head"),
+            (
+                "entertainment_expenditure",
+                "AUD, non-deductible exempt entertainment expenditure (FBTAA s 136(1)): under actual, the part incurred in entertaining employees and their associates; under per_head, the whole function's",
+            ),
+        ],
         _ => Vec::new(),
     }
 }
@@ -1589,7 +2152,7 @@ pub fn examples(kind: &str) -> Vec<(&'static str, Example)> {
     use Example::{Flag, Json, Text, Whole};
     match kind {
         "gst" => vec![("amount", Text("1100.00")), ("gst_inclusive", Flag(true))],
-        "resident_tax" => vec![("taxable_income", Text("45000"))],
+        "resident_tax" | "foreign_resident_tax" => vec![("taxable_income", Text("45000"))],
         "capital_gains" => vec![
             ("other_gains", Text("100.00")),
             ("discount_gains", Text("1000.00")),
@@ -1622,6 +2185,15 @@ pub fn examples(kind: &str) -> Vec<(&'static str, Example)> {
             ("repaid_on", Json("null")),
             ("section_26_50_applies", Flag(false)),
         ],
+        "hire_purchase_schedule" => vec![
+            ("year", Text("2026-27")),
+            ("amount_financed", Text("45000.00")),
+            ("instalment", Text("850.00")),
+            ("instalments", Whole(60)),
+            ("balloon", Text("5000.00")),
+            ("timing", Text("in_arrears")),
+            ("start_date", Text("2026-07-15")),
+        ],
         "fbt" => vec![
             ("type_one_value", Text("1000.00")),
             ("type_two_value", Text("1000.00")),
@@ -1645,6 +2217,40 @@ pub fn examples(kind: &str) -> Vec<(&'static str, Example)> {
             ("statutory_formula_taxable_value", Text("8500.00")),
             ("electric_car_exempt", Flag(false)),
         ],
+        "fbt_loan" => vec![
+            ("daily_balance_total", Text("7300000.00")),
+            ("interest_accrued", Text("0.00")),
+            ("income_use", Text("0")),
+            ("accrued_interest_deduction", Text("0.00")),
+        ],
+        "fbt_meal_entertainment" => vec![
+            ("method", Text("50_50_split")),
+            ("meal_entertainment_expenditure", Text("4000.00")),
+        ],
+        "fbt_car_parking" => vec![
+            ("method", Text("commercial_parking_station")),
+            ("first_business_day_fee", Text("18.00")),
+            ("benefits", Whole(230)),
+            ("lowest_fee", Text("18.00")),
+            ("employee_contribution", Text("1000.00")),
+        ],
+        "fbt_debt_waiver" => vec![("amount_waived", Text("500.00"))],
+        "fbt_expense_payment" => vec![
+            ("method", Text("external")),
+            ("recipients_expenditure", Text("1200.00")),
+            ("amount_paid", Text("1200.00")),
+            ("employee_contribution", Text("0.00")),
+            ("income_use", Text("0.6")),
+            ("recipients_portion_deduction", Text("0.00")),
+        ],
+        "fbt_property" => vec![
+            ("method", Text("in_house_public_price")),
+            ("lowest_price", Text("1200.00")),
+            ("employee_contribution", Text("600.00")),
+            ("income_use", Text("0")),
+            ("contribution_deduction", Text("0.00")),
+            ("in_house_reduction_available", Text("0.00")),
+        ],
         "depreciation" => vec![
             ("cost", Text("3000.00")),
             ("effective_life", Text("4")),
@@ -1661,6 +2267,13 @@ pub fn examples(kind: &str) -> Vec<(&'static str, Example)> {
         "payg_withholding" => vec![
             ("year", Text("2026-27")),
             ("earnings", Text("1000.00")),
+            ("pay_period", Text("weekly")),
+            ("scale", Whole(2)),
+        ],
+        // The net of the payg_withholding example, whose gross is its only one.
+        "payg_gross_up" => vec![
+            ("year", Text("2026-27")),
+            ("net_pay", Text("862.00")),
             ("pay_period", Text("weekly")),
             ("scale", Whole(2)),
         ],
@@ -1772,6 +2385,46 @@ pub fn examples(kind: &str) -> Vec<(&'static str, Example)> {
             ("year", Text("2025-26")),
             ("rebate_income", Text("39000")),
             ("status", Text("single")),
+        ],
+        // FBT return 2026 instructions, item 23M example 16.
+        "fbt_residual" => vec![
+            ("method", Text("external_notional_value")),
+            ("notional_value", Text("8000.00")),
+            ("employee_contribution", Text("0.00")),
+            ("income_use", Text("0.75")),
+            ("contribution_deduction", Text("0.00")),
+        ],
+        // Item 23F example 11.
+        "fbt_housing" => vec![
+            ("method", Text("base_year")),
+            ("market_value", Text("41600.00")),
+            ("tenancy_days", Whole(365)),
+            ("employee_contribution", Text("5200.00")),
+        ],
+        // Item 23G example 12's first 40 weeks.
+        "fbt_lafha" => vec![
+            ("method", Text("maintains_home")),
+            ("allowance", Text("23640.00")),
+            ("accommodation_component", Text("14000.00")),
+            ("accommodation_expenses", Text("14000.00")),
+            ("food_component", Text("9640.00")),
+            ("food_expenses", Text("9640.00")),
+            ("normal_food_amount", Text("0.00")),
+            ("adult_days", Whole(280)),
+            ("child_days", Whole(0)),
+        ],
+        // Item 23J example 13.
+        "fbt_board" => vec![
+            ("adult_meals", Whole(10950)),
+            ("child_meals", Whole(0)),
+            ("employee_contribution", Text("0.00")),
+            ("income_use", Text("0")),
+            ("contribution_deduction", Text("0.00")),
+        ],
+        // Item 23L example 15.
+        "fbt_tax_exempt_body_entertainment" => vec![
+            ("method", Text("actual")),
+            ("entertainment_expenditure", Text("5000.00")),
         ],
         _ => Vec::new(),
     }

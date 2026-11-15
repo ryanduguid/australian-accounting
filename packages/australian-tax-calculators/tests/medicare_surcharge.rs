@@ -25,7 +25,16 @@ fn input(year: &str, taxable: &str, fringe: &str, income: &str, extra: Value) ->
 }
 
 fn evaluate(year: &str, taxable: &str, fringe: &str, income: &str, extra: Value) -> Value {
-    api::evaluate(COMMAND, &input(year, taxable, fringe, income, extra)).unwrap()
+    let input = input(year, taxable, fringe, income, extra);
+    let result = api::evaluate(COMMAND, &input).unwrap();
+    // derive explains this command: its result is the plain one, byte for byte.
+    let doc = api::evaluate("derive", &json!({"command": COMMAND, "input": input})).unwrap();
+    assert_eq!(
+        doc["result"].to_string(),
+        result.to_string(),
+        "derive {input}"
+    );
+    result
 }
 
 /// The surcharge, the rate and the tier for income that is all taxable income.

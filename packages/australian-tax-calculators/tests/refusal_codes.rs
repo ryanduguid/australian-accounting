@@ -30,13 +30,31 @@ fn every_code_at_a_refusal_site_is_catalogued_and_every_entry_is_used() {
     let src = Path::new(env!("CARGO_MANIFEST_DIR")).join("src");
     let read = |name: &str| std::fs::read_to_string(src.join(name)).unwrap();
     let mut used = BTreeSet::new();
+    // The engine's worksheets in their own modules refuse as engine.rs does.
+    let modules = ["engine", "engine/fbt_benefits"]
+        .into_iter()
+        .flat_map(|dir| {
+            std::fs::read_dir(src.join(dir))
+                .unwrap()
+                .filter_map(move |entry| {
+                    let name = entry.unwrap().file_name().into_string().unwrap();
+                    name.ends_with(".rs")
+                        .then(|| (format!("{dir}/{name}"), &["refuse(", "bad("][..]))
+                })
+        });
     for (file, openers) in [
         ("engine.rs", &["refuse(", "bad("][..]),
+        ("engine/fbt_benefits.rs", &["refuse("][..]),
         ("api.rs", &["refusal("][..]),
+        ("estimate.rs", &["Refusal::new("][..]),
         ("main.rs", &["Refusal::new("][..]),
         ("decimal.rs", &["=> "][..]),
-    ] {
-        let text = read(file);
+    ]
+    .map(|(file, openers)| (file.to_string(), openers))
+    .into_iter()
+    .chain(modules)
+    {
+        let text = read(&file);
         for opener in openers {
             used.extend(
                 codes_after(&text, opener)
@@ -83,6 +101,42 @@ fn field_unknown_names_every_command_that_refuses_an_unknown_field() {
             assert!(meaning.contains(named), "{command}");
         }
     }
+}
+
+/// A command that refuses an unknown field accepts each of its catalogued
+/// required inputs, so every one of them must be an input it reads: its
+/// catalogue example runs, and runs no longer without any one of them. A
+/// required input the command ignored would be taken and silently dropped.
+#[test]
+fn every_catalogued_required_input_of_a_strict_command_is_read() {
+    let catalogue = api::evaluate("worksheet-catalogue", &json!({})).unwrap();
+    let mut checked = 0;
+    for command in api::commands() {
+        let refused = api::evaluate_coded(command, &json!({"not_an_input": true}));
+        let entry = &catalogue[command.replace('-', "_")];
+        if !refused.is_err_and(|r| r.code == "input.field_unknown") || entry.is_null() {
+            continue;
+        }
+        let mut facts = entry["example"]["facts"].clone();
+        facts.as_object_mut().unwrap().remove("kind");
+        assert!(api::evaluate(command, &facts).is_ok(), "{command}");
+        for name in entry["required_inputs"].as_object().unwrap().keys() {
+            if name == "kind" {
+                continue;
+            }
+            let mut without = facts.clone();
+            without.as_object_mut().unwrap().remove(name);
+            assert!(
+                api::evaluate(command, &without).is_err(),
+                "{command} {name}"
+            );
+        }
+        checked += 1;
+    }
+    // The 14 commands that refused an unknown field before the FBT benefit
+    // worksheets (the 3 Schedule 5 methods counted apart), the 11 FBT benefit
+    // worksheets, and payg-gross-up and hire-purchase-schedule.
+    assert_eq!(checked, 27);
 }
 
 /// Every frozen call gives the same answer through either entry point, and

@@ -40,7 +40,7 @@ DATASET = PACKAGES / "au-tax-rates-data" / "data"
 
 # How many engine copies of dataset figures _dataset_pairs() compares. An engine
 # table that starts holding a dataset figure needs its own entry there.
-DATASET_PAIRS = 56
+DATASET_PAIRS = 62
 
 
 def _metadata_literal(name: str):
@@ -96,6 +96,13 @@ def _dataset_pairs() -> list[tuple[str, Decimal, Decimal | None]]:
             where = f"{year} resident scale over {low} (metadata.rs RESIDENT_TAX_SCALES)"
             pairs.append((f"{where} threshold", Decimal(row["from"]) - 1, Decimal(low)))
             pairs.append((f"{where} rate", Decimal(str(row["marginal_rate"])), Decimal(rate) * 100))
+    # The foreign resident scale starts at $0, so its brackets compare by their tops.
+    foreign = _metadata_literal("FOREIGN_RESIDENT_TAX_SCALES")["2025-26"]
+    for row, (low, high, rate) in zip(_record("foreign-resident-tax-rates-2025-26")["value"], foreign):
+        where = f"2025-26 foreign resident scale over {low} (metadata.rs FOREIGN_RESIDENT_TAX_SCALES)"
+        if high is not None:
+            pairs.append((f"{where} upper bound", Decimal(row["to"]), Decimal(high)))
+        pairs.append((f"{where} rate", Decimal(str(row["marginal_rate"])), Decimal(rate) * 100))
     payday = json.loads(PAYDAY_RATES.read_text(encoding="utf-8"))["financial_years"]["2026-27"]
     caps = _calculator_caps()
     pairs += [
@@ -136,6 +143,7 @@ def _dataset_pairs() -> list[tuple[str, Decimal, Decimal | None]]:
         "DIVISION_296": _metadata_literal("DIVISION_296"),
         "TERMINATION_PAYMENT": _metadata_literal("TERMINATION_PAYMENT"),
         "FBT_BENCHMARK_INTEREST_RATES": _metadata_literal("FBT_BENCHMARK_INTEREST_RATES"),
+        "FBT_CAR_PARKING_THRESHOLDS": _metadata_literal("FBT_CAR_PARKING_THRESHOLDS"),
     }
     for name, table, key in (
         ("study-loan-repayment-threshold-2026-27", "STUDY_LOAN_REPAYMENT_THRESHOLDS 2026-27", "minimum"),
@@ -164,6 +172,7 @@ def _dataset_pairs() -> list[tuple[str, Decimal, Decimal | None]]:
         ("genuine-redundancy-base-limit-2026-27", "TERMINATION_PAYMENT", "base_amount"),
         ("genuine-redundancy-service-amount-2026-27", "TERMINATION_PAYMENT", "service_amount"),
         ("fbt-benchmark-interest-rate-fbt-year-2027", "FBT_BENCHMARK_INTEREST_RATES", "2027"),
+        ("fbt-car-parking-threshold-fbt-year-2027", "FBT_CAR_PARKING_THRESHOLDS", "2027"),
     ):
         copy = Decimal(tables[table][key])
         if _record(name)["unit"] == "percent":
@@ -409,6 +418,8 @@ class DatasetAgreementTests(unittest.TestCase):
             taxed = [row for row in _record(f"resident-tax-rates-{year}")["value"] if row["marginal_rate"]]
             with self.subTest(year=year):
                 self.assertEqual(len(taxed), len(scales[year]))
+        foreign = _record("foreign-resident-tax-rates-2025-26")["value"]
+        self.assertEqual(len(foreign), len(_metadata_literal("FOREIGN_RESIDENT_TAX_SCALES")["2025-26"]))
 
 
 if __name__ == "__main__":

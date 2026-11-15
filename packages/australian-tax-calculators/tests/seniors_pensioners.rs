@@ -18,8 +18,22 @@ fn input(earnings: &str, period: &str, status: &str, exemption: &str, year: &str
     })
 }
 
+/// The command's result; derive gives the same, byte for byte.
+fn evaluate(facts: &Value) -> Result<Value, String> {
+    let result = api::evaluate(COMMAND, facts);
+    if let Ok(plain) = &result {
+        let doc = api::evaluate("derive", &json!({"command": COMMAND, "input": facts})).unwrap();
+        assert_eq!(
+            doc["result"].to_string(),
+            plain.to_string(),
+            "derive {facts}"
+        );
+    }
+    result
+}
+
 fn withholding(earnings: &str, period: &str, status: &str, exemption: &str, year: &str) -> String {
-    let result = api::evaluate(COMMAND, &input(earnings, period, status, exemption, year));
+    let result = evaluate(&input(earnings, period, status, exemption, year));
     let result = result.unwrap_or_else(|e| panic!("{year} {period} {earnings} {status}: {e}"));
     result["amounts"]["withholding"]
         .as_str()
@@ -53,8 +67,7 @@ fn the_worked_example() {
             .1;
         for year in years {
             for (status, amount) in STATUSES.iter().zip(expected) {
-                let result =
-                    api::evaluate(COMMAND, &input("662.95", "weekly", status, "none", year));
+                let result = evaluate(&input("662.95", "weekly", status, "none", year));
                 let result = result.unwrap();
                 assert_eq!(result["amounts"]["withholding"], amount, "{year} {status}");
                 assert_eq!(result["amounts"]["weekly_earnings_used"], "662.99");
@@ -147,20 +160,14 @@ fn medicare_levy_exemptions_select_scales_4_to_9() {
 fn the_result_names_the_scale_and_its_coefficients() {
     // Scale 4 (single, full exemption) for 2026-27 at $1,300.99:
     // 0.3000 x 1,300.99 - 181.7308 = 208.5662, $209.
-    let result = api::evaluate(
-        COMMAND,
-        &input("1300", "weekly", "single", "full", "2026-27"),
-    );
+    let result = evaluate(&input("1300", "weekly", "single", "full", "2026-27"));
     let rates = &result.unwrap()["rates"];
     assert_eq!(rates["scale"], "4");
     assert_eq!(
         (&rates["a"], &rates["b"]),
         (&json!("0.3000"), &json!("181.7308"))
     );
-    let result = api::evaluate(
-        COMMAND,
-        &input("1300", "weekly", "couple", "half", "2026-27"),
-    );
+    let result = evaluate(&input("1300", "weekly", "couple", "half", "2026-27"));
     assert_eq!(result.unwrap()["rates"]["scale"], "9");
 }
 
@@ -177,10 +184,7 @@ fn fortnightly_and_monthly_pays_convert_through_the_weekly_amount() {
         ("2600.00", "fortnightly", "470.00"),
         ("4500.00", "monthly", "641.00"),
     ] {
-        let result = api::evaluate(
-            COMMAND,
-            &input(earnings, period, "single", "none", "2026-27"),
-        );
+        let result = evaluate(&input(earnings, period, "single", "none", "2026-27"));
         let result = result.unwrap();
         assert_eq!(
             result["amounts"]["withholding"], single,
@@ -189,10 +193,7 @@ fn fortnightly_and_monthly_pays_convert_through_the_weekly_amount() {
         assert_eq!(result["period"], format!("2026-27 {period}"));
     }
     let used = |earnings: &str| {
-        let result = api::evaluate(
-            COMMAND,
-            &input(earnings, "monthly", "single", "none", "2026-27"),
-        );
+        let result = evaluate(&input(earnings, "monthly", "single", "none", "2026-27"));
         result.unwrap()["amounts"]["weekly_earnings_used"].clone()
     };
     assert_eq!(used("2877.33"), "664.99");
@@ -247,7 +248,6 @@ fn what_the_schedule_does_not_settle_is_refused() {
         ("tax_offsets", json!("422.00")),
         ("medicare_adjustment_children", json!(1)),
         ("scale", json!(2)),
-        ("study_loan", json!(true)),
     ] {
         assert_eq!(
             refusal(&with(key, value)),
@@ -305,7 +305,7 @@ fn the_catalogue_lists_the_worksheet_with_its_example() {
     let facts = &entry["example"]["facts"];
     let mut facts = facts.clone();
     facts.as_object_mut().unwrap().remove("kind");
-    let result = api::evaluate(COMMAND, &facts).unwrap();
+    let result = evaluate(&facts).unwrap();
     assert_eq!(result["amounts"]["withholding"], "2.00");
     assert_eq!(
         entry["source"],

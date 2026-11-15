@@ -96,6 +96,31 @@ enum Kind {
 }
 use Kind::{Dec, Json, Raw};
 
+/// The FBT benefit worksheets' positional parameters. Their other inputs depend
+/// on the method, so [`benefit_inputs`] passes them by name.
+const FBT_YEAR_ARGS: &[(&str, Kind)] = &[("year_ended", Raw), ("scope_confirmed", Raw)];
+const FBT_METHOD_ARGS: &[(&str, Kind)] = &[
+    ("method", Raw),
+    ("year_ended", Raw),
+    ("scope_confirmed", Raw),
+];
+
+/// The parameters of the worksheets that take one pay's earnings on a scale.
+const PAY_ARGS: &[(&str, Kind)] = &[
+    ("earnings", Dec),
+    ("pay_period", Raw),
+    ("scale", Raw),
+    ("year", Raw),
+    ("scope_confirmed", Raw),
+];
+
+/// The parameters of the worksheets that take taxable income alone.
+const TAXABLE_INCOME_ARGS: &[(&str, Kind)] = &[
+    ("taxable_income", Dec),
+    ("year", Raw),
+    ("scope_confirmed", Raw),
+];
+
 /// Command, the worksheet's parameters in the original order.
 const COMMAND_ARGS: &[(&str, &[(&str, Kind)])] = &[
     (
@@ -107,14 +132,8 @@ const COMMAND_ARGS: &[(&str, &[(&str, Kind)])] = &[
             ("year", Raw),
         ],
     ),
-    (
-        "resident-tax",
-        &[
-            ("taxable_income", Dec),
-            ("year", Raw),
-            ("scope_confirmed", Raw),
-        ],
-    ),
+    ("resident-tax", TAXABLE_INCOME_ARGS),
+    ("foreign-resident-tax", TAXABLE_INCOME_ARGS),
     (
         "capital-gains",
         &[
@@ -157,6 +176,19 @@ const COMMAND_ARGS: &[(&str, &[(&str, Kind)])] = &[
         ],
     ),
     (
+        "hire-purchase-schedule",
+        &[
+            ("amount_financed", Dec),
+            ("instalment", Dec),
+            ("instalments", Raw),
+            ("balloon", Dec),
+            ("timing", Raw),
+            ("start_date", Raw),
+            ("year", Raw),
+            ("scope_confirmed", Raw),
+        ],
+    ),
+    (
         "fbt",
         &[
             ("type_one_value", Dec),
@@ -194,6 +226,12 @@ const COMMAND_ARGS: &[(&str, &[(&str, Kind)])] = &[
             ("scope_confirmed", Raw),
         ],
     ),
+    ("fbt-loan", FBT_YEAR_ARGS),
+    ("fbt-meal-entertainment", FBT_METHOD_ARGS),
+    ("fbt-car-parking", FBT_METHOD_ARGS),
+    ("fbt-debt-waiver", FBT_YEAR_ARGS),
+    ("fbt-expense-payment", FBT_METHOD_ARGS),
+    ("fbt-property", FBT_METHOD_ARGS),
     (
         "depreciation",
         &[
@@ -216,26 +254,18 @@ const COMMAND_ARGS: &[(&str, &[(&str, Kind)])] = &[
             ("scope_confirmed", Raw),
         ],
     ),
+    ("payg-withholding", PAY_ARGS),
     (
-        "payg-withholding",
+        "payg-gross-up",
         &[
-            ("earnings", Dec),
+            ("net_pay", Dec),
             ("pay_period", Raw),
             ("scale", Raw),
             ("year", Raw),
             ("scope_confirmed", Raw),
         ],
     ),
-    (
-        "study-loan-withholding",
-        &[
-            ("earnings", Dec),
-            ("pay_period", Raw),
-            ("scale", Raw),
-            ("year", Raw),
-            ("scope_confirmed", Raw),
-        ],
-    ),
+    ("study-loan-withholding", PAY_ARGS),
     (
         "medicare-levy",
         &[
@@ -256,14 +286,7 @@ const COMMAND_ARGS: &[(&str, &[(&str, Kind)])] = &[
             ("scope_confirmed", Raw),
         ],
     ),
-    (
-        "low-income-tax-offset",
-        &[
-            ("taxable_income", Dec),
-            ("year", Raw),
-            ("scope_confirmed", Raw),
-        ],
-    ),
+    ("low-income-tax-offset", TAXABLE_INCOME_ARGS),
     (
         "seniors-pensioners-tax-offset",
         &[
@@ -401,6 +424,11 @@ const COMMAND_ARGS: &[(&str, &[(&str, Kind)])] = &[
             ("scope_confirmed", Raw),
         ],
     ),
+    ("fbt-residual", FBT_METHOD_ARGS),
+    ("fbt-housing", FBT_METHOD_ARGS),
+    ("fbt-lafha", FBT_METHOD_ARGS),
+    ("fbt-board", FBT_YEAR_ARGS),
+    ("fbt-tax-exempt-body-entertainment", FBT_METHOD_ARGS),
 ];
 
 pub fn commands() -> Vec<&'static str> {
@@ -408,11 +436,50 @@ pub fn commands() -> Vec<&'static str> {
     out.push("worksheet-catalogue");
     out.push("periods");
     out.push("derive");
+    out.push("personal-tax-estimate");
     out
 }
 
 /// The commands `derive` explains: each of their amounts is worked out in a step.
-const DERIVED: [&str; 3] = ["fbt", "fbt-car-statutory", "fbt-car-operating-cost"];
+const DERIVED: [&str; 37] = [
+    "fbt",
+    "fbt-car-statutory",
+    "fbt-car-operating-cost",
+    "fbt-loan",
+    "fbt-meal-entertainment",
+    "fbt-car-parking",
+    "fbt-debt-waiver",
+    "fbt-expense-payment",
+    "fbt-property",
+    "division-293",
+    "pension-minimum",
+    "payg-withholding",
+    "schedule-5-method-a",
+    "schedule-5-method-b-i",
+    "schedule-5-method-b-ii",
+    "termination-payment",
+    "working-holiday-maker-withholding",
+    "study-loan-withholding",
+    "seniors-pensioners-withholding",
+    "quarterly-sg",
+    "borrowing-expenses",
+    "resident-tax",
+    "foreign-resident-tax",
+    "low-income-tax-offset",
+    "seniors-pensioners-tax-offset",
+    "medicare-levy",
+    "medicare-levy-surcharge",
+    "division-296",
+    "contribution-caps",
+    "study-loan-repayment",
+    "capital-gains",
+    "main-residence",
+    "fbt-residual",
+    "fbt-housing",
+    "fbt-lafha",
+    "fbt-board",
+    "fbt-tax-exempt-body-entertainment",
+];
 
 /// `derive`: `{"command", "input"}` gives the command's result with the step
 /// behind each amount. A refused input gives the command's own refusal.
@@ -585,6 +652,22 @@ fn argument(v: &Value, key: &str, kind: Kind) -> Result<Arg> {
     }
 }
 
+/// The inputs `v` gives besides `params`, by name: a string as a decimal,
+/// except `fbt-housing`'s `state`, any other value as given.
+fn benefit_inputs(v: &Value, params: &[(&str, Kind)]) -> Result<Vec<(String, Arg)>> {
+    let named = v.as_object().into_iter().flatten();
+    named
+        .filter(|(key, _)| !params.iter().any(|(p, _)| p == key))
+        .map(|(key, value)| {
+            let given = match value {
+                Value::String(_) if key != "state" => argument(v, key, Dec)?,
+                other => arg(other),
+            };
+            Ok((key.clone(), given))
+        })
+        .collect()
+}
+
 /// An optional argument: `None` when `key` is absent.
 fn optional(v: &Value, key: &str, kind: Kind) -> Result<Option<Arg>> {
     v.get(key).map(|_| argument(v, key, kind)).transpose()
@@ -615,6 +698,21 @@ fn int_limit(value: &Value) -> Result<()> {
     }
 }
 
+/// Whether `command` takes the input `key`, required or optional.
+pub(crate) fn takes(command: &str, key: &str) -> bool {
+    let kind = command.replace('-', "_");
+    // The catalogue's required and optional inputs, which for the FBT benefit
+    // worksheets are more than their positional parameters.
+    let named = [
+        crate::metadata::input_units(&kind),
+        crate::metadata::optional_inputs(&kind),
+    ];
+    COMMAND_ARGS
+        .iter()
+        .any(|(c, params)| *c == command && params.iter().any(|(p, _)| *p == key))
+        || named.iter().flatten().any(|(n, _)| *n == key)
+}
+
 /// Run one JSON stdin command: the result value, or the refusal message.
 pub fn evaluate(command: &str, v: &Value) -> std::result::Result<Value, String> {
     evaluate_coded(command, v).map_err(|refusal| refusal.message)
@@ -629,6 +727,7 @@ pub fn evaluate_coded(command: &str, v: &Value) -> Result<Value> {
     match command {
         "worksheet-catalogue" => return Ok(engine::worksheet_catalogue()),
         "derive" => return derive(v),
+        "personal-tax-estimate" => return crate::estimate::compose(v),
         "periods" => {
             let kind = match v.get("kind") {
                 None => return refusal("input.missing_field", "kind is required"),
@@ -656,6 +755,7 @@ pub fn evaluate_coded(command: &str, v: &Value) -> Result<Value> {
     // the start year's, a single person's or the result without it, so a field
     // one does not take, such as an opening balance, another method's input or
     // a TFN exemption, is refused rather than ignored.
+    // The FBT benefit worksheets have no Python original either.
     if matches!(
         command,
         "division-296"
@@ -663,40 +763,49 @@ pub fn evaluate_coded(command: &str, v: &Value) -> Result<Value> {
             | "medicare-levy"
             | "medicare-levy-surcharge"
             | "payg-withholding"
+            | "payg-gross-up"
             | "termination-payment"
             | "schedule-5-method-a"
             | "schedule-5-method-b-i"
             | "schedule-5-method-b-ii"
             | "working-holiday-maker-withholding"
             | "study-loan-withholding"
+            | "foreign-resident-tax"
             | "seniors-pensioners-withholding"
             | "seniors-pensioners-tax-offset"
-    ) {
-        let optional = crate::metadata::optional_inputs(&command.replace('-', "_"));
-        let taken = |key: &String| {
-            params.iter().any(|(p, _)| p == key) || optional.iter().any(|(o, _)| o == key)
-        };
-        if let Some(key) = v
-            .as_object()
-            .into_iter()
-            .flat_map(|o| o.keys())
-            .find(|k| !taken(k))
-        {
-            return refusal(
-                "input.field_unknown",
-                format!("{key} is not an input of {command}"),
-            );
-        }
+            | "fbt-loan"
+            | "fbt-meal-entertainment"
+            | "fbt-car-parking"
+            | "fbt-debt-waiver"
+            | "fbt-expense-payment"
+            | "fbt-property"
+            | "fbt-residual"
+            | "fbt-housing"
+            | "fbt-lafha"
+            | "fbt-board"
+            | "fbt-tax-exempt-body-entertainment"
+            | "hire-purchase-schedule"
+    ) && let Some(key) = v
+        .as_object()
+        .into_iter()
+        .flat_map(|o| o.keys())
+        .find(|k| !takes(command, k))
+    {
+        return refusal(
+            "input.field_unknown",
+            format!("{key} is not an input of {command}"),
+        );
     }
     let a: Vec<Arg> = params
         .iter()
         .map(|(key, kind)| argument(v, key, *kind))
         .collect::<Result<_>>()?;
-    // Optional: the study loan worksheets' pay date, which selects the Schedule 8 coefficients.
+    // Optional: the study loan component's pay date, which selects the Schedule 8 coefficients.
     let pay_date = v.get("pay_date").map(arg);
     let result = match command {
         "gst" => engine::gst(&a[0], &a[1], &a[2], &a[3]),
         "resident-tax" => engine::resident_tax(&a[0], &a[1], &a[2]),
+        "foreign-resident-tax" => engine::foreign_resident_tax(&a[0], &a[1], &a[2]),
         "capital-gains" => engine::capital_gains(&a[0], &a[1], &a[2], &a[3], &a[4], &a[5]),
         "main-residence" => engine::main_residence(
             &a[0], &a[1], &a[2], &a[3], &a[4], &a[5], &a[6], &a[7], &a[8], &a[9], &a[10],
@@ -709,6 +818,9 @@ pub fn evaluate_coded(command: &str, v: &Value) -> Result<Value> {
             };
             engine::borrowing_expenses(&a[0], &a[1], &a[2], loan, &a[6], &a[7], &a[8])
         }
+        "hire-purchase-schedule" => {
+            engine::hire_purchase_schedule(&a[0], &a[1], &a[2], &a[3], &a[4], &a[5], &a[6], &a[7])
+        }
         "fbt" => engine::fbt(&a[0], &a[1], &a[2], &a[3]),
         "fbt-car-statutory" => {
             engine::fbt_car_statutory(&a[0], &a[1], &a[2], &a[3], &a[4], &a[5], &a[6], &a[7])
@@ -716,6 +828,26 @@ pub fn evaluate_coded(command: &str, v: &Value) -> Result<Value> {
         "fbt-car-operating-cost" => engine::fbt_car_operating_cost(
             &a[0], &a[1], &a[2], &a[3], &a[4], &a[5], &a[6], &a[7], &a[8], &a[9], &a[10],
         ),
+        "fbt-loan" => engine::fbt_loan(&benefit_inputs(v, params)?, &a[0], &a[1]),
+        "fbt-meal-entertainment" => {
+            engine::fbt_meal_entertainment(&a[0], &benefit_inputs(v, params)?, &a[1], &a[2])
+        }
+        "fbt-car-parking" => {
+            engine::fbt_car_parking(&a[0], &benefit_inputs(v, params)?, &a[1], &a[2])
+        }
+        "fbt-debt-waiver" => engine::fbt_debt_waiver(&benefit_inputs(v, params)?, &a[0], &a[1]),
+        "fbt-expense-payment" => {
+            engine::fbt_expense_payment(&a[0], &benefit_inputs(v, params)?, &a[1], &a[2])
+        }
+        "fbt-property" => engine::fbt_property(&a[0], &benefit_inputs(v, params)?, &a[1], &a[2]),
+        "fbt-residual" => engine::fbt_residual(&a[0], &benefit_inputs(v, params)?, &a[1], &a[2]),
+        "fbt-housing" => engine::fbt_housing(&a[0], &benefit_inputs(v, params)?, &a[1], &a[2]),
+        "fbt-lafha" => engine::fbt_lafha(&a[0], &benefit_inputs(v, params)?, &a[1], &a[2]),
+        "fbt-board" => engine::fbt_board(&benefit_inputs(v, params)?, &a[0], &a[1]),
+        "fbt-tax-exempt-body-entertainment" => {
+            let given = benefit_inputs(v, params)?;
+            engine::fbt_tax_exempt_body_entertainment(&a[0], &given, &a[1], &a[2])
+        }
         "depreciation" => {
             // Optional: present only for an income year after the asset's start time.
             let key = "opening_adjustable_value";
@@ -754,6 +886,11 @@ pub fn evaluate_coded(command: &str, v: &Value) -> Result<Value> {
                 extra_pay_withholding: extra.as_ref(),
             };
             engine::payg_withholding(&a[0], &a[1], &a[2], &a[3], &a[4], &options)
+        }
+        "payg-gross-up" => {
+            // Optional: scale 4's residency, as payg-withholding takes it.
+            let foreign = v.get("foreign_resident").map(arg);
+            engine::payg_gross_up(&a[0], &a[1], &a[2], &a[3], &a[4], foreign.as_ref())
         }
         "study-loan-withholding" => {
             engine::study_loan_withholding(&a[0], &a[1], &a[2], &a[3], &a[4], pay_date.as_ref())
@@ -846,7 +983,17 @@ pub fn evaluate_coded(command: &str, v: &Value) -> Result<Value> {
             &a[0], &a[1], &a[2], &a[3], &a[4], &a[5], &a[6],
         ),
         "seniors-pensioners-withholding" => {
-            engine::seniors_pensioners_withholding(&a[0], &a[1], &a[2], &a[3], &a[4], &a[5])
+            // Optional: absent for a payee who declared no study loan.
+            let study_loan = v.get("study_loan").map_or(Arg::Bool(false), arg);
+            engine::seniors_pensioners_withholding(
+                &a[0],
+                &a[1],
+                &a[2],
+                &a[3],
+                &a[4],
+                &a[5],
+                (&study_loan, pay_date.as_ref()),
+            )
         }
         "study-loan-repayment" => engine::study_loan_repayment(&a[0], &a[1], &a[2]),
         "contribution-caps" => {
@@ -881,5 +1028,36 @@ mod tests {
             wrong.len(),
             &wrong[..wrong.len().min(10)]
         );
+    }
+
+    /// `takes` reads the catalogue's required inputs so that the FBT benefit
+    /// worksheets' named inputs are taken; every other command's required
+    /// inputs are its parameters, so no other command takes more than before.
+    #[test]
+    fn only_the_fbt_benefit_worksheets_take_inputs_beyond_their_parameters() {
+        let named_only = [
+            "fbt-loan",
+            "fbt-meal-entertainment",
+            "fbt-car-parking",
+            "fbt-debt-waiver",
+            "fbt-expense-payment",
+            "fbt-property",
+            "fbt-residual",
+            "fbt-housing",
+            "fbt-lafha",
+            "fbt-board",
+            "fbt-tax-exempt-body-entertainment",
+        ];
+        for (command, params) in COMMAND_ARGS {
+            let extra: Vec<_> = crate::metadata::input_units(&command.replace('-', "_"))
+                .into_iter()
+                .filter(|(n, _)| !params.iter().any(|(p, _)| p == n))
+                .collect();
+            assert_eq!(
+                extra.is_empty(),
+                !named_only.contains(command),
+                "{command} {extra:?}"
+            );
+        }
     }
 }

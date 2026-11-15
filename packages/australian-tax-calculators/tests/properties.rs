@@ -76,6 +76,15 @@ fn run(command: &str, input: Value) -> Value {
     let result =
         api::evaluate(command, &input).unwrap_or_else(|e| panic!("{command} {input}: {e}"));
     check_sanity(command, &result);
+    // Every input of a command derive explains derives to this result, byte for byte.
+    match api::evaluate_coded("derive", &json!({"command": command, "input": input})) {
+        Ok(doc) => assert_eq!(
+            doc["result"].to_string(),
+            result.to_string(),
+            "derive {command} {input}"
+        ),
+        Err(refusal) => assert_eq!(refusal.code, "derivation.unsupported", "{command} {input}"),
+    }
     result
 }
 
@@ -307,6 +316,70 @@ fn payg_withholding_never_falls_across_any_bracket_boundary() {
                     previous = amount;
                 }
             }
+        }
+    }
+}
+
+/// The grosses `payg-gross-up` gives for `net`: the one it returns, or those
+/// its refusal of a tie lists.
+fn grossed_up(
+    net: &str,
+    period: &str,
+    scale: i64,
+    year: &str,
+    foreign: Option<bool>,
+) -> Vec<Decimal> {
+    let mut facts = json!({"net_pay": net, "pay_period": period, "scale": scale,
+                           "year": year, "scope_confirmed": true});
+    if let Some(foreign) = foreign {
+        facts["foreign_resident"] = json!(foreign);
+    }
+    match api::evaluate_coded("payg-gross-up", &facts) {
+        Ok(result) => {
+            check_sanity("payg-gross-up", &result);
+            vec![amount(&result, "gross_pay")]
+        }
+        Err(refusal) => {
+            assert_eq!(refusal.code, "payg.gross_up_not_unique", "{facts}");
+            let (_, listed) = refusal.message.split_once(": ").unwrap();
+            let (listed, _) = listed.split_once(". ").unwrap();
+            listed
+                .split([',', ' '])
+                .filter_map(|word| word.strip_prefix('$'))
+                .map(d)
+                .collect()
+        }
+    }
+}
+
+#[test]
+fn withholding_on_the_grossed_up_pay_leaves_the_net() {
+    // Every gross whose withholding leaves the net is listed, and no other
+    // within $60 of withholding either side of them leaves it.
+    let scales = payg_scales();
+    let mut rng = Rng(0x6055);
+    for _ in 0..RUNS {
+        let (year, scale, foreign) = *rng.pick(&scales);
+        let period = *rng.pick(&["weekly", "fortnightly", "monthly", "quarterly"]);
+        let net = d(&rng.pay());
+        let case = format!("{year} {scale} {foreign:?} {period} net {net}");
+        let leaves = |gross: &Decimal| {
+            let withholding = withheld(&gross.fixed(2, false), period, scale, year, foreign);
+            eq(&gross.sub(&withholding).unwrap(), &net)
+        };
+        let grosses = grossed_up(&net.fixed(2, false), period, scale, year, foreign);
+        assert!(!grosses.is_empty() && grosses.iter().all(leaves), "{case}");
+        let low = grosses[0].sub(&n(60)).unwrap();
+        let mut gross = if low.lt(&net).unwrap() {
+            net.clone()
+        } else {
+            low
+        };
+        let high = grosses[grosses.len() - 1].add(&n(60)).unwrap();
+        while le(&gross, &high) {
+            let listed = grosses.iter().any(|g| eq(g, &gross));
+            assert_eq!(leaves(&gross), listed, "{case}: gross {gross}");
+            gross = gross.add(&n(1)).unwrap();
         }
     }
 }
@@ -787,6 +860,369 @@ fn car_worksheets_reconcile_and_stay_within_their_bases() {
     }
 }
 
+/// A car parking result: the applied and excess payment make up the payment,
+/// the applied part never exceeds the gross value, and the taxable value is
+/// the gross value less the applied part; when no benefit arises, a nil
+/// taxable value alone.
+fn check_parking_reconciles(result: &Value, contribution: &str, arises: bool) {
+    if !arises {
+        assert_eq!(result["amounts"], json!({"taxable_value": "0.00"}));
+        return;
+    }
+    let gross = amount(result, "gross_taxable_value");
+    let applied = amount(result, "employee_contribution_applied");
+    let excess = amount(result, "excess_employee_contribution");
+    assert!(
+        eq(&applied.add(&excess).unwrap(), &d(contribution)),
+        "{result}"
+    );
+    assert!(le(&applied, &gross), "{result}");
+    let net = gross.sub(&applied).unwrap();
+    assert!(eq(&amount(result, "taxable_value"), &net), "{result}");
+}
+
+/// The loan, meal entertainment and car parking taxable values are never
+/// negative and never exceed the value they start from, and neither the
+/// interest accrued, the otherwise deductible rule nor a recipient's payment
+/// takes one below nil.
+#[test]
+fn fbt_benefit_values_reconcile_and_never_fall_below_nil() {
+    let mut rng = Rng(0xFB7_2026);
+    for _ in 0..RUNS {
+        let year = rng.int(2026, 2027);
+        let (deduction, accrued) = sorted_dec(rng.pay(), rng.pay());
+        let result = run(
+            "fbt-loan",
+            json!({"daily_balance_total": rng.money(), "interest_accrued": accrued,
+                   "income_use": format!("0.{:04}", rng.int(0, 9999)),
+                   "accrued_interest_deduction": deduction,
+                   "year_ended": year, "scope_confirmed": true}),
+        );
+        let notional = amount(&result, "notional_interest");
+        let applied = amount(&result, "interest_accrued_applied");
+        let gross = amount(&result, "gross_taxable_value");
+        let reduction = amount(&result, "reduction_applied");
+        let taxable = amount(&result, "taxable_value");
+        assert!(le(&applied, &d(&accrued)), "{result}");
+        assert!(eq(&notional.sub(&applied).unwrap(), &gross), "{result}");
+        assert!(
+            le(&reduction, &amount(&result, "notional_deduction")),
+            "{result}"
+        );
+        assert!(eq(&gross.sub(&reduction).unwrap(), &taxable), "{result}");
+        assert!(le(&n(0), &taxable) && le(&taxable, &gross), "{result}");
+
+        let fee = rng.cents(3000);
+        let arises = d(&fee)
+            .gt(&d(if year == 2026 { "11.03" } else { "11.48" }))
+            .unwrap();
+        let contribution = rng.pay();
+        let mut facts = json!({"first_business_day_fee": fee, "benefits": rng.int(0, 2000),
+                               "employee_contribution": contribution,
+                               "year_ended": year, "scope_confirmed": true});
+        if rng.bool() {
+            facts["method"] = json!("commercial_parking_station");
+            facts["lowest_fee"] = json!(rng.cents(5000));
+        } else {
+            facts["method"] = json!("average_cost");
+            facts["first_day_fee"] = json!(rng.cents(5000));
+            facts["last_day_fee"] = json!(rng.cents(5000));
+        }
+        check_parking_reconciles(&run("fbt-car-parking", facts), &contribution, arises);
+        let value = rng.pay();
+        let result = run(
+            "fbt-car-parking",
+            json!({"method": "12_week_register", "first_business_day_fee": fee,
+                   "register_value": value, "availability_days": rng.int(0, 365),
+                   "register_first_year": year - rng.int(0, 4),
+                   "year_ended": year, "scope_confirmed": true}),
+        );
+        let taxable = amount(&result, "taxable_value");
+        // 52 / 12 of the register's value at most, allowing a cent for rounding.
+        let ceiling = d(&value).mul(&n(52)).unwrap().div(&n(12)).unwrap();
+        let ceiling = ceiling.add(&d("0.01")).unwrap();
+        assert!(le(&n(0), &taxable) && le(&taxable, &ceiling), "{result}");
+
+        let expenditure = rng.money();
+        let result = run(
+            "fbt-meal-entertainment",
+            json!({"method": "50_50_split", "meal_entertainment_expenditure": expenditure,
+                   "year_ended": year, "scope_confirmed": true}),
+        );
+        let taxable = amount(&result, "taxable_value");
+        assert!(
+            le(&n(0), &taxable) && le(&taxable, &d(&expenditure)),
+            "{result}"
+        );
+        let (benefits, total) = sorted_dec(rng.pay(), rng.pay());
+        let total = if d(&total).is_zero() {
+            "0.01".to_string()
+        } else {
+            total
+        };
+        let result = run(
+            "fbt-meal-entertainment",
+            json!({"method": "12_week_register", "meal_entertainment_expenditure": expenditure,
+                   "register_fringe_benefits_value": benefits,
+                   "register_meal_entertainment_value": total,
+                   "register_first_year": year - rng.int(0, 4),
+                   "year_ended": year, "scope_confirmed": true}),
+        );
+        let taxable = amount(&result, "taxable_value");
+        assert!(
+            le(&n(0), &taxable) && le(&taxable, &d(&expenditure)),
+            "{result}"
+        );
+    }
+}
+
+/// The amount `key` of `result`, nil where the result has none.
+fn amount_or_nil(result: &Value, key: &str) -> Decimal {
+    result["amounts"]
+        .get(key)
+        .map_or_else(|| n(0), |_| amount(result, key))
+}
+
+/// An expense payment or property result: the contribution splits into its
+/// applied part and excess, the value after it is the gross value less the
+/// applied part, and the taxable value is that less each reduction, never
+/// above it.
+fn check_benefit_reconciles(result: &Value, contribution_key: &str, contribution: &Decimal) {
+    let gross = amount(result, "gross_taxable_value");
+    let applied = amount(result, &format!("{contribution_key}_applied"));
+    let excess = amount(result, &format!("excess_{contribution_key}"));
+    assert!(eq(&applied.add(&excess).unwrap(), contribution), "{result}");
+    let value = amount(result, "value_after_contribution");
+    assert!(eq(&gross.sub(&applied).unwrap(), &value), "{result}");
+    let [odr, in_house] =
+        ["reduction_applied", "in_house_reduction_applied"].map(|key| amount_or_nil(result, key));
+    let taxable = amount(result, "taxable_value");
+    let net = value.sub(&odr).unwrap().sub(&in_house).unwrap();
+    assert!(eq(&taxable, &net) && le(&taxable, &value), "{result}");
+}
+
+/// The in-house and external property rules, in the property worksheet's order.
+const PROPERTY_RULES: [&str; 9] = [
+    "in_house_salary_packaging",
+    "in_house_trade_price",
+    "in_house_public_price",
+    "in_house_produced_other",
+    "in_house_acquired",
+    "in_house_other",
+    "external_cost_price",
+    "external_expenditure",
+    "external_notional_value",
+];
+
+/// `facts` with random inputs for the property rule `method`, and the s 62
+/// reduction left where the rule takes one.
+fn add_rule_facts(rng: &mut Rng, method: &str, facts: &mut Value) {
+    let names: &[&str] = match method {
+        "in_house_trade_price" | "in_house_public_price" => &["lowest_price"],
+        "in_house_acquired" => &["arms_length_price", "notional_value"],
+        "external_cost_price" => &["cost_price"],
+        "external_expenditure" => &["employer_expenditure"],
+        _ => &["notional_value"],
+    };
+    for name in names {
+        facts[*name] = json!(rng.pay());
+    }
+    if method.starts_with("in_house_") && method != "in_house_salary_packaging" {
+        facts["in_house_reduction_available"] = json!(rng.cents(100_000));
+    }
+}
+
+/// The property and expense payment taxable values reconcile with their
+/// contributions and reductions, and neither a contribution, the otherwise
+/// deductible rule nor the in-house reduction takes one below nil.
+#[test]
+fn fbt_property_and_expense_payment_values_reconcile() {
+    let mut rng = Rng(0xFB7_2A26);
+    for _ in 0..RUNS {
+        let year = rng.int(2026, 2027);
+        let share = format!("0.{:04}", rng.int(0, 9999));
+        let method = *rng.pick(&PROPERTY_RULES);
+        let (deduction, contribution) = sorted_dec(rng.pay(), rng.pay());
+        let mut facts = json!({"method": method, "employee_contribution": contribution,
+                               "income_use": share, "contribution_deduction": deduction,
+                               "year_ended": year, "scope_confirmed": true});
+        add_rule_facts(&mut rng, method, &mut facts);
+        let result = run("fbt-property", facts.clone());
+        check_benefit_reconciles(&result, "employee_contribution", &d(&contribution));
+        if let Some(available) = facts["in_house_reduction_available"].as_str() {
+            let applied = amount(&result, "in_house_reduction_applied");
+            assert!(le(&applied, &d(available)), "{result}");
+        }
+
+        let (paid, expenditure) = sorted_dec(rng.pay(), rng.pay());
+        let contribution = rng.pay();
+        let method = if rng.bool() {
+            "external"
+        } else {
+            PROPERTY_RULES[rng.int(0, 5) as usize]
+        };
+        let mut facts = json!({"method": method, "recipients_expenditure": expenditure,
+                               "amount_paid": paid, "employee_contribution": contribution,
+                               "year_ended": year, "scope_confirmed": true});
+        // s 136(1): the recipient's portion, the expenditure less the payment
+        // net of the contribution.
+        let portion = d(&expenditure)
+            .sub(&d(&paid))
+            .unwrap()
+            .add(&d(&contribution))
+            .unwrap();
+        if method == "external" {
+            facts["income_use"] = json!(share);
+            let deduction = if rng.bool() {
+                portion.to_string()
+            } else {
+                "0.00".into()
+            };
+            facts["recipients_portion_deduction"] = json!(deduction);
+            let result = run("fbt-expense-payment", facts);
+            check_benefit_reconciles(&result, "employee_contribution", &d(&contribution));
+        } else {
+            add_rule_facts(&mut rng, method, &mut facts);
+            let result = run("fbt-expense-payment", facts);
+            assert!(
+                eq(&amount(&result, "recipients_portion"), &portion),
+                "{result}"
+            );
+            check_benefit_reconciles(&result, "recipients_portion", &portion);
+        }
+    }
+}
+
+/// A residual or board result: the contribution applied and its excess make up
+/// the contribution, and the taxable value is the value after it less the
+/// otherwise deductible reduction and any in-house reduction, from nil to the
+/// gross value.
+fn check_deductible_reconciles(result: &Value, contribution: &str) {
+    let gross = amount(result, "gross_taxable_value");
+    let applied = amount(result, "employee_contribution_applied");
+    let excess = amount(result, "excess_employee_contribution");
+    assert!(
+        eq(&applied.add(&excess).unwrap(), &d(contribution)),
+        "{result}"
+    );
+    let value = amount(result, "value_after_contribution");
+    assert!(eq(&gross.sub(&applied).unwrap(), &value), "{result}");
+    let reduction = amount(result, "reduction_applied");
+    assert!(
+        le(&reduction, &amount(result, "notional_deduction")),
+        "{result}"
+    );
+    let in_house = match result["amounts"].get("in_house_reduction_applied") {
+        Some(_) => amount(result, "in_house_reduction_applied"),
+        None => n(0),
+    };
+    let taxable = amount(result, "taxable_value");
+    let left = value.sub(&reduction).unwrap().sub(&in_house).unwrap();
+    assert!(eq(&left, &taxable), "{result}");
+    assert!(le(&n(0), &taxable) && le(&taxable, &gross), "{result}");
+}
+
+/// The residual, housing, living-away-from-home allowance, board and
+/// tax-exempt body entertainment taxable values are never negative and never
+/// exceed the value they start from, whatever the contribution or reduction.
+#[test]
+fn second_fbt_benefit_values_reconcile_and_never_fall_below_nil() {
+    let mut rng = Rng(0xFB7_2B26);
+    let methods = [
+        ("in_house_salary_packaging", "notional_value", false),
+        ("in_house_public_price", "lowest_price", true),
+        ("in_house_other", "notional_value", true),
+        ("external_cost_price", "cost_price", false),
+        ("external_expenditure", "employer_expenditure", false),
+        ("external_notional_value", "notional_value", false),
+    ];
+    for _ in 0..RUNS {
+        let year = rng.int(2026, 2027);
+        let (deduction, contribution) = sorted_dec(rng.pay(), rng.pay());
+        let income_use = format!("0.{:04}", rng.int(0, 9999));
+        let (method, input, reduces) = *rng.pick(&methods);
+        let mut facts = json!({"method": method,
+                               "employee_contribution": contribution, "income_use": income_use,
+                               "contribution_deduction": deduction,
+                               "year_ended": year, "scope_confirmed": true});
+        facts[input] = json!(rng.pay());
+        if reduces {
+            facts["in_house_reduction_available"] = json!(rng.cents(100_000));
+        }
+        check_deductible_reconciles(&run("fbt-residual", facts), &contribution);
+        let result = run(
+            "fbt-board",
+            json!({"adult_meals": rng.int(0, 2000), "child_meals": rng.int(0, 2000),
+                   "employee_contribution": contribution, "income_use": income_use,
+                   "contribution_deduction": deduction,
+                   "year_ended": year, "scope_confirmed": true}),
+        );
+        check_deductible_reconciles(&result, &contribution);
+
+        let rent = rng.pay();
+        let state = *rng.pick(&["NSW", "VIC", "QLD", "SA", "WA", "TAS", "NT", "ACT"]);
+        let result = run(
+            "fbt-housing",
+            json!({"method": "indexed", "prior_statutory_annual_value": rng.pay(),
+                   "state": state, "base_year_ended": year - rng.int(1, 9),
+                   "tenancy_days": rng.int(0, 365), "employee_contribution": rent,
+                   "year_ended": year, "scope_confirmed": true}),
+        );
+        // Housing rent reduces the value as a car parking payment does.
+        check_parking_reconciles(&result, &rent, true);
+        let value = rng.pay();
+        let result = run(
+            "fbt-housing",
+            json!({"method": "base_year", "market_value": value,
+                   "tenancy_days": rng.int(1, 365), "employee_contribution": rent,
+                   "year_ended": year, "scope_confirmed": true}),
+        );
+        check_parking_reconciles(&result, &rent, true);
+        // The year's value is the market value, within a cent of annualising.
+        let gap = amount(&result, "gross_taxable_value")
+            .sub(&d(&value))
+            .unwrap();
+        assert!(le(&d("-0.01"), &gap) && le(&gap, &d("0.01")), "{result}");
+
+        // Components as whole percentages of the allowance, in cents, together
+        // at most all of it.
+        let allowance = rng.int(0, 10_000_000);
+        let (low, high) = sorted(rng.int(0, 100), rng.int(0, 100));
+        let money = |cents: i64| format!("{}.{:02}", cents / 100, cents % 100);
+        let (accommodation, food) = (allowance * low / 100, allowance * (high - low) / 100);
+        let (allowance, accommodation, food) =
+            (money(allowance), money(accommodation), money(food));
+        let result = run(
+            "fbt-lafha",
+            json!({"method": *rng.pick(&["maintains_home", "fly_in_fly_out"]),
+                   "allowance": allowance, "accommodation_component": accommodation,
+                   "accommodation_expenses": rng.pay(), "food_component": food,
+                   "food_expenses": rng.pay(), "normal_food_amount": rng.pay(),
+                   "adult_days": rng.int(0, 3000), "child_days": rng.int(0, 3000),
+                   "year_ended": year, "scope_confirmed": true}),
+        );
+        let taxable = amount(&result, "taxable_value");
+        assert!(
+            le(&n(0), &taxable) && le(&taxable, &d(&allowance)),
+            "{result}"
+        );
+
+        let total = rng.int(1, 1000);
+        let expenditure = rng.money();
+        let result = run(
+            "fbt-tax-exempt-body-entertainment",
+            json!({"method": "per_head", "entertainment_expenditure": expenditure,
+                   "employee_heads": rng.int(0, total), "total_heads": total,
+                   "year_ended": year, "scope_confirmed": true}),
+        );
+        let taxable = amount(&result, "taxable_value");
+        assert!(
+            le(&n(0), &taxable) && le(&taxable, &d(&expenditure)),
+            "{result}"
+        );
+    }
+}
+
 /// Random alternating lived and absent runs, income use on some days and
 /// choice periods after some lived runs. Inputs the worksheet refuses as out
 /// of scope are skipped; the market value basis is retried when it applies.
@@ -838,6 +1274,9 @@ fn main_residence_shares_reconcile_and_stay_within_the_gain() {
             outcome = api::evaluate("main-residence", &input);
         }
         let Ok(r) = outcome else { continue };
+        let envelope = json!({"command": "main-residence", "input": input});
+        let doc = api::evaluate("derive", &envelope).unwrap();
+        assert_eq!(doc["result"].to_string(), r.to_string(), "derive {input}");
         let (taxable, exempt) = (
             amount(&r, "assessable_capital_gain"),
             amount(&r, "exempt_capital_gain"),
@@ -898,6 +1337,76 @@ fn borrowing_expense_maximums_carry_forward_and_add_up() {
             eq(&total, &d(&expenditure)) && eq(&carried, &n(0)),
             "{expenditure}"
         );
+    }
+}
+
+/// A hire purchase schedule adds up: the months' interest to the total
+/// charges, each closing balance to the next opening and the last to nil, and
+/// each month's interest is within a cent of the implicit rate on what it
+/// accrues on (ITAA 1997 s 240-60(1)).
+#[test]
+fn hire_purchase_interest_adds_up_to_the_charges_and_the_balance_to_nil() {
+    let mut rng = Rng(0x2406_0060);
+    let cents = |c: i64| format!("{}.{:02}", c / 100, c % 100);
+    for _ in 0..RUNS {
+        let count = rng.int(1, 360);
+        let financed = rng.int(100, 100_000_000_000);
+        let monthly = rng.int(0, 50_000) as f64 / 1e6;
+        let advance = rng.bool();
+        let balloon = rng.int(0, financed / 2);
+        // The level instalment near that rate, rounded up to the cent so the
+        // payments repay at least the amount financed.
+        let v = (1.0 + monthly).powi(-(count as i32));
+        let annuity = if monthly == 0.0 {
+            count as f64
+        } else if advance {
+            (1.0 - v) / monthly * (1.0 + monthly)
+        } else {
+            (1.0 - v) / monthly
+        };
+        let instalment = ((financed as f64 - balloon as f64 * v) / annuity).ceil() as i64;
+        let facts = json!({
+            "amount_financed": cents(financed), "instalment": cents(instalment.max(1)),
+            "instalments": count, "balloon": cents(balloon),
+            "timing": if advance { "in_advance" } else { "in_arrears" },
+            "start_date": "2026-07-01", "year": "2026-27", "scope_confirmed": true,
+        });
+        let r = run("hire-purchase-schedule", facts.clone());
+        let rate = d(r["rates"]["implicit_monthly_rate"].as_str().unwrap());
+        let rows = r["schedule"].as_array().unwrap();
+        assert_eq!(rows.len() as i64, count, "{facts}");
+        let field = |row: &Value, key: &str| d(row[key].as_str().unwrap());
+        let (mut interest, mut opening) = (n(0), d(&cents(financed)));
+        for row in rows {
+            let charged = field(row, "interest");
+            let payment = field(row, "payment").add(&field(row, "balloon")).unwrap();
+            assert!(eq(&field(row, "opening"), &opening), "{facts}");
+            assert!(
+                eq(&field(row, "principal"), &payment.sub(&charged).unwrap()),
+                "{facts}"
+            );
+            let closing = opening.sub(&field(row, "principal")).unwrap();
+            assert!(eq(&field(row, "closing"), &closing), "{facts}");
+            let base = if advance {
+                opening.sub(&d(&cents(instalment.max(1)))).unwrap()
+            } else {
+                opening.clone()
+            };
+            let off = charged.sub(&base.mul(&rate).unwrap()).unwrap();
+            let within = d("0.02")
+                .add(&base.mul(&d("0.000000000001")).unwrap())
+                .unwrap();
+            assert!(
+                le(&off, &within) && le(&within.neg().unwrap(), &off),
+                "{facts}: {row}"
+            );
+            interest = interest.add(&charged).unwrap();
+            opening = closing;
+        }
+        assert!(eq(&opening, &n(0)), "{facts}");
+        assert!(eq(&interest, &amount(&r, "total_interest")), "{facts}");
+        let charges = amount(&r, "total_payments").sub(&amount(&r, "amount_financed"));
+        assert!(eq(&interest, &charges.unwrap()), "{facts}");
     }
 }
 
@@ -1303,4 +1812,99 @@ fn civil(day: i64) -> (i64, i64, i64) {
     let d = doy - (153 * mp + 2) / 5 + 1;
     let m = if mp < 10 { mp + 3 } else { mp - 9 };
     (yoe + era * 400 + i64::from(m <= 2), m, d)
+}
+
+/// One generated person's `personal-tax-estimate` input, with SAPTO, a study
+/// loan and Division 293 each present or not.
+fn estimate_input(rng: &mut Rng, year: &str) -> Value {
+    let income = rng.dollars();
+    let fringe = rng.int(0, 30_000);
+    let mut facts = json!({
+        "year": year, "scope_confirmed": true, "residency": "full_year_resident",
+        "taxable_income": income.to_string(),
+        "medicare-levy": {"section_9a_adjustment_applies": false},
+        "medicare-levy-surcharge": {"reportable_fringe_benefits": fringe.to_string(),
+            "income_for_surcharge_purposes": (income + fringe).to_string(),
+            "days_without_cover": rng.int(0, 365)},
+    });
+    if rng.bool() {
+        facts["seniors-pensioners-tax-offset"] =
+            json!({"rebate_income": rng.int(0, 60_000).to_string(), "status": "single"});
+    }
+    if rng.bool() {
+        facts["study-loan-repayment"] = json!({"repayment_income": (income + fringe).to_string()});
+    }
+    if rng.bool() {
+        facts["division-293"] = json!({"division_293_income": (income + fringe).to_string(),
+            "low_tax_contributions": rng.cents(5_000_000)});
+    }
+    facts
+}
+
+/// A part's amount when called alone with the inputs `out`, the estimate for
+/// `facts`, gave it, checking the estimate kept that part's result unchanged;
+/// nil for an optional part not given.
+fn part_alone(facts: &Value, out: &Value, command: &str, key: &str) -> Decimal {
+    let shared_only = matches!(command, "resident-tax" | "low-income-tax-offset");
+    if facts.get(command).is_none() && !shared_only {
+        assert!(
+            out["components"].get(command).is_none(),
+            "{command} {facts}"
+        );
+        return n(0);
+    }
+    let mut input = facts.get(command).cloned().unwrap_or_else(|| json!({}));
+    input["year"] = facts["year"].clone();
+    input["scope_confirmed"] = json!(true);
+    if shared_only || command.starts_with("medicare") {
+        input["taxable_income"] = facts["taxable_income"].clone();
+    }
+    let sapto = &out["components"]["seniors-pensioners-tax-offset"];
+    if command == "medicare-levy" && !sapto.is_null() {
+        let offset = amount(sapto, "seniors_pensioners_tax_offset");
+        input["sapto_entitled"] = json!(!eq(&offset, &n(0)));
+    }
+    let result = run(command, input);
+    assert_eq!(out["components"][command], result, "{command} {facts}");
+    amount(&result, key)
+}
+
+/// `personal-tax-estimate` keeps each part's result exactly as the part gives
+/// it alone, and its total is the parts' sum: basic tax less SAPTO and then
+/// LITO, each up to the tax left (ITAA 1997 s 63-10(1)), plus the levy, the
+/// surcharge and the study loan repayment. Division 293 tax stays outside it.
+#[test]
+fn the_composed_estimate_is_the_sum_of_its_parts_called_alone() {
+    let mut rng = Rng(0x0015_1126);
+    for _ in 0..400 {
+        let year = *rng.pick(&["2025-26", "2026-27"]);
+        let facts = estimate_input(&mut rng, year);
+        let out = run("personal-tax-estimate", facts.clone());
+        let alone = |command: &str, key: &str| part_alone(&facts, &out, command, key);
+        let basic = alone("resident-tax", "basic_income_tax");
+        let sapto = alone(
+            "seniors-pensioners-tax-offset",
+            "seniors_pensioners_tax_offset",
+        );
+        let lito = alone("low-income-tax-offset", "low_income_tax_offset");
+        let sapto = if le(&sapto, &basic) {
+            sapto
+        } else {
+            basic.clone()
+        };
+        let left = basic.sub(&sapto).unwrap();
+        let lito = if le(&lito, &left) { lito } else { left.clone() };
+        let applied = amount(&out, "seniors_pensioners_tax_offset_applied");
+        assert!(eq(&applied, &sapto), "SAPTO applies first: {facts}");
+        let total = [
+            alone("medicare-levy", "medicare_levy"),
+            alone("medicare-levy-surcharge", "medicare_levy_surcharge"),
+            alone("study-loan-repayment", "compulsory_repayment"),
+        ]
+        .iter()
+        .fold(left.sub(&lito).unwrap(), |sum, part| sum.add(part).unwrap());
+        assert!(eq(&amount(&out, "total_before_credits"), &total), "{facts}");
+        let div293 = alone("division-293", "division_293_tax");
+        assert!(eq(&amount(&out, "division_293_tax"), &div293), "{facts}");
+    }
 }

@@ -55,7 +55,15 @@ fn with(mut facts: Value, overrides: Value) -> Value {
 }
 
 fn run(command: &str, facts: &Value) -> Value {
-    api::evaluate(command, facts).unwrap_or_else(|e| panic!("{command} {facts}: {e}"))
+    let result = api::evaluate(command, facts).unwrap_or_else(|e| panic!("{command} {facts}: {e}"));
+    // derive gives the same result, byte for byte.
+    let doc = api::evaluate("derive", &json!({"command": command, "input": facts})).unwrap();
+    assert_eq!(
+        doc["result"].to_string(),
+        result.to_string(),
+        "derive {facts}"
+    );
+    result
 }
 
 fn refusal(command: &str, facts: &Value) -> &'static str {
@@ -150,7 +158,7 @@ fn jarrod_method_a_gives_the_earlier_schedules_payg_figures() {
         } else {
             (
                 "period.unsupported",
-                "study_loan is supported for 2025-26, 2026-27 only: there is no Schedule 8 study and training support loan component for 2024-25.",
+                "study_loan is supported for 2025-26, 2026-27 only: this crate does not hold the Schedule 8 study and training support loan component for 2024-25.",
             )
         };
         assert_eq!((refused.code, refused.message.as_str()), (code, message));
@@ -248,13 +256,13 @@ fn method_b_i_refuses_a_2025_26_study_loan() {
         run(B_I, &with(robyn("2026-27"), dated_study_loan("2026-07-01"))),
         run(B_I, &with(robyn("2026-27"), study_loan()))
     );
-    // A year with no Schedule 8 names only the years Method B(i) takes.
+    // A year without Schedule 8 here names only the years Method B(i) takes.
     let refused = api::evaluate_coded(B_I, &with(robyn("2024-25"), study_loan())).unwrap_err();
     assert_eq!(
         (refused.code, refused.message.as_str()),
         (
             "period.unsupported",
-            "study_loan is supported for 2026-27 only: there is no Schedule 8 study and training support loan component for 2024-25."
+            "study_loan is supported for 2026-27 only: this crate does not hold the Schedule 8 study and training support loan component for 2024-25."
         )
     );
 }

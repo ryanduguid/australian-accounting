@@ -14,6 +14,13 @@ use crate::metadata::{self as meta, CoefficientRow, Example};
 use crate::pytext;
 use crate::texts;
 
+mod fbt_benefits;
+pub use fbt_benefits::{
+    fbt_board, fbt_housing, fbt_lafha, fbt_residual, fbt_tax_exempt_body_entertainment,
+};
+pub use fbt_benefits::{fbt_car_parking, fbt_loan, fbt_meal_entertainment};
+pub use fbt_benefits::{fbt_debt_waiver, fbt_expense_payment, fbt_property};
+
 pub const VERSION: &str = env!("CARGO_PKG_VERSION");
 const WORKING_PRECISION: i128 = 40;
 
@@ -237,6 +244,15 @@ fn result(
 /// it, its formula, the formula on the operands the arithmetic used, and the
 /// unrounded value the amount is rendered from. The FBT steps cite the FBTAA as
 /// compiled on 1 July 2026 (C2004A03280) and ATO pages, read on 14 November 2026.
+/// The Division 293 steps cite ITAA 1997 compilation 266 (1 July 2026) and the
+/// 2013 Imposition Act as made, and the pension minimum steps SISR Schedule 7 as
+/// in force from 1 July 2026, all read on 15 November 2026. The PAYG withholding
+/// and Schedule 5 steps cite the headings and method steps of the Taxation
+/// Administration (Withholding Schedules) Instruments 2024 (F2024L00664), 2025
+/// (F2025L00647), (No. 2) 2025 (F2025L01016) and 2026 (F2026L00716), which
+/// share them, and the termination payment steps ITAA 1997 compilation 268
+/// (1 October 2026) and Schedule 11 of those instruments, all read on
+/// 15 November 2026.
 struct Step {
     id: &'static str,
     authority: &'static str,
@@ -247,7 +263,7 @@ struct Step {
 
 /// A step whose operands are `formula` with each name in turn replaced by the
 /// next of `operands`. Numbers, operators (`x` multiplies) and the functions
-/// `min`, `cents` and `dollars` stay as written.
+/// `min`, `max`, `cents`, `dollars` and `floor` stay as written.
 fn step(
     id: &'static str,
     authority: &'static str,
@@ -377,30 +393,133 @@ pub fn gst(amount: &Arg, gst_inclusive: &Arg, scope_confirmed: &Arg, year: &Arg)
 
 pub fn resident_tax(taxable_income: &Arg, year: &Arg, scope_confirmed: &Arg) -> Result<Value> {
     let year = scope(scope_confirmed, year, "resident_tax")?;
+    basic_tax(
+        "resident_tax",
+        taxable_income,
+        &year,
+        meta::RESIDENT_TAX_SCALES,
+    )
+}
+
+pub fn foreign_resident_tax(
+    taxable_income: &Arg,
+    year: &Arg,
+    scope_confirmed: &Arg,
+) -> Result<Value> {
+    let kind = "foreign_resident_tax";
+    let year = scope(scope_confirmed, year, kind)?;
+    let mut out = basic_tax(
+        kind,
+        taxable_income,
+        &year,
+        meta::FOREIGN_RESIDENT_TAX_SCALES,
+    )?;
+    if let Some((_, note)) = texts::FOREIGN_RESIDENT_YEAR_WARNINGS
+        .iter()
+        .find(|(y, _)| *y == year)
+    {
+        out["warnings"]
+            .as_array_mut()
+            .expect("warnings")
+            .push(json!(note));
+    }
+    Ok(out)
+}
+
+/// Tax scales by income year: (lower bound, upper bound, rate) for each band.
+type TaxScales = [(&'static str, &'static [(i64, Option<i64>, &'static str)])];
+
+/// [`step`] with each name in `formula` given the value `values` holds for it,
+/// for a formula that names a value more than once.
+fn step_by_name(
+    id: &'static str,
+    authority: &'static str,
+    formula: &str,
+    values: &[(&str, Decimal)],
+    value: Decimal,
+) -> Step {
+    let mut operands = Vec::new();
+    let mut rest = formula;
+    while let Some(start) = rest.find(|c: char| c.is_ascii_lowercase()) {
+        let end = rest[start..]
+            .find(|c: char| !(c.is_ascii_alphanumeric() || c == '_'))
+            .map_or(rest.len(), |n| start + n);
+        let (name, tail) = (&rest[start..end], &rest[end..]);
+        if name != "x" && !tail.starts_with('(') {
+            let (_, value) = values
+                .iter()
+                .find(|(n, _)| *n == name)
+                .unwrap_or_else(|| panic!("a value for {name}"));
+            operands.push(value);
+        }
+        rest = tail;
+    }
+    step(id, authority, formula, &operands, value)
+}
+
+/// The provisions `basic_tax` applies, in ITAA 1997 compilation 268 (1 October
+/// 2026) and the Income Tax Rates Act 1986 compilation 66 (1 July 2026), read
+/// on 15 November 2026.
+fn basic_tax_authority(kind: &str, year: &str) -> &'static str {
+    match (kind, year) {
+        ("foreign_resident_tax", _) => {
+            "ITAA 1997 s 4-10(3) step 2; Income Tax Rates Act 1986 s 12(1) and Schedule 7 Part II clause 1(b), the table for the 2024-25 year of income or a later year: to $135,000 at the second and to $190,000 at the third resident personal tax rate (s 3(1)), then 45%"
+        }
+        (_, "2026-27") => {
+            "ITAA 1997 s 4-10(3) step 2; Income Tax Rates Act 1986 s 12(1) and Schedule 7 Part I clause 1(b), the table for the 2026-27 year of income: each part above the tax-free threshold (s 3(1)) at its rate"
+        }
+        _ => {
+            "ITAA 1997 s 4-10(3) step 2; Income Tax Rates Act 1986 s 12(1) and Schedule 7 Part I clause 1(b), the table for the 2024-25 or 2025-26 year of income: each part above the tax-free threshold (s 3(1)) at its rate"
+        }
+    }
+}
+
+/// Basic income tax on whole-dollar taxable income: each band of the year's
+/// scale at its rate.
+fn basic_tax(kind: &str, taxable_income: &Arg, year: &str, scales: &TaxScales) -> Result<Value> {
     let income = money(taxable_income)?;
     whole_dollars(&income, "taxable income")?;
-    let scale = lookup(meta::RESIDENT_TAX_SCALES, &year);
+    let scale = lookup(scales, year);
+    let rates: Vec<(String, String)> = scale
+        .iter()
+        .map(|(low, _, r)| rate(&format!("over_{low}"), r))
+        .collect();
+    let mut values = vec![("taxable_income_used", income.clone())];
+    let mut terms = Vec::new();
     let tax = precise(|| {
         let mut tax = int(0);
-        for (low, high, rate) in scale.iter() {
-            let ceiling = match high {
-                None => income.clone(),
-                Some(high) => py_min(income.clone(), int(*high))?,
+        for ((low, high, rate), (name, _)) in scale.iter().zip(&rates) {
+            let (ceiling, top) = match high {
+                None => (income.clone(), "taxable_income_used".to_string()),
+                Some(high) => (
+                    py_min(income.clone(), int(*high))?,
+                    format!("min(taxable_income_used, {high})"),
+                ),
             };
             let band = py_max(int(0), ceiling.sub(&int(*low))?)?;
             tax = tax.add(&band.mul(&d(rate))?)?;
+            terms.push(format!("max(0, {top} - {low}) x {name}"));
+            values.push((name.as_str(), d(rate)));
         }
         Ok(tax)
     })?;
-    result(
-        "resident_tax",
-        &year,
-        vec![("taxable_income_used", income), ("basic_income_tax", tax)],
-        scale
-            .iter()
-            .map(|(low, _, r)| rate(&format!("over_{low}"), r))
-            .collect(),
-    )
+    let steps = vec![
+        step(
+            "taxable_income_used",
+            "ITAA 1997 s 4-10(3) step 1: taxable income, as established",
+            "taxable_income",
+            &[&income],
+            income.clone(),
+        ),
+        step_by_name(
+            "basic_income_tax",
+            basic_tax_authority(kind, year),
+            &terms.join(" + "),
+            &values,
+            tax,
+        ),
+    ];
+    derived_result(kind, year, steps, rates)
 }
 
 pub fn capital_gains(
@@ -416,32 +535,71 @@ pub fn capital_gains(
     let discount = money(discount_gains)?;
     let current = money(current_losses)?;
     let prior = money(prior_losses)?;
-    let amounts = precise(|| {
+    let rates = vec![rate("discount", "0.50")];
+    let discount_rate = d(&rates[0].1);
+    let steps = precise(|| {
         let losses = current.add(&prior)?;
         let other_offset = py_min(other.clone(), losses.clone())?;
         let discount_offset = py_min(discount.clone(), losses.sub(&other_offset)?)?;
-        let discounted = discount.sub(&discount_offset)?.div(&int(2))?;
-        Ok(vec![
-            ("losses_used", other_offset.add(&discount_offset)?),
-            (
-                "losses_remaining",
-                losses.sub(&other_offset)?.sub(&discount_offset)?,
-            ),
-            (
-                "net_capital_gain",
-                other.sub(&other_offset)?.add(&discounted)?,
-            ),
-            ("discount_applied", discounted),
-        ])
+        let used = other_offset.add(&discount_offset)?;
+        let remaining = losses.sub(&other_offset)?.sub(&discount_offset)?;
+        let discounted = discount
+            .sub(&discount_offset)?
+            .mul(&int(1).sub(&discount_rate)?)?;
+        let net = other.sub(&other_offset)?.add(&discounted)?;
+        // The operands of the 2 offsets, as the formulas write them out.
+        let other_offset_of = [&other, &current, &prior];
+        let discount_offset_of = [&discount, &current, &prior, &other, &current, &prior];
+        let used_of = [&other_offset_of[..], &discount_offset_of].concat();
+        let remaining_of = [
+            &[&current, &prior][..],
+            &other_offset_of,
+            &discount_offset_of,
+        ]
+        .concat();
+        let discounted_of = [&[&discount][..], &discount_offset_of, &[&discount_rate]].concat();
+        let net_of = [&[&other][..], &other_offset_of, &discounted_of].concat();
+        Ok(steps_from(
+            &CAPITAL_GAINS_STEPS,
+            [
+                (&used_of[..], used.clone()),
+                (&remaining_of[..], remaining),
+                (&net_of[..], net),
+                (&discounted_of[..], discounted),
+            ],
+        ))
     })?;
-    result(
-        "capital_gains",
-        &year,
-        amounts,
-        vec![rate("discount", "0.50")],
-    )
+    derived_result("capital_gains", &year, steps, rates)
 }
 
+/// `capital_gains`'s amounts: (id, authority, formula). The losses of the year
+/// and earlier years reduce the other gains first, then the discount gains
+/// (s 102-5(1) step 1 note 3 lets the order within a category be chosen). Each
+/// formula writes the 2 offsets out as the arithmetic takes them, so a nil
+/// amount keeps the sign it is rendered with. The steps cite ITAA 1997
+/// compilation 268 (1 October 2026), read on 15 November 2026.
+const CAPITAL_GAINS_STEPS: [(&str, &str, &str); 4] = [
+    (
+        "losses_used",
+        "ITAA 1997 s 102-5(1) steps 1 and 2: capital losses, then earlier net capital losses, reduce the gains",
+        "min(other_gains, current_losses + prior_losses) + min(discount_gains, current_losses + prior_losses - min(other_gains, current_losses + prior_losses))",
+    ),
+    (
+        "losses_remaining",
+        "ITAA 1997 s 102-10(1) and s 102-15: losses not applied remain a net capital loss",
+        "current_losses + prior_losses - min(other_gains, current_losses + prior_losses) - min(discount_gains, current_losses + prior_losses - min(other_gains, current_losses + prior_losses))",
+    ),
+    (
+        "net_capital_gain",
+        "ITAA 1997 s 102-5(1) steps 5 and 7 and s 115-100(aa): the gains left, each discount gain reduced by the discount percentage",
+        "other_gains - min(other_gains, current_losses + prior_losses) + (discount_gains - min(discount_gains, current_losses + prior_losses - min(other_gains, current_losses + prior_losses))) x (1 - discount)",
+    ),
+    (
+        "discount_applied",
+        "ITAA 1997 s 102-5(1) step 5 and s 115-100(aa): the discount gains left after losses, reduced by the discount percentage",
+        "(discount_gains - min(discount_gains, current_losses + prior_losses - min(other_gains, current_losses + prior_losses))) x (1 - discount)",
+    ),
+];
 /// `fbt`'s amounts: (id, authority, formula). The ATO's MantCo example rounds
 /// each gross-up to the nearest dollar for items 14A and 14B.
 const FBT_STEPS: [(&str, &str, &str); 7] = [
@@ -995,6 +1153,28 @@ pub fn depreciation(
     result("depreciation", &year, amounts, Vec::new())
 }
 
+/// `quarterly_sg`'s amounts: (id, authority, formula). They cite the
+/// Superannuation Guarantee (Administration) Act 1992 (SGAA) compilation 77
+/// (C2026C00146), in force from 27 March to 30 June 2026, and the ATO's 'Super
+/// guarantee' page (updated 17 April 2026), both read on 15 November 2026.
+const QUARTERLY_SG_STEPS: [(&str, &str, &str); 3] = [
+    (
+        "earnings_used",
+        "SGAA s 6(1), 'ordinary time earnings', paragraph (b), and s 15: no more than the quarter's maximum contribution base, $62,500 in 2025-26 (ATO 'Super guarantee', Table 24)",
+        "min(ordinary_time_earnings, maximum_quarterly_base)",
+    ),
+    (
+        "minimum_sg",
+        "SGAA s 19(2), item 13: a charge percentage of 12 for a quarter from 1 July 2025, on the ordinary time earnings base of s 23(2)",
+        "earnings_used x sg_rate",
+    ),
+    (
+        "additional_contribution",
+        "SGAA s 23(2) and (10): contributions in the quarter reduce the charge percentage, never below 0",
+        "max(0, minimum_sg - qualifying_contributions)",
+    ),
+];
+
 pub fn quarterly_sg(
     ordinary_time_earnings: &Arg,
     qualifying_contributions: &Arg,
@@ -1012,23 +1192,26 @@ pub fn quarterly_sg(
             "quarter must be 1 (Jul-Sep), 2, 3 or 4 (Apr-Jun).",
         );
     };
-    let amounts = precise(|| {
-        let earnings = py_min(money(ordinary_time_earnings)?, d("62500"))?;
+    let steps = precise(|| {
+        let (earnings, base) = (money(ordinary_time_earnings)?, d("62500"));
+        let used = py_min(earnings.clone(), base.clone())?;
         let paid = money(qualifying_contributions)?;
-        let minimum = earnings.mul(&d("0.12"))?;
-        Ok(vec![
-            ("earnings_used", earnings),
-            ("minimum_sg", minimum.clone()),
-            (
-                "additional_contribution",
-                py_max(int(0), minimum.sub(&paid)?)?,
-            ),
-        ])
+        let sg_rate = d("0.12");
+        let minimum = used.mul(&sg_rate)?;
+        let additional = py_max(int(0), minimum.sub(&paid)?)?;
+        Ok(steps_from(
+            &QUARTERLY_SG_STEPS,
+            [
+                (&[&earnings, &base], used.clone()),
+                (&[&used, &sg_rate], minimum.clone()),
+                (&[&minimum, &paid], additional),
+            ],
+        ))
     })?;
-    result(
+    derived_result(
         "quarterly_sg",
         &format!("{year} Q{quarter}"),
-        amounts,
+        steps,
         vec![
             rate("sg_rate", "0.12"),
             rate("maximum_quarterly_base", "62500.00"),
@@ -1092,22 +1275,60 @@ fn payg_checks(
     Ok((year, earnings, period, scale))
 }
 
+/// `formula` in brackets unless it is a single name, number or call.
+fn group(formula: &str) -> String {
+    let mut depth = 0;
+    let single = formula.chars().all(|c| {
+        match c {
+            '(' => depth += 1,
+            ')' => depth -= 1,
+            _ => {}
+        }
+        c != ' ' || depth > 0
+    });
+    if single {
+        formula.to_string()
+    } else {
+        format!("({formula})")
+    }
+}
+
 /// Schedule 1 and 8: the weekly equivalent in whole dollars plus 99 cents.
 fn weekly_earnings(earnings: &Decimal, pay_period: &str) -> Calc<Decimal> {
-    let weekly = match pay_period {
-        "weekly" => earnings.clone(),
-        "fortnightly" => earnings.div(&int(2))?,
-        "quarterly" => earnings.div(&int(13))?,
-        _ => {
-            // Schedule 1: a monthly amount ending in 33 cents gains a cent first.
-            let mut earnings = earnings.clone();
-            if earnings.rem(&int(1))?.equals(&d("0.33"))? {
-                earnings = earnings.add(&d("0.01"))?;
-            }
-            earnings.mul(&int(3))?.div(&int(13))?
-        }
+    Ok(weekly_earnings_working(earnings, pay_period, "earnings")?.0)
+}
+
+/// [`weekly_earnings`] with its formula on `e`, the formula for the earnings,
+/// and the Schedule 1 section that sets it.
+fn weekly_earnings_working(
+    earnings: &Decimal,
+    pay_period: &str,
+    e: &str,
+) -> Calc<(Decimal, String, &'static str)> {
+    let (weekly, formula) = match pay_period {
+        "weekly" => (earnings.clone(), e.to_string()),
+        "fortnightly" => (earnings.div(&int(2))?, format!("{} / 2", group(e))),
+        "quarterly" => (earnings.div(&int(13))?, format!("{} / 13", group(e))),
+        // Schedule 1: a monthly amount ending in 33 cents gains a cent first.
+        _ if earnings.rem(&int(1))?.equals(&d("0.33"))? => (
+            earnings.add(&d("0.01"))?.mul(&int(3))?.div(&int(13))?,
+            format!("({e} + 0.01) x 3 / 13"),
+        ),
+        _ => (
+            earnings.mul(&int(3))?.div(&int(13))?,
+            format!("{} x 3 / 13", group(e)),
+        ),
     };
-    weekly.quantize(0, Rounding::Down)?.add(&d("0.99"))
+    let authority = if pay_period == "weekly" {
+        "Schedule 1, 'Working out the weekly earnings'"
+    } else {
+        "Schedule 1, 'Calculating withholding fortnightly, monthly or quarterly amounts'"
+    };
+    Ok((
+        weekly.quantize(0, Rounding::Down)?.add(&d("0.99"))?,
+        format!("floor({formula}) + 0.99"),
+        authority,
+    ))
 }
 
 /// y = a * x - b on the first applicable row, rounded straight to the dollar.
@@ -1128,18 +1349,27 @@ fn weekly_formula(x: &Decimal, rows: &[CoefficientRow]) -> Calc<(Decimal, Decima
     Ok((a, b, amount))
 }
 
-/// A rounded weekly amount for the pay period: the withholding amount and the
-/// Medicare levy adjustment convert the same way.
-fn for_pay_period(weekly_amount: &Decimal, pay_period: &str) -> Calc<Decimal> {
-    match pay_period {
-        "weekly" => Ok(weekly_amount.clone()),
-        "fortnightly" => weekly_amount.mul(&int(2)),
-        "quarterly" => weekly_amount.mul(&int(13)),
-        _ => weekly_amount
-            .mul(&int(13))?
-            .div(&int(3))?
-            .quantize(0, Rounding::HalfUp),
-    }
+/// A rounded weekly amount for the pay period, with its formula on `w`, the
+/// formula for the weekly amount: the withholding amount and the Medicare levy
+/// adjustment convert the same way.
+fn for_pay_period_working(
+    weekly_amount: &Decimal,
+    pay_period: &str,
+    w: &str,
+) -> Calc<(Decimal, String)> {
+    let w = group(w);
+    Ok(match pay_period {
+        "weekly" => (weekly_amount.clone(), w),
+        "fortnightly" => (weekly_amount.mul(&int(2))?, format!("{w} x 2")),
+        "quarterly" => (weekly_amount.mul(&int(13))?, format!("{w} x 13")),
+        _ => (
+            weekly_amount
+                .mul(&int(13))?
+                .div(&int(3))?
+                .quantize(0, Rounding::HalfUp)?,
+            format!("dollars({w} x 13 / 3)"),
+        ),
+    })
 }
 
 /// `payg_withholding`'s optional inputs, each `None` when not given.
@@ -1227,14 +1457,15 @@ fn payg_options(options: &PaygOptions, scale: i64, period: &str) -> Result<PaygC
 }
 
 /// Schedule 1 'Medicare levy adjustment' for scale 2 or 6: the weekly family
-/// threshold, the shading out point and the weekly levy adjustment, rounded
-/// straight to the dollar.
+/// threshold, the shading out point (the scale's multiplier and divisor in
+/// 'Medicare levy parameters') and the weekly levy adjustment, rounded
+/// straight to the dollar, in the step for `weekly_medicare_levy_adjustment`.
 fn weekly_levy_adjustment(
     x: &Decimal,
     rules: &meta::Schedule1Rules,
     scale: i64,
     children: i64,
-) -> Calc<(Decimal, Decimal, Decimal)> {
+) -> Calc<(Decimal, Decimal, Step)> {
     let (_, m) = rules
         .medicare_scales
         .iter()
@@ -1245,21 +1476,55 @@ fn weekly_levy_adjustment(
         .add(&per_child)?
         .div(&int(52))?
         .quantize(-2, Rounding::HalfUp)?;
+    let (multiplier, divisor) = m.shading_out_point;
     let sop = wft
-        .mul(&d("0.1"))?
-        .div(&d("0.0800"))?
+        .mul(&d(multiplier))?
+        .div(&d(divisor))?
         .quantize(0, Rounding::Down)?;
-    let wla = if x.lt(&int(m.threshold))? || !x.lt(&sop)? {
-        int(0)
+    let (authority, formula, operands, wla) = if x.lt(&int(m.threshold))? {
+        let below = "Schedule 1, 'Medicare levy adjustment': none below the scale's weekly earnings threshold";
+        (below, "0".to_string(), vec![], int(0))
+    } else if !x.lt(&sop)? {
+        let above = "Schedule 1, 'Weekly levy adjustment (WLA)': none from the shading out point";
+        (above, "0".to_string(), vec![], int(0))
     } else if x.lt(&int(m.shade_in))? {
-        x.sub(&d(m.formula_1_less))?.mul(&d(m.shade_in_rate))?
+        (
+            "Schedule 1, 'Weekly levy adjustment (WLA)', formula (1)",
+            format!(
+                "dollars((weekly_earnings_used - {}) x {})",
+                m.formula_1_less, m.shade_in_rate
+            ),
+            vec![x],
+            x.sub(&d(m.formula_1_less))?.mul(&d(m.shade_in_rate))?,
+        )
     } else if x.lt(&wft)? {
-        x.mul(&d(m.levy_rate))?
+        (
+            "Schedule 1, 'Weekly levy adjustment (WLA)', formula (2)",
+            format!("dollars(weekly_earnings_used x {})", m.levy_rate),
+            vec![x],
+            x.mul(&d(m.levy_rate))?,
+        )
     } else {
         let shading = x.sub(&wft)?.mul(&d(m.shade_out_rate))?;
-        wft.mul(&d(m.levy_rate))?.sub(&shading)?
+        (
+            "Schedule 1, 'Weekly levy adjustment (WLA)', formula (3)",
+            format!(
+                "dollars(weekly_family_threshold x {} - (weekly_earnings_used - weekly_family_threshold) x {})",
+                m.levy_rate, m.shade_out_rate
+            ),
+            vec![&wft, x, &wft],
+            wft.mul(&d(m.levy_rate))?.sub(&shading)?,
+        )
     };
-    Ok((wft, sop, wla.quantize(0, Rounding::HalfUp)?))
+    let rounded = wla.quantize(0, Rounding::HalfUp)?;
+    let wla = step(
+        "weekly_medicare_levy_adjustment",
+        authority,
+        &formula,
+        &operands,
+        rounded,
+    );
+    Ok((wft, sop, wla))
 }
 
 /// The additional amount for a year of 53 weekly or 27 fortnightly pays: the
@@ -1293,17 +1558,21 @@ struct SchedulePay {
     rules: &'static meta::Schedule1Rules,
 }
 
-/// A result's amounts and rates, in the order it lists them.
+/// A result's steps and rates, in the order it lists them.
 struct Workings {
-    amounts: Vec<(&'static str, Decimal)>,
+    steps: Vec<Step>,
     rates: Vec<(String, String)>,
 }
+
+/// A step's arithmetic before its id is known: authority, formula, operands
+/// and value.
+type Working = (&'static str, String, Vec<Decimal>, Decimal);
 
 impl SchedulePay {
     /// The amount before tax offsets and adjustments. Scale 4 (note 3 to the
     /// coefficients) applies its rate to the pay's earnings, ignoring cents in
     /// the earnings and in the result; the other scales use the weekly formula.
-    fn before_adjustments(&self, w: &mut Workings) -> Result<Decimal> {
+    fn before_adjustments(&self, w: &mut Workings) -> Result<Working> {
         if self.scale == 4 {
             let (resident, foreign) = self.rules.no_tfn_rates;
             let tax_rate = if self.choices.foreign == Some(true) {
@@ -1313,19 +1582,49 @@ impl SchedulePay {
             };
             let used = self.earnings.quantize(0, Rounding::Down)?;
             w.rates.push(rate("tax_rate", tax_rate));
-            w.amounts.push(("earnings_used", used.clone()));
+            w.steps.push(step(
+                "earnings_used",
+                "Schedule 1, scale 4 and 'Rounding of withholding amounts': cents in earnings are ignored",
+                "floor(earnings)",
+                &[&self.earnings],
+                used.clone(),
+            ));
             let withheld = used.mul(&d(tax_rate))?.quantize(0, Rounding::Down)?;
-            return Ok(withheld);
+            return Ok((
+                "Schedule 1, scale 4 tax rate and 'Rounding of withholding amounts': cents in the result are ignored",
+                "floor(earnings_used x tax_rate)".to_string(),
+                vec![used, d(tax_rate)],
+                withheld,
+            ));
         }
         let rows = payg_rows(&self.year, self.scale).expect("checked scale");
-        let x = weekly_earnings(&self.earnings, &self.period)?;
+        let (x, formula, authority) =
+            weekly_earnings_working(&self.earnings, &self.period, "earnings")?;
         let (a, b, weekly) = weekly_formula(&x, rows)?;
-        w.rates.push(rate("a", a));
-        w.rates.push(rate("b", b));
-        w.amounts.push(("weekly_earnings_used", x));
-        w.amounts.push(("weekly_withholding", weekly.clone()));
-        let withheld = for_pay_period(&weekly, &self.period)?;
-        Ok(withheld)
+        w.rates.push(rate("a", &a));
+        w.rates.push(rate("b", &b));
+        w.steps.push(step(
+            "weekly_earnings_used",
+            authority,
+            &formula,
+            &[&self.earnings],
+            x.clone(),
+        ));
+        w.steps.push(step(
+            "weekly_withholding",
+            "Schedule 1, 'Using a formula' and 'Rounding of withholding amounts'",
+            "max(0, dollars(a x weekly_earnings_used - b))",
+            &[&a, &x, &b],
+            weekly.clone(),
+        ));
+        let (withheld, formula) =
+            for_pay_period_working(&weekly, &self.period, "weekly_withholding")?;
+        let authority = if self.period == "weekly" {
+            "Schedule 1, 'Using a formula'"
+        } else {
+            "Schedule 1, 'Calculating withholding fortnightly, monthly or quarterly amounts'"
+        };
+        Ok((authority, formula, vec![weekly], withheld))
     }
 
     /// The tax offsets and the Medicare levy adjustment claimed, which reduce
@@ -1337,33 +1636,67 @@ impl SchedulePay {
             let reduction = offsets.mul(&d(share))?.quantize(0, Rounding::HalfUp)?;
             w.rates.push(rate("tax_offset_rate", share));
             reductions = reductions.add(&reduction)?;
-            w.amounts.push(("tax_offset_reduction", reduction));
+            w.steps.push(step(
+                "tax_offset_reduction",
+                "Schedule 1, 'Tax offsets'",
+                "dollars(tax_offsets x tax_offset_rate)",
+                &[offsets, &d(share)],
+                reduction,
+            ));
         }
         if let Some(children) = self.choices.children {
             let x = weekly_earnings(&self.earnings, &self.period)?;
             let (wft, sop, weekly) = weekly_levy_adjustment(&x, self.rules, self.scale, children)?;
-            let adjustment = for_pay_period(&weekly, &self.period)?;
+            let (adjustment, formula) = for_pay_period_working(
+                &weekly.value,
+                &self.period,
+                "weekly_medicare_levy_adjustment",
+            )?;
             w.rates.push(rate("medicare_adjustment_children", children));
             w.rates.push(rate("weekly_family_threshold", wft));
             w.rates.push(rate("shading_out_point", sop));
             reductions = reductions.add(&adjustment)?;
-            w.amounts.push(("weekly_medicare_levy_adjustment", weekly));
-            w.amounts.push(("medicare_levy_adjustment", adjustment));
+            let authority = match self.period.as_str() {
+                "weekly" => "Schedule 1, 'Weekly levy adjustment (WLA)'",
+                "fortnightly" => "Schedule 1, 'Fortnightly levy adjustment'",
+                "monthly" => "Schedule 1, 'Monthly levy adjustment'",
+                _ => "Schedule 1, 'Quarterly levy adjustment'",
+            };
+            let operands = [&weekly.value];
+            let adjustment = step(
+                "medicare_levy_adjustment",
+                authority,
+                &formula,
+                &operands,
+                adjustment,
+            );
+            w.steps.push(weekly);
+            w.steps.push(adjustment);
         }
         Ok(reductions)
     }
 
     fn workings(&self) -> Result<Workings> {
         let mut w = Workings {
-            amounts: Vec::new(),
+            steps: Vec::new(),
             rates: vec![rate("scale", self.scale)],
         };
-        let before = self.before_adjustments(&mut w)?;
+        let (authority, formula, operands, before) = self.before_adjustments(&mut w)?;
+        let operands: Vec<&Decimal> = operands.iter().collect();
         let choices = &self.choices;
-        if choices.offsets.is_some() || choices.children.is_some() || choices.extra {
-            w.amounts
-                .push(("withholding_before_adjustments", before.clone()));
+        let adjusted = choices.offsets.is_some() || choices.children.is_some() || choices.extra;
+        if !adjusted {
+            w.steps
+                .push(step("withholding", authority, &formula, &operands, before));
+            return Ok(w);
         }
+        w.steps.push(step(
+            "withholding_before_adjustments",
+            authority,
+            &formula,
+            &operands,
+            before.clone(),
+        ));
         let reductions = self.reductions(&mut w)?;
         // Schedule 1 says these reduce the amount withheld, not what an excess
         // means, so an excess is refused rather than taken as nil.
@@ -1381,9 +1714,45 @@ impl SchedulePay {
         if choices.extra {
             let additional = extra_pay_amount(&self.earnings, &self.period, self.rules)?;
             withholding = withholding.add(&additional)?;
-            w.amounts.push(("additional_withholding", additional));
+            let authority = if self.period == "weekly" {
+                "Schedule 1, 'When there are 53 pays in a financial year': the band the weekly earnings reach"
+            } else {
+                "Schedule 1, 'When there are 27 pays in a financial year': the band the fortnightly earnings reach"
+            };
+            let amount = additional.to_string();
+            w.steps.push(step(
+                "additional_withholding",
+                authority,
+                &amount,
+                &[],
+                additional,
+            ));
         }
-        w.amounts.push(("withholding", withholding));
+        // The amount before them, less the reductions, plus any additional amount.
+        let mut formula = "withholding_before_adjustments".to_string();
+        let mut operands = Vec::new();
+        for s in &w.steps {
+            let sign = match s.id {
+                "withholding_before_adjustments" => "",
+                "tax_offset_reduction" | "medicare_levy_adjustment" => " - ",
+                "additional_withholding" => " + ",
+                _ => continue,
+            };
+            if !sign.is_empty() {
+                formula.push_str(sign);
+                formula.push_str(s.id);
+            }
+            operands.push(s.value.clone());
+        }
+        let operands: Vec<&Decimal> = operands.iter().collect();
+        let total = step(
+            "withholding",
+            "Schedule 1, 'Tax offsets' and 'Medicare levy adjustment', and the additional amount for 53 or 27 pays",
+            &formula,
+            &operands,
+            withholding,
+        );
+        w.steps.push(total);
         Ok(w)
     }
 }
@@ -1414,10 +1783,10 @@ pub fn payg_withholding(
         scale,
     };
     let w = precise(|| pay.workings())?;
-    result(
+    derived_result(
         "payg_withholding",
         &format!("{} {}", pay.year, pay.period),
-        w.amounts,
+        w.steps,
         w.rates,
     )
 }
@@ -1463,6 +1832,64 @@ fn schedule_8_pay_date(pay_date: Option<&Arg>, year: &str) -> Result<()> {
     Ok(())
 }
 
+/// Schedule 8's component coefficients for a Schedule 1 scale: scale 1 has no
+/// tax-free threshold; the other scales claim it or are foreign residents.
+fn study_loan_rows(year: &str, scale: i64) -> &'static [CoefficientRow] {
+    let table = if scale == 1 {
+        "no_threshold"
+    } else {
+        "threshold_or_foreign"
+    };
+    lookup(
+        lookup(meta::STUDY_LOAN_WITHHOLDING_COEFFICIENTS, year),
+        table,
+    )
+}
+
+/// [`for_pay_period_working`] on a weekly formula amount: the
+/// formula y = a x - b on `weekly_earnings_used`, rounded to the dollar and
+/// never below nil, whose coefficients are the rates named `[a, b]`.
+fn formula_for_pay_period(
+    weekly: &Decimal,
+    period: &str,
+    [a, b]: [&str; 2],
+) -> Calc<(Decimal, String)> {
+    let formula = format!("max(0, dollars({a} x weekly_earnings_used - {b}))");
+    for_pay_period_working(weekly, period, &formula)
+}
+
+/// Schedule 8's component on the weekly earnings `x`, converted to the pay
+/// period, as the `study_loan_component` step, with its coefficients as the
+/// rates `component_a` and `component_b`.
+fn study_loan_component(
+    x: &Decimal,
+    period: &str,
+    rows: &[CoefficientRow],
+) -> Calc<(Step, [(String, String); 2])> {
+    let (a, b, weekly) = weekly_formula(x, rows)?;
+    let (component, formula) =
+        formula_for_pay_period(&weekly, period, ["component_a", "component_b"])?;
+    let authority = if period == "weekly" {
+        "Schedule 8, 'Study and training support loans component rates' and 'Rounding of withholding amounts'"
+    } else {
+        "Schedule 8, 'Study and training support loans component rates' and 'Calculating fortnightly, monthly or quarterly withholding amounts'"
+    };
+    Ok((
+        step(
+            "study_loan_component",
+            authority,
+            &formula,
+            &[&a, x, &b],
+            component,
+        ),
+        [rate("component_a", a), rate("component_b", b)],
+    ))
+}
+
+/// Schedule 8's component added to the Schedule 1 amount. The steps cite
+/// Schedules 1 and 8 of the Withholding Schedules Instruments (No. 2) 2025
+/// (F2025L01016) and 2026 (F2026L00716), whose headings they share, read on
+/// 15 November 2026.
 pub fn study_loan_withholding(
     earnings: &Arg,
     pay_period: &Arg,
@@ -1480,46 +1907,66 @@ pub fn study_loan_withholding(
         scope_confirmed,
     )?;
     schedule_8_pay_date(pay_date, &year)?;
-    let table = if scale == 1 {
-        "no_threshold"
-    } else {
-        "threshold_or_foreign"
-    };
     let tax_rows = payg_rows(&year, scale).expect("checked scale");
-    let loan_rows = lookup(
-        lookup(meta::STUDY_LOAN_WITHHOLDING_COEFFICIENTS, &year),
-        table,
-    );
-    let (amounts, rates) = precise(|| {
-        let x = weekly_earnings(&earnings, &period)?;
+    let loan_rows = study_loan_rows(&year, scale);
+    let weekly = period == "weekly";
+    let (steps, rates) = precise(|| {
+        let (x, x_formula, _) = weekly_earnings_working(&earnings, &period, "earnings")?;
         let (a, b, weekly_tax) = weekly_formula(&x, tax_rows)?;
-        let (loan_a, loan_b, weekly_loan) = weekly_formula(&x, loan_rows)?;
-        let tax = for_pay_period(&weekly_tax, &period)?;
-        let component = for_pay_period(&weekly_loan, &period)?;
-        let total = tax.add(&component)?;
+        let (tax, tax_formula) = formula_for_pay_period(&weekly_tax, &period, ["a", "b"])?;
+        let (component, component_rates) = study_loan_component(&x, &period, loan_rows)?;
+        let [x_authority, tax_authority] = if weekly {
+            [
+                "Schedule 8, 'Using a formula': the weekly earnings in whole dollars plus 99 cents",
+                "Schedule 1, 'Using a formula' and 'Rounding of withholding amounts'",
+            ]
+        } else {
+            [
+                "Schedule 8, 'Calculating fortnightly, monthly or quarterly withholding amounts'",
+                "Schedule 1, 'Using a formula' and 'Calculating withholding fortnightly, monthly or quarterly amounts'",
+            ]
+        };
+        let total = step(
+            "withholding",
+            "Schedule 8, 'Software': the sum of the Schedule 1 amount and the component, which the schedule accepts in place of its combined coefficients",
+            "schedule_1_withholding + study_loan_component",
+            &[&tax, &component.value],
+            tax.add(&component.value)?,
+        );
+        let mut rates = vec![rate("scale", scale), rate("a", &a), rate("b", &b)];
+        rates.extend(component_rates);
         Ok((
             vec![
-                ("weekly_earnings_used", x),
-                ("schedule_1_withholding", tax),
-                ("study_loan_component", component),
-                ("withholding", total),
+                step(
+                    "weekly_earnings_used",
+                    x_authority,
+                    &x_formula,
+                    &[&earnings],
+                    x.clone(),
+                ),
+                step(
+                    "schedule_1_withholding",
+                    tax_authority,
+                    &tax_formula,
+                    &[&a, &x, &b],
+                    tax,
+                ),
+                component,
+                total,
             ],
-            vec![
-                rate("scale", scale),
-                rate("a", a),
-                rate("b", b),
-                rate("component_a", loan_a),
-                rate("component_b", loan_b),
-            ],
+            rates,
         ))
     })?;
-    result(
+    derived_result(
         "study_loan_withholding",
         &format!("{year} {period}"),
-        amounts,
+        steps,
         rates,
     )
 }
+
+mod payg_gross_up;
+pub use payg_gross_up::payg_gross_up;
 
 /// The optional `medicare-levy` inputs, each `None` when not given.
 pub struct MedicareFamily<'a> {
@@ -1697,20 +2144,44 @@ fn medicare_thresholds(year: &str, sapto: bool) -> (Decimal, Decimal) {
     (d(threshold), d(limit))
 }
 
-/// ss 6(1) and 7: the levy on `income` but for ss 8 and 9.
-fn low_income_levy(income: &Decimal, year: &str, sapto: bool) -> Calc<Decimal> {
+/// One person's names in a `medicare-levy` formula: their taxable income, the
+/// levy on it at the full rate, and their s 3(1) threshold amount.
+type LevyNames<'a> = (&'a str, &'a str, &'a str);
+
+/// ss 6(1) and 7: the levy on `income` but for ss 8 and 9, its formula on
+/// `names`, and the provision that sets the low-income reduction. The Medicare
+/// Levy Act 1986 steps cite compilation 53 (1 July 2026), read on 15 November
+/// 2026, whose s 8(2) formula is an image read from its alternative text.
+fn low_income_levy(
+    income: &Decimal,
+    year: &str,
+    sapto: bool,
+    (i, full_name, t): LevyNames,
+) -> Calc<(Decimal, String, &'static str)> {
     let (threshold, limit) = medicare_thresholds(year, sapto);
     let full = income.mul(&medicare_rate("levy"))?;
-    if income.le(&threshold)? {
-        Ok(int(0))
+    Ok(if income.le(&threshold)? {
+        (
+            int(0),
+            "0".to_string(),
+            "Medicare Levy Act 1986 s 7(1): no levy at or below the threshold amount (s 3(1)), so the whole levy",
+        )
     } else if income.le(&limit)? {
-        py_min(
-            full,
-            income.sub(&threshold)?.mul(&medicare_rate("shade_in"))?,
+        (
+            py_min(
+                full,
+                income.sub(&threshold)?.mul(&medicare_rate("shade_in"))?,
+            )?,
+            format!("min({full_name}, ({i} - {t}) x shade_in_rate)"),
+            "Medicare Levy Act 1986 s 7(2): up to the phase-in limit, the levy is no more than 10% of the excess over the threshold amount (s 3(1))",
         )
     } else {
-        Ok(full)
-    }
+        (
+            full,
+            full_name.to_string(),
+            "Medicare Levy Act 1986 ss 6(1) and 7: above the phase-in limit (s 3(1)), none",
+        )
+    })
 }
 
 /// s 8(5) to (7): the family income threshold.
@@ -1719,78 +2190,106 @@ fn family_threshold(year: &str, sapto: bool, children: i64) -> Calc<Decimal> {
     d(if sapto { sapto_base } else { base }).add(&int(children).mul(&d(per_child))?)
 }
 
-/// The s 8(2) formula, nil where it is not positive.
-fn family_formula(threshold: &Decimal, family_income: &Decimal) -> Calc<Decimal> {
-    let start = medicare_rate("levy").mul(threshold)?;
-    let excess = family_income.sub(threshold)?;
-    py_max(
-        int(0),
-        start.sub(&medicare_rate("family_shade_out").mul(&excess)?)?,
-    )
-}
-
-/// s 8(2) and (3): this person's reduction, times family income when s 8(3)
-/// shares it by taxable income (see `family_reductions`).
-fn own_reduction_scaled(
+/// The s 8(2) formula on the family income threshold `threshold`, written `t`,
+/// nil where it is not positive.
+fn family_formula(
     threshold: &Decimal,
     family_income: &Decimal,
-    income: &Decimal,
-    shared: bool,
-) -> Calc<Decimal> {
-    let reduction = family_formula(threshold, family_income)?;
-    if shared {
-        reduction.mul(income)
-    } else {
-        Ok(reduction)
-    }
+    t: &str,
+) -> Calc<(Decimal, String)> {
+    let start = medicare_rate("levy").mul(threshold)?;
+    let excess = family_income.sub(threshold)?;
+    let reduction = py_max(
+        int(0),
+        start.sub(&medicare_rate("family_shade_out").mul(&excess)?)?,
+    )?;
+    let formula =
+        format!("max(0, levy_rate x {t} - family_shade_out_rate x (family_income - {t}))");
+    Ok((reduction, formula))
 }
 
 /// s 8(4): the part of the spouse's shared reduction above the spouse's levy,
 /// which reduces this person's levy, times family income (see
-/// `family_reductions`). Only a spouse liable to the levy has one, and s 8(3)
-/// shares it only when this person is liable too; otherwise this person's own
-/// reduction was not shared, and nothing passes to them.
+/// `family_reductions`), and its formula. Only a spouse liable to the levy has
+/// one, and s 8(3) shares it only when this person is liable too; otherwise
+/// this person's own reduction was not shared, and nothing passes to them. The
+/// spouse's thresholds are written in as figures.
 fn spouse_excess_scaled(
     spouse: &Spouse,
     year: &str,
     children: i64,
     family_income: &Decimal,
-) -> Calc<Decimal> {
+) -> Calc<(Decimal, String)> {
     let threshold = family_threshold(year, spouse.sapto, children)?;
     if family_income.le(&threshold)? {
-        return Ok(int(0));
+        return Ok((int(0), "0".to_string()));
     }
-    let share = family_formula(&threshold, family_income)?.mul(&spouse.income)?;
-    let levy = low_income_levy(&spouse.income, year, spouse.sapto)?;
-    py_max(int(0), share.sub(&levy.mul(family_income)?)?)
+    let (reduction, r) = family_formula(&threshold, family_income, &threshold.to_string())?;
+    let share = reduction.mul(&spouse.income)?;
+    let spouse_threshold = medicare_thresholds(year, spouse.sapto).0.to_string();
+    let names = (
+        "spouse_taxable_income",
+        "spouse_taxable_income x levy_rate",
+        spouse_threshold.as_str(),
+    );
+    let (levy, l, _) = low_income_levy(&spouse.income, year, spouse.sapto, names)?;
+    let excess = py_max(int(0), share.sub(&levy.mul(family_income)?)?)?;
+    let formula = format!(
+        "max(0, {r} x spouse_taxable_income - {} x family_income)",
+        group(&l)
+    );
+    Ok((excess, formula))
 }
+
+const FAMILY_INCOME: &str = "Medicare Levy Act 1986 s 8(5), family income: the person's taxable income and, for a married person, the spouse's";
+const NOT_ABOVE: &str = "Medicare Levy Act 1986 s 8(1): no levy where family income does not exceed the family income threshold (s 8(5) to (7)), so the whole levy";
+const OWN_REDUCTION: &str = "Medicare Levy Act 1986 s 8(2): the levy is reduced by 2% of the family income threshold less 0.08 of the excess over it, up to the levy";
+const SHARED_REDUCTION: &str = "Medicare Levy Act 1986 s 8(2) and (3): the s 8(2) reduction in the person's share of family income, as the spouse is liable to the levy, up to the levy";
+const SPOUSE_EXCESS: &str = "Medicare Levy Act 1986 s 8(4): the part of the spouse's s 8(2) and (3) reduction above the spouse's levy reduces this levy";
+const NO_SPOUSE_EXCESS: &str = "Medicare Levy Act 1986 s 8(3) and (4): only a spouse liable to the levy, whose reduction s 8(3) shares because this person is liable too, passes on an excess; not here, so nil";
 
 /// The s 8 working for one person.
 struct FamilyWorking {
-    family_income: Decimal,
+    /// The steps for family income, this person's own reduction and, with a
+    /// spouse, the spouse's excess reduction.
+    steps: Vec<Step>,
     threshold: Decimal,
-    /// The reduction from this person's own s 8 entitlement, no more than the levy.
-    own: Decimal,
-    /// The s 8(4) reduction from the spouse's entitlement, no more than the levy left.
-    from_spouse: Decimal,
-    /// The levy after s 8, times `scale`.
-    levy: Decimal,
+    /// When s 8(3) shares the reduction: the levy after s 8 times family
+    /// income, and its formula. Otherwise the steps' values give the levy.
+    scaled: Option<(Decimal, String)>,
     /// Family income when s 8(3) shares the reduction, otherwise 1.
     scale: Decimal,
     /// Whether s 8(3) shared this person's reduction.
     shared: bool,
 }
 
-/// s 8 on `levy`, the levy on `income` but for ss 8 and 9.
+/// s 8 on `levy`, the levy on `income` but for ss 8 and 9, written `l`.
+/// `values` holds the names the formulas use and gains family income.
 fn family_reductions(
     income: &Decimal,
-    levy: &Decimal,
+    (levy, l): (&Decimal, &str),
     year: &str,
     family: &Family,
+    values: &mut Vec<(&'static str, Decimal)>,
 ) -> Calc<FamilyWorking> {
-    let spouse_income = family.spouse.as_ref().map_or(int(0), |s| s.income.clone());
-    let family_income = income.add(&spouse_income)?;
+    let (family_income, formula) = match &family.spouse {
+        Some(spouse) => (
+            income.add(&spouse.income)?,
+            "taxable_income_used + spouse_taxable_income",
+        ),
+        None => (income.clone(), "taxable_income_used"),
+    };
+    values.push(("family_income", family_income.clone()));
+    let mut steps = vec![step_by_name(
+        "family_income",
+        FAMILY_INCOME,
+        formula,
+        values,
+        family_income.clone(),
+    )];
     let threshold = family_threshold(year, family.sapto, family.children)?;
+    values.push(("family_income_threshold", threshold.clone()));
+    values.push(("family_shade_out_rate", medicare_rate("family_shade_out")));
     let liable = |amount: &Decimal, sapto: bool| amount.gt(&medicare_thresholds(year, sapto).0);
     let spouse_liable = match &family.spouse {
         Some(spouse) => liable(&spouse.income, spouse.sapto)?,
@@ -1799,35 +2298,79 @@ fn family_reductions(
     // When s 8(3) shares the reduction, every amount is worked times family
     // income, so each share is a product, and divided once at the end: the
     // levy is then exact wherever it terminates, and a half cent rounds up.
-    let scale = if spouse_liable {
-        family_income.clone()
+    let (scale, lx) = if spouse_liable {
+        (
+            family_income.clone(),
+            format!("{} x family_income", group(l)),
+        )
     } else {
-        int(1)
+        (int(1), l.to_string())
     };
     let levy = levy.mul(&scale)?;
     // s 8(1): no levy at or below the threshold.
     let above = family_income.gt(&threshold)?;
-    let own = if above {
-        py_min(
-            levy.clone(),
-            own_reduction_scaled(&threshold, &family_income, income, spouse_liable)?,
-        )?
-    } else {
-        levy.clone()
-    };
-    let from_spouse = match &family.spouse {
-        Some(spouse) if spouse_liable && liable(income, family.sapto)? => {
-            let excess = spouse_excess_scaled(spouse, year, family.children, &family_income)?;
-            py_min(levy.sub(&own)?, excess)?
+    let (own, own_formula, authority) = if above {
+        let (reduction, r) = family_formula(&threshold, &family_income, "family_income_threshold")?;
+        if spouse_liable {
+            (
+                py_min(levy.clone(), reduction.mul(income)?)?,
+                format!("min({lx}, {r} x taxable_income_used)"),
+                SHARED_REDUCTION,
+            )
+        } else {
+            (
+                py_min(levy.clone(), reduction)?,
+                format!("min({lx}, {r})"),
+                OWN_REDUCTION,
+            )
         }
-        _ => int(0),
+    } else {
+        (levy.clone(), lx.clone(), NOT_ABOVE)
     };
+    let per = |formula: &str| {
+        if spouse_liable {
+            format!("{} / family_income", group(formula))
+        } else {
+            formula.to_string()
+        }
+    };
+    steps.push(step_by_name(
+        "family_reduction",
+        authority,
+        &per(&own_formula),
+        values,
+        own.div(&scale)?,
+    ));
+    let mut after = levy.sub(&own)?;
+    let mut after_formula = format!("{lx} - {}", group(&own_formula));
+    if let Some(spouse) = &family.spouse {
+        if spouse_liable && liable(income, family.sapto)? {
+            let (excess, e) = spouse_excess_scaled(spouse, year, family.children, &family_income)?;
+            let from = py_min(after.clone(), excess)?;
+            let from_formula = format!("min({after_formula}, {e})");
+            steps.push(step_by_name(
+                "spouse_excess_reduction",
+                SPOUSE_EXCESS,
+                &per(&from_formula),
+                values,
+                from.div(&scale)?,
+            ));
+            after = after.sub(&from)?;
+            after_formula = format!("{after_formula} - {from_formula}");
+        } else {
+            steps.push(step(
+                "spouse_excess_reduction",
+                NO_SPOUSE_EXCESS,
+                "0",
+                &[],
+                int(0),
+            ));
+        }
+    }
     Ok(FamilyWorking {
-        family_income,
+        steps,
         threshold,
-        levy: levy.sub(&own)?.sub(&from_spouse)?,
-        own: own.div(&scale)?,
-        from_spouse: from_spouse.div(&scale)?,
+        scaled: spouse_liable.then_some((after, after_formula)),
         scale,
         shared: spouse_liable && above,
     })
@@ -1858,8 +2401,8 @@ fn refuse_section_9a(section_9a_adjustment_applies: &Arg) -> Result<()> {
     Ok(())
 }
 
-/// The amounts, the rates and whether s 8(3) shared the family reduction.
-type MedicareWorking = (Vec<(&'static str, Decimal)>, Vec<(String, String)>, bool);
+/// The steps, the rates and whether s 8(3) shared the family reduction.
+type MedicareWorking = (Vec<Step>, Vec<(String, String)>, bool);
 
 fn medicare_working(
     income: &Decimal,
@@ -1875,38 +2418,127 @@ fn medicare_working(
         rate("phase_in_limit", &limit),
     ];
     let full = income.mul(&medicare_rate("levy"))?;
-    let mut levy = low_income_levy(income, year, family.sapto)?;
-    let mut amounts = vec![
+    let names = (
+        "taxable_income_used",
+        "levy_at_full_rate",
+        "threshold_amount",
+    );
+    let (levy, l, authority) = low_income_levy(income, year, family.sapto, names)?;
+    let reduction = full.sub(&levy)?;
+    let mut values = vec![
+        ("taxable_income", income.clone()),
         ("taxable_income_used", income.clone()),
+        ("levy_rate", medicare_rate("levy")),
+        ("shade_in_rate", medicare_rate("shade_in")),
+        ("threshold_amount", threshold),
         ("levy_at_full_rate", full.clone()),
-        ("low_income_reduction", full.sub(&levy)?),
+        ("low_income_reduction", reduction.clone()),
     ];
-    let (mut shared, mut scale) = (false, int(1));
+    if let Some(spouse) = &family.spouse {
+        values.push(("spouse_taxable_income", spouse.income.clone()));
+    }
+    let mut steps = vec![
+        step(
+            "taxable_income_used",
+            "Medicare Levy Act 1986 s 6(1): the levy is on taxable income, as established",
+            "taxable_income",
+            &[income],
+            income.clone(),
+        ),
+        step(
+            "levy_at_full_rate",
+            "Medicare Levy Act 1986 s 6(1): 2%",
+            "taxable_income_used x levy_rate",
+            &[income, &medicare_rate("levy")],
+            full.clone(),
+        ),
+        step_by_name(
+            "low_income_reduction",
+            authority,
+            &format!("levy_at_full_rate - {}", group(&l)),
+            &values,
+            reduction.clone(),
+        ),
+    ];
+    // The levy before s 9 and its formula; when s 8(3) shares the family
+    // reduction, both are times family income, the `scale`.
+    let mut before = full.sub(&reduction)?;
+    let mut before_formula = "levy_at_full_rate - low_income_reduction".to_string();
+    let (mut shared, mut scale, mut times_family_income) = (false, int(1), false);
     if family.reduces() {
-        let working = family_reductions(income, &levy, year, family)?;
-        (levy, scale) = (working.levy, working.scale);
-        amounts.push(("family_income", working.family_income));
-        amounts.push(("family_reduction", working.own));
-        if family.spouse.is_some() {
-            amounts.push(("spouse_excess_reduction", working.from_spouse));
+        let working = family_reductions(income, (&levy, &l), year, family, &mut values)?;
+        if let Some(scaled) = working.scaled {
+            (before, before_formula) = scaled;
+            times_family_income = true;
+        } else {
+            // Unshared, each reduction is exact, so it comes off the levy by name.
+            for reduction in &working.steps[1..] {
+                before = before.sub(&reduction.value)?;
+                before_formula = format!("{before_formula} - {}", reduction.id);
+                values.push((reduction.id, reduction.value.clone()));
+            }
         }
-        rates.push(rate("family_income_threshold", working.threshold));
+        rates.push(rate("family_income_threshold", &working.threshold));
         rates.push(rate(
             "family_shade_out_rate",
             medicare_rate("family_shade_out"),
         ));
-        shared = working.shared;
+        (shared, scale) = (working.shared, working.scale);
+        steps.extend(working.steps);
     }
-    if let Some(exemption) = exemption {
-        let after = levy_after_exemption(&levy, &scale, exemption)?;
-        amounts.push(("exemption_reduction", levy.div(&scale)?.sub(&after)?));
-        rates.push(rate("exemption_full_days", exemption.full));
-        rates.push(rate("exemption_half_days", exemption.half));
-        rates.push(rate("days_in_year", exemption.days_in_year));
-        (levy, scale) = (after, int(1));
-    }
-    amounts.push(("medicare_levy", levy.div(&scale)?));
-    Ok((amounts, rates, shared))
+    let scaled = |formula: &str| {
+        if times_family_income {
+            format!("({formula}) / family_income")
+        } else {
+            formula.to_string()
+        }
+    };
+    let Some(exemption) = exemption else {
+        steps.push(step_by_name(
+            "medicare_levy",
+            if times_family_income {
+                "Medicare Levy Act 1986 ss 6 to 8: the levy after the low-income and family reductions, worked out times family income for s 8(3) and divided by it once"
+            } else if family.reduces() {
+                "Medicare Levy Act 1986 ss 6 to 8: the levy after the low-income and family reductions"
+            } else {
+                "Medicare Levy Act 1986 ss 6 and 7: the levy after the low-income reduction"
+            },
+            &scaled(&before_formula),
+            &values,
+            before.div(&scale)?,
+        ));
+        return Ok((steps, rates, shared));
+    };
+    rates.push(rate("exemption_full_days", exemption.full));
+    rates.push(rate("exemption_half_days", exemption.half));
+    rates.push(rate("days_in_year", exemption.days_in_year));
+    values.push(("exemption_full_days", int(exemption.full)));
+    values.push(("exemption_half_days", int(exemption.half)));
+    values.push(("days_in_year", int(exemption.days_in_year)));
+    let halves = if times_family_income {
+        "family_income x 2 x days_in_year"
+    } else {
+        "2 x days_in_year"
+    };
+    let after = levy_after_exemption(&before, &scale, exemption)?;
+    let after_formula = format!(
+        "({before_formula}) x (2 x days_in_year - (2 x exemption_full_days + exemption_half_days)) / ({halves})"
+    );
+    steps.push(step_by_name(
+        "exemption_reduction",
+        "Medicare Levy Act 1986 s 9(1) and ITAA 1936 s 251U(3): the share of the levy for each full exemption day and half of each half exemption day",
+        &format!("{} - {after_formula}", scaled(&before_formula)),
+        &values,
+        before.div(&scale)?.sub(&after)?,
+    ));
+    steps.push(step_by_name(
+        "medicare_levy",
+        "Medicare Levy Act 1986 s 9(1): the levy after ss 7 and 8 for the days the person was not a prescribed person",
+        &after_formula,
+        &values,
+        after,
+    ));
+    Ok((steps, rates, shared))
 }
 
 pub fn medicare_levy(
@@ -1923,7 +2555,7 @@ pub fn medicare_levy(
     refuse_section_9a(section_9a_adjustment_applies)?;
     let family = medicare_family(&family)?;
     let exemption = medicare_exemption(&exemption, &year)?;
-    let (amounts, rates, shared) = precise(|| {
+    let (steps, rates, shared) = precise(|| {
         Ok(medicare_working(
             &income,
             &year,
@@ -1931,7 +2563,7 @@ pub fn medicare_levy(
             exemption.as_ref(),
         )?)
     })?;
-    let mut out = result("medicare_levy", &year, amounts, rates)?;
+    let mut out = derived_result("medicare_levy", &year, steps, rates)?;
     let warnings = out["warnings"].as_array_mut().expect("warnings");
     if let Some((_, note)) = texts::MEDICARE_YEAR_WARNINGS
         .iter()
@@ -1998,7 +2630,7 @@ fn surcharge_thresholds(year: &str, family: Option<i64>) -> Calc<Vec<Decimal>> {
     singles.iter().map(raise).collect()
 }
 
-type SurchargeWorking = (Vec<(&'static str, Decimal)>, Vec<(String, String)>);
+type SurchargeWorking = (Vec<Step>, Vec<(String, String)>);
 
 /// Medicare Levy Act ss 8B and 8D and the Fringe Benefits Act ss 12, 15 and
 /// 16: the tier is set by income for surcharge purposes (combined with a
@@ -2030,15 +2662,37 @@ fn surcharge_working(facts: &SurchargeFacts, year: &str) -> Calc<SurchargeWorkin
     };
     let base = facts.taxable.add(&facts.fringe)?;
     let surcharge = base.mul(&percentage)?.mul(&int(facts.days))?;
-    let mut amounts = vec![("income_for_surcharge_purposes", facts.own.clone())];
+    let (days, days_in_year) = (int(facts.days), int(facts.days_in_year));
+    let mut steps = vec![step(
+        "income_for_surcharge_purposes",
+        "Medicare Levy Act 1986 s 3(1), income for surcharge purposes: the person's, as established",
+        "income_for_surcharge_purposes",
+        &[&facts.own],
+        facts.own.clone(),
+    )];
     let mut rates = vec![rate("tier", ["base", "1", "2", "3"][tier])];
-    if facts.spouse.is_some() {
-        amounts.push(("family_income_for_surcharge_purposes", income));
+    if let Some((spouse, _)) = &facts.spouse {
+        steps.push(step(
+            "family_income_for_surcharge_purposes",
+            "Medicare Levy Act 1986 s 8D(3)(b) and (5); Fringe Benefits Act s 15(1)(b): the person's and the spouse's income for surcharge purposes",
+            "income_for_surcharge_purposes + spouse_income_for_surcharge_purposes",
+            &[&facts.own, spouse],
+            income,
+        ));
     }
-    amounts.push(("surcharge_base", base));
-    amounts.push((
+    steps.push(step(
+        "surcharge_base",
+        "Medicare Levy Act 1986 ss 8B(2) and 8D(3) and (4): taxable income; Fringe Benefits Act ss 12(2) and (3), 15(1) and 16(4): the reportable fringe benefits total",
+        "taxable_income + reportable_fringe_benefits",
+        &[&facts.taxable, &facts.fringe],
+        base.clone(),
+    ));
+    steps.push(step(
         "medicare_levy_surcharge",
-        surcharge.div(&int(facts.days_in_year))?,
+        surcharge_authority(facts.spouse.is_some(), tier, liable),
+        "surcharge_base x surcharge_rate x days_without_cover / days_in_year",
+        &[&base, &percentage, &days, &days_in_year],
+        surcharge.div(&days_in_year)?,
     ));
     rates.push(rate("surcharge_rate", percentage));
     for (key, threshold) in ["tier_1_threshold", "tier_2_threshold", "tier_3_threshold"]
@@ -2052,7 +2706,32 @@ fn surcharge_working(facts: &SurchargeFacts, year: &str) -> Calc<SurchargeWorkin
     }
     rates.push(rate("days_without_cover", facts.days));
     rates.push(rate("days_in_year", facts.days_in_year));
-    Ok((amounts, rates))
+    Ok((steps, rates))
+}
+
+/// The provisions that set the surcharge's rate for the days without cover,
+/// from the Medicare Levy Act 1986 compilation 53 and A New Tax System
+/// (Medicare Levy Surcharge—Fringe Benefits) Act 1999 (the Fringe Benefits Act)
+/// compilation 42, both of 1 July 2026, read on 15 November 2026. A tier 2 or 3
+/// earner is one under s 3A.
+fn surcharge_authority(married: bool, tier: usize, liable: bool) -> &'static str {
+    match (married, tier, liable) {
+        (false, 0, _) => {
+            "Medicare Levy Act 1986 s 8B(2); Fringe Benefits Act s 12(1)(a): income for surcharge purposes does not exceed the singles tier 1 threshold, so nil"
+        }
+        (false, ..) => {
+            "Medicare Levy Act 1986 s 8B(2) to (4) and s 3A; Fringe Benefits Act s 12(2) to (5): the tier's rate on taxable income and reportable fringe benefits, for the days without cover as a share of the year"
+        }
+        (true, 0, _) => {
+            "Medicare Levy Act 1986 s 8D(3)(b) and (4)(a)(i); Fringe Benefits Act ss 15(1)(b) and 16(2)(b): family income for surcharge purposes does not exceed the family tier 1 threshold, so nil"
+        }
+        (true, _, false) => {
+            "Medicare Levy Act 1986 s 8D(3)(c) and (4)(a)(ii); Fringe Benefits Act ss 15(1)(c) and 16(2)(c): the person's own income for surcharge purposes does not exceed the s 8D(3)(c) amount, so nil"
+        }
+        (true, _, true) => {
+            "Medicare Levy Act 1986 s 8D(3), (4), (4A) and (4B) and s 3A; Fringe Benefits Act ss 15 and 16: the tier's rate on taxable income and reportable fringe benefits, for the days without cover as a share of the year"
+        }
+    }
 }
 
 /// The Medicare levy surcharge on one person's taxable income (Medicare Levy
@@ -2079,8 +2758,8 @@ pub fn medicare_levy_surcharge(
         days_in_year,
         spouse: surcharge_spouse(&family)?,
     };
-    let (amounts, rates) = precise(|| Ok(surcharge_working(&facts, &year)?))?;
-    result(SURCHARGE, &year, amounts, rates)
+    let (steps, rates) = precise(|| Ok(surcharge_working(&facts, &year)?))?;
+    derived_result(SURCHARGE, &year, steps, rates)
 }
 
 pub fn low_income_tax_offset(
@@ -2092,38 +2771,89 @@ pub fn low_income_tax_offset(
     let income = money(taxable_income)?;
     whole_dollars(&income, "taxable income")?;
     let rule = |key: &str| d(lookup(&meta::LOW_INCOME_TAX_OFFSET, key));
-    let offset = precise(|| {
+    // ITAA 1997 compilation 268 (1 October 2026), read on 15 November 2026.
+    let (authority, formula, offset) = precise(|| {
         Ok(if income.le(&rule("first_step"))? {
-            rule("maximum")
+            (
+                "ITAA 1997 s 61-115(1), table item 1",
+                "maximum",
+                rule("maximum"),
+            )
         } else if income.le(&rule("second_step"))? {
-            rule("maximum").sub(&income.sub(&rule("first_step"))?.mul(&rule("first_rate"))?)?
+            (
+                "ITAA 1997 s 61-115(1), table item 2: $700 less 5% of the excess over $37,500",
+                "maximum - (taxable_income_used - first_step) x first_rate",
+                rule("maximum").sub(&income.sub(&rule("first_step"))?.mul(&rule("first_rate"))?)?,
+            )
         } else if income.le(&rule("cut_out"))? {
             // At the cut-out the table gives minus half a cent; the offset is nil.
-            py_max(
-                int(0),
-                rule("second_amount").sub(
-                    &income
-                        .sub(&rule("second_step"))?
-                        .mul(&rule("second_rate"))?,
+            (
+                "ITAA 1997 s 61-115(1), table item 3: $325 less 1.5% of the excess over $45,000, nil where that is negative",
+                "max(0, second_amount - (taxable_income_used - second_step) x second_rate)",
+                py_max(
+                    int(0),
+                    rule("second_amount").sub(
+                        &income
+                            .sub(&rule("second_step"))?
+                            .mul(&rule("second_rate"))?,
+                    )?,
                 )?,
-            )?
+            )
         } else {
-            int(0)
+            (
+                "ITAA 1997 s 61-110(1)(b): no offset where taxable income exceeds $66,667",
+                "0",
+                int(0),
+            )
         })
     })?;
-    result(
+    let mut values = vec![("taxable_income_used", income.clone())];
+    values.extend(meta::LOW_INCOME_TAX_OFFSET.iter().map(|(k, v)| (*k, d(v))));
+    let steps = vec![
+        step(
+            "taxable_income_used",
+            "ITAA 1997 s 61-115(1)(a): an individual's relevant income is their taxable income",
+            "taxable_income",
+            &[&income],
+            income.clone(),
+        ),
+        step_by_name("low_income_tax_offset", authority, formula, &values, offset),
+    ];
+    derived_result(
         "low_income_tax_offset",
         &year,
-        vec![
-            ("taxable_income_used", income),
-            ("low_income_tax_offset", offset),
-        ],
+        steps,
         meta::LOW_INCOME_TAX_OFFSET
             .iter()
             .map(|(k, v)| rate(k, v))
             .collect(),
     )
 }
+
+/// `division_293`'s amounts: (id, authority, formula). The lesser of the low tax
+/// contributions and the excess is nil when they are, as s 293-20(2) requires.
+const DIVISION_293_STEPS: [(&str, &str, &str); 4] = [
+    (
+        "combined_income_and_contributions",
+        "ITAA 1997 s 293-20(1)(a) and (b)",
+        "division_293_income + low_tax_contributions",
+    ),
+    (
+        "excess_over_threshold",
+        "ITAA 1997 s 293-20(1)",
+        "max(0, combined_income_and_contributions - threshold)",
+    ),
+    (
+        "taxable_contributions",
+        "ITAA 1997 s 293-20(1) and (2)",
+        "min(low_tax_contributions, excess_over_threshold)",
+    ),
+    (
+        "division_293_tax",
+        "Superannuation (Sustaining the Superannuation Contribution Concession) Imposition Act 2013 s 5",
+        "taxable_contributions x rate",
+    ),
+];
 
 pub fn division_293(
     division_293_income: &Arg,
@@ -2136,21 +2866,25 @@ pub fn division_293(
     let contributions = money(low_tax_contributions)?;
     let threshold = d(lookup(&meta::DIVISION_293, "threshold"));
     let rate_ = d(lookup(&meta::DIVISION_293, "rate"));
-    let amounts = precise(|| {
+    let steps = precise(|| {
         let combined = income.add(&contributions)?;
         let excess = py_max(int(0), combined.sub(&threshold)?)?;
         let taxable = py_min(contributions.clone(), excess.clone())?;
-        Ok(vec![
-            ("combined_income_and_contributions", combined),
-            ("excess_over_threshold", excess),
-            ("taxable_contributions", taxable.clone()),
-            ("division_293_tax", taxable.mul(&rate_)?),
-        ])
+        let tax = taxable.mul(&rate_)?;
+        Ok(steps_from(
+            &DIVISION_293_STEPS,
+            [
+                (&[&income, &contributions], combined.clone()),
+                (&[&combined, &threshold], excess.clone()),
+                (&[&contributions, &excess], taxable.clone()),
+                (&[&taxable, &rate_], tax),
+            ],
+        ))
     })?;
-    result(
+    derived_result(
         "division_293",
         &year,
-        amounts,
+        steps,
         vec![rate("threshold", &threshold), rate("rate", &rate_)],
     )
 }
@@ -2249,55 +2983,134 @@ fn division_296_liability(
     })
 }
 
+/// The authority for an earnings amount that is nil because the balance is not
+/// above the threshold: after death it is taken to be nil (s 296-50). The
+/// Division 296 steps cite ITAA 1997 compilation 268 (1 October 2026), the
+/// Income Tax (Transitional Provisions) Act 1997 compilation 104 (1 October
+/// 2026) and the 2026 Imposition Act as made, all read on 15 November 2026.
+fn division_296_nil(died: bool, section: &'static str) -> &'static str {
+    match (died, section) {
+        (true, "296-40") => {
+            "ITAA 1997 s 296-50 and s 296-40(1)(a): none, as the balance is taken to be nil after death"
+        }
+        (true, _) => {
+            "ITAA 1997 s 296-50 and s 296-45(1): none, as the balance is taken to be nil after death"
+        }
+        (false, "296-40") => {
+            "ITAA 1997 s 296-40(1)(a) and (3): none, as the balance is not greater than the large superannuation balance threshold or the percentage rounds to 0.00"
+        }
+        (false, _) => {
+            "ITAA 1997 s 296-45(1) and (3): none, as the balance is not greater than the very large superannuation balance threshold or the percentage rounds to 0.00"
+        }
+    }
+}
+
 /// The earnings amounts ss 296-40 and 296-45 define, whether or not an exception
-/// removes the liability, and the 2 taxes and their total, which only a liability
-/// gives; also whether the very large component is negative. A share is nil when
-/// the balance is not above its threshold, so taxable superannuation earnings
-/// arise only from a nonzero first share and earnings greater than nil
-/// (s 296-40(1)), and s 296-45 has no 'greater than nil' condition.
-fn division_296_amounts(
-    liable: bool,
+/// removes the liability; also whether the very large component is negative. A
+/// share is nil when the balance is not above its threshold, so taxable
+/// superannuation earnings arise only from a nonzero first share and earnings
+/// greater than nil (s 296-40(1)), and s 296-45 has no 'greater than nil'
+/// condition. Results carry no negative amounts, so a negative component is
+/// reported as null, and a zero one, which earnings of -0.00 would sign, as 0.00.
+fn division_296_earnings(
+    died: bool,
     earnings: &Decimal,
     [percentage, very_large_percentage]: [&Decimal; 2],
+) -> Calc<([Step; 2], bool)> {
+    let share = |percentage: &Decimal| earnings.mul(percentage)?.div(&int(100));
+    let taxable = if !earnings.gt(&int(0))? {
+        let none = "ITAA 1997 s 296-40(1)(b): none, as total superannuation earnings are not greater than nil";
+        step("taxable_superannuation_earnings", none, "0", &[], int(0))
+    } else if percentage.is_zero() {
+        let none = division_296_nil(died, "296-40");
+        step("taxable_superannuation_earnings", none, "0", &[], int(0))
+    } else {
+        step(
+            "taxable_superannuation_earnings",
+            "ITAA 1997 s 296-40(1) to (3); Income Tax (Transitional Provisions) Act 1997 s 296-1(2)(a) and (b): the balance at the end of 2026-27",
+            "total_super_earnings x taxable_percentage / 100",
+            &[earnings, percentage],
+            share(percentage)?,
+        )
+    };
+    let id = "very_large_balance_earnings_component";
+    let component = share(very_large_percentage)?;
+    let negative = component.lt(&int(0))?;
+    let very_large = if very_large_percentage.is_zero() {
+        step(id, division_296_nil(died, "296-45"), "0", &[], int(0))
+    } else if component.is_zero() {
+        let none = "ITAA 1997 s 296-45(1): none, as total superannuation earnings are nil";
+        step(id, none, "0", &[], int(0))
+    } else {
+        let authority = if negative {
+            "ITAA 1997 s 296-45, which has no 'greater than nil' condition: negative, so the result shows null"
+        } else {
+            "ITAA 1997 s 296-45; Income Tax (Transitional Provisions) Act 1997 s 296-1(2)(c) and (d): the balance at the end of 2026-27"
+        };
+        let formula = "total_super_earnings x very_large_percentage / 100";
+        step(
+            id,
+            authority,
+            formula,
+            &[earnings, very_large_percentage],
+            component,
+        )
+    };
+    Ok(([taxable, very_large], negative))
+}
+
+/// The 2 taxes and their total, which only a liability gives; `liability` is
+/// the reason for none.
+fn division_296_taxes(
+    (liable, liability): (bool, &'static str),
+    [taxable, component]: [&Decimal; 2],
     [rate_, very_large_rate]: [&Decimal; 2],
-) -> Result<(Vec<(&'static str, Decimal)>, bool)> {
-    precise(|| {
-        let hundred = int(100);
-        let taxable = if earnings.gt(&int(0))? && !percentage.is_zero() {
-            earnings.mul(percentage)?.div(&hundred)?
-        } else {
-            int(0)
-        };
-        let component = if !very_large_percentage.is_zero() {
-            earnings.mul(very_large_percentage)?.div(&hundred)?
-        } else {
-            int(0)
-        };
-        let (tax, further) = if liable {
-            (taxable.mul(rate_)?, component.mul(very_large_rate)?)
-        } else {
-            (int(0), int(0))
-        };
-        let total = tax.add(&further)?;
-        // Results carry no negative amounts, so a negative component is reported as null,
-        // and a zero one, which earnings of -0.00 would sign, as 0.00.
-        let negative = component.lt(&int(0))?;
-        let shown = if negative || component.is_zero() {
-            int(0)
-        } else {
-            component
-        };
-        Ok((
-            vec![
-                ("taxable_superannuation_earnings", taxable),
-                ("very_large_balance_earnings_component", shown),
-                ("tax_on_taxable_superannuation_earnings", tax),
-                ("tax_on_very_large_balance_earnings_component", further),
-                ("division_296_tax", total),
-            ],
-            negative,
-        ))
-    })
+) -> Calc<[Step; 3]> {
+    let act =
+        "Superannuation (Building a Stronger and Fairer Super System) Imposition Act 2026 s 5";
+    let (tax, further) = if liable {
+        (
+            step(
+                "tax_on_taxable_superannuation_earnings",
+                "Superannuation (Building a Stronger and Fairer Super System) Imposition Act 2026 s 5(a) and (b)(i)",
+                "taxable_superannuation_earnings x rate",
+                &[taxable, rate_],
+                taxable.mul(rate_)?,
+            ),
+            step(
+                "tax_on_very_large_balance_earnings_component",
+                "Superannuation (Building a Stronger and Fairer Super System) Imposition Act 2026 s 5(b)(ii); nil without a component (s 5(a))",
+                "very_large_balance_earnings_component x very_large_rate",
+                &[component, very_large_rate],
+                component.mul(very_large_rate)?,
+            ),
+        )
+    } else {
+        (
+            step(
+                "tax_on_taxable_superannuation_earnings",
+                liability,
+                "0",
+                &[],
+                int(0),
+            ),
+            step(
+                "tax_on_very_large_balance_earnings_component",
+                liability,
+                "0",
+                &[],
+                int(0),
+            ),
+        )
+    };
+    let total = step(
+        "division_296_tax",
+        act,
+        "tax_on_taxable_superannuation_earnings + tax_on_very_large_balance_earnings_component",
+        &[&tax.value, &further.value],
+        tax.value.add(&further.value)?,
+    );
+    Ok([tax, further, total])
 }
 
 pub fn division_296(
@@ -2323,18 +3136,23 @@ pub fn division_296(
     let reference = if died { int(0) } else { balance };
     let percentage = percentage_above(&reference, &large)?;
     let very_large_percentage = percentage_above(&reference, &very_large)?;
-    let (liable, liability) =
-        division_296_liability(excepted, &reference, &large, &earnings, &percentage)?;
-    let (amounts, negative_component) = division_296_amounts(
-        liable,
-        &earnings,
-        [&percentage, &very_large_percentage],
-        [&rate_, &very_large_rate],
-    )?;
-    let mut out = result(
+    let liability = division_296_liability(excepted, &reference, &large, &earnings, &percentage)?;
+    let (steps, negative_component) = precise(|| {
+        let ([taxable, component], negative) =
+            division_296_earnings(died, &earnings, [&percentage, &very_large_percentage])?;
+        let taxes = division_296_taxes(
+            liability,
+            [&taxable.value, &component.value],
+            [&rate_, &very_large_rate],
+        )?;
+        let mut steps = vec![taxable, component];
+        steps.extend(taxes);
+        Ok((steps, negative))
+    })?;
+    let mut out = derived_result(
         "division_296",
         &year,
-        amounts,
+        steps,
         vec![
             rate("large_superannuation_balance_threshold", &large),
             rate("very_large_superannuation_balance_threshold", &very_large),
@@ -2345,9 +3163,15 @@ pub fn division_296(
         ],
     )?;
     if negative_component {
-        out["amounts"]["very_large_balance_earnings_component"] = Value::Null;
+        let id = "very_large_balance_earnings_component";
+        out["amounts"][id] = Value::Null;
+        STEPS.with_borrow_mut(|recorded| {
+            if let Some(step) = recorded.iter_mut().flatten().find(|s| s["id"] == id) {
+                step["value"] = Value::Null;
+            }
+        });
     }
-    out["liability"] = json!(liability);
+    out["liability"] = json!(liability.1);
     Ok(out)
 }
 
@@ -2379,15 +3203,20 @@ fn etp_part(
 /// Schedule 11 for one ETP: the tax-free part of the redundancy payment, then
 /// the excluded part (code R) first, under the ETP cap alone, and the
 /// non-excluded part (code O), under the smaller of the ETP cap left and the
-/// whole-of-income cap (s 82-10(4), (6) and (7); Schedule 11).
-fn etp_amounts(
+/// whole-of-income cap (s 82-10(4), (6) and (7); Schedule 11). `reached` is
+/// whether the payee is their preservation age or older at the year's end,
+/// which sets the rate within a cap. The s 83-170(3) formula is
+/// 'Base amount + (Service amount × Years of service)' in the Act's text on
+/// the ATO's legal database (PAC/19970038/83-170), read on 15 November 2026;
+/// Schedule 11's note 1 and example 4 apply it.
+fn etp_steps(
     redundancy: &Decimal,
     years: i64,
     excluded: &Decimal,
     non_excluded: &Decimal,
     other: &Decimal,
-    concessional: &Decimal,
-) -> Result<Vec<(&'static str, Decimal)>> {
+    (concessional, reached): (&Decimal, bool),
+) -> Result<Vec<Step>> {
     let [etp_cap, whole_of_income, base, service, top] = [
         "etp_cap",
         "whole_of_income_cap",
@@ -2396,9 +3225,16 @@ fn etp_amounts(
         "above_cap_rate",
     ]
     .map(|key| d(lookup(&meta::TERMINATION_PAYMENT, key)));
+    let withholding = if reached {
+        "Schedule 11, Table A, preservation age or over, and 'Working out the withholding amount': to the nearest dollar, 50 cents up"
+    } else {
+        "Schedule 11, Table A, under preservation age, and 'Working out the withholding amount': to the nearest dollar, 50 cents up"
+    };
+    let above_cap = "Schedule 11, 'ETP caps': the amount over the cap, at the top rate";
     precise(|| {
         // s 83-170(3): base amount + service amount x years of service.
-        let limit = base.add(&service.mul(&int(years))?)?;
+        let n = int(years);
+        let limit = base.add(&service.mul(&n)?)?;
         let tax_free = py_min(redundancy.clone(), limit.clone())?;
         let excluded_part = redundancy.sub(&tax_free)?.add(excluded)?;
         let [r_within, r_above, r_withheld] =
@@ -2409,21 +3245,109 @@ fn etp_amounts(
         let [o_within, o_above, o_withheld] =
             etp_part(non_excluded, &non_excluded_cap, concessional, &top)?;
         let total = r_withheld.add(&o_withheld)?;
+        let parts = "dollars(excluded_within_cap x withholding_rate_within_cap \
+                     + excluded_above_cap x withholding_rate_above_cap)";
+        let other_parts = "dollars(non_excluded_within_cap x withholding_rate_within_cap \
+                           + non_excluded_above_cap x withholding_rate_above_cap)";
         Ok(vec![
-            ("tax_free_limit", limit),
-            ("tax_free_redundancy_amount", tax_free),
-            ("excluded_taxable_component", excluded_part),
-            ("excluded_within_cap", r_within),
-            ("excluded_above_cap", r_above),
-            ("excluded_withholding", r_withheld),
-            ("remaining_etp_cap", remaining),
-            ("whole_of_income_cap", calculated),
-            ("non_excluded_cap", non_excluded_cap),
-            ("non_excluded_taxable_component", non_excluded.clone()),
-            ("non_excluded_within_cap", o_within),
-            ("non_excluded_above_cap", o_above),
-            ("non_excluded_withholding", o_withheld),
-            ("total_withholding", total),
+            step(
+                "tax_free_limit",
+                "ITAA 1997 s 83-170(3); Schedule 11, 'ETP caps', note 1",
+                "redundancy_base_amount + redundancy_service_amount x completed_years_of_service",
+                &[&base, &service, &n],
+                limit.clone(),
+            ),
+            step(
+                "tax_free_redundancy_amount",
+                "ITAA 1997 s 83-170(2)",
+                "min(redundancy_payment, tax_free_limit)",
+                &[redundancy, &limit],
+                tax_free.clone(),
+            ),
+            step(
+                "excluded_taxable_component",
+                "ITAA 1997 s 83-170(3) note and s 82-10(6): the redundancy payment over its tax-free part, with the other excluded payments",
+                "redundancy_payment - tax_free_redundancy_amount + excluded_payment",
+                &[redundancy, &tax_free, excluded],
+                excluded_part.clone(),
+            ),
+            step(
+                "excluded_within_cap",
+                "ITAA 1997 s 82-10(4)(a), (6) and (7)(a)(i); Schedule 11, 'ETP caps', column 1: the ETP cap alone",
+                "min(excluded_taxable_component, etp_cap)",
+                &[&excluded_part, &etp_cap],
+                r_within.clone(),
+            ),
+            step(
+                "excluded_above_cap",
+                above_cap,
+                "excluded_taxable_component - excluded_within_cap",
+                &[&excluded_part, &r_within],
+                r_above.clone(),
+            ),
+            step(
+                "excluded_withholding",
+                withholding,
+                parts,
+                &[&r_within, concessional, &r_above, &top],
+                r_withheld.clone(),
+            ),
+            step(
+                "remaining_etp_cap",
+                "ITAA 1997 s 82-10(4)(a) and (7)(a)(ii): the ETP cap less the excluded part within it",
+                "etp_cap - excluded_within_cap",
+                &[&etp_cap, &r_within],
+                remaining.clone(),
+            ),
+            step(
+                "whole_of_income_cap",
+                "ITAA 1997 s 82-10(4)(c) and (5); Schedule 11, 'Steps to work out smallest cap', steps 1 to 3",
+                "max(0, whole_of_income_cap_amount - other_taxable_payments)",
+                &[&whole_of_income, other],
+                calculated.clone(),
+            ),
+            step(
+                "non_excluded_cap",
+                "ITAA 1997 s 82-10(4); Schedule 11, 'Steps to work out smallest cap', steps 4 and 5",
+                "min(remaining_etp_cap, whole_of_income_cap)",
+                &[&remaining, &calculated],
+                non_excluded_cap.clone(),
+            ),
+            step(
+                "non_excluded_taxable_component",
+                "ITAA 1997 s 82-10(7)(a)(ii): the part that is not an excluded payment",
+                "non_excluded_payment",
+                &[non_excluded],
+                non_excluded.clone(),
+            ),
+            step(
+                "non_excluded_within_cap",
+                "ITAA 1997 s 82-10(4); Schedule 11, 'ETP caps', column 2",
+                "min(non_excluded_taxable_component, non_excluded_cap)",
+                &[non_excluded, &non_excluded_cap],
+                o_within.clone(),
+            ),
+            step(
+                "non_excluded_above_cap",
+                above_cap,
+                "non_excluded_taxable_component - non_excluded_within_cap",
+                &[non_excluded, &o_within],
+                o_above.clone(),
+            ),
+            step(
+                "non_excluded_withholding",
+                withholding,
+                other_parts,
+                &[&o_within, concessional, &o_above, &top],
+                o_withheld.clone(),
+            ),
+            step(
+                "total_withholding",
+                "Schedule 11, example 4: each part's withholding",
+                "excluded_withholding + non_excluded_withholding",
+                &[&r_withheld, &o_withheld],
+                total,
+            ),
         ])
     })
 }
@@ -2472,13 +3396,13 @@ pub fn termination_payment(
         "under_preservation_age_rate"
     };
     let concessional = d(figure(within_rate));
-    let amounts = etp_amounts(
+    let steps = etp_steps(
         &redundancy,
         years,
         &excluded,
         &non_excluded,
         &other,
-        &concessional,
+        (&concessional, reached),
     )?;
     let rates = vec![
         rate("etp_cap", figure("etp_cap")),
@@ -2490,7 +3414,7 @@ pub fn termination_payment(
         rate("withholding_rate_within_cap", &concessional),
         rate("withholding_rate_above_cap", figure("above_cap_rate")),
     ];
-    result("termination_payment", &year, amounts, rates)
+    derived_result("termination_payment", &year, steps, rates)
 }
 
 pub fn study_loan_repayment(
@@ -2503,44 +3427,72 @@ pub fn study_loan_repayment(
     whole_dollars(&income, "repayment income")?;
     let thresholds = lookup(meta::STUDY_LOAN_REPAYMENT_THRESHOLDS, &year);
     let get = |key: &str| *lookup(thresholds, key);
-    let (minimum, step) = (d(get("minimum")), d(get("step")));
+    let (minimum, step_) = (d(get("minimum")), d(get("step")));
     let rates = |key: &str| d(lookup(&meta::STUDY_LOAN_REPAYMENT_RATES, key));
     let (lower, upper, flat) = (rates("lower"), rates("upper"), rates("flat"));
-    let (amounts, base, rate_applied) = precise(|| {
-        let base = step.sub(&minimum)?.mul(&lower)?;
-        let marginal = py_max(int(0), py_min(income.clone(), step.clone())?.sub(&minimum)?)?
-            .mul(&lower)?
-            .add(&py_max(int(0), income.sub(&step)?)?.mul(&upper)?)?;
+    let (steps, base, rate_applied) = precise(|| {
+        let base = step_.sub(&minimum)?.mul(&lower)?;
+        let marginal = py_max(
+            int(0),
+            py_min(income.clone(), step_.clone())?.sub(&minimum)?,
+        )?
+        .mul(&lower)?
+        .add(&py_max(int(0), income.sub(&step_)?)?.mul(&upper)?)?;
         let whole = income.mul(&flat)?;
+        let lesser = "HESA s 154-20(1)(a) and (b): the lesser of the 2; the repayable debt in (c) is outside the worksheet";
         let (rate_applied, repayment) = if income.le(&minimum)? {
-            (int(0), int(0))
+            let none = "HESA s 154-1(1)(a): nothing unless repayment income exceeds the minimum repayment income";
+            (int(0), step("compulsory_repayment", none, "0", &[], int(0)))
         } else if whole.le(&marginal)? {
-            (flat.clone(), whole.clone())
-        } else if income.le(&step)? {
-            (lower.clone(), marginal.clone())
+            let formula = "ten_percent_of_income";
+            (
+                flat.clone(),
+                step(
+                    "compulsory_repayment",
+                    lesser,
+                    formula,
+                    &[&whole],
+                    whole.clone(),
+                ),
+            )
         } else {
-            (upper.clone(), marginal.clone())
+            let rate_applied = if income.le(&step_)? { &lower } else { &upper };
+            let formula = "marginal_amount";
+            let repayment = step(
+                "compulsory_repayment",
+                lesser,
+                formula,
+                &[&marginal],
+                marginal.clone(),
+            );
+            (rate_applied.clone(), repayment)
         };
-        Ok((
-            vec![
-                ("repayment_income_used", income.clone()),
-                ("marginal_amount", marginal),
-                ("ten_percent_of_income", whole),
-                ("compulsory_repayment", repayment),
+        let steps = steps_from(
+            &STUDY_LOAN_REPAYMENT_STEPS,
+            [
+                (&[&income], income.clone()),
+                (
+                    &[&income, &step_, &minimum, &lower, &income, &step_, &upper],
+                    marginal,
+                ),
+                (&[&income, &flat], whole),
             ],
+        );
+        Ok((
+            steps.into_iter().chain([repayment]).collect(),
             base,
             rate_applied,
         ))
     })?;
-    result(
+    derived_result(
         "study_loan_repayment",
         &year,
-        amounts,
+        steps,
         vec![
             rate("rate_applied", &rate_applied),
             rate("minimum_repayment_income", &minimum),
             rate("lower_rate", &lower),
-            rate("lower_band_top", &step),
+            rate("lower_band_top", &step_),
             rate("upper_band_base", &base),
             rate("upper_band_base_as_printed", get("printed_base")),
             rate("upper_rate", &upper),
@@ -2549,6 +3501,30 @@ pub fn study_loan_repayment(
         ],
     )
 }
+
+/// `study_loan_repayment`'s first 3 amounts: (id, authority, formula). The
+/// minimum repayment income and the top of the 15% band are the indexed
+/// amounts of HESA s 154-10 and s 154-20(2) the ATO publishes for the year.
+/// The steps cite HESA compilation 105 (17 October 2026), read on 15 November
+/// 2026 with the ATO's 'Study and training loan repayment thresholds and
+/// rates' page (last updated 30 June 2026).
+const STUDY_LOAN_REPAYMENT_STEPS: [(&str, &str, &str); 3] = [
+    (
+        "repayment_income_used",
+        "HESA s 154-5(1): the repayment income the operator established",
+        "repayment_income",
+    ),
+    (
+        "marginal_amount",
+        "HESA s 154-20(2)(a) and (b), with s 154-10 and s 154-25: 15% of the part above the minimum repayment income to the top of the band, and 17% above it",
+        "max(0, min(repayment_income_used, lower_band_top) - minimum_repayment_income) x lower_rate + max(0, repayment_income_used - lower_band_top) x upper_rate",
+    ),
+    (
+        "ten_percent_of_income",
+        "HESA s 154-20(1)(b)",
+        "repayment_income_used x flat_rate",
+    ),
+];
 
 #[allow(clippy::too_many_arguments)]
 pub fn contribution_caps(
@@ -2569,18 +3545,9 @@ pub fn contribution_caps(
         return refuse("input.flag_invalid", "under_75_in_year must be a boolean.");
     };
     let (cap, transfer) = lookup(meta::CONTRIBUTION_CAPS, &year);
-    let (amounts, rates) = precise(|| {
+    let (steps, rates) = precise(|| {
         let (cap, transfer) = (d(cap), d(transfer));
         let annual = cap.mul(&int(4))?;
-        let carried = if balance.lt(&d(meta::CARRY_FORWARD_BALANCE_LIMIT))? {
-            unused.clone()
-        } else {
-            int(0)
-        };
-        // s 291-20(3)-(4): the unused cap raises this year's cap only by the
-        // excess it covers; unapplied amounts remain subject to 5-year expiry.
-        let applied = py_min(carried.clone(), py_max(int(0), concessional.sub(&cap)?)?)?;
-        let available_concessional = cap.add(&carried)?;
         // s 292-85: nil at or above the transfer balance cap; otherwise the
         // balance band sets how many annual caps the first year can bring forward.
         let multiple: i64 = if balance.compare(&transfer)?.is_ge() {
@@ -2595,30 +3562,15 @@ pub fn contribution_caps(
         } else {
             3
         };
-        let available = annual.mul(&int(multiple))?;
         let triggered = multiple > 1 && non_concessional.gt(&annual)?;
+        let mut steps = concessional_steps(&balance, &concessional, &unused, &cap)?;
+        steps.extend(non_concessional_steps(
+            &non_concessional,
+            &annual,
+            multiple,
+        )?);
         Ok((
-            vec![
-                ("carry_forward_applied", applied),
-                ("concessional_available", available_concessional.clone()),
-                (
-                    "concessional_remaining",
-                    py_max(int(0), available_concessional.sub(&concessional)?)?,
-                ),
-                (
-                    "excess_concessional",
-                    py_max(int(0), concessional.sub(&available_concessional)?)?,
-                ),
-                ("non_concessional_available", available.clone()),
-                (
-                    "non_concessional_remaining",
-                    py_max(int(0), available.sub(&non_concessional)?)?,
-                ),
-                (
-                    "excess_non_concessional",
-                    py_max(int(0), non_concessional.sub(&available)?)?,
-                ),
-            ],
+            steps,
             vec![
                 rate("concessional_cap", &cap),
                 rate("non_concessional_cap", &annual),
@@ -2635,7 +3587,116 @@ pub fn contribution_caps(
             ],
         ))
     })?;
-    result("contribution_caps", &year, amounts, rates)
+    derived_result("contribution_caps", &year, steps, rates)
+}
+
+/// The concessional amounts. s 291-20(3)-(4): the unused cap raises this
+/// year's cap only by the excess it covers, and only below the $500,000
+/// balance; unapplied amounts remain subject to 5-year expiry. The
+/// contribution caps steps cite ITAA 1997 compilation 268 (1 October 2026),
+/// read on 15 November 2026.
+fn concessional_steps(
+    balance: &Decimal,
+    concessional: &Decimal,
+    unused: &Decimal,
+    cap: &Decimal,
+) -> Calc<Vec<Step>> {
+    let excess = py_max(int(0), concessional.sub(cap)?)?;
+    let (applied, available) = if balance.lt(&d(meta::CARRY_FORWARD_BALANCE_LIMIT))? {
+        (
+            step(
+                "carry_forward_applied",
+                "ITAA 1997 s 291-20(3) and (4): the unused cap applied, but not by more than the excess",
+                "min(unused_concessional_cap, max(0, concessional_contributions - concessional_cap))",
+                &[unused, concessional, cap],
+                py_min(unused.clone(), excess)?,
+            ),
+            step(
+                "concessional_available",
+                "ITAA 1997 s 291-20(2) to (4): the cap with the unused cap that can increase it",
+                "concessional_cap + unused_concessional_cap",
+                &[cap, unused],
+                cap.add(unused)?,
+            ),
+        )
+    } else {
+        let below = "ITAA 1997 s 291-20(3)(b): no carry forward unless the total superannuation balance is less than $500,000";
+        (
+            step("carry_forward_applied", below, "0", &[], int(0)),
+            step(
+                "concessional_available",
+                "ITAA 1997 s 291-20(2)",
+                "concessional_cap",
+                &[cap],
+                cap.add(&int(0))?,
+            ),
+        )
+    };
+    let available_value = available.value.clone();
+    Ok(vec![
+        applied,
+        available,
+        step(
+            "concessional_remaining",
+            "ITAA 1997 s 291-20(6): the shortfall below the cap",
+            "max(0, concessional_available - concessional_contributions)",
+            &[&available_value, concessional],
+            py_max(int(0), available_value.sub(concessional)?)?,
+        ),
+        step(
+            "excess_concessional",
+            "ITAA 1997 s 291-20(1): the excess over the cap",
+            "max(0, concessional_contributions - concessional_available)",
+            &[concessional, &available_value],
+            py_max(int(0), concessional.sub(&available_value)?)?,
+        ),
+    ])
+}
+
+/// The non-concessional amounts: the cap the balance band allows, as a
+/// multiple of the general cap (s 292-85(2) to (5)).
+fn non_concessional_steps(
+    non_concessional: &Decimal,
+    annual: &Decimal,
+    multiple: i64,
+) -> Calc<Vec<Step>> {
+    let authority = match multiple {
+        0 => "ITAA 1997 s 292-85(2)(b): nil at or above the general transfer balance cap",
+        1 => {
+            "ITAA 1997 s 292-85(2)(a): 4 times the s 291-20(2) cap; no bring forward under s 292-85(3)(c) or (e)"
+        }
+        2 => {
+            "ITAA 1997 s 292-85(3) and (5)(a): twice the general cap in a first year of bring forward"
+        }
+        _ => {
+            "ITAA 1997 s 292-85(3) and (5)(b): 3 times the general cap in a first year of bring forward"
+        }
+    };
+    let times = int(multiple);
+    let available = annual.mul(&times)?;
+    Ok(vec![
+        step(
+            "non_concessional_available",
+            authority,
+            "non_concessional_cap x non_concessional_cap_multiple",
+            &[annual, &times],
+            available.clone(),
+        ),
+        step(
+            "non_concessional_remaining",
+            "ITAA 1997 s 292-85 and s 292-90: the cap less the non-concessional contributions",
+            "max(0, non_concessional_available - non_concessional_contributions)",
+            &[&available, non_concessional],
+            py_max(int(0), available.sub(non_concessional)?)?,
+        ),
+        step(
+            "excess_non_concessional",
+            "ITAA 1997 s 292-85 and s 292-90: the non-concessional contributions over the cap",
+            "max(0, non_concessional_contributions - non_concessional_available)",
+            &[non_concessional, &available],
+            py_max(int(0), non_concessional.sub(&available)?)?,
+        ),
+    ])
 }
 
 fn is_leap(year: i64) -> bool {
@@ -2676,31 +3737,61 @@ pub fn pension_minimum(
         .find(|(lowest, _)| age >= *lowest)
         .expect("age 0 band")
         .1);
-    let amounts = precise(|| {
+    let (held, length) = (int(days), int(days_in_year));
+    let steps = precise(|| {
         // cl 4: nothing is required for a pension commencing on or after 1 June,
-        // which is within the last 30 days of the income year.
-        let exact = if days <= 30 {
-            int(0)
+        // which is within the last 30 days of the income year. Otherwise cl 3
+        // pro-rates the factor over a first year that starts after 1 July.
+        let (authority, formula, operands, exact): (_, _, &[&Decimal], _) = if days <= 30 {
+            ("SISR Schedule 7 cl 4", "0", &[], int(0))
+        } else if days < days_in_year {
+            (
+                "SISR Schedule 7 cl 1(1) and cl 3",
+                "account_balance_used x percentage_factor x days / days_in_year",
+                &[&balance, &factor, &held, &length],
+                balance.mul(&factor)?.mul(&held)?.div(&length)?,
+            )
         } else {
-            balance
-                .mul(&factor)?
-                .mul(&int(days))?
-                .div(&int(days_in_year))?
+            (
+                "SISR Schedule 7 cl 1(1)",
+                "account_balance_used x percentage_factor",
+                &[&balance, &factor],
+                balance.mul(&factor)?,
+            )
         };
         let minimum = exact
             .div(&int(10))?
             .quantize(0, Rounding::HalfUp)?
             .mul(&int(10))?;
+        let rounding = "dollars(minimum_before_rounding / 10) x 10";
         Ok(vec![
-            ("account_balance_used", balance.clone()),
-            ("minimum_before_rounding", exact),
-            ("minimum_payment", minimum),
+            step(
+                "account_balance_used",
+                "SISR Schedule 7 cl 1(2)",
+                "account_balance",
+                &[&balance],
+                balance.clone(),
+            ),
+            step(
+                "minimum_before_rounding",
+                authority,
+                formula,
+                operands,
+                exact.clone(),
+            ),
+            step(
+                "minimum_payment",
+                "SISR Schedule 7 cl 5",
+                rounding,
+                &[&exact],
+                minimum,
+            ),
         ])
     })?;
-    result(
+    derived_result(
         "pension_minimum",
         &year,
-        amounts,
+        steps,
         vec![
             rate("percentage_factor", &factor),
             rate("days", days),
@@ -3072,28 +4163,20 @@ pub fn main_residence(
 
     let period = &weight[at(from)..];
     let counted = period.len() as i64;
-    let (taxable_days, amounts) = precise(|| {
+    let (taxable_days, steps) = precise(|| {
         let mut sum = int(0);
         for w in period {
             sum = sum.add(w)?;
         }
-        let taxable = |amount: &Decimal| amount.mul(&sum)?.div(&int(counted));
-        // Round the taxable share first so the exempt share adds back to it.
-        let (g, l) = (cents(taxable(&gain)?)?, cents(taxable(&loss)?)?);
         Ok((
             sum.clone(),
-            vec![
-                ("assessable_capital_gain", g.clone()),
-                ("exempt_capital_gain", gain.sub(&g)?),
-                ("assessable_capital_loss", l.clone()),
-                ("exempt_capital_loss", loss.sub(&l)?),
-            ],
+            main_residence_steps(&gain, &loss, &sum, counted, applies)?,
         ))
     })?;
-    result(
+    derived_result(
         kind,
         &year,
-        amounts,
+        steps,
         vec![
             rate("ownership_period_from", dates::format(from)),
             rate("ownership_period_to", dates::format(last)),
@@ -3112,6 +4195,56 @@ pub fn main_residence(
             ),
         ],
     )
+}
+
+/// The assessable and exempt parts of the gain and of the loss: the taxable
+/// share is rounded to cents first so the exempt share adds back to it. Each
+/// day's weight is 1 when the dwelling was not the main residence (s 118-185)
+/// and the floor area used when part of it produced income (s 118-190).
+/// The steps cite ITAA 1997 compilation 268 (1 October 2026), read on 15
+/// November 2026.
+fn main_residence_steps(
+    gain: &Decimal,
+    loss: &Decimal,
+    taxable_days: &Decimal,
+    counted: i64,
+    applies: bool,
+) -> Calc<Vec<Step>> {
+    let assessable = if applies {
+        "ITAA 1997 s 118-185(2) and s 118-190(2), over the ownership period from the first income use (s 118-192(2))"
+    } else {
+        "ITAA 1997 s 118-185(2) and s 118-190(2)"
+    };
+    let exempt =
+        "ITAA 1997 s 118-110(1) and s 118-185(2): the part the main residence exemption leaves out";
+    let days = int(counted);
+    let mut steps = Vec::new();
+    for (amount, name, [assessable_id, exempt_id]) in [
+        (
+            gain,
+            "capital_gain",
+            ["assessable_capital_gain", "exempt_capital_gain"],
+        ),
+        (
+            loss,
+            "capital_loss",
+            ["assessable_capital_loss", "exempt_capital_loss"],
+        ),
+    ] {
+        let part = cents(amount.mul(taxable_days)?.div(&days)?)?;
+        let rest = amount.sub(&part)?;
+        let share = format!("cents({name} x non_main_residence_days / ownership_period_days)");
+        steps.push(step(
+            assessable_id,
+            assessable,
+            &share,
+            &[amount, taxable_days, &days],
+            part.clone(),
+        ));
+        let formula = format!("{name} - {assessable_id}");
+        steps.push(step(exempt_id, exempt, &formula, &[amount, &part], rest));
+    }
+    Ok(steps)
 }
 
 /// The dates that fix the period of a loan under s 25-25(5): the first day
@@ -3227,15 +4360,20 @@ impl Loan {
     }
 
     /// For the income year claimed: the remaining expenditure, the maximum
-    /// deduction, the days left in the period of the loan and its days in
-    /// the year.
-    fn maximum_deduction(&self, expenditure: &Decimal) -> Result<(Decimal, Decimal, i64, i64)> {
+    /// deduction, the days left in the period of the loan, its days in the
+    /// year and the remaining expenditure's formula, each earlier year's
+    /// maximum written in.
+    fn maximum_deduction(
+        &self,
+        expenditure: &Decimal,
+    ) -> Result<(Decimal, Decimal, i64, i64, String)> {
         // s 25-25(4), year by year from the one the loan began: the remaining
         // expenditure over the days left, times those days in the year. Each
         // maximum is rounded to cents and carried forward at that amount, as the
         // ATO's examples are.
         precise(|| {
             let mut remaining = expenditure.clone();
+            let mut formula = "borrowing_expenses".to_string();
             let mut from =
                 dates::add_months(self.year_start, 12 * (self.first_year - self.claim_year));
             loop {
@@ -3245,14 +4383,50 @@ impl Loan {
                 let (left, days) = (end - begin + 1, end.min(last) - begin + 1);
                 let maximum = cents(remaining.mul(&int(days))?.div(&int(left))?)?;
                 if from == self.year_start {
-                    return Ok((remaining, maximum, left, days));
+                    return Ok((remaining, maximum, left, days, formula));
                 }
+                formula.push_str(&format!(" - cents({remaining} x {days} / {left})"));
                 remaining = remaining.sub(&maximum)?;
                 from = last + 1;
             }
         })
     }
 }
+
+/// The borrowing expenses steps cite ITAA 1997 s 25-25 in the ATO's legal
+/// database and the ATO's 'Borrowing expenses' page (updated 22 May 2026),
+/// both read on 15 November 2026.
+const BORROWING_EXPENSES: &str =
+    "ITAA 1997 s 25-25(1): the expenditure incurred for borrowing the money";
+
+/// `not_spread`'s amounts: (id, authority, formula).
+const NOT_SPREAD_STEPS: [(&str, &str, &str); 5] = [
+    (
+        "borrowing_expenses",
+        BORROWING_EXPENSES,
+        "borrowing_expenses",
+    ),
+    (
+        "remaining_expenditure",
+        "ITAA 1997 s 25-25(6): not spread, so all of it",
+        "borrowing_expenses",
+    ),
+    (
+        "maximum_deduction",
+        "ITAA 1997 s 25-25(6): deducted for the income year it is incurred",
+        "borrowing_expenses",
+    ),
+    (
+        "deduction",
+        "ITAA 1997 s 25-25(6)(c) and (d): the proportion for the income-producing use, to the cent",
+        "cents(maximum_deduction x income_use)",
+    ),
+    (
+        "remaining_expenditure_after_year",
+        "ITAA 1997 s 25-25(6): nothing is left to spread",
+        "0",
+    ),
+];
 
 /// s 25-25(6): the deduction, not spread, in the income year the expenditure
 /// was incurred.
@@ -3267,19 +4441,23 @@ fn not_spread(year: &str, loan: &Loan, expenditure: &Decimal, share: &Decimal) -
             ),
         );
     }
-    let amounts = precise(|| {
-        Ok(vec![
-            ("borrowing_expenses", expenditure.clone()),
-            ("remaining_expenditure", expenditure.clone()),
-            ("maximum_deduction", expenditure.clone()),
-            ("deduction", cents(expenditure.mul(share)?)?),
-            ("remaining_expenditure_after_year", int(0)),
-        ])
+    let steps = precise(|| {
+        let deduction = cents(expenditure.mul(share)?)?;
+        Ok(steps_from(
+            &NOT_SPREAD_STEPS,
+            [
+                (&[expenditure], expenditure.clone()),
+                (&[expenditure], expenditure.clone()),
+                (&[expenditure], expenditure.clone()),
+                (&[expenditure, share], deduction),
+                (&[], int(0)),
+            ],
+        ))
     })?;
-    result(
+    derived_result(
         "borrowing_expenses",
         year,
-        amounts,
+        steps,
         vec![
             rate("spread", "not spread: $100 or less (s 25-25(6))"),
             rate("income_use", share),
@@ -3290,20 +4468,54 @@ fn not_spread(year: &str, loan: &Loan, expenditure: &Decimal, share: &Decimal) -
 /// s 25-25(4): the expenditure spread by days over the period of the loan.
 fn spread(year: &str, loan: &Loan, expenditure: &Decimal, share: &Decimal) -> Result<Value> {
     let (end, basis) = loan.period(year)?;
-    let (remaining, maximum, days_left, days_in_year) = loan.maximum_deduction(expenditure)?;
-    let amounts = precise(|| {
+    let (remaining, maximum, days_left, days_in_year, earlier) =
+        loan.maximum_deduction(expenditure)?;
+    let steps = precise(|| {
+        let deduction = cents(maximum.mul(share)?)?;
+        let after = remaining.sub(&maximum)?;
+        let (days, left) = (int(days_in_year), int(days_left));
         Ok(vec![
-            ("borrowing_expenses", expenditure.clone()),
-            ("remaining_expenditure", remaining.clone()),
-            ("maximum_deduction", maximum.clone()),
-            ("deduction", cents(maximum.mul(share)?)?),
-            ("remaining_expenditure_after_year", remaining.sub(&maximum)?),
+            step(
+                "borrowing_expenses",
+                BORROWING_EXPENSES,
+                "borrowing_expenses",
+                &[expenditure],
+                expenditure.clone(),
+            ),
+            step(
+                "remaining_expenditure",
+                "ITAA 1997 s 25-25(4) step 1: the expenditure less the maximum deduction for each earlier income year",
+                &earlier,
+                &[expenditure],
+                remaining.clone(),
+            ),
+            step(
+                "maximum_deduction",
+                "ITAA 1997 s 25-25(4) steps 2 to 4, rounded to the cent and carried forward as the ATO's 'Borrowing expenses' examples are",
+                "cents(remaining_expenditure x days_in_year / remaining_loan_period_days)",
+                &[&remaining, &days, &left],
+                maximum.clone(),
+            ),
+            step(
+                "deduction",
+                "ITAA 1997 s 25-25(2) and (3): the proportion for the income-producing use, to the cent",
+                "cents(maximum_deduction x income_use)",
+                &[&maximum, share],
+                deduction,
+            ),
+            step(
+                "remaining_expenditure_after_year",
+                "ITAA 1997 s 25-25(4) step 1: what remains for a later income year",
+                "remaining_expenditure - maximum_deduction",
+                &[&remaining, &maximum],
+                after,
+            ),
         ])
     })?;
-    result(
+    derived_result(
         "borrowing_expenses",
         year,
-        amounts,
+        steps,
         vec![
             rate("spread", "spread over the period of the loan (s 25-25(4))"),
             rate("income_use", share),
@@ -3358,6 +4570,9 @@ pub fn borrowing_expenses(
     spread(&year, &loan, &expenditure, &share)
 }
 
+mod hire_purchase;
+pub use hire_purchase::hire_purchase_schedule;
+
 /// One pay that includes an additional payment, as Schedule 5 (NAT 3348) reads it.
 struct AdditionalPay {
     kind: &'static str,
@@ -3380,7 +4595,7 @@ struct AdditionalPay {
 /// payments made from 24 September 2025. Method B(i) recalculates earlier
 /// periods, and Schedule 5 does not say with which coefficients when they
 /// change during the year, so it takes only a year whose apply from 1 July.
-fn schedule_5_study_loan(kind: &str, year: &str, pay_date: Option<&Arg>) -> Result<()> {
+fn study_loan_year(kind: &str, year: &str, pay_date: Option<&Arg>) -> Result<()> {
     let from = |year: &str| *lookup(meta::STUDY_LOAN_WITHHOLDING_FROM, year);
     let b_i = kind == "schedule_5_method_b_i";
     let mut years = meta::supported_periods("study_loan_withholding");
@@ -3389,7 +4604,7 @@ fn schedule_5_study_loan(kind: &str, year: &str, pay_date: Option<&Arg>) -> Resu
         return refuse(
             "period.unsupported",
             format!(
-                "study_loan is supported for {} only: there is no Schedule 8 study and training support loan component for {year}.",
+                "study_loan is supported for {} only: this crate does not hold the Schedule 8 study and training support loan component for {year}.",
                 years.join(", ")
             ),
         );
@@ -3409,6 +4624,20 @@ fn schedule_5_study_loan(kind: &str, year: &str, pay_date: Option<&Arg>) -> Resu
 /// The study loan flag and the pay date, which is given only with it.
 pub type StudyLoan<'a> = (&'a Arg, Option<&'a Arg>);
 
+/// The study loan flag, checked with its pay date for the year.
+fn study_loan_flag(kind: &str, year: &str, (study_loan, pay_date): StudyLoan) -> Result<bool> {
+    let study_loan = flag(study_loan, "study_loan")?;
+    if study_loan {
+        study_loan_year(kind, year, pay_date)?;
+    } else if pay_date.is_some() {
+        return refuse(
+            "payg.pay_date_without_study_loan",
+            "pay_date selects the Schedule 8 study and training support loan component; give it only with study_loan true.",
+        );
+    }
+    Ok(study_loan)
+}
+
 fn additional_pay(
     kind: &'static str,
     earnings: &Arg,
@@ -3420,15 +4649,7 @@ fn additional_pay(
 ) -> Result<AdditionalPay> {
     let (year, earnings, period, scale) =
         payg_checks(kind, earnings, pay_period, scale, year, scope_confirmed)?;
-    let study_loan = flag(study_loan, "study_loan")?;
-    if study_loan {
-        schedule_5_study_loan(kind, &year, pay_date)?;
-    } else if pay_date.is_some() {
-        return refuse(
-            "payg.pay_date_without_study_loan",
-            "pay_date selects the Schedule 8 study and training support loan component; give it only with study_loan true.",
-        );
-    }
+    let study_loan = study_loan_flag(kind, &year, (study_loan, pay_date))?;
     let (per_year, most_pays) = match period.as_str() {
         "weekly" => (52, 53),
         "fortnightly" => (26, 27),
@@ -3471,14 +4692,49 @@ impl AdditionalPay {
             .expect("withholding amount")))
     }
 
-    fn finish(&self, amounts: Vec<(&str, Decimal)>, extra: Vec<(String, String)>) -> Result<Value> {
+    /// How [`Self::table`] works out its amount on `earnings`: Schedule 1's
+    /// formula, plus Schedule 8's component for a study loan, on `e`, the
+    /// formula for those earnings, with the coefficients of the rows the
+    /// earnings fall in written in. The amount is taken in cents, as the
+    /// table's result gives it. Also the number of times `e` appears.
+    fn table_formula(&self, earnings: &Decimal, e: &str) -> Calc<(String, usize)> {
+        let (x, x_formula, _) = weekly_earnings_working(earnings, &self.period, e)?;
+        let x_formula = group(&x_formula);
+        let mut tables = vec![payg_rows(&self.year, self.scale).expect("checked scale")];
+        if self.study_loan {
+            tables.push(study_loan_rows(&self.year, self.scale));
+        }
+        let mut terms = Vec::new();
+        for rows in &tables {
+            let (a, b, weekly) = weekly_formula(&x, rows)?;
+            let weekly_formula = format!("max(0, dollars({a} x {x_formula} - {b}))");
+            terms.push(for_pay_period_working(&weekly, &self.period, &weekly_formula)?.1);
+        }
+        Ok((format!("cents({})", terms.join(" + ")), tables.len()))
+    }
+
+    /// The step for `amount`, [`Self::table`]'s result on `earnings`, whose
+    /// formula is `e` on `operands`.
+    fn table_step(
+        &self,
+        id: &'static str,
+        authority: &'static str,
+        (earnings, e, operands): (&Decimal, &str, &[&Decimal]),
+        amount: Decimal,
+    ) -> Calc<Step> {
+        let (formula, times) = self.table_formula(earnings, e)?;
+        let operands: Vec<&Decimal> = (0..times).flat_map(|_| operands.iter().copied()).collect();
+        Ok(step(id, authority, &formula, &operands, amount))
+    }
+
+    fn finish(&self, steps: Vec<Step>, extra: Vec<(String, String)>) -> Result<Value> {
         let mut rates = vec![
             rate("scale", self.scale),
             rate("study_loan", self.study_loan),
         ];
         rates.extend(extra);
         let period = format!("{} {}", self.year, self.period);
-        result(self.kind, &period, amounts, rates)
+        derived_result(self.kind, &period, steps, rates)
     }
 }
 
@@ -3518,11 +4774,7 @@ fn spread_withholding(
 }
 
 /// Method A steps 1 to 10.
-fn method_a_amounts(
-    pay: &AdditionalPay,
-    additional: &Decimal,
-    periods: i64,
-) -> Result<Vec<(&'static str, Decimal)>> {
+fn method_a_steps(pay: &AdditionalPay, additional: &Decimal, periods: i64) -> Result<Vec<Step>> {
     precise(|| {
         let earnings = pay.earnings.quantize(0, Rounding::Down)?;
         let on_earnings = pay.table(&earnings)?;
@@ -3530,15 +4782,67 @@ fn method_a_amounts(
             spread_withholding(pay, &earnings, &on_earnings, additional, periods)?;
         let (limit, on_additional) = within_limit(extra.clone(), additional)?;
         let total = on_earnings.add(&on_additional)?;
+        let (n, limit_rate) = (int(periods), d(meta::SCHEDULE_5_LIMIT_RATE));
+        let with_share_earnings = earnings.add(&share)?;
         Ok(vec![
-            ("earnings_used", earnings),
-            ("withholding_on_earnings", on_earnings),
-            ("additional_payment_per_period", share),
-            ("withholding_on_earnings_and_share", with_share),
-            ("withholding_before_limit", extra),
-            ("withholding_limit", limit),
-            ("withholding_on_additional_payment", on_additional),
-            ("withholding", total),
+            step(
+                "earnings_used",
+                "Schedule 5, Method A step 1",
+                "floor(earnings)",
+                &[&pay.earnings],
+                earnings.clone(),
+            ),
+            pay.table_step(
+                "withholding_on_earnings",
+                "Schedule 5, Method A step 2; Schedule 1, 'Using a formula', with Schedule 8 for a study loan",
+                (&earnings, "earnings_used", &[&earnings]),
+                on_earnings.clone(),
+            )?,
+            step(
+                "additional_payment_per_period",
+                "Schedule 5, Method A step 3",
+                "floor(additional_payment / pay_periods)",
+                &[additional, &n],
+                share.clone(),
+            ),
+            pay.table_step(
+                "withholding_on_earnings_and_share",
+                "Schedule 5, Method A steps 4 and 5; Schedule 1, 'Using a formula', with Schedule 8 for a study loan",
+                (
+                    &with_share_earnings,
+                    "earnings_used + additional_payment_per_period",
+                    &[&earnings, &share],
+                ),
+                with_share.clone(),
+            )?,
+            step(
+                "withholding_before_limit",
+                "Schedule 5, Method A steps 6 and 7",
+                "(withholding_on_earnings_and_share - withholding_on_earnings) x pay_periods",
+                &[&with_share, &on_earnings, &n],
+                extra.clone(),
+            ),
+            step(
+                "withholding_limit",
+                "Schedule 5, Method A step 8 and 'Withholding limit'",
+                "additional_payment x limit_rate",
+                &[additional, &limit_rate],
+                limit.clone(),
+            ),
+            step(
+                "withholding_on_additional_payment",
+                "Schedule 5, Method A step 9; a negative result is nil ('Available methods')",
+                "floor(max(0, min(withholding_before_limit, withholding_limit)))",
+                &[&extra, &limit],
+                on_additional.clone(),
+            ),
+            step(
+                "withholding",
+                "Schedule 5, Method A step 10",
+                "withholding_on_earnings + withholding_on_additional_payment",
+                &[&on_earnings, &on_additional],
+                total,
+            ),
         ])
     })
 }
@@ -3568,9 +4872,9 @@ pub fn schedule_5_method_a(
     let additional = money(additional_payment)?;
     // A payment for a single pay period is added to that pay under Schedule 1.
     let periods = pay_count(pay_periods, "pay_periods", 2, pay.per_year)?;
-    let amounts = method_a_amounts(&pay, &additional, periods)?;
+    let steps = method_a_steps(&pay, &additional, periods)?;
     pay.finish(
-        amounts,
+        steps,
         vec![
             rate("pay_periods", periods),
             rate("limit_rate", meta::SCHEDULE_5_LIMIT_RATE),
@@ -3626,28 +4930,57 @@ fn back_payment_periods(value: &Arg, most: i64) -> Result<Vec<BackPaidPeriod>> {
         .collect()
 }
 
-/// Method B(i) steps 2 to 7: each earlier period recalculated, less what was
-/// withheld from it, the total nil if negative, with no 47% limit.
-fn method_b_i_amounts(
-    pay: &AdditionalPay,
-    periods: &[BackPaidPeriod],
-) -> Result<Vec<(&'static str, Decimal)>> {
+/// Method B(i) steps 1 to 7: each earlier period recalculated, less what was
+/// withheld from it, the total nil if negative, with no 47% limit. The
+/// periods are a list, so their figures are written into the working.
+fn method_b_i_steps(pay: &AdditionalPay, periods: &[BackPaidPeriod]) -> Result<Vec<Step>> {
     precise(|| {
         let mut back_payment = int(0);
         let mut difference = int(0);
+        let (mut paid, mut differences) = (Vec::new(), Vec::new());
         for period in periods {
-            let recalculated = pay.table(&period.earnings.add(&period.back_payment)?)?;
+            let total = period.earnings.add(&period.back_payment)?;
+            let recalculated = pay.table(&total)?;
             difference = difference.add(&recalculated.sub(&period.withheld)?)?;
             back_payment = back_payment.add(&period.back_payment)?;
+            let e = format!("{} + {}", period.earnings, period.back_payment);
+            let (table, _) = pay.table_formula(&total, &e)?;
+            differences.push(format!("{table} - {}", period.withheld));
+            // Written as the total adds it, to 0, so that the working sums to
+            // the total: 5E+1 as 50, and -0.00 as 0.00.
+            paid.push(int(0).add(&period.back_payment)?.to_string());
         }
         let on_back_payment = py_max(int(0), difference)?;
         let on_earnings = pay.table(&pay.earnings)?;
         let total = on_earnings.add(&on_back_payment)?;
         Ok(vec![
-            ("back_payment", back_payment),
-            ("withholding_on_back_payment", on_back_payment),
-            ("withholding_on_earnings", on_earnings),
-            ("withholding", total),
+            step(
+                "back_payment",
+                "Schedule 5, Method B(i) step 1: the back payment for each earlier pay period",
+                &paid.join(" + "),
+                &[],
+                back_payment,
+            ),
+            step(
+                "withholding_on_back_payment",
+                "Schedule 5, Method B(i) steps 2 to 5; Schedule 1, 'Using a formula', with Schedule 8 for a study loan; a negative total is nil ('Available methods')",
+                &format!("max(0, {})", differences.join(" + ")),
+                &[],
+                on_back_payment.clone(),
+            ),
+            pay.table_step(
+                "withholding_on_earnings",
+                "Schedule 5, Method B(i) step 6; Schedule 1, 'Using a formula', with Schedule 8 for a study loan",
+                (&pay.earnings, "earnings", &[&pay.earnings]),
+                on_earnings.clone(),
+            )?,
+            step(
+                "withholding",
+                "Schedule 5, Method B(i) step 7",
+                "withholding_on_earnings + withholding_on_back_payment",
+                &[&on_earnings, &on_back_payment],
+                total,
+            ),
         ])
     })
 }
@@ -3673,8 +5006,8 @@ pub fn schedule_5_method_b_i(
         scope_confirmed,
     )?;
     let periods = back_payment_periods(back_payments, pay.most_pays - 1)?;
-    let amounts = method_b_i_amounts(&pay, &periods)?;
-    pay.finish(amounts, vec![rate("back_payment_periods", periods.len())])
+    let steps = method_b_i_steps(&pay, &periods)?;
+    pay.finish(steps, vec![rate("back_payment_periods", periods.len())])
 }
 
 /// The year to date a Method B(ii) payment is averaged against.
@@ -3688,11 +5021,11 @@ struct YearToDate {
 }
 
 /// Method B(ii) steps 1 to 12.
-fn method_b_ii_amounts(
+fn method_b_ii_steps(
     pay: &AdditionalPay,
     additional: &Decimal,
     to_date: &YearToDate,
-) -> Result<Vec<(&'static str, Decimal)>> {
+) -> Result<Vec<Step>> {
     precise(|| {
         let average = to_date.earnings.div(&int(to_date.pays))?;
         let average = average.quantize(0, Rounding::Down)?;
@@ -3706,16 +5039,74 @@ fn method_b_ii_amounts(
         let (limit, on_additional) = within_limit(less_earlier, additional)?;
         let on_earnings = pay.table(&pay.earnings)?;
         let total = on_earnings.add(&on_additional)?;
+        let (pays, per_year) = (int(to_date.pays), int(pay.per_year));
+        let limit_rate = d(meta::SCHEDULE_5_LIMIT_RATE);
+        let with_share_earnings = average.add(&share)?;
         Ok(vec![
-            ("average_total_earnings", average),
-            ("withholding_on_average_earnings", on_average),
-            ("additional_payments_per_period", share),
-            ("withholding_on_average_and_share", with_share),
-            ("withholding_for_the_year", extra),
-            ("withholding_limit", limit),
-            ("withholding_on_additional_payment", on_additional),
-            ("withholding_on_earnings", on_earnings),
-            ("withholding", total),
+            step(
+                "average_total_earnings",
+                "Schedule 5, Method B(ii) step 1 and 'Average total earnings'",
+                "floor(year_to_date_earnings / pay_periods_to_date)",
+                &[&to_date.earnings, &pays],
+                average.clone(),
+            ),
+            pay.table_step(
+                "withholding_on_average_earnings",
+                "Schedule 5, Method B(ii) step 2; Schedule 1, 'Using a formula', with Schedule 8 for a study loan",
+                (&average, "average_total_earnings", &[&average]),
+                on_average.clone(),
+            )?,
+            step(
+                "additional_payments_per_period",
+                "Schedule 5, Method B(ii) step 3 and 'Pay periods per financial year'",
+                "floor((earlier_additional_payments + additional_payment) / pay_periods)",
+                &[&to_date.earlier, additional, &per_year],
+                share.clone(),
+            ),
+            pay.table_step(
+                "withholding_on_average_and_share",
+                "Schedule 5, Method B(ii) steps 4 and 5; Schedule 1, 'Using a formula', with Schedule 8 for a study loan",
+                (
+                    &with_share_earnings,
+                    "average_total_earnings + additional_payments_per_period",
+                    &[&average, &share],
+                ),
+                with_share.clone(),
+            )?,
+            step(
+                "withholding_for_the_year",
+                "Schedule 5, Method B(ii) steps 6 and 7",
+                "(withholding_on_average_and_share - withholding_on_average_earnings) x pay_periods",
+                &[&with_share, &on_average, &per_year],
+                extra.clone(),
+            ),
+            step(
+                "withholding_limit",
+                "Schedule 5, Method B(ii) step 9 and 'Withholding limit'",
+                "additional_payment x limit_rate",
+                &[additional, &limit_rate],
+                limit.clone(),
+            ),
+            step(
+                "withholding_on_additional_payment",
+                "Schedule 5, Method B(ii) steps 8 and 10; a negative result is nil ('Available methods')",
+                "floor(max(0, min(withholding_for_the_year - earlier_additional_withholding, withholding_limit)))",
+                &[&extra, &to_date.earlier_withheld, &limit],
+                on_additional.clone(),
+            ),
+            pay.table_step(
+                "withholding_on_earnings",
+                "Schedule 5, Method B(ii) step 11; Schedule 1, 'Using a formula', with Schedule 8 for a study loan",
+                (&pay.earnings, "earnings", &[&pay.earnings]),
+                on_earnings.clone(),
+            )?,
+            step(
+                "withholding",
+                "Schedule 5, Method B(ii) step 12",
+                "withholding_on_earnings + withholding_on_additional_payment",
+                &[&on_earnings, &on_additional],
+                total,
+            ),
         ])
     })
 }
@@ -3752,9 +5143,9 @@ pub fn schedule_5_method_b_ii(
         earlier: money(earlier)?,
         earlier_withheld: money(earlier_withheld)?,
     };
-    let amounts = method_b_ii_amounts(&pay, &additional, &to_date)?;
+    let steps = method_b_ii_steps(&pay, &additional, &to_date)?;
     pay.finish(
-        amounts,
+        steps,
         vec![
             rate("pay_periods_to_date", to_date.pays),
             rate("pay_periods", pay.per_year),
@@ -3793,23 +5184,30 @@ fn unregistered_working_holiday_maker(
     year: String,
 ) -> Result<Value> {
     let label = format!("{year} {period}");
-    let foreign = payg_withholding(
-        &Arg::Decimal(payment.clone()),
-        &Arg::Text(period),
-        &Arg::Int(3),
-        &Arg::Text(year),
-        &Arg::Bool(true),
-        &PaygOptions::default(),
-    )?;
-    let withholding = d(foreign["amounts"]["withholding"]
-        .as_str()
-        .expect("withholding amount"));
-    let mut out = result(
-        WORKING_HOLIDAY_MAKER,
-        &label,
-        vec![("payment_used", payment), ("withholding", withholding)],
-        vec![rate("scale", 3)],
-    )?;
+    let rows = payg_rows(&year, 3).expect("scale 3 in every year");
+    let authority = if period == "weekly" {
+        "Schedule 15, 'Unregistered employer'; Schedule 1, scale 3 (foreign residents), 'Working out the weekly earnings', 'Using a formula' and 'Rounding of withholding amounts'"
+    } else {
+        "Schedule 15, 'Unregistered employer'; Schedule 1, scale 3 (foreign residents), 'Using a formula' and 'Calculating withholding fortnightly, monthly or quarterly amounts'"
+    };
+    // Schedule 1 on scale 3, with the row's coefficients written in.
+    let steps = precise(|| {
+        let (x, x_formula, _) = weekly_earnings_working(&payment, &period, "payment_used")?;
+        let (a, b, weekly) = weekly_formula(&x, rows)?;
+        let weekly_formula = format!("max(0, dollars({a} x {} - {b}))", group(&x_formula));
+        let (withholding, formula) = for_pay_period_working(&weekly, &period, &weekly_formula)?;
+        Ok(vec![
+            step(
+                "payment_used",
+                "Schedule 15, 'Unregistered employer': the payment, withheld at foreign resident rates",
+                "payment",
+                &[&payment],
+                payment.clone(),
+            ),
+            step("withholding", authority, &formula, &[&payment], withholding),
+        ])
+    })?;
+    let mut out = derived_result(WORKING_HOLIDAY_MAKER, &label, steps, vec![rate("scale", 3)])?;
     out["withholding_basis"] = json!(
         "unregistered employer: foreign resident rates, the Schedule 1 scale 3 amount for the pay period"
     );
@@ -3833,23 +5231,49 @@ fn flat_rate_working_holiday_maker(
     };
     // Cents are ignored in the result at the top rate (column 5) and without a
     // TFN (column 6); otherwise it is rounded straight to the dollar, 50 cents up.
-    let rounding = if column >= 5 {
-        Rounding::Down
+    let (rounding, formula, authority) = match (column, registered) {
+        (2..=4, _) => (
+            Rounding::HalfUp,
+            "dollars(rate x payment_used)",
+            "Schedule 15, 'Registered employer', 'Using a formula' and Table A, and 'Rounding of withholding amounts': to the nearest dollar, 50 cents up",
+        ),
+        (5, _) => (
+            Rounding::Down,
+            "floor(rate x payment_used)",
+            "Schedule 15, 'Registered employer', 'Using a formula' and Table A, and 'Rounding of withholding amounts': at the top rate, cents in the result are ignored",
+        ),
+        (_, true) => (
+            Rounding::Down,
+            "floor(rate x payment_used)",
+            "Schedule 15, 'If a TFN has not been provided' and 'Rounding of withholding amounts': 45%, cents in the result ignored",
+        ),
+        (_, false) => (
+            Rounding::Down,
+            "floor(rate x payment_used)",
+            "Schedule 15, 'Unregistered employer'; Schedule 1, scale 4 and 'Rounding of withholding amounts': the foreign resident rate without a TFN, cents ignored",
+        ),
+    };
+    let used = if registered {
+        "Schedule 15, 'Using a formula': the total payment for the pay period, ignoring any cents"
     } else {
-        Rounding::HalfUp
+        "Schedule 1, scale 4 and 'Rounding of withholding amounts': cents in earnings are ignored"
     };
     let a = d(rate_);
-    let (x, withholding) = precise(|| {
+    let steps = precise(|| {
         let x = payment.quantize(0, Rounding::Down)?;
         let y = a.mul(&x)?.quantize(0, rounding)?;
-        Ok((x, y))
+        Ok(vec![
+            step(
+                "payment_used",
+                used,
+                "floor(payment)",
+                &[payment],
+                x.clone(),
+            ),
+            step("withholding", authority, formula, &[&a, &x], y),
+        ])
     })?;
-    let mut out = result(
-        WORKING_HOLIDAY_MAKER,
-        label,
-        vec![("payment_used", x), ("withholding", withholding)],
-        vec![rate("rate", &a)],
-    )?;
+    let mut out = derived_result(WORKING_HOLIDAY_MAKER, label, steps, vec![rate("rate", &a)])?;
     out["withholding_basis"] = json!(if registered {
         format!(
             "registered employer, {}: column {column}, rate {a} on the payment with cents ignored",
@@ -3863,7 +5287,10 @@ fn flat_rate_working_holiday_maker(
     Ok(out)
 }
 
-/// Schedule 15: withholding from one payment to a working holiday maker.
+/// Schedule 15: withholding from one payment to a working holiday maker. The
+/// steps cite Schedules 1 and 15 of the Withholding Schedules Instruments 2024
+/// (F2024L00664), (No. 2) 2025 (F2025L01016) and 2026 (F2026L00716), whose
+/// headings they share, read on 15 November 2026.
 pub fn working_holiday_maker_withholding(
     payment: &Arg,
     payments_before: &Arg,
@@ -3932,9 +5359,31 @@ fn schedule_9_scale(status: &Arg, exemption: &Arg) -> Result<usize> {
     Ok(exemption * 3 + status + 1)
 }
 
+/// Schedule 8's component rates for a Schedule 9 payee with a study loan, who
+/// has claimed the tax-free threshold at question 5 of either Withholding
+/// declaration Schedule 9 names.
+fn schedule_9_study_loan_rows(
+    year: &str,
+    study_loan: StudyLoan,
+) -> Result<Option<&'static [CoefficientRow]>> {
+    let study_loan = study_loan_flag(SENIORS_PENSIONERS, year, study_loan)?;
+    Ok(study_loan.then(|| {
+        *lookup(
+            lookup(meta::STUDY_LOAN_WITHHOLDING_COEFFICIENTS, year),
+            "threshold_or_foreign",
+        )
+    }))
+}
+
 /// Schedule 9: withholding from one payment to a senior or pensioner, by
 /// Schedule 1's weekly earnings, formula and pay period conversion on
-/// Schedule 9's coefficients.
+/// Schedule 9's coefficients. The steps cite Schedule 9 of the Withholding
+/// Schedules Instruments 2024 (F2024L00664), (No. 2) 2025 (F2025L01016) and
+/// 2026 (F2026L00716), whose headings they share, read on 15 November 2026.
+/// With a study loan, the ATO's Schedule 9 pages refer the payer to the study
+/// and training support loans weekly tax table (NAT 2173), which adds
+/// Schedule 8's component on the same weekly earnings, converted to the pay
+/// period as Schedule 8 says; those pages were read the same day.
 pub fn seniors_pensioners_withholding(
     earnings: &Arg,
     pay_period: &Arg,
@@ -3942,29 +5391,81 @@ pub fn seniors_pensioners_withholding(
     medicare_levy_exemption: &Arg,
     year: &Arg,
     scope_confirmed: &Arg,
+    study_loan: StudyLoan,
 ) -> Result<Value> {
     let year = scope(scope_confirmed, year, SENIORS_PENSIONERS)?;
     let earnings = money(earnings)?;
     let period = weekly_fortnightly_or_monthly(pay_period)?;
     let scale = schedule_9_scale(status, medicare_levy_exemption)?;
     let rows = lookup(meta::SENIORS_PENSIONERS_COEFFICIENTS, &year)[scale - 1];
-    let (amounts, rates) = precise(|| {
-        let x = weekly_earnings(&earnings, &period)?;
+    let loan_rows = schedule_9_study_loan_rows(&year, study_loan)?;
+    let (x_authority, authority) = if period == "weekly" {
+        (
+            "Schedule 9, 'Using a formula': the weekly earnings in whole dollars plus 99 cents",
+            "Schedule 9, 'Working out the withholding amount'",
+        )
+    } else {
+        let other = "Schedule 9, 'Calculating fortnightly or monthly withholding amounts'";
+        (other, other)
+    };
+    let (steps, rates) = precise(|| {
+        let (x, x_formula, _) = weekly_earnings_working(&earnings, &period, "earnings")?;
         let (a, b, weekly) = weekly_formula(&x, rows)?;
-        let withholding = for_pay_period(&weekly, &period)?;
-        Ok((
-            vec![
-                ("weekly_earnings_used", x),
-                ("weekly_withholding", weekly),
-                ("withholding", withholding),
-            ],
-            vec![rate("scale", scale), rate("a", a), rate("b", b)],
-        ))
+        let (withholding, formula) =
+            for_pay_period_working(&weekly, &period, "weekly_withholding")?;
+        let mut steps = vec![
+            step(
+                "weekly_earnings_used",
+                x_authority,
+                &x_formula,
+                &[&earnings],
+                x.clone(),
+            ),
+            step(
+                "weekly_withholding",
+                "Schedule 9, 'Using a formula', the scale's coefficients, and 'Rounding of withholding amounts'",
+                "max(0, dollars(a x weekly_earnings_used - b))",
+                &[&a, &x, &b],
+                weekly.clone(),
+            ),
+        ];
+        let mut rates = vec![rate("scale", scale), rate("a", a), rate("b", b)];
+        let Some(loan_rows) = loan_rows else {
+            steps.push(step(
+                "withholding",
+                authority,
+                &formula,
+                &[&weekly],
+                withholding,
+            ));
+            return Ok((steps, rates));
+        };
+        let (component, component_rates) = study_loan_component(&x, &period, loan_rows)?;
+        let total = step(
+            "withholding",
+            "Schedule 9, 'When your payee has a study and training support loan debt', and the study and training support loans weekly tax table it refers to, 'Working out the withholding amount': the component for a payee claiming the tax-free threshold added to the withholding amount",
+            "schedule_9_withholding + study_loan_component",
+            &[&withholding, &component.value],
+            withholding.add(&component.value)?,
+        );
+        steps.extend([
+            step(
+                "schedule_9_withholding",
+                authority,
+                &formula,
+                &[&weekly],
+                withholding,
+            ),
+            component,
+            total,
+        ]);
+        rates.extend(component_rates);
+        Ok((steps, rates))
     })?;
-    result(
+    derived_result(
         SENIORS_PENSIONERS,
         &format!("{year} {period}"),
-        amounts,
+        steps,
         rates,
     )
 }
@@ -4037,108 +5538,279 @@ fn rates_act_terms(year: &str) -> (Decimal, Decimal, Decimal) {
     (int(scale[0].0), d(scale[0].2), d(scale[1].2))
 }
 
-/// Regulations s 9(4) to (8): the rebate threshold for a base rebate amount.
-fn rebate_threshold(base: &Decimal, year: &str) -> Calc<Decimal> {
+/// `$rest` of the regulations that set the offset for `$year`: the Income Tax
+/// Assessment (1936 Act) Regulations 2025 (F2025L01060, as made) for a year
+/// starting from 1 October 2025 (their s 23), otherwise the Income Tax
+/// Assessment (1936 Act) Regulation 2015 (F2015L01415, compilation 8), which
+/// number ss 9 to 12 the same. Both read on 15 November 2026, with ITAA 1936
+/// compilation 193 (1 October 2026).
+macro_rules! sapto_regulations {
+    ($year:expr, $rest:literal) => {
+        if $year >= "2026-27" {
+            concat!("Income Tax Assessment (1936 Act) Regulations 2025 ", $rest)
+        } else {
+            concat!("Income Tax Assessment (1936 Act) Regulation 2015 ", $rest)
+        }
+    };
+}
+
+/// Regulations s 9(4) to (8): the rebate threshold for a base rebate amount,
+/// written `base`, its formula and the subsections it applies.
+fn rebate_threshold(base: &Decimal, b: &str, year: &str) -> Calc<(Decimal, String, &'static str)> {
     let (free, lowest, second) = rates_act_terms(year);
     let maximum = sapto_rule("rebate_maximum_amount");
     let reduction_rate = sapto_rule("rebate_reduction_rate");
     let reduction_threshold = sapto_rule("rebate_reduction_threshold");
     let amount = maximum.add(base)?.div(&lowest)?.add(&free)?;
-    let amount = if amount.gt(&reduction_threshold)? {
+    let (amount, formula, authority) = if amount.gt(&reduction_threshold)? {
         // s 9(6), with s 9(7) as its last term.
         let rates = reduction_rate.add(&second)?;
         let last = reduction_threshold.mul(&rates.sub(&lowest)?)?;
-        lowest
+        let amount = lowest
             .mul(&free)?
             .add(&maximum)?
             .add(base)?
             .add(&last)?
-            .div(&rates)?
+            .div(&rates)?;
+        let formula = format!(
+            "(lowest_marginal_tax_rate x tax_free_threshold + rebate_maximum_amount + {b} \
+             + rebate_reduction_threshold x (rebate_reduction_rate + second_lowest_marginal_tax_rate \
+             - lowest_marginal_tax_rate)) / (rebate_reduction_rate + second_lowest_marginal_tax_rate)"
+        );
+        (
+            amount,
+            formula,
+            sapto_regulations!(year, "s 9(4)(b), (6), (7) and (8)"),
+        )
     } else {
-        amount
+        let formula = format!(
+            "(rebate_maximum_amount + {b}) / lowest_marginal_tax_rate + tax_free_threshold"
+        );
+        (
+            amount,
+            formula,
+            sapto_regulations!(year, "s 9(4)(a), (5) and (8)"),
+        )
     };
-    dollars_up(&amount)
+    Ok((
+        dollars_up(&amount)?,
+        format!("dollars_up({formula})"),
+        authority,
+    ))
 }
 
-/// Regulations s 11(2): the base amount less 12.5 cents for each dollar of
-/// rebate income above the threshold, and nil once that reaches the base.
-fn rebate_amount(base: &Decimal, threshold: &Decimal, income: &Decimal) -> Calc<Decimal> {
+/// Regulations s 11(2): the base amount, written `b`, less 12.5 cents for each
+/// dollar of rebate income above the threshold, and nil once that reaches the
+/// base.
+fn rebate_amount(
+    base: &Decimal,
+    b: &str,
+    threshold: &Decimal,
+    income: &Decimal,
+) -> Calc<(Decimal, String)> {
     let excess = py_max(int(0), income.sub(threshold)?)?;
-    py_max(
+    let amount = py_max(
         int(0),
         base.sub(&excess.mul(&sapto_rule("shade_out_rate"))?)?,
-    )
+    )?;
+    let formula =
+        format!("max(0, {b} - max(0, rebate_income_used - rebate_threshold) x shade_out_rate)");
+    Ok((amount, formula))
 }
 
-/// Regulations s 12(3)(b): the spouse's unused base rebate amount. At or below
-/// $6,000 of taxable income, below the tax-free threshold, the resident spouse
-/// pays no tax and the whole base amount is unused (s 12(3)(b)(i)); above it
-/// s 12(3)(b)(ii) takes 15% of the excess.
-fn unused_from_spouse(base: &Decimal, spouse_taxable_income: &Decimal) -> Calc<Decimal> {
+/// Regulations s 12(3)(b): the spouse's unused base rebate amount, its formula
+/// and the provision. At or below $6,000 of taxable income, below the tax-free
+/// threshold, the resident spouse pays no tax and the whole base amount is
+/// unused (s 12(3)(b)(i)); above it s 12(3)(b)(ii) takes 15% of the excess.
+fn unused_from_spouse(
+    base: &Decimal,
+    spouse_taxable_income: &Decimal,
+    year: &str,
+) -> Calc<(Decimal, &'static str, &'static str)> {
     let floor = sapto_rule("transfer_income_floor");
     if spouse_taxable_income.le(&floor)? {
-        return Ok(base.clone());
+        let authority = sapto_regulations!(
+            year,
+            "s 12(1) and (3)(b)(i): the spouse's taxable income is at most $6,000, so no tax and the whole base amount is unused"
+        );
+        return Ok((base.clone(), "base_rebate_amount", authority));
     }
     let reduction = spouse_taxable_income
         .sub(&floor)?
         .mul(&sapto_rule("transfer_rate"))?;
-    py_max(int(0), base.sub(&reduction)?)
+    Ok((
+        py_max(int(0), base.sub(&reduction)?)?,
+        "max(0, base_rebate_amount - (spouse_taxable_income - transfer_income_floor) x transfer_rate)",
+        sapto_regulations!(year, "s 12(1), (3)(b)(ii) and (4)"),
+    ))
 }
 
-/// The amounts and rates for one person's offset.
-type SaptoWorking = (Vec<(&'static str, Decimal)>, Vec<(String, String)>);
+/// The steps and rates for one person's offset.
+type SaptoWorking = (Vec<Step>, Vec<(String, String)>);
 
 fn sapto_working(
     income: &Decimal,
     year: &str,
-    base: &Decimal,
+    (base, status): (&Decimal, usize),
     spouse_rebate_income: Option<&Decimal>,
     spouse_taxable_income: Option<&Decimal>,
 ) -> Calc<SaptoWorking> {
-    let threshold = rebate_threshold(base, year)?;
+    let rates = sapto_rates(year);
+    let mut values: Vec<(&str, Decimal)> = rates.iter().map(|(k, v)| (k.as_str(), d(v))).collect();
+    values.extend([
+        ("rebate_income", income.clone()),
+        ("rebate_income_used", income.clone()),
+        ("base_rebate_amount", base.clone()),
+    ]);
+    let (threshold, threshold_formula, threshold_authority) =
+        rebate_threshold(base, "base_rebate_amount", year)?;
     let cut_out = dollars_up(&base.div(&sapto_rule("shade_out_rate"))?.add(&threshold)?)?;
     // s 160AAAA(4): a spouse is tested on half the couple's rebate income.
-    let tested = match spouse_rebate_income {
-        Some(spouse) => income.add(spouse)?.div(&int(2))?,
-        None => income.clone(),
+    let (tested, tested_formula, tested_authority) = match spouse_rebate_income {
+        Some(spouse) => {
+            values.push(("spouse_rebate_income", spouse.clone()));
+            (
+                income.add(spouse)?.div(&int(2))?,
+                "(rebate_income_used + spouse_rebate_income) / 2",
+                "ITAA 1936 s 160AAAA(4): half the sum of the taxpayer's and the spouse's rebate income",
+            )
+        }
+        None => (
+            income.clone(),
+            "rebate_income_used",
+            "ITAA 1936 s 160AAAA(3): the taxpayer's rebate income",
+        ),
     };
     let entitled = tested.lt(&cut_out)?;
-    let mut amounts = vec![
-        ("rebate_income_used", income.clone()),
-        ("rebate_income_tested", tested),
-        ("base_rebate_amount", base.clone()),
+    let mut steps = vec![
+        step(
+            "rebate_income_used",
+            "ITAA 1936 s 160AAAA(3): the taxpayer's rebate income, as established",
+            "rebate_income",
+            &[income],
+            income.clone(),
+        ),
+        step_by_name(
+            "rebate_income_tested",
+            tested_authority,
+            tested_formula,
+            &values,
+            tested.clone(),
+        ),
+        step(
+            "base_rebate_amount",
+            [
+                sapto_regulations!(year, "s 9(2), table item 1: not a spouse"),
+                sapto_regulations!(
+                    year,
+                    "s 9(2), table item 3: a member of an illness separated couple"
+                ),
+                sapto_regulations!(year, "s 9(2), table item 2: a spouse"),
+            ][status],
+            &base.to_string(),
+            &[],
+            base.clone(),
+        ),
     ];
-    let mut working = (threshold.clone(), rebate_amount(base, &threshold, income)?);
+    let (offset_before, offset_formula) =
+        rebate_amount(base, "base_rebate_amount", &threshold, income)?;
+    let mut working = (
+        threshold.clone(),
+        threshold_formula.clone(),
+        threshold_authority,
+    );
+    let mut offset = (offset_before.clone(), offset_formula);
+    let mut raised_by_transfer = false;
     if let Some(spouse) = spouse_taxable_income {
+        values.push(("spouse_taxable_income", spouse.clone()));
         // s 12(1)(d) and (e): only an entitled person whose offset is below
         // its base amount takes the spouse's unused amount.
-        let unused = if entitled && working.1.lt(base)? {
-            unused_from_spouse(base, spouse)?
+        let (unused, formula, authority) = if entitled && offset_before.lt(base)? {
+            unused_from_spouse(base, spouse, year)?
         } else {
-            int(0)
+            let authority = sapto_regulations!(
+                year,
+                "s 12(1)(d) and (e): only a person entitled to the rebate, and whose rebate is less than its base amount, takes a spouse's unused amount; not here, so nil"
+            );
+            (int(0), "0", authority)
         };
-        amounts.push(("spouse_unused_amount_transferred", unused.clone()));
+        values.push(("spouse_unused_amount_transferred", unused.clone()));
+        steps.push(step_by_name(
+            "spouse_unused_amount_transferred",
+            authority,
+            formula,
+            &values,
+            unused.clone(),
+        ));
         if unused.gt(&int(0))? {
             // s 12(3) adds the unused amount to the base for s 11, not s 10.
             let raised = base.add(&unused)?;
-            let raised_threshold = rebate_threshold(&raised, year)?;
+            let b = "base_rebate_amount + spouse_unused_amount_transferred";
+            let (raised_threshold, formula, _) = rebate_threshold(&raised, b, year)?;
             working = (
                 raised_threshold.clone(),
-                rebate_amount(&raised, &raised_threshold, income)?,
+                formula,
+                sapto_regulations!(
+                    year,
+                    "s 9(4) to (8) and s 12(3): the base amount increased by the spouse's unused amount"
+                ),
             );
+            offset = rebate_amount(&raised, b, &raised_threshold, income)?;
+            raised_by_transfer = true;
         }
     }
-    let (threshold, offset) = working;
-    // The ATO rounds the offset up to the whole dollar.
-    let offset = if entitled {
-        dollars_up(&offset)?
+    let (threshold_used, formula, authority) = working;
+    values.push(("rebate_threshold", threshold_used.clone()));
+    steps.push(step_by_name(
+        "rebate_threshold",
+        authority,
+        &formula,
+        &values,
+        threshold_used,
+    ));
+    // s 10 uses the threshold before any s 12 transfer.
+    let before = if raised_by_transfer {
+        threshold_formula
     } else {
-        int(0)
+        "rebate_threshold".to_string()
     };
-    amounts.push(("rebate_threshold", threshold));
-    amounts.push(("cut_out_threshold", cut_out));
-    amounts.push(("seniors_pensioners_tax_offset", offset));
-    Ok((amounts, sapto_rates(year)))
+    values.push(("cut_out_threshold", cut_out.clone()));
+    steps.push(step_by_name(
+        "cut_out_threshold",
+        sapto_regulations!(
+            year,
+            "s 10: the base rebate amount over 0.125, plus the rebate threshold before any s 12 transfer, rounded up to the dollar"
+        ),
+        &format!("dollars_up(base_rebate_amount / shade_out_rate + {before})"),
+        &values,
+        cut_out,
+    ));
+    // The ATO rounds the offset up to the whole dollar.
+    let step = if entitled {
+        step_by_name(
+            "seniors_pensioners_tax_offset",
+            sapto_regulations!(
+                year,
+                "s 11(2), as s 12 affects it, rounded up to the whole dollar as the ATO does"
+            ),
+            &format!("dollars_up({})", offset.1),
+            &values,
+            dollars_up(&offset.0)?,
+        )
+    } else {
+        step(
+            "seniors_pensioners_tax_offset",
+            sapto_regulations!(
+                year,
+                "s 10 and ITAA 1936 s 160AAAA(3) and (4): the rebate income tested is not less than the cut-out threshold, so no rebate"
+            ),
+            "0",
+            &[],
+            int(0),
+        )
+    };
+    steps.push(step);
+    Ok((steps, rates))
 }
 
 /// The year's Schedule 7 terms and the regulations' constants.
@@ -4167,16 +5839,16 @@ pub fn seniors_pensioners_tax_offset(
     let status = seniors_status(status)?;
     let (spouse_rebate_income, spouse_taxable_income) = sapto_spouse(&spouse, status)?;
     let base = d(meta::SAPTO_BASE_REBATE_AMOUNTS[status]);
-    let (amounts, rates) = precise(|| {
+    let (steps, rates) = precise(|| {
         Ok(sapto_working(
             &income,
             &year,
-            &base,
+            (&base, status),
             spouse_rebate_income.as_ref(),
             spouse_taxable_income.as_ref(),
         )?)
     })?;
-    let mut out = result(SAPTO, &year, amounts, rates)?;
+    let mut out = derived_result(SAPTO, &year, steps, rates)?;
     if year == "2026-27" {
         let warnings = out["warnings"].as_array_mut().expect("warnings");
         warnings.push(json!(texts::SAPTO_2026_27_NOTE));
@@ -4184,18 +5856,27 @@ pub fn seniors_pensioners_tax_offset(
     Ok(out)
 }
 
-const KINDS: [&str; 27] = [
+const KINDS: [&str; 41] = [
     "gst",
     "resident_tax",
+    "foreign_resident_tax",
     "capital_gains",
     "main_residence",
     "borrowing_expenses",
+    "hire_purchase_schedule",
     "fbt",
     "fbt_car_statutory",
     "fbt_car_operating_cost",
+    "fbt_loan",
+    "fbt_meal_entertainment",
+    "fbt_car_parking",
+    "fbt_debt_waiver",
+    "fbt_expense_payment",
+    "fbt_property",
     "depreciation",
     "quarterly_sg",
     "payg_withholding",
+    "payg_gross_up",
     "contribution_caps",
     "pension_minimum",
     "study_loan_repayment",
@@ -4212,6 +5893,11 @@ const KINDS: [&str; 27] = [
     "working_holiday_maker_withholding",
     "seniors_pensioners_withholding",
     "seniors_pensioners_tax_offset",
+    "fbt_residual",
+    "fbt_housing",
+    "fbt_lafha",
+    "fbt_board",
+    "fbt_tax_exempt_body_entertainment",
 ];
 
 /// `periods(kind)`: accepted period arguments and inclusive calendar boundaries.
@@ -4330,7 +6016,7 @@ pub fn worksheet_catalogue() -> Value {
             if kind == "depreciation" {
                 json!(["prime_cost", "diminishing_value"])
             } else {
-                json!([])
+                json!(fbt_benefits::methods(kind))
             },
         );
         entry.insert(

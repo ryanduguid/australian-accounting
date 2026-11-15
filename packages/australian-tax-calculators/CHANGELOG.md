@@ -10,6 +10,99 @@ intentionally changed.
 
 ### Added
 
+- `derive` also covers `resident-tax`, `foreign-resident-tax`,
+  `low-income-tax-offset`, `seniors-pensioners-tax-offset`, `medicare-levy`
+  and `medicare-levy-surcharge`. Their steps cite the Income Tax Rates Act
+  1986 Schedule 7, ITAA 1997 s 4-10 and Subdivision 61-D, ITAA 1936 ss
+  160AAAA and 251U, the Income Tax Assessment (1936 Act) Regulation 2015 and
+  Regulations 2025 ss 9 to 12, the Medicare Levy Act 1986 ss 3 to 9 and the
+  A New Tax System (Medicare Levy Surcharge—Fringe Benefits) Act 1999; a
+  formula may now use `dollars_up`. The kinds' own test files derive each case
+  they run and check the result is the plain output. No command's plain output
+  changes.
+- `derive` also covers `division-296`, `contribution-caps`,
+  `study-loan-repayment`, `capital-gains` and `main-residence`. Their steps cite
+  ITAA 1997 Divisions 102, 115, 118, 291, 292 and 296 as compiled on
+  1 October 2026, the Income Tax (Transitional Provisions) Act 1997 s 296-1,
+  the Superannuation (Building a Stronger and Fairer Super System) Imposition
+  Act 2026 s 5 and HESA ss 154-1 to 154-25. `tests/division_296.rs`,
+  `tests/main_residence.rs`, the main residence property in
+  `tests/properties.rs` and `tests/tables.rs` derive each case of these
+  commands they run and check the result is the plain output; a negative
+  Division 296 very large component is null in its step, as in the result. No
+  command's plain output changes.
+- `fbt-loan`, `fbt-meal-entertainment` and `fbt-car-parking` give the taxable
+  value of loan (FBTAA ss 18 and 19), meal entertainment (Division 9A: the
+  50/50 split and 12 week register methods) and car parking fringe benefits
+  (Division 10A: the commercial parking station, average cost and 12 week
+  register methods, behind the car parking threshold) for the years ended 31
+  March 2026 and 2027, for `fbt` to gross up. They take their inputs by name,
+  refuse an input their method does not use, and derive every amount. New
+  refusal codes: `fbt.register_not_valid`,
+  `fbt_loan.deduction_exceeds_interest`,
+  `fbt_meal_entertainment.register_values_invalid`,
+  `input.benefit_count_invalid` and `input.fbt_method_invalid`. The ATO's and
+  the Library's worked examples are in `docs/calculation-evidence.md`.
+- `fbt-debt-waiver`, `fbt-expense-payment` and `fbt-property` give the
+  taxable value of debt waiver (FBTAA s 15), expense payment (Division 5:
+  external s 23 and in-house property s 22A(1), with the otherwise
+  deductible rule, s 24, for external payments) and property fringe
+  benefits (Division 11: the 6 in-house rules of s 42(1), the 3 external
+  rules of s 43 and the otherwise deductible rule, s 44) for the years
+  ended 31 March 2026 and 2027, for `fbt` to gross up. In-house benefits
+  take the employee's $1,000 reduction (s 62) left for the year. New
+  refusal codes: `fbt_expense_payment.deduction_exceeds_portion`,
+  `fbt_expense_payment.in_house_deductible_not_covered` (the otherwise
+  deductible rule for in-house expense payments, s 24(1)(b)(i), is not
+  covered) and `fbt_expense_payment.payment_exceeds_expenditure`.
+- `fbt-residual`, `fbt-housing`, `fbt-lafha`, `fbt-board` and `fbt-tax-exempt-body-entertainment` give the taxable
+  value of residual (Division 12, with the s 62 in-house reduction), housing
+  (Division 6: market value, or the statutory annual value from a base year
+  indexed by the ATO's published factors), living-away-from-home allowance
+  (Division 7), board (Division 9) and tax-exempt body entertainment fringe
+  benefits (Division 10) for the years ended 31 March 2026 and 2027, for
+  `fbt` to gross up, and derive every amount. New refusal codes, the
+  first 2 shared with `fbt-property` and `fbt-expense-payment`:
+  `fbt.deduction_exceeds_contribution`, `fbt.in_house_reduction_invalid`,
+  `fbt_housing.base_year_invalid`, `fbt_lafha.components_exceed_allowance`,
+  `fbt_tax_exempt_body_entertainment.heads_invalid` and `input.state_invalid`.
+- `personal-tax-estimate` composes one full-year resident's income tax and
+  levies for a year from `resident-tax`, `low-income-tax-offset`,
+  `medicare-levy`, `medicare-levy-surcharge` and, when given,
+  `seniors-pensioners-tax-offset`, `study-loan-repayment` and `division-293`,
+  each called as it is alone; for a full-year foreign resident, from
+  `foreign-resident-tax` and `division-293`, with no low income tax offset,
+  Medicare levy or surcharge. It applies SAPTO and then LITO against basic tax
+  only (ITAA 1997 s 63-10(1)), names the worksheet behind each line, keeps
+  every part's result, and shows Division 293 tax outside the total. A part's
+  refusal keeps its code and names the part. New codes:
+  `estimate.residency_unsupported` (part-year residents, working holiday
+  makers, and SAPTO or a study loan for a foreign resident),
+  `estimate.surcharge_with_exemption`, `estimate.family_mismatch` (parts that
+  describe different spouses or dependants) and `input.residency_invalid`.
+  `tests/personal_tax_estimate.rs` holds it to the ATO's figures, and
+  `tests/properties.rs` to the sum of its parts.
+- `derive` also covers `working-holiday-maker-withholding`,
+  `study-loan-withholding`, `seniors-pensioners-withholding`, `quarterly-sg`
+  and `borrowing-expenses`. Their steps cite the headings of Schedules 1, 8, 9
+  and 15 to the Taxation Administration (Withholding Schedules) Instruments
+  2024 to 2026, the Superannuation Guarantee (Administration) Act 1992
+  compilation 77 and ITAA 1997 s 25-25. Their test files derive each case they
+  run and check the result is the plain output. No command's plain output
+  changes.
+- `derive` also covers `payg-withholding`, the 3 `schedule-5` methods and
+  `termination-payment`. Their steps cite the headings and method steps of
+  Schedules 1, 5, 8 and 11 to the Taxation Administration (Withholding
+  Schedules) Instruments 2024 to 2026, and ITAA 1997 s 82-10 and 83-170; a
+  formula may now use `floor`. `tests/properties.rs`, `tests/schedule_5.rs`
+  and `tests/termination_payment.rs` derive each case they run and check the
+  result is the plain output. No command's plain output changes.
+- `derive` also covers `division-293` and `pension-minimum`. Their steps cite
+  ITAA 1997 s 293-20 and the Superannuation (Sustaining the Superannuation
+  Contribution Concession) Imposition Act 2013 s 5, and SISR Schedule 7
+  clauses 1, 3, 4 and 5; a formula may now use `max`.
+  `tests/derivation.rs` also derives every case the Python corpus holds for a
+  derived command. Neither command's plain output changes.
 - `derive` returns an FBT worksheet's result with one step per amount: the
   FBTAA section or ATO page that sets it, its formula on the values it used,
   and the amount. It covers `fbt`, `fbt-car-statutory` and
@@ -88,6 +181,17 @@ intentionally changed.
   the ATO's examples 1 to 4 in the 2024, 2025 and 2026 schedules and to each
   rule's boundary. New refusal codes: `input.pay_periods_invalid` and
   `input.back_payment_periods_invalid`.
+- `foreign-resident-tax` gives a full-year foreign resident's basic income tax
+  for 2024-25 to 2026-27 under Income Tax Rates Act 1986 Schedule 7 Part II:
+  30% to $135,000, 37% to $190,000 and 45% above, with no tax-free threshold.
+  The ATO's foreign resident page has no 2026-27 table, so a 2026-27 result
+  warns that its rates come from the Act. Its scope says that a foreign
+  resident pays no Medicare levy and has no low income tax offset. Like
+  `division-296`, it refuses a field it does not take. No Python release has
+  it. `tests/parity.rs` drops its catalogue entry before comparing, and
+  `tests/foreign_resident_tax.rs` holds it to the ATO's 2024-25 and 2025-26
+  table at every bracket boundary. `resident-tax`, `foreign-resident-tax` and
+  `low-income-tax-offset` share one argument list.
 - `working-holiday-maker-withholding` applies Schedule 15 to one weekly,
   fortnightly or monthly payment to a working holiday maker, for 2024-25 to
   2026-27: a registered employer's Table A rate (15%, 30%, 37% or 45%, by the
@@ -114,7 +218,16 @@ intentionally changed.
   `tests/seniors_pensioners.rs` holds it to each schedule's worked example
   ($662.95 a week), every amount in each schedule's weekly tax table (2,120
   earnings in 3 columns) and hand-worked amounts on the exemption scales and
-  for fortnightly and monthly pays.
+  for fortnightly and monthly pays. Its optional `study_loan` adds the study
+  and training support loan component that Schedule 9 sends the payer to the
+  weekly table (NAT 2173) for: Schedule 8's tax-free threshold rates on the
+  same weekly earnings, for 2026-27 and, with `pay_date`, 2025-26 pays from
+  24 September 2025, as `study-loan-withholding` takes them, shown beside the
+  Schedule 9 amount and their total. Without it the amounts and rates are
+  unchanged. `tests/seniors_pensioners_study_loan.rs` holds it to column 2 of
+  all 2,616 rows of the table from 1 July 2026, both tables' examples and
+  Schedule 8's examples, and `derive` shows the component and the total as
+  steps.
 - `seniors-pensioners-tax-offset` works out the seniors and pensioners tax
   offset (ITAA 1936 s 160AAAA) for 2024-25 to 2026-27 by the Income Tax
   Assessment (1936 Act) Regulations 2025 and the 2015 Regulation they replaced
@@ -207,6 +320,40 @@ intentionally changed.
   the total of all their reportable benefits at the type 2 gross-up rate when it
   exceeds $2,000, a pooled or shared car is not reportable, and the worksheet
   determines neither. Every other amount and warning is unchanged.
+- `payg-gross-up` finds the gross pay whose Schedule 1 withholding leaves a
+  stated net pay, for one regular pay on the scale, pay period and income year
+  `payg-withholding` takes, with `foreign_resident` for scale 4. It searches
+  `payg-withholding`'s own results rather than inverting the formulas, and
+  refuses with the new code `payg.gross_up_not_unique`, listing every gross,
+  where more than one leaves the net: Schedule 1 withholds whole dollars, so a
+  gross a dollar higher can withhold a dollar more and leave the same net. A
+  net above $499,999,999,974.00 is refused with `payg.gross_up_net_too_large`.
+  No Python release has it. `tests/payg_gross_up.rs` grosses up the net of
+  every row of the ATO's Schedule 1 sample data for both schedules to the
+  row's earnings or a tie that names them, and `tests/properties.rs` checks
+  that withholding on each answer leaves the net and that no other gross
+  within $60 of withholding does. `tests/refusal_codes.rs` now also reads the
+  engine's modules under `src/engine/`, and `payg-withholding` and
+  `study-loan-withholding` share one argument list.
+- `hire-purchase-schedule` sets out a hire purchase agreement month by month
+  for the hirer, the notional buyer under ITAA 1997 s 240-17(2), for
+  agreements starting in 2024-25 to 2026-27: level monthly instalments in
+  arrears or in advance and any balloon at the end of the term. It works out
+  the implicit interest rate from the payments, as s 240-60(1) step 3 does,
+  rather than taking a stated rate, and shows each month's notional interest
+  as the interest to date rounded to cents less what earlier months show, so
+  the months add up to the total charges and the last balance is nil. New
+  codes: `hire_purchase.amount_nil`, `hire_purchase.instalments_unsupported`,
+  `hire_purchase.rate_imprecise`, `hire_purchase.rate_unsupported`,
+  `hire_purchase.start_outside_year` and `input.timing_invalid`. No Python
+  release has it. `tests/hire_purchase.rs` holds it to agreements at exactly
+  10% and 5% a month worked by hand, to fabricated agreements worked
+  independently and to 2 schedules LodgeiT Labs publishes at a stated rate,
+  where it closes at nil as they do not, and `tests/properties.rs` checks that the months add up and
+  that each month's interest is within 2 cents of the rate shown times what
+  it accrues on.
+  `tests/refusal_codes.rs` now also reads the engine's modules under
+  `src/engine/`.
 
 ### Documented divergences
 
