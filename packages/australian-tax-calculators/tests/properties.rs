@@ -860,6 +860,122 @@ fn car_worksheets_reconcile_and_stay_within_their_bases() {
     }
 }
 
+/// A car parking result: the applied and excess payment make up the payment,
+/// the applied part never exceeds the gross value, and the taxable value is
+/// the gross value less the applied part; when no benefit arises, a nil
+/// taxable value alone.
+fn check_parking_reconciles(result: &Value, contribution: &str, arises: bool) {
+    if !arises {
+        assert_eq!(result["amounts"], json!({"taxable_value": "0.00"}));
+        return;
+    }
+    let gross = amount(result, "gross_taxable_value");
+    let applied = amount(result, "employee_contribution_applied");
+    let excess = amount(result, "excess_employee_contribution");
+    assert!(
+        eq(&applied.add(&excess).unwrap(), &d(contribution)),
+        "{result}"
+    );
+    assert!(le(&applied, &gross), "{result}");
+    let net = gross.sub(&applied).unwrap();
+    assert!(eq(&amount(result, "taxable_value"), &net), "{result}");
+}
+
+/// The loan, meal entertainment and car parking taxable values are never
+/// negative and never exceed the value they start from, and neither the
+/// interest accrued, the otherwise deductible rule nor a recipient's payment
+/// takes one below nil.
+#[test]
+fn fbt_benefit_values_reconcile_and_never_fall_below_nil() {
+    let mut rng = Rng(0xFB7_2026);
+    for _ in 0..RUNS {
+        let year = rng.int(2026, 2027);
+        let (deduction, accrued) = sorted_dec(rng.pay(), rng.pay());
+        let result = run(
+            "fbt-loan",
+            json!({"daily_balance_total": rng.money(), "interest_accrued": accrued,
+                   "income_use": format!("0.{:04}", rng.int(0, 9999)),
+                   "accrued_interest_deduction": deduction,
+                   "year_ended": year, "scope_confirmed": true}),
+        );
+        let notional = amount(&result, "notional_interest");
+        let applied = amount(&result, "interest_accrued_applied");
+        let gross = amount(&result, "gross_taxable_value");
+        let reduction = amount(&result, "reduction_applied");
+        let taxable = amount(&result, "taxable_value");
+        assert!(le(&applied, &d(&accrued)), "{result}");
+        assert!(eq(&notional.sub(&applied).unwrap(), &gross), "{result}");
+        assert!(
+            le(&reduction, &amount(&result, "notional_deduction")),
+            "{result}"
+        );
+        assert!(eq(&gross.sub(&reduction).unwrap(), &taxable), "{result}");
+        assert!(le(&n(0), &taxable) && le(&taxable, &gross), "{result}");
+
+        let fee = rng.cents(3000);
+        let arises = d(&fee)
+            .gt(&d(if year == 2026 { "11.03" } else { "11.48" }))
+            .unwrap();
+        let contribution = rng.pay();
+        let mut facts = json!({"first_business_day_fee": fee, "benefits": rng.int(0, 2000),
+                               "employee_contribution": contribution,
+                               "year_ended": year, "scope_confirmed": true});
+        if rng.bool() {
+            facts["method"] = json!("commercial_parking_station");
+            facts["lowest_fee"] = json!(rng.cents(5000));
+        } else {
+            facts["method"] = json!("average_cost");
+            facts["first_day_fee"] = json!(rng.cents(5000));
+            facts["last_day_fee"] = json!(rng.cents(5000));
+        }
+        check_parking_reconciles(&run("fbt-car-parking", facts), &contribution, arises);
+        let value = rng.pay();
+        let result = run(
+            "fbt-car-parking",
+            json!({"method": "12_week_register", "first_business_day_fee": fee,
+                   "register_value": value, "availability_days": rng.int(0, 365),
+                   "register_first_year": year - rng.int(0, 4),
+                   "year_ended": year, "scope_confirmed": true}),
+        );
+        let taxable = amount(&result, "taxable_value");
+        // 52 / 12 of the register's value at most, allowing a cent for rounding.
+        let ceiling = d(&value).mul(&n(52)).unwrap().div(&n(12)).unwrap();
+        let ceiling = ceiling.add(&d("0.01")).unwrap();
+        assert!(le(&n(0), &taxable) && le(&taxable, &ceiling), "{result}");
+
+        let expenditure = rng.money();
+        let result = run(
+            "fbt-meal-entertainment",
+            json!({"method": "50_50_split", "meal_entertainment_expenditure": expenditure,
+                   "year_ended": year, "scope_confirmed": true}),
+        );
+        let taxable = amount(&result, "taxable_value");
+        assert!(
+            le(&n(0), &taxable) && le(&taxable, &d(&expenditure)),
+            "{result}"
+        );
+        let (benefits, total) = sorted_dec(rng.pay(), rng.pay());
+        let total = if d(&total).is_zero() {
+            "0.01".to_string()
+        } else {
+            total
+        };
+        let result = run(
+            "fbt-meal-entertainment",
+            json!({"method": "12_week_register", "meal_entertainment_expenditure": expenditure,
+                   "register_fringe_benefits_value": benefits,
+                   "register_meal_entertainment_value": total,
+                   "register_first_year": year - rng.int(0, 4),
+                   "year_ended": year, "scope_confirmed": true}),
+        );
+        let taxable = amount(&result, "taxable_value");
+        assert!(
+            le(&n(0), &taxable) && le(&taxable, &d(&expenditure)),
+            "{result}"
+        );
+    }
+}
+
 /// Random alternating lived and absent runs, income use on some days and
 /// choice periods after some lived runs. Inputs the worksheet refuses as out
 /// of scope are skipped; the market value basis is retried when it applies.

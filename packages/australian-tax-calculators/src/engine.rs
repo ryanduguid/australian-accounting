@@ -14,6 +14,9 @@ use crate::metadata::{self as meta, CoefficientRow, Example};
 use crate::pytext;
 use crate::texts;
 
+mod fbt_benefits;
+pub use fbt_benefits::{fbt_car_parking, fbt_loan, fbt_meal_entertainment};
+
 pub const VERSION: &str = env!("CARGO_PKG_VERSION");
 const WORKING_PRECISION: i128 = 40;
 
@@ -4763,7 +4766,7 @@ pub fn seniors_pensioners_tax_offset(
     Ok(out)
 }
 
-const KINDS: [&str; 30] = [
+const KINDS: [&str; 33] = [
     "gst",
     "resident_tax",
     "foreign_resident_tax",
@@ -4774,6 +4777,9 @@ const KINDS: [&str; 30] = [
     "fbt",
     "fbt_car_statutory",
     "fbt_car_operating_cost",
+    "fbt_loan",
+    "fbt_meal_entertainment",
+    "fbt_car_parking",
     "depreciation",
     "quarterly_sg",
     "payg_withholding",
@@ -4912,7 +4918,7 @@ pub fn worksheet_catalogue() -> Value {
             if kind == "depreciation" {
                 json!(["prime_cost", "diminishing_value"])
             } else {
-                json!([])
+                json!(fbt_benefits::methods(kind))
             },
         );
         entry.insert(

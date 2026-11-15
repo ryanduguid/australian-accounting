@@ -10,6 +10,18 @@ intentionally changed.
 
 ### Added
 
+- `fbt-loan`, `fbt-meal-entertainment` and `fbt-car-parking` give the taxable
+  value of loan (FBTAA ss 18 and 19), meal entertainment (Division 9A: the
+  50/50 split and 12 week register methods) and car parking fringe benefits
+  (Division 10A: the commercial parking station, average cost and 12 week
+  register methods, behind the car parking threshold) for the years ended 31
+  March 2026 and 2027, for `fbt` to gross up. They take their inputs by name,
+  refuse an input their method does not use, and derive every amount. New
+  refusal codes: `fbt.register_not_valid`,
+  `fbt_loan.deduction_exceeds_interest`,
+  `fbt_meal_entertainment.register_values_invalid`,
+  `input.benefit_count_invalid` and `input.fbt_method_invalid`. The ATO's and
+  the Library's worked examples are in `docs/calculation-evidence.md`.
 - `personal-tax-estimate` composes one full-year resident's income tax and
   levies for a year from `resident-tax`, `low-income-tax-offset`,
   `medicare-levy`, `medicare-levy-surcharge` and, when given,
