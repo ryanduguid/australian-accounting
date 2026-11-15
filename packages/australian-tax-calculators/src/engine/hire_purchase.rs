@@ -231,8 +231,9 @@ fn income_year(day: i64) -> (String, i64) {
 /// interest to each year in accordance with generally accepted accounting
 /// principles, which this worksheet leaves to the caller.
 fn by_income_year(months: &[Month]) -> Result<(Value, Value)> {
-    let (mut years, mut across): (Vec<(String, i64, i64, Decimal)>, Vec<Value>) =
-        (Vec::new(), Vec::new());
+    // (income year, first instalment, last instalment, interest)
+    type Year = (String, i64, i64, Decimal);
+    let (mut years, mut across): (Vec<Year>, Vec<Value>) = (Vec::new(), Vec::new());
     for month in months {
         let (year, ends) = income_year(month.from);
         if month.to > ends {
