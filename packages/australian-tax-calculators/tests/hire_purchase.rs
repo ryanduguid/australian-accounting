@@ -305,6 +305,31 @@ fn a_month_spanning_30_june_is_shown_apart_with_its_days_in_each_year() {
     );
 }
 
+/// From the 29th to the 31st a month is cut short at February's end and every
+/// month still runs from `start` plus whole months, so the sixth month runs
+/// from 29 or 30 June: 2 days before 1 July from the 29th and 1 from the 30th
+/// or 31st (30 June, as June has no 31st).
+#[test]
+fn a_clamped_start_spans_30_june_from_the_month_s_own_start() {
+    for (start, days) in [
+        ("2027-01-29", [2, 28]),
+        ("2027-01-30", [1, 29]),
+        ("2027-01-31", [1, 30]),
+    ] {
+        let r = run(json!({"amount_financed": "1000.00", "instalment": "100.00", "instalments": 6, "balloon": "1000.00", "start_date": start})).unwrap();
+        assert_eq!(
+            r["interest_by_income_year"],
+            json!([{"income_year": "2026-27", "first_instalment": 1, "last_instalment": 5, "interest": "500.00"}]),
+            "{start}"
+        );
+        assert_eq!(
+            r["interest_across_30_june"],
+            json!([{"instalment": 6, "interest": "100.00", "income_years": ["2026-27", "2027-28"], "days": days}]),
+            "{start}"
+        );
+    }
+}
+
 /// Over 5 years from 15 July 2026, months 12, 24, 36, 48 and 60 span 30 June;
 /// each year's interest is its months' shown interest, and the years and the
 /// spanning months add up to the total interest.
