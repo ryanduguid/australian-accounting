@@ -68,6 +68,47 @@ fn an_agreement_at_exactly_10_percent_a_month_in_advance() {
     assert_eq!(r["balloon_date"], "2026-09-15");
 }
 
+/// In advance the last instalment is paid at the start of the last month and
+/// the balloon at its end, so the row shows them apart: the instalment as
+/// `payment` on `payment_date`, the balloon as `balloon` on `balloon_date`.
+#[test]
+fn an_in_advance_balloon_is_shown_apart_from_the_last_instalment() {
+    let r = run(json!({"amount_financed": "1000.00", "instalment": "100.00", "instalments": 2, "balloon": "979.00", "timing": "in_advance"})).unwrap();
+    let (first, last) = (&r["schedule"][0], &r["schedule"][1]);
+    assert_eq!(first["balloon"], "0.00");
+    assert_eq!(last["payment"], "100.00");
+    assert_eq!(last["payment_date"], "2026-08-15");
+    assert_eq!(last["balloon"], "979.00");
+    assert_eq!(r["balloon_date"], "2026-09-15");
+    assert_eq!(last["principal"], "990.00");
+}
+
+/// The rates shown reproduce the interest at the largest amount: on
+/// $1,000,000,000,000 the first month's interest is the amount financed times
+/// the monthly rate, or a twelfth of the annual rate, to the cent.
+#[test]
+fn the_rates_shown_reproduce_the_first_month_s_interest_to_the_cent() {
+    let r = run(json!({"amount_financed": "1000000000000.00", "instalment": "9000000000.00", "instalments": 360, "balloon": "0.00"})).unwrap();
+    let dec = |s: &str| Decimal::parse(s).unwrap();
+    let rate = |key: &str| dec(r["rates"][key].as_str().unwrap());
+    let first = dec(row(&r, 1)[1]);
+    let annual = rate("nominal_annual_rate");
+    for (monthly, what) in [
+        (rate("implicit_monthly_rate"), "monthly"),
+        (annual.div(&Decimal::from_int(12)).unwrap(), "annual"),
+    ] {
+        let gap = dec("1000000000000")
+            .mul(&monthly)
+            .unwrap()
+            .sub(&first)
+            .unwrap();
+        assert!(
+            dec("-0.01").le(&gap).unwrap() && gap.le(&dec("0.01")).unwrap(),
+            "{what}: {gap}"
+        );
+    }
+}
+
 /// A fabricated 5-year agreement, against an independent calculation that
 /// finds the rate from the payments' present value to 60 digits and rounds
 /// the interest to date to cents each month.
