@@ -84,7 +84,7 @@ pub const SCOPES: &[(&str, &str)] = &[
     ),
     (
         "contribution_caps",
-        "One individual's contributions received by all their funds in the income year, already classified by the operator as concessional or non-concessional, with no bring-forward period started in either of the 2 previous years. Total super balance is at the 30 June before the year; unused concessional cap is the established total of unexpired amounts from the previous 5 years. Excludes classification, fund acceptance and work-test rules, deductibility, the CGT cap, downsizer and other excluded contributions, excess concessional amounts counting as non-concessional, determinations, release elections, Division 293 tax and the transfer balance cap.",
+        "One individual's contributions received by all their funds in the income year, already classified by the operator as concessional or non-concessional, with no bring-forward period started in either of the 2 previous years. Total super balance is at the 30 June before the year. Unused concessional cap is either the established total of unexpired amounts from the previous 5 years or, given each earlier year's established concessional contributions from at least the 5th year before (and the balance at the 30 June before any year whose contributions exceed its cap), worked out year by year from 2018-19 under ITAA 1997 s 291-20(3) to (7): each year's unused cap, the amounts applied earliest year first, the amount carried into the year, and, after the year's contributions and any proposed one, what is left of each year's amount and the year at whose end it lapses. Cap arithmetic only: it does not say what to contribute. The carry-forward by year excludes defined benefit interests and notional taxed contributions. Excludes classification, fund acceptance and work-test rules, deductibility, the CGT cap, downsizer and other excluded contributions, excess concessional amounts counting as non-concessional, determinations, release elections, Division 293 tax and the transfer balance cap.",
     ),
     (
         "pension_minimum",
@@ -382,6 +382,13 @@ const FBT_GUIDE_REDUCTIONS: &str =
     "https://www.ato.gov.au/law/view/document?DocID=SAV/FBTGEMP/00020";
 
 pub const EXTRA_SOURCES: &[(&str, &[&str])] = &[
+    (
+        "contribution_caps",
+        &[
+            "https://www.ato.gov.au/individuals-and-families/super-for-individuals-and-families/super/growing-and-keeping-track-of-your-super/caps-limits-and-tax-on-super-contributions/concessional-contributions-cap",
+            "https://www.ato.gov.au/law/view/document?docid=PAC/19970038/291-20",
+        ],
+    ),
     (
         "foreign_resident_tax",
         &[
@@ -890,6 +897,26 @@ pub const REFUSAL_CODES: &[(&str, &str)] = &[
     ),
     ("command.unknown", "The command does not exist."),
     (
+        "contribution_caps.defined_benefit_interest",
+        "A person with a defined benefit interest was given to the carry-forward by year (ITAA 1997 Subdivision 291-C and s 291-370).",
+    ),
+    (
+        "contribution_caps.earlier_balance_missing",
+        "An earlier year's concessional contributions exceed its cap and its total superannuation balance at the 30 June before it was not given (ITAA 1997 s 291-20(3)(b)).",
+    ),
+    (
+        "contribution_caps.earlier_years_invalid",
+        "The earlier years' concessional contributions are not one entry for each year from the 5th before the year to the one before it, without a gap.",
+    ),
+    (
+        "contribution_caps.earlier_years_short",
+        "An earlier year's cap was increased from unused cap of years before the first year given (ITAA 1997 s 291-20(4) and (5)).",
+    ),
+    (
+        "contribution_caps.year_before_carry_forward",
+        "An earlier year before 2018-19 was given, which has no unused concessional contributions cap (ITAA 1997 s 291-20(7)).",
+    ),
+    (
         "decimal.division_by_zero",
         "A worksheet step divided by zero.",
     ),
@@ -1115,7 +1142,7 @@ pub const REFUSAL_CODES: &[(&str, &str)] = &[
     ),
     (
         "input.field_unknown",
-        "A field the worksheet or command does not take, or does not take beside the other inputs given, was given (fbt-loan, fbt-meal-entertainment, fbt-car-parking, fbt-debt-waiver, fbt-expense-payment, fbt-property, fbt-residual, fbt-housing, fbt-lafha, fbt-board, fbt-tax-exempt-body-entertainment, fbt-entertainment-classifier, division-296, depreciation, foreign-resident-tax, medicare-levy, medicare-levy-surcharge, payg-withholding, payg-gross-up, termination-payment, unused-leave-payment, the Schedule 5 methods, working-holiday-maker-withholding, study-loan-withholding, seniors-pensioners-withholding, seniors-pensioners-tax-offset, lump-sum-arrears-tax-offset, hire-purchase-schedule, derive, personal-tax-estimate, dgr-check and income-tests only).",
+        "A field the worksheet or command does not take, or does not take beside the other inputs given, was given (fbt-loan, fbt-meal-entertainment, fbt-car-parking, fbt-debt-waiver, fbt-expense-payment, fbt-property, fbt-residual, fbt-housing, fbt-lafha, fbt-board, fbt-tax-exempt-body-entertainment, fbt-entertainment-classifier, division-296, depreciation, foreign-resident-tax, medicare-levy, medicare-levy-surcharge, payg-withholding, payg-gross-up, termination-payment, unused-leave-payment, the Schedule 5 methods, working-holiday-maker-withholding, study-loan-withholding, seniors-pensioners-withholding, seniors-pensioners-tax-offset, lump-sum-arrears-tax-offset, hire-purchase-schedule, contribution-caps given a carry-forward input, derive, personal-tax-estimate, dgr-check and income-tests only).",
     ),
     ("input.flag_invalid", "A flag is not a JSON boolean."),
     ("input.fraction_invalid", "A fraction is outside 0 to 1."),
