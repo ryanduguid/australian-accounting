@@ -407,6 +407,23 @@ intentionally changed.
   and its days in each year, which s 240-60(2) leaves to accounting
   principles and the worksheet does not split. `tests/hire_purchase.rs`
   holds it to agreements worked by hand at 10% a month.
+- `income-tests` works out 6 income measures for a full-year resident for
+  2024-25 to 2026-27 from taxable income and the components each definition
+  adds back: income for surcharge purposes (ITAA 1997 s 995-1), Division 293
+  income (s 293-20(1)(a)), rebate income (ITAA 1936 s 6(1)), repayment income
+  (HESA s 154-5), adjusted taxable income for offsets (Family Assistance Act
+  Sch 3) and the super co-contribution's total income (Superannuation
+  (Government Co-contribution for Low Income Earners) Act 2003 s 8). Each
+  measure is a `derive` step citing its definition, and `not_used` lists the
+  components each leaves out. Every component is required; a negative one, a
+  component larger than the amount that includes it, a part-year or foreign
+  resident and another year are refused. Income for surcharge purposes follows
+  s 995-1, which leaves out the exempt foreign employment income the ATO's
+  surcharge page adds, and warns when they differ. No command's behaviour
+  changes. No Python release has it. `tests/parity.rs` drops its catalogue
+  entry before comparing, and `tests/income_tests.rs` holds it to the ATO's
+  Christina and Tom examples, passes each measure to the command that takes
+  it and checks each adjustment and refusal.
 
 ### Documented divergences
 

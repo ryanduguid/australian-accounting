@@ -921,6 +921,10 @@ pub fn supported_periods(kind: &str) -> Vec<&'static str> {
             vec!["2026", "2027"]
         }
         "fbt_housing" => keys(FBT_HOUSING_INDEXATION),
+        // The years whose definitions were read: the 1 July 2024 compilations
+        // define them as the current ones do, and the ATO's 2025 and 2026
+        // return instructions and its current pages apply them.
+        "income_tests" => vec!["2024-25", "2025-26", "2026-27"],
         _ => Vec::new(),
     }
 }
@@ -1080,6 +1084,10 @@ pub fn source_review(kind: &str) -> (&'static str, &'static str) {
         "fbt_tax_exempt_body_entertainment" => (
             "2026-11-15",
             "FBTAA ss 38 and 39 and s 136(1), non-deductible exempt entertainment expenditure, compilation 97 (1 July 2026); Fringe benefits tax - a guide for employers, chapter 15, 15.9 and its per head example; FBT return 2026 instructions, item 23L and example 15",
+        ),
+        "income_tests" => (
+            "2026-11-16",
+            "ITAA 1997 s 995-1 (income for surcharge purposes, reportable superannuation contributions, total net investment loss, adjusted taxable income for offsets, exempt foreign employment income, assessable FHSS released amount) and ss 4-15, 291-15, 293-20, 301-20 and 313-20, compilation 268 (1 October 2026); ITAA 1936 s 6(1) (rebate income, adjusted taxable income for rebates, adjusted fringe benefits total) and s 251S, compilation 193 (1 October 2026); HESA ss 154-5, 154-16 and 154-17, compilation 105 (17 October 2026); A New Tax System (Family Assistance) Act 1999 Sch 3 cls 2, 4, 5, 7 and 8, compilation 124 (1 July 2026); FBTAA ss 135N, 135P and 135Q (1 July 2026); SISR reg 6.01(2) preservation age, compilation 159 (1 July 2026); Superannuation (Government Co-contribution for Low Income Earners) Act 2003 s 8, compilation 28 (1 July 2018); and the 1 July 2024 compilations of the ITAA 1997 (250), ITAA 1936 (184) and Family Assistance Act (119), compared; ATO Income tests (last updated 8 June 2026), Rebate income and Adjusted taxable income for you and your dependants for 2025 and 2026, IT1 Total reportable fringe benefits amounts 2025 and 2026, A3 Government super contributions 2025 and 2026, Medicare levy surcharge income, thresholds and rates (22 June 2026), When you must repay your loan (13 October 2026), Division 293 tax on concessional contributions by high-income earners (24 August 2026), Exempt income and other tax obligations (3 June 2026) and Fringe benefits tax - rates and thresholds (20 May 2026)",
         ),
         _ => ("", ""),
     }
@@ -1297,6 +1305,12 @@ pub fn library_evidence(kind: &str) -> [(&'static str, &'static str); 4] {
             "3-160, 3-180",
             "2026-06-30",
             "2026-11-15",
+        ),
+        "income_tests" => (
+            "ATO income test pages",
+            "Christina's repayment income (When you must repay your loan) and Tom's income for MLS purposes (Medicare levy surcharge income, thresholds and rates)",
+            "2026-10-13",
+            "2026-11-16",
         ),
         _ => ("", "", "", ""),
     };
@@ -2180,6 +2194,25 @@ pub fn input_units(kind: &str) -> Vec<(&'static str, &'static str)> {
                 "AUD, non-deductible exempt entertainment expenditure (FBTAA s 136(1)): under actual, the part incurred in entertaining employees and their associates; under per_head, the whole function's",
             ),
         ],
+        "income_tests" => vec![
+            ("taxable_income", "AUD, whole dollars: taxable income, including any assessable FHSS released amount (nil for a loss)"),
+            ("assessable_fhss_released_amount", "AUD: the amount ITAA 1997 s 313-20 includes in assessable income for released FHSS amounts"),
+            ("family_trust_distribution_amounts", "AUD: amounts on which family trust distribution tax was paid that ITAA 1936 Sch 2F s 271-105(1) kept out of assessable income"),
+            ("reportable_fringe_benefits_section_57a", "AUD: reportable fringe benefits amounts from employers exempt from FBT under FBTAA s 57A (return item IT1, label N)"),
+            ("reportable_fringe_benefits_other", "AUD: reportable fringe benefits amounts from every other employer (return item IT1, label W)"),
+            ("reportable_employer_super_contributions", "AUD: reportable employer superannuation contributions (return item IT2)"),
+            ("deductible_personal_super_contributions", "AUD: personal superannuation contributions deducted under ITAA 1997 Subdivision 290-C (return item D12)"),
+            ("excess_concessional_contributions", "AUD: excess concessional contributions for the corresponding financial year (ITAA 1997 s 291-20)"),
+            ("net_financial_investment_loss", "AUD: deductions attributable to financial investments less the gross income from them, nil if none (return item IT5)"),
+            ("net_rental_property_loss", "AUD: deductions attributable to rental property less the gross income from it, nil if none (return item IT6)"),
+            ("tax_free_government_pensions", "AUD: tax free pensions or benefits under A New Tax System (Family Assistance) Act 1999 Sch 3 cl 7 as in force for the year (return item IT3)"),
+            ("target_foreign_income", "AUD: target foreign income under A New Tax System (Family Assistance) Act 1999 Sch 3 cl 5, including exempt foreign employment income (return item IT4)"),
+            ("exempt_foreign_employment_income", "AUD: income exempt under ITAA 1936 s 23AF or 23AG less the losses and outgoings, other than capital ones, incurred in deriving it (HESA s 154-5(4) and (5))"),
+            ("child_support_paid", "AUD: deductible child maintenance expenditure under A New Tax System (Family Assistance) Act 1999 Sch 3 cl 8 (return item IT7)"),
+            ("assessable_income", "AUD: assessable income, including any assessable FHSS released amount and excess concessional contributions"),
+            ("business_deductions", "AUD: deductions the person is entitled to as a result of carrying on a business"),
+            ("residency", "full_year_resident; part_year_resident, working_holiday_maker and foreign_resident are refused"),
+        ],
         _ => Vec::new(),
     }
 }
@@ -2471,6 +2504,29 @@ pub fn examples(kind: &str) -> Vec<(&'static str, Example)> {
         "fbt_tax_exempt_body_entertainment" => vec![
             ("method", Text("actual")),
             ("entertainment_expenditure", Text("5000.00")),
+        ],
+        // The ATO's Christina example for repayment income; the split of her
+        // investment loss, fringe benefits and super contributions, her target
+        // foreign income and her assessable income are fabricated.
+        "income_tests" => vec![
+            ("year", Text("2025-26")),
+            ("taxable_income", Text("50420")),
+            ("assessable_fhss_released_amount", Text("0")),
+            ("family_trust_distribution_amounts", Text("0")),
+            ("reportable_fringe_benefits_section_57a", Text("0")),
+            ("reportable_fringe_benefits_other", Text("4560")),
+            ("reportable_employer_super_contributions", Text("15000")),
+            ("deductible_personal_super_contributions", Text("0")),
+            ("excess_concessional_contributions", Text("0")),
+            ("net_financial_investment_loss", Text("1250")),
+            ("net_rental_property_loss", Text("0")),
+            ("tax_free_government_pensions", Text("0")),
+            ("target_foreign_income", Text("2580")),
+            ("exempt_foreign_employment_income", Text("2580")),
+            ("child_support_paid", Text("0")),
+            ("assessable_income", Text("50420")),
+            ("business_deductions", Text("0")),
+            ("residency", Text("full_year_resident")),
         ],
         _ => Vec::new(),
     }

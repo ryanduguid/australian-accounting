@@ -166,6 +166,10 @@ pub const SCOPES: &[(&str, &str)] = &[
         "fbt_tax_exempt_body_entertainment",
         "Tax-exempt body entertainment fringe benefits (FBTAA s 38) in the FBT year ended 31 March 2026 or 2027: non-deductible exempt entertainment expenditure (s 136(1)) an employer wholly or partly exempt from income tax, or without assessable income from the activities the entertainment relates to, incurred in entertaining employees or their associates. The taxable value is so much of the expenditure as is attributable to that entertainment (s 39): actual takes the amount the operator attributes to employees and associates; per_head apportions a function's expenditure by the employees and associates entertained over everyone entertained, rounded to cents, where the actual amount cannot easily be worked out (the employer's guide, 15.9). No recipient's contribution or reduction applies (FBT return 2026 instructions, item 23L). Excludes deciding what is entertainment or exempt (such as minor benefits, s 58P), meal entertainment valued under Division 9A (fbt-meal-entertainment), the 50/50 split for entertainment facility leasing expenses (s 152B), splitting the value between type 1 and type 2 for fbt, gross-up and FBT payable.",
     ),
+    (
+        "income_tests",
+        "The income measures of one individual who was an Australian resident for the whole income year and alive at its end, each the person's own for the whole year, from components the operator has established and classified: income for surcharge purposes (ITAA 1997 s 995-1), Division 293 income (s 293-20(1)(a)), rebate income (ITAA 1936 s 6(1)), repayment income for study and training loans (HESA s 154-5), adjusted taxable income for offsets (ITAA 1997 s 995-1, ITAA 1936 s 6(1) and A New Tax System (Family Assistance) Act 1999 Sch 3, disregarding cls 3 and 3A) and total income for the super co-contribution (Superannuation (Government Co-contribution for Low Income Earners) Act 2003 s 8). A spouse's measures come from the spouse's own components. A dependant's adjusted taxable income for part of a year, a deceased person's annualised adjusted taxable income (Sch 3 cl 2(2)), the co-contribution's 10% eligible income test, the combined family amounts and every threshold and eligibility test the measures feed are outside it. Income for surcharge purposes follows s 995-1, which does not add exempt foreign employment income; the ATO's surcharge page adds it where taxable income is $1 or more, and the result warns when that changes the figure. Measures another agency applies are outside it: the Commonwealth Seniors Health Card income test and family assistance adjusted taxable income are Services Australia's (https://www.servicesaustralia.gov.au/income-test-for-commonwealth-seniors-health-card). Refuses part-year residents, working holiday makers and foreign residents, and components that cannot all be true together.",
+    ),
 ];
 
 pub const SOURCES: &[(&str, &str)] = &[
@@ -323,6 +327,10 @@ pub const SOURCES: &[(&str, &str)] = &[
     (
         "fbt_tax_exempt_body_entertainment",
         "https://www.ato.gov.au/law/view/document?DocID=SAV/FBTGEMP/00016",
+    ),
+    (
+        "income_tests",
+        "https://www.ato.gov.au/individuals-and-families/income-deductions-offsets-and-records/income-tests",
     ),
 ];
 
@@ -592,6 +600,31 @@ pub const EXTRA_SOURCES: &[(&str, &[&str])] = &[
         "fbt_tax_exempt_body_entertainment",
         &[FBTAA_PART_1, FBTAA_PART_2, FBT_RETURN_ITEM_23],
     ),
+    (
+        "income_tests",
+        &[
+            "https://www.legislation.gov.au/C2004A05138/2026-10-01/2026-10-01/text/original/epub/OEBPS/document_10/document_10.html",
+            "https://www.legislation.gov.au/C2004A05138/2026-10-01/2026-10-01/text/original/epub/OEBPS/document_6/document_6.html",
+            "https://www.legislation.gov.au/C1936A00027/2026-10-01/2026-10-01/text/original/epub/OEBPS/document_1/document_1.html",
+            "https://www.legislation.gov.au/C2004A01234/2026-10-17/2026-10-17/text/original/epub/OEBPS/document_1/document_1.html",
+            "https://www.legislation.gov.au/C2004A00490/2026-07-01/2026-07-01/text/original/epub/OEBPS/document_1/document_1.html",
+            FBTAA_PART_2,
+            "https://www.legislation.gov.au/F1996B00580/2026-07-01/2026-07-01/text/original/epub/OEBPS/document_2/document_2.html",
+            "https://www.legislation.gov.au/C2004A01195/2018-07-01/2018-07-01/text/original/epub/OEBPS/document_1/document_1.html",
+            "https://www.ato.gov.au/forms-and-instructions/individual-tax-return-2026-instructions/supporting-information-individual-tax-return-2026/rebate-income-2026",
+            "https://www.ato.gov.au/forms-and-instructions/individual-tax-return-2026-instructions/supporting-information-individual-tax-return-2026/adjusted-taxable-income-for-you-and-your-dependants-2026",
+            "https://www.ato.gov.au/forms-and-instructions/individual-tax-return-2026-instructions/income-test-it1-it8-individual-tax-return-2026/it1-total-reportable-fringe-benefits-amounts-2026",
+            "https://www.ato.gov.au/forms-and-instructions/individual-tax-return-2026-instructions/adjustment-questions-a1-a4-individual-tax-return-2026/a3-government-super-contributions-2026",
+            "https://www.ato.gov.au/forms-and-instructions/individual-tax-return-2025-instructions/supporting-information-individual-tax-return-2025/rebate-income-2025",
+            "https://www.ato.gov.au/forms-and-instructions/individual-tax-return-2025-instructions/supporting-information-individual-tax-return-2025/adjusted-taxable-income-for-you-and-your-dependants-2025",
+            "https://www.ato.gov.au/forms-and-instructions/individual-tax-return-2025-instructions/income-test-it1-it8-individual-tax-return-2025/it1-total-reportable-fringe-benefits-amounts-2025",
+            "https://www.ato.gov.au/forms-and-instructions/individual-tax-return-2025-instructions/adjustment-questions-a1-a4-individual-tax-return-2025/a3-government-super-contributions-2025",
+            "https://www.ato.gov.au/individuals-and-families/medicare-and-private-health-insurance/medicare-levy-surcharge/medicare-levy-surcharge-income-thresholds-and-rates",
+            "https://www.ato.gov.au/individuals-and-families/study-and-training-support-loans/when-must-you-repay-your-loan",
+            "https://www.ato.gov.au/individuals-and-families/super-for-individuals-and-families/super/growing-and-keeping-track-of-your-super/caps-limits-and-tax-on-super-contributions/division-293-tax-on-concessional-contributions-by-high-income-earners",
+            FBT_RATES,
+        ],
+    ),
 ];
 
 /// The car worksheets' reportable fringe benefits note, read from the ATO's
@@ -661,6 +694,10 @@ pub const MEDICARE_YEAR_WARNINGS: &[(&str, &str)] = &[(
     "2026-27",
     "2026-27 uses the threshold amounts, phase-in limits and family income thresholds Medicare Levy Act 1986 ss 3(1) and 8 set for 2025-26 and later years (Act No. 58, 2026, Sch 5 item 14). The ATO had not published 2026-27 thresholds when this was checked on 14 November 2026. That Act, assented on 30 June 2026, raised the figures for 2025-26, so a later Act can raise them for 2026-27 and change this result.",
 )];
+
+/// An `income_tests` warning when exempt foreign employment income is given
+/// with taxable income of $1 or more.
+pub const INCOME_TESTS_EXEMPT_FOREIGN_NOTE: &str = "income_for_surcharge_purposes leaves out exempt_foreign_employment_income, as ITAA 1997 s 995-1 'income for surcharge purposes' (compilation 268) does. The ATO's 'Medicare levy surcharge income, thresholds and rates' page (last updated 22 June 2026) adds it where taxable income is $1 or more, which no provision read on 16 November 2026 supports; its Division 293 page leaves it out. Confirm with the ATO before using income_for_surcharge_purposes for the surcharge.";
 
 /// A `seniors_pensioners_tax_offset` warning for 2026-27, whose thresholds the
 /// ATO had not published when they were worked from the regulations.
@@ -819,6 +856,14 @@ pub const REFUSAL_CODES: &[(&str, &str)] = &[
         "A hire purchase agreement starts outside the income year given.",
     ),
     (
+        "income_tests.components_inconsistent",
+        "income-tests was given a component larger than the amount that includes it: taxable income or the assessable FHSS released amount above assessable income, or exempt foreign employment income above target foreign income.",
+    ),
+    (
+        "income_tests.residency_unsupported",
+        "income-tests was given a part-year resident, a working holiday maker or a foreign resident.",
+    ),
+    (
         "input.age_invalid",
         "An age is not a whole number of years from 0 to 150.",
     ),
@@ -876,7 +921,7 @@ pub const REFUSAL_CODES: &[(&str, &str)] = &[
     ),
     (
         "input.field_unknown",
-        "A field the worksheet or command does not take, or does not take beside the other inputs given, was given (fbt-loan, fbt-meal-entertainment, fbt-car-parking, fbt-debt-waiver, fbt-expense-payment, fbt-property, fbt-residual, fbt-housing, fbt-lafha, fbt-board, fbt-tax-exempt-body-entertainment, division-296, depreciation, foreign-resident-tax, medicare-levy, medicare-levy-surcharge, payg-withholding, payg-gross-up, termination-payment, the Schedule 5 methods, working-holiday-maker-withholding, study-loan-withholding, seniors-pensioners-withholding, seniors-pensioners-tax-offset, hire-purchase-schedule, derive and personal-tax-estimate only).",
+        "A field the worksheet or command does not take, or does not take beside the other inputs given, was given (fbt-loan, fbt-meal-entertainment, fbt-car-parking, fbt-debt-waiver, fbt-expense-payment, fbt-property, fbt-residual, fbt-housing, fbt-lafha, fbt-board, fbt-tax-exempt-body-entertainment, division-296, depreciation, foreign-resident-tax, medicare-levy, medicare-levy-surcharge, payg-withholding, payg-gross-up, termination-payment, the Schedule 5 methods, working-holiday-maker-withholding, study-loan-withholding, seniors-pensioners-withholding, seniors-pensioners-tax-offset, hire-purchase-schedule, derive, personal-tax-estimate and income-tests only).",
     ),
     ("input.flag_invalid", "A flag is not a JSON boolean."),
     ("input.fraction_invalid", "A fraction is outside 0 to 1."),
