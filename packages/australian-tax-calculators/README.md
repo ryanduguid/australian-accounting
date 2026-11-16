@@ -1059,7 +1059,11 @@ from regular pays of the same amount. Give one regular pay's inputs under
 year: at most 53 weekly, 27 fortnightly, 12 monthly or 4 quarterly. Add
 `schedule-5-method-a` with `additional_payment` and `pay_periods` for one
 bonus, commission or back payment paid with one of them; it takes the pay's
-earnings, period, scale and study loan. The tax withheld is the pay's
+earnings, period, scale and study loan. Method A is refused beside
+`seniors-pensioners-withholding`, a quarterly pay (the Schedule 5 and 9
+commands take none) and a pay that declares `tax_offsets`,
+`medicare_adjustment_children` or `extra_pay_withholding`, which Method A here
+does not take. The tax withheld is the pay's
 withholding times `pays_in_year`, plus Method A's withholding on the
 additional payment, and the amounts add `withholding_per_pay` and
 `additional_payment_withholding` before `tax_withheld`; each part's result is

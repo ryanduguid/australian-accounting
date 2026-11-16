@@ -298,8 +298,8 @@ you configure. As read on 13 November 2026, these projects cover nearby ground:
   rechecked at the library's commit e94cef24 on 16 November 2026: the library from an annual salary
   spread over 52 weekly, 26 fortnightly or 12 monthly pays, and this repository from one pay's
   earnings and the number of pays in the year, so it also takes 53 weekly or 27 fortnightly pays,
-  quarterly pays, and, under Schedule 1 without a study loan, the tax offsets and Medicare levy
-  adjustment a payee declares. The library
+  quarterly pays under Schedules 1 and 8, and, under Schedule 1 without a study loan or a bonus,
+  the tax offsets and Medicare levy adjustment a payee declares. The library
   also applies Method A to a senior's or pensioner's bonus, which this repository refuses. The library's
   `annual_tax_estimate` approximates repayment income and income for surcharge purposes by taxable
   income. Both compose a resident's 2027-28 tax with the working Australians tax offset, as

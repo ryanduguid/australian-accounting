@@ -120,6 +120,13 @@ const PAY_PARTS: [&str; 3] = [
 /// regular pay. That pay's part gives it these inputs.
 const BONUS: &str = "schedule-5-method-a";
 const BONUS_FROM_PAY: [&str; 5] = ["earnings", "pay_period", "scale", "study_loan", "pay_date"];
+/// The regular pay's declared Schedule 1 adjustments, which Method A here does
+/// not take.
+const DECLARED: [&str; 3] = [
+    "tax_offsets",
+    "medicare_adjustment_children",
+    "extra_pay_withholding",
+];
 
 /// The most pays of each period in an income year: Schedule 1 provides for 53
 /// weekly or 27 fortnightly pays ('When there are 53 pays in a financial year'
@@ -752,6 +759,18 @@ fn check_pay(v: &Value, foreign: bool) -> Result<Option<&'static str>, Refusal> 
             "Method A here works from Schedule 1 amounts, not Schedule 9's",
         );
     }
+    // Method A here takes none of the payee's declared adjustments, so its
+    // amounts at steps 2 and 5 would not be the regular pay's.
+    let declared = DECLARED
+        .into_iter()
+        .find(|k| part.get(*k).is_some_and(|value| *value != json!(false)));
+    if let (Some(_), Some(key)) = (v.get(BONUS), declared) {
+        return beside(
+            BONUS,
+            &format!("{pay} with {key}"),
+            "Method A here works the bonus out without the tax offsets, Medicare levy adjustment and extra pay amount a payee declares",
+        );
+    }
     let scale = part["scale"].as_i64().filter(|s| (1..=6).contains(s));
     if let Some(scale) = scale {
         let foreign_scale = scale == 3 || (scale == 4 && part["foreign_resident"] == json!(true));
@@ -778,7 +797,7 @@ fn check_pay(v: &Value, foreign: bool) -> Result<Option<&'static str>, Refusal> 
         return Err(Refusal::new(
             "period.unsupported",
             format!(
-                "{pay} with a study loan does not give the tax withheld for {year}: its Schedule 8 coefficients changed on {from}, so pays before then withheld other amounts; give tax_withheld"
+                "{pay} with a study loan does not give the tax withheld for {year}: its Schedule 8 coefficients changed on {from}, so one pay does not stand for the year's pays; give tax_withheld"
             ),
         ));
     }
