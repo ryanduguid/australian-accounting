@@ -438,7 +438,7 @@ fn dgr_entries(entry: &Entry) -> Value {
         .iter()
         .map(|(from, fund)| {
             let shown = fund.as_deref().map_or("the entity itself", fund_name);
-            json!({"from": from, "endorsed_for": shown})
+            json!({"from": from, "entry_for": shown})
         })
         .collect()
 }
@@ -455,7 +455,8 @@ fn entity(entry: &Entry) -> Value {
 /// The funds an entity is endorsed for when it is not endorsed in its own right
 /// on the date (or at all, with no date). Empty when no entry held on the
 /// date: an endorsement that has since ended is not in the data, so the funds
-/// listed now cannot say where such a gift had to go.
+/// listed now cannot say where such a gift had to go. Read only for a
+/// `shown_for_a_fund` or `no_date` reading.
 fn fund_only<'a>(entry: &'a Entry, date: Option<&str>) -> Vec<&'a str> {
     let held = |from: &String| date.is_none_or(|d| from.as_str() <= d);
     if entry
@@ -529,7 +530,12 @@ fn by_abn(
     );
     out.insert("dgr_entries".into(), dgr_entries(entry));
     out.insert("on_payment_date".into(), json!(status));
-    let funds = fund_only(entry, donation.date.as_deref());
+    // A cancelled ABN or a payment after the data date leaves the entries on
+    // the payment date unknown, so no fund is named for them.
+    let funds = match status {
+        "shown_for_a_fund" | "no_date" => fund_only(entry, donation.date.as_deref()),
+        _ => Vec::new(),
+    };
     out.insert("conditions".into(), json!(conditions(donation, &funds)?));
     Ok(out)
 }
@@ -625,6 +631,10 @@ fn check_with(register: &Register, v: &Value) -> Result<Value, Refusal> {
         };
         result.insert("index".into(), json!(at));
         result.insert("input".into(), given.clone());
+        // Each donation carries what it rests on, so it can be read alone.
+        result.insert("data_date".into(), json!(register.data_date));
+        result.insert("source_url".into(), json!(BULK_EXTRACT));
+        result.insert("limits".into(), json!(LIMITS));
         results.push(Value::Object(result));
     }
     Ok(json!({
@@ -782,6 +792,10 @@ mod tests {
         assert_eq!(r["on_payment_date"], "not_shown");
         assert_eq!(found(&r, "gift_to_the_fund"), None);
         assert_eq!(status(&r, "two_dollar_minimum").as_deref(), Some("open"));
+        // After the data date the entries on the payment date are unknown too.
+        let r = one(json!({"abn": RIVER, "date": "2026-11-12"}));
+        assert_eq!(r["on_payment_date"], "after_data_date");
+        assert_eq!(found(&r, "gift_to_the_fund"), None);
     }
 
     #[test]
@@ -789,7 +803,7 @@ mod tests {
         let r = one(json!({"abn": HARBOUR, "date": "2010-01-01"}));
         assert_eq!(r["on_payment_date"], "shown_for_a_fund");
         let unnamed = "a fund, authority or institution the data does not name";
-        assert_eq!(r["dgr_entries"][0]["endorsed_for"], unnamed);
+        assert_eq!(r["dgr_entries"][0]["entry_for"], unnamed);
         let text = found(&r, "gift_to_the_fund").unwrap()["text"]
             .as_str()
             .unwrap();

@@ -77,8 +77,8 @@ fn an_entity_endorsed_in_its_own_right_and_for_a_fund() {
     assert_eq!(
         r["dgr_entries"],
         json!([
-            {"from": "2000-07-01", "endorsed_for": "SYDNEY MISSIONARY & BIBLE COLLEGE BUILDING & MAINTENANCE FUND"},
-            {"from": "2006-03-01", "endorsed_for": "the entity itself"},
+            {"from": "2000-07-01", "entry_for": "SYDNEY MISSIONARY & BIBLE COLLEGE BUILDING & MAINTENANCE FUND"},
+            {"from": "2006-03-01", "entry_for": "the entity itself"},
         ])
     );
     assert_eq!(conditions(&r), ["a_gift", "gift_conditions", "record"]);
@@ -100,7 +100,7 @@ fn a_fund_only_school_gives_this_result() {
         "name_matches_register": true,
         "entity": {"abn": KILLARNEY, "name": "THE KILLARNEY SCHOOL LTD", "abn_status": "active", "abn_status_from": "2000-04-11"},
         "other_names": [],
-        "dgr_entries": [{"from": "2000-07-01", "endorsed_for": "THE KILLARNEY SCHOOL LTD BUILDING FUND"}],
+        "dgr_entries": [{"from": "2000-07-01", "entry_for": "THE KILLARNEY SCHOOL LTD BUILDING FUND"}],
         "on_payment_date": "shown_for_a_fund",
         "conditions": [
             {"condition": "a_gift", "status": "open", "text": "The payment is a gift: a voluntary transfer of money with no material benefit or advantage in return. A payment for a ticket to a fund-raising event or for an item won at a charity auction is a contribution under s 30-15 items 7 or 8, with other conditions; one made under a will is not deductible (s 30-15(2)).", "source": "https://www.ato.gov.au/individuals-and-families/income-deductions-offsets-and-records/deductions-you-can-claim/gifts-and-donations"},
@@ -111,8 +111,13 @@ fn a_fund_only_school_gives_this_result() {
         ],
         "index": 0,
         "input": input.clone(),
+        "data_date": "2026-11-11",
+        "source_url": "https://data.gov.au/data/dataset/abn-bulk-extract",
     });
-    assert_eq!(one(input), expected);
+    // The limits every donation carries are checked once, below.
+    let mut got = one(input);
+    assert!(got.as_object_mut().unwrap().remove("limits").is_some());
+    assert_eq!(got, expected);
 }
 
 /// The extract gives this foundation's fund entry from 2000 with no fund name;
@@ -126,8 +131,8 @@ fn a_fund_the_extract_does_not_name_is_not_read_as_the_entity_itself() {
     assert_eq!(
         r["dgr_entries"],
         json!([
-            {"from": "2000-07-01", "endorsed_for": "a fund, authority or institution the data does not name"},
-            {"from": "2024-01-01", "endorsed_for": "the entity itself"},
+            {"from": "2000-07-01", "entry_for": "a fund, authority or institution the data does not name"},
+            {"from": "2024-01-01", "entry_for": "the entity itself"},
         ])
     );
     assert!(conditions(&r).contains(&"gift_to_the_fund"));
@@ -143,8 +148,11 @@ fn a_cancelled_abn_keeps_its_fund_entry_but_is_not_read_as_a_dgr_after() {
     assert_eq!(r["entity"]["abn_status"], "cancelled");
     assert_eq!(r["entity"]["abn_status_from"], "2023-10-16");
     assert_eq!(r["on_payment_date"], "abn_cancelled");
+    // The data cannot show the entries after cancellation, so it names no fund.
+    assert!(!conditions(&r).contains(&"gift_to_the_fund"));
     let before = one(json!({"abn": CANCELLED, "date": "2023-10-15"}));
     assert_eq!(before["on_payment_date"], "shown_for_a_fund");
+    assert!(conditions(&before).contains(&"gift_to_the_fund"));
 }
 
 #[test]
@@ -203,6 +211,12 @@ fn every_result_states_its_data_date_limits_and_sources() {
     );
     let limits = r["limits"].as_array().unwrap();
     assert!(limits[0].as_str().unwrap().contains("current details only"));
+    // Each donation stands alone: its data date, source and every limit.
+    for donation in r["donations"].as_array().unwrap() {
+        assert_eq!(donation["data_date"], "2026-11-11");
+        assert_eq!(donation["source_url"], r["data"]["source_url"]);
+        assert_eq!(&donation["limits"], &r["limits"]);
+    }
     let sources = r["sources"].as_array().unwrap();
     assert!(sources.contains(&json!("https://data.gov.au/data/dataset/abn-bulk-extract")));
     let text = r.to_string();
