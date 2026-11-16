@@ -70,6 +70,7 @@ example evidence; it does not claim a fresh review of every supported period.
 | PAYG gross-up | Not a Library document: ATO Schedule 1 (NAT 1004) sample data for payments from 1 July 2026, and for 1 July 2024 to 30 June 2026, through the PAYG withholding worksheet | 17 June 2026 (published); 17 June 2024 (last updated) | The gross of one regular pay whose Schedule 1 withholding leaves an established net; refused where more than one gross does |
 | Study loan withholding | Not a Library document: ATO Schedule 8 (NAT 3539) for payments from 1 July 2026, and Schedule 8 of F2025L01016 for payments from 24 September 2025 | 17 June 2026 (published); 24 September 2025 (commenced) | Schedule 8 component on one regular weekly, fortnightly, monthly or quarterly pay, added to the Schedule 1 amount |
 | Study loan repayment | Not a Library document: the ATO minimum repayment income page and Gazette C2026G00249 | 13 October 2026 (ATO page) | Marginal repayment on established repayment income for 2025-26 and 2026-27; the loan-balance limit is outside the worksheet |
+| Income tests | Not a Library document: ITAA 1997 s 995-1 and s 293-20 (compilation 268), ITAA 1936 s 6(1) (compilation 193), HESA s 154-5 (compilation 105), Family Assistance Act Sch 3 (compilation 124), FBTAA ss 135N to 135Q, the co-contribution Act s 8 (compilation 28) and the ATO's Christina and Tom examples | 16 November 2026 (read); 13 October 2026 and 22 June 2026 (ATO pages) | 6 income measures of a full-year resident for 2024-25 to 2026-27 from established, classified components; the thresholds and tests they feed are outside it |
 
 The resident passage does not establish the engine's 2025–26 and 2026–27 rate
 coverage. Its existing 2026–27 regression and statutory source remain unchanged.
@@ -1658,6 +1659,75 @@ after 1 June (cl 4) and rounds any amount under the Schedule to the nearest $10,
 an exact $5 rounding up (cl 5). Because cl 3 pro-rates the factor, the engine
 rounds once, after pro-rating. The transition to retirement 10% maximum and the
 other pension schedules are outside this worksheet.
+
+## Income tests
+
+This worksheet's evidence is not a Library document. Read on 16 November 2026:
+ITAA 1997 s 995-1 and ss 4-15, 291-15, 293-20, 301-20 and 313-20 (compilation
+268, 1 October 2026); ITAA 1936 s 6(1) and s 251S (compilation 193, 1 October
+2026); HESA ss 154-5, 154-16 and 154-17 (compilation 105, 17 October 2026);
+the A New Tax System (Family Assistance) Act 1999 Sch 3 cls 2, 4, 5, 7 and 8
+(compilation 124, 1 July 2026); FBTAA ss 135N to 135Q; SISR reg 6.01(2)
+(compilation 159); the Superannuation (Government Co-contribution for Low
+Income Earners) Act 2003 s 8 (compilation 28, 1 July 2018); the ATO's
+'Income tests', its rebate income, adjusted taxable income, IT1 and A3
+instructions for 2025 and 2026, 'Medicare levy surcharge income, thresholds and
+rates' (last updated 22 June 2026), 'When you must repay your loan' (13
+October 2026), its Division 293 page (24 August 2026) and its FBT rates page
+(20 May 2026). The ITAA 1997, ITAA 1936 and Family Assistance Act compilations
+of 1 July 2024 (250, 184 and 119) define each measure as the current ones do,
+so the definitions cover 2024-25 to 2026-27; the 2026 compilation adds one tax
+free benefit to cl 7's list, which the operator classifies.
+
+| Measure | Sum | Provision |
+| --- | --- | --- |
+| Income for surcharge purposes | Taxable income without the FHSS amount, family trust distribution amounts, reportable fringe benefits total, reportable super contributions, total net investment loss | ITAA 1997 s 995-1 (a) to (d) |
+| Division 293 income | Income for surcharge purposes less reportable super contributions | ITAA 1997 s 293-20(1)(a) |
+| Rebate income | Taxable income without the FHSS amount, reportable super contributions, total net investment loss, adjusted fringe benefits total | ITAA 1936 s 6(1) |
+| Repayment income | Taxable income without the FHSS amount, total net investment loss, reportable fringe benefits total, exempt foreign employment income, reportable super contributions | HESA s 154-5(1) |
+| Adjusted taxable income | Taxable income without the FHSS amount, adjusted fringe benefits total, target foreign income, total net investment loss, tax free pensions, reportable super contributions, less child support paid | Family Assistance Act Sch 3 cl 2(1), disregarding cls 3 and 3A |
+| Co-contribution total income | Assessable income without the FHSS amount, reportable fringe benefits total, reportable employer contributions less excess concessional contributions (not below nil), less business deductions | Co-contribution Act s 8(1), (1A) and (2) |
+
+Reportable super contributions are reportable employer contributions and
+Subdivision 290-C deductions, reduced, but not below nil, by excess
+concessional contributions (s 995-1). The adjusted fringe benefits total takes
+a section 57A employer's amounts before FBTAA s 135Q(4)'s gross-up at
+1 / (1 - 47%), so at 53%; the ATO's 2025 and 2026 worksheets round that down
+to the dollar, and the worksheet does too. The s 301-20(3) amount income for
+surcharge purposes takes off is nil from 2024-25: it applies only below
+preservation age, which is 60 for anyone born after 30 June 1964 (SISR reg
+6.01(2)), and the ATO's surcharge page limits it to 2023-24 and earlier.
+Adjusted taxable income can be below nil, as cl 2(1) sets no floor.
+
+Section 995-1 does not add exempt foreign employment income to income for
+surcharge purposes, and nor does s 293-20 to Division 293 income. The ATO's
+surcharge page adds it where taxable income is $1 or more. The Medicare Levy
+Act 1986 (compilation 53, 1 July 2026) and the A New Tax System (Medicare Levy
+Surcharge—Fringe Benefits) Act 1999 (compilation 42, 1 July 2026), read on 16
+November 2026, do not add it: s 3(1) of each gives 'income for surcharge
+purposes' the ITAA 1997 meaning, and neither mentions ITAA 1936 s 23AF or
+23AG. The only provision read that counts it beside the surcharge amounts is
+the one-eleventh test for the surcharge lump sum offset (ITAA 1997
+s 61-580(1)(d)), which does not define the surcharge's income. The worksheet
+follows s 995-1 and warns when the two differ.
+The Commonwealth Seniors Health Card income test and family assistance
+adjusted taxable income are Services Australia's
+(https://www.servicesaustralia.gov.au/income-test-for-commonwealth-seniors-health-card),
+and the worksheet does not work them out.
+
+`tests/income_tests.rs` holds the worksheet to the ATO's Christina example
+(repayment income of $73,810 from taxable income of $50,420, a $1,250 total
+net investment loss, $4,560 of reportable fringe benefits, $2,580 of exempt
+foreign employment income and $15,000 of reportable super contributions) in
+all 3 years, and its Tom example (income for MLS purposes of $117,000 from
+$90,000 taxable income and $27,000 of fringe benefits, then $1,170 of
+surcharge from `medicare-levy-surcharge`). Jan's Division 293 example
+($240,000 and $15,000 give $750) runs from fabricated components through
+`division-293`. No ATO example breaks down rebate income, adjusted taxable
+income or co-contribution total income, so their cases are worked by hand
+from the provisions: the 53% rounding, excess concessional contributions,
+the FHSS amount, family trust distribution amounts, child support and
+business deductions.
 
 ## Personal tax estimate
 
