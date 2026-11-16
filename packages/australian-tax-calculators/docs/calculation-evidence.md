@@ -40,10 +40,10 @@ example evidence; it does not claim a fresh review of every supported period.
 | FBT | `tax-examples-fringe-benefits-tax-fbt` (tax-examples), ¶3-000 and ¶3-020 | 30 June 2026 | Established taxable values and ordinary gross-up rates; car example ends 31 March 2026 |
 | FBT car benefits | `tax-examples-fringe-benefits-tax-fbt` (tax-examples), ¶3-020 and ¶3-045 (reportable value), with the ATO's FBT return 2026 instructions (item 23), employer's guide (7.8 and 7.9) and reportable fringe benefits page | 30 June 2026; 1 April 2026 (item 23); 12 January 2023 (reportable fringe benefits) | One car's established base value or operating costs for the years ended 31 March 2026 and 2027; the reportable taxable value before the employee's $2,000 threshold and type 2 gross-up |
 | FBT loans | `tax-examples-fringe-benefits-tax-fbt` (tax-examples), ¶3-100, with FBTAA ss 18, 19 and 136(1) (compilation 97, 1 July 2026), the FBT return 2026 instructions (item 23C, example 8), the employer's guide (8.5 and 8.8) and the FBT rates and thresholds page | 30 June 2026; 20 May 2026 (rates page) | One loan to a current employee for the years ended 31 March 2026 and 2027; deciding the loan, exemptions and the deduction itself excluded |
-| FBT meal entertainment | `tax-examples-fringe-benefits-tax-fbt` (tax-examples), ¶3-220, with FBTAA ss 37AB to 37CD (compilation 97) and the FBT return 2026 instructions (item 23P, example 18) | 30 June 2026 | The year's established expenditure by the 50/50 split or a valid 12 week register for the years ended 31 March 2026 and 2027; the actual method excluded |
-| FBT car parking | `tax-examples-fringe-benefits-tax-fbt` (tax-examples), ¶3-055 (the 2026 threshold), with FBTAA ss 39A to 39GF (compilation 97), the employer's guide (chapter 16, examples 12, 13, 15 and 17) and the FBT rates and thresholds page | 30 June 2026; 20 May 2026 (rates page) | Commercial parking station, average cost and 12 week register values for the years ended 31 March 2026 and 2027; market value and spaces methods excluded |
+| FBT meal entertainment | `tax-examples-fringe-benefits-tax-fbt` (tax-examples), ¶3-220, with FBTAA ss 37AB to 37CD (compilation 97) and the FBT return 2026 instructions (item 23P, example 18) | 30 June 2026 | The year's established expenditure by the 50/50 split or a 12 week register, checked against its age and s 37CD(3)'s 20% rule, for the years ended 31 March 2026 and 2027; the actual method excluded |
+| FBT car parking | `tax-examples-fringe-benefits-tax-fbt` (tax-examples), ¶3-055 (the 2026 threshold), with FBTAA ss 39A to 39GF (compilation 97), the employer's guide (chapter 16, examples 12, 13, 15, 17 and 18; 16.2.5 and 16.2.8 last updated November 2023) and the FBT rates and thresholds page | 30 June 2026; 20 May 2026 (rates page) | Commercial parking station, market value, average cost, spaces and 12 week register values for the years ended 31 March 2026 and 2027; the register's 10% rule left to the operator |
 | FBT debt waivers | FBT return 2026 instructions (item 23D, example 9), with FBTAA ss 14 and 15 (compilation 97, 1 July 2026) and the employer's guide (8.1 and 8.2) | 1 April 2026 (item 23); 29 May 2024 (guide) | The amount waived for the years ended 31 March 2026 and 2027; deciding the waiver excluded |
-| FBT expense payments | `tax-examples-fringe-benefits-tax-fbt` (tax-examples), ¶3-240 and ¶3-340, with FBTAA ss 20 to 24, 62 and 136(1) (compilation 97), the FBT return 2026 instructions (item 23E, example 10) and the employer's guide (9.2 to 9.4 and 19.5) | 30 June 2026; 1 April 2026 (item 23); 29 May 2024 (guide) | One external or in-house property expense payment for the years ended 31 March 2026 and 2027; in-house residual payments and the in-house otherwise deductible rule excluded |
+| FBT expense payments | `tax-examples-fringe-benefits-tax-fbt` (tax-examples), ¶3-240 and ¶3-340, with FBTAA ss 20 to 24, 62 and 136(1) (compilation 97), the FBT return 2026 instructions (item 23E, example 10) and the employer's guide (9.2 to 9.4 and 19.5) | 30 June 2026; 1 April 2026 (item 23); 29 May 2024 (guide) | One external, in-house property or in-house residual expense payment for the years ended 31 March 2026 and 2027; the in-house otherwise deductible rule excluded |
 | FBT property | `tax-examples-fringe-benefits-tax-fbt` (tax-examples), ¶3-260, with FBTAA ss 40 to 44, 62 and 136(1) (compilation 97), the FBT return 2026 instructions (item 23K, example 14) and the employer's guide (17.2 to 17.5 and 19.5) | 30 June 2026; 1 April 2026 (item 23); 29 May 2024 (guide) | One benefit under an in-house or external rule for the years ended 31 March 2026 and 2027; airline transport and car property rules excluded |
 | FBT residual benefits | Not a Library document: FBTAA ss 45 to 52 and 62 (compilation 97), the FBT return 2026 instructions (item 23M, example 16) and the employer's guide (chapter 18) | 1 April 2026 (item 23) | One benefit's in-house or external value for the years ended 31 March 2026 and 2027; car residual, airline transport and jointly provided benefits excluded |
 | FBT housing | `tax-examples-fringe-benefits-tax-fbt` (tax-examples), ¶3-120, with FBTAA ss 25 to 28 (compilation 97), the FBT return 2026 instructions (item 23F, example 11), the employer's guide (chapter 10) and the FBT rates and thresholds page (housing indexation factors) | 30 June 2026; 20 May 2026 (rates page) | Market value and statutory annual values for the years ended 31 March 2026 and 2027; remote area housing excluded |
@@ -304,8 +304,23 @@ Item 23P example 18: $4,000 of meal entertainment under the 50/50 split,
 $1,000 of fringe benefits out of $3,000 shows 33.33% but applies a third, so
 $900 of expenditure gives $300.00, not $299.97. s 37CD makes a register valid for
 its first year and the 4 after it; the worksheet refuses a first year outside
-that window, and the operator establishes the 20% expenditure test and any later
-register.
+that window, and the operator establishes any later register.
+
+The 20% rule was added on 16 November 2026 from FBTAA s 37CD(3), compilation 97
+(C2026C00332, registered 24 July 2026, in force from 1 July 2026, the current
+compilation that day), read through the Federal Register of Legislation's API
+at 8.25 am AEDT. A register valid for a year 'ceases to be valid at the end of
+that FBT year' if that year's meal entertainment expenses are 'more than 20%
+higher than the corresponding total for the first FBT year for which the
+register was valid'. The worksheet takes each year's expenses from the first
+valid year to the year before the one valued and refuses the register if any
+later year's is more than 1.2 times the first's; the year valued may rise by
+any amount, since the register ceases only at its end. $1,000 then $1,200 is
+exactly 20% higher and stays valid; $1,200.01 ends it
+(`tests/fbt_meal_entertainment.rs`). The employer's guide, 14.8 (last updated
+January 2020), says 'increase by more than 20% in a year', which reads as a
+year-on-year test; the Act compares every year with the first, and the
+worksheet follows the Act.
 
 ## FBT car parking
 
@@ -327,8 +342,44 @@ fee of more than the threshold on the first business day, so the worksheet
 compares the highest of those fees with it and reports a nil taxable value when
 none is above. The commercial parking station and average cost methods round
 the gross value to cents before the recipients' payments, as the car worksheets
-do. The market value method is left out because it rests on a qualified valuer's
-report; the spaces method was not in this batch.
+do.
+
+The market value and spaces methods were added on 16 November 2026 from FBTAA
+ss 39D and 39FA to 39FE, compilation 97 (C2026C00332, the current compilation
+that day, read through the Federal Register of Legislation's API at 8.25 am
+AEDT), and the employer's guide, chapter 16 (last updated November 2023, read at
+8.27 am). s 39D(2) values a benefit at 'the amount that the recipient could
+reasonably be expected to have been required to pay' at arm's length, less the
+recipients contribution; s 39D(3) makes the election depend on a qualified
+valuer's report, which the operator establishes. Example 17 values its
+register's 250 benefits at a $10 market value: 250 benefits under the market
+value method give **$2,500.00**.
+
+Example 18 (the spaces method): 4 spaces, each at a $10 daily rate amount for
+182 days, `10 × 182 / 366 × 228 = 1,133.77` a space and **$4,535.08** for 4;
+3 employees and 4 spaces, so s 39FB scales it by `3 / 4` to **$3,401.31**;
+`$30 × 26 × 3 = $2,340` of contributions leave **$1,061.31**, the guide's
+figures. The example's year ended 31 March 2023; the tests run its facts in
+2026 and 2027 with a first business day fee above those years' thresholds.
+s 39FA(4) states no rounding, and the guide shows its step 4 amount as $4.97
+but carries it unrounded to $1,133.77. The worksheet adds each group's
+`daily rate × days × 228 × spaces`, divides by 366 once and rounds the total to
+cents, then rounds the s 39FB amount to cents; per-space rounding could differ
+by a cent a space (a $12 space for 365 days beside example 18's 4 gives
+$7,263.61, where rounding each space first gives $7,263.60).
+
+s 39FB(6) says s 39FB 'does not apply' where the head counts are not
+representative; the guide's 16.2.8.2 says 'You cannot use the Spaces method'
+then. The worksheet follows the Act's narrower effect and leaves
+representativeness to the operator.
+
+s 39GF(3), read the same day, ends a car parking register 'if the number of car
+parking fringe benefits ... increases by more than 10% on any day in that FBT
+year' without saying what the increase is measured from (the register's 12
+weeks, the first valid year or the day before). The guide's 16.2.7.4 says only
+'increased by more than 10% in the previous FBT year', and 16.2.2 'since the
+register was kept'. With no stated base the rule is not built; the worksheet
+still checks the register's age.
 
 ## FBT debt waiver
 
@@ -390,9 +441,22 @@ contribution, so one formula serves a payment and a reimbursement, with a
 contribution of 0.00 for a reimbursement. The otherwise deductible rule for an
 in-house expense payment (s 24(1)(b)(i)) measures the gross expenditure 'but
 for ... the recipients contribution', which the guide does not work through,
-so it is left out rather than guessed. s 22A(2) values in-house residual
-expense payments by the residual benefit rules (ss 48 and 49), which these
-worksheets do not take.
+so it is left out rather than guessed.
+
+In-house residual expense payments were added on 16 November 2026 from FBTAA s
+22A(2) and (3) and ss 48 and 49, compilation 97 (C2026C00332, read through the
+Federal Register of Legislation's API at 8.25 am AEDT), and the guide's 9.3
+(last updated May 2021) and 18.4 (January 2020), read at 8.27 am. s 22A(2)
+takes the value s 48 or 49 would give 'but for section 52 and Division 14',
+with the recipient's portion as the notional contribution, exactly as s
+22A(1) does for property. s 22A(3) reads s 49 for the recipient's overall
+benefit, so for a period benefit the price or notional value given is the
+overall benefit's. The guide's 18.4 rental, $100 to the public with $50 charged,
+`0.75 × 100 − 50`, **$25.00**; paid as an expense instead ($100 spent, $50
+reimbursed), the recipient's portion is $50 and the value is the same
+**$25.00**, as 9.3 says a staff discount should be however it is given. No ATO
+example works an in-house residual expense payment, so this case is
+hand-worked from the 18.4 example.
 
 ## FBT property
 

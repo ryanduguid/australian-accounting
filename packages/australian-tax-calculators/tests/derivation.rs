@@ -165,7 +165,8 @@ fn cases() -> Vec<(&'static str, Value)> {
             "fbt-meal-entertainment",
             json!({"method": "12_week_register", "meal_entertainment_expenditure": "900.00",
                    "register_fringe_benefits_value": "1000.00",
-                   "register_meal_entertainment_value": "3000.00", "register_first_year": 2026}),
+                   "register_meal_entertainment_value": "3000.00", "register_first_year": 2026,
+                   "register_years_expenditure": []}),
         ),
         // The employer's guide, examples 15 and 17, and a fee at the threshold.
         benefit(
@@ -274,6 +275,48 @@ fn cases() -> Vec<(&'static str, Value)> {
             "fbt-tax-exempt-body-entertainment",
             json!({"method": "per_head", "entertainment_expenditure": "100.00",
                    "employee_heads": 1, "total_heads": 3}),
+        ),
+        // The employer's guide, example 18 (the spaces method, with s 39FB),
+        // then 2 groups in exponent form and a negative zero, without s 39FB.
+        benefit(
+            "fbt-car-parking",
+            json!({"method": "spaces", "space_groups": [{"first_business_day_fee": "12.00",
+                   "daily_rate_amount": "10.00", "availability_days": 182, "spaces": 4}],
+                   "employees_at_start": 3, "employees_at_end": 3,
+                   "eligible_spaces_at_start": 4, "eligible_spaces_at_end": 4,
+                   "employee_contribution": "2340.00"}),
+        ),
+        benefit(
+            "fbt-car-parking",
+            json!({"method": "spaces", "space_groups": [
+                       {"first_business_day_fee": "12.00", "daily_rate_amount": "1E+1",
+                        "availability_days": 182, "spaces": 4},
+                       {"first_business_day_fee": "1.2E+1", "daily_rate_amount": "-0.00",
+                        "availability_days": 365, "spaces": 1}],
+                   "employees_at_start": 3, "employees_at_end": 4,
+                   "eligible_spaces_at_start": 3, "eligible_spaces_at_end": 4,
+                   "employee_contribution": "0.00", "year_ended": 2027}),
+        ),
+        // Example 17's register: 250 benefits at a $10 market value.
+        benefit(
+            "fbt-car-parking",
+            json!({"method": "market_value", "first_business_day_fee": "12.00", "benefits": 250,
+                   "market_value": "10.00", "employee_contribution": "0.00"}),
+        ),
+        // Guide 9.3 and 18.4: the rental's $100 public price, $50 reimbursed.
+        benefit(
+            "fbt-expense-payment",
+            json!({"method": "in_house_residual_public_price", "recipients_expenditure": "100.00",
+                   "amount_paid": "50.00", "employee_contribution": "0.00",
+                   "lowest_price": "100.00", "in_house_reduction_available": "10.00"}),
+        ),
+        // A register first valid 2 years earlier, its next year 20% higher.
+        benefit(
+            "fbt-meal-entertainment",
+            json!({"method": "12_week_register", "meal_entertainment_expenditure": "900.00",
+                   "register_fringe_benefits_value": "1000.00",
+                   "register_meal_entertainment_value": "3000.00", "register_first_year": 2024,
+                   "register_years_expenditure": ["500.00", "600.00"]}),
         ),
     ];
     cases.extend(

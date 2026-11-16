@@ -23,7 +23,7 @@ fn register(overrides: Value) -> Result<Value, String> {
     let mut input = json!({
         "method": "12_week_register", "meal_entertainment_expenditure": "177500.00",
         "register_fringe_benefits_value": "400.00", "register_meal_entertainment_value": "1000.00",
-        "register_first_year": 2026,
+        "register_first_year": 2026, "register_years_expenditure": [],
     });
     for (k, v) in overrides.as_object().unwrap() {
         input[k] = v.clone();
@@ -54,7 +54,10 @@ fn both_methods_match_the_library_example() {
         json!({"register_percentage": "40.00", "taxable_value": "71000.00"})
     );
     // The same register in its fifth valid year, 2027 under a 2023 register.
-    let a = register(json!({"year_ended": 2027, "register_first_year": 2023})).unwrap();
+    let years = json!(["177500.00", "177500.00", "177500.00", "177500.00"]);
+    let a = register(json!({"year_ended": 2027, "register_first_year": 2023,
+                            "register_years_expenditure": years}))
+    .unwrap();
     assert_eq!(a["amounts"]["taxable_value"], "71000.00");
 }
 
@@ -77,6 +80,68 @@ fn the_register_percentage_stays_exact() {
     }))
     .unwrap();
     assert_eq!(a["amounts"]["taxable_value"], "7500.03");
+}
+
+#[test]
+fn a_register_ceases_after_a_year_more_than_20_percent_above_its_first() {
+    // s 37CD(3): a register first valid for 2023, with $1,000 of expenses that
+    // year. $1,200 in 2024 is 20% higher, not more, so it stays valid; $1,200.01
+    // in 2025 ends its validity at the end of 2025, so not for 2026 or 2027.
+    let run = |year: i64, earlier: Value| {
+        register(json!({"year_ended": year, "register_first_year": 2023,
+                        "register_years_expenditure": earlier}))
+    };
+    let a = run(2027, json!(["1000.00", "1200.00", "1200.00", "1200.00"])).unwrap();
+    assert_eq!(a["amounts"]["taxable_value"], "71000.00");
+    let ceased = "The register ceased to be valid at the end of the FBT year ended 31 March 2025: that year's meal entertainment expenses, 1200.01, were more than 20% higher than 1000.00 for its first valid year, 2023 (FBTAA s 37CD(3)). Keep a new register.";
+    assert_eq!(
+        run(2026, json!(["1000.00", "1200.00", "1200.01"])),
+        Err(ceased.to_string())
+    );
+    assert_eq!(
+        run(2027, json!(["1000.00", "1200.00", "1200.01", "900.00"])),
+        Err(ceased.to_string())
+    );
+    // The year being valued may rise by any amount: the register ceases only
+    // at the end of that year. $177,500 against $1,000 in its first year.
+    let a = register(json!({"register_first_year": 2025,
+                            "register_years_expenditure": ["1000.00"]}))
+    .unwrap();
+    assert_eq!(a["amounts"]["taxable_value"], "71000.00");
+    // A first valid year with no expenses makes any later expenses more than
+    // 20% higher.
+    let nil = run(2026, json!(["0.00", "0.00", "0.01"])).unwrap_err();
+    assert!(nil.contains("ended 31 March 2025"), "{nil}");
+    let shape = "register_years_expenditure must be a list of decimal strings, the meal entertainment expenses (FBTAA s 37CB(3)) of each FBT year from register_first_year to the year before year_ended, oldest first: 3 here.";
+    for earlier in [
+        json!(["1000.00", "1200.00"]),
+        json!(["1000.00", "1200.00", "1200.00", "1200.00"]),
+        json!(["1000.00", "1200.00", 1200]),
+        json!("1000.00"),
+    ] {
+        assert_eq!(run(2026, earlier), Err(shape.to_string()));
+    }
+    assert_eq!(
+        run(2026, json!(["1000.00", "1200.00", "1200.001"])),
+        Err("Amounts must be finite non-negative Decimals, at most 2dp and 1e12.".to_string())
+    );
+    let code = |earlier: Value| {
+        let input = json!({"method": "12_week_register", "year_ended": 2026,
+            "scope_confirmed": true, "meal_entertainment_expenditure": "1.00",
+            "register_fringe_benefits_value": "1.00", "register_meal_entertainment_value": "2.00",
+            "register_first_year": 2024, "register_years_expenditure": earlier});
+        api::evaluate_coded("fbt-meal-entertainment", &input)
+            .unwrap_err()
+            .code
+    };
+    assert_eq!(
+        code(json!(["100.00", "120.01"])),
+        "fbt_meal_entertainment.register_ceased"
+    );
+    assert_eq!(
+        code(json!([])),
+        "fbt_meal_entertainment.register_years_invalid"
+    );
 }
 
 #[test]
@@ -142,7 +207,7 @@ fn refusals_name_the_fact_to_establish() {
         code(
             json!({"method": "12_week_register", "meal_entertainment_expenditure": "1.00",
                     "register_fringe_benefits_value": "1.00", "register_meal_entertainment_value": "2.00",
-                    "register_first_year": "2026"})
+                    "register_first_year": "2026", "register_years_expenditure": []})
         ),
         "fbt.register_not_valid"
     );
@@ -150,7 +215,7 @@ fn refusals_name_the_fact_to_establish() {
         code(
             json!({"method": "12_week_register", "meal_entertainment_expenditure": "1.00",
                     "register_fringe_benefits_value": "3.00", "register_meal_entertainment_value": "2.00",
-                    "register_first_year": 2026})
+                    "register_first_year": 2026, "register_years_expenditure": []})
         ),
         "fbt_meal_entertainment.register_values_invalid"
     );
@@ -165,7 +230,7 @@ fn the_catalogue_names_both_methods_and_its_example_runs() {
     let catalogue = api::evaluate("worksheet-catalogue", &json!({})).unwrap();
     let entry = &catalogue["fbt_meal_entertainment"];
     assert_eq!(entry["methods"], json!(["50_50_split", "12_week_register"]));
-    assert_eq!(entry["source_checked"], "2026-11-15");
+    assert_eq!(entry["source_checked"], "2026-11-16");
     assert!(entry["optional_inputs"]["register_first_year"].is_string());
     let mut facts = entry["example"]["facts"].clone();
     facts.as_object_mut().unwrap().remove("kind");

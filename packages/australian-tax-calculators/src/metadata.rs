@@ -970,20 +970,20 @@ pub fn source_review(kind: &str) -> (&'static str, &'static str) {
             "FBTAA ss 16 to 19 and s 136(1), notional amount of interest and statutory interest rate, compilation 97 (1 July 2026); Fringe benefits tax - a guide for employers, 8.5 and 8.8 and their examples; FBT return 2026 instructions, item 23C and example 8; FBT rates and thresholds, statutory or benchmark interest rate; Loan and debt waiver fringe benefits",
         ),
         "fbt_meal_entertainment" => (
-            "2026-11-15",
+            "2026-11-16",
             "FBTAA ss 37AB, 37BA, 37CB and 37CD, compilation 97 (1 July 2026); Fringe benefits tax - a guide for employers, 14.8 methods of valuing meal entertainment; FBT return 2026 instructions, item 23P and example 18",
         ),
         "fbt_car_parking" => (
-            "2026-11-15",
-            "FBTAA ss 39A, 39C, 39DA, 39E and 39GB to 39GF, compilation 97 (1 July 2026); Fringe benefits tax - a guide for employers, chapter 16, examples 12, 13, 15 and 17 and the 12 week register steps; FBT return 2026 instructions, item 23N and example 17; FBT rates and thresholds, car parking threshold; Car parking and FBT",
+            "2026-11-16",
+            "FBTAA ss 39A, 39C, 39D, 39DA, 39E, 39FA to 39FE and 39GB to 39GF, compilation 97 (1 July 2026); Fringe benefits tax - a guide for employers, chapter 16, 16.2.5, 16.2.8, examples 12, 13, 15, 17 and 18 and the 12 week register steps; FBT return 2026 instructions, item 23N and example 17; FBT rates and thresholds, car parking threshold; Car parking and FBT",
         ),
         "fbt_debt_waiver" => (
             "2026-11-15",
             "FBTAA ss 14 and 15, compilation 97 (1 July 2026); Fringe benefits tax - a guide for employers, 8.1 and 8.2; FBT return 2026 instructions, item 23D and example 9; Loan and debt waiver fringe benefits",
         ),
         "fbt_expense_payment" => (
-            "2026-11-15",
-            "FBTAA ss 20, 22A, 23, 24 and 62 and s 136(1), providers portion and recipients portion, compilation 97 (1 July 2026); Fringe benefits tax - a guide for employers, 9.2 to 9.4 and their examples, 17.3 and 19.5; FBT return 2026 instructions, item 23E and example 10",
+            "2026-11-16",
+            "FBTAA ss 20, 22A, 23, 24, 48, 49 and 62 and s 136(1), providers portion and recipients portion, compilation 97 (1 July 2026); Fringe benefits tax - a guide for employers, 9.2 to 9.4 and their examples, 17.3, 18.4 and its example and 19.5; FBT return 2026 instructions, item 23E and example 10",
         ),
         "fbt_property" => (
             "2026-11-15",
@@ -1408,17 +1408,25 @@ pub fn optional_inputs(kind: &str) -> Vec<(&'static str, &'static str)> {
             ),
             (
                 "register_first_year",
-                "integer, 12_week_register only and required there: the FBT year ended 31 March the register was first valid for, from 4 years before year_ended to year_ended (FBTAA s 37CD); whether it has since ceased to be valid is the operator's to establish",
+                "integer, 12_week_register only and required there: the FBT year ended 31 March the register was first valid for, from 4 years before year_ended to year_ended (FBTAA s 37CD); whether a later register replaced it is the operator's to establish",
+            ),
+            (
+                "register_years_expenditure",
+                "list of AUD decimal strings, 12_week_register only and required there: the employer's total meal entertainment expenses (FBTAA s 37CB(3)) for each FBT year from register_first_year to the year before year_ended, oldest first, so empty when they are the same year; the register ceased to be valid at the end of a year whose expenses were more than 20% higher than its first valid year's (s 37CD(3))",
             ),
         ],
         "fbt_car_parking" => vec![
             (
                 "benefits",
-                "integer from 0, commercial_parking_station and average_cost only and required there: the car parking fringe benefits provided in the FBT year",
+                "integer from 0, commercial_parking_station, market_value and average_cost only and required there: the car parking fringe benefits provided in the FBT year",
             ),
             (
                 "lowest_fee",
                 "AUD, commercial_parking_station only and required there: the lowest all-day fee any commercial parking station within 1 km charged on each day a benefit was provided (FBTAA s 39C), the same on every one of those days; a fee for another period is converted under s 39E",
+            ),
+            (
+                "market_value",
+                "AUD, market_value only and required there: the amount the recipient could reasonably be expected to have paid the provider for each benefit at arm's length (FBTAA s 39D(2)(a)), the same for every benefit, as a suitably qualified valuer at arm's length reported it before the declaration date in the approved form (s 39D(3))",
             ),
             (
                 "first_day_fee",
@@ -1430,7 +1438,27 @@ pub fn optional_inputs(kind: &str) -> Vec<(&'static str, &'static str)> {
             ),
             (
                 "employee_contribution",
-                "AUD, commercial_parking_station and average_cost only and required there: the recipients' payments for these benefits in total, net of any reimbursement, each benefit's payment counted only up to that benefit's value (an excess on one benefit reduces no other)",
+                "AUD, commercial_parking_station, market_value, average_cost and spaces only and required there: the recipients' payments for these benefits in total, net of any reimbursement, each benefit's payment counted only up to that benefit's value (an excess on one benefit reduces no other); with spaces, every relevant recipients contribution for the employees the election covers, for the FBT year (FBTAA s 39FE)",
+            ),
+            (
+                "space_groups",
+                "list, spaces only and required there: one object for each group of spaces with at least one car parking benefit in the FBT year for an employee the election covers and the same daily rate amount and availability period, with first_business_day_fee (AUD, as above, for the stations within 1 km of the spaces' premises; more than the car parking threshold), daily_rate_amount (AUD, a benefit's value for the space by the commercial parking station, market value or average cost method, as if there were no recipients contribution; FBTAA s 39FC), availability_days (integer from 1, the days from the first to the last day in the FBT year with a car parking benefit for the space; s 39FD) and spaces (integer from 1)",
+            ),
+            (
+                "employees_at_start",
+                "integer from 0, spaces only and required there: the employees the election covers at the start of the parking period, the first day in the FBT year a covered space gave rise to a car parking fringe benefit for one of them (FBTAA s 39FB(3) and (5))",
+            ),
+            (
+                "employees_at_end",
+                "integer from 0, spaces only and required there: the employees the election covers at the end of the parking period, the last such day (FBTAA s 39FB(3) and (5))",
+            ),
+            (
+                "eligible_spaces_at_start",
+                "integer from 0, spaces only and required there: the spaces with an availability period at the start of the parking period (FBTAA s 39FB(1) and (4))",
+            ),
+            (
+                "eligible_spaces_at_end",
+                "integer from 0, spaces only and required there: the spaces with an availability period at the end of the parking period (FBTAA s 39FB(1) and (4))",
             ),
             (
                 "register_value",
@@ -1454,13 +1482,19 @@ pub fn optional_inputs(kind: &str) -> Vec<(&'static str, &'static str)> {
                 "recipients_portion_deduction",
                 "AUD, external only and required there: the once-only deduction allowable to the employee for the expenditure they bore themselves (FBTAA s 24(1)(ba), RD), at most the recipient's portion, recipients_expenditure less amount_paid net of employee_contribution; 0.00 when they bore none",
             ),
-            ("lowest_price", FBT_LOWEST_PRICE),
+            (
+                "lowest_price",
+                "AUD, in_house_trade_price, in_house_public_price and in_house_residual_public_price only and required there: for the property methods, as for fbt-property (FBTAA s 42(1)(a)); for in_house_residual_public_price, the lowest price at which the provider provided an identical benefit, or for a period benefit an identical overall benefit, to a member of the public in the ordinary course of business under an arm's length transaction, at or about the comparison time, in similar circumstances and on identical terms other than price (s 48(a), s 49(a) and s 22A(3)(a))",
+            ),
             (
                 "notional_value",
-                "AUD, in_house_salary_packaging, in_house_produced_other, in_house_acquired and in_house_other only and required there: the amount the recipient could reasonably be expected to have paid to obtain the property from its provider under an arm's length transaction, at the provision time (FBTAA s 136(1))",
+                "AUD, in_house_salary_packaging, in_house_produced_other, in_house_acquired, in_house_other, in_house_residual_salary_packaging and in_house_residual_other only and required there: the amount the recipient could reasonably be expected to have paid to obtain the property, or the residual benefit (for a period benefit, the recipient's overall benefit; s 22A(3)(b)), from its provider under an arm's length transaction, at the provision or comparison time (FBTAA s 136(1))",
             ),
             ("arms_length_price", FBT_ARMS_LENGTH_PRICE),
-            ("in_house_reduction_available", FBT_IN_HOUSE_REDUCTION),
+            (
+                "in_house_reduction_available",
+                "AUD from 0 to 1000.00, every in-house method but in_house_salary_packaging and in_house_residual_salary_packaging and required there: the part of the employee's $1,000 in-house reduction for the FBT year (FBTAA s 62) their other in-house fringe benefits have not used; 1000.00 for their only in-house fringe benefit",
+            ),
         ],
         "fbt_property" => vec![
             ("lowest_price", FBT_LOWEST_PRICE),
@@ -1732,11 +1766,11 @@ pub fn input_units(kind: &str) -> Vec<(&'static str, &'static str)> {
         "fbt_car_parking" => vec![
             (
                 "method",
-                "commercial_parking_station, average_cost or 12_week_register",
+                "commercial_parking_station, market_value, average_cost, spaces or 12_week_register",
             ),
             (
                 "first_business_day_fee",
-                "AUD, the highest of the lowest all-day fees the commercial parking stations within 1 km each charged on the first business day of the FBT year: car parking benefits arise only when one station's lowest fee is more than the car parking threshold (FBTAA s 39A(1)(a)(iii); the employer's guide, example 12), and benefits are valued at their own fee, which can be lower",
+                "AUD, every method but spaces, which takes it for each group of spaces: the highest of the lowest all-day fees the commercial parking stations within 1 km each charged on the first business day of the FBT year: car parking benefits arise only when one station's lowest fee is more than the car parking threshold (FBTAA s 39A(1)(a)(iii); the employer's guide, example 12), and benefits are valued at their own fee, which can be lower",
             ),
         ],
         "fbt_debt_waiver" => vec![(
@@ -1746,7 +1780,7 @@ pub fn input_units(kind: &str) -> Vec<(&'static str, &'static str)> {
         "fbt_expense_payment" => vec![
             (
                 "method",
-                "external, in_house_salary_packaging, in_house_trade_price, in_house_public_price, in_house_produced_other, in_house_acquired or in_house_other",
+                "external, in_house_salary_packaging, in_house_trade_price, in_house_public_price, in_house_produced_other, in_house_acquired, in_house_other, in_house_residual_salary_packaging, in_house_residual_public_price or in_house_residual_other",
             ),
             (
                 "recipients_expenditure",

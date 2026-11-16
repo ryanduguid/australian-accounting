@@ -5,7 +5,9 @@
 //! category's taxable value, which `fbt` then grosses up with the others. They
 //! take their inputs by name, since which inputs apply turns on the method, and
 //! cite the FBTAA as compiled on 1 July 2026 (C2004A03280) and ATO pages, read
-//! on 15 November 2026.
+//! on 15 November 2026; the market value and spaces car parking methods and the
+//! meal entertainment register's 20% rule were read on 16 November 2026, the
+//! FBTAA again as compilation 97, the register's current compilation that day.
 
 use serde_json::Value;
 
@@ -24,6 +26,7 @@ mod housing;
 pub use housing::fbt_housing;
 mod residual;
 pub use residual::fbt_residual;
+mod spaces;
 
 /// The methods `method` accepts for `kind`, in the catalogue's order.
 pub fn methods(kind: &str) -> &'static [&'static str] {
@@ -31,7 +34,9 @@ pub fn methods(kind: &str) -> &'static [&'static str] {
         "fbt_meal_entertainment" => &["50_50_split", "12_week_register"],
         "fbt_car_parking" => &[
             "commercial_parking_station",
+            "market_value",
             "average_cost",
+            "spaces",
             "12_week_register",
         ],
         "fbt_expense_payment" => &expense_property::EXPENSE_PAYMENT_METHODS,
@@ -444,10 +449,14 @@ pub fn fbt_meal_entertainment(
         "register_fringe_benefits_value",
         "register_meal_entertainment_value",
         "register_first_year",
+        "register_years_expenditure",
     ];
-    let [expenditure, benefits, total, first] = take(given, command, &when, names)?;
+    let [expenditure, benefits, total, first, earlier] = take(given, command, &when, names)?;
     let (expenditure, benefits, total) = (money(expenditure)?, money(benefits)?, money(total)?);
-    register_year(first, year.parse().expect("FBT year"), "s 37CD")?;
+    let year: i64 = year.parse().expect("FBT year");
+    register_year(first, year, "s 37CD")?;
+    let first = first.int().flatten().expect("checked first year");
+    register_still_valid(earlier, first, year)?;
     if total.is_zero() || benefits.gt(&total)? {
         return refuse(
             "fbt_meal_entertainment.register_values_invalid",
@@ -481,6 +490,50 @@ fn register_steps(expenditure: &Decimal, benefits: &Decimal, total: &Decimal) ->
     ])
 }
 
+/// s 37CD(3): a register valid for an FBT year ceases to be valid at the end of
+/// it if that year's meal entertainment expenses are more than 20% higher than
+/// those of the register's first valid year. `earlier` holds each year's
+/// expenses from `first` to the year before `year`, oldest first.
+fn register_still_valid(earlier: &Arg, first: i64, year: i64) -> Result<()> {
+    fn shape<T>(years: i64) -> Result<T> {
+        refuse(
+            "fbt_meal_entertainment.register_years_invalid",
+            format!(
+                "register_years_expenditure must be a list of decimal strings, the meal entertainment expenses (FBTAA s 37CB(3)) of each FBT year from register_first_year to the year before year_ended, oldest first: {years} here."
+            ),
+        )
+    }
+    let years = year - first;
+    let Arg::Json(Value::Array(items)) = earlier else {
+        return shape(years);
+    };
+    if items.len() as i64 != years {
+        return shape(years);
+    }
+    let amounts = items
+        .iter()
+        .map(|item| match item.as_str().map(Decimal::parse) {
+            Some(Ok(amount)) => money(&Arg::Decimal(amount)),
+            _ => shape(years),
+        })
+        .collect::<Result<Vec<_>>>()?;
+    let Some((base, later)) = amounts.split_first() else {
+        return Ok(());
+    };
+    let limit = precise(|| Ok(base.mul(&d("1.2"))?))?;
+    for (ended, amount) in (first + 1..).zip(later) {
+        if amount.gt(&limit)? {
+            return refuse(
+                "fbt_meal_entertainment.register_ceased",
+                format!(
+                    "The register ceased to be valid at the end of the FBT year ended 31 March {ended}: that year's meal entertainment expenses, {amount}, were more than 20% higher than {base} for its first valid year, {first} (FBTAA s 37CD(3)). Keep a new register."
+                ),
+            );
+        }
+    }
+    Ok(())
+}
+
 const PARKING: &str = "fbt-car-parking";
 
 /// The taxable value when no station's fee on the first business day is above
@@ -488,9 +541,10 @@ const PARKING: &str = "fbt-car-parking";
 const NO_BENEFIT: &str = "FBTAA s 39A(1)(a)(iii): no commercial parking station within 1 km charged a lowest all-day fee of more than the car parking threshold on the first business day of the FBT year, so no car parking benefit arises";
 
 /// FBTAA Division 10A: the commercial parking station method (s 39C), the
-/// average cost method (s 39DA) or the 12 week register method (s 39GB). No
-/// car parking benefit arises unless a station's lowest fee on the first
-/// business day is more than the year's car parking threshold (s 39A(1)(a)(iii)).
+/// market value method (s 39D), the average cost method (s 39DA), the spaces
+/// method (s 39FA) or the 12 week register method (s 39GB). No car parking
+/// benefit arises unless a station's lowest fee on the first business day is
+/// more than the year's car parking threshold (s 39A(1)(a)(iii)).
 pub fn fbt_car_parking(
     method_arg: &Arg,
     given: &[(String, Arg)],
@@ -507,7 +561,9 @@ pub fn fbt_car_parking(
             let year = year.parse().expect("FBT year");
             register_parking(given, &when, year, days_in_year)?
         }
-        _ => fee_parking(given, &when, method == "average_cost")?,
+        // Each group of spaces is checked against the threshold on its own.
+        "spaces" => spaces::spaces(given, &when, &threshold, days_in_year)?,
+        _ => fee_parking(given, &when, method)?,
     };
     // Without a benefit there is no gross value or payment to report, only the
     // nil taxable value; the method's inputs were still checked above.
@@ -528,21 +584,33 @@ type Parking = (Decimal, Vec<Step>, Step);
 /// gross taxable value and authority.
 type FeeMethod = (Decimal, Decimal, Vec<Step>, &'static str);
 
-/// The commercial parking station or average cost method: each benefit's
-/// value, reduced by the recipients' payments, never below nil.
-fn fee_parking(given: &[(String, Arg)], when: &str, average: bool) -> Result<Parking> {
-    let (fee, contribution, mut steps, authority) = if average {
-        average_cost(given, when)?
-    } else {
-        parking_station(given, when)?
+/// The commercial parking station, market value or average cost method: each
+/// benefit's value, reduced by the recipients' payments, never below nil.
+fn fee_parking(given: &[(String, Arg)], when: &str, method: &str) -> Result<Parking> {
+    let (fee, contribution, steps, authority) = match method {
+        "average_cost" => average_cost(given, when)?,
+        "market_value" => each_benefit(given, when, "market_value", "FBTAA s 39D(2)")?,
+        _ => each_benefit(given, when, "lowest_fee", "FBTAA s 39C")?,
     };
+    let (steps, taxable) = with_payments(steps, &contribution, authority)?;
+    Ok((fee, steps, taxable))
+}
+
+/// `steps` and the recipients' payments `contribution` applied to their last
+/// step, the gross taxable value, never taking it below nil, any excess, and
+/// the taxable value, all under `authority`.
+fn with_payments(
+    mut steps: Vec<Step>,
+    contribution: &Decimal,
+    authority: &'static str,
+) -> Result<(Vec<Step>, Step)> {
     let gross = steps.last().expect("gross step").value.clone();
     let (payment, taxable) = precise(|| {
         let applied = py_min(contribution.clone(), gross.clone())?;
         let net = gross.sub(&applied)?;
         let rows: [(&[&Decimal], Decimal); 2] = [
-            (&[&contribution, &gross], applied.clone()),
-            (&[&contribution, &applied], contribution.sub(&applied)?),
+            (&[contribution, &gross], applied.clone()),
+            (&[contribution, &applied], contribution.sub(&applied)?),
         ];
         let table = [
             ("employee_contribution_applied", authority, APPLIED),
@@ -552,27 +620,33 @@ fn fee_parking(given: &[(String, Arg)], when: &str, average: bool) -> Result<Par
         Ok((steps_from(&table, rows), taxable))
     })?;
     steps.extend(payment);
-    Ok((fee, steps, taxable))
+    Ok((steps, taxable))
 }
 
-/// s 39C: each benefit at the lowest all-day fee on the day it is provided.
-fn parking_station(given: &[(String, Arg)], when: &str) -> Result<FeeMethod> {
+/// s 39C or s 39D: each benefit at the same value, the lowest all-day fee on
+/// the day it is provided (`lowest_fee`) or the arm's length amount in the
+/// valuer's report (`market_value`).
+fn each_benefit(
+    given: &[(String, Arg)],
+    when: &str,
+    value: &'static str,
+    authority: &'static str,
+) -> Result<FeeMethod> {
     let names = [
         "first_business_day_fee",
         "benefits",
-        "lowest_fee",
+        value,
         "employee_contribution",
     ];
-    let [fee, benefits, lowest, contribution] = take(given, PARKING, when, names)?;
-    let (count, lowest) = (benefit_count(benefits)?, money(lowest)?);
-    let gross = precise(|| Ok(count.mul(&lowest)?))?;
-    let authority = "FBTAA s 39C";
-    let formula = "benefits x lowest_fee";
+    let [fee, benefits, each, contribution] = take(given, PARKING, when, names)?;
+    let (count, each) = (benefit_count(benefits)?, money(each)?);
+    let gross = precise(|| Ok(count.mul(&each)?))?;
+    let formula = format!("benefits x {value}");
     let steps = vec![step(
         "gross_taxable_value",
         authority,
-        formula,
-        &[&count, &lowest],
+        &formula,
+        &[&count, &each],
         gross,
     )];
     Ok((money(fee)?, money(contribution)?, steps, authority))

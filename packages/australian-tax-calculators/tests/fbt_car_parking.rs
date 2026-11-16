@@ -1,10 +1,10 @@
 // Copyright 2026 Ryan Duguid
 // SPDX-License-Identifier: LicenseRef-Duguid-Public-Attribution-1.0
 
-//! The car parking worksheet's commercial parking station, average cost and
-//! 12 week register methods against the ATO's worked examples
-//! (docs/calculation-evidence.md#fbt-car-parking), the car parking threshold
-//! and its refusals.
+//! The car parking worksheet's commercial parking station, market value,
+//! average cost, spaces and 12 week register methods against the ATO's worked
+//! examples (docs/calculation-evidence.md#fbt-car-parking), the car parking
+//! threshold and its refusals.
 use australian_tax_calculators::api;
 use serde_json::{Value, json};
 
@@ -120,6 +120,157 @@ fn the_12_week_register_matches_the_employers_guide_example() {
     assert_eq!(a["gross_taxable_value"], "47.52");
 }
 
+/// The employer's guide, example 18: 4 spaces for 3 employees, each at a $10
+/// daily rate amount for 182 days, with $2,340 contributed; the first business
+/// day fee is set above 2026's threshold.
+fn spaces(overrides: Value) -> Result<Value, String> {
+    let mut input = json!({
+        "method": "spaces",
+        "space_groups": [{"first_business_day_fee": "12.00", "daily_rate_amount": "10.00",
+                          "availability_days": 182, "spaces": 4}],
+        "employees_at_start": 3, "employees_at_end": 3,
+        "eligible_spaces_at_start": 4, "eligible_spaces_at_end": 4,
+        "employee_contribution": "2340.00",
+    });
+    for (k, v) in overrides.as_object().unwrap() {
+        input[k] = v.clone();
+    }
+    parking(input)
+}
+
+#[test]
+fn the_market_value_method_takes_the_valuers_amount_for_each_benefit() {
+    // s 39D(2): the guide's example 17 values its register's 250 benefits at a
+    // $10 market value, $2,500; the recipients' payments come off as under s 39C.
+    let input = json!({"method": "market_value", "first_business_day_fee": "12.00",
+                       "benefits": 250, "market_value": "10.00", "employee_contribution": "0.00"});
+    let result = parking(input.clone()).unwrap();
+    assert_eq!(
+        result["amounts"],
+        json!({"gross_taxable_value": "2500.00", "employee_contribution_applied": "0.00",
+               "excess_employee_contribution": "0.00", "taxable_value": "2500.00"})
+    );
+    let mut paid = input.clone();
+    paid["employee_contribution"] = json!("3000.00");
+    let a = amounts(parking(paid));
+    assert_eq!(a["excess_employee_contribution"], "500.00");
+    assert_eq!(a["taxable_value"], "0.00");
+    // The threshold still decides whether a benefit arises (s 39A(1)(a)(iii)).
+    let mut below = input;
+    below["first_business_day_fee"] = json!("11.03");
+    assert_eq!(amounts(parking(below)), json!({"taxable_value": "0.00"}));
+}
+
+#[test]
+fn the_spaces_method_matches_the_employers_guide_example() {
+    // Example 18: 10 x 182 / 366 x 228 = 1,133.77 a space, 4,535.08 for 4;
+    // 3 employees average fewer than 4 spaces, so x 3 / 4 = 3,401.31 (s 39FB),
+    // less $30 x 26 weeks x 3 employees = $2,340, $1,061.31.
+    let result = spaces(json!({})).unwrap();
+    assert_eq!(
+        result["amounts"],
+        json!({"total_statutory_benefit": "4535.08", "average_employees": "3.00",
+               "average_eligible_spaces": "4.00", "gross_taxable_value": "3401.31",
+               "employee_contribution_applied": "2340.00",
+               "excess_employee_contribution": "0.00", "taxable_value": "1061.31"})
+    );
+    // Without s 39FB, as when the employees average as many as the spaces.
+    let a = amounts(spaces(
+        json!({"employees_at_start": 4, "employees_at_end": 4}),
+    ));
+    assert_eq!(a["gross_taxable_value"], "4535.08");
+    assert_eq!(a["taxable_value"], "2195.08");
+    // Averages from the start and end of the parking period: 3.5 employees
+    // over 4.5 spaces, 4,535.08 x 3.5 / 4.5 = 3,527.2844, $3,527.28.
+    let a = amounts(spaces(
+        json!({"employees_at_end": 4, "eligible_spaces_at_end": 5}),
+    ));
+    assert_eq!(a["average_employees"], "3.50");
+    assert_eq!(a["average_eligible_spaces"], "4.50");
+    assert_eq!(a["gross_taxable_value"], "3527.28");
+}
+
+#[test]
+fn the_spaces_method_adds_each_group_and_divides_once() {
+    // A second group at $12 for the whole 365-day year: (10 x 182 x 228 x 4 +
+    // 12 x 365 x 228) / 366 = 2,658,480 / 366 = 7,263.6066, $7,263.61. Each
+    // space alone, rounded, would give 1,133.77 x 4 + 2,728.52 = 7,263.60.
+    let groups = json!([
+        {"first_business_day_fee": "12.00", "daily_rate_amount": "10.00",
+         "availability_days": 182, "spaces": 4},
+        {"first_business_day_fee": "20.00", "daily_rate_amount": "12.00",
+         "availability_days": 365, "spaces": 1},
+    ]);
+    let input = json!({"space_groups": groups, "employees_at_start": 5, "employees_at_end": 5,
+                       "eligible_spaces_at_start": 5, "eligible_spaces_at_end": 5,
+                       "employee_contribution": "0.00"});
+    let a = amounts(spaces(input));
+    assert_eq!(a["total_statutory_benefit"], "7263.61");
+    assert_eq!(a["taxable_value"], "7263.61");
+    // 2027's threshold is $11.48: a group's fee of $11.49 gives a benefit.
+    let year = json!({"year_ended": 2027, "space_groups": [{"first_business_day_fee": "11.49",
+        "daily_rate_amount": "10.00", "availability_days": 182, "spaces": 4}]});
+    let result = spaces(year).unwrap();
+    assert_eq!(result["amounts"]["taxable_value"], "1061.31");
+    assert_eq!(result["rates"]["car_parking_threshold"], "11.48");
+}
+
+#[test]
+fn the_spaces_method_refuses_spaces_without_a_benefit_and_malformed_groups() {
+    let group = |fee: &str, days: Value, count: Value| {
+        json!({"space_groups": [{"first_business_day_fee": fee, "daily_rate_amount": "10.00",
+                                 "availability_days": days, "spaces": count}]})
+    };
+    let shape = "space_groups must be a list of 1 to 1000000 objects, each with exactly first_business_day_fee and daily_rate_amount as decimal strings, availability_days as a JSON integer from 1 to the days in the FBT year and spaces as a JSON integer from 1 to 1000000.";
+    let cases = [
+        (
+            spaces(group("11.03", json!(182), json!(4))),
+            "A space group's first_business_day_fee, 11.03, is not more than the car parking threshold, 11.03: its spaces gave rise to no car parking benefit (FBTAA s 39A(1)(a)(iii)), so the spaces method does not count them (s 39FA(4), step 1). Leave the group out.",
+        ),
+        (spaces(group("12.00", json!(0), json!(4))), shape),
+        (spaces(group("12.00", json!(366), json!(4))), shape),
+        (spaces(group("12.00", json!(182), json!(0))), shape),
+        (spaces(group("12.00", json!(182), json!("4"))), shape),
+        (spaces(json!({"space_groups": []})), shape),
+        (spaces(json!({"space_groups": "10.00"})), shape),
+        (
+            spaces(json!({"space_groups": [{"daily_rate_amount": "10.00",
+                                            "availability_days": 182, "spaces": 4}]})),
+            shape,
+        ),
+        (
+            spaces(json!({"space_groups": [{"first_business_day_fee": "12.00",
+                "daily_rate_amount": 10, "availability_days": 182, "spaces": 4}]})),
+            shape,
+        ),
+        (
+            spaces(json!({"employees_at_start": -1})),
+            "employees_at_start, employees_at_end, eligible_spaces_at_start and eligible_spaces_at_end must each be a JSON integer from 0 to 1000000 (FBTAA s 39FB(3) and (4)).",
+        ),
+        (
+            spaces(json!({"benefits": 4})),
+            "benefits is not an input of fbt-car-parking with method spaces",
+        ),
+        (
+            spaces(json!({"first_business_day_fee": "12.00"})),
+            "first_business_day_fee is not an input of fbt-car-parking with method spaces",
+        ),
+    ];
+    for (result, message) in cases {
+        assert_eq!(result.map(|_| ()), Err(message.to_string()));
+    }
+    let input = json!({"method": "spaces", "year_ended": 2026, "scope_confirmed": true,
+        "space_groups": [{"first_business_day_fee": "1.00", "daily_rate_amount": "10.00",
+                          "availability_days": 182, "spaces": 4}],
+        "employees_at_start": 3, "employees_at_end": 3,
+        "eligible_spaces_at_start": 4, "eligible_spaces_at_end": 4,
+        "employee_contribution": "0.00"});
+    let code = api::evaluate_coded("fbt-car-parking", &input)
+        .unwrap_err()
+        .code;
+    assert_eq!(code, "fbt_car_parking.spaces_without_benefit");
+}
+
 #[test]
 fn the_car_parking_threshold_decides_whether_a_benefit_arises() {
     // s 39A(1)(a)(iii): the first business day's lowest fee must be more than
@@ -167,8 +318,8 @@ fn refusals_name_the_fact_to_establish() {
             "Unsupported period 2028; supported: 2026, 2027.",
         ),
         (
-            station(json!({"method": "spaces"})),
-            "method must be commercial_parking_station, average_cost or 12_week_register.",
+            station(json!({"method": "statutory_formula"})),
+            "method must be commercial_parking_station, market_value, average_cost, spaces or 12_week_register.",
         ),
         (
             register(json!({"employee_contribution": "1.00"})),
@@ -222,7 +373,7 @@ fn refusals_name_the_fact_to_establish() {
             .code
     };
     assert_eq!(code(&input), "input.benefit_count_invalid");
-    input["method"] = json!("market_value");
+    input["method"] = json!("actual");
     assert_eq!(code(&input), "input.fbt_method_invalid");
 }
 
@@ -234,11 +385,13 @@ fn the_catalogue_names_the_methods_and_its_example_runs() {
         entry["methods"],
         json!([
             "commercial_parking_station",
+            "market_value",
             "average_cost",
+            "spaces",
             "12_week_register"
         ])
     );
-    assert_eq!(entry["source_checked"], "2026-11-15");
+    assert_eq!(entry["source_checked"], "2026-11-16");
     let mut facts = entry["example"]["facts"].clone();
     facts.as_object_mut().unwrap().remove("kind");
     let result = api::evaluate("fbt-car-parking", &facts).unwrap();
