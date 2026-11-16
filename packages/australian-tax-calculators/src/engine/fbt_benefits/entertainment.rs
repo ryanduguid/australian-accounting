@@ -12,7 +12,11 @@
 //! 58P and s 136(1); ITAA 1936 compilation 193 (1 October 2026), ss 51AEA
 //! and 51AEB; the GST Act compilation 96 (1 January 2026), s 69-5. TR 97/17
 //! and TR 2007/12, read on the ATO's legal database that day, are the
-//! Commissioner's view, cited as such.
+//! Commissioner's view, cited as such. Whether a fringe benefit is excluded
+//! from reporting: FBTAA ss 5E and 135P(1) (compilation 97) and the Fringe
+//! Benefits Tax Assessment Regulations 2018 (F2018L01284, as made, the current
+//! version), regulations 6 to 11, read on 16 November 2026, 7.50 pm to 7.55 pm
+//! AEDT.
 
 use serde_json::{Map, Value, json};
 
@@ -251,6 +255,10 @@ const TREATMENT: [Treatment; 9] = [
 
 /// The fact an undetermined s 41 row lacks.
 const PROPERTY_MISSING: &str = "whether what the employer provided is property its employees consumed on the business premises (FBTAA ss 40 and 41(1)): if so it is exempt and not deductible, and if not it is a fringe benefit and deductible";
+
+/// Whether a fringe benefit is left out of reporting, as `fbt-return` takes it.
+const MEAL_EXCLUDED: &str = "An excluded fringe benefit, left out of the employee's individual fringe benefits amount and so not reportable: meal entertainment (FBTAA s 37AD) not provided under a salary packaging arrangement, whether or not Division 9A is elected (FBTAA s 5E(2) and (3)(a); TR 97/17 Part A table, column R, the Commissioner's view).";
+const NOT_EXCLUDED: &str = "Not an excluded fringe benefit: it is not meal entertainment (FBTAA s 5E(3)(a)), and within this classifier's scope no other paragraph of s 5E(3), nor regulations 6 to 11 of the Fringe Benefits Tax Assessment Regulations 2018, covers it. Its taxable value, after any reduction, counts in the employee's individual fringe benefits amount (s 5E(2)), which is reportable when more than $2,000 (s 135P(1)); TR 97/17 Part A table, column R, the Commissioner's view.";
 
 fn treatment(
     character: Character,
@@ -624,6 +632,14 @@ fn classify_class(
     out["benefit_type_authority"] = json!(kind_authority);
     if row.fbt == Fbt::Exempt {
         out["exemption"] = json!("FBTAA s 41");
+    } else if kind.is_some() {
+        let (excluded, why) = if character == Meal {
+            (true, MEAL_EXCLUDED)
+        } else {
+            (false, NOT_EXCLUDED)
+        };
+        out["excluded"] = json!(excluded);
+        out["excluded_authority"] = json!(why);
     }
     let share = match row.share {
         Share::Whole => Some(int(1)),

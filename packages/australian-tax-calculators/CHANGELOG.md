@@ -65,7 +65,8 @@ intentionally changed.
   covered) and `fbt_expense_payment.payment_exceeds_expenditure`.
 - `fbt-entertainment-classifier` classifies an ordinary taxable employer's entertainment expense lines: for each
   line and attendee class, whether it is entertainment, the fringe benefit and its type or the s 41 exemption, the
-  ITAA 1997 Division 32 deduction and the GST credit that follows it, each cited, with TR 97/17 and TR 2007/12 as the
+  ITAA 1997 Division 32 deduction and the GST credit that follows it, and whether each fringe benefit is excluded from
+  reporting (FBTAA s 5E(3)(a)), each cited, with TR 97/17 and TR 2007/12 as the
   Commissioner's view. A missing fact leaves a line undetermined; minor benefits are shown only as possible. Under the
   50/50 split or 12 week register method it totals the meal entertainment expenditure for `fbt-meal-entertainment`.
   It refuses tax-exempt bodies, unsplit lines, a cost without its GST status and a missing valuation method, with

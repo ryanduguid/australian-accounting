@@ -103,6 +103,11 @@ fn example_1_1_splits_the_function_by_class() {
             "minor_benefit_possible_cost": "220.00", "undetermined_cost": "0.00"})
     );
     assert_eq!(result["rates"], json!({"minor_benefit_threshold": "300"}));
+    // The Act's threshold, stated as the Act states it; the ruling's $100 is
+    // labelled superseded.
+    let warnings = result["warnings"].to_string();
+    assert!(warnings.contains("s 58P(1)(e) requires a minor benefit's notional taxable value to be less than $300"));
+    assert!(warnings.contains("$100 threshold in TR 97/17 para 27 is superseded"));
     assert!(result.get("fbt_meal_entertainment_input").is_none());
 }
 
@@ -129,6 +134,40 @@ fn examples_1_3_and_2_1_turn_on_what_and_where() {
         [row("employees", "arises", "1000.00", "100.00")]
     );
     assert_eq!(result["lines"][0]["classes"][0]["benefit_type"], "property");
+}
+
+#[test]
+fn reporting_follows_s_5e_3_a_and_the_part_a_tables_column_r() {
+    let excluded = |result: &Value, class: usize| {
+        let c = &result["lines"][0]["classes"][class];
+        (c["excluded"].clone(), c["excluded_authority"].clone())
+    };
+    // Part A table (a)(ii)1: associates' food or drink at a social function
+    // on the premises is meal entertainment, R = N (FBTAA s 5E(3)(a)). The
+    // employees' share is exempt and the clients' no fringe benefit, so
+    // neither has a reporting answer.
+    let result = classify(json!([example_1_1()]), json!({})).unwrap();
+    let (flag, why) = excluded(&result, 1);
+    assert_eq!(flag, true);
+    assert!(why.as_str().unwrap().contains("s 5E(2) and (3)(a)"));
+    assert!(result["lines"][0]["classes"][0].get("excluded").is_none());
+    assert!(result["lines"][0]["classes"][2].get("excluded").is_none());
+    // (a)(ii)4: light lunches for associates on the premises are not meal
+    // entertainment, R = Y: not excluded.
+    let lunch = line(json!({"cost": "110.00", "occasion": "light_refreshments",
+        "venue": "business_premises_working_day", "attendees": {"associates": 2}}));
+    let result = classify(json!([lunch]), json!({"method": null})).unwrap();
+    let (flag, why) = excluded(&result, 0);
+    assert_eq!(flag, false);
+    assert!(why.as_str().unwrap().contains("s 135P(1)"));
+    // (b)1: a social function off the premises for employees, R = N; under
+    // an election too, for employees and associates, not for clients.
+    let result = classify(json!([line(json!({}))]), json!({})).unwrap();
+    assert_eq!(excluded(&result, 0).0, true);
+    let result = classify(json!([example_1_1()]), json!({"method": "50_50_split"})).unwrap();
+    assert_eq!(excluded(&result, 0).0, true);
+    assert_eq!(excluded(&result, 1).0, true);
+    assert!(result["lines"][0]["classes"][2].get("excluded").is_none());
 }
 
 #[test]

@@ -249,7 +249,7 @@ they have no step.
 | FBT living-away-from-home allowances | Years ended 31 March 2026 and 2027; an allowance's established components, expenses and family members' days, at the statutory food amounts of $42 and $21 a week |
 | FBT board | Years ended 31 March 2026 and 2027; the established meals at $2.00 and $1.00, contributions and deductible share |
 | FBT tax-exempt body entertainment | Years ended 31 March 2026 and 2027; established non-deductible entertainment expenditure, actual or per head |
-| FBT entertainment classifier | Years ended 31 March 2026 and 2027; an ordinary taxable employer's entertainment expense lines with established facts, split per head between attendee classes; no tax-exempt bodies, Subdivision 32-B exceptions, salary packaging or reportable fringe benefits |
+| FBT entertainment classifier | Years ended 31 March 2026 and 2027; an ordinary taxable employer's entertainment expense lines with established facts, split per head between attendee classes; no tax-exempt bodies, Subdivision 32-B exceptions, salary packaging or reportable fringe benefits amounts |
 | Depreciation | 2025-26 and 2026-27, an ordinary tangible Division 40 asset's start year, or a later year from its established opening adjustable value; established life and use |
 | SG | Complete quarters of 2025-26; established OTE, eligibility and qualifying contributions |
 | Contribution caps | 2024-25 to 2026-27; one individual's classified contributions, no bring-forward period started in the 2 previous years |
@@ -729,7 +729,10 @@ $2,008, 10% of $20,080, where 18.6 prints $2,080; see
 entertainment expense lines and works out, for each line and each class of
 attendee (employees, their associates, and others such as clients), whether it
 is entertainment, the fringe benefit and its type or the s 41 exemption, the
-income tax deduction and the GST credit. Each answer cites its provision, and
+income tax deduction and the GST credit, and for each fringe benefit whether it
+is an excluded fringe benefit, left out of reporting (`excluded`: meal
+entertainment is, under FBTAA s 5E(3)(a); other entertainment is not). Each
+answer cites its provision, and
 each view taken from TR 97/17 or TR 2007/12 is cited by paragraph as the
 Commissioner's view, not the law.
 
