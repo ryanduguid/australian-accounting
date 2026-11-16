@@ -7,10 +7,11 @@
 //! sources and warnings; this module only applies the offsets against basic
 //! income tax and adds the parts up. It can work out taxable income from
 //! labour income and deductions first, and compare the total with the tax
-//! withheld.
+//! withheld, given or worked out from one employer's regular pay.
 use crate::api::{Refusal, evaluate_coded, optional_decimal, takes};
 use crate::decimal::{Decimal, Rounding, Signal};
 use crate::engine;
+use crate::metadata::STUDY_LOAN_WITHHOLDING_FROM;
 use serde_json::{Map, Value, json};
 
 const COMMAND: &str = "personal-tax-estimate";
@@ -28,6 +29,51 @@ const INCOME_INPUTS: [&str; 4] = [
 /// work-related expenses: Act No. 49 of 2026 Sch 4 item 17(1) applies it to
 /// assessments for the 2026-27 income year and later years.
 const STANDARD_DEDUCTION_FROM: &str = "2026-27";
+
+/// The year from which ITAA 1997 Subdivision 61-E gives a resident the working
+/// Australians tax offset: Act No. 49 of 2026 Sch 3 item 4 applies it to
+/// assessments for the 2027-28 income year and later years.
+const WATO_FROM: &str = "2027-28";
+
+/// The offset's limit (ITAA 1997 s 61-160(a)).
+const WATO_MAXIMUM: i64 = 250;
+
+/// The working Australians tax offset's lines, after `basic_income_tax`: net
+/// labour income as given or worked out, the offset and the part applied.
+const WATO_WORKING: [(&str, &str); 3] = [
+    (
+        "net_labour_income",
+        "net_labour_income: labour amounts less labour deductions (ITAA 1997 s 61-155(2)), as established",
+    ),
+    (
+        "working_australians_tax_offset",
+        "min(250, resident-tax: basic_income_tax on net_labour_income) (ITAA 1997 s 61-160); nil unless net_labour_income exceeds the tax-free threshold (s 61-155(1)(b)), where that tax is nil",
+    ),
+    (
+        "working_australians_tax_offset_applied",
+        "working_australians_tax_offset, up to basic_income_tax (ITAA 1997 s 63-10(1) item 3)",
+    ),
+];
+
+/// `net_labour_income`'s line when it is worked out from the labour inputs.
+const NET_LABOUR_WORKED: &str = "assessable_labour_income - work_related_deductions - standard_deduction: labour amounts less labour deductions (ITAA 1997 s 61-155(2)), with other_assessable_income and other_deductions taken to hold none";
+
+/// The offset lines that follow, with the working Australians tax offset
+/// applied first (ITAA 1997 s 63-10(1) item 3).
+const WATO_PART_WORKING: [(&str, &str); 3] = [
+    (
+        "seniors_pensioners_tax_offset_applied",
+        "seniors-pensioners-tax-offset: seniors_pensioners_tax_offset, up to basic_income_tax - working_australians_tax_offset_applied (ITAA 1997 s 63-10(1) item 5); nil when not composed",
+    ),
+    (
+        "low_income_tax_offset_applied",
+        "low-income-tax-offset: low_income_tax_offset, up to basic_income_tax - working_australians_tax_offset_applied - seniors_pensioners_tax_offset_applied (ITAA 1997 s 63-10(1) item 20)",
+    ),
+    (
+        "income_tax_after_offsets",
+        "basic_income_tax - working_australians_tax_offset_applied - seniors_pensioners_tax_offset_applied - low_income_tax_offset_applied",
+    ),
+];
 
 /// Where each amount worked out before the parts comes from.
 const INCOME_WORKING: [(&str, &str); 4] = [
@@ -62,6 +108,36 @@ const CREDIT_WORKING: [(&str, &str); 3] = [
     ),
 ];
 
+/// The commands that work out the withholding from one regular pay, from which
+/// the estimate works out the year's tax withheld in place of `tax_withheld`.
+const PAY_PARTS: [&str; 3] = [
+    "payg-withholding",
+    "study-loan-withholding",
+    "seniors-pensioners-withholding",
+];
+
+/// Schedule 5 Method A, for one bonus, commission or back payment paid with a
+/// regular pay. That pay's part gives it these inputs.
+const BONUS: &str = "schedule-5-method-a";
+const BONUS_FROM_PAY: [&str; 5] = ["earnings", "pay_period", "scale", "study_loan", "pay_date"];
+/// The regular pay's declared Schedule 1 adjustments, which Method A here does
+/// not take.
+const DECLARED: [&str; 3] = [
+    "tax_offsets",
+    "medicare_adjustment_children",
+    "extra_pay_withholding",
+];
+
+/// The most pays of each period in an income year: Schedule 1 provides for 53
+/// weekly or 27 fortnightly pays ('When there are 53 pays in a financial year'
+/// and 'When there are 27 pays in a financial year').
+const MOST_PAYS: [(&str, i64); 4] = [
+    ("weekly", 53),
+    ("fortnightly", 27),
+    ("monthly", 12),
+    ("quarterly", 4),
+];
+
 /// The inputs given once, for every part that takes them.
 const SHARED: [&str; 3] = ["year", "scope_confirmed", "taxable_income"];
 
@@ -91,7 +167,7 @@ const FOREIGN_TAX: &str = "foreign-resident-tax";
 
 /// The parts not composed for a foreign resident: command, the code a caller
 /// who gives its input gets, and why.
-const NOT_FOR_FOREIGN: [(&str, &str, &str); 5] = [
+const NOT_FOR_FOREIGN: [(&str, &str, &str); 7] = [
     (
         "low-income-tax-offset",
         "input.field_unknown",
@@ -117,6 +193,16 @@ const NOT_FOR_FOREIGN: [(&str, &str, &str); 5] = [
         "estimate.residency_unsupported",
         "a foreign resident's repayment includes the overseas levy on worldwide income, which study-loan-repayment excludes",
     ),
+    (
+        "study-loan-withholding",
+        "estimate.residency_unsupported",
+        "its study and training support loan component goes towards a foreign resident's repayment, which includes the overseas levy on worldwide income that study-loan-repayment excludes",
+    ),
+    (
+        "seniors-pensioners-withholding",
+        "estimate.residency_unsupported",
+        "Schedule 9 is for payees who declare that they are Australian residents for tax purposes",
+    ),
 ];
 
 /// The part that runs for `command` (a [`PARTS`] entry), or `None` when it is
@@ -137,14 +223,17 @@ fn takes_object(command: &str) -> bool {
     )
 }
 
-const SCOPE: &str = "One individual who was an Australian resident for the full income year and not a working holiday maker, or a foreign resident for the full year, with established whole-dollar taxable income, or with established whole-dollar assessable labour income (ITAA 1997 s 25-130(4)), other assessable income, work-related deductions of the kinds s 25-130(2)(c) to (g) count and other deductions, from which taxable income is worked out (s 4-15(1)), with the standard deduction for work-related expenses (s 25-130) for a resident from 2026-27. For a resident, composes resident-tax, low-income-tax-offset, medicare-levy and medicare-levy-surcharge, and seniors-pensioners-tax-offset, study-loan-repayment and division-293 when their inputs are given; confirming scope confirms the scope each of them states under components, where each keeps its own sources and warnings. For a foreign resident, composes foreign-resident-tax and, when its inputs are given, division-293: a foreign resident has no low income tax offset (ITAA 1997 s 61-110(1)(a)) and pays no Medicare levy or surcharge (ITAA 1936 s 251S(1)(a)); the estimate refuses the seniors and pensioners tax offset for one, and a study loan repayment, which for a foreign resident includes the overseas levy on worldwide income that no worksheet here works out. Applies the seniors and pensioners tax offset, then the low income tax offset, against basic income tax only, never below nil (ITAA 1997 s 63-10(1) items 5 and 20); neither reduces the Medicare levy or the surcharge. The total is before PAYG withholding and other credits, refundable offsets, every other tax offset (such as the private health insurance, franking and foreign income tax offsets), the transfer of unused SAPTO to a spouse and any refund or amount payable. Division 293 tax is shown but left out of the total, because it is assessed on its own notice. When tax_withheld is given, the total is compared with it (TAA 1953 Sch 1 s 18-15(1)) to give a refund or an amount payable before every other credit, refundable offset and amount owed. Classifying income and deductions, any tax loss and the limits on deductions that would create one are the operator's. Refuses part-year residents and working holiday makers, and parts that describe different families: a spouse in one part but not another, 2 spouse taxable incomes, or dependants without a spouse, whom the surcharge worksheet excludes.";
+const SCOPE: &str = "One individual who was an Australian resident for the full income year and not a working holiday maker, or a foreign resident for the full year, with established whole-dollar taxable income, or with established whole-dollar assessable labour income (ITAA 1997 s 25-130(4)), other assessable income, work-related deductions of the kinds s 25-130(2)(c) to (g) count and other deductions, from which taxable income is worked out (s 4-15(1)), with the standard deduction for work-related expenses (s 25-130) for a resident from 2026-27. For a resident, composes resident-tax, low-income-tax-offset, medicare-levy and medicare-levy-surcharge, and seniors-pensioners-tax-offset, study-loan-repayment and division-293 when their inputs are given; confirming scope confirms the scope each of them states under components, where each keeps its own sources and warnings. For a foreign resident, composes foreign-resident-tax and, when its inputs are given, division-293: a foreign resident has no low income tax offset (ITAA 1997 s 61-110(1)(a)) and pays no Medicare levy or surcharge (ITAA 1936 s 251S(1)(a)); the estimate refuses the seniors and pensioners tax offset for one, and a study loan repayment, which for a foreign resident includes the overseas levy on worldwide income that no worksheet here works out. Applies the seniors and pensioners tax offset, then the low income tax offset, against basic income tax only, never below nil (ITAA 1997 s 63-10(1) items 5 and 20); neither reduces the Medicare levy or the surcharge. For a resident from 2027-28, first applies the working Australians tax offset (s 63-10(1) item 3): the lesser of $250 and the basic income tax at the resident rates on net labour income (ss 61-155 and 61-160), given as net_labour_income or, with assessable_labour_income, worked out as it less work_related_deductions and the standard deduction, taking other_assessable_income and other_deductions to hold no labour amounts or labour deductions under s 61-155(2), such as business or personal services income, or the union fees and income protection premiums s 25-130(3) leaves out of work-related deductions; give net_labour_income where they do. From 2027-28 the scope excludes a minimum tax capital gain: the extra income tax on one (s 119-10, for CGT events from 1 July 2027) is not worked out. The total is before PAYG withholding and other credits, refundable offsets, every other tax offset (such as the private health insurance, franking and foreign income tax offsets), the transfer of unused SAPTO to a spouse and any refund or amount payable. Division 293 tax is shown but left out of the total, because it is assessed on its own notice. When tax_withheld is given, or worked out from one employer's regular pays, the total is compared with it (TAA 1953 Sch 1 s 18-15(1)) to give a refund or an amount payable before every other credit, refundable offset and amount owed. The tax withheld worked out is the withholding payg-withholding, study-loan-withholding or seniors-pensioners-withholding gives for one pay, times the established number of pays in the year at that same pay, plus Schedule 5 Method A's withholding on one bonus, commission or back payment paid with one of them; pays of other amounts, other payers' withholding and withholding variations are not in it. Classifying income and deductions, any tax loss and the limits on deductions that would create one are the operator's. Refuses part-year residents and working holiday makers, and parts that describe different families: a spouse in one part but not another, 2 spouse taxable incomes, or dependants without a spouse, whom the surcharge worksheet excludes.";
 
-const SOURCES: [&str; 9] = [
+const SOURCES: [&str; 12] = [
     "https://www.ato.gov.au/law/view/document?docid=PAC/19970038/4-15",
     "https://www.ato.gov.au/law/view/document?docid=PAC/19970038/25-130",
     "https://www.legislation.gov.au/C2026A00049/asmade/text",
+    "https://www.ato.gov.au/law/view/document?docid=PAC/19530001/Sch1-12-35",
     "https://www.ato.gov.au/law/view/document?docid=PAC/19530001/Sch1-18-15",
     "https://www.ato.gov.au/law/view/document?docid=PAC/19970038/63-10",
+    "https://www.ato.gov.au/law/view/document?docid=PAC/19970038/61-155",
+    "https://www.ato.gov.au/law/view/document?docid=PAC/19970038/61-160",
     "https://www.ato.gov.au/law/view/document?docid=PAC/19970038/61-110",
     "https://www.ato.gov.au/law/view/document?docid=PAC/19360027/251S",
     "https://www.ato.gov.au/individuals-and-families/income-deductions-offsets-and-records/tax-offsets/low-income-tax-offset",
@@ -248,10 +337,12 @@ fn check_residency(v: &Value) -> Result<bool, Refusal> {
 /// `study-loan-repayment` and `division-293` alone ignore an unknown field.
 fn check_fields(v: &Value) -> Result<(), Refusal> {
     let taken = |key: &str| {
-        key == "residency"
-            || key == "tax_withheld"
-            || INCOME_INPUTS.contains(&key)
+        matches!(
+            key,
+            "residency" | "tax_withheld" | "pays_in_year" | BONUS | "net_labour_income"
+        ) || INCOME_INPUTS.contains(&key)
             || SHARED.contains(&key)
+            || PAY_PARTS.contains(&key)
             || PARTS.iter().any(|(c, ..)| *c == key && takes_object(c))
     };
     let object = v.as_object().into_iter().flatten();
@@ -275,6 +366,20 @@ fn check_fields(v: &Value) -> Result<(), Refusal> {
                 "input.field_unknown",
                 format!(
                     "{key} is not an input of {command} within {COMMAND}: it is given once, for every part"
+                ),
+            ));
+        }
+        if command == BONUS
+            && let Some(key) = input
+                .as_object()
+                .into_iter()
+                .flat_map(|o| o.keys())
+                .find(|k| BONUS_FROM_PAY.contains(&k.as_str()))
+        {
+            return Err(Refusal::new(
+                "input.field_unknown",
+                format!(
+                    "{key} is not an input of {BONUS} within {COMMAND}: it comes from the regular pay's part"
                 ),
             ));
         }
@@ -436,21 +541,29 @@ fn lesser(a: Decimal, b: Decimal) -> Result<Decimal, Refusal> {
     Ok(if a.lt(&b).map_err(signal)? { a } else { b })
 }
 
-/// The composed amounts, in [`WORKING`]'s order.
-fn compose_amounts(results: &Map<String, Value>, foreign: bool) -> Result<[Decimal; 9], Refusal> {
+/// The composed amounts, in [`WORKING`]'s order, and the working Australians
+/// tax offset applied: `wato` up to basic income tax, before every other
+/// offset (ITAA 1997 s 63-10(1) item 3).
+fn compose_amounts(
+    results: &Map<String, Value>,
+    foreign: bool,
+    wato: &Decimal,
+) -> Result<([Decimal; 9], Decimal), Refusal> {
     let part = |i: usize| match part_for(PARTS[i].0, foreign) {
         Some(command) => amount(results, command, PARTS[i].3),
         None => Ok(Decimal::from_int(0)),
     };
     let calc = |r: Result<Decimal, Signal>| r.map_err(signal);
     let basic = part(0)?;
-    let sapto = lesser(part(1)?, basic.clone())?;
-    let less_sapto = calc(basic.sub(&sapto))?;
+    let wato = lesser(wato.clone(), basic.clone())?;
+    let less_wato = calc(basic.sub(&wato))?;
+    let sapto = lesser(part(1)?, less_wato.clone())?;
+    let less_sapto = calc(less_wato.sub(&sapto))?;
     let lito = lesser(part(2)?, less_sapto.clone())?;
     let after = calc(less_sapto.sub(&lito))?;
     let (levy, surcharge, loan) = (part(3)?, part(4)?, part(5)?);
     let total = calc(calc(calc(after.add(&levy))?.add(&surcharge))?.add(&loan))?;
-    Ok([
+    let amounts = [
         basic,
         sapto,
         lito,
@@ -460,7 +573,76 @@ fn compose_amounts(results: &Map<String, Value>, foreign: bool) -> Result<[Decim
         loan,
         total,
         part(6)?,
-    ])
+    ];
+    Ok((amounts, wato))
+}
+
+/// For a resident from 2027-28, net labour income (given, or worked out from
+/// `income`'s labour inputs) and the working Australians tax offset on it,
+/// with the line saying where net labour income came from; `None` otherwise,
+/// when `net_labour_income` is refused.
+fn working_australians_offset(
+    v: &Value,
+    foreign: bool,
+    income: Option<&[Decimal; 4]>,
+) -> Result<Option<(Decimal, Decimal, &'static str)>, Refusal> {
+    let applies = !foreign && v["year"].as_str().is_some_and(|year| year >= WATO_FROM);
+    let given = signed_whole_dollars(v, "net_labour_income")?;
+    if !applies {
+        return match given {
+            Some(_) => Err(Refusal::new(
+                "input.field_unknown",
+                format!(
+                    "net_labour_income is not an input of {COMMAND} here: the working Australians tax offset (ITAA 1997 s 61-155) is for a resident from 2027-28"
+                ),
+            )),
+            None => Ok(None),
+        };
+    }
+    let calc = |r: Result<Decimal, Signal>| r.map_err(signal);
+    let (net, line) = match (given, income) {
+        (Some(net), _) => (net, WATO_WORKING[0].1),
+        (None, Some(lines)) => {
+            let labour = amount_input(v, "assessable_labour_income", false)?.expect("given");
+            let work = amount_input(v, "work_related_deductions", false)?
+                .unwrap_or_else(|| Decimal::from_int(0));
+            let net = calc(calc(labour.sub(&work))?.sub(&lines[1]))?;
+            (net, NET_LABOUR_WORKED)
+        }
+        (None, None) => {
+            return Err(Refusal::new(
+                "input.missing_field",
+                "net_labour_income is required with taxable_income for a resident from 2027-28: the working Australians tax offset (ITAA 1997 s 61-160) is worked out on it",
+            ));
+        }
+    };
+    // Net labour income can be negative (s 61-155(2)); the tax on it is then
+    // nil, as it is up to the tax-free threshold.
+    let taxed = greater(Decimal::from_int(0), net.clone())?;
+    let facts = json!({"taxable_income": taxed.to_string(), "year": v["year"],
+        "scope_confirmed": v["scope_confirmed"]});
+    let tax = evaluate_coded("resident-tax", &facts)
+        .map_err(|r| Refusal::new(r.code, format!("resident-tax: {}", r.message)))?;
+    let tax = Decimal::parse(
+        tax["amounts"]["basic_income_tax"]
+            .as_str()
+            .expect("an amount"),
+    )
+    .map_err(signal)?;
+    let offset = lesser(Decimal::from_int(WATO_MAXIMUM), tax)?;
+    Ok(Some((net, offset, line)))
+}
+
+/// An optional whole-dollar amount that may be negative, as net labour income
+/// can be (ITAA 1997 s 61-155(2) sets no floor).
+fn signed_whole_dollars(v: &Value, key: &str) -> Result<Option<Decimal>, Refusal> {
+    let refused = |e: engine::Error| Refusal::new(e.code(), e.to_string());
+    let Some(given) = optional_decimal(v, key)? else {
+        return Ok(None);
+    };
+    let amount = engine::signed_money(&given).map_err(refused)?;
+    engine::whole_dollars(&amount, key).map_err(refused)?;
+    Ok(Some(amount))
 }
 
 /// An optional amount input, refused as every worksheet refuses an amount,
@@ -541,6 +723,238 @@ fn credit_lines(withheld: Decimal, total: &Decimal) -> Result<[Decimal; 3], Refu
     Ok([withheld, refund, payable])
 }
 
+/// A field the estimate does not take beside another input.
+fn beside(key: &str, other: &str, why: &str) -> Refusal {
+    Refusal::new(
+        "input.field_unknown",
+        format!("{key} is not an input of {COMMAND} beside {other}: {why}"),
+    )
+}
+
+/// The regular pay's part, when the tax withheld is to be worked out from it,
+/// after checking the inputs that go with it: `pays_in_year`, at most one pay
+/// part and Method A for a bonus, a scale for the residency given and, when
+/// the withholding includes a study and training support loan component, the
+/// repayment it goes towards.
+fn check_pay(v: &Value, foreign: bool) -> Result<Option<&'static str>, Refusal> {
+    let Some(pay) = given_pay(v)? else {
+        return Ok(None);
+    };
+    check_bonus(v, pay)?;
+    check_scale(&v[pay], pay, foreign)?;
+    check_study_loan(v, pay)?;
+    Ok(Some(pay))
+}
+
+/// The one regular pay's part given, with `pays_in_year` and without
+/// `tax_withheld`.
+fn given_pay(v: &Value) -> Result<Option<&'static str>, Refusal> {
+    let mut given = PAY_PARTS.into_iter().filter(|c| v.get(*c).is_some());
+    let Some(pay) = given.next() else {
+        return match ["pays_in_year", BONUS]
+            .into_iter()
+            .find(|k| v.get(*k).is_some())
+        {
+            Some(key) => Err(Refusal::new(
+                "input.missing_field",
+                format!(
+                    "payg-withholding, study-loan-withholding or seniors-pensioners-withholding is required with {key}"
+                ),
+            )),
+            None => Ok(None),
+        };
+    };
+    if let Some(second) = given.next() {
+        return Err(beside(second, pay, "give the one regular pay"));
+    }
+    if v.get("tax_withheld").is_some() {
+        return Err(beside(
+            pay,
+            "tax_withheld",
+            "give tax_withheld, or a regular pay to work it out",
+        ));
+    }
+    if v.get("pays_in_year").is_none() {
+        return Err(Refusal::new(
+            "input.missing_field",
+            format!("pays_in_year is required with {pay}"),
+        ));
+    }
+    Ok(Some(pay))
+}
+
+/// Method A here takes a Schedule 1 or 8 pay with none of the payee's
+/// declared adjustments, so its amounts at steps 2 and 5 are the regular pay's.
+fn check_bonus(v: &Value, pay: &str) -> Result<(), Refusal> {
+    if v.get(BONUS).is_none() {
+        return Ok(());
+    }
+    if pay == "seniors-pensioners-withholding" {
+        return Err(beside(
+            BONUS,
+            pay,
+            "Method A here works from Schedule 1 amounts, not Schedule 9's",
+        ));
+    }
+    let declared = DECLARED
+        .into_iter()
+        .find(|k| v[pay].get(*k).is_some_and(|value| *value != json!(false)));
+    match declared {
+        Some(key) => Err(beside(
+            BONUS,
+            &format!("{pay} with {key}"),
+            "Method A here works the bonus out without the tax offsets, Medicare levy adjustment and extra pay amount a payee declares",
+        )),
+        None => Ok(()),
+    }
+}
+
+/// A scale for the residency given: 3, or 4 with `foreign_resident`, for a
+/// foreign resident, and the others for a resident.
+fn check_scale(part: &Value, pay: &str, foreign: bool) -> Result<(), Refusal> {
+    let Some(scale) = part["scale"].as_i64().filter(|s| (1..=6).contains(s)) else {
+        return Ok(());
+    };
+    let foreign_scale = scale == 3 || (scale == 4 && part["foreign_resident"] == json!(true));
+    if foreign_scale == foreign {
+        return Ok(());
+    }
+    let (payee, residency) = if foreign_scale {
+        ("a foreign resident", "full_year_resident")
+    } else {
+        ("an Australian resident", "foreign_resident")
+    };
+    Err(Refusal::new(
+        "estimate.scale_mismatch",
+        format!("{pay} scale {scale} is for {payee} payee, and residency is {residency}"),
+    ))
+}
+
+/// A pay with a study loan: a year whose Schedule 8 coefficients applied from
+/// 1 July, so one pay stands for every pay, and the repayment its component
+/// goes towards.
+fn check_study_loan(v: &Value, pay: &str) -> Result<(), Refusal> {
+    if pay != "study-loan-withholding" && v[pay]["study_loan"] != json!(true) {
+        return Ok(());
+    }
+    let changed = STUDY_LOAN_WITHHOLDING_FROM
+        .iter()
+        .find(|(year, _)| v["year"] == *year)
+        .filter(|(_, from)| !from.ends_with("-07-01"));
+    if let Some((year, from)) = changed {
+        return Err(Refusal::new(
+            "period.unsupported",
+            format!(
+                "{pay} with a study loan does not give the tax withheld for {year}: its Schedule 8 coefficients changed on {from}, and this estimate takes no year whose coefficients changed after 1 July; give tax_withheld"
+            ),
+        ));
+    }
+    if v.get("study-loan-repayment").is_none() {
+        return Err(Refusal::new(
+            "input.missing_field",
+            format!(
+                "study-loan-repayment is required with {pay}: the withholding includes a study and training support loan component"
+            ),
+        ));
+    }
+    Ok(())
+}
+
+/// A part's result, its refusal named by the part's command.
+fn run_part(command: &str, input: &Value) -> Result<Value, Refusal> {
+    evaluate_coded(command, input)
+        .map_err(|r| Refusal::new(r.code, format!("{command}: {}", r.message)))
+}
+
+/// `pays_in_year`, at most the most pays of the regular pay's period, and all
+/// of them with Schedule 1's additional amount for a year of 53 weekly or 27
+/// fortnightly pays.
+fn pays_in_year(v: &Value, pay: &str, regular: &Value) -> Result<i64, Refusal> {
+    let period = regular["period"].as_str().and_then(|p| p.split(' ').nth(1));
+    let most = MOST_PAYS
+        .iter()
+        .find(|(p, _)| Some(*p) == period)
+        .map(|(_, n)| *n)
+        .expect("a pay part gives its pay period");
+    let pays = v["pays_in_year"]
+        .as_i64()
+        .filter(|n| (1..=most).contains(n));
+    let Some(pays) = pays else {
+        return Err(Refusal::new(
+            "input.pay_periods_invalid",
+            format!(
+                "pays_in_year must be an integer from 1 to {most} for {} pays.",
+                period.unwrap_or_default()
+            ),
+        ));
+    };
+    if v[pay]["extra_pay_withholding"] == json!(true) && pays != most {
+        return Err(Refusal::new(
+            "input.pay_periods_invalid",
+            format!(
+                "pays_in_year must be {most} with extra_pay_withholding, the additional amount for a year of {most} {} pays.",
+                period.unwrap_or_default()
+            ),
+        ));
+    }
+    Ok(pays)
+}
+
+/// Method A's input: the bonus with the regular pay's earnings, period,
+/// scale, study loan and pay date.
+fn bonus_input(v: &Value, pay: &str) -> Value {
+    let mut input = part_input(v, BONUS, false);
+    for key in BONUS_FROM_PAY {
+        if let Some(value) = v[pay].get(key) {
+            input[key] = value.clone();
+        }
+    }
+    input["study_loan"] = json!(pay == "study-loan-withholding");
+    input
+}
+
+/// The year's tax withheld worked out from the regular pay's part: its
+/// withholding for one pay, times `pays_in_year`, plus Method A's withholding
+/// on a bonus. Returns the lines before `refund`, and adds each part's result
+/// to `results`.
+fn worked_withholding(
+    v: &Value,
+    pay: &'static str,
+    results: &mut Map<String, Value>,
+) -> Result<Vec<(&'static str, String, Decimal)>, Refusal> {
+    let regular = run_part(pay, &part_input(v, pay, false))?;
+    let pays = pays_in_year(v, pay, &regular)?;
+    results.insert(pay.into(), regular);
+    let per_pay = amount(results, pay, "withholding")?;
+    let calc = |r: Result<Decimal, Signal>| r.map_err(signal);
+    let mut withheld = calc(per_pay.mul(&Decimal::from_int(pays)))?;
+    let mut lines = vec![(
+        "withholding_per_pay",
+        format!("{pay}: withholding, for one of the pays_in_year regular pays"),
+        per_pay,
+    )];
+    let mut working = "pays_in_year x withholding_per_pay".to_string();
+    if v.get(BONUS).is_some() {
+        results.insert(BONUS.into(), run_part(BONUS, &bonus_input(v, pay))?);
+        let extra = amount(results, BONUS, "withholding_on_additional_payment")?;
+        withheld = calc(withheld.add(&extra))?;
+        lines.push((
+            "additional_payment_withholding",
+            format!(
+                "{BONUS}: withholding_on_additional_payment, paid with one of the regular pays"
+            ),
+            extra,
+        ));
+        working.push_str(" + additional_payment_withholding");
+    }
+    lines.push((
+        "tax_withheld",
+        format!("{working}: the amounts withheld from salary, wages and bonuses (TAA 1953 Sch 1 s 12-35), a credit once assessed (s 18-15(1))"),
+        withheld,
+    ));
+    Ok(lines)
+}
+
 /// `personal-tax-estimate`: the composed amounts, where each came from, and
 /// every part's own result.
 pub fn compose(v: &Value) -> Result<Value, Refusal> {
@@ -548,36 +962,72 @@ pub fn compose(v: &Value) -> Result<Value, Refusal> {
     let foreign = check_residency(v)?;
     check_family(v)?;
     check_exemption(v)?;
+    let pay = check_pay(v, foreign)?;
     let income = income_from_labour(v, foreign)?;
-    let withheld = amount_input(v, "tax_withheld", true)?;
+    let wato = working_australians_offset(v, foreign, income.as_ref())?;
+    let given_withheld = amount_input(v, "tax_withheld", true)?;
     let mut facts = v.clone();
     if let Some(lines) = &income {
         facts["taxable_income"] = json!(lines[3].to_string());
     }
-    let results = run_parts(&facts, foreign)?;
-    let composed = compose_amounts(&results, foreign)?;
+    let mut results = run_parts(&facts, foreign)?;
+    let offset = wato.as_ref().map_or(Decimal::from_int(0), |w| w.1.clone());
+    let (composed, wato_applied) = compose_amounts(&results, foreign, &offset)?;
+    // A worked-out tax withheld carries its own working, in place of the
+    // first credit line's.
+    let (pay_lines, withheld) = match pay {
+        Some(pay) => {
+            let lines = worked_withholding(v, pay, &mut results)?;
+            let withheld = lines.last().expect("the tax withheld").2.clone();
+            (lines, Some(withheld))
+        }
+        None => (Vec::new(), given_withheld),
+    };
     let credits = match withheld {
         Some(withheld) => Some(credit_lines(withheld, &composed[7])?),
         None => None,
     };
     let mut part_working: Vec<(&str, &str)> = WORKING.to_vec();
-    if foreign {
-        for (key, line) in FOREIGN_WORKING {
-            let at = part_working.iter().position(|(k, _)| *k == key);
-            part_working[at.expect("a WORKING line")].1 = line;
-        }
+    let overrides = match (foreign, &wato) {
+        (true, _) => FOREIGN_WORKING.as_slice(),
+        (false, Some(_)) => WATO_PART_WORKING.as_slice(),
+        (false, None) => &[],
+    };
+    for (key, line) in overrides {
+        let at = part_working.iter().position(|(k, _)| k == key);
+        part_working[at.expect("a WORKING line")].1 = *line;
     }
+    let mut parts: Vec<(&str, &str, Decimal)> = part_working
+        .into_iter()
+        .zip(composed)
+        .map(|((key, line), value)| (key, line, value))
+        .collect();
+    if let Some((net, offset, net_line)) = wato {
+        let [net_key, offset_line, applied_line] = WATO_WORKING;
+        let wato_lines = [
+            (net_key.0, net_line, net),
+            (offset_line.0, offset_line.1, offset),
+            (applied_line.0, applied_line.1, wato_applied),
+        ];
+        parts.splice(1..1, wato_lines);
+    }
+    let skip = usize::from(pay.is_some());
     let lines = income
         .into_iter()
         .flat_map(|lines| INCOME_WORKING.into_iter().zip(lines))
-        .chain(part_working.into_iter().zip(composed))
-        .chain(
-            credits
+        .map(|((key, line), value)| (key, line, value))
+        .chain(parts)
+        .map(|(key, line, value)| (key, line.to_string(), value))
+        .chain(pay_lines)
+        .chain(credits.into_iter().flat_map(|lines| {
+            CREDIT_WORKING
                 .into_iter()
-                .flat_map(|lines| CREDIT_WORKING.into_iter().zip(lines)),
-        );
+                .zip(lines)
+                .skip(skip)
+                .map(|((key, line), value)| (key, line.to_string(), value))
+        }));
     let (mut amounts, mut working) = (Map::new(), Map::new());
-    for ((key, line), value) in lines {
+    for (key, line, value) in lines {
         let cents = value.quantize(-2, Rounding::HalfUp).map_err(signal)?;
         amounts.insert(key.into(), json!(cents.to_string()));
         working.insert(key.into(), json!(line));
