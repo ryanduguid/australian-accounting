@@ -350,6 +350,26 @@ intentionally changed.
   every cut-out; `tests/properties.rs` checks that it never rises with rebate
   income without a transfer. Schedule 9 and this command share the `status` values and the
   `input.status_invalid` refusal.
+- `lump-sum-arrears-tax-offset` works out the tax offset for lump sum payments
+  in arrears (ITAA 1936 ss 159ZR to 159ZRD) for a year of receipt from
+  2013-14 to 2026-27: the 10% threshold test on normal taxable income (s 159ZRA(1)(b)),
+  the tax on the arrears (s 159ZRB), the notional tax in each recent accrual
+  year (s 159ZRC) and in distant years at the average of the recent years'
+  rates, each truncated to 3 decimal places and raised by 0.001 when the
+  fourth is more than 4 (s 159ZRD), and the rebate-year adjustments. A new
+  `PRIOR_RESIDENT_TAX_SCALES` table holds the ATO's resident rates for
+  2012-13 to 2023-24, with the 2% temporary budget repair levy above $180,000
+  in 2014-15 to 2016-17 (Income Tax (Transitional Provisions) Act 1997
+  s 4-11); `resident-tax` periods do not change. A recent accrual year before
+  2012-13 is refused with `lump_sum_arrears.recent_year_unsupported`, and a
+  malformed accrual year with `lump_sum_arrears.accrual_years_invalid`. The
+  Medicare levy exemption (Medicare Levy Act 1986 s 9A) and surcharge offset
+  (ITAA 1997 Subdivision 61-L) are named as separate questions, not worked
+  out. `derive` covers it. Like `division-296`, it refuses a field it does
+  not take. No Python release has it. `tests/lump_sum_arrears_offset.rs`
+  holds it to the ATO's Sudeep and Anthony results, works the Heather and Yan
+  facts by hand with assumed taxable incomes and checks each earlier year's
+  rates.
 - `depreciation` takes an optional `opening_adjustable_value` for an income
   year after the asset's start time (ITAA 1997 ss 40-70(1), 40-72 and 40-75).
   Diminishing value then applies its rate to that value and prime cost to cost,

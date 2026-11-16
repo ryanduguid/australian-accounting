@@ -297,6 +297,16 @@ const COMMAND_ARGS: &[(&str, &[(&str, Kind)])] = &[
         ],
     ),
     (
+        "lump-sum-arrears-tax-offset",
+        &[
+            ("taxable_income", Dec),
+            ("net_capital_gain", Dec),
+            ("accrual_years", Json),
+            ("year", Raw),
+            ("scope_confirmed", Raw),
+        ],
+    ),
+    (
         "division-293",
         &[
             ("division_293_income", Dec),
@@ -500,7 +510,7 @@ pub fn commands() -> Vec<&'static str> {
 /// command on its `gross_pay` shows that withholding. The classifier's amounts
 /// are totals over lines whose shares a decision table sets, not a formula;
 /// each line and class carries the authority for its row instead.
-const DERIVED: [&str; 42] = [
+const DERIVED: [&str; 43] = [
     "fbt",
     "fbt-car-statutory",
     "fbt-car-operating-cost",
@@ -542,6 +552,7 @@ const DERIVED: [&str; 42] = [
     "gst",
     "depreciation",
     "hire-purchase-schedule",
+    "lump-sum-arrears-tax-offset",
     "income-tests",
 ];
 
@@ -865,7 +876,8 @@ pub fn evaluate_coded(command: &str, v: &Value) -> Result<Value> {
         return refusal("command.unknown", format!("unknown command {command}"));
     };
     // Division 296, the termination payment, unused leave, Medicare levy surcharge,
-    // Schedule 5, 9 and 15 and the seniors and pensioners tax offset worksheets have no
+    // Schedule 5, 9 and 15, the seniors and pensioners and lump sum in arrears
+    // tax offset worksheets have no
     // Python original whose lenience to keep, and a misspelt optional
     // depreciation, Medicare levy or PAYG withholding input would silently give
     // the start year's, a single person's or the result without it, so a field
@@ -890,6 +902,7 @@ pub fn evaluate_coded(command: &str, v: &Value) -> Result<Value> {
             | "foreign-resident-tax"
             | "seniors-pensioners-withholding"
             | "seniors-pensioners-tax-offset"
+            | "lump-sum-arrears-tax-offset"
             | "fbt-loan"
             | "fbt-meal-entertainment"
             | "fbt-car-parking"
@@ -1088,6 +1101,9 @@ pub fn evaluate_coded(command: &str, v: &Value) -> Result<Value> {
                 taxable_income: o[1].as_ref(),
             };
             engine::seniors_pensioners_tax_offset(&a[0], &a[1], &a[2], &a[3], spouse)
+        }
+        "lump-sum-arrears-tax-offset" => {
+            engine::lump_sum_arrears_tax_offset(&a[0], &a[1], &a[2], &a[3], &a[4])
         }
         "division-293" => engine::division_293(&a[0], &a[1], &a[2], &a[3]),
         "division-296" => engine::division_296(&a[0], &a[1], [&a[2], &a[3], &a[4]], &a[5], &a[6]),

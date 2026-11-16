@@ -62,6 +62,7 @@ example evidence; it does not claim a fresh review of every supported period.
 | Medicare levy surcharge | Not a Library document: Medicare Levy Act 1986 ss 8B and 8D (compilations 52 and 53), the Medicare Levy Surcharge - Fringe Benefits Act 1999 (compilations 41 and 42), the ATO's thresholds page with its Tom example and its M2 2026 instructions with the Josh, Jacinta and Jill and Kevin examples | 22 June 2026 (thresholds page); 30 May 2026 (M2) | The tier, rate and share of the year for 2024-25 to 2026-27, for a person single without dependants or married all year, on established income for surcharge purposes, days without cover and spouse's income |
 | Low income tax offset | Not a Library document: ITAA 1997 s 61-115 compilation 266 and the ATO's worked example | 8 June 2026 (ATO page) | Offset amount from established taxable income for 2024-25 to 2026-27; not applied against tax payable |
 | Seniors and pensioners tax offset | Not a Library document: ITAA 1936 s 160AAAA (compilation 193, 1 October 2026), the Income Tax Assessment (1936 Act) Regulations 2025 and Regulation 2015 (compilation 8) ss 9 to 12, and the ATO's examples and thresholds | 2 October 2026 (ATO page) | One eligible individual's offset amount for 2024-25 to 2026-27 from established rebate income, status and spouse facts; not applied against tax payable |
+| Lump sum arrears tax offset | Not a Library document: ITAA 1936 ss 159ZR to 159ZRD (compilation 193, 1 October 2026), the ATO's "Lump sum payment in arrears" examples, its resident rates for 2012-13 to 2023-24 and Income Tax (Transitional Provisions) Act 1997 s 4-11 (compilation 104) | 8 June 2026 (ATO page) | One full-year resident individual's offset for a year of receipt from 2013-14, from established eligible arrears by accrual year; recent accrual years from 2012-13; no Medicare levy or surcharge relief; not applied against tax payable |
 | Division 293 | Not a Library document: ITAA 1997 ss 293-20 and 293-25, the 2013 Imposition Act and the ATO's worked example | 24 August 2026 (ATO page) | Established Division 293 income and low tax contributions for 2024-25 to 2026-27 |
 | Division 296 | `superannuation-contributions-to-superannuation-funds-and-rsas` (superannuation), ¶6-495, with the Explanatory Memorandum's examples 1.1 to 1.3, ITAA 1997 ss 296-15 to 296-55 (compilation 268, 1 October 2026), the 2026 Imposition Act and the ATO's Division 296 page | 30 June 2026; 3 November 2026 (ATO page) | One individual's established balance at 30 June 2027 and total superannuation earnings for 2026-27; working out either, s 296-70 interests and later years excluded |
 | Termination payment | Not a Library document: ATO Schedule 11 examples 1 to 4, with ITAA 1997 ss 82-10 and 83-170 (compilation 268, 1 October 2026), SISR reg 6.01(2) and `tax-examples-assessable-income` (tax-examples), ¶1-420 | 17 June 2026 (Schedule 11); 30 June 2026 (¶1-420) | One life benefit ETP in 2026-27 with established, classified parts; Schedule 11 withholding, not the tax assessed |
@@ -1211,6 +1212,69 @@ marginal rate, is outside it, as are trustees (s 160AAAB), a person also
 entitled to the beneficiary tax offset (s 160AAA(4)), a person whose
 spouse status changed in the year, the transfer of this person's own unused
 amount and applying the offset against tax payable.
+
+## Lump sum arrears tax offset
+
+This worksheet's evidence is not a Library document. Read on 16 November 2026:
+ITAA 1936 Part III Division 17 Subdivision AB, ss 159ZR to 159ZRD, as compiled
+at 1 October 2026 (compilation 193), whose endnotes show ss 159ZRA to 159ZRD
+unchanged since Act No. 153, 1988 and s 159ZR last amended by Act No. 112,
+2015; the ATO page "Lump sum payment in arrears" (last updated 8 June 2026);
+the ATO's "Tax rates – Australian resident" (last updated 13 August 2026);
+and Income Tax (Transitional Provisions) Act 1997 s 4-11 (compilation 104,
+1 October 2026) with the Income Tax Rates Amendment (Temporary Budget Repair
+Levy) Act 2014, as made.
+
+| Rule | Provision |
+| --- | --- |
+| Accrual years: each earlier year in which part of the eligible lump sums accrued; recent accrual years are the 2 latest when there are 3 or more, otherwise each one; the rest are distant | ITAA 1936 s 159ZR(1) |
+| Normal taxable income: taxable income without the net capital gain | s 159ZR(1) |
+| Threshold: the total arrears amount is at least 10% of normal taxable income less it, not below nil | s 159ZRA(1)(b) |
+| Offset: tax on arrears less notional tax on arrears, if more than nil | s 159ZRB |
+| Tax on arrears: rebated tax on the year's taxable income less rebated tax on it without the total arrears amount | s 159ZRB |
+| Recent year: rebated tax on its taxable income with its arrears added less the rebated tax without them; a rebate year's own arrears deducted, an earlier rebate year's arrears that accrued in it added | s 159ZRC |
+| Distant years: their arrears at the average of the recent years' rates, each the increase in gross tax on normal taxable income over the arrears, truncated to 3 decimal places and raised by 0.001 when the fourth would be more than 4 | s 159ZRD |
+
+Rebated tax and gross tax are the tax at the year's resident rates for the
+individuals the scope admits: the scope leaves out every amount taxed at
+another rate and every offset other than this one. `PRIOR_RESIDENT_TAX_SCALES`
+holds the ATO's rates for 2012-13 to 2023-24, read at 17:23 on 16 November
+2026; `tests/lump_sum_arrears_offset.rs` checks each year's tax at the start
+of every band against the page. The page leaves out the temporary budget
+repair levy; s 4-11 makes it extra income tax of 2% of taxable income above
+$180,000 for 2014-15 to 2016-17, so those years carry it as an overlapping
+row. The 2011-12 flood levy and earlier years are not held, so a recent
+accrual year before 2012-13 is refused; distant years need no rates and may
+be any earlier year.
+
+The worksheet computes in the order its `derive` steps show. A recent year's
+rate is `floor(floor(increase / arrears x 10000) / 10 + 0.5) / 1000`: the
+first `floor` keeps 4 decimal places, and adding 0.5 to the fourth before the
+second `floor` raises the third by 0.001 exactly when the fourth is 5 or more.
+
+`tests/lump_sum_arrears_offset.rs` holds the worksheet to the page's 4
+examples. Sudeep ($3,500 against a $4,950 threshold) gets no offset. Anthony's
+$43,979 for 2016-17, received with $111,231 of net capital gain, meets the
+$15,895.60 threshold (the ATO rounds it to $15,896) and gets $19,790.55 less
+$16,272.23, $3,518.32 (the ATO shows $3,518); his 2016-17 taxable income is
+not given, and $100,000 keeps it in the 37% band. Heather meets the test, and
+with assumed incomes in the 19% band pays $1,360 now against $1,615, so no
+offset, as the page says is common. Yan's 6 accrual years, with made-up
+incomes, give 2 recent years at 0.19 and 0.099 (0.0988 cut to 0.098 and
+raised) and 4 distant years at 0.1445, an offset of $1,688.25, in any input
+order. The other tests check the rounding at 0.0985 and 0.0984, a net capital
+gain in a recent year, the rebate-year adjustments, the levy years, that the
+offset never exceeds the tax on the arrears, and each refusal.
+
+The Medicare levy exemption for lump sums in arrears (Medicare Levy Act 1986
+s 9A), whose 10% test includes the arrears in normal taxable income and which
+sets a condition on the levy in each of the 2 latest accrual years
+(s 9A(1)(c)), and the Medicare levy
+surcharge offset (ITAA 1997 Subdivision 61-L) are separate questions the
+result names. The worksheet refuses a field it does not take, and leaves
+out foreign and part-year residents, employment termination payments,
+superannuation lump sums, arrears not classified as eligible, trustees
+(s 159ZRA(2)) and applying the offset against tax payable.
 
 ## Division 293
 
