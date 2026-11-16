@@ -119,6 +119,10 @@ pub const SCOPES: &[(&str, &str)] = &[
         "The tax-free part of a genuine redundancy or early retirement scheme payment and the PAYG withholding from one life benefit employment termination payment (ETP) under Schedule 11, made in 2026-27 to a resident employee who gave a TFN and is not a working holiday maker, within 12 months of the termination. The operator establishes the redundancy payment as a genuine redundancy payment (ITAA 1997 s 83-175, including dismissal before pension age) or an early retirement scheme payment (s 83-180), above what voluntary termination would have paid; the completed years of service (s 83-170(3)); the rest of the ETP's taxable component, split into excluded payments (s 82-10(6)) and non-excluded payments; and the payer's other taxable payments to the employee in the year. The redundancy payment is tax-free up to $13,598 plus $6,801 for each completed year of service (s 83-170) and the rest of it is an excluded ETP part. The excluded part is taken first and capped at the $270,000 ETP cap; the non-excluded part is capped at the smaller of the ETP cap less the excluded part within it and the whole-of-income cap, $180,000 less the other taxable payments, not below nil (s 82-10(4) and (7); Schedule 11). Withholding is 17% up to the cap if the employee is their preservation age or older on 30 June 2027 (SISR reg 6.01(2)), 32% if younger, and 47% above the cap, each part rounded to the nearest dollar, 50 cents up. Excludes classifying the payments, death benefit ETPs, ETPs with a tax-free component (an invalidity segment or employment before 1 July 1983), earlier ETPs to the employee in the income year or for the same termination, unused annual and long service leave payments, delayed termination payments, payees without a TFN, foreign residents, working holiday makers and the income tax assessed on the ETP.",
     ),
     (
+        "unused_leave_payment",
+        "PAYG withholding under Schedule 7 (payments from 1 July 2026) from the unused annual leave, leave loading and unused long service leave paid in 2026-27 in consequence of the termination of one employee's employment, with each part's assessable share and tax offset under ITAA 1997 Subdivisions 83-A and 83-B and its label for the employee's income statement. The employee is not a working holiday maker, has no withholding variation that covers unused leave payments, and is alive when paid. The operator establishes the reason for the termination, the first day of the leave's accrual, the parts of each total that accrued before 16 August 1978, from 16 August 1978 to 17 August 1993 and before 18 August 1993 (for long service leave, worked out by days under ss 83-95 to 83-115), and the employee's normal gross earnings for the last full pay period and their Schedule 1 scale, or scale 4 and their residency when no TFN was provided. Employment termination payments, unused sick leave, rostered days off, payments in lieu of notice, leave paid after death, the study and training support loan component (Schedule 7 withholds none for it), super an award or agreement requires, and the tax assessed are outside it.",
+    ),
+    (
         "schedule_5_method_a",
         "Withholding under Schedule 5 (NAT 3348) Method A from one regular weekly, fortnightly or monthly pay of salary or wages that includes back payments (including lump sums in arrears), commissions, bonuses or similar payments, made from 1 July 2024 in the income year given, to a payee who gave a TFN, on scale 1, 2, 3, 5 or 6 as the operator established from the payee's declarations. The year selects the Schedule 1 coefficients, as payg-withholding uses them. The operator establishes the pay's gross earnings excluding the additional payments, the additional payments in it and whether the payee declared a study and training support loan debt, when each table amount includes the Schedule 8 component, as Schedule 5 allows, with the Schedule 8 coefficients for the pay date, which a 2025-26 pay must give and which must be on or after 24 September 2025, when its coefficients apply. Cents are ignored in the earnings (so a monthly amount ending in 33 cents gains no cent) and in the additional payments divided by 52 weekly, 26 fortnightly or 12 monthly pay periods, with no adjustment for 53 or 27 pays, or, for a commission, bonus or similar payment for a defined period of less than 12 months, by the pay periods it relates to, which the operator chooses. The extra withheld from the earnings plus that share, times the same pay periods, is limited to 47% of the additional payments, with cents ignored and a negative result taken as nil; the pay's withholding adds it to the earnings' amount. A payment for a single pay period belongs in that pay under Schedule 1, so 1 pay period is refused. Excludes working holiday makers (Schedule 15), payees who gave no TFN (scale 4), withholding variations, tax offsets, Medicare levy adjustments, superannuation income streams, employment termination and unused leave payments, and other schedules.",
     ),
@@ -292,6 +296,10 @@ pub const SOURCES: &[(&str, &str)] = &[
     (
         "termination_payment",
         "https://www.ato.gov.au/tax-rates-and-codes/payg-withholding-schedule-11-tax-table-for-employment-termination-payments",
+    ),
+    (
+        "unused_leave_payment",
+        "https://www.ato.gov.au/tax-rates-and-codes/payg-withholding-schedule-7-tax-table-for-unused-leave-payments-on-termination-of-employment",
     ),
     ("schedule_5_method_a", SCHEDULE_5_METHODS),
     ("schedule_5_method_b_i", SCHEDULE_5_METHODS),
@@ -549,6 +557,16 @@ pub const EXTRA_SOURCES: &[(&str, &[&str])] = &[
             "https://www.legislation.gov.au/F1996B00580/2026-07-01/2026-07-01/text/original/epub/OEBPS/document_2/document_2.html",
         ],
     ),
+    (
+        "unused_leave_payment",
+        &[
+            "https://www.legislation.gov.au/C2004A05138/2026-10-01/2026-10-01/text/original/epub/OEBPS/document_3/document_3.html",
+            "https://www.ato.gov.au/businesses-and-organisations/hiring-and-paying-your-workers/single-touch-payroll/in-detail/single-touch-payroll-phase-2-employer-reporting-guidelines/when-an-employee-transfers-or-leaves",
+            "https://www.ato.gov.au/businesses-and-organisations/super-for-employers/paying-super-on-payday/what-payments-are-qualifying-earnings",
+            "https://www.ato.gov.au/forms-and-instructions/employment-termination-payments-withholding-from-unused-leave-payments/payments-made-after-death",
+            "https://www.legislation.gov.au/C2004A04402/2026-07-01/2026-07-01/text/original/epub/OEBPS/document_1/document_1.html",
+        ],
+    ),
     ("schedule_5_method_a", SCHEDULE_5_EXTRA),
     ("schedule_5_method_b_i", SCHEDULE_5_EXTRA),
     ("schedule_5_method_b_ii", SCHEDULE_5_EXTRA),
@@ -674,6 +692,13 @@ pub const EXTRA_WARNINGS: &[(&str, &[&str])] = &[
         ],
     ),
     (
+        "unused_leave_payment",
+        &[
+            "Withholding, not the tax payable: on assessment assessable_income is assessable, a tax offset limits the rate of tax on offset_capped_income to 30% (ITAA 1997 ss 83-15 and 83-85), and the Medicare levy applies; the rest is taxed at marginal rates.",
+            "qualifying_earnings is the ATO's table for super guarantee from 1 July 2026; an award or agreement can still require super on these payments.",
+        ],
+    ),
+    (
         "fbt_board",
         &[
             "A board fringe benefit is a type 2 benefit (the employer's guide, 13.2): give taxable_value to fbt as part of type_two_value.",
@@ -754,6 +779,7 @@ pub const UNPUBLISHED_2027_28: &[(&str, &str)] = &[
     ("schedule_5_method_b_ii", WITHHOLDING_2027_28),
     ("working_holiday_maker_withholding", WITHHOLDING_2027_28),
     ("seniors_pensioners_withholding", WITHHOLDING_2027_28),
+    ("unused_leave_payment", WITHHOLDING_2027_28),
     (
         "termination_payment",
         "The 2027-28 ETP cap amounts and genuine redundancy tax-free limits had not been published when this was checked on 16 November 2026.",
@@ -1006,7 +1032,7 @@ pub const REFUSAL_CODES: &[(&str, &str)] = &[
     ),
     (
         "input.field_unknown",
-        "A field the worksheet or command does not take, or does not take beside the other inputs given, was given (fbt-loan, fbt-meal-entertainment, fbt-car-parking, fbt-debt-waiver, fbt-expense-payment, fbt-property, fbt-residual, fbt-housing, fbt-lafha, fbt-board, fbt-tax-exempt-body-entertainment, division-296, depreciation, foreign-resident-tax, medicare-levy, medicare-levy-surcharge, payg-withholding, payg-gross-up, termination-payment, the Schedule 5 methods, working-holiday-maker-withholding, study-loan-withholding, seniors-pensioners-withholding, seniors-pensioners-tax-offset, hire-purchase-schedule, derive, personal-tax-estimate, dgr-check and income-tests only).",
+        "A field the worksheet or command does not take, or does not take beside the other inputs given, was given (fbt-loan, fbt-meal-entertainment, fbt-car-parking, fbt-debt-waiver, fbt-expense-payment, fbt-property, fbt-residual, fbt-housing, fbt-lafha, fbt-board, fbt-tax-exempt-body-entertainment, division-296, depreciation, foreign-resident-tax, medicare-levy, medicare-levy-surcharge, payg-withholding, payg-gross-up, termination-payment, unused-leave-payment, the Schedule 5 methods, working-holiday-maker-withholding, study-loan-withholding, seniors-pensioners-withholding, seniors-pensioners-tax-offset, hire-purchase-schedule, derive, personal-tax-estimate, dgr-check and income-tests only).",
     ),
     ("input.flag_invalid", "A flag is not a JSON boolean."),
     ("input.fraction_invalid", "A fraction is outside 0 to 1."),
@@ -1060,6 +1086,10 @@ pub const REFUSAL_CODES: &[(&str, &str)] = &[
         "The withholding scale is not 1, 2, 3, 5 or 6 (or 4, for payg-withholding), or has no table for the period.",
     ),
     (
+        "input.termination_reason_invalid",
+        "A termination reason is not normal, genuine_redundancy, early_retirement_scheme, invalidity or death.",
+    ),
+    (
         "input.timing_invalid",
         "A payment timing is not in_arrears or in_advance.",
     ),
@@ -1068,6 +1098,26 @@ pub const REFUSAL_CODES: &[(&str, &str)] = &[
     (
         "input.years_of_service_invalid",
         "A count of completed years of service is not a whole number from 0 to 150.",
+    ),
+    (
+        "leave.accrual_split_invalid",
+        "A part of unused leave accrued before a date is more than its total, or is given above nil though the leave's accrual started on or after that date.",
+    ),
+    (
+        "leave.accrual_split_missing",
+        "A part of unused leave accrued before 16 August 1978 or 18 August 1993 is not given where the accrual start and termination reason make it change the tax.",
+    ),
+    (
+        "leave.death",
+        "Unused leave paid after an employee's death, which is not withheld from.",
+    ),
+    (
+        "leave.under_300_with_pre_1978",
+        "A post-17 August 1993 payment under $300 beside pre-16 August 1978 long service leave, which Schedule 7 does not say how to limit.",
+    ),
+    (
+        "leave.working_holiday_maker",
+        "Unused leave paid to a working holiday maker, whom Schedule 15 covers.",
     ),
     (
         "main_residence.absence_choice_period_invalid",
