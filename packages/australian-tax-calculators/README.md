@@ -1099,8 +1099,9 @@ source, extract time and licence, the scope, the limits below and the sources.
 It refuses a list that is empty, too long or not a list as
 `input.donations_invalid`, an ABN that is malformed or fails the check digit
 test as `input.abn_invalid`, a name that is not 1 to 200 characters with an
-ASCII letter or digit as `input.name_invalid`, a donation with neither as `input.missing_field`, and any
-other field as `input.field_unknown`; dates and amounts are refused as in the
+ASCII letter or digit as `input.name_invalid`, a donation with neither as
+`input.missing_field`, and any other field as `input.field_unknown`; dates and
+amounts are refused as in the
 other commands. One refused donation refuses the list. `derive` does not
 explain it.
 
