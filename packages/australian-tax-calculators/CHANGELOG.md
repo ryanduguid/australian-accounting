@@ -141,6 +141,23 @@ intentionally changed.
   message. The result for an established `taxable_income` without
   `tax_withheld` is unchanged apart from its sources, scope and
   `source_checked`.
+- `personal-tax-estimate` can work out `tax_withheld` from one employer's
+  regular pays: one pay's `payg-withholding`, `study-loan-withholding` or
+  `seniors-pensioners-withholding` inputs and `pays_in_year` (at most 53
+  weekly, 27 fortnightly, 12 monthly or 4 quarterly pays), with
+  `schedule-5-method-a` for one bonus paid with one of them, but not with a
+  Schedule 9 or quarterly pay or beside declared tax offsets, Medicare levy
+  adjustment or extra pay amount, which Method A here does not take. The tax withheld
+  is the pay's withholding times the pays, plus Method A's on the bonus, and
+  the amounts add `withholding_per_pay` and `additional_payment_withholding`.
+  A study loan pay needs `study-loan-repayment`; Schedule 9 or a study loan
+  for a foreign resident is refused as `estimate.residency_unsupported`, and a
+  scale that does not match the residency as the new code
+  `estimate.scale_mismatch`. A study loan pay in 2025-26, whose Schedule 8
+  coefficients changed on 24 September 2025, is refused as
+  `period.unsupported`, and `extra_pay_withholding` needs 53 weekly or 27
+  fortnightly pays. Its sources add TAA 1953 Sch 1 s 12-35. Results
+  without the new inputs are unchanged apart from the scope.
 - `derive` also covers `working-holiday-maker-withholding`,
   `study-loan-withholding`, `seniors-pensioners-withholding`, `quarterly-sg`
   and `borrowing-expenses`. Their steps cite the headings of Schedules 1, 8, 9
@@ -441,6 +458,23 @@ intentionally changed.
   `tests/dgr_check.rs` holds it to ABNs read the same in ABN Lookup's DGR
   listing and to the Library's worked example ¶7-020, and `tests/properties.rs`
   checks that it never reads an ABN in its data as absent.
+- `income-tests` works out 6 income measures for a full-year resident for
+  2024-25 to 2026-27 from taxable income and the components each definition
+  adds back: income for surcharge purposes (ITAA 1997 s 995-1), Division 293
+  income (s 293-20(1)(a)), rebate income (ITAA 1936 s 6(1)), repayment income
+  (HESA s 154-5), adjusted taxable income for offsets (Family Assistance Act
+  Sch 3) and the super co-contribution's total income (Superannuation
+  (Government Co-contribution for Low Income Earners) Act 2003 s 8). Each
+  measure is a `derive` step citing its definition, and `not_used` lists the
+  components each leaves out. Every component is required; a negative one, a
+  component larger than the amount that includes it, a part-year or foreign
+  resident and another year are refused. Income for surcharge purposes follows
+  s 995-1, which leaves out the exempt foreign employment income the ATO's
+  surcharge page adds, and warns when they differ. No command's behaviour
+  changes. No Python release has it. `tests/parity.rs` drops its catalogue
+  entry before comparing, and `tests/income_tests.rs` holds it to the ATO's
+  Christina and Tom examples, passes each measure to the command that takes
+  it and checks each adjustment and refusal.
 
 ### Documented divergences
 

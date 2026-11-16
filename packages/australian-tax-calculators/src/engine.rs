@@ -5974,7 +5974,10 @@ pub fn seniors_pensioners_tax_offset(
     Ok(out)
 }
 
-const KINDS: [&str; 42] = [
+mod income_tests;
+pub use income_tests::income_tests;
+
+const KINDS: [&str; 43] = [
     "gst",
     "resident_tax",
     "foreign_resident_tax",
@@ -6017,6 +6020,7 @@ const KINDS: [&str; 42] = [
     "fbt_lafha",
     "fbt_board",
     "fbt_tax_exempt_body_entertainment",
+    "income_tests",
 ];
 
 /// `periods(kind)`: accepted period arguments and inclusive calendar boundaries.
