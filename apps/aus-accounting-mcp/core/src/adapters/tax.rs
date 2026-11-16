@@ -84,9 +84,9 @@ fn served_scope(kind: &str, record: &mut Value) {
     }
 }
 
-/// The engine's worksheets and periods this server's input schema can reach. The
-/// linked engine can hold kinds, and periods outside a year the schema fixes or bounds,
-/// that the published contract does not advertise yet.
+/// The engine's worksheets, periods and optional inputs this server's input schema can
+/// reach. The linked engine can hold kinds, periods outside a year the schema fixes or
+/// bounds, and optional inputs that the published contract does not advertise yet.
 pub fn advertised_worksheets() -> Result<Value, String> {
     let mut catalogue =
         australian_tax_calculators::api::evaluate("worksheet-catalogue", &json!({}))?;
@@ -103,6 +103,13 @@ pub fn advertised_worksheets() -> Result<Value, String> {
             .and_then(|pointer| schema.pointer(pointer))
             .ok_or("facts variant")?;
         served_scope(kind, entry);
+        let fields = entry.as_object_mut().ok_or("worksheet entry")?;
+        if let Some(Value::Object(optional)) = fields.get_mut("optional_inputs") {
+            optional.retain(|name, _| variant["properties"].get(name).is_some());
+            if optional.is_empty() {
+                fields.remove("optional_inputs");
+            }
+        }
         if let Some(periods) = entry["supported_periods"].as_array_mut() {
             periods.retain(|period| {
                 period["arguments"].as_object().is_none_or(|arguments| {
@@ -360,6 +367,25 @@ mod tests {
         for wide in ["SAPTO", "spouse's", "family reduction"] {
             assert!(!scope.contains(wide), "{wide}: {scope}");
         }
+    }
+
+    /// The served catalogue offers no optional input its kind's published facts refuse,
+    /// such as the contribution caps carry-forward inputs.
+    #[test]
+    fn every_served_optional_input_is_a_published_fact() {
+        let catalogue = super::advertised_worksheets().unwrap();
+        let spec = crate::contracts::tool("calculate_tax_worksheet").unwrap();
+        let schema = &spec["inputSchema"];
+        let mapping = &schema["properties"]["facts"]["discriminator"]["mapping"];
+        for (kind, entry) in catalogue.as_object().unwrap() {
+            let pointer = mapping[kind].as_str().unwrap().strip_prefix('#').unwrap();
+            let facts = &schema.pointer(pointer).unwrap()["properties"];
+            let optional = entry.get("optional_inputs").and_then(Value::as_object);
+            for name in optional.into_iter().flat_map(|names| names.keys()) {
+                assert!(facts.get(name).is_some(), "{kind} offers {name}");
+            }
+        }
+        assert!(catalogue["contribution_caps"].get("optional_inputs").is_none());
     }
 
     /// The published contribution caps facts take only the unused total, so the served
