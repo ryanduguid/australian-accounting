@@ -2878,8 +2878,42 @@ pub fn medicare_levy_surcharge(
         days_in_year,
         spouse: surcharge_spouse(&family)?,
     };
+    if !meta::SURCHARGE_THRESHOLDS.iter().any(|(y, _)| *y == year) {
+        return surcharge_without_thresholds(&facts, &year);
+    }
     let (steps, rates) = precise(|| Ok(surcharge_working(&facts, &year)?))?;
     derived_result(SURCHARGE, &year, steps, rates)
+}
+
+/// A year whose thresholds are not yet published: the surcharge is nil when
+/// no day was without cover, since Medicare Levy Act 1986 ss 8B, 8C and 8D and
+/// the Fringe Benefits Act ss 12 to 14 apply only to a period without private
+/// patient hospital cover; any day without cover needs the thresholds.
+fn surcharge_without_thresholds(facts: &SurchargeFacts, year: &str) -> Result<Value> {
+    if facts.days > 0 {
+        let why = texts::UNPUBLISHED_2027_28
+            .iter()
+            .find(|(kind, _)| *kind == SURCHARGE)
+            .map_or("", |(_, why)| why);
+        return refuse(
+            "period.unsupported",
+            format!(
+                "{year} is supported only with days_without_cover 0, when no surcharge applies. {why}"
+            ),
+        );
+    }
+    let steps = vec![step(
+        "medicare_levy_surcharge",
+        "Medicare Levy Act 1986 ss 8B(1)(c), 8C(1)(c) and 8D(1)(b); Fringe Benefits Act ss 12(1)(b)(iii), 13(1)(b)(iii) and 14(1)(b): each applies only for a period without private patient hospital cover, so with no day without cover there is no surcharge, whatever the year's thresholds",
+        "0",
+        &[],
+        int(0),
+    )];
+    let rates = vec![
+        rate("days_without_cover", facts.days),
+        rate("days_in_year", facts.days_in_year),
+    ];
+    derived_result(SURCHARGE, year, steps, rates)
 }
 
 pub fn low_income_tax_offset(

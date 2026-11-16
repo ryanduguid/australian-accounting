@@ -164,7 +164,7 @@ fn the_rest_refuse_2027_28_and_say_why() {
         (
             "medicare-levy-surcharge",
             json!({"taxable_income": "100000", "reportable_fringe_benefits": "0",
-                   "income_for_surcharge_purposes": "100000", "days_without_cover": 0}),
+                   "income_for_surcharge_purposes": "100000", "days_without_cover": 30}),
             "Medicare levy surcharge income thresholds",
         ),
         (
@@ -193,20 +193,217 @@ fn the_rest_refuse_2027_28_and_say_why() {
     }
 }
 
-/// The estimate refuses a resident's 2027-28, whose working Australians tax
-/// offset it does not work out, but composes a foreign resident's, who has no
-/// such offset (ITAA 1997 s 61-155(1)(a)).
+/// Hire purchase (ITAA 1997 Division 240) sets no figure by year, and Act No.
+/// 49 of 2026 does not change it, so its 2027-28 refusal names no rental rule.
 #[test]
-fn the_estimate_refuses_a_residents_2027_28() {
-    let resident = json!({"year": YEAR, "scope_confirmed": true,
-        "residency": "full_year_resident", "taxable_income": "85000",
-        "medicare-levy": {"section_9a_adjustment_applies": false,
-                          "medicare_levy_exemption_full_days": 365}});
-    let refusal = api::evaluate_coded("personal-tax-estimate", &resident).unwrap_err();
+fn hire_purchase_refuses_2027_28_without_a_rental_reason() {
+    let input = json!({"amount_financed": "45000.00", "instalment": "850.00",
+        "instalments": 60, "balloon": "5000.00", "timing": "in_arrears",
+        "start_date": "2027-07-15", "year": YEAR, "scope_confirmed": true});
+    let refusal = api::evaluate_coded("hire-purchase-schedule", &input).unwrap_err();
     assert_eq!(refusal.code, "period.unsupported");
-    assert!(refusal.message.contains("s 61-155"), "{}", refusal.message);
+    assert_eq!(
+        refusal.message,
+        "Unsupported period '2027-28'; supported: 2024-25, 2025-26, 2026-27."
+    );
+}
+
+/// Medicare Levy Act 1986 ss 8B(1)(c), 8C(1)(c) and 8D(1)(b), and the Fringe
+/// Benefits Act ss 12 to 14, apply only for a period without private patient
+/// hospital cover: with no such day the surcharge is nil whatever 2027-28's
+/// unpublished thresholds, and with one the year is refused.
+#[test]
+fn the_surcharge_is_nil_in_2027_28_with_no_day_without_cover() {
+    let facts = |days: i64| {
+        json!({"taxable_income": "200000", "reportable_fringe_benefits": "5000",
+            "income_for_surcharge_purposes": "205000", "days_without_cover": days})
+    };
+    assert_eq!(
+        amount(
+            "medicare-levy-surcharge",
+            facts(0),
+            "medicare_levy_surcharge"
+        ),
+        "0.00"
+    );
+    let mut input = facts(1);
+    input["year"] = json!(YEAR);
+    input["scope_confirmed"] = json!(true);
+    let refusal = api::evaluate_coded("medicare-levy-surcharge", &input).unwrap_err();
+    assert_eq!(refusal.code, "period.unsupported");
+    assert_eq!(
+        refusal.message,
+        "2027-28 is supported only with days_without_cover 0, when no surcharge applies. The 2027-28 Medicare levy surcharge income thresholds had not been published when this was checked on 16 November 2026."
+    );
+}
+
+/// A full-year resident with hospital cover all year, as the estimate takes one.
+fn resident(extra: Value) -> Value {
+    let mut facts = json!({"year": YEAR, "scope_confirmed": true,
+        "residency": "full_year_resident",
+        "medicare-levy": {"section_9a_adjustment_applies": false},
+        "medicare-levy-surcharge": {"reportable_fringe_benefits": "0",
+            "income_for_surcharge_purposes": "0", "days_without_cover": 0}});
+    for (k, v) in extra.as_object().unwrap() {
+        facts[k] = v.clone();
+    }
+    facts
+}
+
+fn estimate(extra: Value) -> Value {
+    api::evaluate("personal-tax-estimate", &resident(extra)).unwrap()
+}
+
+/// ITAA 1997 ss 61-155 and 61-160 (Act No. 49 of 2026 Sch 3, for 2027-28 and
+/// later years), applied first (s 63-10(1) item 3). $85,000 of salary, $500
+/// of other income, $300 of work expenses and $200 of other deductions: the
+/// standard deduction is $1,000 - $300 = $700, taxable income $84,300 and net
+/// labour income $85,000 - $300 - $700 = $84,000, whose tax, $3,752 + 30% of
+/// $39,000 = $15,452, exceeds $250. Basic tax is $3,752 + 30% of $39,300 =
+/// $15,542, less $250 is $15,292; no LITO above $66,667; the levy is 2% of
+/// $84,300, $1,686; the total $16,978, against $17,000 withheld a $22 refund.
+#[test]
+fn a_residents_2027_28_estimate_applies_the_working_australians_tax_offset() {
+    let out = estimate(json!({"assessable_labour_income": "85000",
+        "other_assessable_income": "500", "work_related_deductions": "300",
+        "other_deductions": "200", "tax_withheld": "17000"}));
+    let a = &out["amounts"];
+    for (key, expected) in [
+        ("standard_deduction", "700.00"),
+        ("taxable_income", "84300.00"),
+        ("basic_income_tax", "15542.00"),
+        ("net_labour_income", "84000.00"),
+        ("working_australians_tax_offset", "250.00"),
+        ("working_australians_tax_offset_applied", "250.00"),
+        ("seniors_pensioners_tax_offset_applied", "0.00"),
+        ("low_income_tax_offset_applied", "0.00"),
+        ("income_tax_after_offsets", "15292.00"),
+        ("medicare_levy", "1686.00"),
+        ("medicare_levy_surcharge", "0.00"),
+        ("total_before_credits", "16978.00"),
+        ("refund", "22.00"),
+    ] {
+        assert_eq!(a[key], expected, "{key}");
+    }
+    let keys: Vec<&String> = a.as_object().unwrap().keys().collect();
+    let working: Vec<&String> = out["working"].as_object().unwrap().keys().collect();
+    assert_eq!(keys, working);
+    let at = keys.iter().position(|k| *k == "basic_income_tax").unwrap();
+    assert_eq!(
+        keys[at + 1..at + 4],
+        [
+            "net_labour_income",
+            "working_australians_tax_offset",
+            "working_australians_tax_offset_applied"
+        ]
+    );
+    let line = out["working"]["net_labour_income"].as_str().unwrap();
+    assert!(line.starts_with(
+        "max(0, assessable_labour_income - work_related_deductions - standard_deduction)"
+    ));
+    let sources = out["sources"].as_array().unwrap();
+    assert!(
+        sources
+            .iter()
+            .any(|s| s.as_str().unwrap().ends_with("/61-160"))
+    );
+}
+
+/// The offset is the tax on net labour income where that is under $250: on
+/// $19,000, 14% of $800 = $112, and on $18,201, 14 cents (s 61-160(b)); none
+/// at the $18,200 tax-free threshold (s 61-155(1)(b)). It comes off $30,000's
+/// basic tax of 14% of $11,800 = $1,652 before LITO's $700: $840 remains, and
+/// the levy is 10% of $1,989, $198.90.
+#[test]
+fn below_250_the_offset_is_the_tax_on_net_labour_income() {
+    for (net, offset) in [("19000", "112.00"), ("18201", "0.14"), ("18200", "0.00")] {
+        let out = estimate(json!({"taxable_income": "30000", "net_labour_income": net}));
+        let a = &out["amounts"];
+        assert_eq!(a["working_australians_tax_offset"], offset, "{net}");
+        assert_eq!(a["working_australians_tax_offset_applied"], offset, "{net}");
+        assert_eq!(a["low_income_tax_offset_applied"], "700.00", "{net}");
+        let line = out["working"]["net_labour_income"].as_str().unwrap();
+        assert!(line.ends_with("as established"), "{line}");
+    }
+    let out = estimate(json!({"taxable_income": "30000", "net_labour_income": "19000"}));
+    let a = &out["amounts"];
+    assert_eq!(a["income_tax_after_offsets"], "840.00");
+    assert_eq!(a["medicare_levy"], "198.90");
+    assert_eq!(a["total_before_credits"], "1038.90");
+}
+
+/// Applied first, the offset is limited by basic tax and leaves SAPTO what is
+/// left: taxable income $30,000 and net labour income $20,000 (14% of $1,800 =
+/// $252, so $250); basic tax $1,652 less $250 leaves $1,402, all SAPTO's
+/// $2,230 can take (rebate income $30,000, under the $37,137 threshold), and
+/// nothing for LITO. With taxable income $19,000 and net labour income
+/// $30,000, the offset is limited to the basic tax of $112.
+#[test]
+fn the_offset_comes_before_sapto_and_is_limited_by_basic_tax() {
+    let sapto = json!({"rebate_income": "30000", "status": "single"});
+    let out = estimate(
+        json!({"taxable_income": "30000", "net_labour_income": "20000",
+        "seniors-pensioners-tax-offset": sapto}),
+    );
+    let a = &out["amounts"];
+    assert_eq!(a["working_australians_tax_offset_applied"], "250.00");
+    assert_eq!(a["seniors_pensioners_tax_offset_applied"], "1402.00");
+    assert_eq!(a["low_income_tax_offset_applied"], "0.00");
+    assert_eq!(a["income_tax_after_offsets"], "0.00");
+    let out = estimate(json!({"taxable_income": "19000", "net_labour_income": "30000"}));
+    let a = &out["amounts"];
+    assert_eq!(a["working_australians_tax_offset"], "250.00");
+    assert_eq!(a["working_australians_tax_offset_applied"], "112.00");
+    assert_eq!(a["low_income_tax_offset_applied"], "0.00");
+    assert_eq!(a["total_before_credits"], "0.00");
+}
+
+/// net_labour_income is required beside taxable_income for a resident from
+/// 2027-28 and refused where the offset does not apply; a day without cover
+/// is refused through the surcharge part; a foreign resident is composed
+/// without the offset (ITAA 1997 s 61-155(1)(a)).
+#[test]
+fn the_estimates_2027_28_refusals() {
+    let refusal = |facts: Value| api::evaluate_coded("personal-tax-estimate", &facts).unwrap_err();
+    let r = refusal(resident(json!({"taxable_income": "85000"})));
+    assert_eq!(r.code, "input.missing_field");
+    assert_eq!(
+        r.message,
+        "net_labour_income is required with taxable_income for a resident from 2027-28: the working Australians tax offset (ITAA 1997 s 61-160) is worked out on it"
+    );
+    let mut earlier = resident(json!({"taxable_income": "85000", "net_labour_income": "85000"}));
+    earlier["year"] = json!("2026-27");
+    let foreign = json!({"year": YEAR, "scope_confirmed": true,
+        "residency": "foreign_resident", "taxable_income": "100000",
+        "net_labour_income": "100000"});
+    for facts in [earlier, foreign] {
+        let r = refusal(facts);
+        assert_eq!(r.code, "input.field_unknown");
+        assert_eq!(
+            r.message,
+            "net_labour_income is not an input of personal-tax-estimate here: the working Australians tax offset (ITAA 1997 s 61-155) is for a resident from 2027-28"
+        );
+    }
+    let surcharge = json!({"reportable_fringe_benefits": "0",
+        "income_for_surcharge_purposes": "85000", "days_without_cover": 10});
+    let r = refusal(resident(
+        json!({"taxable_income": "85000", "net_labour_income": "85000",
+        "medicare-levy-surcharge": surcharge}),
+    ));
+    assert_eq!(r.code, "period.unsupported");
+    assert!(
+        r.message
+            .starts_with("medicare-levy-surcharge: 2027-28 is supported only"),
+        "{}",
+        r.message
+    );
     let foreign = json!({"year": YEAR, "scope_confirmed": true,
         "residency": "foreign_resident", "taxable_income": "100000"});
     let out = api::evaluate("personal-tax-estimate", &foreign).unwrap();
     assert_eq!(out["amounts"]["basic_income_tax"], "30000.00");
+    assert!(
+        out["amounts"]
+            .get("working_australians_tax_offset")
+            .is_none()
+    );
 }

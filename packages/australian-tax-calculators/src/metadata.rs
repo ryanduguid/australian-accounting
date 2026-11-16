@@ -906,7 +906,8 @@ pub fn supported_periods(kind: &str) -> Vec<&'static str> {
         "resident_tax" => keys(RESIDENT_TAX_SCALES),
         "foreign_resident_tax" => keys(FOREIGN_RESIDENT_TAX_SCALES),
         "main_residence" => vec!["2024-25", "2025-26", "2026-27"],
-        // s 26-155 quarantines residential rental deductions from 2027-28.
+        // Borrowing expenses: s 26-155 quarantines residential rental deductions
+        // from 2027-28. Hire purchase: the years read.
         "borrowing_expenses" | "hire_purchase_schedule" => vec!["2024-25", "2025-26", "2026-27"],
         "fbt" => vec!["2026", "2027"],
         "fbt_car_statutory" | "fbt_car_operating_cost" | "fbt_loan" => {
@@ -925,7 +926,9 @@ pub fn supported_periods(kind: &str) -> Vec<&'static str> {
         "study_loan_repayment" => keys(STUDY_LOAN_REPAYMENT_THRESHOLDS),
         "study_loan_withholding" => keys(STUDY_LOAN_WITHHOLDING_COEFFICIENTS),
         "medicare_levy" => keys(MEDICARE_LOW_INCOME_THRESHOLDS),
-        "medicare_levy_surcharge" => keys(SURCHARGE_THRESHOLDS),
+        // 2027-28 only with no day without cover, whose surcharge is nil
+        // whatever the thresholds, which are not yet published.
+        "medicare_levy_surcharge" => [keys(SURCHARGE_THRESHOLDS), vec!["2027-28"]].concat(),
         "low_income_tax_offset" => LOW_INCOME_TAX_OFFSET_YEARS.to_vec(),
         "division_293" => DIVISION_293_YEARS.to_vec(),
         "division_296" => DIVISION_296_YEARS.to_vec(),

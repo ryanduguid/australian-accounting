@@ -705,7 +705,6 @@ pub const UNPUBLISHED_2027_28: &[(&str, &str)] = &[
     ("capital_gains", CGT_2027_28),
     ("main_residence", CGT_2027_28),
     ("borrowing_expenses", RENTAL_2027_28),
-    ("hire_purchase_schedule", RENTAL_2027_28),
     (
         "depreciation",
         "2027-28 has 366 days, and this worksheet takes at most 365 days held.",

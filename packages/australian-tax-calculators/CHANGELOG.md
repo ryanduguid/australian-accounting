@@ -425,10 +425,21 @@ intentionally changed.
   thresholds, contribution caps, ETP caps and indexed Division 296
   thresholds were not yet published; CGT changes from 1 July 2027 (Act No.
   49 of 2026, Schedule 1) and s 26-155 limits rental deductions; or 2027-28's
-  366 days exceed the 365 `depreciation` takes. `personal-tax-estimate`
-  refuses 2027-28 for a resident, whose working Australians tax offset (s
-  61-155) and minimum tax on capital gains it does not work out, and composes
-  it for a foreign resident, who has neither. `tests/parity.rs` adds 2027-28
+  366 days exceed the 365 `depreciation` takes. `medicare-levy-surcharge`
+  takes 2027-28 only with `days_without_cover` 0, when Medicare Levy Act 1986
+  ss 8B, 8C and 8D leave no surcharge whatever the thresholds, and refuses a
+  day without cover. `personal-tax-estimate` composes 2027-28 for a foreign
+  resident, and for a resident applies the working Australians tax offset
+  (ITAA 1997 ss 61-155 and 61-160) first (s 63-10(1) item 3): the lesser of
+  $250 and the basic income tax on net labour income, which it takes as the
+  new `net_labour_income` (required beside `taxable_income`) or works out from
+  the labour inputs. The amounts add `net_labour_income`,
+  `working_australians_tax_offset` and `working_australians_tax_offset_applied`;
+  its sources add ss 61-155 and 61-160. It does not work out the s 119-10
+  extra tax on a minimum tax capital gain, which its scope excludes. Results
+  before 2027-28 are unchanged apart from the scope and sources.
+  `hire-purchase-schedule`'s 2027-28 refusal gives no reason: s 26-155 does
+  not touch it. `tests/parity.rs` adds 2027-28
   to the 6 frozen commands' supported periods, catalogue and refusals, adds
   the reason to the 13 frozen 2027-28 refusals of the others, and skips the
   17 frozen calls that expected 2027-28 to be refused; `tests/year_2027_28.rs`
