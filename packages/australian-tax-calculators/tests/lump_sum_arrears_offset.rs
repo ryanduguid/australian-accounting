@@ -277,6 +277,21 @@ fn the_repair_levy_years_add_2_percent_above_180000() {
     }
 }
 
+/// The levy also applies in a year of receipt: $30,000 of arrears received in
+/// 2014-15 on $200,000 is $10,000 at 37% from $170,000 to $180,000, $3,700,
+/// and $20,000 at 45% plus the 2% levy above $180,000, $9,400: $13,100. In
+/// 2012-13, $150,000 rises to $180,000 within the 37% band: $11,100. The
+/// threshold, 10% of $170,000, is $17,000, so the offset is $2,000.
+#[test]
+fn the_repair_levy_applies_in_a_year_of_receipt() {
+    let accrual = json!([{"year": "2012-13", "arrears": "30000", "taxable_income": "150000"}]);
+    let result = evaluate(&input("2014-15", "200000", "0", accrual));
+    let amounts = &result["amounts"];
+    assert_eq!(amounts["tax_on_arrears"], "13100.00");
+    assert_eq!(amounts["notional_tax_most_recent_year"], "11100.00");
+    assert_eq!(amounts["lump_sum_arrears_tax_offset"], "2000.00");
+}
+
 /// The offset is never more than the tax on the arrears, and nil when the
 /// test is not met.
 #[test]
