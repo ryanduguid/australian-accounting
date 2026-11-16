@@ -1760,6 +1760,55 @@ $19,830 of the guide's example 16 gives $5,949 in 2024-25 where a resident pays
 $260.80 and then nothing after the low income tax offset, and $250,000 gives
 $87,850, with Division 293 tax of 15% of $30,000, $4,500, outside the total.
 
+## Income year 2027-28
+
+Read on 16 November 2026 to decide which worksheets take 2027-28. A worksheet
+takes it only when every rate and threshold it uses is already set for that
+year; the others refuse it and say what is missing.
+
+| Parameter | 2027-28 | Source, time read (AEDT) |
+| --- | --- | --- |
+| Resident rates | Enacted: 14% to $45,000, 30% to $135,000, 37% to $190,000, 45% above, from $18,200 | Income Tax Rates Act 1986 Sch 7 Part I clause 1(b), compilation 66 (https://www.legislation.gov.au/C2004A03348/2026-07-01/2026-07-01/text/original/epub/OEBPS/document_1/document_1.html), 16:07; the ATO's 'Tax rates - Australian residents' gave years only to 2026-27 |
+| Foreign resident rates | Enacted: 30%, 37% and 45%, tied to the second and third resident rates | The same Act, Part II, 16:07; the ATO's 'Tax rates - foreign residents' gave none for 2027-28 |
+| Low income tax offset | Enacted, no year: $700, less 5 cents a dollar from $37,500 and 1.5 cents from $45,000 | ITAA 1997 s 61-115 (https://www.ato.gov.au/law/view/document?docid=PAC/19970038/61-115), 16:07 |
+| Medicare levy thresholds | Enacted: the 2025-26 figures, which Act No. 58, 2026 Sch 5 item 14 applies to later years | Medicare Levy Act 1986 ss 3(1) and 8, compilation 53 (https://www.legislation.gov.au/C2004A03351/2026-07-01/2026-07-01/text/original/epub/OEBPS/document_1/document_1.html), 16:08; the ATO's low-income page gave 2025-26 only |
+| SAPTO thresholds | Set by formula: s 9 and 10 at the 14% lowest rate give $37,137 and $54,977 single, $35,950 and $52,270 illness-separated, $32,822 and $45,638 a couple | Income Tax Assessment (1936 Act) Regulations 2025 (https://www.legislation.gov.au/F2025L01060/asmade/text), 16:09; the ATO's SAPTO page (last updated 2 October 2026) gave 2025-26 only |
+| Division 293 | Enacted, no year: $250,000 and 15% | ITAA 1997 s 293-20 (https://www.ato.gov.au/law/view/document?docid=PAC/19970038/293-20), 16:07 |
+| GST | Enacted, no year: 10% | GST Act s 9-70 (https://www.ato.gov.au/law/view/document?docid=PAC/19990055/9-70), 16:13 |
+| Pension minimum | Standing: SISR Schedule 7 age factors, pro-rated over 366 days in a leap year, to the nearest $10 | ATO 'Income stream (pension) rules and payments', 16:13 |
+| Working Australians tax offset | Enacted from 2027-28: the lesser of $250 and the basic income tax on net labour income, for a resident whose net labour income exceeds the tax-free threshold; applied first (s 63-10(1) item 3) | ITAA 1997 ss 61-150 to 61-160 and 63-10 (https://www.ato.gov.au/law/view/document?docid=PAC/19970038/61-160), 16:55; Act No. 49 of 2026 Sch 3, item 4 applying it to assessments for 2027-28 and later years (https://www.legislation.gov.au/C2026A00049/asmade/text), 16:59; the estimate applies it |
+| Minimum tax on capital gains | Enacted from 2027-28 for a resident | ITAA 1997 s 119-10 (https://www.ato.gov.au/law/view/document?docid=PAC/19970038/119-10), 16:13; not worked out, and `resident-tax` warns |
+| Withholding schedules | Not published: the latest are for payments from 1 July 2026 | ATO 'Tax tables' (https://www.ato.gov.au/tax-rates-and-codes/tax-tables-overview, last updated 17 June 2026), 15:58 |
+| Medicare levy surcharge thresholds | Not published; with no day without cover the surcharge is nil, as Medicare Levy Act 1986 ss 8B(1)(c), 8C(1)(c) and 8D(1)(b) and the Fringe Benefits Act ss 12(1)(b)(iii), 13(1)(b)(iii) and 14(1)(b) apply only to a period without private patient hospital cover | ATO thresholds page (last updated 22 June 2026, years to 2026-27), 16:07; both Acts as compiled at 1 July 2026, 17:05 |
+| Study loan repayment thresholds | Not published | ATO minimum repayment income page (last updated 30 June 2026, years to 2026-27), 16:07 |
+| Contribution caps, ETP caps | Not published | ATO contributions caps page (last updated 11 September 2026) and ETP page (17 April 2026), 16:07 |
+| Division 296 thresholds | Not published: indexed from 2027-28 | ATO Division 296 page (last updated 3 November 2026, 2026-27 only), 16:13 |
+| CGT and rental deductions | Changed from 1 July 2027 by Act No. 49 of 2026 Schedules 1 and 2 (s 26-155) | ITAA 1997 s 26-155 (https://www.ato.gov.au/law/view/document?docid=PAC/19970038/26-155), 16:13 |
+
+Worked by hand: resident tax on $45,000 is 14% of $26,800, $3,752; on
+$100,000, $3,752 + 30% of $55,000 = $20,252; on $250,000, $51,102 + 45% of
+$60,000 = $78,102. A foreign resident's $200,000 gives $40,500 + 37% of $55,000
++ 45% of $10,000 = $65,350. The Medicare levy on $30,000 is 10% of $1,989,
+$198.90. A single person's SAPTO threshold, from s 9(6) as (0.14 x 18,200 +
+445 + 2,230 + 37,000 x (0.015 + 0.30 - 0.14)) / 0.315, is $37,136.51, rounded
+up to $37,137. A pension of $250,000 at age 67 for 181 of 2027-28's 366 days
+has a minimum of 5% x 250,000 x 181 / 366 = $6,181.42, or $6,180.
+
+The working Australians tax offset, read on 16 November 2026 in Act No. 49 of
+2026 as made and on the ATO legal database: s 61-155(1) entitles an individual
+resident at any time in the year whose net labour income (labour amounts less
+labour deductions, s 61-155(2)) exceeds the tax-free threshold, $18,200 under
+the Income Tax Rates Act 1986 s 3(1); s 61-160 sets the offset as the lesser
+of $250 and the basic income tax liability on a taxable income of that net
+labour income alone; Sch 3 item 2 inserts it as s 63-10(1) item 3, before
+SAPTO (item 5) and the low income tax offset (item 20), non-refundable. No
+figure is left to an instrument. Worked by hand: $85,000 of salary, $300 of
+work expenses and the $700 standard deduction leave $84,000 of net labour
+income, whose tax of $15,452 gives the full $250; $19,000 gives 14% of $800,
+$112, and $18,201 gives 14 cents. The labour inputs' `work_related_deductions`
+are the s 25-130(2)(c) to (g) kinds, all labour deductions under
+s 61-155(2)(a) and (e), and the standard deduction is one under (c).
+
 ## Rechecking the evidence
 
 Resolve the numbered paragraph with the Library helper, read the extract's

@@ -40,6 +40,15 @@ pub const RESIDENT_TAX_SCALES: &[(&str, &[(i64, Option<i64>, &str)])] = &[
             (190000, None, "0.45"),
         ],
     ),
+    (
+        "2027-28",
+        &[
+            (18200, Some(45000), "0.14"),
+            (45000, Some(135000), "0.30"),
+            (135000, Some(190000), "0.37"),
+            (190000, None, "0.45"),
+        ],
+    ),
 ];
 
 /// Foreign resident basic tax scale per income year, in the same form. Income
@@ -65,6 +74,14 @@ pub const FOREIGN_RESIDENT_TAX_SCALES: &[(&str, &[(i64, Option<i64>, &str)])] = 
     ),
     (
         "2026-27",
+        &[
+            (0, Some(135000), "0.30"),
+            (135000, Some(190000), "0.37"),
+            (190000, None, "0.45"),
+        ],
+    ),
+    (
+        "2027-28",
         &[
             (0, Some(135000), "0.30"),
             (135000, Some(190000), "0.37"),
@@ -419,11 +436,13 @@ pub const STUDY_LOAN_REPAYMENT_RATES: [(&str, &str); 3] =
 
 /// Medicare levy (threshold amount, phase-in limit) for a single person. Act
 /// No. 58, 2026, Sch 5 item 14 applies the s 3(1) figures to 2025-26 and later
-/// years, so 2026-27 has the 2025-26 figures until an amendment changes them.
+/// years, so 2026-27 and 2027-28 have the 2025-26 figures until an amendment
+/// changes them.
 pub const MEDICARE_LOW_INCOME_THRESHOLDS: &[(&str, (&str, &str))] = &[
     ("2024-25", ("27222", "34027")),
     ("2025-26", ("28011", "35013")),
     ("2026-27", ("28011", "35013")),
+    ("2027-28", ("28011", "35013")),
 ];
 /// The same for a person entitled to the seniors and pensioners tax offset:
 /// s 3(1) as Act No. 28, 2025, Sch 2 (2024-25 and later years) and Act No. 58,
@@ -432,6 +451,7 @@ pub const MEDICARE_SAPTO_THRESHOLDS: &[(&str, (&str, &str))] = &[
     ("2024-25", ("43020", "53775")),
     ("2025-26", ("44268", "55335")),
     ("2026-27", ("44268", "55335")),
+    ("2027-28", ("44268", "55335")),
 ];
 /// s 8(5) and (7), from the same Acts: the family income threshold, the
 /// threshold for a person entitled to the seniors and pensioners tax offset,
@@ -440,6 +460,7 @@ pub const MEDICARE_FAMILY_THRESHOLDS: &[(&str, (&str, &str, &str))] = &[
     ("2024-25", ("45907", "59886", "4216")),
     ("2025-26", ("47238", "61623", "4338")),
     ("2026-27", ("47238", "61623", "4338")),
+    ("2027-28", ("47238", "61623", "4338")),
 ];
 /// s 6(1), s 7(2) and the 0.08 in the s 8(2) formula.
 pub const MEDICARE_LEVY_RATES: [(&str, &str); 3] = [
@@ -474,10 +495,10 @@ pub const LOW_INCOME_TAX_OFFSET: [(&str, &str); 7] = [
     ("second_rate", "0.015"),
     ("cut_out", "66667"),
 ];
-pub const LOW_INCOME_TAX_OFFSET_YEARS: [&str; 3] = ["2024-25", "2025-26", "2026-27"];
+pub const LOW_INCOME_TAX_OFFSET_YEARS: [&str; 4] = ["2024-25", "2025-26", "2026-27", "2027-28"];
 
 pub const DIVISION_293: [(&str, &str); 2] = [("threshold", "250000"), ("rate", "0.15")];
-pub const DIVISION_293_YEARS: [&str; 3] = ["2024-25", "2025-26", "2026-27"];
+pub const DIVISION_293_YEARS: [&str; 4] = ["2024-25", "2025-26", "2026-27", "2027-28"];
 
 /// ITAA 1997 ss 296-30 and 296-35 (2026-27 thresholds; later years are indexed)
 /// and the Superannuation (Building a Stronger and Fairer Super System) Imposition
@@ -878,12 +899,15 @@ fn keys<T>(table: &[(&'static str, T)]) -> Vec<&'static str> {
 /// `SUPPORTED_PERIODS[kind]`.
 pub fn supported_periods(kind: &str) -> Vec<&'static str> {
     match kind {
-        "gst" | "capital_gains" | "depreciation" => vec!["2025-26", "2026-27"],
+        // The GST rate (GST Act s 9-70) has no year; the years are those read.
+        "gst" => vec!["2025-26", "2026-27", "2027-28"],
+        "capital_gains" | "depreciation" => vec!["2025-26", "2026-27"],
         "quarterly_sg" => vec!["2025-26"],
         "resident_tax" => keys(RESIDENT_TAX_SCALES),
         "foreign_resident_tax" => keys(FOREIGN_RESIDENT_TAX_SCALES),
         "main_residence" => vec!["2024-25", "2025-26", "2026-27"],
-        // s 26-155 quarantines residential rental deductions from 2027-28.
+        // Borrowing expenses: s 26-155 quarantines residential rental deductions
+        // from 2027-28. Hire purchase: the years read.
         "borrowing_expenses" | "hire_purchase_schedule" => vec!["2024-25", "2025-26", "2026-27"],
         "fbt" => vec!["2026", "2027"],
         "fbt_car_statutory" | "fbt_car_operating_cost" | "fbt_loan" => {
@@ -898,11 +922,13 @@ pub fn supported_periods(kind: &str) -> Vec<&'static str> {
         "fbt_debt_waiver" | "fbt_expense_payment" | "fbt_property" => vec!["2026", "2027"],
         "payg_withholding" | "payg_gross_up" => keys(PAYG_WITHHOLDING_COEFFICIENTS),
         "contribution_caps" => keys(CONTRIBUTION_CAPS),
-        "pension_minimum" => vec!["2024-25", "2025-26", "2026-27"],
+        "pension_minimum" => vec!["2024-25", "2025-26", "2026-27", "2027-28"],
         "study_loan_repayment" => keys(STUDY_LOAN_REPAYMENT_THRESHOLDS),
         "study_loan_withholding" => keys(STUDY_LOAN_WITHHOLDING_COEFFICIENTS),
         "medicare_levy" => keys(MEDICARE_LOW_INCOME_THRESHOLDS),
-        "medicare_levy_surcharge" => keys(SURCHARGE_THRESHOLDS),
+        // 2027-28 only with no day without cover, whose surcharge is nil
+        // whatever the thresholds, which are not yet published.
+        "medicare_levy_surcharge" => [keys(SURCHARGE_THRESHOLDS), vec!["2027-28"]].concat(),
         "low_income_tax_offset" => LOW_INCOME_TAX_OFFSET_YEARS.to_vec(),
         "division_293" => DIVISION_293_YEARS.to_vec(),
         "division_296" => DIVISION_296_YEARS.to_vec(),
@@ -914,7 +940,7 @@ pub fn supported_periods(kind: &str) -> Vec<&'static str> {
         "seniors_pensioners_withholding" => keys(SENIORS_PENSIONERS_COEFFICIENTS),
         // The years checked against the regulations; the thresholds follow each
         // year's Schedule 7 rates, but a new year needs its own review.
-        "seniors_pensioners_tax_offset" => vec!["2024-25", "2025-26", "2026-27"],
+        "seniors_pensioners_tax_offset" => vec!["2024-25", "2025-26", "2026-27", "2027-28"],
         // The years the ATO's return instructions and employer's guide were
         // read for; housing's indexed method also takes the year's factors.
         "fbt_residual" | "fbt_lafha" | "fbt_board" | "fbt_tax_exempt_body_entertainment" => {

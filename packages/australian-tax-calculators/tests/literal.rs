@@ -24,7 +24,7 @@ fn a_period_prints_as_pythons_repr_of_the_decoded_value() {
         let err = evaluate("gst", &serde_json::from_str(&input).unwrap()).unwrap_err();
         assert_eq!(
             err,
-            format!("Unsupported period {shown}; supported: 2025-26, 2026-27."),
+            format!("Unsupported period {shown}; supported: 2025-26, 2026-27, 2027-28."),
             "{year}"
         );
     }
