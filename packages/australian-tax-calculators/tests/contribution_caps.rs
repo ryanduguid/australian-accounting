@@ -216,6 +216,84 @@ fn an_earlier_years_increase_uses_the_earliest_unused_cap_first() {
     assert_eq!(amount(&proposed, "excess_with_proposal"), "2500.00");
 }
 
+/// A hand-worked 6-year chain to 2025-26 under s 291-20(3) to (7). 2021-22 is
+/// $12,500 over its cap at a $600,000 balance, so nothing is applied that
+/// year (s 291-20(3)(b)); 2023-24 sits exactly at its cap, leaving no unused
+/// cap; 2024-25 is $5,000 over below $500,000 and applies 2019-20's amount
+/// first, whose other $10,000 lapses unused at the end of 2024-25. In 2025-26,
+/// contributions exactly at the cap apply nothing and 2020-21's $5,000 lapses
+/// at the year's end.
+fn chain() -> Value {
+    json!([
+        {"year": "2019-20", "concessional_contributions": "10000"},
+        {"year": "2020-21", "concessional_contributions": "20000"},
+        {"year": "2021-22", "concessional_contributions": "40000", "total_super_balance": "600000"},
+        {"year": "2022-23", "concessional_contributions": "20000"},
+        {"year": "2023-24", "concessional_contributions": "27500"},
+        {"year": "2024-25", "concessional_contributions": "35000", "total_super_balance": "450000"},
+    ])
+}
+
+#[test]
+fn a_6_year_chain_lapses_the_oldest_amount_unused() {
+    let result = run(&input("2025-26", "450000", "30000", chain()));
+    for (key, value) in [
+        ("unused_cap_2019_20", "15000.00"),
+        ("unused_cap_2020_21", "5000.00"),
+        ("unused_cap_2021_22", "0.00"),
+        ("unused_cap_2022_23", "7500.00"),
+        ("unused_cap_2023_24", "0.00"),
+        ("applied_2019_20_in_2024_25", "5000.00"),
+        ("unused_cap_2024_25", "0.00"),
+        ("carried_forward_2020_21", "5000.00"),
+        ("carried_forward_2022_23", "7500.00"),
+        ("unused_concessional_cap", "12500.00"),
+        ("carry_forward_applied", "0.00"),
+        ("concessional_available", "42500.00"),
+        ("concessional_remaining", "12500.00"),
+        ("excess_concessional", "0.00"),
+        ("remaining_2020_21", "5000.00"),
+        ("unused_cap_expiring", "5000.00"),
+        ("unused_cap_2025_26", "0.00"),
+    ] {
+        assert_eq!(amount(&result, key), value, "{key}");
+    }
+    // 2021-22's balance stopped its increase; 2019-20's last $10,000 is gone.
+    for absent in [
+        "applied_2019_20_in_2021_22",
+        "applied_2020_21_in_2024_25",
+        "carried_forward_2019_20",
+        "applied_2020_21_in_2025_26",
+    ] {
+        assert!(result["amounts"][absent].is_null(), "{absent}");
+    }
+    // A $6,000 proposal applies 2020-21's $5,000, skips 2021-22's nil and
+    // takes $1,000 of 2022-23's, so nothing lapses this year.
+    let proposed = run(&with(
+        input("2025-26", "450000", "30000", chain()),
+        json!({"proposed_concessional_contribution": "6000"}),
+    ));
+    for (key, value) in [
+        ("applied_2020_21_in_2025_26", "5000.00"),
+        ("applied_2022_23_in_2025_26", "1000.00"),
+        ("remaining_2022_23", "6500.00"),
+        ("unused_cap_expiring", "0.00"),
+        ("excess_with_proposal", "0.00"),
+    ] {
+        assert_eq!(amount(&proposed, key), value, "{key}");
+    }
+    assert!(proposed["amounts"]["applied_2021_22_in_2025_26"].is_null());
+    assert_eq!(
+        proposed["unused_cap_expiry"][0],
+        json!({"year": "2020-21", "remaining": "0.00", "expires_at_end_of": "2025-26"})
+    );
+    // A balance on a year within its cap has no effect but is still checked.
+    let mut rows = chain();
+    rows[0]["total_super_balance"] = json!("-1");
+    let (code, _) = refused(&input("2025-26", "450000", "30000", rows));
+    assert_eq!(code, "input.amount_invalid");
+}
+
 /// At or above $500,000 just before the year there is no increase that year
 /// (s 291-20(3)(b)), but the basic cap is reported, the unused amounts still
 /// age, and the 5th year's lapses at the year's end.
