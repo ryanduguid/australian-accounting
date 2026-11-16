@@ -13,7 +13,7 @@ use std::io::Write;
 use std::process::{Command, Stdio};
 
 /// The commands `derive` explains.
-const DERIVED: [&str; 40] = [
+const DERIVED: [&str; 41] = [
     "fbt",
     "fbt-car-statutory",
     "fbt-car-operating-cost",
@@ -54,6 +54,7 @@ const DERIVED: [&str; 40] = [
     "gst",
     "depreciation",
     "hire-purchase-schedule",
+    "income-tests",
 ];
 
 /// (command, input) for each derived kind: the ATO's published examples and
@@ -2004,7 +2005,7 @@ fn derive_refuses_what_it_does_not_explain() {
          medicare-levy, medicare-levy-surcharge, division-296, contribution-caps, \
          study-loan-repayment, capital-gains, main-residence, fbt-residual, fbt-housing, \
          fbt-lafha, fbt-board, fbt-tax-exempt-body-entertainment, gst, depreciation, \
-         hire-purchase-schedule, not \"payg-gross-up\""
+         hire-purchase-schedule, income-tests, not \"payg-gross-up\""
     );
 }
 
