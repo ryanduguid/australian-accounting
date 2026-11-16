@@ -6,6 +6,7 @@ mod dates;
 pub mod decimal;
 pub mod engine;
 mod estimate;
+mod fbt_return;
 pub mod metadata;
 mod pytext;
 mod tables;

@@ -475,9 +475,10 @@ fn python_api_corpus_matches() {
         serde_json::from_str(include_str!("data/python-api.json")).expect("corpus parses");
     assert!(corpus.len() > 3000, "corpus too small: {}", corpus.len());
     for command in api::commands() {
-        // derive and personal-tax-estimate are new too; tests/derivation.rs
-        // and tests/personal_tax_estimate.rs cover them.
-        if matches!(command, "derive" | "personal-tax-estimate")
+        // derive, personal-tax-estimate and fbt-return are new too;
+        // tests/derivation.rs, tests/personal_tax_estimate.rs and
+        // tests/fbt_return.rs cover them.
+        if matches!(command, "derive" | "personal-tax-estimate" | "fbt-return")
             || NEW_KINDS.iter().any(|(c, _)| *c == command)
         {
             continue;
