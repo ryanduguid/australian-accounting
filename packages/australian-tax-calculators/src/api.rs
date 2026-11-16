@@ -498,7 +498,7 @@ pub fn commands() -> Vec<&'static str> {
 /// a study loan: the withholding is worked on the gross, so no step can work
 /// the gross out from the inputs and earlier steps alone. `derive` of that
 /// command on its `gross_pay` shows that withholding.
-const DERIVED: [&str; 42] = [
+const DERIVED: [&str; 43] = [
     "fbt",
     "fbt-car-statutory",
     "fbt-car-operating-cost",
