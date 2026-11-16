@@ -16,13 +16,14 @@ use std::collections::{BTreeMap, BTreeSet};
 
 const COMMAND: &str = "fbt-return";
 
-/// What an item 23 label's Number column counts (FBT return 2026
-/// instructions, item 23): cars, loans and units of accommodation, one to a
-/// worksheet run, or the employees who received an allowance.
+/// What an item 23 label's Number column holds (FBT return 2026
+/// instructions, item 23): at 23G the employees who received an allowance,
+/// one to an employee label. 23A, 23B, 23C and 23F count cars, loans and units
+/// of accommodation, which the benefits do not identify, so those are left to
+/// the preparer; the other labels' Number is left blank.
 #[derive(Clone, Copy)]
 enum Count {
     Blank,
-    Benefits,
     Employees,
 }
 
@@ -53,17 +54,12 @@ const NEITHER: Columns = Columns {
 
 /// The benefit worksheets the return composes, each with its item 23 label.
 const ROWS: [(&str, &str, Count, Columns); 13] = [
-    ("fbt-car-statutory", "23A", Count::Benefits, CONTRIBUTION),
-    (
-        "fbt-car-operating-cost",
-        "23B",
-        Count::Benefits,
-        CONTRIBUTION,
-    ),
-    ("fbt-loan", "23C", Count::Benefits, REDUCTIONS),
+    ("fbt-car-statutory", "23A", Count::Blank, CONTRIBUTION),
+    ("fbt-car-operating-cost", "23B", Count::Blank, CONTRIBUTION),
+    ("fbt-loan", "23C", Count::Blank, REDUCTIONS),
     ("fbt-debt-waiver", "23D", Count::Blank, NEITHER),
     ("fbt-expense-payment", "23E", Count::Blank, BOTH),
-    ("fbt-housing", "23F", Count::Benefits, CONTRIBUTION),
+    ("fbt-housing", "23F", Count::Blank, CONTRIBUTION),
     ("fbt-lafha", "23G", Count::Employees, REDUCTIONS),
     ("fbt-board", "23J", Count::Blank, BOTH),
     ("fbt-property", "23K", Count::Blank, BOTH),
@@ -101,7 +97,7 @@ const BENEFIT_INPUTS: [&str; 6] = [
 /// the individual fringe benefits amount is more than $2,000.
 const REPORTING_THRESHOLD: i64 = 2000;
 
-const SCOPE: &str = "One ordinary taxable employer's fringe benefits for one FBT year, each valued by its own benefit worksheet (fbt-car-statutory, fbt-car-operating-cost, fbt-loan, fbt-debt-waiver, fbt-expense-payment, fbt-housing, fbt-lafha, fbt-board, fbt-property, fbt-tax-exempt-body-entertainment, fbt-residual, fbt-car-parking or fbt-meal-entertainment) on the inputs given, with the employee it relates to, whether it is a GST-creditable benefit (type 1) or not (type 2), and whether it is an excluded fringe benefit under FBTAA s 5E(3), all established by the operator. Confirming scope confirms the scope each worksheet states under components. Adds each benefit's taxable value, excluded benefits included, into the type 1 and type 2 aggregate fringe benefits amounts (s 5C(3) and (4)) and gives them to fbt, which grosses them up and works out the fringe benefits taxable amount and the tax (s 5B(1A) to (1C)). Each employee's individual fringe benefits amount is the sum of the taxable values of their benefits that are not excluded (s 5E(2)), an exempt electric car's notional value included (s 135P(3)); where it is more than $2,000, the reportable fringe benefits amount is that sum times 1 / (1 - the FBT rate) (s 135P(1) and (2)), worked out from fbt's FBT rate as the formula states, not from the 1.8868 the ATO publishes for it, which can give a dollar more; it is given in whole dollars with the cents dropped, which no provision states: the ATO's examples do so (the employer's guide, 5.4, gives $3,500 / (1 - 0.47) as $6,603). Item 23's Number column counts the benefits at the label, each taken as one car, loan or unit of accommodation, and at 23G the employee labels, each taken as one employee; where one is given as several benefits, or a label stands for several employees, the preparer corrects the count. Each benefit belongs wholly to one employee label: a benefit shared by employees or valued with others in a class (s 5F(3) and (4)), and a benefit partly GST-creditable, are given as separate benefits by the operator. Excess employee contributions are not applied to other benefits. Not for a rebatable employer, a public or not-for-profit hospital, a public ambulance service or an employer exempt under s 57A or s 58 (the return's items 14C, 17 and 18, and s 135Q, are not worked out); not for amortised or reducible fringe benefits, or an employer using s 135G. Does not work out a payroll tax gross-up: payroll tax is imposed by each state and territory under its own Act, which this command does not read. Choosing between providing a benefit and an employee contribution is planning, outside a worksheet.";
+const SCOPE: &str = "One ordinary taxable employer's fringe benefits for one FBT year, each valued by its own benefit worksheet (fbt-car-statutory, fbt-car-operating-cost, fbt-loan, fbt-debt-waiver, fbt-expense-payment, fbt-housing, fbt-lafha, fbt-board, fbt-property, fbt-tax-exempt-body-entertainment, fbt-residual, fbt-car-parking or fbt-meal-entertainment) on the inputs given, with the employee it relates to, whether it is a GST-creditable benefit (type 1) or not (type 2), and whether it is an excluded fringe benefit under FBTAA s 5E(3), all established by the operator. Confirming scope confirms the scope each worksheet states under components. Adds each benefit's taxable value, excluded benefits included, into the type 1 and type 2 aggregate fringe benefits amounts (s 5C(3) and (4)) and gives them to fbt, which grosses them up and works out the fringe benefits taxable amount and the tax (s 5B(1A) to (1C)). Each employee's individual fringe benefits amount is the sum of the taxable values of their benefits that are not excluded (s 5E(2)), an exempt electric car's notional value included (s 135P(3)); where it is more than $2,000, the reportable fringe benefits amount is that sum times 1 / (1 - the FBT rate) (s 135P(1) and (2)), worked out from fbt's FBT rate as the formula states, not from the 1.8868 the ATO publishes for it, which can give a dollar more; it is given in whole dollars with the cents dropped, which no provision states: the ATO's examples do so (the employer's guide, 5.4, gives $3,500 / (1 - 0.47) as $6,603). Item 23G's Number counts the employee labels, each taken as one employee; the Number at 23A, 23B, 23C and 23F, a count of cars, loans and units of accommodation, is left to the preparer. Each benefit belongs wholly to one employee label: a benefit shared by employees or valued with others in a class (s 5F(3) and (4)), and a benefit partly GST-creditable, are given as separate benefits by the operator. Excess employee contributions are not applied to other benefits. Not for a rebatable employer, a public or not-for-profit hospital, a public ambulance service or an employer exempt under s 57A or s 58 (the return's items 14C, 17 and 18, and s 135Q, are not worked out); not for amortised or reducible fringe benefits, or an employer using s 135G. Does not work out a payroll tax gross-up: payroll tax is imposed by each state and territory under its own Act, which this command does not read. Choosing between providing a benefit and an employee contribution is planning, outside a worksheet.";
 
 const SOURCES: [&str; 7] = [
     "https://www.legislation.gov.au/C2004A03280/2026-07-01/2026-07-01/text",
@@ -159,7 +155,7 @@ const EMPLOYEE_WORKING: [(&str, &str); 3] = [
 ];
 
 /// The return's labels this command leaves to the preparer, and why.
-const LEFT_TO_PREPARER: [(&str, &str); 5] = [
+const LEFT_TO_PREPARER: [(&str, &str); 6] = [
     (
         "1 to 9, 11 to 13",
         "the employer's identity, contact, hours, future lodgment and EFT details, which this command does not take",
@@ -175,6 +171,10 @@ const LEFT_TO_PREPARER: [(&str, &str); 5] = [
     (
         "20 to 22",
         "the FBT instalments reported on activity statements, and the payment or credit that follows from them, which this command does not take",
+    ),
+    (
+        "23A, 23B, 23C and 23F Number",
+        "the number of cars, loans and units of accommodation: one car, loan or unit can be given as several benefits, such as a car shared by employees or held for 2 periods, and the benefits do not identify it",
     ),
     ("24 and 25", "the tax agent's or employer's declaration"),
 ];
@@ -512,7 +512,6 @@ fn run_benefits<'a>(v: &'a Value, employer: &str, year: i64) -> Result<Vec<Value
 /// One item 23 label's columns.
 #[derive(Default)]
 struct Row {
-    benefits: usize,
     employees: BTreeSet<String>,
     gross: Vec<Decimal>,
     contribution: Vec<Decimal>,
@@ -533,7 +532,6 @@ fn item_23(valued: &[Valued]) -> Result<Map<String, Value>, Refusal> {
         let (.., row) =
             rows.entry(b.given.label)
                 .or_insert((b.given.count, b.given.columns, Row::default()));
-        row.benefits += 1;
         row.employees.insert(b.given.employee.to_string());
         row.gross.push(b.gross.clone());
         row.contribution.push(b.contribution.clone());
@@ -550,9 +548,6 @@ fn item_23(valued: &[Valued]) -> Result<Map<String, Value>, Refusal> {
         let mut cells = Map::new();
         match count {
             Count::Blank => {}
-            Count::Benefits => {
-                cells.insert("number".into(), json!(row.benefits));
-            }
             Count::Employees => {
                 cells.insert("number".into(), json!(row.employees.len()));
             }

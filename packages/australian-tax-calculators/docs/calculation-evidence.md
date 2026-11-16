@@ -1788,7 +1788,9 @@ s 5B(1C) and s 135P(2)) and the guide's chapter 5: 5.4 writes $3,500 /
 and 5.8 gives a $15,000 house as $15,000 x 1.8868 = $28,302, where the formula
 gives $28,301.89 and so $28,301. The guide's other examples give the same
 dollars both ways. Item 23's instructions say which columns to leave blank for
-each label; the result leaves those out.
+each label; the result leaves those out. The Number at 23A, 23B, 23C and 23F
+counts cars, loans and units of accommodation, which the benefits do not
+identify, so it is left to the preparer; 23G counts employee labels.
 
 The examples give taxable values only. The tests produce them with worksheet
 inputs: examples 2 and 4's $10,000 car as a $50,000 car for the full year, its

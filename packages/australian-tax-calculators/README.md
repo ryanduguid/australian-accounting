@@ -1095,18 +1095,17 @@ totals, so the gross-up and the tax are `fbt`'s. The result gives:
   1.8868 instead, which can give a dollar more: $15,000 gives $28,301 here and
   $28,302 in the employer's guide, 5.8.
 - `return_labels`: items 14A, 14B, 15, 16 and 19, and item 23 by benefit
-  category (A to G and J to P), with the number of cars, loans and units of
-  accommodation, the employees who received a living-away-from-home allowance,
-  and the gross taxable value, employee contribution, value of reductions and
-  taxable value. A column the instructions say to leave blank, such as 23D's
-  Number, employee contribution and value of reductions, is left out. The
-  Number counts the benefits given at the label, or at 23G the employee
-  labels, so the preparer corrects it where one car, loan or unit is given as
-  several benefits or a label stands for several employees. An exempt electric
-  car is not a fringe benefit and is left out of item 23 and the aggregates.
+  category (A to G and J to P), with the gross taxable value, employee
+  contribution, value of reductions and taxable value, and at 23G the number
+  of employee labels that received a living-away-from-home allowance. A column
+  the instructions say to leave blank, such as 23D's Number, employee
+  contribution and value of reductions, is left out. An exempt electric car is
+  not a fringe benefit and is left out of item 23 and the aggregates.
 - `left_to_preparer`: the labels it does not fill and why: the employer's
   details (items 1 to 9 and 11 to 13); item 10's count of employees and
-  associates; items 14C, 17 and 18, which a taxable employer leaves blank;
+  associates; the number of cars, loans and units of accommodation at 23A,
+  23B, 23C and 23F, as one can be given as several benefits; items 14C, 17
+  and 18, which a taxable employer leaves blank;
   items 20 to 22, which need the instalments reported on activity statements;
   and the declarations.
 - `reconciliation`: the benefits' taxable values added one by one beside the 2

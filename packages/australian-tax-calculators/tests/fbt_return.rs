@@ -226,22 +226,14 @@ fn row(
 #[test]
 fn item_23_matches_the_fbt_return_2026_examples_6_to_12() {
     // The ATO writes example 6's $4,804.38 in whole dollars as $4,804. Each
-    // column an example says to leave blank is absent.
+    // column an example says to leave blank is absent, and the Number of
+    // cars, loans and units is left to the preparer.
     let result = compose(examples_6_to_12()).unwrap();
     let labels = &result["return_labels"];
     let expected = [
-        (
-            "23A",
-            row(Some(1), "4804.38", Some("0.00"), None, "4804.38"),
-        ),
-        (
-            "23B",
-            row(Some(1), "3000.00", Some("0.00"), None, "3000.00"),
-        ),
-        (
-            "23C",
-            row(Some(1), "1724.00", None, Some("0.00"), "1724.00"),
-        ),
+        ("23A", row(None, "4804.38", Some("0.00"), None, "4804.38")),
+        ("23B", row(None, "3000.00", Some("0.00"), None, "3000.00")),
+        ("23C", row(None, "1724.00", None, Some("0.00"), "1724.00")),
         ("23D", row(None, "500.00", None, None, "500.00")),
         (
             "23E",
@@ -249,7 +241,7 @@ fn item_23_matches_the_fbt_return_2026_examples_6_to_12() {
         ),
         (
             "23F",
-            row(Some(1), "41600.00", Some("5200.00"), None, "36400.00"),
+            row(None, "41600.00", Some("5200.00"), None, "36400.00"),
         ),
         (
             "23G",
@@ -728,4 +720,33 @@ fn the_composed_totals_are_the_sum_of_the_benefits() {
             );
         }
     }
+}
+
+#[test]
+fn leaves_the_number_of_cars_loans_and_units_to_the_preparer() {
+    // One car shared by 2 employees is given as 2 benefits: the benefits do
+    // not show that they are one car, so 23A's Number is not given.
+    let result = compose(vec![
+        benefit(
+            "A",
+            "fbt-car-statutory",
+            car("20000.00", false),
+            "type_1",
+            false,
+        ),
+        benefit(
+            "B",
+            "fbt-car-statutory",
+            car("20000.00", false),
+            "type_1",
+            false,
+        ),
+    ])
+    .unwrap();
+    assert!(result["return_labels"]["23A"].get("number").is_none());
+    assert!(
+        result["left_to_preparer"]
+            .get("23A, 23B, 23C and 23F Number")
+            .is_some()
+    );
 }
