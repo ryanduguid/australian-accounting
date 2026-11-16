@@ -3533,7 +3533,7 @@ pub fn termination_payment(
 }
 
 mod unused_leave;
-pub use unused_leave::{LeaveSplits, unused_leave_payment};
+pub use unused_leave::{LeavePayee, LeaveSplits, unused_leave_payment};
 
 pub fn study_loan_repayment(
     repayment_income: &Arg,

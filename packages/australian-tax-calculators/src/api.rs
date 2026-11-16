@@ -1015,12 +1015,18 @@ pub fn evaluate_coded(command: &str, v: &Value) -> Result<Value> {
             };
             // Optional: scale 4's residency, as payg-withholding takes it.
             let foreign = v.get("foreign_resident").map(arg);
+            let employee = engine::LeavePayee {
+                foreign_resident: foreign.as_ref(),
+                working_holiday_maker: &a[5],
+                earnings: &a[6],
+                pay_period: &a[7],
+                scale: &a[8],
+            };
             engine::unused_leave_payment(
                 [&a[0], &a[1], &a[2]],
                 &splits,
                 (&a[3], &a[4]),
-                (foreign.as_ref(), &a[5]),
-                (&a[6], &a[7], &a[8]),
+                &employee,
                 &a[9],
                 &a[10],
             )

@@ -38,6 +38,16 @@ pub struct LeaveSplits<'a> {
     pub long_service_leave_16_august_1978_to_17_august_1993: Option<&'a Arg>,
 }
 
+/// The employee's pay and withholding facts: residency (scale 4 only), whether
+/// a working holiday maker, and normal gross earnings, pay period and scale.
+pub struct LeavePayee<'a> {
+    pub foreign_resident: Option<&'a Arg>,
+    pub working_holiday_maker: &'a Arg,
+    pub earnings: &'a Arg,
+    pub pay_period: &'a Arg,
+    pub scale: &'a Arg,
+}
+
 /// One part of a total: the input that gives it, or none when the accrual
 /// start rules it out or the termination reason makes it irrelevant.
 struct Part {
@@ -235,22 +245,25 @@ pub fn unused_leave_payment(
     totals: [&Arg; 3],
     splits: &LeaveSplits,
     (leave_accrual_start, termination_reason): (&Arg, &Arg),
-    (foreign_resident, working_holiday_maker): (Option<&Arg>, &Arg),
-    (earnings, pay_period, scale): (&Arg, &Arg, &Arg),
+    employee: &LeavePayee,
     year: &Arg,
     scope_confirmed: &Arg,
 ) -> Result<Value> {
     let no_loan = Arg::Bool(false);
     let pay = additional_pay(
         KIND,
-        earnings,
-        pay_period,
-        scale,
+        employee.earnings,
+        employee.pay_period,
+        employee.scale,
         (&no_loan, None),
         year,
         scope_confirmed,
     )?;
-    let no_tfn_rate = payee(&pay, foreign_resident, working_holiday_maker)?;
+    let no_tfn_rate = payee(
+        &pay,
+        employee.foreign_resident,
+        employee.working_holiday_maker,
+    )?;
     let concessional = concessional_reason(termination_reason)?;
     let start = date_arg(leave_accrual_start, "leave_accrual_start")?;
     let leave = leave(totals, splits, start, (concessional, no_tfn_rate.is_none()))?;
