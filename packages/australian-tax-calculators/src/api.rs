@@ -446,6 +446,15 @@ const COMMAND_ARGS: &[(&str, &[(&str, Kind)])] = &[
     ("fbt-board", FBT_YEAR_ARGS),
     ("fbt-tax-exempt-body-entertainment", FBT_METHOD_ARGS),
     (
+        "fbt-entertainment-classifier",
+        &[
+            ("lines", Json),
+            ("income_tax_exempt", Raw),
+            ("year_ended", Raw),
+            ("scope_confirmed", Raw),
+        ],
+    ),
+    (
         "income-tests",
         &[
             ("taxable_income", Dec),
@@ -482,12 +491,15 @@ pub fn commands() -> Vec<&'static str> {
 }
 
 /// The commands `derive` explains: each of their amounts is worked out in a step.
-/// Every worksheet command is here except `payg-gross-up`. Its gross pay is the
+/// Every worksheet command is here except `payg-gross-up` and
+/// `fbt-entertainment-classifier`. The gross pay of `payg-gross-up` is the
 /// one whose own withholding leaves the net, found by searching
 /// `payg-withholding`'s results, or `study-loan-withholding`'s for a payee with
 /// a study loan: the withholding is worked on the gross, so no step can work
 /// the gross out from the inputs and earlier steps alone. `derive` of that
-/// command on its `gross_pay` shows that withholding.
+/// command on its `gross_pay` shows that withholding. The classifier's amounts
+/// are totals over lines whose shares a decision table sets, not a formula;
+/// each line and class carries the authority for its row instead.
 const DERIVED: [&str; 42] = [
     "fbt",
     "fbt-car-statutory",
@@ -845,6 +857,7 @@ pub fn evaluate_coded(command: &str, v: &Value) -> Result<Value> {
             | "fbt-lafha"
             | "fbt-board"
             | "fbt-tax-exempt-body-entertainment"
+            | "fbt-entertainment-classifier"
             | "hire-purchase-schedule"
             | "income-tests"
     ) && let Some(key) = v
@@ -909,6 +922,21 @@ pub fn evaluate_coded(command: &str, v: &Value) -> Result<Value> {
         "fbt-tax-exempt-body-entertainment" => {
             let given = benefit_inputs(v, params)?;
             engine::fbt_tax_exempt_body_entertainment(&a[0], &given, &a[1], &a[2])
+        }
+        "fbt-entertainment-classifier" => {
+            // Optional: the meal entertainment method, required only when a
+            // line is meal entertainment, and the 12 week register's income
+            // tax register percentage.
+            let method = optional(v, "method", Raw)?;
+            let register = optional(v, "income_tax_register_percentage", Dec)?;
+            engine::fbt_entertainment_classifier(
+                &a[0],
+                &a[1],
+                &a[2],
+                &a[3],
+                method.as_ref(),
+                register.as_ref(),
+            )
         }
         "depreciation" => {
             // Optional: present only for an income year after the asset's start time.

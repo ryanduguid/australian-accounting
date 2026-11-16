@@ -962,6 +962,9 @@ pub fn supported_periods(kind: &str) -> Vec<&'static str> {
         "fbt_residual" | "fbt_lafha" | "fbt_board" | "fbt_tax_exempt_body_entertainment" => {
             vec!["2026", "2027"]
         }
+        // No published rate: s 58P(1)(e)'s $300 is the Act's own. The years
+        // are those the other FBT benefit worksheets cover.
+        "fbt_entertainment_classifier" => vec!["2026", "2027"],
         "fbt_housing" => keys(FBT_HOUSING_INDEXATION),
         // The years whose definitions were read: the 1 July 2024 compilations
         // define them as the current ones do, and the ATO's 2025 and 2026
@@ -1130,6 +1133,10 @@ pub fn source_review(kind: &str) -> (&'static str, &'static str) {
         "fbt_tax_exempt_body_entertainment" => (
             "2026-11-15",
             "FBTAA ss 38 and 39 and s 136(1), non-deductible exempt entertainment expenditure, compilation 97 (1 July 2026); Fringe benefits tax - a guide for employers, chapter 15, 15.9 and its per head example; FBT return 2026 instructions, item 23L and example 15",
+        ),
+        "fbt_entertainment_classifier" => (
+            "2026-11-16",
+            "ITAA 1997 Division 32, s 27-5 and s 995-1, compilation 268 (1 October 2026); FBTAA ss 5E, 20, 37A to 37CF, 40, 41, 45, 58P and 135P(1) and s 136(1), compilation 97 (1 July 2026); Fringe Benefits Tax Assessment Regulations 2018, regulations 6 to 11, as made; ITAA 1936 ss 51AEA and 51AEB, compilation 193 (1 October 2026); GST Act s 69-5, compilation 96 (1 January 2026); TR 97/17, paras 7 to 143 and the Part A table, and TR 2007/12, paras 8 to 22 and examples 1 to 3, as the Commissioner's view",
         ),
         "income_tests" => (
             "2026-11-16",
@@ -1701,6 +1708,16 @@ pub fn optional_inputs(kind: &str) -> Vec<(&'static str, &'static str)> {
             (
                 "total_heads",
                 "integer from 1, per_head only and required there: everyone entertained at the function, employees, their associates and others",
+            ),
+        ],
+        "fbt_entertainment_classifier" => vec![
+            (
+                "method",
+                "actual, 50_50_split or 12_week_register: how the employer values meal entertainment for the FBT year (FBTAA Division 9A); required when a line is meal entertainment",
+            ),
+            (
+                "income_tax_register_percentage",
+                "decimal string from 0 to 100, 12_week_register only and required there when a line is meal entertainment: the register percentage of ITAA 1936 s 51AEB(2), the deductions that would be allowable for the register period's meal entertainment over its expenses, x 100",
             ),
         ],
         _ => Vec::new(),
@@ -2303,6 +2320,16 @@ pub fn input_units(kind: &str) -> Vec<(&'static str, &'static str)> {
                 "AUD, non-deductible exempt entertainment expenditure (FBTAA s 136(1)): under actual, the part incurred in entertaining employees and their associates; under per_head, the whole function's",
             ),
         ],
+        "fbt_entertainment_classifier" => vec![
+            (
+                "lines",
+                "list of 1 to 10,000 expense line objects, each with cost (AUD decimal string: the employer's expense, less any contribution from an employee or associate it does not reimburse, FBTAA s 37AB), gst_status (includes_gst or no_gst), provided (food_or_drink, recreation, accommodation_or_travel_for_food_or_drink or accommodation_or_travel_for_recreation), venue (business_premises_working_day, business_premises_other_day or elsewhere; business premises exclude a corporate box and premises used mainly for entertainment, FBTAA s 136(1)), paid_by (employer, including by corporate card, or reimbursed, where the employer reimbursed or paid for an attendee who incurred it) and attendees (an object of employees, associates and others, such as clients, each a head count from 0, or null where unknown; a line of more than one class needs every count); optionally occasion, food_or_drink and accommodation_or_travel_for_food_or_drink only, the food or drink's occasion (social_function, business_meal, with_other_entertainment, light_refreshments, or travel_meal where every attendee is travelling for work; without it the line is undetermined), and infrequent_and_irregular (boolean, whether identical or similar benefits are provided infrequently and irregularly, FBTAA s 58P(1)(f)(i))",
+            ),
+            (
+                "income_tax_exempt",
+                "boolean, whether the employer is exempt from income tax; true is refused, as fbt-tax-exempt-body-entertainment applies",
+            ),
+        ],
         "income_tests" => vec![
             ("taxable_income", "AUD, whole dollars: taxable income, including any assessable FHSS released amount (nil for a loss)"),
             ("assessable_fhss_released_amount", "AUD: the amount ITAA 1997 s 313-20 includes in assessable income for released FHSS amounts"),
@@ -2631,6 +2658,18 @@ pub fn examples(kind: &str) -> Vec<(&'static str, Example)> {
         "fbt_tax_exempt_body_entertainment" => vec![
             ("method", Text("actual")),
             ("entertainment_expenditure", Text("5000.00")),
+        ],
+        // TR 97/17 example 1.1 (paras 49 to 52): an end of financial year
+        // function on the employer's premises, valued per head.
+        "fbt_entertainment_classifier" => vec![
+            (
+                "lines",
+                Json(
+                    r#"[{"cost": "1100.00", "gst_status": "includes_gst", "provided": "food_or_drink", "occasion": "social_function", "venue": "business_premises_working_day", "paid_by": "employer", "attendees": {"employees": 6, "associates": 2, "others": 2}}]"#,
+                ),
+            ),
+            ("income_tax_exempt", Flag(false)),
+            ("method", Text("actual")),
         ],
         // The ATO's Christina example for repayment income; the split of her
         // investment loss, fringe benefits and super contributions, her target
