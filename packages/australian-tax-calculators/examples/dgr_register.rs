@@ -98,29 +98,34 @@ impl<R: Read> Xml<R> {
             }
             Some(b) => {
                 self.back = Some(b);
-                let mut raw = Vec::new();
-                let mut quote = None;
-                loop {
-                    let Some(b) = self.byte()? else {
-                        return Err("the XML ends inside a tag".into());
-                    };
-                    match (quote, b) {
-                        (None, b'>') => break,
-                        (None, b'"' | b'\'') => quote = Some(b),
-                        (Some(q), _) if q == b => quote = None,
-                        _ => {}
-                    }
-                    raw.push(b);
-                }
-                let empty = raw.last() == Some(&b'/');
-                if empty {
-                    raw.pop();
-                }
-                let (name, attributes) = tag(&String::from_utf8(raw).map_err(|e| e.to_string())?)?;
-                Ok(Event::Start(name, attributes, empty))
+                self.start_tag()
             }
             None => Err("the XML ends after '<'".into()),
         }
+    }
+
+    /// A start tag after its '<', up to the '>' outside any quoted value.
+    fn start_tag(&mut self) -> Result<Event> {
+        let mut raw = Vec::new();
+        let mut quote = None;
+        loop {
+            let Some(b) = self.byte()? else {
+                return Err("the XML ends inside a tag".into());
+            };
+            match (quote, b) {
+                (None, b'>') => break,
+                (None, b'"' | b'\'') => quote = Some(b),
+                (Some(q), _) if q == b => quote = None,
+                _ => {}
+            }
+            raw.push(b);
+        }
+        let empty = raw.last() == Some(&b'/');
+        if empty {
+            raw.pop();
+        }
+        let (name, attributes) = tag(&String::from_utf8(raw).map_err(|e| e.to_string())?)?;
+        Ok(Event::Start(name, attributes, empty))
     }
 }
 
@@ -243,132 +248,161 @@ struct Totals {
     lines: BTreeMap<String, Value>,
 }
 
+/// Where the reader is: the open elements, the record being read and the
+/// current file's sequence number, declared count and records so far.
+#[derive(Default)]
+struct State {
+    path: Vec<String>,
+    record: Record,
+    sequence: Option<u32>,
+    declared: Option<u64>,
+    in_file: u64,
+}
+
+impl State {
+    /// Character data, kept only where the record or the file header uses it.
+    fn text(&mut self, value: String, totals: &mut Totals) -> Result<()> {
+        let at: Vec<&str> = self.path.iter().rev().take(3).map(String::as_str).collect();
+        let record = &mut self.record;
+        match at.as_slice() {
+            ["ABN", ..] => record.abn = value,
+            ["FileSequenceNumber", ..] => self.sequence = value.parse::<u32>().ok(),
+            ["RecordCount", ..] => self.declared = value.parse::<u64>().ok(),
+            ["ExtractTime", ..] => match &totals.extract_time {
+                Some(time) if *time != value => {
+                    return Err(format!("files from 2 extracts: {time} and {value}"));
+                }
+                _ => totals.extract_time = Some(value),
+            },
+            ["NonIndividualNameText", "NonIndividualName", "MainEntity"] => {
+                record.name = Some(value)
+            }
+            ["NonIndividualNameText", "NonIndividualName", "OtherEntity"] => {
+                record.other_names.push(value)
+            }
+            ["NonIndividualNameText", "NonIndividualName", "DGR"] => {
+                let last = record.dgr.last_mut().ok_or("a DGR name outside a DGR")?;
+                last.1 = Some(value);
+            }
+            // Address, ASIC and GST details and individuals' names: not kept.
+            _ => {}
+        }
+        Ok(())
+    }
+
+    /// A start tag, before it joins the path.
+    fn start(&mut self, name: &str, attributes: &[(String, String)]) -> Result<()> {
+        let record = &mut self.record;
+        match name {
+            "ABR" => *record = Record::default(),
+            "ABN" => {
+                record.status = attribute(attributes, "status").unwrap_or_default().into();
+                record.status_from = date(
+                    attribute(attributes, "ABNStatusFromDate"),
+                    "ABNStatusFromDate",
+                    &record.abn,
+                )?;
+            }
+            "LegalEntity" => record.individual = true,
+            // A DGR entry with a name element is for a fund, authority
+            // or institution even when its name text is empty: ABN
+            // Lookup lists such an entry as a fund with no name.
+            "NonIndividualName" if self.path.last().is_some_and(|p| p == "DGR") => {
+                let last = record.dgr.last_mut().ok_or("a DGR name outside a DGR")?;
+                last.1 = Some(String::new());
+            }
+            "DGR" => {
+                if let Some(status) = attribute(attributes, "status").filter(|s| *s != "ACT") {
+                    return Err(format!(
+                        "ABN record after {}: DGR status {status:?}",
+                        record.abn
+                    ));
+                }
+                let from = date(
+                    attribute(attributes, "DGRStatusFromDate"),
+                    "DGRStatusFromDate",
+                    &record.abn,
+                )?;
+                record.dgr.push((from, None));
+            }
+            _ => {}
+        }
+        Ok(())
+    }
+
+    /// The end of an ABN record: counted, and kept when it has DGR entries.
+    fn end_record(&mut self, totals: &mut Totals) -> Result<()> {
+        self.in_file += 1;
+        totals.records += 1;
+        let record = &self.record;
+        if !(record.abn.len() == 11 && record.abn.bytes().all(|b| b.is_ascii_digit())) {
+            return Err(format!("an ABN of {:?}", record.abn));
+        }
+        if record.dgr.is_empty() {
+            return Ok(());
+        }
+        if record.individual {
+            totals.individuals_with_dgr += 1;
+            return Ok(());
+        }
+        if !matches!(record.status.as_str(), "ACT" | "CAN") {
+            return Err(format!("ABN {}: status {:?}", record.abn, record.status));
+        }
+        if record.name.as_deref().is_none_or(|n| n.trim().is_empty()) {
+            return Err(format!("ABN {}: no entity name", record.abn));
+        }
+        let (abn, line) = std::mem::take(&mut self.record).line();
+        if totals.lines.insert(abn.clone(), line).is_some() {
+            return Err(format!("ABN {abn} appears twice"));
+        }
+        Ok(())
+    }
+
+    /// The end of a file: its record count must match what it declares.
+    fn end_file(&mut self, totals: &mut Totals) -> Result<()> {
+        let (Some(sequence), Some(declared)) = (self.sequence.take(), self.declared.take()) else {
+            return Err("a file with no FileSequenceNumber or RecordCount".into());
+        };
+        let in_file = std::mem::take(&mut self.in_file);
+        if declared != in_file {
+            return Err(format!(
+                "file {sequence} declares {declared} records but holds {in_file}"
+            ));
+        }
+        if totals.files.insert(sequence, in_file).is_some() {
+            return Err(format!("file {sequence} given twice"));
+        }
+        Ok(())
+    }
+}
+
 /// Reads every file on stdin into `totals`.
 fn read(xml: &mut Xml<impl Read>, totals: &mut Totals) -> Result<()> {
-    let mut path: Vec<String> = Vec::new();
-    let mut record = Record::default();
-    let (mut sequence, mut declared, mut in_file) = (None, None, 0u64);
+    let mut state = State::default();
     loop {
-        let event = xml.event()?;
-        let (start, end) = match event {
-            Event::Eof if path.is_empty() => return Ok(()),
+        let (start, end) = match xml.event()? {
+            Event::Eof if state.path.is_empty() => return Ok(()),
             Event::Eof => return Err("the XML ends inside an element".into()),
             Event::Text(value) => {
-                let at: Vec<&str> = path.iter().rev().take(3).map(String::as_str).collect();
-                match at.as_slice() {
-                    ["ABN", ..] => record.abn = value,
-                    ["FileSequenceNumber", ..] => sequence = value.parse::<u32>().ok(),
-                    ["RecordCount", ..] => declared = value.parse::<u64>().ok(),
-                    ["ExtractTime", ..] => match &totals.extract_time {
-                        Some(time) if *time != value => {
-                            return Err(format!("files from 2 extracts: {time} and {value}"));
-                        }
-                        _ => totals.extract_time = Some(value),
-                    },
-                    ["NonIndividualNameText", "NonIndividualName", "MainEntity"] => {
-                        record.name = Some(value)
-                    }
-                    ["NonIndividualNameText", "NonIndividualName", "OtherEntity"] => {
-                        record.other_names.push(value)
-                    }
-                    ["NonIndividualNameText", "NonIndividualName", "DGR"] => {
-                        let last = record.dgr.last_mut().ok_or("a DGR name outside a DGR")?;
-                        last.1 = Some(value);
-                    }
-                    _ if value.trim().is_empty() => {}
-                    // Address, ASIC and GST details and individuals' names: not kept.
-                    _ => {}
-                }
+                state.text(value, totals)?;
                 continue;
             }
             Event::Start(name, attributes, empty) => {
-                match name.as_str() {
-                    "ABR" => record = Record::default(),
-                    "ABN" => {
-                        let abn = &record.abn;
-                        record.status = attribute(&attributes, "status").unwrap_or_default().into();
-                        record.status_from = date(
-                            attribute(&attributes, "ABNStatusFromDate"),
-                            "ABNStatusFromDate",
-                            abn,
-                        )?;
-                    }
-                    "LegalEntity" => record.individual = true,
-                    // A DGR entry with a name element is for a fund, authority
-                    // or institution even when its name text is empty: ABN
-                    // Lookup lists such an entry as a fund with no name.
-                    "NonIndividualName" if path.last().is_some_and(|p| p == "DGR") => {
-                        let last = record.dgr.last_mut().ok_or("a DGR name outside a DGR")?;
-                        last.1 = Some(String::new());
-                    }
-                    "DGR" => {
-                        if let Some(status) =
-                            attribute(&attributes, "status").filter(|s| *s != "ACT")
-                        {
-                            return Err(format!(
-                                "ABN record after {}: DGR status {status:?}",
-                                record.abn
-                            ));
-                        }
-                        let from = date(
-                            attribute(&attributes, "DGRStatusFromDate"),
-                            "DGRStatusFromDate",
-                            &record.abn,
-                        )?;
-                        record.dgr.push((from, None));
-                    }
-                    _ => {}
-                }
+                state.start(&name, &attributes)?;
                 (Some(name.clone()), empty.then_some(name))
             }
             Event::End(name) => (None, Some(name)),
         };
         if let Some(name) = start {
-            path.push(name);
+            state.path.push(name);
         }
         let Some(name) = end else { continue };
-        if path.pop().as_deref() != Some(name.as_str()) {
+        if state.path.pop().as_deref() != Some(name.as_str()) {
             return Err(format!("</{name}> closes another element"));
         }
         match name.as_str() {
-            "ABR" => {
-                in_file += 1;
-                totals.records += 1;
-                if !(record.abn.len() == 11 && record.abn.bytes().all(|b| b.is_ascii_digit())) {
-                    return Err(format!("an ABN of {:?}", record.abn));
-                }
-                if record.dgr.is_empty() {
-                    continue;
-                }
-                if record.individual {
-                    totals.individuals_with_dgr += 1;
-                    continue;
-                }
-                if !matches!(record.status.as_str(), "ACT" | "CAN") {
-                    return Err(format!("ABN {}: status {:?}", record.abn, record.status));
-                }
-                if record.name.as_deref().is_none_or(|n| n.trim().is_empty()) {
-                    return Err(format!("ABN {}: no entity name", record.abn));
-                }
-                let (abn, line) = std::mem::take(&mut record).line();
-                if totals.lines.insert(abn.clone(), line).is_some() {
-                    return Err(format!("ABN {abn} appears twice"));
-                }
-            }
-            "Transfer" => {
-                let (Some(sequence), Some(declared)) = (sequence.take(), declared.take()) else {
-                    return Err("a file with no FileSequenceNumber or RecordCount".into());
-                };
-                if declared != in_file {
-                    return Err(format!(
-                        "file {sequence} declares {declared} records but holds {in_file}"
-                    ));
-                }
-                if totals.files.insert(sequence, in_file).is_some() {
-                    return Err(format!("file {sequence} given twice"));
-                }
-                in_file = 0;
-            }
+            "ABR" => state.end_record(totals)?,
+            "Transfer" => state.end_file(totals)?,
             _ => {}
         }
     }
@@ -407,133 +441,5 @@ fn main() -> Result<()> {
 }
 
 #[cfg(test)]
-mod tests {
-    use super::*;
-
-    /// One file of fabricated records in the extract's layout.
-    fn file(sequence: u32, count: u32, records: &str) -> String {
-        format!(
-            "<?xml version=\"1.0\"?><Transfer error=\"none\"><TransferInfo><FileSequenceNumber>{sequence}</FileSequenceNumber><RecordCount>{count}</RecordCount><ExtractTime>2026-11-11T12:20:05</ExtractTime></TransferInfo>\n{records}</Transfer>"
-        )
-    }
-
-    fn record(abn: &str, status: &str, body: &str) -> String {
-        format!(
-            "<ABR recordLastUpdatedDate=\"20200519\" replaced=\"N\"><ABN status=\"{status}\" ABNStatusFromDate=\"20150729\">{abn}</ABN>{body}</ABR>\n"
-        )
-    }
-
-    const NAME: &str = "<MainEntity><NonIndividualName type=\"MN\"><NonIndividualNameText>EXAMPLE &amp; CO FOUNDATION</NonIndividualNameText></NonIndividualName><BusinessAddress><AddressDetails><State>NSW</State><Postcode>2000</Postcode></AddressDetails></BusinessAddress></MainEntity>";
-
-    fn run(input: &str) -> Result<Totals> {
-        let mut xml = Xml {
-            bytes: BufReader::new(input.as_bytes()).bytes(),
-            back: None,
-        };
-        let mut totals = Totals::default();
-        read(&mut xml, &mut totals).map(|()| totals)
-    }
-
-    #[test]
-    fn an_unnamed_fund_is_kept_as_a_fund_and_individuals_are_dropped() {
-        let records = [
-            record(
-                "23000000004",
-                "ACT",
-                &format!(
-                    "{NAME}<GST status=\"NON\" GSTStatusFromDate=\"19000101\" /><DGR status=\"ACT\" DGRStatusFromDate=\"20160223\" /><DGR DGRStatusFromDate=\"20150729\"><NonIndividualName type=\"DGR\"><NonIndividualNameText></NonIndividualNameText></NonIndividualName></DGR><DGR DGRStatusFromDate=\"20000701\"><NonIndividualName type=\"DGR\"><NonIndividualNameText>EXAMPLE BUILDING FUND</NonIndividualNameText></NonIndividualName></DGR><OtherEntity><NonIndividualName type=\"TRD\"><NonIndividualNameText>Example &amp; Co Foundation</NonIndividualNameText></NonIndividualName></OtherEntity><OtherEntity><NonIndividualName type=\"BN\"><NonIndividualNameText>EXAMPLE SHOP</NonIndividualNameText></NonIndividualName></OtherEntity>"
-                ),
-            ),
-            record(
-                "42000000003",
-                "ACT",
-                "<LegalEntity><IndividualName type=\"LGL\"><GivenName>JANE</GivenName><FamilyName>CITIZEN</FamilyName></IndividualName></LegalEntity><DGR status=\"ACT\" DGRStatusFromDate=\"20100101\" />",
-            ),
-            record("61000000002", "CAN", NAME),
-        ]
-        .concat();
-        let totals = run(&file(1, 3, &records)).unwrap();
-        assert_eq!(totals.records, 3);
-        assert_eq!(totals.individuals_with_dgr, 1);
-        assert_eq!(totals.files.get(&1), Some(&3));
-        let lines: Vec<String> = totals.lines.values().map(Value::to_string).collect();
-        assert_eq!(
-            lines,
-            [
-                r#"["23000000004","ACT","2015-07-29","EXAMPLE & CO FOUNDATION",[["2000-07-01","EXAMPLE BUILDING FUND"],["2015-07-29",""],["2016-02-23",null]],["EXAMPLE SHOP"]]"#
-            ]
-        );
-        assert!(!lines[0].contains("JANE") && !lines[0].contains("NSW"));
-    }
-
-    #[test]
-    fn malformed_extract_input_stops_the_build() {
-        let dgr = "<DGR status=\"ACT\" DGRStatusFromDate=\"20160223\" />";
-        let good = record("23000000004", "ACT", &format!("{NAME}{dgr}"));
-        let cases = [
-            (file(1, 2, &good), "declares 2 records but holds 1"),
-            (
-                file(1, 1, &good.replace("</ABN>", "</ABR>")),
-                "closes another element",
-            ),
-            (
-                file(1, 1, &good.replace("&amp;", "&nbsp;")),
-                "an unknown entity &nbsp;",
-            ),
-            (
-                file(
-                    1,
-                    1,
-                    &good.replace("status=\"ACT\" DGR", "status=\"REV\" DGR"),
-                ),
-                "DGR status \"REV\"",
-            ),
-            (
-                file(1, 1, &good.replace("20160223", "2016-02-23")),
-                "is not yyyymmdd",
-            ),
-            (
-                file(1, 1, &good.replace("23000000004", "2300000000")),
-                "an ABN of",
-            ),
-            (
-                file(
-                    1,
-                    1,
-                    &good.replace("status=\"ACT\" ABN", "status=\"XYZ\" ABN"),
-                ),
-                "status \"XYZ\"",
-            ),
-            (
-                file(1, 1, &record("23000000004", "ACT", dgr)),
-                "no entity name",
-            ),
-            (file(1, 1, &format!("<!-- note -->{good}")), "a comment"),
-            (file(1, 1, &good)[..200].to_string(), "ends inside"),
-            (
-                [
-                    file(1, 1, &good),
-                    file(1, 1, &good.replace("23000000004", "42000000003")),
-                ]
-                .concat(),
-                "file 1 given twice",
-            ),
-            (
-                [file(1, 1, &good), file(2, 1, &good)].concat(),
-                "appears twice",
-            ),
-            (
-                [
-                    file(1, 1, &good),
-                    file(2, 0, "").replace("12:20:05", "12:20:06"),
-                ]
-                .concat(),
-                "files from 2 extracts",
-            ),
-        ];
-        for (input, error) in cases {
-            let got = run(&input).err().unwrap_or_default();
-            assert!(got.contains(error), "{error}: got {got:?}");
-        }
-    }
-}
+#[path = "dgr_register/tests.rs"]
+mod tests;

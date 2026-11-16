@@ -6,7 +6,7 @@
 //! same in ABN Lookup's DGR listing downloads of 16 November 2026
 //! (https://abr.business.gov.au/Tools/DgrListing): ABN, status, DGR status
 //! date and fund name. The engine's readings on fabricated data are in
-//! `src/dgr.rs`'s unit tests.
+//! `src/dgr/tests.rs`.
 use australian_tax_calculators::api;
 use serde_json::{Value, json};
 use std::io::Write;

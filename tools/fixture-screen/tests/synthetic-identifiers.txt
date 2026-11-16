@@ -44,16 +44,16 @@ packages/australian-tax-calculators/README.md abn 51824753556 ABN Lookup's worke
 packages/australian-tax-calculators/data/dgr-register.jsonl abn * the ABN Bulk Extract's deductible gift recipients, a public register; the build leaves out individuals' records
 packages/australian-tax-calculators/data/dgr-register.jsonl acn * ACNs in those organisations' names on the same register
 packages/australian-tax-calculators/docs/calculation-evidence.md abn 51824753556 ABN Lookup's worked example in Format of the ABN (https://abr.business.gov.au/Help/AbnFormat), read on 16 November 2026
-packages/australian-tax-calculators/examples/dgr_register.rs abn 23000000004 unissued number in a fixture; ABN Lookup found no such ABN on 16 November 2026
-packages/australian-tax-calculators/examples/dgr_register.rs abn 42000000003 unissued number in a fixture; ABN Lookup found no such ABN on 16 November 2026
-packages/australian-tax-calculators/examples/dgr_register.rs abn 61000000002 unissued number in a fixture; ABN Lookup found no such ABN on 16 November 2026
-packages/australian-tax-calculators/src/dgr.rs abn 23000000004 unissued number in a fixture; ABN Lookup found no such ABN on 16 November 2026
-packages/australian-tax-calculators/src/dgr.rs abn 42000000003 unissued number in a fixture; ABN Lookup found no such ABN on 16 November 2026
-packages/australian-tax-calculators/src/dgr.rs abn 51824753556 ABN Lookup's worked example in Format of the ABN (https://abr.business.gov.au/Help/AbnFormat), read on 16 November 2026
-packages/australian-tax-calculators/src/dgr.rs abn 61000000002 unissued number in a fixture; ABN Lookup found no such ABN on 16 November 2026
-packages/australian-tax-calculators/src/dgr.rs abn 74000000006 unissued number in a fixture; ABN Lookup found no such ABN on 16 November 2026
-packages/australian-tax-calculators/src/dgr.rs abn 80000000001 unissued number in a fixture; ABN Lookup found no such ABN on 16 November 2026
-packages/australian-tax-calculators/src/dgr.rs abn 93000000005 unissued number in a fixture; ABN Lookup found no such ABN on 16 November 2026
+packages/australian-tax-calculators/examples/dgr_register/tests.rs abn 23000000004 unissued number in a fixture; ABN Lookup found no such ABN on 16 November 2026
+packages/australian-tax-calculators/examples/dgr_register/tests.rs abn 42000000003 unissued number in a fixture; ABN Lookup found no such ABN on 16 November 2026
+packages/australian-tax-calculators/examples/dgr_register/tests.rs abn 61000000002 unissued number in a fixture; ABN Lookup found no such ABN on 16 November 2026
+packages/australian-tax-calculators/src/dgr/tests.rs abn 23000000004 unissued number in a fixture; ABN Lookup found no such ABN on 16 November 2026
+packages/australian-tax-calculators/src/dgr/tests.rs abn 42000000003 unissued number in a fixture; ABN Lookup found no such ABN on 16 November 2026
+packages/australian-tax-calculators/src/dgr/tests.rs abn 51824753556 ABN Lookup's worked example in Format of the ABN (https://abr.business.gov.au/Help/AbnFormat), read on 16 November 2026
+packages/australian-tax-calculators/src/dgr/tests.rs abn 61000000002 unissued number in a fixture; ABN Lookup found no such ABN on 16 November 2026
+packages/australian-tax-calculators/src/dgr/tests.rs abn 74000000006 unissued number in a fixture; ABN Lookup found no such ABN on 16 November 2026
+packages/australian-tax-calculators/src/dgr/tests.rs abn 80000000001 unissued number in a fixture; ABN Lookup found no such ABN on 16 November 2026
+packages/australian-tax-calculators/src/dgr/tests.rs abn 93000000005 unissued number in a fixture; ABN Lookup found no such ABN on 16 November 2026
 packages/australian-tax-calculators/tests/data/python-api.json acn 143895032 generated total_super_balance input in the frozen Python differential corpus, not an identifier
 packages/australian-tax-calculators/tests/data/python-api.json acn 180300887 generated total_super_balance input in the frozen Python differential corpus, not an identifier
 packages/australian-tax-calculators/tests/data/python-api.json acn 604579286 generated amount input in the frozen Python differential corpus, not an identifier
