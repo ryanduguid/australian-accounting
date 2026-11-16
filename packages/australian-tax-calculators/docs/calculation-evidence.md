@@ -2125,6 +2125,71 @@ $19,830 of the guide's example 16 gives $5,949 in 2024-25 where a resident pays
 $260.80 and then nothing after the low income tax offset, and $250,000 gives
 $87,850, with Division 293 tax of 15% of $30,000, $4,500, outside the total.
 
+## FBT return
+
+`fbt-return` adds one threshold, the $2,000 of FBTAA s 135P(1); every other
+amount is a worksheet's or `fbt`'s, and the tests check the composition. Read on
+16 November 2026 at 18:09 to 18:15 AEDT:
+
+- FBTAA, compilation 97 (C2026C00332, in force from 1 July 2026, the latest on
+  the Federal Register of Legislation), volumes 1 and 2: s 5B(1A) to (1C) (the
+  fringe benefits taxable amount as the 2 grossed-up amounts added, the type 2
+  amount times 1 / (1 - FBT rate)); s 5C(3) and (4) (type 1 and
+  type 2 aggregate amounts, excluded benefits included at step 3); s 5E(2) and
+  (3) (the individual fringe benefits amount and the excluded fringe benefits:
+  meal entertainment not salary packaged, car parking fringe benefits,
+  entertainment facility leasing not salary packaged, remote area fuel and
+  housing, amortised and reducible benefits, prescribed benefits, remote area
+  travel and freight, and security); s 5F (an employee's share of a shared or
+  class-valued benefit); s 135M (outline); s 135N (the total across employers); s 135P(1)
+  (more than $2,000, with examples 1 and 2: a $2,545 debt waiver is reportable,
+  $1,900 is not), (2) (the individual amount times 1 / (1 - rate of tax), read
+  from the formula's text description) and (3) (s 8A disregarded); s 135Q
+  (employers under s 57A or s 58, not composed); s 10(5) (an operating cost value
+  above the s 9 value is replaced by it).
+- ATO, FBT return 2026 calculation details for taxable employers (published
+  1 April 2026), items 14A to 25: examples 2 and 4 ($11,000 x 2.0802 =
+  $22,882.20; $9,000 x 1.8868 = $16,981.20; subtotal $18,735.61); items 14C,
+  17 and 18 left blank by taxable employers.
+- ATO, Item 23 fringe benefit categories for FBT return 2026: labels A to G
+  and J to P (no H), what each Number column counts, and examples 6 to 12.
+- ATO, Completing your FBT return 2026 - all employers: items 1 to 13,
+  including item 10's count of employees and associates.
+- ATO, Reportable fringe benefits (last updated 12 January 2023): Derek's
+  example, $3,500 x 1.8868 = $6,603, car parking $450 left out.
+- ATO, Fringe benefits tax - a guide for employers, chapter 5: 5.2 excluded
+  benefits (pooled or shared cars among the prescribed ones), 5.3 benefits to
+  an associate allocated to the employee, 5.4 the formula
+  and the example $2,890 x 1.8868 = $5,452 'in whole dollars'.
+- ATO, FBT rates and thresholds (last updated 20 May 2026): 47% and 1.8868 for
+  the years ending 31 March 2023 to 2027.
+- ATO, FBT return 2027 instructions: not found (HTTP 404), so 2027 follows the
+  2026 labels with a warning.
+
+The reportable amount follows s 135P(2)'s formula, the individual amount over
+1 - 0.47, not the ATO's 1.8868 (1 / 0.53 is 1.88679...). No provision states
+how to round it; the ATO's examples drop the cents, so the return does too.
+Rechecked on 16 November 2026 at 19:22 to 19:30 AEDT, from compilation 97's
+EPUB on the Federal Register's API (the formulas' text descriptions in
+s 5B(1C) and s 135P(2)) and the guide's chapter 5: 5.4 writes $3,500 /
+(1 - 0.47) as '$6,603 (in whole dollars)', where the formula gives $6,603.77,
+and 5.8 gives a $15,000 house as $15,000 x 1.8868 = $28,302, where the formula
+gives $28,301.89 and so $28,301. The guide's other examples give the same
+dollars both ways. Item 23's instructions say which columns to leave blank for
+each label; the result leaves those out. The Number at 23A, 23B, 23C and 23F
+counts cars, loans and units of accommodation, which the benefits do not
+identify, so it is left to the preparer; 23G counts employee labels.
+
+The examples give taxable values only. The tests produce them with worksheet
+inputs: examples 2 and 4's $10,000 car as a $50,000 car for the full year, its
+$1,000 of meal entertainment as half of $2,000 under the 50/50 split, and the
+$6,000 school fees and $3,000 rent as external expense payments; Derek's car
+parking as 25 days at an $18 lowest fee, and the guide's holiday accommodation
+as a $600 residual benefit. Example 12 is the 40 weeks the s 31 reduction
+covers ($23,640, of which $14,000 and $7,960 are exempt) and 12 weeks at $591
+($7,092) without it: item 23G is $30,732, $21,960 and $8,772 for 1 employee.
+Example 6's $4,804.38 is $4,804 in whole dollars on the ATO's page.
+
 ## Income year 2027-28
 
 Read on 16 November 2026 to decide which worksheets take 2027-28. A worksheet

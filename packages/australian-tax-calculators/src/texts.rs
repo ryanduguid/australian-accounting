@@ -1099,6 +1099,34 @@ pub const REFUSAL_CODES: &[(&str, &str)] = &[
         "A meal entertainment register's yearly expenses are not a list of decimal strings, one for each FBT year from its first valid year to the year before the year given.",
     ),
     (
+        "fbt_return.benefit_command_unsupported",
+        "fbt-return was given a benefit whose command is not one of the FBT benefit worksheets.",
+    ),
+    (
+        "fbt_return.car_statutory_lower",
+        "fbt-return was given an operating cost car whose statutory formula value is lower, so FBTAA s 10(5) values it under s 9 and fbt-car-statutory gives its item 23 amounts.",
+    ),
+    (
+        "fbt_return.exclusion_conflict",
+        "fbt-return was told a car parking or meal entertainment benefit is not excluded from reporting, which FBTAA s 5E(3) excludes.",
+    ),
+    (
+        "fbt_return.gst_type_missing",
+        "fbt-return was given a benefit without a gst_type of type_1 or type_2.",
+    ),
+    (
+        "fbt_return.mixed_years",
+        "fbt-return was given a benefit for another FBT year than the return's.",
+    ),
+    (
+        "fbt_return.multiple_employers",
+        "fbt-return was given more than one employer.",
+    ),
+    (
+        "fbt_return.payroll_tax_unsupported",
+        "fbt-return was asked for a payroll tax gross-up, which each state and territory sets and it does not work out.",
+    ),
+    (
         "fbt_tax_exempt_body_entertainment.heads_invalid",
         "The employees and associates entertained are not a JSON integer from 0 to everyone entertained, or everyone entertained is not from 1 to 1,000,000.",
     ),
@@ -1196,7 +1224,7 @@ pub const REFUSAL_CODES: &[(&str, &str)] = &[
     ),
     (
         "input.field_unknown",
-        "A field the worksheet or command does not take, or does not take beside the other inputs given, was given (fbt-loan, fbt-meal-entertainment, fbt-car-parking, fbt-debt-waiver, fbt-expense-payment, fbt-property, fbt-residual, fbt-housing, fbt-lafha, fbt-board, fbt-tax-exempt-body-entertainment, fbt-entertainment-classifier, division-296, depreciation, foreign-resident-tax, medicare-levy, medicare-levy-surcharge, payg-withholding, payg-gross-up, termination-payment, unused-leave-payment, the Schedule 5 methods, working-holiday-maker-withholding, study-loan-withholding, seniors-pensioners-withholding, seniors-pensioners-tax-offset, lump-sum-arrears-tax-offset, hire-purchase-schedule, business-capital-expenditure and its items, contribution-caps given a carry-forward input, derive, personal-tax-estimate, dgr-check and income-tests only).",
+        "A field the worksheet or command does not take, or does not take beside the other inputs given, was given (fbt-loan, fbt-meal-entertainment, fbt-car-parking, fbt-debt-waiver, fbt-expense-payment, fbt-property, fbt-residual, fbt-housing, fbt-lafha, fbt-board, fbt-tax-exempt-body-entertainment, fbt-entertainment-classifier, division-296, depreciation, foreign-resident-tax, medicare-levy, medicare-levy-surcharge, payg-withholding, payg-gross-up, termination-payment, unused-leave-payment, the Schedule 5 methods, working-holiday-maker-withholding, study-loan-withholding, seniors-pensioners-withholding, seniors-pensioners-tax-offset, lump-sum-arrears-tax-offset, hire-purchase-schedule, business-capital-expenditure and its items, contribution-caps given a carry-forward input, derive, personal-tax-estimate, dgr-check, income-tests and fbt-return only).",
     ),
     ("input.flag_invalid", "A flag is not a JSON boolean."),
     ("input.fraction_invalid", "A fraction is outside 0 to 1."),

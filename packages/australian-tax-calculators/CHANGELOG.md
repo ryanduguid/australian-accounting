@@ -10,6 +10,18 @@ intentionally changed.
 
 ### Added
 
+- `fbt-return` composes one employer's FBT return for the FBT year ended
+  31 March 2026 or 2027 from a list of benefits, each valued by its own FBT
+  benefit worksheet and classified by the operator as type 1 or type 2 and as
+  excluded or not. It runs `fbt` once on the aggregate amounts and gives items
+  14A, 14B, 15, 16, 19 and 23, each employee's individual and reportable fringe
+  benefits amounts (FBTAA ss 5E and 135P, compilation 97), the employee
+  contributions applied, a reconciliation to the benefits, and the labels it
+  leaves to the preparer. New codes: `fbt_return.benefit_command_unsupported`,
+  `fbt_return.car_statutory_lower`, `fbt_return.exclusion_conflict`,
+  `fbt_return.gst_type_missing`, `fbt_return.mixed_years`,
+  `fbt_return.multiple_employers` and `fbt_return.payroll_tax_unsupported`.
+  `tests/fbt_return.rs` holds it to the ATO's worked examples.
 - `business-capital-expenditure` works out the deduction for business
   capital expenditure (black hole and start-up costs) under ITAA 1997
   s 40-880 for 2020-21 to 2027-28, item by item: one fifth a year over 5

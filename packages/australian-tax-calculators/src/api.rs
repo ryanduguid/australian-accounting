@@ -501,6 +501,7 @@ pub fn commands() -> Vec<&'static str> {
     out.push("derive");
     out.push("personal-tax-estimate");
     out.push("dgr-check");
+    out.push("fbt-return");
     out
 }
 
@@ -860,6 +861,7 @@ pub fn evaluate_coded(command: &str, v: &Value) -> Result<Value> {
             return contribution_caps_by_year(v);
         }
         "dgr-check" => return crate::dgr::check(v),
+        "fbt-return" => return crate::fbt_return::compose(v),
         "periods" => {
             let kind = match v.get("kind") {
                 None => return refusal("input.missing_field", "kind is required"),

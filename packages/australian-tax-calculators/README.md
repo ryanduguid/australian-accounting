@@ -23,7 +23,8 @@ under the statutory formula and operating cost methods, loan, meal entertainment
 quarterly super guarantee, Schedule 1 PAYG withholding and the gross pay that leaves a stated net, Schedule 5 withholding from back payments, commissions and bonuses by Methods A, B(i) and B(ii), Schedule 15 withholding for working holiday makers, Schedule 9 withholding for seniors and pensioners, super contribution caps,
 account-based pension minimums, study and training loan repayments, Schedule 8 study
 loan withholding, the Medicare levy with its low-income, SAPTO and family reductions and full or half exemptions, the Medicare levy surcharge, the low income tax offset, the seniors and pensioners tax offset, the lump sum payment in arrears tax offset,
-Division 293 tax, an estimate of Division 296 tax on large super balances and the tax-free part of a genuine redundancy payment with Schedule 11 withholding from an employment termination payment, the assessable share, Schedule 7 withholding and income statement label of unused leave paid on termination, and the income measures the surcharge, Division 293 tax, the offsets, study loan repayments and the super co-contribution are tested against. Callers must establish every scope condition before calculating. `personal-tax-estimate` composes the personal ones into one year's tax and levies.
+Division 293 tax, an estimate of Division 296 tax on large super balances and the tax-free part of a genuine redundancy payment with Schedule 11 withholding from an employment termination payment, the assessable share, Schedule 7 withholding and income statement label of unused leave paid on termination, and the income measures the surcharge, Division 293 tax, the offsets, study loan repayments and the super co-contribution are tested against. Callers must establish every scope condition before calculating. `personal-tax-estimate` composes the personal ones into one year's tax and levies,
+and `fbt-return` composes the FBT ones into an employer's FBT return.
 
 Each worksheet is a subcommand that reads one JSON object on stdin and writes
 one JSON result on stdout. Results include amounts, scope exclusions, official
@@ -138,6 +139,7 @@ lists the commands.
 | `periods` | `kind`, the worksheet name, such as `"payg_withholding"` |
 | `dgr-check` | `donations`, a list of 1 to 10,000 objects, each with `abn` or `name` or both, and optional `date` and `amount`; see [DGR check](#dgr-check) |
 | `personal-tax-estimate` | `year`, `scope_confirmed`, `residency`, `taxable_income` or `assessable_labour_income` (then optional `other_assessable_income`, `work_related_deductions`, `other_deductions`), optional `tax_withheld` or, to work it out, one of `payg-withholding`, `study-loan-withholding` and `seniors-pensioners-withholding` with `pays_in_year` and optional `schedule-5-method-a`, for a resident from 2027-28 `net_labour_income` (required beside `taxable_income`), and for a full-year resident `medicare-levy` and `medicare-levy-surcharge`; optional `seniors-pensioners-tax-offset`, `study-loan-repayment` and `division-293`; see [Personal tax estimate](#personal-tax-estimate) |
+| `fbt-return` | `employer`, `year_ended`, `scope_confirmed` and `benefits`, a list of objects each with `employee`, `command` (an FBT benefit worksheet), `input` (that worksheet's arguments), `gst_type` (`type_1` or `type_2`) and `excluded`; see [FBT return](#fbt-return) |
 | `derive` | `command`, one of `fbt`, `fbt-car-statutory`, `fbt-car-operating-cost`, `fbt-loan`, `fbt-meal-entertainment`, `fbt-car-parking`, `fbt-debt-waiver`, `fbt-expense-payment`, `fbt-property`, `division-293`, `pension-minimum`, `payg-withholding`, `schedule-5-method-a`, `schedule-5-method-b-i`, `schedule-5-method-b-ii`, `termination-payment`, `unused-leave-payment`, `working-holiday-maker-withholding`, `study-loan-withholding`, `seniors-pensioners-withholding`, `quarterly-sg`, `borrowing-expenses`, `resident-tax`, `foreign-resident-tax`, `low-income-tax-offset`, `seniors-pensioners-tax-offset`, `medicare-levy`, `medicare-levy-surcharge`, `division-296`, `contribution-caps`, `study-loan-repayment`, `capital-gains`, `main-residence`, `fbt-residual`, `fbt-housing`, `fbt-lafha`, `fbt-board`, `fbt-tax-exempt-body-entertainment`, `gst`, `depreciation`, `hire-purchase-schedule`, `lump-sum-arrears-tax-offset`, `income-tests` and `business-capital-expenditure`, and `input`, that command's arguments; see [Derivations](#derivations) |
 
 The 2 car commands, the 11 FBT benefit commands (`fbt-loan`, `fbt-meal-entertainment`, `fbt-car-parking`, `fbt-debt-waiver`, `fbt-expense-payment`, `fbt-property`, `fbt-residual`, `fbt-housing`, `fbt-lafha`, `fbt-board` and `fbt-tax-exempt-body-entertainment`), `main-residence`, `borrowing-expenses`, `division-296`, `termination-payment`, `unused-leave-payment`, the 3 `schedule-5` commands, `working-holiday-maker-withholding`, `seniors-pensioners-withholding`, `seniors-pensioners-tax-offset`, `medicare-levy-surcharge`, `foreign-resident-tax`, `payg-gross-up`, `hire-purchase-schedule`, `lump-sum-arrears-tax-offset`, `fbt-entertainment-classifier`, `income-tests` and `business-capital-expenditure` have no Python original; their arguments follow the same
@@ -1416,6 +1418,108 @@ take, which the law defines differently: the levy counts those covered by ITAA
 The tests hold it to the ATO's figures for tax with the levy, the surcharge,
 SAPTO and the foreign resident rates, and to the sum of its parts called alone; see
 [calculation evidence](docs/calculation-evidence.md#personal-tax-estimate).
+
+## FBT return
+
+`fbt-return` composes one ordinary taxable employer's fringe benefits for an FBT
+year ended 31 March 2026 or 2027 into the amounts the FBT return asks for,
+without valuing any benefit itself. It takes `employer`, a label, `year_ended`
+and `scope_confirmed` once, and `benefits`, a list. Each benefit names the
+worksheet that values it (one of the 2 car commands or the 11 FBT benefit
+commands above) and that worksheet's own arguments under `input`, without
+`year_ended` and `scope_confirmed`, which the return adds. The operator states
+the rest: `employee`, a label for the employee the benefit is provided in
+respect of, an associate's benefits included (the employer's guide, 5.3); `gst_type`,
+`type_1` for a GST-creditable benefit or `type_2` (s 5C(3) and (4)); and
+`excluded`, whether it is an excluded fringe benefit under s 5E(3).
+
+```json
+{"employer": "Example Pty Ltd", "year_ended": 2026, "scope_confirmed": true,
+ "benefits": [
+   {"employee": "E1", "command": "fbt-debt-waiver", "input": {"amount_waived": "2545.00"},
+    "gst_type": "type_2", "excluded": false}]}
+```
+
+Each benefit's worksheet runs as it does alone, and `components` keeps every
+result, with its scope, sources and warnings. The return then adds each type's
+taxable values, excluded benefits included, and runs `fbt` once on the 2
+totals, so the gross-up and the tax are `fbt`'s. The result gives:
+
+- `amounts`: the type 1 and type 2 aggregate amounts, each grossed up, the
+  fringe benefits taxable amount (item 15), the FBT payable (item 16) and the
+  employee contributions applied to the benefits; `working` names the source of
+  each.
+- `employees`: for each employee label, the individual fringe benefits amount,
+  the sum of their benefits' taxable values that are not excluded (s 5E(2)),
+  with an exempt electric car's notional value (s 135P(3)), the employee
+  contributions applied, and the reportable fringe benefits amount. That amount
+  is nil unless the individual amount is more than $2,000 (s 135P(1)); above
+  it, the individual amount times 1 / (1 - the FBT rate), as s 135P(2) states
+  it, in whole dollars with the cents dropped. No provision states that
+  rounding; the ATO's examples drop the cents. The ATO's pages multiply by
+  1.8868 instead, which can give a dollar more: $15,000 gives $28,301 here and
+  $28,302 in the employer's guide, 5.8.
+- `return_labels`: items 14A, 14B, 15, 16 and 19, and item 23 by benefit
+  category (A to G and J to P), with the gross taxable value, employee
+  contribution, value of reductions and taxable value, and at 23G the number
+  of employee labels that received a living-away-from-home allowance. A column
+  the instructions say to leave blank, such as 23D's Number, employee
+  contribution and value of reductions, is left out. An exempt electric car is
+  not a fringe benefit and is left out of item 23 and the aggregates.
+- `left_to_preparer`: the labels it does not fill and why: the employer's
+  details (items 1 to 9 and 11 to 13); item 10's count of employees and
+  associates; the number of cars, loans and units of accommodation at 23A,
+  23B, 23C and 23F, as one can be given as several benefits; items 14C, 17
+  and 18, which a taxable employer leaves blank;
+  items 20 to 22, which need the instalments reported on activity statements;
+  and the declarations.
+- `reconciliation`: the benefits' taxable values added one by one beside the 2
+  aggregate amounts, and the difference, which is nil.
+
+The FBT return 2026 instructions were the latest the ATO had published on
+16 November 2026, so a 2027 result follows their labels and says so in its
+first warning; the 2027 form may differ. A benefit must belong wholly to one employee label: a benefit shared
+by employees or valued with others in a class (s 5F(3) and (4)), or partly
+GST-creditable, is given as separate benefits. It is not for a rebatable
+employer, a public or not-for-profit hospital, a public ambulance service or an
+employer exempt under s 57A or s 58 (items 14C, 17 and 18, and s 135Q).
+
+It refuses a benefit without a `gst_type` of `type_1` or `type_2` as
+`fbt_return.gst_type_missing`, a year without `fbt`'s rates as
+`period.unsupported`, a benefit whose `input.year_ended` is not the return's as
+`fbt_return.mixed_years`, more than one employer as
+`fbt_return.multiple_employers`, and any input whose name starts with `payroll_tax` as
+`fbt_return.payroll_tax_unsupported`: payroll tax is imposed by each state and
+territory under its own Act, and the return does not work out a payroll tax
+gross-up. A car parking or meal entertainment benefit stated not to be excluded
+is refused as `fbt_return.exclusion_conflict` (s 5E(3)(a) and (b); the meal
+entertainment worksheet covers no salary packaging). An operating cost car
+whose statutory formula value is lower takes its s 9 value under s 10(5), so
+it is refused as `fbt_return.car_statutory_lower`: give it to
+`fbt-car-statutory`, whose gross value and contribution item 23 needs. A
+command that is not a benefit worksheet is `fbt_return.benefit_command_unsupported`.
+A worksheet's own refusal, such as a negative or non-finite amount, keeps its
+code, and its message starts with the benefit and the worksheet, such as
+`benefits[0] fbt-debt-waiver: ...`. Choosing between paying FBT and an employee
+contribution is planning, outside a worksheet. `derive` does not explain the
+return; it explains each worksheet.
+
+The tests hold the return to the ATO's FBT return 2026 instructions (examples
+2 and 4 for items 14A to 19, examples 6 to 12 for item 23), its reportable
+fringe benefits page's example and the employer's guide's 5.4 example for
+reportable amounts, the examples in s 135P(1), and a seeded property that the
+aggregates add up to the benefits; see
+[calculation evidence](docs/calculation-evidence.md#fbt-return).
+
+Between The Spreadsheets sells a Full FBT Calculator for 31 March 2026, $1,400
+plus GST as a bundle with its car and entertainment calculators, whose product
+page (read on 16 November 2026) says it tracks reportable fringe benefits,
+summarises the benefits into a page that feeds the FBT return, shows a payroll
+tax gross-up, summarises employee contributions and links the ATO's employee
+declarations. `fbt-return` covers the return, reportable amounts and
+contributions for 2026 and 2027, free, with each step's provision cited; it does
+not work out a payroll tax gross-up or provide declarations. Nobody here has
+run the rival's workbook, so this compares what each says it does, not results.
 
 ## DGR check
 
