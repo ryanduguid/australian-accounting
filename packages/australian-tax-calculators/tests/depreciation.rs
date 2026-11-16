@@ -23,7 +23,17 @@ fn input(overrides: Value) -> Value {
 }
 
 fn run(overrides: Value) -> Value {
-    api::evaluate("depreciation", &input(overrides)).unwrap()
+    let input = input(overrides);
+    let result = api::evaluate("depreciation", &input).unwrap();
+    // derive gives the same result.
+    let envelope = json!({"command": "depreciation", "input": input});
+    let doc = api::evaluate("derive", &envelope).unwrap();
+    assert_eq!(
+        doc["result"].to_string(),
+        result.to_string(),
+        "derive {input}"
+    );
+    result
 }
 
 fn code(overrides: Value) -> &'static str {

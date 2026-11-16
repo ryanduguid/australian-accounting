@@ -38,6 +38,7 @@ NO_BUNDLED_DATA = {
     "validate_abn",
     "validate_acn",
     "validate_bsb_format",
+    "validate_account_number_format",
     "get_data_freshness",
 }
 

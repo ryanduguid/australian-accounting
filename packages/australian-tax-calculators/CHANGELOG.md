@@ -10,6 +10,14 @@ intentionally changed.
 
 ### Added
 
+- `derive` also covers `gst`, `depreciation` and `hire-purchase-schedule`.
+  Their steps cite the GST Act ss 9-70 and 9-75 (compilation 96) and ITAA 1997
+  ss 40-25, 40-70, 40-72, 40-75, 40-85, 240-25 and 240-60 (compilation 268).
+  `payg-gross-up` stays outside `derive`: its gross pay is found by search, so
+  no step can work it out before the withholding worked on it.
+  `tests/depreciation.rs` and `tests/hire_purchase.rs` derive each case they
+  run and check the result is the plain output. No command's plain output
+  changes.
 - `derive` also covers `resident-tax`, `foreign-resident-tax`,
   `low-income-tax-offset`, `seniors-pensioners-tax-offset`, `medicare-levy`
   and `medicare-levy-surcharge`. Their steps cite the Income Tax Rates Act
@@ -374,6 +382,12 @@ intentionally changed.
   it accrues on.
   `tests/refusal_codes.rs` now also reads the engine's modules under
   `src/engine/`.
+- `hire-purchase-schedule` also gives `interest_by_income_year`, the
+  interest of the months wholly in each income year, and
+  `interest_across_30_june`, each month that spans 30 June with its interest
+  and its days in each year, which s 240-60(2) leaves to accounting
+  principles and the worksheet does not split. `tests/hire_purchase.rs`
+  holds it to agreements worked by hand at 10% a month.
 
 ### Documented divergences
 
