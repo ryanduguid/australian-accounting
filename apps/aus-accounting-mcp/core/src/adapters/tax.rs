@@ -385,7 +385,11 @@ mod tests {
                 assert!(facts.get(name).is_some(), "{kind} offers {name}");
             }
         }
-        assert!(catalogue["contribution_caps"].get("optional_inputs").is_none());
+        assert!(
+            catalogue["contribution_caps"]
+                .get("optional_inputs")
+                .is_none()
+        );
     }
 
     /// The published contribution caps facts take only the unused total, so the served
