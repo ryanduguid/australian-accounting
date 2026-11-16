@@ -689,6 +689,22 @@ and gives the examples of advice on a business structure, the fee for
 creating a company and stamp duty on transferring assets to the entity that
 will carry on the business.
 
+The worksheet takes 2027-28 as well, on a reading of 17 November 2026.
+Neither s 40-880 nor Subdivision 328-C, which the entity tests rely on, sets
+a figure by year, and the endnotes of compilation 268 list no amendment of
+either after Act No 92 of 2020 and Act No 40 of 2023. The Federal Register
+of Legislation's API lists one later version, from 1 December 2026, whose
+amendments (Act No 61 of 2026, Schedule 1 items 41 to 45) change ss 25-110,
+715-375, 715-379 and 995-1 only. From 2027-28, s 26-155 (Act No 49 of 2026,
+applied to the 2027-28 and later income years) limits deductions relating
+to using or holding residential dwellings as residential accommodation; the
+scope leaves that limit out, as it leaves out Division 35. TR 2011/6 para 10
+also states that eligibility is decided once, when the expenditure is
+incurred, which is why an item's later fifths continue after its business
+ceases, and paras 157 and 160 that the taxable purpose of a current or
+proposed business is tested when the expenditure is incurred and that of a
+former business over a period that reasonably reflects it.
+
 `tests/business_capital_expenditure.rs` holds these cases. TR 2011/6's
 examples date from 2007 to 2010, before the current form, so those with
 figures are run with the year moved to 2020-21 or later; the others are
@@ -705,6 +721,7 @@ stated facts the ruling decides.
 | A feasibility study in a project pool; capital works not claimed | TR 2011/6 examples 24 and 25 (paras 209 to 212) | Excluded by s 40-880(5)(b) |
 | A gaming machine entitlement | TR 2011/6 example 40A (paras 318A to 318D) | Refused under s 40-880(5)(f), pointing to the cost base; with s 40-880(6) stated, deductible |
 | $1,666.67 over 5 years | Worked by hand: $1,666.67 / 5 = $333.334 | `333.334` in the item, $333.33 in the amounts |
+| $10,000 incurred in 2023-24 and a $576 company fee in 2027-28 | Worked by hand: $10,000 / 5 in the fifth year; the fee in full under s 40-880(2A) | $2,576.00 in 2027-28, nothing remaining |
 
 A fifth of an amount in cents has at most 3 decimal places, so each item is
 worked exactly and only the result's amounts are rounded to the cent, as
@@ -1900,6 +1917,7 @@ year; the others refuse it and say what is missing.
 | Contribution caps, ETP caps | Not published | ATO contributions caps page (last updated 11 September 2026) and ETP page (17 April 2026), 16:07 |
 | Division 296 thresholds | Not published: indexed from 2027-28 | ATO Division 296 page (last updated 3 November 2026, 2026-27 only), 16:13 |
 | CGT and rental deductions | Changed from 1 July 2027 by Act No. 49 of 2026 Schedules 1 and 2 (s 26-155) | ITAA 1997 s 26-155 (https://www.ato.gov.au/law/view/document?docid=PAC/19970038/26-155), 16:13 |
+| Business capital expenditure | Enacted, no year: ITAA 1997 s 40-880 and the small business entity test of Subdivision 328-C, neither amended in compilation 268 or the version from 1 December 2026; s 26-155 left out of scope | Compilation 268 (https://www.legislation.gov.au/C2004A05138/latest/text) and the Register's API, read 17 November 2026 from 01:33; see [Business capital expenditure](#business-capital-expenditure) |
 
 Worked by hand: resident tax on $45,000 is 14% of $26,800, $3,752; on
 $100,000, $3,752 + 30% of $55,000 = $20,252; on $250,000, $51,102 + 45% of

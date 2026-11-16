@@ -243,7 +243,7 @@ list; each item's row cites its own paragraphs.
 | CGT | 2025-26 and 2026-27, resident individual's established gains and losses; losses before the 50% discount |
 | Main residence | CGT events in 2024-25 to 2026-27; one dwelling disposed of by a resident individual, before the discount |
 | Borrowing expenses | 2024-25 to 2026-27, before s 26-155 from 2027-28; one loan's established expenditure, use and dates |
-| Business capital expenditure | 2020-21 to 2026-27, items incurred from 1 July 2020 under s 40-880 as amended by Act No 92 of 2020; each item's established capital nature, business, taxable purpose extent, start-up facts and exclusions |
+| Business capital expenditure | 2020-21 to 2027-28, items incurred from 1 July 2020 under s 40-880 as amended by Act No 92 of 2020; each item's established capital nature, business, taxable purpose extent, start-up facts and exclusions |
 | FBT | Years ended 31 March 2026 and 2027; established type 1 and type 2 taxable values, ordinary employer |
 | FBT car benefits | Years ended 31 March 2026 and 2027; one car's established base value or operating costs, the 20% statutory percentage and a deemed depreciation rate of 200% over the established effective life |
 | FBT loans | Years ended 31 March 2026 and 2027 at the statutory interest rate (8.62% and 8.27%); one loan to a current employee, its established daily balances, interest accrued and deductible share |
@@ -279,7 +279,8 @@ list; each item's row cites its own paragraphs.
 Unsupported periods fail. The 2027-28 rows use rates and thresholds the law
 already sets for that year; the ATO had published none of them when they were
 read on 16 November 2026, and each such result but GST, the low income tax
-offset, Division 293 and the pension minimum says so. A worksheet that refuses
+offset, Division 293, the pension minimum and business capital expenditure
+says so. A worksheet that refuses
 2027-28 for one of these reasons says which: its figures were not yet published (withholding schedules,
 the Medicare levy surcharge thresholds, study loan thresholds, contribution
 caps, ETP caps and the Division 296 thresholds), or the law changes from 1 July
@@ -849,7 +850,7 @@ the balloon and the notional seller are out of scope; see
 
 `business_capital_expenditure` works out the deduction for business capital
 expenditure under ITAA 1997 s 40-880 (black hole and start-up costs) for one
-income year from 2020-21 to 2026-27, and each item's deductions year by
+income year from 2020-21 to 2027-28, and each item's deductions year by
 year. It takes `items`, a list with one object for each item of expenditure
 incurred from 1 July 2020, when s 40-880 as amended by Act No 92 of 2020
 began to apply, to the end of the year asked about. Each item states:
@@ -882,7 +883,8 @@ expenditure is its amount times the taxable purpose extent. A start-up cost
 that meets s 40-880(2A) is deducted in full in the year incurred; the rest is
 deducted one fifth a year over 5 income years starting in the year incurred,
 with no apportionment for part of a year (s 40-880(2); TR 2011/6 para 10).
-The result's amounts are the expenditure, the deductible expenditure, the
+Eligibility is fixed when an item is incurred, so its later fifths continue
+if the business ceases (TR 2011/6 para 10). The result's amounts are the expenditure, the deductible expenditure, the
 year's deduction and what remains for later years. `items` gives each item's
 paragraph of s 40-880(2), its limit, `excluded_by`, the method with its
 citation, the year's deduction, `schedule` (each income year and its
@@ -897,8 +899,10 @@ and an item incurred before 1 July 2020 or after the year asked about.
 Whether an outlay is capital or business related, the taxable purpose extent,
 the entity tests and the exclusions are the caller's to establish, and
 non-arm's length amounts (s 40-885), Division 35's deferral of an
-individual's non-commercial losses, a taxpayer that ceases to exist before
-the 5 years end, and website and software costs are out of scope. The tests
+individual's non-commercial losses, personal services income (s 85-10),
+s 26-155's limit on residential rental deductions from 2027-28, a taxpayer
+that ceases to exist before the 5 years end, and website and software costs
+are out of scope. The tests
 hold it to the Commissioner's examples in TR 2011/6 and the ATO's start-up
 examples; see
 [calculation evidence](docs/calculation-evidence.md#business-capital-expenditure).

@@ -12,7 +12,7 @@ intentionally changed.
 
 - `business-capital-expenditure` works out the deduction for business
   capital expenditure (black hole and start-up costs) under ITAA 1997
-  s 40-880 for 2020-21 to 2026-27, item by item: one fifth a year over 5
+  s 40-880 for 2020-21 to 2027-28, item by item: one fifth a year over 5
   income years from the year incurred, or in full that year for a start-up
   cost meeting s 40-880(2A) and (2B), to the extent s 40-880(3) or (4)
   allows, with each item's schedule and the paragraphs of s 40-880(4)(b),

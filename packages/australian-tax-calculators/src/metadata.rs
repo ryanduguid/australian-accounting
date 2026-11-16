@@ -910,9 +910,12 @@ pub fn supported_periods(kind: &str) -> Vec<&'static str> {
         // from 2027-28. Hire purchase: the years read.
         "borrowing_expenses" | "hire_purchase_schedule" => vec!["2024-25", "2025-26", "2026-27"],
         // s 40-880 as amended by Act No 92 of 2020 applies to expenditure
-        // incurred from 1 July 2020, unamended to compilation 268.
+        // incurred from 1 July 2020, unamended to compilation 268. It and
+        // Subdivision 328-C set no figure by year, and the Register's one later
+        // version (1 December 2026) changes neither, so 2027-28 is taken.
         "business_capital_expenditure" => vec![
             "2020-21", "2021-22", "2022-23", "2023-24", "2024-25", "2025-26", "2026-27",
+            "2027-28",
         ],
         "fbt" => vec!["2026", "2027"],
         "fbt_car_statutory" | "fbt_car_operating_cost" | "fbt_loan" => {
