@@ -769,6 +769,7 @@ On a reimbursed line with more than one employee, the employees' share is
 `expense_payment_and_property`: the reimbursed employee's is an expense payment
 benefit and each other employee's a benefit to that employee (TR 97/17 para
 98); give the reimbursed employee's share as its own line to separate them.
+With the number of employees unknown, the type is `undetermined`.
 
 Under the 50/50 split or 12 week register method, the meal entertainment
 lines' cost is `meal_entertainment_expenditure`, repeated in
