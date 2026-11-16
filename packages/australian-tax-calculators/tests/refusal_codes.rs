@@ -31,17 +31,21 @@ fn every_code_at_a_refusal_site_is_catalogued_and_every_entry_is_used() {
     let read = |name: &str| std::fs::read_to_string(src.join(name)).unwrap();
     let mut used = BTreeSet::new();
     // The engine's worksheets in their own modules refuse as engine.rs does.
-    let modules = ["engine", "engine/fbt_benefits"]
-        .into_iter()
-        .flat_map(|dir| {
-            std::fs::read_dir(src.join(dir))
-                .unwrap()
-                .filter_map(move |entry| {
-                    let name = entry.unwrap().file_name().into_string().unwrap();
-                    name.ends_with(".rs")
-                        .then(|| (format!("{dir}/{name}"), &["refuse(", "bad("][..]))
-                })
-        });
+    let modules = [
+        "engine",
+        "engine/fbt_benefits",
+        "engine/fbt_benefits/entertainment",
+    ]
+    .into_iter()
+    .flat_map(|dir| {
+        std::fs::read_dir(src.join(dir))
+            .unwrap()
+            .filter_map(move |entry| {
+                let name = entry.unwrap().file_name().into_string().unwrap();
+                name.ends_with(".rs")
+                    .then(|| (format!("{dir}/{name}"), &["refuse(", "bad("][..]))
+            })
+    });
     for (file, openers) in [
         ("engine.rs", &["refuse(", "bad("][..]),
         ("engine/fbt_benefits.rs", &["refuse("][..]),
@@ -137,9 +141,11 @@ fn every_catalogued_required_input_of_a_strict_command_is_read() {
     }
     // The 14 commands that refused an unknown field before the FBT benefit
     // worksheets (the 3 Schedule 5 methods counted apart), the 11 FBT benefit
-    // worksheets, payg-gross-up, hire-purchase-schedule, unused-leave-payment, income-tests
-    // and business-capital-expenditure.
-    assert_eq!(checked, 30);
+    // worksheets, payg-gross-up, hire-purchase-schedule,
+    // fbt-entertainment-classifier, unused-leave-payment,
+    // lump-sum-arrears-tax-offset, income-tests and
+    // business-capital-expenditure.
+    assert_eq!(checked, 32);
 }
 
 /// Every frozen call gives the same answer through either entry point, and

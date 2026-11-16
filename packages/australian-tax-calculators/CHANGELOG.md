@@ -23,6 +23,26 @@ intentionally changed.
   covers it. `tests/business_capital_expenditure.rs` holds it to TR 2011/6
   examples 14, 16 to 18, 21 to 25, 40A and 41 and the ATO's start-up
   examples.
+- `contribution-caps` can work out the unused concessional cap from each
+  earlier year's contributions instead of taking it as a total: given
+  `earlier_concessional_contributions` from at least the 5th year before,
+  with `defined_benefit_interest` and an optional
+  `proposed_concessional_contribution`, it gives each year's cap and unused
+  cap from 2018-19, the unused cap earlier years applied, earliest first, the
+  total carried into the year, and, after the proposal, the amount applied from
+  each year, what is left of each, what lapses at the end of the year and
+  `unused_cap_expiry`, each with its step in `derive` (ITAA 1997 s 291-20(1)
+  to (7), compilation 268). It refuses a defined benefit interest, years
+  before 2018-19, a total across years, a gap, and a year over its cap whose
+  increase cannot be worked out from what was given; it refuses a field it
+  does not take, as `division-296` does. New refusal codes:
+  `contribution_caps.defined_benefit_interest`,
+  `contribution_caps.earlier_balance_missing`,
+  `contribution_caps.earlier_years_invalid`,
+  `contribution_caps.earlier_years_short` and
+  `contribution_caps.year_before_carry_forward`. `tests/contribution_caps.rs`
+  holds it to the ATO's Sam example and its table 2. A supplied
+  `unused_concessional_cap` gives the same result as before.
 - `unused-leave-payment` works out, for unused annual leave, leave loading and
   unused long service leave paid on a termination in 2026-27, each part's
   assessable share and tax offset (ITAA 1997 ss 83-10 to 83-115), the
@@ -96,6 +116,15 @@ intentionally changed.
   `fbt_expense_payment.in_house_deductible_not_covered` (the otherwise
   deductible rule for in-house expense payments, s 24(1)(b)(i), is not
   covered) and `fbt_expense_payment.payment_exceeds_expenditure`.
+- `fbt-entertainment-classifier` classifies an ordinary taxable employer's entertainment expense lines: for each
+  line and attendee class, whether it is entertainment, the fringe benefit and its type or the s 41 exemption, the
+  ITAA 1997 Division 32 deduction and the GST credit that follows it, and whether each fringe benefit is excluded from
+  reporting (FBTAA s 5E(3)(a)), each cited, with TR 97/17 and TR 2007/12 as the
+  Commissioner's view. A missing fact leaves a line undetermined; minor benefits are shown only as possible. Under the
+  50/50 split or 12 week register method it totals the meal entertainment expenditure for `fbt-meal-entertainment`.
+  It refuses tax-exempt bodies, unsplit lines, a cost without its GST status and a missing valuation method, with
+  codes `fbt_entertainment_classifier.fact_invalid`, `.gst_status_invalid`, `.line_not_split`, `.lines_invalid`,
+  `.method_required`, `.register_percentage_invalid` and `.tax_exempt_body`.
 - `fbt-residual`, `fbt-housing`, `fbt-lafha`, `fbt-board` and `fbt-tax-exempt-body-entertainment` give the taxable
   value of residual (Division 12, with the s 62 in-house reduction), housing
   (Division 6: market value, or the statutory annual value from a base year
@@ -334,6 +363,26 @@ intentionally changed.
   every cut-out; `tests/properties.rs` checks that it never rises with rebate
   income without a transfer. Schedule 9 and this command share the `status` values and the
   `input.status_invalid` refusal.
+- `lump-sum-arrears-tax-offset` works out the tax offset for lump sum payments
+  in arrears (ITAA 1936 ss 159ZR to 159ZRD) for a year of receipt from
+  2013-14 to 2026-27: the 10% threshold test on normal taxable income (s 159ZRA(1)(b)),
+  the tax on the arrears (s 159ZRB), the notional tax in each recent accrual
+  year (s 159ZRC) and in distant years at the average of the recent years'
+  rates, each truncated to 3 decimal places and raised by 0.001 when the
+  fourth is more than 4 (s 159ZRD), and the rebate-year adjustments. A new
+  `PRIOR_RESIDENT_TAX_SCALES` table holds the ATO's resident rates for
+  2012-13 to 2023-24, with the 2% temporary budget repair levy above $180,000
+  in 2014-15 to 2016-17 (Income Tax (Transitional Provisions) Act 1997
+  s 4-11); `resident-tax` periods do not change. A recent accrual year before
+  2012-13 is refused with `lump_sum_arrears.recent_year_unsupported`, and a
+  malformed accrual year with `lump_sum_arrears.accrual_years_invalid`. The
+  Medicare levy exemption (Medicare Levy Act 1986 s 9A) and surcharge offset
+  (ITAA 1997 Subdivision 61-L) are named as separate questions, not worked
+  out. `derive` covers it. Like `division-296`, it refuses a field it does
+  not take. No Python release has it. `tests/lump_sum_arrears_offset.rs`
+  holds it to the ATO's Sudeep and Anthony results, works the Heather and Yan
+  facts by hand with assumed taxable incomes and checks each earlier year's
+  rates.
 - `depreciation` takes an optional `opening_adjustable_value` for an income
   year after the asset's start time (ITAA 1997 ss 40-70(1), 40-72 and 40-75).
   Diminishing value then applies its rate to that value and prime cost to cost,
@@ -528,6 +577,12 @@ intentionally changed.
 
 ### Documented divergences
 
+- `contribution-caps` results and its catalogue entry give the new scope,
+  which describes the carry-forward by year, cite the ATO's concessional
+  contributions cap page and ITAA 1997 s 291-20 on the ATO's legal database,
+  and are checked on 16 November 2026; the catalogue lists the 3 new optional
+  inputs. No amount or rate changes. `tests/parity.rs` applies this to the frozen
+  `contribution-caps` and `worksheet-catalogue` results.
 - `depreciation`'s closing adjustable value is the opening value less the
   decline in value as shown in cents. Python 0.2.0 rounded the 2 separately, so
   a decline ending in exactly half a cent showed a cent too much in both: $10,001

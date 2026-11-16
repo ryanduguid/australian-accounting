@@ -6,6 +6,8 @@
 //! step, scope statement or message. Every worksheet computes in a 40-digit
 //! context, as the original's `localcontext` did.
 
+use std::borrow::Cow;
+
 use serde_json::{Map, Value, json};
 
 use crate::dates;
@@ -19,7 +21,9 @@ pub use fbt_benefits::{
     fbt_board, fbt_housing, fbt_lafha, fbt_residual, fbt_tax_exempt_body_entertainment,
 };
 pub use fbt_benefits::{fbt_car_parking, fbt_loan, fbt_meal_entertainment};
-pub use fbt_benefits::{fbt_debt_waiver, fbt_expense_payment, fbt_property};
+pub use fbt_benefits::{
+    fbt_debt_waiver, fbt_entertainment_classifier, fbt_expense_payment, fbt_property,
+};
 
 pub const VERSION: &str = env!("CARGO_PKG_VERSION");
 const WORKING_PRECISION: i128 = 40;
@@ -259,7 +263,7 @@ fn result(
 /// (1 October 2026) and Schedule 11 of those instruments, all read on
 /// 15 November 2026.
 struct Step {
-    id: &'static str,
+    id: Cow<'static, str>,
     authority: &'static str,
     formula: String,
     operands: String,
@@ -270,7 +274,7 @@ struct Step {
 /// next of `operands`. Numbers, operators (`x` multiplies) and the functions
 /// `min`, `max`, `cents`, `dollars` and `floor` stay as written.
 fn step(
-    id: &'static str,
+    id: impl Into<Cow<'static, str>>,
     authority: &'static str,
     formula: &str,
     operands: &[&Decimal],
@@ -295,11 +299,22 @@ fn step(
     assert!(values.next().is_none(), "a name for each operand");
     let formula = formula.to_string();
     Step {
-        id,
+        id: id.into(),
         authority,
         formula,
         operands: filled,
         value,
+    }
+}
+
+impl Step {
+    /// The id of a step the code names with a literal, as a later formula's
+    /// name for it; only the carry-forward years' steps are named at run time.
+    fn static_id(&self) -> &'static str {
+        match self.id {
+            Cow::Borrowed(id) => id,
+            Cow::Owned(_) => unreachable!("a step named with a literal"),
+        }
     }
 }
 
@@ -313,7 +328,7 @@ fn steps_from<const N: usize>(
         .iter()
         .zip(rows)
         .map(|((id, authority, formula), (operands, value))| {
-            step(id, authority, formula, operands, value)
+            step(*id, authority, formula, operands, value)
         })
         .collect()
 }
@@ -344,7 +359,10 @@ fn derived_result(
     steps: Vec<Step>,
     rates: Vec<(String, String)>,
 ) -> Result<Value> {
-    let amounts = steps.iter().map(|s| (s.id, s.value.clone())).collect();
+    let amounts = steps
+        .iter()
+        .map(|s| (s.id.as_ref(), s.value.clone()))
+        .collect();
     let out = result(kind, period, amounts, rates)?;
     STEPS.with_borrow_mut(|recorded| {
         if let Some(recorded) = recorded {
@@ -355,7 +373,7 @@ fn derived_result(
                         "id": s.id,
                         "authority": s.authority,
                         "working": format!("{} = {} = {}", s.formula, s.operands, s.value),
-                        "value": out["amounts"][s.id],
+                        "value": out["amounts"][s.id.as_ref()],
                     })
                 })
                 .collect();
@@ -1859,7 +1877,7 @@ impl SchedulePay {
         let mut formula = "withholding_before_adjustments".to_string();
         let mut operands = Vec::new();
         for s in &w.steps {
-            let sign = match s.id {
+            let sign = match s.id.as_ref() {
                 "withholding_before_adjustments" => "",
                 "tax_offset_reduction" | "medicare_levy_adjustment" => " - ",
                 "additional_withholding" => " + ",
@@ -1867,7 +1885,7 @@ impl SchedulePay {
             };
             if !sign.is_empty() {
                 formula.push_str(sign);
-                formula.push_str(s.id);
+                formula.push_str(&s.id);
             }
             operands.push(s.value.clone());
         }
@@ -2602,7 +2620,7 @@ fn medicare_working(
             for reduction in &working.steps[1..] {
                 before = before.sub(&reduction.value)?;
                 before_formula = format!("{before_formula} - {}", reduction.id);
-                values.push((reduction.id, reduction.value.clone()));
+                values.push((reduction.static_id(), reduction.value.clone()));
             }
         }
         rates.push(rate("family_income_threshold", &working.threshold));
@@ -3703,8 +3721,35 @@ pub fn contribution_caps(
     let Arg::Bool(under_75) = under_75_in_year else {
         return refuse("input.flag_invalid", "under_75_in_year must be a boolean.");
     };
-    let (cap, transfer) = lookup(meta::CONTRIBUTION_CAPS, &year);
-    let (steps, rates) = precise(|| {
+    let cap = lookup(meta::CONTRIBUTION_CAPS, &year).0;
+    let steps = precise(|| {
+        Ok(concessional_steps(
+            &balance,
+            &concessional,
+            &unused,
+            &d(cap),
+        )?)
+    })?;
+    caps_result(
+        &year,
+        &balance,
+        steps,
+        (&non_concessional, *under_75),
+        Vec::new(),
+    )
+}
+
+/// `contribution_caps`' result: the concessional `steps`, then the
+/// non-concessional amounts, with the year's rates and then `more_rates`.
+fn caps_result(
+    year: &str,
+    balance: &Decimal,
+    mut steps: Vec<Step>,
+    (non_concessional, under_75): (&Decimal, bool),
+    more_rates: Vec<(String, String)>,
+) -> Result<Value> {
+    let (cap, transfer) = lookup(meta::CONTRIBUTION_CAPS, year);
+    let rates = precise(|| {
         let (cap, transfer) = (d(cap), d(transfer));
         let annual = cap.mul(&int(4))?;
         // s 292-85: nil at or above the transfer balance cap; otherwise the
@@ -3722,31 +3767,25 @@ pub fn contribution_caps(
             3
         };
         let triggered = multiple > 1 && non_concessional.gt(&annual)?;
-        let mut steps = concessional_steps(&balance, &concessional, &unused, &cap)?;
-        steps.extend(non_concessional_steps(
-            &non_concessional,
-            &annual,
-            multiple,
-        )?);
-        Ok((
-            steps,
-            vec![
-                rate("concessional_cap", &cap),
-                rate("non_concessional_cap", &annual),
-                rate("general_transfer_balance_cap", &transfer),
-                rate(
-                    "carry_forward_balance_limit",
-                    meta::CARRY_FORWARD_BALANCE_LIMIT,
-                ),
-                rate("non_concessional_cap_multiple", multiple),
-                rate(
-                    "bring_forward_period_years",
-                    if triggered { multiple } else { 0 },
-                ),
-            ],
-        ))
+        steps.extend(non_concessional_steps(non_concessional, &annual, multiple)?);
+        let mut rates = vec![
+            rate("concessional_cap", &cap),
+            rate("non_concessional_cap", &annual),
+            rate("general_transfer_balance_cap", &transfer),
+            rate(
+                "carry_forward_balance_limit",
+                meta::CARRY_FORWARD_BALANCE_LIMIT,
+            ),
+            rate("non_concessional_cap_multiple", multiple),
+            rate(
+                "bring_forward_period_years",
+                if triggered { multiple } else { 0 },
+            ),
+        ];
+        rates.extend(more_rates);
+        Ok(rates)
     })?;
-    derived_result("contribution_caps", &year, steps, rates)
+    derived_result("contribution_caps", year, steps, rates)
 }
 
 /// The concessional amounts. s 291-20(3)-(4): the unused cap raises this
@@ -3857,6 +3896,9 @@ fn non_concessional_steps(
         ),
     ])
 }
+
+mod carry_forward;
+pub use carry_forward::{CarryForward, contribution_caps_by_year};
 
 fn is_leap(year: i64) -> bool {
     year % 4 == 0 && (year % 100 != 0 || year % 400 == 0)
@@ -6015,10 +6057,12 @@ pub fn seniors_pensioners_tax_offset(
     Ok(out)
 }
 
+mod lump_sum_arrears;
+pub use lump_sum_arrears::lump_sum_arrears_tax_offset;
 mod income_tests;
 pub use income_tests::income_tests;
 
-const KINDS: [&str; 44] = [
+const KINDS: [&str; 46] = [
     "gst",
     "resident_tax",
     "foreign_resident_tax",
@@ -6057,11 +6101,13 @@ const KINDS: [&str; 44] = [
     "working_holiday_maker_withholding",
     "seniors_pensioners_withholding",
     "seniors_pensioners_tax_offset",
+    "lump_sum_arrears_tax_offset",
     "fbt_residual",
     "fbt_housing",
     "fbt_lafha",
     "fbt_board",
     "fbt_tax_exempt_body_entertainment",
+    "fbt_entertainment_classifier",
     "income_tests",
 ];
 
