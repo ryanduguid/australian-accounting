@@ -224,7 +224,7 @@ fn an_in_house_residual_expense_payment_cites_s_22a_2() {
         authorities,
         [
             "FBTAA s 22A(2) and (3)(a), s 48(a) and s 49(a)",
-            "FBTAA s 22A(2)(b)(i) and s 136(1), recipients portion",
+            "FBTAA s 22A(2)(b)(i) for a payment or (ii) for a reimbursement, and s 136(1), recipients portion",
             "FBTAA s 22A(2)(b)",
             "FBTAA s 22A(2)(b)",
             "FBTAA s 22A(2)",
@@ -240,6 +240,31 @@ fn an_in_house_residual_expense_payment_cites_s_22a_2() {
         refusal.code,
         "fbt_expense_payment.in_house_deductible_not_covered"
     );
+}
+
+/// FBTAA s 136(1), compilation 97, read on 16 November 2026: an in-house
+/// property or residual expense payment's provider may be a third party that
+/// bought from the employer or an associate, as the guide's 9.3 retailer did.
+/// Each provider must carry on a business selling principally to outsiders at
+/// or about the provision time, or for a residual benefit the comparison time.
+#[test]
+fn the_scope_covers_a_provider_who_bought_from_the_employer() {
+    let result = in_house(json!({})).unwrap();
+    let scope = result["scope"].as_str().unwrap();
+    for needle in [
+        "for goods from the employer or an associate that, at or about the time it provides \
+         them, carries on a business that includes providing identical or similar goods \
+         principally to outsiders, or from a third party that acquired them from the employer \
+         or an associate when, at or about that time, both carry on such a business (s 136(1), \
+         paragraphs (c) and (d) of the definition)",
+        "from the employer or an associate that, at or about the time that would be its \
+         comparison time were it a residual fringe benefit, carries on a business that includes \
+         providing identical or similar benefits principally to outsiders, or from a third party \
+         that purchased it from the employer or an associate when, at or about that time, both \
+         carry on such a business (s 136(1), paragraphs (b) and (c) of the definition)",
+    ] {
+        assert!(scope.contains(needle), "{needle}");
+    }
 }
 
 #[test]
