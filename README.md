@@ -302,8 +302,18 @@ you configure. As read on 13 November 2026, these projects cover nearby ground:
   the tax offsets and Medicare levy adjustment a payee declares. The library
   also applies Method A to a senior's or pensioner's bonus, which this repository refuses. The library's
   `annual_tax_estimate` approximates repayment income and income for surcharge purposes by taxable
-  income, and covers 2027-28 with the working Australians tax offset, which this repository does
-  not. This repository's `personal-tax-estimate` takes those incomes as established,
+  income. Both compose a resident's 2027-28 tax with the working Australians tax offset, as
+  rechecked at the library's commit e94cef24 on 16 November 2026: the lesser of $250 and the tax on
+  net labour income, when that exceeds $18,200, which the library's notes call approximate below $250, pending
+  a legislative instrument, though ITAA 1997 s 61-160 as Act No. 49 of 2026 enacts it leaves
+  nothing to one. This repository applies the offset before the seniors and low income tax offsets,
+  as s 63-10(1) orders, where the library applies it after them; the total is the same, but the
+  library can show a smaller offset. This repository also works out 2027-28's seniors and pensioners
+  tax offset thresholds from the regulations' indexation, where the library applies 2026-27's, and
+  compares the total with a given `tax_withheld`, where the library gives no refund for 2027-28.
+  The library estimates 2027-28 with a study loan or without hospital cover on figures the ATO had
+  not published, which this repository refuses: it takes 2027-28 with `tax_withheld`, hospital cover all
+  year and no study loan. This repository's `personal-tax-estimate` takes those incomes as established,
   names the worksheet behind each line
   and keeps its sources and refusals, shows Division 293 tax, and refuses part-year residents and
   working holiday makers; both compose a full-year foreign resident's tax without the Medicare
