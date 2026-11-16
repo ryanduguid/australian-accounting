@@ -19,7 +19,9 @@ pub use fbt_benefits::{
     fbt_board, fbt_housing, fbt_lafha, fbt_residual, fbt_tax_exempt_body_entertainment,
 };
 pub use fbt_benefits::{fbt_car_parking, fbt_loan, fbt_meal_entertainment};
-pub use fbt_benefits::{fbt_debt_waiver, fbt_expense_payment, fbt_property};
+pub use fbt_benefits::{
+    fbt_debt_waiver, fbt_entertainment_classifier, fbt_expense_payment, fbt_property,
+};
 
 pub const VERSION: &str = env!("CARGO_PKG_VERSION");
 const WORKING_PRECISION: i128 = 40;
@@ -5969,7 +5971,7 @@ pub fn seniors_pensioners_tax_offset(
     Ok(out)
 }
 
-const KINDS: [&str; 41] = [
+const KINDS: [&str; 42] = [
     "gst",
     "resident_tax",
     "foreign_resident_tax",
@@ -6011,6 +6013,7 @@ const KINDS: [&str; 41] = [
     "fbt_lafha",
     "fbt_board",
     "fbt_tax_exempt_body_entertainment",
+    "fbt_entertainment_classifier",
 ];
 
 /// `periods(kind)`: accepted period arguments and inclusive calendar boundaries.

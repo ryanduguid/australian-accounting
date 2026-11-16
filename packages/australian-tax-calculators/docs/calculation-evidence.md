@@ -50,6 +50,7 @@ example evidence; it does not claim a fresh review of every supported period.
 | FBT living-away-from-home allowances | `tax-examples-fringe-benefits-tax-fbt` (tax-examples), ¶3-160 and ¶3-180, with FBTAA ss 30 to 31H and 136(1) (compilation 97), the FBT return 2026 instructions (item 23G, example 12) and the employer's guide (chapter 11) | 30 June 2026 | One allowance's established components and expenses for the years ended 31 March 2026 and 2027; eligibility, declarations and the reasonable food amount established by the operator |
 | FBT board | Not a Library document: FBTAA ss 35 to 37 (compilation 97), the FBT return 2026 instructions (item 23J, example 13) and the employer's guide (chapter 13) | 1 April 2026 (item 23) | Established meals for the years ended 31 March 2026 and 2027 |
 | FBT tax-exempt body entertainment | Not a Library document: FBTAA ss 38 and 39 (compilation 97), the FBT return 2026 instructions (item 23L, example 15) and the employer's guide (chapter 15) | 1 April 2026 (item 23) | Established expenditure for the years ended 31 March 2026 and 2027, actual or per head |
+| FBT entertainment classifier | Not a Library document: ITAA 1997 Division 32, ss 27-5 and 995-1 (compilation 268), FBTAA ss 20, 37A to 37CF, 40, 41, 45, 58P and 136(1) (compilation 97), ITAA 1936 ss 51AEA and 51AEB (compilation 193), GST Act s 69-5 (compilation 96), and TR 97/17 and TR 2007/12 as the Commissioner's view | 16 November 2026 (read) | One ordinary taxable employer's entertainment lines with established facts for the years ended 31 March 2026 and 2027; no Subdivision 32-B exception, tax-exempt body or reportable fringe benefit |
 | Main residence | `tax-examples-capital-gains-tax-cgt` (tax-examples), ¶2-060 and ¶2-075, with the ATO's pages 'Treating former home as main residence' (QC66030) and 'Using your home for rental or business' (QC66033) | 30 June 2026; 22 June 2026 (both ATO pages) | One dwelling's taxable days for CGT events in 2024-25 to 2026-27; cost base, market value and discount excluded |
 | Borrowing expenses | `tax-examples-deductions` (tax-examples), ¶4-160, with ITAA 1997 s 25-25 (compilation 268, 1 October 2026) and the ATO's 'Borrowing expenses' page | 30 June 2026; 22 May 2026 (ATO page) | One loan's established expenditure, use and dates for 2024-25 to 2026-27; classification, interest and refinancing excluded |
 | Hire purchase schedule | Not a Library document: ITAA 1997 ss 240-17, 240-55 and 240-60 on the ATO's legal database and in compilation 268 (1 October 2026) | 15 November 2026 (read) | One agreement's monthly notional interest for the hirer, starting in 2024-25 to 2026-27, from established payments; apportionment to income years under s 240-60(2) excluded |
@@ -549,6 +550,45 @@ guide's 13.2: $6 a day towards 3 meals takes each day's value to nil.
 Item 23L example 15: a council's Christmas function, **$5,000.00**. The guide's
 15.9: Mary entertains 3 clients and is reimbursed; her share per head is 1 of
 4, 25%.
+
+## FBT entertainment classifier
+
+Added on 16 November 2026. Its sources were read that evening, 5.58 pm to 6.11
+pm AEDT, from the Federal Register of Legislation's current compilations, each
+checked against its EPUB text: ITAA 1997 (C2004A05138, compilation 268, from 1
+October 2026) Division 32 and ss 27-5 and 995-1; the FBTAA (C2004A03280,
+compilation 97, from 1 July 2026) ss 20, 37A to 37CF, 40, 41, 45, 58P and
+136(1); ITAA 1936 (C1936A00027, compilation 193, from 1 October 2026) ss 51AEA
+and 51AEB; and the GST Act (C2004A00446, compilation 96, from 1 January 2026)
+s 69-5. TR 97/17 (as consolidated) and TR 2007/12 were read on the ATO's legal
+database at 6.00 pm. Both rulings are the Commissioner's view, not the law;
+the classifier cites their paragraphs as such. TR 97/17 para 27 gives the
+minor benefits threshold as $100: s 58P(1)(e) now says less than $300, and
+the classifier applies the Act. No rival's spreadsheet, text or formula was
+used.
+
+`tests/fbt_entertainment_classifier.rs` holds each case:
+
+| Ruling example | Facts given | Result |
+| --- | --- | --- |
+| TR 97/17 example 1.1, paras 49 to 52 | $1,100 with GST, a social function on the premises on a working day; 6 employees, 2 associates, 2 clients | Employees $660 exempt (s 41), not deductible; associates $220 a property fringe benefit, deductible **$200.00** with a **$20.00** credit; clients not deductible |
+| TR 97/17 example 1.3, paras 55 and 56 | $55 with GST, sandwiches and juice for employees on the premises | Not entertainment, exempt (s 41), deductible **$50.00**, credit **$5.00** |
+| TR 97/17 example 2.1, paras 61 and 62 | $1,100 with GST, a social function at a restaurant for employees | Property fringe benefit, deductible **$1,000.00** |
+| TR 97/17 example 3.1, paras 66 and 67 | $66, a travelling employee's reimbursed meal | Not entertainment; an expense payment benefit, deductible **$66.00** |
+| TR 97/17 example 6.2, para 84 | $120, employee and client both travelling, employer pays | Neither is entertainment; both deductible, **$120.00** |
+| TR 97/17 questions 9 and 10, paras 89 to 96 | A travelling employee's meal, non-travelling employees' and a non-travelling client's, as 3 lines | **$50.00**, **$100.00** and **nil** deductible |
+| TR 97/17 example 11.1, paras 100 and 101 | $200 business lunch for 2 employees, reimbursed | Expense payment benefit, deductible **$200.00** |
+| TR 97/17 example 16.1, para 130 | $440 with GST, employees dine on the corporate card | Property fringe benefit, deductible **$400.00** |
+| TR 97/17 example 17.1, para 134 | $50 discounted bill, an employee and a client | Employee's share **$25.00** |
+| TR 97/17 example 17.2, para 135 | $120 discounted bill, an employee and 3 clients | Employee's share **$30.00** |
+| TR 97/17 paras 136 to 138.1 | A travelling employee's meal and the spouse's, reimbursed | Spouse's meal is meal entertainment and an expense payment benefit |
+| TR 97/17 para 44; TR 2007/12 para 14 | Example 1.1 under the 50/50 split method | No s 41 exemption or minor benefit; half deductible and creditable, **$500.00** and **$50.00**; **$1,100.00** for `fbt-meal-entertainment` |
+| TR 2007/12 example 2, paras 31 to 41 | A meal under $300 a head, not stated infrequent and irregular | Minor benefit still possible, the employer's judgement |
+
+The tests also cover the 12 week register at 40%, recreation under an
+election, undetermined lines, the $300 boundary and each refusal. The ruling
+give dollar figures only in examples 11.1, 17.1 and 17.2: the other amounts are
+fabricated, and the ruling decides the treatment the test checks.
 
 ## Main residence
 

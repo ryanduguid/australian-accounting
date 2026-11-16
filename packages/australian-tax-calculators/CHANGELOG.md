@@ -63,6 +63,14 @@ intentionally changed.
   `fbt_expense_payment.in_house_deductible_not_covered` (the otherwise
   deductible rule for in-house expense payments, s 24(1)(b)(i), is not
   covered) and `fbt_expense_payment.payment_exceeds_expenditure`.
+- `fbt-entertainment-classifier` classifies an ordinary taxable employer's entertainment expense lines: for each
+  line and attendee class, whether it is entertainment, the fringe benefit and its type or the s 41 exemption, the
+  ITAA 1997 Division 32 deduction and the GST credit that follows it, each cited, with TR 97/17 and TR 2007/12 as the
+  Commissioner's view. A missing fact leaves a line undetermined; minor benefits are shown only as possible. Under the
+  50/50 split or 12 week register method it totals the meal entertainment expenditure for `fbt-meal-entertainment`.
+  It refuses tax-exempt bodies, unsplit lines, a cost without its GST status and a missing valuation method, with
+  codes `fbt_entertainment_classifier.fact_invalid`, `.gst_status_invalid`, `.line_not_split`, `.lines_invalid`,
+  `.method_required`, `.register_percentage_invalid` and `.tax_exempt_body`.
 - `fbt-residual`, `fbt-housing`, `fbt-lafha`, `fbt-board` and `fbt-tax-exempt-body-entertainment` give the taxable
   value of residual (Division 12, with the s 62 in-house reduction), housing
   (Division 6: market value, or the statutory annual value from a base year
