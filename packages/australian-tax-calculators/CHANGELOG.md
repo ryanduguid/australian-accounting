@@ -414,7 +414,9 @@ intentionally changed.
   applies the $2 minimum only to gifts made before 1 July 2024 (Act No. 58,
   2026, Sch 1) and never says a payment is deductible. A name alone gives
   unconfirmed candidates. `data/dgr-register.jsonl` keeps only the extract's
-  31,876 ABNs with DGR entries, built by `examples/dgr_register.rs`. New codes:
+  31,876 ABNs with DGR entries, built by `examples/dgr_register.rs`, which
+  keeps an entry for a fund the extract leaves unnamed as a fund, as ABN Lookup
+  lists it, and has its own tests. New codes:
   `input.abn_invalid`, `input.donations_invalid` and `input.name_invalid`.
   `tests/dgr_check.rs` holds it to ABNs read the same in ABN Lookup's DGR
   listing and to the Library's worked example ¶7-020, and `tests/properties.rs`

@@ -1075,7 +1075,8 @@ Each result keeps its `index` and `input` and gives `register`:
 
 - `shown_as_dgr`: the ABN has DGR entries in the data. `dgr_entries` gives each
   entry's start date and whether the entity is endorsed itself or only for the
-  operation of a named fund, authority or institution; `on_payment_date` reads
+  operation of a named fund, authority or institution (or one the extract gives
+  no name for, shown as such); `on_payment_date` reads
   them for `date` as `shown`, `shown_for_a_fund`, `not_shown` (entries start
   after the payment), `abn_cancelled` (the ABN was cancelled on or before it),
   `after_data_date` or `no_date`. A `name` beside the ABN gives
@@ -1097,8 +1098,8 @@ source, extract time and licence, the scope, the limits below and the sources.
 
 It refuses a list that is empty, too long or not a list as
 `input.donations_invalid`, an ABN that is malformed or fails the check digit
-test as `input.abn_invalid`, a name that is not 1 to 200 characters with a
-letter or digit as `input.name_invalid`, a donation with neither as `input.missing_field`, and any
+test as `input.abn_invalid`, a name that is not 1 to 200 characters with an
+ASCII letter or digit as `input.name_invalid`, a donation with neither as `input.missing_field`, and any
 other field as `input.field_unknown`; dates and amounts are refused as in the
 other commands. One refused donation refuses the list. `derive` does not
 explain it.
@@ -1126,12 +1127,28 @@ kept. Its limits:
 - ABN Lookup holds each ABN's history and the current position; confirm a
   result there before relying on it.
 
-To refresh it, download both zip files of a week's extract and run
-`examples/dgr_register.rs` as its comment shows, then update the dates here and
-in the tests. It streams the XML, keeps only DGR records and refuses anything
-the extract's schema does not describe. Do not commit the raw extract. The
-cross-check against ABN Lookup's DGR listing and the sources read are in
-[calculation evidence](docs/calculation-evidence.md#dgr-check).
+The engine takes the data date from the data's first line and nowhere else.
+Stale data shows itself in every result: `data.data_date` and each finding name
+the extract date, and a payment after it reads `after_data_date`.
+
+To refresh it:
+
+1. Download `public_split_1_10.zip` and `public_split_11_20.zip` from the
+   [ABN Bulk Extract](https://data.gov.au/data/dataset/abn-bulk-extract) page,
+   both of one week's extract.
+2. Run the loop in `examples/dgr_register.rs`'s comment from this directory. It
+   streams the 20 XML files into `data/dgr-register.jsonl`, keeps only records
+   with DGR entries and stops on anything listed there, including a file whose
+   record count differs from its `RecordCount` or files from 2 extracts. Its
+   own tests run with `cargo test`.
+3. Run `cargo test`. `tests/dgr_check.rs` pins the extract time and the
+   readings of named ABNs, so it fails until updated: recheck those ABNs at ABN
+   Lookup, then update the tests, this section, `NOTICE`, the changelog and
+   the [calculation evidence](docs/calculation-evidence.md#dgr-check) with the
+   new date and counts.
+
+Do not commit the raw extract. The cross-check against ABN Lookup's DGR listing
+and the sources read are in the calculation evidence.
 
 ## Worksheet discovery
 

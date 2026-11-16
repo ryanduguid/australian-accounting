@@ -901,7 +901,7 @@ pub const REFUSAL_CODES: &[(&str, &str)] = &[
     ("input.missing_field", "A required argument is absent."),
     (
         "input.name_invalid",
-        "A name is not a string of 1 to 200 characters with a letter or digit.",
+        "A name is not a string of 1 to 200 characters with an ASCII letter or digit.",
     ),
     ("input.not_object", "The JSON input is not an object."),
     (

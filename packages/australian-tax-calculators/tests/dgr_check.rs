@@ -22,6 +22,7 @@ const COLLEGE: &str = "11000047950";
 const COLLEGE_SPACED: &str = "11 000 047 950";
 const KILLARNEY: &str = "11001209490";
 const CANCELLED: &str = "12713020917";
+const ENSEMBLE: &str = "13923149043";
 
 fn check(donations: Value) -> Value {
     api::evaluate("dgr-check", &json!({"donations": donations})).unwrap()
@@ -95,7 +96,7 @@ fn a_fund_only_school_gives_this_result() {
     let expected = json!({
         "abn": KILLARNEY,
         "register": "shown_as_dgr",
-        "finding": format!("ABN {} (THE KILLARNEY SCHOOL LTD) is shown as a deductible gift recipient in the data of 11 November 2026, with entries from 1 July 2000. The data shows the entity endorsed on the payment date only for the operation of a fund, authority or institution.", spaced(KILLARNEY)),
+        "finding": format!("ABN {} (THE KILLARNEY SCHOOL LTD) is shown as a deductible gift recipient in the data of 11 November 2026, with entries from 1 July 2000. The data shows the entity endorsed on the payment date only for the operation of a fund, authority or institution; it cannot show an entry for the entity itself that has since ended.", spaced(KILLARNEY)),
         "name_matches_register": true,
         "entity": {"abn": KILLARNEY, "name": "THE KILLARNEY SCHOOL LTD", "abn_status": "active", "abn_status_from": "2000-04-11"},
         "other_names": [],
@@ -104,7 +105,7 @@ fn a_fund_only_school_gives_this_result() {
         "conditions": [
             {"condition": "a_gift", "status": "open", "text": "The payment is a gift: a voluntary transfer of money with no material benefit or advantage in return. A payment for a ticket to a fund-raising event or for an item won at a charity auction is a contribution under s 30-15 items 7 or 8, with other conditions; one made under a will is not deductible (s 30-15(2)).", "source": "https://www.ato.gov.au/individuals-and-families/income-deductions-offsets-and-records/deductions-you-can-claim/gifts-and-donations"},
             {"condition": "gift_conditions", "status": "open", "text": "Any condition the relevant table item in Subdivision 30-B sets for this kind of recipient is met, such as a gift being for a stated purpose (s 30-15 item 1, special condition (c)). ABN Lookup shows the recipient's DGR item.", "source": "https://www.legislation.gov.au/C2004A05138/2026-10-01/2026-10-01/text/original/epub/OEBPS/document_1/document_1.html"},
-            {"condition": "record", "status": "open", "text": "A record of the gift is kept, such as a receipt; a DGR's receipt states its name, its ABN and that it is for a gift (s 30-228(1)).", "source": "https://www.ato.gov.au/individuals-and-families/income-deductions-offsets-and-records/deductions-you-can-claim/gifts-and-donations"},
+            {"condition": "record", "status": "open", "text": "A record of the gift is kept, such as a receipt; a DGR's receipt states the name of the fund, authority or institution, the DGR's ABN (if any) and that it is for a gift (s 30-228(1)).", "source": "https://www.ato.gov.au/individuals-and-families/income-deductions-offsets-and-records/deductions-you-can-claim/gifts-and-donations"},
             {"condition": "gift_to_the_fund", "status": "open", "text": "The entity is endorsed only for the operation of a fund, authority or institution, so the gift must have been made to it: THE KILLARNEY SCHOOL LTD BUILDING FUND (s 30-17(2)(b) and (c), s 30-229(2)).", "source": "https://www.legislation.gov.au/C2004A05138/2026-10-01/2026-10-01/text/original/epub/OEBPS/document_1/document_1.html"},
             {"condition": "two_dollar_minimum", "status": "fails", "text": "A gift made before 1 July 2024 must be $2 or more; the minimum does not apply to a gift made on or after that date (Act No. 58, 2026, Sch 1 item 7).", "source": "https://www.legislation.gov.au/C2026A00058/asmade/text"},
         ],
@@ -112,6 +113,26 @@ fn a_fund_only_school_gives_this_result() {
         "input": input.clone(),
     });
     assert_eq!(one(input), expected);
+}
+
+/// The extract gives this foundation's fund entry from 2000 with no fund name;
+/// ABN Lookup (read 16 November 2026, 04:34 UTC) lists it as a fund with no
+/// name from 1 July 2000 and the foundation as endorsed itself from 1 January
+/// 2024. Read as the entity's own entry, a 2010 gift to it would show.
+#[test]
+fn a_fund_the_extract_does_not_name_is_not_read_as_the_entity_itself() {
+    let r = one(json!({"abn": ENSEMBLE, "date": "2010-06-30"}));
+    assert_eq!(r["on_payment_date"], "shown_for_a_fund");
+    assert_eq!(
+        r["dgr_entries"],
+        json!([
+            {"from": "2000-07-01", "endorsed_for": "a fund, authority or institution the data does not name"},
+            {"from": "2024-01-01", "endorsed_for": "the entity itself"},
+        ])
+    );
+    assert!(conditions(&r).contains(&"gift_to_the_fund"));
+    let later = one(json!({"abn": ENSEMBLE, "date": "2024-06-30"}));
+    assert_eq!(later["on_payment_date"], "shown");
 }
 
 #[test]

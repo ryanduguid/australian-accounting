@@ -84,7 +84,8 @@ struct Entry {
     names: Vec<String>,
     other_names: usize,
     /// Each DGR entry's start date and, when the endorsement is only for the
-    /// operation of a fund, authority or institution, its name.
+    /// operation of a fund, authority or institution, its name (empty where
+    /// the extract gives none).
     dgr: Vec<(String, Option<String>)>,
 }
 
@@ -251,7 +252,7 @@ fn read_donation(at: usize, value: &Value) -> Result<Donation, Refusal> {
             )
         })?),
     };
-    let why = "must be a string of 1 to 200 characters with a letter or digit";
+    let why = "must be a string of 1 to 200 characters with an ASCII letter or digit";
     let name = text("name", "input.name_invalid", why)?;
     if let Some(name) = &name
         && (name.chars().count() > 200 || name_words(name).is_empty())
@@ -324,7 +325,7 @@ fn conditions(donation: &Donation, fund_only: &[&str]) -> Result<Vec<Value>, Ref
         condition(
             "record",
             "open",
-            "A record of the gift is kept, such as a receipt; a DGR's receipt states its name, its ABN and that it is for a gift (s 30-228(1)).".into(),
+            "A record of the gift is kept, such as a receipt; a DGR's receipt states the name of the fund, authority or institution, the DGR's ABN (if any) and that it is for a gift (s 30-228(1)).".into(),
             ATO_GIFTS,
         ),
     ];
@@ -397,13 +398,13 @@ fn on_date(entry: &Entry, date: Option<&str>, data_date: &str) -> (&'static str,
     if covering.iter().any(|(_, fund)| fund.is_none()) {
         return (
             "shown",
-            "The data shows the entity endorsed in its own right on the payment date.".into(),
+            "The data shows the entity as a DGR in its own right from on or before the payment date.".into(),
         );
     }
     if !covering.is_empty() {
         return (
             "shown_for_a_fund",
-            "The data shows the entity endorsed on the payment date only for the operation of a fund, authority or institution.".into(),
+            "The data shows the entity endorsed on the payment date only for the operation of a fund, authority or institution; it cannot show an entry for the entity itself that has since ended.".into(),
         );
     }
     let first = entry
@@ -421,11 +422,24 @@ fn on_date(entry: &Entry, date: Option<&str>, data_date: &str) -> (&'static str,
     )
 }
 
+/// A fund's name as shown, or what stands for it where the extract has a
+/// fund entry with no name.
+fn fund_name(name: &str) -> &str {
+    if name.is_empty() {
+        "a fund, authority or institution the data does not name"
+    } else {
+        name
+    }
+}
+
 fn dgr_entries(entry: &Entry) -> Value {
     entry
         .dgr
         .iter()
-        .map(|(from, fund)| json!({"from": from, "endorsed_for": fund.as_deref().unwrap_or("the entity itself")}))
+        .map(|(from, fund)| {
+            let shown = fund.as_deref().map_or("the entity itself", fund_name);
+            json!({"from": from, "endorsed_for": shown})
+        })
         .collect()
 }
 
@@ -451,15 +465,14 @@ fn fund_only<'a>(entry: &'a Entry, date: Option<&str>) -> Vec<&'a str> {
     }
     let funds = entry.dgr.iter().filter(|(from, _)| held(from));
     let funds: Vec<&str> = funds.filter_map(|(_, fund)| fund.as_deref()).collect();
-    if funds.is_empty() {
+    let funds = if funds.is_empty() {
         // None held on the date: every fund the entity is endorsed for.
-        return entry
-            .dgr
-            .iter()
-            .filter_map(|(_, fund)| fund.as_deref())
-            .collect();
-    }
-    funds
+        let every = entry.dgr.iter().filter_map(|(_, fund)| fund.as_deref());
+        every.collect()
+    } else {
+        funds
+    };
+    funds.into_iter().map(fund_name).collect()
 }
 
 fn by_abn(
@@ -655,6 +668,8 @@ mod tests {
     const CLOSED: &str = "42000000003";
     const RIVER: &str = "61000000002";
     const RED: &str = "80000000001";
+    /// Endorsed for a fund the data does not name, then in its own right.
+    const HARBOUR: &str = "74000000006";
     /// Passes the check digit test but is not in the register.
     const ABSENT: &str = "93000000005";
     const BAD_CHECK_DIGIT: &str = "23000000005";
@@ -663,10 +678,11 @@ mod tests {
 
     /// A fabricated register: ABNs that pass the check digit, with entries
     /// chosen to reach each reading.
-    const REGISTER: &str = r#"{"source":"fabricated","extract_time":"2026-11-11T12:20:05","abns":4}
+    const REGISTER: &str = r#"{"source":"fabricated","extract_time":"2026-11-11T12:20:05","abns":5}
 ["23000000004","ACT","2000-02-24","EXAMPLE SCHOOL LTD",[["2000-07-01","EXAMPLE SCHOOL BUILDING FUND"],["2010-07-01",null]],["EXAMPLE COLLEGE"]]
 ["42000000003","CAN","2020-01-01","CLOSED CHARITY LIMITED",[["2001-01-01",null]],[]]
 ["61000000002","ACT","2015-01-01","RIVER CARE ASSOCIATION INC",[["2015-03-01","RIVER CARE FUND"],["2016-03-01","RIVER CARE LIBRARY"]],[]]
+["74000000006","ACT","2000-01-01","HARBOUR AID LTD",[["2000-07-01",""],["2018-01-01",null]],[]]
 ["80000000001","ACT","2000-01-01","RED EXAMPLE CROSS SOCIETY",[["2000-07-01",null]],["RED CROSS SHOPS"]]"#;
 
     fn run(donations: Value) -> Result<Value, Refusal> {
@@ -772,6 +788,22 @@ mod tests {
             .unwrap();
         assert!(text.contains("RIVER CARE LIBRARY"), "{text}");
         assert_eq!(status(&r, "two_dollar_minimum").as_deref(), Some("open"));
+    }
+
+    #[test]
+    fn a_fund_the_extract_does_not_name_is_still_a_fund() {
+        let r = one(json!({"abn": HARBOUR, "date": "2010-01-01"}));
+        assert_eq!(r["on_payment_date"], "shown_for_a_fund");
+        let unnamed = "a fund, authority or institution the data does not name";
+        assert_eq!(r["dgr_entries"][0]["endorsed_for"], unnamed);
+        let text = found(&r, "gift_to_the_fund").unwrap()["text"]
+            .as_str()
+            .unwrap();
+        assert!(text.ends_with(&format!("made to it: {unnamed} (s 30-17(2)(b) and (c), s 30-229(2))."))
+            , "{text}");
+        let later = one(json!({"abn": HARBOUR, "date": "2018-01-01"}));
+        assert_eq!(later["on_payment_date"], "shown");
+        assert_eq!(found(&later, "gift_to_the_fund"), None);
     }
 
     #[test]
@@ -891,7 +923,7 @@ mod tests {
         assert_eq!(order, [0, 1, 2]);
         assert_eq!(donations[1]["input"], json!({"name": "river"}));
         assert_eq!(r["data"]["data_date"], "2026-11-11");
-        assert_eq!(r["data"]["abns_with_dgr_entries"], 4);
+        assert_eq!(r["data"]["abns_with_dgr_entries"], 5);
         let text = r.to_string();
         assert!(!text.contains("\"deductible\"") && !text.contains("is deductible"));
     }
