@@ -26,7 +26,9 @@ mod housing;
 pub use housing::fbt_housing;
 mod residual;
 pub use residual::fbt_residual;
+mod entertainment;
 mod spaces;
+pub use entertainment::fbt_entertainment_classifier;
 
 /// The methods `method` accepts for `kind`, in the catalogue's order.
 pub fn methods(kind: &str) -> &'static [&'static str] {
@@ -45,6 +47,7 @@ pub fn methods(kind: &str) -> &'static [&'static str] {
         "fbt_housing" => &housing::HOUSING_METHODS,
         "fbt_lafha" => &lafha_board::LAFHA_METHODS,
         "fbt_tax_exempt_body_entertainment" => &lafha_board::ENTERTAINMENT_METHODS,
+        "fbt_entertainment_classifier" => &["actual", "50_50_split", "12_week_register"],
         _ => &[],
     }
 }
