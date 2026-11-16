@@ -189,6 +189,10 @@ const COMMAND_ARGS: &[(&str, &[(&str, Kind)])] = &[
         ],
     ),
     (
+        "business-capital-expenditure",
+        &[("items", Json), ("year", Raw), ("scope_confirmed", Raw)],
+    ),
+    (
         "fbt",
         &[
             ("type_one_value", Dec),
@@ -510,7 +514,7 @@ pub fn commands() -> Vec<&'static str> {
 /// command on its `gross_pay` shows that withholding. The classifier's amounts
 /// are totals over lines whose shares a decision table sets, not a formula;
 /// each line and class carries the authority for its row instead.
-const DERIVED: [&str; 43] = [
+const DERIVED: [&str; 44] = [
     "fbt",
     "fbt-car-statutory",
     "fbt-car-operating-cost",
@@ -554,6 +558,7 @@ const DERIVED: [&str; 43] = [
     "hire-purchase-schedule",
     "lump-sum-arrears-tax-offset",
     "income-tests",
+    "business-capital-expenditure",
 ];
 
 /// `derive`: `{"command", "input"}` gives the command's result with the step
@@ -917,6 +922,7 @@ pub fn evaluate_coded(command: &str, v: &Value) -> Result<Value> {
             | "fbt-entertainment-classifier"
             | "hire-purchase-schedule"
             | "income-tests"
+            | "business-capital-expenditure"
     ) && let Some(key) = v
         .as_object()
         .into_iter()
@@ -953,6 +959,7 @@ pub fn evaluate_coded(command: &str, v: &Value) -> Result<Value> {
         "hire-purchase-schedule" => {
             engine::hire_purchase_schedule(&a[0], &a[1], &a[2], &a[3], &a[4], &a[5], &a[6], &a[7])
         }
+        "business-capital-expenditure" => engine::business_capital_expenditure(&a[0], &a[1], &a[2]),
         "fbt" => engine::fbt(&a[0], &a[1], &a[2], &a[3]),
         "fbt-car-statutory" => {
             engine::fbt_car_statutory(&a[0], &a[1], &a[2], &a[3], &a[4], &a[5], &a[6], &a[7])

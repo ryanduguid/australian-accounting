@@ -1005,6 +1005,13 @@ pub fn supported_periods(kind: &str) -> Vec<&'static str> {
         // Borrowing expenses: s 26-155 quarantines residential rental deductions
         // from 2027-28. Hire purchase: the years read.
         "borrowing_expenses" | "hire_purchase_schedule" => vec!["2024-25", "2025-26", "2026-27"],
+        // s 40-880 as amended by Act No 92 of 2020 applies to expenditure
+        // incurred from 1 July 2020, unamended to compilation 268. It and
+        // Subdivision 328-C set no figure by year, and the Register's one later
+        // version (1 December 2026) changes neither, so 2027-28 is taken.
+        "business_capital_expenditure" => vec![
+            "2020-21", "2021-22", "2022-23", "2023-24", "2024-25", "2025-26", "2026-27", "2027-28",
+        ],
         "fbt" => vec!["2026", "2027"],
         "fbt_car_statutory" | "fbt_car_operating_cost" | "fbt_loan" => {
             keys(FBT_BENCHMARK_INTEREST_RATES)
@@ -1089,6 +1096,10 @@ pub fn source_review(kind: &str) -> (&'static str, &'static str) {
         "borrowing_expenses" => (
             "2026-11-04",
             "ITAA 1997 s 25-25 and s 26-50, compilation 268 (1 October 2026); Borrowing expenses: the Peter and the Fiona and Max examples",
+        ),
+        "business_capital_expenditure" => (
+            "2026-11-16",
+            "ITAA 1997 s 40-880, compilation 268 (1 October 2026), last amended by Act No 92 of 2020 (Schedule 3 items 25 to 27, applied by item 40(7) from 1 July 2020); TR 2011/6, the Commissioner's view, paras 10, 128 to 134, 160 to 212, 318A to 321 and examples 14, 16 to 18, 21 to 25, 40A and 41; Deductions for depreciating assets and capital expenses (last updated 28 August 2026), other capital expenses",
         ),
         "hire_purchase_schedule" => (
             "2026-11-15",
@@ -1282,6 +1293,12 @@ pub fn library_evidence(kind: &str) -> [(&'static str, &'static str); 4] {
             "4-160",
             "2026-06-30",
             "2026-11-04",
+        ),
+        "business_capital_expenditure" => (
+            "TR 2011/6",
+            "examples 14, 16 to 18, 21 to 25, 40A and 41",
+            "2011-11-30",
+            "2026-11-16",
         ),
         "hire_purchase_schedule" => (
             "ATO Legal database, ITAA 1997 Division 240",
@@ -1954,6 +1971,10 @@ pub fn input_units(kind: &str) -> Vec<(&'static str, &'static str)> {
                 "YYYY-MM-DD, the day the agreement starts, within the income year",
             ),
         ],
+        "business_capital_expenditure" => vec![(
+            "items",
+            "list of objects, one for each item of capital expenditure, each stating: amount (AUD); incurred_in (the income year incurred, from 2020-21 to the year asked about); capital (boolean, true: the operator establishes that the outlay is capital; false is refused); business (current, former, proposed or wind_up: s 40-880(2)(a) to (d)); taxable_purpose (decimal fraction from 0 to 1, the extent s 40-880(3) or (4)(a) allows, as the business is, was or is proposed to be carried on for a taxable purpose); exclusions (list of the paragraphs that exclude it, from \"5(a)\" to \"5(j)\", \"8\", \"9(a)\" and \"9(b)\", [] for none; 5(a) and 5(f) are refused). A former or proposed business also states carried_on_by (you or another_entity); another entity's, and wind_up, assessable_income_connection (boolean, s 40-880(4)(b)); a proposed business within_reasonable_time (boolean, s 40-880(7)) and start_up_expense (advice_or_services, government_fees or neither: s 40-880(2A)(b)), with entity_test for the income year incurred unless neither (small_business_entity, covered_by_2b, not_in_business_and_unconnected or none: s 40-880(2A)(c) and (2B)); and 5(d) or 5(f) goodwill_right (boolean, s 40-880(6))",
+        )],
         "fbt" => vec![("type_one_value", "AUD"), ("type_two_value", "AUD")],
         "fbt_loan" => vec![
             (
@@ -2525,6 +2546,15 @@ pub fn examples(kind: &str) -> Vec<(&'static str, Example)> {
             ("loan_term_end", Text("2049-07-02")),
             ("repaid_on", Json("null")),
             ("section_26_50_applies", Flag(false)),
+        ],
+        "business_capital_expenditure" => vec![
+            ("year", Text("2026-27")),
+            (
+                "items",
+                Json(
+                    r#"[{"amount": "1500.00", "incurred_in": "2025-26", "capital": true, "business": "current", "taxable_purpose": "1", "exclusions": []}, {"amount": "576.00", "incurred_in": "2026-27", "capital": true, "business": "proposed", "carried_on_by": "another_entity", "assessable_income_connection": true, "within_reasonable_time": true, "start_up_expense": "government_fees", "entity_test": "not_in_business_and_unconnected", "taxable_purpose": "1", "exclusions": []}]"#,
+                ),
+            ),
         ],
         "hire_purchase_schedule" => vec![
             ("year", Text("2026-27")),

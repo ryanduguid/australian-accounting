@@ -714,6 +714,71 @@ its days on each side for the caller to relate. A day-weighted split was not
 adopted: it is one reading of those principles, and a split at the implicit
 rate compounded within the month differs from it by cents.
 
+## Business capital expenditure
+
+This worksheet was added on 16 November 2026. ITAA 1997 s 40-880 was read
+that day in compilation 268 (1 October 2026, registered as C2026C00471, the
+latest compilation by the Federal Register of Legislation's API at 18:08
+AEDT), volume 2. Its endnotes list the section's last amendment as Act No 92
+of 2020, the Treasury Laws Amendment (A Tax Plan for the COVID-19 Economic
+Recovery) Act 2020, whose Schedule 3 items 25 to 27 added s 40-880(2B) and
+whose item 40(7) applies them to capital expenditure incurred on or after
+1 July 2020; s 40-880(2A) itself came from Schedule 2 of the Tax Laws
+Amendment (Small Business Measures No. 3) Act 2015 (No 114 of 2015), for
+assessments for 2015-16 and later. Both Acts were read as made that day. An
+item incurred before 1 July 2020 is refused rather than worked under an
+earlier form. Section 40-880(2) deducts 'in equal proportions over a period
+of 5 income years starting in the year in which you incur it'; TR 2011/6
+para 10 (the Commissioner's view, read on the ATO's legal database at 18:13)
+adds that the expenditure is not apportioned when incurred part way through a
+year. The ATO's 'Deductions for depreciating assets and capital expenses'
+(last updated 28 August 2026, read at 18:11) states the start-up conditions
+and gives the examples of advice on a business structure, the fee for
+creating a company and stamp duty on transferring assets to the entity that
+will carry on the business.
+
+The worksheet takes 2027-28 as well, on a reading of 17 November 2026.
+Neither s 40-880 nor Subdivision 328-C, which the entity tests rely on, sets
+a figure by year, and the endnotes of compilation 268 list no amendment of
+either after Act No 92 of 2020 and Act No 40 of 2023. The Federal Register
+of Legislation's API lists one later version, from 1 December 2026, whose
+amendments (Act No 61 of 2026, Schedule 1 items 41 to 45) change ss 25-110,
+715-375, 715-379 and 995-1 only. From 2027-28, s 26-155 (Act No 49 of 2026,
+applied to the 2027-28 and later income years) limits deductions relating
+to using or holding residential dwellings as residential accommodation; the
+scope leaves that limit out, as it leaves out Division 35. TR 2011/6 para 10
+also states that eligibility is decided once, when the expenditure is
+incurred, which is why an item's later fifths continue after its business
+ceases, and paras 157 and 160 that the taxable purpose of a current or
+proposed business is tested when the expenditure is incurred and that of a
+former business over a period that reasonably reflects it.
+
+`tests/business_capital_expenditure.rs` holds these cases. TR 2011/6's
+examples date from 2007 to 2010, before the current form, so those with
+figures are run with the year moved to 2020-21 or later; the others are
+stated facts the ruling decides.
+
+| Case | Source | Worksheet |
+| --- | --- | --- |
+| $10,000 incurred on 1 September | TR 2011/6 example 41 (paras 319 to 321): $2,000 a year, not apportioned for part of the first year | $2,000.00 in each of 2020-21 to 2024-25; the ruling's 2007-08 is refused |
+| A company's registration fee paid by an individual not in business; advice on a business structure to a small business entity | ATO page, 'Other capital expenses' | Deducted in full in the year incurred under s 40-880(2A)(b)(ii) and (c)(i) and (ii), and (2A)(b)(i) and (c) |
+| A business proposed to start once approvals that take 2 years are obtained | TR 2011/6 example 14 (paras 128 and 129) | Deductible; stated not to be within a reasonable time, excluded by s 40-880(7) |
+| A business carried on 80%, 87.5% and 25% for a taxable purpose | TR 2011/6 examples 16 to 18 (paras 163 to 173); the $10,000 is fabricated | $8,000, $8,750 and $2,500 deductible |
+| Expenditure on a holding company in which the taxpayer holds no shares | TR 2011/6 example 21 (paras 189 and 190) | Excluded by s 40-880(4)(b) |
+| Inspecting an asset that is then bought, and one that is not | TR 2011/6 examples 22 and 23 (paras 201 to 205) | Refused under s 40-880(5)(a), pointing to Division 40; deductible |
+| A feasibility study in a project pool; capital works not claimed | TR 2011/6 examples 24 and 25 (paras 209 to 212) | Excluded by s 40-880(5)(b) |
+| A gaming machine entitlement | TR 2011/6 example 40A (paras 318A to 318D) | Refused under s 40-880(5)(f), pointing to the cost base; with s 40-880(6) stated, deductible |
+| $1,666.67 over 5 years | Worked by hand: $1,666.67 / 5 = $333.334 | `333.334` in the item, $333.33 in the amounts |
+| A member's wind-up costs not in connection with deriving assessable income from the company | s 40-880(4)(b); TR 2011/6 paras 130 to 134 and 191 | Excluded by s 40-880(4)(b) |
+| $2,200 of start-up advice to an entity covered by s 40-880(2B) | Worked by hand | $2,200.00 in the year incurred |
+| $10,000 incurred in 2023-24 and a $576 company fee in 2027-28 | Worked by hand: $10,000 / 5 in the fifth year; the fee in full under s 40-880(2A) | $2,576.00 in 2027-28, nothing remaining |
+
+A fifth of an amount in cents has at most 3 decimal places, so each item is
+worked exactly and only the result's amounts are rounded to the cent, as
+every worksheet here shows them. Rounding each fifth to the cent with the
+last year taking the rest was not adopted: neither the Act nor the ATO's
+pages state a rounding for s 40-880.
+
 ## Depreciation
 
 Paragraph ¶6-000 supplies the first-year prime cost and diminishing value
@@ -2084,6 +2149,7 @@ year; the others refuse it and say what is missing.
 | Contribution caps, ETP caps | Not published | ATO contributions caps page (last updated 11 September 2026) and ETP page (17 April 2026), 16:07 |
 | Division 296 thresholds | Not published: indexed from 2027-28 | ATO Division 296 page (last updated 3 November 2026, 2026-27 only), 16:13 |
 | CGT and rental deductions | Changed from 1 July 2027 by Act No. 49 of 2026 Schedules 1 and 2 (s 26-155) | ITAA 1997 s 26-155 (https://www.ato.gov.au/law/view/document?docid=PAC/19970038/26-155), 16:13 |
+| Business capital expenditure | Enacted, no year: ITAA 1997 s 40-880 and the small business entity test of Subdivision 328-C, neither amended in compilation 268 or the version from 1 December 2026; s 26-155 left out of scope | Compilation 268 (https://www.legislation.gov.au/C2004A05138/latest/text) and the Register's API, read 17 November 2026 from 01:33; see [Business capital expenditure](#business-capital-expenditure) |
 
 Worked by hand: resident tax on $45,000 is 14% of $26,800, $3,752; on
 $100,000, $3,752 + 30% of $55,000 = $20,252; on $250,000, $51,102 + 45% of
