@@ -195,12 +195,14 @@ fn lito_second_step_amount_and_cut_out_follow_from_the_table() {
 
 #[test]
 fn medicare_thresholds_match_the_published_table_and_phase_in() {
-    // 2026-27: Medicare Levy Act 1986 s 3(1), compilation 53, with Act No. 58,
-    // 2026, Sch 5 item 14 (2025-26 and later years), both read on 14 November 2026.
+    // 2026-27 and 2027-28: Medicare Levy Act 1986 s 3(1), compilation 53, with
+    // Act No. 58, 2026, Sch 5 item 14 (2025-26 and later years), both read on
+    // 14 November 2026 and compilation 53 again on 16 November 2026.
     let published = [
         ("2024-25", ("27222", "34027")),
         ("2025-26", ("28011", "35013")),
         ("2026-27", ("28011", "35013")),
+        ("2027-28", ("28011", "35013")),
     ];
     assert_eq!(MEDICARE_LOW_INCOME_THRESHOLDS, published);
     for (_, (lower, upper)) in published {
@@ -220,6 +222,7 @@ fn medicare_sapto_and_family_thresholds_match_the_acts() {
         ("2024-25", ("43020", "53775")),
         ("2025-26", ("44268", "55335")),
         ("2026-27", ("44268", "55335")),
+        ("2027-28", ("44268", "55335")),
     ];
     assert_eq!(MEDICARE_SAPTO_THRESHOLDS, sapto);
     for (_, (lower, upper)) in sapto {
@@ -230,6 +233,7 @@ fn medicare_sapto_and_family_thresholds_match_the_acts() {
         ("2024-25", ("45907", "59886", "4216")),
         ("2025-26", ("47238", "61623", "4338")),
         ("2026-27", ("47238", "61623", "4338")),
+        ("2027-28", ("47238", "61623", "4338")),
     ];
     assert_eq!(MEDICARE_FAMILY_THRESHOLDS, family);
     for table in [
@@ -310,8 +314,8 @@ fn medicare_levy_2026_27_applies_the_thresholds_enacted_for_later_years() {
     let earlier = run("29000", "2025-26").unwrap();
     assert_eq!(earlier["warnings"].as_array().unwrap().len(), 2);
     assert_eq!(
-        run("29000", "2027-28").unwrap_err(),
-        "Unsupported period '2027-28'; supported: 2024-25, 2025-26, 2026-27."
+        run("29000", "2028-29").unwrap_err(),
+        "Unsupported period '2028-29'; supported: 2024-25, 2025-26, 2026-27, 2027-28."
     );
 }
 
@@ -439,12 +443,18 @@ fn every_scale_matches_the_ato_sample_for_payments_from_july_2024_to_june_2026()
 
 #[test]
 fn a_year_without_its_own_coefficients_is_refused() {
-    for year in ["2023-24", "2027-28"] {
+    for (year, why) in [
+        ("2023-24", ""),
+        (
+            "2027-28",
+            " The ATO had not published withholding schedules for payments from 1 July 2027 when this was checked on 16 November 2026.",
+        ),
+    ] {
         let input = json!({"earnings": "1000", "pay_period": "weekly", "scale": 2,
                            "year": year, "scope_confirmed": true});
         assert_eq!(
             api::evaluate("payg-withholding", &input).unwrap_err(),
-            format!("Unsupported period '{year}'; supported: 2024-25, 2025-26, 2026-27.")
+            format!("Unsupported period '{year}'; supported: 2024-25, 2025-26, 2026-27.{why}")
         );
     }
 }

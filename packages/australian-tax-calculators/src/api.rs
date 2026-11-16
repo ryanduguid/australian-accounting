@@ -433,6 +433,30 @@ const COMMAND_ARGS: &[(&str, &[(&str, Kind)])] = &[
     ("fbt-lafha", FBT_METHOD_ARGS),
     ("fbt-board", FBT_YEAR_ARGS),
     ("fbt-tax-exempt-body-entertainment", FBT_METHOD_ARGS),
+    (
+        "income-tests",
+        &[
+            ("taxable_income", Dec),
+            ("assessable_fhss_released_amount", Dec),
+            ("family_trust_distribution_amounts", Dec),
+            ("reportable_fringe_benefits_section_57a", Dec),
+            ("reportable_fringe_benefits_other", Dec),
+            ("reportable_employer_super_contributions", Dec),
+            ("deductible_personal_super_contributions", Dec),
+            ("excess_concessional_contributions", Dec),
+            ("net_financial_investment_loss", Dec),
+            ("net_rental_property_loss", Dec),
+            ("tax_free_government_pensions", Dec),
+            ("target_foreign_income", Dec),
+            ("exempt_foreign_employment_income", Dec),
+            ("child_support_paid", Dec),
+            ("assessable_income", Dec),
+            ("business_deductions", Dec),
+            ("residency", Raw),
+            ("year", Raw),
+            ("scope_confirmed", Raw),
+        ],
+    ),
 ];
 
 pub fn commands() -> Vec<&'static str> {
@@ -441,6 +465,7 @@ pub fn commands() -> Vec<&'static str> {
     out.push("periods");
     out.push("derive");
     out.push("personal-tax-estimate");
+    out.push("dgr-check");
     out
 }
 
@@ -451,7 +476,7 @@ pub fn commands() -> Vec<&'static str> {
 /// a study loan: the withholding is worked on the gross, so no step can work
 /// the gross out from the inputs and earlier steps alone. `derive` of that
 /// command on its `gross_pay` shows that withholding.
-const DERIVED: [&str; 41] = [
+const DERIVED: [&str; 42] = [
     "fbt",
     "fbt-car-statutory",
     "fbt-car-operating-cost",
@@ -492,6 +517,7 @@ const DERIVED: [&str; 41] = [
     "gst",
     "depreciation",
     "hire-purchase-schedule",
+    "income-tests",
     "business-capital-expenditure",
 ];
 
@@ -749,6 +775,7 @@ pub fn evaluate_coded(command: &str, v: &Value) -> Result<Value> {
         "worksheet-catalogue" => return Ok(engine::worksheet_catalogue()),
         "derive" => return derive(v),
         "personal-tax-estimate" => return crate::estimate::compose(v),
+        "dgr-check" => return crate::dgr::check(v),
         "periods" => {
             let kind = match v.get("kind") {
                 None => return refusal("input.missing_field", "kind is required"),
@@ -806,6 +833,7 @@ pub fn evaluate_coded(command: &str, v: &Value) -> Result<Value> {
             | "fbt-board"
             | "fbt-tax-exempt-body-entertainment"
             | "hire-purchase-schedule"
+            | "income-tests"
             | "business-capital-expenditure"
     ) && let Some(key) = v
         .as_object()
@@ -1033,6 +1061,10 @@ pub fn evaluate_coded(command: &str, v: &Value) -> Result<Value> {
             engine::contribution_caps(&a[0], &a[1], &a[2], &a[3], &a[4], &a[5], &a[6])
         }
         "pension-minimum" => engine::pension_minimum(&a[0], &a[1], &a[2], &a[3], &a[4]),
+        "income-tests" => {
+            let named: Vec<(&str, &Arg)> = params.iter().map(|(key, _)| *key).zip(&a).collect();
+            engine::income_tests(&named)
+        }
         _ => unreachable!("listed command"),
     };
     result.or_else(|e| refusal(e.code(), e.to_string()))

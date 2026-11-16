@@ -162,6 +162,40 @@ fn the_schedule_8_examples_gross_up_with_the_study_loan_component() {
     );
 }
 
+/// Schedule 1's 'Working out the weekly earnings' and Schedule 8's
+/// 'Calculating fortnightly, monthly or quarterly withholding amounts', for
+/// payments from 1 July 2026, read on 16 November 2026: a monthly amount
+/// ending in 33 cents gains a cent before it is multiplied by 3 and divided
+/// by 13.
+#[test]
+fn a_monthly_study_loan_pay_ending_in_33_cents_gains_a_cent() {
+    // $5,997.33 on scale 2: (5,997.33 + 0.01) x 3 / 13 = 1,384.0015, so
+    // x = 1,384.99 (1,383.99 without the cent). Schedule 1 0.32 x - 181.7319
+    // = 261.4649, so $261 and $1,131 a month; component 0.15 x - 200.5615 =
+    // 7.1870, so $7 and $30; $1,161 withheld leaves $4,836.33.
+    let result = api::evaluate(COMMAND, &with_loan("4836.33", "monthly", 2, "2026-27")).unwrap();
+    let amounts = &result["amounts"];
+    assert_eq!(amounts["gross_pay"], "5997.33");
+    assert_eq!(amounts["weekly_earnings_used"], "1384.99");
+    assert_eq!(amounts["schedule_1_withholding"], "1131.00");
+    assert_eq!(amounts["study_loan_component"], "30.00");
+    // $5,893.33 gives x = 1,360.99 (1,359.99 without the cent): Schedule 1
+    // 253.7849, so $254 and $1,101; component 3.5870, so $4 and $17; $1,118
+    // withheld leaves $4,775.33. $5,884.33 gives x = 1,357.99: $253 and
+    // $1,096, component $3 and $13, so $1,109 withheld leaves $4,775.33 too.
+    // Without the cent, $5,893.33 would withhold $1,109 and leave $4,784.33.
+    let refusal =
+        api::evaluate_coded(COMMAND, &with_loan("4775.33", "monthly", 2, "2026-27")).unwrap_err();
+    assert_eq!(refusal.code, "payg.gross_up_not_unique");
+    assert!(
+        refusal.message.starts_with(
+            "2 gross pays leave a net of $4775.33 for a 2026-27 monthly pay on scale 2: $5884.33 and $5893.33."
+        ),
+        "{}",
+        refusal.message
+    );
+}
+
 #[test]
 fn a_2025_26_study_loan_takes_the_pay_date_and_its_coefficients() {
     // F2025L01016's example 1, weekly $2,608.36 on scale 2 from 24 September

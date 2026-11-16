@@ -134,6 +134,23 @@ intentionally changed.
   message. The result for an established `taxable_income` without
   `tax_withheld` is unchanged apart from its sources, scope and
   `source_checked`.
+- `personal-tax-estimate` can work out `tax_withheld` from one employer's
+  regular pays: one pay's `payg-withholding`, `study-loan-withholding` or
+  `seniors-pensioners-withholding` inputs and `pays_in_year` (at most 53
+  weekly, 27 fortnightly, 12 monthly or 4 quarterly pays), with
+  `schedule-5-method-a` for one bonus paid with one of them, but not with a
+  Schedule 9 or quarterly pay or beside declared tax offsets, Medicare levy
+  adjustment or extra pay amount, which Method A here does not take. The tax withheld
+  is the pay's withholding times the pays, plus Method A's on the bonus, and
+  the amounts add `withholding_per_pay` and `additional_payment_withholding`.
+  A study loan pay needs `study-loan-repayment`; Schedule 9 or a study loan
+  for a foreign resident is refused as `estimate.residency_unsupported`, and a
+  scale that does not match the residency as the new code
+  `estimate.scale_mismatch`. A study loan pay in 2025-26, whose Schedule 8
+  coefficients changed on 24 September 2025, is refused as
+  `period.unsupported`, and `extra_pay_withholding` needs 53 weekly or 27
+  fortnightly pays. Its sources add TAA 1953 Sch 1 s 12-35. Results
+  without the new inputs are unchanged apart from the scope.
 - `derive` also covers `working-holiday-maker-withholding`,
   `study-loan-withholding`, `seniors-pensioners-withholding`, `quarterly-sg`
   and `borrowing-expenses`. Their steps cite the headings of Schedules 1, 8, 9
@@ -420,6 +437,74 @@ intentionally changed.
   and its days in each year, which s 240-60(2) leaves to accounting
   principles and the worksheet does not split. `tests/hire_purchase.rs`
   holds it to agreements worked by hand at 10% a month.
+- `dgr-check` says, for a list of donations by ABN or name, whether each
+  recipient is shown as a deductible gift recipient in the ABN Bulk Extract of
+  11 November 2026 (CC BY 3.0 AU), from what date, how that reads on the
+  payment date, and which ITAA 1997 Division 30 conditions stay open; it
+  applies the $2 minimum only to gifts made before 1 July 2024 (Act No. 58,
+  2026, Sch 1) and never says a payment is deductible. A name alone gives
+  unconfirmed candidates. `data/dgr-register.jsonl` keeps only the extract's
+  31,876 ABNs with DGR entries, built by `examples/dgr_register.rs`, which
+  keeps an entry for a fund the extract leaves unnamed as a fund, as ABN Lookup
+  lists it, and has its own tests. New codes:
+  `input.abn_invalid`, `input.donations_invalid` and `input.name_invalid`.
+  `tests/dgr_check.rs` holds it to ABNs read the same in ABN Lookup's DGR
+  listing and to the Library's worked example ¶7-020, and `tests/properties.rs`
+  checks that it never reads an ABN in its data as absent.
+- `income-tests` works out 6 income measures for a full-year resident for
+  2024-25 to 2026-27 from taxable income and the components each definition
+  adds back: income for surcharge purposes (ITAA 1997 s 995-1), Division 293
+  income (s 293-20(1)(a)), rebate income (ITAA 1936 s 6(1)), repayment income
+  (HESA s 154-5), adjusted taxable income for offsets (Family Assistance Act
+  Sch 3) and the super co-contribution's total income (Superannuation
+  (Government Co-contribution for Low Income Earners) Act 2003 s 8). Each
+  measure is a `derive` step citing its definition, and `not_used` lists the
+  components each leaves out. Every component is required; a negative one, a
+  component larger than the amount that includes it, a part-year or foreign
+  resident and another year are refused. Income for surcharge purposes follows
+  s 995-1, which leaves out the exempt foreign employment income the ATO's
+  surcharge page adds, and warns when they differ. No command's behaviour
+  changes. No Python release has it. `tests/parity.rs` drops its catalogue
+  entry before comparing, and `tests/income_tests.rs` holds it to the ATO's
+  Christina and Tom examples, passes each measure to the command that takes
+  it and checks each adjustment and refusal.
+- `gst`, `resident-tax`, `foreign-resident-tax`, `low-income-tax-offset`,
+  `medicare-levy`, `seniors-pensioners-tax-offset`, `division-293` and
+  `pension-minimum` also accept 2027-28, the year whose every rate and
+  threshold each takes the law already sets: Income Tax Rates Act 1986
+  Schedule 7 (14%, 30%, 37% and 45% for a resident; 30%, 37% and 45% for a
+  foreign resident), ITAA 1997 ss 61-115 and 293-20, the Medicare Levy Act
+  1986 thresholds Act No. 58, 2026 applies to later years, the SAPTO
+  regulations' formulas at the 14% lowest rate, the GST rate and SISR
+  Schedule 7, with 366 days for the pension minimum. The ATO had published
+  none of them for 2027-28 when they were read on 16 November 2026, so each
+  result but GST, LITO, Division 293 and the pension minimum adds a warning
+  saying so; the `resident-tax` one also says the s 119-10 extra tax on a
+  minimum tax capital gain, from 2027-28, is not worked out. A worksheet that
+  still refuses 2027-28 adds why to its `period.unsupported` message: the
+  withholding schedules, Medicare levy surcharge thresholds, study loan
+  thresholds, contribution caps, ETP caps and indexed Division 296
+  thresholds were not yet published; CGT changes from 1 July 2027 (Act No.
+  49 of 2026, Schedule 1) and s 26-155 limits rental deductions; or 2027-28's
+  366 days exceed the 365 `depreciation` takes. `medicare-levy-surcharge`
+  takes 2027-28 only with `days_without_cover` 0, when Medicare Levy Act 1986
+  ss 8B, 8C and 8D leave no surcharge whatever the thresholds, and refuses a
+  day without cover. `personal-tax-estimate` composes 2027-28 for a foreign
+  resident, and for a resident applies the working Australians tax offset
+  (ITAA 1997 ss 61-155 and 61-160) first (s 63-10(1) item 3): the lesser of
+  $250 and the basic income tax on net labour income, which it takes as the
+  new `net_labour_income` (required beside `taxable_income`) or works out from
+  the labour inputs. The amounts add `net_labour_income`,
+  `working_australians_tax_offset` and `working_australians_tax_offset_applied`;
+  its sources add ss 61-155 and 61-160. It does not work out the s 119-10
+  extra tax on a minimum tax capital gain, which its scope excludes. Results
+  before 2027-28 are unchanged apart from the scope and sources.
+  `hire-purchase-schedule`'s 2027-28 refusal gives no reason: s 26-155 does
+  not touch it. `tests/parity.rs` adds 2027-28
+  to the 6 frozen commands' supported periods, catalogue and refusals, adds
+  the reason to the 13 frozen 2027-28 refusals of the others, and skips the
+  17 frozen calls that expected 2027-28 to be refused; `tests/year_2027_28.rs`
+  checks that year with hand-worked figures.
 
 ### Documented divergences
 
