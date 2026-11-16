@@ -508,13 +508,16 @@ pub const TERMINATION_PAYMENT_YEARS: [&str; 1] = ["2026-27"];
 
 /// Unused leave paid on termination: Schedule 7's 32% rate for the parts a tax
 /// offset caps at 30% (30% plus the 2% Medicare levy) and its $300 limit for a
-/// small post-17 August 1993 payment (payments from 1 July 2026), and the 5% of
-/// pre-16 August 1978 long service leave that ITAA 1997 s 83-80(1) makes
+/// small post-17 August 1993 payment, its 47% (45% for a foreign resident) of
+/// the payment when no TFN is provided (payments from 1 July 2026), and the 5%
+/// of pre-16 August 1978 long service leave that ITAA 1997 s 83-80(1) makes
 /// assessable.
-pub const UNUSED_LEAVE_PAYMENT: [(&str, &str); 3] = [
+pub const UNUSED_LEAVE_PAYMENT: [(&str, &str); 5] = [
     ("flat_rate", "0.32"),
     ("pre_1978_assessable_rate", "0.05"),
     ("small_payment", "300"),
+    ("no_tfn_rate", "0.47"),
+    ("no_tfn_foreign_resident_rate", "0.45"),
 ];
 pub const UNUSED_LEAVE_PAYMENT_YEARS: [&str; 1] = ["2026-27"];
 
@@ -1060,7 +1063,7 @@ pub fn source_review(kind: &str) -> (&'static str, &'static str) {
         ),
         "unused_leave_payment" => (
             "2026-11-16",
-            "ATO Schedule 7, tax table for unused leave payments on termination of employment (from 1 July 2026): using this schedule, working out the withholding amount, the rates and labels table, rounding, the marginal rate calculation, normal gross earnings and the long service leave example; ITAA 1997 ss 83-10, 83-15 and 83-70 to 83-115, compilation 268 (1 October 2026); ATO STP Phase 2 employer reporting guidelines, 'When an employee transfers or leaves'; ATO 'What payments are qualifying earnings', table 13",
+            "ATO Schedule 7, tax table for unused leave payments on termination of employment (from 1 July 2026): using this schedule, working out the withholding amount, the rates and labels table, rounding, the marginal rate calculation, normal gross earnings, the long service leave example and when a TFN has not been provided; ITAA 1997 ss 83-10, 83-15 and 83-70 to 83-115, compilation 268 (1 October 2026); ATO STP Phase 2 employer reporting guidelines, 'When an employee transfers or leaves'; Superannuation Guarantee (Administration) Act 1992 ss 6(1) 'ordinary time earnings' and 10A(1), compilation 78 (1 July 2026); ATO 'What payments are qualifying earnings', table 13",
         ),
         "schedule_5_method_a" | "schedule_5_method_b_i" | "schedule_5_method_b_ii" => (
             "2026-11-14",
@@ -1547,6 +1550,10 @@ pub fn optional_inputs(kind: &str) -> Vec<(&'static str, &'static str)> {
             ),
         ],
         "unused_leave_payment" => vec![
+            (
+                "foreign_resident",
+                "boolean, scale 4 only and required there: true for a payee who is a foreign resident (45% withheld), false for a resident (47%)",
+            ),
             (
                 "annual_leave_before_18_august_1993",
                 "AUD, the part of annual_leave in respect of employment before 18 August 1993 (s 83-15(b)); required, 0 if none, for a normal termination when leave_accrual_start is before that day and annual_leave is not nil; refused above nil when it is not before that day",
@@ -2079,21 +2086,17 @@ pub fn input_units(kind: &str) -> Vec<(&'static str, &'static str)> {
                 "normal (resignation, dismissal for inefficiency, retirement and every other reason), genuine_redundancy (s 83-175), early_retirement_scheme (s 83-180) or invalidity (an ETP or super benefit with an invalidity segment, s 82-150); death is refused",
             ),
             (
-                "foreign_resident",
-                "boolean, whether the employee is a foreign resident; true is refused",
-            ),
-            (
                 "working_holiday_maker",
                 "boolean, whether the employee is a working holiday maker; true is refused (Schedule 15 covers them)",
             ),
             (
                 "earnings",
-                "AUD, the employee's normal gross earnings: all payments except termination payments in the last full pay period, including taxable allowances, overtime and bonuses, or the year-to-date average pay where pay fluctuates significantly (Schedule 7, 'Normal gross earnings')",
+                "AUD, the employee's normal gross earnings: all payments except termination payments in the last full pay period, including taxable allowances, overtime and bonuses, or the year-to-date average pay where pay fluctuates significantly (Schedule 7, 'Normal gross earnings'); not used for scale 4",
             ),
             ("pay_period", "weekly, fortnightly or monthly"),
             (
                 "scale",
-                "integer 1, 2, 5 or 6, the Schedule 1 scale used for the employee's normal earnings; scale 3 is refused as a foreign resident's",
+                "integer 1, 2, 3, 5 or 6, the Schedule 1 scale used for the employee's normal earnings (3 for a foreign resident who gave a TFN), or 4 when no TFN was provided",
             ),
         ],
         "schedule_5_method_a" => [
@@ -2467,7 +2470,6 @@ pub fn examples(kind: &str) -> Vec<(&'static str, Example)> {
             ),
             ("leave_accrual_start", Text("1977-01-01")),
             ("termination_reason", Text("normal")),
-            ("foreign_resident", Flag(false)),
             ("working_holiday_maker", Flag(false)),
             ("earnings", Text("1155.00")),
             ("pay_period", Text("weekly")),

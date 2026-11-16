@@ -64,7 +64,7 @@ example evidence; it does not claim a fresh review of every supported period.
 | Division 293 | Not a Library document: ITAA 1997 ss 293-20 and 293-25, the 2013 Imposition Act and the ATO's worked example | 24 August 2026 (ATO page) | Established Division 293 income and low tax contributions for 2024-25 to 2026-27 |
 | Division 296 | `superannuation-contributions-to-superannuation-funds-and-rsas` (superannuation), ¶6-495, with the Explanatory Memorandum's examples 1.1 to 1.3, ITAA 1997 ss 296-15 to 296-55 (compilation 268, 1 October 2026), the 2026 Imposition Act and the ATO's Division 296 page | 30 June 2026; 3 November 2026 (ATO page) | One individual's established balance at 30 June 2027 and total superannuation earnings for 2026-27; working out either, s 296-70 interests and later years excluded |
 | Termination payment | Not a Library document: ATO Schedule 11 examples 1 to 4, with ITAA 1997 ss 82-10 and 83-170 (compilation 268, 1 October 2026), SISR reg 6.01(2) and `tax-examples-assessable-income` (tax-examples), ¶1-420 | 17 June 2026 (Schedule 11); 30 June 2026 (¶1-420) | One life benefit ETP in 2026-27 with established, classified parts; Schedule 11 withholding, not the tax assessed |
-| Unused leave payment | Not a Library document: ATO Schedule 7 for payments from 1 July 2026 and its example, the ATO's 'Withholding from unused leave payments on termination of employment' examples, ITAA 1997 ss 83-10 to 83-115 (compilation 268, 1 October 2026), the STP Phase 2 employer reporting guidelines and the ATO's qualifying earnings table | 17 June 2026 (Schedule 7 published); 1 May 2020 (examples); 2 September 2026 (qualifying earnings) | Withholding, assessable shares and labels for unused leave paid on one termination in 2026-27, from established accrual parts |
+| Unused leave payment | Not a Library document: ATO Schedule 7 for payments from 1 July 2026 and its example, the ATO's 'Withholding from unused leave payments on termination of employment' examples, ITAA 1997 ss 83-10 to 83-115 (compilation 268, 1 October 2026), the STP Phase 2 employer reporting guidelines, the Superannuation Guarantee (Administration) Act 1992 (compilation 78, 1 July 2026) and the ATO's qualifying earnings table | 17 June 2026 (Schedule 7 published); 1 May 2020 (examples); 2 September 2026 (qualifying earnings) | Withholding, assessable shares and labels for unused leave paid on one termination in 2026-27, from established accrual parts |
 | Schedule 5 withholding | Not a Library document: ATO Schedule 5 (NAT 3348) for payments from 1 July 2024, 1 July 2025 and 1 July 2026, and the 2024, 2025 and 2026 withholding schedules instruments | 17 June 2024, 10 June 2025 and 17 June 2026 (published) | One regular weekly, fortnightly or monthly pay with additional payments by Method A, B(i) or B(ii); the study loan component for pays from 24 September 2025, and from 1 July 2026 in Method B(i) |
 | Working holiday makers | Not a Library document: ATO Schedule 15 for payments from 1 July 2026, and for 1 July 2024 to 30 June 2026 | 17 June 2026 (published); 17 June 2024 (last updated) | One payment's withholding at the Table A rates or Schedule 1 scale 3 for 2024-25 to 2026-27; visa, registration and TFN status established by the operator |
 | Seniors and pensioners | Not a Library document: ATO Schedule 9 (NAT 4466) for payments from 1 July 2026, and for 1 July 2024 to 30 June 2026, with Schedule 9 of the 2026 and 2025 withholding schedules instruments | 17 June 2026 (published); 17 June 2024 (last updated) | One weekly, fortnightly or monthly payment's withholding on scales 1 to 9 for 2024-25 to 2026-27, with any study loan component under Schedule 8 for 2026-27 and from 24 September 2025; eligibility, status and exemption established by the operator; other tax offsets and the Medicare levy adjustment excluded |
@@ -1333,8 +1333,16 @@ AEDT:
   1993 component before one marginal rate calculation; it is the catalogue
   example and a test in `tests/unused_leave_payment.rs`, with the $188 and $279
   from the 2026-27 weekly tax table that `payg-withholding` gives. It sends
-  working holiday makers to Schedule 15 and gives a foreign resident only the
-  45% rate without a TFN.
+  working holiday makers to Schedule 15. Its method when a TFN is provided
+  does not depend on residency, and its marginal rate calculation uses 'the
+  relevant PAYG withholding tax table', so a foreign resident who gave a TFN
+  uses Schedule 1 scale 3. When no TFN is provided it withholds 47% from the
+  payment, or 45% for a foreign resident, with cents ignored; the ATO's
+  'Payments when no tax file number (TFN) is quoted' (last updated 1 May 2020,
+  read at 18:58 on 16 November 2026) says the same of 'any payment of unused
+  leave'. The schedule ignores cents only in its rounding of withholding
+  amounts, so the worksheet ignores the cents of the result, not of the
+  payment.
 - The ATO's 'Withholding from unused leave payments on termination of
   employment' pages (last updated 1 May 2020): Greg's invalidity example
   ($2,680 at 32%, $857 with cents disregarded, where Schedule 7 now rounds to
@@ -1376,6 +1384,15 @@ AEDT:
   loading and long service leave, is neither ordinary time earnings nor
   qualifying earnings, whatever the reason for termination or its tax
   treatment. An award or agreement can still require super on it.
+- The Superannuation Guarantee (Administration) Act 1992, compilation 78
+  (1 July 2026, the current one, with the Payday Superannuation amendments),
+  read at 18:57 on 16 November 2026: s 6(1) leaves out of ordinary time
+  earnings a lump sum paid on termination that is an unused annual leave
+  payment or unused long service leave payment within the meaning of ITAA
+  1997, which covers leave loading (s 83-10(3)(b)) and every termination
+  reason; s 10A(1)(a) brings ordinary time earnings into qualifying earnings,
+  and its other paragraphs name commissions, directors' and parliamentarians'
+  pay, labour under contracts and other payments that are not leave.
 
 The worksheet computes withholding and the assessable amounts, not the tax
 assessed: the offset depends on the employee's other income for the year.

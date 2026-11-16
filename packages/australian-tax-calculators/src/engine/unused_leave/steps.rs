@@ -337,10 +337,24 @@ const LABELS: [(&str, &str, &str); 4] = [
     ),
     (
         "qualifying_earnings",
-        "ATO, 'What payments are qualifying earnings', table 13: unused leave on termination, including annual leave, leave loading and long service leave, is neither ordinary time earnings nor qualifying earnings, whatever the reason for termination",
+        "SGAA 1992 s 6(1) 'ordinary time earnings': not an unused annual leave payment or unused long service leave payment within the meaning of ITAA 1997, and s 10A(1); ATO, 'What payments are qualifying earnings', table 13: unused leave on termination, including annual leave, leave loading and long service leave, is neither ordinary time earnings nor qualifying earnings, whatever the reason for termination",
         "0",
     ),
 ];
+
+/// Without a TFN: `no_tfn_rate` of the whole payment, cents ignored.
+fn no_tfn_step(leave: &Leave, no_tfn_rate: &str) -> Result<Step> {
+    let rate = d(no_tfn_rate);
+    let payment = leave.annual.add(&leave.loading)?.add(&leave.long_service)?;
+    let withheld = payment.mul(&rate)?.quantize(0, Rounding::Down)?;
+    Ok(step(
+        "withholding",
+        "Schedule 7, 'When a TFN has not been provided': 47% from the payment, 45% for a foreign resident; 'Rounding of withholding amounts': cents ignored",
+        "floor((annual_leave + leave_loading + long_service_leave) x no_tfn_rate)",
+        &[&leave.annual, &leave.loading, &leave.long_service, &rate],
+        withheld,
+    ))
+}
 
 /// Each part's assessable share and offset, the Schedule 7 withholding and the
 /// income statement amounts, in that order.
@@ -348,14 +362,24 @@ pub(super) fn leave_steps(
     pay: &AdditionalPay,
     leave: &Leave,
     concessional: bool,
+    no_tfn_rate: Option<&str>,
 ) -> Result<Vec<Step>> {
     precise(|| {
         let (mut steps, annual_capped, annual_marginal) = annual_steps(leave, concessional)?;
         let (lsl, shares) =
             long_service_steps(leave, concessional, (annual_capped, annual_marginal))?;
         steps.extend(lsl);
-        let (withholding, post_1993) = withholding_steps(pay, &shares)?;
-        steps.extend(withholding);
+        let post_1993 = match no_tfn_rate {
+            Some(no_tfn) => {
+                steps.push(no_tfn_step(leave, no_tfn)?);
+                shares.annual_marginal.add(&shares.long_service_marginal)?
+            }
+            None => {
+                let (withholding, post_1993) = withholding_steps(pay, &shares)?;
+                steps.extend(withholding);
+                post_1993
+            }
+        };
         let s = &shares;
         steps.extend(steps_from(
             &LABELS,

@@ -121,7 +121,7 @@ lists the commands.
 | `division-293` | `division_293_income`, `low_tax_contributions`, `year`, `scope_confirmed` |
 | `division-296` | `total_super_balance_end_of_year`, `total_super_earnings`, `child_recipient`, `structured_settlement_contribution`, `died_in_year`, `year`, `scope_confirmed` |
 | `termination-payment` | `redundancy_payment`, `completed_years_of_service`, `excluded_payment`, `non_excluded_payment`, `other_taxable_payments`, `date_of_birth`, `year`, `scope_confirmed` |
-| `unused-leave-payment` | `annual_leave`, `leave_loading`, `long_service_leave`, `leave_accrual_start`, `termination_reason`, `foreign_resident`, `working_holiday_maker`, `earnings`, `pay_period`, `scale`, `year`, `scope_confirmed`; `annual_leave_before_18_august_1993`, `leave_loading_before_18_august_1993`, `long_service_leave_before_16_august_1978` and `long_service_leave_16_august_1978_to_17_august_1993` where the accrual start and reason need them |
+| `unused-leave-payment` | `annual_leave`, `leave_loading`, `long_service_leave`, `leave_accrual_start`, `termination_reason`, `working_holiday_maker`, `earnings`, `pay_period`, `scale`, `year`, `scope_confirmed`; optional `foreign_resident` (scale 4); `annual_leave_before_18_august_1993`, `leave_loading_before_18_august_1993`, `long_service_leave_before_16_august_1978` and `long_service_leave_16_august_1978_to_17_august_1993` where the accrual start and reason need them |
 | `schedule-5-method-a` | `earnings`, `additional_payment`, `pay_periods`, `pay_period`, `scale`, `study_loan`, `year`, `scope_confirmed`; `pay_date`, with `study_loan` only and required with it for 2025-26 |
 | `schedule-5-method-b-i` | `earnings`, `back_payment_periods`, `pay_period`, `scale`, `study_loan`, `year`, `scope_confirmed`; `pay_date`, as for Method A |
 | `schedule-5-method-b-ii` | `earnings`, `additional_payment`, `year_to_date_earnings`, `pay_periods_to_date`, `earlier_additional_payments`, `earlier_additional_withholding`, `pay_period`, `scale`, `study_loan`, `year`, `scope_confirmed`; `pay_date`, as for Method A |
@@ -191,7 +191,8 @@ the year, made under Schedule 1 to the Taxation Administration Act 1953,
 s 15-25; the termination payment steps also cite ITAA 1997 s 82-10 and 83-170.
 The unused leave payment steps cite ITAA 1997 ss 83-10 to 83-90, the headings
 of the ATO's Schedule 7 for payments from 1 July 2026, its STP Phase 2
-employer reporting guidelines and its qualifying earnings table.
+employer reporting guidelines, the Superannuation Guarantee (Administration)
+Act 1992 ss 6(1) and 10A(1) and the ATO's qualifying earnings table.
 Schedule 1 names its parts by heading, such as 'Using a formula', and the
 steps cite those headings. `floor` drops the cents where a schedule says to
 ignore them. A Schedule 5 step writes in the coefficients of the
@@ -263,7 +264,7 @@ they have no step.
 | Division 293 | 2024-25, 2025-26 and 2026-27; established Division 293 income and low tax contributions; no defined benefit interests |
 | Division 296 | 2026-27; one individual's established balance at 30 June 2027 and total superannuation earnings; no defined benefit or other s 296-70 interests; an estimate, as the Commissioner assesses |
 | Termination payment | 2026-27; one life benefit ETP to a resident employee who gave a TFN, paid within 12 months; established genuine redundancy and classified ETP parts; Schedule 11 withholding, not the tax assessed |
-| Unused leave payment | 2026-27; unused leave paid on one termination to a resident employee who gave a TFN; established reason, accrual start, accrual parts and normal earnings; Schedule 7 withholding and assessable shares, not the tax assessed |
+| Unused leave payment | 2026-27; unused leave paid on one termination to an employee who is not a working holiday maker; established reason, accrual start, accrual parts and normal earnings; Schedule 7 withholding and assessable shares, not the tax assessed |
 | Schedule 5 withholding | Weekly, fortnightly or monthly pays made from 1 July 2024 to 30 June 2027 that include back payments, commissions or bonuses, on scale 1, 2, 3, 5 or 6; the study and training support loan component for pays from 24 September 2025, and from 1 July 2026 in Method B(i) |
 | Working holiday makers | 2024-25 to 2026-27; one weekly, fortnightly or monthly payment to an established working holiday maker; no TFN exemption claimants or labour mobility schemes |
 | Seniors and pensioners | 2024-25 to 2026-27; one weekly, fortnightly or monthly payment to an established senior or pensioner who gave a TFN, by status and Medicare levy exemption; no other tax offsets or Medicare levy adjustment |
@@ -863,8 +864,8 @@ does not take. The tests hold it to the ATO's Schedule 11 examples; see
 ## Unused leave payment
 
 `unused_leave_payment` works out, for unused annual leave, leave loading and
-unused long service leave paid in 2026-27 on the termination of a resident
-employee who quoted a TFN, each part's assessable share and tax offset under
+unused long service leave paid in 2026-27 on the termination of an
+employee's employment, each part's assessable share and tax offset under
 ITAA 1997 Subdivisions 83-A and 83-B, the PAYG withholding under Schedule 7
 and the income statement label. Annual leave and loading paid on a genuine
 redundancy, an early retirement scheme or invalidity, and the parts accrued
@@ -877,16 +878,20 @@ service leave from before 16 August 1978 is assessable (s 83-80); it is lump
 sum B in full. That 5% and the rest, leave from after 17 August 1993 on a normal
 termination, which is reported as unused leave on termination (paid leave
 type U), go through Schedule 7's marginal rate calculation once, on the
-employee's normal gross earnings and Schedule 1 scale; a post-17 August 1993
-payment under $300 has at most 32% of it withheld. The caller gives the day the
+employee's normal gross earnings and Schedule 1 scale (scale 3 for a foreign
+resident); a post-17 August 1993 payment under $300 has at most 32% of it
+withheld. Without a TFN (scale 4) Schedule 7 withholds 47% of the whole
+payment instead, or 45% for a foreign resident, cents ignored. The caller gives the day the
 leave's accrual started and, where that day comes before 16 August 1978 or
 18 August 1993 and the reason makes it matter, the part of each total accrued
 before it, worked out by days under ss 83-95 to 83-115; a missing part is
 refused, as is one the accrual start rules out. `qualifying_earnings` is nil:
-the ATO's table of qualifying earnings says unused leave on termination is
-neither ordinary time earnings nor qualifying earnings, whatever the reason.
-Leave paid after death, foreign residents, working holiday makers (Schedule
-15), payees without a TFN, a payment under $300 beside pre-16 August 1978 long
+the Superannuation Guarantee (Administration) Act 1992 leaves unused annual
+and long service leave payments on termination out of ordinary time earnings
+(s 6(1)) and so out of qualifying earnings (s 10A(1)), and the ATO's table of
+qualifying earnings says the same of all unused leave on termination, whatever
+the reason. Leave paid after death, working holiday makers (Schedule 15), a
+payment under $300 beside pre-16 August 1978 long
 service leave, which Schedule 7 does not say how to limit, and other years are
 refused, and it refuses a field it does not take. The tests hold it to Schedule
 7's example and the ATO's unused leave examples; see

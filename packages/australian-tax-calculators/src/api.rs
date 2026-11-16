@@ -338,7 +338,6 @@ const COMMAND_ARGS: &[(&str, &[(&str, Kind)])] = &[
             ("long_service_leave", Dec),
             ("leave_accrual_start", Raw),
             ("termination_reason", Raw),
-            ("foreign_resident", Raw),
             ("working_holiday_maker", Raw),
             ("earnings", Dec),
             ("pay_period", Raw),
@@ -1014,14 +1013,16 @@ pub fn evaluate_coded(command: &str, v: &Value) -> Result<Value> {
                 long_service_leave_before_16_august_1978: o[2].as_ref(),
                 long_service_leave_16_august_1978_to_17_august_1993: o[3].as_ref(),
             };
+            // Optional: scale 4's residency, as payg-withholding takes it.
+            let foreign = v.get("foreign_resident").map(arg);
             engine::unused_leave_payment(
                 [&a[0], &a[1], &a[2]],
                 &splits,
                 (&a[3], &a[4]),
-                (&a[5], &a[6]),
-                (&a[7], &a[8], &a[9]),
+                (foreign.as_ref(), &a[5]),
+                (&a[6], &a[7], &a[8]),
+                &a[9],
                 &a[10],
-                &a[11],
             )
         }
         "schedule-5-method-a" => engine::schedule_5_method_a(

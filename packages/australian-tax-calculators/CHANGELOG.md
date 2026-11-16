@@ -14,14 +14,16 @@ intentionally changed.
   unused long service leave paid on a termination in 2026-27, each part's
   assessable share and tax offset (ITAA 1997 ss 83-10 to 83-115), the
   Schedule 7 withholding (32% on the parts the offset caps at 30%, the marginal
-  rate calculation once on the rest, with the $300 limit) and the income
+  rate calculation once on the rest, with the $300 limit, or without a TFN 47%
+  of the payment, 45% for a foreign resident) and the income
   statement amount at lump sum A (type R or T), lump sum B and paid leave
-  type U, with `qualifying_earnings` nil from the ATO's qualifying earnings
-  table. `derive` covers it. Leave paid after death, foreign residents, working
-  holiday makers, a missing or impossible accrual part, a payment under $300
-  beside pre-16 August 1978 leave and other years are refused, under the new
-  codes `input.termination_reason_invalid`, `leave.accrual_split_invalid`,
-  `leave.accrual_split_missing`, `leave.death`, `leave.foreign_resident`,
+  type U, with `qualifying_earnings` nil under the Superannuation Guarantee
+  (Administration) Act and the ATO's qualifying earnings table. `derive`
+  covers it. Leave paid after death, working holiday makers, a missing or
+  impossible accrual part, a payment under $300 beside pre-16 August 1978
+  leave and other years are refused, under the new codes
+  `input.termination_reason_invalid`, `leave.accrual_split_invalid`,
+  `leave.accrual_split_missing`, `leave.death`,
   `leave.under_300_with_pre_1978` and `leave.working_holiday_maker`. No Python
   release has it. `tests/parity.rs` drops its catalogue entry before comparing,
   and `tests/unused_leave_payment.rs` holds it to Schedule 7's example and the

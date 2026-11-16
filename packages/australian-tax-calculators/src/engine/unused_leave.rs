@@ -106,22 +106,28 @@ fn concessional_reason(reason: &Arg) -> Result<bool> {
     }
 }
 
-/// Schedule 7 covers a resident who quoted a TFN: refuse a foreign resident
-/// (scale 3 or the flag) and a working holiday maker, whom Schedule 15 covers.
-fn payee(pay: &AdditionalPay, foreign_resident: &Arg, working_holiday_maker: &Arg) -> Result<()> {
+/// Refuse a working holiday maker, whom Schedule 15 covers; then the rate
+/// Schedule 7 withholds from the whole payment when no TFN was provided
+/// (scale 4): 47%, or 45% for a foreign resident. `None` for a TFN, when its
+/// tables apply on the payee's Schedule 1 scale, scale 3 for a foreign resident.
+fn payee(
+    pay: &AdditionalPay,
+    foreign_resident: Option<&Arg>,
+    working_holiday_maker: &Arg,
+) -> Result<Option<&'static str>> {
     if flag(working_holiday_maker, "working_holiday_maker")? {
         return refuse(
             "leave.working_holiday_maker",
             "Schedule 7 sends every payment to a working holiday maker, unused leave included, to Schedule 15: use working-holiday-maker-withholding.",
         );
     }
-    if flag(foreign_resident, "foreign_resident")? || pay.scale == 3 {
-        return refuse(
-            "leave.foreign_resident",
-            "Schedule 7 gives no method for a foreign resident who quoted a TFN, so this command does not work out their withholding.",
-        );
-    }
-    Ok(())
+    let foreign = super::foreign_resident(foreign_resident, pay.scale)?;
+    let key = match foreign {
+        None => return Ok(None),
+        Some(true) => "no_tfn_foreign_resident_rate",
+        Some(false) => "no_tfn_rate",
+    };
+    Ok(Some(super::lookup(&meta::UNUSED_LEAVE_PAYMENT, key)))
 }
 
 /// The totals and their parts, checked against each other and the accrual start.
@@ -155,10 +161,15 @@ const PERIODS: [&str; 4] = [
 ];
 
 /// The parts against the totals: the 2 long service leave parts within their
-/// total, and Schedule 7's $300 limit, which applies to post-17 August 1993
-/// leave on a normal termination (all of each total but its parts) and which
-/// it does not say how to apply beside pre-16 August 1978 long service leave.
-fn totals_rules(totals: &[Decimal; 3], parts: &[Part; 4], concessional: bool) -> Result<()> {
+/// total, and Schedule 7's $300 limit, which applies when a TFN is provided to
+/// post-17 August 1993 leave on a normal termination (all of each total but
+/// its parts) and which it does not say how to apply beside pre-16 August 1978
+/// long service leave.
+fn totals_rules(
+    totals: &[Decimal; 3],
+    parts: &[Part; 4],
+    (concessional, tfn): (bool, bool),
+) -> Result<()> {
     let given: Vec<Decimal> = parts.iter().map(|p| p.term().1).collect();
     if given[2].add(&given[3])?.gt(&totals[2])? {
         return refuse(
@@ -169,7 +180,7 @@ fn totals_rules(totals: &[Decimal; 3], parts: &[Part; 4], concessional: bool) ->
     let all = totals.iter().try_fold(int(0), |sum, t| sum.add(t))?;
     let post_1993 = given.iter().try_fold(all, |rest, p| rest.sub(p))?;
     let small = d(super::lookup(&meta::UNUSED_LEAVE_PAYMENT, "small_payment"));
-    let under_300 = !concessional && !post_1993.is_zero() && post_1993.lt(&small)?;
+    let under_300 = tfn && !concessional && !post_1993.is_zero() && post_1993.lt(&small)?;
     if under_300 && !given[2].is_zero() {
         return refuse(
             "leave.under_300_with_pre_1978",
@@ -183,7 +194,7 @@ fn leave(
     totals: [&Arg; 3],
     splits: &LeaveSplits,
     accrual_start: i64,
-    concessional: bool,
+    (concessional, tfn): (bool, bool),
 ) -> Result<Leave> {
     let [annual, loading, long_service] = totals.map(money);
     let totals = [annual?, loading?, long_service?];
@@ -208,7 +219,7 @@ fn leave(
         part(name, given[i], &totals[total], when, PERIODS[i])
     });
     let parts = [a?, b?, c?, e?];
-    totals_rules(&totals, &parts, concessional)?;
+    totals_rules(&totals, &parts, (concessional, tfn))?;
     let [annual, loading, long_service] = totals;
     Ok(Leave {
         annual,
@@ -224,7 +235,7 @@ pub fn unused_leave_payment(
     totals: [&Arg; 3],
     splits: &LeaveSplits,
     (leave_accrual_start, termination_reason): (&Arg, &Arg),
-    (foreign_resident, working_holiday_maker): (&Arg, &Arg),
+    (foreign_resident, working_holiday_maker): (Option<&Arg>, &Arg),
     (earnings, pay_period, scale): (&Arg, &Arg, &Arg),
     year: &Arg,
     scope_confirmed: &Arg,
@@ -239,22 +250,27 @@ pub fn unused_leave_payment(
         year,
         scope_confirmed,
     )?;
-    payee(&pay, foreign_resident, working_holiday_maker)?;
+    let no_tfn_rate = payee(&pay, foreign_resident, working_holiday_maker)?;
     let concessional = concessional_reason(termination_reason)?;
     let start = date_arg(leave_accrual_start, "leave_accrual_start")?;
-    let leave = leave(totals, splits, start, concessional)?;
-    let steps = steps::leave_steps(&pay, &leave, concessional)?;
+    let leave = leave(totals, splits, start, (concessional, no_tfn_rate.is_none()))?;
+    let steps = steps::leave_steps(&pay, &leave, concessional, no_tfn_rate)?;
     let figure = |key| super::lookup(&meta::UNUSED_LEAVE_PAYMENT, key);
-    let rates = vec![
-        rate("flat_rate", figure("flat_rate")),
-        rate(
-            "pre_1978_assessable_rate",
-            figure("pre_1978_assessable_rate"),
-        ),
-        rate("small_payment", figure("small_payment")),
-        rate("pay_periods_in_year", pay.per_year),
+    let mut rates = vec![rate(
+        "pre_1978_assessable_rate",
+        figure("pre_1978_assessable_rate"),
+    )];
+    match no_tfn_rate {
+        Some(no_tfn) => rates.push(rate("no_tfn_rate", no_tfn)),
+        None => rates.extend([
+            rate("flat_rate", figure("flat_rate")),
+            rate("small_payment", figure("small_payment")),
+            rate("pay_periods_in_year", pay.per_year),
+        ]),
+    }
+    rates.extend([
         rate("scale", pay.scale),
         rate("lump_sum_a_type", if concessional { "R" } else { "T" }),
-    ];
+    ]);
     derived_result(KIND, &pay.year, steps, rates)
 }

@@ -17,7 +17,7 @@ fn input(overrides: Value) -> Value {
     let mut facts = json!({
         "annual_leave": "0.00", "leave_loading": "0.00", "long_service_leave": "0.00",
         "leave_accrual_start": "2000-01-01", "termination_reason": "normal",
-        "foreign_resident": false, "working_holiday_maker": false,
+        "working_holiday_maker": false,
         "earnings": "1155.00", "pay_period": "weekly", "scale": 2,
         "year": "2026-27", "scope_confirmed": true,
     });
@@ -57,7 +57,12 @@ fn amounts<'a, const N: usize>(result: &'a Value, keys: [&str; N]) -> [&'a str; 
 
 /// Schedule 1's weekly scale 2 withholding on `earnings` in 2026-27.
 fn weekly(earnings: &str) -> i64 {
-    let facts = json!({"earnings": earnings, "pay_period": "weekly", "scale": 2,
+    weekly_on(earnings, 2)
+}
+
+/// Schedule 1's weekly withholding on `earnings` on `scale` in 2026-27.
+fn weekly_on(earnings: &str, scale: i64) -> i64 {
+    let facts = json!({"earnings": earnings, "pay_period": "weekly", "scale": scale,
                        "year": "2026-27", "scope_confirmed": true});
     let result = api::evaluate("payg-withholding", &facts).unwrap();
     let withheld = amount(&result, "withholding");
@@ -429,10 +434,17 @@ fn each_refusal_has_its_code() {
             json!({"working_holiday_maker": true}),
             "leave.working_holiday_maker",
         ),
-        (json!({"foreign_resident": true}), "leave.foreign_resident"),
-        (json!({"scale": 3}), "leave.foreign_resident"),
-        (json!({"scale": 4}), "input.tax_scale_unsupported"),
-        (json!({"foreign_resident": "no"}), "input.flag_invalid"),
+        // Residency is scale 4's alone, and required there.
+        (
+            json!({"foreign_resident": true}),
+            "payg.foreign_resident_not_scale_4",
+        ),
+        (json!({"scale": 4}), "input.missing_field"),
+        (
+            json!({"scale": 4, "foreign_resident": "no"}),
+            "input.flag_invalid",
+        ),
+        (json!({"scale": 7}), "input.tax_scale_unsupported"),
         (
             json!({"leave_accrual_start": "1993-02-30"}),
             "input.date_invalid",
@@ -533,4 +545,69 @@ fn every_result_says_it_is_withholding_and_how_super_is_read() {
             .unwrap()
             .contains("leave paid after")
     );
+}
+
+/// A foreign resident who gave a TFN: Schedule 7's method when a TFN is
+/// provided does not depend on residency, and its marginal rate calculation
+/// uses 'the relevant PAYG withholding tax table', Schedule 1 scale 3. Norman's
+/// leave on that scale: $2,054 at 32%, then ($1,440 less $1,155 withheld) x 52.
+#[test]
+fn a_foreign_resident_with_a_tfn_uses_scale_3() {
+    let result = run(json!({
+        "long_service_leave": "22020.00",
+        "long_service_leave_before_16_august_1978": "780.00",
+        "long_service_leave_16_august_1978_to_17_august_1993": "6420.00",
+        "leave_accrual_start": "1977-01-01", "scale": 3,
+    }));
+    let marginal = (weekly_on("1440.00", 3) - weekly_on("1155.00", 3)) * 52;
+    assert_eq!(
+        amounts(
+            &result,
+            [
+                "flat_rate_withholding",
+                "marginal_withholding",
+                "withholding"
+            ]
+        ),
+        [
+            "2054.00".to_string(),
+            format!("{marginal}.00"),
+            format!("{}.00", 2054 + marginal)
+        ]
+    );
+}
+
+/// Without a TFN, Schedule 7 withholds 47% from the payment, 45% for a foreign
+/// resident, and its rounding ignores the cents of the result: $1,002 is
+/// $470.94, so $470, not the $471 rounding would give; $1,002.99 is $471.4053,
+/// so $471, where ignoring the payment's cents too would give $470. The whole
+/// payment counts, the 95% of pre-16 August 1978 leave that is not assessable
+/// included, and no $300 limit applies; the shares and labels do not change.
+#[test]
+fn without_a_tfn_47_or_45_percent_of_the_payment_is_withheld() {
+    for (leave, foreign, withheld) in [
+        ("1002.00", false, "470.00"),
+        ("1002.99", false, "471.00"),
+        ("1002.99", true, "451.00"),
+    ] {
+        let result = run(json!({
+            "long_service_leave": leave,
+            "long_service_leave_before_16_august_1978": "900.00",
+            "long_service_leave_16_august_1978_to_17_august_1993": "0.00",
+            "leave_accrual_start": "1976-03-01", "scale": 4, "foreign_resident": foreign,
+        }));
+        assert_eq!(
+            amount(&result, "withholding"),
+            withheld,
+            "{leave} {foreign}"
+        );
+        assert_eq!(
+            amounts(
+                &result,
+                ["long_service_leave_pre_1978_assessable", "lump_sum_b"]
+            ),
+            ["45.00", "900.00"]
+        );
+        assert!(result["amounts"].get("flat_rate_withholding").is_none());
+    }
 }
