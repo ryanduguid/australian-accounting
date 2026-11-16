@@ -3045,7 +3045,7 @@ pub fn division_293(
 
 /// A finite Decimal of at most 2dp and magnitude 1e12 that may be negative:
 /// total superannuation earnings can be (Division 296 regulations, reg 296-65.02 note).
-fn signed_money(value: &Arg) -> Result<Decimal> {
+pub(crate) fn signed_money(value: &Arg) -> Result<Decimal> {
     let bad = || {
         refuse(
             "input.signed_amount_invalid",

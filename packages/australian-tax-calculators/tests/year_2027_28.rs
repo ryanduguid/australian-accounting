@@ -442,6 +442,14 @@ fn net_labour_income_is_signed_and_a_given_one_is_taken() {
     let out = estimate(given);
     assert_eq!(out["amounts"]["net_labour_income"], "20000.00");
     assert_eq!(out["amounts"]["working_australians_tax_offset"], "250.00");
+    // A given labour loss is reported as it is, with no offset.
+    let loss = json!({"taxable_income": "49000", "net_labour_income": "-1000"});
+    let a = &estimate(loss)["amounts"];
+    assert_eq!(a["net_labour_income"], "-1000.00");
+    assert_eq!(a["working_australians_tax_offset"], "0.00");
+    let cents = resident(json!({"taxable_income": "49000", "net_labour_income": "-1000.50"}));
+    let r = api::evaluate_coded("personal-tax-estimate", &cents).unwrap_err();
+    assert_eq!(r.code, "input.amount_not_whole_dollars");
 }
 
 /// A regular pay cannot stand for 2027-28's withholding: the ATO had not

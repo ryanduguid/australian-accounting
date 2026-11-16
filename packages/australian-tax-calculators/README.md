@@ -1102,9 +1102,8 @@ with `assessable_labour_income` it is worked out as that income less
 `other_assessable_income` and `other_deductions` to hold no labour amounts or
 labour deductions, such as business or personal services income, or the union
 fees and income protection premiums s 25-130(3) leaves out of work-related
-deductions: give `net_labour_income` where they do. Worked out, it can be
-negative; given, it is at least 0, so give 0 for a labour loss, which also
-gives no offset. The amounts add
+deductions: give `net_labour_income` where they do. Given or worked out, it
+can be negative, which gives no offset. The amounts add
 `net_labour_income`, `working_australians_tax_offset` and
 `working_australians_tax_offset_applied` after `basic_income_tax`.
 `net_labour_income` is refused for an earlier year or a foreign resident, who

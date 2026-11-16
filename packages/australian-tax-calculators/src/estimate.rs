@@ -587,7 +587,7 @@ fn working_australians_offset(
     income: Option<&[Decimal; 4]>,
 ) -> Result<Option<(Decimal, Decimal, &'static str)>, Refusal> {
     let applies = !foreign && v["year"].as_str().is_some_and(|year| year >= WATO_FROM);
-    let given = amount_input(v, "net_labour_income", false)?;
+    let given = signed_whole_dollars(v, "net_labour_income")?;
     if !applies {
         return match given {
             Some(_) => Err(Refusal::new(
@@ -631,6 +631,18 @@ fn working_australians_offset(
     .map_err(signal)?;
     let offset = lesser(Decimal::from_int(WATO_MAXIMUM), tax)?;
     Ok(Some((net, offset, line)))
+}
+
+/// An optional whole-dollar amount that may be negative, as net labour income
+/// can be (ITAA 1997 s 61-155(2) sets no floor).
+fn signed_whole_dollars(v: &Value, key: &str) -> Result<Option<Decimal>, Refusal> {
+    let refused = |e: engine::Error| Refusal::new(e.code(), e.to_string());
+    let Some(given) = optional_decimal(v, key)? else {
+        return Ok(None);
+    };
+    let amount = engine::signed_money(&given).map_err(refused)?;
+    engine::whole_dollars(&amount, key).map_err(refused)?;
+    Ok(Some(amount))
 }
 
 /// An optional amount input, refused as every worksheet refuses an amount,
