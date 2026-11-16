@@ -297,6 +297,9 @@ fn recent_rate(increase: (&Decimal, &str), arrears: &Decimal) -> Calc<(Decimal, 
     ))
 }
 
+/// The steps and rates once the 10% test is met.
+type OffsetWorking = (Vec<Step>, Vec<(String, String)>);
+
 /// The steps once the 10% test is met: the tax on the arrears, each recent
 /// accrual year's notional tax, the distant accrual years', their total and
 /// the offset.
@@ -305,7 +308,7 @@ fn offset_steps(
     receipt: &str,
     years: &[AccrualYear],
     values: &mut Vec<(&'static str, Decimal)>,
-) -> Result<(Vec<Step>, Vec<(String, String)>)> {
+) -> Result<OffsetWorking> {
     let total = values
         .iter()
         .find(|(name, _)| *name == "total_arrears_amount")

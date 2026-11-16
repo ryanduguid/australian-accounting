@@ -301,13 +301,17 @@ fn the_offset_never_exceeds_the_tax_on_the_arrears() {
     }
 }
 
+/// A year, the tax at the start of each band above the first and each band's
+/// rate.
+type PublishedYear = (&'static str, [(i64, i64); 3], [&'static str; 4]);
+
 /// The ATO's "Tax rates – Australian resident" (last updated 13 August 2026),
 /// read at 17:23 on 16 November 2026: for each earlier year, the tax at the
 /// start of each band above the first, and each band's rate; 2014-15 to
 /// 2016-17 add the 2% levy above $180,000, which the ATO's tables leave out.
 #[test]
 fn the_earlier_years_rates_are_the_atos() {
-    let published: [(&str, [(i64, i64); 3], [&str; 4]); 12] = [
+    let published: [PublishedYear; 12] = [
         (
             "2012-13",
             [(37000, 3572), (80000, 17547), (180000, 54547)],
