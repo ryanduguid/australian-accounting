@@ -27,12 +27,12 @@ const MONEY: &[&str] = &[
 ];
 
 /// The linked engine's scope words for periods and inputs the input schema refuses
-/// (b4a70733, d8f34dc2, 149f98ad, 0be34fb0, 17188fa6 and 87a3f76d), each with the published
-/// 0.2.0 words, or for study loan withholding the words before 0be34fb0 and for the Medicare
-/// levy the single person without SAPTO, offsets or exemption its facts state, for what it
-/// admits. Remove an
-/// entry when the schema opens them.
-const NARROWED_SCOPE: [(&str, &str, &str); 6] = [
+/// (b4a70733, d8f34dc2, 149f98ad, 0be34fb0, 17188fa6, 87a3f76d and the contribution caps
+/// carry-forward by year), each with the published 0.2.0 words, or for study loan withholding
+/// the words before 0be34fb0, for the Medicare levy the single person without SAPTO, offsets
+/// or exemption its facts state, and for contribution caps the supplied unused total alone,
+/// for what it admits. Remove an entry when the schema opens them.
+const NARROWED_SCOPE: [(&str, &str, &str); 7] = [
     (
         "medicare_levy",
         "Australian resident individual for the full income year. The operator establishes the days in the year, if any, for which they qualified for a full or a half Medicare levy exemption: a full exemption as a prescribed person under ITAA 1936 s 251U(1) in the medical category (a blind pensioner, or entitled to full free medical treatment under Defence Force or Veterans' Affairs arrangements) or as one not entitled to Medicare benefits, with no dependant outside the exemption categories; a half exemption in the medical category with such a dependant (s 251U(3)); a foreign resident is outside this worksheet. The operator also establishes whether they are entitled to the seniors and pensioners tax offset (SAPTO) for the year at more than nil; whether they had a spouse on the last day of the year as s 3(3) reads it (a spouse living separately and apart does not count, but one living apart only because of illness, as in the ATO's Ashton example, does; so does one who died in the year), and if so the spouse's whole-dollar taxable income and SAPTO entitlement; without a spouse, whether they are entitled to the invalid and invalid carer tax offset for their child (ITAA 1997 Subdivision 61-A) or the sole parent notional tax offset (Subdivision 961-B); and the number of dependent children and students (s 961-5(1)(c)) for whom they or their spouse are entitled to the Subdivision 961-A notional tax offset, counting, without a spouse, only those for whom family tax benefit was payable to them. A spouse must also be an Australian resident for the full year, not entitled to any exemption and not a person to whom s 9A applies. Omitting those inputs states a person without SAPTO, spouse or those offsets. The operator must also establish whether",
@@ -52,6 +52,11 @@ const NARROWED_SCOPE: [(&str, &str, &str); 6] = [
         "payg_withholding",
         "One regular weekly, fortnightly, monthly or quarterly payment of salary or wages made from 1 July 2024, in the income year given, on the scale the operator established from the payee's declarations: 1, 2, 3, 5 or 6 for a payee who gave a TFN, or 4 for one who did not, as a resident or foreign resident. The year selects the Schedule 1 coefficients and rules for payments made in it. Earnings include allowances subject to withholding. When given, the yearly tax offsets claimed on a Withholding declaration reduce scales 2, 5 and 6, the Medicare levy adjustment claimed on a Medicare levy variation declaration for a spouse or dependent children reduces scales 2 and 6, and the additional amount a payee asks for in a year of 53 weekly or 27 fortnightly pays is added. Reductions that exceed the amount withheld before them are refused. Excludes a Medicare levy variation that increases withholding, study and training support loans, bi-monthly, daily and casual pays, back payments, bonuses, termination and other schedules.",
         "One regular weekly, fortnightly or monthly payment of salary or wages made from 1 July 2026 to a payee who gave a TFN, on scale 1, 2, 3, 5 or 6 as the operator established from the payee's declarations. Earnings include allowances subject to withholding. Excludes scale 4, tax offsets, Medicare levy adjustments, study and training support loans, extra amounts for 53 or 27 pays, quarterly and bi-monthly pays, back payments, bonuses, termination and other schedules.",
+    ),
+    (
+        "contribution_caps",
+        "Unused concessional cap is either the established total of unexpired amounts from the previous 5 years or, given each earlier year's established concessional contributions from at least the 5th year before (and the balance at the 30 June before any year whose contributions exceed its cap), worked out year by year from 2018-19 under ITAA 1997 s 291-20(3) to (7): each year's unused cap, the amounts applied earliest year first, the amount carried into the year, and, after the year's contributions and any proposed one, what is left of each year's amount and the year at whose end it lapses. Cap arithmetic only: it does not say what to contribute. The carry-forward by year excludes defined benefit interests and notional taxed contributions.",
+        "Unused concessional cap is the established total of unexpired amounts from the previous 5 years. Cap arithmetic only: it does not say what to contribute.",
     ),
     (
         "fbt",
@@ -354,6 +359,27 @@ mod tests {
         let scope = catalogue["medicare_levy"]["scope"].as_str().unwrap();
         for wide in ["SAPTO", "spouse's", "family reduction"] {
             assert!(!scope.contains(wide), "{wide}: {scope}");
+        }
+    }
+
+    /// The published contribution caps facts take only the unused total, so the served
+    /// scope does not describe the carry-forward by year their schema refuses.
+    #[test]
+    fn the_contribution_caps_scope_describes_only_the_supplied_unused_total() {
+        let catalogue = super::advertised_worksheets().unwrap();
+        let entry = &catalogue["contribution_caps"];
+        let mut facts = entry["example"]["facts"].clone();
+        let first = entry["supported_periods"][0]["arguments"]
+            .as_object()
+            .unwrap();
+        facts.as_object_mut().unwrap().extend(first.clone());
+        let result = super::calculate(&json!({ "facts": facts })).unwrap();
+        for scope in [&entry["scope"], &result["scope"]] {
+            let scope = scope.as_str().unwrap();
+            assert!(scope.contains("Unused concessional cap is the established total"));
+            for wide in ["year by year", "proposed", "defined benefit"] {
+                assert!(!scope.contains(wide), "{wide}: {scope}");
+            }
         }
     }
 
