@@ -148,6 +148,7 @@ fn adapt(command: &str, input: &Value, mut expected: Value) -> Value {
     adapt_fbt(command, input, &mut expected);
     adapt_medicare(command, input, &mut expected);
     adapt_depreciation(command, &mut expected);
+    adapt_contribution_caps(command, &mut expected);
     let study = match command {
         "study-loan-repayment" => expected.pointer_mut("/ok"),
         "worksheet-catalogue" => expected.pointer_mut("/ok/study_loan_repayment"),
@@ -464,6 +465,40 @@ fn adapt_depreciation(command: &str, expected: &mut Value) {
         );
         record["optional_inputs"] = json!({"opening_adjustable_value":
             "AUD, for a year after the start time only: cost less the decline in value of earlier years, not the deductions; omit in the start year"});
+    }
+}
+
+/// `contribution-caps` can also work out the unused concessional cap from each
+/// earlier year's contributions (CHANGELOG.md): its scope says so, it cites the
+/// ATO's concessional contributions cap page and s 291-20, and the catalogue
+/// lists the new optional inputs. A supplied total gives the same amounts.
+fn adapt_contribution_caps(command: &str, expected: &mut Value) {
+    let old_scope = "unused concessional cap is the established total of unexpired amounts from the previous 5 years. Excludes";
+    let record = match command {
+        "contribution-caps" => expected.pointer_mut("/ok"),
+        "worksheet-catalogue" => expected.pointer_mut("/ok/contribution_caps"),
+        _ => None,
+    };
+    let Some(record) = record else {
+        return;
+    };
+    let current = &worksheet_catalogue()["contribution_caps"];
+    let scope = record["scope"].as_str().unwrap();
+    assert!(
+        scope.contains(old_scope),
+        "frozen contribution caps scope changed"
+    );
+    record["scope"] = current["scope"].clone();
+    record["sources"]
+        .as_array_mut()
+        .unwrap()
+        .extend(current["sources"].as_array().unwrap()[1..].iter().cloned());
+    record["source_checked"] = json!("2026-11-16");
+    if command == "worksheet-catalogue" {
+        record["source_passage"] = current["source_passage"].clone();
+        record["required_inputs"]["unused_concessional_cap"] =
+            current["required_inputs"]["unused_concessional_cap"].clone();
+        record["optional_inputs"] = current["optional_inputs"].clone();
     }
 }
 

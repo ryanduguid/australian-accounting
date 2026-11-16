@@ -10,6 +10,27 @@ intentionally changed.
 
 ### Added
 
+- `contribution-caps` can work out the unused concessional cap from each
+  earlier year's contributions instead of taking it as a total: given
+  `earlier_concessional_contributions` from at least the 5th year before,
+  with `defined_benefit_interest` and an optional
+  `proposed_concessional_contribution`, it gives each year's cap and unused
+  cap from 2018-19, the unused cap earlier years applied, earliest first, the
+  total carried into the year, and, after the proposal, the amount applied from
+  each year, what is left of each, what lapses at the end of the year and
+  `unused_cap_expiry`, each with its step in `derive` (ITAA 1997 s 291-20(1)
+  to (7), compilation 268). It refuses a defined benefit interest, years
+  before 2018-19, a total across years, a gap, and a year over its cap whose
+  increase cannot be worked out from what was given; it refuses a field it
+  does not take, as `division-296` does. New refusal codes:
+  `contribution_caps.defined_benefit_interest`,
+  `contribution_caps.earlier_balance_missing`,
+  `contribution_caps.earlier_years_invalid`,
+  `contribution_caps.earlier_years_short` and
+  `contribution_caps.year_before_carry_forward`. `tests/contribution_caps.rs`
+  holds it to the ATO's Sam example and its table 2. A supplied
+  `unused_concessional_cap` gives the same result as before.
+
 - `derive` also covers `gst`, `depreciation` and `hire-purchase-schedule`.
   Their steps cite the GST Act ss 9-70 and 9-75 (compilation 96) and ITAA 1997
   ss 40-25, 40-70, 40-72, 40-75, 40-85, 240-25 and 240-60 (compilation 268).
@@ -410,6 +431,13 @@ intentionally changed.
 
 ### Documented divergences
 
+- `contribution-caps` results and its catalogue entry give the new scope,
+  which describes the carry-forward by year, cite the ATO's concessional
+  contributions cap page and ITAA 1997 s 291-20 on the ATO's legal database,
+  and are checked on 16 November 2026; the catalogue lists the 3 new optional
+  inputs and says `unused_concessional_cap` is left out with them. No amount
+  or rate changes. `tests/parity.rs` applies this to the frozen
+  `contribution-caps` and `worksheet-catalogue` results.
 - `depreciation`'s closing adjustable value is the opening value less the
   decline in value as shown in cents. Python 0.2.0 rounded the 2 separately, so
   a decline ending in exactly half a cent showed a cent too much in both: $10,001

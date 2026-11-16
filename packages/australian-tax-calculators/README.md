@@ -127,7 +127,7 @@ lists the commands.
 | `working-holiday-maker-withholding` | `payment`, `payments_before`, `employer_registered`, `tfn_quoted`, `pay_period`, `year`, `scope_confirmed` |
 | `seniors-pensioners-withholding` | `earnings`, `pay_period`, `status`, `medicare_levy_exemption`, `year`, `scope_confirmed`; optional `study_loan`; `pay_date`, with `study_loan` only and required with it for 2025-26 |
 | `study-loan-repayment` | `repayment_income`, `year`, `scope_confirmed` |
-| `contribution-caps` | `total_super_balance`, `concessional_contributions`, `unused_concessional_cap`, `non_concessional_contributions`, `under_75_in_year`, `year`, `scope_confirmed` |
+| `contribution-caps` | `total_super_balance`, `concessional_contributions`, `non_concessional_contributions`, `under_75_in_year`, `year`, `scope_confirmed`, and either `unused_concessional_cap` or `earlier_concessional_contributions` with `defined_benefit_interest`; with the latter, optional `proposed_concessional_contribution` |
 | `pension-minimum` | `account_balance`, `age`, `days`, `year`, `scope_confirmed` |
 | `worksheet-catalogue` | none: send `{}` |
 | `periods` | `kind`, the worksheet name, such as `"payg_withholding"` |
@@ -368,6 +368,31 @@ needs the person to be under 75 at any time in the year. The result gives room a
 excess under each cap, the multiple of the annual cap available and the
 bring-forward period the contributions started. A period started in an earlier
 year is outside the worksheet.
+
+Instead of the unused total, `contribution_caps` can work it out from
+`earlier_concessional_contributions`: one `{"year": "2021-22",
+"concessional_contributions": "13000.00"}` entry for each year from the 5th
+before the year to the one before it, and any earlier years back to 2018-19,
+without a gap. A year whose contributions exceed its cap also takes
+`total_super_balance`, at the 30 June before it. The result gives each year's
+cap (`concessional_cap_2021_22`) and unused cap (`unused_cap_2021_22`, ITAA 1997
+s 291-20(6) and (7)), any unused cap an earlier year's increase applied,
+earliest year first (`applied_2019_20_in_2021_22`, s 291-20(3) to (5)), what
+each of the previous 5 years carries into the year, and their total,
+`unused_concessional_cap`, from which the amounts above follow. After the
+year's contributions and an optional `proposed_concessional_contribution`, it
+gives the amount applied from each year, what is left of each
+(`remaining_2021_22`), what lapses at the end of the year
+(`unused_cap_expiring`) and the year's own unused cap; `unused_cap_expiry`
+lists each with the year at whose end it lapses. At or above $500,000 just
+before the year nothing is applied (s 291-20(3)(b)): the general cap is
+reported and the amounts still age. `defined_benefit_interest` is required with
+the years, and true is refused: Subdivision 291-C and s 291-370 change what
+counts for a defined benefit interest. Years before 2018-19, a total across
+years, a gap, and a year over its cap without its balance or without the years
+its increase drew on are refused, each naming what to give. The worksheet
+reports cap arithmetic only; it does not say what anyone should contribute.
+The tests hold it to the ATO's Sam example and its carry-forward table.
 
 `pension_minimum` applies SISR Schedule 7 to one account-based pension: the age
 factor on the balance at 1 July, pro-rated by days in the first year, nil when the

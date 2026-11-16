@@ -256,7 +256,7 @@ fn taxable_steps(
     let mut reductions: Vec<(&str, Decimal)> = steps
         .iter()
         .filter(|s| s.id == "reduction_applied")
-        .map(|s| (s.id, s.value.clone()))
+        .map(|s| (s.static_id(), s.value.clone()))
         .collect();
     if let Some(available) = available {
         let (formula, operands, net) = less(&value, &reductions)?;

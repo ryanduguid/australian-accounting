@@ -729,6 +729,47 @@ pub(crate) fn takes(command: &str, key: &str) -> bool {
         || named.iter().flatten().any(|(n, _)| *n == key)
 }
 
+/// The `contribution-caps` inputs that work out the unused concessional cap
+/// from each earlier year's contributions instead of taking it as a total.
+const CARRY_FORWARD_INPUTS: [&str; 3] = [
+    "earlier_concessional_contributions",
+    "proposed_concessional_contribution",
+    "defined_benefit_interest",
+];
+
+/// `contribution-caps` given a carry-forward input. It has no Python original
+/// and a misspelt proposed contribution would be silently left out, so a
+/// field it does not take is refused, as is the unused total beside the years.
+fn contribution_caps_by_year(v: &Value) -> Result<Value> {
+    let command = "contribution-caps";
+    let mut keys = v.as_object().into_iter().flat_map(|o| o.keys());
+    if let Some(key) = keys.find(|k| *k == "unused_concessional_cap" || !takes(command, k)) {
+        return refusal(
+            "input.field_unknown",
+            format!("{key} is not an input of {command} when it works out the unused cap by year"),
+        );
+    }
+    let (_, params) = COMMAND_ARGS
+        .iter()
+        .find(|(c, _)| *c == command)
+        .expect("listed command");
+    let a: Vec<Arg> = params
+        .iter()
+        .filter(|(key, _)| *key != "unused_concessional_cap")
+        .map(|(key, kind)| argument(v, key, *kind))
+        .collect::<Result<_>>()?;
+    let earlier = argument(v, "earlier_concessional_contributions", Json)?;
+    let flag = argument(v, "defined_benefit_interest", Raw)?;
+    let proposed = optional(v, "proposed_concessional_contribution", Dec)?;
+    let carry = engine::CarryForward {
+        earlier_contributions: &earlier,
+        proposed_contribution: proposed.as_ref(),
+        defined_benefit_interest: &flag,
+    };
+    engine::contribution_caps_by_year(&a[0], &a[1], &a[2], &a[3], carry, &a[4], &a[5])
+        .or_else(|e| refusal(e.code(), e.to_string()))
+}
+
 /// Run one JSON stdin command: the result value, or the refusal message.
 pub fn evaluate(command: &str, v: &Value) -> std::result::Result<Value, String> {
     evaluate_coded(command, v).map_err(|refusal| refusal.message)
@@ -744,6 +785,9 @@ pub fn evaluate_coded(command: &str, v: &Value) -> Result<Value> {
         "worksheet-catalogue" => return Ok(engine::worksheet_catalogue()),
         "derive" => return derive(v),
         "personal-tax-estimate" => return crate::estimate::compose(v),
+        "contribution-caps" if CARRY_FORWARD_INPUTS.iter().any(|k| v.get(k).is_some()) => {
+            return contribution_caps_by_year(v);
+        }
         "periods" => {
             let kind = match v.get("kind") {
                 None => return refusal("input.missing_field", "kind is required"),

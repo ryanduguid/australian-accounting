@@ -55,7 +55,7 @@ example evidence; it does not claim a fresh review of every supported period.
 | Hire purchase schedule | Not a Library document: ITAA 1997 ss 240-17, 240-55 and 240-60 on the ATO's legal database and in compilation 268 (1 October 2026) | 15 November 2026 (read) | One agreement's monthly notional interest for the hirer, starting in 2024-25 to 2026-27, from established payments; apportionment to income years under s 240-60(2) excluded |
 | Depreciation | `tax-examples-depreciation` (tax-examples), ¶6-000 and ¶6-020 | 30 June 2025 | First-year formulas and taxable-use apportionment in 2024–25 examples |
 | Quarterly SG | `superannuation-instant-reference-rates-thresholds-and-checklists` (superannuation), ¶18-600 and ¶18-620 | 30 June 2026 | General 2025–26 rate and quarterly maximum contribution base |
-| Contribution caps | `tax-examples-individuals` (tax-examples), ¶7-278 | 30 June 2025 | First-year bring-forward for 2024–25 only; the later-year nil cap is outside the worksheet |
+| Contribution caps | `tax-examples-individuals` (tax-examples), ¶7-278, with ITAA 1997 s 291-20 (compilation 268, 1 October 2026) and the ATO's contributions caps and concessional contributions cap pages for the carry-forward by year | 30 June 2025; 11 September and 2 July 2026 (ATO pages) | First-year bring-forward for 2024–25 only; the later-year nil cap is outside the worksheet; unused concessional cap from 2018-19 worked out from each year's established contributions |
 | Pension minimum | `superannuation-instant-reference-rates-thresholds-and-checklists` (superannuation), ¶18-500 | 30 June 2026 | Schedule 7 age factors; the pro-rated case is adapted arithmetic |
 | Medicare levy | Not a Library document: Medicare Levy Act 1986 compilations 52 and 53, ITAA 1936 ss 251T and 251U, the ATO's single and family thresholds, its Ashton example and its Priya exemption example | 30 June 2026 (threshold pages); 22 June 2026 (exemption pages) | The 2% rate, the s 7 low-income reduction at the single or SAPTO thresholds, the s 8 family reduction and the s 9 exemption days for 2024-25 to 2026-27, on established SAPTO, spouse, dependant and exemption facts |
 | Medicare levy surcharge | Not a Library document: Medicare Levy Act 1986 ss 8B and 8D (compilations 52 and 53), the Medicare Levy Surcharge - Fringe Benefits Act 1999 (compilations 41 and 42), the ATO's thresholds page with its Tom example and its M2 2026 instructions with the Josh, Jacinta and Jill and Kevin examples | 22 June 2026 (thresholds page); 30 May 2026 (M2) | The tier, rate and share of the year for 2024-25 to 2026-27, for a person single without dependants or married all year, on established income for surcharge purposes, days without cover and spouse's income |
@@ -1642,6 +1642,36 @@ $2.1 million) and the $500,000 carry-forward limit. The frozen replay in
 for each year at every band boundary and a cent either side. The age condition follows the ATO's "Age
 eligibility" section and s 292-85(3): under 75 at any time in the year. The
 non-concessional cap page's bullet that refers to age on 1 July is not used.
+
+The carry-forward by year was added on 16 November 2026. ITAA 1997 s 291-20 was
+read that day in compilation 268 (1 October 2026, the current one), through the
+Federal Register API at 17:22 AEDT and on the ATO's legal database at 17:29.
+Subsection (6) makes a year's unused cap the shortfall of its concessional
+contributions below its cap, and (7) gives none before 2018-19. Under (3) and
+(4) a year's cap is increased, by no more than the excess over it, from the
+previously unapplied unused cap of the previous 5 years when the total
+superannuation balance just before the year is below $500,000, and (5) applies
+those amounts from the earliest year to the most recent. An amount not applied
+within those 5 years is no longer among any later year's previous 5, so it
+lapses at the end of the 5th year after its own. The caps for 2018-19 to
+2023-24 come from table 1.1 of the ATO's 'Contributions caps' page (last
+updated 11 September 2026, read at 17:23 AEDT): $25,000 to 2020-21 and $27,500
+from 2021-22. The legal database's editorial note to s 291-20 lists $32,000 for
+2026-27; the ATO's table gives $32,500, which the worksheet uses.
+
+`tests/contribution_caps.rs` holds these cases, and `tests/derivation.rs`
+checks every step of the first and third:
+
+| Case | Source | Worksheet | Published |
+| --- | --- | --- | --- |
+| Sam: $11,000 to $15,000 a year from 2019-20 to 2023-24, $97,500 in 2024-25 below $500,000 | ATO 'Concessional contributions cap' (last updated 2 July 2026, read 16 November 2026 at 17:24 AEDT), table 1 | unused $14,000, $13,000, $14,500, $13,500 and $12,500; cap available $97,500; all $67,500 applied; no excess | the same, cumulative $67,500; 'an individual concessional cap of $97,500'; no excess |
+| Table 2: $3,000, $3,000, nil and nil from 2018-19 to 2021-22, then nil to 2024-25 | ATO 'Contributions caps', table 2 and its expiry example | unused $22,000, $22,000, $25,000 and $27,500; the 2018-19 amount lapsed; $22,000 of 2019-20 lapses at the end of 2024-25 | unused $22,000, $22,000, $25,000 and $27,500; 'a 2019-20 unused cap amount that isn't used by the end of 2024-25 ... will expire' |
+| 2022-23 over its $27,500 cap by $22,500 below $500,000 | Hand-worked under s 291-20(4) and (5) | $20,000 of 2018-19 applied, then $2,500 of 2020-21; 2025-26 then applies 2020-21's last $7,500 before 2023-24's amount | (none published) |
+
+Sam's table gives no balance, only that it was below $500,000; the test uses
+$450,000. Table 2's later rows (the cap available each year) need each year's
+balance and are years this worksheet does not run as the current year, so the
+test checks its unused amounts and the 5-year expiry.
 
 ## Pension minimum
 

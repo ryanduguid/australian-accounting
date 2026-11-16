@@ -393,6 +393,20 @@ pub const CONTRIBUTION_CAPS: &[(&str, (&str, &str))] = &[
     ("2026-27", ("32500", "2100000")),
 ];
 
+/// The general concessional contributions cap (ITAA 1997 s 291-20(2)) for the
+/// earlier income years whose unused cap `contribution_caps` carries forward,
+/// from 2018-19 (s 291-20(7)): Table 1.1 of the ATO's 'Contributions caps'
+/// page (last updated 11 September 2026), read on 16 November 2026 at 17:23
+/// AEDT. Later years' caps are in [`CONTRIBUTION_CAPS`].
+pub const EARLIER_CONCESSIONAL_CAPS: &[(&str, &str)] = &[
+    ("2018-19", "25000"),
+    ("2019-20", "25000"),
+    ("2020-21", "25000"),
+    ("2021-22", "27500"),
+    ("2022-23", "27500"),
+    ("2023-24", "27500"),
+];
+
 /// Study loan repayment thresholds: minimum, step, printed base, flat-from.
 pub const STUDY_LOAN_REPAYMENT_THRESHOLDS: &[(&str, [(&str, &str); 4])] = &[
     (
@@ -1006,8 +1020,8 @@ pub fn source_review(kind: &str) -> (&'static str, &'static str) {
             "Schedule 1 (NAT 1004) for payments from 1 July 2026, and for payments from 1 July 2024 to 30 June 2026: weekly coefficients and scale 4, using a formula (rounding and the 53 and 27 pay tables), working out the weekly earnings (quarterly pays and tax offsets), Medicare levy adjustment, examples of calculating the withholding amounts, sample data",
         ),
         "contribution_caps" => (
-            "2026-09-24",
-            "Contributions caps, tables 1.1 and 4 and unused concessional cap carry forward; Non-concessional contributions cap, bring-forward arrangement",
+            "2026-11-16",
+            "Contributions caps, tables 1.1, 2 and 4 and unused concessional cap carry forward; Concessional contributions cap, carry forward unused contribution cap amounts and the Sam example; ITAA 1997 s 291-20(1) to (7), compilation 268; Non-concessional contributions cap, bring-forward arrangement",
         ),
         "pension_minimum" => (
             "2026-09-24",
@@ -1343,6 +1357,20 @@ pub fn optional_inputs(kind: &str) -> Vec<(&'static str, &'static str)> {
             (
                 "medicare_levy_exemption_half_days",
                 "integer from 0 to the days in the year, the days the person qualified for a half exemption (label M1 W): in the medical category, but with a dependant outside the exemption categories (s 251U(3)); a day in both counts once, as a full day; omit for none",
+            ),
+        ],
+        "contribution_caps" => vec![
+            (
+                "earlier_concessional_contributions",
+                "list instead of unused_concessional_cap: one object for each earlier income year, each year from the 5th before the year to the one before it and any earlier years back to 2018-19, without a gap: year (YYYY-YY), concessional_contributions (AUD) and, where they exceed that year's cap, total_super_balance (AUD, at the 30 June before that year)",
+            ),
+            (
+                "defined_benefit_interest",
+                "boolean, required with earlier_concessional_contributions: whether the person had a defined benefit interest in any year given; true is refused",
+            ),
+            (
+                "proposed_concessional_contribution",
+                "AUD, with earlier_concessional_contributions only: a further concessional contribution for the year; the unused cap it applies and what is left are worked out after it; omit for none",
             ),
         ],
         "medicare_levy_surcharge" => vec![
@@ -1906,7 +1934,7 @@ pub fn input_units(kind: &str) -> Vec<(&'static str, &'static str)> {
             ("concessional_contributions", "AUD"),
             (
                 "unused_concessional_cap",
-                "AUD, unexpired unused amounts from the previous 5 years",
+                "AUD, unexpired unused amounts from the previous 5 years; omit when giving earlier_concessional_contributions instead",
             ),
             ("non_concessional_contributions", "AUD"),
             (
