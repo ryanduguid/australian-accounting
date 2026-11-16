@@ -230,9 +230,18 @@ fn item_23_matches_the_fbt_return_2026_examples_6_to_12() {
     let result = compose(examples_6_to_12()).unwrap();
     let labels = &result["return_labels"];
     let expected = [
-        ("23A", row(Some(1), "4804.38", Some("0.00"), None, "4804.38")),
-        ("23B", row(Some(1), "3000.00", Some("0.00"), None, "3000.00")),
-        ("23C", row(Some(1), "1724.00", None, Some("0.00"), "1724.00")),
+        (
+            "23A",
+            row(Some(1), "4804.38", Some("0.00"), None, "4804.38"),
+        ),
+        (
+            "23B",
+            row(Some(1), "3000.00", Some("0.00"), None, "3000.00"),
+        ),
+        (
+            "23C",
+            row(Some(1), "1724.00", None, Some("0.00"), "1724.00"),
+        ),
         ("23D", row(None, "500.00", None, None, "500.00")),
         (
             "23E",

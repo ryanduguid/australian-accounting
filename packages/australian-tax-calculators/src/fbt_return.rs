@@ -54,7 +54,12 @@ const NEITHER: Columns = Columns {
 /// The benefit worksheets the return composes, each with its item 23 label.
 const ROWS: [(&str, &str, Count, Columns); 13] = [
     ("fbt-car-statutory", "23A", Count::Benefits, CONTRIBUTION),
-    ("fbt-car-operating-cost", "23B", Count::Benefits, CONTRIBUTION),
+    (
+        "fbt-car-operating-cost",
+        "23B",
+        Count::Benefits,
+        CONTRIBUTION,
+    ),
     ("fbt-loan", "23C", Count::Benefits, REDUCTIONS),
     ("fbt-debt-waiver", "23D", Count::Blank, NEITHER),
     ("fbt-expense-payment", "23E", Count::Blank, BOTH),
@@ -525,11 +530,9 @@ fn sum(values: &[Decimal]) -> Result<Decimal, Refusal> {
 fn item_23(valued: &[Valued]) -> Result<Map<String, Value>, Refusal> {
     let mut rows: BTreeMap<&str, (Count, Columns, Row)> = BTreeMap::new();
     for b in valued.iter().filter(|b| !b.exempt) {
-        let (.., row) = rows.entry(b.given.label).or_insert((
-            b.given.count,
-            b.given.columns,
-            Row::default(),
-        ));
+        let (.., row) =
+            rows.entry(b.given.label)
+                .or_insert((b.given.count, b.given.columns, Row::default()));
         row.benefits += 1;
         row.employees.insert(b.given.employee.to_string());
         row.gross.push(b.gross.clone());
