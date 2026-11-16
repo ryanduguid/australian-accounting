@@ -106,7 +106,9 @@ fn example_1_1_splits_the_function_by_class() {
     // The Act's threshold, stated as the Act states it; the ruling's $100 is
     // labelled superseded.
     let warnings = result["warnings"].to_string();
-    assert!(warnings.contains("s 58P(1)(e) requires a minor benefit's notional taxable value to be less than $300"));
+    assert!(warnings.contains(
+        "s 58P(1)(e) requires a minor benefit's notional taxable value to be less than $300"
+    ));
     assert!(warnings.contains("$100 threshold in TR 97/17 para 27 is superseded"));
     assert!(result.get("fbt_meal_entertainment_input").is_none());
 }
