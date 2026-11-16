@@ -1005,8 +1005,9 @@ superannuation lump sums, arrears the caller has not classified as eligible and
 applying the offset against tax are outside it. The Medicare levy relief
 (Medicare Levy Act 1986 s 9A) and the surcharge offset (ITAA 1997
 Subdivision 61-L) are separate questions its result names. Like `division-296`
-it refuses a field it does not take. The tests hold it to the ATO's 4 examples
-and its prior-year rates; see
+it refuses a field it does not take. The tests hold it to the ATO's Sudeep and
+Anthony results, work its Heather and Yan facts by hand with assumed taxable
+incomes and check its prior-year rates; see
 [calculation evidence](docs/calculation-evidence.md#lump-sum-arrears-tax-offset).
 
 ## Personal tax estimate

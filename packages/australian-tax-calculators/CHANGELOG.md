@@ -301,8 +301,9 @@ intentionally changed.
   (ITAA 1997 Subdivision 61-L) are named as separate questions, not worked
   out. `derive` covers it. Like `division-296`, it refuses a field it does
   not take. No Python release has it. `tests/lump_sum_arrears_offset.rs`
-  holds it to the ATO's Sudeep, Anthony, Heather and Yan examples and each
-  earlier year's rates.
+  holds it to the ATO's Sudeep and Anthony results, works the Heather and Yan
+  facts by hand with assumed taxable incomes and checks each earlier year's
+  rates.
 - `depreciation` takes an optional `opening_adjustable_value` for an income
   year after the asset's start time (ITAA 1997 ss 40-70(1), 40-72 and 40-75).
   Diminishing value then applies its rate to that value and prime cost to cost,
