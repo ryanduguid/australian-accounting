@@ -1412,7 +1412,7 @@ pub fn optional_inputs(kind: &str) -> Vec<(&'static str, &'static str)> {
             ),
             (
                 "register_years_expenditure",
-                "list of AUD decimal strings, 12_week_register only and required there: the employer's total meal entertainment expenses (FBTAA s 37CB(3)) for each FBT year from register_first_year to the year before year_ended, oldest first, so empty when they are the same year; the register ceased to be valid at the end of a year whose expenses were more than 20% higher than its first valid year's (s 37CD(3))",
+                "list of AUD decimal strings, 12_week_register only and required there: the employer's total meal entertainment expenses, excluding amounts employees paid as for meal_entertainment_expenditure (FBTAA ss 37AB and 37CB(3)), for each FBT year from register_first_year to the year before year_ended, oldest first, so empty when they are the same year; the register ceased to be valid at the end of a year whose expenses were more than 20% higher than its first valid year's (s 37CD(3))",
             ),
         ],
         "fbt_car_parking" => vec![
