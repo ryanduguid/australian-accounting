@@ -799,6 +799,10 @@ pub const REFUSAL_CODES: &[(&str, &str)] = &[
         "A hire purchase agreement starts outside the income year given.",
     ),
     (
+        "input.abn_invalid",
+        "An ABN is not a string of 11 ASCII digits, optionally spaced, that pass ABN Lookup's check digit test.",
+    ),
+    (
         "input.age_invalid",
         "An age is not a whole number of years from 0 to 150.",
     ),
@@ -847,6 +851,10 @@ pub const REFUSAL_CODES: &[(&str, &str)] = &[
         "The method is neither prime_cost nor diminishing_value.",
     ),
     (
+        "input.donations_invalid",
+        "Donations are not a list of 1 to 10,000 objects.",
+    ),
+    (
         "input.effective_life_invalid",
         "An effective life is outside 0.01 to 1000 years.",
     ),
@@ -856,7 +864,7 @@ pub const REFUSAL_CODES: &[(&str, &str)] = &[
     ),
     (
         "input.field_unknown",
-        "A field the worksheet or command does not take, or does not take beside the other inputs given, was given (fbt-loan, fbt-meal-entertainment, fbt-car-parking, fbt-debt-waiver, fbt-expense-payment, fbt-property, fbt-residual, fbt-housing, fbt-lafha, fbt-board, fbt-tax-exempt-body-entertainment, division-296, depreciation, foreign-resident-tax, medicare-levy, medicare-levy-surcharge, payg-withholding, payg-gross-up, termination-payment, the Schedule 5 methods, working-holiday-maker-withholding, study-loan-withholding, seniors-pensioners-withholding, seniors-pensioners-tax-offset, hire-purchase-schedule, derive and personal-tax-estimate only).",
+        "A field the worksheet or command does not take, or does not take beside the other inputs given, was given (fbt-loan, fbt-meal-entertainment, fbt-car-parking, fbt-debt-waiver, fbt-expense-payment, fbt-property, fbt-residual, fbt-housing, fbt-lafha, fbt-board, fbt-tax-exempt-body-entertainment, division-296, depreciation, foreign-resident-tax, medicare-levy, medicare-levy-surcharge, payg-withholding, payg-gross-up, termination-payment, the Schedule 5 methods, working-holiday-maker-withholding, study-loan-withholding, seniors-pensioners-withholding, seniors-pensioners-tax-offset, hire-purchase-schedule, derive, personal-tax-estimate and dgr-check only).",
     ),
     ("input.flag_invalid", "A flag is not a JSON boolean."),
     ("input.fraction_invalid", "A fraction is outside 0 to 1."),
@@ -871,6 +879,10 @@ pub const REFUSAL_CODES: &[(&str, &str)] = &[
         "A Medicare levy exemption is not none, full or half.",
     ),
     ("input.missing_field", "A required argument is absent."),
+    (
+        "input.name_invalid",
+        "A name is not a string of 1 to 200 characters with a letter or digit.",
+    ),
     ("input.not_object", "The JSON input is not an object."),
     (
         "input.opening_value_above_cost",

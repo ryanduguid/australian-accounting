@@ -1679,3 +1679,68 @@ means the document bytes changed; it does not establish that the rule changed.
 | `Tax/Deductions.md` | `d8134b72378f43b2f7c9d4312518a3d8974d2421e859e1e8e983eabd010302cb` |
 | `Tax/Depreciation.md` | `395195f3422f9695fee4ea409e34b241384002091b9ea67a8bbd75197d1912e1` |
 | `Superannuation/Instant Reference – Rates, Thresholds and Checklists.md` | `de94931c47597286f33e0a952ff1686cbe7120bca48def74d1a44dd388922bf6` |
+
+## DGR check
+
+`dgr-check` adds no rate; its rules and data were read on 16 November 2026
+(times UTC):
+
+- ITAA 1997 as compiled on 1 October 2026 (legislation.gov.au, C2004A05138,
+  read 00:19): s 30-15, whose table item 1 and 2 special conditions for money
+  still read '$2 or more' in that compilation; s 30-15(2), no deduction for a
+  gift under a will; s 30-17, a fund, authority or institution endorsed for
+  operation; ss 30-227 to 30-229, the Register's DGR entries, with s 30-229(1)
+  note 1, that an entry or its lack does not affect deductibility.
+- Treasury Laws Amendment (Delivering an Efficient and Trusted Tax System) Act
+  2026, No. 58, 2026, as made (C2026A00058, read 00:21): Sch 1 items 1 to 6
+  repeal the '$2 or more' conditions and item 7 applies the repeal to gifts and
+  contributions made on or after 1 July 2024.
+- The ATO's "Gifts and donations" (last updated 6 July 2026, read 00:20): a
+  gift is a voluntary transfer of money or property with no material benefit
+  or advantage in return, a deduction needs a record such as a receipt, and
+  DGR status is checked at ABN Lookup. s 30-228 sets what a DGR's receipt
+  states.
+- ABN Lookup's "ABN format" (read 00:27), whose worked example ABN
+  51 824 753 556 the tests use, and its disclaimer (read 00:27).
+- The ABN Bulk Extract on data.gov.au (read 00:18): weekly, current details
+  only, Creative Commons Attribution 3.0 Australia, with its readme and XML
+  schema. The `DGR` element carries a status date and, for an endorsement only
+  for the operation of a fund, authority or institution, the fund's name; it
+  carries no DGR item and no end date.
+
+The data is the extract of 11 November 2026 (extract time 2026-11-11T12:20:05),
+downloaded at 00:25 to 00:29 as `public_split_1_10.zip` (501,188,909 bytes,
+SHA-256 `d6ce13ba5682848163e1560635fc2f6dbc5da0531590129f56b986471b3e77c9`)
+and `public_split_11_20.zip` (500,936,917 bytes, SHA-256
+`7cef0479739f648834464adf67fddd9f094d733a05b2010983750494ed1fa4ae`), 12.7 GB
+of XML in 20 files. `examples/dgr_register.rs` read all 20,658,780 ABN records,
+each file's count matching its `RecordCount`, and kept 31,876 ABNs with DGR
+entries: 26,511 entries for an entity itself, one ABN listing the same entry
+twice, and 8,766 for a fund. No individual's record had a DGR entry. The raw files were deleted after the run.
+
+The data was compared with ABN Lookup's DGR listing downloads
+(https://abr.business.gov.au/Tools/DgrListing, read 00:28). They were used only
+to check the data, as ABN Lookup states no licence for them. All 8,766 fund
+entries match by ABN, start date and name. Of the 26,510 distinct entity entries,
+26,451 match by ABN and start date; of the other 59, 52 are listed as fund rows
+with no fund name, 2 are listed with the same dates and 5 ABNs are not in the
+listing. 35 ABNs in the listing have no `DGR` element in the extract's raw XML;
+the 5 days between the extract and the listing probably explain them, but
+that was not checked. The listing
+also gives the DGR item, which the extract does not.
+
+`tests/dgr_check.rs` uses 4 ABNs read the same in the listing: an entity
+endorsed itself from 1 March 2006 and for a building fund from 1 July 2000; a
+school endorsed only for its building fund; a cancelled ABN whose library fund
+is listed as cancelled; and the Arthritis Foundation of Australia, Item 1,
+Endorsed DGR. The Library's worked example ¶7-020 (Tax Examples, Individuals,
+reviewed 30 June 2025) deducts a $250 donation in 2024-25 to 'the Arthritis
+Foundation' under s 30-15; by name the check gives only candidates, and with
+the receipt's ABN it reads the entity as endorsed on the date.
+
+No rival read on 16 November 2026 (00:25 to 00:26) offers a DGR check:
+Nagaris's `llms.txt` and skills page, LodgeiT's `llms.txt` and calculators
+page, `au-compliance-kit` at e94cef24 and `william-laverty/ato-mcp` at
+d3d84941. ABN Lookup itself shows each ABN's DGR status and history, and its
+keyed web services, which need a registered GUID, would add both; this
+command uses only the open bulk data.

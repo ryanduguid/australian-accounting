@@ -131,6 +131,7 @@ lists the commands.
 | `pension-minimum` | `account_balance`, `age`, `days`, `year`, `scope_confirmed` |
 | `worksheet-catalogue` | none: send `{}` |
 | `periods` | `kind`, the worksheet name, such as `"payg_withholding"` |
+| `dgr-check` | `donations`, a list of 1 to 10,000 objects, each with `abn` or `name` or both, and optional `date` and `amount`; see [DGR check](#dgr-check) |
 | `personal-tax-estimate` | `year`, `scope_confirmed`, `residency`, `taxable_income` or `assessable_labour_income` (then optional `other_assessable_income`, `work_related_deductions`, `other_deductions`), optional `tax_withheld`, and for a full-year resident `medicare-levy` and `medicare-levy-surcharge`; optional `seniors-pensioners-tax-offset`, `study-loan-repayment` and `division-293`; see [Personal tax estimate](#personal-tax-estimate) |
 | `derive` | `command`, one of `fbt`, `fbt-car-statutory`, `fbt-car-operating-cost`, `fbt-loan`, `fbt-meal-entertainment`, `fbt-car-parking`, `fbt-debt-waiver`, `fbt-expense-payment`, `fbt-property`, `division-293`, `pension-minimum`, `payg-withholding`, `schedule-5-method-a`, `schedule-5-method-b-i`, `schedule-5-method-b-ii`, `termination-payment`, `working-holiday-maker-withholding`, `study-loan-withholding`, `seniors-pensioners-withholding`, `quarterly-sg`, `borrowing-expenses`, `resident-tax`, `foreign-resident-tax`, `low-income-tax-offset`, `seniors-pensioners-tax-offset`, `medicare-levy`, `medicare-levy-surcharge`, `division-296`, `contribution-caps`, `study-loan-repayment`, `capital-gains`, `main-residence`, `fbt-residual`, `fbt-housing`, `fbt-lafha`, `fbt-board` and `fbt-tax-exempt-body-entertainment`, and `input`, that command's arguments; see [Derivations](#derivations) |
 
@@ -1014,6 +1015,85 @@ take, which the law defines differently: the levy counts those covered by ITAA
 The tests hold it to the ATO's figures for tax with the levy, the surcharge,
 SAPTO and the foreign resident rates, and to the sum of its parts called alone; see
 [calculation evidence](docs/calculation-evidence.md#personal-tax-estimate).
+
+## DGR check
+
+`dgr-check` says whether the recipient of a donation is shown as a deductible
+gift recipient (DGR), from what date and as at what data date, and lists the
+ITAA 1997 Division 30 conditions that DGR status leaves open. It never says a
+payment is deductible. It takes `donations`, a list of 1 to 10,000 objects, each
+with an `abn` (11 digits, spaces allowed, passing ABN Lookup's check digit
+test), a `name` from the ledger, or both, and optionally the payment `date` as
+`YYYY-MM-DD` and the `amount` as a decimal string:
+
+```json
+{"donations": [
+  {"abn": "67 002 598 594", "date": "2025-03-01", "amount": "250.00"},
+  {"name": "Arthritis Foundation"}
+]}
+```
+
+Each result keeps its `index` and `input` and gives `register`:
+
+- `shown_as_dgr`: the ABN has DGR entries in the data. `dgr_entries` gives each
+  entry's start date and whether the entity is endorsed itself or only for the
+  operation of a named fund, authority or institution; `on_payment_date` reads
+  them for `date` as `shown`, `shown_for_a_fund`, `not_shown` (entries start
+  after the payment), `abn_cancelled` (the ABN was cancelled on or before it),
+  `after_data_date` or `no_date`. A `name` beside the ABN gives
+  `name_matches_register`.
+- `not_shown_as_dgr`: the ABN is not in the data. The finding says it 'is not
+  shown as a deductible gift recipient in the data of' the data date, never
+  that it is not a DGR.
+- `abn_needed`: a name alone gives up to 10 `candidates`, each `unconfirmed`,
+  whose names hold every word of it, and `candidates_total`. The ABN on the
+  receipt settles which entity was paid.
+
+`conditions` lists what remains: that the payment is a gift, the conditions of
+the recipient's DGR item, a record of the gift, the gift being made to the fund
+where the entity is endorsed only for one (s 30-17, s 30-229(2)), and, for a
+gift made before 1 July 2024 or undated, the $2 minimum that Act No. 58, 2026,
+Sch 1 removed from that date. Each is `open` except the minimum, which is `met`
+or `fails` when the amount and date settle it. Every result carries the data's
+source, extract time and licence, the scope, the limits below and the sources.
+
+It refuses a list that is empty, too long or not a list as
+`input.donations_invalid`, an ABN that is malformed or fails the check digit
+test as `input.abn_invalid`, a name that is not 1 to 200 characters with a
+letter or digit as `input.name_invalid`, a donation with neither as `input.missing_field`, and any
+other field as `input.field_unknown`; dates and amounts are refused as in the
+other commands. One refused donation refuses the list. `derive` does not
+explain it.
+
+The data, `data/dgr-register.jsonl`, comes from the
+[ABN Bulk Extract](https://data.gov.au/data/dataset/abn-bulk-extract) of
+11 November 2026 (extract time 2026-11-11T12:20:05), published by the
+Australian Business Register under Creative Commons Attribution 3.0 Australia.
+Contains deductible gift recipient entries from the ABN Bulk Extract,
+Australian Business Register, licensed under CC BY 3.0 AU; changes: only ABNs
+with DGR entries are kept, with their status, names and DGR entries. Of
+20,658,780 ABN records, 31,876 have DGR entries; no individual (sole trader)
+record had one. The extract also holds entity types, individuals' names,
+addresses' state and postcode, ASIC numbers and GST status, none of which is
+kept. Its limits:
+
+- It holds current details only. An endorsement that ended before the extract
+  is not in it, and no entry has an end date, so a payment before an entry's
+  start date is `not_shown` rather than read as no endorsement.
+- It gives no DGR item, so the gift conditions of the recipient's category stay
+  open. ABN Lookup shows the item.
+- A DGR named in the law need not be endorsed or have an ABN, and an entry in
+  the register, or its absence, does not decide deductibility (s 30-229(1),
+  note 1).
+- ABN Lookup holds each ABN's history and the current position; confirm a
+  result there before relying on it.
+
+To refresh it, download both zip files of a week's extract and run
+`examples/dgr_register.rs` as its comment shows, then update the dates here and
+in the tests. It streams the XML, keeps only DGR records and refuses anything
+the extract's schema does not describe. Do not commit the raw extract. The
+cross-check against ABN Lookup's DGR listing and the sources read are in
+[calculation evidence](docs/calculation-evidence.md#dgr-check).
 
 ## Worksheet discovery
 
