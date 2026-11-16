@@ -683,25 +683,98 @@ pub const EXTRA_WARNINGS: &[(&str, &[&str])] = &[
 
 /// A `foreign_resident_tax` warning for a year whose rates the ATO had not
 /// published when they were read from the Act.
-pub const FOREIGN_RESIDENT_YEAR_WARNINGS: &[(&str, &str)] = &[(
-    "2026-27",
-    "2026-27 uses the rates Income Tax Rates Act 1986 Schedule 7 Part II sets for the 2024-25 and later years, with the second and third resident personal tax rates for 2026-27 (30% and 37%), as compiled at 1 July 2026 (compilation 66). The ATO had not published 2026-27 foreign resident rates when this was checked on 14 November 2026, and a later Act can change them for 2026-27 and change this result.",
+pub const FOREIGN_RESIDENT_YEAR_WARNINGS: &[(&str, &str)] = &[
+    (
+        "2026-27",
+        "2026-27 uses the rates Income Tax Rates Act 1986 Schedule 7 Part II sets for the 2024-25 and later years, with the second and third resident personal tax rates for 2026-27 (30% and 37%), as compiled at 1 July 2026 (compilation 66). The ATO had not published 2026-27 foreign resident rates when this was checked on 14 November 2026, and a later Act can change them for 2026-27 and change this result.",
+    ),
+    (
+        "2027-28",
+        "2027-28 uses the rates Income Tax Rates Act 1986 Schedule 7 Part II sets for the 2024-25 and later years, with the second and third resident personal tax rates for 2027-28 (30% and 37%), as compiled at 1 July 2026 (compilation 66). The ATO had not published 2027-28 foreign resident rates when this was checked on 16 November 2026, and a later Act can change them for 2027-28 and change this result.",
+    ),
+];
+
+/// A `resident_tax` warning for a year whose rates the ATO had not published
+/// when they were read from the Act.
+pub const RESIDENT_TAX_YEAR_WARNINGS: &[(&str, &str)] = &[(
+    "2027-28",
+    "2027-28 uses the table Income Tax Rates Act 1986 Schedule 7 Part I sets for the 2027-28 and later years (14%, 30%, 37% and 45%), as compiled at 1 July 2026 (compilation 66). The ATO had not published 2027-28 resident rates when this was checked on 16 November 2026, and a later Act can change them for 2027-28 and change this result. From 2027-28 a resident can also owe extra income tax on a minimum tax capital gain (ITAA 1997 s 119-10, inserted by Act No. 49 of 2026), which this worksheet does not work out.",
 )];
 
 /// A `medicare_levy` warning for a year whose thresholds the ATO had not
 /// published when they were read from the Act.
-pub const MEDICARE_YEAR_WARNINGS: &[(&str, &str)] = &[(
-    "2026-27",
-    "2026-27 uses the threshold amounts, phase-in limits and family income thresholds Medicare Levy Act 1986 ss 3(1) and 8 set for 2025-26 and later years (Act No. 58, 2026, Sch 5 item 14). The ATO had not published 2026-27 thresholds when this was checked on 14 November 2026. That Act, assented on 30 June 2026, raised the figures for 2025-26, so a later Act can raise them for 2026-27 and change this result.",
-)];
+pub const MEDICARE_YEAR_WARNINGS: &[(&str, &str)] = &[
+    (
+        "2026-27",
+        "2026-27 uses the threshold amounts, phase-in limits and family income thresholds Medicare Levy Act 1986 ss 3(1) and 8 set for 2025-26 and later years (Act No. 58, 2026, Sch 5 item 14). The ATO had not published 2026-27 thresholds when this was checked on 14 November 2026. That Act, assented on 30 June 2026, raised the figures for 2025-26, so a later Act can raise them for 2026-27 and change this result.",
+    ),
+    (
+        "2027-28",
+        "2027-28 uses the threshold amounts, phase-in limits and family income thresholds Medicare Levy Act 1986 ss 3(1) and 8 set for 2025-26 and later years (Act No. 58, 2026, Sch 5 item 14), as compiled at 1 July 2026 (compilation 53). The ATO had not published 2027-28 thresholds when this was checked on 16 November 2026, and a later Act can raise them for 2027-28 and change this result.",
+    ),
+];
 
 /// An `income_tests` warning when exempt foreign employment income is given
 /// with taxable income of $1 or more.
 pub const INCOME_TESTS_EXEMPT_FOREIGN_NOTE: &str = "income_for_surcharge_purposes leaves out exempt_foreign_employment_income, as ITAA 1997 s 995-1 'income for surcharge purposes' (compilation 268) does. The ATO's 'Medicare levy surcharge income, thresholds and rates' page (last updated 22 June 2026) adds it where taxable income is $1 or more. Neither the Medicare Levy Act 1986 (compilation 53) nor the A New Tax System (Medicare Levy Surcharge—Fringe Benefits) Act 1999 (compilation 42) adds it: s 3(1) of each gives the term s 995-1's meaning. Only the lump sum offset's one-eleventh test (ITAA 1997 s 61-580(1)(d)) counts it beside those amounts. The ATO's Division 293 page leaves it out. Confirm with the ATO before using income_for_surcharge_purposes for the surcharge.";
 
-/// A `seniors_pensioners_tax_offset` warning for 2026-27, whose thresholds the
+/// A `seniors_pensioners_tax_offset` warning for a year whose thresholds the
 /// ATO had not published when they were worked from the regulations.
-pub const SAPTO_2026_27_NOTE: &str = "2026-27 thresholds are worked from the Income Tax Assessment (1936 Act) Regulations 2025 ss 9 and 10 with the 15% lowest marginal tax rate the Income Tax Rates Act 1986 sets for 2026-27. The ATO had published thresholds only to 2025-26 when this was checked on 14 November 2026.";
+pub const SAPTO_YEAR_NOTES: &[(&str, &str)] = &[
+    (
+        "2026-27",
+        "2026-27 thresholds are worked from the Income Tax Assessment (1936 Act) Regulations 2025 ss 9 and 10 with the 15% lowest marginal tax rate the Income Tax Rates Act 1986 sets for 2026-27. The ATO had published thresholds only to 2025-26 when this was checked on 14 November 2026.",
+    ),
+    (
+        "2027-28",
+        "2027-28 thresholds are worked from the Income Tax Assessment (1936 Act) Regulations 2025 ss 9 and 10 with the 14% lowest marginal tax rate the Income Tax Rates Act 1986 sets for 2027-28. The ATO had published thresholds only to 2025-26 when this was checked on 16 November 2026.",
+    ),
+];
+
+const WITHHOLDING_2027_28: &str = "The ATO had not published withholding schedules for payments from 1 July 2027 when this was checked on 16 November 2026.";
+const CGT_2027_28: &str = "From 2027-28 Schedule 1 to Act No. 49 of 2026 changes how capital gains are worked out, and this worksheet has not been checked against it.";
+const RENTAL_2027_28: &str = "From 2027-28 ITAA 1997 s 26-155 limits deductions for residential rental property, and this worksheet does not apply it.";
+
+/// Why a worksheet that takes an income year refuses 2027-28, added to its
+/// `period.unsupported` message: the figures not yet published, or the change
+/// in the law it does not apply.
+pub const UNPUBLISHED_2027_28: &[(&str, &str)] = &[
+    ("capital_gains", CGT_2027_28),
+    ("main_residence", CGT_2027_28),
+    ("borrowing_expenses", RENTAL_2027_28),
+    (
+        "depreciation",
+        "2027-28 has 366 days, and this worksheet takes at most 365 days held.",
+    ),
+    ("payg_withholding", WITHHOLDING_2027_28),
+    ("payg_gross_up", WITHHOLDING_2027_28),
+    ("study_loan_withholding", WITHHOLDING_2027_28),
+    ("schedule_5_method_a", WITHHOLDING_2027_28),
+    ("schedule_5_method_b_i", WITHHOLDING_2027_28),
+    ("schedule_5_method_b_ii", WITHHOLDING_2027_28),
+    ("working_holiday_maker_withholding", WITHHOLDING_2027_28),
+    ("seniors_pensioners_withholding", WITHHOLDING_2027_28),
+    (
+        "termination_payment",
+        "The 2027-28 ETP cap amounts and genuine redundancy tax-free limits had not been published when this was checked on 16 November 2026.",
+    ),
+    (
+        "contribution_caps",
+        "The 2027-28 contribution caps had not been published when this was checked on 16 November 2026.",
+    ),
+    (
+        "study_loan_repayment",
+        "The 2027-28 study and training loan repayment thresholds had not been published when this was checked on 16 November 2026.",
+    ),
+    (
+        "medicare_levy_surcharge",
+        "The 2027-28 Medicare levy surcharge income thresholds had not been published when this was checked on 16 November 2026.",
+    ),
+    (
+        "division_296",
+        "The 2027-28 indexed superannuation balance thresholds had not been published when this was checked on 16 November 2026.",
+    ),
+];
 
 /// A `medicare_levy` warning when s 8(3) shares the family reduction.
 pub const MEDICARE_SHARED_REDUCTION_NOTE: &str = "The family reduction is shared in proportion to taxable income (s 8(3)) and worked out exactly; each amount is rounded half up to cents only for display, so the displayed levy can differ by a cent from the displayed amounts it is worked out from.";

@@ -455,6 +455,43 @@ intentionally changed.
   entry before comparing, and `tests/income_tests.rs` holds it to the ATO's
   Christina and Tom examples, passes each measure to the command that takes
   it and checks each adjustment and refusal.
+- `gst`, `resident-tax`, `foreign-resident-tax`, `low-income-tax-offset`,
+  `medicare-levy`, `seniors-pensioners-tax-offset`, `division-293` and
+  `pension-minimum` also accept 2027-28, the year whose every rate and
+  threshold each takes the law already sets: Income Tax Rates Act 1986
+  Schedule 7 (14%, 30%, 37% and 45% for a resident; 30%, 37% and 45% for a
+  foreign resident), ITAA 1997 ss 61-115 and 293-20, the Medicare Levy Act
+  1986 thresholds Act No. 58, 2026 applies to later years, the SAPTO
+  regulations' formulas at the 14% lowest rate, the GST rate and SISR
+  Schedule 7, with 366 days for the pension minimum. The ATO had published
+  none of them for 2027-28 when they were read on 16 November 2026, so each
+  result but GST, LITO, Division 293 and the pension minimum adds a warning
+  saying so; the `resident-tax` one also says the s 119-10 extra tax on a
+  minimum tax capital gain, from 2027-28, is not worked out. A worksheet that
+  still refuses 2027-28 adds why to its `period.unsupported` message: the
+  withholding schedules, Medicare levy surcharge thresholds, study loan
+  thresholds, contribution caps, ETP caps and indexed Division 296
+  thresholds were not yet published; CGT changes from 1 July 2027 (Act No.
+  49 of 2026, Schedule 1) and s 26-155 limits rental deductions; or 2027-28's
+  366 days exceed the 365 `depreciation` takes. `medicare-levy-surcharge`
+  takes 2027-28 only with `days_without_cover` 0, when Medicare Levy Act 1986
+  ss 8B, 8C and 8D leave no surcharge whatever the thresholds, and refuses a
+  day without cover. `personal-tax-estimate` composes 2027-28 for a foreign
+  resident, and for a resident applies the working Australians tax offset
+  (ITAA 1997 ss 61-155 and 61-160) first (s 63-10(1) item 3): the lesser of
+  $250 and the basic income tax on net labour income, which it takes as the
+  new `net_labour_income` (required beside `taxable_income`) or works out from
+  the labour inputs. The amounts add `net_labour_income`,
+  `working_australians_tax_offset` and `working_australians_tax_offset_applied`;
+  its sources add ss 61-155 and 61-160. It does not work out the s 119-10
+  extra tax on a minimum tax capital gain, which its scope excludes. Results
+  before 2027-28 are unchanged apart from the scope and sources.
+  `hire-purchase-schedule`'s 2027-28 refusal gives no reason: s 26-155 does
+  not touch it. `tests/parity.rs` adds 2027-28
+  to the 6 frozen commands' supported periods, catalogue and refusals, adds
+  the reason to the 13 frozen 2027-28 refusals of the others, and skips the
+  17 frozen calls that expected 2027-28 to be refused; `tests/year_2027_28.rs`
+  checks that year with hand-worked figures.
 
 ### Documented divergences
 
