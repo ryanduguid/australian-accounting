@@ -1074,10 +1074,10 @@ uses ABN Lookup's worked example ABN, which is not in the data:
 Each result keeps its `index` and `input` and gives `register`:
 
 - `shown_as_dgr`: the ABN has DGR entries in the data. `dgr_entries` gives each
-  entry's start date and whether the entity is endorsed itself or only for the
-  operation of a named fund, authority or institution (or one the extract gives
-  no name for, shown as such); `on_payment_date` reads
-  them for `date` as `shown`, `shown_for_a_fund`, `not_shown` (entries start
+  entry's start date and whether it is for the entity itself (endorsed, or a
+  DGR the law names) or only for the operation of a named fund, authority or
+  institution (or one the extract gives no name for, shown as such);
+  `on_payment_date` reads them for `date` as `shown`, `shown_for_a_fund`, `not_shown` (entries start
   after the payment), `abn_cancelled` (the ABN was cancelled on or before it),
   `after_data_date` or `no_date`. A `name` beside the ABN gives
   `name_matches_register`.
@@ -1088,13 +1088,15 @@ Each result keeps its `index` and `input` and gives `register`:
   whose names hold every word of it, and `candidates_total`. The ABN on the
   receipt settles which entity was paid.
 
-`conditions` lists what remains: that the payment is a gift, the conditions of
-the recipient's DGR item, a record of the gift, the gift being made to the fund
-where the entity is endorsed only for one (s 30-17, s 30-229(2)), and, for a
+`conditions` lists what remains: that the payment is a gift, the special
+conditions of the s 30-15 item and of the recipient's DGR item, a record of the
+gift, the gift being made to the fund where the entity is endorsed on the
+payment date only for one (s 30-17, s 30-229(2)), and, for a
 gift made before 1 July 2024 or undated, the $2 minimum that Act No. 58, 2026,
 Sch 1 removed from that date. Each is `open` except the minimum, which is `met`
-or `fails` when the amount and date settle it. Every result carries the data's
-source, extract time and licence, the scope, the limits below and the sources.
+or `fails` when the amount and date settle it. The response carries the data's
+source, extract time and licence, the scope, the limits below and the sources
+once for all its donations; each donation's findings name the data date.
 
 It refuses a list that is empty, too long or not a list as
 `input.donations_invalid`, an ABN that is malformed or fails the check digit

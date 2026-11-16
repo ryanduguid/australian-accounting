@@ -255,7 +255,7 @@ fn read_donation(at: usize, value: &Value) -> Result<Donation, Refusal> {
     let why = "must be a string of 1 to 200 characters with an ASCII letter or digit";
     let name = text("name", "input.name_invalid", why)?;
     if let Some(name) = &name
-        && (name.chars().count() > 200 || name_words(name).is_empty())
+        && (name.chars().count() > 200 || !name.chars().any(|c| c.is_ascii_alphanumeric()))
     {
         return Err(Refusal::new(
             "input.name_invalid",
@@ -319,7 +319,7 @@ fn conditions(donation: &Donation, fund_only: &[&str]) -> Result<Vec<Value>, Ref
         condition(
             "gift_conditions",
             "open",
-            "Any condition the relevant table item in Subdivision 30-B sets for this kind of recipient is met, such as a gift being for a stated purpose (s 30-15 item 1, special condition (c)). ABN Lookup shows the recipient's DGR item.".into(),
+            "The special conditions of the s 30-15 item that applies are met. Under item 1 the fund, authority or institution must be in Australia and any condition of its table item in Subdivision 30-B, such as a gift being for a stated purpose, must be met (special conditions (a) and (c)); under item 2 the giving fund's will or trust must let the trustee invest money from the gift only as an Australian law allows trustees to invest trust money (special condition (b)); other items set their own. ABN Lookup shows the recipient's DGR item.".into(),
             ITAA_1997,
         ),
         condition(
@@ -453,7 +453,9 @@ fn entity(entry: &Entry) -> Value {
 }
 
 /// The funds an entity is endorsed for when it is not endorsed in its own right
-/// on the date (or at all, with no date).
+/// on the date (or at all, with no date). Empty when no entry held on the
+/// date: an endorsement that has since ended is not in the data, so the funds
+/// listed now cannot say where such a gift had to go.
 fn fund_only<'a>(entry: &'a Entry, date: Option<&str>) -> Vec<&'a str> {
     let held = |from: &String| date.is_none_or(|d| from.as_str() <= d);
     if entry
@@ -464,15 +466,9 @@ fn fund_only<'a>(entry: &'a Entry, date: Option<&str>) -> Vec<&'a str> {
         return Vec::new();
     }
     let funds = entry.dgr.iter().filter(|(from, _)| held(from));
-    let funds: Vec<&str> = funds.filter_map(|(_, fund)| fund.as_deref()).collect();
-    let funds = if funds.is_empty() {
-        // None held on the date: every fund the entity is endorsed for.
-        let every = entry.dgr.iter().filter_map(|(_, fund)| fund.as_deref());
-        every.collect()
-    } else {
-        funds
-    };
-    funds.into_iter().map(fund_name).collect()
+    funds
+        .filter_map(|(_, fund)| fund.as_deref().map(fund_name))
+        .collect()
 }
 
 fn by_abn(
@@ -780,13 +776,11 @@ mod tests {
             text.contains("RIVER CARE FUND") && !text.contains("LIBRARY"),
             "{text}"
         );
-        // Before either fund: both are named, as the gift could only go to one.
+        // Before either fund the data shows no entry, and an ended one could
+        // have been for the entity itself, so no fund is named.
         let r = one(json!({"abn": RIVER, "date": "2015-01-01"}));
         assert_eq!(r["on_payment_date"], "not_shown");
-        let text = found(&r, "gift_to_the_fund").unwrap()["text"]
-            .as_str()
-            .unwrap();
-        assert!(text.contains("RIVER CARE LIBRARY"), "{text}");
+        assert_eq!(found(&r, "gift_to_the_fund"), None);
         assert_eq!(status(&r, "two_dollar_minimum").as_deref(), Some("open"));
     }
 
@@ -987,6 +981,17 @@ mod tests {
             ),
             (
                 json!([{"name": " - "}]),
+                "input.name_invalid",
+                "donations[0].name",
+            ),
+            // name_words reads & as AND; the name itself has no letter or digit.
+            (
+                json!([{"name": "&"}]),
+                "input.name_invalid",
+                "donations[0].name",
+            ),
+            (
+                json!([{"abn": SCHOOL, "name": "&"}]),
                 "input.name_invalid",
                 "donations[0].name",
             ),

@@ -3,12 +3,14 @@
 
 //! Rebuild `data/dgr-register.jsonl`, which `dgr-check` reads, from the ABN
 //! Bulk Extract (https://data.gov.au/data/dataset/abn-bulk-extract). Feed it
-//! the 20 XML files of one week's extract, one after another, on stdin:
+//! the 20 XML files of one week's extract, one after another, on stdin. The
+//! new file replaces the old only when the build succeeds:
 //!
 //! ```sh
 //! for zip in public_split_1_10.zip public_split_11_20.zip; do
 //!   for xml in $(unzip -Z1 "$zip"); do unzip -p "$zip" "$xml"; done
-//! done | cargo run --release --example dgr_register > data/dgr-register.jsonl
+//! done | cargo run --release --example dgr_register > data/dgr-register.jsonl.new &&
+//!   mv data/dgr-register.jsonl.new data/dgr-register.jsonl
 //! ```
 //!
 //! It streams the 13 GB of XML and keeps only ABN records with a `DGR` element:
@@ -22,9 +24,9 @@
 //! CDATA, an unknown entity, a misnested tag or a truncated file), an ABN that
 //! is not 11 digits, a status or DGR date that is not `yyyymmdd`, a `DGR`
 //! status other than ACT, a kept record whose ABN status is not ACT or CAN or
-//! which has no entity name, a file whose record count differs from its `RecordCount`,
-//! files from different extracts, or a file sequence other than 1 to 20 once
-//! each.
+//! which has no entity name, a file whose record count differs from its
+//! `RecordCount`, files from different extracts, or a file sequence other than
+//! 1 to 20 once each.
 
 use serde_json::{Value, json};
 use std::collections::BTreeMap;

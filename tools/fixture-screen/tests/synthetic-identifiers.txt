@@ -54,7 +54,7 @@ packages/australian-tax-calculators/src/dgr.rs abn 61000000002 unissued number i
 packages/australian-tax-calculators/src/dgr.rs abn 74000000006 unissued number in a fixture; ABN Lookup found no such ABN on 16 November 2026
 packages/australian-tax-calculators/src/dgr.rs abn 80000000001 unissued number in a fixture; ABN Lookup found no such ABN on 16 November 2026
 packages/australian-tax-calculators/src/dgr.rs abn 93000000005 unissued number in a fixture; ABN Lookup found no such ABN on 16 November 2026
-packages/australian-tax-calculators/tests/data/python-api.json acn 143895032generated total_super_balance input in the frozen Python differential corpus, not an identifier
+packages/australian-tax-calculators/tests/data/python-api.json acn 143895032 generated total_super_balance input in the frozen Python differential corpus, not an identifier
 packages/australian-tax-calculators/tests/data/python-api.json acn 180300887 generated total_super_balance input in the frozen Python differential corpus, not an identifier
 packages/australian-tax-calculators/tests/data/python-api.json acn 604579286 generated amount input in the frozen Python differential corpus, not an identifier
 packages/australian-tax-calculators/tests/data/python-api.json acn 772296858 generated amount input in the frozen Python differential corpus, not an identifier
