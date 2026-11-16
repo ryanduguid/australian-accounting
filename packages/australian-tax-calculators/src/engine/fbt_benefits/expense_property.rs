@@ -456,14 +456,18 @@ const fn in_house(
     }
 }
 
+/// The recipient's portion takes s 22A(1)(b)(i) or (2)(b)(i) for a payment (s
+/// 20(a)) and (ii) for a reimbursement (s 20(b)). No input says which: a
+/// reimbursement has no recipient's contribution (s 136(1)), so one formula
+/// serves both, and its step cites both limbs.
 const PROPERTY_PAYMENT: InHouse = in_house(
-    "FBTAA s 22A(1)(b)(i) and s 136(1), recipients portion",
+    "FBTAA s 22A(1)(b)(i) for a payment or (ii) for a reimbursement, and s 136(1), recipients portion",
     "FBTAA s 22A(1)(b)",
     "FBTAA s 22A(1)",
     "FBTAA s 22A(1) and s 62(1)",
 );
 const RESIDUAL_PAYMENT: InHouse = in_house(
-    "FBTAA s 22A(2)(b)(i) and s 136(1), recipients portion",
+    "FBTAA s 22A(2)(b)(i) for a payment or (ii) for a reimbursement, and s 136(1), recipients portion",
     "FBTAA s 22A(2)(b)",
     "FBTAA s 22A(2)",
     "FBTAA s 22A(2) and s 62(1)",
