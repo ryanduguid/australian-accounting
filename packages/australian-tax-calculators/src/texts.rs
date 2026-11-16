@@ -697,7 +697,7 @@ pub const MEDICARE_YEAR_WARNINGS: &[(&str, &str)] = &[(
 
 /// An `income_tests` warning when exempt foreign employment income is given
 /// with taxable income of $1 or more.
-pub const INCOME_TESTS_EXEMPT_FOREIGN_NOTE: &str = "income_for_surcharge_purposes leaves out exempt_foreign_employment_income, as ITAA 1997 s 995-1 'income for surcharge purposes' (compilation 268) does. The ATO's 'Medicare levy surcharge income, thresholds and rates' page (last updated 22 June 2026) adds it where taxable income is $1 or more, which no provision read on 16 November 2026 supports; its Division 293 page leaves it out. Confirm with the ATO before using income_for_surcharge_purposes for the surcharge.";
+pub const INCOME_TESTS_EXEMPT_FOREIGN_NOTE: &str = "income_for_surcharge_purposes leaves out exempt_foreign_employment_income, as ITAA 1997 s 995-1 'income for surcharge purposes' (compilation 268) does. The ATO's 'Medicare levy surcharge income, thresholds and rates' page (last updated 22 June 2026) adds it where taxable income is $1 or more. Neither the Medicare Levy Act 1986 (compilation 53) nor the A New Tax System (Medicare Levy Surcharge—Fringe Benefits) Act 1999 (compilation 42) adds it: s 3(1) of each gives the term s 995-1's meaning. Only the lump sum offset's one-eleventh test (ITAA 1997 s 61-580(1)(d)) counts it beside those amounts. The ATO's Division 293 page leaves it out. Confirm with the ATO before using income_for_surcharge_purposes for the surcharge.";
 
 /// A `seniors_pensioners_tax_offset` warning for 2026-27, whose thresholds the
 /// ATO had not published when they were worked from the regulations.

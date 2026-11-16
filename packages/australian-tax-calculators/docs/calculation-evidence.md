@@ -1701,8 +1701,15 @@ Adjusted taxable income can be below nil, as cl 2(1) sets no floor.
 
 Section 995-1 does not add exempt foreign employment income to income for
 surcharge purposes, and nor does s 293-20 to Division 293 income. The ATO's
-surcharge page adds it where taxable income is $1 or more; no provision read
-supports that. The worksheet follows the Act and warns when the two differ.
+surcharge page adds it where taxable income is $1 or more. The Medicare Levy
+Act 1986 (compilation 53, 1 July 2026) and the A New Tax System (Medicare Levy
+Surcharge—Fringe Benefits) Act 1999 (compilation 42, 1 July 2026), read on 16
+November 2026, do not add it: s 3(1) of each gives 'income for surcharge
+purposes' the ITAA 1997 meaning, and neither mentions ITAA 1936 s 23AF or
+23AG. The only provision read that counts it beside the surcharge amounts is
+the one-eleventh test for the surcharge lump sum offset (ITAA 1997
+s 61-580(1)(d)), which does not define the surcharge's income. The worksheet
+follows s 995-1 and warns when the two differ.
 The Commonwealth Seniors Health Card income test and family assistance
 adjusted taxable income are Services Australia's
 (https://www.servicesaustralia.gov.au/income-test-for-commonwealth-seniors-health-card),

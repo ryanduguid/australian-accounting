@@ -422,6 +422,10 @@ fn exempt_foreign_employment_income_warns_about_the_surcharge_page() {
             })
     };
     assert!(warns(christina()));
+    // Both surcharge Acts were read: s 3(1) of each takes s 995-1's meaning.
+    let warning = evaluate("2025-26", christina())["warnings"].to_string();
+    assert!(warning.contains("Medicare Levy Act 1986 (compilation 53)"));
+    assert!(warning.contains("s 61-580(1)(d)"));
     let no_income = json!({"exempt_foreign_employment_income": "2580",
                            "target_foreign_income": "2580"});
     assert!(!warns(no_income));
