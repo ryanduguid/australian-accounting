@@ -95,8 +95,13 @@ regexes = [
 [[allowlists]]
 description = "The placeholder password in a URL the adapter's tests expect it to refuse"
 targetRules = ["generic-credential-uri"]
+condition = "AND"
+paths = [
+  # The adapter's no_network_by_default tests, and their earlier version in
+  # history.
+  '''^apps/lodgeit-calculator-adapter/tests/(?:no_network_by_default\.rs|test_no_network_by_default\.py)$''',
+]
 regexes = [
-  # https://user:pass@... in the lodgeit-calculator-adapter's
-  # no_network_by_default tests, a URL carrying credentials it must reject.
+  # https://user:pass@..., a URL carrying credentials the adapter must reject.
   '''^pass$''',
 ]
