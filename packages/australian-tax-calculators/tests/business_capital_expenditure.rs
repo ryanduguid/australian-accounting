@@ -353,6 +353,45 @@ fn items_add_up_and_each_item_is_exact() {
     );
 }
 
+/// s 40-880(4)(b): a member winding up a company is limited as for another
+/// entity's former business, so wind-up costs not in connection with the
+/// member's deriving assessable income from it leave nothing to deduct
+/// (TR 2011/6 paras 130 to 134 and 191).
+#[test]
+fn a_wind_up_without_the_connection_is_excluded() {
+    let wind_up = item(json!({
+        "amount": "900.00", "incurred_in": "2025-26", "business": "wind_up",
+        "assessable_income_connection": false,
+    }));
+    let r = run(json!([wind_up]), "2025-26").unwrap();
+    assert_eq!(amounts(&r), ["900.00", "0.00", "0.00", "0.00"]);
+    assert!(
+        r["items"][0]["excluded_by"][0]
+            .as_str()
+            .unwrap()
+            .starts_with("ITAA 1997 s 40-880(4)(b)")
+    );
+}
+
+/// s 40-880(2A)(c) and (2B): an entity that would be a small business entity
+/// at $50 million deducts start-up advice at once. Worked by hand: $2,200 of
+/// advice on the structure of its own proposed business, in full in 2024-25.
+#[test]
+fn an_entity_covered_by_2b_deducts_start_up_advice_at_once() {
+    let advice = proposed(json!({
+        "amount": "2200.00", "incurred_in": "2024-25", "carried_on_by": "you",
+        "assessable_income_connection": null, "start_up_expense": "advice_or_services",
+        "entity_test": "covered_by_2b",
+    }));
+    let r = run(json!([advice]), "2024-25").unwrap();
+    assert_eq!(amounts(&r), ["2200.00", "2200.00", "2200.00", "0.00"]);
+    let method = r["items"][0]["method"].as_str().unwrap();
+    assert!(
+        method.contains("(s 40-880(2A)(b)(i))") && method.contains("covered by s 40-880(2B)"),
+        "{method}"
+    );
+}
+
 /// 2027-28: s 40-880 and the small business entity test it relies on
 /// (Subdivision 328-C, with s 40-880(2B)) set no figure by year, and neither
 /// has an amendment in compilation 268 or the Register's one later version

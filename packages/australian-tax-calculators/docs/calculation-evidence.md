@@ -721,6 +721,8 @@ stated facts the ruling decides.
 | A feasibility study in a project pool; capital works not claimed | TR 2011/6 examples 24 and 25 (paras 209 to 212) | Excluded by s 40-880(5)(b) |
 | A gaming machine entitlement | TR 2011/6 example 40A (paras 318A to 318D) | Refused under s 40-880(5)(f), pointing to the cost base; with s 40-880(6) stated, deductible |
 | $1,666.67 over 5 years | Worked by hand: $1,666.67 / 5 = $333.334 | `333.334` in the item, $333.33 in the amounts |
+| A member's wind-up costs not in connection with deriving assessable income from the company | s 40-880(4)(b); TR 2011/6 paras 130 to 134 and 191 | Excluded by s 40-880(4)(b) |
+| $2,200 of start-up advice to an entity covered by s 40-880(2B) | Worked by hand | $2,200.00 in the year incurred |
 | $10,000 incurred in 2023-24 and a $576 company fee in 2027-28 | Worked by hand: $10,000 / 5 in the fifth year; the fee in full under s 40-880(2A) | $2,576.00 in 2027-28, nothing remaining |
 
 A fifth of an amount in cents has at most 3 decimal places, so each item is
