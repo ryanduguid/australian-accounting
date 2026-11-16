@@ -60,7 +60,7 @@ pub const SCOPES: &[(&str, &str)] = &[
     ),
     (
         "fbt_expense_payment",
-        "An ordinary taxable employer's expense payment fringe benefit for the FBT year ended 31 March 2026 or 2027: the employer or an associate paid a third party to discharge the recipient's obligation (s 20(a)) or reimbursed the recipient (s 20(b)). The operator establishes the recipient's expenditure, the amount paid or reimbursed, which cannot exceed it, and the recipient's contribution, which arises only for a payment. An external benefit's taxable value is the payment less the contribution, or the reimbursement (s 23), never below nil, with any excess contribution shown. For an employee, not an associate, the otherwise deductible rule (s 24) then reduces it by the notional deduction: the gross deduction on the recipient's expenditure, rounded to cents, less the deduction for the expenditure the recipient bore (the recipient's portion), never below nil; the operator establishes that the documents and declarations s 24 requires were obtained. An in-house property expense payment (s 22A(1)), for goods identical or similar to those the employer or an associate provides principally to outsiders, where the operator establishes that the recipient obtained documentary evidence of the expenditure and gave it, or a copy, to the employer before the declaration date (s 136(1), paragraph (e) of the definition), takes the property's value under the in-house rule the method names (s 42(1), as fbt_property describes) and reduces it by the recipient's portion, the expenditure less the payment net of the contribution, never below nil; then, unless the property was salary packaged, by the part of the employee's $1,000 in-house reduction for the year (s 62) that the operator establishes is left. An in-house residual expense payment (s 22A(2)), for a service or other residual benefit identical or similar to those the employer or an associate provides principally to outsiders, with the same documentary evidence, is valued the same way under the in-house residual rule the method names: the notional value when salary packaged, otherwise 75% of the lowest price charged to the public for an identical benefit or 75% of the notional value (ss 48 and 49, for a period benefit read with s 22A(3) for the recipient's overall benefit). Excludes airline transport, the otherwise deductible rule for in-house expense payments (s 24(1)(b)(i)) and for car expenses, benefits provided jointly to an employee and an associate (s 138(3)), exempt benefits (such as ss 20A, 21, 22 and 58P), other Division 14 reductions, gross-up and FBT payable.",
+        "An ordinary taxable employer's expense payment fringe benefit for the FBT year ended 31 March 2026 or 2027: the employer or an associate paid a third party to discharge the recipient's obligation (s 20(a)) or reimbursed the recipient (s 20(b)). The operator establishes the recipient's expenditure, the amount paid or reimbursed, which cannot exceed it, and the recipient's contribution, which arises only for a payment. An external benefit's taxable value is the payment less the contribution, or the reimbursement (s 23), never below nil, with any excess contribution shown. For an employee, not an associate, the otherwise deductible rule (s 24) then reduces it by the notional deduction: the gross deduction on the recipient's expenditure, rounded to cents, less the deduction for the expenditure the recipient bore (the recipient's portion), never below nil; the operator establishes that the documents and declarations s 24 requires were obtained. An in-house property expense payment (s 22A(1)), for goods from the employer or an associate that, at or about the time it provides them, carries on a business that includes providing identical or similar goods principally to outsiders, or from a third party that acquired them from the employer or an associate when, at or about that time, both carry on such a business (s 136(1), paragraphs (c) and (d) of the definition), where the operator establishes that the recipient obtained documentary evidence of the expenditure and gave it, or a copy, to the employer before the declaration date (s 136(1), paragraph (e) of the definition), takes the property's value under the in-house rule the method names (s 42(1), as fbt_property describes) and reduces it by the recipient's portion, the expenditure less the payment net of the contribution, never below nil; then, unless the property was salary packaged, by the part of the employee's $1,000 in-house reduction for the year (s 62) that the operator establishes is left. An in-house residual expense payment (s 22A(2)), for a service or other residual benefit from the employer or an associate that, at or about the time that would be its comparison time were it a residual fringe benefit, carries on a business that includes providing identical or similar benefits principally to outsiders, or from a third party that purchased it from the employer or an associate when, at or about that time, both carry on such a business (s 136(1), paragraphs (b) and (c) of the definition), with the same documentary evidence (paragraph (d)), is valued the same way under the in-house residual rule the method names: the notional value when salary packaged, otherwise 75% of the lowest price charged to the public for an identical benefit or 75% of the notional value (ss 48 and 49, for a period benefit read with s 22A(3) for the recipient's overall benefit). Excludes airline transport, the otherwise deductible rule for in-house expense payments (s 24(1)(b)(i)) and for car expenses, benefits provided jointly to an employee and an associate (s 138(3)), exempt benefits (such as ss 20A, 21, 22 and 58P), other Division 14 reductions, gross-up and FBT payable.",
     ),
     (
         "fbt_property",
@@ -169,6 +169,10 @@ pub const SCOPES: &[(&str, &str)] = &[
     (
         "fbt_tax_exempt_body_entertainment",
         "Tax-exempt body entertainment fringe benefits (FBTAA s 38) in the FBT year ended 31 March 2026 or 2027: non-deductible exempt entertainment expenditure (s 136(1)) an employer wholly or partly exempt from income tax, or without assessable income from the activities the entertainment relates to, incurred in entertaining employees or their associates. The taxable value is so much of the expenditure as is attributable to that entertainment (s 39): actual takes the amount the operator attributes to employees and associates; per_head apportions a function's expenditure by the employees and associates entertained over everyone entertained, rounded to cents, where the actual amount cannot easily be worked out (the employer's guide, 15.9). No recipient's contribution or reduction applies (FBT return 2026 instructions, item 23L). Excludes deciding what is entertainment or exempt (such as minor benefits, s 58P), meal entertainment valued under Division 9A (fbt-meal-entertainment), the 50/50 split for entertainment facility leasing expenses (s 152B), splitting the value between type 1 and type 2 for fbt, gross-up and FBT payable.",
+    ),
+    (
+        "income_tests",
+        "The income measures of one individual who was an Australian resident for the whole income year and alive at its end, each the person's own for the whole year, from components the operator has established and classified: income for surcharge purposes (ITAA 1997 s 995-1), Division 293 income (s 293-20(1)(a)), rebate income (ITAA 1936 s 6(1)), repayment income for study and training loans (HESA s 154-5), adjusted taxable income for offsets (ITAA 1997 s 995-1, ITAA 1936 s 6(1) and A New Tax System (Family Assistance) Act 1999 Sch 3, disregarding cls 3 and 3A) and total income for the super co-contribution (Superannuation (Government Co-contribution for Low Income Earners) Act 2003 s 8). A spouse's measures come from the spouse's own components. A dependant's adjusted taxable income for part of a year, a deceased person's annualised adjusted taxable income (Sch 3 cl 2(2)), the co-contribution's 10% eligible income test, the combined family amounts and every threshold and eligibility test the measures feed are outside it. Income for surcharge purposes follows s 995-1, which does not add exempt foreign employment income; the ATO's surcharge page adds it where taxable income is $1 or more, and the result warns when that changes the figure. Measures another agency applies are outside it: the Commonwealth Seniors Health Card income test and family assistance adjusted taxable income are Services Australia's (https://www.servicesaustralia.gov.au/income-test-for-commonwealth-seniors-health-card). Refuses part-year residents, working holiday makers and foreign residents, and components that cannot all be true together.",
     ),
 ];
 
@@ -331,6 +335,10 @@ pub const SOURCES: &[(&str, &str)] = &[
     (
         "fbt_tax_exempt_body_entertainment",
         "https://www.ato.gov.au/law/view/document?DocID=SAV/FBTGEMP/00016",
+    ),
+    (
+        "income_tests",
+        "https://www.ato.gov.au/individuals-and-families/income-deductions-offsets-and-records/income-tests",
     ),
 ];
 
@@ -609,6 +617,31 @@ pub const EXTRA_SOURCES: &[(&str, &[&str])] = &[
         "fbt_tax_exempt_body_entertainment",
         &[FBTAA_PART_1, FBTAA_PART_2, FBT_RETURN_ITEM_23],
     ),
+    (
+        "income_tests",
+        &[
+            "https://www.legislation.gov.au/C2004A05138/2026-10-01/2026-10-01/text/original/epub/OEBPS/document_10/document_10.html",
+            "https://www.legislation.gov.au/C2004A05138/2026-10-01/2026-10-01/text/original/epub/OEBPS/document_6/document_6.html",
+            "https://www.legislation.gov.au/C1936A00027/2026-10-01/2026-10-01/text/original/epub/OEBPS/document_1/document_1.html",
+            "https://www.legislation.gov.au/C2004A01234/2026-10-17/2026-10-17/text/original/epub/OEBPS/document_1/document_1.html",
+            "https://www.legislation.gov.au/C2004A00490/2026-07-01/2026-07-01/text/original/epub/OEBPS/document_1/document_1.html",
+            FBTAA_PART_2,
+            "https://www.legislation.gov.au/F1996B00580/2026-07-01/2026-07-01/text/original/epub/OEBPS/document_2/document_2.html",
+            "https://www.legislation.gov.au/C2004A01195/2018-07-01/2018-07-01/text/original/epub/OEBPS/document_1/document_1.html",
+            "https://www.ato.gov.au/forms-and-instructions/individual-tax-return-2026-instructions/supporting-information-individual-tax-return-2026/rebate-income-2026",
+            "https://www.ato.gov.au/forms-and-instructions/individual-tax-return-2026-instructions/supporting-information-individual-tax-return-2026/adjusted-taxable-income-for-you-and-your-dependants-2026",
+            "https://www.ato.gov.au/forms-and-instructions/individual-tax-return-2026-instructions/income-test-it1-it8-individual-tax-return-2026/it1-total-reportable-fringe-benefits-amounts-2026",
+            "https://www.ato.gov.au/forms-and-instructions/individual-tax-return-2026-instructions/adjustment-questions-a1-a4-individual-tax-return-2026/a3-government-super-contributions-2026",
+            "https://www.ato.gov.au/forms-and-instructions/individual-tax-return-2025-instructions/supporting-information-individual-tax-return-2025/rebate-income-2025",
+            "https://www.ato.gov.au/forms-and-instructions/individual-tax-return-2025-instructions/supporting-information-individual-tax-return-2025/adjusted-taxable-income-for-you-and-your-dependants-2025",
+            "https://www.ato.gov.au/forms-and-instructions/individual-tax-return-2025-instructions/income-test-it1-it8-individual-tax-return-2025/it1-total-reportable-fringe-benefits-amounts-2025",
+            "https://www.ato.gov.au/forms-and-instructions/individual-tax-return-2025-instructions/adjustment-questions-a1-a4-individual-tax-return-2025/a3-government-super-contributions-2025",
+            "https://www.ato.gov.au/individuals-and-families/medicare-and-private-health-insurance/medicare-levy-surcharge/medicare-levy-surcharge-income-thresholds-and-rates",
+            "https://www.ato.gov.au/individuals-and-families/study-and-training-support-loans/when-must-you-repay-your-loan",
+            "https://www.ato.gov.au/individuals-and-families/super-for-individuals-and-families/super/growing-and-keeping-track-of-your-super/caps-limits-and-tax-on-super-contributions/division-293-tax-on-concessional-contributions-by-high-income-earners",
+            FBT_RATES,
+        ],
+    ),
 ];
 
 /// The car worksheets' reportable fringe benefits note, read from the ATO's
@@ -673,21 +706,98 @@ pub const EXTRA_WARNINGS: &[(&str, &[&str])] = &[
 
 /// A `foreign_resident_tax` warning for a year whose rates the ATO had not
 /// published when they were read from the Act.
-pub const FOREIGN_RESIDENT_YEAR_WARNINGS: &[(&str, &str)] = &[(
-    "2026-27",
-    "2026-27 uses the rates Income Tax Rates Act 1986 Schedule 7 Part II sets for the 2024-25 and later years, with the second and third resident personal tax rates for 2026-27 (30% and 37%), as compiled at 1 July 2026 (compilation 66). The ATO had not published 2026-27 foreign resident rates when this was checked on 14 November 2026, and a later Act can change them for 2026-27 and change this result.",
+pub const FOREIGN_RESIDENT_YEAR_WARNINGS: &[(&str, &str)] = &[
+    (
+        "2026-27",
+        "2026-27 uses the rates Income Tax Rates Act 1986 Schedule 7 Part II sets for the 2024-25 and later years, with the second and third resident personal tax rates for 2026-27 (30% and 37%), as compiled at 1 July 2026 (compilation 66). The ATO had not published 2026-27 foreign resident rates when this was checked on 14 November 2026, and a later Act can change them for 2026-27 and change this result.",
+    ),
+    (
+        "2027-28",
+        "2027-28 uses the rates Income Tax Rates Act 1986 Schedule 7 Part II sets for the 2024-25 and later years, with the second and third resident personal tax rates for 2027-28 (30% and 37%), as compiled at 1 July 2026 (compilation 66). The ATO had not published 2027-28 foreign resident rates when this was checked on 16 November 2026, and a later Act can change them for 2027-28 and change this result.",
+    ),
+];
+
+/// A `resident_tax` warning for a year whose rates the ATO had not published
+/// when they were read from the Act.
+pub const RESIDENT_TAX_YEAR_WARNINGS: &[(&str, &str)] = &[(
+    "2027-28",
+    "2027-28 uses the table Income Tax Rates Act 1986 Schedule 7 Part I sets for the 2027-28 and later years (14%, 30%, 37% and 45%), as compiled at 1 July 2026 (compilation 66). The ATO had not published 2027-28 resident rates when this was checked on 16 November 2026, and a later Act can change them for 2027-28 and change this result. From 2027-28 a resident can also owe extra income tax on a minimum tax capital gain (ITAA 1997 s 119-10, inserted by Act No. 49 of 2026), which this worksheet does not work out.",
 )];
 
 /// A `medicare_levy` warning for a year whose thresholds the ATO had not
 /// published when they were read from the Act.
-pub const MEDICARE_YEAR_WARNINGS: &[(&str, &str)] = &[(
-    "2026-27",
-    "2026-27 uses the threshold amounts, phase-in limits and family income thresholds Medicare Levy Act 1986 ss 3(1) and 8 set for 2025-26 and later years (Act No. 58, 2026, Sch 5 item 14). The ATO had not published 2026-27 thresholds when this was checked on 14 November 2026. That Act, assented on 30 June 2026, raised the figures for 2025-26, so a later Act can raise them for 2026-27 and change this result.",
-)];
+pub const MEDICARE_YEAR_WARNINGS: &[(&str, &str)] = &[
+    (
+        "2026-27",
+        "2026-27 uses the threshold amounts, phase-in limits and family income thresholds Medicare Levy Act 1986 ss 3(1) and 8 set for 2025-26 and later years (Act No. 58, 2026, Sch 5 item 14). The ATO had not published 2026-27 thresholds when this was checked on 14 November 2026. That Act, assented on 30 June 2026, raised the figures for 2025-26, so a later Act can raise them for 2026-27 and change this result.",
+    ),
+    (
+        "2027-28",
+        "2027-28 uses the threshold amounts, phase-in limits and family income thresholds Medicare Levy Act 1986 ss 3(1) and 8 set for 2025-26 and later years (Act No. 58, 2026, Sch 5 item 14), as compiled at 1 July 2026 (compilation 53). The ATO had not published 2027-28 thresholds when this was checked on 16 November 2026, and a later Act can raise them for 2027-28 and change this result.",
+    ),
+];
 
-/// A `seniors_pensioners_tax_offset` warning for 2026-27, whose thresholds the
+/// An `income_tests` warning when exempt foreign employment income is given
+/// with taxable income of $1 or more.
+pub const INCOME_TESTS_EXEMPT_FOREIGN_NOTE: &str = "income_for_surcharge_purposes leaves out exempt_foreign_employment_income, as ITAA 1997 s 995-1 'income for surcharge purposes' (compilation 268) does. The ATO's 'Medicare levy surcharge income, thresholds and rates' page (last updated 22 June 2026) adds it where taxable income is $1 or more. Neither the Medicare Levy Act 1986 (compilation 53) nor the A New Tax System (Medicare Levy Surcharge—Fringe Benefits) Act 1999 (compilation 42) adds it: s 3(1) of each gives the term s 995-1's meaning. Only the lump sum offset's one-eleventh test (ITAA 1997 s 61-580(1)(d)) counts it beside those amounts. The ATO's Division 293 page leaves it out. Confirm with the ATO before using income_for_surcharge_purposes for the surcharge.";
+
+/// A `seniors_pensioners_tax_offset` warning for a year whose thresholds the
 /// ATO had not published when they were worked from the regulations.
-pub const SAPTO_2026_27_NOTE: &str = "2026-27 thresholds are worked from the Income Tax Assessment (1936 Act) Regulations 2025 ss 9 and 10 with the 15% lowest marginal tax rate the Income Tax Rates Act 1986 sets for 2026-27. The ATO had published thresholds only to 2025-26 when this was checked on 14 November 2026.";
+pub const SAPTO_YEAR_NOTES: &[(&str, &str)] = &[
+    (
+        "2026-27",
+        "2026-27 thresholds are worked from the Income Tax Assessment (1936 Act) Regulations 2025 ss 9 and 10 with the 15% lowest marginal tax rate the Income Tax Rates Act 1986 sets for 2026-27. The ATO had published thresholds only to 2025-26 when this was checked on 14 November 2026.",
+    ),
+    (
+        "2027-28",
+        "2027-28 thresholds are worked from the Income Tax Assessment (1936 Act) Regulations 2025 ss 9 and 10 with the 14% lowest marginal tax rate the Income Tax Rates Act 1986 sets for 2027-28. The ATO had published thresholds only to 2025-26 when this was checked on 16 November 2026.",
+    ),
+];
+
+const WITHHOLDING_2027_28: &str = "The ATO had not published withholding schedules for payments from 1 July 2027 when this was checked on 16 November 2026.";
+const CGT_2027_28: &str = "From 2027-28 Schedule 1 to Act No. 49 of 2026 changes how capital gains are worked out, and this worksheet has not been checked against it.";
+const RENTAL_2027_28: &str = "From 2027-28 ITAA 1997 s 26-155 limits deductions for residential rental property, and this worksheet does not apply it.";
+
+/// Why a worksheet that takes an income year refuses 2027-28, added to its
+/// `period.unsupported` message: the figures not yet published, or the change
+/// in the law it does not apply.
+pub const UNPUBLISHED_2027_28: &[(&str, &str)] = &[
+    ("capital_gains", CGT_2027_28),
+    ("main_residence", CGT_2027_28),
+    ("borrowing_expenses", RENTAL_2027_28),
+    (
+        "depreciation",
+        "2027-28 has 366 days, and this worksheet takes at most 365 days held.",
+    ),
+    ("payg_withholding", WITHHOLDING_2027_28),
+    ("payg_gross_up", WITHHOLDING_2027_28),
+    ("study_loan_withholding", WITHHOLDING_2027_28),
+    ("schedule_5_method_a", WITHHOLDING_2027_28),
+    ("schedule_5_method_b_i", WITHHOLDING_2027_28),
+    ("schedule_5_method_b_ii", WITHHOLDING_2027_28),
+    ("working_holiday_maker_withholding", WITHHOLDING_2027_28),
+    ("seniors_pensioners_withholding", WITHHOLDING_2027_28),
+    (
+        "termination_payment",
+        "The 2027-28 ETP cap amounts and genuine redundancy tax-free limits had not been published when this was checked on 16 November 2026.",
+    ),
+    (
+        "contribution_caps",
+        "The 2027-28 contribution caps had not been published when this was checked on 16 November 2026.",
+    ),
+    (
+        "study_loan_repayment",
+        "The 2027-28 study and training loan repayment thresholds had not been published when this was checked on 16 November 2026.",
+    ),
+    (
+        "medicare_levy_surcharge",
+        "The 2027-28 Medicare levy surcharge income thresholds had not been published when this was checked on 16 November 2026.",
+    ),
+    (
+        "division_296",
+        "The 2027-28 indexed superannuation balance thresholds had not been published when this was checked on 16 November 2026.",
+    ),
+];
 
 /// A `medicare_levy` warning when s 8(3) shares the family reduction.
 pub const MEDICARE_SHARED_REDUCTION_NOTE: &str = "The family reduction is shared in proportion to taxable income (s 8(3)) and worked out exactly; each amount is rounded half up to cents only for display, so the displayed levy can differ by a cent from the displayed amounts it is worked out from.";
@@ -748,6 +858,10 @@ pub const REFUSAL_CODES: &[(&str, &str)] = &[
     (
         "estimate.residency_unsupported",
         "personal-tax-estimate was given a part-year resident or a working holiday maker, or a foreign resident with a part it composes for a resident only.",
+    ),
+    (
+        "estimate.scale_mismatch",
+        "personal-tax-estimate was given a withholding scale for a foreign resident with a resident, or one for a resident with a foreign resident.",
     ),
     (
         "estimate.surcharge_with_exemption",
@@ -842,6 +956,18 @@ pub const REFUSAL_CODES: &[(&str, &str)] = &[
         "A hire purchase agreement starts outside the income year given.",
     ),
     (
+        "income_tests.components_inconsistent",
+        "income-tests was given a component larger than the amount that includes it: taxable income, the assessable FHSS released amount or excess concessional contributions above assessable income, or exempt foreign employment income above target foreign income.",
+    ),
+    (
+        "income_tests.residency_unsupported",
+        "income-tests was given a part-year resident, a working holiday maker or a foreign resident.",
+    ),
+    (
+        "input.abn_invalid",
+        "An ABN is not a string of 11 ASCII digits, optionally spaced, that pass ABN Lookup's check digit test.",
+    ),
+    (
         "input.age_invalid",
         "An age is not a whole number of years from 0 to 150.",
     ),
@@ -890,6 +1016,10 @@ pub const REFUSAL_CODES: &[(&str, &str)] = &[
         "The method is neither prime_cost nor diminishing_value.",
     ),
     (
+        "input.donations_invalid",
+        "Donations are not a list of 1 to 10,000 objects.",
+    ),
+    (
         "input.effective_life_invalid",
         "An effective life is outside 0.01 to 1000 years.",
     ),
@@ -899,7 +1029,7 @@ pub const REFUSAL_CODES: &[(&str, &str)] = &[
     ),
     (
         "input.field_unknown",
-        "A field the worksheet or command does not take, or does not take beside the other inputs given, was given (fbt-loan, fbt-meal-entertainment, fbt-car-parking, fbt-debt-waiver, fbt-expense-payment, fbt-property, fbt-residual, fbt-housing, fbt-lafha, fbt-board, fbt-tax-exempt-body-entertainment, division-296, depreciation, foreign-resident-tax, medicare-levy, medicare-levy-surcharge, payg-withholding, payg-gross-up, termination-payment, the Schedule 5 methods, working-holiday-maker-withholding, study-loan-withholding, seniors-pensioners-withholding, seniors-pensioners-tax-offset, lump-sum-arrears-tax-offset, hire-purchase-schedule, derive and personal-tax-estimate only).",
+        "A field the worksheet or command does not take, or does not take beside the other inputs given, was given (fbt-loan, fbt-meal-entertainment, fbt-car-parking, fbt-debt-waiver, fbt-expense-payment, fbt-property, fbt-residual, fbt-housing, fbt-lafha, fbt-board, fbt-tax-exempt-body-entertainment, division-296, depreciation, foreign-resident-tax, medicare-levy, medicare-levy-surcharge, payg-withholding, payg-gross-up, termination-payment, the Schedule 5 methods, working-holiday-maker-withholding, study-loan-withholding, seniors-pensioners-withholding, seniors-pensioners-tax-offset, lump-sum-arrears-tax-offset, hire-purchase-schedule, derive, personal-tax-estimate, dgr-check and income-tests only).",
     ),
     ("input.flag_invalid", "A flag is not a JSON boolean."),
     ("input.fraction_invalid", "A fraction is outside 0 to 1."),
@@ -914,6 +1044,10 @@ pub const REFUSAL_CODES: &[(&str, &str)] = &[
         "A Medicare levy exemption is not none, full or half.",
     ),
     ("input.missing_field", "A required argument is absent."),
+    (
+        "input.name_invalid",
+        "A name is not a string of 1 to 200 characters with an ASCII letter or digit.",
+    ),
     ("input.not_object", "The JSON input is not an object."),
     (
         "input.opening_value_above_cost",
@@ -925,7 +1059,7 @@ pub const REFUSAL_CODES: &[(&str, &str)] = &[
     ),
     (
         "input.pay_periods_invalid",
-        "A count of pay periods is outside the range the method allows for the pay period.",
+        "A count of pay periods is outside the range the method or the income year allows for the pay period.",
     ),
     ("input.quarter_invalid", "A quarter is not 1, 2, 3 or 4."),
     (
