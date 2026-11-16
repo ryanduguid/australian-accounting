@@ -71,6 +71,7 @@ example evidence; it does not claim a fresh review of every supported period.
 | PAYG gross-up | Not a Library document: ATO Schedule 1 (NAT 1004) sample data for payments from 1 July 2026, and for 1 July 2024 to 30 June 2026, through the PAYG withholding worksheet | 17 June 2026 (published); 17 June 2024 (last updated) | The gross of one regular pay whose Schedule 1 withholding leaves an established net; refused where more than one gross does |
 | Study loan withholding | Not a Library document: ATO Schedule 8 (NAT 3539) for payments from 1 July 2026, and Schedule 8 of F2025L01016 for payments from 24 September 2025 | 17 June 2026 (published); 24 September 2025 (commenced) | Schedule 8 component on one regular weekly, fortnightly, monthly or quarterly pay, added to the Schedule 1 amount |
 | Study loan repayment | Not a Library document: the ATO minimum repayment income page and Gazette C2026G00249 | 13 October 2026 (ATO page) | Marginal repayment on established repayment income for 2025-26 and 2026-27; the loan-balance limit is outside the worksheet |
+| Income tests | Not a Library document: ITAA 1997 s 995-1 and s 293-20 (compilation 268), ITAA 1936 s 6(1) (compilation 193), HESA s 154-5 (compilation 105), Family Assistance Act Sch 3 (compilation 124), FBTAA ss 135N to 135Q, the co-contribution Act s 8 (compilation 28) and the ATO's Christina and Tom examples | 16 November 2026 (read); 13 October 2026 and 22 June 2026 (ATO pages) | 6 income measures of a full-year resident for 2024-25 to 2026-27 from established, classified components; the thresholds and tests they feed are outside it |
 
 The resident passage does not establish the engine's 2025–26 and 2026–27 rate
 coverage. Its existing 2026–27 regression and statutory source remain unchanged.
@@ -1705,6 +1706,75 @@ an exact $5 rounding up (cl 5). Because cl 3 pro-rates the factor, the engine
 rounds once, after pro-rating. The transition to retirement 10% maximum and the
 other pension schedules are outside this worksheet.
 
+## Income tests
+
+This worksheet's evidence is not a Library document. Read on 16 November 2026:
+ITAA 1997 s 995-1 and ss 4-15, 291-15, 293-20, 301-20 and 313-20 (compilation
+268, 1 October 2026); ITAA 1936 s 6(1) and s 251S (compilation 193, 1 October
+2026); HESA ss 154-5, 154-16 and 154-17 (compilation 105, 17 October 2026);
+the A New Tax System (Family Assistance) Act 1999 Sch 3 cls 2, 4, 5, 7 and 8
+(compilation 124, 1 July 2026); FBTAA ss 135N to 135Q; SISR reg 6.01(2)
+(compilation 159); the Superannuation (Government Co-contribution for Low
+Income Earners) Act 2003 s 8 (compilation 28, 1 July 2018); the ATO's
+'Income tests', its rebate income, adjusted taxable income, IT1 and A3
+instructions for 2025 and 2026, 'Medicare levy surcharge income, thresholds and
+rates' (last updated 22 June 2026), 'When you must repay your loan' (13
+October 2026), its Division 293 page (24 August 2026) and its FBT rates page
+(20 May 2026). The ITAA 1997, ITAA 1936 and Family Assistance Act compilations
+of 1 July 2024 (250, 184 and 119) define each measure as the current ones do,
+so the definitions cover 2024-25 to 2026-27; the 2026 compilation adds one tax
+free benefit to cl 7's list, which the operator classifies.
+
+| Measure | Sum | Provision |
+| --- | --- | --- |
+| Income for surcharge purposes | Taxable income without the FHSS amount, family trust distribution amounts, reportable fringe benefits total, reportable super contributions, total net investment loss | ITAA 1997 s 995-1 (a) to (d) |
+| Division 293 income | Income for surcharge purposes less reportable super contributions | ITAA 1997 s 293-20(1)(a) |
+| Rebate income | Taxable income without the FHSS amount, reportable super contributions, total net investment loss, adjusted fringe benefits total | ITAA 1936 s 6(1) |
+| Repayment income | Taxable income without the FHSS amount, total net investment loss, reportable fringe benefits total, exempt foreign employment income, reportable super contributions | HESA s 154-5(1) |
+| Adjusted taxable income | Taxable income without the FHSS amount, adjusted fringe benefits total, target foreign income, total net investment loss, tax free pensions, reportable super contributions, less child support paid | Family Assistance Act Sch 3 cl 2(1), disregarding cls 3 and 3A |
+| Co-contribution total income | Assessable income without the FHSS amount, reportable fringe benefits total, reportable employer contributions less excess concessional contributions (not below nil), less business deductions | Co-contribution Act s 8(1), (1A) and (2) |
+
+Reportable super contributions are reportable employer contributions and
+Subdivision 290-C deductions, reduced, but not below nil, by excess
+concessional contributions (s 995-1). The adjusted fringe benefits total takes
+a section 57A employer's amounts before FBTAA s 135Q(4)'s gross-up at
+1 / (1 - 47%), so at 53%; the ATO's 2025 and 2026 worksheets round that down
+to the dollar, and the worksheet does too. The s 301-20(3) amount income for
+surcharge purposes takes off is nil from 2024-25: it applies only below
+preservation age, which is 60 for anyone born after 30 June 1964 (SISR reg
+6.01(2)), and the ATO's surcharge page limits it to 2023-24 and earlier.
+Adjusted taxable income can be below nil, as cl 2(1) sets no floor.
+
+Section 995-1 does not add exempt foreign employment income to income for
+surcharge purposes, and nor does s 293-20 to Division 293 income. The ATO's
+surcharge page adds it where taxable income is $1 or more. The Medicare Levy
+Act 1986 (compilation 53, 1 July 2026) and the A New Tax System (Medicare Levy
+Surcharge—Fringe Benefits) Act 1999 (compilation 42, 1 July 2026), read on 16
+November 2026, do not add it: s 3(1) of each gives 'income for surcharge
+purposes' the ITAA 1997 meaning, and neither mentions ITAA 1936 s 23AF or
+23AG. The only provision read that counts it beside the surcharge amounts is
+the one-eleventh test for the surcharge lump sum offset (ITAA 1997
+s 61-580(1)(d)), which does not define the surcharge's income. The worksheet
+follows s 995-1 and warns when the two differ.
+The Commonwealth Seniors Health Card income test and family assistance
+adjusted taxable income are Services Australia's
+(https://www.servicesaustralia.gov.au/income-test-for-commonwealth-seniors-health-card),
+and the worksheet does not work them out.
+
+`tests/income_tests.rs` holds the worksheet to the ATO's Christina example
+(repayment income of $73,810 from taxable income of $50,420, a $1,250 total
+net investment loss, $4,560 of reportable fringe benefits, $2,580 of exempt
+foreign employment income and $15,000 of reportable super contributions) in
+all 3 years, and its Tom example (income for MLS purposes of $117,000 from
+$90,000 taxable income and $27,000 of fringe benefits, then $1,170 of
+surcharge from `medicare-levy-surcharge`). Jan's Division 293 example
+($240,000 and $15,000 give $750) runs from fabricated components through
+`division-293`. No ATO example breaks down rebate income, adjusted taxable
+income or co-contribution total income, so their cases are worked by hand
+from the provisions: the 53% rounding, excess concessional contributions,
+the FHSS amount, family trust distribution amounts, child support and
+business deductions.
+
 ## Personal tax estimate
 
 `personal-tax-estimate` adds no rate or threshold: each amount is a
@@ -1738,6 +1808,29 @@ $700 standard deduction, $84,300 taxable income, $15,810 tax, a $1,686 levy and
 $17,496, so $1,496 is payable after $16,000 withheld; $60,000 salary and $300
 of work expenses in 2025-26 give $59,700, $8,698 tax less a $104.50 offset plus
 a $1,194 levy, $9,787.50, and a $212.50 refund after $10,000 withheld.
+
+Tax withheld from regular pays, read on 16 November 2026: TAA 1953 Sch 1
+s 12-35 on the ATO legal database (an entity must withhold from salary, wages,
+commission, bonuses or allowances it pays an employee) and s 18-15(1) (the
+credit); the ATO's 'Tax tables' (last updated 17 June 2026), whose schedules
+from 1 July 2026 are the latest published; Schedule 1 (published 17 June
+2026), whose 'Using a formula' provides for 53 weekly and 27 fortnightly pays in a
+financial year, which bound `pays_in_year`; Schedule 5's 'Working out the withholding
+amount' (Method A spreads the additional payment over 52, 26 or 12 pay
+periods, or the periods a bonus for less than 12 months relates to, and its
+withholding is limited to 47% of the payment); and Schedule 9, which is for
+payees who declare that they are Australian residents for tax purposes. The
+estimate adds no rate: the tax withheld is the pay's own command's
+`withholding` times the pays, plus Method A's `withholding_on_additional_payment`.
+The tests work their figures by hand from the 2026-27 Schedule 1 scale 2
+coefficients (a = 0.3200 and b = 181.7319 below $2,596 a week): $3,269.23 a
+fortnight is $1,634.99 a week, $341 withheld a week and $682 a fortnight, and
+26 pays withhold $17,732 against the $17,496 above, a $236 refund. A $5,000
+bonus by Method A adds $192 a pay, so $3,461 a fortnight, $1,730.99 a week,
+$372 a week and $744 a fortnight; ($744 - $682) x 26 is $1,612, under the
+$2,350 limit, and the year withholds $19,344 against $19,096 on $90,000 of
+salary, a $248 refund. On scale 3 a foreign resident's $1,634.99 a week
+withholds $490, $25,480 over 26 fortnights, against 30% of $85,000, $25,500.
 
 The foreign income tax offset rules guides for 2025 (2024-25, last updated 29
 May 2025) and 2026 (2025-26, last updated 30 May 2026) give, at step 1 of
@@ -1783,6 +1876,55 @@ $19,830 of the guide's example 16 gives $5,949 in 2024-25 where a resident pays
 $260.80 and then nothing after the low income tax offset, and $250,000 gives
 $87,850, with Division 293 tax of 15% of $30,000, $4,500, outside the total.
 
+## Income year 2027-28
+
+Read on 16 November 2026 to decide which worksheets take 2027-28. A worksheet
+takes it only when every rate and threshold it uses is already set for that
+year; the others refuse it and say what is missing.
+
+| Parameter | 2027-28 | Source, time read (AEDT) |
+| --- | --- | --- |
+| Resident rates | Enacted: 14% to $45,000, 30% to $135,000, 37% to $190,000, 45% above, from $18,200 | Income Tax Rates Act 1986 Sch 7 Part I clause 1(b), compilation 66 (https://www.legislation.gov.au/C2004A03348/2026-07-01/2026-07-01/text/original/epub/OEBPS/document_1/document_1.html), 16:07; the ATO's 'Tax rates - Australian residents' gave years only to 2026-27 |
+| Foreign resident rates | Enacted: 30%, 37% and 45%, tied to the second and third resident rates | The same Act, Part II, 16:07; the ATO's 'Tax rates - foreign residents' gave none for 2027-28 |
+| Low income tax offset | Enacted, no year: $700, less 5 cents a dollar from $37,500 and 1.5 cents from $45,000 | ITAA 1997 s 61-115 (https://www.ato.gov.au/law/view/document?docid=PAC/19970038/61-115), 16:07 |
+| Medicare levy thresholds | Enacted: the 2025-26 figures, which Act No. 58, 2026 Sch 5 item 14 applies to later years | Medicare Levy Act 1986 ss 3(1) and 8, compilation 53 (https://www.legislation.gov.au/C2004A03351/2026-07-01/2026-07-01/text/original/epub/OEBPS/document_1/document_1.html), 16:08; the ATO's low-income page gave 2025-26 only |
+| SAPTO thresholds | Set by formula: s 9 and 10 at the 14% lowest rate give $37,137 and $54,977 single, $35,950 and $52,270 illness-separated, $32,822 and $45,638 a couple | Income Tax Assessment (1936 Act) Regulations 2025 (https://www.legislation.gov.au/F2025L01060/asmade/text), 16:09; the ATO's SAPTO page (last updated 2 October 2026) gave 2025-26 only |
+| Division 293 | Enacted, no year: $250,000 and 15% | ITAA 1997 s 293-20 (https://www.ato.gov.au/law/view/document?docid=PAC/19970038/293-20), 16:07 |
+| GST | Enacted, no year: 10% | GST Act s 9-70 (https://www.ato.gov.au/law/view/document?docid=PAC/19990055/9-70), 16:13 |
+| Pension minimum | Standing: SISR Schedule 7 age factors, pro-rated over 366 days in a leap year, to the nearest $10 | ATO 'Income stream (pension) rules and payments', 16:13 |
+| Working Australians tax offset | Enacted from 2027-28: the lesser of $250 and the basic income tax on net labour income, for a resident whose net labour income exceeds the tax-free threshold; applied first (s 63-10(1) item 3) | ITAA 1997 ss 61-150 to 61-160 and 63-10 (https://www.ato.gov.au/law/view/document?docid=PAC/19970038/61-160), 16:55; Act No. 49 of 2026 Sch 3, item 4 applying it to assessments for 2027-28 and later years (https://www.legislation.gov.au/C2026A00049/asmade/text), 16:59; the estimate applies it |
+| Minimum tax on capital gains | Enacted from 2027-28 for a resident | ITAA 1997 s 119-10 (https://www.ato.gov.au/law/view/document?docid=PAC/19970038/119-10), 16:13; not worked out, and `resident-tax` warns |
+| Withholding schedules | Not published: the latest are for payments from 1 July 2026 | ATO 'Tax tables' (https://www.ato.gov.au/tax-rates-and-codes/tax-tables-overview, last updated 17 June 2026), 15:58 |
+| Medicare levy surcharge thresholds | Not published; with no day without cover the surcharge is nil, as Medicare Levy Act 1986 ss 8B(1)(c), 8C(1)(c) and 8D(1)(b) and the Fringe Benefits Act ss 12(1)(b)(iii), 13(1)(b)(iii) and 14(1)(b) apply only to a period without private patient hospital cover | ATO thresholds page (last updated 22 June 2026, years to 2026-27), 16:07; both Acts as compiled at 1 July 2026, 17:05 |
+| Study loan repayment thresholds | Not published | ATO minimum repayment income page (last updated 30 June 2026, years to 2026-27), 16:07 |
+| Contribution caps, ETP caps | Not published | ATO contributions caps page (last updated 11 September 2026) and ETP page (17 April 2026), 16:07 |
+| Division 296 thresholds | Not published: indexed from 2027-28 | ATO Division 296 page (last updated 3 November 2026, 2026-27 only), 16:13 |
+| CGT and rental deductions | Changed from 1 July 2027 by Act No. 49 of 2026 Schedules 1 and 2 (s 26-155) | ITAA 1997 s 26-155 (https://www.ato.gov.au/law/view/document?docid=PAC/19970038/26-155), 16:13 |
+
+Worked by hand: resident tax on $45,000 is 14% of $26,800, $3,752; on
+$100,000, $3,752 + 30% of $55,000 = $20,252; on $250,000, $51,102 + 45% of
+$60,000 = $78,102. A foreign resident's $200,000 gives $40,500 + 37% of $55,000
++ 45% of $10,000 = $65,350. The Medicare levy on $30,000 is 10% of $1,989,
+$198.90. A single person's SAPTO threshold, from s 9(6) as (0.14 x 18,200 +
+445 + 2,230 + 37,000 x (0.015 + 0.30 - 0.14)) / 0.315, is $37,136.51, rounded
+up to $37,137. A pension of $250,000 at age 67 for 181 of 2027-28's 366 days
+has a minimum of 5% x 250,000 x 181 / 366 = $6,181.42, or $6,180.
+
+The working Australians tax offset, read on 16 November 2026 in Act No. 49 of
+2026 as made and on the ATO legal database: s 61-155(1) entitles an individual
+resident at any time in the year whose net labour income (labour amounts less
+labour deductions, s 61-155(2)) exceeds the tax-free threshold, $18,200 under
+the Income Tax Rates Act 1986 s 3(1); s 61-160 sets the offset as the lesser
+of $250 and the basic income tax liability on a taxable income of that net
+labour income alone; Sch 3 item 2 inserts it as s 63-10(1) item 3, before
+SAPTO (item 5) and the low income tax offset (item 20), non-refundable. No
+figure is left to an instrument. Worked by hand: $85,000 of salary, $300 of
+work expenses and the $700 standard deduction leave $84,000 of net labour
+income, whose tax of $15,452 gives the full $250; $19,000 gives 14% of $800,
+$112, and $18,201 gives 14 cents. The labour inputs' `work_related_deductions`
+are the s 25-130(2)(c) to (g) kinds, all labour deductions under
+s 61-155(2)(a) and (e), and the standard deduction is one under (c).
+
 ## Rechecking the evidence
 
 Resolve the numbered paragraph with the Library helper, read the extract's
@@ -1803,3 +1945,91 @@ means the document bytes changed; it does not establish that the rule changed.
 | `Tax/Deductions.md` | `d8134b72378f43b2f7c9d4312518a3d8974d2421e859e1e8e983eabd010302cb` |
 | `Tax/Depreciation.md` | `395195f3422f9695fee4ea409e34b241384002091b9ea67a8bbd75197d1912e1` |
 | `Superannuation/Instant Reference – Rates, Thresholds and Checklists.md` | `de94931c47597286f33e0a952ff1686cbe7120bca48def74d1a44dd388922bf6` |
+
+## DGR check
+
+`dgr-check` adds no rate; its rules and data were read on 16 November 2026
+(times UTC):
+
+- ITAA 1997 as compiled on 1 October 2026 (legislation.gov.au, C2004A05138,
+  Compilation No. 268, C2026C00471, read 00:19 and again 04:31): s 30-15, whose
+  table items 1 and 2 no longer hold a '$2 or more' condition for money; s
+  30-15(2), no deduction for a gift under a will; s 30-17, a fund, authority or
+  institution endorsed for operation; s 30-228(1), what a DGR's receipt for a
+  gift states; s 30-229, the Register's DGR statements, with note 1, that an
+  entry or its lack does not affect deductibility, and note 2, that an entity
+  described or named in Subdivision 30-A with an ABN has one too, endorsed or
+  not.
+- Treasury Laws Amendment (Delivering an Efficient and Trusted Tax System) Act
+  2026, No. 58, 2026, as made (C2026A00058, assented to on 30 June 2026, read
+  00:21 and again 04:31): Sch 1 items 1 to 6 repeal the '$2 or more'
+  conditions, s 2 table item 2 commences Sch 1 on the first 1 January, 1
+  April, 1 July or 1 October after assent (1 July 2026), and item 7 applies the
+  repeal to gifts and contributions made on or after 1 July 2024. The ATO's
+  page below says the same.
+- The ATO's "Gifts and donations" (last updated 6 July 2026, read 00:20 and
+  again 04:31): a
+  gift is a voluntary transfer of money or property with no material benefit
+  or advantage in return, a deduction needs a record such as a receipt, and
+  DGR status is checked at ABN Lookup. s 30-228 sets what a DGR's receipt
+  states.
+- ABN Lookup's "ABN format" (read 00:27), whose worked example ABN
+  51 824 753 556 the tests use, and its disclaimer (read 00:27).
+- The ABN Bulk Extract on data.gov.au (read 00:18): weekly, current details
+  only, Creative Commons Attribution 3.0 Australia, with its readme and XML
+  schema. The `DGR` element carries a status date and, for an endorsement only
+  for the operation of a fund, authority or institution, the fund's name; it
+  carries no DGR item and no end date.
+
+The data is the extract of 11 November 2026 (extract time 2026-11-11T12:20:05),
+downloaded at 00:25 to 00:29 as `public_split_1_10.zip` (501,188,909 bytes,
+SHA-256 `d6ce13ba5682848163e1560635fc2f6dbc5da0531590129f56b986471b3e77c9`)
+and `public_split_11_20.zip` (500,936,917 bytes, SHA-256
+`7cef0479739f648834464adf67fddd9f094d733a05b2010983750494ed1fa4ae`), 12.7 GB
+of XML in 20 files. `examples/dgr_register.rs` read all 20,658,780 ABN records,
+each file's count matching its `RecordCount`, and kept 31,876 ABNs with DGR
+entries: 26,456 entries for an entity itself and 8,821 for a fund, authority or
+institution, 55 of them with an empty fund name. No individual's record had a
+DGR entry. A `DGR` element for a fund carries a `NonIndividualName` and no
+`status`; one for the entity itself carries `status="ACT"` and no name. The 55
+carry an empty name: read at first as the entity's own entries, they were
+rebuilt as funds after ABN Lookup was found to list them so (below). The raw
+files were deleted after each run.
+
+The data was compared with ABN Lookup's DGR listing downloads
+(https://abr.business.gov.au/Tools/DgrListing, read again at 04:33, after the
+ABN Lookup maintenance of 13 to 16 November). They were used only to check the
+data, as ABN Lookup states no licence for them. Of the 26,456 entity entries,
+26,451 match by ABN and start date. The other 5 ABNs are in neither listing:
+ABN Lookup showed 2 of them (read 04:34 and 06:12) as not currently entitled,
+with the ABN last updated on 11 and 13 November, at or after the extract. The
+listing has 35 entity entries for ABNs not in the data, most starting in 2026;
+the 3 earliest-starting showed the ABN last updated on 11 or 13 November. In
+each case read, the difference is timing: the record changed at or after the
+extract. Of the 8,821 fund entries, 8,753 match by ABN, start date and name, and
+66 more once the listing's ' (Public giving fund)' suffix is removed; the
+other 2 differ in the name only. The listing has 8 fund rows not in the data.
+The listing also gives the DGR item, which the extract does not.
+
+The 55 unnamed fund entries were found in that comparison: the listing gives
+each as a fund row with no name, and ABN Lookup's pages for the 3 such ABNs read
+(04:34) list the entry under the funds an entity operates, with no name. For
+one of them, the Ensemble Theatre Foundation, the entity is endorsed itself
+only from 1 January 2024; read as its own entry, the unnamed fund from 1 July
+2000 would have shown a 2010 gift to the entity as made to a DGR.
+
+`tests/dgr_check.rs` uses 5 ABNs read the same in the listing: an entity
+endorsed itself from 1 March 2006 and for a building fund from 1 July 2000; a
+school endorsed only for its building fund; a cancelled ABN whose library fund
+is listed as cancelled; the Ensemble Theatre Foundation above; and the
+Arthritis Foundation of Australia, Item 1, Endorsed DGR. The Library's worked example ¶7-020 (Tax Examples, Individuals,
+reviewed 30 June 2025) deducts a $250 donation in 2024-25 to 'the Arthritis
+Foundation' under s 30-15; by name the check gives only candidates, and with
+the receipt's ABN it reads the entity as endorsed on the date.
+
+No rival read on 16 November 2026 (00:25 to 00:26) offers a DGR check:
+Nagaris's `llms.txt` and skills page, LodgeiT's `llms.txt` and calculators
+page, `au-compliance-kit` at e94cef24 and `william-laverty/ato-mcp` at
+d3d84941. ABN Lookup itself shows each ABN's DGR status and history, and its
+keyed web services, which need a registered GUID, would add both; this
+command uses only the open bulk data.

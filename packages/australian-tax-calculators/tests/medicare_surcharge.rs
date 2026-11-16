@@ -282,12 +282,12 @@ fn inputs_the_worksheet_cannot_settle_are_refused() {
         (
             json!({"year": "2023-24"}),
             "period.unsupported",
-            "Unsupported period '2023-24'; supported: 2024-25, 2025-26, 2026-27.",
+            "Unsupported period '2023-24'; supported: 2024-25, 2025-26, 2026-27, 2027-28.",
         ),
         (
             json!({"year": "2027-28"}),
             "period.unsupported",
-            "Unsupported period '2027-28'; supported: 2024-25, 2025-26, 2026-27.",
+            "2027-28 is supported only with days_without_cover 0, when no surcharge applies. The 2027-28 Medicare levy surcharge income thresholds had not been published when this was checked on 16 November 2026.",
         ),
     ] {
         assert_eq!(
@@ -329,5 +329,5 @@ fn the_catalogue_example_is_the_tom_example() {
     let result = api::evaluate(COMMAND, &facts).unwrap();
     assert_eq!(result["amounts"]["medicare_levy_surcharge"], "1170.00");
     let periods = api::evaluate("periods", &json!({"kind": "medicare_levy_surcharge"})).unwrap();
-    assert_eq!(periods.as_array().unwrap().len(), 3);
+    assert_eq!(periods.as_array().unwrap().len(), 4);
 }

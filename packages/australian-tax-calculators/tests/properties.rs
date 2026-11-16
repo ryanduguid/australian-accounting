@@ -2086,3 +2086,85 @@ fn the_composed_estimate_is_the_sum_of_its_parts_called_alone() {
         assert!(eq(&amount(&out, "division_293_tax"), &div293), "{facts}");
     }
 }
+
+/// An ABN passes ABN Lookup's check digit test: subtract 1 from the first
+/// digit, weight the digits and the sum divides by 89.
+fn abn_valid(abn: &str) -> bool {
+    let weights = [10, 1, 3, 5, 7, 9, 11, 13, 15, 17, 19];
+    let digits = abn.bytes().map(|b| u32::from(b - b'0'));
+    let sum: u32 = digits
+        .zip(weights)
+        .enumerate()
+        .map(|(i, (d, w))| (d - u32::from(i == 0)) * w)
+        .sum();
+    abn.as_bytes()[0] != b'0' && sum.is_multiple_of(89)
+}
+
+/// `dgr-check` never reads an ABN in its data as absent, never reads one
+/// absent as anything but not shown, and always leaves the gift, its
+/// conditions and its record open: DGR status alone never makes a payment
+/// deductible (ITAA 1997 s 30-15, s 30-228).
+#[test]
+fn dgr_check_keeps_its_data_and_never_calls_a_payment_deductible() {
+    let data = include_str!("../data/dgr-register.jsonl");
+    let rows: Vec<Vec<Value>> = data
+        .lines()
+        .skip(1)
+        .map(|l| serde_json::from_str(l).unwrap())
+        .collect();
+    let held: std::collections::HashSet<&str> =
+        rows.iter().map(|r| r[0].as_str().unwrap()).collect();
+    let mut rng = Rng(0x0016_1126);
+    for _ in 0..300 {
+        let row = rng.pick(&rows);
+        let date = format!(
+            "{}-{:02}-{:02}",
+            rng.int(2000, 2026),
+            rng.int(1, 12),
+            rng.int(1, 28)
+        );
+        let date = if date.as_str() > "2026-11-11" {
+            "2026-11-11".to_string()
+        } else {
+            date
+        };
+        let mut abn = String::new();
+        while abn.is_empty() || !abn_valid(&abn) || held.contains(abn.as_str()) {
+            abn = format!("{}", rng.int(10_000_000_000, 99_999_999_999));
+        }
+        let donations = json!([
+            {"abn": row[0], "date": date, "amount": rng.pay()},
+            {"abn": abn, "date": date},
+        ]);
+        let out = api::evaluate("dgr-check", &json!({"donations": donations})).unwrap();
+        let [shown, absent] = [0, 1].map(|i| out["donations"][i].clone());
+        assert_eq!(shown["register"], "shown_as_dgr", "{donations}");
+        let reading = shown["on_payment_date"].as_str().unwrap();
+        let expected: &[&str] = if row[1] == "CAN" && row[2].as_str().unwrap() <= date.as_str() {
+            &["abn_cancelled"]
+        } else {
+            &["shown", "shown_for_a_fund", "not_shown"]
+        };
+        assert!(expected.contains(&reading), "{donations} {reading}");
+        assert_eq!(absent["register"], "not_shown_as_dgr", "{donations}");
+        for result in [&shown, &absent] {
+            let first: Vec<&str> = result["conditions"].as_array().unwrap()[..3]
+                .iter()
+                .map(|c| c["condition"].as_str().unwrap())
+                .collect();
+            assert_eq!(
+                first,
+                ["a_gift", "gift_conditions", "record"],
+                "{donations}"
+            );
+            assert!(
+                result["conditions"]
+                    .as_array()
+                    .unwrap()
+                    .iter()
+                    .all(|c| c["status"] != "met" || c["condition"] == "two_dollar_minimum")
+            );
+        }
+        assert!(!out.to_string().contains("is deductible"), "{donations}");
+    }
+}
