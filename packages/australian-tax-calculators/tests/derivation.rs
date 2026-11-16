@@ -13,7 +13,7 @@ use std::io::Write;
 use std::process::{Command, Stdio};
 
 /// The commands `derive` explains.
-const DERIVED: [&str; 42] = [
+const DERIVED: [&str; 44] = [
     "fbt",
     "fbt-car-statutory",
     "fbt-car-operating-cost",
@@ -55,7 +55,9 @@ const DERIVED: [&str; 42] = [
     "gst",
     "depreciation",
     "hire-purchase-schedule",
+    "lump-sum-arrears-tax-offset",
     "income-tests",
+    "business-capital-expenditure",
 ];
 
 /// (command, input) for each derived kind: the ATO's published examples and
@@ -2040,7 +2042,7 @@ fn derive_refuses_what_it_does_not_explain() {
          medicare-levy, medicare-levy-surcharge, division-296, contribution-caps, \
          study-loan-repayment, capital-gains, main-residence, fbt-residual, fbt-housing, \
          fbt-lafha, fbt-board, fbt-tax-exempt-body-entertainment, gst, depreciation, \
-         hire-purchase-schedule, income-tests, not \"payg-gross-up\""
+         hire-purchase-schedule, lump-sum-arrears-tax-offset, income-tests, business-capital-expenditure, not \"payg-gross-up\""
     );
 }
 
@@ -3663,6 +3665,53 @@ fn caps(facts: &str) -> Value {
     input
 }
 
+/// Contribution caps cases with the unused cap worked out by year: the ATO's
+/// Sam example (2024-25), the hand-worked history of `tests/contribution_caps.rs`
+/// with an earlier year's increase and a proposal (2025-26), and Sam's years at
+/// a $500,000 balance.
+const CAPS_BY_YEAR: [(&str, &str); 3] = [
+    (
+        "by_year_sam",
+        r#"{"year": "2024-25", "concessional_contributions": "97500", "earlier_concessional_contributions": [
+            {"year": "2019-20", "concessional_contributions": "11000"},
+            {"year": "2020-21", "concessional_contributions": "12000"},
+            {"year": "2021-22", "concessional_contributions": "13000"},
+            {"year": "2022-23", "concessional_contributions": "14000"},
+            {"year": "2023-24", "concessional_contributions": "15000"}]}"#,
+    ),
+    (
+        "by_year_drawn",
+        r#"{"total_super_balance": "400000", "concessional_contributions": "40000",
+            "proposed_concessional_contribution": "20000", "earlier_concessional_contributions": [
+            {"year": "2018-19", "concessional_contributions": "5000"},
+            {"year": "2019-20", "concessional_contributions": "25000"},
+            {"year": "2020-21", "concessional_contributions": "15000"},
+            {"year": "2021-22", "concessional_contributions": "27500"},
+            {"year": "2022-23", "concessional_contributions": "50000", "total_super_balance": "300000"},
+            {"year": "2023-24", "concessional_contributions": "7500"},
+            {"year": "2024-25", "concessional_contributions": "30000"}]}"#,
+    ),
+    (
+        "by_year_at_limit",
+        r#"{"year": "2024-25", "total_super_balance": "500000", "concessional_contributions": "40000", "earlier_concessional_contributions": [
+            {"year": "2019-20", "concessional_contributions": "11000"},
+            {"year": "2020-21", "concessional_contributions": "12000"},
+            {"year": "2021-22", "concessional_contributions": "13000"},
+            {"year": "2022-23", "concessional_contributions": "14000"},
+            {"year": "2023-24", "concessional_contributions": "15000"}]}"#,
+    ),
+];
+
+fn caps_by_year(facts: &str) -> Value {
+    let mut input = caps(r#"{"defined_benefit_interest": false}"#);
+    input
+        .as_object_mut()
+        .unwrap()
+        .remove("unused_concessional_cap");
+    merge(&mut input, serde_json::from_str(facts).unwrap());
+    input
+}
+
 /// Study loan repayment cases: the ATO page's examples 1 to 3 (read on 15
 /// November 2026 at 12:23 AEDT) and the minimum repayment income.
 const STUDY_LOAN: [(&str, &str, &str); 5] = [
@@ -3756,6 +3805,9 @@ fn super_and_cgt_cases() -> Vec<(&'static str, &'static str, Value)> {
     }
     for (name, facts) in CAPS {
         cases.push((name, "contribution-caps", caps(facts)));
+    }
+    for (name, facts) in CAPS_BY_YEAR {
+        cases.push((name, "contribution-caps", caps_by_year(facts)));
     }
     for (name, income, year) in STUDY_LOAN {
         cases.push((name, "study-loan-repayment", study_loan(income, year)));
@@ -4001,6 +4053,42 @@ fn the_main_residence_steps_apportion_by_days() {
     assert_eq!(
         working_in(&loss, "exempt_capital_loss"),
         "capital_loss - assessable_capital_loss = 10000.00 - 2199.82 = 7800.18"
+    );
+}
+
+/// Each carry-forward step names the provision and the years it works on:
+/// 2022-23's increase applies 2018-19's unused cap first (s 291-20(5)).
+#[test]
+fn the_carry_forward_steps_work_each_year_earliest_first() {
+    let drawn = super_and_cgt_doc("by_year_drawn");
+    assert_eq!(
+        working_in(&drawn, "unused_cap_2018_19"),
+        "max(0, concessional_cap_2018_19 - 5000) = max(0, 25000 - 5000) = 20000"
+    );
+    assert_eq!(
+        working_in(&drawn, "applied_2020_21_in_2022_23"),
+        "min(unused_cap_2020_21, 50000 - concessional_cap_2022_23 - applied_2018_19_in_2022_23) = min(10000, 50000 - 27500 - 20000) = 2500"
+    );
+    assert!(
+        authority_in(&drawn, "applied_2020_21_in_2022_23")
+            .starts_with("ITAA 1997 s 291-20(3) to (5)")
+    );
+    assert_eq!(
+        working_in(&drawn, "unused_concessional_cap"),
+        "carried_forward_2020_21 + carried_forward_2021_22 + carried_forward_2022_23 + carried_forward_2023_24 + carried_forward_2024_25 = 7500 + 0 + 0 + 20000 + 0 = 27500"
+    );
+    assert_eq!(
+        working_in(&drawn, "applied_2023_24_in_2025_26"),
+        "min(carried_forward_2023_24, max(0, contributions_with_proposal - concessional_cap) - applied_2020_21_in_2025_26) = min(20000, max(0, 60000 - 30000) - 7500) = 20000"
+    );
+    assert_eq!(
+        working_in(&drawn, "excess_with_proposal"),
+        "max(0, contributions_with_proposal - concessional_available) = max(0, 60000 - 57500) = 2500"
+    );
+    let sam = super_and_cgt_doc("by_year_sam");
+    assert_eq!(
+        working_in(&sam, "unused_cap_expiring"),
+        "remaining_2019_20 = 0 = 0"
     );
 }
 

@@ -10,7 +10,8 @@ use std::process::{Command, Stdio};
 
 /// Worksheets added after Python 0.2.0, so absent from the frozen corpus;
 /// `tests/fbt_car.rs`, `tests/main_residence.rs`,
-/// `tests/borrowing_expenses.rs`, `tests/hire_purchase.rs`, `tests/division_296.rs`,
+/// `tests/borrowing_expenses.rs`, `tests/hire_purchase.rs`,
+/// `tests/business_capital_expenditure.rs`, `tests/division_296.rs`,
 /// `tests/termination_payment.rs`, `tests/unused_leave_payment.rs`, `tests/schedule_5.rs`,
 /// `tests/working_holiday_maker.rs`, `tests/seniors_pensioners.rs`,
 /// `tests/seniors_pensioners_offset.rs`, `tests/medicare_surcharge.rs`,
@@ -19,9 +20,10 @@ use std::process::{Command, Stdio};
 /// `tests/fbt_debt_waiver.rs`, `tests/fbt_expense_payment.rs`,
 /// `tests/fbt_property.rs`, `tests/fbt_residual.rs`, `tests/fbt_housing.rs`,
 /// `tests/fbt_lafha.rs`, `tests/fbt_board.rs`,
-/// `tests/fbt_tax_exempt_body_entertainment.rs` and `tests/income_tests.rs`
-/// cover them.
-const NEW_KINDS: [(&str, &str); 29] = [
+/// `tests/fbt_tax_exempt_body_entertainment.rs`, `tests/lump_sum_arrears_offset.rs`,
+/// `tests/fbt_entertainment_classifier.rs` and `tests/income_tests.rs` cover
+/// them.
+const NEW_KINDS: [(&str, &str); 32] = [
     ("fbt-car-statutory", "fbt_car_statutory"),
     ("fbt-car-operating-cost", "fbt_car_operating_cost"),
     ("fbt-loan", "fbt_loan"),
@@ -33,6 +35,10 @@ const NEW_KINDS: [(&str, &str); 29] = [
     ("main-residence", "main_residence"),
     ("borrowing-expenses", "borrowing_expenses"),
     ("hire-purchase-schedule", "hire_purchase_schedule"),
+    (
+        "business-capital-expenditure",
+        "business_capital_expenditure",
+    ),
     ("division-296", "division_296"),
     ("termination-payment", "termination_payment"),
     ("unused-leave-payment", "unused_leave_payment"),
@@ -61,6 +67,11 @@ const NEW_KINDS: [(&str, &str); 29] = [
     (
         "fbt-tax-exempt-body-entertainment",
         "fbt_tax_exempt_body_entertainment",
+    ),
+    ("lump-sum-arrears-tax-offset", "lump_sum_arrears_tax_offset"),
+    (
+        "fbt-entertainment-classifier",
+        "fbt_entertainment_classifier",
     ),
     ("income-tests", "income_tests"),
 ];
@@ -151,6 +162,7 @@ fn adapt(command: &str, input: &Value, mut expected: Value) -> Value {
     adapt_fbt(command, input, &mut expected);
     adapt_medicare(command, input, &mut expected);
     adapt_depreciation(command, &mut expected);
+    adapt_contribution_caps(command, &mut expected);
     adapt_2027_28(command, input, &mut expected);
     let study = match command {
         "study-loan-repayment" => expected.pointer_mut("/ok"),
@@ -468,6 +480,38 @@ fn adapt_depreciation(command: &str, expected: &mut Value) {
         );
         record["optional_inputs"] = json!({"opening_adjustable_value":
             "AUD, for a year after the start time only: cost less the decline in value of earlier years, not the deductions; omit in the start year"});
+    }
+}
+
+/// `contribution-caps` can also work out the unused concessional cap from each
+/// earlier year's contributions (CHANGELOG.md): its scope says so, it cites the
+/// ATO's concessional contributions cap page and s 291-20, and the catalogue
+/// lists the new optional inputs. A supplied total gives the same amounts.
+fn adapt_contribution_caps(command: &str, expected: &mut Value) {
+    let old_scope = "unused concessional cap is the established total of unexpired amounts from the previous 5 years. Excludes";
+    let record = match command {
+        "contribution-caps" => expected.pointer_mut("/ok"),
+        "worksheet-catalogue" => expected.pointer_mut("/ok/contribution_caps"),
+        _ => None,
+    };
+    let Some(record) = record else {
+        return;
+    };
+    let current = &worksheet_catalogue()["contribution_caps"];
+    let scope = record["scope"].as_str().unwrap();
+    assert!(
+        scope.contains(old_scope),
+        "frozen contribution caps scope changed"
+    );
+    record["scope"] = current["scope"].clone();
+    record["sources"]
+        .as_array_mut()
+        .unwrap()
+        .extend(current["sources"].as_array().unwrap()[1..].iter().cloned());
+    record["source_checked"] = json!("2026-11-16");
+    if command == "worksheet-catalogue" {
+        record["source_passage"] = current["source_passage"].clone();
+        record["optional_inputs"] = current["optional_inputs"].clone();
     }
 }
 

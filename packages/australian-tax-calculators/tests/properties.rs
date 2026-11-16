@@ -1297,6 +1297,110 @@ fn second_fbt_benefit_values_reconcile_and_never_fall_below_nil() {
     }
 }
 
+/// Random entertainment lines under each valuation method: each line's class
+/// costs add up to its cost, every cost is either classified or undetermined,
+/// no class's deduction and GST credit together exceed its cost, a cost
+/// without GST gives no credit, and an elected method's expenditure is the
+/// meal entertainment lines' cost.
+#[test]
+fn entertainment_classes_add_up_and_never_exceed_their_cost() {
+    let mut rng = Rng(0xE27_1997);
+    let provided = [
+        "food_or_drink",
+        "recreation",
+        "accommodation_or_travel_for_food_or_drink",
+        "accommodation_or_travel_for_recreation",
+    ];
+    let occasions = [
+        None,
+        Some("social_function"),
+        Some("business_meal"),
+        Some("with_other_entertainment"),
+        Some("light_refreshments"),
+        Some("travel_meal"),
+    ];
+    let venues = [
+        "business_premises_working_day",
+        "business_premises_other_day",
+        "elsewhere",
+    ];
+    let methods = ["actual", "50_50_split", "12_week_register"];
+    let sum = |a: &Decimal, b: &Decimal| a.add(b).unwrap();
+    for _ in 0..RUNS {
+        let method = *rng.pick(&methods);
+        let mut lines = Vec::new();
+        for _ in 0..rng.int(1, 4) {
+            let what = *rng.pick(&provided);
+            let mut heads = [0, 0, 0].map(|_| rng.int(0, 5));
+            if heads == [0, 0, 0] {
+                heads[rng.int(0, 2) as usize] = rng.int(1, 5);
+            }
+            let mut line = json!({
+                "cost": rng.cents(100_000_000),
+                "gst_status": if rng.bool() { "includes_gst" } else { "no_gst" },
+                "provided": what, "venue": rng.pick(&venues),
+                "paid_by": if rng.bool() { "employer" } else { "reimbursed" },
+                "attendees": {"employees": heads[0], "associates": heads[1], "others": heads[2]},
+                "infrequent_and_irregular": rng.bool(),
+            });
+            if let (true, Some(occasion)) = (what.ends_with("food_or_drink"), rng.pick(&occasions))
+            {
+                line["occasion"] = json!(occasion);
+            }
+            lines.push(line);
+        }
+        let mut input = json!({"lines": lines, "income_tax_exempt": false, "method": method,
+            "year_ended": rng.int(2026, 2027), "scope_confirmed": true});
+        if method == "12_week_register" {
+            input["income_tax_register_percentage"] = json!(rng.int(0, 100).to_string());
+        }
+        let result = run("fbt-entertainment-classifier", input);
+        let mut costs = n(0);
+        let mut meal = n(0);
+        let (mut deductible, mut credit) = (n(0), n(0));
+        for (given, out) in lines.iter().zip(result["lines"].as_array().unwrap()) {
+            let cost = d(given["cost"].as_str().unwrap());
+            costs = sum(&costs, &cost);
+            if out["entertainment"] == "meal_entertainment" {
+                meal = sum(&meal, &cost);
+            }
+            let Some(classes) = out["classes"].as_array() else {
+                continue;
+            };
+            let mut parts = n(0);
+            for class in classes {
+                let part = d(class["cost"].as_str().unwrap());
+                parts = sum(&parts, &part);
+                let (Some(deducted), Some(credited)) =
+                    (class["deductible"].as_str(), class["gst_credit"].as_str())
+                else {
+                    continue;
+                };
+                let (deducted, credited) = (d(deducted), d(credited));
+                assert!(le(&n(0), &deducted) && le(&n(0), &credited), "{result}");
+                assert!(le(&sum(&deducted, &credited), &part), "{result}");
+                if given["gst_status"] == "no_gst" {
+                    assert!(eq(&credited, &n(0)), "{result}");
+                }
+                deductible = sum(&deductible, &deducted);
+                credit = sum(&credit, &credited);
+            }
+            assert!(eq(&parts, &cost), "{given} {result}");
+        }
+        let classified = sum(
+            &amount(&result, "cost"),
+            &amount(&result, "undetermined_cost"),
+        );
+        assert!(eq(&classified, &costs), "{result}");
+        assert!(eq(&amount(&result, "deductible"), &deductible), "{result}");
+        assert!(eq(&amount(&result, "gst_credit"), &credit), "{result}");
+        if method != "actual" {
+            let expenditure = amount(&result, "meal_entertainment_expenditure");
+            assert!(eq(&expenditure, &meal), "{result}");
+        }
+    }
+}
+
 /// Random alternating lived and absent runs, income use on some days and
 /// choice periods after some lived runs. Inputs the worksheet refuses as out
 /// of scope are skipped; the market value basis is retried when it applies.
@@ -1410,6 +1514,80 @@ fn borrowing_expense_maximums_carry_forward_and_add_up() {
         assert!(
             eq(&total, &d(&expenditure)) && eq(&carried, &n(0)),
             "{expenditure}"
+        );
+    }
+}
+
+/// Business capital expenditure (ITAA 1997 s 40-880), whatever the items:
+/// each item's schedule adds up to its deductible expenditure, no year takes
+/// more than a fifth of it unless s 40-880(2A) takes it all in the year
+/// incurred, and the year's deduction and what remains after it are the
+/// schedules' rows for and after that year, to the cent.
+#[test]
+fn business_capital_schedules_add_up_to_the_deductible_expenditure() {
+    let mut rng = Rng(0x4088_0002);
+    let years = supported_periods("business_capital_expenditure");
+    for _ in 0..RUNS {
+        let asked = rng.int(0, years.len() as i64 - 1) as usize;
+        let items: Vec<Value> = (0..rng.int(1, 4))
+            .map(|_| {
+                let incurred = years[rng.int(0, asked as i64) as usize];
+                let share = *rng.pick(&["1", "0.5", "0.875", "0.333", "0"]);
+                let excluded = rng.int(0, 4) == 0;
+                let mut item = json!({
+                    "amount": rng.money(), "incurred_in": incurred, "capital": true,
+                    "business": "current", "taxable_purpose": share,
+                    "exclusions": if excluded { json!(["5(i)"]) } else { json!([]) },
+                });
+                if rng.bool() {
+                    let kind = *rng.pick(&["advice_or_services", "government_fees", "neither"]);
+                    item["business"] = json!("proposed");
+                    item["carried_on_by"] = json!("you");
+                    item["within_reasonable_time"] = json!(true);
+                    item["start_up_expense"] = json!(kind);
+                    if kind != "neither" {
+                        let test = *rng.pick(&["small_business_entity", "covered_by_2b", "none"]);
+                        item["entity_test"] = json!(test);
+                    }
+                }
+                item
+            })
+            .collect();
+        let facts = json!({"items": items, "year": years[asked], "scope_confirmed": true});
+        let r = run("business-capital-expenditure", facts.clone());
+        let (mut deduction, mut remaining) = (n(0), n(0));
+        for row in r["items"].as_array().unwrap() {
+            let deductible = d(row["deductible_expenditure"].as_str().unwrap());
+            let fifth = deductible.div(&n(5)).unwrap();
+            let at_once = row["method"]
+                .as_str()
+                .is_some_and(|m| m.starts_with("ITAA 1997 s 40-880(2A)"));
+            let mut total = n(0);
+            for entry in row["schedule"].as_array().unwrap() {
+                let value = d(entry["deduction"].as_str().unwrap());
+                assert!(at_once || le(&value, &fifth), "{facts}");
+                total = total.add(&value).unwrap();
+                let year = entry["income_year"].as_str().unwrap();
+                if year == years[asked] {
+                    deduction = deduction.add(&value).unwrap();
+                    assert!(
+                        eq(&d(row["deduction"].as_str().unwrap()), &value),
+                        "{facts}"
+                    );
+                } else if year > years[asked] {
+                    remaining = remaining.add(&value).unwrap();
+                }
+            }
+            assert!(eq(&total, &deductible), "{facts}");
+        }
+        let cents = |v: Decimal| v.quantize(-2, Rounding::HalfUp).unwrap();
+        assert!(eq(&amount(&r, "deduction"), &cents(deduction)), "{facts}");
+        assert!(
+            eq(
+                &amount(&r, "remaining_expenditure_after_year"),
+                &cents(remaining)
+            ),
+            "{facts}"
         );
     }
 }

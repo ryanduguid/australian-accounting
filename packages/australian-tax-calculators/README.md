@@ -3,7 +3,7 @@
 Australian Tax Calculators 1.0.0 is a standalone Rust binary. It replaces the
 Python `australian-tax-calculators` 0.2.0 package and its `austaxcalc` import
 API, with the same 14 worksheets, results and refusals, and adds 2 FBT car
-worksheets, FBT loan, meal entertainment, car parking, debt waiver, expense payment, property, residual, housing, living-away-from-home allowance, board and tax-exempt body entertainment worksheets, a main residence worksheet, a borrowing expenses worksheet, a Division 296 estimate, a termination payment worksheet, an unused leave payment worksheet, 3 Schedule 5 withholding worksheets, a Schedule 15 working holiday maker worksheet, a Schedule 9 seniors and pensioners worksheet, a seniors and pensioners tax offset worksheet, a Medicare levy surcharge worksheet, a foreign resident tax worksheet, a PAYG gross-up worksheet and a hire purchase schedule that no Python release contains. Python releases through 0.1.9
+worksheets, FBT loan, meal entertainment, car parking, debt waiver, expense payment, property, residual, housing, living-away-from-home allowance, board and tax-exempt body entertainment worksheets, an entertainment classifier, a main residence worksheet, a borrowing expenses worksheet, a Division 296 estimate, a termination payment worksheet, an unused leave payment worksheet, 3 Schedule 5 withholding worksheets, a Schedule 15 working holiday maker worksheet, a Schedule 9 seniors and pensioners worksheet, a seniors and pensioners tax offset worksheet, a Medicare levy surcharge worksheet, a foreign resident tax worksheet, a PAYG gross-up worksheet, a hire purchase schedule and a business capital expenditure worksheet that no Python release contains. Python releases through 0.1.9
 contain 10 worksheets. Until the MCP server links this crate,
 it uses the 0.2.0 Python release from PyPI; the
 [release handoff](../../apps/aus-accounting-mcp/docs/worksheet-release.md)
@@ -17,12 +17,12 @@ keeps the engine release and MCP integration separate.
 
 </div>
 
-Forty-three calculation worksheets for established facts: ordinary GST, resident and foreign
-resident basic income tax, CGT losses and discount, the main residence exemption's taxable share of a gain or loss, one loan's borrowing expenses deduction, a hire purchase agreement's monthly notional interest, ordinary employer FBT, car fringe benefit taxable values
-under the statutory formula and operating cost methods, loan, meal entertainment, car parking, debt waiver, expense payment, property, residual, housing, living-away-from-home allowance, board and tax-exempt body entertainment fringe benefit taxable values, depreciation in the start year and later years,
+Forty-six calculation worksheets for established facts: ordinary GST, resident and foreign
+resident basic income tax, CGT losses and discount, the main residence exemption's taxable share of a gain or loss, one loan's borrowing expenses deduction, a hire purchase agreement's monthly notional interest, business capital expenditure (black hole and start-up costs) under s 40-880, ordinary employer FBT, car fringe benefit taxable values
+under the statutory formula and operating cost methods, loan, meal entertainment, car parking, debt waiver, expense payment, property, residual, housing, living-away-from-home allowance, board and tax-exempt body entertainment fringe benefit taxable values, the FBT, deduction and GST credit treatment of entertainment expense lines, depreciation in the start year and later years,
 quarterly super guarantee, Schedule 1 PAYG withholding and the gross pay that leaves a stated net, Schedule 5 withholding from back payments, commissions and bonuses by Methods A, B(i) and B(ii), Schedule 15 withholding for working holiday makers, Schedule 9 withholding for seniors and pensioners, super contribution caps,
 account-based pension minimums, study and training loan repayments, Schedule 8 study
-loan withholding, the Medicare levy with its low-income, SAPTO and family reductions and full or half exemptions, the Medicare levy surcharge, the low income tax offset, the seniors and pensioners tax offset,
+loan withholding, the Medicare levy with its low-income, SAPTO and family reductions and full or half exemptions, the Medicare levy surcharge, the low income tax offset, the seniors and pensioners tax offset, the lump sum payment in arrears tax offset,
 Division 293 tax, an estimate of Division 296 tax on large super balances and the tax-free part of a genuine redundancy payment with Schedule 11 withholding from an employment termination payment, the assessable share, Schedule 7 withholding and income statement label of unused leave paid on termination, and the income measures the surcharge, Division 293 tax, the offsets, study loan repayments and the super co-contribution are tested against. Callers must establish every scope condition before calculating. `personal-tax-estimate` composes the personal ones into one year's tax and levies,
 and `fbt-return` composes the FBT ones into an employer's FBT return.
 
@@ -96,6 +96,7 @@ lists the commands.
 | `main-residence` | `capital_gain`, `capital_loss`, `market_value_basis`, `ownership_start`, `ownership_end`, `lived_periods`, `income_use_periods`, `absence_choice_periods`, `new_home_acquired`, `year`, `scope_confirmed` |
 | `borrowing-expenses` | `borrowing_expenses`, `other_borrowing_expenses_in_year`, `income_use`, `loan_start`, `loan_term_end`, `repaid_on`, `section_26_50_applies`, `year`, `scope_confirmed` |
 | `hire-purchase-schedule` | `amount_financed`, `instalment`, `instalments`, `balloon`, `timing`, `start_date`, `year`, `scope_confirmed` |
+| `business-capital-expenditure` | `items`, `year`, `scope_confirmed`; see [Business capital expenditure](#business-capital-expenditure) |
 | `fbt` | `type_one_value`, `type_two_value`, `year_ended`, `scope_confirmed` |
 | `fbt-car-statutory` | `cost_price`, `later_accessories`, `one_third_reduction`, `days_available`, `employee_contribution`, `electric_car_exempt`, `year_ended`, `scope_confirmed` |
 | `fbt-car-operating-cost` | `running_costs`, `lease_charges`, `depreciated_value`, `effective_life_years`, `days_held`, `business_use`, `employee_contribution`, `statutory_formula_taxable_value`, `electric_car_exempt`, `year_ended`, `scope_confirmed` |
@@ -110,6 +111,7 @@ lists the commands.
 | `fbt-lafha` | `method`, `allowance`, `year_ended`, `scope_confirmed`; with `maintains_home` or `fly_in_fly_out`, `accommodation_component`, `accommodation_expenses`, `food_component`, `food_expenses`, `normal_food_amount`, `adult_days` and `child_days` |
 | `fbt-board` | `adult_meals`, `child_meals`, `employee_contribution`, `income_use`, `contribution_deduction`, `year_ended`, `scope_confirmed` |
 | `fbt-tax-exempt-body-entertainment` | `method`, `entertainment_expenditure`, `year_ended`, `scope_confirmed`; with `per_head`, `employee_heads` and `total_heads` |
+| `fbt-entertainment-classifier` | `lines`, `income_tax_exempt`, `year_ended`, `scope_confirmed`; `method`, required when a line is meal entertainment; with `12_week_register`, `income_tax_register_percentage` |
 | `depreciation` | `cost`, `effective_life`, `days`, `taxable_use`, `method`, `scope_confirmed`, `year`; optional `opening_adjustable_value` |
 | `quarterly-sg` | `ordinary_time_earnings`, `qualifying_contributions`, `year`, `quarter`, `scope_confirmed` |
 | `payg-withholding` | `earnings`, `pay_period`, `scale`, `year`, `scope_confirmed`; optional `foreign_resident` (scale 4), `tax_offsets`, `medicare_adjustment_children`, `extra_pay_withholding` |
@@ -119,6 +121,7 @@ lists the commands.
 | `medicare-levy-surcharge` | `taxable_income`, `reportable_fringe_benefits`, `income_for_surcharge_purposes`, `days_without_cover`, `year`, `scope_confirmed`; optional `spouse_income_for_surcharge_purposes`, `dependent_children` |
 | `low-income-tax-offset` | `taxable_income`, `year`, `scope_confirmed` |
 | `seniors-pensioners-tax-offset` | `rebate_income`, `status`, `year`, `scope_confirmed`; `spouse_rebate_income`, required unless `status` is `single`; optional `spouse_taxable_income` |
+| `lump-sum-arrears-tax-offset` | `taxable_income`, `net_capital_gain`, `accrual_years`, `year`, `scope_confirmed`; see [Lump sum payment in arrears tax offset](#lump-sum-payment-in-arrears-tax-offset) |
 | `division-293` | `division_293_income`, `low_tax_contributions`, `year`, `scope_confirmed` |
 | `income-tests` | `taxable_income`, `assessable_fhss_released_amount`, `family_trust_distribution_amounts`, `reportable_fringe_benefits_section_57a`, `reportable_fringe_benefits_other`, `reportable_employer_super_contributions`, `deductible_personal_super_contributions`, `excess_concessional_contributions`, `net_financial_investment_loss`, `net_rental_property_loss`, `tax_free_government_pensions`, `target_foreign_income`, `exempt_foreign_employment_income`, `child_support_paid`, `assessable_income`, `business_deductions`, `residency`, `year`, `scope_confirmed`; see [Income tests](#income-tests) |
 | `division-296` | `total_super_balance_end_of_year`, `total_super_earnings`, `child_recipient`, `structured_settlement_contribution`, `died_in_year`, `year`, `scope_confirmed` |
@@ -130,20 +133,20 @@ lists the commands.
 | `working-holiday-maker-withholding` | `payment`, `payments_before`, `employer_registered`, `tfn_quoted`, `pay_period`, `year`, `scope_confirmed` |
 | `seniors-pensioners-withholding` | `earnings`, `pay_period`, `status`, `medicare_levy_exemption`, `year`, `scope_confirmed`; optional `study_loan`; `pay_date`, with `study_loan` only and required with it for 2025-26 |
 | `study-loan-repayment` | `repayment_income`, `year`, `scope_confirmed` |
-| `contribution-caps` | `total_super_balance`, `concessional_contributions`, `unused_concessional_cap`, `non_concessional_contributions`, `under_75_in_year`, `year`, `scope_confirmed` |
+| `contribution-caps` | `total_super_balance`, `concessional_contributions`, `non_concessional_contributions`, `under_75_in_year`, `year`, `scope_confirmed`, and either `unused_concessional_cap` or `earlier_concessional_contributions` with `defined_benefit_interest`; with the latter, optional `proposed_concessional_contribution` |
 | `pension-minimum` | `account_balance`, `age`, `days`, `year`, `scope_confirmed` |
 | `worksheet-catalogue` | none: send `{}` |
 | `periods` | `kind`, the worksheet name, such as `"payg_withholding"` |
 | `dgr-check` | `donations`, a list of 1 to 10,000 objects, each with `abn` or `name` or both, and optional `date` and `amount`; see [DGR check](#dgr-check) |
 | `personal-tax-estimate` | `year`, `scope_confirmed`, `residency`, `taxable_income` or `assessable_labour_income` (then optional `other_assessable_income`, `work_related_deductions`, `other_deductions`), optional `tax_withheld` or, to work it out, one of `payg-withholding`, `study-loan-withholding` and `seniors-pensioners-withholding` with `pays_in_year` and optional `schedule-5-method-a`, for a resident from 2027-28 `net_labour_income` (required beside `taxable_income`), and for a full-year resident `medicare-levy` and `medicare-levy-surcharge`; optional `seniors-pensioners-tax-offset`, `study-loan-repayment` and `division-293`; see [Personal tax estimate](#personal-tax-estimate) |
 | `fbt-return` | `employer`, `year_ended`, `scope_confirmed` and `benefits`, a list of objects each with `employee`, `command` (an FBT benefit worksheet), `input` (that worksheet's arguments), `gst_type` (`type_1` or `type_2`) and `excluded`; see [FBT return](#fbt-return) |
-| `derive` | `command`, one of `fbt`, `fbt-car-statutory`, `fbt-car-operating-cost`, `fbt-loan`, `fbt-meal-entertainment`, `fbt-car-parking`, `fbt-debt-waiver`, `fbt-expense-payment`, `fbt-property`, `division-293`, `pension-minimum`, `payg-withholding`, `schedule-5-method-a`, `schedule-5-method-b-i`, `schedule-5-method-b-ii`, `termination-payment`, `unused-leave-payment`, `working-holiday-maker-withholding`, `study-loan-withholding`, `seniors-pensioners-withholding`, `quarterly-sg`, `borrowing-expenses`, `resident-tax`, `foreign-resident-tax`, `low-income-tax-offset`, `seniors-pensioners-tax-offset`, `medicare-levy`, `medicare-levy-surcharge`, `division-296`, `contribution-caps`, `study-loan-repayment`, `capital-gains`, `main-residence`, `fbt-residual`, `fbt-housing`, `fbt-lafha`, `fbt-board`, `fbt-tax-exempt-body-entertainment`, `gst`, `depreciation`, `hire-purchase-schedule` and `income-tests`, and `input`, that command's arguments; see [Derivations](#derivations) |
+| `derive` | `command`, one of `fbt`, `fbt-car-statutory`, `fbt-car-operating-cost`, `fbt-loan`, `fbt-meal-entertainment`, `fbt-car-parking`, `fbt-debt-waiver`, `fbt-expense-payment`, `fbt-property`, `division-293`, `pension-minimum`, `payg-withholding`, `schedule-5-method-a`, `schedule-5-method-b-i`, `schedule-5-method-b-ii`, `termination-payment`, `unused-leave-payment`, `working-holiday-maker-withholding`, `study-loan-withholding`, `seniors-pensioners-withholding`, `quarterly-sg`, `borrowing-expenses`, `resident-tax`, `foreign-resident-tax`, `low-income-tax-offset`, `seniors-pensioners-tax-offset`, `medicare-levy`, `medicare-levy-surcharge`, `division-296`, `contribution-caps`, `study-loan-repayment`, `capital-gains`, `main-residence`, `fbt-residual`, `fbt-housing`, `fbt-lafha`, `fbt-board`, `fbt-tax-exempt-body-entertainment`, `gst`, `depreciation`, `hire-purchase-schedule`, `lump-sum-arrears-tax-offset`, `income-tests` and `business-capital-expenditure`, and `input`, that command's arguments; see [Derivations](#derivations) |
 
-The 2 car commands, the 11 FBT benefit commands (`fbt-loan`, `fbt-meal-entertainment`, `fbt-car-parking`, `fbt-debt-waiver`, `fbt-expense-payment`, `fbt-property`, `fbt-residual`, `fbt-housing`, `fbt-lafha`, `fbt-board` and `fbt-tax-exempt-body-entertainment`), `main-residence`, `borrowing-expenses`, `division-296`, `termination-payment`, `unused-leave-payment`, the 3 `schedule-5` commands, `working-holiday-maker-withholding`, `seniors-pensioners-withholding`, `seniors-pensioners-tax-offset`, `medicare-levy-surcharge`, `foreign-resident-tax`, `payg-gross-up`, `hire-purchase-schedule` and `income-tests` have no Python original; their arguments follow the same
+The 2 car commands, the 11 FBT benefit commands (`fbt-loan`, `fbt-meal-entertainment`, `fbt-car-parking`, `fbt-debt-waiver`, `fbt-expense-payment`, `fbt-property`, `fbt-residual`, `fbt-housing`, `fbt-lafha`, `fbt-board` and `fbt-tax-exempt-body-entertainment`), `main-residence`, `borrowing-expenses`, `division-296`, `termination-payment`, `unused-leave-payment`, the 3 `schedule-5` commands, `working-holiday-maker-withholding`, `seniors-pensioners-withholding`, `seniors-pensioners-tax-offset`, `medicare-levy-surcharge`, `foreign-resident-tax`, `payg-gross-up`, `hire-purchase-schedule`, `lump-sum-arrears-tax-offset`, `fbt-entertainment-classifier`, `income-tests` and `business-capital-expenditure` have no Python original; their arguments follow the same
 rules. `division-296` alone takes a negative amount, in `total_super_earnings`. `main-residence` also takes dates as `YYYY-MM-DD` strings, lists of
 `{"start", "end"}` periods (with `"floor_area"` for income use) and `null`
 for no new home. `borrowing-expenses` takes `loan_start` as a `YYYY-MM-DD`
-string and `loan_term_end` and `repaid_on` as dates or `null`. `hire-purchase-schedule` takes `instalments` as a JSON integer, `timing` as `in_arrears` or `in_advance` and `start_date` as a `YYYY-MM-DD` string, and refuses a field it does not take. `termination-payment` takes `completed_years_of_service` as a JSON integer and `date_of_birth` as a `YYYY-MM-DD` string. `unused-leave-payment` takes `leave_accrual_start` as a `YYYY-MM-DD` string, `termination_reason` as `normal`, `genuine_redundancy`, `early_retirement_scheme` or `invalidity`, and its 4 accrual parts as optional decimal strings, described under [Unused leave payment](#unused-leave-payment). `schedule-5-method-b-i` takes `back_payment_periods` as a list of `{"earnings", "back_payment", "withheld"}` decimal strings, one for each earlier pay period. Every argument is required, as the Python functions had no defaults, except `depreciation`'s optional `opening_adjustable_value`: give it, as a decimal string, for a year after the asset's start time, as cost less the earlier years' decline in value; and `medicare-levy`'s optional family inputs, described under [Medicare levy](#medicare-levy-and-low-income-tax-offset). `medicare-levy` refuses a field it does not take, as does `medicare-levy-surcharge`, whose optional inputs are described under [Medicare levy surcharge](#medicare-levy-surcharge). `payg-withholding`'s optional inputs are described under [PAYG withholding](#payg-withholding), `payg-gross-up` under [PAYG gross-up](#payg-gross-up), `study-loan-withholding`'s `pay_date` under [Study loan withholding](#study-loan-withholding), `seniors-pensioners-withholding`'s `study_loan` and `pay_date` under [Seniors and pensioners](#seniors-and-pensioners) and `seniors-pensioners-tax-offset`'s spouse inputs under [Seniors and pensioners tax offset](#seniors-and-pensioners-tax-offset). The FBT benefit commands take the inputs their `method` needs and refuse any other, as [FBT loans, meal entertainment and car parking](#fbt-loans-meal-entertainment-and-car-parking), [FBT debt waivers, expense payments and property](#fbt-debt-waivers-expense-payments-and-property) and [FBT residual, housing, LAFHA, board and entertainment benefits](#fbt-residual-housing-lafha-board-and-entertainment-benefits) describe. Input over 8 MiB,
+string and `loan_term_end` and `repaid_on` as dates or `null`. `hire-purchase-schedule` takes `instalments` as a JSON integer, `timing` as `in_arrears` or `in_advance` and `start_date` as a `YYYY-MM-DD` string, and refuses a field it does not take. `business-capital-expenditure` takes `items` as a list of objects, and refuses a field it or an item does not take. `termination-payment` takes `completed_years_of_service` as a JSON integer and `date_of_birth` as a `YYYY-MM-DD` string. `unused-leave-payment` takes `leave_accrual_start` as a `YYYY-MM-DD` string, `termination_reason` as `normal`, `genuine_redundancy`, `early_retirement_scheme` or `invalidity`, and its 4 accrual parts as optional decimal strings, described under [Unused leave payment](#unused-leave-payment). `schedule-5-method-b-i` takes `back_payment_periods` as a list of `{"earnings", "back_payment", "withheld"}` decimal strings, one for each earlier pay period. Every argument is required, as the Python functions had no defaults, except `depreciation`'s optional `opening_adjustable_value`: give it, as a decimal string, for a year after the asset's start time, as cost less the earlier years' decline in value; and `medicare-levy`'s optional family inputs, described under [Medicare levy](#medicare-levy-and-low-income-tax-offset). `medicare-levy` refuses a field it does not take, as does `medicare-levy-surcharge`, whose optional inputs are described under [Medicare levy surcharge](#medicare-levy-surcharge). `payg-withholding`'s optional inputs are described under [PAYG withholding](#payg-withholding), `payg-gross-up` under [PAYG gross-up](#payg-gross-up), `study-loan-withholding`'s `pay_date` under [Study loan withholding](#study-loan-withholding), `seniors-pensioners-withholding`'s `study_loan` and `pay_date` under [Seniors and pensioners](#seniors-and-pensioners) and `seniors-pensioners-tax-offset`'s spouse inputs under [Seniors and pensioners tax offset](#seniors-and-pensioners-tax-offset). `income-tests` requires every component and refuses a field it does not take; see [Income tests](#income-tests). The FBT benefit commands take the inputs their `method` needs and refuse any other, as [FBT loans, meal entertainment and car parking](#fbt-loans-meal-entertainment-and-car-parking), [FBT debt waivers, expense payments and property](#fbt-debt-waivers-expense-payments-and-property) and [FBT residual, housing, LAFHA, board and entertainment benefits](#fbt-residual-housing-lafha-board-and-entertainment-benefits) describe. `fbt-entertainment-classifier` takes `lines` as a list of line objects and refuses a field it does not take, as [FBT entertainment classifier](#fbt-entertainment-classifier) describes. Input over 8 MiB,
 or a decimal string over 8,192 bytes, is refused.
 
 ## Derivations
@@ -164,7 +167,7 @@ Fringe Benefits Tax Assessment Act 1986 (FBTAA), of the Income Tax Assessment
 Act 1997 (ITAA 1997) or of the Superannuation (Sustaining the Superannuation
 Contribution Concession) Imposition Act 2013, a clause of Schedule 7 to the
 Superannuation Industry (Supervision) Regulations 1994 (SISR), a section of the
-Income Tax Rates Act 1986, the Income Tax Assessment Act 1936 (ITAA 1936), the
+Income Tax Rates Act 1986, the Income Tax (Transitional Provisions) Act 1997, the Income Tax Assessment Act 1936 (ITAA 1936), the
 Medicare Levy Act 1986, the A New Tax System (Medicare Levy Surcharge—Fringe
 Benefits) Act 1999 or the A New Tax System (Goods and Services Tax) Act 1999
 (GST Act), or of the Income Tax Assessment (1936 Act) Regulation 2015
@@ -186,7 +189,9 @@ command's own refusal, any other command is refused as
 whose own withholding leaves the net, found by search, so no step can work it
 out before the withholding worked on it. `derive` `payg-withholding`, or
 `study-loan-withholding` for a payee with a study loan, on its `gross_pay` to
-see that withholding worked.
+see that withholding worked. `fbt-entertainment-classifier` is not derived
+either: each line and attendee class carries its own authority, from the row
+of the decision table that classified it.
 The plain commands' output does not change.
 
 The PAYG withholding, Schedule 5 and termination payment steps cite the
@@ -235,6 +240,9 @@ s 293-20, ITAA 1936 s 6(1), HESA s 154-5, Schedule 3 to the A New Tax System
 (Family Assistance) Act 1999, FBTAA s 135N and the Superannuation (Government
 Co-contribution for Low Income Earners) Act 2003 s 8; `floor` drops the cents
 of a section 57A employer's fringe benefits at 53%, as the ATO's worksheets do.
+The business capital expenditure steps cite s 40-880(2) to
+(4) and write in each item's amount, extent and years, as the items are a
+list; each item's row cites its own paragraphs.
 
 ## Supported periods
 
@@ -246,6 +254,7 @@ of a section 57A employer's fringe benefits at 53%, as the ATO's worksheets do.
 | CGT | 2025-26 and 2026-27, resident individual's established gains and losses; losses before the 50% discount |
 | Main residence | CGT events in 2024-25 to 2026-27; one dwelling disposed of by a resident individual, before the discount |
 | Borrowing expenses | 2024-25 to 2026-27, before s 26-155 from 2027-28; one loan's established expenditure, use and dates |
+| Business capital expenditure | 2020-21 to 2027-28, items incurred from 1 July 2020 under s 40-880 as amended by Act No 92 of 2020; each item's established capital nature, business, taxable purpose extent, start-up facts and exclusions |
 | FBT | Years ended 31 March 2026 and 2027; established type 1 and type 2 taxable values, ordinary employer |
 | FBT car benefits | Years ended 31 March 2026 and 2027; one car's established base value or operating costs, the 20% statutory percentage and a deemed depreciation rate of 200% over the established effective life |
 | FBT loans | Years ended 31 March 2026 and 2027 at the statutory interest rate (8.62% and 8.27%); one loan to a current employee, its established daily balances, interest accrued and deductible share |
@@ -259,6 +268,7 @@ of a section 57A employer's fringe benefits at 53%, as the ATO's worksheets do.
 | FBT living-away-from-home allowances | Years ended 31 March 2026 and 2027; an allowance's established components, expenses and family members' days, at the statutory food amounts of $42 and $21 a week |
 | FBT board | Years ended 31 March 2026 and 2027; the established meals at $2.00 and $1.00, contributions and deductible share |
 | FBT tax-exempt body entertainment | Years ended 31 March 2026 and 2027; established non-deductible entertainment expenditure, actual or per head |
+| FBT entertainment classifier | Years ended 31 March 2026 and 2027; an ordinary taxable employer's entertainment expense lines with established facts, split per head between attendee classes; no tax-exempt bodies, Subdivision 32-B exceptions, salary packaging or reportable fringe benefits amounts |
 | Depreciation | 2025-26 and 2026-27, an ordinary tangible Division 40 asset's start year, or a later year from its established opening adjustable value; established life and use |
 | SG | Complete quarters of 2025-26; established OTE, eligibility and qualifying contributions |
 | Contribution caps | 2024-25 to 2026-27; one individual's classified contributions, no bring-forward period started in the 2 previous years |
@@ -269,6 +279,7 @@ of a section 57A employer's fringe benefits at 53%, as the ATO's worksheets do.
 | Medicare levy surcharge | 2024-25, 2025-26 and 2026-27, and 2027-28 with no day without hospital cover (nil); full-year resident in no exemption category, single without dependants or married for the whole year; established income for surcharge purposes and days without hospital cover |
 | Low income tax offset | 2024-25 to 2027-28; resident individual's established taxable income; the offset amount, not applied against tax |
 | Seniors and pensioners tax offset | 2024-25 to 2027-28; an established eligible individual's rebate income and whole-year status, and a spouse's rebate income; the offset amount with any transfer from a resident spouse, not applied against tax |
+| Lump sum payment in arrears tax offset | Years of receipt 2013-14 to 2026-27; a full-year resident individual's established eligible lump sums by accrual year, recent accrual years from 2012-13 at resident rates and earlier distant years at their average; the offset amount, not applied against tax, without the Medicare levy and surcharge relief |
 | Division 293 | 2024-25 to 2027-28; established Division 293 income and low tax contributions; no defined benefit interests |
 | Income tests | 2024-25, 2025-26 and 2026-27; a full-year resident's established and classified components; the measures, not the thresholds and tests they feed |
 | Division 296 | 2026-27; one individual's established balance at 30 June 2027 and total superannuation earnings; no defined benefit or other s 296-70 interests; an estimate, as the Commissioner assesses |
@@ -282,7 +293,8 @@ of a section 57A employer's fringe benefits at 53%, as the ATO's worksheets do.
 Unsupported periods fail. The 2027-28 rows use rates and thresholds the law
 already sets for that year; the ATO had published none of them when they were
 read on 16 November 2026, and each such result but GST, the low income tax
-offset, Division 293 and the pension minimum says so. A worksheet that refuses
+offset, Division 293, the pension minimum and business capital expenditure
+says so. A worksheet that refuses
 2027-28 for one of these reasons says which: its figures were not yet published (withholding schedules,
 the Medicare levy surcharge thresholds, study loan thresholds, contribution
 caps, ETP caps and the Division 296 thresholds), or the law changes from 1 July
@@ -396,6 +408,31 @@ needs the person to be under 75 at any time in the year. The result gives room a
 excess under each cap, the multiple of the annual cap available and the
 bring-forward period the contributions started. A period started in an earlier
 year is outside the worksheet.
+
+Instead of the unused total, `contribution_caps` can work it out from
+`earlier_concessional_contributions`: one `{"year": "2021-22",
+"concessional_contributions": "13000.00"}` entry for each year from the 5th
+before the year to the one before it, and any earlier years back to 2018-19,
+without a gap. A year whose contributions exceed its cap also takes
+`total_super_balance`, at the 30 June before it. The result gives each year's
+cap (`concessional_cap_2021_22`) and unused cap (`unused_cap_2021_22`, ITAA 1997
+s 291-20(6) and (7)), any unused cap an earlier year's increase applied,
+earliest year first (`applied_2019_20_in_2021_22`, s 291-20(3) to (5)), what
+each of the previous 5 years carries into the year, and their total,
+`unused_concessional_cap`, from which the amounts above follow. After the
+year's contributions and an optional `proposed_concessional_contribution`, it
+gives the amount applied from each year, what is left of each
+(`remaining_2021_22`), what lapses at the end of the year
+(`unused_cap_expiring`) and the year's own unused cap; `unused_cap_expiry`
+lists each with the year at whose end it lapses. At or above $500,000 just
+before the year nothing is applied (s 291-20(3)(b)): the general cap is
+reported and the amounts still age. `defined_benefit_interest` is required with
+the years, and true is refused: Subdivision 291-C and s 291-370 change what
+counts for a defined benefit interest. Years before 2018-19, a total across
+years, a gap, and a year over its cap without its balance or without the years
+its increase drew on are refused, each naming what to give. The worksheet
+reports cap arithmetic only; it does not say what anyone should contribute.
+The tests hold it to the ATO's Sam example and its carry-forward table.
 
 `pension_minimum` applies SISR Schedule 7 to one account-based pension: the age
 factor on the balance at 1 July, pro-rated by days in the first year, nil when the
@@ -752,6 +789,71 @@ $15,685.95 under s 26(2)(a), not 10.5's single-employee $15,687.70, and
 $2,008, 10% of $20,080, where 18.6 prints $2,080; see
 [calculation evidence](docs/calculation-evidence.md#fbt-residual).
 
+## FBT entertainment classifier
+
+`fbt-entertainment-classifier` takes an ordinary taxable employer's
+entertainment expense lines and works out, for each line and each class of
+attendee (employees, their associates, and others such as clients), whether it
+is entertainment, the fringe benefit and its type or the s 41 exemption, the
+income tax deduction and the GST credit, and for each fringe benefit whether it
+is an excluded fringe benefit, left out of reporting (`excluded`: meal
+entertainment is, under FBTAA s 5E(3)(a); other entertainment is not). Each
+answer cites its provision, and
+each view taken from TR 97/17 or TR 2007/12 is cited by paragraph as the
+Commissioner's view, not the law.
+
+Each line gives `cost` (a decimal string), `gst_status` (`includes_gst` or
+`no_gst`), `provided` (`food_or_drink`, `recreation`,
+`accommodation_or_travel_for_food_or_drink` or
+`accommodation_or_travel_for_recreation`), `venue`
+(`business_premises_working_day`, `business_premises_other_day` or
+`elsewhere`), `paid_by` (`employer` or `reimbursed`) and `attendees`, such as
+`{"employees": 6, "associates": 2, "others": 2}`; a food or drink line, and an
+accommodation or travel line to do with food or drink, also gives `occasion` (`social_function`, `business_meal`,
+`with_other_entertainment`, `light_refreshments` or `travel_meal`), and any
+line may give `infrequent_and_irregular`.
+
+2 tables in `src/engine/fbt_benefits/entertainment.rs` decide, and each row
+reads against the ruling it cites. The first gives the line's character from
+what was provided and the occasion: meal entertainment, recreation or not
+entertainment. The second's first matching row gives each class's outcome
+from that character, the employer's valuation method, the class and whether
+s 41 can reach it, in the order TR 97/17 Part B asks: an election under
+Division 9A first, then who was entertained, then s 41.
+
+The classifier leaves a fact it lacks undetermined and names it, never
+guessing: food or drink, or accommodation or travel to do with it, with no
+occasion, and an employee's share of something
+other than food or drink provided on the business premises on a working day,
+where s 41 turns on whether it is property consumed there. Their cost is
+`undetermined_cost`, outside the other totals. The minor benefits exemption is
+shown only as possible: s 58P(1)(e)'s $300 is the Act's, `infrequent_and_irregular`
+is the operator's statement, and the rest of s 58P(1)(f) is the employer's
+judgement, so the totals treat the benefit as a fringe benefit.
+
+On a reimbursed line with more than one employee, the employees' share is
+`expense_payment_and_property`: the reimbursed employee's is an expense payment
+benefit and each other employee's a benefit to that employee (TR 97/17 para
+98); give the reimbursed employee's share as its own line to separate them.
+With the number of employees unknown, the type is `undetermined`.
+
+Under the 50/50 split or 12 week register method, the meal entertainment
+lines' cost is `meal_entertainment_expenditure`, repeated in
+`fbt_meal_entertainment_input` for `fbt-meal-entertainment`, which values it;
+the deduction and GST credit follow ITAA 1936 s 51AEA or 51AEB and GST Act
+s 69-5(3A). `income_tax_register_percentage` is the register percentage of
+s 51AEB(2).
+
+It refuses an employer exempt from income tax
+(`fbt_entertainment_classifier.tax_exempt_body`; use
+`fbt-tax-exempt-body-entertainment`), a line spanning classes without a head
+count for each (`line_not_split`), a cost without its GST status
+(`gst_status_invalid`), a meal entertainment line with no `method`
+(`method_required`), the 12 week register without its percentage
+(`register_percentage_invalid`), and a negative or non-finite cost
+(`input.amount_invalid`). It classifies facts; it does not advise on how to
+arrange an event. See [calculation evidence](docs/calculation-evidence.md#fbt-entertainment-classifier).
+
 ## Main residence
 
 `main_residence` works out how much of an individual's capital gain or loss on
@@ -847,6 +949,67 @@ add up to the total interest; from a start on the 1st of a month no month
 spans 30 June. Fees, GST, irregular payments, termination amounts other than
 the balloon and the notional seller are out of scope; see
 [calculation evidence](docs/calculation-evidence.md#hire-purchase-schedule).
+
+## Business capital expenditure
+
+`business_capital_expenditure` works out the deduction for business capital
+expenditure under ITAA 1997 s 40-880 (black hole and start-up costs) for one
+income year from 2020-21 to 2027-28, and each item's deductions year by
+year. It takes `items`, a list with one object for each item of expenditure
+incurred from 1 July 2020, when s 40-880 as amended by Act No 92 of 2020
+began to apply, to the end of the year asked about. Each item states:
+
+- `amount` (a decimal string), `incurred_in` (an income year) and `capital`
+  (`true`: the caller establishes that the outlay is capital expenditure);
+- `business`: `current` (your business, s 40-880(2)(a)), `former` (one that
+  used to be carried on, (2)(b)), `proposed` ((2)(c)) or `wind_up`
+  (liquidating, deregistering or winding up a company, partnership or trust
+  you were a member of, partner in or beneficiary of, (2)(d));
+- `taxable_purpose`, the extent from 0 to 1 the business is, was or is
+  proposed to be carried on for a taxable purpose (s 40-880(3) and (4)(a));
+- `exclusions`, the paragraphs of s 40-880(5), (8) and (9) that exclude it,
+  such as `["5(c)"]`, or `[]`.
+
+A former or proposed business also states `carried_on_by` (`you` or
+`another_entity`). Another entity's business, and a wind-up, state
+`assessable_income_connection` (s 40-880(4)(b)). A proposed business states
+`within_reasonable_time` (s 40-880(7)) and `start_up_expense`
+(`advice_or_services`, `government_fees` or `neither`, s 40-880(2A)(b)),
+and, unless `neither`, `entity_test` for the income year incurred
+(`small_business_entity`, `covered_by_2b`, `not_in_business_and_unconnected`
+or `none`, s 40-880(2A)(c) and (2B)). An item listing `5(d)` or `5(f)` states
+`goodwill_right` (s 40-880(6)). A fact an item needs and does not state is
+refused with its name, as is a fact it does not take.
+
+An item that s 40-880(4)(b), (5), (7), (8) or (9) excludes has nothing to
+deduct, and its row cites each paragraph. Otherwise its deductible
+expenditure is its amount times the taxable purpose extent. A start-up cost
+that meets s 40-880(2A) is deducted in full in the year incurred; the rest is
+deducted one fifth a year over 5 income years starting in the year incurred,
+with no apportionment for part of a year (s 40-880(2); TR 2011/6 para 10).
+Eligibility is fixed when an item is incurred, so its later fifths continue
+if the business ceases (TR 2011/6 para 10). The result's amounts are the expenditure, the deductible expenditure, the
+year's deduction and what remains for later years. `items` gives each item's
+paragraph of s 40-880(2), its limit, `excluded_by`, the method with its
+citation, the year's deduction, `schedule` (each income year and its
+deduction) and `notes`, each worked exactly; the amounts are shown to the
+cent, half up.
+
+It refuses expenditure that forms part of the cost of a depreciating asset
+(s 40-880(5)(a)), which Division 40 deducts, and expenditure that could be
+taken into account in working out a capital gain or loss (s 40-880(5)(f)),
+which the CGT provisions take, unless s 40-880(6) applies; a revenue outlay;
+and an item incurred before 1 July 2020 or after the year asked about.
+Whether an outlay is capital or business related, the taxable purpose extent,
+the entity tests and the exclusions are the caller's to establish, and
+non-arm's length amounts (s 40-885), Division 35's deferral of an
+individual's non-commercial losses, personal services income (s 85-10),
+s 26-155's limit on residential rental deductions from 2027-28, a taxpayer
+that ceases to exist before the 5 years end, and website and software costs
+are out of scope. The tests
+hold it to the Commissioner's examples in TR 2011/6 and the ATO's start-up
+examples; see
+[calculation evidence](docs/calculation-evidence.md#business-capital-expenditure).
 
 ## Division 296
 
@@ -1042,6 +1205,41 @@ not take. An offset of at least $1 is the SAPTO entitlement `medicare-levy`
 takes as `sapto_entitled`. The tests hold it to the ATO's 9 examples, its
 thresholds and every cut-out; see
 [calculation evidence](docs/calculation-evidence.md#seniors-and-pensioners-tax-offset).
+
+## Lump sum payment in arrears tax offset
+
+`lump_sum_arrears_tax_offset` works out the tax offset for lump sum payments
+in arrears (ITAA 1936 ss 159ZR to 159ZRD) for a full-year resident individual
+whose year of receipt is 2013-14 to 2026-27. `taxable_income` is that year's
+taxable income, the arrears included, and `net_capital_gain` the net capital
+gain in it, `"0"` for none. `accrual_years` lists each earlier income year in
+which part of the arrears accrued, once, as `{"year": "2023-24", "arrears": "3000"}`
+with every payer's arrears for that year added together. The 2 latest accrual
+years, or each one when there are fewer than 3, are recent and also take
+`taxable_income`; with 3 or more, each recent year may take `net_capital_gain`,
+and a recent year that was itself a rebate year takes `rebate_year_arrears`, or
+`earlier_rebate_arrears` for what accrued in it of an earlier rebate year's
+arrears. Earlier, distant years take `year` and `arrears` only.
+
+The offset is due when the total arrears are at least 10% of normal taxable
+income less them (s 159ZRA(1)(b)). It is the tax the arrears add this year
+(s 159ZRB) less the tax they would have added in each recent year (s 159ZRC),
+and in the distant years at the average of the recent years' rates, each to 3
+decimal places and raised by 0.001 when the fourth would be more than 4
+(s 159ZRD). Each year's tax is at the ATO's published resident rates, with the
+2% temporary budget repair levy above $180,000 in 2014-15 to 2016-17, which
+Income Tax (Transitional Provisions) Act 1997 s 4-11 makes extra income tax. It
+refuses a recent accrual year before 2012-13, for which it holds no rates, and
+an accrual year that is not before the year of receipt, given twice or with
+nil arrears. Foreign and part-year residents, employment termination payments,
+superannuation lump sums, arrears the caller has not classified as eligible and
+applying the offset against tax are outside it. The Medicare levy relief
+(Medicare Levy Act 1986 s 9A) and the surcharge offset (ITAA 1997
+Subdivision 61-L) are separate questions its result names. Like `division-296`
+it refuses a field it does not take. The tests hold it to the ATO's Sudeep and
+Anthony results, work its Heather and Yan facts by hand with assumed taxable
+incomes and check its prior-year rates; see
+[calculation evidence](docs/calculation-evidence.md#lump-sum-arrears-tax-offset).
 
 ## Income tests
 
