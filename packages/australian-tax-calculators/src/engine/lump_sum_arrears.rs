@@ -351,7 +351,7 @@ fn recent_rates(
         };
         let base = adjusted(year, normal)?;
         let (increase, formula) = tax_increase(scale, (&base.0, &base.1), &year.arrears)?;
-        steps.push(step(id, authority, &formula, &[], increase.clone()));
+        steps.push(step(*id, authority, &formula, &[], increase.clone()));
         values.push((id, increase.clone()));
         recent_rates.push(recent_rate((&increase, id), &year.arrears)?);
     }
@@ -437,7 +437,7 @@ fn offset_steps(
         let income = year.facts[0].clone().expect("validated");
         let base = adjusted(year, (income.clone(), income.to_string()))?;
         let (amount, formula) = tax_increase(scale, (&base.0, &base.1), &year.arrears)?;
-        steps.push(step(id, authority, &formula, &[], amount.clone()));
+        steps.push(step(*id, authority, &formula, &[], amount.clone()));
         values.push((id, amount));
         notional.push(*id);
     }
