@@ -18,9 +18,10 @@ use std::process::{Command, Stdio};
 /// `tests/fbt_meal_entertainment.rs`, `tests/fbt_car_parking.rs`,
 /// `tests/fbt_debt_waiver.rs`, `tests/fbt_expense_payment.rs`,
 /// `tests/fbt_property.rs`, `tests/fbt_residual.rs`, `tests/fbt_housing.rs`,
-/// `tests/fbt_lafha.rs`, `tests/fbt_board.rs` and
-/// `tests/fbt_tax_exempt_body_entertainment.rs` cover them.
-const NEW_KINDS: [(&str, &str); 27] = [
+/// `tests/fbt_lafha.rs`, `tests/fbt_board.rs`,
+/// `tests/fbt_tax_exempt_body_entertainment.rs` and `tests/income_tests.rs`
+/// cover them.
+const NEW_KINDS: [(&str, &str); 28] = [
     ("fbt-car-statutory", "fbt_car_statutory"),
     ("fbt-car-operating-cost", "fbt_car_operating_cost"),
     ("fbt-loan", "fbt_loan"),
@@ -60,6 +61,7 @@ const NEW_KINDS: [(&str, &str); 27] = [
         "fbt-tax-exempt-body-entertainment",
         "fbt_tax_exempt_body_entertainment",
     ),
+    ("income-tests", "income_tests"),
 ];
 
 /// The JSON boundary's answer in the corpus encoding: `{"ok": value}` or `{"error": message}`.
@@ -149,6 +151,7 @@ fn adapt(command: &str, input: &Value, mut expected: Value) -> Value {
     adapt_medicare(command, input, &mut expected);
     adapt_depreciation(command, &mut expected);
     adapt_contribution_caps(command, &mut expected);
+    adapt_2027_28(command, input, &mut expected);
     let study = match command {
         "study-loan-repayment" => expected.pointer_mut("/ok"),
         "worksheet-catalogue" => expected.pointer_mut("/ok/study_loan_repayment"),
@@ -500,6 +503,77 @@ fn adapt_contribution_caps(command: &str, expected: &mut Value) {
     }
 }
 
+/// The frozen commands that also accept 2027-28, on the rates and thresholds
+/// the law sets for it, with their worksheet kinds (CHANGELOG.md).
+const OPENED_2027_28: [(&str, &str); 6] = [
+    ("gst", "gst"),
+    ("resident-tax", "resident_tax"),
+    ("low-income-tax-offset", "low_income_tax_offset"),
+    ("division-293", "division_293"),
+    ("medicare-levy", "medicare_levy"),
+    ("pension-minimum", "pension_minimum"),
+];
+
+/// The frozen commands that still refuse 2027-28 now say what is missing.
+const REFUSED_2027_28: [(&str, &str); 6] = [
+    (
+        "capital-gains",
+        "From 2027-28 Schedule 1 to Act No. 49 of 2026 changes how capital gains are worked out, and this worksheet has not been checked against it.",
+    ),
+    (
+        "contribution-caps",
+        "The 2027-28 contribution caps had not been published when this was checked on 16 November 2026.",
+    ),
+    (
+        "depreciation",
+        "2027-28 has 366 days, and this worksheet takes at most 365 days held.",
+    ),
+    (
+        "payg-withholding",
+        "The ATO had not published withholding schedules for payments from 1 July 2027 when this was checked on 16 November 2026.",
+    ),
+    (
+        "study-loan-repayment",
+        "The 2027-28 study and training loan repayment thresholds had not been published when this was checked on 16 November 2026.",
+    ),
+    (
+        "study-loan-withholding",
+        "The ATO had not published withholding schedules for payments from 1 July 2027 when this was checked on 16 November 2026.",
+    ),
+];
+
+/// 2027-28 joins the supported periods of the opened commands, and the other
+/// commands' 2027-28 refusals give the reason (CHANGELOG.md).
+fn adapt_2027_28(command: &str, input: &Value, expected: &mut Value) {
+    let year = json!({"id": "2027-28", "basis": "income year", "start": "2027-07-01",
+        "end": "2028-06-30", "arguments": {"year": "2027-28"}});
+    let opened = OPENED_2027_28.iter().any(|(c, _)| *c == command);
+    if let Some(Value::String(error)) = expected.get_mut("error")
+        && error.starts_with("Unsupported period ")
+    {
+        if opened {
+            error.pop();
+            error.push_str(", 2027-28.");
+        } else if let Some((_, why)) = REFUSED_2027_28.iter().find(|(c, _)| *c == command)
+            && input["year"] == "2027-28"
+        {
+            *error = format!("{error} {why}");
+        }
+    }
+    match command {
+        "periods" if OPENED_2027_28.iter().any(|(_, k)| input["kind"] == *k) => {
+            expected["ok"].as_array_mut().unwrap().push(year);
+        }
+        "worksheet-catalogue" => {
+            for (_, kind) in OPENED_2027_28 {
+                let periods = expected["ok"][kind]["supported_periods"].as_array_mut();
+                periods.unwrap().push(year.clone());
+            }
+        }
+        _ => {}
+    }
+}
+
 /// Replays every captured call from the Python 0.2.0 tests and differential
 /// generator, comparing serialised JSON so key order must match too.
 #[test]
@@ -508,9 +582,10 @@ fn python_api_corpus_matches() {
         serde_json::from_str(include_str!("data/python-api.json")).expect("corpus parses");
     assert!(corpus.len() > 3000, "corpus too small: {}", corpus.len());
     for command in api::commands() {
-        // derive and personal-tax-estimate are new too; tests/derivation.rs
-        // and tests/personal_tax_estimate.rs cover them.
-        if matches!(command, "derive" | "personal-tax-estimate")
+        // derive, personal-tax-estimate and dgr-check are new too;
+        // tests/derivation.rs, tests/personal_tax_estimate.rs and
+        // tests/dgr_check.rs cover them.
+        if matches!(command, "derive" | "personal-tax-estimate" | "dgr-check")
             || NEW_KINDS.iter().any(|(c, _)| *c == command)
         {
             continue;
@@ -523,6 +598,7 @@ fn python_api_corpus_matches() {
     let mut failures = Vec::new();
     let (mut reopened, mut reopened_fbt, mut reopened_quarterly, mut reopened_medicare) =
         (0, 0, 0, 0);
+    let mut reopened_2027_28 = 0;
     for row in &corpus {
         let command = row["command"].as_str().unwrap();
         // Python 0.2.0 refused 2025-26 PAYG withholding, which now has its own
@@ -553,6 +629,12 @@ fn python_api_corpus_matches() {
             reopened_medicare += 1;
             continue;
         }
+        // And 2027-28 for the commands that now accept it; tests/year_2027_28.rs
+        // checks that year.
+        if OPENED_2027_28.iter().any(|(c, _)| *c == command) && row["input"]["year"] == "2027-28" {
+            reopened_2027_28 += 1;
+            continue;
+        }
         let actual = without_new_kinds(command, outcome(command, &row["input"])).to_string();
         let expected = adapt(command, &row["input"], row["expected"].clone()).to_string();
         if actual != expected {
@@ -572,6 +654,7 @@ fn python_api_corpus_matches() {
         reopened_medicare, 1,
         "frozen 2026-27 Medicare levy refusals"
     );
+    assert_eq!(reopened_2027_28, 17, "frozen 2027-28 refusals now accepted");
     assert!(
         failures.is_empty(),
         "{} of {} differ:\n{}",

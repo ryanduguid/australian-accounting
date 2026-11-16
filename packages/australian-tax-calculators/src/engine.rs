@@ -186,14 +186,19 @@ fn scope(confirmed: &Arg, year: &Arg, kind: &str) -> Result<String> {
     let supported = meta::supported_periods(kind);
     match year.text() {
         Some(y) if supported.contains(&y) => Ok(y.to_string()),
-        _ => refuse(
-            "period.unsupported",
-            format!(
+        given => {
+            let mut message = format!(
                 "Unsupported period {}; supported: {}.",
                 year.repr(),
                 supported.join(", ")
-            ),
-        ),
+            );
+            if given == Some("2027-28")
+                && let Some((_, why)) = texts::UNPUBLISHED_2027_28.iter().find(|(k, _)| *k == kind)
+            {
+                message = format!("{message} {why}");
+            }
+            refuse("period.unsupported", message)
+        }
     }
 }
 
@@ -462,12 +467,24 @@ const GST_EXCLUSIVE_STEPS: [(&str, &str, &str); 3] = [
 
 pub fn resident_tax(taxable_income: &Arg, year: &Arg, scope_confirmed: &Arg) -> Result<Value> {
     let year = scope(scope_confirmed, year, "resident_tax")?;
-    basic_tax(
+    let mut out = basic_tax(
         "resident_tax",
         taxable_income,
         &year,
         meta::RESIDENT_TAX_SCALES,
-    )
+    )?;
+    year_warning(&mut out, texts::RESIDENT_TAX_YEAR_WARNINGS, &year);
+    Ok(out)
+}
+
+/// Add the year's warning from `table`, if it has one.
+fn year_warning(out: &mut Value, table: &[(&str, &str)], year: &str) {
+    if let Some((_, note)) = table.iter().find(|(y, _)| *y == year) {
+        out["warnings"]
+            .as_array_mut()
+            .expect("warnings")
+            .push(json!(note));
+    }
 }
 
 pub fn foreign_resident_tax(
@@ -483,15 +500,7 @@ pub fn foreign_resident_tax(
         &year,
         meta::FOREIGN_RESIDENT_TAX_SCALES,
     )?;
-    if let Some((_, note)) = texts::FOREIGN_RESIDENT_YEAR_WARNINGS
-        .iter()
-        .find(|(y, _)| *y == year)
-    {
-        out["warnings"]
-            .as_array_mut()
-            .expect("warnings")
-            .push(json!(note));
-    }
+    year_warning(&mut out, texts::FOREIGN_RESIDENT_YEAR_WARNINGS, &year);
     Ok(out)
 }
 
@@ -536,6 +545,9 @@ fn basic_tax_authority(kind: &str, year: &str) -> &'static str {
         }
         (_, "2026-27") => {
             "ITAA 1997 s 4-10(3) step 2; Income Tax Rates Act 1986 s 12(1) and Schedule 7 Part I clause 1(b), the table for the 2026-27 year of income: each part above the tax-free threshold (s 3(1)) at its rate"
+        }
+        (_, "2027-28") => {
+            "ITAA 1997 s 4-10(3) step 2; Income Tax Rates Act 1986 s 12(1) and Schedule 7 Part I clause 1(b), the table for the 2027-28 year of income or a later year of income: each part above the tax-free threshold (s 3(1)) at its rate"
         }
         _ => {
             "ITAA 1997 s 4-10(3) step 2; Income Tax Rates Act 1986 s 12(1) and Schedule 7 Part I clause 1(b), the table for the 2024-25 or 2025-26 year of income: each part above the tax-free threshold (s 3(1)) at its rate"
@@ -2693,14 +2705,9 @@ pub fn medicare_levy(
         )?)
     })?;
     let mut out = derived_result("medicare_levy", &year, steps, rates)?;
-    let warnings = out["warnings"].as_array_mut().expect("warnings");
-    if let Some((_, note)) = texts::MEDICARE_YEAR_WARNINGS
-        .iter()
-        .find(|(y, _)| *y == year)
-    {
-        warnings.push(json!(note));
-    }
+    year_warning(&mut out, texts::MEDICARE_YEAR_WARNINGS, &year);
     if shared {
+        let warnings = out["warnings"].as_array_mut().expect("warnings");
         warnings.push(json!(texts::MEDICARE_SHARED_REDUCTION_NOTE));
     }
     Ok(out)
@@ -2887,8 +2894,42 @@ pub fn medicare_levy_surcharge(
         days_in_year,
         spouse: surcharge_spouse(&family)?,
     };
+    if !meta::SURCHARGE_THRESHOLDS.iter().any(|(y, _)| *y == year) {
+        return surcharge_without_thresholds(&facts, &year);
+    }
     let (steps, rates) = precise(|| Ok(surcharge_working(&facts, &year)?))?;
     derived_result(SURCHARGE, &year, steps, rates)
+}
+
+/// A year whose thresholds are not yet published: the surcharge is nil when
+/// no day was without cover, since Medicare Levy Act 1986 ss 8B, 8C and 8D and
+/// the Fringe Benefits Act ss 12 to 14 apply only to a period without private
+/// patient hospital cover; any day without cover needs the thresholds.
+fn surcharge_without_thresholds(facts: &SurchargeFacts, year: &str) -> Result<Value> {
+    if facts.days > 0 {
+        let why = texts::UNPUBLISHED_2027_28
+            .iter()
+            .find(|(kind, _)| *kind == SURCHARGE)
+            .map_or("", |(_, why)| why);
+        return refuse(
+            "period.unsupported",
+            format!(
+                "{year} is supported only with days_without_cover 0, when no surcharge applies. {why}"
+            ),
+        );
+    }
+    let steps = vec![step(
+        "medicare_levy_surcharge",
+        "Medicare Levy Act 1986 ss 8B(1)(c), 8C(1)(c) and 8D(1)(b); Fringe Benefits Act ss 12(1)(b)(iii), 13(1)(b)(iii) and 14(1)(b): each applies only for a period without private patient hospital cover, so with no day without cover there is no surcharge, whatever the year's thresholds",
+        "0",
+        &[],
+        int(0),
+    )];
+    let rates = vec![
+        rate("days_without_cover", facts.days),
+        rate("days_in_year", facts.days_in_year),
+    ];
+    derived_result(SURCHARGE, year, steps, rates)
 }
 
 pub fn low_income_tax_offset(
@@ -3020,7 +3061,7 @@ pub fn division_293(
 
 /// A finite Decimal of at most 2dp and magnitude 1e12 that may be negative:
 /// total superannuation earnings can be (Division 296 regulations, reg 296-65.02 note).
-fn signed_money(value: &Arg) -> Result<Decimal> {
+pub(crate) fn signed_money(value: &Arg) -> Result<Decimal> {
     let bad = || {
         refuse(
             "input.signed_amount_invalid",
@@ -6002,14 +6043,14 @@ pub fn seniors_pensioners_tax_offset(
         )?)
     })?;
     let mut out = derived_result(SAPTO, &year, steps, rates)?;
-    if year == "2026-27" {
-        let warnings = out["warnings"].as_array_mut().expect("warnings");
-        warnings.push(json!(texts::SAPTO_2026_27_NOTE));
-    }
+    year_warning(&mut out, texts::SAPTO_YEAR_NOTES, &year);
     Ok(out)
 }
 
-const KINDS: [&str; 41] = [
+mod income_tests;
+pub use income_tests::income_tests;
+
+const KINDS: [&str; 42] = [
     "gst",
     "resident_tax",
     "foreign_resident_tax",
@@ -6051,6 +6092,7 @@ const KINDS: [&str; 41] = [
     "fbt_lafha",
     "fbt_board",
     "fbt_tax_exempt_body_entertainment",
+    "income_tests",
 ];
 
 /// `periods(kind)`: accepted period arguments and inclusive calendar boundaries.

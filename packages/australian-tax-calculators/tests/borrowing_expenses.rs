@@ -244,7 +244,7 @@ fn out_of_scope_facts_are_refused() {
     );
     assert_eq!(
         refusal(json!({"year": "2027-28"})),
-        "Unsupported period '2027-28'; supported: 2024-25, 2025-26, 2026-27."
+        "Unsupported period '2027-28'; supported: 2024-25, 2025-26, 2026-27. From 2027-28 ITAA 1997 s 26-155 limits deductions for residential rental property, and this worksheet does not apply it."
     );
     assert_eq!(
         refusal(json!({"income_use": "1.01"})),
