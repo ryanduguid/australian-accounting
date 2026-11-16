@@ -1343,7 +1343,8 @@ fn entertainment_classes_add_up_and_never_exceed_their_cost() {
                 "attendees": {"employees": heads[0], "associates": heads[1], "others": heads[2]},
                 "infrequent_and_irregular": rng.bool(),
             });
-            if let (true, Some(occasion)) = (what == "food_or_drink", rng.pick(&occasions)) {
+            if let (true, Some(occasion)) = (what.ends_with("food_or_drink"), rng.pick(&occasions))
+            {
                 line["occasion"] = json!(occasion);
             }
             lines.push(line);

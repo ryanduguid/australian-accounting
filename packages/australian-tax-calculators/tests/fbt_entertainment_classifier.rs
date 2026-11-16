@@ -243,9 +243,11 @@ fn reimbursed_and_card_paid_meals_follow_examples_11_1_and_16_1() {
         outcomes(&result),
         [row("employees", "arises", "200.00", "0.00")]
     );
+    // Paras 98 and 100: the reimbursed employee's is an expense payment
+    // benefit, the other employee's a property benefit.
     assert_eq!(
         result["lines"][0]["classes"][0]["benefit_type"],
-        "expense_payment"
+        "expense_payment_and_property"
     );
     // Example 16.1 (para 130): employees dine together on the corporate card:
     // property fringe benefits, deductible.
@@ -323,7 +325,7 @@ fn a_division_9a_election_displaces_s_41_and_minor_benefits() {
         [
             row("employees", "in_method_total", "300.00", "30.00"),
             row("associates", "in_method_total", "100.00", "10.00"),
-            row("others", "in_method_total", "100.00", "10.00"),
+            row("others", "none", "100.00", "10.00"),
         ]
     );
     let classes = &result["lines"][0]["classes"];
@@ -358,13 +360,76 @@ fn a_division_9a_election_displaces_s_41_and_minor_benefits() {
         [
             row("employees", "in_method_total", "240.00", "24.00"),
             row("associates", "in_method_total", "80.00", "8.00"),
-            row("others", "in_method_total", "80.00", "8.00"),
+            row("others", "none", "80.00", "8.00"),
         ]
     );
     assert_eq!(
         result["fbt_meal_entertainment_input"]["method"],
         "12_week_register"
     );
+}
+
+#[test]
+fn clients_get_no_fringe_benefit_under_an_election() {
+    // FBTAA s 136(1): a client receives no fringe benefit, though the cost of
+    // a client's meal entertainment counts in the year's expenditure under
+    // either method (s 37BA and s 37CB(3); TR 97/17 paras 31 and 32) and is
+    // deductible at the method's share (ITAA 1936 ss 51AEA and 51AEB).
+    let clients = line(json!({"cost": "220.00", "occasion": "business_meal",
+        "attendees": {"others": 2}}));
+    for (overrides, deductible, credit) in [
+        (json!({"method": "50_50_split"}), "100.00", "10.00"),
+        (
+            json!({"method": "12_week_register", "income_tax_register_percentage": "40"}),
+            "80.00",
+            "8.00",
+        ),
+    ] {
+        let result = classify(json!([clients.clone()]), overrides).unwrap();
+        assert_eq!(
+            outcomes(&result),
+            [row("others", "none", deductible, credit)]
+        );
+        let class = &result["lines"][0]["classes"][0];
+        assert_eq!(class["benefit_type"], Value::Null);
+        assert!(class.get("excluded").is_none());
+        assert_eq!(
+            result["amounts"]["meal_entertainment_expenditure"],
+            "220.00"
+        );
+    }
+}
+
+#[test]
+fn accommodation_or_travel_follows_the_food_or_drinks_occasion() {
+    // ITAA 1997 s 32-10(1)(b) and FBTAA s 37AD(b): accommodation or travel
+    // is entertainment only when to do with entertainment by way of food or
+    // drink, so the food or drink's occasion decides, and without it the
+    // line is undetermined.
+    let travel = |occasion: Option<&str>| {
+        let mut line = line(
+            json!({"provided": "accommodation_or_travel_for_food_or_drink",
+            "attendees": {"employees": 2}}),
+        );
+        match occasion {
+            Some(o) => line["occasion"] = json!(o),
+            None => {
+                line.as_object_mut().unwrap().remove("occasion");
+            }
+        }
+        let result = classify(json!([line]), json!({})).unwrap();
+        result["lines"][0].clone()
+    };
+    let out = travel(None);
+    assert_eq!(out["entertainment"], "undetermined");
+    assert!(out["missing"].as_str().unwrap().starts_with("occasion:"));
+    let out = travel(Some("travel_meal"));
+    assert_eq!(out["entertainment"], "not_entertainment");
+    assert!(out["authority"].as_str().unwrap().contains("s 32-10(1)(b)"));
+    assert_eq!(out["classes"][0]["deductible"], "1000.00");
+    let out = travel(Some("social_function"));
+    assert_eq!(out["entertainment"], "meal_entertainment");
+    assert!(out["authority"].as_str().unwrap().contains("s 37AD(b)"));
 }
 
 #[test]

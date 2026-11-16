@@ -580,17 +580,19 @@ spreadsheet, text or formula was used.
 | TR 97/17 example 3.1, paras 66 and 67 | $66, a travelling employee's reimbursed meal | Not entertainment; an expense payment benefit, deductible **$66.00** |
 | TR 97/17 example 6.2, para 84 | $120, employee and client both travelling, employer pays | Neither is entertainment; both deductible, **$120.00** |
 | TR 97/17 questions 9 and 10, paras 89 to 96 | A travelling employee's meal, non-travelling employees' and a non-travelling client's, as 3 lines | **$50.00**, **$100.00** and **nil** deductible |
-| TR 97/17 example 11.1, paras 100 and 101 | $200 business lunch for 2 employees, reimbursed | Expense payment benefit, deductible **$200.00** |
+| TR 97/17 example 11.1, paras 100 and 101 | $200 business lunch for 2 employees, reimbursed | Expense payment benefit to the reimbursed employee and a property benefit to the other, deductible **$200.00** |
 | TR 97/17 example 16.1, para 130 | $440 with GST, employees dine on the corporate card | Property fringe benefit, deductible **$400.00** |
 | TR 97/17 example 17.1, para 134 | $50 discounted bill, an employee and a client | Employee's share **$25.00** |
 | TR 97/17 example 17.2, para 135 | $120 discounted bill, an employee and 3 clients | Employee's share **$30.00** |
 | TR 97/17 paras 136 to 138.1 | A travelling employee's meal and the spouse's, reimbursed | Spouse's meal is meal entertainment and an expense payment benefit |
 | TR 97/17 para 44; TR 2007/12 para 14 | Example 1.1 under the 50/50 split method | No s 41 exemption or minor benefit; half deductible and creditable, **$500.00** and **$50.00**; **$1,100.00** for `fbt-meal-entertainment` |
 | TR 97/17 Part A table, column R, (a)(ii)1, (a)(ii)4 and (b)1 | Associates at a social function on the premises; associates' light lunches there; employees at a function off the premises, also under the 50/50 split | Meal entertainment **excluded** (s 5E(3)(a)); the light lunches **not excluded** |
+| TR 97/17 paras 31 and 32; FBTAA ss 37BA and 37CB(3) | $220 with GST, a client meal under the 50/50 split and the register at 40% | No fringe benefit; in the year's expenditure; deductible **$100.00** and **$80.00** |
 | TR 2007/12 example 2, paras 31 to 41 | A meal under $300 a head, not stated infrequent and irregular | Minor benefit still possible, the employer's judgement |
 
 The tests also cover the 12 week register at 40%, recreation under an
-election, undetermined lines, the $300 boundary and each refusal. The ruling
+election, accommodation or travel taking the food or drink's occasion
+(ITAA 1997 s 32-10(1)(b)), undetermined lines, the $300 boundary and each refusal. The ruling
 give dollar figures only in examples 11.1, 17.1 and 17.2: the other amounts are
 fabricated, and the ruling decides the treatment the test checks.
 

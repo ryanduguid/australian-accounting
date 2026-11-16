@@ -742,8 +742,8 @@ Each line gives `cost` (a decimal string), `gst_status` (`includes_gst` or
 `accommodation_or_travel_for_recreation`), `venue`
 (`business_premises_working_day`, `business_premises_other_day` or
 `elsewhere`), `paid_by` (`employer` or `reimbursed`) and `attendees`, such as
-`{"employees": 6, "associates": 2, "others": 2}`; a food or drink line also
-gives `occasion` (`social_function`, `business_meal`,
+`{"employees": 6, "associates": 2, "others": 2}`; a food or drink line, and an
+accommodation or travel line to do with food or drink, also gives `occasion` (`social_function`, `business_meal`,
 `with_other_entertainment`, `light_refreshments` or `travel_meal`), and any
 line may give `infrequent_and_irregular`.
 
@@ -756,13 +756,19 @@ s 41 can reach it, in the order TR 97/17 Part B asks: an election under
 Division 9A first, then who was entertained, then s 41.
 
 The classifier leaves a fact it lacks undetermined and names it, never
-guessing: food or drink with no occasion, and an employee's share of something
+guessing: food or drink, or accommodation or travel to do with it, with no
+occasion, and an employee's share of something
 other than food or drink provided on the business premises on a working day,
 where s 41 turns on whether it is property consumed there. Their cost is
 `undetermined_cost`, outside the other totals. The minor benefits exemption is
 shown only as possible: s 58P(1)(e)'s $300 is the Act's, `infrequent_and_irregular`
 is the operator's statement, and the rest of s 58P(1)(f) is the employer's
 judgement, so the totals treat the benefit as a fringe benefit.
+
+On a reimbursed line with more than one employee, the employees' share is
+`expense_payment_and_property`: the reimbursed employee's is an expense payment
+benefit and each other employee's a benefit to that employee (TR 97/17 para
+98); give the reimbursed employee's share as its own line to separate them.
 
 Under the 50/50 split or 12 week register method, the meal entertainment
 lines' cost is `meal_entertainment_expenditure`, repeated in

@@ -81,7 +81,7 @@ const CHARACTER: [(&str, Option<&str>, Character, &str); 8] = [
         "ITAA 1997 s 32-10(1)(a): entertainment by way of recreation, which includes amusement, sport or similar leisure-time pursuits (s 995-1); not meal entertainment, which FBTAA s 37AD limits to food or drink (TR 97/17 para 8(b))",
     ),
     (
-        "accommodation_or_travel_for_food_or_drink",
+        FOOD_TRAVEL,
         None,
         Meal,
         "ITAA 1997 s 32-10(1)(b) and FBTAA s 37AD(b): accommodation or travel to do with entertainment by way of food or drink",
@@ -94,8 +94,14 @@ const CHARACTER: [(&str, Option<&str>, Character, &str); 8] = [
     ),
 ];
 
-/// The fact an undetermined food or drink line lacks.
-const OCCASION_MISSING: &str = "occasion: whether food or drink is entertainment turns on why, what, when and where it is provided (TR 97/17 paras 7 and 23); state social_function, business_meal, with_other_entertainment, light_refreshments or travel_meal, or split the line until one fits";
+/// Accommodation or travel to do with food or drink: entertainment only when
+/// the food or drink is, so it takes the food or drink's occasion.
+const FOOD_TRAVEL: &str = "accommodation_or_travel_for_food_or_drink";
+const TRAVEL_NOT_ENTERTAINMENT: &str = "ITAA 1997 s 32-10(1)(b) and FBTAA s 37AD(b): accommodation or travel is entertainment only when it is to do with entertainment by way of food, drink or recreation, and the food or drink it is to do with is not entertainment on the occasion stated (TR 97/17 para 23, the Commissioner's view)";
+
+/// The fact an undetermined food or drink line, or accommodation or travel
+/// line to do with food or drink, lacks.
+const OCCASION_MISSING: &str = "occasion: whether food or drink, or accommodation or travel to do with it, is entertainment turns on why, what, when and where the food or drink is provided (ITAA 1997 s 32-10(1); TR 97/17 paras 7 and 23); state social_function, business_meal, with_other_entertainment, light_refreshments or travel_meal, or split the line until one fits";
 
 #[derive(Clone, Copy, PartialEq, Eq)]
 enum Class {
@@ -169,11 +175,11 @@ const RECIPIENTS: &[Class] = &[Employees, Associates];
 /// The first row that matches decides; the order is the order of the
 /// questions in TR 97/17 Part B: an election under Division 9A first (para
 /// 42), then who received it, then s 41.
-const TREATMENT: [Treatment; 9] = [
+const TREATMENT: [Treatment; 11] = [
     Treatment {
         characters: &[Meal],
         valuations: &[FiftyFifty],
-        classes: &[],
+        classes: RECIPIENTS,
         premises: &[],
         fbt: Fbt::InMethodTotal,
         share: Share::Half,
@@ -182,11 +188,29 @@ const TREATMENT: [Treatment; 9] = [
     Treatment {
         characters: &[Meal],
         valuations: &[Register],
-        classes: &[],
+        classes: RECIPIENTS,
         premises: &[],
         fbt: Fbt::InMethodTotal,
         share: Share::RegisterPercentage,
         authority: "FBTAA s 37CB: under the 12 week register method the line's whole cost, whoever attended, counts in the year's meal entertainment expenditure, which fbt-meal-entertainment values at the register percentage; s 41 does not apply, and minor benefits count only in the register (TR 97/17 paras 32 and 44; TR 2007/12 para 15, the Commissioner's view). ITAA 1936 s 51AEB(1): a deduction of the expense times income_tax_register_percentage and no other; GST Act s 69-5(3A)(b): no GST credit for the rest.",
+    },
+    Treatment {
+        characters: &[Meal],
+        valuations: &[FiftyFifty],
+        classes: &[Others],
+        premises: &[],
+        fbt: Fbt::NotAFringeBenefit,
+        share: Share::Half,
+        authority: "No fringe benefit: a fringe benefit is provided to an employee or an associate (FBTAA s 136(1)). Under the 50/50 split method the cost still counts in the year's meal entertainment expenditure, which includes meal entertainment provided to all persons (FBTAA s 37BA and its note; TR 97/17 para 31, the Commissioner's view). ITAA 1936 s 51AEA(1): a deduction of 50% of the expense and no other; GST Act s 69-5(3A)(a): no GST credit for the other 50%.",
+    },
+    Treatment {
+        characters: &[Meal],
+        valuations: &[Register],
+        classes: &[Others],
+        premises: &[],
+        fbt: Fbt::NotAFringeBenefit,
+        share: Share::RegisterPercentage,
+        authority: "No fringe benefit: a fringe benefit is provided to an employee or an associate (FBTAA s 136(1)). Under the 12 week register method the cost still counts in the year's total meal entertainment expenditure, the expenses of providing meal entertainment to all persons (FBTAA s 37CB(3) and its note; TR 97/17 para 32, the Commissioner's view). ITAA 1936 s 51AEB(1): a deduction of the expense times income_tax_register_percentage and no other; GST Act s 69-5(3A)(b): no GST credit for the rest.",
     },
     Treatment {
         characters: &[NotEntertainment],
@@ -280,14 +304,29 @@ fn treatment(
         .expect("a row for every case")
 }
 
-/// The fringe benefit's type: (type, authority).
-fn benefit_type(provided: &str, reimbursed: bool) -> (&'static str, &'static str) {
-    match (reimbursed, provided) {
-        (true, _) => (
+/// The fringe benefit's type: (type, authority). On a reimbursed line only
+/// one employee was reimbursed: any other employee's share is a benefit to
+/// that employee, not part of the expense payment.
+fn benefit_type(
+    provided: &str,
+    reimbursed: bool,
+    (class, heads): (Class, Option<i64>),
+) -> (&'static str, &'static str) {
+    let shared = reimbursed && class == Employees && heads != Some(1);
+    match (shared, reimbursed, provided) {
+        (true, _, "food_or_drink") => (
+            "expense_payment_and_property",
+            "Where more than one employee attended: FBTAA s 20 for the reimbursed employee's own share, its taxable value reduced under s 63A by the part for the others entertained; each other employee's share is a property benefit to that employee (s 40) (TR 97/17 paras 98 and 100, the Commissioner's view). Give the reimbursed employee's share as its own line to separate them.",
+        ),
+        (true, _, _) => (
+            "expense_payment_and_property_or_residual",
+            "Where more than one employee attended: FBTAA s 20 for the reimbursed employee's own share, its taxable value reduced under s 63A by the part for the others entertained; each other employee's share is a benefit to that employee, a property benefit (s 40) if what was provided is property, otherwise a residual benefit (s 45) (TR 97/17 para 98, the Commissioner's view). Give the reimbursed employee's share as its own line to separate them.",
+        ),
+        (false, true, _) => (
             "expense_payment",
             "FBTAA s 20: the employer reimbursed or paid for the attendee who incurred it; s 63A moves the part for others entertained to them (TR 97/17 paras 73 and 98, the Commissioner's view)",
         ),
-        (false, "food_or_drink") => (
+        (false, false, "food_or_drink") => (
             "property",
             "FBTAA s 40: food or drink is tangible property (s 136(1)); paying by corporate card does not change that (TR 97/17 paras 62 and 129, the Commissioner's view)",
         ),
@@ -459,25 +498,35 @@ fn parse_line(value: &Value, n: usize) -> Result<Line> {
         }
     };
     let provided = choice(fields, n, "provided", &PROVIDED)?;
+    let by_provided = |p: &str| {
+        CHARACTER
+            .iter()
+            .find(|row| row.0 == p)
+            .map(|row| (row.2, row.3))
+    };
     let character = match (provided, fields.get("occasion")) {
-        ("food_or_drink", None) => None,
-        ("food_or_drink", Some(_)) => {
+        ("food_or_drink" | FOOD_TRAVEL, None) => None,
+        ("food_or_drink" | FOOD_TRAVEL, Some(_)) => {
             let occasion = choice(fields, n, "occasion", &OCCASIONS)?;
-            CHARACTER
+            let food = CHARACTER
                 .iter()
                 .find(|row| row.1 == Some(occasion))
-                .map(|row| (row.2, row.3))
+                .map(|row| (row.2, row.3));
+            match (provided, food) {
+                ("food_or_drink", _) => food,
+                (_, Some((Meal, _))) => by_provided(provided),
+                _ => Some((NotEntertainment, TRAVEL_NOT_ENTERTAINMENT)),
+            }
         }
         (_, Some(_)) => {
             return refuse(
                 "input.field_unknown",
-                format!("line {n}: occasion is an input of a food_or_drink line only"),
+                format!(
+                    "line {n}: occasion is an input of a food_or_drink or {FOOD_TRAVEL} line only"
+                ),
             );
         }
-        _ => CHARACTER
-            .iter()
-            .find(|row| row.0 == provided)
-            .map(|row| (row.2, row.3)),
+        _ => by_provided(provided),
     };
     let venue = [
         "business_premises_working_day",
@@ -618,12 +667,12 @@ fn classify_class(
         },
     });
     let (kind, kind_authority) = match row.fbt {
-        Fbt::InMethodTotal if class != Others => (
+        Fbt::InMethodTotal => (
             Some("meal_entertainment"),
             Some("FBTAA s 37AC: a meal entertainment benefit, valued for the year as a whole"),
         ),
         Fbt::Arises | Fbt::Exempt => {
-            let (kind, authority) = benefit_type(line.provided, line.reimbursed);
+            let (kind, authority) = benefit_type(line.provided, line.reimbursed, (class, heads));
             (Some(kind), Some(authority))
         }
         _ => (None, None),
