@@ -17,12 +17,12 @@ keeps the engine release and MCP integration separate.
 
 </div>
 
-Forty-four calculation worksheets for established facts: ordinary GST, resident and foreign
+Forty-five calculation worksheets for established facts: ordinary GST, resident and foreign
 resident basic income tax, CGT losses and discount, the main residence exemption's taxable share of a gain or loss, one loan's borrowing expenses deduction, a hire purchase agreement's monthly notional interest, ordinary employer FBT, car fringe benefit taxable values
 under the statutory formula and operating cost methods, loan, meal entertainment, car parking, debt waiver, expense payment, property, residual, housing, living-away-from-home allowance, board and tax-exempt body entertainment fringe benefit taxable values, the FBT, deduction and GST credit treatment of entertainment expense lines, depreciation in the start year and later years,
 quarterly super guarantee, Schedule 1 PAYG withholding and the gross pay that leaves a stated net, Schedule 5 withholding from back payments, commissions and bonuses by Methods A, B(i) and B(ii), Schedule 15 withholding for working holiday makers, Schedule 9 withholding for seniors and pensioners, super contribution caps,
 account-based pension minimums, study and training loan repayments, Schedule 8 study
-loan withholding, the Medicare levy with its low-income, SAPTO and family reductions and full or half exemptions, the Medicare levy surcharge, the low income tax offset, the seniors and pensioners tax offset,
+loan withholding, the Medicare levy with its low-income, SAPTO and family reductions and full or half exemptions, the Medicare levy surcharge, the low income tax offset, the seniors and pensioners tax offset, the lump sum payment in arrears tax offset,
 Division 293 tax, an estimate of Division 296 tax on large super balances and the tax-free part of a genuine redundancy payment with Schedule 11 withholding from an employment termination payment, the assessable share, Schedule 7 withholding and income statement label of unused leave paid on termination, and the income measures the surcharge, Division 293 tax, the offsets, study loan repayments and the super co-contribution are tested against. Callers must establish every scope condition before calculating. `personal-tax-estimate` composes the personal ones into one year's tax and levies.
 
 Each worksheet is a subcommand that reads one JSON object on stdin and writes
@@ -119,6 +119,7 @@ lists the commands.
 | `medicare-levy-surcharge` | `taxable_income`, `reportable_fringe_benefits`, `income_for_surcharge_purposes`, `days_without_cover`, `year`, `scope_confirmed`; optional `spouse_income_for_surcharge_purposes`, `dependent_children` |
 | `low-income-tax-offset` | `taxable_income`, `year`, `scope_confirmed` |
 | `seniors-pensioners-tax-offset` | `rebate_income`, `status`, `year`, `scope_confirmed`; `spouse_rebate_income`, required unless `status` is `single`; optional `spouse_taxable_income` |
+| `lump-sum-arrears-tax-offset` | `taxable_income`, `net_capital_gain`, `accrual_years`, `year`, `scope_confirmed`; see [Lump sum payment in arrears tax offset](#lump-sum-payment-in-arrears-tax-offset) |
 | `division-293` | `division_293_income`, `low_tax_contributions`, `year`, `scope_confirmed` |
 | `income-tests` | `taxable_income`, `assessable_fhss_released_amount`, `family_trust_distribution_amounts`, `reportable_fringe_benefits_section_57a`, `reportable_fringe_benefits_other`, `reportable_employer_super_contributions`, `deductible_personal_super_contributions`, `excess_concessional_contributions`, `net_financial_investment_loss`, `net_rental_property_loss`, `tax_free_government_pensions`, `target_foreign_income`, `exempt_foreign_employment_income`, `child_support_paid`, `assessable_income`, `business_deductions`, `residency`, `year`, `scope_confirmed`; see [Income tests](#income-tests) |
 | `division-296` | `total_super_balance_end_of_year`, `total_super_earnings`, `child_recipient`, `structured_settlement_contribution`, `died_in_year`, `year`, `scope_confirmed` |
@@ -136,9 +137,9 @@ lists the commands.
 | `periods` | `kind`, the worksheet name, such as `"payg_withholding"` |
 | `dgr-check` | `donations`, a list of 1 to 10,000 objects, each with `abn` or `name` or both, and optional `date` and `amount`; see [DGR check](#dgr-check) |
 | `personal-tax-estimate` | `year`, `scope_confirmed`, `residency`, `taxable_income` or `assessable_labour_income` (then optional `other_assessable_income`, `work_related_deductions`, `other_deductions`), optional `tax_withheld` or, to work it out, one of `payg-withholding`, `study-loan-withholding` and `seniors-pensioners-withholding` with `pays_in_year` and optional `schedule-5-method-a`, for a resident from 2027-28 `net_labour_income` (required beside `taxable_income`), and for a full-year resident `medicare-levy` and `medicare-levy-surcharge`; optional `seniors-pensioners-tax-offset`, `study-loan-repayment` and `division-293`; see [Personal tax estimate](#personal-tax-estimate) |
-| `derive` | `command`, one of `fbt`, `fbt-car-statutory`, `fbt-car-operating-cost`, `fbt-loan`, `fbt-meal-entertainment`, `fbt-car-parking`, `fbt-debt-waiver`, `fbt-expense-payment`, `fbt-property`, `division-293`, `pension-minimum`, `payg-withholding`, `schedule-5-method-a`, `schedule-5-method-b-i`, `schedule-5-method-b-ii`, `termination-payment`, `unused-leave-payment`, `working-holiday-maker-withholding`, `study-loan-withholding`, `seniors-pensioners-withholding`, `quarterly-sg`, `borrowing-expenses`, `resident-tax`, `foreign-resident-tax`, `low-income-tax-offset`, `seniors-pensioners-tax-offset`, `medicare-levy`, `medicare-levy-surcharge`, `division-296`, `contribution-caps`, `study-loan-repayment`, `capital-gains`, `main-residence`, `fbt-residual`, `fbt-housing`, `fbt-lafha`, `fbt-board`, `fbt-tax-exempt-body-entertainment`, `gst`, `depreciation`, `hire-purchase-schedule` and `income-tests`, and `input`, that command's arguments; see [Derivations](#derivations) |
+| `derive` | `command`, one of `fbt`, `fbt-car-statutory`, `fbt-car-operating-cost`, `fbt-loan`, `fbt-meal-entertainment`, `fbt-car-parking`, `fbt-debt-waiver`, `fbt-expense-payment`, `fbt-property`, `division-293`, `pension-minimum`, `payg-withholding`, `schedule-5-method-a`, `schedule-5-method-b-i`, `schedule-5-method-b-ii`, `termination-payment`, `unused-leave-payment`, `working-holiday-maker-withholding`, `study-loan-withholding`, `seniors-pensioners-withholding`, `quarterly-sg`, `borrowing-expenses`, `resident-tax`, `foreign-resident-tax`, `low-income-tax-offset`, `seniors-pensioners-tax-offset`, `medicare-levy`, `medicare-levy-surcharge`, `division-296`, `contribution-caps`, `study-loan-repayment`, `capital-gains`, `main-residence`, `fbt-residual`, `fbt-housing`, `fbt-lafha`, `fbt-board`, `fbt-tax-exempt-body-entertainment`, `gst`, `depreciation`, `hire-purchase-schedule`, `lump-sum-arrears-tax-offset` and `income-tests`, and `input`, that command's arguments; see [Derivations](#derivations) |
 
-The 2 car commands, the 11 FBT benefit commands (`fbt-loan`, `fbt-meal-entertainment`, `fbt-car-parking`, `fbt-debt-waiver`, `fbt-expense-payment`, `fbt-property`, `fbt-residual`, `fbt-housing`, `fbt-lafha`, `fbt-board` and `fbt-tax-exempt-body-entertainment`), `main-residence`, `borrowing-expenses`, `division-296`, `termination-payment`, `unused-leave-payment`, the 3 `schedule-5` commands, `working-holiday-maker-withholding`, `seniors-pensioners-withholding`, `seniors-pensioners-tax-offset`, `medicare-levy-surcharge`, `foreign-resident-tax`, `payg-gross-up`, `hire-purchase-schedule`, `fbt-entertainment-classifier` and `income-tests` have no Python original; their arguments follow the same
+The 2 car commands, the 11 FBT benefit commands (`fbt-loan`, `fbt-meal-entertainment`, `fbt-car-parking`, `fbt-debt-waiver`, `fbt-expense-payment`, `fbt-property`, `fbt-residual`, `fbt-housing`, `fbt-lafha`, `fbt-board` and `fbt-tax-exempt-body-entertainment`), `main-residence`, `borrowing-expenses`, `division-296`, `termination-payment`, `unused-leave-payment`, the 3 `schedule-5` commands, `working-holiday-maker-withholding`, `seniors-pensioners-withholding`, `seniors-pensioners-tax-offset`, `medicare-levy-surcharge`, `foreign-resident-tax`, `payg-gross-up`, `hire-purchase-schedule`, `lump-sum-arrears-tax-offset`, `fbt-entertainment-classifier` and `income-tests` have no Python original; their arguments follow the same
 rules. `division-296` alone takes a negative amount, in `total_super_earnings`. `main-residence` also takes dates as `YYYY-MM-DD` strings, lists of
 `{"start", "end"}` periods (with `"floor_area"` for income use) and `null`
 for no new home. `borrowing-expenses` takes `loan_start` as a `YYYY-MM-DD`
@@ -163,7 +164,7 @@ Fringe Benefits Tax Assessment Act 1986 (FBTAA), of the Income Tax Assessment
 Act 1997 (ITAA 1997) or of the Superannuation (Sustaining the Superannuation
 Contribution Concession) Imposition Act 2013, a clause of Schedule 7 to the
 Superannuation Industry (Supervision) Regulations 1994 (SISR), a section of the
-Income Tax Rates Act 1986, the Income Tax Assessment Act 1936 (ITAA 1936), the
+Income Tax Rates Act 1986, the Income Tax (Transitional Provisions) Act 1997, the Income Tax Assessment Act 1936 (ITAA 1936), the
 Medicare Levy Act 1986, the A New Tax System (Medicare Levy Surcharge—Fringe
 Benefits) Act 1999 or the A New Tax System (Goods and Services Tax) Act 1999
 (GST Act), or of the Income Tax Assessment (1936 Act) Regulation 2015
@@ -271,6 +272,7 @@ of a section 57A employer's fringe benefits at 53%, as the ATO's worksheets do.
 | Medicare levy surcharge | 2024-25, 2025-26 and 2026-27, and 2027-28 with no day without hospital cover (nil); full-year resident in no exemption category, single without dependants or married for the whole year; established income for surcharge purposes and days without hospital cover |
 | Low income tax offset | 2024-25 to 2027-28; resident individual's established taxable income; the offset amount, not applied against tax |
 | Seniors and pensioners tax offset | 2024-25 to 2027-28; an established eligible individual's rebate income and whole-year status, and a spouse's rebate income; the offset amount with any transfer from a resident spouse, not applied against tax |
+| Lump sum payment in arrears tax offset | Years of receipt 2013-14 to 2026-27; a full-year resident individual's established eligible lump sums by accrual year, recent accrual years from 2012-13 at resident rates and earlier distant years at their average; the offset amount, not applied against tax, without the Medicare levy and surcharge relief |
 | Division 293 | 2024-25 to 2027-28; established Division 293 income and low tax contributions; no defined benefit interests |
 | Income tests | 2024-25, 2025-26 and 2026-27; a full-year resident's established and classified components; the measures, not the thresholds and tests they feed |
 | Division 296 | 2026-27; one individual's established balance at 30 June 2027 and total superannuation earnings; no defined benefit or other s 296-70 interests; an estimate, as the Commissioner assesses |
@@ -1109,6 +1111,41 @@ not take. An offset of at least $1 is the SAPTO entitlement `medicare-levy`
 takes as `sapto_entitled`. The tests hold it to the ATO's 9 examples, its
 thresholds and every cut-out; see
 [calculation evidence](docs/calculation-evidence.md#seniors-and-pensioners-tax-offset).
+
+## Lump sum payment in arrears tax offset
+
+`lump_sum_arrears_tax_offset` works out the tax offset for lump sum payments
+in arrears (ITAA 1936 ss 159ZR to 159ZRD) for a full-year resident individual
+whose year of receipt is 2013-14 to 2026-27. `taxable_income` is that year's
+taxable income, the arrears included, and `net_capital_gain` the net capital
+gain in it, `"0"` for none. `accrual_years` lists each earlier income year in
+which part of the arrears accrued, once, as `{"year": "2023-24", "arrears": "3000"}`
+with every payer's arrears for that year added together. The 2 latest accrual
+years, or each one when there are fewer than 3, are recent and also take
+`taxable_income`; with 3 or more, each recent year may take `net_capital_gain`,
+and a recent year that was itself a rebate year takes `rebate_year_arrears`, or
+`earlier_rebate_arrears` for what accrued in it of an earlier rebate year's
+arrears. Earlier, distant years take `year` and `arrears` only.
+
+The offset is due when the total arrears are at least 10% of normal taxable
+income less them (s 159ZRA(1)(b)). It is the tax the arrears add this year
+(s 159ZRB) less the tax they would have added in each recent year (s 159ZRC),
+and in the distant years at the average of the recent years' rates, each to 3
+decimal places and raised by 0.001 when the fourth would be more than 4
+(s 159ZRD). Each year's tax is at the ATO's published resident rates, with the
+2% temporary budget repair levy above $180,000 in 2014-15 to 2016-17, which
+Income Tax (Transitional Provisions) Act 1997 s 4-11 makes extra income tax. It
+refuses a recent accrual year before 2012-13, for which it holds no rates, and
+an accrual year that is not before the year of receipt, given twice or with
+nil arrears. Foreign and part-year residents, employment termination payments,
+superannuation lump sums, arrears the caller has not classified as eligible and
+applying the offset against tax are outside it. The Medicare levy relief
+(Medicare Levy Act 1986 s 9A) and the surcharge offset (ITAA 1997
+Subdivision 61-L) are separate questions its result names. Like `division-296`
+it refuses a field it does not take. The tests hold it to the ATO's Sudeep and
+Anthony results, work its Heather and Yan facts by hand with assumed taxable
+incomes and check its prior-year rates; see
+[calculation evidence](docs/calculation-evidence.md#lump-sum-arrears-tax-offset).
 
 ## Income tests
 

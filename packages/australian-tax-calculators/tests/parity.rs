@@ -19,10 +19,10 @@ use std::process::{Command, Stdio};
 /// `tests/fbt_debt_waiver.rs`, `tests/fbt_expense_payment.rs`,
 /// `tests/fbt_property.rs`, `tests/fbt_residual.rs`, `tests/fbt_housing.rs`,
 /// `tests/fbt_lafha.rs`, `tests/fbt_board.rs`,
-/// `tests/fbt_tax_exempt_body_entertainment.rs`,
+/// `tests/fbt_tax_exempt_body_entertainment.rs`, `tests/lump_sum_arrears_offset.rs`,
 /// `tests/fbt_entertainment_classifier.rs` and `tests/income_tests.rs` cover
 /// them.
-const NEW_KINDS: [(&str, &str); 30] = [
+const NEW_KINDS: [(&str, &str); 31] = [
     ("fbt-car-statutory", "fbt_car_statutory"),
     ("fbt-car-operating-cost", "fbt_car_operating_cost"),
     ("fbt-loan", "fbt_loan"),
@@ -63,6 +63,7 @@ const NEW_KINDS: [(&str, &str); 30] = [
         "fbt-tax-exempt-body-entertainment",
         "fbt_tax_exempt_body_entertainment",
     ),
+    ("lump-sum-arrears-tax-offset", "lump_sum_arrears_tax_offset"),
     (
         "fbt-entertainment-classifier",
         "fbt_entertainment_classifier",

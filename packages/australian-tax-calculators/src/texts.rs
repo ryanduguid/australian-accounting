@@ -147,6 +147,10 @@ pub const SCOPES: &[(&str, &str)] = &[
         "Withholding under Schedule 9 (NAT 4466), the tax table for seniors and pensioners, from one regular weekly, fortnightly or monthly payment made from 1 July 2024 in the income year given, to a payee the operator established it applies to: a senior or pensioner 67 or older at the end of the financial year, or a veteran with a service pension or a war widow or widower with an income support supplement from the Department of Veterans' Affairs who is at least 60, who gave a Withholding declaration, or its short version for seniors and pensioners, saying they are an Australian resident for tax purposes and answering yes to the questions the schedule names. The year selects the coefficients: 2024-25 and 2025-26 use the schedule for payments from 1 July 2024 to 30 June 2026, and 2026-27 the one for payments from 1 July 2026. Earnings include allowances and irregular payments subject to withholding. The payee's status (single, a member of an illness-separated couple or a member of a couple) and any full or half Medicare levy exemption claimed on a Medicare levy variation declaration select scales 1 to 9. The weekly amount is a x weekly earnings - b, on the weekly earnings in whole dollars plus 99 cents, rounded to the dollar with 50 cents up; a fortnightly pay uses half its earnings and twice the weekly amount, and a monthly pay 3/13 of its earnings, after adding a cent to an amount ending in 33 cents, and 13/3 of the weekly amount, rounded to the dollar. For a payee who declared a study and training support loan debt and claimed no Medicare levy reduction for a spouse or dependants and low family income, the schedule refers the payer to the study and training support loans weekly tax table, which adds Schedule 8's component for a payee claiming the tax-free threshold, as a Schedule 9 payee does: a x the same weekly earnings - b, rounded to the dollar and converted to the pay period in the same way, on the coefficients for the pay date, for 2026-27 and for 2025-26 pays made from 24 September 2025. Excludes other tax offsets, which the schedule values only by combining its ready reckoner's weekly amounts, the Medicare levy adjustment, which it leaves to the Medicare levy adjustment weekly tax table, quarterly pays, for which it has no rule, payees who gave no TFN, study and training support loans in 2024-25 and before 24 September 2025, whose Schedule 8 used a percentage of weekly earnings, lump sum leave loading (Schedule 5), super income streams (also Schedule 13), withholding variations and other schedules.",
     ),
     (
+        "lump_sum_arrears_tax_offset",
+        "The tax offset for lump sum payments in arrears (ITAA 1936 Part III Division 17 Subdivision AB, ss 159ZR to 159ZRD) of an individual, not a trustee (s 159ZRA(2)), whose assessable income of the year of receipt includes eligible lump sums the operator has classified (s 159ZR(1)): lump sum payments, received on or after 1 July 1986, of salary or wages (Taxation Administration Act 1953 Schedule 1 ss 12-35, 12-40 except to a director who is an associate of the company, 12-45, 12-80, 12-110, 12-115 and 12-120) to the extent they accrued in a period ending more than 12 months before payment, of salary or wages for a period of suspension paid after reinstatement, of a payment covered by s 12-80 or 12-120, of a Commonwealth education or training payment, or of a payment covered by ITAA 1997 Division 52, 53 or 55 that is not exempt, or a similar payment under a foreign law, less any part taken into account in an act of grace tax reimbursement; a BSWAT payment amount counts as one (s 159ZR(2)). The operator gives each earlier income year in which part of them accrued, once, with its annual arrears amount from every payer. The individual was an Australian resident for the whole of the year of receipt and of each recent accrual year, entitled to the whole tax-free threshold and taxed at the resident rates on all of that taxable income: none of it a minor's eligible taxable income (Division 6AA) or a superannuation or employment termination remainder taxed at another rate. None of those years' taxable income includes an amount under ITAA 1997 Division 82 (employment termination payments), s 83-10 or 83-80 (unused annual or long service leave) or Division 301 or 302 (superannuation benefits) or Income Tax (Transitional Provisions) Act 1997 Division 82, or above-average special professional income, and none had the primary producers' averaging tax offset (s 392-35(2)), so that rebated tax and gross tax (s 159ZR(1)) are the tax at the year's resident rates and normal taxable income is taxable income less any net capital gain. The offset is due when the total arrears amount is at least 10% of normal taxable income less that amount (s 159ZRA(1)(b)). It is the tax on the arrears, the tax on the year's taxable income less the tax on it without the arrears (s 159ZRB), less the notional tax: for each recent accrual year (the latest 2 when there are 3 or more accrual years, otherwise each one), the tax on its taxable income with its arrears added less the tax without them (s 159ZRC), and for the other, distant accrual years their arrears at the average of the recent accrual years' rates, each rate the increase in tax on normal taxable income over the arrears, to 3 decimal places, increased by 0.001 when the fourth decimal place would be more than 4 (s 159ZRD); nil when the notional tax is the greater. A recent accrual year that was itself a rebate year, or in which part of an earlier rebate year's total arrears amount accrued, is adjusted as ss 159ZRC and 159ZRD direct, from the amounts given. Each year's resident rates are the ATO's published rates from 2012-13, with the temporary budget repair levy of 2% above $180,000, which Income Tax (Transitional Provisions) Act 1997 s 4-11 makes extra income tax, for 2014-15 to 2016-17; a recent accrual year before 2012-13 is refused. Excludes foreign and part-year residents, employment termination payments and superannuation lump sums, which are not eligible income, an amount the operator has not classified as eligible income, the Medicare levy exemption for lump sums in arrears (Medicare Levy Act 1986 s 9A), the Medicare levy surcharge tax offset for them (ITAA 1997 Subdivision 61-L), and applying the offset against tax payable.",
+    ),
+    (
         "seniors_pensioners_tax_offset",
         "The seniors and pensioners tax offset (ITAA 1936 s 160AAAA) of an individual the operator established meets its first condition (s 160AAAA(2)): on a day in the year qualified for the age pension, or of veterans' pension age and eligible for a Veterans' Entitlements Act pension, allowance or benefit, or with an assessable social security or veterans' pension, education entry payment or income support supplement, and not in gaol that day. The operator establishes the whole-dollar rebate income (s 6(1)) and the status that gives the base rebate amount (regulations s 9(2)): $2,230 for a person who is not a spouse at any time in the year, $2,040 for a member of an illness-separated couple and $1,602 for a spouse, spouses living separately and apart permanently counting as not spouses. A person whose spouse status changed in the year is outside the worksheet. The second condition (s 160AAAA(3) and (4)) is rebate income, or for a spouse half the couple's rebate income, less than the cut-out: the base amount divided by 0.125 plus the rebate threshold, rounded up to the dollar (regulations s 10). The rebate threshold is (the $445 rebate maximum amount plus the base amount) divided by the year's lowest marginal tax rate plus the tax-free threshold, or above $37,000 the s 9(6) formula, rounded up to the dollar (s 9(4) to (8)). The offset is the base amount less 12.5 cents for each dollar of the person's own rebate income above the threshold (s 11), rounded up to the whole dollar as the ATO does, and nil without entitlement. With the spouse's taxable income, a spouse entitled to the offset whose whole taxable income is ordinary taxable income taxed at the resident scale (Income Tax Rates Act 1986 Sch 7 Part I) passes their unused base amount (s 12): all of it up to $6,000 of taxable income, then less 15% of the excess, increasing this person's base amount and threshold, but not the cut-out, when this person's own offset is below the base amount. Years from 2026-27 use the 2025 Regulations and earlier years the 2015 Regulation, whose rules are the same. Excludes trustees (s 160AAAB), a person also entitled to the beneficiary tax offset, of which s 160AAA(4) allows only the greater, a part-year spouse, the transfer from a foreign resident spouse or from a spouse with a superannuation or employment termination remainder taxed at 45% (Sch 7 Part I clause 1(a) and (aa)), whose tax can leave less than the whole base amount unused, the transfer out of this person's unused amount, and applying the offset, which is non-refundable, against tax payable.",
     ),
@@ -319,6 +323,10 @@ pub const SOURCES: &[(&str, &str)] = &[
     (
         "seniors_pensioners_tax_offset",
         "https://www.ato.gov.au/individuals-and-families/income-deductions-offsets-and-records/tax-offsets/seniors-and-pensioners-tax-offset",
+    ),
+    (
+        "lump_sum_arrears_tax_offset",
+        "https://www.ato.gov.au/individuals-and-families/income-deductions-offsets-and-records/income-you-must-declare/lump-sum-payment-in-arrears",
     ),
     (
         "fbt_residual",
@@ -607,6 +615,15 @@ pub const EXTRA_SOURCES: &[(&str, &[&str])] = &[
         ],
     ),
     (
+        "lump_sum_arrears_tax_offset",
+        &[
+            "https://www.legislation.gov.au/C1936A00027/2026-10-01/2026-10-01/text/original/epub/OEBPS/document_3/document_3.html",
+            "https://www.ato.gov.au/tax-rates-and-codes/tax-rates-australian-residents",
+            "https://www.legislation.gov.au/C2004A05128/2026-10-01/2026-10-01/text/original/epub/OEBPS/document_1/document_1.html",
+            "https://www.legislation.gov.au/C2014A00045/asmade/text",
+        ],
+    ),
+    (
         "fbt_residual",
         &[FBTAA_PART_1, FBTAA_PART_2, FBT_RETURN_ITEM_23],
     ),
@@ -726,6 +743,12 @@ pub const EXTRA_WARNINGS: &[(&str, &[&str])] = &[
         ],
     ),
     (
+        "lump_sum_arrears_tax_offset",
+        &[
+            "The Medicare levy and Medicare levy surcharge are separate questions this worksheet does not answer. From 2024-25 Medicare Levy Act 1986 s 9A leaves the total arrears amount out of taxable income for the levy when it is at least 10% of normal taxable income, the arrears included, and the levy in each of the 2 latest accrual years meets a condition of s 9A(1)(c); ITAA 1997 Subdivision 61-L gives a tax offset against the surcharge on them.",
+        ],
+    ),
+    (
         "fbt_entertainment_classifier",
         &[
             "TR 97/17 and TR 2007/12 are public rulings: the Commissioner's view of the law, not the law, and their paragraphs are cited as that view. FBTAA s 58P(1)(e) requires a minor benefit's notional taxable value to be less than $300, which this classifier applies; the $100 threshold in TR 97/17 para 27 is superseded and not applied.",
@@ -795,6 +818,10 @@ pub const UNPUBLISHED_2027_28: &[(&str, &str)] = &[
     ("capital_gains", CGT_2027_28),
     ("main_residence", CGT_2027_28),
     ("borrowing_expenses", RENTAL_2027_28),
+    (
+        "lump_sum_arrears_tax_offset",
+        "This worksheet has not been checked against 2027-28, when Act No. 49 of 2026 brings in the working Australians tax offset and changes how capital gains are worked out.",
+    ),
     (
         "depreciation",
         "2027-28 has 366 days, and this worksheet takes at most 365 days held.",
@@ -1088,7 +1115,7 @@ pub const REFUSAL_CODES: &[(&str, &str)] = &[
     ),
     (
         "input.field_unknown",
-        "A field the worksheet or command does not take, or does not take beside the other inputs given, was given (fbt-loan, fbt-meal-entertainment, fbt-car-parking, fbt-debt-waiver, fbt-expense-payment, fbt-property, fbt-residual, fbt-housing, fbt-lafha, fbt-board, fbt-tax-exempt-body-entertainment, fbt-entertainment-classifier, division-296, depreciation, foreign-resident-tax, medicare-levy, medicare-levy-surcharge, payg-withholding, payg-gross-up, termination-payment, unused-leave-payment, the Schedule 5 methods, working-holiday-maker-withholding, study-loan-withholding, seniors-pensioners-withholding, seniors-pensioners-tax-offset, hire-purchase-schedule, derive, personal-tax-estimate, dgr-check and income-tests only).",
+        "A field the worksheet or command does not take, or does not take beside the other inputs given, was given (fbt-loan, fbt-meal-entertainment, fbt-car-parking, fbt-debt-waiver, fbt-expense-payment, fbt-property, fbt-residual, fbt-housing, fbt-lafha, fbt-board, fbt-tax-exempt-body-entertainment, fbt-entertainment-classifier, division-296, depreciation, foreign-resident-tax, medicare-levy, medicare-levy-surcharge, payg-withholding, payg-gross-up, termination-payment, unused-leave-payment, the Schedule 5 methods, working-holiday-maker-withholding, study-loan-withholding, seniors-pensioners-withholding, seniors-pensioners-tax-offset, lump-sum-arrears-tax-offset, hire-purchase-schedule, derive, personal-tax-estimate, dgr-check and income-tests only).",
     ),
     ("input.flag_invalid", "A flag is not a JSON boolean."),
     ("input.fraction_invalid", "A fraction is outside 0 to 1."),
@@ -1174,6 +1201,14 @@ pub const REFUSAL_CODES: &[(&str, &str)] = &[
     (
         "leave.working_holiday_maker",
         "Unused leave paid to a working holiday maker, whom Schedule 15 covers.",
+    ),
+    (
+        "lump_sum_arrears.accrual_years_invalid",
+        "accrual_years is not a list of distinct income years before the year of receipt, each with its arrears and the fields its kind of accrual year takes, as whole-dollar decimal strings.",
+    ),
+    (
+        "lump_sum_arrears.recent_year_unsupported",
+        "A recent accrual year is earlier than 2012-13, the first year whose resident rates the worksheet holds.",
     ),
     (
         "main_residence.absence_choice_period_invalid",
