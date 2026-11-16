@@ -30,6 +30,25 @@ intentionally changed.
   `contribution_caps.year_before_carry_forward`. `tests/contribution_caps.rs`
   holds it to the ATO's Sam example and its table 2. A supplied
   `unused_concessional_cap` gives the same result as before.
+- `unused-leave-payment` works out, for unused annual leave, leave loading and
+  unused long service leave paid on a termination in 2026-27, each part's
+  assessable share and tax offset (ITAA 1997 ss 83-10 to 83-115), the
+  Schedule 7 withholding (32% on the parts the offset caps at 30%, the marginal
+  rate calculation once on the rest, with the $300 limit, or without a TFN 47%
+  of the payment, 45% for a foreign resident) and the income
+  statement amount at lump sum A (type R or T), lump sum B and paid leave
+  type U, with `qualifying_earnings` nil under the Superannuation Guarantee
+  (Administration) Act and the ATO's qualifying earnings table. `derive`
+  covers it. Leave paid after death, working holiday makers, a missing or
+  impossible accrual part, a payment under $300 beside pre-16 August 1978
+  leave and other years are refused, under the new codes
+  `input.termination_reason_invalid`, `leave.accrual_split_invalid`,
+  `leave.accrual_split_missing`, `leave.death`,
+  `leave.under_300_with_pre_1978` and `leave.working_holiday_maker`. No Python
+  release has it. `tests/parity.rs` drops its catalogue entry before comparing,
+  and `tests/unused_leave_payment.rs` holds it to Schedule 7's example and the
+  parts of the ATO's 6 unused leave examples that do not depend on the 2014-15
+  tax tables.
 
 - `derive` also covers `gst`, `depreciation` and `hire-purchase-schedule`.
   Their steps cite the GST Act ss 9-70 and 9-75 (compilation 96) and ITAA 1997
@@ -84,6 +103,15 @@ intentionally changed.
   `fbt_expense_payment.in_house_deductible_not_covered` (the otherwise
   deductible rule for in-house expense payments, s 24(1)(b)(i), is not
   covered) and `fbt_expense_payment.payment_exceeds_expenditure`.
+- `fbt-entertainment-classifier` classifies an ordinary taxable employer's entertainment expense lines: for each
+  line and attendee class, whether it is entertainment, the fringe benefit and its type or the s 41 exemption, the
+  ITAA 1997 Division 32 deduction and the GST credit that follows it, and whether each fringe benefit is excluded from
+  reporting (FBTAA s 5E(3)(a)), each cited, with TR 97/17 and TR 2007/12 as the
+  Commissioner's view. A missing fact leaves a line undetermined; minor benefits are shown only as possible. Under the
+  50/50 split or 12 week register method it totals the meal entertainment expenditure for `fbt-meal-entertainment`.
+  It refuses tax-exempt bodies, unsplit lines, a cost without its GST status and a missing valuation method, with
+  codes `fbt_entertainment_classifier.fact_invalid`, `.gst_status_invalid`, `.line_not_split`, `.lines_invalid`,
+  `.method_required`, `.register_percentage_invalid` and `.tax_exempt_body`.
 - `fbt-residual`, `fbt-housing`, `fbt-lafha`, `fbt-board` and `fbt-tax-exempt-body-entertainment` give the taxable
   value of residual (Division 12, with the s 62 in-house reduction), housing
   (Division 6: market value, or the statutory annual value from a base year

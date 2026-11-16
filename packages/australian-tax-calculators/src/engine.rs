@@ -21,7 +21,9 @@ pub use fbt_benefits::{
     fbt_board, fbt_housing, fbt_lafha, fbt_residual, fbt_tax_exempt_body_entertainment,
 };
 pub use fbt_benefits::{fbt_car_parking, fbt_loan, fbt_meal_entertainment};
-pub use fbt_benefits::{fbt_debt_waiver, fbt_expense_payment, fbt_property};
+pub use fbt_benefits::{
+    fbt_debt_waiver, fbt_entertainment_classifier, fbt_expense_payment, fbt_property,
+};
 
 pub const VERSION: &str = env!("CARGO_PKG_VERSION");
 const WORKING_PRECISION: i128 = 40;
@@ -1369,8 +1371,9 @@ fn payg_rows(year: &str, scale: i64) -> Option<&'static [CoefficientRow]> {
 }
 
 /// `_payg_checks`: scope, earnings, pay period and scale, in that order. Only
-/// `payg_withholding` takes scale 4, and only it and `study_loan_withholding`
-/// quarterly pays, which Schedules 1 and 8 cover and Schedule 5 does not.
+/// `payg_withholding` and `unused_leave_payment` take scale 4, which Schedules 1
+/// and 7 cover and Schedule 5 does not, and only `payg_withholding` and
+/// `study_loan_withholding` quarterly pays, which Schedules 1 and 8 cover.
 fn payg_checks(
     kind: &str,
     earnings: &Arg,
@@ -1397,10 +1400,11 @@ fn payg_checks(
             );
         }
     };
+    let no_tfn = schedule_1 || kind == "unused_leave_payment";
     let unsupported = || {
         refuse(
             "input.tax_scale_unsupported",
-            if schedule_1 {
+            if no_tfn {
                 "scale must be 1, 2, 3, 4, 5 or 6."
             } else {
                 "scale must be 1, 2, 3, 5 or 6; scale 4 is not supported."
@@ -1410,7 +1414,7 @@ fn payg_checks(
     let Some(Some(scale)) = scale.int() else {
         return unsupported();
     };
-    if payg_rows(&year, scale).is_none() && !(schedule_1 && scale == 4) {
+    if payg_rows(&year, scale).is_none() && !(no_tfn && scale == 4) {
         return unsupported();
     }
     Ok((year, earnings, period, scale))
@@ -3586,6 +3590,9 @@ pub fn termination_payment(
     ];
     derived_result("termination_payment", &year, steps, rates)
 }
+
+mod unused_leave;
+pub use unused_leave::{LeavePayee, LeaveSplits, unused_leave_payment};
 
 pub fn study_loan_repayment(
     repayment_income: &Arg,
@@ -6050,7 +6057,7 @@ pub fn seniors_pensioners_tax_offset(
 mod income_tests;
 pub use income_tests::income_tests;
 
-const KINDS: [&str; 42] = [
+const KINDS: [&str; 44] = [
     "gst",
     "resident_tax",
     "foreign_resident_tax",
@@ -6081,6 +6088,7 @@ const KINDS: [&str; 42] = [
     "division_293",
     "division_296",
     "termination_payment",
+    "unused_leave_payment",
     "schedule_5_method_a",
     "schedule_5_method_b_i",
     "schedule_5_method_b_ii",
@@ -6092,6 +6100,7 @@ const KINDS: [&str; 42] = [
     "fbt_lafha",
     "fbt_board",
     "fbt_tax_exempt_body_entertainment",
+    "fbt_entertainment_classifier",
     "income_tests",
 ];
 

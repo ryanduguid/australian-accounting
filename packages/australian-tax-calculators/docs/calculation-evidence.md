@@ -50,6 +50,7 @@ example evidence; it does not claim a fresh review of every supported period.
 | FBT living-away-from-home allowances | `tax-examples-fringe-benefits-tax-fbt` (tax-examples), ¶3-160 and ¶3-180, with FBTAA ss 30 to 31H and 136(1) (compilation 97), the FBT return 2026 instructions (item 23G, example 12) and the employer's guide (chapter 11) | 30 June 2026 | One allowance's established components and expenses for the years ended 31 March 2026 and 2027; eligibility, declarations and the reasonable food amount established by the operator |
 | FBT board | Not a Library document: FBTAA ss 35 to 37 (compilation 97), the FBT return 2026 instructions (item 23J, example 13) and the employer's guide (chapter 13) | 1 April 2026 (item 23) | Established meals for the years ended 31 March 2026 and 2027 |
 | FBT tax-exempt body entertainment | Not a Library document: FBTAA ss 38 and 39 (compilation 97), the FBT return 2026 instructions (item 23L, example 15) and the employer's guide (chapter 15) | 1 April 2026 (item 23) | Established expenditure for the years ended 31 March 2026 and 2027, actual or per head |
+| FBT entertainment classifier | Not a Library document: ITAA 1997 Division 32, ss 27-5 and 995-1 (compilation 268), FBTAA ss 5E, 20, 37A to 37CF, 40, 41, 45, 58P, 135P and 136(1) (compilation 97), the FBT Assessment Regulations 2018 regs 6 to 11, ITAA 1936 ss 51AEA and 51AEB (compilation 193), GST Act s 69-5 (compilation 96), and TR 97/17 and TR 2007/12 as the Commissioner's view | 16 November 2026 (read) | One ordinary taxable employer's entertainment lines with established facts for the years ended 31 March 2026 and 2027; no Subdivision 32-B exception, tax-exempt body or reportable fringe benefits amount |
 | Main residence | `tax-examples-capital-gains-tax-cgt` (tax-examples), ¶2-060 and ¶2-075, with the ATO's pages 'Treating former home as main residence' (QC66030) and 'Using your home for rental or business' (QC66033) | 30 June 2026; 22 June 2026 (both ATO pages) | One dwelling's taxable days for CGT events in 2024-25 to 2026-27; cost base, market value and discount excluded |
 | Borrowing expenses | `tax-examples-deductions` (tax-examples), ¶4-160, with ITAA 1997 s 25-25 (compilation 268, 1 October 2026) and the ATO's 'Borrowing expenses' page | 30 June 2026; 22 May 2026 (ATO page) | One loan's established expenditure, use and dates for 2024-25 to 2026-27; classification, interest and refinancing excluded |
 | Hire purchase schedule | Not a Library document: ITAA 1997 ss 240-17, 240-55 and 240-60 on the ATO's legal database and in compilation 268 (1 October 2026) | 15 November 2026 (read) | One agreement's monthly notional interest for the hirer, starting in 2024-25 to 2026-27, from established payments; apportionment to income years under s 240-60(2) excluded |
@@ -64,6 +65,7 @@ example evidence; it does not claim a fresh review of every supported period.
 | Division 293 | Not a Library document: ITAA 1997 ss 293-20 and 293-25, the 2013 Imposition Act and the ATO's worked example | 24 August 2026 (ATO page) | Established Division 293 income and low tax contributions for 2024-25 to 2026-27 |
 | Division 296 | `superannuation-contributions-to-superannuation-funds-and-rsas` (superannuation), ¶6-495, with the Explanatory Memorandum's examples 1.1 to 1.3, ITAA 1997 ss 296-15 to 296-55 (compilation 268, 1 October 2026), the 2026 Imposition Act and the ATO's Division 296 page | 30 June 2026; 3 November 2026 (ATO page) | One individual's established balance at 30 June 2027 and total superannuation earnings for 2026-27; working out either, s 296-70 interests and later years excluded |
 | Termination payment | Not a Library document: ATO Schedule 11 examples 1 to 4, with ITAA 1997 ss 82-10 and 83-170 (compilation 268, 1 October 2026), SISR reg 6.01(2) and `tax-examples-assessable-income` (tax-examples), ¶1-420 | 17 June 2026 (Schedule 11); 30 June 2026 (¶1-420) | One life benefit ETP in 2026-27 with established, classified parts; Schedule 11 withholding, not the tax assessed |
+| Unused leave payment | Not a Library document: ATO Schedule 7 for payments from 1 July 2026 and its example, the ATO's 'Withholding from unused leave payments on termination of employment' examples, ITAA 1997 ss 83-10 to 83-115 (compilation 268, 1 October 2026), the STP Phase 2 employer reporting guidelines, the Superannuation Guarantee (Administration) Act 1992 (compilation 78, 1 July 2026) and the ATO's qualifying earnings table | 17 June 2026 (Schedule 7 published); 1 May 2020 (examples); 2 September 2026 (qualifying earnings) | Withholding, assessable shares and labels for unused leave paid on one termination in 2026-27, from established accrual parts |
 | Schedule 5 withholding | Not a Library document: ATO Schedule 5 (NAT 3348) for payments from 1 July 2024, 1 July 2025 and 1 July 2026, and the 2024, 2025 and 2026 withholding schedules instruments | 17 June 2024, 10 June 2025 and 17 June 2026 (published) | One regular weekly, fortnightly or monthly pay with additional payments by Method A, B(i) or B(ii); the study loan component for pays from 24 September 2025, and from 1 July 2026 in Method B(i) |
 | Working holiday makers | Not a Library document: ATO Schedule 15 for payments from 1 July 2026, and for 1 July 2024 to 30 June 2026 | 17 June 2026 (published); 17 June 2024 (last updated) | One payment's withholding at the Table A rates or Schedule 1 scale 3 for 2024-25 to 2026-27; visa, registration and TFN status established by the operator |
 | Seniors and pensioners | Not a Library document: ATO Schedule 9 (NAT 4466) for payments from 1 July 2026, and for 1 July 2024 to 30 June 2026, with Schedule 9 of the 2026 and 2025 withholding schedules instruments | 17 June 2026 (published); 17 June 2024 (last updated) | One weekly, fortnightly or monthly payment's withholding on scales 1 to 9 for 2024-25 to 2026-27, with any study loan component under Schedule 8 for 2026-27 and from 24 September 2025; eligibility, status and exemption established by the operator; other tax offsets and the Medicare levy adjustment excluded |
@@ -550,6 +552,51 @@ guide's 13.2: $6 a day towards 3 meals takes each day's value to nil.
 Item 23L example 15: a council's Christmas function, **$5,000.00**. The guide's
 15.9: Mary entertains 3 clients and is reimbursed; her share per head is 1 of
 4, 25%.
+
+## FBT entertainment classifier
+
+Added on 16 November 2026. Its sources were read that evening, 5.58 pm to 6.11
+pm AEDT, from the Federal Register of Legislation's current compilations, each
+checked against its EPUB text: ITAA 1997 (C2004A05138, compilation 268, from 1
+October 2026) Division 32 and ss 27-5 and 995-1; the FBTAA (C2004A03280,
+compilation 97, from 1 July 2026) ss 20, 37A to 37CF, 40, 41, 45, 58P and
+136(1); ITAA 1936 (C1936A00027, compilation 193, from 1 October 2026) ss 51AEA
+and 51AEB; and the GST Act (C2004A00446, compilation 96, from 1 January 2026)
+s 69-5. TR 97/17 (as consolidated) and TR 2007/12 were read on the ATO's legal
+database at 6.00 pm. Both rulings are the Commissioner's view, not the law;
+the classifier cites their paragraphs as such. TR 97/17 para 27 gives the
+minor benefits threshold as $100, which is superseded: s 58P(1)(e) says less
+than $300, and the classifier applies the Act. FBTAA ss 5E and 135P(1) and the
+Fringe Benefits Tax Assessment Regulations 2018 (F2018L01284, as made, the
+current version) regulations 6 to 11 were read at 7.50 pm to 7.55 pm for
+whether each fringe benefit is excluded from reporting. No rival's
+spreadsheet, text or formula was used.
+
+`tests/fbt_entertainment_classifier.rs` holds each case:
+
+| Ruling example | Facts given | Result |
+| --- | --- | --- |
+| TR 97/17 example 1.1, paras 49 to 52 | $1,100 with GST, a social function on the premises on a working day; 6 employees, 2 associates, 2 clients | Employees $660 exempt (s 41), not deductible; associates $220 a property fringe benefit, deductible **$200.00** with a **$20.00** credit; clients not deductible |
+| TR 97/17 example 1.3, paras 55 and 56 | $55 with GST, sandwiches and juice for employees on the premises | Not entertainment, exempt (s 41), deductible **$50.00**, credit **$5.00** |
+| TR 97/17 example 2.1, paras 61 and 62 | $1,100 with GST, a social function at a restaurant for employees | Property fringe benefit, deductible **$1,000.00** |
+| TR 97/17 example 3.1, paras 66 and 67 | $66, a travelling employee's reimbursed meal | Not entertainment; an expense payment benefit, deductible **$66.00** |
+| TR 97/17 example 6.2, para 84 | $120, employee and client both travelling, employer pays | Neither is entertainment; both deductible, **$120.00** |
+| TR 97/17 questions 9 and 10, paras 89 to 96 | A travelling employee's meal, non-travelling employees' and a non-travelling client's, as 3 lines | **$50.00**, **$100.00** and **nil** deductible |
+| TR 97/17 example 11.1, paras 100 and 101 | $200 business lunch for 2 employees, reimbursed | Expense payment benefit to the reimbursed employee and a property benefit to the other, deductible **$200.00** |
+| TR 97/17 example 16.1, para 130 | $440 with GST, employees dine on the corporate card | Property fringe benefit, deductible **$400.00** |
+| TR 97/17 example 17.1, para 134 | $50 discounted bill, an employee and a client | Employee's share **$25.00** |
+| TR 97/17 example 17.2, para 135 | $120 discounted bill, an employee and 3 clients | Employee's share **$30.00** |
+| TR 97/17 paras 136 to 138.1 | A travelling employee's meal and the spouse's, reimbursed | Spouse's meal is meal entertainment and an expense payment benefit |
+| TR 97/17 para 44; TR 2007/12 para 14 | Example 1.1 under the 50/50 split method | No s 41 exemption or minor benefit; half deductible and creditable, **$500.00** and **$50.00**; **$1,100.00** for `fbt-meal-entertainment` |
+| TR 97/17 Part A table, column R, (a)(ii)1, (a)(ii)4 and (b)1 | Associates at a social function on the premises; associates' light lunches there; employees at a function off the premises, also under the 50/50 split | Meal entertainment **excluded** (s 5E(3)(a)); the light lunches **not excluded** |
+| TR 97/17 paras 31 and 32; FBTAA ss 37BA and 37CB(3) | $220 with GST, a client meal under the 50/50 split and the register at 40% | No fringe benefit; in the year's expenditure; deductible **$100.00** and **$80.00** |
+| TR 2007/12 example 2, paras 31 to 41 | A meal under $300 a head, not stated infrequent and irregular | Minor benefit still possible, the employer's judgement |
+
+The tests also cover the 12 week register at 40%, recreation under an
+election, accommodation or travel taking the food or drink's occasion
+(ITAA 1997 s 32-10(1)(b)), undetermined lines, the $300 boundary and each refusal. The ruling
+give dollar figures only in examples 11.1, 17.1 and 17.2: the other amounts are
+fabricated, and the ruling decides the treatment the test checks.
 
 ## Main residence
 
@@ -1307,6 +1354,95 @@ tax-free component (an invalidity segment or a pre-July 83 segment, s 82-140),
 earlier ETPs in the year or for the same termination (which reduce the caps,
 s 82-10(4)(a) and (b)), delayed termination payments, payees without a TFN,
 foreign residents and working holiday makers are outside it.
+
+## Unused leave payment
+
+This worksheet's evidence was read on 16 November 2026 from 17:57 to 18:01
+AEDT:
+
+- The ATO's Schedule 7, 'Tax table for unused leave payments on termination of
+  employment' (published 17 June 2026, for payments from 1 July 2026), made
+  under TAA 1953 Schedule 1 ss 15-25 and 15-30
+  (https://www.ato.gov.au/tax-rates-and-codes/payg-withholding-schedule-7-tax-table-for-unused-leave-payments-on-termination-of-employment).
+  Its table withholds 32% from long service leave from 16 August 1978 to
+  17 August 1993, from annual leave and loading from before 18 August 1993 on
+  a normal termination, and from all annual leave and loading and all post-17
+  August 1993 long service leave on a genuine redundancy, invalidity or early
+  retirement scheme, all at label A; 5% of pre-16 August 1978 long service
+  leave at marginal rates, label B; and post-17 August 1993 leave on a normal
+  termination at marginal rates, included in salary and wages. A post-17 August
+  1993 payment from normal termination under $300 has the lesser of the table
+  amount and 32% withheld. Amounts round to the nearest dollar, 50 cents up.
+  Its marginal rate calculation has 7 steps, ignores cents after dividing by
+  the 12, 26 or 52 pay periods, and withholds nothing for a study and training
+  support loan. Its example (Norman: $780, $6,420 and $14,820 of long service
+  leave on $1,155 a week, $6,786 withheld) adds the 5% to the post-17 August
+  1993 component before one marginal rate calculation; it is the catalogue
+  example and a test in `tests/unused_leave_payment.rs`, with the $188 and $279
+  from the 2026-27 weekly tax table that `payg-withholding` gives. It sends
+  working holiday makers to Schedule 15. Its method when a TFN is provided
+  does not depend on residency, and its marginal rate calculation uses 'the
+  relevant PAYG withholding tax table', so a foreign resident who gave a TFN
+  uses Schedule 1 scale 3. When no TFN is provided it withholds 47% from the
+  payment, or 45% for a foreign resident, with cents ignored; the ATO's
+  'Payments when no tax file number (TFN) is quoted' (last updated 1 May 2020,
+  read at 18:58 on 16 November 2026) says the same of 'any payment of unused
+  leave'. The schedule ignores cents only in its rounding of withholding
+  amounts, so the worksheet ignores the cents of the result, not of the
+  payment.
+- The ATO's 'Withholding from unused leave payments on termination of
+  employment' pages (last updated 1 May 2020): Greg's invalidity example
+  ($2,680 at 32%, $857 with cents disregarded, where Schedule 7 now rounds to
+  $858), Helen's and Mark's annual leave examples 2 and 4, and Robyn's, Matt's
+  and Sali's long service leave examples 7 to 9. Their withholding at marginal
+  rates uses the 2014-15 tax tables, so the tests check only the parts that do
+  not depend on those tables: Robyn's $2,560, Matt's $192.60, $10,050,
+  $44,933.60 and $864, Sali's $800 and $15, Helen's split and Mark's $76.
+  'Payments made after death' says nothing is withheld from unused leave paid
+  after death and it is not shown on the employee's statement. Greg, Helen and
+  Mark are on 'Unused annual leave', read at 17:59
+  (https://www.ato.gov.au/forms-and-instructions/employment-termination-payments-withholding-from-unused-leave-payments/unused-annual-leave),
+  and Robyn, Matt and Sali on the long service leave 'Examples', read at 18:01
+  (https://www.ato.gov.au/forms-and-instructions/employment-termination-payments-withholding-from-unused-leave-payments/unused-long-service-leave/examples).
+- ITAA 1997, compilation 268 (1 October 2026, the current one, read through
+  the Federal Register API): s 83-10 makes unused annual leave, and a bonus or
+  other additional payment for it, assessable; s 83-15 gives a tax offset that
+  keeps its rate at most 30% when paid in connection with a genuine redundancy
+  payment (s 83-175), an early retirement scheme payment (s 83-180) or an
+  invalidity segment (s 82-150), or in respect of employment before 18 August
+  1993; s 83-80 makes 5% of unused long service leave from the pre-16/8/78
+  period and all of the rest assessable, the 95% being neither assessable nor
+  exempt income; s 83-85 gives the 30% offset for the pre-18/8/93 period and
+  for the post-17/8/93 period on those 3 reasons; and ss 83-90 to 83-115
+  define the periods and attribute a payment to each by days, which the caller
+  does.
+- The ATO's STP Phase 2 employer reporting guidelines, 'When an employee
+  transfers or leaves' (last updated 12 November 2025): lump sum A type R for
+  all unused annual leave and loading and long service leave from 16 August
+  1978 paid for genuine redundancy, invalidity or early retirement scheme
+  reasons, type T for annual leave and loading from before 17 August 1993 and
+  long service leave from 16 August 1978 to 17 August 1993 paid for other
+  reasons, lump sum B for the whole of pre-16 August 1978 long service leave,
+  and paid leave type U for post-17 August 1993 leave on a normal termination.
+  The guidelines say 17 August 1993 for annual leave where s 83-15(b) says
+  before 18 August 1993; the worksheet follows the Act.
+- The ATO's 'What payments are qualifying earnings' (last updated 2 September
+  2026), table 13: unused leave on termination, including annual leave, leave
+  loading and long service leave, is neither ordinary time earnings nor
+  qualifying earnings, whatever the reason for termination or its tax
+  treatment. An award or agreement can still require super on it.
+- The Superannuation Guarantee (Administration) Act 1992, compilation 78
+  (1 July 2026, the current one, with the Payday Superannuation amendments),
+  read at 18:57 on 16 November 2026: s 6(1) leaves out of ordinary time
+  earnings a lump sum paid on termination that is an unused annual leave
+  payment or unused long service leave payment within the meaning of ITAA
+  1997, which covers leave loading (s 83-10(3)(b)) and every termination
+  reason; s 10A(1)(a) brings ordinary time earnings into qualifying earnings,
+  and its other paragraphs name commissions, directors' and parliamentarians'
+  pay, labour under contracts and other payments that are not leave.
+
+The worksheet computes withholding and the assessable amounts, not the tax
+assessed: the offset depends on the employee's other income for the year.
 
 ## Schedule 5
 

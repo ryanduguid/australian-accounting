@@ -541,6 +541,21 @@ pub const TERMINATION_PAYMENT: [(&str, &str); 7] = [
 ];
 pub const TERMINATION_PAYMENT_YEARS: [&str; 1] = ["2026-27"];
 
+/// Unused leave paid on termination: Schedule 7's 32% rate for the parts a tax
+/// offset caps at 30% (30% plus the 2% Medicare levy) and its $300 limit for a
+/// small post-17 August 1993 payment, its 47% (45% for a foreign resident) of
+/// the payment when no TFN is provided (payments from 1 July 2026), and the 5%
+/// of pre-16 August 1978 long service leave that ITAA 1997 s 83-80(1) makes
+/// assessable.
+pub const UNUSED_LEAVE_PAYMENT: [(&str, &str); 5] = [
+    ("flat_rate", "0.32"),
+    ("pre_1978_assessable_rate", "0.05"),
+    ("small_payment", "300"),
+    ("no_tfn_rate", "0.47"),
+    ("no_tfn_foreign_resident_rate", "0.45"),
+];
+pub const UNUSED_LEAVE_PAYMENT_YEARS: [&str; 1] = ["2026-27"];
+
 /// Schedule 5 (NAT 3348): the schedules for payments from 1 July 2024, 1 July
 /// 2025 and 1 July 2026 state the same methods and limit.
 pub const SCHEDULE_5_YEARS: [&str; 3] = ["2024-25", "2025-26", "2026-27"];
@@ -947,6 +962,7 @@ pub fn supported_periods(kind: &str) -> Vec<&'static str> {
         "division_293" => DIVISION_293_YEARS.to_vec(),
         "division_296" => DIVISION_296_YEARS.to_vec(),
         "termination_payment" => TERMINATION_PAYMENT_YEARS.to_vec(),
+        "unused_leave_payment" => UNUSED_LEAVE_PAYMENT_YEARS.to_vec(),
         "schedule_5_method_a" | "schedule_5_method_b_i" | "schedule_5_method_b_ii" => {
             SCHEDULE_5_YEARS.to_vec()
         }
@@ -960,6 +976,9 @@ pub fn supported_periods(kind: &str) -> Vec<&'static str> {
         "fbt_residual" | "fbt_lafha" | "fbt_board" | "fbt_tax_exempt_body_entertainment" => {
             vec!["2026", "2027"]
         }
+        // No published rate: s 58P(1)(e)'s $300 is the Act's own. The years
+        // are those the other FBT benefit worksheets cover.
+        "fbt_entertainment_classifier" => vec!["2026", "2027"],
         "fbt_housing" => keys(FBT_HOUSING_INDEXATION),
         // The years whose definitions were read: the 1 July 2024 compilations
         // define them as the current ones do, and the ATO's 2025 and 2026
@@ -1089,6 +1108,10 @@ pub fn source_review(kind: &str) -> (&'static str, &'static str) {
             "2026-11-14",
             "ATO Schedule 11, tax table for employment termination payments (from 1 July 2026), Table A and examples 1 to 4; ATO Key superannuation rates, tables 17 and 20; ITAA 1997 ss 82-10, 82-130 to 82-160 and 83-170 to 83-180, compilation 268 (1 October 2026); SISR reg 6.01(2), compilation 159 (1 July 2026)",
         ),
+        "unused_leave_payment" => (
+            "2026-11-16",
+            "ATO Schedule 7, tax table for unused leave payments on termination of employment (from 1 July 2026): using this schedule, working out the withholding amount, the rates and labels table, rounding, the marginal rate calculation, normal gross earnings, the long service leave example and when a TFN has not been provided; ITAA 1997 ss 83-10, 83-15 and 83-70 to 83-115, compilation 268 (1 October 2026); ATO STP Phase 2 employer reporting guidelines, 'When an employee transfers or leaves'; Superannuation Guarantee (Administration) Act 1992 ss 6(1) 'ordinary time earnings' and 10A(1), compilation 78 (1 July 2026); ATO 'What payments are qualifying earnings', table 13",
+        ),
         "schedule_5_method_a" | "schedule_5_method_b_i" | "schedule_5_method_b_ii" => (
             "2026-11-14",
             "Schedule 5 (NAT 3348) for payments from 1 July 2026, from 1 July 2025 to 30 June 2026 and from 1 July 2024 to 30 June 2025: about this schedule, working out the withholding amount (Methods A, B(i) and B(ii), the withholding limit, study and training support loans) and withholding amounts examples 1 to 4; Schedule 8's coefficients for the pay date",
@@ -1124,6 +1147,10 @@ pub fn source_review(kind: &str) -> (&'static str, &'static str) {
         "fbt_tax_exempt_body_entertainment" => (
             "2026-11-15",
             "FBTAA ss 38 and 39 and s 136(1), non-deductible exempt entertainment expenditure, compilation 97 (1 July 2026); Fringe benefits tax - a guide for employers, chapter 15, 15.9 and its per head example; FBT return 2026 instructions, item 23L and example 15",
+        ),
+        "fbt_entertainment_classifier" => (
+            "2026-11-16",
+            "ITAA 1997 Division 32, s 27-5 and s 995-1, compilation 268 (1 October 2026); FBTAA ss 5E, 20, 37A to 37CF, 40, 41, 45, 58P and 135P(1) and s 136(1), compilation 97 (1 July 2026); Fringe Benefits Tax Assessment Regulations 2018, regulations 6 to 11, as made; ITAA 1936 ss 51AEA and 51AEB, compilation 193 (1 October 2026); GST Act s 69-5, compilation 96 (1 January 2026); TR 97/17, paras 7 to 143 and the Part A table, and TR 2007/12, paras 8 to 22 and examples 1 to 3, as the Commissioner's view",
         ),
         "income_tests" => (
             "2026-11-16",
@@ -1309,6 +1336,12 @@ pub fn library_evidence(kind: &str) -> [(&'static str, &'static str); 4] {
             "examples 1 to 4",
             "2026-06-17",
             "2026-11-14",
+        ),
+        "unused_leave_payment" => (
+            "ATO Schedule 7 tax table for unused leave payments on termination of employment",
+            "example: long service leave (Norman)",
+            "2026-06-17",
+            "2026-11-16",
         ),
         "schedule_5_method_a" | "schedule_5_method_b_i" | "schedule_5_method_b_ii" => (
             "ATO Schedule 5 (NAT 3348) withholding amounts examples",
@@ -1591,6 +1624,28 @@ pub fn optional_inputs(kind: &str) -> Vec<(&'static str, &'static str)> {
                 "AUD, whole dollars, not for a single person: to transfer the spouse's unused base rebate amount (regulations s 12), the spouse's taxable income for the year with any exempt disability support, carer, invalidity service or partner service pension added (s 12(5)); give it only for a spouse entitled to the offset whose whole taxable income is ordinary taxable income taxed at the resident scale (Income Tax Rates Act 1986 Sch 7 Part I item table, with no superannuation or employment termination remainder taxed at 45%); omit for no transfer",
             ),
         ],
+        "unused_leave_payment" => vec![
+            (
+                "foreign_resident",
+                "boolean, scale 4 only and required there: true for a payee who is a foreign resident (45% withheld), false for a resident (47%)",
+            ),
+            (
+                "annual_leave_before_18_august_1993",
+                "AUD, the part of annual_leave in respect of employment before 18 August 1993 (s 83-15(b)); required, 0 if none, for a normal termination when leave_accrual_start is before that day and annual_leave is not nil; refused above nil when it is not before that day",
+            ),
+            (
+                "leave_loading_before_18_august_1993",
+                "AUD, the part of leave_loading in respect of employment before 18 August 1993; required and refused as annual_leave_before_18_august_1993 is",
+            ),
+            (
+                "long_service_leave_before_16_august_1978",
+                "AUD, the part of long_service_leave attributable to the pre-16/8/78 period (ss 83-90(1) and 83-95 to 83-115); required, 0 if none, when leave_accrual_start is before 16 August 1978 and long_service_leave is not nil, whatever the reason; refused above nil otherwise",
+            ),
+            (
+                "long_service_leave_16_august_1978_to_17_august_1993",
+                "AUD, the part of long_service_leave attributable to the pre-18/8/93 period, 16 August 1978 to 17 August 1993 (ss 83-90(2) and 83-95 to 83-115); required, 0 if none, for a normal termination when leave_accrual_start is before 18 August 1993 and long_service_leave is not nil; refused above nil when it is not before that day",
+            ),
+        ],
         "schedule_5_method_a" | "schedule_5_method_b_i" | "schedule_5_method_b_ii" => vec![(
             "pay_date",
             "YYYY-MM-DD date this pay is made, within the income year, with study_loan true only; required with it for 2025-26, whose Schedule 8 coefficients apply from 24 September 2025; Method B(i) refuses a 2025-26 study loan",
@@ -1681,6 +1736,16 @@ pub fn optional_inputs(kind: &str) -> Vec<(&'static str, &'static str)> {
             (
                 "total_heads",
                 "integer from 1, per_head only and required there: everyone entertained at the function, employees, their associates and others",
+            ),
+        ],
+        "fbt_entertainment_classifier" => vec![
+            (
+                "method",
+                "actual, 50_50_split or 12_week_register: how the employer values meal entertainment for the FBT year (FBTAA Division 9A); required when a line is meal entertainment",
+            ),
+            (
+                "income_tax_register_percentage",
+                "decimal string from 0 to 100, 12_week_register only and required there when a line is meal entertainment: the register percentage of ITAA 1936 s 51AEB(2), the deductions that would be allowable for the register period's meal entertainment over its expenses, x 100",
             ),
         ],
         _ => Vec::new(),
@@ -2084,6 +2149,41 @@ pub fn input_units(kind: &str) -> Vec<(&'static str, &'static str)> {
                 "YYYY-MM-DD, the employee's, for their preservation age (SISR reg 6.01(2))",
             ),
         ],
+        "unused_leave_payment" => vec![
+            (
+                "annual_leave",
+                "AUD, the unused annual leave paid in consequence of the termination (s 83-10(3)(a) and (c)), excluding leave loading",
+            ),
+            (
+                "leave_loading",
+                "AUD, the leave loading, bonus or other additional payment for that unused annual leave (s 83-10(3)(b))",
+            ),
+            (
+                "long_service_leave",
+                "AUD, the unused long service leave paid in consequence of the termination (ss 83-70 and 83-75), all periods",
+            ),
+            (
+                "leave_accrual_start",
+                "YYYY-MM-DD, the first day of the earliest period over which the unused leave paid accrued: for long service leave, its long service leave employment period (s 83-90(4))",
+            ),
+            (
+                "termination_reason",
+                "normal (resignation, dismissal for inefficiency, retirement and every other reason), genuine_redundancy (s 83-175), early_retirement_scheme (s 83-180) or invalidity (an ETP or super benefit with an invalidity segment, s 82-150); death is refused",
+            ),
+            (
+                "working_holiday_maker",
+                "boolean, whether the employee is a working holiday maker; true is refused (Schedule 15 covers them)",
+            ),
+            (
+                "earnings",
+                "AUD, the employee's normal gross earnings: all payments except termination payments in the last full pay period, including taxable allowances, overtime and bonuses, or the year-to-date average pay where pay fluctuates significantly (Schedule 7, 'Normal gross earnings'); not used for scale 4",
+            ),
+            ("pay_period", "weekly, fortnightly or monthly"),
+            (
+                "scale",
+                "integer 1, 2, 3, 5 or 6, the Schedule 1 scale used for the employee's normal earnings (3 for a foreign resident who gave a TFN), or 4 when no TFN was provided",
+            ),
+        ],
         "schedule_5_method_a" => [
             vec![
                 (
@@ -2246,6 +2346,16 @@ pub fn input_units(kind: &str) -> Vec<(&'static str, &'static str)> {
             (
                 "entertainment_expenditure",
                 "AUD, non-deductible exempt entertainment expenditure (FBTAA s 136(1)): under actual, the part incurred in entertaining employees and their associates; under per_head, the whole function's",
+            ),
+        ],
+        "fbt_entertainment_classifier" => vec![
+            (
+                "lines",
+                "list of 1 to 10,000 expense line objects, each with cost (AUD decimal string: the employer's expense, less any contribution from an employee or associate it does not reimburse, FBTAA s 37AB), gst_status (includes_gst or no_gst), provided (food_or_drink, recreation, accommodation_or_travel_for_food_or_drink or accommodation_or_travel_for_recreation), venue (business_premises_working_day, business_premises_other_day or elsewhere; business premises exclude a corporate box and premises used mainly for entertainment, FBTAA s 136(1)), paid_by (employer, including by corporate card, or reimbursed, where the employer reimbursed or paid for an attendee who incurred it) and attendees (an object of employees, associates and others, such as clients, each a head count from 0, or null where unknown; a line of more than one class needs every count); optionally occasion, food_or_drink and accommodation_or_travel_for_food_or_drink only, the food or drink's occasion (social_function, business_meal, with_other_entertainment, light_refreshments, or travel_meal where every attendee is travelling for work; without it the line is undetermined), and infrequent_and_irregular (boolean, whether identical or similar benefits are provided infrequently and irregularly, FBTAA s 58P(1)(f)(i))",
+            ),
+            (
+                "income_tax_exempt",
+                "boolean, whether the employer is exempt from income tax; true is refused, as fbt-tax-exempt-body-entertainment applies",
             ),
         ],
         "income_tests" => vec![
@@ -2461,6 +2571,24 @@ pub fn examples(kind: &str) -> Vec<(&'static str, Example)> {
             ("other_taxable_payments", Text("140000.00")),
             ("date_of_birth", Text("1996-09-01")),
         ],
+        // Schedule 7's example (Norman), which gives no accrual start: any day
+        // before 16 August 1978 gives its 3 long service leave periods.
+        "unused_leave_payment" => vec![
+            ("annual_leave", Text("0.00")),
+            ("leave_loading", Text("0.00")),
+            ("long_service_leave", Text("22020.00")),
+            ("long_service_leave_before_16_august_1978", Text("780.00")),
+            (
+                "long_service_leave_16_august_1978_to_17_august_1993",
+                Text("6420.00"),
+            ),
+            ("leave_accrual_start", Text("1977-01-01")),
+            ("termination_reason", Text("normal")),
+            ("working_holiday_maker", Flag(false)),
+            ("earnings", Text("1155.00")),
+            ("pay_period", Text("weekly")),
+            ("scale", Whole(2)),
+        ],
         // Schedule 5's examples 1 to 3 (Jarrod, Robyn and Laura), for payments from 1 July 2026.
         "schedule_5_method_a" => vec![
             ("year", Text("2026-27")),
@@ -2558,6 +2686,18 @@ pub fn examples(kind: &str) -> Vec<(&'static str, Example)> {
         "fbt_tax_exempt_body_entertainment" => vec![
             ("method", Text("actual")),
             ("entertainment_expenditure", Text("5000.00")),
+        ],
+        // TR 97/17 example 1.1 (paras 49 to 52): an end of financial year
+        // function on the employer's premises, valued per head.
+        "fbt_entertainment_classifier" => vec![
+            (
+                "lines",
+                Json(
+                    r#"[{"cost": "1100.00", "gst_status": "includes_gst", "provided": "food_or_drink", "occasion": "social_function", "venue": "business_premises_working_day", "paid_by": "employer", "attendees": {"employees": 6, "associates": 2, "others": 2}}]"#,
+                ),
+            ),
+            ("income_tax_exempt", Flag(false)),
+            ("method", Text("actual")),
         ],
         // The ATO's Christina example for repayment income; the split of her
         // investment loss, fringe benefits and super contributions, her target

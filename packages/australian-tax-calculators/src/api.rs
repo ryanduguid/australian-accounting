@@ -331,6 +331,22 @@ const COMMAND_ARGS: &[(&str, &[(&str, Kind)])] = &[
         ],
     ),
     (
+        "unused-leave-payment",
+        &[
+            ("annual_leave", Dec),
+            ("leave_loading", Dec),
+            ("long_service_leave", Dec),
+            ("leave_accrual_start", Raw),
+            ("termination_reason", Raw),
+            ("working_holiday_maker", Raw),
+            ("earnings", Dec),
+            ("pay_period", Raw),
+            ("scale", Raw),
+            ("year", Raw),
+            ("scope_confirmed", Raw),
+        ],
+    ),
+    (
         "schedule-5-method-a",
         &[
             ("earnings", Dec),
@@ -430,6 +446,15 @@ const COMMAND_ARGS: &[(&str, &[(&str, Kind)])] = &[
     ("fbt-board", FBT_YEAR_ARGS),
     ("fbt-tax-exempt-body-entertainment", FBT_METHOD_ARGS),
     (
+        "fbt-entertainment-classifier",
+        &[
+            ("lines", Json),
+            ("income_tax_exempt", Raw),
+            ("year_ended", Raw),
+            ("scope_confirmed", Raw),
+        ],
+    ),
+    (
         "income-tests",
         &[
             ("taxable_income", Dec),
@@ -466,13 +491,16 @@ pub fn commands() -> Vec<&'static str> {
 }
 
 /// The commands `derive` explains: each of their amounts is worked out in a step.
-/// Every worksheet command is here except `payg-gross-up`. Its gross pay is the
+/// Every worksheet command is here except `payg-gross-up` and
+/// `fbt-entertainment-classifier`. The gross pay of `payg-gross-up` is the
 /// one whose own withholding leaves the net, found by searching
 /// `payg-withholding`'s results, or `study-loan-withholding`'s for a payee with
 /// a study loan: the withholding is worked on the gross, so no step can work
 /// the gross out from the inputs and earlier steps alone. `derive` of that
-/// command on its `gross_pay` shows that withholding.
-const DERIVED: [&str; 41] = [
+/// command on its `gross_pay` shows that withholding. The classifier's amounts
+/// are totals over lines whose shares a decision table sets, not a formula;
+/// each line and class carries the authority for its row instead.
+const DERIVED: [&str; 42] = [
     "fbt",
     "fbt-car-statutory",
     "fbt-car-operating-cost",
@@ -489,6 +517,7 @@ const DERIVED: [&str; 41] = [
     "schedule-5-method-b-i",
     "schedule-5-method-b-ii",
     "termination-payment",
+    "unused-leave-payment",
     "working-holiday-maker-withholding",
     "study-loan-withholding",
     "seniors-pensioners-withholding",
@@ -835,8 +864,8 @@ pub fn evaluate_coded(command: &str, v: &Value) -> Result<Value> {
     let Some((_, params)) = COMMAND_ARGS.iter().find(|(c, _)| *c == command) else {
         return refusal("command.unknown", format!("unknown command {command}"));
     };
-    // Division 296, the termination payment, Medicare levy surcharge, Schedule
-    // 5, 9 and 15 and the seniors and pensioners tax offset worksheets have no
+    // Division 296, the termination payment, unused leave, Medicare levy surcharge,
+    // Schedule 5, 9 and 15 and the seniors and pensioners tax offset worksheets have no
     // Python original whose lenience to keep, and a misspelt optional
     // depreciation, Medicare levy or PAYG withholding input would silently give
     // the start year's, a single person's or the result without it, so a field
@@ -852,6 +881,7 @@ pub fn evaluate_coded(command: &str, v: &Value) -> Result<Value> {
             | "payg-withholding"
             | "payg-gross-up"
             | "termination-payment"
+            | "unused-leave-payment"
             | "schedule-5-method-a"
             | "schedule-5-method-b-i"
             | "schedule-5-method-b-ii"
@@ -871,6 +901,7 @@ pub fn evaluate_coded(command: &str, v: &Value) -> Result<Value> {
             | "fbt-lafha"
             | "fbt-board"
             | "fbt-tax-exempt-body-entertainment"
+            | "fbt-entertainment-classifier"
             | "hire-purchase-schedule"
             | "income-tests"
     ) && let Some(key) = v
@@ -935,6 +966,21 @@ pub fn evaluate_coded(command: &str, v: &Value) -> Result<Value> {
         "fbt-tax-exempt-body-entertainment" => {
             let given = benefit_inputs(v, params)?;
             engine::fbt_tax_exempt_body_entertainment(&a[0], &given, &a[1], &a[2])
+        }
+        "fbt-entertainment-classifier" => {
+            // Optional: the meal entertainment method, required only when a
+            // line is meal entertainment, and the 12 week register's income
+            // tax register percentage.
+            let method = optional(v, "method", Raw)?;
+            let register = optional(v, "income_tax_register_percentage", Dec)?;
+            engine::fbt_entertainment_classifier(
+                &a[0],
+                &a[1],
+                &a[2],
+                &a[3],
+                method.as_ref(),
+                register.as_ref(),
+            )
         }
         "depreciation" => {
             // Optional: present only for an income year after the asset's start time.
@@ -1047,6 +1093,43 @@ pub fn evaluate_coded(command: &str, v: &Value) -> Result<Value> {
         "division-296" => engine::division_296(&a[0], &a[1], [&a[2], &a[3], &a[4]], &a[5], &a[6]),
         "termination-payment" => {
             engine::termination_payment(&a[0], &a[1], &a[2], &a[3], &a[4], &a[5], &a[6], &a[7])
+        }
+        "unused-leave-payment" => {
+            // Optional: the parts accrued before the dates the Act splits leave
+            // at, required where leave_accrual_start and the reason make them matter.
+            let o = [
+                optional(v, "annual_leave_before_18_august_1993", Dec)?,
+                optional(v, "leave_loading_before_18_august_1993", Dec)?,
+                optional(v, "long_service_leave_before_16_august_1978", Dec)?,
+                optional(
+                    v,
+                    "long_service_leave_16_august_1978_to_17_august_1993",
+                    Dec,
+                )?,
+            ];
+            let splits = engine::LeaveSplits {
+                annual_leave_before_18_august_1993: o[0].as_ref(),
+                leave_loading_before_18_august_1993: o[1].as_ref(),
+                long_service_leave_before_16_august_1978: o[2].as_ref(),
+                long_service_leave_16_august_1978_to_17_august_1993: o[3].as_ref(),
+            };
+            // Optional: scale 4's residency, as payg-withholding takes it.
+            let foreign = v.get("foreign_resident").map(arg);
+            let employee = engine::LeavePayee {
+                foreign_resident: foreign.as_ref(),
+                working_holiday_maker: &a[5],
+                earnings: &a[6],
+                pay_period: &a[7],
+                scale: &a[8],
+            };
+            engine::unused_leave_payment(
+                [&a[0], &a[1], &a[2]],
+                &splits,
+                (&a[3], &a[4]),
+                &employee,
+                &a[9],
+                &a[10],
+            )
         }
         "schedule-5-method-a" => engine::schedule_5_method_a(
             &a[0],
