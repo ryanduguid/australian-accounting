@@ -435,8 +435,7 @@ intentionally changed.
   which describes the carry-forward by year, cite the ATO's concessional
   contributions cap page and ITAA 1997 s 291-20 on the ATO's legal database,
   and are checked on 16 November 2026; the catalogue lists the 3 new optional
-  inputs and says `unused_concessional_cap` is left out with them. No amount
-  or rate changes. `tests/parity.rs` applies this to the frozen
+  inputs. No amount or rate changes. `tests/parity.rs` applies this to the frozen
   `contribution-caps` and `worksheet-catalogue` results.
 - `depreciation`'s closing adjustable value is the opening value less the
   decline in value as shown in cents. Python 0.2.0 rounded the 2 separately, so

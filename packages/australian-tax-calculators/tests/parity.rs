@@ -496,8 +496,6 @@ fn adapt_contribution_caps(command: &str, expected: &mut Value) {
     record["source_checked"] = json!("2026-11-16");
     if command == "worksheet-catalogue" {
         record["source_passage"] = current["source_passage"].clone();
-        record["required_inputs"]["unused_concessional_cap"] =
-            current["required_inputs"]["unused_concessional_cap"].clone();
         record["optional_inputs"] = current["optional_inputs"].clone();
     }
 }

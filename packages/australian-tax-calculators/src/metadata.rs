@@ -1934,7 +1934,7 @@ pub fn input_units(kind: &str) -> Vec<(&'static str, &'static str)> {
             ("concessional_contributions", "AUD"),
             (
                 "unused_concessional_cap",
-                "AUD, unexpired unused amounts from the previous 5 years; omit when giving earlier_concessional_contributions instead",
+                "AUD, unexpired unused amounts from the previous 5 years",
             ),
             ("non_concessional_contributions", "AUD"),
             (

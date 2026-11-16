@@ -294,6 +294,35 @@ fn a_6_year_chain_lapses_the_oldest_amount_unused() {
     assert_eq!(code, "input.amount_invalid");
 }
 
+/// A cent below $500,000 is 'less than $500,000' (s 291-20(3)(b)), in an
+/// earlier year and in the year: 2021-22's $12,500 excess applies 2019-20's
+/// unused cap after 2018-19's nil, and 2024-25's $10,000 excess applies what
+/// is left of 2019-20 and then 2020-21. The tests below hold $500,000 itself.
+#[test]
+fn a_cent_below_500000_applies_the_carry_forward() {
+    let mut rows = earlier(&SAM);
+    rows[2] = json!({"year": "2021-22", "concessional_contributions": "40000", "total_super_balance": "499999.99"});
+    let mut rows = rows.as_array().unwrap().clone();
+    rows.insert(
+        0,
+        json!({"year": "2018-19", "concessional_contributions": "25000"}),
+    );
+    let result = run(&input("2024-25", "499999.99", "40000", json!(rows)));
+    for (key, value) in [
+        ("applied_2019_20_in_2021_22", "12500.00"),
+        ("carried_forward_2019_20", "1500.00"),
+        ("unused_concessional_cap", "40500.00"),
+        ("carry_forward_applied", "10000.00"),
+        ("applied_2019_20_in_2024_25", "1500.00"),
+        ("applied_2020_21_in_2024_25", "8500.00"),
+        ("remaining_2020_21", "4500.00"),
+        ("excess_concessional", "0.00"),
+    ] {
+        assert_eq!(amount(&result, key), value, "{key}");
+    }
+    assert!(result["amounts"]["applied_2018_19_in_2021_22"].is_null());
+}
+
 /// At or above $500,000 just before the year there is no increase that year
 /// (s 291-20(3)(b)), but the basic cap is reported, the unused amounts still
 /// age, and the 5th year's lapses at the year's end.
