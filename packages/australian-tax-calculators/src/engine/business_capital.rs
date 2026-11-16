@@ -18,6 +18,8 @@ use super::{
 };
 use crate::decimal::Decimal;
 
+mod worked;
+
 const KIND: &str = "business_capital_expenditure";
 
 /// Act No 92 of 2020, Schedule 3 item 40(7): the current s 40-880, with
@@ -473,135 +475,6 @@ fn items_invalid<T>() -> Result<T> {
     )
 }
 
-/// An exact amount with at least 2 decimal places and no trailing zeros
-/// beyond them.
-fn exact(value: &Decimal) -> String {
-    let text = value.fixed_format();
-    let Some((whole, fraction)) = text.split_once('.') else {
-        return format!("{text}.00");
-    };
-    let fraction = fraction.trim_end_matches('0');
-    format!("{whole}.{fraction:0<2}")
-}
-
-/// The amounts: (id, authority). Each one's formula writes in a term for
-/// every item, as the items are a list.
-const AMOUNTS: [(&str, &str); 4] = [
-    (
-        "expenditure",
-        "ITAA 1997 s 40-880(2): the capital expenditure incurred, each item's amount",
-    ),
-    (
-        "deductible_expenditure",
-        "ITAA 1997 s 40-880(3) and (4): each item to the extent of its taxable purpose; nil where s 40-880(4)(b), (5), (7), (8) or (9) excludes it",
-    ),
-    (
-        "deduction",
-        "ITAA 1997 s 40-880(2): one fifth of each item's deductible expenditure in each of the 5 income years starting in the year incurred, or under s 40-880(2A) all of it in that year",
-    ),
-    (
-        "remaining_expenditure_after_year",
-        "ITAA 1997 s 40-880(2): the fifths of each item's deductible expenditure left for later income years",
-    ),
-];
-
-/// A term of an amount's formula and its value.
-type Term = (String, Decimal);
-
-impl Item {
-    /// This item's term in each amount, in `AMOUNTS`' order, and its row.
-    fn worked(&self, n: usize, year: i64) -> Result<([Term; 4], Value)> {
-        let (amount, share) = (&self.amount, &self.taxable_purpose);
-        let nil = || ("0".to_string(), int(0));
-        let whole = format!("{amount} x {share}");
-        let excluded = !self.excluded_by.is_empty();
-        let deductible = if excluded {
-            nil()
-        } else {
-            (whole.clone(), amount.mul(share)?)
-        };
-        let fifth = deductible.1.div(&int(5))?;
-        let later = self.incurred + 4 - year;
-        let (deduction, remaining, schedule) = match &self.method {
-            _ if excluded => (nil(), nil(), Vec::new()),
-            Method::Immediate(_) => {
-                let deduction = if self.incurred == year {
-                    deductible.clone()
-                } else {
-                    nil()
-                };
-                (
-                    deduction,
-                    nil(),
-                    vec![(self.incurred, deductible.1.clone())],
-                )
-            }
-            Method::FiveYears => (
-                // Incurred at most 4 years before the year asked about.
-                if later >= 0 {
-                    (format!("{whole} / 5"), fifth.clone())
-                } else {
-                    nil()
-                },
-                if later > 0 {
-                    let left = deductible.1.mul(&int(later))?.div(&int(5))?;
-                    (format!("{whole} x {later} / 5"), left)
-                } else {
-                    nil()
-                },
-                (0..5).map(|k| (self.incurred + k, fifth.clone())).collect(),
-            ),
-        };
-        let method = match &self.method {
-            _ if excluded => Value::Null,
-            Method::Immediate(reason) => json!(reason),
-            Method::FiveYears => json!(FIVE_YEARS),
-        };
-        let schedule: Vec<Value> = schedule
-            .iter()
-            .map(|(first, value)| json!({"income_year": year_text(*first), "deduction": exact(value)}))
-            .collect();
-        let row = json!({
-            "item": n,
-            "incurred_in": year_text(self.incurred),
-            "amount": exact(amount),
-            "business": self.business,
-            "limit": self.limit,
-            "taxable_purpose": share.fixed_format(),
-            "excluded_by": self.excluded_by,
-            "deductible_expenditure": exact(&deductible.1),
-            "method": method,
-            "deduction": exact(&deduction.1),
-            "schedule": schedule,
-            "notes": self.notes,
-        });
-        let expenditure = (amount.to_string(), amount.clone());
-        Ok(([expenditure, deductible, deduction, remaining], row))
-    }
-}
-
-/// The amounts' steps, summing each item's term, and the items' rows.
-fn worked(items: &[Item], year: i64) -> Result<(Vec<Step>, Vec<Value>)> {
-    let mut terms: [Vec<Term>; 4] = Default::default();
-    let mut rows = Vec::new();
-    for (i, item) in items.iter().enumerate() {
-        let (item_terms, row) = item.worked(i + 1, year)?;
-        for (all, term) in terms.iter_mut().zip(item_terms) {
-            all.push(term);
-        }
-        rows.push(row);
-    }
-    let mut steps = Vec::new();
-    for (&(id, authority), terms) in AMOUNTS.iter().zip(terms) {
-        let formula: Vec<&str> = terms.iter().map(|(text, _)| text.as_str()).collect();
-        let mut values = terms.iter().map(|(_, value)| value);
-        let first = values.next().expect("at least one item").clone();
-        let total = values.try_fold(first, |sum, value| sum.add(value))?;
-        steps.push(step(id, authority, &formula.join(" + "), &[], total));
-    }
-    Ok((steps, rows))
-}
-
 pub fn business_capital_expenditure(
     items: &Arg,
     year: &Arg,
@@ -620,7 +493,7 @@ pub fn business_capital_expenditure(
         .enumerate()
         .map(|(i, value)| read_item(i + 1, value, first))
         .collect::<Result<Vec<_>>>()?;
-    let (steps, rows) = precise(|| worked(&items, first))?;
+    let (steps, rows) = precise(|| worked::worked(&items, first))?;
     let mut out = derived_result(KIND, &year, steps, vec![rate("items", items.len())])?;
     out["items"] = Value::Array(rows);
     Ok(out)
