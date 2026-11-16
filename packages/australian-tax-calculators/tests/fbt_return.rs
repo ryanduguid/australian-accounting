@@ -7,7 +7,7 @@
 //! property holding the composed totals to the benefits
 //! (docs/calculation-evidence.md#fbt-return).
 use australian_tax_calculators::api::{self, Refusal};
-use australian_tax_calculators::decimal::{Decimal, Rounding};
+use australian_tax_calculators::decimal::Decimal;
 use serde_json::{Value, json};
 
 fn benefit(employee: &str, command: &str, input: Value, gst_type: &str, excluded: bool) -> Value {
@@ -128,9 +128,16 @@ fn grosses_up_as_the_fbt_return_2026_examples_2_and_4_do() {
         result["employees"]["C"]["individual_fringe_benefits_amount"],
         "0.00"
     );
+    // s 135P(2): $10,000 / (1 - 0.47) = $18,867.92, so $18,867; the ATO's
+    // 1.8868 would give $18,868.
     assert_eq!(
         result["employees"]["A"]["reportable_fringe_benefits_amount"],
-        "18868.00"
+        "18867.00"
+    );
+    // Item 23P has no Number, employee contribution or reductions column.
+    assert_eq!(
+        labels["23P"],
+        json!({"gross_taxable_value": "1000.00", "taxable_value": "1000.00"})
     );
 }
 
@@ -194,33 +201,50 @@ fn examples_6_to_12() -> Vec<Value> {
     ]
 }
 
-fn row(number: Value, gross: &str, contribution: &str, reductions: &str, taxable: &str) -> Value {
-    json!({"number": number, "gross_taxable_value": gross,
-           "employee_contribution": contribution, "value_of_reductions": reductions,
-           "taxable_value": taxable})
+/// An item 23 row; `None` is a column the instructions leave blank, which the
+/// result leaves out.
+fn row(
+    number: Option<u64>,
+    gross: &str,
+    contribution: Option<&str>,
+    reductions: Option<&str>,
+    taxable: &str,
+) -> Value {
+    let mut row = json!({"gross_taxable_value": gross, "taxable_value": taxable});
+    for (key, value) in [
+        ("number", number.map(|n| json!(n))),
+        ("employee_contribution", contribution.map(|c| json!(c))),
+        ("value_of_reductions", reductions.map(|r| json!(r))),
+    ] {
+        if let Some(value) = value {
+            row[key] = value;
+        }
+    }
+    row
 }
 
 #[test]
 fn item_23_matches_the_fbt_return_2026_examples_6_to_12() {
-    // The ATO writes example 6's $4,804.38 in whole dollars as $4,804.
+    // The ATO writes example 6's $4,804.38 in whole dollars as $4,804. Each
+    // column an example says to leave blank is absent.
     let result = compose(examples_6_to_12()).unwrap();
     let labels = &result["return_labels"];
     let expected = [
-        ("23A", row(json!(1), "4804.38", "0.00", "0.00", "4804.38")),
-        ("23B", row(json!(1), "3000.00", "0.00", "0.00", "3000.00")),
-        ("23C", row(json!(1), "1724.00", "0.00", "0.00", "1724.00")),
-        ("23D", row(Value::Null, "500.00", "0.00", "0.00", "500.00")),
+        ("23A", row(Some(1), "4804.38", Some("0.00"), None, "4804.38")),
+        ("23B", row(Some(1), "3000.00", Some("0.00"), None, "3000.00")),
+        ("23C", row(Some(1), "1724.00", None, Some("0.00"), "1724.00")),
+        ("23D", row(None, "500.00", None, None, "500.00")),
         (
             "23E",
-            row(Value::Null, "1200.00", "0.00", "720.00", "480.00"),
+            row(None, "1200.00", Some("0.00"), Some("720.00"), "480.00"),
         ),
         (
             "23F",
-            row(json!(1), "41600.00", "5200.00", "0.00", "36400.00"),
+            row(Some(1), "41600.00", Some("5200.00"), None, "36400.00"),
         ),
         (
             "23G",
-            row(json!(1), "30732.00", "0.00", "21960.00", "8772.00"),
+            row(Some(1), "30732.00", None, Some("21960.00"), "8772.00"),
         ),
     ];
     for (label, row) in &expected {
@@ -289,6 +313,36 @@ fn reports_derek_as_the_ato_reportable_fringe_benefits_example_does() {
                "reportable_fringe_benefits_amount": "6603.00",
                "employee_contributions": "0.00"})
     );
+    // Item 23N has no Number or reductions column.
+    assert_eq!(
+        result["return_labels"]["23N"],
+        json!({"gross_taxable_value": "450.00", "employee_contribution": "0.00",
+               "taxable_value": "450.00"})
+    );
+}
+
+#[test]
+fn grosses_up_a_reportable_amount_by_the_s_135p_2_formula() {
+    // The employer's guide, 5.8: a house with a market value of $15,000 for
+    // the year, $15,000 x 1.8868 = $28,302. s 135P(2)'s formula gives
+    // $15,000 / (1 - 0.47) = $28,301.89, so $28,301 with the cents dropped.
+    // $10,599.96 gives $19,999.92 by the formula and $20,000.00 by 1.8868.
+    let house = json!({"method": "base_year", "market_value": "15000.00",
+                       "tenancy_days": 365, "employee_contribution": "0.00"});
+    let result = compose(vec![
+        benefit("Manager", "fbt-housing", house, "type_2", false),
+        benefit(
+            "Near",
+            "fbt-debt-waiver",
+            waiver("10599.96"),
+            "type_2",
+            false,
+        ),
+    ])
+    .unwrap();
+    let reported = |e: &str| result["employees"][e]["reportable_fringe_benefits_amount"].clone();
+    assert_eq!(reported("Manager"), "28301.00");
+    assert_eq!(reported("Near"), "19999.00");
 }
 
 #[test]
@@ -398,7 +452,7 @@ fn an_exempt_electric_car_is_reported_but_not_taxed() {
     );
     assert_eq!(
         result["employees"]["EV"]["reportable_fringe_benefits_amount"],
-        "18868.00"
+        "18867.00"
     );
 }
 
@@ -416,11 +470,11 @@ fn a_later_year_says_its_labels_follow_the_2026_instructions() {
             year,
         )
         .unwrap();
-        result["warnings"]
-            .as_array()
+        // The warning leads the list where it applies.
+        result["warnings"][0]
+            .as_str()
             .unwrap()
-            .iter()
-            .any(|w| w.as_str().unwrap().contains("FBT return 2026 instructions"))
+            .contains("FBT return 2026 instructions")
     };
     assert!(!warned(2026));
     assert!(warned(2027));
@@ -618,7 +672,8 @@ fn d(value: &Value) -> Decimal {
 fn the_composed_totals_are_the_sum_of_the_benefits() {
     // 200 seeded returns of up to 8 debt waivers across 3 employees: each
     // aggregate is the sum of its type's waivers, the reconciliation balances,
-    // and each employee's reportable amount is the s 135P one.
+    // and each employee's reportable amount is the s 135P one: the cents over
+    // 53, the cents of a dollar dropped.
     let mut rng = Rng(20261116);
     for _ in 0..200 {
         let count = rng.int(1, 8);
@@ -652,12 +707,7 @@ fn the_composed_totals_are_the_sum_of_the_benefits() {
         for (employee, entry) in result["employees"].as_object().unwrap() {
             let at: usize = employee[1..].parse().unwrap();
             let expected = if individual[at] > 200_000 {
-                Decimal::parse(&money(individual[at]))
-                    .unwrap()
-                    .mul(&Decimal::parse("1.8868").unwrap())
-                    .unwrap()
-                    .quantize(0, Rounding::Down)
-                    .unwrap()
+                Decimal::from_int((individual[at] / 53) as i64)
             } else {
                 Decimal::from_int(0)
             };

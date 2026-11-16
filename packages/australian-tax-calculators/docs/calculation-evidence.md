@@ -1778,11 +1778,17 @@ amount is a worksheet's or `fbt`'s, and the tests check the composition. Read on
 - ATO, FBT return 2027 instructions: not found (HTTP 404), so 2027 follows the
   2026 labels with a warning.
 
-The ATO's examples drop the cents of a reportable amount: $6,603.80 is shown
-as $6,603 and $5,452.85 as $5,452, so the return does the same. It grosses up
-with `fbt`'s 1.8868, as the ATO's pages do; s 135P(2)'s 1 / 0.53 is
-1.88679..., and the 2 can differ by a dollar after the cents are dropped near
-a whole dollar.
+The reportable amount follows s 135P(2)'s formula, the individual amount over
+1 - 0.47, not the ATO's 1.8868 (1 / 0.53 is 1.88679...). No provision states
+how to round it; the ATO's examples drop the cents, so the return does too.
+Rechecked on 16 November 2026 at 19:22 to 19:30 AEDT, from compilation 97's
+EPUB on the Federal Register's API (the formulas' text descriptions in
+s 5B(1C) and s 135P(2)) and the guide's chapter 5: 5.4 writes $3,500 /
+(1 - 0.47) as '$6,603 (in whole dollars)', where the formula gives $6,603.77,
+and 5.8 gives a $15,000 house as $15,000 x 1.8868 = $28,302, where the formula
+gives $28,301.89 and so $28,301. The guide's other examples give the same
+dollars both ways. Item 23's instructions say which columns to leave blank for
+each label; the result leaves those out.
 
 The examples give taxable values only. The tests produce them with worksheet
 inputs: examples 2 and 4's $10,000 car as a $50,000 car for the full year, its

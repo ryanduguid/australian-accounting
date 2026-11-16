@@ -26,21 +26,51 @@ enum Count {
     Employees,
 }
 
+/// Whether an item 23 label has an employee contribution column and a value
+/// of reductions column; the instructions say to leave the others blank.
+#[derive(Clone, Copy)]
+struct Columns {
+    contribution: bool,
+    reductions: bool,
+}
+
+const BOTH: Columns = Columns {
+    contribution: true,
+    reductions: true,
+};
+const CONTRIBUTION: Columns = Columns {
+    contribution: true,
+    reductions: false,
+};
+const REDUCTIONS: Columns = Columns {
+    contribution: false,
+    reductions: true,
+};
+const NEITHER: Columns = Columns {
+    contribution: false,
+    reductions: false,
+};
+
 /// The benefit worksheets the return composes, each with its item 23 label.
-const ROWS: [(&str, &str, Count); 13] = [
-    ("fbt-car-statutory", "23A", Count::Benefits),
-    ("fbt-car-operating-cost", "23B", Count::Benefits),
-    ("fbt-loan", "23C", Count::Benefits),
-    ("fbt-debt-waiver", "23D", Count::Blank),
-    ("fbt-expense-payment", "23E", Count::Blank),
-    ("fbt-housing", "23F", Count::Benefits),
-    ("fbt-lafha", "23G", Count::Employees),
-    ("fbt-board", "23J", Count::Blank),
-    ("fbt-property", "23K", Count::Blank),
-    ("fbt-tax-exempt-body-entertainment", "23L", Count::Blank),
-    ("fbt-residual", "23M", Count::Blank),
-    ("fbt-car-parking", "23N", Count::Blank),
-    ("fbt-meal-entertainment", "23P", Count::Blank),
+const ROWS: [(&str, &str, Count, Columns); 13] = [
+    ("fbt-car-statutory", "23A", Count::Benefits, CONTRIBUTION),
+    ("fbt-car-operating-cost", "23B", Count::Benefits, CONTRIBUTION),
+    ("fbt-loan", "23C", Count::Benefits, REDUCTIONS),
+    ("fbt-debt-waiver", "23D", Count::Blank, NEITHER),
+    ("fbt-expense-payment", "23E", Count::Blank, BOTH),
+    ("fbt-housing", "23F", Count::Benefits, CONTRIBUTION),
+    ("fbt-lafha", "23G", Count::Employees, REDUCTIONS),
+    ("fbt-board", "23J", Count::Blank, BOTH),
+    ("fbt-property", "23K", Count::Blank, BOTH),
+    (
+        "fbt-tax-exempt-body-entertainment",
+        "23L",
+        Count::Blank,
+        NEITHER,
+    ),
+    ("fbt-residual", "23M", Count::Blank, BOTH),
+    ("fbt-car-parking", "23N", Count::Blank, CONTRIBUTION),
+    ("fbt-meal-entertainment", "23P", Count::Blank, NEITHER),
 ];
 
 /// Benefits FBTAA s 5E(3) always excludes from reporting, as their worksheets
@@ -66,7 +96,7 @@ const BENEFIT_INPUTS: [&str; 6] = [
 /// the individual fringe benefits amount is more than $2,000.
 const REPORTING_THRESHOLD: i64 = 2000;
 
-const SCOPE: &str = "One ordinary taxable employer's fringe benefits for one FBT year, each valued by its own benefit worksheet (fbt-car-statutory, fbt-car-operating-cost, fbt-loan, fbt-debt-waiver, fbt-expense-payment, fbt-housing, fbt-lafha, fbt-board, fbt-property, fbt-tax-exempt-body-entertainment, fbt-residual, fbt-car-parking or fbt-meal-entertainment) on the inputs given, with the employee it relates to, whether it is a GST-creditable benefit (type 1) or not (type 2), and whether it is an excluded fringe benefit under FBTAA s 5E(3), all established by the operator. Confirming scope confirms the scope each worksheet states under components. Adds each benefit's taxable value, excluded benefits included, into the type 1 and type 2 aggregate fringe benefits amounts (s 5C(3) and (4)) and gives them to fbt, which grosses them up and works out the fringe benefits taxable amount and the tax (s 5B(1A) to (1C)). Each employee's individual fringe benefits amount is the sum of the taxable values of their benefits that are not excluded (s 5E(2)), an exempt electric car's notional value included (s 135P(3)); where it is more than $2,000, the reportable fringe benefits amount is that sum times 1 / (1 - the FBT rate) (s 135P(1) and (2)), taken as fbt's type 2 gross-up rate, the 1.8868 the ATO publishes for a 47% rate, and given in whole dollars with cents dropped, as the ATO's examples give it. Each benefit belongs wholly to one employee label: a benefit shared by employees or valued with others in a class (s 5F(3) and (4)), and a benefit partly GST-creditable, are given as separate benefits by the operator. Excess employee contributions are not applied to other benefits. Not for a rebatable employer, a public or not-for-profit hospital, a public ambulance service or an employer exempt under s 57A or s 58 (the return's items 14C, 17 and 18, and s 135Q, are not worked out); not for amortised or reducible fringe benefits, or an employer using s 135G. Does not work out a payroll tax gross-up: payroll tax is imposed by each state and territory under its own Act, which this command does not read. Choosing between providing a benefit and an employee contribution is planning, outside a worksheet.";
+const SCOPE: &str = "One ordinary taxable employer's fringe benefits for one FBT year, each valued by its own benefit worksheet (fbt-car-statutory, fbt-car-operating-cost, fbt-loan, fbt-debt-waiver, fbt-expense-payment, fbt-housing, fbt-lafha, fbt-board, fbt-property, fbt-tax-exempt-body-entertainment, fbt-residual, fbt-car-parking or fbt-meal-entertainment) on the inputs given, with the employee it relates to, whether it is a GST-creditable benefit (type 1) or not (type 2), and whether it is an excluded fringe benefit under FBTAA s 5E(3), all established by the operator. Confirming scope confirms the scope each worksheet states under components. Adds each benefit's taxable value, excluded benefits included, into the type 1 and type 2 aggregate fringe benefits amounts (s 5C(3) and (4)) and gives them to fbt, which grosses them up and works out the fringe benefits taxable amount and the tax (s 5B(1A) to (1C)). Each employee's individual fringe benefits amount is the sum of the taxable values of their benefits that are not excluded (s 5E(2)), an exempt electric car's notional value included (s 135P(3)); where it is more than $2,000, the reportable fringe benefits amount is that sum times 1 / (1 - the FBT rate) (s 135P(1) and (2)), worked out from fbt's FBT rate as the formula states, not from the 1.8868 the ATO publishes for it, which can give a dollar more; it is given in whole dollars with the cents dropped, which no provision states: the ATO's examples do so (the employer's guide, 5.4, gives $3,500 / (1 - 0.47) as $6,603). Item 23's Number column counts the benefits at the label, each taken as one car, loan or unit of accommodation, and at 23G the employee labels, each taken as one employee; where one is given as several benefits, or a label stands for several employees, the preparer corrects the count. Each benefit belongs wholly to one employee label: a benefit shared by employees or valued with others in a class (s 5F(3) and (4)), and a benefit partly GST-creditable, are given as separate benefits by the operator. Excess employee contributions are not applied to other benefits. Not for a rebatable employer, a public or not-for-profit hospital, a public ambulance service or an employer exempt under s 57A or s 58 (the return's items 14C, 17 and 18, and s 135Q, are not worked out); not for amortised or reducible fringe benefits, or an employer using s 135G. Does not work out a payroll tax gross-up: payroll tax is imposed by each state and territory under its own Act, which this command does not read. Choosing between providing a benefit and an employee contribution is planning, outside a worksheet.";
 
 const SOURCES: [&str; 7] = [
     "https://www.legislation.gov.au/C2004A03280/2026-07-01/2026-07-01/text",
@@ -115,7 +145,7 @@ const EMPLOYEE_WORKING: [(&str, &str); 3] = [
     ),
     (
         "reportable_fringe_benefits_amount",
-        "individual_fringe_benefits_amount x fbt's type_two rate, in whole dollars with cents dropped, where individual_fringe_benefits_amount is more than 2000; otherwise nil (FBTAA s 135P(1) and (2))",
+        "individual_fringe_benefits_amount x 1 / (1 - fbt's fbt_rate), where individual_fringe_benefits_amount is more than 2000, otherwise nil (FBTAA s 135P(1) and (2)); in whole dollars with the cents dropped, as the ATO's examples give it (the employer's guide, 5.4), no provision stating a rounding",
     ),
     (
         "employee_contributions",
@@ -240,13 +270,14 @@ struct Given<'a> {
     command: &'static str,
     label: &'static str,
     count: Count,
+    columns: Columns,
     type_one: bool,
     excluded: bool,
     input: Value,
 }
 
 /// The benefit's worksheet and its item 23 label.
-fn row_for(at: &str, b: &Value) -> Result<(&'static str, &'static str, Count), Refusal> {
+fn row_for(at: &str, b: &Value) -> Result<(&'static str, &'static str, Count, Columns), Refusal> {
     let named = b.get("command").and_then(Value::as_str);
     match ROWS.iter().find(|(c, ..)| Some(*c) == named) {
         Some(row) => Ok(*row),
@@ -360,7 +391,7 @@ fn check_benefit<'a>(
             ),
         ));
     }
-    let (command, label, count) = row_for(at, b)?;
+    let (command, label, count, columns) = row_for(at, b)?;
     let Some(employee) = b["employee"].as_str().filter(|e| !e.is_empty()) else {
         return Err(missing(format!(
             "{at}.employee is required: a label for the employee the benefit is provided in respect of"
@@ -371,6 +402,7 @@ fn check_benefit<'a>(
         command,
         label,
         count,
+        columns,
         type_one: gst_type(at, b)?,
         excluded: excluded(at, command, b)?,
         input: worksheet_input(at, b, top, year)?,
@@ -489,13 +521,15 @@ fn sum(values: &[Decimal]) -> Result<Decimal, Refusal> {
 }
 
 /// Item 23, by label: an exempt electric car is not a fringe benefit and has
-/// no place there.
+/// no place there. A column the instructions leave blank is absent.
 fn item_23(valued: &[Valued]) -> Result<Map<String, Value>, Refusal> {
-    let mut rows: BTreeMap<&str, (Count, Row)> = BTreeMap::new();
+    let mut rows: BTreeMap<&str, (Count, Columns, Row)> = BTreeMap::new();
     for b in valued.iter().filter(|b| !b.exempt) {
-        let (_, row) = rows
-            .entry(b.given.label)
-            .or_insert((b.given.count, Row::default()));
+        let (.., row) = rows.entry(b.given.label).or_insert((
+            b.given.count,
+            b.given.columns,
+            Row::default(),
+        ));
         row.benefits += 1;
         row.employees.insert(b.given.employee.to_string());
         row.gross.push(b.gross.clone());
@@ -503,28 +537,32 @@ fn item_23(valued: &[Valued]) -> Result<Map<String, Value>, Refusal> {
         row.taxable.push(b.taxable.clone());
     }
     let mut out = Map::new();
-    for (label, (count, row)) in rows {
+    for (label, (count, columns, row)) in rows {
         let (gross, contribution, taxable) = (
             sum(&row.gross)?,
             sum(&row.contribution)?,
             sum(&row.taxable)?,
         );
         let reductions = calc(calc(gross.sub(&contribution))?.sub(&taxable))?;
-        let number = match count {
-            Count::Blank => Value::Null,
-            Count::Benefits => json!(row.benefits),
-            Count::Employees => json!(row.employees.len()),
-        };
-        out.insert(
-            label.into(),
-            json!({
-                "number": number,
-                "gross_taxable_value": cents(&gross)?,
-                "employee_contribution": cents(&contribution)?,
-                "value_of_reductions": cents(&reductions)?,
-                "taxable_value": cents(&taxable)?,
-            }),
-        );
+        let mut cells = Map::new();
+        match count {
+            Count::Blank => {}
+            Count::Benefits => {
+                cells.insert("number".into(), json!(row.benefits));
+            }
+            Count::Employees => {
+                cells.insert("number".into(), json!(row.employees.len()));
+            }
+        }
+        cells.insert("gross_taxable_value".into(), cents(&gross)?);
+        if columns.contribution {
+            cells.insert("employee_contribution".into(), cents(&contribution)?);
+        }
+        if columns.reductions {
+            cells.insert("value_of_reductions".into(), cents(&reductions)?);
+        }
+        cells.insert("taxable_value".into(), cents(&taxable)?);
+        out.insert(label.into(), Value::Object(cells));
     }
     Ok(out)
 }
@@ -532,7 +570,7 @@ fn item_23(valued: &[Valued]) -> Result<Map<String, Value>, Refusal> {
 /// Each employee's individual fringe benefits amount (FBTAA s 5E(2), with
 /// s 135P(3)) and reportable fringe benefits amount (s 135P(1) and (2)), and
 /// the contributions applied to their benefits.
-fn employees(valued: &[Valued], type_two_rate: &Decimal) -> Result<Map<String, Value>, Refusal> {
+fn employees(valued: &[Valued], fbt_rate: &Decimal) -> Result<Map<String, Value>, Refusal> {
     let mut by_employee: BTreeMap<&str, (Vec<Decimal>, Vec<Decimal>)> = BTreeMap::new();
     for b in valued {
         let (individual, contributions) = by_employee.entry(b.given.employee).or_default();
@@ -542,11 +580,14 @@ fn employees(valued: &[Valued], type_two_rate: &Decimal) -> Result<Map<String, V
         contributions.push(b.contribution.clone());
     }
     let threshold = Decimal::from_int(REPORTING_THRESHOLD);
+    let kept = calc(Decimal::from_int(1).sub(fbt_rate))?;
     let mut out = Map::new();
     for (employee, (individual, contributions)) in by_employee {
         let individual = sum(&individual)?;
         let reportable = if individual.gt(&threshold).map_err(signal)? {
-            let grossed = calc(individual.mul(type_two_rate))?;
+            // s 135P(2): individual x 1 / (1 - rate), as one division so the
+            // cents are dropped from the formula's own amount.
+            let grossed = calc(individual.div(&kept))?;
             calc(grossed.quantize(0, Rounding::Down))?
         } else {
             Decimal::from_int(0)
@@ -643,16 +684,17 @@ fn lines(table: &[(&str, &str)]) -> Map<String, Value> {
 }
 
 fn warnings(year: i64) -> Vec<Value> {
-    let mut warnings = vec![
+    let mut warnings = Vec::new();
+    if year > LABELS_YEAR {
+        warnings.push(json!(format!(
+            "The ATO had not published the FBT return {year} instructions when read on 16 November 2026; the labels follow the FBT return {LABELS_YEAR} instructions, and the {year} form may differ."
+        )));
+    }
+    warnings.extend([
         json!("Operator-confirmed facts and scope; eligibility is not independently verified."),
         json!("Worksheet only, not advice, an assessment or a lodgment. Obtain human review."),
         json!("Each worksheet's own warnings are in its result under components."),
-    ];
-    if year > LABELS_YEAR {
-        warnings.push(json!(format!(
-            "The ATO had not published the FBT return {year} instructions when read on 16 November 2026; the labels follow the FBT return {LABELS_YEAR} instructions."
-        )));
-    }
+    ]);
     warnings
 }
 
@@ -665,13 +707,11 @@ pub fn compose(v: &Value) -> Result<Value, Refusal> {
     let valued = run_benefits(v, employer, year)?;
     let totals = aggregates(&valued)?;
     let fbt = gross_up(v, year, &totals[0], &totals[1])?;
-    let type_two_rate = calc(Decimal::parse(
-        fbt["rates"]["type_two"]
-            .as_str()
-            .expect("fbt's type 2 rate"),
+    let fbt_rate = calc(Decimal::parse(
+        fbt["rates"]["fbt_rate"].as_str().expect("fbt's FBT rate"),
     ))?;
     let (amounts, reconciliation) = amounts(&valued, &fbt, &totals)?;
-    let employees = employees(&valued, &type_two_rate)?;
+    let employees = employees(&valued, &fbt_rate)?;
     let labels = return_labels(&fbt, &valued)?;
     let results: Vec<Value> = valued.into_iter().map(|b| b.result).collect();
     Ok(json!({

@@ -1089,15 +1089,21 @@ totals, so the gross-up and the tax are `fbt`'s. The result gives:
   with an exempt electric car's notional value (s 135P(3)), the employee
   contributions applied, and the reportable fringe benefits amount. That amount
   is nil unless the individual amount is more than $2,000 (s 135P(1)); above
-  it, the individual amount times `fbt`'s type 2 gross-up rate, the ATO's
-  1.8868 for s 135P(2)'s 1 / (1 - 47%), in whole dollars with the cents
-  dropped, as the ATO's examples give it.
+  it, the individual amount times 1 / (1 - the FBT rate), as s 135P(2) states
+  it, in whole dollars with the cents dropped. No provision states that
+  rounding; the ATO's examples drop the cents. The ATO's pages multiply by
+  1.8868 instead, which can give a dollar more: $15,000 gives $28,301 here and
+  $28,302 in the employer's guide, 5.8.
 - `return_labels`: items 14A, 14B, 15, 16 and 19, and item 23 by benefit
   category (A to G and J to P), with the number of cars, loans and units of
   accommodation, the employees who received a living-away-from-home allowance,
   and the gross taxable value, employee contribution, value of reductions and
-  taxable value. An exempt electric car is not a fringe benefit and is left out
-  of item 23 and the aggregates.
+  taxable value. A column the instructions say to leave blank, such as 23D's
+  Number, employee contribution and value of reductions, is left out. The
+  Number counts the benefits given at the label, or at 23G the employee
+  labels, so the preparer corrects it where one car, loan or unit is given as
+  several benefits or a label stands for several employees. An exempt electric
+  car is not a fringe benefit and is left out of item 23 and the aggregates.
 - `left_to_preparer`: the labels it does not fill and why: the employer's
   details (items 1 to 9 and 11 to 13); item 10's count of employees and
   associates; items 14C, 17 and 18, which a taxable employer leaves blank;
@@ -1107,8 +1113,8 @@ totals, so the gross-up and the tax are `fbt`'s. The result gives:
   aggregate amounts, and the difference, which is nil.
 
 The FBT return 2026 instructions were the latest the ATO had published on
-16 November 2026, so a 2027 result follows their labels and says so in a
-warning. A benefit must belong wholly to one employee label: a benefit shared
+16 November 2026, so a 2027 result follows their labels and says so in its
+first warning; the 2027 form may differ. A benefit must belong wholly to one employee label: a benefit shared
 by employees or valued with others in a class (s 5F(3) and (4)), or partly
 GST-creditable, is given as separate benefits. It is not for a rebatable
 employer, a public or not-for-profit hospital, a public ambulance service or an
