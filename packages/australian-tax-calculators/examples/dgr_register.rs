@@ -470,17 +470,50 @@ mod tests {
         let good = record("23000000004", "ACT", &format!("{NAME}{dgr}"));
         let cases = [
             (file(1, 2, &good), "declares 2 records but holds 1"),
-            (file(1, 1, &good.replace("</ABN>", "</ABR>")), "closes another element"),
-            (file(1, 1, &good.replace("&amp;", "&nbsp;")), "an unknown entity &nbsp;"),
-            (file(1, 1, &good.replace("status=\"ACT\" DGR", "status=\"REV\" DGR")), "DGR status \"REV\""),
-            (file(1, 1, &good.replace("20160223", "2016-02-23")), "is not yyyymmdd"),
-            (file(1, 1, &good.replace("23000000004", "2300000000")), "an ABN of"),
-            (file(1, 1, &good.replace("status=\"ACT\" ABN", "status=\"XYZ\" ABN")), "status \"XYZ\""),
-            (file(1, 1, &record("23000000004", "ACT", dgr)), "no entity name"),
+            (
+                file(1, 1, &good.replace("</ABN>", "</ABR>")),
+                "closes another element",
+            ),
+            (
+                file(1, 1, &good.replace("&amp;", "&nbsp;")),
+                "an unknown entity &nbsp;",
+            ),
+            (
+                file(
+                    1,
+                    1,
+                    &good.replace("status=\"ACT\" DGR", "status=\"REV\" DGR"),
+                ),
+                "DGR status \"REV\"",
+            ),
+            (
+                file(1, 1, &good.replace("20160223", "2016-02-23")),
+                "is not yyyymmdd",
+            ),
+            (
+                file(1, 1, &good.replace("23000000004", "2300000000")),
+                "an ABN of",
+            ),
+            (
+                file(
+                    1,
+                    1,
+                    &good.replace("status=\"ACT\" ABN", "status=\"XYZ\" ABN"),
+                ),
+                "status \"XYZ\"",
+            ),
+            (
+                file(1, 1, &record("23000000004", "ACT", dgr)),
+                "no entity name",
+            ),
             (file(1, 1, &format!("<!-- note -->{good}")), "a comment"),
             (file(1, 1, &good)[..200].to_string(), "ends inside"),
             (
-                [file(1, 1, &good), file(1, 1, &good.replace("23000000004", "42000000003"))].concat(),
+                [
+                    file(1, 1, &good),
+                    file(1, 1, &good.replace("23000000004", "42000000003")),
+                ]
+                .concat(),
                 "file 1 given twice",
             ),
             (
@@ -488,7 +521,11 @@ mod tests {
                 "appears twice",
             ),
             (
-                [file(1, 1, &good), file(2, 0, "").replace("12:20:05", "12:20:06")].concat(),
+                [
+                    file(1, 1, &good),
+                    file(2, 0, "").replace("12:20:05", "12:20:06"),
+                ]
+                .concat(),
                 "files from 2 extracts",
             ),
         ];

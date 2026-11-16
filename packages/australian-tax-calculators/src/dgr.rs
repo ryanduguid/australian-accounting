@@ -799,8 +799,12 @@ mod tests {
         let text = found(&r, "gift_to_the_fund").unwrap()["text"]
             .as_str()
             .unwrap();
-        assert!(text.ends_with(&format!("made to it: {unnamed} (s 30-17(2)(b) and (c), s 30-229(2))."))
-            , "{text}");
+        assert!(
+            text.ends_with(&format!(
+                "made to it: {unnamed} (s 30-17(2)(b) and (c), s 30-229(2))."
+            )),
+            "{text}"
+        );
         let later = one(json!({"abn": HARBOUR, "date": "2018-01-01"}));
         assert_eq!(later["on_payment_date"], "shown");
         assert_eq!(found(&later, "gift_to_the_fund"), None);
