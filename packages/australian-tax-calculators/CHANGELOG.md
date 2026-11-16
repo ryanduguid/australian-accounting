@@ -125,7 +125,9 @@ intentionally changed.
   regular pays: one pay's `payg-withholding`, `study-loan-withholding` or
   `seniors-pensioners-withholding` inputs and `pays_in_year` (at most 53
   weekly, 27 fortnightly, 12 monthly or 4 quarterly pays), with
-  `schedule-5-method-a` for one bonus paid with one of them. The tax withheld
+  `schedule-5-method-a` for one bonus paid with one of them, but not with a
+  Schedule 9 or quarterly pay or beside declared tax offsets, Medicare levy
+  adjustment or extra pay amount, which Method A here does not take. The tax withheld
   is the pay's withholding times the pays, plus Method A's on the bonus, and
   the amounts add `withholding_per_pay` and `additional_payment_withholding`.
   A study loan pay needs `study-loan-repayment`; Schedule 9 or a study loan

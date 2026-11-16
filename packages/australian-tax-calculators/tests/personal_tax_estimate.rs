@@ -786,7 +786,13 @@ fn pays_in_year_is_limited_by_the_pay_period() {
             "{period}"
         );
         assert!(api::evaluate(COMMAND, &facts(json!(1))).is_ok(), "{period}");
-        for pays in [json!(most + 1), json!(0), json!("26"), json!(1.5)] {
+        for pays in [
+            json!(most + 1),
+            json!(0),
+            json!("26"),
+            json!(1.5),
+            json!(true),
+        ] {
             let r = refusal(facts(pays.clone()));
             assert_eq!(r.code, "input.pay_periods_invalid", "{period} {pays}");
             assert_eq!(
@@ -903,8 +909,14 @@ fn withholding_inputs_that_conflict_or_are_missing_are_refused() {
     // Scale 4 is a foreign resident's with foreign_resident true.
     let no_tfn = json!({"earnings": "3269.23", "pay_period": "fortnightly", "scale": 4,
         "foreign_resident": true});
-    let r = refusal(with(json!({"payg-withholding": no_tfn})));
+    let r = refusal(with(json!({"payg-withholding": no_tfn.clone()})));
     assert_eq!(r.code, "estimate.scale_mismatch");
+    let matching = foreign(
+        "2026-27",
+        "85000",
+        json!({"payg-withholding": no_tfn, "pays_in_year": 26}),
+    );
+    assert!(api::evaluate(COMMAND, &matching).is_ok());
     let study = foreign(
         "2026-27",
         "85000",
@@ -937,7 +949,7 @@ fn a_study_loan_pay_in_a_year_whose_schedule_8_changed_is_refused() {
         assert_eq!(
             r.message,
             format!(
-                "{command} with a study loan does not give the tax withheld for 2025-26: its Schedule 8 coefficients changed on 2025-09-24, so pays before then withheld other amounts; give tax_withheld"
+                "{command} with a study loan does not give the tax withheld for 2025-26: its Schedule 8 coefficients changed on 2025-09-24, so one pay does not stand for the year's pays; give tax_withheld"
             )
         );
     }
@@ -969,4 +981,38 @@ fn the_extra_pay_amount_needs_a_year_of_53_or_27_pays() {
         let per_pay = cents(&out["amounts"]["withholding_per_pay"]);
         assert_eq!(cents(&out["amounts"]["tax_withheld"]), per_pay * most);
     }
+}
+
+/// Method A here takes none of the regular pay's declared tax offsets,
+/// Medicare levy adjustment or extra pay amount, so its steps 2 and 5 would
+/// not use the regular pay's amounts: a bonus beside any of them is refused,
+/// and one declared false is not a declaration.
+#[test]
+fn a_bonus_beside_a_declared_adjustment_is_refused() {
+    let bonus = json!({"additional_payment": "5000", "pay_periods": 26});
+    let with = |key: &str, value: Value, pays: i64| {
+        let mut pay = fortnightly(2);
+        pay[key] = value;
+        input(
+            "2026-27",
+            "84300",
+            json!({"payg-withholding": pay, "pays_in_year": pays,
+                "schedule-5-method-a": bonus}),
+        )
+    };
+    for (key, value, pays) in [
+        ("tax_offsets", json!("1445"), 26),
+        ("medicare_adjustment_children", json!(1), 26),
+        ("extra_pay_withholding", json!(true), 27),
+    ] {
+        let r = refusal(with(key, value, pays));
+        assert_eq!(r.code, "input.field_unknown", "{key}");
+        assert_eq!(
+            r.message,
+            format!(
+                "schedule-5-method-a is not an input of personal-tax-estimate beside payg-withholding with {key}: Method A here works the bonus out without the tax offsets, Medicare levy adjustment and extra pay amount a payee declares"
+            )
+        );
+    }
+    assert!(api::evaluate(COMMAND, &with("extra_pay_withholding", json!(false), 26)).is_ok());
 }
