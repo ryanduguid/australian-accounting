@@ -1055,8 +1055,8 @@ its component goes towards; a scale that does not match the residency (3, or
 `estimate.scale_mismatch`, and Schedule 9 or a study loan for a foreign
 resident as `estimate.residency_unsupported`. A study loan pay in 2025-26 is
 refused as `period.unsupported`: that year's Schedule 8 coefficients changed
-on 24 September 2025, so one pay does not stand for the year's.
-`extra_pay_withholding` needs `pays_in_year` of 53 weekly or 27 fortnightly.
+on 24 September 2025, and the estimate takes no year whose coefficients
+changed after 1 July. `extra_pay_withholding` needs `pays_in_year` of 53 weekly or 27 fortnightly.
 Pays of other amounts, other payers' withholding and withholding variations
 are not in it: give `tax_withheld` for those.
 

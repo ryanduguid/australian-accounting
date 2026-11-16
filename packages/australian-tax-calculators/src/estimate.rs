@@ -686,7 +686,7 @@ fn check_pay(v: &Value, foreign: bool) -> Result<Option<&'static str>, Refusal> 
         return Err(Refusal::new(
             "period.unsupported",
             format!(
-                "{pay} with a study loan does not give the tax withheld for {year}: its Schedule 8 coefficients changed on {from}, so one pay does not stand for the year's pays; give tax_withheld"
+                "{pay} with a study loan does not give the tax withheld for {year}: its Schedule 8 coefficients changed on {from}, and this estimate takes no year whose coefficients changed after 1 July; give tax_withheld"
             ),
         ));
     }

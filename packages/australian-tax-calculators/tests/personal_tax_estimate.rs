@@ -936,7 +936,8 @@ fn a_study_loan_pay_in_a_year_whose_schedule_8_changed_is_refused() {
     let mut study = fortnightly(2);
     study["pay_date"] = json!("2025-10-15");
     for (command, part, pays) in [
-        ("study-loan-withholding", study, 26),
+        ("study-loan-withholding", study.clone(), 26),
+        ("study-loan-withholding", study, 1),
         ("seniors-pensioners-withholding", senior, 12),
     ] {
         let facts = input(
@@ -949,7 +950,7 @@ fn a_study_loan_pay_in_a_year_whose_schedule_8_changed_is_refused() {
         assert_eq!(
             r.message,
             format!(
-                "{command} with a study loan does not give the tax withheld for 2025-26: its Schedule 8 coefficients changed on 2025-09-24, so one pay does not stand for the year's pays; give tax_withheld"
+                "{command} with a study loan does not give the tax withheld for 2025-26: its Schedule 8 coefficients changed on 2025-09-24, and this estimate takes no year whose coefficients changed after 1 July; give tax_withheld"
             )
         );
     }
@@ -1015,4 +1016,13 @@ fn a_bonus_beside_a_declared_adjustment_is_refused() {
         );
     }
     assert!(api::evaluate(COMMAND, &with("extra_pay_withholding", json!(false), 26)).is_ok());
+    // false is no amount or count: the pay's own part refuses it.
+    for key in ["tax_offsets", "medicare_adjustment_children"] {
+        let r = refusal(with(key, json!(false), 26));
+        assert!(
+            r.message.starts_with("payg-withholding: "),
+            "{key}: {}",
+            r.message
+        );
+    }
 }
