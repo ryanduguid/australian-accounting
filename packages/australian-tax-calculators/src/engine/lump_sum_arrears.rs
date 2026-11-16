@@ -203,8 +203,11 @@ fn accrual_years(value: &Arg, receipt: &str) -> Result<Vec<AccrualYear>> {
     Ok(years)
 }
 
+/// A year's resident rates: each row's lower and upper bound and rate.
+type Scale = &'static [(i64, Option<i64>, &'static str)];
+
 /// A year's resident rates, if the worksheet holds them.
-fn scale(year: &str) -> Option<&'static [(i64, Option<i64>, &'static str)]> {
+fn scale(year: &str) -> Option<Scale> {
     meta::PRIOR_RESIDENT_TAX_SCALES
         .iter()
         .chain(meta::RESIDENT_TAX_SCALES)
@@ -217,6 +220,12 @@ fn sum(values: impl IntoIterator<Item = Decimal>) -> Calc<Decimal> {
     let mut values = values.into_iter();
     let first = values.next().expect("a value");
     values.try_fold(first, |total, value| total.add(&value))
+}
+
+/// The value of the step named `id`.
+fn named(values: &[(&str, Decimal)], id: &str) -> Decimal {
+    let (_, value) = values.iter().find(|(name, _)| *name == id).expect("a step");
+    value.clone()
 }
 
 /// The tax on `income`, written `x`, at `scale`: each row's part of the
@@ -297,8 +306,118 @@ fn recent_rate(increase: (&Decimal, &str), arrears: &Decimal) -> Calc<(Decimal, 
     ))
 }
 
+/// The values the steps name, in the order they were worked out.
+type Values = Vec<(&'static str, Decimal)>;
+
 /// The steps and rates once the 10% test is met.
 type OffsetWorking = (Vec<Step>, Vec<(String, String)>);
+
+/// The recent accrual years' rates, refusing a year the worksheet holds none
+/// for.
+fn recent_scales(recent: &[AccrualYear]) -> Result<Vec<Scale>> {
+    recent
+        .iter()
+        .map(|year| match scale(&year.label) {
+            Some(scale) => Ok(scale),
+            None => refuse(
+                "lump_sum_arrears.recent_year_unsupported",
+                format!(
+                    "{} is a recent accrual year (ITAA 1936 s 159ZR(1)), whose notional tax s 159ZRC works out at that year's rates, and this worksheet holds resident rates from {} only",
+                    year.label,
+                    meta::PRIOR_RESIDENT_TAX_SCALES[0].0
+                ),
+            ),
+        })
+        .collect()
+}
+
+/// s 159ZRD(1): each recent accrual year's increase in normal tax, as a step,
+/// and its rate with the rate's formula.
+fn recent_rates(
+    recent: &[AccrualYear],
+    scales: &[Scale],
+    steps: &mut Vec<Step>,
+    values: &mut Values,
+) -> Calc<Vec<(Decimal, String)>> {
+    let mut recent_rates = Vec::new();
+    for ((year, scale), [_, (id, authority)]) in recent.iter().zip(scales).zip(&RECENT) {
+        let income = year.facts[0].clone().expect("validated");
+        let normal = match &year.facts[1] {
+            Some(gain) => (
+                py_max(int(0), income.sub(gain)?)?,
+                format!("max(0, {income} - {gain})"),
+            ),
+            None => (income.clone(), income.to_string()),
+        };
+        let base = adjusted(year, normal)?;
+        let (increase, formula) = tax_increase(scale, (&base.0, &base.1), &year.arrears)?;
+        steps.push(step(id, authority, &formula, &[], increase.clone()));
+        values.push((id, increase.clone()));
+        recent_rates.push(recent_rate((&increase, id), &year.arrears)?);
+    }
+    Ok(recent_rates)
+}
+
+/// s 159ZRD for the distant accrual years: each recent accrual year's
+/// increase in normal tax and its rate, then the distant years' notional tax
+/// at the average rate; and the rates.
+fn distant_steps(
+    recent: &[AccrualYear],
+    scales: &[Scale],
+    distant: &[AccrualYear],
+    steps: &mut Vec<Step>,
+    values: &mut Values,
+) -> Calc<Vec<(String, String)>> {
+    let recent_rates = recent_rates(recent, scales, steps, values)?;
+    let average = recent_rates[0].0.add(&recent_rates[1].0)?;
+    let arrears: Vec<String> = distant.iter().map(|y| y.arrears.to_string()).collect();
+    let amount = sum(distant.iter().map(|y| y.arrears.clone()))?
+        .mul(&average)?
+        .div(&int(2))?;
+    let id = "notional_tax_distant_accrual_years";
+    steps.push(step_by_name(
+        id,
+        "ITAA 1936 s 159ZRD: the notional tax amounts for the distant accrual years, their annual arrears amounts at the average tax rate on recent arrears, the average of the recent accrual years' rates, each their increased normal tax less normal tax over their annual arrears amount, to 3 decimal places (s 159ZRD(2)) and increased by 0.001 when the fourth decimal place would be more than 4 (s 159ZRD(3))",
+        &format!(
+            "({}) x ({} + {}) / 2",
+            arrears.join(" + "),
+            recent_rates[0].1,
+            recent_rates[1].1
+        ),
+        values,
+        amount.clone(),
+    ));
+    values.push((id, amount));
+    Ok(vec![
+        rate("tax_rate_on_arrears_most_recent_year", &recent_rates[0].0),
+        rate(
+            "tax_rate_on_arrears_second_most_recent_year",
+            &recent_rates[1].0,
+        ),
+        rate("average_tax_rate_on_recent_arrears", average.div(&int(2))?),
+    ])
+}
+
+/// s 159ZRB's tax on arrears in the year of receipt, as a step.
+fn tax_on_arrears(income: &Decimal, receipt: &str, values: &mut Values) -> Calc<(Step, Decimal)> {
+    let total = named(values, "total_arrears_amount");
+    let receipt_scale = scale(receipt).expect("a supported year of receipt");
+    let (with, with_formula) = scale_tax(receipt_scale, income, "taxable_income")?;
+    let reduced = "taxable_income - total_arrears_amount";
+    let (without, without_formula) = scale_tax(receipt_scale, &income.sub(&total)?, reduced)?;
+    let tax_on_arrears = with.sub(&without)?;
+    let step = step_by_name(
+        "tax_on_arrears",
+        at_resident_rates!(
+            "ITAA 1936 s 159ZRB, tax on arrears: the rebated tax on the taxable income of the year of receipt less the rebated tax on that taxable income reduced by the total arrears amount"
+        ),
+        &format!("{with_formula} - ({without_formula})"),
+        values,
+        tax_on_arrears.clone(),
+    );
+    values.push(("tax_on_arrears", tax_on_arrears.clone()));
+    Ok((step, tax_on_arrears))
+}
 
 /// The steps once the 10% test is met: the tax on the arrears, each recent
 /// accrual year's notional tax, the distant accrual years', their total and
@@ -307,44 +426,12 @@ fn offset_steps(
     income: &Decimal,
     receipt: &str,
     years: &[AccrualYear],
-    values: &mut Vec<(&'static str, Decimal)>,
+    values: &mut Values,
 ) -> Result<OffsetWorking> {
-    let total = values
-        .iter()
-        .find(|(name, _)| *name == "total_arrears_amount")
-        .expect("total")
-        .1
-        .clone();
-    let receipt_scale = scale(receipt).expect("a supported year of receipt");
-    let (with, with_formula) = scale_tax(receipt_scale, income, "taxable_income")?;
-    let reduced = "taxable_income - total_arrears_amount";
-    let (without, without_formula) = scale_tax(receipt_scale, &income.sub(&total)?, reduced)?;
-    let tax_on_arrears = with.sub(&without)?;
-    let mut steps = vec![step_by_name(
-        "tax_on_arrears",
-        at_resident_rates!(
-            "ITAA 1936 s 159ZRB, tax on arrears: the rebated tax on the taxable income of the year of receipt less the rebated tax on that taxable income reduced by the total arrears amount"
-        ),
-        &format!("{with_formula} - ({without_formula})"),
-        values,
-        tax_on_arrears.clone(),
-    )];
-    values.push(("tax_on_arrears", tax_on_arrears.clone()));
-    let recent = &years[..years.len().min(2)];
-    let mut scales = Vec::new();
-    for year in recent {
-        let Some(scale) = scale(&year.label) else {
-            return refuse(
-                "lump_sum_arrears.recent_year_unsupported",
-                format!(
-                    "{} is a recent accrual year (ITAA 1936 s 159ZR(1)), whose notional tax s 159ZRC works out at that year's rates, and this worksheet holds resident rates from {} only",
-                    year.label,
-                    meta::PRIOR_RESIDENT_TAX_SCALES[0].0
-                ),
-            );
-        };
-        scales.push(scale);
-    }
+    let (first, tax_on_arrears) = self::tax_on_arrears(income, receipt, values)?;
+    let mut steps = vec![first];
+    let (recent, distant) = years.split_at(years.len().min(2));
+    let scales = recent_scales(recent)?;
     let mut notional = Vec::new();
     for ((year, scale), [(id, authority), _]) in recent.iter().zip(&scales).zip(&RECENT) {
         let income = year.facts[0].clone().expect("validated");
@@ -354,58 +441,13 @@ fn offset_steps(
         values.push((id, amount));
         notional.push(*id);
     }
-    let mut rates = Vec::new();
-    let distant = &years[recent.len()..];
-    if !distant.is_empty() {
-        let mut recent_rates = Vec::new();
-        for ((year, scale), [_, (id, authority)]) in recent.iter().zip(&scales).zip(&RECENT) {
-            let income = year.facts[0].clone().expect("validated");
-            let normal = match &year.facts[1] {
-                Some(gain) => (
-                    py_max(int(0), income.sub(gain)?)?,
-                    format!("max(0, {income} - {gain})"),
-                ),
-                None => (income.clone(), income.to_string()),
-            };
-            let base = adjusted(year, normal)?;
-            let (increase, formula) = tax_increase(scale, (&base.0, &base.1), &year.arrears)?;
-            steps.push(step(id, authority, &formula, &[], increase.clone()));
-            values.push((id, increase.clone()));
-            recent_rates.push(recent_rate((&increase, id), &year.arrears)?);
-        }
-        let average = recent_rates[0].0.add(&recent_rates[1].0)?;
-        let arrears: Vec<String> = distant.iter().map(|y| y.arrears.to_string()).collect();
-        let amount = sum(distant.iter().map(|y| y.arrears.clone()))?
-            .mul(&average)?
-            .div(&int(2))?;
-        let id = "notional_tax_distant_accrual_years";
-        steps.push(step_by_name(
-            id,
-            "ITAA 1936 s 159ZRD: the notional tax amounts for the distant accrual years, their annual arrears amounts at the average tax rate on recent arrears, the average of the recent accrual years' rates, each their increased normal tax less normal tax over their annual arrears amount, to 3 decimal places (s 159ZRD(2)) and increased by 0.001 when the fourth decimal place would be more than 4 (s 159ZRD(3))",
-            &format!(
-                "({}) x ({} + {}) / 2",
-                arrears.join(" + "),
-                recent_rates[0].1,
-                recent_rates[1].1
-            ),
-            values,
-            amount.clone(),
-        ));
-        values.push((id, amount));
-        notional.push(id);
-        rates = vec![
-            rate("tax_rate_on_arrears_most_recent_year", &recent_rates[0].0),
-            rate(
-                "tax_rate_on_arrears_second_most_recent_year",
-                &recent_rates[1].0,
-            ),
-            rate("average_tax_rate_on_recent_arrears", average.div(&int(2))?),
-        ];
-    }
-    let notional_tax = sum(notional.iter().map(|id| {
-        let (_, value) = values.iter().find(|(name, _)| name == id).expect("a step");
-        value.clone()
-    }))?;
+    let rates = if distant.is_empty() {
+        Vec::new()
+    } else {
+        notional.push("notional_tax_distant_accrual_years");
+        distant_steps(recent, &scales, distant, &mut steps, values)?
+    };
+    let notional_tax = sum(notional.iter().map(|id| named(values, id)))?;
     steps.push(step_by_name(
         "notional_tax_on_arrears",
         "ITAA 1936 s 159ZRB, notional tax on arrears: the total of the notional tax amounts for the accrual years",
@@ -424,6 +466,61 @@ fn offset_steps(
     Ok((steps, rates))
 }
 
+/// The total arrears amount's step (id, authority).
+const TOTAL: (&str, &str) = (
+    "total_arrears_amount",
+    "ITAA 1936 s 159ZR(1): the total arrears amount, the eligible lump sums to the extent they accrued in earlier years, the total of the annual arrears amounts",
+);
+
+/// The steps of s 159ZRA(1)(b)'s 10% test, from the year of receipt's taxable
+/// income and net capital gain and the accrual years, and the values they
+/// name.
+fn threshold_steps(
+    income: &Decimal,
+    gain: &Decimal,
+    years: &[AccrualYear],
+) -> Calc<(Vec<Step>, Values)> {
+    let total = sum(years.iter().map(|y| y.arrears.clone()))?;
+    let normal = py_max(int(0), income.sub(gain)?)?;
+    let remaining = py_max(int(0), normal.sub(&total)?)?;
+    let threshold = remaining.mul(&d(THRESHOLD_RATE))?;
+    let arrears: Vec<String> = years.iter().map(|y| y.arrears.to_string()).collect();
+    let mut values = vec![
+        ("taxable_income", income.clone()),
+        ("net_capital_gain", gain.clone()),
+        ("threshold_rate", d(THRESHOLD_RATE)),
+        ("total_arrears_amount", total.clone()),
+        ("normal_taxable_income", normal.clone()),
+        ("threshold_test_income", remaining.clone()),
+    ];
+    let steps = vec![
+        step(TOTAL.0, TOTAL.1, &arrears.join(" + "), &[], total),
+        step_by_name(
+            "normal_taxable_income",
+            "ITAA 1936 s 159ZR(1), normal taxable income: the taxable income as if no net capital gain were included in assessable income under ITAA 1997 s 102-5",
+            "max(0, taxable_income - net_capital_gain)",
+            &values,
+            normal,
+        ),
+        step_by_name(
+            "threshold_test_income",
+            "ITAA 1936 s 159ZRA(1)(b): the amount, if any, remaining after deducting the total arrears amount from normal taxable income",
+            "max(0, normal_taxable_income - total_arrears_amount)",
+            &values,
+            remaining,
+        ),
+        step_by_name(
+            "ten_percent_of_threshold_test_income",
+            "ITAA 1936 s 159ZRA(1)(b): the total arrears amount must be not less than 10% of that remaining amount",
+            "threshold_test_income x threshold_rate",
+            &values,
+            threshold.clone(),
+        ),
+    ];
+    values.push(("ten_percent_of_threshold_test_income", threshold));
+    Ok((steps, values))
+}
+
 /// The lump sum payment in arrears tax offset (ITAA 1936 ss 159ZR to 159ZRD)
 /// for an individual's year of receipt.
 pub fn lump_sum_arrears_tax_offset(
@@ -438,51 +535,10 @@ pub fn lump_sum_arrears_tax_offset(
     let gain = whole_dollar_money(net_capital_gain, "net capital gain")?;
     let years = self::accrual_years(accrual_years, &year)?;
     let (steps, rates) = super::precise(|| {
-        let total = sum(years.iter().map(|y| y.arrears.clone()))?;
-        let normal = py_max(int(0), income.sub(&gain)?)?;
-        let remaining = py_max(int(0), normal.sub(&total)?)?;
-        let threshold = remaining.mul(&d(THRESHOLD_RATE))?;
-        let arrears: Vec<String> = years.iter().map(|y| y.arrears.to_string()).collect();
-        let mut values = vec![
-            ("taxable_income", income.clone()),
-            ("net_capital_gain", gain.clone()),
-            ("threshold_rate", d(THRESHOLD_RATE)),
-            ("total_arrears_amount", total.clone()),
-            ("normal_taxable_income", normal.clone()),
-            ("threshold_test_income", remaining.clone()),
-        ];
-        let mut steps = vec![
-            step(
-                "total_arrears_amount",
-                "ITAA 1936 s 159ZR(1): the total arrears amount, the eligible lump sums to the extent they accrued in earlier years, the total of the annual arrears amounts",
-                &arrears.join(" + "),
-                &[],
-                total.clone(),
-            ),
-            step_by_name(
-                "normal_taxable_income",
-                "ITAA 1936 s 159ZR(1), normal taxable income: the taxable income as if no net capital gain were included in assessable income under ITAA 1997 s 102-5",
-                "max(0, taxable_income - net_capital_gain)",
-                &values,
-                normal,
-            ),
-            step_by_name(
-                "threshold_test_income",
-                "ITAA 1936 s 159ZRA(1)(b): the amount, if any, remaining after deducting the total arrears amount from normal taxable income",
-                "max(0, normal_taxable_income - total_arrears_amount)",
-                &values,
-                remaining,
-            ),
-            step_by_name(
-                "ten_percent_of_threshold_test_income",
-                "ITAA 1936 s 159ZRA(1)(b): the total arrears amount must be not less than 10% of that remaining amount",
-                "threshold_test_income x threshold_rate",
-                &values,
-                threshold.clone(),
-            ),
-        ];
+        let (mut steps, mut values) = threshold_steps(&income, &gain, &years)?;
         let mut rates = vec![rate("threshold_rate", THRESHOLD_RATE)];
-        if total.lt(&threshold)? {
+        let total = named(&values, "total_arrears_amount");
+        if total.lt(&named(&values, "ten_percent_of_threshold_test_income"))? {
             steps.push(step(
                 "lump_sum_arrears_tax_offset",
                 "ITAA 1936 s 159ZRA(1)(b): the total arrears amount is less than 10% of normal taxable income less that amount, so no rebate",
