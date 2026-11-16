@@ -6,13 +6,18 @@
   refused a rulings run holding either, although the corpus builder's rulings stage
   writes both. A GST determination is accepted under the label earlier runs wrote,
   `GST determination`, and under the Legal Database's name the stage writes next,
-  `Goods and Services Tax Determination`.
+  `Goods and Services Tax Determination`. A `family` filter naming either label finds
+  both.
 
 ## Added
 
 - `validate_bsb_format` tests a BSB against AusPayNet's published 6 digit format,
   XXX-XXX. It holds no BSB directory, so a valid format proves no institution, branch
   or account.
+- `validate_account_number_format` tests a bank account number against the account
+  number field in AusPayNet's BECS Procedures: up to 9 letters, digits, hyphens or
+  spaces, hyphens removed from a longer number, and not all zeros or blanks. A valid
+  format proves no account, payee or BSB match.
 
 # v0.9.0
 

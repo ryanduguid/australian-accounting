@@ -374,22 +374,75 @@ pub fn gst(amount: &Arg, gst_inclusive: &Arg, scope_confirmed: &Arg, year: &Arg)
     let Arg::Bool(inclusive) = gst_inclusive else {
         return refuse("input.flag_invalid", "gst_inclusive must be a boolean.");
     };
-    let (tax, exclusive) = precise(|| {
-        if *inclusive {
+    let steps = precise(|| {
+        let (tax, exclusive) = if *inclusive {
             let tax = amount.div(&int(11))?;
-            Ok((tax.clone(), amount.sub(&tax)?))
+            (tax.clone(), amount.sub(&tax)?)
         } else {
-            Ok((amount.div(&int(10))?, amount.clone()))
-        }
+            (amount.div(&int(10))?, amount.clone())
+        };
+        let total = exclusive.add(&tax)?;
+        let table = if *inclusive {
+            &GST_INCLUSIVE_STEPS
+        } else {
+            &GST_EXCLUSIVE_STEPS
+        };
+        let exclusive_of: &[&Decimal] = if *inclusive {
+            &[&amount, &tax]
+        } else {
+            &[&amount]
+        };
+        Ok(steps_from(
+            table,
+            [
+                (&[&amount], tax.clone()),
+                (exclusive_of, exclusive.clone()),
+                (&[&exclusive, &tax], total),
+            ],
+        ))
     })?;
-    let total = precise(|| Ok(exclusive.add(&tax)?))?;
-    result(
-        "gst",
-        &year,
-        vec![("gst", tax), ("exclusive", exclusive), ("inclusive", total)],
-        vec![rate("gst_rate", "0.10")],
-    )
+    derived_result("gst", &year, steps, vec![rate("gst_rate", "0.10")])
 }
+
+/// `gst`'s amounts for a GST-inclusive amount: (id, authority, formula). The
+/// GST steps cite the A New Tax System (Goods and Services Tax) Act 1999
+/// compilation 96 (C2026C00081, from 1 January 2026), read on 16 November 2026.
+const GST_INCLUSIVE_STEPS: [(&str, &str, &str); 3] = [
+    (
+        "gst",
+        "GST Act s 9-70 and s 9-75(1): 10% of the value, which is the price x 10 / 11, so the price / 11",
+        "amount / 11",
+    ),
+    (
+        "exclusive",
+        "GST Act s 9-75(1): the value of the supply, the price less its GST",
+        "amount - gst",
+    ),
+    (
+        "inclusive",
+        "GST Act s 9-75(1): the price, the value with its GST",
+        "exclusive + gst",
+    ),
+];
+
+/// `gst`'s amounts for a GST-exclusive amount, the value of the supply.
+const GST_EXCLUSIVE_STEPS: [(&str, &str, &str); 3] = [
+    (
+        "gst",
+        "GST Act s 9-70: 10% of the value of the taxable supply",
+        "amount / 10",
+    ),
+    (
+        "exclusive",
+        "GST Act s 9-75(1): the value of the supply, the amount given",
+        "amount",
+    ),
+    (
+        "inclusive",
+        "GST Act s 9-75(1): the price, the value with its GST",
+        "exclusive + gst",
+    ),
+];
 
 pub fn resident_tax(taxable_income: &Arg, year: &Arg, scope_confirmed: &Arg) -> Result<Value> {
     let year = scope(scope_confirmed, year, "resident_tax")?;
@@ -1124,33 +1177,93 @@ pub fn depreciation(
             opening
         }
     };
-    let base = if method.text() == Some("prime_cost") {
-        &cost
-    } else {
-        &opening
+    let prime_cost = method.text() == Some("prime_cost");
+    let base = if prime_cost { &cost } else { &opening };
+    // The names the steps give the opening and base values, and the formula
+    // the method applies to the base (200% for diminishing value).
+    let opening_name = match opening_adjustable_value {
+        None => "cost",
+        Some(_) => "opening_adjustable_value",
     };
-    let amounts = precise(|| {
+    let formula = if prime_cost {
+        "cost x days".to_string()
+    } else {
+        format!("{opening_name} x days x 2")
+    };
+    let steps = precise(|| {
         // Divide once, last: a quotient taken first is rounded to the working
         // precision, which can move an exact half cent below it.
         let numerator = base.mul(&int(days))?.mul(&factor)?;
         let denominator = int(365).mul(&life)?;
         let raw = numerator.div(&denominator)?;
+        let days = int(days);
         // py_min(opening, raw): the opening value unless raw is lower.
-        let (decline, deduction) = if raw.lt(&opening)? {
-            (raw, numerator.mul(&use_)?.div(&denominator)?)
-        } else {
+        let limited = !raw.lt(&opening)?;
+        let (decline, deduction) = if limited {
             (opening.clone(), opening.mul(&use_)?)
+        } else {
+            (raw, numerator.mul(&use_)?.div(&denominator)?)
         };
         // Less the decline as shown, so a closing value carried forward as the
         // next opening value never writes off more than cost.
         let closing = opening.sub(&cents(decline.clone())?)?;
+        let deduction_step = if limited {
+            step(
+                "deduction",
+                "ITAA 1997 s 40-25(1) and (2): the decline in value less the part attributable to use for other than a taxable purpose",
+                "decline_in_value x taxable_use",
+                &[&decline, &use_],
+                deduction,
+            )
+        } else {
+            step(
+                "deduction",
+                "ITAA 1997 s 40-25(1) and (2): the decline in value less the part attributable to use for other than a taxable purpose, worked with one division, last",
+                &format!("{formula} x taxable_use / (365 x effective_life)"),
+                &[base, &days, &use_, &life],
+                deduction,
+            )
+        };
         Ok(vec![
-            ("decline_in_value", decline),
-            ("deduction", deduction),
-            ("closing_adjustable_value", closing),
+            step(
+                "decline_in_value",
+                depreciation_authority(prime_cost, opening_adjustable_value.is_some()),
+                &format!("min({opening_name}, {formula} / (365 x effective_life))"),
+                &[&opening, base, &days, &life],
+                decline.clone(),
+            ),
+            deduction_step,
+            step(
+                "closing_adjustable_value",
+                "ITAA 1997 s 40-85(1)(b) and (c): the year's opening value less its decline in value",
+                &format!("{opening_name} - cents(decline_in_value)"),
+                &[&opening, &decline],
+                closing,
+            ),
         ])
     })?;
-    result("depreciation", &year, amounts, Vec::new())
+    derived_result("depreciation", &year, steps, Vec::new())
+}
+
+/// The provisions `depreciation`'s decline in value applies, in ITAA 1997
+/// compilation 268 (1 October 2026), read on 16 November 2026: the method's
+/// formula on cost in the start year or, in a later year, on the opening
+/// adjustable value for diminishing value, and its limit on the decline.
+fn depreciation_authority(prime_cost: bool, later_year: bool) -> &'static str {
+    match (prime_cost, later_year) {
+        (true, false) => {
+            "ITAA 1997 s 40-75(1): cost x days held / 365 x 100% / effective life, no more than cost (s 40-75(7)(a))"
+        }
+        (true, true) => {
+            "ITAA 1997 s 40-75(1): cost x days held / 365 x 100% / effective life, no more than the opening adjustable value (s 40-75(7)(b))"
+        }
+        (false, false) => {
+            "ITAA 1997 s 40-72(1): base value, the cost in the start year (s 40-70(1)(a)), x days held / 365 x 200% / effective life, no more than the base value (s 40-72(3))"
+        }
+        (false, true) => {
+            "ITAA 1997 s 40-72(1): base value, the opening adjustable value in a later year (s 40-70(1)(b)), x days held / 365 x 200% / effective life, no more than the base value (s 40-72(3))"
+        }
+    }
 }
 
 /// `quarterly_sg`'s amounts: (id, authority, formula). They cite the

@@ -122,6 +122,8 @@ def scope() -> dict[str, Any]:
             "registration.",
             "validate_bsb_format": "Test a BSB's 6 digit format; proves no institution, branch or "
             "account, and holds no BSB directory.",
+            "validate_account_number_format": "Test a bank account number against the 9 "
+            "character BECS field; proves no account, payee or BSB match.",
             "calculate_tax_worksheet": "Run one of the bounded calculation_worksheets below.",
             "get_reviewed_rate": "Return one reviewed ATO record for a date in 2025-26 or "
             "2026-27 with its source and verbatim quote; any other date is refused.",

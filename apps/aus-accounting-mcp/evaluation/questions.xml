@@ -293,4 +293,10 @@
     <calls>[{"name": "validate_bsb_format", "arguments": {"bsb": "123 4567"}}]</calls>
     <tools><tool>validate_bsb_format</tool></tools>
   </qa_pair>
+  <qa_pair id="account-number-format">
+    <question>A fabricated payee's bank details quote account number 00-0000000. Is that in the published account number format? Return only the result the server reports.</question>
+    <answer>MALFORMED</answer>
+    <calls>[{"name": "validate_account_number_format", "arguments": {"account_number": "00-0000000"}}]</calls>
+    <tools><tool>validate_account_number_format</tool></tools>
+  </qa_pair>
 </evaluation>

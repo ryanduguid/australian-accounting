@@ -586,6 +586,18 @@ The last 2 rows below take 2 of those agreements' payments.
 | $1,000 financed, one $1,050 instalment in arrears; and $100 in advance with a $945 balloon | Worked by hand: 5% of $1,000 is $50; ($1,000 - $100) × 5% = $45 | 5% a month; $50.00 and $45.00 |
 | LodgeiT hp/290: $180,630.00 financed, $3,346.99 a month in arrears for 60 months, stated 4.25% a year | LodgeiT's report: first month $639.73, last $11.81, $20,189.64 in all and $0.24 left | 4.25% a year to 2 places; first month within 2 cents, last $11.81; $20,189.40 in all, nil left |
 | LodgeiT hp/235: $252,450.00 financed, 59 instalments of $3,893.76 and a $53,893.16 balloon, stated 3.99% a year | LodgeiT's report: first month $839.40, last $178.60, $31,175.69 in all and $0.69 left | 3.99% a year to 2 places; first month within 2 cents, last $178.60; $31,175.00 in all, nil left |
+| By income year: $1,000 financed, $100 a month in arrears for 3 months from 1 May 2027, $1,000 balloon | Worked by hand: $100 a month at 10%; May and June fall in 2026-27, July in 2027-28 | 2026-27, instalments 1 and 2, $200.00; 2027-28, instalment 3, $100.00; no month spans 30 June |
+| Across 30 June: the same for 2 months from 15 May 2027; and $100 in advance with a $979 balloon from 15 June 2027 | Worked by hand: 16 days from 15 June to 1 July and 14 to 15 July | In arrears, 2026-27 $100.00 and month 2 ($100.00) set apart; in advance, month 1 ($90.00) set apart and 2027-28 $89.00 |
+
+Section 240-60(2), read on 16 November 2026 on the ATO's legal database
+(https://www.ato.gov.au/law/view/document?docid=PAC/19970038/240-60), relates
+the part of an arrangement payment period in an income year to it 'in
+accordance with generally accepted accounting principles'. It names no
+method, so `interest_by_income_year` totals only the months wholly in each
+year and `interest_across_30_june` sets out a spanning month's interest and
+its days on each side for the caller to relate. A day-weighted split was not
+adopted: it is one reading of those principles, and a split at the implicit
+rate compounded within the month differs from it by cents.
 
 ## Depreciation
 

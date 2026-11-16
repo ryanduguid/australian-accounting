@@ -13,7 +13,7 @@ use std::io::Write;
 use std::process::{Command, Stdio};
 
 /// The commands `derive` explains.
-const DERIVED: [&str; 37] = [
+const DERIVED: [&str; 40] = [
     "fbt",
     "fbt-car-statutory",
     "fbt-car-operating-cost",
@@ -51,6 +51,9 @@ const DERIVED: [&str; 37] = [
     "fbt-lafha",
     "fbt-board",
     "fbt-tax-exempt-body-entertainment",
+    "gst",
+    "depreciation",
+    "hire-purchase-schedule",
 ];
 
 /// (command, input) for each derived kind: the ATO's published examples and
@@ -1907,9 +1910,12 @@ fn a_refused_input_gets_the_commands_own_refusal() {
 #[test]
 fn derive_refuses_what_it_does_not_explain() {
     let code = |envelope: Value| api::evaluate_coded("derive", &envelope).unwrap_err().code;
-    let gst = json!({"amount": "1100", "gst_inclusive": true, "scope_confirmed": true, "year": "2025-26"});
+    // The gross-up's gross is a fixed point of the withholding worked on it.
+    let gross_up = json!({"net_pay": "862.00", "pay_period": "weekly", "scale": 2,
+                          "year": "2026-27", "scope_confirmed": true});
+    assert!(api::evaluate("payg-gross-up", &gross_up).is_ok());
     assert_eq!(
-        code(json!({"command": "gst", "input": gst})),
+        code(json!({"command": "payg-gross-up", "input": gross_up})),
         "derivation.unsupported"
     );
     assert_eq!(
@@ -1932,16 +1938,10 @@ fn derive_refuses_what_it_does_not_explain() {
     let (command, input) = &cases()[0];
     let extra = json!({"command": command, "input": input, "steps": false});
     assert_eq!(code(extra), "input.field_unknown");
-    for command in [
-        "gst",
-        "depreciation",
-        "payg-gross-up",
-        "hire-purchase-schedule",
-    ] {
-        let request = json!({"command": command, "input": {}});
-        assert_eq!(code(request), "derivation.unsupported", "{command}");
-    }
-    let message = api::evaluate("derive", &json!({"command": "gst", "input": {}})).unwrap_err();
+    let request = json!({"command": "payg-gross-up", "input": {}});
+    assert_eq!(code(request), "derivation.unsupported");
+    let request = json!({"command": "payg-gross-up", "input": {}});
+    let message = api::evaluate("derive", &request).unwrap_err();
     assert_eq!(
         message,
         "derive explains fbt, fbt-car-statutory, fbt-car-operating-cost, fbt-loan, \
@@ -1953,7 +1953,8 @@ fn derive_refuses_what_it_does_not_explain() {
          foreign-resident-tax, low-income-tax-offset, seniors-pensioners-tax-offset, \
          medicare-levy, medicare-levy-surcharge, division-296, contribution-caps, \
          study-loan-repayment, capital-gains, main-residence, fbt-residual, fbt-housing, \
-         fbt-lafha, fbt-board, fbt-tax-exempt-body-entertainment, not \"gst\""
+         fbt-lafha, fbt-board, fbt-tax-exempt-body-entertainment, gst, depreciation, \
+         hire-purchase-schedule, not \"payg-gross-up\""
     );
 }
 
@@ -1987,7 +1988,7 @@ fn the_binary_derives_and_refuses_with_a_code() {
     assert!(problems(&doc).is_empty());
     let (code, out) = run(
         &["derive", "--refusal-json"],
-        r#"{"command": "gst", "input": {}}"#,
+        r#"{"command": "payg-gross-up", "input": {}}"#,
     );
     assert_eq!(code, 2);
     let refusal: Value = serde_json::from_str(&out).unwrap();
@@ -3943,5 +3944,306 @@ fn a_refused_super_or_cgt_input_gets_the_commands_own_refusal() {
     assert_eq!(
         refused("main-residence", input),
         "main_residence.first_income_use_rule_applies"
+    );
+}
+
+/// GST, depreciation and hire purchase cases by name, as (name, command,
+/// input): the GST Act's s 9-75(1) example and a price GST does not divide
+/// exactly; the ATO's depreciation examples ('Prime cost (straight line) and
+/// diminishing value methods', last updated 28 August 2026, read on 16
+/// November 2026 at 05:47 AEDT) and each limit on the decline; and the hire
+/// purchase agreements `tests/hire_purchase.rs` works by hand.
+fn last_kinds_cases() -> Vec<(&'static str, &'static str, Value)> {
+    let gst = |amount: &str, inclusive: bool| {
+        json!({"amount": amount, "gst_inclusive": inclusive, "scope_confirmed": true,
+               "year": "2026-27"})
+    };
+    let depreciation = |facts: Value| {
+        let mut input = json!({
+            "cost": "80000.00", "effective_life": "5", "days": 365, "taxable_use": "1",
+            "method": "diminishing_value", "scope_confirmed": true, "year": "2026-27",
+        });
+        merge(&mut input, facts);
+        input
+    };
+    let hire_purchase = |facts: Value| {
+        let mut input = json!({
+            "amount_financed": "45000.00", "instalment": "850.00", "instalments": 60,
+            "balloon": "5000.00", "timing": "in_arrears", "start_date": "2026-07-15",
+            "year": "2026-27", "scope_confirmed": true,
+        });
+        merge(&mut input, facts);
+        input
+    };
+    vec![
+        // s 9-75(1): a car sold for $22,000 has a value of $20,000 and $2,000 of GST.
+        ("car", "gst", gst("22000.00", true)),
+        ("car_value", "gst", gst("20000.00", false)),
+        ("eleventh", "gst", gst("100.00", true)),
+        // $80,000 over 5 years: diminishing value $32,000, then $19,200 on the
+        // $48,000 base; prime cost $16,000; and year 2 at 60% taxable use.
+        ("dv_year_1", "depreciation", depreciation(json!({}))),
+        (
+            "dv_year_2",
+            "depreciation",
+            depreciation(json!({"opening_adjustable_value": "48000.00"})),
+        ),
+        (
+            "pc_year_1",
+            "depreciation",
+            depreciation(json!({"method": "prime_cost"})),
+        ),
+        (
+            "dv_private",
+            "depreciation",
+            depreciation(json!({"opening_adjustable_value": "48000.00", "taxable_use": "0.6"})),
+        ),
+        // Paul's fridge: $2,000 for 122 days over 10 years, $67 to the dollar.
+        (
+            "fridge",
+            "depreciation",
+            depreciation(
+                json!({"cost": "2000.00", "effective_life": "10", "days": 122,
+                                "method": "prime_cost"}),
+            ),
+        ),
+        // s 40-75(7)(b): year 6 of the part-year asset, $16,000 limited to $9,600.
+        (
+            "pc_limited",
+            "depreciation",
+            depreciation(
+                json!({"method": "prime_cost", "opening_adjustable_value": "9600.00",
+                                "taxable_use": "0.5"}),
+            ),
+        ),
+        // s 40-72(3): $1,000 over a 1-year life gives $2,000, limited to $1,000.
+        (
+            "dv_limited",
+            "depreciation",
+            depreciation(json!({"effective_life": "1", "opening_adjustable_value": "1000.00"})),
+        ),
+        // s 40-72(3) in the start year: a cost written off at once.
+        (
+            "dv_limited_start",
+            "depreciation",
+            depreciation(json!({"cost": "500.00", "effective_life": "1.5"})),
+        ),
+        // Exactly 10% a month, in arrears and in advance, and the default agreement.
+        (
+            "ten_percent",
+            "hire-purchase-schedule",
+            hire_purchase(json!({"amount_financed": "1000.00", "instalment": "100.00",
+                                 "instalments": 2, "balloon": "1000.00"})),
+        ),
+        (
+            "ten_percent_in_advance",
+            "hire-purchase-schedule",
+            hire_purchase(json!({"amount_financed": "1000.00", "instalment": "100.00",
+                                 "instalments": 2, "balloon": "979.00", "timing": "in_advance"})),
+        ),
+        (
+            "five_years",
+            "hire-purchase-schedule",
+            hire_purchase(json!({})),
+        ),
+    ]
+}
+
+fn last_kinds_doc(name: &str) -> Value {
+    let cases = last_kinds_cases();
+    let (_, command, input) = cases.iter().find(|(n, ..)| *n == name).unwrap();
+    derive(command, input)
+}
+
+#[test]
+fn each_gst_depreciation_and_hire_purchase_case_derives_its_plain_result() {
+    for (name, command, input) in last_kinds_cases() {
+        let doc = derive(command, &input);
+        let plain = api::evaluate(command, &input).unwrap();
+        assert_eq!(doc["result"].to_string(), plain.to_string(), "{name}");
+        let found = problems(&doc);
+        assert!(found.is_empty(), "{name}: {found:#?}");
+    }
+}
+
+/// s 9-75(1)'s car: $22,000 x 10 / 11 is $20,000, and 10% of it $2,000.
+#[test]
+fn the_gst_steps_show_the_acts_example() {
+    let car = last_kinds_doc("car");
+    assert_eq!(
+        working_in(&car, "gst"),
+        "amount / 11 = 22000.00 / 11 = 2000.00"
+    );
+    assert_eq!(
+        working_in(&car, "exclusive"),
+        "amount - gst = 22000.00 - 2000.00 = 20000.00"
+    );
+    assert!(authority_in(&car, "gst").starts_with("GST Act s 9-70 and s 9-75(1)"));
+    let value = last_kinds_doc("car_value");
+    assert!(working_in(&value, "gst").starts_with("amount / 10 = 20000.00 / 10 = "));
+    assert_eq!(value["result"]["amounts"]["gst"], "2000.00");
+    assert_eq!(value["result"]["amounts"]["inclusive"], "22000.00");
+    assert!(authority_in(&value, "gst").starts_with("GST Act s 9-70:"));
+    // The value is the price less the unrounded GST, so the 2 amounts shown
+    // still add to the price.
+    let eleventh = last_kinds_doc("eleventh");
+    let amounts = &eleventh["result"]["amounts"];
+    assert_eq!([&amounts["gst"], &amounts["exclusive"]], ["9.09", "90.91"]);
+}
+
+#[test]
+fn the_depreciation_steps_show_the_atos_examples() {
+    let dv = last_kinds_doc("dv_year_1");
+    assert!(working_in(&dv, "decline_in_value").starts_with(
+        "min(cost, cost x days x 2 / (365 x effective_life)) \
+             = min(80000.00, 80000.00 x 365 x 2 / (365 x 5)) = "
+    ));
+    assert_eq!(dv["result"]["amounts"]["decline_in_value"], "32000.00");
+    assert!(
+        working_in(&dv, "closing_adjustable_value")
+            .starts_with("cost - cents(decline_in_value) = 80000.00 - cents(")
+    );
+    assert_eq!(
+        dv["result"]["amounts"]["closing_adjustable_value"],
+        "48000.00"
+    );
+    let year_2 = last_kinds_doc("dv_year_2");
+    assert!(
+        working_in(&year_2, "decline_in_value").starts_with(
+            "min(opening_adjustable_value, opening_adjustable_value x days x 2 / (365 x effective_life)) \
+             = min(48000.00, 48000.00 x 365 x 2 / (365 x 5))"
+        )
+    );
+    assert_eq!(year_2["result"]["amounts"]["decline_in_value"], "19200.00");
+    let pc = last_kinds_doc("pc_year_1");
+    assert!(
+        working_in(&pc, "decline_in_value")
+            .starts_with("min(cost, cost x days / (365 x effective_life))")
+    );
+    assert_eq!(pc["result"]["amounts"]["decline_in_value"], "16000.00");
+    // At 40% private use 'all figures would be multiplied by a factor of 0.6':
+    // $19,200 x 0.6.
+    let private = last_kinds_doc("dv_private");
+    assert!(working_in(&private, "deduction").starts_with(
+        "opening_adjustable_value x days x 2 x taxable_use / (365 x effective_life) \
+             = 48000.00 x 365 x 2 x 0.6 / (365 x 5)"
+    ));
+    assert_eq!(private["result"]["amounts"]["deduction"], "11520.00");
+    assert_eq!(
+        private["result"]["amounts"]["closing_adjustable_value"],
+        "28800.00"
+    );
+    // $2,000 x 122 / 365 x 10%: $66.85, which the ATO shows as $67.
+    let fridge = last_kinds_doc("fridge");
+    assert_eq!(fridge["result"]["amounts"]["deduction"], "66.85");
+}
+
+/// Each method and year cites its formula, and a limited decline its limit.
+#[test]
+fn each_depreciation_step_cites_its_method_and_limit() {
+    let decline = |name: &str| authority_in(&last_kinds_doc(name), "decline_in_value");
+    assert!(decline("dv_year_1").contains("the cost in the start year (s 40-70(1)(a))"));
+    assert!(
+        decline("dv_year_2")
+            .contains("the opening adjustable value in a later year (s 40-70(1)(b))")
+    );
+    assert!(decline("pc_year_1").ends_with("no more than cost (s 40-75(7)(a))"));
+    assert!(decline("pc_limited").ends_with("(s 40-75(7)(b))"));
+    let limited = last_kinds_doc("pc_limited");
+    assert_eq!(
+        working_in(&limited, "decline_in_value"),
+        "min(opening_adjustable_value, cost x days / (365 x effective_life)) \
+         = min(9600.00, 80000.00 x 365 / (365 x 5)) = 9600.00"
+    );
+    assert_eq!(
+        working_in(&limited, "deduction"),
+        "decline_in_value x taxable_use = 9600.00 x 0.5 = 4800.000"
+    );
+    let dv_limited = last_kinds_doc("dv_limited");
+    assert_eq!(
+        dv_limited["result"]["amounts"]["decline_in_value"],
+        "1000.00"
+    );
+    assert!(working_in(&dv_limited, "deduction").starts_with("decline_in_value x taxable_use"));
+    let start = last_kinds_doc("dv_limited_start");
+    assert_eq!(
+        working_in(&start, "decline_in_value"),
+        "min(cost, cost x days x 2 / (365 x effective_life)) \
+         = min(500.00, 500.00 x 365 x 2 / (365 x 1.5)) = 500.00"
+    );
+    assert!(authority_in(&start, "deduction").starts_with("ITAA 1997 s 40-25(1) and (2)"));
+}
+
+/// At exactly 10% a month the interest is each $100 instalment in arrears,
+/// and $90 then $89 in advance (tests/hire_purchase.rs).
+#[test]
+fn the_hire_purchase_steps_total_the_payments_less_the_principal() {
+    let arrears = last_kinds_doc("ten_percent");
+    assert_eq!(
+        working_in(&arrears, "total_payments"),
+        "instalment x instalments + balloon = 100.00 x 2 + 1000.00 = 1200.00"
+    );
+    assert_eq!(
+        working_in(&arrears, "total_interest"),
+        "total_payments - amount_financed = 1200.00 - 1000.00 = 200.00"
+    );
+    assert!(authority_in(&arrears, "amount_financed").starts_with("ITAA 1997 s 240-25(3)"));
+    let advance = last_kinds_doc("ten_percent_in_advance");
+    assert_eq!(advance["result"]["amounts"]["total_interest"], "179.00");
+    // The schedule's monthly interest adds up to the total the step works out.
+    let five_years = last_kinds_doc("five_years");
+    let monthly = five_years["result"]["schedule"]
+        .as_array()
+        .unwrap()
+        .iter()
+        .map(|row| dec(row["interest"].as_str().unwrap()))
+        .fold(dec("0"), |sum, interest| sum.add(&interest).unwrap());
+    assert_eq!(
+        monthly.to_string(),
+        five_years["result"]["amounts"]["total_interest"]
+    );
+    assert_eq!(
+        working_in(&five_years, "total_interest"),
+        "total_payments - amount_financed = 56000.00 - 45000.00 = 11000.00"
+    );
+}
+
+#[test]
+fn a_refused_gst_depreciation_or_hire_purchase_input_gets_the_commands_own_refusal() {
+    let refused = |command: &str, input: Value| {
+        let plain = api::evaluate_coded(command, &input).unwrap_err();
+        let derived = api::evaluate_coded("derive", &json!({"command": command, "input": input}));
+        assert_eq!(derived.unwrap_err(), plain);
+        plain.code
+    };
+    let cases = last_kinds_cases();
+    let input = |name: &str| cases.iter().find(|(n, ..)| *n == name).unwrap().2.clone();
+    let mut gst = input("car");
+    gst["gst_inclusive"] = json!("yes");
+    assert_eq!(refused("gst", gst), "input.flag_invalid");
+    let mut depreciation = input("dv_year_1");
+    depreciation["days"] = json!(366);
+    assert_eq!(
+        refused("depreciation", depreciation),
+        "input.day_count_invalid"
+    );
+    let mut depreciation = input("dv_year_2");
+    depreciation["opening_adjustable_value"] = json!("80000.01");
+    assert_eq!(
+        refused("depreciation", depreciation),
+        "input.opening_value_above_cost"
+    );
+    let mut hire_purchase = input("five_years");
+    hire_purchase["instalments"] = json!(0);
+    assert_eq!(
+        refused("hire-purchase-schedule", hire_purchase),
+        "hire_purchase.instalments_unsupported"
+    );
+    let mut hire_purchase = input("five_years");
+    hire_purchase["balloon"] = json!("0.00");
+    hire_purchase["instalment"] = json!("100.00");
+    assert_eq!(
+        refused("hire-purchase-schedule", hire_purchase),
+        "hire_purchase.rate_unsupported"
     );
 }
