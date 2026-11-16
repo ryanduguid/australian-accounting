@@ -807,6 +807,73 @@ pub const SAPTO_RULES: [(&str, &str); 6] = [
     ("transfer_rate", "0.15"),
 ];
 
+/// Resident tax rates for the income years before [`RESIDENT_TAX_SCALES`], in
+/// its form, for the recent accrual years of `lump_sum_arrears_tax_offset`
+/// only: the ATO's "Tax rates – Australian resident" (last updated 13 August
+/// 2026), read on 16 November 2026, for a full-year resident entitled to the
+/// whole tax-free threshold. In 2014-15 to 2016-17, the temporary budget repair
+/// levy years (Income Tax (Transitional Provisions) Act 1997 s 4-11(5)), the
+/// last row is that levy: extra income tax of 2% on taxable income above
+/// $180,000 (s 4-11(1) and Income Tax Rates Act 1986 s 34), which the ATO's
+/// tables leave out and which overlaps the 45% row. 2011-12, with its flood
+/// levy, and earlier years are not here.
+pub const PRIOR_RESIDENT_TAX_SCALES: &[(&str, &[(i64, Option<i64>, &str)])] = &[
+    ("2012-13", &SCALE_2012_13),
+    ("2013-14", &SCALE_2012_13),
+    ("2014-15", &SCALE_2014_15),
+    ("2015-16", &SCALE_2014_15),
+    (
+        "2016-17",
+        &[
+            (18200, Some(37000), "0.19"),
+            (37000, Some(87000), "0.325"),
+            (87000, Some(180000), "0.37"),
+            (180000, None, "0.45"),
+            (180000, None, "0.02"),
+        ],
+    ),
+    (
+        "2017-18",
+        &[
+            (18200, Some(37000), "0.19"),
+            (37000, Some(87000), "0.325"),
+            (87000, Some(180000), "0.37"),
+            (180000, None, "0.45"),
+        ],
+    ),
+    ("2018-19", &SCALE_2018_19),
+    ("2019-20", &SCALE_2018_19),
+    ("2020-21", &SCALE_2020_21),
+    ("2021-22", &SCALE_2020_21),
+    ("2022-23", &SCALE_2020_21),
+    ("2023-24", &SCALE_2020_21),
+];
+const SCALE_2012_13: [(i64, Option<i64>, &str); 4] = [
+    (18200, Some(37000), "0.19"),
+    (37000, Some(80000), "0.325"),
+    (80000, Some(180000), "0.37"),
+    (180000, None, "0.45"),
+];
+const SCALE_2014_15: [(i64, Option<i64>, &str); 5] = [
+    (18200, Some(37000), "0.19"),
+    (37000, Some(80000), "0.325"),
+    (80000, Some(180000), "0.37"),
+    (180000, None, "0.45"),
+    (180000, None, "0.02"),
+];
+const SCALE_2018_19: [(i64, Option<i64>, &str); 4] = [
+    (18200, Some(37000), "0.19"),
+    (37000, Some(90000), "0.325"),
+    (90000, Some(180000), "0.37"),
+    (180000, None, "0.45"),
+];
+const SCALE_2020_21: [(i64, Option<i64>, &str); 4] = [
+    (18200, Some(45000), "0.19"),
+    (45000, Some(120000), "0.325"),
+    (120000, Some(180000), "0.37"),
+    (180000, None, "0.45"),
+];
+
 pub const CARRY_FORWARD_BALANCE_LIMIT: &str = "500000";
 
 /// Statutory or benchmark interest rate by FBT year ended 31 March, for the
@@ -915,6 +982,11 @@ pub fn supported_periods(kind: &str) -> Vec<&'static str> {
         // The years checked against the regulations; the thresholds follow each
         // year's Schedule 7 rates, but a new year needs its own review.
         "seniors_pensioners_tax_offset" => vec!["2024-25", "2025-26", "2026-27"],
+        // The years of receipt with rates for an earlier, recent accrual year.
+        "lump_sum_arrears_tax_offset" => [&PRIOR_RESIDENT_TAX_SCALES[1..], RESIDENT_TAX_SCALES]
+            .into_iter()
+            .flat_map(keys)
+            .collect(),
         // The years the ATO's return instructions and employer's guide were
         // read for; housing's indexed method also takes the year's factors.
         "fbt_residual" | "fbt_lafha" | "fbt_board" | "fbt_tax_exempt_body_entertainment" => {
@@ -1060,6 +1132,10 @@ pub fn source_review(kind: &str) -> (&'static str, &'static str) {
         "seniors_pensioners_tax_offset" => (
             "2026-11-14",
             "ITAA 1936 ss 6(1) (rebate income) and 160AAAA, compilation 193 (1 October 2026); Income Tax Assessment (1936 Act) Regulations 2025 ss 4 and 9 to 12 and 23 (F2025L01060), and the Income Tax Assessment (1936 Act) Regulation 2015 ss 4 and 9 to 12, compilation 8; ATO Seniors and pensioners tax offset: income limits, rates and thresholds for 2025-26, tax offset reduction and rounding, examples and transferring unused SAPTO with example 9; Do you need to lodge a tax return? 2025, reason 2",
+        ),
+        "lump_sum_arrears_tax_offset" => (
+            "2026-11-16",
+            "ITAA 1936 Part III Division 17 Subdivision AB, ss 159ZR to 159ZRD, compilation 193 (1 October 2026), with the endnotes' amendment history (ss 159ZRA to 159ZRD as added by Act No. 153, 1988; s 159ZR last amended by Act No. 112, 2015); ATO Lump sum payment in arrears: qualifying payments, multiple payments in one income year and the Yan example, the 10% threshold test, the LSPIA tax offset and the Sudeep, Anthony and Heather examples, the Medicare levy exemption and the MLS tax offset; ATO Tax rates – Australian resident, 2012-13 to 2026-27; Income Tax (Transitional Provisions) Act 1997 s 4-11, compilation 104 (1 October 2026), and the Income Tax Rates Amendment (Temporary Budget Repair Levy) Act 2014, as made",
         ),
         "fbt_residual" => (
             "2026-11-15",
@@ -1285,6 +1361,12 @@ pub fn library_evidence(kind: &str) -> [(&'static str, &'static str); 4] {
             "rates and thresholds for 2025-26, the examples (Clare and Roy, Deb and Ivan, Ying and Li Jun, Marko, Simon, José, Keith and Jean, Vanh and Mai) and example 9",
             "2026-10-02",
             "2026-11-14",
+        ),
+        "lump_sum_arrears_tax_offset" => (
+            "ATO Lump sum payment in arrears",
+            "the 10% threshold test and the Sudeep, Anthony, Heather and Yan examples",
+            "2026-06-08",
+            "2026-11-16",
         ),
         "fbt_housing" => (
             "tax-examples-fringe-benefits-tax-fbt",
@@ -2122,6 +2204,20 @@ pub fn input_units(kind: &str) -> Vec<(&'static str, &'static str)> {
                 "single (not a spouse at any time in the year), illness_separated (a member of an illness-separated couple at any time in the year) or couple (a spouse for the whole year, never illness-separated)",
             ),
         ],
+        "lump_sum_arrears_tax_offset" => vec![
+            (
+                "taxable_income",
+                "AUD, whole dollars: the taxable income of the year of receipt, including the total arrears amount (ITAA 1936 s 159ZRB)",
+            ),
+            (
+                "net_capital_gain",
+                "AUD, whole dollars: the net capital gain included in that taxable income (ITAA 1997 s 102-5), which normal taxable income leaves out (ITAA 1936 s 159ZR(1)); 0 for none",
+            ),
+            (
+                "accrual_years",
+                "list of objects, one for each earlier income year in which part of the eligible lump sums accrued, each year once: year (such as \"2023-24\") and arrears (AUD, whole dollars, more than nil: the annual arrears amount, every payer's amount for that year added together); for a recent accrual year (the 2 latest when there are 3 or more, otherwise each one) also taxable_income (AUD, whole dollars, as assessed for that year) and, where they apply, rebate_year_arrears (the total arrears amount of that year, when it was itself a rebate year: ITAA 1936 s 159ZRC(b)), earlier_rebate_arrears (what accrued in that year of the total arrears amount of an earlier rebate year: s 159ZRC(c)) and, when there are distant accrual years, net_capital_gain (that year's, left out of its normal taxable income for s 159ZRD); a distant accrual year takes year and arrears only",
+            ),
+        ],
         "fbt_residual" => vec![
             (
                 "method",
@@ -2431,6 +2527,19 @@ pub fn examples(kind: &str) -> Vec<(&'static str, Example)> {
             ("year", Text("2025-26")),
             ("rebate_income", Text("39000")),
             ("status", Text("single")),
+        ],
+        // The ATO's Yan example's combined breakdown, received in 2025-26, with
+        // made-up taxable incomes.
+        "lump_sum_arrears_tax_offset" => vec![
+            ("year", Text("2025-26")),
+            ("taxable_income", Text("100000")),
+            ("net_capital_gain", Text("0")),
+            (
+                "accrual_years",
+                Json(
+                    r#"[{"year": "2023-24", "arrears": "3000", "taxable_income": "30000"}, {"year": "2022-23", "arrears": "2500", "taxable_income": "17000"}, {"year": "2021-22", "arrears": "1400"}, {"year": "2020-21", "arrears": "1700"}, {"year": "2019-20", "arrears": "1400"}, {"year": "2018-19", "arrears": "1000"}]"#,
+                ),
+            ),
         ],
         // FBT return 2026 instructions, item 23M example 16.
         "fbt_residual" => vec![

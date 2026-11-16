@@ -5969,7 +5969,10 @@ pub fn seniors_pensioners_tax_offset(
     Ok(out)
 }
 
-const KINDS: [&str; 41] = [
+mod lump_sum_arrears;
+pub use lump_sum_arrears::lump_sum_arrears_tax_offset;
+
+const KINDS: [&str; 42] = [
     "gst",
     "resident_tax",
     "foreign_resident_tax",
@@ -6006,6 +6009,7 @@ const KINDS: [&str; 41] = [
     "working_holiday_maker_withholding",
     "seniors_pensioners_withholding",
     "seniors_pensioners_tax_offset",
+    "lump_sum_arrears_tax_offset",
     "fbt_residual",
     "fbt_housing",
     "fbt_lafha",

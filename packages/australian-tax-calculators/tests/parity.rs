@@ -18,9 +18,10 @@ use std::process::{Command, Stdio};
 /// `tests/fbt_meal_entertainment.rs`, `tests/fbt_car_parking.rs`,
 /// `tests/fbt_debt_waiver.rs`, `tests/fbt_expense_payment.rs`,
 /// `tests/fbt_property.rs`, `tests/fbt_residual.rs`, `tests/fbt_housing.rs`,
-/// `tests/fbt_lafha.rs`, `tests/fbt_board.rs` and
-/// `tests/fbt_tax_exempt_body_entertainment.rs` cover them.
-const NEW_KINDS: [(&str, &str); 27] = [
+/// `tests/fbt_lafha.rs`, `tests/fbt_board.rs`,
+/// `tests/fbt_tax_exempt_body_entertainment.rs` and `tests/lump_sum_arrears_offset.rs`
+/// cover them.
+const NEW_KINDS: [(&str, &str); 28] = [
     ("fbt-car-statutory", "fbt_car_statutory"),
     ("fbt-car-operating-cost", "fbt_car_operating_cost"),
     ("fbt-loan", "fbt_loan"),
@@ -60,6 +61,7 @@ const NEW_KINDS: [(&str, &str); 27] = [
         "fbt-tax-exempt-body-entertainment",
         "fbt_tax_exempt_body_entertainment",
     ),
+    ("lump-sum-arrears-tax-offset", "lump_sum_arrears_tax_offset"),
 ];
 
 /// The JSON boundary's answer in the corpus encoding: `{"ok": value}` or `{"error": message}`.
