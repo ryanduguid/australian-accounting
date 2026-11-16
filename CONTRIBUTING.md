@@ -261,9 +261,9 @@ or a run of 6 to 10 digits. In a test or fixture, keep such a value off the
 line that holds the label, for example in a parametrised list, or use a value
 the rule does not match, such as `12-3456` or `12345`. The pull request scan
 reads every commit, so a match in an earlier commit fails the check even after
-a later commit removes it: rebuild the branch without that commit. Only the
-fixture screen's own tests are allowlisted, and a new allowlist entry must
-reach `main` in its own pull request first.
+a later commit removes it: rebuild the branch without that commit. For this
+rule, only the fixture screen's own tests are allowlisted, and a new allowlist
+entry must reach `main` in its own pull request first.
 
 `joined-fixtures.yml` checks the close-to-forecast, quarter and WIP-to-cash examples
 on pull requests, pushes to `main` and manual runs, on Linux and Windows.
