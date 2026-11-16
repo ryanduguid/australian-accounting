@@ -7,7 +7,10 @@
 # - a documented test vector;
 # - a digit run that is not an identifier, such as an amount or a user name;
 # - a public organisation's ABN or ACN, or an unissued number, with the date
-#   it was checked on ABN Lookup.
+#   it was checked on ABN Lookup;
+# - a file built from a public register that holds no individual's record,
+#   with * for the digits: the entry allows every ABN or ACN in that file.
+#   A TFN or Medicare number is never allowed this way.
 # Never list a value taken from client or personal data.
 apps/aus-accounting-mcp/aus_accounting_mcp/fixtures/synthetic_sbr.py tfn 222333444 last 9 digits of the placeholder ABN 11 222 333 444, which fails the ABN check
 apps/aus-accounting-mcp/aus_accounting_mcp/identifiers.py abn 00000090000 placeholder in a comment on why the ABN check rejects a leading zero
@@ -37,7 +40,9 @@ packages/ato-benchmark-compare/tests/data/python-cases.json tfn 639942383 genera
 packages/ato-benchmark-compare/tests/data/python-cases.json tfn 673759175 generated value input in the frozen Python differential corpus, not an identifier
 packages/ato-benchmark-compare/tests/data/python-cases.json tfn 826030703 generated value input in the frozen Python differential corpus, not an identifier
 packages/ato-benchmark-compare/tests/data/python-cases.json tfn 855687005 generated value input in the frozen Python differential corpus, not an identifier
-packages/australian-tax-calculators/tests/data/python-api.json acn 143895032 generated total_super_balance input in the frozen Python differential corpus, not an identifier
+packages/australian-tax-calculators/data/dgr-register.jsonl abn * the ABN Bulk Extract's deductible gift recipients, a public register; the build leaves out individuals' records
+packages/australian-tax-calculators/data/dgr-register.jsonl acn * ACNs in those organisations' names on the same register
+packages/australian-tax-calculators/tests/data/python-api.json acn 143895032generated total_super_balance input in the frozen Python differential corpus, not an identifier
 packages/australian-tax-calculators/tests/data/python-api.json acn 180300887 generated total_super_balance input in the frozen Python differential corpus, not an identifier
 packages/australian-tax-calculators/tests/data/python-api.json acn 604579286 generated amount input in the frozen Python differential corpus, not an identifier
 packages/australian-tax-calculators/tests/data/python-api.json acn 772296858 generated amount input in the frozen Python differential corpus, not an identifier
@@ -87,6 +92,8 @@ packages/the-exchequer-tally/tests/data/python-cli.json medicare 6427577554 gene
 packages/the-exchequer-tally/tests/data/python-cli.json medicare 6594838493 generated turnover argument in the frozen Python differential corpus, not an identifier
 packages/the-exchequer-tally/tests/data/python-cli.json medicare 6850365658 generated turnover argument in the frozen Python differential corpus, not an identifier
 packages/the-exchequer-tally/tests/data/python-cli.json tfn 604134057 generated turnover argument in the frozen Python differential corpus, not an identifier
+tools/fixture-screen/tests/fixture_screen.rs abn 51824753556 ABN Lookup's worked example in Format of the ABN (https://abr.business.gov.au/Help/AbnFormat), read on 14 November 2026
+tools/fixture-screen/tests/fixture_screen.rs acn 000250000 valid ACN example from ASIC's EDGE Document Messages Specification 5.10, Appendix D
 tools/fixture-screen/tests/fixture_screen.rs tfn 123456782 the screen's own planted test value
 tools/glama-badge-server/allowed.txt acn 418716640 digits in a GitHub user name in a listed server path, not an identifier
 tools/glama-badge-server/allowed.txt tfn 188838884 digits in a GitHub user name in a listed server path, not an identifier
