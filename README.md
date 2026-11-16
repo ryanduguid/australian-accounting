@@ -293,11 +293,16 @@ you configure. As read on 13 November 2026, these projects cover nearby ground:
   where this repository requires the date.
   Both compose a year's tax and levies, work taxable income out from salary and deductions with
   the $1,000 standard deduction for work-related expenses from 2026-27, and compare the result
-  with tax withheld, as rechecked in the library's source on 16 November 2026. The library's
+  with tax withheld, as rechecked in the library's source on 16 November 2026. Both work that
+  tax withheld out from one employer's regular pays, with Schedule 5 Method A for a bonus, as
+  rechecked at the library's commit e94cef24 on 16 November 2026: the library from an annual salary
+  spread over 52 weekly, 26 fortnightly or 12 monthly pays, and this repository from one pay's
+  earnings and the number of pays in the year, so it also takes 53 weekly or 27 fortnightly pays,
+  quarterly pays, and the tax offsets and Medicare levy adjustment a payee declares. The library
+  also applies Method A to a senior's or pensioner's bonus, which this repository refuses. The library's
   `annual_tax_estimate` approximates repayment income and income for surcharge purposes by taxable
-  income, estimates the tax withheld from one employer's salary and pay frequency, and covers
-  2027-28 with the working Australians tax offset, which this repository does not. This
-  repository's `personal-tax-estimate` takes those incomes and the tax withheld as established,
+  income, and covers 2027-28 with the working Australians tax offset, which this repository does
+  not. This repository's `personal-tax-estimate` takes those incomes as established,
   names the worksheet behind each line
   and keeps its sources and refusals, shows Division 293 tax, and refuses part-year residents and
   working holiday makers; both compose a full-year foreign resident's tax without the Medicare

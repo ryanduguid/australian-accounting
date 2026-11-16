@@ -121,6 +121,18 @@ intentionally changed.
   message. The result for an established `taxable_income` without
   `tax_withheld` is unchanged apart from its sources, scope and
   `source_checked`.
+- `personal-tax-estimate` can work out `tax_withheld` from one employer's
+  regular pays: one pay's `payg-withholding`, `study-loan-withholding` or
+  `seniors-pensioners-withholding` inputs and `pays_in_year` (at most 53
+  weekly, 27 fortnightly, 12 monthly or 4 quarterly pays), with
+  `schedule-5-method-a` for one bonus paid with one of them. The tax withheld
+  is the pay's withholding times the pays, plus Method A's on the bonus, and
+  the amounts add `withholding_per_pay` and `additional_payment_withholding`.
+  A study loan pay needs `study-loan-repayment`; Schedule 9 or a study loan
+  for a foreign resident is refused as `estimate.residency_unsupported`, and a
+  scale that does not match the residency as the new code
+  `estimate.scale_mismatch`. Its sources add TAA 1953 Sch 1 s 12-35. Results
+  without the new inputs are unchanged apart from the scope.
 - `derive` also covers `working-holiday-maker-withholding`,
   `study-loan-withholding`, `seniors-pensioners-withholding`, `quarterly-sg`
   and `borrowing-expenses`. Their steps cite the headings of Schedules 1, 8, 9

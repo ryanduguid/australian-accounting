@@ -1693,6 +1693,29 @@ $17,496, so $1,496 is payable after $16,000 withheld; $60,000 salary and $300
 of work expenses in 2025-26 give $59,700, $8,698 tax less a $104.50 offset plus
 a $1,194 levy, $9,787.50, and a $212.50 refund after $10,000 withheld.
 
+Tax withheld from regular pays, read on 16 November 2026: TAA 1953 Sch 1
+s 12-35 on the ATO legal database (an entity must withhold from salary, wages,
+commission, bonuses or allowances it pays an employee) and s 18-15(1) (the
+credit); the ATO's 'Tax tables' (last updated 17 June 2026), whose schedules
+from 1 July 2026 are the latest published; Schedule 1 (published 17 June
+2026), whose 'Using a formula' provides for 53 weekly and 27 fortnightly pays in a
+financial year, which bound `pays_in_year`; Schedule 5's 'Working out the withholding
+amount' (Method A spreads the additional payment over 52, 26 or 12 pay
+periods, or the periods a bonus for less than 12 months relates to, and its
+withholding is limited to 47% of the payment); and Schedule 9, which is for
+payees who declare that they are Australian residents for tax purposes. The
+estimate adds no rate: the tax withheld is the pay's own command's
+`withholding` times the pays, plus Method A's `withholding_on_additional_payment`.
+The tests work their figures by hand from the 2026-27 Schedule 1 scale 2
+coefficients (a = 0.3200 and b = 181.7319 below $2,596 a week): $3,269.23 a
+fortnight is $1,634.99 a week, $341 withheld a week and $682 a fortnight, and
+26 pays withhold $17,732 against the $17,496 above, a $236 refund. A $5,000
+bonus by Method A adds $192 a pay, so $3,461 a fortnight, $1,730.99 a week,
+$372 a week and $744 a fortnight; ($744 - $682) x 26 is $1,612, under the
+$2,350 limit, and the year withholds $19,344 against $19,096 on $90,000 of
+salary, a $248 refund. On scale 3 a foreign resident's $1,634.99 a week
+withholds $490, $25,480 over 26 fortnights, against 30% of $85,000, $25,500.
+
 The foreign income tax offset rules guides for 2025 (2024-25, last updated 29
 May 2025) and 2026 (2025-26, last updated 30 May 2026) give, at step 1 of
 examples 16 and 17, the tax on a taxable income including the Medicare levy
