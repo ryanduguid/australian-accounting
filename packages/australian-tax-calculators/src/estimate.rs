@@ -711,12 +711,32 @@ fn credit_lines(withheld: Decimal, total: &Decimal) -> Result<[Decimal; 3], Refu
     Ok([withheld, refund, payable])
 }
 
+/// A field the estimate does not take beside another input.
+fn beside(key: &str, other: &str, why: &str) -> Refusal {
+    Refusal::new(
+        "input.field_unknown",
+        format!("{key} is not an input of {COMMAND} beside {other}: {why}"),
+    )
+}
+
 /// The regular pay's part, when the tax withheld is to be worked out from it,
 /// after checking the inputs that go with it: `pays_in_year`, at most one pay
 /// part and Method A for a bonus, a scale for the residency given and, when
 /// the withholding includes a study and training support loan component, the
 /// repayment it goes towards.
 fn check_pay(v: &Value, foreign: bool) -> Result<Option<&'static str>, Refusal> {
+    let Some(pay) = given_pay(v)? else {
+        return Ok(None);
+    };
+    check_bonus(v, pay)?;
+    check_scale(&v[pay], pay, foreign)?;
+    check_study_loan(v, pay)?;
+    Ok(Some(pay))
+}
+
+/// The one regular pay's part given, with `pays_in_year` and without
+/// `tax_withheld`.
+fn given_pay(v: &Value) -> Result<Option<&'static str>, Refusal> {
     let mut given = PAY_PARTS.into_iter().filter(|c| v.get(*c).is_some());
     let Some(pay) = given.next() else {
         return match ["pays_in_year", BONUS]
@@ -732,21 +752,15 @@ fn check_pay(v: &Value, foreign: bool) -> Result<Option<&'static str>, Refusal> 
             None => Ok(None),
         };
     };
-    let beside = |key: &str, other: &str, why: &str| {
-        Err(Refusal::new(
-            "input.field_unknown",
-            format!("{key} is not an input of {COMMAND} beside {other}: {why}"),
-        ))
-    };
     if let Some(second) = given.next() {
-        return beside(second, pay, "give the one regular pay");
+        return Err(beside(second, pay, "give the one regular pay"));
     }
     if v.get("tax_withheld").is_some() {
-        return beside(
+        return Err(beside(
             pay,
             "tax_withheld",
             "give tax_withheld, or a regular pay to work it out",
-        );
+        ));
     }
     if v.get("pays_in_year").is_none() {
         return Err(Refusal::new(
@@ -754,57 +768,76 @@ fn check_pay(v: &Value, foreign: bool) -> Result<Option<&'static str>, Refusal> 
             format!("pays_in_year is required with {pay}"),
         ));
     }
-    let part = &v[pay];
-    if pay == "seniors-pensioners-withholding" && v.get(BONUS).is_some() {
-        return beside(
+    Ok(Some(pay))
+}
+
+/// Method A here takes a Schedule 1 or 8 pay with none of the payee's
+/// declared adjustments, so its amounts at steps 2 and 5 are the regular pay's.
+fn check_bonus(v: &Value, pay: &str) -> Result<(), Refusal> {
+    if v.get(BONUS).is_none() {
+        return Ok(());
+    }
+    if pay == "seniors-pensioners-withholding" {
+        return Err(beside(
             BONUS,
             pay,
             "Method A here works from Schedule 1 amounts, not Schedule 9's",
-        );
+        ));
     }
-    // Method A here takes none of the payee's declared adjustments, so its
-    // amounts at steps 2 and 5 would not be the regular pay's.
     let declared = DECLARED
         .into_iter()
-        .find(|k| part.get(*k).is_some_and(|value| *value != json!(false)));
-    if let (Some(_), Some(key)) = (v.get(BONUS), declared) {
-        return beside(
+        .find(|k| v[pay].get(*k).is_some_and(|value| *value != json!(false)));
+    match declared {
+        Some(key) => Err(beside(
             BONUS,
             &format!("{pay} with {key}"),
             "Method A here works the bonus out without the tax offsets, Medicare levy adjustment and extra pay amount a payee declares",
-        );
+        )),
+        None => Ok(()),
     }
-    let scale = part["scale"].as_i64().filter(|s| (1..=6).contains(s));
-    if let Some(scale) = scale {
-        let foreign_scale = scale == 3 || (scale == 4 && part["foreign_resident"] == json!(true));
-        if foreign_scale != foreign {
-            let (payee, residency) = if foreign_scale {
-                ("a foreign resident", "full_year_resident")
-            } else {
-                ("an Australian resident", "foreign_resident")
-            };
-            return Err(Refusal::new(
-                "estimate.scale_mismatch",
-                format!("{pay} scale {scale} is for {payee} payee, and residency is {residency}"),
-            ));
-        }
+}
+
+/// A scale for the residency given: 3, or 4 with `foreign_resident`, for a
+/// foreign resident, and the others for a resident.
+fn check_scale(part: &Value, pay: &str, foreign: bool) -> Result<(), Refusal> {
+    let Some(scale) = part["scale"].as_i64().filter(|s| (1..=6).contains(s)) else {
+        return Ok(());
+    };
+    let foreign_scale = scale == 3 || (scale == 4 && part["foreign_resident"] == json!(true));
+    if foreign_scale == foreign {
+        return Ok(());
     }
-    let loan = pay == "study-loan-withholding" || part["study_loan"] == json!(true);
-    // One pay stands for every pay only when the year's Schedule 8
-    // coefficients applied from 1 July.
+    let (payee, residency) = if foreign_scale {
+        ("a foreign resident", "full_year_resident")
+    } else {
+        ("an Australian resident", "foreign_resident")
+    };
+    Err(Refusal::new(
+        "estimate.scale_mismatch",
+        format!("{pay} scale {scale} is for {payee} payee, and residency is {residency}"),
+    ))
+}
+
+/// A pay with a study loan: a year whose Schedule 8 coefficients applied from
+/// 1 July, so one pay stands for every pay, and the repayment its component
+/// goes towards.
+fn check_study_loan(v: &Value, pay: &str) -> Result<(), Refusal> {
+    if pay != "study-loan-withholding" && v[pay]["study_loan"] != json!(true) {
+        return Ok(());
+    }
     let changed = STUDY_LOAN_WITHHOLDING_FROM
         .iter()
         .find(|(year, _)| v["year"] == *year)
         .filter(|(_, from)| !from.ends_with("-07-01"));
-    if loan && let Some((year, from)) = changed {
+    if let Some((year, from)) = changed {
         return Err(Refusal::new(
             "period.unsupported",
             format!(
-                "{pay} with a study loan does not give the tax withheld for {year}: its Schedule 8 coefficients changed on {from}, so one pay does not stand for the year's pays; give tax_withheld"
+                "{pay} with a study loan does not give the tax withheld for {year}: its Schedule 8 coefficients changed on {from}, and this estimate takes no year whose coefficients changed after 1 July; give tax_withheld"
             ),
         ));
     }
-    if loan && v.get("study-loan-repayment").is_none() {
+    if v.get("study-loan-repayment").is_none() {
         return Err(Refusal::new(
             "input.missing_field",
             format!(
@@ -812,23 +845,19 @@ fn check_pay(v: &Value, foreign: bool) -> Result<Option<&'static str>, Refusal> 
             ),
         ));
     }
-    Ok(Some(pay))
+    Ok(())
 }
 
-/// The year's tax withheld worked out from the regular pay's part: its
-/// withholding for one pay, times `pays_in_year`, plus Method A's withholding
-/// on a bonus. Returns the lines before `refund`, and adds each part's result
-/// to `results`.
-fn worked_withholding(
-    v: &Value,
-    pay: &'static str,
-    results: &mut Map<String, Value>,
-) -> Result<Vec<(&'static str, String, Decimal)>, Refusal> {
-    let run = |command: &str, input: &Value| {
-        evaluate_coded(command, input)
-            .map_err(|r| Refusal::new(r.code, format!("{command}: {}", r.message)))
-    };
-    let regular = run(pay, &part_input(v, pay, false))?;
+/// A part's result, its refusal named by the part's command.
+fn run_part(command: &str, input: &Value) -> Result<Value, Refusal> {
+    evaluate_coded(command, input)
+        .map_err(|r| Refusal::new(r.code, format!("{command}: {}", r.message)))
+}
+
+/// `pays_in_year`, at most the most pays of the regular pay's period, and all
+/// of them with Schedule 1's additional amount for a year of 53 weekly or 27
+/// fortnightly pays.
+fn pays_in_year(v: &Value, pay: &str, regular: &Value) -> Result<i64, Refusal> {
     let period = regular["period"].as_str().and_then(|p| p.split(' ').nth(1));
     let most = MOST_PAYS
         .iter()
@@ -847,8 +876,6 @@ fn worked_withholding(
             ),
         ));
     };
-    // Schedule 1's additional amount is for a year of 53 weekly or 27
-    // fortnightly pays.
     if v[pay]["extra_pay_withholding"] == json!(true) && pays != most {
         return Err(Refusal::new(
             "input.pay_periods_invalid",
@@ -858,12 +885,35 @@ fn worked_withholding(
             ),
         ));
     }
-    let per_pay = Decimal::parse(
-        regular["amounts"]["withholding"]
-            .as_str()
-            .expect("an amount"),
-    )
-    .map_err(signal)?;
+    Ok(pays)
+}
+
+/// Method A's input: the bonus with the regular pay's earnings, period,
+/// scale, study loan and pay date.
+fn bonus_input(v: &Value, pay: &str) -> Value {
+    let mut input = part_input(v, BONUS, false);
+    for key in BONUS_FROM_PAY {
+        if let Some(value) = v[pay].get(key) {
+            input[key] = value.clone();
+        }
+    }
+    input["study_loan"] = json!(pay == "study-loan-withholding");
+    input
+}
+
+/// The year's tax withheld worked out from the regular pay's part: its
+/// withholding for one pay, times `pays_in_year`, plus Method A's withholding
+/// on a bonus. Returns the lines before `refund`, and adds each part's result
+/// to `results`.
+fn worked_withholding(
+    v: &Value,
+    pay: &'static str,
+    results: &mut Map<String, Value>,
+) -> Result<Vec<(&'static str, String, Decimal)>, Refusal> {
+    let regular = run_part(pay, &part_input(v, pay, false))?;
+    let pays = pays_in_year(v, pay, &regular)?;
+    results.insert(pay.into(), regular);
+    let per_pay = amount(results, pay, "withholding")?;
     let calc = |r: Result<Decimal, Signal>| r.map_err(signal);
     let mut withheld = calc(per_pay.mul(&Decimal::from_int(pays)))?;
     let mut lines = vec![(
@@ -872,20 +922,9 @@ fn worked_withholding(
         per_pay,
     )];
     let mut working = "pays_in_year x withholding_per_pay".to_string();
-    results.insert(pay.into(), regular);
     if v.get(BONUS).is_some() {
-        let mut input = part_input(v, BONUS, false);
-        for key in BONUS_FROM_PAY {
-            if let Some(value) = v[pay].get(key) {
-                input[key] = value.clone();
-            }
-        }
-        input["study_loan"] = json!(pay == "study-loan-withholding");
-        let bonus = run(BONUS, &input)?;
-        let text = bonus["amounts"]["withholding_on_additional_payment"]
-            .as_str()
-            .expect("an amount");
-        let extra = Decimal::parse(text).map_err(signal)?;
+        results.insert(BONUS.into(), run_part(BONUS, &bonus_input(v, pay))?);
+        let extra = amount(results, BONUS, "withholding_on_additional_payment")?;
         withheld = calc(withheld.add(&extra))?;
         lines.push((
             "additional_payment_withholding",
@@ -895,7 +934,6 @@ fn worked_withholding(
             extra,
         ));
         working.push_str(" + additional_payment_withholding");
-        results.insert(BONUS.into(), bonus);
     }
     lines.push((
         "tax_withheld",

@@ -60,7 +60,7 @@ pub const SCOPES: &[(&str, &str)] = &[
     ),
     (
         "fbt_expense_payment",
-        "An ordinary taxable employer's expense payment fringe benefit for the FBT year ended 31 March 2026 or 2027: the employer or an associate paid a third party to discharge the recipient's obligation (s 20(a)) or reimbursed the recipient (s 20(b)). The operator establishes the recipient's expenditure, the amount paid or reimbursed, which cannot exceed it, and the recipient's contribution, which arises only for a payment. An external benefit's taxable value is the payment less the contribution, or the reimbursement (s 23), never below nil, with any excess contribution shown. For an employee, not an associate, the otherwise deductible rule (s 24) then reduces it by the notional deduction: the gross deduction on the recipient's expenditure, rounded to cents, less the deduction for the expenditure the recipient bore (the recipient's portion), never below nil; the operator establishes that the documents and declarations s 24 requires were obtained. An in-house property expense payment (s 22A(1)), for goods identical or similar to those the employer or an associate provides principally to outsiders, where the operator establishes that the recipient obtained documentary evidence of the expenditure and gave it, or a copy, to the employer before the declaration date (s 136(1), paragraph (e) of the definition), takes the property's value under the in-house rule the method names (s 42(1), as fbt_property describes) and reduces it by the recipient's portion, the expenditure less the payment net of the contribution, never below nil; then, unless the property was salary packaged, by the part of the employee's $1,000 in-house reduction for the year (s 62) that the operator establishes is left. An in-house residual expense payment (s 22A(2)), for a service or other residual benefit identical or similar to those the employer or an associate provides principally to outsiders, with the same documentary evidence, is valued the same way under the in-house residual rule the method names: the notional value when salary packaged, otherwise 75% of the lowest price charged to the public for an identical benefit or 75% of the notional value (ss 48 and 49, for a period benefit read with s 22A(3) for the recipient's overall benefit). Excludes airline transport, the otherwise deductible rule for in-house expense payments (s 24(1)(b)(i)) and for car expenses, benefits provided jointly to an employee and an associate (s 138(3)), exempt benefits (such as ss 20A, 21, 22 and 58P), other Division 14 reductions, gross-up and FBT payable.",
+        "An ordinary taxable employer's expense payment fringe benefit for the FBT year ended 31 March 2026 or 2027: the employer or an associate paid a third party to discharge the recipient's obligation (s 20(a)) or reimbursed the recipient (s 20(b)). The operator establishes the recipient's expenditure, the amount paid or reimbursed, which cannot exceed it, and the recipient's contribution, which arises only for a payment. An external benefit's taxable value is the payment less the contribution, or the reimbursement (s 23), never below nil, with any excess contribution shown. For an employee, not an associate, the otherwise deductible rule (s 24) then reduces it by the notional deduction: the gross deduction on the recipient's expenditure, rounded to cents, less the deduction for the expenditure the recipient bore (the recipient's portion), never below nil; the operator establishes that the documents and declarations s 24 requires were obtained. An in-house property expense payment (s 22A(1)), for goods from the employer or an associate that, at or about the time it provides them, carries on a business that includes providing identical or similar goods principally to outsiders, or from a third party that acquired them from the employer or an associate when, at or about that time, both carry on such a business (s 136(1), paragraphs (c) and (d) of the definition), where the operator establishes that the recipient obtained documentary evidence of the expenditure and gave it, or a copy, to the employer before the declaration date (s 136(1), paragraph (e) of the definition), takes the property's value under the in-house rule the method names (s 42(1), as fbt_property describes) and reduces it by the recipient's portion, the expenditure less the payment net of the contribution, never below nil; then, unless the property was salary packaged, by the part of the employee's $1,000 in-house reduction for the year (s 62) that the operator establishes is left. An in-house residual expense payment (s 22A(2)), for a service or other residual benefit from the employer or an associate that, at or about the time that would be its comparison time were it a residual fringe benefit, carries on a business that includes providing identical or similar benefits principally to outsiders, or from a third party that purchased it from the employer or an associate when, at or about that time, both carry on such a business (s 136(1), paragraphs (b) and (c) of the definition), with the same documentary evidence (paragraph (d)), is valued the same way under the in-house residual rule the method names: the notional value when salary packaged, otherwise 75% of the lowest price charged to the public for an identical benefit or 75% of the notional value (ss 48 and 49, for a period benefit read with s 22A(3) for the recipient's overall benefit). Excludes airline transport, the otherwise deductible rule for in-house expense payments (s 24(1)(b)(i)) and for car expenses, benefits provided jointly to an employee and an associate (s 138(3)), exempt benefits (such as ss 20A, 21, 22 and 58P), other Division 14 reductions, gross-up and FBT payable.",
     ),
     (
         "fbt_property",
@@ -896,6 +896,10 @@ pub const REFUSAL_CODES: &[(&str, &str)] = &[
         "A hire purchase agreement starts outside the income year given.",
     ),
     (
+        "input.abn_invalid",
+        "An ABN is not a string of 11 ASCII digits, optionally spaced, that pass ABN Lookup's check digit test.",
+    ),
+    (
         "input.age_invalid",
         "An age is not a whole number of years from 0 to 150.",
     ),
@@ -944,6 +948,10 @@ pub const REFUSAL_CODES: &[(&str, &str)] = &[
         "The method is neither prime_cost nor diminishing_value.",
     ),
     (
+        "input.donations_invalid",
+        "Donations are not a list of 1 to 10,000 objects.",
+    ),
+    (
         "input.effective_life_invalid",
         "An effective life is outside 0.01 to 1000 years.",
     ),
@@ -953,7 +961,7 @@ pub const REFUSAL_CODES: &[(&str, &str)] = &[
     ),
     (
         "input.field_unknown",
-        "A field the worksheet or command does not take, or does not take beside the other inputs given, was given (fbt-loan, fbt-meal-entertainment, fbt-car-parking, fbt-debt-waiver, fbt-expense-payment, fbt-property, fbt-residual, fbt-housing, fbt-lafha, fbt-board, fbt-tax-exempt-body-entertainment, division-296, depreciation, foreign-resident-tax, medicare-levy, medicare-levy-surcharge, payg-withholding, payg-gross-up, termination-payment, the Schedule 5 methods, working-holiday-maker-withholding, study-loan-withholding, seniors-pensioners-withholding, seniors-pensioners-tax-offset, hire-purchase-schedule, derive and personal-tax-estimate only).",
+        "A field the worksheet or command does not take, or does not take beside the other inputs given, was given (fbt-loan, fbt-meal-entertainment, fbt-car-parking, fbt-debt-waiver, fbt-expense-payment, fbt-property, fbt-residual, fbt-housing, fbt-lafha, fbt-board, fbt-tax-exempt-body-entertainment, division-296, depreciation, foreign-resident-tax, medicare-levy, medicare-levy-surcharge, payg-withholding, payg-gross-up, termination-payment, the Schedule 5 methods, working-holiday-maker-withholding, study-loan-withholding, seniors-pensioners-withholding, seniors-pensioners-tax-offset, hire-purchase-schedule, derive, personal-tax-estimate and dgr-check only).",
     ),
     ("input.flag_invalid", "A flag is not a JSON boolean."),
     ("input.fraction_invalid", "A fraction is outside 0 to 1."),
@@ -968,6 +976,10 @@ pub const REFUSAL_CODES: &[(&str, &str)] = &[
         "A Medicare levy exemption is not none, full or half.",
     ),
     ("input.missing_field", "A required argument is absent."),
+    (
+        "input.name_invalid",
+        "A name is not a string of 1 to 200 characters with an ASCII letter or digit.",
+    ),
     ("input.not_object", "The JSON input is not an object."),
     (
         "input.opening_value_above_cost",
