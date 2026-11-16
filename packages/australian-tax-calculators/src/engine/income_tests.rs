@@ -129,7 +129,7 @@ const STEPS: [(&str, &str, &str); 12] = [
 ];
 
 /// Pairs of components where the first is part of the second, and why.
-const PARTS_OF: [(&str, &str, &str); 3] = [
+const PARTS_OF: [(&str, &str, &str); 4] = [
     (
         "taxable_income",
         "assessable_income",
@@ -139,6 +139,11 @@ const PARTS_OF: [(&str, &str, &str); 3] = [
         "assessable_fhss_released_amount",
         "assessable_income",
         "the assessable FHSS released amount is included in assessable income (ITAA 1997 s 313-20)",
+    ),
+    (
+        "excess_concessional_contributions",
+        "assessable_income",
+        "excess concessional contributions are included in assessable income (ITAA 1997 s 291-15(a))",
     ),
     (
         "exempt_foreign_employment_income",

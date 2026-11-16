@@ -502,6 +502,8 @@ fn components_larger_than_their_whole_are_refused() {
         ("taxable_income", "50421"),
         ("assessable_fhss_released_amount", "50421"),
         ("exempt_foreign_employment_income", "2581"),
+        // ITAA 1997 s 291-15(a) includes them in assessable income.
+        ("excess_concessional_contributions", "50421"),
     ] {
         let mut facts = input("2025-26", christina());
         facts[key] = json!(value);

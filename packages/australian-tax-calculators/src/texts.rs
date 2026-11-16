@@ -857,7 +857,7 @@ pub const REFUSAL_CODES: &[(&str, &str)] = &[
     ),
     (
         "income_tests.components_inconsistent",
-        "income-tests was given a component larger than the amount that includes it: taxable income or the assessable FHSS released amount above assessable income, or exempt foreign employment income above target foreign income.",
+        "income-tests was given a component larger than the amount that includes it: taxable income, the assessable FHSS released amount or excess concessional contributions above assessable income, or exempt foreign employment income above target foreign income.",
     ),
     (
         "income_tests.residency_unsupported",
