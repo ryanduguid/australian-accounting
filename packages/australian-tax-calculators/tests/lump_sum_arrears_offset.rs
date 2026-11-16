@@ -440,7 +440,11 @@ fn refusals() {
         "scope.not_confirmed"
     );
     assert_eq!(with("year", json!("2012-13")).0, "period.unsupported");
-    assert_eq!(with("year", json!("2027-28")).0, "period.unsupported");
+    // RESIDENT_TAX_SCALES holds 2027-28, but the offset has not been checked
+    // against the law from that year.
+    let (code, message) = with("year", json!("2027-28"));
+    assert_eq!(code, "period.unsupported");
+    assert!(message.contains("Act No. 49 of 2026"), "{message}");
     assert_eq!(
         with("taxable_income", json!("1.50")).0,
         "input.amount_not_whole_dollars"

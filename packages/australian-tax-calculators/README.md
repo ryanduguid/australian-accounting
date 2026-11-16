@@ -263,7 +263,7 @@ of a section 57A employer's fringe benefits at 53%, as the ATO's worksheets do.
 | Medicare levy surcharge | 2024-25, 2025-26 and 2026-27, and 2027-28 with no day without hospital cover (nil); full-year resident in no exemption category, single without dependants or married for the whole year; established income for surcharge purposes and days without hospital cover |
 | Low income tax offset | 2024-25 to 2027-28; resident individual's established taxable income; the offset amount, not applied against tax |
 | Seniors and pensioners tax offset | 2024-25 to 2027-28; an established eligible individual's rebate income and whole-year status, and a spouse's rebate income; the offset amount with any transfer from a resident spouse, not applied against tax |
-| Lump sum payment in arrears tax offset | Years of receipt from 2013-14; a full-year resident individual's established eligible lump sums by accrual year, recent accrual years from 2012-13 at resident rates and earlier distant years at their average; the offset amount, not applied against tax, without the Medicare levy and surcharge relief |
+| Lump sum payment in arrears tax offset | Years of receipt 2013-14 to 2026-27; a full-year resident individual's established eligible lump sums by accrual year, recent accrual years from 2012-13 at resident rates and earlier distant years at their average; the offset amount, not applied against tax, without the Medicare levy and surcharge relief |
 | Division 293 | 2024-25 to 2027-28; established Division 293 income and low tax contributions; no defined benefit interests |
 | Income tests | 2024-25, 2025-26 and 2026-27; a full-year resident's established and classified components; the measures, not the thresholds and tests they feed |
 | Division 296 | 2026-27; one individual's established balance at 30 June 2027 and total superannuation earnings; no defined benefit or other s 296-70 interests; an estimate, as the Commissioner assesses |
@@ -1005,7 +1005,7 @@ thresholds and every cut-out; see
 
 `lump_sum_arrears_tax_offset` works out the tax offset for lump sum payments
 in arrears (ITAA 1936 ss 159ZR to 159ZRD) for a full-year resident individual
-whose year of receipt is 2013-14 or later. `taxable_income` is that year's
+whose year of receipt is 2013-14 to 2026-27. `taxable_income` is that year's
 taxable income, the arrears included, and `net_capital_gain` the net capital
 gain in it, `"0"` for none. `accrual_years` lists each earlier income year in
 which part of the arrears accrued, once, as `{"year": "2023-24", "arrears": "3000"}`

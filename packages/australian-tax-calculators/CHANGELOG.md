@@ -303,7 +303,7 @@ intentionally changed.
   `input.status_invalid` refusal.
 - `lump-sum-arrears-tax-offset` works out the tax offset for lump sum payments
   in arrears (ITAA 1936 ss 159ZR to 159ZRD) for a year of receipt from
-  2013-14: the 10% threshold test on normal taxable income (s 159ZRA(1)(b)),
+  2013-14 to 2026-27: the 10% threshold test on normal taxable income (s 159ZRA(1)(b)),
   the tax on the arrears (s 159ZRB), the notional tax in each recent accrual
   year (s 159ZRC) and in distant years at the average of the recent years'
   rates, each truncated to 3 decimal places and raised by 0.001 when the

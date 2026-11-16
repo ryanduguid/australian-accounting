@@ -766,6 +766,10 @@ pub const UNPUBLISHED_2027_28: &[(&str, &str)] = &[
     ("main_residence", CGT_2027_28),
     ("borrowing_expenses", RENTAL_2027_28),
     (
+        "lump_sum_arrears_tax_offset",
+        "This worksheet has not been checked against 2027-28, when Act No. 49 of 2026 brings in the working Australians tax offset and changes how capital gains are worked out.",
+    ),
+    (
         "depreciation",
         "2027-28 has 366 days, and this worksheet takes at most 365 days held.",
     ),

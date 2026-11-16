@@ -1008,10 +1008,12 @@ pub fn supported_periods(kind: &str) -> Vec<&'static str> {
         // The years checked against the regulations; the thresholds follow each
         // year's Schedule 7 rates, but a new year needs its own review.
         "seniors_pensioners_tax_offset" => vec!["2024-25", "2025-26", "2026-27", "2027-28"],
-        // The years of receipt with rates for an earlier, recent accrual year.
+        // The years of receipt with rates for an earlier, recent accrual year,
+        // to 2026-27: later years have not been checked against their law.
         "lump_sum_arrears_tax_offset" => [&PRIOR_RESIDENT_TAX_SCALES[1..], RESIDENT_TAX_SCALES]
             .into_iter()
             .flat_map(keys)
+            .filter(|year| *year <= "2026-27")
             .collect(),
         // The years the ATO's return instructions and employer's guide were
         // read for; housing's indexed method also takes the year's factors.
