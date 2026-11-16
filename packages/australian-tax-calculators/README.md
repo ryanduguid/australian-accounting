@@ -132,7 +132,7 @@ lists the commands.
 | `worksheet-catalogue` | none: send `{}` |
 | `periods` | `kind`, the worksheet name, such as `"payg_withholding"` |
 | `dgr-check` | `donations`, a list of 1 to 10,000 objects, each with `abn` or `name` or both, and optional `date` and `amount`; see [DGR check](#dgr-check) |
-| `personal-tax-estimate` | `year`, `scope_confirmed`, `residency`, `taxable_income` or `assessable_labour_income` (then optional `other_assessable_income`, `work_related_deductions`, `other_deductions`), optional `tax_withheld`, and for a full-year resident `medicare-levy` and `medicare-levy-surcharge`; optional `seniors-pensioners-tax-offset`, `study-loan-repayment` and `division-293`; see [Personal tax estimate](#personal-tax-estimate) |
+| `personal-tax-estimate` | `year`, `scope_confirmed`, `residency`, `taxable_income` or `assessable_labour_income` (then optional `other_assessable_income`, `work_related_deductions`, `other_deductions`), optional `tax_withheld` or, to work it out, one of `payg-withholding`, `study-loan-withholding` and `seniors-pensioners-withholding` with `pays_in_year` and optional `schedule-5-method-a`, and for a full-year resident `medicare-levy` and `medicare-levy-surcharge`; optional `seniors-pensioners-tax-offset`, `study-loan-repayment` and `division-293`; see [Personal tax estimate](#personal-tax-estimate) |
 | `derive` | `command`, one of `fbt`, `fbt-car-statutory`, `fbt-car-operating-cost`, `fbt-loan`, `fbt-meal-entertainment`, `fbt-car-parking`, `fbt-debt-waiver`, `fbt-expense-payment`, `fbt-property`, `division-293`, `pension-minimum`, `payg-withholding`, `schedule-5-method-a`, `schedule-5-method-b-i`, `schedule-5-method-b-ii`, `termination-payment`, `working-holiday-maker-withholding`, `study-loan-withholding`, `seniors-pensioners-withholding`, `quarterly-sg`, `borrowing-expenses`, `resident-tax`, `foreign-resident-tax`, `low-income-tax-offset`, `seniors-pensioners-tax-offset`, `medicare-levy`, `medicare-levy-surcharge`, `division-296`, `contribution-caps`, `study-loan-repayment`, `capital-gains`, `main-residence`, `fbt-residual`, `fbt-housing`, `fbt-lafha`, `fbt-board`, `fbt-tax-exempt-body-entertainment`, `gst`, `depreciation` and `hire-purchase-schedule`, and `input`, that command's arguments; see [Derivations](#derivations) |
 
 The 2 car commands, the 11 FBT benefit commands (`fbt-loan`, `fbt-meal-entertainment`, `fbt-car-parking`, `fbt-debt-waiver`, `fbt-expense-payment`, `fbt-property`, `fbt-residual`, `fbt-housing`, `fbt-lafha`, `fbt-board` and `fbt-tax-exempt-body-entertainment`), `main-residence`, `borrowing-expenses`, `division-296`, `termination-payment`, the 3 `schedule-5` commands, `working-holiday-maker-withholding`, `seniors-pensioners-withholding`, `seniors-pensioners-tax-offset`, `medicare-levy-surcharge`, `foreign-resident-tax`, `payg-gross-up` and `hire-purchase-schedule` have no Python original; their arguments follow the same
@@ -1033,6 +1033,43 @@ and deductions and any tax loss are the caller's. With `tax_withheld`, the
 year's PAYG withholding credit (TAA 1953 Sch 1 s 18-15(1)), the amounts end
 with `tax_withheld`, `refund` and `amount_payable`, comparing it with
 `total_before_credits`; other credits and refundable offsets are not in it.
+
+In place of `tax_withheld` it can work out the tax one employer withholds
+from regular pays of the same amount. Give one regular pay's inputs under
+`payg-withholding`, `study-loan-withholding` (with a study loan) or
+`seniors-pensioners-withholding` (Schedule 9), without `year` and
+`scope_confirmed`, and `pays_in_year`, the number of those pays in the income
+year: at most 53 weekly, 27 fortnightly, 12 monthly or 4 quarterly. Add
+`schedule-5-method-a` with `additional_payment` and `pay_periods` for one
+bonus, commission or back payment paid with one of them; it takes the pay's
+earnings, period, scale and study loan. Method A is refused beside
+`seniors-pensioners-withholding`, a quarterly pay (the Schedule 5 and 9
+commands take none) and a pay that declares `tax_offsets`,
+`medicare_adjustment_children` or `extra_pay_withholding`, which Method A here
+does not take. The tax withheld is the pay's
+withholding times `pays_in_year`, plus Method A's withholding on the
+additional payment, and the amounts add `withholding_per_pay` and
+`additional_payment_withholding` before `tax_withheld`; each part's result is
+under `components`. A pay on a study loan needs `study-loan-repayment`, which
+its component goes towards; a scale that does not match the residency (3, or
+4 with `foreign_resident`, for a foreign resident) is refused as
+`estimate.scale_mismatch`, and Schedule 9 or a study loan for a foreign
+resident as `estimate.residency_unsupported`. A study loan pay in 2025-26 is
+refused as `period.unsupported`: that year's Schedule 8 coefficients changed
+on 24 September 2025, and the estimate takes no year whose coefficients
+changed after 1 July. `extra_pay_withholding` needs `pays_in_year` of 53 weekly or 27 fortnightly.
+Pays of other amounts, other payers' withholding and withholding variations
+are not in it: give `tax_withheld` for those.
+
+```json
+{"year": "2026-27", "scope_confirmed": true, "residency": "full_year_resident",
+ "assessable_labour_income": "85000",
+ "payg-withholding": {"earnings": "3269.23", "pay_period": "fortnightly", "scale": 2},
+ "pays_in_year": 26,
+ "medicare-levy": {"section_9a_adjustment_applies": false},
+ "medicare-levy-surcharge": {"reportable_fringe_benefits": "0",
+   "income_for_surcharge_purposes": "84000", "days_without_cover": 0}}
+```
 
 A refusal from a part keeps the part's code, and its message starts with the
 part's command, such as a sole parent's `medicare-levy-surcharge:

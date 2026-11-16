@@ -727,6 +727,10 @@ pub const REFUSAL_CODES: &[(&str, &str)] = &[
         "personal-tax-estimate was given a part-year resident or a working holiday maker, or a foreign resident with a part it composes for a resident only.",
     ),
     (
+        "estimate.scale_mismatch",
+        "personal-tax-estimate was given a withholding scale for a foreign resident with a resident, or one for a resident with a foreign resident.",
+    ),
+    (
         "estimate.surcharge_with_exemption",
         "personal-tax-estimate was given Medicare levy exemption days beside a Medicare levy surcharge input, whose scope excludes them.",
     ),
@@ -914,7 +918,7 @@ pub const REFUSAL_CODES: &[(&str, &str)] = &[
     ),
     (
         "input.pay_periods_invalid",
-        "A count of pay periods is outside the range the method allows for the pay period.",
+        "A count of pay periods is outside the range the method or the income year allows for the pay period.",
     ),
     ("input.quarter_invalid", "A quarter is not 1, 2, 3 or 4."),
     (
