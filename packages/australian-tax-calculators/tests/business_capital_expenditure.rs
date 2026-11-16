@@ -353,6 +353,27 @@ fn items_add_up_and_each_item_is_exact() {
     );
 }
 
+/// 2027-28: s 40-880 and the small business entity test it relies on
+/// (Subdivision 328-C, with s 40-880(2B)) set no figure by year, and neither
+/// has an amendment in compilation 268 or the Register's one later version
+/// (1 December 2026), so the year is worked like any other. Worked by hand:
+/// $10,000 incurred in 2023-24 takes its fifth and last $2,000 in 2027-28;
+/// a $576 company fee for a proposed business, paid in 2027-28 by an entity
+/// not in business, is deducted in full that year (s 40-880(2A)).
+#[test]
+fn the_2027_28_year_is_worked_as_the_act_reads() {
+    let earlier = item(json!({"incurred_in": "2023-24"}));
+    let fee = proposed(json!({"amount": "576.00", "incurred_in": "2027-28"}));
+    let r = run(json!([earlier, fee]), "2027-28").unwrap();
+    assert_eq!(r["period"], "2027-28");
+    assert_eq!(amounts(&r), ["10576.00", "10576.00", "2576.00", "0.00"]);
+    assert_eq!(schedule(&r["items"][0])[4], ("2027-28", "2000.00"));
+    assert_eq!(
+        code(json!([item(json!({}))]), "2028-29"),
+        "period.unsupported"
+    );
+}
+
 #[test]
 fn refusals_name_what_is_missing() {
     let year = "2025-26";
@@ -438,7 +459,7 @@ fn refusals_name_what_is_missing() {
     );
     assert_eq!(code(json!({}), year), "business_capital.items_invalid");
     assert_eq!(
-        code(json!([item(json!({}))]), "2027-28"),
+        code(json!([item(json!({}))]), "2019-20"),
         "period.unsupported"
     );
     let unconfirmed = json!({"items": [item(json!({}))], "year": year, "scope_confirmed": false});
@@ -460,7 +481,7 @@ fn the_catalogue_lists_the_worksheet_with_a_runnable_example() {
     // $1,500 / 5 from 2025-26 and the $576 company fee at once in 2026-27.
     assert_eq!(amounts(&r), ["2076.00", "2076.00", "876.00", "900.00"]);
     assert_eq!(entry["supported_periods"][0]["id"], "2020-21");
-    assert_eq!(entry["supported_periods"][6]["id"], "2026-27");
+    assert_eq!(entry["supported_periods"][7]["id"], "2027-28");
     assert_eq!(
         entry["example_evidence"]["note"],
         "docs/calculation-evidence.md#business-capital-expenditure"
