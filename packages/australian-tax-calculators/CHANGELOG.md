@@ -10,6 +10,19 @@ intentionally changed.
 
 ### Added
 
+- `business-capital-expenditure` works out the deduction for business
+  capital expenditure (black hole and start-up costs) under ITAA 1997
+  s 40-880 for 2020-21 to 2026-27, item by item: one fifth a year over 5
+  income years from the year incurred, or in full that year for a start-up
+  cost meeting s 40-880(2A) and (2B), to the extent s 40-880(3) or (4)
+  allows, with each item's schedule and the paragraphs of s 40-880(4)(b),
+  (5), (7), (8) and (9) that exclude it. It refuses an item that forms part
+  of a depreciating asset's cost (s 40-880(5)(a)) or could be taken into
+  account in a capital gain or loss (s 40-880(5)(f)), a revenue outlay, an
+  item incurred before 1 July 2020 and a missing fact, by name. `derive`
+  covers it. `tests/business_capital_expenditure.rs` holds it to TR 2011/6
+  examples 14, 16 to 18, 21 to 25, 40A and 41 and the ATO's start-up
+  examples.
 - `derive` also covers `gst`, `depreciation` and `hire-purchase-schedule`.
   Their steps cite the GST Act ss 9-70 and 9-75 (compilation 96) and ITAA 1997
   ss 40-25, 40-70, 40-72, 40-75, 40-85, 240-25 and 240-60 (compilation 268).

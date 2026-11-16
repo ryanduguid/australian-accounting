@@ -27,6 +27,10 @@ pub const SCOPES: &[(&str, &str)] = &[
         "One hire purchase agreement whose hirer is the notional buyer (ITAA 1997 s 240-17(2)), starting in the income year given, with a level monthly instalment paid in arrears (at each month's end) or in advance (at its start) and any balloon paid at the end of the term. The operator establishes the amount financed (the notional loan principal: the price less any deposit or trade-in), the instalment, the number of instalments, the balloon and the start date. Each month runs from the start date's day of the month, or the month's last day when it is shorter. Under s 240-60(1) each month's notional interest is the outstanding notional loan principal, less any instalment due at the month's start, times the implicit interest rate: the monthly compound rate at which the payments repay the amount financed, found to 64 halvings of 0 to 100% a month. The payments themselves are not deductible but are taken into account in the notional interest (s 240-55). Each month shows the notional interest to date rounded half up to cents, less what the months before show, so the months add up to the total charges, each is within a cent of its amount at the rate found and the last balance is nil. The balloon is shown apart from the last instalment, on its own date. Refuses a rate below nil or of 100% a month or more, a rate that cannot be found closely enough to leave a nil balance to the cent, more than 360 instalments and a nil amount financed or instalment. Excludes deciding whether Division 240 applies and what is financed; fees, GST and stamp duty; irregular, skipped, weekly or quarterly payments; termination amounts other than the balloon and estimates of them (s 240-60(3) and (4)); apportioning a month that spans 30 June between income years (s 240-60(2)); whether the notional interest is deductible (s 240-50); and the notional seller.",
     ),
     (
+        "business_capital_expenditure",
+        "Business capital expenditure under ITAA 1997 s 40-880 (black hole and start-up costs), for an income year from 2020-21 to 2026-27, item by item, each incurred from 1 July 2020 (when s 40-880 as amended by Act No 92 of 2020 began to apply) to the end of the income year asked about, by a taxpayer with an income year from 1 July to 30 June. The operator establishes each item's amount, the income year it was incurred and that it is capital expenditure; the business it is in relation to, under s 40-880(2)(a) (your business), (b) (one that used to be carried on), (c) (one proposed to be carried on) or (d) (liquidating, deregistering or winding up a company, partnership or trust that carried on a business), and for a former or proposed business whether you or another entity carries it on; the extent the business is, was or is proposed to be carried on for a taxable purpose (s 40-880(3) and (4)(a)), as at the time incurred; for another entity's business, and for a wind-up, whether the expenditure is in connection with your deriving assessable income from the business and with the business (s 40-880(4)(b)); for a proposed business, whether it is reasonable to conclude that it is proposed to be carried on within a reasonable time (s 40-880(7)), whether the expenditure is advice or services relating to its proposed structure or operation or a government agency's fee, tax or charge relating to establishing it or its operating structure (s 40-880(2A)(b)), and which entity test of s 40-880(2A)(c) and (2B) the taxpayer meets for the income year incurred; and which of s 40-880(5)(a) to (j), (8), (9)(a) and (9)(b) exclude it, with s 40-880(6) for (5)(d) and (f). An item excluded by s 40-880(4)(b), (5), (7), (8) or (9) has nothing to deduct. Otherwise its deductible expenditure is its amount times the taxable purpose extent, deducted in full in the year incurred under s 40-880(2A) when that subsection's conditions are met, or else one fifth in each of the 5 income years starting in the year incurred (s 40-880(2)), with no apportionment for part of a year. Amounts are worked exactly; the result's amounts are shown to the cent, half up. Refuses expenditure that forms part of the cost of a depreciating asset (s 40-880(5)(a): Division 40) or that could be taken into account in working out a capital gain or loss (s 40-880(5)(f): the CGT provisions), a revenue outlay, an item incurred before 1 July 2020 or after the year asked about, and a fact a stated item needs that is missing. Excludes deciding whether an outlay is capital or business related, the taxable purpose extent, the entity tests and each exclusion; splitting an outlay that serves more than one business or purpose (state each part as an item); expenditure partly within an exclusion (state the excluded part apart); non-arm's length amounts (s 40-885); Division 250; non-commercial losses (Division 35), which can defer or deny an individual's deduction; personal services income (s 85-10); a taxpayer that ceases to exist before the 5 years end (TR 2011/6 example 41); substituted accounting periods; consolidated groups; and website and software costs.",
+    ),
+    (
         "borrowing_expenses",
         "One loan's borrowing expenses under ITAA 1997 s 25-25 for one income year from 2024-25 to 2026-27, before s 26-155 quarantines residential rental deductions from 2027-28. The operator establishes the expenditure the taxpayer incurred for borrowing the money, all in the income year the loan began; the extent the borrowed money is used to produce assessable income, the same throughout the loan; the first day the money was borrowed; the last day of the period the original loan contract specifies; any repayment day; and the income-producing share of the taxpayer's other borrowing expenses incurred in that year. Under s 25-25(6), when the money is used to produce income and this loan's income-producing share plus those other amounts is $100 or less, that share is deducted in the year incurred and later years are refused. Otherwise the period of the loan is the shortest of the contract's period, the period to the repayment day and 5 years from the first day borrowed (s 25-25(5)). Each income year's maximum deduction is the remaining expenditure over the days left in that period, times those days in the year, as determined at the end of the year, so the year of repayment takes all that remains (s 25-25(4)); each maximum is rounded to cents and carried forward at that amount, as the ATO's examples are, and the deduction is the maximum times the income-producing share (s 25-25(2) and (3)). Every day is counted, both ends included, as the ATO and the Library count: 5 years from 3 July end on 2 July. Excludes deciding which costs are borrowing expenses and the money's use; interest; refinancing, redraws and changes in use; expenditure incurred before the income year the loan began; a loan first drawn on 29 February; leisure facilities such as holiday homes unless s 26-50(3) applies at all times in the year; commercial debt forgiveness (Subdivision 245-E); private company loans (Division 7A); and s 26-155.",
     ),
@@ -196,6 +200,10 @@ pub const SOURCES: &[(&str, &str)] = &[
     (
         "hire_purchase_schedule",
         "https://www.ato.gov.au/law/view/document?docid=PAC/19970038/240-60",
+    ),
+    (
+        "business_capital_expenditure",
+        "https://www.legislation.gov.au/C2004A05138/2026-10-01/2026-10-01/text/original/epub/OEBPS/document_2/document_2.html",
     ),
     (
         "fbt",
@@ -383,6 +391,14 @@ pub const EXTRA_SOURCES: &[(&str, &[&str])] = &[
         &[
             "https://www.ato.gov.au/law/view/document?docid=PAC/19970038/240-17",
             "https://www.ato.gov.au/law/view/document?docid=PAC/19970038/240-55",
+        ],
+    ),
+    (
+        "business_capital_expenditure",
+        &[
+            "https://www.legislation.gov.au/C2020A00092/asmade/text",
+            "https://www.ato.gov.au/law/view/document?docid=TXR/TR20116/NAT/ATO/00001",
+            "https://www.ato.gov.au/businesses-and-organisations/income-deductions-and-concessions/income-and-deductions-for-business/deductions/deductions-for-depreciating-assets-and-capital-expenses",
         ],
     ),
     (
@@ -612,6 +628,12 @@ pub const EXTRA_WARNINGS: &[(&str, &[&str])] = &[
             "interest_by_income_year totals only the months wholly in each income year. A month spanning 30 June is listed in interest_across_30_june with its days on each side, not split: s 240-60(2) relates the part of a month that falls in an income year to it in accordance with generally accepted accounting principles, which this worksheet does not apply.",
         ],
     ),
+    (
+        "business_capital_expenditure",
+        &[
+            "Each item's schedule runs 5 income years from the year incurred under s 40-880 as compiled on 1 October 2026; a later amendment could change the years after the one asked about.",
+        ],
+    ),
     ("fbt_car_operating_cost", &[CAR_REPORTABLE_NOTE]),
     (
         "fbt_loan",
@@ -696,6 +718,38 @@ pub const REFUSAL_CODES: &[(&str, &str)] = &[
     (
         "borrowing.s26_50_denied",
         "s 26-50 denies the deduction for a leisure facility, or the worksheet does not cover a part-year exception.",
+    ),
+    (
+        "business_capital.cgt_amount",
+        "An item could be taken into account in working out a capital gain or loss (s 40-880(5)(f)) and s 40-880(6) does not apply.",
+    ),
+    (
+        "business_capital.depreciating_asset_cost",
+        "An item forms part of the cost of a depreciating asset (s 40-880(5)(a)).",
+    ),
+    (
+        "business_capital.fact_invalid",
+        "An item's stated fact is not of the form or one of the values it takes.",
+    ),
+    (
+        "business_capital.fact_missing",
+        "An item does not state a fact its business or exclusions need.",
+    ),
+    (
+        "business_capital.incurred_after_year",
+        "An item was incurred after the income year asked about.",
+    ),
+    (
+        "business_capital.incurred_before_july_2020",
+        "An item was incurred before 1 July 2020, before s 40-880's current form applies.",
+    ),
+    (
+        "business_capital.items_invalid",
+        "items is not a non-empty list of objects.",
+    ),
+    (
+        "business_capital.not_capital",
+        "An item is stated not to be capital expenditure.",
     ),
     ("command.unknown", "The command does not exist."),
     (
@@ -876,7 +930,7 @@ pub const REFUSAL_CODES: &[(&str, &str)] = &[
     ),
     (
         "input.field_unknown",
-        "A field the worksheet or command does not take, or does not take beside the other inputs given, was given (fbt-loan, fbt-meal-entertainment, fbt-car-parking, fbt-debt-waiver, fbt-expense-payment, fbt-property, fbt-residual, fbt-housing, fbt-lafha, fbt-board, fbt-tax-exempt-body-entertainment, division-296, depreciation, foreign-resident-tax, medicare-levy, medicare-levy-surcharge, payg-withholding, payg-gross-up, termination-payment, the Schedule 5 methods, working-holiday-maker-withholding, study-loan-withholding, seniors-pensioners-withholding, seniors-pensioners-tax-offset, hire-purchase-schedule, derive and personal-tax-estimate only).",
+        "A field the worksheet or command does not take, or does not take beside the other inputs given, was given (fbt-loan, fbt-meal-entertainment, fbt-car-parking, fbt-debt-waiver, fbt-expense-payment, fbt-property, fbt-residual, fbt-housing, fbt-lafha, fbt-board, fbt-tax-exempt-body-entertainment, division-296, depreciation, foreign-resident-tax, medicare-levy, medicare-levy-surcharge, payg-withholding, payg-gross-up, termination-payment, the Schedule 5 methods, working-holiday-maker-withholding, study-loan-withholding, seniors-pensioners-withholding, seniors-pensioners-tax-offset, hire-purchase-schedule, business-capital-expenditure and its items, derive and personal-tax-estimate only).",
     ),
     ("input.flag_invalid", "A flag is not a JSON boolean."),
     ("input.fraction_invalid", "A fraction is outside 0 to 1."),

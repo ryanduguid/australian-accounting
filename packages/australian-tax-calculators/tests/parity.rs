@@ -10,7 +10,8 @@ use std::process::{Command, Stdio};
 
 /// Worksheets added after Python 0.2.0, so absent from the frozen corpus;
 /// `tests/fbt_car.rs`, `tests/main_residence.rs`,
-/// `tests/borrowing_expenses.rs`, `tests/hire_purchase.rs`, `tests/division_296.rs`,
+/// `tests/borrowing_expenses.rs`, `tests/hire_purchase.rs`,
+/// `tests/business_capital_expenditure.rs`, `tests/division_296.rs`,
 /// `tests/termination_payment.rs`, `tests/schedule_5.rs`,
 /// `tests/working_holiday_maker.rs`, `tests/seniors_pensioners.rs`,
 /// `tests/seniors_pensioners_offset.rs`, `tests/medicare_surcharge.rs`,
@@ -20,7 +21,7 @@ use std::process::{Command, Stdio};
 /// `tests/fbt_property.rs`, `tests/fbt_residual.rs`, `tests/fbt_housing.rs`,
 /// `tests/fbt_lafha.rs`, `tests/fbt_board.rs` and
 /// `tests/fbt_tax_exempt_body_entertainment.rs` cover them.
-const NEW_KINDS: [(&str, &str); 27] = [
+const NEW_KINDS: [(&str, &str); 28] = [
     ("fbt-car-statutory", "fbt_car_statutory"),
     ("fbt-car-operating-cost", "fbt_car_operating_cost"),
     ("fbt-loan", "fbt_loan"),
@@ -32,6 +33,10 @@ const NEW_KINDS: [(&str, &str); 27] = [
     ("main-residence", "main_residence"),
     ("borrowing-expenses", "borrowing_expenses"),
     ("hire-purchase-schedule", "hire_purchase_schedule"),
+    (
+        "business-capital-expenditure",
+        "business_capital_expenditure",
+    ),
     ("division-296", "division_296"),
     ("termination-payment", "termination_payment"),
     ("schedule-5-method-a", "schedule_5_method_a"),

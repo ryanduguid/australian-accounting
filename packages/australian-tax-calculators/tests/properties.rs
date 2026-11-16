@@ -1414,6 +1414,80 @@ fn borrowing_expense_maximums_carry_forward_and_add_up() {
     }
 }
 
+/// Business capital expenditure (ITAA 1997 s 40-880), whatever the items:
+/// each item's schedule adds up to its deductible expenditure, no year takes
+/// more than a fifth of it unless s 40-880(2A) takes it all in the year
+/// incurred, and the year's deduction and what remains after it are the
+/// schedules' rows for and after that year, to the cent.
+#[test]
+fn business_capital_schedules_add_up_to_the_deductible_expenditure() {
+    let mut rng = Rng(0x4088_0002);
+    let years = supported_periods("business_capital_expenditure");
+    for _ in 0..RUNS {
+        let asked = rng.int(0, years.len() as i64 - 1) as usize;
+        let items: Vec<Value> = (0..rng.int(1, 4))
+            .map(|_| {
+                let incurred = years[rng.int(0, asked as i64) as usize];
+                let share = *rng.pick(&["1", "0.5", "0.875", "0.333", "0"]);
+                let excluded = rng.int(0, 4) == 0;
+                let mut item = json!({
+                    "amount": rng.money(), "incurred_in": incurred, "capital": true,
+                    "business": "current", "taxable_purpose": share,
+                    "exclusions": if excluded { json!(["5(i)"]) } else { json!([]) },
+                });
+                if rng.bool() {
+                    let kind = *rng.pick(&["advice_or_services", "government_fees", "neither"]);
+                    item["business"] = json!("proposed");
+                    item["carried_on_by"] = json!("you");
+                    item["within_reasonable_time"] = json!(true);
+                    item["start_up_expense"] = json!(kind);
+                    if kind != "neither" {
+                        let test = *rng.pick(&["small_business_entity", "covered_by_2b", "none"]);
+                        item["entity_test"] = json!(test);
+                    }
+                }
+                item
+            })
+            .collect();
+        let facts = json!({"items": items, "year": years[asked], "scope_confirmed": true});
+        let r = run("business-capital-expenditure", facts.clone());
+        let (mut deduction, mut remaining) = (n(0), n(0));
+        for row in r["items"].as_array().unwrap() {
+            let deductible = d(row["deductible_expenditure"].as_str().unwrap());
+            let fifth = deductible.div(&n(5)).unwrap();
+            let at_once = row["method"]
+                .as_str()
+                .is_some_and(|m| m.starts_with("ITAA 1997 s 40-880(2A)"));
+            let mut total = n(0);
+            for entry in row["schedule"].as_array().unwrap() {
+                let value = d(entry["deduction"].as_str().unwrap());
+                assert!(at_once || le(&value, &fifth), "{facts}");
+                total = total.add(&value).unwrap();
+                let year = entry["income_year"].as_str().unwrap();
+                if year == years[asked] {
+                    deduction = deduction.add(&value).unwrap();
+                    assert!(
+                        eq(&d(row["deduction"].as_str().unwrap()), &value),
+                        "{facts}"
+                    );
+                } else if year > years[asked] {
+                    remaining = remaining.add(&value).unwrap();
+                }
+            }
+            assert!(eq(&total, &deductible), "{facts}");
+        }
+        let cents = |v: Decimal| v.quantize(-2, Rounding::HalfUp).unwrap();
+        assert!(eq(&amount(&r, "deduction"), &cents(deduction)), "{facts}");
+        assert!(
+            eq(
+                &amount(&r, "remaining_expenditure_after_year"),
+                &cents(remaining)
+            ),
+            "{facts}"
+        );
+    }
+}
+
 /// A hire purchase schedule adds up: the months' interest to the total
 /// charges, each closing balance to the next opening and the last to nil, and
 /// each month's interest is within a cent of the implicit rate on what it

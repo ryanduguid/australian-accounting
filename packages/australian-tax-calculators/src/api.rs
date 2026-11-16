@@ -189,6 +189,10 @@ const COMMAND_ARGS: &[(&str, &[(&str, Kind)])] = &[
         ],
     ),
     (
+        "business-capital-expenditure",
+        &[("items", Json), ("year", Raw), ("scope_confirmed", Raw)],
+    ),
+    (
         "fbt",
         &[
             ("type_one_value", Dec),
@@ -447,7 +451,7 @@ pub fn commands() -> Vec<&'static str> {
 /// a study loan: the withholding is worked on the gross, so no step can work
 /// the gross out from the inputs and earlier steps alone. `derive` of that
 /// command on its `gross_pay` shows that withholding.
-const DERIVED: [&str; 40] = [
+const DERIVED: [&str; 41] = [
     "fbt",
     "fbt-car-statutory",
     "fbt-car-operating-cost",
@@ -488,6 +492,7 @@ const DERIVED: [&str; 40] = [
     "gst",
     "depreciation",
     "hire-purchase-schedule",
+    "business-capital-expenditure",
 ];
 
 /// `derive`: `{"command", "input"}` gives the command's result with the step
@@ -801,6 +806,7 @@ pub fn evaluate_coded(command: &str, v: &Value) -> Result<Value> {
             | "fbt-board"
             | "fbt-tax-exempt-body-entertainment"
             | "hire-purchase-schedule"
+            | "business-capital-expenditure"
     ) && let Some(key) = v
         .as_object()
         .into_iter()
@@ -837,6 +843,7 @@ pub fn evaluate_coded(command: &str, v: &Value) -> Result<Value> {
         "hire-purchase-schedule" => {
             engine::hire_purchase_schedule(&a[0], &a[1], &a[2], &a[3], &a[4], &a[5], &a[6], &a[7])
         }
+        "business-capital-expenditure" => engine::business_capital_expenditure(&a[0], &a[1], &a[2]),
         "fbt" => engine::fbt(&a[0], &a[1], &a[2], &a[3]),
         "fbt-car-statutory" => {
             engine::fbt_car_statutory(&a[0], &a[1], &a[2], &a[3], &a[4], &a[5], &a[6], &a[7])
