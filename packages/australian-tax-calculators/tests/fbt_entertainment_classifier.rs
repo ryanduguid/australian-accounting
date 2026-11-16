@@ -249,6 +249,15 @@ fn reimbursed_and_card_paid_meals_follow_examples_11_1_and_16_1() {
         result["lines"][0]["classes"][0]["benefit_type"],
         "expense_payment_and_property"
     );
+    // With the number of employees unknown, whether another employee's
+    // property benefit arises is not established.
+    let unknown = line(json!({"cost": "200.00", "gst_status": "no_gst",
+        "occasion": "business_meal", "paid_by": "reimbursed", "attendees": {"employees": null}}));
+    let result = classify(json!([unknown]), json!({})).unwrap();
+    assert_eq!(
+        result["lines"][0]["classes"][0]["benefit_type"],
+        "undetermined"
+    );
     // Example 16.1 (para 130): employees dine together on the corporate card:
     // property fringe benefits, deductible.
     let card = line(json!({"cost": "440.00", "occasion": "business_meal",

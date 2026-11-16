@@ -314,6 +314,10 @@ fn benefit_type(
 ) -> (&'static str, &'static str) {
     let shared = reimbursed && class == Employees && heads != Some(1);
     match (shared, reimbursed, provided) {
+        (true, ..) if heads.is_none() => (
+            "undetermined",
+            "The number of employees is not stated: the reimbursed employee's own share is an expense payment benefit (FBTAA s 20) and any other employee's share is a benefit to that employee (TR 97/17 para 98, the Commissioner's view). Give the head count, or the reimbursed employee's share as its own line.",
+        ),
         (true, _, "food_or_drink") => (
             "expense_payment_and_property",
             "Where more than one employee attended: FBTAA s 20 for the reimbursed employee's own share, its taxable value reduced under s 63A by the part for the others entertained; each other employee's share is a property benefit to that employee (s 40) (TR 97/17 paras 98 and 100, the Commissioner's view). Give the reimbursed employee's share as its own line to separate them.",
