@@ -914,8 +914,7 @@ pub fn supported_periods(kind: &str) -> Vec<&'static str> {
         // Subdivision 328-C set no figure by year, and the Register's one later
         // version (1 December 2026) changes neither, so 2027-28 is taken.
         "business_capital_expenditure" => vec![
-            "2020-21", "2021-22", "2022-23", "2023-24", "2024-25", "2025-26", "2026-27",
-            "2027-28",
+            "2020-21", "2021-22", "2022-23", "2023-24", "2024-25", "2025-26", "2026-27", "2027-28",
         ],
         "fbt" => vec!["2026", "2027"],
         "fbt_car_statutory" | "fbt_car_operating_cost" | "fbt_loan" => {
