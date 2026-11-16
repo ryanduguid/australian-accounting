@@ -226,6 +226,14 @@ fn the_surcharge_is_nil_in_2027_28_with_no_day_without_cover() {
         ),
         "0.00"
     );
+    // days_without_cover counts a day any of a family went without cover.
+    let mut family = facts(0);
+    family["spouse_income_for_surcharge_purposes"] = json!("150000");
+    family["dependent_children"] = json!(2);
+    assert_eq!(
+        amount("medicare-levy-surcharge", family, "medicare_levy_surcharge"),
+        "0.00"
+    );
     let mut input = facts(1);
     input["year"] = json!(YEAR);
     input["scope_confirmed"] = json!(true);
@@ -298,9 +306,11 @@ fn a_residents_2027_28_estimate_applies_the_working_australians_tax_offset() {
         ]
     );
     let line = out["working"]["net_labour_income"].as_str().unwrap();
-    assert!(line.starts_with(
-        "max(0, assessable_labour_income - work_related_deductions - standard_deduction)"
-    ));
+    assert!(
+        line.starts_with(
+            "assessable_labour_income - work_related_deductions - standard_deduction:"
+        )
+    );
     let sources = out["sources"].as_array().unwrap();
     assert!(
         sources
@@ -405,5 +415,48 @@ fn the_estimates_2027_28_refusals() {
         out["amounts"]
             .get("working_australians_tax_offset")
             .is_none()
+    );
+}
+
+/// Net labour income is labour amounts less labour deductions with no floor
+/// (ITAA 1997 s 61-155(2)): $20,000 of salary and $21,000 of work expenses
+/// leave -$1,000 and no offset. A given net_labour_income stands for labour
+/// income held in other_assessable_income: $20,000 gives 14% of $1,800, $252,
+/// so the full $250, where the labour inputs alone would give 14% of $800.
+#[test]
+fn net_labour_income_is_signed_and_a_given_one_is_taken() {
+    let out = estimate(json!({"assessable_labour_income": "20000",
+        "work_related_deductions": "21000", "other_assessable_income": "50000"}));
+    let a = &out["amounts"];
+    assert_eq!(a["net_labour_income"], "-1000.00");
+    assert_eq!(a["working_australians_tax_offset"], "0.00");
+    assert_eq!(a["working_australians_tax_offset_applied"], "0.00");
+    let labour = json!({"assessable_labour_income": "20000", "other_assessable_income": "1000"});
+    let derived = estimate(labour.clone());
+    assert_eq!(
+        derived["amounts"]["working_australians_tax_offset"],
+        "112.00"
+    );
+    let mut given = labour;
+    given["net_labour_income"] = json!("20000");
+    let out = estimate(given);
+    assert_eq!(out["amounts"]["net_labour_income"], "20000.00");
+    assert_eq!(out["amounts"]["working_australians_tax_offset"], "250.00");
+}
+
+/// A regular pay cannot stand for 2027-28's withholding: the ATO had not
+/// published the schedules, so the estimate refuses with no partial result.
+#[test]
+fn a_regular_pay_in_2027_28_is_refused() {
+    let facts = resident(json!({"assessable_labour_income": "85000",
+        "payg-withholding": {"earnings": "3269.23", "pay_period": "fortnightly", "scale": 2},
+        "pays_in_year": 26}));
+    let r = api::evaluate_coded("personal-tax-estimate", &facts).unwrap_err();
+    assert_eq!(r.code, "period.unsupported");
+    assert!(
+        r.message
+            .starts_with("payg-withholding: Unsupported period '2027-28'"),
+        "{}",
+        r.message
     );
 }

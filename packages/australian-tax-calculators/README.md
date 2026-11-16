@@ -266,8 +266,9 @@ they have no step.
 
 Unsupported periods fail. The 2027-28 rows use rates and thresholds the law
 already sets for that year; the ATO had published none of them when they were
-read on 16 November 2026, and each such result says so. A worksheet that refuses
-2027-28 says why: its figures were not yet published (withholding schedules,
+read on 16 November 2026, and each such result but GST, the low income tax
+offset, Division 293 and the pension minimum says so. A worksheet that refuses
+2027-28 for one of these reasons says which: its figures were not yet published (withholding schedules,
 the Medicare levy surcharge thresholds, study loan thresholds, contribution
 caps, ETP caps and the Division 296 thresholds), or the law changes from 1 July
 2027 in ways it does not apply (CGT, residential rental deductions under
@@ -1100,13 +1101,15 @@ with `assessable_labour_income` it is worked out as that income less
 `other_assessable_income` and `other_deductions` to hold no labour amounts or
 labour deductions, such as business or personal services income, or the union
 fees and income protection premiums s 25-130(3) leaves out of work-related
-deductions: give `net_labour_income` where they do. The amounts add
+deductions: give `net_labour_income` where they do. Worked out, it can be
+negative; given, it is at least 0, so give 0 for a labour loss, which also
+gives no offset. The amounts add
 `net_labour_income`, `working_australians_tax_offset` and
 `working_australians_tax_offset_applied` after `basic_income_tax`.
 `net_labour_income` is refused for an earlier year or a foreign resident, who
 has no such offset (s 61-155(1)(a)). The estimate does not work out the extra
 income tax on a minimum tax capital gain (s 119-10, for CGT events from
-1 July 2027), so its 2027-28 scope is a resident with none. The ATO had not
+1 July 2027), so its 2027-28 scope excludes one. The ATO had not
 published the 2027-28 withholding schedules or the surcharge and study loan
 thresholds on 16 November 2026, so give `tax_withheld`, hospital cover for the
 whole year and no study loan.
