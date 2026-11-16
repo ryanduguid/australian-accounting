@@ -11,6 +11,7 @@
 use crate::api::{Refusal, evaluate_coded, optional_decimal, takes};
 use crate::decimal::{Decimal, Rounding, Signal};
 use crate::engine;
+use crate::metadata::STUDY_LOAN_WITHHOLDING_FROM;
 use serde_json::{Map, Value, json};
 
 const COMMAND: &str = "personal-tax-estimate";
@@ -656,6 +657,20 @@ fn check_pay(v: &Value, foreign: bool) -> Result<Option<&'static str>, Refusal> 
         }
     }
     let loan = pay == "study-loan-withholding" || part["study_loan"] == json!(true);
+    // One pay stands for every pay only when the year's Schedule 8
+    // coefficients applied from 1 July.
+    let changed = STUDY_LOAN_WITHHOLDING_FROM
+        .iter()
+        .find(|(year, _)| v["year"] == *year)
+        .filter(|(_, from)| !from.ends_with("-07-01"));
+    if loan && let Some((year, from)) = changed {
+        return Err(Refusal::new(
+            "period.unsupported",
+            format!(
+                "{pay} with a study loan does not give the tax withheld for {year}: its Schedule 8 coefficients changed on {from}, so pays before then withheld other amounts; give tax_withheld"
+            ),
+        ));
+    }
     if loan && v.get("study-loan-repayment").is_none() {
         return Err(Refusal::new(
             "input.missing_field",
@@ -699,6 +714,17 @@ fn worked_withholding(
             ),
         ));
     };
+    // Schedule 1's additional amount is for a year of 53 weekly or 27
+    // fortnightly pays.
+    if v[pay]["extra_pay_withholding"] == json!(true) && pays != most {
+        return Err(Refusal::new(
+            "input.pay_periods_invalid",
+            format!(
+                "pays_in_year must be {most} with extra_pay_withholding, the additional amount for a year of {most} {} pays.",
+                period.unwrap_or_default()
+            ),
+        ));
+    }
     let per_pay = Decimal::parse(
         regular["amounts"]["withholding"]
             .as_str()

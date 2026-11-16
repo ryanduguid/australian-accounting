@@ -912,3 +912,61 @@ fn withholding_inputs_that_conflict_or_are_missing_are_refused() {
     );
     assert_eq!(refusal(study).code, "estimate.residency_unsupported");
 }
+
+/// One pay stands for the year's pays only when the year's Schedule 8
+/// coefficients applied from 1 July: 2025-26's changed on 24 September 2025,
+/// so a study loan pay in 2025-26 is refused rather than multiplied out.
+#[test]
+fn a_study_loan_pay_in_a_year_whose_schedule_8_changed_is_refused() {
+    let loan = json!({"repayment_income": "84300"});
+    let senior = json!({"earnings": "5000", "pay_period": "monthly", "status": "single",
+        "medicare_levy_exemption": "none", "study_loan": true, "pay_date": "2025-10-15"});
+    let mut study = fortnightly(2);
+    study["pay_date"] = json!("2025-10-15");
+    for (command, part, pays) in [
+        ("study-loan-withholding", study, 26),
+        ("seniors-pensioners-withholding", senior, 12),
+    ] {
+        let facts = input(
+            "2025-26",
+            "84300",
+            json!({command: part, "pays_in_year": pays, "study-loan-repayment": loan}),
+        );
+        let r = refusal(facts);
+        assert_eq!(r.code, "period.unsupported", "{command}");
+        assert_eq!(
+            r.message,
+            format!(
+                "{command} with a study loan does not give the tax withheld for 2025-26: its Schedule 8 coefficients changed on 2025-09-24, so pays before then withheld other amounts; give tax_withheld"
+            )
+        );
+    }
+}
+
+/// Schedule 1's additional amount for 53 weekly or 27 fortnightly pays is
+/// asked for only in such a year, so it needs that many pays.
+#[test]
+fn the_extra_pay_amount_needs_a_year_of_53_or_27_pays() {
+    for (period, most) in [("weekly", 53), ("fortnightly", 27)] {
+        let pay = json!({"earnings": "2000", "pay_period": period, "scale": 2,
+            "extra_pay_withholding": true});
+        let facts = |pays: i64| {
+            input(
+                "2026-27",
+                "100000",
+                json!({"payg-withholding": pay, "pays_in_year": pays}),
+            )
+        };
+        let r = refusal(facts(most - 1));
+        assert_eq!(r.code, "input.pay_periods_invalid", "{period}");
+        assert_eq!(
+            r.message,
+            format!(
+                "pays_in_year must be {most} with extra_pay_withholding, the additional amount for a year of {most} {period} pays."
+            )
+        );
+        let out = api::evaluate(COMMAND, &facts(most)).unwrap();
+        let per_pay = cents(&out["amounts"]["withholding_per_pay"]);
+        assert_eq!(cents(&out["amounts"]["tax_withheld"]), per_pay * most);
+    }
+}

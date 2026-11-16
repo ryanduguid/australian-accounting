@@ -1049,9 +1049,12 @@ under `components`. A pay on a study loan needs `study-loan-repayment`, which
 its component goes towards; a scale that does not match the residency (3, or
 4 with `foreign_resident`, for a foreign resident) is refused as
 `estimate.scale_mismatch`, and Schedule 9 or a study loan for a foreign
-resident as `estimate.residency_unsupported`. Pays of other amounts, other
-payers' withholding and withholding variations are not in it: give
-`tax_withheld` for those.
+resident as `estimate.residency_unsupported`. A study loan pay in 2025-26 is
+refused as `period.unsupported`: that year's Schedule 8 coefficients changed
+on 24 September 2025, so one pay does not stand for the year's.
+`extra_pay_withholding` needs `pays_in_year` of 53 weekly or 27 fortnightly.
+Pays of other amounts, other payers' withholding and withholding variations
+are not in it: give `tax_withheld` for those.
 
 ```json
 {"year": "2026-27", "scope_confirmed": true, "residency": "full_year_resident",

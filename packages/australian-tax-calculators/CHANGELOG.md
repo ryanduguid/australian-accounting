@@ -131,7 +131,10 @@ intentionally changed.
   A study loan pay needs `study-loan-repayment`; Schedule 9 or a study loan
   for a foreign resident is refused as `estimate.residency_unsupported`, and a
   scale that does not match the residency as the new code
-  `estimate.scale_mismatch`. Its sources add TAA 1953 Sch 1 s 12-35. Results
+  `estimate.scale_mismatch`. A study loan pay in 2025-26, whose Schedule 8
+  coefficients changed on 24 September 2025, is refused as
+  `period.unsupported`, and `extra_pay_withholding` needs 53 weekly or 27
+  fortnightly pays. Its sources add TAA 1953 Sch 1 s 12-35. Results
   without the new inputs are unchanged apart from the scope.
 - `derive` also covers `working-holiday-maker-withholding`,
   `study-loan-withholding`, `seniors-pensioners-withholding`, `quarterly-sg`
