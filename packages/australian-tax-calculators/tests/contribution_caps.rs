@@ -447,9 +447,12 @@ fn each_refusal_names_what_is_missing() {
             "earlier_concessional_contributions is required".into()
         )
     );
-    assert_eq!(
-        code(with(sam(), json!({"year": "2027-28"}))),
-        "period.unsupported"
+    // Given earlier years, 2027-28 is refused with main's reason.
+    let (code, message) = refused(&with(sam(), json!({"year": "2027-28"})));
+    assert_eq!(code, "period.unsupported");
+    assert!(
+        message.contains("The 2027-28 contribution caps had not been published"),
+        "{message}"
     );
 }
 
