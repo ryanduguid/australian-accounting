@@ -45,6 +45,9 @@ const AMOUNTS: [(&str, &str); 4] = [
 /// A term of an amount's formula and its value.
 type Term = (String, Decimal);
 
+/// The deduction in each income year: (calendar year it starts in, amount).
+type Schedule = Vec<(i64, Decimal)>;
+
 /// A nil term.
 fn nil() -> Term {
     ("0".to_string(), int(0))
@@ -73,12 +76,7 @@ impl Item {
 
     /// A deductible item's deduction for `year`, what is left after it and
     /// the deduction in each income year.
-    fn spread(
-        &self,
-        whole: &str,
-        deductible: &Term,
-        year: i64,
-    ) -> Result<(Term, Term, Vec<(i64, Decimal)>)> {
+    fn spread(&self, whole: &str, deductible: &Term, year: i64) -> Result<(Term, Term, Schedule)> {
         Ok(match &self.method {
             Method::Immediate(_) => {
                 let deduction = if self.incurred == year {
