@@ -48,7 +48,8 @@ neither the reviewer nor LodgeiT endorses this work. The licence's disclaimer
 of warranties applies.
 
 data/dgr-register.jsonl contains deductible gift recipient entries from the
-ABN Bulk Extract of 11 November 2026, published by the Australian Business
+ABN Bulk Extract of 11 November 2026, (c) Australian Business Register (ABR)
+for the Commonwealth of Australia, published by the Australian Business
 Register at https://data.gov.au/data/dataset/abn-bulk-extract and licensed
 under Creative Commons Attribution 3.0 Australia,
 https://creativecommons.org/licenses/by/3.0/au/. Changes: only ABNs with DGR
