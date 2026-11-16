@@ -269,6 +269,12 @@ test('the rate limiter answers 429 with Retry-After: 60, and its absence fails c
     const { simple } = await limiter();
     const body = message(MODERN, 1, 'server/discover');
     const sent = { ...headers(body, MODERN, { origin: 'https://chatgpt.com' }), 'cf-connecting-ip': '198.51.100.7' };
+    // Miniflare counts in fixed windows aligned to the clock (its ratelimit-object.worker.js
+    // takes floor(Date.now() / (period * 1000))), so a burst that crosses a window's end
+    // starts a fresh count. Begin the burst at least 10 seconds before the window ends.
+    const window = simple.period * 1000;
+    const left = window - (Date.now() % window);
+    if (left < 10_000) await new Promise(resolve => setTimeout(resolve, left + 100));
     const statuses = [];
     for (let i = 0; i <= simple.limit; i += 1) {
       const response = await limited.mf.dispatchFetch(new URL('/mcp', limited.url), { method: 'POST', body: JSON.stringify(body), headers: sent });
