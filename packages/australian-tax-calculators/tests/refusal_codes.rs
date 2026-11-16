@@ -47,6 +47,8 @@ fn every_code_at_a_refusal_site_is_catalogued_and_every_entry_is_used() {
         ("engine/fbt_benefits.rs", &["refuse("][..]),
         ("api.rs", &["refusal("][..]),
         ("estimate.rs", &["Refusal::new("][..]),
+        ("dgr.rs", &["Refusal::new("][..]),
+        ("dgr/input.rs", &["Refusal::new("][..]),
         ("main.rs", &["Refusal::new("][..]),
         ("decimal.rs", &["=> "][..]),
     ]

@@ -121,6 +121,23 @@ intentionally changed.
   message. The result for an established `taxable_income` without
   `tax_withheld` is unchanged apart from its sources, scope and
   `source_checked`.
+- `personal-tax-estimate` can work out `tax_withheld` from one employer's
+  regular pays: one pay's `payg-withholding`, `study-loan-withholding` or
+  `seniors-pensioners-withholding` inputs and `pays_in_year` (at most 53
+  weekly, 27 fortnightly, 12 monthly or 4 quarterly pays), with
+  `schedule-5-method-a` for one bonus paid with one of them, but not with a
+  Schedule 9 or quarterly pay or beside declared tax offsets, Medicare levy
+  adjustment or extra pay amount, which Method A here does not take. The tax withheld
+  is the pay's withholding times the pays, plus Method A's on the bonus, and
+  the amounts add `withholding_per_pay` and `additional_payment_withholding`.
+  A study loan pay needs `study-loan-repayment`; Schedule 9 or a study loan
+  for a foreign resident is refused as `estimate.residency_unsupported`, and a
+  scale that does not match the residency as the new code
+  `estimate.scale_mismatch`. A study loan pay in 2025-26, whose Schedule 8
+  coefficients changed on 24 September 2025, is refused as
+  `period.unsupported`, and `extra_pay_withholding` needs 53 weekly or 27
+  fortnightly pays. Its sources add TAA 1953 Sch 1 s 12-35. Results
+  without the new inputs are unchanged apart from the scope.
 - `derive` also covers `working-holiday-maker-withholding`,
   `study-loan-withholding`, `seniors-pensioners-withholding`, `quarterly-sg`
   and `borrowing-expenses`. Their steps cite the headings of Schedules 1, 8, 9
@@ -407,6 +424,20 @@ intentionally changed.
   and its days in each year, which s 240-60(2) leaves to accounting
   principles and the worksheet does not split. `tests/hire_purchase.rs`
   holds it to agreements worked by hand at 10% a month.
+- `dgr-check` says, for a list of donations by ABN or name, whether each
+  recipient is shown as a deductible gift recipient in the ABN Bulk Extract of
+  11 November 2026 (CC BY 3.0 AU), from what date, how that reads on the
+  payment date, and which ITAA 1997 Division 30 conditions stay open; it
+  applies the $2 minimum only to gifts made before 1 July 2024 (Act No. 58,
+  2026, Sch 1) and never says a payment is deductible. A name alone gives
+  unconfirmed candidates. `data/dgr-register.jsonl` keeps only the extract's
+  31,876 ABNs with DGR entries, built by `examples/dgr_register.rs`, which
+  keeps an entry for a fund the extract leaves unnamed as a fund, as ABN Lookup
+  lists it, and has its own tests. New codes:
+  `input.abn_invalid`, `input.donations_invalid` and `input.name_invalid`.
+  `tests/dgr_check.rs` holds it to ABNs read the same in ABN Lookup's DGR
+  listing and to the Library's worked example ¶7-020, and `tests/properties.rs`
+  checks that it never reads an ABN in its data as absent.
 - `income-tests` works out 6 income measures for a full-year resident for
   2024-25 to 2026-27 from taxable income and the components each definition
   adds back: income for surcharge purposes (ITAA 1997 s 995-1), Division 293

@@ -1763,6 +1763,29 @@ $17,496, so $1,496 is payable after $16,000 withheld; $60,000 salary and $300
 of work expenses in 2025-26 give $59,700, $8,698 tax less a $104.50 offset plus
 a $1,194 levy, $9,787.50, and a $212.50 refund after $10,000 withheld.
 
+Tax withheld from regular pays, read on 16 November 2026: TAA 1953 Sch 1
+s 12-35 on the ATO legal database (an entity must withhold from salary, wages,
+commission, bonuses or allowances it pays an employee) and s 18-15(1) (the
+credit); the ATO's 'Tax tables' (last updated 17 June 2026), whose schedules
+from 1 July 2026 are the latest published; Schedule 1 (published 17 June
+2026), whose 'Using a formula' provides for 53 weekly and 27 fortnightly pays in a
+financial year, which bound `pays_in_year`; Schedule 5's 'Working out the withholding
+amount' (Method A spreads the additional payment over 52, 26 or 12 pay
+periods, or the periods a bonus for less than 12 months relates to, and its
+withholding is limited to 47% of the payment); and Schedule 9, which is for
+payees who declare that they are Australian residents for tax purposes. The
+estimate adds no rate: the tax withheld is the pay's own command's
+`withholding` times the pays, plus Method A's `withholding_on_additional_payment`.
+The tests work their figures by hand from the 2026-27 Schedule 1 scale 2
+coefficients (a = 0.3200 and b = 181.7319 below $2,596 a week): $3,269.23 a
+fortnight is $1,634.99 a week, $341 withheld a week and $682 a fortnight, and
+26 pays withhold $17,732 against the $17,496 above, a $236 refund. A $5,000
+bonus by Method A adds $192 a pay, so $3,461 a fortnight, $1,730.99 a week,
+$372 a week and $744 a fortnight; ($744 - $682) x 26 is $1,612, under the
+$2,350 limit, and the year withholds $19,344 against $19,096 on $90,000 of
+salary, a $248 refund. On scale 3 a foreign resident's $1,634.99 a week
+withholds $490, $25,480 over 26 fortnights, against 30% of $85,000, $25,500.
+
 The foreign income tax offset rules guides for 2025 (2024-25, last updated 29
 May 2025) and 2026 (2025-26, last updated 30 May 2026) give, at step 1 of
 examples 16 and 17, the tax on a taxable income including the Medicare levy
@@ -1827,3 +1850,91 @@ means the document bytes changed; it does not establish that the rule changed.
 | `Tax/Deductions.md` | `d8134b72378f43b2f7c9d4312518a3d8974d2421e859e1e8e983eabd010302cb` |
 | `Tax/Depreciation.md` | `395195f3422f9695fee4ea409e34b241384002091b9ea67a8bbd75197d1912e1` |
 | `Superannuation/Instant Reference – Rates, Thresholds and Checklists.md` | `de94931c47597286f33e0a952ff1686cbe7120bca48def74d1a44dd388922bf6` |
+
+## DGR check
+
+`dgr-check` adds no rate; its rules and data were read on 16 November 2026
+(times UTC):
+
+- ITAA 1997 as compiled on 1 October 2026 (legislation.gov.au, C2004A05138,
+  Compilation No. 268, C2026C00471, read 00:19 and again 04:31): s 30-15, whose
+  table items 1 and 2 no longer hold a '$2 or more' condition for money; s
+  30-15(2), no deduction for a gift under a will; s 30-17, a fund, authority or
+  institution endorsed for operation; s 30-228(1), what a DGR's receipt for a
+  gift states; s 30-229, the Register's DGR statements, with note 1, that an
+  entry or its lack does not affect deductibility, and note 2, that an entity
+  described or named in Subdivision 30-A with an ABN has one too, endorsed or
+  not.
+- Treasury Laws Amendment (Delivering an Efficient and Trusted Tax System) Act
+  2026, No. 58, 2026, as made (C2026A00058, assented to on 30 June 2026, read
+  00:21 and again 04:31): Sch 1 items 1 to 6 repeal the '$2 or more'
+  conditions, s 2 table item 2 commences Sch 1 on the first 1 January, 1
+  April, 1 July or 1 October after assent (1 July 2026), and item 7 applies the
+  repeal to gifts and contributions made on or after 1 July 2024. The ATO's
+  page below says the same.
+- The ATO's "Gifts and donations" (last updated 6 July 2026, read 00:20 and
+  again 04:31): a
+  gift is a voluntary transfer of money or property with no material benefit
+  or advantage in return, a deduction needs a record such as a receipt, and
+  DGR status is checked at ABN Lookup. s 30-228 sets what a DGR's receipt
+  states.
+- ABN Lookup's "ABN format" (read 00:27), whose worked example ABN
+  51 824 753 556 the tests use, and its disclaimer (read 00:27).
+- The ABN Bulk Extract on data.gov.au (read 00:18): weekly, current details
+  only, Creative Commons Attribution 3.0 Australia, with its readme and XML
+  schema. The `DGR` element carries a status date and, for an endorsement only
+  for the operation of a fund, authority or institution, the fund's name; it
+  carries no DGR item and no end date.
+
+The data is the extract of 11 November 2026 (extract time 2026-11-11T12:20:05),
+downloaded at 00:25 to 00:29 as `public_split_1_10.zip` (501,188,909 bytes,
+SHA-256 `d6ce13ba5682848163e1560635fc2f6dbc5da0531590129f56b986471b3e77c9`)
+and `public_split_11_20.zip` (500,936,917 bytes, SHA-256
+`7cef0479739f648834464adf67fddd9f094d733a05b2010983750494ed1fa4ae`), 12.7 GB
+of XML in 20 files. `examples/dgr_register.rs` read all 20,658,780 ABN records,
+each file's count matching its `RecordCount`, and kept 31,876 ABNs with DGR
+entries: 26,456 entries for an entity itself and 8,821 for a fund, authority or
+institution, 55 of them with an empty fund name. No individual's record had a
+DGR entry. A `DGR` element for a fund carries a `NonIndividualName` and no
+`status`; one for the entity itself carries `status="ACT"` and no name. The 55
+carry an empty name: read at first as the entity's own entries, they were
+rebuilt as funds after ABN Lookup was found to list them so (below). The raw
+files were deleted after each run.
+
+The data was compared with ABN Lookup's DGR listing downloads
+(https://abr.business.gov.au/Tools/DgrListing, read again at 04:33, after the
+ABN Lookup maintenance of 13 to 16 November). They were used only to check the
+data, as ABN Lookup states no licence for them. Of the 26,456 entity entries,
+26,451 match by ABN and start date. The other 5 ABNs are in neither listing:
+ABN Lookup showed 2 of them (read 04:34 and 06:12) as not currently entitled,
+with the ABN last updated on 11 and 13 November, at or after the extract. The
+listing has 35 entity entries for ABNs not in the data, most starting in 2026;
+the 3 earliest-starting showed the ABN last updated on 11 or 13 November. In
+each case read, the difference is timing: the record changed at or after the
+extract. Of the 8,821 fund entries, 8,753 match by ABN, start date and name, and
+66 more once the listing's ' (Public giving fund)' suffix is removed; the
+other 2 differ in the name only. The listing has 8 fund rows not in the data.
+The listing also gives the DGR item, which the extract does not.
+
+The 55 unnamed fund entries were found in that comparison: the listing gives
+each as a fund row with no name, and ABN Lookup's pages for the 3 such ABNs read
+(04:34) list the entry under the funds an entity operates, with no name. For
+one of them, the Ensemble Theatre Foundation, the entity is endorsed itself
+only from 1 January 2024; read as its own entry, the unnamed fund from 1 July
+2000 would have shown a 2010 gift to the entity as made to a DGR.
+
+`tests/dgr_check.rs` uses 5 ABNs read the same in the listing: an entity
+endorsed itself from 1 March 2006 and for a building fund from 1 July 2000; a
+school endorsed only for its building fund; a cancelled ABN whose library fund
+is listed as cancelled; the Ensemble Theatre Foundation above; and the
+Arthritis Foundation of Australia, Item 1, Endorsed DGR. The Library's worked example ¶7-020 (Tax Examples, Individuals,
+reviewed 30 June 2025) deducts a $250 donation in 2024-25 to 'the Arthritis
+Foundation' under s 30-15; by name the check gives only candidates, and with
+the receipt's ABN it reads the entity as endorsed on the date.
+
+No rival read on 16 November 2026 (00:25 to 00:26) offers a DGR check:
+Nagaris's `llms.txt` and skills page, LodgeiT's `llms.txt` and calculators
+page, `au-compliance-kit` at e94cef24 and `william-laverty/ato-mcp` at
+d3d84941. ABN Lookup itself shows each ABN's DGR status and history, and its
+keyed web services, which need a registered GUID, would add both; this
+command uses only the open bulk data.

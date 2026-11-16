@@ -1793,6 +1793,12 @@ fn the_payment_and_property_steps_cite_their_provisions() {
         "recipients_expenditure - amount_paid + employee_contribution \
          = 1000.00 - 250.00 + 0.00 = 750.00"
     );
+    // No input says whether the $250 was paid or reimbursed.
+    assert_eq!(
+        in_house[1]["authority"],
+        "FBTAA s 22A(1)(b)(i) for a payment or (ii) for a reimbursement, and s 136(1), \
+         recipients portion"
+    );
     assert_eq!(in_house[5]["authority"], "FBTAA s 62(1)");
     assert_eq!(in_house[6]["authority"], "FBTAA s 22A(1) and s 62(1)");
     // Item 23K example 14: 75% of $3,600, rounded to cents.
