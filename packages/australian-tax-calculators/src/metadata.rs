@@ -527,6 +527,21 @@ pub const TERMINATION_PAYMENT: [(&str, &str); 7] = [
 ];
 pub const TERMINATION_PAYMENT_YEARS: [&str; 1] = ["2026-27"];
 
+/// Unused leave paid on termination: Schedule 7's 32% rate for the parts a tax
+/// offset caps at 30% (30% plus the 2% Medicare levy) and its $300 limit for a
+/// small post-17 August 1993 payment, its 47% (45% for a foreign resident) of
+/// the payment when no TFN is provided (payments from 1 July 2026), and the 5%
+/// of pre-16 August 1978 long service leave that ITAA 1997 s 83-80(1) makes
+/// assessable.
+pub const UNUSED_LEAVE_PAYMENT: [(&str, &str); 5] = [
+    ("flat_rate", "0.32"),
+    ("pre_1978_assessable_rate", "0.05"),
+    ("small_payment", "300"),
+    ("no_tfn_rate", "0.47"),
+    ("no_tfn_foreign_resident_rate", "0.45"),
+];
+pub const UNUSED_LEAVE_PAYMENT_YEARS: [&str; 1] = ["2026-27"];
+
 /// Schedule 5 (NAT 3348): the schedules for payments from 1 July 2024, 1 July
 /// 2025 and 1 July 2026 state the same methods and limit.
 pub const SCHEDULE_5_YEARS: [&str; 3] = ["2024-25", "2025-26", "2026-27"];
@@ -933,6 +948,7 @@ pub fn supported_periods(kind: &str) -> Vec<&'static str> {
         "division_293" => DIVISION_293_YEARS.to_vec(),
         "division_296" => DIVISION_296_YEARS.to_vec(),
         "termination_payment" => TERMINATION_PAYMENT_YEARS.to_vec(),
+        "unused_leave_payment" => UNUSED_LEAVE_PAYMENT_YEARS.to_vec(),
         "schedule_5_method_a" | "schedule_5_method_b_i" | "schedule_5_method_b_ii" => {
             SCHEDULE_5_YEARS.to_vec()
         }
@@ -1077,6 +1093,10 @@ pub fn source_review(kind: &str) -> (&'static str, &'static str) {
         "termination_payment" => (
             "2026-11-14",
             "ATO Schedule 11, tax table for employment termination payments (from 1 July 2026), Table A and examples 1 to 4; ATO Key superannuation rates, tables 17 and 20; ITAA 1997 ss 82-10, 82-130 to 82-160 and 83-170 to 83-180, compilation 268 (1 October 2026); SISR reg 6.01(2), compilation 159 (1 July 2026)",
+        ),
+        "unused_leave_payment" => (
+            "2026-11-16",
+            "ATO Schedule 7, tax table for unused leave payments on termination of employment (from 1 July 2026): using this schedule, working out the withholding amount, the rates and labels table, rounding, the marginal rate calculation, normal gross earnings, the long service leave example and when a TFN has not been provided; ITAA 1997 ss 83-10, 83-15 and 83-70 to 83-115, compilation 268 (1 October 2026); ATO STP Phase 2 employer reporting guidelines, 'When an employee transfers or leaves'; Superannuation Guarantee (Administration) Act 1992 ss 6(1) 'ordinary time earnings' and 10A(1), compilation 78 (1 July 2026); ATO 'What payments are qualifying earnings', table 13",
         ),
         "schedule_5_method_a" | "schedule_5_method_b_i" | "schedule_5_method_b_ii" => (
             "2026-11-14",
@@ -1302,6 +1322,12 @@ pub fn library_evidence(kind: &str) -> [(&'static str, &'static str); 4] {
             "examples 1 to 4",
             "2026-06-17",
             "2026-11-14",
+        ),
+        "unused_leave_payment" => (
+            "ATO Schedule 7 tax table for unused leave payments on termination of employment",
+            "example: long service leave (Norman)",
+            "2026-06-17",
+            "2026-11-16",
         ),
         "schedule_5_method_a" | "schedule_5_method_b_i" | "schedule_5_method_b_ii" => (
             "ATO Schedule 5 (NAT 3348) withholding amounts examples",
@@ -1568,6 +1594,28 @@ pub fn optional_inputs(kind: &str) -> Vec<(&'static str, &'static str)> {
             (
                 "spouse_taxable_income",
                 "AUD, whole dollars, not for a single person: to transfer the spouse's unused base rebate amount (regulations s 12), the spouse's taxable income for the year with any exempt disability support, carer, invalidity service or partner service pension added (s 12(5)); give it only for a spouse entitled to the offset whose whole taxable income is ordinary taxable income taxed at the resident scale (Income Tax Rates Act 1986 Sch 7 Part I item table, with no superannuation or employment termination remainder taxed at 45%); omit for no transfer",
+            ),
+        ],
+        "unused_leave_payment" => vec![
+            (
+                "foreign_resident",
+                "boolean, scale 4 only and required there: true for a payee who is a foreign resident (45% withheld), false for a resident (47%)",
+            ),
+            (
+                "annual_leave_before_18_august_1993",
+                "AUD, the part of annual_leave in respect of employment before 18 August 1993 (s 83-15(b)); required, 0 if none, for a normal termination when leave_accrual_start is before that day and annual_leave is not nil; refused above nil when it is not before that day",
+            ),
+            (
+                "leave_loading_before_18_august_1993",
+                "AUD, the part of leave_loading in respect of employment before 18 August 1993; required and refused as annual_leave_before_18_august_1993 is",
+            ),
+            (
+                "long_service_leave_before_16_august_1978",
+                "AUD, the part of long_service_leave attributable to the pre-16/8/78 period (ss 83-90(1) and 83-95 to 83-115); required, 0 if none, when leave_accrual_start is before 16 August 1978 and long_service_leave is not nil, whatever the reason; refused above nil otherwise",
+            ),
+            (
+                "long_service_leave_16_august_1978_to_17_august_1993",
+                "AUD, the part of long_service_leave attributable to the pre-18/8/93 period, 16 August 1978 to 17 August 1993 (ss 83-90(2) and 83-95 to 83-115); required, 0 if none, for a normal termination when leave_accrual_start is before 18 August 1993 and long_service_leave is not nil; refused above nil when it is not before that day",
             ),
         ],
         "schedule_5_method_a" | "schedule_5_method_b_i" | "schedule_5_method_b_ii" => vec![(
@@ -2073,6 +2121,41 @@ pub fn input_units(kind: &str) -> Vec<(&'static str, &'static str)> {
                 "YYYY-MM-DD, the employee's, for their preservation age (SISR reg 6.01(2))",
             ),
         ],
+        "unused_leave_payment" => vec![
+            (
+                "annual_leave",
+                "AUD, the unused annual leave paid in consequence of the termination (s 83-10(3)(a) and (c)), excluding leave loading",
+            ),
+            (
+                "leave_loading",
+                "AUD, the leave loading, bonus or other additional payment for that unused annual leave (s 83-10(3)(b))",
+            ),
+            (
+                "long_service_leave",
+                "AUD, the unused long service leave paid in consequence of the termination (ss 83-70 and 83-75), all periods",
+            ),
+            (
+                "leave_accrual_start",
+                "YYYY-MM-DD, the first day of the earliest period over which the unused leave paid accrued: for long service leave, its long service leave employment period (s 83-90(4))",
+            ),
+            (
+                "termination_reason",
+                "normal (resignation, dismissal for inefficiency, retirement and every other reason), genuine_redundancy (s 83-175), early_retirement_scheme (s 83-180) or invalidity (an ETP or super benefit with an invalidity segment, s 82-150); death is refused",
+            ),
+            (
+                "working_holiday_maker",
+                "boolean, whether the employee is a working holiday maker; true is refused (Schedule 15 covers them)",
+            ),
+            (
+                "earnings",
+                "AUD, the employee's normal gross earnings: all payments except termination payments in the last full pay period, including taxable allowances, overtime and bonuses, or the year-to-date average pay where pay fluctuates significantly (Schedule 7, 'Normal gross earnings'); not used for scale 4",
+            ),
+            ("pay_period", "weekly, fortnightly or monthly"),
+            (
+                "scale",
+                "integer 1, 2, 3, 5 or 6, the Schedule 1 scale used for the employee's normal earnings (3 for a foreign resident who gave a TFN), or 4 when no TFN was provided",
+            ),
+        ],
         "schedule_5_method_a" => [
             vec![
                 (
@@ -2459,6 +2542,24 @@ pub fn examples(kind: &str) -> Vec<(&'static str, Example)> {
             ("non_excluded_payment", Text("17678.00")),
             ("other_taxable_payments", Text("140000.00")),
             ("date_of_birth", Text("1996-09-01")),
+        ],
+        // Schedule 7's example (Norman), which gives no accrual start: any day
+        // before 16 August 1978 gives its 3 long service leave periods.
+        "unused_leave_payment" => vec![
+            ("annual_leave", Text("0.00")),
+            ("leave_loading", Text("0.00")),
+            ("long_service_leave", Text("22020.00")),
+            ("long_service_leave_before_16_august_1978", Text("780.00")),
+            (
+                "long_service_leave_16_august_1978_to_17_august_1993",
+                Text("6420.00"),
+            ),
+            ("leave_accrual_start", Text("1977-01-01")),
+            ("termination_reason", Text("normal")),
+            ("working_holiday_maker", Flag(false)),
+            ("earnings", Text("1155.00")),
+            ("pay_period", Text("weekly")),
+            ("scale", Whole(2)),
         ],
         // Schedule 5's examples 1 to 3 (Jarrod, Robyn and Laura), for payments from 1 July 2026.
         "schedule_5_method_a" => vec![

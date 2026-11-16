@@ -138,8 +138,8 @@ fn every_catalogued_required_input_of_a_strict_command_is_read() {
     // The 14 commands that refused an unknown field before the FBT benefit
     // worksheets (the 3 Schedule 5 methods counted apart), the 11 FBT benefit
     // worksheets, payg-gross-up, hire-purchase-schedule,
-    // fbt-entertainment-classifier and income-tests.
-    assert_eq!(checked, 29);
+    // fbt-entertainment-classifier, unused-leave-payment and income-tests.
+    assert_eq!(checked, 30);
 }
 
 /// Every frozen call gives the same answer through either entry point, and
