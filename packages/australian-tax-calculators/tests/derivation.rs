@@ -13,7 +13,7 @@ use std::io::Write;
 use std::process::{Command, Stdio};
 
 /// The commands `derive` explains.
-const DERIVED: [&str; 42] = [
+const DERIVED: [&str; 43] = [
     "fbt",
     "fbt-car-statutory",
     "fbt-car-operating-cost",
@@ -30,6 +30,7 @@ const DERIVED: [&str; 42] = [
     "schedule-5-method-b-i",
     "schedule-5-method-b-ii",
     "termination-payment",
+    "unused-leave-payment",
     "working-holiday-maker-withholding",
     "study-loan-withholding",
     "seniors-pensioners-withholding",
@@ -335,7 +336,41 @@ fn cases() -> Vec<(&'static str, Value)> {
         ETP.iter()
             .map(|(_, facts)| ("termination-payment", etp(facts))),
     );
+    cases.extend(
+        LEAVE
+            .iter()
+            .map(|facts| ("unused-leave-payment", leave(facts))),
+    );
     cases
+}
+
+/// Unused leave cases beside the catalogue's Schedule 7 example (Norman): each
+/// branch of the reason, the accrual parts, the $300 limit and no TFN.
+const LEAVE: [&str; 5] = [
+    // Greg, the ATO's invalidity example: all of it at 32%.
+    r#"{"annual_leave": "2260.00", "leave_loading": "420.00", "termination_reason": "invalidity"}"#,
+    // A normal termination with annual leave from before 18 August 1993.
+    r#"{"annual_leave": "85000.00", "leave_loading": "0.00", "annual_leave_before_18_august_1993": "3533.00", "leave_loading_before_18_august_1993": "0.00", "leave_accrual_start": "1992-09-18"}"#,
+    // A genuine redundancy with pre-16 August 1978 long service leave.
+    r#"{"long_service_leave": "50000.00", "long_service_leave_before_16_august_1978": "2000.00", "termination_reason": "genuine_redundancy", "leave_accrual_start": "1976-03-01"}"#,
+    // Under $300: the lesser of the marginal rate amount and 32%.
+    r#"{"annual_leave": "250.00", "earnings": "3000.00"}"#,
+    // No TFN, a foreign resident: 45% of the whole payment, pre-1978 part included.
+    r#"{"long_service_leave": "1002.99", "long_service_leave_before_16_august_1978": "900.00", "long_service_leave_16_august_1978_to_17_august_1993": "0.00", "leave_accrual_start": "1976-03-01", "scale": 4, "foreign_resident": true}"#,
+];
+
+/// An unused leave input: `facts` over nil leave accrued from 2000, a normal
+/// termination and $1,155 a week on scale 2 in 2026-27.
+fn leave(facts: &str) -> Value {
+    let mut input = json!({
+        "annual_leave": "0.00", "leave_loading": "0.00", "long_service_leave": "0.00",
+        "leave_accrual_start": "2000-01-01", "termination_reason": "normal",
+        "working_holiday_maker": false,
+        "earnings": "1155.00", "pay_period": "weekly", "scale": 2,
+        "year": "2026-27", "scope_confirmed": true,
+    });
+    merge(&mut input, serde_json::from_str(facts).unwrap());
+    input
 }
 
 const A: &str = "schedule-5-method-a";
@@ -2000,7 +2035,7 @@ fn derive_refuses_what_it_does_not_explain() {
          fbt-meal-entertainment, fbt-car-parking, fbt-debt-waiver, fbt-expense-payment, \
          fbt-property, division-293, pension-minimum, payg-withholding, schedule-5-method-a, \
          schedule-5-method-b-i, schedule-5-method-b-ii, termination-payment, \
-         working-holiday-maker-withholding, study-loan-withholding, \
+         unused-leave-payment, working-holiday-maker-withholding, study-loan-withholding, \
          seniors-pensioners-withholding, quarterly-sg, borrowing-expenses, resident-tax, \
          foreign-resident-tax, low-income-tax-offset, seniors-pensioners-tax-offset, \
          medicare-levy, medicare-levy-surcharge, division-296, contribution-caps, \
