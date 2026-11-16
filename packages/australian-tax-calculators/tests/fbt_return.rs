@@ -705,18 +705,18 @@ fn the_composed_totals_are_the_sum_of_the_benefits() {
         assert_eq!(result["amounts"]["type_one_value"], money(type_one));
         assert_eq!(result["amounts"]["type_two_value"], money(type_two));
         assert_eq!(result["reconciliation"]["difference"], "0.00");
-        for (employee, entry) in result["employees"].as_object().unwrap() {
-            let at: usize = employee[1..].parse().unwrap();
+        for (label, amounts) in result["employees"].as_object().unwrap() {
+            let at: usize = label[1..].parse().unwrap();
             let expected = if individual[at] > 200_000 {
                 Decimal::from_int((individual[at] / 53) as i64)
             } else {
                 Decimal::from_int(0)
             };
             assert!(
-                d(&entry["reportable_fringe_benefits_amount"])
+                d(&amounts["reportable_fringe_benefits_amount"])
                     .equals(&expected)
                     .unwrap(),
-                "{employee} {entry}"
+                "{label} {amounts}"
             );
         }
     }
