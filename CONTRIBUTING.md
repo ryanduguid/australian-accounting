@@ -251,6 +251,20 @@ test value for its file, with its reason, in
 `tools/fixture-screen/tests/synthetic-identifiers.txt`. It uses evatt's detectors
 from `ryanduguid/accounting-review-pipeline`, pinned to one commit.
 
+`secrets.yml` runs gitleaks with `.gitleaks.toml`, and its `au-bank-account`
+rule matches a made-up bank detail as readily as a real one. It looks on one
+line for a label, `BSB` or `account number` (any case; `account no` and
+`account_number` count, so a JSON key or a function name such as
+`validate_account_number_format` is a label), then up to 20 characters that
+are not digits, then 3 digits, an optional space or hyphen and 3 more digits,
+or a run of 6 to 10 digits. In a test or fixture, keep such a value off the
+line that holds the label, for example in a parametrised list, or use a value
+the rule does not match, such as `12-3456` or `12345`. The pull request scan
+reads every commit, so a match in an earlier commit fails the check even after
+a later commit removes it: rebuild the branch without that commit. Only the
+fixture screen's own tests are allowlisted, and a new allowlist entry must
+reach `main` in its own pull request first.
+
 `joined-fixtures.yml` checks the close-to-forecast, quarter and WIP-to-cash examples
 on pull requests, pushes to `main` and manual runs, on Linux and Windows.
 It uses this repository's proposed
