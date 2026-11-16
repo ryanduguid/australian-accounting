@@ -99,10 +99,10 @@ lists the commands.
 | `fbt-car-statutory` | `cost_price`, `later_accessories`, `one_third_reduction`, `days_available`, `employee_contribution`, `electric_car_exempt`, `year_ended`, `scope_confirmed` |
 | `fbt-car-operating-cost` | `running_costs`, `lease_charges`, `depreciated_value`, `effective_life_years`, `days_held`, `business_use`, `employee_contribution`, `statutory_formula_taxable_value`, `electric_car_exempt`, `year_ended`, `scope_confirmed` |
 | `fbt-loan` | `daily_balance_total`, `interest_accrued`, `income_use`, `accrued_interest_deduction`, `year_ended`, `scope_confirmed` |
-| `fbt-meal-entertainment` | `method`, `meal_entertainment_expenditure`, `year_ended`, `scope_confirmed`; with `12_week_register`, `register_fringe_benefits_value`, `register_meal_entertainment_value` and `register_first_year` |
-| `fbt-car-parking` | `method`, `first_business_day_fee`, `year_ended`, `scope_confirmed`; with `commercial_parking_station`, `benefits`, `lowest_fee` and `employee_contribution`; with `average_cost`, `benefits`, `first_day_fee`, `last_day_fee` and `employee_contribution`; with `12_week_register`, `register_value`, `availability_days` and `register_first_year` |
+| `fbt-meal-entertainment` | `method`, `meal_entertainment_expenditure`, `year_ended`, `scope_confirmed`; with `12_week_register`, `register_fringe_benefits_value`, `register_meal_entertainment_value`, `register_first_year` and `register_years_expenditure` |
+| `fbt-car-parking` | `method`, `year_ended`, `scope_confirmed`; with `commercial_parking_station`, `first_business_day_fee`, `benefits`, `lowest_fee` and `employee_contribution`; with `market_value`, `first_business_day_fee`, `benefits`, `market_value` and `employee_contribution`; with `average_cost`, `first_business_day_fee`, `benefits`, `first_day_fee`, `last_day_fee` and `employee_contribution`; with `spaces`, `space_groups`, `employees_at_start`, `employees_at_end`, `eligible_spaces_at_start`, `eligible_spaces_at_end` and `employee_contribution`; with `12_week_register`, `first_business_day_fee`, `register_value`, `availability_days` and `register_first_year` |
 | `fbt-debt-waiver` | `amount_waived`, `year_ended`, `scope_confirmed` |
-| `fbt-expense-payment` | `method`, `recipients_expenditure`, `amount_paid`, `employee_contribution`, `year_ended`, `scope_confirmed`; with `external`, `income_use` and `recipients_portion_deduction`; with an in-house method, that method's inputs as for `fbt-property` and, except with `in_house_salary_packaging`, `in_house_reduction_available` |
+| `fbt-expense-payment` | `method`, `recipients_expenditure`, `amount_paid`, `employee_contribution`, `year_ended`, `scope_confirmed`; with `external`, `income_use` and `recipients_portion_deduction`; with an in-house property method, that method's inputs as for `fbt-property`; with `in_house_residual_salary_packaging` or `in_house_residual_other`, `notional_value`; with `in_house_residual_public_price`, `lowest_price`; and with every in-house method but the 2 salary packaging ones, `in_house_reduction_available` |
 | `fbt-property` | `method`, `employee_contribution`, `income_use`, `contribution_deduction`, `year_ended`, `scope_confirmed`; with `in_house_trade_price` or `in_house_public_price`, `lowest_price`; with `in_house_acquired`, `arms_length_price` and `notional_value`; with `external_cost_price`, `cost_price`; with `external_expenditure`, `employer_expenditure`; with another method, `notional_value`; with an in-house method other than `in_house_salary_packaging`, also `in_house_reduction_available` |
 | `fbt-residual` | `method`, `employee_contribution`, `income_use`, `contribution_deduction`, `year_ended`, `scope_confirmed`; with `in_house_salary_packaging`, `in_house_other` or `external_notional_value`, `notional_value`; with `in_house_public_price`, `lowest_price`; with `external_cost_price`, `cost_price`; with `external_expenditure`, `employer_expenditure`; with `in_house_public_price` or `in_house_other`, also `in_house_reduction_available` |
 | `fbt-housing` | `method`, `employee_contribution`, `year_ended`, `scope_confirmed`; with `outside_australia`, `market_value`; with `accommodation_business`, `market_value` and `in_house`; with `base_year`, `market_value` and `tenancy_days`; with `indexed`, `prior_statutory_annual_value`, `state`, `base_year_ended` and `tenancy_days` |
@@ -236,10 +236,10 @@ they have no step.
 | FBT | Years ended 31 March 2026 and 2027; established type 1 and type 2 taxable values, ordinary employer |
 | FBT car benefits | Years ended 31 March 2026 and 2027; one car's established base value or operating costs, the 20% statutory percentage and a deemed depreciation rate of 200% over the established effective life |
 | FBT loans | Years ended 31 March 2026 and 2027 at the statutory interest rate (8.62% and 8.27%); one loan to a current employee, its established daily balances, interest accrued and deductible share |
-| FBT meal entertainment | Years ended 31 March 2026 and 2027; the established year's expenditure, by the 50/50 split or a valid 12 week register |
-| FBT car parking | Years ended 31 March 2026 and 2027 at the car parking threshold ($11.03 and $11.48); the commercial parking station, average cost or 12 week register method; no market value or spaces method |
+| FBT meal entertainment | Years ended 31 March 2026 and 2027; the established year's expenditure, by the 50/50 split or a 12 week register checked against its age and the 20% rule |
+| FBT car parking | Years ended 31 March 2026 and 2027 at the car parking threshold ($11.03 and $11.48); the commercial parking station, market value, average cost, spaces or 12 week register method; the 12 week register's 10% rule is the operator's |
 | FBT debt waivers | Years ended 31 March 2026 and 2027; the established amount waived |
-| FBT expense payments | Years ended 31 March 2026 and 2027; one external payment or reimbursement with the otherwise deductible rule, or one in-house property expense payment with the $1,000 in-house reduction; no in-house residual expense payment |
+| FBT expense payments | Years ended 31 March 2026 and 2027; one external payment or reimbursement with the otherwise deductible rule, or one in-house property or residual expense payment with the $1,000 in-house reduction; no otherwise deductible rule for in-house payments |
 | FBT property | Years ended 31 March 2026 and 2027; one benefit valued by an in-house (s 42) or external (s 43) rule, with the otherwise deductible rule and the $1,000 in-house reduction; no airline transport or car property rules |
 | FBT residual benefits | Years ended 31 March 2026 and 2027; one benefit's established in-house or external value, contribution and deductible share; no car, airline transport or jointly provided benefit |
 | FBT housing | Years ended 31 March 2026 and 2027 at the ATO's housing indexation factors; a unit outside Australia or in an accommodation business at market value, or a statutory annual value from its base year; no remote area housing |
@@ -552,10 +552,13 @@ and the result's warning says so.
 `fbt_meal_entertainment` takes the year's meal entertainment expenses, net of
 employees' unreimbursed contributions, and applies 50% (`50_50_split`, s 37BA)
 or the register percentage (`12_week_register`, s 37CB), kept exact and shown to
-2 places. A register must be in its first valid year or one of the 4 after it
-(s 37CD). The worksheet checks only that; the operator establishes that the
-register was kept as the Act requires, that no earlier year's expenses were more
-than 20% above its first valid year's, and that no later register replaced it.
+2 places. A register must be in its first valid year or one of the 4 after it,
+and it ceases to be valid at the end of a year whose meal entertainment expenses
+were more than 20% higher than its first valid year's (s 37CD).
+`register_years_expenditure` lists each year's expenses from the first valid
+year to the year before this one, oldest first, and the worksheet refuses a
+register that has ceased. The operator establishes that the register was kept
+as the Act requires and that no later register replaced it.
 
 `fbt_car_parking` gives a nil taxable value unless `first_business_day_fee`,
 the highest of the nearby stations' lowest all-day fees on the first business
@@ -566,18 +569,29 @@ takes one premises and the stations within 1 km of it; run it once for each.
 day's lowest fee (s 39C), the same on every day, and `average_cost` at the
 average of the fees on the days benefits were first and last provided (s 39DA);
 the recipients' payments come off in total, each counted only up to its
-benefit's value, never below nil. `12_week_register`
+benefit's value, never below nil. `market_value` values each benefit at the
+amount a suitably qualified valuer at arm's length reported (s 39D), with the
+payments taken off the same way; the operator establishes that the report came
+before the declaration date in the approved form. `spaces` (s 39FA) takes
+`space_groups`, each a group of spaces sharing a daily rate amount (a benefit's
+value by the commercial parking station, market value or average cost method,
+before any payment; s 39FC) and an availability period, with its own first
+business day fee above the threshold. For each space it multiplies the rate by
+the period's days over 366 and by 228, adds them, divides by 366 once and rounds
+to cents. Where the election's employees average fewer than its eligible spaces
+(each average from the start and end of the parking period), it scales that
+total by the one over the other (s 39FB); every recipient's payment then comes
+off the total, never below nil. `12_week_register`
 takes the register's net value times 52 / 12 times the availability period's
 days over 366 (s 39GB), the divisor the Act sets for every year. It checks only
 the register's age (s 39GF); the operator establishes the record keeping, that
 the number of benefits rose by no more than 10% on any day of an earlier year,
-and that no later register replaced it. The market value (s 39D) and spaces (s
-39FA) methods are not covered, and a `method` naming either is refused: one
-needs a valuer's report, the other per-space facts this worksheet does not take.
+and that no later register replaced it: s 39GF(3) does not say what the 10%
+rise is measured from.
 
 Each worksheet reproduces, to the cent, the published examples for the years it
 supports (FBT return 2026 instructions examples 8 and 18, and the Library's
-¶3-100 and ¶3-220) and the employer's guide's car parking examples 15 and 17,
+¶3-100 and ¶3-220) and the employer's guide's car parking examples 15, 17 and 18,
 and reruns the guide's earlier-year loan examples at the supported rates; see
 [calculation evidence](docs/calculation-evidence.md#fbt-loan).
 
@@ -622,10 +636,15 @@ deductible rule (s 24) takes off the gross deduction on the expenditure less
 An in-house method values an in-house property expense payment (s 22A(1)): the
 property's value under that `fbt-property` rule less the recipient's portion,
 the expenditure less the payment net of the contribution, then the s 62
-reduction. In-house residual expense payments (s 22A(2)) and the otherwise
-deductible rule for in-house expense payments (s 24(1)(b)(i)) are not covered,
-and an `income_use` or `recipients_portion_deduction` given with an in-house
-method is refused as `fbt_expense_payment.in_house_deductible_not_covered`.
+reduction. An in-house residual expense payment (s 22A(2)), such as a service
+of a kind the employer sells to the public, takes the in-house residual rules
+of `fbt-residual` the same way: `in_house_residual_salary_packaging` the
+notional value, `in_house_residual_public_price` 75% of the lowest price to the
+public and `in_house_residual_other` 75% of the notional value (ss 48 and 49,
+read with s 22A(3) for a period benefit). The otherwise deductible rule for
+in-house expense payments (s 24(1)(b)(i)) is not covered, and an `income_use`
+or `recipients_portion_deduction` given with an in-house method is refused as
+`fbt_expense_payment.in_house_deductible_not_covered`.
 
 Which gross-up an expense payment or property benefit takes depends on
 whether the provider is entitled to a GST credit for providing it; the result's

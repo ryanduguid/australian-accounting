@@ -5,7 +5,10 @@
 //! 5 and 11): each benefit's taxable value, which `fbt` then grosses up with the
 //! others. They cite the FBTAA as compiled on 1 July 2026 (C2004A03280) and the
 //! ATO's 'Fringe benefits tax - a guide for employers', chapters 8, 9, 17 and
-//! 19, and FBT return 2026 instructions, item 23, read on 15 November 2026.
+//! 19, and FBT return 2026 instructions, item 23, read on 15 November 2026;
+//! the in-house residual expense payments (s 22A(2) and (3), ss 48 and 49) were
+//! added from compilation 97 and the guide's 9.3 and 18.4, read on 16 November
+//! 2026.
 
 use serde_json::Value;
 
@@ -96,6 +99,31 @@ const RULES: [Rule; 9] = [
     ),
 ];
 
+/// The in-house residual rules an in-house residual expense payment takes (s
+/// 22A(2)), read with s 22A(3) for a period residual benefit, so that a price or
+/// notional value is the recipient's overall benefit's. Airline transport (s
+/// 48(ab) and s 49(ab)) is left out, as `fbt-residual` leaves it out.
+const RESIDUAL_RULES: [Rule; 3] = [
+    (
+        "in_house_residual_salary_packaging",
+        "FBTAA s 22A(2), s 48(aa) and s 49(aa)",
+        Whole,
+        &["notional_value"],
+    ),
+    (
+        "in_house_residual_public_price",
+        "FBTAA s 22A(2) and (3)(a), s 48(a) and s 49(a)",
+        ThreeQuarters,
+        &["lowest_price"],
+    ),
+    (
+        "in_house_residual_other",
+        "FBTAA s 22A(2) and (3)(b), s 48(b) and s 49(b)",
+        ThreeQuarters,
+        &["notional_value"],
+    ),
+];
+
 /// The property worksheet's methods: one for each rule.
 pub(super) const PROPERTY_METHODS: [&str; 9] = {
     let mut out = [""; 9];
@@ -107,13 +135,19 @@ pub(super) const PROPERTY_METHODS: [&str; 9] = {
     out
 };
 
-/// The expense payment worksheet's methods: an external payment (s 23), or an
-/// in-house property expense payment (s 22A(1)) valued by an in-house rule.
-pub(super) const EXPENSE_PAYMENT_METHODS: [&str; 7] = {
-    let mut out = ["external"; 7];
+/// The expense payment worksheet's methods: an external payment (s 23), an
+/// in-house property expense payment (s 22A(1)) valued by an in-house property
+/// rule, or an in-house residual expense payment (s 22A(2)) valued by an
+/// in-house residual rule.
+pub(super) const EXPENSE_PAYMENT_METHODS: [&str; 10] = {
+    let mut out = ["external"; 10];
     let mut i = 0;
     while i < 6 {
         out[i + 1] = RULES[i].0;
+        i += 1;
+    }
+    while i < 9 {
+        out[i + 1] = RESIDUAL_RULES[i - 6].0;
         i += 1;
     }
     out
@@ -148,6 +182,7 @@ pub fn fbt_debt_waiver(
 fn rule(method: &str) -> Rule {
     *RULES
         .iter()
+        .chain(&RESIDUAL_RULES)
         .find(|r| r.0 == method)
         .expect("a rule per method")
 }
@@ -155,7 +190,7 @@ fn rule(method: &str) -> Rule {
 /// Whether s 62's in-house reduction applies: an in-house rule, but not to a
 /// benefit under a salary packaging arrangement (s 62(2)).
 fn reduces(rule: Rule) -> bool {
-    rule.0.starts_with("in_house_") && rule.0 != "in_house_salary_packaging"
+    rule.0.starts_with("in_house_") && !rule.0.ends_with("_salary_packaging")
 }
 
 /// The inputs `rule` takes beside those every method of a worksheet takes.
@@ -281,9 +316,10 @@ pub fn fbt_property(
 const EXPENSE: &str = "fbt-expense-payment";
 
 /// FBTAA Division 5: an external expense payment's value (s 23), reduced by
-/// the otherwise deductible rule (s 24), or an in-house property expense
-/// payment's (s 22A(1)), the in-house property value less the recipient's
-/// portion, reduced by the employee's $1,000 in-house reduction (s 62).
+/// the otherwise deductible rule (s 24), or an in-house property or residual
+/// expense payment's (s 22A(1) or (2)), the in-house value less the
+/// recipient's portion, reduced by the employee's $1,000 in-house reduction (s
+/// 62).
 pub fn fbt_expense_payment(
     method_arg: &Arg,
     given: &[(String, Arg)],
@@ -377,54 +413,94 @@ fn external_payment<'a>(
     taxable_steps(steps, None, authority)
 }
 
-/// The notional contribution of an in-house property expense payment, the
-/// recipient's portion, applied to the in-house value, its excess and the
-/// value after it (s 22A(1)(b)).
-const PORTION_ROWS: [(&str, &str, &str); 3] = [
-    (
-        "recipients_portion_applied",
-        "FBTAA s 22A(1)(b)",
-        "min(recipients_portion, gross_taxable_value)",
-    ),
-    (
-        "excess_recipients_portion",
-        "FBTAA s 22A(1)(b)",
-        "recipients_portion - recipients_portion_applied",
-    ),
-    (
-        "value_after_contribution",
-        "FBTAA s 22A(1)",
-        "gross_taxable_value - recipients_portion_applied",
-    ),
-];
+/// What an in-house expense payment's steps cite, by the subsection that
+/// values it: s 22A(1) for property, s 22A(2) for a residual benefit.
+struct InHouse {
+    /// The recipient's portion, the notional contribution.
+    portion: &'static str,
+    /// That contribution applied to the in-house value, its excess and the
+    /// value after it.
+    rows: [(&'static str, &'static str, &'static str); 3],
+    /// The taxable value with and without s 62's reduction.
+    reduced: &'static str,
+    taxable: &'static str,
+}
 
-/// s 22A(1): the in-house property value `rule` gives, less the recipient's
-/// portion as the contribution, then s 62. The otherwise deductible rule for
-/// an in-house expense payment (s 24(1)(b)(i)) is not covered.
+const fn in_house(
+    portion: &'static str,
+    contribution: &'static str,
+    taxable: &'static str,
+    reduced: &'static str,
+) -> InHouse {
+    InHouse {
+        portion,
+        rows: [
+            (
+                "recipients_portion_applied",
+                contribution,
+                "min(recipients_portion, gross_taxable_value)",
+            ),
+            (
+                "excess_recipients_portion",
+                contribution,
+                "recipients_portion - recipients_portion_applied",
+            ),
+            (
+                "value_after_contribution",
+                taxable,
+                "gross_taxable_value - recipients_portion_applied",
+            ),
+        ],
+        reduced,
+        taxable,
+    }
+}
+
+const PROPERTY_PAYMENT: InHouse = in_house(
+    "FBTAA s 22A(1)(b)(i) and s 136(1), recipients portion",
+    "FBTAA s 22A(1)(b)",
+    "FBTAA s 22A(1)",
+    "FBTAA s 22A(1) and s 62(1)",
+);
+const RESIDUAL_PAYMENT: InHouse = in_house(
+    "FBTAA s 22A(2)(b)(i) and s 136(1), recipients portion",
+    "FBTAA s 22A(2)(b)",
+    "FBTAA s 22A(2)",
+    "FBTAA s 22A(2) and s 62(1)",
+);
+
+/// s 22A(1) or (2): the in-house property or residual value `rule` gives, less
+/// the recipient's portion as the contribution, then s 62. The otherwise
+/// deductible rule for an in-house expense payment (s 24(1)(b)(i)) is not
+/// covered.
 fn in_house_payment<'a>(
     rule: Rule,
     amounts: [&Decimal; 3],
     input: impl Fn(&str) -> &'a Arg,
 ) -> Result<Vec<Step>> {
     let [expenditure, paid, contribution] = amounts;
+    let cites = if RESIDUAL_RULES.iter().any(|r| r.0 == rule.0) {
+        &RESIDUAL_PAYMENT
+    } else {
+        &PROPERTY_PAYMENT
+    };
     let gross = value_step(rule, &input)?;
     let available = available(rule, &input)?;
     let portion = precise(|| Ok(expenditure.sub(paid)?.add(contribution)?))?;
     let formula = "recipients_expenditure - amount_paid + employee_contribution";
-    let authority = "FBTAA s 22A(1)(b)(i) and s 136(1), recipients portion";
     let portion_step = step(
         "recipients_portion",
-        authority,
+        cites.portion,
         formula,
         &[expenditure, paid, contribution],
         portion.clone(),
     );
-    let mut steps = contribution_steps(gross, &portion, &PORTION_ROWS)?;
+    let mut steps = contribution_steps(gross, &portion, &cites.rows)?;
     steps.insert(1, portion_step);
     let authority = if available.is_some() {
-        "FBTAA s 22A(1) and s 62(1)"
+        cites.reduced
     } else {
-        "FBTAA s 22A(1)"
+        cites.taxable
     };
     taxable_steps(steps, available, authority)
 }
