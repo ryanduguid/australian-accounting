@@ -779,6 +779,7 @@ pub const UNPUBLISHED_2027_28: &[(&str, &str)] = &[
     ("schedule_5_method_b_ii", WITHHOLDING_2027_28),
     ("working_holiday_maker_withholding", WITHHOLDING_2027_28),
     ("seniors_pensioners_withholding", WITHHOLDING_2027_28),
+    ("unused_leave_payment", WITHHOLDING_2027_28),
     (
         "termination_payment",
         "The 2027-28 ETP cap amounts and genuine redundancy tax-free limits had not been published when this was checked on 16 November 2026.",

@@ -407,6 +407,23 @@ fn the_accrual_dates_decide_which_parts_are_needed() {
     assert_eq!(code(before_1978), "leave.accrual_split_missing");
 }
 
+/// The ATO's tax tables page (updated 17 June 2026, read 17 November 2026)
+/// lists Schedules 1 and 7 for payments from 1 July 2026 and none from 1 July
+/// 2027, so a 2027-28 payment is refused with that reason.
+#[test]
+fn a_2027_28_payment_is_refused_with_the_reason() {
+    let facts = input(json!({"year": "2027-28"}));
+    let refusal = api::evaluate_coded("unused-leave-payment", &facts).unwrap_err();
+    assert_eq!(refusal.code, "period.unsupported");
+    assert!(
+        refusal
+            .message
+            .contains("withholding schedules for payments from 1 July 2027"),
+        "{}",
+        refusal.message
+    );
+}
+
 #[test]
 fn each_refusal_has_its_code() {
     let old = "1976-01-01";
