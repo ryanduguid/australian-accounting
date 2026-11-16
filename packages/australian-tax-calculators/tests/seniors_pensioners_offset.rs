@@ -137,10 +137,18 @@ fn every_threshold_and_cut_out_for_each_year() {
     // 2025-26: the ATO's table; 2024-25: its shading-out thresholds in "Do you
     // need to lodge a tax return? 2025", reason 2, with the cut-outs of s 10;
     // 2026-27: regulations ss 9(5) and 10 at 15%, as (base + 445) / 0.15 +
-    // 18,200 rounded up, plus base / 0.125.
+    // 18,200 rounded up, plus base / 0.125; 2027-28 the same at 14%, except
+    // that a single person's (2,230 + 445) / 0.14 + 18,200 = 37,307.14 is
+    // above $37,000, so s 9(6) gives 11,698 / 0.315 = 37,136.51, rounded up.
     let at_16 = [(34919, 52759), (33732, 50052), (30994, 43810)];
     let at_15 = [(36034, 53874), (34767, 51087), (31847, 44663)];
-    for (year, figures) in [("2024-25", at_16), ("2025-26", at_16), ("2026-27", at_15)] {
+    let at_14 = [(37137, 54977), (35950, 52270), (32822, 45638)];
+    for (year, figures) in [
+        ("2024-25", at_16),
+        ("2025-26", at_16),
+        ("2026-27", at_15),
+        ("2027-28", at_14),
+    ] {
         for ((status, base), (threshold, cut_out)) in [
             ("single", "2230.00"),
             ("illness_separated", "2040.00"),
@@ -265,7 +273,7 @@ fn refusals() {
         with("scope_confirmed", json!(false)).0,
         "scope.not_confirmed"
     );
-    assert_eq!(with("year", json!("2027-28")).0, "period.unsupported");
+    assert_eq!(with("year", json!("2028-29")).0, "period.unsupported");
     assert_eq!(
         with("rebate_income", json!("39000.50")).0,
         "input.amount_not_whole_dollars"
@@ -316,7 +324,7 @@ fn catalogue_lists_the_worksheet_and_its_example_runs() {
         .iter()
         .map(|p| p["id"].as_str().unwrap())
         .collect();
-    assert_eq!(years, ["2024-25", "2025-26", "2026-27"]);
+    assert_eq!(years, ["2024-25", "2025-26", "2026-27", "2027-28"]);
     let optional: Vec<&String> = entry["optional_inputs"]
         .as_object()
         .unwrap()

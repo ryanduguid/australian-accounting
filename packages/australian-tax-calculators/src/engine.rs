@@ -184,14 +184,19 @@ fn scope(confirmed: &Arg, year: &Arg, kind: &str) -> Result<String> {
     let supported = meta::supported_periods(kind);
     match year.text() {
         Some(y) if supported.contains(&y) => Ok(y.to_string()),
-        _ => refuse(
-            "period.unsupported",
-            format!(
+        given => {
+            let mut message = format!(
                 "Unsupported period {}; supported: {}.",
                 year.repr(),
                 supported.join(", ")
-            ),
-        ),
+            );
+            if given == Some("2027-28")
+                && let Some((_, why)) = texts::UNPUBLISHED_2027_28.iter().find(|(k, _)| *k == kind)
+            {
+                message = format!("{message} {why}");
+            }
+            refuse("period.unsupported", message)
+        }
     }
 }
 
@@ -446,12 +451,24 @@ const GST_EXCLUSIVE_STEPS: [(&str, &str, &str); 3] = [
 
 pub fn resident_tax(taxable_income: &Arg, year: &Arg, scope_confirmed: &Arg) -> Result<Value> {
     let year = scope(scope_confirmed, year, "resident_tax")?;
-    basic_tax(
+    let mut out = basic_tax(
         "resident_tax",
         taxable_income,
         &year,
         meta::RESIDENT_TAX_SCALES,
-    )
+    )?;
+    year_warning(&mut out, texts::RESIDENT_TAX_YEAR_WARNINGS, &year);
+    Ok(out)
+}
+
+/// Add the year's warning from `table`, if it has one.
+fn year_warning(out: &mut Value, table: &[(&str, &str)], year: &str) {
+    if let Some((_, note)) = table.iter().find(|(y, _)| *y == year) {
+        out["warnings"]
+            .as_array_mut()
+            .expect("warnings")
+            .push(json!(note));
+    }
 }
 
 pub fn foreign_resident_tax(
@@ -467,15 +484,7 @@ pub fn foreign_resident_tax(
         &year,
         meta::FOREIGN_RESIDENT_TAX_SCALES,
     )?;
-    if let Some((_, note)) = texts::FOREIGN_RESIDENT_YEAR_WARNINGS
-        .iter()
-        .find(|(y, _)| *y == year)
-    {
-        out["warnings"]
-            .as_array_mut()
-            .expect("warnings")
-            .push(json!(note));
-    }
+    year_warning(&mut out, texts::FOREIGN_RESIDENT_YEAR_WARNINGS, &year);
     Ok(out)
 }
 
@@ -520,6 +529,9 @@ fn basic_tax_authority(kind: &str, year: &str) -> &'static str {
         }
         (_, "2026-27") => {
             "ITAA 1997 s 4-10(3) step 2; Income Tax Rates Act 1986 s 12(1) and Schedule 7 Part I clause 1(b), the table for the 2026-27 year of income: each part above the tax-free threshold (s 3(1)) at its rate"
+        }
+        (_, "2027-28") => {
+            "ITAA 1997 s 4-10(3) step 2; Income Tax Rates Act 1986 s 12(1) and Schedule 7 Part I clause 1(b), the table for the 2027-28 year of income or a later year of income: each part above the tax-free threshold (s 3(1)) at its rate"
         }
         _ => {
             "ITAA 1997 s 4-10(3) step 2; Income Tax Rates Act 1986 s 12(1) and Schedule 7 Part I clause 1(b), the table for the 2024-25 or 2025-26 year of income: each part above the tax-free threshold (s 3(1)) at its rate"
@@ -2677,14 +2689,9 @@ pub fn medicare_levy(
         )?)
     })?;
     let mut out = derived_result("medicare_levy", &year, steps, rates)?;
-    let warnings = out["warnings"].as_array_mut().expect("warnings");
-    if let Some((_, note)) = texts::MEDICARE_YEAR_WARNINGS
-        .iter()
-        .find(|(y, _)| *y == year)
-    {
-        warnings.push(json!(note));
-    }
+    year_warning(&mut out, texts::MEDICARE_YEAR_WARNINGS, &year);
     if shared {
+        let warnings = out["warnings"].as_array_mut().expect("warnings");
         warnings.push(json!(texts::MEDICARE_SHARED_REDUCTION_NOTE));
     }
     Ok(out)
@@ -5962,10 +5969,7 @@ pub fn seniors_pensioners_tax_offset(
         )?)
     })?;
     let mut out = derived_result(SAPTO, &year, steps, rates)?;
-    if year == "2026-27" {
-        let warnings = out["warnings"].as_array_mut().expect("warnings");
-        warnings.push(json!(texts::SAPTO_2026_27_NOTE));
-    }
+    year_warning(&mut out, texts::SAPTO_YEAR_NOTES, &year);
     Ok(out)
 }
 

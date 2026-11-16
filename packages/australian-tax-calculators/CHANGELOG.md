@@ -407,6 +407,32 @@ intentionally changed.
   and its days in each year, which s 240-60(2) leaves to accounting
   principles and the worksheet does not split. `tests/hire_purchase.rs`
   holds it to agreements worked by hand at 10% a month.
+- `gst`, `resident-tax`, `foreign-resident-tax`, `low-income-tax-offset`,
+  `medicare-levy`, `seniors-pensioners-tax-offset`, `division-293` and
+  `pension-minimum` also accept 2027-28, the year whose every rate and
+  threshold each takes the law already sets: Income Tax Rates Act 1986
+  Schedule 7 (14%, 30%, 37% and 45% for a resident; 30%, 37% and 45% for a
+  foreign resident), ITAA 1997 ss 61-115 and 293-20, the Medicare Levy Act
+  1986 thresholds Act No. 58, 2026 applies to later years, the SAPTO
+  regulations' formulas at the 14% lowest rate, the GST rate and SISR
+  Schedule 7, with 366 days for the pension minimum. The ATO had published
+  none of them for 2027-28 when they were read on 16 November 2026, so each
+  result but GST, LITO, Division 293 and the pension minimum adds a warning
+  saying so; the `resident-tax` one also says the s 119-10 extra tax on a
+  minimum tax capital gain, from 2027-28, is not worked out. A worksheet that
+  still refuses 2027-28 adds why to its `period.unsupported` message: the
+  withholding schedules, Medicare levy surcharge thresholds, study loan
+  thresholds, contribution caps, ETP caps and indexed Division 296
+  thresholds were not yet published; CGT changes from 1 July 2027 (Act No.
+  49 of 2026, Schedule 1) and s 26-155 limits rental deductions; or 2027-28's
+  366 days exceed the 365 `depreciation` takes. `personal-tax-estimate`
+  refuses 2027-28 for a resident, whose working Australians tax offset (s
+  61-155) and minimum tax on capital gains it does not work out, and composes
+  it for a foreign resident, who has neither. `tests/parity.rs` adds 2027-28
+  to the 6 frozen commands' supported periods, catalogue and refusals, adds
+  the reason to the 13 frozen 2027-28 refusals of the others, and skips the
+  17 frozen calls that expected 2027-28 to be refused; `tests/year_2027_28.rs`
+  checks that year with hand-worked figures.
 
 ### Documented divergences
 

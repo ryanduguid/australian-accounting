@@ -283,7 +283,7 @@ fn malformed_input_is_refused() {
         refusal(&with("year", json!("2027-28"))),
         (
             "period.unsupported",
-            "Unsupported period '2027-28'; supported: 2024-25, 2025-26, 2026-27.".into()
+            "Unsupported period '2027-28'; supported: 2024-25, 2025-26, 2026-27. The ATO had not published withholding schedules for payments from 1 July 2027 when this was checked on 16 November 2026.".into()
         )
     );
     assert_eq!(

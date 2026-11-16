@@ -227,9 +227,9 @@ they have no step.
 
 | Worksheet | Period and boundary |
 | --- | --- |
-| GST | 2025-26 and 2026-27, one ordinary taxable supply at 10%; no classification or BAS |
-| Resident tax | 2024-25, 2025-26 and 2026-27; full-year resident ordinary income, before offsets and levies |
-| Foreign resident tax | 2024-25, 2025-26 and 2026-27; full-year foreign resident ordinary income, no tax-free threshold; no Medicare levy or low income tax offset applies |
+| GST | 2025-26 to 2027-28, one ordinary taxable supply at 10%; no classification or BAS |
+| Resident tax | 2024-25 to 2027-28; full-year resident ordinary income, before offsets and levies |
+| Foreign resident tax | 2024-25 to 2027-28; full-year foreign resident ordinary income, no tax-free threshold; no Medicare levy or low income tax offset applies |
 | CGT | 2025-26 and 2026-27, resident individual's established gains and losses; losses before the 50% discount |
 | Main residence | CGT events in 2024-25 to 2026-27; one dwelling disposed of by a resident individual, before the discount |
 | Borrowing expenses | 2024-25 to 2026-27, before s 26-155 from 2027-28; one loan's established expenditure, use and dates |
@@ -249,22 +249,32 @@ they have no step.
 | Depreciation | 2025-26 and 2026-27, an ordinary tangible Division 40 asset's start year, or a later year from its established opening adjustable value; established life and use |
 | SG | Complete quarters of 2025-26; established OTE, eligibility and qualifying contributions |
 | Contribution caps | 2024-25 to 2026-27; one individual's classified contributions, no bring-forward period started in the 2 previous years |
-| Pension minimum | 2024-25 to 2026-27; one account-based pension paying under SISR Schedule 7 |
+| Pension minimum | 2024-25 to 2027-28; one account-based pension paying under SISR Schedule 7 |
 | Study loan repayment | 2025-26 and 2026-27; one individual's established repayment income at the marginal rates; the formula amount before the loan-balance limit |
 | Study loan withholding | Regular weekly, fortnightly, monthly or quarterly pays from 24 September 2025 on scale 1, 2, 3, 5 or 6; the Schedule 1 amount plus the Schedule 8 component |
-| Medicare levy | 2024-25, 2025-26 and 2026-27; full-year resident; the 2% rate, the low-income reduction at the single or SAPTO thresholds, the family reduction from established spouse, offset and dependent child facts, and established full and half exemption days |
+| Medicare levy | 2024-25 to 2027-28; full-year resident; the 2% rate, the low-income reduction at the single or SAPTO thresholds, the family reduction from established spouse, offset and dependent child facts, and established full and half exemption days |
 | Medicare levy surcharge | 2024-25, 2025-26 and 2026-27; full-year resident in no exemption category, single without dependants or married for the whole year; established income for surcharge purposes and days without hospital cover |
-| Low income tax offset | 2024-25, 2025-26 and 2026-27; resident individual's established taxable income; the offset amount, not applied against tax |
-| Seniors and pensioners tax offset | 2024-25, 2025-26 and 2026-27; an established eligible individual's rebate income and whole-year status, and a spouse's rebate income; the offset amount with any transfer from a resident spouse, not applied against tax |
-| Division 293 | 2024-25, 2025-26 and 2026-27; established Division 293 income and low tax contributions; no defined benefit interests |
+| Low income tax offset | 2024-25 to 2027-28; resident individual's established taxable income; the offset amount, not applied against tax |
+| Seniors and pensioners tax offset | 2024-25 to 2027-28; an established eligible individual's rebate income and whole-year status, and a spouse's rebate income; the offset amount with any transfer from a resident spouse, not applied against tax |
+| Division 293 | 2024-25 to 2027-28; established Division 293 income and low tax contributions; no defined benefit interests |
 | Division 296 | 2026-27; one individual's established balance at 30 June 2027 and total superannuation earnings; no defined benefit or other s 296-70 interests; an estimate, as the Commissioner assesses |
 | Termination payment | 2026-27; one life benefit ETP to a resident employee who gave a TFN, paid within 12 months; established genuine redundancy and classified ETP parts; Schedule 11 withholding, not the tax assessed |
 | Schedule 5 withholding | Weekly, fortnightly or monthly pays made from 1 July 2024 to 30 June 2027 that include back payments, commissions or bonuses, on scale 1, 2, 3, 5 or 6; the study and training support loan component for pays from 24 September 2025, and from 1 July 2026 in Method B(i) |
 | Working holiday makers | 2024-25 to 2026-27; one weekly, fortnightly or monthly payment to an established working holiday maker; no TFN exemption claimants or labour mobility schemes |
 | Seniors and pensioners | 2024-25 to 2026-27; one weekly, fortnightly or monthly payment to an established senior or pensioner who gave a TFN, by status and Medicare levy exemption; no other tax offsets or Medicare levy adjustment |
-| Personal tax estimate | Each part's own periods: 2024-25 to 2026-27, or 2025-26 and 2026-27 with a study loan; a full-year resident's or full-year foreign resident's tax and levies before credits, and the refund or amount payable against tax withheld when given |
+| Personal tax estimate | Each part's own periods: 2024-25 to 2026-27, or 2025-26 and 2026-27 with a study loan, and 2027-28 for a foreign resident; a full-year resident's or full-year foreign resident's tax and levies before credits, and the refund or amount payable against tax withheld when given |
 
-Unsupported periods fail. The SG worksheet does not implement post-June 2026
+Unsupported periods fail. The 2027-28 rows use rates and thresholds the law
+already sets for that year; the ATO had published none of them when they were
+read on 16 November 2026, and each such result says so. A worksheet that refuses
+2027-28 says why: its figures were not yet published (withholding schedules,
+the Medicare levy surcharge thresholds, study loan thresholds, contribution
+caps, ETP caps and the Division 296 thresholds), or the law changes from 1 July
+2027 in ways it does not apply (CGT, residential rental deductions under
+s 26-155), or 2027-28's 366 days exceed what depreciation takes. The personal
+tax estimate refuses 2027-28 for a resident: it does not work out the working
+Australians tax offset (ITAA 1997 s 61-155) or the extra tax on a minimum tax
+capital gain (s 119-10), both from 2027-28. The SG worksheet does not implement post-June 2026
 Payday entitlement rules. The separate Payday engine reviews timing on a supplied
 liability. SMSF fund tax, Division 296 fund earnings and their attribution, the transfer balance cap, trusts and payroll
 tax remain outside these worksheets.
@@ -274,10 +284,10 @@ tax remain outside these worksheets.
 `foreign_resident_tax` applies Schedule 7 Part II of the Income Tax Rates Act
 1986 to a person who was a foreign resident for the whole income year: 30% to
 $135,000, 37% to $190,000 and 45% above, with no tax-free threshold. It covers
-2024-25 to 2026-27. The ATO publishes the 2024-25 and 2025-26 tables; 2026-27
-takes the same rates from the Act, which ties them to that year's second and
-third resident rates, and its result says the ATO had not yet published them.
-2027-28 is refused, as `resident-tax` refuses it. A foreign resident
+2024-25 to 2027-28. The ATO publishes the 2024-25 and 2025-26 tables; 2026-27
+and 2027-28 take the same rates from the Act, which ties them to that year's
+second and third resident rates, and their results say the ATO had not yet
+published them. A foreign resident
 pays no Medicare levy and is not entitled to the low income tax offset, so the
 result is basic tax only and its scope says why. Like `division-296`, it
 refuses a field it does not take. See
@@ -440,11 +450,11 @@ full exemption for the whole year leaves no levy, and a half one halves it.
 Foreign residents are outside it. The caller establishes each of those facts;
 omitting them means a person without SAPTO, spouse, dependants or exemption. The caller also states whether s 9A
 (lump sum payments in arrears) applies, and the worksheet refuses when it does.
-It covers 2024-25 to 2026-27; 2026-27 uses the 2025-26 thresholds, which the
-law applies to later years until amended, and its result says so. The tests
+It covers 2024-25 to 2027-28; 2026-27 and 2027-28 use the 2025-26 thresholds,
+which the law applies to later years until amended, and their results say so. The tests
 hold it to the ATO's Ashton and Priya examples and every threshold.
 `low_income_tax_offset` gives the ITAA 1997 s 61-115 offset from
-established taxable income for 2024-25 to 2026-27. Neither applies the result
+established taxable income for 2024-25 to 2027-28. Neither applies the result
 against tax payable. See
 [calculation evidence](docs/calculation-evidence.md#medicare-levy).
 
@@ -473,7 +483,7 @@ Jacinta and Jill and Kevin examples and every tier boundary; see
 `division_293` applies ITAA 1997 s 293-20 to one individual's established
 Division 293 income and low tax contributions: when their sum exceeds $250,000,
 taxable contributions are the lesser of the contributions and the excess, taxed
-at 15%. It covers 2024-25 to 2026-27 and holds the ATO's worked example. Working
+at 15%. It covers 2024-25 to 2027-28 and holds the ATO's worked example. Working
 out either input, defined benefit interests and deferred debt accounts are
 outside it. See [calculation evidence](docs/calculation-evidence.md#division-293).
 
@@ -951,13 +961,14 @@ examples.
 ## Seniors and pensioners tax offset
 
 `seniors_pensioners_tax_offset` works out the seniors and pensioners tax offset
-(ITAA 1936 s 160AAAA) for 2024-25 to 2026-27 from the regulations' formulas,
+(ITAA 1936 s 160AAAA) for 2024-25 to 2027-28 from the regulations' formulas,
 for a person the caller has established meets the pension or age condition.
 `rebate_income` is the person's whole-dollar rebate income and `status`
 (`single`, `illness_separated` or `couple`) gives the base amount: $2,230,
 $2,040 or $1,602. The shading-out threshold and cut-out follow from the base
-amount and the year's lowest marginal tax rate, so 2026-27, at 15%, has higher
-thresholds than the ATO has yet published, and its result says so. A member of
+amount and the year's lowest marginal tax rate, so 2026-27, at 15%, and
+2027-28, at 14%, have higher thresholds than the ATO has yet published, and
+their results say so. A member of
 a couple also gives `spouse_rebate_income`: entitlement then tests half the
 couple's rebate income, and the amount the person's own. The offset falls by
 12.5 cents a dollar above the threshold and is rounded up to the dollar, as the

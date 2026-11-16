@@ -155,12 +155,12 @@ fn the_result_holds_basic_tax_only_and_says_why() {
 #[test]
 fn unsupported_and_invalid_inputs_are_refused() {
     let refused = |facts: &Value| api::evaluate_coded(COMMAND, facts).unwrap_err();
-    // 2027-28 is refused, as resident-tax refuses it.
-    let later = refused(&input("100000", "2027-28"));
+    // 2028-29 is refused, as resident-tax refuses it.
+    let later = refused(&input("100000", "2028-29"));
     assert_eq!(later.code, "period.unsupported");
     assert_eq!(
         later.message,
-        "Unsupported period '2027-28'; supported: 2024-25, 2025-26, 2026-27."
+        "Unsupported period '2028-29'; supported: 2024-25, 2025-26, 2026-27, 2027-28."
     );
     assert_eq!(
         refused(&input("100000", "2023-24")).code,
@@ -208,5 +208,5 @@ fn the_catalogue_lists_it() {
         .iter()
         .map(|p| p["id"].as_str().unwrap())
         .collect();
-    assert_eq!(ids, ["2024-25", "2025-26", "2026-27"]);
+    assert_eq!(ids, ["2024-25", "2025-26", "2026-27", "2027-28"]);
 }

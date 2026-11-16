@@ -287,7 +287,7 @@ fn inputs_the_worksheet_cannot_settle_are_refused() {
         (
             json!({"year": "2027-28"}),
             "period.unsupported",
-            "Unsupported period '2027-28'; supported: 2024-25, 2025-26, 2026-27.",
+            "Unsupported period '2027-28'; supported: 2024-25, 2025-26, 2026-27. The 2027-28 Medicare levy surcharge income thresholds had not been published when this was checked on 16 November 2026.",
         ),
     ] {
         assert_eq!(

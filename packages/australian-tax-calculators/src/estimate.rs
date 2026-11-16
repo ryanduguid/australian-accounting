@@ -212,6 +212,14 @@ fn signal(signal: Signal) -> Refusal {
 fn check_residency(v: &Value) -> Result<bool, Refusal> {
     let reason = match v.get("residency").map(|r| r.as_str()) {
         None => return Err(Refusal::new("input.missing_field", "residency is required")),
+        Some(Some("full_year_resident")) if v["year"] == "2027-28" => {
+            return Err(Refusal::new(
+                "period.unsupported",
+                format!(
+                    "{COMMAND} refuses 2027-28 for a resident: it does not work out the working Australians tax offset (ITAA 1997 s 61-155) or the extra income tax on a minimum tax capital gain (s 119-10), both from 2027-28."
+                ),
+            ));
+        }
         Some(Some("full_year_resident")) => return Ok(false),
         Some(Some("foreign_resident")) => {
             return match NOT_FOR_FOREIGN.iter().find(|(c, ..)| v.get(*c).is_some()) {
