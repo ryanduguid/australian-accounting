@@ -135,8 +135,9 @@ fn every_catalogued_required_input_of_a_strict_command_is_read() {
     }
     // The 14 commands that refused an unknown field before the FBT benefit
     // worksheets (the 3 Schedule 5 methods counted apart), the 11 FBT benefit
-    // worksheets, and payg-gross-up and hire-purchase-schedule.
-    assert_eq!(checked, 27);
+    // worksheets, and payg-gross-up, hire-purchase-schedule and
+    // lump-sum-arrears-tax-offset.
+    assert_eq!(checked, 28);
 }
 
 /// Every frozen call gives the same answer through either entry point, and

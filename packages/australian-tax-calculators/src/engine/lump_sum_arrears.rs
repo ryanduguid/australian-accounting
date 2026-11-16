@@ -180,7 +180,10 @@ fn accrual_years(value: &Arg, receipt: &str) -> Result<Vec<AccrualYear>> {
     let distant = years.len() > 2;
     for (index, year) in years.iter().enumerate() {
         let label = &year.label;
-        let given = FACTS.iter().zip(&year.facts).find(|(_, fact)| fact.is_some());
+        let given = FACTS
+            .iter()
+            .zip(&year.facts)
+            .find(|(_, fact)| fact.is_some());
         if index >= 2 {
             if let Some((key, _)) = given {
                 return invalid(format!(
@@ -287,7 +290,10 @@ fn recent_rate(increase: (&Decimal, &str), arrears: &Decimal) -> Calc<(Decimal, 
         .quantize(0, Rounding::Down)?;
     Ok((
         thousandths.div(&int(1000))?,
-        format!("floor(floor({} / {arrears} x 10000) / 10 + 0.5) / 1000", increase.1),
+        format!(
+            "floor(floor({} / {arrears} x 10000) / 10 + 0.5) / 1000",
+            increase.1
+        ),
     ))
 }
 

@@ -27,7 +27,11 @@ fn evaluate(facts: &Value) -> Value {
     let result = api::evaluate(COMMAND, facts).unwrap();
     // derive explains this command: its result is the plain one, byte for byte.
     let doc = api::evaluate("derive", &json!({"command": COMMAND, "input": facts})).unwrap();
-    assert_eq!(doc["result"].to_string(), result.to_string(), "derive {facts}");
+    assert_eq!(
+        doc["result"].to_string(),
+        result.to_string(),
+        "derive {facts}"
+    );
     result
 }
 
@@ -155,14 +159,19 @@ fn yans_distant_years_take_the_average_rate_of_the_recent_ones() {
     let shuffled = evaluate(&yan(&[4, 1, 5, 0, 3, 2]));
     assert_eq!(shuffled["amounts"], result["amounts"]);
     // The derivation writes each year's figures into its working.
-    let doc = api::evaluate("derive", &json!({"command": COMMAND, "input": yan(&[0, 1, 2, 3, 4, 5])}))
-        .unwrap();
+    let doc = api::evaluate(
+        "derive",
+        &json!({"command": COMMAND, "input": yan(&[0, 1, 2, 3, 4, 5])}),
+    )
+    .unwrap();
     let working = |id: &str| {
         let steps = doc["steps"].as_array().unwrap();
         let step = steps.iter().find(|s| s["id"] == id).unwrap();
         step["working"].as_str().unwrap().to_string()
     };
-    assert!(working("total_arrears_amount").starts_with("3000 + 2500 + 1400 + 1700 + 1400 + 1000 = "));
+    assert!(
+        working("total_arrears_amount").starts_with("3000 + 2500 + 1400 + 1700 + 1400 + 1000 = ")
+    );
     assert!(
         working("notional_tax_distant_accrual_years").starts_with(
             "(1400 + 1700 + 1400 + 1000) x (floor(floor(normal_tax_on_arrears_most_recent_year / 3000 x 10000) / 10 + 0.5) / 1000 + floor(floor(normal_tax_on_arrears_second_most_recent_year / 2500 x 10000) / 10 + 0.5) / 1000) / 2"
@@ -186,11 +195,23 @@ fn a_recent_rate_is_raised_only_when_its_fourth_decimal_place_is_more_than_4() {
     let result = evaluate(&input("2025-26", "40000", "0", accrual));
     let amounts = &result["amounts"];
     assert_eq!(amounts["normal_tax_on_arrears_most_recent_year"], "374.30");
-    assert_eq!(amounts["normal_tax_on_arrears_second_most_recent_year"], "373.92");
+    assert_eq!(
+        amounts["normal_tax_on_arrears_second_most_recent_year"],
+        "373.92"
+    );
     assert_eq!(amounts["notional_tax_distant_accrual_years"], "98.50");
-    assert_eq!(result["rates"]["tax_rate_on_arrears_most_recent_year"], "0.099");
-    assert_eq!(result["rates"]["tax_rate_on_arrears_second_most_recent_year"], "0.098");
-    assert_eq!(result["rates"]["average_tax_rate_on_recent_arrears"], "0.0985");
+    assert_eq!(
+        result["rates"]["tax_rate_on_arrears_most_recent_year"],
+        "0.099"
+    );
+    assert_eq!(
+        result["rates"]["tax_rate_on_arrears_second_most_recent_year"],
+        "0.098"
+    );
+    assert_eq!(
+        result["rates"]["average_tax_rate_on_recent_arrears"],
+        "0.0985"
+    );
 }
 
 /// s 159ZRD uses normal taxable income and s 159ZRC taxable income: with
@@ -268,9 +289,13 @@ fn the_offset_never_exceeds_the_tax_on_the_arrears() {
     for income in (0..400_000).step_by(7_919) {
         let result = evaluate(&input("2025-26", &income.to_string(), "0", accrual.clone()));
         let amounts = &result["amounts"];
-        let offset = Decimal::parse(amounts["lump_sum_arrears_tax_offset"].as_str().unwrap()).unwrap();
+        let offset =
+            Decimal::parse(amounts["lump_sum_arrears_tax_offset"].as_str().unwrap()).unwrap();
         match amounts["tax_on_arrears"].as_str() {
-            Some(tax) => assert!(offset.le(&Decimal::parse(tax).unwrap()).unwrap(), "{income}"),
+            Some(tax) => assert!(
+                offset.le(&Decimal::parse(tax).unwrap()).unwrap(),
+                "{income}"
+            ),
             None => assert!(offset.is_zero(), "{income}"),
         }
     }
@@ -283,25 +308,81 @@ fn the_offset_never_exceeds_the_tax_on_the_arrears() {
 #[test]
 fn the_earlier_years_rates_are_the_atos() {
     let published: [(&str, [(i64, i64); 3], [&str; 4]); 12] = [
-        ("2012-13", [(37000, 3572), (80000, 17547), (180000, 54547)], ["0.19", "0.325", "0.37", "0.45"]),
-        ("2013-14", [(37000, 3572), (80000, 17547), (180000, 54547)], ["0.19", "0.325", "0.37", "0.45"]),
-        ("2014-15", [(37000, 3572), (80000, 17547), (180000, 54547)], ["0.19", "0.325", "0.37", "0.45"]),
-        ("2015-16", [(37000, 3572), (80000, 17547), (180000, 54547)], ["0.19", "0.325", "0.37", "0.45"]),
-        ("2016-17", [(37000, 3572), (87000, 19822), (180000, 54232)], ["0.19", "0.325", "0.37", "0.45"]),
-        ("2017-18", [(37000, 3572), (87000, 19822), (180000, 54232)], ["0.19", "0.325", "0.37", "0.45"]),
-        ("2018-19", [(37000, 3572), (90000, 20797), (180000, 54097)], ["0.19", "0.325", "0.37", "0.45"]),
-        ("2019-20", [(37000, 3572), (90000, 20797), (180000, 54097)], ["0.19", "0.325", "0.37", "0.45"]),
-        ("2020-21", [(45000, 5092), (120000, 29467), (180000, 51667)], ["0.19", "0.325", "0.37", "0.45"]),
-        ("2021-22", [(45000, 5092), (120000, 29467), (180000, 51667)], ["0.19", "0.325", "0.37", "0.45"]),
-        ("2022-23", [(45000, 5092), (120000, 29467), (180000, 51667)], ["0.19", "0.325", "0.37", "0.45"]),
-        ("2023-24", [(45000, 5092), (120000, 29467), (180000, 51667)], ["0.19", "0.325", "0.37", "0.45"]),
+        (
+            "2012-13",
+            [(37000, 3572), (80000, 17547), (180000, 54547)],
+            ["0.19", "0.325", "0.37", "0.45"],
+        ),
+        (
+            "2013-14",
+            [(37000, 3572), (80000, 17547), (180000, 54547)],
+            ["0.19", "0.325", "0.37", "0.45"],
+        ),
+        (
+            "2014-15",
+            [(37000, 3572), (80000, 17547), (180000, 54547)],
+            ["0.19", "0.325", "0.37", "0.45"],
+        ),
+        (
+            "2015-16",
+            [(37000, 3572), (80000, 17547), (180000, 54547)],
+            ["0.19", "0.325", "0.37", "0.45"],
+        ),
+        (
+            "2016-17",
+            [(37000, 3572), (87000, 19822), (180000, 54232)],
+            ["0.19", "0.325", "0.37", "0.45"],
+        ),
+        (
+            "2017-18",
+            [(37000, 3572), (87000, 19822), (180000, 54232)],
+            ["0.19", "0.325", "0.37", "0.45"],
+        ),
+        (
+            "2018-19",
+            [(37000, 3572), (90000, 20797), (180000, 54097)],
+            ["0.19", "0.325", "0.37", "0.45"],
+        ),
+        (
+            "2019-20",
+            [(37000, 3572), (90000, 20797), (180000, 54097)],
+            ["0.19", "0.325", "0.37", "0.45"],
+        ),
+        (
+            "2020-21",
+            [(45000, 5092), (120000, 29467), (180000, 51667)],
+            ["0.19", "0.325", "0.37", "0.45"],
+        ),
+        (
+            "2021-22",
+            [(45000, 5092), (120000, 29467), (180000, 51667)],
+            ["0.19", "0.325", "0.37", "0.45"],
+        ),
+        (
+            "2022-23",
+            [(45000, 5092), (120000, 29467), (180000, 51667)],
+            ["0.19", "0.325", "0.37", "0.45"],
+        ),
+        (
+            "2023-24",
+            [(45000, 5092), (120000, 29467), (180000, 51667)],
+            ["0.19", "0.325", "0.37", "0.45"],
+        ),
     ];
     let years: Vec<&str> = PRIOR_RESIDENT_TAX_SCALES.iter().map(|(y, _)| *y).collect();
     assert_eq!(years, published.map(|(y, _, _)| y));
     for ((year, scale), (_, bases, rates)) in PRIOR_RESIDENT_TAX_SCALES.iter().zip(published) {
         let levy = ["2014-15", "2015-16", "2016-17"].contains(year);
         let (bands, extra) = scale.split_at(4);
-        assert_eq!(extra, if levy { &[(180000, None, "0.02")][..] } else { &[] }, "{year}");
+        assert_eq!(
+            extra,
+            if levy {
+                &[(180000, None, "0.02")][..]
+            } else {
+                &[]
+            },
+            "{year}"
+        );
         assert_eq!(bands[0].0, 18200, "{year}: the tax-free threshold");
         let band_rates: Vec<&str> = bands.iter().map(|band| band.2).collect();
         assert_eq!(band_rates, rates, "{year}");
@@ -313,9 +394,14 @@ fn the_earlier_years_rates_are_the_atos() {
             for (low, high, rate) in bands {
                 let top = high.map_or(start, |high| high.min(start));
                 let part = Decimal::from_int((top - low).max(0));
-                total = total.add(&part.mul(&Decimal::parse(rate).unwrap()).unwrap()).unwrap();
+                total = total
+                    .add(&part.mul(&Decimal::parse(rate).unwrap()).unwrap())
+                    .unwrap();
             }
-            assert!(total.equals(&Decimal::from_int(tax)).unwrap(), "{year} at {start}: {total}");
+            assert!(
+                total.equals(&Decimal::from_int(tax)).unwrap(),
+                "{year} at {start}: {total}"
+            );
         }
     }
 }
@@ -330,10 +416,19 @@ fn refusals() {
         refusal(&facts)
     };
     let years = |list: Value| with("accrual_years", list).0;
-    assert_eq!(with("scope_confirmed", json!(false)).0, "scope.not_confirmed");
+    assert_eq!(
+        with("scope_confirmed", json!(false)).0,
+        "scope.not_confirmed"
+    );
     assert_eq!(with("year", json!("2012-13")).0, "period.unsupported");
-    assert_eq!(with("taxable_income", json!("1.50")).0, "input.amount_not_whole_dollars");
-    assert_eq!(with("net_capital_gain", json!("-1")).0, "input.amount_invalid");
+    assert_eq!(
+        with("taxable_income", json!("1.50")).0,
+        "input.amount_not_whole_dollars"
+    );
+    assert_eq!(
+        with("net_capital_gain", json!("-1")).0,
+        "input.amount_invalid"
+    );
     assert_eq!(with("medicare_levy", json!(true)).0, "input.field_unknown");
     let mut missing = base.clone();
     missing.as_object_mut().unwrap().remove("accrual_years");
@@ -361,7 +456,11 @@ fn refusals() {
         assert_eq!(years(list.clone()), invalid, "{list}");
     }
     assert_eq!(
-        with("accrual_years", json!([recent, {"year": "2023-24", "arrears": "1"}])).1,
+        with(
+            "accrual_years",
+            json!([recent, {"year": "2023-24", "arrears": "1"}])
+        )
+        .1,
         "accrual_years: 2023-24 is given more than once: add every payer's arrears for a year together."
     );
     assert_eq!(
@@ -380,7 +479,10 @@ fn refusals() {
     let distant = json!([recent, {"year": "2022-23", "arrears": "1000", "taxable_income": "30000"},
                          {"year": "1999-00", "arrears": "1000"}]);
     let result = evaluate(&input("2025-26", "30000", "0", distant));
-    assert_eq!(result["amounts"]["notional_tax_distant_accrual_years"], "190.00");
+    assert_eq!(
+        result["amounts"]["notional_tax_distant_accrual_years"],
+        "190.00"
+    );
 }
 
 #[test]
