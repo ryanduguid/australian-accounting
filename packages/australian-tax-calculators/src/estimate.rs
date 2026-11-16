@@ -333,8 +333,7 @@ fn check_fields(v: &Value) -> Result<(), Refusal> {
         matches!(
             key,
             "residency" | "tax_withheld" | "pays_in_year" | BONUS | "net_labour_income"
-        )
-            || INCOME_INPUTS.contains(&key)
+        ) || INCOME_INPUTS.contains(&key)
             || SHARED.contains(&key)
             || PAY_PARTS.contains(&key)
             || PARTS.iter().any(|(c, ..)| *c == key && takes_object(c))
