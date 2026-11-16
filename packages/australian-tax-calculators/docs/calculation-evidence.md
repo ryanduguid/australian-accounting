@@ -64,6 +64,7 @@ example evidence; it does not claim a fresh review of every supported period.
 | Division 293 | Not a Library document: ITAA 1997 ss 293-20 and 293-25, the 2013 Imposition Act and the ATO's worked example | 24 August 2026 (ATO page) | Established Division 293 income and low tax contributions for 2024-25 to 2026-27 |
 | Division 296 | `superannuation-contributions-to-superannuation-funds-and-rsas` (superannuation), ¶6-495, with the Explanatory Memorandum's examples 1.1 to 1.3, ITAA 1997 ss 296-15 to 296-55 (compilation 268, 1 October 2026), the 2026 Imposition Act and the ATO's Division 296 page | 30 June 2026; 3 November 2026 (ATO page) | One individual's established balance at 30 June 2027 and total superannuation earnings for 2026-27; working out either, s 296-70 interests and later years excluded |
 | Termination payment | Not a Library document: ATO Schedule 11 examples 1 to 4, with ITAA 1997 ss 82-10 and 83-170 (compilation 268, 1 October 2026), SISR reg 6.01(2) and `tax-examples-assessable-income` (tax-examples), ¶1-420 | 17 June 2026 (Schedule 11); 30 June 2026 (¶1-420) | One life benefit ETP in 2026-27 with established, classified parts; Schedule 11 withholding, not the tax assessed |
+| Unused leave payment | Not a Library document: ATO Schedule 7 for payments from 1 July 2026 and its example, the ATO's 'Withholding from unused leave payments on termination of employment' examples, ITAA 1997 ss 83-10 to 83-115 (compilation 268, 1 October 2026), the STP Phase 2 employer reporting guidelines and the ATO's qualifying earnings table | 17 June 2026 (Schedule 7 published); 1 May 2020 (examples); 2 September 2026 (qualifying earnings) | Withholding, assessable shares and labels for unused leave paid on one termination in 2026-27, from established accrual parts |
 | Schedule 5 withholding | Not a Library document: ATO Schedule 5 (NAT 3348) for payments from 1 July 2024, 1 July 2025 and 1 July 2026, and the 2024, 2025 and 2026 withholding schedules instruments | 17 June 2024, 10 June 2025 and 17 June 2026 (published) | One regular weekly, fortnightly or monthly pay with additional payments by Method A, B(i) or B(ii); the study loan component for pays from 24 September 2025, and from 1 July 2026 in Method B(i) |
 | Working holiday makers | Not a Library document: ATO Schedule 15 for payments from 1 July 2026, and for 1 July 2024 to 30 June 2026 | 17 June 2026 (published); 17 June 2024 (last updated) | One payment's withholding at the Table A rates or Schedule 1 scale 3 for 2024-25 to 2026-27; visa, registration and TFN status established by the operator |
 | Seniors and pensioners | Not a Library document: ATO Schedule 9 (NAT 4466) for payments from 1 July 2026, and for 1 July 2024 to 30 June 2026, with Schedule 9 of the 2026 and 2025 withholding schedules instruments | 17 June 2026 (published); 17 June 2024 (last updated) | One weekly, fortnightly or monthly payment's withholding on scales 1 to 9 for 2024-25 to 2026-27, with any study loan component under Schedule 8 for 2026-27 and from 24 September 2025; eligibility, status and exemption established by the operator; other tax offsets and the Medicare levy adjustment excluded |
@@ -1306,6 +1307,78 @@ tax-free component (an invalidity segment or a pre-July 83 segment, s 82-140),
 earlier ETPs in the year or for the same termination (which reduce the caps,
 s 82-10(4)(a) and (b)), delayed termination payments, payees without a TFN,
 foreign residents and working holiday makers are outside it.
+
+## Unused leave payment
+
+This worksheet's evidence was read on 16 November 2026 from 17:57 to 18:01
+AEDT:
+
+- The ATO's Schedule 7, 'Tax table for unused leave payments on termination of
+  employment' (published 17 June 2026, for payments from 1 July 2026), made
+  under TAA 1953 Schedule 1 ss 15-25 and 15-30
+  (https://www.ato.gov.au/tax-rates-and-codes/payg-withholding-schedule-7-tax-table-for-unused-leave-payments-on-termination-of-employment).
+  Its table withholds 32% from long service leave from 16 August 1978 to
+  17 August 1993, from annual leave and loading from before 18 August 1993 on
+  a normal termination, and from all annual leave and loading and all post-17
+  August 1993 long service leave on a genuine redundancy, invalidity or early
+  retirement scheme, all at label A; 5% of pre-16 August 1978 long service
+  leave at marginal rates, label B; and post-17 August 1993 leave on a normal
+  termination at marginal rates, included in salary and wages. A post-17 August
+  1993 payment from normal termination under $300 has the lesser of the table
+  amount and 32% withheld. Amounts round to the nearest dollar, 50 cents up.
+  Its marginal rate calculation has 7 steps, ignores cents after dividing by
+  the 12, 26 or 52 pay periods, and withholds nothing for a study and training
+  support loan. Its example (Norman: $780, $6,420 and $14,820 of long service
+  leave on $1,155 a week, $6,786 withheld) adds the 5% to the post-17 August
+  1993 component before one marginal rate calculation; it is the catalogue
+  example and a test in `tests/unused_leave_payment.rs`, with the $188 and $279
+  from the 2026-27 weekly tax table that `payg-withholding` gives. It sends
+  working holiday makers to Schedule 15 and gives a foreign resident only the
+  45% rate without a TFN.
+- The ATO's 'Withholding from unused leave payments on termination of
+  employment' pages (last updated 1 May 2020): Greg's invalidity example
+  ($2,680 at 32%, $857 with cents disregarded, where Schedule 7 now rounds to
+  $858), Helen's and Mark's annual leave examples 2 and 4, and Robyn's, Matt's
+  and Sali's long service leave examples 7 to 9. Their withholding at marginal
+  rates uses the 2014-15 tax tables, so the tests check only the parts that do
+  not depend on those tables: Robyn's $2,560, Matt's $192.60, $10,050,
+  $44,933.60 and $864, Sali's $800 and $15, Helen's split and Mark's $76.
+  'Payments made after death' says nothing is withheld from unused leave paid
+  after death and it is not shown on the employee's statement. Greg, Helen and
+  Mark are on 'Unused annual leave', read at 17:59
+  (https://www.ato.gov.au/forms-and-instructions/employment-termination-payments-withholding-from-unused-leave-payments/unused-annual-leave),
+  and Robyn, Matt and Sali on the long service leave 'Examples', read at 18:01
+  (https://www.ato.gov.au/forms-and-instructions/employment-termination-payments-withholding-from-unused-leave-payments/unused-long-service-leave/examples).
+- ITAA 1997, compilation 268 (1 October 2026, the current one, read through
+  the Federal Register API): s 83-10 makes unused annual leave, and a bonus or
+  other additional payment for it, assessable; s 83-15 gives a tax offset that
+  keeps its rate at most 30% when paid in connection with a genuine redundancy
+  payment (s 83-175), an early retirement scheme payment (s 83-180) or an
+  invalidity segment (s 82-150), or in respect of employment before 18 August
+  1993; s 83-80 makes 5% of unused long service leave from the pre-16/8/78
+  period and all of the rest assessable, the 95% being neither assessable nor
+  exempt income; s 83-85 gives the 30% offset for the pre-18/8/93 period and
+  for the post-17/8/93 period on those 3 reasons; and ss 83-90 to 83-115
+  define the periods and attribute a payment to each by days, which the caller
+  does.
+- The ATO's STP Phase 2 employer reporting guidelines, 'When an employee
+  transfers or leaves' (last updated 12 November 2025): lump sum A type R for
+  all unused annual leave and loading and long service leave from 16 August
+  1978 paid for genuine redundancy, invalidity or early retirement scheme
+  reasons, type T for annual leave and loading from before 17 August 1993 and
+  long service leave from 16 August 1978 to 17 August 1993 paid for other
+  reasons, lump sum B for the whole of pre-16 August 1978 long service leave,
+  and paid leave type U for post-17 August 1993 leave on a normal termination.
+  The guidelines say 17 August 1993 for annual leave where s 83-15(b) says
+  before 18 August 1993; the worksheet follows the Act.
+- The ATO's 'What payments are qualifying earnings' (last updated 2 September
+  2026), table 13: unused leave on termination, including annual leave, leave
+  loading and long service leave, is neither ordinary time earnings nor
+  qualifying earnings, whatever the reason for termination or its tax
+  treatment. An award or agreement can still require super on it.
+
+The worksheet computes withholding and the assessable amounts, not the tax
+assessed: the offset depends on the employee's other income for the year.
 
 ## Schedule 5
 

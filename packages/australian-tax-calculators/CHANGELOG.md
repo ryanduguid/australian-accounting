@@ -10,6 +10,24 @@ intentionally changed.
 
 ### Added
 
+- `unused-leave-payment` works out, for unused annual leave, leave loading and
+  unused long service leave paid on a termination in 2026-27, each part's
+  assessable share and tax offset (ITAA 1997 ss 83-10 to 83-115), the
+  Schedule 7 withholding (32% on the parts the offset caps at 30%, the marginal
+  rate calculation once on the rest, with the $300 limit) and the income
+  statement amount at lump sum A (type R or T), lump sum B and paid leave
+  type U, with `qualifying_earnings` nil from the ATO's qualifying earnings
+  table. `derive` covers it. Leave paid after death, foreign residents, working
+  holiday makers, a missing or impossible accrual part, a payment under $300
+  beside pre-16 August 1978 leave and other years are refused, under the new
+  codes `input.termination_reason_invalid`, `leave.accrual_split_invalid`,
+  `leave.accrual_split_missing`, `leave.death`, `leave.foreign_resident`,
+  `leave.under_300_with_pre_1978` and `leave.working_holiday_maker`. No Python
+  release has it. `tests/parity.rs` drops its catalogue entry before comparing,
+  and `tests/unused_leave_payment.rs` holds it to Schedule 7's example and the
+  parts of the ATO's 6 unused leave examples that do not depend on the 2014-15
+  tax tables.
+
 - `derive` also covers `gst`, `depreciation` and `hire-purchase-schedule`.
   Their steps cite the GST Act ss 9-70 and 9-75 (compilation 96) and ITAA 1997
   ss 40-25, 40-70, 40-72, 40-75, 40-85, 240-25 and 240-60 (compilation 268).

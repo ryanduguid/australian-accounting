@@ -3530,6 +3530,9 @@ pub fn termination_payment(
     derived_result("termination_payment", &year, steps, rates)
 }
 
+mod unused_leave;
+pub use unused_leave::{LeaveSplits, unused_leave_payment};
+
 pub fn study_loan_repayment(
     repayment_income: &Arg,
     year: &Arg,
@@ -5969,7 +5972,7 @@ pub fn seniors_pensioners_tax_offset(
     Ok(out)
 }
 
-const KINDS: [&str; 41] = [
+const KINDS: [&str; 42] = [
     "gst",
     "resident_tax",
     "foreign_resident_tax",
@@ -6000,6 +6003,7 @@ const KINDS: [&str; 41] = [
     "division_293",
     "division_296",
     "termination_payment",
+    "unused_leave_payment",
     "schedule_5_method_a",
     "schedule_5_method_b_i",
     "schedule_5_method_b_ii",
