@@ -324,6 +324,51 @@ fn cases() -> Vec<(&'static str, Value)> {
                    "register_meal_entertainment_value": "3000.00", "register_first_year": 2024,
                    "register_years_expenditure": ["500.00", "600.00"]}),
         ),
+        // The balancing adjustment's paths: a K7 gain (s 118-10(1)'s Gayle),
+        // a car limit (s 40-325), a car claimed by both car expense methods
+        // (s 40-370), by cents per kilometre only, and a motor cycle (s 118-5).
+        (
+            "balancing-adjustment",
+            json!({"cost": "450.00", "termination_value": "700.00", "asset": "other",
+                   "years": [{"income_year": "2025-26", "decline_in_value": "31.00", "deduction": "6.00"}],
+                   "year": "2025-26", "scope_confirmed": true}),
+        ),
+        (
+            "balancing-adjustment",
+            json!({"cost": "69674.00", "termination_value": "50000.00", "asset": "car",
+                   "car_limit": {"limit": "69674.00", "second_element_cost": "0.00",
+                                 "cost_ignoring_car_limit": "80000.00"},
+                   "years": [{"income_year": "2025-26", "decline_in_value": "10000.00",
+                              "method": "log_book", "deduction": "10000.00", "days_held": 365}],
+                   "year": "2026-27", "scope_confirmed": true}),
+        ),
+        (
+            "balancing-adjustment",
+            json!({"cost": "30000.00", "termination_value": "18000.00", "asset": "car",
+                   "car_limit": null, "years": [
+                       {"income_year": "2024-25", "decline_in_value": "7500.00",
+                        "method": "cents_per_kilometre", "days_held": 365},
+                       {"income_year": "2025-26", "decline_in_value": "5625.00",
+                        "method": "log_book", "deduction": "3375.00", "days_held": 365},
+                       {"income_year": "2026-27", "decline_in_value": "2000.00",
+                        "method": "log_book", "deduction": "1200.00", "days_held": 200}],
+                   "year": "2026-27", "scope_confirmed": true}),
+        ),
+        (
+            "balancing-adjustment",
+            json!({"cost": "30000.00", "termination_value": "25000.00", "asset": "car",
+                   "car_limit": null, "years": [
+                       {"income_year": "2025-26", "decline_in_value": "7500.00",
+                        "method": "cents_per_kilometre", "days_held": 365}],
+                   "year": "2025-26", "scope_confirmed": true}),
+        ),
+        (
+            "balancing-adjustment",
+            json!({"cost": "2000.00", "termination_value": "1800.00",
+                   "asset": "motor_cycle_or_similar",
+                   "years": [{"income_year": "2025-26", "decline_in_value": "500.00", "deduction": "0.00"}],
+                   "year": "2026-27", "scope_confirmed": true}),
+        ),
     ];
     cases.extend(
         PAYG.iter()

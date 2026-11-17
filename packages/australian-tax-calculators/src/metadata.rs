@@ -1312,7 +1312,7 @@ pub fn library_evidence(kind: &str) -> [(&'static str, &'static str); 4] {
         "balancing_adjustment" => (
             "Guide to depreciating assets 2026; ITAA 1997 s 118-10(1)",
             "Bridget, Andrew and Louise examples; the Gayle example",
-            "2026-10-01",
+            "2026-06-01",
             "2026-11-18",
         ),
         "hire_purchase_schedule" => (

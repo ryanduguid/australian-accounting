@@ -394,18 +394,13 @@ fn termination(facts: &Facts, given: &Decimal) -> Result<Step> {
         Some(car) => {
             let numerator = car.limit.add(&car.second_element)?;
             let value = given.mul(&numerator)?.div(&car.cost_ignoring_limit)?;
-            step(
-                "termination_value",
-                TV_CAR_LIMIT,
-                "termination_value x (car_limit + second_element_cost) / cost_ignoring_car_limit",
-                &[
-                    given,
-                    &car.limit,
-                    &car.second_element,
-                    &car.cost_ignoring_limit,
-                ],
-                value,
-            )
+            // car_limit's facts are written in: a formula names only
+            // top-level inputs.
+            let formula = format!(
+                "termination_value x ({} + {}) / {}",
+                car.limit, car.second_element, car.cost_ignoring_limit
+            );
+            step("termination_value", TV_CAR_LIMIT, &formula, &[given], value)
         }
     })
 }
@@ -528,6 +523,55 @@ fn k7(facts: &Facts, tv: &Decimal, total: &Decimal, sum: &Decimal) -> Result<[St
     ])
 }
 
+/// The total decline, adjustable value and sum of reductions, with their
+/// steps.
+fn basis(facts: &Facts) -> Result<([Decimal; 3], [Step; 3])> {
+    let (total, total_terms) = total_decline(facts)?;
+    let (sum, sum_terms) = sum_of_reductions(facts)?;
+    let adjustable = facts.cost.sub(&total)?;
+    let steps = [
+        step(
+            "total_decline",
+            TOTAL_DECLINE,
+            &total_terms,
+            &[],
+            total.clone(),
+        ),
+        step(
+            "adjustable_value",
+            ADJUSTABLE,
+            "cost - total_decline",
+            &[&facts.cost, &total],
+            adjustable.clone(),
+        ),
+        step(
+            "sum_of_reductions",
+            SUM_OF_REDUCTIONS,
+            &sum_terms,
+            &[],
+            sum.clone(),
+        ),
+    ];
+    Ok(([total, adjustable, sum], steps))
+}
+
+/// The rates: the years held, the provision applied and, under s 40-370, the
+/// days.
+fn rates(path: &Path, years_held: usize) -> Vec<(String, String)> {
+    let mut rates = vec![rate("years_held", years_held)];
+    let provision = match path {
+        Path::General => "ITAA 1997 s 40-285 and s 40-290",
+        Path::Switched(deducted, held) => {
+            rates.push(rate("days_deducted", deducted));
+            rates.push(rate("days_held", held));
+            "ITAA 1997 s 40-370"
+        }
+        Path::CentsOnly => "ITAA 1997 s 40-370(1) Note 2",
+    };
+    rates.push(rate("provision", provision));
+    rates
+}
+
 /// The worksheet's steps and rates from read facts and the termination value
 /// worked out under ss 40-300 to 40-320.
 fn worked(facts: &Facts, given_tv: &Decimal) -> Result<(Vec<Step>, Vec<(String, String)>)> {
@@ -535,39 +579,13 @@ fn worked(facts: &Facts, given_tv: &Decimal) -> Result<(Vec<Step>, Vec<(String, 
     precise(|| {
         let tv_step = termination(facts, given_tv)?;
         let tv = tv_step.value.clone();
-        let (total, total_terms) = total_decline(facts)?;
-        let (sum, sum_terms) = sum_of_reductions(facts)?;
-        let adjustable = facts.cost.sub(&total)?;
+        let ([total, adjustable, sum], basis_steps) = basis(facts)?;
         let amount = super::py_max(tv.sub(&adjustable)?, adjustable.sub(&tv)?)?;
         let reduced = amount.mul(&sum)?.div(&total)?;
-        let assessable =
-            reduced_amount("assessable_amount", &path, &tv, &adjustable, [&total, &sum])?;
-        let deductible =
-            reduced_amount("deductible_amount", &path, &adjustable, &tv, [&total, &sum])?;
-        let [gain, loss] = k7(facts, &tv, &total, &sum)?;
-        let steps = vec![
-            tv_step,
-            step(
-                "total_decline",
-                TOTAL_DECLINE,
-                &total_terms,
-                &[],
-                total.clone(),
-            ),
-            step(
-                "adjustable_value",
-                ADJUSTABLE,
-                "cost - total_decline",
-                &[&facts.cost, &total],
-                adjustable.clone(),
-            ),
-            step(
-                "sum_of_reductions",
-                SUM_OF_REDUCTIONS,
-                &sum_terms,
-                &[],
-                sum.clone(),
-            ),
+        let totals = [&total, &sum];
+        let mut steps = vec![tv_step];
+        steps.extend(basis_steps);
+        steps.extend([
             step(
                 "balancing_adjustment_amount",
                 AMOUNT,
@@ -582,23 +600,11 @@ fn worked(facts: &Facts, given_tv: &Decimal) -> Result<(Vec<Step>, Vec<(String, 
                 &[&amount, &sum, &total],
                 reduced,
             ),
-            assessable,
-            deductible,
-            gain,
-            loss,
-        ];
-        let mut rates = vec![rate("years_held", facts.years.len())];
-        let provision = match path {
-            Path::General => "ITAA 1997 s 40-285 and s 40-290",
-            Path::Switched(deducted, held) => {
-                rates.push(rate("days_deducted", deducted));
-                rates.push(rate("days_held", held));
-                "ITAA 1997 s 40-370"
-            }
-            Path::CentsOnly => "ITAA 1997 s 40-370(1) Note 2",
-        };
-        rates.push(rate("provision", provision));
-        Ok((steps, rates))
+            reduced_amount("assessable_amount", &path, &tv, &adjustable, totals)?,
+            reduced_amount("deductible_amount", &path, &adjustable, &tv, totals)?,
+        ]);
+        steps.extend(k7(facts, &tv, &total, &sum)?);
+        Ok((steps, rates(&path, facts.years.len())))
     })
 }
 

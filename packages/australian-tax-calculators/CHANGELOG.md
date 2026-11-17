@@ -35,6 +35,24 @@ intentionally changed.
   covers it. `tests/business_capital_expenditure.rs` holds it to TR 2011/6
   examples 14, 16 to 18, 21 to 25, 40A and 41 and the ATO's start-up
   examples.
+- `balancing-adjustment` works out a depreciating asset's balancing
+  adjustment under ITAA 1997 s 40-285 for events in 2024-25 to 2026-27,
+  reduced for use other than for a taxable purpose (s 40-290), with a
+  car's car limit (s 40-325), a car claimed by both car expense methods
+  (s 40-370) and the capital gain or loss of CGT event K7 (s 104-240),
+  disregarded for a car or motor cycle (s 118-5). It refuses a car year
+  before 2015-16, a log book year with a nil deduction beside cents per
+  kilometre years and 2027-28, and leaves pools, s 40-291A and roll-overs
+  out of scope. New codes: `balancing.asset_invalid`,
+  `balancing.car_limit_invalid`, `balancing.car_limit_not_reduced`,
+  `balancing.days_deducted_unclear`, `balancing.decline_above_cost`,
+  `balancing.deduction_above_decline`, `balancing.fact_invalid`,
+  `balancing.fact_missing`, `balancing.no_decline`,
+  `balancing.year_after_event`, `balancing.year_before_scope`,
+  `balancing.year_repeated` and `balancing.years_invalid`. `derive`
+  covers it. `tests/balancing_adjustment.rs` holds it to the Guide to
+  depreciating assets 2026's Bridget, Andrew and Louise examples and the
+  example in s 118-10(1).
 - `contribution-caps` can work out the unused concessional cap from each
   earlier year's contributions instead of taking it as a total: given
   `earlier_concessional_contributions` from at least the 5th year before,
