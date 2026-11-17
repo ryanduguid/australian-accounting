@@ -67,7 +67,7 @@ pins that pipeline commit.
 
 Python 0.2.0 had no third-party runtime dependencies. Rust uses num-bigint,
 num-integer and num-traits for exact Decimal coefficients, serde_json for the
-JSON boundary, sha2 for the review pack's SHA-256, chrono for today's local date
+JSON boundary, sha2 for the review pack's SHA-256, jiff for today's local date
 and libc for Unix terminal state. The Decimal, argparse, text and terminal
 helpers come from this repository's Exchequer Tally and Solomon's Sword ports;
 the Python string, path, OSError, date, UTF-8 and JSON helpers come from
