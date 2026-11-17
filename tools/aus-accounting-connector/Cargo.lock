@@ -68,8 +68,8 @@ name = "aus-accounting-mcp-core"
 version = "1.0.0"
 dependencies = [
  "australian-tax-calculators",
- "chrono",
  "div7a-loan-review",
+ "jiff",
  "jsonschema",
  "payday-super-checker",
  "regex",

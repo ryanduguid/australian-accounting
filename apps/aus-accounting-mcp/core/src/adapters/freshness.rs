@@ -4,7 +4,7 @@
 //! What each bundled dataset records about its period, version and sources.
 //! Every value is read from the linked engines; a fact an engine does not record
 //! is reported as UNKNOWN, and nothing here says that a figure is current.
-use chrono::NaiveDate;
+use jiff::civil::Date;
 use payday_super_checker::{calendar as payday_calendar, rates as payday_rates};
 use serde_json::{Map, Value, json};
 
@@ -20,7 +20,7 @@ const NOT_LISTED: &str = "The library, legislation corpus and rulings tools read
 fn iso_or_unknown(value: &Value) -> Value {
     value
         .as_str()
-        .and_then(|text| NaiveDate::parse_from_str(text, "%Y-%m-%d").ok())
+        .and_then(|text| Date::strptime("%Y-%m-%d", text).ok())
         .map_or(json!(UNKNOWN), |day| json!(day.to_string()))
 }
 

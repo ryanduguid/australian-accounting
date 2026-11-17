@@ -27,9 +27,9 @@ pub fn evaluate(name: &str, input: &Value) -> Result<Value, String> {
 }
 
 pub(super) fn valid_day(day: &str, field: &str) -> Result<(), String> {
-    chrono::NaiveDate::parse_from_str(day, "%Y-%m-%d")
+    jiff::civil::Date::strptime("%Y-%m-%d", day)
         .ok()
-        .filter(|date| chrono::Datelike::year(date) > 0)
+        .filter(|date| date.year() > 0)
         .map(|_| ())
         .ok_or_else(|| {
             format!(

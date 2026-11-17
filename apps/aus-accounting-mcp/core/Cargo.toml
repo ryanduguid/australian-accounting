@@ -14,7 +14,7 @@ publish = false
 div7a-loan-review = { path = "../../../packages/div7a-loan-review" }
 australian-tax-calculators = { path = "../../../packages/australian-tax-calculators" }
 payday-super-checker = { path = "../../../packages/payday-super-checker" }
-chrono = { version = "0.4", default-features = false, features = ["std"] }
+jiff = { version = "1.0.0", default-features = false, features = ["std"] }
 jsonschema = { version = "=0.59.0", default-features = false, features = ["arbitrary-precision"] }
 regex = "=1.13.1"
 serde_json = { version = "1", features = ["preserve_order", "arbitrary_precision"] }
