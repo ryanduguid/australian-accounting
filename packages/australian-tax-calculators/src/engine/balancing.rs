@@ -20,6 +20,9 @@ use crate::decimal::Decimal;
 
 const KIND: &str = "balancing_adjustment";
 
+/// A worksheet's steps and rates.
+type Worked = (Vec<Step>, Vec<(String, String)>);
+
 /// Division 40 was added by Act No 76 of 2001 and applies from 1 July 2001
 /// (the compilation's endnotes): a year before 2001-02 is not one this works.
 const FIRST_YEAR: i64 = 2001;
@@ -464,7 +467,7 @@ fn reduced_amount(
     } else {
         "adjustable_value - termination_value"
     };
-    let formula = format!("max(0, ({names}) x (total_decline - sum_of_reductions) / total_decline");
+    let formula = format!("max(0, ({names}) x (total_decline - sum_of_reductions)");
     Ok(match path {
         Path::CentsOnly => step(id, CENTS_ONLY, "0", &[], int(0)),
         Path::General => {
@@ -472,7 +475,7 @@ fn reduced_amount(
             step(
                 id,
                 AMOUNT,
-                &format!("{formula})"),
+                &format!("{formula} / total_decline)"),
                 &[from, to, total, sum, total],
                 value,
             )
@@ -481,12 +484,12 @@ fn reduced_amount(
             let (deducted, held) = (int(*deducted), int(*held));
             let value = numerator.mul(&deducted)?.div(&total.mul(&held)?)?;
             let value = super::py_max(int(0), value)?;
-            let formula = format!("{formula} x days_deducted / days_held)");
+            let formula = format!("{formula} x days_deducted / (total_decline x days_held))");
             step(
                 id,
                 SWITCHED,
                 &formula,
-                &[from, to, total, sum, total, &deducted, &held],
+                &[from, to, total, sum, &deducted, total, &held],
                 value,
             )
         }
@@ -574,7 +577,7 @@ fn rates(path: &Path, years_held: usize) -> Vec<(String, String)> {
 
 /// The worksheet's steps and rates from read facts and the termination value
 /// worked out under ss 40-300 to 40-320.
-fn worked(facts: &Facts, given_tv: &Decimal) -> Result<(Vec<Step>, Vec<(String, String)>)> {
+fn worked(facts: &Facts, given_tv: &Decimal) -> Result<Worked> {
     let path = path(facts)?;
     precise(|| {
         let tv_step = termination(facts, given_tv)?;

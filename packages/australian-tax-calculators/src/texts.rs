@@ -917,30 +917,6 @@ pub const MEDICARE_SHARED_REDUCTION_NOTE: &str = "The family reduction is shared
 /// A code carries no message text, parameter value or source location.
 pub const REFUSAL_CODES: &[(&str, &str)] = &[
     (
-        "borrowing.loan_date_invalid",
-        "A loan date is neither null nor a date on or after the start of the loan.",
-    ),
-    (
-        "borrowing.loan_period_ended",
-        "The period of the loan ended before the income year began.",
-    ),
-    (
-        "borrowing.loan_start_29_february",
-        "A loan first drawn on 29 February, for which no source settles when 5 years end.",
-    ),
-    (
-        "borrowing.loan_starts_after_year",
-        "The loan starts after the income year ended.",
-    ),
-    (
-        "borrowing.s25_25_6_not_spread",
-        "s 25-25(6) applied in the income year the expenditure was incurred, so nothing spreads to this year.",
-    ),
-    (
-        "borrowing.s26_50_denied",
-        "s 26-50 denies the deduction for a leisure facility, or the worksheet does not cover a part-year exception.",
-    ),
-    (
         "balancing.asset_invalid",
         "asset is not car, motor_cycle_or_similar or other.",
     ),
@@ -991,6 +967,30 @@ pub const REFUSAL_CODES: &[(&str, &str)] = &[
     (
         "balancing.years_invalid",
         "years is not a non-empty list of objects.",
+    ),
+    (
+        "borrowing.loan_date_invalid",
+        "A loan date is neither null nor a date on or after the start of the loan.",
+    ),
+    (
+        "borrowing.loan_period_ended",
+        "The period of the loan ended before the income year began.",
+    ),
+    (
+        "borrowing.loan_start_29_february",
+        "A loan first drawn on 29 February, for which no source settles when 5 years end.",
+    ),
+    (
+        "borrowing.loan_starts_after_year",
+        "The loan starts after the income year ended.",
+    ),
+    (
+        "borrowing.s25_25_6_not_spread",
+        "s 25-25(6) applied in the income year the expenditure was incurred, so nothing spreads to this year.",
+    ),
+    (
+        "borrowing.s26_50_denied",
+        "s 26-50 denies the deduction for a leisure facility, or the worksheet does not cover a part-year exception.",
     ),
     (
         "business_capital.cgt_amount",
