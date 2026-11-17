@@ -835,7 +835,7 @@ mod tests {
             return;
         }
         for (tz, hours) in [("XYZ-14", "14"), ("XYZ+12", "-12")] {
-            let output = std::process::Command::new(std::env::current_exe().unwrap())
+            let output = std::process::Command::new(std::env::args_os().next().unwrap())
                 .args(["--exact", NAME])
                 .env("TZ", tz)
                 .env("TODAY_TEST_OFFSET_HOURS", hours)
