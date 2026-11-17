@@ -359,4 +359,33 @@ mod tests {
         );
         assert_eq!(as_at_status(&json!(UNKNOWN), "2024-07-01"), UNKNOWN);
     }
+
+    #[test]
+    fn as_at_and_recorded_dates_follow_the_calendar() {
+        let valid = |day: &str| super::super::valid_day(day, "as_at").is_ok();
+        for day in [
+            "2028-02-29",
+            "2000-02-29",
+            "2027-06-30",
+            "2027-07-01",
+            "2027-12-31",
+        ] {
+            assert!(valid(day), "{day}");
+            assert_eq!(iso_or_unknown(&json!(day)), day);
+        }
+        for day in [
+            "2027-02-29",
+            "2100-02-29",
+            "2027-06-31",
+            "2027-13-01",
+            "0000-01-01",
+        ] {
+            assert!(!valid(day), "{day}");
+        }
+        for day in ["2027-02-29", "2100-02-29", "2027-06-31"] {
+            assert_eq!(iso_or_unknown(&json!(day)), UNKNOWN, "{day}");
+        }
+        // A recorded date with a 1-digit month or day is reported in full.
+        assert_eq!(iso_or_unknown(&json!("2027-7-1")), "2027-07-01");
+    }
 }
