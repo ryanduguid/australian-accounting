@@ -18,8 +18,13 @@ fn table(name: &str) -> serde_json::Value {
     serde_json::from_str(&fs::read_to_string(&path).expect(&path)).expect(&path)
 }
 
+/// A date written exactly as YYYY-MM-DD. The parser alone also takes forms such
+/// as "2027-6-30", "+ 2027-06-30" and "-187-06-30", which chrono and jiff do not
+/// agree on, so anything that does not write back to the same text is refused.
 fn day(text: &str) -> Date {
-    Date::strptime("%Y-%m-%d", text).expect(text)
+    let date = Date::strptime("%Y-%m-%d", text).expect(text);
+    assert_eq!(date.to_string(), text, "not a YYYY-MM-DD date");
+    date
 }
 
 fn main() {
