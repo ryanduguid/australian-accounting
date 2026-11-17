@@ -191,6 +191,36 @@ repayments under s 109R.
 For an editable source installation, run `pip install -e .` from
 `apps/aus-accounting-mcp/`. The repository root is not an installable Python package.
 
+<details>
+<summary>How the accounting tools fit together</summary>
+
+The [accounting skills](https://github.com/ryanduguid/australian-accounting-skills) guide
+preparation and can call this server. Workpapers and unresolved exceptions go to an
+authorised human for review.
+
+```mermaid
+flowchart TB
+accTitle: How the accounting tools fit together
+accDescr: An assistant using the accounting skills exchanges requests with the Australian Accounting MCP server, which sends calculations to the calculation packages. The assistant sends workpapers and exceptions to authorised human review. The Federal Register of Legislation feeds the legislation corpus, a finding aid. The reviewer uses the corpus to locate provisions and checks authority at the Register.
+%%{init: {"theme": "base", "look": "classic", "themeVariables": {"background": "#000000", "primaryColor": "#66023C", "primaryTextColor": "#FFFFF0", "primaryBorderColor": "#FFFFF0", "lineColor": "#FFD32A", "textColor": "#FFFFF0", "edgeLabelBackground": "#000000", "clusterBkg": "#000000", "clusterBorder": "#9B7735", "titleColor": "#E5E4E2"}}}%%
+    assistant["Assistant using<br/>accounting skills"] <--> mcp["Australian Accounting<br/>MCP server"]
+    mcp -->|Calculations| engines["Calculation packages"]
+    assistant -->|Workpapers and exceptions| reviewer["Authorised human review"]
+    official["Federal Register<br/>of Legislation"] -->|Corpus build| corpus["Legislation corpus<br/>Finding aid"]
+    corpus -. Locate provisions .-> reviewer
+    official -. Check authority .-> reviewer
+    style engines fill:#990024,stroke:#FFFFF0,stroke-width:2px,color:#FFFFF0
+    style reviewer fill:#E7162F,stroke:#FFFFF0,stroke-width:2px,color:#FFFFF0
+    classDef external fill:#745EB1,stroke:#FFFFF0,stroke-width:2px,color:#FFFFF0
+    class official external
+```
+
+The corpus is not an automatic source feed into the calculation engines; the research
+tools above only search a copy you configure. Dashed arrows show reference use, which
+still requires checking the applicable authority.
+
+</details>
+
 ## Components
 
 Australian Accounting holds 13 components, each in its own directory:
