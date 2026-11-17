@@ -10,8 +10,8 @@ pub mod decimal;
 mod pytext;
 mod tables;
 
-use jiff::civil::Date;
 use decimal::Decimal;
+use jiff::civil::Date;
 use serde_json::{Map, Value};
 use std::sync::OnceLock;
 
