@@ -12,6 +12,10 @@ intentionally changed.
 
 ### Documented divergences
 
+- An undated schedule's live date is today's in the zone `TZ` names, or in
+  the system zone when `TZ` is unset. A `TZ` that names no zone gives the UTC
+  date, as Python 0.2.0 did. On Windows Python read a zone name such as
+  `Australia/Sydney` in `TZ` as UTC; this reads it as that zone.
 - Python imports, dataclasses, keyword signatures, exception classes and package
   version lookup are removed. `--version` prints `wip-tally 1.0.0`.
 - The JSON boundary takes amounts as decimal strings. A JSON number is refused
