@@ -191,6 +191,36 @@ repayments under s 109R.
 For an editable source installation, run `pip install -e .` from
 `apps/aus-accounting-mcp/`. The repository root is not an installable Python package.
 
+<details>
+<summary>How the accounting tools fit together</summary>
+
+The [accounting skills](https://github.com/ryanduguid/australian-accounting-skills) guide
+preparation and can call this server. Workpapers and unresolved exceptions go to an
+authorised human for review.
+
+```mermaid
+flowchart TB
+accTitle: How the accounting tools fit together
+accDescr: An assistant using the accounting skills exchanges requests with the Australian Accounting MCP server, which sends calculations to the calculation packages. The assistant sends workpapers and exceptions to authorised human review. The Federal Register of Legislation feeds the legislation corpus, a finding aid. The reviewer uses the corpus to locate provisions and checks authority at the Register.
+%%{init: {"theme": "base", "look": "classic", "themeVariables": {"background": "#000000", "primaryColor": "#66023C", "primaryTextColor": "#FFFFF0", "primaryBorderColor": "#FFFFF0", "lineColor": "#FFD32A", "textColor": "#FFFFF0", "edgeLabelBackground": "#000000", "clusterBkg": "#000000", "clusterBorder": "#9B7735", "titleColor": "#E5E4E2"}}}%%
+    assistant["Assistant using<br/>accounting skills"] <--> mcp["Australian Accounting<br/>MCP server"]
+    mcp -->|Calculations| engines["Calculation packages"]
+    assistant -->|Workpapers and exceptions| reviewer["Authorised human review"]
+    official["Federal Register<br/>of Legislation"] -->|Corpus build| corpus["Legislation corpus<br/>Finding aid"]
+    corpus -. Locate provisions .-> reviewer
+    official -. Check authority .-> reviewer
+    style engines fill:#990024,stroke:#FFFFF0,stroke-width:2px,color:#FFFFF0
+    style reviewer fill:#E7162F,stroke:#FFFFF0,stroke-width:2px,color:#FFFFF0
+    classDef external fill:#745EB1,stroke:#FFFFF0,stroke-width:2px,color:#FFFFF0
+    class official external
+```
+
+The corpus is not an automatic source feed into the calculation engines; the research
+tools above only search a copy you configure. Dashed arrows show reference use, which
+still requires checking the applicable authority.
+
+</details>
+
 ## Components
 
 Australian Accounting holds 13 components, each in its own directory:
@@ -293,11 +323,27 @@ you configure. As read on 13 November 2026, these projects cover nearby ground:
   where this repository requires the date.
   Both compose a year's tax and levies, work taxable income out from salary and deductions with
   the $1,000 standard deduction for work-related expenses from 2026-27, and compare the result
-  with tax withheld, as rechecked in the library's source on 16 November 2026. The library's
+  with tax withheld, as rechecked in the library's source on 16 November 2026. Both work that
+  tax withheld out from one employer's regular pays, with Schedule 5 Method A for a bonus, as
+  rechecked at the library's commit e94cef24 on 16 November 2026: the library from an annual salary
+  spread over 52 weekly, 26 fortnightly or 12 monthly pays, and this repository from one pay's
+  earnings and the number of pays in the year, so it also takes 53 weekly or 27 fortnightly pays,
+  quarterly pays under Schedules 1 and 8, and, under Schedule 1 without a study loan or a bonus,
+  the tax offsets and Medicare levy adjustment a payee declares. The library
+  also applies Method A to a senior's or pensioner's bonus, which this repository refuses. The library's
   `annual_tax_estimate` approximates repayment income and income for surcharge purposes by taxable
-  income, estimates the tax withheld from one employer's salary and pay frequency, and covers
-  2027-28 with the working Australians tax offset, which this repository does not. This
-  repository's `personal-tax-estimate` takes those incomes and the tax withheld as established,
+  income. Both compose a resident's 2027-28 tax with the working Australians tax offset, as
+  rechecked at the library's commit e94cef24 on 16 November 2026: the lesser of $250 and the tax on
+  net labour income, when that exceeds $18,200, which the library's notes call approximate below $250, pending
+  a legislative instrument, though ITAA 1997 s 61-160 as Act No. 49 of 2026 enacts it leaves
+  nothing to one. This repository applies the offset before the seniors and low income tax offsets,
+  as s 63-10(1) orders, where the library applies it after them; the total is the same, but the
+  library can show a smaller offset. This repository also works out 2027-28's seniors and pensioners
+  tax offset thresholds from the regulations' indexation, where the library applies 2026-27's, and
+  compares the total with a given `tax_withheld`, where the library gives no refund for 2027-28.
+  The library estimates 2027-28 with a study loan or without hospital cover on figures the ATO had
+  not published, which this repository refuses: it takes 2027-28 with `tax_withheld`, hospital cover all
+  year and no study loan. This repository's `personal-tax-estimate` takes those incomes as established,
   names the worksheet behind each line
   and keeps its sources and refusals, shows Division 293 tax, and refuses part-year residents and
   working holiday makers; both compose a full-year foreign resident's tax without the Medicare

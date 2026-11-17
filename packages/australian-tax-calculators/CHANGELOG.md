@@ -10,6 +10,71 @@ intentionally changed.
 
 ### Added
 
+- `fbt-return` composes one employer's FBT return for the FBT year ended
+  31 March 2026 or 2027 from a list of benefits, each valued by its own FBT
+  benefit worksheet and classified by the operator as type 1 or type 2 and as
+  excluded or not. It runs `fbt` once on the aggregate amounts and gives items
+  14A, 14B, 15, 16, 19 and 23, each employee's individual and reportable fringe
+  benefits amounts (FBTAA ss 5E and 135P, compilation 97), the employee
+  contributions applied, a reconciliation to the benefits, and the labels it
+  leaves to the preparer. New codes: `fbt_return.benefit_command_unsupported`,
+  `fbt_return.car_statutory_lower`, `fbt_return.exclusion_conflict`,
+  `fbt_return.gst_type_missing`, `fbt_return.mixed_years`,
+  `fbt_return.multiple_employers` and `fbt_return.payroll_tax_unsupported`.
+  `tests/fbt_return.rs` holds it to the ATO's worked examples.
+- `business-capital-expenditure` works out the deduction for business
+  capital expenditure (black hole and start-up costs) under ITAA 1997
+  s 40-880 for 2020-21 to 2027-28, item by item: one fifth a year over 5
+  income years from the year incurred, or in full that year for a start-up
+  cost meeting s 40-880(2A) and (2B), to the extent s 40-880(3) or (4)
+  allows, with each item's schedule and the paragraphs of s 40-880(4)(b),
+  (5), (7), (8) and (9) that exclude it. It refuses an item that forms part
+  of a depreciating asset's cost (s 40-880(5)(a)) or could be taken into
+  account in a capital gain or loss (s 40-880(5)(f)), a revenue outlay, an
+  item incurred before 1 July 2020 and a missing fact, by name. `derive`
+  covers it. `tests/business_capital_expenditure.rs` holds it to TR 2011/6
+  examples 14, 16 to 18, 21 to 25, 40A and 41 and the ATO's start-up
+  examples.
+- `contribution-caps` can work out the unused concessional cap from each
+  earlier year's contributions instead of taking it as a total: given
+  `earlier_concessional_contributions` from at least the 5th year before,
+  with `defined_benefit_interest` and an optional
+  `proposed_concessional_contribution`, it gives each year's cap and unused
+  cap from 2018-19, the unused cap earlier years applied, earliest first, the
+  total carried into the year, and, after the proposal, the amount applied from
+  each year, what is left of each, what lapses at the end of the year and
+  `unused_cap_expiry`, each with its step in `derive` (ITAA 1997 s 291-20(1)
+  to (7), compilation 268). It refuses a defined benefit interest, years
+  before 2018-19, a total across years, a gap, and a year over its cap whose
+  increase cannot be worked out from what was given; it refuses a field it
+  does not take, as `division-296` does. New refusal codes:
+  `contribution_caps.defined_benefit_interest`,
+  `contribution_caps.earlier_balance_missing`,
+  `contribution_caps.earlier_years_invalid`,
+  `contribution_caps.earlier_years_short` and
+  `contribution_caps.year_before_carry_forward`. `tests/contribution_caps.rs`
+  holds it to the ATO's Sam example and its table 2. A supplied
+  `unused_concessional_cap` gives the same result as before.
+- `unused-leave-payment` works out, for unused annual leave, leave loading and
+  unused long service leave paid on a termination in 2026-27, each part's
+  assessable share and tax offset (ITAA 1997 ss 83-10 to 83-115), the
+  Schedule 7 withholding (32% on the parts the offset caps at 30%, the marginal
+  rate calculation once on the rest, with the $300 limit, or without a TFN 47%
+  of the payment, 45% for a foreign resident) and the income
+  statement amount at lump sum A (type R or T), lump sum B and paid leave
+  type U, with `qualifying_earnings` nil under the Superannuation Guarantee
+  (Administration) Act and the ATO's qualifying earnings table. `derive`
+  covers it. Leave paid after death, working holiday makers, a missing or
+  impossible accrual part, a payment under $300 beside pre-16 August 1978
+  leave and other years are refused, under the new codes
+  `input.termination_reason_invalid`, `leave.accrual_split_invalid`,
+  `leave.accrual_split_missing`, `leave.death`,
+  `leave.under_300_with_pre_1978` and `leave.working_holiday_maker`. No Python
+  release has it. `tests/parity.rs` drops its catalogue entry before comparing,
+  and `tests/unused_leave_payment.rs` holds it to Schedule 7's example and the
+  parts of the ATO's 6 unused leave examples that do not depend on the 2014-15
+  tax tables.
+
 - `derive` also covers `gst`, `depreciation` and `hire-purchase-schedule`.
   Their steps cite the GST Act ss 9-70 and 9-75 (compilation 96) and ITAA 1997
   ss 40-25, 40-70, 40-72, 40-75, 40-85, 240-25 and 240-60 (compilation 268).
@@ -63,6 +128,15 @@ intentionally changed.
   `fbt_expense_payment.in_house_deductible_not_covered` (the otherwise
   deductible rule for in-house expense payments, s 24(1)(b)(i), is not
   covered) and `fbt_expense_payment.payment_exceeds_expenditure`.
+- `fbt-entertainment-classifier` classifies an ordinary taxable employer's entertainment expense lines: for each
+  line and attendee class, whether it is entertainment, the fringe benefit and its type or the s 41 exemption, the
+  ITAA 1997 Division 32 deduction and the GST credit that follows it, and whether each fringe benefit is excluded from
+  reporting (FBTAA s 5E(3)(a)), each cited, with TR 97/17 and TR 2007/12 as the
+  Commissioner's view. A missing fact leaves a line undetermined; minor benefits are shown only as possible. Under the
+  50/50 split or 12 week register method it totals the meal entertainment expenditure for `fbt-meal-entertainment`.
+  It refuses tax-exempt bodies, unsplit lines, a cost without its GST status and a missing valuation method, with
+  codes `fbt_entertainment_classifier.fact_invalid`, `.gst_status_invalid`, `.line_not_split`, `.lines_invalid`,
+  `.method_required`, `.register_percentage_invalid` and `.tax_exempt_body`.
 - `fbt-residual`, `fbt-housing`, `fbt-lafha`, `fbt-board` and `fbt-tax-exempt-body-entertainment` give the taxable
   value of residual (Division 12, with the s 62 in-house reduction), housing
   (Division 6: market value, or the statutory annual value from a base year
@@ -121,6 +195,23 @@ intentionally changed.
   message. The result for an established `taxable_income` without
   `tax_withheld` is unchanged apart from its sources, scope and
   `source_checked`.
+- `personal-tax-estimate` can work out `tax_withheld` from one employer's
+  regular pays: one pay's `payg-withholding`, `study-loan-withholding` or
+  `seniors-pensioners-withholding` inputs and `pays_in_year` (at most 53
+  weekly, 27 fortnightly, 12 monthly or 4 quarterly pays), with
+  `schedule-5-method-a` for one bonus paid with one of them, but not with a
+  Schedule 9 or quarterly pay or beside declared tax offsets, Medicare levy
+  adjustment or extra pay amount, which Method A here does not take. The tax withheld
+  is the pay's withholding times the pays, plus Method A's on the bonus, and
+  the amounts add `withholding_per_pay` and `additional_payment_withholding`.
+  A study loan pay needs `study-loan-repayment`; Schedule 9 or a study loan
+  for a foreign resident is refused as `estimate.residency_unsupported`, and a
+  scale that does not match the residency as the new code
+  `estimate.scale_mismatch`. A study loan pay in 2025-26, whose Schedule 8
+  coefficients changed on 24 September 2025, is refused as
+  `period.unsupported`, and `extra_pay_withholding` needs 53 weekly or 27
+  fortnightly pays. Its sources add TAA 1953 Sch 1 s 12-35. Results
+  without the new inputs are unchanged apart from the scope.
 - `derive` also covers `working-holiday-maker-withholding`,
   `study-loan-withholding`, `seniors-pensioners-withholding`, `quarterly-sg`
   and `borrowing-expenses`. Their steps cite the headings of Schedules 1, 8, 9
@@ -284,6 +375,26 @@ intentionally changed.
   every cut-out; `tests/properties.rs` checks that it never rises with rebate
   income without a transfer. Schedule 9 and this command share the `status` values and the
   `input.status_invalid` refusal.
+- `lump-sum-arrears-tax-offset` works out the tax offset for lump sum payments
+  in arrears (ITAA 1936 ss 159ZR to 159ZRD) for a year of receipt from
+  2013-14 to 2026-27: the 10% threshold test on normal taxable income (s 159ZRA(1)(b)),
+  the tax on the arrears (s 159ZRB), the notional tax in each recent accrual
+  year (s 159ZRC) and in distant years at the average of the recent years'
+  rates, each truncated to 3 decimal places and raised by 0.001 when the
+  fourth is more than 4 (s 159ZRD), and the rebate-year adjustments. A new
+  `PRIOR_RESIDENT_TAX_SCALES` table holds the ATO's resident rates for
+  2012-13 to 2023-24, with the 2% temporary budget repair levy above $180,000
+  in 2014-15 to 2016-17 (Income Tax (Transitional Provisions) Act 1997
+  s 4-11); `resident-tax` periods do not change. A recent accrual year before
+  2012-13 is refused with `lump_sum_arrears.recent_year_unsupported`, and a
+  malformed accrual year with `lump_sum_arrears.accrual_years_invalid`. The
+  Medicare levy exemption (Medicare Levy Act 1986 s 9A) and surcharge offset
+  (ITAA 1997 Subdivision 61-L) are named as separate questions, not worked
+  out. `derive` covers it. Like `division-296`, it refuses a field it does
+  not take. No Python release has it. `tests/lump_sum_arrears_offset.rs`
+  holds it to the ATO's Sudeep and Anthony results, works the Heather and Yan
+  facts by hand with assumed taxable incomes and checks each earlier year's
+  rates.
 - `depreciation` takes an optional `opening_adjustable_value` for an income
   year after the asset's start time (ITAA 1997 ss 40-70(1), 40-72 and 40-75).
   Diminishing value then applies its rate to that value and prime cost to cost,
@@ -421,9 +532,69 @@ intentionally changed.
   `tests/dgr_check.rs` holds it to ABNs read the same in ABN Lookup's DGR
   listing and to the Library's worked example ¶7-020, and `tests/properties.rs`
   checks that it never reads an ABN in its data as absent.
+- `income-tests` works out 6 income measures for a full-year resident for
+  2024-25 to 2026-27 from taxable income and the components each definition
+  adds back: income for surcharge purposes (ITAA 1997 s 995-1), Division 293
+  income (s 293-20(1)(a)), rebate income (ITAA 1936 s 6(1)), repayment income
+  (HESA s 154-5), adjusted taxable income for offsets (Family Assistance Act
+  Sch 3) and the super co-contribution's total income (Superannuation
+  (Government Co-contribution for Low Income Earners) Act 2003 s 8). Each
+  measure is a `derive` step citing its definition, and `not_used` lists the
+  components each leaves out. Every component is required; a negative one, a
+  component larger than the amount that includes it, a part-year or foreign
+  resident and another year are refused. Income for surcharge purposes follows
+  s 995-1, which leaves out the exempt foreign employment income the ATO's
+  surcharge page adds, and warns when they differ. No command's behaviour
+  changes. No Python release has it. `tests/parity.rs` drops its catalogue
+  entry before comparing, and `tests/income_tests.rs` holds it to the ATO's
+  Christina and Tom examples, passes each measure to the command that takes
+  it and checks each adjustment and refusal.
+- `gst`, `resident-tax`, `foreign-resident-tax`, `low-income-tax-offset`,
+  `medicare-levy`, `seniors-pensioners-tax-offset`, `division-293` and
+  `pension-minimum` also accept 2027-28, the year whose every rate and
+  threshold each takes the law already sets: Income Tax Rates Act 1986
+  Schedule 7 (14%, 30%, 37% and 45% for a resident; 30%, 37% and 45% for a
+  foreign resident), ITAA 1997 ss 61-115 and 293-20, the Medicare Levy Act
+  1986 thresholds Act No. 58, 2026 applies to later years, the SAPTO
+  regulations' formulas at the 14% lowest rate, the GST rate and SISR
+  Schedule 7, with 366 days for the pension minimum. The ATO had published
+  none of them for 2027-28 when they were read on 16 November 2026, so each
+  result but GST, LITO, Division 293 and the pension minimum adds a warning
+  saying so; the `resident-tax` one also says the s 119-10 extra tax on a
+  minimum tax capital gain, from 2027-28, is not worked out. A worksheet that
+  still refuses 2027-28 adds why to its `period.unsupported` message: the
+  withholding schedules, Medicare levy surcharge thresholds, study loan
+  thresholds, contribution caps, ETP caps and indexed Division 296
+  thresholds were not yet published; CGT changes from 1 July 2027 (Act No.
+  49 of 2026, Schedule 1) and s 26-155 limits rental deductions; or 2027-28's
+  366 days exceed the 365 `depreciation` takes. `medicare-levy-surcharge`
+  takes 2027-28 only with `days_without_cover` 0, when Medicare Levy Act 1986
+  ss 8B, 8C and 8D leave no surcharge whatever the thresholds, and refuses a
+  day without cover. `personal-tax-estimate` composes 2027-28 for a foreign
+  resident, and for a resident applies the working Australians tax offset
+  (ITAA 1997 ss 61-155 and 61-160) first (s 63-10(1) item 3): the lesser of
+  $250 and the basic income tax on net labour income, which it takes as the
+  new `net_labour_income` (required beside `taxable_income`) or works out from
+  the labour inputs. The amounts add `net_labour_income`,
+  `working_australians_tax_offset` and `working_australians_tax_offset_applied`;
+  its sources add ss 61-155 and 61-160. It does not work out the s 119-10
+  extra tax on a minimum tax capital gain, which its scope excludes. Results
+  before 2027-28 are unchanged apart from the scope and sources.
+  `hire-purchase-schedule`'s 2027-28 refusal gives no reason: s 26-155 does
+  not touch it. `tests/parity.rs` adds 2027-28
+  to the 6 frozen commands' supported periods, catalogue and refusals, adds
+  the reason to the 13 frozen 2027-28 refusals of the others, and skips the
+  17 frozen calls that expected 2027-28 to be refused; `tests/year_2027_28.rs`
+  checks that year with hand-worked figures.
 
 ### Documented divergences
 
+- `contribution-caps` results and its catalogue entry give the new scope,
+  which describes the carry-forward by year, cite the ATO's concessional
+  contributions cap page and ITAA 1997 s 291-20 on the ATO's legal database,
+  and are checked on 16 November 2026; the catalogue lists the 3 new optional
+  inputs. No amount or rate changes. `tests/parity.rs` applies this to the frozen
+  `contribution-caps` and `worksheet-catalogue` results.
 - `depreciation`'s closing adjustable value is the opening value less the
   decline in value as shown in cents. Python 0.2.0 rounded the 2 separately, so
   a decline ending in exactly half a cent showed a cent too much in both: $10,001

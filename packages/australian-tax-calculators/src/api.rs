@@ -189,6 +189,10 @@ const COMMAND_ARGS: &[(&str, &[(&str, Kind)])] = &[
         ],
     ),
     (
+        "business-capital-expenditure",
+        &[("items", Json), ("year", Raw), ("scope_confirmed", Raw)],
+    ),
+    (
         "fbt",
         &[
             ("type_one_value", Dec),
@@ -297,6 +301,16 @@ const COMMAND_ARGS: &[(&str, &[(&str, Kind)])] = &[
         ],
     ),
     (
+        "lump-sum-arrears-tax-offset",
+        &[
+            ("taxable_income", Dec),
+            ("net_capital_gain", Dec),
+            ("accrual_years", Json),
+            ("year", Raw),
+            ("scope_confirmed", Raw),
+        ],
+    ),
+    (
         "division-293",
         &[
             ("division_293_income", Dec),
@@ -326,6 +340,22 @@ const COMMAND_ARGS: &[(&str, &[(&str, Kind)])] = &[
             ("non_excluded_payment", Dec),
             ("other_taxable_payments", Dec),
             ("date_of_birth", Raw),
+            ("year", Raw),
+            ("scope_confirmed", Raw),
+        ],
+    ),
+    (
+        "unused-leave-payment",
+        &[
+            ("annual_leave", Dec),
+            ("leave_loading", Dec),
+            ("long_service_leave", Dec),
+            ("leave_accrual_start", Raw),
+            ("termination_reason", Raw),
+            ("working_holiday_maker", Raw),
+            ("earnings", Dec),
+            ("pay_period", Raw),
+            ("scale", Raw),
             ("year", Raw),
             ("scope_confirmed", Raw),
         ],
@@ -429,6 +459,39 @@ const COMMAND_ARGS: &[(&str, &[(&str, Kind)])] = &[
     ("fbt-lafha", FBT_METHOD_ARGS),
     ("fbt-board", FBT_YEAR_ARGS),
     ("fbt-tax-exempt-body-entertainment", FBT_METHOD_ARGS),
+    (
+        "fbt-entertainment-classifier",
+        &[
+            ("lines", Json),
+            ("income_tax_exempt", Raw),
+            ("year_ended", Raw),
+            ("scope_confirmed", Raw),
+        ],
+    ),
+    (
+        "income-tests",
+        &[
+            ("taxable_income", Dec),
+            ("assessable_fhss_released_amount", Dec),
+            ("family_trust_distribution_amounts", Dec),
+            ("reportable_fringe_benefits_section_57a", Dec),
+            ("reportable_fringe_benefits_other", Dec),
+            ("reportable_employer_super_contributions", Dec),
+            ("deductible_personal_super_contributions", Dec),
+            ("excess_concessional_contributions", Dec),
+            ("net_financial_investment_loss", Dec),
+            ("net_rental_property_loss", Dec),
+            ("tax_free_government_pensions", Dec),
+            ("target_foreign_income", Dec),
+            ("exempt_foreign_employment_income", Dec),
+            ("child_support_paid", Dec),
+            ("assessable_income", Dec),
+            ("business_deductions", Dec),
+            ("residency", Raw),
+            ("year", Raw),
+            ("scope_confirmed", Raw),
+        ],
+    ),
 ];
 
 pub fn commands() -> Vec<&'static str> {
@@ -438,17 +501,21 @@ pub fn commands() -> Vec<&'static str> {
     out.push("derive");
     out.push("personal-tax-estimate");
     out.push("dgr-check");
+    out.push("fbt-return");
     out
 }
 
 /// The commands `derive` explains: each of their amounts is worked out in a step.
-/// Every worksheet command is here except `payg-gross-up`. Its gross pay is the
+/// Every worksheet command is here except `payg-gross-up` and
+/// `fbt-entertainment-classifier`. The gross pay of `payg-gross-up` is the
 /// one whose own withholding leaves the net, found by searching
 /// `payg-withholding`'s results, or `study-loan-withholding`'s for a payee with
 /// a study loan: the withholding is worked on the gross, so no step can work
 /// the gross out from the inputs and earlier steps alone. `derive` of that
-/// command on its `gross_pay` shows that withholding.
-const DERIVED: [&str; 40] = [
+/// command on its `gross_pay` shows that withholding. The classifier's amounts
+/// are totals over lines whose shares a decision table sets, not a formula;
+/// each line and class carries the authority for its row instead.
+const DERIVED: [&str; 44] = [
     "fbt",
     "fbt-car-statutory",
     "fbt-car-operating-cost",
@@ -465,6 +532,7 @@ const DERIVED: [&str; 40] = [
     "schedule-5-method-b-i",
     "schedule-5-method-b-ii",
     "termination-payment",
+    "unused-leave-payment",
     "working-holiday-maker-withholding",
     "study-loan-withholding",
     "seniors-pensioners-withholding",
@@ -489,6 +557,9 @@ const DERIVED: [&str; 40] = [
     "gst",
     "depreciation",
     "hire-purchase-schedule",
+    "lump-sum-arrears-tax-offset",
+    "income-tests",
+    "business-capital-expenditure",
 ];
 
 /// `derive`: `{"command", "input"}` gives the command's result with the step
@@ -730,6 +801,47 @@ pub(crate) fn takes(command: &str, key: &str) -> bool {
         || named.iter().flatten().any(|(n, _)| *n == key)
 }
 
+/// The `contribution-caps` inputs that work out the unused concessional cap
+/// from each earlier year's contributions instead of taking it as a total.
+const CARRY_FORWARD_INPUTS: [&str; 3] = [
+    "earlier_concessional_contributions",
+    "proposed_concessional_contribution",
+    "defined_benefit_interest",
+];
+
+/// `contribution-caps` given a carry-forward input. It has no Python original
+/// and a misspelt proposed contribution would be silently left out, so a
+/// field it does not take is refused, as is the unused total beside the years.
+fn contribution_caps_by_year(v: &Value) -> Result<Value> {
+    let command = "contribution-caps";
+    let mut keys = v.as_object().into_iter().flat_map(|o| o.keys());
+    if let Some(key) = keys.find(|k| *k == "unused_concessional_cap" || !takes(command, k)) {
+        return refusal(
+            "input.field_unknown",
+            format!("{key} is not an input of {command} when it works out the unused cap by year"),
+        );
+    }
+    let (_, params) = COMMAND_ARGS
+        .iter()
+        .find(|(c, _)| *c == command)
+        .expect("listed command");
+    let a: Vec<Arg> = params
+        .iter()
+        .filter(|(key, _)| *key != "unused_concessional_cap")
+        .map(|(key, kind)| argument(v, key, *kind))
+        .collect::<Result<_>>()?;
+    let earlier = argument(v, "earlier_concessional_contributions", Json)?;
+    let flag = argument(v, "defined_benefit_interest", Raw)?;
+    let proposed = optional(v, "proposed_concessional_contribution", Dec)?;
+    let carry = engine::CarryForward {
+        earlier_contributions: &earlier,
+        proposed_contribution: proposed.as_ref(),
+        defined_benefit_interest: &flag,
+    };
+    engine::contribution_caps_by_year(&a[0], &a[1], &a[2], &a[3], carry, &a[4], &a[5])
+        .or_else(|e| refusal(e.code(), e.to_string()))
+}
+
 /// Run one JSON stdin command: the result value, or the refusal message.
 pub fn evaluate(command: &str, v: &Value) -> std::result::Result<Value, String> {
     evaluate_coded(command, v).map_err(|refusal| refusal.message)
@@ -745,7 +857,11 @@ pub fn evaluate_coded(command: &str, v: &Value) -> Result<Value> {
         "worksheet-catalogue" => return Ok(engine::worksheet_catalogue()),
         "derive" => return derive(v),
         "personal-tax-estimate" => return crate::estimate::compose(v),
+        "contribution-caps" if CARRY_FORWARD_INPUTS.iter().any(|k| v.get(k).is_some()) => {
+            return contribution_caps_by_year(v);
+        }
         "dgr-check" => return crate::dgr::check(v),
+        "fbt-return" => return crate::fbt_return::compose(v),
         "periods" => {
             let kind = match v.get("kind") {
                 None => return refusal("input.missing_field", "kind is required"),
@@ -766,8 +882,9 @@ pub fn evaluate_coded(command: &str, v: &Value) -> Result<Value> {
     let Some((_, params)) = COMMAND_ARGS.iter().find(|(c, _)| *c == command) else {
         return refusal("command.unknown", format!("unknown command {command}"));
     };
-    // Division 296, the termination payment, Medicare levy surcharge, Schedule
-    // 5, 9 and 15 and the seniors and pensioners tax offset worksheets have no
+    // Division 296, the termination payment, unused leave, Medicare levy surcharge,
+    // Schedule 5, 9 and 15, the seniors and pensioners and lump sum in arrears
+    // tax offset worksheets have no
     // Python original whose lenience to keep, and a misspelt optional
     // depreciation, Medicare levy or PAYG withholding input would silently give
     // the start year's, a single person's or the result without it, so a field
@@ -783,6 +900,7 @@ pub fn evaluate_coded(command: &str, v: &Value) -> Result<Value> {
             | "payg-withholding"
             | "payg-gross-up"
             | "termination-payment"
+            | "unused-leave-payment"
             | "schedule-5-method-a"
             | "schedule-5-method-b-i"
             | "schedule-5-method-b-ii"
@@ -791,6 +909,7 @@ pub fn evaluate_coded(command: &str, v: &Value) -> Result<Value> {
             | "foreign-resident-tax"
             | "seniors-pensioners-withholding"
             | "seniors-pensioners-tax-offset"
+            | "lump-sum-arrears-tax-offset"
             | "fbt-loan"
             | "fbt-meal-entertainment"
             | "fbt-car-parking"
@@ -802,7 +921,10 @@ pub fn evaluate_coded(command: &str, v: &Value) -> Result<Value> {
             | "fbt-lafha"
             | "fbt-board"
             | "fbt-tax-exempt-body-entertainment"
+            | "fbt-entertainment-classifier"
             | "hire-purchase-schedule"
+            | "income-tests"
+            | "business-capital-expenditure"
     ) && let Some(key) = v
         .as_object()
         .into_iter()
@@ -839,6 +961,7 @@ pub fn evaluate_coded(command: &str, v: &Value) -> Result<Value> {
         "hire-purchase-schedule" => {
             engine::hire_purchase_schedule(&a[0], &a[1], &a[2], &a[3], &a[4], &a[5], &a[6], &a[7])
         }
+        "business-capital-expenditure" => engine::business_capital_expenditure(&a[0], &a[1], &a[2]),
         "fbt" => engine::fbt(&a[0], &a[1], &a[2], &a[3]),
         "fbt-car-statutory" => {
             engine::fbt_car_statutory(&a[0], &a[1], &a[2], &a[3], &a[4], &a[5], &a[6], &a[7])
@@ -865,6 +988,21 @@ pub fn evaluate_coded(command: &str, v: &Value) -> Result<Value> {
         "fbt-tax-exempt-body-entertainment" => {
             let given = benefit_inputs(v, params)?;
             engine::fbt_tax_exempt_body_entertainment(&a[0], &given, &a[1], &a[2])
+        }
+        "fbt-entertainment-classifier" => {
+            // Optional: the meal entertainment method, required only when a
+            // line is meal entertainment, and the 12 week register's income
+            // tax register percentage.
+            let method = optional(v, "method", Raw)?;
+            let register = optional(v, "income_tax_register_percentage", Dec)?;
+            engine::fbt_entertainment_classifier(
+                &a[0],
+                &a[1],
+                &a[2],
+                &a[3],
+                method.as_ref(),
+                register.as_ref(),
+            )
         }
         "depreciation" => {
             // Optional: present only for an income year after the asset's start time.
@@ -973,10 +1111,50 @@ pub fn evaluate_coded(command: &str, v: &Value) -> Result<Value> {
             };
             engine::seniors_pensioners_tax_offset(&a[0], &a[1], &a[2], &a[3], spouse)
         }
+        "lump-sum-arrears-tax-offset" => {
+            engine::lump_sum_arrears_tax_offset(&a[0], &a[1], &a[2], &a[3], &a[4])
+        }
         "division-293" => engine::division_293(&a[0], &a[1], &a[2], &a[3]),
         "division-296" => engine::division_296(&a[0], &a[1], [&a[2], &a[3], &a[4]], &a[5], &a[6]),
         "termination-payment" => {
             engine::termination_payment(&a[0], &a[1], &a[2], &a[3], &a[4], &a[5], &a[6], &a[7])
+        }
+        "unused-leave-payment" => {
+            // Optional: the parts accrued before the dates the Act splits leave
+            // at, required where leave_accrual_start and the reason make them matter.
+            let o = [
+                optional(v, "annual_leave_before_18_august_1993", Dec)?,
+                optional(v, "leave_loading_before_18_august_1993", Dec)?,
+                optional(v, "long_service_leave_before_16_august_1978", Dec)?,
+                optional(
+                    v,
+                    "long_service_leave_16_august_1978_to_17_august_1993",
+                    Dec,
+                )?,
+            ];
+            let splits = engine::LeaveSplits {
+                annual_leave_before_18_august_1993: o[0].as_ref(),
+                leave_loading_before_18_august_1993: o[1].as_ref(),
+                long_service_leave_before_16_august_1978: o[2].as_ref(),
+                long_service_leave_16_august_1978_to_17_august_1993: o[3].as_ref(),
+            };
+            // Optional: scale 4's residency, as payg-withholding takes it.
+            let foreign = v.get("foreign_resident").map(arg);
+            let employee = engine::LeavePayee {
+                foreign_resident: foreign.as_ref(),
+                working_holiday_maker: &a[5],
+                earnings: &a[6],
+                pay_period: &a[7],
+                scale: &a[8],
+            };
+            engine::unused_leave_payment(
+                [&a[0], &a[1], &a[2]],
+                &splits,
+                (&a[3], &a[4]),
+                &employee,
+                &a[9],
+                &a[10],
+            )
         }
         "schedule-5-method-a" => engine::schedule_5_method_a(
             &a[0],
@@ -1028,6 +1206,10 @@ pub fn evaluate_coded(command: &str, v: &Value) -> Result<Value> {
             engine::contribution_caps(&a[0], &a[1], &a[2], &a[3], &a[4], &a[5], &a[6])
         }
         "pension-minimum" => engine::pension_minimum(&a[0], &a[1], &a[2], &a[3], &a[4]),
+        "income-tests" => {
+            let named: Vec<(&str, &Arg)> = params.iter().map(|(key, _)| *key).zip(&a).collect();
+            engine::income_tests(&named)
+        }
         _ => unreachable!("listed command"),
     };
     result.or_else(|e| refusal(e.code(), e.to_string()))

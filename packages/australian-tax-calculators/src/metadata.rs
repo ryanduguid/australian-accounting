@@ -40,6 +40,15 @@ pub const RESIDENT_TAX_SCALES: &[(&str, &[(i64, Option<i64>, &str)])] = &[
             (190000, None, "0.45"),
         ],
     ),
+    (
+        "2027-28",
+        &[
+            (18200, Some(45000), "0.14"),
+            (45000, Some(135000), "0.30"),
+            (135000, Some(190000), "0.37"),
+            (190000, None, "0.45"),
+        ],
+    ),
 ];
 
 /// Foreign resident basic tax scale per income year, in the same form. Income
@@ -65,6 +74,14 @@ pub const FOREIGN_RESIDENT_TAX_SCALES: &[(&str, &[(i64, Option<i64>, &str)])] = 
     ),
     (
         "2026-27",
+        &[
+            (0, Some(135000), "0.30"),
+            (135000, Some(190000), "0.37"),
+            (190000, None, "0.45"),
+        ],
+    ),
+    (
+        "2027-28",
         &[
             (0, Some(135000), "0.30"),
             (135000, Some(190000), "0.37"),
@@ -393,6 +410,20 @@ pub const CONTRIBUTION_CAPS: &[(&str, (&str, &str))] = &[
     ("2026-27", ("32500", "2100000")),
 ];
 
+/// The general concessional contributions cap (ITAA 1997 s 291-20(2)) for the
+/// earlier income years whose unused cap `contribution_caps` carries forward,
+/// from 2018-19 (s 291-20(7)): Table 1.1 of the ATO's 'Contributions caps'
+/// page (last updated 11 September 2026), read on 16 November 2026 at 17:23
+/// AEDT. Later years' caps are in [`CONTRIBUTION_CAPS`].
+pub const EARLIER_CONCESSIONAL_CAPS: &[(&str, &str)] = &[
+    ("2018-19", "25000"),
+    ("2019-20", "25000"),
+    ("2020-21", "25000"),
+    ("2021-22", "27500"),
+    ("2022-23", "27500"),
+    ("2023-24", "27500"),
+];
+
 /// Study loan repayment thresholds: minimum, step, printed base, flat-from.
 pub const STUDY_LOAN_REPAYMENT_THRESHOLDS: &[(&str, [(&str, &str); 4])] = &[
     (
@@ -419,11 +450,13 @@ pub const STUDY_LOAN_REPAYMENT_RATES: [(&str, &str); 3] =
 
 /// Medicare levy (threshold amount, phase-in limit) for a single person. Act
 /// No. 58, 2026, Sch 5 item 14 applies the s 3(1) figures to 2025-26 and later
-/// years, so 2026-27 has the 2025-26 figures until an amendment changes them.
+/// years, so 2026-27 and 2027-28 have the 2025-26 figures until an amendment
+/// changes them.
 pub const MEDICARE_LOW_INCOME_THRESHOLDS: &[(&str, (&str, &str))] = &[
     ("2024-25", ("27222", "34027")),
     ("2025-26", ("28011", "35013")),
     ("2026-27", ("28011", "35013")),
+    ("2027-28", ("28011", "35013")),
 ];
 /// The same for a person entitled to the seniors and pensioners tax offset:
 /// s 3(1) as Act No. 28, 2025, Sch 2 (2024-25 and later years) and Act No. 58,
@@ -432,6 +465,7 @@ pub const MEDICARE_SAPTO_THRESHOLDS: &[(&str, (&str, &str))] = &[
     ("2024-25", ("43020", "53775")),
     ("2025-26", ("44268", "55335")),
     ("2026-27", ("44268", "55335")),
+    ("2027-28", ("44268", "55335")),
 ];
 /// s 8(5) and (7), from the same Acts: the family income threshold, the
 /// threshold for a person entitled to the seniors and pensioners tax offset,
@@ -440,6 +474,7 @@ pub const MEDICARE_FAMILY_THRESHOLDS: &[(&str, (&str, &str, &str))] = &[
     ("2024-25", ("45907", "59886", "4216")),
     ("2025-26", ("47238", "61623", "4338")),
     ("2026-27", ("47238", "61623", "4338")),
+    ("2027-28", ("47238", "61623", "4338")),
 ];
 /// s 6(1), s 7(2) and the 0.08 in the s 8(2) formula.
 pub const MEDICARE_LEVY_RATES: [(&str, &str); 3] = [
@@ -474,10 +509,10 @@ pub const LOW_INCOME_TAX_OFFSET: [(&str, &str); 7] = [
     ("second_rate", "0.015"),
     ("cut_out", "66667"),
 ];
-pub const LOW_INCOME_TAX_OFFSET_YEARS: [&str; 3] = ["2024-25", "2025-26", "2026-27"];
+pub const LOW_INCOME_TAX_OFFSET_YEARS: [&str; 4] = ["2024-25", "2025-26", "2026-27", "2027-28"];
 
 pub const DIVISION_293: [(&str, &str); 2] = [("threshold", "250000"), ("rate", "0.15")];
-pub const DIVISION_293_YEARS: [&str; 3] = ["2024-25", "2025-26", "2026-27"];
+pub const DIVISION_293_YEARS: [&str; 4] = ["2024-25", "2025-26", "2026-27", "2027-28"];
 
 /// ITAA 1997 ss 296-30 and 296-35 (2026-27 thresholds; later years are indexed)
 /// and the Superannuation (Building a Stronger and Fairer Super System) Imposition
@@ -505,6 +540,21 @@ pub const TERMINATION_PAYMENT: [(&str, &str); 7] = [
     ("above_cap_rate", "0.47"),
 ];
 pub const TERMINATION_PAYMENT_YEARS: [&str; 1] = ["2026-27"];
+
+/// Unused leave paid on termination: Schedule 7's 32% rate for the parts a tax
+/// offset caps at 30% (30% plus the 2% Medicare levy) and its $300 limit for a
+/// small post-17 August 1993 payment, its 47% (45% for a foreign resident) of
+/// the payment when no TFN is provided (payments from 1 July 2026), and the 5%
+/// of pre-16 August 1978 long service leave that ITAA 1997 s 83-80(1) makes
+/// assessable.
+pub const UNUSED_LEAVE_PAYMENT: [(&str, &str); 5] = [
+    ("flat_rate", "0.32"),
+    ("pre_1978_assessable_rate", "0.05"),
+    ("small_payment", "300"),
+    ("no_tfn_rate", "0.47"),
+    ("no_tfn_foreign_resident_rate", "0.45"),
+];
+pub const UNUSED_LEAVE_PAYMENT_YEARS: [&str; 1] = ["2026-27"];
 
 /// Schedule 5 (NAT 3348): the schedules for payments from 1 July 2024, 1 July
 /// 2025 and 1 July 2026 state the same methods and limit.
@@ -807,6 +857,73 @@ pub const SAPTO_RULES: [(&str, &str); 6] = [
     ("transfer_rate", "0.15"),
 ];
 
+/// Resident tax rates for the income years before [`RESIDENT_TAX_SCALES`], in
+/// its form, for the recent accrual years of `lump_sum_arrears_tax_offset`
+/// only: the ATO's "Tax rates – Australian resident" (last updated 13 August
+/// 2026), read on 16 November 2026, for a full-year resident entitled to the
+/// whole tax-free threshold. In 2014-15 to 2016-17, the temporary budget repair
+/// levy years (Income Tax (Transitional Provisions) Act 1997 s 4-11(5)), the
+/// last row is that levy: extra income tax of 2% on taxable income above
+/// $180,000 (s 4-11(1) and Income Tax Rates Act 1986 s 34), which the ATO's
+/// tables leave out and which overlaps the 45% row. 2011-12, with its flood
+/// levy, and earlier years are not here.
+pub const PRIOR_RESIDENT_TAX_SCALES: &[(&str, &[(i64, Option<i64>, &str)])] = &[
+    ("2012-13", &SCALE_2012_13),
+    ("2013-14", &SCALE_2012_13),
+    ("2014-15", &SCALE_2014_15),
+    ("2015-16", &SCALE_2014_15),
+    (
+        "2016-17",
+        &[
+            (18200, Some(37000), "0.19"),
+            (37000, Some(87000), "0.325"),
+            (87000, Some(180000), "0.37"),
+            (180000, None, "0.45"),
+            (180000, None, "0.02"),
+        ],
+    ),
+    (
+        "2017-18",
+        &[
+            (18200, Some(37000), "0.19"),
+            (37000, Some(87000), "0.325"),
+            (87000, Some(180000), "0.37"),
+            (180000, None, "0.45"),
+        ],
+    ),
+    ("2018-19", &SCALE_2018_19),
+    ("2019-20", &SCALE_2018_19),
+    ("2020-21", &SCALE_2020_21),
+    ("2021-22", &SCALE_2020_21),
+    ("2022-23", &SCALE_2020_21),
+    ("2023-24", &SCALE_2020_21),
+];
+const SCALE_2012_13: [(i64, Option<i64>, &str); 4] = [
+    (18200, Some(37000), "0.19"),
+    (37000, Some(80000), "0.325"),
+    (80000, Some(180000), "0.37"),
+    (180000, None, "0.45"),
+];
+const SCALE_2014_15: [(i64, Option<i64>, &str); 5] = [
+    (18200, Some(37000), "0.19"),
+    (37000, Some(80000), "0.325"),
+    (80000, Some(180000), "0.37"),
+    (180000, None, "0.45"),
+    (180000, None, "0.02"),
+];
+const SCALE_2018_19: [(i64, Option<i64>, &str); 4] = [
+    (18200, Some(37000), "0.19"),
+    (37000, Some(90000), "0.325"),
+    (90000, Some(180000), "0.37"),
+    (180000, None, "0.45"),
+];
+const SCALE_2020_21: [(i64, Option<i64>, &str); 4] = [
+    (18200, Some(45000), "0.19"),
+    (45000, Some(120000), "0.325"),
+    (120000, Some(180000), "0.37"),
+    (180000, None, "0.45"),
+];
+
 pub const CARRY_FORWARD_BALANCE_LIMIT: &str = "500000";
 
 /// Statutory or benchmark interest rate by FBT year ended 31 March, for the
@@ -878,13 +995,23 @@ fn keys<T>(table: &[(&'static str, T)]) -> Vec<&'static str> {
 /// `SUPPORTED_PERIODS[kind]`.
 pub fn supported_periods(kind: &str) -> Vec<&'static str> {
     match kind {
-        "gst" | "capital_gains" | "depreciation" => vec!["2025-26", "2026-27"],
+        // The GST rate (GST Act s 9-70) has no year; the years are those read.
+        "gst" => vec!["2025-26", "2026-27", "2027-28"],
+        "capital_gains" | "depreciation" => vec!["2025-26", "2026-27"],
         "quarterly_sg" => vec!["2025-26"],
         "resident_tax" => keys(RESIDENT_TAX_SCALES),
         "foreign_resident_tax" => keys(FOREIGN_RESIDENT_TAX_SCALES),
         "main_residence" => vec!["2024-25", "2025-26", "2026-27"],
-        // s 26-155 quarantines residential rental deductions from 2027-28.
+        // Borrowing expenses: s 26-155 quarantines residential rental deductions
+        // from 2027-28. Hire purchase: the years read.
         "borrowing_expenses" | "hire_purchase_schedule" => vec!["2024-25", "2025-26", "2026-27"],
+        // s 40-880 as amended by Act No 92 of 2020 applies to expenditure
+        // incurred from 1 July 2020, unamended to compilation 268. It and
+        // Subdivision 328-C set no figure by year, and the Register's one later
+        // version (1 December 2026) changes neither, so 2027-28 is taken.
+        "business_capital_expenditure" => vec![
+            "2020-21", "2021-22", "2022-23", "2023-24", "2024-25", "2025-26", "2026-27", "2027-28",
+        ],
         "fbt" => vec!["2026", "2027"],
         "fbt_car_statutory" | "fbt_car_operating_cost" | "fbt_loan" => {
             keys(FBT_BENCHMARK_INTEREST_RATES)
@@ -898,15 +1025,18 @@ pub fn supported_periods(kind: &str) -> Vec<&'static str> {
         "fbt_debt_waiver" | "fbt_expense_payment" | "fbt_property" => vec!["2026", "2027"],
         "payg_withholding" | "payg_gross_up" => keys(PAYG_WITHHOLDING_COEFFICIENTS),
         "contribution_caps" => keys(CONTRIBUTION_CAPS),
-        "pension_minimum" => vec!["2024-25", "2025-26", "2026-27"],
+        "pension_minimum" => vec!["2024-25", "2025-26", "2026-27", "2027-28"],
         "study_loan_repayment" => keys(STUDY_LOAN_REPAYMENT_THRESHOLDS),
         "study_loan_withholding" => keys(STUDY_LOAN_WITHHOLDING_COEFFICIENTS),
         "medicare_levy" => keys(MEDICARE_LOW_INCOME_THRESHOLDS),
-        "medicare_levy_surcharge" => keys(SURCHARGE_THRESHOLDS),
+        // 2027-28 only with no day without cover, whose surcharge is nil
+        // whatever the thresholds, which are not yet published.
+        "medicare_levy_surcharge" => [keys(SURCHARGE_THRESHOLDS), vec!["2027-28"]].concat(),
         "low_income_tax_offset" => LOW_INCOME_TAX_OFFSET_YEARS.to_vec(),
         "division_293" => DIVISION_293_YEARS.to_vec(),
         "division_296" => DIVISION_296_YEARS.to_vec(),
         "termination_payment" => TERMINATION_PAYMENT_YEARS.to_vec(),
+        "unused_leave_payment" => UNUSED_LEAVE_PAYMENT_YEARS.to_vec(),
         "schedule_5_method_a" | "schedule_5_method_b_i" | "schedule_5_method_b_ii" => {
             SCHEDULE_5_YEARS.to_vec()
         }
@@ -914,13 +1044,27 @@ pub fn supported_periods(kind: &str) -> Vec<&'static str> {
         "seniors_pensioners_withholding" => keys(SENIORS_PENSIONERS_COEFFICIENTS),
         // The years checked against the regulations; the thresholds follow each
         // year's Schedule 7 rates, but a new year needs its own review.
-        "seniors_pensioners_tax_offset" => vec!["2024-25", "2025-26", "2026-27"],
+        "seniors_pensioners_tax_offset" => vec!["2024-25", "2025-26", "2026-27", "2027-28"],
+        // The years of receipt with rates for an earlier, recent accrual year,
+        // to 2026-27: later years have not been checked against their law.
+        "lump_sum_arrears_tax_offset" => [&PRIOR_RESIDENT_TAX_SCALES[1..], RESIDENT_TAX_SCALES]
+            .into_iter()
+            .flat_map(keys)
+            .filter(|year| *year <= "2026-27")
+            .collect(),
         // The years the ATO's return instructions and employer's guide were
         // read for; housing's indexed method also takes the year's factors.
         "fbt_residual" | "fbt_lafha" | "fbt_board" | "fbt_tax_exempt_body_entertainment" => {
             vec!["2026", "2027"]
         }
+        // No published rate: s 58P(1)(e)'s $300 is the Act's own. The years
+        // are those the other FBT benefit worksheets cover.
+        "fbt_entertainment_classifier" => vec!["2026", "2027"],
         "fbt_housing" => keys(FBT_HOUSING_INDEXATION),
+        // The years whose definitions were read: the 1 July 2024 compilations
+        // define them as the current ones do, and the ATO's 2025 and 2026
+        // return instructions and its current pages apply them.
+        "income_tests" => vec!["2024-25", "2025-26", "2026-27"],
         _ => Vec::new(),
     }
 }
@@ -952,6 +1096,10 @@ pub fn source_review(kind: &str) -> (&'static str, &'static str) {
         "borrowing_expenses" => (
             "2026-11-04",
             "ITAA 1997 s 25-25 and s 26-50, compilation 268 (1 October 2026); Borrowing expenses: the Peter and the Fiona and Max examples",
+        ),
+        "business_capital_expenditure" => (
+            "2026-11-16",
+            "ITAA 1997 s 40-880, compilation 268 (1 October 2026), last amended by Act No 92 of 2020 (Schedule 3 items 25 to 27, applied by item 40(7) from 1 July 2020); TR 2011/6, the Commissioner's view, paras 10, 128 to 134, 160 to 212, 318A to 321 and examples 14, 16 to 18, 21 to 25, 40A and 41; Deductions for depreciating assets and capital expenses (last updated 28 August 2026), other capital expenses",
         ),
         "hire_purchase_schedule" => (
             "2026-11-15",
@@ -1006,8 +1154,8 @@ pub fn source_review(kind: &str) -> (&'static str, &'static str) {
             "Schedule 1 (NAT 1004) for payments from 1 July 2026, and for payments from 1 July 2024 to 30 June 2026: weekly coefficients and scale 4, using a formula (rounding and the 53 and 27 pay tables), working out the weekly earnings (quarterly pays and tax offsets), Medicare levy adjustment, examples of calculating the withholding amounts, sample data",
         ),
         "contribution_caps" => (
-            "2026-09-24",
-            "Contributions caps, tables 1.1 and 4 and unused concessional cap carry forward; Non-concessional contributions cap, bring-forward arrangement",
+            "2026-11-16",
+            "Contributions caps, tables 1.1, 2 and 4 and unused concessional cap carry forward; Concessional contributions cap, carry forward unused contribution cap amounts and the Sam example; ITAA 1997 s 291-20(1) to (7), compilation 268; Non-concessional contributions cap, bring-forward arrangement",
         ),
         "pension_minimum" => (
             "2026-09-24",
@@ -1045,6 +1193,10 @@ pub fn source_review(kind: &str) -> (&'static str, &'static str) {
             "2026-11-14",
             "ATO Schedule 11, tax table for employment termination payments (from 1 July 2026), Table A and examples 1 to 4; ATO Key superannuation rates, tables 17 and 20; ITAA 1997 ss 82-10, 82-130 to 82-160 and 83-170 to 83-180, compilation 268 (1 October 2026); SISR reg 6.01(2), compilation 159 (1 July 2026)",
         ),
+        "unused_leave_payment" => (
+            "2026-11-16",
+            "ATO Schedule 7, tax table for unused leave payments on termination of employment (from 1 July 2026): using this schedule, working out the withholding amount, the rates and labels table, rounding, the marginal rate calculation, normal gross earnings, the long service leave example and when a TFN has not been provided; ITAA 1997 ss 83-10, 83-15 and 83-70 to 83-115, compilation 268 (1 October 2026); ATO STP Phase 2 employer reporting guidelines, 'When an employee transfers or leaves'; Superannuation Guarantee (Administration) Act 1992 ss 6(1) 'ordinary time earnings' and 10A(1), compilation 78 (1 July 2026); ATO 'What payments are qualifying earnings', table 13",
+        ),
         "schedule_5_method_a" | "schedule_5_method_b_i" | "schedule_5_method_b_ii" => (
             "2026-11-14",
             "Schedule 5 (NAT 3348) for payments from 1 July 2026, from 1 July 2025 to 30 June 2026 and from 1 July 2024 to 30 June 2025: about this schedule, working out the withholding amount (Methods A, B(i) and B(ii), the withholding limit, study and training support loans) and withholding amounts examples 1 to 4; Schedule 8's coefficients for the pay date",
@@ -1060,6 +1212,10 @@ pub fn source_review(kind: &str) -> (&'static str, &'static str) {
         "seniors_pensioners_tax_offset" => (
             "2026-11-14",
             "ITAA 1936 ss 6(1) (rebate income) and 160AAAA, compilation 193 (1 October 2026); Income Tax Assessment (1936 Act) Regulations 2025 ss 4 and 9 to 12 and 23 (F2025L01060), and the Income Tax Assessment (1936 Act) Regulation 2015 ss 4 and 9 to 12, compilation 8; ATO Seniors and pensioners tax offset: income limits, rates and thresholds for 2025-26, tax offset reduction and rounding, examples and transferring unused SAPTO with example 9; Do you need to lodge a tax return? 2025, reason 2",
+        ),
+        "lump_sum_arrears_tax_offset" => (
+            "2026-11-16",
+            "ITAA 1936 Part III Division 17 Subdivision AB, ss 159ZR to 159ZRD, compilation 193 (1 October 2026), with the endnotes' amendment history (ss 159ZRA to 159ZRD as added by Act No. 153, 1988; s 159ZR last amended by Act No. 112, 2015); ATO Lump sum payment in arrears: qualifying payments, multiple payments in one income year and the Yan example, the 10% threshold test, the LSPIA tax offset and the Sudeep, Anthony and Heather examples, the Medicare levy exemption and the MLS tax offset; ATO Tax rates – Australian resident, 2012-13 to 2026-27; Income Tax (Transitional Provisions) Act 1997 s 4-11, compilation 104 (1 October 2026), and the Income Tax Rates Amendment (Temporary Budget Repair Levy) Act 2014, as made",
         ),
         "fbt_residual" => (
             "2026-11-15",
@@ -1080,6 +1236,14 @@ pub fn source_review(kind: &str) -> (&'static str, &'static str) {
         "fbt_tax_exempt_body_entertainment" => (
             "2026-11-15",
             "FBTAA ss 38 and 39 and s 136(1), non-deductible exempt entertainment expenditure, compilation 97 (1 July 2026); Fringe benefits tax - a guide for employers, chapter 15, 15.9 and its per head example; FBT return 2026 instructions, item 23L and example 15",
+        ),
+        "fbt_entertainment_classifier" => (
+            "2026-11-16",
+            "ITAA 1997 Division 32, s 27-5 and s 995-1, compilation 268 (1 October 2026); FBTAA ss 5E, 20, 37A to 37CF, 40, 41, 45, 58P and 135P(1) and s 136(1), compilation 97 (1 July 2026); Fringe Benefits Tax Assessment Regulations 2018, regulations 6 to 11, as made; ITAA 1936 ss 51AEA and 51AEB, compilation 193 (1 October 2026); GST Act s 69-5, compilation 96 (1 January 2026); TR 97/17, paras 7 to 143 and the Part A table, and TR 2007/12, paras 8 to 22 and examples 1 to 3, as the Commissioner's view",
+        ),
+        "income_tests" => (
+            "2026-11-16",
+            "ITAA 1997 s 995-1 (income for surcharge purposes, reportable superannuation contributions, total net investment loss, adjusted taxable income for offsets, exempt foreign employment income, assessable FHSS released amount) and ss 4-15, 61-580, 291-15, 293-20, 301-20 and 313-20, compilation 268 (1 October 2026); Medicare Levy Act 1986 s 3(1), compilation 53 (1 July 2026); A New Tax System (Medicare Levy Surcharge—Fringe Benefits) Act 1999 s 3(1), compilation 42 (1 July 2026); ITAA 1936 s 6(1) (rebate income, adjusted taxable income for rebates, adjusted fringe benefits total) and s 251S, compilation 193 (1 October 2026); HESA ss 154-5, 154-16 and 154-17, compilation 105 (17 October 2026); A New Tax System (Family Assistance) Act 1999 Sch 3 cls 2, 4, 5, 7 and 8, compilation 124 (1 July 2026); FBTAA ss 135N, 135P and 135Q (1 July 2026); SISR reg 6.01(2) preservation age, compilation 159 (1 July 2026); Superannuation (Government Co-contribution for Low Income Earners) Act 2003 s 8, compilation 28 (1 July 2018); and the 1 July 2024 compilations of the ITAA 1997 (250), ITAA 1936 (184) and Family Assistance Act (119), compared; ATO Income tests (last updated 8 June 2026), Rebate income and Adjusted taxable income for you and your dependants for 2025 and 2026, IT1 Total reportable fringe benefits amounts 2025 and 2026, A3 Government super contributions 2025 and 2026, Medicare levy surcharge income, thresholds and rates (22 June 2026), When you must repay your loan (13 October 2026), Division 293 tax on concessional contributions by high-income earners (24 August 2026), Exempt income and other tax obligations (3 June 2026) and Fringe benefits tax - rates and thresholds (20 May 2026)",
         ),
         _ => ("", ""),
     }
@@ -1129,6 +1293,12 @@ pub fn library_evidence(kind: &str) -> [(&'static str, &'static str); 4] {
             "4-160",
             "2026-06-30",
             "2026-11-04",
+        ),
+        "business_capital_expenditure" => (
+            "TR 2011/6",
+            "examples 14, 16 to 18, 21 to 25, 40A and 41",
+            "2011-11-30",
+            "2026-11-16",
         ),
         "hire_purchase_schedule" => (
             "ATO Legal database, ITAA 1997 Division 240",
@@ -1262,6 +1432,12 @@ pub fn library_evidence(kind: &str) -> [(&'static str, &'static str); 4] {
             "2026-06-17",
             "2026-11-14",
         ),
+        "unused_leave_payment" => (
+            "ATO Schedule 7 tax table for unused leave payments on termination of employment",
+            "example: long service leave (Norman)",
+            "2026-06-17",
+            "2026-11-16",
+        ),
         "schedule_5_method_a" | "schedule_5_method_b_i" | "schedule_5_method_b_ii" => (
             "ATO Schedule 5 (NAT 3348) withholding amounts examples",
             "examples 1 to 4",
@@ -1286,6 +1462,12 @@ pub fn library_evidence(kind: &str) -> [(&'static str, &'static str); 4] {
             "2026-10-02",
             "2026-11-14",
         ),
+        "lump_sum_arrears_tax_offset" => (
+            "ATO Lump sum payment in arrears",
+            "the 10% threshold test and the Sudeep, Anthony, Heather and Yan examples",
+            "2026-06-08",
+            "2026-11-16",
+        ),
         "fbt_housing" => (
             "tax-examples-fringe-benefits-tax-fbt",
             "3-120",
@@ -1297,6 +1479,12 @@ pub fn library_evidence(kind: &str) -> [(&'static str, &'static str); 4] {
             "3-160, 3-180",
             "2026-06-30",
             "2026-11-15",
+        ),
+        "income_tests" => (
+            "ATO income test pages",
+            "Christina's repayment income (When you must repay your loan) and Tom's income for MLS purposes (Medicare levy surcharge income, thresholds and rates)",
+            "2026-10-13",
+            "2026-11-16",
         ),
         _ => ("", "", "", ""),
     };
@@ -1343,6 +1531,20 @@ pub fn optional_inputs(kind: &str) -> Vec<(&'static str, &'static str)> {
             (
                 "medicare_levy_exemption_half_days",
                 "integer from 0 to the days in the year, the days the person qualified for a half exemption (label M1 W): in the medical category, but with a dependant outside the exemption categories (s 251U(3)); a day in both counts once, as a full day; omit for none",
+            ),
+        ],
+        "contribution_caps" => vec![
+            (
+                "earlier_concessional_contributions",
+                "list instead of unused_concessional_cap: one object for each earlier income year, each year from the 5th before the year to the one before it and any earlier years back to 2018-19, without a gap: year (YYYY-YY), concessional_contributions (AUD) and, where they exceed that year's cap, total_super_balance (AUD, at the 30 June before that year)",
+            ),
+            (
+                "defined_benefit_interest",
+                "boolean, required with earlier_concessional_contributions: whether the person had a defined benefit interest in any year given; true is refused",
+            ),
+            (
+                "proposed_concessional_contribution",
+                "AUD, with earlier_concessional_contributions only: a further concessional contribution for the year; the unused cap it applies and what is left are worked out after it; omit for none",
             ),
         ],
         "medicare_levy_surcharge" => vec![
@@ -1523,6 +1725,28 @@ pub fn optional_inputs(kind: &str) -> Vec<(&'static str, &'static str)> {
                 "AUD, whole dollars, not for a single person: to transfer the spouse's unused base rebate amount (regulations s 12), the spouse's taxable income for the year with any exempt disability support, carer, invalidity service or partner service pension added (s 12(5)); give it only for a spouse entitled to the offset whose whole taxable income is ordinary taxable income taxed at the resident scale (Income Tax Rates Act 1986 Sch 7 Part I item table, with no superannuation or employment termination remainder taxed at 45%); omit for no transfer",
             ),
         ],
+        "unused_leave_payment" => vec![
+            (
+                "foreign_resident",
+                "boolean, scale 4 only and required there: true for a payee who is a foreign resident (45% withheld), false for a resident (47%)",
+            ),
+            (
+                "annual_leave_before_18_august_1993",
+                "AUD, the part of annual_leave in respect of employment before 18 August 1993 (s 83-15(b)); required, 0 if none, for a normal termination when leave_accrual_start is before that day and annual_leave is not nil; refused above nil when it is not before that day",
+            ),
+            (
+                "leave_loading_before_18_august_1993",
+                "AUD, the part of leave_loading in respect of employment before 18 August 1993; required and refused as annual_leave_before_18_august_1993 is",
+            ),
+            (
+                "long_service_leave_before_16_august_1978",
+                "AUD, the part of long_service_leave attributable to the pre-16/8/78 period (ss 83-90(1) and 83-95 to 83-115); required, 0 if none, when leave_accrual_start is before 16 August 1978 and long_service_leave is not nil, whatever the reason; refused above nil otherwise",
+            ),
+            (
+                "long_service_leave_16_august_1978_to_17_august_1993",
+                "AUD, the part of long_service_leave attributable to the pre-18/8/93 period, 16 August 1978 to 17 August 1993 (ss 83-90(2) and 83-95 to 83-115); required, 0 if none, for a normal termination when leave_accrual_start is before 18 August 1993 and long_service_leave is not nil; refused above nil when it is not before that day",
+            ),
+        ],
         "schedule_5_method_a" | "schedule_5_method_b_i" | "schedule_5_method_b_ii" => vec![(
             "pay_date",
             "YYYY-MM-DD date this pay is made, within the income year, with study_loan true only; required with it for 2025-26, whose Schedule 8 coefficients apply from 24 September 2025; Method B(i) refuses a 2025-26 study loan",
@@ -1613,6 +1837,16 @@ pub fn optional_inputs(kind: &str) -> Vec<(&'static str, &'static str)> {
             (
                 "total_heads",
                 "integer from 1, per_head only and required there: everyone entertained at the function, employees, their associates and others",
+            ),
+        ],
+        "fbt_entertainment_classifier" => vec![
+            (
+                "method",
+                "actual, 50_50_split or 12_week_register: how the employer values meal entertainment for the FBT year (FBTAA Division 9A); required when a line is meal entertainment",
+            ),
+            (
+                "income_tax_register_percentage",
+                "decimal string from 0 to 100, 12_week_register only and required there when a line is meal entertainment: the register percentage of ITAA 1936 s 51AEB(2), the deductions that would be allowable for the register period's meal entertainment over its expenses, x 100",
             ),
         ],
         _ => Vec::new(),
@@ -1737,6 +1971,10 @@ pub fn input_units(kind: &str) -> Vec<(&'static str, &'static str)> {
                 "YYYY-MM-DD, the day the agreement starts, within the income year",
             ),
         ],
+        "business_capital_expenditure" => vec![(
+            "items",
+            "list of objects, one for each item of capital expenditure, each stating: amount (AUD); incurred_in (the income year incurred, from 2020-21 to the year asked about); capital (boolean, true: the operator establishes that the outlay is capital; false is refused); business (current, former, proposed or wind_up: s 40-880(2)(a) to (d)); taxable_purpose (decimal fraction from 0 to 1, the extent s 40-880(3) or (4)(a) allows, as the business is, was or is proposed to be carried on for a taxable purpose); exclusions (list of the paragraphs that exclude it, from \"5(a)\" to \"5(j)\", \"8\", \"9(a)\" and \"9(b)\", [] for none; 5(a) and 5(f) are refused). A former or proposed business also states carried_on_by (you or another_entity); another entity's, and wind_up, assessable_income_connection (boolean, s 40-880(4)(b)); a proposed business within_reasonable_time (boolean, s 40-880(7)) and start_up_expense (advice_or_services, government_fees or neither: s 40-880(2A)(b)), with entity_test for the income year incurred unless neither (small_business_entity, covered_by_2b, not_in_business_and_unconnected or none: s 40-880(2A)(c) and (2B)); and 5(d) or 5(f) goodwill_right (boolean, s 40-880(6))",
+        )],
         "fbt" => vec![("type_one_value", "AUD"), ("type_two_value", "AUD")],
         "fbt_loan" => vec![
             (
@@ -2016,6 +2254,41 @@ pub fn input_units(kind: &str) -> Vec<(&'static str, &'static str)> {
                 "YYYY-MM-DD, the employee's, for their preservation age (SISR reg 6.01(2))",
             ),
         ],
+        "unused_leave_payment" => vec![
+            (
+                "annual_leave",
+                "AUD, the unused annual leave paid in consequence of the termination (s 83-10(3)(a) and (c)), excluding leave loading",
+            ),
+            (
+                "leave_loading",
+                "AUD, the leave loading, bonus or other additional payment for that unused annual leave (s 83-10(3)(b))",
+            ),
+            (
+                "long_service_leave",
+                "AUD, the unused long service leave paid in consequence of the termination (ss 83-70 and 83-75), all periods",
+            ),
+            (
+                "leave_accrual_start",
+                "YYYY-MM-DD, the first day of the earliest period over which the unused leave paid accrued: for long service leave, its long service leave employment period (s 83-90(4))",
+            ),
+            (
+                "termination_reason",
+                "normal (resignation, dismissal for inefficiency, retirement and every other reason), genuine_redundancy (s 83-175), early_retirement_scheme (s 83-180) or invalidity (an ETP or super benefit with an invalidity segment, s 82-150); death is refused",
+            ),
+            (
+                "working_holiday_maker",
+                "boolean, whether the employee is a working holiday maker; true is refused (Schedule 15 covers them)",
+            ),
+            (
+                "earnings",
+                "AUD, the employee's normal gross earnings: all payments except termination payments in the last full pay period, including taxable allowances, overtime and bonuses, or the year-to-date average pay where pay fluctuates significantly (Schedule 7, 'Normal gross earnings'); not used for scale 4",
+            ),
+            ("pay_period", "weekly, fortnightly or monthly"),
+            (
+                "scale",
+                "integer 1, 2, 3, 5 or 6, the Schedule 1 scale used for the employee's normal earnings (3 for a foreign resident who gave a TFN), or 4 when no TFN was provided",
+            ),
+        ],
         "schedule_5_method_a" => [
             vec![
                 (
@@ -2122,6 +2395,20 @@ pub fn input_units(kind: &str) -> Vec<(&'static str, &'static str)> {
                 "single (not a spouse at any time in the year), illness_separated (a member of an illness-separated couple at any time in the year) or couple (a spouse for the whole year, never illness-separated)",
             ),
         ],
+        "lump_sum_arrears_tax_offset" => vec![
+            (
+                "taxable_income",
+                "AUD, whole dollars: the taxable income of the year of receipt, including the total arrears amount (ITAA 1936 s 159ZRB)",
+            ),
+            (
+                "net_capital_gain",
+                "AUD, whole dollars: the net capital gain included in that taxable income (ITAA 1997 s 102-5), which normal taxable income leaves out (ITAA 1936 s 159ZR(1)); 0 for none",
+            ),
+            (
+                "accrual_years",
+                "list of objects, one for each earlier income year in which part of the eligible lump sums accrued, each year once: year (such as \"2023-24\") and arrears (AUD, whole dollars, more than nil: the annual arrears amount, every payer's amount for that year added together); for a recent accrual year (the 2 latest when there are 3 or more, otherwise each one) also taxable_income (AUD, whole dollars, as assessed for that year) and, where they apply, rebate_year_arrears (the total arrears amount of that year, when it was itself a rebate year: ITAA 1936 s 159ZRC(b)), earlier_rebate_arrears (what accrued in that year of the total arrears amount of an earlier rebate year: s 159ZRC(c)) and, when there are distant accrual years, net_capital_gain (that year's, left out of its normal taxable income for s 159ZRD); a distant accrual year takes year and arrears only",
+            ),
+        ],
         "fbt_residual" => vec![
             (
                 "method",
@@ -2180,6 +2467,35 @@ pub fn input_units(kind: &str) -> Vec<(&'static str, &'static str)> {
                 "AUD, non-deductible exempt entertainment expenditure (FBTAA s 136(1)): under actual, the part incurred in entertaining employees and their associates; under per_head, the whole function's",
             ),
         ],
+        "fbt_entertainment_classifier" => vec![
+            (
+                "lines",
+                "list of 1 to 10,000 expense line objects, each with cost (AUD decimal string: the employer's expense, less any contribution from an employee or associate it does not reimburse, FBTAA s 37AB), gst_status (includes_gst or no_gst), provided (food_or_drink, recreation, accommodation_or_travel_for_food_or_drink or accommodation_or_travel_for_recreation), venue (business_premises_working_day, business_premises_other_day or elsewhere; business premises exclude a corporate box and premises used mainly for entertainment, FBTAA s 136(1)), paid_by (employer, including by corporate card, or reimbursed, where the employer reimbursed or paid for an attendee who incurred it) and attendees (an object of employees, associates and others, such as clients, each a head count from 0, or null where unknown; a line of more than one class needs every count); optionally occasion, food_or_drink and accommodation_or_travel_for_food_or_drink only, the food or drink's occasion (social_function, business_meal, with_other_entertainment, light_refreshments, or travel_meal where every attendee is travelling for work; without it the line is undetermined), and infrequent_and_irregular (boolean, whether identical or similar benefits are provided infrequently and irregularly, FBTAA s 58P(1)(f)(i))",
+            ),
+            (
+                "income_tax_exempt",
+                "boolean, whether the employer is exempt from income tax; true is refused, as fbt-tax-exempt-body-entertainment applies",
+            ),
+        ],
+        "income_tests" => vec![
+            ("taxable_income", "AUD, whole dollars: taxable income, including any assessable FHSS released amount (nil for a loss)"),
+            ("assessable_fhss_released_amount", "AUD: the amount ITAA 1997 s 313-20 includes in assessable income for released FHSS amounts"),
+            ("family_trust_distribution_amounts", "AUD: amounts on which family trust distribution tax was paid that ITAA 1936 Sch 2F s 271-105(1) kept out of assessable income"),
+            ("reportable_fringe_benefits_section_57a", "AUD: reportable fringe benefits amounts from employers exempt from FBT under FBTAA s 57A (return item IT1, label N)"),
+            ("reportable_fringe_benefits_other", "AUD: reportable fringe benefits amounts from every other employer (return item IT1, label W)"),
+            ("reportable_employer_super_contributions", "AUD: reportable employer superannuation contributions (return item IT2)"),
+            ("deductible_personal_super_contributions", "AUD: personal superannuation contributions deducted under ITAA 1997 Subdivision 290-C (return item D12)"),
+            ("excess_concessional_contributions", "AUD: excess concessional contributions for the corresponding financial year (ITAA 1997 s 291-20)"),
+            ("net_financial_investment_loss", "AUD: deductions attributable to financial investments less the gross income from them, nil if none (return item IT5)"),
+            ("net_rental_property_loss", "AUD: deductions attributable to rental property less the gross income from it, nil if none (return item IT6)"),
+            ("tax_free_government_pensions", "AUD: tax free pensions or benefits under A New Tax System (Family Assistance) Act 1999 Sch 3 cl 7 as in force for the year (return item IT3)"),
+            ("target_foreign_income", "AUD: target foreign income under A New Tax System (Family Assistance) Act 1999 Sch 3 cl 5, including exempt foreign employment income (return item IT4)"),
+            ("exempt_foreign_employment_income", "AUD: income exempt under ITAA 1936 s 23AF or 23AG less the losses and outgoings, other than capital ones, incurred in deriving it (HESA s 154-5(4) and (5))"),
+            ("child_support_paid", "AUD: deductible child maintenance expenditure under A New Tax System (Family Assistance) Act 1999 Sch 3 cl 8 (return item IT7)"),
+            ("assessable_income", "AUD: assessable income, including any assessable FHSS released amount and excess concessional contributions"),
+            ("business_deductions", "AUD: deductions the person is entitled to as a result of carrying on a business"),
+            ("residency", "full_year_resident; part_year_resident, working_holiday_maker and foreign_resident are refused"),
+        ],
         _ => Vec::new(),
     }
 }
@@ -2230,6 +2546,15 @@ pub fn examples(kind: &str) -> Vec<(&'static str, Example)> {
             ("loan_term_end", Text("2049-07-02")),
             ("repaid_on", Json("null")),
             ("section_26_50_applies", Flag(false)),
+        ],
+        "business_capital_expenditure" => vec![
+            ("year", Text("2026-27")),
+            (
+                "items",
+                Json(
+                    r#"[{"amount": "1500.00", "incurred_in": "2025-26", "capital": true, "business": "current", "taxable_purpose": "1", "exclusions": []}, {"amount": "576.00", "incurred_in": "2026-27", "capital": true, "business": "proposed", "carried_on_by": "another_entity", "assessable_income_connection": true, "within_reasonable_time": true, "start_up_expense": "government_fees", "entity_test": "not_in_business_and_unconnected", "taxable_purpose": "1", "exclusions": []}]"#,
+                ),
+            ),
         ],
         "hire_purchase_schedule" => vec![
             ("year", Text("2026-27")),
@@ -2374,6 +2699,24 @@ pub fn examples(kind: &str) -> Vec<(&'static str, Example)> {
             ("other_taxable_payments", Text("140000.00")),
             ("date_of_birth", Text("1996-09-01")),
         ],
+        // Schedule 7's example (Norman), which gives no accrual start: any day
+        // before 16 August 1978 gives its 3 long service leave periods.
+        "unused_leave_payment" => vec![
+            ("annual_leave", Text("0.00")),
+            ("leave_loading", Text("0.00")),
+            ("long_service_leave", Text("22020.00")),
+            ("long_service_leave_before_16_august_1978", Text("780.00")),
+            (
+                "long_service_leave_16_august_1978_to_17_august_1993",
+                Text("6420.00"),
+            ),
+            ("leave_accrual_start", Text("1977-01-01")),
+            ("termination_reason", Text("normal")),
+            ("working_holiday_maker", Flag(false)),
+            ("earnings", Text("1155.00")),
+            ("pay_period", Text("weekly")),
+            ("scale", Whole(2)),
+        ],
         // Schedule 5's examples 1 to 3 (Jarrod, Robyn and Laura), for payments from 1 July 2026.
         "schedule_5_method_a" => vec![
             ("year", Text("2026-27")),
@@ -2432,6 +2775,19 @@ pub fn examples(kind: &str) -> Vec<(&'static str, Example)> {
             ("rebate_income", Text("39000")),
             ("status", Text("single")),
         ],
+        // The ATO's Yan example's combined breakdown, received in 2025-26, with
+        // made-up taxable incomes.
+        "lump_sum_arrears_tax_offset" => vec![
+            ("year", Text("2025-26")),
+            ("taxable_income", Text("100000")),
+            ("net_capital_gain", Text("0")),
+            (
+                "accrual_years",
+                Json(
+                    r#"[{"year": "2023-24", "arrears": "3000", "taxable_income": "30000"}, {"year": "2022-23", "arrears": "2500", "taxable_income": "17000"}, {"year": "2021-22", "arrears": "1400"}, {"year": "2020-21", "arrears": "1700"}, {"year": "2019-20", "arrears": "1400"}, {"year": "2018-19", "arrears": "1000"}]"#,
+                ),
+            ),
+        ],
         // FBT return 2026 instructions, item 23M example 16.
         "fbt_residual" => vec![
             ("method", Text("external_notional_value")),
@@ -2471,6 +2827,41 @@ pub fn examples(kind: &str) -> Vec<(&'static str, Example)> {
         "fbt_tax_exempt_body_entertainment" => vec![
             ("method", Text("actual")),
             ("entertainment_expenditure", Text("5000.00")),
+        ],
+        // TR 97/17 example 1.1 (paras 49 to 52): an end of financial year
+        // function on the employer's premises, valued per head.
+        "fbt_entertainment_classifier" => vec![
+            (
+                "lines",
+                Json(
+                    r#"[{"cost": "1100.00", "gst_status": "includes_gst", "provided": "food_or_drink", "occasion": "social_function", "venue": "business_premises_working_day", "paid_by": "employer", "attendees": {"employees": 6, "associates": 2, "others": 2}}]"#,
+                ),
+            ),
+            ("income_tax_exempt", Flag(false)),
+            ("method", Text("actual")),
+        ],
+        // The ATO's Christina example for repayment income; the split of her
+        // investment loss, fringe benefits and super contributions, her target
+        // foreign income and her assessable income are fabricated.
+        "income_tests" => vec![
+            ("year", Text("2025-26")),
+            ("taxable_income", Text("50420")),
+            ("assessable_fhss_released_amount", Text("0")),
+            ("family_trust_distribution_amounts", Text("0")),
+            ("reportable_fringe_benefits_section_57a", Text("0")),
+            ("reportable_fringe_benefits_other", Text("4560")),
+            ("reportable_employer_super_contributions", Text("15000")),
+            ("deductible_personal_super_contributions", Text("0")),
+            ("excess_concessional_contributions", Text("0")),
+            ("net_financial_investment_loss", Text("1250")),
+            ("net_rental_property_loss", Text("0")),
+            ("tax_free_government_pensions", Text("0")),
+            ("target_foreign_income", Text("2580")),
+            ("exempt_foreign_employment_income", Text("2580")),
+            ("child_support_paid", Text("0")),
+            ("assessable_income", Text("50420")),
+            ("business_deductions", Text("0")),
+            ("residency", Text("full_year_resident")),
         ],
         _ => Vec::new(),
     }

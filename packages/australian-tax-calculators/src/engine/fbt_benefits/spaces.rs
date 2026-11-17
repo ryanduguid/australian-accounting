@@ -178,7 +178,7 @@ fn averages(counts: &[[Decimal; 2]; 2]) -> Result<Vec<Step>> {
         .map(|((input, id, authority), [start, end])| {
             let average = precise(|| Ok(start.add(end)?.div(&int(2))?))?;
             let formula = format!("({input}_at_start + {input}_at_end) / 2");
-            Ok(step(id, authority, &formula, &[start, end], average))
+            Ok(step(*id, authority, &formula, &[start, end], average))
         })
         .collect()
 }

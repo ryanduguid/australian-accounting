@@ -6,6 +6,8 @@
 //! step, scope statement or message. Every worksheet computes in a 40-digit
 //! context, as the original's `localcontext` did.
 
+use std::borrow::Cow;
+
 use serde_json::{Map, Value, json};
 
 use crate::dates;
@@ -19,7 +21,9 @@ pub use fbt_benefits::{
     fbt_board, fbt_housing, fbt_lafha, fbt_residual, fbt_tax_exempt_body_entertainment,
 };
 pub use fbt_benefits::{fbt_car_parking, fbt_loan, fbt_meal_entertainment};
-pub use fbt_benefits::{fbt_debt_waiver, fbt_expense_payment, fbt_property};
+pub use fbt_benefits::{
+    fbt_debt_waiver, fbt_entertainment_classifier, fbt_expense_payment, fbt_property,
+};
 
 pub const VERSION: &str = env!("CARGO_PKG_VERSION");
 const WORKING_PRECISION: i128 = 40;
@@ -184,14 +188,19 @@ fn scope(confirmed: &Arg, year: &Arg, kind: &str) -> Result<String> {
     let supported = meta::supported_periods(kind);
     match year.text() {
         Some(y) if supported.contains(&y) => Ok(y.to_string()),
-        _ => refuse(
-            "period.unsupported",
-            format!(
+        given => {
+            let mut message = format!(
                 "Unsupported period {}; supported: {}.",
                 year.repr(),
                 supported.join(", ")
-            ),
-        ),
+            );
+            if given == Some("2027-28")
+                && let Some((_, why)) = texts::UNPUBLISHED_2027_28.iter().find(|(k, _)| *k == kind)
+            {
+                message = format!("{message} {why}");
+            }
+            refuse("period.unsupported", message)
+        }
     }
 }
 
@@ -254,7 +263,7 @@ fn result(
 /// (1 October 2026) and Schedule 11 of those instruments, all read on
 /// 15 November 2026.
 struct Step {
-    id: &'static str,
+    id: Cow<'static, str>,
     authority: &'static str,
     formula: String,
     operands: String,
@@ -265,7 +274,7 @@ struct Step {
 /// next of `operands`. Numbers, operators (`x` multiplies) and the functions
 /// `min`, `max`, `cents`, `dollars` and `floor` stay as written.
 fn step(
-    id: &'static str,
+    id: impl Into<Cow<'static, str>>,
     authority: &'static str,
     formula: &str,
     operands: &[&Decimal],
@@ -290,11 +299,22 @@ fn step(
     assert!(values.next().is_none(), "a name for each operand");
     let formula = formula.to_string();
     Step {
-        id,
+        id: id.into(),
         authority,
         formula,
         operands: filled,
         value,
+    }
+}
+
+impl Step {
+    /// The id of a step the code names with a literal, as a later formula's
+    /// name for it; only the carry-forward years' steps are named at run time.
+    fn static_id(&self) -> &'static str {
+        match self.id {
+            Cow::Borrowed(id) => id,
+            Cow::Owned(_) => unreachable!("a step named with a literal"),
+        }
     }
 }
 
@@ -308,7 +328,7 @@ fn steps_from<const N: usize>(
         .iter()
         .zip(rows)
         .map(|((id, authority, formula), (operands, value))| {
-            step(id, authority, formula, operands, value)
+            step(*id, authority, formula, operands, value)
         })
         .collect()
 }
@@ -339,7 +359,10 @@ fn derived_result(
     steps: Vec<Step>,
     rates: Vec<(String, String)>,
 ) -> Result<Value> {
-    let amounts = steps.iter().map(|s| (s.id, s.value.clone())).collect();
+    let amounts = steps
+        .iter()
+        .map(|s| (s.id.as_ref(), s.value.clone()))
+        .collect();
     let out = result(kind, period, amounts, rates)?;
     STEPS.with_borrow_mut(|recorded| {
         if let Some(recorded) = recorded {
@@ -350,7 +373,7 @@ fn derived_result(
                         "id": s.id,
                         "authority": s.authority,
                         "working": format!("{} = {} = {}", s.formula, s.operands, s.value),
-                        "value": out["amounts"][s.id],
+                        "value": out["amounts"][s.id.as_ref()],
                     })
                 })
                 .collect();
@@ -446,12 +469,24 @@ const GST_EXCLUSIVE_STEPS: [(&str, &str, &str); 3] = [
 
 pub fn resident_tax(taxable_income: &Arg, year: &Arg, scope_confirmed: &Arg) -> Result<Value> {
     let year = scope(scope_confirmed, year, "resident_tax")?;
-    basic_tax(
+    let mut out = basic_tax(
         "resident_tax",
         taxable_income,
         &year,
         meta::RESIDENT_TAX_SCALES,
-    )
+    )?;
+    year_warning(&mut out, texts::RESIDENT_TAX_YEAR_WARNINGS, &year);
+    Ok(out)
+}
+
+/// Add the year's warning from `table`, if it has one.
+fn year_warning(out: &mut Value, table: &[(&str, &str)], year: &str) {
+    if let Some((_, note)) = table.iter().find(|(y, _)| *y == year) {
+        out["warnings"]
+            .as_array_mut()
+            .expect("warnings")
+            .push(json!(note));
+    }
 }
 
 pub fn foreign_resident_tax(
@@ -467,15 +502,7 @@ pub fn foreign_resident_tax(
         &year,
         meta::FOREIGN_RESIDENT_TAX_SCALES,
     )?;
-    if let Some((_, note)) = texts::FOREIGN_RESIDENT_YEAR_WARNINGS
-        .iter()
-        .find(|(y, _)| *y == year)
-    {
-        out["warnings"]
-            .as_array_mut()
-            .expect("warnings")
-            .push(json!(note));
-    }
+    year_warning(&mut out, texts::FOREIGN_RESIDENT_YEAR_WARNINGS, &year);
     Ok(out)
 }
 
@@ -520,6 +547,9 @@ fn basic_tax_authority(kind: &str, year: &str) -> &'static str {
         }
         (_, "2026-27") => {
             "ITAA 1997 s 4-10(3) step 2; Income Tax Rates Act 1986 s 12(1) and Schedule 7 Part I clause 1(b), the table for the 2026-27 year of income: each part above the tax-free threshold (s 3(1)) at its rate"
+        }
+        (_, "2027-28") => {
+            "ITAA 1997 s 4-10(3) step 2; Income Tax Rates Act 1986 s 12(1) and Schedule 7 Part I clause 1(b), the table for the 2027-28 year of income or a later year of income: each part above the tax-free threshold (s 3(1)) at its rate"
         }
         _ => {
             "ITAA 1997 s 4-10(3) step 2; Income Tax Rates Act 1986 s 12(1) and Schedule 7 Part I clause 1(b), the table for the 2024-25 or 2025-26 year of income: each part above the tax-free threshold (s 3(1)) at its rate"
@@ -1341,8 +1371,9 @@ fn payg_rows(year: &str, scale: i64) -> Option<&'static [CoefficientRow]> {
 }
 
 /// `_payg_checks`: scope, earnings, pay period and scale, in that order. Only
-/// `payg_withholding` takes scale 4, and only it and `study_loan_withholding`
-/// quarterly pays, which Schedules 1 and 8 cover and Schedule 5 does not.
+/// `payg_withholding` and `unused_leave_payment` take scale 4, which Schedules 1
+/// and 7 cover and Schedule 5 does not, and only `payg_withholding` and
+/// `study_loan_withholding` quarterly pays, which Schedules 1 and 8 cover.
 fn payg_checks(
     kind: &str,
     earnings: &Arg,
@@ -1369,10 +1400,11 @@ fn payg_checks(
             );
         }
     };
+    let no_tfn = schedule_1 || kind == "unused_leave_payment";
     let unsupported = || {
         refuse(
             "input.tax_scale_unsupported",
-            if schedule_1 {
+            if no_tfn {
                 "scale must be 1, 2, 3, 4, 5 or 6."
             } else {
                 "scale must be 1, 2, 3, 5 or 6; scale 4 is not supported."
@@ -1382,7 +1414,7 @@ fn payg_checks(
     let Some(Some(scale)) = scale.int() else {
         return unsupported();
     };
-    if payg_rows(&year, scale).is_none() && !(schedule_1 && scale == 4) {
+    if payg_rows(&year, scale).is_none() && !(no_tfn && scale == 4) {
         return unsupported();
     }
     Ok((year, earnings, period, scale))
@@ -1845,7 +1877,7 @@ impl SchedulePay {
         let mut formula = "withholding_before_adjustments".to_string();
         let mut operands = Vec::new();
         for s in &w.steps {
-            let sign = match s.id {
+            let sign = match s.id.as_ref() {
                 "withholding_before_adjustments" => "",
                 "tax_offset_reduction" | "medicare_levy_adjustment" => " - ",
                 "additional_withholding" => " + ",
@@ -1853,7 +1885,7 @@ impl SchedulePay {
             };
             if !sign.is_empty() {
                 formula.push_str(sign);
-                formula.push_str(s.id);
+                formula.push_str(&s.id);
             }
             operands.push(s.value.clone());
         }
@@ -2588,7 +2620,7 @@ fn medicare_working(
             for reduction in &working.steps[1..] {
                 before = before.sub(&reduction.value)?;
                 before_formula = format!("{before_formula} - {}", reduction.id);
-                values.push((reduction.id, reduction.value.clone()));
+                values.push((reduction.static_id(), reduction.value.clone()));
             }
         }
         rates.push(rate("family_income_threshold", &working.threshold));
@@ -2677,14 +2709,9 @@ pub fn medicare_levy(
         )?)
     })?;
     let mut out = derived_result("medicare_levy", &year, steps, rates)?;
-    let warnings = out["warnings"].as_array_mut().expect("warnings");
-    if let Some((_, note)) = texts::MEDICARE_YEAR_WARNINGS
-        .iter()
-        .find(|(y, _)| *y == year)
-    {
-        warnings.push(json!(note));
-    }
+    year_warning(&mut out, texts::MEDICARE_YEAR_WARNINGS, &year);
     if shared {
+        let warnings = out["warnings"].as_array_mut().expect("warnings");
         warnings.push(json!(texts::MEDICARE_SHARED_REDUCTION_NOTE));
     }
     Ok(out)
@@ -2871,8 +2898,42 @@ pub fn medicare_levy_surcharge(
         days_in_year,
         spouse: surcharge_spouse(&family)?,
     };
+    if !meta::SURCHARGE_THRESHOLDS.iter().any(|(y, _)| *y == year) {
+        return surcharge_without_thresholds(&facts, &year);
+    }
     let (steps, rates) = precise(|| Ok(surcharge_working(&facts, &year)?))?;
     derived_result(SURCHARGE, &year, steps, rates)
+}
+
+/// A year whose thresholds are not yet published: the surcharge is nil when
+/// no day was without cover, since Medicare Levy Act 1986 ss 8B, 8C and 8D and
+/// the Fringe Benefits Act ss 12 to 14 apply only to a period without private
+/// patient hospital cover; any day without cover needs the thresholds.
+fn surcharge_without_thresholds(facts: &SurchargeFacts, year: &str) -> Result<Value> {
+    if facts.days > 0 {
+        let why = texts::UNPUBLISHED_2027_28
+            .iter()
+            .find(|(kind, _)| *kind == SURCHARGE)
+            .map_or("", |(_, why)| why);
+        return refuse(
+            "period.unsupported",
+            format!(
+                "{year} is supported only with days_without_cover 0, when no surcharge applies. {why}"
+            ),
+        );
+    }
+    let steps = vec![step(
+        "medicare_levy_surcharge",
+        "Medicare Levy Act 1986 ss 8B(1)(c), 8C(1)(c) and 8D(1)(b); Fringe Benefits Act ss 12(1)(b)(iii), 13(1)(b)(iii) and 14(1)(b): each applies only for a period without private patient hospital cover, so with no day without cover there is no surcharge, whatever the year's thresholds",
+        "0",
+        &[],
+        int(0),
+    )];
+    let rates = vec![
+        rate("days_without_cover", facts.days),
+        rate("days_in_year", facts.days_in_year),
+    ];
+    derived_result(SURCHARGE, year, steps, rates)
 }
 
 pub fn low_income_tax_offset(
@@ -3004,7 +3065,7 @@ pub fn division_293(
 
 /// A finite Decimal of at most 2dp and magnitude 1e12 that may be negative:
 /// total superannuation earnings can be (Division 296 regulations, reg 296-65.02 note).
-fn signed_money(value: &Arg) -> Result<Decimal> {
+pub(crate) fn signed_money(value: &Arg) -> Result<Decimal> {
     let bad = || {
         refuse(
             "input.signed_amount_invalid",
@@ -3530,6 +3591,9 @@ pub fn termination_payment(
     derived_result("termination_payment", &year, steps, rates)
 }
 
+mod unused_leave;
+pub use unused_leave::{LeavePayee, LeaveSplits, unused_leave_payment};
+
 pub fn study_loan_repayment(
     repayment_income: &Arg,
     year: &Arg,
@@ -3657,8 +3721,35 @@ pub fn contribution_caps(
     let Arg::Bool(under_75) = under_75_in_year else {
         return refuse("input.flag_invalid", "under_75_in_year must be a boolean.");
     };
-    let (cap, transfer) = lookup(meta::CONTRIBUTION_CAPS, &year);
-    let (steps, rates) = precise(|| {
+    let cap = lookup(meta::CONTRIBUTION_CAPS, &year).0;
+    let steps = precise(|| {
+        Ok(concessional_steps(
+            &balance,
+            &concessional,
+            &unused,
+            &d(cap),
+        )?)
+    })?;
+    caps_result(
+        &year,
+        &balance,
+        steps,
+        (&non_concessional, *under_75),
+        Vec::new(),
+    )
+}
+
+/// `contribution_caps`' result: the concessional `steps`, then the
+/// non-concessional amounts, with the year's rates and then `more_rates`.
+fn caps_result(
+    year: &str,
+    balance: &Decimal,
+    mut steps: Vec<Step>,
+    (non_concessional, under_75): (&Decimal, bool),
+    more_rates: Vec<(String, String)>,
+) -> Result<Value> {
+    let (cap, transfer) = lookup(meta::CONTRIBUTION_CAPS, year);
+    let rates = precise(|| {
         let (cap, transfer) = (d(cap), d(transfer));
         let annual = cap.mul(&int(4))?;
         // s 292-85: nil at or above the transfer balance cap; otherwise the
@@ -3676,31 +3767,25 @@ pub fn contribution_caps(
             3
         };
         let triggered = multiple > 1 && non_concessional.gt(&annual)?;
-        let mut steps = concessional_steps(&balance, &concessional, &unused, &cap)?;
-        steps.extend(non_concessional_steps(
-            &non_concessional,
-            &annual,
-            multiple,
-        )?);
-        Ok((
-            steps,
-            vec![
-                rate("concessional_cap", &cap),
-                rate("non_concessional_cap", &annual),
-                rate("general_transfer_balance_cap", &transfer),
-                rate(
-                    "carry_forward_balance_limit",
-                    meta::CARRY_FORWARD_BALANCE_LIMIT,
-                ),
-                rate("non_concessional_cap_multiple", multiple),
-                rate(
-                    "bring_forward_period_years",
-                    if triggered { multiple } else { 0 },
-                ),
-            ],
-        ))
+        steps.extend(non_concessional_steps(non_concessional, &annual, multiple)?);
+        let mut rates = vec![
+            rate("concessional_cap", &cap),
+            rate("non_concessional_cap", &annual),
+            rate("general_transfer_balance_cap", &transfer),
+            rate(
+                "carry_forward_balance_limit",
+                meta::CARRY_FORWARD_BALANCE_LIMIT,
+            ),
+            rate("non_concessional_cap_multiple", multiple),
+            rate(
+                "bring_forward_period_years",
+                if triggered { multiple } else { 0 },
+            ),
+        ];
+        rates.extend(more_rates);
+        Ok(rates)
     })?;
-    derived_result("contribution_caps", &year, steps, rates)
+    derived_result("contribution_caps", year, steps, rates)
 }
 
 /// The concessional amounts. s 291-20(3)-(4): the unused cap raises this
@@ -3811,6 +3896,9 @@ fn non_concessional_steps(
         ),
     ])
 }
+
+mod carry_forward;
+pub use carry_forward::{CarryForward, contribution_caps_by_year};
 
 fn is_leap(year: i64) -> bool {
     year % 4 == 0 && (year % 100 != 0 || year % 400 == 0)
@@ -4685,6 +4773,9 @@ pub fn borrowing_expenses(
 
 mod hire_purchase;
 pub use hire_purchase::hire_purchase_schedule;
+
+mod business_capital;
+pub use business_capital::business_capital_expenditure;
 
 /// One pay that includes an additional payment, as Schedule 5 (NAT 3348) reads it.
 struct AdditionalPay {
@@ -5962,14 +6053,16 @@ pub fn seniors_pensioners_tax_offset(
         )?)
     })?;
     let mut out = derived_result(SAPTO, &year, steps, rates)?;
-    if year == "2026-27" {
-        let warnings = out["warnings"].as_array_mut().expect("warnings");
-        warnings.push(json!(texts::SAPTO_2026_27_NOTE));
-    }
+    year_warning(&mut out, texts::SAPTO_YEAR_NOTES, &year);
     Ok(out)
 }
 
-const KINDS: [&str; 41] = [
+mod lump_sum_arrears;
+pub use lump_sum_arrears::lump_sum_arrears_tax_offset;
+mod income_tests;
+pub use income_tests::income_tests;
+
+const KINDS: [&str; 46] = [
     "gst",
     "resident_tax",
     "foreign_resident_tax",
@@ -5977,6 +6070,7 @@ const KINDS: [&str; 41] = [
     "main_residence",
     "borrowing_expenses",
     "hire_purchase_schedule",
+    "business_capital_expenditure",
     "fbt",
     "fbt_car_statutory",
     "fbt_car_operating_cost",
@@ -6000,17 +6094,21 @@ const KINDS: [&str; 41] = [
     "division_293",
     "division_296",
     "termination_payment",
+    "unused_leave_payment",
     "schedule_5_method_a",
     "schedule_5_method_b_i",
     "schedule_5_method_b_ii",
     "working_holiday_maker_withholding",
     "seniors_pensioners_withholding",
     "seniors_pensioners_tax_offset",
+    "lump_sum_arrears_tax_offset",
     "fbt_residual",
     "fbt_housing",
     "fbt_lafha",
     "fbt_board",
     "fbt_tax_exempt_body_entertainment",
+    "fbt_entertainment_classifier",
+    "income_tests",
 ];
 
 /// `periods(kind)`: accepted period arguments and inclusive calendar boundaries.

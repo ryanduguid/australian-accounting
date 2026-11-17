@@ -616,3 +616,413 @@ fn income_inputs_that_conflict_or_are_malformed_are_refused() {
         assert_eq!(refusal(salary(extra.clone())).code, code, "{extra}");
     }
 }
+
+/// A fortnightly pay of $3,269.23 on scale 2, as `payg-withholding` takes it.
+fn fortnightly(scale: i64) -> Value {
+    json!({"earnings": "3269.23", "pay_period": "fortnightly", "scale": scale})
+}
+
+/// The tax withheld from one employer's regular pays, worked by hand from
+/// Schedule 1 for payments from 1 July 2026 (scale 2: a = 0.3200 and
+/// b = 181.7319 below $2,596 a week) and Schedule 5 Method A, read on
+/// 16 November 2026, and credited under TAA 1953 Sch 1 s 18-15(1). The salary
+/// is that of `salary_works_out_taxable_income_with_the_2026_27_standard_deduction`,
+/// whose total before credits is $17,496. Weekly earnings are
+/// floor($3,269.23 / 2) + 0.99 = $1,634.99, so $341 a week (0.32 x 1,634.99,
+/// less 181.7319, is 341.4649, to the dollar) and $682 a fortnight; 26 pays
+/// withhold $17,732, a refund of $236.
+#[test]
+fn the_tax_withheld_is_worked_out_from_one_employers_regular_pay() {
+    let income = json!({"assessable_labour_income": "85000", "other_assessable_income": "500",
+        "work_related_deductions": "300", "other_deductions": "200",
+        "payg-withholding": fortnightly(2), "pays_in_year": 26});
+    let out = api::evaluate(COMMAND, &from_income("2026-27", "84300", income)).unwrap();
+    let a = &out["amounts"];
+    for (key, expected) in [
+        ("total_before_credits", "17496.00"),
+        ("withholding_per_pay", "682.00"),
+        ("tax_withheld", "17732.00"),
+        ("refund", "236.00"),
+        ("amount_payable", "0.00"),
+    ] {
+        assert_eq!(a[key], expected, "{key}");
+    }
+    let keys: Vec<&String> = a.as_object().unwrap().keys().collect();
+    let working: Vec<&String> = out["working"].as_object().unwrap().keys().collect();
+    assert_eq!(keys, working);
+    assert_eq!(
+        keys[keys.len() - 4..],
+        [
+            "withholding_per_pay",
+            "tax_withheld",
+            "refund",
+            "amount_payable"
+        ]
+    );
+    assert!(
+        out["working"]["tax_withheld"]
+            .as_str()
+            .unwrap()
+            .starts_with("pays_in_year x withholding_per_pay: "),
+    );
+    // The pay's part keeps its own result, as when called alone.
+    let mut alone = fortnightly(2);
+    alone["year"] = json!("2026-27");
+    alone["scope_confirmed"] = json!(true);
+    let pay = api::evaluate("payg-withholding", &alone).unwrap();
+    assert_eq!(out["components"]["payg-withholding"], pay);
+    let sources = out["sources"].as_array().unwrap();
+    assert!(
+        sources
+            .iter()
+            .any(|s| s.as_str().unwrap().contains("19530001/Sch1-12-35"))
+    );
+}
+
+/// A $5,000 bonus paid with one of the 26 pays, by Schedule 5 Method A: $192
+/// a pay (floor($5,000 / 26)) lifts a fortnight's earnings to $3,461, whose
+/// weekly $1,730.99 withholds $372 (0.32 x 1,730.99 - 181.7319 = 372.1849),
+/// $744 a fortnight; ($744 - $682) x 26 = $1,612, under the 47% limit of
+/// $2,350. The year withholds $17,732 + $1,612 = $19,344. The bonus raises
+/// labour income to $90,000 and taxable income to $89,300: tax is $4,020 plus
+/// 30% of $44,300, $17,310, and the levy $1,786, a total of $19,096 and a
+/// refund of $248.
+#[test]
+fn a_bonus_paid_with_a_regular_pay_adds_method_a_withholding() {
+    let income = json!({"assessable_labour_income": "90000", "other_assessable_income": "500",
+        "work_related_deductions": "300", "other_deductions": "200",
+        "payg-withholding": fortnightly(2), "pays_in_year": 26,
+        "schedule-5-method-a": {"additional_payment": "5000", "pay_periods": 26}});
+    let out = api::evaluate(COMMAND, &from_income("2026-27", "89300", income)).unwrap();
+    let a = &out["amounts"];
+    for (key, expected) in [
+        ("total_before_credits", "19096.00"),
+        ("withholding_per_pay", "682.00"),
+        ("additional_payment_withholding", "1612.00"),
+        ("tax_withheld", "19344.00"),
+        ("refund", "248.00"),
+    ] {
+        assert_eq!(a[key], expected, "{key}");
+    }
+    // Method A takes the regular pay's earnings, period and scale.
+    let method_a = json!({"earnings": "3269.23", "additional_payment": "5000",
+        "pay_periods": 26, "pay_period": "fortnightly", "scale": 2, "study_loan": false,
+        "year": "2026-27", "scope_confirmed": true});
+    let alone = api::evaluate("schedule-5-method-a", &method_a).unwrap();
+    assert_eq!(out["components"]["schedule-5-method-a"], alone);
+}
+
+/// A foreign resident on scale 3 (30% a week to $2,596, less 30 cents):
+/// $1,634.99 withholds $490 a week (490.197 to the dollar), $980 a fortnight
+/// and $25,480 over 26 pays, against basic tax of 30% of $85,000, $25,500.
+#[test]
+fn a_foreign_resident_on_scale_3_has_the_tax_withheld_worked_out() {
+    let mut facts = foreign(
+        "2026-27",
+        "85000",
+        json!({"payg-withholding": fortnightly(3), "pays_in_year": 26}),
+    );
+    facts.as_object_mut().unwrap().remove("taxable_income");
+    facts["assessable_labour_income"] = json!("85000");
+    let a = &api::evaluate(COMMAND, &facts).unwrap()["amounts"];
+    assert_eq!(a["basic_income_tax"], "25500.00");
+    assert_eq!(a["tax_withheld"], "25480.00");
+    assert_eq!(a["amount_payable"], "20.00");
+}
+
+/// A study loan or a senior's pay is the withholding its own command gives,
+/// times the pays: the estimate adds no rate of its own.
+#[test]
+fn a_study_loan_or_seniors_pay_is_its_own_commands_withholding_times_the_pays() {
+    let loan = json!({"repayment_income": "84300"});
+    let senior = json!({"earnings": "5000", "pay_period": "monthly", "status": "single",
+        "medicare_levy_exemption": "none"});
+    for (command, part, pays) in [
+        ("study-loan-withholding", fortnightly(2), 27),
+        ("seniors-pensioners-withholding", senior, 12),
+    ] {
+        let facts = input(
+            "2026-27",
+            "84300",
+            json!({command: part, "pays_in_year": pays, "study-loan-repayment": loan}),
+        );
+        let out = api::evaluate(COMMAND, &facts).unwrap();
+        let mut alone = part.clone();
+        alone["year"] = json!("2026-27");
+        alone["scope_confirmed"] = json!(true);
+        let pay = api::evaluate(command, &alone).unwrap();
+        let per_pay = cents(&pay["amounts"]["withholding"]);
+        assert!(per_pay > 0, "{command}");
+        assert_eq!(
+            cents(&out["amounts"]["tax_withheld"]),
+            per_pay * pays,
+            "{command}"
+        );
+        assert_eq!(out["components"][command], pay);
+    }
+}
+
+/// At most 53 weekly, 27 fortnightly, 12 monthly or 4 quarterly pays fall in
+/// an income year (Schedule 1, 'When there are 53 pays in a financial year'
+/// and 'When there are 27 pays in a financial year').
+#[test]
+fn pays_in_year_is_limited_by_the_pay_period() {
+    for (period, most) in [
+        ("weekly", 53),
+        ("fortnightly", 27),
+        ("monthly", 12),
+        ("quarterly", 4),
+    ] {
+        let pay = json!({"earnings": "1000", "pay_period": period, "scale": 2});
+        let facts = |pays: Value| {
+            input(
+                "2026-27",
+                "50000",
+                json!({"payg-withholding": pay, "pays_in_year": pays}),
+            )
+        };
+        assert!(
+            api::evaluate(COMMAND, &facts(json!(most))).is_ok(),
+            "{period}"
+        );
+        assert!(api::evaluate(COMMAND, &facts(json!(1))).is_ok(), "{period}");
+        for pays in [
+            json!(most + 1),
+            json!(0),
+            json!("26"),
+            json!(1.5),
+            json!(true),
+        ] {
+            let r = refusal(facts(pays.clone()));
+            assert_eq!(r.code, "input.pay_periods_invalid", "{period} {pays}");
+            assert_eq!(
+                r.message,
+                format!("pays_in_year must be an integer from 1 to {most} for {period} pays.")
+            );
+        }
+    }
+}
+
+#[test]
+fn withholding_inputs_that_conflict_or_are_missing_are_refused() {
+    let pay = || json!({"payg-withholding": fortnightly(2), "pays_in_year": 26});
+    let with = |extra: Value| {
+        let mut facts = input("2026-27", "84300", pay());
+        for (k, v) in extra.as_object().unwrap() {
+            facts[k] = v.clone();
+        }
+        facts
+    };
+    let without = |key: &str| {
+        let mut facts = with(json!({}));
+        facts.as_object_mut().unwrap().remove(key);
+        facts
+    };
+    let loan = json!({"repayment_income": "84300"});
+    let senior = json!({"earnings": "2000", "pay_period": "monthly", "status": "single",
+        "medicare_levy_exemption": "none"});
+    let bonus = json!({"additional_payment": "5000", "pay_periods": 26});
+    for (facts, code, message) in [
+        (
+            with(json!({"tax_withheld": "17000"})),
+            "input.field_unknown",
+            "payg-withholding is not an input of personal-tax-estimate beside tax_withheld: give tax_withheld, or a regular pay to work it out",
+        ),
+        (
+            with(json!({"study-loan-withholding": fortnightly(2), "study-loan-repayment": loan})),
+            "input.field_unknown",
+            "study-loan-withholding is not an input of personal-tax-estimate beside payg-withholding: give the one regular pay",
+        ),
+        (
+            without("payg-withholding"),
+            "input.missing_field",
+            "payg-withholding, study-loan-withholding or seniors-pensioners-withholding is required with pays_in_year",
+        ),
+        (
+            input("2026-27", "84300", json!({"schedule-5-method-a": bonus})),
+            "input.missing_field",
+            "payg-withholding, study-loan-withholding or seniors-pensioners-withholding is required with schedule-5-method-a",
+        ),
+        (
+            without("pays_in_year"),
+            "input.missing_field",
+            "pays_in_year is required with payg-withholding",
+        ),
+        (
+            input(
+                "2026-27",
+                "84300",
+                json!({"study-loan-withholding": fortnightly(2), "pays_in_year": 26}),
+            ),
+            "input.missing_field",
+            "study-loan-repayment is required with study-loan-withholding: the withholding includes a study and training support loan component",
+        ),
+        (
+            input(
+                "2026-27",
+                "84300",
+                json!({"seniors-pensioners-withholding": senior, "pays_in_year": 12,
+                    "schedule-5-method-a": bonus}),
+            ),
+            "input.field_unknown",
+            "schedule-5-method-a is not an input of personal-tax-estimate beside seniors-pensioners-withholding: Method A here works from Schedule 1 amounts, not Schedule 9's",
+        ),
+        (
+            with(json!({"schedule-5-method-a": {"additional_payment": "5000",
+                "pay_periods": 26, "scale": 2}})),
+            "input.field_unknown",
+            "scale is not an input of schedule-5-method-a within personal-tax-estimate: it comes from the regular pay's part",
+        ),
+        (
+            with(json!({"payg-withholding": fortnightly(3)})),
+            "estimate.scale_mismatch",
+            "payg-withholding scale 3 is for a foreign resident payee, and residency is full_year_resident",
+        ),
+        (
+            foreign(
+                "2026-27",
+                "85000",
+                json!({"payg-withholding": fortnightly(2), "pays_in_year": 26}),
+            ),
+            "estimate.scale_mismatch",
+            "payg-withholding scale 2 is for an Australian resident payee, and residency is foreign_resident",
+        ),
+        (
+            foreign(
+                "2026-27",
+                "85000",
+                json!({"seniors-pensioners-withholding": senior, "pays_in_year": 12}),
+            ),
+            "estimate.residency_unsupported",
+            "seniors-pensioners-withholding is not composed for a foreign resident: Schedule 9 is for payees who declare that they are Australian residents for tax purposes",
+        ),
+        (
+            with(json!({"payg-withholding": {"earnings": "3269.23",
+                "pay_period": "daily", "scale": 2}})),
+            "input.pay_period_invalid",
+            "payg-withholding: pay_period must be weekly, fortnightly, monthly or quarterly.",
+        ),
+    ] {
+        let r = refusal(facts);
+        assert_eq!((r.code, r.message.as_str()), (code, message));
+    }
+    // Scale 4 is a foreign resident's with foreign_resident true.
+    let no_tfn = json!({"earnings": "3269.23", "pay_period": "fortnightly", "scale": 4,
+        "foreign_resident": true});
+    let r = refusal(with(json!({"payg-withholding": no_tfn.clone()})));
+    assert_eq!(r.code, "estimate.scale_mismatch");
+    let matching = foreign(
+        "2026-27",
+        "85000",
+        json!({"payg-withholding": no_tfn, "pays_in_year": 26}),
+    );
+    assert!(api::evaluate(COMMAND, &matching).is_ok());
+    let study = foreign(
+        "2026-27",
+        "85000",
+        json!({"study-loan-withholding": fortnightly(3), "pays_in_year": 26}),
+    );
+    assert_eq!(refusal(study).code, "estimate.residency_unsupported");
+}
+
+/// One pay stands for the year's pays only when the year's Schedule 8
+/// coefficients applied from 1 July: 2025-26's changed on 24 September 2025,
+/// so a study loan pay in 2025-26 is refused rather than multiplied out.
+#[test]
+fn a_study_loan_pay_in_a_year_whose_schedule_8_changed_is_refused() {
+    let loan = json!({"repayment_income": "84300"});
+    let senior = json!({"earnings": "5000", "pay_period": "monthly", "status": "single",
+        "medicare_levy_exemption": "none", "study_loan": true, "pay_date": "2025-10-15"});
+    let mut study = fortnightly(2);
+    study["pay_date"] = json!("2025-10-15");
+    for (command, part, pays) in [
+        ("study-loan-withholding", study.clone(), 26),
+        ("study-loan-withholding", study, 1),
+        ("seniors-pensioners-withholding", senior, 12),
+    ] {
+        let facts = input(
+            "2025-26",
+            "84300",
+            json!({command: part, "pays_in_year": pays, "study-loan-repayment": loan}),
+        );
+        let r = refusal(facts);
+        assert_eq!(r.code, "period.unsupported", "{command}");
+        assert_eq!(
+            r.message,
+            format!(
+                "{command} with a study loan does not give the tax withheld for 2025-26: its Schedule 8 coefficients changed on 2025-09-24, and this estimate takes no year whose coefficients changed after 1 July; give tax_withheld"
+            )
+        );
+    }
+}
+
+/// Schedule 1's additional amount for 53 weekly or 27 fortnightly pays is
+/// asked for only in such a year, so it needs that many pays.
+#[test]
+fn the_extra_pay_amount_needs_a_year_of_53_or_27_pays() {
+    for (period, most) in [("weekly", 53), ("fortnightly", 27)] {
+        let pay = json!({"earnings": "2000", "pay_period": period, "scale": 2,
+            "extra_pay_withholding": true});
+        let facts = |pays: i64| {
+            input(
+                "2026-27",
+                "100000",
+                json!({"payg-withholding": pay, "pays_in_year": pays}),
+            )
+        };
+        let r = refusal(facts(most - 1));
+        assert_eq!(r.code, "input.pay_periods_invalid", "{period}");
+        assert_eq!(
+            r.message,
+            format!(
+                "pays_in_year must be {most} with extra_pay_withholding, the additional amount for a year of {most} {period} pays."
+            )
+        );
+        let out = api::evaluate(COMMAND, &facts(most)).unwrap();
+        let per_pay = cents(&out["amounts"]["withholding_per_pay"]);
+        assert_eq!(cents(&out["amounts"]["tax_withheld"]), per_pay * most);
+    }
+}
+
+/// Method A here takes none of the regular pay's declared tax offsets,
+/// Medicare levy adjustment or extra pay amount, so its steps 2 and 5 would
+/// not use the regular pay's amounts: a bonus beside any of them is refused,
+/// and one declared false is not a declaration.
+#[test]
+fn a_bonus_beside_a_declared_adjustment_is_refused() {
+    let bonus = json!({"additional_payment": "5000", "pay_periods": 26});
+    let with = |key: &str, value: Value, pays: i64| {
+        let mut pay = fortnightly(2);
+        pay[key] = value;
+        input(
+            "2026-27",
+            "84300",
+            json!({"payg-withholding": pay, "pays_in_year": pays,
+                "schedule-5-method-a": bonus}),
+        )
+    };
+    for (key, value, pays) in [
+        ("tax_offsets", json!("1445"), 26),
+        ("medicare_adjustment_children", json!(1), 26),
+        ("extra_pay_withholding", json!(true), 27),
+    ] {
+        let r = refusal(with(key, value, pays));
+        assert_eq!(r.code, "input.field_unknown", "{key}");
+        assert_eq!(
+            r.message,
+            format!(
+                "schedule-5-method-a is not an input of personal-tax-estimate beside payg-withholding with {key}: Method A here works the bonus out without the tax offsets, Medicare levy adjustment and extra pay amount a payee declares"
+            )
+        );
+    }
+    assert!(api::evaluate(COMMAND, &with("extra_pay_withholding", json!(false), 26)).is_ok());
+    // false is no amount or count: the pay's own part refuses it.
+    for key in ["tax_offsets", "medicare_adjustment_children"] {
+        let r = refusal(with(key, json!(false), 26));
+        assert!(
+            r.message.starts_with("payg-withholding: "),
+            "{key}: {}",
+            r.message
+        );
+    }
+}
