@@ -145,9 +145,9 @@ fn every_catalogued_required_input_of_a_strict_command_is_read() {
     // worksheets (the 3 Schedule 5 methods counted apart), the 11 FBT benefit
     // worksheets, payg-gross-up, hire-purchase-schedule,
     // fbt-entertainment-classifier, unused-leave-payment,
-    // lump-sum-arrears-tax-offset, income-tests and
-    // business-capital-expenditure.
-    assert_eq!(checked, 32);
+    // lump-sum-arrears-tax-offset, income-tests,
+    // business-capital-expenditure and balancing-adjustment.
+    assert_eq!(checked, 33);
 }
 
 /// Every frozen call gives the same answer through either entry point, and
