@@ -98,11 +98,8 @@ class RustEngineTests(unittest.TestCase):
         workflows = ROOT / ".github/workflows"
         caller = (workflows / "ci.yml").read_text()
         self.assertIn("needs: [changes, packages, crates, rust, umbrella-parity, test, dependency-audit, lint]", caller)
-        # The weekly run is the one that denies unmaintained crates.
-        self.assertIn("  schedule:\n", caller)
         workflow = (workflows / "ci-rust.yml").read_text()
-        audit = "cargo audit ${{ github.event_name == 'schedule' && '--deny warnings' || '--deny unsound --deny yanked' }}"
-        for gate in ("cargo fmt --check", "cargo clippy --locked --all-targets -- -D warnings", "cargo clippy --locked --all-targets --all-features -- -D warnings", "cargo test --locked", "cargo build --locked --release", audit, "cargo llvm-cov --locked --fail-under-lines"):
+        for gate in ("cargo fmt --check", "cargo clippy --locked --all-targets -- -D warnings", "cargo clippy --locked --all-targets --all-features -- -D warnings", "cargo test --locked", "cargo build --locked --release", "cargo audit", "cargo llvm-cov --locked --fail-under-lines"):
             self.assertIn(gate, workflow)
         self.assertIn("os: [ubuntu-latest, windows-latest, macos-latest]", workflow)
         self.assertNotIn("contents: write", workflow)
@@ -111,6 +108,19 @@ class RustEngineTests(unittest.TestCase):
         for name in RUST_ENGINES.values():
             with self.subTest(engine=name):
                 self.assertFalse((workflows / f"release-{name}.yml").exists())
+
+    def test_every_cargo_audit_denies_unmaintained_crates_only_on_its_weekly_run(self):
+        # Ryan, 18 November 2026: a vulnerability, an unsound or a yanked crate fails
+        # every run; an unmaintained crate fails only the scheduled run.
+        audit = "cargo audit ${{ github.event_name == 'schedule' && '--deny warnings' || '--deny unsound --deny yanked' }}"
+        for path in sorted((ROOT / ".github/workflows").glob("*.yml")):
+            text = path.read_text()
+            if "cargo audit" in text:
+                with self.subTest(workflow=path.name):
+                    self.assertEqual(text.count("cargo audit"), text.count(audit))
+            if ("cargo audit" in text and "workflow_call:" not in text) or "uses: ./.github/workflows/ci-rust.yml" in text:
+                with self.subTest(workflow=path.name, trigger="schedule"):
+                    self.assertIn("  schedule:\n", text)
 
     def test_crate_lists_follow_the_manifests(self):
         # The Cargo.toml files are the one list of Rust crates. CI and the justfile
