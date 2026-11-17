@@ -80,7 +80,9 @@ selected network and process API names on Windows. Neither sees `io_uring` netwo
 or, on Windows, a network path opened as a file. The `umbrella-parity` job then runs
 `apps/au-accounting/tests/parity.rs` over the engines' and `au-accounting`'s
 binaries; the adapter is not part of it. CodeQL and Dependabot
-include Cargo. All candidate builds have read-only permissions.
+include Cargo. Each crate's `cargo audit` fails a pull request or push on a vulnerability
+or an unsound or yanked crate; an unmaintained crate fails only the weekly scheduled run
+(Ryan's decision, 18 November 2026). All candidate builds have read-only permissions.
 
 The former PyPI publishers of these engines are retired. Native publication is not
 configured: no workflow here publishes the binaries. Publishing them means adopting

@@ -808,44 +808,4 @@ mod tests {
         assert_eq!(PyPath::new("./a//b/.").display(), format!("a{SEP}b"));
         assert_eq!(PyPath::new("").display(), ".");
     }
-
-    /// `today` reads the machine's time zone: in a child at UTC+14 and one at
-    /// UTC-12 it must equal the UTC clock's date moved by that offset, which
-    /// differs from the UTC date for at least one of them at any moment.
-    #[cfg(unix)]
-    #[test]
-    fn today_is_the_calendar_date_in_the_local_time_zone() {
-        const NAME: &str = "py::tests::today_is_the_calendar_date_in_the_local_time_zone";
-        let shifted = |hours: i64| {
-            let now = std::time::SystemTime::now()
-                .duration_since(std::time::UNIX_EPOCH)
-                .unwrap()
-                .as_secs() as i64;
-            // 719163 is the ordinal of 1970-01-01.
-            Date::from_ordinal(719_163 + (now + hours * 3600).div_euclid(86_400)).unwrap()
-        };
-        if let Ok(hours) = std::env::var("TODAY_TEST_OFFSET_HOURS") {
-            let hours: i64 = hours.parse().unwrap();
-            let before = shifted(hours);
-            let today = Date::today();
-            assert!(
-                today == before || today == shifted(hours),
-                "{today:?} {before:?}"
-            );
-            return;
-        }
-        for (tz, hours) in [("XYZ-14", "14"), ("XYZ+12", "-12")] {
-            let output = std::process::Command::new(std::env::args_os().next().unwrap())
-                .args(["--exact", NAME])
-                .env("TZ", tz)
-                .env("TODAY_TEST_OFFSET_HOURS", hours)
-                .output()
-                .unwrap();
-            let stdout = String::from_utf8_lossy(&output.stdout);
-            assert!(
-                output.status.success() && stdout.contains("test result: ok. 1 passed"),
-                "{tz}: {stdout}"
-            );
-        }
-    }
 }

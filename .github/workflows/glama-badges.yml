@@ -12,6 +12,9 @@ on:
       - tools/glama-badge-worker/**
       - .github/workflows/glama-badges.yml
   workflow_dispatch:
+  schedule:
+    # Weekly, Sundays 21:17 UTC. The Cargo dependency audit also denies unmaintained crates on this run.
+    - cron: "17 21 * * 0"
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.sha }}
@@ -85,9 +88,10 @@ jobs:
         with:
           tool: cargo-audit@0.22.2
           fallback: none
+      # As in ci-rust.yml, an unmaintained crate fails only the scheduled run.
       - name: Audit Cargo lock
         working-directory: tools/${{ matrix.tool }}
-        run: cargo audit --deny warnings
+        run: cargo audit ${{ github.event_name == 'schedule' && '--deny warnings' || '--deny unsound --deny yanked' }}
 
   worker:
     needs: changes
