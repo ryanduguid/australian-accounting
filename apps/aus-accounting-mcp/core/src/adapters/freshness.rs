@@ -379,6 +379,12 @@ mod tests {
             "2027-06-31",
             "2027-13-01",
             "0000-01-01",
+            // `report_on` callers reach `valid_day` without the input pattern.
+            "+ 2027-06-30",
+            "2027-6-30",
+            " 2027-06-30",
+            "+2027-06-30",
+            "-187-06-30",
         ] {
             assert!(!valid(day), "{day}");
         }
