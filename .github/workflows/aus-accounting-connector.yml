@@ -16,6 +16,9 @@ on:
       - tools/aus-accounting-connector/**
       - .github/workflows/aus-accounting-connector.yml
   workflow_dispatch:
+  schedule:
+    # Weekly, Sundays 21:17 UTC. The Cargo dependency audit also denies unmaintained crates on this run.
+    - cron: "17 21 * * 0"
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.sha }}
@@ -92,9 +95,10 @@ jobs:
         with:
           tool: cargo-audit@0.22.2
           fallback: none
+      # As in ci-rust.yml, an unmaintained crate fails only the scheduled run.
       - name: Audit Cargo lock
         working-directory: ${{ matrix.crate }}
-        run: cargo audit --deny warnings
+        run: cargo audit ${{ github.event_name == 'schedule' && '--deny warnings' || '--deny unsound --deny yanked' }}
 
   # Builds the Worker and its serve_until-expired twin, then runs both in local
   # workerd. Nothing here deploys or signs in: the dry run only packages.

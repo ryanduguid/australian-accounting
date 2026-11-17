@@ -18,6 +18,9 @@ name: lodgeit-calculator-adapter
 
 on:
   workflow_dispatch:
+  schedule:
+    # Weekly, Sundays 21:17 UTC. The Cargo dependency audit also denies unmaintained crates on this run.
+    - cron: "17 21 * * 0"
   push:
     branches: [main]
   pull_request:

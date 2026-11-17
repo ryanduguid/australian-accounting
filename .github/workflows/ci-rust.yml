@@ -152,6 +152,8 @@ jobs:
         with:
           tool: cargo-audit@0.22.2
           fallback: none
+      # Ryan, 18 November 2026: an unmaintained crate fails only the weekly
+      # scheduled run; a vulnerability, an unsound or a yanked crate fails every run.
       - name: Audit Cargo lock
         working-directory: ${{ inputs.root }}/${{ inputs.package }}
-        run: cargo audit --deny warnings
+        run: cargo audit ${{ github.event_name == 'schedule' && '--deny warnings' || '--deny unsound --deny yanked' }}
