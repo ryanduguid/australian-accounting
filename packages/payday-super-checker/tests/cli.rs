@@ -119,9 +119,9 @@ fn a_defaulted_as_at_is_named_in_a_notice() {
         "contributions.csv",
         "E1,2026-08-06,600.00,2026-08-07,2026-08-10,no,no,,no\n",
     );
-    let before = chrono::Local::now().date_naive().to_string();
+    let before = jiff::ZonedDateTime::now().date().to_string();
     let (code, _, err) = run(&dir, &[&input, "-o", "report.csv"]);
-    let after = chrono::Local::now().date_naive().to_string();
+    let after = jiff::ZonedDateTime::now().date().to_string();
     assert!(code == 0 || code == 2, "{code}: {err}");
     assert!(
         err.contains("note: --as-at not supplied; assuming"),

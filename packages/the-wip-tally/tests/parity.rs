@@ -436,7 +436,7 @@ fn an_undated_schedule_uses_the_live_date_in_console_and_csv() {
         .iter()
         .map(|arg| arg.as_str().unwrap())
         .collect();
-    let before = chrono::Local::now().date_naive().to_string();
+    let before = jiff::ZonedDateTime::now().date().to_string();
     let run = Command::new(env!("CARGO_BIN_EXE_wip-tally"))
         .args(&args)
         .current_dir(&folder)
@@ -446,7 +446,7 @@ fn an_undated_schedule_uses_the_live_date_in_console_and_csv() {
         .env_remove("NO_COLOR")
         .output()
         .unwrap();
-    let after = chrono::Local::now().date_naive().to_string();
+    let after = jiff::ZonedDateTime::now().date().to_string();
     assert_eq!(run.status.code(), Some(0));
     let frozen_stdout = String::from_utf8(unhex(
         row["expected"]["results"][0]["stdout"].as_str().unwrap(),

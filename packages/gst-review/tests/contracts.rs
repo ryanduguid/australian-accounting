@@ -82,10 +82,10 @@ fn public_date_helpers_include_both_boundaries() {
         registered_to: Some(end),
     };
     for day in [
-        start.pred_opt().unwrap(),
+        start.yesterday().unwrap(),
         start,
         end,
-        end.succ_opt().unwrap(),
+        end.tomorrow().unwrap(),
     ] {
         let expected = day >= start && day <= end;
         assert_eq!(period.holds(day), expected);

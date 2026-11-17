@@ -7,7 +7,7 @@ use crate::{
     Result, VERSION, array, categories, codes, constants, date, field, money, optional_date,
     pytext, repr,
 };
-use chrono::NaiveDate;
+use jiff::civil::Date;
 use serde_json::{Map, Value, json};
 use std::collections::BTreeSet;
 
@@ -15,11 +15,11 @@ const LABELS: [&str; 7] = ["G1", "G2", "G3", "G10", "G11", "1A", "1B"];
 
 pub struct Period {
     pub label: String,
-    pub start: NaiveDate,
-    pub end: NaiveDate,
+    pub start: Date,
+    pub end: Date,
 }
 impl Period {
-    pub fn holds(&self, day: NaiveDate) -> bool {
+    pub fn holds(&self, day: Date) -> bool {
         self.start <= day && day <= self.end
     }
 }
@@ -29,8 +29,8 @@ struct Line<'a> {
     code: &'a str,
     gross: Decimal,
     gst: Decimal,
-    invoice: NaiveDate,
-    payment: Option<NaiveDate>,
+    invoice: Date,
+    payment: Option<Date>,
 }
 struct Tally {
     totals: [Decimal; 7],
@@ -210,7 +210,7 @@ fn reconcile_inner(input: &Value) -> Result<Value> {
     let mut outside = Vec::new();
     let mut unplaced = Vec::new();
     let period_of =
-        |day: Option<NaiveDate>| day.and_then(|d| periods.iter().position(|p| p.holds(d)));
+        |day: Option<Date>| day.and_then(|d| periods.iter().position(|p| p.holds(d)));
     for line in &lines {
         let day = if basis == "cash" {
             line.payment

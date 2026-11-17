@@ -21,7 +21,7 @@ path = "examples/build_workbook/main.rs"
 test = true
 
 [dependencies]
-chrono = { version = "0.4.45", default-features = false, features = ["clock", "std"] }
+jiff = { version = "1.0.0", default-features = false, features = ["std", "tz-system", "tzdb-bundle-platform", "tzdb-zoneinfo"] }
 num-bigint = "0.5"
 num-integer = "0.1"
 num-traits = "0.2"
