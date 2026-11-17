@@ -209,8 +209,7 @@ fn reconcile_inner(input: &Value) -> Result<Value> {
     let mut unpaid = Vec::new();
     let mut outside = Vec::new();
     let mut unplaced = Vec::new();
-    let period_of =
-        |day: Option<Date>| day.and_then(|d| periods.iter().position(|p| p.holds(d)));
+    let period_of = |day: Option<Date>| day.and_then(|d| periods.iter().position(|p| p.holds(d)));
     for line in &lines {
         let day = if basis == "cash" {
             line.payment
