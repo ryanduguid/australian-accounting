@@ -69,9 +69,11 @@ impl Reply {
 
 /// The UTC date of a Unix time in milliseconds, as YYYY-MM-DD.
 pub fn today(millis: u64) -> String {
-    chrono::DateTime::from_timestamp_millis(millis as i64)
-        .expect("the platform clock is a valid time")
-        .format("%Y-%m-%d")
+    let instant = jiff::Timestamp::from_millisecond(millis as i64)
+        .expect("the platform clock is a valid time");
+    jiff::tz::TimeZone::UTC
+        .to_datetime(instant)
+        .strftime("%Y-%m-%d")
         .to_string()
 }
 
@@ -423,8 +425,8 @@ mod tests {
 
     #[test]
     fn every_tool_call_is_refused_from_serve_until() {
-        let day = chrono::NaiveDate::parse_from_str(SERVE_UNTIL, "%Y-%m-%d").unwrap();
-        let before = day.pred_opt().unwrap().to_string();
+        let day = jiff::civil::Date::strptime("%Y-%m-%d", SERVE_UNTIL).unwrap();
+        let before = day.yesterday().unwrap().to_string();
         for tool in contracts::CATALOGUE["tools"].as_array().unwrap() {
             let name = tool["name"].as_str().unwrap();
             let served = call_on(&before, name, name);
