@@ -40,7 +40,7 @@ fn field<'a>(value: &'a Value, key: &str) -> &'a Value {
 fn date(value: &Value) -> Option<Date> {
     let text = value.as_str()?;
     let date = Date::strptime("%Y-%m-%d", text).ok()?;
-    (date.strftime("%Y-%m-%d").to_string() == text && text.len() == 10 && !text.starts_with("0000"))
+    (date.strftime("%Y-%m-%d").to_string() == text && text.len() == 10 && date.year() > 0)
         .then_some(date)
 }
 fn optional_date(value: &Value) -> bool {

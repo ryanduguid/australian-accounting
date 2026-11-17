@@ -374,6 +374,9 @@ fn the_match_window_counts_calendar_days_across_month_and_year_ends() {
         "0000-01-01",
         "2027-6-30",
         " 2027-06-30",
+        // A negative year spelt in 4 characters, which round-trips under jiff.
+        "-187-07-27",
+        "-001-06-30",
     ] {
         assert_eq!(
             review(bad, "2027-07-01", 3).unwrap_err(),
