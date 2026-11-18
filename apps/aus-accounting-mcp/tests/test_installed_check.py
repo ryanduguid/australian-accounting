@@ -64,4 +64,4 @@ def test_a_dataset_that_cannot_be_found_fails_rather_than_matching_nothing(tmp_p
 
 
 def test_the_script_compares_the_real_dataset_in_this_checkout():
-    assert CHECK.check_records(reviewed_rates.RECORDS, CHECK.REVIEWED_RECORDS) == 72
+    assert CHECK.check_records(reviewed_rates.RECORDS, CHECK.REVIEWED_RECORDS) == 74

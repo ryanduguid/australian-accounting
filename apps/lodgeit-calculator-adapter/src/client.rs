@@ -234,7 +234,22 @@ impl Client<'_> {
             ));
             return Ok((outcome, vec![finding]));
         };
-        let findings = contract::compare(self.contract, listing)?;
+        let mut findings = contract::compare(self.contract, listing)?;
+        if let Some(reviewed) = &self.contract.openapi_input_schemas {
+            let openapi = self.call("GET", &pts("/openapi.json"), None, None, None, false)?;
+            if openapi.computed() {
+                findings.extend(contract::compare_openapi(
+                    reviewed,
+                    &self.contract.calculators,
+                    &openapi.result,
+                )?);
+            } else {
+                findings.push(pts(&format!(
+                    "live OpenAPI could not be compared ({})",
+                    openapi.status.as_str()
+                )));
+            }
+        }
         Ok((outcome, findings))
     }
 
@@ -374,14 +389,19 @@ impl Client<'_> {
         common.http_status = Some(raw.status);
         // parse_float and parse_int keep the provider's own digits;
         // parse_constant refuses NaN and Infinity.
+        let numbers = if path == pts("/openapi.json") {
+            Numbers::Exact
+        } else {
+            Numbers::Text
+        };
         let parsed = match raw.text().and_then(|text| {
-            pyjson::loads_numbers(&text, Numbers::Text).map_err(|error| match error {
+            pyjson::loads_numbers(&text, numbers).map_err(|error| match error {
                 DecodeError::Invalid(m) => Exc::msg("json.decoder.JSONDecodeError", &m),
                 DecodeError::Hook(m) => Exc::msg("ValueError", &m),
                 DecodeError::Recursion(kind) => {
                     Exc::msg("RecursionError", &pyjson::recursion_message(kind))
                 }
-                DecodeError::Duplicate => unreachable!("no duplicate hook"),
+                DecodeError::Duplicate => Exc::msg("ValueError", "duplicate JSON object member"),
             })
         }) {
             Ok(parsed) => {
@@ -570,9 +590,24 @@ impl Client<'_> {
         names.extend(star(
             get_attr(recorded, "optional_decimal_fields")?.unwrap_or(&none),
         )?);
+        let range_fields: &[&str] = if calc_uri
+            == Some(pts(contract::DEPRECIATION_RANGE).as_slice())
+            && parsed.get("cost_additions").is_some()
+        {
+            &["opening_wdv", "cost_additions", "range_dep", "closing_wdv"]
+        } else {
+            &[]
+        };
+        for &field in range_fields {
+            if !names.iter().any(|name| name.as_str() == Some(field)) {
+                names.push(Json::str(field));
+            }
+        }
         for (index, name) in names.iter().enumerate() {
             let Some(value) = dict_get(&parsed, name)? else {
-                if contains(required, name, index < from_required)? {
+                if range_fields.contains(&name.as_str().unwrap_or_default())
+                    || contains(required, name, index < from_required)?
+                {
                     findings.push(p!(
                         "required decimal field ",
                         str_points(name),
@@ -591,6 +626,28 @@ impl Client<'_> {
                     None => values.push((name, decimal)),
                 },
                 Err(error) => findings.push(error.0),
+            }
+        }
+
+        if !range_fields.is_empty() {
+            let value = |name| {
+                let key = pts(name);
+                values
+                    .iter()
+                    .find(|(field, _)| *field == key)
+                    .map(|(_, value)| value)
+            };
+            if let (Some(opening), Some(additions), Some(charge), Some(closing)) = (
+                value("opening_wdv"),
+                value("cost_additions"),
+                value("range_dep"),
+                value("closing_wdv"),
+            ) {
+                match contract::range_gap(opening, additions, charge, closing) {
+                    Ok((_, gap)) if gap.is_zero() => {}
+                    Ok(_) => findings.push(pts("provider depreciation movement does not close")),
+                    Err(finding) => findings.push(finding),
+                }
             }
         }
 

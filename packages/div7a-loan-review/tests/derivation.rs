@@ -2,7 +2,8 @@
 // SPDX-License-Identifier: LicenseRef-Duguid-Public-Attribution-1.0
 
 //! `derive` and `verify` on the command line: a derivation verifies, an edited
-//! one exits 1 naming its step, and an unreadable file exits 2.
+//! one exits 1 naming its step, and an unreadable file or an input that
+//! repeats a key exits 2.
 
 use serde_json::Value;
 use std::io::Write;
@@ -112,4 +113,24 @@ fn verification_checks_identity_and_reports_comparison_progress() {
     assert_eq!(report["verified"], true);
     assert_eq!(report["steps_checked"], n);
     assert_eq!(report["saved_engine_version"], "historical-untrusted");
+}
+
+#[test]
+fn a_repeated_key_is_refused_by_name_not_resolved_to_its_last_value() {
+    let top = format!("{}, \"facts\": {{}}}}", INPUT.strip_suffix('}').unwrap());
+    let nested = INPUT.replace(
+        r#""remaining_term_years": "5","#,
+        r#""remaining_term_years": "5", "remaining_term_years": "7","#,
+    );
+    for (input, key) in [(top, "facts"), (nested, "remaining_term_years")] {
+        let out = run(&["derive"], &input);
+        assert_eq!(out.status.code(), Some(2), "{input}");
+        assert!(out.stdout.is_empty());
+        // Text-mode output: the newline is CRLF on Windows.
+        let stderr = String::from_utf8(out.stderr).unwrap().replace("\r\n", "\n");
+        assert_eq!(
+            stderr,
+            format!("error: invalid JSON: duplicate key {key:?}\n")
+        );
+    }
 }

@@ -69,9 +69,11 @@ cargo run --locked --release -- drift \
   --enable-network --base-url https://fbt-calculator-api-qkp3j5bjnq-ts.a.run.app
 ```
 
-`drift` fetches live discovery and reports how it differs from the reviewed
-snapshot. It never edits the snapshot: a contract change is for a person to
-read and accept, and there is no code path that accepts one.
+`drift` checks live discovery and the reviewed input schemas in
+`/openapi.json`. Changes within a pinned schema fail the check even when its
+reference and the API version stay the same. Newly listed calculators outside
+the reviewed subset are reported separately. The snapshot remains a reviewed
+input to this command.
 
 ```bash
 cargo run --locked --release -- invoke \
@@ -177,9 +179,15 @@ complies, a benefit is reportable or that a reviewer should sign anything.
   mismatch, not a match. Type 1 or type 2 is a required reviewed input, never
   the provider's engine-side default. A manual pass also compares the provider's
   taxable value with the local `fbt-car-statutory` worksheet and a separate figure.
-- **Accounting depreciation** (`src/trials/depreciation.rs`): the provider's
-  own movement has to close, or it is refused. It is deliberately not compared
-  with the local Division 40 worksheet, which answers a different question.
+- **Accounting depreciation** (`src/trials/depreciation.rs`): every range
+  movement must reconcile exactly, where Python allowed a one-cent gap. The
+  current snapshot requires cost additions in the range response and refuses
+  one without them. Under an earlier snapshot, which did not, separate caller
+  evidence of additions can be supplied. When the window starts before and
+  reaches the acquisition date, that evidence must be positive and equal to the
+  asset cost. A window ending before acquisition may have zero movement without
+  additions evidence. Negative or conflicting additions are refused.
+  The trial concerns accounting carrying amounts.
 - **Fano** (`src/trials/fano.rs`): experimental, opt-in, model in the path. It
   produces suggestions and nothing else. `accepted_fact` is the classifier's
   verdict on its own prediction, not an approval, and a LodgeiT chart code needs
@@ -276,7 +284,9 @@ compared byte for byte. These differences are deliberate:
   7.6 KB of stack. Text is held as 32-bit code points, so the size at which
   memory runs out differs. A backoff sleep longer than about 292 years sleeps
   on Linux, where CPython refuses it. A lone surrogate in a route reaches the
-  request URL as U+FFFD.
+  request URL as U+FFFD. A body file number beyond the decimal limits, such as
+  `1e9999999999999999999999999999`, is refused with status 2, where Python
+  raised an uncaught `decimal.InvalidOperation`.
 - **Core.** Python clears the token, continuation, request body and response
   from its frame locals so a traceback cannot show them. A Rust `CoreError` holds only the
   category and status, and the token stays the caller's borrowed string.

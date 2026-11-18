@@ -1,0 +1,62 @@
+{
+  "produced_by": [
+    "A test cannot recalculate Excel, so this file holds what Excel answered. To reproduce it on Windows with desktop Excel, from the package directory:",
+    "1. cargo run --example build_workbook. recalc.ps1 recalculates and saves workbooks/payday-super-checker.xlsx.",
+    "2. pwsh -File examples/build_workbook/wb-returned.ps1 -Workbook <absolute path to that workbook> -Csv <absolute path to tests/data/workbook-events.csv> -Events <absolute path to tests/data/workbook-events-events.csv> -Out <absolute path to a scratch CSV> -AsAt <as_at below>. Repeat with workbook-events-refused.csv and workbook-events-refused-events.csv.",
+    "3. Each run prints overall=, Review Checks B16: overall here and refused.overall. In its scratch CSV, verdict, between, exposed, due and problem are verdict, unassessable_between, exposed, final_due and row_problem; shortfall, trimmed, is final_shortfall. It also prints each event row's problem.",
+    "4. refused.events lists the event rows with a problem, numbered as in their CSV. refused.reasons pairs each problem with the checker's reason for that event row, copied from its stderr."
+  ],
+  "as_at": "2027-08-20",
+  "overall": "REVIEW",
+  "rows": [
+    {
+      "employee_id": "RETURNED",
+      "verdict": "UNKNOWN",
+      "final_due": "2027-08-16",
+      "unassessable_between": "UNPAID or ON_TIME",
+      "exposed": 0,
+      "final_shortfall": "",
+      "row_problem": ""
+    },
+    {
+      "employee_id": "RESENT",
+      "verdict": "UNKNOWN",
+      "final_due": "2027-08-16",
+      "unassessable_between": "UNPAID or ON_TIME",
+      "exposed": 0,
+      "final_shortfall": "",
+      "row_problem": ""
+    },
+    {
+      "employee_id": "PLAIN",
+      "verdict": "ON_TIME",
+      "final_due": "2027-08-16",
+      "unassessable_between": "",
+      "exposed": 0,
+      "final_shortfall": "",
+      "row_problem": ""
+    }
+  ],
+  "refused": {
+    "overall": "BLOCKED",
+    "reasons": {
+      "names-no-register-line": "no contribution row has employee_id 'NOBODY' and payment date 2027-08-05, and an event is never dropped",
+      "event": "event 'bounced' is not received, returned or allocated",
+      "names-several-register-lines": "2 contribution rows have employee_id 'TWIN' and payment date 2027-08-05, so the event cannot be applied to one of them"
+    },
+    "events": [
+      {
+        "row": 2,
+        "problem": "names-no-register-line"
+      },
+      {
+        "row": 3,
+        "problem": "event"
+      },
+      {
+        "row": 4,
+        "problem": "names-several-register-lines"
+      }
+    ]
+  }
+}

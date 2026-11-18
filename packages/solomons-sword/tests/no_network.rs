@@ -5,7 +5,8 @@
 //!
 //! Linux runs it under `strace -f`, so any network syscall, from any library or
 //! child process, fails the test. That proves this one run, not unexercised
-//! paths. CI installs strace; elsewhere the test skips with a message if absent.
+//! paths. CI's test step installs strace and sets REQUIRE_STRACE, so there a
+//! missing strace fails; elsewhere, release builds included, the test skips.
 //!
 //! Windows has no such tool in CI, so the test reads the built binary for the
 //! name of any network library or process-launching call, which an import must
@@ -60,7 +61,10 @@ fn a_real_calculation_gives_its_figure() {
 #[test]
 fn a_real_calculation_makes_no_network_syscall() {
     if Command::new("strace").arg("-V").output().is_err() {
-        assert!(std::env::var_os("CI").is_none(), "CI must install strace");
+        assert!(
+            std::env::var_os("REQUIRE_STRACE").is_none(),
+            "REQUIRE_STRACE is set but strace is not installed"
+        );
         eprintln!("skipped: strace is not installed");
         return;
     }

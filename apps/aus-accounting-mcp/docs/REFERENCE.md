@@ -54,7 +54,7 @@ The example is fabricated, is not a lodgement or Division 7A determination, and 
 
 Name mapping: public name Aus Accounting MCP; repository australian-accounting; Python distribution aus-accounting-mcp; stdio MCP executable aus-accounting-mcp; demonstration executable aus-accounting-mcp-demo; MCP Registry identity io.github.ryanduguid/aus-accounting.
 
-Release and compatibility references: [CI](https://github.com/ryanduguid/australian-accounting/actions/workflows/ci.yml), [v0.7.1 release](https://github.com/ryanduguid/australian-accounting/releases/tag/aus-accounting-mcp/v0.7.1), [PyPI 0.7.1](https://pypi.org/project/aus-accounting-mcp/0.7.1/), [MCP Registry 0.7.1](https://registry.modelcontextprotocol.io/v0.1/servers/io.github.ryanduguid%2Faus-accounting/versions/0.7.1), and [compatibility.json](https://github.com/ryanduguid/australian-accounting/blob/main/apps/aus-accounting-mcp/compatibility.json). Treat a version as published only after its target resolves and matches the compatibility record. The record links each engine's maintained source and release. The runtime `law_content_date` and `source` fields stay engine-owned.
+Release and compatibility references: [CI](https://github.com/ryanduguid/australian-accounting/actions/workflows/ci.yml), [v0.10.0 release](https://github.com/ryanduguid/australian-accounting/releases/tag/aus-accounting-mcp/v0.10.0), [PyPI 0.10.0](https://pypi.org/project/aus-accounting-mcp/0.10.0/), [MCP Registry 0.10.0](https://registry.modelcontextprotocol.io/v0.1/servers/io.github.ryanduguid%2Faus-accounting/versions/0.10.0), and [compatibility.json](https://github.com/ryanduguid/australian-accounting/blob/main/apps/aus-accounting-mcp/compatibility.json). Treat a version as published only after its target resolves and matches the compatibility record. The record links each engine's maintained source and release. The runtime `law_content_date` and `source` fields stay engine-owned.
 
 ## Client setup
 
@@ -139,9 +139,10 @@ stay on your machine.
 the command waits silently for an MCP client, which is expected.
 
 `aus-accounting-mcp doctor` prints the version, the periods each bundled dataset
-records and each retrieval folder with its row count. The published 0.7.1 does not have
-it, so `uvx aus-accounting-mcp doctor` fails until the next release; in a checkout, run
-`uv run aus-accounting-mcp doctor` from `apps/aus-accounting-mcp`. A folder that is not
+records and each retrieval folder with its row count. It arrived in 0.8.0, so run
+`uvx --from 'aus-accounting-mcp==0.10.0' aus-accounting-mcp doctor`; 0.7.1 and earlier do
+not have it. In a checkout, run `uv run aus-accounting-mcp doctor` from
+`apps/aus-accounting-mcp`. A folder that is not
 set is fine, because all 3 are optional. It exits 1 if a configured folder is broken:
 missing, the wrong shape, empty, or holding a file, folder or row a search would skip,
 such as a title folder with no `sections.jsonl`, a row with no string id or text, or
@@ -179,6 +180,8 @@ copy without a download until the uv cache is cleaned.
 | `generate_synthetic_sbr_fixture` | Synthetic CTR/BAS for agent tests (`synthetic: true`) | local fixture |
 | `validate_abn` | Test an ABN's check digit; proves neither ABR nor GST registration | local arithmetic |
 | `validate_acn` | Test an ACN's check digit; proves neither ABR nor GST registration | local arithmetic |
+| `validate_bsb_format` | Test a BSB's 6 digit format; proves no institution, branch or account | local format test |
+| `validate_account_number_format` | Test a bank account number against the 9 character BECS field; proves no account, payee or BSB match | local format test |
 | `get_reviewed_rate` | Return a reviewed ATO rate or threshold for a date, with its source and a verbatim quote, or refuse | bundled reviewed records |
 | `get_data_freshness` | Report each bundled dataset's recorded periods, engine version, source URLs and retrieval and review dates, or `UNKNOWN` | every engine above |
 
@@ -192,6 +195,36 @@ both read on 31 October 2026. They contact neither register. Every result carrie
 a leading zero fails, because ABR's first step of subtracting 1 from the first digit cannot
 give an 11 digit number. The arithmetic sits in this facade because no published engine
 holds it, and it has no rate, date or dataset to go stale.
+
+`validate_bsb_format` returns `FORMAT_VALID` or `MALFORMED`. It tests the BSB format in AusPayNet's
+[BECS Procedures version 072](https://auspaynet.com.au/sites/default/files/2026-10/BECS%20Procedures%20-%20Version%20E072%20-%20Effective%201%20October%202026%20-%20public_0.pdf),
+read on 15 November 2026: 6 digits with a hyphen after the third. Spaces and that one
+hyphen are removed from the input; any other character, another dash or a full-width
+digit included, gives `MALFORMED`. `FORMAT_VALID` means the format only, not that the BSB
+is valid. A BSB has no check digit, and the same procedures
+require its first 2 or 3 digits to be an Institution Identifier AusPayNet issued; this
+server bundles no BSB directory, so every result carries `institution_established: false`
+and a `not_established` statement pointing to AusPayNet's
+[BSB Lookup](https://bsb.auspaynet.com.au).
+
+`validate_account_number_format` returns `FORMAT_VALID` or `MALFORMED`. It tests the
+account number field (character positions 9 to 17 of a Record Type 1 detail record) in the
+same BECS Procedures, read on 16 November 2026: letters, digits, hyphens and blanks only,
+not all blanks or all zeros, hyphens edited out where the number exceeds 9 characters, and
+right justified and blank filled in 9 characters. Spaces at either end are removed as that
+fill; spaces inside are kept, as the field allows them. A number of nothing but zeros,
+hyphens and spaces is `MALFORMED`, and so is any other character, such as a full-width
+digit, a dash other than the hyphen or a tab. `formatted` is the number as the field
+carries it. The procedures set no check digit and no shortest length, and require leading
+zeros that are part of a number to be shown, which a format test cannot check. Every result
+carries `account_established: false` and a `not_established` statement: a valid format
+proves no account, payee or BSB match.
+
+There is no TFN check. The ATO gives its TFN algorithm only to software developers, through
+its online services for digital service providers or on request
+([Obtaining member TFNs](https://www.ato.gov.au/tax-and-super-professionals/for-superannuation-professionals/apra-regulated-funds/managing-member-benefits/taxation-of-member-super-benefits/tax-file-numbers-and-super-contributions/obtaining-member-tfns);
+section 9 of the [TFN declaration reporting specification 4.0.3](https://softwaredevelopers.ato.gov.au/TFNspecification);
+both read on 15 November 2026), so no published source fixes the check this server would run.
 
 `get_reviewed_rate` takes a `record_id`, such as `concessional-cap-2026-27`, and an
 `as_at` date, and needs no folder. It reads a bundled copy of the records in
@@ -406,11 +439,11 @@ Their rules and sources come from `australian-tax-calculators`. Broader classifi
 exemptions, BAS/returns, trusts, partnerships, SMSF fund tax and audit, the transfer
 balance cap and payroll tax remain unsupported. Reference text cannot establish calculation support.
 
-The evaluation includes 40 cases: 10 original workflows, 10 unsupported-topic
+The evaluation includes 42 cases: 10 original workflows, 10 unsupported-topic
 questions, grouped Payday, a tax worksheet, synthetic library retrieval, the
 Payday evidence pack, which needs checker evidence-pack support, a synthetic ruling
 paragraph, GST coding, BAS reconciliation, a lodgment due date, data freshness, a refused
-rate lookup, 2 identifier check digits and 8 synthetic legislation corpus cases covering citation, ranking, reading a long provision in
+rate lookup, 2 identifier check digits, a BSB format, an account number format and 8 synthetic legislation corpus cases covering citation, ranking, reading a long provision in
 parts, rates, definitions, an injected instruction, an undefined term and a
 stored rate's date.
 The unsupported-topic answers require no tool calls. The
@@ -639,6 +672,8 @@ control, in this layout:
   markdown/<register id>/sections.jsonl   one JSON row per provision
   rates/rates.jsonl                       rate and threshold rows; search_tax_rates needs it
   sources.json                            optional licence and retrieval manifest
+  compilations/<name>/markdown/<register id>/sections.jsonl
+                                          optional earlier compilations; only as_at reads them
 ```
 
 A `sections.jsonl` row carries `row_id`, `register_id`, `act`, `collection`,
@@ -646,9 +681,12 @@ A `sections.jsonl` row carries `row_id`, `register_id`, `act`, `collection`,
 `compilation_date`, `superseded_from`, `retrieved`, `version_is_current`,
 `register_page`, `source_url`, `licence`, `attribution` and `text`. A `rates.jsonl` row carries `rate_id`, `topic`, `kind`,
 `amounts`, `years` and `content` alongside the same title and section fields.
-[au-tax-legislation-corpus](https://github.com/ryanduguid/au-tax-legislation-corpus)
-builds a corpus in this shape from the Federal Register of Legislation. Its
-`python -m fadden quick --out <empty folder>` builds 9 principal Acts and prints the
+[PaulGoodman](https://github.com/ryanduguid/PaulGoodman)
+builds a corpus in this shape from the Federal Register of Legislation. The quickest
+corpus is its [published snapshot](corpus-setup.md#download-the-published-snapshot) of 9
+principal Acts, each at its current compilation on 11 November 2026, with a rates index:
+set `AUS_ACCOUNTING_CORPUS_ROOT` to its unpacked `dist` folder. For later compilations,
+its `python -m fadden quick --out <empty folder>` builds the same Acts and prints the
 setting; [the setup guide](corpus-setup.md#build-the-principal-acts-with-one-command) gives
 the steps and what that folder lacks.
 
@@ -794,10 +832,10 @@ unless `in_force_only` is false.
 
 ### Dates
 
-From the release after 0.7.1, `search_tax_legislation` and
+From 0.8.0, `search_tax_legislation` and
 `read_tax_legislation_section` take `as_at`, a `YYYY-MM-DD` date. A malformed date, or
 one that does not exist, is an input error. These are the statuses and field names of
-the corpus builder's own `as_at` stage ([contract](https://github.com/ryanduguid/au-tax-legislation-corpus/blob/main/docs/scope.md)),
+the corpus builder's own `as_at` stage ([contract](https://github.com/ryanduguid/PaulGoodman/blob/main/docs/scope.md)),
 worked out from each row's `compilation_date`, `superseded_from`, `retrieved` and
 `version_is_current`.
 An observed later-version start takes precedence over `after_retrieval`: once a title
@@ -831,16 +869,38 @@ refusal. With `as_at`, `act` accepts title words or a Register ID.
 A read of a `captured` title returns its text, with `as_at` on the section and each
 neighbour. Any other status keeps the citation and window, returns empty `text` with the
 stored `total_chars`, no neighbours and null `next_start`, and names the status in
-`refusals`. A read without `as_at` still returns the compilation the corpus holds, which
-is not established as text for that date.
+`refusals`. A read without `as_at` still returns the latest compilation the corpus holds,
+which is not established as text for that date.
 
 A status reads the compilation window, not the law on that date. A compilation does not
 show application, saving or transitional provisions elsewhere, modification by another
 law, or an amendment with retrospective effect registered after the build was retrieved,
 so a date inside a window can still carry text amended without a new compilation, and a
 provision's text can differ from what applied to that date. Read the Register's version
-history and endnotes for any question about a past date. The corpus holds one compilation
-of a title, so a refusal is the answer for any earlier date: no earlier text is held.
+history and endnotes for any question about a past date. A refusal is the answer for that
+date: the corpus holds no text of that title for it.
+
+#### Earlier compilations
+
+A corpus can hold more than one compilation of a title. Each folder under
+`compilations/` has the root's `markdown/<register id>/sections.jsonl` layout, holding
+other compilations of the same titles in the same row format. A title is its folder name,
+which its `row_id`s start with. Each row records its own window: an earlier compilation has
+`version_is_current` false and `superseded_from` the start of the version after it. The
+windows of one title must not overlap, so at most one covers a date; a corpus whose windows
+overlap stops a dated call with an input error. A dated search also checks the matching
+rows of the compilations it does not answer from, so a row whose window disagrees with its
+index stops the search there too.
+
+With `as_at`, a search and a read answer from the compilation whose window covers the date,
+and a read takes the `row_id` a dated search returned with the same date: `row_id`s repeat
+across compilations of a title. A title no compilation covers is refused as above, with its
+latest compilation's `as_at` and row counts, and `held_compilations` lists each window held
+(`compilation_date`, `superseded_from`, `retrieved`), earliest first; a read refused this
+way cites its row from the latest compilation that holds it, with that one's `as_at`. A
+title with one compilation answers as before, without `held_compilations`. Calls without
+`as_at`, `define_tax_term` and `search_tax_rates` read only `markdown/`; a read without
+`as_at` of a title `compilations/` also holds carries a caveat saying so.
 
 `as_at` needs every row's window, so a row without its dates, as in an older build, or
 with dates that cannot all be true, or a title whose rows disagree, stops a dated call
@@ -903,7 +963,7 @@ enters the calling assistant's context.
 ## Local ATO rulings runs
 
 Set `AUS_ACCOUNTING_RULINGS_ROOT` to a folder of runs written by the rulings stage
-of [au-tax-legislation-corpus](https://github.com/ryanduguid/au-tax-legislation-corpus)
+of [PaulGoodman](https://github.com/ryanduguid/PaulGoodman)
 (`python -m fadden rulings TARGETS.json --out NEW_DIR`), or to one such run:
 
 ```json

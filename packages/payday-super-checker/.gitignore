@@ -18,6 +18,10 @@ decision-log.md
 !examples/*.csv
 !tests/data/workbook-returned.csv
 !tests/data/workbook-returned-refused.csv
+!tests/data/workbook-events.csv
+!tests/data/workbook-events-events.csv
+!tests/data/workbook-events-refused.csv
+!tests/data/workbook-events-refused-events.csv
 !evaluation/payday_super_evidence/fixtures/timely_remittance_no_receipt.csv
 !evaluation/payday_super_evidence/fixtures/late_remittance_no_receipt.csv
 !evaluation/payday_super_evidence/fixtures/receipt_on_due_date.csv

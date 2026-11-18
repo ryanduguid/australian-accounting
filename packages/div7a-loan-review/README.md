@@ -77,6 +77,9 @@ rather than a number it cannot stand behind.
 | Refused | Why |
 | --- | --- |
 | Forming the amalgamated loan from constituent loans | s 109E(3). v1 takes the unpaid balance at the end of the previous year from the operator. A list of component loans gets `UNKNOWN`. |
+| A remaining term longer than the maximum term, on a loan the gate passed | In a register review, the row's security facts give the s 109N(3) maximum term, before any s 109N(3A) to (3D) reduction, which can only shorten it. Each constituent loan is one s 109N saves (s 109E(3)(b)), so its term is within that maximum (s 109N(1)(c)), and the constituent loans share one maximum term (s 109E(3)(c)). The s 109E(6) remaining term, the longest constituent term less the years since the loan year, cannot be longer. Where the security facts are unknown, nothing is refused. Enter a loan secured and extended under s 109E(3A) as the new amalgamated loan s 109E(3B) creates, with its 25-year security facts; see the [extended loan](#a-loan-extended-under-s-109e3a) note for its term. |
+| A remaining term longer than the loan's own term, on a loan the gate passed | The s 109E(6) remaining term is the longest constituent-loan term less the years since the loan year, so it cannot be longer than that term, and a longer one gives a lower repayment than the Act requires. A register review refuses a row whose remaining term, rounded up, is longer than its `maximum_term_years` rounded up. The `minimum-yearly-repayment` JSON command and `derive` apply this limit and the next one when given `maximum_term_years`; without it a repayment figure carries a caveat that no limit was checked. They take no security facts, so they do not give the maximum-term refusal above; a gate that passed the same term has checked it against that maximum. |
+| A remaining term longer than the loan's term less the years since the loan year, on a loan the gate passed | s 109E(6) paragraph (b) takes off 'the number of years between the end of the private company's year of income in which the loan was made and the end of the private company's year of income before the year of income for which the minimum yearly repayment is being worked out'. A register review refuses a row whose remaining term, rounded up, is longer than its `maximum_term_years` less those years, rounded up after the subtraction: a 7-year loan made in 2024-25 has at most 7 years remaining in 2025-26 and 6 in 2026-27. Without `year_loan_made` nothing is refused. Enter a loan secured and extended under s 109E(3A) with the year before the later year of income as `year_loan_made`, because s 109E(3B) treats the new amalgamated loan as made just before that year starts, and with the term the [extended loan](#a-loan-extended-under-s-109e3a) note gives. The count takes each year of income as 12 months (a substituted accounting period is outside v1): where the company's accounting period changed between the loan year and the year reviewed, the years counted can be out by part of a year, so a correct remaining term may be refused or one a year too long accepted. |
 | A minimum yearly repayment for the year the loan was made | s 109E(1)(a) reaches a loan made 'in an earlier year of income'; s 109P puts an amalgamated loan outside s 109D in the year it is made. |
 | A repayment figure for a loan that is not on s 109N terms | A constituent loan is one that would be a s 109D dividend apart from s 109N (s 109E(3)(b)), so a loan that fails s 109N is not one. Absent another Subdivision D exclusion, s 109D(1) treats it as a dividend in the year it was made (s 109D(1AA)). A schedule does not save it. |
 | Whether a payment is a genuine repayment | s 109R turns on what a reasonable person would conclude about intention. The operator asserts the amount applied. Bank credits are not a substitute. |
@@ -96,6 +99,31 @@ rather than a number it cannot stand behind.
 An `UNKNOWN` is never softened into a best-effort guess, and never coerced to
 `false`. A limb that has not been established is a different finding from a
 limb that has failed, and only one of those is a breach.
+
+### A loan extended under s 109E(3A)
+
+Where a constituent loan of a 7-year amalgamated loan is secured by a mortgage
+over real property in a later year of income and its term extended, s 109E(3B)
+treats it as a new amalgamated loan made just before that later year starts.
+Enter it with:
+
+- `year_loan_made`: the year before the later year of income;
+- its 25-year security facts, which give the s 109N(3) maximum term; and
+- `maximum_term_years`: the loan's agreed term counted from when it was first
+  made, which s 109E(3A)(e) caps at 25 years, less the time it had already run
+  before the extension.
+
+The ATO works the term this way: 'The maximum term of the loan becomes 25 years
+less the period of the term already expired when the loan was unsecured'
+([Loans by private companies](https://www.ato.gov.au/businesses-and-organisations/corporate-tax-measures-and-assurance/private-company-benefits-division-7a-dividends/in-detail/division-7a-loans),
+last updated 2 July 2026, read 14 November 2026). s 109E(3A)(e) likewise counts
+the period before the extension in the 25 years. A 7-year loan made on 1 July
+2022 and extended on 1 July 2024 has run 2 years, so it is entered with
+`year_loan_made` 2023-24 and, where the agreed term is the full 25 years, a term
+of 23: its remaining term is 23 in 2024-25 and 22 in 2025-26; an agreed term of
+20 is entered as 18. On a literal reading, s 109E(3B) and (6) would allow 25 in 2024-25,
+a lower repayment than the ATO's working. The ATO does not say how a part year
+already run is counted; the engine takes the term as entered and rounds it up.
 
 ## Unpaid present entitlements after *Bendel*
 
@@ -191,6 +219,17 @@ it rounds its result half up to cents.
 [docs/ato-calculator-comparison-2026-10-07.md](docs/ato-calculator-comparison-2026-10-07.md)
 records the method, the files compared and what the comparison does not
 establish.
+
+On 13 November 2026 the calculator's interest function, from the same
+unchanged files, was run the same way against `rollforward` on 2,000 fabricated
+loans in their second year after the loan year: 250 for each year of income
+from 2019-20 to 2026-27, with up to 6 repayments each, including repayments on
+1 July, 30 June, 29 February and the same day. In 1,997 the interest, each
+period's days and interest, the principal repaid and the closing balance agreed
+to the cent. In the other 3 the repayments passed the opening balance and the
+year's interest; the calculator shows a nil balance and this engine refuses.
+[docs/ato-calculator-interest-comparison-2026-11-13.md](docs/ato-calculator-interest-comparison-2026-11-13.md)
+records the method and its limits.
 
 ## Reviewer edge cases
 
@@ -315,10 +354,10 @@ a message naming the first invalid byte; re-save it from Excel as CSV UTF-8
 | Column | What it asserts |
 | --- | --- |
 | `loan_id` | Your reference for the loan |
-| `year_loan_made` | The year of income the loan was made in |
+| `year_loan_made` | The year of income the loan was made in. For a loan secured and extended under s 109E(3A), the year before the later year of income, because s 109E(3B) treats the new amalgamated loan as made just before that year starts |
 | `written_agreement` | s 109N(1)(a): the agreement is in writing |
 | `terms_in_place_before_lodgment_day` | s 109N(1) chapeau, with s 109D(6). You assert this; the engine does not compute the lodgment day |
-| `maximum_term_years` | The **term of the loan** under the written agreement, in years. It is tested against the maximum term worked out under s 109N(3). The column name follows the published API surface, not the Act's use of 'maximum term' for the statutory cap |
+| `maximum_term_years` | The **term of the loan** under the written agreement, in years; for an amalgamated loan, the longest term of its constituent loans (s 109E(6)). It is tested against the maximum term worked out under s 109N(3). The column name follows the published API surface, not the Act's use of 'maximum term' for the statutory cap |
 | `secured_by_registered_mortgage_over_real_property` | s 109N(3)(a)(i) |
 | `security_coverage_at_first_made` | s 109N(3)(a)(ii): the property's market value less liabilities secured over it in priority to the loan, as a ratio to the loan, at the time the loan is first made. `1.10` is the 110% the paragraph requires |
 | `interest_rate_for_years_after_year_loan_made` | s 109N(1)(b), as a decimal fraction |
@@ -328,7 +367,7 @@ a message naming the first invalid byte; re-save it from Excel as CSV UTF-8
 | Column | What it asserts |
 | --- | --- |
 | `amalgamated_loan_unpaid_at_end_of_previous_year` | The balance the s 109E(6) formula works on |
-| `remaining_term_years` | s 109E(6): the longest constituent-loan term, less the years from the end of the loan year to the end of the year before the one being reviewed. Rounded up by the engine if it is not whole |
+| `remaining_term_years` | s 109E(6): the longest constituent-loan term, less the years from the end of the loan year to the end of the year before the one being reviewed. Rounded up by the engine if it is not whole. Refused where it is longer than the maximum term the row's security facts give, than `maximum_term_years` or than `maximum_term_years` less the years since `year_loan_made` |
 | `payments_applied_during_the_year` | The amount **you** are treating as applied. The engine does not apply s 109R. If you cannot assert it, leave it `unknown` |
 
 **Optional:**
@@ -345,7 +384,9 @@ Two samples ship with the repository:
   3 complying loans that run to a verdict with no confirmation flags.
 - [`examples/sample_loans_mixed.csv`](examples/sample_loans_mixed.csv) -
   `UNKNOWN` rows, a loan whose rate is below the benchmark, a 25-year loan
-  with 109% cover, a nil remaining term and 2 skipped rows.
+  with 109% cover, a nil remaining term, 4 remaining terms longer than the
+  loan allows (one with no loan year and a nominated benchmark year), 2 at
+  that limit and 2 skipped rows.
 
 Both are fabricated. Every identifier is synthetic.
 
@@ -446,7 +487,7 @@ prefixes, one per question:
 
 | Prefix | Means |
 | --- | --- |
-| `REFUSED_*` | the s 109E question is outside this engine; no further fact helps |
+| `REFUSED_*` | the s 109E question is outside this engine, or 2 supplied facts cannot both hold; adding a fact does not help |
 | `GATE_*` | a s 109N(1) limb failed (`_FAIL`) or could not be decided (`_UNKNOWN`) |
 | other `*_UNKNOWN` | a fact the operator can still establish was not established |
 
@@ -492,7 +533,7 @@ a file path.
 | --- | --- |
 | `benchmark-rate` | `year_of_income`; optional `table`, `override` |
 | `complying-loan-gate` | `facts` (the `GateFacts` fields) or `mapping` and `where` (a register row); optional `table`, `override` |
-| `minimum-yearly-repayment` | `facts` (the `MyrFacts` fields, `gate_result` as its `verdict`, `benchmark_year_used`, `reasons` and `caveats`) or `mapping`, `year_of_income`, `gate_result` and `where`; optional `table`, `override` |
+| `minimum-yearly-repayment` | `facts` (the `MyrFacts` fields, `gate_result` as its `verdict`, `benchmark_year_used`, `reasons` and `caveats`, and optionally `maximum_term_years`, the loan's own term) or `mapping` (a register row, read with its `maximum_term_years`), `year_of_income`, `gate_result` and `where`; optional `table`, `override` |
 | `minimum-yearly-repayment-amount` | `principal`, `rate`, `remaining_term` |
 | `review-register`, `review-register-file` | `rows` or `path`, `year_of_income`, `gate_only`, `myr_only`, `gate_benchmark_year`, `table`, `override` |
 | `parse-year`, `parse-money`, `parse-rate`, `parse-ratio`, `parse-tristate` | `raw`, `where` |
@@ -549,6 +590,76 @@ extra position; a metadata difference checks zero steps. The saved engine versio
 is descriptive, untrusted metadata. A different historical version can still
 verify when its identity, working and result agree with this verifier's engine.
 
+## Rollforward: interest and closing balance
+
+`rollforward` reads one year of an amalgamated loan on stdin and works out the
+year's interest and the amount of the loan not repaid at its end, the figure the
+next year's `amalgamated_loan_unpaid_at_end_of_previous_year` takes:
+
+```sh
+echo '{"year_of_income": "2026-27", "year_loan_made": "2025-26",
+  "balance_at_start_of_year": "100000.00",
+  "repayments": [{"date": "2026-10-01", "amount": "20000.00"}]}' \
+  | div7a-loan-review rollforward
+```
+
+That gives interest of 7458.10 (2210.52 on 100,000 for 92 days and 5247.58 on
+80,000 for 273 days) and 87458.10 not repaid at the end of 2026-27.
+
+s 109E(7) works out how much of the loan is repaid 'on the basis that interest is
+payable on the balance of the loan from time to time in a year of income at a
+rate equal to the benchmark interest rate for the year of income'. It sets no
+day count. This engine takes the ATO's: in the worked example in
+[Loans by private companies](https://www.ato.gov.au/businesses-and-organisations/corporate-tax-measures-and-assurance/private-company-benefits-division-7a-dividends/in-detail/division-7a-loans)
+(last updated 2 July 2026, read 13 November 2026), interest 'is calculated
+annually in arrears by reference to the daily balance throughout the year', a
+repayment reduces the balance from the day it is made, and each period is
+charged as rate x balance x days / 365. The output lists each period with its
+days, balance and interest, each repayment with the balance after it, the
+year's interest, and how much of the repayments met that interest and how much
+repaid the loan.
+
+Where the ATO's guidance is silent, the engine follows the ATO's
+[Division 7A calculator](https://www.ato.gov.au/calculators-and-tools/division-7a-calculator-and-decision-tool),
+whose interest code was read and run on 13 November 2026, and says so in the
+output's caveats:
+
+- A year of income holding 29 February divides by 366, so a full year's
+  interest is the balance times the benchmark rate. Neither s 109E(7) nor the
+  worked example, a 365-day year, states this.
+- Each period's interest is rounded to cents half up and the periods are added.
+  The Act prescribes no rounding; the worked example rounds its total to the
+  dollar.
+- Once repayments pass the opening balance there is nothing left to charge, so
+  later periods carry a nil balance, and a caveat gives the date from which
+  they do.
+- Repayments first meet the year's interest. Interest they do not meet is not
+  added to the loan.
+
+It refuses, with exit 2 and one `error:` line: the year the loan was made or an
+earlier one (the ATO treats no interest as payable for the loan year, and
+s 109E(1)(a) reaches only later years); a year with no reviewed benchmark rate
+(it reads only the compiled-in table); a repayment dated outside the year of
+income, which runs from 1 July to 30 June (a substituted accounting period is
+not modelled, and the ATO calculator does not take one either); repayments
+totalling more than the opening balance and the year's interest; a repayment of
+nil, which repays nothing but would split a period and can move the rounded
+interest by a cent; and any input field it does not read.
+
+In the first year after the loan year, enter the balance at 1 July, before any
+repayment made before the lodgment day, and list those repayments, as the
+worked example does: it charges $75,000 from 1 July 2014 and counts the
+31 August 2014 repayment in 2014-15. The paragraph before that example says
+payments made before the lodgment day are taken to have been made in the loan
+year, so the first year opens at the balance immediately before the lodgment
+day. On that reading the example would open at $55,000, count only the
+$8,000 repayment and close at $50,230.77, not $50,430. The guidance does not
+reconcile the two. The engine follows the example, which gives the higher
+closing balance because it charges interest on such a repayment from 1 July to
+its date, apart from the rounding of each period's interest to cents, which can
+leave it a cent or so lower. A caveat says so. Whether a repayment counts at all
+(s 109R) stays with you.
+
 ## WebAssembly
 
 `wasm/` builds the derivation for `wasm32-unknown-unknown`, for calculators
@@ -588,7 +699,12 @@ cargo test --locked
 and command runs, plus generated cases, and `tests/BEHAVIOURS.md` maps each
 original test to its Rust coverage. The formula properties run as seeded Rust
 tests against exact rational arithmetic, beside the ATO's 2 worked repayments and
-how the shortfall must move when one fact moves.
+how the shortfall must move when one fact moves. `tests/evidence_states.rs`
+walks every combination of representative values of a register row's gate facts
+and payment through one review, with the review year, balance and remaining term
+fixed, against the s 109N tables restated there, so each row reaches one gate
+verdict, one code per limb that did not pass and one repayment verdict. A new
+register column or summary count fails it until the walk covers it.
 
 The tests cover every frozen rate year, every verdict, every refusal, the
 2025-26 May-vs-June trap, the formula against exact rational arithmetic and a

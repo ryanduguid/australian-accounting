@@ -14,7 +14,7 @@ use crate::decimal::Decimal;
 use crate::py::Date;
 use crate::rates::GicTable;
 use crate::sgc::{Uplift, exposure_range, notional_earnings, uplift_scenarios};
-use crate::{Failure, Result, returned};
+use crate::{Failure, Result, evidence, returned};
 
 pub const TRANSITION_END: Date = Date {
     year: 2026,
@@ -23,7 +23,7 @@ pub const TRANSITION_END: Date = Date {
 };
 
 /// The last QE day PCG 2026/1 covers.
-const FIRST_YEAR_END: Date = Date {
+pub(crate) const FIRST_YEAR_END: Date = Date {
     year: 2027,
     month: 6,
     day: 30,
@@ -288,6 +288,7 @@ pub fn check_inputs(lines: &[ContribLine]) -> Result<()> {
             problems.push(p);
         }
         problems.extend(returned::event_problems(line)?);
+        problems.extend(evidence::problems(line));
     }
     if problems.is_empty() {
         Ok(())
@@ -367,15 +368,9 @@ pub fn assess(
 
     let mut results = Vec::with_capacity(pairs.len());
     for (i, (line, dl)) in pairs.into_iter().enumerate() {
-        results.push(assess_line(
-            line,
-            dl,
-            cal,
-            gic,
-            as_at,
-            options,
-            transition[i],
-        )?);
+        let mut result = assess_line(line, dl, cal, gic, as_at, options, transition[i])?;
+        evidence::annotate(&mut result);
+        results.push(result);
     }
     Ok(results)
 }
@@ -1080,7 +1075,9 @@ fn apply_exposure(
             };
             result.caveats.push(format!(
                 "this assumes the contribution is not the first to this fund. If \
-                 it is a new starter or a fund switch, set \
+                 it is the first after employment starts or recommences \
+                 (including rehiring a worker under a new arrangement), or \
+                 after a fund switch, set \
                  first_contribution_to_fund=yes and {becomes} \
                  (due {})",
                 extended.isoformat()
@@ -1790,6 +1787,7 @@ pub(crate) mod tests {
             returned_by_fund: false,
             events: Vec::new(),
             return_not_shown: false,
+            evidence: Default::default(),
         }
     }
 
@@ -1987,6 +1985,46 @@ pub(crate) mod tests {
             !r.caveats
                 .iter()
                 .any(|c| c.contains("first_contribution_to_fund"))
+        );
+    }
+
+    /// SGAA s 18C(2) item 1 extends the first eligible contribution after an
+    /// employee 'commenced (or recommenced) employment', so the hint on a late
+    /// line names a rehired worker as well as a new starter and a fund switch.
+    #[test]
+    fn the_first_contribution_hint_names_recommenced_employment() {
+        let (cal, gic) = (load_calendar(None).unwrap(), load_gic().unwrap());
+        let mut r = result(day(2027, 7, 20), LATE);
+        let f = Facts {
+            settled: Some(day(2027, 7, 30)),
+            receipt_credit: dec("300"),
+            receipt_covers_all: true,
+            ..facts()
+        };
+        apply_exposure(
+            &mut r,
+            &cal,
+            &gic,
+            day(2027, 9, 1),
+            Options::default(),
+            &f,
+            &zero(),
+            false,
+        )
+        .unwrap();
+        let hints: Vec<&String> = r
+            .caveats
+            .iter()
+            .filter(|c| c.contains("first_contribution_to_fund"))
+            .collect();
+        assert_eq!(
+            hints,
+            [
+                "this assumes the contribution is not the first to this fund. If it is \
+                 the first after employment starts or recommences (including rehiring a \
+                 worker under a new arrangement), or after a fund switch, set \
+                 first_contribution_to_fund=yes and the line becomes on time (due 2027-08-09)"
+            ]
         );
     }
 

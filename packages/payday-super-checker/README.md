@@ -276,8 +276,9 @@ rerun before treating any verdict here as final.
 
 A returned amount is not a contribution (SIS Regulations reg 7.07G(4); LCR 2026/2
 paragraphs 24 and 25), and the deadline does not restart on a rejection. Two inputs
-say so. This Rust checker reads both. The Excel workbook reads `returned_by_fund`
-and sends you here for events. Aus Accounting MCP links the published Python package,
+say so. This Rust checker reads both. The Excel workbook reads `returned_by_fund` and an
+Events sheet in the `--events` columns, leaves every line they touch `UNKNOWN` and
+sends you here to decide it. Aus Accounting MCP links the published Python package,
 which reads neither, so the server refuses a contribution marked `returned_by_fund`
 instead of reading its receipt as kept.
 
@@ -341,6 +342,45 @@ of `report.csv`, so `evidence-pack` carries it. A resubmission with no fund rece
 yet has no event: the line stays `UNKNOWN` until the fund receipt is evidenced. See
 [LIMITATIONS.md](LIMITATIONS.md#psc-3-returned-contributions-rest-on-the-rows-and-events-you-supply)
 and the [source record](docs/primary-source-review-2026-10-31.md).
+
+### What stands behind a receipt
+
+Three optional columns record what you know about a contribution: `receipt_evidence`,
+`mvr_status` and `fund_error_ref` (the table under [Input columns](#input-columns)).
+They never change a verdict, a figure or the exit code, and the report keeps its 18
+columns. The report's `notes` and `caveats` columns list them for the row, so
+`evidence-pack` carries them in its `report.csv` and `exceptions.json`;
+`practitioner-review.md` repeats the caveats of rows not `ON_TIME`, never notes. The
+JSON `assess` subcommand takes and returns them on a line.
+
+- A fund error reference adds a caveat: a fund that rejects a contribution must send
+  an error message saying why, and a rejected amount is not a contribution. The
+  reference alone does not say an amount came back; if one did, record it with
+  `returned_by_fund` or `--events`. Enter only the message's reference: the
+  caveat copies it into the report and the evidence pack, so a pasted description
+  could carry a member's name or number into them.
+- `mvr_status=not_matched` adds a separate caveat: the fund could not match the member
+  or accept a contribution. It is not a fund error and is not refused, even on an
+  `ON_TIME` row.
+- A row is refused when its evidence contradicts it: `fund` or `clearing_house` with
+  no fund receipt recorded, `sent` with one, or `sent` with no `remitted_date`. A
+  receipt is recorded by `fund_received_date` or by an event that names one: a
+  `received` event, an `allocated` event or a `returned` event with a `receipt_date`.
+- From 1 July 2026 an employer must send a member verification request before a first
+  contribution to a fund, where its software supports it. The checker records the
+  answer and does not test whether one was needed.
+
+For QE days to 30 June 2027, an `AT_RISK` row whose `remitted_date` (the day you sent
+the money) is the QE day itself, with `fund_error_ref=none`, gets a note quoting the
+ATO: if no errors have been received, the employer can assume the fund received the
+contribution on time. The checker also leaves the note off a row with a `not_matched`
+verification, a return or a `fund_received_date` (one after the as-at date leaves the
+row `AT_RISK` and may be late); those are its own conservative additions, not ATO
+conditions. A `remitted_date` that is a clearing house's later date withholds the
+note. The row stays `AT_RISK`. That is the ATO's first-year compliance approach
+(PCG 2026/1), not evidence of receipt, and the ATO still applies the law where it has
+definitive information of a shortfall (paragraph 11). Sources are in the
+[8 November source record](docs/primary-source-review-2026-11-08.md).
 
 ### A receipt date needs an amount
 
@@ -528,8 +568,11 @@ Required: `employee_id`, `payment_date`, `sg_amount`. Everything else is optiona
 | `matched_amount` | `matched_amount` | Total contribution amount associated with this payday, capped at `sg_amount`. The importer writes an explicit amount even when the vendor supplied no payment date: zero for no match, the partial amount for a short match, and the liability for a full or over match. It is not proof of remittance or fund receipt. When you add `fund_received_date`, it is the amount that date can evidence, and a receipt date with neither this column nor `remitted_amount` evidences no amount at all. If it is below `sg_amount` and `remitted_date` is present, `remitted_amount` is required |
 | `received` | `fund_received_date` | Day the fund received the eligible contribution associated with this QE day. Receipt is necessary for an on-time result; the row association also asserts the contribution was allocable and applied to this QE day under the statutory ordering. The date fixes timing only. The amount it evidences is `matched_amount`, then `remitted_amount` for older 10-column partial files; a row with neither amount is left `UNKNOWN` rather than `ON_TIME` (versions 0.1.6 and earlier read it as the whole `sg_amount`) |
 | `returned_by_fund` | `returned_by_fund` | Optional. Yes when a fund returned some or all of this contribution. A file carrying this column, however it is capitalised, spaced or punctuated, is refused when the mapping does not read it. See [A contribution the fund returned](#a-contribution-the-fund-returned) |
+| `receipt_evidence` | `receipt_evidence` | Optional. Where the receipt is known from: `fund` (the fund's own record dates `fund_received_date`), `clearing_house` (a clearing house's record of the fund's receipt dates it) or `sent` (a record shows the contribution sent to the fund, with no receipt confirmed). See [What stands behind a receipt](#what-stands-behind-a-receipt) |
+| `mvr_status` | `mvr_status` | Optional. The fund's answer to a member verification request: `matched`, `not_matched` or `not_sent` |
+| `fund_error_ref` | `fund_error_ref` | Optional. The reference of a fund error message (CTER) for this contribution, or `none` when you checked and none was received. Enter the reference only, not the message's text |
 | `join_caveats` | `join_caveats` | Optional, appended last. The importer writes the join's structural warnings here, joined with `"\|"`, so they travel with the file into the report's caveats column and the evidence pack instead of living only in the console. Blank on a clean join; absent on canonical files from before 0.1.5 |
-| `first_to_fund` | `first_contribution_to_fund` | Yes for the first contribution to that fund (new starter, or a fund switch) |
+| `first_to_fund` | `first_contribution_to_fund` | Yes for the first eligible contribution to that fund after employment starts or recommences (including rehiring a worker under a new arrangement), or after a fund switch. See [The rules it applies](#the-rules-it-applies) |
 | `out_of_cycle` | `out_of_cycle` | Yes only for an allowance, bonus, commission, loading, payment in advance or back payment made outside an established payment timing, pattern or schedule, where the statutory next-standard-payment conditions are met |
 | `next_standard_qe_day` | `next_standard_payday` | The next schedule-consistent day on which the employer actually made a subsequent non-out-of-cycle QE payment. A planned payday or a date after employment ended is not enough |
 | `db_interest` | `defined_benefit` | Yes for defined-benefit interests, which are skipped |
@@ -614,6 +657,8 @@ import record.
 
 Profiles ship for Xero Payroll, MYOB AccountRight, MYOB Business and Employment Hero / KeyPay, one profile each for the payroll-activity report and the super-payments report. The importer picks a profile per file by scoring column headings against what it knows. Force one with `--vendor xero`, `--vendor myob-ar`, `--vendor myob-business` or `--vendor employment-hero` when detection cannot pick, or to skip detection outright.
 
+Each super profile reads only the contribution types it lists as super guarantee. A super row of any other type, such as salary sacrifice, is skipped, not checked: the import names each skipped type with up to 20 of its row numbers in a warning, and stops without output when every row is skipped. The warning does not change the exit code.
+
 **Every shipped profile is unverified against a real export.** Each one's column names come from vendor help documentation, and Xero, MYOB and Employment Hero do not publish an actual column list for these reports, so the first real export you try may match no profile at all. When that happens the importer prints the column headings it found in your file next to the headings each candidate profile wanted. Send both lists back and fixing the profile is a one-line edit to its JSON file, not a rewrite.
 
 **The supported export profiles do not establish a fund receipt date.** Xero's report gives the date a payment was sent to the fund. MYOB gives a Paid Date. Employment Hero gives a Beam status (Created through to Sent to fund). None of these is the date the fund received the money. The legal deadline tests receipt by the fund, and time in transit through a clearing house is the employer's risk, not the fund's, so a vendor date is a remittance date and `fund_received_date` is left blank on every row. Fill that column in from your fund or clearing house before treating any verdict from the checker as final. `remitted_date` is the latest known vendor date for the dated subtotal; an entirely undated match leaves it blank. The Beam status also decides whether the date counts at all: a batch still at Created, Submission accepted or Awaiting payment is money that never left the employer, and one at Awaiting clearance or Reconciled is still with Beam, not yet sent to the fund, so its Payment Date is not written as a remittance date and the payday reads as unfunded, with a warning naming the status. Not actioned, Cancelled, Failed, Refunded and Payment failed are treated the same way because they do not establish remittance, which is not proof that no money moved. So is Sent to fund with refund: a fund rejected and refunded some of that batch without the export saying which, so settle each contribution from the batch history before entering its date by hand. Sent to fund with response (a fund replied with warnings or notes) and a manual batch's Paid (the employer's own assertion) keep their date as a remittance date only. A status outside these stops the import rather than being guessed either way.
@@ -644,7 +689,8 @@ takes the Python function's default and a field it required must be given;
 has the canonical field names (`employee_id`, `qe_day`, `sg_amount`,
 `remitted`, `remitted_amount`, `received`, `first_to_fund`, `out_of_cycle`,
 `next_standard_qe_day`, `db_interest`, `row`, `matched_amount`,
-`join_caveats`). A `calendar` is the bundled table, `{"override_path": ...}`
+`join_caveats`), and optionally `returned_by_fund`, `events`, `receipt_evidence`,
+`mvr_status` and `fund_error_ref`. A `calendar` is the bundled table, `{"override_path": ...}`
 for an override file, or explicit `holidays` with `verified_from`,
 `verified_until` and `coverage_until`. `quarters` replaces the bundled GIC
 table with explicit `from`, `to` and `annual_pct` entries.
@@ -679,8 +725,10 @@ table with explicit `from`, `to` and `annual_pct` entries.
 `assess` returns each line's result with its rounded `figures` (null where a
 figure cannot be rounded to cents); `join` returns the outcomes, orphans and the
 canonical CSV text `import` would write; `import-files` returns the whole
-import report. `build-evidence-pack` names no rate table and no GIC provenance
-unless `rate_tables` and `gic_provenance` are given, as Python's defaults did.
+import report. `read-super` adds `skipped`, each row the contribution-type filter
+left out as `row` and `contribution_type`, when there is one.
+`build-evidence-pack` names no rate table and no GIC provenance unless
+`rate_tables` and `gic_provenance` are given, as Python's defaults did.
 
 ```sh
 echo '{"text": "9 Jul 2026"}' | payday-super-check parse-date-text
@@ -774,11 +822,11 @@ ATO LCR 2026/1, LCR 2026/2 and LCR 2026/3 were issued on 5 August 2026. LCR 2026
 
 **The deadline.** A contribution is on time only if the fund *receives* it, with enough information to allocate it, by the end of the seventh business day after the payday (SGAA 1992 s 6(1) 'usual period', s 18C(1)(c)). Paying a clearing house by the deadline does not count, and the ATO's small business clearing house closed on 30 June 2026, so transit time is now the employer's risk. That is why a line with a remittance date but no fund receipt date comes back `AT_RISK` rather than `ON_TIME`.
 
-**Business days.** SGAA s 6(1) defines a business day as any day that is not a Saturday, a Sunday or a public holiday for the whole of any State, the ACT or the NT. One national calendar applies to every employer: WA Day stops the clock for a Sydney employer. Regional and locally substitutable holidays do not. The Brisbane Ekka, WA's default King's Birthday date and Melbourne Cup Day are therefore business days for this definition. The bundled calendar is complete from July 2026 through **31 August 2027**. Business Victoria still lists the exact 2027 grand-final holiday as subject to the AFL schedule, so later deadlines fail closed until that date is officially published or supplied through a reviewed override. Unconfirmed dates do not extend a deadline.
+**Business days.** SGAA s 6(1) defines a business day as any day that is not a Saturday, a Sunday or a public holiday for the whole of any State, the ACT or the NT. One national calendar applies to every employer: WA Day stops the clock for a Sydney employer. Regional and locally substitutable holidays do not. The Brisbane Ekka, WA's default King's Birthday date before 2028, WA's default Show Day date from 2028 and Melbourne Cup Day are therefore business days for this definition. From 2028 WA's King's Birthday is the second Monday in June throughout WA, and Show Day is the holiday regional areas substitute ([WA public holidays](https://www.wa.gov.au/service/employment/workplace-arrangements/public-holidays-western-australia), read on 14 November 2026). The bundled calendar is complete from July 2026 through **31 August 2027**. Business Victoria still lists the exact 2027 grand-final holiday as subject to the AFL schedule, so later deadlines fail closed until that date is officially published or supplied through a reviewed override. Unconfirmed dates do not extend a deadline.
 
-**20 business days instead of 7** for the first contribution to a particular fund, whether that is a new starter or an existing employee switching funds (s 18C(2) item 1). Under item 4, a later QE day's deadline can align to an earlier contribution's later end only if that earlier eligible contribution was made and applied under s 18C(1). The checker applies the extension only where the earlier canonical row evidences an on-time fund receipt and thereby asserts the statutory allocation. A positive amount or remittance alone is not enough. If the missing fact could change the verdict, the later row is attention-driving `UNKNOWN`, not treated as extended. Include each employee's earlier paydays and reconcile their LCR 2026/2 allocation; a single pay run cannot establish the rule.
+**20 business days instead of 7** for the first eligible contribution to a fund after the employee starts or recommences employment, or after the employer stops contributing to another fund for the employee (s 18C(2) item 1). The ATO's [Payment deadlines for Payday Super](https://www.ato.gov.au/businesses-and-organisations/super-for-employers/paying-super-on-payday/payment-deadlines-for-payday-super) (last updated 29 September 2026, read 10 November 2026) gives the same 20 business days for the first contribution after an employer has 'rehired or recommenced work with someone under a new arrangement', so `first_to_fund=yes` covers that contribution too. Under item 4, a later QE day's deadline can align to an earlier contribution's later end only if that earlier eligible contribution was made and applied under s 18C(1). The checker applies the extension only where the earlier canonical row evidences an on-time fund receipt and thereby asserts the statutory allocation. A positive amount or remittance alone is not enough. If the missing fact could change the verdict, the later row is attention-driving `UNKNOWN`, not treated as extended. Include each employee's earlier paydays and reconcile their LCR 2026/2 allocation; a single pay run cannot establish the rule.
 
-**Out-of-cycle payments** can ride a subsequent standard QE payment's window rather than their own (SGAA s 18C(2) item 2 and s 18C(3); final determination F2026L00784). The earlier review called this 'LI 2026/20', but that shorthand is not shown on the Federal Register's as-made page; this project uses the controlling registered identifier and text instead. The final determination covers 6 kinds of qualifying earnings: allowances, bonuses, commissions, loadings, payments in advance and back payments. The employer must have an established timing, pattern or schedule for qualifying-earnings payments, and the payment must fall outside it. It also requires the employer to actually make a subsequent non-out-of-cycle qualifying-earnings payment on the next day consistent with that schedule. A planned next payday, or a termination/final payment with no later payment, does not establish item 2. `out_of_cycle=yes` without the date of that actual subsequent payment is a hard error. Where both this rule and the new-fund rule apply, the later deadline governs.
+**Out-of-cycle payments** can ride a subsequent standard QE payment's window rather than their own (SGAA s 18C(2) item 2 and s 18C(3); final determination F2026L00784). The earlier review called this 'LI 2026/20', but that shorthand is not shown on the Federal Register's as-made page; this project uses the controlling registered identifier and text instead. The final determination covers 6 kinds of qualifying earnings: allowances, bonuses, commissions, loadings, payments in advance and back payments. The employer must have an established timing, pattern or schedule for qualifying-earnings payments, and the payment must fall outside it. It also requires the employer to actually make a subsequent non-out-of-cycle qualifying-earnings payment on the next day consistent with that schedule. A planned next payday, or a termination/final payment with no later payment, does not establish item 2. `out_of_cycle=yes` without the date of that actual subsequent payment is a hard error. Where both this rule and the first-contribution rule apply, the later deadline governs.
 
 **When it is late,** notional earnings compound daily at the general interest charge rate on the base shortfall for each late-period day on which the final shortfall remains greater than nil (s 19A), and an administrative uplift of up to 60% applies on top. A full late contribution received before the ATO assesses the charge can clear the final shortfall under s 18D, which is why a fully paid-but-late line shows a small experimental estimate rather than the whole contribution. A part late receipt reduces only the final shortfall: it does not retrospectively reduce the base used for notional earnings, and accrual continues whilst a remainder exists. Pass `--assessment-date` if an assessment has already issued; a receipt on or after that date does not reduce the final shortfall in this estimate.
 
@@ -832,7 +880,7 @@ Everything that goes stale lives in `data/` and is compiled into the binary, so 
 - `rates.json` : SG rate, concessional cap, maximum contributions base, per financial year, with the same source and checked-date fields.
 - `business_days.json` : national non-business days plus the 8 official jurisdiction URLs and their check date. Regenerate from the repository root with `uv run --locked python packages/payday-super-checker/tools/generate_calendar.py > packages/payday-super-checker/data/business_days.json`, which uses the lock-pinned development environment, then check every line against those official pages before shipping. Raw generator output deliberately sets `verified_until` to 1 July 2026 and `official_sources.checked` to null; a human reviewer must record the check date and raise the horizon only as far as every jurisdiction's official material supports. Regional, part-day and locally substitutable dates are excluded. Unconfirmed dates are reference-only and do not extend a deadline until an official override confirms them.
 
-Part-day holidays, such as Christmas Eve evening in South Australia, Queensland and the Northern Territory, are treated as business days because applying them as a full day would extend the statutory deadline without authority. Melbourne Cup Day and WA's default King's Birthday date are also business days for this definition because the official pages permit regional substitution, so neither applies throughout its State. The override exists for newly proclaimed whole-of-jurisdiction dates and for an operator who has completed a later official calendar.
+Part-day holidays, such as Christmas Eve evening in South Australia, Queensland and the Northern Territory, are treated as business days because applying them as a full day would extend the statutory deadline without authority. Melbourne Cup Day, WA's default King's Birthday date before 2028 and WA's default Show Day date from 2028 are also business days for this definition because the official pages permit regional substitution, so none applies throughout its State. The override exists for newly proclaimed whole-of-jurisdiction dates and for an operator who has completed a later official calendar.
 
 ## Tests
 

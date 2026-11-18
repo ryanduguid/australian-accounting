@@ -6,9 +6,10 @@
 use australian_tax_calculators::api;
 use australian_tax_calculators::decimal::{Decimal, Rounding};
 use australian_tax_calculators::metadata::{
-    CoefficientRow, LOW_INCOME_TAX_OFFSET, MEDICARE_LOW_INCOME_THRESHOLDS,
-    PAYG_WITHHOLDING_COEFFICIENTS, RESIDENT_TAX_SCALES, STUDY_LOAN_REPAYMENT_THRESHOLDS,
-    STUDY_LOAN_WITHHOLDING_COEFFICIENTS, supported_periods,
+    CoefficientRow, FOREIGN_RESIDENT_TAX_SCALES, LOW_INCOME_TAX_OFFSET, MEDICARE_FAMILY_THRESHOLDS,
+    MEDICARE_LOW_INCOME_THRESHOLDS, MEDICARE_SAPTO_THRESHOLDS, PAYG_WITHHOLDING_COEFFICIENTS,
+    RESIDENT_TAX_SCALES, STUDY_LOAN_REPAYMENT_THRESHOLDS, STUDY_LOAN_WITHHOLDING_COEFFICIENTS,
+    STUDY_LOAN_WITHHOLDING_FROM, supported_periods,
 };
 use serde_json::json;
 
@@ -55,6 +56,33 @@ fn every_supported_resident_period_has_its_own_contiguous_scale() {
     }
 }
 
+/// Income Tax Rates Act 1986 Schedule 7 Part II, compilations 63, 65 and 66
+/// (read on 14 November 2026): from $0, the second resident personal tax rate
+/// (Part I item 2 for the year) to $135,000, the third (item 3) to $190,000 and
+/// 45% above, for each year the resident scale covers.
+#[test]
+fn the_foreign_resident_scale_takes_the_years_resident_rates() {
+    let years: Vec<&str> = FOREIGN_RESIDENT_TAX_SCALES
+        .iter()
+        .map(|(y, _)| *y)
+        .collect();
+    assert_eq!(supported_periods("foreign_resident_tax"), years);
+    assert_eq!(supported_periods("resident_tax"), years);
+    for (year, scale) in FOREIGN_RESIDENT_TAX_SCALES {
+        let resident = get(RESIDENT_TAX_SCALES, year);
+        assert_eq!(
+            *scale,
+            [
+                (0, Some(135000), resident[1].2),
+                (135000, Some(190000), resident[2].2),
+                (190000, None, "0.45"),
+            ],
+            "{year}"
+        );
+        assert_eq!((resident[1].0, resident[2].0), (45000, 135000), "{year}");
+    }
+}
+
 /// The law these worksheets apply is the same in 2026-27, so each result
 /// differs from the 2025-26 one only in its period.
 #[test]
@@ -76,7 +104,14 @@ fn worksheets_opened_for_2026_27_match_2025_26() {
             let mut input = input.clone();
             input["year"] = json!(year);
             input["scope_confirmed"] = json!(true);
-            api::evaluate(command, &input).unwrap()
+            let result = api::evaluate(command, &input).unwrap();
+            // A command derive explains derives to this result, byte for byte.
+            let envelope = json!({"command": command, "input": input});
+            match api::evaluate_coded("derive", &envelope) {
+                Ok(doc) => assert_eq!(doc["result"].to_string(), result.to_string()),
+                Err(refusal) => assert_eq!(refusal.code, "derivation.unsupported"),
+            }
+            result
         };
         let mut later = run("2026-27");
         assert_eq!(later["period"], "2026-27");
@@ -160,9 +195,14 @@ fn lito_second_step_amount_and_cut_out_follow_from_the_table() {
 
 #[test]
 fn medicare_thresholds_match_the_published_table_and_phase_in() {
+    // 2026-27 and 2027-28: Medicare Levy Act 1986 s 3(1), compilation 53, with
+    // Act No. 58, 2026, Sch 5 item 14 (2025-26 and later years), both read on
+    // 14 November 2026 and compilation 53 again on 16 November 2026.
     let published = [
         ("2024-25", ("27222", "34027")),
         ("2025-26", ("28011", "35013")),
+        ("2026-27", ("28011", "35013")),
+        ("2027-28", ("28011", "35013")),
     ];
     assert_eq!(MEDICARE_LOW_INCOME_THRESHOLDS, published);
     for (_, (lower, upper)) in published {
@@ -170,6 +210,113 @@ fn medicare_thresholds_match_the_published_table_and_phase_in() {
         let limit = floor(&d(lower).mul(&d("1.25")).unwrap());
         assert!(d(upper).equals(&limit).unwrap());
     }
+}
+
+#[test]
+fn medicare_sapto_and_family_thresholds_match_the_acts() {
+    // Medicare Levy Act 1986 s 3(1) and s 8(5) and (7): compilation 52 (Act No.
+    // 28, 2025, Sch 2, 2024-25 and later years) and compilation 53 (Act No. 58,
+    // 2026, Sch 5, 2025-26 and later years), read on 14 November 2026. The ATO's
+    // 2025-26 family page and myTax 2025 table 2 and worksheet 2 give the same.
+    let sapto = [
+        ("2024-25", ("43020", "53775")),
+        ("2025-26", ("44268", "55335")),
+        ("2026-27", ("44268", "55335")),
+        ("2027-28", ("44268", "55335")),
+    ];
+    assert_eq!(MEDICARE_SAPTO_THRESHOLDS, sapto);
+    for (_, (lower, upper)) in sapto {
+        let limit = floor(&d(lower).mul(&d("1.25")).unwrap());
+        assert!(d(upper).equals(&limit).unwrap());
+    }
+    let family = [
+        ("2024-25", ("45907", "59886", "4216")),
+        ("2025-26", ("47238", "61623", "4338")),
+        ("2026-27", ("47238", "61623", "4338")),
+        ("2027-28", ("47238", "61623", "4338")),
+    ];
+    assert_eq!(MEDICARE_FAMILY_THRESHOLDS, family);
+    for table in [
+        keys(MEDICARE_SAPTO_THRESHOLDS),
+        keys(MEDICARE_FAMILY_THRESHOLDS),
+    ] {
+        assert_eq!(table, supported_periods("medicare_levy"));
+    }
+}
+
+fn keys<T>(table: &[(&'static str, T)]) -> Vec<&'static str> {
+    table.iter().map(|(k, _)| *k).collect()
+}
+
+/// 2026-27 at the enacted threshold amount ($28,011) and phase-in limit
+/// ($35,013): s 7(1) gives nil at or below the threshold, s 7(2) caps the levy
+/// at 10% of the excess up to the limit, and s 6(1) charges 2% of the whole above it.
+#[test]
+fn medicare_levy_2026_27_applies_the_thresholds_enacted_for_later_years() {
+    let run = |income: &str, year: &str| {
+        let input = json!({"taxable_income": income, "section_9a_adjustment_applies": false,
+                           "year": year, "scope_confirmed": true});
+        let result = api::evaluate("medicare-levy", &input);
+        // derive explains the levy: its result is the plain one, byte for byte.
+        let doc = api::evaluate(
+            "derive",
+            &json!({"command": "medicare-levy", "input": input}),
+        );
+        assert_eq!(
+            doc.map(|doc| doc["result"].clone()),
+            result,
+            "derive {input}"
+        );
+        result
+    };
+    // (taxable income, 2% of it, levy); the reduction is their difference.
+    for (income, full, levy) in [
+        ("0", "0.00", "0.00"),
+        ("28010", "560.20", "0.00"),     // below the threshold: nil
+        ("28011", "560.22", "0.00"),     // at the threshold: nil
+        ("28012", "560.24", "0.10"),     // 10% x (28,012 - 28,011)
+        ("29000", "580.00", "98.90"),    // 10% x 989, as in the ATO's 2025-26 Angie example
+        ("35013", "700.26", "700.20"),   // at the limit: 10% x 7,002 < 2% x 35,013
+        ("35014", "700.28", "700.28"),   // above the limit: 2% x 35,014
+        ("50000", "1000.00", "1000.00"), // 2% x 50,000
+    ] {
+        let result = run(income, "2026-27").unwrap();
+        let amounts = &result["amounts"];
+        assert_eq!(result["period"], "2026-27");
+        assert_eq!(amounts["levy_at_full_rate"], full, "{income}");
+        assert_eq!(amounts["medicare_levy"], levy, "{income}");
+        let reduction = d(full).sub(&d(levy)).unwrap();
+        let reduction = reduction.quantize(-2, Rounding::HalfUp).unwrap();
+        assert_eq!(
+            amounts["low_income_reduction"],
+            reduction.to_string(),
+            "{income}"
+        );
+        assert_eq!(result["rates"]["threshold_amount"], "28011");
+        assert_eq!(result["rates"]["phase_in_limit"], "35013");
+        let warnings = result["warnings"].as_array().unwrap();
+        assert_eq!(warnings.len(), 3, "{income}");
+        assert_eq!(
+            warnings[2],
+            "2026-27 uses the threshold amounts, phase-in limits and family income thresholds \
+             Medicare Levy Act 1986 ss 3(1) and 8 set for 2025-26 and later years (Act No. 58, \
+             2026, Sch 5 item 14). The ATO had not \
+             published 2026-27 thresholds when this was checked on 14 November 2026. That Act, \
+             assented on 30 June 2026, raised the figures for 2025-26, so a later Act can raise \
+             them for 2026-27 and change this result."
+        );
+        let sources = result["sources"].as_array().unwrap();
+        assert!(sources.contains(&json!(
+            "https://www.legislation.gov.au/C2026A00058/asmade/text"
+        )));
+    }
+    // The ATO published the 2025-26 thresholds, so that year carries no such warning.
+    let earlier = run("29000", "2025-26").unwrap();
+    assert_eq!(earlier["warnings"].as_array().unwrap().len(), 2);
+    assert_eq!(
+        run("29000", "2028-29").unwrap_err(),
+        "Unsupported period '2028-29'; supported: 2024-25, 2025-26, 2026-27, 2027-28."
+    );
 }
 
 #[test]
@@ -209,10 +356,10 @@ fn pick(rows: &[CoefficientRow], x: &Decimal) -> (Decimal, Decimal) {
 
 #[test]
 fn combined_rows_are_schedule_1_plus_the_component_rows() {
-    // The schedule's combined coefficients for scales 1 and 2, to 4 decimal places.
-    let schedule_1 = get(PAYG_WITHHOLDING_COEFFICIENTS, "2026-27");
-    let component = get(STUDY_LOAN_WITHHOLDING_COEFFICIENTS, "2026-27");
-    for (scale, table, rows) in common::COMBINED {
+    // Each year's combined coefficients for scales 1 and 2, to 4 decimal places.
+    for (year, scale, table, rows) in common::COMBINED {
+        let schedule_1 = get(PAYG_WITHHOLDING_COEFFICIENTS, year);
+        let component = get(STUDY_LOAN_WITHHOLDING_COEFFICIENTS, year);
         for (limit, a, b) in rows {
             let x = limit.map_or(n(5000), |l| n(l - 1));
             let s1_rows = schedule_1.iter().find(|(s, _)| *s == scale).unwrap().1;
@@ -220,7 +367,7 @@ fn combined_rows_are_schedule_1_plus_the_component_rows() {
             let c = pick(get(component, table), &x);
             assert!(
                 s1.0.add(&c.0).unwrap().equals(&d(a)).unwrap(),
-                "{scale} {limit:?}"
+                "{year} {scale} {limit:?}"
             );
             let gap = s1.1.add(&c.1).unwrap().sub(&d(b)).unwrap();
             assert!(gap.le(&d("0.0001")).unwrap() && d("-0.0001").le(&gap).unwrap());
@@ -236,6 +383,19 @@ fn every_component_year_has_schedule_1_coefficients() {
             "{year}"
         );
     }
+}
+
+#[test]
+fn every_component_year_has_its_first_pay_date() {
+    let first_pay_years: Vec<&str> = STUDY_LOAN_WITHHOLDING_FROM
+        .iter()
+        .map(|(y, _)| *y)
+        .collect();
+    let coefficient_years: Vec<&str> = STUDY_LOAN_WITHHOLDING_COEFFICIENTS
+        .iter()
+        .map(|(y, _)| *y)
+        .collect();
+    assert_eq!(first_pay_years, coefficient_years);
 }
 
 /// Every amount in one ATO Schedule 1 sample data file, worked out for `year`:
@@ -283,12 +443,18 @@ fn every_scale_matches_the_ato_sample_for_payments_from_july_2024_to_june_2026()
 
 #[test]
 fn a_year_without_its_own_coefficients_is_refused() {
-    for year in ["2023-24", "2027-28"] {
+    for (year, why) in [
+        ("2023-24", ""),
+        (
+            "2027-28",
+            " The ATO had not published withholding schedules for payments from 1 July 2027 when this was checked on 16 November 2026.",
+        ),
+    ] {
         let input = json!({"earnings": "1000", "pay_period": "weekly", "scale": 2,
                            "year": year, "scope_confirmed": true});
         assert_eq!(
             api::evaluate("payg-withholding", &input).unwrap_err(),
-            format!("Unsupported period '{year}'; supported: 2024-25, 2025-26, 2026-27.")
+            format!("Unsupported period '{year}'; supported: 2024-25, 2025-26, 2026-27.{why}")
         );
     }
 }

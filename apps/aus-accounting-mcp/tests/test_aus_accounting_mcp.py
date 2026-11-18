@@ -1045,7 +1045,7 @@ def test_release_metadata_matches_the_candidate_version() -> None:
     # The newest section names every engine pin this release ships.
     newest = re.split(r"(?m)^# v", release_notes)[1]
     pins = [pin.split("==") for pin in project["dependencies"] if "==" in pin]
-    assert len(pins) == 6
+    assert len(pins) == 5
     for name, version in pins:
         assert f"{name}` {version}" in newest
     assert published_version == server["packages"][0]["version"] == VERSION
@@ -1068,6 +1068,18 @@ def test_active_repository_metadata_uses_canonical_identity() -> None:
     assert f"{CANONICAL_REPOSITORY}/blob/main/apps/aus-accounting-mcp/" in readme
     assert 'REPO="ryanduguid/australian-accounting"' in about_helper
     assert "ryanduguid/aus-accounting-mcp" not in about_helper
+
+
+def test_readme_links_resolve_on_pypi() -> None:
+    # The README is the PyPI description, where a relative link resolves against
+    # pypi.org rather than this repository, so every link must be absolute.
+    root = Path(__file__).resolve().parents[1]
+    project = tomllib.loads((root / "pyproject.toml").read_text(encoding="utf-8"))["project"]
+    assert project["readme"] == "README.md"
+    readme = (root / "README.md").read_text(encoding="utf-8")
+    targets = re.findall(r"\]\(([^)\s]+)\)", readme)
+    assert targets
+    assert [target for target in targets if not target.startswith("https://")] == []
 
 
 def test_readme_has_stable_proof_anchor_and_mapping() -> None:

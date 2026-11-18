@@ -51,7 +51,6 @@ updates:
       # removes them. Dependabot bumps the MCP's exact pins without applying
       # the overrides, so the update never resolves (job 1638939613,
       # 20 October 2026).
-      - dependency-name: australian-tax-calculators
       - dependency-name: div7a-loan-review
       - dependency-name: ato-benchmark-compare
       - dependency-name: payday-super-checker
@@ -95,6 +94,16 @@ updates:
       glama-rust:
         patterns: ["*"]
 
+  # The hosted calculators Worker. Its lock also holds the core's crates.
+  - package-ecosystem: cargo
+    directory: /tools/aus-accounting-connector
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 2
+    groups:
+      connector-rust:
+        patterns: ["*"]
+
   # The fixture screen's evatt is a git dependency pinned to one
   # accounting-review-pipeline commit; updates also cover its locked crates.
   - package-ecosystem: cargo
@@ -115,4 +124,16 @@ updates:
     open-pull-requests-limit: 2
     groups:
       glama-npm:
+        patterns: ["*"]
+
+  # The hosted calculators Worker's Miniflare and Wrangler test harness.
+  - package-ecosystem: npm
+    directory: /tools/aus-accounting-connector
+    schedule:
+      interval: weekly
+    cooldown:
+      default-days: 7
+    open-pull-requests-limit: 2
+    groups:
+      connector-npm:
         patterns: ["*"]

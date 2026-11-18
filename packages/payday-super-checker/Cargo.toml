@@ -21,7 +21,7 @@ path = "examples/build_workbook/main.rs"
 test = true
 
 [dependencies]
-chrono = { version = "0.4.45", default-features = false, features = ["clock", "std"] }
+jiff = { version = "1.0.0", default-features = false, features = ["std", "tz-system", "tzdb-bundle-platform", "tzdb-zoneinfo"] }
 num-bigint = "0.5"
 num-integer = "0.1"
 num-traits = "0.2"
@@ -38,7 +38,7 @@ codegen-units = 1
 [dev-dependencies]
 roxmltree = "=0.21.2"
 rust_xlsxwriter = "=0.102.0"
-zip = { version = "=9.3.0", default-features = false, features = ["deflate"] }
+zip = { version = "=9.6.0", default-features = false, features = ["deflate"] }
 
 # Asset names the release workflow will publish once release-policy has a Rust
 # binary family; see the root README.

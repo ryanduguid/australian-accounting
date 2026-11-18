@@ -19,7 +19,7 @@ Lines with exposure (experimental estimates, largest first):
       note: the deadline passed on 2026-08-17 and no remittance or fund-receipt date is recorded. Figures assume the contribution is still unpaid; if your export has no date columns, supply them before relying on this
   row 3  QE day 2026-08-06  due 2026-08-17  LATE, 17 days late to fund receipt
       super $540.00 (received, so the shortfall is nil)  notional earnings $2.88  experimental SG charge estimate $2.88 - $4.61
-      note: this assumes the contribution is not the first to this fund. If it is a new starter or a fund switch, set first_contribution_to_fund=yes and the line becomes on time (due 2026-09-03)
+      note: this assumes the contribution is not the first to this fund. If it is the first after employment starts or recommences (including rehiring a worker under a new arrangement), or after a fund switch, set first_contribution_to_fund=yes and the line becomes on time (due 2026-09-03)
 
   Total across 2 line(s): shortfall $780.00, notional earnings $8.76,
   experimental estimated SG charge $788.76 - $1262.02.

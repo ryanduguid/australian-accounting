@@ -75,7 +75,25 @@ const REMIT_ONLY_OK: &str = "Summary!$B$5";
 const COVERAGE: &str = "Summary!$B$6";
 const GIC_LAST: &str = "Summary!$B$7";
 
-const CALC_ORDER: [&str; 55] = [
+// The Events sheet takes the checker's --events columns, one event per row.
+const EVENT_COLUMNS: [&str; 7] = [
+    "employee_id",
+    "payment_date",
+    "event",
+    "event_date",
+    "amount",
+    "receipt_date",
+    "notified_date",
+];
+const EVENT_DATES: [&str; 4] = [
+    "payment_date",
+    "event_date",
+    "receipt_date",
+    "notified_date",
+];
+const EVENT_CALCS: [&str; 4] = ["Ev_pay", "Ev_early", "Ev_lines", "Ev_problem"];
+
+const CALC_ORDER: [&str; 56] = [
     "Pay_day",
     "Remit_day",
     "Recv_day",
@@ -84,6 +102,7 @@ const CALC_ORDER: [&str; 55] = [
     "Flag_ooc",
     "Flag_ftf",
     "Flag_ret",
+    "Events",
     "Row_problem",
     "Guard",
     "Cap",
@@ -171,7 +190,7 @@ const MONEY_CALCS: [&str; 14] = [
 /// Branch codes: verdict, unassessable outer outcomes, whether the on-time
 /// receipt credit applies, whether the receipt is a stale pre-payment, whether
 /// exposed.
-const CODES: [(&str, &str, &str, u8, u8, u8); 31] = [
+const CODES: [(&str, &str, &str, u8, u8, u8); 32] = [
     ("DB", "SKIPPED", "", 0, 0, 0),
     ("NIL", "UNKNOWN", "", 0, 0, 0),
     ("A1", "ON_TIME", "", 1, 0, 0),
@@ -209,6 +228,11 @@ const CODES: [(&str, &str, &str, u8, u8, u8); 31] = [
     // until the deadline has passed with no timely receipt on the row.
     ("RET1", "UNKNOWN", "UNPAID or ON_TIME", 0, 0, 0),
     ("RET2", "UNKNOWN", "UNPAID or LATE", 0, 0, 0),
+    // A line with dated events: the workbook does not walk them, so no receipt
+    // counts and the outer outcomes are the widest pair, which holds whatever
+    // the checker's --events decides. A received event can make ON_TIME
+    // possible where the row's own receipt is late, so RET2 cannot be used.
+    ("EV", "UNKNOWN", "UNPAID or ON_TIME", 0, 0, 0),
 ];
 
 fn t(column: &str) -> String {
@@ -368,6 +392,10 @@ fn formulas() -> BTreeMap<&'static str, String> {
     let (rem, rem_amt, matched) = (t("Remit_day"), t("remitted_amount"), t("matched_amount"));
     let (rec, nxt) = (t("Recv_day"), t("Next_day"));
     let (db, ooc, ftf, ret) = (t("Flag_db"), t("Flag_ooc"), t("Flag_ftf"), t("Flag_ret"));
+    let events = t("Events");
+    // The checker takes a line with a return flag or any event out of its
+    // single-receipt reading.
+    let return_facts = format!("OR({ret}=1,{events}>0)");
     let (due, settled, remit) = (t("Final_due"), t("Settled"), t("Remit"));
     let poss = t("Possible_item4");
     let horizon = format!("({due}>{COVERAGE})");
@@ -451,7 +479,7 @@ fn formulas() -> BTreeMap<&'static str, String> {
         format!("&IF(AND(ISNUMBER({rec}),ISNUMBER({rem}),{rec}<{rem}),\"receipt-before-remittance \",\"\")"),
         format!("&IF(AND({ooc}=1,NOT(ISNUMBER({nxt}))),\"out_of_cycle-needs-next_standard_payday \",\"\")"),
         format!("&IF(AND({ooc}=1,ISNUMBER({nxt}),ISNUMBER({pay}),{nxt}<={pay}),\"next_standard_payday-not-after-payday \",\"\")"),
-        format!("&IF(AND({ret}=1,OR({db}=1,AND(ISNUMBER({sg}),ROUND({sg},2)<=0))),\"returned-needs-an-sg-amount-tested-for-lateness \",\"\"))"),
+        format!("&IF(AND({return_facts},OR({db}=1,AND(ISNUMBER({sg}),ROUND({sg},2)<=0))),\"returned-needs-an-sg-amount-tested-for-lateness \",\"\"))"),
     ]
     .concat();
     let guard = INPUT_COLUMNS
@@ -470,6 +498,7 @@ fn formulas() -> BTreeMap<&'static str, String> {
     );
     let branch_formula = [
         format!("=IF({db}=1,\"DB\",IF({due}=\"\",\"\",IF(ROUND({sg},2)<=0,\"NIL\","),
+        format!("IF({events}>0,\"EV\","),
         format!("IF({ret}=1,IF({returned_may_be_timely},\"RET1\",\"RET2\"),"),
         format!("IF({settled}<>\"\","),
         // Received: a receipt with no stated amount that could be timely is
@@ -488,7 +517,7 @@ fn formulas() -> BTreeMap<&'static str, String> {
         format!("IF(AND({remit}<>\"\",{sg}-{}<=0),", t("Credit")),
         format!("IF(AND({unc},{due}<{remit},{remit}<={poss}),\"R1\","),
         format!("IF(AND({horizon},{remit}>{due}),\"R2\",IF({remit}<={due},\"R3\",\"R4\"))),"),
-        format!("IF({due}<{AS_AT},IF({later_gate},\"N1\",\"N2\"),\"N3\")))))))"),
+        format!("IF({due}<{AS_AT},IF({later_gate},\"N1\",\"N2\"),\"N3\"))))))))"),
     ]
     .concat();
     let receipt_applies = format!("{settled}<>\"\",{stale}=0");
@@ -510,6 +539,13 @@ fn formulas() -> BTreeMap<&'static str, String> {
             format!("={}", bool_expr("first_contribution_to_fund")),
         ),
         ("Flag_ret", format!("={}", bool_expr("returned_by_fund"))),
+        // EXACT keeps employee ids case-sensitive, as the checker matches events.
+        (
+            "Events",
+            format!(
+                "=SUMPRODUCT(--EXACT(tblEvents[employee_id],{emp}),--(tblEvents[Ev_pay]={pay}))"
+            ),
+        ),
         ("Row_problem", row_problem),
         ("Guard", format!("=IF(OR({guard}),1,0)")),
         (
@@ -562,12 +598,13 @@ fn formulas() -> BTreeMap<&'static str, String> {
                 "=IF(ISNUMBER({rem_amt}),IF({remit}<>\"\",MIN(ROUND({rem_amt},2),ROUND({sg},2)),0),IF({remit}<>\"\",ROUND({sg},2),0))"
             ),
         ),
-        // Evidence against the row's own deadline. A returned row is possible
-        // whatever its Cap: item4_evidence decides it before the cap test.
+        // Evidence against the row's own deadline. A returned row, or one with
+        // events, is possible whatever its Cap: item4_evidence decides it before
+        // the cap test.
         (
             "Evidence_own",
             format!(
-                "=IF(AND({ret}=1,{own_due}<>0,ROUND({sg},2)>0,{db}=0),\"possible\",IF(OR({own_due}=0,ROUND({sg},2)<=0,{db}=1,ROUND({cap},2)<=0),\"impossible\",IF(ISNUMBER({rec}),IF({rec}<{prepay},\"impossible\",IF({rec}<={AS_AT},IF(OR({rec}<{pay},{rec}<={own_due}),\"confirmed\",IF({rec}>{own_due},\"impossible\",\"possible\")),IF({rec}<={own_due},\"possible\",\"impossible\"))),IF(AND(ISNUMBER({rem}),{rem}>{own_due}),\"impossible\",\"possible\"))))"
+                "=IF(AND({return_facts},{own_due}<>0,ROUND({sg},2)>0,{db}=0),\"possible\",IF(OR({own_due}=0,ROUND({sg},2)<=0,{db}=1,ROUND({cap},2)<=0),\"impossible\",IF(ISNUMBER({rec}),IF({rec}<{prepay},\"impossible\",IF({rec}<={AS_AT},IF(OR({rec}<{pay},{rec}<={own_due}),\"confirmed\",IF({rec}>{own_due},\"impossible\",\"possible\")),IF({rec}<={own_due},\"possible\",\"impossible\"))),IF(AND(ISNUMBER({rem}),{rem}>{own_due}),\"impossible\",\"possible\"))))"
             ),
         ),
         // EXACT keeps employee ids case-sensitive, as the engine groups them.
@@ -720,7 +757,7 @@ fn formulas() -> BTreeMap<&'static str, String> {
         (
             "Transition_row",
             format!(
-                "=IF(AND({db}<>1,ISNUMBER({sg}),ROUND({sg},2)>0,ROUND({cap},2)>0,OR(ISNUMBER({rec}),ISNUMBER({rem})),IF(ISNUMBER({rec}),{rec},{rem})<={}),1,0)",
+                "=IF(AND({db}<>1,ISNUMBER({sg}),ROUND({sg},2)>0,OR(AND(ROUND({cap},2)>0,OR(ISNUMBER({rec}),ISNUMBER({rem})),IF(ISNUMBER({rec}),{rec},{rem})<={}),SUMPRODUCT(--EXACT(tblEvents[employee_id],{emp}),--(tblEvents[Ev_pay]={pay}),tblEvents[Ev_early])>0)),1,0)",
                 excel_date(TRANSITION_END)
             ),
         ),
@@ -735,6 +772,77 @@ fn formulas() -> BTreeMap<&'static str, String> {
                 "=IF(COUNTIFS(tblLines[employee_id],{emp},tblLines[payment_date],{pay},tblLines[sg_amount],{sg},tblLines[remitted_date],{rem}&\"\",tblLines[fund_received_date],{rec}&\"\")>1,1,0)"
             ),
         ),
+    ])
+}
+
+fn ev(column: &str) -> String {
+    format!("tblEvents[[#This Row],[{column}]]")
+}
+
+/// The Events sheet's calculated columns. Each event must be readable as the
+/// checker's --events reads it and name exactly one Register line; a wholly
+/// blank row is ignored.
+fn event_formulas() -> BTreeMap<&'static str, String> {
+    let (emp, pay, kind) = (ev("employee_id"), ev("payment_date"), ev("event"));
+    let (on, amount) = (ev("event_date"), ev("amount"));
+    let (receipt, notified, lines) = (ev("receipt_date"), ev("notified_date"), ev("Ev_lines"));
+    let word = format!("LOWER(TRIM({kind}&\"\"))");
+    let filled = |c: &str| format!("{}<>\"\"", ev(c));
+    let blank_row = format!(
+        "AND({})",
+        EVENT_COLUMNS
+            .iter()
+            .map(|c| format!("{}=\"\"", ev(c)))
+            .collect::<Vec<_>>()
+            .join(",")
+    );
+    let problem = [
+        format!("=IF({blank_row},\"\",TRIM(IF(TRIM({emp}&\"\")=\"\",\"employee_id \",\"\")"),
+        format!("&IF(NOT(ISNUMBER({pay})),\"payment_date \",\"\")"),
+        format!(
+            "&IF(ISNA(MATCH({word},{{\"allocated\",\"received\",\"returned\"}},0)),\"event \",\"\")"
+        ),
+        format!("&IF(NOT(ISNUMBER({on})),\"event_date \",\"\")"),
+        format!("&IF(IF(ISNUMBER({amount}),ROUND({amount},2)<=0,TRUE),\"amount \",\"\")"),
+        format!(
+            "&IF(AND({},NOT(ISNUMBER({receipt}))),\"receipt_date \",\"\")",
+            filled("receipt_date")
+        ),
+        format!(
+            "&IF(AND({},NOT(ISNUMBER({notified}))),\"notified_date \",\"\")",
+            filled("notified_date")
+        ),
+        format!(
+            "&IF(AND({word}=\"received\",OR({},{})),\"received-takes-no-receipt_date-or-notified_date \",\"\")",
+            filled("receipt_date"),
+            filled("notified_date")
+        ),
+        format!("&IF(AND({word}=\"allocated\",NOT(ISNUMBER({receipt}))),\"allocated-needs-receipt_date \",\"\")"),
+        format!(
+            "&IF(AND({word}=\"allocated\",{}),\"allocated-takes-no-notified_date \",\"\")",
+            filled("notified_date")
+        ),
+        format!("&IF({lines}=0,\"names-no-register-line \",IF({lines}>1,\"names-several-register-lines \",\"\"))))"),
+    ]
+    .concat();
+    BTreeMap::from([
+        ("Ev_pay", format!("=IF(ISNUMBER({pay}),INT({pay}),\"\")")),
+        (
+            "Ev_early",
+            format!(
+                "=IF(ISNUMBER({on}),IF(INT({on})<={},1,0),0)",
+                excel_date(TRANSITION_END)
+            ),
+        ),
+        // EXACT keeps employee ids case-sensitive, as the checker matches events.
+        (
+            "Ev_lines",
+            format!(
+                "=SUMPRODUCT(--EXACT(tblLines[employee_id],{emp}),--(tblLines[Pay_day]={}))",
+                ev("Ev_pay")
+            ),
+        ),
+        ("Ev_problem", problem),
     ])
 }
 
@@ -865,7 +973,7 @@ pub fn build() -> Result<Vec<u8>> {
         "3. Read the calculated columns on Register: pathway, final deadline, verdict (ON_TIME, AT_RISK, LATE, UNPAID, UNKNOWN, SKIPPED), the conservative outer outcomes where the facts cannot decide, days late, final shortfall after s 18D, notional earnings, the uplift range and the experimental SG charge estimate range.",
         "4. Review Checks: BLOCKED means the register cannot be read or a required confirmation is missing. REVIEW means a line is exposed, a line is undecided, or the file cannot produce ON_TIME and remittance-only review is not confirmed. PASS mirrors the command line tool's exit code 0.",
         "5. The statutory test is receipt by the fund. A remittance date alone gives AT_RISK, never ON_TIME. Fill fund_received_date from the clearing house or fund before treating a verdict as final.",
-        "6. A line with returned_by_fund=yes stays UNKNOWN with no exposure, and no receipt on it counts. The workbook cannot read dated returns: reconcile the line with the fund, then assess it with the command line tool's --events.",
+        "6. A line with returned_by_fund=yes, or one that a row on Events names, stays UNKNOWN with no exposure, and no receipt on it counts. Events takes the command line tool's --events columns, one dated return, fund receipt or allocation per row; a blank row is ignored and an event that names no Register line, or several, blocks the workbook. The workbook does not weigh events: assess those lines with the command line tool's --events.",
         "7. Experimental review aid. Not a compliance determination. The ATO makes the assessment; choice loading, the maximum contributions base and post-assessment charges are not estimated.",
     ];
     let wrap_top = Format::new().set_text_wrap().set_align(FormatAlign::Top);
@@ -965,6 +1073,43 @@ pub fn build() -> Result<Vec<u8>> {
         width(ws, c, chars)?;
     }
     ws.set_freeze_panes(1, 1)?;
+
+    // Events: the checker's --events columns, shipped with one blank row.
+    let ws = wb.add_worksheet().set_name("Events")?;
+    let event_calc = event_formulas();
+    let titles: Vec<&str> = EVENT_COLUMNS.iter().chain(&EVENT_CALCS).copied().collect();
+    add_table(ws, "tblEvents", &titles, 1, &event_calc, &s.head)?;
+    for (c, column) in EVENT_COLUMNS.iter().enumerate() {
+        let mut format = s.input.clone();
+        if EVENT_DATES.contains(column) {
+            format = format.set_num_format(DATE);
+        } else if *column == "amount" {
+            format = format.set_num_format(MONEY);
+        } else {
+            format = format.set_num_format(TEXT);
+        }
+        ws.write_blank(1, c as u16, &format)?;
+    }
+    for (c, column) in EVENT_CALCS.iter().enumerate() {
+        let mut format = s.calc.clone();
+        if *column == "Ev_pay" {
+            format = format.set_num_format(DATE);
+        }
+        let c = (EVENT_COLUMNS.len() + c) as u16;
+        ws.write_formula_with_format(1, c, Formula::new(&event_calc[column]), &format)?;
+    }
+    let rule = DataValidation::new()
+        .allow_list_strings(&["received", "returned", "allocated"])?
+        .show_input_message(false)
+        .show_error_message(false);
+    ws.add_data_validation(1, 2, 1001, 2, &rule)?;
+    for c in 0..titles.len() {
+        width(ws, c as u16, 13)?;
+    }
+    // Nothing is written below the table: Excel grows a table into the row
+    // below it, and text there would become an event row.
+    width(ws, titles.len() as u16 - 1, 40)?;
+    ws.set_freeze_panes(1, 0)?;
 
     // 3. Codes (verdict lookup)
     let ws = wb.add_worksheet().set_name("Codes")?;
@@ -1227,7 +1372,7 @@ pub fn build() -> Result<Vec<u8>> {
     };
     let far = format!("DATE({LATEST_SANE_YEAR},12,31)");
     let example = |cell: &str, cond: &str| Some(format!("=IF({cell}=0,\"\",{})", offender(cond)));
-    let checks: [(&str, String, String, Option<String>); 13] = [
+    let checks: [(&str, String, String, Option<String>); 14] = [
         (
             "Every register value can be read",
             "=IF(C2=0,\"PASS\",\"BLOCKED\")".into(),
@@ -1307,6 +1452,15 @@ pub fn build() -> Result<Vec<u8>> {
             "=IF(C14=0,\"PASS\",\"NOTE\")".into(),
             "=SUM(tblLines[Case_variant])".into(),
             example("C14", "(tblLines[Case_variant]=1)"),
+        ),
+        (
+            "Every event can be read and names one register line (as --events requires)",
+            "=IF(C15=0,\"PASS\",\"BLOCKED\")".into(),
+            "=SUMPRODUCT(--(tblEvents[Ev_problem]<>\"\"))".into(),
+            Some(
+                "=IF(C15=0,\"\",INDEX(tblEvents[employee_id],SUMPRODUCT(MAX((tblEvents[Ev_problem]<>\"\")*(ROW(tblEvents[employee_id])-1)))))"
+                    .into(),
+            ),
         ),
     ];
     for (i, (label, result, detail, example)) in checks.iter().enumerate() {
@@ -1460,7 +1614,8 @@ mod tests {
     fn the_workbook_matches_the_frozen_python_model() {
         // The model of tools/build_workbook.py --no-excel at 4987fd6, with the
         // returned_by_fund input, Flag_ret, the RET codes and the Start Here step
-        // for a returned row added since.
+        // for a returned row added since, then the Events sheet, the Events
+        // column, the EV code and the Review Checks row for events.
         let frozen: Vec<String> = include_str!("../../tests/data/workbook-model.txt")
             .lines()
             .map(accepted)
@@ -1644,10 +1799,54 @@ mod tests {
             assert_eq!(*entry, (code, "UNKNOWN", outer, 0, 0, 0));
         }
         assert!(calc["Row_problem"].contains("returned-needs-an-sg-amount"));
-        assert!(calc["Evidence_own"].starts_with("=IF(AND(tblLines[[#This Row],[Flag_ret]]=1"));
+        // The flag, or an event, is a return fact (the events test checks the
+        // event half).
+        assert!(calc["Evidence_own"].starts_with("=IF(AND(OR(tblLines[[#This Row],[Flag_ret]]=1,"));
     }
 
-    /// The workbook has no way to read dated returns, so it says where they go.
+    /// A line an event names is UNKNOWN with the widest outer outcomes ahead
+    /// of every receipt rule and of the returned flag, its events count as
+    /// return facts wherever the flag does, and an unreadable or unmatched
+    /// event blocks the workbook.
+    #[test]
+    fn a_line_an_event_names_is_left_unknown_in_the_workbook() {
+        let calc = formulas();
+        let branch = &calc["Branch"];
+        let events = branch.find("[Events]]>0,\"EV\"").expect(branch);
+        assert!(events < branch.find("Flag_ret").unwrap(), "{branch}");
+        assert!(events < branch.find("Settled").unwrap(), "{branch}");
+        assert!(branch.find("\"NIL\"").unwrap() < events, "{branch}");
+        let entry = CODES.iter().find(|c| c.0 == "EV").unwrap();
+        assert_eq!(*entry, ("EV", "UNKNOWN", "UNPAID or ON_TIME", 0, 0, 0));
+        for column in ["Row_problem", "Evidence_own"] {
+            assert!(
+                calc[column].contains(
+                    "OR(tblLines[[#This Row],[Flag_ret]]=1,tblLines[[#This Row],[Events]]>0)"
+                ),
+                "{column}"
+            );
+        }
+        assert!(calc["Transition_row"].contains("tblEvents[Ev_early]"));
+        assert!(calc["Events"].contains("EXACT(tblEvents[employee_id]"));
+        let problem = &event_formulas()["Ev_problem"];
+        for word in [
+            "names-no-register-line",
+            "names-several-register-lines",
+            "event ",
+            "amount ",
+        ] {
+            assert!(problem.contains(word), "{word}");
+        }
+        let built = model(&super::build().unwrap()).unwrap();
+        assert!(
+            built
+                .iter()
+                .any(|line| line.starts_with("sheet Review Checks")
+                    && line.contains("Every event can be read and names one register line"))
+        );
+    }
+
+    /// The workbook does not weigh dated events, so it says where they go.
     #[test]
     fn start_here_sends_a_returned_row_to_the_checkers_events() {
         let built = model(&super::build().unwrap()).unwrap();

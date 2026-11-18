@@ -74,6 +74,8 @@ pub enum Numbers {
     Native,
     /// `parse_float=Decimal`: a float literal becomes `Decimal(literal)`.
     DecimalFloats,
+    /// Exact numeric values, with invalid constants and duplicate members refused.
+    Exact,
     /// `parse_float=str, parse_int=str`, with a `parse_constant` that raises
     /// `ValueError(f"response contains the JSON-invalid constant {name}")`.
     Text,
@@ -277,14 +279,19 @@ pub fn loads_standard(text: &str) -> Result<Json, DecodeError> {
 
 /// `json.loads(text, ...)` with the number hooks `numbers` names.
 pub fn loads_numbers(text: &str, numbers: Numbers) -> Result<Json, DecodeError> {
-    decode(text, Members::Merge, numbers)
+    let members = if numbers == Numbers::Exact {
+        Members::Reject
+    } else {
+        Members::Merge
+    };
+    decode(text, members, numbers)
 }
 
 /// The C scanner over the text's UTF-8 bytes: its syntax is ASCII, and string
 /// content is copied a run at a time.
 fn decode(text: &str, members: Members, numbers: Numbers) -> Result<Json, DecodeError> {
     let constant = |name: &str, value: f64, used: usize| {
-        if numbers == Numbers::Text {
+        if matches!(numbers, Numbers::Text | Numbers::Exact) {
             if used + HOOK_DEPTH > shifted(STACK.2) {
                 return Err(DecodeError::Recursion("hook"));
             }
@@ -543,9 +550,12 @@ fn match_number(
     if numbers == Numbers::Text {
         return Some(Ok((Json::str(text), idx)));
     }
-    if is_float && numbers == Numbers::DecimalFloats {
-        let value = crate::decimal::Decimal::parse_exact(text).expect("a JSON float literal");
-        return Some(Ok((Json::Dec(value), idx)));
+    if is_float && matches!(numbers, Numbers::DecimalFloats | Numbers::Exact) {
+        return Some(
+            crate::decimal::Decimal::parse_exact(text)
+                .map(|value| (Json::Dec(value), idx))
+                .map_err(|_| DecodeError::Hook("JSON number exceeds decimal limits".into())),
+        );
     }
     if is_float {
         let value: f64 = text.parse().expect("a JSON float literal");

@@ -16,8 +16,11 @@ permissions:
   contents: read
 
 concurrency:
-  group: boundaries-${{ github.ref }}
-  cancel-in-progress: true
+  # A newer push to a pull request replaces that pull request's older run.
+  # Every other run is keyed on its commit, so a later merge cannot cancel
+  # an earlier commit's run on main.
+  group: boundaries-${{ github.event_name == 'pull_request' && github.ref || github.sha }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 # CI follows Python 3.14 maintenance releases; local development pins the patch.
 env:
@@ -86,6 +89,13 @@ jobs:
       - run: uv lock --check
       - run: uv run --locked --group dev ruff check .  # NOSONAR: unprivileged job; uv installs the hash-locked set
       - run: uv run --locked --group dev pyright  # NOSONAR: unprivileged job; uv installs the hash-locked set
+      # The MCP application's suite, which pytest runs below, runs the calculators
+      # executable from PATH, as ci.yml's test job does.
+      - name: Build the calculators executable
+        working-directory: packages/australian-tax-calculators
+        run: |
+          cargo build --locked
+          echo "$GITHUB_WORKSPACE/packages/australian-tax-calculators/target/debug" >> "$GITHUB_PATH"
       - run: uv run --locked --group dev pytest  # NOSONAR: unprivileged job; uv installs the hash-locked set
 
   # tools/fixture-screen runs evatt's detectors over every tracked file, so it

@@ -57,14 +57,22 @@ PART_CAVEAT = (
     "This part holds characters {start} to {end} of {total}. Pass next_start as start "
     "to read the next part; the register page has the whole provision."
 )
-QUICK_BUILD = (
-    "`python -m fadden quick --out <empty folder>` in au-tax-legislation-corpus builds 9 "
-    "principal Acts on this machine and prints the setting. "
+CORPUS_ROUTES = (
+    "PaulGoodman's published snapshot of 9 principal Acts needs no build: download "
+    "https://github.com/ryanduguid/PaulGoodman/releases/tag/corpus-2026-11-11, unpack it "
+    "and set the variable to its dist folder as an absolute path. Otherwise "
+    "`python -m fadden quick --out <empty folder>` in PaulGoodman builds the same Acts on "
+    "this machine and prints the setting. "
 )
 WITHHELD_CAVEAT = (
     "Text withheld: this title's status for {date} is {status}. Follow as_at.next_step. A "
-    "read without as_at returns the compilation the corpus holds, which is not established as text "
-    "for this date."
+    "read without as_at returns the latest compilation the corpus holds, which is not "
+    "established as text for this date."
+)
+EARLIER_CAVEAT = (
+    "The corpus also holds earlier compilations of this title, whose rows can share this "
+    "row_id, and this is the text of its latest one. To read the text a dated search "
+    "returned, pass the same as_at."
 )
 OMITTED_REFUSALS = (
     "refusals lists {listed} of {total} refused titles, principal Acts first; "
@@ -145,8 +153,11 @@ SUBSECTION_LABEL = re.compile(r"^\(\d+[A-Za-z]*\)")
 # pad labels with U+00A0, a non-breaking space; a caller types the plain characters.
 PLAIN = str.maketrans({"\u2011": "-", "\u00a0": " ", "*": ""})
 MAX_DEFINITIONS = 20
-# Judges one row: its sort key, lower first, and its result, or None to leave it out.
-Assessor = Callable[[dict[str, Any]], tuple[tuple[int, ...], dict[str, Any]] | None]
+# Judges one row of the index at a path: its sort key, lower first, and its result, or
+# None to leave it out.
+Assessor = Callable[[Path, dict[str, Any]], tuple[tuple[int, ...], dict[str, Any]] | None]
+# An index's first row's register_id and act, and that row's standing on one date.
+_First = tuple[dict[str, Any], dict[str, Any]]
 
 
 def _root() -> Path:
@@ -154,14 +165,14 @@ def _root() -> Path:
     if not configured:
         raise InputError(
             "Set AUS_ACCOUNTING_CORPUS_ROOT to an authorised legislation corpus folder. "
-            + QUICK_BUILD
+            + CORPUS_ROUTES
             + NOT_CONFIGURED
         )
     root = Path(configured).resolve()
     if not root.is_dir():
         raise InputError(
             "AUS_ACCOUNTING_CORPUS_ROOT must name an existing folder. "
-            + QUICK_BUILD
+            + CORPUS_ROUTES
             + NOT_CONFIGURED
         )
     return root
@@ -172,11 +183,15 @@ def _linked(path: Path) -> bool:
     return path.is_symlink() or bool(getattr(path.lstat(), "st_file_attributes", 0) & 1024)
 
 
-def _index_files(root: Path) -> list[Path]:
-    """Every title index in the corpus, in register-id order, links excluded."""
-    titles = root / "markdown"
-    if not titles.is_dir() or _linked(titles):
-        raise InputError("The corpus folder must contain a markdown directory of title indexes.")
+def _bound_indexes(count: int) -> None:
+    if count > MAX_INDEX_FILES:
+        raise InputError(
+            f"Corpus exceeds {MAX_INDEX_FILES} title indexes; configure a smaller corpus."
+        )
+
+
+def _titles_in(titles: Path) -> list[Path]:
+    """Every title index in one markdown directory, in register-id order, links excluded."""
     files = []
     for name in sorted(os.listdir(titles)):
         directory = titles / name
@@ -185,13 +200,58 @@ def _index_files(root: Path) -> list[Path]:
         index = directory / "sections.jsonl"
         if index.is_file() and not _linked(index):
             files.append(index)
+    _bound_indexes(len(files))
+    return files
+
+
+def _index_files(root: Path) -> list[Path]:
+    """Every title index in the corpus, in register-id order, links excluded."""
+    titles = root / "markdown"
+    if not titles.is_dir() or _linked(titles):
+        raise InputError("The corpus folder must contain a markdown directory of title indexes.")
+    files = _titles_in(titles)
     if not files:
         raise InputError("No title indexes found under the configured corpus folder.")
-    if len(files) > MAX_INDEX_FILES:
-        raise InputError(
-            f"Corpus exceeds {MAX_INDEX_FILES} title indexes; configure a smaller corpus."
-        )
     return files
+
+
+def _compilation_folders(root: Path) -> list[Path]:
+    """The markdown directory of each earlier-compilation build, links excluded.
+
+    A corpus can hold more compilations of a title than the one under markdown/: each
+    folder under compilations/ has the root's markdown/<register id>/sections.jsonl
+    layout, and each row records its own window. Only a dated call reads them, so a
+    corpus without the folder answers exactly as one built before it existed.
+    """
+    folder = root / "compilations"
+    if not folder.is_dir() or _linked(folder):
+        return []
+    found = []
+    for name in sorted(os.listdir(folder)):
+        build = folder / name
+        if name.startswith(".") or _linked(build) or not build.is_dir():
+            continue
+        titles = build / "markdown"
+        if not titles.is_dir() or _linked(titles):
+            raise InputError(
+                f"compilations/{name:.32} must contain a markdown directory of title indexes."
+            )
+        found.append(titles)
+    return found
+
+
+def _compilations(root: Path, files: list[Path]) -> list[list[Path]]:
+    """Each title's indexes, its markdown/ one first: files, then those under compilations/.
+
+    A title is its folder name, which its row_ids start with, so a read meets the same
+    indexes as a search.
+    """
+    extra = [index for titles in _compilation_folders(root) for index in _titles_in(titles)]
+    _bound_indexes(len(files) + len(extra))
+    groups: dict[str, list[Path]] = {}
+    for path in files + extra:
+        groups.setdefault(path.parent.name, []).append(path)
+    return list(groups.values())
 
 
 def _terms(query: str, field: str) -> list[str]:
@@ -505,7 +565,7 @@ def _partial(
     heading: tuple[str, ...],
     body: tuple[str, ...],
     scope: Callable[[dict[str, Any]], bool],
-    build: Callable[[dict[str, Any]], dict[str, Any]],
+    build: Callable[[Path, dict[str, Any]], dict[str, Any]],
 ) -> Assessor:
     """Judge a row whose heading and body hold at least MIN_PARTIAL_WORDS of patterns.
 
@@ -527,7 +587,7 @@ def _partial(
     """
     numbers = {term for term in patterns if re.search(r"\d", term)}
 
-    def assess(row: dict[str, Any]) -> tuple[tuple[int, ...], dict[str, Any]] | None:
+    def assess(path: Path, row: dict[str, Any]) -> tuple[tuple[int, ...], dict[str, Any]] | None:
         text = _joined(row, heading + body)
         found = {term for term, pattern in patterns.items() if _has(term, pattern, text)}
         opposed = sum(
@@ -541,7 +601,7 @@ def _partial(
         title = _joined(row, heading)
         titled = sum(_has(term, pattern, title) for term, pattern in patterns.items())
         return (-len(found), -titled, _priority(row)), {
-            **build(row),
+            **build(path, row),
             "match": "partial",
             "matched_words": [term for term in patterns if term in found],
             "missing_words": [term for term in patterns if term not in found],
@@ -575,7 +635,7 @@ def _scan(
         for path in _within_bounds(files):
             try:
                 for row in _rows(path, prefilter, every):
-                    if (assessed := assess(row)) is not None:
+                    if (assessed := assess(path, row)) is not None:
                         yield assessed[0], order, assessed[1]
                         order += 1
             except (OSError, UnicodeError) as exc:
@@ -593,7 +653,8 @@ class _Rows:
     fields: tuple[str, ...]
     heading: tuple[str, ...]
     body: tuple[str, ...]
-    build: Callable[[dict[str, Any]], dict[str, Any]]
+    # The result for one row, given the index it came from.
+    build: Callable[[Path, dict[str, Any]], dict[str, Any]]
 
 
 def _search(
@@ -627,9 +688,9 @@ def _search(
     def is_match(row: dict[str, Any]) -> bool:
         return holds_words(_joined(row, rows.fields))
 
-    def assess(row: dict[str, Any]) -> tuple[tuple[int, ...], dict[str, Any]] | None:
+    def assess(path: Path, row: dict[str, Any]) -> tuple[tuple[int, ...], dict[str, Any]] | None:
         if scope(row) and is_match(row):
-            return rank(row), rows.build(row)
+            return rank(row), rows.build(path, row)
         return None
 
     end = offset + limit
@@ -668,43 +729,79 @@ def _window_error(row: dict[str, Any]) -> InputError:
     )
 
 
-def _first_row(path: Path, on: str) -> dict[str, Any] | None:
-    """The first row, after verifying every row shares its title and compilation window."""
-    first = None
-    window = None
+def _first_row(path: Path, on: str) -> _First | None:
+    """The register_id and act of an index's first row, and that row's standing on on.
+
+    A title is classified from this row alone, so reading stops there; _agreeing checks
+    each later row of the same index that a result uses against it.
+    """
     try:
         with path.open(encoding="utf-8") as stream:
             for line in stream:
-                row = _row(line, [])
-                if row is None:
-                    continue
-                found = standing(row, on)
-                if first is None:
-                    first, window = row, found
-                elif found != window or row.get("register_id") != first.get("register_id"):
-                    raise _window_error(row)
+                if (row := _row(line, [])) is not None:
+                    title = {key: row.get(key) for key in ("register_id", "act")}
+                    return title, standing(row, on)
     except (OSError, UnicodeError) as exc:
         raise InputError("Cannot read a UTF-8 JSONL index in the configured corpus.") from exc
-    return first
+    return None
 
 
-def _dated_section(row: dict[str, Any], cap: int, on: str) -> dict[str, Any]:
-    """A row of a title held for on, with its standing.
+def _held(paths: list[Path], on: str) -> tuple[Path, _First, list[dict[str, Any]]] | None:
+    """The index a title answers from on the date on, its _first_row, and its windows.
 
-    A title is classified from one row, so a row disagreeing with it is a broken index.
-    Returning it would break the rule that a dated result holds only captured rows.
+    paths are one title's compilations. The one captured on on answers; with none, the
+    latest refuses for the title. Windows are listed only when there is more than one,
+    so a title with one compilation answers exactly as before compilations/ existed.
+    Windows that overlap would let 2 compilations answer for one date, so they are refused.
     """
+    held = [(path, first) for path in paths if (first := _first_row(path, on))]
+    if not held:
+        return None
+    held.sort(key=lambda item: item[1][1]["compilation_date"])
+    windows = [
+        {key: found[key] for key in ("compilation_date", "superseded_from", "retrieved")}
+        for _, (_, found) in held
+    ]
+    for earlier, later in zip(windows, windows[1:]):
+        end = earlier["superseded_from"]
+        if end is None or end > later["compilation_date"]:
+            raise InputError(
+                f"Compilations of {held[0][1][0].get('register_id')!s:.32} overlap: one "
+                f"starting {later['compilation_date']} begins inside the window of one "
+                f"starting {earlier['compilation_date']}. The corpus is broken: tell the "
+                "user, and do not retry."
+            )
+    path, first = next((item for item in held if item[1][1]["status"] == CAPTURED), held[-1])
+    return path, first, windows if len(windows) > 1 else []
+
+
+def _agreeing(row: dict[str, Any], on: str, first: _First) -> dict[str, Any]:
+    """The row's standing on on, refused unless it has first's register_id and standing.
+
+    first is from the index the row came from. A row a result returns or counts that
+    disagrees with it is a broken index: using it would break the rule that a dated
+    result holds only rows its title's classification covers.
+    """
+    title, window = first
     found = standing(row, on)
-    if found["status"] != CAPTURED:
+    if row.get("register_id") != title.get("register_id") or found != window:
         raise _window_error(row)
-    return {**_section(row, cap), "as_at": found}
+    return found
 
 
 def _refusal(
-    row: dict[str, Any], found: dict[str, Any], matching: int, partial: int = 0
+    row: dict[str, Any],
+    found: dict[str, Any],
+    matching: int,
+    partial: int = 0,
+    windows: list[dict[str, Any]] | None = None,
 ) -> dict[str, Any]:
-    """What a date withheld from one title, in the corpus builder's field names."""
-    return {
+    """What a date withheld from one title, in the corpus builder's field names.
+
+    windows, when the title has more than one compilation, names the dates it does hold;
+    found and the row counts are then those of its latest compilation.
+    """
+    refusal = {
         "refused": True,
         "register_id": _string(row, "register_id"),
         "act": _string(row, "act"),
@@ -712,12 +809,23 @@ def _refusal(
         "partial_rows": partial,
         "as_at": found,
     }
+    if windows:
+        refusal["held_compilations"] = windows
+    return refusal
 
 
 def _withheld_counts(
-    path: Path, terms: list[str], act_terms: list[str], scope: Callable[[dict[str, Any]], bool]
+    path: Path,
+    terms: list[str],
+    act_terms: list[str],
+    scope: Callable[[dict[str, Any]], bool],
+    on: str,
+    first: _First,
 ) -> tuple[int, int]:
-    """Count the same full and partial matches as _search without retaining their rows."""
+    """Count the same full and partial matches as _search without retaining their rows.
+
+    Each counted row must agree with first, the index's first row, as _agreeing says.
+    """
     words = _words(terms)
     holds_words = _matcher(words)
 
@@ -730,17 +838,19 @@ def _withheld_counts(
     }
     parts = _parts(words)
     try:
-        matching = sum(
-            scope(row) and is_match(row)
-            for row in _rows(path, parts + act_terms, all)
-        )
+        matching = 0
+        for row in _rows(path, parts + act_terms, all):
+            if scope(row) and is_match(row):
+                _agreeing(row, on, first)
+                matching += 1
         partial = 0
         if len(words) + bool(opposites) > MIN_PARTIAL_WORDS and words[0] not in STOP_WORDS:
             assess = _partial(
-                patterns, opposites, is_match, ("heading",), ("text",), scope, lambda _: {}
+                patterns, opposites, is_match, ("heading",), ("text",), scope,
+                lambda _, row: {"as_at": _agreeing(row, on, first)},
             )
             partial = sum(
-                assess(row) is not None
+                assess(path, row) is not None
                 for row in _rows(path, parts, lambda held: sum(held) >= MIN_PARTIAL_WORDS)
             )
     except (OSError, UnicodeError) as exc:
@@ -749,7 +859,7 @@ def _withheld_counts(
 
 
 def _dated_search(
-    files: list[Path],
+    groups: list[list[Path]],
     on: str,
     terms: list[str],
     act_terms: list[str],
@@ -764,8 +874,12 @@ def _dated_search(
     title in scope that is not captured is refused. An exhausted page keeps the same
     refusals as the first page. An index with no row has no window to withhold, so it is not
     a title here. The status replaces in_force_only: a superseded compilation is the right
-    text for a date inside its window. Window validation streams each title once before
-    searching it; refused-title counts also stream without retaining result rows.
+    text for a date inside its window. A title answers from the compilation _held chooses
+    for on, if its corpus holds more than one. Each is classified from its first row, and
+    _agreeing checks only the rows a page returns or a refusal counts, and the matching rows
+    of a title's compilations it does not answer from, against the first row of their own
+    index, so a title held once parses at most one more row than in an undated search;
+    refused-title counts stream without retaining result rows.
     """
 
     def in_act(row: dict[str, Any]) -> bool:
@@ -773,33 +887,53 @@ def _dated_search(
 
     def search(
         indexes: list[Path],
-        build: Callable[[dict[str, Any]], dict[str, Any]],
+        build: Callable[[Path, dict[str, Any]], dict[str, Any]],
         count: int,
         start: int,
     ) -> dict[str, Any]:
         rows = _Rows(SECTION_FIELDS, ("heading",), ("text",), build)
         return _search(indexes, terms, act_terms, in_act, rows, count, start, corpus)
 
+    # Refuse an oversized corpus, every compilation counted, before reading any of it.
+    list(_within_bounds([path for paths in groups for path in paths]))
     titles = [
-        (path, {key: row.get(key) for key in ("register_id", "act")}, standing(row, on))
-        for path in _within_bounds(files)
-        if (row := _first_row(path, on)) is not None
+        (path, *first, windows)
+        for paths in groups
+        if (held := _held(paths, on)) is not None
+        for path, first, windows in [held]
     ]
-    held = [path for path, _, found in titles if found["status"] == CAPTURED]
-    result = search(held, lambda row: _dated_section(row, SEARCH_TEXT_CHARS, on), limit, offset)
+    # A compilation not chosen for on gives no row, but a matching row of it that
+    # disagrees with its own first row could be text for on: check those rows as a
+    # refused title's are, so a broken index stops the search instead of being skipped.
+    chosen = {path for path, *_ in titles}
+    unchosen = [
+        path for paths in groups if len(paths) > 1 for path in paths if path not in chosen
+    ]
+    for path in unchosen:
+        if (first := _first_row(path, on)) is not None:
+            _withheld_counts(path, terms, act_terms, in_act, on, first)
+    firsts = {
+        path: (row, found) for path, row, found, _ in titles if found["status"] == CAPTURED
+    }
+
+    def section(path: Path, row: dict[str, Any]) -> dict[str, Any]:
+        return {**_section(row, SEARCH_TEXT_CHARS), "as_at": _agreeing(row, on, firsts[path])}
+
+    held = list(firsts)
+    result = search(held, section, limit, offset)
     no_rows = not result["matches"] and not result["partial_hits"]
     if no_rows and offset:
-        first = search(held, lambda _: {}, 1, 0)
+        first = search(held, lambda *_: {}, 1, 0)
         no_rows = not first["matches"] and not first["partial_hits"]
     refusals = []
-    for path, row, found in titles:
+    for path, row, found, windows in titles:
         if found["status"] == CAPTURED:
             continue
-        rows = _withheld_counts(path, terms, act_terms, in_act)
+        rows = _withheld_counts(path, terms, act_terms, in_act, on, (row, found))
         if any(rows) or (in_act(row) and (no_rows or act_terms)):
-            refusals.append((_priority(row), _refusal(row, found, *rows)))
+            refusals.append((_priority(row), _refusal(row, found, *rows, windows)))
     refusals.sort(key=lambda item: item[0])
-    statuses = [found["status"] for _, _, found in titles]
+    statuses = [found["status"] for _, _, found, _ in titles]
     return _dated_page(result, [refusal for _, refusal in refusals], statuses, on, offset)
 
 
@@ -858,7 +992,8 @@ def search_sections(
     root = _root()
     files = _index_files(root)
     if on is not None:
-        return _dated_search(files, on, terms, act_terms, limit, offset, _provenance(root))
+        groups = _compilations(root, files)
+        return _dated_search(groups, on, terms, act_terms, limit, offset, _provenance(root))
 
     def scope(row: dict[str, Any]) -> bool:
         if in_force_only and row.get("version_is_current") is False:
@@ -871,7 +1006,8 @@ def search_sections(
         act_terms,
         scope,
         _Rows(
-            SECTION_FIELDS, ("heading",), ("text",), lambda row: _section(row, SEARCH_TEXT_CHARS)
+            SECTION_FIELDS, ("heading",), ("text",),
+            lambda _, row: _section(row, SEARCH_TEXT_CHARS),
         ),
         limit,
         offset,
@@ -939,35 +1075,92 @@ def _around(
 
 def _read_rows(
     row_id: str, neighbours: int, on: str | None = None
-) -> tuple[Path, dict[str, Any], list[dict[str, Any]], list[dict[str, Any]]]:
-    """The corpus root, the cited row and up to neighbours rows on each side of it."""
+) -> tuple[
+    Path, dict[str, Any], list[dict[str, Any]], list[dict[str, Any]], list[dict[str, Any]]
+]:
+    """The corpus root, the cited row, up to neighbours rows on each side of it, and the
+    title's compilation windows when it has more than one.
+
+    With on, the row comes from the compilation _held chooses for that date, and each row
+    returned must agree with that index's first row, as _agreeing says: a read returns
+    those rows or counts them as withheld. Without on, only markdown/ is read.
+    """
     if not ROW_ID.match(row_id):
         raise InputError("Use a row_id returned by search_tax_legislation.")
     # ROW_ID already holds everything before the first colon to 32 alphanumerics,
     # so the folder name below cannot traverse or escape the corpus.
     register_id = row_id.split(":", 1)[0]
     root = _root()
-    path = root / "markdown" / register_id / "sections.jsonl"
+    folders = [root / "markdown", *([] if on is None else _compilation_folders(root))]
     # The same no-links rule _index_files applies to a search, component by
     # component: a linked markdown directory let a direct read reach an index
     # outside the configured root that search had refused.
-    if (
-        not path.is_file()
-        or _linked(path)
-        or _linked(path.parent)
-        or _linked(path.parent.parent)
-    ):
+    paths = [
+        path
+        for folder in folders
+        if (path := folder / register_id / "sections.jsonl").is_file()
+        and not _linked(path)
+        and not _linked(path.parent)
+        and not _linked(path.parent.parent)
+    ]
+    if not paths:
         raise InputError("No title index for that row_id in the configured corpus.")
-    if on is not None:
-        _first_row(path, on)
+    path, windows = paths[0], []
+    if on is not None and len(paths) > 1 and (held := _held(paths, on)) is not None:
+        path, (_, chosen), windows = held
+        if chosen["status"] != CAPTURED:
+            # No compilation covers on, so the read is refused. An earlier compilation can
+            # hold a row the latest lacks: cite it from the latest one that holds it.
+            holding = [index for index in paths if _around(index, row_id, 0)[0] is not None]
+            if holding and path not in holding and (cited := _held(holding, on)):
+                path = cited[0]
     found, before, after = _around(path, row_id, neighbours)
     if found is None:
-        raise InputError("No section with that row_id in the configured corpus.")
-    return root, found, before, after
+        raise InputError(
+            "No section with that row_id in the configured corpus."
+            + (f" Search with as_at {on} for the row_ids of the compilation held for it."
+               if windows else "")
+        )
+    if on is not None:
+        # An index emptied since _around read it has no window, so no row agrees.
+        first = _first_row(path, on) or ({}, {})
+        for row in (found, *before, *after):
+            _agreeing(row, on, first)
+    return root, found, before, after, windows
+
+
+def _held_earlier(root: Path, register_id: str) -> bool:
+    """Whether compilations/ holds an index of the title, for an undated read's caveat.
+
+    Only existence is checked and nothing is read, so a folder a dated call would refuse,
+    or one that cannot be listed, does not stop an undated one. An entry that cannot be
+    inspected is passed over, so it cannot hide an earlier compilation listed after it.
+    """
+    folder = root / "compilations"
+    try:
+        builds = list(folder.iterdir()) if folder.is_dir() and not _linked(folder) else []
+    except OSError:
+        return False
+    for build in builds:
+        try:
+            if (
+                not build.name.startswith(".")
+                and not _linked(build)
+                and (build / "markdown" / register_id / "sections.jsonl").is_file()
+            ):
+                return True
+        except OSError:
+            continue
+    return False
 
 
 def _withheld_read(
-    root: Path, row: dict[str, Any], found: dict[str, Any], start: int, withheld: int
+    root: Path,
+    row: dict[str, Any],
+    found: dict[str, Any],
+    start: int,
+    withheld: int,
+    windows: list[dict[str, Any]],
 ) -> dict[str, Any]:
     """A read refused for a date: the cited row's citation and window, without its text."""
     section = _section({**row, "text": ""}, READ_TEXT_CHARS)
@@ -981,7 +1174,7 @@ def _withheld_read(
         "next_start": None,
         "before": [],
         "after": [],
-        "refusals": [_refusal(row, found, withheld)],
+        "refusals": [_refusal(row, found, withheld, 0, windows)],
         "corpus": _provenance(root),
         "notice": f"{NOTICE} {REFUSED_NOTICE} {AS_AT_NOTICE}",
     }
@@ -1003,17 +1196,20 @@ def read_section(
     text, so a date never returns a row it cannot answer for.
     """
     on = None if as_at is None else checked_date(as_at)
-    root, row, before, after = _read_rows(row_id, neighbours, on)
+    root, row, before, after, windows = _read_rows(row_id, neighbours, on)
     found = None if on is None else standing(row, on)
     if found is not None and found["status"] != CAPTURED:
-        return _withheld_read(root, row, found, start, 1 + len(before) + len(after))
+        return _withheld_read(root, row, found, start, 1 + len(before) + len(after), windows)
 
     def near(rows: list[dict[str, Any]]) -> list[dict[str, Any]]:
         if on is None:
             return [_section(item, SEARCH_TEXT_CHARS) for item in rows]
-        return [_dated_section(item, SEARCH_TEXT_CHARS, on) for item in rows]
+        # _read_rows has checked that each shares the cited row's standing.
+        return [{**_section(item, SEARCH_TEXT_CHARS), "as_at": found} for item in rows]
 
     section, next_start = _part(row, start)
+    if on is None and _held_earlier(root, row_id.split(":", 1)[0]):
+        section["caveats"].append(EARLIER_CAVEAT)
     return {
         "section": section if found is None else {**section, "as_at": found},
         "start": start,
@@ -1162,7 +1358,7 @@ def search_rates(
         terms,
         topic_terms,
         scope,
-        _Rows(RATE_FIELDS, ("heading", "topic"), ("content",), _rate),
+        _Rows(RATE_FIELDS, ("heading", "topic"), ("content",), lambda _, row: _rate(row)),
         limit,
         offset,
         _provenance(root),

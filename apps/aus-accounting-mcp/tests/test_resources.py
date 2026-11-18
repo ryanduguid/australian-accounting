@@ -22,6 +22,7 @@ from paydaysuper.calendar import BusinessCalendar
 from paydaysuper.rates import GicQuarter, GicTable
 
 from aus_accounting_mcp import resources
+from aus_accounting_mcp.adapters import tax
 from aus_accounting_mcp.server import DIV7A_SCOPE_REFUSAL, mcp
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -72,8 +73,8 @@ def test_disclaimer_resource_carries_the_facade_and_every_engine_boundary() -> N
     for engine in ("ato-benchmark-compare", "payday-super-checker", "div7a-loan-review",
                    "australian-tax-calculators"):
         assert engine in served
-    for description in resources.SCOPES.values():
-        assert description in served
+    for entry in tax.worksheet_catalogue().values():
+        assert entry["scope"] in served
     assert "does not provide professional advice" in served
     assert "Outputs can be wrong, incomplete, stale" in served
     assert "human review" in served
@@ -136,7 +137,14 @@ def test_component_versions_resource_matches_the_installed_distributions() -> No
     assert served["server"]["version"] == importlib.metadata.version("aus-accounting-mcp")
     assert served["server"]["transport"] == "stdio"
     for engine in served["engines"]:
-        assert engine["version"] == importlib.metadata.version(engine["distribution"])
+        assert engine["version"] == _version(engine["distribution"])
+
+
+def _version(distribution: str) -> str:
+    """An engine's version: the calculators executable's own, or installed metadata."""
+    if distribution == tax.CALCULATORS:
+        return tax.CALCULATORS_VERSION
+    return importlib.metadata.version(distribution)
 
 
 def test_payday_coverage_resource_uses_the_loaded_engine_tables(monkeypatch) -> None:
@@ -178,16 +186,22 @@ def test_component_versions_resource_preserves_identity_and_published_pins() -> 
     assert {engine["distribution"] for engine in served["engines"]} == {
         engine["distribution"] for engine in record["engines"]}
     for engine in served["engines"]:
-        assert engine["version"] == importlib.metadata.version(engine["distribution"])
+        assert engine["version"] == _version(engine["distribution"])
     for engine in record["engines"]:
-        assert f"{engine['distribution']}=={engine['version']}" in requirements
+        if engine["distribution"] == tax.CALCULATORS:
+            # An executable, not a requirement: the adapter pins its version.
+            assert engine["version"] == tax.CALCULATORS_VERSION
+            assert not any(pin.startswith(tax.CALCULATORS) for pin in requirements)
+        else:
+            assert f"{engine['distribution']}=={engine['version']}" in requirements
 
 
-def test_a_missing_distribution_reports_null_rather_than_a_guess(monkeypatch) -> None:
+def test_a_missing_distribution_reports_null_rather_than_a_guess(monkeypatch, tmp_path) -> None:
     def absent(distribution: str) -> str:
         raise importlib.metadata.PackageNotFoundError(distribution)
 
     monkeypatch.setattr(resources, "version", absent)
+    monkeypatch.setenv(tax.BINARY_VARIABLE, str(tmp_path / "absent"))
     served = resources.component_versions()
 
     assert served["server"]["version"] is None
@@ -346,7 +360,7 @@ def test_the_instructions_name_the_guardrail_guide_and_its_outcome_classes() -> 
     flat = _normalise(SERVER_INSTRUCTIONS)
 
     assert "DrDebits" in flat
-    assert "https://github.com/ryanduguid/llm-tax-guardrails" in flat
+    assert "https://github.com/ryanduguid/DrDebits" in flat
     assert "guide version 0.3.3" in flat
     for outcome in ("PROCEED_DRAFT_ONLY", "NEEDS_FACTS", "ESCALATE", "HARD_STOP"):
         assert outcome in flat, outcome

@@ -65,7 +65,7 @@ fn business_day_addition_counts_only_days_after_the_start() {
     for (start, count) in [("2026-12-24", 7), ("2027-03-25", 7), ("2026-08-01", 0)] {
         check_business_days(&cal, date(start), count);
     }
-    let mut rng = Rng(0xDA7E);
+    let mut rng = Rng(campaign_seed(0xDA7E));
     let first = date("2026-07-01");
     let span = date("2027-07-01").days_since(first) as u64 + 1;
     for _ in 0..RUNS {
@@ -119,7 +119,7 @@ fn exposure_scenarios_conserve_the_shortfall_plus_nec_base() {
     for (shortfall, nec) in [("0", "0"), ("1000", "100")] {
         check_exposure(&dec(shortfall), &dec(nec));
     }
-    let mut rng = Rng(0x5AC);
+    let mut rng = Rng(campaign_seed(0x5AC));
     // 0.00 to 1,000,000,000.00, in cents.
     let money = |rng: &mut Rng| {
         Decimal::from_int(rng.below(100_000_000_001) as i64)
@@ -287,7 +287,7 @@ fn check_sanity(result: &Value) {
 
 #[test]
 fn a_later_receipt_never_improves_timeliness() {
-    let mut rng = Rng(0xFACE);
+    let mut rng = Rng(campaign_seed(0xFACE));
     for _ in 0..RUNS {
         let case = case(&mut rng);
         let earlier = after(case.qe_day, rng.below(45));
@@ -312,7 +312,7 @@ fn a_later_receipt_never_improves_timeliness() {
 
 #[test]
 fn more_of_the_amount_received_never_raises_the_shortfall() {
-    let mut rng = Rng(0xFACF);
+    let mut rng = Rng(campaign_seed(0xFACF));
     for _ in 0..RUNS {
         let case = case(&mut rng);
         let less = rng.below(case.cents as u64 + 1) as i64;
@@ -334,7 +334,7 @@ fn more_of_the_amount_received_never_raises_the_shortfall() {
 
 #[test]
 fn a_later_review_date_never_lowers_an_unpaid_exposure() {
-    let mut rng = Rng(0xFAD0);
+    let mut rng = Rng(campaign_seed(0xFAD0));
     for _ in 0..RUNS {
         let case = case(&mut rng);
         let earlier = after(case.qe_day, rng.below(90));
@@ -355,7 +355,7 @@ fn a_later_review_date_never_lowers_an_unpaid_exposure() {
 
 #[test]
 fn a_return_never_leaves_a_line_on_time_or_late() {
-    let mut rng = Rng(0xFAD1);
+    let mut rng = Rng(campaign_seed(0xFAD1));
     for _ in 0..RUNS {
         let case = case(&mut rng);
         let day = after(case.qe_day, rng.below(60));
@@ -369,7 +369,7 @@ fn a_return_never_leaves_a_line_on_time_or_late() {
 
 #[test]
 fn a_first_contribution_never_shortens_the_deadline() {
-    let mut rng = Rng(0xFAD2);
+    let mut rng = Rng(campaign_seed(0xFAD2));
     for _ in 0..RUNS {
         let mut case = case(&mut rng);
         let due = |case: &Case| {
@@ -383,5 +383,19 @@ fn a_first_contribution_never_shortens_the_deadline() {
         let mut next_day = case.clone();
         next_day.qe_day = after(case.qe_day, 1);
         assert!(due(&case) <= due(&next_day), "{case:?}");
+    }
+}
+
+// Nightly campaigns vary generated cases whilst ordinary checks retain their frozen seeds.
+fn campaign_seed(default: u64) -> u64 {
+    match std::env::var("LL_PROPERTY_SEED") {
+        Ok(text) => {
+            let seed = text.parse::<u64>().expect("LL_PROPERTY_SEED must be a u64");
+            let effective = (default ^ seed).max(1);
+            eprintln!("LL_PROPERTY_SEED={seed} effective={effective}");
+            effective
+        }
+        Err(std::env::VarError::NotPresent) => default,
+        Err(error) => panic!("invalid LL_PROPERTY_SEED: {error}"),
     }
 }

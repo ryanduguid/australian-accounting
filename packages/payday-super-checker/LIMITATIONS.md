@@ -170,8 +170,10 @@ Where the fund kept part of a first contribution, a later receipt between the en
 of the usual period and the 20th business day stays `UNKNOWN`: LCR 2026/2 paragraph
 54 says it is not on time, and the s 6(1) late period has not started. A payment
 that becomes allocable after it arrives (paragraph 20) is tested on the date you
-supply. The Python package, the MCP server and the Excel workbook do not read a
-return at all, so a returned receipt entered there still reads as received.
+supply. The Python package and the MCP server do not read a return at all, so a
+returned receipt entered there still reads as received. The Excel workbook reads
+`returned_by_fund` and its Events sheet but does not weigh events: a line either
+touches is `UNKNOWN` with no exposure, so decide it with `--events`.
 
 **Unaffected.** The deadline never moves for a return or for late notice. A returned
 amount never produces `ON_TIME` or `LATE` on its own, never confirms an item 4
@@ -186,6 +188,43 @@ payday before relying on a row. Read
 [the source record](docs/primary-source-review-2026-10-31.md).
 
 **Status.** Open. The rules a source does not settle are left unresolved, not guessed.
+
+## PSC-4 Receipt evidence is recorded as supplied and weighs nothing
+
+**Trigger.** A row with `receipt_evidence`, `mvr_status` or `fund_error_ref`.
+
+**Effect.** The checker records these facts in the row's notes and caveats and
+refuses a row they contradict, but cannot check them against the fund. A
+`receipt_evidence=fund` row reads exactly as a row without it, and a recorded fund
+error or failed member verification does not move a verdict: an `ON_TIME` row with
+one stays `ON_TIME` until a return is recorded with `returned_by_fund` or
+`--events`. Neither says that an amount came back. The checker does not test whether a member verification request was
+needed. From 1 July 2026 an employer must send one before a first contribution to a
+fund, where its software supports it (ATO, Payday Super and SuperStream for super
+funds).
+
+The first-year note on an `AT_RISK` row rests on the ATO's scenario of paying on
+payday with no error received, read as a `remitted_date` on the QE day. A
+`remitted_date` taken from a clearing house's later date withholds the note, which is
+the safe direction. The checker also leaves it off a row with a failed member
+verification, a return or any fund receipt date, including one after the as-at date
+that may be late; these are its own conservative additions. It is a compliance
+approach for QE days to 30 June 2027, not evidence of receipt, so it never changes the verdict, a figure or the exit
+code.
+
+**Unaffected.** Every verdict, figure and exit code: the evidence annotates and never
+decides.
+
+**Where it surfaces at runtime.** The `notes` column lists the evidence; a known error
+is a caveat. `practitioner-review.md` in an evidence pack repeats caveats, not notes,
+so the evidence list and the first-year note appear only in the pack's `report.csv`
+and, for rows not `ON_TIME`, its `exceptions.json`.
+
+**Operator step.** Keep the fund's error message, the verification response or the
+clearing house record that each value rests on, and record any return with
+`returned_by_fund` or `--events`.
+
+**Status.** Open, by design. Read [the source record](docs/primary-source-review-2026-11-08.md).
 
 ## Not limitations
 

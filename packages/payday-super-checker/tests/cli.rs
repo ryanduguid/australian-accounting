@@ -119,9 +119,9 @@ fn a_defaulted_as_at_is_named_in_a_notice() {
         "contributions.csv",
         "E1,2026-08-06,600.00,2026-08-07,2026-08-10,no,no,,no\n",
     );
-    let before = chrono::Local::now().date_naive().to_string();
+    let before = jiff::ZonedDateTime::now().date().to_string();
     let (code, _, err) = run(&dir, &[&input, "-o", "report.csv"]);
-    let after = chrono::Local::now().date_naive().to_string();
+    let after = jiff::ZonedDateTime::now().date().to_string();
     assert!(code == 0 || code == 2, "{code}: {err}");
     assert!(
         err.contains("note: --as-at not supplied; assuming"),
@@ -129,6 +129,44 @@ fn a_defaulted_as_at_is_named_in_a_notice() {
     );
     assert!(err.contains(&before) || err.contains(&after), "{err}");
     assert!(err.contains("machine's clock"), "{err}");
+    let _ = std::fs::remove_dir_all(&dir);
+}
+
+/// The defaulted as-at is the calendar date in the machine's time zone: at UTC+14
+/// and at UTC-12 it is the UTC clock's date moved by that offset, which differs
+/// from the UTC date for at least one of them at any moment.
+#[cfg(unix)]
+#[test]
+fn a_defaulted_as_at_is_the_date_in_the_local_time_zone() {
+    let dir = scratch("as-at-zone");
+    let input = write(
+        &dir,
+        "contributions.csv",
+        "E1,2026-08-06,600.00,2026-08-07,2026-08-10,no,no,,no\n",
+    );
+    for (tz, hours) in [("XYZ-14", 14), ("XYZ+12", -12)] {
+        let zone = jiff::tz::TimeZone::fixed(jiff::tz::offset(hours));
+        let today = || {
+            jiff::Timestamp::now()
+                .to_zoned_datetime(zone.clone())
+                .date()
+        };
+        let before = today();
+        let out = Command::new(env!("CARGO_BIN_EXE_payday-super-check"))
+            .args([&input, "-o", "report.csv"])
+            .current_dir(&dir)
+            .env("TZ", tz)
+            .output()
+            .unwrap();
+        let after = today();
+        let err = String::from_utf8_lossy(&out.stderr);
+        assert!(
+            [before, after]
+                .iter()
+                .any(|day| err.contains(&format!("assuming {day} from"))),
+            "{tz}: {err}"
+        );
+    }
     let _ = std::fs::remove_dir_all(&dir);
 }
 

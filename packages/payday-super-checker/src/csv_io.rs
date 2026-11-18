@@ -13,6 +13,7 @@ use crate::csvread::{self, Reader};
 use crate::dates;
 use crate::deadlines::{ContribEvent, ContribLine};
 use crate::decimal::{Decimal, Rounding};
+use crate::evidence::Evidence;
 use crate::py::Date;
 use crate::pyjson;
 use crate::pyre::Regex;
@@ -85,7 +86,7 @@ pub fn csv_safe(text: &str) -> String {
 }
 
 /// The canonical fields, in order, and whether each is required.
-pub const CANONICAL: [(&str, bool); 13] = [
+pub const CANONICAL: [(&str, bool); 16] = [
     ("employee_id", true),
     ("qe_day", true),
     ("sg_amount", true),
@@ -99,9 +100,12 @@ pub const CANONICAL: [(&str, bool); 13] = [
     ("matched_amount", false),
     ("join_caveats", false),
     ("returned_by_fund", false),
+    ("receipt_evidence", false),
+    ("mvr_status", false),
+    ("fund_error_ref", false),
 ];
 
-pub const DEFAULT_MAPPING: [(&str, &str); 13] = [
+pub const DEFAULT_MAPPING: [(&str, &str); 16] = [
     ("employee_id", "employee_id"),
     ("qe_day", "payment_date"),
     ("sg_amount", "sg_amount"),
@@ -115,6 +119,9 @@ pub const DEFAULT_MAPPING: [(&str, &str); 13] = [
     ("matched_amount", "matched_amount"),
     ("join_caveats", "join_caveats"),
     ("returned_by_fund", "returned_by_fund"),
+    ("receipt_evidence", "receipt_evidence"),
+    ("mvr_status", "mvr_status"),
+    ("fund_error_ref", "fund_error_ref"),
 ];
 
 pub const TRUE_WORDS: [&str; 5] = ["y", "yes", "true", "1", "t"];
@@ -900,6 +907,12 @@ fn read_line(
         "returned_by_fund",
         i,
     )?;
+    let evidence = Evidence::parse(
+        &optional("receipt_evidence").unwrap_or_default(),
+        &optional("mvr_status").unwrap_or_default(),
+        &optional("fund_error_ref").unwrap_or_default(),
+    )
+    .map_err(|m| csv_error(format!("row {i}: {m}")))?;
     Ok(ContribLine {
         employee_id: employee,
         qe_day,
@@ -918,6 +931,7 @@ fn read_line(
         returned_by_fund,
         events: Vec::new(),
         return_not_shown: false,
+        evidence,
     })
 }
 

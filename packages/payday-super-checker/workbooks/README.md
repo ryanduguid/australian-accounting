@@ -1,7 +1,7 @@
 # Excel workbook
 
-`payday-super-checker.xlsx` implements the 0.2.2 command line review and the
-later `returned_by_fund` column, written in ordinary worksheet formulas for
+`payday-super-checker.xlsx` implements the 0.2.2 command line review, the
+later `returned_by_fund` column and an Events sheet, written in ordinary worksheet formulas for
 accountants who work in Excel rather than at a command line. It is macro-free and needs desktop Excel for Microsoft 365 or
 Excel 2024. Nothing leaves the workbook.
 
@@ -66,9 +66,16 @@ specific parity checks, not proof of every input or option. See the
    the fund received before reading the line as on time.
    `returned_by_fund=yes` says a fund returned some or all of the contribution
    and nothing yet says what: the line is `UNKNOWN` with no exposure, and no
-   receipt on it counts. Dated returns need the checker's `--events`, which the
-   workbook has no equivalent for, so reconcile the line with the fund and use
-   the command line for those rows.
+   receipt on it counts. The Events sheet takes the checker's `--events` columns,
+   one dated return, fund receipt or allocation per row. A line an event names is
+   also `UNKNOWN` with no exposure, between `UNPAID` and `ON_TIME`: the workbook
+   does not weigh events, so decide those lines with the command line's
+   `--events`. An event that names no Register line, names several or cannot be
+   read is `BLOCKED`; a blank row is ignored. The workbook does not run the
+   checker's consistency checks across events (a repeated receipt or allocation,
+   or an allocation before its receipt or above what the fund kept), so a file the
+   checker refuses can read `REVIEW` here, never a pass. Run the checker before
+   relying on an events file.
 5. **Holidays and GIC.** The whole-of-jurisdiction holiday table and the
    quarterly general interest charge rates the engine ships. To review a
    deadline past the holiday coverage, add the official dates and move the

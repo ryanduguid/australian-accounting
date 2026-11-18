@@ -175,8 +175,8 @@ fn sum(values: &[Value], key: &str) -> Decimal {
 
 #[test]
 fn every_allocated_column_foots_to_its_pool() {
-    // The fast-check property's domain, from a fixed xorshift seed.
-    let mut state: u64 = 0x5010;
+    // The fast-check property's domain, from a xorshift seed a campaign can vary.
+    let mut state: u64 = campaign_seed(0x5010);
     let mut next = |bound: u64| {
         state ^= state << 13;
         state ^= state >> 7;
@@ -319,4 +319,18 @@ fn a_narrow_console_codepage_does_not_end_the_run() {
     assert_eq!(run.status.code(), Some(0));
     let out = String::from_utf8(run.stdout).unwrap();
     assert!(out.contains("Section 100A Risk Evaluation — Zoë Ŧrust"));
+}
+
+// Nightly campaigns vary generated cases whilst ordinary checks retain their frozen seeds.
+fn campaign_seed(default: u64) -> u64 {
+    match std::env::var("LL_PROPERTY_SEED") {
+        Ok(text) => {
+            let seed = text.parse::<u64>().expect("LL_PROPERTY_SEED must be a u64");
+            let effective = (default ^ seed).max(1);
+            eprintln!("LL_PROPERTY_SEED={seed} effective={effective}");
+            effective
+        }
+        Err(std::env::VarError::NotPresent) => default,
+        Err(error) => panic!("invalid LL_PROPERTY_SEED: {error}"),
+    }
 }

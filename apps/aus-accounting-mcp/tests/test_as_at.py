@@ -3,7 +3,7 @@
 
 """`as_at` on the legislation search and read tools, against fabricated titles.
 
-The status rules follow docs/scope.md in au-tax-legislation-corpus. Every row is invented.
+The status rules follow docs/scope.md in PaulGoodman. Every row is invented.
 """
 
 import asyncio
@@ -413,6 +413,108 @@ def test_different_windows_of_one_title_stop_search_and_read(
         call(tool, as_at="2098-08-01", **arguments)
 
 
+@pytest.mark.parametrize("owner_indexed", [False, True])
+@pytest.mark.parametrize("on", ["2098-08-01", "2098-01-01"])
+def test_a_row_of_another_title_in_an_index_stops_a_dated_call_that_uses_it(
+    tmp_path, monkeypatch, on, owner_indexed
+):
+    # The title the stray row names can have its own index with the same window: the row
+    # still disagrees with the index it sits in.
+    monkeypatch.setenv("AUS_ACCOUNTING_CORPUS_ROOT", str(tmp_path))
+    rows = title(CURRENT, "Synthetic Act 2098", "2098-07-01")
+    rows[1]["register_id"] = REPLACED
+    write_title(tmp_path, rows)
+    if owner_indexed:
+        write_title(tmp_path, title(REPLACED, "Synthetic Act 2098", "2098-07-01"))
+
+    with pytest.raises(ToolError, match="disagree"):
+        call(SEARCH, query="return lodged", as_at=on)
+    with pytest.raises(ToolError, match="disagree"):
+        call(READ, row_id=rows[1]["row_id"], as_at="2098-08-01")
+
+
+def test_indexes_whose_first_rows_share_a_register_id_each_keep_their_window(
+    tmp_path, monkeypatch
+):
+    monkeypatch.setenv("AUS_ACCOUNTING_CORPUS_ROOT", str(tmp_path))
+    write_title(tmp_path, title(CURRENT, "Synthetic Act 2098", "2098-07-01"))
+    synthetic_corpus.write(
+        tmp_path / "markdown" / "C9999A10005" / "sections.jsonl",
+        title(CURRENT, "Synthetic Act 2098", "2098-06-01"),
+    )
+
+    result = call(SEARCH, query="synthetic levy", as_at="2098-08-01")
+
+    assert sorted(hit["as_at"]["compilation_date"] for hit in result["matches"]) == [
+        "2098-06-01", "2098-06-01", "2098-07-01", "2098-07-01",
+    ]
+
+
+@pytest.mark.parametrize("on", ["2098-08-01", "2098-01-01"])
+def test_a_disagreeing_partial_hit_stops_a_dated_search(tmp_path, monkeypatch, on):
+    # No row holds "zebra", so both rows holding "synthetic levy" are partial hits: on a
+    # date the title is held they are returned, on one it is not they are counted.
+    monkeypatch.setenv("AUS_ACCOUNTING_CORPUS_ROOT", str(tmp_path))
+    rows = title(CURRENT, "Synthetic Act 2098", "2098-07-01")
+    rows[1]["compilation_date"] = "2098-06-01"
+    write_title(tmp_path, rows)
+
+    with pytest.raises(ToolError, match="disagree"):
+        call(SEARCH, query="synthetic levy zebra", as_at=on)
+
+
+def test_a_disagreeing_row_no_result_uses_leaves_a_dated_call_answering(tmp_path, monkeypatch):
+    # A title is classified from its first row; only the rows a result returns or counts
+    # are checked against it, so a dated call never parses a whole title to validate it.
+    monkeypatch.setenv("AUS_ACCOUNTING_CORPUS_ROOT", str(tmp_path))
+    rows = title(CURRENT, "Synthetic Act 2098", "2098-07-01")
+    rows[2]["compilation_date"] = "2098-06-01"  # "A dated receipt must be kept."
+    write_title(tmp_path, rows)
+
+    result = call(SEARCH, query="return lodged", as_at="2098-08-01")
+
+    assert [hit["row_id"] for hit in result["matches"]] == [rows[1]["row_id"]]
+    assert call(READ, row_id=rows[0]["row_id"], as_at="2098-08-01")["section"]["text"]
+    with pytest.raises(ToolError, match="disagree"):
+        call(SEARCH, query="receipt kept", as_at="2098-08-01")
+    with pytest.raises(ToolError, match="disagree"):
+        call(READ, row_id=rows[1]["row_id"], as_at="2098-08-01", neighbours=1)
+
+
+@pytest.mark.parametrize("on", ["2098-08-01", "2098-01-01"])
+def test_a_dated_call_parses_only_the_rows_it_could_use(tmp_path, monkeypatch, on):
+    monkeypatch.setenv("AUS_ACCOUNTING_CORPUS_ROOT", str(tmp_path))
+    texts = ["The synthetic levy applies."] + ["A filler provision."] * 500
+    rows = title(CURRENT, "Synthetic Act 2098", "2098-07-01", texts=texts)
+    write_title(tmp_path, rows)
+    parsed = []
+    row = corpus._row
+
+    def counted(*args):
+        if (result := row(*args)) is not None:
+            parsed.append(result)
+        return result
+
+    monkeypatch.setattr(corpus, "_row", counted)
+    corpus.search_sections("levy", 5, 0, as_at=on)
+    searched = len(parsed)
+    corpus.read_section(rows[-1]["row_id"], as_at=on)
+
+    assert searched < 10, f"a dated search parsed {searched} of {len(rows)} rows"
+    assert len(parsed) - searched < 10, f"a dated read parsed {len(parsed) - searched} rows"
+
+
+def test_an_index_with_no_row_is_not_a_dated_title(dated):
+    empty = dated / "markdown" / "C9999A10004" / "sections.jsonl"
+    empty.parent.mkdir(parents=True)
+    empty.write_text("\n", encoding="utf-8")
+
+    result = call(SEARCH, query="synthetic levy", as_at="2098-08-01")
+
+    assert sum(result["as_at_summary"]["titles"].values()) == 3
+    assert "C9999A10004" not in by_title(result)
+
+
 def test_blank_lines_do_not_hide_a_dated_title(dated):
     path = dated / "markdown" / CURRENT / "sections.jsonl"
     path.write_text("\n" + path.read_text(encoding="utf-8"), encoding="utf-8")
@@ -600,6 +702,219 @@ def test_a_title_index_that_cannot_be_read_stops_a_dated_search(tmp_path, monkey
     index.write_bytes(b"\xff\n")
 
     with pytest.raises(ToolError, match="Cannot read a UTF-8"):
+        asyncio.run(mcp.call_tool(SEARCH, {"query": "levy", "as_at": "2098-08-01"}))
+
+
+EARLIER_TEXT = "The synthetic levy is 5 per cent of a dated receipt."
+LATEST_TEXT = "The synthetic levy is 6 per cent of a dated receipt."
+WINDOWS = [
+    {"compilation_date": "2098-07-01", "superseded_from": "2098-10-01",
+     "retrieved": "2099-01-01"},
+    {"compilation_date": "2098-10-01", "superseded_from": None, "retrieved": "2099-01-01"},
+]
+
+
+def write_compilation(root, name, rows):
+    path = root / "compilations" / name / "markdown" / rows[0]["register_id"] / "sections.jsonl"
+    synthetic_corpus.write(path, rows)
+
+
+@pytest.fixture
+def two_compilations(tmp_path, monkeypatch):
+    """One title held twice: from 2098-07-01 to 2098-10-01, then current from 2098-10-01."""
+    monkeypatch.setenv("AUS_ACCOUNTING_CORPUS_ROOT", str(tmp_path))
+    name = "Synthetic Current Act 2098"
+    write_title(tmp_path, title(CURRENT, name, "2098-10-01", texts=(LATEST_TEXT,)))
+    write_compilation(tmp_path, "2098-07-01", title(
+        CURRENT, name, "2098-07-01", superseded="2098-10-01", texts=(EARLIER_TEXT,)
+    ))
+    return tmp_path
+
+
+@pytest.mark.parametrize(
+    "on, text, start",
+    [
+        ("2098-07-01", EARLIER_TEXT, "2098-07-01"),
+        ("2098-09-30", EARLIER_TEXT, "2098-07-01"),
+        ("2098-10-01", LATEST_TEXT, "2098-10-01"),
+        ("2099-01-01", LATEST_TEXT, "2098-10-01"),
+    ],
+)
+def test_a_date_answers_from_the_compilation_whose_window_covers_it(
+    two_compilations, on, text, start
+):
+    result = call(SEARCH, query="synthetic levy", as_at=on)
+    read = call(READ, row_id=f"{CURRENT}:0001:1", as_at=on)
+
+    assert [hit["text"] for hit in result["matches"]] == [text]
+    assert result["matches"][0]["as_at"]["compilation_date"] == start
+    assert result["matches"][0]["as_at"]["status"] == "captured"
+    assert result["refusals"] == []
+    assert result["as_at_summary"]["titles"]["captured"] == 1
+    assert read["section"]["text"] == text
+    assert read["section"]["as_at"]["compilation_date"] == start
+
+
+@pytest.mark.parametrize(
+    "on, status", [("2098-06-30", "before_compilation"), ("2099-01-02", "after_retrieval")]
+)
+def test_a_date_no_compilation_covers_is_refused_naming_each_window_held(
+    two_compilations, on, status
+):
+    result = call(SEARCH, query="synthetic levy", as_at=on)
+    read = call(READ, row_id=f"{CURRENT}:0001:1", as_at=on)
+
+    assert result["matches"] == result["partial_hits"] == []
+    refusal = by_title(result)[CURRENT]
+    assert refusal["as_at"]["status"] == status
+    assert refusal["as_at"]["compilation_date"] == "2098-10-01"
+    assert refusal["matching_rows"] == 1
+    assert refusal["held_compilations"] == WINDOWS
+    assert "held_compilations" in result["notice"]
+    assert read["section"]["text"] == ""
+    assert read["refusals"][0]["held_compilations"] == WINDOWS
+
+
+def test_calls_without_a_date_read_only_the_markdown_compilation(two_compilations):
+    result = call(SEARCH, query="synthetic levy", in_force_only=False)
+
+    read = call(READ, row_id=f"{CURRENT}:0001:1")["section"]
+    assert [hit["text"] for hit in result["matches"]] == [LATEST_TEXT]
+    assert read["text"] == LATEST_TEXT
+    assert read["caveats"] == [corpus.EARLIER_CAVEAT]
+
+
+def test_an_undated_read_of_a_title_held_once_carries_no_earlier_caveat(dated):
+    write_compilation(dated, ".partial", title(
+        CURRENT, "Synthetic Current Act 2098", "2098-01-01", superseded="2098-07-01"
+    ))
+    write_compilation(dated, "2098-01-01", title(LATER, "Synthetic Later Act 2098", "2098-12-01"))
+
+    assert call(READ, row_id=f"{CURRENT}:0001:1")["section"]["caveats"] == []
+
+
+@pytest.mark.parametrize("superseded", ["2098-11-01", None])
+def test_overlapping_compilations_of_a_title_stop_a_dated_call(
+    two_compilations, superseded
+):
+    write_compilation(two_compilations, "2098-07-01", [
+        {**row, "superseded_from": superseded, "version_is_current": superseded is None}
+        for row in title(CURRENT, "Synthetic Current Act 2098", "2098-07-01",
+                         superseded="2098-10-01", texts=(EARLIER_TEXT,))
+    ])
+
+    for tool, arguments in [
+        (SEARCH, {"query": "synthetic levy"}), (READ, {"row_id": f"{CURRENT}:0001:1"})
+    ]:
+        with pytest.raises(ToolError, match="overlap"):
+            asyncio.run(mcp.call_tool(tool, {**arguments, "as_at": "2098-08-01"}))
+
+
+# "synthetic levy" fully matches the disagreeing row; "synthetic levy receipt" only partly.
+@pytest.mark.parametrize("query", ["synthetic levy", "synthetic levy receipt"])
+def test_a_disagreeing_row_of_a_compilation_not_chosen_stops_a_dated_search(
+    two_compilations, query
+):
+    empty = two_compilations / "compilations" / "2098-01-01" / "markdown" / CURRENT
+    synthetic_corpus.write(empty / "sections.jsonl", [])
+    result = call(SEARCH, query=query, as_at="2098-11-01")
+    assert [hit["text"] for hit in result["matches"]] == [LATEST_TEXT]
+    rows = title(CURRENT, "Synthetic Current Act 2098", "2098-07-01", superseded="2098-10-01",
+                 texts=(EARLIER_TEXT, TEXTS[1]))
+    # The second row claims the current window, which its index's first row does not hold.
+    rows[1] = {**rows[1], "compilation_date": "2098-10-01", "superseded_from": None,
+               "version_is_current": True}
+    write_compilation(two_compilations, "2098-07-01", rows)
+
+    with pytest.raises(ToolError, match="disagree"):
+        asyncio.run(mcp.call_tool(SEARCH, {"query": query, "as_at": "2098-11-01"}))
+
+
+def test_an_entry_that_cannot_be_inspected_does_not_hide_an_earlier_compilation(
+    two_compilations, monkeypatch
+):
+    listed = Path.iterdir
+
+    def stale_first(self):
+        # An entry removed after the listing: inspecting it raises FileNotFoundError.
+        return iter([self / "0-removed", *sorted(listed(self))])
+
+    monkeypatch.setattr(Path, "iterdir", stale_first)
+
+    assert call(READ, row_id=f"{CURRENT}:0001:1")["section"]["caveats"] == [
+        corpus.EARLIER_CAVEAT
+    ]
+
+
+def test_an_undated_read_survives_a_compilations_folder_it_cannot_list(
+    two_compilations, monkeypatch
+):
+    def unreadable(self):
+        raise PermissionError(self)
+
+    monkeypatch.setattr(Path, "iterdir", unreadable)
+
+    read = call(READ, row_id=f"{CURRENT}:0001:1")["section"]
+    assert read["text"] == LATEST_TEXT
+    assert read["caveats"] == []
+
+
+def test_a_file_or_hidden_folder_under_compilations_is_not_a_compilation(two_compilations):
+    (two_compilations / "compilations" / "README.txt").write_text("notes", encoding="utf-8")
+    (two_compilations / "compilations" / ".partial").mkdir()
+
+    result = call(SEARCH, query="synthetic levy", as_at="2098-08-01")
+
+    assert [hit["text"] for hit in result["matches"]] == [EARLIER_TEXT]
+
+
+def test_a_title_held_only_under_compilations_answers_only_a_dated_call(two_compilations):
+    write_compilation(two_compilations, "2098-07-01", title(
+        REPLACED, "Synthetic Replaced Act 2098", "2098-07-01", superseded="2098-10-01"
+    ))
+    row_id = f"{REPLACED}:0001:1"
+
+    result = call(SEARCH, query="synthetic levy", as_at="2098-08-01")
+    later = call(SEARCH, query="synthetic levy", as_at="2098-11-01")
+
+    assert rows_returned(result) == [CURRENT, REPLACED]
+    assert call(READ, row_id=row_id, as_at="2098-08-01")["section"]["text"] == TEXTS[0]
+    assert rows_returned(later) == [CURRENT]
+    assert by_title(later)[REPLACED]["as_at"]["status"] == "superseded"
+    assert "held_compilations" not in by_title(later)[REPLACED]
+    assert REPLACED not in rows_returned(call(SEARCH, query="synthetic levy"))
+    with pytest.raises(ToolError, match="No title index for that row_id"):
+        asyncio.run(mcp.call_tool(READ, {"row_id": row_id}))
+
+
+def test_a_row_only_an_earlier_compilation_holds_is_read_only_inside_its_window(
+    two_compilations,
+):
+    write_compilation(two_compilations, "2098-07-01", title(
+        CURRENT, "Synthetic Current Act 2098", "2098-07-01", superseded="2098-10-01",
+        texts=(EARLIER_TEXT, TEXTS[1]),
+    ))
+    row_id = f"{CURRENT}:0002:2"
+
+    assert call(READ, row_id=row_id, as_at="2098-08-01")["section"]["text"] == TEXTS[1]
+    for on, status in [("2098-06-30", "before_compilation"), ("2099-01-02", "superseded")]:
+        refused = call(READ, row_id=row_id, as_at=on)
+        assert refused["section"]["text"] == ""
+        assert refused["section"]["as_at"]["status"] == status
+        assert refused["section"]["as_at"]["compilation_date"] == "2098-07-01"
+        assert refused["refusals"][0]["held_compilations"] == WINDOWS
+    with pytest.raises(ToolError, match="No section with that row_id"):
+        asyncio.run(mcp.call_tool(READ, {"row_id": f"{CURRENT}:0009:9", "as_at": "2099-01-02"}))
+    with pytest.raises(ToolError, match="Search with as_at 2098-11-01 for the row_ids"):
+        asyncio.run(mcp.call_tool(READ, {"row_id": row_id, "as_at": "2098-11-01"}))
+    with pytest.raises(ToolError, match=r"No section with that row_id in the [a-z ]+\.$"):
+        asyncio.run(mcp.call_tool(READ, {"row_id": row_id}))
+
+
+def test_a_compilation_folder_without_markdown_stops_a_dated_call(dated):
+    (dated / "compilations" / "2098-07-01").mkdir(parents=True)
+
+    with pytest.raises(ToolError, match="must contain a markdown directory"):
         asyncio.run(mcp.call_tool(SEARCH, {"query": "levy", "as_at": "2098-08-01"}))
 
 

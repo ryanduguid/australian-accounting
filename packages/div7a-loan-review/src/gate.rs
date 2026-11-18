@@ -272,7 +272,7 @@ fn interest_limb(facts: &GateFacts, rate: &RateResult) -> Calc<Limb> {
 }
 
 /// The s 109N(3) maximum term, its basis and caveats; None where not established.
-fn maximum_term(facts: &GateFacts) -> Calc<(Option<Decimal>, String, Vec<String>)> {
+pub(crate) fn maximum_term(facts: &GateFacts) -> Calc<(Option<Decimal>, String, Vec<String>)> {
     let coverage = &facts.security_coverage_at_first_made;
     match facts.secured_by_registered_mortgage_over_real_property {
         Some(false) => Ok((

@@ -30,6 +30,9 @@ The listing identifies the distribution; it does not prove a client's installed 
   Division 293 tax, each within a stated period and scope. The Medicare levy worksheet
   refuses a person to whom s 9A (lump sum payments in arrears) applies. The annual
   Medicare worksheet does not apply Medicare adjustments to payroll withholding.
+  Worksheets added to the Rust calculators since 0.2.0, such as the main residence
+  exemption, borrowing expenses and the Division 296 estimate, run through the
+  `au-accounting` command until this server links the Rust crate.
 - **GST and BAS:** give each coded bank line a review state against supplied GST
   registration dates and compare lodged BAS label figures with ledger lines per period.
 - **Lodgment and identifiers:** list ATO 2026-27 lodgment program due dates and test
@@ -47,12 +50,20 @@ The listing identifies the distribution; it does not prove a client's installed 
 Requires Python 3.14+ and [uv](https://docs.astral.sh/uv/):
 
 ```bash
-uvx --from 'aus-accounting-mcp==0.7.1' aus-accounting-mcp
+uvx --from 'aus-accounting-mcp==0.10.0' aus-accounting-mcp
 ```
 
-This selects the published [0.7.1 release](https://github.com/ryanduguid/australian-accounting/releases/tag/aus-accounting-mcp/v0.7.1).
+This selects the published [0.10.0 release](https://github.com/ryanduguid/australian-accounting/releases/tag/aus-accounting-mcp/v0.10.0).
 The source checkout may be ahead of the published release. The pin selects the
 server version; it does not lock every transitive dependency.
+
+From 0.10.0 the tax worksheets also need the `australian-tax-calculators` 1.0.0
+executable, which `uvx` does not install. Download it for x86_64 Linux or Windows from
+the [australian-tax-calculators/v1.0.0 release](https://github.com/ryanduguid/australian-accounting/releases/tag/australian-tax-calculators/v1.0.0)
+(other platforms build it from [source](https://github.com/ryanduguid/australian-accounting/tree/main/packages/australian-tax-calculators)),
+verify it as that release describes, and put it in a folder on `PATH` or give its
+absolute path in `AUS_TAX_CALCULATORS_BIN`. Without it the tax worksheets refuse with
+an install message; every other tool works.
 
 The server waits for an MCP client over stdio. Tool calls read bundled data and any
 folders you configure. They do not contact the ATO or the Federal Register, change
@@ -66,6 +77,18 @@ records. It cannot tell you whether a newer release or newer official figures ex
 
 ## Client integration
 
+From 0.8.0, each release also has an MCP Bundle for Claude Desktop: download
+`aus-accounting-mcp-<version>.mcpb` from the
+[bundle releases](https://github.com/ryanduguid/australian-accounting/releases?q=aus-accounting-mcp-bundle&expanded=true)
+and open it with Claude Desktop. The bundle holds no server code. It pins this package
+at that version, which uv installs from PyPI on first launch, resolving the package's
+own dependencies then. `SHA256SUMS` in the same release shows the download is intact;
+it does not prove who published it. The bundle does not include the calculators
+executable, so its tax worksheets refuse unless the executable, installed as under
+Install, is in a folder on the `PATH` Claude Desktop gives the server. The bundle's
+settings offer the 3 optional research folders described under Tools. If Claude Desktop does not start it, use the
+configuration below.
+
 For Claude Desktop, Cursor, Windsurf and other hosts that run local stdio servers:
 
 ```json
@@ -73,18 +96,18 @@ For Claude Desktop, Cursor, Windsurf and other hosts that run local stdio server
   "mcpServers": {
     "aus-accounting": {
       "command": "uvx",
-      "args": ["--from", "aus-accounting-mcp==0.7.1", "aus-accounting-mcp"]
+      "args": ["--from", "aus-accounting-mcp==0.10.0", "aus-accounting-mcp"]
     }
   }
 }
 ```
 
-[Add to Cursor](https://cursor.com/en/install-mcp?name=aus-accounting&config=eyJjb21tYW5kIjoidXZ4IiwiYXJncyI6WyItLWZyb20iLCJhdXMtYWNjb3VudGluZy1tY3A9PTAuNy4xIiwiYXVzLWFjY291bnRpbmctbWNwIl19),
+[Add to Cursor](https://cursor.com/en/install-mcp?name=aus-accounting&config=eyJjb21tYW5kIjoidXZ4IiwiYXJncyI6WyItLWZyb20iLCJhdXMtYWNjb3VudGluZy1tY3A9PTAuMTAuMCIsImF1cy1hY2NvdW50aW5nLW1jcCJdfQ==),
 or from a terminal:
 
 ```bash
-claude mcp add --scope user aus-accounting -- uvx --from 'aus-accounting-mcp==0.7.1' aus-accounting-mcp
-codex mcp add aus-accounting -- uvx --from 'aus-accounting-mcp==0.7.1' aus-accounting-mcp
+claude mcp add --scope user aus-accounting -- uvx --from 'aus-accounting-mcp==0.10.0' aus-accounting-mcp
+codex mcp add aus-accounting -- uvx --from 'aus-accounting-mcp==0.10.0' aus-accounting-mcp
 ```
 
 The [client setup guide](https://github.com/ryanduguid/australian-accounting/blob/main/apps/aus-accounting-mcp/docs/REFERENCE.md#client-setup)
@@ -120,6 +143,8 @@ Ask in plain English. Each of these fabricated requests resolves to one tool cal
 | `get_lodgment_due_dates` | List ATO 2026-27 lodgment program due dates for BAS, IAS and income tax returns, self-lodged or through an agent, with `UNKNOWN` where a fact is missing. |
 | `validate_abn` | Test an ABN against ABN Lookup's published check digit arithmetic. A valid check digit proves neither ABR nor GST registration. |
 | `validate_acn` | Test an ACN against ASIC's published check digit arithmetic. A valid check digit proves neither ABR nor GST registration. |
+| `validate_bsb_format` | Test a BSB against AusPayNet's published 6 digit format, XXX-XXX. It holds no BSB directory, so a valid format proves no institution, branch or account. |
+| `validate_account_number_format` | Test a bank account number against the account number field in AusPayNet's BECS Procedures: up to 9 letters, digits, hyphens or spaces, not all zeros. A valid format proves no account, payee or BSB match. |
 | `get_reviewed_rate` | Return a reviewed ATO rate or threshold for a date, with its source and a verbatim quote. Records cover 2025-26 and 2026-27 only; any other date is refused. |
 | `search_accounting_library` | Search a configured local Markdown library. |
 | `read_accounting_library` | Read cited lines from that library. |
@@ -131,6 +156,9 @@ Ask in plain English. Each of these fabricated requests resolves to one tool cal
 | `read_ato_ruling` | Read one cited ruling paragraph. |
 | `generate_synthetic_sbr_fixture` | Generate fabricated CTR/BAS test data. |
 | `get_data_freshness` | Report each bundled dataset's recorded periods, engine version and source dates, with `UNKNOWN` where none is recorded. |
+
+There is no TFN check: the ATO gives its TFN algorithm only to software developers, so no
+published source fixes one.
 
 Missing figures remain unknown. Preserve `UNKNOWN`, `REFUSED`, `not_supplied` and
 `null` results; `ok: true` means the tool ran, not that a review passed. Supply an
@@ -147,18 +175,22 @@ records for returns before relying on `ON_TIME`.
 The research tools need a folder you supply: set `AUS_ACCOUNTING_LIBRARY_ROOT` to an
 authorised Markdown folder, `AUS_ACCOUNTING_CORPUS_ROOT` to a legislation corpus or
 `AUS_ACCOUNTING_RULINGS_ROOT` to ATO rulings runs, such as those built by
-[au-tax-legislation-corpus](https://github.com/ryanduguid/au-tax-legislation-corpus).
-[`python -m fadden quick --out <empty folder>`](docs/corpus-setup.md#build-the-principal-acts-with-one-command)
-in that repository builds 9 principal Acts on your machine and prints the setting. The
-[corpus setup walkthrough](docs/corpus-setup.md) also verifies the existing builder
+[PaulGoodman](https://github.com/ryanduguid/PaulGoodman). Its
+[published snapshot](https://github.com/ryanduguid/australian-accounting/blob/main/apps/aus-accounting-mcp/docs/corpus-setup.md#download-the-published-snapshot) of 9 principal
+Acts, each at its current compilation on 11 November 2026 and with a rates index, needs no
+build: unpack it and set `AUS_ACCOUNTING_CORPUS_ROOT` to its `dist` folder.
+[`python -m fadden quick --out <empty folder>`](https://github.com/ryanduguid/australian-accounting/blob/main/apps/aus-accounting-mcp/docs/corpus-setup.md#build-the-principal-acts-with-one-command)
+in that repository builds the same Acts at their current compilations on your machine,
+without a rates index, and prints the setting. The
+[corpus setup walkthrough](https://github.com/ryanduguid/australian-accounting/blob/main/apps/aus-accounting-mcp/docs/corpus-setup.md) also verifies the existing builder
 and MCP tools together using a fabricated page before any live capture.
-The package ships none of them. From the release after 0.7.1, run
+The package ships none of them. From 0.8.0, run
 `aus-accounting-mcp doctor` with the same variables set to see each folder's row count;
 it exits 1 if a configured folder is broken.
 A corpus or rulings row is a point-in-time copy, not
 a live lookup, and an edited version of private advice cannot be relied on by anyone.
 Legislation results preserve a row's capture date and recorded successor date when
-available. From the release after 0.7.1, `as_at` on the legislation search and read
+available. From 0.8.0, `as_at` on the legislation search and read
 tools reports each title's status for a date: `captured` is not a finding that the text
 was the law then, and a date inside a window can still carry text amended without a new
 compilation. Rulings results expose a captured withdrawal notice; `UNKNOWN` means
@@ -191,27 +223,28 @@ record the expected output, limitations and asset source.
 
 ## Conformance cases
 
-[`conformance/cases.json`](conformance/cases.json) holds 32 calls. Fifteen PAYG
+[`conformance/cases.json`](https://github.com/ryanduguid/australian-accounting/blob/main/apps/aus-accounting-mcp/conformance/cases.json) holds 32 calls. Fifteen PAYG
 withholding cases take their expected amounts from the ATO's published Schedule 1
 sample data, and 11 Payday Super and Division 7A cases take theirs from an ATO
 example or a section worked by hand (`basis: authority`). Six cases, including those
 it leaves `UNKNOWN` or refuses, pin this server's own results, each with its reason
 (`basis: self-pinned`). Another implementation can replay them; see
-[conformance/README.md](conformance/README.md).
+[conformance/README.md](https://github.com/ryanduguid/australian-accounting/blob/main/apps/aus-accounting-mcp/conformance/README.md).
 
 ## Licence and releases
 
-Licensed under the [Ryan Duguid Public Attribution Licence 1.0](LICENSE), the FSL-1.1-ALv2 text with a public attribution condition. You may use, modify and redistribute it for any purpose except a Competing Use as defined in LICENSE (making it available to others in a competing commercial product or service), and each version becomes available under Apache-2.0 2 years after it is made available. For versions made available from 4 November 2026, LICENSE's Public Attribution Condition applies to the FSL grant: anyone who makes a copy, port or derivative available outside their organisation must credit Ryan Duguid publicly, with a link to this repository. Internal use is exempt, and the condition does not apply to each version's Apache-2.0 licence. See [LICENSE](LICENSE) and [NOTICE](NOTICE). Created by Ryan Duguid. If you redistribute this work or build on it, keep the copyright notices in [NOTICE](NOTICE).
+Licensed under the [Ryan Duguid Public Attribution Licence 1.0](https://github.com/ryanduguid/australian-accounting/blob/main/apps/aus-accounting-mcp/LICENSE), the FSL-1.1-ALv2 text with a public attribution condition. You may use, modify and redistribute it for any purpose except a Competing Use as defined in LICENSE (making it available to others in a competing commercial product or service), and each version becomes available under Apache-2.0 2 years after it is made available. For versions made available from 4 November 2026, LICENSE's Public Attribution Condition applies to the FSL grant: anyone who makes a copy, port or derivative available outside their organisation must credit Ryan Duguid publicly, with a link to this repository. Internal use is exempt, and the condition does not apply to each version's Apache-2.0 licence. See [LICENSE](https://github.com/ryanduguid/australian-accounting/blob/main/apps/aus-accounting-mcp/LICENSE) and [NOTICE](https://github.com/ryanduguid/australian-accounting/blob/main/apps/aus-accounting-mcp/NOTICE). Created by Ryan Duguid. If you redistribute this work or build on it, keep the copyright notices in [NOTICE](https://github.com/ryanduguid/australian-accounting/blob/main/apps/aus-accounting-mcp/NOTICE).
 
 Release `aus-accounting-mcp==0.5.0` provides 14 worksheets through
 `australian-tax-calculators==0.2.0`, including Schedule 8 study-loan withholding,
 the bounded annual Medicare levy, LITO and Division 293. The preceding 0.4.0
-release provides 10 through calculators 0.1.8. See the
-[worksheet release verification](docs/worksheet-release.md) for the installed
+release provides 10 through calculators 0.1.8. From 0.10.0 the 14 run through the
+`australian-tax-calculators` 1.0.0 executable instead. See the
+[worksheet release verification](https://github.com/ryanduguid/australian-accounting/blob/main/apps/aus-accounting-mcp/docs/worksheet-release.md) for the installed
 package checks.
 
 [Release notes](https://github.com/ryanduguid/australian-accounting/blob/main/apps/aus-accounting-mcp/RELEASE_NOTES.md),
-[v0.7.1 release record](https://github.com/ryanduguid/australian-accounting/releases/tag/aus-accounting-mcp/v0.7.1),
+[v0.10.0 release record](https://github.com/ryanduguid/australian-accounting/releases/tag/aus-accounting-mcp/v0.10.0),
 [CITATION.cff](https://github.com/ryanduguid/australian-accounting/blob/main/apps/aus-accounting-mcp/CITATION.cff).
 
 <sub>Not tax, legal or financial advice. Payday Super and Division 7A reviews are experimental and need human review before consequential accounting action; fixtures are not a lodgement. Ryan Duguid is not a registered tax agent or BAS agent. Support covers software issues reproduced with fabricated data: do not send taxpayer information or ask for advice, return preparation, tax-treatment confirmation or lodgement. See [DISCLAIMER.md](https://github.com/ryanduguid/australian-accounting/blob/main/apps/aus-accounting-mcp/DISCLAIMER.md).</sub>

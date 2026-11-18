@@ -2,7 +2,8 @@
 // SPDX-License-Identifier: LicenseRef-Duguid-Public-Attribution-1.0
 
 //! No tracked file may carry a checksum-valid Australian identifier unless
-//! `synthetic-identifiers.txt` lists it for that file. The screen runs evatt's
+//! `synthetic-identifiers.txt` lists it for that file, or lists every ABN or
+//! ACN in a file built from a public register. The screen runs evatt's
 //! own detectors and check digits over every file `git ls-files` lists.
 //! Findings name the file, line and kind, never the value, so a CI log never
 //! repeats one. Adapted from accounting-review-pipeline's
@@ -11,8 +12,10 @@
 use evatt::{patterns, pytext, redact::Lines};
 use std::collections::{BTreeSet, HashMap, HashSet};
 use std::io::{Cursor, Read, Write};
+use std::num::NonZeroUsize;
 use std::path::{Path, PathBuf};
 use std::process::Command;
+use std::sync::atomic::{AtomicUsize, Ordering};
 
 /// The allowlist, from the repository root. It names the values it allows,
 /// so it is not screened itself.
@@ -21,6 +24,10 @@ const ALLOWLIST: &str = "tools/fixture-screen/tests/synthetic-identifiers.txt";
 /// Kinds with a check digit. BSB, email and phone have none, so a match
 /// cannot separate a real value from a fabricated one.
 const CHECKED: [&str; 4] = ["tfn", "abn", "acn", "medicare"];
+
+/// Kinds a public register prints, which an entry may allow throughout one
+/// file with `*` for its digits. A TFN or Medicare number is never public.
+const PUBLIC: [&str; 2] = ["abn", "acn"];
 
 /// Each finding's place, kind and digits. A place is a line, or a byte offset
 /// in a binary file, after the name of any zip part holding it.
@@ -209,8 +216,8 @@ fn allowlist(text: &str) -> (HashMap<Entry, usize>, Vec<String>) {
         match line.splitn(4, ' ').collect::<Vec<_>>()[..] {
             [path, kind, digits, reason]
                 if CHECKED.contains(&kind)
-                    && !digits.is_empty()
-                    && digits.chars().all(char::is_numeric)
+                    && ((digits == "*" && PUBLIC.contains(&kind))
+                        || (!digits.is_empty() && digits.chars().all(char::is_numeric)))
                     && !reason.trim().is_empty() =>
             {
                 entries.insert((path.into(), kind.into(), digits.into()), index + 1);
@@ -234,11 +241,16 @@ fn verdict(results: Vec<(String, Result<Findings, String>)>, allowlist_text: &st
             Err(error) => failures.push(error),
             Ok(found) => {
                 for (place, kind, digits) in found {
-                    let key = (path.clone(), kind, digits);
-                    if entries.contains_key(&key) {
-                        used.insert(key);
-                    } else {
-                        failures.push(format!("{path}:{place}: checksum-valid {}", key.1));
+                    // An entry for this value, else one for every value of its kind in the file.
+                    let keys = [
+                        (path.clone(), kind.clone(), digits),
+                        (path.clone(), kind.clone(), "*".to_string()),
+                    ];
+                    match keys.into_iter().find(|k| entries.contains_key(k)) {
+                        Some(entry) => {
+                            used.insert(entry);
+                        }
+                        None => failures.push(format!("{path}:{place}: checksum-valid {kind}")),
                     }
                 }
             }
@@ -296,24 +308,32 @@ fn tracked_files_carry_no_undocumented_identifier() {
         "no tracked files found under {}",
         root.display()
     );
-    // One thread per file: in a debug build the largest recordings take most of a minute each.
-    let results = std::thread::scope(|scope| {
-        let workers: Vec<_> = paths
-            .iter()
-            .map(|path| {
-                let root = &root;
-                scope.spawn(move || {
-                    let bytes = std::fs::read(root.join(path))
-                        .map_err(|error| format!("{path}: unreadable: {error}"));
-                    (path.clone(), bytes.and_then(|bytes| findings(path, &bytes)))
+    // Parallel because in a debug build the largest recordings take most of a minute each.
+    // One worker per core pulls the next path; a thread per file outgrows task limits.
+    let next = AtomicUsize::new(0);
+    let threads = std::thread::available_parallelism().map_or(1, NonZeroUsize::get);
+    let mut results: Vec<_> = std::thread::scope(|scope| {
+        let workers: Vec<_> = (0..threads)
+            .map(|_| {
+                scope.spawn(|| {
+                    let mut screened = Vec::new();
+                    while let Some(path) = paths.get(next.fetch_add(1, Ordering::Relaxed)) {
+                        let bytes = std::fs::read(root.join(path))
+                            .map_err(|error| format!("{path}: unreadable: {error}"));
+                        screened
+                            .push((path.clone(), bytes.and_then(|bytes| findings(path, &bytes))));
+                    }
+                    screened
                 })
             })
             .collect();
         workers
             .into_iter()
-            .map(|w| w.join().expect("screen thread"))
+            .flat_map(|w| w.join().expect("screen thread"))
             .collect()
     });
+    // Back in `git ls-files` order, so failures are listed the same way every run.
+    results.sort_unstable_by(|a, b| a.0.cmp(&b.0));
     let failures = verdict(results, include_str!("synthetic-identifiers.txt"));
     assert!(
         failures.is_empty(),
@@ -432,4 +452,39 @@ fn an_entry_allows_its_value_in_its_own_file_only_and_must_match() {
         ]
     );
     assert!(!malformed[0].contains("123456782"));
+}
+
+#[test]
+fn a_public_register_entry_allows_every_abn_or_acn_in_its_file_and_nothing_else() {
+    // ABN Lookup's worked example ABN, ASIC's example ACN, then the planted TFN.
+    let register =
+        b"[\"51824753556\",\"BODY LTD ACN 000 250 000\"]\n[\"51824753556\"]\nTFN: 123 456 782\n";
+    let entries = "p.jsonl abn * a public register\np.jsonl acn * names in that register\n";
+    // The TFN is still a finding: no entry allows a TFN or Medicare number throughout a file.
+    assert_eq!(
+        check("p.jsonl", register, entries),
+        ["p.jsonl:3: checksum-valid tfn"]
+    );
+    // In another file each is a finding, and both entries are stale.
+    let mut elsewhere: Vec<String> = [
+        "q.jsonl:1: checksum-valid abn",
+        "q.jsonl:1: checksum-valid acn",
+        "q.jsonl:2: checksum-valid abn",
+        "q.jsonl:3: checksum-valid tfn",
+    ]
+    .map(String::from)
+    .into();
+    elsewhere.extend((1..=2).map(|n| format!("{ALLOWLIST}:{n}: entry matches no finding")));
+    assert_eq!(check("q.jsonl", register, entries), elsewhere);
+    assert_eq!(
+        check(
+            "p.md",
+            b"no identifiers\n",
+            "p.md tfn * register\np.md medicare * register\n"
+        ),
+        [
+            format!("{ALLOWLIST}:1: expected 'path kind digits reason'"),
+            format!("{ALLOWLIST}:2: expected 'path kind digits reason'"),
+        ]
+    );
 }

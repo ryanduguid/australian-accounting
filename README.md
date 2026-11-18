@@ -7,17 +7,11 @@
   </picture>
 </p>
 
-```bash
-claude mcp add --scope user aus-accounting -- uvx --from 'aus-accounting-mcp==0.7.1' aus-accounting-mcp
-```
-
-That connects Claude Code; it needs Python 3.14+ and [uv](https://docs.astral.sh/uv/), and no API key. [Other clients](apps/aus-accounting-mcp/README.md#client-integration).
-
 <div align="center">
 
-[![tests](https://github.com/ryanduguid/australian-accounting/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/ryanduguid/australian-accounting/actions/workflows/ci.yml)
+[![tests](https://img.shields.io/github/actions/workflow/status/ryanduguid/australian-accounting/ci.yml?branch=main&label=tests&labelColor=000000&style=flat)](https://github.com/ryanduguid/australian-accounting/actions/workflows/ci.yml)
 [![Codecov](https://codecov.io/gh/ryanduguid/australian-accounting/graph/badge.svg)](https://codecov.io/gh/ryanduguid/australian-accounting)
-[![CodeQL](https://github.com/ryanduguid/australian-accounting/actions/workflows/codeql.yml/badge.svg?branch=main)](https://github.com/ryanduguid/australian-accounting/actions/workflows/codeql.yml)
+[![CodeQL](https://img.shields.io/github/actions/workflow/status/ryanduguid/australian-accounting/codeql.yml?branch=main&label=CodeQL&labelColor=000000&style=flat)](https://github.com/ryanduguid/australian-accounting/actions/workflows/codeql.yml)
 [![SonarCloud](https://sonarcloud.io/api/project_badges/measure?project=ryanduguid_australian-accounting&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=ryanduguid_australian-accounting)
 [![Codacy code quality](https://app.codacy.com/project/badge/Grade/657574ca064f48499b4839693bafd4bf)](https://app.codacy.com/gh/ryanduguid/australian-accounting/dashboard)<br>
 [![OpenSSF Scorecard](https://raw.githubusercontent.com/ryanduguid/.github/badges/ryanduguid/australian-accounting.svg)](https://scorecard.dev/viewer/?uri=github.com/ryanduguid/australian-accounting)
@@ -34,14 +28,20 @@ That connects Claude Code; it needs Python 3.14+ and [uv](https://docs.astral.sh
 
 </div>
 
+```bash
+claude mcp add --scope user aus-accounting -- uvx --from 'aus-accounting-mcp==0.10.0' aus-accounting-mcp
+```
+
+That connects Claude Code; it needs Python 3.14+ and [uv](https://docs.astral.sh/uv/), and no API key. The tax worksheets also need the [australian-tax-calculators 1.0.0 executable](https://github.com/ryanduguid/australian-accounting/releases/tag/australian-tax-calculators/v1.0.0) on `PATH` ([how](apps/aus-accounting-mcp/README.md#install)); every other tool works without it. For Claude Desktop, download the `.mcpb` file from the [bundle releases](https://github.com/ryanduguid/australian-accounting/releases?q=aus-accounting-mcp-bundle&expanded=true) and open it with Claude Desktop. The server runs on your machine, so ChatGPT connectors and the Claude.ai web app, which accept only remote servers, cannot run it. [Other clients](apps/aus-accounting-mcp/README.md#client-integration).
+
 Australian Accounting is a set of local tax and payroll calculation engines and an
 MCP server for Australian accountants and bookkeepers, and the developers who build
 tooling for them.
 
 Nine engines (8 in Rust, 1 in Python) apply Australian tax and payroll rules to figures
 you supply. **Aus Accounting MCP**, a local Model Context Protocol server, gives an AI
-assistant the published Python releases of 6 of them; it loads none of the Rust crates
-yet.
+assistant the published Python releases of 5 of them and, from 0.10.0, the
+`australian-tax-calculators` executable; it loads none of the Rust crates yet.
 
 Each tool returns a calculation, the facts it used and the matters it refuses to
 decide. The engines and the MCP server run locally: they read files you point them at, contact no
@@ -62,9 +62,9 @@ Missing facts stay unknown: a Payday Super row with a fund-receipt date but no m
   11 August 2026, because NT Picnic Day on 3 August is not a business day. The
   [ATO's worked example](https://www.ato.gov.au/businesses-and-organisations/super-for-employers/paying-super-on-payday/payment-deadlines-for-payday-super)
   gives the same date on the usual 7 business day path. Run and read 5 November 2026.
-- **MCP tools.** Aus Accounting MCP 0.7.1, the published release, listed 22 local tools on
-  5 November 2026. The source on `main` defines 25: `validate_abn`, `validate_acn` and
-  `get_reviewed_rate` are not yet released, and neither is the `doctor` command.
+- **MCP tools.** Aus Accounting MCP 0.9.0 listed 25 local tools on
+  15 November 2026, including `validate_abn`, `validate_acn` and `get_reviewed_rate`, as
+  0.8.0 did; 0.7.1 listed 22. 0.8.0 added the `doctor` command.
 
 <details>
 <summary>Commands for the Payday Super date and the tool count</summary>
@@ -80,7 +80,7 @@ uvx --from payday-super-checker==0.2.3 payday-super-check quarterly_remittance_2
 This asks the published server for its tools and prints the count, with `jq` installed:
 
 ```bash
-printf '%s\n' '{"jsonrpc":"2.0","id":1,"method":"initialize","params":{"protocolVersion":"2025-06-18","capabilities":{},"clientInfo":{"name":"check","version":"0"}}}' '{"jsonrpc":"2.0","method":"notifications/initialized"}' '{"jsonrpc":"2.0","id":2,"method":"tools/list"}' | uvx --from 'aus-accounting-mcp==0.7.1' aus-accounting-mcp | tail -1 | jq '.result.tools | length'
+printf '%s\n' '{"jsonrpc":"2.0","id":1,"method":"initialize","params":{"protocolVersion":"2025-06-18","capabilities":{},"clientInfo":{"name":"check","version":"0"}}}' '{"jsonrpc":"2.0","method":"notifications/initialized"}' '{"jsonrpc":"2.0","id":2,"method":"tools/list"}' | uvx --from 'aus-accounting-mcp==0.9.0' aus-accounting-mcp | tail -1 | jq '.result.tools | length'
 ```
 
 </details>
@@ -144,8 +144,13 @@ For the MCP server, install Python 3.14+ and [uv](https://docs.astral.sh/uv/), t
 configure your MCP client to run:
 
 ```bash
-uvx aus-accounting-mcp
+uvx --from 'aus-accounting-mcp==0.10.0' aus-accounting-mcp
 ```
+
+The tax worksheets also need the `australian-tax-calculators` 1.0.0 executable on
+`PATH` or at the absolute path in `AUS_TAX_CALCULATORS_BIN`; the
+[MCP install notes](apps/aus-accounting-mcp/README.md#install) say where to get it.
+Without it they refuse with an install message and every other tool works.
 
 This starts a **local stdio server**; it waits for an MCP client rather than opening
 a web page. It requires no API key. Package installation downloads dependencies;
@@ -153,9 +158,9 @@ the tools then use bundled data without network requests or record writes. The
 MCP host you connect it to is a separate boundary: it sends every tool argument
 and result to its model provider, so use fabricated data with a hosted model.
 
-`uvx` keeps using the version it first downloaded, so a new release does not reach
-you on its own. To move to a release, name it in your client configuration, for
-example `aus-accounting-mcp==<version>` from [PyPI](https://pypi.org/project/aus-accounting-mcp/);
+The pin selects the published 0.10.0 release, so a new release does not reach you on
+its own. To move to a later release, replace the version in your client configuration
+with one from [PyPI](https://pypi.org/project/aus-accounting-mcp/);
 uvx downloads it, and later launches reuse the cached copy without a download until
 the uv cache is cleaned.
 
@@ -191,6 +196,36 @@ repayments under s 109R.
 For an editable source installation, run `pip install -e .` from
 `apps/aus-accounting-mcp/`. The repository root is not an installable Python package.
 
+<details>
+<summary>How the accounting tools fit together</summary>
+
+The [accounting skills](https://github.com/ryanduguid/australian-accounting-skills) guide
+preparation and can call this server. Workpapers and unresolved exceptions go to an
+authorised human for review.
+
+```mermaid
+flowchart TB
+accTitle: How the accounting tools fit together
+accDescr: An assistant using the accounting skills exchanges requests with the Australian Accounting MCP server, which sends calculations to the calculation packages. The assistant sends workpapers and exceptions to authorised human review. The Federal Register of Legislation feeds the legislation corpus, a finding aid. The reviewer uses the corpus to locate provisions and checks authority at the Register.
+%%{init: {"theme": "base", "look": "classic", "themeVariables": {"background": "#000000", "primaryColor": "#66023C", "primaryTextColor": "#FFFFF0", "primaryBorderColor": "#FFFFF0", "lineColor": "#FFD32A", "textColor": "#FFFFF0", "edgeLabelBackground": "#000000", "clusterBkg": "#000000", "clusterBorder": "#9B7735", "titleColor": "#E5E4E2"}}}%%
+    assistant["Assistant using<br/>accounting skills"] <--> mcp["Australian Accounting<br/>MCP server"]
+    mcp -->|Calculations| engines["Calculation packages"]
+    assistant -->|Workpapers and exceptions| reviewer["Authorised human review"]
+    official["Federal Register<br/>of Legislation"] -->|Corpus build| corpus["Legislation corpus<br/>Finding aid"]
+    corpus -. Locate provisions .-> reviewer
+    official -. Check authority .-> reviewer
+    style engines fill:#990024,stroke:#FFFFF0,stroke-width:2px,color:#FFFFF0
+    style reviewer fill:#E7162F,stroke:#FFFFF0,stroke-width:2px,color:#FFFFF0
+    classDef external fill:#745EB1,stroke:#FFFFF0,stroke-width:2px,color:#FFFFF0
+    class official external
+```
+
+The corpus is not an automatic source feed into the calculation engines; the research
+tools above only search a copy you configure. Dashed arrows show reference use, which
+still requires checking the applicable authority.
+
+</details>
+
 ## Components
 
 Australian Accounting holds 13 components, each in its own directory:
@@ -214,9 +249,9 @@ Australian Accounting holds 13 components, each in its own directory:
 `IMPORTS.md` records the source repository, commit and tree of every imported component. The
 MCP application is the [io.github.ryanduguid/aus-accounting MCP Registry server](https://registry.modelcontextprotocol.io/v0.1/servers?search=io.github.ryanduguid%2Faus-accounting&version=latest); it
 depends on the published `ato-benchmark-compare`, `payday-super-checker`,
-`div7a-loan-review`, `australian-tax-calculators`, `gst-review` and `lodgment-calendar`
-distributions. In the development workspace, uv takes `gst-review` 0.1.0,
-`australian-tax-calculators` 0.2.0, `div7a-loan-review` 0.3.2,
+`div7a-loan-review`, `gst-review` and `lodgment-calendar` distributions, and from
+0.10.0 runs the released `australian-tax-calculators` executable. In the development
+workspace, uv takes `gst-review` 0.1.0, `div7a-loan-review` 0.3.2,
 `ato-benchmark-compare` 0.2.2 and `payday-super-checker` 0.2.3, the last Python
 releases, from PyPI.
 
@@ -226,39 +261,118 @@ MCP server uses none of the Rust crates yet.
 ## Alternatives
 
 Australian Accounting calculates from figures you supply, and its research tools use folders
-you configure. As read on 5 November 2026, these projects cover nearby ground:
+you configure. As read on 13 November 2026, these projects cover nearby ground:
 
-- [william-laverty/ato-mcp](https://github.com/william-laverty/ato-mcp): hosted retrieval over ATO
-  documents with point-in-time legislation queries. The repository is AGPL-3.0, and its README calls
-  the hosted platform and corpus proprietary.
+- [william-laverty/ato-mcp](https://github.com/william-laverty/ato-mcp): a hosted MCP connector,
+  for Claude.ai, ChatGPT and other clients after sign-in, over more than 34,500 ATO documents
+  (guidance, legislation and public rulings), with point-in-time legislation queries. Its latest release
+  is v2.3.0 of 22 October 2026. Its [pricing](https://ato-mcp.com.au/pricing) gives 25 lookups a
+  month free and unlimited lookups for $300 a year, and its
+  [privacy page](https://ato-mcp.com.au/privacy), last updated 11 November 2026, names Voyage AI in
+  the United States as turning search queries into vectors and ranking the matching passages. The
+  repository is AGPL-3.0, and its README calls the hosted platform and corpus proprietary.
 - [darrentmorgan/au-accounting](https://github.com/darrentmorgan/au-accounting): MIT-licensed
   Australian calculators with refusal codes in YAML.
 - [PolicyEngine/policyengine-au](https://github.com/PolicyEngine/policyengine-au): microsimulation
   for Australia, a different purpose.
 - [Nagaris](https://nagaris.com/llms.txt): a hosted practice platform for Australian accounting
   firms, with proposals, AML/CTF checks, e-signing, job tracking and an AI assistant on one client
-  file. It publishes browser calculators, including [Division 7A](https://nagaris.com/division-7a-calculator)
-  and [Payday Super due dates](https://nagaris.com/payday-super-due-date-calculator), and the page for
-  the second also states 11 August 2026 for a 30 July 2026 payday. Its
+  file. It publishes browser calculators, including [Division 7A](https://nagaris.com/division-7a-calculator),
+  which with repayments entered also shows interest at the benchmark rate and the closing balance
+  (this repository's Division 7A review computes neither), and
+  [Payday Super due dates](https://nagaris.com/payday-super-due-date-calculator), whose page also
+  states 11 August 2026 for a 30 July 2026 payday. Its
   [AI Accounting Index](https://nagaris.com/ai-accounting-index), which tested third-party AI models
   with each question answered once, reports that none of the 14 setups that answered that question
-  reached 11 August, and says Ask Nagaris adds lookup tables for business days. Read 5 November 2026.
+  got the date right, and says Ask Nagaris adds lookup tables for business days.
 - [Lodgeit](https://lodgeit.net.au/): a hosted platform that
   [prepares and lodges](https://lodgeit.net.au/for-accountants/) returns, BAS and financial reports.
   Its home page calls it an 'Official ATO Standard Business Reporting platform' and states
-  ISO 27001:2022 certification. Read 5 November 2026.
+  ISO 27001:2022 certification.
 - [LodgeiT Labs](https://lodgeit.org/calculators.html): a public HTTP gateway for deterministic
-  calculators with no key or signup, which its page describes as 'Not stable yet'. Its
+  calculators with no key or signup, which its page describes as 'Not stable yet'. The gateway also
+  speaks MCP, and its page says to add it to Claude as a custom connector with no sign-in. Its
   [listing](https://fbt-calculator-api-qkp3j5bjnq-ts.a.run.app/v1/calculators) showed 23 calculators,
   with Division 7A periods `fy2025` and `fy2026` and FBT period `fy2026`. Its page also lists a
   Coal LSL calculator that external contributor Ryan Duguid built and hosts, and this repository has
-  an optional adapter for the gateway. Read 5 November 2026. A
+  an optional adapter for the gateway. A
   [differential](apps/lodgeit-calculator-adapter/docs/differential-2026-11-06.md) of 6 November 2026
   ran 12 fabricated Division 7A and FBT car formula cases against the gateway and records each
-  outcome, with differences traced to statute.
+  outcome, with differences traced to statute. Its `hp:schedule` calculator, as its OpenAPI document
+  read on 15 November 2026 describes it, amortises a hire purchase agreement at a stated nominal
+  rate, reports any residual and totals interest by financial year; `hire-purchase-schedule` instead
+  works out the implicit rate from the payments, as ITAA 1997 s 240-60 does, and closes at nil, but
+  leaves the caller to split a month that spans 30 June. On 16 November 2026 the listing held 19 FBT
+  calculators, each for `fy2026` only. This repository's engine values car, loan, meal entertainment
+  (50/50 split and 12 week register), car parking (commercial parking station, market value, average
+  cost, spaces and 12 week register), debt waiver, expense payment (external, in-house property and
+  in-house residual), property, residual, housing, living-away-from-home allowance, board and
+  tax-exempt body entertainment benefits for the FBT years ending 31 March 2026 and 2027, so each of
+  the listing's 19 FBT calculators has a counterpart here. Its spaces calculator takes one space at
+  a time and leaves the s 39FB reduction to the caller; `fbt-car-parking` takes every space an
+  election covers and applies s 39FB.
+- [AusCalc](https://auscalc.com.au/): free browser calculators for individual and sole trader tax,
+  PAYG, GST, super and HECS, which its home page also offers inside ChatGPT and Claude as a plugin.
+- [PayCalculator](https://mcp.paycalculator.com.au/): a remote MCP server in the MCP Registry for
+  Australian pay, income tax, super, HECS, family payments and child care subsidy.
+- [aftertaxau/au-compliance-kit](https://github.com/aftertaxau/au-compliance-kit), read on
+  14 November 2026: an MIT-licensed JavaScript library with no dependencies, v0.4.0 of
+  13 November 2026, with a local MCP server and a hosted one at `https://aftertaxau.com/mcp` that
+  needs no key. Both it and this repository cover Schedule 1 withholding with scale 4, quarterly
+  pays, tax offsets and the Medicare levy adjustment, and both test all 432 rows of each year's ATO
+  sample data. This repository takes quarterly pays under Schedules 1 and 8 only: its
+  Schedule 5, 9 and 15 commands refuse them. The library also takes quarterly pays under
+  Schedule 9, and covers overtime, which this repository does not. Both add the Schedule 8
+  study loan component to Schedule 9 pays, as rechecked in v0.4.0's source on 15 November 2026;
+  for 2025-26 the library applies the rates from 24 September 2025 when no pay date is given,
+  where this repository requires the date.
+  Both compose a year's tax and levies, work taxable income out from salary and deductions with
+  the $1,000 standard deduction for work-related expenses from 2026-27, and compare the result
+  with tax withheld, as rechecked in the library's source on 16 November 2026. Both work that
+  tax withheld out from one employer's regular pays, with Schedule 5 Method A for a bonus, as
+  rechecked at the library's commit e94cef24 on 16 November 2026: the library from an annual salary
+  spread over 52 weekly, 26 fortnightly or 12 monthly pays, and this repository from one pay's
+  earnings and the number of pays in the year, so it also takes 53 weekly or 27 fortnightly pays,
+  quarterly pays under Schedules 1 and 8, and, under Schedule 1 without a study loan or a bonus,
+  the tax offsets and Medicare levy adjustment a payee declares. The library
+  also applies Method A to a senior's or pensioner's bonus, which this repository refuses. The library's
+  `annual_tax_estimate` approximates repayment income and income for surcharge purposes by taxable
+  income. Both compose a resident's 2027-28 tax with the working Australians tax offset, as
+  rechecked at the library's commit e94cef24 on 16 November 2026: the lesser of $250 and the tax on
+  net labour income, when that exceeds $18,200, which the library's notes call approximate below $250, pending
+  a legislative instrument, though ITAA 1997 s 61-160 as Act No. 49 of 2026 enacts it leaves
+  nothing to one. This repository applies the offset before the seniors and low income tax offsets,
+  as s 63-10(1) orders, where the library applies it after them; the total is the same, but the
+  library can show a smaller offset. This repository also works out 2027-28's seniors and pensioners
+  tax offset thresholds from the regulations' indexation, where the library applies 2026-27's, and
+  compares the total with a given `tax_withheld`, where the library gives no refund for 2027-28.
+  The library estimates 2027-28 with a study loan or without hospital cover on figures the ATO had
+  not published, which this repository refuses: it takes 2027-28 with `tax_withheld`, hospital cover all
+  year and no study loan. This repository's `personal-tax-estimate` takes those incomes as established,
+  names the worksheet behind each line
+  and keeps its sources and refusals, shows Division 293 tax, and refuses part-year residents and
+  working holiday makers; both compose a full-year foreign resident's tax without the Medicare
+  levy. Both apply full and half Medicare levy exemptions and the Medicare levy
+  surcharge; the library takes a whole-year exemption and cover status only and applies the
+  surcharge rate to all income for surcharge purposes, where this repository apportions both by
+  days and applies the rate to taxable income and reportable fringe benefits only, as the ATO's
+  examples do. The library also covers a sole parent's surcharge, which this repository refuses.
+  Both work back from take-home pay to gross: v0.4.0's `salary_for_take_home`, read on
+  15 November 2026, gives the lowest whole-dollar annual salary whose take-home reaches a target,
+  with any study loan component, and `payg-gross-up` gives the gross of one pay, with or without
+  the component, whose withholding leaves the net exactly, listing every gross where more than one
+  does.
+  This repository covers 2024-25
+  withholding, Schedule 9's Medicare levy exemption scales, Schedule 5 Method B, Schedule 15 for
+  working holiday makers and Schedule 11 for termination payments, which the library does not. For
+  2026-27 both apply the 2025-26 Medicare levy low-income thresholds: the library notes that
+  2026-27's are not yet legislated, and this repository applies them as Act No. 58 of 2026 enacts
+  them for 2025-26 and later years.
 
-This repository offers none of those hosted services. It is not a registered tax or BAS agent,
-does not lodge and holds no third-party certification such as ISO 27001.
+This repository offers none of those hosted services. It has no connector for ChatGPT or the
+Claude.ai web app, and it ships no ATO guidance or rulings corpus: its rulings tools search a corpus
+you supply. It is not a registered tax or BAS agent, does not lodge and holds no third-party
+certification such as ISO 27001.
 
 <details>
 <summary>Rust engine installation, component development, boundaries and releases</summary>
@@ -290,10 +404,11 @@ cargo install --locked --git https://github.com/ryanduguid/australian-accounting
 `au-accounting gst-review review-coding` and `reconcile-bas` read JSON on stdin;
 see the [GST Review schemas](packages/gst-review/README.md).
 
-Prebuilt binaries are not published yet, so install from source as above. Release
-Policy's [`release-binary.yml`](https://github.com/ryanduguid/release-policy/blob/main/docs/binary-consumers.md)
-now publishes Windows and Linux executables to GitHub Releases, without crates.io,
-but no crate here has adopted it.
+Release Policy's [`release-binary.yml`](https://github.com/ryanduguid/release-policy/blob/main/docs/binary-consumers.md)
+publishes x86_64 Linux and Windows executables to GitHub Releases, without
+crates.io. Only `australian-tax-calculators` uses it, under
+`australian-tax-calculators/v*` tags; install the other crates from source as
+above.
 
 ## Working in a component
 

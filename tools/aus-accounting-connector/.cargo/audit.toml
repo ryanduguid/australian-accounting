@@ -1,0 +1,13 @@
+# cargo audit reads this file whenever it runs in this directory, as the
+# dependency-audit job in .github/workflows/aus-accounting-connector.yml does. It applies to
+# audits run from this directory and holds one dated exception. Unmaintained notices fail only the
+# scheduled audit (Ryan, 18 November 2026), so that is the run it changes.
+#
+# RUSTSEC-2026-0543: chrono is unmaintained (informational; RustSec, 17 November
+# 2026). This crate's own code uses jiff. chrono 0.4.45 reaches the lock file only
+# through worker 0.8.7 (Cloudflare workers-rs), which depends on chrono
+# unconditionally and exposes it in its public API; worker 0.9.0, its latest
+# release on 18 November 2026, still does. Remove this exception when worker
+# drops chrono.
+[advisories]
+ignore = ["RUSTSEC-2026-0543"]

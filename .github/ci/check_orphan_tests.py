@@ -152,7 +152,8 @@ UNSPLIT = re.compile(r"[^\S \t]")
 ENVIRONMENT = {
     "ACTIONLINT_SHA256", "ACTIONLINT_VERSION", "AU_ACCOUNTING_PARITY_BIN",
     "AU_ACCOUNTING_PARITY_CAP", "BINARY", "CARGO_BUILD_JOBS", "CRATE", "ENGINE", "PYTEST_ADDOPTS",
-    "SHELLCHECK_SHA256", "SHELLCHECK_VERSION", "UV_PYTHON", "UV_VERSION", "WRANGLER_SEND_METRICS",
+    "REQUIRE_STRACE", "SHELLCHECK_SHA256", "SHELLCHECK_VERSION", "UV_PYTHON", "UV_VERSION",
+    "WRANGLER_SEND_METRICS",
 }
 # A comparison is true or false, so this yields the options or nothing.
 ADDOPTS = re.compile(r"\$\{\{ (?:[\w.-]+ == '[^']*' && )+'(?P<options>[^']*)' \|\| '' \}\}")
@@ -168,7 +169,7 @@ OUTPUT = re.compile(r"(?P<name>needs\.(?P<job>[\w-]+)\.outputs\.[\w-]+) == '(?P<
 CHOICE = re.compile(r"\( ?(.*?) ?\)")
 # A quoted literal, whose spaces count, or whitespace outside one.
 LITERAL_OR_SPACE = re.compile(r"('[^']*')|\s+")
-KEY = re.compile(r"""(?P<key>[\w-][\w.-]*|"[^"]*"|'[^']*'):(?:[ \t]+(?P<rest>.*))?""")
+KEY = re.compile(r"""(?P<key>[\w-][\w.-]*|"[^"]*"|'[^']*'):(?:[ \t]+(?P<rest>[^ \t].*)?)?""")
 QUOTED = re.compile(r"""("(?:[^"\\]|\\.)*"|'(?:[^']|'')*')[ \t]*(?:#.*)?""")
 BLOCK_SCALARS = {"|", "|-", "|+", ">", ">-", ">+"}
 

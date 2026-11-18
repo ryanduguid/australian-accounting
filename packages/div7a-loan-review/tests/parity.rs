@@ -13,7 +13,160 @@ use std::process::{Command, Stdio};
 use std::sync::atomic::{AtomicUsize, Ordering};
 
 fn corpus() -> Vec<Value> {
-    serde_json::from_str(include_str!("data/python-cases.json")).expect("corpus parses")
+    let mut cases: Vec<Value> =
+        serde_json::from_str(include_str!("data/python-cases.json")).expect("corpus parses");
+    amend(&mut cases);
+    cases
+}
+
+/// Applies `data/amendments.json`: the answers that deliberate changes made
+/// since Python 0.3.2 replace, kept apart so the frozen record never changes.
+/// Each override replaces one case's `expected`, once. It names the case's
+/// test and, in `was`, the FNV-1a hash of what it replaces: for a command run
+/// the frozen exit code and the hashes of the frozen stdout and stderr, and it
+/// keeps that stderr and, unless it sets `exit_code_changes` to true, that exit
+/// code; for an API call the hash of the frozen answer and, where a hash hides
+/// it, that answer's ok or error status. An amended API answer is stored as
+/// text and keeps that status unless the override sets `status_changes` to
+/// true. A stale index or an override that absorbs another change fails the
+/// replay.
+fn amend(cases: &mut [Value]) {
+    let amendments: Value =
+        serde_json::from_str(include_str!("data/amendments.json")).expect("amendments parse");
+    amend_with(cases, &amendments);
+}
+
+const KEYS: &[&str] = &[
+    "test",
+    "was",
+    "expected",
+    "exit_code_changes",
+    "status_changes",
+];
+
+fn amend_with(cases: &mut [Value], amendments: &Value) {
+    let mut seen = std::collections::HashSet::new();
+    for change in amendments["changes"].as_array().unwrap() {
+        for (index, fields) in change["cases"].as_object().unwrap() {
+            let at = index.parse::<usize>().unwrap();
+            assert!(seen.insert(at), "case {index} amended twice");
+            for key in fields.as_object().unwrap().keys() {
+                assert!(
+                    KEYS.contains(&key.as_str()),
+                    "case {index}: cannot amend {key}"
+                );
+            }
+            let case = &mut cases[at];
+            assert_eq!(case["test"], fields["test"], "case {index} is another test");
+            if case["kind"] == "api" {
+                amend_api(index, case, fields);
+            } else {
+                assert_eq!(case["kind"], "cli", "case {index}: an unknown kind");
+                amend_cli(index, case, fields);
+            }
+        }
+    }
+}
+
+/// Whether an amendment sets `key`: absent is false, and anything but true fails.
+fn flag(index: &str, fields: &Value, key: &str) -> bool {
+    match fields.get(key) {
+        None => false,
+        Some(Value::Bool(true)) => true,
+        Some(other) => panic!("case {index}: {key} is {other}, not true"),
+    }
+}
+
+/// The status of an API answer stored as text, `{"ok": ..}` or `{"error": ..}`
+/// alone; None for one stored as its hash or carrying any other key.
+fn api_status(answer: &Value) -> Option<&'static str> {
+    let answer = answer.as_object().filter(|o| o.len() == 1)?;
+    ["ok", "error"]
+        .into_iter()
+        .find(|key| answer.contains_key(*key))
+}
+
+fn amend_api(index: &str, case: &mut Value, fields: &Value) {
+    assert!(
+        !flag(index, fields, "exit_code_changes"),
+        "case {index}: an API call has no exit code"
+    );
+    let frozen = &case["expected"];
+    let mut was = json!({"answer": match frozen.get("fnv") {
+        Some(_) => stored_fnv(frozen),
+        None => fnv(frozen.to_string().as_bytes()),
+    }});
+    // A hash hides the frozen answer's status, so the amendment states it.
+    let before = match api_status(frozen) {
+        Some(status) => status,
+        None => {
+            let stated = fields["was"]["status"]
+                .as_str()
+                .filter(|status| ["ok", "error"].contains(status))
+                .unwrap_or_else(|| {
+                    panic!(
+                        "case {index}: the frozen answer is stored as a hash, so was must give \
+                         its status, ok or error"
+                    )
+                });
+            was["status"] = json!(stated);
+            stated
+        }
+    };
+    assert_eq!(
+        fields["was"], was,
+        "case {index}: supersedes another answer"
+    );
+    let new = &fields["expected"];
+    let after = api_status(new).unwrap_or_else(|| {
+        panic!("case {index}: the amended answer must be stored as text, ok or error")
+    });
+    let status_changes = flag(index, fields, "status_changes");
+    assert_eq!(
+        after != before,
+        status_changes,
+        "case {index}: {before} answer to {after}, status_changes {status_changes}"
+    );
+    case["expected"] = new.clone();
+}
+
+fn amend_cli(index: &str, case: &mut Value, fields: &Value) {
+    assert!(
+        !flag(index, fields, "status_changes"),
+        "case {index}: a command run has an exit code, not an ok or error status"
+    );
+    let code_changes = flag(index, fields, "exit_code_changes");
+    let frozen = &case["expected"];
+    let new = &fields["expected"];
+    let was = json!({
+        "code": frozen["code"],
+        "stdout": stored_fnv(&frozen["stdout"]),
+        "stderr": stored_fnv(&frozen["stderr"]),
+    });
+    assert_eq!(
+        fields["was"], was,
+        "case {index}: supersedes another answer"
+    );
+    assert_eq!(
+        new["code"] != frozen["code"],
+        code_changes,
+        "case {index}: exit code {} to {}, exit_code_changes {code_changes}",
+        frozen["code"],
+        new["code"]
+    );
+    assert_eq!(
+        new["stderr"], frozen["stderr"],
+        "case {index}: stderr changed"
+    );
+    case["expected"] = new.clone();
+}
+
+/// The FNV-1a hash of a frozen output, stored as its text or as its hash.
+fn stored_fnv(stored: &Value) -> String {
+    match stored {
+        Value::String(text) => fnv(text.as_bytes()),
+        hashed => hashed["fnv"].as_str().expect("a stored output").to_string(),
+    }
 }
 
 /// FNV-1a 64, as the corpus stores outputs over its size limits.
@@ -241,7 +394,7 @@ fn every_command_has_cases() {
 }
 
 /// The published reason-code vocabulary.
-const REASON_CODES: [&str; 23] = [
+const REASON_CODES: [&str; 26] = [
     "REFUSED_GATE_RESULT_MISSING",
     "REFUSED_GATE_NOT_COMPLYING",
     "REFUSED_GATE_UNKNOWN",
@@ -249,6 +402,9 @@ const REASON_CODES: [&str; 23] = [
     "REFUSED_YEAR_IS_YEAR_OF_LOAN",
     "REFUSED_YEAR_BEFORE_LOAN",
     "REFUSED_REMAINING_TERM_NOT_POSITIVE",
+    "REFUSED_REMAINING_TERM_ABOVE_MAXIMUM_TERM",
+    "REFUSED_REMAINING_TERM_ABOVE_LOAN_TERM",
+    "REFUSED_REMAINING_TERM_ABOVE_TERM_LESS_YEARS_ELAPSED",
     "REFUSED_BENCHMARK_RATE_NOT_POSITIVE",
     "GATE_NO_BENCHMARK_YEAR",
     "GATE_WRITTEN_AGREEMENT_FAIL",
@@ -320,6 +476,44 @@ fn the_reason_code_vocabulary_is_exactly_what_the_engine_emits() {
     .unwrap();
     let _ = std::fs::remove_dir_all(&dir);
     collect_codes(&nil, &mut emitted);
+    // Added after the corpus froze: an unsecured loan the gate passes with a
+    // remaining term past its 7-year maximum.
+    let past = api::evaluate(
+        "review-register",
+        &json!({"year_of_income": "2025-26", "rows": [{"loan_id": "L",
+            "written_agreement": "true", "terms_in_place_before_lodgment_day": "true",
+            "maximum_term_years": "7", "secured_by_registered_mortgage_over_real_property": "false",
+            "security_coverage_at_first_made": "", "interest_rate_for_years_after_year_loan_made": "0.0877",
+            "year_loan_made": "2024-25", "amalgamated_loan_unpaid_at_end_of_previous_year": "1000.00",
+            "remaining_term_years": "8", "payments_applied_during_the_year": "0.00"}]}),
+    )
+    .unwrap();
+    collect_codes(&past, &mut emitted);
+    // And one whose remaining term is past its own 5-year term.
+    let past_term = api::evaluate(
+        "review-register",
+        &json!({"year_of_income": "2025-26", "rows": [{"loan_id": "L",
+            "written_agreement": "true", "terms_in_place_before_lodgment_day": "true",
+            "maximum_term_years": "5", "secured_by_registered_mortgage_over_real_property": "false",
+            "security_coverage_at_first_made": "", "interest_rate_for_years_after_year_loan_made": "0.0877",
+            "year_loan_made": "2024-25", "amalgamated_loan_unpaid_at_end_of_previous_year": "1000.00",
+            "remaining_term_years": "7", "payments_applied_during_the_year": "0.00"}]}),
+    )
+    .unwrap();
+    collect_codes(&past_term, &mut emitted);
+    // And a 7-year loan made in 2024-25 with all 7 years still remaining in
+    // 2026-27, when 1 has passed (s 109E(6)(b)).
+    let past_left = api::evaluate(
+        "review-register",
+        &json!({"year_of_income": "2026-27", "rows": [{"loan_id": "L",
+            "written_agreement": "true", "terms_in_place_before_lodgment_day": "true",
+            "maximum_term_years": "7", "secured_by_registered_mortgage_over_real_property": "false",
+            "security_coverage_at_first_made": "", "interest_rate_for_years_after_year_loan_made": "0.0877",
+            "year_loan_made": "2024-25", "amalgamated_loan_unpaid_at_end_of_previous_year": "1000.00",
+            "remaining_term_years": "7", "payments_applied_during_the_year": "0.00"}]}),
+    )
+    .unwrap();
+    collect_codes(&past_left, &mut emitted);
     let published: std::collections::BTreeSet<String> =
         REASON_CODES.iter().map(|c| c.to_string()).collect();
     assert_eq!(emitted, published);
@@ -341,4 +535,115 @@ fn the_version_wraps_like_help_text() {
             .unwrap();
         assert_eq!(lf(&out.stdout), expected, "COLUMNS={columns}");
     }
+}
+
+/// One API case amended as `fields` says, for the amendment guard's own tests.
+fn amended(frozen: Value, mut fields: Value) -> Value {
+    let mut cases = vec![json!({"kind": "api", "test": "t", "expected": frozen})];
+    fields["test"] = json!("t");
+    amend_with(
+        &mut cases,
+        &json!({"changes": [{"change": "c", "cases": {"0": fields}}]}),
+    );
+    cases[0]["expected"].clone()
+}
+
+fn was_of(answer: &Value) -> Value {
+    json!({"answer": fnv(answer.to_string().as_bytes())})
+}
+
+#[test]
+#[should_panic(expected = "case 0: ok answer to error, status_changes false")]
+fn an_api_amendment_cannot_turn_an_ok_answer_into_an_error_unannounced() {
+    let frozen = json!({"ok": {"verdict": "MYR_MET"}});
+    amended(
+        frozen.clone(),
+        json!({"was": was_of(&frozen), "expected": {"error": "decimal.InvalidOperation"}}),
+    );
+}
+
+#[test]
+#[should_panic(expected = "case 0: error answer to ok, status_changes false")]
+fn an_api_amendment_cannot_turn_an_error_into_an_ok_answer_unannounced() {
+    let frozen = json!({"error": "facts or mapping is required"});
+    amended(
+        frozen.clone(),
+        json!({"was": was_of(&frozen), "expected": {"ok": {"verdict": "UNKNOWN"}}}),
+    );
+}
+
+#[test]
+fn an_announced_status_change_is_applied() {
+    let frozen = json!({"ok": {"verdict": "MYR_MET"}});
+    let answer = amended(
+        frozen.clone(),
+        json!({"was": was_of(&frozen), "expected": {"error": "e"}, "status_changes": true}),
+    );
+    assert_eq!(answer, json!({"error": "e"}));
+}
+
+#[test]
+#[should_panic(expected = "case 0: ok answer to ok, status_changes true")]
+fn a_status_change_announced_but_not_made_fails() {
+    let frozen = json!({"ok": {"verdict": "MYR_MET"}});
+    amended(
+        frozen.clone(),
+        json!({"was": was_of(&frozen), "expected": {"ok": {"verdict": "REFUSED"}},
+            "status_changes": true}),
+    );
+}
+
+#[test]
+#[should_panic(
+    expected = "case 0: the frozen answer is stored as a hash, so was must give its status"
+)]
+fn an_answer_frozen_as_a_hash_needs_its_status_stated() {
+    let frozen = json!({"fnv": "0123456789abcdef", "len": 5000});
+    amended(
+        frozen,
+        json!({"was": {"answer": "0123456789abcdef"}, "expected": {"ok": {}}}),
+    );
+}
+
+#[test]
+#[should_panic(expected = "case 0: ok answer to error, status_changes false")]
+fn the_stated_status_of_a_hashed_answer_is_held() {
+    let frozen = json!({"fnv": "0123456789abcdef", "len": 5000});
+    amended(
+        frozen,
+        json!({"was": {"answer": "0123456789abcdef", "status": "ok"}, "expected": {"error": "e"}}),
+    );
+}
+
+#[test]
+#[should_panic(expected = "case 0: the amended answer must be stored as text")]
+fn an_amended_answer_must_show_its_status() {
+    let frozen = json!({"ok": {}});
+    amended(
+        frozen.clone(),
+        json!({"was": was_of(&frozen), "expected": {"fnv": "0123456789abcdef", "len": 5000}}),
+    );
+}
+
+#[test]
+#[should_panic(expected = "case 0: the amended answer must be stored as text")]
+fn an_amended_answer_with_a_hash_beside_its_status_fails() {
+    let frozen = json!({"ok": {}});
+    amended(
+        frozen.clone(),
+        json!({"was": was_of(&frozen),
+            "expected": {"ok": {}, "fnv": "0123456789abcdef", "len": 5000}}),
+    );
+}
+
+#[test]
+#[should_panic(expected = "case 0: a command run has an exit code, not an ok or error status")]
+fn a_command_run_cannot_announce_a_status_change() {
+    let mut cases = vec![json!({"kind": "cli", "test": "t",
+        "expected": {"code": 0, "stdout": "", "stderr": ""}})];
+    amend_with(
+        &mut cases,
+        &json!({"changes": [{"change": "c", "cases": {"0": {"test": "t", "status_changes": true,
+            "was": {}, "expected": {}}}}]}),
+    );
 }

@@ -1,7 +1,7 @@
 # Copyright 2026 Ryan Duguid
 # SPDX-License-Identifier: LicenseRef-Duguid-Public-Attribution-1.0
 
-"""Verify installed facade/engine wheels, without editable workspace sources."""
+"""Verify the installed wheels and calculators executable, outside the source tree."""
 
 from __future__ import annotations
 
@@ -11,14 +11,10 @@ import importlib.metadata
 import json
 from pathlib import Path
 
-from austaxcalc import calculations
-
 from aus_accounting_mcp import reviewed_rates, server
+from aus_accounting_mcp.adapters import tax
 
-ENGINES = (
-    "ato-benchmark-compare", "payday-super-checker",
-    "div7a-loan-review", "australian-tax-calculators",
-)
+ENGINES = ("ato-benchmark-compare", "payday-super-checker", "div7a-loan-review")
 NEW_KINDS = {"study_loan_withholding", "medicare_levy", "low_income_tax_offset", "division_293"}
 REVIEWED_RECORDS = Path(__file__).resolve().parents[3] / "packages" / "au-tax-rates-data" / "data"
 
@@ -43,9 +39,10 @@ def check_records(installed: Path, reviewed: Path) -> int:
 
 
 async def check() -> None:
-    for module in (server, calculations):
-        if "site-packages" not in Path(module.__file__).resolve().parts:
-            raise ValueError("run with non-editable installed wheels outside the source tree")
+    if "site-packages" not in Path(server.__file__).resolve().parts:
+        raise ValueError("run with non-editable installed wheels outside the source tree")
+    if tax.reported_version() != tax.CALCULATORS_VERSION:
+        raise ValueError(f"install {tax.CALCULATORS} {tax.CALCULATORS_VERSION}: {tax.INSTALL}")
     requirements = set(importlib.metadata.requires("aus-accounting-mcp") or [])
     versions = {name: importlib.metadata.version(name) for name in ENGINES}
     for name, version in versions.items():
@@ -65,7 +62,7 @@ async def check() -> None:
             data = result.structured_content
             if data["calculation"] != kind or not data["warnings"]:
                 raise ValueError(f"{kind} lost its calculation identity or warnings")
-            if data["engine_version"] != versions["australian-tax-calculators"]:
+            if data["engine_version"] != tax.CALCULATORS_VERSION:
                 raise ValueError(f"{kind} reported another engine's version")
             calls += 1
     records = check_records(reviewed_rates.RECORDS, REVIEWED_RECORDS)
@@ -76,12 +73,13 @@ async def check() -> None:
         raise ValueError(f"the wheel returned no reviewed rate figure: {rate}")
     print(json.dumps({
         "facade": importlib.metadata.version("aus-accounting-mcp"),
-        "engines": versions,
+        "engines": {**versions, tax.CALCULATORS: tax.CALCULATORS_VERSION},
         "worksheet_kinds": len(catalogue),
         "supported_period_calls": calls,
         "reviewed_rate": rate["record"]["id"],
         "rate_records_equal_to_the_dataset": records,
-        "scope": "Installed wheels; declared exact pins; synthetic examples, not tax validation.",
+        "scope": "Installed wheels and executable; declared exact pins; synthetic examples, "
+                 "not tax validation.",
     }, indent=2))
 
 

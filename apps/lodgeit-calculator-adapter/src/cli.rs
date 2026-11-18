@@ -339,17 +339,22 @@ fn remote(
                 for finding in &findings {
                     out.print(&p!("drift: ", finding))?;
                 }
-                if findings.is_empty() {
-                    out.print(&p!(
-                        "drift: live discovery agrees with snapshot ",
-                        contract.snapshot()
-                    ))?;
+                let has_drift = findings
+                    .iter()
+                    .any(|finding| !finding.starts_with(&pts("note: ")));
+                if !has_drift {
+                    let surface = if contract.openapi_input_schemas.is_some() {
+                        "the reviewed catalogue entries and OpenAPI input schemas agree with snapshot "
+                    } else {
+                        "live discovery agrees with snapshot "
+                    };
+                    out.print(&p!("drift: ", surface, contract.snapshot()))?;
                 }
                 out.print(&pts(
                     "drift: a difference is for a person to review. Nothing here updates a \
                      snapshot.",
                 ))?;
-                return Ok(i32::from(!findings.is_empty()));
+                return Ok(i32::from(has_drift));
             }
             outcome
         }
@@ -470,7 +475,9 @@ fn invoke_body(ns: &Namespace, contract: &Contract, path: &PyPath) -> R<Result<J
     };
     let body = match pyjson::loads_numbers(&text, Numbers::DecimalFloats) {
         Ok(body) => body,
-        Err(DecodeError::Invalid(message)) => return Ok(Err(pts(&message))),
+        Err(DecodeError::Invalid(message) | DecodeError::Hook(message)) => {
+            return Ok(Err(pts(&message)));
+        }
         Err(DecodeError::Recursion(kind)) => {
             return Err(Exc::msg("RecursionError", &pyjson::recursion_message(kind)));
         }

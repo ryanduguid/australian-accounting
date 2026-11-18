@@ -40,7 +40,7 @@ DATASET = PACKAGES / "au-tax-rates-data" / "data"
 
 # How many engine copies of dataset figures _dataset_pairs() compares. An engine
 # table that starts holding a dataset figure needs its own entry there.
-DATASET_PAIRS = 46
+DATASET_PAIRS = 62
 
 
 def _metadata_literal(name: str):
@@ -96,6 +96,13 @@ def _dataset_pairs() -> list[tuple[str, Decimal, Decimal | None]]:
             where = f"{year} resident scale over {low} (metadata.rs RESIDENT_TAX_SCALES)"
             pairs.append((f"{where} threshold", Decimal(row["from"]) - 1, Decimal(low)))
             pairs.append((f"{where} rate", Decimal(str(row["marginal_rate"])), Decimal(rate) * 100))
+    # The foreign resident scale starts at $0, so its brackets compare by their tops.
+    foreign = _metadata_literal("FOREIGN_RESIDENT_TAX_SCALES")["2025-26"]
+    for row, (low, high, rate) in zip(_record("foreign-resident-tax-rates-2025-26")["value"], foreign):
+        where = f"2025-26 foreign resident scale over {low} (metadata.rs FOREIGN_RESIDENT_TAX_SCALES)"
+        if high is not None:
+            pairs.append((f"{where} upper bound", Decimal(row["to"]), Decimal(high)))
+        pairs.append((f"{where} rate", Decimal(str(row["marginal_rate"])), Decimal(rate) * 100))
     payday = json.loads(PAYDAY_RATES.read_text(encoding="utf-8"))["financial_years"]["2026-27"]
     caps = _calculator_caps()
     pairs += [
@@ -122,16 +129,21 @@ def _dataset_pairs() -> list[tuple[str, Decimal, Decimal | None]]:
             (f"{year} non-concessional cap (metadata.rs, 4 x CONTRIBUTION_CAPS)",
              _value(f"non-concessional-cap-{year}"), Decimal(caps[year][0]) * 4),
         ]
-    medicare = _metadata_literal("MEDICARE_LOW_INCOME_THRESHOLDS")["2025-26"]
+    medicare = _metadata_literal("MEDICARE_LOW_INCOME_THRESHOLDS")
     tables = {
         "STUDY_LOAN_REPAYMENT_THRESHOLDS 2026-27":
             dict(_metadata_literal("STUDY_LOAN_REPAYMENT_THRESHOLDS")["2026-27"]),
         "STUDY_LOAN_REPAYMENT_RATES": _metadata_literal("STUDY_LOAN_REPAYMENT_RATES"),
-        "MEDICARE_LOW_INCOME_THRESHOLDS 2025-26": {"threshold": medicare[0], "phase_in": medicare[1]},
+        **{f"MEDICARE_LOW_INCOME_THRESHOLDS {year}":
+           {"threshold": medicare[year][0], "phase_in": medicare[year][1]}
+           for year in ("2025-26", "2026-27")},
         "MEDICARE_LEVY_RATES": _metadata_literal("MEDICARE_LEVY_RATES"),
         "LOW_INCOME_TAX_OFFSET": _metadata_literal("LOW_INCOME_TAX_OFFSET"),
         "DIVISION_293": _metadata_literal("DIVISION_293"),
+        "DIVISION_296": _metadata_literal("DIVISION_296"),
+        "TERMINATION_PAYMENT": _metadata_literal("TERMINATION_PAYMENT"),
         "FBT_BENCHMARK_INTEREST_RATES": _metadata_literal("FBT_BENCHMARK_INTEREST_RATES"),
+        "FBT_CAR_PARKING_THRESHOLDS": _metadata_literal("FBT_CAR_PARKING_THRESHOLDS"),
     }
     for name, table, key in (
         ("study-loan-repayment-threshold-2026-27", "STUDY_LOAN_REPAYMENT_THRESHOLDS 2026-27", "minimum"),
@@ -143,12 +155,24 @@ def _dataset_pairs() -> list[tuple[str, Decimal, Decimal | None]]:
         ("study-loan-repayment-flat-rate-2026-27", "STUDY_LOAN_REPAYMENT_RATES", "flat"),
         ("medicare-low-income-lower-threshold-2025-26", "MEDICARE_LOW_INCOME_THRESHOLDS 2025-26", "threshold"),
         ("medicare-low-income-upper-threshold-2025-26", "MEDICARE_LOW_INCOME_THRESHOLDS 2025-26", "phase_in"),
+        # The records' notes: Act No. 58, 2026 applies the 2025-26 figures to later years.
+        ("medicare-low-income-lower-threshold-2025-26", "MEDICARE_LOW_INCOME_THRESHOLDS 2026-27", "threshold"),
+        ("medicare-low-income-upper-threshold-2025-26", "MEDICARE_LOW_INCOME_THRESHOLDS 2026-27", "phase_in"),
         ("medicare-levy-rate", "MEDICARE_LEVY_RATES", "levy"),
         ("lito-maximum", "LOW_INCOME_TAX_OFFSET", "maximum"),
         ("lito-income-limit", "LOW_INCOME_TAX_OFFSET", "cut_out"),
         ("division-293-threshold", "DIVISION_293", "threshold"),
         ("division-293-tax-rate", "DIVISION_293", "rate"),
+        ("division-296-large-super-balance-threshold-2026-27", "DIVISION_296", "large_threshold"),
+        ("division-296-very-large-super-balance-threshold-2026-27", "DIVISION_296", "very_large_threshold"),
+        ("division-296-tax-rate", "DIVISION_296", "rate"),
+        ("division-296-very-large-balance-tax-rate", "DIVISION_296", "very_large_rate"),
+        ("etp-cap-life-benefit-2026-27", "TERMINATION_PAYMENT", "etp_cap"),
+        ("etp-whole-of-income-cap-2026-27", "TERMINATION_PAYMENT", "whole_of_income_cap"),
+        ("genuine-redundancy-base-limit-2026-27", "TERMINATION_PAYMENT", "base_amount"),
+        ("genuine-redundancy-service-amount-2026-27", "TERMINATION_PAYMENT", "service_amount"),
         ("fbt-benchmark-interest-rate-fbt-year-2027", "FBT_BENCHMARK_INTEREST_RATES", "2027"),
+        ("fbt-car-parking-threshold-fbt-year-2027", "FBT_CAR_PARKING_THRESHOLDS", "2027"),
     ):
         copy = Decimal(tables[table][key])
         if _record(name)["unit"] == "percent":
@@ -394,6 +418,8 @@ class DatasetAgreementTests(unittest.TestCase):
             taxed = [row for row in _record(f"resident-tax-rates-{year}")["value"] if row["marginal_rate"]]
             with self.subTest(year=year):
                 self.assertEqual(len(taxed), len(scales[year]))
+        foreign = _record("foreign-resident-tax-rates-2025-26")["value"]
+        self.assertEqual(len(foreign), len(_metadata_literal("FOREIGN_RESIDENT_TAX_SCALES")["2025-26"]))
 
 
 if __name__ == "__main__":

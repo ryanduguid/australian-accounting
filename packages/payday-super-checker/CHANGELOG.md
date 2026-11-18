@@ -8,9 +8,19 @@ their flags, help, validation, console output, written files and exit codes.
 The former API functions are JSON stdin subcommands, documented in README.md.
 No deadline, business-day, GIC, notional-earnings, uplift, rounding, refusal or
 message rule is intentionally changed, except the Employment Hero Beam
-status and the returned contributions below.
+status, the returned contributions and the receipt evidence columns below (their
+refusals, and 3 more fields in every printed list of valid fields), the
+wording of the first-contribution hint on a late line, and the import's notice
+of skipped super rows.
 
 ### Added
+
+- `import` names every super row it skips because the profile does not read its
+  contribution type as super guarantee: one warning gives the count and each
+  type with up to 20 of its row numbers. Python 0.2.2 dropped those rows
+  silently unless every row was skipped. Which rows are skipped, every figure
+  and the exit code are unchanged. The JSON `read-super` adds `skipped` when it
+  left a row out, and `import-files` carries the warning.
 
 - `usi-check` reads the USIs in a CSV against your local copy of the daily USI
   extract from Super Fund Lookup. `LISTED` means only that the extract shows the
@@ -32,7 +42,18 @@ status and the returned contributions below.
   `docs/primary-source-review-2026-10-31.md`; limits are PSC-3 in `LIMITATIONS.md`.
 - The Excel workbook has a `returned_by_fund` column with the same meaning: the row
   is `UNKNOWN`, with no exposure, between `UNPAID` and `ON_TIME` or `LATE`, and such a
-  row with no SG amount to test is `BLOCKED`. Events stay in the checker.
+  row with no SG amount to test is `BLOCKED`. An Events sheet takes the `--events`
+  columns: a line an event names is `UNKNOWN` between `UNPAID` and `ON_TIME` with no
+  exposure, because the workbook does not weigh events, and an event that names no
+  line, names several or cannot be read is `BLOCKED`.
+- Optional `receipt_evidence`, `mvr_status` and `fund_error_ref` columns, also on
+  the JSON `assess` line, record where a receipt is known from, the fund's member
+  verification answer and any fund error. They change no verdict, figure or exit
+  code: the row's notes list them, a fund error or failed verification adds a caveat,
+  and a row they contradict is refused. An `AT_RISK` row for a QE day to 30 June 2027,
+  remitted on the QE day and with no fund error received, gets a note quoting
+  the ATO's first-year approach and stays `AT_RISK`. Sources are in
+  `docs/primary-source-review-2026-11-08.md`; limits are PSC-4 in `LIMITATIONS.md`.
 - `import` writes `returned_by_fund=yes` for Beam's 'Sent to fund with refund', in
   a column that appears only when a row needs it. It says no supported export
   carries a fund receipt date, because only the shipped profiles were inspected.
@@ -105,6 +126,12 @@ root.
 
 ### Documented divergences
 
+- Without `--as-at`, the date assumed is today's in the zone `TZ` names, or
+  in the system zone when `TZ` is unset. A `TZ` that names no zone gives the
+  UTC date, as Python 0.2.2 did. On Windows Python read a zone name such as
+  `Australia/Sydney` in `TZ` as UTC; this reads it as that zone. Before 10:00
+  in Sydney (11:00 in daylight time) the UTC date is the day before, which can
+  change a verdict, so the notice names the date assumed.
 - The Employment Hero profile treats Beam's Reconciled status as not yet sent
   to the fund, as does Python maintenance release 0.2.3. Python 0.2.2 counted it as sent, but Beam's status order puts
   Reconciled (employer money cleared by Beam) before Sent to fund. A Reconciled
@@ -117,6 +144,20 @@ root.
   other status is still refused. The
   replay applies the changed answers from `tests/data/amendments.json`, leaving
   the frozen Python record unchanged.
+- The hint on a line that is late under 7 business days, but whose payment
+  landed within the 20 a first contribution gets, names recommenced
+  employment. Python 0.2.2 said 'If it is a new starter or a fund
+  switch'. The hint now says 'If it is the first after employment starts or
+  recommences (including rehiring a worker under a new arrangement), or after a
+  fund switch'. SGAA s 18C(2) item 1 covers the first eligible contribution
+  after an employee 'commenced (or recommenced) employment', and the ATO's
+  [Payment deadlines for Payday Super](https://www.ato.gov.au/businesses-and-organisations/super-for-employers/paying-super-on-payday/payment-deadlines-for-payday-super)
+  (last updated 29 September 2026, read 10 November 2026) gives the same 20
+  business days where an employer has 'rehired or recommenced work with someone
+  under a new arrangement'. No deadline, verdict or figure changes. Output
+  that carries the hint differs (the console summary, the report and JSON
+  results), and so does the digest an evidence pack records over its report.
+  The replay's changed answers are in `tests/data/amendments.json`.
 - Python imports, dataclasses, exception classes and package version lookup are
   removed. `--version` reports the Cargo version, 1.0.0; Python 0.2.2 reported
   `0.2.2`. The report CSV's NOTE row records the version too, in a written
