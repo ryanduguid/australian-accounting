@@ -8,6 +8,13 @@ prints the version. See [CHANGELOG.md](CHANGELOG.md) for migration,
 verification and documented divergences, and [README.md](README.md) to build
 or download it.
 
+Some results differ from 0.2.0's. `contribution-caps` now reports as
+`carry_forward_applied` only the unused concessional cap that covers
+contributions over the year's cap, as ITAA 1997 s 291-20(4) applies it: with a
+$30,000 cap, $15,000 unused and $40,000 contributed, it is $10,000, not
+$15,000. CHANGELOG.md lists every other change to results, scope statements,
+sources and refusals.
+
 Relicensed from Apache-2.0 to FSL-1.1-ALv2 (Functional Source License, with
 Apache-2.0 as the future licence). Released versions keep their licence.
 
