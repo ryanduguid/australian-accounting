@@ -5,7 +5,8 @@
 
 The release gate runs plain `pytest` without one, and test modules call the
 calculators whilst they are collected, so this runs in pytest_configure, before
-collection. An executable in AUS_TAX_CALCULATORS_BIN or on PATH is used as it is.
+collection. An executable in AUS_TAX_CALCULATORS_BIN or on PATH is used as it is;
+otherwise the built one's folder goes first on PATH.
 """
 
 import json
@@ -46,7 +47,9 @@ def pytest_configure() -> None:
     [binary] = [message["executable"] for message in map(json.loads, build.stdout.splitlines())
                 if message.get("reason") == "compiler-artifact"
                 and message["target"]["name"] == tax.CALCULATORS and message["executable"]]
-    os.environ[tax.BINARY_VARIABLE] = binary
+    # PATH, as CI gives it, because test_mcp_evaluation's server inherits PATH but not
+    # AUS_TAX_CALCULATORS_BIN.
+    os.environ["PATH"] = os.pathsep.join([os.path.dirname(binary), os.environ["PATH"]])
     try:
         tax._binary()
     except tax.CalculatorsUnavailable as exc:
