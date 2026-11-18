@@ -18,12 +18,14 @@ from select_package import is_shared, parse_changed_paths
 # Root pytest checks these lists against the manifests. Its required
 # boundaries-gates owner runs on every change, including a skipped app.
 DEPENDENCIES = {
-    # The MCP server takes div7a-loan-review, ato-benchmark-compare,
-    # payday-super-checker and gst-review from PyPI until it links the Rust
-    # crates, so their directories do not select it. Its tests run the
-    # australian-tax-calculators executable built from this commit.
+    # The unreleased native server links these Rust engines by path, which is
+    # what selects this application's checks. The published Python server still
+    # takes div7a-loan-review, ato-benchmark-compare, payday-super-checker and
+    # gst-review from PyPI, and its tests run the australian-tax-calculators
+    # executable built from this commit.
     "aus-accounting-mcp": frozenset({
-        "lodgment-calendar", "australian-tax-calculators",
+        "ato-benchmark-compare", "australian-tax-calculators", "div7a-loan-review",
+        "gst-review", "lodgment-calendar", "payday-super-checker",
     }),
     # The adapter's trials link these Rust engines by path.
     "lodgeit-calculator-adapter": frozenset({
