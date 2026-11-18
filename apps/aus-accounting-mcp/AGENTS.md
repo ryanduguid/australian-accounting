@@ -25,7 +25,7 @@ component. Read [root CONTRIBUTING.md](../../CONTRIBUTING.md) for workspace
 lockfile behaviour and the additional packaging and release checks. The tests
 run the `australian-tax-calculators` executable: build it with `cargo build
 --locked` in `packages/australian-tax-calculators` and put its `target/debug`
-folder on `PATH`, as CI does, or name the executable in `AUS_TAX_CALCULATORS_BIN`:
+folder on `PATH`, as CI does, or give its absolute path in `AUS_TAX_CALCULATORS_BIN`:
 
 ```bash
 uv run --locked --extra dev pytest -q --cov=aus_accounting_mcp --cov-branch --cov-report=term-missing

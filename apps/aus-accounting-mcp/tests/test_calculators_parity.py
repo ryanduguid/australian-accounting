@@ -10,12 +10,14 @@ zero and edge amounts, the conformance cases, the scope catalogue, the
 disclaimer's worksheet section and the data freshness datasets. The oracle
 holds a placeholder for the engine version.
 
-Calculators 1.0.0 changes only what DIVERGED lists, each under 'Documented
-divergences' in packages/australian-tax-calculators/CHANGELOG.md: newer scope
-statements, sources, source dates and evidence for 8 kinds, and one amount,
-contribution_caps' carry_forward_applied. Every refusal, every other amount and
-every other field must be the oracle's. A diverged field must equal what the
-served catalogue states for its kind, so results and catalogue agree.
+Calculators 1.0.0 changes only what DIVERGED lists, each recorded in
+packages/australian-tax-calculators/CHANGELOG.md: newer sources, source dates and
+evidence for 7 kinds, and one amount, contribution_caps' carry_forward_applied.
+The scope statements and required inputs stay the oracle's, because the adapter
+serves ACCEPTED_SCOPES and ACCEPTED_INPUTS where 1.0.0 describes inputs TaxFacts
+does not take. Every refusal, every other amount and every other field must be the
+oracle's. A diverged field must equal what the served catalogue states for its
+kind, so results and catalogue agree.
 """
 
 import asyncio
@@ -36,25 +38,19 @@ _TEXT = (Path(__file__).parent / "calculators_0_2_0_oracle.json").read_text(enco
 ORACLE = json.loads(_TEXT.replace("<calculators version>", tax.CALCULATORS_VERSION))
 CALLS = ORACLE["calculate_tax_worksheet"]
 # Result metadata a kind may change, as the changelog records.
-METADATA = {"scope", "sources", "source_checked"}
-DIVERGED = {
-    "contribution_caps": METADATA,
-    "depreciation": METADATA,
-    "fbt": METADATA,
-    "medicare_levy": METADATA,
-    "payg_withholding": METADATA,
-    "study_loan_repayment": {"sources", "source_checked"},
-    "study_loan_withholding": METADATA,
-}
+METADATA = {"sources", "source_checked"}
+DIVERGED = dict.fromkeys(
+    ["contribution_caps", "depreciation", "fbt", "medicare_levy", "payg_withholding",
+     "study_loan_repayment", "study_loan_withholding"], METADATA)
 # Catalogue fields a kind may change, beyond its result metadata.
 CATALOGUE_DIVERGED = {
     "contribution_caps": {"source_passage"},
     "depreciation": {"source_passage"},
     "fbt": {"source_passage"},
     "medicare_levy": {"source_passage", "example_evidence"},
-    "payg_withholding": {"source_passage", "example_evidence", "required_inputs"},
+    "payg_withholding": {"source_passage", "example_evidence"},
     "study_loan_repayment": {"source_passage", "example_evidence", "source"},
-    "study_loan_withholding": {"source_passage", "example_evidence", "required_inputs"},
+    "study_loan_withholding": {"source_passage", "example_evidence"},
 }
 
 

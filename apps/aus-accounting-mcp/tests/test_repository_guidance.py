@@ -134,7 +134,7 @@ def test_agents_tracks_exact_ci_commands_and_classifies_other_checks() -> None:
         lockfile behaviour and the additional packaging and release checks. The tests
         run the `australian-tax-calculators` executable: build it with `cargo build
         --locked` in `packages/australian-tax-calculators` and put its `target/debug`
-        folder on `PATH`, as CI does, or name the executable in `AUS_TAX_CALCULATORS_BIN`:
+        folder on `PATH`, as CI does, or give its absolute path in `AUS_TAX_CALCULATORS_BIN`:
         """
     )
 

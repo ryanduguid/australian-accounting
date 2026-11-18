@@ -3,10 +3,11 @@
 
 """Validate worksheet facts and delegate all arithmetic to the calculators executable.
 
-The australian-tax-calculators binary is found through AUS_TAX_CALCULATORS_BIN,
-then PATH, and used only when `--version` names exactly the release this server
-was tested against. Without it the tax worksheets refuse with an install message
-and every other tool still works.
+The australian-tax-calculators binary is the absolute path in
+AUS_TAX_CALCULATORS_BIN, else the first in PATH's absolute folders, and is used
+only when `--version` names exactly the release this server was tested against.
+Without it the tax worksheets refuse with an install message and every other tool
+still works.
 """
 
 import json
@@ -30,8 +31,8 @@ INSTALL = (
     f"The tax worksheets need the {CALCULATORS} {CALCULATORS_VERSION} executable from "
     "https://github.com/ryanduguid/australian-accounting/releases/tag/"
     f"{CALCULATORS}/v{CALCULATORS_VERSION}, verified as that release describes, on PATH "
-    f"or named by {BINARY_VARIABLE}. Tell the user; retrying will not help until it is "
-    "installed. The other tools work without it."
+    f"or at the absolute path in {BINARY_VARIABLE}. Tell the user; retrying will not help "
+    "until it is installed. The other tools work without it."
 )
 # A worksheet answers in milliseconds; this bounds a hung or wrong executable.
 TIMEOUT_SECONDS = 60
@@ -42,13 +43,27 @@ class CalculatorsUnavailable(ToolError):
 
 
 def _executable() -> str | None:
-    return os.environ.get(BINARY_VARIABLE) or shutil.which(CALCULATORS)
+    """An absolute path: the operator's AUS_TAX_CALCULATORS_BIN, else PATH's first match.
+
+    Never the working directory: shutil.which and Windows' own search try it first,
+    so only PATH's absolute folders are searched, each by an absolute name.
+    """
+    named = os.environ.get(BINARY_VARIABLE)
+    if named:
+        if not os.path.isabs(named):
+            raise CalculatorsUnavailable(
+                f"{BINARY_VARIABLE} must be an absolute path, not {named!r}. {INSTALL}")
+        return named
+    for folder in os.environ.get("PATH", "").split(os.pathsep):
+        if os.path.isabs(folder) and (found := shutil.which(os.path.join(folder, CALCULATORS))):
+            return found
+    return None
 
 
 def _run(binary: str, arguments: list[str], payload: str = "") -> subprocess.CompletedProcess[str]:
     try:
-        # An argument list and no shell; the executable is the one the operator named
-        # or put on PATH, and the arguments are fixed command names.
+        # An argument list and no shell; the executable is the absolute path the
+        # operator named or put on PATH, and the arguments are fixed command names.
         return subprocess.run(  # NOSONAR nosemgrep
             [binary, *arguments], input=payload, capture_output=True, text=True,  # nosemgrep
             encoding="utf-8", timeout=TIMEOUT_SECONDS, check=False,
@@ -59,10 +74,10 @@ def _run(binary: str, arguments: list[str], payload: str = "") -> subprocess.Com
 
 def reported_version() -> str | None:
     """The version the executable found reports, or None when there is none to read."""
-    binary = _executable()
-    if binary is None:
-        return None
     try:
+        binary = _executable()
+        if binary is None:
+            return None
         reply = _run(binary, ["--version"])
     except CalculatorsUnavailable:
         return None
@@ -93,8 +108,9 @@ def _command(command: str, payload: dict[str, Any]) -> dict[str, Any]:
         answer = None
     if reply.returncode == 0 and isinstance(answer, dict):
         return answer
-    if reply.returncode == 2 and isinstance(answer, dict) and answer.get("ok") is False:
-        raise InputError(str(answer["message"]))
+    if (reply.returncode == 2 and isinstance(answer, dict) and answer.get("ok") is False
+            and isinstance(answer.get("message"), str)):
+        raise InputError(answer["message"])
     raise CalculatorsUnavailable(
         f"{binary} {command} exited {reply.returncode}: {reply.stderr.strip()[:500]}"
     )
@@ -255,6 +271,78 @@ MONEY_FIELDS = {
 }
 
 
+# The executable describes more for these kinds than TaxFacts takes: quarterly pays,
+# scale 4, offsets and Medicare adjustments, later-year depreciation, the FBT year
+# ended 31 March 2027, Medicare family, SAPTO and exemption inputs, and earlier years'
+# contributions. Their catalogue entries and results state what this tool accepts
+# instead, as aus-accounting-mcp 0.9.0 did. Widening TaxFacts would retire them.
+ACCEPTED_SCOPES = {
+    "contribution_caps": (
+        "One individual's contributions received by all their funds in the income year, already"
+        " classified by the operator as concessional or non-concessional, with no bring-forward"
+        " period started in either of the 2 previous years. Total super balance is at the 30 "
+        "June before the year; unused concessional cap is the established total of unexpired "
+        "amounts from the previous 5 years. Excludes classification, fund acceptance and "
+        "work-test rules, deductibility, the CGT cap, downsizer and other excluded "
+        "contributions, excess concessional amounts counting as non-concessional, "
+        "determinations, release elections, Division 293 tax and the transfer balance cap."
+    ),
+    "depreciation": (
+        "First year only, ordinary tangible Division 40 asset first held on or after 10 May "
+        "2006. Established cost, effective life and taxable-use proportion. Days run from first"
+        " use or installation ready for use. No second-element costs, disposals, changed life, "
+        "pooling, immediate write-offs, special assets or Division 43 capital works. Does not "
+        "determine an effective life from an asset description."
+    ),
+    "fbt": (
+        "Ordinary taxable employer, established type 1 and type 2 taxable values for the year "
+        "ended 31 March 2026. Excludes benefit valuation, exemptions, rebates and "
+        "not-for-profit caps. Retains gross-up precision for the estimate, then presents the "
+        "amounts to cents. The return_item figures follow the FBT return instead: items 14A and"
+        " 14B rounded to the nearest dollar, as the ATO's own worked example does, item 15 as "
+        "their sum and item 16 at 47%, before any optional rounding down to 5 cents."
+    ),
+    "medicare_levy": (
+        "Australian resident individual for the full income year, single with no spouse or "
+        "dependants at any time in the year, not entitled to the seniors and pensioners tax "
+        "offset, and not entitled to any full or half Medicare levy exemption. The operator "
+        "must also establish whether s 9A applies: from 2024-25 it takes eligible lump sums in "
+        "arrears out of taxable income when they are at least 10% of normal taxable income and "
+        "its accrual-year tests are met. A person to whom s 9A applies is refused. Supply "
+        "established whole-dollar taxable income. Applies the 2% rate and the low-income "
+        "reduction: no levy at or below the threshold amount, and up to the phase-in limit no "
+        "more than 10% of the excess over it. Excludes the family income reduction, SAPTO "
+        "thresholds, exemptions, the Medicare levy surcharge, trustees and part-year residence."
+    ),
+    "payg_withholding": (
+        "One regular weekly, fortnightly or monthly payment of salary or wages made from 1 July"
+        " 2026 to a payee who gave a TFN, on scale 1, 2, 3, 5 or 6 as the operator established "
+        "from the payee's declarations. Earnings include allowances subject to withholding. "
+        "Excludes scale 4, tax offsets, Medicare levy adjustments, study and training support "
+        "loans, extra amounts for 53 or 27 pays, quarterly and bi-monthly pays, back payments, "
+        "bonuses, termination and other schedules."
+    ),
+    "study_loan_withholding": (
+        "One regular weekly, fortnightly or monthly payment of salary or wages made from 1 July"
+        " 2026 to a payee who gave a TFN declaration or withholding declaration saying they "
+        "have a study and training support loan debt, on scale 1, 2, 3, 5 or 6 as the operator "
+        "established. Scale 1 uses the Schedule 8 component for a payee who did not claim the "
+        "tax-free threshold; scales 2, 3, 5 and 6 use the one for a payee who claimed it or is "
+        "a foreign resident. Earnings include allowances subject to withholding. The result is "
+        "the Schedule 1 amount plus the Schedule 8 component, each rounded to the dollar; the "
+        "ATO's combined coefficients can differ by a dollar and it accepts either method. "
+        "Excludes scale 4, a Medicare levy variation for a spouse or dependants, tax offsets, "
+        "extra amounts for 53 or 27 pays, quarterly pays, lump sum termination payments, back "
+        "payments, bonuses and other schedules."
+    ),
+}
+ACCEPTED_INPUTS = {
+    "payg_withholding": {"pay_period": "weekly, fortnightly or monthly",
+                         "scale": "integer 1, 2, 3, 5 or 6"},
+    "study_loan_withholding": {"pay_period": "weekly, fortnightly or monthly"},
+}
+
+
 def calculate(facts: TaxFacts) -> dict[str, Any]:
     arguments = facts.model_dump()
     kind = arguments.pop("kind")
@@ -269,15 +357,19 @@ def calculate(facts: TaxFacts) -> dict[str, Any]:
             except InvalidOperation as exc:
                 raise InputError(str(exc)) from exc
     # Each kind is its subcommand, hyphenated.
-    return _command(kind.replace("_", "-"), arguments)
+    result = _command(kind.replace("_", "-"), arguments)
+    if kind in ACCEPTED_SCOPES:
+        result["scope"] = ACCEPTED_SCOPES[kind]
+    return result
 
 
 def worksheet_catalogue() -> dict[str, Any]:
     """The executable's catalogue, narrowed to what calculate_tax_worksheet accepts.
 
-    The executable has more worksheets, periods and optional inputs than TaxFacts
-    takes; advertising those would invite calls the tool refuses. Kinds and periods
-    are kept only where their example validates, and optional inputs are dropped.
+    The executable has more worksheets, periods and inputs than TaxFacts takes;
+    advertising those would invite calls the tool refuses. Kinds and periods are kept
+    only where their example validates, optional inputs are dropped, and the kinds in
+    ACCEPTED_SCOPES state that scope and ACCEPTED_INPUTS' descriptions.
     """
     narrowed: dict[str, Any] = {}
     for kind, entry in _command("worksheet-catalogue", {}).items():
@@ -290,7 +382,11 @@ def worksheet_catalogue() -> dict[str, Any]:
             periods.append(period)
         if periods:
             kept = {key: value for key, value in entry.items() if key != "optional_inputs"}
-            narrowed[kind] = {**kept, "supported_periods": periods}
+            narrowed[kind] = {
+                **kept, "supported_periods": periods,
+                "scope": ACCEPTED_SCOPES.get(kind, entry["scope"]),
+                "required_inputs": {**entry["required_inputs"], **ACCEPTED_INPUTS.get(kind, {})},
+            }
     return narrowed
 
 

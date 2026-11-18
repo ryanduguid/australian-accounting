@@ -29,12 +29,11 @@ from mcp.client.stdio import stdio_client
 
 from aus_accounting_mcp.adapters import tax
 
-GUARD = """
-import os, shutil, subprocess, sys
+# The path the tax adapter finds, here and in the server, which shares this
+# environment; the worksheets run it and nothing else.
+GUARD = f"CALCULATORS = {tax._executable()!r}\n" + """
+import os, subprocess, sys
 
-# Found as the tax adapter finds it; the worksheets run it and nothing else.
-CALCULATORS = (
-    os.environ.get("AUS_TAX_CALCULATORS_BIN") or shutil.which("australian-tax-calculators"))
 # Windows audits the command line Popen builds, not the argument list.
 CALCULATORS_LINE = CALCULATORS and subprocess.list2cmdline([CALCULATORS])
 
@@ -55,6 +54,9 @@ def socketpair_loopback(event, args):
 
 def calculators(event, args):
     if event not in {"subprocess.Popen", "os.posix_spawn"} or CALCULATORS is None:
+        return False
+    # The program run: Popen's executable (None on Windows unless given), or the spawn path.
+    if args[0] not in (None, CALCULATORS):
         return False
     if isinstance(args[1], str):
         return args[1] == CALCULATORS_LINE or args[1].startswith(f"{CALCULATORS_LINE} ")
@@ -194,9 +196,14 @@ def test_the_socketpair_exemption_covers_only_its_own_loopback_calls(body):
     assert completed.returncode == 99, completed.stderr
 
 
-@pytest.mark.parametrize("argv", ["[sys.executable, '-V']", "'australian-tax-calculators'"])
+@pytest.mark.parametrize("argv", [
+    "[sys.executable, '-V']",
+    "'australian-tax-calculators'",
+    "[CALCULATORS, '-c', 'pass'], executable=sys.executable",
+], ids=["another program", "the bare name", "another program under its name"])
 def test_the_calculators_exemption_covers_only_that_executable(argv):
-    # Another program, or the bare name looked up again, is not the exempt path.
+    # Another program, the bare name looked up again, or another program given the
+    # exempt path as its first argument, is not the exempt executable.
     source = GUARD + f"subprocess.run({argv}, check=False)\n"
     completed = subprocess.run([sys.executable, "-c", source], capture_output=True, timeout=30)
     assert completed.returncode == 99, completed.stderr

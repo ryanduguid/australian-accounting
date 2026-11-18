@@ -5,6 +5,7 @@
 
 import asyncio
 import json
+import os
 import subprocess
 from pathlib import Path
 
@@ -48,6 +49,28 @@ def test_the_variable_is_used_before_path(monkeypatch, tmp_path) -> None:
     monkeypatch.setenv("PATH", str(Path(REAL).parent))
     assert _gst()["amounts"]["gst"] == "100.00"
     assert tax.reported_version() == tax.CALCULATORS_VERSION
+
+
+def test_a_relative_variable_is_refused(monkeypatch, tmp_path) -> None:
+    # Resolved by the operating system, a bare name could run a file in the working directory.
+    monkeypatch.chdir(tmp_path)
+    monkeypatch.setenv(tax.BINARY_VARIABLE, tax.CALCULATORS)
+    with pytest.raises(ToolError, match=f"{tax.BINARY_VARIABLE} must be an absolute path"):
+        asyncio.run(mcp.call_tool("calculate_tax_worksheet", {"facts": GST}))
+    assert tax.reported_version() is None
+
+
+def test_the_path_search_never_takes_the_working_directory(monkeypatch, tmp_path) -> None:
+    # Windows' search, and shutil.which there, try the working directory before PATH.
+    for name in (tax.CALCULATORS, f"{tax.CALCULATORS}.exe"):
+        (tmp_path / name).write_text("")
+        (tmp_path / name).chmod(0o755)
+    monkeypatch.chdir(tmp_path)
+    monkeypatch.delenv(tax.BINARY_VARIABLE, raising=False)
+    monkeypatch.setenv("PATH", os.pathsep.join([str(tmp_path / "empty"), os.curdir, ""]))
+    assert tax._executable() is None
+    monkeypatch.setenv("PATH", os.pathsep.join([os.curdir, str(Path(REAL).parent)]))
+    assert Path(tax._executable()).parent == Path(REAL).parent
 
 
 def test_without_the_executable_the_worksheet_says_how_to_install_it(monkeypatch, tmp_path):
@@ -117,7 +140,8 @@ def _versioned(reply: subprocess.CompletedProcess):
 
 
 @pytest.mark.parametrize("returncode,stdout", [
-    (1, ""), (2, ""), (2, '{"ok": true}'), (0, "not json"), (0, "[]"), (101, '{"ok": false}'),
+    (1, ""), (2, ""), (2, '{"ok": true}'), (2, '{"ok": false}'), (0, "not json"), (0, "[]"),
+    (101, '{"ok": false}'),
 ])
 def test_a_reply_that_is_neither_a_result_nor_a_refusal_is_unavailability(
         monkeypatch, returncode, stdout) -> None:
