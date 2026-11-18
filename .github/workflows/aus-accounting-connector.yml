@@ -126,7 +126,7 @@ jobs:
       - run: cargo +1.99 clippy --locked --all-targets -- -D warnings
       - run: cargo +1.99 clippy --locked --target wasm32-unknown-unknown --lib -- -D warnings
       - run: cargo +1.99 test --locked
-      - run: cargo +1.99 install worker-build --version 0.8.7 --locked
+      - run: cargo +1.99 install worker-build --version 0.9.0 --locked
       - run: npm ci --ignore-scripts
       - run: AUS_ACCOUNTING_CONNECTOR_SERVE_UNTIL=2000-01-01 worker-build --release --out-dir build-expired
       - run: worker-build --release

@@ -14,7 +14,7 @@ Use Rust 1.99 and Node.js 26.11.1. From this directory:
 
 ```sh
 rustup target add wasm32-unknown-unknown
-cargo install worker-build --version 0.8.7 --locked
+cargo install worker-build --version 0.9.0 --locked
 npm ci --ignore-scripts
 cargo fmt --check
 cargo clippy --locked --all-targets -- -D warnings
@@ -52,9 +52,10 @@ is now recorded from this repository alone, so it no longer compares the
 Worker with that server; the core's own tests compare the core with the conformance
 cases and the Python server's recorded refusals and Division 7A results.
 
-`worker` and `worker-build` stay at 0.8.7, as in the badge Worker: the 0.9.0
-build imports its WebAssembly in a form the stable Miniflare 4.20260730.0
-runtime does not run, so that Worker hung on every request in the harness.
+`worker` and `worker-build` are 0.9.0. That build imports its WebAssembly
+with a source-phase import. workerd 1.20260730.1, the runtime bundled with
+stable Miniflare 4.20260730.0, hangs on it, so the Miniflare test dependency
+overrides workerd to 1.20261113.1, the runtime Wrangler 4.162.0 already bundles.
 
 Do not enable Cargo release stripping: the wasm-bindgen packaging step needs
 the target feature metadata.
