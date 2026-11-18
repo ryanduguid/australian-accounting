@@ -2598,7 +2598,7 @@ pub fn examples(kind: &str) -> Vec<(&'static str, Example)> {
             (
                 "years",
                 Json(
-                    r#"[{"income_year": "2025-26", "decline_in_value": "300.00", "deduction": "180.00"}]"#,
+                    r#"[{"income_year": "2025-26", "decline_in_value": "300.00", "deduction": "180.00"}, {"income_year": "2026-27", "decline_in_value": "0.00", "deduction": "0.00"}]"#,
                 ),
             ),
         ],
