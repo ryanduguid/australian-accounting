@@ -807,13 +807,15 @@ purpose has its balancing adjustment amount reduced to nil with the
 difference between termination value and cost as its capital gain or loss,
 and gives the car limit for 2025-26 as $69,674.
 
-Section 40-370 says how to count days and reductions but leaves 2 points the
-worksheet does not decide. A log book year with a nil deduction beside cents
-per kilometre years is refused, as step 3 counts 'the total number of days
-for which you deducted the decline in value of the car', and a nil deduction
-leaves unclear whether that year's days count. A car year before
-2015-16 is refused, as the one-third of actual expenses and 12% of original
-value methods could then apply and s 40-370 as compiled now names neither.
+Step 3 of s 40-370 counts 'the total number of days for which you deducted
+the decline in value of the car', so a log book year with a nil deduction
+adds no days. A car year before 2015-16 is refused, as the one-third of
+actual expenses and 12% of original value methods could then apply and
+s 40-370 as compiled now names neither. Section 40-230 reduces the first
+element of cost to the car limit for the year the car was first held, and
+s 40-325 uses the limit for the year it was first used, so the cost must be
+that limit plus the second element; a car whose 2 years' limits differ is
+refused.
 The car limit is an input: the Guide states only 2025-26's, and s 40-325 uses
 the limit for the financial year the car was first used, which can be years
 before the event.

@@ -1530,7 +1530,7 @@ pub fn optional_inputs(kind: &str) -> Vec<(&'static str, &'static str)> {
     match kind {
         "balancing_adjustment" => vec![(
             "car_limit",
-            "for a car only, and then required: null when s 40-230 did not reduce its cost to the car limit, or an object with limit (AUD, the car limit for the financial year in which the car was first used for any purpose), second_element_cost (AUD) and cost_ignoring_car_limit (AUD, the first and second elements ignoring the car limit, after Subdivision 27-B): ITAA 1997 s 40-325",
+            "for a car only, and then required: null when s 40-230 did not reduce its cost to the car limit, or an object with limit (AUD, the car limit for the financial year in which the car was first used for any purpose), second_element_cost (AUD) and cost_ignoring_car_limit (AUD, the first and second elements ignoring the car limit, after Subdivision 27-B), cost then being limit plus second_element_cost: ITAA 1997 s 40-325",
         )],
         "trade_in" => vec![
             (
@@ -2042,7 +2042,7 @@ pub fn input_units(kind: &str) -> Vec<(&'static str, &'static str)> {
             ("asset", "car (ITAA 1997 s 995-1), motor_cycle_or_similar or other"),
             (
                 "years",
-                "list of objects, one for each income year held from the start time to the event, each with income_year (from 2001-02, and for a car from 2015-16, to the event's year), decline_in_value (AUD; for a cents per kilometre year the notional decline of s 40-370(3)) and deduction (AUD, the decline less the s 40-25 reductions); a car's rows also state method (log_book or cents_per_kilometre, which takes no deduction) and days_held (integer from 1 to 366)",
+                "list of objects, one for each income year held from the start time to the event, each with income_year (from 2001-02, and for a car from 2015-16, to the event's year), decline_in_value (AUD; for a cents per kilometre year the notional decline of s 40-370(3)) and deduction (AUD, the decline less the s 40-25 reductions); a car's rows also state method (log_book or cents_per_kilometre, which takes no deduction) and days_held (integer from 1 to the days in that income year, 366 when it includes 29 February)",
             ),
         ],
         "trade_in" => vec![
@@ -2676,7 +2676,7 @@ pub fn examples(kind: &str) -> Vec<(&'static str, Example)> {
             (
                 "years",
                 Json(
-                    r#"[{"income_year": "2025-26", "decline_in_value": "300.00", "deduction": "180.00"}]"#,
+                    r#"[{"income_year": "2025-26", "decline_in_value": "300.00", "deduction": "180.00"}, {"income_year": "2026-27", "decline_in_value": "0.00", "deduction": "0.00"}]"#,
                 ),
             ),
         ],

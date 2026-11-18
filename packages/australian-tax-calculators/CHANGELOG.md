@@ -41,15 +41,17 @@ intentionally changed.
   car's car limit (s 40-325), a car claimed by both car expense methods
   (s 40-370) and the capital gain or loss of CGT event K7 (s 104-240),
   disregarded for a car or motor cycle (s 118-5). It refuses a car year
-  before 2015-16, a log book year with a nil deduction beside cents per
-  kilometre years and 2027-28, and leaves pools, s 40-291A and roll-overs
+  before 2015-16, years that skip one or stop before the event's, a car
+  whose cost is not the car limit plus the second element, and 2027-28, and
+  leaves pools, s 40-291A and roll-overs
   out of scope. New codes: `balancing.asset_invalid`,
-  `balancing.car_limit_invalid`, `balancing.car_limit_not_reduced`,
-  `balancing.days_deducted_unclear`, `balancing.decline_above_cost`,
+  `balancing.car_limit_cost_mismatch`, `balancing.car_limit_invalid`,
+  `balancing.car_limit_not_reduced`, `balancing.decline_above_cost`,
   `balancing.deduction_above_decline`, `balancing.fact_invalid`,
   `balancing.fact_missing`, `balancing.no_decline`,
   `balancing.year_after_event`, `balancing.year_before_scope`,
-  `balancing.year_repeated` and `balancing.years_invalid`. `derive`
+  `balancing.year_repeated`, `balancing.years_incomplete` and
+  `balancing.years_invalid`. `derive`
   covers it. `tests/balancing_adjustment.rs` holds it to the Guide to
   depreciating assets 2026's Bridget, Andrew and Louise examples and the
   example in s 118-10(1).

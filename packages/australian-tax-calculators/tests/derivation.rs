@@ -341,7 +341,7 @@ fn cases() -> Vec<(&'static str, Value)> {
                                  "cost_ignoring_car_limit": "80000.00"},
                    "years": [{"income_year": "2025-26", "decline_in_value": "10000.00",
                               "method": "log_book", "deduction": "10000.00", "days_held": 365}],
-                   "year": "2026-27", "scope_confirmed": true}),
+                   "year": "2025-26", "scope_confirmed": true}),
         ),
         (
             "balancing-adjustment",
@@ -368,7 +368,7 @@ fn cases() -> Vec<(&'static str, Value)> {
             json!({"cost": "2000.00", "termination_value": "1800.00",
                    "asset": "motor_cycle_or_similar",
                    "years": [{"income_year": "2025-26", "decline_in_value": "500.00", "deduction": "0.00"}],
-                   "year": "2026-27", "scope_confirmed": true}),
+                   "year": "2025-26", "scope_confirmed": true}),
         ),
         // A trade-in of a car under the car limit (s 40-325) whose GST
         // adjustment is capped (GST Act s 132-5(3)), for a replacement that is

@@ -322,7 +322,7 @@ fn matches_stderr(actual: &str, expected: &Value, before: &str, after: &str) -> 
     else {
         return matches_text(actual, expected);
     };
-    assert!(chrono::NaiveDate::parse_from_str(date, "%Y-%m-%d").is_ok());
+    assert!(jiff::civil::Date::strptime("%Y-%m-%d", date).is_ok());
     [before, after]
         .iter()
         .any(|day| actual == format!("{PREFIX}{day}{SUFFIX}{rest}"))
@@ -461,9 +461,9 @@ fn check(case: &Value) -> Option<String> {
     for (key, value) in env {
         command.env(key, value.as_str().unwrap());
     }
-    let before = chrono::Local::now().date_naive().to_string();
+    let before = jiff::ZonedDateTime::now().date().to_string();
     let out = command.output().unwrap();
-    let after = chrono::Local::now().date_naive().to_string();
+    let after = jiff::ZonedDateTime::now().date().to_string();
     let written = written_ok(&dir, case);
     let (stdout, stderr) = (
         lf(&localise(&out.stdout, &dir)),

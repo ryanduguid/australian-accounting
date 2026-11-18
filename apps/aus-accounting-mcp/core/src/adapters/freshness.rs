@@ -4,7 +4,7 @@
 //! What each bundled dataset records about its period, version and sources.
 //! Every value is read from the linked engines; a fact an engine does not record
 //! is reported as UNKNOWN, and nothing here says that a figure is current.
-use chrono::NaiveDate;
+use jiff::civil::Date;
 use payday_super_checker::{calendar as payday_calendar, rates as payday_rates};
 use serde_json::{Map, Value, json};
 
@@ -20,7 +20,7 @@ const NOT_LISTED: &str = "The library, legislation corpus and rulings tools read
 fn iso_or_unknown(value: &Value) -> Value {
     value
         .as_str()
-        .and_then(|text| NaiveDate::parse_from_str(text, "%Y-%m-%d").ok())
+        .and_then(|text| Date::strptime("%Y-%m-%d", text).ok())
         .map_or(json!(UNKNOWN), |day| json!(day.to_string()))
 }
 
@@ -358,5 +358,40 @@ mod tests {
             "INSIDE_RECORDED_PERIOD"
         );
         assert_eq!(as_at_status(&json!(UNKNOWN), "2024-07-01"), UNKNOWN);
+    }
+
+    #[test]
+    fn as_at_and_recorded_dates_follow_the_calendar() {
+        let valid = |day: &str| super::super::valid_day(day, "as_at").is_ok();
+        for day in [
+            "2028-02-29",
+            "2000-02-29",
+            "2027-06-30",
+            "2027-07-01",
+            "2027-12-31",
+        ] {
+            assert!(valid(day), "{day}");
+            assert_eq!(iso_or_unknown(&json!(day)), day);
+        }
+        for day in [
+            "2027-02-29",
+            "2100-02-29",
+            "2027-06-31",
+            "2027-13-01",
+            "0000-01-01",
+            // `report_on` callers reach `valid_day` without the input pattern.
+            "+ 2027-06-30",
+            "2027-6-30",
+            " 2027-06-30",
+            "+2027-06-30",
+            "-187-06-30",
+        ] {
+            assert!(!valid(day), "{day}");
+        }
+        for day in ["2027-02-29", "2100-02-29", "2027-06-31"] {
+            assert_eq!(iso_or_unknown(&json!(day)), UNKNOWN, "{day}");
+        }
+        // A recorded date with a 1-digit month or day is reported in full.
+        assert_eq!(iso_or_unknown(&json!("2027-7-1")), "2027-07-01");
     }
 }

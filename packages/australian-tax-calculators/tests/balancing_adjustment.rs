@@ -106,11 +106,14 @@ fn bridget_wholly_taxable_use_is_not_reduced() {
 /// Andrew's $1,000 computer, used 60% for a taxable purpose, declined $300
 /// and sells for $600. He deducts $60 (60% of the $100 balancing adjustment
 /// amount) and makes a capital loss of $160 (40% of the $400 by which cost
-/// exceeds termination value).
+/// exceeds termination value). The sale is early in 2026-27, whose row
+/// declines nil.
 #[test]
 fn andrew_computer_deduction_and_k7_capital_loss() {
-    let years =
-        json!([{"income_year": "2025-26", "decline_in_value": "300.00", "deduction": "180.00"}]);
+    let years = json!([
+        {"income_year": "2025-26", "decline_in_value": "300.00", "deduction": "180.00"},
+        {"income_year": "2026-27", "decline_in_value": "0.00", "deduction": "0.00"},
+    ]);
     let r = run(&input("1000.00", "600.00", "other", years, "2026-27")).unwrap();
     assert_eq!(amount(&r, "adjustable_value"), "700.00");
     assert_eq!(amount(&r, "sum_of_reductions"), "120.00");
@@ -161,7 +164,7 @@ fn gayle_print_under_section_118_10() {
 fn wholly_private_use_leaves_only_the_k7_amount() {
     let years =
         json!([{"income_year": "2025-26", "decline_in_value": "500.00", "deduction": "0.00"}]);
-    let r = run(&input("2000.00", "1800.00", "other", years, "2026-27")).unwrap();
+    let r = run(&input("2000.00", "1800.00", "other", years, "2025-26")).unwrap();
     assert_eq!(amount(&r, "balancing_adjustment_amount"), "300.00");
     assert_eq!(amount(&r, "reduction_for_non_taxable_use"), "300.00");
     assert_eq!(outcome(&r), ["0.00", "0.00", "0.00", "200.00"]);
@@ -173,7 +176,7 @@ fn wholly_private_use_leaves_only_the_k7_amount() {
         "1800.00",
         "motor_cycle_or_similar",
         years,
-        "2026-27",
+        "2025-26",
     ))
     .unwrap();
     assert_eq!(outcome(&r), ["0.00", "0.00", "0.00", "0.00"]);
@@ -200,13 +203,21 @@ fn switched_car_methods_under_section_40_370() {
     assert_eq!(r["rates"]["provision"], "ITAA 1997 s 40-370");
     assert_eq!(r["rates"]["days_deducted"], "565");
     assert_eq!(r["rates"]["days_held"], "930");
-    // A log book year with nothing deducted leaves step 3's days unclear.
+    // A log book year with nothing deducted adds no days to step 3: with
+    // 2026-27's deduction nil, the sum of reductions is $6,000 + $2,250 +
+    // $2,000 = $10,250, so $3,125 x 10,250 / 15,125 = $2,117.77 comes off, and
+    // x 365 days deducted / 930 days held = $395.3113, so $395.31 is
+    // assessable.
     let years = json!([
-        car_year("2025-26", "7500.00", None, 365),
+        car_year("2024-25", "7500.00", None, 365),
+        car_year("2025-26", "5625.00", Some("3375.00"), 365),
         car_year("2026-27", "2000.00", Some("0.00"), 200),
     ]);
-    let facts = car("30000.00", "18000.00", years, "2026-27", Value::Null);
-    assert_eq!(code(&facts), "balancing.days_deducted_unclear");
+    let r = run(&car("30000.00", "18000.00", years, "2026-27", Value::Null)).unwrap();
+    assert_eq!(amount(&r, "reduction_for_non_taxable_use"), "2117.77");
+    assert_eq!(outcome(&r), ["395.31", "0.00", "0.00", "0.00"]);
+    assert_eq!(r["rates"]["days_deducted"], "365");
+    assert_eq!(r["rates"]["days_held"], "930");
 }
 
 /// ITAA 1997 s 40-370(1) Note 2: a car claimed only by the cents per
@@ -236,7 +247,7 @@ fn car_limit_scales_the_termination_value() {
         "69674.00",
         "50000.00",
         years.clone(),
-        "2026-27",
+        "2025-26",
         limit,
     ))
     .unwrap();
@@ -244,8 +255,13 @@ fn car_limit_scales_the_termination_value() {
     assert_eq!(outcome(&r), ["0.00", "16127.75", "0.00", "0.00"]);
     // Facts that show s 40-230 did not reduce the cost are refused.
     let limit = json!({"limit": "69674.00", "second_element_cost": "0.00", "cost_ignoring_car_limit": "60000.00"});
-    let facts = car("60000.00", "50000.00", years.clone(), "2026-27", limit);
+    let facts = car("60000.00", "50000.00", years.clone(), "2025-26", limit);
     assert_eq!(code(&facts), "balancing.car_limit_not_reduced");
+    // A cost other than the car limit plus the second element contradicts
+    // s 40-230.
+    let limit = json!({"limit": "69674.00", "second_element_cost": "0.00", "cost_ignoring_car_limit": "80000.00"});
+    let facts = car("60000.00", "50000.00", years.clone(), "2025-26", limit);
+    assert_eq!(code(&facts), "balancing.car_limit_cost_mismatch");
     // A car states car_limit, even as null; no other asset takes it.
     let mut facts = car(
         "69674.00",
@@ -298,6 +314,19 @@ fn refusals_name_what_is_out_of_scope_or_wrong() {
             "balancing.year_repeated",
         ),
         (other(json!([])), "balancing.years_invalid"),
+        // Every year from the first held to the event's: none skipped, and
+        // the event's year given.
+        (
+            other(json!([
+                row("2023-24", "100.00", "50.00"),
+                row("2025-26", "100.00", "50.00")
+            ])),
+            "balancing.years_incomplete",
+        ),
+        (
+            other(json!([row("2024-25", "100.00", "50.00")])),
+            "balancing.years_incomplete",
+        ),
         (
             other(json!([{"income_year": "2025-26", "decline_in_value": "100.00"}])),
             "balancing.fact_missing",
@@ -356,6 +385,19 @@ fn refusals_name_what_is_out_of_scope_or_wrong() {
         code(&car("1000.00", "500.00", years, "2025-26", Value::Null)),
         "balancing.fact_invalid"
     );
+    // A car is held at most the days in each income year: 365 in 2024-25,
+    // 366 in 2023-24, which includes 29 February 2024.
+    let years = json!([car_year("2024-25", "100.00", None, 366)]);
+    assert_eq!(
+        code(&car("1000.00", "500.00", years, "2025-26", Value::Null)),
+        "balancing.fact_invalid"
+    );
+    let years = json!([
+        car_year("2023-24", "100.00", Some("50.00"), 366),
+        car_year("2024-25", "100.00", None, 365),
+    ]);
+    let r = run(&car("1000.00", "500.00", years, "2024-25", Value::Null)).unwrap();
+    assert_eq!(r["rates"]["days_held"], "731");
     // 2027-28 says why: the CGT changes from 1 July 2027.
     let refused = api::evaluate(
         "balancing-adjustment",

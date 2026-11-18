@@ -6,6 +6,9 @@ are decimal strings and dates are canonical ISO strings. The Python import packa
 is removed from this checkout; the MCP façade still pins the published 0.1.0.
 The native publisher is pending. No tag, release or package is published here.
 
+The crate's `bas::Period` and `coding::Registration` hold `jiff::civil::Date`
+values, not `chrono::NaiveDate`; their `holds` and `covers` take one.
+
 `review-coding` accepts an optional `supplier_abn` on each line. One that fails
 ABN Lookup's format and check digit test gives the line the new
 `supplier_abn_invalid` state, after `gst_differs_from_registration` in state order.

@@ -6,17 +6,17 @@ use crate::{
     Result, VERSION, array, categories, codes, constants, date, field, money, optional_date,
     pytext, repr, truth,
 };
-use chrono::NaiveDate;
+use jiff::civil::Date;
 use serde_json::{Map, Value, json};
 use std::collections::{BTreeMap, BTreeSet};
 
 #[derive(Clone)]
 pub struct Registration {
-    pub registered_from: Option<NaiveDate>,
-    pub registered_to: Option<NaiveDate>,
+    pub registered_from: Option<Date>,
+    pub registered_to: Option<Date>,
 }
 impl Registration {
-    pub fn covers(&self, day: NaiveDate) -> bool {
+    pub fn covers(&self, day: Date) -> bool {
         self.registered_from.is_some_and(|start| day >= start)
             && self.registered_to.is_none_or(|end| day <= end)
     }
@@ -25,7 +25,7 @@ struct BankLine<'a> {
     raw: &'a Value,
     id: &'a str,
     entity: &'a str,
-    date: NaiveDate,
+    date: Date,
     amount: Decimal,
 }
 
@@ -212,7 +212,7 @@ fn matching(lines: &[BankLine<'_>], window: i64) -> Result<BTreeMap<String, Stri
         let mut nearest = None;
         for &i in by_amount.get(&key).into_iter().flatten() {
             let other = &lines[i];
-            let gap = (other.date - line.date).num_days().abs();
+            let gap = i64::from((other.date - line.date).get_days()).abs();
             if !matched.contains_key(other.id)
                 && other.entity != line.entity
                 && gap <= window
