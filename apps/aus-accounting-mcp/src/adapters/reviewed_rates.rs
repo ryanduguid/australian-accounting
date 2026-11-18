@@ -98,89 +98,93 @@ pub(super) fn lookup(input: &Value) -> Result<Value, String> {
         )
     })?;
     let on = day(as_at);
-    let repr = div7a_loan_review::raw::Raw::text(record_id).py_repr();
     let Some(record) = RECORDS.get(record_id) else {
-        let reason = format!("No reviewed record has the id {repr}.");
-        let known = RECORDS.keys().cloned().collect();
-        return Ok(refused(
-            record_id,
-            on,
-            "UNKNOWN_ID",
-            reason,
-            None,
-            vec![],
-            known,
-        ));
+        return Ok(unknown_record(record_id, on));
     };
-    let years = covered_years();
-    let (first, last) = (&years[0], &years[years.len() - 1]);
-    if !(year_start(first) <= on && on <= year_end(last)) {
-        let reason = format!(
-            "{on} is outside the reviewed records, which cover {} only.",
-            years.join(" and ")
-        );
-        let code = "OUTSIDE_COVERED_YEARS";
-        return Ok(refused(
-            record_id,
-            on,
-            code,
-            reason,
-            Some(record),
-            vec![],
-            vec![],
-        ));
+    if let Some(refusal) = outside_coverage(record_id, on, record) {
+        return Ok(refusal);
     }
     match covers(record, on) {
-        None => {
-            let reason = format!(
-                "{record_id} records no effective period, only the date its page was read, so it cannot be placed at any date."
-            );
-            let code = "NO_RECORDED_PERIOD";
-            Ok(refused(
-                record_id,
-                on,
-                code,
-                reason,
-                Some(record),
-                vec![],
-                vec![],
-            ))
-        }
-        Some(false) => {
-            let covering = RECORDS
-                .values()
-                .filter(|other| {
-                    other["label"] == record["label"] && covers(other, on) == Some(true)
-                })
-                .map(|other| other["id"].as_str().unwrap().to_owned())
-                .collect();
-            let reason = format!("{on} is outside the period {record_id} holds.");
-            let code = "OUTSIDE_RECORD_PERIOD";
-            Ok(refused(
-                record_id,
-                on,
-                code,
-                reason,
-                Some(record),
-                covering,
-                vec![],
-            ))
-        }
-        Some(true) => {
-            let mut found = result(record_id, on, "FOUND");
-            found["record"] = record.clone();
-            let period = &record["period"];
-            let read = day(&record["retrieved_at"].as_str().unwrap()[..10]);
-            if on > read
-                && period.get("effective_from").is_some()
-                && period.get("effective_to").is_none()
-            {
-                found["after_last_read"] = json!(true);
-                found["after_last_read_note"] = json!(format!(
-                    "This record was last read on {read} and does not show that the figure still applied on {on}."
-                ));
-            }
-            Ok(found)
-        }
+        None => Ok(missing_period(record_id, on, record)),
+        Some(false) => Ok(outside_record(record_id, on, record)),
+        Some(true) => Ok(found_record(record_id, on, record)),
     }
+}
+
+fn unknown_record(record_id: &str, on: Date) -> Value {
+    let repr = div7a_loan_review::raw::Raw::text(record_id).py_repr();
+    refused(
+        record_id,
+        on,
+        "UNKNOWN_ID",
+        format!("No reviewed record has the id {repr}."),
+        None,
+        vec![],
+        RECORDS.keys().cloned().collect(),
+    )
+}
+
+fn outside_coverage(record_id: &str, on: Date, record: &Value) -> Option<Value> {
+    let years = covered_years();
+    let (first, last) = (&years[0], &years[years.len() - 1]);
+    if year_start(first) <= on && on <= year_end(last) {
+        return None;
+    }
+    Some(refused(
+        record_id,
+        on,
+        "OUTSIDE_COVERED_YEARS",
+        format!(
+            "{on} is outside the reviewed records, which cover {} only.",
+            years.join(" and ")
+        ),
+        Some(record),
+        vec![],
+        vec![],
+    ))
+}
+
+fn missing_period(record_id: &str, on: Date, record: &Value) -> Value {
+    refused(
+        record_id,
+        on,
+        "NO_RECORDED_PERIOD",
+        format!(
+            "{record_id} records no effective period, only the date its page was read, so it cannot be placed at any date."
+        ),
+        Some(record),
+        vec![],
+        vec![],
+    )
+}
+
+fn outside_record(record_id: &str, on: Date, record: &Value) -> Value {
+    let covering = RECORDS
+        .values()
+        .filter(|other| other["label"] == record["label"] && covers(other, on) == Some(true))
+        .map(|other| other["id"].as_str().unwrap().to_owned())
+        .collect();
+    refused(
+        record_id,
+        on,
+        "OUTSIDE_RECORD_PERIOD",
+        format!("{on} is outside the period {record_id} holds."),
+        Some(record),
+        covering,
+        vec![],
+    )
+}
+
+fn found_record(record_id: &str, on: Date, record: &Value) -> Value {
+    let mut found = result(record_id, on, "FOUND");
+    found["record"] = record.clone();
+    let period = &record["period"];
+    let read = day(&record["retrieved_at"].as_str().unwrap()[..10]);
+    if on > read && period.get("effective_from").is_some() && period.get("effective_to").is_none() {
+        found["after_last_read"] = json!(true);
+        found["after_last_read_note"] = json!(format!(
+            "This record was last read on {read} and does not show that the figure still applied on {on}."
+        ));
+    }
+    found
 }

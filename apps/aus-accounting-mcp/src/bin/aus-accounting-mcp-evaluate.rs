@@ -7,5 +7,9 @@ mod evaluation;
 
 #[tokio::main]
 async fn main() {
-    std::process::exit(evaluation::main(std::env::args_os().skip(1).collect()).await);
+    let args = std::env::args()
+        .skip(1)
+        .map(std::ffi::OsString::from)
+        .collect();
+    std::process::exit(evaluation::main(args).await);
 }

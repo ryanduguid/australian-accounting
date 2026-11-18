@@ -223,22 +223,44 @@ fn serialise(result: &Assessed, single: bool) -> Result<Value, String> {
 }
 pub fn evaluate(name: &str, input: &Value) -> Result<Value, String> {
     let single = name == "calc_payday_super_deadline";
-    let lines = if single {
-        vec![line(input, 1)?]
-    } else {
-        input["contributions"]
-            .as_array()
-            .unwrap()
-            .iter()
-            .enumerate()
-            .map(|(i, value)| line(value, (i + 1) as i64))
-            .collect::<Result<Vec<_>, _>>()?
-    };
+    let lines = contribution_lines(single, input)?;
     let as_at = required_date(input["as_at"].as_str().unwrap(), "as_at")?;
     let gic = rates::load_gic().map_err(failure)?;
     let calendar = calendar::load_calendar(None).map_err(failure)?;
-    let mut results = assess::assess(lines, &calendar, &gic, as_at, assess::Options::default())
-        .map_err(failure)?;
+    let results = assessed(lines, &calendar, &gic, as_at)?;
+    let mut output = json!({"ok":true,"engine":"payday-super-checker","engine_version":engine::VERSION,"law_content_date":engine::LAW_CONTENT_DATE,"as_at":as_at.isoformat(),"disclaimer":DISCLAIMER});
+    if name == "build_payday_super_evidence_pack" {
+        attach_pack(&mut output, &results, &gic, as_at)?;
+    } else if single {
+        output["assessment_scope"] = json!("single_contribution");
+        output["result"] = serialise(&results[0], true)?;
+    } else {
+        attach_group(&mut output, &results)?;
+    }
+    Ok(output)
+}
+
+fn contribution_lines(single: bool, input: &Value) -> Result<Vec<ContribLine>, String> {
+    if single {
+        return Ok(vec![line(input, 1)?]);
+    }
+    input["contributions"]
+        .as_array()
+        .unwrap()
+        .iter()
+        .enumerate()
+        .map(|(i, value)| line(value, (i + 1) as i64))
+        .collect()
+}
+
+fn assessed(
+    lines: Vec<ContribLine>,
+    calendar: &calendar::BusinessCalendar,
+    gic: &rates::GicTable,
+    as_at: Date,
+) -> Result<Vec<Assessed>, String> {
+    let mut results =
+        assess::assess(lines, calendar, gic, as_at, assess::Options::default()).map_err(failure)?;
     // On the engine's results, so report.csv carries the caveat in the row and
     // the pack's hashes bind the report as returned.
     for result in &mut results {
@@ -246,67 +268,82 @@ pub fn evaluate(name: &str, input: &Value) -> Result<Value, String> {
             result.caveats.push(RETURNED.into());
         }
     }
-    let mut output = json!({"ok":true,"engine":"payday-super-checker","engine_version":engine::VERSION,"law_content_date":engine::LAW_CONTENT_DATE,"as_at":as_at.isoformat(),"disclaimer":DISCLAIMER});
-    if name == "build_payday_super_evidence_pack" {
-        let provenance = gic.provenance();
-        let tables: Vec<_> = gic.source.clone().into_iter().collect();
-        let mut files: Map<_, _> = evidence_pack::build_evidence_pack(
-            &results,
-            &evidence_pack::PackFacts {
-                as_at,
-                assessment_date: None,
-                gic_provenance: &provenance,
-                remittance_only_confirmed: false,
-                rate_tables: &tables,
-            },
-        )
-        .map_err(failure)?
-        .into_iter()
-        .map(|(name, text)| (name, Value::String(text)))
-        .collect();
-        let mut exceptions: Value =
-            serde_json::from_str(files["exceptions.json"].as_str().unwrap())
-                .expect("engine pack JSON");
-        output["review_exit_code"] =
-            json!(if exceptions["exceptions"].as_array().unwrap().is_empty() {
-                0
-            } else {
-                2
-            });
-        let qualified = results.iter().any(relies_on_kept_receipts);
-        if qualified {
-            qualify_pack_files(&mut files, &mut exceptions);
-        }
-        output["files"] = Value::Object(files);
-        output["caveats"] = json!([
-            "Private review artefacts. No files are written. Save returned strings as UTF-8 without altering newlines or the CSV's initial BOM, so the report hash matches.",
-            "Source row references are one-based positions in the supplied contribution list.",
-            "Supply all related rows for one employer with established receipt allocation. No ATO assessment is assumed to have issued. Transition allocation is unconfirmed.",
-            "Employee identifiers are omitted from the returned pack. The calling host still receives the input references; use an approved environment and fabricated demos."
-        ]);
-        if qualified {
-            output["caveats"]
-                .as_array_mut()
-                .unwrap()
-                .push(json!(RETURNED));
-            output["verdict_qualification"] = qualification(true);
-        }
-    } else if single {
-        output["assessment_scope"] = json!("single_contribution");
-        output["result"] = serialise(&results[0], true)?;
-    } else {
-        output["assessment_scope"] = json!("contribution_group");
-        output["results"] = Value::Array(
-            results
-                .iter()
-                .map(|r| serialise(r, false))
-                .collect::<Result<_, _>>()?,
-        );
-        output["caveats"] = json!([
-            "Supply all related contributions for one employer. Employee references are exact.",
-            "Receipt amounts must already be allocated to rows without double counting. This tool does not allocate raw payments or calculate SG entitlement.",
-            "No ATO assessment is assumed to have issued. Transition allocation is unconfirmed."
-        ]);
+    Ok(results)
+}
+
+fn attach_pack(
+    output: &mut Value,
+    results: &[Assessed],
+    gic: &rates::GicTable,
+    as_at: Date,
+) -> Result<(), String> {
+    let provenance = gic.provenance();
+    let tables: Vec<_> = gic.source.clone().into_iter().collect();
+    let mut files: Map<_, _> = evidence_pack::build_evidence_pack(
+        results,
+        &evidence_pack::PackFacts {
+            as_at,
+            assessment_date: None,
+            gic_provenance: &provenance,
+            remittance_only_confirmed: false,
+            rate_tables: &tables,
+        },
+    )
+    .map_err(failure)?
+    .into_iter()
+    .map(|(name, text)| (name, Value::String(text)))
+    .collect();
+    let mut exceptions: Value =
+        serde_json::from_str(files["exceptions.json"].as_str().unwrap()).expect("engine pack JSON");
+    output["review_exit_code"] =
+        json!(if exceptions["exceptions"].as_array().unwrap().is_empty() {
+            0
+        } else {
+            2
+        });
+    let qualified = results.iter().any(relies_on_kept_receipts);
+    if qualified {
+        qualify_pack_files(&mut files, &mut exceptions);
     }
-    Ok(output)
+    output["files"] = Value::Object(files);
+    output["caveats"] = pack_caveats(qualified);
+    if qualified {
+        output["verdict_qualification"] = qualification(true);
+    }
+    Ok(())
+}
+
+fn pack_caveats(qualified: bool) -> Value {
+    let mut caveats = vec![
+        json!(
+            "Private review artefacts. No files are written. Save returned strings as UTF-8 without altering newlines or the CSV's initial BOM, so the report hash matches."
+        ),
+        json!("Source row references are one-based positions in the supplied contribution list."),
+        json!(
+            "Supply all related rows for one employer with established receipt allocation. No ATO assessment is assumed to have issued. Transition allocation is unconfirmed."
+        ),
+        json!(
+            "Employee identifiers are omitted from the returned pack. The calling host still receives the input references; use an approved environment and fabricated demos."
+        ),
+    ];
+    if qualified {
+        caveats.push(json!(RETURNED));
+    }
+    Value::Array(caveats)
+}
+
+fn attach_group(output: &mut Value, results: &[Assessed]) -> Result<(), String> {
+    output["assessment_scope"] = json!("contribution_group");
+    output["results"] = Value::Array(
+        results
+            .iter()
+            .map(|result| serialise(result, false))
+            .collect::<Result<_, _>>()?,
+    );
+    output["caveats"] = json!([
+        "Supply all related contributions for one employer. Employee references are exact.",
+        "Receipt amounts must already be allocated to rows without double counting. This tool does not allocate raw payments or calculate SG entitlement.",
+        "No ATO assessment is assumed to have issued. Transition allocation is unconfirmed."
+    ]);
+    Ok(())
 }

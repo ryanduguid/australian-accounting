@@ -104,6 +104,10 @@ fn agent_return(entity: &str, ask: &mut Ask<'_>) -> (Option<Rule>, Option<Rule>)
     if entity == "smsf" && ask.yes("new_registrant") {
         return (Some(rule("_SMSF_NEW")), None);
     }
+    sized_return(entity, ask, new)
+}
+
+fn sized_return(entity: &str, ask: &mut Ask<'_>, new: bool) -> (Option<Rule>, Option<Rule>) {
     if ask.yes("large_or_medium") {
         return (
             large_medium(

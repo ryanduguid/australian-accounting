@@ -168,81 +168,119 @@ fn documents(
     let (mut size, mut count) = (0, 0);
     let mut pending = vec![root.to_path_buf()];
     while let Some(directory) = pending.pop() {
-        let Ok(entries) = fs::read_dir(&directory) else {
+        let Some((mut folders, mut files)) = listed(&directory)? else {
             continue;
         };
-        let mut folders = Vec::new();
-        let mut files = Vec::new();
-        for entry in entries.flatten() {
-            let filename = entry.file_name();
-            if filename.as_encoded_bytes().first() == Some(&b'.') {
-                continue;
-            }
-            let path = entry.path();
-            if !path.is_dir()
-                && !path
-                    .extension()
-                    .is_some_and(|s| s.eq_ignore_ascii_case("md"))
-            {
-                continue;
-            }
-            let name = filename
-                .into_string()
-                .map_err(|_| "Library paths must use Unicode names.")?;
-            if path.is_dir() {
-                if !linked(&path).unwrap_or(true) {
-                    folders.push((name, path));
-                }
-            } else {
-                files.push((name, path));
-            }
-        }
         folders.sort_by(|a, b| a.0.cmp(&b.0));
         pending.extend(folders.into_iter().rev().map(|(_, path)| path));
         files.sort_by(|a, b| a.0.cmp(&b.0));
-        for (filename, candidate) in files {
-            if !filename.to_lowercase().ends_with(".md") {
-                continue;
-            }
-            count += 1;
-            if count > context.limit("MAX_FILES", 1000) {
-                return Err(
-                    "Library exceeds 1000 Markdown files; configure a smaller folder.".into(),
-                );
-            }
-            let name = candidate
-                .strip_prefix(root)
-                .unwrap()
-                .components()
-                .map(|c| c.as_os_str().to_string_lossy())
-                .collect::<Vec<_>>()
-                .join("/");
-            let raw = path(root, &name).and_then(|p| {
-                context
-                    .read(
-                        &p,
-                        context
-                            .limit("MAX_FILE_BYTES", 8_000_000)
-                            .min(context.limit("MAX_LIBRARY_BYTES", 64_000_000) - size),
-                    )
-                    .map_err(|_| READ_ERROR.into())
-            });
-            let Ok(raw) = raw else {
-                skipped.push(name);
-                continue;
-            };
-            size += raw.len();
-            if size > context.limit("MAX_LIBRARY_BYTES", 64_000_000) {
-                return Err("Library exceeds 64 MB; configure a smaller folder.".into());
-            }
-            let Ok((lines, digest)) = decode(&raw, context) else {
-                skipped.push(name);
-                continue;
-            };
-            visit(&name, &lines, &digest)?;
-        }
+        read_files(
+            context,
+            root,
+            &mut Progress {
+                size: &mut size,
+                count: &mut count,
+                skipped,
+            },
+            visit,
+            files,
+        )?;
     }
     Ok(())
+}
+
+type NamedPaths = Vec<(String, PathBuf)>;
+
+fn listed(directory: &Path) -> Result<Option<(NamedPaths, NamedPaths)>, String> {
+    let Ok(entries) = fs::read_dir(directory) else {
+        return Ok(None);
+    };
+    let mut folders = Vec::new();
+    let mut files = Vec::new();
+    for entry in entries.flatten() {
+        let filename = entry.file_name();
+        if filename.as_encoded_bytes().first() == Some(&b'.') {
+            continue;
+        }
+        let path = entry.path();
+        if !path.is_dir()
+            && !path
+                .extension()
+                .is_some_and(|s| s.eq_ignore_ascii_case("md"))
+        {
+            continue;
+        }
+        let name = filename
+            .into_string()
+            .map_err(|_| "Library paths must use Unicode names.")?;
+        if path.is_dir() {
+            if !linked(&path).unwrap_or(true) {
+                folders.push((name, path));
+            }
+        } else {
+            files.push((name, path));
+        }
+    }
+    Ok(Some((folders, files)))
+}
+
+struct Progress<'a> {
+    size: &'a mut usize,
+    count: &'a mut usize,
+    skipped: &'a mut Vec<String>,
+}
+
+fn read_files(
+    context: &Context,
+    root: &Path,
+    progress: &mut Progress<'_>,
+    visit: &mut Visit<'_>,
+    files: Vec<(String, PathBuf)>,
+) -> Result<(), String> {
+    for (filename, candidate) in files {
+        if !filename.to_lowercase().ends_with(".md") {
+            continue;
+        }
+        *progress.count += 1;
+        if *progress.count > context.limit("MAX_FILES", 1000) {
+            return Err("Library exceeds 1000 Markdown files; configure a smaller folder.".into());
+        }
+        let name = library_name(root, &candidate);
+        let raw = path(root, &name).and_then(|p| {
+            context
+                .read(
+                    &p,
+                    context
+                        .limit("MAX_FILE_BYTES", 8_000_000)
+                        .min(context.limit("MAX_LIBRARY_BYTES", 64_000_000) - *progress.size),
+                )
+                .map_err(|_| READ_ERROR.into())
+        });
+        let Ok(raw) = raw else {
+            progress.skipped.push(name);
+            continue;
+        };
+        *progress.size += raw.len();
+        if *progress.size > context.limit("MAX_LIBRARY_BYTES", 64_000_000) {
+            return Err("Library exceeds 64 MB; configure a smaller folder.".into());
+        }
+        let Ok((lines, digest)) = decode(&raw, context) else {
+            progress.skipped.push(name);
+            continue;
+        };
+        visit(&name, &lines, &digest)?;
+    }
+    Ok(())
+}
+
+fn library_name(root: &Path, candidate: &Path) -> String {
+    candidate
+        .strip_prefix(root)
+        .unwrap()
+        .components()
+        .map(|c| c.as_os_str().to_string_lossy())
+        .collect::<Vec<_>>()
+        .join("/")
 }
 
 /// Every line holding all the query words, best first. Each word counts, stop words
@@ -287,7 +325,22 @@ pub(super) fn search(
         }
         Ok(())
     })?;
-    let best = best.into_sorted_vec();
+    Ok(search_page(
+        best.into_sorted_vec(),
+        offset,
+        limit,
+        skipped.len(),
+        context.limit("MAX_OFFSET", 10000),
+    ))
+}
+
+fn search_page(
+    best: Vec<Ranked<(usize, usize)>>,
+    offset: usize,
+    limit: usize,
+    skipped: usize,
+    max_offset: usize,
+) -> Value {
     let more = best.len() > offset + limit;
     let matches = best
         .into_iter()
@@ -301,10 +354,10 @@ pub(super) fn search(
         offset + limit,
         more,
         POLICY["library"]["NOTICE"].as_str().unwrap(),
-        context.limit("MAX_OFFSET", 10000),
+        max_offset,
     );
-    value["skipped_files"] = json!(skipped.len());
-    Ok(value)
+    value["skipped_files"] = json!(skipped);
+    value
 }
 
 /// What the configured library holds, for `aus-accounting-mcp doctor`.

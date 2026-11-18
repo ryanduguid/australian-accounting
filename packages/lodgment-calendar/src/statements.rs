@@ -35,35 +35,86 @@ pub(crate) fn select(
     } else {
         "generate"
     };
-    let mut result = vec![];
     if cycle == "monthly" {
-        for offset in 0..12 {
-            let month = (6 + offset) % 12 + 1;
-            let year = 2026 + (6 + offset) / 12;
-            let due = date((year + month / 12) as i32, month % 12 + 1, 21);
-            let standard = Rule::new(
-                "AS-M-21",
-                format!(
-                    "Monthly {name}: lodge and pay by the 21st day of the following month. No program or two-week concession applies."
-                ),
-                source,
-                Some(due),
-            );
-            let (rule, missing) = if obligation == "bas" && month == 12 && channel != "self" {
-                december(facts, standard)
-            } else {
-                (Some(standard), vec![])
-            };
-            result.push((
-                format!("{year}-{month:02}"),
-                format!("{name} {} {year}", MONTHS[(month - 1) as usize]),
-                rule,
-                missing,
-            ));
-        }
-        return result;
+        monthly(obligation, channel, facts, &name, source)
+    } else {
+        quarterly(obligation, entity, channel, facts, &name, source)
     }
-    let quarters = [
+}
+
+fn monthly(
+    obligation: &str,
+    channel: &str,
+    facts: &Value,
+    name: &str,
+    source: &str,
+) -> Vec<Statement> {
+    let mut result = vec![];
+    for offset in 0..12 {
+        let month = (6 + offset) % 12 + 1;
+        let year = 2026 + (6 + offset) / 12;
+        let due = date((year + month / 12) as i32, month % 12 + 1, 21);
+        let standard = Rule::new(
+            "AS-M-21",
+            format!(
+                "Monthly {name}: lodge and pay by the 21st day of the following month. No program or two-week concession applies."
+            ),
+            source,
+            Some(due),
+        );
+        let (rule, missing) = if obligation == "bas" && month == 12 && channel != "self" {
+            december(facts, standard)
+        } else {
+            (Some(standard), vec![])
+        };
+        result.push((
+            format!("{year}-{month:02}"),
+            format!("{name} {} {year}", MONTHS[(month - 1) as usize]),
+            rule,
+            missing,
+        ));
+    }
+    result
+}
+
+fn quarterly(
+    obligation: &str,
+    entity: &str,
+    channel: &str,
+    facts: &Value,
+    name: &str,
+    source: &str,
+) -> Vec<Statement> {
+    let mut result = vec![];
+    for (index, (months, due, head_due, program_due)) in quarter_dates().into_iter().enumerate() {
+        let quarter = index + 1;
+        let mut ask = Ask::new(facts);
+        let rule = quarter_rule(
+            &QuarterChoice {
+                obligation,
+                entity,
+                channel,
+                name,
+                source,
+                quarter,
+                due,
+                head_due,
+                program_due,
+            },
+            &mut ask,
+        );
+        result.push((
+            format!("2026-27 Q{quarter}"),
+            format!("{name} quarter {quarter} 2026-27 ({months})"),
+            rule,
+            ask.missing,
+        ));
+    }
+    result
+}
+
+fn quarter_dates() -> [(&'static str, Date, Date, Option<Date>); 4] {
+    [
         (
             "July to September 2026",
             date(2026, 10, 28),
@@ -88,46 +139,54 @@ pub(crate) fn select(
             date(2027, 7, 21),
             Some(date(2027, 8, 25)),
         ),
-    ];
-    for (index, (months, due, head_due, program_due)) in quarters.into_iter().enumerate() {
-        let quarter = index + 1;
-        let mut ask = Ask::new(facts);
-        let original = Rule::new(
-            "AS-Q-28",
-            format!(
-                "Quarterly {name}: lodge and pay by the 28th day of the month after the quarter, or 28 February for quarter 2, which already includes a one-month extension."
-            ),
-            source,
-            Some(due),
-        );
-        let rule = if entity == "company" && ask.yes("consolidated_head_company") {
-            Some(head(obligation, head_due))
-        } else if let Some(program_due) = program_due {
-            if channel == "self" {
-                match ask.get("lodges_electronically") {
-                    Some(true) => Some(Rule::new(
-                        "AS-Q-ONLINE",
-                        "Quarterly statement received and lodged online: lodge and pay 2 weeks after the original due date. Not available for quarter 2.",
-                        "two_week",
-                        due.checked_add(14.days()).ok(),
-                    )),
-                    Some(false) => Some(original),
-                    None => None,
-                }
-            } else {
-                agent_quarter(&mut ask, quarter, original, program_due)
-            }
-        } else {
-            Some(original)
-        };
-        result.push((
-            format!("2026-27 Q{quarter}"),
-            format!("{name} quarter {quarter} 2026-27 ({months})"),
-            rule,
-            ask.missing,
-        ));
+    ]
+}
+
+struct QuarterChoice<'a> {
+    obligation: &'a str,
+    entity: &'a str,
+    channel: &'a str,
+    name: &'a str,
+    source: &'a str,
+    quarter: usize,
+    due: Date,
+    head_due: Date,
+    program_due: Option<Date>,
+}
+
+fn quarter_rule(choice: &QuarterChoice<'_>, ask: &mut Ask<'_>) -> Option<Rule> {
+    let original = Rule::new(
+        "AS-Q-28",
+        format!(
+            "Quarterly {}: lodge and pay by the 28th day of the month after the quarter, or 28 February for quarter 2, which already includes a one-month extension.",
+            choice.name
+        ),
+        choice.source,
+        Some(choice.due),
+    );
+    if choice.entity == "company" && ask.yes("consolidated_head_company") {
+        return Some(head(choice.obligation, choice.head_due));
     }
-    result
+    let Some(program_due) = choice.program_due else {
+        return Some(original);
+    };
+    if choice.channel != "self" {
+        return agent_quarter(ask, choice.quarter, original, program_due);
+    }
+    online_quarter(choice.due, original, ask)
+}
+
+fn online_quarter(due: Date, original: Rule, ask: &mut Ask<'_>) -> Option<Rule> {
+    match ask.get("lodges_electronically") {
+        Some(true) => Some(Rule::new(
+            "AS-Q-ONLINE",
+            "Quarterly statement received and lodged online: lodge and pay 2 weeks after the original due date. Not available for quarter 2.",
+            "two_week",
+            due.checked_add(14.days()).ok(),
+        )),
+        Some(false) => Some(original),
+        None => None,
+    }
 }
 
 fn head(obligation: &str, due: Date) -> Rule {

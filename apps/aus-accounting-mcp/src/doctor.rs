@@ -47,39 +47,40 @@ fn describe(variable: &str, found: &Value) -> Result<String, String> {
                 count("files")
             ))
         }
-        "AUS_ACCOUNTING_CORPUS_ROOT" => {
-            if found["unreadable"] != 0 {
-                return Err(format!(
-                    "lines a search cannot return: {}.",
-                    count("unreadable")
-                ));
-            }
-            if found["skipped_entries"] != 0 {
-                return Err(format!(
-                    "entries under markdown holding no index a search reads: {}.",
-                    count("skipped_entries")
-                ));
-            }
-            match found["rate_rows"].as_u64() {
-                None => {
-                    Err("it has no usable rates/rates.jsonl, so search_tax_rates will fail.".into())
-                }
-                Some(0) => Err(
-                    "its rates index holds no rows, so a rate search would come back empty.".into(),
-                ),
-                Some(rates) => Ok(format!(
-                    "{} section rows in {} title indexes, {rates} rate rows",
-                    count("rows"),
-                    count("indexes")
-                )),
-            }
-        }
+        "AUS_ACCOUNTING_CORPUS_ROOT" => corpus_folder(found),
         _ => Ok(format!(
             "{} paragraph rows from {} documents in {} runs, {} documents withheld",
             count("rows"),
             count("documents"),
             count("runs"),
             count("withheld")
+        )),
+    }
+}
+
+fn corpus_folder(found: &Value) -> Result<String, String> {
+    let count = |key: &str| found[key].to_string();
+    if found["unreadable"] != 0 {
+        return Err(format!(
+            "lines a search cannot return: {}.",
+            count("unreadable")
+        ));
+    }
+    if found["skipped_entries"] != 0 {
+        return Err(format!(
+            "entries under markdown holding no index a search reads: {}.",
+            count("skipped_entries")
+        ));
+    }
+    match found["rate_rows"].as_u64() {
+        None => Err("it has no usable rates/rates.jsonl, so search_tax_rates will fail.".into()),
+        Some(0) => {
+            Err("its rates index holds no rows, so a rate search would come back empty.".into())
+        }
+        Some(rates) => Ok(format!(
+            "{} section rows in {} title indexes, {rates} rate rows",
+            count("rows"),
+            count("indexes")
         )),
     }
 }

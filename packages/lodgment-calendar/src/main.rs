@@ -23,10 +23,9 @@ fn run_api(command: &str) -> cli::Outcome {
     }
 }
 fn main() {
-    let args: Vec<_> = std::env::args_os()
-        .skip(1)
-        .map(|a| cli::decode_os(&a))
-        .collect();
+    // UTF-8 arguments only. A non-Unicode argument stops the process rather than
+    // being lossily decoded into a command name.
+    let args: Vec<_> = std::env::args().skip(1).collect();
     let (code, out, err) = match args.as_slice() {
         [command] if api::COMMANDS.contains(&command.as_str()) => run_api(command),
         _ => cli::run(&args),

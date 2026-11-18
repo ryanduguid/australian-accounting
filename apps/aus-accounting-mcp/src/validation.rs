@@ -3,8 +3,10 @@
 
 //! The original Pydantic core descriptors preserve effective input behaviour.
 //! They contain no executable Python and no statutory calculation.
+mod kinds;
+
 use div7a_loan_review::raw::Raw;
-use serde_json::{Map, Value};
+use serde_json::Value;
 use std::sync::LazyLock;
 
 static RULES: LazyLock<Value> = LazyLock::new(|| {
@@ -81,12 +83,12 @@ fn lax_bool(value: &Value) -> Result<bool, &'static str> {
         _ => Err("bool_type"),
     }
 }
+fn magnitude(text: &str) -> String {
+    text.trim_start_matches('-')
+        .trim_start_matches('0')
+        .to_string()
+}
 fn compare_integer(left: &str, right: &str) -> std::cmp::Ordering {
-    let magnitude = |text: &str| {
-        text.trim_start_matches('-')
-            .trim_start_matches('0')
-            .to_string()
-    };
     let a = magnitude(left);
     let b = magnitude(right);
     let negative_a = left.starts_with('-') && !a.is_empty();
@@ -147,384 +149,39 @@ fn validate(
         // Model fields supply the full original object for missing diagnostics.
         unreachable!("missing fields are handled at their model boundary")
     };
-    match kind {
-        "model-field" | "default" => validate(&rule["schema"], Some(value), path, config, errors),
-        "nullable" if value.is_null() => Value::Null,
-        "nullable" => validate(&rule["schema"], Some(value), path, config, errors),
-        "model" => {
-            if !value.is_object() {
-                issue(
-                    errors,
-                    path,
-                    "model_type",
-                    format!(
-                        "Input should be a valid dictionary or instance of {}",
-                        rule["name"].as_str().unwrap()
-                    ),
-                    value,
-                );
-                return value.clone();
-            }
-            validate(&rule["schema"], Some(value), path, &rule["config"], errors)
-        }
-        "model-fields" => {
-            let object = value.as_object().unwrap();
-            let fields = rule["fields"].as_object().unwrap();
-            let mut result = Map::new();
-            for (name, field) in fields {
-                let at = location(path, name);
-                if !object.contains_key(name) && field["schema"]["type"] != "default" {
-                    issue(errors, &at, "missing", "Field required", value);
-                } else {
-                    result.insert(
-                        name.clone(),
-                        validate(field, object.get(name), &at, config, errors),
-                    );
-                }
-            }
-            if config["extra_fields_behavior"] == "forbid" {
-                for (name, item) in object {
-                    if !fields.contains_key(name) {
-                        issue(
-                            errors,
-                            &location(path, name),
-                            "extra_forbidden",
-                            "Extra inputs are not permitted",
-                            item,
-                        );
-                    }
-                }
-            }
-            Value::Object(result)
-        }
-        "str" => {
-            let Some(text) = value.as_str() else {
-                issue(
-                    errors,
-                    path,
-                    "string_type",
-                    "Input should be a valid string",
-                    value,
-                );
-                return value.clone();
-            };
-            let text = if rule["strip_whitespace"]
-                .as_bool()
-                .unwrap_or(config["str_strip_whitespace"].as_bool().unwrap_or(false))
-            {
-                text.trim()
-            } else {
-                text
-            };
-            let size = text.chars().count() as u64;
-            if let Some(min) = rule["min_length"].as_u64()
-                && size < min
-            {
-                issue(
-                    errors,
-                    path,
-                    "string_too_short",
-                    format!(
-                        "String should have at least {min} character{}",
-                        if min == 1 { "" } else { "s" }
-                    ),
-                    value,
-                );
-            } else if let Some(max) = rule["max_length"].as_u64()
-                && size > max
-            {
-                issue(
-                    errors,
-                    path,
-                    "string_too_long",
-                    format!(
-                        "String should have at most {max} character{}",
-                        if max == 1 { "" } else { "s" }
-                    ),
-                    value,
-                );
-            } else if let Some(pattern) = rule["pattern"].as_str()
-                && !regex::Regex::new(pattern)
-                    .expect("embedded pattern")
-                    .is_match(text)
-            {
-                issue(
-                    errors,
-                    path,
-                    "string_pattern_mismatch",
-                    format!("String should match pattern '{pattern}'"),
-                    value,
-                );
-            }
-            Value::String(text.into())
-        }
-        // A field's own strict setting overrides its model's.
-        "bool" => match lax_bool(value) {
-            Ok(held) if value.is_boolean() || !strict(rule, config) => Value::Bool(held),
-            Err("bool_parsing") if !strict(rule, config) => {
-                issue(
-                    errors,
-                    path,
-                    "bool_parsing",
-                    "Input should be a valid boolean, unable to interpret input",
-                    value,
-                );
-                value.clone()
-            }
-            _ => {
-                issue(
-                    errors,
-                    path,
-                    "bool_type",
-                    "Input should be a valid boolean",
-                    value,
-                );
-                value.clone()
-            }
-        },
-        "int" => {
-            let Some(number) = integer(value) else {
-                issue(
-                    errors,
-                    path,
-                    "int_type",
-                    "Input should be a valid integer",
-                    value,
-                );
-                return value.clone();
-            };
-            for (key, code, label) in [
-                ("ge", "greater_than_equal", "greater than or equal to"),
-                ("gt", "greater_than", "greater than"),
-                ("le", "less_than_equal", "less than or equal to"),
-                ("lt", "less_than", "less than"),
-            ] {
-                if let Some(bound) = integer(&rule[key]) {
-                    let order = compare_integer(&number, &bound);
-                    let bad = match key {
-                        "ge" => order.is_lt(),
-                        "gt" => order.is_le(),
-                        "le" => order.is_gt(),
-                        _ => order.is_ge(),
-                    };
-                    if bad {
-                        issue(
-                            errors,
-                            path,
-                            code,
-                            format!("Input should be {label} {}", rule[key]),
-                            value,
-                        );
-                    }
-                }
-            }
+    kinds::apply(kind, rule, value, path, config, errors)
+}
+
+fn boolean(
+    rule: &Value,
+    value: &Value,
+    path: &str,
+    config: &Value,
+    errors: &mut Vec<Issue>,
+) -> Value {
+    // A field's own strict setting overrides its model's.
+    match lax_bool(value) {
+        Ok(held) if value.is_boolean() || !strict(rule, config) => Value::Bool(held),
+        Err("bool_parsing") if !strict(rule, config) => {
+            issue(
+                errors,
+                path,
+                "bool_parsing",
+                "Input should be a valid boolean, unable to interpret input",
+                value,
+            );
             value.clone()
         }
-        "literal" => {
-            let values = rule["expected"].as_array().unwrap();
-            let boolean_integer = |v: &Value| {
-                if v.is_boolean() {
-                    Some(if v == true { 1.0 } else { 0.0 })
-                } else {
-                    v.as_f64()
-                }
-            };
-            if let Some(found) = values.iter().find(|v| {
-                *v == value
-                    || (boolean_integer(v).is_some()
-                        && boolean_integer(v) == boolean_integer(value))
-            }) {
-                found.clone()
-            } else {
-                issue(
-                    errors,
-                    path,
-                    "literal_error",
-                    format!("Input should be {}", expected(values)),
-                    value,
-                );
-                value.clone()
-            }
-        }
-        "list" => {
-            let Some(items) = value.as_array() else {
-                issue(
-                    errors,
-                    path,
-                    "list_type",
-                    "Input should be a valid list",
-                    value,
-                );
-                return value.clone();
-            };
-            if let Some(bound) = rule["max_length"].as_u64()
-                && items.len() as u64 > bound
-            {
-                issue(
-                    errors,
-                    path,
-                    "too_long",
-                    format!(
-                        "List should have at most {bound} item{} after validation, not {}",
-                        if bound == 1 { "" } else { "s" },
-                        items.len()
-                    ),
-                    value,
-                );
-                return value.clone();
-            }
-            let result = Value::Array(
-                items
-                    .iter()
-                    .enumerate()
-                    .map(|(i, item)| {
-                        validate(
-                            &rule["items_schema"],
-                            Some(item),
-                            &location(path, &i.to_string()),
-                            config,
-                            errors,
-                        )
-                    })
-                    .collect(),
+        _ => {
+            issue(
+                errors,
+                path,
+                "bool_type",
+                "Input should be a valid boolean",
+                value,
             );
-            for (key, code, label) in [
-                ("min_length", "too_short", "at least"),
-                ("max_length", "too_long", "at most"),
-            ] {
-                if let Some(bound) = rule[key].as_u64()
-                    && ((key == "min_length" && (items.len() as u64) < bound)
-                        || (key == "max_length" && (items.len() as u64) > bound))
-                {
-                    issue(
-                        errors,
-                        path,
-                        code,
-                        format!(
-                            "List should have {label} {bound} item{} after validation, not {}",
-                            if bound == 1 { "" } else { "s" },
-                            items.len()
-                        ),
-                        value,
-                    );
-                }
-            }
-            result
+            value.clone()
         }
-        "dict" => {
-            let Some(object) = value.as_object() else {
-                issue(
-                    errors,
-                    path,
-                    "dict_type",
-                    "Input should be a valid dictionary",
-                    value,
-                );
-                return value.clone();
-            };
-            let before = errors.len();
-            let result = Value::Object(
-                object
-                    .iter()
-                    .map(|(key, item)| {
-                        let at = location(path, key);
-                        if !rule["keys_schema"].is_null() {
-                            validate(
-                                &rule["keys_schema"],
-                                Some(&Value::String(key.clone())),
-                                &location(&at, "[key]"),
-                                config,
-                                errors,
-                            );
-                        }
-                        let item = if rule["values_schema"].is_null() {
-                            item.clone()
-                        } else {
-                            validate(&rule["values_schema"], Some(item), &at, config, errors)
-                        };
-                        (key.clone(), item)
-                    })
-                    .collect(),
-            );
-            if errors.len() == before {
-                for (key, code, label) in [
-                    ("min_length", "too_short", "at least"),
-                    ("max_length", "too_long", "at most"),
-                ] {
-                    if let Some(bound) = rule[key].as_u64()
-                        && ((key == "min_length" && (object.len() as u64) < bound)
-                            || (key == "max_length" && (object.len() as u64) > bound))
-                    {
-                        issue(
-                            errors,
-                            path,
-                            code,
-                            format!(
-                                "Dictionary should have {label} {bound} item{} after validation, not {}",
-                                if bound == 1 { "" } else { "s" },
-                                object.len()
-                            ),
-                            value,
-                        );
-                    }
-                }
-            }
-            result
-        }
-        "tagged-union" => {
-            if !value.is_object() {
-                issue(
-                    errors,
-                    path,
-                    "model_attributes_type",
-                    "Input should be a valid dictionary or object to extract fields from",
-                    value,
-                );
-                return value.clone();
-            }
-            let key = rule["discriminator"].as_str().unwrap();
-            let choices = rule["choices"].as_object().unwrap();
-            match value.get(key) {
-                None => {
-                    issue(
-                        errors,
-                        path,
-                        "union_tag_not_found",
-                        format!("Unable to extract tag using discriminator '{key}'"),
-                        value,
-                    );
-                    value.clone()
-                }
-                Some(tag) => match tag.as_str().and_then(|s| choices.get(s)) {
-                    Some(choice) => validate(
-                        choice,
-                        Some(value),
-                        &location(path, tag.as_str().unwrap()),
-                        config,
-                        errors,
-                    ),
-                    None => {
-                        issue(
-                            errors,
-                            path,
-                            "union_tag_invalid",
-                            format!(
-                                "Input tag '{}' found using '{key}' does not match any of the expected tags: {}",
-                                Raw::from_value(tag).py_str(),
-                                choices
-                                    .keys()
-                                    .map(|s| format!("'{s}'"))
-                                    .collect::<Vec<_>>()
-                                    .join(", ")
-                            ),
-                            value,
-                        );
-                        value.clone()
-                    }
-                },
-            }
-        }
-        _ => panic!("unsupported embedded input descriptor {kind}"),
     }
 }
 

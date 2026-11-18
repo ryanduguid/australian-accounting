@@ -196,24 +196,44 @@ fn file_note(facts: &Value, result: &Value) -> Result<String, String> {
     let catalogue = australian_tax_calculators::api::evaluate("worksheet-catalogue", &json!({}))?;
     let calculation = result["calculation"].as_str().unwrap_or_default();
     let passage = shown(&catalogue[calculation]["source_passage"]);
-    let text = |key: &str| shown(&result[key]);
-    let items = |key: &str| -> Vec<String> {
-        result[key]
-            .as_array()
-            .into_iter()
-            .flatten()
-            .map(shown)
-            .collect()
-    };
-    let mut lines = vec![
-        format!("# File note: {calculation} worksheet, {}", text("period")),
+    let mut lines = note_heading(result, calculation);
+    lines.extend(note_facts(facts));
+    lines.extend(note_calculation(result, &passage));
+    lines.extend(note_issues(result));
+    Ok(lines.join("\n"))
+}
+
+fn note_text(result: &Value, key: &str) -> String {
+    shown(&result[key])
+}
+
+fn note_items(result: &Value, key: &str) -> Vec<String> {
+    result[key]
+        .as_array()
+        .into_iter()
+        .flatten()
+        .map(shown)
+        .collect()
+}
+
+fn note_heading(result: &Value, calculation: &str) -> Vec<String> {
+    vec![
+        format!(
+            "# File note: {calculation} worksheet, {}",
+            note_text(result, "period")
+        ),
         String::new(),
         format!(
             "Drafted from the {} {} result, which it restates without adding any figure.",
-            text("engine"),
-            text("engine_version")
+            note_text(result, "engine"),
+            note_text(result, "engine_version")
         ),
         String::new(),
+    ]
+}
+
+fn note_facts(facts: &Value) -> Vec<String> {
+    let mut lines = vec![
         "## Facts relied on".into(),
         String::new(),
         "Established by the operator and not verified by this server.".into(),
@@ -227,34 +247,43 @@ fn file_note(facts: &Value, result: &Value) -> Result<String, String> {
             .map(|(name, value)| format!("- `{name}`: {}", shown(value))),
     );
     lines.extend([String::new(), "## Calculation".into(), String::new()]);
-    lines.extend(table("Amount (AUD)", &result["amounts"]));
+    lines
+}
+
+fn note_calculation(result: &Value, passage: &str) -> Vec<String> {
+    let mut lines = table("Amount (AUD)", &result["amounts"]);
     lines.extend(table("Rate", &result["rates"]));
     lines.extend([
         "## Assumptions".into(),
         String::new(),
         "The operator confirmed this scope:".into(),
         String::new(),
-        text("scope"),
+        note_text(result, "scope"),
         String::new(),
         "## Provisions and sources".into(),
         String::new(),
         format!("The engine's source check covered: {passage}."),
         String::new(),
     ]);
-    let checked = text("source_checked");
+    let checked = note_text(result, "source_checked");
     lines.extend(
-        items("sources")
+        note_items(result, "sources")
             .into_iter()
             .map(|url| format!("- {url} (checked {checked})")),
     );
-    lines.extend([String::new(), "## Open issues".into(), String::new()]);
+    lines.push(String::new());
+    lines
+}
+
+fn note_issues(result: &Value) -> Vec<String> {
+    let mut lines = vec!["## Open issues".into(), String::new()];
     lines.extend(
-        items("warnings")
+        note_items(result, "warnings")
             .into_iter()
             .map(|warning| format!("- {warning}")),
     );
     lines.push(String::new());
-    Ok(lines.join("\n"))
+    lines
 }
 
 #[cfg(test)]

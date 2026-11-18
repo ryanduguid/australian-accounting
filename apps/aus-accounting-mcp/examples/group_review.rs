@@ -165,76 +165,90 @@ fn build_index(manifest_path: &Path) -> Result<Value> {
     let mut records = Vec::new();
     let mut identities = HashSet::new();
     for Object(report) in manifest.reports {
-        if [
-            &report.id,
-            &report.entity,
-            &report.period,
-            &report.engine,
-            &report.engine_version,
-            &report.scope,
-            &report.path,
-            &report.sha256,
-        ]
-        .into_iter()
-        .any(|text| blank(text))
-        {
-            return Err("Every report metadata value must be non-empty text".into());
-        }
-        if !identities.insert(report.id.clone()) {
-            return Err("Duplicate report ID".into());
-        }
-        let relative = Path::new(&report.path);
-        if relative.is_absolute() {
-            return Err("Report path must remain inside the manifest directory".into());
-        }
-        #[cfg(windows)]
-        let relative = same_drive_relative(relative, root)?;
-        if relative.components().any(|part| match part {
-            Component::CurDir => false,
-            Component::RootDir => !cfg!(windows),
-            Component::Normal(name) => name.to_str().is_none_or(|s| s.starts_with('.')),
-            _ => true,
-        }) {
-            return Err("Report path must remain inside the manifest directory".into());
-        }
-        // Python Path normalises trailing separators and '/.' before IO.
-        let relative = relative.components().collect::<std::path::PathBuf>();
-        let path = root.join(relative).canonicalize()?;
-        if !path.starts_with(root)
-            || !matches!(
-                path.extension().and_then(|s| s.to_str()),
-                Some("txt" | "json")
-            )
-        {
-            return Err("Report must be text or JSON inside the manifest directory".into());
-        }
-        let file = File::open(path)?;
-        if file.metadata()?.len() > LIMIT {
-            return Err("Report exceeds the 2 MB example limit".into());
-        }
-        let mut source = Vec::new();
-        file.take(LIMIT + 1).read_to_end(&mut source)?;
-        if source.len() as u64 > LIMIT {
-            return Err("Report exceeds the 2 MB example limit".into());
-        }
-        if digest(&source) != report.sha256 {
-            return Err(format!("Evidence digest mismatch: {}", report.id).into());
-        }
-        let text = std::str::from_utf8(source.strip_prefix(&[239, 187, 191]).unwrap_or(&source))?;
-        if blank(text) {
-            return Err("Engine report is empty".into());
-        }
-        let mut record = serde_json::to_value(report)?;
-        record["source_output"] = json!(text);
-        records.push(record);
+        records.push(record_report(report, root, &mut identities)?);
     }
     Ok(
         json!({"schema_version":"group-review-index.v1", "manifest_sha256":digest(&content), "reports":records, "scope":SCOPE}),
     )
 }
 
+fn record_report(report: Report, root: &Path, identities: &mut HashSet<String>) -> Result<Value> {
+    if [
+        &report.id,
+        &report.entity,
+        &report.period,
+        &report.engine,
+        &report.engine_version,
+        &report.scope,
+        &report.path,
+        &report.sha256,
+    ]
+    .into_iter()
+    .any(|text| blank(text))
+    {
+        return Err("Every report metadata value must be non-empty text".into());
+    }
+    if !identities.insert(report.id.clone()) {
+        return Err("Duplicate report ID".into());
+    }
+    let path = report_path(&report.path, root)?;
+    let text = report_text(&path, &report.sha256, &report.id)?;
+    let mut record = serde_json::to_value(report)?;
+    record["source_output"] = json!(text);
+    Ok(record)
+}
+
+fn report_path(raw: &str, root: &Path) -> Result<std::path::PathBuf> {
+    let relative = Path::new(raw);
+    if relative.is_absolute() {
+        return Err("Report path must remain inside the manifest directory".into());
+    }
+    #[cfg(windows)]
+    let relative = same_drive_relative(relative, root)?;
+    if relative.components().any(|part| match part {
+        Component::CurDir => false,
+        Component::RootDir => !cfg!(windows),
+        Component::Normal(name) => name.to_str().is_none_or(|s| s.starts_with('.')),
+        _ => true,
+    }) {
+        return Err("Report path must remain inside the manifest directory".into());
+    }
+    // Python Path normalises trailing separators and '/.' before IO.
+    let relative = relative.components().collect::<std::path::PathBuf>();
+    let path = root.join(relative).canonicalize()?;
+    if !path.starts_with(root)
+        || !matches!(
+            path.extension().and_then(|s| s.to_str()),
+            Some("txt" | "json")
+        )
+    {
+        return Err("Report must be text or JSON inside the manifest directory".into());
+    }
+    Ok(path)
+}
+
+fn report_text(path: &Path, sha256: &str, id: &str) -> Result<String> {
+    let file = File::open(path)?;
+    if file.metadata()?.len() > LIMIT {
+        return Err("Report exceeds the 2 MB example limit".into());
+    }
+    let mut source = Vec::new();
+    file.take(LIMIT + 1).read_to_end(&mut source)?;
+    if source.len() as u64 > LIMIT {
+        return Err("Report exceeds the 2 MB example limit".into());
+    }
+    if digest(&source) != sha256 {
+        return Err(format!("Evidence digest mismatch: {id}").into());
+    }
+    let text = std::str::from_utf8(source.strip_prefix(&[239, 187, 191]).unwrap_or(&source))?;
+    if blank(text) {
+        return Err("Engine report is empty".into());
+    }
+    Ok(text.to_owned())
+}
+
 fn main() -> ExitCode {
-    let mut args = std::env::args_os().skip(1).collect::<Vec<_>>();
+    let mut args = std::env::args().skip(1).collect::<Vec<_>>();
     if args.len() == 1 && (args[0] == "--help" || args[0] == "-h") {
         println!(
             "Index local engine reports without merging their conclusions or scope.\nUsage: group_review [--] MANIFEST"
@@ -245,7 +259,7 @@ fn main() -> ExitCode {
     if literal {
         args.remove(0);
     }
-    if args.len() != 1 || (!literal && args[0].to_string_lossy().starts_with('-')) {
+    if args.len() != 1 || (!literal && args[0].starts_with('-')) {
         eprintln!("Group review index: Usage: group_review [--] MANIFEST");
         return ExitCode::from(2);
     }
@@ -267,6 +281,8 @@ fn main() -> ExitCode {
 #[cfg(test)]
 mod tests {
     use super::*;
+    #[cfg(unix)]
+    use std::os::unix::fs::DirBuilderExt;
     use std::{
         path::PathBuf,
         sync::atomic::{AtomicU64, Ordering},
@@ -276,12 +292,22 @@ mod tests {
     impl Temp {
         fn new() -> Self {
             static NEXT: AtomicU64 = AtomicU64::new(0);
-            let root = std::env::temp_dir().join(format!(
+            let mut root = PathBuf::from(env!("CARGO_MANIFEST_DIR"));
+            root.push("target");
+            root.push("scratch");
+            let mut builder = fs::DirBuilder::new();
+            #[cfg(unix)]
+            builder.mode(0o700);
+            builder.recursive(true).create(&root).unwrap();
+            root.push(format!(
                 "native-group-review-{}-{}",
                 std::process::id(),
                 NEXT.fetch_add(1, Ordering::Relaxed)
             ));
-            fs::create_dir(&root).unwrap();
+            let mut leaf = fs::DirBuilder::new();
+            #[cfg(unix)]
+            leaf.mode(0o700);
+            leaf.create(&root).unwrap();
             Self(root)
         }
     }

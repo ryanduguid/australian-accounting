@@ -5,6 +5,8 @@
 use crate::{CHECKED, Payment, Rule, VERSION, data, fbt, holidays, returns, statements};
 use serde_json::{Map, Value, json};
 
+mod rows;
+
 pub const COMMANDS: &[&str] = &["due-dates"];
 
 pub fn evaluate(command: &str, value: &Value) -> Result<Value, String> {
@@ -22,39 +24,7 @@ fn repr(v: &Value) -> String {
         Value::Null => "None".into(),
         Value::Bool(true) => "True".into(),
         Value::Bool(false) => "False".into(),
-        Value::String(s) => {
-            let quote = if s.contains('\'') && !s.contains('"') {
-                '"'
-            } else {
-                '\''
-            };
-            let mut out = String::from(quote);
-            for c in s.chars() {
-                match c {
-                    '\\' => out.push_str("\\\\"),
-                    '\n' => out.push_str("\\n"),
-                    '\r' => out.push_str("\\r"),
-                    '\t' => out.push_str("\\t"),
-                    c if c == quote => {
-                        out.push('\\');
-                        out.push(c);
-                    }
-                    c if !holidays::printable_char(c) => {
-                        let n = c as u32;
-                        out.push_str(&if n <= 0xff {
-                            format!("\\x{n:02x}")
-                        } else if n <= 0xffff {
-                            format!("\\u{n:04x}")
-                        } else {
-                            format!("\\U{n:08x}")
-                        });
-                    }
-                    _ => out.push(c),
-                }
-            }
-            out.push(quote);
-            out
-        }
+        Value::String(s) => quoted(s),
         Value::Array(items) => format!(
             "[{}]",
             items.iter().map(repr).collect::<Vec<_>>().join(", ")
@@ -66,30 +36,66 @@ fn repr(v: &Value) -> String {
                 .collect::<Vec<_>>()
                 .join(", ")
         ),
-        Value::Number(number) => {
-            let text = number.to_string();
-            if text.contains(['.', 'e', 'E']) {
-                // JSON floating literals correspond to the old Python float
-                // boundary; integers retain their arbitrary-precision text.
-                let Some(number) = number.as_f64() else {
-                    return if text.starts_with('-') {
-                        "-inf".into()
-                    } else {
-                        "inf".into()
-                    };
-                };
-                let shown = format!("{number:?}");
-                if let Some((base, exponent)) = shown.split_once('e') {
-                    let exponent: i32 = exponent.parse().expect("float exponent");
-                    format!("{base}e{exponent:+03}")
-                } else {
-                    shown
-                }
-            } else {
-                text
+        Value::Number(number) => number_text(number),
+    }
+}
+
+fn quoted(text: &str) -> String {
+    let quote = if text.contains('\'') && !text.contains('"') {
+        '"'
+    } else {
+        '\''
+    };
+    let mut out = String::from(quote);
+    for c in text.chars() {
+        match c {
+            '\\' => out.push_str("\\\\"),
+            '\n' => out.push_str("\\n"),
+            '\r' => out.push_str("\\r"),
+            '\t' => out.push_str("\\t"),
+            c if c == quote => {
+                out.push('\\');
+                out.push(c);
             }
+            c if !holidays::printable_char(c) => out.push_str(&escaped(c)),
+            _ => out.push(c),
         }
     }
+    out.push(quote);
+    out
+}
+
+fn escaped(c: char) -> String {
+    let n = c as u32;
+    if n <= 0xff {
+        format!("\\x{n:02x}")
+    } else if n <= 0xffff {
+        format!("\\u{n:04x}")
+    } else {
+        format!("\\U{n:08x}")
+    }
+}
+
+fn number_text(number: &serde_json::Number) -> String {
+    let text = number.to_string();
+    if !text.contains(['.', 'e', 'E']) {
+        return text;
+    }
+    // JSON floating literals correspond to the old Python float
+    // boundary; integers retain their arbitrary-precision text.
+    let Some(number) = number.as_f64() else {
+        return if text.starts_with('-') {
+            "-inf".into()
+        } else {
+            "inf".into()
+        };
+    };
+    let shown = format!("{number:?}");
+    let Some((base, exponent)) = shown.split_once('e') else {
+        return shown;
+    };
+    let exponent: i32 = exponent.parse().expect("float exponent");
+    format!("{base}e{exponent:+03}")
 }
 
 fn choice<'a>(request: &'a Value, name: &str, allowed: &[&str]) -> Result<&'a str, String> {
@@ -106,6 +112,47 @@ fn choice<'a>(request: &'a Value, name: &str, allowed: &[&str]) -> Result<&'a st
 }
 
 fn due_dates(v: &Value) -> Result<Value, String> {
+    let request = parse_request(v)?;
+    let cal = holidays::calendar(&v["extra_holidays"], &v["holidays_complete_until"])?;
+    let rows = obligation_rows(&request, &cal)?;
+    Ok(due_document(v, &request, &rows, &cal))
+}
+
+struct Request<'a> {
+    obligation: &'a str,
+    entity: &'a str,
+    channel: &'a str,
+    year: &'a str,
+    cycle: Option<&'a str>,
+    facts: Value,
+}
+
+fn parse_request(v: &Value) -> Result<Request<'_>, String> {
+    known_fields(v)?;
+    let obligation = choice(
+        v,
+        "obligation",
+        &["bas", "ias", "income_tax_return", "fbt_return"],
+    )?;
+    let entity = choice(
+        v,
+        "entity_type",
+        &["individual", "trust", "partnership", "company", "smsf"],
+    )?;
+    let channel = choice(v, "channel", &["self", "tax_agent", "bas_agent"])?;
+    let year = financial_year(v)?;
+    check_cycle(v, obligation, channel)?;
+    Ok(Request {
+        obligation,
+        entity,
+        channel,
+        year,
+        cycle: v["reporting_cycle"].as_str(),
+        facts: read_facts(&v["facts"])?,
+    })
+}
+
+fn known_fields(v: &Value) -> Result<(), String> {
     let object = v.as_object().ok_or("request must be one JSON object")?;
     for key in object.keys() {
         if ![
@@ -126,18 +173,11 @@ fn due_dates(v: &Value) -> Result<Value, String> {
             ));
         }
     }
-    let obligation = choice(
-        v,
-        "obligation",
-        &["bas", "ias", "income_tax_return", "fbt_return"],
-    )?;
-    let entity = choice(
-        v,
-        "entity_type",
-        &["individual", "trust", "partnership", "company", "smsf"],
-    )?;
-    let channel = choice(v, "channel", &["self", "tax_agent", "bas_agent"])?;
-    let year = v["financial_year"]
+    Ok(())
+}
+
+fn financial_year(v: &Value) -> Result<&str, String> {
+    v["financial_year"]
         .as_str()
         .filter(|s| {
             s.len() == 7
@@ -155,8 +195,10 @@ fn due_dates(v: &Value) -> Result<Value, String> {
                 "financial_year must look like 2026-27; got {}",
                 repr(&v["financial_year"])
             )
-        })?;
-    let cycle = v["reporting_cycle"].as_str();
+        })
+}
+
+fn check_cycle(v: &Value, obligation: &str, channel: &str) -> Result<(), String> {
     if ["income_tax_return", "fbt_return"].contains(&obligation) {
         if !v["reporting_cycle"].is_null() {
             return Err("reporting_cycle applies only to bas and ias".into());
@@ -164,13 +206,18 @@ fn due_dates(v: &Value) -> Result<Value, String> {
         if obligation == "income_tax_return" && channel == "bas_agent" {
             return Err("a BAS agent cannot lodge an income tax return; use tax_agent".into());
         }
-    } else if !matches!(cycle, Some("monthly" | "quarterly")) {
+        return Ok(());
+    }
+    if !matches!(v["reporting_cycle"].as_str(), Some("monthly" | "quarterly")) {
         return Err(format!(
             "reporting_cycle must be one of monthly, quarterly for {obligation}; got {}",
             repr(&v["reporting_cycle"])
         ));
     }
-    let supplied = &v["facts"];
+    Ok(())
+}
+
+fn read_facts(supplied: &Value) -> Result<Value, String> {
     if !supplied.is_null() && !supplied.is_object() {
         return Err("facts must be an object or null".into());
     }
@@ -199,9 +246,11 @@ fn due_dates(v: &Value) -> Result<Value, String> {
             }
         }
     }
-    let facts = Value::Object(facts);
-    let cal = holidays::calendar(&v["extra_holidays"], &v["holidays_complete_until"])?;
-    let family = format!(
+    Ok(Value::Object(facts))
+}
+
+fn family_name(obligation: &str, entity: &str, channel: &str) -> String {
+    format!(
         "{}-{}",
         match obligation {
             "income_tax_return" => entity.to_uppercase(),
@@ -209,201 +258,159 @@ fn due_dates(v: &Value) -> Result<Value, String> {
             _ => obligation.to_uppercase(),
         },
         if channel == "self" { "SELF" } else { "AGENT" }
-    );
-    let recorded = if obligation == "income_tax_return" {
+    )
+}
+
+fn obligation_rows(request: &Request<'_>, cal: &holidays::Calendar) -> Result<Vec<Value>, String> {
+    let family = family_name(request.obligation, request.entity, request.channel);
+    let recorded = if request.obligation == "income_tax_return" {
         "2025-26"
     } else {
         "2026-27"
     };
-    let mut rows = vec![];
-    if year != recorded {
-        let mut rule=Rule::new("YEAR-NOT-RECORDED",format!("This release records the 2026-27 lodgment program, which covers {recorded} for this obligation; {year} is not recorded."),"about",None)
-            .unresolved(&format!("rules for {year}: this release records only {recorded} for this obligation"));
-        rule.payment = Payment::Mode("unknown".into());
-        let label = match obligation {
-            "income_tax_return" => format!("Income tax return {year}"),
-            "fbt_return" => format!("FBT return, FBT year {year}"),
-            _ => format!("{} {year}", obligation.to_uppercase()),
-        };
-        rows.extend(make_rows(
-            &label,
-            year,
-            Some(rule),
-            &[],
-            "",
-            ("unknown", "about"),
-            &cal,
-        )?);
-    } else if obligation == "fbt_return" {
-        let (rule, missing) = fbt::select(channel, &facts);
-        rows.extend(make_rows(
-            &format!("FBT return, FBT year {year}"),
-            year,
-            rule,
-            &missing,
-            &family,
-            ("unknown", "fbt_agent"),
-            &cal,
-        )?);
-    } else if obligation == "income_tax_return" {
-        let label = format!("Income tax return {year}");
-        let (rule, missing, concessions) = returns::select(entity, channel, &facts);
-        rows.extend(make_rows(
-            &label,
-            year,
-            rule,
-            &missing,
-            &family,
-            (
-                if entity == "partnership" {
-                    "none"
-                } else {
-                    "unknown"
-                },
-                "about",
-            ),
-            &cal,
-        )?);
-        for (rule, missing) in concessions {
-            rows.push(row(
-                &label,
-                year,
-                "concession",
-                &rule,
-                &missing,
-                None,
-                &cal,
-            )?);
-        }
-    } else {
-        for (period, label, rule, missing) in statements::select(
-            obligation,
-            entity,
-            channel,
-            cycle.expect("validated cycle"),
-            &facts,
-        ) {
-            rows.extend(make_rows(
-                &label,
-                &period,
-                rule,
-                &missing,
-                &family,
-                ("unknown", "about"),
-                &cal,
-            )?);
-        }
+    if request.year != recorded {
+        return unrecorded(request, recorded, cal);
     }
-    let determined = rows.iter().filter(|r| r["status"] == "DETERMINED").count();
-    Ok(
-        json!({"ok":true,"engine":"lodgment-calendar","engine_version":VERSION,"calendar":"lodgment_due_dates","program_year":"2026-27",
-        "request":{"obligation":obligation,"entity_type":entity,"financial_year":year,"channel":channel,"reporting_cycle":v["reporting_cycle"]},
-        "facts_used":facts,"counts":{"DETERMINED":determined,"UNKNOWN":rows.len()-determined},"obligations":rows,
-        "holiday_calendar":holidays::description(&cal,&v["holidays_complete_until"]),"not_decided":data()["not_decided"],"warnings":data()["warnings"],"source_checked":CHECKED}),
+    match request.obligation {
+        "fbt_return" => fbt_rows(request, &family, cal),
+        "income_tax_return" => income_rows(request, &family, cal),
+        _ => statement_rows(request, &family, cal),
+    }
+}
+
+fn unrecorded(
+    request: &Request<'_>,
+    recorded: &str,
+    cal: &holidays::Calendar,
+) -> Result<Vec<Value>, String> {
+    let year = request.year;
+    let mut rule = Rule::new(
+        "YEAR-NOT-RECORDED",
+        format!(
+            "This release records the 2026-27 lodgment program, which covers {recorded} for this obligation; {year} is not recorded."
+        ),
+        "about",
+        None,
+    )
+    .unresolved(&format!(
+        "rules for {year}: this release records only {recorded} for this obligation"
+    ));
+    rule.payment = Payment::Mode("unknown".into());
+    let label = match request.obligation {
+        "income_tax_return" => format!("Income tax return {year}"),
+        "fbt_return" => format!("FBT return, FBT year {year}"),
+        _ => format!("{} {year}", request.obligation.to_uppercase()),
+    };
+    rows::make_rows(
+        &label,
+        year,
+        Some(rule),
+        &[],
+        "",
+        &rows::Pending {
+            payment: "unknown",
+            source: "about",
+        },
+        cal,
     )
 }
 
-fn make_rows(
-    label: &str,
-    period: &str,
-    rule: Option<Rule>,
-    missing: &[String],
+fn fbt_rows(
+    request: &Request<'_>,
     family: &str,
-    (pending_payment, pending_source): (&str, &str),
     cal: &holidays::Calendar,
 ) -> Result<Vec<Value>, String> {
-    if rule.is_none() || !missing.is_empty() {
-        let meanings: Vec<_> = missing
-            .iter()
-            .map(|n| data()["fact_meanings"][n].as_str().expect("fact meaning"))
-            .collect();
-        let pending = Rule::new(
-            family,
-            format!(
-                "The date depends on facts not supplied: {}.",
-                meanings.join("; ")
-            ),
-            pending_source,
-            None,
-        );
-        return Ok(vec![row(
-            label,
-            period,
-            "lodgment",
-            &pending,
-            missing,
-            Some(pending_payment),
-            cal,
-        )?]);
-    }
-    let rule = rule.expect("present rule");
-    let payment = match &rule.payment {
-        Payment::Mode(mode) => mode.as_str(),
-        Payment::Separate(_) => "separate",
-    };
-    let mut result = vec![row(
-        label,
-        period,
-        "lodgment",
-        &rule,
-        &[],
-        Some(payment),
+    let (rule, missing) = fbt::select(request.channel, &request.facts);
+    rows::make_rows(
+        &format!("FBT return, FBT year {}", request.year),
+        request.year,
+        rule,
+        &missing,
+        family,
+        &rows::Pending {
+            payment: "unknown",
+            source: "fbt_agent",
+        },
         cal,
-    )?];
-    if let Payment::Separate(payment) = &rule.payment {
-        result.push(row(label, period, "payment", payment, &[], None, cal)?);
-    }
-    Ok(result)
+    )
 }
 
-fn row(
-    label: &str,
-    period: &str,
-    kind: &str,
-    rule: &Rule,
-    missing: &[String],
-    payment: Option<&str>,
+fn income_rows(
+    request: &Request<'_>,
+    family: &str,
     cal: &holidays::Calendar,
-) -> Result<Value, String> {
-    let source = &data()["sources"][&rule.source];
-    let mut needed: Vec<String> = missing
-        .iter()
-        .map(|n| {
-            format!(
-                "{n}: {}",
-                data()["fact_meanings"][n].as_str().expect("fact meaning")
-            )
-        })
-        .collect();
-    let mut due = None;
-    let mut holiday_roll = Value::Null;
-    if let Some(unresolved) = &rule.unresolved {
-        needed.push(unresolved.clone());
-    } else if let Some(nominal) = rule.nominal.filter(|_| needed.is_empty()) {
-        let (rolled, skipped, question) = holidays::roll_day(nominal, cal)?;
-        due = rolled;
-        if !skipped.is_empty() || due.is_none() {
-            holiday_roll = json!({"skipped":skipped,"source_url":data()["holiday_source"]});
-        }
-        if let Some(question) = question {
-            needed.push(question);
-        } else if kind == "concession"
-            && holiday_roll["skipped"]
-                .as_array()
-                .is_some_and(|a| !a.is_empty())
-        {
-            needed.push(format!("whether the next-business-day rule extends this concession: {nominal} is not a business day, and the ATO pages call it both a concessional due date and not a lodgment due date"));
-            due = None;
-        }
+) -> Result<Vec<Value>, String> {
+    let label = format!("Income tax return {}", request.year);
+    let (rule, missing, concessions) =
+        returns::select(request.entity, request.channel, &request.facts);
+    let mut rows = rows::make_rows(
+        &label,
+        request.year,
+        rule,
+        &missing,
+        family,
+        &rows::Pending {
+            payment: if request.entity == "partnership" {
+                "none"
+            } else {
+                "unknown"
+            },
+            source: "about",
+        },
+        cal,
+    )?;
+    for (rule, missing) in concessions {
+        rows.push(rows::row(
+            &label,
+            request.year,
+            "concession",
+            &rule,
+            &missing,
+            None,
+            cal,
+        )?);
     }
-    if !needed.is_empty() {
-        due = None;
+    Ok(rows)
+}
+
+fn statement_rows(
+    request: &Request<'_>,
+    family: &str,
+    cal: &holidays::Calendar,
+) -> Result<Vec<Value>, String> {
+    let mut rows = vec![];
+    for (period, label, rule, missing) in statements::select(
+        request.obligation,
+        request.entity,
+        request.channel,
+        request.cycle.expect("validated cycle"),
+        &request.facts,
+    ) {
+        rows.extend(rows::make_rows(
+            &label,
+            &period,
+            rule,
+            &missing,
+            family,
+            &rows::Pending {
+                payment: "unknown",
+                source: "about",
+            },
+            cal,
+        )?);
     }
-    let mut result = json!({"obligation":label,"period":period,"kind":kind,"status":if needed.is_empty() {"DETERMINED"} else {"UNKNOWN"},
-        "due_date":due.map(|d|d.to_string()),"nominal_due_date":rule.nominal.map(|d|d.to_string()),"rule_id":rule.id,"summary":rule.summary,
-        "source_url":source[0],"source_provision":source[1],"source_checked":CHECKED,"holiday_roll":holiday_roll,"missing":needed});
-    if kind == "lodgment" {
-        result["payment"] = json!(payment);
-    }
-    Ok(result)
+    Ok(rows)
+}
+
+fn due_document(
+    v: &Value,
+    request: &Request<'_>,
+    rows: &[Value],
+    cal: &holidays::Calendar,
+) -> Value {
+    let determined = rows.iter().filter(|r| r["status"] == "DETERMINED").count();
+    json!({"ok":true,"engine":"lodgment-calendar","engine_version":VERSION,"calendar":"lodgment_due_dates","program_year":"2026-27",
+        "request":{"obligation":request.obligation,"entity_type":request.entity,"financial_year":request.year,"channel":request.channel,"reporting_cycle":v["reporting_cycle"]},
+        "facts_used":request.facts,"counts":{"DETERMINED":determined,"UNKNOWN":rows.len()-determined},"obligations":rows,
+        "holiday_calendar":holidays::description(cal,&v["holidays_complete_until"]),"not_decided":data()["not_decided"],"warnings":data()["warnings"],"source_checked":CHECKED})
 }

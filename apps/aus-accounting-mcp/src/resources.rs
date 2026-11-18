@@ -34,29 +34,7 @@ pub fn read(uri: &str) -> Result<Value, String> {
                 value["retrieval_folders_configured"][name] = json!(configured);
             }
         }
-        "aus-accounting://disclaimer" => {
-            // Python lists its installed engine's worksheet scopes; these are the linked
-            // engine's, as the scope resource serves them.
-            let catalogue = crate::adapters::tax::advertised_worksheets()?;
-            let heading = "# australian-tax-calculators\n\n";
-            let text = value.as_str().unwrap();
-            let (head, rest) = text.split_once(heading).ok_or("disclaimer")?;
-            let (section, tail) = rest.split_once("\n\n# gst-review").ok_or("disclaimer")?;
-            let scopes = section
-                .split('\n')
-                .map(|line| {
-                    let kind = line.split_once(": ").ok_or("disclaimer scope")?.0;
-                    let scope = catalogue[kind]["scope"]
-                        .as_str()
-                        .ok_or("disclaimer scope")?;
-                    Ok(format!("{kind}: {scope}"))
-                })
-                .collect::<Result<Vec<_>, String>>()?;
-            value = json!(format!(
-                "{head}{heading}{}\n\n# gst-review{tail}",
-                scopes.join("\n")
-            ));
-        }
+        "aus-accounting://disclaimer" => value = disclaimer(value)?,
         "aus-accounting://component-versions" => {
             value["server"]["version"] = json!(crate::VERSION);
             value["engines"] = json!([
@@ -67,15 +45,7 @@ pub fn read(uri: &str) -> Result<Value, String> {
                 {"distribution":"gst-review","version":gst_review::VERSION},
                 {"distribution":"lodgment-calendar","version":lodgment_calendar::VERSION}]);
         }
-        "aus-accounting://benchmark-dataset-years" => {
-            let years = dataset::available_years(&DataDir::Shipped);
-            value["engine_version"] = json!(ato_benchmark_compare::VERSION);
-            value["latest_benchmark_year"] = json!(years.last());
-            value["datasets"]=Value::Array(years.iter().map(|year| {
-                let data=dataset::load(Some(year),&DataDir::Shipped).map_err(|e|e.to_string())?;
-                Ok(json!({"benchmark_year":data.year,"business_types":data.business_types.len(),"source":report::raw_json(&data.source)}))
-            }).collect::<Result<_,String>>()?);
-        }
+        "aus-accounting://benchmark-dataset-years" => benchmark_years(&mut value)?,
         "aus-accounting://payday-coverage" => {
             let calendar = calendar::load_calendar(None).map_err(|e| e.message())?;
             let gic = rates::load_gic().map_err(|e| e.message())?;
@@ -88,6 +58,48 @@ pub fn read(uri: &str) -> Result<Value, String> {
         _ => {}
     }
     Ok(value)
+}
+
+fn disclaimer(value: Value) -> Result<Value, String> {
+    // Python lists its installed engine's worksheet scopes; these are the linked
+    // engine's, as the scope resource serves them.
+    let catalogue = crate::adapters::tax::advertised_worksheets()?;
+    let heading = "# australian-tax-calculators\n\n";
+    let text = value.as_str().unwrap();
+    let (head, rest) = text.split_once(heading).ok_or("disclaimer")?;
+    let (section, tail) = rest.split_once("\n\n# gst-review").ok_or("disclaimer")?;
+    let scopes = section
+        .split('\n')
+        .map(|line| worksheet_scope(line, &catalogue))
+        .collect::<Result<Vec<_>, String>>()?;
+    Ok(json!(format!(
+        "{head}{heading}{}\n\n# gst-review{tail}",
+        scopes.join("\n")
+    )))
+}
+
+fn worksheet_scope(line: &str, catalogue: &Value) -> Result<String, String> {
+    let kind = line.split_once(": ").ok_or("disclaimer scope")?.0;
+    let scope = catalogue[kind]["scope"]
+        .as_str()
+        .ok_or("disclaimer scope")?;
+    Ok(format!("{kind}: {scope}"))
+}
+
+fn benchmark_years(value: &mut Value) -> Result<(), String> {
+    let years = dataset::available_years(&DataDir::Shipped);
+    value["engine_version"] = json!(ato_benchmark_compare::VERSION);
+    value["latest_benchmark_year"] = json!(years.last());
+    value["datasets"] = Value::Array(
+        years
+            .iter()
+            .map(|year| {
+                let data = dataset::load(Some(year), &DataDir::Shipped).map_err(|e| e.to_string())?;
+                Ok(json!({"benchmark_year":data.year,"business_types":data.business_types.len(),"source":report::raw_json(&data.source)}))
+            })
+            .collect::<Result<_, String>>()?,
+    );
+    Ok(())
 }
 
 pub fn result(uri: &str) -> Result<Value, String> {
