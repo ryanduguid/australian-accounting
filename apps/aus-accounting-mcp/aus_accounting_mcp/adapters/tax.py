@@ -47,7 +47,9 @@ def _executable() -> str | None:
 
 def _run(binary: str, arguments: list[str], payload: str = "") -> subprocess.CompletedProcess[str]:
     try:
-        return subprocess.run(  # NOSONAR: an argument list, no shell
+        # An argument list and no shell; the executable is the one the operator named
+        # or put on PATH, and the arguments are fixed command names.
+        return subprocess.run(  # NOSONAR nosemgrep
             [binary, *arguments], input=payload, capture_output=True, text=True,
             encoding="utf-8", timeout=TIMEOUT_SECONDS, check=False,
         )
