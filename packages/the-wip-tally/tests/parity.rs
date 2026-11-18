@@ -419,6 +419,28 @@ fn original_cli_runs_with_their_files() {
 
 #[test]
 fn an_undated_schedule_uses_the_live_date_in_console_and_csv() {
+    undated_schedule(None);
+}
+
+/// The live date is the calendar date in the machine's time zone: at UTC+14 and
+/// at UTC-12 it is the UTC clock's date moved by that offset, which differs from
+/// the UTC date for at least one of them at any moment.
+#[cfg(unix)]
+#[test]
+fn an_undated_schedule_uses_the_date_in_the_local_time_zone() {
+    undated_schedule(Some(("XYZ-14", 14)));
+    undated_schedule(Some(("XYZ+12", -12)));
+}
+
+/// Runs the frozen undated schedule, with `TZ` set to a POSIX zone at the given
+/// hours from UTC when `zone` is given, and checks the date it writes.
+fn undated_schedule(zone: Option<(&str, i8)>) {
+    let today = || match zone {
+        Some((_, hours)) => jiff::Timestamp::now()
+            .to_zoned_datetime(jiff::tz::TimeZone::fixed(jiff::tz::offset(hours)))
+            .date(),
+        None => jiff::ZonedDateTime::now().date(),
+    };
     let rows: Value = serde_json::from_str(include_str!("data/python-cli.json")).unwrap();
     let row = rows
         .as_array()
@@ -436,17 +458,20 @@ fn an_undated_schedule_uses_the_live_date_in_console_and_csv() {
         .iter()
         .map(|arg| arg.as_str().unwrap())
         .collect();
-    let before = chrono::Local::now().date_naive().to_string();
-    let run = Command::new(env!("CARGO_BIN_EXE_wip-tally"))
+    let mut command = Command::new(env!("CARGO_BIN_EXE_wip-tally"));
+    command
         .args(&args)
         .current_dir(&folder)
         .env("PYTHON_COLORS", "0")
         .env("COLUMNS", "80")
         .env_remove("FORCE_COLOR")
-        .env_remove("NO_COLOR")
-        .output()
-        .unwrap();
-    let after = chrono::Local::now().date_naive().to_string();
+        .env_remove("NO_COLOR");
+    if let Some((tz, _)) = zone {
+        command.env("TZ", tz);
+    }
+    let before = today().to_string();
+    let run = command.output().unwrap();
+    let after = today().to_string();
     assert_eq!(run.status.code(), Some(0));
     let frozen_stdout = String::from_utf8(unhex(
         row["expected"]["results"][0]["stdout"].as_str().unwrap(),

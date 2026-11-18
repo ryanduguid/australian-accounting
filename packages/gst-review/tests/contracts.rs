@@ -82,10 +82,10 @@ fn public_date_helpers_include_both_boundaries() {
         registered_to: Some(end),
     };
     for day in [
-        start.pred_opt().unwrap(),
+        start.yesterday().unwrap(),
         start,
         end,
-        end.succ_opt().unwrap(),
+        end.tomorrow().unwrap(),
     ] {
         let expected = day >= start && day <= end;
         assert_eq!(period.holds(day), expected);
@@ -324,4 +324,123 @@ fn an_unknown_gst_code_outranks_an_invalid_supplier_abn_on_the_same_line() {
     assert_eq!(result["lines"][0]["state"], "unknown_gst_code");
     assert_eq!(result["counts"]["unknown_gst_code"], 1);
     assert_eq!(result["counts"]["supplier_abn_invalid"], 0);
+}
+
+#[test]
+fn the_match_window_counts_calendar_days_across_month_and_year_ends() {
+    let review = |first: &str, second: &str, window: i64| {
+        let line = |id: &str, entity: &str, date: &str, amount: &str| {
+            json!({"id":id,"entity":entity,"date":date,"amount":amount,"account":"400",
+            "gst_code":"GST","confirmed":true})
+        };
+        let input = json!({"registrations":{"A":{"registered_from":"2024-07-01"},
+            "B":{"registered_from":"2024-07-01"}},"match_window_days":window,"lines":[
+            line("a", "A", first, "-110.00"), line("b", "B", second, "110.00")]});
+        api::evaluate("review-coding", &input)
+            .map(|result| result["lines"][0]["state"].as_str().unwrap().to_owned())
+    };
+    // 28 February to 1 March is 2 days in a leap year and 1 in a common year.
+    assert_eq!(review("2028-02-28", "2028-03-01", 1).unwrap(), "coded");
+    assert_eq!(
+        review("2028-02-28", "2028-03-01", 2).unwrap(),
+        "between_entities"
+    );
+    assert_eq!(
+        review("2027-02-28", "2027-03-01", 1).unwrap(),
+        "between_entities"
+    );
+    // 30 June to 1 July, the financial year end, in either order; 31 December to 1 January.
+    assert_eq!(
+        review("2027-07-01", "2027-06-30", 1).unwrap(),
+        "between_entities"
+    );
+    assert_eq!(review("2027-06-30", "2027-07-01", 0).unwrap(), "coded");
+    assert_eq!(
+        review("2027-12-31", "2028-01-01", 1).unwrap(),
+        "between_entities"
+    );
+    assert_eq!(
+        review("2027-01-31", "2027-03-03", 31).unwrap(),
+        "between_entities"
+    );
+    assert_eq!(review("2027-01-31", "2027-03-04", 31).unwrap(), "coded");
+    assert_eq!(
+        review("2028-02-29", "2028-02-29", 0).unwrap(),
+        "between_entities"
+    );
+    for bad in [
+        "2027-02-29",
+        "2027-04-31",
+        "0000-01-01",
+        "2027-6-30",
+        " 2027-06-30",
+        // A negative year spelt in 4 characters, which round-trips under jiff.
+        "-187-07-27",
+        "-001-06-30",
+    ] {
+        assert_eq!(
+            review(bad, "2027-07-01", 3).unwrap_err(),
+            "Line 'a' needs a date.",
+            "{bad}"
+        );
+    }
+}
+
+#[test]
+fn bas_periods_split_at_the_financial_year_end_and_hold_a_leap_day() {
+    let sale = |id: &str, day: &str, gross: &str, gst: &str| {
+        json!({"id":id,"side":"sale","gross":gross,"gst":gst,"gst_code":"GST on Income",
+        "invoice_date":day,"payment_date":day})
+    };
+    let result = api::evaluate(
+        "reconcile-bas",
+        &json!({"basis":"accruals","lodged":{},"lines":[
+            sale("june", "2026-06-30", "110.00", "10.00"),
+            sale("july", "2026-07-01", "220.00", "20.00"),
+            sale("leap", "2028-02-29", "330.00", "30.00")],"periods":[
+            {"label":"Q4","start":"2026-04-01","end":"2026-06-30"},
+            {"label":"Q1","start":"2026-07-01","end":"2026-09-30"},
+            {"label":"Q3","start":"2028-01-01","end":"2028-02-29"}]}),
+    )
+    .unwrap();
+    let g1: Vec<Value> = result["periods"]
+        .as_array()
+        .unwrap()
+        .iter()
+        .map(|p| {
+            json!([
+                p["period"],
+                p["start"],
+                p["end"],
+                p["labels"]["G1"]["ledger"]
+            ])
+        })
+        .collect();
+    assert_eq!(
+        g1,
+        [
+            json!(["Q4", "2026-04-01", "2026-06-30", "110.00"]),
+            json!(["Q1", "2026-07-01", "2026-09-30", "220.00"]),
+            json!(["Q3", "2028-01-01", "2028-02-29", "330.00"])
+        ]
+    );
+    assert_eq!(result["outside_periods"], json!([]));
+    let refused = |period: Value, day: &str| {
+        api::evaluate(
+            "reconcile-bas",
+            &json!({"basis":"accruals","lodged":{},"periods":[period],
+                "lines":[sale("x", day, "110.00", "10.00")]}),
+        )
+        .unwrap_err()
+    };
+    let year = json!({"label":"FY","start":"2026-07-01","end":"2027-06-30"});
+    assert_eq!(
+        refused(year, "2027-02-29"),
+        "Line 'x' needs an invoice date and an optional payment date."
+    );
+    let leap = json!({"label":"Q3","start":"2027-01-01","end":"2027-02-29"});
+    assert_eq!(
+        refused(leap, "2027-02-28"),
+        "Period 'Q3' needs a start on or before its end."
+    );
 }
