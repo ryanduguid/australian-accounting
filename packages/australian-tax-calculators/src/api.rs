@@ -193,6 +193,17 @@ const COMMAND_ARGS: &[(&str, &[(&str, Kind)])] = &[
         &[("items", Json), ("year", Raw), ("scope_confirmed", Raw)],
     ),
     (
+        "balancing-adjustment",
+        &[
+            ("cost", Dec),
+            ("termination_value", Dec),
+            ("asset", Raw),
+            ("years", Json),
+            ("year", Raw),
+            ("scope_confirmed", Raw),
+        ],
+    ),
+    (
         "fbt",
         &[
             ("type_one_value", Dec),
@@ -515,7 +526,7 @@ pub fn commands() -> Vec<&'static str> {
 /// command on its `gross_pay` shows that withholding. The classifier's amounts
 /// are totals over lines whose shares a decision table sets, not a formula;
 /// each line and class carries the authority for its row instead.
-const DERIVED: [&str; 44] = [
+const DERIVED: [&str; 45] = [
     "fbt",
     "fbt-car-statutory",
     "fbt-car-operating-cost",
@@ -560,6 +571,7 @@ const DERIVED: [&str; 44] = [
     "lump-sum-arrears-tax-offset",
     "income-tests",
     "business-capital-expenditure",
+    "balancing-adjustment",
 ];
 
 /// `derive`: `{"command", "input"}` gives the command's result with the step
@@ -925,6 +937,7 @@ pub fn evaluate_coded(command: &str, v: &Value) -> Result<Value> {
             | "hire-purchase-schedule"
             | "income-tests"
             | "business-capital-expenditure"
+            | "balancing-adjustment"
     ) && let Some(key) = v
         .as_object()
         .into_iter()
@@ -962,6 +975,19 @@ pub fn evaluate_coded(command: &str, v: &Value) -> Result<Value> {
             engine::hire_purchase_schedule(&a[0], &a[1], &a[2], &a[3], &a[4], &a[5], &a[6], &a[7])
         }
         "business-capital-expenditure" => engine::business_capital_expenditure(&a[0], &a[1], &a[2]),
+        "balancing-adjustment" => {
+            // Optional: a car's s 40-325 facts, or null; refused for any other asset.
+            let car_limit = optional(v, "car_limit", Json)?;
+            engine::balancing_adjustment(
+                &a[0],
+                &a[1],
+                &a[2],
+                &a[3],
+                car_limit.as_ref(),
+                &a[4],
+                &a[5],
+            )
+        }
         "fbt" => engine::fbt(&a[0], &a[1], &a[2], &a[3]),
         "fbt-car-statutory" => {
             engine::fbt_car_statutory(&a[0], &a[1], &a[2], &a[3], &a[4], &a[5], &a[6], &a[7])
