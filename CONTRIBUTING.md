@@ -283,6 +283,15 @@ promises without `--confirm-remittance-only`. It runs on README changes, pushes 
 `main` that change the README, manual runs and weekly, so a moved CSV or a pinned
 release that stops matching the README surfaces without a README edit.
 
+`calculators-install.yml` runs the one-command install of the
+`australian-tax-calculators` release that its README's Install section gives (the
+MCP README must give the same commands) on Linux and Windows, with no GitHub
+sign-in, through `.github/ci/check_calculators_install.sh` and `.ps1`: the installed
+executable must report the tag's version, and the same command with the archive or
+`SHA256SUMS` altered in transit must refuse and install nothing. It runs when those
+READMEs, scripts or the workflow change, on pushes to `main` that change them,
+manually and weekly. It is not a required check and publishes nothing.
+
 The existing [joined example driver](https://github.com/ryanduguid/accounting-review-pipeline/blob/3dcb5304f4c67c01de98b34638999b5f274d1810/packages/monthly-close-control-plane/docs/utility-workflows.md)
 checks both fabricated thirteen-week cash scenarios and retains REVIEW findings.
 Processes and fresh environments stay separate; workspace locks remain authoritative.
