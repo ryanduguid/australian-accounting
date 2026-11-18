@@ -1665,8 +1665,8 @@ fn balancing_adjustment_less_its_reduction_is_what_is_assessable_or_deductible()
 
 /// A hire purchase schedule adds up: the months' interest to the total
 /// charges, each closing balance to the next opening and the last to nil, and
-/// each month's interest is within a cent of the implicit rate on what it
-/// accrues on (ITAA 1997 s 240-60(1)).
+/// each month's interest is within 2 cents, and a trillionth of what it
+/// accrues on, of the implicit rate on that amount (ITAA 1997 s 240-60(1)).
 #[test]
 fn hire_purchase_interest_adds_up_to_the_charges_and_the_balance_to_nil() {
     let mut rng = Rng(0x2406_0060);
