@@ -5,8 +5,9 @@
 
 The real server runs over stdio in its own process. A CPython audit hook, installed
 before the server is imported, ends that process on any name lookup, socket connect,
-bind, sendto or sendmsg, or any child process, and each delegated engine then does a
-calculation.
+bind, sendto or sendmsg, or any child process but the australian-tax-calculators
+executable, and each delegated engine then does a calculation. That executable's own
+no_network tests run it under strace and refuse network and process imports in it.
 
 The hook sees those audited CPython events on every platform. CPython raises no event
 for socket.send, so a socket inherited already connected would go unseen, as would a
@@ -17,6 +18,7 @@ on Windows is a loopback connection within the process.
 """
 
 import asyncio
+import os
 import subprocess
 import sys
 from pathlib import Path
@@ -25,8 +27,14 @@ import pytest
 from mcp import ClientSession, StdioServerParameters
 from mcp.client.stdio import stdio_client
 
+from aus_accounting_mcp.adapters import tax
+
 GUARD = """
-import os, sys
+import os, shutil, sys
+
+# Found as the tax adapter finds it; the worksheets run it and nothing else.
+CALCULATORS = (
+    os.environ.get("AUS_TAX_CALCULATORS_BIN") or shutil.which("australian-tax-calculators"))
 
 WATCHED = {
     "socket.bind", "socket.connect", "socket.getaddrinfo", "socket.gethostbyaddr",
@@ -43,8 +51,13 @@ def socketpair_loopback(event, args):
     caller = sys._getframe(2)
     return caller.f_globals.get("__name__") == "socket" and "socketpair" in caller.f_code.co_name
 
+def calculators(event, args):
+    if event not in {"subprocess.Popen", "os.posix_spawn"} or CALCULATORS is None:
+        return False
+    return isinstance(args[1], (list, tuple)) and list(args[1][:1]) == [CALCULATORS]
+
 def guard(event, args):
-    if event in WATCHED and not socketpair_loopback(event, args):
+    if event in WATCHED and not socketpair_loopback(event, args) and not calculators(event, args):
         os.write(2, f"NETWORK ATTEMPT: {event} {args}".encode())
         os._exit(99)
 
@@ -120,7 +133,11 @@ CALCULATIONS = {
 
 
 async def _call_tools(server: str, calls: dict, stderr_path: Path) -> dict[str, dict]:
-    parameters = StdioServerParameters(command=sys.executable, args=["-c", server])
+    # The client passes the server only a few variables; PATH is one, this is not.
+    named = os.environ.get(tax.BINARY_VARIABLE)
+    parameters = StdioServerParameters(
+        command=sys.executable, args=["-c", server],
+        env={tax.BINARY_VARIABLE: named} if named else None)
     results = {}
     with stderr_path.open("w", encoding="utf-8") as stderr:
         async with stdio_client(parameters, errlog=stderr) as (read_stream, write_stream):
@@ -169,6 +186,14 @@ def test_the_socketpair_exemption_covers_only_its_own_loopback_calls(body):
     )
     # The module name makes the frame look like CPython's own.
     source = GUARD + f"exec({module!r}, {{'__name__': 'socket'}})\n"
+    completed = subprocess.run([sys.executable, "-c", source], capture_output=True, timeout=30)
+    assert completed.returncode == 99, completed.stderr
+
+
+@pytest.mark.parametrize("argv", ["[sys.executable, '-V']", "'australian-tax-calculators'"])
+def test_the_calculators_exemption_covers_only_that_executable(argv):
+    # A command line given as one string is not the exemption's argument list.
+    source = GUARD + f"import subprocess\nsubprocess.run({argv}, check=False)\n"
     completed = subprocess.run([sys.executable, "-c", source], capture_output=True, timeout=30)
     assert completed.returncode == 99, completed.stderr
 

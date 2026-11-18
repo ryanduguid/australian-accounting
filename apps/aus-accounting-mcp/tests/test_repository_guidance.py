@@ -54,13 +54,14 @@ def _ci_run_commands(workflow: str | None = None) -> list[str]:
         workflow = (repository_root() / ".github" / "workflows" / "ci.yml").read_text(
             encoding="utf-8"
         )
-    # Only jobs running from this component own its contributor commands.
-    jobs = re.split(r"(?m)^  [\w-]+:\s*$", workflow.split("jobs:\n", 1)[1])[1:]
+    # Only steps running from this component own its contributor commands; a step
+    # that builds another component's executable for the tests is not one.
+    steps = re.split(r"(?m)^\s+- ", workflow.split("jobs:\n", 1)[1])
     # A trailing "# NOSONAR: reason" is a YAML comment, not part of the command.
     commands = [
-        re.sub(r"[ \t]+# NOSONAR[^\n]*", "", command) for job in jobs
-        if re.search(r"(?m)^\s+working-directory: apps/aus-accounting-mcp\s*$", job)
-        for command in re.findall(r"^\s+(?:-\s+)?run:\s*(\S.*)$", job, flags=re.MULTILINE)
+        re.sub(r"[ \t]+# NOSONAR[^\n]*", "", command) for step in steps
+        if re.search(r"(?m)^\s+working-directory: apps/aus-accounting-mcp\s*$", step)
+        for command in re.findall(r"^\s*run:\s*(\S.*)$", step, flags=re.MULTILINE)
     ]
     return list(dict.fromkeys(commands))
 
@@ -130,7 +131,10 @@ def test_agents_tracks_exact_ci_commands_and_classifies_other_checks() -> None:
         Run these commands from `apps/aus-accounting-mcp/`. The active workflow is
         [the root ci.yml](../../.github/workflows/ci.yml), not a workflow inside this
         component. Read [root CONTRIBUTING.md](../../CONTRIBUTING.md) for workspace
-        lockfile behaviour and the additional packaging and release checks:
+        lockfile behaviour and the additional packaging and release checks. The tests
+        run the `australian-tax-calculators` executable: build it with `cargo build
+        --locked` in `packages/australian-tax-calculators` and put its `target/debug`
+        folder on `PATH`, as CI does, or name the executable in `AUS_TAX_CALCULATORS_BIN`:
         """
     )
 

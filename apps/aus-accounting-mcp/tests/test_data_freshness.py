@@ -13,12 +13,12 @@ from decimal import Decimal
 
 import pytest
 from atobenchmark.dataset import available_years, load
-from austaxcalc import calculations
 from div7aloan.rates import load_table
 from lodgmentcalendar.due_dates import SOURCE_CHECKED as LODGMENT_SOURCE_CHECKED
 from paydaysuper.rates import GicQuarter, GicTable
 
 from aus_accounting_mcp import freshness, resources
+from aus_accounting_mcp.adapters import tax
 from aus_accounting_mcp.errors import InputError
 from aus_accounting_mcp.server import mcp
 
@@ -79,7 +79,9 @@ def test_versions_come_from_installed_metadata() -> None:
         "version": importlib.metadata.version("aus-accounting-mcp"),
     }
     for dataset in report["datasets"]:
-        assert dataset["engine_version"] == importlib.metadata.version(dataset["engine"])
+        expected = (tax.CALCULATORS_VERSION if dataset["engine"] == tax.CALCULATORS
+                    else importlib.metadata.version(dataset["engine"]))
+        assert dataset["engine_version"] == expected
 
 
 def test_a_cached_older_release_reports_its_own_version_and_no_currency(monkeypatch) -> None:
@@ -105,7 +107,9 @@ def test_an_uninstalled_distribution_is_unknown_not_guessed(monkeypatch) -> None
     report = freshness.data_freshness()
 
     assert report["server"]["version"] == "UNKNOWN"
-    assert {dataset["engine_version"] for dataset in report["datasets"]} == {"UNKNOWN"}
+    # The calculators' version is the executable's, which metadata cannot remove.
+    assert {dataset["engine_version"] for dataset in report["datasets"]
+            if dataset["engine"] != tax.CALCULATORS} == {"UNKNOWN"}
 
 
 def test_local_metadata_is_read_from_the_installed_engines() -> None:
@@ -125,7 +129,7 @@ def test_local_metadata_is_read_from_the_installed_engines() -> None:
     ]
     assert div7a["provenance"]["reviewed_until"] == table.reviewed_until.label
 
-    for kind, entry in calculations.worksheet_catalogue().items():
+    for kind, entry in tax.worksheet_catalogue().items():
         worksheet = datasets[f"tax_worksheet:{kind}"]
         assert [(p["start"], p["end"]) for p in worksheet["effective_periods"]] == [
             (p["start"], p["end"]) for p in entry["supported_periods"]

@@ -22,7 +22,6 @@ from pathlib import Path
 from typing import Any, Literal, TypedDict, Unpack, get_args
 
 from atobenchmark.dataset import available_years, load
-from austaxcalc import calculations
 from div7aloan import LAW_CONTENT_DATE as DIV7A_LAW_CONTENT_DATE
 from div7aloan.rates import load_table
 from gstreview.bas import ATO_BAS_INSTRUCTIONS, ATO_BAS_METHOD
@@ -39,6 +38,7 @@ from paydaysuper import LAW_CONTENT_DATE as PAYDAY_LAW_CONTENT_DATE
 from paydaysuper.calendar import DATA_DIR as CALENDAR_DATA_DIR, load_calendar
 from paydaysuper.rates import DATA_DIR as RATES_DATA_DIR, load_gic, load_rates
 
+from .adapters import tax
 from .errors import InputError
 from .resources import SERVER_DISTRIBUTION, _installed
 from .reviewed_rates import covered_years, records
@@ -268,12 +268,21 @@ def _sg_parameters() -> dict[str, Any]:
 
 
 def _worksheets() -> list[dict[str, Any]]:
+    try:
+        catalogue = tax.worksheet_catalogue()
+    except tax.CalculatorsUnavailable as exc:
+        # Listed as unavailable, not left out: a missing dataset would read as none.
+        return [_dataset(
+            "tax_worksheets", str(exc), ["calculate_tax_worksheet"], tax.CALCULATORS,
+            effective_periods=UNKNOWN, sources=UNKNOWN, retrieved=UNKNOWN,
+            source_checked=UNKNOWN, provenance={},
+        )]
     return [
-        _dataset(
+        {**_dataset(
             f"tax_worksheet:{kind}",
             f"Rates and thresholds for the {kind} worksheet.",
             ["calculate_tax_worksheet"],
-            "australian-tax-calculators",
+            tax.CALCULATORS,
             effective_periods=[
                 {key: period[key] for key in ("id", "basis", "start", "end")}
                 for period in entry["supported_periods"]
@@ -282,8 +291,8 @@ def _worksheets() -> list[dict[str, Any]]:
             retrieved=UNKNOWN,
             source_checked=_iso_or_unknown(entry.get("source_checked")),
             provenance={"source_passage": entry.get("source_passage", UNKNOWN)},
-        )
-        for kind, entry in calculations.worksheet_catalogue().items()
+        ), "engine_version": tax.CALCULATORS_VERSION}
+        for kind, entry in catalogue.items()
     ]
 
 
