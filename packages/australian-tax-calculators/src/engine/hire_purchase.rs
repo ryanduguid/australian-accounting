@@ -349,14 +349,15 @@ fn start_in_year(start_date: &Arg, year: &str) -> Result<i64> {
 
 /// The rate `r` a unit and the nominal annual rate (12 or 52 times it), to
 /// 16 places, so the rates reproduce a period's interest to the cent at the
-/// largest amount, and fixed-point, so a nil rate reads 0.0000000000000000.
-fn rates(r: &Decimal, unit: Unit) -> Result<Vec<(String, String)>> {
+/// largest amount, and fixed-point, so a nil rate reads 0.0000000000000000;
+/// then any car limit the GST facts were worked with.
+fn rates(r: &Decimal, unit: Unit, car_limit: Option<&Decimal>) -> Result<Vec<(String, String)>> {
     let (key, per_year) = match unit {
         Unit::Month => ("implicit_monthly_rate", 12),
         Unit::Week => ("implicit_weekly_rate", 52),
     };
     precise(|| {
-        Ok(vec![
+        let mut rates = vec![
             rate(key, r.quantize(-16, Rounding::HalfUp)?.fixed(16, false)),
             rate(
                 "nominal_annual_rate",
@@ -364,7 +365,9 @@ fn rates(r: &Decimal, unit: Unit) -> Result<Vec<(String, String)>> {
                     .quantize(-16, Rounding::HalfUp)?
                     .fixed(16, false),
             ),
-        ])
+        ];
+        rates.extend(car_limit.map(|limit| rate("car_limit", limit)));
+        Ok(rates)
     })
 }
 
@@ -522,34 +525,26 @@ fn consequence(excess: &Decimal, shortfall: &Decimal) -> &'static str {
 /// What a reviewer must establish before relying on a payout's consequence.
 const PAYOUT_REVIEW: &str = "For review: this takes the payout as a termination amount payable because the arrangement ends on the payout date, every arrangement payment due before it as paid, and the implicit rate as found from the payments the agreement scheduled, with no estimate under s 240-60(3) or (4). Whether s 240-110(3) limits the notional buyer's deduction or inclusion, and which of its income years it falls in, are not worked out.";
 
+/// `values` written as a sum, `0` for none, and their total.
+fn sum_terms(values: Vec<&Decimal>) -> Result<(String, Decimal)> {
+    let total = values.iter().try_fold(int(0), |sum, v| sum.add(v))?;
+    let text = values
+        .iter()
+        .map(|v| v.to_string())
+        .collect::<Vec<_>>()
+        .join(" + ");
+    Ok((if text.is_empty() { "0".into() } else { text }, total))
+}
+
 /// The payout's steps: the payout, the interest and payments to its date, the
 /// balance it discharges and the difference.
-fn payout_steps(payout: &Payout, financed: &Decimal, periods: &[Period]) -> Result<[Step; 6]> {
-    let terms = |values: Vec<&Decimal>| -> (String, Decimal) {
-        let total = values.iter().try_fold(int(0), |sum, v| sum.add(v));
-        let text = values
-            .iter()
-            .map(|v| v.to_string())
-            .collect::<Vec<_>>()
-            .join(" + ");
-        (
-            if text.is_empty() { "0".into() } else { text },
-            total.expect("cents"),
-        )
-    };
-    let (interest_terms, interest) = terms(periods.iter().map(|p| &p.interest).collect());
-    let paid: Vec<&Decimal> = periods
+fn payout_steps(payout: &Payout, financed: &Decimal, periods: &[Period]) -> Result<Vec<Step>> {
+    let (interest_terms, interest) = sum_terms(periods.iter().map(|p| &p.interest).collect())?;
+    let paid = periods
         .iter()
-        .flat_map(|p| p.payments.iter().map(|(_, amount)| amount))
-        .collect();
-    let (paid_terms, paid_total) = terms(paid);
-    let balance = financed.add(&interest)?.sub(&paid_total)?;
-    let difference = payout.amount.sub(&balance)?;
-    let (excess, shortfall) = (
-        py_max(int(0), difference.clone())?,
-        py_max(int(0), difference.neg()?)?,
-    );
-    Ok([
+        .flat_map(|p| p.payments.iter().map(|(_, amount)| amount));
+    let (paid_terms, paid_total) = sum_terms(paid.collect())?;
+    let mut steps = vec![
         step(
             "payout",
             PAYOUT,
@@ -571,26 +566,46 @@ fn payout_steps(payout: &Payout, financed: &Decimal, periods: &[Period]) -> Resu
             &[],
             paid_total.clone(),
         ),
+    ];
+    steps.extend(settlement_steps(
+        &payout.amount,
+        financed,
+        &interest,
+        &paid_total,
+    )?);
+    Ok(steps)
+}
+
+/// The balance a payout of `amount` discharges and its excess or shortfall.
+fn settlement_steps(
+    amount: &Decimal,
+    financed: &Decimal,
+    interest: &Decimal,
+    paid: &Decimal,
+) -> Result<[Step; 3]> {
+    let balance = financed.add(interest)?.sub(paid)?;
+    let difference = amount.sub(&balance)?;
+    Ok([
         step(
             "balance_at_payout",
             BALANCE_AT_PAYOUT,
             "amount_financed + interest_to_payout - payments_before_payout",
-            &[financed, &interest, &paid_total],
+            &[financed, interest, paid],
             balance.clone(),
         ),
         step(
             "payout_excess",
             PAYOUT_EXCESS,
             "max(0, payout - balance_at_payout)",
-            &[&payout.amount, &balance],
-            excess,
+            &[amount, &balance],
+            py_max(int(0), difference.clone())?,
         ),
         step(
             "payout_shortfall",
             PAYOUT_SHORTFALL,
             "max(0, balance_at_payout - payout)",
-            &[&balance, &payout.amount],
-            shortfall,
+            &[&balance, amount],
+            py_max(int(0), difference.neg()?)?,
         ),
     ])
 }
@@ -639,14 +654,127 @@ fn amount(out: &Value, key: &str) -> Decimal {
     d(out["amounts"][key].as_str().expect("a rendered amount"))
 }
 
-pub fn hire_purchase_schedule(args: &HirePurchaseArgs) -> Result<Value> {
-    let year = scope(args.scope_confirmed, args.year, KIND)?;
-    let (agreement, start, level) = agreement(args, &year)?;
-    let deposit = optional_money(args.deposit)?;
-    let trade_in = optional_money(args.trade_in)?;
+/// The amount financed, total payments and total interest steps.
+fn base_steps(
+    agreement: &Agreement,
+    level: Option<&(Decimal, i64)>,
+    total: &Decimal,
+    charges: &Decimal,
+) -> Vec<Step> {
+    let [
+        (id, financed_authority, formula),
+        (total_id, total_authority, level_formula),
+        (interest_id, interest_authority, interest_formula),
+    ] = STEPS;
+    let financed = &agreement.financed;
+    let total_step = match (&agreement.regime.terms, level) {
+        (Some(terms), _) => step(
+            total_id,
+            total_authority,
+            &format!("{terms} + balloon"),
+            &[&agreement.balloon],
+            total.clone(),
+        ),
+        (None, Some((instalment, count))) => step(
+            total_id,
+            total_authority,
+            level_formula,
+            &[instalment, &int(*count), &agreement.balloon],
+            total.clone(),
+        ),
+        (None, None) => unreachable!("a level regime has its instalment"),
+    };
+    vec![
+        step(
+            id,
+            financed_authority,
+            formula,
+            &[financed],
+            financed.clone(),
+        ),
+        total_step,
+        step(
+            interest_id,
+            interest_authority,
+            interest_formula,
+            &[total, financed],
+            charges.clone(),
+        ),
+    ]
+}
+
+/// The credit the journals book, from the rendered result.
+fn booked(out: &Value, worked: Option<&gst::Worked>) -> Option<journals::Booked> {
+    let purpose = worked?.purpose_on_interest.clone()?;
+    Some(journals::Booked {
+        credit: amount(out, "input_tax_credit"),
+        on_interest: amount(out, "credit_on_interest"),
+        purpose,
+    })
+}
+
+/// The payout's date, its Division 240 consequence and what to review.
+fn payout_summary(out: &Value, payout: &Payout) -> Value {
+    let (excess, shortfall) = (
+        amount(out, "payout_excess"),
+        amount(out, "payout_shortfall"),
+    );
+    json!({
+        "date": dates::format(payout.day),
+        "consequence": consequence(&excess, &shortfall),
+        "review": PAYOUT_REVIEW,
+    })
+}
+
+/// The rate, schedule rows, periods, steps and worked credit.
+type Amounts = (
+    Decimal,
+    Vec<Value>,
+    Vec<Period>,
+    Vec<Step>,
+    Option<gst::Worked>,
+);
+
+/// The worksheet's amounts from its facts: `upfront` is the deposit and
+/// trade-in.
+fn amounts(
+    args: &HirePurchaseArgs,
+    agreement: &Agreement,
+    start: i64,
+    level: Option<&(Decimal, i64)>,
+    upfront: [&Decimal; 2],
+    gst_facts: &gst::Facts,
+    payout: Option<&Payout>,
+) -> Result<Amounts> {
+    let ([deposit, trade_in], financed) = (upfront, &agreement.financed);
+    let r = agreement.implicit_rate()?;
+    let total = agreement.regime.total.add(&agreement.balloon)?;
+    let charges = total.sub(financed)?;
+    let (rows, periods) = agreement.schedule(&r, start, &charges, payout.map(|p| p.at))?;
+    let mut steps = base_steps(agreement, level, &total, &charges);
+    if args.deposit.is_some() || args.trade_in.is_some() || args.gst.is_some() {
+        steps.extend(consideration_steps(financed, deposit, trade_in)?);
+    }
+    let consideration = financed.add(deposit)?.add(trade_in)?;
+    let mut gst_worked = gst::worked(gst_facts, &consideration, &charges)?;
+    if let Some(worked) = &mut gst_worked {
+        steps.append(&mut worked.steps);
+    }
+    if let Some(payout) = payout {
+        steps.extend(payout_steps(payout, financed, &periods)?);
+    }
+    Ok((r, rows, periods, steps, gst_worked))
+}
+
+/// The payout, refused beside GST facts.
+fn payout_without_gst(
+    args: &HirePurchaseArgs,
+    agreement: &Agreement,
+    start: i64,
+) -> Result<Option<Payout>> {
     let payout = args
         .payout
-        .map(|p| read_payout(p, &agreement, start))
+        .map(|p| read_payout(p, agreement, start))
         .transpose()?;
     if payout.is_some() && args.gst.is_some() {
         return refuse(
@@ -654,115 +782,56 @@ pub fn hire_purchase_schedule(args: &HirePurchaseArgs) -> Result<Value> {
             "A payout is worked without gst facts: it changes the consideration for an agreement whose input tax credit is attributable when it starts, and this worksheet does not work out any adjustment that causes.",
         );
     }
+    Ok(payout)
+}
+
+pub fn hire_purchase_schedule(args: &HirePurchaseArgs) -> Result<Value> {
+    let year = scope(args.scope_confirmed, args.year, KIND)?;
+    let (agreement, start, level) = agreement(args, &year)?;
+    let deposit = optional_money(args.deposit)?;
+    let trade_in = optional_money(args.trade_in)?;
+    let payout = payout_without_gst(args, &agreement, start)?;
     let gst_facts = gst::read(args.gst, &year)?;
-    let until = payout.as_ref().map(|p| p.at);
-    let unit = agreement.regime.unit;
     let financed = &agreement.financed;
     let (r, rows, periods, steps, gst_worked) = precise(|| {
-        let r = agreement.implicit_rate()?;
-        let total = agreement.regime.total.add(&agreement.balloon)?;
-        let charges = total.sub(financed)?;
-        let (rows, periods) = agreement.schedule(&r, start, &charges, until)?;
-        let [
-            (id, financed_authority, formula),
-            (total_id, total_authority, level_formula),
-            (interest_id, interest_authority, interest_formula),
-        ] = STEPS;
-        let total_step = match (&agreement.regime.terms, &level) {
-            (Some(terms), _) => step(
-                total_id,
-                total_authority,
-                &format!("{terms} + balloon"),
-                &[&agreement.balloon],
-                total.clone(),
-            ),
-            (None, Some((instalment, count))) => step(
-                total_id,
-                total_authority,
-                level_formula,
-                &[instalment, &int(*count), &agreement.balloon],
-                total.clone(),
-            ),
-            (None, None) => unreachable!("a level regime has its instalment"),
-        };
-        let mut steps = vec![
-            step(
-                id,
-                financed_authority,
-                formula,
-                &[financed],
-                financed.clone(),
-            ),
-            total_step,
-            step(
-                interest_id,
-                interest_authority,
-                interest_formula,
-                &[&total, financed],
-                charges.clone(),
-            ),
-        ];
-        if args.deposit.is_some() || args.trade_in.is_some() || args.gst.is_some() {
-            steps.extend(consideration_steps(financed, &deposit, &trade_in)?);
-        }
-        let consideration = financed.add(&deposit)?.add(&trade_in)?;
-        let mut gst_worked = gst::worked(&gst_facts, &consideration, &charges)?;
-        if let Some(worked) = &mut gst_worked {
-            steps.append(&mut worked.steps);
-        }
-        if let Some(payout) = &payout {
-            steps.extend(payout_steps(payout, financed, &periods)?);
-        }
-        Ok((r, rows, periods, steps, gst_worked))
-    })?;
-    let mut rates = rates(&r, unit)?;
-    if let Some(limit) = gst_worked.as_ref().and_then(|w| w.car_limit.as_ref()) {
-        rates.push(rate("car_limit", limit));
-    }
-    let mut out = derived_result(KIND, &year, steps, rates)?;
-    let booked = gst_worked
-        .as_ref()
-        .and_then(|w| w.purpose_on_interest.clone())
-        .map(|purpose| journals::Booked {
-            credit: amount(&out, "input_tax_credit"),
-            on_interest: amount(&out, "credit_on_interest"),
-            purpose,
-        });
-    let payout_entry = payout
-        .as_ref()
-        .map(|p| (p.day, amount(&out, "balance_at_payout"), p.amount.clone()));
-    let journals = precise(|| {
-        journals::journals(&journals::Facts {
+        amounts(
+            args,
+            &agreement,
             start,
-            financed,
-            deposit: &deposit,
-            trade_in: &trade_in,
-            gst: booked,
-            periods: &periods,
-            payout: payout_entry,
-            whole_term: payout.is_none(),
-        })
+            level.as_ref(),
+            [&deposit, &trade_in],
+            &gst_facts,
+            payout.as_ref(),
+        )
     })?;
+    let unit = agreement.regime.unit;
+    let car_limit = gst_worked.as_ref().and_then(|w| w.car_limit.as_ref());
+    let mut out = derived_result(KIND, &year, steps, rates(&r, unit, car_limit)?)?;
+    let facts = journals::Facts {
+        start,
+        financed,
+        deposit: &deposit,
+        trade_in: &trade_in,
+        gst: booked(&out, gst_worked.as_ref()),
+        periods: &periods,
+        payout: payout
+            .as_ref()
+            .map(|p| (p.day, amount(&out, "balance_at_payout"), p.amount.clone())),
+        whole_term: payout.is_none(),
+    };
+    let journals = precise(|| journals::journals(&facts))?;
     let (years, across) = precise(|| by_income_year(&periods))?;
     let upfront = !deposit.is_zero() || !trade_in.is_zero();
-    let first = dates::format(first_consideration(&periods, start, upfront));
+    let first = first_consideration(&periods, start, upfront);
     // The balloon falls due at the end of the term, after an instalment in advance.
     out["balloon_date"] = json!(dates::format(unit.date(start, agreement.term())));
     out["schedule"] = Value::Array(rows);
     out["interest_by_income_year"] = years;
     out["interest_across_30_june"] = across;
     out["journals"] = journals;
-    out["gst"] = gst::summary(&gst_facts, &first);
+    out["gst"] = gst::summary(&gst_facts, &dates::format(first));
     if let Some(payout) = &payout {
-        let (excess, shortfall) = (
-            amount(&out, "payout_excess"),
-            amount(&out, "payout_shortfall"),
-        );
-        out["payout"] = json!({
-            "date": dates::format(payout.day),
-            "consequence": consequence(&excess, &shortfall),
-            "review": PAYOUT_REVIEW,
-        });
+        out["payout"] = payout_summary(&out, payout);
     }
     Ok(out)
 }

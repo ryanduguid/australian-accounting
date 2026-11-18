@@ -198,6 +198,29 @@ pub(super) fn segments(list: &Arg, start: i64) -> Result<Plan> {
         .enumerate()
         .map(|(i, item)| read_segment(i + 1, item))
         .collect::<Result<_>>()?;
+    run_on(&read, start)?;
+    if read.iter().all(|(_, s)| s.amount.is_zero()) {
+        return refuse(
+            "hire_purchase.amount_nil",
+            "At least one segment's amount must be more than nil.",
+        );
+    }
+    let segments: Vec<Segment> = read.into_iter().map(|(_, s)| s).collect();
+    let terms = segments
+        .iter()
+        .map(|s| format!("{} x {}", s.amount, s.count))
+        .collect::<Vec<_>>()
+        .join(" + ");
+    Ok(Plan {
+        segments,
+        terms: Some(terms),
+    })
+}
+
+/// Refuses segments, each with its first period's start day, that do not
+/// all count in one unit, each starting where the one before it ends from
+/// `start`, and ending within 30 years.
+fn run_on(read: &[(i64, Segment)], start: i64) -> Result<()> {
     let unit = read[0].1.unit;
     let mut at = 0;
     for (i, (day, segment)) in read.iter().enumerate() {
@@ -239,22 +262,7 @@ pub(super) fn segments(list: &Arg, start: i64) -> Result<Plan> {
             );
         }
     }
-    if read.iter().all(|(_, s)| s.amount.is_zero()) {
-        return refuse(
-            "hire_purchase.amount_nil",
-            "At least one segment's amount must be more than nil.",
-        );
-    }
-    let segments: Vec<Segment> = read.into_iter().map(|(_, s)| s).collect();
-    let terms = segments
-        .iter()
-        .map(|s| format!("{} x {}", s.amount, s.count))
-        .collect::<Vec<_>>()
-        .join(" + ");
-    Ok(Plan {
-        segments,
-        terms: Some(terms),
-    })
+    Ok(())
 }
 
 /// The periods and amounts due: each instalment at its period's start in
