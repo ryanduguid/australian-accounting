@@ -1,9 +1,12 @@
 # v1.0.0
 
-Unreleased standalone Rust major version. Python imports are removed; the
-former functions are JSON stdin subcommands. See [CHANGELOG.md](CHANGELOG.md)
-for migration, verification and documented divergences, and
-[README.md](README.md) to build it.
+Standalone Rust major version, published on GitHub Releases only, with
+executables for x86_64 Linux (static, musl) and x86_64 Windows, their SBOMs and
+signed provenance; other platforms build it from source. Python imports are
+removed; the former functions are JSON stdin subcommands, and `--version`
+prints the version. See [CHANGELOG.md](CHANGELOG.md) for migration,
+verification and documented divergences, and [README.md](README.md) to build
+or download it.
 
 Relicensed from Apache-2.0 to FSL-1.1-ALv2 (Functional Source License, with
 Apache-2.0 as the future licence). Released versions keep their licence.

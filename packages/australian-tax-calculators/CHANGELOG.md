@@ -1,6 +1,6 @@
 # Changes
 
-## 1.0.0 (unreleased)
+## 1.0.0
 
 Standalone Rust binary, replacing Python package 0.2.0 and its `austaxcalc`
 import API. The fourteen worksheet functions, `worksheet_catalogue()` and
@@ -10,6 +10,8 @@ intentionally changed.
 
 ### Added
 
+- `--version` prints `australian-tax-calculators 1.0.0`. The release workflow
+  checks it in each archive, and callers can require an exact version.
 - `fbt-return` composes one employer's FBT return for the FBT year ended
   31 March 2026 or 2027 from a list of benefits, each valued by its own FBT
   benefit worksheet and classified by the operator as type 1 or type 2 and as

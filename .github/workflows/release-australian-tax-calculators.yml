@@ -1,0 +1,41 @@
+name: Release australian-tax-calculators
+
+# Binary release for packages/australian-tax-calculators. The namespaced tag
+# australian-tax-calculators/vX.Y.Z selects exactly this crate: the reusable
+# release-policy workflow binds the tag, the crate directory, VERSION, the
+# literal Cargo.toml version, the RELEASE_NOTES.md header, Cargo.lock and the
+# main commit before it builds the Linux and Windows executables, attests them
+# and publishes the immutable GitHub release. Nothing goes to crates.io.
+
+on:
+  push:
+    tags: ["australian-tax-calculators/v*"]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: release-australian-tax-calculators-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  release:
+    permissions:
+      actions: read # Read main's runs for the release commit's required checks.
+      attestations: write # Record provenance and SBOM attestations for release assets.
+      contents: write # Create the draft release, upload assets and publish it.
+      id-token: write # Obtain the OIDC identity required to sign attestations.
+    uses: ryanduguid/release-policy/.github/workflows/release-binary.yml@ca5492bd09693be9e1fd47d980e2740ef8daf023
+    with:
+      artifact-stem: australian-tax-calculators
+      required-checks: |
+        .github/workflows/no-ai-attribution.yml: Attribution policy / Attribution policy runner
+        .github/workflows/ci.yml: australian-tax-calculators / check (ubuntu-latest)
+        .github/workflows/ci.yml: australian-tax-calculators / check (windows-latest)
+        .github/workflows/ci.yml: australian-tax-calculators / check (macos-latest)
+        .github/workflows/ci.yml: australian-tax-calculators / dependency-audit
+        .github/workflows/boundaries.yml: boundaries
+        .github/workflows/codeql.yml: Analyze Rust
+        .github/workflows/codeql.yml: codeql-gates
+      source-directory: packages/australian-tax-calculators
+      tag-prefix: australian-tax-calculators
