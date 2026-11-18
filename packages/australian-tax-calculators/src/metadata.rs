@@ -1120,7 +1120,7 @@ pub fn source_review(kind: &str) -> (&'static str, &'static str) {
         ),
         "hire_purchase_schedule" => (
             "2026-11-18",
-            "ITAA 1997 Division 240 (ss 240-17, 240-20, 240-25, 240-55, 240-60, 240-65, 240-70, 240-75, 240-85, 240-105 and 240-110), s 40-230 and s 995-1 'termination amount', compilation 268 (1 October 2026); GST Act ss 9-70, 9-75, 11-5, 11-25, 11-30, 29-10, 69-10 and 158-5, compilation 96 (1 January 2026); the ATO's 'GST – Hire purchase and leasing' (last updated 6 April 2017), 'Purchasing a motor vehicle' (last updated 3 June 2026: the 2026-27 car limit), 'Assets and exclusions' (last updated 27 May 2026: the 2024-25 and 2025-26 car limits) and GST issues register 'Input tax credits and hire purchase - acquisition of a car'",
+            "ITAA 1997 Division 240 (ss 240-17, 240-20, 240-25, 240-55, 240-60, 240-65, 240-70, 240-75, 240-85, 240-105 and 240-110), s 40-230 and s 995-1 'termination amount', compilation 268 (1 October 2026); GST Act ss 9-70, 9-75, 9-90, 11-5, 11-25, 11-30, 29-10, 69-10 and 158-5, compilation 96 (1 January 2026); the ATO's 'GST – Hire purchase and leasing' (last updated 6 April 2017), 'Purchasing a motor vehicle' (last updated 3 June 2026: the 2026-27 car limit), 'Assets and exclusions' (last updated 27 May 2026: the 2024-25 and 2025-26 car limits) and the GST issues register 'Financial services - questions and answers' (issues 1.1, 1.3, 1.9, 1.15 and 1.17, updated to 7 September 2012 and 2 May 2013)",
         ),
         "fbt_car_statutory" => (
             "2026-10-29",
@@ -1585,7 +1585,7 @@ pub fn optional_inputs(kind: &str) -> Vec<(&'static str, &'static str)> {
             ),
             (
                 "gst",
-                "object of GST facts, for an input tax credit: registered (boolean); when true, accounting_basis (cash or accruals), creditable_purpose (decimal fraction from 0 to 1) and asset (passenger_car, a car GST Act s 69-10 applies to, or other); for a passenger_car, first_used_year (2024-25 to 2026-27), gst_inclusive_market_value (AUD), luxury_car_tax (AUD) and quotes_abn_for_luxury_car_tax (boolean). A missing fact gives no GST figure",
+                "object of GST facts, for an input tax credit: registered (boolean); when true, accounting_basis (cash or accruals), creditable_purpose (decimal fraction from 0 to 1) and asset (passenger_car, a car GST Act s 69-10 applies to, or other); for a passenger_car, first_used_year (2024-25 to 2026-27), gst_inclusive_market_value (AUD), luxury_car_tax (AUD) and quotes_abn_for_luxury_car_tax (boolean). A missing fact gives no GST figure, and nor does a passenger_car worth more than the car limit and not quoted for (gst.review says why)",
             ),
         ],
         "depreciation" => vec![(

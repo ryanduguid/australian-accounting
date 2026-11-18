@@ -13,18 +13,22 @@
   with new keys beside it.
 - `deposit` and `trade_in`, paid or credited at or before the start
   (s 240-25(3)), give the `consideration`.
-- `journals`: balanced lines for the start, each period and a payout, totalled
-  by income year with the periods spanning 30 June set apart.
+- `journals`: balanced lines for the start, each period's interest, each
+  payment on its day and a payout, totalled by income year: the interest by
+  its period, with the periods spanning 30 June set apart, and each payment
+  by its day.
 - `payout`: an early payout at the end of a period, with the notional interest
   and payments to its date, the balance outstanding, the excess or shortfall
   and its Subdivision 240-G consequence, flagged for review.
 - `gst`: a registered hirer's input tax credit for an agreement entered into
   from 1 July 2012, on every component of the supply (the ATO's 'GST – Hire
-  purchase and leasing'), less luxury car tax and capped for a passenger car
-  at 1/11 of the car limit (GST Act s 69-10), times the creditable purpose,
-  and attributable up front on a cash basis too (s 158-5). A missing fact
-  gives no figure. The 2024-25 car limit, $69,674, joins the 2025-26 and
-  2026-27 ones.
+  purchase and leasing'), less luxury car tax, with the GST rounded to the
+  cent (s 9-90), times the creditable purpose, and attributable up front on a
+  cash basis too (s 158-5). A missing fact gives no figure, and so does a
+  passenger car worth more than the car limit and not quoted for, flagged in
+  `gst.review`: no source read settles whether the s 69-10 cap takes in the
+  GST on the credit component. The 2024-25 car limit, $69,674, joins the
+  2025-26 and 2026-27 ones.
 - New codes: `hire_purchase.car_limit_unknown`,
   `hire_purchase.frequencies_mixed`, `hire_purchase.frequency_invalid`,
   `hire_purchase.gst_fact_conflict`, `hire_purchase.gst_fact_invalid`,

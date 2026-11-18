@@ -2,11 +2,12 @@
 // SPDX-License-Identifier: LicenseRef-Duguid-Public-Attribution-1.0
 
 //! Journal lines for the agreement: one entry at the start, one for each
-//! period and one for a payout, each balanced in cents, then totalled by
-//! income year with the periods spanning 30 June set apart, as the interest
-//! by income year is. The hire purchase liability is carried at the notional
-//! loan principal outstanding, so each period's interest is added to it and
-//! each payment taken off it.
+//! period's interest, one for each payment on the day it is made and one for a
+//! payout, each balanced in cents, then totalled by income year: the interest
+//! by its period, with the periods spanning 30 June set apart as the interest
+//! by income year is, and each payment by its day. The hire purchase
+//! liability is carried at the notional loan principal outstanding, so each
+//! period's interest is added to it and each payment taken off it.
 
 use serde_json::{Value, json};
 
@@ -57,6 +58,17 @@ fn render(lines: &Lines) -> Value {
             })
             .collect(),
     )
+}
+
+/// `lines` added into the totals of income year `year`.
+fn add_to_year(years: &mut Vec<(String, Lines)>, year: String, lines: &Lines) -> Result<()> {
+    match years.iter_mut().find(|(y, _)| *y == year) {
+        Some((_, totals)) => add_into(totals, lines),
+        None => {
+            years.push((year, lines.clone()));
+            Ok(())
+        }
+    }
 }
 
 /// `lines` added into `totals`, one debit and one credit total an account.
@@ -114,7 +126,7 @@ pub(super) fn journals(facts: &Facts) -> Result<Value> {
     post(&mut start, DEFERRED, &on_interest.neg()?)?;
     let (start_year, _) = income_year(facts.start);
     let mut years: Vec<(String, Lines)> = vec![(start_year, start.clone())];
-    let (mut entries, mut across) = (Vec::new(), Vec::new());
+    let (mut entries, mut payments, mut across) = (Vec::new(), Vec::new(), Vec::new());
     let (mut interest_to_date, mut gst_shown) = (int(0), int(0));
     for (i, period) in facts.periods.iter().enumerate() {
         interest_to_date = interest_to_date.add(&period.interest)?;
@@ -139,13 +151,23 @@ pub(super) fn journals(facts: &Facts) -> Result<Value> {
         let mut lines: Lines = Vec::new();
         post(&mut lines, INTEREST, &period.interest.sub(&share)?)?;
         post(&mut lines, DEFERRED, &share)?;
-        post(&mut lines, LIABILITY, &period.paid.sub(&period.interest)?)?;
-        post(&mut lines, BANK, &period.paid.neg()?)?;
+        post(&mut lines, LIABILITY, &period.interest.neg()?)?;
         entries.push(json!({
             "instalment": period.instalment,
             "date": dates::format(period.to),
             "lines": render(&lines),
         }));
+        for (day, amount) in &period.payments {
+            let mut paid: Lines = Vec::new();
+            post(&mut paid, LIABILITY, amount)?;
+            post(&mut paid, BANK, &amount.neg()?)?;
+            payments.push(json!({
+                "instalment": period.instalment,
+                "date": dates::format(*day),
+                "lines": render(&paid),
+            }));
+            add_to_year(&mut years, income_year(*day).0, &paid)?;
+        }
         let (year, ends) = income_year(period.from);
         if period.to > ends {
             across.push(json!({
@@ -153,11 +175,8 @@ pub(super) fn journals(facts: &Facts) -> Result<Value> {
                 "income_years": [year, income_year(ends).0],
                 "lines": render(&lines),
             }));
-            continue;
-        }
-        match years.iter_mut().find(|(y, _)| *y == year) {
-            Some((_, totals)) => add_into(totals, &lines)?,
-            None => years.push((year, lines)),
+        } else {
+            add_to_year(&mut years, year, &lines)?;
         }
     }
     let payout = match &facts.payout {
@@ -167,14 +186,11 @@ pub(super) fn journals(facts: &Facts) -> Result<Value> {
             post(&mut lines, LIABILITY, balance)?;
             post(&mut lines, DIFFERENCE, &amount.sub(balance)?)?;
             post(&mut lines, BANK, &amount.neg()?)?;
-            let (year, _) = income_year(*day);
-            match years.iter_mut().find(|(y, _)| *y == year) {
-                Some((_, totals)) => add_into(totals, &lines)?,
-                None => years.push((year, lines.clone())),
-            }
+            add_to_year(&mut years, income_year(*day).0, &lines)?;
             json!({"date": dates::format(*day), "lines": render(&lines)})
         }
     };
+    years.sort_by(|a, b| a.0.cmp(&b.0));
     let by_income_year: Vec<Value> = years
         .iter()
         .map(|(year, lines)| json!({"income_year": year, "lines": render(lines)}))
@@ -183,6 +199,7 @@ pub(super) fn journals(facts: &Facts) -> Result<Value> {
         "gst_booked": facts.gst.is_some(),
         "start": {"date": dates::format(facts.start), "lines": render(&start)},
         "periods": entries,
+        "payments": payments,
         "payout": payout,
         "by_income_year": by_income_year,
         "across_30_june": across,

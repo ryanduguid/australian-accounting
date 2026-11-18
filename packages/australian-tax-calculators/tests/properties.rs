@@ -2501,7 +2501,9 @@ fn hire_purchase_regimes_add_up_and_their_journals_balance() {
         // add up to every entry.
         let j = &r["journals"];
         let mut every: Vec<(String, Decimal, Decimal)> = Vec::new();
-        let entries = std::iter::once(&j["start"]).chain(j["periods"].as_array().unwrap());
+        let entries = std::iter::once(&j["start"])
+            .chain(j["periods"].as_array().unwrap())
+            .chain(j["payments"].as_array().unwrap());
         for entry in entries {
             let lines = journal_lines(entry);
             let debits = lines.iter().fold(n(0), |s, l| s.add(&l.1).unwrap());
@@ -2530,5 +2532,39 @@ fn hire_purchase_regimes_add_up_and_their_journals_balance() {
             }
         }
         assert_eq!(j["gst_booked"], json!(booked), "{facts}");
+        // Each payment counts in the income year of the day it is made.
+        let year_of = |date: &str| {
+            let (y, m) = (
+                date[0..4].parse::<i64>().unwrap(),
+                date[5..7].parse::<i64>().unwrap(),
+            );
+            let first = if m >= 7 { y } else { y - 1 };
+            format!("{first}-{:02}", (first + 1) % 100)
+        };
+        let mut bank: Vec<(String, Decimal)> = vec![(year_of(&start), d(&cents(deposit)))];
+        for payment in j["payments"].as_array().unwrap() {
+            let year = year_of(payment["date"].as_str().unwrap());
+            let paid = journal_lines(payment)
+                .into_iter()
+                .find(|l| l.0 == "bank")
+                .unwrap()
+                .2;
+            match bank.iter_mut().find(|b| b.0 == year) {
+                Some(b) => b.1 = b.1.add(&paid).unwrap(),
+                None => bank.push((year, paid)),
+            }
+        }
+        for group in j["by_income_year"].as_array().unwrap() {
+            let year = group["income_year"].as_str().unwrap();
+            let shown = journal_lines(group)
+                .into_iter()
+                .find(|l| l.0 == "bank")
+                .map_or(n(0), |l| l.2);
+            let due = bank
+                .iter()
+                .find(|b| b.0 == year)
+                .map_or(n(0), |b| b.1.clone());
+            assert!(eq(&shown, &due), "{facts}: {year}");
+        }
     }
 }

@@ -5,14 +5,15 @@
 //! 2012, when every fact it turns on is given. The citations are to the GST
 //! Act compilation 96 (1 January 2026) and the ATO's 'GST – Hire purchase and
 //! leasing' (last updated 6 April 2017), 'Purchasing a motor vehicle' (last
-//! updated 3 June 2026) and GST issues register 'Input tax credits and hire
-//! purchase - acquisition of a car', all read on 18 November 2026.
+//! updated 3 June 2026) and the GST issues register 'Financial services -
+//! questions and answers', issues 1.1, 1.3 and 1.17 (updated 7 September
+//! 2012), all read on 18 November 2026.
 
 use serde_json::{Map, Value, json};
 
-use crate::decimal::Decimal;
+use crate::decimal::{Decimal, Rounding};
 use crate::engine::trade_in::CAR_LIMITS;
-use crate::engine::{Arg, Result, Step, d, finite_between, int, money, py_min, refuse, step};
+use crate::engine::{Arg, Result, Step, d, finite_between, int, money, refuse, step};
 
 /// The facts every registered hirer states, then a passenger car's.
 const REGISTERED: [&str; 3] = ["accounting_basis", "creditable_purpose", "asset"];
@@ -37,6 +38,9 @@ pub(super) enum Facts {
     /// No figure: the facts it needs that were not given.
     Missing(Vec<&'static str>),
     NotRegistered,
+    /// No figure: s 69-10(1) caps a car's credit, and the sources read do not
+    /// settle what the cap takes in.
+    Review,
     Registered {
         cash_basis: bool,
         purpose: Decimal,
@@ -191,25 +195,36 @@ pub(super) fn read(gst: Option<&Arg>, year: &str) -> Result<Facts> {
     if passenger_car == Some(true) {
         missing.extend(CAR.iter().filter(|k| !fields.contains_key(**k)));
     }
-    match (cash_basis, purpose) {
-        (Some(cash_basis), Some(purpose)) if missing.is_empty() => Ok(Facts::Registered {
-            cash_basis,
-            purpose,
-            car: car.map(Box::new),
-        }),
-        _ => Ok(Facts::Missing(missing)),
+    let (Some(cash_basis), Some(purpose)) = (cash_basis, purpose) else {
+        return Ok(Facts::Missing(missing));
+    };
+    if !missing.is_empty() {
+        return Ok(Facts::Missing(missing));
     }
+    if let Some(car) = &car
+        && !car.quotes_abn
+        && car.market_value.gt(&car.limit)?
+    {
+        return Ok(Facts::Review);
+    }
+    Ok(Facts::Registered {
+        cash_basis,
+        purpose,
+        car: car.map(Box::new),
+    })
 }
 
+/// Why a car the s 69-10(1) cap reaches gets no figure.
+const CAR_REVIEW: &str = "No GST figure, for review: the car's GST inclusive market value exceeds the car limit for the financial year it is first used and the hirer may not quote an ABN for luxury car tax, so GST Act s 69-10(1) caps the input tax credit on the car at 1/11 of that limit, which the ATO's GST issues register 'Financial services - questions and answers' (issue 1.17) applies under a hire purchase agreement. The sources read do not settle whether the cap also takes in the GST on the credit component, which the same register (issue 1.1) treats as a separate supply of finance, taxable for an agreement entered into from 1 July 2012.";
+
 const TOTAL_CONSIDERATION: &str = "GST Act s 9-75(1), with the ATO's 'GST – Hire purchase and leasing': for an agreement entered into on or after 1 July 2012 every component of the supply is taxable, the credit component included, so the consideration is the price (the amount financed, deposit and trade-in) and the notional interest, the arrangement payments' excess over the amount financed";
-const GST_PAYABLE: &str = "GST Act ss 9-70 and 9-75(1): 10% of the value of the taxable supply, which is the price x 10 / 11, so 1/11 of the price";
-const GST_PAYABLE_CAR: &str = "GST Act ss 9-70 and 9-75(1) and (2): 10% of the value, the price less luxury car tax x 10 / 11, so 1/11 of the price less luxury car tax";
+const GST_PAYABLE: &str = "GST Act ss 9-70 and 9-75(1): 10% of the value of the taxable supply, which is the price x 10 / 11, so 1/11 of the price, rounded to the nearest cent, 0.5 up (s 9-90(1), or (2)(a) where the credit component is a separate supply on the same invoice)";
+const GST_PAYABLE_CAR: &str = "GST Act ss 9-70 and 9-75(1) and (2): 10% of the value, the price less luxury car tax x 10 / 11, so 1/11 of the price less luxury car tax, rounded to the nearest cent, 0.5 up (s 9-90(1), or (2)(a) where the credit component is a separate supply on the same invoice)";
 const NOT_REGISTERED: &str = "GST Act s 11-5(d): an entity not registered or required to be registered makes no creditable acquisition, so there is no input tax credit";
 const NO_PURPOSE: &str = "GST Act s 11-5(a): nothing is acquired for a creditable purpose, so the acquisition is not creditable and there is no input tax credit";
 const FULL: &str =
     "GST Act s 11-25 and s 11-30(3) 'full input tax credit': the GST payable on the supply";
 const CAR_NOT_CAPPED: &str = "GST Act s 11-25: the GST payable on the supply; s 69-10(1) does not cap it, as the car's GST inclusive market value does not exceed the car limit for the financial year it is first used, or the hirer may quote an ABN for luxury car tax (s 69-10(1)(b) and (c))";
-const CAR_CAPPED: &str = "GST Act s 69-10(1), with the ATO's 'Purchasing a motor vehicle' and its GST issues register on hire purchase of a car: the GST payable on the supply up to 1/11 of the car limit for the financial year the car is first used, as its GST inclusive market value exceeds that limit";
 const PART: &str =
     "GST Act s 11-30(3): the full input tax credit x the extent of creditable purpose";
 const PART_CAR: &str = "GST Act ss 11-30(3) and 69-10(3): the full input tax credit x the extent of creditable purpose";
@@ -219,11 +234,9 @@ const ON_INTEREST: &str = "The ATO's 'GST – Hire purchase and leasing' (Albert
 pub(super) struct Worked {
     pub steps: Vec<Step>,
     /// The extent of creditable purpose, where a credit's share of the
-    /// interest is worked out (the credit not capped).
+    /// interest is worked out.
     pub purpose_on_interest: Option<Decimal>,
     pub car_limit: Option<Decimal>,
-    /// Whether s 69-10 capped the credit.
-    pub capped: bool,
 }
 
 /// The input tax credit's steps for a registered hirer. `consideration` is
@@ -234,14 +247,13 @@ pub(super) fn worked(
     interest: &Decimal,
 ) -> Result<Option<Worked>> {
     let (purpose, car) = match facts {
-        Facts::Missing(_) => return Ok(None),
+        Facts::Missing(_) | Facts::Review => return Ok(None),
         Facts::NotRegistered => {
             let nil = step("input_tax_credit", NOT_REGISTERED, "0", &[], int(0));
             return Ok(Some(Worked {
                 steps: vec![nil],
                 purpose_on_interest: None,
                 car_limit: None,
-                capped: false,
             }));
         }
         Facts::Registered { purpose, car, .. } => (purpose, car),
@@ -254,24 +266,23 @@ pub(super) fn worked(
         &[consideration, interest],
         total.clone(),
     )];
-    let (full, capped) = match car {
+    let full = match car {
         None => {
-            let payable = total.div(&int(11))?;
+            let payable = total.div(&int(11))?.quantize(-2, Rounding::HalfUp)?;
             steps.push(step(
                 "gst_payable",
                 GST_PAYABLE,
-                "total_consideration / 11",
+                "cents(total_consideration / 11)",
                 &[&total],
                 payable.clone(),
             ));
-            let full = step(
+            step(
                 "full_input_tax_credit",
                 FULL,
                 "gst_payable",
                 &[&payable],
                 payable.clone(),
-            );
-            (full, false)
+            )
         }
         Some(car) => {
             if car.luxury_car_tax.gt(consideration)? {
@@ -280,35 +291,24 @@ pub(super) fn worked(
                     "gst: luxury_car_tax cannot exceed the price (amount_financed, deposit and trade_in), which includes it.",
                 );
             }
-            let payable = total.sub(&car.luxury_car_tax)?.div(&int(11))?;
+            let payable = total
+                .sub(&car.luxury_car_tax)?
+                .div(&int(11))?
+                .quantize(-2, Rounding::HalfUp)?;
             steps.push(step(
                 "gst_payable",
                 GST_PAYABLE_CAR,
-                "(total_consideration - luxury_car_tax) / 11",
+                "cents((total_consideration - luxury_car_tax) / 11)",
                 &[&total, &car.luxury_car_tax],
                 payable.clone(),
             ));
-            let cap = car.limit.div(&int(11))?;
-            let applies = !car.quotes_abn && car.market_value.gt(&car.limit)?;
-            if applies && cap.lt(&payable)? {
-                let full = step(
-                    "full_input_tax_credit",
-                    CAR_CAPPED,
-                    "min(gst_payable, car_limit / 11)",
-                    &[&payable, &car.limit],
-                    py_min(payable.clone(), cap)?,
-                );
-                (full, true)
-            } else {
-                let full = step(
-                    "full_input_tax_credit",
-                    CAR_NOT_CAPPED,
-                    "gst_payable",
-                    &[&payable],
-                    payable.clone(),
-                );
-                (full, false)
-            }
+            step(
+                "full_input_tax_credit",
+                CAR_NOT_CAPPED,
+                "gst_payable",
+                &[&payable],
+                payable.clone(),
+            )
         }
     };
     let full_value = full.value.clone();
@@ -319,7 +319,6 @@ pub(super) fn worked(
             steps,
             purpose_on_interest: None,
             car_limit: car.as_ref().map(|c| c.limit.clone()),
-            capped,
         }));
     }
     let part = if car.is_some() { PART_CAR } else { PART };
@@ -330,28 +329,22 @@ pub(super) fn worked(
         &[&full_value, purpose],
         full_value.mul(purpose)?,
     ));
-    let purpose_on_interest = if capped {
-        None
-    } else {
-        steps.push(step(
-            "credit_on_interest",
-            ON_INTEREST,
-            "total_interest / 11 x creditable_purpose",
-            &[interest, purpose],
-            interest.div(&int(11))?.mul(purpose)?,
-        ));
-        Some(purpose.clone())
-    };
+    steps.push(step(
+        "credit_on_interest",
+        ON_INTEREST,
+        "total_interest / 11 x creditable_purpose",
+        &[interest, purpose],
+        interest.div(&int(11))?.mul(purpose)?,
+    ));
     Ok(Some(Worked {
         steps,
-        purpose_on_interest,
+        purpose_on_interest: Some(purpose.clone()),
         car_limit: car.as_ref().map(|c| c.limit.clone()),
-        capped,
     }))
 }
 
 /// The GST facts and attribution beside the amounts.
-pub(super) fn summary(facts: &Facts, first_consideration: &str, capped: bool) -> Value {
+pub(super) fn summary(facts: &Facts, first_consideration: &str) -> Value {
     match facts {
         Facts::Missing(missing) => json!({
             "computed": false,
@@ -361,16 +354,17 @@ pub(super) fn summary(facts: &Facts, first_consideration: &str, capped: bool) ->
             "computed": true,
             "registered": false,
         }),
+        Facts::Review => json!({
+            "computed": false,
+            "review": CAR_REVIEW,
+        }),
         Facts::Registered {
             cash_basis, car, ..
         } => {
-            let mut notes = vec![
+            let notes = [
                 "Claimed only with a tax invoice held when the GST return is given (GST Act s 29-10(3)).",
                 "Fees, charges and stamp duty under the agreement are not included.",
             ];
-            if capped {
-                notes.push("The credit is capped at 1/11 of the car limit; the sources read do not say how a capped credit divides between the car's price and the credit component, so the journals do not book it.");
-            }
             json!({
                 "computed": true,
                 "registered": true,

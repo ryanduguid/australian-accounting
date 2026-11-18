@@ -732,7 +732,18 @@ and document 2. The ATO's pages were read from 22:54 to 22:57: 'GST – Hire
 purchase and leasing' (last updated 6 April 2017), 'Purchasing a motor
 vehicle' (last updated 3 June 2026), the GST issues register's 'Input tax
 credits and hire purchase - acquisition of a car' and 'Assets and exclusions'
-(last updated 27 May 2026: $69,674 for 2024-25 and 2025-26).
+(last updated 27 May 2026: $69,674 for 2024-25 and 2025-26). An independent
+review reread these on 18 November 2026 from 23:50 AEDT, with ss 240-55 to
+240-110 and GST Act ss 9-90 and 69-10, and read the GST issues register
+'Financial services - questions and answers', 'Hire purchase agreements and
+chattel mortgage', issues 1.1, 1.3, 1.9, 1.15 and 1.17,
+https://www.ato.gov.au/law/view/print?DocID=GIR%2FFinancial-services-ch1&PiT=99991231235958,
+and checked 3 dated-segment agreements (months with a holiday, quarters and a
+year split in 2; months in advance; weeks and fortnights in advance, each
+with a period across 30 June) against a separate script that solves the
+rate and the periods' interest from the dated payments: the rates agree to
+16 places, each period to within a cent, and the income years and spanning
+periods add up to the total interest.
 
 - **Periods.** Section 240-70(1) makes an arrangement payment period the
   period a payment is allocated to, and s 240-70(2) splits one over 6 months
@@ -772,8 +783,12 @@ credits and hire purchase - acquisition of a car' and 'Assets and exclusions'
   price (amount financed, deposit and trade-in) plus the notional interest,
   which is the deposit, trade-in and arrangement payments. Luxury car tax is
   left out of the value (s 9-75(2)), and s 9-90(1) rounds GST to the nearest
-  cent, 0.5 up, so Albert's credit is $3,654.55 where the ATO's page prints
-  $3,654.54. A hirer accounting on a cash basis is treated as not doing so for
+  cent, 0.5 up (s 9-90(2) gives the same where the price and the credit
+  component are 2 supplies on one invoice), so Albert's credit is $3,654.55
+  where the ATO's page prints $3,654.54, a cent less than one-eleventh of
+  $40,200 rounded. The full input tax credit is that rounded GST (s 11-25),
+  and s 11-30(3) multiplies it by the extent of creditable purpose: $1,827.28
+  for Albert at 50%. A hirer accounting on a cash basis is treated as not doing so for
   a hire purchase acquisition (s 158-5), so the whole credit is attributable
   to the tax period in which consideration is first provided or, before
   that, an invoice is issued (s 29-10(1)). Section 69-10(1) caps a car's
@@ -781,11 +796,19 @@ credits and hire purchase - acquisition of a car' and 'Assets and exclusions'
   where the hirer may not quote an ABN for luxury car tax and its GST
   inclusive market value exceeds that limit, and s 69-10(3) reduces it for
   creditable purpose. Section 69-10(4)(b) excludes 'the acquisition of a car
-  by lease or hire'; the ATO's issues register applies the cap to a car
-  acquired under a hire purchase agreement, and the worksheet follows it.
-  Each fact is its own input; a missing one gives no figure. The sources read
-  do not say how a capped credit divides between the price and the credit
-  component, so a capped credit is not booked in the journals.
+  by lease or hire'; the ATO's financial services register (issue 1.17,
+  updated 7 September 2012, after the change for agreements from 1 July 2012)
+  applies the cap to a car acquired under a hire purchase agreement, since for
+  GST a hire purchase agreement is a sale of goods (issue 1.1). The same issue
+  1.1 calls the finance a separate supply, and s 69-10(1) caps the credit on
+  the acquisition of the car: no source read says whether the cap also takes
+  in the GST on the credit component. A car the cap reaches therefore gives
+  no GST figure, and the result says why. Each fact is its own input; a
+  missing one gives no figure.
+- **Journals.** Each period's interest is an entry at its end, grouped with
+  its period's income year, and each payment an entry on its day, grouped
+  with that day's year, so an instalment paid on 1 July counts in the year it
+  starts.
 
 Left out and why: substituted accounting periods (`income_year` runs from
 1 July, and a substituted period would change the years and the 30 June
@@ -811,9 +834,10 @@ a present value check and balanced journals.
 | The 2-month agreement with a $100 deposit and $250 trade-in | s 240-25(3) | $1,350.00 consideration; asset $1,350.00 against a $1,000.00 liability |
 | $1,000, 3 months of $100 in arrears and a $1,000 balloon, paid out after 2 months | Worked by hand: $200 interest, $100 paid, $1,100 outstanding | $50.00 excess at $1,150 (s 240-110(1)), $50.00 shortfall at $1,050 (s 240-110(2)) |
 | The 2-month agreement with a $100 deposit, registered, fully creditable | Worked by hand: 1,300 / 11 and 200 / 11 | $118.18 credit, $18.18 of it on the interest; asset $1,000.00 |
-| Albert's second freezer: $33,000, 60 x $670 | 'GST – Hire purchase and leasing' | $3,654.55 (the ATO prints $3,654.54) |
-| Darren's car: $91,242.80 with $2,407.80 luxury car tax, 2026-27, financed by 60 x $1,800 | 'Purchasing a motor vehicle' | $6,353.00 at 100%, $3,176.50 at 50% |
-| A $60,000 car, 60 x $1,300; the same car worth $80,000, quoted for or not; and first used in 2024-25 | GST Act s 69-10(1)(b) and (c) | $7,090.91 uncapped twice; $6,353.00 capped; $6,334.00 for 2024-25 |
+| Albert's second freezer: $33,000, 60 x $670 | 'GST – Hire purchase and leasing'; s 9-90 | $3,654.55 (the ATO prints $3,654.54); $1,827.28 at 50% |
+| Darren's car: $91,242.80 with $2,407.80 luxury car tax, 2026-27, financed by 60 x $1,800 | 'Purchasing a motor vehicle'; s 69-10(1) | No figure, `gst.review` |
+| A $60,000 car, 60 x $1,300; the same car worth $80,000, quoted for or not; worth $69,700, first used in 2026-27 or 2024-25 | GST Act s 69-10(1)(b) and (c) | $7,090.91 twice; no figure; $7,090.91; no figure |
+| $1,000, 2 x $100 in arrears and a $1,000 balloon from 1 June 2027; the same in advance | Worked by hand | June's $100 interest in 2026-27 and its payment on 1 July in 2027-28; in advance, $100 paid 1 June in 2026-27 |
 | $50,000, 260 weekly payments of $230 and a $5,000 balloon | The payments discounted at the rate shown | $50,000 to within a cent |
 
 ## Business capital expenditure

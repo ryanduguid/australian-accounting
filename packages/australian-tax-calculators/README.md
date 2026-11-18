@@ -988,14 +988,16 @@ goods. They do not change the loan; with either, or `gst`, the result adds
 "credit"}` in cents: `start` (the asset at the consideration, less any input
 tax credit on the price, against the liability at the amount financed, the
 deposit from `bank` and the `trade_in_allowance`), one entry in `periods` for
-each schedule row (the interest to `interest_expense`, the payment from
-`bank`, the difference to `hire_purchase_liability`), a `payout` entry, and
-the same lines totalled by `income_year` in `by_income_year`, with the
-periods spanning 30 June in `across_30_june`. The liability is carried at the
-notional loan principal outstanding, so it closes at nil. `gst_booked` says
-whether an input tax credit is in the lines: a credit capped at the car limit
-is not, as the sources read do not say how a capped credit divides between
-the car's price and the credit component.
+each schedule row's interest (to `interest_expense`, against
+`hire_purchase_liability`), dated at the period's end, one entry in
+`payments` for each payment on the day it is made (from `bank`, off the
+liability), a `payout` entry, and the same lines totalled by `income_year` in
+`by_income_year`: the interest by its period, with the periods spanning
+30 June in `across_30_june`, and each payment by its day, so an instalment
+paid on 1 July counts in the year it starts though the interest it pays is
+the year before's. The liability is carried at the notional loan principal
+outstanding, so it closes at nil. `gst_booked` says whether an input tax
+credit is in the lines.
 
 `payout`, an object with `date` and `amount`, is an early payout that
 replaces every payment due on or after its date, which must be the end of a
@@ -1016,16 +1018,31 @@ for a passenger car `first_used_year`, `gst_inclusive_market_value`,
 `luxury_car_tax` and `quotes_abn_for_luxury_car_tax`. With every fact a
 figure turns on, the result adds `total_consideration` (every component of
 the supply, the notional interest included, for an agreement entered into
-from 1 July 2012), `gst_payable` (1/11 of it, less luxury car tax for a car),
-`full_input_tax_credit` (capped for a passenger car worth more than the car
-limit for the year it is first used, and not quoted for, at 1/11 of that
-limit: $69,674 for 2024-25 and 2025-26, $69,883 for 2026-27),
-`input_tax_credit` (times the creditable purpose) and, where not capped,
-`credit_on_interest`, the share the journals book against the interest through
-`deferred_interest_gst`. `gst.attributable` states the tax period: the whole
-credit up front, on a cash basis too (GST Act ss 29-10(1) and 158-5). A
-missing fact gives no figure, and `gst.missing` names it; an unregistered
-hirer's credit is nil.
+from 1 July 2012), `gst_payable` (1/11 of it, less luxury car tax for a car,
+rounded to the nearest cent, 0.5 up, as GST Act s 9-90 rounds GST),
+`full_input_tax_credit` (that GST, s 11-25), `input_tax_credit` (times the
+creditable purpose, rendered to cents half up) and `credit_on_interest`
+(1/11 of the notional interest times the creditable purpose), the share the
+journals book against the interest through `deferred_interest_gst`.
+`gst.attributable` states the tax period: the whole credit up front, on a
+cash basis too (GST Act ss 29-10(1) and 158-5). A missing fact gives no
+figure, and `gst.missing` names it; an unregistered hirer's credit is nil.
+
+A passenger car worth more than the car limit for the year it is first used
+($69,674 for 2024-25 and 2025-26, $69,883 for 2026-27), where the hirer may
+not quote an ABN for luxury car tax, gives no figure either: `gst.review`
+says why. GST Act s 69-10(1) caps the credit on the car at 1/11 of that limit,
+and the ATO's GST issues register 'Financial services - questions and
+answers' (issue 1.17) applies the cap under a hire purchase agreement, but the
+sources read do not settle whether the cap also takes in the GST on the
+credit component, which the same register (issue 1.1) treats as a separate
+supply of finance.
+
+The ATO's Albert example ('GST – Hire purchase and leasing') prints a credit
+of $3,654.54, one-eleventh of $40,200; the worksheet gives $3,654.55, as
+s 9-90 rounds $3,654.5454... to the nearest cent, 0.5 up, whether the price
+and the credit component are one taxable supply on the invoice (s 9-90(1)) or
+2 (s 9-90(2)).
 
 Fees, charges and stamp duty, substituted accounting periods, the car's cost
 for Division 40, agreements entered into before 1 July 2012, GST adjustments

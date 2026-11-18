@@ -223,21 +223,20 @@ fn a_deposit_and_trade_in_add_to_the_consideration_not_the_loan() {
     );
     assert_eq!(
         lines(&j["periods"][0]),
-        ["interest_expense 100.00 0.00", "bank 0.00 100.00"]
+        [
+            "hire_purchase_liability 0.00 100.00",
+            "interest_expense 100.00 0.00"
+        ]
     );
     assert_eq!(
-        lines(&j["periods"][1]),
-        [
-            "hire_purchase_liability 1000.00 0.00",
-            "interest_expense 100.00 0.00",
-            "bank 0.00 1100.00",
-        ]
+        lines(&j["payments"][1]),
+        ["hire_purchase_liability 1100.00 0.00", "bank 0.00 1100.00"]
     );
     assert_eq!(
         lines(&j["by_income_year"][0]),
         [
             "hire_purchase_asset 1350.00 0.00",
-            "hire_purchase_liability 1000.00 1000.00",
+            "hire_purchase_liability 1200.00 1200.00",
             "interest_expense 200.00 0.00",
             "trade_in_allowance 0.00 250.00",
             "bank 0.00 1300.00",
@@ -329,14 +328,18 @@ fn a_registered_hirer_s_credit_covers_the_price_and_the_interest() {
     assert_eq!(
         lines(&j["periods"][0]),
         [
+            "hire_purchase_liability 0.00 100.00",
             "interest_expense 90.91 0.00",
             "deferred_interest_gst 9.09 0.00",
-            "bank 0.00 100.00",
         ]
     );
     assert_eq!(
         lines(&j["periods"][1])[2],
         "deferred_interest_gst 9.09 0.00"
+    );
+    assert_eq!(
+        lines(&j["payments"][0]),
+        ["hire_purchase_liability 100.00 0.00", "bank 0.00 100.00"]
     );
     assert_eq!(r["gst"]["first_consideration_date"], "2026-07-15");
     let attributable = r["gst"]["attributable"].as_str().unwrap();
@@ -359,51 +362,55 @@ fn a_registered_hirer_s_credit_covers_the_price_and_the_interest() {
 /// Albert's second freezer ('GST – Hire purchase and leasing'): $670 a month
 /// for 60 months on a $33,000 freezer, so $40,200 in all and 1/11 of it as
 /// the credit. The ATO prints $3,654.54; GST Act s 9-90(1) rounds to the
-/// nearest cent, 0.5 up, which is $3,654.55.
+/// nearest cent, 0.5 up, which is $3,654.55. The full credit is that rounded
+/// GST (s 11-25), so at 50% it is $1,827.275, $1,827.28, where 50% of the
+/// unrounded $3,654.5454... would give $1,827.27.
 #[test]
 fn albert_s_second_freezer() {
-    let gst = json!({"registered": true, "accounting_basis": "cash",
-                     "creditable_purpose": "1", "asset": "other"});
-    let r = run(
-        json!({"amount_financed": "33000.00", "instalment": "670.00", "instalments": 60,
-                       "balloon": "0.00", "start_date": "2026-07-20", "gst": gst}),
-    )
-    .unwrap();
+    let gst = |purpose: &str| {
+        json!({"registered": true, "accounting_basis": "cash",
+                     "creditable_purpose": purpose, "asset": "other"})
+    };
+    let facts = json!({"amount_financed": "33000.00", "instalment": "670.00", "instalments": 60,
+                       "balloon": "0.00", "start_date": "2026-07-20", "gst": gst("1")});
+    let r = run(facts.clone()).unwrap();
     assert_eq!(amount(&r, "total_consideration"), "40200.00");
     assert_eq!(amount(&r, "input_tax_credit"), "3654.55");
-}
-
-/// Darren's car ('Purchasing a motor vehicle'): $91,242.80 with $2,407.80
-/// luxury car tax, first used in 2026-27, so the credit is capped at 1/11 of
-/// the $69,883 car limit, $6,353, and $3,176.50 at 50% business use. A capped
-/// credit is not split between price and interest, so it is not booked.
-#[test]
-fn darren_s_car_is_capped_at_the_car_limit() {
-    let car = |purpose: &str| {
-        json!({"registered": true, "accounting_basis": "accruals", "creditable_purpose": purpose,
-               "asset": "passenger_car", "first_used_year": "2026-27",
-               "gst_inclusive_market_value": "91242.80", "luxury_car_tax": "2407.80",
-               "quotes_abn_for_luxury_car_tax": false})
-    };
-    let facts = json!({"amount_financed": "91242.80", "instalment": "1800.00", "instalments": 60,
-                       "balloon": "0.00", "start_date": "2026-07-12", "gst": car("1")});
-    let r = run(facts.clone()).unwrap();
-    assert_eq!(amount(&r, "gst_payable"), "9599.29");
-    assert_eq!(amount(&r, "full_input_tax_credit"), "6353.00");
-    assert_eq!(amount(&r, "input_tax_credit"), "6353.00");
-    assert_eq!(amount(&r, "credit_on_interest"), "absent");
-    assert_eq!(r["rates"]["car_limit"], "69883");
-    assert_eq!(r["journals"]["gst_booked"], false);
-    assert_eq!(r["gst"]["notes"].as_array().unwrap().len(), 3);
     let mut half = facts;
-    half["gst"] = car("0.5");
-    assert_eq!(amount(&run(half).unwrap(), "input_tax_credit"), "3176.50");
+    half["gst"] = gst("0.5");
+    assert_eq!(amount(&run(half).unwrap(), "input_tax_credit"), "1827.28");
 }
 
-/// s 69-10(1)(b) and (c): no cap for a car worth no more than the car limit,
-/// or for a hirer that may quote an ABN for luxury car tax.
+/// Darren's car ('Purchasing a motor vehicle'): $91,242.80, worth more than
+/// the $69,883 car limit for 2026-27 and not quoted for, so s 69-10(1) caps
+/// the credit on the car at 1/11 of that limit. The sources read do not settle
+/// whether the cap also takes in the GST on the credit component, which the
+/// ATO's financial services register treats as a separate supply of finance,
+/// so there is no GST figure and the result says why.
 #[test]
-fn the_car_limit_caps_only_a_car_worth_more_and_not_quoted_for() {
+fn a_car_over_the_car_limit_gives_no_figure_and_is_flagged_for_review() {
+    let gst = json!({"registered": true, "accounting_basis": "accruals",
+                     "creditable_purpose": "1", "asset": "passenger_car",
+                     "first_used_year": "2026-27", "gst_inclusive_market_value": "91242.80",
+                     "luxury_car_tax": "2407.80", "quotes_abn_for_luxury_car_tax": false});
+    let r = run(
+        json!({"amount_financed": "91242.80", "instalment": "1800.00", "instalments": 60,
+               "balloon": "0.00", "start_date": "2026-07-12", "gst": gst}),
+    )
+    .unwrap();
+    for key in ["gst_payable", "full_input_tax_credit", "input_tax_credit"] {
+        assert_eq!(amount(&r, key), "absent", "{key}");
+    }
+    assert_eq!(r["gst"]["computed"], false);
+    assert!(r["gst"]["review"].as_str().unwrap().contains("s 69-10(1)"));
+    assert_eq!(r["journals"]["gst_booked"], false);
+}
+
+/// s 69-10(1)(b) and (c): no cap for a car worth no more than the car limit
+/// for the year it is first used, or for a hirer that may quote an ABN for
+/// luxury car tax; a car the cap reaches is flagged for review.
+#[test]
+fn the_car_limit_reaches_only_a_car_worth_more_and_not_quoted_for() {
     let car = |value: &str, quotes: bool| {
         json!({"registered": true, "accounting_basis": "accruals", "creditable_purpose": "1",
                "asset": "passenger_car", "first_used_year": "2026-27",
@@ -420,15 +427,73 @@ fn the_car_limit_caps_only_a_car_worth_more_and_not_quoted_for() {
     assert_eq!(r["journals"]["gst_booked"], true);
     let r = run(facts(car("80000.00", true))).unwrap();
     assert_eq!(amount(&r, "input_tax_credit"), "7090.91");
+    assert_eq!(r["rates"]["car_limit"], "69883");
     let r = run(facts(car("80000.00", false))).unwrap();
-    assert_eq!(amount(&r, "input_tax_credit"), "6353.00");
-    // 2024-25's limit is $69,674, from 'Assets and exclusions'.
-    let mut early = facts(car("80000.00", false));
+    assert_eq!(amount(&r, "input_tax_credit"), "absent");
+    assert_eq!(r["gst"]["computed"], false);
+    // $69,700 is under 2026-27's $69,883 but over 2024-25's $69,674, from
+    // 'Assets and exclusions'.
+    let r = run(facts(car("69700.00", false))).unwrap();
+    assert_eq!(amount(&r, "input_tax_credit"), "7090.91");
+    let mut early = facts(car("69700.00", false));
     early["year"] = json!("2024-25");
     early["start_date"] = json!("2024-07-15");
     early["gst"]["first_used_year"] = json!("2024-25");
     let r = run(early).unwrap();
-    assert_eq!(amount(&r, "input_tax_credit"), "6334.00");
+    assert_eq!(amount(&r, "input_tax_credit"), "absent");
+    assert!(r["gst"]["review"].as_str().is_some());
+}
+
+/// Each payment is journalled on the day it is paid and in that day's income
+/// year, apart from the period's interest: in arrears from 1 June 2027 the
+/// first instalment, paid on 1 July, is a 2027-28 payment, though June's
+/// interest is 2026-27's; in advance it is paid on 1 June, in 2026-27.
+#[test]
+fn a_payment_is_journalled_on_its_day_and_in_its_income_year() {
+    let r = run(json!({"start_date": "2027-06-01"})).unwrap();
+    let j = &r["journals"];
+    assert_eq!(j["periods"][0]["date"], "2027-07-01");
+    assert_eq!(j["payments"][0]["date"], "2027-07-01");
+    assert_eq!(
+        lines(&j["by_income_year"][0]),
+        [
+            "hire_purchase_asset 1000.00 0.00",
+            "hire_purchase_liability 0.00 1100.00",
+            "interest_expense 100.00 0.00",
+        ]
+    );
+    assert_eq!(
+        lines(&j["by_income_year"][1]),
+        [
+            "hire_purchase_liability 1200.00 100.00",
+            "interest_expense 100.00 0.00",
+            "bank 0.00 1200.00",
+        ]
+    );
+    let r = run(json!({"start_date": "2027-06-01", "timing": "in_advance"})).unwrap();
+    let paid: Vec<(&str, &str)> = r["journals"]["payments"]
+        .as_array()
+        .unwrap()
+        .iter()
+        .map(|p| {
+            (
+                p["date"].as_str().unwrap(),
+                p["lines"][1]["credit"].as_str().unwrap(),
+            )
+        })
+        .collect();
+    assert_eq!(
+        paid,
+        [
+            ("2027-06-01", "100.00"),
+            ("2027-07-01", "100.00"),
+            ("2027-08-01", "1000.00")
+        ]
+    );
+    assert_eq!(
+        lines(&r["journals"]["by_income_year"][0]).last().unwrap(),
+        "bank 0.00 100.00"
+    );
 }
 
 /// Without every fact a figure turns on, there is no GST figure, and the
@@ -479,12 +544,13 @@ fn a_period_spanning_30_june_is_set_apart_in_the_journals_too() {
     assert_eq!(j["across_30_june"][0]["instalment"], 1);
     assert_eq!(j["by_income_year"][0]["income_year"], "2026-27");
     assert_eq!(j["by_income_year"][1]["income_year"], "2027-28");
+    // Week 1's payment, on 2 July, is 2027-28's.
     assert_eq!(
         lines(&j["by_income_year"][1]),
         [
-            "hire_purchase_liability 1000.00 0.00",
+            "hire_purchase_liability 1200.00 100.00",
             "interest_expense 100.00 0.00",
-            "bank 0.00 1100.00",
+            "bank 0.00 1200.00",
         ]
     );
 }

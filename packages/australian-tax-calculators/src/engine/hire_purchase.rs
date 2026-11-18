@@ -228,13 +228,20 @@ impl Agreement {
             let principal = payment.sub(&interest)?;
             let closing = balance.sub(&principal)?;
             let (from_day, to_day) = (unit.date(start, from), unit.date(start, to));
-            let paid_on = if !listed.is_zero() {
-                Some(if self.in_advance { from_day } else { to_day })
-            } else if !balloon.is_zero() {
-                Some(to_day)
-            } else {
-                None
-            };
+            let mut payments = Vec::new();
+            if !listed.is_zero() {
+                payments.push((
+                    if self.in_advance { from_day } else { to_day },
+                    listed.clone(),
+                ));
+            }
+            if !balloon.is_zero() {
+                match payments.last_mut() {
+                    Some((day, paid)) if *day == to_day => *paid = paid.add(&balloon)?,
+                    _ => payments.push((to_day, balloon.clone())),
+                }
+            }
+            let paid_on = payments.first().map(|p| p.0);
             rows.push(json!({
                 "instalment": k,
                 "period_start": dates::format(from_day),
@@ -252,8 +259,7 @@ impl Agreement {
                 from: from_day,
                 to: to_day,
                 interest,
-                paid: payment,
-                paid_on: paid_on.unwrap_or(to_day),
+                payments,
             });
             balance = closing;
         }
@@ -261,16 +267,14 @@ impl Agreement {
     }
 }
 
-/// One schedule period: its number, its days from `from` up to `to`, and its
-/// interest and payment as shown.
+/// One schedule period: its number, its days from `from` up to `to`, its
+/// interest as shown and what is paid in it, as (day, amount), in date order.
 struct Period {
     instalment: i64,
     from: i64,
     to: i64,
     interest: Decimal,
-    paid: Decimal,
-    /// The day the payment is made, or the period's end when nothing is.
-    paid_on: i64,
+    payments: Vec<(i64, Decimal)>,
 }
 
 /// The income year `day` falls in, as `2026-27`, and the 1 July that ends it.
@@ -509,7 +513,7 @@ fn consequence(excess: &Decimal, shortfall: &Decimal) -> &'static str {
     if excess.is_zero() && shortfall.is_zero() {
         "The payout equals the balance outstanding, so the payments and termination amounts equal the notional loan principal plus the assessed notional interest and Subdivision 240-G makes no adjustment (ITAA 1997 s 240-105)."
     } else if !excess.is_zero() {
-        "The payout exceeds the balance outstanding: at the end of the arrangement (s 240-75(1)(b)) the payments and termination amounts exceed the notional loan principal plus the assessed notional interest, so s 240-105(2) includes the excess in the notional seller's assessable income and s 240-110(1) entitles the notional buyer to deduct a corresponding amount in its income year, to the extent s 240-110(3) allows. The payout itself is not deductible (s 240-55; s 240-85(b) where it is paid to acquire the property)."
+        "The payout exceeds the balance outstanding: at the end of the arrangement (s 240-75(1)(b)) the payments and termination amounts exceed the notional loan principal plus the assessed notional interest, so s 240-105(2) includes the excess in the notional seller's assessable income and s 240-110(1) entitles the notional buyer to deduct a corresponding amount in its income year, to the extent s 240-110(3) allows. The payout itself is not deductible where it is paid to acquire the property (s 240-85(b))."
     } else {
         "The payout is less than the balance outstanding: at the end of the arrangement (s 240-75(1)(b)) the notional loan principal plus the assessed notional interest exceed the payments and termination amounts, so s 240-105(3) entitles the notional seller to deduct the excess and s 240-110(2) includes a corresponding amount in the notional buyer's assessable income for its income year, to the extent s 240-110(3) allows."
     }
@@ -536,8 +540,7 @@ fn payout_steps(payout: &Payout, financed: &Decimal, periods: &[Period]) -> Resu
     let (interest_terms, interest) = terms(periods.iter().map(|p| &p.interest).collect());
     let paid: Vec<&Decimal> = periods
         .iter()
-        .map(|p| &p.paid)
-        .filter(|p| !p.is_zero())
+        .flat_map(|p| p.payments.iter().map(|(_, amount)| amount))
         .collect();
     let (paid_terms, paid_total) = terms(paid);
     let balance = financed.add(&interest)?.sub(&paid_total)?;
@@ -626,8 +629,9 @@ fn first_consideration(periods: &[Period], start: i64, upfront: bool) -> i64 {
     }
     periods
         .iter()
-        .find(|p| !p.paid.is_zero())
-        .map_or(start, |p| p.paid_on)
+        .flat_map(|p| &p.payments)
+        .next()
+        .map_or(start, |(day, _)| *day)
 }
 
 /// The rendered amount `key` as a decimal.
@@ -724,10 +728,6 @@ pub fn hire_purchase_schedule(args: &HirePurchaseArgs) -> Result<Value> {
             on_interest: amount(&out, "credit_on_interest"),
             purpose,
         });
-    let credit = gst_worked
-        .as_ref()
-        .map_or(int(0), |_| amount(&out, "input_tax_credit"));
-    let capped = gst_worked.as_ref().is_some_and(|w| w.capped) && !credit.is_zero();
     let payout_entry = payout
         .as_ref()
         .map(|p| (p.day, amount(&out, "balance_at_payout"), p.amount.clone()));
@@ -752,7 +752,7 @@ pub fn hire_purchase_schedule(args: &HirePurchaseArgs) -> Result<Value> {
     out["interest_by_income_year"] = years;
     out["interest_across_30_june"] = across;
     out["journals"] = journals;
-    out["gst"] = gst::summary(&gst_facts, &first, capped);
+    out["gst"] = gst::summary(&gst_facts, &first);
     if let Some(payout) = &payout {
         let (excess, shortfall) = (
             amount(&out, "payout_excess"),
