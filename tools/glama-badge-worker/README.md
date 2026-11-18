@@ -10,7 +10,7 @@ Use Rust 1.99 and Node.js 26.11.1. From this directory:
 
 ```sh
 rustup target add wasm32-unknown-unknown
-cargo install worker-build --version 0.8.7 --locked
+cargo install worker-build --version 0.9.0 --locked
 npm ci --ignore-scripts
 cargo fmt --check
 cargo clippy --locked --all-targets -- -D warnings
@@ -24,9 +24,11 @@ npm run dry-run
 The Node.js harness uses Cloudflare's Miniflare runtime to exercise the compiled
 Worker with captured public SVGs and intercepted upstream requests. It makes no
 live provider requests. The production component is Rust. Miniflare is pinned
-to stable 4.20260730.0; Wrangler 4.152.0 also bundles a newer beta runtime for its
+to stable 4.20260730.0; Wrangler 4.160.0 also bundles a newer beta runtime for its
 own commands. Both local integration tests and Wrangler packaging must pass.
-The stable Miniflare test dependency overrides Sharp to 0.35.5, and any
+The stable Miniflare test dependency overrides Sharp to 0.35.5 and workerd to
+1.20261110.1, the runtime Wrangler already bundles. workerd 1.20260730.1 hangs
+on the source-phase WebAssembly import that worker-build 0.9.0 emits. Any
 Undici copy below 7.30.1, including the one under Wrangler's bundled Miniflare,
 is raised to 7.30.1 for their published security fixes, without changing the direct
 pins or holding back a newer Undici.
