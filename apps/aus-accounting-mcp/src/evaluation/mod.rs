@@ -427,6 +427,22 @@ async fn describe(server: &Path, deadline: Duration) -> Result<String, String> {
     result
 }
 
+async fn blocking_read(path: &Path) -> Result<Vec<u8>, String> {
+    let path = path.to_path_buf();
+    tokio::task::spawn_blocking(move || std::fs::read(path))
+        .await
+        .map_err(|e| e.to_string())?
+        .map_err(|e| e.to_string())
+}
+
+async fn blocking_read_text(path: &Path) -> Result<String, String> {
+    let path = path.to_path_buf();
+    tokio::task::spawn_blocking(move || std::fs::read_to_string(path))
+        .await
+        .map_err(|e| e.to_string())?
+        .map_err(|e| e.to_string())
+}
+
 pub async fn main(args: Vec<OsString>) -> i32 {
     let mut args = args.into_iter();
     let mut reference = None;
@@ -480,33 +496,37 @@ pub async fn main(args: Vec<OsString>) -> i32 {
             Err(e) => Err(e.to_string()),
         }
     } else if command == "questions" && rest.is_empty() {
-        reference
-            .as_ref()
-            .map(std::fs::read)
-            .unwrap_or_else(|| Ok(REFERENCE.to_vec()))
-            .map_err(|e| e.to_string())
-            .and_then(|b| questions(&b))
-            .map(|s| (0, s, String::new()))
+        match &reference {
+            Some(path) => blocking_read(path).await,
+            None => Ok(REFERENCE.to_vec()),
+        }
+        .and_then(|b| questions(&b))
+        .map(|s| (0, s, String::new()))
     } else if command == "score" {
         let Ok((recording, frozen)) = scoring_args(&rest) else {
             eprint!("{HELP}");
             return 2;
         };
+        let text = blocking_read_text(recording).await;
+        // A bad recording is reported before a missing custom reference.
+        let reference_bytes = match &reference {
+            Some(path) => Some(blocking_read(path).await),
+            None => None,
+        };
         // Parsing, equality and destruction all recurse. Reserve the larger
         // stack for the complete operation, including all error paths and drops.
         stacker::grow(16 * 1024 * 1024, || {
-            let result = std::fs::read_to_string(recording)
-                .map_err(|e| e.to_string())
-                .and_then(|text| {
-                    let recorded = json::parse(&text)?;
-                    let recorded = validate(&recorded)?;
-                    let bytes = reference
-                        .as_ref()
-                        .map(std::fs::read)
-                        .unwrap_or_else(|| Ok(REFERENCE.to_vec()))
-                        .map_err(|e| e.to_string())?;
-                    score(recorded, &bytes, frozen)
-                });
+            let result = (|| {
+                let text = text?;
+                let recorded = json::parse(&text)?;
+                let recorded = validate(&recorded)?;
+                let bytes = match reference_bytes {
+                    None => REFERENCE.to_vec(),
+                    Some(Ok(bytes)) => bytes,
+                    Some(Err(error)) => return Err(error),
+                };
+                score(recorded, &bytes, frozen)
+            })();
             match result {
                 Ok(output) => Ok(output),
                 Err(e) => Ok((2, String::new(), format!("invalid recording: {e}\n"))),
