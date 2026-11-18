@@ -98,7 +98,7 @@ NETWORK_MODULES = frozenset({
 # cannot list every client, so a new dependency is approved here first. A change to
 # what one of these pulls in is what the Cargo.lock scan above reads.
 APPROVED_CRATES = frozenset({
-    "chrono", "libc", "libfuzzer-sys", "num-bigint", "num-integer", "num-traits",
+    "jiff", "libc", "libfuzzer-sys", "num-bigint", "num-integer", "num-traits",
     "roxmltree", "rust_xlsxwriter", "serde_json", "sha2", "zip",
 })
 PATH_FILTER_KEY = re.compile(

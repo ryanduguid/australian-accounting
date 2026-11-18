@@ -12,6 +12,10 @@ intentionally changed.
 
 ### Documented divergences
 
+- An undated schedule's live date is today's in the zone `TZ` names, or in
+  the system zone when `TZ` is unset. A `TZ` that names no zone gives the UTC
+  date, as Python 0.2.0 did. On Windows Python read a zone name such as
+  `Australia/Sydney` in `TZ` as UTC; this reads it as that zone.
 - Python imports, dataclasses, keyword signatures, exception classes and package
   version lookup are removed. `--version` prints `wip-tally 1.0.0`.
 - The JSON boundary takes amounts as decimal strings. A JSON number is refused
@@ -67,7 +71,7 @@ pins that pipeline commit.
 
 Python 0.2.0 had no third-party runtime dependencies. Rust uses num-bigint,
 num-integer and num-traits for exact Decimal coefficients, serde_json for the
-JSON boundary, sha2 for the review pack's SHA-256, chrono for today's local date
+JSON boundary, sha2 for the review pack's SHA-256, jiff for today's local date
 and libc for Unix terminal state. The Decimal, argparse, text and terminal
 helpers come from this repository's Exchequer Tally and Solomon's Sword ports;
 the Python string, path, OSError, date, UTF-8 and JSON helpers come from

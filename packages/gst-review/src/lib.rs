@@ -10,8 +10,8 @@ pub mod decimal;
 mod pytext;
 mod tables;
 
-use chrono::NaiveDate;
 use decimal::Decimal;
+use jiff::civil::Date;
 use serde_json::{Map, Value};
 use std::sync::OnceLock;
 
@@ -37,10 +37,10 @@ fn array<'a>(value: &'a Value, key: &str) -> Result<&'a [Value]> {
 fn field<'a>(value: &'a Value, key: &str) -> &'a Value {
     value.get(key).unwrap_or(&Value::Null)
 }
-fn date(value: &Value) -> Option<NaiveDate> {
+fn date(value: &Value) -> Option<Date> {
     let text = value.as_str()?;
-    let date = NaiveDate::parse_from_str(text, "%Y-%m-%d").ok()?;
-    (date.format("%Y-%m-%d").to_string() == text && text.len() == 10 && !text.starts_with("0000"))
+    let date = Date::strptime("%Y-%m-%d", text).ok()?;
+    (date.strftime("%Y-%m-%d").to_string() == text && text.len() == 10 && date.year() > 0)
         .then_some(date)
 }
 fn optional_date(value: &Value) -> bool {

@@ -24,7 +24,7 @@ REMOVED_IMPORTS = {
     "gst-review": "gstreview",
 }
 # Runtime crates an engine may use; none is another engine or a path dependency.
-ALLOWED_DEPENDENCIES = {"num-bigint", "num-integer", "num-traits", "serde_json", "chrono", "sha2"}
+ALLOWED_DEPENDENCIES = {"num-bigint", "num-integer", "num-traits", "serde_json", "jiff", "sha2"}
 
 
 class RustEngineTests(unittest.TestCase):
