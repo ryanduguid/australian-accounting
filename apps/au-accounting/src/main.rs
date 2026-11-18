@@ -190,7 +190,11 @@ fn tax(args: &[OsString]) -> Outcome {
             && flag == "--version"
         {
             let version = australian_tax_calculators::engine::VERSION;
-            return (0, format!("australian-tax-calculators {version}\n"), String::new());
+            return (
+                0,
+                format!("australian-tax-calculators {version}\n"),
+                String::new(),
+            );
         }
         let commands = api::commands().join(", ");
         let text = format!(
