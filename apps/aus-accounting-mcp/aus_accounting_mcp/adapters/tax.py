@@ -13,8 +13,8 @@ refuse with an install message and every other tool still works.
 
 import hashlib
 import json
-import re
 import os
+import re
 import shutil
 import subprocess
 from decimal import Decimal, InvalidOperation
