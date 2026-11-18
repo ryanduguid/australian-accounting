@@ -234,9 +234,28 @@ fn read_asset(asset: &Arg) -> Result<Asset> {
     }
 }
 
+/// Refuses s 40-325 facts showing that s 40-230 did not reduce the cost, or
+/// reduced it to an amount other than `cost`.
+fn check_car_limit(facts: &CarLimit, cost: &Decimal) -> Result<()> {
+    let reduced = facts.limit.add(&facts.second_element)?;
+    if !reduced.lt(&facts.cost_ignoring_limit)? {
+        return refuse(
+            "balancing.car_limit_not_reduced",
+            "car_limit: the car limit plus the second element of cost must be less than the cost ignoring the car limit; otherwise s 40-230 did not reduce the cost and s 40-325 does not apply (give null).",
+        );
+    }
+    if !cost.equals(&reduced)? {
+        return refuse(
+            "balancing.car_limit_cost_mismatch",
+            "cost must equal car_limit's limit plus second_element_cost, as s 40-230 reduces the first element of cost to the car limit. A car first used in a later financial year than the one it was acquired in (so the 2 years' car limits differ) or held with another entity (s 40-230(4)) is not one this worksheet takes.",
+        );
+    }
+    Ok(())
+}
+
 /// `car_limit`: required for a car, as an object or null, and refused for
-/// any other asset.
-fn read_car_limit(asset: Asset, given: Option<&Arg>) -> Result<Option<CarLimit>> {
+/// any other asset; its facts must agree with `cost`.
+fn read_car_limit(asset: Asset, given: Option<&Arg>, cost: &Decimal) -> Result<Option<CarLimit>> {
     let fields = match (asset, given) {
         (Asset::Car, None) => {
             return refuse(
@@ -271,27 +290,13 @@ fn read_car_limit(asset: Asset, given: Option<&Arg>) -> Result<Option<CarLimit>>
         second_element: amount(fields, keys[1], "car_limit")?,
         cost_ignoring_limit: amount(fields, keys[2], "car_limit")?,
     };
-    let reduced = facts.limit.add(&facts.second_element)?;
-    if !reduced.lt(&facts.cost_ignoring_limit)? {
-        return refuse(
-            "balancing.car_limit_not_reduced",
-            "car_limit: the car limit plus the second element of cost must be less than the cost ignoring the car limit; otherwise s 40-230 did not reduce the cost and s 40-325 does not apply (give null).",
-        );
-    }
+    check_car_limit(&facts, cost)?;
     Ok(Some(facts))
 }
 
-/// The asset's facts, checked against each other.
-pub(super) fn read_facts(
-    cost: &Arg,
-    asset: &Arg,
-    years: &Arg,
-    car_limit: Option<&Arg>,
-    event: i64,
-) -> Result<Facts> {
-    let cost = money(cost)?;
-    let asset = read_asset(asset)?;
-    let car_limit = read_car_limit(asset, car_limit)?;
+/// The rows of `years`: one for each income year from the first held to the
+/// event's, none repeated or missing.
+fn read_years(years: &Arg, asset: Asset, event: i64) -> Result<Vec<Held>> {
     let Arg::Json(Value::Array(list)) = years else {
         return years_invalid();
     };
@@ -330,14 +335,21 @@ pub(super) fn read_facts(
             ),
         );
     }
-    if let Some(car) = &car_limit
-        && !cost.equals(&car.limit.add(&car.second_element)?)?
-    {
-        return refuse(
-            "balancing.car_limit_cost_mismatch",
-            "cost must equal car_limit's limit plus second_element_cost, as s 40-230 reduces the first element of cost to the car limit. A car first used in a later financial year than the one it was acquired in (so the 2 years' car limits differ) or held with another entity (s 40-230(4)) is not one this worksheet takes.",
-        );
-    }
+    Ok(years)
+}
+
+/// The asset's facts, checked against each other.
+pub(super) fn read_facts(
+    cost: &Arg,
+    asset: &Arg,
+    years: &Arg,
+    car_limit: Option<&Arg>,
+    event: i64,
+) -> Result<Facts> {
+    let cost = money(cost)?;
+    let asset = read_asset(asset)?;
+    let car_limit = read_car_limit(asset, car_limit, &cost)?;
+    let years = read_years(years, asset, event)?;
     Ok(Facts {
         asset,
         cost,
