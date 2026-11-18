@@ -1,6 +1,6 @@
 # cargo audit reads this file whenever it runs in this directory, as the
-# dependency-audit job in .github/workflows/glama-badges.yml does. It applies to this crate
-# only and holds one dated exception. Unmaintained notices fail only the
+# dependency-audit job in .github/workflows/glama-badges.yml does. It applies to
+# audits run from this directory and holds one dated exception. Unmaintained notices fail only the
 # scheduled audit (Ryan, 18 November 2026), so that is the run it changes.
 #
 # RUSTSEC-2026-0543: chrono is unmaintained (informational; RustSec, 17 November
