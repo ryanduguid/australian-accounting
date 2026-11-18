@@ -1,3 +1,17 @@
+# Unreleased
+
+## Changed
+
+- `calculate_tax_worksheet` serves every worksheet in the calculators executable's
+  catalogue, 48 kinds in 1.0.0 where 0.10.0 served 14, and the scope resource lists
+  each with the engine's own scope, periods, required and optional inputs. A worksheet
+  the executable adds is served without a change here. The tool refuses a kind or an
+  input the catalogue does not list, and a number in exponent or other non-plain
+  notation in any fact; the executable validates and refuses everything else. The
+  narrowed scopes for 6 kinds are gone, so for example the 2026-27 Medicare levy and
+  quarterly PAYG pays now calculate. `facts` publishes only `kind` and
+  `scope_confirmed` in its schema; the catalogue states each kind's inputs.
+
 # v0.10.0
 
 ## Changed

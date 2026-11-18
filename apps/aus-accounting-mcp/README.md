@@ -134,7 +134,7 @@ Ask in plain English. Each of these fabricated requests resolves to one tool cal
 | `calc_payday_super_deadline` | Review timing for one super contribution. |
 | `review_payday_super_contributions` | Review related contributions together for one employer. |
 | `build_payday_super_evidence_pack` | Return 4 review files in memory for a practitioner's workpaper. |
-| `calculate_tax_worksheet` | Calculate one of 14 worksheets with established scope and period, optionally with a Markdown file note. |
+| `calculate_tax_worksheet` | Calculate any worksheet the installed calculators executable offers, with established scope and period, optionally with a Markdown file note. |
 | `get_div7a_benchmark_rate` | Get a reviewed Division 7A benchmark rate, or `UNKNOWN`. |
 | `review_div7a_loan` | Review s 109N terms and s 109E minimum yearly repayments for one supplied amalgamated loan. |
 | `refuse_div7a` | Explain unsupported Division 7A matters. Call without arguments. |
@@ -239,7 +239,8 @@ Release `aus-accounting-mcp==0.5.0` provides 14 worksheets through
 `australian-tax-calculators==0.2.0`, including Schedule 8 study-loan withholding,
 the bounded annual Medicare levy, LITO and Division 293. The preceding 0.4.0
 release provides 10 through calculators 0.1.8. From 0.10.0 the 14 run through the
-`australian-tax-calculators` 1.0.0 executable instead. See the
+`australian-tax-calculators` 1.0.0 executable instead. Unreleased source serves every
+worksheet in that executable's catalogue, 48 kinds in 1.0.0. See the
 [worksheet release verification](https://github.com/ryanduguid/australian-accounting/blob/main/apps/aus-accounting-mcp/docs/worksheet-release.md) for the installed
 package checks.
 

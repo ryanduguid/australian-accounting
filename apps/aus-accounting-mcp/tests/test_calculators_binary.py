@@ -111,7 +111,7 @@ def test_without_the_executable_every_other_tool_and_resource_still_answers(miss
 def test_any_other_version_is_refused(monkeypatch, reply) -> None:
     monkeypatch.setattr(tax.subprocess, "run", _answer(reply))
     with pytest.raises(tax.CalculatorsUnavailable, match="--version answered") as caught:
-        tax.calculate(tax._FACTS.validate_python(GST))
+        tax.calculate(tax.TaxFacts.model_validate(GST))
     assert f"not '{tax.CALCULATORS} {tax.CALCULATORS_VERSION}'" in str(caught.value)
 
 
@@ -129,12 +129,15 @@ def test_the_reported_version_is_the_executables_own(monkeypatch) -> None:
     assert tax.reported_version() is None
 
 
+_REAL_RUN = subprocess.run
+
+
 def _versioned(reply: subprocess.CompletedProcess):
-    """--version answers correctly; every other command gets `reply`."""
-    def run(command, **_options):
-        if command[1:] == ["--version"]:
-            return subprocess.CompletedProcess(command, 0, f"{tax.CALCULATORS} "
-                                               f"{tax.CALCULATORS_VERSION}\n", "")
+    """--version and the catalogue answer as the executable does; every other command
+    gets `reply`."""
+    def run(command, **options):
+        if command[1] in ("--version", "worksheet-catalogue"):
+            return _REAL_RUN(command, **options)
         return reply
     return run
 
@@ -148,7 +151,7 @@ def test_a_reply_that_is_neither_a_result_nor_a_refusal_is_unavailability(
     reply = subprocess.CompletedProcess([], returncode, stdout, "thread 'main' panicked\n")
     monkeypatch.setattr(tax.subprocess, "run", _versioned(reply))
     with pytest.raises(tax.CalculatorsUnavailable, match=f"exited {returncode}: thread 'main'"):
-        tax.calculate(tax._FACTS.validate_python(GST))
+        tax.calculate(tax.TaxFacts.model_validate(GST))
 
 
 def test_a_refusal_keeps_the_engines_message(monkeypatch) -> None:
@@ -156,7 +159,7 @@ def test_a_refusal_keeps_the_engines_message(monkeypatch) -> None:
     monkeypatch.setattr(tax.subprocess, "run", _versioned(
         subprocess.CompletedProcess([], 2, refusal, "error: Establish it.\n")))
     with pytest.raises(InputError, match="^Establish it.$"):
-        tax.calculate(tax._FACTS.validate_python(GST))
+        tax.calculate(tax.TaxFacts.model_validate(GST))
 
 
 @pytest.mark.parametrize("error", [
@@ -182,7 +185,7 @@ def test_the_executable_gets_python_decimal_text(monkeypatch) -> None:
     facts = {"kind": "depreciation", "scope_confirmed": True, "year": "2025-26",
              "cost": " 1000.50 ", "effective_life": "5.0", "taxable_use": "1",
              "days": 365, "method": "prime_cost"}
-    tax.calculate(tax._FACTS.validate_python(facts))
+    tax.calculate(tax.TaxFacts.model_validate(facts))
     [(arguments, payload)] = [call for call in sent if call[0][0] == "depreciation"]
     assert arguments == ["depreciation", "--refusal-json"]
     assert json.loads(payload) == {"scope_confirmed": True, "year": "2025-26", "cost": "1000.50",
@@ -200,3 +203,13 @@ def test_no_shell_reads_the_command(monkeypatch) -> None:
     monkeypatch.setattr(tax.subprocess, "run", run)
     _gst()
     assert "shell" not in seen and seen["timeout"] == tax.TIMEOUT_SECONDS
+
+
+@pytest.mark.parametrize("reply", [
+    subprocess.CompletedProcess([], 0, "something else\n", ""),
+    subprocess.CompletedProcess([], 2, "", "usage\n"),
+])
+def test_a_command_list_that_is_not_the_api_help_is_unavailability(monkeypatch, reply) -> None:
+    monkeypatch.setattr(tax.subprocess, "run", _versioned(reply))
+    with pytest.raises(tax.CalculatorsUnavailable, match="--api-help answered"):
+        tax.commands()
