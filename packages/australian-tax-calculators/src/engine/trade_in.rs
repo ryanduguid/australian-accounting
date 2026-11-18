@@ -24,11 +24,17 @@ use crate::decimal::Decimal;
 
 const KIND: &str = "trade_in";
 
-/// The car limit for the financial years this worksheet takes: $69,674 for
-/// 2025-26 (the ATO's Guide to depreciating assets 2026) and $69,883 for
-/// 2026-27 (the ATO's 'Purchasing a motor vehicle', last updated 3 June
-/// 2026), both read on 18 November 2026.
-const CAR_LIMITS: [(&str, &str); 2] = [("2025-26", "69674"), ("2026-27", "69883")];
+/// The car limit for each financial year the ATO has published it for that
+/// a worksheet takes: $69,674 for 2024-25 (the ATO's 'Assets and
+/// exclusions', last updated 27 May 2026, read at 22:57 on 18 November 2026,
+/// for `hire_purchase_schedule`), $69,674 for 2025-26 (the ATO's Guide to
+/// depreciating assets 2026) and $69,883 for 2026-27 (the ATO's 'Purchasing a
+/// motor vehicle', last updated 3 June 2026), both read on 18 November 2026.
+pub(super) const CAR_LIMITS: [(&str, &str); 3] = [
+    ("2024-25", "69674"),
+    ("2025-26", "69674"),
+    ("2026-27", "69883"),
+];
 
 /// The facts as the command passes them; see the README for each.
 pub struct TradeInArgs<'a> {

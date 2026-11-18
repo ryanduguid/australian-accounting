@@ -36,6 +36,7 @@ fn every_code_at_a_refusal_site_is_catalogued_and_every_entry_is_used() {
         "engine/balancing",
         "engine/fbt_benefits",
         "engine/fbt_benefits/entertainment",
+        "engine/hire_purchase",
     ]
     .into_iter()
     .flat_map(|dir| {

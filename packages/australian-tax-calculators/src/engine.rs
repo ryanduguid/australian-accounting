@@ -4772,7 +4772,7 @@ pub fn borrowing_expenses(
 }
 
 mod hire_purchase;
-pub use hire_purchase::hire_purchase_schedule;
+pub use hire_purchase::{HirePurchaseArgs, hire_purchase_schedule};
 
 mod business_capital;
 pub use business_capital::business_capital_expenditure;

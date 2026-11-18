@@ -1119,8 +1119,8 @@ pub fn source_review(kind: &str) -> (&'static str, &'static str) {
             "As for balancing_adjustment, with ITAA 1997 ss 27-80, 27-95, 40-180, 40-185, 40-225, 40-230 and 40-365, compilation 268 (1 October 2026); GST Act ss 9-5, 9-70, 9-75, 11-5, 11-25, 11-30, 69-10 and 132-5, compilation 96 (1 January 2026); the ATO's 'Purchasing a motor vehicle' (last updated 3 June 2026: the 2026-27 car limit and Darren's example), 'Disposing of a motor vehicle' (last updated 29 May 2024: trade-ins) and 'GST and the disposal of capital assets' (last updated 24 May 2017: Ian's decreasing adjustment)",
         ),
         "hire_purchase_schedule" => (
-            "2026-11-15",
-            "ITAA 1997 s 240-17 (the hirer under a hire purchase agreement is the notional buyer), s 240-55 (arrangement payments) and s 240-60 (notional interest: the method statement and the apportionment of a period spanning income years)",
+            "2026-11-18",
+            "ITAA 1997 Division 240 (ss 240-17, 240-20, 240-25, 240-55, 240-60, 240-65, 240-70, 240-75, 240-85, 240-105 and 240-110), s 40-230 and s 995-1 'termination amount', compilation 268 (1 October 2026); GST Act ss 9-70, 9-75, 9-90, 11-5, 11-25, 11-30, 29-10, 69-10 and 158-5, compilation 96 (1 January 2026); the ATO's 'GST – Hire purchase and leasing' (last updated 6 April 2017), 'Purchasing a motor vehicle' (last updated 3 June 2026: the 2026-27 car limit), 'Assets and exclusions' (last updated 27 May 2026: the 2024-25 and 2025-26 car limits) and the GST issues register 'Financial services - questions and answers' (issues 1.1, 1.3, 1.9, 1.15 and 1.17, updated to 7 September 2012 and 2 May 2013)",
         ),
         "fbt_car_statutory" => (
             "2026-10-29",
@@ -1552,6 +1552,40 @@ pub fn optional_inputs(kind: &str) -> Vec<(&'static str, &'static str)> {
             (
                 "creditable_purpose",
                 "decimal fraction above 0 and at most 1, the extent of creditable purpose of the replacement's acquisition (GST Act s 11-30); required when replacement_creditable_acquisition is true and refused otherwise",
+            ),
+        ],
+        "hire_purchase_schedule" => vec![
+            (
+                "instalment",
+                "AUD, the level instalment; required without segments and refused with them",
+            ),
+            (
+                "instalments",
+                "integer, the number of instalments: 1 to 360 monthly, 1,565 weekly, 782 fortnightly, 120 quarterly or 30 annual; required without segments and refused with them",
+            ),
+            (
+                "frequency",
+                "weekly, fortnightly, monthly, quarterly or annual, the level instalments' frequency; monthly when omitted; omit with segments",
+            ),
+            (
+                "segments",
+                "list of objects in place of instalment, instalments and frequency, each with start (YYYY-MM-DD: the first segment's is the start_date, each later one's the end of the segment before it), count (integer of 1 or more), amount (AUD, 0.00 for a payment holiday) and frequency (all weekly or fortnightly, or all monthly, quarterly or annual), ending within 30 years",
+            ),
+            (
+                "deposit",
+                "AUD, paid at or before the start for the cost of the goods, beside the amount financed (ITAA 1997 s 240-25(3)); 0.00 when omitted",
+            ),
+            (
+                "trade_in",
+                "AUD, credited by the financier as paid at or before the start for the cost of the goods (s 240-25(3)); 0.00 when omitted",
+            ),
+            (
+                "payout",
+                "object with date (YYYY-MM-DD, the end of an arrangement payment period before the end of the term), amount (AUD) and known_at_start (boolean: false states the payout was neither known nor expected at the start, so the reasonable estimate then was no payout; true is refused): an early payout replacing every payment due on or after its date; refused with gst",
+            ),
+            (
+                "gst",
+                "object of GST facts, for an input tax credit: registered (boolean); when true, accounting_basis (cash or accruals), creditable_purpose (decimal fraction from 0 to 1) and asset (passenger_car, a car GST Act s 69-10 applies to, or other); for a passenger_car, first_used_year (2024-25 to 2026-27), gst_inclusive_market_value (AUD), luxury_car_tax (AUD) and quotes_abn_for_luxury_car_tax (boolean). A missing fact gives no GST figure, and nor does a passenger_car worth more than the car limit and not quoted for (gst.review says why)",
             ),
         ],
         "depreciation" => vec![(
@@ -2009,17 +2043,12 @@ pub fn input_units(kind: &str) -> Vec<(&'static str, &'static str)> {
                 "AUD, the notional loan principal: the price of the goods less any deposit or trade-in",
             ),
             (
-                "instalment",
-                "AUD, the level monthly instalment",
-            ),
-            ("instalments", "integer 1 to 360, monthly"),
-            (
                 "balloon",
-                "AUD, paid at the end of the term (with the last instalment in arrears, a month after it in advance) and shown as the last month's balloon; 0.00 for none",
+                "AUD, paid at the end of the term (with the last instalment in arrears, at the end of its period in advance) and shown as the last period's balloon; 0.00 for none",
             ),
             (
                 "timing",
-                "in_arrears (each instalment at its month's end) or in_advance (at its start)",
+                "in_arrears (each instalment at its period's end) or in_advance (at its start)",
             ),
             (
                 "start_date",
