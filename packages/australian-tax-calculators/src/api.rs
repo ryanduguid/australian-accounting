@@ -204,6 +204,23 @@ const COMMAND_ARGS: &[(&str, &[(&str, Kind)])] = &[
         ],
     ),
     (
+        "trade-in",
+        &[
+            ("cost", Dec),
+            ("asset", Raw),
+            ("years", Json),
+            ("trade_in_allowance", Dec),
+            ("trade_in_taxable", Raw),
+            ("replacement_price", Dec),
+            ("replacement_asset", Raw),
+            ("replacement_creditable_acquisition", Raw),
+            ("arms_length", Raw),
+            ("involuntary_disposal", Raw),
+            ("year", Raw),
+            ("scope_confirmed", Raw),
+        ],
+    ),
+    (
         "fbt",
         &[
             ("type_one_value", Dec),
@@ -526,7 +543,7 @@ pub fn commands() -> Vec<&'static str> {
 /// command on its `gross_pay` shows that withholding. The classifier's amounts
 /// are totals over lines whose shares a decision table sets, not a formula;
 /// each line and class carries the authority for its row instead.
-const DERIVED: [&str; 45] = [
+const DERIVED: [&str; 46] = [
     "fbt",
     "fbt-car-statutory",
     "fbt-car-operating-cost",
@@ -572,6 +589,7 @@ const DERIVED: [&str; 45] = [
     "income-tests",
     "business-capital-expenditure",
     "balancing-adjustment",
+    "trade-in",
 ];
 
 /// `derive`: `{"command", "input"}` gives the command's result with the step
@@ -938,6 +956,7 @@ pub fn evaluate_coded(command: &str, v: &Value) -> Result<Value> {
             | "income-tests"
             | "business-capital-expenditure"
             | "balancing-adjustment"
+            | "trade-in"
     ) && let Some(key) = v
         .as_object()
         .into_iter()
@@ -987,6 +1006,41 @@ pub fn evaluate_coded(command: &str, v: &Value) -> Result<Value> {
                 &a[4],
                 &a[5],
             )
+        }
+        "trade-in" => {
+            // Optional: a car's s 40-325 facts, the traded-in asset's input
+            // tax credits for a taxable trade-in, a passenger car's luxury car
+            // tax and a creditable acquisition's creditable purpose.
+            let given = |key| optional(v, key, if key == "car_limit" { Json } else { Dec });
+            let [car_limit, adjusted, full, luxury, purpose] = [
+                "car_limit",
+                "adjusted_input_tax_credit",
+                "full_input_tax_credit",
+                "replacement_luxury_car_tax",
+                "creditable_purpose",
+            ]
+            .map(given);
+            let (car_limit, adjusted, full) = (car_limit?, adjusted?, full?);
+            let (luxury, purpose) = (luxury?, purpose?);
+            engine::trade_in(&engine::TradeInArgs {
+                cost: &a[0],
+                asset: &a[1],
+                years: &a[2],
+                car_limit: car_limit.as_ref(),
+                trade_in_allowance: &a[3],
+                trade_in_taxable: &a[4],
+                adjusted_input_tax_credit: adjusted.as_ref(),
+                full_input_tax_credit: full.as_ref(),
+                replacement_price: &a[5],
+                replacement_asset: &a[6],
+                replacement_luxury_car_tax: luxury.as_ref(),
+                replacement_creditable_acquisition: &a[7],
+                creditable_purpose: purpose.as_ref(),
+                arms_length: &a[8],
+                involuntary_disposal: &a[9],
+                year: &a[10],
+                scope_confirmed: &a[11],
+            })
         }
         "fbt" => engine::fbt(&a[0], &a[1], &a[2], &a[3]),
         "fbt-car-statutory" => {

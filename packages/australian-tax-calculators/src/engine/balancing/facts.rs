@@ -50,7 +50,7 @@ pub(super) struct CarLimit {
 }
 
 /// The facts the worksheet works from, read and checked.
-pub(super) struct Facts {
+pub(in crate::engine) struct Facts {
     pub(super) asset: Asset,
     pub(super) cost: Decimal,
     pub(super) years: Vec<Held>,
@@ -339,7 +339,7 @@ fn read_years(years: &Arg, asset: Asset, event: i64) -> Result<Vec<Held>> {
 }
 
 /// The asset's facts, checked against each other.
-pub(super) fn read_facts(
+pub(in crate::engine) fn read_facts(
     cost: &Arg,
     asset: &Arg,
     years: &Arg,

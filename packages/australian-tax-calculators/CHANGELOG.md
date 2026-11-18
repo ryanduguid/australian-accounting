@@ -55,6 +55,18 @@ intentionally changed.
   covers it. `tests/balancing_adjustment.rs` holds it to the Guide to
   depreciating assets 2026's Bridget, Andrew and Louise examples and the
   example in s 118-10(1).
+- `trade-in` works out trading in a depreciating asset for a replacement
+  in 2025-26 or 2026-27: the GST on the trade-in and the GST Act s 132-5
+  decreasing adjustment, the old asset's termination value (ITAA 1997
+  s 40-305 and Subdivision 27-B) and its balancing adjustment as
+  `balancing-adjustment` works it, and the replacement's input tax
+  credit (GST Act ss 11-30 and 69-10) and cost (ss 40-185, 27-80 and
+  40-230). It refuses a trade-in not at arm's length and an involuntary
+  disposal, saying what s 40-365 would change. New codes:
+  `trade_in.asset_invalid`, `trade_in.fact_conflict`,
+  `trade_in.involuntary_disposal` and `trade_in.not_arms_length`.
+  `derive` covers it. `tests/trade_in.rs` holds it to the ATO's examples
+  for Darren's car and Ian's vehicle.
 - `contribution-caps` can work out the unused concessional cap from each
   earlier year's contributions instead of taking it as a total: given
   `earlier_concessional_contributions` from at least the 5th year before,
