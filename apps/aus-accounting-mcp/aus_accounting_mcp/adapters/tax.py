@@ -50,7 +50,7 @@ def _run(binary: str, arguments: list[str], payload: str = "") -> subprocess.Com
         # An argument list and no shell; the executable is the one the operator named
         # or put on PATH, and the arguments are fixed command names.
         return subprocess.run(  # NOSONAR nosemgrep
-            [binary, *arguments], input=payload, capture_output=True, text=True,
+            [binary, *arguments], input=payload, capture_output=True, text=True,  # nosemgrep
             encoding="utf-8", timeout=TIMEOUT_SECONDS, check=False,
         )
     except (OSError, subprocess.SubprocessError) as exc:
