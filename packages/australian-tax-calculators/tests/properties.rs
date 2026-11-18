@@ -1592,6 +1592,77 @@ fn business_capital_schedules_add_up_to_the_deductible_expenditure() {
     }
 }
 
+/// A balancing adjustment (ITAA 1997 ss 40-285 and 40-290), whatever the
+/// years held: at most one of the assessable and deductible amounts is more
+/// than nil, and it is the balancing adjustment amount less the reduction for
+/// non-taxable use to within a cent; that reduction is the amount's share of
+/// the sum of reductions over the total decline, so a year's whole decline
+/// deducted leaves nothing to reduce and no CGT event K7 amount.
+#[test]
+fn balancing_adjustment_less_its_reduction_is_what_is_assessable_or_deductible() {
+    let mut rng = Rng(0x4029_0001);
+    let periods = supported_periods("balancing_adjustment");
+    for _ in 0..RUNS {
+        let year = *rng.pick(&periods);
+        let event: i64 = year[..4].parse().unwrap();
+        let cost = rng.int(1, 10_000_000);
+        let mut left = cost;
+        let mut whole = true;
+        let years: Vec<Value> = (0..rng.int(1, 5))
+            .map(|k| {
+                let decline = rng.int(if k == 0 { 1 } else { 0 }, left.max(1));
+                left -= decline.min(left);
+                let deduction = *rng.pick(&[decline, decline / 2, 0, decline * 3 / 10]);
+                whole &= deduction == decline;
+                let first = event - k;
+                json!({
+                    "income_year": format!("{first}-{:02}", (first + 1) % 100),
+                    "decline_in_value": format!("{decline}.00"),
+                    "deduction": format!("{deduction}.00"),
+                })
+            })
+            .collect();
+        let declined: i64 = years
+            .iter()
+            .map(|r| {
+                r["decline_in_value"]
+                    .as_str()
+                    .unwrap()
+                    .trim_end_matches(".00")
+                    .parse::<i64>()
+                    .unwrap()
+            })
+            .sum();
+        if declined == 0 || declined > cost {
+            continue;
+        }
+        let facts = json!({
+            "cost": format!("{cost}.00"), "termination_value": rng.cents(cost * 200),
+            "asset": "other", "years": years, "year": year, "scope_confirmed": true,
+        });
+        let r = run("balancing-adjustment", facts.clone());
+        let [assessable, deductible, amount_, reduction, gain, loss] = [
+            "assessable_amount",
+            "deductible_amount",
+            "balancing_adjustment_amount",
+            "reduction_for_non_taxable_use",
+            "capital_gain",
+            "capital_loss",
+        ]
+        .map(|key| amount(&r, key));
+        assert!(eq(&assessable, &n(0)) || eq(&deductible, &n(0)), "{facts}");
+        let moved = assessable.add(&deductible).unwrap();
+        let expected = amount_.sub(&reduction).unwrap();
+        let gap = moved.sub(&expected).unwrap();
+        assert!(le(&gap, &d("0.01")) && le(&d("-0.01"), &gap), "{facts}");
+        if whole {
+            for zero in [&reduction, &gain, &loss] {
+                assert!(eq(zero, &n(0)), "{facts}");
+            }
+        }
+    }
+}
+
 /// A hire purchase schedule adds up: the months' interest to the total
 /// charges, each closing balance to the next opening and the last to nil, and
 /// each month's interest is within a cent of the implicit rate on what it

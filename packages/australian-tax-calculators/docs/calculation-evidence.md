@@ -54,6 +54,7 @@ example evidence; it does not claim a fresh review of every supported period.
 | Main residence | `tax-examples-capital-gains-tax-cgt` (tax-examples), ¶2-060 and ¶2-075, with the ATO's pages 'Treating former home as main residence' (QC66030) and 'Using your home for rental or business' (QC66033) | 30 June 2026; 22 June 2026 (both ATO pages) | One dwelling's taxable days for CGT events in 2024-25 to 2026-27; cost base, market value and discount excluded |
 | Borrowing expenses | `tax-examples-deductions` (tax-examples), ¶4-160, with ITAA 1997 s 25-25 (compilation 268, 1 October 2026) and the ATO's 'Borrowing expenses' page | 30 June 2026; 22 May 2026 (ATO page) | One loan's established expenditure, use and dates for 2024-25 to 2026-27; classification, interest and refinancing excluded |
 | Hire purchase schedule | Not a Library document: ITAA 1997 ss 240-17, 240-55 and 240-60 on the ATO's legal database and in compilation 268 (1 October 2026) | 15 November 2026 (read) | One agreement's monthly notional interest for the hirer, starting in 2024-25 to 2026-27, from established payments; apportionment to income years under s 240-60(2) excluded |
+| Balancing adjustment | Not a Library document: the ATO's Guide to depreciating assets 2026 (Bridget, Andrew and Louise examples) and ITAA 1997 Subdivisions 27-B and 40-D, ss 104-240, 118-5 and 118-10(1) and its example (compilation 268, 1 October 2026) | 1 June 2026 (Guide); 18 November 2026 (read) | One depreciating asset's balancing adjustment, s 40-290 reduction and K7 amount for events in 2024-25 to 2026-27, from established cost, termination value and each year's decline and deduction; pools, s 40-291A and roll-overs excluded |
 | Depreciation | `tax-examples-depreciation` (tax-examples), ¶6-000 and ¶6-020 | 30 June 2025 | First-year formulas and taxable-use apportionment in 2024–25 examples |
 | Quarterly SG | `superannuation-instant-reference-rates-thresholds-and-checklists` (superannuation), ¶18-600 and ¶18-620 | 30 June 2026 | General 2025–26 rate and quarterly maximum contribution base |
 | Contribution caps | `tax-examples-individuals` (tax-examples), ¶7-278, with ITAA 1997 s 291-20 (compilation 268, 1 October 2026) and the ATO's contributions caps and concessional contributions cap pages for the carry-forward by year | 30 June 2025; 11 September and 2 July 2026 (ATO pages) | First-year bring-forward for 2024–25 only; the later-year nil cap is outside the worksheet; unused concessional cap from 2018-19 worked out from each year's established contributions |
@@ -778,6 +779,65 @@ worked exactly and only the result's amounts are rounded to the cent, as
 every worksheet here shows them. Rounding each fifth to the cent with the
 last year taking the rest was not adopted: neither the Act nor the ATO's
 pages state a rounding for s 40-880.
+
+## Balancing adjustment
+
+This worksheet was added on 18 November 2026. ITAA 1997 Subdivisions 40-B
+and 40-D, s 995-1's definition of a car and Subdivision 27-B were read that
+day from 06:56 AEDT in compilation 268 (1 October 2026), volume 2
+(https://www.legislation.gov.au/C2004A05138/2026-10-01/2026-10-01/text/original/epub/OEBPS/document_2/document_2.html),
+and ss 104-235, 104-240, 118-5 and 118-10 in volume 3; the formulas, which the
+Register renders as images, were read from their text alternatives. The
+endnotes (volume 12) list s 40-285's last amendment as Act No 69 of 2014,
+s 40-370's as Act No 162 of 2015, which left the cents per kilometre and log
+book methods, and none for s 40-325 since it was added. Act No 49 of 2026
+(Treasury Laws Amendment (Tax Reform No. 1) Act 2026, read as made at 07:06)
+added a note to s 40-290 and s 40-291A, a fixed 50% reduction a taxpayer may
+choose from 2026-27 for an asset used to produce assessable labour income
+(Schedule 4 item 17); the worksheet applies s 40-290 and warns of the choice.
+Its Schedule 1 changes capital gains from 1 July 2027, so 2027-28 is refused,
+as for CGT.
+
+The ATO's Guide to depreciating assets 2026 (current at 1 June 2026, read on
+the legal database at 07:00,
+https://www.ato.gov.au/law/view/document?docid=SAV/DEPRECIATING/00001) gives
+the examples below, states that an asset used wholly for a non-taxable
+purpose has its balancing adjustment amount reduced to nil with the
+difference between termination value and cost as its capital gain or loss,
+and gives the car limit for 2025-26 as $69,674.
+
+Step 3 of s 40-370 counts 'the total number of days for which you deducted
+the decline in value of the car', so a log book year with a nil deduction
+adds no days. A car year before 2015-16 is refused, as the one-third of
+actual expenses and 12% of original value methods could then apply and
+s 40-370 as compiled now names neither. Section 40-230 reduces the first
+element of cost to the car limit for the year the car was first held, and
+s 40-325 uses the limit for the year it was first used, so the cost must be
+that limit plus the second element; a car whose 2 years' limits differ is
+refused.
+The car limit is an input: the Guide states only 2025-26's, and s 40-325 uses
+the limit for the financial year the car was first used, which can be years
+before the event.
+
+`tests/balancing_adjustment.rs` holds these cases. The examples state an
+adjustable value, not each year's decline; the facts they leave out are
+fabricated so that they give the stated figures.
+
+| Case | Source | Worksheet |
+| --- | --- | --- |
+| Bridget's cabinet, wholly taxable use, adjustable value $1,200, sold for $1,300 or $1,000 | Guide, 'Example: working out an assessable balancing adjustment amount' and '... a deductible balancing adjustment amount' | $100.00 assessable; $200.00 deductible; no reduction |
+| Andrew's $1,000 computer, 60% taxable use, $300 decline, sold for $600 | Guide, 'Example: depreciating asset used partly for a taxable purpose – balancing adjustment and capital loss' | $60.00 deductible, $40.00 reduction, $160.00 capital loss |
+| Louise's car, log book method at 40% in 2024-25 and 2025-26, adjustable value $18,200, sold for $24,500 | Guide, 'Example: using the logbook method' | $2,520.00 assessable; K7 disregarded (s 118-5) |
+| Gayle's $450 print, $31 decline, $6 deducted, sold for $700 | ITAA 1997 s 118-10(1), its example (2001-02, moved to 2025-26) | $54.39 assessable and a $201.61 capital gain; the Act rounds to $54 and $202 |
+| $2,000 asset used wholly privately, $500 decline, sold for $1,800 | Worked by hand on the Guide's statement | Nothing assessable or deductible; $200.00 capital loss, nil for a motor cycle (s 118-5) |
+| $30,000 car: cents per kilometre in 2024-25 ($7,500 notional decline), log book at 60% in 2025-26 ($5,625) and for 200 days of 2026-27 ($2,000), sold for $18,000 | Worked by hand under s 40-370: ($18,000 - $14,875) x (15,125 - 9,050) / 15,125 x 565 / 930 | $762.55 assessable |
+| A car claimed only by the cents per kilometre method | s 40-370(1) Note 2 | Nil |
+| $80,000 car first used in 2025-26, cost reduced to $69,674, $10,000 decline at 100% business use, sold for $50,000 | Worked by hand under s 40-325: $50,000 x 69,674 / 80,000 = $43,546.25 | $16,127.75 deductible |
+
+The working keeps each fraction exact and divides once, last, so a reduction
+of $3,125 x 9,050 / 15,125 is not rounded before the days scale it. The Act's
+own example rounds to dollars; the worksheet shows cents, half up, as every
+worksheet here does.
 
 ## Depreciation
 
@@ -2214,6 +2274,7 @@ year; the others refuse it and say what is missing.
 | Contribution caps, ETP caps | Not published | ATO contributions caps page (last updated 11 September 2026) and ETP page (17 April 2026), 16:07 |
 | Division 296 thresholds | Not published: indexed from 2027-28 | ATO Division 296 page (last updated 3 November 2026, 2026-27 only), 16:13 |
 | CGT and rental deductions | Changed from 1 July 2027 by Act No. 49 of 2026 Schedules 1 and 2 (s 26-155) | ITAA 1997 s 26-155 (https://www.ato.gov.au/law/view/document?docid=PAC/19970038/26-155), 16:13 |
+| Balancing adjustment | Refused: CGT event K7 is a capital gain, which Schedule 1 to Act No. 49 of 2026 changes from 1 July 2027 | Act No. 49 of 2026 as made (https://www.legislation.gov.au/C2026A00049/asmade/text), read 18 November 2026 at 07:06; see [Balancing adjustment](#balancing-adjustment) |
 | Business capital expenditure | Enacted, no year: ITAA 1997 s 40-880 and the small business entity test of Subdivision 328-C, neither amended in compilation 268 or the version from 1 December 2026; s 26-155 left out of scope | Compilation 268 (https://www.legislation.gov.au/C2004A05138/latest/text) and the Register's API, read 17 November 2026 from 01:33; see [Business capital expenditure](#business-capital-expenditure) |
 
 Worked by hand: resident tax on $45,000 is 14% of $26,800, $3,752; on

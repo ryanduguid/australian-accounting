@@ -11,7 +11,8 @@ use std::process::{Command, Stdio};
 /// Worksheets added after Python 0.2.0, so absent from the frozen corpus;
 /// `tests/fbt_car.rs`, `tests/main_residence.rs`,
 /// `tests/borrowing_expenses.rs`, `tests/hire_purchase.rs`,
-/// `tests/business_capital_expenditure.rs`, `tests/division_296.rs`,
+/// `tests/business_capital_expenditure.rs`, `tests/balancing_adjustment.rs`,
+/// `tests/division_296.rs`,
 /// `tests/termination_payment.rs`, `tests/unused_leave_payment.rs`, `tests/schedule_5.rs`,
 /// `tests/working_holiday_maker.rs`, `tests/seniors_pensioners.rs`,
 /// `tests/seniors_pensioners_offset.rs`, `tests/medicare_surcharge.rs`,
@@ -23,7 +24,7 @@ use std::process::{Command, Stdio};
 /// `tests/fbt_tax_exempt_body_entertainment.rs`, `tests/lump_sum_arrears_offset.rs`,
 /// `tests/fbt_entertainment_classifier.rs` and `tests/income_tests.rs` cover
 /// them.
-const NEW_KINDS: [(&str, &str); 32] = [
+const NEW_KINDS: [(&str, &str); 33] = [
     ("fbt-car-statutory", "fbt_car_statutory"),
     ("fbt-car-operating-cost", "fbt_car_operating_cost"),
     ("fbt-loan", "fbt_loan"),
@@ -39,6 +40,7 @@ const NEW_KINDS: [(&str, &str); 32] = [
         "business-capital-expenditure",
         "business_capital_expenditure",
     ),
+    ("balancing-adjustment", "balancing_adjustment"),
     ("division-296", "division_296"),
     ("termination-payment", "termination_payment"),
     ("unused-leave-payment", "unused_leave_payment"),

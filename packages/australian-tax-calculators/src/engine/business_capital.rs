@@ -161,12 +161,12 @@ struct Item {
 }
 
 /// `2026-27` for 2026.
-fn year_text(first: i64) -> String {
+pub(super) fn year_text(first: i64) -> String {
     format!("{first}-{:02}", (first + 1) % 100)
 }
 
 /// 2026 for `2026-27`; `None` for text that is not an income year.
-fn year_first(text: &str) -> Option<i64> {
+pub(super) fn year_first(text: &str) -> Option<i64> {
     let first: i64 = text.get(..4)?.parse().ok()?;
     (year_text(first) == text).then_some(first)
 }

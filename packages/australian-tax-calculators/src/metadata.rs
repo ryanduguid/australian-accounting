@@ -1012,6 +1012,11 @@ pub fn supported_periods(kind: &str) -> Vec<&'static str> {
         "business_capital_expenditure" => vec![
             "2020-21", "2021-22", "2022-23", "2023-24", "2024-25", "2025-26", "2026-27", "2027-28",
         ],
+        // Subdivision 40-D as compiled on 1 October 2026: ss 40-285, 40-325
+        // and 40-370 unamended since 2015, s 40-290 given a note by Act No 49 of
+        // 2026 pointing to the s 40-291A choice from 2026-27. 2027-28 is refused:
+        // Schedule 1 to that Act changes capital gains from 1 July 2027.
+        "balancing_adjustment" => vec!["2024-25", "2025-26", "2026-27"],
         "fbt" => vec!["2026", "2027"],
         "fbt_car_statutory" | "fbt_car_operating_cost" | "fbt_loan" => {
             keys(FBT_BENCHMARK_INTEREST_RATES)
@@ -1100,6 +1105,10 @@ pub fn source_review(kind: &str) -> (&'static str, &'static str) {
         "business_capital_expenditure" => (
             "2026-11-16",
             "ITAA 1997 s 40-880, compilation 268 (1 October 2026), last amended by Act No 92 of 2020 (Schedule 3 items 25 to 27, applied by item 40(7) from 1 July 2020); TR 2011/6, the Commissioner's view, paras 10, 128 to 134, 160 to 212, 318A to 321 and examples 14, 16 to 18, 21 to 25, 40A and 41; Deductions for depreciating assets and capital expenses (last updated 28 August 2026), other capital expenses",
+        ),
+        "balancing_adjustment" => (
+            "2026-11-18",
+            "ITAA 1997 ss 40-25, 40-85, 40-230, 40-285, 40-290, 40-291A, 40-295, 40-300, 40-305, 40-325, 40-370, 104-235, 104-240, 118-5 and 118-10 (its example) and Subdivision 27-B, compilation 268 (1 October 2026), with the endnotes' amendment history; Treasury Laws Amendment (Tax Reform No. 1) Act 2026 (No 49 of 2026), Schedule 4 item 17 (s 40-291A from 2026-27); Guide to depreciating assets 2026, 'What happens if you no longer hold or use a depreciating asset?', its Bridget, Andrew and Louise examples and the car limit formula",
         ),
         "hire_purchase_schedule" => (
             "2026-11-15",
@@ -1300,6 +1309,12 @@ pub fn library_evidence(kind: &str) -> [(&'static str, &'static str); 4] {
             "2011-11-30",
             "2026-11-16",
         ),
+        "balancing_adjustment" => (
+            "Guide to depreciating assets 2026; ITAA 1997 s 118-10(1)",
+            "Bridget, Andrew and Louise examples; the Gayle example",
+            "2026-06-01",
+            "2026-11-18",
+        ),
         "hire_purchase_schedule" => (
             "ATO Legal database, ITAA 1997 Division 240",
             "s 240-60(1) steps 1 to 4, with s 240-60 as amended by No 79 of 2010",
@@ -1499,6 +1514,10 @@ pub fn library_evidence(kind: &str) -> [(&'static str, &'static str); 4] {
 /// Inputs a worksheet takes but does not require, with their units.
 pub fn optional_inputs(kind: &str) -> Vec<(&'static str, &'static str)> {
     match kind {
+        "balancing_adjustment" => vec![(
+            "car_limit",
+            "for a car only, and then required: null when s 40-230 did not reduce its cost to the car limit, or an object with limit (AUD, the car limit for the financial year in which the car was first used for any purpose), second_element_cost (AUD) and cost_ignoring_car_limit (AUD, the first and second elements ignoring the car limit, after Subdivision 27-B), cost then being limit plus second_element_cost: ITAA 1997 s 40-325",
+        )],
         "depreciation" => vec![(
             "opening_adjustable_value",
             "AUD, for a year after the start time only: cost less the decline in value of earlier years, not the deductions; omit in the start year",
@@ -1975,6 +1994,21 @@ pub fn input_units(kind: &str) -> Vec<(&'static str, &'static str)> {
             "items",
             "list of objects, one for each item of capital expenditure, each stating: amount (AUD); incurred_in (the income year incurred, from 2020-21 to the year asked about); capital (boolean, true: the operator establishes that the outlay is capital; false is refused); business (current, former, proposed or wind_up: s 40-880(2)(a) to (d)); taxable_purpose (decimal fraction from 0 to 1, the extent s 40-880(3) or (4)(a) allows, as the business is, was or is proposed to be carried on for a taxable purpose); exclusions (list of the paragraphs that exclude it, from \"5(a)\" to \"5(j)\", \"8\", \"9(a)\" and \"9(b)\", [] for none; 5(a) and 5(f) are refused). A former or proposed business also states carried_on_by (you or another_entity); another entity's, and wind_up, assessable_income_connection (boolean, s 40-880(4)(b)); a proposed business within_reasonable_time (boolean, s 40-880(7)) and start_up_expense (advice_or_services, government_fees or neither: s 40-880(2A)(b)), with entity_test for the income year incurred unless neither (small_business_entity, covered_by_2b, not_in_business_and_unconnected or none: s 40-880(2A)(c) and (2B)); and 5(d) or 5(f) goodwill_right (boolean, s 40-880(6))",
         )],
+        "balancing_adjustment" => vec![
+            (
+                "cost",
+                "AUD, the first and second elements of cost after Subdivision 27-B and, for a car, the car limit (s 40-230)",
+            ),
+            (
+                "termination_value",
+                "AUD, under ss 40-300 to 40-320 after Subdivision 27-B, before s 40-325",
+            ),
+            ("asset", "car (ITAA 1997 s 995-1), motor_cycle_or_similar or other"),
+            (
+                "years",
+                "list of objects, one for each income year held from the start time to the event, each with income_year (from 2001-02, and for a car from 2015-16, to the event's year), decline_in_value (AUD; for a cents per kilometre year the notional decline of s 40-370(3)) and deduction (AUD, the decline less the s 40-25 reductions); a car's rows also state method (log_book or cents_per_kilometre, which takes no deduction) and days_held (integer from 1 to the days in that income year, 366 when it includes 29 February)",
+            ),
+        ],
         "fbt" => vec![("type_one_value", "AUD"), ("type_two_value", "AUD")],
         "fbt_loan" => vec![
             (
@@ -2553,6 +2587,18 @@ pub fn examples(kind: &str) -> Vec<(&'static str, Example)> {
                 "items",
                 Json(
                     r#"[{"amount": "1500.00", "incurred_in": "2025-26", "capital": true, "business": "current", "taxable_purpose": "1", "exclusions": []}, {"amount": "576.00", "incurred_in": "2026-27", "capital": true, "business": "proposed", "carried_on_by": "another_entity", "assessable_income_connection": true, "within_reasonable_time": true, "start_up_expense": "government_fees", "entity_test": "not_in_business_and_unconnected", "taxable_purpose": "1", "exclusions": []}]"#,
+                ),
+            ),
+        ],
+        "balancing_adjustment" => vec![
+            ("year", Text("2026-27")),
+            ("cost", Text("1000.00")),
+            ("termination_value", Text("600.00")),
+            ("asset", Text("other")),
+            (
+                "years",
+                Json(
+                    r#"[{"income_year": "2025-26", "decline_in_value": "300.00", "deduction": "180.00"}, {"income_year": "2026-27", "decline_in_value": "0.00", "deduction": "0.00"}]"#,
                 ),
             ),
         ],
