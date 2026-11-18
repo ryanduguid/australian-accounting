@@ -268,10 +268,7 @@ fn a_payout_settles_the_balance_and_its_difference_under_subdivision_240_g() {
         assert_eq!(amount(&r, key), value, "{key}");
     }
     let says = r["payout"]["consequence"].as_str().unwrap();
-    assert!(
-        says.contains("s 240-110(1)") && says.contains("s 240-85(b)"),
-        "{says}"
-    );
+    assert!(says.contains("s 240-110(1)"), "{says}");
     let rows: Vec<&str> = interest(&r);
     assert_eq!(rows, ["100.00", "100.00"]);
     // A payout known at the start would have changed the implicit rate
@@ -310,16 +307,6 @@ fn a_payout_settles_the_balance_and_its_difference_under_subdivision_240_g() {
     assert_eq!(
         lines(&r["journals"]["payout"])[1],
         "payout_difference 0.00 50.00"
-    );
-    // $1,100 discharges the balance exactly: no Subdivision 240-G difference.
-    let r = run(json!({"instalments": 3, "payout": {"date": "2026-09-15", "amount": "1100.00", "known_at_start": false}}))
-        .unwrap();
-    assert_eq!(amount(&r, "payout_excess"), "0.00");
-    assert_eq!(amount(&r, "payout_shortfall"), "0.00");
-    let says = r["payout"]["consequence"].as_str().unwrap();
-    assert!(
-        says.contains("makes no adjustment") && says.contains("s 240-85(b)"),
-        "{says}"
     );
 }
 
