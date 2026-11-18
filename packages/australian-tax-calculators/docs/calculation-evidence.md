@@ -846,6 +846,36 @@ a present value check and balanced journals.
 | $1,000, 2 x $100 in arrears and a $1,000 balloon from 1 June 2027; the same in advance | Worked by hand | June's $100 interest in 2026-27 and its payment on 1 July in 2027-28; in advance, $100 paid 1 June in 2026-27 |
 | $50,000, 260 weekly payments of $230 and a $5,000 balloon | The payments discounted at the rate shown | $50,000 to within a cent |
 
+## Contract register
+
+`contract-register` works no amount of its own: each contract's payments,
+interest and principal are those of its `hire-purchase-schedule` result,
+unchanged, and the register only dates and adds them. The current and
+non-current split rests on AASB 101 paragraph 69(c), 'the liability is due
+to be settled within twelve months after the reporting period', in
+compilation 6 (compilation date 31 December 2022, the latest on the Federal
+Register of Legislation, F2015L01626), read on 19 November 2026. Paragraphs
+69(a), (b) and (d), and 72A to 76ZA on rights to defer settlement and
+covenants, were read and are not assessed: the preparer establishes them.
+ITAA 1997 s 240-60(2), already read for `hire-purchase-schedule`, leaves
+the interest of a period spanning 30 June to accounting principles, so the
+register sets it apart with its days rather than apportioning it.
+
+`tests/contract_register.rs` holds the fabricated register in
+`examples/contract-register.csv`, 8 contracts with monthly, weekly,
+fortnightly, quarterly and annual instalments, in arrears and in advance,
+starting from 15 September 2024 to 20 August 2026, to each contract's own
+schedule run in the test on facts written out by hand: every total by month,
+income year, financier, client and register is the sum of the schedules'
+amounts, and each amount outstanding follows the schedule's closing balance.
+
+| Case | Source | Register at 30 June 2026 |
+| --- | --- | --- |
+| $10,000 financed, 12 monthly instalments of $100 in arrears from 1 March 2026, $10,000 balloon | Worked by hand: 1% a month; 4 periods ended charge $400, 3 instalments paid $300 | $10,100.00 outstanding, all current |
+| $24,000 financed, 24 monthly instalments of $1,000 in arrears from 1 August 2025 | Worked by hand: nil rate; 10 paid, 12 due by 30 June 2027 | $14,000.00 outstanding, $12,000.00 current, $2,000.00 non-current |
+| Monthly from 15 September 2024 | Worked by hand: 15 to 30 June is 16 of the period's 30 days | `accruing_days_elapsed` 16 of 30 |
+| $10,000 financed, 24 monthly instalments of $10, $13,000 balloon | The balance builds up over the next 12 months | all non-current |
+
 ## Business capital expenditure
 
 This worksheet was added on 16 November 2026. ITAA 1997 s 40-880 was read

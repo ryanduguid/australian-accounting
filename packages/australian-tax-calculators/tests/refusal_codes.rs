@@ -57,6 +57,8 @@ fn every_code_at_a_refusal_site_is_catalogued_and_every_entry_is_used() {
         ("dgr/input.rs", &["Refusal::new("][..]),
         ("fbt_return.rs", &["Refusal::new("][..]),
         ("fbt_return/input.rs", &["Refusal::new("][..]),
+        ("contract_register.rs", &["Refusal::new("][..]),
+        ("contract_register/csv.rs", &["Refusal::new("][..]),
         ("main.rs", &["Refusal::new("][..]),
         ("decimal.rs", &["=> "][..]),
     ]

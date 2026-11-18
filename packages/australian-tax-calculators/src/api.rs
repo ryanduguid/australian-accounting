@@ -11,6 +11,10 @@ use crate::engine::{self, Arg};
 use serde_json::Value;
 use std::collections::HashSet;
 
+/// `contract-register`, a command over a contracts CSV rather than one JSON
+/// object; see [`crate::contract_register`].
+pub use crate::contract_register::command as contract_register;
+
 /// A refusal at the JSON boundary: its stable code and the message.
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct Refusal {

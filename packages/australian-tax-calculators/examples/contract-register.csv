@@ -1,0 +1,9 @@
+contract,client,financier,kind,start_date,amount_financed,instalment,instalments,frequency,timing,balloon
+HP-1001,Banksia Bakery Pty Ltd,Quokka Credit,hire_purchase,2024-09-15,48000.00,850.00,60,monthly,in_arrears,8000.00
+HP-1002,Banksia Bakery Pty Ltd,Wombat Equipment Finance,hire_purchase,2025-07-01,30000.00,160.00,208,weekly,in_advance,0.00
+HP-1003,"Coolabah Plumbing, Gas & Drains",Quokka Credit,hire_purchase,2025-11-30,75000.00,4800.00,20,quarterly,in_arrears,0.00
+HP-1004,"Coolabah Plumbing, Gas & Drains",Wombat Equipment Finance,hire_purchase,2026-03-10,22000.00,380.00,65,fortnightly,in_arrears,2000.00
+HP-1005,Wattle Dental,Platypus Motor Finance,hire_purchase,2026-06-01,120000.00,2300.00,48,monthly,in_advance,30000.00
+HP-1006,Wattle Dental,Quokka Credit,hire_purchase,2026-08-20,38000.00,9000.00,5,annual,in_arrears,0.00
+HP-1007,Gumtree Cafe,Wombat Equipment Finance,hire_purchase,2026-03-01,10000.00,100.00,12,,in_arrears,10000.00
+HP-1008,Gumtree Cafe,Platypus Motor Finance,hire_purchase,2025-08-01,24000.00,1000.00,24,monthly,in_arrears,0.00

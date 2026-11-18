@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: LicenseRef-Duguid-Public-Attribution-1.0
 
 pub mod api;
+mod contract_register;
 mod dates;
 pub mod decimal;
 mod dgr;
