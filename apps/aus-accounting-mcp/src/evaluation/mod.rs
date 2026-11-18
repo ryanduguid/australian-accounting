@@ -6,8 +6,6 @@ mod json;
 mod score;
 mod xml;
 
-#[cfg(windows)]
-use std::os::windows::ffi::OsStringExt;
 use std::{
     ffi::{OsStr, OsString},
     path::{Path, PathBuf},
@@ -27,6 +25,8 @@ async fn blocking_read(path: &Path) -> Result<Vec<u8>, String> {
 
 /// The sibling server next to this process. The path is the loaded program,
 /// so a copy made for a test still finds the server placed beside that copy.
+/// The command words are not used, because an operator can set the program
+/// name to any text.
 fn sibling_server() -> std::io::Result<PathBuf> {
     Ok(executable_path()?.with_file_name(format!(
         "aus-accounting-mcp{}",
@@ -34,50 +34,9 @@ fn sibling_server() -> std::io::Result<PathBuf> {
     )))
 }
 
-#[cfg(target_os = "linux")]
 fn executable_path() -> std::io::Result<PathBuf> {
-    std::fs::read_link("/proc/self/exe")
-}
-
-#[cfg(target_os = "macos")]
-fn executable_path() -> std::io::Result<PathBuf> {
-    unsafe extern "C" {
-        fn _NSGetExecutablePath(buf: *mut i8, size: *mut u32) -> i32;
-    }
-    let mut size = 4096u32;
-    let mut buf = vec![0u8; size as usize];
-    let code = unsafe { _NSGetExecutablePath(buf.as_mut_ptr().cast(), &mut size) };
-    if code != 0 {
-        buf.resize(size as usize, 0);
-        let code = unsafe { _NSGetExecutablePath(buf.as_mut_ptr().cast(), &mut size) };
-        if code != 0 {
-            return Err(std::io::Error::other("program path is not available"));
-        }
-    }
-    let end = buf.iter().position(|byte| *byte == 0).unwrap_or(buf.len());
-    let text = std::str::from_utf8(&buf[..end])
-        .map_err(|error| std::io::Error::new(std::io::ErrorKind::InvalidData, error))?;
-    Ok(PathBuf::from(text))
-}
-
-#[cfg(windows)]
-fn executable_path() -> std::io::Result<PathBuf> {
-    unsafe extern "system" {
-        fn GetModuleFileNameW(module: *mut std::ffi::c_void, filename: *mut u16, size: u32) -> u32;
-    }
-    let mut buf = vec![0u16; 32_768];
-    let written =
-        unsafe { GetModuleFileNameW(std::ptr::null_mut(), buf.as_mut_ptr(), buf.len() as u32) };
-    if written == 0 || written as usize >= buf.len() {
-        return Err(std::io::Error::last_os_error());
-    }
-    buf.truncate(written as usize);
-    Ok(PathBuf::from(std::ffi::OsString::from_wide(&buf)))
-}
-
-#[cfg(not(any(target_os = "linux", target_os = "macos", windows)))]
-fn executable_path() -> std::io::Result<PathBuf> {
-    Err(std::io::Error::other("program path is not available"))
+    let read: fn() -> std::io::Result<PathBuf> = std::env::current_exe;
+    read()
 }
 
 async fn blocking_read_text(path: &Path) -> Result<String, String> {
