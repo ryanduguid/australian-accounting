@@ -84,3 +84,5 @@ foreach ($altered in 'archive', 'sums') {
 }
 Remove-Item -LiteralPath $work -Recurse -Force
 Write-Output "The install command installs $version and refuses an altered archive or SHA256SUMS."
+# The refused runs leave gh's failure in $LASTEXITCODE, which pwsh would return.
+exit 0
