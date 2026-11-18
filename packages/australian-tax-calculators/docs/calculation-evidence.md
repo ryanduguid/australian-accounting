@@ -55,6 +55,7 @@ example evidence; it does not claim a fresh review of every supported period.
 | Borrowing expenses | `tax-examples-deductions` (tax-examples), ¶4-160, with ITAA 1997 s 25-25 (compilation 268, 1 October 2026) and the ATO's 'Borrowing expenses' page | 30 June 2026; 22 May 2026 (ATO page) | One loan's established expenditure, use and dates for 2024-25 to 2026-27; classification, interest and refinancing excluded |
 | Hire purchase schedule | Not a Library document: ITAA 1997 ss 240-17, 240-55 and 240-60 on the ATO's legal database and in compilation 268 (1 October 2026) | 15 November 2026 (read) | One agreement's monthly notional interest for the hirer, starting in 2024-25 to 2026-27, from established payments; apportionment to income years under s 240-60(2) excluded |
 | Balancing adjustment | Not a Library document: the ATO's Guide to depreciating assets 2026 (Bridget, Andrew and Louise examples) and ITAA 1997 Subdivisions 27-B and 40-D, ss 104-240, 118-5 and 118-10(1) and its example (compilation 268, 1 October 2026) | 1 June 2026 (Guide); 18 November 2026 (read) | One depreciating asset's balancing adjustment, s 40-290 reduction and K7 amount for events in 2024-25 to 2026-27, from established cost, termination value and each year's decline and deduction; pools, s 40-291A and roll-overs excluded |
+| Trade-in | Not a Library document: the ATO's 'Purchasing a motor vehicle' (Darren's example) and 'GST and the disposal of capital assets' (Ian's example), with ITAA 1997 Subdivision 27-B and ss 40-180 to 40-230, 40-305 and 40-365 (compilation 268) and GST Act ss 9-75, 11-30, 69-10 and 132-5 (compilation 96) | 3 June 2026 and 24 May 2017 (ATO pages); 18 November 2026 (read) | One asset traded in at arm's length for a replacement first held and used in 2025-26 or 2026-27; GST status, credits, allowance and price established; involuntary disposals and luxury car tax on the trade-in excluded |
 | Depreciation | `tax-examples-depreciation` (tax-examples), ¶6-000 and ¶6-020 | 30 June 2025 | First-year formulas and taxable-use apportionment in 2024–25 examples |
 | Quarterly SG | `superannuation-instant-reference-rates-thresholds-and-checklists` (superannuation), ¶18-600 and ¶18-620 | 30 June 2026 | General 2025–26 rate and quarterly maximum contribution base |
 | Contribution caps | `tax-examples-individuals` (tax-examples), ¶7-278, with ITAA 1997 s 291-20 (compilation 268, 1 October 2026) and the ATO's contributions caps and concessional contributions cap pages for the carry-forward by year | 30 June 2025; 11 September and 2 July 2026 (ATO pages) | First-year bring-forward for 2024–25 only; the later-year nil cap is outside the worksheet; unused concessional cap from 2018-19 worked out from each year's established contributions |
@@ -836,6 +837,47 @@ The working keeps each fraction exact and divides once, last, so a reduction
 of $3,125 x 9,050 / 15,125 is not rounded before the days scale it. The Act's
 own example rounds to dollars; the worksheet shows cents, half up, as every
 worksheet here does.
+
+## Trade-in
+
+This worksheet was added on 18 November 2026, beside the balancing adjustment,
+whose working it reuses for the traded-in asset. ITAA 1997 ss 27-80, 27-95,
+40-180, 40-185, 40-225, 40-230, 40-300, 40-305 and 40-365 were read that day
+in compilation 268 (1 October 2026), volumes 1 and 2, and GST Act ss 9-5, 9-70,
+9-75, 11-5, 11-25, 11-30, 69-10 and 132-5 at 07:17 AEDT in compilation 96
+(1 January 2026,
+https://www.legislation.gov.au/C2004A00446/2026-01-01/2026-01-01/text/original/epub/OEBPS/document_1/document_1.html
+and document 2), the formulas from their text alternatives. The ATO's pages
+were read at 07:10 and 07:17: 'Purchasing a motor vehicle' (last updated
+3 June 2026) gives the 2026-27 car limit, $69,883, the 1/11 cap and Darren's
+example; 'Disposing of a motor vehicle' (last updated 29 May 2024) says a
+registered business that trades in a vehicle used solely or partly for the
+business accounts for GST on it as a taxable sale; and 'GST and the disposal
+of capital assets' (last updated 24 May 2017) gives the decreasing adjustment
+formula, its cap and Ian's example. The 2025-26 car limit, $69,674, is the
+Guide to depreciating assets 2026's.
+
+The Act does not name a trade-in. The worksheet reads the old asset's
+termination value as the liability to pay the replacement's price that the
+trade-in terminates (s 40-305(1)(b) item 2), and the replacement's cost as the
+liability incurred to pay its whole price (s 40-185(1)(b) item 2), which at
+arm's length is the allowance plus the cash paid. The Guide's Kristine
+example, where the allowance was below market value to reduce the price,
+shows why a trade-in not at arm's length is refused. The car limit for
+2027-28 was not published when read, and Schedule 1 to Act No. 49 of 2026
+changes capital gains from 1 July 2027, so 2027-28 is refused; the car limit
+for 2024-25 was not read, so 2024-25 is refused too.
+
+`tests/trade_in.rs` holds these cases. Each ATO example is one side of a
+trade-in; the other side and the years held are fabricated.
+
+| Case | Source | Worksheet |
+| --- | --- | --- |
+| Ian's vehicle, bought for $44,000 including $4,000 GST, $3,200 credited at 80% business use, traded in for $22,000 as a taxable sale | 'GST and the disposal of capital assets', 'Example: Capital assets used for private purposes' | $2,000 GST, $400 decreasing adjustment, $20,400 termination value; $8,160 deductible after the $2,040 private share |
+| Darren's car, $91,242.80 including $8,075.91 GST and $2,407.80 luxury car tax, 2026-27, at 100% and 50% business use | 'Purchasing a motor vehicle', 'Example: purchasing a new car for the business' | Credit $6,353.00 and $3,176.50; cost reduced to $69,883.00 |
+| An old car whose cost s 40-230 reduced from $80,000 to $69,674, traded in for $55,000 including $5,000 GST | Worked by hand under s 40-325: $50,000 x 69,674 / 80,000 | $43,546.25 termination value, $16,127.75 deductible |
+| A $11,000 asset (full credit $1,000, $800 claimed) traded in for $22,000 | Worked by hand under GST Act s 132-5(3): $2,000 x 0.2 = $400, capped at $200 | $200.00 decreasing adjustment, $2,000.00 K7 gain |
+| A trade-in that is not a taxable supply | GST Act s 9-5 | No GST; the termination value is the allowance |
 
 ## Depreciation
 
@@ -2273,6 +2315,7 @@ year; the others refuse it and say what is missing.
 | Division 296 thresholds | Not published: indexed from 2027-28 | ATO Division 296 page (last updated 3 November 2026, 2026-27 only), 16:13 |
 | CGT and rental deductions | Changed from 1 July 2027 by Act No. 49 of 2026 Schedules 1 and 2 (s 26-155) | ITAA 1997 s 26-155 (https://www.ato.gov.au/law/view/document?docid=PAC/19970038/26-155), 16:13 |
 | Balancing adjustment | Refused: CGT event K7 is a capital gain, which Schedule 1 to Act No. 49 of 2026 changes from 1 July 2027 | Act No. 49 of 2026 as made (https://www.legislation.gov.au/C2026A00049/asmade/text), read 18 November 2026 at 07:06; see [Balancing adjustment](#balancing-adjustment) |
+| Trade-in | Refused: the car limit for 2027-28 was not published, and CGT event K7 changes with Act No. 49 of 2026 | ATO 'Purchasing a motor vehicle' (last updated 3 June 2026, the 2026-27 limit only), read 18 November 2026 at 07:10; see [Trade-in](#trade-in) |
 | Business capital expenditure | Enacted, no year: ITAA 1997 s 40-880 and the small business entity test of Subdivision 328-C, neither amended in compilation 268 or the version from 1 December 2026; s 26-155 left out of scope | Compilation 268 (https://www.legislation.gov.au/C2004A05138/latest/text) and the Register's API, read 17 November 2026 from 01:33; see [Business capital expenditure](#business-capital-expenditure) |
 
 Worked by hand: resident tax on $45,000 is 14% of $26,800, $3,752; on

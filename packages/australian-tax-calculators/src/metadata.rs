@@ -1017,6 +1017,10 @@ pub fn supported_periods(kind: &str) -> Vec<&'static str> {
         // 2026 pointing to the s 40-291A choice from 2026-27. 2027-28 is refused:
         // Schedule 1 to that Act changes capital gains from 1 July 2027.
         "balancing_adjustment" => vec!["2024-25", "2025-26", "2026-27"],
+        // The years whose car limit was read on 18 November 2026; 2027-28 is
+        // refused as for balancing_adjustment, and its car limit is not yet
+        // published.
+        "trade_in" => vec!["2025-26", "2026-27"],
         "fbt" => vec!["2026", "2027"],
         "fbt_car_statutory" | "fbt_car_operating_cost" | "fbt_loan" => {
             keys(FBT_BENCHMARK_INTEREST_RATES)
@@ -1109,6 +1113,10 @@ pub fn source_review(kind: &str) -> (&'static str, &'static str) {
         "balancing_adjustment" => (
             "2026-11-18",
             "ITAA 1997 ss 40-25, 40-85, 40-230, 40-285, 40-290, 40-291A, 40-295, 40-300, 40-305, 40-325, 40-370, 104-235, 104-240, 118-5 and 118-10 (its example) and Subdivision 27-B, compilation 268 (1 October 2026), with the endnotes' amendment history; Treasury Laws Amendment (Tax Reform No. 1) Act 2026 (No 49 of 2026), Schedule 4 item 17 (s 40-291A from 2026-27); Guide to depreciating assets 2026, 'What happens if you no longer hold or use a depreciating asset?', its Bridget, Andrew and Louise examples and the car limit formula",
+        ),
+        "trade_in" => (
+            "2026-11-18",
+            "As for balancing_adjustment, with ITAA 1997 ss 27-80, 27-95, 40-180, 40-185, 40-225, 40-230 and 40-365, compilation 268 (1 October 2026); GST Act ss 9-5, 9-70, 9-75, 11-5, 11-25, 11-30, 69-10 and 132-5, compilation 96 (1 January 2026); the ATO's 'Purchasing a motor vehicle' (last updated 3 June 2026: the 2026-27 car limit and Darren's example), 'Disposing of a motor vehicle' (last updated 29 May 2024: trade-ins) and 'GST and the disposal of capital assets' (last updated 24 May 2017: Ian's decreasing adjustment)",
         ),
         "hire_purchase_schedule" => (
             "2026-11-15",
@@ -1315,6 +1323,12 @@ pub fn library_evidence(kind: &str) -> [(&'static str, &'static str); 4] {
             "2026-06-01",
             "2026-11-18",
         ),
+        "trade_in" => (
+            "ATO GST pages: Purchasing a motor vehicle; GST and the disposal of capital assets",
+            "Darren's example; Ian's example",
+            "2026-06-03",
+            "2026-11-18",
+        ),
         "hire_purchase_schedule" => (
             "ATO Legal database, ITAA 1997 Division 240",
             "s 240-60(1) steps 1 to 4, with s 240-60 as amended by No 79 of 2010",
@@ -1518,6 +1532,28 @@ pub fn optional_inputs(kind: &str) -> Vec<(&'static str, &'static str)> {
             "car_limit",
             "for a car only, and then required: null when s 40-230 did not reduce its cost to the car limit, or an object with limit (AUD, the car limit for the financial year in which the car was first used for any purpose), second_element_cost (AUD) and cost_ignoring_car_limit (AUD, the first and second elements ignoring the car limit, after Subdivision 27-B): ITAA 1997 s 40-325",
         )],
+        "trade_in" => vec![
+            (
+                "car_limit",
+                "the traded-in asset's, as for balancing_adjustment: for a car only, and then required",
+            ),
+            (
+                "adjusted_input_tax_credit",
+                "AUD, the traded-in asset's input tax credit as adjusted (GST Act s 132-5(2)); required when trade_in_taxable is true and refused otherwise",
+            ),
+            (
+                "full_input_tax_credit",
+                "AUD, the input tax credit for the traded-in asset had it been acquired solely for a creditable purpose (GST Act s 132-5(2)); required when trade_in_taxable is true and refused otherwise",
+            ),
+            (
+                "replacement_luxury_car_tax",
+                "AUD, the luxury car tax included in replacement_price, 0.00 for none; required for a passenger_car and refused otherwise",
+            ),
+            (
+                "creditable_purpose",
+                "decimal fraction above 0 and at most 1, the extent of creditable purpose of the replacement's acquisition (GST Act s 11-30); required when replacement_creditable_acquisition is true and refused otherwise",
+            ),
+        ],
         "depreciation" => vec![(
             "opening_adjustable_value",
             "AUD, for a year after the start time only: cost less the decline in value of earlier years, not the deductions; omit in the start year",
@@ -2007,6 +2043,48 @@ pub fn input_units(kind: &str) -> Vec<(&'static str, &'static str)> {
             (
                 "years",
                 "list of objects, one for each income year held from the start time to the event, each with income_year (from 2001-02, and for a car from 2015-16, to the event's year), decline_in_value (AUD; for a cents per kilometre year the notional decline of s 40-370(3)) and deduction (AUD, the decline less the s 40-25 reductions); a car's rows also state method (log_book or cents_per_kilometre, which takes no deduction) and days_held (integer from 1 to 366)",
+            ),
+        ],
+        "trade_in" => vec![
+            (
+                "cost",
+                "AUD, the traded-in asset's cost, as for balancing_adjustment",
+            ),
+            (
+                "asset",
+                "the traded-in asset: car (ITAA 1997 s 995-1), motor_cycle_or_similar or other",
+            ),
+            (
+                "years",
+                "the traded-in asset's years held, as for balancing_adjustment",
+            ),
+            (
+                "trade_in_allowance",
+                "AUD, including any GST: the amount by which the replacement's price is reduced for the traded-in asset (ITAA 1997 s 40-305(1)(b) item 2)",
+            ),
+            (
+                "trade_in_taxable",
+                "boolean, true when trading in the asset is a taxable supply (GST Act s 9-5)",
+            ),
+            (
+                "replacement_price",
+                "AUD, the replacement's price before the trade-in, including GST and any luxury car tax",
+            ),
+            (
+                "replacement_asset",
+                "passenger_car (a car designed mainly for carrying passengers, to which ITAA 1997 s 40-230 and GST Act s 69-10 apply) or other",
+            ),
+            (
+                "replacement_creditable_acquisition",
+                "boolean, true when acquiring the replacement is a creditable acquisition (GST Act s 11-5)",
+            ),
+            (
+                "arms_length",
+                "boolean, true when the parties deal at arm's length; false is refused",
+            ),
+            (
+                "involuntary_disposal",
+                "boolean, true when the traded-in asset was lost, destroyed or compulsorily acquired (ITAA 1997 s 40-365(2)); true is refused",
             ),
         ],
         "fbt" => vec![("type_one_value", "AUD"), ("type_two_value", "AUD")],
@@ -2601,6 +2679,29 @@ pub fn examples(kind: &str) -> Vec<(&'static str, Example)> {
                     r#"[{"income_year": "2025-26", "decline_in_value": "300.00", "deduction": "180.00"}]"#,
                 ),
             ),
+        ],
+        "trade_in" => vec![
+            ("year", Text("2026-27")),
+            ("cost", Text("40800.00")),
+            ("asset", Text("car")),
+            ("car_limit", Json("null")),
+            (
+                "years",
+                Json(
+                    r#"[{"income_year": "2025-26", "decline_in_value": "10200.00", "method": "log_book", "deduction": "8160.00", "days_held": 365}]"#,
+                ),
+            ),
+            ("trade_in_allowance", Text("22000.00")),
+            ("trade_in_taxable", Flag(true)),
+            ("adjusted_input_tax_credit", Text("3200.00")),
+            ("full_input_tax_credit", Text("4000.00")),
+            ("replacement_price", Text("91242.80")),
+            ("replacement_asset", Text("passenger_car")),
+            ("replacement_luxury_car_tax", Text("2407.80")),
+            ("replacement_creditable_acquisition", Flag(true)),
+            ("creditable_purpose", Text("0.8")),
+            ("arms_length", Flag(true)),
+            ("involuntary_disposal", Flag(false)),
         ],
         "hire_purchase_schedule" => vec![
             ("year", Text("2026-27")),

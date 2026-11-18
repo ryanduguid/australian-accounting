@@ -13,7 +13,7 @@ use std::io::Write;
 use std::process::{Command, Stdio};
 
 /// The commands `derive` explains.
-const DERIVED: [&str; 45] = [
+const DERIVED: [&str; 46] = [
     "fbt",
     "fbt-car-statutory",
     "fbt-car-operating-cost",
@@ -59,6 +59,7 @@ const DERIVED: [&str; 45] = [
     "income-tests",
     "business-capital-expenditure",
     "balancing-adjustment",
+    "trade-in",
 ];
 
 /// (command, input) for each derived kind: the ATO's published examples and
@@ -368,6 +369,23 @@ fn cases() -> Vec<(&'static str, Value)> {
                    "asset": "motor_cycle_or_similar",
                    "years": [{"income_year": "2025-26", "decline_in_value": "500.00", "deduction": "0.00"}],
                    "year": "2026-27", "scope_confirmed": true}),
+        ),
+        // A trade-in of a car under the car limit (s 40-325) whose GST
+        // adjustment is capped (GST Act s 132-5(3)), for a replacement that is
+        // not a creditable acquisition and not a passenger car.
+        (
+            "trade-in",
+            json!({"cost": "69674.00", "asset": "car",
+                   "car_limit": {"limit": "69674.00", "second_element_cost": "0.00",
+                                 "cost_ignoring_car_limit": "80000.00"},
+                   "years": [{"income_year": "2024-25", "decline_in_value": "10000.00",
+                              "method": "log_book", "deduction": "9000.00", "days_held": 365}],
+                   "trade_in_allowance": "88000.00", "trade_in_taxable": true,
+                   "adjusted_input_tax_credit": "5700.60", "full_input_tax_credit": "6334.00",
+                   "replacement_price": "11000.00", "replacement_asset": "other",
+                   "replacement_creditable_acquisition": false,
+                   "arms_length": true, "involuntary_disposal": false,
+                   "year": "2025-26", "scope_confirmed": true}),
         ),
     ];
     cases.extend(
@@ -2088,7 +2106,7 @@ fn derive_refuses_what_it_does_not_explain() {
          medicare-levy, medicare-levy-surcharge, division-296, contribution-caps, \
          study-loan-repayment, capital-gains, main-residence, fbt-residual, fbt-housing, \
          fbt-lafha, fbt-board, fbt-tax-exempt-body-entertainment, gst, depreciation, \
-         hire-purchase-schedule, lump-sum-arrears-tax-offset, income-tests, business-capital-expenditure, balancing-adjustment, not \"payg-gross-up\""
+         hire-purchase-schedule, lump-sum-arrears-tax-offset, income-tests, business-capital-expenditure, balancing-adjustment, trade-in, not \"payg-gross-up\""
     );
 }
 
