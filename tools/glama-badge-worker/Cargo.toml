@@ -15,7 +15,7 @@ synthetic-trial = []
 glama-badge-server = { path = "../glama-badge-server", default-features = false }
 
 [target.'cfg(target_arch = "wasm32")'.dependencies]
-worker = "=0.8.7"
+worker = "=0.9.0"
 futures-util = { version = "0.3", default-features = false, features = ["std", "async-await"] }
 
 [profile.release]
