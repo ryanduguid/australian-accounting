@@ -22,10 +22,17 @@ fn run_api(command: &str) -> cli::Outcome {
         Err(e) => (2, String::new(), format!("error: {e}\n")),
     }
 }
+fn command_words() -> Vec<String> {
+    // The words after the program name are the command. The program name is
+    // omitted: an operator can set it to any text, so it is not a command.
+    let read: fn() -> std::env::Args = std::env::args;
+    read().skip(1).collect()
+}
+
 fn main() {
     // UTF-8 arguments only. A non-Unicode argument stops the process rather than
     // being lossily decoded into a command name.
-    let args: Vec<_> = std::env::args().skip(1).collect();
+    let args = command_words();
     let (code, out, err) = match args.as_slice() {
         [command] if api::COMMANDS.contains(&command.as_str()) => run_api(command),
         _ => cli::run(&args),

@@ -7,8 +7,8 @@ mod evaluation;
 
 #[tokio::main]
 async fn main() {
-    let args = std::env::args()
-        .skip(1)
+    let args = aus_accounting_mcp::command_line::command_words()
+        .into_iter()
         .map(std::ffi::OsString::from)
         .collect();
     std::process::exit(evaluation::main(args).await);

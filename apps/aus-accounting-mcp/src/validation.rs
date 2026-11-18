@@ -3,7 +3,10 @@
 
 //! The original Pydantic core descriptors preserve effective input behaviour.
 //! They contain no executable Python and no statutory calculation.
+mod integer;
 mod kinds;
+
+use integer::compare_integer;
 
 use div7a_loan_review::raw::Raw;
 use serde_json::Value;
@@ -81,25 +84,6 @@ fn lax_bool(value: &Value) -> Result<bool, &'static str> {
             }
         }
         _ => Err("bool_type"),
-    }
-}
-fn magnitude(text: &str) -> String {
-    text.trim_start_matches('-')
-        .trim_start_matches('0')
-        .to_string()
-}
-fn compare_integer(left: &str, right: &str) -> std::cmp::Ordering {
-    let a = magnitude(left);
-    let b = magnitude(right);
-    let negative_a = left.starts_with('-') && !a.is_empty();
-    let negative_b = right.starts_with('-') && !b.is_empty();
-    match (negative_a, negative_b) {
-        (true, false) => std::cmp::Ordering::Less,
-        (false, true) => std::cmp::Ordering::Greater,
-        _ => {
-            let order = a.len().cmp(&b.len()).then_with(|| a.cmp(&b));
-            if negative_a { order.reverse() } else { order }
-        }
     }
 }
 fn python(value: &Value) -> String {

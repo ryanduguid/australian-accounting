@@ -248,7 +248,7 @@ fn report_text(path: &Path, sha256: &str, id: &str) -> Result<String> {
 }
 
 fn main() -> ExitCode {
-    let mut args = std::env::args().skip(1).collect::<Vec<_>>();
+    let mut args = aus_accounting_mcp::command_line::command_words();
     if args.len() == 1 && (args[0] == "--help" || args[0] == "-h") {
         println!(
             "Index local engine reports without merging their conclusions or scope.\nUsage: group_review [--] MANIFEST"
