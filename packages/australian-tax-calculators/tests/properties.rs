@@ -2526,9 +2526,9 @@ fn hire_purchase_regimes_add_up_and_their_journals_balance() {
         for (a, b) in every.iter().zip(&grouped) {
             assert!(a.0 == b.0 && eq(&a.1, &b.1) && eq(&a.2, &b.2), "{facts}");
         }
-        for account in ["hire_purchase_liability", "deferred_interest_gst"] {
-            if let Some((_, debit, credit)) = every.iter().find(|t| t.0 == account) {
-                assert!(eq(debit, credit), "{facts}: {account}");
+        for ledger in ["hire_purchase_liability", "deferred_interest_gst"] {
+            if let Some((_, debit, credit)) = every.iter().find(|t| t.0 == ledger) {
+                assert!(eq(debit, credit), "{facts}: {ledger}");
             }
         }
         assert_eq!(j["gst_booked"], json!(booked), "{facts}");
