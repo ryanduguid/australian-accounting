@@ -21,7 +21,7 @@ served catalogue states for its kind, so results and catalogue agree.
 import asyncio
 import functools
 import json
-from decimal import Decimal
+from decimal import Decimal, InvalidOperation
 from pathlib import Path
 
 import pytest
@@ -74,13 +74,29 @@ def _carry_forward(old: dict, facts: dict) -> str:
     return f"{min(Decimal(old['carry_forward_applied']), over):.2f}"
 
 
+def _on_this_python(error: str, facts: dict) -> str:
+    """0.2.0 refused a malformed decimal with str(InvalidOperation), whose text varies.
+
+    The oracle holds the text of the Python it was recorded on; newer ones name the value.
+    """
+    for value in (facts.get("effective_life"), facts.get("taxable_use")):
+        if not isinstance(value, str):
+            continue
+        try:
+            Decimal(value)
+        except InvalidOperation as exc:
+            return error.replace("[<class 'decimal.ConversionSyntax'>]", str(exc))
+    return error
+
+
 @pytest.mark.parametrize("case", CALLS, ids=[str(number) for number in range(len(CALLS))])
 def test_each_recorded_call_gives_the_same_answer(case) -> None:
     facts = case["arguments"]["facts"]
     try:
         result = asyncio.run(mcp.call_tool("calculate_tax_worksheet", case["arguments"]))
     except ToolError as exc:
-        assert case == {"arguments": case["arguments"], "error": str(exc)}
+        error = _on_this_python(case.get("error", ""), facts)
+        assert {**case, "error": error} == {"arguments": case["arguments"], "error": str(exc)}
         return
     assert not result.is_error and "result" in case
     got, want = dict(result.structured_content), dict(case["result"])

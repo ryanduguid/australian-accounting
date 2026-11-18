@@ -30,11 +30,13 @@ from mcp.client.stdio import stdio_client
 from aus_accounting_mcp.adapters import tax
 
 GUARD = """
-import os, shutil, sys
+import os, shutil, subprocess, sys
 
 # Found as the tax adapter finds it; the worksheets run it and nothing else.
 CALCULATORS = (
     os.environ.get("AUS_TAX_CALCULATORS_BIN") or shutil.which("australian-tax-calculators"))
+# Windows audits the command line Popen builds, not the argument list.
+CALCULATORS_LINE = CALCULATORS and subprocess.list2cmdline([CALCULATORS])
 
 WATCHED = {
     "socket.bind", "socket.connect", "socket.getaddrinfo", "socket.gethostbyaddr",
@@ -54,6 +56,8 @@ def socketpair_loopback(event, args):
 def calculators(event, args):
     if event not in {"subprocess.Popen", "os.posix_spawn"} or CALCULATORS is None:
         return False
+    if isinstance(args[1], str):
+        return args[1] == CALCULATORS_LINE or args[1].startswith(f"{CALCULATORS_LINE} ")
     return isinstance(args[1], (list, tuple)) and list(args[1][:1]) == [CALCULATORS]
 
 def guard(event, args):
@@ -192,8 +196,8 @@ def test_the_socketpair_exemption_covers_only_its_own_loopback_calls(body):
 
 @pytest.mark.parametrize("argv", ["[sys.executable, '-V']", "'australian-tax-calculators'"])
 def test_the_calculators_exemption_covers_only_that_executable(argv):
-    # A command line given as one string is not the exemption's argument list.
-    source = GUARD + f"import subprocess\nsubprocess.run({argv}, check=False)\n"
+    # Another program, or the bare name looked up again, is not the exempt path.
+    source = GUARD + f"subprocess.run({argv}, check=False)\n"
     completed = subprocess.run([sys.executable, "-c", source], capture_output=True, timeout=30)
     assert completed.returncode == 99, completed.stderr
 

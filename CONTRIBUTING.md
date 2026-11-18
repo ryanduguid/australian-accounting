@@ -168,7 +168,8 @@ report, and it runs 2 things: the MCP application's own gates, and one call of t
 reusable `ci-package.yml` for each engine, from a package-name matrix.
 The `root-checks` job in `boundaries.yml` runs the exact root lock, ruff, pyright and
 pytest commands on Ubuntu with Python 3.15, shellcheck over the tracked shell scripts
-and actionlint over the workflows. The adapter's jobs run in their own
+and actionlint over the workflows. Before pytest it builds the calculators executable,
+which the MCP application's suite runs. The adapter's jobs run in their own
 workflow with a `lodgeit-gates` result check, keeping the MCP application's existing
 release-check names unchanged. Branch protection requires one aggregate per
 workflow, `tests-gates`, `boundaries-gates`, `lodgeit-gates`, `public-fixtures-gates`
