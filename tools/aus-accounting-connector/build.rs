@@ -7,7 +7,7 @@
 //! the payday tables `.github/ci/check_rate_expiry.py` watches. The build date is
 //! SOURCE_DATE_EPOCH when set, so a release build is reproducible.
 //! AUS_ACCOUNTING_CONNECTOR_SERVE_UNTIL may bring the date earlier, never later.
-use chrono::{Datelike, NaiveDate};
+use jiff::{Timestamp, civil::Date, tz::TimeZone};
 use std::{env, fs};
 
 const DATA: &str = "../../packages/payday-super-checker/data";
@@ -18,8 +18,13 @@ fn table(name: &str) -> serde_json::Value {
     serde_json::from_str(&fs::read_to_string(&path).expect(&path)).expect(&path)
 }
 
-fn day(text: &str) -> NaiveDate {
-    NaiveDate::parse_from_str(text, "%Y-%m-%d").expect(text)
+/// A date written exactly as YYYY-MM-DD. The parser alone also takes forms such
+/// as "2027-6-30", "+ 2027-06-30" and "-187-06-30", which chrono and jiff do not
+/// agree on, so anything that does not write back to the same text is refused.
+fn day(text: &str) -> Date {
+    let date = Date::strptime("%Y-%m-%d", text).expect(text);
+    assert_eq!(date.to_string(), text, "not a YYYY-MM-DD date");
+    date
 }
 
 fn main() {
@@ -30,19 +35,17 @@ fn main() {
     ] {
         println!("cargo::rerun-if-env-changed={name}");
     }
-    let built = match env::var("SOURCE_DATE_EPOCH") {
-        Ok(seconds) => {
-            chrono::DateTime::from_timestamp(seconds.parse().expect("SOURCE_DATE_EPOCH"), 0)
-                .expect("SOURCE_DATE_EPOCH")
-                .date_naive()
-        }
-        Err(_) => chrono::Utc::now().date_naive(),
+    let instant = match env::var("SOURCE_DATE_EPOCH") {
+        Ok(seconds) => Timestamp::from_second(seconds.parse().expect("SOURCE_DATE_EPOCH"))
+            .expect("SOURCE_DATE_EPOCH"),
+        Err(_) => Timestamp::now(),
     };
-    let july = NaiveDate::from_ymd_opt(built.year(), 7, 1).unwrap();
+    let built = TimeZone::UTC.to_datetime(instant).date();
+    let july = Date::new(built.year(), 7, 1).unwrap();
     let next_july = if built < july {
         july
     } else {
-        july.with_year(built.year() + 1).unwrap()
+        Date::new(built.year() + 1, 7, 1).unwrap()
     };
     let gic_end = table("gic_rates.json")["quarters"]
         .as_array()
@@ -54,7 +57,7 @@ fn main() {
     let verified_until = day(table("business_days.json")["verified_until"]
         .as_str()
         .expect("verified_until"));
-    let mut serve_until = [next_july.pred_opt().unwrap(), gic_end, verified_until]
+    let mut serve_until = [next_july.yesterday().unwrap(), gic_end, verified_until]
         .into_iter()
         .min()
         .unwrap();

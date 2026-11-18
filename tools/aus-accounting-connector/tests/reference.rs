@@ -8,7 +8,7 @@
 //! the replies at this commit; record it again with
 //!   RECORD_REFERENCE=1 cargo test --locked --test reference
 use aus_accounting_connector::{COMMIT, Headers, MODERN, SERVE_UNTIL, respond};
-use chrono::NaiveDate;
+use jiff::civil::Date;
 use serde_json::{Value, json};
 use std::{collections::HashMap, fs};
 
@@ -70,9 +70,7 @@ fn result(era: &str, id: usize, method: &str, mut params: Value) -> String {
         }
     }
     let body = json!({"jsonrpc":"2.0","id":id,"method":method,"params":params});
-    let served = NaiveDate::parse_from_str(SERVE_UNTIL, "%Y-%m-%d")
-        .unwrap()
-        .pred_opt();
+    let served = Date::strptime("%Y-%m-%d", SERVE_UNTIL).unwrap().yesterday();
     let reply = respond(
         body.to_string().as_bytes(),
         &Sent(sent),
