@@ -20,12 +20,13 @@ use crate::decimal::Decimal;
 
 mod facts;
 
-use facts::{Asset, Facts, Held, read_facts};
+use facts::{Asset, Held};
+pub(super) use facts::{Facts, read_facts};
 
 const KIND: &str = "balancing_adjustment";
 
 /// A worksheet's steps and rates.
-type Worked = (Vec<Step>, Vec<(String, String)>);
+pub(super) type Worked = (Vec<Step>, Vec<(String, String)>);
 
 /// The decline since the start time, refusing one above cost or nil.
 fn total_decline(facts: &Facts) -> Result<(Decimal, String)> {
@@ -89,27 +90,38 @@ const SUM_OF_REDUCTIONS: &str = "ITAA 1997 s 40-290(2), sum of reductions: each 
 const AMOUNT: &str = "ITAA 1997 s 40-285(1) and (2): the difference between the termination value and the adjustable value just before the event, assessable where termination value is more and deductible where it is less";
 const REDUCED: &str = "ITAA 1997 s 40-290(2): the balancing adjustment amount x sum of reductions / total decline, which comes off the amount assessable or deductible";
 
+/// The termination value under ss 40-300 to 40-320, after Subdivision 27-B:
+/// given, or worked out by a worksheet that composes this one, with the
+/// formula, operands and authority of its step.
+pub(super) struct Given<'a> {
+    pub(super) authority: &'static str,
+    pub(super) formula: &'a str,
+    pub(super) operands: &'a [&'a Decimal],
+    pub(super) value: Decimal,
+}
+
 /// The termination value the balancing adjustment uses: s 40-325's for a car
 /// whose cost s 40-230 reduced.
-fn termination(facts: &Facts, given: &Decimal) -> Result<Step> {
+fn termination(facts: &Facts, given: &Given) -> Result<Step> {
+    let (formula, operands) = (given.formula, given.operands);
     Ok(match &facts.car_limit {
         None => step(
             "termination_value",
-            TV_GIVEN,
-            "termination_value",
-            &[given],
-            given.clone(),
+            given.authority,
+            formula,
+            operands,
+            given.value.clone(),
         ),
         Some(car) => {
             let numerator = car.limit.add(&car.second_element)?;
-            let value = given.mul(&numerator)?.div(&car.cost_ignoring_limit)?;
+            let value = given.value.mul(&numerator)?.div(&car.cost_ignoring_limit)?;
             // car_limit's facts are written in: a formula names only
             // top-level inputs.
             let formula = format!(
-                "termination_value x ({} + {}) / {}",
+                "({formula}) x ({} + {}) / {}",
                 car.limit, car.second_element, car.cost_ignoring_limit
             );
-            step("termination_value", TV_CAR_LIMIT, &formula, &[given], value)
+            step("termination_value", TV_CAR_LIMIT, &formula, operands, value)
         }
     })
 }
@@ -280,10 +292,10 @@ fn rates(path: &Path, years_held: usize) -> Vec<(String, String)> {
 
 /// The worksheet's steps and rates from read facts and the termination value
 /// worked out under ss 40-300 to 40-320.
-fn worked(facts: &Facts, given_tv: &Decimal) -> Result<Worked> {
+pub(super) fn worked(facts: &Facts, given: &Given) -> Result<Worked> {
     let path = path(facts)?;
     precise(|| {
-        let tv_step = termination(facts, given_tv)?;
+        let tv_step = termination(facts, given)?;
         let tv = tv_step.value.clone();
         let ([total, adjustable, sum], basis_steps) = basis(facts)?;
         let amount = super::py_max(tv.sub(&adjustable)?, adjustable.sub(&tv)?)?;
@@ -326,8 +338,14 @@ pub fn balancing_adjustment(
 ) -> Result<Value> {
     let year = scope(scope_confirmed, year, KIND)?;
     let event = year_first(&year).expect("a supported income year");
-    let given_tv = money(termination_value)?;
+    let tv = money(termination_value)?;
     let facts = read_facts(cost, asset, years, car_limit, event)?;
-    let (steps, rates) = worked(&facts, &given_tv)?;
+    let given = Given {
+        authority: TV_GIVEN,
+        formula: "termination_value",
+        operands: &[&tv],
+        value: tv.clone(),
+    };
+    let (steps, rates) = worked(&facts, &given)?;
     derived_result(KIND, &year, steps, rates)
 }
