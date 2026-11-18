@@ -181,7 +181,7 @@ jobs:
           file="aus-accounting-mcp-$VERSION.mcpb"
           printf '%s  %s\n' "$BUNDLE_SHA256" "$file" > SHA256SUMS
           sha256sum --check SHA256SUMS
-          notes="Claude Desktop MCP Bundle for aus-accounting-mcp $VERSION. Open the .mcpb file with Claude Desktop. The bundle holds no server code: on first launch uv installs aus-accounting-mcp $VERSION from PyPI, the [aus-accounting-mcp/v$VERSION](https://github.com/$GITHUB_REPOSITORY/releases/tag/aus-accounting-mcp/v$VERSION) release, and resolves its dependencies. SHA256SUMS checks the download is intact; it does not prove who published it. Not tax, legal or financial advice."
+          notes="Claude Desktop MCP Bundle for aus-accounting-mcp $VERSION. Open the .mcpb file with Claude Desktop. The bundle holds no server code: on first launch uv installs aus-accounting-mcp $VERSION from PyPI, the [aus-accounting-mcp/v$VERSION](https://github.com/$GITHUB_REPOSITORY/releases/tag/aus-accounting-mcp/v$VERSION) release, and resolves its dependencies. It does not install the australian-tax-calculators executable the tax worksheets need: see that release's notes. SHA256SUMS checks the download is intact; it does not prove who published it. Not tax, legal or financial advice."
           gh release create "$GITHUB_REF_NAME" --repo "$GITHUB_REPOSITORY" --verify-tag \
             --latest=false --title "aus-accounting-mcp $VERSION bundle" --notes "$notes" \
             "$file" SHA256SUMS
