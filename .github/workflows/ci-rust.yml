@@ -85,6 +85,8 @@ jobs:
         if: runner.os == 'Linux'
         env:
           CRATE: ${{ inputs.package }}
+          # tests/no_network.rs fails, rather than skips, without the strace installed above.
+          REQUIRE_STRACE: "1"
         run: |
           floor="$(jq --exit-status --arg crate "$CRATE" '.[$crate]' "$GITHUB_WORKSPACE/.github/ci/rust_coverage_floors.json")"
           cargo llvm-cov --locked --fail-under-lines "$floor"

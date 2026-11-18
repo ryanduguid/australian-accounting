@@ -758,4 +758,12 @@ fn binary_runs_commands_and_refuses_bad_input() {
     let (code, out, _) = run(&["--api-help"], "");
     assert_eq!(code, 0);
     assert!(out.contains("worksheet-catalogue, periods"), "{out}");
+
+    // The release smoke test and the MCP adapter both read this exact line.
+    let (code, out, err) = run(&["--version"], "");
+    assert_eq!((code, err.as_str()), (0, ""));
+    assert_eq!(
+        out,
+        format!("australian-tax-calculators {}\n", env!("CARGO_PKG_VERSION"))
+    );
 }

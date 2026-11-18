@@ -23,6 +23,8 @@ REMOVED_IMPORTS = {
     "payday-super-checker": "paydaysuper",
     "gst-review": "gstreview",
 }
+# Crates release-policy's release-binary.yml publishes as executables.
+BINARY_RELEASES = {"australian-tax-calculators"}
 # Runtime crates an engine may use; none is another engine or a path dependency.
 ALLOWED_DEPENDENCIES = {"num-bigint", "num-integer", "num-traits", "serde_json", "jiff", "sha2"}
 
@@ -49,13 +51,16 @@ class RustEngineTests(unittest.TestCase):
 
     def test_binstall_metadata_names_the_ci_archive_layout(self):
         # ci-rust.yml packages <crate>-<version>-<target>/<bin> as .tgz, or .zip on
-        # Windows; every crate's binstall metadata must name that layout.
-        expected = {
+        # Windows; every crate's binstall metadata must name that layout, except a
+        # crate with a binary release, whose archives hold <bin> at the top level
+        # as .tar.gz, or .zip on Windows.
+        layout = {
             "pkg-url": "{ repo }/releases/download/{ name }/v{ version }/{ name }-{ version }-{ target }{ archive-suffix }",
             "bin-dir": "{ name }-{ version }-{ target }/{ bin }{ binary-ext }",
             "pkg-fmt": "tgz",
             "overrides": {"x86_64-pc-windows-msvc": {"pkg-fmt": "zip"}},
         }
+        released = {**layout, "bin-dir": "{ bin }{ binary-ext }"}
         workflow = (ROOT / ".github/workflows/ci-rust.yml").read_text()
         self.assertIn('base="$CRATE-$version-$target"', workflow)
         self.assertIn('7z a -tzip "$base.zip" "$base"', workflow)
@@ -64,13 +69,15 @@ class RustEngineTests(unittest.TestCase):
             with self.subTest(component=component):
                 manifest = tomllib.loads((ROOT / component / "Cargo.toml").read_text())
                 package = manifest["package"]
+                binary_release = package["name"] in BINARY_RELEASES
+                expected = released if binary_release else layout
                 self.assertEqual(package["repository"], "https://github.com/ryanduguid/australian-accounting")
                 self.assertEqual(package["metadata"]["binstall"], expected)
                 binary = manifest.get("bin", [{"name": package["name"]}])[0]["name"]
                 for target in ("x86_64-unknown-linux-gnu", "aarch64-apple-darwin", "x86_64-pc-windows-msvc"):
                     metadata = package["metadata"]["binstall"]
                     fmt = metadata.get("overrides", {}).get(target, {}).get("pkg-fmt", metadata["pkg-fmt"])
-                    suffix = {"tgz": ".tgz", "zip": ".zip"}[fmt]
+                    suffix = {"tgz": ".tar.gz" if binary_release else ".tgz", "zip": ".zip"}[fmt]
                     extension = ".exe" if target.endswith("windows-msvc") else ""
                     url, binary_path = metadata["pkg-url"], metadata["bin-dir"]
                     values = {"repo": package["repository"], "name": package["name"],
@@ -81,7 +88,8 @@ class RustEngineTests(unittest.TestCase):
                         binary_path = binary_path.replace("{ " + key + " }", value)
                     base = f"{package['name']}-{package['version']}-{target}"
                     self.assertEqual(url, f"{package['repository']}/releases/download/{package['name']}/v{package['version']}/{base}{suffix}")
-                    self.assertEqual(binary_path, f"{base}/{binary}{extension}")
+                    folder = "" if binary_release else f"{base}/"
+                    self.assertEqual(binary_path, f"{folder}{binary}{extension}")
 
     def test_umbrella_links_every_engine_by_path(self):
         cargo = tomllib.loads((ROOT / "apps/au-accounting/Cargo.toml").read_text())
@@ -107,7 +115,25 @@ class RustEngineTests(unittest.TestCase):
         self.assertIn("language: rust", (workflows / "codeql.yml").read_text())
         for name in RUST_ENGINES.values():
             with self.subTest(engine=name):
-                self.assertFalse((workflows / f"release-{name}.yml").exists())
+                release = workflows / f"release-{name}.yml"
+                self.assertEqual(release.exists(), name in BINARY_RELEASES)
+                if name in BINARY_RELEASES:
+                    # Only the pinned policy workflow, which holds the write scopes
+                    # in its publisher job, releases a crate; nothing reaches crates.io.
+                    text = release.read_text()
+                    self.assertRegex(text, r"(?m)^    uses: ryanduguid/release-policy/"
+                                           r"\.github/workflows/release-binary\.yml@[0-9a-f]{40}$")
+                    self.assertIn(f"tag-prefix: {name}\n", text)
+                    self.assertIn(f"source-directory: packages/{name}\n", text)
+                    # The policy refuses a tag unless these agree with the literal
+                    # Cargo.toml version and the toolchain names an exact patch.
+                    directory = ROOT / "packages" / name
+                    version = tomllib.loads((directory / "Cargo.toml").read_text())["package"]["version"]
+                    self.assertEqual((directory / "VERSION").read_text(), f"{version}\n")
+                    notes = (directory / "RELEASE_NOTES.md").read_text()
+                    self.assertTrue(notes.startswith(f"# v{version}\n"))
+                    toolchain = tomllib.loads((directory / "rust-toolchain.toml").read_text())
+                    self.assertRegex(toolchain["toolchain"]["channel"], r"^\d+\.\d+\.\d+$")
 
     def test_every_cargo_audit_denies_unmaintained_crates_only_on_its_weekly_run(self):
         # Ryan, 18 November 2026: a vulnerability, an unsound or a yanked crate fails

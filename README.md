@@ -399,10 +399,11 @@ cargo install --locked --git https://github.com/ryanduguid/australian-accounting
 `au-accounting gst-review review-coding` and `reconcile-bas` read JSON on stdin;
 see the [GST Review schemas](packages/gst-review/README.md).
 
-Prebuilt binaries are not published yet, so install from source as above. Release
-Policy's [`release-binary.yml`](https://github.com/ryanduguid/release-policy/blob/main/docs/binary-consumers.md)
-now publishes Linux, macOS and Windows executables to GitHub Releases, without
-crates.io, but no crate here has adopted it.
+Release Policy's [`release-binary.yml`](https://github.com/ryanduguid/release-policy/blob/main/docs/binary-consumers.md)
+publishes x86_64 Linux and Windows executables to GitHub Releases, without
+crates.io. Only `australian-tax-calculators` uses it, under
+`australian-tax-calculators/v*` tags; install the other crates from source as
+above.
 
 ## Working in a component
 

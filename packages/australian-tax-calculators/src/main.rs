@@ -1,7 +1,7 @@
 // Copyright 2026 Ryan Duguid
 // SPDX-License-Identifier: LicenseRef-Duguid-Public-Attribution-1.0
 
-use australian_tax_calculators::api;
+use australian_tax_calculators::{api, engine};
 use serde_json::{Value, json};
 use std::io::{Read, Write};
 
@@ -54,6 +54,11 @@ fn main() {
         [command, flag] if flag == "--refusal-json" && commands.contains(&command.as_str()) => {
             run(command, true)
         }
+        [flag] if flag == "--version" => (
+            0,
+            format!("australian-tax-calculators {}\n", engine::VERSION),
+            String::new(),
+        ),
         [flag] if flag == "--api-help" => (
             0,
             format!(

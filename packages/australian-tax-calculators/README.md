@@ -46,8 +46,16 @@ cargo test --locked
 
 The toolchain is pinned in `rust-toolchain.toml`. The executable is
 `target/release/australian-tax-calculators` (`.exe` on Windows). No Python
-runtime is needed. The native version is unreleased. PyPI still provides the
-historical Python release; `pip install` does not install this binary.
+runtime is needed. PyPI still provides the historical Python release; `pip
+install` does not install this binary.
+
+Each `australian-tax-calculators/v*` release on GitHub Releases carries the
+executable for x86_64 Linux (static, musl) and x86_64 Windows, built and
+attested by Release Policy's
+[`release-binary.yml`](https://github.com/ryanduguid/release-policy/blob/main/docs/binary-consumers.md).
+Download an explicit version and verify `SHA256SUMS` and the archive with `gh
+attestation verify` before running it, as that page's 'Downloading a release'
+shows. `australian-tax-calculators --version` prints the version.
 
 ## Use
 

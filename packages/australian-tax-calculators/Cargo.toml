@@ -19,11 +19,12 @@ serde_json = { version = "1", features = ["preserve_order", "arbitrary_precision
 lto = true
 codegen-units = 1
 
-# Asset names the release workflow will publish once release-policy has a Rust
-# binary family; see the root README.
+# The assets release-australian-tax-calculators.yml publishes through
+# release-policy's release-binary.yml: the executable sits at each archive's top
+# level, for x86_64 Linux (musl) and Windows only.
 [package.metadata.binstall]
 pkg-url = "{ repo }/releases/download/{ name }/v{ version }/{ name }-{ version }-{ target }{ archive-suffix }"
-bin-dir = "{ name }-{ version }-{ target }/{ bin }{ binary-ext }"
+bin-dir = "{ bin }{ binary-ext }"
 pkg-fmt = "tgz"
 
 [package.metadata.binstall.overrides.x86_64-pc-windows-msvc]

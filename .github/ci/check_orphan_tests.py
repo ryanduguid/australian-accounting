@@ -152,7 +152,8 @@ UNSPLIT = re.compile(r"[^\S \t]")
 ENVIRONMENT = {
     "ACTIONLINT_SHA256", "ACTIONLINT_VERSION", "AU_ACCOUNTING_PARITY_BIN",
     "AU_ACCOUNTING_PARITY_CAP", "BINARY", "CARGO_BUILD_JOBS", "CRATE", "ENGINE", "PYTEST_ADDOPTS",
-    "SHELLCHECK_SHA256", "SHELLCHECK_VERSION", "UV_PYTHON", "UV_VERSION", "WRANGLER_SEND_METRICS",
+    "REQUIRE_STRACE", "SHELLCHECK_SHA256", "SHELLCHECK_VERSION", "UV_PYTHON", "UV_VERSION",
+    "WRANGLER_SEND_METRICS",
 }
 # A comparison is true or false, so this yields the options or nothing.
 ADDOPTS = re.compile(r"\$\{\{ (?:[\w.-]+ == '[^']*' && )+'(?P<options>[^']*)' \|\| '' \}\}")

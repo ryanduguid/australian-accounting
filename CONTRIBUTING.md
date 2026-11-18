@@ -337,7 +337,7 @@ Registry through `publish-mcp.yml`.
 | the-exchequer-tally (Rust) | reserved `the-exchequer-tally/vX.Y.Z` | native publisher pending | `Cargo.toml` | none |
 | solomons-sword (Rust) | reserved `solomons-sword/vX.Y.Z` | native publisher pending | `Cargo.toml` | none |
 | the-wip-tally (Rust) | reserved `the-wip-tally/vX.Y.Z` | native publisher pending | `Cargo.toml` | none |
-| australian-tax-calculators (Rust) | reserved `australian-tax-calculators/vX.Y.Z` | native publisher pending | `Cargo.toml` | none |
+| australian-tax-calculators (Rust) | `australian-tax-calculators/vX.Y.Z` | `release-australian-tax-calculators.yml`, GitHub Releases only | `Cargo.toml` and `VERSION` | none |
 | div7a-loan-review (Rust) | reserved `div7a-loan-review/vX.Y.Z` | native publisher pending | `Cargo.toml` | none |
 | ato-benchmark-compare (Rust) | reserved `ato-benchmark-compare/vX.Y.Z` | native publisher pending | `Cargo.toml` | none |
 | payday-super-checker (Rust) | reserved `payday-super-checker/vX.Y.Z` | native publisher pending | `Cargo.toml` | none |
@@ -355,7 +355,10 @@ trigger
 workflows](https://docs.github.com/en/actions/reference/workflows-and-actions/events-that-trigger-workflows#push)).
 The next tag waits until the previous release run succeeds, and the first failure stops
 the run and lists the components left untagged. Release an engine before an MCP release
-that pins it. `--dry-run` runs the checks and tags nothing.
+that pins it. `--dry-run` runs the checks and tags nothing. `just release` reads a
+`pyproject.toml`, so it releases the Python components only: push a Rust binary release's
+annotated tag on `main`'s head by hand, once that commit's push runs have passed the
+workflow's `required-checks`.
 
 Do not merge to `main` until `just release` finishes. Every tag is made on the same `main`
 commit, and Release Policy's first job requires that commit to be `main`'s head, so a merge
