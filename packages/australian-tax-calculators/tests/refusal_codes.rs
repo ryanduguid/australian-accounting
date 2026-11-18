@@ -148,8 +148,9 @@ fn every_catalogued_required_input_of_a_strict_command_is_read() {
     // worksheets, payg-gross-up, hire-purchase-schedule,
     // fbt-entertainment-classifier, unused-leave-payment,
     // lump-sum-arrears-tax-offset, income-tests,
-    // business-capital-expenditure, balancing-adjustment and trade-in.
-    assert_eq!(checked, 34);
+    // business-capital-expenditure, balancing-adjustment, trade-in and
+    // payroll-tax.
+    assert_eq!(checked, 35);
 }
 
 /// Every frozen call gives the same answer through either entry point, and

@@ -4,6 +4,16 @@
 
 ### Added
 
+- `payroll-tax`: one employer's payroll tax for 2026-27 in each state and
+  territory, for an employer outside a group that pays wages all year. It
+  shares each deduction or threshold by the taxable wages over the Australian
+  wages, phases out the Victorian, Queensland, Western Australian and Northern
+  Territory deductions, applies South Australia's phased rate and the
+  Tasmanian, ACT and Northern Territory rate steps, and adds Victoria's 2
+  surcharges and Queensland's mental health levy as their own steps. Each
+  figure cites its Act and revenue office page, read on 19 November 2026. A
+  group member, a part-year employer, Australian wages below the taxable wages
+  and any other year are refused. `derive` takes it.
 - `hire-purchase-schedule` takes weekly, fortnightly, quarterly and annual
   instalments (`frequency`), or dated `segments` of level instalments with
   payment holidays, in place of level monthly ones only. Each instalment's
