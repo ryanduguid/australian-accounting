@@ -13,7 +13,8 @@ use serde_json::{Value, json};
 /// Ian's vehicle (GST and the disposal of capital assets, 'Capital assets
 /// used for private purposes'): $44,000 including $4,000 GST, used 80% in his
 /// business, so $3,200 of input tax credit and a cost of $40,800; one year's
-/// decline of $10,200 is fabricated. It is traded in for $22,000, a taxable
+/// decline of $10,200 is fabricated, and the trade-in on the first day of
+/// 2026-27 leaves that year's decline nil. It is traded in for $22,000, a taxable
 /// sale, towards Darren's car (Purchasing a motor vehicle, 'Example:
 /// purchasing a new car for the business'): $91,242.80 including $8,075.91
 /// GST and $2,407.80 luxury car tax, 2026-27.
@@ -21,7 +22,9 @@ fn ian_for_darren(purpose: &str) -> Value {
     json!({
         "cost": "40800.00", "asset": "car", "car_limit": null,
         "years": [{"income_year": "2025-26", "decline_in_value": "10200.00",
-                   "method": "log_book", "deduction": "8160.00", "days_held": 365}],
+                   "method": "log_book", "deduction": "8160.00", "days_held": 365},
+                  {"income_year": "2026-27", "decline_in_value": "0.00",
+                   "method": "log_book", "deduction": "0.00", "days_held": 1}],
         "trade_in_allowance": "22000.00", "trade_in_taxable": true,
         "adjusted_input_tax_credit": "3200.00", "full_input_tax_credit": "4000.00",
         "replacement_price": "91242.80", "replacement_asset": "passenger_car",
@@ -120,7 +123,9 @@ fn old_car_under_the_car_limit_has_its_termination_value_scaled() {
     facts.insert(
         "years".into(),
         json!([{"income_year": "2025-26", "decline_in_value": "10000.00",
-                "method": "log_book", "deduction": "10000.00", "days_held": 365}]),
+                "method": "log_book", "deduction": "10000.00", "days_held": 365},
+               {"income_year": "2026-27", "decline_in_value": "0.00",
+                "method": "log_book", "deduction": "0.00", "days_held": 1}]),
     );
     facts.insert("trade_in_allowance".into(), json!("55000.00"));
     facts.insert("adjusted_input_tax_credit".into(), json!("6334.00"));
