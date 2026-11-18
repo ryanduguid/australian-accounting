@@ -253,8 +253,10 @@ test value for its file, with its reason, in
 `tools/fixture-screen/tests/synthetic-identifiers.txt`. It uses evatt's detectors
 from `ryanduguid/accounting-review-pipeline`, pinned to one commit.
 
-`secrets.yml` runs gitleaks with `.gitleaks.toml`, and its `au-bank-account`
-rule matches a made-up bank detail as readily as a real one. It looks on one
+`secrets.yml` runs the shared secrets scan from `ryanduguid/release-policy`
+(betterleaks) with `.gitleaks.toml`, and the `au-bank-account` rule it extends
+from `.github/secrets-rules.toml` matches a made-up bank detail as readily as a
+real one. It looks on one
 line for a label, `BSB` or `account number` (any case; `account no` and
 `account_number` count, so a JSON key or a function name such as
 `validate_account_number_format` is a label), then up to 20 characters that
