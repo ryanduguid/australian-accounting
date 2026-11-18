@@ -1005,11 +1005,14 @@ credit is in the lines.
 payout that replaces every payment due on or after its date, which must be
 the end of a period before the end of the term: Division 240, as read on
 18 November 2026, gives no notional interest for part of a period a payout
-cuts short. `known_at_start` must be `false`: a payout known, or reasonably
-estimable, at the start is a termination amount the implicit rate takes into
-account (s 240-60(1) step 3 and (3)), and is refused. `total_payments` and
-`total_interest` stay the scheduled amounts to the end of the term. The
-schedule then runs to the payout, and the result adds `payout`,
+cuts short. `known_at_start` must be `false`, stating that the payout was
+neither known nor expected at the start, so the reasonable estimate of
+termination amounts then was nil and the scheduled payments set the implicit
+rate (s 240-60(1) step 3 and (3)). A payout known or expected at the start,
+or one no reasonable estimate could then be made of (s 240-60(4) re-estimates
+at the end of each of the notional seller's income years), is refused.
+`total_payments` and `total_interest` stay the scheduled amounts to the end
+of the term. The schedule then runs to the payout, and the result adds `payout`,
 `interest_to_payout`, `payments_before_payout`, `balance_at_payout` and
 `payout_excess` or `payout_shortfall`, with `payout.consequence` stating which
 way Subdivision 240-G moves the difference (s 240-105 for the notional

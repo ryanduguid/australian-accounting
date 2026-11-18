@@ -1581,7 +1581,7 @@ pub fn optional_inputs(kind: &str) -> Vec<(&'static str, &'static str)> {
             ),
             (
                 "payout",
-                "object with date (YYYY-MM-DD, the end of an arrangement payment period before the end of the term), amount (AUD) and known_at_start (boolean: false, as a payout known or reasonably estimable at the start is refused): an early payout replacing every payment due on or after its date; refused with gst",
+                "object with date (YYYY-MM-DD, the end of an arrangement payment period before the end of the term), amount (AUD) and known_at_start (boolean: false states the payout was neither known nor expected at the start, so the reasonable estimate then was no payout; true is refused): an early payout replacing every payment due on or after its date; refused with gst",
             ),
             (
                 "gst",

@@ -775,9 +775,11 @@ periods add up to the total interest.
   part of a period that a payout cuts short (s 240-60(2) apportions only
   between income years), so a payout must fall on the end of a period. The
   implicit rate stays the one the scheduled payments give, which
-  s 240-60(1) step 3 and (3) support only where the payout was not known or
-  reasonably estimable at the start: the caller states that in
-  `known_at_start`, and `true` is refused. The result flags the rest for
+  s 240-60(1) step 3 and (3) support only where the payout was neither known
+  nor expected at the start, so the reasonable estimate of termination
+  amounts then was nil. The caller states that in `known_at_start`; `true`,
+  which also covers a case no reasonable estimate could be made of at the
+  start (s 240-60(4)), is refused. The result flags the rest for
   review. A first use year before the agreement is taken as given, as for a
   car first used under an earlier hire (s 69-10(1)(c)).
 - **GST.** For an agreement entered into on or after 1 July 2012 every

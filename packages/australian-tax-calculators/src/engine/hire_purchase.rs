@@ -497,7 +497,7 @@ fn read_payout(value: &Arg, agreement: &Agreement, start: i64) -> Result<Payout>
     if known {
         return refuse(
             "hire_purchase.payout_known_at_start",
-            "A payout known, or reasonably estimable, at the start of the arrangement is a termination amount the implicit interest rate takes into account (ITAA 1997 s 240-60(1) step 3 and (3)); this worksheet finds the rate from the scheduled payments only.",
+            "A payout known or expected at the start of the arrangement, or one no reasonable estimate could then be made of, changes the implicit interest rate (ITAA 1997 s 240-60(1) step 3, (3) and (4)); this worksheet finds the rate from the scheduled payments only, as where the reasonable estimate at the start was no payout.",
         );
     }
     let amount = money(&Arg::Decimal(amount))?;
@@ -530,7 +530,7 @@ fn consequence(excess: &Decimal, shortfall: &Decimal) -> &'static str {
 }
 
 /// What a reviewer must establish before relying on a payout's consequence.
-const PAYOUT_REVIEW: &str = "For review: this takes the payout as a termination amount payable because the arrangement ends on the payout date, every arrangement payment due before it as paid, and, as the payout was not known at the start (known_at_start), the implicit rate as found from the payments the agreement scheduled, with no other estimate under s 240-60(3) or (4). Whether s 240-110(3) limits the notional buyer's deduction or inclusion, and which of its income years it falls in, are not worked out.";
+const PAYOUT_REVIEW: &str = "For review: this takes the payout as a termination amount payable because the arrangement ends on the payout date, every arrangement payment due before it as paid, and, as the payout was neither known nor expected at the start (known_at_start false), the implicit rate as found from the payments the agreement scheduled: the reasonable estimate of termination amounts at the start was nil (s 240-60(3)), and no estimate under s 240-60(4) is made. Whether s 240-110(3) limits the notional buyer's deduction or inclusion, and which of its income years it falls in, are not worked out.";
 
 /// `values` written as a sum, `0` for none, and their total.
 fn sum_terms(values: Vec<&Decimal>) -> Result<(String, Decimal)> {
