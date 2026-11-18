@@ -1,0 +1,68 @@
+{
+  "source": {
+    "base": "c940a25bb6a89d71be8c0d21ab853e3b92566445",
+    "sha256": {
+      "packages/lodgment-calendar/.editorconfig": "ef5d190ef95aa58b69ac06a32b0576f89402c4e9de6bd2cd4f46f6c124d81c75",
+      "packages/lodgment-calendar/.gitignore": "da82271a2b123ac1ac926d3e2828ab3c9da9186a74c8541d7b69af86fb1da1b6",
+      "packages/lodgment-calendar/.python-version": "8effb955f195345405c0cf4d0fb35f65165b59f444ad1a5fd9ff1ca9194fde29",
+      "packages/lodgment-calendar/CITATION.cff": "30a6c7e2006300fec03db3b52f7e8d07df94f2f461e6e047d197e10ed7b11b6b",
+      "packages/lodgment-calendar/DISCLAIMER.md": "903254a0fabea952339bc89d9ad10245bcee9b13a8551a25f8c178fecc4a7fc8",
+      "packages/lodgment-calendar/LICENSE": "c95bae1d1ce0235ecccd3560b772ec1efb97f348a79f0fbe0a634f0c2ccefe2c",
+      "packages/lodgment-calendar/MANIFEST.in": "93d3562b12efc6e4cd5893a82032a36cfea66d03218efe90f8a3de29231e5853",
+      "packages/lodgment-calendar/NOTICE": "cb1fa329ce43c7be5649d30185a03df432153b2ed42ab7279ff6d6986fe51bcf",
+      "packages/lodgment-calendar/README.md": "a2b5a84d74b5eedad522e0b27e5df1023b137778b446e8585cce449d4616c805",
+      "packages/lodgment-calendar/RELEASE_NOTES.md": "ca6d3e81d31ba2c03b300699d6974940441e52321d8630f3654f4e6cf4900706",
+      "packages/lodgment-calendar/RELEASING.md": "619c78555b1727cf4ade46ee3ff6769bda3d8f2424f578d55f717f25c51df30d",
+      "packages/lodgment-calendar/SECURITY.md": "7c989adfe15b260e3538b2fd5fdfc477f119f1295fd8d69ff7a4fddd9827a470",
+      "packages/lodgment-calendar/docs/primary-source-review-2026-10-20.md": "cd238d6c2bf3339643a27baf2a1ed2ac4b05eb687edebcdf31070f9161ebe372",
+      "packages/lodgment-calendar/llms.txt": "74e6cdcdcf3a6b717c1a4877420f25687aecdedba0f9fe733c5d9ede4040ac01",
+      "packages/lodgment-calendar/lodgmentcalendar/__init__.py": "ddb4e09735d260a0f43d0589a2d5353830bdceac25013548a7293f4ec6970384",
+      "packages/lodgment-calendar/lodgmentcalendar/_version.py": "91447944015cec709e8aa7655f7e9d64e1e4508e7023a57fe3746911c0fc6fed",
+      "packages/lodgment-calendar/lodgmentcalendar/due_dates.py": "d5343a436d6ba30a099d1e73858a723c4f28250a56f9443257aee69154edf40f",
+      "packages/lodgment-calendar/lodgmentcalendar/holidays.py": "ebdcf3877d7843574c3bed54cd0d5085f1d31e29c735b6ae37a4cd651b51354f",
+      "packages/lodgment-calendar/lodgmentcalendar/py.typed": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "packages/lodgment-calendar/lodgmentcalendar/returns.py": "1d5b7aa074e9fe4e9ee5476e869c21b20f0bb1b2bf903b456bec95b547c843ba",
+      "packages/lodgment-calendar/lodgmentcalendar/rules.py": "5d47db319903168f1b9a5622886b36203294aa7b1d68016d3c92b52db2400fc3",
+      "packages/lodgment-calendar/lodgmentcalendar/statements.py": "a9e1c1f615657009d35ad00028f3c25f0df0c046b3d2638cceab8dc488b30881",
+      "packages/lodgment-calendar/pyproject.toml": "e85739fe5d1195f46cf91b569bb78c419c7c4829717a64cce1cffef9c983d40f",
+      "packages/lodgment-calendar/tests/test_activity_statements.py": "e704bcca1f7e62ddedf3cef98d388c1348fcbe85d1f85cf437ff3cfa90d0b945",
+      "packages/lodgment-calendar/tests/test_caller_holidays.py": "fa30afb4cd20621f764b78812bbac32446a3a25fc6a9a65592afc10d59b98e84",
+      "packages/lodgment-calendar/tests/test_holidays.py": "433b0c39a22f392839c30c533688cf81db8a4668a2251072405a9e48171edb30",
+      "packages/lodgment-calendar/tests/test_income_tax_returns.py": "94f3a102239ef3c69dbb86eb2b973b2f9740d874b2712be6a8a076ce2e265ff9",
+      "packages/lodgment-calendar/tests/test_inputs.py": "a5be85c9ea3d93bb0b1ec6914ba11dff2c8e8ca0be517a6c4608f3c950a75238",
+      "packages/lodgment-calendar/tests/test_invariants.py": "71df8c1cd96b91c539e68b31a8d2676bd73d5491b41a6d103582cdd12d4d44d8",
+      "packages/lodgment-calendar/tests/test_package_identity.py": "9f3c8d3ead21269f17a5a3844e68cff2e6cb47d20a75a54ff9f063e119cef681",
+      "packages/lodgment-calendar/uv.lock": "f2a98813b523ab042891ddb5fb0c8a2fbbee18317cf4953e6444a6dba8228d4b"
+    }
+  },
+  "capture": {
+    "targeted": 61,
+    "matrix": 8636,
+    "requests": 157,
+    "fact_sets": 126,
+    "python_only_adaptations": {
+      "datetime is not a calendar date": 2,
+      "Python-only date-key identity": 1,
+      "Python-only complete-until identity": 1,
+      "Python-only Facts identity": 1,
+      "Mock": 1
+    },
+    "test_inventory": {
+      "test_activity_statements.py": 19,
+      "test_caller_holidays.py": 8,
+      "test_holidays.py": 8,
+      "test_income_tax_returns.py": 36,
+      "test_inputs.py": 4,
+      "test_invariants.py": 3,
+      "test_package_identity.py": 1
+    },
+    "fixture_sha256": "ac3977331b50b1b8c7132af5b7a1dcae4e1e3b56d84ca08d5ed26b760e005337",
+    "source_data_sha256": "08083964e0b56ef9ab50b005d32a48f4c8c5bbf90a9f62f69c7f727157f2406f",
+    "version_normalisation": "Only engine_version 0.1.0 -> 1.0.0; all other output fields exact.",
+    "nonprintable_sha256": "aa6787d8f1a50231bec5fce7335e72032f7ee795cf6945330b9ceec339d9c525",
+    "unicode_version": "17.0.0",
+    "extra_refusals": 13,
+    "extra_refusals_sha256": "3cac0cd4ebdcf11f7fb90e102b2b21188cc2992875596645e4ea710abc5d4ab6",
+    "newline_policy": "Canonical repository LF bytes, stable across Windows and Linux checkouts."
+  }
+}

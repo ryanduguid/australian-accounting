@@ -1,0 +1,47 @@
+{
+  "base": "56afe0c",
+  "catalogue_sha256": "94677a103cbf6191a1b7ee4a536a78b62cc69338a85a11a27f4bca19afa47826",
+  "wire_transcript_sha256": "2d7f9fb8a586f1d319c7253a252c5b993c6deade68656c14030fe68584c04434",
+  "full_effective_contracts_sha256": "4141727745a0e3693e22a91aa24181ff99da1ee5b88581a0ca54162b75f7c28f",
+  "native_fixture_sha256": "fa5587a653ff9050201cf21b903d5a80b335af2e96e2fcf6bda4d6df4409a6c6",
+  "capture": "The unchanged Python application passed all 1,083 original tests under read-only instrumentation. Original-only additional captures cover effective validation, fabricated retrieval and protocol boundaries. All expected values were frozen before native comparison.",
+  "fixture_scope": "1653 non-retrieval effective SDK calls, 6 resources, 34 prompts, 862 retrieval cases plus 3 large-catalogue provenance cases and 1,175 JSON-RPC replies across 34 sessions. Complete results/refusals are compared, with only the identities and provenance allowances in NATIVE.md. Additional negative schema, extension and CLI assertions are in boundary_contracts.rs. This does not assert every original test is covered.",
+  "oracle_sha256": {
+    "calvino-followups-v1.json": "6a1cfb42c762b2b5fea35928a296284573571f11b7599e2c1ab63283bc31b70e",
+    "coverage-edges-v2.json": "86af4c1cbfc04b1ef6b4382370db5173a41e7f46c7d0f23a1c75633aa25c8f69",
+    "effective-adapter-contracts-v2.json": "4141727745a0e3693e22a91aa24181ff99da1ee5b88581a0ca54162b75f7c28f",
+    "legacy-openers-v1.json": "e3dba5d275328d6e8107a395a6d27ad1e69553791d422b5b4225413d891abd5c",
+    "lifecycle-contracts-v1.json": "b8da80975f554b921f89ce0d3813834e26288abd6580638b9ba3e823010e38b6",
+    "lifecycle-edges-v1.json": "fcad67acc565c895c988b733357819dba455588f9a52e6f6654bba401bd7d758",
+    "retrieval-contracts-v2.json": "65a9f1d56dfe98239390696adb2c081b6e9c518de0aa0efa031aac10cc6c3bbd",
+    "retrieval-edge-contracts-v1.json": "c86b8973b5c2e7f56875750154a31c0846aa84c412a59b6bf6f23e02bd4004f2",
+    "rulings-year-zero-contract-v1.json": "d60789582d5399a4e04f9985c077fcba2676a2fc74d5907da11bfa4f735437f3",
+    "validation-edge-contracts.json": "534bdee1b805f697ffa1786da0b4dc8fbbe6770fdfe0421b7ad5041a9f3f0f62",
+    "wire-coverage-v1.json": "621f21c655294a4d55bf119f49a750e956f6601e640556fbe226de4af310aea4"
+  },
+  "fixture_sha256": {
+    "tests/fixtures/native/adapter-contracts.json": "fa5587a653ff9050201cf21b903d5a80b335af2e96e2fcf6bda4d6df4409a6c6",
+    "tests/fixtures/native/calvino-followups.json": "98ae641df911e3d57f14777b02357d497b691092a349572a92846042217e504c",
+    "tests/fixtures/native/coverage-edges.json": "6676a59037ac1d851b3d4be588b62fdaf7f002896885305cbef70c82fd4d0828",
+    "tests/fixtures/native/legacy-openers.json": "27f4c08cfbbf458a99356866eec383ab3024d18e1ef768c30ec126c9df023395",
+    "tests/fixtures/native/lifecycle-edges.json": "9605e6c757f73703538dab7d9075bd191c95f51e924312aaa01ded07a8c76871",
+    "tests/fixtures/native/lifecycle-sessions.json": "9392a8f27d0240859ec0fee7420f899faf111d163bf835065789beaa499aeb6b",
+    "tests/fixtures/native/prompt-contracts.json": "a47c53ee05d234c2eb5020fae4d28240f93c7bf91106aa11508bea213d591afa",
+    "tests/fixtures/native/resource-contracts.json": "467b9f88a19fd1ddb6f80f2c0c1d6076093d5c214fef61c4f10872a4f7cdf257",
+    "tests/fixtures/native/retrieval-contracts.json": "7d30cf88650af072422ac617fd413a7b9cb3f4fcab9b7a9afe1260dcb3e65adb",
+    "tests/fixtures/native/retrieval-edges.json": "31beec8bb07fe2996b62f778f6506ac64221eb32cea4abd5eb80f33939da1b42",
+    "tests/fixtures/native/validation-edges.json": "b50c86b340df2b0af7c2107ffc578862de57cd2a02da9d8983ab5cc6549ddd7a",
+    "tests/fixtures/native/wire-coverage.json": "5087930051efba49cf5ca21995216c0750565bf115b336c4f5bd3b28ef258938",
+    "tests/fixtures/native/wire-sessions.json": "f993f19961e0ef15e3461195ea4b7446ace04fd78712516b3eb29a08630aaa67",
+    "tests/fixtures/native/freshness-contracts.json": "77e3b1ae568d38aa550c98db606a409f7ce1afddcd64609710faa7c1fdd6c469"
+  },
+  "data_sha256": {
+    "data/catalogue.v1.json": "94677a103cbf6191a1b7ee4a536a78b62cc69338a85a11a27f4bca19afa47826",
+    "data/effective-inputs.v1.json": "e8702dddeab3cb5bacaf3648b5cf1cf7aa139805c6dbd3316423ce8c11f54cd9",
+    "data/resource-policy.v1.json": "63ff46ae95114d120416d6d2077849a720ad76ae683f199dc6d284a1a1a39d68",
+    "data/retrieval-policy.v1.json": "764759bab77969ee0cd43cfbd202f223e88a8b3434b0ed75d9aa4841493cb576"
+  },
+  "first_capture_base": "c940a25bb6a89d71be8c0d21ab853e3b92566445",
+  "refreeze": "Refrozen against the Python server at the base above. Python's delta since the first capture is get_data_freshness, its scope line and instructions, the lodgment source_checked date (2026-10-28), one question in evaluation/questions.xml and conformance schema 2. Transforms were named and counted, the scoring cases re-captured from tool_selection.py, and freshness-contracts.json captured over stdio from the Python server. oracle_sha256 records the first capture's raw files, which are not in this repository. Refrozen again on 1 November 2026 at 035847a, after main added validate_abn and validate_acn (24 tools), the returned-contribution qualification on Payday ON_TIME results and packs, Payday 0.2.3 and FBT return dates in the lodgment engine, which the tool does not expose. Every differing path was in a named category of main's changes, reviewed identity leaves were kept, and 143 calls from main's new and changed tests and independent ABN/ACN probes were added from the Python server's own replies. Refrozen again on 3 November 2026 at 03baab7, after main ranked library search by where the query words sit, added in_force_only and version_is_current to search_tax_rates, ranked rulings whose captured page held a withdrawal notice later within a tier, named list_ato_benchmark_industries in the unmatched-industry refusal and stated the SG-charge estimate exclusions. Every differing fixture path was in a named category of those changes. The retrieval cases were recaptured from the Python suite (1,246 tests passed) with the original capture scripts, and 6 calls from main's new benchmark tests and independent probes were added from the Python server's own replies. Refrozen again on 8 November 2026 at d87dac3, after main added get_reviewed_rate (25 tools), the doctor command and its folder census, file notes on worksheet results, the returned_by_fund refusal, dated legislation retrieval (as_at), whole-word rulings matching, dropped_words and partial_hits in corpus search, and changed the synthetic corpus and rulings builders. Every differing fixture path was in a named category of those changes. The retrieval cases were recaptured from the Python suite with the capture hooking the doctor census; 2 memory tests that the capture's snapshots inflate were deselected. 648 calls from main's new and changed tests and probes were added from the Python server's own replies. The native server links the engine crates on main, not the PyPI releases the Python server runs; tests/engine/mod.rs names each engine commit whose effect the native comparison applies. Refrozen again on 10 November 2026 at 56afe0c, after main classified a dated title from its first row only (#594), named PaulGoodman and DrDebits at their renamed repositories (#598) and described first_to_fund for employment that starts or recommences (#600). Every differing fixture path was the instructions, the first_to_fund description, the 2 retrieval policy strings naming the corpus builder or a retrieval case. The retrieval cases were recaptured from the Python suite on Linux; a call whose recaptured outcome matched kept its committed case, so the Windows capture's CRLF inputs remain, and the 20 calls from #594's 6 new tests and the 54 cases of calls whose outcome changed came from the recapture: 30 name the renamed corpus builder and 24 are library searches whose file hashes follow the LF inputs a Linux capture writes.",
+  "previous_refreeze_base": "d87dac3"
+}
