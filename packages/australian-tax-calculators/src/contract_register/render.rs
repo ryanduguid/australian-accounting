@@ -163,7 +163,24 @@ pub(super) fn text(register: &Value) -> String {
         date("current_to"),
         date("expiring_by")
     );
-    let mut contracts: Vec<Value> = list(register, "contracts").cloned().collect();
+    balance_tables(&mut out, register);
+    period_tables(&mut out, register);
+    interest_tables(&mut out, register);
+    out.push_str("\nBasis\n");
+    for line in list(register, "basis") {
+        out.push_str(&format!("- {}\n", text_cell(line)));
+    }
+    out
+}
+
+fn rows(register: &Value, key: &str) -> Vec<Value> {
+    list(register, key).cloned().collect()
+}
+
+/// The contracts at the balance date with their total, those expiring, and
+/// the totals by financier and by client.
+fn balance_tables(out: &mut String, register: &Value) {
+    let mut contracts = rows(register, "contracts");
     let mut total = register["totals"].clone();
     total["contract"] = "Total".into();
     contracts.push(total);
@@ -173,20 +190,14 @@ pub(super) fn text(register: &Value) -> String {
         ("financier", "Financier"),
         ("final_payment_date", "Final payment"),
     ];
-    table(
-        &mut out,
-        "Contracts at the balance date",
-        &with(&names),
-        4,
-        &contracts,
-    );
-    let rows = |key: &str| list(register, key).cloned().collect::<Vec<_>>();
+    let title = "Contracts at the balance date";
+    table(out, title, &with(&names), 4, &contracts);
     let mut columns = names.to_vec();
     columns.extend([
         ("remaining_payments", "Remaining payments"),
         ("outstanding", "Outstanding"),
     ]);
-    table(&mut out, "Expiring", &columns, 4, &rows("expiring"));
+    table(out, "Expiring", &columns, 4, &rows(register, "expiring"));
     for (title, key, heading) in [
         ("By financier", "financier", "Financier"),
         ("By client", "client", "Client"),
@@ -196,16 +207,16 @@ pub(super) fn text(register: &Value) -> String {
             ("contracts", "Contracts"),
             ("amount_financed", "Amount financed"),
         ]);
-        table(&mut out, title, &columns, 1, &rows(&format!("by_{key}")));
+        let groups = rows(register, &format!("by_{key}"));
+        table(out, title, &columns, 1, &groups);
     }
+}
+
+/// Cashflow by month, and the payments, interest and principal by income year.
+fn period_tables(out: &mut String, register: &Value) {
     let month = [("month", "Month"), ("payments", "Payments")];
-    table(
-        &mut out,
-        "Cashflow by month",
-        &month,
-        1,
-        &rows("cashflow_by_month"),
-    );
+    let months = rows(register, "cashflow_by_month");
+    table(out, "Cashflow by month", &month, 1, &months);
     let year = [
         ("income_year", "Income year"),
         ("payments", "Payments"),
@@ -213,13 +224,13 @@ pub(super) fn text(register: &Value) -> String {
         ("interest_across_30_june", "Across 30 June"),
         ("principal", "Principal"),
     ];
-    table(
-        &mut out,
-        "By income year",
-        &year,
-        1,
-        &rows("by_income_year"),
-    );
+    let years = rows(register, "by_income_year");
+    table(out, "By income year", &year, 1, &years);
+}
+
+/// The interest of the period running at the balance date and of each period
+/// across 30 June, for the preparer to accrue or apportion.
+fn interest_tables(out: &mut String, register: &Value) {
     let accruing: Vec<Value> = list(register, "contracts")
         .filter(|c| !c["accruing_interest"].is_null())
         .cloned()
@@ -230,13 +241,8 @@ pub(super) fn text(register: &Value) -> String {
         ("accruing_days_elapsed", "Days elapsed"),
         ("accruing_days", "Days"),
     ];
-    table(
-        &mut out,
-        "Interest accruing at the balance date",
-        &columns,
-        1,
-        &accruing,
-    );
+    let title = "Interest accruing at the balance date";
+    table(out, title, &columns, 1, &accruing);
     let across: Vec<Value> = details(register, "by_income_year")
         .filter(|row| !row["days_before_1_july"].is_null())
         .collect();
@@ -247,10 +253,5 @@ pub(super) fn text(register: &Value) -> String {
         ("days_before_1_july", "Days before 1 July"),
         ("days_from_1_july", "Days from 1 July"),
     ];
-    table(&mut out, "Interest across 30 June", &columns, 2, &across);
-    out.push_str("\nBasis\n");
-    for line in list(register, "basis") {
-        out.push_str(&format!("- {}\n", text_cell(line)));
-    }
-    out
+    table(out, "Interest across 30 June", &columns, 2, &across);
 }
