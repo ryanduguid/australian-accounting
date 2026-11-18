@@ -109,6 +109,7 @@ lists the commands.
 | `fbt` | `type_one_value`, `type_two_value`, `year_ended`, `scope_confirmed` |
 | `fbt-car-statutory` | `cost_price`, `later_accessories`, `one_third_reduction`, `days_available`, `employee_contribution`, `electric_car_exempt`, `year_ended`, `scope_confirmed` |
 | `fbt-car-operating-cost` | `running_costs`, `lease_charges`, `depreciated_value`, `effective_life_years`, `days_held`, `business_use`, `employee_contribution`, `statutory_formula_taxable_value`, `electric_car_exempt`, `year_ended`, `scope_confirmed` |
+| `fbt-ev-exemption-check` | `vehicle`, `car`, `current_employee`, `first_held_and_used`, `first_retail_sale_year`, `luxury_car_tax_value`, `luxury_car_tax_on_other_supply`, `year_ended`, `scope_confirmed`; for a plug-in hybrid, `commitment_before_1_april_2025`, `new_commitment_from_1_april_2025` and `exempt_benefit_before_1_april_2025`; see [FBT electric cars exemption](#fbt-electric-cars-exemption) |
 | `fbt-loan` | `daily_balance_total`, `interest_accrued`, `income_use`, `accrued_interest_deduction`, `year_ended`, `scope_confirmed` |
 | `fbt-meal-entertainment` | `method`, `meal_entertainment_expenditure`, `year_ended`, `scope_confirmed`; with `12_week_register`, `register_fringe_benefits_value`, `register_meal_entertainment_value`, `register_first_year` and `register_years_expenditure` |
 | `fbt-car-parking` | `method`, `year_ended`, `scope_confirmed`; with `commercial_parking_station`, `first_business_day_fee`, `benefits`, `lowest_fee` and `employee_contribution`; with `market_value`, `first_business_day_fee`, `benefits`, `market_value` and `employee_contribution`; with `average_cost`, `first_business_day_fee`, `benefits`, `first_day_fee`, `last_day_fee` and `employee_contribution`; with `spaces`, `space_groups`, `employees_at_start`, `employees_at_end`, `eligible_spaces_at_start`, `eligible_spaces_at_end` and `employee_contribution`; with `12_week_register`, `first_business_day_fee`, `register_value`, `availability_days` and `register_first_year` |
@@ -151,7 +152,7 @@ lists the commands.
 | `fbt-return` | `employer`, `year_ended`, `scope_confirmed` and `benefits`, a list of objects each with `employee`, `command` (an FBT benefit worksheet), `input` (that worksheet's arguments), `gst_type` (`type_1` or `type_2`) and `excluded`; see [FBT return](#fbt-return) |
 | `derive` | `command`, one of `fbt`, `fbt-car-statutory`, `fbt-car-operating-cost`, `fbt-loan`, `fbt-meal-entertainment`, `fbt-car-parking`, `fbt-debt-waiver`, `fbt-expense-payment`, `fbt-property`, `division-293`, `pension-minimum`, `payg-withholding`, `schedule-5-method-a`, `schedule-5-method-b-i`, `schedule-5-method-b-ii`, `termination-payment`, `unused-leave-payment`, `working-holiday-maker-withholding`, `study-loan-withholding`, `seniors-pensioners-withholding`, `quarterly-sg`, `borrowing-expenses`, `resident-tax`, `foreign-resident-tax`, `low-income-tax-offset`, `seniors-pensioners-tax-offset`, `medicare-levy`, `medicare-levy-surcharge`, `division-296`, `contribution-caps`, `study-loan-repayment`, `capital-gains`, `main-residence`, `fbt-residual`, `fbt-housing`, `fbt-lafha`, `fbt-board`, `fbt-tax-exempt-body-entertainment`, `gst`, `depreciation`, `hire-purchase-schedule`, `lump-sum-arrears-tax-offset`, `income-tests`, `business-capital-expenditure`, `balancing-adjustment` and `trade-in`, and `input`, that command's arguments; see [Derivations](#derivations) |
 
-The 2 car commands, the 11 FBT benefit commands (`fbt-loan`, `fbt-meal-entertainment`, `fbt-car-parking`, `fbt-debt-waiver`, `fbt-expense-payment`, `fbt-property`, `fbt-residual`, `fbt-housing`, `fbt-lafha`, `fbt-board` and `fbt-tax-exempt-body-entertainment`), `main-residence`, `borrowing-expenses`, `division-296`, `termination-payment`, `unused-leave-payment`, the 3 `schedule-5` commands, `working-holiday-maker-withholding`, `seniors-pensioners-withholding`, `seniors-pensioners-tax-offset`, `medicare-levy-surcharge`, `foreign-resident-tax`, `payg-gross-up`, `hire-purchase-schedule`, `lump-sum-arrears-tax-offset`, `fbt-entertainment-classifier`, `income-tests`, `business-capital-expenditure`, `balancing-adjustment` and `trade-in` have no Python original; their arguments follow the same
+The 2 car commands, the 11 FBT benefit commands (`fbt-loan`, `fbt-meal-entertainment`, `fbt-car-parking`, `fbt-debt-waiver`, `fbt-expense-payment`, `fbt-property`, `fbt-residual`, `fbt-housing`, `fbt-lafha`, `fbt-board` and `fbt-tax-exempt-body-entertainment`), `main-residence`, `borrowing-expenses`, `division-296`, `termination-payment`, `unused-leave-payment`, the 3 `schedule-5` commands, `working-holiday-maker-withholding`, `seniors-pensioners-withholding`, `seniors-pensioners-tax-offset`, `medicare-levy-surcharge`, `foreign-resident-tax`, `payg-gross-up`, `hire-purchase-schedule`, `lump-sum-arrears-tax-offset`, `fbt-entertainment-classifier`, `income-tests`, `business-capital-expenditure`, `balancing-adjustment`, `trade-in` and `fbt-ev-exemption-check` have no Python original; their arguments follow the same
 rules. `division-296` alone takes a negative amount, in `total_super_earnings`. `main-residence` also takes dates as `YYYY-MM-DD` strings, lists of
 `{"start", "end"}` periods (with `"floor_area"` for income use) and `null`
 for no new home. `borrowing-expenses` takes `loan_start` as a `YYYY-MM-DD`
@@ -273,6 +274,7 @@ trade-in steps add GST Act ss 9-70, 9-75, 11-30, 69-10 and 132-5 and ITAA
 | Business capital expenditure | 2020-21 to 2027-28, items incurred from 1 July 2020 under s 40-880 as amended by Act No 92 of 2020; each item's established capital nature, business, taxable purpose extent, start-up facts and exclusions |
 | FBT | Years ended 31 March 2026 and 2027; established type 1 and type 2 taxable values, ordinary employer |
 | FBT car benefits | Years ended 31 March 2026 and 2027; one car's established base value or operating costs, the 20% statutory percentage and a deemed depreciation rate of 200% over the established effective life |
+| FBT electric cars exemption | Years ended 31 March 2026 and 2027, before the change announced for 1 April 2027; first retail sales in 2012-13 to 2026-27, at the ATO's fuel-efficient luxury car tax thresholds; established vehicle type, dates, value and commitments |
 | FBT loans | Years ended 31 March 2026 and 2027 at the statutory interest rate (8.62% and 8.27%); one loan to a current employee, its established daily balances, interest accrued and deductible share |
 | FBT meal entertainment | Years ended 31 March 2026 and 2027; the established year's expenditure, by the 50/50 split or a 12 week register checked against its age and the 20% rule |
 | FBT car parking | Years ended 31 March 2026 and 2027 at the car parking threshold ($11.03 and $11.48); the commercial parking station, market value, average cost, spaces or 12 week register method; the 12 week register's 10% rule is the operator's |
@@ -617,6 +619,50 @@ grosses up or applies the threshold, and each adds a third warning saying so.
 review of another FBT car calculator, as fabricated cars
 ([`tests/data/lodgeit-verdict-cases.json`](tests/data/lodgeit-verdict-cases.json),
 attributed in [NOTICE](NOTICE)). Each has a case, a stated reason or both.
+
+## FBT electric cars exemption
+
+`fbt-ev-exemption-check` decides whether a car's benefits in the FBT year
+ended 31 March 2026 or 2027 are exempt under FBTAA s 8A. It lists each
+condition with its authority and whether it is met, names every one that fails
+in `failing_conditions`, and gives `exempt`:
+
+- `car`: the vehicle is a car, designed to carry a load of less than 1 tonne
+  and fewer than 9 passengers, not a motor cycle (s 136(1));
+- `current_employee`: the benefit is for a current employee (s 8A(1)(a));
+- `zero_or_low_emissions_vehicle`: `vehicle` is `battery_electric` or
+  `hydrogen_fuel_cell_electric` (s 8A(2) to (4)). A `plug_in_hybrid_electric`
+  vehicle has stopped qualifying from 1 April 2025, except under the Electric
+  Car Discount Act 2022 Sch 2 item 5(2), which takes 3 more inputs and shows
+  3 rows in its place: `commitment_before_1_april_2025` (a binding commitment
+  to provide the car to the employee, made before 1 April 2025 for a period
+  that began before then), `new_commitment_from_1_april_2025` (such as an
+  exercised option to extend, a break in a novation, changed lease payments or
+  a new employer, which ends the exemption) and
+  `exempt_benefit_before_1_april_2025`;
+- `first_held_and_used_from_1_july_2022`: the earliest day anyone both held
+  and used the car, `first_held_and_used`, is on or after 1 July 2022 (Sch 1
+  item 7(2));
+- `no_luxury_car_tax_at_first_retail_sale`: `luxury_car_tax_value`, the price
+  with GST and without luxury car tax or on-road charges (LCT Act s 5-20), does
+  not exceed the fuel-efficient threshold for `first_retail_sale_year` (s
+  25-1(1)): the ATO's table, from $75,375 for 2012-13 to $91,387 for 2024-25 and
+  2025-26 and $91,661 for 2026-27. A year outside it is refused;
+- `no_luxury_car_tax_on_other_supply`: `luxury_car_tax_on_other_supply` is
+  `false` (s 8A(1)(c)).
+
+A car's result carries `car_worksheet_input`, `{"electric_car_exempt": ...}`,
+for `fbt-car-statutory` and `fbt-car-operating-cost`, and `consequences`: for
+an exempt car, a nil taxable value whose notional value still counts towards
+the employee's reportable fringe benefits amount (s 135P(3)), and car expense
+benefits exempt under s 53(1), which do not. It refuses a car first held and
+used, or first sold, after the FBT year ends, plug-in hybrid facts for another
+vehicle, and the year ended 31 March 2028: the government announced on 5 May
+2026 that from 1 April 2027 only a car costing $75,000 or less keeps the full
+exemption, and the ATO's page said on 19 November 2026 that this was not yet
+law. A car imported by its user rather than sold at retail, and a plug-in
+hybrid that was not a fuel-efficient car when first sold, are outside its
+scope. See [calculation evidence](docs/calculation-evidence.md#fbt-ev-exemption-check).
 
 ## FBT loans, meal entertainment and car parking
 

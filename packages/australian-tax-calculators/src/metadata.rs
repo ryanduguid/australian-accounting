@@ -1025,6 +1025,10 @@ pub fn supported_periods(kind: &str) -> Vec<&'static str> {
         "fbt_car_statutory" | "fbt_car_operating_cost" | "fbt_loan" => {
             keys(FBT_BENCHMARK_INTEREST_RATES)
         }
+        // The car worksheets' years. The year ended 31 March 2028 is refused:
+        // the change announced for 1 April 2027 was not law on 19 November
+        // 2026.
+        "fbt_ev_exemption_check" => vec!["2026", "2027"],
         // The methods use no published rate; the years are those the ATO's
         // return instructions and rates page were read for.
         "fbt_meal_entertainment" => vec!["2026", "2027"],
@@ -1125,6 +1129,10 @@ pub fn source_review(kind: &str) -> (&'static str, &'static str) {
         "fbt_car_statutory" => (
             "2026-10-29",
             "Fringe benefits tax - a guide for employers, 7.8 statutory formula method and examples 23 and 26; FBT return 2026 instructions, item 23A and example 6; Electric cars exemption, reportable fringe benefits",
+        ),
+        "fbt_ev_exemption_check" => (
+            "2026-11-19",
+            "FBTAA ss 7(1), 8A, 53(1), 135P and 136(1), compilation 97 (1 July 2026); Treasury Laws Amendment (Electric Car Discount) Act 2022 (No. 86 of 2022), as made, s 8A(2)(c) and (5) as inserted, Schedule 1 item 7 and Schedule 2 item 5; A New Tax System (Luxury Car Tax) Act 1999 ss 5-20 and 25-1, compilation of 1 April 2025; the ATO's 'Electric cars exemption' (last updated 1 April 2026: its Shelly, John and GHI Co examples), 'FBT on plug-in hybrid electric vehicles' (last updated 14 March 2025: its Sonia, Simon, Tony, Courtney and pool car examples), 'Luxury car tax rate and thresholds' (last updated 1 June 2026) and 'Electric car discount – more sustainable fringe benefits tax treatment of electric cars' (last updated 3 November 2026: not yet law)",
         ),
         "fbt_car_operating_cost" => (
             "2026-11-06",
@@ -1341,6 +1349,12 @@ pub fn library_evidence(kind: &str) -> [(&'static str, &'static str); 4] {
             "2026-06-30",
             "2026-10-29",
         ),
+        "fbt_ev_exemption_check" => (
+            "tax-examples-fringe-benefits-tax-fbt",
+            "3-045",
+            "2026-06-30",
+            "2026-11-19",
+        ),
         "fbt_loan" => (
             "tax-examples-fringe-benefits-tax-fbt",
             "3-100",
@@ -1532,6 +1546,20 @@ pub fn optional_inputs(kind: &str) -> Vec<(&'static str, &'static str)> {
             "car_limit",
             "for a car only, and then required: null when s 40-230 did not reduce its cost to the car limit, or an object with limit (AUD, the car limit for the financial year in which the car was first used for any purpose), second_element_cost (AUD) and cost_ignoring_car_limit (AUD, the first and second elements ignoring the car limit, after Subdivision 27-B), cost then being limit plus second_element_cost: ITAA 1997 s 40-325",
         )],
+        "fbt_ev_exemption_check" => vec![
+            (
+                "commitment_before_1_april_2025",
+                "boolean, for a plug_in_hybrid_electric vehicle only and then required: true when, before 1 April 2025, the employer, the employee or an associate of either committed (a financially binding commitment, not an option to extend) to the car's application or availability, in respect of the employee's employment by the employer, for a period that began before 1 April 2025 and includes the benefit (Electric Car Discount Act 2022 Sch 2 item 5(2)(b))",
+            ),
+            (
+                "new_commitment_from_1_april_2025",
+                "boolean, for a plug_in_hybrid_electric vehicle only and then required: true when, on or after 1 April 2025 and before or at the benefit, any of them committed again to the car's application or availability for a period that includes the benefit, as an exercised extension, a break in a novation, a change to the lease payments or residual value, or a change of employer does (item 5(2)(c); the ATO's 'FBT on plug-in hybrid electric vehicles')",
+            ),
+            (
+                "exempt_benefit_before_1_april_2025",
+                "boolean, for a plug_in_hybrid_electric vehicle only and then required: true when a car benefit relating to the car was provided before 1 April 2025 and was exempt under s 8A as it then read (item 5(2)(d) and (e))",
+            ),
+        ],
         "trade_in" => vec![
             (
                 "car_limit",
@@ -2072,6 +2100,36 @@ pub fn input_units(kind: &str) -> Vec<(&'static str, &'static str)> {
             (
                 "years",
                 "list of objects, one for each income year held from the start time to the event, each with income_year (from 2001-02, and for a car from 2015-16, to the event's year), decline_in_value (AUD; for a cents per kilometre year the notional decline of s 40-370(3)) and deduction (AUD, the decline less the s 40-25 reductions); a car's rows also state method (log_book or cents_per_kilometre, which takes no deduction) and days_held (integer from 1 to the days in that income year, 366 when it includes 29 February)",
+            ),
+        ],
+        "fbt_ev_exemption_check" => vec![
+            (
+                "vehicle",
+                "battery_electric (only an electric motor for propulsion, no fuel cell or internal combustion engine: FBTAA s 8A(3)), hydrogen_fuel_cell_electric (an electric motor and a fuel cell converting hydrogen, no internal combustion engine: s 8A(4)), plug_in_hybrid_electric (an electric motor, energy taken and stored from an external source and an internal combustion engine: s 8A(5) as made) or other",
+            ),
+            (
+                "car",
+                "boolean, true when the vehicle is a car: a motor vehicle, except a motor cycle or similar vehicle, designed to carry a load of less than 1 tonne and fewer than 9 passengers (FBTAA s 136(1), ITAA 1997 s 995-1)",
+            ),
+            (
+                "current_employee",
+                "boolean, true when the benefit is provided in respect of the employment of a current employee (FBTAA s 8A(1)(a))",
+            ),
+            (
+                "first_held_and_used",
+                "YYYY-MM-DD date, the earliest day on which any person both held the car (owned it, including under hire purchase, leased it or had it made available) and used it or had it available for use (Electric Car Discount Act 2022 Sch 1 item 7(2)); not after the FBT year ends",
+            ),
+            (
+                "first_retail_sale_year",
+                "financial year string from 2012-13 to 2026-27, the year of the car's first retail sale, which sets the fuel-efficient luxury car tax threshold; not starting after the FBT year ends",
+            ),
+            (
+                "luxury_car_tax_value",
+                "AUD, the car's luxury car tax value at its first retail sale: its price including GST and customs duty, excluding luxury car tax and other Australian taxes, fees and charges such as registration and stamp duty, and including accessories supplied with it (LCT Act s 5-20)",
+            ),
+            (
+                "luxury_car_tax_on_other_supply",
+                "boolean, true when luxury car tax became payable on any other supply or importation of the car before the benefit (FBTAA s 8A(1)(c))",
             ),
         ],
         "trade_in" => vec![
@@ -2708,6 +2766,17 @@ pub fn examples(kind: &str) -> Vec<(&'static str, Example)> {
                     r#"[{"income_year": "2025-26", "decline_in_value": "300.00", "deduction": "180.00"}, {"income_year": "2026-27", "decline_in_value": "0.00", "deduction": "0.00"}]"#,
                 ),
             ),
+        ],
+        // The Library's Cleancut example (Tax Examples, FBT, 3-045): an
+        // electric car bought for $72,000 plus GST on 1 July 2025.
+        "fbt_ev_exemption_check" => vec![
+            ("vehicle", Text("battery_electric")),
+            ("car", Flag(true)),
+            ("current_employee", Flag(true)),
+            ("first_held_and_used", Text("2025-07-01")),
+            ("first_retail_sale_year", Text("2025-26")),
+            ("luxury_car_tax_value", Text("79200.00")),
+            ("luxury_car_tax_on_other_supply", Flag(false)),
         ],
         "trade_in" => vec![
             ("year", Text("2026-27")),

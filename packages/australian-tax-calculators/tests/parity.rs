@@ -9,7 +9,7 @@ use std::io::Write;
 use std::process::{Command, Stdio};
 
 /// Worksheets added after Python 0.2.0, so absent from the frozen corpus;
-/// `tests/fbt_car.rs`, `tests/main_residence.rs`,
+/// `tests/fbt_car.rs`, `tests/fbt_ev_exemption.rs`, `tests/main_residence.rs`,
 /// `tests/borrowing_expenses.rs`, `tests/hire_purchase.rs`,
 /// `tests/business_capital_expenditure.rs`, `tests/balancing_adjustment.rs`, `tests/trade_in.rs`,
 /// `tests/division_296.rs`,
@@ -24,9 +24,10 @@ use std::process::{Command, Stdio};
 /// `tests/fbt_tax_exempt_body_entertainment.rs`, `tests/lump_sum_arrears_offset.rs`,
 /// `tests/fbt_entertainment_classifier.rs` and `tests/income_tests.rs` cover
 /// them.
-const NEW_KINDS: [(&str, &str); 34] = [
+const NEW_KINDS: [(&str, &str); 35] = [
     ("fbt-car-statutory", "fbt_car_statutory"),
     ("fbt-car-operating-cost", "fbt_car_operating_cost"),
+    ("fbt-ev-exemption-check", "fbt_ev_exemption_check"),
     ("fbt-loan", "fbt_loan"),
     ("fbt-meal-entertainment", "fbt_meal_entertainment"),
     ("fbt-car-parking", "fbt_car_parking"),

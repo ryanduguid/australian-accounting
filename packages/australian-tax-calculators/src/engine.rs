@@ -4781,6 +4781,8 @@ mod balancing;
 pub use balancing::balancing_adjustment;
 mod trade_in;
 pub use trade_in::{TradeInArgs, trade_in};
+mod fbt_ev_exemption;
+pub use fbt_ev_exemption::{EvExemptionArgs, fbt_ev_exemption_check};
 
 /// One pay that includes an additional payment, as Schedule 5 (NAT 3348) reads it.
 struct AdditionalPay {
@@ -6067,7 +6069,7 @@ pub use lump_sum_arrears::lump_sum_arrears_tax_offset;
 mod income_tests;
 pub use income_tests::income_tests;
 
-const KINDS: [&str; 48] = [
+const KINDS: [&str; 49] = [
     "gst",
     "resident_tax",
     "foreign_resident_tax",
@@ -6081,6 +6083,7 @@ const KINDS: [&str; 48] = [
     "fbt",
     "fbt_car_statutory",
     "fbt_car_operating_cost",
+    "fbt_ev_exemption_check",
     "fbt_loan",
     "fbt_meal_entertainment",
     "fbt_car_parking",
