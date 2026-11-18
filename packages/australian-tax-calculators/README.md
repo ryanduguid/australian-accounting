@@ -3,7 +3,7 @@
 Australian Tax Calculators 1.0.0 is a standalone Rust binary. It replaces the
 Python `australian-tax-calculators` 0.2.0 package and its `austaxcalc` import
 API, with the same 14 worksheets, results and refusals, and adds 2 FBT car
-worksheets, FBT loan, meal entertainment, car parking, debt waiver, expense payment, property, residual, housing, living-away-from-home allowance, board and tax-exempt body entertainment worksheets, an entertainment classifier, a main residence worksheet, a borrowing expenses worksheet, a Division 296 estimate, a termination payment worksheet, an unused leave payment worksheet, 3 Schedule 5 withholding worksheets, a Schedule 15 working holiday maker worksheet, a Schedule 9 seniors and pensioners worksheet, a seniors and pensioners tax offset worksheet, a Medicare levy surcharge worksheet, a foreign resident tax worksheet, a PAYG gross-up worksheet, a hire purchase schedule and a business capital expenditure worksheet that no Python release contains. Python releases through 0.1.9
+worksheets, FBT loan, meal entertainment, car parking, debt waiver, expense payment, property, residual, housing, living-away-from-home allowance, board and tax-exempt body entertainment worksheets, an entertainment classifier, a meal entertainment register check, a main residence worksheet, a borrowing expenses worksheet, a Division 296 estimate, a termination payment worksheet, an unused leave payment worksheet, 3 Schedule 5 withholding worksheets, a Schedule 15 working holiday maker worksheet, a Schedule 9 seniors and pensioners worksheet, a seniors and pensioners tax offset worksheet, a Medicare levy surcharge worksheet, a foreign resident tax worksheet, a PAYG gross-up worksheet, a hire purchase schedule and a business capital expenditure worksheet that no Python release contains. Python releases through 0.1.9
 contain 10 worksheets. MCP server releases through 0.9.0 use the 0.2.0 Python
 release from PyPI; later ones run this executable, requiring the exact version
 they were tested against, for the same 14 worksheets.
@@ -16,9 +16,9 @@ they were tested against, for the same 14 worksheets.
 
 </div>
 
-Forty-eight calculation worksheets for established facts: ordinary GST, resident and foreign
+Forty-nine calculation worksheets for established facts: ordinary GST, resident and foreign
 resident basic income tax, CGT losses and discount, the main residence exemption's taxable share of a gain or loss, one loan's borrowing expenses deduction, a hire purchase agreement's monthly notional interest, business capital expenditure (black hole and start-up costs) under s 40-880, ordinary employer FBT, car fringe benefit taxable values
-under the statutory formula and operating cost methods, loan, meal entertainment, car parking, debt waiver, expense payment, property, residual, housing, living-away-from-home allowance, board and tax-exempt body entertainment fringe benefit taxable values, the FBT, deduction and GST credit treatment of entertainment expense lines, depreciation in the start year and later years, a depreciating asset's balancing adjustment with its reduction for private use and CGT event K7, a trade-in's GST on both sides with the old asset's balancing adjustment and the replacement's cost,
+under the statutory formula and operating cost methods, loan, meal entertainment, car parking, debt waiver, expense payment, property, residual, housing, living-away-from-home allowance, board and tax-exempt body entertainment fringe benefit taxable values, the FBT, deduction and GST credit treatment of entertainment expense lines, whether a 12 week meal entertainment register is valid, depreciation in the start year and later years, a depreciating asset's balancing adjustment with its reduction for private use and CGT event K7, a trade-in's GST on both sides with the old asset's balancing adjustment and the replacement's cost,
 quarterly super guarantee, Schedule 1 PAYG withholding and the gross pay that leaves a stated net, Schedule 5 withholding from back payments, commissions and bonuses by Methods A, B(i) and B(ii), Schedule 15 withholding for working holiday makers, Schedule 9 withholding for seniors and pensioners, super contribution caps,
 account-based pension minimums, study and training loan repayments, Schedule 8 study
 loan withholding, the Medicare levy with its low-income, SAPTO and family reductions and full or half exemptions, the Medicare levy surcharge, the low income tax offset, the seniors and pensioners tax offset, the lump sum payment in arrears tax offset,
@@ -120,6 +120,7 @@ lists the commands.
 | `fbt-lafha` | `method`, `allowance`, `year_ended`, `scope_confirmed`; with `maintains_home` or `fly_in_fly_out`, `accommodation_component`, `accommodation_expenses`, `food_component`, `food_expenses`, `normal_food_amount`, `adult_days` and `child_days` |
 | `fbt-board` | `adult_meals`, `child_meals`, `employee_contribution`, `income_use`, `contribution_deduction`, `year_ended`, `scope_confirmed` |
 | `fbt-tax-exempt-body-entertainment` | `method`, `entertainment_expenditure`, `year_ended`, `scope_confirmed`; with `per_head`, `employee_heads` and `total_heads` |
+| `fbt-meal-entertainment-register` | `register_start`, `register_end`, `entries`, `year_ended`, `scope_confirmed`; `register_years_expenditure`, required for a later year of the register's validity; see [FBT meal entertainment register](#fbt-meal-entertainment-register) |
 | `fbt-entertainment-classifier` | `lines`, `income_tax_exempt`, `year_ended`, `scope_confirmed`; `method`, required when a line is meal entertainment; with `12_week_register`, `income_tax_register_percentage` |
 | `depreciation` | `cost`, `effective_life`, `days`, `taxable_use`, `method`, `scope_confirmed`, `year`; optional `opening_adjustable_value` |
 | `quarterly-sg` | `ordinary_time_earnings`, `qualifying_contributions`, `year`, `quarter`, `scope_confirmed` |
@@ -151,7 +152,7 @@ lists the commands.
 | `fbt-return` | `employer`, `year_ended`, `scope_confirmed` and `benefits`, a list of objects each with `employee`, `command` (an FBT benefit worksheet), `input` (that worksheet's arguments), `gst_type` (`type_1` or `type_2`) and `excluded`; see [FBT return](#fbt-return) |
 | `derive` | `command`, one of `fbt`, `fbt-car-statutory`, `fbt-car-operating-cost`, `fbt-loan`, `fbt-meal-entertainment`, `fbt-car-parking`, `fbt-debt-waiver`, `fbt-expense-payment`, `fbt-property`, `division-293`, `pension-minimum`, `payg-withholding`, `schedule-5-method-a`, `schedule-5-method-b-i`, `schedule-5-method-b-ii`, `termination-payment`, `unused-leave-payment`, `working-holiday-maker-withholding`, `study-loan-withholding`, `seniors-pensioners-withholding`, `quarterly-sg`, `borrowing-expenses`, `resident-tax`, `foreign-resident-tax`, `low-income-tax-offset`, `seniors-pensioners-tax-offset`, `medicare-levy`, `medicare-levy-surcharge`, `division-296`, `contribution-caps`, `study-loan-repayment`, `capital-gains`, `main-residence`, `fbt-residual`, `fbt-housing`, `fbt-lafha`, `fbt-board`, `fbt-tax-exempt-body-entertainment`, `gst`, `depreciation`, `hire-purchase-schedule`, `lump-sum-arrears-tax-offset`, `income-tests`, `business-capital-expenditure`, `balancing-adjustment` and `trade-in`, and `input`, that command's arguments; see [Derivations](#derivations) |
 
-The 2 car commands, the 11 FBT benefit commands (`fbt-loan`, `fbt-meal-entertainment`, `fbt-car-parking`, `fbt-debt-waiver`, `fbt-expense-payment`, `fbt-property`, `fbt-residual`, `fbt-housing`, `fbt-lafha`, `fbt-board` and `fbt-tax-exempt-body-entertainment`), `main-residence`, `borrowing-expenses`, `division-296`, `termination-payment`, `unused-leave-payment`, the 3 `schedule-5` commands, `working-holiday-maker-withholding`, `seniors-pensioners-withholding`, `seniors-pensioners-tax-offset`, `medicare-levy-surcharge`, `foreign-resident-tax`, `payg-gross-up`, `hire-purchase-schedule`, `lump-sum-arrears-tax-offset`, `fbt-entertainment-classifier`, `income-tests`, `business-capital-expenditure`, `balancing-adjustment` and `trade-in` have no Python original; their arguments follow the same
+The 2 car commands, the 11 FBT benefit commands (`fbt-loan`, `fbt-meal-entertainment`, `fbt-car-parking`, `fbt-debt-waiver`, `fbt-expense-payment`, `fbt-property`, `fbt-residual`, `fbt-housing`, `fbt-lafha`, `fbt-board` and `fbt-tax-exempt-body-entertainment`), `main-residence`, `borrowing-expenses`, `division-296`, `termination-payment`, `unused-leave-payment`, the 3 `schedule-5` commands, `working-holiday-maker-withholding`, `seniors-pensioners-withholding`, `seniors-pensioners-tax-offset`, `medicare-levy-surcharge`, `foreign-resident-tax`, `payg-gross-up`, `hire-purchase-schedule`, `lump-sum-arrears-tax-offset`, `fbt-entertainment-classifier`, `fbt-meal-entertainment-register`, `income-tests`, `business-capital-expenditure`, `balancing-adjustment` and `trade-in` have no Python original; their arguments follow the same
 rules. `division-296` alone takes a negative amount, in `total_super_earnings`. `main-residence` also takes dates as `YYYY-MM-DD` strings, lists of
 `{"start", "end"}` periods (with `"floor_area"` for income use) and `null`
 for no new home. `borrowing-expenses` takes `loan_start` as a `YYYY-MM-DD`
@@ -200,7 +201,9 @@ out before the withholding worked on it. `derive` `payg-withholding`, or
 `study-loan-withholding` for a payee with a study loan, on its `gross_pay` to
 see that withholding worked. `fbt-entertainment-classifier` is not derived
 either: each line and attendee class carries its own authority, from the row
-of the decision table that classified it.
+of the decision table that classified it. Nor is
+`fbt-meal-entertainment-register`: its checks carry their authorities, and its
+totals are sums of the register's entries.
 The plain commands' output does not change.
 
 The PAYG withholding, Schedule 5 and termination payment steps cite the
@@ -284,6 +287,7 @@ trade-in steps add GST Act ss 9-70, 9-75, 11-30, 69-10 and 132-5 and ITAA
 | FBT living-away-from-home allowances | Years ended 31 March 2026 and 2027; an allowance's established components, expenses and family members' days, at the statutory food amounts of $42 and $21 a week |
 | FBT board | Years ended 31 March 2026 and 2027; the established meals at $2.00 and $1.00, contributions and deductible share |
 | FBT tax-exempt body entertainment | Years ended 31 March 2026 and 2027; established non-deductible entertainment expenditure, actual or per head |
+| FBT meal entertainment register | Years ended 31 March 2026 and 2027; one 12 week register's period, entries and validity years, with the 20% rule from the yearly expenses given; not whether the period is representative or an entry false |
 | FBT entertainment classifier | Years ended 31 March 2026 and 2027; an ordinary taxable employer's entertainment expense lines with established facts, split per head between attendee classes; no tax-exempt bodies, Subdivision 32-B exceptions, salary packaging or reportable fringe benefits amounts |
 | Depreciation | 2025-26 and 2026-27, an ordinary tangible Division 40 asset's start year, or a later year from its established opening adjustable value; established life and use |
 | SG | Complete quarters of 2025-26; established OTE, eligibility and qualifying contributions |
@@ -869,6 +873,46 @@ count for each (`line_not_split`), a cost without its GST status
 (`register_percentage_invalid`), and a negative or non-finite cost
 (`input.amount_invalid`). It classifies facts; it does not advise on how to
 arrange an event. See [calculation evidence](docs/calculation-evidence.md#fbt-entertainment-classifier).
+
+## FBT meal entertainment register
+
+`fbt-meal-entertainment-register` checks whether a 12 week meal entertainment
+register is valid for the FBT year ended 31 March 2026 or 2027 (FBTAA ss 37CA
+to 37CF), and works out the register's values for `fbt-meal-entertainment`.
+`entries` lists what the register records for its period, one object for each
+provision of meal entertainment: `date`, `recipients` (counts of `employees`,
+`associates` and `others`), `cost`, `kind`, `location`, `on_premises`,
+`in_house_dining_facility` (on the employer's premises only) and
+`fringe_benefits_value`, the part of the cost that is meal entertainment
+fringe benefits, which the employer works out. A detail the register does not
+record is left out or `null`.
+
+The result lists 5 checks, each with its authority, whether it passed and why:
+the period is continuous and at least 12 weeks, 84 days with both ends
+counted (s 37CC(1) and (3)); the register records meal entertainment; every
+entry records the 6 details s 37CE(1) requires, naming each entry and detail
+missing; the register is valid for the year (s 37CD(1) and (2): the FBT year
+its period ends in, or the second year where it spans 2, and the 4 years
+after); and no later year's meal entertainment expenses were more than 20%
+higher than its first valid year's (s 37CD(3)), from
+`register_years_expenditure`. `valid` is true only when all 5 pass, and then
+`fbt_meal_entertainment_input` holds the register's values, first valid year
+and yearly expenses for `fbt-meal-entertainment`, which needs only the year's
+`meal_entertainment_expenditure` added. The register percentage is kept exact
+and shown to the cent; an entry with no cost is left out of the totals and
+counted in `entries_without_cost`.
+
+It refuses an entry dated outside the period, a fringe benefits value above
+the entry's cost or above nil with no employee or associate among its
+recipients, an in-house dining facility answer for meal entertainment off the
+employer's premises, a period that ends before it starts or spans more than
+2 FBT years (`period_invalid`) and a detail it cannot read (`entry_invalid`).
+Whether meal entertainment was provided throughout the period, whether the
+period is representative of the first valid year (s 37CC(2)), whether an entry
+is false or misleading (s 37CF) or was made late (s 37CE(2)), and whether a
+later register replaces this one, are the employer's to establish. The car
+parking register is outside it. See
+[calculation evidence](docs/calculation-evidence.md#fbt-meal-entertainment-register).
 
 ## Main residence
 
