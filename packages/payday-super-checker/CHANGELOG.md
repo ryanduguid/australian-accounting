@@ -126,6 +126,12 @@ root.
 
 ### Documented divergences
 
+- Without `--as-at`, the date assumed is today's in the zone `TZ` names, or
+  in the system zone when `TZ` is unset. A `TZ` that names no zone gives the
+  UTC date, as Python 0.2.2 did. On Windows Python read a zone name such as
+  `Australia/Sydney` in `TZ` as UTC; this reads it as that zone. Before 10:00
+  in Sydney (11:00 in daylight time) the UTC date is the day before, which can
+  change a verdict, so the notice names the date assumed.
 - The Employment Hero profile treats Beam's Reconciled status as not yet sent
   to the fund, as does Python maintenance release 0.2.3. Python 0.2.2 counted it as sent, but Beam's status order puts
   Reconciled (employer money cleared by Beam) before Sent to fund. A Reconciled
