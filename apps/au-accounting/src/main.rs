@@ -184,8 +184,14 @@ fn tax(args: &[OsString]) -> Outcome {
         .map(|a| a.to_string_lossy().into_owned())
         .collect();
     let commands = api::commands();
-    // The engine has no CLI beyond its JSON commands; this is its own usage error.
-    let usage = |_: &[String]| -> Outcome {
+    // The engine's CLI beyond its JSON commands: `--version`, else its own usage error.
+    let usage = |args: &[String]| -> Outcome {
+        if let [flag] = args
+            && flag == "--version"
+        {
+            let version = australian_tax_calculators::engine::VERSION;
+            return (0, format!("australian-tax-calculators {version}\n"), String::new());
+        }
         let commands = api::commands().join(", ");
         let text = format!(
             "usage: australian-tax-calculators COMMAND < input.json\ncommands: {commands}\n"
