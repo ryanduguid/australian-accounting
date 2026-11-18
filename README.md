@@ -29,10 +29,10 @@
 </div>
 
 ```bash
-claude mcp add --scope user aus-accounting -- uvx --from 'aus-accounting-mcp==0.9.0' aus-accounting-mcp
+claude mcp add --scope user aus-accounting -- uvx --from 'aus-accounting-mcp==0.10.0' aus-accounting-mcp
 ```
 
-That connects Claude Code; it needs Python 3.14+ and [uv](https://docs.astral.sh/uv/), and no API key. For Claude Desktop, download the `.mcpb` file from the [bundle releases](https://github.com/ryanduguid/australian-accounting/releases?q=aus-accounting-mcp-bundle&expanded=true) and open it with Claude Desktop. The server runs on your machine, so ChatGPT connectors and the Claude.ai web app, which accept only remote servers, cannot run it. [Other clients](apps/aus-accounting-mcp/README.md#client-integration).
+That connects Claude Code; it needs Python 3.14+ and [uv](https://docs.astral.sh/uv/), and no API key. The tax worksheets also need the [australian-tax-calculators 1.0.0 executable](https://github.com/ryanduguid/australian-accounting/releases/tag/australian-tax-calculators/v1.0.0) on `PATH` ([how](apps/aus-accounting-mcp/README.md#install)); every other tool works without it. For Claude Desktop, download the `.mcpb` file from the [bundle releases](https://github.com/ryanduguid/australian-accounting/releases?q=aus-accounting-mcp-bundle&expanded=true) and open it with Claude Desktop. The server runs on your machine, so ChatGPT connectors and the Claude.ai web app, which accept only remote servers, cannot run it. [Other clients](apps/aus-accounting-mcp/README.md#client-integration).
 
 Australian Accounting is a set of local tax and payroll calculation engines and an
 MCP server for Australian accountants and bookkeepers, and the developers who build
@@ -40,8 +40,8 @@ tooling for them.
 
 Nine engines (8 in Rust, 1 in Python) apply Australian tax and payroll rules to figures
 you supply. **Aus Accounting MCP**, a local Model Context Protocol server, gives an AI
-assistant the published Python releases of 6 of them; it loads none of the Rust crates
-yet.
+assistant the published Python releases of 5 of them and, from 0.10.0, the
+`australian-tax-calculators` executable; it loads none of the Rust crates yet.
 
 Each tool returns a calculation, the facts it used and the matters it refuses to
 decide. The engines and the MCP server run locally: they read files you point them at, contact no
@@ -144,8 +144,13 @@ For the MCP server, install Python 3.14+ and [uv](https://docs.astral.sh/uv/), t
 configure your MCP client to run:
 
 ```bash
-uvx --from 'aus-accounting-mcp==0.9.0' aus-accounting-mcp
+uvx --from 'aus-accounting-mcp==0.10.0' aus-accounting-mcp
 ```
+
+The tax worksheets also need the `australian-tax-calculators` 1.0.0 executable on
+`PATH` or at the absolute path in `AUS_TAX_CALCULATORS_BIN`; the
+[MCP install notes](apps/aus-accounting-mcp/README.md#install) say where to get it.
+Without it they refuse with an install message and every other tool works.
 
 This starts a **local stdio server**; it waits for an MCP client rather than opening
 a web page. It requires no API key. Package installation downloads dependencies;
@@ -153,7 +158,7 @@ the tools then use bundled data without network requests or record writes. The
 MCP host you connect it to is a separate boundary: it sends every tool argument
 and result to its model provider, so use fabricated data with a hosted model.
 
-The pin selects the published 0.9.0 release, so a new release does not reach you on
+The pin selects the published 0.10.0 release, so a new release does not reach you on
 its own. To move to a later release, replace the version in your client configuration
 with one from [PyPI](https://pypi.org/project/aus-accounting-mcp/);
 uvx downloads it, and later launches reuse the cached copy without a download until
@@ -244,9 +249,9 @@ Australian Accounting holds 13 components, each in its own directory:
 `IMPORTS.md` records the source repository, commit and tree of every imported component. The
 MCP application is the [io.github.ryanduguid/aus-accounting MCP Registry server](https://registry.modelcontextprotocol.io/v0.1/servers?search=io.github.ryanduguid%2Faus-accounting&version=latest); it
 depends on the published `ato-benchmark-compare`, `payday-super-checker`,
-`div7a-loan-review`, `australian-tax-calculators`, `gst-review` and `lodgment-calendar`
-distributions. In the development workspace, uv takes `gst-review` 0.1.0,
-`australian-tax-calculators` 0.2.0, `div7a-loan-review` 0.3.2,
+`div7a-loan-review`, `gst-review` and `lodgment-calendar` distributions, and from
+0.10.0 runs the released `australian-tax-calculators` executable. In the development
+workspace, uv takes `gst-review` 0.1.0, `div7a-loan-review` 0.3.2,
 `ato-benchmark-compare` 0.2.2 and `payday-super-checker` 0.2.3, the last Python
 releases, from PyPI.
 

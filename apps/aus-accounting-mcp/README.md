@@ -50,12 +50,20 @@ The listing identifies the distribution; it does not prove a client's installed 
 Requires Python 3.14+ and [uv](https://docs.astral.sh/uv/):
 
 ```bash
-uvx --from 'aus-accounting-mcp==0.9.0' aus-accounting-mcp
+uvx --from 'aus-accounting-mcp==0.10.0' aus-accounting-mcp
 ```
 
-This selects the published [0.9.0 release](https://github.com/ryanduguid/australian-accounting/releases/tag/aus-accounting-mcp/v0.9.0).
+This selects the published [0.10.0 release](https://github.com/ryanduguid/australian-accounting/releases/tag/aus-accounting-mcp/v0.10.0).
 The source checkout may be ahead of the published release. The pin selects the
 server version; it does not lock every transitive dependency.
+
+From 0.10.0 the tax worksheets also need the `australian-tax-calculators` 1.0.0
+executable, which `uvx` does not install. Download it for x86_64 Linux or Windows from
+the [australian-tax-calculators/v1.0.0 release](https://github.com/ryanduguid/australian-accounting/releases/tag/australian-tax-calculators/v1.0.0)
+(other platforms build it from [source](https://github.com/ryanduguid/australian-accounting/tree/main/packages/australian-tax-calculators)),
+verify it as that release describes, and put it in a folder on `PATH` or give its
+absolute path in `AUS_TAX_CALCULATORS_BIN`. Without it the tax worksheets refuse with
+an install message; every other tool works.
 
 The server waits for an MCP client over stdio. Tool calls read bundled data and any
 folders you configure. They do not contact the ATO or the Federal Register, change
@@ -75,8 +83,10 @@ From 0.8.0, each release also has an MCP Bundle for Claude Desktop: download
 and open it with Claude Desktop. The bundle holds no server code. It pins this package
 at that version, which uv installs from PyPI on first launch, resolving the package's
 own dependencies then. `SHA256SUMS` in the same release shows the download is intact;
-it does not prove who published it. The bundle's settings offer the 3 optional research
-folders described under Tools. If Claude Desktop does not start it, use the
+it does not prove who published it. The bundle does not include the calculators
+executable, so its tax worksheets refuse unless the executable, installed as under
+Install, is in a folder on the `PATH` Claude Desktop gives the server. The bundle's
+settings offer the 3 optional research folders described under Tools. If Claude Desktop does not start it, use the
 configuration below.
 
 For Claude Desktop, Cursor, Windsurf and other hosts that run local stdio servers:
@@ -86,18 +96,18 @@ For Claude Desktop, Cursor, Windsurf and other hosts that run local stdio server
   "mcpServers": {
     "aus-accounting": {
       "command": "uvx",
-      "args": ["--from", "aus-accounting-mcp==0.9.0", "aus-accounting-mcp"]
+      "args": ["--from", "aus-accounting-mcp==0.10.0", "aus-accounting-mcp"]
     }
   }
 }
 ```
 
-[Add to Cursor](https://cursor.com/en/install-mcp?name=aus-accounting&config=eyJjb21tYW5kIjoidXZ4IiwiYXJncyI6WyItLWZyb20iLCJhdXMtYWNjb3VudGluZy1tY3A9PTAuOS4wIiwiYXVzLWFjY291bnRpbmctbWNwIl19),
+[Add to Cursor](https://cursor.com/en/install-mcp?name=aus-accounting&config=eyJjb21tYW5kIjoidXZ4IiwiYXJncyI6WyItLWZyb20iLCJhdXMtYWNjb3VudGluZy1tY3A9PTAuMTAuMCIsImF1cy1hY2NvdW50aW5nLW1jcCJdfQ==),
 or from a terminal:
 
 ```bash
-claude mcp add --scope user aus-accounting -- uvx --from 'aus-accounting-mcp==0.9.0' aus-accounting-mcp
-codex mcp add aus-accounting -- uvx --from 'aus-accounting-mcp==0.9.0' aus-accounting-mcp
+claude mcp add --scope user aus-accounting -- uvx --from 'aus-accounting-mcp==0.10.0' aus-accounting-mcp
+codex mcp add aus-accounting -- uvx --from 'aus-accounting-mcp==0.10.0' aus-accounting-mcp
 ```
 
 The [client setup guide](https://github.com/ryanduguid/australian-accounting/blob/main/apps/aus-accounting-mcp/docs/REFERENCE.md#client-setup)
@@ -133,8 +143,8 @@ Ask in plain English. Each of these fabricated requests resolves to one tool cal
 | `get_lodgment_due_dates` | List ATO 2026-27 lodgment program due dates for BAS, IAS and income tax returns, self-lodged or through an agent, with `UNKNOWN` where a fact is missing. |
 | `validate_abn` | Test an ABN against ABN Lookup's published check digit arithmetic. A valid check digit proves neither ABR nor GST registration. |
 | `validate_acn` | Test an ACN against ASIC's published check digit arithmetic. A valid check digit proves neither ABR nor GST registration. |
-| `validate_bsb_format` | On `main`, not in 0.9.0. Test a BSB against AusPayNet's published 6 digit format, XXX-XXX. It holds no BSB directory, so a valid format proves no institution, branch or account. |
-| `validate_account_number_format` | On `main`, not in 0.9.0. Test a bank account number against the account number field in AusPayNet's BECS Procedures: up to 9 letters, digits, hyphens or spaces, not all zeros. A valid format proves no account, payee or BSB match. |
+| `validate_bsb_format` | Test a BSB against AusPayNet's published 6 digit format, XXX-XXX. It holds no BSB directory, so a valid format proves no institution, branch or account. |
+| `validate_account_number_format` | Test a bank account number against the account number field in AusPayNet's BECS Procedures: up to 9 letters, digits, hyphens or spaces, not all zeros. A valid format proves no account, payee or BSB match. |
 | `get_reviewed_rate` | Return a reviewed ATO rate or threshold for a date, with its source and a verbatim quote. Records cover 2025-26 and 2026-27 only; any other date is refused. |
 | `search_accounting_library` | Search a configured local Markdown library. |
 | `read_accounting_library` | Read cited lines from that library. |
@@ -228,12 +238,13 @@ Licensed under the [Ryan Duguid Public Attribution Licence 1.0](https://github.c
 Release `aus-accounting-mcp==0.5.0` provides 14 worksheets through
 `australian-tax-calculators==0.2.0`, including Schedule 8 study-loan withholding,
 the bounded annual Medicare levy, LITO and Division 293. The preceding 0.4.0
-release provides 10 through calculators 0.1.8. See the
+release provides 10 through calculators 0.1.8. From 0.10.0 the 14 run through the
+`australian-tax-calculators` 1.0.0 executable instead. See the
 [worksheet release verification](https://github.com/ryanduguid/australian-accounting/blob/main/apps/aus-accounting-mcp/docs/worksheet-release.md) for the installed
 package checks.
 
 [Release notes](https://github.com/ryanduguid/australian-accounting/blob/main/apps/aus-accounting-mcp/RELEASE_NOTES.md),
-[v0.9.0 release record](https://github.com/ryanduguid/australian-accounting/releases/tag/aus-accounting-mcp/v0.9.0),
+[v0.10.0 release record](https://github.com/ryanduguid/australian-accounting/releases/tag/aus-accounting-mcp/v0.10.0),
 [CITATION.cff](https://github.com/ryanduguid/australian-accounting/blob/main/apps/aus-accounting-mcp/CITATION.cff).
 
 <sub>Not tax, legal or financial advice. Payday Super and Division 7A reviews are experimental and need human review before consequential accounting action; fixtures are not a lodgement. Ryan Duguid is not a registered tax agent or BAS agent. Support covers software issues reproduced with fabricated data: do not send taxpayer information or ask for advice, return preparation, tax-treatment confirmation or lodgement. See [DISCLAIMER.md](https://github.com/ryanduguid/australian-accounting/blob/main/apps/aus-accounting-mcp/DISCLAIMER.md).</sub>
