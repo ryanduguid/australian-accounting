@@ -22,7 +22,10 @@ or datasets.
 Run these commands from `apps/aus-accounting-mcp/`. The active workflow is
 [the root ci.yml](../../.github/workflows/ci.yml), not a workflow inside this
 component. Read [root CONTRIBUTING.md](../../CONTRIBUTING.md) for workspace
-lockfile behaviour and the additional packaging and release checks:
+lockfile behaviour and the additional packaging and release checks. The tests
+run the `australian-tax-calculators` executable: build it with `cargo build
+--locked` in `packages/australian-tax-calculators` and put its `target/debug`
+folder on `PATH`, as CI does, or give its absolute path in `AUS_TAX_CALCULATORS_BIN`:
 
 ```bash
 uv run --locked --extra dev pytest -q --cov=aus_accounting_mcp --cov-branch --cov-report=term-missing

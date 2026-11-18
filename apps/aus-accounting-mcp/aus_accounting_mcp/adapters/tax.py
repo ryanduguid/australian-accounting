@@ -1,17 +1,119 @@
 # Copyright 2026 Ryan Duguid
 # SPDX-License-Identifier: LicenseRef-Duguid-Public-Attribution-1.0
 
-"""Validate worksheet facts and delegate all arithmetic to austaxcalc."""
+"""Validate worksheet facts and delegate all arithmetic to the calculators executable.
 
-from collections.abc import Callable
+The australian-tax-calculators binary is the absolute path in
+AUS_TAX_CALCULATORS_BIN, else the first in PATH's absolute folders, and is used
+only when `--version` names exactly the release this server was tested against.
+Without it the tax worksheets refuse with an install message and every other tool
+still works.
+"""
+
+import json
+import os
+import shutil
+import subprocess
 from decimal import Decimal, InvalidOperation
 from typing import Annotated, Any, Literal
 
-from austaxcalc import calculations
-from pydantic import BaseModel, ConfigDict, Field
+from mcp.server.mcpserver.exceptions import ToolError
+from pydantic import BaseModel, ConfigDict, Field, TypeAdapter, ValidationError
 
 from ..errors import InputError
 from ..money import MONEY_SCHEMA, parse_amount
+
+CALCULATORS = "australian-tax-calculators"
+#: The only calculators release this server accepts.
+CALCULATORS_VERSION = "1.0.0"
+BINARY_VARIABLE = "AUS_TAX_CALCULATORS_BIN"
+INSTALL = (
+    f"The tax worksheets need the {CALCULATORS} {CALCULATORS_VERSION} executable from "
+    "https://github.com/ryanduguid/australian-accounting/releases/tag/"
+    f"{CALCULATORS}/v{CALCULATORS_VERSION}, verified as that release describes, on PATH "
+    f"or at the absolute path in {BINARY_VARIABLE}. Tell the user; retrying will not help "
+    "until it is installed. The other tools work without it."
+)
+# A worksheet answers in milliseconds; this bounds a hung or wrong executable.
+TIMEOUT_SECONDS = 60
+
+
+class CalculatorsUnavailable(ToolError):
+    """The pinned calculators executable is missing, another version or broken."""
+
+
+def _executable() -> str | None:
+    """An absolute path: the operator's AUS_TAX_CALCULATORS_BIN, else PATH's first match.
+
+    Never the working directory: shutil.which and Windows' own search try it first,
+    so only PATH's absolute folders are searched, each by an absolute name.
+    """
+    named = os.environ.get(BINARY_VARIABLE)
+    if named:
+        if not os.path.isabs(named):
+            raise CalculatorsUnavailable(
+                f"{BINARY_VARIABLE} must be an absolute path, not {named!r}. {INSTALL}")
+        return named
+    for folder in os.environ.get("PATH", "").split(os.pathsep):
+        if os.path.isabs(folder) and (found := shutil.which(os.path.join(folder, CALCULATORS))):
+            return found
+    return None
+
+
+def _run(binary: str, arguments: list[str], payload: str = "") -> subprocess.CompletedProcess[str]:
+    try:
+        # An argument list and no shell; the executable is the absolute path the
+        # operator named or put on PATH, and the arguments are fixed command names.
+        return subprocess.run(  # NOSONAR nosemgrep
+            [binary, *arguments], input=payload, capture_output=True, text=True,  # nosemgrep
+            encoding="utf-8", timeout=TIMEOUT_SECONDS, check=False,
+        )
+    except (OSError, subprocess.SubprocessError) as exc:
+        raise CalculatorsUnavailable(f"{binary} did not run: {exc}. {INSTALL}") from exc
+
+
+def reported_version() -> str | None:
+    """The version the executable found reports, or None when there is none to read."""
+    try:
+        binary = _executable()
+        if binary is None:
+            return None
+        reply = _run(binary, ["--version"])
+    except CalculatorsUnavailable:
+        return None
+    name, _, version = reply.stdout.strip().partition(" ")
+    return version if reply.returncode == 0 and name == CALCULATORS and version else None
+
+
+def _binary() -> str:
+    binary = _executable()
+    if binary is None:
+        raise CalculatorsUnavailable(f"No {CALCULATORS} executable was found. {INSTALL}")
+    reply = _run(binary, ["--version"])
+    if reply.returncode != 0 or reply.stdout != f"{CALCULATORS} {CALCULATORS_VERSION}\n":
+        raise CalculatorsUnavailable(
+            f"{binary} --version answered {reply.stdout.strip()!r}, not "
+            f"'{CALCULATORS} {CALCULATORS_VERSION}'. {INSTALL}"
+        )
+    return binary
+
+
+def _command(command: str, payload: dict[str, Any]) -> dict[str, Any]:
+    """One JSON stdin command: its result, its refusal as InputError, or unavailability."""
+    binary = _binary()
+    reply = _run(binary, [command, "--refusal-json"], json.dumps(payload))
+    try:
+        answer = json.loads(reply.stdout)
+    except json.JSONDecodeError:
+        answer = None
+    if reply.returncode == 0 and isinstance(answer, dict):
+        return answer
+    if (reply.returncode == 2 and isinstance(answer, dict) and answer.get("ok") is False
+            and isinstance(answer.get("message"), str)):
+        raise InputError(answer["message"])
+    raise CalculatorsUnavailable(
+        f"{binary} {command} exited {reply.returncode}: {reply.stderr.strip()[:500]}"
+    )
 
 # The money and scope rules are stated once in the calculate_tax_worksheet description;
 # a sentence here is repeated for every field of every worksheet kind in the schema.
@@ -159,6 +261,7 @@ TaxFacts = Annotated[
     | LowIncomeTaxOffsetFacts | Division293Facts,
     Field(discriminator="kind"),
 ]
+_FACTS: TypeAdapter[TaxFacts] = TypeAdapter(TaxFacts)
 MONEY_FIELDS = {
     "amount", "taxable_income", "other_gains", "discount_gains", "current_losses",
     "prior_losses", "type_one_value", "type_two_value", "cost", "ordinary_time_earnings",
@@ -168,24 +271,123 @@ MONEY_FIELDS = {
 }
 
 
+# The executable describes more for these kinds than TaxFacts takes: quarterly pays,
+# scale 4, offsets and Medicare adjustments, later-year depreciation, the FBT year
+# ended 31 March 2027, Medicare family, SAPTO and exemption inputs, and earlier years'
+# contributions. Their catalogue entries and results state what this tool accepts
+# instead, as aus-accounting-mcp 0.9.0 did. Widening TaxFacts would retire them.
+ACCEPTED_SCOPES = {
+    "contribution_caps": (
+        "One individual's contributions received by all their funds in the income year, already"
+        " classified by the operator as concessional or non-concessional, with no bring-forward"
+        " period started in either of the 2 previous years. Total super balance is at the 30 "
+        "June before the year; unused concessional cap is the established total of unexpired "
+        "amounts from the previous 5 years. Excludes classification, fund acceptance and "
+        "work-test rules, deductibility, the CGT cap, downsizer and other excluded "
+        "contributions, excess concessional amounts counting as non-concessional, "
+        "determinations, release elections, Division 293 tax and the transfer balance cap."
+    ),
+    "depreciation": (
+        "First year only, ordinary tangible Division 40 asset first held on or after 10 May "
+        "2006. Established cost, effective life and taxable-use proportion. Days run from first"
+        " use or installation ready for use. No second-element costs, disposals, changed life, "
+        "pooling, immediate write-offs, special assets or Division 43 capital works. Does not "
+        "determine an effective life from an asset description."
+    ),
+    "fbt": (
+        "Ordinary taxable employer, established type 1 and type 2 taxable values for the year "
+        "ended 31 March 2026. Excludes benefit valuation, exemptions, rebates and "
+        "not-for-profit caps. Retains gross-up precision for the estimate, then presents the "
+        "amounts to cents. The return_item figures follow the FBT return instead: items 14A and"
+        " 14B rounded to the nearest dollar, as the ATO's own worked example does, item 15 as "
+        "their sum and item 16 at 47%, before any optional rounding down to 5 cents."
+    ),
+    "medicare_levy": (
+        "Australian resident individual for the full income year, single with no spouse or "
+        "dependants at any time in the year, not entitled to the seniors and pensioners tax "
+        "offset, and not entitled to any full or half Medicare levy exemption. The operator "
+        "must also establish whether s 9A applies: from 2024-25 it takes eligible lump sums in "
+        "arrears out of taxable income when they are at least 10% of normal taxable income and "
+        "its accrual-year tests are met. A person to whom s 9A applies is refused. Supply "
+        "established whole-dollar taxable income. Applies the 2% rate and the low-income "
+        "reduction: no levy at or below the threshold amount, and up to the phase-in limit no "
+        "more than 10% of the excess over it. Excludes the family income reduction, SAPTO "
+        "thresholds, exemptions, the Medicare levy surcharge, trustees and part-year residence."
+    ),
+    "payg_withholding": (
+        "One regular weekly, fortnightly or monthly payment of salary or wages made from 1 July"
+        " 2026 to a payee who gave a TFN, on scale 1, 2, 3, 5 or 6 as the operator established "
+        "from the payee's declarations. Earnings include allowances subject to withholding. "
+        "Excludes scale 4, tax offsets, Medicare levy adjustments, study and training support "
+        "loans, extra amounts for 53 or 27 pays, quarterly and bi-monthly pays, back payments, "
+        "bonuses, termination and other schedules."
+    ),
+    "study_loan_withholding": (
+        "One regular weekly, fortnightly or monthly payment of salary or wages made from 1 July"
+        " 2026 to a payee who gave a TFN declaration or withholding declaration saying they "
+        "have a study and training support loan debt, on scale 1, 2, 3, 5 or 6 as the operator "
+        "established. Scale 1 uses the Schedule 8 component for a payee who did not claim the "
+        "tax-free threshold; scales 2, 3, 5 and 6 use the one for a payee who claimed it or is "
+        "a foreign resident. Earnings include allowances subject to withholding. The result is "
+        "the Schedule 1 amount plus the Schedule 8 component, each rounded to the dollar; the "
+        "ATO's combined coefficients can differ by a dollar and it accepts either method. "
+        "Excludes scale 4, a Medicare levy variation for a spouse or dependants, tax offsets, "
+        "extra amounts for 53 or 27 pays, quarterly pays, lump sum termination payments, back "
+        "payments, bonuses and other schedules."
+    ),
+}
+ACCEPTED_INPUTS = {
+    "payg_withholding": {"pay_period": "weekly, fortnightly or monthly",
+                         "scale": "integer 1, 2, 3, 5 or 6"},
+    "study_loan_withholding": {"pay_period": "weekly, fortnightly or monthly"},
+}
+
+
 def calculate(facts: TaxFacts) -> dict[str, Any]:
     arguments = facts.model_dump()
     kind = arguments.pop("kind")
+    # The executable reads Python's decimal syntax, so each value goes as the
+    # str() of the Decimal the Python engine was given.
     for name in arguments.keys() & MONEY_FIELDS:
-        arguments[name] = parse_amount(arguments[name], name)
-    try:
-        for name in ("effective_life", "taxable_use"):
-            if name in arguments:
-                arguments[name] = Decimal(arguments[name])
-        # Each kind is its engine function's name. Resolving it per call keeps the
-        # other kinds working when the pinned engine predates a newer kind.
-        function: Callable[..., dict[str, Any]] | None = getattr(calculations, kind, None)
-        if function is None:
-            raise InputError(
-                f"{kind} needs a newer australian-tax-calculators than the one installed.")
-        return function(**arguments)
-    except (ValueError, InvalidOperation) as exc:
-        raise InputError(str(exc)) from exc
+        arguments[name] = str(parse_amount(arguments[name], name))
+    for name in ("effective_life", "taxable_use"):
+        if name in arguments:
+            try:
+                arguments[name] = str(Decimal(arguments[name]))
+            except InvalidOperation as exc:
+                raise InputError(str(exc)) from exc
+    # Each kind is its subcommand, hyphenated.
+    result = _command(kind.replace("_", "-"), arguments)
+    if kind in ACCEPTED_SCOPES:
+        result["scope"] = ACCEPTED_SCOPES[kind]
+    return result
+
+
+def worksheet_catalogue() -> dict[str, Any]:
+    """The executable's catalogue, narrowed to what calculate_tax_worksheet accepts.
+
+    The executable has more worksheets, periods and inputs than TaxFacts takes;
+    advertising those would invite calls the tool refuses. Kinds and periods are kept
+    only where their example validates, optional inputs are dropped, and the kinds in
+    ACCEPTED_SCOPES state that scope and ACCEPTED_INPUTS' descriptions.
+    """
+    narrowed: dict[str, Any] = {}
+    for kind, entry in _command("worksheet-catalogue", {}).items():
+        periods = []
+        for period in entry["supported_periods"]:
+            try:
+                _FACTS.validate_python({**entry["example"]["facts"], **period["arguments"]})
+            except ValidationError:
+                continue
+            periods.append(period)
+        if periods:
+            kept = {key: value for key, value in entry.items() if key != "optional_inputs"}
+            narrowed[kind] = {
+                **kept, "supported_periods": periods,
+                "scope": ACCEPTED_SCOPES.get(kind, entry["scope"]),
+                "required_inputs": {**entry["required_inputs"], **ACCEPTED_INPUTS.get(kind, {})},
+            }
+    return narrowed
 
 
 def _table(heading: str, values: dict[str, Any]) -> list[str]:
@@ -202,7 +404,7 @@ def render_file_note(facts: TaxFacts, result: dict[str, Any]) -> str:
     note adds none. The facts are as supplied, the assumptions are the engine's scope
     statement and the open issues are its warnings.
     """
-    passage = calculations.worksheet_catalogue()[result["calculation"]]["source_passage"]
+    passage = worksheet_catalogue()[result["calculation"]]["source_passage"]
     supplied = (
         f"- `{name}`: {str(value).lower() if isinstance(value, bool) else value}"
         for name, value in facts.model_dump().items()

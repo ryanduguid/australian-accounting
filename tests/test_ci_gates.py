@@ -245,7 +245,13 @@ class ApplicationSelectionTests(unittest.TestCase):
             ]
             names = {re.sub(r"[-_.]+", "-", re.split(r"[\s<>=!~\[;@]", dep)[0]).lower()
                      for dep in declared}
-            self.assertEqual(names & packages, expected, app)
+            # A crate's executable is no Python requirement; CI builds it for the tests.
+            executables = expected & rust_packages
+            self.assertEqual(names & packages, expected - executables, app)
+            workflow = (ROOT / ".github" / "workflows" / "ci.yml").read_text(encoding="utf-8")
+            for crate in executables:
+                self.assertIn(f"working-directory: packages/{crate}\n        run: |\n"
+                              "          cargo build --locked\n", workflow)
 
     def test_only_known_unrelated_components_can_skip(self) -> None:
         from select_package import SHARED_PATHS

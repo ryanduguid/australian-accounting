@@ -28,12 +28,11 @@ from typing import Any
 
 from atobenchmark.dataset import available_years, load
 from atobenchmark.report import DISCLAIMER as BENCHMARK_DISCLAIMER
-from austaxcalc import calculations
-from austaxcalc.calculations import SCOPES, SOURCE_CHECKED, SOURCES
 from paydaysuper import LAW_CONTENT_DATE
 from paydaysuper.calendar import load_calendar
 from paydaysuper.rates import load_gic
 
+from .adapters import tax
 from .adapters.div7a import DISCLAIMER as DIV7A_DISCLAIMER
 from .adapters.gst import DISCLAIMER as GST_DISCLAIMER
 from .adapters.lodgment import DISCLAIMER as LODGMENT_DISCLAIMER
@@ -150,13 +149,7 @@ def scope() -> dict[str, Any]:
             "read_ato_ruling": "Read one cited paragraph from the run its row_ref names, "
             "optionally with the same document's paragraphs either side of it.",
         },
-        "calculation_worksheets": calculations.worksheet_catalogue() if callable(
-            getattr(calculations, "worksheet_catalogue", None)
-        ) else {
-            kind: {"scope": description, "source": SOURCES[kind],
-                   "source_checked": SOURCE_CHECKED}
-            for kind, description in SCOPES.items()
-        },
+        "calculation_worksheets": _worksheets_or_install_message(),
         "synthetic_only_tools": ["generate_synthetic_sbr_fixture"],
         "unsupported_calculations": {
             "gst_bas": "GST registration, supply classification, input tax credits and real BAS.",
@@ -194,6 +187,20 @@ def scope() -> dict[str, Any]:
     }
 
 
+def _worksheets_or_install_message() -> dict[str, Any] | str:
+    try:
+        return tax.worksheet_catalogue()
+    except tax.CalculatorsUnavailable as exc:
+        return str(exc)
+
+
+def _worksheet_scopes() -> str:
+    catalogue = _worksheets_or_install_message()
+    if isinstance(catalogue, str):
+        return catalogue
+    return "\n".join(f"{kind}: {entry['scope']}" for kind, entry in catalogue.items())
+
+
 def _installed(distribution: str) -> str | None:
     try:
         return version(distribution)
@@ -214,7 +221,7 @@ def disclaimer() -> str:
             "# div7a-loan-review",
             DIV7A_DISCLAIMER,
             "# australian-tax-calculators",
-            "\n".join(f"{kind}: {description}" for kind, description in SCOPES.items()),
+            _worksheet_scopes(),
             "# gst-review",
             GST_DISCLAIMER,
             "# lodgment-calendar",
@@ -266,7 +273,9 @@ def component_versions() -> dict[str, Any]:
             "transport": "stdio",
         },
         "engines": [
-            {"distribution": name, "version": _installed(name)}
+            # The calculators are an executable, so the version is its own report.
+            {"distribution": name, "version": tax.reported_version()
+             if name == tax.CALCULATORS else _installed(name)}
             for name in ENGINE_DISTRIBUTIONS
         ],
     }

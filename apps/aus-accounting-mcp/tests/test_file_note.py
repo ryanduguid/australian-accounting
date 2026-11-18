@@ -8,9 +8,9 @@ import json
 import re
 
 import pytest
-from austaxcalc import calculations
 from mcp.server.mcpserver.exceptions import ToolError
 
+from aus_accounting_mcp.adapters.tax import worksheet_catalogue
 from aus_accounting_mcp.server import mcp
 
 GST = {"kind": "gst", "scope_confirmed": True, "year": "2025-26",
@@ -48,7 +48,7 @@ def test_a_gst_note_restates_the_facts_figures_scope_sources_and_warnings() -> N
         assert f"- {url} (checked {result['source_checked']})" in lines
     for warning in result["warnings"]:
         assert f"- {warning}" in lines
-    passage = calculations.worksheet_catalogue()["gst"]["source_passage"]
+    passage = worksheet_catalogue()["gst"]["source_passage"]
     assert f"The engine's source check covered: {passage}." in lines
 
 
@@ -56,9 +56,9 @@ def _numbers(text: str) -> set[str]:
     return set(re.findall(r"\d+(?:\.\d+)?", text))
 
 
-@pytest.mark.parametrize("kind", sorted(calculations.worksheet_catalogue()))
+@pytest.mark.parametrize("kind", sorted(worksheet_catalogue()))
 def test_every_kind_yields_a_note_whose_every_number_comes_from_the_result(kind) -> None:
-    entry = calculations.worksheet_catalogue()[kind]
+    entry = worksheet_catalogue()[kind]
     facts = {**entry["example"]["facts"], **entry["supported_periods"][0]["arguments"]}
     result = _call({"facts": facts, "file_note": True})
     note = result.pop("file_note")

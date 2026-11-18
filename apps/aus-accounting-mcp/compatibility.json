@@ -30,9 +30,9 @@
     },
     {
       "distribution": "australian-tax-calculators",
-      "version": "0.2.0",
+      "version": "1.0.0",
       "repository": "https://github.com/ryanduguid/australian-accounting/tree/main/packages/australian-tax-calculators",
-      "release": "https://github.com/ryanduguid/australian-accounting/releases/tag/australian-tax-calculators/v0.2.0"
+      "release": "https://github.com/ryanduguid/australian-accounting/releases/tag/australian-tax-calculators/v1.0.0"
     },
     {
       "distribution": "gst-review",

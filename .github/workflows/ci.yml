@@ -169,7 +169,7 @@ jobs:
     if: needs.changes.result == 'success' && needs.changes.outputs.run == 'true'
     permissions:
       contents: read
-    timeout-minutes: 15
+    timeout-minutes: 25
     strategy:
       fail-fast: false
       matrix:
@@ -196,6 +196,14 @@ jobs:
           enable-cache: true
           save-cache: ${{ github.ref == 'refs/heads/main' }}
           prune-cache: true
+      # The tax worksheets run the calculators executable, which the adapter finds
+      # on PATH: a debug build of this commit's crate, on its pinned toolchain.
+      - name: Build the calculators executable
+        shell: bash
+        working-directory: packages/australian-tax-calculators
+        run: |
+          cargo build --locked
+          echo "$GITHUB_WORKSPACE/packages/australian-tax-calculators/target/debug" >> "$GITHUB_PATH"
       # The same branch-coverage gate ci-package.yml runs for the engines, through
       # the pytest-cov the application already pins in its dev extra.
       - name: run tests with branch coverage
