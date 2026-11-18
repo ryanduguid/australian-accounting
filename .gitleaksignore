@@ -10,3 +10,67 @@ a9ff91fb88a85a89547c8d4d7ff3cba93f3a8a83:packages/ato-benchmark-compare/tests/te
 acac1e0aea0599bda885813b19ffc37654b0b4b1:packages/ato-benchmark-compare/tests/test_mapping.py:generic-api-key:194
 f1b0ebffe342a4254c218bed4d844d5e60d3bdbe:apps/aus-accounting-mcp/tests/fixtures/native/adapter-contracts.json:au-business-number:1
 f501f3f37c521e13d61bdc98f54d762dd3d63297:apps/aus-accounting-mcp/tests/fixtures/native/adapter-contracts.json:au-business-number:1
+
+# Accepted findings in branch commits never merged to main, which the weekly
+# scan reads because it scans every branch. Each value is a fixture or test
+# input; main holds the same work with the values written where the label rules
+# do not reach them. Checked 18 November 2026:
+# - au-business-number, 3fe871a (ryan/dgr-check-2026-11-16): 10 ABN values in
+#   the dgr-check draft. Nine are in tools/fixture-screen/tests/
+#   synthetic-identifiers.txt as public deductible gift recipients or unissued
+#   numbers; one fails the ABN checksum.
+# - au-bank-account, 6923ff8 and b10874b (ryan/identifier-checks-2026-11-15)
+#   and a3cce5b (ryan/account-number-format-2026-11-16): a BSB and account
+#   numbers given as format-check test inputs, one in an evaluation question
+#   about a fabricated payee.
+
+3fe871a000d9bf3bc952bc5a6a97968b53757de7:packages/australian-tax-calculators/README.md:au-business-number:1031
+3fe871a000d9bf3bc952bc5a6a97968b53757de7:packages/australian-tax-calculators/src/dgr.rs:au-business-number:683
+3fe871a000d9bf3bc952bc5a6a97968b53757de7:packages/australian-tax-calculators/src/dgr.rs:au-business-number:693
+3fe871a000d9bf3bc952bc5a6a97968b53757de7:packages/australian-tax-calculators/src/dgr.rs:au-business-number:700
+3fe871a000d9bf3bc952bc5a6a97968b53757de7:packages/australian-tax-calculators/src/dgr.rs:au-business-number:710
+3fe871a000d9bf3bc952bc5a6a97968b53757de7:packages/australian-tax-calculators/src/dgr.rs:au-business-number:718
+3fe871a000d9bf3bc952bc5a6a97968b53757de7:packages/australian-tax-calculators/src/dgr.rs:au-business-number:720
+3fe871a000d9bf3bc952bc5a6a97968b53757de7:packages/australian-tax-calculators/src/dgr.rs:au-business-number:722
+3fe871a000d9bf3bc952bc5a6a97968b53757de7:packages/australian-tax-calculators/src/dgr.rs:au-business-number:728
+3fe871a000d9bf3bc952bc5a6a97968b53757de7:packages/australian-tax-calculators/src/dgr.rs:au-business-number:731
+3fe871a000d9bf3bc952bc5a6a97968b53757de7:packages/australian-tax-calculators/src/dgr.rs:au-business-number:737
+3fe871a000d9bf3bc952bc5a6a97968b53757de7:packages/australian-tax-calculators/src/dgr.rs:au-business-number:746
+3fe871a000d9bf3bc952bc5a6a97968b53757de7:packages/australian-tax-calculators/src/dgr.rs:au-business-number:755
+3fe871a000d9bf3bc952bc5a6a97968b53757de7:packages/australian-tax-calculators/src/dgr.rs:au-business-number:766
+3fe871a000d9bf3bc952bc5a6a97968b53757de7:packages/australian-tax-calculators/src/dgr.rs:au-business-number:770
+3fe871a000d9bf3bc952bc5a6a97968b53757de7:packages/australian-tax-calculators/src/dgr.rs:au-business-number:781
+3fe871a000d9bf3bc952bc5a6a97968b53757de7:packages/australian-tax-calculators/src/dgr.rs:au-business-number:788
+3fe871a000d9bf3bc952bc5a6a97968b53757de7:packages/australian-tax-calculators/src/dgr.rs:au-business-number:793
+3fe871a000d9bf3bc952bc5a6a97968b53757de7:packages/australian-tax-calculators/src/dgr.rs:au-business-number:807
+3fe871a000d9bf3bc952bc5a6a97968b53757de7:packages/australian-tax-calculators/src/dgr.rs:au-business-number:865
+3fe871a000d9bf3bc952bc5a6a97968b53757de7:packages/australian-tax-calculators/src/dgr.rs:au-business-number:867
+3fe871a000d9bf3bc952bc5a6a97968b53757de7:packages/australian-tax-calculators/src/dgr.rs:au-business-number:874
+3fe871a000d9bf3bc952bc5a6a97968b53757de7:packages/australian-tax-calculators/src/dgr.rs:au-business-number:901
+3fe871a000d9bf3bc952bc5a6a97968b53757de7:packages/australian-tax-calculators/src/dgr.rs:au-business-number:920
+3fe871a000d9bf3bc952bc5a6a97968b53757de7:packages/australian-tax-calculators/src/dgr.rs:au-business-number:922
+3fe871a000d9bf3bc952bc5a6a97968b53757de7:packages/australian-tax-calculators/src/dgr.rs:au-business-number:925
+3fe871a000d9bf3bc952bc5a6a97968b53757de7:packages/australian-tax-calculators/src/dgr.rs:au-business-number:955
+3fe871a000d9bf3bc952bc5a6a97968b53757de7:packages/australian-tax-calculators/src/dgr.rs:au-business-number:960
+3fe871a000d9bf3bc952bc5a6a97968b53757de7:packages/australian-tax-calculators/src/dgr.rs:au-business-number:965
+3fe871a000d9bf3bc952bc5a6a97968b53757de7:packages/australian-tax-calculators/src/dgr.rs:au-business-number:970
+3fe871a000d9bf3bc952bc5a6a97968b53757de7:packages/australian-tax-calculators/src/dgr.rs:au-business-number:975
+3fe871a000d9bf3bc952bc5a6a97968b53757de7:packages/australian-tax-calculators/src/dgr.rs:au-business-number:980
+3fe871a000d9bf3bc952bc5a6a97968b53757de7:packages/australian-tax-calculators/src/dgr.rs:au-business-number:985
+3fe871a000d9bf3bc952bc5a6a97968b53757de7:packages/australian-tax-calculators/tests/dgr_check.rs:au-business-number:43
+3fe871a000d9bf3bc952bc5a6a97968b53757de7:packages/australian-tax-calculators/tests/dgr_check.rs:au-business-number:59
+3fe871a000d9bf3bc952bc5a6a97968b53757de7:packages/australian-tax-calculators/tests/dgr_check.rs:au-business-number:71
+3fe871a000d9bf3bc952bc5a6a97968b53757de7:packages/australian-tax-calculators/tests/dgr_check.rs:au-business-number:81
+3fe871a000d9bf3bc952bc5a6a97968b53757de7:packages/australian-tax-calculators/tests/dgr_check.rs:au-business-number:83
+3fe871a000d9bf3bc952bc5a6a97968b53757de7:packages/australian-tax-calculators/tests/dgr_check.rs:au-business-number:85
+3fe871a000d9bf3bc952bc5a6a97968b53757de7:packages/australian-tax-calculators/tests/dgr_check.rs:au-business-number:87
+3fe871a000d9bf3bc952bc5a6a97968b53757de7:packages/australian-tax-calculators/tests/dgr_check.rs:au-business-number:107
+3fe871a000d9bf3bc952bc5a6a97968b53757de7:packages/australian-tax-calculators/tests/dgr_check.rs:au-business-number:112
+3fe871a000d9bf3bc952bc5a6a97968b53757de7:packages/australian-tax-calculators/tests/dgr_check.rs:au-business-number:154
+3fe871a000d9bf3bc952bc5a6a97968b53757de7:packages/australian-tax-calculators/tests/dgr_check.rs:au-business-number:162
+6923ff8210f94f041f5400c974f0cded52f7f346:apps/aus-accounting-mcp/tests/test_identifiers.py:au-bank-account:219
+a3cce5b95adfc4ca26c00ac78a5a10d514861511:apps/aus-accounting-mcp/evaluation/questions.xml:au-bank-account:297
+a3cce5b95adfc4ca26c00ac78a5a10d514861511:apps/aus-accounting-mcp/evaluation/questions.xml:au-bank-account:299
+a3cce5b95adfc4ca26c00ac78a5a10d514861511:apps/aus-accounting-mcp/tests/test_identifiers.py:au-bank-account:318
+b10874b523130a2869c0b333995bc91ff51f7c98:apps/aus-accounting-mcp/tests/test_identifiers.py:au-bank-account:192
+b10874b523130a2869c0b333995bc91ff51f7c98:apps/aus-accounting-mcp/tests/test_identifiers.py:au-bank-account:229
