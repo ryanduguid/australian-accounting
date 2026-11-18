@@ -69,9 +69,11 @@ impl Reply {
 
 /// The UTC date of a Unix time in milliseconds, as YYYY-MM-DD.
 pub fn today(millis: u64) -> String {
-    chrono::DateTime::from_timestamp_millis(millis as i64)
-        .expect("the platform clock is a valid time")
-        .format("%Y-%m-%d")
+    let instant = jiff::Timestamp::from_millisecond(millis as i64)
+        .expect("the platform clock is a valid time");
+    jiff::tz::TimeZone::UTC
+        .to_datetime(instant)
+        .strftime("%Y-%m-%d")
         .to_string()
 }
 
@@ -406,9 +408,25 @@ mod tests {
     }
 
     #[test]
+    fn the_request_date_turns_over_at_utc_midnight_at_month_and_year_ends() {
+        for (millis, day) in [
+            (1_814_399_999_999, "2027-06-30"),
+            (1_814_400_000_000, "2027-07-01"),
+            (1_830_297_599_999, "2027-12-31"),
+            (1_830_297_600_000, "2028-01-01"),
+            (1_835_395_199_999, "2028-02-28"),
+            (1_835_395_200_000, "2028-02-29"),
+            (1_835_481_599_999, "2028-02-29"),
+            (1_835_481_600_000, "2028-03-01"),
+        ] {
+            assert_eq!(today(millis), day, "{millis}");
+        }
+    }
+
+    #[test]
     fn every_tool_call_is_refused_from_serve_until() {
-        let day = chrono::NaiveDate::parse_from_str(SERVE_UNTIL, "%Y-%m-%d").unwrap();
-        let before = day.pred_opt().unwrap().to_string();
+        let day = jiff::civil::Date::strptime("%Y-%m-%d", SERVE_UNTIL).unwrap();
+        let before = day.yesterday().unwrap().to_string();
         for tool in contracts::CATALOGUE["tools"].as_array().unwrap() {
             let name = tool["name"].as_str().unwrap();
             let served = call_on(&before, name, name);
