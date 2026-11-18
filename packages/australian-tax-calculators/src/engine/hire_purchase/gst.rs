@@ -2,18 +2,21 @@
 // SPDX-License-Identifier: LicenseRef-Duguid-Public-Attribution-1.0
 
 //! The hirer's input tax credit for an agreement entered into from 1 July
-//! 2012, when every fact it turns on is given. The citations are to the GST
+//! 2012, and a chattel mortgage purchaser's on the price, when every fact it
+//! turns on is given. The citations are to the GST
 //! Act compilation 96 (1 January 2026) and the ATO's 'GST – Hire purchase and
 //! leasing' (last updated 6 April 2017), 'Purchasing a motor vehicle' (last
 //! updated 3 June 2026) and the GST issues register 'Financial services -
 //! questions and answers', issues 1.1, 1.3 and 1.17 (updated 7 September
-//! 2012), all read on 18 November 2026.
+//! 2012), all read on 18 November 2026, and for a chattel mortgage GST Act
+//! ss 29-10, 40-5 and 69-10, that register's issues 1.14 and 1.21 and
+//! 'Purchasing a motor vehicle', read on 19 November 2026.
 
 use serde_json::{Map, Value, json};
 
 use crate::decimal::{Decimal, Rounding};
 use crate::engine::trade_in::CAR_LIMITS;
-use crate::engine::{Arg, Result, Step, d, finite_between, int, money, refuse, step};
+use crate::engine::{Arg, Result, Step, d, finite_between, int, money, py_min, refuse, step};
 
 /// The facts every registered hirer states, then a passenger car's.
 const REGISTERED: [&str; 3] = ["accounting_basis", "creditable_purpose", "asset"];
@@ -31,6 +34,14 @@ pub(super) struct Car {
     market_value: Decimal,
     luxury_car_tax: Decimal,
     quotes_abn: bool,
+}
+
+impl Car {
+    /// Whether GST Act s 69-10(1) caps the credit: the car's GST inclusive
+    /// market value exceeds the car limit and no ABN may be quoted for it.
+    fn capped(&self) -> Result<bool> {
+        Ok(!self.quotes_abn && self.market_value.gt(&self.limit)?)
+    }
 }
 
 /// The GST facts as given.
@@ -113,8 +124,9 @@ fn car(fields: &Map<String, Value>) -> Result<Option<Car>> {
 }
 
 /// The GST facts in `gst`: each one a figure turns on, or the list of those
-/// missing. A fact given that the others make irrelevant is refused.
-pub(super) fn read(gst: Option<&Arg>) -> Result<Facts> {
+/// missing. A fact given that the others make irrelevant is refused. With
+/// `review_cap`, a car s 69-10(1) caps gives no figure ([`Facts::Review`]).
+pub(super) fn read(gst: Option<&Arg>, review_cap: bool) -> Result<Facts> {
     let Some(gst) = gst else {
         return Ok(Facts::Missing(vec!["gst"]));
     };
@@ -142,7 +154,7 @@ pub(super) fn read(gst: Option<&Arg>) -> Result<Facts> {
     match registered {
         None => Ok(Facts::Missing(vec!["registered"])),
         Some(false) => Ok(Facts::NotRegistered),
-        Some(true) => read_registered(fields),
+        Some(true) => read_registered(fields, review_cap),
     }
 }
 
@@ -171,7 +183,7 @@ fn creditable_purpose(fields: &Map<String, Value>) -> Result<Option<Decimal>> {
 }
 
 /// A registered hirer's facts, as [`read`] gives them.
-fn read_registered(fields: &Map<String, Value>) -> Result<Facts> {
+fn read_registered(fields: &Map<String, Value>, review_cap: bool) -> Result<Facts> {
     let mut missing: Vec<&'static str> = REGISTERED
         .iter()
         .copied()
@@ -203,9 +215,9 @@ fn read_registered(fields: &Map<String, Value>) -> Result<Facts> {
     if !missing.is_empty() {
         return Ok(Facts::Missing(missing));
     }
-    if let Some(car) = &car
-        && !car.quotes_abn
-        && car.market_value.gt(&car.limit)?
+    if review_cap
+        && let Some(car) = &car
+        && car.capped()?
     {
         return Ok(Facts::Review);
     }
@@ -387,4 +399,136 @@ pub(super) fn summary(facts: &Facts, first_consideration: &str) -> Value {
             })
         }
     }
+}
+
+const PRICE_GST: &str = "GST Act ss 9-70 and 9-75(1): 10% of the value of the taxable supply of the goods, the price x 10 / 11, so 1/11 of the price, rounded to the nearest cent, 0.5 up (s 9-90(1)); the loan is a separate supply, input taxed as a financial supply (s 40-5(1)), so the interest carries no GST";
+const PRICE_GST_CAR: &str = "GST Act ss 9-70 and 9-75(1) and (2): 10% of the value, the price less luxury car tax x 10 / 11, so 1/11 of the price less luxury car tax, rounded to the nearest cent, 0.5 up (s 9-90(1)); the loan is a separate supply, input taxed as a financial supply (s 40-5(1)), so the interest carries no GST";
+const PURCHASE_CAR_CAPPED: &str = "GST Act s 69-10(1), with the ATO's 'Purchasing a motor vehicle' (Darren's example): the car's GST inclusive market value exceeds the car limit for the financial year it is first used and the purchaser may not quote an ABN for luxury car tax, so the credit is the GST payable on the car up to 1/11 of that limit";
+const PURCHASE_CAR_NOT_CAPPED: &str = "GST Act s 11-25: the GST payable on the supply; s 69-10(1) does not cap it, as the car's GST inclusive market value does not exceed the car limit for the financial year it is first used, or the purchaser may quote an ABN for luxury car tax (s 69-10(1)(b) and (c))";
+const REGISTER: &str = "the ATO's GST issues register 'Financial services - questions and answers'";
+
+/// The input tax credit on goods bought with a loan secured over them (a
+/// chattel mortgage), when every fact it turns on is given: the GST on the
+/// price alone, capped for a car by s 69-10(1). `price` is the amount
+/// financed, deposit and trade-in.
+pub(super) fn purchase_worked(facts: &Facts, price: &Decimal) -> Result<Option<Worked>> {
+    let (purpose, car) = match facts {
+        Facts::Missing(_) | Facts::Review => return Ok(None),
+        Facts::NotRegistered => return Ok(Some(no_credit(Vec::new(), NOT_REGISTERED, None))),
+        Facts::Registered { purpose, car, .. } => (purpose, car.as_deref()),
+    };
+    let [payable, full_step] = purchase_credit(price, car)?;
+    let full = full_step.value.clone();
+    let mut steps = vec![payable, full_step];
+    let car_limit = car.map(|c| c.limit.clone());
+    if purpose.is_zero() {
+        return Ok(Some(no_credit(steps, NO_PURPOSE, car_limit)));
+    }
+    steps.push(step(
+        "input_tax_credit",
+        PART,
+        "full_input_tax_credit x creditable_purpose",
+        &[&full, purpose],
+        full.mul(purpose)?,
+    ));
+    Ok(Some(Worked {
+        steps,
+        purpose_on_interest: None,
+        car_limit,
+    }))
+}
+
+/// The GST payable on the price, rounded to the cent (GST Act s 9-90(1)), and
+/// the full input tax credit: that GST, less luxury car tax for a car and
+/// capped at 1/11 of the car limit where s 69-10(1) applies.
+fn purchase_credit(price: &Decimal, car: Option<&Car>) -> Result<[Step; 2]> {
+    let Some(car) = car else {
+        let payable = price.div(&int(11))?.quantize(-2, Rounding::HalfUp)?;
+        return Ok([
+            step(
+                "gst_payable",
+                PRICE_GST,
+                "cents(price / 11)",
+                &[price],
+                payable.clone(),
+            ),
+            step(
+                "full_input_tax_credit",
+                FULL,
+                "gst_payable",
+                &[&payable],
+                payable.clone(),
+            ),
+        ]);
+    };
+    if car.luxury_car_tax.gt(price)? {
+        return refuse(
+            "hire_purchase.gst_fact_conflict",
+            "gst: luxury_car_tax cannot exceed the price (amount_financed, deposit and trade_in), which includes it.",
+        );
+    }
+    let payable = price
+        .sub(&car.luxury_car_tax)?
+        .div(&int(11))?
+        .quantize(-2, Rounding::HalfUp)?;
+    let full = if car.capped()? {
+        let cap = car.limit.div(&int(11))?;
+        step(
+            "full_input_tax_credit",
+            PURCHASE_CAR_CAPPED,
+            "min(gst_payable, car_limit / 11)",
+            &[&payable, &car.limit],
+            py_min(payable.clone(), cap)?,
+        )
+    } else {
+        step(
+            "full_input_tax_credit",
+            PURCHASE_CAR_NOT_CAPPED,
+            "gst_payable",
+            &[&payable],
+            payable.clone(),
+        )
+    };
+    Ok([
+        step(
+            "gst_payable",
+            PRICE_GST_CAR,
+            "cents((price - luxury_car_tax) / 11)",
+            &[price, &car.luxury_car_tax],
+            payable,
+        ),
+        full,
+    ])
+}
+
+/// The GST facts and attribution beside a purchase's amounts.
+pub(super) fn purchase_summary(facts: &Facts, purchase_date: &str) -> Value {
+    let Facts::Registered {
+        cash_basis, car, ..
+    } = facts
+    else {
+        return summary(facts, purchase_date);
+    };
+    let attributable = if *cash_basis {
+        format!(
+            "The whole input tax credit is attributable to the tax period in which the purchaser applies the borrowed funds to pay the full price at the time of acquisition (GST Act s 29-10(2)(a); {REGISTER}, issue 1.21), taken here as purchase_date."
+        )
+    } else {
+        format!(
+            "The whole input tax credit is attributable to the tax period in which the invoice is received or any payment is made, whichever is earlier (GST Act s 29-10(1); {REGISTER}, issue 1.21)."
+        )
+    };
+    json!({
+        "computed": true,
+        "registered": true,
+        "accounting_basis": if *cash_basis { "cash" } else { "accruals" },
+        "first_used_year": car.as_ref().map(|c| c.first_used_year),
+        "attributable": attributable,
+        "purchase_date": purchase_date,
+        "notes": [
+            "Claimed only with a tax invoice held when the GST return is given (GST Act s 29-10(3)).",
+            format!("The loan is an input taxed financial supply (GST Act s 40-5(1); {REGISTER}, issue 1.14), so the interest gives no input tax credit."),
+            "Fees, charges and stamp duty are not included.",
+        ],
+    })
 }
