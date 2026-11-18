@@ -210,6 +210,13 @@ on a bucket no reviewed account reached. Pass `supplied` where the set you can
 vouch for differs again, which is what the command line does: it adds `w1` and
 the operator's `--confirm-other-income-nil` assertion to the routed set.
 
+An unmatched mapping row leaves its bucket unevidenced even when another readable
+account reaches that bucket. The JSON and text reports withhold dependent figures
+and ratios until the export and reviewed mapping are reconciled. This also applies
+to stale mapping rows, whose missing amounts cannot be assumed to be zero.
+An unreadable occurrence of a mapped account also leaves its bucket unevidenced
+when another occurrence of the same account is readable.
+
 Other commands:
 
 ```bash

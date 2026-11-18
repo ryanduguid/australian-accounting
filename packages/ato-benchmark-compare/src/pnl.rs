@@ -132,6 +132,25 @@ pub fn csv_rows(text: &str) -> Result<Vec<Vec<String>>, Failure> {
 
 /// `read(path, amount_column)`.
 pub fn read(path: &PyPath, amount_column: Option<&str>) -> Result<PnlFile, Failure> {
+    read_for_compare(path, amount_column).map(|(file, _)| file)
+}
+
+/// Retain skipped account identities for comparison evidence, without changing
+/// the public PnlFile or read-pnl API representation.
+pub(crate) fn read_for_compare(
+    path: &PyPath,
+    amount_column: Option<&str>,
+) -> Result<(PnlFile, Vec<String>), Failure> {
+    let mut skipped_accounts = Vec::new();
+    let file = read_with_skipped_accounts(path, amount_column, &mut skipped_accounts)?;
+    Ok((file, skipped_accounts))
+}
+
+fn read_with_skipped_accounts(
+    path: &PyPath,
+    amount_column: Option<&str>,
+    skipped_accounts: &mut Vec<String>,
+) -> Result<PnlFile, Failure> {
     let shown = path.display();
     if !path.fs().is_file() {
         return fail(format!("profit and loss file not found: {shown}"));
@@ -165,7 +184,7 @@ pub fn read(path: &PyPath, amount_column: Option<&str>) -> Result<PnlFile, Failu
         }
         return read_neutral(&shown, &rows, &header);
     }
-    read_report(&shown, &rows, amount_column)
+    read_report(&shown, &rows, amount_column, skipped_accounts)
 }
 
 fn read_neutral(shown: &str, rows: &[Vec<String>], header: &[String]) -> Result<PnlFile, Failure> {
@@ -451,6 +470,7 @@ fn read_report(
     shown: &str,
     rows: &[Vec<String>],
     amount_column: Option<&str>,
+    skipped_accounts: &mut Vec<String>,
 ) -> Result<PnlFile, Failure> {
     let (index, column_name) = amount_column_index(rows, amount_column)?;
     let mut parsed = Vec::new();
@@ -475,6 +495,7 @@ fn read_report(
                 continue;
             }
             let Ok(amount) = parse_amount(Some(c), &format!("{shown} line {number}")) else {
+                skipped_accounts.push(label.into());
                 skipped.push(format!(
                     "line {number}: {} has no readable amount in {column_name}",
                     pytext::repr(label)
@@ -496,6 +517,7 @@ fn read_report(
             row_section = Some(heading.into());
         }
         if !label.is_empty() && c.is_empty() {
+            skipped_accounts.push(label.into());
             skipped.push(format!(
                 "line {number}: {} has no amount in {column_name}",
                 pytext::repr(label)
@@ -507,6 +529,7 @@ fn read_report(
             continue;
         }
         let Ok(amount) = parse_amount(Some(c), &format!("{shown} line {number}")) else {
+            skipped_accounts.push(label.into());
             skipped.push(format!(
                 "line {number}: {} has no readable amount in {column_name}",
                 pytext::repr(label)
