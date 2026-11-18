@@ -4,9 +4,9 @@
 
 Standalone Rust binary, replacing Python package 0.2.0 and its `austaxcalc`
 import API. The fourteen worksheet functions, `worksheet_catalogue()` and
-`periods()` are JSON stdin subcommands, documented in README.md. No worksheet
-method, rounding, period, scope statement, source, warning or refusal message is
-intentionally changed.
+`periods()` are JSON stdin subcommands, documented in README.md. Worksheet
+methods, rounding, periods, scope statements, sources, warnings and refusal
+messages change only as 'Added' and 'Documented divergences' below record.
 
 ### Added
 
