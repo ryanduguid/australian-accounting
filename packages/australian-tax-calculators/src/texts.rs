@@ -921,16 +921,16 @@ pub const REFUSAL_CODES: &[(&str, &str)] = &[
         "asset is not car, motor_cycle_or_similar or other.",
     ),
     (
+        "balancing.car_limit_cost_mismatch",
+        "cost is not car_limit's limit plus second_element_cost.",
+    ),
+    (
         "balancing.car_limit_invalid",
         "car_limit is not null or an object.",
     ),
     (
         "balancing.car_limit_not_reduced",
         "The car limit facts show that s 40-230 did not reduce the car's cost, so s 40-325 does not apply.",
-    ),
-    (
-        "balancing.days_deducted_unclear",
-        "A log book year has a nil deduction beside cents per kilometre years, so the days s 40-370 counts are unclear.",
     ),
     (
         "balancing.decline_above_cost",
@@ -963,6 +963,10 @@ pub const REFUSAL_CODES: &[(&str, &str)] = &[
     (
         "balancing.year_repeated",
         "A row's income year is given twice.",
+    ),
+    (
+        "balancing.years_incomplete",
+        "The rows do not give every income year from the first held to the event's.",
     ),
     (
         "balancing.years_invalid",

@@ -1030,7 +1030,8 @@ for a taxable purpose (s 40-290) and the capital gain or loss of CGT event K7
 - `asset`: `car` (as ITAA 1997 s 995-1 defines it), `motor_cycle_or_similar`
   or `other`;
 - `years`, one object for each income year held from the start time to the
-  event, each with `income_year`, `decline_in_value` and `deduction`, the
+  event, the event's year included (a year with no decline gives `0.00`),
+  each with `income_year`, `decline_in_value` and `deduction`, the
   decline less the reductions s 40-25(2) to (4) required. A car's rows also
   state `method` (`log_book` or `cents_per_kilometre`) and `days_held` (at
   most the days in that income year, 366 when it includes 29 February); a
@@ -1039,7 +1040,8 @@ for a taxable purpose (s 40-290) and the capital gain or loss of CGT event K7
 - for a car only, and then required, `car_limit`: `null`, or where s 40-230
   reduced its cost, an object with `limit` (the car limit for the financial
   year the car was first used), `second_element_cost` and
-  `cost_ignoring_car_limit`.
+  `cost_ignoring_car_limit`; `cost` is then `limit` plus
+  `second_element_cost`.
 
 Each year's decline and deduction are inputs; `depreciation` works out a
 year's decline. The adjustable value is cost less the years' declines
@@ -1051,9 +1053,10 @@ is less. A car whose expenses were claimed by the log book method in some years
 and the cents per kilometre method in others is worked under s 40-370 instead:
 a cents per kilometre year counts 80% of its notional decline as a reduction,
 and the reduced amount is scaled by the days the decline was deducted over the
-days held. A car claimed only by the cents per kilometre method has nothing
-assessable or deductible (s 40-370(1) Note 2). Where s 40-230 reduced a car's
-cost, its termination value is first multiplied by the car limit plus the
+days held, a log book year with a nil deduction adding no days. A car claimed
+only by the cents per kilometre method has nothing assessable or deductible
+(s 40-370(1) Note 2). Where s 40-230 reduced a car's cost, its termination
+value is first multiplied by the car limit plus the
 second element over its cost ignoring the car limit (s 40-325). The K7 gain or
 loss is the termination value less cost, or cost less termination value, times
 the same fraction of reductions (s 104-240), and is nil for a car, motor cycle
@@ -1064,11 +1067,12 @@ held, the provision applied and, under s 40-370, the days deducted and held.
 It refuses a year after the event's year, a year before 2001-02, a car year
 before 2015-16 (when the one-third of actual expenses and 12% of original value
 methods could apply, which s 40-370 as compiled now does not count), a year
-given twice, a deduction above its year's decline, declines totalling more
-than cost or nil, a log book year with a nil deduction beside cents per
-kilometre years (s 40-370 counts the days for which the decline was deducted,
-and a nil deduction leaves unclear whether that year's days count), car limit
-facts that show s 40-230 did not reduce the cost, and 2027-28, when Schedule 1
+given twice, years that skip one or stop before the event's, a deduction above
+its year's decline, declines totalling more than cost or nil, car limit facts
+that show s 40-230 did not reduce the cost, a car's cost other than the car
+limit plus the second element (so a car first used in a later financial year
+than the one it was acquired in, whose 2 car limits differ, and a car held
+with another entity, s 40-230(4)), and 2027-28, when Schedule 1
 to Act No. 49 of 2026 changes capital gains. Whether an event occurred, the
 termination value, cost, decline, use and method are the caller's to establish.
 Out of scope are assets in a low-value, software development, project or small

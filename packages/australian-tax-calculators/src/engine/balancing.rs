@@ -140,16 +140,13 @@ fn path(facts: &Facts) -> Result<Path> {
     if logged.is_empty() {
         return Ok(Path::CentsOnly);
     }
-    if logged
+    // Step 3 counts the days for which the decline was deducted, so a log
+    // book year with a nil deduction adds none.
+    let deducted: i64 = logged
         .iter()
-        .any(|row| row.deduction.as_ref().is_some_and(Decimal::is_zero))
-    {
-        return refuse(
-            "balancing.days_deducted_unclear",
-            "A log book year with a nil deduction: s 40-370 step 3 counts the days for which you deducted the decline in value, and a nil deduction leaves unclear whether that year's days count.",
-        );
-    }
-    let deducted: i64 = logged.iter().filter_map(|row| row.days).sum();
+        .filter(|row| row.deduction.as_ref().is_some_and(|d| !d.is_zero()))
+        .filter_map(|row| row.days)
+        .sum();
     Ok(Path::Switched(deducted, held))
 }
 

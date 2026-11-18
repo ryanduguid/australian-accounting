@@ -315,6 +315,29 @@ pub(super) fn read_facts(
             );
         }
     }
+    // Rows are distinct years no later than the event, so they run without a
+    // gap to the event's year exactly when the latest is that year and they
+    // span as many years as there are rows.
+    let earliest = years.iter().map(|row| row.first).min().unwrap_or(event);
+    let latest = years.iter().map(|row| row.first).max().unwrap_or(event);
+    if latest != event || latest - earliest + 1 != years.len() as i64 {
+        return refuse(
+            "balancing.years_incomplete",
+            format!(
+                "years must give every income year from the first one held, {}, to {}, the year of the event, one row each (a year with no decline gives 0.00): a year is missing.",
+                year_text(earliest),
+                year_text(event)
+            ),
+        );
+    }
+    if let Some(car) = &car_limit
+        && !cost.equals(&car.limit.add(&car.second_element)?)?
+    {
+        return refuse(
+            "balancing.car_limit_cost_mismatch",
+            "cost must equal car_limit's limit plus second_element_cost, as s 40-230 reduces the first element of cost to the car limit. A car first used in a later financial year than the one it was acquired in (so the 2 years' car limits differ) or held with another entity (s 40-230(4)) is not one this worksheet takes.",
+        );
+    }
     Ok(Facts {
         asset,
         cost,

@@ -1516,7 +1516,7 @@ pub fn optional_inputs(kind: &str) -> Vec<(&'static str, &'static str)> {
     match kind {
         "balancing_adjustment" => vec![(
             "car_limit",
-            "for a car only, and then required: null when s 40-230 did not reduce its cost to the car limit, or an object with limit (AUD, the car limit for the financial year in which the car was first used for any purpose), second_element_cost (AUD) and cost_ignoring_car_limit (AUD, the first and second elements ignoring the car limit, after Subdivision 27-B): ITAA 1997 s 40-325",
+            "for a car only, and then required: null when s 40-230 did not reduce its cost to the car limit, or an object with limit (AUD, the car limit for the financial year in which the car was first used for any purpose), second_element_cost (AUD) and cost_ignoring_car_limit (AUD, the first and second elements ignoring the car limit, after Subdivision 27-B), cost then being limit plus second_element_cost: ITAA 1997 s 40-325",
         )],
         "depreciation" => vec![(
             "opening_adjustable_value",
