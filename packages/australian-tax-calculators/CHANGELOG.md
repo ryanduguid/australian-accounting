@@ -29,10 +29,12 @@
   `gst.review`: no source read settles whether the s 69-10 cap takes in the
   GST on the credit component. The 2024-25 car limit, $69,674, joins the
   2025-26 and 2026-27 ones.
+- `payout` takes `known_at_start`, which must be `false`.
 - New codes: `hire_purchase.car_limit_unknown`,
   `hire_purchase.frequencies_mixed`, `hire_purchase.frequency_invalid`,
   `hire_purchase.gst_fact_conflict`, `hire_purchase.gst_fact_invalid`,
   `hire_purchase.payout_date_unsupported`,
+  `hire_purchase.payout_known_at_start`,
   `hire_purchase.payout_gst_unsupported`, `hire_purchase.payout_invalid`,
   `hire_purchase.segments_invalid` and
   `hire_purchase.segments_not_contiguous`. `tests/hire_purchase_worksheet.rs`

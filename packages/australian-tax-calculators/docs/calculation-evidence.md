@@ -774,8 +774,12 @@ periods add up to the total interest.
   less the balance outstanding. The Division gives no notional interest for
   part of a period that a payout cuts short (s 240-60(2) apportions only
   between income years), so a payout must fall on the end of a period. The
-  implicit rate stays the one the scheduled payments give: s 240-60(3) and (4)
-  estimates are not made. The result flags the rest for review.
+  implicit rate stays the one the scheduled payments give, which
+  s 240-60(1) step 3 and (3) support only where the payout was not known or
+  reasonably estimable at the start: the caller states that in
+  `known_at_start`, and `true` is refused. The result flags the rest for
+  review. A first use year before the agreement is taken as given, as for a
+  car first used under an earlier hire (s 69-10(1)(c)).
 - **GST.** For an agreement entered into on or after 1 July 2012 every
   component of the supply is taxable, the credit component included, and the
   credit is 1/11 of all of them (the ATO page; its Albert example claims

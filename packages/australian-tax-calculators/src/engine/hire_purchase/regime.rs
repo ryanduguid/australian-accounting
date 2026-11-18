@@ -246,8 +246,8 @@ fn run_on(read: &[(i64, Segment)], start: i64) -> Result<()> {
                 ),
             );
         }
-        at += segment.count * segment.length;
-        if at > unit.most() {
+        // Bounded before multiplying, so no count can overflow the term.
+        if segment.count > (unit.most() - at) / segment.length {
             return refuse(
                 "hire_purchase.instalments_unsupported",
                 format!(
@@ -261,6 +261,7 @@ fn run_on(read: &[(i64, Segment)], start: i64) -> Result<()> {
                 ),
             );
         }
+        at += segment.count * segment.length;
     }
     Ok(())
 }

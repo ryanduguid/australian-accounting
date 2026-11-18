@@ -981,8 +981,10 @@ periods add up to the total interest.
 
 `deposit` and `trade_in` (an amount the financier credits as paid, such as a
 trade-in allowance) are paid at or before the start for the cost of the
-goods. They do not change the loan; with either, or `gst`, the result adds
-`deposit`, `trade_in` and `consideration`, the amount financed plus both.
+goods, and taken as paid or credited on the start date, which
+`gst.first_consideration_date` and the start journal use. They do not change
+the loan; with either, or `gst`, the result adds `deposit`, `trade_in` and
+`consideration`, the amount financed plus both.
 
 `journals` gives balanced journal lines, each `{"account", "debit",
 "credit"}` in cents: `start` (the asset at the consideration, less any input
@@ -999,10 +1001,14 @@ the year before's. The liability is carried at the notional loan principal
 outstanding, so it closes at nil. `gst_booked` says whether an input tax
 credit is in the lines.
 
-`payout`, an object with `date` and `amount`, is an early payout that
-replaces every payment due on or after its date, which must be the end of a
-period before the end of the term: Division 240, as read on 18 November 2026,
-gives no notional interest for part of a period a payout cuts short. The
+`payout`, an object with `date`, `amount` and `known_at_start`, is an early
+payout that replaces every payment due on or after its date, which must be
+the end of a period before the end of the term: Division 240, as read on
+18 November 2026, gives no notional interest for part of a period a payout
+cuts short. `known_at_start` must be `false`: a payout known, or reasonably
+estimable, at the start is a termination amount the implicit rate takes into
+account (s 240-60(1) step 3 and (3)), and is refused. `total_payments` and
+`total_interest` stay the scheduled amounts to the end of the term. The
 schedule then runs to the payout, and the result adds `payout`,
 `interest_to_payout`, `payments_before_payout`, `balance_at_payout` and
 `payout_excess` or `payout_shortfall`, with `payout.consequence` stating which
@@ -1019,16 +1025,20 @@ for a passenger car `first_used_year`, `gst_inclusive_market_value`,
 figure turns on, the result adds `total_consideration` (every component of
 the supply, the notional interest included, for an agreement entered into
 from 1 July 2012), `gst_payable` (1/11 of it, less luxury car tax for a car,
-rounded to the nearest cent, 0.5 up, as GST Act s 9-90 rounds GST),
+rounded to the nearest cent, 0.5 up, as GST Act s 9-90 rounds GST, with
+the goods and the credit component taken as recorded on one tax invoice),
 `full_input_tax_credit` (that GST, s 11-25), `input_tax_credit` (times the
 creditable purpose, rendered to cents half up) and `credit_on_interest`
-(1/11 of the notional interest times the creditable purpose), the share the
-journals book against the interest through `deferred_interest_gst`.
+(1/11 of the notional interest times the creditable purpose), the journals'
+allocation of the credit to the interest, booked through
+`deferred_interest_gst`; it is not a credit of its own.
 `gst.attributable` states the tax period: the whole credit up front, on a
 cash basis too (GST Act ss 29-10(1) and 158-5). A missing fact gives no
 figure, and `gst.missing` names it; an unregistered hirer's credit is nil.
 
-A passenger car worth more than the car limit for the year it is first used
+`first_used_year` may come before the agreement's year, as for a car first
+used under an earlier hire. A passenger car worth more than the car limit for
+the year it is first used
 ($69,674 for 2024-25 and 2025-26, $69,883 for 2026-27), where the hirer may
 not quote an ABN for luxury car tax, gives no figure either: `gst.review`
 says why. GST Act s 69-10(1) caps the credit on the car at 1/11 of that limit,

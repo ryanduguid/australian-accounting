@@ -35,12 +35,12 @@ const STEPS: [(&str, &str, &str); 3] = [
     ),
     (
         "total_payments",
-        "ITAA 1997 s 240-25(6) and s 240-60(1) step 3: the arrangement payments, each instalment and the balloon",
+        "ITAA 1997 s 240-25(6) and s 240-60(1) step 3: the arrangement payments, each instalment and the balloon, as the agreement schedules them to the end of the term; with a payout, payments_before_payout and the payout are what is paid",
         "instalment x instalments + balloon",
     ),
     (
         "total_interest",
-        "ITAA 1997 s 240-25(6) and s 240-60(1): the payments repay the notional loan principal and pay its notional interest at the implicit interest rate, so the notional interest over the term is the payments less the principal",
+        "ITAA 1997 s 240-25(6) and s 240-60(1): the payments repay the notional loan principal and pay its notional interest at the implicit interest rate, so the notional interest over the term is the payments less the principal, as scheduled to the end of the term; with a payout, interest_to_payout is the interest the schedule shows to its date",
         "total_payments - amount_financed",
     ),
 ];
@@ -467,7 +467,7 @@ struct Payout {
 fn payout_invalid<T>() -> Result<T> {
     refuse(
         "hire_purchase.payout_invalid",
-        "payout must be an object with date (YYYY-MM-DD) and amount (a decimal string).",
+        "payout must be an object with date (YYYY-MM-DD), amount (a decimal string) and known_at_start (a boolean).",
     )
 }
 
@@ -479,7 +479,7 @@ fn read_payout(value: &Arg, agreement: &Agreement, start: i64) -> Result<Payout>
     };
     if let Some(key) = fields
         .keys()
-        .find(|k| !matches!(k.as_str(), "date" | "amount"))
+        .find(|k| !matches!(k.as_str(), "date" | "amount" | "known_at_start"))
     {
         return refuse(
             "input.field_unknown",
@@ -487,12 +487,19 @@ fn read_payout(value: &Arg, agreement: &Agreement, start: i64) -> Result<Payout>
         );
     }
     let text = |key: &str| fields.get(key).and_then(Value::as_str);
-    let (Some(day), Some(amount)) = (
+    let (Some(day), Some(amount), Some(known)) = (
         text("date").and_then(dates::parse),
         text("amount").and_then(|t| Decimal::parse(t).ok()),
+        fields.get("known_at_start").and_then(Value::as_bool),
     ) else {
         return payout_invalid();
     };
+    if known {
+        return refuse(
+            "hire_purchase.payout_known_at_start",
+            "A payout known, or reasonably estimable, at the start of the arrangement is a termination amount the implicit interest rate takes into account (ITAA 1997 s 240-60(1) step 3 and (3)); this worksheet finds the rate from the scheduled payments only.",
+        );
+    }
     let amount = money(&Arg::Decimal(amount))?;
     let unit = agreement.regime.unit;
     let at = agreement
@@ -514,16 +521,16 @@ fn read_payout(value: &Arg, agreement: &Agreement, start: i64) -> Result<Payout>
 /// `shortfall` below it.
 fn consequence(excess: &Decimal, shortfall: &Decimal) -> &'static str {
     if excess.is_zero() && shortfall.is_zero() {
-        "The payout equals the balance outstanding, so the payments and termination amounts equal the notional loan principal plus the assessed notional interest and Subdivision 240-G makes no adjustment (ITAA 1997 s 240-105)."
+        "The payout equals the balance outstanding, so the payments and termination amounts equal the notional loan principal plus the assessed notional interest and Subdivision 240-G makes no adjustment (ITAA 1997 s 240-105). The payout itself is not deductible where it is paid to acquire the property (s 240-85(b))."
     } else if !excess.is_zero() {
         "The payout exceeds the balance outstanding: at the end of the arrangement (s 240-75(1)(b)) the payments and termination amounts exceed the notional loan principal plus the assessed notional interest, so s 240-105(2) includes the excess in the notional seller's assessable income and s 240-110(1) entitles the notional buyer to deduct a corresponding amount in its income year, to the extent s 240-110(3) allows. The payout itself is not deductible where it is paid to acquire the property (s 240-85(b))."
     } else {
-        "The payout is less than the balance outstanding: at the end of the arrangement (s 240-75(1)(b)) the notional loan principal plus the assessed notional interest exceed the payments and termination amounts, so s 240-105(3) entitles the notional seller to deduct the excess and s 240-110(2) includes a corresponding amount in the notional buyer's assessable income for its income year, to the extent s 240-110(3) allows."
+        "The payout is less than the balance outstanding: at the end of the arrangement (s 240-75(1)(b)) the notional loan principal plus the assessed notional interest exceed the payments and termination amounts, so s 240-105(3) entitles the notional seller to deduct the excess and s 240-110(2) includes a corresponding amount in the notional buyer's assessable income for its income year, to the extent s 240-110(3) allows. The payout itself is not deductible where it is paid to acquire the property (s 240-85(b))."
     }
 }
 
 /// What a reviewer must establish before relying on a payout's consequence.
-const PAYOUT_REVIEW: &str = "For review: this takes the payout as a termination amount payable because the arrangement ends on the payout date, every arrangement payment due before it as paid, and the implicit rate as found from the payments the agreement scheduled, with no estimate under s 240-60(3) or (4). Whether s 240-110(3) limits the notional buyer's deduction or inclusion, and which of its income years it falls in, are not worked out.";
+const PAYOUT_REVIEW: &str = "For review: this takes the payout as a termination amount payable because the arrangement ends on the payout date, every arrangement payment due before it as paid, and, as the payout was not known at the start (known_at_start), the implicit rate as found from the payments the agreement scheduled, with no other estimate under s 240-60(3) or (4). Whether s 240-110(3) limits the notional buyer's deduction or inclusion, and which of its income years it falls in, are not worked out.";
 
 /// `values` written as a sum, `0` for none, and their total.
 fn sum_terms(values: Vec<&Decimal>) -> Result<(String, Decimal)> {
@@ -791,7 +798,7 @@ pub fn hire_purchase_schedule(args: &HirePurchaseArgs) -> Result<Value> {
     let deposit = optional_money(args.deposit)?;
     let trade_in = optional_money(args.trade_in)?;
     let payout = payout_without_gst(args, &agreement, start)?;
-    let gst_facts = gst::read(args.gst, &year)?;
+    let gst_facts = gst::read(args.gst)?;
     let financed = &agreement.financed;
     let (r, rows, periods, steps, gst_worked) = precise(|| {
         amounts(

@@ -73,16 +73,12 @@ fn decimal(fields: &Map<String, Value>, key: &str) -> Option<Arg> {
 }
 
 /// A passenger car's facts, `None` when one is missing.
-fn car(fields: &Map<String, Value>, year: &str) -> Result<Option<Car>> {
+/// The first use year is the hirer's, which may come before the agreement,
+/// under an earlier hire of the same car (s 69-10(1)(c)).
+fn car(fields: &Map<String, Value>) -> Result<Option<Car>> {
     let first_used_year = match fields.get("first_used_year") {
         None => None,
         Some(Value::String(y)) => match CAR_LIMITS.iter().find(|(known, _)| known == y) {
-            Some((known, _)) if *known < year => {
-                return refuse(
-                    "hire_purchase.gst_fact_conflict",
-                    "gst: first_used_year cannot be before the income year the agreement starts in, when the notional buyer acquires the car (ITAA 1997 s 240-20(1)).",
-                );
-            }
             Some(found) => Some(*found),
             None => {
                 return refuse(
@@ -118,7 +114,7 @@ fn car(fields: &Map<String, Value>, year: &str) -> Result<Option<Car>> {
 
 /// The GST facts in `gst`: each one a figure turns on, or the list of those
 /// missing. A fact given that the others make irrelevant is refused.
-pub(super) fn read(gst: Option<&Arg>, year: &str) -> Result<Facts> {
+pub(super) fn read(gst: Option<&Arg>) -> Result<Facts> {
     let Some(gst) = gst else {
         return Ok(Facts::Missing(vec!["gst"]));
     };
@@ -146,7 +142,7 @@ pub(super) fn read(gst: Option<&Arg>, year: &str) -> Result<Facts> {
     match registered {
         None => Ok(Facts::Missing(vec!["registered"])),
         Some(false) => Ok(Facts::NotRegistered),
-        Some(true) => read_registered(fields, year),
+        Some(true) => read_registered(fields),
     }
 }
 
@@ -175,7 +171,7 @@ fn creditable_purpose(fields: &Map<String, Value>) -> Result<Option<Decimal>> {
 }
 
 /// A registered hirer's facts, as [`read`] gives them.
-fn read_registered(fields: &Map<String, Value>, year: &str) -> Result<Facts> {
+fn read_registered(fields: &Map<String, Value>) -> Result<Facts> {
     let mut missing: Vec<&'static str> = REGISTERED
         .iter()
         .copied()
@@ -196,7 +192,7 @@ fn read_registered(fields: &Map<String, Value>, year: &str) -> Result<Facts> {
     // and needed only once it is one.
     let car = match passenger_car {
         Some(false) => None,
-        _ => car(fields, year)?,
+        _ => car(fields)?,
     };
     if passenger_car == Some(true) {
         missing.extend(CAR.iter().filter(|k| !fields.contains_key(**k)));
@@ -233,7 +229,7 @@ const FULL: &str =
 const CAR_NOT_CAPPED: &str = "GST Act s 11-25: the GST payable on the supply; s 69-10(1) does not cap it, as the car's GST inclusive market value does not exceed the car limit for the financial year it is first used, or the hirer may quote an ABN for luxury car tax (s 69-10(1)(b) and (c))";
 const PART: &str =
     "GST Act s 11-30(3): the full input tax credit x the extent of creditable purpose";
-const ON_INTEREST: &str = "The ATO's 'GST – Hire purchase and leasing' (Albert's second freezer): the credit covers the GST in both the price and the interest charged, and the interest's share is 1/11 of the notional interest x the extent of creditable purpose";
+const ON_INTEREST: &str = "The ATO's 'GST – Hire purchase and leasing' (Albert's second freezer): the credit covers the GST in both the price and the interest charged. This is the journals' allocation of the credit to the interest, 1/11 of the notional interest x the extent of creditable purpose, not a credit of its own: the credit is input_tax_credit";
 
 /// The credit's amounts and what the journals need of them.
 pub(super) struct Worked {

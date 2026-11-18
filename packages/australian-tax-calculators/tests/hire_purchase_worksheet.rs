@@ -250,12 +250,14 @@ fn a_deposit_and_trade_in_add_to_the_consideration_not_the_loan() {
 /// $1,050 falls $50 short (s 240-105(3), s 240-110(2)).
 #[test]
 fn a_payout_settles_the_balance_and_its_difference_under_subdivision_240_g() {
-    let base = json!({"instalments": 3, "payout": {"date": "2026-09-15", "amount": "1150.00"}});
+    let base = json!({"instalments": 3, "payout": {"date": "2026-09-15", "amount": "1150.00", "known_at_start": false}});
     let r = run(base.clone()).unwrap();
     assert_eq!(interest(&r), ["100.00", "100.00"]);
     assert_eq!(r["schedule"][1]["payment"], "0.00");
     assert_eq!(r["schedule"][1]["closing"], "1100.00");
     for (key, value) in [
+        ("total_payments", "1300.00"),
+        ("total_interest", "300.00"),
         ("payout", "1150.00"),
         ("interest_to_payout", "200.00"),
         ("payments_before_payout", "100.00"),
@@ -267,6 +269,19 @@ fn a_payout_settles_the_balance_and_its_difference_under_subdivision_240_g() {
     }
     let says = r["payout"]["consequence"].as_str().unwrap();
     assert!(says.contains("s 240-110(1)"), "{says}");
+    let rows: Vec<&str> = interest(&r);
+    assert_eq!(rows, ["100.00", "100.00"]);
+    // A payout known at the start would have changed the implicit rate
+    // (s 240-60(1) step 3 and (3)), which this worksheet does not estimate.
+    let mut known = base.clone();
+    known["payout"]["known_at_start"] = json!(true);
+    assert_eq!(code(known), "hire_purchase.payout_known_at_start");
+    let mut unstated = base.clone();
+    unstated["payout"]
+        .as_object_mut()
+        .unwrap()
+        .remove("known_at_start");
+    assert_eq!(code(unstated), "hire_purchase.payout_invalid");
     assert!(
         r["payout"]["review"]
             .as_str()
@@ -281,14 +296,13 @@ fn a_payout_settles_the_balance_and_its_difference_under_subdivision_240_g() {
             "bank 0.00 1150.00",
         ]
     );
-    let r = run(json!({"instalments": 3, "payout": {"date": "2026-09-15", "amount": "1050.00"}}))
+    let r = run(json!({"instalments": 3, "payout": {"date": "2026-09-15", "amount": "1050.00", "known_at_start": false}}))
         .unwrap();
     assert_eq!(amount(&r, "payout_shortfall"), "50.00");
+    let says = r["payout"]["consequence"].as_str().unwrap();
     assert!(
-        r["payout"]["consequence"]
-            .as_str()
-            .unwrap()
-            .contains("s 240-110(2)")
+        says.contains("s 240-110(2)") && says.contains("s 240-85(b)"),
+        "{says}"
     );
     assert_eq!(
         lines(&r["journals"]["payout"])[1],
@@ -436,8 +450,6 @@ fn the_car_limit_reaches_only_a_car_worth_more_and_not_quoted_for() {
     let r = run(facts(car("69700.00", false))).unwrap();
     assert_eq!(amount(&r, "input_tax_credit"), "7090.91");
     let mut early = facts(car("69700.00", false));
-    early["year"] = json!("2024-25");
-    early["start_date"] = json!("2024-07-15");
     early["gst"]["first_used_year"] = json!("2024-25");
     let r = run(early).unwrap();
     assert_eq!(amount(&r, "input_tax_credit"), "absent");
@@ -656,7 +668,7 @@ fn each_new_input_s_faults_are_refused_with_their_code() {
             "{frequency}"
         );
     }
-    let payout = |date: &str| json!({"instalments": 3, "payout": {"date": date, "amount": "1.00"}});
+    let payout = |date: &str| json!({"instalments": 3, "payout": {"date": date, "amount": "1.00", "known_at_start": false}});
     assert_eq!(
         code(payout("2026-08-20")),
         "hire_purchase.payout_date_unsupported"
@@ -675,7 +687,7 @@ fn each_new_input_s_faults_are_refused_with_their_code() {
     );
     assert_eq!(
         code(
-            json!({"payout": {"date": "2026-08-15", "amount": "1.00"}, "gst": {"registered": false}})
+            json!({"payout": {"date": "2026-08-15", "amount": "1.00", "known_at_start": false}, "gst": {"registered": false}})
         ),
         "hire_purchase.payout_gst_unsupported"
     );
@@ -703,9 +715,16 @@ fn each_new_input_s_faults_are_refused_with_their_code() {
         code(json!({"gst": {"registered": true, "first_used_year": "2027-28"}})),
         "hire_purchase.car_limit_unknown"
     );
-    let early = json!({"year": "2025-26", "start_date": "2025-07-15",
-                       "gst": {"registered": true, "first_used_year": "2024-25"}});
-    assert_eq!(code(early), "hire_purchase.gst_fact_conflict");
+    // A count whose term overflows is refused, not multiplied out.
+    assert_eq!(
+        code(level_free(json!([segment(
+            "2026-07-15",
+            1_i64 << 62,
+            "100.00",
+            "annual"
+        )]))),
+        "hire_purchase.instalments_unsupported"
+    );
     let gst = json!({"registered": true, "accounting_basis": "cash", "creditable_purpose": "1",
                      "asset": "passenger_car", "first_used_year": "2026-27",
                      "gst_inclusive_market_value": "1000.00", "luxury_car_tax": "1000.01",
