@@ -1143,10 +1143,11 @@ destroyed or compulsorily acquired, s 40-365 lets the taxpayer exclude some or
 all of an assessable balancing adjustment amount and reduce a replacement's
 cost by it instead, if the replacement is acquired from one year before the
 event to one year after the end of its income year and used wholly for a
-taxable purpose; the worksheet does not make that choice. It also refuses a
-nil full input tax credit or an adjusted one above it, a creditable
-acquisition with a nil creditable purpose, and luxury car tax above the
-price. A car whose purchaser may quote an ABN for luxury car tax, one that is
+taxable purpose; the worksheet does not make that choice. It also refuses an
+adjusted input tax credit above the full one, a creditable acquisition with a
+nil creditable purpose, and luxury car tax above the price. A nil full input
+tax credit, as for an asset bought without GST, gives a nil decreasing
+adjustment (GST Act s 132-5(3)). A car whose purchaser may quote an ABN for luxury car tax, one that is
 not a luxury car under s 25-1(2) of the Luxury Car Tax Act, a leased car, a car
 excluded from the car limit by s 40-230(2), a trade-in on which luxury car tax
 is payable, a decreasing adjustment arising in a later year (s 27-95(5)) and

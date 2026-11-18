@@ -879,6 +879,7 @@ trade-in; the other side and the years held are fabricated.
 | Darren's car, $91,242.80 including $8,075.91 GST and $2,407.80 luxury car tax, 2026-27, at 100% and 50% business use | 'Purchasing a motor vehicle', 'Example: purchasing a new car for the business' | Credit $6,353.00 and $3,176.50; cost reduced to $69,883.00 |
 | An old car whose cost s 40-230 reduced from $80,000 to $69,674, traded in for $55,000 including $5,000 GST | Worked by hand under s 40-325: $50,000 x 69,674 / 80,000 | $43,546.25 termination value, $16,127.75 deductible |
 | A $11,000 asset (full credit $1,000, $800 claimed) traded in for $22,000 | Worked by hand under GST Act s 132-5(3): $2,000 x 0.2 = $400, capped at $200 | $200.00 decreasing adjustment, $2,000.00 K7 gain |
+| An asset bought without GST (nil full and adjusted credits) traded in for $22,000 | Worked by hand under GST Act s 132-5(3): the adjustment is at most the nil difference between the credits | $2,000.00 GST, nil decreasing adjustment, $20,000.00 termination value |
 | A trade-in that is not a taxable supply | GST Act s 9-5 | No GST; the termination value is the allowance |
 
 ## Depreciation

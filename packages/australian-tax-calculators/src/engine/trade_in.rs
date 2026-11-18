@@ -88,11 +88,6 @@ fn old_credits(args: &TradeInArgs, taxable: bool) -> Result<Option<[Decimal; 2]>
         return Ok(None);
     };
     let (adjusted, full) = (money(adjusted)?, money(full)?);
-    if full.is_zero() {
-        return conflict(
-            "full_input_tax_credit is nil, so the fraction in GST Act s 132-5(2) (adjusted over full input tax credit) is undefined.",
-        );
-    }
     if adjusted.gt(&full)? {
         return conflict(
             "adjusted_input_tax_credit cannot exceed full_input_tax_credit (GST Act s 132-5(2)).",
@@ -193,6 +188,7 @@ fn refuse_unsupported(args: &TradeInArgs) -> Result<()> {
 const GST_SALE: &str = "GST Act ss 9-70 and 9-75(1): GST on the trade-in, a taxable supply, is 10% of its value, the price x 10/11, so 1/11 of the trade-in allowance";
 const NOT_TAXABLE: &str = "GST Act s 9-5: the trade-in is not a taxable supply, as the operator established, so no GST is payable and there is no s 132-5 adjustment";
 const DECREASING: &str = "GST Act s 132-5(2) and (3): 1/11 x price x (1 - adjusted input tax credit / full input tax credit), capped at the full input tax credit less the adjusted one";
+const NO_FULL_CREDIT: &str = "GST Act s 132-5(3): the decreasing adjustment is at most the full input tax credit less the adjusted one, which is nil when the full input tax credit is nil (such as for an asset bought without GST)";
 const TV_TRADE_IN: &str = "ITAA 1997 s 40-305(1)(b) item 2, s 27-95(1) and (3): the trade-in allowance (the liability to pay the replacement's price terminated), less the GST payable on the trade-in, plus the decreasing adjustment";
 
 /// The trade-in's GST and decreasing adjustment, with their steps.
@@ -202,16 +198,28 @@ fn sale_gst(allowance: &Decimal, credits: Option<&[Decimal; 2]>) -> Result<[Step
         return Ok([nil("trade_in_gst"), nil("decreasing_adjustment")]);
     };
     let gst = allowance.div(&int(11))?;
+    let gst_step = step(
+        "trade_in_gst",
+        GST_SALE,
+        "trade_in_allowance / 11",
+        &[allowance],
+        gst.clone(),
+    );
+    // adjusted <= full, so a nil full credit leaves a nil difference.
+    if full.is_zero() {
+        let nil = step(
+            "decreasing_adjustment",
+            NO_FULL_CREDIT,
+            "full_input_tax_credit - adjusted_input_tax_credit",
+            &[full, adjusted],
+            int(0),
+        );
+        return Ok([gst_step, nil]);
+    }
     let share = int(1).sub(&adjusted.div(full)?)?;
     let adjustment = py_min(gst.mul(&share)?, full.sub(adjusted)?)?;
     Ok([
-        step(
-            "trade_in_gst",
-            GST_SALE,
-            "trade_in_allowance / 11",
-            &[allowance],
-            gst.clone(),
-        ),
+        gst_step,
         step(
             "decreasing_adjustment",
             DECREASING,

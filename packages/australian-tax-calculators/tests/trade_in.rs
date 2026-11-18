@@ -194,6 +194,20 @@ fn a_trade_in_that_is_not_taxable_keeps_the_whole_allowance() {
     assert_eq!(amounts(&r, keys), ["0.00", "0.00", "22000.00"]);
 }
 
+/// GST Act s 132-5(3), worked by hand: Ian's vehicle bought from a private
+/// seller, without GST, has nil full and adjusted input tax credits, so the
+/// decreasing adjustment is at most their nil difference; the $22,000 taxable
+/// trade-in leaves $20,000 after its $2,000 GST.
+#[test]
+fn an_asset_bought_without_gst_has_no_decreasing_adjustment() {
+    let mut input = ian_for_darren("1");
+    input["adjusted_input_tax_credit"] = json!("0.00");
+    input["full_input_tax_credit"] = json!("0.00");
+    let r = run(&input);
+    let keys = ["trade_in_gst", "decreasing_adjustment", "termination_value"];
+    assert_eq!(amounts(&r, keys), ["2000.00", "0.00", "20000.00"]);
+}
+
 #[test]
 fn refusals_name_what_is_out_of_scope_or_wrong() {
     let with = |key: &str, value: Value| {
@@ -217,10 +231,6 @@ fn refusals_name_what_is_out_of_scope_or_wrong() {
         ),
         (
             with("adjusted_input_tax_credit", json!("4000.01")),
-            "trade_in.fact_conflict",
-        ),
-        (
-            with("full_input_tax_credit", json!("0.00")),
             "trade_in.fact_conflict",
         ),
         (
