@@ -203,7 +203,7 @@ pub struct RoutingResult {
     pub totals: Vec<(String, Decimal)>,
     pub unreviewed: usize,
     pub notes: Vec<String>,
-    /// Buckets at least one reviewed account reached.
+    /// Buckets reached by a reviewed account with no unmatched mapping rows.
     pub supplied_buckets: Vec<String>,
 }
 
@@ -409,6 +409,13 @@ pub fn route(rows: &[PnlRow], mapping: &Mapping, flip: bool) -> Result<RoutingRe
         .collect();
     unused.sort();
     if !unused.is_empty() {
+        // A readable row cannot establish a complete bucket while another
+        // account mapped to that bucket is missing from the readable export.
+        for (key, entry) in mapping {
+            if unused.contains(&key) {
+                counted_buckets.retain(|bucket| bucket != &entry.bucket);
+            }
+        }
         let names: Vec<&str> = unused
             .iter()
             .take(5)

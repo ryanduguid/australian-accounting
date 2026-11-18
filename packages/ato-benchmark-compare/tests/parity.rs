@@ -49,12 +49,38 @@ fn corpus() -> Vec<Value> {
             other => other.clone(),
         }
     }
-    raw["cases"]
+    let mut cases: Vec<Value> = raw["cases"]
         .as_array()
         .unwrap()
         .iter()
         .map(|c| resolve(c, &strings))
-        .collect()
+        .collect();
+    // The reference let nil confirmation evidence a mapped account that was
+    // unreadable. Keep its frozen corpus, but pin the corrected output for
+    // that exact input instead of continuing to assert the unsafe behaviour.
+    let correction: Value =
+        serde_json::from_str(include_str!("data/incomplete-income-expected.json")).unwrap();
+    let matches: Vec<_> = cases
+        .iter_mut()
+        .filter(|case| case["written"]["out.json"]["fnv"] == correction["reference_output_fnv"])
+        .collect();
+    assert_eq!(
+        matches.len(),
+        1,
+        "the corrected reference case must be unique"
+    );
+    let case = matches.into_iter().next().unwrap();
+    assert_eq!(
+        fnv(&file_bytes(&case["files"]["pnl.csv"])),
+        correction["pnl_fnv"]
+    );
+    assert_eq!(
+        fnv(&file_bytes(&case["files"]["map.csv"])),
+        correction["mapping_fnv"]
+    );
+    case["expected"]["stdout"] = correction["stdout"].clone();
+    case["written"]["out.json"] = correction["written"].clone();
+    cases
 }
 
 fn fnv(bytes: &[u8]) -> String {
