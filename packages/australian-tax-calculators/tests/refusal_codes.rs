@@ -33,6 +33,7 @@ fn every_code_at_a_refusal_site_is_catalogued_and_every_entry_is_used() {
     // The engine's worksheets in their own modules refuse as engine.rs does.
     let modules = [
         "engine",
+        "engine/balancing",
         "engine/fbt_benefits",
         "engine/fbt_benefits/entertainment",
     ]
