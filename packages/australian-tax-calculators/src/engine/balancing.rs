@@ -160,11 +160,21 @@ fn read_year(n: usize, fields: &Map<String, Value>, asset: Asset, event: i64) ->
     Ok(first)
 }
 
-fn read_days(n: usize, fields: &Map<String, Value>) -> Result<i64> {
+/// A car row's days held, from 1 to the days in its income year (366 when it
+/// includes 29 February).
+fn read_days(n: usize, fields: &Map<String, Value>, first: i64) -> Result<i64> {
+    let most = if super::is_leap(first + 1) { 366 } else { 365 };
     match fields.get("days_held").map(Value::as_i64) {
         None => row_missing(n, "days_held"),
-        Some(Some(days)) if (1..=366).contains(&days) => Ok(days),
-        Some(_) => row_invalid(n, "days_held", "an integer from 1 to 366"),
+        Some(Some(days)) if (1..=most).contains(&days) => Ok(days),
+        Some(_) => row_invalid(
+            n,
+            "days_held",
+            &format!(
+                "an integer from 1 to {most}, the days in {}",
+                year_text(first)
+            ),
+        ),
     }
 }
 
@@ -201,7 +211,7 @@ fn read_row(n: usize, value: &Value, asset: Asset, event: i64) -> Result<Held> {
         Some(deduction)
     };
     let days = if asset == Asset::Car {
-        Some(read_days(n, fields)?)
+        Some(read_days(n, fields, first)?)
     } else {
         None
     };

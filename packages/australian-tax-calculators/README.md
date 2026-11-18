@@ -1032,7 +1032,8 @@ for a taxable purpose (s 40-290) and the capital gain or loss of CGT event K7
 - `years`, one object for each income year held from the start time to the
   event, each with `income_year`, `decline_in_value` and `deduction`, the
   decline less the reductions s 40-25(2) to (4) required. A car's rows also
-  state `method` (`log_book` or `cents_per_kilometre`) and `days_held`; a
+  state `method` (`log_book` or `cents_per_kilometre`) and `days_held` (at
+  most the days in that income year, 366 when it includes 29 February); a
   cents per kilometre row takes no `deduction`, and its decline is the notional
   decline s 40-370(3) assumes;
 - for a car only, and then required, `car_limit`: `null`, or where s 40-230

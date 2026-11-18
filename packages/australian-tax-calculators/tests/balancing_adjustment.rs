@@ -356,6 +356,19 @@ fn refusals_name_what_is_out_of_scope_or_wrong() {
         code(&car("1000.00", "500.00", years, "2025-26", Value::Null)),
         "balancing.fact_invalid"
     );
+    // A car is held at most the days in each income year: 365 in 2024-25,
+    // 366 in 2023-24, which includes 29 February 2024.
+    let years = json!([car_year("2024-25", "100.00", None, 366)]);
+    assert_eq!(
+        code(&car("1000.00", "500.00", years, "2025-26", Value::Null)),
+        "balancing.fact_invalid"
+    );
+    let years = json!([
+        car_year("2023-24", "100.00", Some("50.00"), 366),
+        car_year("2024-25", "100.00", None, 365),
+    ]);
+    let r = run(&car("1000.00", "500.00", years, "2025-26", Value::Null)).unwrap();
+    assert_eq!(r["rates"]["days_held"], "731");
     // 2027-28 says why: the CGT changes from 1 July 2027.
     let refused = api::evaluate(
         "balancing-adjustment",
