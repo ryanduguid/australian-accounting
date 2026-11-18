@@ -5,6 +5,7 @@
 //! server's as_at.py works it out. A status is about a title's compilation window,
 //! never about the law on that date.
 use super::POLICY;
+use jiff::civil::Date;
 use serde_json::{Value, json};
 
 pub(super) const CAPTURED: &str = "captured";
@@ -23,8 +24,8 @@ fn policy(name: &str) -> &'static Value {
 fn is_date(value: &Value) -> bool {
     value.as_str().is_some_and(|text| {
         text.len() == 10
-            && chrono::NaiveDate::parse_from_str(text, "%Y-%m-%d")
-                .is_ok_and(|day| day.format("%Y-%m-%d").to_string() == text && text > "0000-12-31")
+            && Date::strptime("%Y-%m-%d", text)
+                .is_ok_and(|day| day.to_string() == text && text > "0000-12-31")
     })
 }
 

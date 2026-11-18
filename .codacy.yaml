@@ -21,6 +21,7 @@ engines:
       - "**/uv.lock"
       - "**/Cargo.lock"
       - "tools/glama-badge-worker/package-lock.json"
+      - "tools/aus-accounting-connector/package-lock.json"
   prospector:
     exclude_paths:
       - "tests/**"

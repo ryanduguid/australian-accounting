@@ -69,7 +69,7 @@ a local SplitMix64 replaces fast-check's generator, so the random cases differ.
 | `test_medicare_levy.py::test_thresholds_match_the_published_table` | `tables.rs`: `medicare_thresholds_match_the_published_table_and_phase_in` |
 | `test_medicare_levy.py::test_phase_in_limit_is_where_ten_percent_of_the_excess_meets_two_percent` | `tables.rs`: `medicare_thresholds_match_the_published_table_and_phase_in` |
 | `test_medicare_levy.py::test_levy_never_falls_as_income_rises` | Frozen replay in `parity.rs` (first 60 calls); `properties.rs`: `medicare_levy_never_falls_as_income_rises` |
-| `test_medicare_levy.py::test_unpublished_year_and_cents_are_refused` | Frozen replay in `parity.rs` |
+| `test_medicare_levy.py::test_unpublished_year_and_cents_are_refused` | Frozen replay in `parity.rs`, which skips the frozen 2026-27 call; `tables.rs`: `medicare_levy_2026_27_applies_the_thresholds_enacted_for_later_years` (2026-27 and the 2028-29 refusal); `year_2027_28.rs` for 2027-28 |
 | `test_medicare_levy.py::test_result_names_the_rates_applied` | Frozen replay in `parity.rs` |
 | `test_medicare_levy.py::test_section_9a_lump_sum_in_arrears_is_refused` | Frozen replay in `parity.rs` |
 | `test_medicare_levy.py::test_without_section_9a_the_standard_levy_applies` | Frozen replay in `parity.rs` |
@@ -79,8 +79,8 @@ a local SplitMix64 replaces fast-check's generator, so the random cases differ.
 | `test_payg_withholding.py::test_weekly_earnings_ignore_cents_then_add_99_cents` | Frozen replay in `parity.rs` |
 | `test_payg_withholding.py::test_a_monthly_amount_ending_in_33_cents_gains_a_cent` | Frozen replay in `parity.rs` |
 | `test_payg_withholding.py::test_the_result_names_the_coefficients_used` | Frozen replay in `parity.rs` |
-| `test_payg_withholding.py::test_unsupported_scales_are_refused` | Frozen replay in `parity.rs` |
-| `test_payg_withholding.py::test_unsupported_pay_periods_are_refused` | Frozen replay in `parity.rs` |
+| `test_payg_withholding.py::test_unsupported_scales_are_refused` | Frozen replay in `parity.rs`, which applies the new messages: scale 4 now needs `foreign_resident` (`payg_withholding.rs`) |
+| `test_payg_withholding.py::test_unsupported_pay_periods_are_refused` | Frozen replay in `parity.rs`, which applies the new message and skips the frozen quarterly call, as quarterly pays are now accepted (`payg_withholding.rs`) |
 | `test_payg_withholding.py::test_invalid_earnings_are_refused` | Frozen replay in `parity.rs` |
 | `test_payg_withholding.py::test_a_year_without_its_own_coefficients_is_refused` | `tables.rs`: `a_year_without_its_own_coefficients_is_refused` (2023-24 and 2027-28); `parity.rs` skips the frozen 2025-26 call, as that year now has coefficients |
 | `test_properties.py::test_gst_and_the_exclusive_amount_add_to_the_inclusive_amount_to_the_cent` | Frozen replay of its first 60 calls in `parity.rs`; full run in `properties.rs`: `gst_and_the_exclusive_amount_add_to_the_inclusive_amount_to_the_cent` |
@@ -114,7 +114,7 @@ a local SplitMix64 replaces fast-check's generator, so the random cases differ.
 | `test_study_loan_withholding.py::test_combined_rows_are_schedule_1_plus_the_component_rows` | `tables.rs`: `combined_rows_are_schedule_1_plus_the_component_rows` |
 | `test_study_loan_withholding.py::test_every_component_year_has_schedule_1_coefficients` | `tables.rs`: `every_component_year_has_schedule_1_coefficients` |
 | `test_study_loan_withholding.py::test_unsupported_scales_are_refused` | Frozen replay in `parity.rs` |
-| `test_study_loan_withholding.py::test_unsupported_pay_periods_are_refused` | Frozen replay in `parity.rs` |
+| `test_study_loan_withholding.py::test_unsupported_pay_periods_are_refused` | Frozen replay in `parity.rs`, which applies the new message and skips the frozen quarterly call, as quarterly pays are now accepted (`study_loan_withholding.rs`) |
 | `test_super_worksheets.py::test_first_year_cap_matches_the_published_table_at_every_boundary` | Frozen replay in `parity.rs` |
 | `test_super_worksheets.py::test_75_or_older_all_year_keeps_only_the_annual_cap` | Frozen replay in `parity.rs` |
 | `test_super_worksheets.py::test_bring_forward_triggers_only_above_the_annual_cap` | Frozen replay in `parity.rs` |

@@ -900,14 +900,21 @@ pub fn evaluate(command: &str, v: &Value) -> Result<Value> {
             }))
         }
         "read-super" => {
-            let (rows, profile, resolved) =
+            let (rows, profile, resolved, skipped) =
                 importers::read_super(text(v, "path")?, optional_text(v, "vendor")?)
                     .map_err(failure)?;
-            Ok(json!({
+            let mut out = json!({
                 "rows": rows.iter().map(super_json).collect::<Vec<_>>(),
                 "profile": profile.key,
                 "resolved": resolved_json(&resolved),
-            }))
+            });
+            if !skipped.is_empty() {
+                out["skipped"] = skipped
+                    .iter()
+                    .map(|(row, kind)| json!({"row": row, "contribution_type": kind}))
+                    .collect();
+            }
+            Ok(out)
         }
         "join" => {
             let defaults = Columns::default();

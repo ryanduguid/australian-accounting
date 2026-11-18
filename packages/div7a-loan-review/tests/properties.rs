@@ -3,7 +3,8 @@
 
 //! The s 109E(6) formula's seeded properties. Seeds, run counts and input
 //! domains are the Python fast-check properties'; a local SplitMix64 replaces
-//! fast-check's generator, and exact rational arithmetic is the reference.
+//! fast-check's generator, and exact rational arithmetic is the reference. The
+//! s 109E(7) rollforward's properties, at the end, use the same generator.
 
 use div7a_loan_review::api;
 use num_bigint::BigInt;
@@ -371,4 +372,158 @@ fn campaign_seed(default: u64) -> u64 {
         Err(std::env::VarError::NotPresent) => default,
         Err(error) => panic!("invalid LL_PROPERTY_SEED: {error}"),
     }
+}
+
+// The s 109E(7) rollforward. Interest is rounded to cents per period, as the
+// ATO calculator does, so the properties allow for that rounding where it bites.
+
+/// Whether the year of income starting in `start` holds 29 February.
+fn holds_leap_day(start: i64) -> bool {
+    let end = start + 1;
+    end % 4 == 0 && (end % 100 != 0 || end % 400 == 0)
+}
+
+fn days_in_year(start: i64) -> i64 {
+    if holds_leap_day(start) { 366 } else { 365 }
+}
+
+/// The date `offset` days after 1 July of the year starting in `start`.
+fn date_in_year(start: i64, offset: i64) -> String {
+    let february = if holds_leap_day(start) { 29 } else { 28 };
+    let months = [31, 31, 30, 31, 30, 31, 31, february, 31, 30, 31, 30];
+    let mut day = offset;
+    for (i, length) in months.iter().enumerate() {
+        if day < *length {
+            let month = (i + 6) % 12 + 1;
+            let year = if month >= 7 { start } else { start + 1 };
+            return format!("{year:04}-{month:02}-{:02}", day + 1);
+        }
+        day -= length;
+    }
+    panic!("offset {offset} is past the year");
+}
+
+/// A year, an opening balance in cents and repayments as (day offset, cents),
+/// each at least `min_cents`, together no more than the opening balance.
+fn rollforward_case(rng: &mut Rng, min_cents: i64) -> (i64, i64, Vec<(i64, i64)>) {
+    let start = rng.int(2019, 2026);
+    let days = days_in_year(start);
+    let opening = rng.int(min_cents.max(1) * 6, 1_000_000_000);
+    let mut left = opening;
+    let mut repayments = Vec::new();
+    for _ in 0..rng.int(0, 6) {
+        if left < min_cents.max(1) {
+            break;
+        }
+        let amount = rng.int(min_cents.max(1), left.min(min_cents.max(1) + opening / 3));
+        left -= amount;
+        repayments.push((rng.int(0, days - 1), amount));
+    }
+    (start, opening, repayments)
+}
+
+fn rolled(start: i64, opening: i64, repayments: &[(i64, i64)]) -> Value {
+    let input = json!({
+        "year_of_income": format!("{start}-{:02}", (start + 1) % 100),
+        "year_loan_made": format!("{}-{:02}", start - 1, start % 100),
+        "balance_at_start_of_year": text(opening, 2),
+        "repayments": repayments.iter().map(|(offset, cents)| json!({
+            "date": date_in_year(start, *offset), "amount": text(*cents, 2),
+        })).collect::<Vec<_>>(),
+    });
+    div7a_loan_review::rollforward::rollforward(&input).unwrap_or_else(|e| panic!("{input}: {e}"))
+}
+
+#[test]
+fn the_rollforward_keeps_its_books() {
+    let mut rng = Rng(campaign_seed(0xD17C));
+    for _ in 0..200 {
+        let (start, opening, repayments) = rollforward_case(&mut rng, 1);
+        let result = rolled(start, opening, &repayments);
+        let at = format!("{start} {opening} {repayments:?}");
+        let periods = result["periods"].as_array().unwrap();
+        let days: i64 = periods.iter().map(|p| p["days"].as_i64().unwrap()).sum();
+        assert_eq!(days, days_in_year(start), "{at}");
+        assert_eq!(result["days_in_year"], days, "{at}");
+        let charged: Vec<i64> = periods.iter().map(|p| cents_of(p, "interest")).collect();
+        assert!(charged.iter().all(|c| *c >= 0), "{at}");
+        let interest = cents_of(&result, "interest");
+        assert_eq!(charged.iter().sum::<i64>(), interest, "{at}");
+        let paid: i64 = repayments.iter().map(|(_, c)| c).sum();
+        assert_eq!(cents_of(&result, "repayments_total"), paid, "{at}");
+        assert_eq!(
+            cents_of(&result, "applied_to_interest") + cents_of(&result, "applied_to_principal"),
+            paid,
+            "{at}"
+        );
+        let closing = cents_of(&result, "amalgamated_loan_unpaid_at_end_of_year");
+        // s 109E(7): repayments meet the interest first, and unpaid interest is not loan.
+        let expected = if paid >= interest {
+            opening + interest - paid
+        } else {
+            opening
+        };
+        assert_eq!(closing, expected, "{at}");
+        assert!(closing >= 0, "{at}");
+    }
+}
+
+/// With no repayment the year's interest is the balance times the benchmark
+/// rate, 366-day years included.
+#[test]
+fn a_full_year_without_repayments_earns_the_benchmark_rate() {
+    let mut rng = Rng(campaign_seed(0xD17D));
+    for start in 2019..=2026 {
+        for _ in 0..25 {
+            let opening = rng.int(1, 10_000_000_000);
+            let result = rolled(start, opening, &[]);
+            let rate: i64 = result["benchmark_rate"]
+                .as_str()
+                .unwrap()
+                .strip_prefix("0.")
+                .unwrap()
+                .parse()
+                .unwrap();
+            let exact = i128::from(opening) * i128::from(rate);
+            let expected = (exact + 5_000) / 10_000;
+            assert_eq!(
+                i128::from(cents_of(&result, "interest")),
+                expected,
+                "{start} {opening}"
+            );
+        }
+    }
+}
+
+/// Moving a repayment later, without passing another, never lowers the year's
+/// interest. Each repayment here is at least $1,000, so the interest it adds,
+/// at least $1,000 x 4.52% / 366 = 12 cents a day, outweighs the at most 2 cents
+/// that rounding the 2 periods either side of it to cents can move.
+#[test]
+fn a_later_repayment_never_lowers_the_interest() {
+    let mut rng = Rng(campaign_seed(0xD17E));
+    let mut moved = 0;
+    for _ in 0..300 {
+        let (start, opening, mut repayments) = rollforward_case(&mut rng, 100_000);
+        if repayments.is_empty() {
+            continue;
+        }
+        repayments.sort();
+        let days = days_in_year(start);
+        let which = rng.int(0, repayments.len() as i64 - 1) as usize;
+        let limit = repayments.get(which + 1).map_or(days, |(next, _)| *next);
+        let from = repayments[which].0;
+        if from + 1 >= limit {
+            continue;
+        }
+        let before = cents_of(&rolled(start, opening, &repayments), "interest");
+        repayments[which].0 = rng.int(from + 1, limit - 1);
+        let after = cents_of(&rolled(start, opening, &repayments), "interest");
+        assert!(
+            after >= before,
+            "{start} {opening} {repayments:?}: {before} then {after}"
+        );
+        moved += 1;
+    }
+    assert!(moved > 100, "{moved}");
 }

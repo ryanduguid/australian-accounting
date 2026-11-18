@@ -5,21 +5,24 @@
 
 import asyncio
 import json
+import re
+from typing import Literal, get_args, get_origin
 
 import pytest
-from austaxcalc import calculations
 from mcp.server.mcpserver.exceptions import ToolError
 from pydantic import TypeAdapter
 
-from aus_accounting_mcp import resources
+from aus_accounting_mcp.adapters import tax
 from aus_accounting_mcp.adapters.tax import TaxFacts
 from aus_accounting_mcp.server import mcp
 
+KINDS = [get_args(model.model_fields["kind"].annotation)[0]
+         for model in get_args(get_args(TaxFacts)[0])]
+ADAPTER = TypeAdapter(TaxFacts)
+
 
 def _catalogue():
-    if not hasattr(calculations, "worksheet_catalogue"):
-        pytest.skip("Rich discovery requires the unreleased worksheet engine")
-    return calculations.worksheet_catalogue()
+    return tax.worksheet_catalogue()
 
 
 def test_scope_serves_engine_metadata_and_every_example_is_callable():
@@ -41,32 +44,56 @@ def test_scope_serves_engine_metadata_and_every_example_is_callable():
     asyncio.run(check())
 
 
-def test_pinned_older_engine_keeps_legacy_discovery(monkeypatch):
-    monkeypatch.delattr(calculations, "worksheet_catalogue", raising=False)
-    catalogue = resources.scope()["calculation_worksheets"]
-    assert set(catalogue) == set(resources.SCOPES)
-    for kind, entry in catalogue.items():
-        assert entry == {"scope": resources.SCOPES[kind], "source": resources.SOURCES[kind],
-                         "source_checked": resources.SOURCE_CHECKED}
+def test_the_catalogue_offers_exactly_the_kinds_and_periods_the_tool_accepts():
+    # The executable has more worksheets and periods; none of those is advertised.
+    catalogue = _catalogue()
+    assert sorted(catalogue) == sorted(KINDS)
+    adapter = TypeAdapter(TaxFacts)
+    for entry in catalogue.values():
+        for period in entry["supported_periods"]:
+            adapter.validate_python({**entry["example"]["facts"], **period["arguments"]})
 
 
-def test_pinned_engine_without_a_newer_kind_still_runs_the_others(monkeypatch):
-    # The published server pins an engine release that may predate a kind the
-    # workspace engine has; only that kind may fail, and it must say why.
-    monkeypatch.delattr(calculations, "payg_withholding", raising=False)
-    gst = {"kind": "gst", "scope_confirmed": True, "year": "2025-26",
-           "amount": "110.00", "gst_inclusive": True}
-    payg = {"kind": "payg_withholding", "scope_confirmed": True, "year": "2026-27",
-            "earnings": "1000.00", "pay_period": "weekly", "scale": 2}
+@pytest.mark.parametrize("kind", KINDS)
+def test_every_input_the_catalogue_describes_is_one_the_tool_accepts(kind):
+    # The executable describes quarterly pays, scale 4 and optional inputs that
+    # TaxFacts refuses; the served catalogue describes only what it takes.
+    entry = _catalogue()[kind]
+    facts = entry["example"]["facts"]
+    model = type(ADAPTER.validate_python(facts))
+    assert "optional_inputs" not in entry
+    for name, description in entry["required_inputs"].items():
+        annotation = model.model_fields[name].annotation
+        if name == "method":
+            described = entry["methods"]
+        elif bounds := re.fullmatch(r"integer from (\d+) to (\d+)", description):
+            described = [int(bound) for bound in bounds.groups()]
+        elif get_origin(annotation) is Literal and name not in {"kind", "year"}:
+            described = [type(get_args(annotation)[0])(value) for value in
+                         re.split(r", | or ", description.removeprefix("integer "))]
+        else:
+            continue
+        if get_origin(annotation) is Literal:
+            assert set(described) == set(get_args(annotation)), name
+        for value in described:
+            ADAPTER.validate_python({**facts, name: value})
 
-    async def check():
-        assert not (await mcp.call_tool("calculate_tax_worksheet", {"facts": gst})).is_error
-        with pytest.raises(ToolError, match="newer australian-tax-calculators"):
-            await mcp.call_tool("calculate_tax_worksheet", {"facts": payg})
-    asyncio.run(check())
+
+def test_no_served_scope_describes_what_the_tool_refuses():
+    raw, served = tax._command("worksheet-catalogue", {}), _catalogue()
+    for kind in KINDS:
+        kept = {period["id"] for period in served[kind]["supported_periods"]}
+        dropped = {period["id"] for period in raw[kind]["supported_periods"]} - kept
+        assert not any(period in served[kind]["scope"] for period in dropped), kind
+        # Where the executable describes more than TaxFacts takes, the scope is narrowed.
+        wider = ("optional_inputs" in raw[kind]
+                 or raw[kind]["required_inputs"] != served[kind]["required_inputs"]
+                 or any(period in raw[kind]["scope"] for period in dropped))
+        assert (kind in tax.ACCEPTED_SCOPES) == wider, kind
+        assert served[kind]["scope"] == tax.ACCEPTED_SCOPES.get(kind, raw[kind]["scope"])
 
 
-@pytest.mark.parametrize("kind", calculations.SCOPES)
+@pytest.mark.parametrize("kind", KINDS)
 def test_advertised_required_fields_match_the_mcp_discriminator(kind):
     entry = _catalogue()[kind]
     facts = entry["example"]["facts"]

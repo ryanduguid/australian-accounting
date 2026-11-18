@@ -50,16 +50,22 @@ impl Drop for Server {
     }
 }
 /// A frozen Python resource reply as the linked engine gives it (tests/engine/mod.rs).
-fn linked(request: &Value, mut expected: Value) -> Value {
-    if request["method"] != "resources/read" {
-        return expected;
-    }
+fn linked(_request: &Value, mut expected: Value) -> Value {
     if let Some(worksheets) = expected
         .pointer_mut("/result/contents/0/text/calculation_worksheets")
         .and_then(Value::as_object_mut)
     {
         for (kind, entry) in worksheets {
             engine::catalogue(kind, entry);
+        }
+    }
+    // The linked engine records that a minimum yearly repayment computed without
+    // the loan term has not been checked against s 109E(6).
+    for pointer in ["/result/content/0/text", "/result/structuredContent"] {
+        if let Some(result) = expected.pointer_mut(pointer)
+            && result.get("minimum_yearly_repayment").is_some()
+        {
+            engine::div7a(result);
         }
     }
     expected
@@ -292,7 +298,14 @@ fn current_evaluation_answers_follow_actual_reference_calls_and_dependent_facts(
     let mut exchanges = originals[0]["exchanges"].as_array().unwrap()[..2].to_vec();
     let mut questions = BTreeMap::new();
     let mut selected = BTreeSet::new();
+    let mut unanswered = BTreeSet::new();
     let mut calls = 0;
+    let registered: BTreeSet<_> = aus_accounting_mcp::contracts::CATALOGUE["tools"]
+        .as_array()
+        .unwrap()
+        .iter()
+        .map(|t| t["name"].as_str().unwrap().to_owned())
+        .collect();
     for pair in xml
         .descendants()
         .filter(|node| node.has_tag_name("qa_pair"))
@@ -316,6 +329,10 @@ fn current_evaluation_answers_follow_actual_reference_calls_and_dependent_facts(
             .map(|c| c["name"].as_str().unwrap().to_owned())
             .collect();
         assert_eq!(called, tools, "{id}");
+        if !tools.is_subset(&registered) {
+            unanswered.insert(id.to_owned());
+            continue;
+        }
         selected.extend(tools);
         for call in &reference {
             exchanges.push(json!({"request":{"jsonrpc":"2.0","id":exchanges.len(),"method":"tools/call","params":call},"assertions":{"/result/isError":false},"absent":[],"case":id}));
@@ -327,14 +344,12 @@ fn current_evaluation_answers_follow_actual_reference_calls_and_dependent_facts(
         }
         assert!(questions.insert(id, (text("answer"), reference)).is_none());
     }
+    assert_eq!(
+        unanswered,
+        BTreeSet::from(["account-number-format".to_owned(), "bsb-format".to_owned()])
+    );
     assert_eq!(questions.len(), 40);
     assert_eq!(calls, 46);
-    let registered: BTreeSet<_> = aus_accounting_mcp::contracts::CATALOGUE["tools"]
-        .as_array()
-        .unwrap()
-        .iter()
-        .map(|t| t["name"].as_str().unwrap().to_owned())
-        .collect();
     assert_eq!(selected, registered);
     let mut results: BTreeMap<String, Vec<Value>> = BTreeMap::new();
     replay_observed(

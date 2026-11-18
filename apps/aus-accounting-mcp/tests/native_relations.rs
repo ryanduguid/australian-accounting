@@ -4,7 +4,6 @@
 //! Preserve original cross-source assertions that frozen payloads cannot prove.
 use ato_benchmark_compare::dataset::{self, DataDir};
 use aus_accounting_mcp::{contracts, handler::AccountingServer, prompts, resources};
-use chrono::NaiveDate;
 use payday_super_checker::{calendar, csv_io, rates};
 use rmcp::ServerHandler;
 use serde_json::{Value, json};
@@ -243,17 +242,30 @@ fn discovery_date_bounds_admit_every_linked_engine_format() {
     ] {
         assert_eq!(length(tool, argument), bound);
     }
-    let moment = NaiveDate::from_ymd_opt(2027, 9, 13)
-        .unwrap()
-        .and_hms_micro_opt(22, 30, 45, 123456)
-        .unwrap();
-    let mut shapes = vec![moment.format("%Y-%m-%dT%H:%M:%S%.6f").to_string()];
-    for date in csv_io::DATE_FORMATS {
-        shapes.push(moment.format(date).to_string());
-        for time in csv_io::TIME_FORMATS {
-            // Python %f is six digits; chrono's bare %f defaults to nine.
-            let format = format!("{date} {time}").replace("%f", "%6f");
-            shapes.push(moment.format(&format).to_string());
+    // 2027-09-13 22:30:45.123456 written in every format the linked parser names.
+    // %f is Python's six digits.
+    let dates = [
+        ("%Y-%m-%d", "2027-09-13"),
+        ("%d/%m/%Y", "13/09/2027"),
+        ("%d-%m-%Y", "13-09-2027"),
+        ("%d/%m/%y", "13/09/27"),
+        ("%d %b %Y", "13 Sep 2027"),
+        ("%d %B %Y", "13 September 2027"),
+    ];
+    let times = [
+        ("%H:%M", "22:30"),
+        ("%H:%M:%S", "22:30:45"),
+        ("%H:%M:%S.%f", "22:30:45.123456"),
+        ("%I:%M %p", "10:30 PM"),
+        ("%I:%M:%S %p", "10:30:45 PM"),
+    ];
+    assert_eq!(csv_io::DATE_FORMATS, dates.map(|item| item.0));
+    assert_eq!(csv_io::TIME_FORMATS, times.map(|item| item.0));
+    let mut shapes = vec!["2027-09-13T22:30:45.123456".to_string()];
+    for (_, date) in dates {
+        shapes.push(date.to_string());
+        for (_, time) in times {
+            shapes.push(format!("{date} {time}"));
         }
     }
     let expected = payday_super_checker::py::Date::new(2027, 9, 13).unwrap();

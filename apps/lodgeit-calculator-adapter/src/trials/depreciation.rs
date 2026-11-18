@@ -12,19 +12,21 @@
 //! closing_wdv = opening_wdv + cost_additions - range_dep
 //! ```
 //!
-//! Where the window starts before the acquisition date, the provider emits
-//! no `cost_additions` and the figures do not close. An unreconcilable
-//! movement is `CONTRACT_FAILURE`; the addition that would close it is never
-//! invented.
+//! The current provider reports additions. Older responses can be checked
+//! against separate caller evidence. An unreconciled movement is a
+//! `CONTRACT_FAILURE`.
+use std::cmp::Ordering;
+
 use super::{Comparison, Evaluation, Money, dict, get, shown};
 use crate::client::{Client, Outcome, Status};
+use crate::contract::{DEPRECIATION_RANGE, range_gap};
 use crate::decimal::Decimal;
 use crate::p;
 use crate::pydatetime::date_fromisoformat;
 use crate::pyjson::Json;
 use crate::pyops::{Exc, R, S, decimal_signal, pts};
 
-pub const RANGE_CALC_URI: &str = "urn:sbrm:calculator:depreciation:range";
+pub const RANGE_CALC_URI: &str = DEPRECIATION_RANGE;
 pub const PERIOD_URI: &str = "urn:sbrm:period:depreciation:unscoped";
 pub const DAY_COUNTS: [&str; 3] = ["actual/actual", "actual/365", "monthly"];
 
@@ -71,15 +73,45 @@ pub fn range_request(asset: &Asset, from_date: &str, to_date: &str, day_count: &
     ]))
 }
 
-/// `reconcile(values, supplied_additions=..., tolerance=...)`: does opening
-/// plus additions less depreciation equal closing? A supplied addition is the
-/// caller's own evidence and is named in the reasons; none is derived from
-/// the gap.
-pub fn reconcile(
-    values: &Money,
+fn check_additions_evidence(
+    reported: Option<&Decimal>,
     supplied_additions: Option<&Decimal>,
-    tolerance: &Decimal,
 ) -> R<(bool, Vec<S>)> {
+    let mut reasons = Vec::new();
+    if let Some(reported) = reported {
+        if let Some(supplied) = supplied_additions
+            && reported.compare(supplied).map_err(decimal_signal)? != Ordering::Equal
+        {
+            return Ok((
+                false,
+                vec![p!(
+                    "provider and caller cost additions disagree: ",
+                    shown(reported),
+                    " versus ",
+                    shown(supplied)
+                )],
+            ));
+        }
+        reasons.push(p!(
+            "cost additions of ",
+            shown(reported),
+            " were supplied by the provider"
+        ));
+    } else if let Some(supplied) = supplied_additions {
+        reasons.push(p!(
+            "cost additions of ",
+            shown(supplied),
+            " were supplied by the caller as separate evidence; the provider did not return them"
+        ));
+    }
+    Ok((true, reasons))
+}
+
+/// `reconcile(values, supplied_additions=...)`: does opening plus additions
+/// less depreciation equal closing exactly? Prefer the provider's addition
+/// and compare it with caller evidence when both are present. Python's
+/// `tolerance` allowed a one-cent gap; there is none here.
+pub fn reconcile(values: &Money, supplied_additions: Option<&Decimal>) -> R<(bool, Vec<S>)> {
     let values = &dict(values);
     let missing: Vec<&str> = ["opening_wdv", "closing_wdv", "range_dep"]
         .into_iter()
@@ -95,27 +127,19 @@ pub fn reconcile(
         ));
     }
     let value = |name: &str| get(values, &pts(name)).expect("present");
-    let (opening, closing, range_dep) = (
-        value("opening_wdv"),
-        value("closing_wdv"),
-        value("range_dep"),
-    );
+    let [opening, closing, range_dep] = ["opening_wdv", "closing_wdv", "range_dep"].map(value);
     let nil = Decimal::parse_exact("0.00").expect("a literal");
-    let additions = supplied_additions.unwrap_or(&nil);
-    let expected_closing = opening
-        .add(additions)
-        .and_then(|sum| sum.sub(range_dep))
-        .map_err(decimal_signal)?;
-    let gap = closing.sub(&expected_closing).map_err(decimal_signal)?;
-    let mut reasons = Vec::new();
-    if let Some(supplied) = supplied_additions {
-        reasons.push(p!(
-            "cost additions of ",
-            shown(supplied),
-            " were supplied by the caller as separate evidence; the provider did not return them"
-        ));
+    let reported = get(values, &pts("cost_additions"));
+    let (consistent, mut reasons) = check_additions_evidence(reported, supplied_additions)?;
+    if !consistent {
+        return Ok((false, reasons));
     }
-    if gap.copy_abs().le(tolerance).map_err(decimal_signal)? {
+    let additions = reported.or(supplied_additions).unwrap_or(&nil);
+    let (expected_closing, gap) = match range_gap(opening, additions, range_dep, closing) {
+        Ok(movement) => movement,
+        Err(finding) => return Ok((false, vec![finding])),
+    };
+    if gap.is_zero() {
         return Ok((true, reasons));
     }
     reasons.push(p!(
@@ -136,11 +160,19 @@ pub fn reconcile(
     Ok((false, reasons))
 }
 
-/// `spans_acquisition(asset, from_date)`: the window starts before the asset
-/// was acquired, the provider's documented pre-acquisition limitation. The
-/// comparison is of the strings, as Python's is.
-pub fn spans_acquisition(asset: &Asset, from_date: &str) -> bool {
-    from_date < asset.acquisition_date.as_str()
+/// Whether a legacy window starts before and reaches the acquisition date.
+/// A window ending before acquisition has no initial recognition to evidence.
+pub fn spans_acquisition(asset: &Asset, from_date: &str, to_date: &str) -> bool {
+    from_date < asset.acquisition_date.as_str() && asset.acquisition_date.as_str() <= to_date
+}
+
+fn acquisition_evidence_matches(asset: &Asset, supplied: Option<&Decimal>) -> R<bool> {
+    let Some(supplied) = supplied else {
+        return Ok(false);
+    };
+    Ok(!supplied.is_zero()
+        && !supplied.is_negative()
+        && supplied.compare(&asset.cost).map_err(decimal_signal)? == Ordering::Equal)
 }
 
 /// `consecutive_windows(start, end, boundaries)`: split a window at the
@@ -189,14 +221,22 @@ pub fn evaluate_range(
     };
     let body = range_request(asset, from_date, to_date, day_count)?;
     let outcome = client.invoke(&pts(RANGE_CALC_URI), &pts(PERIOD_URI), &body)?;
-    evaluate_outcome(asset, from_date, identifier, &outcome, supplied_additions)
+    evaluate_outcome(
+        asset,
+        from_date,
+        to_date,
+        identifier,
+        &outcome,
+        supplied_additions,
+    )
 }
 
-/// `evaluate_outcome(asset, from_date, case_id, outcome,
+/// `evaluate_outcome(asset, from_date, to_date, case_id, outcome,
 /// supplied_additions=...)`.
 pub fn evaluate_outcome(
     asset: &Asset,
     from_date: &str,
+    to_date: &str,
     case_id: S,
     outcome: &Outcome,
     supplied_additions: Option<&Decimal>,
@@ -231,10 +271,13 @@ pub fn evaluate_outcome(
         _ => return Ok(with(Evaluation::ContractFailure, outcome.findings.clone())),
     }
     let values: Money = dict(&outcome.values);
-    let (closes, found) = reconcile(&values, supplied_additions, &super::cent())?;
+    let (closes, found) = reconcile(&values, supplied_additions)?;
     let mut reasons = outcome.findings.clone();
     reasons.extend(found);
-    if closes {
+    let older_acquisition = get(&values, &pts("cost_additions")).is_none()
+        && spans_acquisition(asset, from_date, to_date);
+    // Zero additions are no evidence for a window that includes the acquisition.
+    if closes && (!older_acquisition || acquisition_evidence_matches(asset, supplied_additions)?) {
         reasons.push(pts(
             "accounting carrying amounts only; this is not a Division 40 deduction and the tax \
              figure will not equal it",
@@ -246,12 +289,11 @@ pub fn evaluate_outcome(
             ..common
         });
     }
-    if spans_acquisition(asset, from_date) {
+    if older_acquisition {
         reasons.push(pts(
-            "the window starts before the acquisition date, which is the provider's published \
-             pre-acquisition limitation: the cost enters during the window and no cost_additions \
-             field is emitted. Supply the addition as separate evidence or start the window on or \
-             after the acquisition date.",
+            "this response has the older pre-acquisition limitation: the window includes \
+             initial recognition but has no cost_additions field. Supply separate evidence equal to \
+             the asset cost to check the movement.",
         ));
     }
     Ok(Comparison {
@@ -332,8 +374,15 @@ mod tests {
     #[test]
     fn a_closing_movement_is_a_match() {
         let outcome = computed(range("120000.00", "96000.00", "24000.00"));
-        let compared =
-            evaluate_outcome(&asset(), "2024-07-01", pts("DEP-1"), &outcome, None).expect("ok");
+        let compared = evaluate_outcome(
+            &asset(),
+            "2024-07-01",
+            "2025-06-30",
+            pts("DEP-1"),
+            &outcome,
+            None,
+        )
+        .expect("ok");
         assert_eq!(compared.evaluation, Evaluation::Match);
         assert!(mentions(&compared, "Division 40"));
     }
@@ -341,8 +390,15 @@ mod tests {
     #[test]
     fn a_movement_that_does_not_close_is_refused_and_no_addition_is_invented() {
         let outcome = computed(range("0.00", "108000.00", "12000.00"));
-        let compared =
-            evaluate_outcome(&asset(), "2024-01-01", pts("DEP-1"), &outcome, None).expect("ok");
+        let compared = evaluate_outcome(
+            &asset(),
+            "2024-01-01",
+            "2024-12-31",
+            pts("DEP-1"),
+            &outcome,
+            None,
+        )
+        .expect("ok");
         assert_eq!(compared.evaluation, Evaluation::ContractFailure);
         assert!(mentions(&compared, "does not close"));
         assert!(mentions(&compared, "pre-acquisition limitation"));
@@ -352,6 +408,7 @@ mod tests {
         let compared = evaluate_outcome(
             &asset(),
             "2024-01-01",
+            "2024-12-31",
             pts("DEP-1"),
             &outcome,
             Some(&supplied),
@@ -362,13 +419,58 @@ mod tests {
     }
 
     #[test]
-    fn a_missing_figure_cannot_be_reconciled_around() {
-        let (closes, reasons) = reconcile(
-            &vec![(pts("opening_wdv"), dec("1.00"))],
+    fn an_older_movement_must_close_to_the_cent() {
+        let outcome = computed(range("100.00", "90.01", "10.00"));
+        let compared = evaluate_outcome(
+            &asset(),
+            "2024-07-01",
+            "2025-06-30",
+            pts("DEP-1"),
+            &outcome,
             None,
-            &super::super::cent(),
         )
         .expect("ok");
+        assert_eq!(compared.evaluation, Evaluation::ContractFailure);
+        assert!(mentions(&compared, "a gap of 0.01"));
+    }
+
+    #[test]
+    fn negative_caller_additions_are_refused() {
+        let outcome = computed(range("100.00", "80.00", "10.00"));
+        let supplied = dec("-10.00");
+        let compared = evaluate_outcome(
+            &asset(),
+            "2024-01-01",
+            "2024-12-31",
+            pts("DEP-1"),
+            &outcome,
+            Some(&supplied),
+        )
+        .expect("ok");
+        assert_eq!(compared.evaluation, Evaluation::ContractFailure);
+        assert!(mentions(&compared, "must be non-negative"));
+    }
+
+    #[test]
+    fn an_acquisition_window_without_evidence_of_additions_is_not_a_match() {
+        let outcome = computed(range("0.00", "0.00", "0.00"));
+        let compared = evaluate_outcome(
+            &asset(),
+            "2024-01-01",
+            "2024-12-31",
+            pts("DEP-1"),
+            &outcome,
+            None,
+        )
+        .expect("ok");
+        assert_eq!(compared.evaluation, Evaluation::ContractFailure);
+        assert!(mentions(&compared, "pre-acquisition limitation"));
+    }
+
+    #[test]
+    fn a_missing_figure_cannot_be_reconciled_around() {
+        let (closes, reasons) =
+            reconcile(&vec![(pts("opening_wdv"), dec("1.00"))], None).expect("ok");
         assert!(!closes);
         assert_eq!(
             reasons,
@@ -380,9 +482,9 @@ mod tests {
 
     #[test]
     fn the_pre_acquisition_window_is_recognised_before_the_call() {
-        assert!(spans_acquisition(&asset(), "2024-01-01"));
-        assert!(!spans_acquisition(&asset(), "2024-07-01"));
-        assert!(!spans_acquisition(&asset(), "2025-01-01"));
+        assert!(spans_acquisition(&asset(), "2024-01-01", "2025-06-30"));
+        assert!(!spans_acquisition(&asset(), "2024-07-01", "2025-06-30"));
+        assert!(!spans_acquisition(&asset(), "2025-01-01", "2025-06-30"));
     }
 
     #[test]
@@ -412,6 +514,7 @@ mod tests {
         let compared = evaluate_outcome(
             &asset(),
             "2024-07-01",
+            "2025-06-30",
             pts("DEP-1"),
             &computed(values),
             None,
@@ -425,6 +528,7 @@ mod tests {
         let compared = evaluate_outcome(
             &asset(),
             "2024-07-01",
+            "2025-06-30",
             pts("DEP-1"),
             &computed(values),
             None,

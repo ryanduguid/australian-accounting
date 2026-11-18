@@ -1,0 +1,24 @@
+# Undeployed candidate. Deploying it is a separate step that needs Ryan's
+# sign-in; nothing in this repository deploys it.
+name = "aus-accounting-connector"
+main = "build/worker/shim.mjs"
+compatibility_date = "2026-07-30"
+workers_dev = false
+preview_urls = false
+routes = [{ pattern = "duguid.com.au/mcp*", zone_name = "duguid.com.au" }]
+
+[limits]
+cpu_ms = 10
+
+[observability]
+enabled = false
+
+# 60 requests a minute per caller address in each Cloudflare location. Its own
+# namespace, so it shares no counter with another Worker in the account.
+[[ratelimits]]
+name = "LIMITER"
+namespace_id = "2272"
+
+  [ratelimits.simple]
+  limit = 60
+  period = 60

@@ -8,6 +8,7 @@ use super::{
     corpus::{self, Ranked},
     linked, page, terms, words,
 };
+use jiff::civil::Date;
 use num_bigint::BigInt;
 use payday_super_checker::{py, pyre::Regex};
 use serde::{
@@ -179,7 +180,7 @@ fn manifest(context: &Context, path: &Path, run: &str) -> Result<Manifest, Strin
         .filter(|s| {
             ISO_DATE.fullmatch(s)
                 && !s.starts_with("0000-")
-                && chrono::NaiveDate::parse_from_str(s, "%Y-%m-%d").is_ok()
+                && Date::strptime("%Y-%m-%d", s).is_ok()
         })
         .ok_or_else(|| invalid("fetched_on must be a YYYY-MM-DD date".into()))?;
     let notice = data["reuse_notice"]
@@ -524,9 +525,11 @@ fn provenance_matches_original_at_large_catalogue_sizes() {
                 .map(|i| Run {
                     name: format!("run-{i:03}"),
                     path: PathBuf::new(),
-                    date: (chrono::NaiveDate::from_ymd_opt(2025, 1, 1).unwrap()
-                        + chrono::Duration::days(i))
-                    .to_string(),
+                    date: Date::new(2025, 1, 1)
+                        .unwrap()
+                        .checked_add(jiff::SignedDuration::from_hours(24 * i))
+                        .unwrap()
+                        .to_string(),
                     documents: HashSet::new(),
                     excluded: HashSet::new(),
                     notice: format!("Synthetic notice {}", i % 3),

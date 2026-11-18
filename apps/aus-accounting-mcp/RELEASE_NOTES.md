@@ -1,3 +1,290 @@
+# v0.10.0
+
+## Changed
+
+- The tax worksheets run the `australian-tax-calculators` 1.0.0 executable, published
+  as [australian-tax-calculators/v1.0.0](https://github.com/ryanduguid/australian-accounting/releases/tag/australian-tax-calculators/v1.0.0)
+  on GitHub Releases, instead of importing the Python `australian-tax-calculators`
+  0.2.0, which is no longer a dependency. Install it separately: put it on `PATH`, or
+  give its absolute path in `AUS_TAX_CALCULATORS_BIN`. The server accepts only an
+  executable whose `--version` prints exactly `australian-tax-calculators 1.0.0`, and
+  never one from the working directory. Without it, `calculate_tax_worksheet`, the
+  worksheet catalogue and the freshness entry say how to install it, and every other
+  tool works as before
+  ([#711](https://github.com/ryanduguid/australian-accounting/pull/711),
+  [#712](https://github.com/ryanduguid/australian-accounting/pull/712)).
+- Some results change. `contribution_caps` reports as `carry_forward_applied` only the
+  unused concessional cap that covers contributions over the year's cap, as ITAA 1997
+  s 291-20(4) applies it: with a $30,000 cap, $15,000 unused and $40,000 contributed,
+  it is $10,000, where 0.9.0 said $15,000. Sources, checked dates and evidence change
+  for 7 worksheet kinds, as the calculators' changelog records. The worksheet tool's
+  name, inputs, scope statements and refusals are unchanged; inputs the 1.0.0
+  executable accepts but this server's schema does not are still refused.
+
+## Fixed
+
+- `search_ato_rulings` serves Law Companion Rulings and GST determinations. Before, it
+  refused a rulings run holding either, although the corpus builder's rulings stage
+  writes both. A GST determination is accepted under the label earlier runs wrote,
+  `GST determination`, and under the Legal Database's name the stage writes next,
+  `Goods and Services Tax Determination`. A `family` filter naming either label finds
+  both.
+
+## Added
+
+- `validate_bsb_format` tests a BSB against AusPayNet's published 6 digit format,
+  XXX-XXX. It holds no BSB directory, so a valid format proves no institution, branch
+  or account.
+- `validate_account_number_format` tests a bank account number against the account
+  number field in AusPayNet's BECS Procedures: up to 9 letters, digits, hyphens or
+  spaces, hyphens removed from a longer number, and not all zeros or blanks. A valid
+  format proves no account, payee or BSB match.
+
+## Unchanged
+
+- Retains `payday-super-checker` 0.2.3, `ato-benchmark-compare` 0.2.2,
+  `div7a-loan-review` 0.3.2, `gst-review` 0.1.0 and `lodgment-calendar` 0.1.0.
+
+## Known issues
+
+- The MCP Bundle for Claude Desktop, `aus-accounting-mcp-bundle/v0.10.0`, installs this
+  release from PyPI but not the calculators executable: its tax worksheets refuse
+  unless the executable is in a folder on the `PATH` Claude Desktop gives the server.
+  The bundle release carries a SHA-256 checksum but no build provenance attestation.
+- The server checks the executable's reported version, not its digest: verify the
+  download against the release's `SHA256SUMS` and attestation, as that release
+  describes.
+
+# v0.9.0
+
+## Fixed
+
+- `review_div7a_loan` refuses a remaining term longer than the Act allows and gives no
+  figure. Before, such a loan got a minimum yearly repayment worked from the longer
+  term, which is lower than the Act requires. It now refuses a remaining term above the
+  s 109N(3) maximum (`REFUSED_REMAINING_TERM_ABOVE_MAXIMUM_TERM`), above the loan's own
+  term (`REFUSED_REMAINING_TERM_ABOVE_LOAN_TERM`), or above that term less the years
+  elapsed since the loan year under s 109E(6)
+  (`REFUSED_REMAINING_TERM_ABOVE_TERM_LESS_YEARS_ELAPSED`). A 7-year loan made in
+  2024-25 accepts 7 for 2025-26 and 6 for 2026-27, and refuses 7 for 2026-27. The pinned
+  `div7a-loan-review` 0.3.2 has none of these refusals, so this server applies them
+  after the engine's answer, with the engine's codes and wording. A call that returned
+  a figure in 0.8.0 can now be refused
+  ([#626](https://github.com/ryanduguid/australian-accounting/pull/626),
+  [#627](https://github.com/ryanduguid/australian-accounting/pull/627)).
+- With no legislation corpus configured, the corpus tools' refusal names PaulGoodman's
+  published `corpus-2026-11-11` snapshot first, which needs no build, and building one
+  second ([#609](https://github.com/ryanduguid/australian-accounting/pull/609)).
+- The README is the PyPI description, and its 10 relative links resolved against
+  pypi.org. They are now absolute GitHub links
+  ([#609](https://github.com/ryanduguid/australian-accounting/pull/609)).
+- The component lock that builds this release takes `opentelemetry-api` 1.45.2, patched
+  for GHSA-mf5v-w3w3-f6cg. The wheel's dependency ranges are unchanged, so an install
+  resolves its own versions
+  ([#646](https://github.com/ryanduguid/australian-accounting/pull/646)).
+
+## Changed
+
+- `search_tax_legislation` and `read_tax_legislation_section` with `as_at` answer each
+  title from the compilation whose window, from its compilation date to the date it was
+  superseded, covers the date. Earlier compilations are read from an optional
+  `compilations/<name>/markdown/` folder beside `markdown/`; calls without `as_at`,
+  `define_tax_term` and `search_tax_rates` still read only `markdown/`. Overlapping
+  windows are an input error. When no window covers the date the title is refused as in
+  0.8.0, and a title held in more than one compilation also lists its windows in the new
+  `held_compilations`. An undated read of a title that `compilations/` also holds carries
+  a caveat. The published snapshot holds one compilation per title, so with it results
+  are unchanged apart from the refusal notice and the tool descriptions
+  ([#644](https://github.com/ryanduguid/australian-accounting/pull/644)).
+- The `review_div7a_loan` descriptions of `year_loan_made`, `maximum_term_years` and
+  `remaining_term_years` give the s 109E(6) limit and, for a loan extended under
+  s 109E(3A), the s 109E(3B) loan year and the term as the ATO works it: the agreed term
+  counted from when the loan was first made, at most 25 years, less the time it had
+  already run. A loan made on 1 July 2022 and extended on 1 July 2024 is entered with 23,
+  not 25 ([#636](https://github.com/ryanduguid/australian-accounting/pull/636)).
+- Aligns citation, compatibility, bundle and MCP Registry metadata with 0.9.0.
+
+## Added
+
+- `get_reviewed_rate` holds 74 reviewed records, adding the Division 296 tax rate of
+  15% on taxable superannuation earnings and the further 10% on very large balances,
+  each from 1 July 2026 ([#608](https://github.com/ryanduguid/australian-accounting/pull/608)).
+  This server has no Division 296 worksheet.
+- An MCP Bundle for Claude Desktop, `aus-accounting-mcp-bundle/v0.9.0`, published as its
+  own release once 0.9.0 is on PyPI. It pins `aus-accounting-mcp==0.9.0`.
+
+## Not in this release
+
+- FBT return dates. `get_lodgment_due_dates` still lists only BAS, IAS and income tax
+  return dates: this server pins `lodgment-calendar` 0.1.0, and the tool gains FBT
+  returns only with a later pin move to 0.2.0 or later.
+- Worksheets and years added to the Rust calculators since 0.2.0, including 2026-27 for
+  the Medicare levy, the Division 296 estimate and Schedules 5 and 15 withholding. They
+  run through the `au-accounting` command; this server pins the Python
+  `australian-tax-calculators` 0.2.0.
+- Retains `payday-super-checker` 0.2.3, `ato-benchmark-compare` 0.2.2,
+  `div7a-loan-review` 0.3.2, `australian-tax-calculators` 0.2.0, `gst-review` 0.1.0 and
+  `lodgment-calendar` 0.1.0 unchanged.
+
+## Known issues
+
+- `calculate_tax_worksheet` refuses the Medicare levy for 2026-27, because the pinned
+  calculators 0.2.0 hold no 2026-27 thresholds.
+- `payg_withholding` applies no Medicare levy variation for scales 2 and 6, has no
+  scale 4 and takes only weekly, fortnightly and monthly pays.
+- `search_ato_rulings` refuses a rulings run whose documents are labelled as Law
+  Companion Rulings, a family it does not list. Runs built so far label them as
+  Practical Compliance Guidelines.
+- Dated reads from `compilations/` have been tested only on fabricated corpora: no
+  published snapshot holds earlier compilations yet, `doctor` does not inspect
+  `compilations/` and the cost of a dated search over many compilations is unmeasured.
+- `reconcile_bas` lists differences from lodged figures but does not say whether a
+  correction can be made on a later BAS within the time and value limits of
+  LI 2023/32.
+- The bundle release carries a SHA-256 checksum but no build provenance attestation.
+- `docs/firm-assessment.md` gives no supplier details under APP 1.7 to 1.9.
+
+# v0.8.0
+
+- Licence: the Ryan Duguid Public Attribution Licence 1.0
+  (`LicenseRef-Duguid-Public-Attribution-1.0`) replaces FSL-1.1-ALv2. It is the
+  FSL-1.1-ALv2 text unchanged plus a Public Attribution Condition on the FSL grant: a
+  copy, port or derivative made available outside your organisation must credit Ryan
+  Duguid publicly, with a link to the repository. Internal use is exempt, and the
+  condition does not apply to a version's Apache-2.0 licence. 0.7.0 and 0.7.1 keep
+  FSL-1.1-ALv2. Source files now carry copyright and SPDX headers
+  ([#569](https://github.com/ryanduguid/australian-accounting/pull/569),
+  [#564](https://github.com/ryanduguid/australian-accounting/pull/564)).
+- Breaking: `search_tax_rates` leaves out rows from a compilation the corpus marks as
+  superseded, as `search_tax_legislation` and `define_tax_term` already did. Pass
+  `in_force_only: false` to get 0.7.1's rows back; each superseded row then carries a
+  caveat. A row whose currency the corpus did not record is kept either way. Each row
+  gains `version_is_current`: true, false or null
+  ([#528](https://github.com/ryanduguid/australian-accounting/pull/528)).
+- Breaking: all 4 searches (`search_tax_legislation`, `search_tax_rates`,
+  `search_accounting_library` and `search_ato_rulings`) match whole words only, so a word
+  inside a longer word no longer matches: 'deduct' does not find 'deductible'. A modal
+  verb and the 'not' after it count as one word, so 'must lodge' never fully matches
+  text holding only 'must not lodge', and the reverse holds too. In the legislation and
+  rate searches such a row can still appear in `partial_hits`, because a modal's
+  opposite form counts towards their 2-word threshold; the library and rulings searches
+  have no partial list, so there it is simply not a match
+  ([#585](https://github.com/ryanduguid/australian-accounting/pull/585)).
+- `search_tax_legislation` and `search_tax_rates` take a plain question. Stop words
+  such as 'what' and 'the' are dropped and listed in the new `dropped_words`; words of
+  legal force such as 'must', 'may' and 'not' are kept. Room left on a page goes to the
+  new `partial_hits`: rows holding at least 2 of the words, each labelled
+  `match: "partial"` with `matched_words` and `missing_words`. A partial hit shows
+  shared words, not an answer
+  ([#585](https://github.com/ryanduguid/australian-accounting/pull/585)).
+- Adds `get_reviewed_rate`, which returns one reviewed ATO rate or threshold for a date
+  with its ATO page, capture date and a verbatim quote holding the figure, from 72
+  bundled records covering 2025-26 and 2026-27. Any other date, a date outside the
+  record's period or an unknown id is `REFUSED` with no figure and a `refusal` code:
+  `UNKNOWN_ID`, `OUTSIDE_COVERED_YEARS`, `OUTSIDE_RECORD_PERIOD` or
+  `NO_RECORDED_PERIOD`. `get_data_freshness` reports the records as the new
+  `reviewed_ato_rates` dataset, and its `tool` argument accepts `get_reviewed_rate`
+  ([#585](https://github.com/ryanduguid/australian-accounting/pull/585)).
+- Adds `validate_abn` and `validate_acn`, which test a check digit and return
+  `CHECK_DIGIT_VALID`, `CHECK_DIGIT_INVALID` or `MALFORMED`. They contact no register,
+  and a valid check digit proves neither ABR nor GST registration
+  ([#523](https://github.com/ryanduguid/australian-accounting/pull/523)).
+- Adds `aus-accounting-mcp doctor`, which prints the version, the periods each bundled
+  dataset records and each configured retrieval folder with its row count, and exits 1
+  if a configured folder is broken. A legislation corpus with no rates index counts as
+  broken, because `search_tax_rates` fails without one
+  ([#585](https://github.com/ryanduguid/australian-accounting/pull/585)).
+- `search_tax_legislation` and `read_tax_legislation_section` take `as_at`, a date the
+  user names, and answer from each title's compilation window: `captured`,
+  `before_compilation`, `superseded` or `after_retrieval`. Text comes back only for
+  `captured`; every other title is listed in the new `refusals` with its status and
+  `next_step`, a search adds `as_at_summary`, and each row carries `as_at`. `captured`
+  is not a finding that the text was the law on that date. With `as_at`,
+  `in_force_only` is ignored and `act` also takes a Register ID. Calls without `as_at`
+  are unaffected by it
+  ([#592](https://github.com/ryanduguid/australian-accounting/pull/592),
+  [#594](https://github.com/ryanduguid/australian-accounting/pull/594)).
+- `calculate_tax_worksheet` takes `file_note: true` and then also returns `file_note`, a
+  Markdown note restating the result for a workpaper. Without it the result is
+  unchanged, and a refused worksheet returns only its refusal
+  ([#568](https://github.com/ryanduguid/australian-accounting/pull/568)).
+- `search_accounting_library` ranks matches: the query phrase in the heading in force
+  at a line first, then every word in that heading, then the phrase in the line, then
+  the words anywhere in it; ties keep
+  folder and file order. The order is presentation, not authority. It now reads the
+  whole library on every search; 3.0 to 3.8 seconds were measured at the 1,000-file,
+  64 MB limit ([#536](https://github.com/ryanduguid/australian-accounting/pull/536)).
+- `search_ato_rulings` ranks a paragraph whose captured page held a withdrawal notice
+  after those without, within the same tier; none is left out
+  ([#528](https://github.com/ryanduguid/australian-accounting/pull/528)).
+- `get_ato_benchmarks`: when no business type matches, the error names
+  `list_ato_benchmark_industries` and the dataset year instead of the engine's
+  command-line command, which an MCP client cannot run
+  ([#536](https://github.com/ryanduguid/australian-accounting/pull/536)).
+- Payday Super: `calc_payday_super_deadline`, and each contribution row of
+  `review_payday_super_contributions` and `build_payday_super_evidence_pack`, take
+  `returned_by_fund`. True refuses the review with an input error naming the row,
+  because the pinned checker cannot assess a return and would read the receipt as kept
+  ([#582](https://github.com/ryanduguid/australian-accounting/pull/582)).
+- Payday Super: every `ON_TIME` verdict, and every row listing `ON_TIME` in
+  `horizon_verdicts`, carries `verdict_qualification`
+  (`code: RETURNED_CONTRIBUTIONS_NOT_ASSESSED`, `returned_contributions_assessed: false`,
+  `assumes_fund_kept_every_receipt: true`) and a caveat saying returned contributions
+  were not assessed. An evidence pack with an `ON_TIME` verdict or candidate, including
+  every exit code 0, carries it with a `statement`; its `exceptions.json` gains the
+  field, `practitioner-review.md` and `decision-log.md` open with the notice and
+  `report.csv` rows carry the caveat. No verdict, exit code or figure changes
+  ([#524](https://github.com/ryanduguid/australian-accounting/pull/524)).
+- Payday Super: `experimental_sgc_low` and `experimental_sgc_high`, the scope resource
+  and the disclaimer say the estimates exclude choice loading, the maximum
+  contributions base and post-assessment penalties. No figure changes
+  ([#529](https://github.com/ryanduguid/australian-accounting/pull/529)). The
+  `first_to_fund` description covers the first eligible contribution after employment
+  starts or recommences, including a worker rehired under a new arrangement, as well as
+  a fund switch ([#600](https://github.com/ryanduguid/australian-accounting/pull/600)).
+- The server instructions tell the model, when its own working or an operator's figure
+  differs from a tool figure, to recheck the inputs, state both figures and flag the
+  difference, never substituting either silently
+  ([#559](https://github.com/ryanduguid/australian-accounting/pull/559)). They also
+  cover partial hits, `as_at`, `returned_by_fund`, `get_reviewed_rate` and the
+  identifier tools, and link DrDebits at its renamed repository
+  ([#598](https://github.com/ryanduguid/australian-accounting/pull/598)). The scope
+  resource lists the 3 new tools and adds the returned-contribution limit to
+  `payday_limitations`; the disclaimer resource adds the returned-contribution and
+  SG-charge sentences.
+- What a strict consumer will notice: `tools/list` holds 25 tools, up from 22. New
+  fields always present: `partial_hits` and `dropped_words` on legislation and rate
+  searches, and `version_is_current` on rate rows. New fields present only in some
+  results: `verdict_qualification`, which the output schema requires on an `ON_TIME`
+  row, on a row listing `ON_TIME` in `horizon_verdicts` and on a pack with
+  `review_exit_code` 0; `file_note`; and, with `as_at`, `refusals`, `as_at_summary` and
+  `as_at`. New optional inputs: `returned_by_fund`, `file_note`, `as_at` on the 2
+  legislation tools and `in_force_only` on `search_tax_rates`. A Payday Super row or
+  evidence pack that states `ON_TIME` carries one more caveat, such a pack's files
+  change as above, and `get_data_freshness` reports one more dataset.
+- Not in this release: FBT return dates. `get_lodgment_due_dates` still lists only BAS,
+  IAS and income tax return dates. FBT return dates are in the `lodgment-calendar`
+  source ([#523](https://github.com/ryanduguid/australian-accounting/pull/523)) but not
+  in the pinned `lodgment-calendar` 0.1.0 from PyPI, which has no FBT module; they reach
+  this server only after a `lodgment-calendar` release and a pin move.
+- Not in this release: assessment of returned contributions. The pinned
+  `payday-super-checker` 0.2.3 has no input for a contribution the fund returned, so
+  this release refuses rows flagged `returned_by_fund` and qualifies every `ON_TIME`
+  instead. The checker's `returned_by_fund` column and `--events` file exist only in its
+  unreleased 1.0.0 source. Check fund records for returns before relying on `ON_TIME`.
+- Adds an MCP Bundle for Claude Desktop, published as its own release
+  `aus-accounting-mcp-bundle/v0.8.0` once 0.8.0 is on PyPI. It pins
+  `aus-accounting-mcp==0.8.0`, which uv installs on first launch, and offers the 3
+  research folders as optional settings. Its workflow checks the bundle against this
+  release's source and starts it before publishing; no Claude Desktop install has
+  been tested.
+- Bundles the 72 reviewed ATO rate records as package data
+  (`aus_accounting_mcp/rate_records/`).
+- Retains `payday-super-checker` 0.2.3, `ato-benchmark-compare` 0.2.2,
+  `div7a-loan-review` 0.3.2, `australian-tax-calculators` 0.2.0, `gst-review` 0.1.0 and
+  `lodgment-calendar` 0.1.0 unchanged.
+- Aligns citation, compatibility and MCP Registry metadata with 0.8.0.
+
 # v0.7.1
 
 - Pins `payday-super-checker` 0.2.3 (was 0.2.2). The checker's only change is to its

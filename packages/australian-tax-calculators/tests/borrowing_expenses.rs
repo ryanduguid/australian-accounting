@@ -20,7 +20,16 @@ fn run(overrides: Value) -> Result<Value, String> {
     for (k, v) in overrides.as_object().unwrap() {
         input[k] = v.clone();
     }
-    api::evaluate("borrowing-expenses", &input)
+    let result = api::evaluate("borrowing-expenses", &input);
+    // derive gives the same result, or the same refusal.
+    let envelope = json!({"command": "borrowing-expenses", "input": input});
+    let doc = api::evaluate("derive", &envelope);
+    assert_eq!(
+        doc.as_ref().map(|doc| doc["result"].to_string()),
+        result.as_ref().map(Value::to_string),
+        "derive {input}"
+    );
+    result
 }
 
 fn refusal(overrides: Value) -> String {
@@ -235,7 +244,7 @@ fn out_of_scope_facts_are_refused() {
     );
     assert_eq!(
         refusal(json!({"year": "2027-28"})),
-        "Unsupported period '2027-28'; supported: 2024-25, 2025-26, 2026-27."
+        "Unsupported period '2027-28'; supported: 2024-25, 2025-26, 2026-27. From 2027-28 ITAA 1997 s 26-155 limits deductions for residential rental property, and this worksheet does not apply it."
     );
     assert_eq!(
         refusal(json!({"income_use": "1.01"})),

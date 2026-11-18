@@ -1,15 +1,17 @@
 // Copyright 2026 Ryan Duguid
 // SPDX-License-Identifier: LicenseRef-Duguid-Public-Attribution-1.0
 
-//! The served worksheet scope differs from the linked engine's only for a worksheet whose
-//! engine periods the input schema refuses, and each of those periods is refused. A schema
-//! change that opens the periods, or an engine change that drops a worksheet's wide words,
-//! fails here instead of leaving a stale narrowing in `NARROWED_SCOPE`.
+//! The served worksheet scope differs from the linked engine's where the input schema
+//! refuses a period or an input the engine's words describe. Each refused period is
+//! refused by the tool. `contribution_caps` is the one narrowing without a refused
+//! period: the schema takes one unused-cap total, not the year-by-year carry-forward.
+//! A schema change that opens those periods or inputs, or an engine change that drops
+//! a worksheet's wide words, fails here instead of leaving a stale narrowing.
 use aus_accounting_mcp::handler::AccountingServer;
 use serde_json::{Value, json};
 
 #[test]
-fn a_narrowed_scope_stands_only_for_periods_the_schema_refuses() {
+fn a_narrowed_scope_stands_for_what_the_schema_refuses() {
     let engine =
         australian_tax_calculators::api::evaluate("worksheet-catalogue", &json!({})).unwrap();
     let scope = aus_accounting_mcp::resources::read("aus-accounting://scope").unwrap();
@@ -27,10 +29,10 @@ fn a_narrowed_scope_stands_only_for_periods_the_schema_refuses() {
             .iter()
             .filter(|period| !advertised.contains(period))
             .collect();
-        assert!(
-            !refused.is_empty(),
-            "{kind}: the served scope is narrowed, but every engine period is advertised"
-        );
+        if refused.is_empty() {
+            assert_eq!(kind, "contribution_caps");
+            continue;
+        }
         for period in refused {
             let mut facts = entry["example"]["facts"].clone();
             let arguments = period["arguments"].as_object().unwrap().clone();
@@ -41,5 +43,15 @@ fn a_narrowed_scope_stands_only_for_periods_the_schema_refuses() {
         }
     }
     narrowed.sort_unstable();
-    assert_eq!(narrowed, ["fbt", "payg_withholding"]);
+    assert_eq!(
+        narrowed,
+        [
+            "contribution_caps",
+            "depreciation",
+            "fbt",
+            "medicare_levy",
+            "payg_withholding",
+            "study_loan_withholding",
+        ]
+    );
 }

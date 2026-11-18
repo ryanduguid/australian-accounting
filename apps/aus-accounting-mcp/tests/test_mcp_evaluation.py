@@ -75,7 +75,7 @@ async def _answer(session, case):
                 "ranked-provision", "long-provision", "ruling-paragraph",
                 "gst-coding", "bas-reconciliation", "lodgment-due-date",
                 "data-freshness", "reviewed-rate-outside-years", "abn-check-digit",
-                "acn-check-digit"}:
+                "acn-check-digit", "bsb-format", "account-number-format"}:
         reference = QUESTIONS.find(f"qa_pair[@id='{case}']/calls")
         results = [await call(c["name"], **c["arguments"])
                    for c in json.loads(reference.text)]
@@ -91,6 +91,12 @@ async def _answer(session, case):
             return results[0]["refusal"]
         if case in {"abn-check-digit", "acn-check-digit"}:
             assert results[0]["gst_registration_established"] is False
+            return results[0]["result"]
+        if case == "bsb-format":
+            assert results[0]["institution_established"] is False
+            return results[0]["result"]
+        if case == "account-number-format":
+            assert results[0]["account_established"] is False
             return results[0]["result"]
         if case == "gst-coding":
             return results[0]["lines"][0]["state"]

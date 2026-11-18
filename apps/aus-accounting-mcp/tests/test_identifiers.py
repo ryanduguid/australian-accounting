@@ -1,10 +1,11 @@
 # Copyright 2026 Ryan Duguid
 # SPDX-License-Identifier: LicenseRef-Duguid-Public-Attribution-1.0
 
-"""ABN and ACN check digits through the MCP boundary.
+"""ABN and ACN check digits and the BSB and account number formats through the MCP boundary.
 
-The numbers are the ones ABR and ASIC publish as worked examples and valid
-vectors, or deliberately broken copies of them. None is client data.
+The ABNs and ACNs are the ones ABR and ASIC publish as worked examples and valid
+vectors, or deliberately broken copies of them. The BSBs and account numbers are made
+up: a format test needs no real one. None is client data.
 """
 
 import asyncio
@@ -13,7 +14,12 @@ import pytest
 from jsonschema import Draft202012Validator
 
 from aus_accounting_mcp import server
-from aus_accounting_mcp.identifiers import ABN_NOT_ESTABLISHED, ACN_NOT_ESTABLISHED
+from aus_accounting_mcp.identifiers import (
+    ABN_NOT_ESTABLISHED,
+    ACCOUNT_NOT_ESTABLISHED,
+    ACN_NOT_ESTABLISHED,
+    BSB_NOT_ESTABLISHED,
+)
 
 TOOLS = {tool.name: tool for tool in asyncio.run(server.mcp.list_tools())}
 
@@ -39,7 +45,8 @@ NOT_SPACES = ["\t{}", "{}\n", "{}\r", " {}", " {}", " {}", "{}-", "{}A"]
 
 
 def call(name, value):
-    argument = {"validate_abn": "abn", "validate_acn": "acn"}[name]
+    argument = {"validate_abn": "abn", "validate_acn": "acn", "validate_bsb_format": "bsb",
+                "validate_account_number_format": "account_number"}[name]
     result = asyncio.run(server.mcp.call_tool(name, {argument: value}))
     assert not result.is_error, result.content
     Draft202012Validator(TOOLS[name].output_schema).validate(result.structured_content)
@@ -165,3 +172,155 @@ def test_the_schema_refuses_a_result_claiming_registration(marker, bad):
     payload[marker] = bad
 
     assert list(Draft202012Validator(TOOLS["validate_abn"].output_schema).iter_errors(payload))
+
+
+@pytest.mark.parametrize("value", ["123-456", "123456", "123 456", " 123 - 456 "])
+def test_a_bsb_in_the_published_format_is_valid_however_it_is_spaced(value):
+    result = call("validate_bsb_format", value)
+
+    assert result["result"] == "FORMAT_VALID"
+    assert result["formatted"] == "123-456"
+    # The input need not carry the hyphen, so the reason claims the format only for formatted.
+    assert result["reason"] == ("The 6 digits fit AusPayNet's published BSB format, written "
+                                "XXX-XXX as formatted shows. No institution or branch was "
+                                "looked up.")
+
+
+@pytest.mark.parametrize(
+    "value",
+    [template.format("123456") for template in NOT_SPACES]
+    + ["12-3456", "1234-56", "123--456", "-123456", "12345", "1234567", "123-4567", "12A-456",
+       "123\u2013456", "\u0661\u0662\u0663-456", "", "   ", "-"]
+    # Full-width digits and hyphen, other dashes (em dash, minus sign, hyphen,
+    # non-breaking hyphen), other whitespace inside, junk at either end, 5 digits
+    # and a trailing hyphen. NFKC normalising or folding dashes would accept some.
+    + ["\uff11\uff12\uff13-\uff14\uff15\uff16", "123\uff0d456", "123\u2014456", "123\u2212456",
+       "123\u2010456", "123\u2011456", "123\t456", "123\u3000456", "No. 123-456", "123-456.",
+       "x123456", "123-45", "123-456-"],
+)
+def test_a_malformed_bsb_is_reported_and_never_cleaned_up(value):
+    result = call("validate_bsb_format", value)
+
+    assert result["result"] == "MALFORMED"
+    assert result["formatted"] is None
+    assert result["reason"] == ("A BSB is 6 ASCII digits, written XXX-XXX or without the "
+                                "hyphen, optionally separated by spaces.")
+
+
+@pytest.mark.parametrize("value", ["123-456", "nonsense"])
+def test_every_bsb_result_says_the_format_proves_no_institution_or_branch(value):
+    result = call("validate_bsb_format", value)
+
+    assert result["identifier"] == "BSB"
+    assert result["institution_established"] is False
+    assert result["not_established"] == BSB_NOT_ESTABLISHED
+    assert "bsb.auspaynet.com.au" in result["not_established"]
+    assert result["source_url"].startswith("https://auspaynet.com.au/")
+    # Position 5 of the record, not of the BSB, which fills positions 2 to 8.
+    assert "positions 2 to 8" in result["source_provision"]
+    assert "character position 5" in result["source_provision"]
+    assert result["source_checked"] == "2026-11-15"
+
+
+def test_the_bsb_description_states_the_limit():
+    description = " ".join(TOOLS["validate_bsb_format"].description.split())
+
+    assert "format" in description and "proves neither" in description
+    assert "BSB Lookup" in description
+
+
+@pytest.mark.parametrize("marker,bad", [("institution_established", True),
+                                        ("result", "CHECK_DIGIT_VALID")])
+def test_the_schema_refuses_a_bsb_result_claiming_more_than_its_format(marker, bad):
+    value = "123-456"
+    payload = dict(server.validate_bsb_format(value))
+    payload[marker] = bad
+
+    schema = TOOLS["validate_bsb_format"].output_schema
+    assert list(Draft202012Validator(schema).iter_errors(payload))
+
+
+def test_no_bsb_tool_name_reads_as_a_valid_bsb():
+    # A pass is a format, never a BSB: the name says so, as the result does.
+    assert "validate_bsb_format" in TOOLS
+    assert "validate_bsb" not in TOOLS
+
+
+ACCOUNT = "validate_account_number_format"
+
+
+@pytest.mark.parametrize(
+    "value,formatted",
+    # BECS Procedures 072, Annexure C.1, Record Type 1, positions 9 to 17: letters, digits,
+    # hyphens and blanks, leading zeros shown (its own example, 00-1234), up to 9 characters
+    # with hyphens edited out of a longer number, and outer blanks being the field's fill.
+    [("12345678", "12345678"), ("1", "1"), ("00-1234", "00-1234"), ("123456789", "123456789"),
+     ("12-345-678", "12345678"), ("123-456-789", "123456789"), ("AB-12 34", "AB-12 34"),
+     ("abc123", "abc123"), ("  12345678 ", "12345678"), ("0000001", "0000001"),
+     ("0-1", "0-1")],
+)
+def test_an_account_number_in_the_published_format_is_valid(value, formatted):
+    result = call(ACCOUNT, value)
+
+    assert result["result"] == "FORMAT_VALID"
+    assert result["formatted"] == formatted
+    assert result["reason"] == ("The account number fits the account number field AusPayNet "
+                                "publishes, as formatted shows. No institution or account was "
+                                "looked up.")
+
+
+@pytest.mark.parametrize(
+    "value",
+    # All zeros or all blanks, hyphens aside; 10 characters once hyphens are out, or with a
+    # blank inside, which the procedures do not edit out; and characters outside the field's
+    # set: other dashes and whitespace, full-width and Arabic-Indic digits, accented letters
+    # and punctuation. Cleaning any of these up could give a different, valid number.
+    ["", "   ", "000000000", "0", "00-0000", "0 0", "-", "--", "1234567890", "12-3456-7890",
+     "12345 6789", "123\t456", "123\n", "123–456", "123−456", "123‑456",
+     "123　456", "１２３", "١٢٣", "É123", "123.456",
+     "123/456", "#123456"],
+)
+def test_a_malformed_account_number_is_reported_and_never_cleaned_up(value):
+    result = call(ACCOUNT, value)
+
+    assert result["result"] == "MALFORMED"
+    assert result["formatted"] is None
+    assert result["reason"] == ("An account number is up to 9 ASCII letters, digits, hyphens "
+                                "or spaces, its hyphens removed when it is longer, and not all "
+                                "zeros or blanks.")
+
+
+@pytest.mark.parametrize("value", ["12345678", "nonsense!"])
+def test_every_account_number_result_says_the_format_proves_no_account(value):
+    result = call(ACCOUNT, value)
+
+    assert result["identifier"] == "account number"
+    assert result["account_established"] is False
+    assert result["not_established"] == ACCOUNT_NOT_ESTABLISHED
+    assert "belongs to the payee" in result["not_established"]
+    assert result["source_url"].startswith("https://auspaynet.com.au/")
+    assert "positions 9 to 17" in result["source_provision"]
+    assert "Must not contain all blanks or all zeros" in result["source_provision"]
+    assert "Edit out hyphens where account number exceeds nine" in result["source_provision"]
+    assert result["source_checked"] == "2026-11-16"
+
+
+def test_the_account_number_description_states_the_limit():
+    description = " ".join(TOOLS[ACCOUNT].description.split())
+
+    assert "format" in description and "proves neither" in description
+    assert "BSB" in description
+
+
+@pytest.mark.parametrize("marker,bad", [("account_established", True),
+                                        ("result", "CHECK_DIGIT_VALID")])
+def test_the_schema_refuses_an_account_number_result_claiming_more_than_its_format(marker, bad):
+    payload = dict(server.validate_account_number_format("AB-12 34"))
+    payload[marker] = bad
+
+    assert list(Draft202012Validator(TOOLS[ACCOUNT].output_schema).iter_errors(payload))
+
+
+def test_no_account_number_tool_name_reads_as_a_valid_account():
+    assert ACCOUNT in TOOLS
+    assert "validate_account_number" not in TOOLS

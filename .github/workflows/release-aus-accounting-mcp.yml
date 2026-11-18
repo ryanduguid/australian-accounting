@@ -34,6 +34,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 15
     permissions:
+      attestations: read # Verify the calculators release's attestations.
       contents: read
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -67,9 +68,37 @@ jobs:
           pins/bin/aus-accounting-mcp-demo > demo.txt
           diff -u "$GITHUB_WORKSPACE/apps/aus-accounting-mcp/docs/quick-proof.txt" demo.txt
 
+      # No wheel carries the tax worksheets' executable. Take the release the
+      # adapter pins, verified with the pins release-policy's binary consumer
+      # guide names, before anything runs it.
+      - name: download and verify the pinned calculators executable
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          version="$(sed -n 's/^CALCULATORS_VERSION = "\(.*\)"$/\1/p' apps/aus-accounting-mcp/aus_accounting_mcp/adapters/tax.py)"
+          policy="$(sed -n 's/.*release-binary\.yml@\([0-9a-f]\{40\}\)$/\1/p' .github/workflows/release-australian-tax-calculators.yml)"
+          [[ "$version" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ && "$policy" =~ ^[0-9a-f]{40}$ ]]
+          tag="australian-tax-calculators/v$version"
+          asset="australian-tax-calculators-$version-x86_64-unknown-linux-musl.tar.gz"
+          commit="$(gh api "repos/$GITHUB_REPOSITORY/commits/$tag" --jq .sha)"
+          mkdir "$RUNNER_TEMP/calculators"
+          cd "$RUNNER_TEMP/calculators"
+          gh release download "$tag" --repo "$GITHUB_REPOSITORY" --pattern SHA256SUMS --pattern "$asset"
+          pins=(--repo "$GITHUB_REPOSITORY" --source-ref "refs/tags/$tag" --source-digest "$commit"
+                --signer-workflow ryanduguid/release-policy/.github/workflows/release-binary.yml
+                --signer-digest "$policy")
+          gh attestation verify SHA256SUMS "${pins[@]}"
+          sha256sum --check --ignore-missing --strict SHA256SUMS
+          gh attestation verify "$asset" "${pins[@]}"
+          tar -xzf "$asset" australian-tax-calculators
+
       - name: Exercise all worksheets and a reviewed rate from the installed wheel
         shell: bash
         working-directory: ${{ runner.temp }}
+        env:
+          AUS_TAX_CALCULATORS_BIN: ${{ runner.temp }}/calculators/australian-tax-calculators
         run: pins/bin/python -I "$GITHUB_WORKSPACE/apps/aus-accounting-mcp/scripts/check_installed_worksheets.py"
 
       # In the checkout, pyright's extraPaths resolve the engines to workspace

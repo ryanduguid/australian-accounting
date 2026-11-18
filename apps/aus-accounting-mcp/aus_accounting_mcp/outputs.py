@@ -581,6 +581,17 @@ class AsAtStanding(ResultObject):
     ]
 
 
+class CompilationWindow(ResultObject):
+    """One compilation of a title the corpus holds, in the corpus builder's field names."""
+
+    compilation_date: DateText
+    superseded_from: Annotated[
+        DateText | None, Field(description="When the next version started, or null if the "
+                                           "version was current when the corpus was built."),
+    ]
+    retrieved: DateText
+
+
 class AsAtRefusal(ResultObject):
     """One title a date withheld, so that no row is left out silently."""
 
@@ -596,6 +607,11 @@ class AsAtRefusal(ResultObject):
                                      "partial hits.")
     ]
     as_at: AsAtStanding
+    held_compilations: NotRequired[Annotated[
+        list[CompilationWindow],
+        Field(description="Only for a title the corpus holds in more than one compilation: "
+                          "each window it holds, earliest first. None covers the date."),
+    ]]
 
 
 class AsAtSummary(ResultObject):
@@ -1211,6 +1227,48 @@ class IdentifierCheck(ResultObject):
     ]
     gst_registration_established: Annotated[
         Literal[False], Field(description="A check digit never establishes GST registration.")
+    ]
+    not_established: Annotated[str, Field(description="Retain when presenting the result.")]
+    source_url: str
+    source_provision: str
+    source_checked: DateText
+
+
+class BsbFormatCheck(ResultObject):
+    ok: Annotated[Literal[True], Field(description="The check ran; not that the BSB exists.")]
+    identifier: Literal["BSB"]
+    result: Annotated[
+        Literal["FORMAT_VALID", "MALFORMED"],
+        Field(description="Outcome of the format test; never a directory lookup."),
+    ]
+    formatted: Annotated[str | None, Field(description="The BSB as XXX-XXX; null when malformed.")]
+    reason: str
+    institution_established: Annotated[
+        Literal[False],
+        Field(description="A format test never establishes that AusPayNet issued the BSB."),
+    ]
+    not_established: Annotated[str, Field(description="Retain when presenting the result.")]
+    source_url: str
+    source_provision: str
+    source_checked: DateText
+
+
+class AccountNumberFormatCheck(ResultObject):
+    ok: Annotated[Literal[True], Field(description="The check ran; not that the account exists.")]
+    identifier: Literal["account number"]
+    result: Annotated[
+        Literal["FORMAT_VALID", "MALFORMED"],
+        Field(description="Outcome of the format test; never an account lookup."),
+    ]
+    formatted: Annotated[
+        str | None,
+        Field(description="The account number as the BECS field carries it, without its blank "
+                          "fill; null when malformed."),
+    ]
+    reason: str
+    account_established: Annotated[
+        Literal[False],
+        Field(description="A format test never establishes that the account exists."),
     ]
     not_established: Annotated[str, Field(description="Retain when presenting the result.")]
     source_url: str

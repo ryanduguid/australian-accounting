@@ -1,0 +1,48 @@
+# Secret and client-identifier scanning, run by .github/workflows/secrets.yml.
+#
+# The rules are shared: .github/secrets-rules.toml adds 4 client-identifier
+# rules (a tax file number, ABN, bank detail or Medicare number beside its
+# label) to the default betterleaks credential rules. That file is a copy of
+# rules.toml in ryanduguid/release-policy's secrets-scan action, which the
+# workflow runs; the action fails when the copy differs. This file holds only
+# this repository's allowlists.
+#
+# Run a local scan from the repository root, where the path below resolves:
+# betterleaks git . --config .gitleaks.toml
+
+title = "australian-accounting"
+
+[extend]
+path = ".github/secrets-rules.toml"
+
+[[allowlists]]
+description = "Published examples, placeholders and the fixture screen's test data"
+targetRules = ["au-tax-file-number", "au-business-number", "au-bank-account", "au-medicare-number"]
+paths = [
+  # The fixture screen's own tests: synthetic identifiers it must catch.
+  '''^tools/fixture-screen/tests/''',
+]
+regexes = [
+  # The ATO's own ABN, the usual published example of a valid ABN.
+  '''^51[ -]?824[ -]?753[ -]?556$''',
+  # A one-digit change to it, used as an invalid-ABN case.
+  '''^51[ -]?824[ -]?753[ -]?557$''',
+  # A placeholder ABN of repeated digits that fails the checksum.
+  '''^11[ -]?222[ -]?333[ -]?444$''',
+  # A placeholder ABN of sequential digits that fails the checksum.
+  '''^12[ -]?345[ -]?678[ -]?901$''',
+]
+
+[[allowlists]]
+description = "The placeholder password in a URL the adapter's tests expect it to refuse"
+targetRules = ["generic-credential-uri"]
+condition = "AND"
+paths = [
+  # The adapter's no_network_by_default tests, and their earlier version in
+  # history.
+  '''^apps/lodgeit-calculator-adapter/tests/(?:no_network_by_default\.rs|test_no_network_by_default\.py)$''',
+]
+regexes = [
+  # https://user:pass@..., a URL carrying credentials the adapter must reject.
+  '''^pass$''',
+]

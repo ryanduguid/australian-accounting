@@ -66,9 +66,9 @@ RETURNED_CONTRIBUTIONS_CAVEAT = (
 RETURNED_CONTRIBUTION_REFUSAL = (
     "row {row}: the fund returned some or all of this contribution, and the "
     "payday-super-checker this server links cannot assess that, so it would read the "
-    "receipt as kept. Review the row with the native payday-super-check command, using "
-    "its returned_by_fund column and --events file, or remove the row once the fund's "
-    "records settle it."
+    "receipt as kept. Settle the row from the fund's records and remove it, or review it "
+    "with the native payday-super-check command built from the repository source, using "
+    "its returned_by_fund column and --events file; no release carries them yet."
 )
 #: Rows repeat up to 200 times and hold the words in their caveats, so only the
 #: pack's response and exceptions.json carry them in the qualification as well.

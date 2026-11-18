@@ -43,7 +43,9 @@ uv run --locked --group dev pytest
 Root pyright checks all 9 runtime packages. Root pytest runs the repository checks
 and each component's existing suite in a separate process, from that component's
 directory. This keeps repeated test module names and relative fixture paths
-independent. Component configuration and CI gates remain authoritative.
+independent. It leaves out the crates `ci.yml`'s `rust` job runs, which already
+run the same `cargo test` there. Component configuration and CI gates remain
+authoritative.
 
 Two consequences of the workspace are worth knowing before you run a component's
 own commands:
@@ -78,7 +80,9 @@ selected network and process API names on Windows. Neither sees `io_uring` netwo
 or, on Windows, a network path opened as a file. The `umbrella-parity` job then runs
 `apps/au-accounting/tests/parity.rs` over the engines' and `au-accounting`'s
 binaries; the adapter is not part of it. CodeQL and Dependabot
-include Cargo. All candidate builds have read-only permissions.
+include Cargo. Each crate's `cargo audit` fails a pull request or push on a vulnerability
+or an unsound or yanked crate; an unmaintained crate fails only the weekly scheduled run
+(Ryan's decision, 18 November 2026). All candidate builds have read-only permissions.
 
 The former PyPI publishers of these engines are retired. Native publication is not
 configured: no workflow here publishes the binaries. Publishing them means adopting
@@ -129,6 +133,14 @@ commands:
 | AU tax rates data (Rust) | `packages/au-tax-rates-data/` | `cargo fmt --check`; `cargo clippy --locked --all-targets -- -D warnings`; `cargo test --locked`; `cargo run --locked --release -- validate`. These run in the `au-tax-rates-data` job of `.github/workflows/ci.yml` on Ubuntu, Windows and macOS. The dataset is never released on its own. |
 | Repository boundaries | `.` | `python -m unittest -v tests/test_boundaries.py tests/test_shared_blocks.py` |
 
+The undeployed hosted connector in `tools/aus-accounting-connector/` and its core in
+`apps/aus-accounting-mcp/core/` link the tax calculator, Division 7A and Payday Super
+engines by path; their checks are in each README and run from
+`.github/workflows/aus-accounting-connector.yml`. A change to a reply its reference
+records (the calls in `tests/reference.rs`) fails the connector's `cargo test` until the
+reference is recorded again: from `tools/aus-accounting-connector/`, run `RECORD_REFERENCE=1 cargo test --locked --test reference`
+and commit `tests/fixtures/reference.json` with the change.
+
 The shared toolchain is pinned to one version per tool in every engine's `pyproject.toml`,
 so a gate behaves the same wherever it runs, and the workspace resolution takes the same
 versions for `just`. Changing a pin means changing both, then relocking twice: `uv lock`
@@ -156,7 +168,8 @@ report, and it runs 2 things: the MCP application's own gates, and one call of t
 reusable `ci-package.yml` for each engine, from a package-name matrix.
 The `root-checks` job in `boundaries.yml` runs the exact root lock, ruff, pyright and
 pytest commands on Ubuntu with Python 3.15, shellcheck over the tracked shell scripts
-and actionlint over the workflows. The adapter's jobs run in their own
+and actionlint over the workflows. Before pytest it builds the calculators executable,
+which the MCP application's suite runs. The adapter's jobs run in their own
 workflow with a `lodgeit-gates` result check, keeping the MCP application's existing
 release-check names unchanged. Branch protection requires one aggregate per
 workflow, `tests-gates`, `boundaries-gates`, `lodgeit-gates`, `public-fixtures-gates`
@@ -203,6 +216,12 @@ release callers require that test job; no second pytest run is needed.
   dependency lists against each application's manifest on every change. The aggregate requires a
   successful selection and exactly the corresponding successful or skipped app jobs.
   Every main push and manual run executes all app checks, preserving release evidence.
+- The `crates` job selects the `rust` crate calls and `umbrella-parity` the same way.
+  A change to any crate the `rust` job checks, to shared policy and workspace files,
+  or to an unknown path runs them all. Only the other components' paths, root `tests/`
+  and `tools/` can skip them. Root pytest checks that those crates link only each other
+  by path. `tests-gates` holds each selection to its own jobs, and every main push and
+  manual run executes all of them.
 - `devcontainer.yml`, `glama-badges.yml` and `readme-quick-start.yml` have no pull request
   path filter, so `devcontainer-gates`, `glama-badges-gates` and `readme-quick-start-gates`
   report on every pull request. Each changes job passes its former trigger paths to
@@ -235,6 +254,22 @@ test value for its file, with its reason, in
 `tools/fixture-screen/tests/synthetic-identifiers.txt`. It uses evatt's detectors
 from `ryanduguid/accounting-review-pipeline`, pinned to one commit.
 
+`secrets.yml` runs the shared secrets scan from `ryanduguid/release-policy`
+(betterleaks) with `.gitleaks.toml`, and the `au-bank-account` rule it extends
+from `.github/secrets-rules.toml` matches a made-up bank detail as readily as a
+real one. It looks on one
+line for a label, `BSB` or `account number` (any case; `account no` and
+`account_number` count, so a JSON key or a function name such as
+`validate_account_number_format` is a label), then up to 20 characters that
+are not digits, then 3 digits, an optional space or hyphen and 3 more digits,
+or a run of 6 to 10 digits. In a test or fixture, keep such a value off the
+line that holds the label, for example in a parametrised list, or use a value
+the rule does not match, such as `12-3456` or `12345`. The pull request scan
+reads every commit, so a match in an earlier commit fails the check even after
+a later commit removes it: rebuild the branch without that commit. For this
+rule, only the fixture screen's own tests are allowlisted, and a new allowlist
+entry must reach `main` in its own pull request first.
+
 `joined-fixtures.yml` checks the close-to-forecast, quarter and WIP-to-cash examples
 on pull requests, pushes to `main` and manual runs, on Linux and Windows.
 It uses this repository's proposed
@@ -255,6 +290,13 @@ Separate operating-system artefacts retain fabricated results, failure diagnosti
 the escaped summary, success manifest and replay record for seven days. No private
 checkout or secret is needed. Linux keeps the `public-fixtures` check name; configure
 the added `public-fixtures (Windows)` check separately if it should block merges.
+
+`context7.json` tells [Context7](https://context7.com/docs/library-owners) which
+folders hold the component documentation and gives coding agents rules on
+calculation scope, refusals and privacy. It submits, claims and refreshes nothing. `tests/test_context7.py`
+checks it against Context7's published schema and holds the commands its rules name
+to the tax calculators' command table, so update the rules when a withholding command
+or a `pay_date` argument is added.
 
 - Keep a change inside one component unless it is a root policy or workflow change.
 - Do not move, rename or refactor a component in the same change that alters its
@@ -296,7 +338,7 @@ Registry through `publish-mcp.yml`.
 | the-exchequer-tally (Rust) | reserved `the-exchequer-tally/vX.Y.Z` | native publisher pending | `Cargo.toml` | none |
 | solomons-sword (Rust) | reserved `solomons-sword/vX.Y.Z` | native publisher pending | `Cargo.toml` | none |
 | the-wip-tally (Rust) | reserved `the-wip-tally/vX.Y.Z` | native publisher pending | `Cargo.toml` | none |
-| australian-tax-calculators (Rust) | reserved `australian-tax-calculators/vX.Y.Z` | native publisher pending | `Cargo.toml` | none |
+| australian-tax-calculators (Rust) | `australian-tax-calculators/vX.Y.Z` | `release-australian-tax-calculators.yml`, GitHub Releases only | `Cargo.toml` and `VERSION` | none |
 | div7a-loan-review (Rust) | reserved `div7a-loan-review/vX.Y.Z` | native publisher pending | `Cargo.toml` | none |
 | ato-benchmark-compare (Rust) | reserved `ato-benchmark-compare/vX.Y.Z` | native publisher pending | `Cargo.toml` | none |
 | payday-super-checker (Rust) | reserved `payday-super-checker/vX.Y.Z` | native publisher pending | `Cargo.toml` | none |
@@ -314,7 +356,10 @@ trigger
 workflows](https://docs.github.com/en/actions/reference/workflows-and-actions/events-that-trigger-workflows#push)).
 The next tag waits until the previous release run succeeds, and the first failure stops
 the run and lists the components left untagged. Release an engine before an MCP release
-that pins it. `--dry-run` runs the checks and tags nothing.
+that pins it. `--dry-run` runs the checks and tags nothing. `just release` reads a
+`pyproject.toml`, so it releases the Python components only: push a Rust binary release's
+annotated tag on `main`'s head by hand, once that commit's push runs have passed the
+workflow's `required-checks`.
 
 Do not merge to `main` until `just release` finishes. Every tag is made on the same `main`
 commit, and Release Policy's first job requires that commit to be `main`'s head, so a merge

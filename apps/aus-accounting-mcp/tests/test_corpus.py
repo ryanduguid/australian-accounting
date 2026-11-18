@@ -37,7 +37,9 @@ def corpus(tmp_path, monkeypatch):
 
 
 @pytest.mark.parametrize("configured", [None, "does-not-exist"])
-def test_an_unconfigured_corpus_names_the_build_route(tmp_path, monkeypatch, configured):
+def test_an_unconfigured_corpus_names_the_snapshot_then_the_build_route(
+    tmp_path, monkeypatch, configured
+):
     monkeypatch.delenv("AUS_ACCOUNTING_CORPUS_ROOT", raising=False)
     if configured:
         monkeypatch.setenv("AUS_ACCOUNTING_CORPUS_ROOT", str(tmp_path / configured))
@@ -45,8 +47,13 @@ def test_an_unconfigured_corpus_names_the_build_route(tmp_path, monkeypatch, con
     with pytest.raises(ToolError) as caught:
         asyncio.run(mcp.call_tool("search_tax_legislation", {"query": "levy"}))
 
-    assert "python -m fadden quick --out" in str(caught.value)
-    assert "do not retry" in str(caught.value)
+    message = str(caught.value)
+    snapshot = "https://github.com/ryanduguid/PaulGoodman/releases/tag/corpus-2026-11-11"
+    # The published snapshot needs no build, so it comes before the build route.
+    assert snapshot in message
+    assert "python -m fadden quick --out" in message
+    assert message.index(snapshot) < message.index("python -m fadden quick --out")
+    assert "do not retry" in message
 
 
 def test_search_returns_a_traceable_citation(corpus):

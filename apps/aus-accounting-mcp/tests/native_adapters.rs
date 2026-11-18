@@ -129,6 +129,15 @@ fn frozen_effective_adapter_contracts() {
             if name == "get_data_freshness" {
                 native_freshness(&mut expected["structuredContent"]);
             }
+            if name == "review_div7a_loan" {
+                engine::div7a(&mut expected["structuredContent"]);
+            }
+            if name == "review_gst_coding" {
+                engine::gst(&mut expected["structuredContent"]);
+            }
+            if name == "get_reviewed_rate" {
+                engine::reviewed_rates(&mut expected["structuredContent"]);
+            }
             native_provenance(&mut expected["structuredContent"]);
             expected
         };
@@ -286,6 +295,7 @@ fn native_freshness(result: &mut Value) {
     result["server"]["version"] = json!("1.0.0");
     for row in result["datasets"].as_array_mut().unwrap() {
         engine::freshness(row);
+        engine::rate_records(row);
         row["engine_version"] = json!("1.0.0");
         let provenance = &mut row["provenance"];
         if let Some(tables) = provenance.get_mut("tables") {
@@ -312,6 +322,7 @@ fn native_freshness(result: &mut Value) {
             );
         }
     }
+    engine::payday(result);
     *result = moved_lump_sum_page(result);
 }
 

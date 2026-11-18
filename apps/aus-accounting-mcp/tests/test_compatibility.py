@@ -13,6 +13,7 @@ from atobenchmark.dataset import load
 from div7aloan import __version__ as DIV7A_VERSION
 from paydaysuper import LAW_CONTENT_DATE
 
+from aus_accounting_mcp.adapters import tax
 from aus_accounting_mcp.server import mcp
 
 CANONICAL_REPOSITORY = "https://github.com/ryanduguid/australian-accounting"
@@ -43,7 +44,8 @@ def test_compatibility_record_matches_published_server_and_engine_owned_fields()
         ),
         "release": f"{CANONICAL_REPOSITORY}/releases/tag/aus-accounting-mcp/v{version}",
     }
-    # Each engine's version is held to the exact pin in pyproject.toml below.
+    # Each engine's version is held to the exact pin in pyproject.toml below, or for
+    # the calculators executable to the adapter's pinned version.
     assert [engine["distribution"] for engine in record["engines"]] == [
         "ato-benchmark-compare",
         "div7a-loan-review",
@@ -67,6 +69,10 @@ def test_compatibility_record_matches_published_server_and_engine_owned_fields()
     runtime_versions = {}
     for engine in record["engines"]:
         name = engine["distribution"]
+        if name == tax.CALCULATORS:
+            # An executable the adapter pins, not a Python requirement.
+            assert engine["version"] == tax.CALCULATORS_VERSION
+            continue
         engine_version = importlib.metadata.version(name)
         runtime_versions[name] = engine_version
         # Workspace sources can be ahead of the published pins. Keep the

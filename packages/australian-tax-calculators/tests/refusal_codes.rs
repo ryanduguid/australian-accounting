@@ -30,13 +30,41 @@ fn every_code_at_a_refusal_site_is_catalogued_and_every_entry_is_used() {
     let src = Path::new(env!("CARGO_MANIFEST_DIR")).join("src");
     let read = |name: &str| std::fs::read_to_string(src.join(name)).unwrap();
     let mut used = BTreeSet::new();
+    // The engine's worksheets in their own modules refuse as engine.rs does.
+    let modules = [
+        "engine",
+        "engine/balancing",
+        "engine/fbt_benefits",
+        "engine/fbt_benefits/entertainment",
+        "engine/hire_purchase",
+    ]
+    .into_iter()
+    .flat_map(|dir| {
+        std::fs::read_dir(src.join(dir))
+            .unwrap()
+            .filter_map(move |entry| {
+                let name = entry.unwrap().file_name().into_string().unwrap();
+                name.ends_with(".rs")
+                    .then(|| (format!("{dir}/{name}"), &["refuse(", "bad("][..]))
+            })
+    });
     for (file, openers) in [
         ("engine.rs", &["refuse(", "bad("][..]),
+        ("engine/fbt_benefits.rs", &["refuse("][..]),
         ("api.rs", &["refusal("][..]),
+        ("estimate.rs", &["Refusal::new("][..]),
+        ("dgr.rs", &["Refusal::new("][..]),
+        ("dgr/input.rs", &["Refusal::new("][..]),
+        ("fbt_return.rs", &["Refusal::new("][..]),
+        ("fbt_return/input.rs", &["Refusal::new("][..]),
         ("main.rs", &["Refusal::new("][..]),
         ("decimal.rs", &["=> "][..]),
-    ] {
-        let text = read(file);
+    ]
+    .map(|(file, openers)| (file.to_string(), openers))
+    .into_iter()
+    .chain(modules)
+    {
+        let text = read(&file);
         for opener in openers {
             used.extend(
                 codes_after(&text, opener)
@@ -61,6 +89,67 @@ fn the_catalogue_is_sorted_unique_and_semantic() {
         assert!(dotted && plain, "{code}");
         assert!(meaning.ends_with('.'), "{code}");
     }
+}
+
+/// `input.field_unknown`'s meaning names every command that refuses a field
+/// it does not take, the Schedule 5 methods together.
+#[test]
+fn field_unknown_names_every_command_that_refuses_an_unknown_field() {
+    let meaning = api::refusal_codes()
+        .iter()
+        .find(|(code, _)| *code == "input.field_unknown")
+        .unwrap()
+        .1;
+    for command in api::commands() {
+        let refused = api::evaluate_coded(command, &json!({"not_an_input": true}));
+        if refused.is_err_and(|r| r.code == "input.field_unknown") {
+            let named = if command.starts_with("schedule-5-") {
+                "the Schedule 5 methods"
+            } else {
+                command
+            };
+            assert!(meaning.contains(named), "{command}");
+        }
+    }
+}
+
+/// A command that refuses an unknown field accepts each of its catalogued
+/// required inputs, so every one of them must be an input it reads: its
+/// catalogue example runs, and runs no longer without any one of them. A
+/// required input the command ignored would be taken and silently dropped.
+#[test]
+fn every_catalogued_required_input_of_a_strict_command_is_read() {
+    let catalogue = api::evaluate("worksheet-catalogue", &json!({})).unwrap();
+    let mut checked = 0;
+    for command in api::commands() {
+        let refused = api::evaluate_coded(command, &json!({"not_an_input": true}));
+        let entry = &catalogue[command.replace('-', "_")];
+        if !refused.is_err_and(|r| r.code == "input.field_unknown") || entry.is_null() {
+            continue;
+        }
+        let mut facts = entry["example"]["facts"].clone();
+        facts.as_object_mut().unwrap().remove("kind");
+        assert!(api::evaluate(command, &facts).is_ok(), "{command}");
+        for name in entry["required_inputs"].as_object().unwrap().keys() {
+            if name == "kind" {
+                continue;
+            }
+            let mut without = facts.clone();
+            without.as_object_mut().unwrap().remove(name);
+            assert!(
+                api::evaluate(command, &without).is_err(),
+                "{command} {name}"
+            );
+        }
+        checked += 1;
+    }
+    // The 14 commands that refused an unknown field before the FBT benefit
+    // worksheets (the 3 Schedule 5 methods counted apart), the 11 FBT benefit
+    // worksheets, payg-gross-up, hire-purchase-schedule,
+    // fbt-entertainment-classifier, unused-leave-payment,
+    // lump-sum-arrears-tax-offset, income-tests,
+    // business-capital-expenditure, balancing-adjustment and trade-in.
+    assert_eq!(checked, 34);
 }
 
 /// Every frozen call gives the same answer through either entry point, and
@@ -188,6 +277,41 @@ fn input_the_engine_never_reaches_is_coded_too() {
     assert_eq!(code(b"[]"), "input.not_object");
     assert_eq!(code(b"{}"), "input.missing_field");
     assert_eq!(code(&vec![b' '; (8 << 20) + 2]), "input.too_large");
+}
+
+#[test]
+fn a_repeated_key_is_refused_by_name_not_resolved_to_its_last_value() {
+    // gst ignores fields it does not take, so `extra` reaches only the decoder.
+    let gst = |rest: &str| {
+        format!(
+            r#"{{"amount": "1100", "gst_inclusive": true, "scope_confirmed": true, "year": "2025-26", {rest}}}"#
+        )
+    };
+    for (rest, key) in [
+        (r#""amount": "2200""#, "amount"),
+        // "amount" with its m as a JSON Unicode escape; \x5c is the backslash.
+        ("\"a\x5cu006dount\": \"2200\"", "amount"),
+        (r#""extra": {"k": 1, "k": 2}"#, "k"),
+        (r#""extra": [{"k": 1, "k": 2}]"#, "k"),
+    ] {
+        let (exit, out, err) = run(&["gst", "--refusal-json"], gst(rest).as_bytes());
+        assert_eq!(exit, 2, "{rest}: {out}");
+        let refusal: Value = serde_json::from_str(&out).unwrap();
+        assert_eq!(refusal["code"], "input.invalid_json", "{rest}");
+        let message = refusal["message"].as_str().unwrap();
+        assert_eq!(message, format!("invalid JSON: duplicate key {key:?}"));
+        assert_eq!(err, format!("error: {message}\n"));
+    }
+    for rest in [
+        r#""extra": [{"k": 1}, {"k": 2}], "more": {"k": 3}"#,
+        r#""extra": "amount", "note": "\"amount\": \"2200\", {\"k\": 1}""#,
+    ] {
+        assert_eq!(
+            run(&["gst"], gst(rest).as_bytes()),
+            run(&["gst"], ACCEPTED),
+            "{rest}"
+        );
+    }
 }
 
 #[test]

@@ -448,6 +448,13 @@ fn cases(rows: &[Value], standalone: &[PathBuf], cap: usize) -> Vec<Case> {
             env: Env::new(),
             label: format!("edge {text:?}"),
         }));
+        // The tax engine's refusal codes; other engines read the flag as CLI input.
+        cases.extend(["{}", "{", r#"{"a":1,"a":2}"#].map(|text| Case {
+            args: vec![command.clone(), "--refusal-json".into()],
+            stdin: text.into(),
+            env: Env::new(),
+            label: format!("refusal-json {text:?}"),
+        }));
     }
     // Routing an engine's own main() adds outside its library must reach
     // au-accounting too; derive and verify are such commands on some branches.

@@ -58,7 +58,10 @@ limb is NOT_COMPLYING and gets no
 repayment figure; an unestablished limb is UNKNOWN and never coerced to a verdict;
 a term of 7 years or less passes s 109N(1)(c) even when the security facts are
 unknown; the year the loan was made, a year before it, a nil remaining term and a
-nil rate are REFUSED; a missing balance, payments, remaining term or rate is
+nil rate are REFUSED; so, on a COMPLYING loan, is a remaining term, rounded up,
+longer than the s 109N(3) maximum term its security facts give, than
+`maximum_term_years` rounded up, or than that term less the years since the
+loan year (s 109E(6)); a missing balance, payments, remaining term or rate is
 UNKNOWN. A loan year before 1998-99 or any `out_of_scope_reason` skips the row.
 When neither register year is known, the gate is `UNKNOWN` and the maximum term
 is blank. A valid year with no reviewed benchmark rate can still have a known

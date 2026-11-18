@@ -18,7 +18,7 @@ def test_published_distribution_uses_the_project_identity() -> None:
     release_notes = (ROOT / "RELEASE_NOTES.md").read_text(encoding="utf-8")
     readme = " ".join((ROOT / "README.md").read_text(encoding="utf-8").split())
 
-    assert version("lodgment-calendar") == lodgmentcalendar.__version__ == "0.1.0"
+    assert version("lodgment-calendar") == lodgmentcalendar.__version__ == "0.2.0"
     assert f'version = "{lodgmentcalendar.__version__}"' in pyproject
     assert f"version: {lodgmentcalendar.__version__}\n" in citation
     assert 'name = "lodgment-calendar"' in pyproject
@@ -31,7 +31,7 @@ def test_published_distribution_uses_the_project_identity() -> None:
     assert "pip install lodgment-calendar" in readme
     assert "not yet released" not in readme.lower()
     assert "release-lodgment-calendar.yml" in release_notes
-    assert release_notes.startswith("# v0.1.0\n")
+    assert release_notes.startswith("# v0.2.0\n")
     assert "first PyPI release" in release_notes
     assert "Not yet released" not in release_notes
     assert "not yet released" not in llms

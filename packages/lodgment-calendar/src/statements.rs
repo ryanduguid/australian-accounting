@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: LicenseRef-Duguid-Public-Attribution-1.0
 
 use crate::{Ask, Rule, date};
-use chrono::{Days, NaiveDate};
+use jiff::{ToSpan, civil::Date};
 use serde_json::Value;
 
 type Statement = (String, String, Option<Rule>, Vec<String>);
@@ -109,7 +109,7 @@ pub(crate) fn select(
                         "AS-Q-ONLINE",
                         "Quarterly statement received and lodged online: lodge and pay 2 weeks after the original due date. Not available for quarter 2.",
                         "two_week",
-                        due.checked_add_days(Days::new(14)),
+                        due.checked_add(14.days()).ok(),
                     )),
                     Some(false) => Some(original),
                     None => None,
@@ -130,7 +130,7 @@ pub(crate) fn select(
     result
 }
 
-fn head(obligation: &str, due: NaiveDate) -> Rule {
+fn head(obligation: &str, due: Date) -> Rule {
     if obligation == "ias" {
         Rule::new(
             "AS-Q-HEAD",
@@ -143,12 +143,7 @@ fn head(obligation: &str, due: NaiveDate) -> Rule {
     }
 }
 
-fn agent_quarter(
-    ask: &mut Ask<'_>,
-    quarter: usize,
-    original: Rule,
-    due: NaiveDate,
-) -> Option<Rule> {
+fn agent_quarter(ask: &mut Ask<'_>, quarter: usize, original: Rule, due: Date) -> Option<Rule> {
     if ask.yes("includes_monthly_payg_obligation") {
         return Some(Rule::new(
             "AS-Q-AGENT-MONTHLY-PAYG",

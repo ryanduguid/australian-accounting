@@ -6,7 +6,7 @@
 //! The records are the Python server's `rate_records/`, a copy of
 //! `packages/au-tax-rates-data/data` that a root test holds equal. Each is a
 //! point-in-time copy of an ATO page, never a statement of current law.
-use chrono::NaiveDate;
+use jiff::civil::Date;
 use serde_json::{Value, json};
 use std::{collections::BTreeMap, sync::LazyLock};
 
@@ -35,31 +35,34 @@ pub(super) fn covered_years() -> Vec<String> {
     years
 }
 
-fn year_start(label: &str) -> NaiveDate {
-    NaiveDate::from_ymd_opt(label[..4].parse().unwrap(), 7, 1).unwrap()
+fn year_start(label: &str) -> Date {
+    Date::new(label[..4].parse().unwrap(), 7, 1).unwrap()
 }
 
-fn year_end(label: &str) -> NaiveDate {
-    NaiveDate::from_ymd_opt(label[..4].parse::<i32>().unwrap() + 1, 6, 30).unwrap()
+fn year_end(label: &str) -> Date {
+    Date::new(label[..4].parse::<i16>().unwrap() + 1, 6, 30).unwrap()
 }
 
-fn day(text: &str) -> NaiveDate {
-    NaiveDate::parse_from_str(text, "%Y-%m-%d").expect("bundled record date")
+fn day(text: &str) -> Date {
+    Date::strptime("%Y-%m-%d", text)
+        .ok()
+        .filter(|date| date.to_string() == text)
+        .expect("bundled record date")
 }
 
 /// Whether the record's own period holds `on`; None when it records no period.
-fn covers(record: &Value, on: NaiveDate) -> Option<bool> {
+fn covers(record: &Value, on: Date) -> Option<bool> {
     let period = &record["period"];
     if let Some(year) = period["income_year"].as_str() {
         return Some(year_start(year) <= on && on <= year_end(year));
     }
     let from = period["effective_from"].as_str()?;
     // An open-ended record is bounded by covered_years before it reaches this test.
-    let to = period["effective_to"].as_str().map_or(NaiveDate::MAX, day);
+    let to = period["effective_to"].as_str().map_or(Date::MAX, day);
     Some(day(from) <= on && on <= to)
 }
 
-fn result(record_id: &str, on: NaiveDate, status: &str) -> Value {
+fn result(record_id: &str, on: Date, status: &str) -> Value {
     json!({"ok":true,"status":status,"record_id":record_id,"as_at":on.to_string(),
         "covered_years":covered_years(),"record":null,"refusal":null,"reason":null,
         "record_period":null,"covering_ids":[],"known_ids":[],"after_last_read":false,
@@ -68,7 +71,7 @@ fn result(record_id: &str, on: NaiveDate, status: &str) -> Value {
 
 fn refused(
     record_id: &str,
-    on: NaiveDate,
+    on: Date,
     code: &str,
     reason: String,
     record: Option<&Value>,

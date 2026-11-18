@@ -8,17 +8,53 @@
 //! automatically: `compare` reports drift, and nothing here rewrites a
 //! snapshot. A snapshot's members are whatever JSON it holds, so each use
 //! fails as Python's did on a value of the wrong type.
-use std::collections::HashSet;
+use std::collections::{BTreeMap, HashSet};
 
 use sha2::{Digest, Sha256};
 
+use crate::decimal::Decimal;
 use crate::errors::CONTRACT;
 use crate::p;
-use crate::pyjson::{self, DecodeError, Json};
+use crate::pyjson::{self, DecodeError, Json, Numbers};
 use crate::pyops::{Exc, R, S, get_attr, getitem, hash_key, iterate, pts, sorted_set, type_error};
 use crate::pyos::{OsError, Style};
 use crate::pypath::PyPath;
 use crate::pyvalue::{Key, item_eq, py_eq, repr, str_points, type_name};
+use crate::wire;
+
+pub(crate) const DEPRECIATION_RANGE: &str = "urn:sbrm:calculator:depreciation:range";
+
+/// Reconcile a depreciation movement within the adapter's decimal limits.
+/// At most 15 integral and 10 fractional digits per operand leave enough
+/// room for the intermediate sums in the 28-digit decimal context.
+pub(crate) fn range_gap(
+    opening: &Decimal,
+    additions: &Decimal,
+    charge: &Decimal,
+    closing: &Decimal,
+) -> Result<(Decimal, Decimal), S> {
+    for (name, value) in [
+        ("opening_wdv", opening),
+        ("cost_additions", additions),
+        ("range_dep", charge),
+        ("closing_wdv", closing),
+    ] {
+        wire::check_writable(value, &pts(name)).map_err(|error| error.0)?;
+    }
+    if [additions, charge]
+        .into_iter()
+        .any(|value| value.is_negative() && !value.is_zero())
+    {
+        return Err(pts("cost additions and depreciation must be non-negative"));
+    }
+    let error = |_| pts("the depreciation movement exceeds the supported decimal range");
+    let expected = opening
+        .add(additions)
+        .and_then(|sum| sum.sub(charge))
+        .map_err(error)?;
+    let gap = closing.sub(&expected).map_err(error)?;
+    Ok((expected, gap))
+}
 
 /// The folders searched for snapshots: the source checkout first, then a
 /// `contracts` folder beside the binary, as a built wheel carries one inside
@@ -59,6 +95,7 @@ pub struct Contract {
     pub read_by: Json,
     pub calculators: Json,
     pub response_contract: Json,
+    pub openapi_input_schemas: Option<Json>,
     pub notes: Vec<Json>,
     pub sha256: String,
     pub path: PyPath,
@@ -247,6 +284,14 @@ pub fn load(name: &str, directory: Option<&PyPath>) -> R<Contract> {
         Some(notes) => iterate(notes)?,
         None => Vec::new(),
     };
+    let openapi_input_schemas = if data.get("openapi_input_schemas").is_some() {
+        pyjson::loads_numbers(&text, Numbers::Exact)
+            .map_err(|error| invalid(format!("{error:?}")))?
+            .get("openapi_input_schemas")
+            .cloned()
+    } else {
+        None
+    };
     Ok(Contract {
         provider,
         snapshot_id,
@@ -254,6 +299,7 @@ pub fn load(name: &str, directory: Option<&PyPath>) -> R<Contract> {
         read_by,
         calculators,
         response_contract,
+        openapi_input_schemas,
         notes,
         sha256: Sha256::digest(&payload)
             .iter()
@@ -261,6 +307,215 @@ pub fn load(name: &str, directory: Option<&PyPath>) -> R<Contract> {
             .collect(),
         path,
     })
+}
+
+/// Ignore documentation at schema nodes, while retaining property names and
+/// literal values such as defaults and enums.
+fn schema_shape(schema: &Json) -> Json {
+    let Json::Object(fields) = schema else {
+        return schema.clone();
+    };
+    Json::Object(
+        fields
+            .iter()
+            .filter_map(|(key, value)| {
+                let shape = match key.as_str() {
+                    Some(
+                        "title" | "description" | "examples" | "example" | "externalDocs"
+                        | "$comment",
+                    ) => return None,
+                    Some("properties" | "patternProperties" | "$defs" | "dependentSchemas") => {
+                        if let Json::Object(properties) = value {
+                            Json::Object(
+                                properties
+                                    .iter()
+                                    .map(|(name, schema)| (name.clone(), schema_shape(schema)))
+                                    .collect(),
+                            )
+                        } else {
+                            value.clone()
+                        }
+                    }
+                    Some("anyOf" | "allOf" | "oneOf" | "prefixItems") => {
+                        if let Json::Array(schemas) = value {
+                            Json::Array(schemas.iter().map(schema_shape).collect())
+                        } else {
+                            value.clone()
+                        }
+                    }
+                    Some("items" | "additionalProperties" | "not" | "if" | "then" | "else") => {
+                        schema_shape(value)
+                    }
+                    Some("required" | "enum" | "type") => sorted_schema_values(value),
+                    _ => value.clone(),
+                };
+                Some((key.clone(), shape))
+            })
+            .collect(),
+    )
+}
+
+fn sorted_schema_values(value: &Json) -> Json {
+    let mut value = value.clone();
+    if let Json::Array(items) = &mut value
+        && items.iter().all(|item| item.as_str().is_some())
+    {
+        items.sort_by(|a, b| a.as_str().cmp(&b.as_str()));
+    }
+    value
+}
+
+fn same_schema_value(left: &Json, right: &Json) -> bool {
+    match (left, right) {
+        (Json::Object(left), Json::Object(right)) => {
+            left.len() == right.len()
+                && left.iter().all(|(key, value)| {
+                    right
+                        .iter()
+                        .any(|(other, expected)| key == other && same_schema_value(value, expected))
+                })
+        }
+        (Json::Array(left), Json::Array(right)) => {
+            left.len() == right.len()
+                && left.iter().zip(right).all(|(a, b)| same_schema_value(a, b))
+        }
+        (Json::Dec(left), Json::Dec(right)) => left.equals(right).unwrap_or(false),
+        (Json::Int(int), Json::Dec(decimal)) | (Json::Dec(decimal), Json::Int(int)) => {
+            decimal.equals(&Decimal::from_bigint(int)).unwrap_or(false)
+        }
+        _ => left == right,
+    }
+}
+
+fn effective_request_parameters<'a>(
+    document: &'a Json,
+    item: &'a Json,
+) -> Option<BTreeMap<(&'a str, &'a str), bool>> {
+    let mut effective = BTreeMap::new();
+    for owner in [item, item.at("post")] {
+        let Some(parameters) = owner.get("parameters") else {
+            continue;
+        };
+        let Json::Array(parameters) = parameters else {
+            return None;
+        };
+        let mut seen = HashSet::new();
+        for parameter in parameters {
+            let parameter = if let Some(reference) = parameter.get("$ref") {
+                reference
+                    .as_str()
+                    .and_then(|reference| reference.strip_prefix("#/components/parameters/"))
+                    .and_then(|name| document.at("components").at("parameters").get(name))?
+            } else {
+                parameter
+            };
+            let (Some(location), Some(name)) =
+                (parameter.at("in").as_str(), parameter.at("name").as_str())
+            else {
+                return None;
+            };
+            // OpenAPI ignores parameter declarations for these HTTP headers.
+            if location == "header"
+                && ["Accept", "Content-Type", "Authorization"]
+                    .iter()
+                    .any(|header| name.eq_ignore_ascii_case(header))
+            {
+                continue;
+            }
+            let required = match parameter.get("required") {
+                Some(Json::Bool(required)) => *required,
+                None => false,
+                Some(_) => return None,
+            };
+            if !seen.insert((location, name)) {
+                return None;
+            }
+            effective.insert((location, name), required);
+        }
+    }
+    Some(effective)
+}
+
+/// Path item parameters apply to its POST unless the operation overrides the
+/// same name and location. Only the two route placeholders are sent today.
+fn check_request_parameters(document: &Json, item: &Json, route: &str) -> Vec<S> {
+    let Some(effective) = effective_request_parameters(document, item) else {
+        return vec![pts(&format!(
+            "live OpenAPI parameters for {route} could not be read"
+        ))];
+    };
+    effective
+        .into_iter()
+        .filter_map(|((location, name), required)| {
+            let supplied = location == "path"
+                && matches!(name, "calc_uri" | "period_uri")
+                && route.contains(&format!("{{{name}}}"));
+            if !required || supplied {
+                return None;
+            }
+            Some(pts(&format!(
+                "live OpenAPI {route} requires {location} parameter {name}, which the adapter does not send"
+            )))
+        })
+        .collect()
+}
+
+pub(crate) fn compare_openapi(reviewed: &Json, calculators: &Json, document: &Json) -> R<Vec<S>> {
+    let Json::Object(schemas) = reviewed else {
+        return Err(contract_error(pts(
+            "reviewed OpenAPI input schemas must be an object",
+        )));
+    };
+    let live = document.at("components").at("schemas");
+    let mut findings = Vec::new();
+    for (name, expected) in schemas {
+        let Some(name) = name.as_str() else {
+            return Err(contract_error(pts(
+                "reviewed OpenAPI schema name is not UTF-8",
+            )));
+        };
+        match live.get(name) {
+            None => findings.push(pts(&format!("live OpenAPI is missing input schema {name}"))),
+            Some(actual) if !same_schema_value(&schema_shape(actual), &schema_shape(expected)) => {
+                findings.push(pts(&format!("live OpenAPI input schema {name} changed")));
+            }
+            Some(_) => {}
+        }
+    }
+    findings.extend(check_calculator_routes(calculators, document)?);
+    Ok(findings)
+}
+
+fn check_calculator_routes(calculators: &Json, document: &Json) -> R<Vec<S>> {
+    let Json::Object(calculators) = calculators else {
+        return Err(contract_error(pts(
+            "reviewed calculators must be an object",
+        )));
+    };
+    let mut findings = Vec::new();
+    for (_, spec) in calculators {
+        let Some(route) = spec.at("route").as_str() else {
+            return Err(contract_error(pts("reviewed calculator has no route")));
+        };
+        let expected = Json::obj([("$ref", spec.at("input_schema_ref").clone())]);
+        let item = document.at("paths").at(route);
+        let body = item.at("post").at("requestBody");
+        let shape = schema_shape(body.at("content").at("application/json").at("schema"));
+        let matched = if route.contains("{calc_uri}") {
+            matches!(&shape, Json::Object(fields) if fields.len() == 1)
+                && matches!(shape.at("anyOf"), Json::Array(schemas)
+                    if schemas.iter().any(|schema| same_schema_value(schema, &expected)))
+        } else {
+            same_schema_value(&shape, &expected)
+        };
+        if body.at("required") != &Json::Bool(true) || !matched {
+            findings.push(pts(&format!(
+                "live OpenAPI request schema for {route} changed"
+            )));
+        }
+        findings.extend(check_request_parameters(document, item, route));
+    }
+    Ok(findings)
 }
 
 /// `compare(contract, live_listing)`: the differences between a reviewed
@@ -308,8 +563,13 @@ pub fn compare(contract: &Contract, live_listing: &[Json]) -> R<Vec<S>> {
         .collect();
     let recorded_set = py_set(&contract.calculators)?;
     for uri in sorted_difference(&live_set, &recorded_set)? {
+        let prefix = if contract.openapi_input_schemas.is_some() {
+            "note: live has "
+        } else {
+            "live has "
+        };
         findings.push(p!(
-            "live has ",
+            prefix,
             str_points(&uri),
             ", which snapshot ",
             sid,
@@ -407,6 +667,83 @@ mod tests {
         points.iter().filter_map(|&c| char::from_u32(c)).collect()
     }
 
+    #[test]
+    fn schema_comparison_preserves_numbers_and_ignores_required_order() {
+        let read = |json| pyjson::loads_numbers(json, Numbers::Exact).unwrap();
+        let reference = schema_shape(&read(r#"{"multipleOf":0.01,"required":["a","b"]}"#));
+        for changed in [
+            r#"{"multipleOf":0.0100000000000000001,"required":["b","a"]}"#,
+            r#"{"multipleOf":"0.01","required":["b","a"]}"#,
+        ] {
+            assert!(!same_schema_value(
+                &reference,
+                &schema_shape(&read(changed))
+            ));
+        }
+        assert!(same_schema_value(
+            &reference,
+            &schema_shape(&read(r#"{"required":["b","a"],"multipleOf":1e-2}"#)),
+        ));
+        assert!(pyjson::loads_numbers("1e9999999999999999999999999999", Numbers::Exact).is_err());
+    }
+
+    #[test]
+    fn schema_comparison_ignores_documentation_only_changes() {
+        let read = |json| pyjson::loads_numbers(json, Numbers::Exact).unwrap();
+        let reference = schema_shape(&read(r#"{"properties":{"a":{"type":"string"}}}"#));
+        let documented = r#"{"$comment":"x","externalDocs":{"url":"https://example.com"},
+            "properties":{"a":{"type":"string","$comment":"y","description":"z"}}}"#;
+        assert!(same_schema_value(
+            &reference,
+            &schema_shape(&read(documented))
+        ));
+    }
+
+    #[test]
+    fn post_parameters_include_inherited_references_and_allow_operation_overrides() {
+        let document = pyjson::loads_standard(
+            r##"{
+            "components":{"parameters":{"Window":{"name":"window","in":"query","required":true}}}
+        }"##,
+        )
+        .unwrap();
+        let route = "/v1/depreciation/{period_uri}";
+        let check = |item| {
+            check_request_parameters(&document, &pyjson::loads_standard(item).unwrap(), route)
+        };
+        assert_eq!(
+            check(
+                r##"{
+            "parameters":[{"$ref":"#/components/parameters/Window"}]
+        }"##
+            ),
+            [pts(&format!(
+                "live OpenAPI {route} requires query parameter window, which the adapter does not send"
+            ))]
+        );
+        assert!(
+            check(
+                r##"{
+            "parameters":[{"$ref":"#/components/parameters/Window"}],
+                "post":{"parameters":[{"name":"window","in":"query","required":false},
+                                     {"name":"period_uri","in":"path","required":true},
+                                     {"name":"content-type","in":"header","required":true}]}
+        }"##
+            )
+            .is_empty()
+        );
+        assert_eq!(
+            check(
+                r##"{
+            "post":{"parameters":[{"$ref":"#/components/parameters/Missing"}]}
+        }"##
+            ),
+            [pts(&format!(
+                "live OpenAPI parameters for {route} could not be read"
+            ))]
+        );
+    }
+
     fn snapshot(calculators: &str) -> Contract {
         Contract {
             provider: Json::str("p"),
@@ -415,6 +752,7 @@ mod tests {
             read_by: Json::Null,
             calculators: pyjson::loads_standard(calculators).unwrap(),
             response_contract: Json::Null,
+            openapi_input_schemas: None,
             notes: Vec::new(),
             sha256: String::new(),
             path: PyPath::new("x.json"),

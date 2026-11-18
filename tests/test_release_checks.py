@@ -23,6 +23,16 @@ REQUIRED = {
         ".github/workflows/codeql.yml: Analyze Python",
         ".github/workflows/codeql.yml: codeql-gates"
     ],
+    "release-australian-tax-calculators.yml": [
+        ".github/workflows/no-ai-attribution.yml: Attribution policy / Attribution policy runner",
+        ".github/workflows/ci.yml: australian-tax-calculators / check (ubuntu-latest)",
+        ".github/workflows/ci.yml: australian-tax-calculators / check (windows-latest)",
+        ".github/workflows/ci.yml: australian-tax-calculators / check (macos-latest)",
+        ".github/workflows/ci.yml: australian-tax-calculators / dependency-audit",
+        ".github/workflows/boundaries.yml: boundaries",
+        ".github/workflows/codeql.yml: Analyze Rust",
+        ".github/workflows/codeql.yml: codeql-gates"
+    ],
     "release-lodgment-calendar.yml": [
         ".github/workflows/no-ai-attribution.yml: Attribution policy / Attribution policy runner",
         ".github/workflows/ci.yml: lodgment-calendar / build",
@@ -51,7 +61,7 @@ class ReleaseChecksTests(unittest.TestCase):
                 job = text.split("\n  release:\n", 1)[1].split("\n  pypi:", 1)[0]
                 pin = re.search(
                     r"(?m)^    uses: ryanduguid/release-policy/\.github/workflows/"
-                    r"release-(?:python|archive|skills)\.yml@([0-9a-f]{40})$",
+                    r"release-(?:python|archive|skills|binary)\.yml@([0-9a-f]{40})$",
                     job,
                 )
                 self.assertIsNotNone(pin, "release-policy is not pinned by full commit")

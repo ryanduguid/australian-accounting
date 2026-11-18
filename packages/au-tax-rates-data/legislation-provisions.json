@@ -95,6 +95,16 @@
       "sections_sha256": "9df781fc3db6d00ebd4cc1a828404eda3612e1a111150988d84433fc9dcf35a0"
     },
     {
+      "title_id": "C2004A05128",
+      "provision": "296-1",
+      "act": "Income Tax (Transitional Provisions) Act 1997",
+      "compilation_number": "103",
+      "compilation_date": "2026-07-01",
+      "row_id": "C2004A05128:0340:296-1",
+      "heading": "296‑1 Application of Division 296 of the Income Tax Assessment Act 1997",
+      "sections_sha256": "9df781fc3db6d00ebd4cc1a828404eda3612e1a111150988d84433fc9dcf35a0"
+    },
+    {
       "title_id": "C2004A05138",
       "provision": "152-10",
       "act": "Income Tax Assessment Act 1997",
@@ -173,6 +183,16 @@
       "row_id": "C2013A00087:0005:5",
       "heading": "5 Amount of tax",
       "sections_sha256": "4b1806b14de6247d757b4737be695a67b113d8872d7007385e7e7124dd4147f2"
+    },
+    {
+      "title_id": "C2026A00009",
+      "provision": "5",
+      "act": "Superannuation (Building a Stronger and Fairer Super System) Imposition Act 2026",
+      "compilation_number": "0",
+      "compilation_date": "2026-03-13",
+      "row_id": "C2026A00009:0005:5",
+      "heading": "5 Amount of tax",
+      "sections_sha256": "3e33f54d87e8398592429042c701900bc08a5d9ba1ab81d1f9322ec5f5b4119a"
     },
     {
       "title_id": "F2019L00417",

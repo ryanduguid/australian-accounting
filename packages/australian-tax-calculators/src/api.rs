@@ -9,6 +9,7 @@
 use crate::decimal::Decimal;
 use crate::engine::{self, Arg};
 use serde_json::Value;
+use std::collections::HashSet;
 
 /// A refusal at the JSON boundary: its stable code and the message.
 #[derive(Clone, Debug, PartialEq, Eq)]
@@ -24,6 +25,54 @@ impl Refusal {
             message: message.into(),
         }
     }
+}
+
+/// The first key an object in `bytes` repeats, which decoding into `Value`
+/// resolves silently by keeping the last value. `bytes` must already have
+/// decoded as JSON; each key is compared decoded, so escapes cannot hide a repeat.
+/// This command and `au-accounting tax` both refuse on it, before the worksheet
+/// sees either value, so a repeat is refused whatever the values are.
+pub fn repeated_key(bytes: &[u8]) -> Option<String> {
+    // One entry per open container: an object's keys so far, or None for an array.
+    let mut open: Vec<Option<HashSet<String>>> = Vec::new();
+    let mut key_next = false;
+    let mut i = 0;
+    while i < bytes.len() {
+        match bytes[i] {
+            b'"' => {
+                let start = i;
+                i += 1;
+                while i < bytes.len() && bytes[i] != b'"' {
+                    i += if bytes[i] == b'\\' { 2 } else { 1 };
+                }
+                if key_next && let Some(Some(keys)) = open.last_mut() {
+                    let literal = bytes.get(start..=i).unwrap_or_default();
+                    if let Ok(key) = serde_json::from_slice::<String>(literal)
+                        && !keys.insert(key.clone())
+                    {
+                        return Some(key);
+                    }
+                }
+                key_next = false;
+            }
+            b'{' => {
+                open.push(Some(HashSet::new()));
+                key_next = true;
+            }
+            b'[' => {
+                open.push(None);
+                key_next = false;
+            }
+            b'}' | b']' => {
+                open.pop();
+                key_next = false;
+            }
+            b',' => key_next = matches!(open.last(), Some(Some(_))),
+            _ => {}
+        }
+        i += 1;
+    }
+    None
 }
 
 /// Every refusal code and the failure it names.
@@ -47,6 +96,31 @@ enum Kind {
 }
 use Kind::{Dec, Json, Raw};
 
+/// The FBT benefit worksheets' positional parameters. Their other inputs depend
+/// on the method, so [`benefit_inputs`] passes them by name.
+const FBT_YEAR_ARGS: &[(&str, Kind)] = &[("year_ended", Raw), ("scope_confirmed", Raw)];
+const FBT_METHOD_ARGS: &[(&str, Kind)] = &[
+    ("method", Raw),
+    ("year_ended", Raw),
+    ("scope_confirmed", Raw),
+];
+
+/// The parameters of the worksheets that take one pay's earnings on a scale.
+const PAY_ARGS: &[(&str, Kind)] = &[
+    ("earnings", Dec),
+    ("pay_period", Raw),
+    ("scale", Raw),
+    ("year", Raw),
+    ("scope_confirmed", Raw),
+];
+
+/// The parameters of the worksheets that take taxable income alone.
+const TAXABLE_INCOME_ARGS: &[(&str, Kind)] = &[
+    ("taxable_income", Dec),
+    ("year", Raw),
+    ("scope_confirmed", Raw),
+];
+
 /// Command, the worksheet's parameters in the original order.
 const COMMAND_ARGS: &[(&str, &[(&str, Kind)])] = &[
     (
@@ -58,14 +132,8 @@ const COMMAND_ARGS: &[(&str, &[(&str, Kind)])] = &[
             ("year", Raw),
         ],
     ),
-    (
-        "resident-tax",
-        &[
-            ("taxable_income", Dec),
-            ("year", Raw),
-            ("scope_confirmed", Raw),
-        ],
-    ),
+    ("resident-tax", TAXABLE_INCOME_ARGS),
+    ("foreign-resident-tax", TAXABLE_INCOME_ARGS),
     (
         "capital-gains",
         &[
@@ -108,6 +176,49 @@ const COMMAND_ARGS: &[(&str, &[(&str, Kind)])] = &[
         ],
     ),
     (
+        "hire-purchase-schedule",
+        &[
+            ("amount_financed", Dec),
+            ("balloon", Dec),
+            ("timing", Raw),
+            ("start_date", Raw),
+            ("year", Raw),
+            ("scope_confirmed", Raw),
+        ],
+    ),
+    (
+        "business-capital-expenditure",
+        &[("items", Json), ("year", Raw), ("scope_confirmed", Raw)],
+    ),
+    (
+        "balancing-adjustment",
+        &[
+            ("cost", Dec),
+            ("termination_value", Dec),
+            ("asset", Raw),
+            ("years", Json),
+            ("year", Raw),
+            ("scope_confirmed", Raw),
+        ],
+    ),
+    (
+        "trade-in",
+        &[
+            ("cost", Dec),
+            ("asset", Raw),
+            ("years", Json),
+            ("trade_in_allowance", Dec),
+            ("trade_in_taxable", Raw),
+            ("replacement_price", Dec),
+            ("replacement_asset", Raw),
+            ("replacement_creditable_acquisition", Raw),
+            ("arms_length", Raw),
+            ("involuntary_disposal", Raw),
+            ("year", Raw),
+            ("scope_confirmed", Raw),
+        ],
+    ),
+    (
         "fbt",
         &[
             ("type_one_value", Dec),
@@ -145,6 +256,12 @@ const COMMAND_ARGS: &[(&str, &[(&str, Kind)])] = &[
             ("scope_confirmed", Raw),
         ],
     ),
+    ("fbt-loan", FBT_YEAR_ARGS),
+    ("fbt-meal-entertainment", FBT_METHOD_ARGS),
+    ("fbt-car-parking", FBT_METHOD_ARGS),
+    ("fbt-debt-waiver", FBT_YEAR_ARGS),
+    ("fbt-expense-payment", FBT_METHOD_ARGS),
+    ("fbt-property", FBT_METHOD_ARGS),
     (
         "depreciation",
         &[
@@ -167,26 +284,18 @@ const COMMAND_ARGS: &[(&str, &[(&str, Kind)])] = &[
             ("scope_confirmed", Raw),
         ],
     ),
+    ("payg-withholding", PAY_ARGS),
     (
-        "payg-withholding",
+        "payg-gross-up",
         &[
-            ("earnings", Dec),
+            ("net_pay", Dec),
             ("pay_period", Raw),
             ("scale", Raw),
             ("year", Raw),
             ("scope_confirmed", Raw),
         ],
     ),
-    (
-        "study-loan-withholding",
-        &[
-            ("earnings", Dec),
-            ("pay_period", Raw),
-            ("scale", Raw),
-            ("year", Raw),
-            ("scope_confirmed", Raw),
-        ],
-    ),
+    ("study-loan-withholding", PAY_ARGS),
     (
         "medicare-levy",
         &[
@@ -197,9 +306,32 @@ const COMMAND_ARGS: &[(&str, &[(&str, Kind)])] = &[
         ],
     ),
     (
-        "low-income-tax-offset",
+        "medicare-levy-surcharge",
         &[
             ("taxable_income", Dec),
+            ("reportable_fringe_benefits", Dec),
+            ("income_for_surcharge_purposes", Dec),
+            ("days_without_cover", Raw),
+            ("year", Raw),
+            ("scope_confirmed", Raw),
+        ],
+    ),
+    ("low-income-tax-offset", TAXABLE_INCOME_ARGS),
+    (
+        "seniors-pensioners-tax-offset",
+        &[
+            ("rebate_income", Dec),
+            ("status", Raw),
+            ("year", Raw),
+            ("scope_confirmed", Raw),
+        ],
+    ),
+    (
+        "lump-sum-arrears-tax-offset",
+        &[
+            ("taxable_income", Dec),
+            ("net_capital_gain", Dec),
+            ("accrual_years", Json),
             ("year", Raw),
             ("scope_confirmed", Raw),
         ],
@@ -209,6 +341,111 @@ const COMMAND_ARGS: &[(&str, &[(&str, Kind)])] = &[
         &[
             ("division_293_income", Dec),
             ("low_tax_contributions", Dec),
+            ("year", Raw),
+            ("scope_confirmed", Raw),
+        ],
+    ),
+    (
+        "division-296",
+        &[
+            ("total_super_balance_end_of_year", Dec),
+            ("total_super_earnings", Dec),
+            ("child_recipient", Raw),
+            ("structured_settlement_contribution", Raw),
+            ("died_in_year", Raw),
+            ("year", Raw),
+            ("scope_confirmed", Raw),
+        ],
+    ),
+    (
+        "termination-payment",
+        &[
+            ("redundancy_payment", Dec),
+            ("completed_years_of_service", Raw),
+            ("excluded_payment", Dec),
+            ("non_excluded_payment", Dec),
+            ("other_taxable_payments", Dec),
+            ("date_of_birth", Raw),
+            ("year", Raw),
+            ("scope_confirmed", Raw),
+        ],
+    ),
+    (
+        "unused-leave-payment",
+        &[
+            ("annual_leave", Dec),
+            ("leave_loading", Dec),
+            ("long_service_leave", Dec),
+            ("leave_accrual_start", Raw),
+            ("termination_reason", Raw),
+            ("working_holiday_maker", Raw),
+            ("earnings", Dec),
+            ("pay_period", Raw),
+            ("scale", Raw),
+            ("year", Raw),
+            ("scope_confirmed", Raw),
+        ],
+    ),
+    (
+        "schedule-5-method-a",
+        &[
+            ("earnings", Dec),
+            ("additional_payment", Dec),
+            ("pay_periods", Raw),
+            ("pay_period", Raw),
+            ("scale", Raw),
+            ("study_loan", Raw),
+            ("year", Raw),
+            ("scope_confirmed", Raw),
+        ],
+    ),
+    (
+        "schedule-5-method-b-i",
+        &[
+            ("earnings", Dec),
+            ("back_payment_periods", Json),
+            ("pay_period", Raw),
+            ("scale", Raw),
+            ("study_loan", Raw),
+            ("year", Raw),
+            ("scope_confirmed", Raw),
+        ],
+    ),
+    (
+        "schedule-5-method-b-ii",
+        &[
+            ("earnings", Dec),
+            ("additional_payment", Dec),
+            ("year_to_date_earnings", Dec),
+            ("pay_periods_to_date", Raw),
+            ("earlier_additional_payments", Dec),
+            ("earlier_additional_withholding", Dec),
+            ("pay_period", Raw),
+            ("scale", Raw),
+            ("study_loan", Raw),
+            ("year", Raw),
+            ("scope_confirmed", Raw),
+        ],
+    ),
+    (
+        "working-holiday-maker-withholding",
+        &[
+            ("payment", Dec),
+            ("payments_before", Dec),
+            ("employer_registered", Raw),
+            ("tfn_quoted", Raw),
+            ("pay_period", Raw),
+            ("year", Raw),
+            ("scope_confirmed", Raw),
+        ],
+    ),
+    (
+        "seniors-pensioners-withholding",
+        &[
+            ("earnings", Dec),
+            ("pay_period", Raw),
+            ("status", Raw),
+            ("medicare_levy_exemption", Raw),
             ("year", Raw),
             ("scope_confirmed", Raw),
         ],
@@ -243,13 +480,149 @@ const COMMAND_ARGS: &[(&str, &[(&str, Kind)])] = &[
             ("scope_confirmed", Raw),
         ],
     ),
+    ("fbt-residual", FBT_METHOD_ARGS),
+    ("fbt-housing", FBT_METHOD_ARGS),
+    ("fbt-lafha", FBT_METHOD_ARGS),
+    ("fbt-board", FBT_YEAR_ARGS),
+    ("fbt-tax-exempt-body-entertainment", FBT_METHOD_ARGS),
+    (
+        "fbt-entertainment-classifier",
+        &[
+            ("lines", Json),
+            ("income_tax_exempt", Raw),
+            ("year_ended", Raw),
+            ("scope_confirmed", Raw),
+        ],
+    ),
+    (
+        "income-tests",
+        &[
+            ("taxable_income", Dec),
+            ("assessable_fhss_released_amount", Dec),
+            ("family_trust_distribution_amounts", Dec),
+            ("reportable_fringe_benefits_section_57a", Dec),
+            ("reportable_fringe_benefits_other", Dec),
+            ("reportable_employer_super_contributions", Dec),
+            ("deductible_personal_super_contributions", Dec),
+            ("excess_concessional_contributions", Dec),
+            ("net_financial_investment_loss", Dec),
+            ("net_rental_property_loss", Dec),
+            ("tax_free_government_pensions", Dec),
+            ("target_foreign_income", Dec),
+            ("exempt_foreign_employment_income", Dec),
+            ("child_support_paid", Dec),
+            ("assessable_income", Dec),
+            ("business_deductions", Dec),
+            ("residency", Raw),
+            ("year", Raw),
+            ("scope_confirmed", Raw),
+        ],
+    ),
 ];
 
 pub fn commands() -> Vec<&'static str> {
     let mut out: Vec<&'static str> = COMMAND_ARGS.iter().map(|(c, _)| *c).collect();
     out.push("worksheet-catalogue");
     out.push("periods");
+    out.push("derive");
+    out.push("personal-tax-estimate");
+    out.push("dgr-check");
+    out.push("fbt-return");
     out
+}
+
+/// The commands `derive` explains: each of their amounts is worked out in a step.
+/// Every worksheet command is here except `payg-gross-up` and
+/// `fbt-entertainment-classifier`. The gross pay of `payg-gross-up` is the
+/// one whose own withholding leaves the net, found by searching
+/// `payg-withholding`'s results, or `study-loan-withholding`'s for a payee with
+/// a study loan: the withholding is worked on the gross, so no step can work
+/// the gross out from the inputs and earlier steps alone. `derive` of that
+/// command on its `gross_pay` shows that withholding. The classifier's amounts
+/// are totals over lines whose shares a decision table sets, not a formula;
+/// each line and class carries the authority for its row instead.
+const DERIVED: [&str; 46] = [
+    "fbt",
+    "fbt-car-statutory",
+    "fbt-car-operating-cost",
+    "fbt-loan",
+    "fbt-meal-entertainment",
+    "fbt-car-parking",
+    "fbt-debt-waiver",
+    "fbt-expense-payment",
+    "fbt-property",
+    "division-293",
+    "pension-minimum",
+    "payg-withholding",
+    "schedule-5-method-a",
+    "schedule-5-method-b-i",
+    "schedule-5-method-b-ii",
+    "termination-payment",
+    "unused-leave-payment",
+    "working-holiday-maker-withholding",
+    "study-loan-withholding",
+    "seniors-pensioners-withholding",
+    "quarterly-sg",
+    "borrowing-expenses",
+    "resident-tax",
+    "foreign-resident-tax",
+    "low-income-tax-offset",
+    "seniors-pensioners-tax-offset",
+    "medicare-levy",
+    "medicare-levy-surcharge",
+    "division-296",
+    "contribution-caps",
+    "study-loan-repayment",
+    "capital-gains",
+    "main-residence",
+    "fbt-residual",
+    "fbt-housing",
+    "fbt-lafha",
+    "fbt-board",
+    "fbt-tax-exempt-body-entertainment",
+    "gst",
+    "depreciation",
+    "hire-purchase-schedule",
+    "lump-sum-arrears-tax-offset",
+    "income-tests",
+    "business-capital-expenditure",
+    "balancing-adjustment",
+    "trade-in",
+];
+
+/// `derive`: `{"command", "input"}` gives the command's result with the step
+/// behind each amount. A refused input gives the command's own refusal.
+fn derive(v: &Value) -> Result<Value> {
+    let mut keys = v.as_object().into_iter().flat_map(|o| o.keys());
+    if let Some(key) = keys.find(|k| !matches!(k.as_str(), "command" | "input")) {
+        return refusal(
+            "input.field_unknown",
+            format!("{key} is not an input of derive"),
+        );
+    }
+    let Some(command) = v.get("command") else {
+        return refusal("input.missing_field", "command is required");
+    };
+    let Some(command) = command.as_str().filter(|c| DERIVED.contains(c)) else {
+        return refusal(
+            "derivation.unsupported",
+            format!("derive explains {}, not {command}", DERIVED.join(", ")),
+        );
+    };
+    let Some(input) = v.get("input") else {
+        return refusal("input.missing_field", "input is required");
+    };
+    let (result, steps) = engine::with_steps(|| evaluate_coded(command, input));
+    let result = result?;
+    Ok(serde_json::json!({
+        "format": "australian-tax-calculators/derivation/1",
+        "engine": result["engine"],
+        "engine_version": result["engine_version"],
+        "calculation": result["calculation"],
+        "input": input,
+        "steps": steps,
+        "result": result,
+    }))
 }
 
 /// A JSON value as the Python object the original received.
@@ -388,6 +761,34 @@ fn argument(v: &Value, key: &str, kind: Kind) -> Result<Arg> {
     }
 }
 
+/// The inputs `v` gives besides `params`, by name: a string as a decimal,
+/// except `fbt-housing`'s `state`, a list as JSON for the worksheet to read,
+/// any other value as given.
+fn benefit_inputs(v: &Value, params: &[(&str, Kind)]) -> Result<Vec<(String, Arg)>> {
+    let named = v.as_object().into_iter().flatten();
+    named
+        .filter(|(key, _)| !params.iter().any(|(p, _)| p == key))
+        .map(|(key, value)| {
+            let given = match value {
+                Value::String(_) if key != "state" => argument(v, key, Dec)?,
+                Value::Array(_) => Arg::Json(value.clone()),
+                other => arg(other),
+            };
+            Ok((key.clone(), given))
+        })
+        .collect()
+}
+
+/// An optional argument: `None` when `key` is absent.
+fn optional(v: &Value, key: &str, kind: Kind) -> Result<Option<Arg>> {
+    v.get(key).map(|_| argument(v, key, kind)).transpose()
+}
+
+/// An optional decimal input, read as every command reads one.
+pub(crate) fn optional_decimal(v: &Value, key: &str) -> Result<Option<Arg>> {
+    optional(v, key, Dec)
+}
+
 /// `json.loads` refuses an integer token of more than 4,300 digits, as
 /// `int(text)` does under Python's default limit.
 fn int_limit(value: &Value) -> Result<()> {
@@ -413,6 +814,62 @@ fn int_limit(value: &Value) -> Result<()> {
     }
 }
 
+/// Whether `command` takes the input `key`, required or optional.
+pub(crate) fn takes(command: &str, key: &str) -> bool {
+    let kind = command.replace('-', "_");
+    // The catalogue's required and optional inputs, which for the FBT benefit
+    // worksheets are more than their positional parameters.
+    let named = [
+        crate::metadata::input_units(&kind),
+        crate::metadata::optional_inputs(&kind),
+    ];
+    COMMAND_ARGS
+        .iter()
+        .any(|(c, params)| *c == command && params.iter().any(|(p, _)| *p == key))
+        || named.iter().flatten().any(|(n, _)| *n == key)
+}
+
+/// The `contribution-caps` inputs that work out the unused concessional cap
+/// from each earlier year's contributions instead of taking it as a total.
+const CARRY_FORWARD_INPUTS: [&str; 3] = [
+    "earlier_concessional_contributions",
+    "proposed_concessional_contribution",
+    "defined_benefit_interest",
+];
+
+/// `contribution-caps` given a carry-forward input. It has no Python original
+/// and a misspelt proposed contribution would be silently left out, so a
+/// field it does not take is refused, as is the unused total beside the years.
+fn contribution_caps_by_year(v: &Value) -> Result<Value> {
+    let command = "contribution-caps";
+    let mut keys = v.as_object().into_iter().flat_map(|o| o.keys());
+    if let Some(key) = keys.find(|k| *k == "unused_concessional_cap" || !takes(command, k)) {
+        return refusal(
+            "input.field_unknown",
+            format!("{key} is not an input of {command} when it works out the unused cap by year"),
+        );
+    }
+    let (_, params) = COMMAND_ARGS
+        .iter()
+        .find(|(c, _)| *c == command)
+        .expect("listed command");
+    let a: Vec<Arg> = params
+        .iter()
+        .filter(|(key, _)| *key != "unused_concessional_cap")
+        .map(|(key, kind)| argument(v, key, *kind))
+        .collect::<Result<_>>()?;
+    let earlier = argument(v, "earlier_concessional_contributions", Json)?;
+    let flag = argument(v, "defined_benefit_interest", Raw)?;
+    let proposed = optional(v, "proposed_concessional_contribution", Dec)?;
+    let carry = engine::CarryForward {
+        earlier_contributions: &earlier,
+        proposed_contribution: proposed.as_ref(),
+        defined_benefit_interest: &flag,
+    };
+    engine::contribution_caps_by_year(&a[0], &a[1], &a[2], &a[3], carry, &a[4], &a[5])
+        .or_else(|e| refusal(e.code(), e.to_string()))
+}
+
 /// Run one JSON stdin command: the result value, or the refusal message.
 pub fn evaluate(command: &str, v: &Value) -> std::result::Result<Value, String> {
     evaluate_coded(command, v).map_err(|refusal| refusal.message)
@@ -426,6 +883,13 @@ pub fn evaluate_coded(command: &str, v: &Value) -> Result<Value> {
     int_limit(v)?;
     match command {
         "worksheet-catalogue" => return Ok(engine::worksheet_catalogue()),
+        "derive" => return derive(v),
+        "personal-tax-estimate" => return crate::estimate::compose(v),
+        "contribution-caps" if CARRY_FORWARD_INPUTS.iter().any(|k| v.get(k).is_some()) => {
+            return contribution_caps_by_year(v);
+        }
+        "dgr-check" => return crate::dgr::check(v),
+        "fbt-return" => return crate::fbt_return::compose(v),
         "periods" => {
             let kind = match v.get("kind") {
                 None => return refusal("input.missing_field", "kind is required"),
@@ -446,13 +910,72 @@ pub fn evaluate_coded(command: &str, v: &Value) -> Result<Value> {
     let Some((_, params)) = COMMAND_ARGS.iter().find(|(c, _)| *c == command) else {
         return refusal("command.unknown", format!("unknown command {command}"));
     };
+    // Division 296, the termination payment, unused leave, Medicare levy surcharge,
+    // Schedule 5, 9 and 15, the seniors and pensioners and lump sum in arrears
+    // tax offset worksheets have no
+    // Python original whose lenience to keep, and a misspelt optional
+    // depreciation, Medicare levy or PAYG withholding input would silently give
+    // the start year's, a single person's or the result without it, so a field
+    // one does not take, such as an opening balance, another method's input or
+    // a TFN exemption, is refused rather than ignored.
+    // The FBT benefit worksheets have no Python original either.
+    if matches!(
+        command,
+        "division-296"
+            | "depreciation"
+            | "medicare-levy"
+            | "medicare-levy-surcharge"
+            | "payg-withholding"
+            | "payg-gross-up"
+            | "termination-payment"
+            | "unused-leave-payment"
+            | "schedule-5-method-a"
+            | "schedule-5-method-b-i"
+            | "schedule-5-method-b-ii"
+            | "working-holiday-maker-withholding"
+            | "study-loan-withholding"
+            | "foreign-resident-tax"
+            | "seniors-pensioners-withholding"
+            | "seniors-pensioners-tax-offset"
+            | "lump-sum-arrears-tax-offset"
+            | "fbt-loan"
+            | "fbt-meal-entertainment"
+            | "fbt-car-parking"
+            | "fbt-debt-waiver"
+            | "fbt-expense-payment"
+            | "fbt-property"
+            | "fbt-residual"
+            | "fbt-housing"
+            | "fbt-lafha"
+            | "fbt-board"
+            | "fbt-tax-exempt-body-entertainment"
+            | "fbt-entertainment-classifier"
+            | "hire-purchase-schedule"
+            | "income-tests"
+            | "business-capital-expenditure"
+            | "balancing-adjustment"
+            | "trade-in"
+    ) && let Some(key) = v
+        .as_object()
+        .into_iter()
+        .flat_map(|o| o.keys())
+        .find(|k| !takes(command, k))
+    {
+        return refusal(
+            "input.field_unknown",
+            format!("{key} is not an input of {command}"),
+        );
+    }
     let a: Vec<Arg> = params
         .iter()
         .map(|(key, kind)| argument(v, key, *kind))
         .collect::<Result<_>>()?;
+    // Optional: the study loan component's pay date, which selects the Schedule 8 coefficients.
+    let pay_date = v.get("pay_date").map(arg);
     let result = match command {
         "gst" => engine::gst(&a[0], &a[1], &a[2], &a[3]),
         "resident-tax" => engine::resident_tax(&a[0], &a[1], &a[2]),
+        "foreign-resident-tax" => engine::foreign_resident_tax(&a[0], &a[1], &a[2]),
         "capital-gains" => engine::capital_gains(&a[0], &a[1], &a[2], &a[3], &a[4], &a[5]),
         "main-residence" => engine::main_residence(
             &a[0], &a[1], &a[2], &a[3], &a[4], &a[5], &a[6], &a[7], &a[8], &a[9], &a[10],
@@ -465,6 +988,85 @@ pub fn evaluate_coded(command: &str, v: &Value) -> Result<Value> {
             };
             engine::borrowing_expenses(&a[0], &a[1], &a[2], loan, &a[6], &a[7], &a[8])
         }
+        "hire-purchase-schedule" => {
+            // Optional: the level regime's instalment, their number and
+            // frequency, or segments in their place; a deposit, trade-in,
+            // payout and GST facts.
+            let [instalment, deposit, trade_in] =
+                ["instalment", "deposit", "trade_in"].map(|key| optional(v, key, Dec));
+            let [instalments, frequency] =
+                ["instalments", "frequency"].map(|key| optional(v, key, Raw));
+            let [segments, payout, gst] =
+                ["segments", "payout", "gst"].map(|key| optional(v, key, Json));
+            let (instalment, deposit, trade_in) = (instalment?, deposit?, trade_in?);
+            let (instalments, frequency) = (instalments?, frequency?);
+            let (segments, payout, gst) = (segments?, payout?, gst?);
+            engine::hire_purchase_schedule(&engine::HirePurchaseArgs {
+                amount_financed: &a[0],
+                instalment: instalment.as_ref(),
+                instalments: instalments.as_ref(),
+                frequency: frequency.as_ref(),
+                segments: segments.as_ref(),
+                balloon: &a[1],
+                timing: &a[2],
+                start_date: &a[3],
+                deposit: deposit.as_ref(),
+                trade_in: trade_in.as_ref(),
+                payout: payout.as_ref(),
+                gst: gst.as_ref(),
+                year: &a[4],
+                scope_confirmed: &a[5],
+            })
+        }
+        "business-capital-expenditure" => engine::business_capital_expenditure(&a[0], &a[1], &a[2]),
+        "balancing-adjustment" => {
+            // Optional: a car's s 40-325 facts, or null; refused for any other asset.
+            let car_limit = optional(v, "car_limit", Json)?;
+            engine::balancing_adjustment(
+                &a[0],
+                &a[1],
+                &a[2],
+                &a[3],
+                car_limit.as_ref(),
+                &a[4],
+                &a[5],
+            )
+        }
+        "trade-in" => {
+            // Optional: a car's s 40-325 facts, the traded-in asset's input
+            // tax credits for a taxable trade-in, a passenger car's luxury car
+            // tax and a creditable acquisition's creditable purpose.
+            let given = |key| optional(v, key, if key == "car_limit" { Json } else { Dec });
+            let [car_limit, adjusted, full, luxury, purpose] = [
+                "car_limit",
+                "adjusted_input_tax_credit",
+                "full_input_tax_credit",
+                "replacement_luxury_car_tax",
+                "creditable_purpose",
+            ]
+            .map(given);
+            let (car_limit, adjusted, full) = (car_limit?, adjusted?, full?);
+            let (luxury, purpose) = (luxury?, purpose?);
+            engine::trade_in(&engine::TradeInArgs {
+                cost: &a[0],
+                asset: &a[1],
+                years: &a[2],
+                car_limit: car_limit.as_ref(),
+                trade_in_allowance: &a[3],
+                trade_in_taxable: &a[4],
+                adjusted_input_tax_credit: adjusted.as_ref(),
+                full_input_tax_credit: full.as_ref(),
+                replacement_price: &a[5],
+                replacement_asset: &a[6],
+                replacement_luxury_car_tax: luxury.as_ref(),
+                replacement_creditable_acquisition: &a[7],
+                creditable_purpose: purpose.as_ref(),
+                arms_length: &a[8],
+                involuntary_disposal: &a[9],
+                year: &a[10],
+                scope_confirmed: &a[11],
+            })
+        }
         "fbt" => engine::fbt(&a[0], &a[1], &a[2], &a[3]),
         "fbt-car-statutory" => {
             engine::fbt_car_statutory(&a[0], &a[1], &a[2], &a[3], &a[4], &a[5], &a[6], &a[7])
@@ -472,20 +1074,247 @@ pub fn evaluate_coded(command: &str, v: &Value) -> Result<Value> {
         "fbt-car-operating-cost" => engine::fbt_car_operating_cost(
             &a[0], &a[1], &a[2], &a[3], &a[4], &a[5], &a[6], &a[7], &a[8], &a[9], &a[10],
         ),
-        "depreciation" => engine::depreciation(&a[0], &a[1], &a[2], &a[3], &a[4], &a[5], &a[6]),
-        "quarterly-sg" => engine::quarterly_sg(&a[0], &a[1], &a[2], &a[3], &a[4]),
-        "payg-withholding" => engine::payg_withholding(&a[0], &a[1], &a[2], &a[3], &a[4]),
-        "study-loan-withholding" => {
-            engine::study_loan_withholding(&a[0], &a[1], &a[2], &a[3], &a[4])
+        "fbt-loan" => engine::fbt_loan(&benefit_inputs(v, params)?, &a[0], &a[1]),
+        "fbt-meal-entertainment" => {
+            engine::fbt_meal_entertainment(&a[0], &benefit_inputs(v, params)?, &a[1], &a[2])
         }
-        "medicare-levy" => engine::medicare_levy(&a[0], &a[1], &a[2], &a[3]),
+        "fbt-car-parking" => {
+            engine::fbt_car_parking(&a[0], &benefit_inputs(v, params)?, &a[1], &a[2])
+        }
+        "fbt-debt-waiver" => engine::fbt_debt_waiver(&benefit_inputs(v, params)?, &a[0], &a[1]),
+        "fbt-expense-payment" => {
+            engine::fbt_expense_payment(&a[0], &benefit_inputs(v, params)?, &a[1], &a[2])
+        }
+        "fbt-property" => engine::fbt_property(&a[0], &benefit_inputs(v, params)?, &a[1], &a[2]),
+        "fbt-residual" => engine::fbt_residual(&a[0], &benefit_inputs(v, params)?, &a[1], &a[2]),
+        "fbt-housing" => engine::fbt_housing(&a[0], &benefit_inputs(v, params)?, &a[1], &a[2]),
+        "fbt-lafha" => engine::fbt_lafha(&a[0], &benefit_inputs(v, params)?, &a[1], &a[2]),
+        "fbt-board" => engine::fbt_board(&benefit_inputs(v, params)?, &a[0], &a[1]),
+        "fbt-tax-exempt-body-entertainment" => {
+            let given = benefit_inputs(v, params)?;
+            engine::fbt_tax_exempt_body_entertainment(&a[0], &given, &a[1], &a[2])
+        }
+        "fbt-entertainment-classifier" => {
+            // Optional: the meal entertainment method, required only when a
+            // line is meal entertainment, and the 12 week register's income
+            // tax register percentage.
+            let method = optional(v, "method", Raw)?;
+            let register = optional(v, "income_tax_register_percentage", Dec)?;
+            engine::fbt_entertainment_classifier(
+                &a[0],
+                &a[1],
+                &a[2],
+                &a[3],
+                method.as_ref(),
+                register.as_ref(),
+            )
+        }
+        "depreciation" => {
+            // Optional: present only for an income year after the asset's start time.
+            let key = "opening_adjustable_value";
+            let opening = match v.get(key) {
+                None => None,
+                Some(_) => Some(argument(v, key, Dec)?),
+            };
+            engine::depreciation(
+                &a[0],
+                &a[1],
+                &a[2],
+                &a[3],
+                &a[4],
+                &a[5],
+                &a[6],
+                opening.as_ref(),
+            )
+        }
+        "quarterly-sg" => engine::quarterly_sg(&a[0], &a[1], &a[2], &a[3], &a[4]),
+        "payg-withholding" => {
+            // Optional: each is absent unless the payee's declarations call for it.
+            let offsets = match v.get("tax_offsets") {
+                None => None,
+                Some(_) => Some(argument(v, "tax_offsets", Dec)?),
+            };
+            let [foreign, children, extra] = [
+                "foreign_resident",
+                "medicare_adjustment_children",
+                "extra_pay_withholding",
+            ]
+            .map(|key| v.get(key).map(arg));
+            let options = engine::PaygOptions {
+                foreign_resident: foreign.as_ref(),
+                tax_offsets: offsets.as_ref(),
+                medicare_adjustment_children: children.as_ref(),
+                extra_pay_withholding: extra.as_ref(),
+            };
+            engine::payg_withholding(&a[0], &a[1], &a[2], &a[3], &a[4], &options)
+        }
+        "payg-gross-up" => {
+            // Optional: scale 4's residency, as payg-withholding takes it, and
+            // a study loan with its pay date, as study-loan-withholding takes it.
+            let foreign = v.get("foreign_resident").map(arg);
+            let study_loan = v.get("study_loan").map_or(Arg::Bool(false), arg);
+            engine::payg_gross_up(
+                &a[0],
+                &a[1],
+                &a[2],
+                &a[3],
+                &a[4],
+                foreign.as_ref(),
+                (&study_loan, pay_date.as_ref()),
+            )
+        }
+        "study-loan-withholding" => {
+            engine::study_loan_withholding(&a[0], &a[1], &a[2], &a[3], &a[4], pay_date.as_ref())
+        }
+        "medicare-levy" => {
+            // Optional: each absent for a person without SAPTO, spouse,
+            // dependants or exemption.
+            let o = [
+                optional(v, "sapto_entitled", Raw)?,
+                optional(v, "spouse_taxable_income", Dec)?,
+                optional(v, "spouse_sapto_entitled", Raw)?,
+                optional(v, "dependant_offset_entitled", Raw)?,
+                optional(v, "dependent_children", Raw)?,
+                optional(v, "medicare_levy_exemption_full_days", Raw)?,
+                optional(v, "medicare_levy_exemption_half_days", Raw)?,
+            ];
+            let family = engine::MedicareFamily {
+                sapto_entitled: o[0].as_ref(),
+                spouse_taxable_income: o[1].as_ref(),
+                spouse_sapto_entitled: o[2].as_ref(),
+                dependant_offset_entitled: o[3].as_ref(),
+                dependent_children: o[4].as_ref(),
+            };
+            let exemption = engine::MedicareExemption {
+                full_days: o[5].as_ref(),
+                half_days: o[6].as_ref(),
+            };
+            engine::medicare_levy(&a[0], &a[1], &a[2], &a[3], family, exemption)
+        }
+        "medicare-levy-surcharge" => {
+            // Optional: absent for a person without a spouse or dependants all year.
+            let o = [
+                optional(v, "spouse_income_for_surcharge_purposes", Dec)?,
+                optional(v, "dependent_children", Raw)?,
+            ];
+            let family = engine::SurchargeFamily {
+                spouse_income: o[0].as_ref(),
+                dependent_children: o[1].as_ref(),
+            };
+            engine::medicare_levy_surcharge(&a[0], &a[1], &a[2], &a[3], &a[4], &a[5], family)
+        }
         "low-income-tax-offset" => engine::low_income_tax_offset(&a[0], &a[1], &a[2]),
+        "seniors-pensioners-tax-offset" => {
+            // Optional: absent for a single person, and the transfer without a spouse's.
+            let o = [
+                optional(v, "spouse_rebate_income", Dec)?,
+                optional(v, "spouse_taxable_income", Dec)?,
+            ];
+            let spouse = engine::SaptoSpouse {
+                rebate_income: o[0].as_ref(),
+                taxable_income: o[1].as_ref(),
+            };
+            engine::seniors_pensioners_tax_offset(&a[0], &a[1], &a[2], &a[3], spouse)
+        }
+        "lump-sum-arrears-tax-offset" => {
+            engine::lump_sum_arrears_tax_offset(&a[0], &a[1], &a[2], &a[3], &a[4])
+        }
         "division-293" => engine::division_293(&a[0], &a[1], &a[2], &a[3]),
+        "division-296" => engine::division_296(&a[0], &a[1], [&a[2], &a[3], &a[4]], &a[5], &a[6]),
+        "termination-payment" => {
+            engine::termination_payment(&a[0], &a[1], &a[2], &a[3], &a[4], &a[5], &a[6], &a[7])
+        }
+        "unused-leave-payment" => {
+            // Optional: the parts accrued before the dates the Act splits leave
+            // at, required where leave_accrual_start and the reason make them matter.
+            let o = [
+                optional(v, "annual_leave_before_18_august_1993", Dec)?,
+                optional(v, "leave_loading_before_18_august_1993", Dec)?,
+                optional(v, "long_service_leave_before_16_august_1978", Dec)?,
+                optional(
+                    v,
+                    "long_service_leave_16_august_1978_to_17_august_1993",
+                    Dec,
+                )?,
+            ];
+            let splits = engine::LeaveSplits {
+                annual_leave_before_18_august_1993: o[0].as_ref(),
+                leave_loading_before_18_august_1993: o[1].as_ref(),
+                long_service_leave_before_16_august_1978: o[2].as_ref(),
+                long_service_leave_16_august_1978_to_17_august_1993: o[3].as_ref(),
+            };
+            // Optional: scale 4's residency, as payg-withholding takes it.
+            let foreign = v.get("foreign_resident").map(arg);
+            let employee = engine::LeavePayee {
+                foreign_resident: foreign.as_ref(),
+                working_holiday_maker: &a[5],
+                earnings: &a[6],
+                pay_period: &a[7],
+                scale: &a[8],
+            };
+            engine::unused_leave_payment(
+                [&a[0], &a[1], &a[2]],
+                &splits,
+                (&a[3], &a[4]),
+                &employee,
+                &a[9],
+                &a[10],
+            )
+        }
+        "schedule-5-method-a" => engine::schedule_5_method_a(
+            &a[0],
+            &a[1],
+            &a[2],
+            &a[3],
+            &a[4],
+            (&a[5], pay_date.as_ref()),
+            &a[6],
+            &a[7],
+        ),
+        "schedule-5-method-b-i" => engine::schedule_5_method_b_i(
+            &a[0],
+            &a[1],
+            &a[2],
+            &a[3],
+            (&a[4], pay_date.as_ref()),
+            &a[5],
+            &a[6],
+        ),
+        "schedule-5-method-b-ii" => engine::schedule_5_method_b_ii(
+            &a[0],
+            &a[1],
+            [&a[2], &a[3], &a[4], &a[5]],
+            &a[6],
+            &a[7],
+            (&a[8], pay_date.as_ref()),
+            &a[9],
+            &a[10],
+        ),
+        "working-holiday-maker-withholding" => engine::working_holiday_maker_withholding(
+            &a[0], &a[1], &a[2], &a[3], &a[4], &a[5], &a[6],
+        ),
+        "seniors-pensioners-withholding" => {
+            // Optional: absent for a payee who declared no study loan.
+            let study_loan = v.get("study_loan").map_or(Arg::Bool(false), arg);
+            engine::seniors_pensioners_withholding(
+                &a[0],
+                &a[1],
+                &a[2],
+                &a[3],
+                &a[4],
+                &a[5],
+                (&study_loan, pay_date.as_ref()),
+            )
+        }
         "study-loan-repayment" => engine::study_loan_repayment(&a[0], &a[1], &a[2]),
         "contribution-caps" => {
             engine::contribution_caps(&a[0], &a[1], &a[2], &a[3], &a[4], &a[5], &a[6])
         }
         "pension-minimum" => engine::pension_minimum(&a[0], &a[1], &a[2], &a[3], &a[4]),
+        "income-tests" => {
+            let named: Vec<(&str, &Arg)> = params.iter().map(|(key, _)| *key).zip(&a).collect();
+            engine::income_tests(&named)
+        }
         _ => unreachable!("listed command"),
     };
     result.or_else(|e| refusal(e.code(), e.to_string()))
@@ -514,5 +1343,36 @@ mod tests {
             wrong.len(),
             &wrong[..wrong.len().min(10)]
         );
+    }
+
+    /// `takes` reads the catalogue's required inputs so that the FBT benefit
+    /// worksheets' named inputs are taken; every other command's required
+    /// inputs are its parameters, so no other command takes more than before.
+    #[test]
+    fn only_the_fbt_benefit_worksheets_take_inputs_beyond_their_parameters() {
+        let named_only = [
+            "fbt-loan",
+            "fbt-meal-entertainment",
+            "fbt-car-parking",
+            "fbt-debt-waiver",
+            "fbt-expense-payment",
+            "fbt-property",
+            "fbt-residual",
+            "fbt-housing",
+            "fbt-lafha",
+            "fbt-board",
+            "fbt-tax-exempt-body-entertainment",
+        ];
+        for (command, params) in COMMAND_ARGS {
+            let extra: Vec<_> = crate::metadata::input_units(&command.replace('-', "_"))
+                .into_iter()
+                .filter(|(n, _)| !params.iter().any(|(p, _)| p == n))
+                .collect();
+            assert_eq!(
+                extra.is_empty(),
+                !named_only.contains(command),
+                "{command} {extra:?}"
+            );
+        }
     }
 }

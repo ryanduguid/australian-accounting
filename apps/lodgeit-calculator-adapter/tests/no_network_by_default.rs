@@ -96,7 +96,7 @@ fn importing_every_module_opens_no_socket() {
     let (mut stdout, mut stderr) = (Vec::new(), Vec::new());
     let code = cli::run_io(&["contract".to_owned()], &mut stdout, &mut stderr, &mut io);
     assert_eq!(code, 0, "{}", String::from_utf8_lossy(&stderr));
-    assert!(String::from_utf8_lossy(&stdout).contains("lodgeit-calculators-2026-09-18"));
+    assert!(String::from_utf8_lossy(&stdout).contains("lodgeit-calculators-2026-11-10"));
 }
 
 #[test]
@@ -168,7 +168,7 @@ fn the_reviewed_snapshot_is_readable_offline() {
     let contract = contract();
     assert_eq!(
         contract.snapshot_id,
-        Json::Str(PyStr::Text("lodgeit-calculators-2026-09-18".into()))
+        Json::Str(PyStr::Text("lodgeit-calculators-2026-11-10".into()))
     );
     assert!(has_key(
         &contract.calculators,

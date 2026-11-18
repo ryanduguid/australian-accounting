@@ -91,7 +91,7 @@ jobs:
           rustup component add llvm-tools
       - name: Install cargo-llvm-cov
         if: runner.os == 'Linux'
-        uses: taiki-e/install-action@68a389c788b2cd04016ce8c80ee23b80d2ab3d68 # v2.88.1
+        uses: taiki-e/install-action@cfdb7ed4ccc7c7dce37759eae89dc5674b469b39 # v2.90.3
         with:
           tool: cargo-llvm-cov@0.9.1
           fallback: none
@@ -101,6 +101,8 @@ jobs:
         if: runner.os == 'Linux'
         env:
           CRATE: ${{ inputs.package }}
+          # tests/no_network.rs fails, rather than skips, without the strace installed above.
+          REQUIRE_STRACE: "1"
         run: |
           floor="$(jq --exit-status --arg crate "$CRATE" '.[$crate]' "$GITHUB_WORKSPACE/.github/ci/rust_coverage_floors.json")"
           cargo llvm-cov --locked --fail-under-lines "$floor"
@@ -250,10 +252,12 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
-      - uses: taiki-e/install-action@68a389c788b2cd04016ce8c80ee23b80d2ab3d68 # v2.88.1
+      - uses: taiki-e/install-action@cfdb7ed4ccc7c7dce37759eae89dc5674b469b39 # v2.90.3
         with:
           tool: cargo-audit@0.22.2
           fallback: none
+      # Ryan, 18 November 2026: an unmaintained crate fails only the weekly
+      # scheduled run; a vulnerability, an unsound or a yanked crate fails every run.
       - name: Audit Cargo lock
         working-directory: ${{ inputs.root }}/${{ inputs.package }}
-        run: cargo audit --deny warnings
+        run: cargo audit ${{ github.event_name == 'schedule' && '--deny warnings' || '--deny unsound --deny yanked' }}

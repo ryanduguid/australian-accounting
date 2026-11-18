@@ -10,7 +10,7 @@ pub mod holidays;
 mod returns;
 mod statements;
 
-use chrono::NaiveDate;
+use jiff::civil::Date;
 use serde::Deserialize;
 use serde_json::Value;
 use std::sync::OnceLock;
@@ -45,13 +45,13 @@ struct Rule {
     id: String,
     summary: String,
     source: String,
-    nominal: Option<NaiveDate>,
+    nominal: Option<Date>,
     unresolved: Option<String>,
     payment: Payment,
 }
 
 impl Rule {
-    fn new(id: &str, summary: impl Into<String>, source: &str, nominal: Option<NaiveDate>) -> Self {
+    fn new(id: &str, summary: impl Into<String>, source: &str, nominal: Option<Date>) -> Self {
         Self {
             id: id.into(),
             summary: summary.into(),
@@ -90,6 +90,6 @@ impl<'a> Ask<'a> {
     }
 }
 
-fn date(year: i32, month: u32, day: u32) -> NaiveDate {
-    NaiveDate::from_ymd_opt(year, month, day).expect("recorded date")
+fn date(year: i32, month: u32, day: u32) -> Date {
+    Date::new(year as i16, month as i8, day as i8).expect("recorded date")
 }

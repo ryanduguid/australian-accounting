@@ -9,10 +9,18 @@ The former API functions are JSON stdin subcommands, documented in README.md.
 No deadline, business-day, GIC, notional-earnings, uplift, rounding, refusal or
 message rule is intentionally changed, except the Employment Hero Beam
 status, the returned contributions and the receipt evidence columns below (their
-refusals, and 3 more fields in every printed list of valid fields), and the
-wording of the first-contribution hint on a late line.
+refusals, and 3 more fields in every printed list of valid fields), the
+wording of the first-contribution hint on a late line, and the import's notice
+of skipped super rows.
 
 ### Added
+
+- `import` names every super row it skips because the profile does not read its
+  contribution type as super guarantee: one warning gives the count and each
+  type with up to 20 of its row numbers. Python 0.2.2 dropped those rows
+  silently unless every row was skipped. Which rows are skipped, every figure
+  and the exit code are unchanged. The JSON `read-super` adds `skipped` when it
+  left a row out, and `import-files` carries the warning.
 
 - `usi-check` reads the USIs in a CSV against your local copy of the daily USI
   extract from Super Fund Lookup. `LISTED` means only that the extract shows the
@@ -118,6 +126,12 @@ root.
 
 ### Documented divergences
 
+- Without `--as-at`, the date assumed is today's in the zone `TZ` names, or
+  in the system zone when `TZ` is unset. A `TZ` that names no zone gives the
+  UTC date, as Python 0.2.2 did. On Windows Python read a zone name such as
+  `Australia/Sydney` in `TZ` as UTC; this reads it as that zone. Before 10:00
+  in Sydney (11:00 in daylight time) the UTC date is the day before, which can
+  change a verdict, so the notice names the date assumed.
 - The Employment Hero profile treats Beam's Reconciled status as not yet sent
   to the fund, as does Python maintenance release 0.2.3. Python 0.2.2 counted it as sent, but Beam's status order puts
   Reconciled (employer money cleared by Beam) before Sent to fund. A Reconciled

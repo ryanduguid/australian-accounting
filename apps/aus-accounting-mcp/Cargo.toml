@@ -16,17 +16,17 @@ australian-tax-calculators = { path = "../../packages/australian-tax-calculators
 gst-review = { path = "../../packages/gst-review" }
 lodgment-calendar = { path = "../../packages/lodgment-calendar" }
 payday-super-checker = { path = "../../packages/payday-super-checker" }
-chrono = { version = "0.4", default-features = false, features = ["std"] }
+jiff = { version = "1.0.0", default-features = false, features = ["std"] }
 jsonschema = { version = "=0.59.0", default-features = false, features = ["arbitrary-precision"] }
 regex = "=1.13.1"
-num-bigint = "0.4"
+num-bigint = "0.5"
 indexmap = "2"
 serde = "1"
 rmcp = { version = "=3.9.0", default-features = false, features = ["server", "client", "transport-io"] }
 roxmltree = "=0.21.1"
 serde_json = { version = "1", features = ["preserve_order", "arbitrary_precision", "unbounded_depth", "raw_value"] }
 stacker = "=0.1.25"
-sha2 = "0.11"
+sha2 = "0.11.1"
 tokio = { version = "1", features = ["macros", "rt-multi-thread", "io-std", "process", "time"] }
 
 [package.metadata.ci]

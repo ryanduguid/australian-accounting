@@ -138,6 +138,16 @@ class OrphanTestsTests(unittest.TestCase):
             "crates/unlisted: no workflow step runs this crate",
         ])
 
+    def test_blanks_after_a_key_read_as_no_value(self) -> None:
+        caller = ".github/workflows/ci.yml"
+        spaced = (
+            CALLER.replace("  pull_request:\n", "  pull_request:  \t\n")
+            .replace("  python:\n", "  python:   \n")
+            .replace("    steps:\n", "    steps: \t \n")
+        )
+        self.assertNotEqual(spaced, CALLER)
+        self.assertEqual(self.unrun({caller: spaced}), self.unrun({}))
+
     def test_allow_list_entries_must_still_apply(self) -> None:
         allowed = {
             "crates/unlisted": "",

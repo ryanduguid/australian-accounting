@@ -3,18 +3,18 @@
 
 //! Recorded whole-of-state holidays and caller-supplied calendar coverage.
 use crate::{data, date};
-use chrono::{Datelike, NaiveDate};
+use jiff::civil::Date;
 use serde_json::{Value, json};
 use std::collections::BTreeMap;
 use std::sync::OnceLock;
 
 pub(crate) struct Calendar {
-    holidays: BTreeMap<NaiveDate, String>,
-    covers_to: NaiveDate,
+    holidays: BTreeMap<Date, String>,
+    covers_to: Date,
 }
-type Roll = (Option<NaiveDate>, Vec<Value>, Option<String>);
+type Roll = (Option<Date>, Vec<Value>, Option<String>);
 
-pub(crate) fn parse_date(value: &Value, name: &str) -> Result<NaiveDate, String> {
+pub(crate) fn parse_date(value: &Value, name: &str) -> Result<Date, String> {
     let parsed = value
         .as_str()
         .filter(|s| {
@@ -25,7 +25,7 @@ pub(crate) fn parse_date(value: &Value, name: &str) -> Result<NaiveDate, String>
                     .enumerate()
                     .all(|(i, c)| i == 4 || i == 7 || c.is_ascii_digit())
         })
-        .and_then(|s| NaiveDate::parse_from_str(s, "%Y-%m-%d").ok())
+        .and_then(|s| Date::strptime("%Y-%m-%d", s).ok())
         .filter(|d| (1..=9999).contains(&d.year()));
     parsed.ok_or_else(|| format!("{name} must be a real date in YYYY-MM-DD form"))
 }
@@ -41,14 +41,14 @@ pub(crate) fn printable_char(c: char) -> bool {
     i == ranges.len() || ranges[i].0 > n
 }
 
-fn base_holidays() -> BTreeMap<NaiveDate, String> {
+fn base_holidays() -> BTreeMap<Date, String> {
     data()["holidays"]
         .as_object()
         .expect("compiled holidays")
         .iter()
         .map(|(day, name)| {
             (
-                NaiveDate::parse_from_str(day, "%Y-%m-%d").expect("recorded holiday"),
+                Date::strptime("%Y-%m-%d", day).expect("recorded holiday"),
                 name.as_str().expect("holiday name").into(),
             )
         })
@@ -69,7 +69,7 @@ pub(crate) fn calendar(extra: &Value, complete: &Value) -> Result<Calendar, Stri
             if holidays.contains_key(&day) || data()["conflicts"].get(key).is_some() {
                 return Err(format!("extra_holidays[{day}] is already in the ATO table"));
             }
-            if day.weekday().num_days_from_monday() >= 5 {
+            if day.weekday().to_monday_zero_offset() >= 5 {
                 return Err(format!("extra_holidays[{day}] falls on a weekend"));
             }
             holidays.insert(day, format!("{} (caller-supplied)", name.trim()));
@@ -86,7 +86,7 @@ pub(crate) fn calendar(extra: &Value, complete: &Value) -> Result<Calendar, Stri
     })
 }
 
-pub(crate) fn roll_day(mut day: NaiveDate, cal: &Calendar) -> Result<Roll, String> {
+pub(crate) fn roll_day(mut day: Date, cal: &Calendar) -> Result<Roll, String> {
     let mut skipped = vec![];
     loop {
         if let Some(conflict) = data()["conflicts"].get(day.to_string()) {
@@ -96,7 +96,7 @@ pub(crate) fn roll_day(mut day: NaiveDate, cal: &Calendar) -> Result<Roll, Strin
                 Some(conflict.as_str().expect("recorded conflict").into()),
             ));
         }
-        let reason = match day.weekday().num_days_from_monday() {
+        let reason = match day.weekday().to_monday_zero_offset() {
             5 => Some("Saturday"),
             6 => Some("Sunday"),
             _ => cal.holidays.get(&day).map(String::as_str),
@@ -116,8 +116,8 @@ pub(crate) fn roll_day(mut day: NaiveDate, cal: &Calendar) -> Result<Roll, Strin
         };
         skipped.push(json!({"date":day.to_string(),"reason":reason}));
         day = day
-            .succ_opt()
-            .filter(|d| d.year() <= 9999)
+            .tomorrow()
+            .ok()
             .ok_or("holiday roll exceeds supported date range")?;
     }
 }
