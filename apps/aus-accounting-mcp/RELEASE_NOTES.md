@@ -1,4 +1,25 @@
-# Unreleased
+# v0.10.0
+
+## Changed
+
+- The tax worksheets run the `australian-tax-calculators` 1.0.0 executable, published
+  as [australian-tax-calculators/v1.0.0](https://github.com/ryanduguid/australian-accounting/releases/tag/australian-tax-calculators/v1.0.0)
+  on GitHub Releases, instead of importing the Python `australian-tax-calculators`
+  0.2.0, which is no longer a dependency. Install it separately: put it on `PATH`, or
+  give its absolute path in `AUS_TAX_CALCULATORS_BIN`. The server accepts only an
+  executable whose `--version` prints exactly `australian-tax-calculators 1.0.0`, and
+  never one from the working directory. Without it, `calculate_tax_worksheet`, the
+  worksheet catalogue and the freshness entry say how to install it, and every other
+  tool works as before
+  ([#711](https://github.com/ryanduguid/australian-accounting/pull/711),
+  [#712](https://github.com/ryanduguid/australian-accounting/pull/712)).
+- Some results change. `contribution_caps` reports as `carry_forward_applied` only the
+  unused concessional cap that covers contributions over the year's cap, as ITAA 1997
+  s 291-20(4) applies it: with a $30,000 cap, $15,000 unused and $40,000 contributed,
+  it is $10,000, where 0.9.0 said $15,000. Sources, checked dates and evidence change
+  for 7 worksheet kinds, as the calculators' changelog records. The worksheet tool's
+  name, inputs, scope statements and refusals are unchanged; inputs the 1.0.0
+  executable accepts but this server's schema does not are still refused.
 
 ## Fixed
 
@@ -18,6 +39,21 @@
   number field in AusPayNet's BECS Procedures: up to 9 letters, digits, hyphens or
   spaces, hyphens removed from a longer number, and not all zeros or blanks. A valid
   format proves no account, payee or BSB match.
+
+## Unchanged
+
+- Retains `payday-super-checker` 0.2.3, `ato-benchmark-compare` 0.2.2,
+  `div7a-loan-review` 0.3.2, `gst-review` 0.1.0 and `lodgment-calendar` 0.1.0.
+
+## Known issues
+
+- The MCP Bundle for Claude Desktop, `aus-accounting-mcp-bundle/v0.10.0`, installs this
+  release from PyPI but not the calculators executable: its tax worksheets refuse
+  unless the executable is in a folder on the `PATH` Claude Desktop gives the server.
+  The bundle release carries a SHA-256 checksum but no build provenance attestation.
+- The server checks the executable's reported version, not its digest: verify the
+  download against the release's `SHA256SUMS` and attestation, as that release
+  describes.
 
 # v0.9.0
 

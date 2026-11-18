@@ -24,7 +24,7 @@ pub const SCOPES: &[(&str, &str)] = &[
     ),
     (
         "hire_purchase_schedule",
-        "One hire purchase agreement whose hirer is the notional buyer (ITAA 1997 s 240-17(2)), starting in the income year given, with a level monthly instalment paid in arrears (at each month's end) or in advance (at its start) and any balloon paid at the end of the term. The operator establishes the amount financed (the notional loan principal: the price less any deposit or trade-in), the instalment, the number of instalments, the balloon and the start date. Each month runs from the start date's day of the month, or the month's last day when it is shorter. Under s 240-60(1) each month's notional interest is the outstanding notional loan principal, less any instalment due at the month's start, times the implicit interest rate: the monthly compound rate at which the payments repay the amount financed, found to 64 halvings of 0 to 100% a month. The payments themselves are not deductible but are taken into account in the notional interest (s 240-55). Each month shows the notional interest to date rounded half up to cents, less what the months before show, so the months add up to the total charges, each is within a cent of its amount at the rate found and the last balance is nil. The balloon is shown apart from the last instalment, on its own date. Refuses a rate below nil or of 100% a month or more, a rate that cannot be found closely enough to leave a nil balance to the cent, more than 360 instalments and a nil amount financed or instalment. Excludes deciding whether Division 240 applies and what is financed; fees, GST and stamp duty; irregular, skipped, weekly or quarterly payments; termination amounts other than the balloon and estimates of them (s 240-60(3) and (4)); apportioning a month that spans 30 June between income years (s 240-60(2)); whether the notional interest is deductible (s 240-50); and the notional seller.",
+        "One hire purchase agreement whose hirer is the notional buyer (ITAA 1997 s 240-17(2)), starting in the income year given, with instalments paid in arrears (at each period's end) or in advance (at its start) and any balloon paid at the end of the term. The instalments are one level amount weekly, fortnightly, monthly, quarterly or annually, or dated segments of level amounts (a nil amount for a payment holiday), all counted in weeks or all in months, over at most 30 years. The operator establishes the amount financed (the notional loan principal: the consideration less any deposit paid or trade-in credited at or before the start, s 240-25(3)), the instalments, the balloon, the start date and any deposit, trade-in, payout and GST facts. A deposit or trade-in is taken as paid or credited on the start date, and the goods and the credit component as recorded on one tax invoice. Months run from the start date's day of the month, or the month's last day when it is shorter; weeks are 7 days. Each instalment's period is an arrangement payment period (s 240-70(1)), and an annual period is 2 periods of 6 months (s 240-70(2)). Under s 240-60(1) each period's notional interest is the outstanding notional loan principal, less any instalment due at the period's start, times the implicit interest rate for the period: (1 + r)^n - 1 for a period of n months (or weeks), where r is the compound rate a month (or a week) at which the payments repay the amount financed, found to 64 halvings of 0 to 100%. The payments themselves are not deductible but are taken into account in the notional interest (s 240-55). Each period shows the notional interest to date rounded half up to cents, less what the periods before show, so the periods add up to the total charges, each is within a cent of its amount at the rate found and the last balance is nil. The balloon is shown apart from the last instalment, on its own date. Journal lines for the start, each period's interest, each payment on its day and any payout carry the liability at the notional loan principal outstanding, and are totalled by income year: the interest by its period, with the periods spanning 30 June set apart, and each payment by its day. An early payout on the end of a period, neither known nor expected at the start, replaces every payment due from its date: the worksheet gives the notional interest and payments to that date, the balance outstanding, the difference and, under Subdivision 240-G (ss 240-105 and 240-110), which way the difference goes, flagged for review. With every GST fact given, it gives a registered hirer's input tax credit for an agreement entered into from 1 July 2012: 1/11 of every component of the supply, the notional interest included (the ATO's 'GST – Hire purchase and leasing'), less any luxury car tax for a car (GST Act s 9-75(2)), rounded to the nearest cent, 0.5 up (s 9-90), times the extent of creditable purpose (s 11-30(3)), attributable up front whether or not the hirer accounts on a cash basis (ss 29-10(1) and 158-5). A passenger car whose GST inclusive market value exceeds the car limit for the financial year it is first used ($69,674 for 2024-25 and 2025-26, $69,883 for 2026-27), where the hirer may not quote an ABN for luxury car tax, gives no GST figure and is flagged for review: s 69-10(1) caps the credit on the car, and the sources read do not settle whether the cap takes in the GST on the credit component. Refuses a rate below nil or of 100% a month (or week) or more, a rate that cannot be found closely enough to leave a nil balance to the cent, a term over 30 years, a nil amount financed or instalment, segments that do not run on from the start or mix weeks and months, a payout not on the end of a period before the term ends, a payout with GST facts, a payout known or expected at the start, a car first used in a year whose car limit is not published, and luxury car tax above the price. Excludes deciding whether Division 240 applies and what is financed; fees, charges and stamp duty; payments off a period boundary; substituted accounting periods; termination amounts other than the balloon and a stated payout, and estimates of them (s 240-60(3) and (4)); apportioning a period that spans 30 June between income years (s 240-60(2)); whether the notional interest is deductible (s 240-50) and any reduction of it for the input tax credit; the car's cost for Division 40 (ss 27-80 and 40-230); agreements entered into before 1 July 2012; GST adjustments after the start; the trade-in's own GST; and the notional seller.",
     ),
     (
         "trade_in",
@@ -446,6 +446,12 @@ pub const EXTRA_SOURCES: &[(&str, &[&str])] = &[
         &[
             "https://www.ato.gov.au/law/view/document?docid=PAC/19970038/240-17",
             "https://www.ato.gov.au/law/view/document?docid=PAC/19970038/240-55",
+            "https://www.legislation.gov.au/C2004A05138/2026-10-01/2026-10-01/text/original/epub/OEBPS/document_5/document_5.html",
+            "https://www.legislation.gov.au/C2004A00446/2026-01-01/2026-01-01/text/original/epub/OEBPS/document_1/document_1.html",
+            "https://www.ato.gov.au/businesses-and-organisations/gst-excise-and-indirect-taxes/gst/in-detail/rules-for-specific-transactions/agent-consignment-and-progressive-transactions/gst-hire-purchase-and-leasing",
+            "https://www.ato.gov.au/businesses-and-organisations/gst-excise-and-indirect-taxes/gst/in-detail/your-industry/motor-vehicle-and-transport/gst-and-motor-vehicles/purchasing-a-motor-vehicle",
+            "https://www.ato.gov.au/businesses-and-organisations/income-deductions-and-concessions/depreciation-and-capital-expenses-and-allowances/simpler-depreciation-for-small-business/assets-and-exclusions",
+            "https://www.ato.gov.au/law/view/print?DocID=GIR%2FFinancial-services-ch1&PiT=99991231235958",
         ],
     ),
     (
@@ -759,7 +765,7 @@ pub const EXTRA_WARNINGS: &[(&str, &[&str])] = &[
     (
         "hire_purchase_schedule",
         &[
-            "interest_by_income_year totals only the months wholly in each income year. A month spanning 30 June is listed in interest_across_30_june with its days on each side, not split: s 240-60(2) relates the part of a month that falls in an income year to it in accordance with generally accepted accounting principles, which this worksheet does not apply.",
+            "interest_by_income_year totals only the periods wholly in each income year. A period spanning 30 June is listed in interest_across_30_june with its days on each side, not split: s 240-60(2) relates the part of a period that falls in an income year to it in accordance with generally accepted accounting principles, which this worksheet does not apply. The journals set the same periods apart.",
         ],
     ),
     (
@@ -1247,8 +1253,44 @@ pub const REFUSAL_CODES: &[(&str, &str)] = &[
         "A hire purchase agreement's amount financed or instalment is nil.",
     ),
     (
+        "hire_purchase.car_limit_unknown",
+        "A car's first_used_year is one whose car limit the ATO has not published, or this worksheet does not hold.",
+    ),
+    (
+        "hire_purchase.frequencies_mixed",
+        "Hire purchase segments mix weekly or fortnightly with monthly, quarterly or annual instalments.",
+    ),
+    (
+        "hire_purchase.frequency_invalid",
+        "A hire purchase frequency is not weekly, fortnightly, monthly, quarterly or annual.",
+    ),
+    (
+        "hire_purchase.gst_fact_conflict",
+        "Hire purchase GST facts conflict: luxury car tax above the price.",
+    ),
+    (
+        "hire_purchase.gst_fact_invalid",
+        "The gst facts are not an object, or one of them is not a value it takes.",
+    ),
+    (
         "hire_purchase.instalments_unsupported",
-        "The number of monthly instalments is not an integer from 1 to 360.",
+        "The number of instalments is not an integer from 1 to 30 years of them at their frequency, or the segments run past 30 years.",
+    ),
+    (
+        "hire_purchase.payout_date_unsupported",
+        "A hire purchase payout date is not the end of an arrangement payment period before the end of the term.",
+    ),
+    (
+        "hire_purchase.payout_gst_unsupported",
+        "A hire purchase payout is given with GST facts.",
+    ),
+    (
+        "hire_purchase.payout_invalid",
+        "A hire purchase payout is not an object with a date, an amount and known_at_start.",
+    ),
+    (
+        "hire_purchase.payout_known_at_start",
+        "A hire purchase payout was known or expected at the start of the arrangement, or could not then be reasonably estimated.",
     ),
     (
         "hire_purchase.rate_imprecise",
@@ -1256,7 +1298,15 @@ pub const REFUSAL_CODES: &[(&str, &str)] = &[
     ),
     (
         "hire_purchase.rate_unsupported",
-        "The payments imply an interest rate below nil or of 100% a month or more.",
+        "The payments imply an interest rate below nil or of 100% a month (or week) or more.",
+    ),
+    (
+        "hire_purchase.segments_invalid",
+        "Hire purchase segments are not a non-empty list of objects, or a segment's start, count, amount or frequency is not a value it takes.",
+    ),
+    (
+        "hire_purchase.segments_not_contiguous",
+        "A hire purchase segment does not start on the start date or where the segment before it ends.",
     ),
     (
         "hire_purchase.start_outside_year",
