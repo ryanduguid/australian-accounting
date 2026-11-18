@@ -2313,3 +2313,222 @@ fn dgr_check_keeps_its_data_and_never_calls_a_payment_deductible() {
         assert!(!out.to_string().contains("is deductible"), "{donations}");
     }
 }
+
+/// `date` (`YYYY-MM-DD`) plus `days`, by the days-from-civil algorithm.
+fn add_days(date: &str, days: i64) -> String {
+    let (y, m, d) = (
+        date[0..4].parse::<i64>().unwrap(),
+        date[5..7].parse::<i64>().unwrap(),
+        date[8..10].parse::<i64>().unwrap(),
+    );
+    let (y0, m0) = if m <= 2 { (y - 1, m + 9) } else { (y, m - 3) };
+    let era = y0.div_euclid(400);
+    let yoe = y0 - era * 400;
+    let doy = (153 * m0 + 2) / 5 + d - 1;
+    let n = era * 146_097 + yoe * 365 + yoe / 4 - yoe / 100 + doy + days;
+    let era = n.div_euclid(146_097);
+    let doe = n - era * 146_097;
+    let yoe = (doe - doe / 1460 + doe / 36_524 - doe / 146_096) / 365;
+    let doy = doe - (365 * yoe + yoe / 4 - yoe / 100);
+    let mp = (5 * doy + 2) / 153;
+    let d = doy - (153 * mp + 2) / 5 + 1;
+    let m = if mp < 10 { mp + 3 } else { mp - 9 };
+    let y = yoe + era * 400 + i64::from(m <= 2);
+    format!("{y:04}-{m:02}-{d:02}")
+}
+
+/// Each line of a journal entry as (account, debit, credit).
+fn journal_lines(entry: &Value) -> Vec<(String, Decimal, Decimal)> {
+    entry["lines"]
+        .as_array()
+        .unwrap()
+        .iter()
+        .map(|l| {
+            (
+                l["account"].as_str().unwrap().to_string(),
+                d(l["debit"].as_str().unwrap()),
+                d(l["credit"].as_str().unwrap()),
+            )
+        })
+        .collect()
+}
+
+/// `lines` added into `totals` by account.
+fn add_lines(totals: &mut Vec<(String, Decimal, Decimal)>, lines: Vec<(String, Decimal, Decimal)>) {
+    for (account, debit, credit) in lines {
+        match totals.iter_mut().find(|t| t.0 == account) {
+            Some(t) => {
+                t.1 = t.1.add(&debit).unwrap();
+                t.2 = t.2.add(&credit).unwrap();
+            }
+            None => totals.push((account, debit, credit)),
+        }
+    }
+}
+
+/// Any regime of weekly to annual instalments, in dated segments with
+/// holidays, a deposit, trade-in and GST, adds up (ITAA 1997 s 240-60(1)):
+/// the periods' interest to the charges, each closing balance to the next
+/// opening and the last to nil once the balloon is paid, the income years and
+/// the periods spanning 30 June to the whole; the payments discount to the
+/// amount financed at the rate shown; and every journal entry balances, the
+/// income years' journals add up to the entries, the liability closes at nil
+/// and a booked credit's share of the interest is used up.
+#[test]
+fn hire_purchase_regimes_add_up_and_their_journals_balance() {
+    let mut rng = Rng(0x2407_0070);
+    let cents = |c: i64| format!("{}.{:02}", c / 100, c % 100);
+    for _ in 0..RUNS {
+        let weeks = rng.bool();
+        let frequencies: &[(&str, i64)] = if weeks {
+            &[("weekly", 1), ("fortnightly", 2)]
+        } else {
+            &[("monthly", 1), ("quarterly", 3), ("annual", 12)]
+        };
+        let advance = rng.bool();
+        let start = format!("2026-{:02}-{:02}", rng.int(7, 12), rng.int(1, 28));
+        let mut segments = Vec::new();
+        // (unit offset of each payment, cents)
+        let mut flows: Vec<(i64, i64)> = Vec::new();
+        let mut at = 0;
+        for index in 0..rng.int(1, 4) {
+            let (frequency, length) = *rng.pick(frequencies);
+            let count = rng.int(1, if length == 12 { 3 } else { 24 });
+            // Any segment after the first may be a payment holiday.
+            let amount = if index > 0 && rng.int(0, 4) == 0 {
+                0
+            } else {
+                rng.int(100, 5_000_000)
+            };
+            let first = if weeks {
+                add_days(&start, 7 * at)
+            } else {
+                let index = start[5..7].parse::<i64>().unwrap() - 1 + at;
+                format!(
+                    "{}-{:02}-{}",
+                    2026 + index / 12,
+                    index % 12 + 1,
+                    &start[8..10]
+                )
+            };
+            segments.push(
+                json!({"start": first, "count": count, "amount": cents(amount),
+                                 "frequency": frequency}),
+            );
+            for j in 0..count {
+                let paid = if advance {
+                    at + j * length
+                } else {
+                    at + (j + 1) * length
+                };
+                flows.push((paid, amount));
+            }
+            at += count * length;
+        }
+        let balloon = if rng.bool() {
+            rng.int(0, 10_000_000)
+        } else {
+            0
+        };
+        flows.push((at, balloon));
+        // The amount financed: the payments' present value at a rate up to 3%
+        // a unit, rounded down, so the rate found is at least that.
+        let rate = rng.int(0, 3_000) as f64 / 1e5;
+        let pv: f64 = flows
+            .iter()
+            .map(|(u, c)| *c as f64 / (1.0 + rate).powi(*u as i32))
+            .sum();
+        let financed = (pv.floor() as i64).max(1);
+        let deposit = rng.int(0, 1_000_000);
+        let trade_in = if rng.bool() { rng.int(0, 1_000_000) } else { 0 };
+        let mut facts = json!({
+            "amount_financed": cents(financed), "segments": segments,
+            "balloon": cents(balloon), "timing": if advance { "in_advance" } else { "in_arrears" },
+            "start_date": start, "deposit": cents(deposit), "trade_in": cents(trade_in),
+            "year": "2026-27", "scope_confirmed": true,
+        });
+        let booked = rng.bool();
+        if booked {
+            facts["gst"] = json!({"registered": true, "accounting_basis": "accruals",
+                                  "creditable_purpose": format!("0.{}", rng.int(1, 9)),
+                                  "asset": "other"});
+        }
+        let r = run("hire-purchase-schedule", facts.clone());
+        let rows = r["schedule"].as_array().unwrap();
+        let field = |row: &Value, key: &str| d(row[key].as_str().unwrap());
+        let (mut interest, mut opening) = (n(0), d(&cents(financed)));
+        for row in rows {
+            let paid = field(row, "payment").add(&field(row, "balloon")).unwrap();
+            assert!(eq(&field(row, "opening"), &opening), "{facts}");
+            let principal = paid.sub(&field(row, "interest")).unwrap();
+            assert!(eq(&field(row, "principal"), &principal), "{facts}");
+            opening = opening.sub(&principal).unwrap();
+            assert!(eq(&field(row, "closing"), &opening), "{facts}");
+            interest = interest.add(&field(row, "interest")).unwrap();
+        }
+        assert!(eq(&opening, &n(0)), "{facts}");
+        assert!(eq(&interest, &amount(&r, "total_interest")), "{facts}");
+        let last = rows.last().unwrap();
+        assert!(eq(&field(last, "balloon"), &d(&cents(balloon))), "{facts}");
+        // The income years and the spanning periods make up the whole.
+        let mut parts = n(0);
+        for part in r["interest_by_income_year"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .chain(r["interest_across_30_june"].as_array().unwrap())
+        {
+            parts = parts.add(&d(part["interest"].as_str().unwrap())).unwrap();
+        }
+        assert!(eq(&parts, &interest), "{facts}");
+        // The rate shown discounts the payments to the amount financed.
+        let key = if weeks {
+            "implicit_weekly_rate"
+        } else {
+            "implicit_monthly_rate"
+        };
+        let shown: f64 = r["rates"][key].as_str().unwrap().parse().unwrap();
+        let discounted: f64 = flows
+            .iter()
+            .map(|(u, c)| *c as f64 / 100.0 / (1.0 + shown).powi(*u as i32))
+            .sum();
+        let financed_dollars = financed as f64 / 100.0;
+        assert!(
+            (discounted - financed_dollars).abs() <= 0.01 + financed_dollars * 1e-9,
+            "{facts}: {discounted}"
+        );
+        // Journals: each entry balances, and the years and spanning periods
+        // add up to every entry.
+        let j = &r["journals"];
+        let mut every: Vec<(String, Decimal, Decimal)> = Vec::new();
+        let entries = std::iter::once(&j["start"]).chain(j["periods"].as_array().unwrap());
+        for entry in entries {
+            let lines = journal_lines(entry);
+            let debits = lines.iter().fold(n(0), |s, l| s.add(&l.1).unwrap());
+            let credits = lines.iter().fold(n(0), |s, l| s.add(&l.2).unwrap());
+            assert!(eq(&debits, &credits), "{facts}: {entry}");
+            add_lines(&mut every, lines);
+        }
+        let mut grouped: Vec<(String, Decimal, Decimal)> = Vec::new();
+        let groups = j["by_income_year"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .chain(j["across_30_june"].as_array().unwrap());
+        for group in groups {
+            add_lines(&mut grouped, journal_lines(group));
+        }
+        every.sort_by(|a, b| a.0.cmp(&b.0));
+        grouped.sort_by(|a, b| a.0.cmp(&b.0));
+        assert_eq!(every.len(), grouped.len(), "{facts}");
+        for (a, b) in every.iter().zip(&grouped) {
+            assert!(a.0 == b.0 && eq(&a.1, &b.1) && eq(&a.2, &b.2), "{facts}");
+        }
+        for account in ["hire_purchase_liability", "deferred_interest_gst"] {
+            if let Some((_, debit, credit)) = every.iter().find(|t| t.0 == account) {
+                assert!(eq(debit, credit), "{facts}: {account}");
+            }
+        }
+        assert_eq!(j["gst_booked"], json!(booked), "{facts}");
+    }
+}

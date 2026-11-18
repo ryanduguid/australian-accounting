@@ -716,6 +716,106 @@ its days on each side for the caller to relate. A day-weighted split was not
 adopted: it is one reading of those principles, and a split at the implicit
 rate compounded within the month differs from it by cents.
 
+### Frequencies, segments, payouts, journals and GST
+
+Added on 18 November 2026. ITAA 1997 Division 240 (ss 240-17 to 240-115),
+s 40-230 and the s 995-1 definitions of 'hire purchase agreement' and
+'termination amount' were read that evening (22:48 to 22:50 AEDT) in
+compilation 268 (1 October 2026, the latest),
+https://www.legislation.gov.au/C2004A05138/2026-10-01/2026-10-01/text/original/epub/OEBPS/document_5/document_5.html
+(volumes 2 and 10 for s 40-230 and s 995-1), the s 240-105(4) formula from
+its text alternative ('Notional loan principal plus Assessed notional
+interest'). GST Act ss 9-90, 11-5, 11-15, 11-25, 11-30, 29-10, 69-10 and
+158-5 were read at 22:51 in compilation 96 (1 January 2026, the latest),
+https://www.legislation.gov.au/C2004A00446/2026-01-01/2026-01-01/text/original/epub/OEBPS/document_1/document_1.html
+and document 2. The ATO's pages were read from 22:54 to 22:57: 'GST – Hire
+purchase and leasing' (last updated 6 April 2017), 'Purchasing a motor
+vehicle' (last updated 3 June 2026), the GST issues register's 'Input tax
+credits and hire purchase - acquisition of a car' and 'Assets and exclusions'
+(last updated 27 May 2026: $69,674 for 2024-25 and 2025-26).
+
+- **Periods.** Section 240-70(1) makes an arrangement payment period the
+  period a payment is allocated to, and s 240-70(2) splits one over 6 months
+  into parts of 6 months, so an annual instalment's year is 2 periods. Section
+  240-60(1) step 3 works out the implicit rate 'for the arrangement payment
+  period'. The worksheet states its convention: one compound rate a month (a
+  week for weekly and fortnightly instalments), and (1 + r)^n - 1 for a period
+  of n units, so periods of different lengths in one agreement share one
+  rate. A month with no instalment (a payment holiday, or the first half of
+  an annual period) is its own period with nil payment; compounding monthly,
+  this moves no interest between periods other than how it is grouped.
+  Segments mixing weeks and months are refused, as no one unit counts both.
+- **Deposit and trade-in.** Section 240-25(3) makes the notional loan
+  principal the consideration less any amount paid, or credited by the
+  notional seller as paid, at or before the start for the cost of the
+  property. The amount financed stays the principal, and the deposit and
+  trade-in only add to the consideration the asset is booked at.
+- **Payout.** A payout is a 'termination amount' (s 995-1: an amount payable
+  because the arrangement ends, including one for acquiring the property), so
+  not an arrangement payment (s 240-65(b)), and the arrangement ends when it
+  ceases to have effect (s 240-75(1)(b)). Subdivision 240-G then compares the
+  payments and termination amounts with the notional loan principal plus the
+  assessed notional interest: an excess is the notional seller's assessable
+  income (s 240-105(2)) and the hirer may deduct a corresponding amount
+  (s 240-110(1)); a shortfall is the seller's deduction (s 240-105(3)) and the
+  hirer's assessable income (s 240-110(2)), each to the extent s 240-110(3)
+  allows. With every earlier payment made, that difference is the payout
+  less the balance outstanding. The Division gives no notional interest for
+  part of a period that a payout cuts short (s 240-60(2) apportions only
+  between income years), so a payout must fall on the end of a period. The
+  implicit rate stays the one the scheduled payments give: s 240-60(3) and (4)
+  estimates are not made. The result flags the rest for review.
+- **GST.** For an agreement entered into on or after 1 July 2012 every
+  component of the supply is taxable, the credit component included, and the
+  credit is 1/11 of all of them (the ATO page; its Albert example claims
+  1/11 of $40,200 on a $33,000 freezer). The consideration is therefore the
+  price (amount financed, deposit and trade-in) plus the notional interest,
+  which is the deposit, trade-in and arrangement payments. Luxury car tax is
+  left out of the value (s 9-75(2)), and s 9-90(1) rounds GST to the nearest
+  cent, 0.5 up, so Albert's credit is $3,654.55 where the ATO's page prints
+  $3,654.54. A hirer accounting on a cash basis is treated as not doing so for
+  a hire purchase acquisition (s 158-5), so the whole credit is attributable
+  to the tax period in which consideration is first provided or, before
+  that, an invoice is issued (s 29-10(1)). Section 69-10(1) caps a car's
+  credit at 1/11 of the car limit for the financial year it is first used,
+  where the hirer may not quote an ABN for luxury car tax and its GST
+  inclusive market value exceeds that limit, and s 69-10(3) reduces it for
+  creditable purpose. Section 69-10(4)(b) excludes 'the acquisition of a car
+  by lease or hire'; the ATO's issues register applies the cap to a car
+  acquired under a hire purchase agreement, and the worksheet follows it.
+  Each fact is its own input; a missing one gives no figure. The sources read
+  do not say how a capped credit divides between the price and the credit
+  component, so a capped credit is not booked in the journals.
+
+Left out and why: substituted accounting periods (`income_year` runs from
+1 July, and a substituted period would change the years and the 30 June
+split throughout, with ITAA 1936 s 18 not read); fees, charges and stamp duty
+(their GST and Division 240 treatment were not worked); the car's cost for
+Division 40 (s 40-230 was read, but s 27-80 on a credit that includes the
+credit component was not); any reduction of the notional interest deduction
+for its input tax credit; agreements entered into before 1 July 2012; GST
+adjustments after the start; and the trade-in's own GST, which `trade-in`
+works.
+
+`tests/hire_purchase_worksheet.rs` holds these cases, and
+`tests/properties.rs` holds random regimes to the totals, the 30 June split,
+a present value check and balanced journals.
+
+| Case | Source | Worksheet |
+| --- | --- | --- |
+| $1,000 financed, 2 quarterly instalments of $331 in arrears, $1,000 balloon | Worked by hand: 1,000 x 1.1^3 = 1,331 | 10% a month; $331.00 each quarter |
+| $1,000, 2 weekly instalments of $100 and a $1,000 balloon; $1,210 once fortnightly | Worked by hand: 10% a week; 1,000 x 1.1^2 = 1,210 | 10% a week, 5.2 a year; $100.00 a week; $210.00 a fortnight |
+| $1,000, one annual instalment of $2,250 in arrears | Worked by hand: 50% a half-year, 1,500 then 2,250 | 2 periods of 6 months, $500.00 then $750.00 |
+| $1,000, 2 nil months then $1,331 | Worked by hand at 10% a month | $100.00, $110.00 and $121.00 |
+| $1,000, $100 after a month then $1,331 a quarter later | Worked by hand at 10% a month | $100.00, then $331.00 |
+| The 2-month agreement with a $100 deposit and $250 trade-in | s 240-25(3) | $1,350.00 consideration; asset $1,350.00 against a $1,000.00 liability |
+| $1,000, 3 months of $100 in arrears and a $1,000 balloon, paid out after 2 months | Worked by hand: $200 interest, $100 paid, $1,100 outstanding | $50.00 excess at $1,150 (s 240-110(1)), $50.00 shortfall at $1,050 (s 240-110(2)) |
+| The 2-month agreement with a $100 deposit, registered, fully creditable | Worked by hand: 1,300 / 11 and 200 / 11 | $118.18 credit, $18.18 of it on the interest; asset $1,000.00 |
+| Albert's second freezer: $33,000, 60 x $670 | 'GST – Hire purchase and leasing' | $3,654.55 (the ATO prints $3,654.54) |
+| Darren's car: $91,242.80 with $2,407.80 luxury car tax, 2026-27, financed by 60 x $1,800 | 'Purchasing a motor vehicle' | $6,353.00 at 100%, $3,176.50 at 50% |
+| A $60,000 car, 60 x $1,300; the same car worth $80,000, quoted for or not; and first used in 2024-25 | GST Act s 69-10(1)(b) and (c) | $7,090.91 uncapped twice; $6,353.00 capped; $6,334.00 for 2024-25 |
+| $50,000, 260 weekly payments of $230 and a $5,000 balloon | The payments discounted at the rate shown | $50,000 to within a cent |
+
 ## Business capital expenditure
 
 This worksheet was added on 16 November 2026. ITAA 1997 s 40-880 was read

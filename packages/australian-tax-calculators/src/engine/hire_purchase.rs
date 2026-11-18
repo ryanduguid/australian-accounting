@@ -1,24 +1,32 @@
 // Copyright 2026 Ryan Duguid
 // SPDX-License-Identifier: LicenseRef-Duguid-Public-Attribution-1.0
 
-//! `hire_purchase_schedule`: a hire purchase agreement's monthly notional
-//! interest at its implicit interest rate (ITAA 1997 s 240-60), with each
-//! payment split into interest and principal on a dated schedule.
+//! `hire_purchase_schedule`: a hire purchase agreement's notional interest
+//! for each arrangement payment period at its implicit interest rate (ITAA
+//! 1997 s 240-60), with each payment split into interest and principal on a
+//! dated schedule, journal lines, an optional early payout and an optional
+//! input tax credit.
+
+mod gst;
+mod journals;
+mod regime;
 
 use serde_json::{Value, json};
 
 use super::{
-    Arg, Result, d, date_arg, derived_result, int, money, precise, rate, refuse, scope, steps_from,
+    Arg, Result, Step, d, date_arg, derived_result, int, money, precise, py_max, rate, refuse,
+    scope, step,
 };
 use crate::dates;
 use crate::decimal::{Calc, Decimal, Rounding};
+use regime::{Regime, Unit};
 
 const KIND: &str = "hire_purchase_schedule";
 
 /// The amounts: (id, authority, formula). They cite ITAA 1997 compilation 268
-/// (1 October 2026), read on 16 November 2026. The monthly rows, their
-/// totals by income year and the implicit rate behind them are not amounts, so
-/// no step works them out.
+/// (1 October 2026), read on 16 November 2026 and again on 18 November 2026.
+/// The rows, their totals by income year and the implicit rate behind them are
+/// not amounts, so no step works them out.
 const STEPS: [(&str, &str, &str); 3] = [
     (
         "amount_financed",
@@ -37,59 +45,105 @@ const STEPS: [(&str, &str, &str); 3] = [
     ),
 ];
 
-/// 30 years of monthly instalments.
-const MOST_INSTALMENTS: i64 = 360;
+const DEPOSIT: &str = "ITAA 1997 s 240-25(3): an amount paid by the notional buyer to the notional seller at or before the start of the arrangement for the cost of the property, as established";
+const TRADE_IN: &str = "ITAA 1997 s 240-25(3): an amount credited by the notional seller as having been paid by the notional buyer at or before the start of the arrangement for the cost of the property, such as a trade-in, as established";
+const CONSIDERATION: &str = "ITAA 1997 s 240-25(3) and (5): the consideration for the notional sale, which is the notional loan principal plus the amounts paid or credited at or before the start for the cost of the property";
+const PAYOUT: &str = "ITAA 1997 s 240-75(1)(b) and s 995-1 'termination amount': the amount payable because the arrangement ends on the payout date, as established";
+const INTEREST_TO_PAYOUT: &str = "ITAA 1997 s 240-60(1): the notional interest for each arrangement payment period up to the payout date, as the schedule shows it";
+const PAYMENTS_BEFORE_PAYOUT: &str =
+    "ITAA 1997 s 240-65: the arrangement payments due before the payout date, taken as made";
+const BALANCE_AT_PAYOUT: &str = "ITAA 1997 s 240-60(1) steps 1 and 2: the notional loan principal plus the notional interest to the payout date, less the arrangement payments made";
+const PAYOUT_EXCESS: &str = "ITAA 1997 s 240-105(2) and (4): at the end of the arrangement, the excess of the payments and termination amounts over the notional loan principal plus the assessed notional interest, which is the payout's excess over the balance outstanding";
+const PAYOUT_SHORTFALL: &str = "ITAA 1997 s 240-105(3) and (4): at the end of the arrangement, the excess of the notional loan principal plus the assessed notional interest over the payments and termination amounts, which is the balance outstanding's excess over the payout";
 
-/// Halvings of the 0 to 100% a month interval the implicit rate is sought in,
-/// leaving it within 2^-65 a month; `implicit_rate` then checks that the rate
+/// Halvings of the 0 to 100% a unit interval the implicit rate is sought in,
+/// leaving it within 2^-65 a unit; `implicit_rate` then checks that the rate
 /// found leaves a nil balance to the cent.
 const HALVINGS: usize = 64;
 
-/// The agreement's payments: a level monthly instalment, in arrears or in
-/// advance, and a balloon at the end of the term, the last month's end in
-/// either timing.
+/// The facts as the command passes them; see the README for each.
+pub struct HirePurchaseArgs<'a> {
+    pub amount_financed: &'a Arg,
+    pub instalment: Option<&'a Arg>,
+    pub instalments: Option<&'a Arg>,
+    pub frequency: Option<&'a Arg>,
+    pub segments: Option<&'a Arg>,
+    pub balloon: &'a Arg,
+    pub timing: &'a Arg,
+    pub start_date: &'a Arg,
+    pub deposit: Option<&'a Arg>,
+    pub trade_in: Option<&'a Arg>,
+    pub payout: Option<&'a Arg>,
+    pub gst: Option<&'a Arg>,
+    pub year: &'a Arg,
+    pub scope_confirmed: &'a Arg,
+}
+
+/// The agreement's payments: its instalments on the boundaries of its
+/// arrangement payment periods and a balloon at the end of the term.
 struct Agreement {
     financed: Decimal,
-    instalment: Decimal,
-    count: i64,
     balloon: Decimal,
     in_advance: bool,
+    regime: Regime,
+}
+
+/// `(1 + r)^n - 1`, the rate for a period of `n` units, built up without
+/// forming `1 + r` so a 1-unit period's rate is `r` exactly.
+fn growth(r: &Decimal, n: i64) -> Calc<Decimal> {
+    let mut g = r.clone();
+    for _ in 1..n {
+        g = g.add(r)?.add(&r.mul(&g)?)?;
+    }
+    Ok(g)
 }
 
 impl Agreement {
-    /// The payments in month `k`: the instalment, with the balloon in the last.
-    fn payment(&self, k: i64) -> Calc<Decimal> {
-        if k == self.count {
-            self.instalment.add(&self.balloon)
-        } else {
-            Ok(self.instalment.clone())
+    fn term(&self) -> i64 {
+        self.regime.term()
+    }
+
+    /// The instalment the period from `from` to `to` lists: the one due at
+    /// its start in advance, at its end in arrears; nil on or after a payout
+    /// at boundary `until`, which replaces it.
+    fn listed(&self, from: i64, to: i64, until: Option<i64>) -> Decimal {
+        let at = if self.in_advance { from } else { to };
+        match until {
+            Some(b) if at >= b => int(0),
+            _ => self.regime.due[at as usize].clone(),
         }
     }
 
-    /// What the month's interest accrues on: the opening balance, less the
-    /// month's instalment when it is paid at the start of the month.
-    fn interest_base(&self, opening: &Decimal) -> Calc<Decimal> {
-        if self.in_advance {
-            opening.sub(&self.instalment)
+    /// The balloon, in the last period when no payout comes first.
+    fn balloon_in(&self, to: i64, until: Option<i64>) -> Decimal {
+        if to == self.term() && until.is_none() {
+            self.balloon.clone()
         } else {
-            Ok(opening.clone())
+            int(0)
         }
     }
 
-    /// The unrounded balance after the last payment at the monthly rate `r`:
+    /// The unrounded balance after the last payment at the rate `r` a unit:
     /// nil at the implicit rate, below nil under it and above nil over it,
     /// since it is the amount financed less the payments' present value at
     /// `r`, carried to the end of the term.
     fn residual(&self, r: &Decimal) -> Calc<Decimal> {
         let mut balance = self.financed.clone();
-        for k in 1..=self.count {
-            let interest = self.interest_base(&balance)?.mul(r)?;
-            balance = balance.add(&interest)?.sub(&self.payment(k)?)?;
+        for &(from, to) in &self.regime.periods {
+            let listed = self.listed(from, to, None);
+            let base = if self.in_advance {
+                balance.sub(&listed)?
+            } else {
+                balance.clone()
+            };
+            let interest = base.mul(&growth(r, to - from)?)?;
+            let payment = listed.add(&self.balloon_in(to, None))?;
+            balance = balance.add(&interest)?.sub(&payment)?;
         }
         Ok(balance)
     }
 
-    /// s 240-60(1) step 3: the monthly compound rate at which the payments
+    /// s 240-60(1) step 3: the compound rate a unit at which the payments
     /// repay the amount financed, by halving the interval it lies in.
     fn implicit_rate(&self) -> Result<Decimal> {
         let (mut low, mut high) = (int(0), int(1));
@@ -101,7 +155,7 @@ impl Agreement {
         if positive(&low)? || !positive(&high)? {
             return refuse(
                 "hire_purchase.rate_unsupported",
-                "The payments imply an interest rate below nil (they total less than the amount financed) or of 100% a month or more; this worksheet takes rates from nil to below 100% a month.",
+                "The payments imply an interest rate below nil (they total less than the amount financed) or of 100% a month (or week) or more; this worksheet takes rates from nil to below 100% a month (or week).",
             );
         }
         for _ in 0..HALVINGS {
@@ -127,30 +181,44 @@ impl Agreement {
         Ok(r)
     }
 
-    /// One row a month in cents. Each month's interest is the notional
-    /// interest to date at `r` rounded half up to cents, less what the months
-    /// before show, so a cent of rounding never compounds: the months add up to
-    /// the total charges and each is within a cent of its amount at `r`. Every
-    /// balance shown is then the balance at `r` rounded, and the last is nil.
-    /// The balloon has its own column, as in advance it is paid a month after
-    /// the last instalment.
-    /// Beside the rows, each month's period and interest in cents.
+    /// One row an arrangement payment period in cents, to the payout at
+    /// boundary `until` or the end of the term. Each period's interest is the
+    /// notional interest to date at `r` rounded half up to cents, less what
+    /// the periods before show, so a cent of rounding never compounds: over
+    /// the whole term the periods add up to the total charges, each is within
+    /// a cent of its amount at `r` and the last balance is nil. The balloon
+    /// has its own column, as in advance it is paid a period after the last
+    /// instalment. Beside the rows, each period's dates, interest and payment
+    /// in cents.
     fn schedule(
         &self,
         r: &Decimal,
         start: i64,
         charges: &Decimal,
-    ) -> Result<(Vec<Value>, Vec<Month>)> {
-        let (mut rows, mut months) = (Vec::new(), Vec::new());
+        until: Option<i64>,
+    ) -> Result<(Vec<Value>, Vec<Period>)> {
+        let (mut rows, mut periods) = (Vec::new(), Vec::new());
         let (mut exact, mut to_date, mut shown) = (self.financed.clone(), int(0), int(0));
         let mut balance = self.financed.clone();
-        for k in 1..=self.count {
-            let payment = self.payment(k)?;
-            let balloon = payment.sub(&self.instalment)?;
-            let interest_exact = self.interest_base(&exact)?.mul(r)?;
+        let unit = self.regime.unit;
+        let last = until.unwrap_or_else(|| self.term());
+        for (i, &(from, to)) in self.regime.periods.iter().enumerate() {
+            if to > last {
+                break;
+            }
+            let k = i as i64 + 1;
+            let listed = self.listed(from, to, until);
+            let balloon = self.balloon_in(to, until);
+            let payment = listed.add(&balloon)?;
+            let base = if self.in_advance {
+                exact.sub(&listed)?
+            } else {
+                exact.clone()
+            };
+            let interest_exact = base.mul(&growth(r, to - from)?)?;
             to_date = to_date.add(&interest_exact)?;
             exact = exact.add(&interest_exact)?.sub(&payment)?;
-            let through = if k == self.count {
+            let through = if to == self.term() && until.is_none() {
                 charges.clone()
             } else {
                 to_date.quantize(-2, Rounding::HalfUp)?
@@ -159,86 +227,50 @@ impl Agreement {
             shown = through;
             let principal = payment.sub(&interest)?;
             let closing = balance.sub(&principal)?;
-            let (from, to) = (dates::add_months(start, k - 1), dates::add_months(start, k));
-            let paid = if self.in_advance { from } else { to };
+            let (from_day, to_day) = (unit.date(start, from), unit.date(start, to));
+            let paid_on = if !listed.is_zero() {
+                Some(if self.in_advance { from_day } else { to_day })
+            } else if !balloon.is_zero() {
+                Some(to_day)
+            } else {
+                None
+            };
             rows.push(json!({
                 "instalment": k,
-                "period_start": dates::format(from),
-                "period_end": dates::format(to),
-                "payment_date": dates::format(paid),
+                "period_start": dates::format(from_day),
+                "period_end": dates::format(to_day),
+                "payment_date": paid_on.map(dates::format),
                 "opening": balance.fixed(2, false),
                 "interest": interest.fixed(2, false),
-                "payment": self.instalment.fixed(2, false),
+                "payment": listed.fixed(2, false),
                 "balloon": balloon.fixed(2, false),
                 "principal": principal.fixed(2, false),
                 "closing": closing.fixed(2, false),
             }));
-            months.push(Month {
+            periods.push(Period {
                 instalment: k,
-                from,
-                to,
+                from: from_day,
+                to: to_day,
                 interest,
+                paid: payment,
+                paid_on: paid_on.unwrap_or(to_day),
             });
             balance = closing;
         }
-        Ok((rows, months))
-    }
-
-    /// The agreement's terms from the inputs, refusing a nil amount, a term
-    /// outside 1 to 360 months or an unknown timing.
-    fn from_inputs(
-        amount_financed: &Arg,
-        instalment: &Arg,
-        instalments: &Arg,
-        balloon: &Arg,
-        timing: &Arg,
-    ) -> Result<Self> {
-        let (financed, instalment) = (money(amount_financed)?, money(instalment)?);
-        if financed.is_zero() || instalment.is_zero() {
-            return refuse(
-                "hire_purchase.amount_nil",
-                "amount_financed and instalment must be more than nil.",
-            );
-        }
-        let balloon = money(balloon)?;
-        let count = match instalments.int() {
-            Some(Some(n)) if (1..=MOST_INSTALMENTS).contains(&n) => n,
-            _ => {
-                return refuse(
-                    "hire_purchase.instalments_unsupported",
-                    format!(
-                        "instalments must be an integer from 1 to {MOST_INSTALMENTS}, monthly."
-                    ),
-                );
-            }
-        };
-        let in_advance = match timing.text() {
-            Some("in_arrears") => false,
-            Some("in_advance") => true,
-            _ => {
-                return refuse(
-                    "input.timing_invalid",
-                    "timing must be in_arrears or in_advance.",
-                );
-            }
-        };
-        Ok(Agreement {
-            financed,
-            instalment,
-            count,
-            balloon,
-            in_advance,
-        })
+        Ok((rows, periods))
     }
 }
 
-/// One schedule month: its instalment number, its period from `from` up to
-/// `to` as day numbers, and its interest as shown.
-struct Month {
+/// One schedule period: its number, its days from `from` up to `to`, and its
+/// interest and payment as shown.
+struct Period {
     instalment: i64,
     from: i64,
     to: i64,
     interest: Decimal,
+    paid: Decimal,
+    /// The day the payment is made, or the period's end when nothing is.
+    paid_on: i64,
 }
 
 /// The income year `day` falls in, as `2026-27`, and the 1 July that ends it.
@@ -249,33 +281,33 @@ fn income_year(day: i64) -> (String, i64) {
     (format!("{first}-{:02}", (first + 1) % 100), ends)
 }
 
-/// The months' interest by income year (ITAA 1997 s 240-60(2)). A month
-/// wholly in one income year counts in it. A month spanning 30 June is listed
-/// apart, with its days before and from 1 July: s 240-60(2) relates its
+/// The periods' interest by income year (ITAA 1997 s 240-60(2)). A period
+/// wholly in one income year counts in it. A period spanning 30 June is
+/// listed apart, with its days before and from 1 July: s 240-60(2) relates its
 /// interest to each year in accordance with generally accepted accounting
 /// principles, which this worksheet leaves to the caller.
-fn by_income_year(months: &[Month]) -> Result<(Value, Value)> {
+fn by_income_year(periods: &[Period]) -> Result<(Value, Value)> {
     // (income year, first instalment, last instalment, interest)
     type Year = (String, i64, i64, Decimal);
     let (mut years, mut across): (Vec<Year>, Vec<Value>) = (Vec::new(), Vec::new());
-    for month in months {
-        let (year, ends) = income_year(month.from);
-        if month.to > ends {
+    for period in periods {
+        let (year, ends) = income_year(period.from);
+        if period.to > ends {
             across.push(json!({
-                "instalment": month.instalment,
-                "interest": month.interest.fixed(2, false),
+                "instalment": period.instalment,
+                "interest": period.interest.fixed(2, false),
                 "income_years": [year, income_year(ends).0],
-                "days": [ends - month.from, month.to - ends],
+                "days": [ends - period.from, period.to - ends],
             }));
         } else if let Some(last) = years.last_mut().filter(|last| last.0 == year) {
-            last.2 = month.instalment;
-            last.3 = last.3.add(&month.interest)?;
+            last.2 = period.instalment;
+            last.3 = last.3.add(&period.interest)?;
         } else {
             years.push((
                 year,
-                month.instalment,
-                month.instalment,
-                month.interest.clone(),
+                period.instalment,
+                period.instalment,
+                period.interest.clone(),
             ));
         }
     }
@@ -311,19 +343,20 @@ fn start_in_year(start_date: &Arg, year: &str) -> Result<i64> {
     Ok(start)
 }
 
-/// The monthly rate `r` and 12 times it, to 16 places, so the rates
-/// reproduce a month's interest to the cent at the largest amount, and
-/// fixed-point, so a nil rate reads 0.0000000000000000.
-fn rates(r: &Decimal) -> Result<Vec<(String, String)>> {
+/// The rate `r` a unit and the nominal annual rate (12 or 52 times it), to
+/// 16 places, so the rates reproduce a period's interest to the cent at the
+/// largest amount, and fixed-point, so a nil rate reads 0.0000000000000000.
+fn rates(r: &Decimal, unit: Unit) -> Result<Vec<(String, String)>> {
+    let (key, per_year) = match unit {
+        Unit::Month => ("implicit_monthly_rate", 12),
+        Unit::Week => ("implicit_weekly_rate", 52),
+    };
     precise(|| {
         Ok(vec![
-            rate(
-                "implicit_monthly_rate",
-                r.quantize(-16, Rounding::HalfUp)?.fixed(16, false),
-            ),
+            rate(key, r.quantize(-16, Rounding::HalfUp)?.fixed(16, false)),
             rate(
                 "nominal_annual_rate",
-                r.mul(&int(12))?
+                r.mul(&int(per_year))?
                     .quantize(-16, Rounding::HalfUp)?
                     .fixed(16, false),
             ),
@@ -331,46 +364,405 @@ fn rates(r: &Decimal) -> Result<Vec<(String, String)>> {
     })
 }
 
-#[allow(clippy::too_many_arguments)]
-pub fn hire_purchase_schedule(
-    amount_financed: &Arg,
-    instalment: &Arg,
-    instalments: &Arg,
-    balloon: &Arg,
-    timing: &Arg,
-    start_date: &Arg,
-    year: &Arg,
-    scope_confirmed: &Arg,
-) -> Result<Value> {
-    let year = scope(scope_confirmed, year, KIND)?;
-    let agreement =
-        Agreement::from_inputs(amount_financed, instalment, instalments, balloon, timing)?;
-    let start = start_in_year(start_date, &year)?;
-    let (r, rows, steps, (years, across)) = precise(|| {
-        let r = agreement.implicit_rate()?;
-        let count = int(agreement.count);
-        let total = agreement.instalment.mul(&count)?.add(&agreement.balloon)?;
-        let charges = total.sub(&agreement.financed)?;
-        let (rows, months) = agreement.schedule(&r, start, &charges)?;
-        let financed = &agreement.financed;
-        let steps = steps_from(
-            &STEPS,
-            [
-                (&[financed], financed.clone()),
-                (
-                    &[&agreement.instalment, &count, &agreement.balloon],
-                    total.clone(),
-                ),
-                (&[&total, financed], charges),
-            ],
+fn timing(value: &Arg) -> Result<bool> {
+    match value.text() {
+        Some("in_arrears") => Ok(false),
+        Some("in_advance") => Ok(true),
+        _ => refuse(
+            "input.timing_invalid",
+            "timing must be in_arrears or in_advance.",
+        ),
+    }
+}
+
+/// An input only one regime takes: required for it, refused for the other.
+fn regime_input<'a>(given: Option<&'a Arg>, key: &str, level: bool) -> Result<Option<&'a Arg>> {
+    match (level, given) {
+        (true, None) if key != "frequency" => {
+            refuse("input.missing_field", format!("{key} is required"))
+        }
+        (false, Some(_)) => refuse(
+            "input.field_unknown",
+            format!("{key} is an input only without segments"),
+        ),
+        (_, given) => Ok(given),
+    }
+}
+
+/// The agreement, its start day and, for a level regime, its instalment and
+/// their number.
+type Agreed = (Agreement, i64, Option<(Decimal, i64)>);
+
+/// The agreement and its start day, refusing a nil amount, a term outside
+/// 30 years, an unknown timing or frequency, a start outside the income year
+/// and segments that do not run on from it.
+fn agreement(args: &HirePurchaseArgs, year: &str) -> Result<Agreed> {
+    let financed = money(args.amount_financed)?;
+    let level = args.segments.is_none();
+    let instalment = regime_input(args.instalment, "instalment", level)?;
+    let instalments = regime_input(args.instalments, "instalments", level)?;
+    let frequency = regime_input(args.frequency, "frequency", level)?;
+    let (Some(instalment), Some(instalments)) = (instalment, instalments) else {
+        // Segments.
+        if financed.is_zero() {
+            return refuse(
+                "hire_purchase.amount_nil",
+                "amount_financed must be more than nil.",
+            );
+        }
+        let balloon = money(args.balloon)?;
+        let in_advance = timing(args.timing)?;
+        let start = start_in_year(args.start_date, year)?;
+        let segments = args.segments.expect("segments without instalments");
+        let plan = regime::segments(segments, start)?;
+        let agreement = Agreement {
+            financed,
+            balloon,
+            in_advance,
+            regime: regime::build(plan, in_advance)?,
+        };
+        return Ok((agreement, start, None));
+    };
+    let amount = money(instalment)?;
+    if financed.is_zero() || amount.is_zero() {
+        return refuse(
+            "hire_purchase.amount_nil",
+            "amount_financed and instalment must be more than nil.",
         );
-        Ok((r, rows, steps, by_income_year(&months)?))
+    }
+    let balloon = money(args.balloon)?;
+    let plan = regime::level(amount.clone(), instalments, frequency)?;
+    let in_advance = timing(args.timing)?;
+    let start = start_in_year(args.start_date, year)?;
+    let count = instalments.int().flatten().expect("a count in range");
+    let agreement = Agreement {
+        financed,
+        balloon,
+        in_advance,
+        regime: regime::build(plan, in_advance)?,
+    };
+    Ok((agreement, start, Some((amount, count))))
+}
+
+/// An optional amount, nil when not given.
+fn optional_money(value: Option<&Arg>) -> Result<Decimal> {
+    value.map_or_else(|| Ok(int(0)), money)
+}
+
+/// The payout's date and amount.
+struct Payout {
+    day: i64,
+    amount: Decimal,
+    /// The boundary it falls on, in units from the start.
+    at: i64,
+}
+
+fn payout_invalid<T>() -> Result<T> {
+    refuse(
+        "hire_purchase.payout_invalid",
+        "payout must be an object with date (YYYY-MM-DD) and amount (a decimal string).",
+    )
+}
+
+/// The payout, which must fall on the end of an arrangement payment period
+/// before the end of the term.
+fn read_payout(value: &Arg, agreement: &Agreement, start: i64) -> Result<Payout> {
+    let Arg::Json(Value::Object(fields)) = value else {
+        return payout_invalid();
+    };
+    if let Some(key) = fields
+        .keys()
+        .find(|k| !matches!(k.as_str(), "date" | "amount"))
+    {
+        return refuse(
+            "input.field_unknown",
+            format!("payout: {key} is not a fact a payout takes"),
+        );
+    }
+    let text = |key: &str| fields.get(key).and_then(Value::as_str);
+    let (Some(day), Some(amount)) = (
+        text("date").and_then(dates::parse),
+        text("amount").and_then(|t| Decimal::parse(t).ok()),
+    ) else {
+        return payout_invalid();
+    };
+    let amount = money(&Arg::Decimal(amount))?;
+    let unit = agreement.regime.unit;
+    let at = agreement
+        .regime
+        .periods
+        .iter()
+        .map(|p| p.1)
+        .find(|&to| to < agreement.term() && unit.date(start, to) == day);
+    match at {
+        Some(at) => Ok(Payout { day, amount, at }),
+        None => refuse(
+            "hire_purchase.payout_date_unsupported",
+            "payout date must be the end of an arrangement payment period after the start and before the end of the term: Division 240, as read, gives no notional interest for part of a period that a payout cuts short.",
+        ),
+    }
+}
+
+/// The Division 240 consequence of a payout's `excess` over the balance or
+/// `shortfall` below it.
+fn consequence(excess: &Decimal, shortfall: &Decimal) -> &'static str {
+    if excess.is_zero() && shortfall.is_zero() {
+        "The payout equals the balance outstanding, so the payments and termination amounts equal the notional loan principal plus the assessed notional interest and Subdivision 240-G makes no adjustment (ITAA 1997 s 240-105)."
+    } else if !excess.is_zero() {
+        "The payout exceeds the balance outstanding: at the end of the arrangement (s 240-75(1)(b)) the payments and termination amounts exceed the notional loan principal plus the assessed notional interest, so s 240-105(2) includes the excess in the notional seller's assessable income and s 240-110(1) entitles the notional buyer to deduct a corresponding amount in its income year, to the extent s 240-110(3) allows. The payout itself is not deductible (s 240-55; s 240-85(b) where it is paid to acquire the property)."
+    } else {
+        "The payout is less than the balance outstanding: at the end of the arrangement (s 240-75(1)(b)) the notional loan principal plus the assessed notional interest exceed the payments and termination amounts, so s 240-105(3) entitles the notional seller to deduct the excess and s 240-110(2) includes a corresponding amount in the notional buyer's assessable income for its income year, to the extent s 240-110(3) allows."
+    }
+}
+
+/// What a reviewer must establish before relying on a payout's consequence.
+const PAYOUT_REVIEW: &str = "For review: this takes the payout as a termination amount payable because the arrangement ends on the payout date, every arrangement payment due before it as paid, and the implicit rate as found from the payments the agreement scheduled, with no estimate under s 240-60(3) or (4). Whether s 240-110(3) limits the notional buyer's deduction or inclusion, and which of its income years it falls in, are not worked out.";
+
+/// The payout's steps: the payout, the interest and payments to its date, the
+/// balance it discharges and the difference.
+fn payout_steps(payout: &Payout, financed: &Decimal, periods: &[Period]) -> Result<[Step; 6]> {
+    let terms = |values: Vec<&Decimal>| -> (String, Decimal) {
+        let total = values.iter().try_fold(int(0), |sum, v| sum.add(v));
+        let text = values
+            .iter()
+            .map(|v| v.to_string())
+            .collect::<Vec<_>>()
+            .join(" + ");
+        (
+            if text.is_empty() { "0".into() } else { text },
+            total.expect("cents"),
+        )
+    };
+    let (interest_terms, interest) = terms(periods.iter().map(|p| &p.interest).collect());
+    let paid: Vec<&Decimal> = periods
+        .iter()
+        .map(|p| &p.paid)
+        .filter(|p| !p.is_zero())
+        .collect();
+    let (paid_terms, paid_total) = terms(paid);
+    let balance = financed.add(&interest)?.sub(&paid_total)?;
+    let difference = payout.amount.sub(&balance)?;
+    let (excess, shortfall) = (
+        py_max(int(0), difference.clone())?,
+        py_max(int(0), difference.neg()?)?,
+    );
+    Ok([
+        step(
+            "payout",
+            PAYOUT,
+            "payout",
+            &[&payout.amount],
+            payout.amount.clone(),
+        ),
+        step(
+            "interest_to_payout",
+            INTEREST_TO_PAYOUT,
+            &interest_terms,
+            &[],
+            interest.clone(),
+        ),
+        step(
+            "payments_before_payout",
+            PAYMENTS_BEFORE_PAYOUT,
+            &paid_terms,
+            &[],
+            paid_total.clone(),
+        ),
+        step(
+            "balance_at_payout",
+            BALANCE_AT_PAYOUT,
+            "amount_financed + interest_to_payout - payments_before_payout",
+            &[financed, &interest, &paid_total],
+            balance.clone(),
+        ),
+        step(
+            "payout_excess",
+            PAYOUT_EXCESS,
+            "max(0, payout - balance_at_payout)",
+            &[&payout.amount, &balance],
+            excess,
+        ),
+        step(
+            "payout_shortfall",
+            PAYOUT_SHORTFALL,
+            "max(0, balance_at_payout - payout)",
+            &[&balance, &payout.amount],
+            shortfall,
+        ),
+    ])
+}
+
+/// The deposit, trade-in and consideration steps.
+fn consideration_steps(
+    financed: &Decimal,
+    deposit: &Decimal,
+    trade_in: &Decimal,
+) -> Result<[Step; 3]> {
+    let consideration = financed.add(deposit)?.add(trade_in)?;
+    Ok([
+        step("deposit", DEPOSIT, "deposit", &[deposit], deposit.clone()),
+        step(
+            "trade_in",
+            TRADE_IN,
+            "trade_in",
+            &[trade_in],
+            trade_in.clone(),
+        ),
+        step(
+            "consideration",
+            CONSIDERATION,
+            "amount_financed + deposit + trade_in",
+            &[financed, deposit, trade_in],
+            consideration,
+        ),
+    ])
+}
+
+/// The first day any consideration is provided: the start, where a deposit
+/// or trade-in is given then, or the first payment's day.
+fn first_consideration(periods: &[Period], start: i64, upfront: bool) -> i64 {
+    if upfront {
+        return start;
+    }
+    periods
+        .iter()
+        .find(|p| !p.paid.is_zero())
+        .map_or(start, |p| p.paid_on)
+}
+
+/// The rendered amount `key` as a decimal.
+fn amount(out: &Value, key: &str) -> Decimal {
+    d(out["amounts"][key].as_str().expect("a rendered amount"))
+}
+
+pub fn hire_purchase_schedule(args: &HirePurchaseArgs) -> Result<Value> {
+    let year = scope(args.scope_confirmed, args.year, KIND)?;
+    let (agreement, start, level) = agreement(args, &year)?;
+    let deposit = optional_money(args.deposit)?;
+    let trade_in = optional_money(args.trade_in)?;
+    let payout = args
+        .payout
+        .map(|p| read_payout(p, &agreement, start))
+        .transpose()?;
+    if payout.is_some() && args.gst.is_some() {
+        return refuse(
+            "hire_purchase.payout_gst_unsupported",
+            "A payout is worked without gst facts: it changes the consideration for an agreement whose input tax credit is attributable when it starts, and this worksheet does not work out any adjustment that causes.",
+        );
+    }
+    let gst_facts = gst::read(args.gst, &year)?;
+    let until = payout.as_ref().map(|p| p.at);
+    let unit = agreement.regime.unit;
+    let financed = &agreement.financed;
+    let (r, rows, periods, steps, gst_worked) = precise(|| {
+        let r = agreement.implicit_rate()?;
+        let total = agreement.regime.total.add(&agreement.balloon)?;
+        let charges = total.sub(financed)?;
+        let (rows, periods) = agreement.schedule(&r, start, &charges, until)?;
+        let [
+            (id, financed_authority, formula),
+            (total_id, total_authority, level_formula),
+            (interest_id, interest_authority, interest_formula),
+        ] = STEPS;
+        let total_step = match (&agreement.regime.terms, &level) {
+            (Some(terms), _) => step(
+                total_id,
+                total_authority,
+                &format!("{terms} + balloon"),
+                &[&agreement.balloon],
+                total.clone(),
+            ),
+            (None, Some((instalment, count))) => step(
+                total_id,
+                total_authority,
+                level_formula,
+                &[instalment, &int(*count), &agreement.balloon],
+                total.clone(),
+            ),
+            (None, None) => unreachable!("a level regime has its instalment"),
+        };
+        let mut steps = vec![
+            step(
+                id,
+                financed_authority,
+                formula,
+                &[financed],
+                financed.clone(),
+            ),
+            total_step,
+            step(
+                interest_id,
+                interest_authority,
+                interest_formula,
+                &[&total, financed],
+                charges.clone(),
+            ),
+        ];
+        if args.deposit.is_some() || args.trade_in.is_some() || args.gst.is_some() {
+            steps.extend(consideration_steps(financed, &deposit, &trade_in)?);
+        }
+        let consideration = financed.add(&deposit)?.add(&trade_in)?;
+        let mut gst_worked = gst::worked(&gst_facts, &consideration, &charges)?;
+        if let Some(worked) = &mut gst_worked {
+            steps.append(&mut worked.steps);
+        }
+        if let Some(payout) = &payout {
+            steps.extend(payout_steps(payout, financed, &periods)?);
+        }
+        Ok((r, rows, periods, steps, gst_worked))
     })?;
-    let mut out = derived_result(KIND, &year, steps, rates(&r)?)?;
+    let mut rates = rates(&r, unit)?;
+    if let Some(limit) = gst_worked.as_ref().and_then(|w| w.car_limit.as_ref()) {
+        rates.push(rate("car_limit", limit));
+    }
+    let mut out = derived_result(KIND, &year, steps, rates)?;
+    let booked = gst_worked
+        .as_ref()
+        .and_then(|w| w.purpose_on_interest.clone())
+        .map(|purpose| journals::Booked {
+            credit: amount(&out, "input_tax_credit"),
+            on_interest: amount(&out, "credit_on_interest"),
+            purpose,
+        });
+    let credit = gst_worked
+        .as_ref()
+        .map_or(int(0), |_| amount(&out, "input_tax_credit"));
+    let capped = gst_worked.as_ref().is_some_and(|w| w.capped) && !credit.is_zero();
+    let payout_entry = payout
+        .as_ref()
+        .map(|p| (p.day, amount(&out, "balance_at_payout"), p.amount.clone()));
+    let journals = precise(|| {
+        journals::journals(&journals::Facts {
+            start,
+            financed,
+            deposit: &deposit,
+            trade_in: &trade_in,
+            gst: booked,
+            periods: &periods,
+            payout: payout_entry,
+            whole_term: payout.is_none(),
+        })
+    })?;
+    let (years, across) = precise(|| by_income_year(&periods))?;
+    let upfront = !deposit.is_zero() || !trade_in.is_zero();
+    let first = dates::format(first_consideration(&periods, start, upfront));
     // The balloon falls due at the end of the term, after an instalment in advance.
-    out["balloon_date"] = json!(dates::format(dates::add_months(start, agreement.count)));
+    out["balloon_date"] = json!(dates::format(unit.date(start, agreement.term())));
     out["schedule"] = Value::Array(rows);
     out["interest_by_income_year"] = years;
     out["interest_across_30_june"] = across;
+    out["journals"] = journals;
+    out["gst"] = gst::summary(&gst_facts, &first, capped);
+    if let Some(payout) = &payout {
+        let (excess, shortfall) = (
+            amount(&out, "payout_excess"),
+            amount(&out, "payout_shortfall"),
+        );
+        out["payout"] = json!({
+            "date": dates::format(payout.day),
+            "consequence": consequence(&excess, &shortfall),
+            "review": PAYOUT_REVIEW,
+        });
+    }
     Ok(out)
 }

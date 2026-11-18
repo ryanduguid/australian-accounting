@@ -179,8 +179,6 @@ const COMMAND_ARGS: &[(&str, &[(&str, Kind)])] = &[
         "hire-purchase-schedule",
         &[
             ("amount_financed", Dec),
-            ("instalment", Dec),
-            ("instalments", Raw),
             ("balloon", Dec),
             ("timing", Raw),
             ("start_date", Raw),
@@ -991,7 +989,34 @@ pub fn evaluate_coded(command: &str, v: &Value) -> Result<Value> {
             engine::borrowing_expenses(&a[0], &a[1], &a[2], loan, &a[6], &a[7], &a[8])
         }
         "hire-purchase-schedule" => {
-            engine::hire_purchase_schedule(&a[0], &a[1], &a[2], &a[3], &a[4], &a[5], &a[6], &a[7])
+            // Optional: the level regime's instalment, their number and
+            // frequency, or segments in their place; a deposit, trade-in,
+            // payout and GST facts.
+            let [instalment, deposit, trade_in] =
+                ["instalment", "deposit", "trade_in"].map(|key| optional(v, key, Dec));
+            let [instalments, frequency] =
+                ["instalments", "frequency"].map(|key| optional(v, key, Raw));
+            let [segments, payout, gst] =
+                ["segments", "payout", "gst"].map(|key| optional(v, key, Json));
+            let (instalment, deposit, trade_in) = (instalment?, deposit?, trade_in?);
+            let (instalments, frequency) = (instalments?, frequency?);
+            let (segments, payout, gst) = (segments?, payout?, gst?);
+            engine::hire_purchase_schedule(&engine::HirePurchaseArgs {
+                amount_financed: &a[0],
+                instalment: instalment.as_ref(),
+                instalments: instalments.as_ref(),
+                frequency: frequency.as_ref(),
+                segments: segments.as_ref(),
+                balloon: &a[1],
+                timing: &a[2],
+                start_date: &a[3],
+                deposit: deposit.as_ref(),
+                trade_in: trade_in.as_ref(),
+                payout: payout.as_ref(),
+                gst: gst.as_ref(),
+                year: &a[4],
+                scope_confirmed: &a[5],
+            })
         }
         "business-capital-expenditure" => engine::business_capital_expenditure(&a[0], &a[1], &a[2]),
         "balancing-adjustment" => {

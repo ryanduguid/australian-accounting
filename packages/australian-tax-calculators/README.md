@@ -102,7 +102,7 @@ lists the commands.
 | `capital-gains` | `other_gains`, `discount_gains`, `current_losses`, `prior_losses`, `scope_confirmed`, `year` |
 | `main-residence` | `capital_gain`, `capital_loss`, `market_value_basis`, `ownership_start`, `ownership_end`, `lived_periods`, `income_use_periods`, `absence_choice_periods`, `new_home_acquired`, `year`, `scope_confirmed` |
 | `borrowing-expenses` | `borrowing_expenses`, `other_borrowing_expenses_in_year`, `income_use`, `loan_start`, `loan_term_end`, `repaid_on`, `section_26_50_applies`, `year`, `scope_confirmed` |
-| `hire-purchase-schedule` | `amount_financed`, `instalment`, `instalments`, `balloon`, `timing`, `start_date`, `year`, `scope_confirmed` |
+| `hire-purchase-schedule` | `amount_financed`, `balloon`, `timing`, `start_date`, `year`, `scope_confirmed`; `instalment`, `instalments` and optionally `frequency`, or `segments` in their place; optionally `deposit`, `trade_in`, `payout` and `gst`; see [Hire purchase schedule](#hire-purchase-schedule) |
 | `business-capital-expenditure` | `items`, `year`, `scope_confirmed`; see [Business capital expenditure](#business-capital-expenditure) |
 | `balancing-adjustment` | `cost`, `termination_value`, `asset`, `years`, `year`, `scope_confirmed`; for a car, `car_limit`; see [Balancing adjustment](#balancing-adjustment) |
 | `trade-in` | `cost`, `asset`, `years`, `trade_in_allowance`, `trade_in_taxable`, `replacement_price`, `replacement_asset`, `replacement_creditable_acquisition`, `arms_length`, `involuntary_disposal`, `year`, `scope_confirmed`; `car_limit`, `adjusted_input_tax_credit`, `full_input_tax_credit`, `replacement_luxury_car_tax` and `creditable_purpose` where the facts need them; see [Trade-in](#trade-in) |
@@ -155,7 +155,7 @@ The 2 car commands, the 11 FBT benefit commands (`fbt-loan`, `fbt-meal-entertain
 rules. `division-296` alone takes a negative amount, in `total_super_earnings`. `main-residence` also takes dates as `YYYY-MM-DD` strings, lists of
 `{"start", "end"}` periods (with `"floor_area"` for income use) and `null`
 for no new home. `borrowing-expenses` takes `loan_start` as a `YYYY-MM-DD`
-string and `loan_term_end` and `repaid_on` as dates or `null`. `hire-purchase-schedule` takes `instalments` as a JSON integer, `timing` as `in_arrears` or `in_advance` and `start_date` as a `YYYY-MM-DD` string, and refuses a field it does not take. `business-capital-expenditure` takes `items` as a list of objects, and refuses a field it or an item does not take. `balancing-adjustment` takes `years` as a list of objects and a car's `car_limit` as an object or `null`, and refuses a field it, a row or `car_limit` does not take; `trade-in` takes them as it does, and refuses an optional input its other facts do not call for. `termination-payment` takes `completed_years_of_service` as a JSON integer and `date_of_birth` as a `YYYY-MM-DD` string. `unused-leave-payment` takes `leave_accrual_start` as a `YYYY-MM-DD` string, `termination_reason` as `normal`, `genuine_redundancy`, `early_retirement_scheme` or `invalidity`, and its 4 accrual parts as optional decimal strings, described under [Unused leave payment](#unused-leave-payment). `schedule-5-method-b-i` takes `back_payment_periods` as a list of `{"earnings", "back_payment", "withheld"}` decimal strings, one for each earlier pay period. Every argument is required, as the Python functions had no defaults, except `depreciation`'s optional `opening_adjustable_value`: give it, as a decimal string, for a year after the asset's start time, as cost less the earlier years' decline in value; and `medicare-levy`'s optional family inputs, described under [Medicare levy](#medicare-levy-and-low-income-tax-offset). `medicare-levy` refuses a field it does not take, as does `medicare-levy-surcharge`, whose optional inputs are described under [Medicare levy surcharge](#medicare-levy-surcharge). `payg-withholding`'s optional inputs are described under [PAYG withholding](#payg-withholding), `payg-gross-up` under [PAYG gross-up](#payg-gross-up), `study-loan-withholding`'s `pay_date` under [Study loan withholding](#study-loan-withholding), `seniors-pensioners-withholding`'s `study_loan` and `pay_date` under [Seniors and pensioners](#seniors-and-pensioners) and `seniors-pensioners-tax-offset`'s spouse inputs under [Seniors and pensioners tax offset](#seniors-and-pensioners-tax-offset). `income-tests` requires every component and refuses a field it does not take; see [Income tests](#income-tests). The FBT benefit commands take the inputs their `method` needs and refuse any other, as [FBT loans, meal entertainment and car parking](#fbt-loans-meal-entertainment-and-car-parking), [FBT debt waivers, expense payments and property](#fbt-debt-waivers-expense-payments-and-property) and [FBT residual, housing, LAFHA, board and entertainment benefits](#fbt-residual-housing-lafha-board-and-entertainment-benefits) describe. `fbt-entertainment-classifier` takes `lines` as a list of line objects and refuses a field it does not take, as [FBT entertainment classifier](#fbt-entertainment-classifier) describes. Input over 8 MiB,
+string and `loan_term_end` and `repaid_on` as dates or `null`. `hire-purchase-schedule` takes `instalments` as a JSON integer, `timing` as `in_arrears` or `in_advance`, `start_date` as a `YYYY-MM-DD` string and `segments`, `payout` and `gst` as described under [Hire purchase schedule](#hire-purchase-schedule), and refuses a field it, a segment, the payout or the GST facts do not take. `business-capital-expenditure` takes `items` as a list of objects, and refuses a field it or an item does not take. `balancing-adjustment` takes `years` as a list of objects and a car's `car_limit` as an object or `null`, and refuses a field it, a row or `car_limit` does not take; `trade-in` takes them as it does, and refuses an optional input its other facts do not call for. `termination-payment` takes `completed_years_of_service` as a JSON integer and `date_of_birth` as a `YYYY-MM-DD` string. `unused-leave-payment` takes `leave_accrual_start` as a `YYYY-MM-DD` string, `termination_reason` as `normal`, `genuine_redundancy`, `early_retirement_scheme` or `invalidity`, and its 4 accrual parts as optional decimal strings, described under [Unused leave payment](#unused-leave-payment). `schedule-5-method-b-i` takes `back_payment_periods` as a list of `{"earnings", "back_payment", "withheld"}` decimal strings, one for each earlier pay period. Every argument is required, as the Python functions had no defaults, except `depreciation`'s optional `opening_adjustable_value`: give it, as a decimal string, for a year after the asset's start time, as cost less the earlier years' decline in value; and `medicare-levy`'s optional family inputs, described under [Medicare levy](#medicare-levy-and-low-income-tax-offset). `medicare-levy` refuses a field it does not take, as does `medicare-levy-surcharge`, whose optional inputs are described under [Medicare levy surcharge](#medicare-levy-surcharge). `payg-withholding`'s optional inputs are described under [PAYG withholding](#payg-withholding), `payg-gross-up` under [PAYG gross-up](#payg-gross-up), `study-loan-withholding`'s `pay_date` under [Study loan withholding](#study-loan-withholding), `seniors-pensioners-withholding`'s `study_loan` and `pay_date` under [Seniors and pensioners](#seniors-and-pensioners) and `seniors-pensioners-tax-offset`'s spouse inputs under [Seniors and pensioners tax offset](#seniors-and-pensioners-tax-offset). `income-tests` requires every component and refuses a field it does not take; see [Income tests](#income-tests). The FBT benefit commands take the inputs their `method` needs and refuse any other, as [FBT loans, meal entertainment and car parking](#fbt-loans-meal-entertainment-and-car-parking), [FBT debt waivers, expense payments and property](#fbt-debt-waivers-expense-payments-and-property) and [FBT residual, housing, LAFHA, board and entertainment benefits](#fbt-residual-housing-lafha-board-and-entertainment-benefits) describe. `fbt-entertainment-classifier` takes `lines` as a list of line objects and refuses a field it does not take, as [FBT entertainment classifier](#fbt-entertainment-classifier) describes. Input over 8 MiB,
 or a decimal string over 8,192 bytes, is refused.
 
 ## Derivations
@@ -919,51 +919,117 @@ the ATO's and the Library's worked examples; see
 
 ## Hire purchase schedule
 
-`hire_purchase_schedule` sets out a hire purchase agreement month by month
+`hire_purchase_schedule` sets out a hire purchase agreement period by period
 for the hirer, who is the notional buyer under ITAA 1997 s 240-17(2). The
-caller establishes the amount financed (the price less any deposit or
-trade-in), the level monthly instalment, the number of instalments (1 to
-360), any balloon, whether instalments fall at each month's end
-(`in_arrears`) or start (`in_advance`), and the start date, which must fall in
-the income year given (2024-25 to 2026-27). The worksheet does not take an
-interest rate: it works out the implicit interest rate, the monthly compound
-rate at which the payments repay the amount financed, as step 3 of
-s 240-60(1) does, and each month's notional interest is the outstanding
-notional loan principal, less an instalment due at the month's start, times
-that rate (steps 1, 2 and 4). The payments themselves are not deductible
-(s 240-55).
+caller establishes the amount financed (the notional loan principal: the
+consideration less any deposit or trade-in, s 240-25(3)), the instalments,
+any balloon, whether instalments fall at each period's end (`in_arrears`) or
+start (`in_advance`), and the start date, which must fall in the income year
+given (2024-25 to 2026-27). The worksheet does not take an interest rate: it
+works out the implicit interest rate, the compound rate at which the payments
+repay the amount financed, as step 3 of s 240-60(1) does, and each period's
+notional interest is the outstanding notional loan principal, less an
+instalment due at the period's start, times that rate for the period (steps
+1, 2 and 4). The payments themselves are not deductible (s 240-55).
+
+The instalments are either a level `instalment`, their number (`instalments`)
+and a `frequency` (`weekly`, `fortnightly`, `monthly`, `quarterly` or
+`annual`; monthly when omitted), or `segments`: a list of runs of level
+instalments, each an object with `start` (`YYYY-MM-DD`), `count`, `amount`
+(`0.00` for a payment holiday) and `frequency`. The first segment starts on
+`start_date` and each later one where the one before it ends; segments are
+all weekly or fortnightly, or all monthly, quarterly or annual. The term is
+at most 30 years: 360 months or 1,565 weeks.
+
+Periods are counted in months from the start date's day of the month (or the
+month's last day when it is shorter), or in weeks of 7 days. Each
+instalment's period is an arrangement payment period (s 240-70(1)); an annual
+period is 2 periods of 6 months (s 240-70(2)). The rate found is a monthly
+rate (weekly for weekly and fortnightly instalments), and a period of n months
+or weeks has the rate (1 + r)^n - 1, so a quarter compounds 3 months. A month
+with no instalment, in a payment holiday or the first half of a year, is its
+own period with nil payment.
 
 The result gives the amount financed, the total payments and the total
-interest, the implicit monthly rate and 12 times it as `nominal_annual_rate`
-(both to 16 places),
-`balloon_date` (the end of the term) and `schedule`, one row a month with its
-`period_start`, `period_end`, `payment_date`, `opening`, `interest`,
-`payment` (the instalment, paid on `payment_date`), `balloon` (nil until the
-last month, paid on `balloon_date`: with the last instalment in arrears, a
-month after it in advance), `principal` and `closing`. A month runs to the same day of the next
-month, or that month's last day when it is shorter. Each month shows the
-notional interest to date rounded half up to cents, less what the months
-before show, so a cent of rounding never compounds: the months' interest adds
-up to the total charges, each is within a cent of its amount at the rate
-found, and the last balance is nil. That rate is found to 64 halvings and
-leaves less than half a cent after the last payment, so a month can differ
-from its amount at the exact implicit rate by slightly more than a cent at
-the largest amounts. The worksheet refuses payments that imply a rate below
-nil or of 100% a month or more, and a rate it cannot find closely enough to
-leave a nil balance to the cent.
+interest, `implicit_monthly_rate` (or `implicit_weekly_rate`) and 12 (or 52)
+times it as `nominal_annual_rate` (both to 16 places), `balloon_date` (the
+end of the term) and `schedule`, one row a period with its `period_start`,
+`period_end`, `payment_date` (`null` when nothing is paid), `opening`,
+`interest`, `payment` (the instalment), `balloon` (nil until the last period,
+paid on `balloon_date`: with the last instalment in arrears, at the end of
+its period in advance), `principal` and `closing`; `instalment` numbers the rows.
+Each period shows the notional interest to date rounded half up to cents,
+less what the periods before show, so a cent of rounding never compounds:
+the periods' interest adds up to the total charges, each is within a cent of
+its amount at the rate found, and the last balance is nil. That rate is found
+to 64 halvings and leaves less than half a cent after the last payment, so a
+period can differ from its amount at the exact implicit rate by slightly more
+than a cent at the largest amounts. The worksheet refuses payments that imply
+a rate below nil or of 100% a month (or week) or more, and a rate it cannot
+find closely enough to leave a nil balance to the cent.
 
-`interest_by_income_year` totals the interest of the months wholly in each
+`interest_by_income_year` totals the interest of the periods wholly in each
 income year, one entry a year with its `income_year`, `first_instalment`,
 `last_instalment` and `interest`, each the sum of those rows' `interest`. A
-month runs from `period_start` up to `period_end`, so a month ending on
-1 July falls wholly in the year before. A month that spans 30 June is listed
-in `interest_across_30_june` instead, with its `instalment`, `interest`, the 2
-`income_years` and the `days` it runs in each: s 240-60(2) relates the part
-of a month in an income year to it in accordance with accounting principles,
-which the caller must apply to that month. The years and the spanning months
-add up to the total interest; from a start on the 1st of a month no month
-spans 30 June. Fees, GST, irregular payments, termination amounts other than
-the balloon and the notional seller are out of scope; see
+period runs from `period_start` up to `period_end`, so a period ending on
+1 July falls wholly in the year before. A period that spans 30 June is listed
+in `interest_across_30_june` instead, with its `instalment`, `interest`, the
+2 `income_years` and the `days` it runs in each: s 240-60(2) relates the part
+of a period in an income year to it in accordance with accounting principles,
+which the caller must apply to that period. The years and the spanning
+periods add up to the total interest.
+
+`deposit` and `trade_in` (an amount the financier credits as paid, such as a
+trade-in allowance) are paid at or before the start for the cost of the
+goods. They do not change the loan; with either, or `gst`, the result adds
+`deposit`, `trade_in` and `consideration`, the amount financed plus both.
+
+`journals` gives balanced journal lines, each `{"account", "debit",
+"credit"}` in cents: `start` (the asset at the consideration, less any input
+tax credit on the price, against the liability at the amount financed, the
+deposit from `bank` and the `trade_in_allowance`), one entry in `periods` for
+each schedule row (the interest to `interest_expense`, the payment from
+`bank`, the difference to `hire_purchase_liability`), a `payout` entry, and
+the same lines totalled by `income_year` in `by_income_year`, with the
+periods spanning 30 June in `across_30_june`. The liability is carried at the
+notional loan principal outstanding, so it closes at nil. `gst_booked` says
+whether an input tax credit is in the lines: a credit capped at the car limit
+is not, as the sources read do not say how a capped credit divides between
+the car's price and the credit component.
+
+`payout`, an object with `date` and `amount`, is an early payout that
+replaces every payment due on or after its date, which must be the end of a
+period before the end of the term: Division 240, as read on 18 November 2026,
+gives no notional interest for part of a period a payout cuts short. The
+schedule then runs to the payout, and the result adds `payout`,
+`interest_to_payout`, `payments_before_payout`, `balance_at_payout` and
+`payout_excess` or `payout_shortfall`, with `payout.consequence` stating which
+way Subdivision 240-G moves the difference (s 240-105 for the notional
+seller, s 240-110 for the hirer, to the extent s 240-110(3) allows) and
+`payout.review` what a reviewer must establish. A payout with `gst` is
+refused.
+
+`gst` holds the hirer's GST facts: `registered`; when true, `accounting_basis`
+(`cash` or `accruals`), `creditable_purpose` (a fraction from 0 to 1) and
+`asset` (`passenger_car`, a car GST Act s 69-10 applies to, or `other`); and
+for a passenger car `first_used_year`, `gst_inclusive_market_value`,
+`luxury_car_tax` and `quotes_abn_for_luxury_car_tax`. With every fact a
+figure turns on, the result adds `total_consideration` (every component of
+the supply, the notional interest included, for an agreement entered into
+from 1 July 2012), `gst_payable` (1/11 of it, less luxury car tax for a car),
+`full_input_tax_credit` (capped for a passenger car worth more than the car
+limit for the year it is first used, and not quoted for, at 1/11 of that
+limit: $69,674 for 2024-25 and 2025-26, $69,883 for 2026-27),
+`input_tax_credit` (times the creditable purpose) and, where not capped,
+`credit_on_interest`, the share the journals book against the interest through
+`deferred_interest_gst`. `gst.attributable` states the tax period: the whole
+credit up front, on a cash basis too (GST Act ss 29-10(1) and 158-5). A
+missing fact gives no figure, and `gst.missing` names it; an unregistered
+hirer's credit is nil.
+
+Fees, charges and stamp duty, substituted accounting periods, the car's cost
+for Division 40, agreements entered into before 1 July 2012, GST adjustments
+after the start and the notional seller are out of scope; see
 [calculation evidence](docs/calculation-evidence.md#hire-purchase-schedule).
 
 ## Business capital expenditure
