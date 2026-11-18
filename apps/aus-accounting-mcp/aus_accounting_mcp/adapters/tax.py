@@ -4,13 +4,16 @@
 """Validate worksheet facts and delegate all arithmetic to the calculators executable.
 
 The australian-tax-calculators binary is the absolute path in
-AUS_TAX_CALCULATORS_BIN, else the first in PATH's absolute folders, and is used
-only when `--version` names exactly the release this server was tested against.
-Without it the tax worksheets refuse with an install message and every other tool
-still works.
+AUS_TAX_CALCULATORS_BIN, else the first in PATH's absolute folders. It is run only
+when its SHA-256 is that of a released executable or the one the operator names in
+AUS_TAX_CALCULATORS_SHA256 for a source build, and used only when `--version` names
+exactly the release this server was tested against. Without it the tax worksheets
+refuse with an install message and every other tool still works.
 """
 
+import hashlib
 import json
+import re
 import os
 import shutil
 import subprocess
@@ -26,13 +29,21 @@ from ..money import MONEY_SCHEMA, parse_amount
 CALCULATORS = "australian-tax-calculators"
 #: The only calculators release this server accepts.
 CALCULATORS_VERSION = "1.0.0"
+#: SHA-256 of the executables in that release's x86_64 Linux and Windows archives,
+#: whose own digests its SHA256SUMS lists. Change them with CALCULATORS_VERSION.
+RELEASED_DIGESTS = frozenset({
+    "d45d89ed81d1537735e9599e30dc4052b539477c0764d4c55bc32a8b52c87fcc",  # linux-musl
+    "7a7e2de825e4c8f97da365184c7a23e4951c40a4629ce24394b91434179591c2",  # windows-msvc
+})
 BINARY_VARIABLE = "AUS_TAX_CALCULATORS_BIN"
+DIGEST_VARIABLE = "AUS_TAX_CALCULATORS_SHA256"
 INSTALL = (
     f"The tax worksheets need the {CALCULATORS} {CALCULATORS_VERSION} executable from "
     "https://github.com/ryanduguid/australian-accounting/releases/tag/"
     f"{CALCULATORS}/v{CALCULATORS_VERSION}, verified as that release describes, on PATH "
-    f"or at the absolute path in {BINARY_VARIABLE}. Tell the user; retrying will not help "
-    "until it is installed. The other tools work without it."
+    f"or at the absolute path in {BINARY_VARIABLE}; for one built from source, also its "
+    f"SHA-256 in {DIGEST_VARIABLE}. Tell the user; retrying will not help until it is "
+    "installed. The other tools work without it."
 )
 # A worksheet answers in milliseconds; this bounds a hung or wrong executable.
 TIMEOUT_SECONDS = 60
@@ -72,13 +83,37 @@ def _run(binary: str, arguments: list[str], payload: str = "") -> subprocess.Com
         raise CalculatorsUnavailable(f"{binary} did not run: {exc}. {INSTALL}") from exc
 
 
+def _trusted(binary: str) -> str:
+    """The executable, once its SHA-256 is a released one or the operator's; else refused.
+
+    Checked before it runs, so another program on PATH that prints the pinned
+    version is never run.
+    """
+    # Either case: sha256sum prints lower case, PowerShell's Get-FileHash upper.
+    named = os.environ.get(DIGEST_VARIABLE, "").lower()
+    if named and not re.fullmatch(r"[0-9a-f]{64}", named):
+        raise CalculatorsUnavailable(
+            f"{DIGEST_VARIABLE} must be a SHA-256 of 64 hexadecimal digits. {INSTALL}")
+    try:
+        with open(binary, "rb") as file:
+            digest = hashlib.file_digest(file, "sha256").hexdigest()
+    except OSError as exc:
+        raise CalculatorsUnavailable(f"{binary} did not run: {exc}. {INSTALL}") from exc
+    if digest not in RELEASED_DIGESTS | {named}:
+        raise CalculatorsUnavailable(
+            f"{binary} has SHA-256 {digest}, which is neither a {CALCULATORS} "
+            f"{CALCULATORS_VERSION} release executable nor named in {DIGEST_VARIABLE}. "
+            f"{INSTALL}")
+    return binary
+
+
 def reported_version() -> str | None:
     """The version the executable found reports, or None when there is none to read."""
     try:
         binary = _executable()
         if binary is None:
             return None
-        reply = _run(binary, ["--version"])
+        reply = _run(_trusted(binary), ["--version"])
     except CalculatorsUnavailable:
         return None
     name, _, version = reply.stdout.strip().partition(" ")
@@ -89,7 +124,7 @@ def _binary() -> str:
     binary = _executable()
     if binary is None:
         raise CalculatorsUnavailable(f"No {CALCULATORS} executable was found. {INSTALL}")
-    reply = _run(binary, ["--version"])
+    reply = _run(_trusted(binary), ["--version"])
     if reply.returncode != 0 or reply.stdout != f"{CALCULATORS} {CALCULATORS_VERSION}\n":
         raise CalculatorsUnavailable(
             f"{binary} --version answered {reply.stdout.strip()!r}, not "

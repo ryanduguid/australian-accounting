@@ -1,3 +1,13 @@
+# Unreleased
+
+## Changed
+
+- The tax worksheets run the `australian-tax-calculators` executable only if its SHA-256
+  is that of the x86_64 Linux or Windows executable in the 1.0.0 release, or the one
+  given in `AUS_TAX_CALCULATORS_SHA256` for a build from source. It is checked before
+  the executable runs, so another program on `PATH` that prints the same version is
+  refused, not run.
+
 # v0.10.0
 
 ## Changed

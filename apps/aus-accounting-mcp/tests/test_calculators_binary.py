@@ -4,6 +4,7 @@
 """The tax worksheets run only the pinned calculators executable, and refuse clearly without it."""
 
 import asyncio
+import hashlib
 import json
 import os
 import subprocess
@@ -113,6 +114,47 @@ def test_any_other_version_is_refused(monkeypatch, reply) -> None:
     with pytest.raises(tax.CalculatorsUnavailable, match="--version answered") as caught:
         tax.calculate(tax._FACTS.validate_python(GST))
     assert f"not '{tax.CALCULATORS} {tax.CALCULATORS_VERSION}'" in str(caught.value)
+
+
+@pytest.fixture
+def impostor(monkeypatch, tmp_path):
+    """An executable that is no release, answering --version as the pinned one would."""
+    binary = tmp_path / tax.CALCULATORS
+    binary.write_bytes(b"not a release executable")
+    monkeypatch.setenv(tax.BINARY_VARIABLE, str(binary))
+    monkeypatch.delenv(tax.DIGEST_VARIABLE, raising=False)
+    runs = []
+
+    def run(command, **_options):
+        runs.append(command)
+        return subprocess.CompletedProcess(command, 0, f"{tax.CALCULATORS} "
+                                           f"{tax.CALCULATORS_VERSION}\n", "")
+    monkeypatch.setattr(tax.subprocess, "run", run)
+    return binary, runs
+
+
+def test_an_executable_with_another_digest_is_never_run(impostor) -> None:
+    _, runs = impostor
+    with pytest.raises(tax.CalculatorsUnavailable, match="neither a") as caught:
+        tax.worksheet_catalogue()
+    assert tax.INSTALL in str(caught.value)
+    assert tax.reported_version() is None
+    assert runs == []
+
+
+def test_the_operators_digest_admits_a_source_build(monkeypatch, impostor) -> None:
+    binary, runs = impostor
+    digest = hashlib.sha256(binary.read_bytes()).hexdigest()
+    monkeypatch.setenv(tax.DIGEST_VARIABLE, digest)
+    assert tax._binary() == str(binary)
+    monkeypatch.setenv(tax.DIGEST_VARIABLE, digest.upper())
+    assert tax.reported_version() == tax.CALCULATORS_VERSION
+    assert len(runs) == 2
+    for named in (digest[:-1], f" {digest}", f"{digest[:-1]}g"):
+        monkeypatch.setenv(tax.DIGEST_VARIABLE, named)
+        with pytest.raises(tax.CalculatorsUnavailable, match="64 hexadecimal digits"):
+            tax._binary()
+    assert len(runs) == 2
 
 
 def test_a_version_that_exits_nonzero_is_refused(monkeypatch) -> None:

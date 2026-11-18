@@ -139,11 +139,11 @@ CALCULATIONS = {
 
 
 async def _call_tools(server: str, calls: dict, stderr_path: Path) -> dict[str, dict]:
-    # The client passes the server only a few variables; PATH is one, this is not.
-    named = os.environ.get(tax.BINARY_VARIABLE)
+    # The client passes the server only a few variables; PATH is one, these are not.
+    named = {variable: os.environ[variable]
+             for variable in (tax.BINARY_VARIABLE, tax.DIGEST_VARIABLE) if variable in os.environ}
     parameters = StdioServerParameters(
-        command=sys.executable, args=["-c", server],
-        env={tax.BINARY_VARIABLE: named} if named else None)
+        command=sys.executable, args=["-c", server], env=named or None)
     results = {}
     with stderr_path.open("w", encoding="utf-8") as stderr:
         async with stdio_client(parameters, errlog=stderr) as (read_stream, write_stream):
