@@ -4,6 +4,37 @@
 
 ### Added
 
+- `cgt-parcels` works out the capital gains and losses from selling shares
+  or units held in parcels bought at different times, for contracts in
+  2025-26 or 2026-27: each sale matched first in, first out or to the parcels
+  the taxpayer selects (TD 33), each part's cost base and reduced cost base
+  (ITAA 1997 ss 110-25 and 110-55), its gain or loss (s 104-10) and whether it
+  is a discount capital gain (s 115-25), then the year's net capital gain or
+  loss with other gains and losses in the order of s 102-5(1) and the
+  discount percentage by entity (s 115-100). It lists each part and the units
+  left in each parcel. It refuses parcels acquired at or before 21 September
+  1999 that are sold in the year. New codes: `cgt_parcels.entity_invalid`,
+  `cgt_parcels.fact_conflict`, `cgt_parcels.fact_invalid`,
+  `cgt_parcels.fact_missing`, `cgt_parcels.identification_invalid`,
+  `cgt_parcels.indexation_or_pre_cgt`, `cgt_parcels.list_invalid` and
+  `cgt_parcels.units_not_held`. `derive` covers it. `tests/cgt_parcels.rs`
+  holds it to the ATO's Kathleen and Boris examples and the Library's David
+  Jones example.
+- `ppsr-timing` answers what the Personal Property Securities Register's law
+  decides without a search, for 2025-26 and 2026-27: a registration's latest
+  end time, the end time s 153(2) and (3) apply and its fee (PPSA s 153
+  item 5; Personal Property Securities (Fees) Determination 2018 s 4); a
+  purchase money security interest's registration deadline (PPSA s 62(2)(b)
+  and (3)(b)) and whether a registration meets it; and a company grantor's
+  20 business day time and, with a critical time, whether the interest vests
+  (Corporations Act s 588FL). Business days follow PPSA s 10 and Corporations
+  Act s 9 over the holidays the caller lists. New codes:
+  `ppsr_timing.date_outside_year`, `ppsr_timing.date_unsettled`,
+  `ppsr_timing.days_invalid`, `ppsr_timing.fact_invalid`,
+  `ppsr_timing.foreign_law_unsupported`, `ppsr_timing.holidays_incomplete`,
+  `ppsr_timing.law_unread` and `ppsr_timing.time_invalid`.
+  `tests/ppsr_timing.rs` holds it to each fee tier and constructed calendar
+  cases.
 - `payroll-tax`: one employer's payroll tax for 2026-27 in each state and
   territory, for an employer outside a group that pays wages all year. It
   shares each deduction or threshold by the taxable wages over the Australian
@@ -163,6 +194,15 @@
   `hire_purchase.segments_invalid` and
   `hire_purchase.segments_not_contiguous`. `tests/hire_purchase_worksheet.rs`
   works the cases by hand and from the ATO's Albert and Darren examples.
+- `dasp-tax` works out the tax on a departing Australia superannuation
+  payment in 2025-26 to 2027-28 by component: nil on the tax free component,
+  35% on the element taxed in the fund and 45% on the element untaxed in the
+  fund, or 65% on both where the payment includes contributions made whilst a
+  working holiday maker (Superannuation (Departing Australia Superannuation
+  Payments Tax) Act 2007 s 5(1) and (3)). `derive` explains each amount. New
+  codes: `dasp_tax.payment_nil` and `dasp_tax.unclaimed_money_rollover`, for
+  an s 5(2) roll-over with an element untaxed in the fund. `tests/dasp_tax.rs`
+  runs the Library's $42,000 example and the working holiday maker rate.
 - `fbt-minor-benefit-check` screens one benefit in the FBT year ended
   31 March 2026 or 2027 against the minor benefits exemption (FBTAA s 58P).
   It decides the exclusions (an in-house expense payment, property or
@@ -223,6 +263,19 @@
 - `hire-purchase-schedule`'s `instalment` and `instalments` are required only
   without `segments`, and `hire_purchase.instalments_unsupported` and
   `hire_purchase.rate_unsupported` name the frequency's limits.
+
+### Fixed
+
+- `worksheet_catalogue()`'s evidence note for the 2 car worksheets, the 3
+  Schedule 5 methods, working holiday maker and seniors and pensioners
+  withholding, and the seniors and pensioners tax offset now opens their
+  heading in `docs/calculation-evidence.md`; before, it named an anchor the
+  document does not have.
+- `contribution-caps` cites a first year of bring forward for the
+  non-concessional cap only when the contributions are over the general cap
+  (ITAA 1997 s 292-85(3)(a)). At or under it, the step says that twice or
+  3 times the general cap applies only if bring forward is triggered. No
+  amount changes.
 
 ## 1.0.0
 

@@ -13,7 +13,7 @@ use std::io::Write;
 use std::process::{Command, Stdio};
 
 /// The commands `derive` explains.
-const DERIVED: [&str; 52] = [
+const DERIVED: [&str; 54] = [
     "fbt",
     "fbt-car-statutory",
     "fbt-car-operating-cost",
@@ -63,9 +63,11 @@ const DERIVED: [&str; 52] = [
     "business-capital-expenditure",
     "balancing-adjustment",
     "trade-in",
+    "dasp-tax",
     "gst-margin-scheme",
     "etp-tax-free-component",
     "payroll-tax",
+    "cgt-parcels",
 ];
 
 /// (command, input) for each derived kind: the ATO's published examples and
@@ -395,6 +397,16 @@ fn cases() -> Vec<(&'static str, Value)> {
                    "arms_length": true, "involuntary_disposal": false,
                    "year": "2025-26", "scope_confirmed": true}),
         ),
+        // A former working holiday maker's payment with both elements, each
+        // at 65% (DASP Tax Act s 5(3)).
+        (
+            "dasp-tax",
+            json!({"tax_free_component": "1250.00", "taxed_element": "8400.37",
+                   "untaxed_element": "300.00",
+                   "working_holiday_maker_contributions": true,
+                   "unclaimed_money_rollover": false,
+                   "year": "2026-27", "scope_confirmed": true}),
+        ),
         // Victoria's surcharges on $80 million of $150 million (the State
         // Revenue Office's example 2) and Tasmania's 2 rates on $2,400,000
         // of $3,000,000 (its guideline's example 2).
@@ -425,6 +437,27 @@ fn cases() -> Vec<(&'static str, Value)> {
                    "unpaid_acquisition_consideration": "40000.00",
                    "subdivision_share": "600000.00", "subdivision_whole": "2400000.00",
                    "year": "2026-27", "scope_confirmed": true}),
+        ),
+        // Parcels of shares for a complying superannuation entity: a
+        // selected parcel split 3 ways, a loss that takes all the other gain
+        // and part of a discount gain, earlier losses and the third off.
+        (
+            "cgt-parcels",
+            json!({"entity": "complying_superannuation_entity", "identification": "selected",
+                   "parcels": [{"parcel": "A", "security": "S", "acquired": "2020-03-02", "units": "3",
+                                "acquisition_cost": "100.00", "incidental_costs": "10.00",
+                                "ownership_costs": "5.00"},
+                               {"parcel": "B", "security": "S", "acquired": "2026-01-05", "units": "10",
+                                "acquisition_cost": "500.00", "incidental_costs": "0.00"}],
+                   "disposals": [{"security": "S", "date": "2026-03-02", "units": "4",
+                                  "capital_proceeds": "1000.00", "incidental_costs": "9.99",
+                                  "parcels": [{"parcel": "A", "units": "1"}, {"parcel": "B", "units": "3"}]},
+                                 {"security": "S", "date": "2026-04-01", "units": "7",
+                                  "capital_proceeds": "70.00", "incidental_costs": "0.00",
+                                  "parcels": [{"parcel": "B", "units": "7"}]}],
+                   "other_discount_capital_gains": "100.00", "other_capital_gains": "0.01",
+                   "other_capital_losses": "0.00", "prior_net_capital_losses": "50.00",
+                   "year": "2025-26", "scope_confirmed": true}),
         ),
     ];
     cases.extend(
@@ -2146,7 +2179,7 @@ fn derive_refuses_what_it_does_not_explain() {
          study-loan-repayment, capital-gains, main-residence, fbt-residual, fbt-housing, \
          fbt-lafha, fbt-board, fbt-tax-exempt-body-entertainment, gst, depreciation, \
          hire-purchase-schedule, chattel-mortgage-schedule, loan-transactions, \
-         lump-sum-arrears-tax-offset, income-tests, business-capital-expenditure, balancing-adjustment, trade-in, gst-margin-scheme, etp-tax-free-component, payroll-tax, not \"payg-gross-up\""
+         lump-sum-arrears-tax-offset, income-tests, business-capital-expenditure, balancing-adjustment, trade-in, dasp-tax, gst-margin-scheme, etp-tax-free-component, payroll-tax, cgt-parcels, not \"payg-gross-up\""
     );
 }
 

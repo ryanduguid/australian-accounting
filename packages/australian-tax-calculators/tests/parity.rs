@@ -15,6 +15,7 @@ use std::process::{Command, Stdio};
 /// `tests/business_capital_expenditure.rs`, `tests/balancing_adjustment.rs`, `tests/trade_in.rs`, `tests/fuel_tax_credits.rs`,
 /// `tests/payroll_tax.rs`,
 /// `tests/gst_margin_scheme.rs`,
+/// `tests/cgt_parcels.rs`,
 /// `tests/division_296.rs`,
 /// `tests/termination_payment.rs`, `tests/etp_tax_free_component.rs`, `tests/unused_leave_payment.rs`, `tests/schedule_5.rs`,
 /// `tests/working_holiday_maker.rs`, `tests/seniors_pensioners.rs`,
@@ -26,9 +27,12 @@ use std::process::{Command, Stdio};
 /// `tests/fbt_lafha.rs`, `tests/fbt_board.rs`,
 /// `tests/fbt_tax_exempt_body_entertainment.rs`, `tests/lump_sum_arrears_offset.rs`,
 /// `tests/fbt_entertainment_classifier.rs`, `tests/fbt_minor_benefit.rs`,
-/// `tests/income_tests.rs`, `tests/wine_equalisation_tax.rs`,
-/// `tests/luxury_car_tax.rs` and `tests/sb_cgt_concessions.rs` cover them.
-const NEW_KINDS: [(&str, &str); 46] = [
+/// `tests/ppsr_timing.rs`, `tests/dasp_tax.rs`, `tests/income_tests.rs`,
+/// `tests/wine_equalisation_tax.rs`, `tests/luxury_car_tax.rs` and
+/// `tests/sb_cgt_concessions.rs` cover them.
+const NEW_KINDS: [(&str, &str); 49] = [
+    ("ppsr-timing", "ppsr_timing"),
+    ("dasp-tax", "dasp_tax"),
     ("fbt-minor-benefit-check", "fbt_minor_benefit_check"),
     ("gst-margin-scheme", "gst_margin_scheme"),
     ("fbt-car-statutory", "fbt_car_statutory"),
@@ -54,6 +58,7 @@ const NEW_KINDS: [(&str, &str); 46] = [
     ("fuel-tax-credits", "fuel_tax_credits"),
     ("payroll-tax", "payroll_tax"),
     ("wine-equalisation-tax", "wine_equalisation_tax"),
+    ("cgt-parcels", "cgt_parcels"),
     ("sb-cgt-concessions", "sb_cgt_concessions"),
     ("division-296", "division_296"),
     ("termination-payment", "termination_payment"),

@@ -1032,6 +1032,9 @@ pub fn supported_periods(kind: &str) -> Vec<&'static str> {
         // 2017 and earlier vintages ended (WETR 2009/2; the ATO's QC22756
         // and QC22757); the rate and cap are set by the Act, not indexed.
         "wine_equalisation_tax" => vec!["2023-24", "2024-25", "2025-26", "2026-27", "2027-28"],
+        // s 5 sets fixed rates; the temporary budget repair levy of s 6 ended
+        // with 2016-17. The years are the other superannuation worksheets'.
+        "dasp_tax" => vec!["2025-26", "2026-27", "2027-28"],
         // Division 75 sets no figure by year; the years are gst's.
         "gst_margin_scheme" => vec!["2025-26", "2026-27", "2027-28"],
         // The 2026-27 rates and thresholds each revenue office published, read
@@ -1047,6 +1050,7 @@ pub fn supported_periods(kind: &str) -> Vec<&'static str> {
         // refused as for balancing_adjustment, and its car limit is not yet
         // published.
         "trade_in" => vec!["2025-26", "2026-27"],
+        "cgt_parcels" => vec!["2025-26", "2026-27"],
         "fbt" => vec!["2026", "2027"],
         "fbt_car_statutory" | "fbt_car_operating_cost" | "fbt_loan" => {
             keys(FBT_BENCHMARK_INTEREST_RATES)
@@ -1099,6 +1103,12 @@ pub fn supported_periods(kind: &str) -> Vec<&'static str> {
         // No published rate: s 58P(1)(e)'s $300 is the Act's own. The years
         // are those the other FBT benefit worksheets cover.
         "fbt_minor_benefit_check" => vec!["2026", "2027"],
+        // The year of the registration, possession or attachment, or
+        // agreement: the fees are unchanged since 1 August 2018 and the law
+        // read is in force from 14 October 2024 (PPSA), and the Corporations
+        // Act's ss 9 and 588FL to 588FN read the same from 1 July 2025 with no
+        // enacted amendment; critical times are taken within the same years.
+        "ppsr_timing" => vec!["2025-26", "2026-27"],
         "fbt_entertainment_classifier" => vec!["2026", "2027"],
         "fbt_housing" => keys(FBT_HOUSING_INDEXATION),
         // The years whose definitions were read: the 1 July 2024 compilations
@@ -1150,6 +1160,10 @@ pub fn source_review(kind: &str) -> (&'static str, &'static str) {
             "2026-11-18",
             "ITAA 1997 ss 40-25, 40-85, 40-230, 40-285, 40-290, 40-291A, 40-295, 40-300, 40-305, 40-325, 40-370, 104-235, 104-240, 118-5 and 118-10 (its example) and Subdivision 27-B, compilation 268 (1 October 2026), with the endnotes' amendment history; Treasury Laws Amendment (Tax Reform No. 1) Act 2026 (No 49 of 2026), Schedule 4 item 17 (s 40-291A from 2026-27); Guide to depreciating assets 2026, 'What happens if you no longer hold or use a depreciating asset?', its Bridget, Andrew and Louise examples and the car limit formula",
         ),
+        "dasp_tax" => (
+            "2026-11-19",
+            "Superannuation (Departing Australia Superannuation Payments Tax) Act 2007 ss 4 to 6 (compilation 5, 2 December 2016, Federal Register of Legislation); ITAA 1997 ss 301-170 and 301-175, from the ATO's legal database; the ATO's 'Payments from super' rates (last updated 16 September 2026) and 'Departing Australia superannuation payment (DASP)' (last updated 21 April 2026)",
+        ),
         "payroll_tax" => (
             "2026-11-19",
             "Payroll Tax Act 2007 (NSW) Sch 1 cl 1 (version current from 10 July 2026); Payroll Tax Act 2007 (Vic) s 3A and Sch 1 cl 1, 1A, 1B and 5 (authorised version 041, 1 May 2026); Payroll Tax Act 1971 (Qld) ss 10, 29 and 43I (reprint current as at 22 October 2026); Pay-roll Tax Assessment Act 2002 (WA) ss 8 and 13 (04-d0-03) and Pay-roll Tax Act 2002 (WA) s 5(4) (00-d0-02); Payroll Tax Act 2009 (SA) Sch 1 cl 1, 4 and 5 (version 31.3.2026); Payroll Tax Act 2008 (Tas) Sch 1 cl 1 and 4; Payroll Tax Act 2011 (ACT) Sch 1 (R20) with DI2026-151 s 5; Payroll Tax Act 2009 (NT) s 7A and Sch 1 cl 1, 3 and 5 (as in force at 1 July 2026); and each revenue office's rates and thresholds page",
@@ -1165,6 +1179,10 @@ pub fn source_review(kind: &str) -> (&'static str, &'static str) {
         "luxury_car_tax" => (
             "2026-11-19",
             "A New Tax System (Luxury Car Tax) Act 1999 ss 5-15, 5-20, 7-15, 9-5, 9-15, 15-20, 15-25, 15-30, 18-5, 18-10, 25-1 and 27-1 at the ATO's legal database, with their history notes (ss 18-5(3) and 18-10(3) substituted by Act No. 94 of 2019 for cars supplied or imported from 1 July 2019), and compilation 27 (1 April 2025) at the Federal Register of Legislation; Treasury Laws Amendment (Tax Incentives and Integrity) Act 2025 (No. 29, 2025) Schedule 1 (the 3.5 litre fuel-efficient rating from 1 July 2025 and item 4's continued 7 litre rating); Luxury Car Tax Imposition (General) Act 1999 and (Customs) Act 1999 s 4 (33%); the ATO's 'Luxury car tax rate and thresholds' (QC38161, 1 June 2026), 'Working out the LCT on a sale' (QC22107, 1 June 2026), 'Working out the LCT on an import' (QC22108, 1 June 2026), 'Luxury car tax credits and refunds' (QC39467, 16 July 2025) and the BAS page 'Luxury car tax (LCT)' (QC33694, 1 May 2025); 'Instructions for completing your BAS' (QC17458, 14 September 2026)",
+        ),
+        "cgt_parcels" => (
+            "2026-11-19",
+            "ITAA 1997 ss 102-5, 102-10, 102-15, 104-10, 109-5, 110-25, 110-35, 110-55, 112-30, 114-1, 114-10, 115-5 to 115-25, 115-100 and 116-40, compilation 264 (21 May 2026), the text for 2025-26 and 2026-27 under Act No. 49 of 2026 Schedule 1 items 82 to 84; TD 33 (identical shares); the ATO's 'Keeping records of shares and units' (last updated 22 June 2026: Boris's example), 'CGT discount' (last updated 29 June 2026: the 12 months exclude the days of acquisition and the event) and the individual tax return instructions supplement 2026, question 18 (last updated 30 May 2026: Kathleen's examples 1 to 4)",
         ),
         "trade_in" => (
             "2026-11-18",
@@ -1322,6 +1340,10 @@ pub fn source_review(kind: &str) -> (&'static str, &'static str) {
             "2026-11-15",
             "FBTAA ss 38 and 39 and s 136(1), non-deductible exempt entertainment expenditure, compilation 97 (1 July 2026); Fringe benefits tax - a guide for employers, chapter 15, 15.9 and its per head example; FBT return 2026 instructions, item 23L and example 15",
         ),
+        "ppsr_timing" => (
+            "2026-11-20",
+            "Personal Property Securities Act 2009 ss 10 ('business day'), 62, 153 and 294, compilation 22 (14 October 2024); Personal Property Securities Regulations 2010, compilation 6 (1 July 2022), which prescribe no day for the s 10 definition; Personal Property Securities (Fees) Determination 2018 ss 2, 4, 5 and 6, as made (from 1 August 2018); Corporations Act 2001 ss 9 ('business day'), 588FL and 588FM, compilation 149 (19 September 2026), the same text in compilation 142 (1 July 2025) and unamended by the Acts listed for its versions from 1 December 2026 to 1 July 2027 (Nos. 61, 35, 38 and 57 of 2026 and 72 of 2025); the Registrar's 'Fees for using the PPSR' page",
+        ),
         "fbt_minor_benefit_check" => (
             "2026-11-19",
             "FBTAA ss 58P, 136(1) ('fringe benefit' para (g) and 'eligible premises') and 152B, from the ATO's legal database (s 58P(1)(b) repealed by Act No. 88 of 2013); TR 2007/12 (paras 8 to 23 and examples 1 to 13)",
@@ -1399,6 +1421,13 @@ pub fn library_evidence(kind: &str) -> [(&'static str, &'static str); 4] {
             "2011-11-30",
             "2026-11-16",
         ),
+        // No Library volume covers the PPSR; the Acts themselves were read.
+        "ppsr_timing" => (
+            "Personal Property Securities Act 2009, compilation 22; Corporations Act 2001, compilation 149",
+            "PPSA ss 10, 62 and 153; Corporations Act ss 9 and 588FL",
+            "2026-09-19",
+            "2026-11-20",
+        ),
         "fbt_minor_benefit_check" => (
             "tax-examples-fringe-benefits-tax-fbt",
             "3-060",
@@ -1410,6 +1439,12 @@ pub fn library_evidence(kind: &str) -> [(&'static str, &'static str); 4] {
             "Bridget, Andrew and Louise examples; the Gayle example",
             "2026-06-01",
             "2026-11-18",
+        ),
+        "dasp_tax" => (
+            "superannuation-superannuation-benefits-termination-payments",
+            "8-420",
+            "2026-06-30",
+            "2026-11-19",
         ),
         "payroll_tax" => (
             "Revenue office payroll tax pages: Revenue NSW thresholds and rates; SRO Victoria payroll tax surcharges; QRO payroll tax deductions; RevenueWA employer guide; SRO Tasmania annual adjustment return guideline",
@@ -1432,6 +1467,12 @@ pub fn library_evidence(kind: &str) -> [(&'static str, &'static str); 4] {
         "luxury_car_tax" => (
             "tax-examples-gst-and-other-indirect-taxes",
             "12-340",
+            "2026-06-30",
+            "2026-11-19",
+        ),
+        "cgt_parcels" => (
+            "tax-examples-capital-gains-tax-cgt",
+            "2-240",
             "2026-06-30",
             "2026-11-19",
         ),
@@ -2200,6 +2241,64 @@ pub fn optional_inputs(kind: &str) -> Vec<(&'static str, &'static str)> {
                 "integer from 1, per_head only and required there: everyone entertained at the function, employees, their associates and others",
             ),
         ],
+        "ppsr_timing" => vec![
+            (
+                "registration_time",
+                "YYYY-MM-DDTHH:MM, ACT legal time (PPSA s 294): for registration, required, the registration time; for pmsi and company_grantor, optional, a registration time to test",
+            ),
+            (
+                "collateral",
+                "registration only and required: consumer or commercial (PPSA s 153 item 4(a))",
+            ),
+            (
+                "serial_numbered",
+                "boolean, registration only and required: true when the collateral is described by serial number",
+            ),
+            (
+                "end_date",
+                "YYYY-MM-DD, registration only: the requested end date (the registration ends at the end of that day); absent for no stated end time",
+            ),
+            (
+                "inventory",
+                "boolean, pmsi only and required: true when the collateral is inventory (PPSA s 10)",
+            ),
+            (
+                "goods",
+                "boolean, pmsi only and required: true when the collateral is goods",
+            ),
+            (
+                "trigger_time",
+                "YYYY-MM-DDTHH:MM, pmsi only and required: for goods, when the grantor, or another person at its request, obtained possession; otherwise when the interest attached (PPSA s 62(2)(b) and (3)(b))",
+            ),
+            (
+                "excluded_days",
+                "list of YYYY-MM-DD, pmsi on collateral that is not inventory, and then required: every day from the trigger to the deadline that is a public holiday for the whole of any State, the ACT or the NT, or a day the Registrar refused access to or suspended the register (PPSA s 10 'business day' (b) and (d)); weekends and the days between Christmas Day and New Year's Day are excluded without listing",
+            ),
+            (
+                "pmsi_stated",
+                "boolean, pmsi with registration_time and then required: true when the registration states that the interest is a purchase money security interest (PPSA s 153 item 7)",
+            ),
+            (
+                "agreement_in_force_time",
+                "YYYY-MM-DDTHH:MM, company_grantor only and required: when the security agreement came into force (Corporations Act s 588FL(2)(b)(ii))",
+            ),
+            (
+                "place_holidays",
+                "list of YYYY-MM-DD, company_grantor only and required: every public or bank holiday in the place concerned within the count (Corporations Act s 9 'business day')",
+            ),
+            (
+                "foreign_law_agreement",
+                "boolean, company_grantor only and required: true when the agreement came into force under the law of a foreign jurisdiction (s 588FL(2)(b)(iii)), which is refused",
+            ),
+            (
+                "critical_time",
+                "YYYY-MM-DDTHH:MM, company_grantor only: the critical time (s 588FL(7)), from 1 July 2025 to 30 June 2027",
+            ),
+            (
+                "court_ordered_time",
+                "YYYY-MM-DDTHH:MM, company_grantor with critical_time only: a later time the Court ordered (ss 588FL(2)(b)(iv) and 588FM)",
+            ),
+        ],
         "fbt_minor_benefit_check" => vec![
             (
                 "in_house",
@@ -2412,6 +2511,28 @@ pub fn input_units(kind: &str) -> Vec<(&'static str, &'static str)> {
                 "list of objects, one for each income year held from the start time to the event, each with income_year (from 2001-02, and for a car from 2015-16, to the event's year), decline_in_value (AUD; for a cents per kilometre year the notional decline of s 40-370(3)) and deduction (AUD, the decline less the s 40-25 reductions); a car's rows also state method (log_book or cents_per_kilometre, which takes no deduction) and days_held (integer from 1 to the days in that income year, 366 when it includes 29 February)",
             ),
         ],
+        "dasp_tax" => vec![
+            (
+                "tax_free_component",
+                "AUD, the payment's tax free component, as the paying fund states it",
+            ),
+            (
+                "taxed_element",
+                "AUD, the element taxed in the fund of the payment's taxable component",
+            ),
+            (
+                "untaxed_element",
+                "AUD, the element untaxed in the fund of the payment's taxable component, 0.00 for most funds",
+            ),
+            (
+                "working_holiday_maker_contributions",
+                "boolean, true when the payment includes amounts attributable to superannuation contributions made whilst the person was a working holiday maker: the holder of a subclass 417 (Working Holiday) or 462 (Work and Holiday) visa or an associated bridging visa (DASP Tax Act s 5(3); Income Tax Rates Act 1986 s 3A). The 65% rate then applies to the whole taxable component, whatever visa the person held when other contributions were made",
+            ),
+            (
+                "unclaimed_money_rollover",
+                "boolean, true when the payment is a roll-over superannuation benefit paid under s 20H(2), (2AA) or (2A) of the Superannuation (Unclaimed Money and Lost Members) Act 1999; true with an element untaxed in the fund is refused, as s 5(2) taxes any excess untaxed roll-over amount in it at nil",
+            ),
+        ],
         "payroll_tax" => vec![
             ("jurisdiction", "nsw, vic, qld, wa, sa, tas, act or nt"),
             (
@@ -2465,6 +2586,40 @@ pub fn input_units(kind: &str) -> Vec<(&'static str, &'static str)> {
             "lines",
             "list of 1 to 1,000 objects, the tax period's luxury car tax lines, each with kind and its inputs: sale (a taxable supply of a luxury car, s 5-10) or importation (a taxable importation, s 7-5) with luxury_car_tax_value (AUD, the value including GST and customs duty but not luxury car tax: s 5-20 for a sale, s 7-15(2) for an importation), fuel_consumption_litres_per_100km (the combined rating under the national road vehicle standards, a decimal string from 0 to 100 with at most 2 decimal places, or null for none), used_before_1_july_2025 (boolean, required only for a car rated above 3.5 and at most 7 litres supplied or imported from 1 July 2025: true where, before that day, an entity supplied or imported the car and it was used in Australia other than for a quotable purpose) and, for a sale, lct_previously_payable (AUD, optional: luxury car tax payable on an earlier supply or importation of the car, s 5-15(2)); price_adjustment (an adjustment event on an earlier sale, ss 15-20 and 15-25) with supplied_in (the financial year of the sale, 2012-13 to the tax period's), corrected_luxury_car_tax_value, the car's rating facts, lct_previously_payable (optional) and previously_attributed_lct (AUD, the luxury car tax previously attributed to the supply); change_of_use_increasing (a car supplied under quote, or one on whose supply a s 15-30(1) decreasing adjustment arose, then used other than for a quotable purpose, s 15-30(3) and (4)) with supplied_in, luxury_car_tax_value, the rating facts and lct_previously_payable (optional); change_of_use_decreasing (s 15-30(1)) with lct_payable_on_supply (AUD); and refund (s 18-5 or 18-10) with claimant (primary_producer or tourism_operator), refund_eligible_car (boolean), lct_borne (AUD) and supplied_in (optional, from 2019-20)",
         )],
+        "cgt_parcels" => vec![
+            (
+                "entity",
+                "individual, trust, complying_superannuation_entity or company (not a life insurance company): the entity that made the gains (ITAA 1997 ss 115-10 and 115-100)",
+            ),
+            (
+                "identification",
+                "first_in_first_out (the earliest acquired parcel of the security first) or selected (each disposal lists its parcels, as TD 33 para 4 accepts)",
+            ),
+            (
+                "parcels",
+                "list of 1 to 1,000 objects, each with parcel (a unique name), security (the same text for identical shares or units), acquired (YYYY-MM-DD, the contract date, s 109-5; not after the year), units (a decimal string above 0, at most 6dp), acquisition_cost (AUD, the first element, s 110-25(2)) and incidental_costs (AUD, the second element on acquiring, such as brokerage and stamp duty, ss 110-25(3) and 110-35), and optionally ownership_costs (AUD, the third element, s 110-25(4)), capital_expenditure (AUD, the fourth, s 110-25(5)) and title_costs (AUD, the fifth, s 110-25(6))",
+            ),
+            (
+                "disposals",
+                "list of 1 to 1,000 objects, each with security, date (YYYY-MM-DD, the contract date, s 104-10(3); not after the year, and one before it uses up units without being counted), units, capital_proceeds (AUD, before selling costs) and incidental_costs (AUD, the second element on disposing, such as brokerage); for selected identification also parcels, a list of objects each with parcel and units, adding up to the disposal's units",
+            ),
+            (
+                "other_discount_capital_gains",
+                "AUD, the year's other discount capital gains, before losses and the discount; 0.00 for a company",
+            ),
+            (
+                "other_capital_gains",
+                "AUD, the year's other capital gains that are not discount capital gains",
+            ),
+            (
+                "other_capital_losses",
+                "AUD, the year's other capital losses, none from collectables or personal use assets",
+            ),
+            (
+                "prior_net_capital_losses",
+                "AUD, net capital losses of earlier years not yet applied, none from collectables",
+            ),
+        ],
         "trade_in" => vec![
             (
                 "cost",
@@ -3039,6 +3194,10 @@ pub fn input_units(kind: &str) -> Vec<(&'static str, &'static str)> {
                 "AUD, non-deductible exempt entertainment expenditure (FBTAA s 136(1)): under actual, the part incurred in entertaining employees and their associates; under per_head, the whole function's",
             ),
         ],
+        "ppsr_timing" => vec![(
+            "question",
+            "registration (end time and fee), pmsi (registration deadline for super-priority) or company_grantor (Corporations Act s 588FL time)",
+        )],
         "fbt_minor_benefit_check" => vec![
             (
                 "category",
@@ -3223,6 +3382,16 @@ pub fn examples(kind: &str) -> Vec<(&'static str, Example)> {
                 ),
             ),
         ],
+        // The Library's example (Superannuation Benefits, 8-420): a $42,000
+        // benefit of a $25,000 tax free component and a $17,000 element
+        // taxed in the fund, applied for on 1 August 2026.
+        "dasp_tax" => vec![
+            ("tax_free_component", Text("25000.00")),
+            ("taxed_element", Text("17000.00")),
+            ("untaxed_element", Text("0.00")),
+            ("working_holiday_maker_contributions", Flag(false)),
+            ("unclaimed_money_rollover", Flag(false)),
+        ],
         "payroll_tax" => vec![
             ("year", Text("2026-27")),
             ("jurisdiction", Text("nsw")),
@@ -3267,6 +3436,29 @@ pub fn examples(kind: &str) -> Vec<(&'static str, Example)> {
                     r#"[{"kind": "sale", "luxury_car_tax_value": "88000.00", "fuel_consumption_litres_per_100km": "8.5"}]"#,
                 ),
             ),
+        ],
+        // The ATO's Kathleen (question 18 of the 2026 supplement, examples 1
+        // to 4), her collectables left out.
+        "cgt_parcels" => vec![
+            ("year", Text("2025-26")),
+            ("entity", Text("individual")),
+            ("identification", Text("first_in_first_out")),
+            (
+                "parcels",
+                Json(
+                    r#"[{"parcel": "K1", "security": "Company A", "acquired": "2000-11-17", "units": "1000", "acquisition_cost": "3000.00", "incidental_costs": "0.00"}, {"parcel": "K2", "security": "Company B", "acquired": "2025-10-10", "units": "130", "acquisition_cost": "520.00", "incidental_costs": "0.00"}, {"parcel": "K3", "security": "Company C", "acquired": "2025-10-10", "units": "600", "acquisition_cost": "2400.00", "incidental_costs": "0.00"}]"#,
+                ),
+            ),
+            (
+                "disposals",
+                Json(
+                    r#"[{"security": "Company A", "date": "2025-12-17", "units": "1000", "capital_proceeds": "6000.00", "incidental_costs": "0.00"}, {"security": "Company B", "date": "2026-02-27", "units": "130", "capital_proceeds": "1040.00", "incidental_costs": "0.00"}, {"security": "Company C", "date": "2026-06-25", "units": "600", "capital_proceeds": "1800.00", "incidental_costs": "0.00"}]"#,
+                ),
+            ),
+            ("other_discount_capital_gains", Text("0.00")),
+            ("other_capital_gains", Text("0.00")),
+            ("other_capital_losses", Text("0.00")),
+            ("prior_net_capital_losses", Text("400.00")),
         ],
         "trade_in" => vec![
             ("year", Text("2026-27")),
@@ -3611,6 +3803,14 @@ pub fn examples(kind: &str) -> Vec<(&'static str, Example)> {
         // function on the employer's premises, valued per head.
         // The Library's birthday flowers (Tax Examples, FBT, 3-060): an $80
         // bouquet on the employee's birthday, a property benefit.
+        // Constructed: consumer goods described by serial number, registered
+        // on 2 March 2026 with no end date asked for.
+        "ppsr_timing" => vec![
+            ("question", Text("registration")),
+            ("registration_time", Text("2026-03-02T10:30")),
+            ("collateral", Text("consumer")),
+            ("serial_numbered", Flag(true)),
+        ],
         "fbt_minor_benefit_check" => vec![
             ("category", Text("property")),
             ("in_house", Flag(false)),

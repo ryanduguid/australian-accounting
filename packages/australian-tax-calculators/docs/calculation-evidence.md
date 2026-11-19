@@ -56,6 +56,7 @@ example evidence; it does not claim a fresh review of every supported period.
 | Borrowing expenses schedule | `tax-examples-deductions` (tax-examples), ¶4-160, with ITAA 1997 ss 25-25, 26-50 and 26-155 and the Acts Interpretation Act 1901 ss 2G and 36 (compilation 39) | 30 June 2026; 22 May 2026 (ATO page) | Several loans first drawn from 1 July 2017, every year of each; use by year and refinancing established by the operator; s 26-155 flagged, not applied |
 | Hire purchase schedule | Not a Library document: ITAA 1997 ss 240-17, 240-55 and 240-60 on the ATO's legal database and in compilation 268 (1 October 2026) | 15 November 2026 (read) | One agreement's monthly notional interest for the hirer, starting in 2024-25 to 2026-27, from established payments; apportionment to income years under s 240-60(2) excluded |
 | Balancing adjustment | Not a Library document: the ATO's Guide to depreciating assets 2026 (Bridget, Andrew and Louise examples) and ITAA 1997 Subdivisions 27-B and 40-D, ss 104-240, 118-5 and 118-10(1) and its example (compilation 268, 1 October 2026) | 1 June 2026 (Guide); 18 November 2026 (read) | One depreciating asset's balancing adjustment, s 40-290 reduction and K7 amount for events in 2024-25 to 2026-27, from established cost, termination value and each year's decline and deduction; pools, s 40-291A and roll-overs excluded |
+| CGT parcels | `tax-examples-capital-gains-tax-cgt` (tax-examples), ¶2-240, with the ATO's individual tax return instructions supplement 2026, question 18 (Kathleen's examples 1 to 4), 'Keeping records of shares and units' (Boris's example), 'CGT discount', TD 33 and ITAA 1997 compilation 264 | 30 June 2026; 30 May, 22 June and 29 June 2026 (ATO pages); 19 November 2026 (read) | Parcels of shares or units acquired after 21 September 1999 and sold in 2025-26 or 2026-27; cost base adjustments, indexation and the small business concessions excluded |
 | Trade-in | Not a Library document: the ATO's 'Purchasing a motor vehicle' (Darren's example) and 'GST and the disposal of capital assets' (Ian's example), with ITAA 1997 Subdivision 27-B and ss 40-180 to 40-230, 40-305 and 40-365 (compilation 268) and GST Act ss 9-75, 11-30, 69-10 and 132-5 (compilation 96) | 3 June 2026 and 24 May 2017 (ATO pages); 18 November 2026 (read) | One asset traded in at arm's length for a replacement first held and used in 2025-26 or 2026-27; GST status, credits, allowance and price established; involuntary disposals and luxury car tax on the trade-in excluded |
 | Payroll tax | Not a Library document: each revenue office's rates page and examples, with each jurisdiction's payroll tax Act and the ACT's DI2026-151 | 17 July 2024 to 29 September 2026 (revenue office pages); 19 November 2026 (read) | One employer outside a group paying wages all year in one jurisdiction in 2026-27; taxable and Australian wages established; exemptions, rebates, discounts, caps and periodic returns excluded |
 | Depreciation | `tax-examples-depreciation` (tax-examples), ¶6-000 and ¶6-020 | 30 June 2025 | First-year formulas and taxable-use apportionment in 2024–25 examples |
@@ -802,6 +803,65 @@ are fabricated under it. The tests also cover $300 itself and $299.99, each
 exclusion alone and together, both s 58P(1)(d) exceptions, mixed criteria left
 to judgement, and each refusal.
 
+## PPSR timing
+
+Added on 20 November 2026. Its sources were read that night, 12.00 am to
+12.15 am AEDT, from the Federal Register of Legislation: the Personal Property
+Securities Act 2009, compilation 22 (in force from 14 October 2024, the latest),
+ss 10 ('business day'), 62, 151, 153, 167, 168, 179, 293 and 294; the Personal
+Property Securities Regulations 2010, compilation 6 (from 1 July 2022, the
+latest), whose only use of 'business day' is in 2 notice rules, so they
+prescribe no day for the s 10 definition, and whose reg 3.1 sets the class of
+collateral for s 153 item 7; the Personal Property Securities (Fees)
+Determination 2018 as made (in force from 1 August 2018 with no later
+compilation, made by the Attorney-General under s 190); and the Corporations
+Act 2001, compilation 149 (19 September 2026 to 30 November 2026), ss 9
+('business day'), 588FL, 588FM and 588FN. On 20 November 2026 at about
+1.40 am those sections were compared with compilation 142 (from 1 July 2025):
+the text is the same. The Register lists versions from
+1 December 2026, 4 December 2026, 8 April 2027 and 1 July 2027, made by Acts
+Nos. 61, 35, 38 and 57 of 2026 and No. 72 of 2025; none of them amends the
+'business day' definition or ss 588FL to 588FN, so the command takes a
+critical time on any day of its 2 income years, 1 July 2025 to 30 June 2027,
+and refuses one outside them. The Determination has no later version before its
+sunset on 1 October 2028. The Registrar's 'Fees for using the PPSR' page, read
+at 12.03 am and again at about 1.40 am, gives the same amounts and says they are not
+subject to GST. It names the Treasurer in one paragraph and the Attorney
+General in another; the Determination itself is the Attorney-General's.
+
+The Determination's tiers are by end time: up to the end of the day 7 years
+after the registration time ($6.00), more than that and up to the end of the
+day 25 years after ($25.00), and no end time ($115.00). An end time on the
+7 year day is the lower tier. s 153(2) takes a non-complying end time, which
+s 153(3) says includes one earlier than the registration time, to be the
+default time; the command applies it rather than refusing, and says so.
+
+Counting follows the Acts: '15 business days after the day' (PPSA s 62(3)(b))
+and '20 business days after the security agreement ... came into force'
+(Corporations Act s 588FL(2)(b)(ii)) start on the next day, and each ends at
+the end of the last business day. '6 months before the critical time' is the
+same day and time 6 months earlier; where that day does not exist (31 August
+less 6 months) the command refuses, as neither Act settles it. A registration
+at the latest time is not 'after' it, so does not vest. The registrar's timing
+page speaks of 20 working days after the agreement is signed; the Act counts
+from when it came into force, and the command follows the Act.
+
+No published example with dates was found on the Registrar's site, so
+`tests/ppsr_timing.rs` holds constructed cases, each checked by hand against
+the calendar:
+
+| Case | Facts given | Result |
+| --- | --- | --- |
+| Consumer, registered 19 November 2026 | No end date | Ends 19 November 2033, $6.00 |
+| Commercial, same day | No end date; 10 years; 7 years; 7 years and a day | $115.00; $25.00; $6.00; $25.00 |
+| Serial numbered, end asked for in 2040 | Past the 7 year default | Default time, $6.00 |
+| Non-inventory goods, possession 21 December 2026 | 25 December and 1 January listed | Register by the end of 19 January 2027 |
+| Inventory, possession 2 November 2026, 3.00 pm | Registered at 3.00 pm; 3.01 pm | Super-priority; none |
+| Company, agreement 12 October 2026 | 3 November listed, or not | 10 November, or 9 November |
+| Same, critical time 20 November 2026 | Registered 10 November 4.00 pm; 11 November | Does not vest; vests |
+| Company, agreement 2 November 2026, critical time 1 March 2027 | 3 November listed; registered 25 November, or 2 December | Latest time the end of 1 December: does not vest; vests |
+| Agreement 2 February 2026, critical time 1 November 2026 | Registered 15 April; 1 May 10.00 am; 1 May 10.01 am | Latest time 1 May 10.00 am: not, not, vests |
+
 ## Wine equalisation tax
 
 This worksheet was added on 19 November 2026. The WET Act was read that day
@@ -1403,6 +1463,49 @@ The working keeps each fraction exact and divides once, last, so a reduction
 of $3,125 x 9,050 / 15,125 is not rounded before the days scale it. The Act's
 own example rounds to dollars; the worksheet shows cents, half up, as every
 worksheet here does.
+
+## CGT parcels
+
+This worksheet was added on 19 November 2026. ITAA 1997 ss 102-5, 102-10,
+102-15, 104-10, 109-5, 110-25, 110-35, 110-55, 112-30, 114-1, 114-10, 115-5 to
+115-25, 115-100 and 116-40 were read that day in compilation 264 (21 May 2026),
+volume 3, at 14:39 AEDT
+(https://www.legislation.gov.au/C2004A05138/2026-05-21/2026-05-21/text/original/epub/OEBPS/document_3/document_3.html).
+That compilation is the text for 2025-26 and 2026-27: Act No. 49 of 2026,
+read at 14:40, rewrites s 102-5(1) and Subdivision 115-C, and Schedule 1
+items 82 to 84 apply those changes to assessments for the income year that
+includes 1 July 2027 and later years, so later compilations' step numbers are
+not this worksheet's. The ATO's pages were read at 14:30: 'Keeping records of
+shares and units' (last updated 22 June 2026: each parcel is a separate CGT
+asset, and Boris may choose which shares he sells), 'CGT discount' (last
+updated 29 June 2026: the 12 months exclude the day of acquisition and the day
+of the CGT event; a complying super fund's discount is 33.33%; a company has
+none) and TD 33 (the Commissioner accepts first in, first out and the
+taxpayer's selection; average cost only for shares acquired on the same day).
+Question 18 of the individual tax return instructions supplement 2026 (last
+updated 30 May 2026) gives Kathleen's examples and labels H, A and V.
+
+The Act does not say how a parcel's cost is split between the units sold and
+those kept. Each share or unit is a CGT asset, so the worksheet takes the part
+of the cost base reasonably attributable to the units (s 112-30(1) and (1A)):
+elements 1, 2, 4 and 5 together, rounded once, and costs of owning (element 3)
+apart, as the reduced cost base leaves them out (s 110-55(2)), and of a sale's
+proceeds reasonably attributable to each part (s 116-40(1)) by number of
+units, rounded to the cent, half up, with the last units taking what is left
+so the parts add up.
+
+`tests/cgt_parcels.rs` holds these cases.
+
+| Case | Source | Worksheet |
+| --- | --- | --- |
+| Kathleen: 1,000 shares bought 17 November 2000 for $3,000 and sold for $6,000; 130 bought 10 October 2025 for $520 and sold for $1,040; 600 bought then for $2,400 and sold for $1,800; $400 of earlier losses | Question 18 supplement 2026, examples 1 to 4 | Label H $3,520; $520 and $80 of the loss, then $400, applied; $1,260 net capital gain; collectables left out |
+| Boris: 1,000 shares at $5 and 3,000 at $10, 1,500 sold at $8 | 'Keeping records of shares and units' (days fabricated) | Selecting the $10 shares: $3,000 loss, 1,000 at $5 and 1,500 at $10 left; first in, first out: $3,000 discount gain and $1,000 loss, $1,000 net |
+| David Jones: 2,000 CSR originals at $2 sold at $1 first in, first out; 1,000 of 5,000 WBC shares ($60,000) sold at $20 within 12 months; IBM loss $6,660 and TEL gain $21,435 given | Library ¶2-240 (the CSR bonus shares' $2,000 cost fabricated) | $8,660 of losses take the $8,000 WBC gain and $660 of the TEL gain; $10,387.50 net |
+| Bought 2 February 2025, sold 3 February 2026 and 2 February 2026 | 'CGT discount', 12-month count | Discount capital gain from 3 February; not on 2 February |
+| A $289,755 gain held over 12 months | Worked by hand under s 115-100 | $96,585 discount for a complying superannuation entity, $144,877.50 for a trust, none for a company |
+| 3 units for $110 sold 1 then 2; 3 units sold for $100 from parcels of 1 and 2 | Worked by hand | Cost bases $36.67 and $73.33; proceeds $33.33 and $66.67 |
+| $1,000 cost and $100 costs of owning, sold for $1,050 | Worked by hand under ss 110-25(4) and 110-55(2) | Neither gain nor loss |
+| A company in 2026-27: a $100 parcel sold for nothing, $150 of other gains and $20 of earlier losses | Worked by hand under s 102-5(1) steps 1 and 2 | $30 net capital gain, nothing carried forward |
 
 ## Trade-in
 
@@ -2213,6 +2316,36 @@ earlier ETPs in the year or for the same termination (which reduce the caps,
 s 82-10(4)(a) and (b)), delayed termination payments, payees without a TFN,
 foreign residents and working holiday makers are outside it.
 
+## DASP tax
+
+Added on 19 November 2026. Its sources were read that afternoon: the
+Superannuation (Departing Australia Superannuation Payments Tax) Act 2007
+(No. 13, 2007; compilation 5, 2 December 2016), ss 4 to 6, from the Federal
+Register of Legislation; ITAA 1997 ss 301-170 and 301-175 from the ATO's legal
+database; and the ATO's 'Payments from super' rates (last updated 16 September
+2026) and 'Departing Australia superannuation payment (DASP)' (last updated 21
+April 2026), which give the same rates, the 417 and 462 visas and that the
+65% rate covers the whole payment. The Library's Superannuation Benefits,
+8-420 (reviewed 30 June 2026), gives the worked example and the s 3A meaning
+of working holiday maker.
+
+s 5(3) applies to a payment made on or after 1 July 2017, so to every year
+the command takes. The ATO's rates page gives s 6's temporary budget repair
+levy years as 2014-15 to 2016-17, so none of them is taken. The Act states
+percentages and no rounding; rounding each element's tax to the cent is the
+command's.
+
+`tests/dasp_tax.rs` holds each case.
+
+| Example | Facts given | Tax |
+| --- | --- | --- |
+| Library 8-420 | Tax free component **$25,000**, element taxed in the fund **$17,000** | **$5,950.00** (35%) |
+| The same, working holiday maker | As above | **$11,050.00** (65%) |
+| Both elements | Tax free $1,000, taxed $10,000, untaxed $20,000 | **$12,500.00**; working holiday maker **$19,500.00** |
+
+The last 2 rows are worked by hand from s 5. The tests also cover rounding
+at the half cent, a payment under $200, a wholly tax free payment and each
+refusal.
 ## ETP tax free component
 
 This worksheet's evidence was read on 19 November 2026 from 9.25 am to
@@ -3042,6 +3175,7 @@ year; the others refuse it and say what is missing.
 | Borrowing expenses | Worked out and flagged: s 25-25 sets no figure by year, and s 26-155 applies after it | ITAA 1997 ss 25-25 and 26-155 on the ATO's legal database, read 19 November 2026 |
 | CGT and rental deductions | Changed from 1 July 2027 by Act No. 49 of 2026 Schedules 1 and 2 (s 26-155) | ITAA 1997 s 26-155 (https://www.ato.gov.au/law/view/document?docid=PAC/19970038/26-155), 16:13 |
 | Balancing adjustment | Refused: CGT event K7 is a capital gain, which Schedule 1 to Act No. 49 of 2026 changes from 1 July 2027 | Act No. 49 of 2026 as made (https://www.legislation.gov.au/C2026A00049/asmade/text), read 18 November 2026 at 07:06; see [Balancing adjustment](#balancing-adjustment) |
+| CGT parcels | Refused: Schedule 1 to Act No. 49 of 2026 changes how capital gains are worked out from the income year that includes 1 July 2027 | Act No. 49 of 2026 as made (https://www.legislation.gov.au/C2026A00049/asmade/text), items 82 to 84, read 19 November 2026 at 14:40; see [CGT parcels](#cgt-parcels) |
 | Trade-in | Refused: the car limit for 2027-28 was not published, and CGT event K7 changes with Act No. 49 of 2026 | ATO 'Purchasing a motor vehicle' (last updated 3 June 2026, the 2026-27 limit only), read 18 November 2026 at 07:10; see [Trade-in](#trade-in) |
 | Small business CGT concessions | Refused: Schedule 1 to Act No. 49 of 2026 changes Division 152 from the income year that includes 1 July 2027 | Act No. 49 of 2026 as made (https://www.legislation.gov.au/C2026A00049/asmade/text), item 82, read 19 November 2026 at 14:40; see [Small business CGT concessions](#small-business-cgt-concessions) |
 | Business capital expenditure | Enacted, no year: ITAA 1997 s 40-880 and the small business entity test of Subdivision 328-C, neither amended in compilation 268 or the version from 1 December 2026; s 26-155 left out of scope | Compilation 268 (https://www.legislation.gov.au/C2004A05138/latest/text) and the Register's API, read 17 November 2026 from 01:33; see [Business capital expenditure](#business-capital-expenditure) |
