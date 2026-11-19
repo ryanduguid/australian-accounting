@@ -734,6 +734,56 @@ are fabricated under it. The tests also cover $300 itself and $299.99, each
 exclusion alone and together, both s 58P(1)(d) exceptions, mixed criteria left
 to judgement, and each refusal.
 
+## PPSR timing
+
+Added on 20 November 2026. Its sources were read that night, 12.00 am to
+12.15 am AEDT, from the Federal Register of Legislation: the Personal Property
+Securities Act 2009, compilation 22 (in force from 14 October 2024, the latest),
+ss 10 ('business day'), 62, 151, 153, 167, 168, 179, 293 and 294; the Personal
+Property Securities Regulations 2010, compilation 6 (from 1 July 2022, the
+latest), whose only use of 'business day' is in 2 notice rules, so they
+prescribe no day for the s 10 definition, and whose reg 3.1 sets the class of
+collateral for s 153 item 7; the Personal Property Securities (Fees)
+Determination 2018 as made (in force from 1 August 2018 with no later
+compilation, made by the Attorney-General under s 190); and the Corporations
+Act 2001, compilation 149 (19 September 2026 to 30 November 2026), ss 9
+('business day'), 588FL, 588FM and 588FN. The Registrar's 'Fees for using the
+PPSR' page, read at 12.03 am, gives the same amounts and says they are not
+subject to GST. It names the Treasurer in one paragraph and the Attorney
+General in another; the Determination itself is the Attorney-General's.
+
+The Determination's tiers are by end time: up to the end of the day 7 years
+after the registration time ($6.00), more than that and up to the end of the
+day 25 years after ($25.00), and no end time ($115.00). An end time on the
+7 year day is the lower tier. s 153(2) takes a non-complying end time, which
+s 153(3) says includes one earlier than the registration time, to be the
+default time; the command applies it rather than refusing, and says so.
+
+Counting follows the Acts: '15 business days after the day' (PPSA s 62(3)(b))
+and '20 business days after the security agreement ... came into force'
+(Corporations Act s 588FL(2)(b)(ii)) start on the next day, and each ends at
+the end of the last business day. '6 months before the critical time' is the
+same day and time 6 months earlier; where that day does not exist (31 August
+less 6 months) the command refuses, as neither Act settles it. A registration
+at the latest time is not 'after' it, so does not vest. The registrar's timing
+page speaks of 20 working days after the agreement is signed; the Act counts
+from when it came into force, and the command follows the Act.
+
+No published example with dates was found on the Registrar's site, so
+`tests/ppsr_timing.rs` holds constructed cases, each checked by hand against
+the calendar:
+
+| Case | Facts given | Result |
+| --- | --- | --- |
+| Consumer, registered 19 November 2026 | No end date | Ends 19 November 2033, $6.00 |
+| Commercial, same day | No end date; 10 years; 7 years; 7 years and a day | $115.00; $25.00; $6.00; $25.00 |
+| Serial numbered, end asked for in 2040 | Past the 7 year default | Default time, $6.00 |
+| Non-inventory goods, possession 21 December 2026 | 25 December and 1 January listed | Register by the end of 19 January 2027 |
+| Inventory, possession 2 November 2026, 3.00 pm | Registered at 3.00 pm; 3.01 pm | Super-priority; none |
+| Company, agreement 12 October 2026 | 3 November listed, or not | 10 November, or 9 November |
+| Same, critical time 20 November 2026 | Registered 10 November 4.00 pm; 11 November | Does not vest; vests |
+| Agreement 2 February 2026, critical time 1 November 2026 | Registered 15 April; 1 May 10.00 am; 1 May 10.01 am | Latest time 1 May 10.00 am: not, not, vests |
+
 ## Main residence
 
 This worksheet was added on 1 November 2026; its example evidence was read

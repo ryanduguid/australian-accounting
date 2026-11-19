@@ -4,6 +4,21 @@
 
 ### Added
 
+- `ppsr-timing` answers what the Personal Property Securities Register's law
+  decides without a search, for 2025-26 and 2026-27: a registration's latest
+  end time, the end time s 153(2) and (3) apply and its fee (PPSA s 153
+  item 5; Personal Property Securities (Fees) Determination 2018 s 4); a
+  purchase money security interest's registration deadline (PPSA s 62(2)(b)
+  and (3)(b)) and whether a registration meets it; and a company grantor's
+  20 business day time and, with a critical time, whether the interest vests
+  (Corporations Act s 588FL). Business days follow PPSA s 10 and Corporations
+  Act s 9 over the holidays the caller lists. New codes:
+  `ppsr_timing.date_outside_year`, `ppsr_timing.date_unsettled`,
+  `ppsr_timing.days_invalid`, `ppsr_timing.fact_invalid`,
+  `ppsr_timing.foreign_law_unsupported`, `ppsr_timing.holidays_incomplete`,
+  `ppsr_timing.law_unread` and `ppsr_timing.time_invalid`.
+  `tests/ppsr_timing.rs` holds it to each fee tier and constructed calendar
+  cases.
 - `fbt-meal-entertainment-register` checks a 12 week meal entertainment
   register for the FBT year ended 31 March 2026 or 2027: the continuous
   12 week period (FBTAA s 37CC), each entry's 6 details (s 37CE(1)), the

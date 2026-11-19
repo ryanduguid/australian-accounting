@@ -154,8 +154,8 @@ fn every_catalogued_required_input_of_a_strict_command_is_read() {
     // lump-sum-arrears-tax-offset, income-tests,
     // business-capital-expenditure, balancing-adjustment, trade-in,
     // etp-tax-free-component, fbt-meal-entertainment-register,
-    // fbt-minor-benefit-check and gst-margin-scheme.
-    assert_eq!(checked, 40);
+    // fbt-minor-benefit-check, gst-margin-scheme and ppsr-timing.
+    assert_eq!(checked, 41);
 }
 
 /// Every frozen call gives the same answer through either entry point, and
