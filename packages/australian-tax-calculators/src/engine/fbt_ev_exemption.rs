@@ -13,6 +13,7 @@ use serde_json::{Value, json};
 
 use super::{Arg, Result, date_arg, fbt_year, flag, money, rate, refuse, result};
 use crate::dates;
+use crate::decimal::Decimal;
 
 const KIND: &str = "fbt_ev_exemption_check";
 
@@ -211,6 +212,35 @@ fn add_outcome(out: &mut Value, rows: Vec<Value>, car: bool) {
     }
 }
 
+/// Whether luxury car tax became payable on the first retail sale, on `sale`,
+/// before the benefits, with the rates that decide it. s 8A(1)(c) counts luxury
+/// car tax payable before the benefit: a sale after the FBT year comes after
+/// every benefit in it, so no threshold applies to it, and a taxed sale within
+/// the year after the car was first held and used comes between the benefits
+/// and is refused.
+fn first_sale_taxed(
+    ended: i64,
+    first_used: i64,
+    sale: i64,
+    value: &Decimal,
+) -> Result<(bool, Vec<(String, String)>)> {
+    let sale_year = financial_year(sale);
+    let mut rates = vec![rate("first_retail_sale_year", &sale_year)];
+    if sale > day(&format!("{ended}-03-31")) {
+        return Ok((false, rates));
+    }
+    let limit = threshold(&sale_year)?;
+    rates.push(rate("fuel_efficient_luxury_car_tax_threshold", limit));
+    let taxed = value.gt(&super::d(limit))?;
+    if taxed && sale > first_used && sale >= day(&format!("{}-04-01", ended - 1)) {
+        return refuse(
+            "fbt_ev_exemption.sale_within_year",
+            "first_retail_sale is within the FBT year, after the car was first held and used, and luxury car tax was payable on it: it fails FBTAA s 8A(1)(c) only for the benefits after it, so the year has no single result.",
+        );
+    }
+    Ok((taxed, rates))
+}
+
 pub fn fbt_ev_exemption_check(args: &EvExemptionArgs) -> Result<Value> {
     let (year, period, _) = fbt_year(args.scope_confirmed, args.year_ended, KIND)?;
     let ended: i64 = year.parse().expect("FBT year");
@@ -226,25 +256,7 @@ pub fn fbt_ev_exemption_check(args: &EvExemptionArgs) -> Result<Value> {
         "luxury_car_tax_on_other_supply",
     )?;
     refuse_conflicts(ended, first_used, hybrid)?;
-    // s 8A(1)(c) counts luxury car tax payable before the benefit: a sale
-    // after the FBT year comes after every benefit in it, so no threshold
-    // applies to it.
-    let sale_year = financial_year(first_sale);
-    let limit = if first_sale > day(&format!("{ended}-03-31")) {
-        None
-    } else {
-        Some(threshold(&sale_year)?)
-    };
-    let taxed = match limit {
-        Some(limit) => value.gt(&super::d(limit))?,
-        None => false,
-    };
-    if taxed && first_sale > first_used && first_sale >= day(&format!("{}-04-01", ended - 1)) {
-        return refuse(
-            "fbt_ev_exemption.sale_within_year",
-            "first_retail_sale is within the FBT year, after the car was first held and used, and luxury car tax was payable on it: it fails FBTAA s 8A(1)(c) only for the benefits after it, so the year has no single result.",
-        );
-    }
+    let (taxed, rates) = first_sale_taxed(ended, first_used, first_sale, &value)?;
     let mut rows = vec![
         condition("car", CAR, car),
         condition("current_employee", CURRENT_EMPLOYEE, current),
@@ -265,8 +277,6 @@ pub fn fbt_ev_exemption_check(args: &EvExemptionArgs) -> Result<Value> {
         OTHER_SUPPLY,
         !other_supply,
     ));
-    let mut rates = vec![rate("first_retail_sale_year", &sale_year)];
-    rates.extend(limit.map(|limit| rate("fuel_efficient_luxury_car_tax_threshold", limit)));
     let mut out = result(KIND, &period, vec![("luxury_car_tax_value", value)], rates)?;
     add_outcome(&mut out, rows, car);
     Ok(out)
