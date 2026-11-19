@@ -11,21 +11,22 @@ use std::process::{Command, Stdio};
 /// Worksheets added after Python 0.2.0, so absent from the frozen corpus;
 /// `tests/fbt_car.rs`, `tests/main_residence.rs`,
 /// `tests/borrowing_expenses.rs`, `tests/hire_purchase.rs`,
+/// `tests/chattel_mortgage.rs`, `tests/loan_transactions.rs`,
 /// `tests/business_capital_expenditure.rs`, `tests/balancing_adjustment.rs`, `tests/trade_in.rs`,
 /// `tests/payroll_tax.rs`,
 /// `tests/division_296.rs`,
-/// `tests/termination_payment.rs`, `tests/unused_leave_payment.rs`, `tests/schedule_5.rs`,
+/// `tests/termination_payment.rs`, `tests/etp_tax_free_component.rs`, `tests/unused_leave_payment.rs`, `tests/schedule_5.rs`,
 /// `tests/working_holiday_maker.rs`, `tests/seniors_pensioners.rs`,
 /// `tests/seniors_pensioners_offset.rs`, `tests/medicare_surcharge.rs`,
 /// `tests/foreign_resident_tax.rs`, `tests/payg_gross_up.rs`, `tests/fbt_loan.rs`,
-/// `tests/fbt_meal_entertainment.rs`, `tests/fbt_car_parking.rs`,
+/// `tests/fbt_meal_entertainment.rs`, `tests/fbt_meal_entertainment_register.rs`, `tests/fbt_car_parking.rs`,
 /// `tests/fbt_debt_waiver.rs`, `tests/fbt_expense_payment.rs`,
 /// `tests/fbt_property.rs`, `tests/fbt_residual.rs`, `tests/fbt_housing.rs`,
 /// `tests/fbt_lafha.rs`, `tests/fbt_board.rs`,
 /// `tests/fbt_tax_exempt_body_entertainment.rs`, `tests/lump_sum_arrears_offset.rs`,
 /// `tests/fbt_entertainment_classifier.rs` and `tests/income_tests.rs` cover
 /// them.
-const NEW_KINDS: [(&str, &str); 35] = [
+const NEW_KINDS: [(&str, &str); 39] = [
     ("fbt-car-statutory", "fbt_car_statutory"),
     ("fbt-car-operating-cost", "fbt_car_operating_cost"),
     ("fbt-loan", "fbt_loan"),
@@ -37,6 +38,8 @@ const NEW_KINDS: [(&str, &str); 35] = [
     ("main-residence", "main_residence"),
     ("borrowing-expenses", "borrowing_expenses"),
     ("hire-purchase-schedule", "hire_purchase_schedule"),
+    ("chattel-mortgage-schedule", "chattel_mortgage_schedule"),
+    ("loan-transactions", "loan_transactions"),
     (
         "business-capital-expenditure",
         "business_capital_expenditure",
@@ -46,6 +49,7 @@ const NEW_KINDS: [(&str, &str); 35] = [
     ("payroll-tax", "payroll_tax"),
     ("division-296", "division_296"),
     ("termination-payment", "termination_payment"),
+    ("etp-tax-free-component", "etp_tax_free_component"),
     ("unused-leave-payment", "unused_leave_payment"),
     ("schedule-5-method-a", "schedule_5_method_a"),
     ("schedule-5-method-b-i", "schedule_5_method_b_i"),
@@ -79,6 +83,10 @@ const NEW_KINDS: [(&str, &str); 35] = [
         "fbt_entertainment_classifier",
     ),
     ("income-tests", "income_tests"),
+    (
+        "fbt-meal-entertainment-register",
+        "fbt_meal_entertainment_register",
+    ),
 ];
 
 /// The JSON boundary's answer in the corpus encoding: `{"ok": value}` or `{"error": message}`.

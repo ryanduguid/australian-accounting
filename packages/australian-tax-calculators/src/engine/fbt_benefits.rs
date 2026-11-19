@@ -27,8 +27,10 @@ pub use housing::fbt_housing;
 mod residual;
 pub use residual::fbt_residual;
 mod entertainment;
+mod register;
 mod spaces;
 pub use entertainment::fbt_entertainment_classifier;
+pub use register::fbt_meal_entertainment_register;
 
 /// The methods `method` accepts for `kind`, in the catalogue's order.
 pub fn methods(kind: &str) -> &'static [&'static str] {

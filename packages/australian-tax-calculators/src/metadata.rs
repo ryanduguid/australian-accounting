@@ -1004,7 +1004,10 @@ pub fn supported_periods(kind: &str) -> Vec<&'static str> {
         "main_residence" => vec!["2024-25", "2025-26", "2026-27"],
         // Borrowing expenses: s 26-155 quarantines residential rental deductions
         // from 2027-28. Hire purchase: the years read.
-        "borrowing_expenses" | "hire_purchase_schedule" => vec!["2024-25", "2025-26", "2026-27"],
+        "borrowing_expenses"
+        | "hire_purchase_schedule"
+        | "chattel_mortgage_schedule"
+        | "loan_transactions" => vec!["2024-25", "2025-26", "2026-27"],
         // s 40-880 as amended by Act No 92 of 2020 applies to expenditure
         // incurred from 1 July 2020, unamended to compilation 268. It and
         // Subdivision 328-C set no figure by year, and the Register's one later
@@ -1031,6 +1034,7 @@ pub fn supported_periods(kind: &str) -> Vec<&'static str> {
         // The methods use no published rate; the years are those the ATO's
         // return instructions and rates page were read for.
         "fbt_meal_entertainment" => vec!["2026", "2027"],
+        "fbt_meal_entertainment_register" => vec!["2026", "2027"],
         "fbt_car_parking" => keys(FBT_CAR_PARKING_THRESHOLDS),
         // No published rate; the years are those the ATO's return
         // instructions and guide were read for.
@@ -1048,6 +1052,9 @@ pub fn supported_periods(kind: &str) -> Vec<&'static str> {
         "division_293" => DIVISION_293_YEARS.to_vec(),
         "division_296" => DIVISION_296_YEARS.to_vec(),
         "termination_payment" => TERMINATION_PAYMENT_YEARS.to_vec(),
+        // ITAA 1997 ss 82-140 to 82-155 set no figure by year; the years whose
+        // law was read as compiled on 19 November 2026.
+        "etp_tax_free_component" => vec!["2026-27", "2027-28"],
         "unused_leave_payment" => UNUSED_LEAVE_PAYMENT_YEARS.to_vec(),
         "schedule_5_method_a" | "schedule_5_method_b_i" | "schedule_5_method_b_ii" => {
             SCHEDULE_5_YEARS.to_vec()
@@ -1129,6 +1136,14 @@ pub fn source_review(kind: &str) -> (&'static str, &'static str) {
             "2026-11-18",
             "ITAA 1997 Division 240 (ss 240-17, 240-20, 240-25, 240-55, 240-60, 240-65, 240-70, 240-75, 240-85, 240-105 and 240-110), s 40-230 and s 995-1 'termination amount', compilation 268 (1 October 2026); GST Act ss 9-70, 9-75, 9-90, 11-5, 11-25, 11-30, 29-10, 69-10 and 158-5, compilation 96 (1 January 2026); the ATO's 'GST – Hire purchase and leasing' (last updated 6 April 2017), 'Purchasing a motor vehicle' (last updated 3 June 2026: the 2026-27 car limit), 'Assets and exclusions' (last updated 27 May 2026: the 2024-25 and 2025-26 car limits) and the GST issues register 'Financial services - questions and answers' (issues 1.1, 1.3, 1.9, 1.15 and 1.17, updated to 7 September 2012 and 2 May 2013)",
         ),
+        "chattel_mortgage_schedule" => (
+            "2026-11-19",
+            "ITAA 1997 ss 8-1, 240-10 and 995-1 'hire purchase agreement', compilation 268 (1 October 2026); GST Act ss 9-75, 9-90, 11-25, 11-30, 29-10, 40-5 and 69-10, compilation 96 (1 January 2026); the ATO's GST issues register 'Financial services - questions and answers' (issues 1.1, 1.14 and 1.19 to 1.21, updated to 2 May 2013), TR 93/16 (paras 2, 18 and 28 to 31) and 'Purchasing a motor vehicle' (last updated 3 June 2026: the 2026-27 car limit and Darren's example)",
+        ),
+        "loan_transactions" => (
+            "2026-11-19",
+            "ITAA 1997 s 8-1, compilation 268 (1 October 2026)",
+        ),
         "fbt_car_statutory" => (
             "2026-10-29",
             "Fringe benefits tax - a guide for employers, 7.8 statutory formula method and examples 23 and 26; FBT return 2026 instructions, item 23A and example 6; Electric cars exemption, reportable fringe benefits",
@@ -1144,6 +1159,10 @@ pub fn source_review(kind: &str) -> (&'static str, &'static str) {
         "fbt_meal_entertainment" => (
             "2026-11-16",
             "FBTAA ss 37AB, 37BA, 37CB and 37CD, compilation 97 (1 July 2026); Fringe benefits tax - a guide for employers, 14.8 methods of valuing meal entertainment; FBT return 2026 instructions, item 23P and example 18",
+        ),
+        "fbt_meal_entertainment_register" => (
+            "2026-11-19",
+            "FBTAA ss 37CA to 37CF, on the ATO's legal database; Fringe benefits tax - a guide for employers, 14.8 (chapter 14 last updated January 2020), 'Valid register' and 'Details to be included in register'",
         ),
         "fbt_car_parking" => (
             "2026-11-16",
@@ -1216,6 +1235,10 @@ pub fn source_review(kind: &str) -> (&'static str, &'static str) {
         "termination_payment" => (
             "2026-11-14",
             "ATO Schedule 11, tax table for employment termination payments (from 1 July 2026), Table A and examples 1 to 4; ATO Key superannuation rates, tables 17 and 20; ITAA 1997 ss 82-10, 82-130 to 82-160 and 83-170 to 83-180, compilation 268 (1 October 2026); SISR reg 6.01(2), compilation 159 (1 July 2026)",
+        ),
+        "etp_tax_free_component" => (
+            "2026-11-19",
+            "ITAA 1997 ss 82-10(6), 82-140, 82-145, 82-150 and 82-155 and s 995-1(1) 'last retirement day', on the ATO's legal database; ATO 'Tax-free component of ETPs' (last updated 24 July 2025), Jackson's example; ATO Employment termination payment with an invalidity segment worksheet (NAT 71949, June 2014), steps 1 to 9",
         ),
         "unused_leave_payment" => (
             "2026-11-16",
@@ -1348,6 +1371,18 @@ pub fn library_evidence(kind: &str) -> [(&'static str, &'static str); 4] {
             "2026-11-15",
             "2026-11-15",
         ),
+        "chattel_mortgage_schedule" => (
+            "GST: Transport, Travel and Vehicles",
+            "12-110 (the car limit on input tax credits)",
+            "2025-06-03",
+            "2026-11-19",
+        ),
+        "loan_transactions" => (
+            "ITAA 1997, compilation 268",
+            "s 8-1",
+            "2026-10-01",
+            "2026-11-19",
+        ),
         "fbt_car_statutory" | "fbt_car_operating_cost" => (
             "tax-examples-fringe-benefits-tax-fbt",
             "3-020",
@@ -1365,6 +1400,12 @@ pub fn library_evidence(kind: &str) -> [(&'static str, &'static str); 4] {
             "3-220",
             "2026-06-30",
             "2026-11-15",
+        ),
+        "fbt_meal_entertainment_register" => (
+            "ATO Fringe benefits tax - a guide for employers, chapter 14",
+            "14.8, Valid register and Details to be included in register",
+            "2020-01-01",
+            "2026-11-19",
         ),
         "fbt_car_parking" => (
             "tax-examples-fringe-benefits-tax-fbt",
@@ -1474,6 +1515,12 @@ pub fn library_evidence(kind: &str) -> [(&'static str, &'static str); 4] {
             "2026-06-17",
             "2026-11-14",
         ),
+        "etp_tax_free_component" => (
+            "superannuation-superannuation-benefits-termination-payments",
+            "8-850",
+            "2026-06-30",
+            "2026-11-19",
+        ),
         "unused_leave_payment" => (
             "ATO Schedule 7 tax table for unused leave payments on termination of employment",
             "example: long service leave (Norman)",
@@ -1571,6 +1618,36 @@ pub fn optional_inputs(kind: &str) -> Vec<(&'static str, &'static str)> {
                 "decimal fraction above 0 and at most 1, the extent of creditable purpose of the replacement's acquisition (GST Act s 11-30); required when replacement_creditable_acquisition is true and refused otherwise",
             ),
         ],
+        "chattel_mortgage_schedule" => vec![
+            (
+                "instalment",
+                "AUD, the level instalment, from which the rate is found; give it or annual_rate, not both",
+            ),
+            (
+                "annual_rate",
+                "decimal fraction from 0 to 1, the stated annual rate, charged annual_rate / 12 a month or / 52 a week, from which the instalment is worked out; for monthly or weekly instalments in arrears only; give it or instalment, not both",
+            ),
+            (
+                "frequency",
+                "weekly, fortnightly, monthly, quarterly or annual, the instalments' frequency; monthly when omitted",
+            ),
+            (
+                "deposit",
+                "AUD, paid at the purchase towards the price, beside the amount financed; 0.00 when omitted",
+            ),
+            (
+                "trade_in",
+                "AUD, the trade-in allowance credited at the purchase towards the price; 0.00 when omitted",
+            ),
+            (
+                "gst",
+                "object of GST facts, for the purchaser's input tax credit on the price: as hire_purchase_schedule takes them. A passenger_car worth more than the car limit and not quoted for has its credit capped at 1/11 of the limit (GST Act s 69-10(1))",
+            ),
+        ],
+        "loan_transactions" => vec![(
+            "rate_changes",
+            "list of objects in date order, each with date (YYYY-MM-DD, after start_date and by end_date, one change a day) and annual_rate (decimal fraction from 0 to 1), the rate from that day",
+        )],
         "hire_purchase_schedule" => vec![
             (
                 "instalment",
@@ -1705,6 +1782,10 @@ pub fn optional_inputs(kind: &str) -> Vec<(&'static str, &'static str)> {
                 "YYYY-MM-DD date the payment is made, within the income year, with study_loan true only; required with it for 2025-26, whose Schedule 8 coefficients apply from 24 September 2025",
             ),
         ],
+        "fbt_meal_entertainment_register" => vec![(
+            "register_years_expenditure",
+            "list of decimal strings, required when year_ended is a later year of the register's validity and refused otherwise: the meal entertainment expenses (FBTAA s 37CB(3)) of each FBT year from the register's first valid year to the year before year_ended, oldest first (s 37CD(3))",
+        )],
         "fbt_meal_entertainment" => vec![
             (
                 "register_fringe_benefits_value",
@@ -2054,6 +2135,50 @@ pub fn input_units(kind: &str) -> Vec<(&'static str, &'static str)> {
                 "boolean, false only when the property is not a leisure facility, or s 26-50(3) applies to it at all times in the income year (such as a holiday home held mainly to produce rent)",
             ),
         ],
+        "chattel_mortgage_schedule" => vec![
+            (
+                "amount_financed",
+                "AUD, the amount lent and paid to the supplier for the goods: the price less any deposit or trade-in",
+            ),
+            (
+                "instalments",
+                "integer, the number of instalments: 1 to 360 monthly, 1,565 weekly, 782 fortnightly, 120 quarterly or 30 annual",
+            ),
+            (
+                "balloon",
+                "AUD, paid at the end of the term; 0.00 for none",
+            ),
+            (
+                "timing",
+                "in_arrears (each instalment at its period's end) or in_advance (at its start)",
+            ),
+            (
+                "start_date",
+                "YYYY-MM-DD, the day of the purchase and the loan, within the income year",
+            ),
+        ],
+        "loan_transactions" => vec![
+            (
+                "opening_balance",
+                "AUD, the balance owing at the start of start_date; 0.00 for a new loan",
+            ),
+            (
+                "annual_rate",
+                "decimal fraction from 0 to 1, the annual interest rate from start_date",
+            ),
+            (
+                "start_date",
+                "YYYY-MM-DD, the statement's first day, within the income year",
+            ),
+            (
+                "end_date",
+                "YYYY-MM-DD, the statement's last day, on or after start_date and less than 30 years after it",
+            ),
+            (
+                "transactions",
+                "list of at most 5,000 objects in date order, each with date (YYYY-MM-DD, from start_date to end_date), kind (drawing or repayment) and amount (AUD); [] for none",
+            ),
+        ],
         "hire_purchase_schedule" => vec![
             (
                 "amount_financed",
@@ -2176,6 +2301,20 @@ pub fn input_units(kind: &str) -> Vec<(&'static str, &'static str)> {
             (
                 "meal_entertainment_expenditure",
                 "AUD, the employer's total expenses for providing meal entertainment in the FBT year to all persons, excluding amounts employees paid (FBTAA ss 37AB and 37CB(3))",
+            ),
+        ],
+        "fbt_meal_entertainment_register" => vec![
+            (
+                "register_start",
+                "YYYY-MM-DD, the first day of the continuous period the 12 week register was kept for (FBTAA s 37CC(1))",
+            ),
+            (
+                "register_end",
+                "YYYY-MM-DD, its last day; at least 83 days after register_start",
+            ),
+            (
+                "entries",
+                "list of at most 10000 objects, one for each provision of meal entertainment the register records in its period, each with date (YYYY-MM-DD, within the period), recipients (an object of whole-number counts of employees, associates of employees and others), cost (AUD), kind (text, such as dinner or a corporate box), location (text), on_premises (boolean: on the employer's premises), in_house_dining_facility (boolean, for on_premises only: in an in-house dining facility under ITAA 1997 s 32-55) and fringe_benefits_value (AUD, required with cost: the part of the cost that is meal entertainment fringe benefits to employees and their associates, at most the cost and 0.00 when none received any). A detail the register does not record is left out or null, and the check reports it (FBTAA s 37CE(1))",
             ),
         ],
         "fbt_car_parking" => vec![
@@ -2429,6 +2568,32 @@ pub fn input_units(kind: &str) -> Vec<(&'static str, &'static str)> {
             (
                 "date_of_birth",
                 "YYYY-MM-DD, the employee's, for their preservation age (SISR reg 6.01(2))",
+            ),
+        ],
+        "etp_tax_free_component" => vec![
+            (
+                "payment",
+                "AUD, the whole life benefit employment termination payment (ITAA 1997 s 82-130), every part of it made because of the termination: such as a golden handshake, compensation, unused sick leave and rostered days off, but not unused annual or long service leave (s 82-135)",
+            ),
+            (
+                "employment_start",
+                "YYYY-MM-DD, the first day of the employment to which the payment relates, counted",
+            ),
+            (
+                "termination_date",
+                "YYYY-MM-DD, the day the employment was terminated, counted in the employment days",
+            ),
+            (
+                "last_retirement_day",
+                "YYYY-MM-DD, the employee's last retirement day (s 995-1(1)): the day the employment would have ended on reaching a particular age or completing a particular period of service, or otherwise the day they would turn 65",
+            ),
+            (
+                "ill_health",
+                "boolean, true when the payment was made because the employee stopped being gainfully employed, and they stopped because they suffered from ill-health, physical or mental (s 82-150(1)(a) and (b))",
+            ),
+            (
+                "medical_certification",
+                "boolean, true when 2 legally qualified medical practitioners have certified that, because of the ill-health, the employee is unlikely ever to be gainfully employed in a capacity for which they are reasonably qualified because of education, experience or training (s 82-150(1)(d))",
             ),
         ],
         "unused_leave_payment" => vec![
@@ -2776,6 +2941,28 @@ pub fn examples(kind: &str) -> Vec<(&'static str, Example)> {
             ("arms_length", Flag(true)),
             ("involuntary_disposal", Flag(false)),
         ],
+        "chattel_mortgage_schedule" => vec![
+            ("year", Text("2026-27")),
+            ("amount_financed", Text("45000.00")),
+            ("annual_rate", Text("0.0799")),
+            ("instalments", Whole(60)),
+            ("balloon", Text("5000.00")),
+            ("timing", Text("in_arrears")),
+            ("start_date", Text("2026-07-15")),
+        ],
+        "loan_transactions" => vec![
+            ("year", Text("2026-27")),
+            ("opening_balance", Text("0.00")),
+            ("annual_rate", Text("0.073")),
+            ("start_date", Text("2026-07-01")),
+            ("end_date", Text("2026-09-30")),
+            (
+                "transactions",
+                Json(
+                    r#"[{"date": "2026-07-01", "kind": "drawing", "amount": "10000.00"}, {"date": "2026-08-31", "kind": "repayment", "amount": "1000.00"}]"#,
+                ),
+            ),
+        ],
         "hire_purchase_schedule" => vec![
             ("year", Text("2026-27")),
             ("amount_financed", Text("45000.00")),
@@ -2817,6 +3004,18 @@ pub fn examples(kind: &str) -> Vec<(&'static str, Example)> {
         "fbt_meal_entertainment" => vec![
             ("method", Text("50_50_split")),
             ("meal_entertainment_expenditure", Text("4000.00")),
+        ],
+        // A 12 week register kept from 1 May to 23 July 2025, so first valid
+        // for the FBT year ended 31 March 2026, checked for that year.
+        "fbt_meal_entertainment_register" => vec![
+            ("register_start", Text("2025-05-01")),
+            ("register_end", Text("2025-07-23")),
+            (
+                "entries",
+                Json(
+                    r#"[{"date": "2025-05-14", "recipients": {"employees": 3, "associates": 0, "others": 2}, "cost": "500.00", "kind": "client dinner", "location": "restaurant", "on_premises": false, "fringe_benefits_value": "300.00"}, {"date": "2025-07-02", "recipients": {"employees": 10, "associates": 2, "others": 0}, "cost": "1200.00", "kind": "end of year party", "location": "the employer's office", "on_premises": true, "in_house_dining_facility": false, "fringe_benefits_value": "1200.00"}]"#,
+                ),
+            ),
         ],
         "fbt_car_parking" => vec![
             ("method", Text("commercial_parking_station")),
@@ -2918,6 +3117,16 @@ pub fn examples(kind: &str) -> Vec<(&'static str, Example)> {
             ("non_excluded_payment", Text("17678.00")),
             ("other_taxable_payments", Text("140000.00")),
             ("date_of_birth", Text("1996-09-01")),
+        ],
+        // Shaped on the ATO's Jackson example: $102,000, terminated for
+        // invalidity a year before the 65th birthday, moved into 2026-27.
+        "etp_tax_free_component" => vec![
+            ("payment", Text("102000.00")),
+            ("employment_start", Text("2013-09-02")),
+            ("termination_date", Text("2026-09-25")),
+            ("last_retirement_day", Text("2027-09-25")),
+            ("ill_health", Flag(true)),
+            ("medical_certification", Flag(true)),
         ],
         // Schedule 7's example (Norman), which gives no accrual start: any day
         // before 16 August 1978 gives its 3 long service leave periods.

@@ -5,6 +5,7 @@
 
 import asyncio
 import json
+import os
 import sys
 import tempfile
 import xml.etree.ElementTree as ET
@@ -17,6 +18,7 @@ from mcp.client.stdio import stdio_client
 
 import synthetic_corpus
 import synthetic_rulings
+from aus_accounting_mcp.adapters import tax
 from aus_accounting_mcp.server import mcp
 from evaluation import tool_selection
 
@@ -227,6 +229,8 @@ async def _evaluate_all(library_root, corpus_root, rulings_root):
             "AUS_ACCOUNTING_LIBRARY_ROOT": library_root,
             "AUS_ACCOUNTING_CORPUS_ROOT": corpus_root,
             "AUS_ACCOUNTING_RULINGS_ROOT": rulings_root,
+            # conftest names the suite's executable; the client passes PATH, not this.
+            tax.DIGEST_VARIABLE: os.environ[tax.DIGEST_VARIABLE],
         },
     )
     # One server answers every question, as a host keeps one server for a whole
