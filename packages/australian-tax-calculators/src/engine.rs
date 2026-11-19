@@ -4786,6 +4786,8 @@ pub use business_capital::business_capital_expenditure;
 
 mod balancing;
 pub use balancing::balancing_adjustment;
+mod franking_account;
+pub use franking_account::{FrankingArgs, franking_account};
 mod trade_in;
 pub use trade_in::{TradeInArgs, trade_in};
 
@@ -6074,7 +6076,7 @@ pub use lump_sum_arrears::lump_sum_arrears_tax_offset;
 mod income_tests;
 pub use income_tests::income_tests;
 
-const KINDS: [&str; 52] = [
+const KINDS: [&str; 53] = [
     "gst",
     "resident_tax",
     "foreign_resident_tax",
@@ -6087,6 +6089,7 @@ const KINDS: [&str; 52] = [
     "business_capital_expenditure",
     "balancing_adjustment",
     "trade_in",
+    "franking_account",
     "fbt",
     "fbt_car_statutory",
     "fbt_car_operating_cost",

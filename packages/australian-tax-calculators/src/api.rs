@@ -226,6 +226,21 @@ const COMMAND_ARGS: &[(&str, &[(&str, Kind)])] = &[
         ],
     ),
     (
+        "franking-account",
+        &[
+            ("private_company", Raw),
+            ("benchmark_rule_exempt", Raw),
+            ("corporate_tax_rate", Dec),
+            ("opening_balance", Dec),
+            ("rd_deferred_debit_brought_forward", Dec),
+            ("last_benchmark", Json),
+            ("events", Json),
+            ("distributions", Json),
+            ("year", Raw),
+            ("scope_confirmed", Raw),
+        ],
+    ),
+    (
         "trade-in",
         &[
             ("cost", Dec),
@@ -1009,6 +1024,7 @@ pub fn evaluate_coded(command: &str, v: &Value) -> Result<Value> {
             | "business-capital-expenditure"
             | "balancing-adjustment"
             | "trade-in"
+            | "franking-account"
     ) && let Some(key) = v
         .as_object()
         .into_iter()
@@ -1125,6 +1141,26 @@ pub fn evaluate_coded(command: &str, v: &Value) -> Result<Value> {
                 &a[4],
                 &a[5],
             )
+        }
+        "franking-account" => {
+            // Optional: the income tax facts s 205-70 applies the offset to,
+            // and a Commissioner's determination under s 205-70(6).
+            let income_tax = optional(v, "income_tax", Json)?;
+            let determination = optional(v, "commissioner_determination", Raw)?;
+            engine::franking_account(&engine::FrankingArgs {
+                private_company: &a[0],
+                benchmark_rule_exempt: &a[1],
+                corporate_tax_rate: &a[2],
+                opening_balance: &a[3],
+                rd_deferred_debit_brought_forward: &a[4],
+                last_benchmark: &a[5],
+                events: &a[6],
+                distributions: &a[7],
+                year: &a[8],
+                scope_confirmed: &a[9],
+                income_tax: income_tax.as_ref(),
+                commissioner_determination: determination.as_ref(),
+            })
         }
         "trade-in" => {
             // Optional: a car's s 40-325 facts, the traded-in asset's input

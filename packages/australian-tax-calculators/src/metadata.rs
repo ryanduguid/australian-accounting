@@ -1023,6 +1023,11 @@ pub fn supported_periods(kind: &str) -> Vec<&'static str> {
         // The years whose car limit was read on 18 November 2026; 2027-28 is
         // refused as for balancing_adjustment, and its car limit is not yet
         // published.
+        // ITAA 1997 Division 205 sets no figure by year; the years the
+        // Act as compiled on 19 November 2026 and the ATO's Franking account
+        // tax return 2026 instructions were read for, with the 25% and 30%
+        // rates for imputation purposes.
+        "franking_account" => vec!["2025-26", "2026-27"],
         "trade_in" => vec!["2025-26", "2026-27"],
         "fbt" => vec!["2026", "2027"],
         "fbt_car_statutory" | "fbt_car_operating_cost" | "fbt_loan" => {
@@ -1120,6 +1125,10 @@ pub fn source_review(kind: &str) -> (&'static str, &'static str) {
         "balancing_adjustment" => (
             "2026-11-18",
             "ITAA 1997 ss 40-25, 40-85, 40-230, 40-285, 40-290, 40-291A, 40-295, 40-300, 40-305, 40-325, 40-370, 104-235, 104-240, 118-5 and 118-10 (its example) and Subdivision 27-B, compilation 268 (1 October 2026), with the endnotes' amendment history; Treasury Laws Amendment (Tax Reform No. 1) Act 2026 (No 49 of 2026), Schedule 4 item 17 (s 40-291A from 2026-27); Guide to depreciating assets 2026, 'What happens if you no longer hold or use a depreciating asset?', its Bridget, Andrew and Louise examples and the car limit formula",
+        ),
+        "franking_account" => (
+            "2026-11-19",
+            "ITAA 1997 ss 202-60, 202-65, 202-75, 203-20 to 203-55, 204-70, 204-75, 205-15, 205-25, 205-30, 205-40, 205-45, 205-50, 205-70, 214-15 to 214-25, 214-150 and 214-155, on the ATO's legal database; New Business Tax System (Franking Deficit Tax) Act 2002 s 5 (C2004A00982) and (Over-franking Tax) Act 2002 s 5 (C2004A00981), latest versions on the Federal Register of Legislation; the ATO's Franking account tax return 2026 instructions (published 30 May 2026): How to get, About (example 2), How to lodge and pay, and sections A, B (examples 4 and 5) and C (examples 7 to 9)",
         ),
         "trade_in" => (
             "2026-11-18",
@@ -1345,6 +1354,12 @@ pub fn library_evidence(kind: &str) -> [(&'static str, &'static str); 4] {
             "Bridget, Andrew and Louise examples; the Gayle example",
             "2026-06-01",
             "2026-11-18",
+        ),
+        "franking_account" => (
+            "ATO Franking account tax return 2026 instructions",
+            "About example 2; section B examples 4 and 5; section C examples 7 to 9",
+            "2026-05-30",
+            "2026-11-19",
         ),
         "trade_in" => (
             "ATO GST pages: Purchasing a motor vehicle; GST and the disposal of capital assets",
@@ -1579,6 +1594,16 @@ pub fn optional_inputs(kind: &str) -> Vec<(&'static str, &'static str)> {
             "car_limit",
             "for a car only, and then required: null when s 40-230 did not reduce its cost to the car limit, or an object with limit (AUD, the car limit for the financial year in which the car was first used for any purpose), second_element_cost (AUD) and cost_ignoring_car_limit (AUD, the first and second elements ignoring the car limit, after Subdivision 27-B), cost then being limit plus second_element_cost: ITAA 1997 s 40-325",
         )],
+        "franking_account" => vec![
+            (
+                "income_tax",
+                "object, to apply the offset, and required for a private company whose offset reduction would otherwise apply: before_fdt_offset (AUD, the income tax for the year after every tax offset s 63-10 applies before this one, for s 205-70(5)(b) and (d)), offset_brought_forward (AUD, the offset left after s 63-10 the last year the entity was entitled to one, s 205-70(1)(c)) and, for a private company, earlier_year_liability (boolean, true when it had an income tax liability for an earlier income year, s 205-70(5)(c))",
+            ),
+            (
+                "commissioner_determination",
+                "boolean, true when the Commissioner has determined in writing under s 205-70(6) that the excess was due to events outside the entity's control, so the offset is not reduced",
+            ),
+        ],
         "trade_in" => vec![
             (
                 "car_limit",
@@ -2197,6 +2222,40 @@ pub fn input_units(kind: &str) -> Vec<(&'static str, &'static str)> {
             (
                 "years",
                 "list of objects, one for each income year held from the start time to the event, each with income_year (from 2001-02, and for a car from 2015-16, to the event's year), decline_in_value (AUD; for a cents per kilometre year the notional decline of s 40-370(3)) and deduction (AUD, the decline less the s 40-25 reductions); a car's rows also state method (log_book or cents_per_kilometre, which takes no deduction) and days_held (integer from 1 to the days in that income year, 366 when it includes 29 February)",
+            ),
+        ],
+        "franking_account" => vec![
+            (
+                "private_company",
+                "boolean, true when the entity is a private company for the income year (ITAA 1997 s 995-1(1)): its franking period is then the income year (s 203-45)",
+            ),
+            (
+                "benchmark_rule_exempt",
+                "boolean, true when s 203-20 exempts the entity from the benchmark rule for the year's franking periods: a listed public company meeting s 203-20(1)(a) throughout, or its 100% subsidiary; false for a private company",
+            ),
+            (
+                "corporate_tax_rate",
+                "decimal string, 0.25 or 0.30: the entity's corporate tax rate for imputation purposes for the income year",
+            ),
+            (
+                "opening_balance",
+                "AUD, may be negative: the franking account balance at the end of the previous income year, a deficit as a negative amount, before the credit for that year's franking deficit tax",
+            ),
+            (
+                "rd_deferred_debit_brought_forward",
+                "AUD, 0.00 when none: the parts of refunds of income tax for earlier income years attributable to a refundable R&D tax offset (s 67-30), less the reductions of earlier credits under s 205-15(4)",
+            ),
+            (
+                "last_benchmark",
+                "null when no frankable distribution was made in a franking period before the income year, or an object with percentage (decimal string from 0 to 100, the benchmark franking percentage of the last such period) and periods_since (whole number from 1: the franking periods from the one after it to the income year's first, counted, for s 204-70)",
+            ),
+            (
+                "events",
+                "list of at most 10000 objects, each with date (YYYY-MM-DD in the income year; for income_tax_refund up to 3 months after it, s 205-50(2)), type and amount (AUD above nil, the credit or debit the provision gives, or for payg_instalment and income_tax_paid the payment): credits payg_instalment (s 205-15(1) item 1), income_tax_paid (item 2), franked_distribution_received (item 3: the franking credit), franked_distribution_flowed_indirectly (item 4: the share of the franking credit, dated the end of the last interposed entity's income year), tax_offset_refund_excess_paid (item 4A), exploration_credit (item 7), dmt_paid (item 9); debits income_tax_refund (s 205-30(1) item 2, with rd_offset_part, AUD from 0.00 to the amount: the part attributable to a refundable R&D tax offset), linked_distribution (item 5), tax_exempt_bonus_shares (item 6), streaming_determination (item 7), share_capital_tainting (item 7A), untainting_choice (item 7B), on_market_buy_back (item 9), off_market_buy_back (item 9A), selective_capital_reduction (item 9B), dmt_refund (item 14)",
+            ),
+            (
+                "distributions",
+                "list of at most 10000 objects in date order, one for each frankable distribution the entity made in the income year, each with date (YYYY-MM-DD), amount (AUD above nil, the frankable distribution) and franking_credit (AUD, the franking credit its distribution statement allocates), and optional permitted_percentage (decimal string from 0 to 100: a franking percentage the Commissioner permitted for it under s 203-55; not for the first distribution in its franking period) and statement_after_distribution (boolean, a private company's only: the statement was given after the distribution, s 202-75(3))",
             ),
         ],
         "trade_in" => vec![
@@ -2871,6 +2930,28 @@ pub fn examples(kind: &str) -> Vec<(&'static str, Example)> {
                 "years",
                 Json(
                     r#"[{"income_year": "2025-26", "decline_in_value": "300.00", "deduction": "180.00"}, {"income_year": "2026-27", "decline_in_value": "0.00", "deduction": "0.00"}]"#,
+                ),
+            ),
+        ],
+        // Shaped on the ATO's EKW Ltd example (section B, example 4):
+        // FDT $80,000 and an offset of $62,000.
+        "franking_account" => vec![
+            ("private_company", Flag(false)),
+            ("benchmark_rule_exempt", Flag(false)),
+            ("corporate_tax_rate", Text("0.30")),
+            ("opening_balance", Text("10000.00")),
+            ("rd_deferred_debit_brought_forward", Text("0.00")),
+            ("last_benchmark", Json("null")),
+            (
+                "events",
+                Json(
+                    r#"[{"date": "2025-10-28", "type": "payg_instalment", "amount": "125000.00"}, {"date": "2026-02-28", "type": "payg_instalment", "amount": "125000.00"}, {"date": "2026-04-28", "type": "payg_instalment", "amount": "250000.00"}, {"date": "2025-11-15", "type": "income_tax_refund", "amount": "60000.00", "rd_offset_part": "0.00"}, {"date": "2026-03-31", "type": "streaming_determination", "amount": "20000.00"}]"#,
+                ),
+            ),
+            (
+                "distributions",
+                Json(
+                    r#"[{"date": "2025-09-30", "amount": "1190000.00", "franking_credit": "510000.00"}]"#,
                 ),
             ),
         ],
