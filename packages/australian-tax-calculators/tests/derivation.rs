@@ -13,7 +13,7 @@ use std::io::Write;
 use std::process::{Command, Stdio};
 
 /// The commands `derive` explains.
-const DERIVED: [&str; 46] = [
+const DERIVED: [&str; 51] = [
     "fbt",
     "fbt-car-statutory",
     "fbt-car-operating-cost",
@@ -55,11 +55,16 @@ const DERIVED: [&str; 46] = [
     "gst",
     "depreciation",
     "hire-purchase-schedule",
+    "chattel-mortgage-schedule",
+    "loan-transactions",
     "lump-sum-arrears-tax-offset",
     "income-tests",
     "business-capital-expenditure",
     "balancing-adjustment",
     "trade-in",
+    "gst-margin-scheme",
+    "etp-tax-free-component",
+    "payroll-tax",
 ];
 
 /// (command, input) for each derived kind: the ATO's published examples and
@@ -388,6 +393,37 @@ fn cases() -> Vec<(&'static str, Value)> {
                    "replacement_creditable_acquisition": false,
                    "arms_length": true, "involuntary_disposal": false,
                    "year": "2025-26", "scope_confirmed": true}),
+        ),
+        // Victoria's surcharges on $80 million of $150 million (the State
+        // Revenue Office's example 2) and Tasmania's 2 rates on $2,400,000
+        // of $3,000,000 (its guideline's example 2).
+        (
+            "payroll-tax",
+            json!({"jurisdiction": "vic", "taxable_wages": "80000000.00",
+                   "australian_wages": "150000000.00", "regional_employer": false,
+                   "group_member": false, "employed_all_year": true,
+                   "year": "2026-27", "scope_confirmed": true}),
+        ),
+        (
+            "payroll-tax",
+            json!({"jurisdiction": "tas", "taxable_wages": "2400000.00",
+                   "australian_wages": "3000000.00",
+                   "group_member": false, "employed_all_year": true,
+                   "year": "2026-27", "scope_confirmed": true}),
+        ),
+        // A strata unit's share of land bought with some consideration unpaid
+        // (GST Act ss 75-12 and 75-15), for a supply that cannot use the
+        // margin scheme: the margin is shown beside the full GST.
+        (
+            "gst-margin-scheme",
+            json!({"interest": "stratum_unit", "agreement": "none",
+                   "acquisition": "other_supply_from_1_july_2000",
+                   "consideration": "610000.00", "method": "consideration",
+                   "recipient_associate": false,
+                   "acquisition_consideration": "400000.00",
+                   "unpaid_acquisition_consideration": "40000.00",
+                   "subdivision_share": "600000.00", "subdivision_whole": "2400000.00",
+                   "year": "2026-27", "scope_confirmed": true}),
         ),
     ];
     cases.extend(
@@ -2108,7 +2144,8 @@ fn derive_refuses_what_it_does_not_explain() {
          medicare-levy, medicare-levy-surcharge, division-296, contribution-caps, \
          study-loan-repayment, capital-gains, main-residence, fbt-residual, fbt-housing, \
          fbt-lafha, fbt-board, fbt-tax-exempt-body-entertainment, gst, depreciation, \
-         hire-purchase-schedule, lump-sum-arrears-tax-offset, income-tests, business-capital-expenditure, balancing-adjustment, trade-in, not \"payg-gross-up\""
+         hire-purchase-schedule, chattel-mortgage-schedule, loan-transactions, \
+         lump-sum-arrears-tax-offset, income-tests, business-capital-expenditure, balancing-adjustment, trade-in, gst-margin-scheme, etp-tax-free-component, payroll-tax, not \"payg-gross-up\""
     );
 }
 

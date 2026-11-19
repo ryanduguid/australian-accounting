@@ -56,6 +56,7 @@ example evidence; it does not claim a fresh review of every supported period.
 | Hire purchase schedule | Not a Library document: ITAA 1997 ss 240-17, 240-55 and 240-60 on the ATO's legal database and in compilation 268 (1 October 2026) | 15 November 2026 (read) | One agreement's monthly notional interest for the hirer, starting in 2024-25 to 2026-27, from established payments; apportionment to income years under s 240-60(2) excluded |
 | Balancing adjustment | Not a Library document: the ATO's Guide to depreciating assets 2026 (Bridget, Andrew and Louise examples) and ITAA 1997 Subdivisions 27-B and 40-D, ss 104-240, 118-5 and 118-10(1) and its example (compilation 268, 1 October 2026) | 1 June 2026 (Guide); 18 November 2026 (read) | One depreciating asset's balancing adjustment, s 40-290 reduction and K7 amount for events in 2024-25 to 2026-27, from established cost, termination value and each year's decline and deduction; pools, s 40-291A and roll-overs excluded |
 | Trade-in | Not a Library document: the ATO's 'Purchasing a motor vehicle' (Darren's example) and 'GST and the disposal of capital assets' (Ian's example), with ITAA 1997 Subdivision 27-B and ss 40-180 to 40-230, 40-305 and 40-365 (compilation 268) and GST Act ss 9-75, 11-30, 69-10 and 132-5 (compilation 96) | 3 June 2026 and 24 May 2017 (ATO pages); 18 November 2026 (read) | One asset traded in at arm's length for a replacement first held and used in 2025-26 or 2026-27; GST status, credits, allowance and price established; involuntary disposals and luxury car tax on the trade-in excluded |
+| Payroll tax | Not a Library document: each revenue office's rates page and examples, with each jurisdiction's payroll tax Act and the ACT's DI2026-151 | 17 July 2024 to 29 September 2026 (revenue office pages); 19 November 2026 (read) | One employer outside a group paying wages all year in one jurisdiction in 2026-27; taxable and Australian wages established; exemptions, rebates, discounts, caps and periodic returns excluded |
 | Depreciation | `tax-examples-depreciation` (tax-examples), ¶6-000 and ¶6-020 | 30 June 2025 | First-year formulas and taxable-use apportionment in 2024–25 examples |
 | Quarterly SG | `superannuation-instant-reference-rates-thresholds-and-checklists` (superannuation), ¶18-600 and ¶18-620 | 30 June 2026 | General 2025–26 rate and quarterly maximum contribution base |
 | Contribution caps | `tax-examples-individuals` (tax-examples), ¶7-278, with ITAA 1997 s 291-20 (compilation 268, 1 October 2026) and the ATO's contributions caps and concessional contributions cap pages for the carry-forward by year | 30 June 2025; 11 September and 2 July 2026 (ATO pages) | First-year bring-forward for 2024–25 only; the later-year nil cap is outside the worksheet; unused concessional cap from 2018-19 worked out from each year's established contributions |
@@ -94,6 +95,57 @@ paragraph remain outside the worksheet.
 The smaller existing case uses $1,100 inclusive: GST is $100, exclusive value
 is $1,000. Starting with $1,000 exclusive gives `1000 × 0.10 = 100` GST and
 $1,100 inclusive.
+
+## GST margin scheme
+
+Added on 19 November 2026. Its sources were read that afternoon, 2.20 pm to
+2.40 pm AEDT, from the ATO's legal database: the A New Tax System (Goods and
+Services Tax) Act 1999 ss 9-90, 75-5, 75-10, 75-11, 75-12, 75-14, 75-15,
+75-20, 75-35 and the s 195-1 definitions of 'approved valuation', 'long-term
+lease' and 'margin scheme'; Schedule 1 to the Taxation Administration Act 1953
+s 14-250 (GST at settlement, which it does not work out); GSTR 2006/8 (paras 15
+to 39F: the written agreement, a conditional agreement, ineligible supplies,
+the time of supply, the Brady King contracts and examples 1 and 2); and the
+ATO's 'GST and the margin scheme' (last updated 19 August 2021). The Library's
+GST collection, Real Estate, Accommodation and Sale of Business, 11-100
+(reviewed 29 July 2025) and 11-110 (reviewed 27 May 2026), and its Tax
+Examples, GST, 12-200 and 12-220 (reviewed 30 June 2026), give the worked
+examples.
+
+s 75-10(3) uses an approved valuation when one 'has been made' for an interest
+held before 1 July 2000; without one, s 75-10(2) takes the consideration for
+the acquisition, so `method` is the operator's statement of which exists. The
+valuation day is checked against the item the facts select: items 1 and 3 both
+fix 1 July 2000, so the command does not ask which applies. Item 2's earlier
+day of applying for registration may fall on or before 1 July 2000, so that
+day has no lower bound. s 9-90(1) rounds the GST on one supply on one invoice
+to the nearest cent, 0.5 up; the margin and the apportioned base are not
+rounded. A supply to an associate is refused: s 75-13 (read, with s 11-5, on
+19 November 2026 at 9.13 pm) works its margin from the GST inclusive market value. An
+interest contracted for before 1 July 2000 but acquired through a fully
+taxable supply is `taxable_supply_without_margin_scheme`, ineligible under
+s 75-5(3)(a) whatever GSTR 2006/8 para 39A says of its timing.
+
+`tests/gst_margin_scheme.rs` holds each case.
+
+| Example | Facts given | Result |
+| --- | --- | --- |
+| Tax Examples 12-200, Joanne Black | Held before 1 July 2000, valued at **$448,000** then, sold for **$640,000** | Margin $192,000; GST **$17,454.55** (shown as $17,454) |
+| Tax Examples 12-220, Hans | Valued at **$250,000** on 1 July 2000, sold for **$1.5 million** | GST **$113,636.36** (shown as $113,636) |
+| Tax Examples 12-220, Luke | Bought for $1.5 million under the scheme; one of 3 townhouses for **$900,000** | Base $500,000; GST **$36,363.64** (shown as $36,363) |
+| GST 11-110, improvements | Land **$250,000**, improvements $50,000, sold for **$360,000** | Margin $110,000; GST **$10,000** |
+| GST 11-110, equal blocks | $500,000 over 5 blocks of 600 m2; sold for $155,000 and $166,000 | GST **$5,000** and **$6,000** |
+| GST 11-110, unequal block | 1,200 of 3,600 m2 of $500,000, sold for **$300,000** | Margin $133,333.33; GST **$12,121.21** (shown as $12,121.18) |
+| GST 11-110, strata unit 3 | $600,000 of $2,400,000 expected, of $400,000; sold for **$610,000** | Base $100,000; GST **$46,363.64** (shown as $46,363.63) |
+| GST 11-100, held at 1 July 2000 | Valued at **$100,000**, sold for **$144,000** | GST **$4,000** |
+| GSTR 2006/8 example 1, Tureia | Bought through a taxable supply without the scheme | Not eligible: `acquisition_eligible`; GST on the full price |
+
+The Library rounds the margin to whole dollars before dividing in the unequal
+block, and cuts strata unit 3's GST off rather than rounding it; s 75-15 takes
+the corresponding proportion without rounding, and s 9-90(1) rounds only the
+GST, so the command differs from it by 3 cents and 1 cent. The tests also cover
+each failing condition alone and together, a nil margin, unpaid consideration,
+items 2 and 4 and their days, each refused acquisition, and each refusal.
 
 ## Resident tax
 
@@ -648,6 +700,126 @@ election, accommodation or travel taking the food or drink's occasion
 give dollar figures only in examples 11.1, 17.1 and 17.2: the other amounts are
 fabricated, and the ruling decides the treatment the test checks.
 
+## FBT meal entertainment register
+
+This worksheet's evidence was read on 19 November 2026 from 9.25 am to
+9.35 am AEDT:
+
+- FBTAA ss 37CA to 37CF on the ATO's legal database
+  (https://www.ato.gov.au/law/view/document?docid=PAC/19860039/37CC and the
+  sections beside it). s 37CA: the election, for a year the employer has a
+  valid register for; s 37CB(2): the register percentage is the value of the
+  meal entertainment fringe benefits over the value of the meal entertainment
+  in the register's 12 week period; s 37CC: the register is kept for a
+  continuous period of at least 12 weeks throughout which meal entertainment is
+  provided, representative of the first FBT year it is valid for, or it is not
+  valid; s 37CD(1) and (2): valid for the year a period within one FBT year
+  falls in, or only the second year of a period spanning 2, and the 4 FBT years
+  after; s 37CD(3): it ceases to be valid at the end of a year whose meal
+  entertainment expenses are more than 20% higher than the first valid year's,
+  or when a later valid register covers the year; s 37CE(1): the 6 details,
+  and s 37CE(2), entries made as soon as practicable; s 37CF: a false or
+  misleading entry invalidates the register.
+- The ATO's Fringe benefits tax - a guide for employers, chapter 14 (latest
+  update January 2020), 14.8: 'Valid register' and 'Details to be included in
+  register' restate those sections; the guide says the minor benefits exemption
+  can apply under this method but the property benefits exemption cannot, and
+  points to TD 94/25 on apportioning entertainment between employees and
+  others, which the check leaves to the operator's `fringe_benefits_value`.
+- The Library's ¶3-220 (tax examples, 'Fringe Benefits Tax (FBT)', last
+  reviewed 30 June 2026): ABC's register at 40%, kept in the 2025-26 FBT year,
+  can be used for that year and the following 4 (s 37CD), and
+  $177,500 x 40% = $71,000. The test builds a register at 40% kept in that
+  year, checks it valid for the year ended 31 March 2027 and passes its values
+  to `fbt-meal-entertainment`, which gives $71,000.00.
+
+Neither the Act nor the guide gives a worked example of a register failing a
+check; the tests work each failure from the section's words. 12 weeks is
+taken as 84 days with both the first and last day counted.
+
+## FBT minor benefit check
+
+Added on 19 November 2026. Its sources were read that afternoon, 3.00 pm to
+3.10 pm AEDT, from the ATO's legal database: FBTAA s 58P (s 58P(1)(b), the
+airline transport exclusion, shown as repealed by Act No. 88 of 2013) and the
+s 136(1) definition of 'fringe benefit', whose para (g) leaves out an exempt
+benefit; and TR 2007/12 (paras 8 to 23 and examples 1 to 13). The Library's Tax
+Examples, FBT, 3-060 and 3-080 (reviewed 30 June 2026) give the flowers, gym
+and golf day examples.
+
+s 58P(1)(f) asks whether, having regard to all its criteria, it would be
+concluded that treating the benefit as a fringe benefit would be
+unreasonable: a weighing, not a test. The command takes each criterion as the
+operator's statement and decides only where TR 2007/12's examples decide: each
+exempt example has similar benefits that are not frequent and totals that are
+not substantial. Example 9's voucher is a reward for services but ad hoc, and
+examples 1 to 3 recur each Christmas but are not rewards; no example has a
+regular reward, so that is left to judgement. Example 8, the one not
+exempt on the criteria, has frequent similar benefits with a substantial
+total, given as a reward for services, readily valued and not for an
+unexpected event; the screen gives `not_exempt` only on all of those. The
+Library's 3-060 gym fees and 3-080 golf days are not exempt in the Library; the
+screen agrees when they are stated as rewards for services, and otherwise
+leaves them to judgement. Paras 14 and 16, on the 50/50 split and salary
+sacrifice, are the Commissioner's view and are cited as such.
+
+`tests/fbt_minor_benefit.rs` holds each case.
+
+| Example | Facts given | Result |
+| --- | --- | --- |
+| Library 3-060 (b), flowers | Property, **$80**, on a birthday | Exempt |
+| Library 3-060 (a), gym | Expense payment, **$50** a month | Not exempt as a reward for services; otherwise judgement |
+| Library 3-080, golf days | Expense payment, about **$83** a month | Not exempt as a reward for services; otherwise judgement |
+| TR 2007/12 examples 1 to 3 | Christmas gift or party, each year, under $300 | Exempt |
+| TR 2007/12 examples 5, 6, 7, 10, 11 | Flowers, a car after a storm, tolls, a gym membership, babysitting | Exempt |
+| TR 2007/12 example 8 | Monthly incentive vouchers, a reward | Not exempt |
+| TR 2007/12 example 9 | An ad hoc recognition voucher, a reward | Exempt |
+| TR 2007/12 example 12 | A tax-exempt body's movie tickets | Not exempt: `tax_exempt_body_exception` |
+| TR 2007/12 example 13 | A benefit under salary sacrifice | Not exempt: `not_salary_sacrifice` |
+
+The examples give no amounts beyond 'less than $300'; the values in the tests
+are fabricated under it. The tests also cover $300 itself and $299.99, each
+exclusion alone and together, both s 58P(1)(d) exceptions, mixed criteria left
+to judgement, and each refusal.
+
+## Wine equalisation tax
+
+This worksheet was added on 19 November 2026. The WET Act was read that day
+at the ATO's legal database (ss 5-5, 5-50, 7-10, 9-5, 9-25, 9-30, 9-35, 9-40,
+9-45, 13-5, 19-5, 19-15, 19-20, 19-25, 31-1 and 33-1), and ss 19-15 and 19-25
+in compilation 32 (1 April 2026) at the Federal Register of Legislation, with
+Schedule 6 to the Treasury Laws Amendment (Supporting Choice in
+Superannuation and Other Measures) Act 2026 (No. 12, 2026), which raises the
+cap to $400,000 for assessable dealings from 1 July 2026. WETR 2009/1 and
+WETR 2009/2 were read as the ATO publishes them. The ATO's pages
+'Wholesale sales' and 'Retail sales and own use' (QC22750 and QC22751, both
+last updated 19 March 2025), 'Producer rebate' (QC22756, 30 June 2026),
+'Calculate and claim your rebate' (QC22758, 2 July 2026), 'Reporting and
+paying WET' (QC22762), 'Wine equalisation tax (WET)' (QC33703, 1 May 2025)
+and 'Instructions for completing your BAS' (QC17458, 14 September 2026) were
+read that day, as was the Library's GST collection at ¶22-280 and ¶22-290.
+
+The Act fixes no value basis for the 10% wholesale share of s 9-25(3), so the
+command takes it as a stated fact. The ATO rounds its tasting bottle's
+notional wholesale selling price to $5.83 where this command gives $5.84; the
+tax, $1.69, is the same. Years before 2023-24 are refused, as the earlier
+rebate reductions for wine of 2017 and earlier vintages sold before 1 July
+2023 are not worked.
+
+`tests/wine_equalisation_tax.rs` holds these cases.
+
+| Case | Source | Worksheet |
+| --- | --- | --- |
+| Alison sells a dozen for $120 before WET and GST | QC22750 | WET $34.80, GST $15.48, $170.28 in all |
+| Swillo sells 5 cases at $120 | Library ¶22-280 | WET $174.00, GST $77.40, $851.40 in all |
+| A dozen at the cellar door for $140 | QC22751 (Happy Valley) | Taxable value $70.00, WET $20.30 |
+| A tasting bottle normally sold for $11.67 | QC22751 | WET $1.69, no GST |
+| A $22 retail sale; a staff sale taxed at the normal $150 | WETR 2009/1 example 15 and para 159 | WET $3.19 and GST $2.00; WET $21.75 |
+| 70% of wholesale sales at $80 a dozen and 30% at $90, then a dozen at the cellar door for $190 | WETR 2009/1 example 16, QC22751 (Good Wines) | Average $83.00, WET $24.07, GST $17.27 |
+| 2026-27 rebates on a retail, a wholesale, 2 quoted and a tasting dealing | QC22758's table | WET $11,890, rebate $16,240 |
+| A $50,000 wholesale sale with $340,000 (2025-26) or $390,000 (2026-27, 2027-28) claimed earlier | Worked by hand under s 19-15(2) | Rebate earned $14,500, $10,000 within the cap |
+| A hamper's wine share, $150 | Library ¶22-280 | WET $43.50 |
+
 ## Main residence
 
 This worksheet was added on 1 November 2026; its example evidence was read
@@ -893,6 +1065,128 @@ a present value check and balanced journals.
 | $1,000, 2 x $100 in arrears and a $1,000 balloon from 1 June 2027; the same in advance | Worked by hand | June's $100 interest in 2026-27 and its payment on 1 July in 2027-28; in advance, $100 paid 1 June in 2026-27 |
 | $50,000, 260 weekly payments of $230 and a $5,000 balloon | The payments discounted at the rate shown | $50,000 to within a cent |
 
+## Chattel mortgage schedule
+
+This worksheet was added on 19 November 2026, with every source below read
+that day (AEDT). ITAA 1997 compilation 268 (1 October 2026): s 8-1 in
+volume 1 at 09:27, s 240-10 in volume 5 and s 995-1 'hire purchase
+agreement' in volume 10 at 09:30. GST Act compilation 96 (1 January 2026):
+ss 9-90, 29-10, 40-5 and 69-10 at 09:27. The ATO's GST issues register
+'Financial services - questions and answers' (issues 1.1, 1.14, 1.17 and
+1.19 to 1.21) and its issue 1.18 public ruling at 09:27 to 09:29; TR 93/16 at
+09:31; 'Purchasing a motor vehicle' (last updated 3 June 2026) at 09:27; and
+'Assets and exclusions' (last updated 27 May 2026: $69,674 for 2024-25 and
+2025-26) at 09:40. The Library's GST ¶12-110 (reviewed 3 June 2025) gives
+the same car limits.
+
+- **Not hire purchase.** Under a chattel mortgage the purchaser takes title
+  from the purchase and finances the price with a loan (register issue
+  1.20). A hire purchase agreement is a hire of goods, or an instalment
+  purchase, under which title does not pass until the option is exercised or
+  the final instalment is paid (s 995-1), and only such an agreement is
+  recharacterised as a notional sale and loan (s 240-10). So the interest is
+  the lender's actual charge, not notional interest.
+- **Interest.** TR 93/16 accepts the actuarial method for estimating the
+  interest component of instalments under a fixed term loan (para 6),
+  describes it as the outstanding balance times the rate for the instalment
+  period (para 18) and calls it the most appropriate for long loans
+  (para 29); where the interest paid in the year is known, that figure must
+  be used (para 2). Given the instalment, the rate is found as
+  `hire-purchase-schedule` finds the implicit rate. Given `annual_rate`, the
+  rate a period is `annual_rate / 12` (or `/ 52`), taken only for monthly or
+  weekly instalments in arrears, where that division is unambiguous; other
+  frequencies and instalments in advance are refused rather than guessed. The
+  instalment is the closed-form annuity payment, worked out from the
+  balance's fall per dollar of instalment, rounded half up to the cent, with
+  the balance that rounding leaves added to the last instalment.
+- **Deduction.** Section 8-1(1) allows a loss or outgoing to the extent it is
+  incurred in gaining or producing assessable income, or necessarily in
+  carrying on a business for that purpose, and s 8-1(2) denies it to the
+  extent it is capital, private or domestic. The worksheet states that rule
+  and leaves the extent to the operator. A period spanning 30 June is set
+  apart with its days on each side, as `hire-purchase-schedule` sets it
+  apart: the sources read do not say how to split it between the years.
+- **GST.** The supply of the loan is an input taxed financial supply
+  (s 40-5(1); register issue 1.14), so the input tax credit is on the price
+  alone: 1/11 of it, less luxury car tax for a car (s 9-75(2)), rounded under
+  s 9-90(1). For a car worth more than the car limit for the year it is first
+  used, where no ABN may be quoted, s 69-10(1) makes the credit 'the amount
+  of GST payable on the supply ... of the car up to 1/11 of that limit', and
+  s 69-10(3) reduces it for a partly creditable acquisition. Under register
+  issue 1.21 a purchaser accounting on a non-cash basis is entitled to the
+  whole credit in the tax period in which the invoice is received or any
+  payment is made, whichever is earlier (s 29-10(1)), and one on a cash basis
+  in the tax period in which the borrowed funds pay the full price at the
+  time of acquisition (s 29-10(2)(a)).
+
+`tests/chattel_mortgage.rs` holds these cases.
+
+| Case | Source | Worksheet |
+| --- | --- | --- |
+| $1,000 at 12% a year, 3 monthly instalments in arrears | Worked by hand: 1.01^3 = 1.030301, 10 x 1.030301 / 0.030301 = 340.0221 | $340.02 twice and $340.03; interest $10.00, $6.70, $3.37 |
+| $10,000 at 12% with a $10,000 balloon; $1,000 at 52% weekly with a $1,000 balloon | Worked by hand: interest only | $100.00 a month; $10.00 a week |
+| $45,000 at 7.99%, 60 months, $5,000 balloon | The closed-form annuity payment, PMT(0.0799/12, 60, -45000, 5000), in exact fractions | $844.16, last $843.87, interest $10,649.31; given $844.16, the implied rate is 7.99% |
+| $20,000 at 6.5%, 104 weeks | The closed-form annuity payment in exact fractions | $205.20, interest $1,340.63 |
+| $50,000 over 360 months at 30% and at 50% | The rounded instalment's shortfall carried at the rate, in exact fractions | At 30%, $1,250.17 with $678.01 added to the last; at 50%, $2,083.33 would leave $242,950.50, more than a whole instalment, so it is refused, as is a last instalment below nil |
+| $1,000, 2 x $100 and a $1,000 balloon; the same in advance with $979 | As `hire-purchase-schedule` | 10% a month; $90.00 and $89.00 |
+| Darren's car: $91,242.80 with $2,407.80 luxury car tax, 2026-27, $10,000 deposit | 'Purchasing a motor vehicle'; s 69-10(1) and (3) | GST $8,075.91; credit $6,353.00, $3,176.50 at 50%; $8,075.91 when an ABN is quoted |
+| $33,000 of other goods with a $3,000 trade-in, 50% creditable | s 9-75(1), s 11-30(3) | $3,000.00 GST; $1,500.00 credit |
+
+## Loan transactions
+
+This worksheet was added on 19 November 2026; ITAA 1997 s 8-1 (compilation
+268, volume 1) was read that day at 09:27 AEDT. A day's transactions and any
+rate change take effect on that day, and its interest is the balance at the
+end of the day, when above nil, times the annual rate then in force over 365,
+in leap years too. The interest is debited on the last day of each month and
+on `end_date`, rounded half up to the cent, so 30 June always closes a debit
+and each income year's interest is exactly what is debited in it. These are
+the worksheet's conventions, stated in its scope, not rules of law: a lender
+who counts days, rests or rounding differently gives different figures, and
+its statement prevails. A balance below nil at the end of a day is refused,
+as is everything the scope excludes.
+
+`tests/loan_transactions.rs` works these cases by hand at 7.3% a year,
+exactly $0.0002 a dollar a day.
+
+| Case | Worksheet |
+| --- | --- |
+| $10,000 drawn 1 July 2026, $1,000 repaid 31 August, to 30 September | $62.00, $62.18 and $54.75 interest; $9,178.93 owing |
+| The same with 3.65% from 1 August | August's interest $31.09 |
+| $10,000 drawn 1 June 2026, to 31 July | $60.00 in 2025-26 and $62.37 in 2026-27 |
+| Paid out on 10 July with $10,018.00 | $18.00 interest, nil owing; $10,018.01 refused |
+## Contract register
+
+`contract-register` works no amount of its own: each contract's payments,
+interest and principal are those of its `hire-purchase-schedule` or
+`chattel-mortgage-schedule` result, unchanged, and the register only dates and adds them. The current and
+non-current split rests on AASB 101 paragraph 69(c), 'the liability is due
+to be settled within twelve months after the reporting period', in
+compilation 6 (compilation date 31 December 2022, the latest on the Federal
+Register of Legislation, F2015L01626), read on 19 November 2026. Paragraphs
+69(a), (b) and (d), and 72A to 76ZA on rights to defer settlement and
+covenants, were read and are not assessed: the preparer establishes them.
+ITAA 1997 s 240-60(2), already read for `hire-purchase-schedule`, leaves
+the interest of a period spanning 30 June to accounting principles, and a
+chattel mortgage's interest is deductible as each year incurs it (s 8-1),
+so the register sets it apart with its days rather than apportioning it.
+
+`tests/contract_register.rs` holds the fabricated register in
+`examples/contract-register.csv`, 8 contracts with monthly, weekly,
+fortnightly, quarterly and annual instalments, in arrears and in advance,
+starting from 15 September 2024 to 20 August 2026, to each contract's own
+schedule run in the test on facts written out by hand: every total by month,
+income year, financier, client and register is the sum of the schedules'
+amounts, and each amount outstanding follows the schedule's closing balance.
+
+| Case | Source | Register at 30 June 2026 |
+| --- | --- | --- |
+| $10,000 financed, 12 monthly instalments of $100 in arrears from 1 March 2026, $10,000 balloon | Worked by hand: 1% a month; 4 periods ended charge $400, 3 instalments paid $300 | $10,100.00 outstanding, all current |
+| $24,000 financed, 24 monthly instalments of $1,000 in arrears from 1 August 2025 | Worked by hand: nil rate; 10 paid, 12 due by 30 June 2027 | $14,000.00 outstanding, $12,000.00 current, $2,000.00 non-current |
+| Monthly from 15 September 2024 | Worked by hand: 15 to 30 June is 16 of the period's 30 days | `accruing_days_elapsed` 16 of 30 |
+| $10,000 financed, 24 monthly instalments of $10, $13,000 balloon | The balance builds up over the next 12 months | all non-current |
+| Chattel mortgage: $45,000 at a stated 7.99% from 15 July 2025, 60 monthly instalments in arrears, $5,000 balloon | Its own `chattel-mortgage-schedule` | The 11th row's closing balance outstanding; current, its fall to the 23rd row's; 16 of 30 days accruing |
+
 ## Business capital expenditure
 
 This worksheet was added on 16 November 2026. ITAA 1997 s 40-880 was read
@@ -1058,6 +1352,68 @@ trade-in; the other side and the years held are fabricated.
 | A $11,000 asset (full credit $1,000, $800 claimed) traded in for $22,000 | Worked by hand under GST Act s 132-5(3): $2,000 x 0.2 = $400, capped at $200 | $200.00 decreasing adjustment, $2,000.00 K7 gain |
 | An asset bought without GST (nil full and adjusted credits) traded in for $22,000 | Worked by hand under GST Act s 132-5(3): the adjustment is at most the nil difference between the credits | $2,000.00 GST, nil decreasing adjustment, $20,000.00 termination value |
 | A trade-in that is not a taxable supply | GST Act s 9-5 | No GST; the termination value is the allowance |
+
+## Payroll tax
+
+This worksheet was added on 19 November 2026. The revenue offices' pages were
+read from 09:36 to 09:37 AEDT that day:
+
+- Revenue NSW, 'Payroll tax thresholds and rates' (last updated 1 July 2026):
+  $1,200,000 and 5.45% for 2026-27, the interstate formula and its $360,000
+  example.
+- The Victorian State Revenue Office, 'Payroll tax (current rates)' (updated
+  29 September 2026) and 'Payroll tax surcharges' (its example 2, $80 million
+  in Victoria and $70 million in New South Wales).
+- The Queensland Revenue Office, 'Payroll tax rates and thresholds' (last
+  updated 17 July 2024), 'Payroll tax deductions' and 'Calculating the mental
+  health levy' (last updated 11 August 2026).
+- RevenueWA, 'Calculation: Payroll Tax Employer Guide' (last updated 2 June
+  2026).
+- RevenueSA, 'Rates and Thresholds'.
+- The Tasmanian State Revenue Office, 'Rates and thresholds' for 2026-27.
+- The ACT Revenue Office, 'About payroll tax' (Table 1 for 2026-27) and
+  'Calculating payroll tax'.
+- The Territory Revenue Office, 'Payroll tax rates and thresholds' and
+  'Payroll changes from 1 July 2026'.
+
+The Acts were read the same day: the Payroll Tax Act 2007 (NSW) Sch 1 (version
+current from 10 July 2026); the Payroll Tax Act 2007 (Vic) s 3A and Sch 1
+(authorised version 041, 1 May 2026); the Payroll Tax Act 1971 (Qld) ss 10,
+29 and 43I (reprint current as at 22 October 2026); the Pay-roll Tax Assessment
+Act 2002 (WA) ss 8 and 13 (04-d0-03) and the Pay-roll Tax Act 2002 (WA) s 5
+(00-d0-02); the Payroll Tax Act 2009 (SA) Sch 1 (version 31.3.2026); the
+Payroll Tax Act 2008 (Tas) Sch 1; the Payroll Tax Act 2011 (ACT) Sch 1
+(republication R20) with the Taxation Administration (Amounts and
+Rates—Payroll Tax) Determination 2026 (DI2026-151); and the Payroll Tax Act
+2009 (NT) s 7A and Sch 1 (as in force at 1 July 2026). The NT deduction formula
+in Sch 1 cl 3 is an image in the Act's PDF, AD = ETA - (TW + IW - ETA) / 2;
+the revenue office's pages say only that the deduction settings did not change
+on 1 July 2026. Every figure agrees with duguid.com.au's payroll tax calculator,
+published 17 November 2026, whose cases these tests also hold.
+
+The worksheet works each amount as its formula reads, to 40 digits, and rounds
+each step to the cent. RevenueWA rounds the deduction in its 2 interstate
+examples to the dollar, so its published tax is 1 and 3 cents lower than the
+worksheet's. The Queensland Revenue Office gives its deduction to the dollar
+($932,460); the worksheet's is $932,459.64.
+
+`tests/payroll_tax.rs` holds these cases, and the threshold edges, rate bands
+and refusals beside them.
+
+| Case | Source | Worksheet |
+| --- | --- | --- |
+| $1,500,000 of NSW wages, all in NSW | Revenue NSW: taxed on $300,000 | $16,350.00 |
+| $900,000 of NSW wages in $3,000,000 Australian wages | Revenue NSW: a threshold of $360,000 | $540,000.00 taxed, $29,430.00 |
+| $80 million in Victoria of $150 million | SRO surcharges example 2: thresholds of $5,333,333.33 and $53,333,333.33 | $3,880,000.00 tax, $506,666.67 each surcharge, $4,893,333.34 in all |
+| $4,200,000 in Victoria, and the same for a regional employer | Worked by hand from Sch 1 cl 1: $1,000,000 - $1,200,000 x 0.5 | $400,000.00 deduction, $184,300.00 and $46,075.00 |
+| $1,356,789 in Queensland of $1,789,776 | QRO 'Payroll tax deductions': $932,460 to the dollar | $932,459.64 deduction, $20,155.64 |
+| $1,104,000 in Western Australia | RevenueWA: $6,600 | $984,000.00 deduction, $6,600.00 |
+| $500,000 in South Australia of $2,000,000 | RevenueSA: a deduction of $150,000 | $17,325.00 |
+| $800,000 in South Australia of $1,600,000 | RevenueSA: $300,000; Sch 1 cl 5(2)(a): 2.475% | $12,375.00 |
+| $2,400,000 in Tasmania, all in Tasmania | SRO Tasmania: $54,400 | $30,000.00 at 4%, $24,400.00 at 6.1% |
+| $2,400,000 in Tasmania of $3,000,000 | SRO Tasmania example 2: $72,800 | $72,800.00 |
+| $3,000,000 in the ACT | Worked by hand: ($3,000,000 - $1,750,000) x 6.75% | $84,375.00 |
+| $3,000,000 in the Northern Territory | Worked by hand from Sch 1 cl 3: $2,500,000 - $500,000 / 2 | $2,250,000.00 deduction, $41,250.00 |
 
 ## Depreciation
 
@@ -1763,6 +2119,58 @@ tax-free component (an invalidity segment or a pre-July 83 segment, s 82-140),
 earlier ETPs in the year or for the same termination (which reduce the caps,
 s 82-10(4)(a) and (b)), delayed termination payments, payees without a TFN,
 foreign residents and working holiday makers are outside it.
+
+## ETP tax free component
+
+This worksheet's evidence was read on 19 November 2026 from 9.25 am to
+9.40 am AEDT:
+
+- ITAA 1997 ss 82-10, 82-140, 82-145, 82-150, 82-155 and 995-1(1) ('last
+  retirement day') on the ATO's legal database
+  (https://www.ato.gov.au/law/view/document?docid=PAC/19970038/82-150 and the
+  sections beside it). s 82-150(2): the invalidity segment is the ETP times the
+  days to retirement over the employment days plus the days to retirement;
+  s 82-155(2): the pre-July 83 segment is the ETP less the invalidity segment,
+  times the days of employment before 1 July 1983 over all of them; s 82-140:
+  the tax free component is the 2 segments; s 82-145: the taxable component is
+  the rest; s 82-10(6)(c): a payment that includes an invalidity segment, or
+  would but for s 82-150(1)(c), is an excluded payment. The same day's s 995-1
+  already omits the 'laundry expense' definition that Act No. 49 of 2026
+  repealed, so the database was current.
+- The ATO's 'Tax-free component of ETPs' (last updated 24 July 2025): Jackson's
+  $102,000 ETP, $102,000 x [370 / (3,305 + 370)] = $10,269 tax free and
+  $91,731 taxable, in whole dollars. Its own dates, 2 September 2013 to
+  25 September 2022 with a 65th birthday on 25 September 2023, count 3,311
+  employment days and 365 days to retirement on the worksheet's rule, not the
+  3,305 and 370 it shows. The test gives dates that make its counts, so the
+  arithmetic is held to the page, and works its own dates separately: $10,127.86.
+- The ATO's 'Employment termination payment with an invalidity segment
+  worksheet' (NAT 71949, June 2014; page last updated 24 September 2014),
+  read from its PDF: step 1 counts the days before 1 July 1983 including
+  30 June, step 2 the days from 1 July 1983 to the termination day including
+  it, and steps 6 to 9 apply the 2 formulas in that order.
+- The Library's ¶8-850 (superannuation, 'Superannuation Benefits · Termination
+  Payments', last reviewed 30 June 2026): Jim's $100,000 ETP on termination for
+  invalidity on 31 July 2026, his 65th birthday on 15 July 2027, gives 349 days
+  to retirement (1 August 2026 to 15 July 2027), the count this worksheet
+  makes, and $2,128 on 16,050 employment days. From his start on
+  20 August 1981 the days are 16,417, of which 680 fall before 1 July 1983,
+  giving $2,081.59 and a pre-July 83 segment of $4,055.83, worked by hand in
+  the test. Neither published example's employment days match its dates.
+- The Library's ¶8-860 (the same document): Jon's $70,000 at step 1 after a
+  $30,000 invalidity segment, employed from 1 January 1980 to
+  31 December 2026, has 1,277 days before 1 July 1983, the count this worksheet
+  makes, and $5,205 on 17,175 total days; the dates give 17,167, so the test
+  holds the pre-July 83 segment at $5,207.08, read on 19 November 2026.
+
+Rounding each segment half up to the cent is this command's own convention:
+neither the Act nor NAT 71949 sets a rounding rule, and the ATO's examples show
+whole dollars. Death benefit ETPs (which cannot
+include an invalidity segment), payments that relate to part of the employment
+or to broken periods of it, unused leave and superannuation disability benefits
+under s 307-145 (read the same day; its days to retirement run from the day the
+person stopped being capable of gainful employment, and its service days are
+the benefit's service period) are outside it.
 
 ## Unused leave payment
 

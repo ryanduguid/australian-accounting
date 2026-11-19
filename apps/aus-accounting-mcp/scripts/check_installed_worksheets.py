@@ -15,7 +15,6 @@ from aus_accounting_mcp import reviewed_rates, server
 from aus_accounting_mcp.adapters import tax
 
 ENGINES = ("ato-benchmark-compare", "payday-super-checker", "div7a-loan-review")
-NEW_KINDS = {"study_loan_withholding", "medicare_levy", "low_income_tax_offset", "division_293"}
 REVIEWED_RECORDS = Path(__file__).resolve().parents[3] / "packages" / "au-tax-rates-data" / "data"
 
 
@@ -50,21 +49,23 @@ async def check() -> None:
             raise ValueError(f"installed {name} does not match the facade's exact pin")
     contents = list(await server.mcp.read_resource("aus-accounting://scope"))
     catalogue = json.loads(contents[0].content)["calculation_worksheets"]
-    if len(catalogue) != 14 or not NEW_KINDS <= catalogue.keys():
-        raise ValueError("candidate does not expose all fourteen worksheets")
+    worksheets = {command.replace("-", "_") for command in tax.commands()
+                  if command not in tax.NOT_WORKSHEETS}
+    if not catalogue or catalogue.keys() != worksheets:
+        raise ValueError("candidate does not expose every worksheet the executable offers")
     calls = 0
     for kind, entry in catalogue.items():
-        for period in entry["supported_periods"]:
-            facts = {**entry["example"]["facts"], **period["arguments"]}
-            result = await server.mcp.call_tool("calculate_tax_worksheet", {"facts": facts})
-            if result.is_error or not isinstance(result.structured_content, dict):
-                raise ValueError(f"{kind} did not return structured calculation evidence")
-            data = result.structured_content
-            if data["calculation"] != kind or not data["warnings"]:
-                raise ValueError(f"{kind} lost its calculation identity or warnings")
-            if data["engine_version"] != tax.CALCULATORS_VERSION:
-                raise ValueError(f"{kind} reported another engine's version")
-            calls += 1
+        # Each example is dated in one of the kind's periods.
+        facts = entry["example"]["facts"]
+        result = await server.mcp.call_tool("calculate_tax_worksheet", {"facts": facts})
+        if result.is_error or not isinstance(result.structured_content, dict):
+            raise ValueError(f"{kind} did not return structured calculation evidence")
+        data = result.structured_content
+        if data["calculation"] != kind or not data["warnings"]:
+            raise ValueError(f"{kind} lost its calculation identity or warnings")
+        if data["engine_version"] != tax.CALCULATORS_VERSION:
+            raise ValueError(f"{kind} reported another engine's version")
+        calls += 1
     records = check_records(reviewed_rates.RECORDS, REVIEWED_RECORDS)
     rate = (await server.mcp.call_tool(
         "get_reviewed_rate", {"record_id": "concessional-cap-2026-27", "as_at": "2027-03-01"}
@@ -75,7 +76,7 @@ async def check() -> None:
         "facade": importlib.metadata.version("aus-accounting-mcp"),
         "engines": {**versions, tax.CALCULATORS: tax.CALCULATORS_VERSION},
         "worksheet_kinds": len(catalogue),
-        "supported_period_calls": calls,
+        "example_calls": calls,
         "reviewed_rate": rate["record"]["id"],
         "rate_records_equal_to_the_dataset": records,
         "scope": "Installed wheels and executable; declared exact pins; synthetic examples, "

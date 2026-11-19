@@ -906,7 +906,9 @@ class TaxCalculation(EngineResult):
     calculation: str
     period: str
     amounts: dict[str, DecimalText]
-    rates: dict[str, DecimalText]
+    rates: dict[str, Annotated[str, Field(
+        description="A rate as an engine decimal string, or a date or basis the worksheet "
+        "applied.")]]
     scope: str
     sources: list[str]
     source_checked: DateText

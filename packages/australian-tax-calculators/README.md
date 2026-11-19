@@ -3,7 +3,7 @@
 Australian Tax Calculators 1.0.0 is a standalone Rust binary. It replaces the
 Python `australian-tax-calculators` 0.2.0 package and its `austaxcalc` import
 API, with the same 14 worksheets, results and refusals, and adds 2 FBT car
-worksheets, FBT loan, meal entertainment, car parking, debt waiver, expense payment, property, residual, housing, living-away-from-home allowance, board and tax-exempt body entertainment worksheets, an entertainment classifier, a main residence worksheet, a borrowing expenses worksheet, a Division 296 estimate, a termination payment worksheet, an unused leave payment worksheet, 3 Schedule 5 withholding worksheets, a Schedule 15 working holiday maker worksheet, a Schedule 9 seniors and pensioners worksheet, a seniors and pensioners tax offset worksheet, a Medicare levy surcharge worksheet, a foreign resident tax worksheet, a PAYG gross-up worksheet, a hire purchase schedule and a business capital expenditure worksheet that no Python release contains. Python releases through 0.1.9
+worksheets, FBT loan, meal entertainment, car parking, debt waiver, expense payment, property, residual, housing, living-away-from-home allowance, board and tax-exempt body entertainment worksheets, an entertainment classifier, a meal entertainment register check, a main residence worksheet, a borrowing expenses worksheet, a Division 296 estimate, a termination payment worksheet, an ETP tax free component worksheet, an unused leave payment worksheet, 3 Schedule 5 withholding worksheets, a Schedule 15 working holiday maker worksheet, a Schedule 9 seniors and pensioners worksheet, a seniors and pensioners tax offset worksheet, a Medicare levy surcharge worksheet, a foreign resident tax worksheet, a PAYG gross-up worksheet, a hire purchase schedule and a business capital expenditure worksheet that no Python release contains. Python releases through 0.1.9
 contain 10 worksheets. MCP server releases through 0.9.0 use the 0.2.0 Python
 release from PyPI; later ones run this executable, requiring the exact version
 they were tested against, for the same 14 worksheets. The unreleased native
@@ -19,13 +19,13 @@ keeps the engine release and MCP integration separate.
 
 </div>
 
-Forty-eight calculation worksheets for established facts: ordinary GST, resident and foreign
-resident basic income tax, CGT losses and discount, the main residence exemption's taxable share of a gain or loss, one loan's borrowing expenses deduction, a hire purchase agreement's monthly notional interest, business capital expenditure (black hole and start-up costs) under s 40-880, ordinary employer FBT, car fringe benefit taxable values
-under the statutory formula and operating cost methods, loan, meal entertainment, car parking, debt waiver, expense payment, property, residual, housing, living-away-from-home allowance, board and tax-exempt body entertainment fringe benefit taxable values, the FBT, deduction and GST credit treatment of entertainment expense lines, depreciation in the start year and later years, a depreciating asset's balancing adjustment with its reduction for private use and CGT event K7, a trade-in's GST on both sides with the old asset's balancing adjustment and the replacement's cost,
+Fifty-seven calculation worksheets for established facts: ordinary GST, resident and foreign
+resident basic income tax, CGT losses and discount, the main residence exemption's taxable share of a gain or loss, one loan's borrowing expenses deduction, a hire purchase agreement's notional interest, a chattel mortgage's interest schedule and input tax credit, a loan's statement with daily interest at changing rates, business capital expenditure (black hole and start-up costs) under s 40-880, ordinary employer FBT, car fringe benefit taxable values
+under the statutory formula and operating cost methods, loan, meal entertainment, car parking, debt waiver, expense payment, property, residual, housing, living-away-from-home allowance, board and tax-exempt body entertainment fringe benefit taxable values, the FBT, deduction and GST credit treatment of entertainment expense lines, whether a 12 week meal entertainment register is valid, depreciation in the start year and later years, a depreciating asset's balancing adjustment with its reduction for private use and CGT event K7, a trade-in's GST on both sides with the old asset's balancing adjustment and the replacement's cost, whether an electric car's fringe benefits are exempt, one employer's payroll tax in each state and territory, wine equalisation tax with the producer rebate under its yearly cap and BAS labels 1C and 1D,
 quarterly super guarantee, Schedule 1 PAYG withholding and the gross pay that leaves a stated net, Schedule 5 withholding from back payments, commissions and bonuses by Methods A, B(i) and B(ii), Schedule 15 withholding for working holiday makers, Schedule 9 withholding for seniors and pensioners, super contribution caps,
 account-based pension minimums, study and training loan repayments, Schedule 8 study
 loan withholding, the Medicare levy with its low-income, SAPTO and family reductions and full or half exemptions, the Medicare levy surcharge, the low income tax offset, the seniors and pensioners tax offset, the lump sum payment in arrears tax offset,
-Division 293 tax, an estimate of Division 296 tax on large super balances and the tax-free part of a genuine redundancy payment with Schedule 11 withholding from an employment termination payment, the assessable share, Schedule 7 withholding and income statement label of unused leave paid on termination, and the income measures the surcharge, Division 293 tax, the offsets, study loan repayments and the super co-contribution are tested against. Callers must establish every scope condition before calculating. `personal-tax-estimate` composes the personal ones into one year's tax and levies,
+Division 293 tax, an estimate of Division 296 tax on large super balances and the tax-free part of a genuine redundancy payment with Schedule 11 withholding from an employment termination payment, the invalidity and pre-July 83 segments of an employment termination payment's tax free component, the assessable share, Schedule 7 withholding and income statement label of unused leave paid on termination, and the income measures the surcharge, Division 293 tax, the offsets, study loan repayments and the super co-contribution are tested against. Callers must establish every scope condition before calculating. `personal-tax-estimate` composes the personal ones into one year's tax and levies,
 and `fbt-return` composes the FBT ones into an employer's FBT return.
 
 Each worksheet is a subcommand that reads one JSON object on stdin and writes
@@ -51,13 +51,44 @@ The toolchain is pinned in `rust-toolchain.toml`. The executable is
 runtime is needed. PyPI still provides the historical Python release; `pip
 install` does not install this binary.
 
+## Install
+
 Each `australian-tax-calculators/v*` release on GitHub Releases carries the
 executable for x86_64 Linux (static, musl) and x86_64 Windows, built and
 attested by Release Policy's
 [`release-binary.yml`](https://github.com/ryanduguid/release-policy/blob/main/docs/binary-consumers.md).
-Download an explicit version and verify `SHA256SUMS` and the archive with `gh
-attestation verify` before running it, as that page's 'Downloading a release'
-shows. `australian-tax-calculators --version` prints the version.
+Release Policy's installer, at its v0.5.0 commit, downloads one, verifies it and
+installs it in one command. On x86_64 Linux:
+
+```sh
+curl --proto '=https' --tlsv1.2 -fsSL https://raw.githubusercontent.com/ryanduguid/release-policy/d7039efe6d8c441f1f213c674902909e80535599/scripts/install.sh | sh -s -- ryanduguid/australian-accounting australian-tax-calculators/v1.0.0 --modify-path
+```
+
+In PowerShell on x86_64 Windows:
+
+```powershell
+& ([scriptblock]::Create((irm https://raw.githubusercontent.com/ryanduguid/release-policy/d7039efe6d8c441f1f213c674902909e80535599/scripts/install.ps1))) ryanduguid/australian-accounting australian-tax-calculators/v1.0.0 -ModifyPath
+```
+
+It needs the [GitHub CLI](https://cli.github.com/) (`gh`), with no sign-in. It
+installs nothing unless `gh attestation verify` confirms that `SHA256SUMS` and
+the archive were signed by `release-binary.yml` for this repository's tag on a
+GitHub-hosted runner, and the archive matches its line in `SHA256SUMS`: a
+changed archive or digest is refused. The executable goes into
+`${XDG_DATA_HOME:-~/.local/share}/australian-tax-calculators` or
+`%LOCALAPPDATA%\Programs\australian-tax-calculators`. `--modify-path` adds a
+line putting that folder on `PATH` to the startup file of the shell `$SHELL`
+names (for bash on Linux, `~/.bashrc`, which a bash login shell reads only if
+`~/.profile` or `~/.bash_profile` sources it), and `-ModifyPath` adds it to your
+user `Path`, both for shells started afterwards; leave it off and the installer
+prints the folder instead. The command runs the script as
+GitHub serves it at that commit, so read it there first. The installer does
+not pin the commit the tag names: to check that too, verify by hand with both
+digests pinned, as the release-binary page's 'Downloading a release' shows.
+Other platforms build from source, as under Build and check. `australian-tax-calculators
+--version` prints the version. `.github/workflows/calculators-install.yml`
+runs both commands each week, and with the archive or `SHA256SUMS` altered in
+transit, which they must refuse.
 
 ## Use
 
@@ -88,6 +119,12 @@ message is reworded and never moves to a different failure. `REFUSAL_CODES` in
 `src/texts.rs` is the catalogue, and a test holds every refusal to it. Without the
 flag, stdout stays empty on a refusal.
 
+`contract-register` is the one command that reads a CSV file rather than a
+JSON object: a practice's hire purchase and chattel mortgage contracts, one a
+line, set out together with cashflow by month, interest by income year and
+the amount outstanding split into current and non-current. See
+[Contract register](docs/contract-register.md).
+
 ## Commands
 
 Each command takes the original function's keyword arguments, in this order, as
@@ -100,15 +137,19 @@ lists the commands.
 | Command | Arguments |
 | --- | --- |
 | `gst` | `amount`, `gst_inclusive`, `scope_confirmed`, `year` |
+| `gst-margin-scheme` | `interest`, `agreement`, `acquisition`, `consideration`, `method`, `recipient_associate`, `year`, `scope_confirmed`; with method `consideration`, `acquisition_consideration` and `unpaid_acquisition_consideration`; with method `approved_valuation`, `approved_valuation`, `valuation_day`, `registered_on_1_july_2000` and `government_unimproved_on_1_july_2000`; for part of the land, `subdivision_share` and `subdivision_whole`; see [GST margin scheme](#gst-margin-scheme) |
 | `resident-tax` | `taxable_income`, `year`, `scope_confirmed` |
 | `foreign-resident-tax` | `taxable_income`, `year`, `scope_confirmed` |
 | `capital-gains` | `other_gains`, `discount_gains`, `current_losses`, `prior_losses`, `scope_confirmed`, `year` |
 | `main-residence` | `capital_gain`, `capital_loss`, `market_value_basis`, `ownership_start`, `ownership_end`, `lived_periods`, `income_use_periods`, `absence_choice_periods`, `new_home_acquired`, `year`, `scope_confirmed` |
 | `borrowing-expenses` | `borrowing_expenses`, `other_borrowing_expenses_in_year`, `income_use`, `loan_start`, `loan_term_end`, `repaid_on`, `section_26_50_applies`, `year`, `scope_confirmed` |
 | `hire-purchase-schedule` | `amount_financed`, `balloon`, `timing`, `start_date`, `year`, `scope_confirmed`; `instalment`, `instalments` and optionally `frequency`, or `segments` in their place; optionally `deposit`, `trade_in`, `payout` and `gst`; see [Hire purchase schedule](#hire-purchase-schedule) |
+| `chattel-mortgage-schedule` | `amount_financed`, `instalments`, `balloon`, `timing`, `start_date`, `year`, `scope_confirmed`; `instalment` or `annual_rate`; optionally `frequency`, `deposit`, `trade_in` and `gst`; see [Chattel mortgage schedule](#chattel-mortgage-schedule) |
+| `loan-transactions` | `opening_balance`, `annual_rate`, `start_date`, `end_date`, `transactions`, `year`, `scope_confirmed`; optionally `rate_changes`; see [Loan transactions](#loan-transactions) |
 | `business-capital-expenditure` | `items`, `year`, `scope_confirmed`; see [Business capital expenditure](#business-capital-expenditure) |
 | `balancing-adjustment` | `cost`, `termination_value`, `asset`, `years`, `year`, `scope_confirmed`; for a car, `car_limit`; see [Balancing adjustment](#balancing-adjustment) |
 | `trade-in` | `cost`, `asset`, `years`, `trade_in_allowance`, `trade_in_taxable`, `replacement_price`, `replacement_asset`, `replacement_creditable_acquisition`, `arms_length`, `involuntary_disposal`, `year`, `scope_confirmed`; `car_limit`, `adjusted_input_tax_credit`, `full_input_tax_credit`, `replacement_luxury_car_tax` and `creditable_purpose` where the facts need them; see [Trade-in](#trade-in) |
+| `payroll-tax` | `jurisdiction`, `taxable_wages`, `australian_wages`, `group_member`, `employed_all_year`, `year`, `scope_confirmed`; in Victoria, `regional_employer`; see [Payroll tax](#payroll-tax) |
 | `fbt` | `type_one_value`, `type_two_value`, `year_ended`, `scope_confirmed` |
 | `fbt-car-statutory` | `cost_price`, `later_accessories`, `one_third_reduction`, `days_available`, `employee_contribution`, `electric_car_exempt`, `year_ended`, `scope_confirmed` |
 | `fbt-car-operating-cost` | `running_costs`, `lease_charges`, `depreciated_value`, `effective_life_years`, `days_held`, `business_use`, `employee_contribution`, `statutory_formula_taxable_value`, `electric_car_exempt`, `year_ended`, `scope_confirmed` |
@@ -124,6 +165,9 @@ lists the commands.
 | `fbt-lafha` | `method`, `allowance`, `year_ended`, `scope_confirmed`; with `maintains_home` or `fly_in_fly_out`, `accommodation_component`, `accommodation_expenses`, `food_component`, `food_expenses`, `normal_food_amount`, `adult_days` and `child_days` |
 | `fbt-board` | `adult_meals`, `child_meals`, `employee_contribution`, `income_use`, `contribution_deduction`, `year_ended`, `scope_confirmed` |
 | `fbt-tax-exempt-body-entertainment` | `method`, `entertainment_expenditure`, `year_ended`, `scope_confirmed`; with `per_head`, `employee_heads` and `total_heads` |
+| `wine-equalisation-tax` | `dealings`, `year`, `scope_confirmed`; `rebate_claimed_earlier_in_year` and `associated_producer` with a dealing's `rebate_conditions`; see [Wine equalisation tax](#wine-equalisation-tax) |
+| `fbt-meal-entertainment-register` | `register_start`, `register_end`, `entries`, `year_ended`, `scope_confirmed`; `register_years_expenditure`, required for a later year of the register's validity; see [FBT meal entertainment register](#fbt-meal-entertainment-register) |
+| `fbt-minor-benefit-check` | `category`, `notional_taxable_value`, `salary_sacrifice`, `frequency`, `similar_benefits_substantial`, `other_associated_benefits_substantial`, `valuation_difficult`, `unexpected_event`, `reward_for_services`, `year_ended`, `scope_confirmed`; `in_house` for an expense payment, property or residual benefit, `tax_exempt_body_exception` for tax-exempt body entertainment and `fifty_fifty_split` for meal entertainment or entertainment facility leasing; see [FBT minor benefits](#fbt-minor-benefits) |
 | `fbt-entertainment-classifier` | `lines`, `income_tax_exempt`, `year_ended`, `scope_confirmed`; `method`, required when a line is meal entertainment; with `12_week_register`, `income_tax_register_percentage` |
 | `depreciation` | `cost`, `effective_life`, `days`, `taxable_use`, `method`, `scope_confirmed`, `year`; optional `opening_adjustable_value` |
 | `quarterly-sg` | `ordinary_time_earnings`, `qualifying_contributions`, `year`, `quarter`, `scope_confirmed` |
@@ -139,6 +183,7 @@ lists the commands.
 | `income-tests` | `taxable_income`, `assessable_fhss_released_amount`, `family_trust_distribution_amounts`, `reportable_fringe_benefits_section_57a`, `reportable_fringe_benefits_other`, `reportable_employer_super_contributions`, `deductible_personal_super_contributions`, `excess_concessional_contributions`, `net_financial_investment_loss`, `net_rental_property_loss`, `tax_free_government_pensions`, `target_foreign_income`, `exempt_foreign_employment_income`, `child_support_paid`, `assessable_income`, `business_deductions`, `residency`, `year`, `scope_confirmed`; see [Income tests](#income-tests) |
 | `division-296` | `total_super_balance_end_of_year`, `total_super_earnings`, `child_recipient`, `structured_settlement_contribution`, `died_in_year`, `year`, `scope_confirmed` |
 | `termination-payment` | `redundancy_payment`, `completed_years_of_service`, `excluded_payment`, `non_excluded_payment`, `other_taxable_payments`, `date_of_birth`, `year`, `scope_confirmed` |
+| `etp-tax-free-component` | `payment`, `employment_start`, `termination_date`, `last_retirement_day`, `ill_health`, `medical_certification`, `year`, `scope_confirmed`; see [ETP tax free component](#etp-tax-free-component) |
 | `unused-leave-payment` | `annual_leave`, `leave_loading`, `long_service_leave`, `leave_accrual_start`, `termination_reason`, `working_holiday_maker`, `earnings`, `pay_period`, `scale`, `year`, `scope_confirmed`; optional `foreign_resident` (scale 4); `annual_leave_before_18_august_1993`, `leave_loading_before_18_august_1993`, `long_service_leave_before_16_august_1978` and `long_service_leave_16_august_1978_to_17_august_1993` where the accrual start and reason need them |
 | `schedule-5-method-a` | `earnings`, `additional_payment`, `pay_periods`, `pay_period`, `scale`, `study_loan`, `year`, `scope_confirmed`; `pay_date`, with `study_loan` only and required with it for 2025-26 |
 | `schedule-5-method-b-i` | `earnings`, `back_payment_periods`, `pay_period`, `scale`, `study_loan`, `year`, `scope_confirmed`; `pay_date`, as for Method A |
@@ -153,13 +198,13 @@ lists the commands.
 | `dgr-check` | `donations`, a list of 1 to 10,000 objects, each with `abn` or `name` or both, and optional `date` and `amount`; see [DGR check](#dgr-check) |
 | `personal-tax-estimate` | `year`, `scope_confirmed`, `residency`, `taxable_income` or `assessable_labour_income` (then optional `other_assessable_income`, `work_related_deductions`, `other_deductions`), optional `tax_withheld` or, to work it out, one of `payg-withholding`, `study-loan-withholding` and `seniors-pensioners-withholding` with `pays_in_year` and optional `schedule-5-method-a`, for a resident from 2027-28 `net_labour_income` (required beside `taxable_income`), and for a full-year resident `medicare-levy` and `medicare-levy-surcharge`; optional `seniors-pensioners-tax-offset`, `study-loan-repayment` and `division-293`; see [Personal tax estimate](#personal-tax-estimate) |
 | `fbt-return` | `employer`, `year_ended`, `scope_confirmed` and `benefits`, a list of objects each with `employee`, `command` (an FBT benefit worksheet), `input` (that worksheet's arguments), `gst_type` (`type_1` or `type_2`) and `excluded`; see [FBT return](#fbt-return) |
-| `derive` | `command`, one of `fbt`, `fbt-car-statutory`, `fbt-car-operating-cost`, `fbt-loan`, `fbt-meal-entertainment`, `fbt-car-parking`, `fbt-debt-waiver`, `fbt-expense-payment`, `fbt-property`, `division-293`, `pension-minimum`, `payg-withholding`, `schedule-5-method-a`, `schedule-5-method-b-i`, `schedule-5-method-b-ii`, `termination-payment`, `unused-leave-payment`, `working-holiday-maker-withholding`, `study-loan-withholding`, `seniors-pensioners-withholding`, `quarterly-sg`, `borrowing-expenses`, `resident-tax`, `foreign-resident-tax`, `low-income-tax-offset`, `seniors-pensioners-tax-offset`, `medicare-levy`, `medicare-levy-surcharge`, `division-296`, `contribution-caps`, `study-loan-repayment`, `capital-gains`, `main-residence`, `fbt-residual`, `fbt-housing`, `fbt-lafha`, `fbt-board`, `fbt-tax-exempt-body-entertainment`, `gst`, `depreciation`, `hire-purchase-schedule`, `lump-sum-arrears-tax-offset`, `income-tests`, `business-capital-expenditure`, `balancing-adjustment` and `trade-in`, and `input`, that command's arguments; see [Derivations](#derivations) |
+| `derive` | `command`, one of `fbt`, `fbt-car-statutory`, `fbt-car-operating-cost`, `fbt-loan`, `fbt-meal-entertainment`, `fbt-car-parking`, `fbt-debt-waiver`, `fbt-expense-payment`, `fbt-property`, `division-293`, `pension-minimum`, `payg-withholding`, `schedule-5-method-a`, `schedule-5-method-b-i`, `schedule-5-method-b-ii`, `termination-payment`, `etp-tax-free-component`, `unused-leave-payment`, `working-holiday-maker-withholding`, `study-loan-withholding`, `seniors-pensioners-withholding`, `quarterly-sg`, `borrowing-expenses`, `resident-tax`, `foreign-resident-tax`, `low-income-tax-offset`, `seniors-pensioners-tax-offset`, `medicare-levy`, `medicare-levy-surcharge`, `division-296`, `contribution-caps`, `study-loan-repayment`, `capital-gains`, `main-residence`, `fbt-residual`, `fbt-housing`, `fbt-lafha`, `fbt-board`, `fbt-tax-exempt-body-entertainment`, `gst`, `depreciation`, `hire-purchase-schedule`, `chattel-mortgage-schedule`, `loan-transactions`, `lump-sum-arrears-tax-offset`, `income-tests`, `business-capital-expenditure`, `balancing-adjustment`, `trade-in`, `gst-margin-scheme` and `payroll-tax`, and `input`, that command's arguments; see [Derivations](#derivations) |
 
-The 2 car commands, the 11 FBT benefit commands (`fbt-loan`, `fbt-meal-entertainment`, `fbt-car-parking`, `fbt-debt-waiver`, `fbt-expense-payment`, `fbt-property`, `fbt-residual`, `fbt-housing`, `fbt-lafha`, `fbt-board` and `fbt-tax-exempt-body-entertainment`), `main-residence`, `borrowing-expenses`, `division-296`, `termination-payment`, `unused-leave-payment`, the 3 `schedule-5` commands, `working-holiday-maker-withholding`, `seniors-pensioners-withholding`, `seniors-pensioners-tax-offset`, `medicare-levy-surcharge`, `foreign-resident-tax`, `payg-gross-up`, `hire-purchase-schedule`, `lump-sum-arrears-tax-offset`, `fbt-entertainment-classifier`, `income-tests`, `business-capital-expenditure`, `balancing-adjustment`, `trade-in` and `fbt-ev-exemption-check` have no Python original; their arguments follow the same
+The 2 car commands, the 11 FBT benefit commands (`fbt-loan`, `fbt-meal-entertainment`, `fbt-car-parking`, `fbt-debt-waiver`, `fbt-expense-payment`, `fbt-property`, `fbt-residual`, `fbt-housing`, `fbt-lafha`, `fbt-board` and `fbt-tax-exempt-body-entertainment`), `main-residence`, `borrowing-expenses`, `division-296`, `termination-payment`, `etp-tax-free-component`, `unused-leave-payment`, the 3 `schedule-5` commands, `working-holiday-maker-withholding`, `seniors-pensioners-withholding`, `seniors-pensioners-tax-offset`, `medicare-levy-surcharge`, `foreign-resident-tax`, `payg-gross-up`, `hire-purchase-schedule`, `chattel-mortgage-schedule`, `loan-transactions`, `lump-sum-arrears-tax-offset`, `fbt-entertainment-classifier`, `fbt-meal-entertainment-register`, `fbt-minor-benefit-check`, `income-tests`, `business-capital-expenditure`, `balancing-adjustment`, `trade-in`, `gst-margin-scheme`, `wine-equalisation-tax`, `payroll-tax` and `fbt-ev-exemption-check` have no Python original; their arguments follow the same
 rules. `division-296` alone takes a negative amount, in `total_super_earnings`. `main-residence` also takes dates as `YYYY-MM-DD` strings, lists of
 `{"start", "end"}` periods (with `"floor_area"` for income use) and `null`
 for no new home. `borrowing-expenses` takes `loan_start` as a `YYYY-MM-DD`
-string and `loan_term_end` and `repaid_on` as dates or `null`. `hire-purchase-schedule` takes `instalments` as a JSON integer, `timing` as `in_arrears` or `in_advance`, `start_date` as a `YYYY-MM-DD` string and `segments`, `payout` and `gst` as described under [Hire purchase schedule](#hire-purchase-schedule), and refuses a field it, a segment, the payout or the GST facts do not take. `business-capital-expenditure` takes `items` as a list of objects, and refuses a field it or an item does not take. `balancing-adjustment` takes `years` as a list of objects and a car's `car_limit` as an object or `null`, and refuses a field it, a row or `car_limit` does not take; `trade-in` takes them as it does, and refuses an optional input its other facts do not call for. `termination-payment` takes `completed_years_of_service` as a JSON integer and `date_of_birth` as a `YYYY-MM-DD` string. `unused-leave-payment` takes `leave_accrual_start` as a `YYYY-MM-DD` string, `termination_reason` as `normal`, `genuine_redundancy`, `early_retirement_scheme` or `invalidity`, and its 4 accrual parts as optional decimal strings, described under [Unused leave payment](#unused-leave-payment). `schedule-5-method-b-i` takes `back_payment_periods` as a list of `{"earnings", "back_payment", "withheld"}` decimal strings, one for each earlier pay period. Every argument is required, as the Python functions had no defaults, except `depreciation`'s optional `opening_adjustable_value`: give it, as a decimal string, for a year after the asset's start time, as cost less the earlier years' decline in value; and `medicare-levy`'s optional family inputs, described under [Medicare levy](#medicare-levy-and-low-income-tax-offset). `medicare-levy` refuses a field it does not take, as does `medicare-levy-surcharge`, whose optional inputs are described under [Medicare levy surcharge](#medicare-levy-surcharge). `payg-withholding`'s optional inputs are described under [PAYG withholding](#payg-withholding), `payg-gross-up` under [PAYG gross-up](#payg-gross-up), `study-loan-withholding`'s `pay_date` under [Study loan withholding](#study-loan-withholding), `seniors-pensioners-withholding`'s `study_loan` and `pay_date` under [Seniors and pensioners](#seniors-and-pensioners) and `seniors-pensioners-tax-offset`'s spouse inputs under [Seniors and pensioners tax offset](#seniors-and-pensioners-tax-offset). `income-tests` requires every component and refuses a field it does not take; see [Income tests](#income-tests). The FBT benefit commands take the inputs their `method` needs and refuse any other, as [FBT loans, meal entertainment and car parking](#fbt-loans-meal-entertainment-and-car-parking), [FBT debt waivers, expense payments and property](#fbt-debt-waivers-expense-payments-and-property) and [FBT residual, housing, LAFHA, board and entertainment benefits](#fbt-residual-housing-lafha-board-and-entertainment-benefits) describe. `fbt-entertainment-classifier` takes `lines` as a list of line objects and refuses a field it does not take, as [FBT entertainment classifier](#fbt-entertainment-classifier) describes. Input over 8 MiB,
+string and `loan_term_end` and `repaid_on` as dates or `null`. `hire-purchase-schedule` takes `instalments` as a JSON integer, `timing` as `in_arrears` or `in_advance`, `start_date` as a `YYYY-MM-DD` string and `segments`, `payout` and `gst` as described under [Hire purchase schedule](#hire-purchase-schedule), and refuses a field it, a segment, the payout or the GST facts do not take. `business-capital-expenditure` takes `items` as a list of objects, and refuses a field it or an item does not take. `balancing-adjustment` takes `years` as a list of objects and a car's `car_limit` as an object or `null`, and refuses a field it, a row or `car_limit` does not take; `trade-in` takes them as it does, and refuses an optional input its other facts do not call for. `termination-payment` takes `completed_years_of_service` as a JSON integer and `date_of_birth` as a `YYYY-MM-DD` string. `unused-leave-payment` takes `leave_accrual_start` as a `YYYY-MM-DD` string, `termination_reason` as `normal`, `genuine_redundancy`, `early_retirement_scheme` or `invalidity`, and its 4 accrual parts as optional decimal strings, described under [Unused leave payment](#unused-leave-payment). `schedule-5-method-b-i` takes `back_payment_periods` as a list of `{"earnings", "back_payment", "withheld"}` decimal strings, one for each earlier pay period. Every argument is required, as the Python functions had no defaults, except `depreciation`'s optional `opening_adjustable_value`: give it, as a decimal string, for a year after the asset's start time, as cost less the earlier years' decline in value; and `medicare-levy`'s optional family inputs, described under [Medicare levy](#medicare-levy-and-low-income-tax-offset). `medicare-levy` refuses a field it does not take, as does `medicare-levy-surcharge`, whose optional inputs are described under [Medicare levy surcharge](#medicare-levy-surcharge). `payg-withholding`'s optional inputs are described under [PAYG withholding](#payg-withholding), `payg-gross-up` under [PAYG gross-up](#payg-gross-up), `study-loan-withholding`'s `pay_date` under [Study loan withholding](#study-loan-withholding), `seniors-pensioners-withholding`'s `study_loan` and `pay_date` under [Seniors and pensioners](#seniors-and-pensioners) and `seniors-pensioners-tax-offset`'s spouse inputs under [Seniors and pensioners tax offset](#seniors-and-pensioners-tax-offset). `income-tests` requires every component and refuses a field it does not take; see [Income tests](#income-tests). The FBT benefit commands take the inputs their `method` needs and refuse any other, as [FBT loans, meal entertainment and car parking](#fbt-loans-meal-entertainment-and-car-parking), [FBT debt waivers, expense payments and property](#fbt-debt-waivers-expense-payments-and-property) and [FBT residual, housing, LAFHA, board and entertainment benefits](#fbt-residual-housing-lafha-board-and-entertainment-benefits) describe. `fbt-entertainment-classifier` takes `lines` as a list of line objects and refuses a field it does not take, as [FBT entertainment classifier](#fbt-entertainment-classifier) describes. `wine-equalisation-tax` takes `dealings` as a list of dealing objects and refuses a field it, a dealing, `average_wholesale` or `rebate_conditions` does not take; see [Wine equalisation tax](#wine-equalisation-tax). Input over 8 MiB,
 or a decimal string over 8,192 bytes, is refused.
 
 ## Derivations
@@ -204,13 +249,16 @@ out before the withholding worked on it. `derive` `payg-withholding`, or
 `study-loan-withholding` for a payee with a study loan, on its `gross_pay` to
 see that withholding worked. `fbt-entertainment-classifier` is not derived
 either: each line and attendee class carries its own authority, from the row
-of the decision table that classified it.
+of the decision table that classified it. Nor is
+`fbt-meal-entertainment-register`: its checks carry their authorities, and its
+totals are sums of the register's entries.
 The plain commands' output does not change.
 
 The PAYG withholding, Schedule 5 and termination payment steps cite the
 schedules of the Taxation Administration (Withholding Schedules) Instrument for
 the year, made under Schedule 1 to the Taxation Administration Act 1953,
 s 15-25; the termination payment steps also cite ITAA 1997 s 82-10 and 83-170.
+The ETP tax free component steps cite ITAA 1997 ss 82-140 to 82-155.
 The unused leave payment steps cite ITAA 1997 ss 83-10 to 83-90, the headings
 of the ATO's Schedule 7 for payments from 1 July 2026, its STP Phase 2
 employer reporting guidelines, the Superannuation Guarantee (Administration)
@@ -260,13 +308,17 @@ steps cite ITAA 1997 ss 40-85, 40-285, 40-290, 40-300, 40-325, 40-370 and
 104-240, and write in each year's decline and reduction; a step that is nil
 because s 40-370(1) Note 2 or s 118-5 applies cites that provision. The
 trade-in steps add GST Act ss 9-70, 9-75, 11-30, 69-10 and 132-5 and ITAA
-1997 ss 27-80, 27-95, 40-185, 40-230 and 40-305.
+1997 ss 27-80, 27-95, 40-185, 40-230 and 40-305. The payroll tax steps cite
+each jurisdiction's payroll tax Act by section or clause and version, with the
+revenue office page that publishes the same figure, and the ACT's rates cite
+its 2026 determination (DI2026-151).
 
 ## Supported periods
 
 | Worksheet | Period and boundary |
 | --- | --- |
 | GST | 2025-26 to 2027-28, one ordinary taxable supply at 10%; no classification or BAS |
+| GST margin scheme | 2025-26 to 2027-28, one taxable supply of real property under a contract from 9 December 2008; the s 75-5 conditions, the consideration or a valuation under s 75-10(3) items 1 to 4, and a lot's share under s 75-15; acquisitions s 75-11 governs are refused |
 | Resident tax | 2024-25 to 2027-28; full-year resident ordinary income, before offsets and levies |
 | Foreign resident tax | 2024-25 to 2027-28; full-year foreign resident ordinary income, no tax-free threshold; no Medicare levy or low income tax offset applies |
 | CGT | 2025-26 and 2026-27, resident individual's established gains and losses; losses before the 50% discount |
@@ -274,7 +326,9 @@ trade-in steps add GST Act ss 9-70, 9-75, 11-30, 69-10 and 132-5 and ITAA
 | Borrowing expenses | 2024-25 to 2026-27, before s 26-155 from 2027-28; one loan's established expenditure, use and dates |
 | Balancing adjustment | Balancing adjustment events in 2024-25 to 2026-27, before Act No. 49 of 2026's CGT changes from 1 July 2027; one depreciating asset's established cost, termination value and each year's decline and deduction, with s 40-370 for a car from 2015-16; no pooled or written-off assets |
 | Trade-in | 2025-26 and 2026-27, at the car limits of $69,674 and $69,883; one depreciating asset traded in at arm's length for a replacement first held and used that year; established GST status, credits, allowance and price |
+| Payroll tax | 2026-27; one employer outside a group that pays wages all year in one state or territory; established taxable and Australian wages and, in Victoria, regional status; before exemptions, rebates, discounts and caps |
 | Business capital expenditure | 2020-21 to 2027-28, items incurred from 1 July 2020 under s 40-880 as amended by Act No 92 of 2020; each item's established capital nature, business, taxable purpose extent, start-up facts and exclusions |
+| Wine equalisation tax | Dealings in 2023-24 to 2027-28, after the 1 July 2023 end of the transitional rebate rules; the rebate cap of $350,000 to 2025-26 and $400,000 from 2026-27; established dealings, quotes, rebate conditions and earlier claims |
 | FBT | Years ended 31 March 2026 and 2027; established type 1 and type 2 taxable values, ordinary employer |
 | FBT car benefits | Years ended 31 March 2026 and 2027; one car's established base value or operating costs, the 20% statutory percentage and a deemed depreciation rate of 200% over the established effective life |
 | FBT electric cars exemption | Years ended 31 March 2026 and 2027, before the change announced for 1 April 2027; first retail sales in 2012-13 to 2026-27, at the ATO's fuel-efficient luxury car tax thresholds; established vehicle type, dates, value and commitments |
@@ -289,6 +343,8 @@ trade-in steps add GST Act ss 9-70, 9-75, 11-30, 69-10 and 132-5 and ITAA
 | FBT living-away-from-home allowances | Years ended 31 March 2026 and 2027; an allowance's established components, expenses and family members' days, at the statutory food amounts of $42 and $21 a week |
 | FBT board | Years ended 31 March 2026 and 2027; the established meals at $2.00 and $1.00, contributions and deductible share |
 | FBT tax-exempt body entertainment | Years ended 31 March 2026 and 2027; established non-deductible entertainment expenditure, actual or per head |
+| FBT meal entertainment register | Years ended 31 March 2026 and 2027; one 12 week register's period, entries and validity years, with the 20% rule from the yearly expenses given; not whether the period is representative or an entry false |
+| FBT minor benefits | Years ended 31 March 2026 and 2027; one benefit's established category, notional taxable value and s 58P(1)(f) criteria, weighed as TR 2007/12's examples weigh them |
 | FBT entertainment classifier | Years ended 31 March 2026 and 2027; an ordinary taxable employer's entertainment expense lines with established facts, split per head between attendee classes; no tax-exempt bodies, Subdivision 32-B exceptions, salary packaging or reportable fringe benefits amounts |
 | Depreciation | 2025-26 and 2026-27, an ordinary tangible Division 40 asset's start year, or a later year from its established opening adjustable value; established life and use |
 | SG | Complete quarters of 2025-26; established OTE, eligibility and qualifying contributions |
@@ -305,6 +361,7 @@ trade-in steps add GST Act ss 9-70, 9-75, 11-30, 69-10 and 132-5 and ITAA
 | Income tests | 2024-25, 2025-26 and 2026-27; a full-year resident's established and classified components; the measures, not the thresholds and tests they feed |
 | Division 296 | 2026-27; one individual's established balance at 30 June 2027 and total superannuation earnings; no defined benefit or other s 296-70 interests; an estimate, as the Commissioner assesses |
 | Termination payment | 2026-27; one life benefit ETP to a resident employee who gave a TFN, paid within 12 months; established genuine redundancy and classified ETP parts; Schedule 11 withholding, not the tax assessed |
+| ETP tax free component | 2026-27 and 2027-28; one life benefit ETP relating to one continuous period of employment; established ill-health, medical certificates and last retirement day; the invalidity and pre-July 83 segments and the taxable component, not the tax or withholding |
 | Unused leave payment | 2026-27; unused leave paid on one termination to an employee who is not a working holiday maker; established reason, accrual start, accrual parts and normal earnings; Schedule 7 withholding and assessable shares, not the tax assessed |
 | Schedule 5 withholding | Weekly, fortnightly or monthly pays made from 1 July 2024 to 30 June 2027 that include back payments, commissions or bonuses, on scale 1, 2, 3, 5 or 6; the study and training support loan component for pays from 24 September 2025, and from 1 July 2026 in Method B(i) |
 | Working holiday makers | 2024-25 to 2026-27; one weekly, fortnightly or monthly payment to an established working holiday maker; no TFN exemption claimants or labour mobility schemes |
@@ -327,8 +384,8 @@ personal tax estimate applies the working Australians tax offset (ITAA 1997
 ss 61-155 and 61-160); it does not work out the extra tax on a minimum tax
 capital gain (s 119-10). The SG worksheet does not implement post-June 2026
 Payday entitlement rules. The separate Payday engine reviews timing on a supplied
-liability. SMSF fund tax, Division 296 fund earnings and their attribution, the transfer balance cap, trusts and payroll
-tax remain outside these worksheets.
+liability. SMSF fund tax, Division 296 fund earnings and their attribution, the transfer balance cap and trusts remain
+outside these worksheets.
 
 ## Foreign resident tax
 
@@ -919,6 +976,143 @@ count for each (`line_not_split`), a cost without its GST status
 (`input.amount_invalid`). It classifies facts; it does not advise on how to
 arrange an event. See [calculation evidence](docs/calculation-evidence.md#fbt-entertainment-classifier).
 
+## FBT meal entertainment register
+
+`fbt-meal-entertainment-register` checks whether a 12 week meal entertainment
+register is valid for the FBT year ended 31 March 2026 or 2027 (FBTAA ss 37CA
+to 37CF), and works out the register's values for `fbt-meal-entertainment`.
+`entries` lists what the register records for its period, one object for each
+provision of meal entertainment: `date`, `recipients` (counts of `employees`,
+`associates` and `others`), `cost`, `kind`, `location`, `on_premises`,
+`in_house_dining_facility` (on the employer's premises only) and
+`fringe_benefits_value`, the part of the cost that is meal entertainment
+fringe benefits, which the employer works out. A detail the register does not
+record is left out or `null`.
+
+The result lists 5 checks, each with its authority, whether it passed and why:
+the period is continuous and at least 12 weeks, 84 days with both ends
+counted (s 37CC(1) and (3)); the register records meal entertainment; every
+entry records the 6 details s 37CE(1) requires, naming each entry and detail
+missing; the register is valid for the year (s 37CD(1) and (2): the FBT year
+its period ends in, or the second year where it spans 2, and the 4 years
+after); and no later year's meal entertainment expenses were more than 20%
+higher than its first valid year's (s 37CD(3)), from
+`register_years_expenditure`. `valid` is true only when all 5 pass, and then
+`fbt_meal_entertainment_input` holds the register's values, first valid year
+and yearly expenses for `fbt-meal-entertainment`, which needs only the year's
+`meal_entertainment_expenditure` added. The register percentage is kept exact
+and shown to the cent; an entry with no cost is left out of the totals and
+counted in `entries_without_cost`.
+
+It refuses an entry dated outside the period, a fringe benefits value above
+the entry's cost or above nil with no employee or associate among its
+recipients, an in-house dining facility answer for meal entertainment off the
+employer's premises, a period that ends before it starts or spans more than
+2 FBT years (`period_invalid`) and a detail it cannot read (`entry_invalid`).
+Whether the register was kept, and meal entertainment provided, throughout
+the period (s 37CC(1)), whether the period is representative of the first
+valid year (s 37CC(2)), whether an entry is false or misleading (s 37CF) or
+was made late (s 37CE(2)), and whether a later register replaces this one, are
+the employer's to establish. The car
+parking register is outside it. See
+[calculation evidence](docs/calculation-evidence.md#fbt-meal-entertainment-register).
+
+## FBT minor benefits
+
+`fbt-minor-benefit-check` screens one benefit, in the FBT year ended 31 March
+2026 or 2027, against the minor benefits exemption of FBTAA s 58P. It decides
+the conditions and lists each with its authority, naming every one that fails
+in `failing_conditions`:
+
+- `not_in_house`: an `expense_payment`, `property` or `residual` benefit that,
+  as a fringe benefit of that kind, would not be in-house (`in_house` false:
+  s 58P(1)(c));
+- `tax_exempt_body_exception`: for `tax_exempt_body_entertainment`, the
+  entertainment is incidental to entertaining outsiders and neither a meal nor
+  provided in connection with one, other than light refreshments
+  (`incidental_to_outsiders_no_meal`), or on eligible premises of the employer
+  (s 136(1)) solely to recognise the employee's special achievements
+  (`special_achievement_on_premises`), not `none` (s 58P(1)(d));
+- `not_fifty_fifty_split`: `meal_entertainment` or
+  `entertainment_facility_leasing` is not valued by the 50/50 split method
+  (Division 9A or s 152B: TR 2007/12 para 14). It is never met:
+  `fifty_fifty_split` false is refused, and the benefit is then screened under
+  its own category;
+- `not_salary_sacrifice`: not under a salary sacrifice arrangement
+  (TR 2007/12 para 16);
+- `less_than_300`: `notional_taxable_value`, for this one benefit to this one
+  person in the current year, is less than $300 (s 58P(1)(e)); $300 itself
+  fails.
+
+The criteria of s 58P(1)(f) are stated facts: `frequency`
+(`infrequent_and_irregular`, `infrequent_and_regular` such as each Christmas,
+or `frequent`), whether the total of similar benefits and of other associated
+benefits is substantial, whether the value is hard to work out, whether it
+helped with an unexpected event and whether it is a reward for services.
+`criteria` shows which way each weighs, and `screen` weighs them as TR 2007/12,
+the Commissioner's public ruling, weighs its examples: `exempt` where similar
+benefits are not frequent, neither total is substantial and the benefit is
+not both regular and a reward for services (examples 1 to 3, 5 to 7 and 9 to
+11: a yearly gift or party, flowers, a car lent after a storm,
+ad hoc tolls, a recognition voucher, a one-off gym membership, babysitting
+during unexpected overtime), `not_exempt` where they are frequent with a
+substantial total, a reward for services, readily valued and not for an
+unexpected event (example 8, monthly incentive vouchers) or a condition fails,
+and `judgement_required` otherwise, with `exempt` null. `consequences` says
+what each outcome means: an exempt benefit is not a fringe benefit
+(s 136(1), para (g)), so it adds nothing to the FBT return or the reportable
+amount. Whether benefits are associated (s 58P(2)), the notional taxable
+value, benefits exempt under another provision and the income tax and GST
+treatment of exempt entertainment are out of scope. TR 2007/12 para 11 still
+lists airline transport benefits; Act No. 88 of 2013 repealed that exclusion.
+See [calculation evidence](docs/calculation-evidence.md#fbt-minor-benefit-check).
+
+## Wine equalisation tax
+
+`wine-equalisation-tax` works out the wine tax on a tax period's assessable
+dealings in wine and the producer rebate on them, for dealings in 2023-24 to
+2027-28 (A New Tax System (Wine Equalisation Tax) Act 1999). Each dealing in
+`dealings` has a `kind`:
+
+- `wholesale_sale`: taxed on its price excluding WET and GST (AD1a, AD1b and
+  AD11b), with GST of 10% on the WET inclusive price;
+- `retail_sale`: taxed on the notional wholesale selling price, by default
+  half the retail price including WET and GST (ss 9-30 and 9-35), or for grape
+  wine, with `average_wholesale`, the weighted average price of the tax
+  period's wholesale sales of the same vintage and grape varieties (s 9-40),
+  which needs at least 10% of those sales by value to be wholesale
+  (s 9-25(3)); the GST is 1/11 of the retail price;
+- `own_use`: an application to own use connected with retail sales, such as
+  tastings, valued the same way at the price the wine would normally be sold
+  for by retail;
+- `quoted_sale`: a sale under quote, not taxable (s 7-10), with the
+  purchaser's stated intention;
+- `own_use_purchased_under_quote`: taxed on the purchase price excluding GST
+  (AD3c(a) and AD13c(a)).
+
+The tax is 29% of the taxable value (s 5-5(3)), rounded half up to the cent.
+A dealing claims the producer rebate with `rebate_conditions`: whether the
+seller is the producer, owned at least 85% of the source product and meets
+the container and trade mark conditions in force since 1 July 2018 (s 19-5).
+A quoted sale earns it only where the purchaser will make a taxable dealing,
+as QC22758's table shows. The rebate is 29% of the price or notional wholesale
+selling price (s 19-15(1)), capped for the financial year at $350,000 to
+2025-26 and $400,000 for dealings from 1 July 2026 (Act No. 12 of 2026
+Schedule 6), less `rebate_claimed_earlier_in_year`. `associated_producer`
+states that the cap is shared by a group (s 19-20); the command then warns
+that the earlier claims must be the group's. `label_1c` is the tax and
+`label_1d` the rebate, each rounded down to whole dollars and never netted
+(QC22762, QC17458).
+
+It refuses a kind, intention or field it does not take, the average wholesale
+price for other than grape wine or without the 10% share, and a dealing in a
+year outside its range. Whether a sale is wholesale or retail, a quote's
+validity, the price for which wine would normally be sold by retail,
+associated producers, the 85% ownership and the container and trade mark
+facts, the s 19-25 recovery of an excess rebate, and the wine tax credits of
+Division 17 are the producer's to establish. See
+[calculation evidence](docs/calculation-evidence.md#wine-equalisation-tax).
+
 ## Main residence
 
 `main_residence` works out how much of an individual's capital gain or loss on
@@ -1110,6 +1304,74 @@ Fees, charges and stamp duty, substituted accounting periods, the car's cost
 for Division 40, agreements entered into before 1 July 2012, GST adjustments
 after the start and the notional seller are out of scope; see
 [calculation evidence](docs/calculation-evidence.md#hire-purchase-schedule).
+
+## Chattel mortgage schedule
+
+`chattel_mortgage_schedule` sets out a loan to buy goods, secured by a
+chattel mortgage over them, for the purchaser, who owns the goods from the
+purchase: it is not a hire purchase agreement (ITAA 1997 s 995-1), so
+Division 240 does not apply. The caller establishes the amount financed, the
+number of `instalments` and their `frequency` (as for `hire_purchase_schedule`,
+monthly when omitted), the `balloon`, `timing`, the `start_date` (the day of
+the purchase and the loan, in the income year given, 2024-25 to 2026-27) and
+either the `instalment` or a stated `annual_rate`. Given the instalment, the
+rate is the one the payments imply, found as `hire_purchase_schedule` finds
+it. Given `annual_rate`, for monthly or weekly instalments in arrears only,
+the rate a period is `annual_rate / 12` (or `/ 52`), the result adds
+`instalment` (the level instalment at that rate, rounded half up to the cent)
+and `final_adjustment` (the balance that rounding leaves, added to the last
+instalment), and the rates are `monthly_rate` (or `weekly_rate`) and
+`nominal_annual_rate`.
+
+Each period's interest is the balance owing times the rate for the period,
+the actuarial method TR 93/16 accepts, shown as `hire_purchase_schedule`
+shows it, in `schedule` and as a printable Markdown table in `statement`.
+`interest_by_income_year` and `interest_across_30_june` total and set apart
+the periods as `hire_purchase_schedule` does. The interest is deductible
+under s 8-1 to the extent the money is used to gain or produce assessable
+income, which the caller establishes; where the lender's statements give the
+interest, that figure is used (TR 93/16 para 2).
+
+`deposit`, `trade_in` and `gst` take the facts `hire_purchase_schedule` takes;
+with any of them the result adds `deposit`, `trade_in` and `price`. A
+registered purchaser's credit is on the price alone, as the loan is an input
+taxed financial supply (GST Act s 40-5(1)): `gst_payable` (1/11 of the price,
+less luxury car tax for a car, rounded to the cent), `full_input_tax_credit`
+(for a passenger car worth more than the car limit and not quoted for, no
+more than 1/11 of the limit, s 69-10(1)) and `input_tax_credit` (times the
+creditable purpose). `gst.attributable` states the tax period, from the ATO's
+GST issues register (issue 1.21). A rate below nil or of 100% a month or
+more, both or neither of `instalment` and `annual_rate`, `annual_rate` with
+other instalments, a balloon that alone repays the loan at the stated rate
+and a rounded instalment that moves the last instalment by more than a whole
+instalment (below nil or above twice the instalment) are refused.
+Fees, stamp duty, changing rates (see [Loan transactions](#loan-transactions)),
+daily interest, payouts, substituted accounting periods and the goods'
+decline in value are out of scope; see
+[calculation evidence](docs/calculation-evidence.md#chattel-mortgage-schedule).
+
+## Loan transactions
+
+`loan_transactions` gives a loan's statement from `start_date` (in the income
+year given) to `end_date` (less than 30 years later), from the
+`opening_balance`, the `annual_rate` from the start, any `rate_changes` (a
+list of `{"date", "annual_rate"}` in date order, after the start, one a day)
+and `transactions` (a list of `{"date", "kind", "amount"}` in date order, with
+`kind` `drawing` or `repayment`; `[]` for none). Each day's interest is the
+balance at the end of the day, when above nil, times the rate in force over
+365; it is debited on the last day of each month and on `end_date`, rounded
+half up to the cent. The result gives `opening_balance`, `total_drawings`,
+`total_repayments`, `total_interest` and `closing_balance`,
+`interest_by_income_year` (the interest debited in each year, which is the
+interest for its days), `statement_rows` (each line's `date`, `details`,
+`debit`, `credit` and `balance`) and `statement`, the same lines as a
+printable Markdown table. To pay a loan out, end the statement on the payout
+day with a repayment of the balance and the interest to that day; a balance
+below nil at the end of a day is refused. Interest is deductible under
+ITAA 1997 s 8-1 to the extent the money is used to gain or produce assessable
+income, which the caller establishes. Other day counts, fees, offset accounts
+and Division 7A loans are out of scope; see
+[calculation evidence](docs/calculation-evidence.md#loan-transactions).
 
 ## Business capital expenditure
 
@@ -1307,6 +1569,128 @@ increasing adjustments are out of scope, as is everything `balancing-adjustment`
 leaves out. The tests hold it to the ATO's examples for Darren's car and Ian's
 vehicle; see [calculation evidence](docs/calculation-evidence.md#trade-in).
 
+## Payroll tax
+
+`payroll_tax` works out one employer's payroll tax for the whole of 2026-27 in
+one state or territory. It takes:
+
+- `jurisdiction`: `nsw`, `vic`, `qld`, `wa`, `sa`, `tas`, `act` or `nt`;
+- `taxable_wages`, the wages taxable in that jurisdiction after its exemptions,
+  and `australian_wages`, those wages and the employer's interstate wages
+  together, which cannot be less;
+- `group_member` and `employed_all_year`, flags that must be `false` and
+  `true`;
+- in Victoria only, `regional_employer`, whether at least 85% of the taxable
+  wages are paid to regional employees (Payroll Tax Act 2007 (Vic) s 3A).
+
+Each jurisdiction works out a deduction or threshold on the Australian wages
+and shares it by the taxable wages over the Australian wages; the rest is the
+taxable amount. The deduction is a fixed $1,200,000 in New South Wales,
+$600,000 in South Australia, $1,250,000 in Tasmania and $1,750,000 in the ACT.
+It phases out in Victoria ($1,000,000 less half the wages above $3,000,000),
+Queensland ($1,300,000 less $1 for every $7 above it), Western Australia
+($1,000,000, nil at $7,500,000) and the Northern Territory ($2,500,000 less $1
+for every $2 above it). The rate is then:
+
+| Jurisdiction | Rate on the taxable amount |
+| --- | --- |
+| New South Wales | 5.45% |
+| Victoria | 4.85%, or 1.2125% for a regional employer |
+| Queensland | 4.75%, or 4.95% when the Australian wages are more than $6,500,000 |
+| Western Australia | 5.5% |
+| South Australia | nil to $1,500,000 of Australian wages, phased in to 4.95% at $1,700,000, then 4.95% |
+| Tasmania | 4% on the share of the wages from $1,250,000 to $2,000,000 and 6.1% on the share above $2,000,000 |
+| ACT | 6.75% to $20 million of Australian wages, 6.85% to $50 million, 7.35% to $100 million, 7.85% to $150 million and 8.75% above |
+| Northern Territory | 5.5%, or 6.5% when the Australian wages are $100,000,000 or more |
+
+Victoria adds the mental health and wellbeing surcharge and the COVID-19 debt
+temporary payroll tax surcharge, each 0.5% of the Victorian share of the
+Australian wages above $10 million and another 0.5% above $100 million.
+Queensland adds the mental health levy, 0.25% of its share above $10 million
+and another 0.5% above $100 million. Each surcharge or levy is its own step,
+and `total` adds every amount to the cent. With no wages every step is nil.
+
+It refuses a member of a group, whose threshold, rate and any surcharge or
+levy are tested on the group's wages and only one member claims the deduction,
+and an employer that paid wages for only part of the year, whose threshold
+each jurisdiction reduces by the days. It leaves out which payments are
+taxable wages and where, exemptions, rebates and discounts (such as
+Queensland's regional discount and apprentice and trainee rebate), the ACT's
+cap for an eligible university, monthly and other periodic returns and the
+annual reconciliation of amounts paid. The tests hold it to the examples
+Revenue NSW, the Victorian and Tasmanian State Revenue Offices, the Queensland
+Revenue Office, RevenueWA and RevenueSA publish, and to examples worked from
+the ACT and Northern Territory Acts; see
+[calculation evidence](docs/calculation-evidence.md#payroll-tax).
+
+## GST margin scheme
+
+`gst-margin-scheme` decides whether the margin scheme of GST Act Division 75
+can apply to one taxable supply of real property in 2025-26 to 2027-28, and
+works out the GST with and without it. It lists each condition of s 75-5 with
+its authority and whether it is met, names each one that fails in
+`failing_conditions`, and gives `eligible`:
+
+- `real_property_interest`: `interest` is `freehold_interest`, `stratum_unit`
+  or `long_term_lease` (at least 50 years: s 195-1), not `other`
+  (s 75-5(1));
+- `written_agreement`: `agreement` is `written_on_or_before_supply` or
+  `written_in_further_period_allowed` (a further period the Commissioner
+  allows), not `none` (s 75-5(1) and (1A)); a contract applying the scheme if
+  the supply turns out to be taxable is enough (GSTR 2006/8 para 27);
+- `acquisition_eligible`: `acquisition`, how you acquired the entire interest,
+  is not `taxable_supply_without_margin_scheme` (s 75-5(2) and (3)(a)). It is
+  otherwise `taxable_supply_under_margin_scheme`, `other_supply_from_1_july_2000`
+  (a supply that was not taxable, such as from a seller not registered for GST)
+  or `before_1_july_2000` (acquired, or contracted to acquire, before then:
+  GSTR 2006/8 para 39A; a pre-1 July 2000 contract settled later as a fully
+  taxable supply is `taxable_supply_without_margin_scheme`).
+
+The margin is the amount by which `consideration`, the GST-inclusive price,
+exceeds the base, or nil (s 75-10(2) and (3)). `method` sets the base:
+
+- `consideration`: `acquisition_consideration`, what you gave for the
+  interest, less `unpaid_acquisition_consideration`, any of it still unpaid at
+  the supply (s 75-12), disregarding improvements, development, legal fees and
+  stamp duty (s 75-14); for an interest acquired before 1 July 2000, this
+  states that no approved valuation as at the day s 75-10(3) fixes has been
+  made, since one that has sets the margin;
+- `approved_valuation`, for an interest acquired before 1 July 2000 only: an
+  `approved_valuation` made under the Commissioner's requirements (s 75-35) as
+  at `valuation_day`, which must be the day s 75-10(3) fixes from
+  `registered_on_1_july_2000` and `government_unimproved_on_1_july_2000`:
+  1 July 2000 (items 1 and 3), the date of effect of a registration after then
+  or the earlier day of applying, which may be on or before 1 July 2000
+  (item 2), or for the Commonwealth, a State or a
+  Territory with land unimproved on 1 July 2000, the day of the supply,
+  valued as if unimproved (item 4 and (3A)). A supply both items 2 and 4
+  describe is refused.
+
+For a supply of part of the land, `subdivision_share` and `subdivision_whole`
+(area, expected price or another reasonable measure) take that proportion of
+the base, `apportioned_base` (s 75-15). `gst_under_margin_scheme` is 1/11 of
+the margin (s 75-10(1)), `gst_without_margin_scheme` 1/11 of the consideration
+(ss 9-70 and 9-75(1)), each rounded to the cent, 0.5 up, as one supply on one
+invoice (s 9-90(1)); `gst` is the first when every condition is met and the
+second otherwise. Both are shown either way, so the 2 can be compared before
+the agreement is signed. `consequences` says what follows: under the scheme the
+recipient cannot claim an input tax credit (s 75-20), and can use the scheme
+on its own later sale.
+
+It refuses an acquisition whose eligibility or margin other provisions govern,
+naming them: from a fellow GST group member, a GST joint venture operator or an
+associate, by inheritance, as a GST-free going concern or farm land, through a
+supply GST-free under s 38-445(1A), or in part through an ineligible supply
+(ss 75-5(3)(b) to (g), 75-10(3) item 2A, 75-11 and 75-22), and a supply to an
+associate (`recipient_associate` true), whose margin s 75-13 works from the
+GST inclusive market value. It also refuses a valuation for an interest acquired from 1 July 2000, a valuation day s
+75-10(3) does not fix, unpaid consideration above the consideration, and a
+share that is nil or above the whole. Deciding whether the supply is taxable,
+the valuation, the apportionment's basis, GST at settlement, adjustments under
+ss 75-22 and 75-27, contracts before 9 December 2008 and several supplies on
+one invoice are out of scope. See
+[calculation evidence](docs/calculation-evidence.md#gst-margin-scheme).
+
 ## Division 296
 
 `division_296` estimates one individual's Division 296 tax for 2026-27 from
@@ -1341,11 +1725,44 @@ taxable payments to the employee in the year (s 82-10(4) and (7)). Within the
 cap, 17% is withheld if the employee is their preservation age (60 for anyone
 born after 30 June 1964) or older on 30 June 2027, otherwise 32%; above it,
 47%; each part rounds to the nearest dollar. The caller classifies the
-payments; death benefit ETPs, ETPs with a tax-free component, earlier ETPs in
+payments; death benefit ETPs, working out a tax-free component
+([`etp-tax-free-component`](#etp-tax-free-component) does, and gives the
+taxable component to classify here), earlier ETPs in
 the year or for the same termination, payees without a TFN, foreign residents
 and the income tax assessed on the ETP are outside it. It refuses a field it
 does not take. The tests hold it to the ATO's Schedule 11 examples; see
 [calculation evidence](docs/calculation-evidence.md#termination-payment).
+
+## ETP tax free component
+
+`etp_tax_free_component` works out the tax free component of one life benefit
+employment termination payment made in 2026-27 or 2027-28, and the taxable
+component left (ITAA 1997 ss 82-140 and 82-145). The invalidity segment
+(s 82-150) is the payment times the days to retirement over the employment
+days plus the days to retirement. It arises only where the payment was made
+because the employee stopped being gainfully employed through ill-health,
+before their last retirement day (the day their employment would have ended at
+a set age or period of service, otherwise their 65th birthday, s 995-1(1)),
+and 2 legally qualified medical practitioners have certified that they are
+unlikely ever to be gainfully employed in a capacity they are reasonably
+qualified for; otherwise it is nil, and the step names the condition not met.
+The pre-July 83 segment (s 82-155) is the payment less the invalidity segment,
+times the employment days before 1 July 1983 over all of them. Employment days
+count both the first day and the termination day, as the ATO's worksheet
+NAT 71949 counts them; the days to retirement run from the day after the
+termination to the last retirement day. Each segment rounds half up to the
+cent and the taxable component is the rest, so the 2 components add up to the
+payment.
+
+`invalidity_excluded_payment` says whether the payment includes an invalidity
+segment, or would but for its timing: such a payment is an excluded payment
+(s 82-10(6)(c)), so give its taxable component to `termination-payment` as
+`excluded_payment`. Death benefit ETPs, payments that relate to only part of
+the employment or to broken periods of it, unused annual and long service leave,
+superannuation disability benefits (s 307-145) and the tax on the taxable
+component are outside it. The tests hold it to the ATO's Jackson example and
+the Library's Jim and Jon examples; see
+[calculation evidence](docs/calculation-evidence.md#etp-tax-free-component).
 
 ## Unused leave payment
 
