@@ -4,7 +4,7 @@
 //! `wine_equalisation_tax`: the wine tax on a tax period's assessable dealings
 //! in wine, and the producer rebate on them under its yearly cap, with the
 //! amounts for BAS labels 1C and 1D, for dealings in the financial years
-//! 2023-24 to 2026-27. The citations are to the A New Tax System (Wine
+//! 2023-24 to 2027-28. The citations are to the A New Tax System (Wine
 //! Equalisation Tax) Act 1999 at the ATO's legal database, equal on the
 //! provisions used to compilation 32 (1 April 2026) on the Federal Register
 //! of Legislation; the Treasury Laws Amendment (Supporting Choice in
