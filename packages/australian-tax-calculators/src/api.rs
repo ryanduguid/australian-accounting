@@ -240,6 +240,21 @@ const COMMAND_ARGS: &[(&str, &[(&str, Kind)])] = &[
         &[("items", Json), ("year", Raw), ("scope_confirmed", Raw)],
     ),
     (
+        "cgt-parcels",
+        &[
+            ("entity", Raw),
+            ("identification", Raw),
+            ("parcels", Json),
+            ("disposals", Json),
+            ("other_discount_capital_gains", Dec),
+            ("other_capital_gains", Dec),
+            ("other_capital_losses", Dec),
+            ("prior_net_capital_losses", Dec),
+            ("year", Raw),
+            ("scope_confirmed", Raw),
+        ],
+    ),
+    (
         "balancing-adjustment",
         &[
             ("cost", Dec),
@@ -665,7 +680,7 @@ pub fn commands() -> Vec<&'static str> {
 /// command on its `gross_pay` shows that withholding. The classifier's amounts
 /// are totals over lines whose shares a decision table sets, not a formula;
 /// each line and class carries the authority for its row instead.
-const DERIVED: [&str; 53] = [
+const DERIVED: [&str; 54] = [
     "fbt",
     "fbt-car-statutory",
     "fbt-car-operating-cost",
@@ -719,6 +734,7 @@ const DERIVED: [&str; 53] = [
     "gst-margin-scheme",
     "etp-tax-free-component",
     "payroll-tax",
+    "cgt-parcels",
 ];
 
 /// `derive`: `{"command", "input"}` gives the command's result with the step
@@ -1099,6 +1115,7 @@ pub fn evaluate_coded(command: &str, v: &Value) -> Result<Value> {
             | "dasp-tax"
             | "payroll-tax"
             | "gst-margin-scheme"
+            | "cgt-parcels"
     ) && let Some(key) = v
         .as_object()
         .into_iter()
@@ -1224,6 +1241,18 @@ pub fn evaluate_coded(command: &str, v: &Value) -> Result<Value> {
             })
         }
         "business-capital-expenditure" => engine::business_capital_expenditure(&a[0], &a[1], &a[2]),
+        "cgt-parcels" => engine::cgt_parcels(&engine::CgtParcelsArgs {
+            entity: &a[0],
+            identification: &a[1],
+            parcels: &a[2],
+            disposals: &a[3],
+            other_discount_capital_gains: &a[4],
+            other_capital_gains: &a[5],
+            other_capital_losses: &a[6],
+            prior_net_capital_losses: &a[7],
+            year: &a[8],
+            scope_confirmed: &a[9],
+        }),
         "balancing-adjustment" => {
             // Optional: a car's s 40-325 facts, or null; refused for any other asset.
             let car_limit = optional(v, "car_limit", Json)?;

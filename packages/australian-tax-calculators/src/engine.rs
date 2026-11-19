@@ -4851,6 +4851,8 @@ pub use payroll_tax::{PayrollTaxArgs, payroll_tax};
 mod luxury_car_tax;
 mod stated;
 pub use luxury_car_tax::{LctArgs, luxury_car_tax};
+mod cgt_parcels;
+pub use cgt_parcels::{CgtParcelsArgs, cgt_parcels};
 
 /// One pay that includes an additional payment, as Schedule 5 (NAT 3348) reads it.
 struct AdditionalPay {
@@ -6145,7 +6147,7 @@ pub use gst_margin_scheme::{MarginSchemeArgs, gst_margin_scheme};
 mod ppsr_timing;
 pub use ppsr_timing::ppsr_timing;
 
-const KINDS: [&str; 61] = [
+const KINDS: [&str; 62] = [
     "gst",
     "gst_margin_scheme",
     "fuel_tax_credits",
@@ -6153,6 +6155,7 @@ const KINDS: [&str; 61] = [
     "foreign_resident_tax",
     "capital_gains",
     "main_residence",
+    "cgt_parcels",
     "borrowing_expenses",
     "borrowing_expenses_schedule",
     "hire_purchase_schedule",

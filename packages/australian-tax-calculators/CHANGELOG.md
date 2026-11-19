@@ -4,6 +4,22 @@
 
 ### Added
 
+- `cgt-parcels` works out the capital gains and losses from selling shares
+  or units held in parcels bought at different times, for contracts in
+  2025-26 or 2026-27: each sale matched first in, first out or to the parcels
+  the taxpayer selects (TD 33), each part's cost base and reduced cost base
+  (ITAA 1997 ss 110-25 and 110-55), its gain or loss (s 104-10) and whether it
+  is a discount capital gain (s 115-25), then the year's net capital gain or
+  loss with other gains and losses in the order of s 102-5(1) and the
+  discount percentage by entity (s 115-100). It lists each part and the units
+  left in each parcel. It refuses parcels acquired at or before 21 September
+  1999 that are sold in the year. New codes: `cgt_parcels.entity_invalid`,
+  `cgt_parcels.fact_conflict`, `cgt_parcels.fact_invalid`,
+  `cgt_parcels.fact_missing`, `cgt_parcels.identification_invalid`,
+  `cgt_parcels.indexation_or_pre_cgt`, `cgt_parcels.list_invalid` and
+  `cgt_parcels.units_not_held`. `derive` covers it. `tests/cgt_parcels.rs`
+  holds it to the ATO's Kathleen and Boris examples and the Library's David
+  Jones example.
 - `ppsr-timing` answers what the Personal Property Securities Register's law
   decides without a search, for 2025-26 and 2026-27: a registration's latest
   end time, the end time s 153(2) and (3) apply and its fee (PPSA s 153
