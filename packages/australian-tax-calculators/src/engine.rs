@@ -555,9 +555,11 @@ fn basic_tax_authority(kind: &str, year: &str) -> &'static str {
         (_, "2027-28") => {
             "ITAA 1997 s 4-10(3) step 2; Income Tax Rates Act 1986 s 12(1) and Schedule 7 Part I clause 1(b), the table for the 2027-28 year of income or a later year of income: each part above the tax-free threshold (s 3(1)) at its rate"
         }
-        _ => {
+        (_, "2024-25" | "2025-26") => {
             "ITAA 1997 s 4-10(3) step 2; Income Tax Rates Act 1986 s 12(1) and Schedule 7 Part I clause 1(b), the table for the 2024-25 or 2025-26 year of income: each part above the tax-free threshold (s 3(1)) at its rate"
         }
+        // scope() admits only the years of RESIDENT_TAX_SCALES, each named above.
+        (_, other) => unreachable!("no Schedule 7 Part I table is cited for {other}"),
     }
 }
 
@@ -3773,7 +3775,12 @@ fn caps_result(
             3
         };
         let triggered = multiple > 1 && non_concessional.gt(&annual)?;
-        steps.extend(non_concessional_steps(non_concessional, &annual, multiple)?);
+        steps.extend(non_concessional_steps(
+            non_concessional,
+            &annual,
+            multiple,
+            triggered,
+        )?);
         let mut rates = vec![
             rate("concessional_cap", &cap),
             rate("non_concessional_cap", &annual),
@@ -3858,22 +3865,31 @@ fn concessional_steps(
 }
 
 /// The non-concessional amounts: the cap the balance band allows, as a
-/// multiple of the general cap (s 292-85(2) to (5)).
+/// multiple of the general cap (s 292-85(2) to (5)). The authority names a
+/// first year of bring forward only when the contributions are over the
+/// general cap (s 292-85(3)(a)), `triggered`.
 fn non_concessional_steps(
     non_concessional: &Decimal,
     annual: &Decimal,
     multiple: i64,
+    triggered: bool,
 ) -> Calc<Vec<Step>> {
-    let authority = match multiple {
-        0 => "ITAA 1997 s 292-85(2)(b): nil at or above the general transfer balance cap",
-        1 => {
+    let authority = match (multiple, triggered) {
+        (0, _) => "ITAA 1997 s 292-85(2)(b): nil at or above the general transfer balance cap",
+        (1, _) => {
             "ITAA 1997 s 292-85(2)(a): 4 times the s 291-20(2) cap; no bring forward under s 292-85(3)(c) or (e)"
         }
-        2 => {
+        (2, true) => {
             "ITAA 1997 s 292-85(3) and (5)(a): twice the general cap in a first year of bring forward"
         }
-        _ => {
+        (2, false) => {
+            "ITAA 1997 s 292-85(3) and (5)(a): twice the general cap, should contributions over the general cap make this a first year of bring forward; these are not over it (s 292-85(3)(a)), so bring forward is not triggered"
+        }
+        (_, true) => {
             "ITAA 1997 s 292-85(3) and (5)(b): 3 times the general cap in a first year of bring forward"
+        }
+        (_, false) => {
+            "ITAA 1997 s 292-85(3) and (5)(b): 3 times the general cap, should contributions over the general cap make this a first year of bring forward; these are not over it (s 292-85(3)(a)), so bring forward is not triggered"
         }
     };
     let times = int(multiple);
@@ -6238,6 +6254,21 @@ fn example_value(value: Example) -> Value {
     }
 }
 
+/// The anchor of `kind`'s heading in docs/calculation-evidence.md, where
+/// worksheets that share their evidence share a heading.
+fn evidence_heading(kind: &str) -> String {
+    match kind {
+        "fbt_car_statutory" | "fbt_car_operating_cost" => "fbt-car-benefits".into(),
+        "schedule_5_method_a" | "schedule_5_method_b_i" | "schedule_5_method_b_ii" => {
+            "schedule-5".into()
+        }
+        "working_holiday_maker_withholding" => "working-holiday-makers".into(),
+        "seniors_pensioners_withholding" => "seniors-and-pensioners".into(),
+        "seniors_pensioners_tax_offset" => "seniors-and-pensioners-tax-offset".into(),
+        _ => kind.replace('_', "-"),
+    }
+}
+
 /// `worksheet_catalogue()`: JSON-ready discovery data for every worksheet.
 pub fn worksheet_catalogue() -> Value {
     let mut out = Map::new();
@@ -6253,7 +6284,7 @@ pub fn worksheet_catalogue() -> Value {
             "note".into(),
             json!(format!(
                 "docs/calculation-evidence.md#{}",
-                kind.replace('_', "-")
+                evidence_heading(kind)
             )),
         );
         let mut inputs = Map::new();
