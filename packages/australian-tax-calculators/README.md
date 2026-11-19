@@ -963,7 +963,8 @@ matches each disposal to parcels and works out each part on its own:
 
 A parcel's cost base elements 1, 2, 4 and 5 together, its costs of owning
 (element 3) and a sale's proceeds and selling costs are each split by units,
-to the cent, the last units taking what is left, so the parts always add up (ss 112-30 and 116-40). Each part is a capital gain where
+to the cent, the last units taking what is left, so the parts always add up
+(ss 112-30 and 116-40). Each part is a capital gain where
 the proceeds exceed its cost base and a capital loss where its reduced cost
 base, which leaves out costs of owning, exceeds them (ss 104-10(4) and
 110-55(2)). A gain is a discount capital gain when the parcel was acquired at
