@@ -194,6 +194,22 @@
   `hire_purchase.segments_invalid` and
   `hire_purchase.segments_not_contiguous`. `tests/hire_purchase_worksheet.rs`
   works the cases by hand and from the ATO's Albert and Darren examples.
+- `fhss` works out the First Home Super Saver scheme for a determination
+  made from 1 July 2018 to 31 December 2026: from contributions, the eligible
+  contributions counted against the $15,000 yearly and $50,000 (or $30,000)
+  limits in the order of TAA 1953 Sch 1 s 138-30, the releasable contributions
+  amount and the associated earnings at the SIC rate (s 138-40), labelled an
+  estimate; or from a determination's stated components. Then the assessable
+  FHSS released amount (ITAA 1997 s 313-20), the withholding (TAA Regulations
+  2017 reg 53A: the Commissioner's estimate, worked from the estimated
+  marginal rate, or 17% where he is stated to be unable to estimate), the offset, the FHSS tax and the recontribution. New codes:
+  `fhss.basis_invalid`, `fhss.contribution_kind_invalid`,
+  `fhss.contribution_out_of_period`, `fhss.contributions_invalid`,
+  `fhss.deductions_invalid`, `fhss.determination_invalid`,
+  `fhss.determination_requested_invalid`, `fhss.rate_unpublished`,
+  `fhss.request_exceeds_maximum` and `fhss.year_mismatch`. `tests/fhss.rs` runs
+  GN 2024/1 examples 6, 7 and 11 to 13, the ATO's Mary and George examples
+  and the s 138-30 example.
 - `fbt-ev-exemption-check` decides whether a car's benefits in the FBT year
   ended 31 March 2026 or 2027 are exempt under FBTAA s 8A, the electric cars
   exemption, and names each failing condition: a car, a current employee, a

@@ -173,6 +173,7 @@ lists the commands.
 | `wine-equalisation-tax` | `dealings`, `year`, `scope_confirmed`; `rebate_claimed_earlier_in_year` and `associated_producer` with a dealing's `rebate_conditions`; see [Wine equalisation tax](#wine-equalisation-tax) |
 | `fbt-meal-entertainment-register` | `register_start`, `register_end`, `entries`, `year_ended`, `scope_confirmed`; `register_years_expenditure`, required for a later year of the register's validity; see [FBT meal entertainment register](#fbt-meal-entertainment-register) |
 | `fbt-minor-benefit-check` | `category`, `notional_taxable_value`, `salary_sacrifice`, `frequency`, `similar_benefits_substantial`, `other_associated_benefits_substantial`, `valuation_difficult`, `unexpected_event`, `reward_for_services`, `year_ended`, `scope_confirmed`; `in_house` for an expense payment, property or residual benefit, `tax_exempt_body_exception` for tax-exempt body entertainment and `fifty_fifty_split` for meal entertainment or entertainment facility leasing; see [FBT minor benefits](#fbt-minor-benefits) |
+| `fhss` | `determination_date`, `year`, `scope_confirmed`, and either `contributions` with `determination_requested` (optional `personal_deductions`) or `determination`; optional `amount_requested` and `estimated_marginal_rate`; see [First Home Super Saver scheme](#first-home-super-saver-scheme) |
 | `ppsr-timing` | `question` (`registration`, `pmsi` or `company_grantor`), `year`, `scope_confirmed`, and the question's own inputs; see [PPSR timing](#ppsr-timing) |
 | `fbt-entertainment-classifier` | `lines`, `income_tax_exempt`, `year_ended`, `scope_confirmed`; `method`, required when a line is meal entertainment; with `12_week_register`, `income_tax_register_percentage` |
 | `depreciation` | `cost`, `effective_life`, `days`, `taxable_use`, `method`, `scope_confirmed`, `year`; optional `opening_adjustable_value` |
@@ -207,7 +208,7 @@ lists the commands.
 | `fbt-return` | `employer`, `year_ended`, `scope_confirmed` and `benefits`, a list of objects each with `employee`, `command` (an FBT benefit worksheet), `input` (that worksheet's arguments), `gst_type` (`type_1` or `type_2`) and `excluded`; see [FBT return](#fbt-return) |
 | `derive` | `command`, one of `fbt`, `fbt-car-statutory`, `fbt-car-operating-cost`, `fbt-loan`, `fbt-meal-entertainment`, `fbt-car-parking`, `fbt-debt-waiver`, `fbt-expense-payment`, `fbt-property`, `division-293`, `pension-minimum`, `payg-withholding`, `schedule-5-method-a`, `schedule-5-method-b-i`, `schedule-5-method-b-ii`, `termination-payment`, `etp-tax-free-component`, `unused-leave-payment`, `working-holiday-maker-withholding`, `study-loan-withholding`, `seniors-pensioners-withholding`, `quarterly-sg`, `borrowing-expenses`, `borrowing-expenses-schedule`, `resident-tax`, `foreign-resident-tax`, `low-income-tax-offset`, `seniors-pensioners-tax-offset`, `medicare-levy`, `medicare-levy-surcharge`, `division-296`, `contribution-caps`, `study-loan-repayment`, `capital-gains`, `main-residence`, `fbt-residual`, `fbt-housing`, `fbt-lafha`, `fbt-board`, `fbt-tax-exempt-body-entertainment`, `gst`, `depreciation`, `hire-purchase-schedule`, `chattel-mortgage-schedule`, `loan-transactions`, `lump-sum-arrears-tax-offset`, `income-tests`, `business-capital-expenditure`, `balancing-adjustment`, `trade-in`, `dasp-tax`, `gst-margin-scheme`, `payroll-tax` and `cgt-parcels`, and `input`, that command's arguments; see [Derivations](#derivations) |
 
-The 2 car commands, the 11 FBT benefit commands (`fbt-loan`, `fbt-meal-entertainment`, `fbt-car-parking`, `fbt-debt-waiver`, `fbt-expense-payment`, `fbt-property`, `fbt-residual`, `fbt-housing`, `fbt-lafha`, `fbt-board` and `fbt-tax-exempt-body-entertainment`), `main-residence`, `borrowing-expenses`, `borrowing-expenses-schedule`, `fuel-tax-credits`, `division-296`, `termination-payment`, `etp-tax-free-component`, `unused-leave-payment`, the 3 `schedule-5` commands, `working-holiday-maker-withholding`, `seniors-pensioners-withholding`, `seniors-pensioners-tax-offset`, `medicare-levy-surcharge`, `foreign-resident-tax`, `payg-gross-up`, `hire-purchase-schedule`, `chattel-mortgage-schedule`, `loan-transactions`, `lump-sum-arrears-tax-offset`, `fbt-entertainment-classifier`, `fbt-meal-entertainment-register`, `fbt-minor-benefit-check`, `ppsr-timing`, `income-tests`, `business-capital-expenditure`, `balancing-adjustment`, `trade-in`, `gst-margin-scheme`, `wine-equalisation-tax`, `luxury-car-tax`, `payroll-tax`, `dasp-tax`, `cgt-parcels`, `fbt-ev-exemption-check` and `sb-cgt-concessions` have no Python original; their arguments follow the same
+The 2 car commands, the 11 FBT benefit commands (`fbt-loan`, `fbt-meal-entertainment`, `fbt-car-parking`, `fbt-debt-waiver`, `fbt-expense-payment`, `fbt-property`, `fbt-residual`, `fbt-housing`, `fbt-lafha`, `fbt-board` and `fbt-tax-exempt-body-entertainment`), `main-residence`, `borrowing-expenses`, `borrowing-expenses-schedule`, `fuel-tax-credits`, `division-296`, `termination-payment`, `etp-tax-free-component`, `unused-leave-payment`, the 3 `schedule-5` commands, `working-holiday-maker-withholding`, `seniors-pensioners-withholding`, `seniors-pensioners-tax-offset`, `medicare-levy-surcharge`, `foreign-resident-tax`, `payg-gross-up`, `hire-purchase-schedule`, `chattel-mortgage-schedule`, `loan-transactions`, `lump-sum-arrears-tax-offset`, `fbt-entertainment-classifier`, `fbt-meal-entertainment-register`, `fbt-minor-benefit-check`, `fhss`, `ppsr-timing`, `income-tests`, `business-capital-expenditure`, `balancing-adjustment`, `trade-in`, `gst-margin-scheme`, `wine-equalisation-tax`, `luxury-car-tax`, `payroll-tax`, `dasp-tax`, `cgt-parcels`, `fbt-ev-exemption-check` and `sb-cgt-concessions` have no Python original; their arguments follow the same
 rules. `division-296` alone takes a negative amount, in `total_super_earnings`. `main-residence` also takes dates as `YYYY-MM-DD` strings, lists of
 `{"start", "end"}` periods (with `"floor_area"` for income use) and `null`
 for no new home. `borrowing-expenses` takes `loan_start` as a `YYYY-MM-DD`
@@ -361,6 +362,7 @@ own dates and figures.
 | FBT tax-exempt body entertainment | Years ended 31 March 2026 and 2027; established non-deductible entertainment expenditure, actual or per head |
 | FBT meal entertainment register | Years ended 31 March 2026 and 2027; one 12 week register's period, entries and validity years, with the 20% rule from the yearly expenses given; not whether the period is representative or an entry false |
 | FBT minor benefits | Years ended 31 March 2026 and 2027; one benefit's established category, notional taxable value and s 58P(1)(f) criteria, weighed as TR 2007/12's examples weigh them |
+| First Home Super Saver scheme | Determinations made from 1 July 2018 to 31 December 2026; established eligibility and eligible employer voluntary and personal contributions from 1 July 2017, with no excess contributions; associated earnings an estimate |
 | PPSR timing | Registrations, possession or attachment and security agreements in 2025-26 and 2026-27, ACT legal time; s 588FL critical times from 1 July 2025 to 30 June 2027; the public holidays the count spans as listed by the caller |
 | FBT entertainment classifier | Years ended 31 March 2026 and 2027; an ordinary taxable employer's entertainment expense lines with established facts, split per head between attendee classes; no tax-exempt bodies, Subdivision 32-B exceptions, salary packaging or reportable fringe benefits amounts |
 | Depreciation | 2025-26 and 2026-27, an ordinary tangible Division 40 asset's start year, or a later year from its established opening adjustable value; established life and use |
@@ -1090,6 +1092,59 @@ value, benefits exempt under another provision and the income tax and GST
 treatment of exempt entertainment are out of scope. TR 2007/12 para 11 still
 lists airline transport benefits; Act No. 88 of 2013 repealed that exclusion.
 See [calculation evidence](docs/calculation-evidence.md#fbt-minor-benefit-check).
+
+## First Home Super Saver scheme
+
+`fhss` works out a first home super saver determination's components and
+what its release pays and costs, for a determination made from 1 July 2018 to
+31 December 2026 (`year` is its financial year). Give one of:
+
+- `contributions`, to estimate the determination: each with `date`, `amount`
+  and `kind`, `employer_voluntary` (salary sacrifice or another employer
+  contribution that is not mandated, so concessional) or `personal` (made by
+  you), with `determination_requested` and, for a year in which some personal
+  contributions were deducted, `personal_deductions`. Only these 2 kinds are
+  eligible (TAA 1953 Sch 1 s 138-35(2)); any other is refused. Contributions
+  count earliest first, a non-concessional one before a concessional one made
+  at the same time, and in a year where you personally made both kinds the
+  year's non-concessional ones first (s 138-30(2) and (3)); the deducted ones
+  are taken to be the year's latest, as in the section's example. At most
+  $15,000 of a financial year's contributions and $50,000 in all count
+  ($30,000 for a determination requested before 1 July 2022), on contributions
+  in full (s 138-35(1)). `years` and `contributions` show what each year and
+  each contribution counts.
+- `determination`, the components a determination states: `concessional`
+  (the 85% amount), `non_concessional` and `associated_earnings`.
+
+The maximum release amount is the non-concessional contributions counted,
+85% of the concessional and the associated earnings (ss 138-25 and 138-30).
+Associated earnings (s 138-40) compound daily at the shortfall interest
+charge rate (s 280-105(2): the ATO's published annual rate for the quarter
+over the days in the calendar year) on each contribution's counted amount, 85%
+of it for a concessional one, from the first day of its month (1 July 2017 for
+2017-18) to the determination day, rounded down to the dollar per
+contribution. Worked from contributions they are an estimate:
+`associated_earnings_basis` says `estimate`, because the Commissioner's
+determination is what counts and GN 2024/1 example 6 (Jill) states $5,190
+where this method gives $7,859 (see
+[calculation evidence](docs/calculation-evidence.md#fhss)).
+
+On release of `amount_requested` (the maximum unless given, never more:
+s 131-10(1) item 4) it gives the assessable FHSS released amount (ITAA 1997
+s 313-20: the concessional and earnings components, less any shortfall below
+the maximum, not below nil), the tax withheld (TAA Regulations 2017 reg 53A:
+`estimated_marginal_rate` plus 2% Medicare levy less 30%, not below nil, as
+GN 2024/1 section 7 says, or 17% with `commissioner_cannot_estimate` true;
+one of the 2 is required; rounded down to the dollar as its examples are;
+`withholding_basis` is `estimate` for the formula and `reg_53A_1_b` for the
+17%), what is paid to you, the 30% non-refundable offset
+(s 313-25), the FHSS tax of 20% if neither a contract nor a recontribution is
+notified in time (s 313-60), and the recontribution that avoids it (s 313-50).
+Deadlines, KiwiSaver and foreign transfers, excess contributions, amended
+determinations, a release under the transitional rules of item 30 of
+Schedule 4 to Act No. 75 of 2023 (which has no FHSS tax or recontribution;
+`transitional_note` flags every determination made before 15 September 2024)
+and foreign residents are out of scope.
 
 ## PPSR timing
 

@@ -243,6 +243,10 @@ pub const SCOPES: &[(&str, &str)] = &[
         "A screen of one benefit provided to an employee or an associate in respect of the employee's employment, in the FBT year ended 31 March 2026 or 2027, against the minor benefits exemption of FBTAA s 58P. The operator establishes the benefit's category, its notional taxable value in the current year (for one benefit to one person: TR 2007/12 paras 17 and 18), whether it is under a salary sacrifice arrangement, each criterion of s 58P(1)(f) as a stated fact, and the facts of each category's exclusion. The conditions are decided and shown as met or not: an expense payment, property or residual benefit that would not be an in-house fringe benefit (s 58P(1)(c)); tax-exempt body entertainment only within s 58P(1)(d)(i) or (ii); meal entertainment or entertainment facility leasing never qualifies under the 50/50 split method (Division 9A or s 152B: TR 2007/12 para 14), and is refused without it, to be screened under its own category; no salary sacrifice arrangement (TR 2007/12 para 16); and a notional taxable value less than $300 (s 58P(1)(e)). The criteria of s 58P(1)(f) are each shown with which way the stated fact weighs, and weighed as the Commissioner's examples in TR 2007/12 weigh them: exempt where identical or similar benefits are not provided frequently, neither total is substantial and the benefit is not both regular and a reward for services (examples 1 to 3, 5 to 7 and 9 to 11), not exempt where they are provided frequently as a reward for services, their total is substantial, they are readily valued and not for an unexpected event (example 8), and otherwise the employer's judgement, shown as such. TR 2007/12 is a public ruling, the Commissioner's view of the law, and its para 11 still lists airline transport benefits, whose exclusion (s 58P(1)(b)) Act No. 88 of 2013 repealed. Excludes deciding the benefit's category, its notional taxable value, whether benefits are associated (s 58P(2)), and the criteria themselves; benefits exempt under another provision; and what an exempt entertainment benefit means for income tax and GST.",
     ),
     (
+        "fhss",
+        "The First Home Super Saver scheme for an individual whose first home super saver determination is made from 1 July 2018 to 31 December 2026. With contributions, an estimate of the determination (TAA 1953 Sch 1 s 138-10(1)): the operator establishes that the individual is 18 or older, has never held a legal interest in an estate in fee simple in real property in Australia, a lease of land in Australia within ITAA 1997 s 104-115(1)(b) or a company title interest in land in Australia, or has a financial hardship determination (s 138-10(2) and (2A)), and has made no earlier valid release request that was not withdrawn or revoked (s 138-10(2C)); that each contribution listed is an eligible one (s 138-35(2)): made in respect of the individual in the financial year, a voluntary employer contribution that is not mandated or a member contribution made by the individual, not required by a law or the fund's rules, not to a defined benefit interest and not to a constitutionally protected fund; and that the individual had no excess concessional or non-concessional contributions in a year counted (s 138-35(3) and (4) are not applied). Contributions are counted earliest first, a non-concessional one before a concessional one made at the same time, and in a year where the individual personally made both kinds, the year's non-concessional ones first (s 138-30(2) and (3)); a year's deducted personal contributions are taken to be its latest. At most $15,000 of a financial year's contributions and $50,000 in all count, or $30,000 in all for a determination requested before 1 July 2022, tested on contributions in full (s 138-35(1); GN 2024/1 section 3). The releasable contributions amount is the non-concessional contributions counted plus 85% of the concessional (s 138-30(1)). Associated earnings (s 138-40) are worked out for each contribution on the amount counted in the releasable contributions amount, daily at the shortfall interest charge rate (s 280-105(2): the quarter's annual rate the ATO publishes over the days in the calendar year), from 1 July 2017 for a 2017-18 contribution or otherwise the first day of its month, to the determination day, rounded down to the dollar; they are an estimate, as the Commissioner's determination is what counts. With determination, its stated components are taken as given. On release of amount_requested (the maximum unless given; never more, s 131-10(1) item 4): the assessable FHSS released amount (ITAA 1997 s 313-20), the tax withheld (TAA Regulations 2017 reg 53A: the Commissioner's estimate, which GN 2024/1 section 7 gives as the estimated marginal rate plus 2% Medicare levy less 30%, or 17% where the operator states that he cannot estimate one; one of the 2 must be given; rounded down to the dollar as GN 2024/1 examples 11 to 13 are; withholding_basis is estimate for the formula and reg_53A_1_b for the 17%), the 30% non-refundable offset (s 313-25), the FHSS tax at 20% if neither a contract nor a recontribution is notified in time (s 313-60; First Home Super Saver Tax Act 2017 s 4) and the recontribution that avoids it (s 313-50: the assessable amount less the tax withheld). Excludes the deadlines for a contract, notice and recontribution, KiwiSaver and other foreign fund transfers, excess contributions, amended determinations, a release after an action under the transitional rules of item 30 of Schedule 4 to the Treasury Laws Amendment (2023 Measures No. 3) Act 2023 for a determination made before 15 September 2024 (outside Subdivisions 313-C to 313-E, so no FHSS tax or recontribution applies: flagged for every such determination), foreign residents, a Medicare levy exemption or reduction in the withholding estimate, and the income tax payable on the assessable amount.",
+    ),
+    (
         "fbt_entertainment_classifier",
         "Classifies an ordinary taxable employer's entertainment expense lines for the FBT year ended 31 March 2026 or 2027; the employer is not exempt from income tax and is registered for GST. Each line states what was provided (food or drink, recreation, or accommodation or travel to do with either), for food or drink, and for accommodation or travel to do with it, the food or drink's occasion, the venue, whether the employer provided it or reimbursed an attendee, the attendees by class (employees, their associates, and others such as clients) with head counts, and its cost and whether that includes GST. Whether food or drink is entertainment follows TR 97/17's tests (para 23) for the occasion stated; recreation, and accommodation or travel to do with entertainment, are entertainment (ITAA 1997 s 32-10), and only food or drink, with the accommodation or travel to do with it, is meal entertainment (FBTAA s 37AD). A line's cost is split per head between its classes, the last class taking the rounding remainder, and a line of more than one class without every head count is refused. For each class the classifier gives the fringe benefit and its type (s 20 expense payment, s 40 property or s 45 residual; on a reimbursed line with more than one employee, the reimbursed employee's expense payment and each other employee's property or residual benefit, TR 97/17 para 98), the s 41 exemption, the minor benefits exemption only as a possibility (s 58P(1)(e)'s $300 threshold and the operator's statement of (f)(i); the rest of (f) is the employer's judgement), the deduction (ITAA 1997 ss 8-1, 32-5 and 32-20, or ITAA 1936 s 51AEA or 51AEB under an election, less the GST credit, s 27-5) and the GST credit, the deductible share of the GST in the cost (GST Act s 69-5), and, for each fringe benefit, whether it is an excluded fringe benefit left out of reporting: meal entertainment is (FBTAA s 5E(3)(a)) and other entertainment is not. Food or drink, or accommodation or travel to do with it, with no occasion stated, and an employee's share of something other than food or drink the employer provided on its business premises on a working day, are returned undetermined with the missing fact and left out of the totals. Under the 50/50 split or 12 week register method the meal entertainment lines' cost is totalled as meal_entertainment_expenditure for fbt-meal-entertainment, which values it; others such as clients receive no fringe benefit, though their meal entertainment counts in that total and is deductible at the method's share (FBTAA ss 37BA and 37CB(3); ITAA 1936 ss 51AEA and 51AEB). The operator establishes each line's facts, that every attendee on a travel_meal line is travelling for work, that nothing is provided under a salary packaging arrangement, as an in-house benefit or by an associate of the employer, and that no exception in ITAA 1997 ss 32-30 to 32-50 applies: in-house dining and dining facilities (items 1.1 to 1.3), overtime meals (items 1.4 and 5.1), recreation facilities for employees (item 1.5), other exempt food, drink or meals (items 1.6 and 1.7), allowances (item 1.8), seminars (item 2.1), the entertainment industry (items 3.1 and 3.2), promotion and advertising (items 4.1 to 4.3) and the disadvantaged public (item 5.2). Excludes tax-exempt bodies (fbt-tax-exempt-body-entertainment), entertainment facility leasing expenses (s 152B), benefits to a client's employees under an arrangement (TR 97/17 para 126), taxable values, contributions and the otherwise deductible rule (fbt-property, fbt-expense-payment and fbt-residual), each employee's reportable fringe benefits amount, gross-up and FBT payable.",
     ),
@@ -488,6 +492,10 @@ pub const SOURCES: &[(&str, &str)] = &[
     (
         "fbt_minor_benefit_check",
         "https://www.ato.gov.au/law/view/document?DocID=PAC/19860039/58P",
+    ),
+    (
+        "fhss",
+        "https://www.ato.gov.au/law/view/document?DocID=PAC/19530001/SCH1-138-40",
     ),
     (
         "ppsr_timing",
@@ -1037,6 +1045,21 @@ pub const EXTRA_SOURCES: &[(&str, &[&str])] = &[
         ],
     ),
     (
+        "fhss",
+        &[
+            "https://www.ato.gov.au/law/view/document?DocID=PAC/19530001/SCH1-138-30",
+            "https://www.ato.gov.au/law/view/document?DocID=PAC/19530001/SCH1-138-35",
+            "https://www.ato.gov.au/law/view/document?DocID=PAC/19530001/SCH1-280-105",
+            "https://www.ato.gov.au/law/view/document?DocID=PAC/19530001/SCH1-131-10",
+            "https://www.ato.gov.au/law/view/document?DocID=PAC/19970038/313-20",
+            "https://www.ato.gov.au/law/view/document?DocID=PAC/19970038/313-25",
+            "https://www.legislation.gov.au/F2017L01227/latest/text",
+            "https://www.legislation.gov.au/C2023A00075/asmade/2023-09-20/text/original/epub/OEBPS/document_1/document_1.html",
+            "https://www.ato.gov.au/law/view/document?DocID=GDN/GDN20241/NAT/ATO/00001",
+            "https://www.ato.gov.au/tax-rates-and-codes/shortfall-interest-charge-rates",
+        ],
+    ),
+    (
         "fbt_entertainment_classifier",
         &[
             "https://www.legislation.gov.au/C2004A05138/2026-10-01/2026-10-01/text/original/epub/OEBPS/document_10/document_10.html",
@@ -1230,6 +1253,13 @@ pub const EXTRA_WARNINGS: &[(&str, &[&str])] = &[
         &[
             "s 58P(1)(f) asks whether, having regard to all its criteria, it would be concluded that it would be unreasonable to treat the benefit as a fringe benefit; the criteria are the operator's statements, and the screen weighs them as TR 2007/12, the Commissioner's view, weighs its examples. A judgement_required result is the employer's to decide.",
             "Where the employer uses the 12 week register method for meal entertainment, minor benefits reduce the register's meal entertainment fringe benefits value (TR 2007/12 para 15); fbt-meal-entertainment takes that value as given.",
+        ],
+    ),
+    (
+        "fhss",
+        &[
+            "associated_earnings worked out from contributions is an estimate: GN 2024/1 example 6 (Jill) states $5,190 of associated earnings, which s 138-40 at the ATO's published SIC rates does not reproduce on any reading tried (the counted amount at 85% or in full, either contribution order); the example also counts 2024-25 contributions ahead of 2023-24 ones, which s 138-30(2) counts first. The Commissioner's determination is the figure to use.",
+            "The assessable FHSS released amount is included in the income year that corresponds to the financial year in which the release was requested, even if it is paid in the next (s 313-20(1)); income-tests leaves it out of the income tests it lists.",
         ],
     ),
     (
@@ -1800,6 +1830,46 @@ pub const REFUSAL_CODES: &[(&str, &str)] = &[
         "The employees and associates entertained are not a JSON integer from 0 to everyone entertained, or everyone entertained is not from 1 to 1,000,000.",
     ),
     (
+        "fhss.basis_invalid",
+        "fhss was given both contributions and determination, or neither.",
+    ),
+    (
+        "fhss.contribution_kind_invalid",
+        "A contribution's kind is not employer_voluntary or personal, the kinds eligible to be released (TAA 1953 Sch 1 s 138-35(2)).",
+    ),
+    (
+        "fhss.contribution_out_of_period",
+        "A contribution is dated before 1 July 2017 or after the determination day.",
+    ),
+    (
+        "fhss.contributions_invalid",
+        "contributions is not a list of 1 to 10000 objects.",
+    ),
+    (
+        "fhss.deductions_invalid",
+        "personal_deductions is not a list of financial years and amounts, gives a year twice or deducts more than that year's personal contributions.",
+    ),
+    (
+        "fhss.determination_invalid",
+        "determination is not an object of concessional, non_concessional and associated_earnings.",
+    ),
+    (
+        "fhss.determination_requested_invalid",
+        "determination_requested is before 1 July 2018 or after the determination day.",
+    ),
+    (
+        "fhss.rate_unpublished",
+        "determination_date is after 31 December 2026, the last quarter with a published SIC rate.",
+    ),
+    (
+        "fhss.request_exceeds_maximum",
+        "amount_requested is more than the FHSS maximum release amount (TAA 1953 Sch 1 s 131-10(1), table item 4).",
+    ),
+    (
+        "fhss.year_mismatch",
+        "determination_date is not in the financial year given as year.",
+    ),
+    (
         "fuel_tax_credits.date_outside_year",
         "A line's acquisition day is outside the income year given.",
     ),
@@ -2005,7 +2075,7 @@ pub const REFUSAL_CODES: &[(&str, &str)] = &[
     ),
     (
         "input.field_unknown",
-        "A field the worksheet or command does not take, or does not take beside the other inputs given, was given (fbt-loan, fbt-meal-entertainment, fbt-car-parking, fbt-debt-waiver, fbt-expense-payment, fbt-property, fbt-residual, fbt-housing, fbt-lafha, fbt-board, fbt-tax-exempt-body-entertainment, fbt-entertainment-classifier, fbt-meal-entertainment-register and its entries, fbt-minor-benefit-check, ppsr-timing, division-296, depreciation, fuel-tax-credits and its lines, foreign-resident-tax, medicare-levy, medicare-levy-surcharge, payg-withholding, payg-gross-up, termination-payment, etp-tax-free-component, unused-leave-payment, the Schedule 5 methods, working-holiday-maker-withholding, study-loan-withholding, seniors-pensioners-withholding, seniors-pensioners-tax-offset, lump-sum-arrears-tax-offset, hire-purchase-schedule, chattel-mortgage-schedule, loan-transactions and its transactions and rate_changes, borrowing-expenses-schedule and its loans, business-capital-expenditure and its items, balancing-adjustment, its years and car_limit, trade-in, dasp-tax, gst-margin-scheme, wine-equalisation-tax and its dealings, luxury-car-tax and its lines, payroll-tax, cgt-parcels, its parcels and disposals, fbt-ev-exemption-check, sb-cgt-concessions, contribution-caps given a carry-forward input, derive, personal-tax-estimate, dgr-check, income-tests and fbt-return only).",
+        "A field the worksheet or command does not take, or does not take beside the other inputs given, was given (fbt-loan, fbt-meal-entertainment, fbt-car-parking, fbt-debt-waiver, fbt-expense-payment, fbt-property, fbt-residual, fbt-housing, fbt-lafha, fbt-board, fbt-tax-exempt-body-entertainment, fbt-entertainment-classifier, fbt-meal-entertainment-register and its entries, fbt-minor-benefit-check, ppsr-timing, fhss and its contributions, personal_deductions and determination, division-296, depreciation, fuel-tax-credits and its lines, foreign-resident-tax, medicare-levy, medicare-levy-surcharge, payg-withholding, payg-gross-up, termination-payment, etp-tax-free-component, unused-leave-payment, the Schedule 5 methods, working-holiday-maker-withholding, study-loan-withholding, seniors-pensioners-withholding, seniors-pensioners-tax-offset, lump-sum-arrears-tax-offset, hire-purchase-schedule, chattel-mortgage-schedule, loan-transactions and its transactions and rate_changes, borrowing-expenses-schedule and its loans, business-capital-expenditure and its items, balancing-adjustment, its years and car_limit, trade-in, dasp-tax, gst-margin-scheme, wine-equalisation-tax and its dealings, luxury-car-tax and its lines, payroll-tax, cgt-parcels, its parcels and disposals, fbt-ev-exemption-check, sb-cgt-concessions, contribution-caps given a carry-forward input, derive, personal-tax-estimate, dgr-check, income-tests and fbt-return only).",
     ),
     ("input.flag_invalid", "A flag is not a JSON boolean."),
     ("input.fraction_invalid", "A fraction is outside 0 to 1."),
