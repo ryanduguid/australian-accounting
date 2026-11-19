@@ -15,10 +15,11 @@
 use serde_json::Value;
 
 use super::{
-    Arg, Result, cents, date_arg, derived_result, flag, int, money, precise, rate, refuse,
+    Arg, Result, Step, cents, date_arg, derived_result, flag, int, money, precise, rate, refuse,
 };
 use super::{scope, step};
 use crate::dates;
+use crate::decimal::Decimal;
 
 const KIND: &str = "etp_tax_free_component";
 
@@ -88,75 +89,8 @@ pub fn etp_tax_free_component(
     let to_retirement = retirement - ended;
     let nil = no_invalidity(ill_health, certified, to_retirement);
     let days_to_retirement = if nil.is_some() { 0 } else { to_retirement };
-    let [employment_n, retirement_n, before_n] =
-        [employment, days_to_retirement, before_july_1983].map(int);
-    let steps = precise(|| {
-        let invalidity = match nil {
-            Some(authority) => step("invalidity_segment", authority, "0", &[], int(0)),
-            None => {
-                let value = cents(
-                    payment
-                        .mul(&retirement_n)?
-                        .div(&employment_n.add(&retirement_n)?)?,
-                )?;
-                step(
-                    "invalidity_segment",
-                    "ITAA 1997 s 82-150(2), to the cent",
-                    "cents(payment x days_to_retirement / (employment_days + days_to_retirement))",
-                    &[&payment, &retirement_n, &employment_n, &retirement_n],
-                    value,
-                )
-            }
-        };
-        let rest = payment.sub(&invalidity.value)?;
-        let pre_july_1983 = if before_july_1983 == 0 {
-            step(
-                "pre_july_83_segment",
-                "ITAA 1997 s 82-155(1): none of the employment to which the payment relates occurred before 1 July 1983",
-                "0",
-                &[],
-                int(0),
-            )
-        } else {
-            step(
-                "pre_july_83_segment",
-                "ITAA 1997 s 82-155(2) step 2, to the cent",
-                "cents(payment_less_invalidity_segment x pre_july_1983_days / employment_days)",
-                &[&rest, &before_n, &employment_n],
-                cents(rest.mul(&before_n)?.div(&employment_n)?)?,
-            )
-        };
-        let tax_free = invalidity.value.add(&pre_july_1983.value)?;
-        let taxable = payment.sub(&tax_free)?;
-        let rest_step = step(
-            "payment_less_invalidity_segment",
-            "ITAA 1997 s 82-155(2) step 1",
-            "payment - invalidity_segment",
-            &[&payment, &invalidity.value],
-            rest,
-        );
-        let tax_free_step = step(
-            "tax_free_component",
-            "ITAA 1997 s 82-140",
-            "invalidity_segment + pre_july_83_segment",
-            &[&invalidity.value, &pre_july_1983.value],
-            tax_free.clone(),
-        );
-        let taxable_step = step(
-            "taxable_component",
-            "ITAA 1997 s 82-145",
-            "payment - tax_free_component",
-            &[&payment, &tax_free],
-            taxable,
-        );
-        Ok(vec![
-            invalidity,
-            rest_step,
-            pre_july_1983,
-            tax_free_step,
-            taxable_step,
-        ])
-    })?;
+    let days = [employment, days_to_retirement, before_july_1983].map(int);
+    let steps = precise(|| component_steps(&payment, nil, &days))?;
     // s 82-10(6)(c): a payment that includes an invalidity segment, or would
     // but for s 82-150(1)(c), is an excluded payment.
     let excluded = ill_health && certified;
@@ -167,4 +101,92 @@ pub fn etp_tax_free_component(
         rate("invalidity_excluded_payment", excluded),
     ];
     derived_result(KIND, &year, steps, rates)
+}
+
+/// s 82-150(2): the invalidity segment, or nil under `nil`, the authority of
+/// the s 82-150(1) condition the payment fails.
+fn invalidity_step(
+    payment: &Decimal,
+    nil: Option<&'static str>,
+    employment_n: &Decimal,
+    retirement_n: &Decimal,
+) -> Result<Step> {
+    let Some(authority) = nil else {
+        let value = cents(
+            payment
+                .mul(retirement_n)?
+                .div(&employment_n.add(retirement_n)?)?,
+        )?;
+        return Ok(step(
+            "invalidity_segment",
+            "ITAA 1997 s 82-150(2), to the cent",
+            "cents(payment x days_to_retirement / (employment_days + days_to_retirement))",
+            &[payment, retirement_n, employment_n, retirement_n],
+            value,
+        ));
+    };
+    Ok(step("invalidity_segment", authority, "0", &[], int(0)))
+}
+
+/// s 82-155: the pre-July 83 segment of the payment less its invalidity
+/// segment.
+fn pre_july_83_step(rest: &Decimal, employment_n: &Decimal, before_n: &Decimal) -> Result<Step> {
+    if before_n.is_zero() {
+        return Ok(step(
+            "pre_july_83_segment",
+            "ITAA 1997 s 82-155(1): none of the employment to which the payment relates occurred before 1 July 1983",
+            "0",
+            &[],
+            int(0),
+        ));
+    }
+    Ok(step(
+        "pre_july_83_segment",
+        "ITAA 1997 s 82-155(2) step 2, to the cent",
+        "cents(payment_less_invalidity_segment x pre_july_1983_days / employment_days)",
+        &[rest, before_n, employment_n],
+        cents(rest.mul(before_n)?.div(employment_n)?)?,
+    ))
+}
+
+/// The segments, the tax free component and the taxable component, from the
+/// employment days, days to retirement and days before 1 July 1983.
+fn component_steps(
+    payment: &Decimal,
+    nil: Option<&'static str>,
+    [employment_n, retirement_n, before_n]: &[Decimal; 3],
+) -> Result<Vec<Step>> {
+    let invalidity = invalidity_step(payment, nil, employment_n, retirement_n)?;
+    let rest = payment.sub(&invalidity.value)?;
+    let pre_july_1983 = pre_july_83_step(&rest, employment_n, before_n)?;
+    let tax_free = invalidity.value.add(&pre_july_1983.value)?;
+    let taxable = payment.sub(&tax_free)?;
+    let rest_step = step(
+        "payment_less_invalidity_segment",
+        "ITAA 1997 s 82-155(2) step 1",
+        "payment - invalidity_segment",
+        &[payment, &invalidity.value],
+        rest,
+    );
+    let tax_free_step = step(
+        "tax_free_component",
+        "ITAA 1997 s 82-140",
+        "invalidity_segment + pre_july_83_segment",
+        &[&invalidity.value, &pre_july_1983.value],
+        tax_free.clone(),
+    );
+    let taxable_step = step(
+        "taxable_component",
+        "ITAA 1997 s 82-145",
+        "payment - tax_free_component",
+        &[payment, &tax_free],
+        taxable,
+    );
+    Ok(vec![
+        invalidity,
+        rest_step,
+        pre_july_1983,
+        tax_free_step,
+        taxable_step,
+    ])
 }
