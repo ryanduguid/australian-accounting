@@ -1050,6 +1050,7 @@ pub fn supported_periods(kind: &str) -> Vec<&'static str> {
         // refused as for balancing_adjustment, and its car limit is not yet
         // published.
         "trade_in" => vec!["2025-26", "2026-27"],
+        "cgt_parcels" => vec!["2025-26", "2026-27"],
         "fbt" => vec!["2026", "2027"],
         "fbt_car_statutory" | "fbt_car_operating_cost" | "fbt_loan" => {
             keys(FBT_BENCHMARK_INTEREST_RATES)
@@ -1181,6 +1182,10 @@ pub fn source_review(kind: &str) -> (&'static str, &'static str) {
         "luxury_car_tax" => (
             "2026-11-19",
             "A New Tax System (Luxury Car Tax) Act 1999 ss 5-15, 5-20, 7-15, 9-5, 9-15, 15-20, 15-25, 15-30, 18-5, 18-10, 25-1 and 27-1 at the ATO's legal database, with their history notes (ss 18-5(3) and 18-10(3) substituted by Act No. 94 of 2019 for cars supplied or imported from 1 July 2019), and compilation 27 (1 April 2025) at the Federal Register of Legislation; Treasury Laws Amendment (Tax Incentives and Integrity) Act 2025 (No. 29, 2025) Schedule 1 (the 3.5 litre fuel-efficient rating from 1 July 2025 and item 4's continued 7 litre rating); Luxury Car Tax Imposition (General) Act 1999 and (Customs) Act 1999 s 4 (33%); the ATO's 'Luxury car tax rate and thresholds' (QC38161, 1 June 2026), 'Working out the LCT on a sale' (QC22107, 1 June 2026), 'Working out the LCT on an import' (QC22108, 1 June 2026), 'Luxury car tax credits and refunds' (QC39467, 16 July 2025) and the BAS page 'Luxury car tax (LCT)' (QC33694, 1 May 2025); 'Instructions for completing your BAS' (QC17458, 14 September 2026)",
+        ),
+        "cgt_parcels" => (
+            "2026-11-19",
+            "ITAA 1997 ss 102-5, 102-10, 102-15, 104-10, 109-5, 110-25, 110-35, 110-55, 112-30, 114-1, 114-10, 115-5 to 115-25, 115-100 and 116-40, compilation 264 (21 May 2026), the text for 2025-26 and 2026-27 under Act No. 49 of 2026 Schedule 1 items 82 to 84; TD 33 (identical shares); the ATO's 'Keeping records of shares and units' (last updated 22 June 2026: Boris's example), 'CGT discount' (last updated 29 June 2026: the 12 months exclude the days of acquisition and the event) and the individual tax return instructions supplement 2026, question 18 (last updated 30 May 2026: Kathleen's examples 1 to 4)",
         ),
         "trade_in" => (
             "2026-11-18",
@@ -1465,6 +1470,12 @@ pub fn library_evidence(kind: &str) -> [(&'static str, &'static str); 4] {
         "luxury_car_tax" => (
             "tax-examples-gst-and-other-indirect-taxes",
             "12-340",
+            "2026-06-30",
+            "2026-11-19",
+        ),
+        "cgt_parcels" => (
+            "tax-examples-capital-gains-tax-cgt",
+            "2-240",
             "2026-06-30",
             "2026-11-19",
         ),
@@ -2592,6 +2603,40 @@ pub fn input_units(kind: &str) -> Vec<(&'static str, &'static str)> {
             "lines",
             "list of 1 to 1,000 objects, the tax period's luxury car tax lines, each with kind and its inputs: sale (a taxable supply of a luxury car, s 5-10) or importation (a taxable importation, s 7-5) with luxury_car_tax_value (AUD, the value including GST and customs duty but not luxury car tax: s 5-20 for a sale, s 7-15(2) for an importation), fuel_consumption_litres_per_100km (the combined rating under the national road vehicle standards, a decimal string from 0 to 100 with at most 2 decimal places, or null for none), used_before_1_july_2025 (boolean, required only for a car rated above 3.5 and at most 7 litres supplied or imported from 1 July 2025: true where, before that day, an entity supplied or imported the car and it was used in Australia other than for a quotable purpose) and, for a sale, lct_previously_payable (AUD, optional: luxury car tax payable on an earlier supply or importation of the car, s 5-15(2)); price_adjustment (an adjustment event on an earlier sale, ss 15-20 and 15-25) with supplied_in (the financial year of the sale, 2012-13 to the tax period's), corrected_luxury_car_tax_value, the car's rating facts, lct_previously_payable (optional) and previously_attributed_lct (AUD, the luxury car tax previously attributed to the supply); change_of_use_increasing (a car supplied under quote, or one on whose supply a s 15-30(1) decreasing adjustment arose, then used other than for a quotable purpose, s 15-30(3) and (4)) with supplied_in, luxury_car_tax_value, the rating facts and lct_previously_payable (optional); change_of_use_decreasing (s 15-30(1)) with lct_payable_on_supply (AUD); and refund (s 18-5 or 18-10) with claimant (primary_producer or tourism_operator), refund_eligible_car (boolean), lct_borne (AUD) and supplied_in (optional, from 2019-20)",
         )],
+        "cgt_parcels" => vec![
+            (
+                "entity",
+                "individual, trust, complying_superannuation_entity or company (not a life insurance company): the entity that made the gains (ITAA 1997 ss 115-10 and 115-100)",
+            ),
+            (
+                "identification",
+                "first_in_first_out (the earliest acquired parcel of the security first) or selected (each disposal lists its parcels, as TD 33 para 4 accepts)",
+            ),
+            (
+                "parcels",
+                "list of 1 to 1,000 objects, each with parcel (a unique name), security (the same text for identical shares or units), acquired (YYYY-MM-DD, the contract date, s 109-5; not after the year), units (a decimal string above 0, at most 6dp), acquisition_cost (AUD, the first element, s 110-25(2)) and incidental_costs (AUD, the second element on acquiring, such as brokerage and stamp duty, ss 110-25(3) and 110-35), and optionally ownership_costs (AUD, the third element, s 110-25(4)), capital_expenditure (AUD, the fourth, s 110-25(5)) and title_costs (AUD, the fifth, s 110-25(6))",
+            ),
+            (
+                "disposals",
+                "list of 1 to 1,000 objects, each with security, date (YYYY-MM-DD, the contract date, s 104-10(3); not after the year, and one before it uses up units without being counted), units, capital_proceeds (AUD, before selling costs) and incidental_costs (AUD, the second element on disposing, such as brokerage); for selected identification also parcels, a list of objects each with parcel and units, adding up to the disposal's units",
+            ),
+            (
+                "other_discount_capital_gains",
+                "AUD, the year's other discount capital gains, before losses and the discount; 0.00 for a company",
+            ),
+            (
+                "other_capital_gains",
+                "AUD, the year's other capital gains that are not discount capital gains",
+            ),
+            (
+                "other_capital_losses",
+                "AUD, the year's other capital losses, none from collectables or personal use assets",
+            ),
+            (
+                "prior_net_capital_losses",
+                "AUD, net capital losses of earlier years not yet applied, none from collectables",
+            ),
+        ],
         "trade_in" => vec![
             (
                 "cost",
@@ -3398,6 +3443,29 @@ pub fn examples(kind: &str) -> Vec<(&'static str, Example)> {
                     r#"[{"kind": "sale", "luxury_car_tax_value": "88000.00", "fuel_consumption_litres_per_100km": "8.5"}]"#,
                 ),
             ),
+        ],
+        // The ATO's Kathleen (question 18 of the 2026 supplement, examples 1
+        // to 4), her collectables left out.
+        "cgt_parcels" => vec![
+            ("year", Text("2025-26")),
+            ("entity", Text("individual")),
+            ("identification", Text("first_in_first_out")),
+            (
+                "parcels",
+                Json(
+                    r#"[{"parcel": "K1", "security": "Company A", "acquired": "2000-11-17", "units": "1000", "acquisition_cost": "3000.00", "incidental_costs": "0.00"}, {"parcel": "K2", "security": "Company B", "acquired": "2025-10-10", "units": "130", "acquisition_cost": "520.00", "incidental_costs": "0.00"}, {"parcel": "K3", "security": "Company C", "acquired": "2025-10-10", "units": "600", "acquisition_cost": "2400.00", "incidental_costs": "0.00"}]"#,
+                ),
+            ),
+            (
+                "disposals",
+                Json(
+                    r#"[{"security": "Company A", "date": "2025-12-17", "units": "1000", "capital_proceeds": "6000.00", "incidental_costs": "0.00"}, {"security": "Company B", "date": "2026-02-27", "units": "130", "capital_proceeds": "1040.00", "incidental_costs": "0.00"}, {"security": "Company C", "date": "2026-06-25", "units": "600", "capital_proceeds": "1800.00", "incidental_costs": "0.00"}]"#,
+                ),
+            ),
+            ("other_discount_capital_gains", Text("0.00")),
+            ("other_capital_gains", Text("0.00")),
+            ("other_capital_losses", Text("0.00")),
+            ("prior_net_capital_losses", Text("400.00")),
         ],
         "trade_in" => vec![
             ("year", Text("2026-27")),
