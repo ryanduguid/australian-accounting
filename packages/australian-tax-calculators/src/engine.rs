@@ -6142,8 +6142,10 @@ mod fbt_minor_benefit;
 pub use fbt_minor_benefit::{MinorBenefitArgs, fbt_minor_benefit_check};
 mod gst_margin_scheme;
 pub use gst_margin_scheme::{MarginSchemeArgs, gst_margin_scheme};
+mod ppsr_timing;
+pub use ppsr_timing::ppsr_timing;
 
-const KINDS: [&str; 60] = [
+const KINDS: [&str; 61] = [
     "gst",
     "gst_margin_scheme",
     "fuel_tax_credits",
@@ -6203,6 +6205,7 @@ const KINDS: [&str; 60] = [
     "fbt_entertainment_classifier",
     "fbt_minor_benefit_check",
     "income_tests",
+    "ppsr_timing",
     "wine_equalisation_tax",
 ];
 

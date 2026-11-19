@@ -227,6 +227,10 @@ pub const SCOPES: &[(&str, &str)] = &[
         "An ordinary taxable employer's board fringe benefits (FBTAA s 35) in the FBT year ended 31 March 2026 or 2027: meals provided to employees, or their associates, that are board meals (s 136(1)), such as meals an employee entitled to accommodation and at least 2 meals a day is given, cooked and supplied on the employer's premises and not at a party, reception or other social function. Each meal is valued at $2.00 for a recipient who was 12 or older before the year began and $1.00 for another (s 36), less the recipients contribution for it, which the operator establishes in total, counting each meal's only up to its value; the contributions cannot take the value below nil, and an unused excess is shown. The otherwise deductible rule (s 37) then takes off the gross deduction, the share of the value before contributions that would have been deductible to the employee under ITAA 1997 s 8-1, rounded to cents, less the deduction for the contribution, never below nil and never taking the value below nil; it applies only to meals provided to the employee. Excludes deciding what is a board meal, exempt meals, such as those for an employee in a primary production business in a remote area (the employer's guide, 13.6), food or drink exempt under s 54, gross-up and FBT payable. Board fringe benefits are type 2 (the employer's guide, 13.2).",
     ),
     (
+        "ppsr_timing",
+        "What the Personal Property Securities Register's law decides without a search, for a registration, possession or attachment, or security agreement in the 2025-26 or 2026-27 income year, in ACT legal time (PPSA s 294). question registration gives a financing statement's latest end time under PPSA s 153 item 5 (consumer property or property described by serial number: the end of the day 7 years after the registration time; other collateral: no stated end time, or the end of the day 25 years after), the end time s 153(2) and (3) apply (a requested end time later than that, earlier than the registration time, or missing where one is required is taken to be the default time), and the registration fee of the Personal Property Securities (Fees) Determination 2018 s 4 items 1 to 3. question pmsi gives the time by which a purchase money security interest must be perfected by registration for priority under PPSA s 62: for inventory, by the time the grantor obtains possession of goods or the interest attaches to other property (s 62(2)(b)); otherwise before the end of 15 business days after that day (s 62(3)(b)), with a stated registration tested against it and the s 153 item 7 statement. question company_grantor gives the end of 20 business days, in the place concerned (Corporations Act s 9), after a company's security agreement came into force (s 588FL(2)(b)(ii)), and, with a critical time from 1 July 2025 to 30 June 2027, the latest of the s 588FL(2)(b) times and whether a stated registration time is after it, so that the interest vests in the company (s 588FL(4)); a registration after the critical time is left undecided, as s 588FL(2)(a) then turns on when the interest arose. Business days exclude weekends, the days the caller lists, and for the PPSA the days between Christmas Day and New Year's Day; the regulations prescribe no other day. The operator establishes that the arrangement is a security interest and, for pmsi, a purchase money security interest (PPSA s 14), the collateral's class and description, the possession or attachment time, the critical time, and that every public holiday the count spans is listed. Excludes searches and anything only the register holds, priority between interests that are not purchase money security interests, perfection by possession or control, transitional registrations, amendments and their fees, ending a registration (ss 151, 167 and 179), a foreign-law agreement's 56 day time (s 588FL(2)(b)(iii)), s 588FN's exceptions and court extensions under PPSA s 293.",
+    ),
+    (
         "fbt_minor_benefit_check",
         "A screen of one benefit provided to an employee or an associate in respect of the employee's employment, in the FBT year ended 31 March 2026 or 2027, against the minor benefits exemption of FBTAA s 58P. The operator establishes the benefit's category, its notional taxable value in the current year (for one benefit to one person: TR 2007/12 paras 17 and 18), whether it is under a salary sacrifice arrangement, each criterion of s 58P(1)(f) as a stated fact, and the facts of each category's exclusion. The conditions are decided and shown as met or not: an expense payment, property or residual benefit that would not be an in-house fringe benefit (s 58P(1)(c)); tax-exempt body entertainment only within s 58P(1)(d)(i) or (ii); meal entertainment or entertainment facility leasing never qualifies under the 50/50 split method (Division 9A or s 152B: TR 2007/12 para 14), and is refused without it, to be screened under its own category; no salary sacrifice arrangement (TR 2007/12 para 16); and a notional taxable value less than $300 (s 58P(1)(e)). The criteria of s 58P(1)(f) are each shown with which way the stated fact weighs, and weighed as the Commissioner's examples in TR 2007/12 weigh them: exempt where identical or similar benefits are not provided frequently, neither total is substantial and the benefit is not both regular and a reward for services (examples 1 to 3, 5 to 7 and 9 to 11), not exempt where they are provided frequently as a reward for services, their total is substantial, they are readily valued and not for an unexpected event (example 8), and otherwise the employer's judgement, shown as such. TR 2007/12 is a public ruling, the Commissioner's view of the law, and its para 11 still lists airline transport benefits, whose exclusion (s 58P(1)(b)) Act No. 88 of 2013 repealed. Excludes deciding the benefit's category, its notional taxable value, whether benefits are associated (s 58P(2)), and the criteria themselves; benefits exempt under another provision; and what an exempt entertainment benefit means for income tax and GST.",
     ),
@@ -467,6 +471,10 @@ pub const SOURCES: &[(&str, &str)] = &[
     (
         "fbt_minor_benefit_check",
         "https://www.ato.gov.au/law/view/document?DocID=PAC/19860039/58P",
+    ),
+    (
+        "ppsr_timing",
+        "https://www.legislation.gov.au/C2009A00130/2024-10-14/2024-10-14/text/original/epub/OEBPS/document_1/document_1.html",
     ),
     (
         "fbt_entertainment_classifier",
@@ -968,6 +976,16 @@ pub const EXTRA_SOURCES: &[(&str, &[&str])] = &[
         &[FBTAA_PART_1, FBTAA_PART_2, FBT_RETURN_ITEM_23],
     ),
     (
+        "ppsr_timing",
+        &[
+            "https://www.legislation.gov.au/F2010L03071/2022-07-01/2022-07-01/text/original/epub/OEBPS/document_1/document_1.html",
+            "https://www.legislation.gov.au/F2018L01001/asmade/2018-07-04/text/original/epub/OEBPS/document_1/document_1.html",
+            "https://www.legislation.gov.au/C2004A00818/2026-09-19/2026-09-19/text/original/epub/OEBPS/document_1/document_1.html",
+            "https://www.legislation.gov.au/C2004A00818/2026-09-19/2026-09-19/text/original/epub/OEBPS/document_2/document_2.html",
+            "https://www.ppsr.gov.au/fees",
+        ],
+    ),
+    (
         "fbt_minor_benefit_check",
         &[
             "https://www.ato.gov.au/law/view/document?DocID=TXR/TR200712/NAT/ATO/00001",
@@ -1129,6 +1147,13 @@ pub const EXTRA_WARNINGS: &[(&str, &[&str])] = &[
         "lump_sum_arrears_tax_offset",
         &[
             "The Medicare levy and Medicare levy surcharge are separate questions this worksheet does not answer. From 2024-25 Medicare Levy Act 1986 s 9A leaves the total arrears amount out of taxable income for the levy when it is at least 10% of normal taxable income, the arrears included, and the levy in each of the 2 latest accrual years meets a condition of s 9A(1)(c); ITAA 1997 Subdivision 61-L gives a tax offset against the surcharge on them.",
+        ],
+    ),
+    (
+        "ppsr_timing",
+        &[
+            "Business days turn on the public holidays listed: PPSA s 10 excludes a public holiday for the whole of any State, the ACT or the NT, and Corporations Act s 9 one in the place concerned. A holiday missing from the list moves the deadline later than the law's; one in part of a State only is not excluded under PPSA s 10.",
+            "A court may extend the PPSA s 62(3) period (s 293) or fix a later s 588FL time (s 588FM); the times given are those without an order, unless court_ordered_time is given.",
         ],
     ),
     (
@@ -1858,7 +1883,7 @@ pub const REFUSAL_CODES: &[(&str, &str)] = &[
     ),
     (
         "input.field_unknown",
-        "A field the worksheet or command does not take, or does not take beside the other inputs given, was given (fbt-loan, fbt-meal-entertainment, fbt-car-parking, fbt-debt-waiver, fbt-expense-payment, fbt-property, fbt-residual, fbt-housing, fbt-lafha, fbt-board, fbt-tax-exempt-body-entertainment, fbt-entertainment-classifier, fbt-meal-entertainment-register and its entries, fbt-minor-benefit-check, division-296, depreciation, fuel-tax-credits and its lines, foreign-resident-tax, medicare-levy, medicare-levy-surcharge, payg-withholding, payg-gross-up, termination-payment, etp-tax-free-component, unused-leave-payment, the Schedule 5 methods, working-holiday-maker-withholding, study-loan-withholding, seniors-pensioners-withholding, seniors-pensioners-tax-offset, lump-sum-arrears-tax-offset, hire-purchase-schedule, chattel-mortgage-schedule, loan-transactions and its transactions and rate_changes, borrowing-expenses-schedule and its loans, business-capital-expenditure and its items, balancing-adjustment, its years and car_limit, trade-in, dasp-tax, gst-margin-scheme, wine-equalisation-tax and its dealings, luxury-car-tax and its lines, payroll-tax, contribution-caps given a carry-forward input, derive, personal-tax-estimate, dgr-check, income-tests and fbt-return only).",
+        "A field the worksheet or command does not take, or does not take beside the other inputs given, was given (fbt-loan, fbt-meal-entertainment, fbt-car-parking, fbt-debt-waiver, fbt-expense-payment, fbt-property, fbt-residual, fbt-housing, fbt-lafha, fbt-board, fbt-tax-exempt-body-entertainment, fbt-entertainment-classifier, fbt-meal-entertainment-register and its entries, fbt-minor-benefit-check, ppsr-timing, division-296, depreciation, fuel-tax-credits and its lines, foreign-resident-tax, medicare-levy, medicare-levy-surcharge, payg-withholding, payg-gross-up, termination-payment, etp-tax-free-component, unused-leave-payment, the Schedule 5 methods, working-holiday-maker-withholding, study-loan-withholding, seniors-pensioners-withholding, seniors-pensioners-tax-offset, lump-sum-arrears-tax-offset, hire-purchase-schedule, chattel-mortgage-schedule, loan-transactions and its transactions and rate_changes, borrowing-expenses-schedule and its loans, business-capital-expenditure and its items, balancing-adjustment, its years and car_limit, trade-in, dasp-tax, gst-margin-scheme, wine-equalisation-tax and its dealings, luxury-car-tax and its lines, payroll-tax, contribution-caps given a carry-forward input, derive, personal-tax-estimate, dgr-check, income-tests and fbt-return only).",
     ),
     ("input.flag_invalid", "A flag is not a JSON boolean."),
     ("input.fraction_invalid", "A fraction is outside 0 to 1."),
@@ -2141,6 +2166,38 @@ pub const REFUSAL_CODES: &[(&str, &str)] = &[
     (
         "period.unsupported",
         "The worksheet has no rates for the period.",
+    ),
+    (
+        "ppsr_timing.date_outside_year",
+        "The registration, possession or attachment, or agreement time is outside the income year given.",
+    ),
+    (
+        "ppsr_timing.date_unsettled",
+        "A 7 or 25 year anniversary, or the day 6 months before a critical time, does not exist in the calendar (29 February, or a month too short), and the Act read gives no rule for it.",
+    ),
+    (
+        "ppsr_timing.days_invalid",
+        "excluded_days or place_holidays is not a list of YYYY-MM-DD dates.",
+    ),
+    (
+        "ppsr_timing.fact_invalid",
+        "question or collateral is not one of the values ppsr-timing takes.",
+    ),
+    (
+        "ppsr_timing.foreign_law_unsupported",
+        "The security agreement came into force under a foreign law; Corporations Act s 588FL(2)(b)(iii)'s 56 day time is not computed.",
+    ),
+    (
+        "ppsr_timing.holidays_incomplete",
+        "A business day count spans 25 December or 1 January on a weekday that the holiday list does not hold.",
+    ),
+    (
+        "ppsr_timing.law_unread",
+        "The critical time is outside 1 July 2025 to 30 June 2027, the years whose Corporations Act text was read.",
+    ),
+    (
+        "ppsr_timing.time_invalid",
+        "A time is not YYYY-MM-DDTHH:MM.",
     ),
     (
         "scope.not_confirmed",
