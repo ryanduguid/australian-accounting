@@ -1037,6 +1037,11 @@ pub fn supported_periods(kind: &str) -> Vec<&'static str> {
         "dasp_tax" => vec!["2025-26", "2026-27", "2027-28"],
         // Division 75 sets no figure by year; the years are gst's.
         "gst_margin_scheme" => vec!["2025-26", "2026-27", "2027-28"],
+        // ITAA 1997 Division 205 sets no figure by year; the years the
+        // Act as compiled on 19 November 2026 and the ATO's Franking account
+        // tax return 2026 instructions were read for, with the 25% and 30%
+        // rates for imputation purposes.
+        "franking_account" => vec!["2025-26", "2026-27"],
         // The 2026-27 rates and thresholds each revenue office published, read
         // on 19 November 2026.
         "payroll_tax" => vec!["2026-27"],
@@ -1182,6 +1187,10 @@ pub fn source_review(kind: &str) -> (&'static str, &'static str) {
         "gst_margin_scheme" => (
             "2026-11-19",
             "GST Act ss 9-90, 11-5, 75-5, 75-10, 75-11, 75-12, 75-13, 75-14, 75-15, 75-20, 75-35 and 195-1 ('approved valuation', 'long-term lease', 'margin scheme'), from the ATO's legal database; GSTR 2006/8 (paras 15 to 39F: the agreement, a conditional agreement, ineligible supplies and examples 1 and 2); the ATO's 'GST and the margin scheme' (last updated 19 August 2021)",
+        ),
+        "franking_account" => (
+            "2026-11-19",
+            "ITAA 1997 ss 202-60, 202-65, 202-75, 203-20 to 203-55, 204-70, 204-75, 205-15, 205-25, 205-30, 205-40, 205-45, 205-50, 205-70, 214-15 to 214-25, 214-150 and 214-155, on the ATO's legal database; New Business Tax System (Franking Deficit Tax) Act 2002 s 5 (C2004A00982) and (Over-franking Tax) Act 2002 s 5 (C2004A00981), latest versions on the Federal Register of Legislation; the ATO's Franking account tax return 2026 instructions (published 30 May 2026): How to get, About (example 2), How to lodge and pay, and sections A, B (examples 4 and 5) and C (examples 7 to 9)",
         ),
         "wine_equalisation_tax" => (
             "2026-11-19",
@@ -1475,6 +1484,12 @@ pub fn library_evidence(kind: &str) -> [(&'static str, &'static str); 4] {
             "tax-examples-gst-and-other-indirect-taxes",
             "12-200",
             "2026-06-30",
+            "2026-11-19",
+        ),
+        "franking_account" => (
+            "ATO Franking account tax return 2026 instructions",
+            "About example 2; section B examples 4 and 5; section C examples 7 to 9",
+            "2026-05-30",
             "2026-11-19",
         ),
         "wine_equalisation_tax" => (
@@ -1844,6 +1859,16 @@ pub fn optional_inputs(kind: &str) -> Vec<(&'static str, &'static str)> {
             (
                 "subdivision_whole",
                 "decimal, with subdivision_share: the same measure of all the land you acquired (s 75-15)",
+            ),
+        ],
+        "franking_account" => vec![
+            (
+                "income_tax",
+                "object, to apply the offset, and required for a private company whose offset reduction would otherwise apply: before_fdt_offset (AUD, the income tax for the year after every tax offset s 63-10 applies before this one, for s 205-70(5)(b) and (d)), offset_brought_forward (AUD, the offset left after s 63-10 the last year the entity was entitled to one, s 205-70(1)(c)) and, for a private company, earlier_year_liability (boolean, true when it had an income tax liability for an earlier income year, s 205-70(5)(c))",
+            ),
+            (
+                "commissioner_determination",
+                "boolean, true when the Commissioner has determined in writing under s 205-70(6) that the excess was due to events outside the entity's control, so the offset is not reduced",
             ),
         ],
         "trade_in" => vec![
@@ -2675,6 +2700,40 @@ pub fn input_units(kind: &str) -> Vec<(&'static str, &'static str)> {
             (
                 "method",
                 "consideration (the consideration for your acquisition: s 75-10(2)) or approved_valuation (for an interest acquired before 1 July 2000 only: s 75-10(3)). For an interest acquired before 1 July 2000, consideration states that no approved valuation as at the day s 75-10(3) fixes has been made: once one has, s 75-10(3) works the margin from it",
+            ),
+        ],
+        "franking_account" => vec![
+            (
+                "private_company",
+                "boolean, true when the entity is a private company for the income year (ITAA 1997 s 995-1(1)): its franking period is then the income year (s 203-45)",
+            ),
+            (
+                "benchmark_rule_exempt",
+                "boolean, true when s 203-20 exempts the entity from the benchmark rule for the year's franking periods: a listed public company meeting s 203-20(1)(a) throughout, or its 100% subsidiary; false for a private company",
+            ),
+            (
+                "corporate_tax_rate",
+                "decimal string, 0.25 or 0.30: the entity's corporate tax rate for imputation purposes for the income year",
+            ),
+            (
+                "opening_balance",
+                "AUD, may be negative: the franking account balance at the end of the previous income year, a deficit as a negative amount, before the credit for that year's franking deficit tax",
+            ),
+            (
+                "rd_deferred_debit_brought_forward",
+                "AUD, 0.00 when none: the parts of refunds of income tax for earlier income years attributable to a refundable R&D tax offset (s 67-30), less the reductions of earlier credits under s 205-15(4)",
+            ),
+            (
+                "last_benchmark",
+                "null when no frankable distribution was made in a franking period before the income year, or an object with percentage (decimal string from 0 to 100, the benchmark franking percentage of the last such period) and periods_since (whole number from 1: the franking periods from the one after it to the income year's first, counted, for s 204-70)",
+            ),
+            (
+                "events",
+                "list of at most 10000 objects, each with date (YYYY-MM-DD in the income year; for income_tax_refund up to 3 months after it, s 205-50(2)), type and amount (AUD above nil, the credit or debit the provision gives, or for payg_instalment and income_tax_paid the payment): credits payg_instalment (s 205-15(1) item 1), income_tax_paid (item 2), franked_distribution_received (item 3: the franking credit), franked_distribution_flowed_indirectly (item 4: the share of the franking credit, dated the end of the last interposed entity's income year), tax_offset_refund_excess_paid (item 4A), exploration_credit (item 7), dmt_paid (item 9); debits income_tax_refund (s 205-30(1) item 2, with rd_offset_part, AUD from 0.00 to the amount: the part attributable to a refundable R&D tax offset), linked_distribution (item 5), tax_exempt_bonus_shares (item 6), streaming_determination (item 7), share_capital_tainting (item 7A), untainting_choice (item 7B), on_market_buy_back (item 9), off_market_buy_back (item 9A), selective_capital_reduction (item 9B), dmt_refund (item 14)",
+            ),
+            (
+                "distributions",
+                "list of at most 10000 objects in date order, one for each frankable distribution the entity made in the income year, each with date (YYYY-MM-DD), amount (AUD above nil, the frankable distribution) and franking_credit (AUD, the franking credit its distribution statement allocates), and optional permitted_percentage (decimal string from 0 to 100: a franking percentage the Commissioner permitted for it under s 203-55; not for the first distribution in its franking period) and statement_after_distribution (boolean, a private company's only: the statement was given after the distribution, s 202-75(3))",
             ),
         ],
         "wine_equalisation_tax" => vec![(
@@ -3530,6 +3589,28 @@ pub fn examples(kind: &str) -> Vec<(&'static str, Example)> {
             ("valuation_day", Text("2000-07-01")),
             ("registered_on_1_july_2000", Flag(true)),
             ("government_unimproved_on_1_july_2000", Flag(false)),
+        ],
+        // Shaped on the ATO's EKW Ltd example (section B, example 4):
+        // FDT $80,000 and an offset of $62,000.
+        "franking_account" => vec![
+            ("private_company", Flag(false)),
+            ("benchmark_rule_exempt", Flag(false)),
+            ("corporate_tax_rate", Text("0.30")),
+            ("opening_balance", Text("10000.00")),
+            ("rd_deferred_debit_brought_forward", Text("0.00")),
+            ("last_benchmark", Json("null")),
+            (
+                "events",
+                Json(
+                    r#"[{"date": "2025-10-28", "type": "payg_instalment", "amount": "125000.00"}, {"date": "2026-02-28", "type": "payg_instalment", "amount": "125000.00"}, {"date": "2026-04-28", "type": "payg_instalment", "amount": "250000.00"}, {"date": "2025-11-15", "type": "income_tax_refund", "amount": "60000.00", "rd_offset_part": "0.00"}, {"date": "2026-03-31", "type": "streaming_determination", "amount": "20000.00"}]"#,
+                ),
+            ),
+            (
+                "distributions",
+                Json(
+                    r#"[{"date": "2025-09-30", "amount": "1190000.00", "franking_credit": "510000.00"}]"#,
+                ),
+            ),
         ],
         // A dozen bottles sold by wholesale for $120 and a dozen at the
         // cellar door for $140: $34.80 + $20.30 of wine tax.
