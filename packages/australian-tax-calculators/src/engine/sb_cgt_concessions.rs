@@ -17,24 +17,22 @@ use serde_json::{Value, json};
 
 use super::business_capital::year_first;
 use super::{Arg, Result, date_arg, flag, int, money, rate, refuse, result, scope, signed_money};
+
+mod business;
 use crate::dates;
 use crate::decimal::Decimal;
+use business::{Active, active_asset, anniversary, choice, optional_date, small_business};
 
 const KIND: &str = "sb_cgt_concessions";
 
 /// The $2 million that s 152-10(1AA)(b) puts in place of each $10 million in
 /// s 328-110. A business under it is also under $10 million on each rule of
 /// s 328-110, so s 152-10(1AA)(a) adds nothing to the test.
-const TURNOVER: &str = "2000000";
+pub(super) const TURNOVER: &str = "2000000";
 /// Section 152-15.
 const NET_ASSETS: &str = "6000000";
 /// Section 152-320(1).
 const RETIREMENT_LIMIT: &str = "500000";
-/// The shortest and longest 7.5 years in days: 7 years with 1 leap day and
-/// the shortest 6 months (2,556 + 181), and 7 years with 2 leap days and the
-/// longest 6 months (2,557 + 184). A total of active days between them may
-/// or may not be 7.5 years, depending on the periods.
-const SEVEN_AND_A_HALF: (i64, i64) = (2737, 2741);
 /// The day CGT began: an asset acquired before it is a pre-CGT asset.
 const CGT_START: &str = "1985-09-20";
 
@@ -100,11 +98,11 @@ pub const SB_CGT_OPTIONAL: [&str; 7] = [
     "choice_date",
 ];
 
-fn conflict<T>(message: impl Into<String>) -> Result<T> {
+pub(super) fn conflict<T>(message: impl Into<String>) -> Result<T> {
     refuse("sb_cgt_concessions.fact_conflict", message)
 }
 
-fn invalid<T>(message: &str) -> Result<T> {
+pub(super) fn invalid<T>(message: &str) -> Result<T> {
     refuse("sb_cgt_concessions.fact_invalid", message.to_string())
 }
 
@@ -134,160 +132,27 @@ fn optional_facts<'a>(
     Ok(args.optional)
 }
 
-fn choice<'a>(value: &'a Arg, options: &[&'a str], message: &str) -> Result<&'a str> {
-    match value.text() {
-        Some(text) if options.contains(&text) => Ok(text),
-        _ => invalid(message),
-    }
-}
-
-/// A turnover, or `null` for a year no business was carried on.
-fn turnover(value: &Arg) -> Result<Option<Decimal>> {
-    match value {
-        Arg::Other(none) if none == "None" => Ok(None),
-        other => money(other).map(Some),
-    }
-}
-
-/// A date, or `null`.
-fn optional_date(value: &Arg, name: &str) -> Result<Option<i64>> {
-    match value {
-        Arg::Other(none) if none == "None" => Ok(None),
-        other => date_arg(other, name).map(Some),
-    }
-}
-
-/// The same day `years` later or earlier; 29 February becomes 1 March.
-fn anniversary(day: i64, years: i64) -> i64 {
-    let moved = dates::add_months(day, 12 * years);
-    if dates::to_civil(moved).2 == dates::to_civil(day).2 {
-        moved
-    } else {
-        moved + 1
-    }
-}
-
 fn condition(id: &str, authority: &str, met: bool) -> Value {
     json!({"condition": id, "authority": authority, "met": met})
 }
 
-/// Whether the business entity is a CGT small business entity, and by
-/// which rule of s 328-110.
-struct SmallBusiness {
-    met: bool,
-    rule: Option<&'static str>,
-}
-
-fn small_business(args: &SbCgtConcessionsArgs, stopped: Option<&Arg>) -> Result<SmallBusiness> {
-    let business = choice(
-        args.business,
-        &["carried_on", "winding_up", "not_carried_on"],
-        "business must be carried_on, winding_up or not_carried_on.",
-    )?;
-    let carried = match (business, stopped) {
-        ("carried_on", _) => true,
-        // s 328-110(5): a business being wound up counts as carried on if
-        // the entity was a small business entity in the year it stopped.
-        ("winding_up", Some(stopped)) => flag(stopped, "small_business_when_stopped")?,
-        _ => false,
-    };
-    let previous = turnover(args.previous_year_turnover)?;
-    let before = turnover(args.year_before_turnover)?;
-    let likely = money(args.likely_turnover)?;
-    let at_end = money(args.year_turnover)?;
-    let limit = Decimal::parse(TURNOVER)?;
-    let under = |amount: &Decimal| amount.lt(&limit);
-    let previous_under = previous.as_ref().map(under).transpose()?;
-    let barred = match (&previous, &before) {
-        (Some(p), Some(b)) => !under(p)? && !under(b)?,
-        _ => false,
-    };
-    let rule = if !carried {
-        None
-    } else if previous_under == Some(true) {
-        Some("s 328-110(1)(b)(i)")
-    } else if under(&likely)? && !barred {
-        Some("s 328-110(1)(b)(ii)")
-    } else if under(&at_end)? {
-        Some("s 328-110(4)")
-    } else {
-        None
-    };
-    Ok(SmallBusiness {
-        met: rule.is_some(),
-        rule,
-    })
-}
-
-/// The test period of s 152-35(2) and whether the asset was active for
-/// long enough in it. Both ends are counted.
-struct Active {
-    met: bool,
-    from: i64,
-    to: i64,
-    days: i64,
-    active: i64,
-    over_15: bool,
-}
-
-fn active_asset(
-    args: &SbCgtConcessionsArgs,
+/// The facts every test reads, checked against each other and the year.
+struct Facts<'a> {
+    year: String,
+    individual: bool,
+    partnership_asset: bool,
+    passively_held: &'a str,
+    optional: [Option<&'a Arg>; 7],
     acquired: i64,
     event: i64,
-    ceased: Option<(i64, &Arg)>,
-) -> Result<Active> {
-    let mut to = event;
-    if let Some((ceased, longer)) = ceased {
-        if ceased < acquired || ceased > event {
-            return conflict("business_ceased must be from acquired to event_date.");
-        }
-        // s 152-35(2)(b)(ii): a business that ceased in the 12 months before
-        // the event, or a longer period the Commissioner allows.
-        if anniversary(ceased, 1) >= event || flag(longer, "longer_period_allowed")? {
-            to = ceased;
-        }
-    }
-    let days = to - acquired + 1;
-    let active = match args.active_days.int() {
-        Some(Some(n)) if (0..=days).contains(&n) => n,
-        _ => {
-            return conflict(format!(
-                "active_days must be a whole number of days from 0 to the {days} days of the test period."
-            ));
-        }
-    };
-    let over_15 = anniversary(acquired, 15) < event;
-    let (shortest, longest) = SEVEN_AND_A_HALF;
-    if over_15 && (shortest..longest).contains(&active) {
-        return refuse(
-            "sb_cgt_concessions.active_period_unclear",
-            "A total of 7.5 years is 2,737 to 2,741 days, depending on the leap days and months it spans: count the active periods in years and months to see whether they reach 7.5 years (s 152-35(1)(b)).",
-        );
-    }
-    let met = if over_15 {
-        active >= longest
-    } else {
-        2 * active >= days
-    };
-    Ok(Active {
-        met,
-        from: acquired,
-        to,
-        days,
-        active,
-        over_15,
-    })
+    ceased: Option<i64>,
 }
 
-fn concession(id: &str, authority: &str, available: bool, unmet: Vec<&str>) -> Value {
-    json!({"concession": id, "authority": authority, "available": available, "unmet": unmet})
-}
-
-/// `sb-cgt-concessions`.
-pub fn sb_cgt_concessions(args: &SbCgtConcessionsArgs) -> Result<Value> {
+fn facts<'a>(args: &SbCgtConcessionsArgs<'a>) -> Result<Facts<'a>> {
     let year = scope(args.scope_confirmed, args.year, KIND)?;
-    let entity = match args.entity.text() {
-        Some(e @ ("individual" | "company" | "trust")) => e,
+    let individual = match args.entity.text() {
+        Some("individual") => true,
+        Some("company" | "trust") => false,
         _ => {
             return refuse(
                 "sb_cgt_concessions.entity_invalid",
@@ -295,7 +160,34 @@ pub fn sb_cgt_concessions(args: &SbCgtConcessionsArgs) -> Result<Value> {
             );
         }
     };
-    let individual = entity == "individual";
+    let (partnership_asset, passively_held) = asset(args)?;
+    let ceased = optional_date(args.business_ceased, "business_ceased")?;
+    let wanted = [
+        args.business.text() == Some("winding_up"),
+        ceased.is_some(),
+        passively_held != "no",
+        !individual,
+        !individual,
+        individual,
+        individual,
+    ];
+    let optional = optional_facts(args, wanted)?;
+    let (acquired, event) = contract_dates(args, &year)?;
+    Ok(Facts {
+        year,
+        individual,
+        partnership_asset,
+        passively_held,
+        optional,
+        acquired,
+        event,
+        ceased,
+    })
+}
+
+/// Whether the asset is an interest in a partnership asset and whether it
+/// is passively held, refusing a share or trust interest.
+fn asset<'a>(args: &SbCgtConcessionsArgs<'a>) -> Result<(bool, &'a str)> {
     if flag(args.share_or_trust_interest, "share_or_trust_interest")? {
         return refuse(
             "sb_cgt_concessions.share_or_trust_interest",
@@ -313,30 +205,13 @@ pub fn sb_cgt_concessions(args: &SbCgtConcessionsArgs) -> Result<Value> {
             "s 152-10(1A)(c) and (1B)(d) are for an asset that is not an interest in an asset of a partnership you are a partner in: give partnership_asset false or passively_held no.",
         );
     }
-    let business_ceased = optional_date(args.business_ceased, "business_ceased")?;
-    let optional = optional_facts(
-        args,
-        [
-            args.business.text() == Some("winding_up"),
-            business_ceased.is_some(),
-            passively_held != "no",
-            !individual,
-            !individual,
-            individual,
-            individual,
-        ],
-    )?;
-    let [
-        stopped,
-        longer,
-        own_business,
-        before,
-        fifteen,
-        used,
-        choice_date,
-    ] = optional;
+    Ok((partnership_asset, passively_held))
+}
 
-    let first = year_first(&year).expect("a supported period is an income year");
+/// The acquisition and CGT event dates, refused where the worksheet cannot
+/// apply the tests to them.
+fn contract_dates(args: &SbCgtConcessionsArgs, year: &str) -> Result<(i64, i64)> {
+    let first = year_first(year).expect("a supported period is an income year");
     let (start, end) = (
         dates::parse(&format!("{first}-07-01")).expect("a date"),
         dates::parse(&format!("{}-06-30", first + 1)).expect("a date"),
@@ -365,14 +240,13 @@ pub fn sb_cgt_concessions(args: &SbCgtConcessionsArgs) -> Result<Value> {
             "Whether an asset acquired on the same date 15 years before the CGT event was owned for the 15 years before it (ss 152-35 and 152-105) turns on the time of day of each contract: this worksheet cannot tell.",
         );
     }
+    Ok((acquired, event))
+}
 
-    let business = small_business(args, stopped)?;
-    let net_value = signed_money(args.net_asset_value)?;
-    let net_assets = !net_value.gt(&Decimal::parse(NET_ASSETS)?)?;
-    let active = active_asset(args, acquired, event, business_ceased.zip(longer))?;
-
-    let mut conditions = Vec::new();
-    let (business_id, business_authority) = match (partnership_asset, passively_held) {
+/// The CGT small business entity row's id and the paragraph that makes the
+/// business entity's turnover the test.
+fn business_entity(f: &Facts) -> (&'static str, &'static str) {
+    match (f.partnership_asset, f.passively_held) {
         (true, _) => (
             "partnership_cgt_small_business_entity",
             "ITAA 1997 s 152-10(1)(c)(iii)",
@@ -386,36 +260,124 @@ pub fn sb_cgt_concessions(args: &SbCgtConcessionsArgs) -> Result<Value> {
             "ITAA 1997 s 152-10(1B)(a), (b) and (e)",
         ),
         _ => ("cgt_small_business_entity", "ITAA 1997 s 152-10(1)(c)(i)"),
-    };
-    let mut row = condition(
-        business_id,
-        &format!("{business_authority}; {SMALL_BUSINESS}"),
-        business.met,
-    );
+    }
+}
+
+/// The basic conditions' rows, and whether they are all met.
+fn basic_conditions(
+    args: &SbCgtConcessionsArgs,
+    f: &Facts,
+    active: &Active,
+    net_assets: bool,
+    rows: &mut Vec<Value>,
+) -> Result<bool> {
+    let [stopped, _, own_business, ..] = f.optional;
+    let business = small_business(args, stopped)?;
+    let (id, authority) = business_entity(f);
+    let mut row = condition(id, &format!("{authority}; {SMALL_BUSINESS}"), business.met);
     row["rule"] = json!(business.rule);
-    conditions.push(row);
+    rows.push(row);
     let mut gateway = business.met;
     if let Some(own) = own_business {
         let own = flag(own, "carries_on_own_business")?;
-        let authority = if passively_held == "partnership" {
+        let authority = if f.passively_held == "partnership" {
             NOT_OWN_BUSINESS_PARTNER
         } else {
             NOT_OWN_BUSINESS_AFFILIATE
         };
-        conditions.push(condition("no_business_of_your_own", authority, !own));
+        rows.push(condition("no_business_of_your_own", authority, !own));
         gateway &= !own;
     }
-    conditions.push(condition(
+    rows.push(condition(
         "maximum_net_asset_value_test",
         NET_ASSET_VALUE,
         net_assets,
     ));
     gateway |= net_assets;
-    conditions.push(condition("small_business_or_net_assets", GATEWAY, gateway));
-    conditions.push(condition("active_asset_test", ACTIVE_ASSET, active.met));
+    rows.push(condition("small_business_or_net_assets", GATEWAY, gateway));
+    rows.push(condition("active_asset_test", ACTIVE_ASSET, active.met));
     let basic = gateway && active.met;
-    conditions.push(condition("basic_conditions", BASIC, basic));
+    rows.push(condition("basic_conditions", BASIC, basic));
+    Ok(basic)
+}
 
+/// The 15-year exemption's rows and its unmet conditions, with whether a
+/// company or trust had a significant individual just before the event.
+fn fifteen_year(
+    f: &Facts,
+    basic: bool,
+    owned_15: bool,
+    retiring: bool,
+    rows: &mut Vec<Value>,
+) -> Result<(Vec<&'static str>, bool)> {
+    let [.., before, fifteen, _, _] = f.optional;
+    let mut unmet = Vec::new();
+    if !basic {
+        unmet.push("basic_conditions");
+    }
+    let owned = if f.individual {
+        OWNED_15_INDIVIDUAL
+    } else {
+        OWNED_15_ENTITY
+    };
+    rows.push(condition("owned_for_15_years", owned, owned_15));
+    if !owned_15 {
+        unmet.push("owned_for_15_years");
+    }
+    let significant = match (before, fifteen) {
+        (Some(before), Some(fifteen)) => significant_individual(before, fifteen, rows, &mut unmet)?,
+        _ => true,
+    };
+    let age = if f.individual {
+        RETIRING_INDIVIDUAL
+    } else {
+        RETIRING_ENTITY
+    };
+    rows.push(condition(
+        "aged_55_and_retiring_or_permanently_incapacitated",
+        age,
+        retiring,
+    ));
+    if !retiring {
+        unmet.push("aged_55_and_retiring_or_permanently_incapacitated");
+    }
+    Ok((unmet, significant))
+}
+
+/// A company's or trust's significant individual rows (ss 152-50 and
+/// 152-110(1)(c)), and whether it had one just before the event.
+fn significant_individual(
+    before: &Arg,
+    fifteen: &Arg,
+    rows: &mut Vec<Value>,
+    unmet: &mut Vec<&'static str>,
+) -> Result<bool> {
+    let fifteen = flag(fifteen, "significant_individual_15_years")?;
+    let before = flag(before, "significant_individual_before_event")?;
+    for (id, authority, met) in [
+        (
+            "significant_individual_for_15_years",
+            SIGNIFICANT_15,
+            fifteen,
+        ),
+        (
+            "significant_individual_before_event",
+            SIGNIFICANT_BEFORE,
+            before,
+        ),
+    ] {
+        rows.push(condition(id, authority, met));
+        if !met {
+            unmet.push(id);
+        }
+    }
+    Ok(before)
+}
+
+/// The day the individual turns 55, and whether they are 55 or over and
+/// retiring, or permanently incapacitated, at the CGT event
+/// (ss 152-105(d) and 152-110(1)(d)).
+fn retiring(args: &SbCgtConcessionsArgs, event: i64) -> Result<(i64, bool)> {
     let born = date_arg(args.date_of_birth, "date_of_birth")?;
     if born >= event {
         return conflict("date_of_birth must be before event_date.");
@@ -423,88 +385,50 @@ pub fn sb_cgt_concessions(args: &SbCgtConcessionsArgs) -> Result<Value> {
     let fifty_fifth = anniversary(born, 55);
     let retires = flag(args.retirement, "retirement")?;
     let incapacitated = flag(args.permanently_incapacitated, "permanently_incapacitated")?;
-    let retiring = (fifty_fifth <= event && retires) || incapacitated;
-    let owned_15 = active.over_15;
-    let mut unmet_15 = Vec::new();
-    if !basic {
-        unmet_15.push("basic_conditions");
-    }
-    conditions.push(condition(
-        "owned_for_15_years",
-        if individual {
-            OWNED_15_INDIVIDUAL
-        } else {
-            OWNED_15_ENTITY
-        },
-        owned_15,
-    ));
-    if !owned_15 {
-        unmet_15.push("owned_for_15_years");
-    }
-    let mut significant = true;
-    if let (Some(before), Some(fifteen)) = (before, fifteen) {
-        let fifteen = flag(fifteen, "significant_individual_15_years")?;
-        significant = flag(before, "significant_individual_before_event")?;
-        conditions.push(condition(
-            "significant_individual_for_15_years",
-            SIGNIFICANT_15,
-            fifteen,
-        ));
-        conditions.push(condition(
-            "significant_individual_before_event",
-            SIGNIFICANT_BEFORE,
-            significant,
-        ));
-        if !fifteen {
-            unmet_15.push("significant_individual_for_15_years");
-        }
-        if !significant {
-            unmet_15.push("significant_individual_before_event");
-        }
-    }
-    conditions.push(condition(
-        "aged_55_and_retiring_or_permanently_incapacitated",
-        if individual {
-            RETIRING_INDIVIDUAL
-        } else {
-            RETIRING_ENTITY
-        },
-        retiring,
-    ));
-    if !retiring {
-        unmet_15.push("aged_55_and_retiring_or_permanently_incapacitated");
-    }
-    let fifteen_year = unmet_15.is_empty();
+    Ok((
+        fifty_fifth,
+        (fifty_fifth <= event && retires) || incapacitated,
+    ))
+}
 
-    let limit = Decimal::parse(RETIREMENT_LIMIT)?;
-    let mut limit_left = None;
-    let mut contribution = None;
-    if let (Some(used), Some(choice_date)) = (used, choice_date) {
-        let used = money(used)?;
-        if used.gt(&limit)? {
-            return conflict(
-                "retirement_exemption_used cannot exceed the $500,000 CGT retirement exemption limit (s 152-320(1)).",
-            );
-        }
-        let choice_day = date_arg(choice_date, "choice_date")?;
-        if choice_day < event {
-            return conflict("choice_date must be on or after event_date.");
-        }
-        let left = limit.sub(&used)?;
-        conditions.push(condition(
-            "retirement_exemption_limit_left",
-            LIMIT_LEFT,
-            left.gt(&int(0))?,
-        ));
-        // s 152-305(1)(b): under 55 just before the choice.
-        contribution = Some(choice_day < fifty_fifth);
-        limit_left = Some(left);
-    }
-    let left_met = match &limit_left {
-        Some(left) => left.gt(&int(0))?,
-        None => true,
+/// An individual's CGT retirement exemption limit left (s 152-320(1)) and
+/// whether the exempt amount goes to super, being under 55 just before the
+/// choice (s 152-305(1)(b)).
+fn retirement_limit(
+    f: &Facts,
+    fifty_fifth: i64,
+    rows: &mut Vec<Value>,
+) -> Result<(Option<Decimal>, Option<bool>)> {
+    let [.., Some(used), Some(choice_date)] = f.optional else {
+        return Ok((None, None));
     };
+    let limit = Decimal::parse(RETIREMENT_LIMIT)?;
+    let used = money(used)?;
+    if used.gt(&limit)? {
+        return conflict(
+            "retirement_exemption_used cannot exceed the $500,000 CGT retirement exemption limit (s 152-320(1)).",
+        );
+    }
+    let choice_day = date_arg(choice_date, "choice_date")?;
+    if choice_day < f.event {
+        return conflict("choice_date must be on or after event_date.");
+    }
+    let left = limit.sub(&used)?;
+    rows.push(condition(
+        "retirement_exemption_limit_left",
+        LIMIT_LEFT,
+        left.gt(&int(0))?,
+    ));
+    Ok((Some(left), Some(choice_day < fifty_fifth)))
+}
 
+/// The 4 concessions, each open or not with the conditions not met.
+fn concessions(
+    fifteen_unmet: Vec<&'static str>,
+    basic: bool,
+    retirement_extra: Vec<&'static str>,
+) -> Vec<Value> {
+    let fifteen_year = fifteen_unmet.is_empty();
     let after_15 = |extra: Vec<&'static str>| {
         let mut unmet = Vec::new();
         if fifteen_year {
@@ -516,54 +440,60 @@ pub fn sb_cgt_concessions(args: &SbCgtConcessionsArgs) -> Result<Value> {
         unmet.extend(extra);
         unmet
     };
+    [
+        ("fifteen_year_exemption", FIFTEEN_YEAR, fifteen_unmet),
+        ("active_asset_reduction", REDUCTION, after_15(Vec::new())),
+        ("retirement_exemption", RETIREMENT, after_15(retirement_extra)),
+        ("rollover", ROLLOVER, after_15(Vec::new())),
+    ]
+    .into_iter()
+    .map(|(id, authority, unmet)| {
+        json!({"concession": id, "authority": authority, "available": unmet.is_empty(), "unmet": unmet})
+    })
+    .collect()
+}
+
+const RATES: [(&str, &str); 3] = [
+    ("cgt_small_business_turnover_threshold", TURNOVER),
+    ("maximum_net_asset_value", NET_ASSETS),
+    ("retirement_exemption_limit", RETIREMENT_LIMIT),
+];
+
+/// `sb-cgt-concessions`.
+pub fn sb_cgt_concessions(args: &SbCgtConcessionsArgs) -> Result<Value> {
+    let f = facts(args)?;
+    let longer = f.optional[1];
+    let net_value = signed_money(args.net_asset_value)?;
+    let net_assets = !net_value.gt(&Decimal::parse(NET_ASSETS)?)?;
+    let active = active_asset(args, f.acquired, f.event, f.ceased.zip(longer))?;
+    let mut rows = Vec::new();
+    let basic = basic_conditions(args, &f, &active, net_assets, &mut rows)?;
+
+    let (fifty_fifth, retiring) = retiring(args, f.event)?;
+    let (fifteen_unmet, significant) =
+        fifteen_year(&f, basic, active.over_15, retiring, &mut rows)?;
+    let (limit_left, contribution) = retirement_limit(&f, fifty_fifth, &mut rows)?;
     let mut retirement_extra = Vec::new();
-    if !individual && !significant {
+    if !significant {
         retirement_extra.push("significant_individual_before_event");
     }
-    if !left_met {
+    if let Some(left) = &limit_left
+        && !left.gt(&int(0))?
+    {
         retirement_extra.push("retirement_exemption_limit_left");
     }
-    let reduction_unmet = after_15(Vec::new());
-    let retirement_unmet = after_15(retirement_extra);
-    let rollover_unmet = after_15(Vec::new());
-    let concessions = vec![
-        concession(
-            "fifteen_year_exemption",
-            FIFTEEN_YEAR,
-            fifteen_year,
-            unmet_15,
-        ),
-        concession(
-            "active_asset_reduction",
-            REDUCTION,
-            reduction_unmet.is_empty(),
-            reduction_unmet,
-        ),
-        concession(
-            "retirement_exemption",
-            RETIREMENT,
-            retirement_unmet.is_empty(),
-            retirement_unmet,
-        ),
-        concession(
-            "rollover",
-            ROLLOVER,
-            rollover_unmet.is_empty(),
-            rollover_unmet.clone(),
-        ),
-    ];
+    let rollover = basic && !fifteen_unmet.is_empty();
+    let concessions = concessions(fifteen_unmet, basic, retirement_extra);
 
     let mut amounts = vec![("net_value_of_cgt_assets", net_value)];
-    if let Some(left) = limit_left {
-        amounts.push(("retirement_exemption_limit_left", left));
-    }
-    let rates = vec![
-        rate("cgt_small_business_turnover_threshold", TURNOVER),
-        rate("maximum_net_asset_value", NET_ASSETS),
-        rate("retirement_exemption_limit", RETIREMENT_LIMIT),
-    ];
-    let mut out = result(KIND, &year, amounts, rates)?;
-    out["conditions"] = json!(conditions);
+    amounts.extend(limit_left.map(|left| ("retirement_exemption_limit_left", left)));
+    let mut out = result(
+        KIND,
+        &f.year,
+        amounts,
+        RATES.map(|(k, v)| rate(k, v)).into(),
+    )?;
+    out["conditions"] = json!(rows);
     out["concessions"] = json!(concessions);
     out["active_asset_test"] = json!({
         "test_period_from": dates::format(active.from),
@@ -577,28 +507,10 @@ pub fn sb_cgt_concessions(args: &SbCgtConcessionsArgs) -> Result<Value> {
     out["super_contribution_required"] = json!(contribution);
     // s 104-190(1A)(a) and (b)(i): one year before to 2 years after the last
     // CGT event in the year for which the roll-over is obtained, this one.
-    out["replacement_asset_period"] = if rollover_unmet.is_empty() {
-        json!({"from": dates::format(anniversary(event, -1)), "to": dates::format(anniversary(event, 2))})
+    out["replacement_asset_period"] = if rollover {
+        json!({"from": dates::format(anniversary(f.event, -1)), "to": dates::format(anniversary(f.event, 2))})
     } else {
         Value::Null
     };
     Ok(out)
-}
-
-#[cfg(test)]
-mod tests {
-    use super::anniversary;
-    use crate::dates;
-
-    fn day(text: &str) -> i64 {
-        dates::parse(text).expect("a date")
-    }
-
-    #[test]
-    fn an_anniversary_of_29_february_is_1_march() {
-        assert_eq!(anniversary(day("2012-02-29"), 15), day("2027-03-01"));
-        assert_eq!(anniversary(day("2024-02-29"), -1), day("2023-03-01"));
-        assert_eq!(anniversary(day("2011-03-15"), 15), day("2026-03-15"));
-        assert_eq!(anniversary(day("2026-02-28"), 2), day("2028-02-28"));
-    }
 }
