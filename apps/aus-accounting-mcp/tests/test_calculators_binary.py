@@ -167,6 +167,11 @@ def test_a_file_larger_than_any_build_is_refused_unread(monkeypatch, impostor) -
     assert runs == []
 
 
+def test_a_device_is_refused_without_being_read() -> None:
+    with pytest.raises(tax.CalculatorsUnavailable, match="is not a regular file"):
+        tax._trusted(os.devnull)
+
+
 @pytest.mark.skipif(not hasattr(os, "mkfifo"), reason="POSIX FIFOs only")
 def test_a_fifo_on_path_is_refused_without_waiting_for_a_writer(monkeypatch, tmp_path) -> None:
     fifo = tmp_path / tax.CALCULATORS
