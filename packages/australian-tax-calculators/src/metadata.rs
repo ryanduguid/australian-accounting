@@ -1020,14 +1020,18 @@ pub fn supported_periods(kind: &str) -> Vec<&'static str> {
         // 2026 pointing to the s 40-291A choice from 2026-27. 2027-28 is refused:
         // Schedule 1 to that Act changes capital gains from 1 July 2027.
         "balancing_adjustment" => vec!["2024-25", "2025-26", "2026-27"],
-        // The years whose car limit was read on 18 November 2026; 2027-28 is
-        // refused as for balancing_adjustment, and its car limit is not yet
-        // published.
+        // Dealings from 1 July 2023, after the transitional rebate rules for
+        // 2017 and earlier vintages ended (WETR 2009/2; the ATO's QC22756
+        // and QC22757); the rate and cap are set by the Act, not indexed.
+        "wine_equalisation_tax" => vec!["2023-24", "2024-25", "2025-26", "2026-27", "2027-28"],
         // s 5 sets fixed rates; the temporary budget repair levy of s 6 ended
         // with 2016-17. The years are the other superannuation worksheets'.
         "dasp_tax" => vec!["2025-26", "2026-27", "2027-28"],
         // Division 75 sets no figure by year; the years are gst's.
         "gst_margin_scheme" => vec!["2025-26", "2026-27", "2027-28"],
+        // The years whose car limit was read on 18 November 2026; 2027-28 is
+        // refused as for balancing_adjustment, and its car limit is not yet
+        // published.
         "trade_in" => vec!["2025-26", "2026-27"],
         "fbt" => vec!["2026", "2027"],
         "fbt_car_statutory" | "fbt_car_operating_cost" | "fbt_loan" => {
@@ -1134,6 +1138,10 @@ pub fn source_review(kind: &str) -> (&'static str, &'static str) {
         "gst_margin_scheme" => (
             "2026-11-19",
             "GST Act ss 9-90, 11-5, 75-5, 75-10, 75-11, 75-12, 75-13, 75-14, 75-15, 75-20, 75-35 and 195-1 ('approved valuation', 'long-term lease', 'margin scheme'), from the ATO's legal database; GSTR 2006/8 (paras 15 to 39F: the agreement, a conditional agreement, ineligible supplies and examples 1 and 2); the ATO's 'GST and the margin scheme' (last updated 19 August 2021)",
+        ),
+        "wine_equalisation_tax" => (
+            "2026-11-19",
+            "A New Tax System (Wine Equalisation Tax) Act 1999 ss 5-5, 5-50, 7-10, 9-5, 9-25, 9-30, 9-35, 9-40, 9-45, 13-5, 19-5, 19-15, 19-20, 19-25, 31-1 and 33-1 at the ATO's legal database, and compilation 32 (1 April 2026) at the Federal Register of Legislation for ss 19-15 and 19-25; Treasury Laws Amendment (Supporting Choice in Superannuation and Other Measures) Act 2026 (No. 12, 2026) Schedule 6 (the $400,000 cap for assessable dealings from 1 July 2026); WETR 2009/1 paras 143 to 153 and 159; WETR 2009/2 para 67 and note 37; the ATO's 'Wholesale sales' (QC22750) and 'Retail sales and own use' (QC22751), last updated 19 March 2025; 'Producer rebate' (QC22756, 30 June 2026); 'Calculate and claim your rebate' (QC22758, 2 July 2026); 'Reporting and paying WET' (QC22762, 19 March 2025); 'Wine equalisation tax (WET)' (QC33703, 1 May 2025); 'Instructions for completing your BAS' (QC17458, 14 September 2026)",
         ),
         "trade_in" => (
             "2026-11-18",
@@ -1382,6 +1390,12 @@ pub fn library_evidence(kind: &str) -> [(&'static str, &'static str); 4] {
             "2026-06-30",
             "2026-11-19",
         ),
+        "wine_equalisation_tax" => (
+            "gst-wine-equalisation-tax",
+            "22-280, 22-290",
+            "2024-12-31",
+            "2026-11-19",
+        ),
         "trade_in" => (
             "ATO GST pages: Purchasing a motor vehicle; GST and the disposal of capital assets",
             "Darren's example; Ian's example",
@@ -1615,6 +1629,16 @@ pub fn optional_inputs(kind: &str) -> Vec<(&'static str, &'static str)> {
             "car_limit",
             "for a car only, and then required: null when s 40-230 did not reduce its cost to the car limit, or an object with limit (AUD, the car limit for the financial year in which the car was first used for any purpose), second_element_cost (AUD) and cost_ignoring_car_limit (AUD, the first and second elements ignoring the car limit, after Subdivision 27-B), cost then being limit plus second_element_cost: ITAA 1997 s 40-325",
         )],
+        "wine_equalisation_tax" => vec![
+            (
+                "rebate_claimed_earlier_in_year",
+                "AUD, required with a dealing's rebate_conditions and refused otherwise: the producer rebates already claimed for earlier tax periods of the financial year, the group's when associated_producer is true; the cap left for this period is the year's cap less it (WET Act s 19-15(2) and (3); WETR 2009/2 para 67)",
+            ),
+            (
+                "associated_producer",
+                "boolean, required with a dealing's rebate_conditions and refused otherwise: true states that the producer is an associated producer of one or more other producers at any time in the financial year (WET Act s 19-20), so the cap is the group's",
+            ),
+        ],
         "gst_margin_scheme" => vec![
             (
                 "acquisition_consideration",
@@ -2331,6 +2355,10 @@ pub fn input_units(kind: &str) -> Vec<(&'static str, &'static str)> {
                 "consideration (the consideration for your acquisition: s 75-10(2)) or approved_valuation (for an interest acquired before 1 July 2000 only: s 75-10(3)). For an interest acquired before 1 July 2000, consideration states that no approved valuation as at the day s 75-10(3) fixes has been made: once one has, s 75-10(3) works the margin from it",
             ),
         ],
+        "wine_equalisation_tax" => vec![(
+            "dealings",
+            "list of 1 to 1,000 objects, the tax period's dealings in wine, each with kind and its inputs: wholesale_sale (a sale to an entity that buys to resell: AD1a, AD1b or AD11b) with price_excluding_wet_and_gst (AUD, net of trade discounts, volume rebates and settlement discounts); retail_sale (a retail sale taxed at the notional wholesale selling price, such as a manufacturer's cellar door or mail order sale) with retail_price_including_wet_and_gst (AUD) and, to choose the average wholesale price method for grape wine, average_wholesale; own_use (an application to own use connected with retail sales: consuming or giving the wine away in connection with retail sales, such as tastings) with either retail_price_including_wet_and_gst (the price for which it would normally be sold by retail) or average_wholesale; quoted_sale (a sale for which the purchaser quoted its ABN, not taxable: s 7-10) with price_excluding_wet_and_gst and purchaser_intention (taxable_dealing where the quote states none of the intentions in s 5-50(1)(b), or manufacture, gst_free_supply or sale_under_quote); or own_use_purchased_under_quote (an application to own use of wine purchased under quote: AD3c(a) or AD13c(a)) with purchase_price_excluding_gst. average_wholesale is an object with grape_wine (true: grape wine, s 31-2), wholesale_share_at_least_10_percent (true: at least 10% by value of the tax period's sales of grape wine of that vintage and grape varieties are wholesale sales, s 9-25(3)), quantity (this dealing's quantity, a decimal string above 0 with at most 4 decimal places, in the wholesale sales' unit) and wholesale_sales (1 to 1,000 objects, the tax period's wholesale sales of that vintage and those grape varieties, exports included, each with quantity and price_excluding_wet_and_gst). Any kind but own_use_purchased_under_quote may add rebate_conditions, an object of the booleans producer (s 19-5(1)(a)), source_product_owned_85_percent (s 19-5(1)(d)) and container_and_trade_mark (s 19-5(1)(e) and (7)), to claim the producer rebate on that dealing",
+        )],
         "trade_in" => vec![
             (
                 "cost",
@@ -3068,6 +3096,17 @@ pub fn examples(kind: &str) -> Vec<(&'static str, Example)> {
             ("valuation_day", Text("2000-07-01")),
             ("registered_on_1_july_2000", Flag(true)),
             ("government_unimproved_on_1_july_2000", Flag(false)),
+        ],
+        // A dozen bottles sold by wholesale for $120 and a dozen at the
+        // cellar door for $140: $34.80 + $20.30 of wine tax.
+        "wine_equalisation_tax" => vec![
+            ("year", Text("2026-27")),
+            (
+                "dealings",
+                Json(
+                    r#"[{"kind": "wholesale_sale", "price_excluding_wet_and_gst": "120.00"}, {"kind": "retail_sale", "retail_price_including_wet_and_gst": "140.00"}]"#,
+                ),
+            ),
         ],
         "trade_in" => vec![
             ("year", Text("2026-27")),

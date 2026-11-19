@@ -272,6 +272,10 @@ const COMMAND_ARGS: &[(&str, &[(&str, Kind)])] = &[
         ],
     ),
     (
+        "wine-equalisation-tax",
+        &[("dealings", Json), ("year", Raw), ("scope_confirmed", Raw)],
+    ),
+    (
         "fbt",
         &[
             ("type_one_value", Dec),
@@ -1039,6 +1043,7 @@ pub fn evaluate_coded(command: &str, v: &Value) -> Result<Value> {
             | "fbt-loan"
             | "fbt-meal-entertainment"
             | "fbt-car-parking"
+            | "wine-equalisation-tax"
             | "fbt-debt-waiver"
             | "fbt-expense-payment"
             | "fbt-property"
@@ -1185,6 +1190,19 @@ pub fn evaluate_coded(command: &str, v: &Value) -> Result<Value> {
             year: &a[5],
             scope_confirmed: &a[6],
         }),
+        "wine-equalisation-tax" => {
+            // Optional: the rebate facts, required with a dealing's
+            // rebate_conditions.
+            let earlier = optional(v, "rebate_claimed_earlier_in_year", Dec)?;
+            let group = optional(v, "associated_producer", Raw)?;
+            engine::wine_equalisation_tax(&engine::WetArgs {
+                dealings: &a[0],
+                rebate_claimed_earlier_in_year: earlier.as_ref(),
+                associated_producer: group.as_ref(),
+                year: &a[1],
+                scope_confirmed: &a[2],
+            })
+        }
         "trade-in" => {
             // Optional: a car's s 40-325 facts, the traded-in asset's input
             // tax credits for a taxable trade-in, a passenger car's luxury car
