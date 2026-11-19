@@ -185,6 +185,14 @@ fn valuation_item(args: &MarginSchemeArgs, why: &str, year: &str) -> Result<&'st
     Ok(item)
 }
 
+/// Refuses each input `given` that only the other method takes.
+fn none_of(given: &[(Option<&Arg>, &str)], why: &str) -> Result<()> {
+    for (given, key) in given {
+        when(false, *given, key, why)?;
+    }
+    Ok(())
+}
+
 /// The base the margin is worked out from, before any s 75-15 proportion.
 fn base_step(
     args: &MarginSchemeArgs,
@@ -202,46 +210,53 @@ fn base_step(
             "An approved valuation is used under s 75-10(3) only for an interest acquired before 1 July 2000 (items 1 to 4); item 2A and s 75-11 are not worked here, so use method consideration.",
         );
     }
-    let why = "with method consideration";
-    let paid = when(
-        !valuation,
-        args.acquisition_consideration,
-        "acquisition_consideration",
-        why,
-    )?;
-    let key = "unpaid_acquisition_consideration";
-    let unpaid = when(!valuation, args.unpaid_acquisition_consideration, key, why)?;
-    let why = "with method approved_valuation";
-    let value = when(
-        valuation,
-        args.approved_valuation,
-        "approved_valuation",
-        why,
-    )?;
-    if !valuation {
-        for (given, key) in [
-            (args.valuation_day, "valuation_day"),
-            (args.registered_on_1_july_2000, "registered_on_1_july_2000"),
+    if valuation {
+        let consideration = [
+            (args.acquisition_consideration, "acquisition_consideration"),
             (
-                args.government_unimproved_on_1_july_2000,
-                "government_unimproved_on_1_july_2000",
+                args.unpaid_acquisition_consideration,
+                "unpaid_acquisition_consideration",
             ),
-        ] {
-            when(false, given, key, why)?;
-        }
+        ];
+        none_of(&consideration, "with method consideration")?;
+        return valuation_base(args, year);
     }
-    if let Some(value) = value {
-        let item = valuation_item(args, why, year)?;
-        let value = money(value)?;
-        let base = step(
-            "margin_base",
-            item,
-            "approved_valuation",
-            &[&value],
-            value.clone(),
-        );
-        return Ok((base, item));
-    }
+    let valued = [
+        (args.approved_valuation, "approved_valuation"),
+        (args.valuation_day, "valuation_day"),
+        (args.registered_on_1_july_2000, "registered_on_1_july_2000"),
+        (
+            args.government_unimproved_on_1_july_2000,
+            "government_unimproved_on_1_july_2000",
+        ),
+    ];
+    none_of(&valued, "with method approved_valuation")?;
+    consideration_base(args)
+}
+
+/// An approved valuation as at the day its s 75-10(3) item fixes.
+fn valuation_base(args: &MarginSchemeArgs, year: &str) -> Result<(Step, &'static str)> {
+    let why = "with method approved_valuation";
+    let value = when(true, args.approved_valuation, "approved_valuation", why)?;
+    let item = valuation_item(args, why, year)?;
+    let value = money(value.expect("required"))?;
+    let base = step(
+        "margin_base",
+        item,
+        "approved_valuation",
+        &[&value],
+        value.clone(),
+    );
+    Ok((base, item))
+}
+
+/// The consideration for the acquisition, less any of it unpaid.
+fn consideration_base(args: &MarginSchemeArgs) -> Result<(Step, &'static str)> {
+    let why = "with method consideration";
+    let key = "acquisition_consideration";
+    let paid = when(true, args.acquisition_consideration, key, why)?;
+    let key = "unpaid_acquisition_consideration";
+    let unpaid = when(true, args.unpaid_acquisition_consideration, key, why)?;
     let (paid, unpaid) = (
         money(paid.expect("required"))?,
         money(unpaid.expect("required"))?,
@@ -365,8 +380,9 @@ const APPLIES: [&str; 2] = [
 ];
 const NOT_APPLIES: &str = "The margin scheme does not apply: the GST is 1/11 of the consideration, and a recipient that acquires the interest for a creditable purpose can claim an input tax credit for it (GST Act s 11-5).";
 
-pub fn gst_margin_scheme(args: &MarginSchemeArgs) -> Result<Value> {
-    let year = scope(args.scope_confirmed, args.year, KIND)?;
+/// The facts of s 75-5, checked, as condition rows, with how the interest
+/// was acquired.
+fn conditions(args: &MarginSchemeArgs) -> Result<(Vec<Value>, &str)> {
     let interest = choice(
         args.interest,
         "interest",
@@ -387,7 +403,6 @@ pub fn gst_margin_scheme(args: &MarginSchemeArgs) -> Result<Value> {
         ],
     )?;
     let acquisition = acquisition(args.acquisition)?;
-    let consideration = money(args.consideration)?;
     let rows = vec![
         condition("real_property_interest", INTEREST, interest != "other"),
         condition("written_agreement", AGREEMENT, agreement != "none"),
@@ -397,6 +412,13 @@ pub fn gst_margin_scheme(args: &MarginSchemeArgs) -> Result<Value> {
             acquisition != "taxable_supply_without_margin_scheme",
         ),
     ];
+    Ok((rows, acquisition))
+}
+
+pub fn gst_margin_scheme(args: &MarginSchemeArgs) -> Result<Value> {
+    let year = scope(args.scope_confirmed, args.year, KIND)?;
+    let (rows, acquisition) = conditions(args)?;
+    let consideration = money(args.consideration)?;
     let failing: Vec<Value> = rows
         .iter()
         .filter(|row| row["met"] == json!(false))
