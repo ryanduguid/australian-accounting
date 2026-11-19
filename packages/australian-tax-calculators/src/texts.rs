@@ -3,6 +3,10 @@
 
 pub const SCOPES: &[(&str, &str)] = &[
     (
+        "fuel_tax_credits",
+        "Fuel tax credits for taxable fuel acquired from 1 July 2022 to 31 January 2027, in one income year from 2022-23 to 2026-27, by an entity registered or required to be registered for GST, for use in carrying on its enterprise (Fuel Tax Act 2006 s 41-5). The operator establishes each line: the fuel (diesel, petrol, B5, B20, E10, E85, LPG, LNG or CNG, or B100), the day it was acquired, its quantity in litres (LNG and CNG in kilograms) and its use: in a heavy vehicle (gross vehicle mass above 4.5 tonnes) travelling on a public road, including fuel to power a bus's or coach's passenger air-conditioning (QC107638 note 1); in all other business uses, including a heavy vehicle's other auxiliary equipment, travel off public roads and a heavy vehicle whose public road travel is incidental to its main use (s 43-10(4)); or in a vehicle of 4.5 tonnes GVM or less on a public road, which gets no credit (s 41-20). Each line takes the ATO's published rate for the day it was acquired (s 43-5(2) and (2A) item 1; for a heavy vehicle on a public road the rate net of the road user charge, s 43-10(3) and (6)), from the 16 rate periods bundled with this command, each with its ATO page and the day it was read; its credit is the quantity times the rate in cents, divided by 100 and rounded half up to the cent, and the lines' credits are added and the whole dollars, cents dropped, are the amount for BAS label 7D. A small claimant (credits of $10,000 or less in the previous 12 months and expected to be so in the current 12 months) may use the basic method for heavy vehicles for diesel (PCG 2021/2: public road litres are the public road kilometres, actual or 98.4% of the total, times the diesel consumption rate, from the ATO's rigid truck table by gross weight or the engine's diagnostic report; the rest of the diesel takes the other rate), PCG 2016/2 Method 1 (a liquid fuel's litres are its GST inclusive cost divided by the average GST inclusive price the operator reads for its fuel type, area and tax period from the Australian Institute of Petroleum's weekly retail prices) and Method 2 (every liquid fuel line at the rate on the last day of a tax period in which the rate changed only because of indexation). Given the day the return is given, lines acquired more than 4 years before it are flagged under s 47-5(2). Refuses a year outside 2022-23 to 2026-27, an acquisition outside the income year or after 31 January 2027 (the rates change at the February 2027 indexation), a basic method line for a fuel other than diesel, a Method 1 line for LPG, LNG or CNG, a rigid truck of 4.5 tonnes or less, public road litres above the diesel, Method 2 across a change other than indexation alone (29 September 2022, 1 April 2026 and 3 August 2026, and each 1 July) or for LPG, LNG or CNG, and a simplified method without the small claimant statement. Excludes deciding entitlement and registration, who acquired the fuel in a hire or supply chain, whether a road is public or travel incidental, the environmental criteria (s 41-25), apportioning fuel between uses (PCG 2016/8, FTD 2010/1), the auxiliary equipment percentages (PCG 2016/11) and the list of heavy vehicles used mainly off public roads, consumption rates for articulated combinations (give litres_per_km from the engine's report), the average price itself, converting LPG kilograms to litres, aviation fuel, fuel for packaging or supply, domestic heating, electricity generation and non-business claims, fuel manufactured or imported (s 43-5(2A) item 2), fuel tax adjustments (Division 44), attributing credits to a tax period (s 65-5), the s 47-5(1) limit and the s 47-10 exception, and substituted accounting periods.",
+    ),
+    (
         "gst",
         "One ordinary taxable supply at 10%, already classified by the operator. Excludes mixed supplies, exemptions, margin schemes, adjustments, tax invoice rounding across line items, input-credit entitlement and BAS preparation.",
     ),
@@ -237,6 +241,10 @@ pub const SCOPES: &[(&str, &str)] = &[
 ];
 
 pub const SOURCES: &[(&str, &str)] = &[
+    (
+        "fuel_tax_credits",
+        "https://www.ato.gov.au/businesses-and-organisations/income-deductions-and-concessions/incentives-and-concessions/fuel-schemes/fuel-tax-credits-business/rates-business",
+    ),
     (
         "gst",
         "https://smallbusiness.taxsuperandyou.gov.au/goods-and-services-tax/fast-facts",
@@ -486,6 +494,29 @@ const FBT_GUIDE_REDUCTIONS: &str =
     "https://www.ato.gov.au/law/view/document?DocID=SAV/FBTGEMP/00020";
 
 pub const EXTRA_SOURCES: &[(&str, &[&str])] = &[
+    (
+        "fuel_tax_credits",
+        &[
+            "https://www.ato.gov.au/businesses-and-organisations/income-deductions-and-concessions/incentives-and-concessions/fuel-schemes/fuel-tax-credits-business/rates-business/from-1-july-2026-to-30-june-2027",
+            "https://www.ato.gov.au/businesses-and-organisations/income-deductions-and-concessions/incentives-and-concessions/fuel-schemes/fuel-tax-credits-business/rates-business/from-1-july-2025-to-30-june-2026",
+            "https://www.ato.gov.au/businesses-and-organisations/income-deductions-and-concessions/incentives-and-concessions/fuel-schemes/fuel-tax-credits-business/rates-business/from-1-july-2024-to-30-june-2025",
+            "https://www.ato.gov.au/businesses-and-organisations/income-deductions-and-concessions/incentives-and-concessions/fuel-schemes/fuel-tax-credits-business/rates-business/from-1-july-2023-to-30-june-2024",
+            "https://www.ato.gov.au/businesses-and-organisations/income-deductions-and-concessions/incentives-and-concessions/fuel-schemes/fuel-tax-credits-business/rates-business/from-1-july-2022-to-30-june-2023",
+            "https://www.ato.gov.au/businesses-and-organisations/income-deductions-and-concessions/incentives-and-concessions/fuel-schemes/fuel-tax-credits-business/working-out-your-fuel-tax-credits",
+            "https://www.ato.gov.au/businesses-and-organisations/income-deductions-and-concessions/incentives-and-concessions/fuel-schemes/fuel-tax-credits-business/working-out-your-fuel-tax-credits/simplified-fuel-tax-credits",
+            "https://www.ato.gov.au/businesses-and-organisations/income-deductions-and-concessions/incentives-and-concessions/fuel-schemes/fuel-tax-credits-business/working-out-your-fuel-tax-credits/basic-method-for-heavy-vehicles",
+            "https://www.ato.gov.au/law/view/document?docid=COG/PCG20162/NAT/ATO/00001",
+            "https://www.ato.gov.au/law/view/document?docid=COG/PCG20212/NAT/ATO/00001",
+            "https://www.ato.gov.au/law/view/document?docid=PAC/20060072/41-5",
+            "https://www.ato.gov.au/law/view/document?docid=PAC/20060072/41-20",
+            "https://www.ato.gov.au/law/view/document?docid=PAC/20060072/43-5",
+            "https://www.ato.gov.au/law/view/document?docid=PAC/20060072/43-10",
+            "https://www.ato.gov.au/law/view/document?docid=PAC/20060072/47-5",
+            "https://www.ato.gov.au/law/view/document?docid=PAC/20060072/47-10",
+            "https://data.gov.au/data/dataset/excise-data",
+            "https://aip.com.au/pricing/pump-prices-retail/",
+        ],
+    ),
     (
         "contribution_caps",
         &[
@@ -979,6 +1010,12 @@ const CAR_REPORTABLE_NOTE: &str = "reportable_taxable_value is this car benefit'
 const GST_CREDITABLE_NOTE: &str = "Give taxable_value to fbt as part of type_one_value when the provider, or a member of its GST group, is entitled to a GST credit for providing the benefit (a GST-creditable benefit), and as part of type_two_value otherwise.";
 
 pub const EXTRA_WARNINGS: &[(&str, &[&str])] = &[
+    (
+        "fuel_tax_credits",
+        &[
+            "Each line's rate is the one the ATO publishes for its acquisition day; the ATO's fuel tax credit calculator remains the authority for an amount claimed.",
+        ],
+    ),
     ("fbt_car_statutory", &[CAR_REPORTABLE_NOTE]),
     (
         "hire_purchase_schedule",
@@ -1586,6 +1623,46 @@ pub const REFUSAL_CODES: &[(&str, &str)] = &[
         "The employees and associates entertained are not a JSON integer from 0 to everyone entertained, or everyone entertained is not from 1 to 1,000,000.",
     ),
     (
+        "fuel_tax_credits.date_outside_year",
+        "A line's acquisition day is outside the income year given.",
+    ),
+    (
+        "fuel_tax_credits.fact_conflict",
+        "The lines' facts contradict each other, the tax period or the return's day, or a basic method line's public road litres exceed its diesel.",
+    ),
+    (
+        "fuel_tax_credits.fuel_invalid",
+        "A line's fuel is not one of the fuels the ATO's rate table lists.",
+    ),
+    (
+        "fuel_tax_credits.lines_invalid",
+        "lines is not a list of 1 to 1,000 line objects.",
+    ),
+    (
+        "fuel_tax_credits.method_invalid",
+        "A line's method is not basic_heavy_vehicle or litres_from_cost.",
+    ),
+    (
+        "fuel_tax_credits.period_invalid",
+        "rate_at_period_end is not an object with the tax period's start and end.",
+    ),
+    (
+        "fuel_tax_credits.quantity_invalid",
+        "A line's quantity, litres, kilometres, weight or consumption rate is not a decimal string in range.",
+    ),
+    (
+        "fuel_tax_credits.rate_unpublished",
+        "A line's fuel was acquired, or a Method 2 tax period ends, after the last day the bundled ATO rates cover.",
+    ),
+    (
+        "fuel_tax_credits.simplified_method_unavailable",
+        "A simplified method was asked for where its guideline does not allow it.",
+    ),
+    (
+        "fuel_tax_credits.use_invalid",
+        "A line's use is not heavy_vehicle_public_road, other_business or light_vehicle_public_road.",
+    ),
+    (
         "gst_margin_scheme.acquisition_unsupported",
         "The interest was acquired in a way whose eligibility or margin s 75-5(3)(b) to (g), s 75-10(3) item 2A, s 75-11 or s 75-22 governs, which gst-margin-scheme does not work.",
     ),
@@ -1751,7 +1828,7 @@ pub const REFUSAL_CODES: &[(&str, &str)] = &[
     ),
     (
         "input.field_unknown",
-        "A field the worksheet or command does not take, or does not take beside the other inputs given, was given (fbt-loan, fbt-meal-entertainment, fbt-car-parking, fbt-debt-waiver, fbt-expense-payment, fbt-property, fbt-residual, fbt-housing, fbt-lafha, fbt-board, fbt-tax-exempt-body-entertainment, fbt-entertainment-classifier, fbt-meal-entertainment-register and its entries, fbt-minor-benefit-check, division-296, depreciation, foreign-resident-tax, medicare-levy, medicare-levy-surcharge, payg-withholding, payg-gross-up, termination-payment, etp-tax-free-component, unused-leave-payment, the Schedule 5 methods, working-holiday-maker-withholding, study-loan-withholding, seniors-pensioners-withholding, seniors-pensioners-tax-offset, lump-sum-arrears-tax-offset, hire-purchase-schedule, chattel-mortgage-schedule, loan-transactions and its transactions and rate_changes, borrowing-expenses-schedule and its loans, business-capital-expenditure and its items, balancing-adjustment, its years and car_limit, trade-in, gst-margin-scheme, wine-equalisation-tax and its dealings, luxury-car-tax and its lines, payroll-tax, contribution-caps given a carry-forward input, derive, personal-tax-estimate, dgr-check, income-tests and fbt-return only).",
+        "A field the worksheet or command does not take, or does not take beside the other inputs given, was given (fbt-loan, fbt-meal-entertainment, fbt-car-parking, fbt-debt-waiver, fbt-expense-payment, fbt-property, fbt-residual, fbt-housing, fbt-lafha, fbt-board, fbt-tax-exempt-body-entertainment, fbt-entertainment-classifier, fbt-meal-entertainment-register and its entries, fbt-minor-benefit-check, division-296, depreciation, fuel-tax-credits and its lines, foreign-resident-tax, medicare-levy, medicare-levy-surcharge, payg-withholding, payg-gross-up, termination-payment, etp-tax-free-component, unused-leave-payment, the Schedule 5 methods, working-holiday-maker-withholding, study-loan-withholding, seniors-pensioners-withholding, seniors-pensioners-tax-offset, lump-sum-arrears-tax-offset, hire-purchase-schedule, chattel-mortgage-schedule, loan-transactions and its transactions and rate_changes, borrowing-expenses-schedule and its loans, business-capital-expenditure and its items, balancing-adjustment, its years and car_limit, trade-in, gst-margin-scheme, wine-equalisation-tax and its dealings, luxury-car-tax and its lines, payroll-tax, contribution-caps given a carry-forward input, derive, personal-tax-estimate, dgr-check, income-tests and fbt-return only).",
     ),
     ("input.flag_invalid", "A flag is not a JSON boolean."),
     ("input.fraction_invalid", "A fraction is outside 0 to 1."),
