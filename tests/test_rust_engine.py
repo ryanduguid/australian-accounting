@@ -32,9 +32,12 @@ REMOVED_IMPORTS = {
 }
 # Crates release-policy's release-binary.yml publishes as executables.
 BINARY_RELEASES = {"australian-tax-calculators"}
-# The line each audit step ends with: cargo-audit 0.22.2 prints this and exits 0
-# when it cannot read the crates.io index.
-UNCHECKED_YANKED = "! grep -q \"couldn't check if the package is yanked\" \"$RUNNER_TEMP/audit.log\""
+# The line each audit step ends with: cargo-audit 0.22.2 prints one of these and
+# exits 0 when it cannot fetch, open or read the crates.io index.
+UNCHECKED_YANKED = (
+    "! grep -qE \"couldn't (check if the package is yanked|update crates.io index|"
+    "open crates.io index)\" \"$RUNNER_TEMP/audit.log\""
+)
 # Runtime crates an engine may use; none is another engine or a path dependency.
 ALLOWED_DEPENDENCIES = {"num-bigint", "num-integer", "num-traits", "serde_json", "jiff", "sha2"}
 
