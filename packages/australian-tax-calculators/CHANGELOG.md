@@ -14,6 +14,21 @@
   figure cites its Act and revenue office page, read on 19 November 2026. A
   group member, a part-year employer, Australian wages below the taxable wages
   and any other year are refused. `derive` takes it.
+- `wine-equalisation-tax` works out the wine tax on a tax period's wholesale
+  sales, retail sales, applications to own use and sales under quote in
+  2023-24 to 2027-28 (WET Act ss 5-5, 7-10 and Division 9), at 29% of the
+  price, half the retail price or the average wholesale price, with GST, and
+  the producer rebate under s 19-5 at 29%, capped at $350,000 a year to
+  2025-26 and $400,000 from 2026-27, less earlier claims in the year. It
+  gives labels 1C and 1D rounded down, never netted. New codes:
+  `wine_equalisation_tax.dealing_invalid`,
+  `wine_equalisation_tax.dealings_invalid`,
+  `wine_equalisation_tax.intention_invalid`,
+  `wine_equalisation_tax.kind_invalid`,
+  `wine_equalisation_tax.method_unavailable` and
+  `wine_equalisation_tax.quantity_invalid`. `tests/wine_equalisation_tax.rs`
+  holds it to the ATO's Alison, Happy Valley and Good Wines examples, QC22758's
+  rebate table, WETR 2009/1 examples 15 and 16 and the Library's ¶22-280.
 - `fbt-meal-entertainment-register` checks a 12 week meal entertainment
   register for the FBT year ended 31 March 2026 or 2027: the continuous
   12 week period (FBTAA s 37CC), each entry's 6 details (s 37CE(1)), the
