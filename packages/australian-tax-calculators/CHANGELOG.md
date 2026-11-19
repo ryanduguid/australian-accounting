@@ -218,6 +218,19 @@
   without `segments`, and `hire_purchase.instalments_unsupported` and
   `hire_purchase.rate_unsupported` name the frequency's limits.
 
+### Fixed
+
+- `worksheet_catalogue()`'s evidence note for the 2 car worksheets, the 3
+  Schedule 5 methods, working holiday maker and seniors and pensioners
+  withholding, and the seniors and pensioners tax offset now opens their
+  heading in `docs/calculation-evidence.md`; before, it named an anchor the
+  document does not have.
+- `contribution-caps` cites a first year of bring forward for the
+  non-concessional cap only when the contributions are over the general cap
+  (ITAA 1997 s 292-85(3)(a)). At or under it, the step says that twice or
+  3 times the general cap applies only if bring forward is triggered. No
+  amount changes.
+
 ## 1.0.0
 
 Standalone Rust binary, replacing Python package 0.2.0 and its `austaxcalc`
