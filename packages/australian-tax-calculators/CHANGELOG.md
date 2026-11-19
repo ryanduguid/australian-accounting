@@ -39,6 +39,14 @@
   `hire_purchase.segments_invalid` and
   `hire_purchase.segments_not_contiguous`. `tests/hire_purchase_worksheet.rs`
   works the cases by hand and from the ATO's Albert and Darren examples.
+- `dasp-tax` works out the tax on a departing Australia superannuation
+  payment in 2025-26 to 2027-28 by component: nil on the tax free component,
+  35% on the element taxed in the fund and 45% on the element untaxed in the
+  fund, or 65% on both where the payment includes contributions made whilst a
+  working holiday maker (Superannuation (Departing Australia Superannuation
+  Payments Tax) Act 2007 s 5(1) and (3)). `derive` explains each amount. New
+  code: `dasp_tax.payment_nil`. `tests/dasp_tax.rs` runs the Library's
+  $42,000 example and the working holiday maker rate.
 
 ### Changed
 

@@ -202,6 +202,17 @@ const COMMAND_ARGS: &[(&str, &[(&str, Kind)])] = &[
         ],
     ),
     (
+        "dasp-tax",
+        &[
+            ("tax_free_component", Dec),
+            ("taxed_element", Dec),
+            ("untaxed_element", Dec),
+            ("working_holiday_maker_contributions", Raw),
+            ("year", Raw),
+            ("scope_confirmed", Raw),
+        ],
+    ),
+    (
         "trade-in",
         &[
             ("cost", Dec),
@@ -541,7 +552,7 @@ pub fn commands() -> Vec<&'static str> {
 /// command on its `gross_pay` shows that withholding. The classifier's amounts
 /// are totals over lines whose shares a decision table sets, not a formula;
 /// each line and class carries the authority for its row instead.
-const DERIVED: [&str; 46] = [
+const DERIVED: [&str; 47] = [
     "fbt",
     "fbt-car-statutory",
     "fbt-car-operating-cost",
@@ -588,6 +599,7 @@ const DERIVED: [&str; 46] = [
     "business-capital-expenditure",
     "balancing-adjustment",
     "trade-in",
+    "dasp-tax",
 ];
 
 /// `derive`: `{"command", "input"}` gives the command's result with the step
@@ -955,6 +967,7 @@ pub fn evaluate_coded(command: &str, v: &Value) -> Result<Value> {
             | "business-capital-expenditure"
             | "balancing-adjustment"
             | "trade-in"
+            | "dasp-tax"
     ) && let Some(key) = v
         .as_object()
         .into_iter()
@@ -1032,6 +1045,14 @@ pub fn evaluate_coded(command: &str, v: &Value) -> Result<Value> {
                 &a[5],
             )
         }
+        "dasp-tax" => engine::dasp_tax(&engine::DaspTaxArgs {
+            tax_free_component: &a[0],
+            taxed_element: &a[1],
+            untaxed_element: &a[2],
+            working_holiday_maker_contributions: &a[3],
+            year: &a[4],
+            scope_confirmed: &a[5],
+        }),
         "trade-in" => {
             // Optional: a car's s 40-325 facts, the traded-in asset's input
             // tax credits for a taxable trade-in, a passenger car's luxury car

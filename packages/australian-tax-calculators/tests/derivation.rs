@@ -13,7 +13,7 @@ use std::io::Write;
 use std::process::{Command, Stdio};
 
 /// The commands `derive` explains.
-const DERIVED: [&str; 46] = [
+const DERIVED: [&str; 47] = [
     "fbt",
     "fbt-car-statutory",
     "fbt-car-operating-cost",
@@ -60,6 +60,7 @@ const DERIVED: [&str; 46] = [
     "business-capital-expenditure",
     "balancing-adjustment",
     "trade-in",
+    "dasp-tax",
 ];
 
 /// (command, input) for each derived kind: the ATO's published examples and
@@ -388,6 +389,15 @@ fn cases() -> Vec<(&'static str, Value)> {
                    "replacement_creditable_acquisition": false,
                    "arms_length": true, "involuntary_disposal": false,
                    "year": "2025-26", "scope_confirmed": true}),
+        ),
+        // A former working holiday maker's payment with both elements, each
+        // at 65% (DASP Tax Act s 5(3)).
+        (
+            "dasp-tax",
+            json!({"tax_free_component": "1250.00", "taxed_element": "8400.37",
+                   "untaxed_element": "300.00",
+                   "working_holiday_maker_contributions": true,
+                   "year": "2026-27", "scope_confirmed": true}),
         ),
     ];
     cases.extend(
@@ -2108,7 +2118,7 @@ fn derive_refuses_what_it_does_not_explain() {
          medicare-levy, medicare-levy-surcharge, division-296, contribution-caps, \
          study-loan-repayment, capital-gains, main-residence, fbt-residual, fbt-housing, \
          fbt-lafha, fbt-board, fbt-tax-exempt-body-entertainment, gst, depreciation, \
-         hire-purchase-schedule, lump-sum-arrears-tax-offset, income-tests, business-capital-expenditure, balancing-adjustment, trade-in, not \"payg-gross-up\""
+         hire-purchase-schedule, lump-sum-arrears-tax-offset, income-tests, business-capital-expenditure, balancing-adjustment, trade-in, dasp-tax, not \"payg-gross-up\""
     );
 }
 

@@ -1020,6 +1020,9 @@ pub fn supported_periods(kind: &str) -> Vec<&'static str> {
         // The years whose car limit was read on 18 November 2026; 2027-28 is
         // refused as for balancing_adjustment, and its car limit is not yet
         // published.
+        // s 5 sets fixed rates; the temporary budget repair levy of s 6 ended
+        // with 2016-17. The years are the other superannuation worksheets'.
+        "dasp_tax" => vec!["2025-26", "2026-27", "2027-28"],
         "trade_in" => vec!["2025-26", "2026-27"],
         "fbt" => vec!["2026", "2027"],
         "fbt_car_statutory" | "fbt_car_operating_cost" | "fbt_loan" => {
@@ -1113,6 +1116,10 @@ pub fn source_review(kind: &str) -> (&'static str, &'static str) {
         "balancing_adjustment" => (
             "2026-11-18",
             "ITAA 1997 ss 40-25, 40-85, 40-230, 40-285, 40-290, 40-291A, 40-295, 40-300, 40-305, 40-325, 40-370, 104-235, 104-240, 118-5 and 118-10 (its example) and Subdivision 27-B, compilation 268 (1 October 2026), with the endnotes' amendment history; Treasury Laws Amendment (Tax Reform No. 1) Act 2026 (No 49 of 2026), Schedule 4 item 17 (s 40-291A from 2026-27); Guide to depreciating assets 2026, 'What happens if you no longer hold or use a depreciating asset?', its Bridget, Andrew and Louise examples and the car limit formula",
+        ),
+        "dasp_tax" => (
+            "2026-11-19",
+            "Superannuation (Departing Australia Superannuation Payments Tax) Act 2007 ss 4 to 6 (compilation 5, 2 December 2016, Federal Register of Legislation); ITAA 1997 ss 301-170 and 301-175, from the ATO's legal database; the ATO's 'Payments from super' rates (last updated 16 September 2026) and 'Departing Australia superannuation payment (DASP)' (last updated 21 April 2026)",
         ),
         "trade_in" => (
             "2026-11-18",
@@ -1322,6 +1329,12 @@ pub fn library_evidence(kind: &str) -> [(&'static str, &'static str); 4] {
             "Bridget, Andrew and Louise examples; the Gayle example",
             "2026-06-01",
             "2026-11-18",
+        ),
+        "dasp_tax" => (
+            "superannuation-superannuation-benefits-termination-payments",
+            "8-420",
+            "2026-06-30",
+            "2026-11-19",
         ),
         "trade_in" => (
             "ATO GST pages: Purchasing a motor vehicle; GST and the disposal of capital assets",
@@ -2074,6 +2087,24 @@ pub fn input_units(kind: &str) -> Vec<(&'static str, &'static str)> {
                 "list of objects, one for each income year held from the start time to the event, each with income_year (from 2001-02, and for a car from 2015-16, to the event's year), decline_in_value (AUD; for a cents per kilometre year the notional decline of s 40-370(3)) and deduction (AUD, the decline less the s 40-25 reductions); a car's rows also state method (log_book or cents_per_kilometre, which takes no deduction) and days_held (integer from 1 to the days in that income year, 366 when it includes 29 February)",
             ),
         ],
+        "dasp_tax" => vec![
+            (
+                "tax_free_component",
+                "AUD, the payment's tax free component, as the paying fund states it",
+            ),
+            (
+                "taxed_element",
+                "AUD, the element taxed in the fund of the payment's taxable component",
+            ),
+            (
+                "untaxed_element",
+                "AUD, the element untaxed in the fund of the payment's taxable component, 0.00 for most funds",
+            ),
+            (
+                "working_holiday_maker_contributions",
+                "boolean, true when the payment includes amounts attributable to superannuation contributions made whilst the person was a working holiday maker: the holder of a subclass 417 (Working Holiday) or 462 (Work and Holiday) visa or an associated bridging visa (DASP Tax Act s 5(3); Income Tax Rates Act 1986 s 3A). The 65% rate then applies to the whole taxable component, whatever visa the person held when other contributions were made",
+            ),
+        ],
         "trade_in" => vec![
             (
                 "cost",
@@ -2708,6 +2739,15 @@ pub fn examples(kind: &str) -> Vec<(&'static str, Example)> {
                     r#"[{"income_year": "2025-26", "decline_in_value": "300.00", "deduction": "180.00"}, {"income_year": "2026-27", "decline_in_value": "0.00", "deduction": "0.00"}]"#,
                 ),
             ),
+        ],
+        // The Library's example (Superannuation Benefits, 8-420): a $42,000
+        // benefit of a $25,000 tax free component and a $17,000 element
+        // taxed in the fund, applied for on 1 August 2026.
+        "dasp_tax" => vec![
+            ("tax_free_component", Text("25000.00")),
+            ("taxed_element", Text("17000.00")),
+            ("untaxed_element", Text("0.00")),
+            ("working_holiday_maker_contributions", Flag(false)),
         ],
         "trade_in" => vec![
             ("year", Text("2026-27")),
