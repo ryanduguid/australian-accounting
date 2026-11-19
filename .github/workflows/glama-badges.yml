@@ -91,7 +91,12 @@ jobs:
       # As in ci-rust.yml, an unmaintained crate fails only the scheduled run.
       - name: Audit Cargo lock
         working-directory: tools/${{ matrix.tool }}
-        run: cargo audit ${{ github.event_name == 'schedule' && '--deny warnings' || '--deny unsound --deny yanked' }}
+        run: |
+          set -o pipefail
+          cargo audit ${{ github.event_name == 'schedule' && '--deny warnings' || '--deny unsound --deny yanked' }} 2>&1 | tee "$RUNNER_TEMP/audit.log"
+          # cargo-audit 0.22.2 exits 0 when it cannot fetch or open the crates.io
+          # index or look a crate up in it, so no crate was checked for being yanked.
+          ! grep -qE "couldn't (check if the package is yanked|update crates.io index|open crates.io index)" "$RUNNER_TEMP/audit.log"
 
   worker:
     needs: changes
