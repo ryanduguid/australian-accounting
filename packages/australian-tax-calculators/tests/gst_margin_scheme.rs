@@ -327,16 +327,15 @@ fn the_valuation_day_follows_the_item() {
     assert_eq!(amount(&r, "gst"), "18181.82");
     for day in ["2000-06-30", "2000-07-01"] {
         let applied = with(late.clone(), &[("valuation_day", json!(day))]);
-        assert!(run(&applied)["base_rule"].as_str().unwrap().contains("item 2"));
-    }
-    for day in ["2026-07-01"] {
-        let bad = with(late.clone(), &[("valuation_day", json!(day))]);
-        assert_eq!(
-            code(&bad),
-            "gst_margin_scheme.valuation_day_invalid",
-            "{day}"
+        assert!(
+            run(&applied)["base_rule"]
+                .as_str()
+                .unwrap()
+                .contains("item 2")
         );
     }
+    let bad = with(late.clone(), &[("valuation_day", json!("2026-07-01"))]);
+    assert_eq!(code(&bad), "gst_margin_scheme.valuation_day_invalid");
     let crown = with(
         valued("500000.00", "500000.00", "2026-02-10"),
         &[("government_unimproved_on_1_july_2000", json!(true))],
@@ -386,7 +385,10 @@ fn a_supply_to_an_associate_is_refused() {
     let input = with(input, &[("recipient_associate", json!("no"))]);
     assert_eq!(code(&input), "input.flag_invalid");
     let input = sale("other_supply_from_1_july_2000", "330000.00", "220000.00");
-    assert_eq!(code(&without(input, "recipient_associate")), "input.missing_field");
+    assert_eq!(
+        code(&without(input, "recipient_associate")),
+        "input.missing_field"
+    );
 }
 
 /// A half cent of GST rounds up, from the unrounded apportioned base: 1/2 of
