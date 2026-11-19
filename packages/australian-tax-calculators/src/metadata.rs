@@ -1078,6 +1078,13 @@ pub fn supported_periods(kind: &str) -> Vec<&'static str> {
         // No published rate: s 58P(1)(e)'s $300 is the Act's own. The years
         // are those the other FBT benefit worksheets cover.
         "fbt_minor_benefit_check" => vec!["2026", "2027"],
+        // The financial years of the determination day: determinations began
+        // on 1 July 2018, and the last published SIC quarter ends on
+        // 31 December 2026.
+        "fhss" => vec![
+            "2018-19", "2019-20", "2020-21", "2021-22", "2022-23", "2023-24", "2024-25", "2025-26",
+            "2026-27",
+        ],
         "fbt_entertainment_classifier" => vec!["2026", "2027"],
         "fbt_housing" => keys(FBT_HOUSING_INDEXATION),
         // The years whose definitions were read: the 1 July 2024 compilations
@@ -1287,6 +1294,10 @@ pub fn source_review(kind: &str) -> (&'static str, &'static str) {
         "fbt_minor_benefit_check" => (
             "2026-11-19",
             "FBTAA ss 58P, 136(1) ('fringe benefit' para (g) and 'eligible premises') and 152B, from the ATO's legal database (s 58P(1)(b) repealed by Act No. 88 of 2013); TR 2007/12 (paras 8 to 23 and examples 1 to 13)",
+        ),
+        "fhss" => (
+            "2026-11-20",
+            "TAA 1953 Sch 1 ss 12-460, 131-5, 131-10, 138-10, 138-25, 138-30, 138-35, 138-40 and 280-105, and ITAA 1997 ss 313-20, 313-25, 313-50 and 313-60, from the ATO's legal database; Taxation Administration Regulations 2017 reg 53A, compilation 18 (14 November 2026); GN 2024/1 sections 1 to 7 and examples 6, 7 and 11 to 13; the ATO's 'About FHSS release amounts' (Mary), 'FHSS tax assessment' and 'Shortfall interest charge (SIC) rates' (last updated 4 September 2026) pages",
         ),
         "fbt_entertainment_classifier" => (
             "2026-11-16",
@@ -2078,6 +2089,32 @@ pub fn optional_inputs(kind: &str) -> Vec<(&'static str, &'static str)> {
             (
                 "fifty_fifty_split",
                 "boolean, for meal_entertainment or entertainment_facility_leasing and then required: true when the employer elected the 50/50 split method, of Division 9A for meal entertainment or s 152B for entertainment facility leasing (TR 2007/12 para 14); false is refused, as the benefit is then screened under its own category",
+            ),
+        ],
+        "fhss" => vec![
+            (
+                "contributions",
+                "list of objects, to estimate the determination; give this or determination: date (YYYY-MM-DD, from 1 July 2017 to the determination day), amount (AUD decimal string) and kind, employer_voluntary (salary sacrifice or another employer contribution that is not mandated: concessional) or personal (made by you: non-concessional unless deducted)",
+            ),
+            (
+                "determination_requested",
+                "YYYY-MM-DD, with contributions and then required: the day the determination was requested; before 1 July 2022 the limit in all is $30,000, otherwise $50,000 (GN 2024/1 section 3)",
+            ),
+            (
+                "personal_deductions",
+                "list of objects, with contributions: financial_year (such as \"2024-25\") and amount (AUD), the personal contributions deducted for that year, which makes them concessional; the year's latest personal contributions are taken to be the deducted ones (s 138-30(3)(b))",
+            ),
+            (
+                "determination",
+                "object, the determination's stated components; give this or contributions: concessional (the 85% amount it states), non_concessional and associated_earnings (AUD)",
+            ),
+            (
+                "amount_requested",
+                "AUD, the amount requested for release; the FHSS maximum release amount when left out, and never more (s 131-10(1) item 4)",
+            ),
+            (
+                "estimated_marginal_rate",
+                "fraction from 0 to 0.45, the marginal rate the Commissioner estimates; withholding is it plus 2% Medicare levy less 30%, not below nil, and 17% when left out (reg 53A; GN 2024/1 section 7)",
             ),
         ],
         "fbt_entertainment_classifier" => vec![
@@ -2908,6 +2945,12 @@ pub fn input_units(kind: &str) -> Vec<(&'static str, &'static str)> {
                 "boolean, true when the benefit was provided wholly or principally as a reward for services rendered or to be rendered (s 58P(1)(f)(v)(B))",
             ),
         ],
+        "fhss" => vec![
+            (
+                "determination_date",
+                "YYYY-MM-DD, the day the Commissioner makes the first home super saver determination, from 1 July 2018 to 31 December 2026; associated earnings run to it (s 138-40(3))",
+            ),
+        ],
         "fbt_entertainment_classifier" => vec![
             (
                 "lines",
@@ -3378,6 +3421,18 @@ pub fn examples(kind: &str) -> Vec<(&'static str, Example)> {
             ("valuation_difficult", Flag(false)),
             ("unexpected_event", Flag(false)),
             ("reward_for_services", Flag(false)),
+        ],
+        // GN 2024/1 example 11 (Sue): the determination's components, released
+        // in full, with no marginal rate estimate.
+        "fhss" => vec![
+            ("year", Text("2024-25")),
+            ("determination_date", Text("2025-06-20")),
+            (
+                "determination",
+                Json(
+                    r#"{"concessional": "8500", "non_concessional": "5000", "associated_earnings": "850"}"#,
+                ),
+            ),
         ],
         "fbt_entertainment_classifier" => vec![
             (

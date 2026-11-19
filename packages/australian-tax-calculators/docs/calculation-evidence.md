@@ -689,6 +689,61 @@ Neither the Act nor the guide gives a worked example of a register failing a
 check; the tests work each failure from the section's words. 12 weeks is
 taken as 84 days with both the first and last day counted.
 
+## FHSS
+
+Added on 20 November 2026. Its sources were read between 11.59 pm on 19
+November and 12.15 am on 20 November 2026: from the ATO's legal database, TAA 1953 Sch 1 ss 12-460, 131-5,
+131-10, 138-10, 138-25, 138-30, 138-35, 138-40 and 280-105, and ITAA 1997
+ss 313-20, 313-25, 313-50 and 313-60; the Taxation Administration
+Regulations 2017, compilation 18 (14 November 2026), reg 53A, from the Federal
+Register of Legislation; the Commissioner's guidance note GN 2024/1 'First
+home super saver scheme'; the ATO's 'About FHSS release amounts', 'About your
+contributions' and 'FHSS tax assessment' pages; and the ATO's 'Shortfall
+interest charge (SIC) rates' page, last updated 4 September 2026, whose
+quarterly annual rates from July to September 2017 to October to December
+2026 are the table in `src/engine/fhss.rs`. The 20% FHSS tax rate is the
+First Home Super Saver Tax Act 2017 s 4, read on 19 November 2026, and GN
+2024/1 example 13 applies it.
+
+What the Act settles, where the guidance is less exact:
+
+- **The withholding rate.** s 12-460 only requires the Commissioner to
+  withhold; reg 53A sets the amount as his estimate of the tax payable on the
+  assessable FHSS released amount, or 17% of it where he cannot estimate. The
+  marginal rate plus Medicare levy less 30% is GN 2024/1's account of that
+  estimate, and the command follows it. Neither sets a rounding; examples 11
+  to 13 round down to the dollar ($1,589.50 to $1,589).
+- **The earnings base.** s 138-40(2) defines the amount of a contribution as
+  'the amount of the contribution that is counted in your FHSS releasable
+  contributions amount', and s 138-30(1)(b) counts 85% of an eligible
+  concessional contribution in that amount. The command therefore runs the
+  earnings on 85% of a concessional contribution's counted part.
+- **The order.** s 138-30(2) counts contributions earliest first across
+  financial years.
+
+The published example that does not reproduce: GN 2024/1 example 6 and the
+'About FHSS release amounts' page (Jill: $1,500 a month salary sacrifice from
+July 2020 to October 2024, determination 15 December 2024) give $15,000 in
+each of 2020-21 to 2022-23 and $5,000 from 2024-25, a releasable $42,500 and
+associated earnings of $5,190. The command reaches the $50,000 and $42,500,
+but s 138-30(2) counts July to October 2023 before July to October 2024, and
+the associated earnings come to $7,859. An independent day-by-day script
+over the same SIC table gives $7,859 on that order, $7,530 on the example's
+2024-25 order, and $9,247 or $8,860 on the contribution in full; none gives
+$5,190, and nothing in the method was changed to match it. The other published
+examples with associated earnings (Sue's $850, Alex's $1,700, Milena's
+determinations) give no contribution dates, so they cannot test the method.
+So associated earnings from contributions are labelled `estimate`, and a
+caller with the Commissioner's determination gives its components instead.
+
+The tests run Jill (limits and the 85%), Mary ($15,000 of $25,000; $12,750),
+Hasan (example 7: $3,000 of the $5,000 counted in 2023-24), the s 138-30
+example (the first 10 fortnightly contributions non-concessional), Sue
+(example 11: $1,589 withheld at 17%, a $2,805 offset), Alex (example 12: 9%,
+$765, $27,735 paid) and George (example 13 and the ATO page: $1,809 withheld,
+$24,291 paid, $4,020 FHSS tax), and one quarter's compounding against its
+closed form.
+
 ## FBT minor benefit check
 
 Added on 19 November 2026. Its sources were read that afternoon, 3.00 pm to

@@ -6077,8 +6077,10 @@ mod fbt_minor_benefit;
 pub use fbt_minor_benefit::{MinorBenefitArgs, fbt_minor_benefit_check};
 mod gst_margin_scheme;
 pub use gst_margin_scheme::{MarginSchemeArgs, gst_margin_scheme};
+mod fhss;
+pub use fhss::{FhssArgs, fhss};
 
-const KINDS: [&str; 54] = [
+const KINDS: [&str; 55] = [
     "gst",
     "gst_margin_scheme",
     "resident_tax",
@@ -6132,6 +6134,7 @@ const KINDS: [&str; 54] = [
     "fbt_tax_exempt_body_entertainment",
     "fbt_entertainment_classifier",
     "fbt_minor_benefit_check",
+    "fhss",
     "income_tests",
 ];
 
