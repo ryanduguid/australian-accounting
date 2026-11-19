@@ -36,6 +36,9 @@ const UNTAXED_WHM: &str = "DASP Tax Act s 5(3): paid on or after 1 July 2017 and
 const TOTAL: &str = "DASP Tax Act s 4 and ITAA 1997 s 301-175(2): the tax on the payment, the sum of the tax on each component, each rounded to the cent (0.5 cents up) so that the tax and the net payment add back to the payment";
 const NET: &str = "ITAA 1997 s 301-175(1): the payment is not assessable income and not exempt income, so the amount left after the tax is what the person receives, with nothing to include in a tax return";
 
+/// The tax on each component's step and the rates it was worked at.
+type Components = ([Step; 3], Vec<(String, String)>);
+
 /// The tax on each component, at the ordinary or the working holiday maker
 /// rates, with those rates.
 fn component_steps(
@@ -43,7 +46,7 @@ fn component_steps(
     taxed: &Decimal,
     untaxed: &Decimal,
     whm: bool,
-) -> Result<([Step; 3], Vec<(String, String)>)> {
+) -> Result<Components> {
     let (taxed_rate, untaxed_rate, taxed_rule, untaxed_rule) = if whm {
         ("0.65", "0.65", TAXED_WHM, UNTAXED_WHM)
     } else {
@@ -52,22 +55,22 @@ fn component_steps(
     let free_tax = step(
         "tax_free_component_tax",
         TAX_FREE,
-        "tax_free_component x 0",
-        &[&tax_free],
-        int(0),
+        "tax_free_component x tax_free_component_rate",
+        &[tax_free, &int(0)],
+        tax_free.mul(&int(0))?,
     );
     let taxed_tax = step(
         "taxed_element_tax",
         taxed_rule,
-        "round(taxed_element x taxed_element_rate, 2)",
-        &[&taxed],
+        "cents(taxed_element x taxed_element_rate)",
+        &[taxed, &d(taxed_rate)],
         cents(taxed.mul(&d(taxed_rate))?)?,
     );
     let untaxed_tax = step(
         "untaxed_element_tax",
         untaxed_rule,
-        "round(untaxed_element x untaxed_element_rate, 2)",
-        &[&untaxed],
+        "cents(untaxed_element x untaxed_element_rate)",
+        &[untaxed, &d(untaxed_rate)],
         cents(untaxed.mul(&d(untaxed_rate))?)?,
     );
     let rates = vec![
@@ -101,7 +104,10 @@ pub fn dasp_tax(args: &DaspTaxArgs) -> Result<Value> {
     );
     let ([free_tax, taxed_tax, untaxed_tax], rates) =
         component_steps(&tax_free, &taxed, &untaxed, whm)?;
-    let total = taxed_tax.value.add(&untaxed_tax.value)?;
+    let total = free_tax
+        .value
+        .add(&taxed_tax.value)?
+        .add(&untaxed_tax.value)?;
     let total = step(
         "dasp_tax",
         TOTAL,
