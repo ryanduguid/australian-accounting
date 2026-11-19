@@ -20,7 +20,9 @@ mod fbt_benefits;
 pub use fbt_benefits::{
     fbt_board, fbt_housing, fbt_lafha, fbt_residual, fbt_tax_exempt_body_entertainment,
 };
-pub use fbt_benefits::{fbt_car_parking, fbt_loan, fbt_meal_entertainment};
+pub use fbt_benefits::{
+    fbt_car_parking, fbt_loan, fbt_meal_entertainment, fbt_meal_entertainment_register,
+};
 pub use fbt_benefits::{
     fbt_debt_waiver, fbt_entertainment_classifier, fbt_expense_payment, fbt_property,
 };
@@ -3591,6 +3593,8 @@ pub fn termination_payment(
     derived_result("termination_payment", &year, steps, rates)
 }
 
+mod etp_tax_free;
+pub use etp_tax_free::etp_tax_free_component;
 mod unused_leave;
 pub use unused_leave::{LeavePayee, LeaveSplits, unused_leave_payment};
 
@@ -4772,7 +4776,10 @@ pub fn borrowing_expenses(
 }
 
 mod hire_purchase;
-pub use hire_purchase::{HirePurchaseArgs, hire_purchase_schedule};
+pub use hire_purchase::{
+    ChattelMortgageArgs, HirePurchaseArgs, LoanTransactionsArgs, chattel_mortgage_schedule,
+    hire_purchase_schedule, loan_transactions,
+};
 
 mod business_capital;
 pub use business_capital::business_capital_expenditure;
@@ -6067,7 +6074,7 @@ pub use lump_sum_arrears::lump_sum_arrears_tax_offset;
 mod income_tests;
 pub use income_tests::income_tests;
 
-const KINDS: [&str; 48] = [
+const KINDS: [&str; 52] = [
     "gst",
     "resident_tax",
     "foreign_resident_tax",
@@ -6075,6 +6082,8 @@ const KINDS: [&str; 48] = [
     "main_residence",
     "borrowing_expenses",
     "hire_purchase_schedule",
+    "chattel_mortgage_schedule",
+    "loan_transactions",
     "business_capital_expenditure",
     "balancing_adjustment",
     "trade_in",
@@ -6083,6 +6092,7 @@ const KINDS: [&str; 48] = [
     "fbt_car_operating_cost",
     "fbt_loan",
     "fbt_meal_entertainment",
+    "fbt_meal_entertainment_register",
     "fbt_car_parking",
     "fbt_debt_waiver",
     "fbt_expense_payment",
@@ -6101,6 +6111,7 @@ const KINDS: [&str; 48] = [
     "division_293",
     "division_296",
     "termination_payment",
+    "etp_tax_free_component",
     "unused_leave_payment",
     "schedule_5_method_a",
     "schedule_5_method_b_i",
