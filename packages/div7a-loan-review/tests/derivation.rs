@@ -134,3 +134,24 @@ fn a_repeated_key_is_refused_by_name_not_resolved_to_its_last_value() {
         );
     }
 }
+
+#[test]
+fn api_help_lists_the_commands_main_routes_beside_the_librarys() {
+    let help = run(&["--api-help"], "");
+    assert_eq!(help.status.code(), Some(0));
+    let help = String::from_utf8(help.stdout).unwrap();
+    let first = help.lines().next().unwrap();
+    let listed: Vec<&str> = first
+        .strip_prefix("JSON stdin commands: ")
+        .unwrap()
+        .split(", ")
+        .collect();
+    for command in [
+        "minimum-yearly-repayment",
+        "derive",
+        "verify",
+        "rollforward",
+    ] {
+        assert!(listed.contains(&command), "{command} is not in {first:?}");
+    }
+}

@@ -1,3 +1,11 @@
+# Unreleased
+
+## Changed
+
+- With no legislation corpus configured, the corpus tools' refusal names PaulGoodman's
+  `corpus-2026-11-18` snapshot, which adds each Act's compilations in force on 1 July
+  2020 to 2026, in place of `corpus-2026-11-11`.
+
 # v0.10.0
 
 ## Changed
