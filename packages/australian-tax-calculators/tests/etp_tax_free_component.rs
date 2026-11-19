@@ -206,6 +206,7 @@ fn the_last_retirement_day_ends_the_segment() {
     assert_eq!(on["rates"]["invalidity_excluded_payment"], "true");
     let after = run(json!({"termination_date": "2028-10-01"}));
     assert_eq!(components(&after)[0], "0.00");
+    assert_eq!(after["rates"]["invalidity_excluded_payment"], "true");
     let before = run(json!({
         "payment": "50000.00", "employment_start": "2020-01-01",
         "termination_date": "2027-03-14", "last_retirement_day": "2027-03-15",

@@ -1760,8 +1760,9 @@ This worksheet's evidence was read on 19 November 2026 from 9.25 am to
   makes, and $5,205 on 17,175 total days; the dates give 17,167, so the test
   holds the pre-July 83 segment at $5,207.08, read on 19 November 2026.
 
-The worksheet rounds each segment half up to the cent; the ATO's examples show
-whole dollars, and the Act gives neither. Death benefit ETPs (which cannot
+Rounding each segment half up to the cent is this command's own convention:
+neither the Act nor NAT 71949 sets a rounding rule, and the ATO's examples show
+whole dollars. Death benefit ETPs (which cannot
 include an invalidity segment), payments that relate to part of the employment
 or to broken periods of it, unused leave and superannuation disability benefits
 under s 307-145 (read the same day; its days to retirement run from the day the
