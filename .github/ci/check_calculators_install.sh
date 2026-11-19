@@ -13,7 +13,8 @@
 set -euo pipefail
 
 readme=packages/australian-tax-calculators/README.md
-pattern='^curl .*/ryanduguid/release-policy/[0-9a-f]{40}/scripts/install\.sh \| sh -s -- ryanduguid/australian-accounting australian-tax-calculators/v[0-9]+\.[0-9]+\.[0-9]+ --modify-path$'
+# The whole line, flags included, so nothing else can ride along into bash -c.
+pattern="^curl --proto '=https' --tlsv1\.2 -fsSL https://raw\.githubusercontent\.com/ryanduguid/release-policy/[0-9a-f]{40}/scripts/install\.sh \| sh -s -- ryanduguid/australian-accounting australian-tax-calculators/v[0-9]+\.[0-9]+\.[0-9]+ --modify-path\$"
 command=$(grep -E "$pattern" "$readme")
 [ "$(printf '%s\n' "$command" | wc -l)" -eq 1 ] || { echo "$readme gives more than one install command" >&2; exit 1; }
 grep -qxF -- "$command" apps/aus-accounting-mcp/README.md \

@@ -75,10 +75,13 @@ installs nothing unless `gh attestation verify` confirms that `SHA256SUMS` and
 the archive were signed by `release-binary.yml` for this repository's tag on a
 GitHub-hosted runner, and the archive matches its line in `SHA256SUMS`: a
 changed archive or digest is refused. The executable goes into
-`~/.local/share/australian-tax-calculators` or
-`%LOCALAPPDATA%\Programs\australian-tax-calculators`, and `--modify-path` or
-`-ModifyPath` adds that folder to your `PATH` for new terminals; leave it off
-and the installer prints the folder instead. The command runs the script as
+`${XDG_DATA_HOME:-~/.local/share}/australian-tax-calculators` or
+`%LOCALAPPDATA%\Programs\australian-tax-calculators`. `--modify-path` adds a
+line putting that folder on `PATH` to the startup file of the shell `$SHELL`
+names (for bash on Linux, `~/.bashrc`, which a bash login shell reads only if
+`~/.profile` or `~/.bash_profile` sources it), and `-ModifyPath` adds it to your
+user `Path`, both for shells started afterwards; leave it off and the installer
+prints the folder instead. The command runs the script as
 GitHub serves it at that commit, so read it there first. The installer does
 not pin the commit the tag names: to check that too, verify by hand with both
 digests pinned, as the release-binary page's 'Downloading a release' shows.
