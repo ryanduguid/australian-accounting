@@ -2444,7 +2444,7 @@ Choices the Act leaves to the reader:
 | A company with and without a significant individual | Worked by hand under ss 152-110 and 152-305(2) | Without one: the 15-year and retirement exemptions closed, the reduction and roll-over open |
 | $500,000 and $125,000.50 of the retirement limit used | Worked by hand under s 152-320 | The exemption closed; $374,999.50 left |
 | Neil's roll-over also obtained for a CGT event on 30 June 2026 | Worked by hand under s 104-190(1A)(a) and (b)(i) | Replacement asset period 30 June 2025 to 30 June 2028, from the last event, not 15 May |
-| Neil's sale with a look-through earnout whose last payment could fall due on 31 January 2028, or 15 November 2027 | Worked by hand under s 104-190(1A)(b)(ii) | The period ends 31 July 2028, 6 months after it; or 15 May 2028, 2 years after the event, the later |
+| Neil's sale with a look-through earnout whose last payment could fall due on 31 January 2028, 15 November 2027 or 31 August 2028 | Worked by hand under s 104-190(1A)(b)(ii) | The period ends 31 July 2028, 6 months after it; 15 May 2028, 2 years after the event, the later; or 28 February 2029 |
 
 ## Personal tax estimate
 

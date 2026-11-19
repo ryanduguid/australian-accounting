@@ -2814,7 +2814,7 @@ pub fn input_units(kind: &str) -> Vec<(&'static str, &'static str)> {
             ("retirement", "boolean: the CGT event happens in connection with that individual's retirement"),
             ("permanently_incapacitated", "boolean: that individual is permanently incapacitated at the time of the CGT event"),
             ("last_rollover_event", "YYYY-MM-DD, or null for this one: the last CGT event in the year for which you obtain the small business roll-over, from event_date to the end of the year; the replacement asset period runs from it (s 104-190(1A))"),
-            ("earnout_latest_due", "YYYY-MM-DD, or null for no look-through earnout right: the latest time a possible financial benefit becomes or could become due under a look-through earnout right relating to the asset and this disposal, after event_date; the replacement asset period ends no earlier than 6 months after it (s 104-190(1A)(b)(ii))"),
+            ("earnout_latest_due", "YYYY-MM-DD, or null for no look-through earnout right: the latest time a possible financial benefit becomes or could become due under a look-through earnout right relating to the asset and this disposal, on or after event_date; the replacement asset period ends no earlier than 6 months after it (s 104-190(1A)(b)(ii))"),
         ],
         "income_tests" => vec![
             ("taxable_income", "AUD, whole dollars: taxable income, including any assessable FHSS released amount (nil for a loss)"),

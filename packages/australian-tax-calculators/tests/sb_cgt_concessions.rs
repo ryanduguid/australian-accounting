@@ -144,6 +144,16 @@ fn the_replacement_asset_period_runs_from_the_last_event_rolled_over() {
         earnout("2027-11-15"),
         json!({"from": "2025-05-15", "to": "2028-05-15"})
     );
+    // A benefit can fall due later on the day of the event.
+    assert_eq!(
+        earnout("2026-05-15"),
+        json!({"from": "2025-05-15", "to": "2028-05-15"})
+    );
+    // 6 months after 31 August is the last day of February.
+    assert_eq!(
+        earnout("2028-08-31"),
+        json!({"from": "2025-05-15", "to": "2029-02-28"})
+    );
 }
 
 #[test]
@@ -513,7 +523,7 @@ fn refusals_name_what_is_out_of_scope_or_wrong() {
             "sb_cgt_concessions.fact_conflict",
         ),
         (
-            json!({"earnout_latest_due": "2026-05-15"}),
+            json!({"earnout_latest_due": "2026-05-14"}),
             "sb_cgt_concessions.fact_conflict",
         ),
         (

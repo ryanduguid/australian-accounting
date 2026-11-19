@@ -182,8 +182,8 @@ fn facts<'a>(args: &SbCgtConcessionsArgs<'a>) -> Result<Facts<'a>> {
     let optional = optional_facts(args, wanted)?;
     let (acquired, event, last_event) = contract_dates(args, &year)?;
     let earnout = optional_date(args.earnout_latest_due, "earnout_latest_due")?;
-    if earnout.is_some_and(|due| due <= event) {
-        return conflict("earnout_latest_due must be after event_date.");
+    if earnout.is_some_and(|due| due < event) {
+        return conflict("earnout_latest_due must be on or after event_date.");
     }
     Ok(Facts {
         year,
