@@ -119,6 +119,12 @@ message is reworded and never moves to a different failure. `REFUSAL_CODES` in
 `src/texts.rs` is the catalogue, and a test holds every refusal to it. Without the
 flag, stdout stays empty on a refusal.
 
+`contract-register` is the one command that reads a CSV file rather than a
+JSON object: a practice's hire purchase and chattel mortgage contracts, one a
+line, set out together with cashflow by month, interest by income year and
+the amount outstanding split into current and non-current. See
+[Contract register](docs/contract-register.md).
+
 ## Commands
 
 Each command takes the original function's keyword arguments, in this order, as
@@ -132,6 +138,7 @@ lists the commands.
 | --- | --- |
 | `gst` | `amount`, `gst_inclusive`, `scope_confirmed`, `year` |
 | `fuel-tax-credits` | `lines`, `year`, `scope_confirmed`; `small_claimant` with a simplified method, `rate_at_period_end` and `return_date` optionally; see [Fuel tax credits](#fuel-tax-credits) |
+| `gst-margin-scheme` | `interest`, `agreement`, `acquisition`, `consideration`, `method`, `recipient_associate`, `year`, `scope_confirmed`; with method `consideration`, `acquisition_consideration` and `unpaid_acquisition_consideration`; with method `approved_valuation`, `approved_valuation`, `valuation_day`, `registered_on_1_july_2000` and `government_unimproved_on_1_july_2000`; for part of the land, `subdivision_share` and `subdivision_whole`; see [GST margin scheme](#gst-margin-scheme) |
 | `resident-tax` | `taxable_income`, `year`, `scope_confirmed` |
 | `foreign-resident-tax` | `taxable_income`, `year`, `scope_confirmed` |
 | `capital-gains` | `other_gains`, `discount_gains`, `current_losses`, `prior_losses`, `scope_confirmed`, `year` |
@@ -158,6 +165,7 @@ lists the commands.
 | `fbt-board` | `adult_meals`, `child_meals`, `employee_contribution`, `income_use`, `contribution_deduction`, `year_ended`, `scope_confirmed` |
 | `fbt-tax-exempt-body-entertainment` | `method`, `entertainment_expenditure`, `year_ended`, `scope_confirmed`; with `per_head`, `employee_heads` and `total_heads` |
 | `fbt-meal-entertainment-register` | `register_start`, `register_end`, `entries`, `year_ended`, `scope_confirmed`; `register_years_expenditure`, required for a later year of the register's validity; see [FBT meal entertainment register](#fbt-meal-entertainment-register) |
+| `fbt-minor-benefit-check` | `category`, `notional_taxable_value`, `salary_sacrifice`, `frequency`, `similar_benefits_substantial`, `other_associated_benefits_substantial`, `valuation_difficult`, `unexpected_event`, `reward_for_services`, `year_ended`, `scope_confirmed`; `in_house` for an expense payment, property or residual benefit, `tax_exempt_body_exception` for tax-exempt body entertainment and `fifty_fifty_split` for meal entertainment or entertainment facility leasing; see [FBT minor benefits](#fbt-minor-benefits) |
 | `fbt-entertainment-classifier` | `lines`, `income_tax_exempt`, `year_ended`, `scope_confirmed`; `method`, required when a line is meal entertainment; with `12_week_register`, `income_tax_register_percentage` |
 | `depreciation` | `cost`, `effective_life`, `days`, `taxable_use`, `method`, `scope_confirmed`, `year`; optional `opening_adjustable_value` |
 | `quarterly-sg` | `ordinary_time_earnings`, `qualifying_contributions`, `year`, `quarter`, `scope_confirmed` |
@@ -188,9 +196,9 @@ lists the commands.
 | `dgr-check` | `donations`, a list of 1 to 10,000 objects, each with `abn` or `name` or both, and optional `date` and `amount`; see [DGR check](#dgr-check) |
 | `personal-tax-estimate` | `year`, `scope_confirmed`, `residency`, `taxable_income` or `assessable_labour_income` (then optional `other_assessable_income`, `work_related_deductions`, `other_deductions`), optional `tax_withheld` or, to work it out, one of `payg-withholding`, `study-loan-withholding` and `seniors-pensioners-withholding` with `pays_in_year` and optional `schedule-5-method-a`, for a resident from 2027-28 `net_labour_income` (required beside `taxable_income`), and for a full-year resident `medicare-levy` and `medicare-levy-surcharge`; optional `seniors-pensioners-tax-offset`, `study-loan-repayment` and `division-293`; see [Personal tax estimate](#personal-tax-estimate) |
 | `fbt-return` | `employer`, `year_ended`, `scope_confirmed` and `benefits`, a list of objects each with `employee`, `command` (an FBT benefit worksheet), `input` (that worksheet's arguments), `gst_type` (`type_1` or `type_2`) and `excluded`; see [FBT return](#fbt-return) |
-| `derive` | `command`, one of `fbt`, `fbt-car-statutory`, `fbt-car-operating-cost`, `fbt-loan`, `fbt-meal-entertainment`, `fbt-car-parking`, `fbt-debt-waiver`, `fbt-expense-payment`, `fbt-property`, `division-293`, `pension-minimum`, `payg-withholding`, `schedule-5-method-a`, `schedule-5-method-b-i`, `schedule-5-method-b-ii`, `termination-payment`, `etp-tax-free-component`, `unused-leave-payment`, `working-holiday-maker-withholding`, `study-loan-withholding`, `seniors-pensioners-withholding`, `quarterly-sg`, `borrowing-expenses`, `resident-tax`, `foreign-resident-tax`, `low-income-tax-offset`, `seniors-pensioners-tax-offset`, `medicare-levy`, `medicare-levy-surcharge`, `division-296`, `contribution-caps`, `study-loan-repayment`, `capital-gains`, `main-residence`, `fbt-residual`, `fbt-housing`, `fbt-lafha`, `fbt-board`, `fbt-tax-exempt-body-entertainment`, `gst`, `depreciation`, `hire-purchase-schedule`, `chattel-mortgage-schedule`, `loan-transactions`, `lump-sum-arrears-tax-offset`, `income-tests`, `business-capital-expenditure`, `balancing-adjustment` and `trade-in`, and `input`, that command's arguments; see [Derivations](#derivations) |
+| `derive` | `command`, one of `fbt`, `fbt-car-statutory`, `fbt-car-operating-cost`, `fbt-loan`, `fbt-meal-entertainment`, `fbt-car-parking`, `fbt-debt-waiver`, `fbt-expense-payment`, `fbt-property`, `division-293`, `pension-minimum`, `payg-withholding`, `schedule-5-method-a`, `schedule-5-method-b-i`, `schedule-5-method-b-ii`, `termination-payment`, `etp-tax-free-component`, `unused-leave-payment`, `working-holiday-maker-withholding`, `study-loan-withholding`, `seniors-pensioners-withholding`, `quarterly-sg`, `borrowing-expenses`, `resident-tax`, `foreign-resident-tax`, `low-income-tax-offset`, `seniors-pensioners-tax-offset`, `medicare-levy`, `medicare-levy-surcharge`, `division-296`, `contribution-caps`, `study-loan-repayment`, `capital-gains`, `main-residence`, `fbt-residual`, `fbt-housing`, `fbt-lafha`, `fbt-board`, `fbt-tax-exempt-body-entertainment`, `gst`, `depreciation`, `hire-purchase-schedule`, `chattel-mortgage-schedule`, `loan-transactions`, `lump-sum-arrears-tax-offset`, `income-tests`, `business-capital-expenditure`, `balancing-adjustment`, `trade-in` and `gst-margin-scheme`, and `input`, that command's arguments; see [Derivations](#derivations) |
 
-The 2 car commands, the 11 FBT benefit commands (`fbt-loan`, `fbt-meal-entertainment`, `fbt-car-parking`, `fbt-debt-waiver`, `fbt-expense-payment`, `fbt-property`, `fbt-residual`, `fbt-housing`, `fbt-lafha`, `fbt-board` and `fbt-tax-exempt-body-entertainment`), `main-residence`, `borrowing-expenses`, `fuel-tax-credits`, `division-296`, `termination-payment`, `etp-tax-free-component`, `unused-leave-payment`, the 3 `schedule-5` commands, `working-holiday-maker-withholding`, `seniors-pensioners-withholding`, `seniors-pensioners-tax-offset`, `medicare-levy-surcharge`, `foreign-resident-tax`, `payg-gross-up`, `hire-purchase-schedule`, `chattel-mortgage-schedule`, `loan-transactions`, `lump-sum-arrears-tax-offset`, `fbt-entertainment-classifier`, `fbt-meal-entertainment-register`, `income-tests`, `business-capital-expenditure`, `balancing-adjustment` and `trade-in` have no Python original; their arguments follow the same
+The 2 car commands, the 11 FBT benefit commands (`fbt-loan`, `fbt-meal-entertainment`, `fbt-car-parking`, `fbt-debt-waiver`, `fbt-expense-payment`, `fbt-property`, `fbt-residual`, `fbt-housing`, `fbt-lafha`, `fbt-board` and `fbt-tax-exempt-body-entertainment`), `main-residence`, `borrowing-expenses`, `fuel-tax-credits`, `division-296`, `termination-payment`, `etp-tax-free-component`, `unused-leave-payment`, the 3 `schedule-5` commands, `working-holiday-maker-withholding`, `seniors-pensioners-withholding`, `seniors-pensioners-tax-offset`, `medicare-levy-surcharge`, `foreign-resident-tax`, `payg-gross-up`, `hire-purchase-schedule`, `chattel-mortgage-schedule`, `loan-transactions`, `lump-sum-arrears-tax-offset`, `fbt-entertainment-classifier`, `fbt-meal-entertainment-register`, `fbt-minor-benefit-check`, `income-tests`, `business-capital-expenditure`, `balancing-adjustment`, `trade-in` and `gst-margin-scheme` have no Python original; their arguments follow the same
 rules. `division-296` alone takes a negative amount, in `total_super_earnings`. `main-residence` also takes dates as `YYYY-MM-DD` strings, lists of
 `{"start", "end"}` periods (with `"floor_area"` for income use) and `null`
 for no new home. `borrowing-expenses` takes `loan_start` as a `YYYY-MM-DD`
@@ -306,6 +314,7 @@ trade-in steps add GST Act ss 9-70, 9-75, 11-30, 69-10 and 132-5 and ITAA
 | --- | --- |
 | GST | 2025-26 to 2027-28, one ordinary taxable supply at 10%; no classification or BAS |
 | Fuel tax credits | 2022-23 to 2026-27, fuel acquired from 1 July 2022 to 31 January 2027 at the ATO's 16 published rate periods; established entitlement, fuel, quantity and use |
+| GST margin scheme | 2025-26 to 2027-28, one taxable supply of real property under a contract from 9 December 2008; the s 75-5 conditions, the consideration or a valuation under s 75-10(3) items 1 to 4, and a lot's share under s 75-15; acquisitions s 75-11 governs are refused |
 | Resident tax | 2024-25 to 2027-28; full-year resident ordinary income, before offsets and levies |
 | Foreign resident tax | 2024-25 to 2027-28; full-year foreign resident ordinary income, no tax-free threshold; no Medicare levy or low income tax offset applies |
 | CGT | 2025-26 and 2026-27, resident individual's established gains and losses; losses before the 50% discount |
@@ -328,6 +337,7 @@ trade-in steps add GST Act ss 9-70, 9-75, 11-30, 69-10 and 132-5 and ITAA
 | FBT board | Years ended 31 March 2026 and 2027; the established meals at $2.00 and $1.00, contributions and deductible share |
 | FBT tax-exempt body entertainment | Years ended 31 March 2026 and 2027; established non-deductible entertainment expenditure, actual or per head |
 | FBT meal entertainment register | Years ended 31 March 2026 and 2027; one 12 week register's period, entries and validity years, with the 20% rule from the yearly expenses given; not whether the period is representative or an entry false |
+| FBT minor benefits | Years ended 31 March 2026 and 2027; one benefit's established category, notional taxable value and s 58P(1)(f) criteria, weighed as TR 2007/12's examples weigh them |
 | FBT entertainment classifier | Years ended 31 March 2026 and 2027; an ordinary taxable employer's entertainment expense lines with established facts, split per head between attendee classes; no tax-exempt bodies, Subdivision 32-B exceptions, salary packaging or reportable fringe benefits amounts |
 | Depreciation | 2025-26 and 2026-27, an ordinary tangible Division 40 asset's start year, or a later year from its established opening adjustable value; established life and use |
 | SG | Complete quarters of 2025-26; established OTE, eligibility and qualifying contributions |
@@ -956,6 +966,56 @@ the employer's to establish. The car
 parking register is outside it. See
 [calculation evidence](docs/calculation-evidence.md#fbt-meal-entertainment-register).
 
+## FBT minor benefits
+
+`fbt-minor-benefit-check` screens one benefit, in the FBT year ended 31 March
+2026 or 2027, against the minor benefits exemption of FBTAA s 58P. It decides
+the conditions and lists each with its authority, naming every one that fails
+in `failing_conditions`:
+
+- `not_in_house`: an `expense_payment`, `property` or `residual` benefit that,
+  as a fringe benefit of that kind, would not be in-house (`in_house` false:
+  s 58P(1)(c));
+- `tax_exempt_body_exception`: for `tax_exempt_body_entertainment`, the
+  entertainment is incidental to entertaining outsiders and neither a meal nor
+  provided in connection with one, other than light refreshments
+  (`incidental_to_outsiders_no_meal`), or on eligible premises of the employer
+  (s 136(1)) solely to recognise the employee's special achievements
+  (`special_achievement_on_premises`), not `none` (s 58P(1)(d));
+- `not_fifty_fifty_split`: `meal_entertainment` or
+  `entertainment_facility_leasing` is not valued by the 50/50 split method
+  (Division 9A or s 152B: TR 2007/12 para 14). It is never met:
+  `fifty_fifty_split` false is refused, and the benefit is then screened under
+  its own category;
+- `not_salary_sacrifice`: not under a salary sacrifice arrangement
+  (TR 2007/12 para 16);
+- `less_than_300`: `notional_taxable_value`, for this one benefit to this one
+  person in the current year, is less than $300 (s 58P(1)(e)); $300 itself
+  fails.
+
+The criteria of s 58P(1)(f) are stated facts: `frequency`
+(`infrequent_and_irregular`, `infrequent_and_regular` such as each Christmas,
+or `frequent`), whether the total of similar benefits and of other associated
+benefits is substantial, whether the value is hard to work out, whether it
+helped with an unexpected event and whether it is a reward for services.
+`criteria` shows which way each weighs, and `screen` weighs them as TR 2007/12,
+the Commissioner's public ruling, weighs its examples: `exempt` where similar
+benefits are not frequent, neither total is substantial and the benefit is
+not both regular and a reward for services (examples 1 to 3, 5 to 7 and 9 to
+11: a yearly gift or party, flowers, a car lent after a storm,
+ad hoc tolls, a recognition voucher, a one-off gym membership, babysitting
+during unexpected overtime), `not_exempt` where they are frequent with a
+substantial total, a reward for services, readily valued and not for an
+unexpected event (example 8, monthly incentive vouchers) or a condition fails,
+and `judgement_required` otherwise, with `exempt` null. `consequences` says
+what each outcome means: an exempt benefit is not a fringe benefit
+(s 136(1), para (g)), so it adds nothing to the FBT return or the reportable
+amount. Whether benefits are associated (s 58P(2)), the notional taxable
+value, benefits exempt under another provision and the income tax and GST
+treatment of exempt entertainment are out of scope. TR 2007/12 para 11 still
+lists airline transport benefits; Act No. 88 of 2013 repealed that exclusion.
+See [calculation evidence](docs/calculation-evidence.md#fbt-minor-benefit-check).
+
 ## Main residence
 
 `main_residence` works out how much of an individual's capital gain or loss on
@@ -1484,6 +1544,74 @@ is payable, a decreasing adjustment arising in a later year (s 27-95(5)) and
 increasing adjustments are out of scope, as is everything `balancing-adjustment`
 leaves out. The tests hold it to the ATO's examples for Darren's car and Ian's
 vehicle; see [calculation evidence](docs/calculation-evidence.md#trade-in).
+
+## GST margin scheme
+
+`gst-margin-scheme` decides whether the margin scheme of GST Act Division 75
+can apply to one taxable supply of real property in 2025-26 to 2027-28, and
+works out the GST with and without it. It lists each condition of s 75-5 with
+its authority and whether it is met, names each one that fails in
+`failing_conditions`, and gives `eligible`:
+
+- `real_property_interest`: `interest` is `freehold_interest`, `stratum_unit`
+  or `long_term_lease` (at least 50 years: s 195-1), not `other`
+  (s 75-5(1));
+- `written_agreement`: `agreement` is `written_on_or_before_supply` or
+  `written_in_further_period_allowed` (a further period the Commissioner
+  allows), not `none` (s 75-5(1) and (1A)); a contract applying the scheme if
+  the supply turns out to be taxable is enough (GSTR 2006/8 para 27);
+- `acquisition_eligible`: `acquisition`, how you acquired the entire interest,
+  is not `taxable_supply_without_margin_scheme` (s 75-5(2) and (3)(a)). It is
+  otherwise `taxable_supply_under_margin_scheme`, `other_supply_from_1_july_2000`
+  (a supply that was not taxable, such as from a seller not registered for GST)
+  or `before_1_july_2000` (acquired, or contracted to acquire, before then:
+  GSTR 2006/8 para 39A; a pre-1 July 2000 contract settled later as a fully
+  taxable supply is `taxable_supply_without_margin_scheme`).
+
+The margin is the amount by which `consideration`, the GST-inclusive price,
+exceeds the base, or nil (s 75-10(2) and (3)). `method` sets the base:
+
+- `consideration`: `acquisition_consideration`, what you gave for the
+  interest, less `unpaid_acquisition_consideration`, any of it still unpaid at
+  the supply (s 75-12), disregarding improvements, development, legal fees and
+  stamp duty (s 75-14); for an interest acquired before 1 July 2000, this
+  states that no approved valuation as at the day s 75-10(3) fixes has been
+  made, since one that has sets the margin;
+- `approved_valuation`, for an interest acquired before 1 July 2000 only: an
+  `approved_valuation` made under the Commissioner's requirements (s 75-35) as
+  at `valuation_day`, which must be the day s 75-10(3) fixes from
+  `registered_on_1_july_2000` and `government_unimproved_on_1_july_2000`:
+  1 July 2000 (items 1 and 3), the date of effect of a registration after then
+  or the earlier day of applying, which may be on or before 1 July 2000
+  (item 2), or for the Commonwealth, a State or a
+  Territory with land unimproved on 1 July 2000, the day of the supply,
+  valued as if unimproved (item 4 and (3A)). A supply both items 2 and 4
+  describe is refused.
+
+For a supply of part of the land, `subdivision_share` and `subdivision_whole`
+(area, expected price or another reasonable measure) take that proportion of
+the base, `apportioned_base` (s 75-15). `gst_under_margin_scheme` is 1/11 of
+the margin (s 75-10(1)), `gst_without_margin_scheme` 1/11 of the consideration
+(ss 9-70 and 9-75(1)), each rounded to the cent, 0.5 up, as one supply on one
+invoice (s 9-90(1)); `gst` is the first when every condition is met and the
+second otherwise. Both are shown either way, so the 2 can be compared before
+the agreement is signed. `consequences` says what follows: under the scheme the
+recipient cannot claim an input tax credit (s 75-20), and can use the scheme
+on its own later sale.
+
+It refuses an acquisition whose eligibility or margin other provisions govern,
+naming them: from a fellow GST group member, a GST joint venture operator or an
+associate, by inheritance, as a GST-free going concern or farm land, through a
+supply GST-free under s 38-445(1A), or in part through an ineligible supply
+(ss 75-5(3)(b) to (g), 75-10(3) item 2A, 75-11 and 75-22), and a supply to an
+associate (`recipient_associate` true), whose margin s 75-13 works from the
+GST inclusive market value. It also refuses a valuation for an interest acquired from 1 July 2000, a valuation day s
+75-10(3) does not fix, unpaid consideration above the consideration, and a
+share that is nil or above the whole. Deciding whether the supply is taxable,
+the valuation, the apportionment's basis, GST at settlement, adjustments under
+ss 75-22 and 75-27, contracts before 9 December 2008 and several supplies on
+one invoice are out of scope. See
+[calculation evidence](docs/calculation-evidence.md#gst-margin-scheme).
 
 ## Division 296
 
