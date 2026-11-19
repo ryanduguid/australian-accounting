@@ -2435,6 +2435,47 @@ earlier ETPs in the year or for the same termination (which reduce the caps,
 s 82-10(4)(a) and (b)), delayed termination payments, payees without a TFN,
 foreign residents and working holiday makers are outside it.
 
+## Franking account
+
+This worksheet's evidence was read on 19 November 2026 from 9.45 pm to
+10.10 pm AEDT:
+
+- ITAA 1997 ss 202-60, 202-65, 202-75, 203-20 to 203-55, 204-70, 204-75,
+  205-15, 205-25, 205-30, 205-40, 205-45, 205-50, 205-70, 214-15 to 214-25,
+  214-150 and 214-155 on the ATO's legal database
+  (https://www.ato.gov.au/law/view/document?docid=PAC/19970038/205-70 and the
+  sections beside it). The disclosure of significant variations is
+  Subdivision 204-E (ss 204-70 and 204-75), not Division 203.
+- New Business Tax System (Franking Deficit Tax) Act 2002 s 5: the tax is the
+  deficit at the year's end (s 5(a)); (Over-franking Tax) Act 2002 s 5: the tax
+  is the amount s 203-50(2)(a) works out. Both on the Federal Register of
+  Legislation (C2004A00982 and C2004A00981, latest versions).
+- The ATO's Franking account tax return 2026 instructions (published
+  30 May 2026). 'How to get': the return is needed only for franking deficit
+  tax, over-franking tax or a significant variation. 'About', example 2: RI Pty
+  Ltd's $45,000 R&D refund, then $30,000 of tax credited nil and $36,000
+  credited $21,000. 'How to lodge and pay': the last day of the month after the
+  year's end. Section A: codes S, D, F and P. Section B: label A includes the
+  credit for the previous year's tax and not the opening balance; the step 3
+  method for the attributable part; example 4, EKW Ltd, offset $62,000 on
+  $80,000; example 5, Salomon Pty Ltd, $500 x (60% / 2.3333) = $128. The
+  example's $214 is 99.87% of the $214.2857 maximum under s 203-35, so the test
+  allocates $214.29, which s 202-65 caps at the maximum; the command shows
+  $128.57 and does not round to the return's whole dollars, for which no rule
+  was read. Section C: examples 7 to 9 (XYZ, Dombey, Isanini and Acolmal) and
+  benchmarks to 2 places, 5 up.
+- The s 205-70(2) note's example: $20,000 of a $60,000 offset used and $40,000
+  carried forward.
+- A private company case (opening $55,000, $181,714 of credits, FDT $123,286,
+  offset $86,300.20) is worked by hand in the test; it follows the Library's
+  Otage Pty Ltd example at ¶10-020, which could not be reread on
+  19 November 2026.
+
+The statute reduces 'so much of [the tax] as is attributable to' item 1, 2, 3,
+5 and 6 debits (s 205-70(2) step 1); this worksheet takes that part by the
+ATO's step 3 method, as section B does. The opening surplus counts in it, and a
+deficit opening does not, its credit being in the year's credits.
+
 ## DASP tax
 
 Added on 19 November 2026. Its sources were read that afternoon: the

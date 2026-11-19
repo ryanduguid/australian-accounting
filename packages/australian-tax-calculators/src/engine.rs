@@ -4842,6 +4842,8 @@ pub use business_capital::business_capital_expenditure;
 
 mod balancing;
 pub use balancing::balancing_adjustment;
+mod franking_account;
+pub use franking_account::{FrankingArgs, franking_year};
 mod trade_in;
 pub use trade_in::{TradeInArgs, trade_in};
 mod fbt_ev_exemption;
@@ -6151,7 +6153,7 @@ pub use fhss::{FhssArgs, fhss};
 mod ppsr_timing;
 pub use ppsr_timing::ppsr_timing;
 
-const KINDS: [&str; 64] = [
+const KINDS: [&str; 65] = [
     "gst",
     "gst_margin_scheme",
     "fuel_tax_credits",
@@ -6168,6 +6170,7 @@ const KINDS: [&str; 64] = [
     "business_capital_expenditure",
     "balancing_adjustment",
     "trade_in",
+    "franking_account",
     "dasp_tax",
     "payroll_tax",
     "fbt",

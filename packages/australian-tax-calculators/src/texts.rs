@@ -55,6 +55,10 @@ pub const SCOPES: &[(&str, &str)] = &[
         "One loan's statement from start_date to end_date, starting in the income year given and ending less than 30 years later. The operator establishes the balance owing at the start, the annual interest rate from the start and each dated change to it, and each drawing and repayment with its date and amount. A day's rate change and transactions take effect on that day. Each day's interest is the balance owing at the end of the day, when above nil, times the annual rate in force that day divided by 365, in leap years too; the interest accrued is debited to the loan on the last day of each month and on end_date, rounded half up to the cent, so each income year's interest is debited by its 30 June and the interest by income year is the interest debited in it. The statement lists the opening balance, each rate change, drawing, repayment and interest debit with the running balance, as rows and as a printable table. Interest charged on money borrowed is deductible under ITAA 1997 s 8-1(1) to the extent the money is used to gain or produce assessable income, and not to the extent it is capital, private or domestic (s 8-1(2)). Refuses a start outside the income year, an end before the start or 30 years or more after it, more than 5,000 transactions or 1,000 rate changes, an entry not in date order or outside the statement, 2 rate changes on one day or one on start_date, a rate outside 0 to 1, and a balance below nil at the end of a day (a loan in credit). Excludes deciding the extent of income use, whether any amount is deductible and the purpose of the borrowing; interest on another day count, compounding or rest, or charged in advance; fees and charges; offset accounts and redraw limits; interest on a balance in credit; Division 7A loans (div7a-loan-review); substituted accounting periods; and the lender.",
     ),
     (
+        "franking_account",
+        "One corporate tax entity's franking account for an income year from 1 July to 30 June, 2025-26 or 2026-27, under ITAA 1997 Division 205 as read on the ATO's legal database on 19 November 2026, for a company, corporate limited partnership or public trading trust that satisfies the residency requirement (s 205-25) for the year and for every event, and is a franking entity throughout it. The operator establishes the balance at the end of the previous year (a deficit as a negative amount, which that year's franking deficit tax credits at the start of this one: s 205-15(1) item 5); the corporate tax rate for imputation purposes, 25% or 30%; the R&D deferral left from earlier years (s 205-15(4)); each event with its date and amount: PAYG instalments and income tax paid (items 1 and 2, reduced by the R&D deferral), franked distributions received and flowing indirectly (items 3 and 4, the franking credit or its share), item 4A, exploration credits (item 7) and Australian DMT tax paid (item 9), and the debits for income tax refunds (item 2, less the part attributable to a refundable R&D tax offset, s 205-30(2)(b), which joins the deferral), linked distributions, tax-exempt bonus shares, streaming determinations, share capital tainting and untainting, buy-backs, selective capital reductions and DMT refunds (items 5, 6, 7, 7A, 7B, 9, 9A, 9B and 14), each at the amount the provision gives; and each frankable distribution, in date order, with the franking credit allocated. A distribution's franking credit is the allocated credit up to its maximum, the distribution over the gross-up rate, (100% less the rate) over the rate (ss 202-60 and 202-65), and is debited on its day (item 1); its franking percentage is the allocated credit over the maximum, at most 100% (s 203-35). The first frankable distribution in each franking period (the income year for a private company, otherwise its first 6 months and the rest: ss 203-40(2) and 203-45) sets the benchmark (s 203-30); a later one franked above the benchmark, or a percentage the Commissioner permitted (s 203-55), gives over-franking tax and one below it a franking debit (item 3), each the distribution times the differential over the gross-up rate (s 203-50; Over-franking Tax Act 2002 s 5), unless s 203-20 exempts the entity. A refund paid in the 3 months after the year's end is taken to be received just before it when it would put the account into deficit or further into it (s 205-50(2)), and is otherwise left for the next year. Franking deficit tax is the deficit at the year's end (s 205-45(2); Franking Deficit Tax Act 2002 s 5). The year's offset (s 205-70(2) step 1) is that tax less 30% of the part of it attributable to item 1, 2, 3, 5 and 6 debits when that part exceeds 10% of the year's credits, by the ATO's method: the part is the opening surplus and the year's credits less those debits, when below nil, and item 2 debits count only beside an item 1, 3, 5 or 6 debit (s 205-70(8)). It is not reduced for a private company that meets s 205-70(5) or under a Commissioner's determination (s 205-70(6)). With income_tax, the offset and the offset brought forward (s 205-70(1)(c)) are applied to the income tax left after the offsets s 63-10 applies first, and the rest is carried forward. Each franking period's benchmark is compared with the last one for a significant variation: more than 20 percentage points for each franking period after that one, up to and including this one (s 204-70), not where the benchmark rule does not apply. The franking return is required where there is franking deficit tax, over-franking tax or a significant variation (the ATO's 'How to get'); it and the tax are due on the last day of the month after the year's end (s 214-150(1)), tax from a refund after the year's end with an outstanding return or 14 days after the refund (s 214-150(4)), and general interest charge runs from the due date (s 214-155). Amounts are worked exactly and shown to the cent, half up; the return's whole-dollar label figures are not worked out. Excludes deciding any event's amount or item, whether a distribution is frankable, the residency requirement and the corporate tax rate for imputation purposes; an entity that ceases to be a franking entity (item 4 debit, s 205-45(3) and s 205-50(3)), joins or leaves a consolidated group, or is a New Zealand franking company, a pooled development fund, a friendly society (item 6 credit, items 10 to 12 debits), a life insurance company or an exempting or former exempting entity (Division 208); items 2A, 6A, 6B, 8 and 13 (diverted profits tax); an earlier year in which the residency requirement was not met (s 205-70(1)(b)); RSA components (ss 205-15(3) and 205-30(2)(a)); substituted accounting periods and late balancers' 30 June election; deciding whether a late distribution statement was allowed (s 202-75(4)), which it flags; and the lodgment itself.",
+    ),
+    (
         "wine_equalisation_tax",
         "Wine tax on one tax period's taxable dealings in wine in a financial year from 2023-24 to 2027-28, by an entity registered or required to be registered for GST, and the producer rebate on them (A New Tax System (Wine Equalisation Tax) Act 1999). The operator establishes each dealing: what it is, that it is in assessable wine in the indirect tax zone, that no exemption other than quoting applies, and its price. Its taxable value is: for a wholesale sale, the price excluding wine tax and GST (s 5-5, items AD1a, AD1b and AD11b); for a retail sale that is an assessable dealing, and for an application to own use connected with retail sales (consuming or giving away wine in connection with retail sales, such as tastings), the notional wholesale selling price by the half retail price method, 50% of the retail price including wine tax and GST (ss 9-30 and 9-35; WETR 2009/1 para 143), or for grape wine, when chosen, by the average wholesale price method, the weighted average price excluding wine tax and GST of the tax period's wholesale sales of the same vintage and grape varieties (ss 9-25 and 9-40), allowed only where at least 10% by value of those sales are wholesale sales; and for an application to own use of wine purchased under quote, the purchase price excluding GST (items AD3c(a) and AD13c(a)). Each notional wholesale selling price is rounded half up to the cent. The wine tax is 29% of the taxable value, rounded half up to the cent (s 5-5(3)); a sale under quote is not taxable (s 7-10). For a wholesale sale, a sale under quote and a retail sale the GST is shown too, on the WET inclusive price or within the retail price, assuming a taxable supply. A dealing given with rebate_conditions earns the producer rebate, 29% of the price excluding wine tax and GST of a wholesale sale or sale under quote, or of the notional wholesale selling price of a retail sale or application to own use (s 19-15(1)), when the operator states that the entity is the wine's producer, owns the source product for at least 85% of the wine throughout its making and has it in a container of at most 5 litres (51 litres for cider or perry) suitable for retail sale and branded with its trade mark (s 19-5(1), (3) to (5) and (7)), and the dealing is one it is liable to wine tax on or, for a sale under quote, the quote states none of the intentions in s 5-50(1)(b). The rebates are capped for the financial year at $350,000 to 2025-26 and $400,000 from 2026-27 (s 19-15(2), as amended by Act No. 12 of 2026 for assessable dealings from 1 July 2026), for the producer or its group of associated producers (ss 19-15(3) and 19-20), less the rebates claimed in the year's earlier tax periods (WETR 2009/2 para 67). The amounts for BAS label 1C (wine tax payable) and 1D (wine tax refundable, here only the producer rebate) are the totals rounded down to whole dollars. Refuses a year outside 2023-24 to 2027-28, the average wholesale price method for wine that is not grape wine or without the 10% share, and a rebate on an application to own use of wine purchased under quote (its rebate would be on the notional wholesale selling price). Excludes deciding what a dealing is, whether the wine is assessable wine or grape wine, the price (arm's length, s 27-10; packages with other goods, s 27-15; containers, s 9-65), quoting entitlements, the rebate conditions and associated producers; importations and other customs dealings (paid to the Department of Home Affairs), royalty-inclusive dealings, indirect marketing schemes' notional prices, airport shop goods and other dealings valued under s 9-45; wine tax credits other than the producer rebate (s 17-5), such as bad debts and earlier wine tax; New Zealand participants; the transitional rules for 2017 and earlier vintage wine and for wine being made into fortified wine on 1 January 2018; excess claims under s 19-25; correcting earlier errors; and attributing a dealing to a tax period.",
     ),
@@ -332,6 +336,10 @@ pub const SOURCES: &[(&str, &str)] = &[
     (
         "gst_margin_scheme",
         "https://www.ato.gov.au/law/view/document?DocID=PAC/19990055/75-5",
+    ),
+    (
+        "franking_account",
+        "https://www.ato.gov.au/law/view/document?docid=PAC/19970038/205-70",
     ),
     (
         "trade_in",
@@ -682,6 +690,28 @@ pub const EXTRA_SOURCES: &[(&str, &[&str])] = &[
             "https://www.ato.gov.au/law/view/document?DocID=PAC/19990055/9-90",
             "https://www.ato.gov.au/law/view/document?DocID=GST/GSTR20068/NAT/ATO/00001",
             "https://www.ato.gov.au/businesses-and-organisations/gst-excise-and-indirect-taxes/gst/in-detail/your-industry/property/gst-and-the-margin-scheme",
+        ],
+    ),
+    (
+        "franking_account",
+        &[
+            "https://www.ato.gov.au/law/view/document?docid=PAC/19970038/205-15",
+            "https://www.ato.gov.au/law/view/document?docid=PAC/19970038/205-30",
+            "https://www.ato.gov.au/law/view/document?docid=PAC/19970038/205-45",
+            "https://www.ato.gov.au/law/view/document?docid=PAC/19970038/205-50",
+            "https://www.ato.gov.au/law/view/document?docid=PAC/19970038/202-60",
+            "https://www.ato.gov.au/law/view/document?docid=PAC/19970038/203-30",
+            "https://www.ato.gov.au/law/view/document?docid=PAC/19970038/203-35",
+            "https://www.ato.gov.au/law/view/document?docid=PAC/19970038/203-40",
+            "https://www.ato.gov.au/law/view/document?docid=PAC/19970038/203-50",
+            "https://www.ato.gov.au/law/view/document?docid=PAC/19970038/204-70",
+            "https://www.ato.gov.au/law/view/document?docid=PAC/19970038/214-150",
+            "https://www.legislation.gov.au/C2004A00982/latest/text",
+            "https://www.legislation.gov.au/C2004A00981/latest/text",
+            "https://www.ato.gov.au/forms-and-instructions/franking-account-tax-return-2026-instructions/how-to-get-the-franking-account-tax-return-2026",
+            "https://www.ato.gov.au/forms-and-instructions/franking-account-tax-return-2026-instructions/about-the-franking-account-tax-return",
+            "https://www.ato.gov.au/forms-and-instructions/franking-account-tax-return-2026-instructions/instructions-to-complete-the-franking-account-tax-return-2026/section-b-franking-deficit-tax-and-over-franking-tax",
+            "https://www.ato.gov.au/forms-and-instructions/franking-account-tax-return-2026-instructions/instructions-to-complete-the-franking-account-tax-return-2026/section-c-significant-variation-in-benchmark-franking-percentage",
         ],
     ),
     (
@@ -1844,6 +1874,34 @@ pub const REFUSAL_CODES: &[(&str, &str)] = &[
         "determination_date is not in the financial year given as year.",
     ),
     (
+        "franking_account.distribution_invalid",
+        "A distribution is not an object of date (in the income year, in date order), amount above nil and franking_credit, with optional permitted_percentage (from 0 to 100, after the first in its franking period) and statement_after_distribution (a private company's only), or distributions is not a list of at most 10,000.",
+    ),
+    (
+        "franking_account.event_invalid",
+        "An event is not an object of date (in the income year, or for an income tax refund the 3 months after it), a type the command takes and an amount above nil, with rd_offset_part for an income tax refund only, or events is not a list of at most 10,000.",
+    ),
+    (
+        "franking_account.facts_conflict",
+        "A private company was said to be exempt from the benchmark rule, which s 203-20 gives only to a listed public company and its 100% subsidiaries.",
+    ),
+    (
+        "franking_account.income_tax_invalid",
+        "income_tax is not an object of before_fdt_offset and offset_brought_forward in AUD, with earlier_year_liability for a private company only.",
+    ),
+    (
+        "franking_account.income_tax_needed",
+        "The offset reduction would apply to a private company, and s 205-70(5) needs its income tax facts to decide whether it does.",
+    ),
+    (
+        "franking_account.last_benchmark_invalid",
+        "last_benchmark is not null or an object of percentage (0 to 100) and periods_since (a whole number from 1).",
+    ),
+    (
+        "franking_account.rate_invalid",
+        "The corporate tax rate for imputation purposes is not 0.25 or 0.30.",
+    ),
+    (
         "fuel_tax_credits.date_outside_year",
         "A line's acquisition day is outside the income year given.",
     ),
@@ -2049,7 +2107,7 @@ pub const REFUSAL_CODES: &[(&str, &str)] = &[
     ),
     (
         "input.field_unknown",
-        "A field the worksheet or command does not take, or does not take beside the other inputs given, was given (fbt-loan, fbt-meal-entertainment, fbt-car-parking, fbt-debt-waiver, fbt-expense-payment, fbt-property, fbt-residual, fbt-housing, fbt-lafha, fbt-board, fbt-tax-exempt-body-entertainment, fbt-entertainment-classifier, fbt-meal-entertainment-register and its entries, fbt-minor-benefit-check, ppsr-timing, fhss and its contributions, personal_deductions and determination, division-296, depreciation, fuel-tax-credits and its lines, foreign-resident-tax, medicare-levy, medicare-levy-surcharge, payg-withholding, payg-gross-up, termination-payment, etp-tax-free-component, unused-leave-payment, the Schedule 5 methods, working-holiday-maker-withholding, study-loan-withholding, seniors-pensioners-withholding, seniors-pensioners-tax-offset, lump-sum-arrears-tax-offset, hire-purchase-schedule, chattel-mortgage-schedule, loan-transactions and its transactions and rate_changes, borrowing-expenses-schedule and its loans, business-capital-expenditure and its items, balancing-adjustment, its years and car_limit, trade-in, dasp-tax, gst-margin-scheme, wine-equalisation-tax and its dealings, luxury-car-tax and its lines, payroll-tax, cgt-parcels, its parcels and disposals, fbt-ev-exemption-check, contribution-caps given a carry-forward input, derive, personal-tax-estimate, dgr-check, income-tests and fbt-return only).",
+        "A field the worksheet or command does not take, or does not take beside the other inputs given, was given (fbt-loan, fbt-meal-entertainment, fbt-car-parking, fbt-debt-waiver, fbt-expense-payment, fbt-property, fbt-residual, fbt-housing, fbt-lafha, fbt-board, fbt-tax-exempt-body-entertainment, fbt-entertainment-classifier, fbt-meal-entertainment-register and its entries, fbt-minor-benefit-check, ppsr-timing, fhss and its contributions, personal_deductions and determination, division-296, depreciation, fuel-tax-credits and its lines, foreign-resident-tax, medicare-levy, medicare-levy-surcharge, payg-withholding, payg-gross-up, termination-payment, etp-tax-free-component, unused-leave-payment, the Schedule 5 methods, working-holiday-maker-withholding, study-loan-withholding, seniors-pensioners-withholding, seniors-pensioners-tax-offset, lump-sum-arrears-tax-offset, hire-purchase-schedule, chattel-mortgage-schedule, loan-transactions and its transactions and rate_changes, borrowing-expenses-schedule and its loans, business-capital-expenditure and its items, balancing-adjustment, its years and car_limit, trade-in, franking-account and its events, distributions and income_tax, dasp-tax, gst-margin-scheme, wine-equalisation-tax and its dealings, luxury-car-tax and its lines, payroll-tax, cgt-parcels, its parcels and disposals, fbt-ev-exemption-check, contribution-caps given a carry-forward input, derive, personal-tax-estimate, dgr-check, income-tests and fbt-return only).",
     ),
     ("input.flag_invalid", "A flag is not a JSON boolean."),
     ("input.fraction_invalid", "A fraction is outside 0 to 1."),

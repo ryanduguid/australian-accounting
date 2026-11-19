@@ -266,6 +266,21 @@ const COMMAND_ARGS: &[(&str, &[(&str, Kind)])] = &[
         ],
     ),
     (
+        "franking-account",
+        &[
+            ("private_company", Raw),
+            ("benchmark_rule_exempt", Raw),
+            ("corporate_tax_rate", Dec),
+            ("opening_balance", Dec),
+            ("rd_deferred_debit_brought_forward", Dec),
+            ("last_benchmark", Json),
+            ("events", Json),
+            ("distributions", Json),
+            ("year", Raw),
+            ("scope_confirmed", Raw),
+        ],
+    ),
+    (
         "dasp-tax",
         &[
             ("tax_free_component", Dec),
@@ -1139,6 +1154,7 @@ pub fn evaluate_coded(command: &str, v: &Value) -> Result<Value> {
             | "dasp-tax"
             | "payroll-tax"
             | "gst-margin-scheme"
+            | "franking-account"
             | "cgt-parcels"
     ) && let Some(key) = v
         .as_object()
@@ -1289,6 +1305,26 @@ pub fn evaluate_coded(command: &str, v: &Value) -> Result<Value> {
                 &a[4],
                 &a[5],
             )
+        }
+        "franking-account" => {
+            // Optional: the income tax facts s 205-70 applies the offset to,
+            // and a Commissioner's determination under s 205-70(6).
+            let income_tax = optional(v, "income_tax", Json)?;
+            let determination = optional(v, "commissioner_determination", Raw)?;
+            engine::franking_year(&engine::FrankingArgs {
+                private_company: &a[0],
+                benchmark_rule_exempt: &a[1],
+                corporate_tax_rate: &a[2],
+                opening_balance: &a[3],
+                rd_deferred_debit_brought_forward: &a[4],
+                last_benchmark: &a[5],
+                events: &a[6],
+                distributions: &a[7],
+                year: &a[8],
+                scope_confirmed: &a[9],
+                income_tax: income_tax.as_ref(),
+                commissioner_determination: determination.as_ref(),
+            })
         }
         "dasp-tax" => engine::dasp_tax(&engine::DaspTaxArgs {
             tax_free_component: &a[0],

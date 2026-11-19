@@ -28,8 +28,9 @@ use std::process::{Command, Stdio};
 /// `tests/fbt_tax_exempt_body_entertainment.rs`, `tests/lump_sum_arrears_offset.rs`,
 /// `tests/fbt_entertainment_classifier.rs`, `tests/fbt_minor_benefit.rs`,
 /// `tests/fhss.rs`, `tests/ppsr_timing.rs`, `tests/dasp_tax.rs`, `tests/income_tests.rs`,
-/// `tests/wine_equalisation_tax.rs` and `tests/luxury_car_tax.rs` cover them.
-const NEW_KINDS: [(&str, &str); 50] = [
+/// `tests/franking_account.rs`, `tests/wine_equalisation_tax.rs` and
+/// `tests/luxury_car_tax.rs` cover them.
+const NEW_KINDS: [(&str, &str); 51] = [
     ("fhss", "fhss"),
     ("ppsr-timing", "ppsr_timing"),
     ("dasp-tax", "dasp_tax"),
@@ -100,6 +101,7 @@ const NEW_KINDS: [(&str, &str); 50] = [
         "fbt-meal-entertainment-register",
         "fbt_meal_entertainment_register",
     ),
+    ("franking-account", "franking_account"),
     ("luxury-car-tax", "luxury_car_tax"),
 ];
 

@@ -4,6 +4,20 @@
 
 ### Added
 
+- `franking-account` keeps a corporate tax entity's franking account for
+  2025-26 or 2026-27 under ITAA 1997 Division 205: credits and debits by
+  table item, the R&D deferral (s 205-15(4)), refunds after the year's end
+  (s 205-50(2)), franking deficit tax and its offset with the 30% reduction
+  of the attributable part and the s 205-70(5) and (6) exceptions, the
+  benchmark rule's over-franking tax and debits per franking period, the
+  significant variation test (s 204-70), the franking return's labels and
+  its due date. New codes: `franking_account.distribution_invalid`,
+  `franking_account.event_invalid`, `franking_account.facts_conflict`,
+  `franking_account.income_tax_invalid`,
+  `franking_account.income_tax_needed`,
+  `franking_account.last_benchmark_invalid` and
+  `franking_account.rate_invalid`. `tests/franking_account.rs` holds it to
+  the ATO's Franking account tax return 2026 examples.
 - `cgt-parcels` works out the capital gains and losses from selling shares
   or units held in parcels bought at different times, for contracts in
   2025-26 or 2026-27: each sale matched first in, first out or to the parcels

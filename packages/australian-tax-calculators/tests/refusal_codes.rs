@@ -38,6 +38,7 @@ fn every_code_at_a_refusal_site_is_catalogued_and_every_entry_is_used() {
         "engine/fbt_benefits",
         "engine/fbt_benefits/entertainment",
         "engine/fhss",
+        "engine/franking_account",
         "engine/fuel_tax_credits",
         "engine/hire_purchase",
         "engine/luxury_car_tax",
@@ -162,8 +163,8 @@ fn every_catalogued_required_input_of_a_strict_command_is_read() {
     // fbt-minor-benefit-check, gst-margin-scheme, wine-equalisation-tax,
     // luxury-car-tax, borrowing-expenses-schedule, payroll-tax,
     // fuel-tax-credits, dasp-tax, ppsr-timing, cgt-parcels,
-    // fbt-ev-exemption-check and fhss.
-    assert_eq!(checked, 50);
+    // fbt-ev-exemption-check, fhss and franking-account.
+    assert_eq!(checked, 51);
 }
 
 /// Every frozen call gives the same answer through either entry point, and
