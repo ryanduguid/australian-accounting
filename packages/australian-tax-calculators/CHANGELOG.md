@@ -17,6 +17,17 @@
   `tests/borrowing_expenses_schedule.rs` holds it to the ATO's Peter and
   Fiona and Max, the Library's Ben and `borrowing-expenses` row by row.
 
+- `fbt-meal-entertainment-register` checks a 12 week meal entertainment
+  register for the FBT year ended 31 March 2026 or 2027: the continuous
+  12 week period (FBTAA s 37CC), each entry's 6 details (s 37CE(1)), the
+  years it is valid for (s 37CD(1) and (2)) and the 20% rule (s 37CD(3)),
+  each reported with its authority and the entries it fails on. A valid
+  register gives `fbt-meal-entertainment` its values and first valid year.
+  New codes: `fbt_meal_entertainment_register.entries_invalid`,
+  `fbt_meal_entertainment_register.entry_invalid` and
+  `fbt_meal_entertainment_register.period_invalid`.
+  `tests/fbt_meal_entertainment_register.rs` holds it to the sections and the
+  Library's ¶3-220 register example.
 - `etp-tax-free-component` works out the tax free component of a life benefit
   employment termination payment in 2026-27 or 2027-28: the invalidity
   segment from the days to retirement (ITAA 1997 s 82-150), the pre-July 83
