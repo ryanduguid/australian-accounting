@@ -1084,11 +1084,13 @@ Question 18 of the individual tax return instructions supplement 2026 (last
 updated 30 May 2026) gives Kathleen's examples and labels H, A and V.
 
 The Act does not say how a parcel's cost is split between the units sold and
-those kept. Each share or unit is a CGT asset, so the worksheet takes the
-part of each element reasonably attributable to the units (s 112-30(1) and
-(1A)) and of a sale's proceeds reasonably attributable to each part
-(s 116-40(1)) by number of units, rounded to the cent, half up, with the last
-units taking what is left so the parts add up.
+those kept. Each share or unit is a CGT asset, so the worksheet takes the part
+of the cost base reasonably attributable to the units (s 112-30(1) and (1A)):
+elements 1, 2, 4 and 5 together, rounded once, and costs of owning (element 3)
+apart, as the reduced cost base leaves them out (s 110-55(2)), and of a sale's
+proceeds reasonably attributable to each part (s 116-40(1)) by number of
+units, rounded to the cent, half up, with the last units taking what is left
+so the parts add up.
 
 `tests/cgt_parcels.rs` holds these cases.
 
