@@ -504,12 +504,19 @@ fn the_supplied_total_is_unchanged_and_agrees_with_the_years() {
 }
 
 /// s 292-85(3)(a): a first year of bring forward needs contributions over the
-/// general cap, $120,000 in 2024-25; at the cap the 3 times multiple is only
-/// what the year could take, and the step says so.
+/// general cap, $120,000 in 2024-25 (the ATO's 'Contributions caps', Table 4);
+/// at the cap the multiple is only what the year could take, and the step
+/// says so. A balance of $450,000 allows 3 times the cap (s 292-85(5)(b)) and
+/// one of $1,700,000, at least $1,900,000 less twice the cap but under it less
+/// the cap, twice (s 292-85(5)(a)).
 #[test]
 fn bring_forward_is_named_only_when_the_contributions_trigger_it() {
-    for (contributed, triggered) in [("120000", false), ("120000.01", true)] {
-        let mut facts = input("2024-25", "450000", "0", earlier(&SAM));
+    let cases = [("450000", "(5)(b): 3 times"), ("1700000", "(5)(a): twice")];
+    for ((balance, multiple), (contributed, triggered)) in cases
+        .into_iter()
+        .flat_map(|case| [(case, ("120000", false)), (case, ("120000.01", true))])
+    {
+        let mut facts = input("2024-25", balance, "0", earlier(&SAM));
         facts["non_concessional_contributions"] = json!(contributed);
         run(&facts);
         let envelope = json!({"command": "contribution-caps", "input": facts});
@@ -521,7 +528,8 @@ fn bring_forward_is_named_only_when_the_contributions_trigger_it() {
             .find(|s| s["id"] == "non_concessional_available")
             .unwrap();
         let authority = step["authority"].as_str().unwrap();
-        assert!(authority.starts_with("ITAA 1997 s 292-85(3) and (5)(b): 3 times"));
+        let expected = format!("ITAA 1997 s 292-85(3) and {multiple}");
+        assert!(authority.starts_with(&expected), "{balance}: {authority}");
         assert_eq!(
             authority.contains("in a first year of bring forward"),
             triggered,
