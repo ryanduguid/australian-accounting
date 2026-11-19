@@ -32,6 +32,12 @@ REMOVED_IMPORTS = {
 }
 # Crates release-policy's release-binary.yml publishes as executables.
 BINARY_RELEASES = {"australian-tax-calculators"}
+# The line each audit step ends with: cargo-audit 0.22.2 prints one of these and
+# exits 0 when it cannot fetch, open or read the crates.io index.
+UNCHECKED_YANKED = (
+    "! grep -qE \"couldn't (check if the package is yanked|update crates.io index|"
+    "open crates.io index)\" \"$RUNNER_TEMP/audit.log\""
+)
 # Runtime crates an engine may use; none is another engine or a path dependency.
 ALLOWED_DEPENDENCIES = {"num-bigint", "num-integer", "num-traits", "serde_json", "jiff", "sha2"}
 
@@ -151,6 +157,8 @@ class RustEngineTests(unittest.TestCase):
             if "cargo audit" in text:
                 with self.subTest(workflow=path.name):
                     self.assertEqual(text.count("cargo audit"), text.count(audit))
+                    # cargo-audit exits 0 when its yanked lookup fails; the step must not.
+                    self.assertEqual(text.count(audit), text.count(UNCHECKED_YANKED))
             if ("cargo audit" in text and "workflow_call:" not in text) or "uses: ./.github/workflows/ci-rust.yml" in text:
                 with self.subTest(workflow=path.name, trigger="schedule"):
                     self.assertIn("  schedule:\n", text)
