@@ -31,6 +31,14 @@ pub const SCOPES: &[(&str, &str)] = &[
         "One departing Australia superannuation payment paid in a financial year from 2025-26 to 2027-28: the tax on it by component (Superannuation (Departing Australia Superannuation Payments Tax) Act 2007 s 5). The operator establishes that the payment is a departing Australia superannuation payment (ITAA 1997 s 301-170: a superannuation lump sum paid to a person who has departed Australia under the specified regulations, s 67A of the Small Superannuation Accounts Act 1995, an exempt public sector scheme's substantially similar rules, or s 20H of the Superannuation (Unclaimed Money and Lost Members) Act 1999), its tax free component and the elements taxed and untaxed in the fund of its taxable component, as the paying fund states them, and whether it includes amounts attributable to contributions made whilst the person was a working holiday maker. The tax free component bears nil; the element taxed in the fund 35% and the element untaxed in the fund 45% (s 5(1)); where the payment includes working holiday maker contributions, both elements bear 65% (s 5(3)). The tax is the person's final liability on the payment, which is not assessable income and not exempt income (ITAA 1997 s 301-175). Refuses a payment of nil. Excludes deciding whether the payment is a departing Australia superannuation payment, its components and whether contributions were made whilst a working holiday maker; a roll-over superannuation benefit paid under s 20H(2), (2AA) or (2A) of that Act with an excess untaxed roll-over amount (s 5(2): taxed at nil here and under the Superannuation (Excess Untaxed Roll-over Amounts Tax) Act 2007 instead); payments in a temporary budget repair levy year (s 6: 2014-15 to 2016-17); the payer's withholding, payment summary and reporting duties; and a refund of tax wrongly withheld.",
     ),
     (
+        "chattel_mortgage_schedule",
+        "One loan to buy goods, secured by a chattel mortgage over them and made on the day of the purchase in the income year given, under which the purchaser takes title at the purchase, so the agreement is not a hire purchase agreement (ITAA 1997 s 995-1) and Division 240 does not apply (s 240-10). The operator establishes the amount financed (paid to the supplier for the goods), the instalments, the balloon, the start date, any deposit and trade-in (taken as paid or credited on the start date, with the goods on one tax invoice) and any GST facts, and either the instalment or a stated annual rate. The instalments are one level amount weekly, fortnightly, monthly, quarterly or annually, in arrears (at each period's end) or in advance (at its start), with any balloon paid at the end of the term, over at most 30 years; months run from the start date's day of the month (or the month's last day when it is shorter) and weeks are 7 days. Each period's interest is the balance owing, less any instalment due at the period's start, times the rate for the period (the actuarial method, TR 93/16 para 18). Given the instalment, the rate is the compound rate a month (or week) at which the payments repay the amount financed, found to 64 halvings of 0 to 100%, and a period of n months (or weeks) has the rate (1 + r)^n - 1. Given annual_rate, for monthly or weekly instalments in arrears, the rate a period is annual_rate / 12 (or / 52), the instalment is the level one that repays the amount financed with the balloon at that rate, rounded half up to the cent, and the balance that rounding leaves, rounded to the cent, is added to the last instalment. Each period shows the interest to date rounded half up to cents, less what the periods before show, so the periods add up to the total interest and the last balance is nil. The interest is totalled by income year for the periods wholly in each year; a period spanning 30 June is listed apart with its days in each year. Interest charged is deductible under s 8-1 to the extent the borrowed money is used to gain or produce assessable income and is not capital, private or domestic; where the lender's statements give the interest, that figure is used (TR 93/16 para 2). With every GST fact given, it gives a registered purchaser's input tax credit on the price (the amount financed, deposit and trade-in): 1/11 of the price, less any luxury car tax for a car (GST Act s 9-75(2)), rounded to the nearest cent, 0.5 up (s 9-90(1)); for a passenger car whose GST inclusive market value exceeds the car limit for the financial year it is first used ($69,674 for 2024-25 and 2025-26, $69,883 for 2026-27), where the purchaser may not quote an ABN for luxury car tax, no more than 1/11 of that limit (s 69-10(1)); times the extent of creditable purpose (ss 11-30(3) and 69-10(3)). The interest gives no credit, as the loan is an input taxed financial supply (s 40-5(1)). The credit is attributable to the tax period of the purchase: on an accruals basis the earlier of the invoice and any payment (s 29-10(1)), on a cash basis the payment of the full price with the borrowed funds (s 29-10(2)(a)), as the ATO's GST issues register 'Financial services - questions and answers' (issue 1.21) states. Refuses both or neither of instalment and annual_rate, annual_rate with instalments in advance or other than monthly or weekly, a rate below nil or of 100% a month (or week) or more, a rate that cannot be found closely enough to leave a nil balance to the cent, a term over 30 years, a nil amount financed or instalment, a balloon that alone repays the loan at the stated rate, a rounded instalment that moves the last instalment by more than a whole instalment (below nil or above twice the instalment), a car first used in a year whose car limit is not published, and luxury car tax above the price. Excludes deciding whether the agreement is a chattel mortgage, the extent of income use and creditable purpose; fees, charges and stamp duty; irregular or changing instalments and rates (loan_transactions takes dated rates); interest charged daily; an early payout; substituted accounting periods; apportioning a period that spans 30 June between income years; the goods' decline in value and their cost for Division 40 (ss 27-80 and 40-230); the trade-in's own GST; GST adjustments after the purchase; and the lender.",
+    ),
+    (
+        "loan_transactions",
+        "One loan's statement from start_date to end_date, starting in the income year given and ending less than 30 years later. The operator establishes the balance owing at the start, the annual interest rate from the start and each dated change to it, and each drawing and repayment with its date and amount. A day's rate change and transactions take effect on that day. Each day's interest is the balance owing at the end of the day, when above nil, times the annual rate in force that day divided by 365, in leap years too; the interest accrued is debited to the loan on the last day of each month and on end_date, rounded half up to the cent, so each income year's interest is debited by its 30 June and the interest by income year is the interest debited in it. The statement lists the opening balance, each rate change, drawing, repayment and interest debit with the running balance, as rows and as a printable table. Interest charged on money borrowed is deductible under ITAA 1997 s 8-1(1) to the extent the money is used to gain or produce assessable income, and not to the extent it is capital, private or domestic (s 8-1(2)). Refuses a start outside the income year, an end before the start or 30 years or more after it, more than 5,000 transactions or 1,000 rate changes, an entry not in date order or outside the statement, 2 rate changes on one day or one on start_date, a rate outside 0 to 1, and a balance below nil at the end of a day (a loan in credit). Excludes deciding the extent of income use, whether any amount is deductible and the purpose of the borrowing; interest on another day count, compounding or rest, or charged in advance; fees and charges; offset accounts and redraw limits; interest on a balance in credit; Division 7A loans (div7a-loan-review); substituted accounting periods; and the lender.",
+    ),
+    (
         "trade_in",
         "Trading in one depreciating asset for a replacement in an income year from 2025-26 to 2026-27, for a taxpayer with an income year from 1 July to 30 June, at arm's length, where the replacement is started to be held and first used in that income year. The traded-in asset's facts are balancing_adjustment's, and the operator establishes them as it states. Its termination value is the trade-in allowance, the amount by which the replacement's price is reduced (ITAA 1997 s 40-305(1)(b) item 2), less the GST payable on the trade-in where it is a taxable supply (1/11 of the allowance: GST Act ss 9-70 and 9-75(1); ITAA 1997 s 27-95(1)), plus the GST Act s 132-5 decreasing adjustment for an asset acquired partly for a private purpose or for making financial supplies, from its input tax credit as adjusted and the full one (s 27-95(3)); its balancing adjustment, reduction for non-taxable use and CGT event K7 amount are then worked as balancing_adjustment works them. The replacement's cost is its price before the trade-in, including GST and any luxury car tax (ss 40-180 and 40-185(1)(b) item 2), less its input tax credit (s 27-80(1)): for a creditable acquisition the GST payable, 1/11 of the price less any luxury car tax, times the extent of creditable purpose (GST Act ss 9-75, 11-25 and 11-30), and for a passenger car no more than 1/11 of the car limit times that extent (s 69-10(1) and (3)). A passenger car's cost is then reduced to the car limit for the year (ITAA 1997 s 40-230(1)): $69,674 for 2025-26 and $69,883 for 2026-27, as the ATO publishes them. Amounts are worked exactly and shown to the cent, half up. Refuses a trade-in not at arm's length (s 40-300(2) item 6, s 27-95(2) and s 40-225 would apply), an involuntary disposal (whose s 40-365 choice is not made), a taxable trade-in with an adjusted input tax credit above the full one, a creditable acquisition with a nil creditable purpose, and luxury car tax above the price. Excludes deciding whether either supply is taxable, the allowance, price, creditable purpose and input tax credits; a car whose purchaser may quote an ABN for luxury car tax, a car that is not a luxury car under s 25-1(2) of the Luxury Car Tax Act, a car leased or hired, and a car excluded from the car limit by s 40-230(2); a trade-in of a luxury car on which luxury car tax is payable; a replacement first held or used in another year; a decreasing adjustment arising in a later income year (s 27-95(5)) and increasing adjustments (s 27-95(4)); assets in a pool or written off under s 328-180 or temporary full expensing; and everything balancing_adjustment excludes.",
     ),
@@ -228,6 +236,14 @@ pub const SOURCES: &[(&str, &str)] = &[
     (
         "hire_purchase_schedule",
         "https://www.ato.gov.au/law/view/document?docid=PAC/19970038/240-60",
+    ),
+    (
+        "chattel_mortgage_schedule",
+        "https://www.ato.gov.au/law/view/print?DocID=GIR%2FFinancial-services-ch1&PiT=99991231235958",
+    ),
+    (
+        "loan_transactions",
+        "https://www.legislation.gov.au/C2004A05138/2026-10-01/2026-10-01/text/original/epub/OEBPS/document_1/document_1.html",
     ),
     (
         "balancing_adjustment",
@@ -460,6 +476,18 @@ pub const EXTRA_SOURCES: &[(&str, &[&str])] = &[
             "https://www.ato.gov.au/businesses-and-organisations/gst-excise-and-indirect-taxes/gst/in-detail/your-industry/motor-vehicle-and-transport/gst-and-motor-vehicles/purchasing-a-motor-vehicle",
             "https://www.ato.gov.au/businesses-and-organisations/income-deductions-and-concessions/depreciation-and-capital-expenses-and-allowances/simpler-depreciation-for-small-business/assets-and-exclusions",
             "https://www.ato.gov.au/law/view/print?DocID=GIR%2FFinancial-services-ch1&PiT=99991231235958",
+        ],
+    ),
+    (
+        "chattel_mortgage_schedule",
+        &[
+            "https://www.legislation.gov.au/C2004A05138/2026-10-01/2026-10-01/text/original/epub/OEBPS/document_1/document_1.html",
+            "https://www.legislation.gov.au/C2004A05138/2026-10-01/2026-10-01/text/original/epub/OEBPS/document_5/document_5.html",
+            "https://www.legislation.gov.au/C2004A05138/2026-10-01/2026-10-01/text/original/epub/OEBPS/document_10/document_10.html",
+            "https://www.legislation.gov.au/C2004A00446/2026-01-01/2026-01-01/text/original/epub/OEBPS/document_1/document_1.html",
+            "https://www.ato.gov.au/law/view/print?DocID=TXR/TR9316/NAT/ATO/00001&PiT=99991231235958",
+            "https://www.ato.gov.au/businesses-and-organisations/gst-excise-and-indirect-taxes/gst/in-detail/your-industry/motor-vehicle-and-transport/gst-and-motor-vehicles/purchasing-a-motor-vehicle",
+            "https://www.ato.gov.au/businesses-and-organisations/income-deductions-and-concessions/depreciation-and-capital-expenses-and-allowances/simpler-depreciation-for-small-business/assets-and-exclusions",
         ],
     ),
     (
@@ -785,6 +813,12 @@ pub const EXTRA_WARNINGS: &[(&str, &[&str])] = &[
         ],
     ),
     (
+        "chattel_mortgage_schedule",
+        &[
+            "interest_by_income_year totals only the periods wholly in each income year. A period spanning 30 June is listed in interest_across_30_june with its days on each side, not split: the operator establishes how much of its interest each income year incurs (ITAA 1997 s 8-1), from the lender's statements where they give it (TR 93/16 para 2).",
+        ],
+    ),
+    (
         "balancing_adjustment",
         &[
             "From 2026-27 a taxpayer who deducted an amount under s 25-130 may instead choose the fixed 50% reduction of s 40-291A for an asset used to produce assessable labour income; this worksheet applies s 40-290 and does not make that choice.",
@@ -1089,6 +1123,22 @@ pub const REFUSAL_CODES: &[(&str, &str)] = &[
         "business_capital.not_capital",
         "An item is stated not to be capital expenditure.",
     ),
+    (
+        "chattel_mortgage.balloon_too_large",
+        "At a chattel mortgage's stated annual_rate the balloon alone repays the amount financed or more.",
+    ),
+    (
+        "chattel_mortgage.final_instalment_unsupported",
+        "Rounding a chattel mortgage's instalment to the cent at its stated annual_rate moves the last instalment by more than a whole instalment: below nil or above twice the instalment.",
+    ),
+    (
+        "chattel_mortgage.stated_rate_unsupported",
+        "A chattel mortgage's annual_rate is given for instalments in advance, or other than monthly or weekly.",
+    ),
+    (
+        "chattel_mortgage.terms_conflict",
+        "A chattel mortgage is given both or neither of instalment and annual_rate.",
+    ),
     ("command.unknown", "The command does not exist."),
     (
         "contribution_caps.defined_benefit_interest",
@@ -1276,11 +1326,11 @@ pub const REFUSAL_CODES: &[(&str, &str)] = &[
     ),
     (
         "hire_purchase.amount_nil",
-        "A hire purchase agreement's amount financed or instalment is nil.",
+        "A hire purchase agreement's or chattel mortgage's amount financed or instalment is nil.",
     ),
     (
         "hire_purchase.car_limit_unknown",
-        "A car's first_used_year is one whose car limit the ATO has not published, or this worksheet does not hold.",
+        "A car's first_used_year (hire purchase or chattel mortgage GST facts) is one whose car limit the ATO has not published, or this worksheet does not hold.",
     ),
     (
         "hire_purchase.frequencies_mixed",
@@ -1288,19 +1338,19 @@ pub const REFUSAL_CODES: &[(&str, &str)] = &[
     ),
     (
         "hire_purchase.frequency_invalid",
-        "A hire purchase frequency is not weekly, fortnightly, monthly, quarterly or annual.",
+        "A hire purchase or chattel mortgage frequency is not weekly, fortnightly, monthly, quarterly or annual.",
     ),
     (
         "hire_purchase.gst_fact_conflict",
-        "Hire purchase GST facts conflict: luxury car tax above the price.",
+        "Hire purchase or chattel mortgage GST facts conflict: luxury car tax above the price.",
     ),
     (
         "hire_purchase.gst_fact_invalid",
-        "The gst facts are not an object, or one of them is not a value it takes.",
+        "The hire purchase or chattel mortgage gst facts are not an object, or one of them is not a value it takes.",
     ),
     (
         "hire_purchase.instalments_unsupported",
-        "The number of instalments is not an integer from 1 to 30 years of them at their frequency, or the segments run past 30 years.",
+        "The number of hire purchase or chattel mortgage instalments is not an integer from 1 to 30 years of them at their frequency, or the segments run past 30 years.",
     ),
     (
         "hire_purchase.payout_date_unsupported",
@@ -1320,11 +1370,11 @@ pub const REFUSAL_CODES: &[(&str, &str)] = &[
     ),
     (
         "hire_purchase.rate_imprecise",
-        "The implicit rate cannot be found closely enough to leave a nil balance to the cent, at a high rate over a long term.",
+        "A hire purchase or chattel mortgage implicit rate cannot be found closely enough to leave a nil balance to the cent, at a high rate over a long term.",
     ),
     (
         "hire_purchase.rate_unsupported",
-        "The payments imply an interest rate below nil or of 100% a month (or week) or more.",
+        "A hire purchase agreement's or chattel mortgage's payments imply an interest rate below nil or of 100% a month (or week) or more.",
     ),
     (
         "hire_purchase.segments_invalid",
@@ -1336,7 +1386,7 @@ pub const REFUSAL_CODES: &[(&str, &str)] = &[
     ),
     (
         "hire_purchase.start_outside_year",
-        "A hire purchase agreement starts outside the income year given.",
+        "A hire purchase agreement or chattel mortgage starts outside the income year given.",
     ),
     (
         "income_tests.components_inconsistent",
@@ -1413,6 +1463,9 @@ pub const REFUSAL_CODES: &[(&str, &str)] = &[
     (
         "input.field_unknown",
         "A field the worksheet or command does not take, or does not take beside the other inputs given, was given (fbt-loan, fbt-meal-entertainment, fbt-car-parking, fbt-debt-waiver, fbt-expense-payment, fbt-property, fbt-residual, fbt-housing, fbt-lafha, fbt-board, fbt-tax-exempt-body-entertainment, fbt-entertainment-classifier, division-296, depreciation, foreign-resident-tax, medicare-levy, medicare-levy-surcharge, payg-withholding, payg-gross-up, termination-payment, unused-leave-payment, the Schedule 5 methods, working-holiday-maker-withholding, study-loan-withholding, seniors-pensioners-withholding, seniors-pensioners-tax-offset, lump-sum-arrears-tax-offset, hire-purchase-schedule, business-capital-expenditure and its items, balancing-adjustment, its years and car_limit, trade-in, dasp-tax, contribution-caps given a carry-forward input, derive, personal-tax-estimate, dgr-check, income-tests and fbt-return only).",
+    ),
+    (
+        "A field the worksheet or command does not take, or does not take beside the other inputs given, was given (fbt-loan, fbt-meal-entertainment, fbt-car-parking, fbt-debt-waiver, fbt-expense-payment, fbt-property, fbt-residual, fbt-housing, fbt-lafha, fbt-board, fbt-tax-exempt-body-entertainment, fbt-entertainment-classifier, division-296, depreciation, foreign-resident-tax, medicare-levy, medicare-levy-surcharge, payg-withholding, payg-gross-up, termination-payment, unused-leave-payment, the Schedule 5 methods, working-holiday-maker-withholding, study-loan-withholding, seniors-pensioners-withholding, seniors-pensioners-tax-offset, lump-sum-arrears-tax-offset, hire-purchase-schedule, chattel-mortgage-schedule, loan-transactions and its transactions and rate_changes, business-capital-expenditure and its items, balancing-adjustment, its years and car_limit, trade-in, contribution-caps given a carry-forward input, derive, personal-tax-estimate, dgr-check, income-tests and fbt-return only).",
     ),
     ("input.flag_invalid", "A flag is not a JSON boolean."),
     ("input.fraction_invalid", "A fraction is outside 0 to 1."),
@@ -1498,6 +1551,30 @@ pub const REFUSAL_CODES: &[(&str, &str)] = &[
     (
         "leave.working_holiday_maker",
         "Unused leave paid to a working holiday maker, whom Schedule 15 covers.",
+    ),
+    (
+        "loan_transactions.balance_below_nil",
+        "A loan's balance is below nil at the end of a day.",
+    ),
+    (
+        "loan_transactions.date_outside_statement",
+        "A loan transaction or rate change is dated outside the statement (a rate change on start_date included).",
+    ),
+    (
+        "loan_transactions.end_date_invalid",
+        "A loan statement's end_date is before start_date, or 30 years or more after it.",
+    ),
+    (
+        "loan_transactions.entry_invalid",
+        "Loan transactions or rate changes are not a list of objects within the limit, or an entry's date, kind, amount or annual_rate is not a value it takes.",
+    ),
+    (
+        "loan_transactions.not_in_date_order",
+        "Loan transactions or rate changes are not in date order, or 2 rate changes fall on one day.",
+    ),
+    (
+        "loan_transactions.start_outside_year",
+        "A loan statement starts outside the income year given.",
     ),
     (
         "lump_sum_arrears.accrual_years_invalid",

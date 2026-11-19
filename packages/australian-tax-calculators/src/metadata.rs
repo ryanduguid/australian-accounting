@@ -1004,7 +1004,10 @@ pub fn supported_periods(kind: &str) -> Vec<&'static str> {
         "main_residence" => vec!["2024-25", "2025-26", "2026-27"],
         // Borrowing expenses: s 26-155 quarantines residential rental deductions
         // from 2027-28. Hire purchase: the years read.
-        "borrowing_expenses" | "hire_purchase_schedule" => vec!["2024-25", "2025-26", "2026-27"],
+        "borrowing_expenses"
+        | "hire_purchase_schedule"
+        | "chattel_mortgage_schedule"
+        | "loan_transactions" => vec!["2024-25", "2025-26", "2026-27"],
         // s 40-880 as amended by Act No 92 of 2020 applies to expenditure
         // incurred from 1 July 2020, unamended to compilation 268. It and
         // Subdivision 328-C set no figure by year, and the Register's one later
@@ -1128,6 +1131,14 @@ pub fn source_review(kind: &str) -> (&'static str, &'static str) {
         "hire_purchase_schedule" => (
             "2026-11-18",
             "ITAA 1997 Division 240 (ss 240-17, 240-20, 240-25, 240-55, 240-60, 240-65, 240-70, 240-75, 240-85, 240-105 and 240-110), s 40-230 and s 995-1 'termination amount', compilation 268 (1 October 2026); GST Act ss 9-70, 9-75, 9-90, 11-5, 11-25, 11-30, 29-10, 69-10 and 158-5, compilation 96 (1 January 2026); the ATO's 'GST – Hire purchase and leasing' (last updated 6 April 2017), 'Purchasing a motor vehicle' (last updated 3 June 2026: the 2026-27 car limit), 'Assets and exclusions' (last updated 27 May 2026: the 2024-25 and 2025-26 car limits) and the GST issues register 'Financial services - questions and answers' (issues 1.1, 1.3, 1.9, 1.15 and 1.17, updated to 7 September 2012 and 2 May 2013)",
+        ),
+        "chattel_mortgage_schedule" => (
+            "2026-11-19",
+            "ITAA 1997 ss 8-1, 240-10 and 995-1 'hire purchase agreement', compilation 268 (1 October 2026); GST Act ss 9-75, 9-90, 11-25, 11-30, 29-10, 40-5 and 69-10, compilation 96 (1 January 2026); the ATO's GST issues register 'Financial services - questions and answers' (issues 1.1, 1.14 and 1.19 to 1.21, updated to 2 May 2013), TR 93/16 (paras 2, 18 and 28 to 31) and 'Purchasing a motor vehicle' (last updated 3 June 2026: the 2026-27 car limit and Darren's example)",
+        ),
+        "loan_transactions" => (
+            "2026-11-19",
+            "ITAA 1997 s 8-1, compilation 268 (1 October 2026)",
         ),
         "fbt_car_statutory" => (
             "2026-10-29",
@@ -1348,6 +1359,18 @@ pub fn library_evidence(kind: &str) -> [(&'static str, &'static str); 4] {
             "2026-11-15",
             "2026-11-15",
         ),
+        "chattel_mortgage_schedule" => (
+            "GST: Transport, Travel and Vehicles",
+            "12-110 (the car limit on input tax credits)",
+            "2025-06-03",
+            "2026-11-19",
+        ),
+        "loan_transactions" => (
+            "ITAA 1997, compilation 268",
+            "s 8-1",
+            "2026-10-01",
+            "2026-11-19",
+        ),
         "fbt_car_statutory" | "fbt_car_operating_cost" => (
             "tax-examples-fringe-benefits-tax-fbt",
             "3-020",
@@ -1567,6 +1590,36 @@ pub fn optional_inputs(kind: &str) -> Vec<(&'static str, &'static str)> {
                 "decimal fraction above 0 and at most 1, the extent of creditable purpose of the replacement's acquisition (GST Act s 11-30); required when replacement_creditable_acquisition is true and refused otherwise",
             ),
         ],
+        "chattel_mortgage_schedule" => vec![
+            (
+                "instalment",
+                "AUD, the level instalment, from which the rate is found; give it or annual_rate, not both",
+            ),
+            (
+                "annual_rate",
+                "decimal fraction from 0 to 1, the stated annual rate, charged annual_rate / 12 a month or / 52 a week, from which the instalment is worked out; for monthly or weekly instalments in arrears only; give it or instalment, not both",
+            ),
+            (
+                "frequency",
+                "weekly, fortnightly, monthly, quarterly or annual, the instalments' frequency; monthly when omitted",
+            ),
+            (
+                "deposit",
+                "AUD, paid at the purchase towards the price, beside the amount financed; 0.00 when omitted",
+            ),
+            (
+                "trade_in",
+                "AUD, the trade-in allowance credited at the purchase towards the price; 0.00 when omitted",
+            ),
+            (
+                "gst",
+                "object of GST facts, for the purchaser's input tax credit on the price: as hire_purchase_schedule takes them. A passenger_car worth more than the car limit and not quoted for has its credit capped at 1/11 of the limit (GST Act s 69-10(1))",
+            ),
+        ],
+        "loan_transactions" => vec![(
+            "rate_changes",
+            "list of objects in date order, each with date (YYYY-MM-DD, after start_date and by end_date, one change a day) and annual_rate (decimal fraction from 0 to 1), the rate from that day",
+        )],
         "hire_purchase_schedule" => vec![
             (
                 "instalment",
@@ -2048,6 +2101,50 @@ pub fn input_units(kind: &str) -> Vec<(&'static str, &'static str)> {
             (
                 "section_26_50_applies",
                 "boolean, false only when the property is not a leisure facility, or s 26-50(3) applies to it at all times in the income year (such as a holiday home held mainly to produce rent)",
+            ),
+        ],
+        "chattel_mortgage_schedule" => vec![
+            (
+                "amount_financed",
+                "AUD, the amount lent and paid to the supplier for the goods: the price less any deposit or trade-in",
+            ),
+            (
+                "instalments",
+                "integer, the number of instalments: 1 to 360 monthly, 1,565 weekly, 782 fortnightly, 120 quarterly or 30 annual",
+            ),
+            (
+                "balloon",
+                "AUD, paid at the end of the term; 0.00 for none",
+            ),
+            (
+                "timing",
+                "in_arrears (each instalment at its period's end) or in_advance (at its start)",
+            ),
+            (
+                "start_date",
+                "YYYY-MM-DD, the day of the purchase and the loan, within the income year",
+            ),
+        ],
+        "loan_transactions" => vec![
+            (
+                "opening_balance",
+                "AUD, the balance owing at the start of start_date; 0.00 for a new loan",
+            ),
+            (
+                "annual_rate",
+                "decimal fraction from 0 to 1, the annual interest rate from start_date",
+            ),
+            (
+                "start_date",
+                "YYYY-MM-DD, the statement's first day, within the income year",
+            ),
+            (
+                "end_date",
+                "YYYY-MM-DD, the statement's last day, on or after start_date and less than 30 years after it",
+            ),
+            (
+                "transactions",
+                "list of at most 5,000 objects in date order, each with date (YYYY-MM-DD, from start_date to end_date), kind (drawing or repayment) and amount (AUD); [] for none",
             ),
         ],
         "hire_purchase_schedule" => vec![
@@ -2771,6 +2868,28 @@ pub fn examples(kind: &str) -> Vec<(&'static str, Example)> {
             ("creditable_purpose", Text("0.8")),
             ("arms_length", Flag(true)),
             ("involuntary_disposal", Flag(false)),
+        ],
+        "chattel_mortgage_schedule" => vec![
+            ("year", Text("2026-27")),
+            ("amount_financed", Text("45000.00")),
+            ("annual_rate", Text("0.0799")),
+            ("instalments", Whole(60)),
+            ("balloon", Text("5000.00")),
+            ("timing", Text("in_arrears")),
+            ("start_date", Text("2026-07-15")),
+        ],
+        "loan_transactions" => vec![
+            ("year", Text("2026-27")),
+            ("opening_balance", Text("0.00")),
+            ("annual_rate", Text("0.073")),
+            ("start_date", Text("2026-07-01")),
+            ("end_date", Text("2026-09-30")),
+            (
+                "transactions",
+                Json(
+                    r#"[{"date": "2026-07-01", "kind": "drawing", "amount": "10000.00"}, {"date": "2026-08-31", "kind": "repayment", "amount": "1000.00"}]"#,
+                ),
+            ),
         ],
         "hire_purchase_schedule" => vec![
             ("year", Text("2026-27")),

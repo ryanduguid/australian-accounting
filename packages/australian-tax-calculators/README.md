@@ -19,8 +19,8 @@ keeps the engine release and MCP integration separate.
 
 </div>
 
-Forty-eight calculation worksheets for established facts: ordinary GST, resident and foreign
-resident basic income tax, CGT losses and discount, the main residence exemption's taxable share of a gain or loss, one loan's borrowing expenses deduction, a hire purchase agreement's monthly notional interest, business capital expenditure (black hole and start-up costs) under s 40-880, ordinary employer FBT, car fringe benefit taxable values
+Fifty calculation worksheets for established facts: ordinary GST, resident and foreign
+resident basic income tax, CGT losses and discount, the main residence exemption's taxable share of a gain or loss, one loan's borrowing expenses deduction, a hire purchase agreement's notional interest, a chattel mortgage's interest schedule and input tax credit, a loan's statement with daily interest at changing rates, business capital expenditure (black hole and start-up costs) under s 40-880, ordinary employer FBT, car fringe benefit taxable values
 under the statutory formula and operating cost methods, loan, meal entertainment, car parking, debt waiver, expense payment, property, residual, housing, living-away-from-home allowance, board and tax-exempt body entertainment fringe benefit taxable values, the FBT, deduction and GST credit treatment of entertainment expense lines, depreciation in the start year and later years, a depreciating asset's balancing adjustment with its reduction for private use and CGT event K7, a trade-in's GST on both sides with the old asset's balancing adjustment and the replacement's cost,
 quarterly super guarantee, Schedule 1 PAYG withholding and the gross pay that leaves a stated net, Schedule 5 withholding from back payments, commissions and bonuses by Methods A, B(i) and B(ii), Schedule 15 withholding for working holiday makers, Schedule 9 withholding for seniors and pensioners, super contribution caps,
 account-based pension minimums, study and training loan repayments, Schedule 8 study
@@ -106,6 +106,8 @@ lists the commands.
 | `main-residence` | `capital_gain`, `capital_loss`, `market_value_basis`, `ownership_start`, `ownership_end`, `lived_periods`, `income_use_periods`, `absence_choice_periods`, `new_home_acquired`, `year`, `scope_confirmed` |
 | `borrowing-expenses` | `borrowing_expenses`, `other_borrowing_expenses_in_year`, `income_use`, `loan_start`, `loan_term_end`, `repaid_on`, `section_26_50_applies`, `year`, `scope_confirmed` |
 | `hire-purchase-schedule` | `amount_financed`, `balloon`, `timing`, `start_date`, `year`, `scope_confirmed`; `instalment`, `instalments` and optionally `frequency`, or `segments` in their place; optionally `deposit`, `trade_in`, `payout` and `gst`; see [Hire purchase schedule](#hire-purchase-schedule) |
+| `chattel-mortgage-schedule` | `amount_financed`, `instalments`, `balloon`, `timing`, `start_date`, `year`, `scope_confirmed`; `instalment` or `annual_rate`; optionally `frequency`, `deposit`, `trade_in` and `gst`; see [Chattel mortgage schedule](#chattel-mortgage-schedule) |
+| `loan-transactions` | `opening_balance`, `annual_rate`, `start_date`, `end_date`, `transactions`, `year`, `scope_confirmed`; optionally `rate_changes`; see [Loan transactions](#loan-transactions) |
 | `business-capital-expenditure` | `items`, `year`, `scope_confirmed`; see [Business capital expenditure](#business-capital-expenditure) |
 | `balancing-adjustment` | `cost`, `termination_value`, `asset`, `years`, `year`, `scope_confirmed`; for a car, `car_limit`; see [Balancing adjustment](#balancing-adjustment) |
 | `trade-in` | `cost`, `asset`, `years`, `trade_in_allowance`, `trade_in_taxable`, `replacement_price`, `replacement_asset`, `replacement_creditable_acquisition`, `arms_length`, `involuntary_disposal`, `year`, `scope_confirmed`; `car_limit`, `adjusted_input_tax_credit`, `full_input_tax_credit`, `replacement_luxury_car_tax` and `creditable_purpose` where the facts need them; see [Trade-in](#trade-in) |
@@ -153,9 +155,9 @@ lists the commands.
 | `dgr-check` | `donations`, a list of 1 to 10,000 objects, each with `abn` or `name` or both, and optional `date` and `amount`; see [DGR check](#dgr-check) |
 | `personal-tax-estimate` | `year`, `scope_confirmed`, `residency`, `taxable_income` or `assessable_labour_income` (then optional `other_assessable_income`, `work_related_deductions`, `other_deductions`), optional `tax_withheld` or, to work it out, one of `payg-withholding`, `study-loan-withholding` and `seniors-pensioners-withholding` with `pays_in_year` and optional `schedule-5-method-a`, for a resident from 2027-28 `net_labour_income` (required beside `taxable_income`), and for a full-year resident `medicare-levy` and `medicare-levy-surcharge`; optional `seniors-pensioners-tax-offset`, `study-loan-repayment` and `division-293`; see [Personal tax estimate](#personal-tax-estimate) |
 | `fbt-return` | `employer`, `year_ended`, `scope_confirmed` and `benefits`, a list of objects each with `employee`, `command` (an FBT benefit worksheet), `input` (that worksheet's arguments), `gst_type` (`type_1` or `type_2`) and `excluded`; see [FBT return](#fbt-return) |
-| `derive` | `command`, one of `fbt`, `fbt-car-statutory`, `fbt-car-operating-cost`, `fbt-loan`, `fbt-meal-entertainment`, `fbt-car-parking`, `fbt-debt-waiver`, `fbt-expense-payment`, `fbt-property`, `division-293`, `pension-minimum`, `payg-withholding`, `schedule-5-method-a`, `schedule-5-method-b-i`, `schedule-5-method-b-ii`, `termination-payment`, `unused-leave-payment`, `working-holiday-maker-withholding`, `study-loan-withholding`, `seniors-pensioners-withholding`, `quarterly-sg`, `borrowing-expenses`, `resident-tax`, `foreign-resident-tax`, `low-income-tax-offset`, `seniors-pensioners-tax-offset`, `medicare-levy`, `medicare-levy-surcharge`, `division-296`, `contribution-caps`, `study-loan-repayment`, `capital-gains`, `main-residence`, `fbt-residual`, `fbt-housing`, `fbt-lafha`, `fbt-board`, `fbt-tax-exempt-body-entertainment`, `gst`, `depreciation`, `hire-purchase-schedule`, `lump-sum-arrears-tax-offset`, `income-tests`, `business-capital-expenditure`, `balancing-adjustment`, `trade-in` and `dasp-tax`, and `input`, that command's arguments; see [Derivations](#derivations) |
+| `derive` | `command`, one of `fbt`, `fbt-car-statutory`, `fbt-car-operating-cost`, `fbt-loan`, `fbt-meal-entertainment`, `fbt-car-parking`, `fbt-debt-waiver`, `fbt-expense-payment`, `fbt-property`, `division-293`, `pension-minimum`, `payg-withholding`, `schedule-5-method-a`, `schedule-5-method-b-i`, `schedule-5-method-b-ii`, `termination-payment`, `unused-leave-payment`, `working-holiday-maker-withholding`, `study-loan-withholding`, `seniors-pensioners-withholding`, `quarterly-sg`, `borrowing-expenses`, `resident-tax`, `foreign-resident-tax`, `low-income-tax-offset`, `seniors-pensioners-tax-offset`, `medicare-levy`, `medicare-levy-surcharge`, `division-296`, `contribution-caps`, `study-loan-repayment`, `capital-gains`, `main-residence`, `fbt-residual`, `fbt-housing`, `fbt-lafha`, `fbt-board`, `fbt-tax-exempt-body-entertainment`, `gst`, `depreciation`, `hire-purchase-schedule`, `chattel-mortgage-schedule`, `loan-transactions`, `lump-sum-arrears-tax-offset`, `income-tests`, `business-capital-expenditure`, `balancing-adjustment`, `trade-in` and `dasp-tax`, and `input`, that command's arguments; see [Derivations](#derivations) |
 
-The 2 car commands, the 11 FBT benefit commands (`fbt-loan`, `fbt-meal-entertainment`, `fbt-car-parking`, `fbt-debt-waiver`, `fbt-expense-payment`, `fbt-property`, `fbt-residual`, `fbt-housing`, `fbt-lafha`, `fbt-board` and `fbt-tax-exempt-body-entertainment`), `main-residence`, `borrowing-expenses`, `division-296`, `termination-payment`, `unused-leave-payment`, the 3 `schedule-5` commands, `working-holiday-maker-withholding`, `seniors-pensioners-withholding`, `seniors-pensioners-tax-offset`, `medicare-levy-surcharge`, `foreign-resident-tax`, `payg-gross-up`, `hire-purchase-schedule`, `lump-sum-arrears-tax-offset`, `fbt-entertainment-classifier`, `income-tests`, `business-capital-expenditure`, `balancing-adjustment`, `trade-in` and `dasp-tax` have no Python original; their arguments follow the same
+The 2 car commands, the 11 FBT benefit commands (`fbt-loan`, `fbt-meal-entertainment`, `fbt-car-parking`, `fbt-debt-waiver`, `fbt-expense-payment`, `fbt-property`, `fbt-residual`, `fbt-housing`, `fbt-lafha`, `fbt-board` and `fbt-tax-exempt-body-entertainment`), `main-residence`, `borrowing-expenses`, `division-296`, `termination-payment`, `unused-leave-payment`, the 3 `schedule-5` commands, `working-holiday-maker-withholding`, `seniors-pensioners-withholding`, `seniors-pensioners-tax-offset`, `medicare-levy-surcharge`, `foreign-resident-tax`, `payg-gross-up`, `hire-purchase-schedule`, `chattel-mortgage-schedule`, `loan-transactions`, `lump-sum-arrears-tax-offset`, `fbt-entertainment-classifier`, `income-tests`, `business-capital-expenditure`, `balancing-adjustment`, `trade-in` and `dasp-tax` have no Python original; their arguments follow the same
 rules. `division-296` alone takes a negative amount, in `total_super_earnings`. `main-residence` also takes dates as `YYYY-MM-DD` strings, lists of
 `{"start", "end"}` periods (with `"floor_area"` for income use) and `null`
 for no new home. `borrowing-expenses` takes `loan_start` as a `YYYY-MM-DD`
@@ -1066,6 +1068,74 @@ Fees, charges and stamp duty, substituted accounting periods, the car's cost
 for Division 40, agreements entered into before 1 July 2012, GST adjustments
 after the start and the notional seller are out of scope; see
 [calculation evidence](docs/calculation-evidence.md#hire-purchase-schedule).
+
+## Chattel mortgage schedule
+
+`chattel_mortgage_schedule` sets out a loan to buy goods, secured by a
+chattel mortgage over them, for the purchaser, who owns the goods from the
+purchase: it is not a hire purchase agreement (ITAA 1997 s 995-1), so
+Division 240 does not apply. The caller establishes the amount financed, the
+number of `instalments` and their `frequency` (as for `hire_purchase_schedule`,
+monthly when omitted), the `balloon`, `timing`, the `start_date` (the day of
+the purchase and the loan, in the income year given, 2024-25 to 2026-27) and
+either the `instalment` or a stated `annual_rate`. Given the instalment, the
+rate is the one the payments imply, found as `hire_purchase_schedule` finds
+it. Given `annual_rate`, for monthly or weekly instalments in arrears only,
+the rate a period is `annual_rate / 12` (or `/ 52`), the result adds
+`instalment` (the level instalment at that rate, rounded half up to the cent)
+and `final_adjustment` (the balance that rounding leaves, added to the last
+instalment), and the rates are `monthly_rate` (or `weekly_rate`) and
+`nominal_annual_rate`.
+
+Each period's interest is the balance owing times the rate for the period,
+the actuarial method TR 93/16 accepts, shown as `hire_purchase_schedule`
+shows it, in `schedule` and as a printable Markdown table in `statement`.
+`interest_by_income_year` and `interest_across_30_june` total and set apart
+the periods as `hire_purchase_schedule` does. The interest is deductible
+under s 8-1 to the extent the money is used to gain or produce assessable
+income, which the caller establishes; where the lender's statements give the
+interest, that figure is used (TR 93/16 para 2).
+
+`deposit`, `trade_in` and `gst` take the facts `hire_purchase_schedule` takes;
+with any of them the result adds `deposit`, `trade_in` and `price`. A
+registered purchaser's credit is on the price alone, as the loan is an input
+taxed financial supply (GST Act s 40-5(1)): `gst_payable` (1/11 of the price,
+less luxury car tax for a car, rounded to the cent), `full_input_tax_credit`
+(for a passenger car worth more than the car limit and not quoted for, no
+more than 1/11 of the limit, s 69-10(1)) and `input_tax_credit` (times the
+creditable purpose). `gst.attributable` states the tax period, from the ATO's
+GST issues register (issue 1.21). A rate below nil or of 100% a month or
+more, both or neither of `instalment` and `annual_rate`, `annual_rate` with
+other instalments, a balloon that alone repays the loan at the stated rate
+and a rounded instalment that moves the last instalment by more than a whole
+instalment (below nil or above twice the instalment) are refused.
+Fees, stamp duty, changing rates (see [Loan transactions](#loan-transactions)),
+daily interest, payouts, substituted accounting periods and the goods'
+decline in value are out of scope; see
+[calculation evidence](docs/calculation-evidence.md#chattel-mortgage-schedule).
+
+## Loan transactions
+
+`loan_transactions` gives a loan's statement from `start_date` (in the income
+year given) to `end_date` (less than 30 years later), from the
+`opening_balance`, the `annual_rate` from the start, any `rate_changes` (a
+list of `{"date", "annual_rate"}` in date order, after the start, one a day)
+and `transactions` (a list of `{"date", "kind", "amount"}` in date order, with
+`kind` `drawing` or `repayment`; `[]` for none). Each day's interest is the
+balance at the end of the day, when above nil, times the rate in force over
+365; it is debited on the last day of each month and on `end_date`, rounded
+half up to the cent. The result gives `opening_balance`, `total_drawings`,
+`total_repayments`, `total_interest` and `closing_balance`,
+`interest_by_income_year` (the interest debited in each year, which is the
+interest for its days), `statement_rows` (each line's `date`, `details`,
+`debit`, `credit` and `balance`) and `statement`, the same lines as a
+printable Markdown table. To pay a loan out, end the statement on the payout
+day with a repayment of the balance and the interest to that day; a balance
+below nil at the end of a day is refused. Interest is deductible under
+ITAA 1997 s 8-1 to the extent the money is used to gain or produce assessable
+income, which the caller establishes. Other day counts, fees, offset accounts
+and Division 7A loans are out of scope; see
+[calculation evidence](docs/calculation-evidence.md#loan-transactions).
 
 ## Business capital expenditure
 

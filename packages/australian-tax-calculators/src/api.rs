@@ -187,6 +187,30 @@ const COMMAND_ARGS: &[(&str, &[(&str, Kind)])] = &[
         ],
     ),
     (
+        "chattel-mortgage-schedule",
+        &[
+            ("amount_financed", Dec),
+            ("instalments", Raw),
+            ("balloon", Dec),
+            ("timing", Raw),
+            ("start_date", Raw),
+            ("year", Raw),
+            ("scope_confirmed", Raw),
+        ],
+    ),
+    (
+        "loan-transactions",
+        &[
+            ("opening_balance", Dec),
+            ("annual_rate", Dec),
+            ("start_date", Raw),
+            ("end_date", Raw),
+            ("transactions", Json),
+            ("year", Raw),
+            ("scope_confirmed", Raw),
+        ],
+    ),
+    (
         "business-capital-expenditure",
         &[("items", Json), ("year", Raw), ("scope_confirmed", Raw)],
     ),
@@ -552,7 +576,7 @@ pub fn commands() -> Vec<&'static str> {
 /// command on its `gross_pay` shows that withholding. The classifier's amounts
 /// are totals over lines whose shares a decision table sets, not a formula;
 /// each line and class carries the authority for its row instead.
-const DERIVED: [&str; 47] = [
+const DERIVED: [&str; 49] = [
     "fbt",
     "fbt-car-statutory",
     "fbt-car-operating-cost",
@@ -594,6 +618,8 @@ const DERIVED: [&str; 47] = [
     "gst",
     "depreciation",
     "hire-purchase-schedule",
+    "chattel-mortgage-schedule",
+    "loan-transactions",
     "lump-sum-arrears-tax-offset",
     "income-tests",
     "business-capital-expenditure",
@@ -963,6 +989,8 @@ pub fn evaluate_coded(command: &str, v: &Value) -> Result<Value> {
             | "fbt-tax-exempt-body-entertainment"
             | "fbt-entertainment-classifier"
             | "hire-purchase-schedule"
+            | "chattel-mortgage-schedule"
+            | "loan-transactions"
             | "income-tests"
             | "business-capital-expenditure"
             | "balancing-adjustment"
@@ -1029,6 +1057,46 @@ pub fn evaluate_coded(command: &str, v: &Value) -> Result<Value> {
                 gst: gst.as_ref(),
                 year: &a[4],
                 scope_confirmed: &a[5],
+            })
+        }
+        "chattel-mortgage-schedule" => {
+            // Optional: the instalment or the annual rate (one of them), the
+            // frequency, a deposit, trade-in and GST facts.
+            let [instalment, annual_rate, deposit, trade_in] =
+                ["instalment", "annual_rate", "deposit", "trade_in"]
+                    .map(|key| optional(v, key, Dec));
+            let frequency = optional(v, "frequency", Raw)?;
+            let gst = optional(v, "gst", Json)?;
+            let (instalment, annual_rate) = (instalment?, annual_rate?);
+            let (deposit, trade_in) = (deposit?, trade_in?);
+            engine::chattel_mortgage_schedule(&engine::ChattelMortgageArgs {
+                amount_financed: &a[0],
+                instalment: instalment.as_ref(),
+                annual_rate: annual_rate.as_ref(),
+                instalments: &a[1],
+                frequency: frequency.as_ref(),
+                balloon: &a[2],
+                timing: &a[3],
+                start_date: &a[4],
+                deposit: deposit.as_ref(),
+                trade_in: trade_in.as_ref(),
+                gst: gst.as_ref(),
+                year: &a[5],
+                scope_confirmed: &a[6],
+            })
+        }
+        "loan-transactions" => {
+            // Optional: the dated rate changes.
+            let rate_changes = optional(v, "rate_changes", Json)?;
+            engine::loan_transactions(&engine::LoanTransactionsArgs {
+                opening_balance: &a[0],
+                annual_rate: &a[1],
+                start_date: &a[2],
+                end_date: &a[3],
+                transactions: &a[4],
+                rate_changes: rate_changes.as_ref(),
+                year: &a[5],
+                scope_confirmed: &a[6],
             })
         }
         "business-capital-expenditure" => engine::business_capital_expenditure(&a[0], &a[1], &a[2]),
