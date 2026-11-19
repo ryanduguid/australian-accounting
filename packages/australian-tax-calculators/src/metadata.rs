@@ -1034,6 +1034,9 @@ pub fn supported_periods(kind: &str) -> Vec<&'static str> {
         "dasp_tax" => vec!["2025-26", "2026-27", "2027-28"],
         // Division 75 sets no figure by year; the years are gst's.
         "gst_margin_scheme" => vec!["2025-26", "2026-27", "2027-28"],
+        // The 2026-27 rates and thresholds each revenue office published, read
+        // on 19 November 2026.
+        "payroll_tax" => vec!["2026-27"],
         // Tax periods from 1 July 2019, when the $10,000 refunds began
         // (Act No. 94 of 2019 Sch 2), to the last year whose thresholds the
         // ATO publishes (QC38161, 1 June 2026).
@@ -1145,6 +1148,10 @@ pub fn source_review(kind: &str) -> (&'static str, &'static str) {
         "dasp_tax" => (
             "2026-11-19",
             "Superannuation (Departing Australia Superannuation Payments Tax) Act 2007 ss 4 to 6 (compilation 5, 2 December 2016, Federal Register of Legislation); ITAA 1997 ss 301-170 and 301-175, from the ATO's legal database; the ATO's 'Payments from super' rates (last updated 16 September 2026) and 'Departing Australia superannuation payment (DASP)' (last updated 21 April 2026)",
+        ),
+        "payroll_tax" => (
+            "2026-11-19",
+            "Payroll Tax Act 2007 (NSW) Sch 1 cl 1 (version current from 10 July 2026); Payroll Tax Act 2007 (Vic) s 3A and Sch 1 cl 1, 1A, 1B and 5 (authorised version 041, 1 May 2026); Payroll Tax Act 1971 (Qld) ss 10, 29 and 43I (reprint current as at 22 October 2026); Pay-roll Tax Assessment Act 2002 (WA) ss 8 and 13 (04-d0-03) and Pay-roll Tax Act 2002 (WA) s 5(4) (00-d0-02); Payroll Tax Act 2009 (SA) Sch 1 cl 1, 4 and 5 (version 31.3.2026); Payroll Tax Act 2008 (Tas) Sch 1 cl 1 and 4; Payroll Tax Act 2011 (ACT) Sch 1 (R20) with DI2026-151 s 5; Payroll Tax Act 2009 (NT) s 7A and Sch 1 cl 1, 3 and 5 (as in force at 1 July 2026); and each revenue office's rates and thresholds page",
         ),
         "gst_margin_scheme" => (
             "2026-11-19",
@@ -1399,6 +1406,12 @@ pub fn library_evidence(kind: &str) -> [(&'static str, &'static str); 4] {
             "2026-06-30",
             "2026-11-19",
         ),
+        "payroll_tax" => (
+            "Revenue office payroll tax pages: Revenue NSW thresholds and rates; SRO Victoria payroll tax surcharges; QRO payroll tax deductions; RevenueWA employer guide; SRO Tasmania annual adjustment return guideline",
+            "Revenue NSW's 2 examples; SRO Victoria example 2; QRO's annual deduction example; RevenueWA's $1,104,000; SRO Tasmania examples 1 and 2",
+            "2026-07-01",
+            "2026-11-19",
+        ),
         "gst_margin_scheme" => (
             "tax-examples-gst-and-other-indirect-taxes",
             "12-200",
@@ -1649,6 +1662,10 @@ pub fn optional_inputs(kind: &str) -> Vec<(&'static str, &'static str)> {
         "balancing_adjustment" => vec![(
             "car_limit",
             "for a car only, and then required: null when s 40-230 did not reduce its cost to the car limit, or an object with limit (AUD, the car limit for the financial year in which the car was first used for any purpose), second_element_cost (AUD) and cost_ignoring_car_limit (AUD, the first and second elements ignoring the car limit, after Subdivision 27-B), cost then being limit plus second_element_cost: ITAA 1997 s 40-325",
+        )],
+        "payroll_tax" => vec![(
+            "regional_employer",
+            "boolean, for Victoria only and then required: true when the employer is a regional employer, one that pays at least 85% of its taxable wages to regional employees (Payroll Tax Act 2007 (Vic) s 3A)",
         )],
         "wine_equalisation_tax" => vec![
             (
@@ -2356,6 +2373,25 @@ pub fn input_units(kind: &str) -> Vec<(&'static str, &'static str)> {
             (
                 "unclaimed_money_rollover",
                 "boolean, true when the payment is a roll-over superannuation benefit paid under s 20H(2), (2AA) or (2A) of the Superannuation (Unclaimed Money and Lost Members) Act 1999; true with an element untaxed in the fund is refused, as s 5(2) taxes any excess untaxed roll-over amount in it at nil",
+            ),
+        ],
+        "payroll_tax" => vec![
+            ("jurisdiction", "nsw, vic, qld, wa, sa, tas, act or nt"),
+            (
+                "taxable_wages",
+                "AUD, the employer's taxable wages in the jurisdiction for the financial year, after that jurisdiction's exemptions",
+            ),
+            (
+                "australian_wages",
+                "AUD, the employer's taxable wages and interstate wages for the financial year: all its wages taxable in any Australian jurisdiction, at least taxable_wages",
+            ),
+            (
+                "group_member",
+                "boolean, true when the employer is a member of a group for payroll tax; true is refused",
+            ),
+            (
+                "employed_all_year",
+                "boolean, true when the employer paid or was liable to pay wages on every day of the financial year; false is refused",
             ),
         ],
         "gst_margin_scheme" => vec![
@@ -3127,6 +3163,14 @@ pub fn examples(kind: &str) -> Vec<(&'static str, Example)> {
             ("untaxed_element", Text("0.00")),
             ("working_holiday_maker_contributions", Flag(false)),
             ("unclaimed_money_rollover", Flag(false)),
+        ],
+        "payroll_tax" => vec![
+            ("year", Text("2026-27")),
+            ("jurisdiction", Text("nsw")),
+            ("taxable_wages", Text("900000.00")),
+            ("australian_wages", Text("3000000.00")),
+            ("group_member", Flag(false)),
+            ("employed_all_year", Flag(true)),
         ],
         // The Library's Joanne Black example (Tax Examples, GST, 12-200):
         // land bought in January 2000, worth $448,000 on 1 July 2000, sold

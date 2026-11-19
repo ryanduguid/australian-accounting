@@ -13,7 +13,7 @@ use std::io::Write;
 use std::process::{Command, Stdio};
 
 /// The commands `derive` explains.
-const DERIVED: [&str; 52] = [
+const DERIVED: [&str; 53] = [
     "fbt",
     "fbt-car-statutory",
     "fbt-car-operating-cost",
@@ -66,6 +66,7 @@ const DERIVED: [&str; 52] = [
     "dasp-tax",
     "gst-margin-scheme",
     "etp-tax-free-component",
+    "payroll-tax",
 ];
 
 /// (command, input) for each derived kind: the ATO's published examples and
@@ -403,6 +404,23 @@ fn cases() -> Vec<(&'static str, Value)> {
                    "untaxed_element": "300.00",
                    "working_holiday_maker_contributions": true,
                    "unclaimed_money_rollover": false,
+                   "year": "2026-27", "scope_confirmed": true}),
+        ),
+        // Victoria's surcharges on $80 million of $150 million (the State
+        // Revenue Office's example 2) and Tasmania's 2 rates on $2,400,000
+        // of $3,000,000 (its guideline's example 2).
+        (
+            "payroll-tax",
+            json!({"jurisdiction": "vic", "taxable_wages": "80000000.00",
+                   "australian_wages": "150000000.00", "regional_employer": false,
+                   "group_member": false, "employed_all_year": true,
+                   "year": "2026-27", "scope_confirmed": true}),
+        ),
+        (
+            "payroll-tax",
+            json!({"jurisdiction": "tas", "taxable_wages": "2400000.00",
+                   "australian_wages": "3000000.00",
+                   "group_member": false, "employed_all_year": true,
                    "year": "2026-27", "scope_confirmed": true}),
         ),
         // A strata unit's share of land bought with some consideration unpaid
@@ -2139,7 +2157,7 @@ fn derive_refuses_what_it_does_not_explain() {
          study-loan-repayment, capital-gains, main-residence, fbt-residual, fbt-housing, \
          fbt-lafha, fbt-board, fbt-tax-exempt-body-entertainment, gst, depreciation, \
          hire-purchase-schedule, chattel-mortgage-schedule, loan-transactions, \
-         lump-sum-arrears-tax-offset, income-tests, business-capital-expenditure, balancing-adjustment, trade-in, dasp-tax, gst-margin-scheme, etp-tax-free-component, not \"payg-gross-up\""
+         lump-sum-arrears-tax-offset, income-tests, business-capital-expenditure, balancing-adjustment, trade-in, dasp-tax, gst-margin-scheme, etp-tax-free-component, payroll-tax, not \"payg-gross-up\""
     );
 }
 
