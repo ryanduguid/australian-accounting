@@ -90,8 +90,9 @@ fn criterion(id: &str, authority: &str, stated: Value, weighs: &str) -> Value {
     json!({"criterion": id, "authority": authority, "stated": stated, "weighs": weighs})
 }
 
-/// The conditions s 58P(1)(c) to (e) and the ruling set, for `category`.
-fn conditions(args: &MinorBenefitArgs, category: &str, value: &Decimal) -> Result<Vec<Value>> {
+/// The condition `category`'s own exclusion sets, if any: s 58P(1)(c) or
+/// (d), or the ruling's 50/50 split.
+fn category_rows(args: &MinorBenefitArgs, category: &str) -> Result<Vec<Value>> {
     let sold = matches!(category, "expense_payment" | "property" | "residual");
     let why = "for an expense_payment, property or residual benefit (s 58P(1)(c))";
     let in_house = when(sold, args.in_house, "in_house", why)?;
@@ -111,11 +112,8 @@ fn conditions(args: &MinorBenefitArgs, category: &str, value: &Decimal) -> Resul
     let fifty = when(split, args.fifty_fifty_split, "fifty_fifty_split", why)?;
     let mut rows = Vec::new();
     if let Some(in_house) = in_house {
-        rows.push(condition(
-            "not_in_house",
-            IN_HOUSE,
-            !flag(in_house, "in_house")?,
-        ));
+        let met = !flag(in_house, "in_house")?;
+        rows.push(condition("not_in_house", IN_HOUSE, met));
     }
     if let Some(exception) = exception {
         let allowed = [
@@ -130,6 +128,12 @@ fn conditions(args: &MinorBenefitArgs, category: &str, value: &Decimal) -> Resul
         let met = !flag(fifty, "fifty_fifty_split")?;
         rows.push(condition("not_fifty_fifty_split", FIFTY_FIFTY, met));
     }
+    Ok(rows)
+}
+
+/// The conditions s 58P(1)(c) to (e) and the ruling set, for `category`.
+fn conditions(args: &MinorBenefitArgs, category: &str, value: &Decimal) -> Result<Vec<Value>> {
+    let mut rows = category_rows(args, category)?;
     let sacrificed = flag(args.salary_sacrifice, "salary_sacrifice")?;
     rows.push(condition(
         "not_salary_sacrifice",
@@ -151,6 +155,26 @@ struct Criteria {
     rows: Vec<Value>,
 }
 
+/// Each yes-or-no criterion: its input, its authority and which way a true
+/// and a false statement weigh.
+const FLAGS: [(&str, &str, &str, &str); 5] = [
+    (
+        "similar_benefits_substantial",
+        SIMILAR_TOTAL,
+        "against",
+        "for",
+    ),
+    (
+        "other_associated_benefits_substantial",
+        OTHER_TOTAL,
+        "against",
+        "for",
+    ),
+    ("valuation_difficult", DIFFICULTY, "for", "neutral"),
+    ("unexpected_event", UNEXPECTED, "for", "neutral"),
+    ("reward_for_services", REWARD, "against", "for"),
+];
+
 fn criteria(args: &MinorBenefitArgs) -> Result<Criteria> {
     let allowed = [
         "infrequent_and_irregular",
@@ -158,59 +182,29 @@ fn criteria(args: &MinorBenefitArgs) -> Result<Criteria> {
         "frequent",
     ];
     let frequency = choice(args.frequency, "frequency", &allowed)?;
-    let similar = flag(
-        args.similar_benefits_substantial,
-        "similar_benefits_substantial",
-    )?;
-    let key = "other_associated_benefits_substantial";
-    let other = flag(args.other_associated_benefits_substantial, key)?;
-    let difficult = flag(args.valuation_difficult, "valuation_difficult")?;
-    let unexpected = flag(args.unexpected_event, "unexpected_event")?;
-    let reward = flag(args.reward_for_services, "reward_for_services")?;
-    let against = |fact: bool| if fact { "against" } else { "for" };
-    let only_for = |fact: bool| if fact { "for" } else { "neutral" };
     let weighs = match frequency {
         "infrequent_and_irregular" => "for",
         // TR 2007/12 examples 1 to 3: infrequent but regular, still exempt.
         "infrequent_and_regular" => "neutral",
         _ => "against",
     };
-    let rows = vec![
-        criterion("frequency", FREQUENCY, json!(frequency), weighs),
-        criterion(
-            "similar_benefits_substantial",
-            SIMILAR_TOTAL,
-            json!(similar),
-            against(similar),
-        ),
-        criterion(
-            "other_associated_benefits_substantial",
-            OTHER_TOTAL,
-            json!(other),
-            against(other),
-        ),
-        criterion(
-            "valuation_difficult",
-            DIFFICULTY,
-            json!(difficult),
-            only_for(difficult),
-        ),
-        criterion(
-            "unexpected_event",
-            UNEXPECTED,
-            json!(unexpected),
-            only_for(unexpected),
-        ),
-        criterion(
-            "reward_for_services",
-            REWARD,
-            json!(reward),
-            if reward { "against" } else { "for" },
-        ),
+    let mut rows = vec![criterion("frequency", FREQUENCY, json!(frequency), weighs)];
+    let given = [
+        args.similar_benefits_substantial,
+        args.other_associated_benefits_substantial,
+        args.valuation_difficult,
+        args.unexpected_event,
+        args.reward_for_services,
     ];
+    let mut stated = [false; 5];
+    for (i, ((key, authority, yes, no), arg)) in FLAGS.iter().zip(given).enumerate() {
+        stated[i] = flag(arg, key)?;
+        let weighs = if stated[i] { yes } else { no };
+        rows.push(criterion(key, authority, json!(stated[i]), weighs));
+    }
     Ok(Criteria {
         frequent: frequency == "frequent",
-        substantial: [similar, other],
+        substantial: [stated[0], stated[1]],
         rows,
     })
 }
