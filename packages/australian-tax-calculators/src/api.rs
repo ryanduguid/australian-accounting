@@ -251,6 +251,18 @@ const COMMAND_ARGS: &[(&str, &[(&str, Kind)])] = &[
         ],
     ),
     (
+        "dasp-tax",
+        &[
+            ("tax_free_component", Dec),
+            ("taxed_element", Dec),
+            ("untaxed_element", Dec),
+            ("working_holiday_maker_contributions", Raw),
+            ("unclaimed_money_rollover", Raw),
+            ("year", Raw),
+            ("scope_confirmed", Raw),
+        ],
+    ),
+    (
         "trade-in",
         &[
             ("cost", Dec),
@@ -653,7 +665,7 @@ pub fn commands() -> Vec<&'static str> {
 /// command on its `gross_pay` shows that withholding. The classifier's amounts
 /// are totals over lines whose shares a decision table sets, not a formula;
 /// each line and class carries the authority for its row instead.
-const DERIVED: [&str; 52] = [
+const DERIVED: [&str; 53] = [
     "fbt",
     "fbt-car-statutory",
     "fbt-car-operating-cost",
@@ -703,6 +715,7 @@ const DERIVED: [&str; 52] = [
     "business-capital-expenditure",
     "balancing-adjustment",
     "trade-in",
+    "dasp-tax",
     "gst-margin-scheme",
     "etp-tax-free-component",
     "payroll-tax",
@@ -1083,6 +1096,7 @@ pub fn evaluate_coded(command: &str, v: &Value) -> Result<Value> {
             | "business-capital-expenditure"
             | "balancing-adjustment"
             | "trade-in"
+            | "dasp-tax"
             | "payroll-tax"
             | "gst-margin-scheme"
     ) && let Some(key) = v
@@ -1223,6 +1237,15 @@ pub fn evaluate_coded(command: &str, v: &Value) -> Result<Value> {
                 &a[5],
             )
         }
+        "dasp-tax" => engine::dasp_tax(&engine::DaspTaxArgs {
+            tax_free_component: &a[0],
+            taxed_element: &a[1],
+            untaxed_element: &a[2],
+            working_holiday_maker_contributions: &a[3],
+            unclaimed_money_rollover: &a[4],
+            year: &a[5],
+            scope_confirmed: &a[6],
+        }),
         "wine-equalisation-tax" => {
             // Optional: the rebate facts, required with a dealing's
             // rebate_conditions.
