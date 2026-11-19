@@ -1021,6 +1021,7 @@ pub fn supported_periods(kind: &str) -> Vec<&'static str> {
         // refused as for balancing_adjustment, and its car limit is not yet
         // published.
         "trade_in" => vec!["2025-26", "2026-27"],
+        "cgt_parcels" => vec!["2025-26", "2026-27"],
         "fbt" => vec!["2026", "2027"],
         "fbt_car_statutory" | "fbt_car_operating_cost" | "fbt_loan" => {
             keys(FBT_BENCHMARK_INTEREST_RATES)
@@ -1113,6 +1114,10 @@ pub fn source_review(kind: &str) -> (&'static str, &'static str) {
         "balancing_adjustment" => (
             "2026-11-18",
             "ITAA 1997 ss 40-25, 40-85, 40-230, 40-285, 40-290, 40-291A, 40-295, 40-300, 40-305, 40-325, 40-370, 104-235, 104-240, 118-5 and 118-10 (its example) and Subdivision 27-B, compilation 268 (1 October 2026), with the endnotes' amendment history; Treasury Laws Amendment (Tax Reform No. 1) Act 2026 (No 49 of 2026), Schedule 4 item 17 (s 40-291A from 2026-27); Guide to depreciating assets 2026, 'What happens if you no longer hold or use a depreciating asset?', its Bridget, Andrew and Louise examples and the car limit formula",
+        ),
+        "cgt_parcels" => (
+            "2026-11-19",
+            "ITAA 1997 ss 102-5, 102-10, 102-15, 104-10, 109-5, 110-25, 110-35, 110-55, 112-30, 114-1, 114-10, 115-5 to 115-25, 115-100 and 116-40, compilation 264 (21 May 2026), the text for 2025-26 and 2026-27 under Act No. 49 of 2026 Schedule 1 items 82 to 84; TD 33 (identical shares); the ATO's 'Keeping records of shares and units' (last updated 22 June 2026: Boris's example), 'CGT discount' (last updated 29 June 2026: the 12 months exclude the days of acquisition and the event) and the individual tax return instructions supplement 2026, question 18 (last updated 30 May 2026: Kathleen's examples 1 to 4)",
         ),
         "trade_in" => (
             "2026-11-18",
@@ -1322,6 +1327,12 @@ pub fn library_evidence(kind: &str) -> [(&'static str, &'static str); 4] {
             "Bridget, Andrew and Louise examples; the Gayle example",
             "2026-06-01",
             "2026-11-18",
+        ),
+        "cgt_parcels" => (
+            "tax-examples-capital-gains-tax-cgt",
+            "2-240",
+            "2026-06-30",
+            "2026-11-19",
         ),
         "trade_in" => (
             "ATO GST pages: Purchasing a motor vehicle; GST and the disposal of capital assets",
@@ -2074,6 +2085,40 @@ pub fn input_units(kind: &str) -> Vec<(&'static str, &'static str)> {
                 "list of objects, one for each income year held from the start time to the event, each with income_year (from 2001-02, and for a car from 2015-16, to the event's year), decline_in_value (AUD; for a cents per kilometre year the notional decline of s 40-370(3)) and deduction (AUD, the decline less the s 40-25 reductions); a car's rows also state method (log_book or cents_per_kilometre, which takes no deduction) and days_held (integer from 1 to the days in that income year, 366 when it includes 29 February)",
             ),
         ],
+        "cgt_parcels" => vec![
+            (
+                "entity",
+                "individual, trust, complying_superannuation_entity or company: the entity that made the gains (ITAA 1997 ss 115-10 and 115-100)",
+            ),
+            (
+                "identification",
+                "first_in_first_out (the earliest acquired parcel of the security first) or selected (each disposal lists its parcels, as TD 33 para 4 accepts)",
+            ),
+            (
+                "parcels",
+                "list of 1 to 1,000 objects, each with parcel (a unique name), security (the same text for identical shares or units), acquired (YYYY-MM-DD, the contract date, s 109-5; not after the year), units (a decimal string above 0, at most 6dp), acquisition_cost (AUD, the first element, s 110-25(2)) and incidental_costs (AUD, the second element on acquiring, such as brokerage and stamp duty, ss 110-25(3) and 110-35), and optionally ownership_costs (AUD, the third element, s 110-25(4)), capital_expenditure (AUD, the fourth, s 110-25(5)) and title_costs (AUD, the fifth, s 110-25(6))",
+            ),
+            (
+                "disposals",
+                "list of 1 to 1,000 objects, each with security, date (YYYY-MM-DD, the contract date, s 104-10(3); not after the year, and one before it uses up units without being counted), units, capital_proceeds (AUD, before selling costs) and incidental_costs (AUD, the second element on disposing, such as brokerage); for selected identification also parcels, a list of objects each with parcel and units, adding up to the disposal's units",
+            ),
+            (
+                "other_discount_capital_gains",
+                "AUD, the year's other discount capital gains, before losses and the discount; 0.00 for a company",
+            ),
+            (
+                "other_capital_gains",
+                "AUD, the year's other capital gains that are not discount capital gains",
+            ),
+            (
+                "other_capital_losses",
+                "AUD, the year's other capital losses, none from collectables or personal use assets",
+            ),
+            (
+                "prior_net_capital_losses",
+                "AUD, net capital losses of earlier years not yet applied, none from collectables",
+            ),
+        ],
         "trade_in" => vec![
             (
                 "cost",
@@ -2708,6 +2753,29 @@ pub fn examples(kind: &str) -> Vec<(&'static str, Example)> {
                     r#"[{"income_year": "2025-26", "decline_in_value": "300.00", "deduction": "180.00"}, {"income_year": "2026-27", "decline_in_value": "0.00", "deduction": "0.00"}]"#,
                 ),
             ),
+        ],
+        // The ATO's Kathleen (question 18 of the 2026 supplement, examples 1
+        // to 4), her collectables left out.
+        "cgt_parcels" => vec![
+            ("year", Text("2025-26")),
+            ("entity", Text("individual")),
+            ("identification", Text("first_in_first_out")),
+            (
+                "parcels",
+                Json(
+                    r#"[{"parcel": "K1", "security": "Company A", "acquired": "2000-11-17", "units": "1000", "acquisition_cost": "3000.00", "incidental_costs": "0.00"}, {"parcel": "K2", "security": "Company B", "acquired": "2025-10-10", "units": "130", "acquisition_cost": "520.00", "incidental_costs": "0.00"}, {"parcel": "K3", "security": "Company C", "acquired": "2025-10-10", "units": "600", "acquisition_cost": "2400.00", "incidental_costs": "0.00"}]"#,
+                ),
+            ),
+            (
+                "disposals",
+                Json(
+                    r#"[{"security": "Company A", "date": "2025-12-17", "units": "1000", "capital_proceeds": "6000.00", "incidental_costs": "0.00"}, {"security": "Company B", "date": "2026-02-27", "units": "130", "capital_proceeds": "1040.00", "incidental_costs": "0.00"}, {"security": "Company C", "date": "2026-06-25", "units": "600", "capital_proceeds": "1800.00", "incidental_costs": "0.00"}]"#,
+                ),
+            ),
+            ("other_discount_capital_gains", Text("0.00")),
+            ("other_capital_gains", Text("0.00")),
+            ("other_capital_losses", Text("0.00")),
+            ("prior_net_capital_losses", Text("400.00")),
         ],
         "trade_in" => vec![
             ("year", Text("2026-27")),

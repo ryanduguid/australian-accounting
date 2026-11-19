@@ -4781,6 +4781,8 @@ mod balancing;
 pub use balancing::balancing_adjustment;
 mod trade_in;
 pub use trade_in::{TradeInArgs, trade_in};
+mod cgt_parcels;
+pub use cgt_parcels::{CgtParcelsArgs, cgt_parcels};
 
 /// One pay that includes an additional payment, as Schedule 5 (NAT 3348) reads it.
 struct AdditionalPay {
@@ -6067,12 +6069,13 @@ pub use lump_sum_arrears::lump_sum_arrears_tax_offset;
 mod income_tests;
 pub use income_tests::income_tests;
 
-const KINDS: [&str; 48] = [
+const KINDS: [&str; 49] = [
     "gst",
     "resident_tax",
     "foreign_resident_tax",
     "capital_gains",
     "main_residence",
+    "cgt_parcels",
     "borrowing_expenses",
     "hire_purchase_schedule",
     "business_capital_expenditure",

@@ -55,6 +55,7 @@ example evidence; it does not claim a fresh review of every supported period.
 | Borrowing expenses | `tax-examples-deductions` (tax-examples), ¶4-160, with ITAA 1997 s 25-25 (compilation 268, 1 October 2026) and the ATO's 'Borrowing expenses' page | 30 June 2026; 22 May 2026 (ATO page) | One loan's established expenditure, use and dates for 2024-25 to 2026-27; classification, interest and refinancing excluded |
 | Hire purchase schedule | Not a Library document: ITAA 1997 ss 240-17, 240-55 and 240-60 on the ATO's legal database and in compilation 268 (1 October 2026) | 15 November 2026 (read) | One agreement's monthly notional interest for the hirer, starting in 2024-25 to 2026-27, from established payments; apportionment to income years under s 240-60(2) excluded |
 | Balancing adjustment | Not a Library document: the ATO's Guide to depreciating assets 2026 (Bridget, Andrew and Louise examples) and ITAA 1997 Subdivisions 27-B and 40-D, ss 104-240, 118-5 and 118-10(1) and its example (compilation 268, 1 October 2026) | 1 June 2026 (Guide); 18 November 2026 (read) | One depreciating asset's balancing adjustment, s 40-290 reduction and K7 amount for events in 2024-25 to 2026-27, from established cost, termination value and each year's decline and deduction; pools, s 40-291A and roll-overs excluded |
+| CGT parcels | `tax-examples-capital-gains-tax-cgt` (tax-examples), ¶2-240, with the ATO's individual tax return instructions supplement 2026, question 18 (Kathleen's examples 1 to 4), 'Keeping records of shares and units' (Boris's example), 'CGT discount', TD 33 and ITAA 1997 compilation 264 | 30 June 2026; 30 May, 22 June and 29 June 2026 (ATO pages); 19 November 2026 (read) | Parcels of shares or units acquired after 21 September 1999 and sold in 2025-26 or 2026-27; cost base adjustments, indexation and the small business concessions excluded |
 | Trade-in | Not a Library document: the ATO's 'Purchasing a motor vehicle' (Darren's example) and 'GST and the disposal of capital assets' (Ian's example), with ITAA 1997 Subdivision 27-B and ss 40-180 to 40-230, 40-305 and 40-365 (compilation 268) and GST Act ss 9-75, 11-30, 69-10 and 132-5 (compilation 96) | 3 June 2026 and 24 May 2017 (ATO pages); 18 November 2026 (read) | One asset traded in at arm's length for a replacement first held and used in 2025-26 or 2026-27; GST status, credits, allowance and price established; involuntary disposals and luxury car tax on the trade-in excluded |
 | Depreciation | `tax-examples-depreciation` (tax-examples), ¶6-000 and ¶6-020 | 30 June 2025 | First-year formulas and taxable-use apportionment in 2024–25 examples |
 | Quarterly SG | `superannuation-instant-reference-rates-thresholds-and-checklists` (superannuation), ¶18-600 and ¶18-620 | 30 June 2026 | General 2025–26 rate and quarterly maximum contribution base |
@@ -969,6 +970,46 @@ The working keeps each fraction exact and divides once, last, so a reduction
 of $3,125 x 9,050 / 15,125 is not rounded before the days scale it. The Act's
 own example rounds to dollars; the worksheet shows cents, half up, as every
 worksheet here does.
+
+## CGT parcels
+
+This worksheet was added on 19 November 2026. ITAA 1997 ss 102-5, 102-10,
+102-15, 104-10, 109-5, 110-25, 110-35, 110-55, 112-30, 114-1, 114-10, 115-5 to
+115-25, 115-100 and 116-40 were read that day in compilation 264 (21 May 2026),
+volume 3, at 14:39 AEDT
+(https://www.legislation.gov.au/C2004A05138/2026-05-21/2026-05-21/text/original/epub/OEBPS/document_3/document_3.html).
+That compilation is the text for 2025-26 and 2026-27: Act No. 49 of 2026,
+read at 14:40, rewrites s 102-5(1) and Subdivision 115-C, and Schedule 1
+items 82 to 84 apply those changes to assessments for the income year that
+includes 1 July 2027 and later years, so later compilations' step numbers are
+not this worksheet's. The ATO's pages were read at 14:30: 'Keeping records of
+shares and units' (last updated 22 June 2026: each parcel is a separate CGT
+asset, and Boris may choose which shares he sells), 'CGT discount' (last
+updated 29 June 2026: the 12 months exclude the day of acquisition and the day
+of the CGT event; a complying super fund's discount is 33.33%; a company has
+none) and TD 33 (the Commissioner accepts first in, first out and the
+taxpayer's selection; average cost only for shares acquired on the same day).
+Question 18 of the individual tax return instructions supplement 2026 (last
+updated 30 May 2026) gives Kathleen's examples and labels H, A and V.
+
+The Act does not say how a parcel's cost is split between the units sold and
+those kept. Each share or unit is a CGT asset, so the worksheet takes the
+part of each element reasonably attributable to the units (s 112-30(1) and
+(1A)) and of a sale's proceeds reasonably attributable to each part
+(s 116-40(1)) by number of units, rounded to the cent, half up, with the last
+units taking what is left so the parts add up.
+
+`tests/cgt_parcels.rs` holds these cases.
+
+| Case | Source | Worksheet |
+| --- | --- | --- |
+| Kathleen: 1,000 shares bought 17 November 2000 for $3,000 and sold for $6,000; 130 bought 10 October 2025 for $520 and sold for $1,040; 600 bought then for $2,400 and sold for $1,800; $400 of earlier losses | Question 18 supplement 2026, examples 1 to 4 | Label H $3,520; $520 and $80 of the loss, then $400, applied; $1,260 net capital gain; collectables left out |
+| Boris: 1,000 shares at $5 and 3,000 at $10, 1,500 sold at $8 | 'Keeping records of shares and units' (days fabricated) | Selecting the $10 shares: $3,000 loss, 1,000 at $5 and 1,500 at $10 left; first in, first out: $3,000 discount gain and $1,000 loss, $1,000 net |
+| David Jones: 2,000 CSR originals at $2 sold at $1 first in, first out; 1,000 of 5,000 WBC shares ($60,000) sold at $20 within 12 months; IBM loss $6,660 and TEL gain $21,435 given | Library ¶2-240 (the CSR bonus shares' $2,000 cost fabricated) | $8,660 of losses take the $8,000 WBC gain and $660 of the TEL gain; $10,387.50 net |
+| Bought 2 February 2025, sold 3 February 2026 and 2 February 2026 | 'CGT discount', 12-month count | Discount capital gain from 3 February; not on 2 February |
+| A $289,755 gain held over 12 months | Worked by hand under s 115-100 | $96,585 discount for a complying superannuation entity, $144,877.50 for a trust, none for a company |
+| 3 units for $110 sold 1 then 2; 3 units sold for $100 from parcels of 1 and 2 | Worked by hand | Cost bases $36.67 and $73.33; proceeds $33.33 and $66.67 |
+| $1,000 cost and $100 costs of owning, sold for $1,050 | Worked by hand under ss 110-25(4) and 110-55(2) | Neither gain nor loss |
 
 ## Trade-in
 
@@ -2448,6 +2489,7 @@ year; the others refuse it and say what is missing.
 | Division 296 thresholds | Not published: indexed from 2027-28 | ATO Division 296 page (last updated 3 November 2026, 2026-27 only), 16:13 |
 | CGT and rental deductions | Changed from 1 July 2027 by Act No. 49 of 2026 Schedules 1 and 2 (s 26-155) | ITAA 1997 s 26-155 (https://www.ato.gov.au/law/view/document?docid=PAC/19970038/26-155), 16:13 |
 | Balancing adjustment | Refused: CGT event K7 is a capital gain, which Schedule 1 to Act No. 49 of 2026 changes from 1 July 2027 | Act No. 49 of 2026 as made (https://www.legislation.gov.au/C2026A00049/asmade/text), read 18 November 2026 at 07:06; see [Balancing adjustment](#balancing-adjustment) |
+| CGT parcels | Refused: Schedule 1 to Act No. 49 of 2026 changes how capital gains are worked out from the income year that includes 1 July 2027 | Act No. 49 of 2026 as made (https://www.legislation.gov.au/C2026A00049/asmade/text), items 82 to 84, read 19 November 2026 at 14:40; see [CGT parcels](#cgt-parcels) |
 | Trade-in | Refused: the car limit for 2027-28 was not published, and CGT event K7 changes with Act No. 49 of 2026 | ATO 'Purchasing a motor vehicle' (last updated 3 June 2026, the 2026-27 limit only), read 18 November 2026 at 07:10; see [Trade-in](#trade-in) |
 | Business capital expenditure | Enacted, no year: ITAA 1997 s 40-880 and the small business entity test of Subdivision 328-C, neither amended in compilation 268 or the version from 1 December 2026; s 26-155 left out of scope | Compilation 268 (https://www.legislation.gov.au/C2004A05138/latest/text) and the Register's API, read 17 November 2026 from 01:33; see [Business capital expenditure](#business-capital-expenditure) |
 
