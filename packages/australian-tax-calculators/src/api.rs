@@ -486,6 +486,22 @@ const COMMAND_ARGS: &[(&str, &[(&str, Kind)])] = &[
     ("fbt-board", FBT_YEAR_ARGS),
     ("fbt-tax-exempt-body-entertainment", FBT_METHOD_ARGS),
     (
+        "fbt-minor-benefit-check",
+        &[
+            ("category", Raw),
+            ("notional_taxable_value", Dec),
+            ("salary_sacrifice", Raw),
+            ("frequency", Raw),
+            ("similar_benefits_substantial", Raw),
+            ("other_associated_benefits_substantial", Raw),
+            ("valuation_difficult", Raw),
+            ("unexpected_event", Raw),
+            ("reward_for_services", Raw),
+            ("year_ended", Raw),
+            ("scope_confirmed", Raw),
+        ],
+    ),
+    (
         "fbt-entertainment-classifier",
         &[
             ("lines", Json),
@@ -950,6 +966,7 @@ pub fn evaluate_coded(command: &str, v: &Value) -> Result<Value> {
             | "fbt-board"
             | "fbt-tax-exempt-body-entertainment"
             | "fbt-entertainment-classifier"
+            | "fbt-minor-benefit-check"
             | "hire-purchase-schedule"
             | "income-tests"
             | "business-capital-expenditure"
@@ -1093,6 +1110,29 @@ pub fn evaluate_coded(command: &str, v: &Value) -> Result<Value> {
         "fbt-tax-exempt-body-entertainment" => {
             let given = benefit_inputs(v, params)?;
             engine::fbt_tax_exempt_body_entertainment(&a[0], &given, &a[1], &a[2])
+        }
+        "fbt-minor-benefit-check" => {
+            // Optional: the facts each category's exclusion needs.
+            let [in_house, exception, fifty] =
+                ["in_house", "tax_exempt_body_exception", "fifty_fifty_split"]
+                    .map(|key| optional(v, key, Raw));
+            let [in_house, exception, fifty] = [in_house?, exception?, fifty?];
+            engine::fbt_minor_benefit_check(&engine::MinorBenefitArgs {
+                category: &a[0],
+                notional_taxable_value: &a[1],
+                salary_sacrifice: &a[2],
+                frequency: &a[3],
+                similar_benefits_substantial: &a[4],
+                other_associated_benefits_substantial: &a[5],
+                valuation_difficult: &a[6],
+                unexpected_event: &a[7],
+                reward_for_services: &a[8],
+                in_house: in_house.as_ref(),
+                tax_exempt_body_exception: exception.as_ref(),
+                fifty_fifty_split: fifty.as_ref(),
+                year_ended: &a[9],
+                scope_confirmed: &a[10],
+            })
         }
         "fbt-entertainment-classifier" => {
             // Optional: the meal entertainment method, required only when a
