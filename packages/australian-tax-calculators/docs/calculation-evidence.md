@@ -616,8 +616,9 @@ concluded that treating the benefit as a fringe benefit would be
 unreasonable: a weighing, not a test. The command takes each criterion as the
 operator's statement and decides only where TR 2007/12's examples decide: each
 exempt example has similar benefits that are not frequent and totals that are
-not substantial, whatever the other criteria (example 9's voucher is a reward
-for services; examples 1 to 3 recur each Christmas); example 8, the one not
+not substantial. Example 9's voucher is a reward for services but ad hoc, and
+examples 1 to 3 recur each Christmas but are not rewards; no example has a
+regular reward, so that is left to judgement. Example 8, the one not
 exempt on the criteria, has frequent similar benefits with a substantial
 total. The Library's 3-060 gym fees and 3-080 golf days reach the same answer
 on the same pattern. Paras 14 and 16, on the 50/50 split and salary sacrifice,

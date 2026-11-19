@@ -943,8 +943,9 @@ benefits is substantial, whether the value is hard to work out, whether it
 helped with an unexpected event and whether it is a reward for services.
 `criteria` shows which way each weighs, and `screen` weighs them as TR 2007/12,
 the Commissioner's public ruling, weighs its examples: `exempt` where similar
-benefits are not frequent and neither total is substantial (examples 1 to 3, 5
-to 7 and 9 to 11: a yearly gift or party, flowers, a car lent after a storm,
+benefits are not frequent, neither total is substantial and the benefit is
+not both regular and a reward for services (examples 1 to 3, 5 to 7 and 9 to
+11: a yearly gift or party, flowers, a car lent after a storm,
 ad hoc tolls, a recognition voucher, a one-off gym membership, babysitting
 during unexpected overtime), `not_exempt` where they are frequent with a
 substantial total (example 8, monthly incentive vouchers) or a condition fails,

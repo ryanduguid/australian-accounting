@@ -227,14 +227,19 @@ fn each_exclusion_fails_alone_and_together() {
 }
 
 /// Criteria that match neither the exempt examples nor example 8 are left to
-/// the employer: frequent but not substantial, or infrequent with a
-/// substantial total.
+/// the employer: frequent but not substantial, infrequent with a
+/// substantial total, or a regular reward for services, which no example
+/// has.
 #[test]
 fn mixed_criteria_need_the_employers_judgement() {
     for pairs in [
         vec![("frequency", json!("frequent"))],
         vec![("similar_benefits_substantial", json!(true))],
         vec![("other_associated_benefits_substantial", json!(true))],
+        vec![
+            ("frequency", json!("infrequent_and_regular")),
+            ("reward_for_services", json!(true)),
+        ],
         vec![
             ("frequency", json!("frequent")),
             ("other_associated_benefits_substantial", json!(true)),

@@ -151,6 +151,9 @@ fn conditions(args: &MinorBenefitArgs, category: &str, value: &Decimal) -> Resul
 /// The s 58P(1)(f) facts the screen weighs, and every criterion's row.
 struct Criteria {
     frequent: bool,
+    /// Infrequent but regular, and a reward for services: no example has
+    /// both.
+    regular_reward: bool,
     substantial: [bool; 2],
     rows: Vec<Value>,
 }
@@ -204,12 +207,13 @@ fn criteria(args: &MinorBenefitArgs) -> Result<Criteria> {
     }
     Ok(Criteria {
         frequent: frequency == "frequent",
+        regular_reward: frequency == "infrequent_and_regular" && stated[4],
         substantial: [stated[0], stated[1]],
         rows,
     })
 }
 
-const EXEMPT: &str = "exempt: the stated criteria match the TR 2007/12 examples that conclude it would be unreasonable to treat the benefit as a fringe benefit (examples 1 to 3, 5 to 7 and 9 to 11: identical or similar benefits not provided frequently, and neither total substantial), so it is an exempt benefit for the current year of tax (s 58P(1)), on the Commissioner's view";
+const EXEMPT: &str = "exempt: the stated criteria match the TR 2007/12 examples that conclude it would be unreasonable to treat the benefit as a fringe benefit (examples 1 to 3, 5 to 7 and 9 to 11: identical or similar benefits not provided frequently, neither total substantial, and not both regular and a reward for services), so it is an exempt benefit for the current year of tax (s 58P(1)), on the Commissioner's view";
 const NOT_EXEMPT_FAILED: &str = "not_exempt: a condition of s 58P(1)(c) to (e), or one the Commissioner's ruling sets, is not met";
 const NOT_EXEMPT_FREQUENT: &str = "not_exempt: the stated criteria match TR 2007/12 example 8 (vouchers provided frequently, whose total is substantial), which concludes it would not be unreasonable to treat the benefit as a fringe benefit, on the Commissioner's view";
 const JUDGEMENT: &str = "judgement_required: the stated criteria match neither the TR 2007/12 examples that reach the exemption nor example 8, which does not; whether it would be unreasonable to treat the benefit as a fringe benefit, weighing all of s 58P(1)(f), is the employer's to decide";
@@ -219,7 +223,7 @@ fn screen(failing: bool, c: &Criteria) -> (Value, &'static str) {
     if failing {
         return (json!(false), NOT_EXEMPT_FAILED);
     }
-    if !c.frequent && c.substantial == [false, false] {
+    if !c.frequent && c.substantial == [false, false] && !c.regular_reward {
         return (json!(true), EXEMPT);
     }
     if c.frequent && c.substantial[0] {
