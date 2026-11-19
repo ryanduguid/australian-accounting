@@ -1002,12 +1002,17 @@ pub fn supported_periods(kind: &str) -> Vec<&'static str> {
         "resident_tax" => keys(RESIDENT_TAX_SCALES),
         "foreign_resident_tax" => keys(FOREIGN_RESIDENT_TAX_SCALES),
         "main_residence" => vec!["2024-25", "2025-26", "2026-27"],
-        // Borrowing expenses: s 26-155 quarantines residential rental deductions
-        // from 2027-28. Hire purchase: the years read.
-        "borrowing_expenses"
-        | "hire_purchase_schedule"
-        | "chattel_mortgage_schedule"
-        | "loan_transactions" => vec!["2024-25", "2025-26", "2026-27"],
+        // ITAA 1997 s 25-25 sets no figure by year; its step 1 was last
+        // substituted by Act No 15 of 2017 from 1 April 2017. From 2027-28 the
+        // result is flagged for s 26-155, which it does not apply.
+        "borrowing_expenses" | "borrowing_expenses_schedule" => vec![
+            "2017-18", "2018-19", "2019-20", "2020-21", "2021-22", "2022-23", "2023-24", "2024-25",
+            "2025-26", "2026-27", "2027-28",
+        ],
+        // Hire purchase: the years read.
+        "hire_purchase_schedule" | "chattel_mortgage_schedule" | "loan_transactions" => {
+            vec!["2024-25", "2025-26", "2026-27"]
+        }
         // s 40-880 as amended by Act No 92 of 2020 applies to expenditure
         // incurred from 1 July 2020, unamended to compilation 268. It and
         // Subdivision 328-C set no figure by year, and the Register's one later
@@ -1026,6 +1031,9 @@ pub fn supported_periods(kind: &str) -> Vec<&'static str> {
         "wine_equalisation_tax" => vec!["2023-24", "2024-25", "2025-26", "2026-27", "2027-28"],
         // Division 75 sets no figure by year; the years are gst's.
         "gst_margin_scheme" => vec!["2025-26", "2026-27", "2027-28"],
+        // The 2026-27 rates and thresholds each revenue office published, read
+        // on 19 November 2026.
+        "payroll_tax" => vec!["2026-27"],
         // Tax periods from 1 July 2019, when the $10,000 refunds began
         // (Act No. 94 of 2019 Sch 2), to the last year whose thresholds the
         // ATO publishes (QC38161, 1 June 2026).
@@ -1128,9 +1136,9 @@ pub fn source_review(kind: &str) -> (&'static str, &'static str) {
             "2026-11-01",
             "Treating former home as main residence: the 6-year rule, Roya and Helen examples; Using your home for rental or business: working out the capital gain, the home first used to produce income rule and its examples",
         ),
-        "borrowing_expenses" => (
-            "2026-11-04",
-            "ITAA 1997 s 25-25 and s 26-50, compilation 268 (1 October 2026); Borrowing expenses: the Peter and the Fiona and Max examples",
+        "borrowing_expenses" | "borrowing_expenses_schedule" => (
+            "2026-11-19",
+            "ITAA 1997 s 25-25 with its history notes, s 26-50 and s 26-155 on the ATO's legal database; Acts Interpretation Act 1901 ss 2G and 36, compilation 39 (28 March 2026); Borrowing expenses (last updated 22 May 2026): the Peter and the Fiona and Max examples",
         ),
         "business_capital_expenditure" => (
             "2026-11-16",
@@ -1139,6 +1147,10 @@ pub fn source_review(kind: &str) -> (&'static str, &'static str) {
         "balancing_adjustment" => (
             "2026-11-18",
             "ITAA 1997 ss 40-25, 40-85, 40-230, 40-285, 40-290, 40-291A, 40-295, 40-300, 40-305, 40-325, 40-370, 104-235, 104-240, 118-5 and 118-10 (its example) and Subdivision 27-B, compilation 268 (1 October 2026), with the endnotes' amendment history; Treasury Laws Amendment (Tax Reform No. 1) Act 2026 (No 49 of 2026), Schedule 4 item 17 (s 40-291A from 2026-27); Guide to depreciating assets 2026, 'What happens if you no longer hold or use a depreciating asset?', its Bridget, Andrew and Louise examples and the car limit formula",
+        ),
+        "payroll_tax" => (
+            "2026-11-19",
+            "Payroll Tax Act 2007 (NSW) Sch 1 cl 1 (version current from 10 July 2026); Payroll Tax Act 2007 (Vic) s 3A and Sch 1 cl 1, 1A, 1B and 5 (authorised version 041, 1 May 2026); Payroll Tax Act 1971 (Qld) ss 10, 29 and 43I (reprint current as at 22 October 2026); Pay-roll Tax Assessment Act 2002 (WA) ss 8 and 13 (04-d0-03) and Pay-roll Tax Act 2002 (WA) s 5(4) (00-d0-02); Payroll Tax Act 2009 (SA) Sch 1 cl 1, 4 and 5 (version 31.3.2026); Payroll Tax Act 2008 (Tas) Sch 1 cl 1 and 4; Payroll Tax Act 2011 (ACT) Sch 1 (R20) with DI2026-151 s 5; Payroll Tax Act 2009 (NT) s 7A and Sch 1 cl 1, 3 and 5 (as in force at 1 July 2026); and each revenue office's rates and thresholds page",
         ),
         "gst_margin_scheme" => (
             "2026-11-19",
@@ -1367,11 +1379,11 @@ pub fn library_evidence(kind: &str) -> [(&'static str, &'static str); 4] {
             "2026-06-30",
             "2026-11-01",
         ),
-        "borrowing_expenses" => (
+        "borrowing_expenses" | "borrowing_expenses_schedule" => (
             "tax-examples-deductions",
             "4-160",
             "2026-06-30",
-            "2026-11-04",
+            "2026-11-19",
         ),
         "business_capital_expenditure" => (
             "TR 2011/6",
@@ -1397,6 +1409,12 @@ pub fn library_evidence(kind: &str) -> [(&'static str, &'static str); 4] {
             "Bridget, Andrew and Louise examples; the Gayle example",
             "2026-06-01",
             "2026-11-18",
+        ),
+        "payroll_tax" => (
+            "Revenue office payroll tax pages: Revenue NSW thresholds and rates; SRO Victoria payroll tax surcharges; QRO payroll tax deductions; RevenueWA employer guide; SRO Tasmania annual adjustment return guideline",
+            "Revenue NSW's 2 examples; SRO Victoria example 2; QRO's annual deduction example; RevenueWA's $1,104,000; SRO Tasmania examples 1 and 2",
+            "2026-07-01",
+            "2026-11-19",
         ),
         "gst_margin_scheme" => (
             "tax-examples-gst-and-other-indirect-taxes",
@@ -1649,6 +1667,10 @@ pub fn optional_inputs(kind: &str) -> Vec<(&'static str, &'static str)> {
             "car_limit",
             "for a car only, and then required: null when s 40-230 did not reduce its cost to the car limit, or an object with limit (AUD, the car limit for the financial year in which the car was first used for any purpose), second_element_cost (AUD) and cost_ignoring_car_limit (AUD, the first and second elements ignoring the car limit, after Subdivision 27-B), cost then being limit plus second_element_cost: ITAA 1997 s 40-325",
         )],
+        "payroll_tax" => vec![(
+            "regional_employer",
+            "boolean, for Victoria only and then required: true when the employer is a regional employer, one that pays at least 85% of its taxable wages to regional employees (Payroll Tax Act 2007 (Vic) s 3A)",
+        )],
         "wine_equalisation_tax" => vec![
             (
                 "rebate_claimed_earlier_in_year",
@@ -1741,6 +1763,10 @@ pub fn optional_inputs(kind: &str) -> Vec<(&'static str, &'static str)> {
                 "object of GST facts, for the purchaser's input tax credit on the price: as hire_purchase_schedule takes them. A passenger_car worth more than the car limit and not quoted for has its credit capped at 1/11 of the limit (GST Act s 69-10(1))",
             ),
         ],
+        "borrowing_expenses_schedule" => vec![(
+            "other_borrowing_expenses",
+            "object of income years (such as \"2025-26\") and AUD amounts: the income-producing share of borrowing expenses incurred that year on loans not in loans, for the s 25-25(6) $100 test",
+        )],
         "loan_transactions" => vec![(
             "rate_changes",
             "list of objects in date order, each with date (YYYY-MM-DD, after start_date and by end_date, one change a day) and annual_rate (decimal fraction from 0 to 1), the rate from that day",
@@ -2304,6 +2330,10 @@ pub fn input_units(kind: &str) -> Vec<(&'static str, &'static str)> {
                 "boolean, false only when the property is not a leisure facility, or s 26-50(3) applies to it at all times in the income year (such as a holiday home held mainly to produce rent)",
             ),
         ],
+        "borrowing_expenses_schedule" => vec![(
+            "loans",
+            "list of objects, one for each loan, each stating: borrowing_expenses (AUD, as for borrowing_expenses, incurred in the income year the loan began); loan_start (YYYY-MM-DD, the first day the money was borrowed, from 1 July 2017 to the end of the year asked about); loan_term_end and repaid_on (YYYY-MM-DD or null, as for borrowing_expenses); income_use (a decimal fraction from 0 to 1 for every income year of the loan, or an object giving one for each income year from the year the loan began to the year its period ends, such as {\"2025-26\": \"1\", \"2026-27\": \"0.5\"}); section_26_50_applies (boolean, as for borrowing_expenses; true is refused); and optionally refinances (the number, from 1, of an earlier loan in the list that this loan repaid on its loan_start, which must be that loan's repaid_on)",
+        )],
         "chattel_mortgage_schedule" => vec![
             (
                 "amount_financed",
@@ -2383,6 +2413,25 @@ pub fn input_units(kind: &str) -> Vec<(&'static str, &'static str)> {
             (
                 "years",
                 "list of objects, one for each income year held from the start time to the event, each with income_year (from 2001-02, and for a car from 2015-16, to the event's year), decline_in_value (AUD; for a cents per kilometre year the notional decline of s 40-370(3)) and deduction (AUD, the decline less the s 40-25 reductions); a car's rows also state method (log_book or cents_per_kilometre, which takes no deduction) and days_held (integer from 1 to the days in that income year, 366 when it includes 29 February)",
+            ),
+        ],
+        "payroll_tax" => vec![
+            ("jurisdiction", "nsw, vic, qld, wa, sa, tas, act or nt"),
+            (
+                "taxable_wages",
+                "AUD, the employer's taxable wages in the jurisdiction for the financial year, after that jurisdiction's exemptions",
+            ),
+            (
+                "australian_wages",
+                "AUD, the employer's taxable wages and interstate wages for the financial year: all its wages taxable in any Australian jurisdiction, at least taxable_wages",
+            ),
+            (
+                "group_member",
+                "boolean, true when the employer is a member of a group for payroll tax; true is refused",
+            ),
+            (
+                "employed_all_year",
+                "boolean, true when the employer paid or was liable to pay wages on every day of the financial year; false is refused",
             ),
         ],
         "gst_margin_scheme" => vec![
@@ -3114,6 +3163,19 @@ pub fn examples(kind: &str) -> Vec<(&'static str, Example)> {
             ("loan_term_end", Text("2049-07-02")),
             ("repaid_on", Json("null")),
             ("section_26_50_applies", Flag(false)),
+            ("year", Text("2024-25")),
+        ],
+        // Peter's loan (ATO, Borrowing expenses) from 3 July 2024, refinanced
+        // on 2 March 2026 by a second loan whose money is half used to produce
+        // income from 2026-27.
+        "borrowing_expenses_schedule" => vec![
+            ("year", Text("2026-27")),
+            (
+                "loans",
+                Json(
+                    r#"[{"borrowing_expenses": "1600.00", "loan_start": "2024-07-03", "loan_term_end": "2049-07-02", "repaid_on": "2026-03-02", "income_use": "1", "section_26_50_applies": false}, {"borrowing_expenses": "900.00", "loan_start": "2026-03-02", "loan_term_end": null, "repaid_on": null, "income_use": {"2025-26": "1", "2026-27": "0.5", "2027-28": "0.5", "2028-29": "0.5", "2029-30": "0.5", "2030-31": "0.5"}, "section_26_50_applies": false, "refinances": 1}]"#,
+                ),
+            ),
         ],
         "business_capital_expenditure" => vec![
             ("year", Text("2026-27")),
@@ -3135,6 +3197,14 @@ pub fn examples(kind: &str) -> Vec<(&'static str, Example)> {
                     r#"[{"income_year": "2025-26", "decline_in_value": "300.00", "deduction": "180.00"}, {"income_year": "2026-27", "decline_in_value": "0.00", "deduction": "0.00"}]"#,
                 ),
             ),
+        ],
+        "payroll_tax" => vec![
+            ("year", Text("2026-27")),
+            ("jurisdiction", Text("nsw")),
+            ("taxable_wages", Text("900000.00")),
+            ("australian_wages", Text("3000000.00")),
+            ("group_member", Flag(false)),
+            ("employed_all_year", Flag(true)),
         ],
         // The Library's Joanne Black example (Tax Examples, GST, 12-200):
         // land bought in January 2000, worth $448,000 on 1 July 2000, sold
