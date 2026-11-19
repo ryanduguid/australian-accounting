@@ -1048,6 +1048,9 @@ pub fn supported_periods(kind: &str) -> Vec<&'static str> {
         "division_293" => DIVISION_293_YEARS.to_vec(),
         "division_296" => DIVISION_296_YEARS.to_vec(),
         "termination_payment" => TERMINATION_PAYMENT_YEARS.to_vec(),
+        // ITAA 1997 ss 82-140 to 82-155 set no figure by year; the years whose
+        // law was read as compiled on 19 November 2026.
+        "etp_tax_free_component" => vec!["2026-27", "2027-28"],
         "unused_leave_payment" => UNUSED_LEAVE_PAYMENT_YEARS.to_vec(),
         "schedule_5_method_a" | "schedule_5_method_b_i" | "schedule_5_method_b_ii" => {
             SCHEDULE_5_YEARS.to_vec()
@@ -1220,6 +1223,10 @@ pub fn source_review(kind: &str) -> (&'static str, &'static str) {
         "termination_payment" => (
             "2026-11-14",
             "ATO Schedule 11, tax table for employment termination payments (from 1 July 2026), Table A and examples 1 to 4; ATO Key superannuation rates, tables 17 and 20; ITAA 1997 ss 82-10, 82-130 to 82-160 and 83-170 to 83-180, compilation 268 (1 October 2026); SISR reg 6.01(2), compilation 159 (1 July 2026)",
+        ),
+        "etp_tax_free_component" => (
+            "2026-11-19",
+            "ITAA 1997 ss 82-10(6), 82-140, 82-145, 82-150 and 82-155 and s 995-1(1) 'last retirement day', on the ATO's legal database; ATO 'Tax-free component of ETPs' (last updated 24 July 2025), Jackson's example; ATO Employment termination payment with an invalidity segment worksheet (NAT 71949, June 2014), steps 1 to 9",
         ),
         "unused_leave_payment" => (
             "2026-11-16",
@@ -1483,6 +1490,12 @@ pub fn library_evidence(kind: &str) -> [(&'static str, &'static str); 4] {
             "examples 1 to 4",
             "2026-06-17",
             "2026-11-14",
+        ),
+        "etp_tax_free_component" => (
+            "superannuation-superannuation-benefits-termination-payments",
+            "8-850",
+            "2026-06-30",
+            "2026-11-19",
         ),
         "unused_leave_payment" => (
             "ATO Schedule 7 tax table for unused leave payments on termination of employment",
@@ -2492,6 +2505,32 @@ pub fn input_units(kind: &str) -> Vec<(&'static str, &'static str)> {
                 "YYYY-MM-DD, the employee's, for their preservation age (SISR reg 6.01(2))",
             ),
         ],
+        "etp_tax_free_component" => vec![
+            (
+                "payment",
+                "AUD, the whole life benefit employment termination payment (ITAA 1997 s 82-130), every part of it made because of the termination: such as a golden handshake, compensation, unused sick leave and rostered days off, but not unused annual or long service leave (s 82-135)",
+            ),
+            (
+                "employment_start",
+                "YYYY-MM-DD, the first day of the employment to which the payment relates, counted",
+            ),
+            (
+                "termination_date",
+                "YYYY-MM-DD, the day the employment was terminated, counted in the employment days",
+            ),
+            (
+                "last_retirement_day",
+                "YYYY-MM-DD, the employee's last retirement day (s 995-1(1)): the day the employment would have ended on reaching a particular age or completing a particular period of service, or otherwise the day they would turn 65",
+            ),
+            (
+                "ill_health",
+                "boolean, true when the payment was made because the employee stopped being gainfully employed, and they stopped because they suffered from ill-health, physical or mental (s 82-150(1)(a) and (b))",
+            ),
+            (
+                "medical_certification",
+                "boolean, true when 2 legally qualified medical practitioners have certified that, because of the ill-health, the employee is unlikely ever to be gainfully employed in a capacity for which they are reasonably qualified because of education, experience or training (s 82-150(1)(d))",
+            ),
+        ],
         "unused_leave_payment" => vec![
             (
                 "annual_leave",
@@ -2993,6 +3032,16 @@ pub fn examples(kind: &str) -> Vec<(&'static str, Example)> {
             ("non_excluded_payment", Text("17678.00")),
             ("other_taxable_payments", Text("140000.00")),
             ("date_of_birth", Text("1996-09-01")),
+        ],
+        // Shaped on the ATO's Jackson example: $102,000, terminated for
+        // invalidity a year before the 65th birthday, moved into 2026-27.
+        "etp_tax_free_component" => vec![
+            ("payment", Text("102000.00")),
+            ("employment_start", Text("2013-09-02")),
+            ("termination_date", Text("2026-09-25")),
+            ("last_retirement_day", Text("2027-09-25")),
+            ("ill_health", Flag(true)),
+            ("medical_certification", Flag(true)),
         ],
         // Schedule 7's example (Norman), which gives no accrual start: any day
         // before 16 August 1978 gives its 3 long service leave periods.

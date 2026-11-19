@@ -136,7 +136,11 @@ pub const SCOPES: &[(&str, &str)] = &[
     ),
     (
         "termination_payment",
-        "The tax-free part of a genuine redundancy or early retirement scheme payment and the PAYG withholding from one life benefit employment termination payment (ETP) under Schedule 11, made in 2026-27 to a resident employee who gave a TFN and is not a working holiday maker, within 12 months of the termination. The operator establishes the redundancy payment as a genuine redundancy payment (ITAA 1997 s 83-175, including dismissal before pension age) or an early retirement scheme payment (s 83-180), above what voluntary termination would have paid; the completed years of service (s 83-170(3)); the rest of the ETP's taxable component, split into excluded payments (s 82-10(6)) and non-excluded payments; and the payer's other taxable payments to the employee in the year. The redundancy payment is tax-free up to $13,598 plus $6,801 for each completed year of service (s 83-170) and the rest of it is an excluded ETP part. The excluded part is taken first and capped at the $270,000 ETP cap; the non-excluded part is capped at the smaller of the ETP cap less the excluded part within it and the whole-of-income cap, $180,000 less the other taxable payments, not below nil (s 82-10(4) and (7); Schedule 11). Withholding is 17% up to the cap if the employee is their preservation age or older on 30 June 2027 (SISR reg 6.01(2)), 32% if younger, and 47% above the cap, each part rounded to the nearest dollar, 50 cents up. Excludes classifying the payments, death benefit ETPs, ETPs with a tax-free component (an invalidity segment or employment before 1 July 1983), earlier ETPs to the employee in the income year or for the same termination, unused annual and long service leave payments, delayed termination payments, payees without a TFN, foreign residents, working holiday makers and the income tax assessed on the ETP.",
+        "The tax-free part of a genuine redundancy or early retirement scheme payment and the PAYG withholding from one life benefit employment termination payment (ETP) under Schedule 11, made in 2026-27 to a resident employee who gave a TFN and is not a working holiday maker, within 12 months of the termination. The operator establishes the redundancy payment as a genuine redundancy payment (ITAA 1997 s 83-175, including dismissal before pension age) or an early retirement scheme payment (s 83-180), above what voluntary termination would have paid; the completed years of service (s 83-170(3)); the rest of the ETP's taxable component, split into excluded payments (s 82-10(6)) and non-excluded payments; and the payer's other taxable payments to the employee in the year. The redundancy payment is tax-free up to $13,598 plus $6,801 for each completed year of service (s 83-170) and the rest of it is an excluded ETP part. The excluded part is taken first and capped at the $270,000 ETP cap; the non-excluded part is capped at the smaller of the ETP cap less the excluded part within it and the whole-of-income cap, $180,000 less the other taxable payments, not below nil (s 82-10(4) and (7); Schedule 11). Withholding is 17% up to the cap if the employee is their preservation age or older on 30 June 2027 (SISR reg 6.01(2)), 32% if younger, and 47% above the cap, each part rounded to the nearest dollar, 50 cents up. Excludes classifying the payments, death benefit ETPs, working out an ETP's tax-free component (an invalidity segment or employment before 1 July 1983; etp_tax_free_component does, and gives the taxable component to classify here), earlier ETPs to the employee in the income year or for the same termination, unused annual and long service leave payments, delayed termination payments, payees without a TFN, foreign residents, working holiday makers and the income tax assessed on the ETP.",
+    ),
+    (
+        "etp_tax_free_component",
+        "The tax free component of one life benefit employment termination payment (ETP) and the taxable component left, for a payment made in 2026-27 or 2027-28 under ITAA 1997 ss 82-140 to 82-155 as compiled on 19 November 2026, which set no figure by year. The invalidity segment (s 82-150) is the payment times the days to retirement over the employment days plus the days to retirement, where the payment was made because the employee stopped being gainfully employed through ill-health, before their last retirement day, and 2 legally qualified medical practitioners have certified that they are unlikely ever to be gainfully employed in a capacity for which they are reasonably qualified; it is nil otherwise. The days to retirement run from the day after the termination to the last retirement day, both counted; the employment days from the first day of the employment to the termination day, both counted, as the ATO's worksheet NAT 71949 counts them. The pre-July 83 segment (s 82-155) is the payment less the invalidity segment, times the employment days before 1 July 1983 over all the employment days. Each segment is rounded half up to the cent, and the taxable component is the payment less both (s 82-145), so the components add up to the payment. Whether the payment includes an invalidity segment, or would but for its timing, is shown as invalidity_excluded_payment: such a payment is an excluded payment (s 82-10(6)(c)), so its taxable component is termination_payment's excluded_payment. Refuses an employment start after the termination day. The operator establishes that the payment is a life benefit ETP (s 82-130) and its amount, the ill-health, the medical certificates and the last retirement day (s 995-1(1)), and that the payment relates to one continuous period of employment from employment_start to termination_date. Excludes death benefit ETPs, which cannot include an invalidity segment; payments that relate to only part of that period or to broken periods of employment, whose employment days are not the days between the 2 dates; unused annual and long service leave (Division 83); superannuation benefits, whose disability benefits increase the tax free component under s 307-145 instead; and the tax or withholding on the taxable component, which termination_payment works out.",
     ),
     (
         "unused_leave_payment",
@@ -344,6 +348,10 @@ pub const SOURCES: &[(&str, &str)] = &[
     (
         "termination_payment",
         "https://www.ato.gov.au/tax-rates-and-codes/payg-withholding-schedule-11-tax-table-for-employment-termination-payments",
+    ),
+    (
+        "etp_tax_free_component",
+        "https://www.ato.gov.au/law/view/document?docid=PAC/19970038/82-150",
     ),
     (
         "unused_leave_payment",
@@ -666,6 +674,18 @@ pub const EXTRA_SOURCES: &[(&str, &[&str])] = &[
             "https://www.ato.gov.au/businesses-and-organisations/hiring-and-paying-your-workers/engaging-a-worker/when-a-worker-leaves-your-business/taxation-of-termination-payments/applying-the-etp-caps",
             "https://www.legislation.gov.au/C2004A05138/2026-10-01/2026-10-01/text/original/epub/OEBPS/document_3/document_3.html",
             "https://www.legislation.gov.au/F1996B00580/2026-07-01/2026-07-01/text/original/epub/OEBPS/document_2/document_2.html",
+        ],
+    ),
+    (
+        "etp_tax_free_component",
+        &[
+            "https://www.ato.gov.au/law/view/document?docid=PAC/19970038/82-140",
+            "https://www.ato.gov.au/law/view/document?docid=PAC/19970038/82-145",
+            "https://www.ato.gov.au/law/view/document?docid=PAC/19970038/82-155",
+            "https://www.ato.gov.au/law/view/document?docid=PAC/19970038/82-10",
+            "https://www.ato.gov.au/law/view/document?docid=PAC/19970038/995-1",
+            "https://www.ato.gov.au/businesses-and-organisations/hiring-and-paying-your-workers/engaging-a-worker/when-a-worker-leaves-your-business/taxation-of-termination-payments/tax-free-component-of-etps",
+            "https://www.ato.gov.au/forms-and-instructions/employment-termination-payments-with-an-invalidity-segment-worksheet",
         ],
     ),
     (
@@ -1199,6 +1219,10 @@ pub const REFUSAL_CODES: &[(&str, &str)] = &[
         "personal-tax-estimate was given Medicare levy exemption days beside a Medicare levy surcharge input, whose scope excludes them.",
     ),
     (
+        "etp_tax_free_component.dates_invalid",
+        "employment_start is after termination_date.",
+    ),
+    (
         "fbt.deduction_exceeds_contribution",
         "A deduction for a recipient's contribution to a property, residual or board fringe benefit exceeds the contribution.",
     ),
@@ -1460,7 +1484,7 @@ pub const REFUSAL_CODES: &[(&str, &str)] = &[
     ),
     (
         "input.field_unknown",
-        "A field the worksheet or command does not take, or does not take beside the other inputs given, was given (fbt-loan, fbt-meal-entertainment, fbt-car-parking, fbt-debt-waiver, fbt-expense-payment, fbt-property, fbt-residual, fbt-housing, fbt-lafha, fbt-board, fbt-tax-exempt-body-entertainment, fbt-entertainment-classifier, division-296, depreciation, foreign-resident-tax, medicare-levy, medicare-levy-surcharge, payg-withholding, payg-gross-up, termination-payment, unused-leave-payment, the Schedule 5 methods, working-holiday-maker-withholding, study-loan-withholding, seniors-pensioners-withholding, seniors-pensioners-tax-offset, lump-sum-arrears-tax-offset, hire-purchase-schedule, chattel-mortgage-schedule, loan-transactions and its transactions and rate_changes, business-capital-expenditure and its items, balancing-adjustment, its years and car_limit, trade-in, contribution-caps given a carry-forward input, derive, personal-tax-estimate, dgr-check, income-tests and fbt-return only).",
+        "A field the worksheet or command does not take, or does not take beside the other inputs given, was given (fbt-loan, fbt-meal-entertainment, fbt-car-parking, fbt-debt-waiver, fbt-expense-payment, fbt-property, fbt-residual, fbt-housing, fbt-lafha, fbt-board, fbt-tax-exempt-body-entertainment, fbt-entertainment-classifier, division-296, depreciation, foreign-resident-tax, medicare-levy, medicare-levy-surcharge, payg-withholding, payg-gross-up, termination-payment, etp-tax-free-component, unused-leave-payment, the Schedule 5 methods, working-holiday-maker-withholding, study-loan-withholding, seniors-pensioners-withholding, seniors-pensioners-tax-offset, lump-sum-arrears-tax-offset, hire-purchase-schedule, chattel-mortgage-schedule, loan-transactions and its transactions and rate_changes, business-capital-expenditure and its items, balancing-adjustment, its years and car_limit, trade-in, contribution-caps given a carry-forward input, derive, personal-tax-estimate, dgr-check, income-tests and fbt-return only).",
     ),
     ("input.flag_invalid", "A flag is not a JSON boolean."),
     ("input.fraction_invalid", "A fraction is outside 0 to 1."),
