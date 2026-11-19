@@ -27,16 +27,24 @@ pub const SCOPES: &[(&str, &str)] = &[
         "One hire purchase agreement whose hirer is the notional buyer (ITAA 1997 s 240-17(2)), starting in the income year given, with instalments paid in arrears (at each period's end) or in advance (at its start) and any balloon paid at the end of the term. The instalments are one level amount weekly, fortnightly, monthly, quarterly or annually, or dated segments of level amounts (a nil amount for a payment holiday), all counted in weeks or all in months, over at most 30 years. The operator establishes the amount financed (the notional loan principal: the consideration less any deposit paid or trade-in credited at or before the start, s 240-25(3)), the instalments, the balloon, the start date and any deposit, trade-in, payout and GST facts. A deposit or trade-in is taken as paid or credited on the start date, and the goods and the credit component as recorded on one tax invoice. Months run from the start date's day of the month, or the month's last day when it is shorter; weeks are 7 days. Each instalment's period is an arrangement payment period (s 240-70(1)), and an annual period is 2 periods of 6 months (s 240-70(2)). Under s 240-60(1) each period's notional interest is the outstanding notional loan principal, less any instalment due at the period's start, times the implicit interest rate for the period: (1 + r)^n - 1 for a period of n months (or weeks), where r is the compound rate a month (or a week) at which the payments repay the amount financed, found to 64 halvings of 0 to 100%. The payments themselves are not deductible but are taken into account in the notional interest (s 240-55). Each period shows the notional interest to date rounded half up to cents, less what the periods before show, so the periods add up to the total charges, each is within a cent of its amount at the rate found and the last balance is nil. The balloon is shown apart from the last instalment, on its own date. Journal lines for the start, each period's interest, each payment on its day and any payout carry the liability at the notional loan principal outstanding, and are totalled by income year: the interest by its period, with the periods spanning 30 June set apart, and each payment by its day. An early payout on the end of a period, neither known nor expected at the start, replaces every payment due from its date: the worksheet gives the notional interest and payments to that date, the balance outstanding, the difference and, under Subdivision 240-G (ss 240-105 and 240-110), which way the difference goes, flagged for review. With every GST fact given, it gives a registered hirer's input tax credit for an agreement entered into from 1 July 2012: 1/11 of every component of the supply, the notional interest included (the ATO's 'GST – Hire purchase and leasing'), less any luxury car tax for a car (GST Act s 9-75(2)), rounded to the nearest cent, 0.5 up (s 9-90), times the extent of creditable purpose (s 11-30(3)), attributable up front whether or not the hirer accounts on a cash basis (ss 29-10(1) and 158-5). A passenger car whose GST inclusive market value exceeds the car limit for the financial year it is first used ($69,674 for 2024-25 and 2025-26, $69,883 for 2026-27), where the hirer may not quote an ABN for luxury car tax, gives no GST figure and is flagged for review: s 69-10(1) caps the credit on the car, and the sources read do not settle whether the cap takes in the GST on the credit component. Refuses a rate below nil or of 100% a month (or week) or more, a rate that cannot be found closely enough to leave a nil balance to the cent, a term over 30 years, a nil amount financed or instalment, segments that do not run on from the start or mix weeks and months, a payout not on the end of a period before the term ends, a payout with GST facts, a payout known or expected at the start, a car first used in a year whose car limit is not published, and luxury car tax above the price. Excludes deciding whether Division 240 applies and what is financed; fees, charges and stamp duty; payments off a period boundary; substituted accounting periods; termination amounts other than the balloon and a stated payout, and estimates of them (s 240-60(3) and (4)); apportioning a period that spans 30 June between income years (s 240-60(2)); whether the notional interest is deductible (s 240-50) and any reduction of it for the input tax credit; the car's cost for Division 40 (ss 27-80 and 40-230); agreements entered into before 1 July 2012; GST adjustments after the start; the trade-in's own GST; and the notional seller.",
     ),
     (
+        "gst_margin_scheme",
+        "One taxable supply of real property in a financial year from 2025-26 to 2027-28, made under a contract entered into on or after 9 December 2008 and not under an option or right granted before then: whether the margin scheme of GST Act Division 75 can apply, and the GST with and without it. The operator establishes that the supply is a taxable supply apart from Division 75 (s 9-5: such as new residential premises or land sold in the course of an enterprise, not input taxed residential premises or a GST-free supply), what it sells or grants, the written agreement, how the supplier acquired the entire interest, unit or lease, and the base: the consideration for that acquisition and any of it unpaid, or an approved valuation (s 75-35) with the facts that fix its day. Each condition of s 75-5 is shown as met or not: a freehold interest, a stratum unit or a long-term lease (s 75-5(1)); a written agreement made on or before the supply or within a further period the Commissioner allows (s 75-5(1A)); and the interest not acquired through a taxable supply on which the GST was worked out without the margin scheme (s 75-5(2) and (3)(a)). The margin is the amount by which the consideration for the supply exceeds the base, or nil (s 75-10(2) and (3)): the acquisition's consideration less any of it unpaid (s 75-12), disregarding improvements and development (s 75-14), or for an interest acquired before 1 July 2000 an approved valuation as at the day s 75-10(3) items 1 to 4 fix, checked against the facts given; for a supply of part of the land, only the corresponding proportion of the base, the share of the whole given (s 75-15). The GST under the margin scheme is 1/11 of the margin (s 75-10(1)) and without it 1/11 of the consideration (ss 9-70 and 9-75(1)), each rounded to the nearest cent, 0.5 cents up, as for one supply on one invoice (s 9-90(1)); gst is the first when every condition is met and the second otherwise. Refuses an acquisition from a fellow GST group member, a GST joint venture operator or an associate, by inheritance, as a GST-free going concern or farm land, through a supply GST-free under s 38-445(1A), or in part through an ineligible supply (ss 75-5(3)(b) to (g), 75-10(3) item 2A, 75-11 and 75-22), a supply to an associate (s 75-13), an approved valuation for an interest acquired from 1 July 2000, a valuation day s 75-10(3) does not fix for the facts, a supply items 2 and 4 both describe, unpaid consideration above the consideration and a share above the whole. Excludes deciding whether the supply is taxable, the agreement's terms, the valuation and its compliance with the Commissioner's requirements, the reasonableness of the apportionment, the time of the supply, GST at settlement withholding (Schedule 1 to the Taxation Administration Act 1953 s 14-250), the increasing and decreasing adjustments of ss 75-22 and 75-27, contracts before 9 December 2008, and several supplies recorded on one invoice (s 9-90(2)).",
+    ),
+    (
         "chattel_mortgage_schedule",
         "One loan to buy goods, secured by a chattel mortgage over them and made on the day of the purchase in the income year given, under which the purchaser takes title at the purchase, so the agreement is not a hire purchase agreement (ITAA 1997 s 995-1) and Division 240 does not apply (s 240-10). The operator establishes the amount financed (paid to the supplier for the goods), the instalments, the balloon, the start date, any deposit and trade-in (taken as paid or credited on the start date, with the goods on one tax invoice) and any GST facts, and either the instalment or a stated annual rate. The instalments are one level amount weekly, fortnightly, monthly, quarterly or annually, in arrears (at each period's end) or in advance (at its start), with any balloon paid at the end of the term, over at most 30 years; months run from the start date's day of the month (or the month's last day when it is shorter) and weeks are 7 days. Each period's interest is the balance owing, less any instalment due at the period's start, times the rate for the period (the actuarial method, TR 93/16 para 18). Given the instalment, the rate is the compound rate a month (or week) at which the payments repay the amount financed, found to 64 halvings of 0 to 100%, and a period of n months (or weeks) has the rate (1 + r)^n - 1. Given annual_rate, for monthly or weekly instalments in arrears, the rate a period is annual_rate / 12 (or / 52), the instalment is the level one that repays the amount financed with the balloon at that rate, rounded half up to the cent, and the balance that rounding leaves, rounded to the cent, is added to the last instalment. Each period shows the interest to date rounded half up to cents, less what the periods before show, so the periods add up to the total interest and the last balance is nil. The interest is totalled by income year for the periods wholly in each year; a period spanning 30 June is listed apart with its days in each year. Interest charged is deductible under s 8-1 to the extent the borrowed money is used to gain or produce assessable income and is not capital, private or domestic; where the lender's statements give the interest, that figure is used (TR 93/16 para 2). With every GST fact given, it gives a registered purchaser's input tax credit on the price (the amount financed, deposit and trade-in): 1/11 of the price, less any luxury car tax for a car (GST Act s 9-75(2)), rounded to the nearest cent, 0.5 up (s 9-90(1)); for a passenger car whose GST inclusive market value exceeds the car limit for the financial year it is first used ($69,674 for 2024-25 and 2025-26, $69,883 for 2026-27), where the purchaser may not quote an ABN for luxury car tax, no more than 1/11 of that limit (s 69-10(1)); times the extent of creditable purpose (ss 11-30(3) and 69-10(3)). The interest gives no credit, as the loan is an input taxed financial supply (s 40-5(1)). The credit is attributable to the tax period of the purchase: on an accruals basis the earlier of the invoice and any payment (s 29-10(1)), on a cash basis the payment of the full price with the borrowed funds (s 29-10(2)(a)), as the ATO's GST issues register 'Financial services - questions and answers' (issue 1.21) states. Refuses both or neither of instalment and annual_rate, annual_rate with instalments in advance or other than monthly or weekly, a rate below nil or of 100% a month (or week) or more, a rate that cannot be found closely enough to leave a nil balance to the cent, a term over 30 years, a nil amount financed or instalment, a balloon that alone repays the loan at the stated rate, a rounded instalment that moves the last instalment by more than a whole instalment (below nil or above twice the instalment), a car first used in a year whose car limit is not published, and luxury car tax above the price. Excludes deciding whether the agreement is a chattel mortgage, the extent of income use and creditable purpose; fees, charges and stamp duty; irregular or changing instalments and rates (loan_transactions takes dated rates); interest charged daily; an early payout; substituted accounting periods; apportioning a period that spans 30 June between income years; the goods' decline in value and their cost for Division 40 (ss 27-80 and 40-230); the trade-in's own GST; GST adjustments after the purchase; and the lender.",
+    ),
+    (
+        "luxury_car_tax",
+        "Luxury car tax on one tax period's taxable supplies and taxable importations of luxury cars in a financial year from 2019-20 to 2026-27, by an entity registered or required to be registered for GST, with its price and change of use adjustments and the primary producer and tourism operator refunds (A New Tax System (Luxury Car Tax) Act 1999). The operator establishes each line: that the vehicle is a car (s 27-1) and not one s 25-1(2) excludes (emergency vehicles, cars fitted out for wheelchairs, commercial vehicles not designed mainly to carry passengers, motor homes and campervans), that the supply or importation is taxable (no quote, s 9-5; not GST-free, input taxed or otherwise exempt), its luxury car tax value including GST and customs duty but not luxury car tax (ss 5-20 and 7-15(2)), and its combined fuel consumption rating. The threshold is the luxury car tax threshold for the financial year of the supply or importation, or the fuel-efficient car limit for a car rated at most 3.5 litres per 100 km for supplies and importations from 1 July 2025 (7 litres before, and after where item 4(2) of Schedule 1 to Act No. 29 of 2025 continues it), from the ATO's published table (QC38161) for 2012-13 to 2026-27. The tax is 33% x 10/11 x (value - threshold), nil at or below the threshold, rounded half up to the cent (s 5-15(1)); a sale's is less tax payable on an earlier supply or importation of the car, not below nil (s 5-15(2)). Importation tax is shown apart, as it is paid to the Department of Home Affairs. A price adjustment is the corrected tax on the sale against the tax previously attributed (ss 15-20 and 15-25); a change of use adjustment is the tax that would have been payable or was payable on the supply (s 15-30(1) to (4)). Label 1E (sales and increasing adjustments) and label 1F (decreasing adjustments) are rounded down to whole dollars. A refund is the lesser of the tax borne and $10,000 on a refund-eligible car supplied or imported from 1 July 2019 (ss 18-5 and 18-10), one car a financial year for a primary producer. Refuses a year outside 2019-20 to 2026-27, a supply year outside the table, a refund for a car supplied before 1 July 2019 and a second primary producer refund. Excludes deciding whether a vehicle is a car or a luxury car, quoting, the luxury car tax value of a car with other goods or of a demonstrator, whether a car is refund-eligible or the refund conditions are met, the s 15-30(1A) and (3A) adjustments for cars imported for the purposes of s 7-10(3)(ba), bad debts (Subdivision 15-C), attribution of a line to a tax period, deferred luxury car tax on importations and the refund claim itself, made on the approved form and not the BAS.",
     ),
     (
         "loan_transactions",
         "One loan's statement from start_date to end_date, starting in the income year given and ending less than 30 years later. The operator establishes the balance owing at the start, the annual interest rate from the start and each dated change to it, and each drawing and repayment with its date and amount. A day's rate change and transactions take effect on that day. Each day's interest is the balance owing at the end of the day, when above nil, times the annual rate in force that day divided by 365, in leap years too; the interest accrued is debited to the loan on the last day of each month and on end_date, rounded half up to the cent, so each income year's interest is debited by its 30 June and the interest by income year is the interest debited in it. The statement lists the opening balance, each rate change, drawing, repayment and interest debit with the running balance, as rows and as a printable table. Interest charged on money borrowed is deductible under ITAA 1997 s 8-1(1) to the extent the money is used to gain or produce assessable income, and not to the extent it is capital, private or domestic (s 8-1(2)). Refuses a start outside the income year, an end before the start or 30 years or more after it, more than 5,000 transactions or 1,000 rate changes, an entry not in date order or outside the statement, 2 rate changes on one day or one on start_date, a rate outside 0 to 1, and a balance below nil at the end of a day (a loan in credit). Excludes deciding the extent of income use, whether any amount is deductible and the purpose of the borrowing; interest on another day count, compounding or rest, or charged in advance; fees and charges; offset accounts and redraw limits; interest on a balance in credit; Division 7A loans (div7a-loan-review); substituted accounting periods; and the lender.",
     ),
     (
-        "luxury_car_tax",
-        "Luxury car tax on one tax period's taxable supplies and taxable importations of luxury cars in a financial year from 2019-20 to 2026-27, by an entity registered or required to be registered for GST, with its price and change of use adjustments and the primary producer and tourism operator refunds (A New Tax System (Luxury Car Tax) Act 1999). The operator establishes each line: that the vehicle is a car (s 27-1) and not one s 25-1(2) excludes (emergency vehicles, cars fitted out for wheelchairs, commercial vehicles not designed mainly to carry passengers, motor homes and campervans), that the supply or importation is taxable (no quote, s 9-5; not GST-free, input taxed or otherwise exempt), its luxury car tax value including GST and customs duty but not luxury car tax (ss 5-20 and 7-15(2)), and its combined fuel consumption rating. The threshold is the luxury car tax threshold for the financial year of the supply or importation, or the fuel-efficient car limit for a car rated at most 3.5 litres per 100 km for supplies and importations from 1 July 2025 (7 litres before, and after where item 4(2) of Schedule 1 to Act No. 29 of 2025 continues it), from the ATO's published table (QC38161) for 2012-13 to 2026-27. The tax is 33% x 10/11 x (value - threshold), nil at or below the threshold, rounded half up to the cent (s 5-15(1)); a sale's is less tax payable on an earlier supply or importation of the car, not below nil (s 5-15(2)). Importation tax is shown apart, as it is paid to the Department of Home Affairs. A price adjustment is the corrected tax on the sale against the tax previously attributed (ss 15-20 and 15-25); a change of use adjustment is the tax that would have been payable or was payable on the supply (s 15-30(1) to (4)). Label 1E (sales and increasing adjustments) and label 1F (decreasing adjustments) are rounded down to whole dollars. A refund is the lesser of the tax borne and $10,000 on a refund-eligible car supplied or imported from 1 July 2019 (ss 18-5 and 18-10), one car a financial year for a primary producer. Refuses a year outside 2019-20 to 2026-27, a supply year outside the table, a refund for a car supplied before 1 July 2019 and a second primary producer refund. Excludes deciding whether a vehicle is a car or a luxury car, quoting, the luxury car tax value of a car with other goods or of a demonstrator, whether a car is refund-eligible or the refund conditions are met, the s 15-30(1A) and (3A) adjustments for cars imported for the purposes of s 7-10(3)(ba), bad debts (Subdivision 15-C), attribution of a line to a tax period, deferred luxury car tax on importations and the refund claim itself, made on the approved form and not the BAS.",
+        "wine_equalisation_tax",
+        "Wine tax on one tax period's taxable dealings in wine in a financial year from 2023-24 to 2027-28, by an entity registered or required to be registered for GST, and the producer rebate on them (A New Tax System (Wine Equalisation Tax) Act 1999). The operator establishes each dealing: what it is, that it is in assessable wine in the indirect tax zone, that no exemption other than quoting applies, and its price. Its taxable value is: for a wholesale sale, the price excluding wine tax and GST (s 5-5, items AD1a, AD1b and AD11b); for a retail sale that is an assessable dealing, and for an application to own use connected with retail sales (consuming or giving away wine in connection with retail sales, such as tastings), the notional wholesale selling price by the half retail price method, 50% of the retail price including wine tax and GST (ss 9-30 and 9-35; WETR 2009/1 para 143), or for grape wine, when chosen, by the average wholesale price method, the weighted average price excluding wine tax and GST of the tax period's wholesale sales of the same vintage and grape varieties (ss 9-25 and 9-40), allowed only where at least 10% by value of those sales are wholesale sales; and for an application to own use of wine purchased under quote, the purchase price excluding GST (items AD3c(a) and AD13c(a)). Each notional wholesale selling price is rounded half up to the cent. The wine tax is 29% of the taxable value, rounded half up to the cent (s 5-5(3)); a sale under quote is not taxable (s 7-10). For a wholesale sale, a sale under quote and a retail sale the GST is shown too, on the WET inclusive price or within the retail price, assuming a taxable supply. A dealing given with rebate_conditions earns the producer rebate, 29% of the price excluding wine tax and GST of a wholesale sale or sale under quote, or of the notional wholesale selling price of a retail sale or application to own use (s 19-15(1)), when the operator states that the entity is the wine's producer, owns the source product for at least 85% of the wine throughout its making and has it in a container of at most 5 litres (51 litres for cider or perry) suitable for retail sale and branded with its trade mark (s 19-5(1), (3) to (5) and (7)), and the dealing is one it is liable to wine tax on or, for a sale under quote, the quote states none of the intentions in s 5-50(1)(b). The rebates are capped for the financial year at $350,000 to 2025-26 and $400,000 from 2026-27 (s 19-15(2), as amended by Act No. 12 of 2026 for assessable dealings from 1 July 2026), for the producer or its group of associated producers (ss 19-15(3) and 19-20), less the rebates claimed in the year's earlier tax periods (WETR 2009/2 para 67). The amounts for BAS label 1C (wine tax payable) and 1D (wine tax refundable, here only the producer rebate) are the totals rounded down to whole dollars. Refuses a year outside 2023-24 to 2027-28, the average wholesale price method for wine that is not grape wine or without the 10% share, and a rebate on an application to own use of wine purchased under quote (its rebate would be on the notional wholesale selling price). Excludes deciding what a dealing is, whether the wine is assessable wine or grape wine, the price (arm's length, s 27-10; packages with other goods, s 27-15; containers, s 9-65), quoting entitlements, the rebate conditions and associated producers; importations and other customs dealings (paid to the Department of Home Affairs), royalty-inclusive dealings, indirect marketing schemes' notional prices, airport shop goods and other dealings valued under s 9-45; wine tax credits other than the producer rebate (s 17-5), such as bad debts and earlier wine tax; New Zealand participants; the transitional rules for 2017 and earlier vintage wine and for wine being made into fortified wine on 1 January 2018; excess claims under s 19-25; correcting earlier errors; and attributing a dealing to a tax period.",
     ),
     (
         "trade_in",
@@ -203,6 +211,10 @@ pub const SCOPES: &[(&str, &str)] = &[
         "An ordinary taxable employer's board fringe benefits (FBTAA s 35) in the FBT year ended 31 March 2026 or 2027: meals provided to employees, or their associates, that are board meals (s 136(1)), such as meals an employee entitled to accommodation and at least 2 meals a day is given, cooked and supplied on the employer's premises and not at a party, reception or other social function. Each meal is valued at $2.00 for a recipient who was 12 or older before the year began and $1.00 for another (s 36), less the recipients contribution for it, which the operator establishes in total, counting each meal's only up to its value; the contributions cannot take the value below nil, and an unused excess is shown. The otherwise deductible rule (s 37) then takes off the gross deduction, the share of the value before contributions that would have been deductible to the employee under ITAA 1997 s 8-1, rounded to cents, less the deduction for the contribution, never below nil and never taking the value below nil; it applies only to meals provided to the employee. Excludes deciding what is a board meal, exempt meals, such as those for an employee in a primary production business in a remote area (the employer's guide, 13.6), food or drink exempt under s 54, gross-up and FBT payable. Board fringe benefits are type 2 (the employer's guide, 13.2).",
     ),
     (
+        "fbt_minor_benefit_check",
+        "A screen of one benefit provided to an employee or an associate in respect of the employee's employment, in the FBT year ended 31 March 2026 or 2027, against the minor benefits exemption of FBTAA s 58P. The operator establishes the benefit's category, its notional taxable value in the current year (for one benefit to one person: TR 2007/12 paras 17 and 18), whether it is under a salary sacrifice arrangement, each criterion of s 58P(1)(f) as a stated fact, and the facts of each category's exclusion. The conditions are decided and shown as met or not: an expense payment, property or residual benefit that would not be an in-house fringe benefit (s 58P(1)(c)); tax-exempt body entertainment only within s 58P(1)(d)(i) or (ii); meal entertainment or entertainment facility leasing never qualifies under the 50/50 split method (Division 9A or s 152B: TR 2007/12 para 14), and is refused without it, to be screened under its own category; no salary sacrifice arrangement (TR 2007/12 para 16); and a notional taxable value less than $300 (s 58P(1)(e)). The criteria of s 58P(1)(f) are each shown with which way the stated fact weighs, and weighed as the Commissioner's examples in TR 2007/12 weigh them: exempt where identical or similar benefits are not provided frequently, neither total is substantial and the benefit is not both regular and a reward for services (examples 1 to 3, 5 to 7 and 9 to 11), not exempt where they are provided frequently as a reward for services, their total is substantial, they are readily valued and not for an unexpected event (example 8), and otherwise the employer's judgement, shown as such. TR 2007/12 is a public ruling, the Commissioner's view of the law, and its para 11 still lists airline transport benefits, whose exclusion (s 58P(1)(b)) Act No. 88 of 2013 repealed. Excludes deciding the benefit's category, its notional taxable value, whether benefits are associated (s 58P(2)), and the criteria themselves; benefits exempt under another provision; and what an exempt entertainment benefit means for income tax and GST.",
+    ),
+    (
         "fbt_entertainment_classifier",
         "Classifies an ordinary taxable employer's entertainment expense lines for the FBT year ended 31 March 2026 or 2027; the employer is not exempt from income tax and is registered for GST. Each line states what was provided (food or drink, recreation, or accommodation or travel to do with either), for food or drink, and for accommodation or travel to do with it, the food or drink's occasion, the venue, whether the employer provided it or reimbursed an attendee, the attendees by class (employees, their associates, and others such as clients) with head counts, and its cost and whether that includes GST. Whether food or drink is entertainment follows TR 97/17's tests (para 23) for the occasion stated; recreation, and accommodation or travel to do with entertainment, are entertainment (ITAA 1997 s 32-10), and only food or drink, with the accommodation or travel to do with it, is meal entertainment (FBTAA s 37AD). A line's cost is split per head between its classes, the last class taking the rounding remainder, and a line of more than one class without every head count is refused. For each class the classifier gives the fringe benefit and its type (s 20 expense payment, s 40 property or s 45 residual; on a reimbursed line with more than one employee, the reimbursed employee's expense payment and each other employee's property or residual benefit, TR 97/17 para 98), the s 41 exemption, the minor benefits exemption only as a possibility (s 58P(1)(e)'s $300 threshold and the operator's statement of (f)(i); the rest of (f) is the employer's judgement), the deduction (ITAA 1997 ss 8-1, 32-5 and 32-20, or ITAA 1936 s 51AEA or 51AEB under an election, less the GST credit, s 27-5) and the GST credit, the deductible share of the GST in the cost (GST Act s 69-5), and, for each fringe benefit, whether it is an excluded fringe benefit left out of reporting: meal entertainment is (FBTAA s 5E(3)(a)) and other entertainment is not. Food or drink, or accommodation or travel to do with it, with no occasion stated, and an employee's share of something other than food or drink the employer provided on its business premises on a working day, are returned undetermined with the missing fact and left out of the totals. Under the 50/50 split or 12 week register method the meal entertainment lines' cost is totalled as meal_entertainment_expenditure for fbt-meal-entertainment, which values it; others such as clients receive no fringe benefit, though their meal entertainment counts in that total and is deductible at the method's share (FBTAA ss 37BA and 37CB(3); ITAA 1936 ss 51AEA and 51AEB). The operator establishes each line's facts, that every attendee on a travel_meal line is travelling for work, that nothing is provided under a salary packaging arrangement, as an in-house benefit or by an associate of the employer, and that no exception in ITAA 1997 ss 32-30 to 32-50 applies: in-house dining and dining facilities (items 1.1 to 1.3), overtime meals (items 1.4 and 5.1), recreation facilities for employees (item 1.5), other exempt food, drink or meals (items 1.6 and 1.7), allowances (item 1.8), seminars (item 2.1), the entertainment industry (items 3.1 and 3.2), promotion and advertising (items 4.1 to 4.3) and the disadvantaged public (item 5.2). Excludes tax-exempt bodies (fbt-tax-exempt-body-entertainment), entertainment facility leasing expenses (s 152B), benefits to a client's employees under an arrangement (TR 97/17 para 126), taxable values, contributions and the otherwise deductible rule (fbt-property, fbt-expense-payment and fbt-residual), each employee's reportable fringe benefits amount, gross-up and FBT payable.",
     ),
@@ -246,6 +258,10 @@ pub const SOURCES: &[(&str, &str)] = &[
         "https://www.ato.gov.au/law/view/document?docid=PAC/19970038/240-60",
     ),
     (
+        "luxury_car_tax",
+        "https://www.ato.gov.au/law/view/document?docid=PAC/19990076/5-15",
+    ),
+    (
         "chattel_mortgage_schedule",
         "https://www.ato.gov.au/law/view/print?DocID=GIR%2FFinancial-services-ch1&PiT=99991231235958",
     ),
@@ -254,12 +270,16 @@ pub const SOURCES: &[(&str, &str)] = &[
         "https://www.legislation.gov.au/C2004A05138/2026-10-01/2026-10-01/text/original/epub/OEBPS/document_1/document_1.html",
     ),
     (
+        "wine_equalisation_tax",
+        "https://www.ato.gov.au/law/view/document?docid=PAC/19990062/5-5",
+    ),
+    (
         "balancing_adjustment",
         "https://www.legislation.gov.au/C2004A05138/2026-10-01/2026-10-01/text/original/epub/OEBPS/document_2/document_2.html",
     ),
     (
-        "luxury_car_tax",
-        "https://www.ato.gov.au/law/view/document?docid=PAC/19990076/5-15",
+        "gst_margin_scheme",
+        "https://www.ato.gov.au/law/view/document?DocID=PAC/19990055/75-5",
     ),
     (
         "trade_in",
@@ -413,6 +433,10 @@ pub const SOURCES: &[(&str, &str)] = &[
         "https://www.ato.gov.au/law/view/document?DocID=SAV/FBTGEMP/00016",
     ),
     (
+        "fbt_minor_benefit_check",
+        "https://www.ato.gov.au/law/view/document?DocID=PAC/19860039/58P",
+    ),
+    (
         "fbt_entertainment_classifier",
         "https://www.legislation.gov.au/C2004A05138/2026-10-01/2026-10-01/text/original/epub/OEBPS/document_1/document_1.html",
     ),
@@ -512,6 +536,44 @@ pub const EXTRA_SOURCES: &[(&str, &[&str])] = &[
             "https://www.legislation.gov.au/C2004A05138/2026-10-01/2026-10-01/text/original/epub/OEBPS/document_3/document_3.html",
             "https://www.ato.gov.au/law/view/document?docid=SAV/DEPRECIATING/00001",
             "https://www.legislation.gov.au/C2026A00049/asmade/text",
+        ],
+    ),
+    (
+        "gst_margin_scheme",
+        &[
+            "https://www.ato.gov.au/law/view/document?DocID=PAC/19990055/75-10",
+            "https://www.ato.gov.au/law/view/document?DocID=PAC/19990055/75-11",
+            "https://www.ato.gov.au/law/view/document?DocID=PAC/19990055/75-12",
+            "https://www.ato.gov.au/law/view/document?DocID=PAC/19990055/75-13",
+            "https://www.ato.gov.au/law/view/document?DocID=PAC/19990055/75-14",
+            "https://www.ato.gov.au/law/view/document?DocID=PAC/19990055/75-15",
+            "https://www.ato.gov.au/law/view/document?DocID=PAC/19990055/75-20",
+            "https://www.ato.gov.au/law/view/document?DocID=PAC/19990055/75-35",
+            "https://www.ato.gov.au/law/view/document?DocID=PAC/19990055/9-90",
+            "https://www.ato.gov.au/law/view/document?DocID=GST/GSTR20068/NAT/ATO/00001",
+            "https://www.ato.gov.au/businesses-and-organisations/gst-excise-and-indirect-taxes/gst/in-detail/your-industry/property/gst-and-the-margin-scheme",
+        ],
+    ),
+    (
+        "wine_equalisation_tax",
+        &[
+            "https://www.ato.gov.au/law/view/document?docid=PAC/19990062/9-25",
+            "https://www.ato.gov.au/law/view/document?docid=PAC/19990062/9-35",
+            "https://www.ato.gov.au/law/view/document?docid=PAC/19990062/9-40",
+            "https://www.ato.gov.au/law/view/document?docid=PAC/19990062/19-5",
+            "https://www.ato.gov.au/law/view/document?docid=PAC/19990062/19-15",
+            "https://www.ato.gov.au/law/view/document?docid=PAC/19990062/19-20",
+            "https://www.legislation.gov.au/C2004A00452/2026-04-01/2026-04-01/text/original/epub/OEBPS/document_1/document_1.html",
+            "https://www.legislation.gov.au/C2026A00012/asmade/2026-03-26/text/original/epub/OEBPS/document_1/document_1.html",
+            "https://www.ato.gov.au/law/view/pdf/pbr/wetr2009-001.pdf",
+            "https://www.ato.gov.au/law/view/pdf/pbr/wetr2009-002.pdf",
+            "https://www.ato.gov.au/businesses-and-organisations/gst-excise-and-indirect-taxes/wine-equalisation-tax/how-much-to-pay/wholesale-sales",
+            "https://www.ato.gov.au/businesses-and-organisations/gst-excise-and-indirect-taxes/wine-equalisation-tax/how-much-to-pay/retail-sales-and-own-use",
+            "https://www.ato.gov.au/businesses-and-organisations/gst-excise-and-indirect-taxes/wine-equalisation-tax/producer-rebate",
+            "https://www.ato.gov.au/businesses-and-organisations/gst-excise-and-indirect-taxes/wine-equalisation-tax/producer-rebate/calculate-and-claim-your-rebate",
+            "https://www.ato.gov.au/businesses-and-organisations/gst-excise-and-indirect-taxes/wine-equalisation-tax/reporting-and-paying-wet",
+            "https://www.ato.gov.au/businesses-and-organisations/preparing-lodging-and-paying/business-activity-statements-bas/wine-equalisation-tax-wet",
+            "https://www.ato.gov.au/businesses-and-organisations/gst-excise-and-indirect-taxes/gst/completing-your-bas-for-gst/complete-your-bas",
         ],
     ),
     (
@@ -805,6 +867,14 @@ pub const EXTRA_SOURCES: &[(&str, &[&str])] = &[
         &[FBTAA_PART_1, FBTAA_PART_2, FBT_RETURN_ITEM_23],
     ),
     (
+        "fbt_minor_benefit_check",
+        &[
+            "https://www.ato.gov.au/law/view/document?DocID=TXR/TR200712/NAT/ATO/00001",
+            "https://www.ato.gov.au/law/view/document?DocID=PAC/19860039/136(1)",
+            "https://www.ato.gov.au/law/view/document?DocID=PAC/19860039/152B",
+        ],
+    ),
+    (
         "fbt_entertainment_classifier",
         &[
             "https://www.legislation.gov.au/C2004A05138/2026-10-01/2026-10-01/text/original/epub/OEBPS/document_10/document_10.html",
@@ -875,6 +945,13 @@ pub const EXTRA_WARNINGS: &[(&str, &[&str])] = &[
         ],
     ),
     (
+        "gst_margin_scheme",
+        &[
+            "The margin, both GST amounts and the conditions are worked whether or not the margin scheme applies, so the 2 can be compared; gst is the GST payable only on the facts given.",
+            "A supply of new residential premises or potential residential land may require the purchaser to pay an amount to the ATO at settlement (Schedule 1 to the Taxation Administration Act 1953 s 14-250); this worksheet does not work it out.",
+        ],
+    ),
+    (
         "trade_in",
         &[
             "From 2026-27 a taxpayer who deducted an amount under s 25-130 may instead choose the fixed 50% reduction of s 40-291A for an asset used to produce assessable labour income; this worksheet applies s 40-290 and does not make that choice.",
@@ -932,6 +1009,13 @@ pub const EXTRA_WARNINGS: &[(&str, &[&str])] = &[
         "lump_sum_arrears_tax_offset",
         &[
             "The Medicare levy and Medicare levy surcharge are separate questions this worksheet does not answer. From 2024-25 Medicare Levy Act 1986 s 9A leaves the total arrears amount out of taxable income for the levy when it is at least 10% of normal taxable income, the arrears included, and the levy in each of the 2 latest accrual years meets a condition of s 9A(1)(c); ITAA 1997 Subdivision 61-L gives a tax offset against the surcharge on them.",
+        ],
+    ),
+    (
+        "fbt_minor_benefit_check",
+        &[
+            "s 58P(1)(f) asks whether, having regard to all its criteria, it would be concluded that it would be unreasonable to treat the benefit as a fringe benefit; the criteria are the operator's statements, and the screen weighs them as TR 2007/12, the Commissioner's view, weighs its examples. A judgement_required result is the employer's to decide.",
+            "Where the employer uses the 12 week register method for meal entertainment, minor benefits reduce the register's meal entertainment fringe benefits value (TR 2007/12 para 15); fbt-meal-entertainment takes that value as given.",
         ],
     ),
     (
@@ -1185,6 +1269,30 @@ pub const REFUSAL_CODES: &[(&str, &str)] = &[
     ),
     ("command.unknown", "The command does not exist."),
     (
+        "contract_register.argument_invalid",
+        "A contract-register argument is missing, unknown, repeated or not valid.",
+    ),
+    (
+        "contract_register.column_invalid",
+        "A contracts file column is unknown, repeated or missing, or a contract's cell is empty where its kind needs it, filled where its kind does not take it, or not valid.",
+    ),
+    (
+        "contract_register.contract_duplicate",
+        "Two lines of the contracts file name the same contract.",
+    ),
+    (
+        "contract_register.csv_invalid",
+        "The contracts file is not UTF-8 CSV with a header and 1 to 5,000 contracts, one a line, each with the header's fields.",
+    ),
+    (
+        "contract_register.kind_unsupported",
+        "A contract's kind is not one the register sets out.",
+    ),
+    (
+        "contract_register.text_invalid",
+        "A contract, client or financier name is empty, too long, holds a control character or begins with a character a spreadsheet reads as a formula.",
+    ),
+    (
         "contribution_caps.defined_benefit_interest",
         "A person with a defined benefit interest was given to the carry-forward by year (ITAA 1997 Subdivision 291-C and s 291-370).",
     ),
@@ -1349,6 +1457,14 @@ pub const REFUSAL_CODES: &[(&str, &str)] = &[
         "The register period ends before it starts or spans more than 2 FBT years.",
     ),
     (
+        "fbt_minor_benefit.category_unsettled",
+        "Meal entertainment or entertainment facility leasing not valued by the 50/50 split method was given; it is screened under its own category.",
+    ),
+    (
+        "fbt_minor_benefit.fact_invalid",
+        "category, frequency or tax_exempt_body_exception is not one of the values fbt-minor-benefit-check takes.",
+    ),
+    (
         "fbt_return.benefit_command_unsupported",
         "fbt-return was given a benefit whose command is not one of the FBT benefit worksheets.",
     ),
@@ -1379,6 +1495,34 @@ pub const REFUSAL_CODES: &[(&str, &str)] = &[
     (
         "fbt_tax_exempt_body_entertainment.heads_invalid",
         "The employees and associates entertained are not a JSON integer from 0 to everyone entertained, or everyone entertained is not from 1 to 1,000,000.",
+    ),
+    (
+        "gst_margin_scheme.acquisition_unsupported",
+        "The interest was acquired in a way whose eligibility or margin s 75-5(3)(b) to (g), s 75-10(3) item 2A, s 75-11 or s 75-22 governs, which gst-margin-scheme does not work.",
+    ),
+    (
+        "gst_margin_scheme.fact_conflict",
+        "The unpaid consideration exceeds the acquisition consideration, or the subdivision share is nil or exceeds the whole.",
+    ),
+    (
+        "gst_margin_scheme.fact_invalid",
+        "interest, agreement, acquisition or method is not one of the values gst-margin-scheme takes.",
+    ),
+    (
+        "gst_margin_scheme.supply_to_associate",
+        "The supply is to the supplier's associate, whose margin s 75-13 works from the GST inclusive market value, which gst-margin-scheme does not work.",
+    ),
+    (
+        "gst_margin_scheme.valuation_day_invalid",
+        "valuation_day is not the day s 75-10(3) fixes for the facts given.",
+    ),
+    (
+        "gst_margin_scheme.valuation_item_unsettled",
+        "Both s 75-10(3) item 2 and item 4 describe the supply, and gst-margin-scheme does not choose between their valuation days.",
+    ),
+    (
+        "gst_margin_scheme.valuation_unavailable",
+        "An approved valuation was given for an interest acquired on or after 1 July 2000.",
     ),
     (
         "hire_purchase.amount_nil",
@@ -1518,7 +1662,7 @@ pub const REFUSAL_CODES: &[(&str, &str)] = &[
     ),
     (
         "input.field_unknown",
-        "A field the worksheet or command does not take, or does not take beside the other inputs given, was given (fbt-loan, fbt-meal-entertainment, fbt-car-parking, fbt-debt-waiver, fbt-expense-payment, fbt-property, fbt-residual, fbt-housing, fbt-lafha, fbt-board, fbt-tax-exempt-body-entertainment, fbt-entertainment-classifier, fbt-meal-entertainment-register and its entries, division-296, depreciation, foreign-resident-tax, medicare-levy, medicare-levy-surcharge, payg-withholding, payg-gross-up, termination-payment, etp-tax-free-component, unused-leave-payment, the Schedule 5 methods, working-holiday-maker-withholding, study-loan-withholding, seniors-pensioners-withholding, seniors-pensioners-tax-offset, lump-sum-arrears-tax-offset, hire-purchase-schedule, chattel-mortgage-schedule, loan-transactions and its transactions and rate_changes, business-capital-expenditure and its items, balancing-adjustment, its years and car_limit, trade-in, luxury-car-tax and its lines, contribution-caps given a carry-forward input, derive, personal-tax-estimate, dgr-check, income-tests and fbt-return only).",
+        "A field the worksheet or command does not take, or does not take beside the other inputs given, was given (fbt-loan, fbt-meal-entertainment, fbt-car-parking, fbt-debt-waiver, fbt-expense-payment, fbt-property, fbt-residual, fbt-housing, fbt-lafha, fbt-board, fbt-tax-exempt-body-entertainment, fbt-entertainment-classifier, fbt-meal-entertainment-register and its entries, fbt-minor-benefit-check, division-296, depreciation, foreign-resident-tax, medicare-levy, medicare-levy-surcharge, payg-withholding, payg-gross-up, termination-payment, etp-tax-free-component, unused-leave-payment, the Schedule 5 methods, working-holiday-maker-withholding, study-loan-withholding, seniors-pensioners-withholding, seniors-pensioners-tax-offset, lump-sum-arrears-tax-offset, hire-purchase-schedule, chattel-mortgage-schedule, loan-transactions and its transactions and rate_changes, business-capital-expenditure and its items, balancing-adjustment, its years and car_limit, trade-in, gst-margin-scheme, wine-equalisation-tax and its dealings, luxury-car-tax and its lines, contribution-caps given a carry-forward input, derive, personal-tax-estimate, dgr-check, income-tests and fbt-return only).",
     ),
     ("input.flag_invalid", "A flag is not a JSON boolean."),
     ("input.fraction_invalid", "A fraction is outside 0 to 1."),
@@ -1805,6 +1949,30 @@ pub const REFUSAL_CODES: &[(&str, &str)] = &[
     (
         "trade_in.not_arms_length",
         "The trade-in is not at arm's length, so market value rules apply that are not worked.",
+    ),
+    (
+        "wine_equalisation_tax.dealing_invalid",
+        "A dealing, its average_wholesale, wholesale_sales or rebate_conditions is not the object or list it must be.",
+    ),
+    (
+        "wine_equalisation_tax.dealings_invalid",
+        "dealings is not a list of 1 to 1,000 dealing objects.",
+    ),
+    (
+        "wine_equalisation_tax.intention_invalid",
+        "A sale under quote's purchaser_intention is not taxable_dealing, manufacture, gst_free_supply or sale_under_quote.",
+    ),
+    (
+        "wine_equalisation_tax.kind_invalid",
+        "A dealing's kind is not wholesale_sale, retail_sale, own_use, quoted_sale or own_use_purchased_under_quote.",
+    ),
+    (
+        "wine_equalisation_tax.method_unavailable",
+        "The average wholesale price method was asked for wine that is not grape wine, or without at least 10% of the sales by value being wholesale sales.",
+    ),
+    (
+        "wine_equalisation_tax.quantity_invalid",
+        "An average wholesale price quantity is not a decimal string above 0, at most 1e12 and 4 decimal places.",
     ),
     (
         "working_holiday_maker.band_unsettled",

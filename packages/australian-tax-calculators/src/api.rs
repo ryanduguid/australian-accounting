@@ -11,6 +11,10 @@ use crate::engine::{self, Arg};
 use serde_json::Value;
 use std::collections::HashSet;
 
+/// `contract-register`, a command over a contracts CSV rather than one JSON
+/// object; see [`crate::contract_register`].
+pub use crate::contract_register::command as contract_register;
+
 /// A refusal at the JSON boundary: its stable code and the message.
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct Refusal {
@@ -132,6 +136,19 @@ const COMMAND_ARGS: &[(&str, &[(&str, Kind)])] = &[
             ("year", Raw),
         ],
     ),
+    (
+        "gst-margin-scheme",
+        &[
+            ("interest", Raw),
+            ("agreement", Raw),
+            ("acquisition", Raw),
+            ("consideration", Dec),
+            ("method", Raw),
+            ("recipient_associate", Raw),
+            ("year", Raw),
+            ("scope_confirmed", Raw),
+        ],
+    ),
     ("resident-tax", TAXABLE_INCOME_ARGS),
     ("foreign-resident-tax", TAXABLE_INCOME_ARGS),
     (
@@ -241,6 +258,10 @@ const COMMAND_ARGS: &[(&str, &[(&str, Kind)])] = &[
             ("year", Raw),
             ("scope_confirmed", Raw),
         ],
+    ),
+    (
+        "wine-equalisation-tax",
+        &[("dealings", Json), ("year", Raw), ("scope_confirmed", Raw)],
     ),
     (
         "fbt",
@@ -533,6 +554,22 @@ const COMMAND_ARGS: &[(&str, &[(&str, Kind)])] = &[
         ],
     ),
     (
+        "fbt-minor-benefit-check",
+        &[
+            ("category", Raw),
+            ("notional_taxable_value", Dec),
+            ("salary_sacrifice", Raw),
+            ("frequency", Raw),
+            ("similar_benefits_substantial", Raw),
+            ("other_associated_benefits_substantial", Raw),
+            ("valuation_difficult", Raw),
+            ("unexpected_event", Raw),
+            ("reward_for_services", Raw),
+            ("year_ended", Raw),
+            ("scope_confirmed", Raw),
+        ],
+    ),
+    (
         "fbt-entertainment-classifier",
         &[
             ("lines", Json),
@@ -592,7 +629,7 @@ pub fn commands() -> Vec<&'static str> {
 /// command on its `gross_pay` shows that withholding. The classifier's amounts
 /// are totals over lines whose shares a decision table sets, not a formula;
 /// each line and class carries the authority for its row instead.
-const DERIVED: [&str; 49] = [
+const DERIVED: [&str; 50] = [
     "fbt",
     "fbt-car-statutory",
     "fbt-car-operating-cost",
@@ -641,6 +678,7 @@ const DERIVED: [&str; 49] = [
     "business-capital-expenditure",
     "balancing-adjustment",
     "trade-in",
+    "gst-margin-scheme",
     "etp-tax-free-component",
 ];
 
@@ -996,6 +1034,7 @@ pub fn evaluate_coded(command: &str, v: &Value) -> Result<Value> {
             | "fbt-loan"
             | "fbt-meal-entertainment"
             | "fbt-car-parking"
+            | "wine-equalisation-tax"
             | "fbt-debt-waiver"
             | "fbt-expense-payment"
             | "fbt-property"
@@ -1006,6 +1045,7 @@ pub fn evaluate_coded(command: &str, v: &Value) -> Result<Value> {
             | "fbt-tax-exempt-body-entertainment"
             | "fbt-entertainment-classifier"
             | "fbt-meal-entertainment-register"
+            | "fbt-minor-benefit-check"
             | "hire-purchase-schedule"
             | "chattel-mortgage-schedule"
             | "loan-transactions"
@@ -1014,6 +1054,7 @@ pub fn evaluate_coded(command: &str, v: &Value) -> Result<Value> {
             | "business-capital-expenditure"
             | "balancing-adjustment"
             | "trade-in"
+            | "gst-margin-scheme"
     ) && let Some(key) = v
         .as_object()
         .into_iter()
@@ -1131,6 +1172,19 @@ pub fn evaluate_coded(command: &str, v: &Value) -> Result<Value> {
                 &a[5],
             )
         }
+        "wine-equalisation-tax" => {
+            // Optional: the rebate facts, required with a dealing's
+            // rebate_conditions.
+            let earlier = optional(v, "rebate_claimed_earlier_in_year", Dec)?;
+            let group = optional(v, "associated_producer", Raw)?;
+            engine::wine_equalisation_tax(&engine::WetArgs {
+                dealings: &a[0],
+                rebate_claimed_earlier_in_year: earlier.as_ref(),
+                associated_producer: group.as_ref(),
+                year: &a[1],
+                scope_confirmed: &a[2],
+            })
+        }
         "trade-in" => {
             // Optional: a car's s 40-325 facts, the traded-in asset's input
             // tax credits for a taxable trade-in, a passenger car's luxury car
@@ -1164,6 +1218,45 @@ pub fn evaluate_coded(command: &str, v: &Value) -> Result<Value> {
                 involuntary_disposal: &a[9],
                 year: &a[10],
                 scope_confirmed: &a[11],
+            })
+        }
+        "gst-margin-scheme" => {
+            // Optional: each method's base, its valuation facts and a
+            // subdivided lot's share.
+            let [paid, unpaid, valuation, share, whole] = [
+                "acquisition_consideration",
+                "unpaid_acquisition_consideration",
+                "approved_valuation",
+                "subdivision_share",
+                "subdivision_whole",
+            ]
+            .map(|key| optional(v, key, Dec));
+            let [day, registered, government] = [
+                "valuation_day",
+                "registered_on_1_july_2000",
+                "government_unimproved_on_1_july_2000",
+            ]
+            .map(|key| optional(v, key, Raw));
+            let [paid, unpaid, valuation, share, whole] =
+                [paid?, unpaid?, valuation?, share?, whole?];
+            let [day, registered, government] = [day?, registered?, government?];
+            engine::gst_margin_scheme(&engine::MarginSchemeArgs {
+                interest: &a[0],
+                agreement: &a[1],
+                acquisition: &a[2],
+                consideration: &a[3],
+                method: &a[4],
+                recipient_associate: &a[5],
+                acquisition_consideration: paid.as_ref(),
+                unpaid_acquisition_consideration: unpaid.as_ref(),
+                approved_valuation: valuation.as_ref(),
+                valuation_day: day.as_ref(),
+                registered_on_1_july_2000: registered.as_ref(),
+                government_unimproved_on_1_july_2000: government.as_ref(),
+                subdivision_share: share.as_ref(),
+                subdivision_whole: whole.as_ref(),
+                year: &a[6],
+                scope_confirmed: &a[7],
             })
         }
         "fbt" => engine::fbt(&a[0], &a[1], &a[2], &a[3]),
@@ -1205,6 +1298,29 @@ pub fn evaluate_coded(command: &str, v: &Value) -> Result<Value> {
         "fbt-tax-exempt-body-entertainment" => {
             let given = benefit_inputs(v, params)?;
             engine::fbt_tax_exempt_body_entertainment(&a[0], &given, &a[1], &a[2])
+        }
+        "fbt-minor-benefit-check" => {
+            // Optional: the facts each category's exclusion needs.
+            let [in_house, exception, fifty] =
+                ["in_house", "tax_exempt_body_exception", "fifty_fifty_split"]
+                    .map(|key| optional(v, key, Raw));
+            let [in_house, exception, fifty] = [in_house?, exception?, fifty?];
+            engine::fbt_minor_benefit_check(&engine::MinorBenefitArgs {
+                category: &a[0],
+                notional_taxable_value: &a[1],
+                salary_sacrifice: &a[2],
+                frequency: &a[3],
+                similar_benefits_substantial: &a[4],
+                other_associated_benefits_substantial: &a[5],
+                valuation_difficult: &a[6],
+                unexpected_event: &a[7],
+                reward_for_services: &a[8],
+                in_house: in_house.as_ref(),
+                tax_exempt_body_exception: exception.as_ref(),
+                fifty_fifty_split: fifty.as_ref(),
+                year_ended: &a[9],
+                scope_confirmed: &a[10],
+            })
         }
         "fbt-entertainment-classifier" => {
             // Optional: the meal entertainment method, required only when a

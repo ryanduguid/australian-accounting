@@ -197,44 +197,40 @@ def test_the_operator_reference_bound_matches_the_engine_model() -> None:
     assert declared == BOUNDED_STRING_INPUTS[("calc_payday_super_deadline", "employee_id")]
 
 
-def test_the_benchmark_money_bound_matches_the_worksheet_money_type() -> None:
-    """The benchmark tool spells its money inputs out one by one rather than
-    reusing the Money alias, so the bound is pinned to that alias here."""
-    from aus_accounting_mcp.adapters.tax import Money
+# The widths the worksheet Money and Ratio aliases held before the worksheet facts
+# followed the calculators catalogue; the other tools keep them.
+MONEY_WIDTH, RATIO_WIDTH = 60, 30
 
-    declared = _declared_max_length(Money.__metadata__[0].metadata)
-    assert declared == BOUNDED_STRING_INPUTS[("get_ato_benchmarks", "turnover")]
+
+def test_the_benchmark_money_bound_matches_the_worksheet_money_type() -> None:
+    """The benchmark tool spells its money inputs out one by one, so the bound is
+    pinned to the money width here."""
+    assert BOUNDED_STRING_INPUTS[("get_ato_benchmarks", "turnover")] == MONEY_WIDTH
 
 
 def test_every_money_input_shares_the_worksheet_money_bound() -> None:
     """Every amount the tools take goes through aus_accounting_mcp.money, the same
-    boundary the worksheet Money alias describes, so they all carry its length."""
-    from aus_accounting_mcp.adapters.tax import Money
-
-    money = _declared_max_length(Money.__metadata__[0].metadata)
+    boundary, so they all carry the money width."""
     amounts = {
         key for key in BOUNDED_STRING_INPUTS
         if key[1].endswith(("amount", "principal", "revenue_or_sales"))
         or key[1].startswith(("amalgamated_loan", "payments_applied"))
     }
     assert len(amounts) == 6
-    assert {BOUNDED_STRING_INPUTS[key] for key in amounts} == {money}
+    assert {BOUNDED_STRING_INPUTS[key] for key in amounts} == {MONEY_WIDTH}
 
 
 def test_the_div7a_ratio_bounds_match_the_worksheet_ratio_type() -> None:
     """Terms, coverage and the interest rate reach the engine's ratio parsers,
-    which put no ceiling on magnitude, so the facade's own Ratio alias is the
-    only width they are held to."""
-    from aus_accounting_mcp.adapters.tax import Ratio
-
-    ratio = _declared_max_length(Ratio.__metadata__[0].metadata)
+    which put no ceiling on magnitude, so the ratio width is the only one they
+    are held to."""
     for name in (
         "maximum_term_years",
         "remaining_term_years",
         "security_coverage_at_first_made",
         "interest_rate_for_years_after_year_loan_made",
     ):
-        assert BOUNDED_STRING_INPUTS[("review_div7a_loan", name)] == ratio
+        assert BOUNDED_STRING_INPUTS[("review_div7a_loan", name)] == RATIO_WIDTH
 
 
 def test_the_year_bound_is_the_width_of_the_yyyy_yy_label() -> None:
