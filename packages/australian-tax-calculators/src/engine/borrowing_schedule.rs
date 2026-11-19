@@ -12,7 +12,7 @@
 
 use std::collections::BTreeMap;
 
-use serde_json::{Value, json};
+use serde_json::{Map, Value, json};
 
 use super::{
     Arg, BORROWING_EXPENSES, Error, Loan, LoanDates, Result, SpreadYear, Step, cents,
@@ -135,12 +135,8 @@ fn uses(value: &Value, years: &[SpreadYear]) -> Result<Vec<Decimal>> {
         .collect()
 }
 
-/// One loan from its stated facts, refusing a fact missing, invalid or not
-/// taken, and a loan out of scope.
-fn read_loan(value: &Value, claimed: i64, year: &str) -> Result<Facts> {
-    let Value::Object(fields) = value else {
-        return loans_invalid();
-    };
+/// Refuses a fact a loan does not take, then a required fact missing.
+fn check_fields(fields: &Map<String, Value>) -> Result<()> {
     if let Some(key) = fields
         .keys()
         .find(|key| !FACTS.iter().any(|(name, _)| name == key))
@@ -156,20 +152,23 @@ fn read_loan(value: &Value, claimed: i64, year: &str) -> Result<Facts> {
     {
         return refuse("borrowing.loan_fact_missing", format!("{key} is required."));
     }
-    // money refuses anything but a decimal, as the one-loan worksheet does.
-    let amount = fields["borrowing_expenses"]
-        .as_str()
-        .and_then(|text| Decimal::parse(text).ok());
-    let expenditure = money(&amount.map_or(Arg::Json(Value::Null), Arg::Decimal))?;
-    if fields["section_26_50_applies"] != Value::Bool(false) {
-        return match fields["section_26_50_applies"] {
-            Value::Bool(_) => refuse("borrowing.s26_50_denied", texts::BORROWING_S26_50),
-            _ => refuse(
-                "input.flag_invalid",
-                "section_26_50_applies must be a boolean.",
-            ),
-        };
+    Ok(())
+}
+
+/// Refuses a leisure facility (s 26-50) and a flag that is not a boolean.
+fn check_s26_50(flag: &Value) -> Result<()> {
+    match flag {
+        Value::Bool(false) => Ok(()),
+        Value::Bool(_) => refuse("borrowing.s26_50_denied", texts::BORROWING_S26_50),
+        _ => refuse(
+            "input.flag_invalid",
+            "section_26_50_applies must be a boolean.",
+        ),
     }
+}
+
+/// The loan's dates, parsed as `borrowing_expenses` parses them.
+fn loan_dates(fields: &Map<String, Value>) -> Result<Loan> {
     let start = match &fields["loan_start"] {
         Value::String(text) => Arg::Text(text.clone()),
         other => Arg::Json(other.clone()),
@@ -178,12 +177,16 @@ fn read_loan(value: &Value, claimed: i64, year: &str) -> Result<Facts> {
         Arg::Json(fields["loan_term_end"].clone()),
         Arg::Json(fields["repaid_on"].clone()),
     );
-    let loan = LoanDates {
+    LoanDates {
         start: &start,
         term_end: &term_end,
         repaid_on: &repaid_on,
     }
-    .parse()?;
+    .parse()
+}
+
+/// Refuses a loan first drawn before 1 July 2017 or after the year asked about.
+fn check_first_year(loan: &Loan, claimed: i64, year: &str) -> Result<()> {
     if loan.first_year < FIRST_YEAR {
         return refuse(
             "borrowing.loan_before_2017_18",
@@ -196,6 +199,24 @@ fn read_loan(value: &Value, claimed: i64, year: &str) -> Result<Facts> {
             format!("loan_start must not be after the {year} income year ended."),
         );
     }
+    Ok(())
+}
+
+/// One loan from its stated facts, refusing a fact missing, invalid or not
+/// taken, and a loan out of scope.
+fn read_loan(value: &Value, claimed: i64, year: &str) -> Result<Facts> {
+    let Value::Object(fields) = value else {
+        return loans_invalid();
+    };
+    check_fields(fields)?;
+    // money refuses anything but a decimal, as the one-loan worksheet does.
+    let amount = fields["borrowing_expenses"]
+        .as_str()
+        .and_then(|text| Decimal::parse(text).ok());
+    let expenditure = money(&amount.map_or(Arg::Json(Value::Null), Arg::Decimal))?;
+    check_s26_50(&fields["section_26_50_applies"])?;
+    let loan = loan_dates(fields)?;
+    check_first_year(&loan, claimed, year)?;
     let years = loan.years(&expenditure)?;
     let uses = uses(&fields["income_use"], &years)?;
     let refinances = match fields.get("refinances") {
@@ -482,6 +503,18 @@ fn totals(rows: &[Vec<Row>]) -> Result<Vec<Value>> {
         .collect()
 }
 
+/// Warns when a row falls under s 26-155 or after the law read.
+fn add_warnings(out: &mut Value, rows: &[Vec<Row>]) {
+    let years: Vec<i64> = rows.iter().flatten().map(|row| row.first).collect();
+    let warnings = out["warnings"].as_array_mut().expect("warnings");
+    if years.iter().any(|first| *first >= 2027) {
+        warnings.push(json!(texts::BORROWING_S26_155));
+    }
+    if years.iter().any(|first| *first > LAST_YEAR) {
+        warnings.push(json!(texts::BORROWING_PROJECTED));
+    }
+}
+
 /// ITAA 1997 s 25-25 for each of `loans`: the year asked about's amounts,
 /// and every year of each loan.
 pub fn borrowing_expenses_schedule(
@@ -523,14 +556,7 @@ pub fn borrowing_expenses_schedule(
         Ok((steps, rows, out_loans, totals))
     })?;
     let mut out = derived_result(KIND, &year, steps, vec![rate("loans", loans.len())])?;
-    let years: Vec<i64> = rows.iter().flatten().map(|row| row.first).collect();
-    let warnings = out["warnings"].as_array_mut().expect("warnings");
-    if years.iter().any(|first| *first >= 2027) {
-        warnings.push(json!(texts::BORROWING_S26_155));
-    }
-    if years.iter().any(|first| *first > LAST_YEAR) {
-        warnings.push(json!(texts::BORROWING_PROJECTED));
-    }
+    add_warnings(&mut out, &rows);
     out["loans"] = Value::Array(out_loans);
     out["schedule"] = Value::Array(totals);
     Ok(out)
