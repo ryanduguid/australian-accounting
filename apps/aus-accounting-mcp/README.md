@@ -64,8 +64,9 @@ the [australian-tax-calculators/v1.0.0 release](https://github.com/ryanduguid/au
 verify it as that release describes, and put it in a folder on `PATH` or give its
 absolute path in `AUS_TAX_CALCULATORS_BIN`. The server runs it only if its SHA-256 is
 that of a released executable; for one you built, set `AUS_TAX_CALCULATORS_SHA256` to
-its SHA-256. Without it the tax worksheets refuse with an install message; every other
-tool works.
+its SHA-256. Keep it in a folder only you can write: the server checks the file and
+then runs it, and someone who can change it could swap it in between. Without the
+executable the tax worksheets refuse with an install message; every other tool works.
 
 The server waits for an MCP client over stdio. Tool calls read bundled data and any
 folders you configure. They do not contact the ATO or the Federal Register, change

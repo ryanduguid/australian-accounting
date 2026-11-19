@@ -8,6 +8,7 @@ import hashlib
 import json
 import os
 import subprocess
+import threading
 from pathlib import Path
 
 import pytest
@@ -155,6 +156,24 @@ def test_the_operators_digest_admits_a_source_build(monkeypatch, impostor) -> No
         with pytest.raises(tax.CalculatorsUnavailable, match="64 hexadecimal digits"):
             tax._binary()
     assert len(runs) == 2
+
+
+@pytest.mark.skipif(not hasattr(os, "mkfifo"), reason="POSIX FIFOs only")
+def test_a_fifo_on_path_is_refused_without_waiting_for_a_writer(monkeypatch, tmp_path) -> None:
+    fifo = tmp_path / tax.CALCULATORS
+    os.mkfifo(fifo, 0o700)
+    monkeypatch.setenv(tax.BINARY_VARIABLE, str(fifo))
+    # A writer after 5 seconds ends a read that waits for one, so a regression fails
+    # here instead of hanging the suite.
+    writer = threading.Timer(5, lambda: os.close(os.open(fifo, os.O_WRONLY)))
+    writer.daemon = True
+    writer.start()
+    try:
+        with pytest.raises(tax.CalculatorsUnavailable, match="is not a regular file"):
+            tax._trusted(str(fifo))
+        assert writer.is_alive()
+    finally:
+        writer.cancel()
 
 
 def test_a_version_that_exits_nonzero_is_refused(monkeypatch) -> None:

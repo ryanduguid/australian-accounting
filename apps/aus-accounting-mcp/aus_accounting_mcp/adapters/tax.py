@@ -16,6 +16,7 @@ import json
 import os
 import re
 import shutil
+import stat
 import subprocess
 from decimal import Decimal, InvalidOperation
 from typing import Annotated, Any, Literal
@@ -88,6 +89,11 @@ def _trusted(binary: str) -> str:
 
     Checked before it runs, so another program on PATH that prints the pinned
     version is never run.
+
+    shortcut: the file is checked by path and then run by path, so whoever can write
+    it, its folder or a link on its path can swap it in between; the README tells
+    operators to keep it where only they can write. Closing that needs running the
+    checked bytes themselves, from a private copy or the descriptor that was hashed.
     """
     # Either case: sha256sum prints lower case, PowerShell's Get-FileHash upper.
     named = os.environ.get(DIGEST_VARIABLE, "").lower()
@@ -95,7 +101,11 @@ def _trusted(binary: str) -> str:
         raise CalculatorsUnavailable(
             f"{DIGEST_VARIABLE} must be a SHA-256 of 64 hexadecimal digits. {INSTALL}")
     try:
-        with open(binary, "rb") as file:
+        # Without O_NONBLOCK, opening a FIFO planted on PATH waits for a writer.
+        with open(binary, "rb", opener=lambda path, flags: os.open(
+                path, flags | getattr(os, "O_NONBLOCK", 0))) as file:
+            if not stat.S_ISREG(os.fstat(file.fileno()).st_mode):
+                raise CalculatorsUnavailable(f"{binary} is not a regular file. {INSTALL}")
             digest = hashlib.file_digest(file, "sha256").hexdigest()
     except OSError as exc:
         raise CalculatorsUnavailable(f"{binary} did not run: {exc}. {INSTALL}") from exc
