@@ -6277,6 +6277,7 @@ fn evidence_heading(kind: &str) -> String {
         "working_holiday_maker_withholding" => "working-holiday-makers".into(),
         "seniors_pensioners_withholding" => "seniors-and-pensioners".into(),
         "seniors_pensioners_tax_offset" => "seniors-and-pensioners-tax-offset".into(),
+        "sb_cgt_concessions" => "small-business-cgt-concessions".into(),
         _ => kind.replace('_', "-"),
     }
 }

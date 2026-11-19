@@ -526,17 +526,21 @@ pub fn sb_cgt_concessions(args: &SbCgtConcessionsArgs) -> Result<Value> {
     // s 152-305(1)(b) and (c): an individual under 55 just before the choice
     // contributes the CGT exempt amount to a complying super fund or RSA.
     out["super_contribution_required"] = json!(contribution);
-    // s 104-190(1A): one year before the last CGT event in the year for
-    // which the roll-over is obtained to the later of 2 years after it and,
-    // for this disposal, 6 months after an earnout's latest due time.
-    let two_years = anniversary(f.last_event, 2);
-    let to = f
-        .earnout
-        .map_or(two_years, |due| two_years.max(dates::add_months(due, 6)));
     out["replacement_asset_period"] = if rollover {
-        json!({"from": dates::format(anniversary(f.last_event, -1)), "to": dates::format(to)})
+        replacement_asset_period(&f)
     } else {
         Value::Null
     };
     Ok(out)
+}
+
+/// s 104-190(1A): one year before the last CGT event in the year for which
+/// the roll-over is obtained to the later of 2 years after it and, for this
+/// disposal, 6 months after an earnout's latest due time.
+fn replacement_asset_period(f: &Facts) -> Value {
+    let two_years = anniversary(f.last_event, 2);
+    let to = f
+        .earnout
+        .map_or(two_years, |due| two_years.max(dates::add_months(due, 6)));
+    json!({"from": dates::format(anniversary(f.last_event, -1)), "to": dates::format(to)})
 }
