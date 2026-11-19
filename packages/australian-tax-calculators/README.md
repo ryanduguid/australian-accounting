@@ -131,7 +131,7 @@ lists the commands.
 | Command | Arguments |
 | --- | --- |
 | `gst` | `amount`, `gst_inclusive`, `scope_confirmed`, `year` |
-| `gst-margin-scheme` | `interest`, `agreement`, `acquisition`, `consideration`, `method`, `year`, `scope_confirmed`; with method `consideration`, `acquisition_consideration` and `unpaid_acquisition_consideration`; with method `approved_valuation`, `approved_valuation`, `valuation_day`, `registered_on_1_july_2000` and `government_unimproved_on_1_july_2000`; for part of the land, `subdivision_share` and `subdivision_whole`; see [GST margin scheme](#gst-margin-scheme) |
+| `gst-margin-scheme` | `interest`, `agreement`, `acquisition`, `consideration`, `method`, `recipient_associate`, `year`, `scope_confirmed`; with method `consideration`, `acquisition_consideration` and `unpaid_acquisition_consideration`; with method `approved_valuation`, `approved_valuation`, `valuation_day`, `registered_on_1_july_2000` and `government_unimproved_on_1_july_2000`; for part of the land, `subdivision_share` and `subdivision_whole`; see [GST margin scheme](#gst-margin-scheme) |
 | `resident-tax` | `taxable_income`, `year`, `scope_confirmed` |
 | `foreign-resident-tax` | `taxable_income`, `year`, `scope_confirmed` |
 | `capital-gains` | `other_gains`, `discount_gains`, `current_losses`, `prior_losses`, `scope_confirmed`, `year` |
@@ -1432,7 +1432,8 @@ its authority and whether it is met, names each one that fails in
   otherwise `taxable_supply_under_margin_scheme`, `other_supply_from_1_july_2000`
   (a supply that was not taxable, such as from a seller not registered for GST)
   or `before_1_july_2000` (acquired, or contracted to acquire, before then:
-  GSTR 2006/8 para 39A).
+  GSTR 2006/8 para 39A; a pre-1 July 2000 contract settled later as a fully
+  taxable supply is `taxable_supply_without_margin_scheme`).
 
 The margin is the amount by which `consideration`, the GST-inclusive price,
 exceeds the base, or nil (s 75-10(2) and (3)). `method` sets the base:
@@ -1448,7 +1449,8 @@ exceeds the base, or nil (s 75-10(2) and (3)). `method` sets the base:
   at `valuation_day`, which must be the day s 75-10(3) fixes from
   `registered_on_1_july_2000` and `government_unimproved_on_1_july_2000`:
   1 July 2000 (items 1 and 3), the date of effect of a registration after then
-  or the earlier day of applying (item 2), or for the Commonwealth, a State or a
+  or the earlier day of applying, which may be on or before 1 July 2000
+  (item 2), or for the Commonwealth, a State or a
   Territory with land unimproved on 1 July 2000, the day of the supply,
   valued as if unimproved (item 4 and (3A)). A supply both items 2 and 4
   describe is refused.
@@ -1468,8 +1470,9 @@ It refuses an acquisition whose eligibility or margin other provisions govern,
 naming them: from a fellow GST group member, a GST joint venture operator or an
 associate, by inheritance, as a GST-free going concern or farm land, through a
 supply GST-free under s 38-445(1A), or in part through an ineligible supply
-(ss 75-5(3)(b) to (g), 75-10(3) item 2A, 75-11 and 75-22). It also refuses a
-valuation for an interest acquired from 1 July 2000, a valuation day s
+(ss 75-5(3)(b) to (g), 75-10(3) item 2A, 75-11 and 75-22), and a supply to an
+associate (`recipient_associate` true), whose margin s 75-13 works from the
+GST inclusive market value. It also refuses a valuation for an interest acquired from 1 July 2000, a valuation day s
 75-10(3) does not fix, unpaid consideration above the consideration, and a
 share that is nil or above the whole. Deciding whether the supply is taxable,
 the valuation, the apportionment's basis, GST at settlement, adjustments under

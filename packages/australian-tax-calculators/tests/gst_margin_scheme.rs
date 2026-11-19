@@ -14,7 +14,8 @@ fn sale(acquisition: &str, consideration: &str, paid: &str) -> Value {
     json!({
         "interest": "freehold_interest", "agreement": "written_on_or_before_supply",
         "acquisition": acquisition, "consideration": consideration,
-        "method": "consideration", "acquisition_consideration": paid,
+        "method": "consideration", "recipient_associate": false,
+        "acquisition_consideration": paid,
         "unpaid_acquisition_consideration": "0.00",
         "year": "2025-26", "scope_confirmed": true,
     })
@@ -25,7 +26,8 @@ fn valued(consideration: &str, valuation: &str, day: &str) -> Value {
     json!({
         "interest": "freehold_interest", "agreement": "written_on_or_before_supply",
         "acquisition": "before_1_july_2000", "consideration": consideration,
-        "method": "approved_valuation", "approved_valuation": valuation,
+        "method": "approved_valuation", "recipient_associate": false,
+        "approved_valuation": valuation,
         "valuation_day": day, "registered_on_1_july_2000": true,
         "government_unimproved_on_1_july_2000": false,
         "year": "2025-26", "scope_confirmed": true,
@@ -311,7 +313,8 @@ fn unpaid_consideration_reduces_the_base() {
 }
 
 /// s 75-10(3) item 2: a supplier registered after 1 July 2000 uses a
-/// valuation as at its registration; item 4: government land unimproved on
+/// valuation as at its registration, or the earlier day it applied, which may
+/// be on or before 1 July 2000; item 4: government land unimproved on
 /// 1 July 2000 uses one as at the day of the supply, in its year.
 #[test]
 fn the_valuation_day_follows_the_item() {
@@ -322,7 +325,11 @@ fn the_valuation_day_follows_the_item() {
     let r = run(&late);
     assert!(r["base_rule"].as_str().unwrap().contains("item 2"));
     assert_eq!(amount(&r, "gst"), "18181.82");
-    for day in ["2000-07-01", "2026-07-01"] {
+    for day in ["2000-06-30", "2000-07-01"] {
+        let applied = with(late.clone(), &[("valuation_day", json!(day))]);
+        assert!(run(&applied)["base_rule"].as_str().unwrap().contains("item 2"));
+    }
+    for day in ["2026-07-01"] {
         let bad = with(late.clone(), &[("valuation_day", json!(day))]);
         assert_eq!(
             code(&bad),
@@ -365,6 +372,39 @@ fn a_valuation_needs_an_interest_held_before_1_july_2000() {
         );
         assert_eq!(code(&input), "gst_margin_scheme.valuation_unavailable");
     }
+}
+
+/// A supply to an associate is refused: s 75-13 works its margin from the
+/// GST inclusive market value, which is not an input.
+#[test]
+fn a_supply_to_an_associate_is_refused() {
+    let input = sale("other_supply_from_1_july_2000", "330000.00", "220000.00");
+    let input = with(input, &[("recipient_associate", json!(true))]);
+    let refused = api::evaluate_coded("gst-margin-scheme", &input).unwrap_err();
+    assert_eq!(refused.code, "gst_margin_scheme.supply_to_associate");
+    assert!(refused.message.contains("s 75-13"));
+    let input = with(input, &[("recipient_associate", json!("no"))]);
+    assert_eq!(code(&input), "input.flag_invalid");
+    let input = sale("other_supply_from_1_july_2000", "330000.00", "220000.00");
+    assert_eq!(code(&without(input, "recipient_associate")), "input.missing_field");
+}
+
+/// A half cent of GST rounds up, from the unrounded apportioned base: 1/2 of
+/// $0.09 is $0.045 (shown as $0.05), the margin $0.055 and the GST $0.005.
+#[test]
+fn half_a_cent_of_gst_rounds_up_from_the_unrounded_base() {
+    let input = sale("other_supply_from_1_july_2000", "0.10", "0.09");
+    let input = with(
+        input,
+        &[
+            ("subdivision_share", json!("1")),
+            ("subdivision_whole", json!("2")),
+        ],
+    );
+    let r = run(&input);
+    assert_eq!(amount(&r, "apportioned_base"), "0.05");
+    assert_eq!(amount(&r, "margin"), "0.06");
+    assert_eq!(amount(&r, "gst"), "0.01");
 }
 
 /// Acquisitions that s 75-5(3)(b) to (g), s 75-10(3) item 2A, s 75-11 or

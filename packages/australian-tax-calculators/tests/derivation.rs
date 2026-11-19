@@ -401,6 +401,7 @@ fn cases() -> Vec<(&'static str, Value)> {
             json!({"interest": "stratum_unit", "agreement": "none",
                    "acquisition": "other_supply_from_1_july_2000",
                    "consideration": "610000.00", "method": "consideration",
+                   "recipient_associate": false,
                    "acquisition_consideration": "400000.00",
                    "unpaid_acquisition_consideration": "40000.00",
                    "subdivision_share": "600000.00", "subdivision_whole": "2400000.00",

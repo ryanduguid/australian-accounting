@@ -4,9 +4,9 @@
 //! `gst_margin_scheme`: whether the margin scheme of GST Act Division 75 can
 //! apply to a taxable supply of real property, condition by condition, and the
 //! GST on the margin against the GST without it. The citations are to the A New
-//! Tax System (Goods and Services Tax) Act 1999 ss 9-90, 75-5, 75-10, 75-11,
-//! 75-12, 75-14, 75-15, 75-20 and 75-35, as the ATO's legal database held them,
-//! and GSTR 2006/8, all read on 19 November 2026.
+//! Tax System (Goods and Services Tax) Act 1999 ss 9-90, 11-5, 75-5, 75-10,
+//! 75-11, 75-12, 75-13, 75-14, 75-15, 75-20 and 75-35, as the ATO's legal
+//! database held them, and GSTR 2006/8, all read on 19 November 2026.
 
 use serde_json::{Value, json};
 
@@ -27,6 +27,7 @@ pub struct MarginSchemeArgs<'a> {
     pub acquisition: &'a Arg,
     pub consideration: &'a Arg,
     pub method: &'a Arg,
+    pub recipient_associate: &'a Arg,
     pub acquisition_consideration: Option<&'a Arg>,
     pub unpaid_acquisition_consideration: Option<&'a Arg>,
     pub approved_valuation: Option<&'a Arg>,
@@ -171,8 +172,8 @@ fn valuation_item(args: &MarginSchemeArgs, why: &str, year: &str) -> Result<&'st
         ),
         (false, false) => (
             ITEM_2,
-            start < day && day <= last,
-            "the date of effect of your registration (or the earlier day you applied), after 1 July 2000 and not after the year",
+            day <= last,
+            "the date of effect of your registration (or the earlier day you applied), not after the year",
         ),
         (false, true) => (ITEM_1_OR_3, day == start, "1 July 2000"),
     };
@@ -378,7 +379,7 @@ const APPLIES: [&str; 2] = [
     "The margin scheme applies: the recipient's acquisition is not a creditable acquisition, so it cannot claim an input tax credit for it (GST Act s 75-20).",
     "The recipient can apply the margin scheme to its own later taxable supply of the interest: an acquisition through a taxable supply under the margin scheme is not ineligible (s 75-5(3)(a)).",
 ];
-const NOT_APPLIES: &str = "The margin scheme does not apply: the GST is 1/11 of the consideration, and a recipient that acquires the interest for a creditable purpose can claim an input tax credit for it (GST Act s 11-5).";
+const NOT_APPLIES: &str = "The margin scheme does not apply: the GST is 1/11 of the consideration, and a recipient whose acquisition is a creditable acquisition (GST Act s 11-5: for a creditable purpose, for consideration and by a recipient registered or required to be registered) can claim an input tax credit for it.";
 
 /// The facts of s 75-5, checked, as condition rows, with how the interest
 /// was acquired.
@@ -403,6 +404,12 @@ fn conditions<'a>(args: &MarginSchemeArgs<'a>) -> Result<(Vec<Value>, &'a str)> 
         ],
     )?;
     let acquisition = acquisition(args.acquisition)?;
+    if flag(args.recipient_associate, "recipient_associate")? {
+        return refuse(
+            "gst_margin_scheme.supply_to_associate",
+            "A supply to your associate: s 75-13 works its margin from the GST inclusive market value of the interest at the supply, not the consideration; this command does not work it.",
+        );
+    }
     let rows = vec![
         condition("real_property_interest", INTEREST, interest != "other"),
         condition("written_agreement", AGREEMENT, agreement != "none"),

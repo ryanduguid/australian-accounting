@@ -91,9 +91,11 @@
   75-14) or over an approved valuation as at the day s 75-10(3) items 1 to 4
   fix, for part of the land on its share (s 75-15), rounded to the cent
   (s 9-90(1)). Acquisitions that s 75-5(3)(b) to (g), s 75-10(3) item 2A,
-  s 75-11 or s 75-22 govern are refused, naming the provision. New codes:
+  s 75-11 or s 75-22 govern, and a supply to an associate (s 75-13), are
+  refused, naming the provision. New codes:
   `gst_margin_scheme.acquisition_unsupported`,
   `gst_margin_scheme.fact_conflict`, `gst_margin_scheme.fact_invalid`,
+  `gst_margin_scheme.supply_to_associate`,
   `gst_margin_scheme.valuation_day_invalid`,
   `gst_margin_scheme.valuation_item_unsettled` and
   `gst_margin_scheme.valuation_unavailable`. `derive` explains it.

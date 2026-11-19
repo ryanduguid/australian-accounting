@@ -115,9 +115,15 @@ s 75-10(3) uses an approved valuation when one 'has been made' for an interest
 held before 1 July 2000; without one, s 75-10(2) takes the consideration for
 the acquisition, so `method` is the operator's statement of which exists. The
 valuation day is checked against the item the facts select: items 1 and 3 both
-fix 1 July 2000, so the command does not ask which applies. s 9-90(1) rounds the
-GST on one supply on one invoice to the nearest cent, 0.5 up; the margin and
-the apportioned base are not rounded.
+fix 1 July 2000, so the command does not ask which applies. Item 2's earlier
+day of applying for registration may fall on or before 1 July 2000, so that
+day has no lower bound. s 9-90(1) rounds the GST on one supply on one invoice
+to the nearest cent, 0.5 up; the margin and the apportioned base are not
+rounded. A supply to an associate is refused: s 75-13 (read, with s 11-5, on
+19 November 2026 at 9.13 pm) works its margin from the GST inclusive market value. An
+interest contracted for before 1 July 2000 but acquired through a fully
+taxable supply is `taxable_supply_without_margin_scheme`, ineligible under
+s 75-5(3)(a) whatever GSTR 2006/8 para 39A says of its timing.
 
 `tests/gst_margin_scheme.rs` holds each case.
 

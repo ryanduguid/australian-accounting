@@ -140,6 +140,7 @@ const COMMAND_ARGS: &[(&str, &[(&str, Kind)])] = &[
             ("acquisition", Raw),
             ("consideration", Dec),
             ("method", Raw),
+            ("recipient_associate", Raw),
             ("year", Raw),
             ("scope_confirmed", Raw),
         ],
@@ -1201,6 +1202,7 @@ pub fn evaluate_coded(command: &str, v: &Value) -> Result<Value> {
                 acquisition: &a[2],
                 consideration: &a[3],
                 method: &a[4],
+                recipient_associate: &a[5],
                 acquisition_consideration: paid.as_ref(),
                 unpaid_acquisition_consideration: unpaid.as_ref(),
                 approved_valuation: valuation.as_ref(),
@@ -1209,8 +1211,8 @@ pub fn evaluate_coded(command: &str, v: &Value) -> Result<Value> {
                 government_unimproved_on_1_july_2000: government.as_ref(),
                 subdivision_share: share.as_ref(),
                 subdivision_whole: whole.as_ref(),
-                year: &a[5],
-                scope_confirmed: &a[6],
+                year: &a[6],
+                scope_confirmed: &a[7],
             })
         }
         "fbt" => engine::fbt(&a[0], &a[1], &a[2], &a[3]),

@@ -1125,7 +1125,7 @@ pub fn source_review(kind: &str) -> (&'static str, &'static str) {
         ),
         "gst_margin_scheme" => (
             "2026-11-19",
-            "GST Act ss 9-90, 75-5, 75-10, 75-11, 75-12, 75-14, 75-15, 75-20, 75-35 and 195-1 ('approved valuation', 'long-term lease', 'margin scheme'), from the ATO's legal database; GSTR 2006/8 (paras 15 to 39F: the agreement, a conditional agreement, ineligible supplies and examples 1 and 2); the ATO's 'GST and the margin scheme' (last updated 19 August 2021)",
+            "GST Act ss 9-90, 11-5, 75-5, 75-10, 75-11, 75-12, 75-13, 75-14, 75-15, 75-20, 75-35 and 195-1 ('approved valuation', 'long-term lease', 'margin scheme'), from the ATO's legal database; GSTR 2006/8 (paras 15 to 39F: the agreement, a conditional agreement, ineligible supplies and examples 1 and 2); the ATO's 'GST and the margin scheme' (last updated 19 August 2021)",
         ),
         "trade_in" => (
             "2026-11-18",
@@ -2256,11 +2256,15 @@ pub fn input_units(kind: &str) -> Vec<(&'static str, &'static str)> {
             ),
             (
                 "acquisition",
-                "how you acquired the entire interest, unit or lease: taxable_supply_under_margin_scheme, taxable_supply_without_margin_scheme (ineligible: s 75-5(3)(a)), other_supply_from_1_july_2000 (a supply on or after 1 July 2000 that was not a taxable supply, such as a purchase from a seller not registered for GST) or before_1_july_2000 (acquired, or contracted to acquire, before 1 July 2000: GSTR 2006/8 para 39A); refused with the provisions that apply: gst_group_member, joint_venture_operator, inheritance, gst_free_going_concern, gst_free_farm_land, associate, gst_free_government_land and part_through_ineligible_supply",
+                "how you acquired the entire interest, unit or lease: taxable_supply_under_margin_scheme, taxable_supply_without_margin_scheme (ineligible: s 75-5(3)(a)), other_supply_from_1_july_2000 (a supply on or after 1 July 2000 that was not a taxable supply, such as a purchase from a seller not registered for GST) or before_1_july_2000 (acquired, or contracted to acquire, before 1 July 2000: GSTR 2006/8 para 39A, and not through a taxable supply on which the GST was worked out without the margin scheme, such as a pre-1 July 2000 contract settled later as a fully taxable supply, which is taxable_supply_without_margin_scheme); refused with the provisions that apply: gst_group_member, joint_venture_operator, inheritance, gst_free_going_concern, gst_free_farm_land, associate, gst_free_government_land and part_through_ineligible_supply",
             ),
             (
                 "consideration",
                 "AUD, the consideration for the supply, the GST-inclusive price (s 75-10(2))",
+            ),
+            (
+                "recipient_associate",
+                "boolean, true when the recipient is your associate at the time of the supply; refused, as s 75-13 then works the margin from the GST inclusive market value",
             ),
             (
                 "method",
@@ -2951,6 +2955,7 @@ pub fn examples(kind: &str) -> Vec<(&'static str, Example)> {
             ("acquisition", Text("before_1_july_2000")),
             ("consideration", Text("640000.00")),
             ("method", Text("approved_valuation")),
+            ("recipient_associate", Flag(false)),
             ("approved_valuation", Text("448000.00")),
             ("valuation_day", Text("2000-07-01")),
             ("registered_on_1_july_2000", Flag(true)),
