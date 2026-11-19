@@ -9,7 +9,7 @@ use std::io::Write;
 use std::process::{Command, Stdio};
 
 /// Worksheets added after Python 0.2.0, so absent from the frozen corpus;
-/// `tests/fbt_car.rs`, `tests/main_residence.rs`,
+/// `tests/fbt_car.rs`, `tests/fbt_ev_exemption.rs`, `tests/main_residence.rs`,
 /// `tests/borrowing_expenses.rs`, `tests/borrowing_expenses_schedule.rs`, `tests/hire_purchase.rs`,
 /// `tests/chattel_mortgage.rs`, `tests/loan_transactions.rs`,
 /// `tests/business_capital_expenditure.rs`, `tests/balancing_adjustment.rs`, `tests/trade_in.rs`, `tests/fuel_tax_credits.rs`,
@@ -29,13 +29,14 @@ use std::process::{Command, Stdio};
 /// `tests/fbt_entertainment_classifier.rs`, `tests/fbt_minor_benefit.rs`,
 /// `tests/ppsr_timing.rs`, `tests/dasp_tax.rs`, `tests/income_tests.rs`,
 /// `tests/wine_equalisation_tax.rs` and `tests/luxury_car_tax.rs` cover them.
-const NEW_KINDS: [(&str, &str); 48] = [
+const NEW_KINDS: [(&str, &str); 49] = [
     ("ppsr-timing", "ppsr_timing"),
     ("dasp-tax", "dasp_tax"),
     ("fbt-minor-benefit-check", "fbt_minor_benefit_check"),
     ("gst-margin-scheme", "gst_margin_scheme"),
     ("fbt-car-statutory", "fbt_car_statutory"),
     ("fbt-car-operating-cost", "fbt_car_operating_cost"),
+    ("fbt-ev-exemption-check", "fbt_ev_exemption_check"),
     ("fbt-loan", "fbt_loan"),
     ("fbt-meal-entertainment", "fbt_meal_entertainment"),
     ("fbt-car-parking", "fbt_car_parking"),

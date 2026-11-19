@@ -91,6 +91,10 @@ pub const SCOPES: &[(&str, &str)] = &[
         "One car held by an ordinary taxable employer, as the only provider and for a single holding period, and used or available for an employee's private use in the FBT year ended 31 March 2026 or 2027, with no commitment to provide it made before 7.30 pm AEST on 10 May 2011, so the 20% statutory percentage applies. The operator establishes the base value under s 9(2) as the employer's guide (7.8.1) describes: cost_price holds the part the one-third reduction applies to (where the provider or an associate owned the car at the earliest holding time, its cost price to them with dealer delivery and non-business accessories fitted at acquisition; otherwise its leased car value then, which is the lessor's cost price only if the lease began then and the lessor bought the car at or about that time, and otherwise its arm's-length purchase price), and later_accessories holds non-business accessories fitted after the earliest holding time and still fitted while the car was held in the year, which it never reduces. one_third_reduction is true only from the FBT year starting after the car has been held for 4 years. Days used or available for private use, recipient's payments and whether the electric cars exemption applies are established facts. Excludes deciding whether a car benefit or exemption arises, the base value itself, arm's-length deeming, dealer demonstrator cars, the type 1 or type 2 choice, gross-up and FBT payable. Only the gross taxable value is rounded to cents, before the recipient's payment, which cannot take the taxable value below nil; an unused excess is shown and reduces no other benefit. An exempt electric car's taxable value is nil, and taxable_value_before_exemption is the notional value its reportable fringe benefits amount is worked out from, before gross-up.",
     ),
     (
+        "fbt_ev_exemption_check",
+        "Whether the car benefits from one car, provided in the FBT year ended 31 March 2026 or 2027, are exempt under FBTAA s 8A (the electric cars exemption), as compiled on 1 July 2026, with the application and transitional rules of the Treasury Laws Amendment (Electric Car Discount) Act 2022. The operator establishes that the car's private use or availability is a car benefit under s 7(1), and each fact the command takes: whether the vehicle is a car (s 136(1)), a battery electric, hydrogen fuel cell electric or plug-in hybrid electric vehicle (s 8A(3) to (5)) or another, whether the benefit is for a current employee, the earliest day anyone both held and used the car, the financial year of its first retail sale and its luxury car tax value then (LCT Act s 5-20), whether luxury car tax became payable on any other supply or importation of it, and for a plug-in hybrid the facts of Schedule 2 item 5(2). Each condition is shown as met or not, and the benefit is exempt only when all are met: a car (s 136(1)); a current employee (s 8A(1)(a)); a battery electric or hydrogen fuel cell electric vehicle (s 8A(1)(b) and (2)), or a plug-in hybrid electric vehicle whose benefit falls under Schedule 2 item 5(2): a commitment made before 1 April 2025 for a period that began before then and includes the benefit, no new commitment from 1 April 2025, and an exempt car benefit for the car before 1 April 2025; the car first both held and used on or after 1 July 2022 (Schedule 1 item 7(2)); no luxury car tax at the first retail sale, its luxury car tax value not exceeding the fuel-efficient car threshold the ATO publishes for that financial year (LCT Act s 25-1(1) and (4); $91,387 for 2024-25 and 2025-26 and $91,661 for 2026-27); and none on any other supply or importation (s 8A(1)(c)). Gives electric_car_exempt for fbt-car-statutory and fbt-car-operating-cost, and what the exemption means for reporting and car expenses (ss 53(1) and 135P(3)). Refuses a first retail sale in a financial year the ATO's table does not hold (before 2012-13 or after 2026-27), a car first held and used or first sold after the FBT year ends, plug-in hybrid facts for another vehicle, and an exempt plug-in hybrid benefit before 1 April 2025 for a car first held and used later. Excludes deciding whether a car benefit arises, the vehicle's type, the dates, the luxury car tax value and the commitments; a car that was not a fuel-efficient car under LCT Act s 25-1(4) as it read at its first retail sale (whose threshold is the other vehicles' one); a car not first sold in a retail sale in Australia, such as one imported by its user; the taxable value, which fbt-car-statutory and fbt-car-operating-cost work out; and FBT years from 1 April 2027, for which the government announced on 5 May 2026 a change that was not law when this was checked.",
+    ),
+    (
         "fbt_car_operating_cost",
         "One car held by an ordinary taxable employer, as the only provider and for a single holding period, to provide car fringe benefits in the FBT year ended 31 March 2026 or 2027, valued under a written election for the operating cost method. The operator establishes the GST-inclusive car expenses for the holding period under s 10(3) (repairs, maintenance and fuel, and registration and insurance attributable to the period, including those the employee paid, but not insured repair expenses, an owned car's registration and insurance incurred before the provider owned it, or expenses the lessor bears under the lease), the lease charges for a leased car, or for an owned car acquired on or after 10 May 2006 (a hire purchase car is owned) its s 12 depreciated value at the start of the FBT year (cost price less earlier FBT deemed depreciation, or its cost price if acquired in the year) and the effective life in effect when the provider last became its owner, the days in the holding period the car was owned or leased, the business use percentage from log book and odometer records (0 without them), recipient's payments, the same car's statutory formula value and whether the electric cars exemption applies. Deemed depreciation at 200% over the effective life (25% for a car with an 8-year life) and deemed interest at the year's benchmark rate are apportioned to the days held. Non-business accessories fitted before the year belong in depreciated_value; accessories fitted during the year, a car both owned and leased in the year, a car neither owned nor leased by the provider, cars acquired before 10 May 2006, the business use estimate itself, arm's-length deeming, the type 1 or type 2 choice, gross-up and FBT payable are excluded. Only the gross taxable value is rounded to cents, before the recipient's payment, which cannot take the taxable value below nil; an unused excess is shown and reduces no other benefit. Under s 10(5) the result is the lower of this value and the statutory formula value supplied for the same car and holding period; gross_taxable_value, employee_contribution_applied and excess_employee_contribution are the operating cost method's figures, and where the statutory formula value is lower, fbt-car-statutory's applied and excess figures apply. An exempt electric car's taxable value is nil, and taxable_value_before_exemption is the notional value its reportable fringe benefits amount is worked out from, before gross-up.",
     ),
@@ -345,6 +349,7 @@ pub const SOURCES: &[(&str, &str)] = &[
         "fbt_car_operating_cost",
         "https://www.ato.gov.au/law/view/document?DocID=SAV/FBTGEMP/00008",
     ),
+    ("fbt_ev_exemption_check", FBTAA_PART_1),
     (
         "fbt_loan",
         "https://www.ato.gov.au/law/view/document?DocID=SAV/FBTGEMP/00009",
@@ -767,6 +772,18 @@ pub const EXTRA_SOURCES: &[(&str, &[&str])] = &[
         ],
     ),
     (
+        "fbt_ev_exemption_check",
+        &[
+            FBTAA_PART_2,
+            "https://www.legislation.gov.au/C2022A00086/asmade/text",
+            "https://www.legislation.gov.au/C2004A00463/latest/text",
+            "https://www.ato.gov.au/businesses-and-organisations/hiring-and-paying-your-workers/fringe-benefits-tax/types-of-fringe-benefits/fbt-on-cars-other-vehicles-parking-and-tolls/electric-cars-exemption",
+            "https://www.ato.gov.au/businesses-and-organisations/hiring-and-paying-your-workers/fringe-benefits-tax/types-of-fringe-benefits/fbt-on-cars-other-vehicles-parking-and-tolls/fbt-on-plug-in-hybrid-electric-vehicles",
+            "https://www.ato.gov.au/tax-rates-and-codes/luxury-car-tax-rate-and-thresholds",
+            "https://www.ato.gov.au/about-ato/new-legislation/in-detail/businesses/electric-car-discount-more-sustainable-fbt-treatment-of-electric-cars",
+        ],
+    ),
+    (
         "fbt_loan",
         &[
             FBTAA_PART_1,
@@ -1069,6 +1086,12 @@ pub const EXTRA_WARNINGS: &[(&str, &[&str])] = &[
         ],
     ),
     ("fbt_car_statutory", &[CAR_REPORTABLE_NOTE]),
+    (
+        "fbt_ev_exemption_check",
+        &[
+            "On 5 May 2026 the government announced that from 1 April 2027 the exemption would continue in full only for an electric car costing $75,000 or less, with a 25% discount for one costing more but below the luxury car tax threshold; the ATO said it was not yet law when this was checked on 19 November 2026, so the year ended 31 March 2028 is refused.",
+        ],
+    ),
     (
         "hire_purchase_schedule",
         &[
@@ -1647,6 +1670,22 @@ pub const REFUSAL_CODES: &[(&str, &str)] = &[
         "The employer is exempt from income tax, so fbt-tax-exempt-body-entertainment applies.",
     ),
     (
+        "fbt_ev_exemption.fact_conflict",
+        "The car's dates contradict the FBT year or the plug-in hybrid facts.",
+    ),
+    (
+        "fbt_ev_exemption.sale_within_year",
+        "Luxury car tax was payable on a first retail sale within the FBT year after the car was first held and used, so the benefits before and after it differ.",
+    ),
+    (
+        "fbt_ev_exemption.threshold_year_unsupported",
+        "first_retail_sale is before the financial years whose fuel-efficient luxury car tax threshold the ATO's table lists.",
+    ),
+    (
+        "fbt_ev_exemption.vehicle_invalid",
+        "vehicle is not battery_electric, hydrogen_fuel_cell_electric, plug_in_hybrid_electric or other.",
+    ),
+    (
         "fbt_expense_payment.deduction_exceeds_portion",
         "The deduction for the expenditure an expense payment's recipient bore exceeds the recipient's portion.",
     ),
@@ -1940,7 +1979,7 @@ pub const REFUSAL_CODES: &[(&str, &str)] = &[
     ),
     (
         "input.field_unknown",
-        "A field the worksheet or command does not take, or does not take beside the other inputs given, was given (fbt-loan, fbt-meal-entertainment, fbt-car-parking, fbt-debt-waiver, fbt-expense-payment, fbt-property, fbt-residual, fbt-housing, fbt-lafha, fbt-board, fbt-tax-exempt-body-entertainment, fbt-entertainment-classifier, fbt-meal-entertainment-register and its entries, fbt-minor-benefit-check, ppsr-timing, division-296, depreciation, fuel-tax-credits and its lines, foreign-resident-tax, medicare-levy, medicare-levy-surcharge, payg-withholding, payg-gross-up, termination-payment, etp-tax-free-component, unused-leave-payment, the Schedule 5 methods, working-holiday-maker-withholding, study-loan-withholding, seniors-pensioners-withholding, seniors-pensioners-tax-offset, lump-sum-arrears-tax-offset, hire-purchase-schedule, chattel-mortgage-schedule, loan-transactions and its transactions and rate_changes, borrowing-expenses-schedule and its loans, business-capital-expenditure and its items, balancing-adjustment, its years and car_limit, trade-in, dasp-tax, gst-margin-scheme, wine-equalisation-tax and its dealings, luxury-car-tax and its lines, payroll-tax, cgt-parcels, its parcels and disposals, contribution-caps given a carry-forward input, derive, personal-tax-estimate, dgr-check, income-tests and fbt-return only).",
+        "A field the worksheet or command does not take, or does not take beside the other inputs given, was given (fbt-loan, fbt-meal-entertainment, fbt-car-parking, fbt-debt-waiver, fbt-expense-payment, fbt-property, fbt-residual, fbt-housing, fbt-lafha, fbt-board, fbt-tax-exempt-body-entertainment, fbt-entertainment-classifier, fbt-meal-entertainment-register and its entries, fbt-minor-benefit-check, ppsr-timing, division-296, depreciation, fuel-tax-credits and its lines, foreign-resident-tax, medicare-levy, medicare-levy-surcharge, payg-withholding, payg-gross-up, termination-payment, etp-tax-free-component, unused-leave-payment, the Schedule 5 methods, working-holiday-maker-withholding, study-loan-withholding, seniors-pensioners-withholding, seniors-pensioners-tax-offset, lump-sum-arrears-tax-offset, hire-purchase-schedule, chattel-mortgage-schedule, loan-transactions and its transactions and rate_changes, borrowing-expenses-schedule and its loans, business-capital-expenditure and its items, balancing-adjustment, its years and car_limit, trade-in, dasp-tax, gst-margin-scheme, wine-equalisation-tax and its dealings, luxury-car-tax and its lines, payroll-tax, cgt-parcels, its parcels and disposals, fbt-ev-exemption-check, contribution-caps given a carry-forward input, derive, personal-tax-estimate, dgr-check, income-tests and fbt-return only).",
     ),
     ("input.flag_invalid", "A flag is not a JSON boolean."),
     ("input.fraction_invalid", "A fraction is outside 0 to 1."),

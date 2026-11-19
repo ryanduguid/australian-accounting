@@ -4844,6 +4844,8 @@ mod balancing;
 pub use balancing::balancing_adjustment;
 mod trade_in;
 pub use trade_in::{TradeInArgs, trade_in};
+mod fbt_ev_exemption;
+pub use fbt_ev_exemption::{EvExemptionArgs, fbt_ev_exemption_check};
 mod dasp_tax;
 pub use dasp_tax::{DaspTaxArgs, dasp_tax};
 mod payroll_tax;
@@ -6147,7 +6149,7 @@ pub use gst_margin_scheme::{MarginSchemeArgs, gst_margin_scheme};
 mod ppsr_timing;
 pub use ppsr_timing::ppsr_timing;
 
-const KINDS: [&str; 62] = [
+const KINDS: [&str; 63] = [
     "gst",
     "gst_margin_scheme",
     "fuel_tax_credits",
@@ -6169,6 +6171,7 @@ const KINDS: [&str; 62] = [
     "fbt",
     "fbt_car_statutory",
     "fbt_car_operating_cost",
+    "fbt_ev_exemption_check",
     "fbt_loan",
     "fbt_meal_entertainment",
     "fbt_meal_entertainment_register",
