@@ -4,6 +4,61 @@
 
 ### Added
 
+- `franking-account` keeps a corporate tax entity's franking account for
+  2025-26 or 2026-27 under ITAA 1997 Division 205: credits and debits by
+  table item, the R&D deferral (s 205-15(4)), refunds after the year's end
+  (s 205-50(2)), franking deficit tax and its offset with the 30% reduction
+  of the attributable part and the s 205-70(5) and (6) exceptions, the
+  benchmark rule's over-franking tax and debits per franking period, the
+  significant variation test (s 204-70), the franking return's labels and
+  its due date. New codes: `franking_account.distribution_invalid`,
+  `franking_account.event_invalid`, `franking_account.facts_conflict`,
+  `franking_account.income_tax_invalid`,
+  `franking_account.income_tax_needed`,
+  `franking_account.last_benchmark_invalid` and
+  `franking_account.rate_invalid`. `tests/franking_account.rs` holds it to
+  the ATO's Franking account tax return 2026 examples.
+- `cgt-parcels` works out the capital gains and losses from selling shares
+  or units held in parcels bought at different times, for contracts in
+  2025-26 or 2026-27: each sale matched first in, first out or to the parcels
+  the taxpayer selects (TD 33), each part's cost base and reduced cost base
+  (ITAA 1997 ss 110-25 and 110-55), its gain or loss (s 104-10) and whether it
+  is a discount capital gain (s 115-25), then the year's net capital gain or
+  loss with other gains and losses in the order of s 102-5(1) and the
+  discount percentage by entity (s 115-100). It lists each part and the units
+  left in each parcel. It refuses parcels acquired at or before 21 September
+  1999 that are sold in the year. New codes: `cgt_parcels.entity_invalid`,
+  `cgt_parcels.fact_conflict`, `cgt_parcels.fact_invalid`,
+  `cgt_parcels.fact_missing`, `cgt_parcels.identification_invalid`,
+  `cgt_parcels.indexation_or_pre_cgt`, `cgt_parcels.list_invalid` and
+  `cgt_parcels.units_not_held`. `derive` covers it. `tests/cgt_parcels.rs`
+  holds it to the ATO's Kathleen and Boris examples and the Library's David
+  Jones example.
+- `ppsr-timing` answers what the Personal Property Securities Register's law
+  decides without a search, for 2025-26 and 2026-27: a registration's latest
+  end time, the end time s 153(2) and (3) apply and its fee (PPSA s 153
+  item 5; Personal Property Securities (Fees) Determination 2018 s 4); a
+  purchase money security interest's registration deadline (PPSA s 62(2)(b)
+  and (3)(b)) and whether a registration meets it; and a company grantor's
+  20 business day time and, with a critical time, whether the interest vests
+  (Corporations Act s 588FL). Business days follow PPSA s 10 and Corporations
+  Act s 9 over the holidays the caller lists. New codes:
+  `ppsr_timing.date_outside_year`, `ppsr_timing.date_unsettled`,
+  `ppsr_timing.days_invalid`, `ppsr_timing.fact_invalid`,
+  `ppsr_timing.foreign_law_unsupported`, `ppsr_timing.holidays_incomplete`,
+  `ppsr_timing.law_unread` and `ppsr_timing.time_invalid`.
+  `tests/ppsr_timing.rs` holds it to each fee tier and constructed calendar
+  cases.
+- `payroll-tax`: one employer's payroll tax for 2026-27 in each state and
+  territory, for an employer outside a group that pays wages all year. It
+  shares each deduction or threshold by the taxable wages over the Australian
+  wages, phases out the Victorian, Queensland, Western Australian and Northern
+  Territory deductions, applies South Australia's phased rate and the
+  Tasmanian, ACT and Northern Territory rate steps, and adds Victoria's 2
+  surcharges and Queensland's mental health levy as their own steps. Each
+  figure cites its Act and revenue office page, read on 19 November 2026. A
+  group member, a part-year employer, Australian wages below the taxable wages
+  and any other year are refused. `derive` takes it.
 - `borrowing-expenses-schedule` works out borrowing expenses under ITAA 1997
   s 25-25 for several loans and every income year of each, for loans first
   drawn from 1 July 2017: the $100 test across the loans incurred in a year
@@ -87,6 +142,24 @@
   `loan_transactions.end_date_invalid`, `loan_transactions.entry_invalid`,
   `loan_transactions.not_in_date_order` and
   `loan_transactions.start_outside_year`.
+- `fuel-tax-credits` works out the fuel tax credits for business fuel
+  acquired from 1 July 2022 to 31 January 2027, line by line at the rate the
+  ATO publishes for the day of acquisition (Fuel Tax Act 2006 ss 41-5, 41-20,
+  43-5 and 43-10), from `data/fuel-tax-credit-rates.json`: 16 periods, each
+  with its ATO page and the day read. It totals the lines for label 7D in
+  whole dollars and, for a small claimant, offers the basic method for heavy
+  vehicles (PCG 2021/2) and PCG 2016/2 Methods 1 (litres from the cost and the
+  average price) and 2 (the rate on the period's last day across an
+  indexation change only). `return_date` flags lines s 47-5(2) may have
+  ended. New codes: `fuel_tax_credits.date_outside_year`,
+  `fuel_tax_credits.fact_conflict`, `fuel_tax_credits.fuel_invalid`,
+  `fuel_tax_credits.lines_invalid`, `fuel_tax_credits.method_invalid`,
+  `fuel_tax_credits.period_invalid`, `fuel_tax_credits.quantity_invalid`,
+  `fuel_tax_credits.rate_unpublished`,
+  `fuel_tax_credits.simplified_method_unavailable` and
+  `fuel_tax_credits.use_invalid`. `tests/fuel_tax_credits.rs` holds it to
+  every period's liquid fuel rates, the ATO's Jim and PCG 2021/2's We Deliver
+  examples (in the module's unit tests) and hand-worked cases.
 - `hire-purchase-schedule` takes weekly, fortnightly, quarterly and annual
   instalments (`frequency`), or dated `segments` of level instalments with
   payment holidays, in place of level monthly ones only. Each instalment's
@@ -135,6 +208,51 @@
   `hire_purchase.segments_invalid` and
   `hire_purchase.segments_not_contiguous`. `tests/hire_purchase_worksheet.rs`
   works the cases by hand and from the ATO's Albert and Darren examples.
+- `fhss` works out the First Home Super Saver scheme for a determination
+  made from 1 July 2018 to 31 December 2026: from contributions, the eligible
+  contributions counted against the $15,000 yearly and $50,000 (or $30,000)
+  limits in the order of TAA 1953 Sch 1 s 138-30, the releasable contributions
+  amount and the associated earnings at the SIC rate (s 138-40), labelled an
+  estimate; or from a determination's stated components. Then the assessable
+  FHSS released amount (ITAA 1997 s 313-20), the withholding (TAA Regulations
+  2017 reg 53A: the Commissioner's estimate, worked from the estimated
+  marginal rate, or 17% where he is stated to be unable to estimate), the offset, the FHSS tax and the recontribution. New codes:
+  `fhss.basis_invalid`, `fhss.contribution_kind_invalid`,
+  `fhss.contribution_out_of_period`, `fhss.contributions_invalid`,
+  `fhss.deductions_invalid`, `fhss.determination_invalid`,
+  `fhss.determination_requested_invalid`, `fhss.rate_unpublished`,
+  `fhss.request_exceeds_maximum` and `fhss.year_mismatch`. `tests/fhss.rs` runs
+  GN 2024/1 examples 6, 7 and 11 to 13, the ATO's Mary and George examples
+  and the s 138-30 example.
+- `fbt-ev-exemption-check` decides whether a car's benefits in the FBT year
+  ended 31 March 2026 or 2027 are exempt under FBTAA s 8A, the electric cars
+  exemption, and names each failing condition: a car, a current employee, a
+  battery electric or hydrogen fuel cell electric vehicle (or a plug-in
+  hybrid under the Electric Car Discount Act 2022 Sch 2 item 5(2): committed
+  to before 1 April 2025, no new commitment since, and exempt before then),
+  first both held and used on or after 1 July 2022 (Sch 1 item 7(2)), and no
+  luxury car tax before the benefit (s 8A(1)(c)): a value at a first retail
+  sale within or before the FBT year not above the ATO's fuel-efficient
+  threshold for its financial year, 2012-13 to 2026-27 (LCT Act s 25-1), and
+  none on any other supply. A sale after the FBT year meets the condition; a
+  taxed sale within it, after the car was first held and used, is refused. It gives
+  `electric_car_exempt` for the 2 car worksheets and the reportable fringe
+  benefit consequence (s 135P(3)). The year ended 31 March 2028 is refused:
+  the change announced for 1 April 2027 is not law. New codes:
+  `fbt_ev_exemption.fact_conflict`, `fbt_ev_exemption.sale_within_year`,
+  `fbt_ev_exemption.threshold_year_unsupported` and
+  `fbt_ev_exemption.vehicle_invalid`. `tests/fbt_ev_exemption.rs` runs the
+  ATO's Shelly, John, GHI Co, Sonia, Simon, Tony, Courtney and pool car
+  examples, the Library's Cleancut example and each failing condition.
+- `dasp-tax` works out the tax on a departing Australia superannuation
+  payment in 2025-26 to 2027-28 by component: nil on the tax free component,
+  35% on the element taxed in the fund and 45% on the element untaxed in the
+  fund, or 65% on both where the payment includes contributions made whilst a
+  working holiday maker (Superannuation (Departing Australia Superannuation
+  Payments Tax) Act 2007 s 5(1) and (3)). `derive` explains each amount. New
+  codes: `dasp_tax.payment_nil` and `dasp_tax.unclaimed_money_rollover`, for
+  an s 5(2) roll-over with an element untaxed in the fund. `tests/dasp_tax.rs`
+  runs the Library's $42,000 example and the working holiday maker rate.
 - `fbt-minor-benefit-check` screens one benefit in the FBT year ended
   31 March 2026 or 2027 against the minor benefits exemption (FBTAA s 58P).
   It decides the exclusions (an in-house expense payment, property or
@@ -180,6 +298,19 @@
 - `hire-purchase-schedule`'s `instalment` and `instalments` are required only
   without `segments`, and `hire_purchase.instalments_unsupported` and
   `hire_purchase.rate_unsupported` name the frequency's limits.
+
+### Fixed
+
+- `worksheet_catalogue()`'s evidence note for the 2 car worksheets, the 3
+  Schedule 5 methods, working holiday maker and seniors and pensioners
+  withholding, and the seniors and pensioners tax offset now opens their
+  heading in `docs/calculation-evidence.md`; before, it named an anchor the
+  document does not have.
+- `contribution-caps` cites a first year of bring forward for the
+  non-concessional cap only when the contributions are over the general cap
+  (ITAA 1997 s 292-85(3)(a)). At or under it, the step says that twice or
+  3 times the general cap applies only if bring forward is triggered. No
+  amount changes.
 
 ## 1.0.0
 

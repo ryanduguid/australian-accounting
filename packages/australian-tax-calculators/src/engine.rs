@@ -26,6 +26,8 @@ pub use fbt_benefits::{
 pub use fbt_benefits::{
     fbt_debt_waiver, fbt_entertainment_classifier, fbt_expense_payment, fbt_property,
 };
+mod fuel_tax_credits;
+pub use fuel_tax_credits::{FuelArgs, fuel_tax_credits};
 
 pub const VERSION: &str = env!("CARGO_PKG_VERSION");
 const WORKING_PRECISION: i128 = 40;
@@ -553,9 +555,11 @@ fn basic_tax_authority(kind: &str, year: &str) -> &'static str {
         (_, "2027-28") => {
             "ITAA 1997 s 4-10(3) step 2; Income Tax Rates Act 1986 s 12(1) and Schedule 7 Part I clause 1(b), the table for the 2027-28 year of income or a later year of income: each part above the tax-free threshold (s 3(1)) at its rate"
         }
-        _ => {
+        (_, "2024-25" | "2025-26") => {
             "ITAA 1997 s 4-10(3) step 2; Income Tax Rates Act 1986 s 12(1) and Schedule 7 Part I clause 1(b), the table for the 2024-25 or 2025-26 year of income: each part above the tax-free threshold (s 3(1)) at its rate"
         }
+        // scope() admits only the years of RESIDENT_TAX_SCALES, each named above.
+        (_, other) => unreachable!("no Schedule 7 Part I table is cited for {other}"),
     }
 }
 
@@ -3771,7 +3775,12 @@ fn caps_result(
             3
         };
         let triggered = multiple > 1 && non_concessional.gt(&annual)?;
-        steps.extend(non_concessional_steps(non_concessional, &annual, multiple)?);
+        steps.extend(non_concessional_steps(
+            non_concessional,
+            &annual,
+            multiple,
+            triggered,
+        )?);
         let mut rates = vec![
             rate("concessional_cap", &cap),
             rate("non_concessional_cap", &annual),
@@ -3856,22 +3865,31 @@ fn concessional_steps(
 }
 
 /// The non-concessional amounts: the cap the balance band allows, as a
-/// multiple of the general cap (s 292-85(2) to (5)).
+/// multiple of the general cap (s 292-85(2) to (5)). The authority names a
+/// first year of bring forward only when the contributions are over the
+/// general cap (s 292-85(3)(a)), `triggered`.
 fn non_concessional_steps(
     non_concessional: &Decimal,
     annual: &Decimal,
     multiple: i64,
+    triggered: bool,
 ) -> Calc<Vec<Step>> {
-    let authority = match multiple {
-        0 => "ITAA 1997 s 292-85(2)(b): nil at or above the general transfer balance cap",
-        1 => {
+    let authority = match (multiple, triggered) {
+        (0, _) => "ITAA 1997 s 292-85(2)(b): nil at or above the general transfer balance cap",
+        (1, _) => {
             "ITAA 1997 s 292-85(2)(a): 4 times the s 291-20(2) cap; no bring forward under s 292-85(3)(c) or (e)"
         }
-        2 => {
+        (2, true) => {
             "ITAA 1997 s 292-85(3) and (5)(a): twice the general cap in a first year of bring forward"
         }
-        _ => {
+        (2, false) => {
+            "ITAA 1997 s 292-85(3) and (5)(a): twice the general cap, should contributions over the general cap make this a first year of bring forward; these are not over it (s 292-85(3)(a)), so bring forward is not triggered"
+        }
+        (_, true) => {
             "ITAA 1997 s 292-85(3) and (5)(b): 3 times the general cap in a first year of bring forward"
+        }
+        (_, false) => {
+            "ITAA 1997 s 292-85(3) and (5)(b): 3 times the general cap, should contributions over the general cap make this a first year of bring forward; these are not over it (s 292-85(3)(a)), so bring forward is not triggered"
         }
     };
     let times = int(multiple);
@@ -4824,11 +4842,21 @@ pub use business_capital::business_capital_expenditure;
 
 mod balancing;
 pub use balancing::balancing_adjustment;
+mod franking_account;
+pub use franking_account::{FrankingArgs, franking_year};
 mod trade_in;
 pub use trade_in::{TradeInArgs, trade_in};
+mod fbt_ev_exemption;
+pub use fbt_ev_exemption::{EvExemptionArgs, fbt_ev_exemption_check};
+mod dasp_tax;
+pub use dasp_tax::{DaspTaxArgs, dasp_tax};
+mod payroll_tax;
+pub use payroll_tax::{PayrollTaxArgs, payroll_tax};
 mod luxury_car_tax;
 mod stated;
 pub use luxury_car_tax::{LctArgs, luxury_car_tax};
+mod cgt_parcels;
+pub use cgt_parcels::{CgtParcelsArgs, cgt_parcels};
 
 /// One pay that includes an additional payment, as Schedule 5 (NAT 3348) reads it.
 struct AdditionalPay {
@@ -6120,14 +6148,20 @@ mod fbt_minor_benefit;
 pub use fbt_minor_benefit::{MinorBenefitArgs, fbt_minor_benefit_check};
 mod gst_margin_scheme;
 pub use gst_margin_scheme::{MarginSchemeArgs, gst_margin_scheme};
+mod fhss;
+pub use fhss::{FhssArgs, fhss};
+mod ppsr_timing;
+pub use ppsr_timing::ppsr_timing;
 
-const KINDS: [&str; 57] = [
+const KINDS: [&str; 65] = [
     "gst",
     "gst_margin_scheme",
+    "fuel_tax_credits",
     "resident_tax",
     "foreign_resident_tax",
     "capital_gains",
     "main_residence",
+    "cgt_parcels",
     "borrowing_expenses",
     "borrowing_expenses_schedule",
     "hire_purchase_schedule",
@@ -6136,9 +6170,13 @@ const KINDS: [&str; 57] = [
     "business_capital_expenditure",
     "balancing_adjustment",
     "trade_in",
+    "franking_account",
+    "dasp_tax",
+    "payroll_tax",
     "fbt",
     "fbt_car_statutory",
     "fbt_car_operating_cost",
+    "fbt_ev_exemption_check",
     "fbt_loan",
     "fbt_meal_entertainment",
     "fbt_meal_entertainment_register",
@@ -6177,7 +6215,9 @@ const KINDS: [&str; 57] = [
     "fbt_tax_exempt_body_entertainment",
     "fbt_entertainment_classifier",
     "fbt_minor_benefit_check",
+    "fhss",
     "income_tests",
+    "ppsr_timing",
     "wine_equalisation_tax",
 ];
 
@@ -6232,6 +6272,21 @@ fn example_value(value: Example) -> Value {
     }
 }
 
+/// The anchor of `kind`'s heading in docs/calculation-evidence.md, where
+/// worksheets that share their evidence share a heading.
+fn evidence_heading(kind: &str) -> String {
+    match kind {
+        "fbt_car_statutory" | "fbt_car_operating_cost" => "fbt-car-benefits".into(),
+        "schedule_5_method_a" | "schedule_5_method_b_i" | "schedule_5_method_b_ii" => {
+            "schedule-5".into()
+        }
+        "working_holiday_maker_withholding" => "working-holiday-makers".into(),
+        "seniors_pensioners_withholding" => "seniors-and-pensioners".into(),
+        "seniors_pensioners_tax_offset" => "seniors-and-pensioners-tax-offset".into(),
+        _ => kind.replace('_', "-"),
+    }
+}
+
 /// `worksheet_catalogue()`: JSON-ready discovery data for every worksheet.
 pub fn worksheet_catalogue() -> Value {
     let mut out = Map::new();
@@ -6247,7 +6302,7 @@ pub fn worksheet_catalogue() -> Value {
             "note".into(),
             json!(format!(
                 "docs/calculation-evidence.md#{}",
-                kind.replace('_', "-")
+                evidence_heading(kind)
             )),
         );
         let mut inputs = Map::new();

@@ -34,8 +34,12 @@ fn every_code_at_a_refusal_site_is_catalogued_and_every_entry_is_used() {
     let modules = [
         "engine",
         "engine/balancing",
+        "engine/cgt_parcels",
         "engine/fbt_benefits",
         "engine/fbt_benefits/entertainment",
+        "engine/fhss",
+        "engine/franking_account",
+        "engine/fuel_tax_credits",
         "engine/hire_purchase",
         "engine/luxury_car_tax",
         "engine/wine_equalisation_tax",
@@ -157,8 +161,10 @@ fn every_catalogued_required_input_of_a_strict_command_is_read() {
     // business-capital-expenditure, balancing-adjustment, trade-in,
     // etp-tax-free-component, fbt-meal-entertainment-register,
     // fbt-minor-benefit-check, gst-margin-scheme, wine-equalisation-tax,
-    // luxury-car-tax and borrowing-expenses-schedule.
-    assert_eq!(checked, 43);
+    // luxury-car-tax, borrowing-expenses-schedule, payroll-tax,
+    // fuel-tax-credits, dasp-tax, ppsr-timing, cgt-parcels,
+    // fbt-ev-exemption-check, fhss and franking-account.
+    assert_eq!(checked, 51);
 }
 
 /// Every frozen call gives the same answer through either entry point, and

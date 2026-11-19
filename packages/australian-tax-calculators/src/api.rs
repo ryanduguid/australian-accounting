@@ -137,6 +137,10 @@ const COMMAND_ARGS: &[(&str, &[(&str, Kind)])] = &[
         ],
     ),
     (
+        "fuel-tax-credits",
+        &[("lines", Json), ("year", Raw), ("scope_confirmed", Raw)],
+    ),
+    (
         "gst-margin-scheme",
         &[
             ("interest", Raw),
@@ -236,12 +240,54 @@ const COMMAND_ARGS: &[(&str, &[(&str, Kind)])] = &[
         &[("items", Json), ("year", Raw), ("scope_confirmed", Raw)],
     ),
     (
+        "cgt-parcels",
+        &[
+            ("entity", Raw),
+            ("identification", Raw),
+            ("parcels", Json),
+            ("disposals", Json),
+            ("other_discount_capital_gains", Dec),
+            ("other_capital_gains", Dec),
+            ("other_capital_losses", Dec),
+            ("prior_net_capital_losses", Dec),
+            ("year", Raw),
+            ("scope_confirmed", Raw),
+        ],
+    ),
+    (
         "balancing-adjustment",
         &[
             ("cost", Dec),
             ("termination_value", Dec),
             ("asset", Raw),
             ("years", Json),
+            ("year", Raw),
+            ("scope_confirmed", Raw),
+        ],
+    ),
+    (
+        "franking-account",
+        &[
+            ("private_company", Raw),
+            ("benchmark_rule_exempt", Raw),
+            ("corporate_tax_rate", Dec),
+            ("opening_balance", Dec),
+            ("rd_deferred_debit_brought_forward", Dec),
+            ("last_benchmark", Json),
+            ("events", Json),
+            ("distributions", Json),
+            ("year", Raw),
+            ("scope_confirmed", Raw),
+        ],
+    ),
+    (
+        "dasp-tax",
+        &[
+            ("tax_free_component", Dec),
+            ("taxed_element", Dec),
+            ("untaxed_element", Dec),
+            ("working_holiday_maker_contributions", Raw),
+            ("unclaimed_money_rollover", Raw),
             ("year", Raw),
             ("scope_confirmed", Raw),
         ],
@@ -259,6 +305,18 @@ const COMMAND_ARGS: &[(&str, &[(&str, Kind)])] = &[
             ("replacement_creditable_acquisition", Raw),
             ("arms_length", Raw),
             ("involuntary_disposal", Raw),
+            ("year", Raw),
+            ("scope_confirmed", Raw),
+        ],
+    ),
+    (
+        "payroll-tax",
+        &[
+            ("jurisdiction", Raw),
+            ("taxable_wages", Dec),
+            ("australian_wages", Dec),
+            ("group_member", Raw),
+            ("employed_all_year", Raw),
             ("year", Raw),
             ("scope_confirmed", Raw),
         ],
@@ -301,6 +359,20 @@ const COMMAND_ARGS: &[(&str, &[(&str, Kind)])] = &[
             ("employee_contribution", Dec),
             ("statutory_formula_taxable_value", Dec),
             ("electric_car_exempt", Raw),
+            ("year_ended", Raw),
+            ("scope_confirmed", Raw),
+        ],
+    ),
+    (
+        "fbt-ev-exemption-check",
+        &[
+            ("vehicle", Raw),
+            ("car", Raw),
+            ("current_employee", Raw),
+            ("first_held_and_used", Raw),
+            ("first_retail_sale", Raw),
+            ("luxury_car_tax_value", Dec),
+            ("luxury_car_tax_on_other_supply", Raw),
             ("year_ended", Raw),
             ("scope_confirmed", Raw),
         ],
@@ -558,6 +630,10 @@ const COMMAND_ARGS: &[(&str, &[(&str, Kind)])] = &[
         ],
     ),
     (
+        "ppsr-timing",
+        &[("question", Raw), ("year", Raw), ("scope_confirmed", Raw)],
+    ),
+    (
         "fbt-minor-benefit-check",
         &[
             ("category", Raw),
@@ -570,6 +646,14 @@ const COMMAND_ARGS: &[(&str, &[(&str, Kind)])] = &[
             ("unexpected_event", Raw),
             ("reward_for_services", Raw),
             ("year_ended", Raw),
+            ("scope_confirmed", Raw),
+        ],
+    ),
+    (
+        "fhss",
+        &[
+            ("determination_date", Raw),
+            ("year", Raw),
             ("scope_confirmed", Raw),
         ],
     ),
@@ -633,7 +717,7 @@ pub fn commands() -> Vec<&'static str> {
 /// command on its `gross_pay` shows that withholding. The classifier's amounts
 /// are totals over lines whose shares a decision table sets, not a formula;
 /// each line and class carries the authority for its row instead.
-const DERIVED: [&str; 51] = [
+const DERIVED: [&str; 54] = [
     "fbt",
     "fbt-car-statutory",
     "fbt-car-operating-cost",
@@ -683,8 +767,11 @@ const DERIVED: [&str; 51] = [
     "business-capital-expenditure",
     "balancing-adjustment",
     "trade-in",
+    "dasp-tax",
     "gst-margin-scheme",
     "etp-tax-free-component",
+    "payroll-tax",
+    "cgt-parcels",
 ];
 
 /// `derive`: `{"command", "input"}` gives the command's result with the step
@@ -1020,6 +1107,7 @@ pub fn evaluate_coded(command: &str, v: &Value) -> Result<Value> {
         command,
         "division-296"
             | "depreciation"
+            | "fuel-tax-credits"
             | "medicare-levy"
             | "medicare-levy-surcharge"
             | "payg-withholding"
@@ -1051,6 +1139,8 @@ pub fn evaluate_coded(command: &str, v: &Value) -> Result<Value> {
             | "fbt-entertainment-classifier"
             | "fbt-meal-entertainment-register"
             | "fbt-minor-benefit-check"
+            | "fhss"
+            | "ppsr-timing"
             | "hire-purchase-schedule"
             | "chattel-mortgage-schedule"
             | "loan-transactions"
@@ -1060,7 +1150,12 @@ pub fn evaluate_coded(command: &str, v: &Value) -> Result<Value> {
             | "business-capital-expenditure"
             | "balancing-adjustment"
             | "trade-in"
+            | "fbt-ev-exemption-check"
+            | "dasp-tax"
+            | "payroll-tax"
             | "gst-margin-scheme"
+            | "franking-account"
+            | "cgt-parcels"
     ) && let Some(key) = v
         .as_object()
         .into_iter()
@@ -1080,6 +1175,21 @@ pub fn evaluate_coded(command: &str, v: &Value) -> Result<Value> {
     let pay_date = v.get("pay_date").map(arg);
     let result = match command {
         "gst" => engine::gst(&a[0], &a[1], &a[2], &a[3]),
+        "fuel-tax-credits" => {
+            // Optional: the simplified methods' small claimant statement and
+            // tax period, and the return's day for the s 47-5(2) check.
+            let small = optional(v, "small_claimant", Raw)?;
+            let period = optional(v, "rate_at_period_end", Json)?;
+            let returned = optional(v, "return_date", Raw)?;
+            engine::fuel_tax_credits(&engine::FuelArgs {
+                lines: &a[0],
+                small_claimant: small.as_ref(),
+                rate_at_period_end: period.as_ref(),
+                return_date: returned.as_ref(),
+                year: &a[1],
+                scope_confirmed: &a[2],
+            })
+        }
         "resident-tax" => engine::resident_tax(&a[0], &a[1], &a[2]),
         "foreign-resident-tax" => engine::foreign_resident_tax(&a[0], &a[1], &a[2]),
         "capital-gains" => engine::capital_gains(&a[0], &a[1], &a[2], &a[3], &a[4], &a[5]),
@@ -1171,6 +1281,18 @@ pub fn evaluate_coded(command: &str, v: &Value) -> Result<Value> {
             })
         }
         "business-capital-expenditure" => engine::business_capital_expenditure(&a[0], &a[1], &a[2]),
+        "cgt-parcels" => engine::cgt_parcels(&engine::CgtParcelsArgs {
+            entity: &a[0],
+            identification: &a[1],
+            parcels: &a[2],
+            disposals: &a[3],
+            other_discount_capital_gains: &a[4],
+            other_capital_gains: &a[5],
+            other_capital_losses: &a[6],
+            prior_net_capital_losses: &a[7],
+            year: &a[8],
+            scope_confirmed: &a[9],
+        }),
         "balancing-adjustment" => {
             // Optional: a car's s 40-325 facts, or null; refused for any other asset.
             let car_limit = optional(v, "car_limit", Json)?;
@@ -1184,6 +1306,35 @@ pub fn evaluate_coded(command: &str, v: &Value) -> Result<Value> {
                 &a[5],
             )
         }
+        "franking-account" => {
+            // Optional: the income tax facts s 205-70 applies the offset to,
+            // and a Commissioner's determination under s 205-70(6).
+            let income_tax = optional(v, "income_tax", Json)?;
+            let determination = optional(v, "commissioner_determination", Raw)?;
+            engine::franking_year(&engine::FrankingArgs {
+                private_company: &a[0],
+                benchmark_rule_exempt: &a[1],
+                corporate_tax_rate: &a[2],
+                opening_balance: &a[3],
+                rd_deferred_debit_brought_forward: &a[4],
+                last_benchmark: &a[5],
+                events: &a[6],
+                distributions: &a[7],
+                year: &a[8],
+                scope_confirmed: &a[9],
+                income_tax: income_tax.as_ref(),
+                commissioner_determination: determination.as_ref(),
+            })
+        }
+        "dasp-tax" => engine::dasp_tax(&engine::DaspTaxArgs {
+            tax_free_component: &a[0],
+            taxed_element: &a[1],
+            untaxed_element: &a[2],
+            working_holiday_maker_contributions: &a[3],
+            unclaimed_money_rollover: &a[4],
+            year: &a[5],
+            scope_confirmed: &a[6],
+        }),
         "wine-equalisation-tax" => {
             // Optional: the rebate facts, required with a dealing's
             // rebate_conditions.
@@ -1232,6 +1383,20 @@ pub fn evaluate_coded(command: &str, v: &Value) -> Result<Value> {
                 scope_confirmed: &a[11],
             })
         }
+        "payroll-tax" => {
+            // Optional: whether a Victorian employer is a regional employer.
+            let regional = optional(v, "regional_employer", Raw)?;
+            engine::payroll_tax(&engine::PayrollTaxArgs {
+                jurisdiction: &a[0],
+                taxable_wages: &a[1],
+                australian_wages: &a[2],
+                regional_employer: regional.as_ref(),
+                group_member: &a[3],
+                employed_all_year: &a[4],
+                year: &a[5],
+                scope_confirmed: &a[6],
+            })
+        }
         "gst-margin-scheme" => {
             // Optional: each method's base, its valuation facts and a
             // subdivided lot's share.
@@ -1278,6 +1443,28 @@ pub fn evaluate_coded(command: &str, v: &Value) -> Result<Value> {
         "fbt-car-operating-cost" => engine::fbt_car_operating_cost(
             &a[0], &a[1], &a[2], &a[3], &a[4], &a[5], &a[6], &a[7], &a[8], &a[9], &a[10],
         ),
+        "fbt-ev-exemption-check" => {
+            // Optional: a plug-in hybrid's transitional facts.
+            let [before, new, exempt] = [
+                "commitment_before_1_april_2025",
+                "new_commitment_from_1_april_2025",
+                "exempt_benefit_before_1_april_2025",
+            ]
+            .map(|key| optional(v, key, Raw));
+            let hybrid = [before?, new?, exempt?];
+            engine::fbt_ev_exemption_check(&engine::EvExemptionArgs {
+                vehicle: &a[0],
+                car: &a[1],
+                current_employee: &a[2],
+                first_held_and_used: &a[3],
+                first_retail_sale: &a[4],
+                luxury_car_tax_value: &a[5],
+                luxury_car_tax_on_other_supply: &a[6],
+                hybrid: hybrid.each_ref().map(Option::as_ref),
+                year_ended: &a[7],
+                scope_confirmed: &a[8],
+            })
+        }
         "fbt-loan" => engine::fbt_loan(&benefit_inputs(v, params)?, &a[0], &a[1]),
         "fbt-meal-entertainment" => {
             engine::fbt_meal_entertainment(&a[0], &benefit_inputs(v, params)?, &a[1], &a[2])
@@ -1311,6 +1498,23 @@ pub fn evaluate_coded(command: &str, v: &Value) -> Result<Value> {
             let given = benefit_inputs(v, params)?;
             engine::fbt_tax_exempt_body_entertainment(&a[0], &given, &a[1], &a[2])
         }
+        "ppsr-timing" => {
+            // The question's own inputs, by name: times stay text, day lists JSON.
+            let named: Vec<(String, Arg)> = v
+                .as_object()
+                .into_iter()
+                .flatten()
+                .filter(|(key, _)| !params.iter().any(|(p, _)| p == key))
+                .map(|(key, value)| {
+                    let given = match value {
+                        Value::Array(_) => Arg::Json(value.clone()),
+                        other => arg(other),
+                    };
+                    (key.clone(), given)
+                })
+                .collect();
+            engine::ppsr_timing(&a[0], &a[1], &a[2], &named)
+        }
         "fbt-minor-benefit-check" => {
             // Optional: the facts each category's exclusion needs.
             let [in_house, exception, fifty] =
@@ -1332,6 +1536,39 @@ pub fn evaluate_coded(command: &str, v: &Value) -> Result<Value> {
                 fifty_fifty_split: fifty.as_ref(),
                 year_ended: &a[9],
                 scope_confirmed: &a[10],
+            })
+        }
+        "fhss" => {
+            let [contributions, requested, deductions, determination] = [
+                "contributions",
+                "determination_requested",
+                "personal_deductions",
+                "determination",
+            ]
+            .map(|key| {
+                let kind = if key == "determination_requested" {
+                    Raw
+                } else {
+                    Json
+                };
+                optional(v, key, kind)
+            });
+            let [contributions, requested, deductions, determination] =
+                [contributions?, requested?, deductions?, determination?];
+            let amount = optional(v, "amount_requested", Dec)?;
+            let marginal = optional(v, "estimated_marginal_rate", Dec)?;
+            let cannot = optional(v, "commissioner_cannot_estimate", Raw)?;
+            engine::fhss(&engine::FhssArgs {
+                determination_date: &a[0],
+                year: &a[1],
+                scope_confirmed: &a[2],
+                contributions: contributions.as_ref(),
+                determination_requested: requested.as_ref(),
+                personal_deductions: deductions.as_ref(),
+                determination: determination.as_ref(),
+                amount_requested: amount.as_ref(),
+                estimated_marginal_rate: marginal.as_ref(),
+                commissioner_cannot_estimate: cannot.as_ref(),
             })
         }
         "fbt-entertainment-classifier" => {
