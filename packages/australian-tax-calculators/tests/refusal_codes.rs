@@ -146,11 +146,12 @@ fn every_catalogued_required_input_of_a_strict_command_is_read() {
     // The 14 commands that refused an unknown field before the FBT benefit
     // worksheets (the 3 Schedule 5 methods counted apart), the 11 FBT benefit
     // worksheets, payg-gross-up, hire-purchase-schedule,
+    // chattel-mortgage-schedule, loan-transactions,
     // fbt-entertainment-classifier, unused-leave-payment,
     // lump-sum-arrears-tax-offset, income-tests,
     // business-capital-expenditure, balancing-adjustment, trade-in and
     // etp-tax-free-component.
-    assert_eq!(checked, 35);
+    assert_eq!(checked, 37);
 }
 
 /// Every frozen call gives the same answer through either entry point, and

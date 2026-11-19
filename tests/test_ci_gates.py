@@ -274,9 +274,10 @@ class ApplicationSelectionTests(unittest.TestCase):
         from select_package import SHARED_PATHS
 
         matrix = [f"{crate['root']}/{crate['package']}" for crate in self.ci.crates(ci_yml=True)]
-        unrelated = ["apps/aus-accounting-mcp/README.md", "apps/lodgeit-calculator-adapter/src/main.rs",
-                     "packages/lodgment-calendar/pyproject.toml", "tests/test_components.py",
-                     "tools/fixture-screen/src/main.rs"]
+        # The native candidates are crates in this matrix, so a change under either
+        # directory selects them. The adapter has its own workflow and is not in it.
+        unrelated = ["apps/lodgeit-calculator-adapter/src/main.rs",
+                     "tests/test_components.py", "tools/fixture-screen/src/main.rs"]
         self.assertFalse(self.ci.crates_should_run(unrelated))
         for path in [*(f"{directory}/README.md" for directory in matrix), ".github/ci/rust_crates.py",
                      *SHARED_PATHS, "Cargo.toml", ".cargo/config.toml", "docs/new.md", "", "../notes",
