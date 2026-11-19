@@ -684,7 +684,7 @@ A `sections.jsonl` row carries `row_id`, `register_id`, `act`, `collection`,
 [PaulGoodman](https://github.com/ryanduguid/PaulGoodman)
 builds a corpus in this shape from the Federal Register of Legislation. The quickest
 corpus is its [published snapshot](corpus-setup.md#download-the-published-snapshot) of 9
-principal Acts, each at its current compilation on 11 November 2026, with a rates index:
+principal Acts, each at its current compilation on 18 November 2026, with a rates index:
 set `AUS_ACCOUNTING_CORPUS_ROOT` to its unpacked `dist` folder. For later compilations,
 its `python -m fadden quick --out <empty folder>` builds the same Acts and prints the
 setting; [the setup guide](corpus-setup.md#build-the-principal-acts-with-one-command) gives

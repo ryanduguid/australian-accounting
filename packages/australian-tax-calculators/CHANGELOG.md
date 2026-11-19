@@ -20,6 +20,25 @@
   `cgt_parcels.units_not_held`. `derive` covers it. `tests/cgt_parcels.rs`
   holds it to the ATO's Kathleen and Boris examples and the Library's David
   Jones example.
+- `chattel-mortgage-schedule`: a loan to buy goods under a chattel mortgage,
+  at the rate its instalments imply or a stated `annual_rate` (monthly or
+  weekly in arrears) from which the instalment is worked out, with the
+  schedule, a printable `statement`, interest by income year and the
+  purchaser's input tax credit on the price, capped for a car at 1/11 of the
+  car limit (GST Act s 69-10(1)). New codes:
+  `chattel_mortgage.balloon_too_large`,
+  `chattel_mortgage.final_instalment_unsupported`,
+  `chattel_mortgage.stated_rate_unsupported` and
+  `chattel_mortgage.terms_conflict`; the shared instalment, rate, start and
+  GST facts codes keep their `hire_purchase.` names.
+- `loan-transactions`: a loan's statement from dated drawings and repayments,
+  with daily interest at a rate that changes on dated events, debited at each
+  month's end, interest by income year and a printable `statement`. New codes:
+  `loan_transactions.balance_below_nil`,
+  `loan_transactions.date_outside_statement`,
+  `loan_transactions.end_date_invalid`, `loan_transactions.entry_invalid`,
+  `loan_transactions.not_in_date_order` and
+  `loan_transactions.start_outside_year`.
 - `hire-purchase-schedule` takes weekly, fortnightly, quarterly and annual
   instalments (`frequency`), or dated `segments` of level instalments with
   payment holidays, in place of level monthly ones only. Each instalment's
