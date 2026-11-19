@@ -290,7 +290,9 @@ sign-in, through `.github/ci/check_calculators_install.sh` and `.ps1`: the insta
 executable must report the tag's version, and the same command with the archive or
 `SHA256SUMS` altered in transit must refuse and install nothing. It runs when those
 READMEs, scripts or the workflow change, on pushes to `main` that change them,
-manually and weekly. It is not a required check and publishes nothing.
+manually and weekly. It is not a required check and publishes nothing. Both
+checkers name the reviewed release-policy commit and refuse a README pinned to
+another, so a new installer pin changes both READMEs and both checkers.
 
 The existing [joined example driver](https://github.com/ryanduguid/accounting-review-pipeline/blob/3dcb5304f4c67c01de98b34638999b5f274d1810/packages/monthly-close-control-plane/docs/utility-workflows.md)
 checks both fabricated thirteen-week cash scenarios and retains REVIEW findings.

@@ -13,9 +13,13 @@
 set -euo pipefail
 
 readme=packages/australian-tax-calculators/README.md
+# The reviewed installer commit (release-policy v0.5.0); a README that names
+# another fails here, before anything runs. Change it with the README pins.
+pin=d7039efe6d8c441f1f213c674902909e80535599
 # The whole line, flags included, so nothing else can ride along into bash -c.
-pattern="^curl --proto '=https' --tlsv1\.2 -fsSL https://raw\.githubusercontent\.com/ryanduguid/release-policy/[0-9a-f]{40}/scripts/install\.sh \| sh -s -- ryanduguid/australian-accounting australian-tax-calculators/v[0-9]+\.[0-9]+\.[0-9]+ --modify-path\$"
-command=$(grep -E "$pattern" "$readme")
+pattern="^curl --proto '=https' --tlsv1\.2 -fsSL https://raw\.githubusercontent\.com/ryanduguid/release-policy/$pin/scripts/install\.sh \| sh -s -- ryanduguid/australian-accounting australian-tax-calculators/v[0-9]+\.[0-9]+\.[0-9]+ --modify-path\$"
+command=$(grep -E "$pattern" "$readme") \
+  || { echo "$readme gives no install command pinned to release-policy $pin" >&2; exit 1; }
 [ "$(printf '%s\n' "$command" | wc -l)" -eq 1 ] || { echo "$readme gives more than one install command" >&2; exit 1; }
 grep -qxF -- "$command" apps/aus-accounting-mcp/README.md \
   || { echo "apps/aus-accounting-mcp/README.md does not give $readme's install command" >&2; exit 1; }

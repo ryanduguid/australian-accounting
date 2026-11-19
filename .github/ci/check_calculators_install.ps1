@@ -12,10 +12,13 @@
 $ErrorActionPreference = 'Stop'
 
 $readme = 'packages/australian-tax-calculators/README.md'
-$pattern = '\A& \(\[scriptblock\]::Create\(\(irm https://raw\.githubusercontent\.com/ryanduguid/release-policy/[0-9a-f]{40}/scripts/install\.ps1\)\)\) ryanduguid/australian-accounting australian-tax-calculators/v(?<version>[0-9]+\.[0-9]+\.[0-9]+) -ModifyPath\z'
+# The reviewed installer commit (release-policy v0.5.0); a README that names
+# another fails here, before anything runs. Change it with the README pins.
+$pin = 'd7039efe6d8c441f1f213c674902909e80535599'
+$pattern = '\A& \(\[scriptblock\]::Create\(\(irm https://raw\.githubusercontent\.com/ryanduguid/release-policy/' + $pin + '/scripts/install\.ps1\)\)\) ryanduguid/australian-accounting australian-tax-calculators/v(?<version>[0-9]+\.[0-9]+\.[0-9]+) -ModifyPath\z'
 $found = @(Get-Content -LiteralPath $readme | Where-Object { $_ -cmatch $pattern })
 if ($found.Count -ne 1) {
-    throw "$readme gives $($found.Count) Windows install commands, not 1"
+    throw "$readme gives $($found.Count) Windows install commands pinned to release-policy $pin, not 1"
 }
 $command = $found[0]
 if (@(Get-Content -LiteralPath 'apps/aus-accounting-mcp/README.md' | Where-Object { $_ -ceq $command }).Count -ne 1) {
