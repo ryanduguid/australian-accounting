@@ -37,7 +37,9 @@ fn every_code_at_a_refusal_site_is_catalogued_and_every_entry_is_used() {
         "engine/fbt_benefits",
         "engine/fbt_benefits/entertainment",
         "engine/fhss",
+        "engine/fuel_tax_credits",
         "engine/hire_purchase",
+        "engine/luxury_car_tax",
         "engine/wine_equalisation_tax",
     ]
     .into_iter()
@@ -156,8 +158,10 @@ fn every_catalogued_required_input_of_a_strict_command_is_read() {
     // lump-sum-arrears-tax-offset, income-tests,
     // business-capital-expenditure, balancing-adjustment, trade-in,
     // etp-tax-free-component, fbt-meal-entertainment-register,
-    // fbt-minor-benefit-check, fhss, gst-margin-scheme and wine-equalisation-tax.
-    assert_eq!(checked, 42);
+    // fbt-minor-benefit-check, gst-margin-scheme, wine-equalisation-tax,
+    // luxury-car-tax, borrowing-expenses-schedule, payroll-tax,
+    // fuel-tax-credits, dasp-tax and fhss.
+    assert_eq!(checked, 47);
 }
 
 /// Every frozen call gives the same answer through either entry point, and

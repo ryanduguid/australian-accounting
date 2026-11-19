@@ -997,17 +997,25 @@ pub fn supported_periods(kind: &str) -> Vec<&'static str> {
     match kind {
         // The GST rate (GST Act s 9-70) has no year; the years are those read.
         "gst" => vec!["2025-26", "2026-27", "2027-28"],
+        // The income years holding the ATO rate periods bundled in
+        // data/fuel-tax-credit-rates.json, 1 July 2022 to 31 January 2027.
+        "fuel_tax_credits" => vec!["2022-23", "2023-24", "2024-25", "2025-26", "2026-27"],
         "capital_gains" | "depreciation" => vec!["2025-26", "2026-27"],
         "quarterly_sg" => vec!["2025-26"],
         "resident_tax" => keys(RESIDENT_TAX_SCALES),
         "foreign_resident_tax" => keys(FOREIGN_RESIDENT_TAX_SCALES),
         "main_residence" => vec!["2024-25", "2025-26", "2026-27"],
-        // Borrowing expenses: s 26-155 quarantines residential rental deductions
-        // from 2027-28. Hire purchase: the years read.
-        "borrowing_expenses"
-        | "hire_purchase_schedule"
-        | "chattel_mortgage_schedule"
-        | "loan_transactions" => vec!["2024-25", "2025-26", "2026-27"],
+        // ITAA 1997 s 25-25 sets no figure by year; its step 1 was last
+        // substituted by Act No 15 of 2017 from 1 April 2017. From 2027-28 the
+        // result is flagged for s 26-155, which it does not apply.
+        "borrowing_expenses" | "borrowing_expenses_schedule" => vec![
+            "2017-18", "2018-19", "2019-20", "2020-21", "2021-22", "2022-23", "2023-24", "2024-25",
+            "2025-26", "2026-27", "2027-28",
+        ],
+        // Hire purchase: the years read.
+        "hire_purchase_schedule" | "chattel_mortgage_schedule" | "loan_transactions" => {
+            vec!["2024-25", "2025-26", "2026-27"]
+        }
         // s 40-880 as amended by Act No 92 of 2020 applies to expenditure
         // incurred from 1 July 2020, unamended to compilation 268. It and
         // Subdivision 328-C set no figure by year, and the Register's one later
@@ -1024,8 +1032,20 @@ pub fn supported_periods(kind: &str) -> Vec<&'static str> {
         // 2017 and earlier vintages ended (WETR 2009/2; the ATO's QC22756
         // and QC22757); the rate and cap are set by the Act, not indexed.
         "wine_equalisation_tax" => vec!["2023-24", "2024-25", "2025-26", "2026-27", "2027-28"],
+        // s 5 sets fixed rates; the temporary budget repair levy of s 6 ended
+        // with 2016-17. The years are the other superannuation worksheets'.
+        "dasp_tax" => vec!["2025-26", "2026-27", "2027-28"],
         // Division 75 sets no figure by year; the years are gst's.
         "gst_margin_scheme" => vec!["2025-26", "2026-27", "2027-28"],
+        // The 2026-27 rates and thresholds each revenue office published, read
+        // on 19 November 2026.
+        "payroll_tax" => vec!["2026-27"],
+        // Tax periods from 1 July 2019, when the $10,000 refunds began
+        // (Act No. 94 of 2019 Sch 2), to the last year whose thresholds the
+        // ATO publishes (QC38161, 1 June 2026).
+        "luxury_car_tax" => vec![
+            "2019-20", "2020-21", "2021-22", "2022-23", "2023-24", "2024-25", "2025-26", "2026-27",
+        ],
         // The years whose car limit was read on 18 November 2026; 2027-28 is
         // refused as for balancing_adjustment, and its car limit is not yet
         // published.
@@ -1103,6 +1123,10 @@ pub fn supported_periods(kind: &str) -> Vec<&'static str> {
 pub fn source_review(kind: &str) -> (&'static str, &'static str) {
     match kind {
         "gst" => ("2026-09-10", "GST fast facts: Charging GST"),
+        "fuel_tax_credits" => (
+            "2026-11-19",
+            "Fuel Tax Act 2006 ss 41-5, 41-20, 43-5, 43-10, 47-5 and 47-10 at the ATO's legal database; the ATO's 'Rates - business' (QC44494, last updated 29 July 2026) and its pages for 2022-23 to 2026-27 (QC69964 and QC72768, last updated 27 June 2024; QC102637, 29 January 2025; QC105117, 28 April 2026; QC107638, 29 July 2026), their 192 rates equal to data.gov.au's 'Historical FTC rates' (August 2026); 'Working out your fuel tax credits' (QC44511, last updated 6 July 2021, step 3); 'Simplified fuel tax credits' (QC48520, 6 July 2021); 'Basic method for heavy vehicles' (QC64655, 2 June 2021: Table 1 and Jim's example); PCG 2016/2 paras 4 and 9 to 13; PCG 2021/2 paras 4 to 12 and its We Deliver example (paras 19 to 24)",
+        ),
         "resident_tax" => (
             "2026-09-10",
             "Income Tax Rates Act 1986, Schedule 7 Part I clause 1",
@@ -1123,9 +1147,9 @@ pub fn source_review(kind: &str) -> (&'static str, &'static str) {
             "2026-11-01",
             "Treating former home as main residence: the 6-year rule, Roya and Helen examples; Using your home for rental or business: working out the capital gain, the home first used to produce income rule and its examples",
         ),
-        "borrowing_expenses" => (
-            "2026-11-04",
-            "ITAA 1997 s 25-25 and s 26-50, compilation 268 (1 October 2026); Borrowing expenses: the Peter and the Fiona and Max examples",
+        "borrowing_expenses" | "borrowing_expenses_schedule" => (
+            "2026-11-19",
+            "ITAA 1997 s 25-25 with its history notes, s 26-50 and s 26-155 on the ATO's legal database; Acts Interpretation Act 1901 ss 2G and 36, compilation 39 (28 March 2026); Borrowing expenses (last updated 22 May 2026): the Peter and the Fiona and Max examples",
         ),
         "business_capital_expenditure" => (
             "2026-11-16",
@@ -1135,6 +1159,14 @@ pub fn source_review(kind: &str) -> (&'static str, &'static str) {
             "2026-11-18",
             "ITAA 1997 ss 40-25, 40-85, 40-230, 40-285, 40-290, 40-291A, 40-295, 40-300, 40-305, 40-325, 40-370, 104-235, 104-240, 118-5 and 118-10 (its example) and Subdivision 27-B, compilation 268 (1 October 2026), with the endnotes' amendment history; Treasury Laws Amendment (Tax Reform No. 1) Act 2026 (No 49 of 2026), Schedule 4 item 17 (s 40-291A from 2026-27); Guide to depreciating assets 2026, 'What happens if you no longer hold or use a depreciating asset?', its Bridget, Andrew and Louise examples and the car limit formula",
         ),
+        "dasp_tax" => (
+            "2026-11-19",
+            "Superannuation (Departing Australia Superannuation Payments Tax) Act 2007 ss 4 to 6 (compilation 5, 2 December 2016, Federal Register of Legislation); ITAA 1997 ss 301-170 and 301-175, from the ATO's legal database; the ATO's 'Payments from super' rates (last updated 16 September 2026) and 'Departing Australia superannuation payment (DASP)' (last updated 21 April 2026)",
+        ),
+        "payroll_tax" => (
+            "2026-11-19",
+            "Payroll Tax Act 2007 (NSW) Sch 1 cl 1 (version current from 10 July 2026); Payroll Tax Act 2007 (Vic) s 3A and Sch 1 cl 1, 1A, 1B and 5 (authorised version 041, 1 May 2026); Payroll Tax Act 1971 (Qld) ss 10, 29 and 43I (reprint current as at 22 October 2026); Pay-roll Tax Assessment Act 2002 (WA) ss 8 and 13 (04-d0-03) and Pay-roll Tax Act 2002 (WA) s 5(4) (00-d0-02); Payroll Tax Act 2009 (SA) Sch 1 cl 1, 4 and 5 (version 31.3.2026); Payroll Tax Act 2008 (Tas) Sch 1 cl 1 and 4; Payroll Tax Act 2011 (ACT) Sch 1 (R20) with DI2026-151 s 5; Payroll Tax Act 2009 (NT) s 7A and Sch 1 cl 1, 3 and 5 (as in force at 1 July 2026); and each revenue office's rates and thresholds page",
+        ),
         "gst_margin_scheme" => (
             "2026-11-19",
             "GST Act ss 9-90, 11-5, 75-5, 75-10, 75-11, 75-12, 75-13, 75-14, 75-15, 75-20, 75-35 and 195-1 ('approved valuation', 'long-term lease', 'margin scheme'), from the ATO's legal database; GSTR 2006/8 (paras 15 to 39F: the agreement, a conditional agreement, ineligible supplies and examples 1 and 2); the ATO's 'GST and the margin scheme' (last updated 19 August 2021)",
@@ -1142,6 +1174,10 @@ pub fn source_review(kind: &str) -> (&'static str, &'static str) {
         "wine_equalisation_tax" => (
             "2026-11-19",
             "A New Tax System (Wine Equalisation Tax) Act 1999 ss 5-5, 5-50, 7-10, 9-5, 9-25, 9-30, 9-35, 9-40, 9-45, 13-5, 19-5, 19-15, 19-20, 19-25, 31-1 and 33-1 at the ATO's legal database, and compilation 32 (1 April 2026) at the Federal Register of Legislation for ss 19-15 and 19-25; Treasury Laws Amendment (Supporting Choice in Superannuation and Other Measures) Act 2026 (No. 12, 2026) Schedule 6 (the $400,000 cap for assessable dealings from 1 July 2026); WETR 2009/1 paras 143 to 153 and 159; WETR 2009/2 para 67 and note 37; the ATO's 'Wholesale sales' (QC22750) and 'Retail sales and own use' (QC22751), last updated 19 March 2025; 'Producer rebate' (QC22756, 30 June 2026); 'Calculate and claim your rebate' (QC22758, 2 July 2026); 'Reporting and paying WET' (QC22762, 19 March 2025); 'Wine equalisation tax (WET)' (QC33703, 1 May 2025); 'Instructions for completing your BAS' (QC17458, 14 September 2026)",
+        ),
+        "luxury_car_tax" => (
+            "2026-11-19",
+            "A New Tax System (Luxury Car Tax) Act 1999 ss 5-15, 5-20, 7-15, 9-5, 9-15, 15-20, 15-25, 15-30, 18-5, 18-10, 25-1 and 27-1 at the ATO's legal database, with their history notes (ss 18-5(3) and 18-10(3) substituted by Act No. 94 of 2019 for cars supplied or imported from 1 July 2019), and compilation 27 (1 April 2025) at the Federal Register of Legislation; Treasury Laws Amendment (Tax Incentives and Integrity) Act 2025 (No. 29, 2025) Schedule 1 (the 3.5 litre fuel-efficient rating from 1 July 2025 and item 4's continued 7 litre rating); Luxury Car Tax Imposition (General) Act 1999 and (Customs) Act 1999 s 4 (33%); the ATO's 'Luxury car tax rate and thresholds' (QC38161, 1 June 2026), 'Working out the LCT on a sale' (QC22107, 1 June 2026), 'Working out the LCT on an import' (QC22108, 1 June 2026), 'Luxury car tax credits and refunds' (QC39467, 16 July 2025) and the BAS page 'Luxury car tax (LCT)' (QC33694, 1 May 2025); 'Instructions for completing your BAS' (QC17458, 14 September 2026)",
         ),
         "trade_in" => (
             "2026-11-18",
@@ -1328,6 +1364,12 @@ pub fn library_evidence(kind: &str) -> [(&'static str, &'static str); 4] {
             "2026-06-30",
             "2026-09-15",
         ),
+        "fuel_tax_credits" => (
+            "tax-examples-gst-and-other-indirect-taxes",
+            "12-300",
+            "2026-06-30",
+            "2026-11-19",
+        ),
         "resident_tax" => (
             "tax-examples-individuals",
             "7-010",
@@ -1358,11 +1400,11 @@ pub fn library_evidence(kind: &str) -> [(&'static str, &'static str); 4] {
             "2026-06-30",
             "2026-11-01",
         ),
-        "borrowing_expenses" => (
+        "borrowing_expenses" | "borrowing_expenses_schedule" => (
             "tax-examples-deductions",
             "4-160",
             "2026-06-30",
-            "2026-11-04",
+            "2026-11-19",
         ),
         "business_capital_expenditure" => (
             "TR 2011/6",
@@ -1382,6 +1424,18 @@ pub fn library_evidence(kind: &str) -> [(&'static str, &'static str); 4] {
             "2026-06-01",
             "2026-11-18",
         ),
+        "dasp_tax" => (
+            "superannuation-superannuation-benefits-termination-payments",
+            "8-420",
+            "2026-06-30",
+            "2026-11-19",
+        ),
+        "payroll_tax" => (
+            "Revenue office payroll tax pages: Revenue NSW thresholds and rates; SRO Victoria payroll tax surcharges; QRO payroll tax deductions; RevenueWA employer guide; SRO Tasmania annual adjustment return guideline",
+            "Revenue NSW's 2 examples; SRO Victoria example 2; QRO's annual deduction example; RevenueWA's $1,104,000; SRO Tasmania examples 1 and 2",
+            "2026-07-01",
+            "2026-11-19",
+        ),
         "gst_margin_scheme" => (
             "tax-examples-gst-and-other-indirect-taxes",
             "12-200",
@@ -1392,6 +1446,12 @@ pub fn library_evidence(kind: &str) -> [(&'static str, &'static str); 4] {
             "gst-wine-equalisation-tax",
             "22-280, 22-290",
             "2024-12-31",
+            "2026-11-19",
+        ),
+        "luxury_car_tax" => (
+            "tax-examples-gst-and-other-indirect-taxes",
+            "12-340",
+            "2026-06-30",
             "2026-11-19",
         ),
         "trade_in" => (
@@ -1623,9 +1683,27 @@ pub fn library_evidence(kind: &str) -> [(&'static str, &'static str); 4] {
 /// Inputs a worksheet takes but does not require, with their units.
 pub fn optional_inputs(kind: &str) -> Vec<(&'static str, &'static str)> {
     match kind {
+        "fuel_tax_credits" => vec![
+            (
+                "small_claimant",
+                "boolean, required with a basic_heavy_vehicle or litres_from_cost line or rate_at_period_end and refused otherwise: true states that the fuel tax credit entitlement for the previous 12 months was $10,000 or less (for the basic method alone, PCG 2021/2 footnote 3 also accepts no claim in those 12 months) and is reasonably expected to be $10,000 or less for the current 12 months (PCG 2016/2 para 4; PCG 2021/2 para 6); false is refused",
+            ),
+            (
+                "rate_at_period_end",
+                "object with start and end (YYYY-MM-DD), a tax period inside the income year that holds every line's acquisition: PCG 2016/2 Method 2 then takes every line at the rate in force on end (para 11); refused across a rate change other than indexation alone, when end is after the last day a rate is held for, and for lpg or lng_cng lines",
+            ),
+            (
+                "return_date",
+                "YYYY-MM-DD, the day the return taking these credits into account is given, not before any line's acquisition: lines acquired more than 4 years before it are listed in time_limit_lines, with the s 47-5(2) warning",
+            ),
+        ],
         "balancing_adjustment" => vec![(
             "car_limit",
             "for a car only, and then required: null when s 40-230 did not reduce its cost to the car limit, or an object with limit (AUD, the car limit for the financial year in which the car was first used for any purpose), second_element_cost (AUD) and cost_ignoring_car_limit (AUD, the first and second elements ignoring the car limit, after Subdivision 27-B), cost then being limit plus second_element_cost: ITAA 1997 s 40-325",
+        )],
+        "payroll_tax" => vec![(
+            "regional_employer",
+            "boolean, for Victoria only and then required: true when the employer is a regional employer, one that pays at least 85% of its taxable wages to regional employees (Payroll Tax Act 2007 (Vic) s 3A)",
         )],
         "wine_equalisation_tax" => vec![
             (
@@ -1719,6 +1797,10 @@ pub fn optional_inputs(kind: &str) -> Vec<(&'static str, &'static str)> {
                 "object of GST facts, for the purchaser's input tax credit on the price: as hire_purchase_schedule takes them. A passenger_car worth more than the car limit and not quoted for has its credit capped at 1/11 of the limit (GST Act s 69-10(1))",
             ),
         ],
+        "borrowing_expenses_schedule" => vec![(
+            "other_borrowing_expenses",
+            "object of income years (such as \"2025-26\") and AUD amounts: the income-producing share of borrowing expenses incurred that year on loans not in loans, for the s 25-25(6) $100 test",
+        )],
         "loan_transactions" => vec![(
             "rate_changes",
             "list of objects in date order, each with date (YYYY-MM-DD, after start_date and by end_date, one change a day) and annual_rate (decimal fraction from 0 to 1), the rate from that day",
@@ -2179,6 +2261,10 @@ pub fn input_units(kind: &str) -> Vec<(&'static str, &'static str)> {
     ];
     match kind {
         "gst" => vec![("amount", "AUD"), ("gst_inclusive", "boolean")],
+        "fuel_tax_credits" => vec![(
+            "lines",
+            "list of 1 to 1,000 objects, each acquired (YYYY-MM-DD, the day the fuel was acquired, inside the income year and from 1 July 2022 to 31 January 2027) and either a line by use, with fuel (diesel, petrol, b5, b20, e10, e85, lpg, lng_cng or b100), quantity (decimal string at most 4 decimal places: litres, or kilograms for lng_cng) and use (heavy_vehicle_public_road: a vehicle above 4.5 tonnes GVM travelling on a public road, including fuel to power a bus's or coach's passenger air-conditioning, QC107638 note 1; other_business: every other business use, including other auxiliary equipment, off public roads and public road travel incidental to the vehicle's main use; light_vehicle_public_road: 4.5 tonnes GVM or less on a public road, which gets nil), or a line by the basic method for heavy vehicles (PCG 2021/2), with method basic_heavy_vehicle, fuel diesel, litres (the vehicle's eligible diesel), exactly one of public_road_km (actual) and total_km (98.4% taken as on public roads), and exactly one of rigid_truck_gross_weight_tonnes (above 4.5, at most 3 decimal places) and litres_per_km (the engine diagnostic report's driving fuel economy, above 0, at most 6 decimal places), or a line by use whose litres PCG 2016/2 Method 1 works out, with method litres_from_cost, fuel (a liquid fuel: diesel, petrol, b5, b20, e10, e85 or b100), use, cost (AUD, the GST inclusive spend on the fuel) and average_price_cents_per_litre (above 0, at most 4 decimal places: the average GST inclusive retail price of that fuel in the area of operation over the tax period, read from the Australian Institute of Petroleum's weekly pump prices, https://aip.com.au/pricing/pump-prices-retail/, as PCG 2016/2 para 9 says; this command holds no prices)",
+        )],
         "resident_tax" | "foreign_resident_tax" => vec![("taxable_income", "AUD, whole dollars")],
         "capital_gains" => vec![
             ("other_gains", "AUD"),
@@ -2254,6 +2340,10 @@ pub fn input_units(kind: &str) -> Vec<(&'static str, &'static str)> {
                 "boolean, false only when the property is not a leisure facility, or s 26-50(3) applies to it at all times in the income year (such as a holiday home held mainly to produce rent)",
             ),
         ],
+        "borrowing_expenses_schedule" => vec![(
+            "loans",
+            "list of objects, one for each loan, each stating: borrowing_expenses (AUD, as for borrowing_expenses, incurred in the income year the loan began); loan_start (YYYY-MM-DD, the first day the money was borrowed, from 1 July 2017 to the end of the year asked about); loan_term_end and repaid_on (YYYY-MM-DD or null, as for borrowing_expenses); income_use (a decimal fraction from 0 to 1 for every income year of the loan, or an object giving one for each income year from the year the loan began to the year its period ends, such as {\"2025-26\": \"1\", \"2026-27\": \"0.5\"}); section_26_50_applies (boolean, as for borrowing_expenses; true is refused); and optionally refinances (the number, from 1, of an earlier loan in the list that this loan repaid on its loan_start, which must be that loan's repaid_on)",
+        )],
         "chattel_mortgage_schedule" => vec![
             (
                 "amount_financed",
@@ -2335,6 +2425,47 @@ pub fn input_units(kind: &str) -> Vec<(&'static str, &'static str)> {
                 "list of objects, one for each income year held from the start time to the event, each with income_year (from 2001-02, and for a car from 2015-16, to the event's year), decline_in_value (AUD; for a cents per kilometre year the notional decline of s 40-370(3)) and deduction (AUD, the decline less the s 40-25 reductions); a car's rows also state method (log_book or cents_per_kilometre, which takes no deduction) and days_held (integer from 1 to the days in that income year, 366 when it includes 29 February)",
             ),
         ],
+        "dasp_tax" => vec![
+            (
+                "tax_free_component",
+                "AUD, the payment's tax free component, as the paying fund states it",
+            ),
+            (
+                "taxed_element",
+                "AUD, the element taxed in the fund of the payment's taxable component",
+            ),
+            (
+                "untaxed_element",
+                "AUD, the element untaxed in the fund of the payment's taxable component, 0.00 for most funds",
+            ),
+            (
+                "working_holiday_maker_contributions",
+                "boolean, true when the payment includes amounts attributable to superannuation contributions made whilst the person was a working holiday maker: the holder of a subclass 417 (Working Holiday) or 462 (Work and Holiday) visa or an associated bridging visa (DASP Tax Act s 5(3); Income Tax Rates Act 1986 s 3A). The 65% rate then applies to the whole taxable component, whatever visa the person held when other contributions were made",
+            ),
+            (
+                "unclaimed_money_rollover",
+                "boolean, true when the payment is a roll-over superannuation benefit paid under s 20H(2), (2AA) or (2A) of the Superannuation (Unclaimed Money and Lost Members) Act 1999; true with an element untaxed in the fund is refused, as s 5(2) taxes any excess untaxed roll-over amount in it at nil",
+            ),
+        ],
+        "payroll_tax" => vec![
+            ("jurisdiction", "nsw, vic, qld, wa, sa, tas, act or nt"),
+            (
+                "taxable_wages",
+                "AUD, the employer's taxable wages in the jurisdiction for the financial year, after that jurisdiction's exemptions",
+            ),
+            (
+                "australian_wages",
+                "AUD, the employer's taxable wages and interstate wages for the financial year: all its wages taxable in any Australian jurisdiction, at least taxable_wages",
+            ),
+            (
+                "group_member",
+                "boolean, true when the employer is a member of a group for payroll tax; true is refused",
+            ),
+            (
+                "employed_all_year",
+                "boolean, true when the employer paid or was liable to pay wages on every day of the financial year; false is refused",
+            ),
+        ],
         "gst_margin_scheme" => vec![
             (
                 "interest",
@@ -2364,6 +2495,10 @@ pub fn input_units(kind: &str) -> Vec<(&'static str, &'static str)> {
         "wine_equalisation_tax" => vec![(
             "dealings",
             "list of 1 to 1,000 objects, the tax period's dealings in wine, each with kind and its inputs: wholesale_sale (a sale to an entity that buys to resell: AD1a, AD1b or AD11b) with price_excluding_wet_and_gst (AUD, net of trade discounts, volume rebates and settlement discounts); retail_sale (a retail sale taxed at the notional wholesale selling price, such as a manufacturer's cellar door or mail order sale) with retail_price_including_wet_and_gst (AUD) and, to choose the average wholesale price method for grape wine, average_wholesale; own_use (an application to own use connected with retail sales: consuming or giving the wine away in connection with retail sales, such as tastings) with either retail_price_including_wet_and_gst (the price for which it would normally be sold by retail) or average_wholesale; quoted_sale (a sale for which the purchaser quoted its ABN, not taxable: s 7-10) with price_excluding_wet_and_gst and purchaser_intention (taxable_dealing where the quote states none of the intentions in s 5-50(1)(b), or manufacture, gst_free_supply or sale_under_quote); or own_use_purchased_under_quote (an application to own use of wine purchased under quote: AD3c(a) or AD13c(a)) with purchase_price_excluding_gst. average_wholesale is an object with grape_wine (true: grape wine, s 31-2), wholesale_share_at_least_10_percent (true: at least 10% by value of the tax period's sales of grape wine of that vintage and grape varieties are wholesale sales, s 9-25(3)), quantity (this dealing's quantity, a decimal string above 0 with at most 4 decimal places, in the wholesale sales' unit) and wholesale_sales (1 to 1,000 objects, the tax period's wholesale sales of that vintage and those grape varieties, exports included, each with quantity and price_excluding_wet_and_gst). Any kind but own_use_purchased_under_quote may add rebate_conditions, an object of the booleans producer (s 19-5(1)(a)), source_product_owned_85_percent (s 19-5(1)(d)) and container_and_trade_mark (s 19-5(1)(e) and (7)), to claim the producer rebate on that dealing",
+        )],
+        "luxury_car_tax" => vec![(
+            "lines",
+            "list of 1 to 1,000 objects, the tax period's luxury car tax lines, each with kind and its inputs: sale (a taxable supply of a luxury car, s 5-10) or importation (a taxable importation, s 7-5) with luxury_car_tax_value (AUD, the value including GST and customs duty but not luxury car tax: s 5-20 for a sale, s 7-15(2) for an importation), fuel_consumption_litres_per_100km (the combined rating under the national road vehicle standards, a decimal string from 0 to 100 with at most 2 decimal places, or null for none), used_before_1_july_2025 (boolean, required only for a car rated above 3.5 and at most 7 litres supplied or imported from 1 July 2025: true where, before that day, an entity supplied or imported the car and it was used in Australia other than for a quotable purpose) and, for a sale, lct_previously_payable (AUD, optional: luxury car tax payable on an earlier supply or importation of the car, s 5-15(2)); price_adjustment (an adjustment event on an earlier sale, ss 15-20 and 15-25) with supplied_in (the financial year of the sale, 2012-13 to the tax period's), corrected_luxury_car_tax_value, the car's rating facts, lct_previously_payable (optional) and previously_attributed_lct (AUD, the luxury car tax previously attributed to the supply); change_of_use_increasing (a car supplied under quote, or one on whose supply a s 15-30(1) decreasing adjustment arose, then used other than for a quotable purpose, s 15-30(3) and (4)) with supplied_in, luxury_car_tax_value, the rating facts and lct_previously_payable (optional); change_of_use_decreasing (s 15-30(1)) with lct_payable_on_supply (AUD); and refund (s 18-5 or 18-10) with claimant (primary_producer or tourism_operator), refund_eligible_car (boolean), lct_borne (AUD) and supplied_in (optional, from 2019-20)",
         )],
         "trade_in" => vec![
             (
@@ -3030,6 +3165,17 @@ pub fn examples(kind: &str) -> Vec<(&'static str, Example)> {
     use Example::{Flag, Json, Text, Whole};
     match kind {
         "gst" => vec![("amount", Text("1100.00")), ("gst_inclusive", Flag(true))],
+        // 10,000 litres of diesel in a heavy vehicle on public roads and
+        // 2,000 litres off road, acquired from 3 August 2026: $2,130 + $1,074.
+        "fuel_tax_credits" => vec![
+            ("year", Text("2026-27")),
+            (
+                "lines",
+                Json(
+                    r#"[{"fuel": "diesel", "use": "heavy_vehicle_public_road", "acquired": "2026-09-15", "quantity": "10000"}, {"fuel": "diesel", "use": "other_business", "acquired": "2026-09-15", "quantity": "2000"}]"#,
+                ),
+            ),
+        ],
         "resident_tax" | "foreign_resident_tax" => vec![("taxable_income", Text("45000"))],
         "capital_gains" => vec![
             ("other_gains", Text("100.00")),
@@ -3062,6 +3208,19 @@ pub fn examples(kind: &str) -> Vec<(&'static str, Example)> {
             ("loan_term_end", Text("2049-07-02")),
             ("repaid_on", Json("null")),
             ("section_26_50_applies", Flag(false)),
+            ("year", Text("2024-25")),
+        ],
+        // Peter's loan (ATO, Borrowing expenses) from 3 July 2024, refinanced
+        // on 2 March 2026 by a second loan whose money is half used to produce
+        // income from 2026-27.
+        "borrowing_expenses_schedule" => vec![
+            ("year", Text("2026-27")),
+            (
+                "loans",
+                Json(
+                    r#"[{"borrowing_expenses": "1600.00", "loan_start": "2024-07-03", "loan_term_end": "2049-07-02", "repaid_on": "2026-03-02", "income_use": "1", "section_26_50_applies": false}, {"borrowing_expenses": "900.00", "loan_start": "2026-03-02", "loan_term_end": null, "repaid_on": null, "income_use": {"2025-26": "1", "2026-27": "0.5", "2027-28": "0.5", "2028-29": "0.5", "2029-30": "0.5", "2030-31": "0.5"}, "section_26_50_applies": false, "refinances": 1}]"#,
+                ),
+            ),
         ],
         "business_capital_expenditure" => vec![
             ("year", Text("2026-27")),
@@ -3083,6 +3242,24 @@ pub fn examples(kind: &str) -> Vec<(&'static str, Example)> {
                     r#"[{"income_year": "2025-26", "decline_in_value": "300.00", "deduction": "180.00"}, {"income_year": "2026-27", "decline_in_value": "0.00", "deduction": "0.00"}]"#,
                 ),
             ),
+        ],
+        // The Library's example (Superannuation Benefits, 8-420): a $42,000
+        // benefit of a $25,000 tax free component and a $17,000 element
+        // taxed in the fund, applied for on 1 August 2026.
+        "dasp_tax" => vec![
+            ("tax_free_component", Text("25000.00")),
+            ("taxed_element", Text("17000.00")),
+            ("untaxed_element", Text("0.00")),
+            ("working_holiday_maker_contributions", Flag(false)),
+            ("unclaimed_money_rollover", Flag(false)),
+        ],
+        "payroll_tax" => vec![
+            ("year", Text("2026-27")),
+            ("jurisdiction", Text("nsw")),
+            ("taxable_wages", Text("900000.00")),
+            ("australian_wages", Text("3000000.00")),
+            ("group_member", Flag(false)),
+            ("employed_all_year", Flag(true)),
         ],
         // The Library's Joanne Black example (Tax Examples, GST, 12-200):
         // land bought in January 2000, worth $448,000 on 1 July 2000, sold
@@ -3107,6 +3284,17 @@ pub fn examples(kind: &str) -> Vec<(&'static str, Example)> {
                 "dealings",
                 Json(
                     r#"[{"kind": "wholesale_sale", "price_excluding_wet_and_gst": "120.00"}, {"kind": "retail_sale", "retail_price_including_wet_and_gst": "140.00"}]"#,
+                ),
+            ),
+        ],
+        // The ATO's QC22107: a car sold for $88,000 including GST in 2026-27
+        // bears $2,157.30 of luxury car tax.
+        "luxury_car_tax" => vec![
+            ("year", Text("2026-27")),
+            (
+                "lines",
+                Json(
+                    r#"[{"kind": "sale", "luxury_car_tax_value": "88000.00", "fuel_consumption_litres_per_100km": "8.5"}]"#,
                 ),
             ),
         ],
