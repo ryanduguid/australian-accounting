@@ -20,7 +20,9 @@ mod fbt_benefits;
 pub use fbt_benefits::{
     fbt_board, fbt_housing, fbt_lafha, fbt_residual, fbt_tax_exempt_body_entertainment,
 };
-pub use fbt_benefits::{fbt_car_parking, fbt_loan, fbt_meal_entertainment};
+pub use fbt_benefits::{
+    fbt_car_parking, fbt_loan, fbt_meal_entertainment, fbt_meal_entertainment_register,
+};
 pub use fbt_benefits::{
     fbt_debt_waiver, fbt_entertainment_classifier, fbt_expense_payment, fbt_property,
 };
@@ -3593,6 +3595,8 @@ pub fn termination_payment(
     derived_result("termination_payment", &year, steps, rates)
 }
 
+mod etp_tax_free;
+pub use etp_tax_free::etp_tax_free_component;
 mod unused_leave;
 pub use unused_leave::{LeavePayee, LeaveSplits, unused_leave_payment};
 
@@ -4788,7 +4792,10 @@ pub fn borrowing_expenses(
 }
 
 mod hire_purchase;
-pub use hire_purchase::{HirePurchaseArgs, hire_purchase_schedule};
+pub use hire_purchase::{
+    ChattelMortgageArgs, HirePurchaseArgs, LoanTransactionsArgs, chattel_mortgage_schedule,
+    hire_purchase_schedule, loan_transactions,
+};
 
 mod business_capital;
 pub use business_capital::business_capital_expenditure;
@@ -6082,15 +6089,24 @@ mod lump_sum_arrears;
 pub use lump_sum_arrears::lump_sum_arrears_tax_offset;
 mod income_tests;
 pub use income_tests::income_tests;
+mod wine_equalisation_tax;
+pub use wine_equalisation_tax::{WetArgs, wine_equalisation_tax};
+mod fbt_minor_benefit;
+pub use fbt_minor_benefit::{MinorBenefitArgs, fbt_minor_benefit_check};
+mod gst_margin_scheme;
+pub use gst_margin_scheme::{MarginSchemeArgs, gst_margin_scheme};
 
-const KINDS: [&str; 48] = [
+const KINDS: [&str; 55] = [
     "gst",
+    "gst_margin_scheme",
     "resident_tax",
     "foreign_resident_tax",
     "capital_gains",
     "main_residence",
     "borrowing_expenses",
     "hire_purchase_schedule",
+    "chattel_mortgage_schedule",
+    "loan_transactions",
     "business_capital_expenditure",
     "balancing_adjustment",
     "trade_in",
@@ -6099,6 +6115,7 @@ const KINDS: [&str; 48] = [
     "fbt_car_operating_cost",
     "fbt_loan",
     "fbt_meal_entertainment",
+    "fbt_meal_entertainment_register",
     "fbt_car_parking",
     "fbt_debt_waiver",
     "fbt_expense_payment",
@@ -6117,6 +6134,7 @@ const KINDS: [&str; 48] = [
     "division_293",
     "division_296",
     "termination_payment",
+    "etp_tax_free_component",
     "unused_leave_payment",
     "schedule_5_method_a",
     "schedule_5_method_b_i",
@@ -6131,7 +6149,9 @@ const KINDS: [&str; 48] = [
     "fbt_board",
     "fbt_tax_exempt_body_entertainment",
     "fbt_entertainment_classifier",
+    "fbt_minor_benefit_check",
     "income_tests",
+    "wine_equalisation_tax",
 ];
 
 /// `periods(kind)`: accepted period arguments and inclusive calendar boundaries.

@@ -267,8 +267,9 @@ fn run_on(read: &[(i64, Segment)], start: i64) -> Result<()> {
 }
 
 /// The periods and amounts due: each instalment at its period's start in
-/// advance or its end in arrears, and each period over 6 months split.
-pub(super) fn build(plan: Plan, in_advance: bool) -> Result<Regime> {
+/// advance or its end in arrears, and, where `split` (Division 240 applies),
+/// each period over 6 months split.
+pub(super) fn build(plan: Plan, in_advance: bool, split: bool) -> Result<Regime> {
     let Plan { segments, terms } = plan;
     let unit = segments[0].unit;
     let term: i64 = segments.iter().map(|s| s.count * s.length).sum();
@@ -276,8 +277,8 @@ pub(super) fn build(plan: Plan, in_advance: bool) -> Result<Regime> {
     let (mut periods, mut total, mut at) = (Vec::new(), int(0), 0);
     for segment in &segments {
         let part = match unit {
-            Unit::Month => LONGEST_PERIOD_MONTHS,
-            Unit::Week => segment.length,
+            Unit::Month if split => LONGEST_PERIOD_MONTHS,
+            _ => segment.length,
         };
         for _ in 0..segment.count {
             let end = at + segment.length;

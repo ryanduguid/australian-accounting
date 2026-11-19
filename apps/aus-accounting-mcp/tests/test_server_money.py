@@ -232,7 +232,9 @@ def test_parse_amount_refuses_every_grouped_or_bracketed_form(raw):
 
 
 # Plain-notation contract. Every money argument publishes MONEY_PATTERN in its schema
-# and money.py refuses forms outside it with the existing wording.
+# and money.py refuses forms outside it with the existing wording. A worksheet's
+# facts follow the executable's catalogue, not a published schema, so the server
+# refuses their non-plain numbers when called.
 _DIRECT_MONEY_FIELDS = {
     "get_ato_benchmarks": [
         "turnover", "other_income", "cost_of_sales", "cost_of_sales_labour", "salary_wages",
@@ -343,14 +345,10 @@ def test_every_money_argument_and_only_money_publishes_the_plain_pattern():
         for tool in _CONTRIBUTION_TOOLS for field in _CONTRIBUTION_MONEY_FIELDS
     }
     expected |= {
-        ("calculate_tax_worksheet", "facts", field)
-        for fields in _WORKSHEET_MONEY_FIELDS.values() for field in fields
-    }
-    expected |= {
         (tool, "lines", field)
         for tool, fields in _LINE_MONEY_FIELDS.items() for field in fields
     }
-    assert len(expected) == 46
+    assert len(expected) == 26
     assert _money_pattern_paths() == expected
 
 
@@ -532,10 +530,8 @@ def test_a_draft_2020_12_validator_reads_the_published_schemas_as_intended():
     assert not valid("review_payday_super_contributions",
                      {**contributions, "contributions": [{**row, "sg_amount": "1e3"}]})
 
+    # Worksheet facts publish only the kind and scope confirmation; the server
+    # refuses "+1100.00" when called (test_every_worksheet_money_field_refuses_...).
     facts = {"kind": "gst", "scope_confirmed": True, **_WORKSHEET_FACTS["gst"]}
     assert valid("calculate_tax_worksheet", {"facts": facts})
-    assert not valid("calculate_tax_worksheet", {"facts": {**facts, "amount": "+1100.00"}})
-    depreciation = {
-        "kind": "depreciation", "scope_confirmed": True, **_WORKSHEET_FACTS["depreciation"],
-    }
-    assert valid("calculate_tax_worksheet", {"facts": {**depreciation, "taxable_use": "0.375"}})
+    assert not valid("calculate_tax_worksheet", {"facts": {"kind": "gst"}})

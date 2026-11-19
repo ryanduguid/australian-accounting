@@ -4,9 +4,11 @@
 """The tax worksheets run only the pinned calculators executable, and refuse clearly without it."""
 
 import asyncio
+import hashlib
 import json
 import os
 import subprocess
+import threading
 from pathlib import Path
 
 import pytest
@@ -111,8 +113,81 @@ def test_without_the_executable_every_other_tool_and_resource_still_answers(miss
 def test_any_other_version_is_refused(monkeypatch, reply) -> None:
     monkeypatch.setattr(tax.subprocess, "run", _answer(reply))
     with pytest.raises(tax.CalculatorsUnavailable, match="--version answered") as caught:
-        tax.calculate(tax._FACTS.validate_python(GST))
+        tax.calculate(tax.TaxFacts.model_validate(GST))
     assert f"not '{tax.CALCULATORS} {tax.CALCULATORS_VERSION}'" in str(caught.value)
+
+
+@pytest.fixture
+def impostor(monkeypatch, tmp_path):
+    """An executable that is no release, answering --version as the pinned one would."""
+    binary = tmp_path / tax.CALCULATORS
+    binary.write_bytes(b"not a release executable")
+    monkeypatch.setenv(tax.BINARY_VARIABLE, str(binary))
+    monkeypatch.delenv(tax.DIGEST_VARIABLE, raising=False)
+    runs = []
+
+    def run(command, **_options):
+        runs.append(command)
+        return subprocess.CompletedProcess(command, 0, f"{tax.CALCULATORS} "
+                                           f"{tax.CALCULATORS_VERSION}\n", "")
+    monkeypatch.setattr(tax.subprocess, "run", run)
+    return binary, runs
+
+
+def test_an_executable_with_another_digest_is_never_run(impostor) -> None:
+    _, runs = impostor
+    with pytest.raises(tax.CalculatorsUnavailable, match="neither a") as caught:
+        tax.worksheet_catalogue()
+    assert tax.INSTALL in str(caught.value)
+    assert tax.reported_version() is None
+    assert runs == []
+
+
+def test_the_operators_digest_admits_a_source_build(monkeypatch, impostor) -> None:
+    binary, runs = impostor
+    digest = hashlib.sha256(binary.read_bytes()).hexdigest()
+    monkeypatch.setenv(tax.DIGEST_VARIABLE, digest)
+    assert tax._binary() == str(binary)
+    monkeypatch.setenv(tax.DIGEST_VARIABLE, digest.upper())
+    assert tax.reported_version() == tax.CALCULATORS_VERSION
+    assert len(runs) == 2
+    for named in (digest[:-1], f" {digest}", f"{digest[:-1]}g"):
+        monkeypatch.setenv(tax.DIGEST_VARIABLE, named)
+        with pytest.raises(tax.CalculatorsUnavailable, match="64 hexadecimal digits"):
+            tax._binary()
+    assert len(runs) == 2
+
+
+def test_a_file_larger_than_any_build_is_refused_unread(monkeypatch, impostor) -> None:
+    binary, runs = impostor
+    monkeypatch.setenv(tax.DIGEST_VARIABLE, hashlib.sha256(binary.read_bytes()).hexdigest())
+    monkeypatch.setattr(tax, "MAX_BYTES", binary.stat().st_size - 1)
+    with pytest.raises(tax.CalculatorsUnavailable, match="larger than any"):
+        tax._binary()
+    assert runs == []
+
+
+def test_a_device_is_refused_without_being_read() -> None:
+    with pytest.raises(tax.CalculatorsUnavailable, match="is not a regular file"):
+        tax._trusted(os.devnull)
+
+
+@pytest.mark.skipif(not hasattr(os, "mkfifo"), reason="POSIX FIFOs only")
+def test_a_fifo_on_path_is_refused_without_waiting_for_a_writer(monkeypatch, tmp_path) -> None:
+    fifo = tmp_path / tax.CALCULATORS
+    os.mkfifo(fifo, 0o700)
+    monkeypatch.setenv(tax.BINARY_VARIABLE, str(fifo))
+    # A writer after 5 seconds ends a read that waits for one, so a regression fails
+    # here instead of hanging the suite.
+    writer = threading.Timer(5, lambda: os.close(os.open(fifo, os.O_WRONLY)))
+    writer.daemon = True
+    writer.start()
+    try:
+        with pytest.raises(tax.CalculatorsUnavailable, match="is not a regular file"):
+            tax._trusted(str(fifo))
+        assert writer.is_alive()
+    finally:
+        writer.cancel()
 
 
 def test_a_version_that_exits_nonzero_is_refused(monkeypatch) -> None:
@@ -129,12 +204,15 @@ def test_the_reported_version_is_the_executables_own(monkeypatch) -> None:
     assert tax.reported_version() is None
 
 
+_REAL_RUN = subprocess.run
+
+
 def _versioned(reply: subprocess.CompletedProcess):
-    """--version answers correctly; every other command gets `reply`."""
-    def run(command, **_options):
-        if command[1:] == ["--version"]:
-            return subprocess.CompletedProcess(command, 0, f"{tax.CALCULATORS} "
-                                               f"{tax.CALCULATORS_VERSION}\n", "")
+    """--version and the catalogue answer as the executable does; every other command
+    gets `reply`."""
+    def run(command, **options):
+        if command[1] in ("--version", "worksheet-catalogue"):
+            return _REAL_RUN(command, **options)
         return reply
     return run
 
@@ -148,7 +226,7 @@ def test_a_reply_that_is_neither_a_result_nor_a_refusal_is_unavailability(
     reply = subprocess.CompletedProcess([], returncode, stdout, "thread 'main' panicked\n")
     monkeypatch.setattr(tax.subprocess, "run", _versioned(reply))
     with pytest.raises(tax.CalculatorsUnavailable, match=f"exited {returncode}: thread 'main'"):
-        tax.calculate(tax._FACTS.validate_python(GST))
+        tax.calculate(tax.TaxFacts.model_validate(GST))
 
 
 def test_a_refusal_keeps_the_engines_message(monkeypatch) -> None:
@@ -156,7 +234,7 @@ def test_a_refusal_keeps_the_engines_message(monkeypatch) -> None:
     monkeypatch.setattr(tax.subprocess, "run", _versioned(
         subprocess.CompletedProcess([], 2, refusal, "error: Establish it.\n")))
     with pytest.raises(InputError, match="^Establish it.$"):
-        tax.calculate(tax._FACTS.validate_python(GST))
+        tax.calculate(tax.TaxFacts.model_validate(GST))
 
 
 @pytest.mark.parametrize("error", [
@@ -182,7 +260,7 @@ def test_the_executable_gets_python_decimal_text(monkeypatch) -> None:
     facts = {"kind": "depreciation", "scope_confirmed": True, "year": "2025-26",
              "cost": " 1000.50 ", "effective_life": "5.0", "taxable_use": "1",
              "days": 365, "method": "prime_cost"}
-    tax.calculate(tax._FACTS.validate_python(facts))
+    tax.calculate(tax.TaxFacts.model_validate(facts))
     [(arguments, payload)] = [call for call in sent if call[0][0] == "depreciation"]
     assert arguments == ["depreciation", "--refusal-json"]
     assert json.loads(payload) == {"scope_confirmed": True, "year": "2025-26", "cost": "1000.50",
@@ -200,3 +278,13 @@ def test_no_shell_reads_the_command(monkeypatch) -> None:
     monkeypatch.setattr(tax.subprocess, "run", run)
     _gst()
     assert "shell" not in seen and seen["timeout"] == tax.TIMEOUT_SECONDS
+
+
+@pytest.mark.parametrize("reply", [
+    subprocess.CompletedProcess([], 0, "something else\n", ""),
+    subprocess.CompletedProcess([], 2, "", "usage\n"),
+])
+def test_a_command_list_that_is_not_the_api_help_is_unavailability(monkeypatch, reply) -> None:
+    monkeypatch.setattr(tax.subprocess, "run", _versioned(reply))
+    with pytest.raises(tax.CalculatorsUnavailable, match="--api-help answered"):
+        tax.commands()

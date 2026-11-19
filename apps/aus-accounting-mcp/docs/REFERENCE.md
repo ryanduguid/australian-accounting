@@ -167,7 +167,7 @@ copy without a download until the uv cache is cleaned.
 | `calc_payday_super_deadline` | Review one contribution against Payday Super timing | payday-super-checker |
 | `review_payday_super_contributions` | Assess up to 200 related contributions for one employer | payday-super-checker |
 | `build_payday_super_evidence_pack` | Return 4 in-memory review files for supplied contributions; requires checker evidence-pack support | payday-super-checker |
-| `calculate_tax_worksheet` | Run one of 14 bounded worksheets with established scope, optionally with a file note | australian-tax-calculators |
+| `calculate_tax_worksheet` | Run any bounded worksheet in the calculators executable's catalogue with established scope, optionally with a file note | australian-tax-calculators |
 | `search_accounting_library` | Search explicitly configured local Markdown files | local read-only retrieval |
 | `read_accounting_library` | Read bounded lines with file, line, page and hash citations | local read-only retrieval |
 | `search_tax_legislation` | Find provisions in a configured local legislation corpus, cited to Act, section, compilation and register page; `as_at` answers for a date or refuses by name | local read-only retrieval |
@@ -684,7 +684,7 @@ A `sections.jsonl` row carries `row_id`, `register_id`, `act`, `collection`,
 [PaulGoodman](https://github.com/ryanduguid/PaulGoodman)
 builds a corpus in this shape from the Federal Register of Legislation. The quickest
 corpus is its [published snapshot](corpus-setup.md#download-the-published-snapshot) of 9
-principal Acts, each at its current compilation on 11 November 2026, with a rates index:
+principal Acts, each at its current compilation on 18 November 2026, with a rates index:
 set `AUS_ACCOUNTING_CORPUS_ROOT` to its unpacked `dist` folder. For later compilations,
 its `python -m fadden quick --out <empty folder>` builds the same Acts and prints the
 setting; [the setup guide](corpus-setup.md#build-the-principal-acts-with-one-command) gives

@@ -58,12 +58,34 @@ The source checkout may be ahead of the published release. The pin selects the
 server version; it does not lock every transitive dependency.
 
 From 0.10.0 the tax worksheets also need the `australian-tax-calculators` 1.0.0
-executable, which `uvx` does not install. Download it for x86_64 Linux or Windows from
-the [australian-tax-calculators/v1.0.0 release](https://github.com/ryanduguid/australian-accounting/releases/tag/australian-tax-calculators/v1.0.0)
-(other platforms build it from [source](https://github.com/ryanduguid/australian-accounting/tree/main/packages/australian-tax-calculators)),
-verify it as that release describes, and put it in a folder on `PATH` or give its
-absolute path in `AUS_TAX_CALCULATORS_BIN`. Without it the tax worksheets refuse with
-an install message; every other tool works.
+executable, which `uvx` does not install. On x86_64 Linux, one command downloads it
+from the [australian-tax-calculators/v1.0.0 release](https://github.com/ryanduguid/australian-accounting/releases/tag/australian-tax-calculators/v1.0.0),
+verifies it and adds its folder to `PATH`:
+
+```sh
+curl --proto '=https' --tlsv1.2 -fsSL https://raw.githubusercontent.com/ryanduguid/release-policy/d7039efe6d8c441f1f213c674902909e80535599/scripts/install.sh | sh -s -- ryanduguid/australian-accounting australian-tax-calculators/v1.0.0 --modify-path
+```
+
+In PowerShell on x86_64 Windows:
+
+```powershell
+& ([scriptblock]::Create((irm https://raw.githubusercontent.com/ryanduguid/release-policy/d7039efe6d8c441f1f213c674902909e80535599/scripts/install.ps1))) ryanduguid/australian-accounting australian-tax-calculators/v1.0.0 -ModifyPath
+```
+
+Both need the [GitHub CLI](https://cli.github.com/), with no sign-in, and install nothing
+unless the release's provenance and `SHA256SUMS` check out; the
+[calculators README](https://github.com/ryanduguid/australian-accounting/tree/main/packages/australian-tax-calculators#install) says
+what they check and where the executable goes. Restart your MCP client afterwards so it
+sees the new `PATH`. On Linux, a client started from a desktop menu does not read the
+shell startup file that sets it: give that client `AUS_TAX_CALCULATORS_BIN`, the
+executable's path in the folder the installer names. Other platforms build it from
+[source](https://github.com/ryanduguid/australian-accounting/tree/main/packages/australian-tax-calculators).
+You can instead put the executable in a folder on `PATH` yourself or give its absolute
+path in `AUS_TAX_CALCULATORS_BIN`. The server runs it only if its SHA-256 is that of a
+released executable; for one you built, set `AUS_TAX_CALCULATORS_SHA256` to its SHA-256.
+Keep it in a folder only you can write: the server checks the file and then runs it, and
+someone who can change it could swap it in between. Without the executable the tax
+worksheets refuse with an install message; every other tool works.
 
 The server waits for an MCP client over stdio. Tool calls read bundled data and any
 folders you configure. They do not contact the ATO or the Federal Register, change
@@ -134,7 +156,7 @@ Ask in plain English. Each of these fabricated requests resolves to one tool cal
 | `calc_payday_super_deadline` | Review timing for one super contribution. |
 | `review_payday_super_contributions` | Review related contributions together for one employer. |
 | `build_payday_super_evidence_pack` | Return 4 review files in memory for a practitioner's workpaper. |
-| `calculate_tax_worksheet` | Calculate one of 14 worksheets with established scope and period, optionally with a Markdown file note. |
+| `calculate_tax_worksheet` | Calculate any worksheet the installed calculators executable offers, with established scope and period, optionally with a Markdown file note. |
 | `get_div7a_benchmark_rate` | Get a reviewed Division 7A benchmark rate, or `UNKNOWN`. |
 | `review_div7a_loan` | Review s 109N terms and s 109E minimum yearly repayments for one supplied amalgamated loan. |
 | `refuse_div7a` | Explain unsupported Division 7A matters. Call without arguments. |
@@ -177,7 +199,7 @@ authorised Markdown folder, `AUS_ACCOUNTING_CORPUS_ROOT` to a legislation corpus
 `AUS_ACCOUNTING_RULINGS_ROOT` to ATO rulings runs, such as those built by
 [PaulGoodman](https://github.com/ryanduguid/PaulGoodman). Its
 [published snapshot](https://github.com/ryanduguid/australian-accounting/blob/main/apps/aus-accounting-mcp/docs/corpus-setup.md#download-the-published-snapshot) of 9 principal
-Acts, each at its current compilation on 11 November 2026 and with a rates index, needs no
+Acts, each at its current compilation on 18 November 2026 and with a rates index, needs no
 build: unpack it and set `AUS_ACCOUNTING_CORPUS_ROOT` to its `dist` folder.
 [`python -m fadden quick --out <empty folder>`](https://github.com/ryanduguid/australian-accounting/blob/main/apps/aus-accounting-mcp/docs/corpus-setup.md#build-the-principal-acts-with-one-command)
 in that repository builds the same Acts at their current compilations on your machine,
@@ -239,7 +261,8 @@ Release `aus-accounting-mcp==0.5.0` provides 14 worksheets through
 `australian-tax-calculators==0.2.0`, including Schedule 8 study-loan withholding,
 the bounded annual Medicare levy, LITO and Division 293. The preceding 0.4.0
 release provides 10 through calculators 0.1.8. From 0.10.0 the 14 run through the
-`australian-tax-calculators` 1.0.0 executable instead. See the
+`australian-tax-calculators` 1.0.0 executable instead. Unreleased source serves every
+worksheet in that executable's catalogue, 48 kinds in 1.0.0. See the
 [worksheet release verification](https://github.com/ryanduguid/australian-accounting/blob/main/apps/aus-accounting-mcp/docs/worksheet-release.md) for the installed
 package checks.
 

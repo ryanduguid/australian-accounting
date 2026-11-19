@@ -11,6 +11,10 @@ use crate::engine::{self, Arg};
 use serde_json::Value;
 use std::collections::HashSet;
 
+/// `contract-register`, a command over a contracts CSV rather than one JSON
+/// object; see [`crate::contract_register`].
+pub use crate::contract_register::command as contract_register;
+
 /// A refusal at the JSON boundary: its stable code and the message.
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct Refusal {
@@ -132,6 +136,19 @@ const COMMAND_ARGS: &[(&str, &[(&str, Kind)])] = &[
             ("year", Raw),
         ],
     ),
+    (
+        "gst-margin-scheme",
+        &[
+            ("interest", Raw),
+            ("agreement", Raw),
+            ("acquisition", Raw),
+            ("consideration", Dec),
+            ("method", Raw),
+            ("recipient_associate", Raw),
+            ("year", Raw),
+            ("scope_confirmed", Raw),
+        ],
+    ),
     ("resident-tax", TAXABLE_INCOME_ARGS),
     ("foreign-resident-tax", TAXABLE_INCOME_ARGS),
     (
@@ -187,6 +204,30 @@ const COMMAND_ARGS: &[(&str, &[(&str, Kind)])] = &[
         ],
     ),
     (
+        "chattel-mortgage-schedule",
+        &[
+            ("amount_financed", Dec),
+            ("instalments", Raw),
+            ("balloon", Dec),
+            ("timing", Raw),
+            ("start_date", Raw),
+            ("year", Raw),
+            ("scope_confirmed", Raw),
+        ],
+    ),
+    (
+        "loan-transactions",
+        &[
+            ("opening_balance", Dec),
+            ("annual_rate", Dec),
+            ("start_date", Raw),
+            ("end_date", Raw),
+            ("transactions", Json),
+            ("year", Raw),
+            ("scope_confirmed", Raw),
+        ],
+    ),
+    (
         "business-capital-expenditure",
         &[("items", Json), ("year", Raw), ("scope_confirmed", Raw)],
     ),
@@ -217,6 +258,10 @@ const COMMAND_ARGS: &[(&str, &[(&str, Kind)])] = &[
             ("year", Raw),
             ("scope_confirmed", Raw),
         ],
+    ),
+    (
+        "wine-equalisation-tax",
+        &[("dealings", Json), ("year", Raw), ("scope_confirmed", Raw)],
     ),
     (
         "fbt",
@@ -371,6 +416,19 @@ const COMMAND_ARGS: &[(&str, &[(&str, Kind)])] = &[
         ],
     ),
     (
+        "etp-tax-free-component",
+        &[
+            ("payment", Dec),
+            ("employment_start", Raw),
+            ("termination_date", Raw),
+            ("last_retirement_day", Raw),
+            ("ill_health", Raw),
+            ("medical_certification", Raw),
+            ("year", Raw),
+            ("scope_confirmed", Raw),
+        ],
+    ),
+    (
         "unused-leave-payment",
         &[
             ("annual_leave", Dec),
@@ -486,6 +544,32 @@ const COMMAND_ARGS: &[(&str, &[(&str, Kind)])] = &[
     ("fbt-board", FBT_YEAR_ARGS),
     ("fbt-tax-exempt-body-entertainment", FBT_METHOD_ARGS),
     (
+        "fbt-meal-entertainment-register",
+        &[
+            ("register_start", Raw),
+            ("register_end", Raw),
+            ("entries", Json),
+            ("year_ended", Raw),
+            ("scope_confirmed", Raw),
+        ],
+    ),
+    (
+        "fbt-minor-benefit-check",
+        &[
+            ("category", Raw),
+            ("notional_taxable_value", Dec),
+            ("salary_sacrifice", Raw),
+            ("frequency", Raw),
+            ("similar_benefits_substantial", Raw),
+            ("other_associated_benefits_substantial", Raw),
+            ("valuation_difficult", Raw),
+            ("unexpected_event", Raw),
+            ("reward_for_services", Raw),
+            ("year_ended", Raw),
+            ("scope_confirmed", Raw),
+        ],
+    ),
+    (
         "fbt-entertainment-classifier",
         &[
             ("lines", Json),
@@ -541,7 +625,7 @@ pub fn commands() -> Vec<&'static str> {
 /// command on its `gross_pay` shows that withholding. The classifier's amounts
 /// are totals over lines whose shares a decision table sets, not a formula;
 /// each line and class carries the authority for its row instead.
-const DERIVED: [&str; 46] = [
+const DERIVED: [&str; 50] = [
     "fbt",
     "fbt-car-statutory",
     "fbt-car-operating-cost",
@@ -583,11 +667,15 @@ const DERIVED: [&str; 46] = [
     "gst",
     "depreciation",
     "hire-purchase-schedule",
+    "chattel-mortgage-schedule",
+    "loan-transactions",
     "lump-sum-arrears-tax-offset",
     "income-tests",
     "business-capital-expenditure",
     "balancing-adjustment",
     "trade-in",
+    "gst-margin-scheme",
+    "etp-tax-free-component",
 ];
 
 /// `derive`: `{"command", "input"}` gives the command's result with the step
@@ -928,6 +1016,7 @@ pub fn evaluate_coded(command: &str, v: &Value) -> Result<Value> {
             | "payg-withholding"
             | "payg-gross-up"
             | "termination-payment"
+            | "etp-tax-free-component"
             | "unused-leave-payment"
             | "schedule-5-method-a"
             | "schedule-5-method-b-i"
@@ -941,6 +1030,7 @@ pub fn evaluate_coded(command: &str, v: &Value) -> Result<Value> {
             | "fbt-loan"
             | "fbt-meal-entertainment"
             | "fbt-car-parking"
+            | "wine-equalisation-tax"
             | "fbt-debt-waiver"
             | "fbt-expense-payment"
             | "fbt-property"
@@ -950,11 +1040,16 @@ pub fn evaluate_coded(command: &str, v: &Value) -> Result<Value> {
             | "fbt-board"
             | "fbt-tax-exempt-body-entertainment"
             | "fbt-entertainment-classifier"
+            | "fbt-meal-entertainment-register"
+            | "fbt-minor-benefit-check"
             | "hire-purchase-schedule"
+            | "chattel-mortgage-schedule"
+            | "loan-transactions"
             | "income-tests"
             | "business-capital-expenditure"
             | "balancing-adjustment"
             | "trade-in"
+            | "gst-margin-scheme"
     ) && let Some(key) = v
         .as_object()
         .into_iter()
@@ -1018,6 +1113,46 @@ pub fn evaluate_coded(command: &str, v: &Value) -> Result<Value> {
                 scope_confirmed: &a[5],
             })
         }
+        "chattel-mortgage-schedule" => {
+            // Optional: the instalment or the annual rate (one of them), the
+            // frequency, a deposit, trade-in and GST facts.
+            let [instalment, annual_rate, deposit, trade_in] =
+                ["instalment", "annual_rate", "deposit", "trade_in"]
+                    .map(|key| optional(v, key, Dec));
+            let frequency = optional(v, "frequency", Raw)?;
+            let gst = optional(v, "gst", Json)?;
+            let (instalment, annual_rate) = (instalment?, annual_rate?);
+            let (deposit, trade_in) = (deposit?, trade_in?);
+            engine::chattel_mortgage_schedule(&engine::ChattelMortgageArgs {
+                amount_financed: &a[0],
+                instalment: instalment.as_ref(),
+                annual_rate: annual_rate.as_ref(),
+                instalments: &a[1],
+                frequency: frequency.as_ref(),
+                balloon: &a[2],
+                timing: &a[3],
+                start_date: &a[4],
+                deposit: deposit.as_ref(),
+                trade_in: trade_in.as_ref(),
+                gst: gst.as_ref(),
+                year: &a[5],
+                scope_confirmed: &a[6],
+            })
+        }
+        "loan-transactions" => {
+            // Optional: the dated rate changes.
+            let rate_changes = optional(v, "rate_changes", Json)?;
+            engine::loan_transactions(&engine::LoanTransactionsArgs {
+                opening_balance: &a[0],
+                annual_rate: &a[1],
+                start_date: &a[2],
+                end_date: &a[3],
+                transactions: &a[4],
+                rate_changes: rate_changes.as_ref(),
+                year: &a[5],
+                scope_confirmed: &a[6],
+            })
+        }
         "business-capital-expenditure" => engine::business_capital_expenditure(&a[0], &a[1], &a[2]),
         "balancing-adjustment" => {
             // Optional: a car's s 40-325 facts, or null; refused for any other asset.
@@ -1031,6 +1166,19 @@ pub fn evaluate_coded(command: &str, v: &Value) -> Result<Value> {
                 &a[4],
                 &a[5],
             )
+        }
+        "wine-equalisation-tax" => {
+            // Optional: the rebate facts, required with a dealing's
+            // rebate_conditions.
+            let earlier = optional(v, "rebate_claimed_earlier_in_year", Dec)?;
+            let group = optional(v, "associated_producer", Raw)?;
+            engine::wine_equalisation_tax(&engine::WetArgs {
+                dealings: &a[0],
+                rebate_claimed_earlier_in_year: earlier.as_ref(),
+                associated_producer: group.as_ref(),
+                year: &a[1],
+                scope_confirmed: &a[2],
+            })
         }
         "trade-in" => {
             // Optional: a car's s 40-325 facts, the traded-in asset's input
@@ -1067,6 +1215,45 @@ pub fn evaluate_coded(command: &str, v: &Value) -> Result<Value> {
                 scope_confirmed: &a[11],
             })
         }
+        "gst-margin-scheme" => {
+            // Optional: each method's base, its valuation facts and a
+            // subdivided lot's share.
+            let [paid, unpaid, valuation, share, whole] = [
+                "acquisition_consideration",
+                "unpaid_acquisition_consideration",
+                "approved_valuation",
+                "subdivision_share",
+                "subdivision_whole",
+            ]
+            .map(|key| optional(v, key, Dec));
+            let [day, registered, government] = [
+                "valuation_day",
+                "registered_on_1_july_2000",
+                "government_unimproved_on_1_july_2000",
+            ]
+            .map(|key| optional(v, key, Raw));
+            let [paid, unpaid, valuation, share, whole] =
+                [paid?, unpaid?, valuation?, share?, whole?];
+            let [day, registered, government] = [day?, registered?, government?];
+            engine::gst_margin_scheme(&engine::MarginSchemeArgs {
+                interest: &a[0],
+                agreement: &a[1],
+                acquisition: &a[2],
+                consideration: &a[3],
+                method: &a[4],
+                recipient_associate: &a[5],
+                acquisition_consideration: paid.as_ref(),
+                unpaid_acquisition_consideration: unpaid.as_ref(),
+                approved_valuation: valuation.as_ref(),
+                valuation_day: day.as_ref(),
+                registered_on_1_july_2000: registered.as_ref(),
+                government_unimproved_on_1_july_2000: government.as_ref(),
+                subdivision_share: share.as_ref(),
+                subdivision_whole: whole.as_ref(),
+                year: &a[6],
+                scope_confirmed: &a[7],
+            })
+        }
         "fbt" => engine::fbt(&a[0], &a[1], &a[2], &a[3]),
         "fbt-car-statutory" => {
             engine::fbt_car_statutory(&a[0], &a[1], &a[2], &a[3], &a[4], &a[5], &a[6], &a[7])
@@ -1077,6 +1264,19 @@ pub fn evaluate_coded(command: &str, v: &Value) -> Result<Value> {
         "fbt-loan" => engine::fbt_loan(&benefit_inputs(v, params)?, &a[0], &a[1]),
         "fbt-meal-entertainment" => {
             engine::fbt_meal_entertainment(&a[0], &benefit_inputs(v, params)?, &a[1], &a[2])
+        }
+        "fbt-meal-entertainment-register" => {
+            // Optional: each earlier year's expenses, for the 20% rule in a
+            // later year of the register's validity.
+            let earlier = optional(v, "register_years_expenditure", Json)?;
+            engine::fbt_meal_entertainment_register(
+                &a[0],
+                &a[1],
+                &a[2],
+                &a[3],
+                &a[4],
+                earlier.as_ref(),
+            )
         }
         "fbt-car-parking" => {
             engine::fbt_car_parking(&a[0], &benefit_inputs(v, params)?, &a[1], &a[2])
@@ -1093,6 +1293,29 @@ pub fn evaluate_coded(command: &str, v: &Value) -> Result<Value> {
         "fbt-tax-exempt-body-entertainment" => {
             let given = benefit_inputs(v, params)?;
             engine::fbt_tax_exempt_body_entertainment(&a[0], &given, &a[1], &a[2])
+        }
+        "fbt-minor-benefit-check" => {
+            // Optional: the facts each category's exclusion needs.
+            let [in_house, exception, fifty] =
+                ["in_house", "tax_exempt_body_exception", "fifty_fifty_split"]
+                    .map(|key| optional(v, key, Raw));
+            let [in_house, exception, fifty] = [in_house?, exception?, fifty?];
+            engine::fbt_minor_benefit_check(&engine::MinorBenefitArgs {
+                category: &a[0],
+                notional_taxable_value: &a[1],
+                salary_sacrifice: &a[2],
+                frequency: &a[3],
+                similar_benefits_substantial: &a[4],
+                other_associated_benefits_substantial: &a[5],
+                valuation_difficult: &a[6],
+                unexpected_event: &a[7],
+                reward_for_services: &a[8],
+                in_house: in_house.as_ref(),
+                tax_exempt_body_exception: exception.as_ref(),
+                fifty_fifty_split: fifty.as_ref(),
+                year_ended: &a[9],
+                scope_confirmed: &a[10],
+            })
         }
         "fbt-entertainment-classifier" => {
             // Optional: the meal entertainment method, required only when a
@@ -1223,6 +1446,9 @@ pub fn evaluate_coded(command: &str, v: &Value) -> Result<Value> {
         "division-296" => engine::division_296(&a[0], &a[1], [&a[2], &a[3], &a[4]], &a[5], &a[6]),
         "termination-payment" => {
             engine::termination_payment(&a[0], &a[1], &a[2], &a[3], &a[4], &a[5], &a[6], &a[7])
+        }
+        "etp-tax-free-component" => {
+            engine::etp_tax_free_component(&a[0], &a[1], &a[2], &a[3], &a[4], &a[5], &a[6], &a[7])
         }
         "unused-leave-payment" => {
             // Optional: the parts accrued before the dates the Act splits leave

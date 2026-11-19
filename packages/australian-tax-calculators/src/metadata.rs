@@ -1004,7 +1004,10 @@ pub fn supported_periods(kind: &str) -> Vec<&'static str> {
         "main_residence" => vec!["2024-25", "2025-26", "2026-27"],
         // Borrowing expenses: s 26-155 quarantines residential rental deductions
         // from 2027-28. Hire purchase: the years read.
-        "borrowing_expenses" | "hire_purchase_schedule" => vec!["2024-25", "2025-26", "2026-27"],
+        "borrowing_expenses"
+        | "hire_purchase_schedule"
+        | "chattel_mortgage_schedule"
+        | "loan_transactions" => vec!["2024-25", "2025-26", "2026-27"],
         // s 40-880 as amended by Act No 92 of 2020 applies to expenditure
         // incurred from 1 July 2020, unamended to compilation 268. It and
         // Subdivision 328-C set no figure by year, and the Register's one later
@@ -1017,6 +1020,12 @@ pub fn supported_periods(kind: &str) -> Vec<&'static str> {
         // 2026 pointing to the s 40-291A choice from 2026-27. 2027-28 is refused:
         // Schedule 1 to that Act changes capital gains from 1 July 2027.
         "balancing_adjustment" => vec!["2024-25", "2025-26", "2026-27"],
+        // Dealings from 1 July 2023, after the transitional rebate rules for
+        // 2017 and earlier vintages ended (WETR 2009/2; the ATO's QC22756
+        // and QC22757); the rate and cap are set by the Act, not indexed.
+        "wine_equalisation_tax" => vec!["2023-24", "2024-25", "2025-26", "2026-27", "2027-28"],
+        // Division 75 sets no figure by year; the years are gst's.
+        "gst_margin_scheme" => vec!["2025-26", "2026-27", "2027-28"],
         // The years whose car limit was read on 18 November 2026; 2027-28 is
         // refused as for balancing_adjustment, and its car limit is not yet
         // published.
@@ -1028,6 +1037,7 @@ pub fn supported_periods(kind: &str) -> Vec<&'static str> {
         // The methods use no published rate; the years are those the ATO's
         // return instructions and rates page were read for.
         "fbt_meal_entertainment" => vec!["2026", "2027"],
+        "fbt_meal_entertainment_register" => vec!["2026", "2027"],
         "fbt_car_parking" => keys(FBT_CAR_PARKING_THRESHOLDS),
         // No published rate; the years are those the ATO's return
         // instructions and guide were read for.
@@ -1045,6 +1055,9 @@ pub fn supported_periods(kind: &str) -> Vec<&'static str> {
         "division_293" => DIVISION_293_YEARS.to_vec(),
         "division_296" => DIVISION_296_YEARS.to_vec(),
         "termination_payment" => TERMINATION_PAYMENT_YEARS.to_vec(),
+        // ITAA 1997 ss 82-140 to 82-155 set no figure by year; the years whose
+        // law was read as compiled on 19 November 2026.
+        "etp_tax_free_component" => vec!["2026-27", "2027-28"],
         "unused_leave_payment" => UNUSED_LEAVE_PAYMENT_YEARS.to_vec(),
         "schedule_5_method_a" | "schedule_5_method_b_i" | "schedule_5_method_b_ii" => {
             SCHEDULE_5_YEARS.to_vec()
@@ -1068,6 +1081,7 @@ pub fn supported_periods(kind: &str) -> Vec<&'static str> {
         }
         // No published rate: s 58P(1)(e)'s $300 is the Act's own. The years
         // are those the other FBT benefit worksheets cover.
+        "fbt_minor_benefit_check" => vec!["2026", "2027"],
         "fbt_entertainment_classifier" => vec!["2026", "2027"],
         "fbt_housing" => keys(FBT_HOUSING_INDEXATION),
         // The years whose definitions were read: the 1 July 2024 compilations
@@ -1114,6 +1128,14 @@ pub fn source_review(kind: &str) -> (&'static str, &'static str) {
             "2026-11-18",
             "ITAA 1997 ss 40-25, 40-85, 40-230, 40-285, 40-290, 40-291A, 40-295, 40-300, 40-305, 40-325, 40-370, 104-235, 104-240, 118-5 and 118-10 (its example) and Subdivision 27-B, compilation 268 (1 October 2026), with the endnotes' amendment history; Treasury Laws Amendment (Tax Reform No. 1) Act 2026 (No 49 of 2026), Schedule 4 item 17 (s 40-291A from 2026-27); Guide to depreciating assets 2026, 'What happens if you no longer hold or use a depreciating asset?', its Bridget, Andrew and Louise examples and the car limit formula",
         ),
+        "gst_margin_scheme" => (
+            "2026-11-19",
+            "GST Act ss 9-90, 11-5, 75-5, 75-10, 75-11, 75-12, 75-13, 75-14, 75-15, 75-20, 75-35 and 195-1 ('approved valuation', 'long-term lease', 'margin scheme'), from the ATO's legal database; GSTR 2006/8 (paras 15 to 39F: the agreement, a conditional agreement, ineligible supplies and examples 1 and 2); the ATO's 'GST and the margin scheme' (last updated 19 August 2021)",
+        ),
+        "wine_equalisation_tax" => (
+            "2026-11-19",
+            "A New Tax System (Wine Equalisation Tax) Act 1999 ss 5-5, 5-50, 7-10, 9-5, 9-25, 9-30, 9-35, 9-40, 9-45, 13-5, 19-5, 19-15, 19-20, 19-25, 31-1 and 33-1 at the ATO's legal database, and compilation 32 (1 April 2026) at the Federal Register of Legislation for ss 19-15 and 19-25; Treasury Laws Amendment (Supporting Choice in Superannuation and Other Measures) Act 2026 (No. 12, 2026) Schedule 6 (the $400,000 cap for assessable dealings from 1 July 2026); WETR 2009/1 paras 143 to 153 and 159; WETR 2009/2 para 67 and note 37; the ATO's 'Wholesale sales' (QC22750) and 'Retail sales and own use' (QC22751), last updated 19 March 2025; 'Producer rebate' (QC22756, 30 June 2026); 'Calculate and claim your rebate' (QC22758, 2 July 2026); 'Reporting and paying WET' (QC22762, 19 March 2025); 'Wine equalisation tax (WET)' (QC33703, 1 May 2025); 'Instructions for completing your BAS' (QC17458, 14 September 2026)",
+        ),
         "trade_in" => (
             "2026-11-18",
             "As for balancing_adjustment, with ITAA 1997 ss 27-80, 27-95, 40-180, 40-185, 40-225, 40-230 and 40-365, compilation 268 (1 October 2026); GST Act ss 9-5, 9-70, 9-75, 11-5, 11-25, 11-30, 69-10 and 132-5, compilation 96 (1 January 2026); the ATO's 'Purchasing a motor vehicle' (last updated 3 June 2026: the 2026-27 car limit and Darren's example), 'Disposing of a motor vehicle' (last updated 29 May 2024: trade-ins) and 'GST and the disposal of capital assets' (last updated 24 May 2017: Ian's decreasing adjustment)",
@@ -1121,6 +1143,14 @@ pub fn source_review(kind: &str) -> (&'static str, &'static str) {
         "hire_purchase_schedule" => (
             "2026-11-18",
             "ITAA 1997 Division 240 (ss 240-17, 240-20, 240-25, 240-55, 240-60, 240-65, 240-70, 240-75, 240-85, 240-105 and 240-110), s 40-230 and s 995-1 'termination amount', compilation 268 (1 October 2026); GST Act ss 9-70, 9-75, 9-90, 11-5, 11-25, 11-30, 29-10, 69-10 and 158-5, compilation 96 (1 January 2026); the ATO's 'GST – Hire purchase and leasing' (last updated 6 April 2017), 'Purchasing a motor vehicle' (last updated 3 June 2026: the 2026-27 car limit), 'Assets and exclusions' (last updated 27 May 2026: the 2024-25 and 2025-26 car limits) and the GST issues register 'Financial services - questions and answers' (issues 1.1, 1.3, 1.9, 1.15 and 1.17, updated to 7 September 2012 and 2 May 2013)",
+        ),
+        "chattel_mortgage_schedule" => (
+            "2026-11-19",
+            "ITAA 1997 ss 8-1, 240-10 and 995-1 'hire purchase agreement', compilation 268 (1 October 2026); GST Act ss 9-75, 9-90, 11-25, 11-30, 29-10, 40-5 and 69-10, compilation 96 (1 January 2026); the ATO's GST issues register 'Financial services - questions and answers' (issues 1.1, 1.14 and 1.19 to 1.21, updated to 2 May 2013), TR 93/16 (paras 2, 18 and 28 to 31) and 'Purchasing a motor vehicle' (last updated 3 June 2026: the 2026-27 car limit and Darren's example)",
+        ),
+        "loan_transactions" => (
+            "2026-11-19",
+            "ITAA 1997 s 8-1, compilation 268 (1 October 2026)",
         ),
         "fbt_car_statutory" => (
             "2026-10-29",
@@ -1137,6 +1167,10 @@ pub fn source_review(kind: &str) -> (&'static str, &'static str) {
         "fbt_meal_entertainment" => (
             "2026-11-16",
             "FBTAA ss 37AB, 37BA, 37CB and 37CD, compilation 97 (1 July 2026); Fringe benefits tax - a guide for employers, 14.8 methods of valuing meal entertainment; FBT return 2026 instructions, item 23P and example 18",
+        ),
+        "fbt_meal_entertainment_register" => (
+            "2026-11-19",
+            "FBTAA ss 37CA to 37CF, on the ATO's legal database; Fringe benefits tax - a guide for employers, 14.8 (chapter 14 last updated January 2020), 'Valid register' and 'Details to be included in register'",
         ),
         "fbt_car_parking" => (
             "2026-11-16",
@@ -1210,6 +1244,10 @@ pub fn source_review(kind: &str) -> (&'static str, &'static str) {
             "2026-11-14",
             "ATO Schedule 11, tax table for employment termination payments (from 1 July 2026), Table A and examples 1 to 4; ATO Key superannuation rates, tables 17 and 20; ITAA 1997 ss 82-10, 82-130 to 82-160 and 83-170 to 83-180, compilation 268 (1 October 2026); SISR reg 6.01(2), compilation 159 (1 July 2026)",
         ),
+        "etp_tax_free_component" => (
+            "2026-11-19",
+            "ITAA 1997 ss 82-10(6), 82-140, 82-145, 82-150 and 82-155 and s 995-1(1) 'last retirement day', on the ATO's legal database; ATO 'Tax-free component of ETPs' (last updated 24 July 2025), Jackson's example; ATO Employment termination payment with an invalidity segment worksheet (NAT 71949, June 2014), steps 1 to 9",
+        ),
         "unused_leave_payment" => (
             "2026-11-16",
             "ATO Schedule 7, tax table for unused leave payments on termination of employment (from 1 July 2026): using this schedule, working out the withholding amount, the rates and labels table, rounding, the marginal rate calculation, normal gross earnings, the long service leave example and when a TFN has not been provided; ITAA 1997 ss 83-10, 83-15 and 83-70 to 83-115, compilation 268 (1 October 2026); ATO STP Phase 2 employer reporting guidelines, 'When an employee transfers or leaves'; Superannuation Guarantee (Administration) Act 1992 ss 6(1) 'ordinary time earnings' and 10A(1), compilation 78 (1 July 2026); ATO 'What payments are qualifying earnings', table 13",
@@ -1253,6 +1291,10 @@ pub fn source_review(kind: &str) -> (&'static str, &'static str) {
         "fbt_tax_exempt_body_entertainment" => (
             "2026-11-15",
             "FBTAA ss 38 and 39 and s 136(1), non-deductible exempt entertainment expenditure, compilation 97 (1 July 2026); Fringe benefits tax - a guide for employers, chapter 15, 15.9 and its per head example; FBT return 2026 instructions, item 23L and example 15",
+        ),
+        "fbt_minor_benefit_check" => (
+            "2026-11-19",
+            "FBTAA ss 58P, 136(1) ('fringe benefit' para (g) and 'eligible premises') and 152B, from the ATO's legal database (s 58P(1)(b) repealed by Act No. 88 of 2013); TR 2007/12 (paras 8 to 23 and examples 1 to 13)",
         ),
         "fbt_entertainment_classifier" => (
             "2026-11-16",
@@ -1317,11 +1359,29 @@ pub fn library_evidence(kind: &str) -> [(&'static str, &'static str); 4] {
             "2011-11-30",
             "2026-11-16",
         ),
+        "fbt_minor_benefit_check" => (
+            "tax-examples-fringe-benefits-tax-fbt",
+            "3-060",
+            "2026-06-30",
+            "2026-11-19",
+        ),
         "balancing_adjustment" => (
             "Guide to depreciating assets 2026; ITAA 1997 s 118-10(1)",
             "Bridget, Andrew and Louise examples; the Gayle example",
             "2026-06-01",
             "2026-11-18",
+        ),
+        "gst_margin_scheme" => (
+            "tax-examples-gst-and-other-indirect-taxes",
+            "12-200",
+            "2026-06-30",
+            "2026-11-19",
+        ),
+        "wine_equalisation_tax" => (
+            "gst-wine-equalisation-tax",
+            "22-280, 22-290",
+            "2024-12-31",
+            "2026-11-19",
         ),
         "trade_in" => (
             "ATO GST pages: Purchasing a motor vehicle; GST and the disposal of capital assets",
@@ -1334,6 +1394,18 @@ pub fn library_evidence(kind: &str) -> [(&'static str, &'static str); 4] {
             "s 240-60(1) steps 1 to 4, with s 240-60 as amended by No 79 of 2010",
             "2026-11-15",
             "2026-11-15",
+        ),
+        "chattel_mortgage_schedule" => (
+            "GST: Transport, Travel and Vehicles",
+            "12-110 (the car limit on input tax credits)",
+            "2025-06-03",
+            "2026-11-19",
+        ),
+        "loan_transactions" => (
+            "ITAA 1997, compilation 268",
+            "s 8-1",
+            "2026-10-01",
+            "2026-11-19",
         ),
         "fbt_car_statutory" | "fbt_car_operating_cost" => (
             "tax-examples-fringe-benefits-tax-fbt",
@@ -1352,6 +1424,12 @@ pub fn library_evidence(kind: &str) -> [(&'static str, &'static str); 4] {
             "3-220",
             "2026-06-30",
             "2026-11-15",
+        ),
+        "fbt_meal_entertainment_register" => (
+            "ATO Fringe benefits tax - a guide for employers, chapter 14",
+            "14.8, Valid register and Details to be included in register",
+            "2020-01-01",
+            "2026-11-19",
         ),
         "fbt_car_parking" => (
             "tax-examples-fringe-benefits-tax-fbt",
@@ -1461,6 +1539,12 @@ pub fn library_evidence(kind: &str) -> [(&'static str, &'static str); 4] {
             "2026-06-17",
             "2026-11-14",
         ),
+        "etp_tax_free_component" => (
+            "superannuation-superannuation-benefits-termination-payments",
+            "8-850",
+            "2026-06-30",
+            "2026-11-19",
+        ),
         "unused_leave_payment" => (
             "ATO Schedule 7 tax table for unused leave payments on termination of employment",
             "example: long service leave (Norman)",
@@ -1532,6 +1616,50 @@ pub fn optional_inputs(kind: &str) -> Vec<(&'static str, &'static str)> {
             "car_limit",
             "for a car only, and then required: null when s 40-230 did not reduce its cost to the car limit, or an object with limit (AUD, the car limit for the financial year in which the car was first used for any purpose), second_element_cost (AUD) and cost_ignoring_car_limit (AUD, the first and second elements ignoring the car limit, after Subdivision 27-B), cost then being limit plus second_element_cost: ITAA 1997 s 40-325",
         )],
+        "wine_equalisation_tax" => vec![
+            (
+                "rebate_claimed_earlier_in_year",
+                "AUD, required with a dealing's rebate_conditions and refused otherwise: the producer rebates already claimed for earlier tax periods of the financial year, the group's when associated_producer is true; the cap left for this period is the year's cap less it (WET Act s 19-15(2) and (3); WETR 2009/2 para 67)",
+            ),
+            (
+                "associated_producer",
+                "boolean, required with a dealing's rebate_conditions and refused otherwise: true states that the producer is an associated producer of one or more other producers at any time in the financial year (WET Act s 19-20), so the cap is the group's",
+            ),
+        ],
+        "gst_margin_scheme" => vec![
+            (
+                "acquisition_consideration",
+                "AUD, with method consideration and then required: the consideration you gave for acquiring the entire interest, unit or lease, without improvements, development work, legal fees, stamp duty or other acquisitions in relation to the property (GST Act ss 75-10(2) and 75-14)",
+            ),
+            (
+                "unpaid_acquisition_consideration",
+                "AUD, with method consideration and then required: the part of acquisition_consideration not yet paid when you make the supply, 0.00 when paid in full (s 75-12)",
+            ),
+            (
+                "approved_valuation",
+                "AUD, with method approved_valuation and then required: a valuation of the entire interest, unit or lease made in accordance with the Commissioner's requirements (s 75-35), as at valuation_day",
+            ),
+            (
+                "valuation_day",
+                "YYYY-MM-DD date, with method approved_valuation and then required: the day the valuation is as at, which s 75-10(3) fixes: 1 July 2000 (items 1 and 3), the date of effect of your registration or the earlier day you applied (item 2), or the day of the supply (item 4)",
+            ),
+            (
+                "registered_on_1_july_2000",
+                "boolean, with method approved_valuation and then required: true when you were registered or required to be registered for GST on 1 July 2000 (s 75-10(3) item 2)",
+            ),
+            (
+                "government_unimproved_on_1_july_2000",
+                "boolean, with method approved_valuation and then required: true when you are the Commonwealth, a State or a Territory and there were no improvements on the land or premises on 1 July 2000 (s 75-10(3) item 4)",
+            ),
+            (
+                "subdivision_share",
+                "decimal, more than 0 and at most subdivision_whole, with subdivision_whole: for a supply of part of the land you acquired, its measure on a reasonable basis such as area or expected sale price (s 75-15)",
+            ),
+            (
+                "subdivision_whole",
+                "decimal, with subdivision_share: the same measure of all the land you acquired (s 75-15)",
+            ),
+        ],
         "trade_in" => vec![
             (
                 "car_limit",
@@ -1554,6 +1682,36 @@ pub fn optional_inputs(kind: &str) -> Vec<(&'static str, &'static str)> {
                 "decimal fraction above 0 and at most 1, the extent of creditable purpose of the replacement's acquisition (GST Act s 11-30); required when replacement_creditable_acquisition is true and refused otherwise",
             ),
         ],
+        "chattel_mortgage_schedule" => vec![
+            (
+                "instalment",
+                "AUD, the level instalment, from which the rate is found; give it or annual_rate, not both",
+            ),
+            (
+                "annual_rate",
+                "decimal fraction from 0 to 1, the stated annual rate, charged annual_rate / 12 a month or / 52 a week, from which the instalment is worked out; for monthly or weekly instalments in arrears only; give it or instalment, not both",
+            ),
+            (
+                "frequency",
+                "weekly, fortnightly, monthly, quarterly or annual, the instalments' frequency; monthly when omitted",
+            ),
+            (
+                "deposit",
+                "AUD, paid at the purchase towards the price, beside the amount financed; 0.00 when omitted",
+            ),
+            (
+                "trade_in",
+                "AUD, the trade-in allowance credited at the purchase towards the price; 0.00 when omitted",
+            ),
+            (
+                "gst",
+                "object of GST facts, for the purchaser's input tax credit on the price: as hire_purchase_schedule takes them. A passenger_car worth more than the car limit and not quoted for has its credit capped at 1/11 of the limit (GST Act s 69-10(1))",
+            ),
+        ],
+        "loan_transactions" => vec![(
+            "rate_changes",
+            "list of objects in date order, each with date (YYYY-MM-DD, after start_date and by end_date, one change a day) and annual_rate (decimal fraction from 0 to 1), the rate from that day",
+        )],
         "hire_purchase_schedule" => vec![
             (
                 "instalment",
@@ -1688,6 +1846,10 @@ pub fn optional_inputs(kind: &str) -> Vec<(&'static str, &'static str)> {
                 "YYYY-MM-DD date the payment is made, within the income year, with study_loan true only; required with it for 2025-26, whose Schedule 8 coefficients apply from 24 September 2025",
             ),
         ],
+        "fbt_meal_entertainment_register" => vec![(
+            "register_years_expenditure",
+            "list of decimal strings, required when year_ended is a later year of the register's validity and refused otherwise: the meal entertainment expenses (FBTAA s 37CB(3)) of each FBT year from the register's first valid year to the year before year_ended, oldest first (s 37CD(3))",
+        )],
         "fbt_meal_entertainment" => vec![
             (
                 "register_fringe_benefits_value",
@@ -1928,6 +2090,20 @@ pub fn optional_inputs(kind: &str) -> Vec<(&'static str, &'static str)> {
                 "integer from 1, per_head only and required there: everyone entertained at the function, employees, their associates and others",
             ),
         ],
+        "fbt_minor_benefit_check" => vec![
+            (
+                "in_house",
+                "boolean, for an expense_payment, property or residual benefit and then required: true when, were it a fringe benefit of that kind, it would be an in-house fringe benefit (FBTAA s 58P(1)(c))",
+            ),
+            (
+                "tax_exempt_body_exception",
+                "for tax_exempt_body_entertainment and then required: incidental_to_outsiders_no_meal (incidental to entertaining outsiders, and neither a meal nor provided in connection with a meal, other than light refreshments: s 58P(1)(d)(i)), special_achievement_on_premises (on eligible premises of the employer, s 136(1): its premises, a related company's for a company, or a location at or next to a site where the employee works, solely to recognise the employee's special achievements in the employment: (d)(ii)) or none",
+            ),
+            (
+                "fifty_fifty_split",
+                "boolean, for meal_entertainment or entertainment_facility_leasing and then required: true when the employer elected the 50/50 split method, of Division 9A for meal entertainment or s 152B for entertainment facility leasing (TR 2007/12 para 14); false is refused, as the benefit is then screened under its own category",
+            ),
+        ],
         "fbt_entertainment_classifier" => vec![
             (
                 "method",
@@ -2037,6 +2213,50 @@ pub fn input_units(kind: &str) -> Vec<(&'static str, &'static str)> {
                 "boolean, false only when the property is not a leisure facility, or s 26-50(3) applies to it at all times in the income year (such as a holiday home held mainly to produce rent)",
             ),
         ],
+        "chattel_mortgage_schedule" => vec![
+            (
+                "amount_financed",
+                "AUD, the amount lent and paid to the supplier for the goods: the price less any deposit or trade-in",
+            ),
+            (
+                "instalments",
+                "integer, the number of instalments: 1 to 360 monthly, 1,565 weekly, 782 fortnightly, 120 quarterly or 30 annual",
+            ),
+            (
+                "balloon",
+                "AUD, paid at the end of the term; 0.00 for none",
+            ),
+            (
+                "timing",
+                "in_arrears (each instalment at its period's end) or in_advance (at its start)",
+            ),
+            (
+                "start_date",
+                "YYYY-MM-DD, the day of the purchase and the loan, within the income year",
+            ),
+        ],
+        "loan_transactions" => vec![
+            (
+                "opening_balance",
+                "AUD, the balance owing at the start of start_date; 0.00 for a new loan",
+            ),
+            (
+                "annual_rate",
+                "decimal fraction from 0 to 1, the annual interest rate from start_date",
+            ),
+            (
+                "start_date",
+                "YYYY-MM-DD, the statement's first day, within the income year",
+            ),
+            (
+                "end_date",
+                "YYYY-MM-DD, the statement's last day, on or after start_date and less than 30 years after it",
+            ),
+            (
+                "transactions",
+                "list of at most 5,000 objects in date order, each with date (YYYY-MM-DD, from start_date to end_date), kind (drawing or repayment) and amount (AUD); [] for none",
+            ),
+        ],
         "hire_purchase_schedule" => vec![
             (
                 "amount_financed",
@@ -2074,6 +2294,36 @@ pub fn input_units(kind: &str) -> Vec<(&'static str, &'static str)> {
                 "list of objects, one for each income year held from the start time to the event, each with income_year (from 2001-02, and for a car from 2015-16, to the event's year), decline_in_value (AUD; for a cents per kilometre year the notional decline of s 40-370(3)) and deduction (AUD, the decline less the s 40-25 reductions); a car's rows also state method (log_book or cents_per_kilometre, which takes no deduction) and days_held (integer from 1 to the days in that income year, 366 when it includes 29 February)",
             ),
         ],
+        "gst_margin_scheme" => vec![
+            (
+                "interest",
+                "freehold_interest, stratum_unit, long_term_lease (at least 50 years, GST Act s 195-1) or other: what the supply sells or grants (s 75-5(1))",
+            ),
+            (
+                "agreement",
+                "written_on_or_before_supply, written_in_further_period_allowed (within a further period the Commissioner allowed) or none: the written agreement between you and the recipient that the margin scheme is to apply (s 75-5(1) and (1A))",
+            ),
+            (
+                "acquisition",
+                "how you acquired the entire interest, unit or lease: taxable_supply_under_margin_scheme, taxable_supply_without_margin_scheme (ineligible: s 75-5(3)(a)), other_supply_from_1_july_2000 (a supply on or after 1 July 2000 that was not a taxable supply, such as a purchase from a seller not registered for GST) or before_1_july_2000 (acquired, or contracted to acquire, before 1 July 2000: GSTR 2006/8 para 39A, and not through a taxable supply on which the GST was worked out without the margin scheme, such as a pre-1 July 2000 contract settled later as a fully taxable supply, which is taxable_supply_without_margin_scheme); refused with the provisions that apply: gst_group_member, joint_venture_operator, inheritance, gst_free_going_concern, gst_free_farm_land, associate, gst_free_government_land and part_through_ineligible_supply",
+            ),
+            (
+                "consideration",
+                "AUD, the consideration for the supply, the GST-inclusive price (s 75-10(2))",
+            ),
+            (
+                "recipient_associate",
+                "boolean, true when the recipient is your associate at the time of the supply; refused, as s 75-13 then works the margin from the GST inclusive market value",
+            ),
+            (
+                "method",
+                "consideration (the consideration for your acquisition: s 75-10(2)) or approved_valuation (for an interest acquired before 1 July 2000 only: s 75-10(3)). For an interest acquired before 1 July 2000, consideration states that no approved valuation as at the day s 75-10(3) fixes has been made: once one has, s 75-10(3) works the margin from it",
+            ),
+        ],
+        "wine_equalisation_tax" => vec![(
+            "dealings",
+            "list of 1 to 1,000 objects, the tax period's dealings in wine, each with kind and its inputs: wholesale_sale (a sale to an entity that buys to resell: AD1a, AD1b or AD11b) with price_excluding_wet_and_gst (AUD, net of trade discounts, volume rebates and settlement discounts); retail_sale (a retail sale taxed at the notional wholesale selling price, such as a manufacturer's cellar door or mail order sale) with retail_price_including_wet_and_gst (AUD) and, to choose the average wholesale price method for grape wine, average_wholesale; own_use (an application to own use connected with retail sales: consuming or giving the wine away in connection with retail sales, such as tastings) with either retail_price_including_wet_and_gst (the price for which it would normally be sold by retail) or average_wholesale; quoted_sale (a sale for which the purchaser quoted its ABN, not taxable: s 7-10) with price_excluding_wet_and_gst and purchaser_intention (taxable_dealing where the quote states none of the intentions in s 5-50(1)(b), or manufacture, gst_free_supply or sale_under_quote); or own_use_purchased_under_quote (an application to own use of wine purchased under quote: AD3c(a) or AD13c(a)) with purchase_price_excluding_gst. average_wholesale is an object with grape_wine (true: grape wine, s 31-2), wholesale_share_at_least_10_percent (true: at least 10% by value of the tax period's sales of grape wine of that vintage and grape varieties are wholesale sales, s 9-25(3)), quantity (this dealing's quantity, a decimal string above 0 with at most 4 decimal places, in the wholesale sales' unit) and wholesale_sales (1 to 1,000 objects, the tax period's wholesale sales of that vintage and those grape varieties, exports included, each with quantity and price_excluding_wet_and_gst). Any kind but own_use_purchased_under_quote may add rebate_conditions, an object of the booleans producer (s 19-5(1)(a)), source_product_owned_85_percent (s 19-5(1)(d)) and container_and_trade_mark (s 19-5(1)(e) and (7)), to claim the producer rebate on that dealing",
+        )],
         "trade_in" => vec![
             (
                 "cost",
@@ -2140,6 +2390,20 @@ pub fn input_units(kind: &str) -> Vec<(&'static str, &'static str)> {
             (
                 "meal_entertainment_expenditure",
                 "AUD, the employer's total expenses for providing meal entertainment in the FBT year to all persons, excluding amounts employees paid (FBTAA ss 37AB and 37CB(3))",
+            ),
+        ],
+        "fbt_meal_entertainment_register" => vec![
+            (
+                "register_start",
+                "YYYY-MM-DD, the first day of the continuous period the 12 week register was kept for (FBTAA s 37CC(1))",
+            ),
+            (
+                "register_end",
+                "YYYY-MM-DD, its last day; at least 83 days after register_start",
+            ),
+            (
+                "entries",
+                "list of at most 10000 objects, one for each provision of meal entertainment the register records in its period, each with date (YYYY-MM-DD, within the period), recipients (an object of whole-number counts of employees, associates of employees and others), cost (AUD), kind (text, such as dinner or a corporate box), location (text), on_premises (boolean: on the employer's premises), in_house_dining_facility (boolean, for on_premises only: in an in-house dining facility under ITAA 1997 s 32-55) and fringe_benefits_value (AUD, required with cost: the part of the cost that is meal entertainment fringe benefits to employees and their associates, at most the cost and 0.00 when none received any). A detail the register does not record is left out or null, and the check reports it (FBTAA s 37CE(1))",
             ),
         ],
         "fbt_car_parking" => vec![
@@ -2395,6 +2659,32 @@ pub fn input_units(kind: &str) -> Vec<(&'static str, &'static str)> {
                 "YYYY-MM-DD, the employee's, for their preservation age (SISR reg 6.01(2))",
             ),
         ],
+        "etp_tax_free_component" => vec![
+            (
+                "payment",
+                "AUD, the whole life benefit employment termination payment (ITAA 1997 s 82-130), every part of it made because of the termination: such as a golden handshake, compensation, unused sick leave and rostered days off, but not unused annual or long service leave (s 82-135)",
+            ),
+            (
+                "employment_start",
+                "YYYY-MM-DD, the first day of the employment to which the payment relates, counted",
+            ),
+            (
+                "termination_date",
+                "YYYY-MM-DD, the day the employment was terminated, counted in the employment days",
+            ),
+            (
+                "last_retirement_day",
+                "YYYY-MM-DD, the employee's last retirement day (s 995-1(1)): the day the employment would have ended on reaching a particular age or completing a particular period of service, or otherwise the day they would turn 65",
+            ),
+            (
+                "ill_health",
+                "boolean, true when the payment was made because the employee stopped being gainfully employed, and they stopped because they suffered from ill-health, physical or mental (s 82-150(1)(a) and (b))",
+            ),
+            (
+                "medical_certification",
+                "boolean, true when 2 legally qualified medical practitioners have certified that, because of the ill-health, the employee is unlikely ever to be gainfully employed in a capacity for which they are reasonably qualified because of education, experience or training (s 82-150(1)(d))",
+            ),
+        ],
         "unused_leave_payment" => vec![
             (
                 "annual_leave",
@@ -2608,6 +2898,44 @@ pub fn input_units(kind: &str) -> Vec<(&'static str, &'static str)> {
                 "AUD, non-deductible exempt entertainment expenditure (FBTAA s 136(1)): under actual, the part incurred in entertaining employees and their associates; under per_head, the whole function's",
             ),
         ],
+        "fbt_minor_benefit_check" => vec![
+            (
+                "category",
+                "expense_payment, property, residual, tax_exempt_body_entertainment (where the provider incurs non-deductible exempt entertainment expenditure for it), meal_entertainment, entertainment_facility_leasing or other (such as a car, loan or board benefit)",
+            ),
+            (
+                "notional_taxable_value",
+                "AUD, the benefit's notional taxable value in the current FBT year, for one benefit to one employee or associate (FBTAA s 58P(1)(e); TR 2007/12 paras 17 and 18)",
+            ),
+            (
+                "salary_sacrifice",
+                "boolean, true when the benefit is provided under a salary sacrifice arrangement (TR 2007/12 para 16)",
+            ),
+            (
+                "frequency",
+                "infrequent_and_irregular, infrequent_and_regular (such as each Christmas) or frequent: how often identical or similar benefits, or benefits provided with it, have been or can reasonably be expected to be provided (s 58P(1)(f)(i))",
+            ),
+            (
+                "similar_benefits_substantial",
+                "boolean, true when the sum of the notional taxable values of the benefit and identical or similar associated benefits, in this and other years, is substantial (s 58P(1)(f)(ii))",
+            ),
+            (
+                "other_associated_benefits_substantial",
+                "boolean, true when the sum of the notional taxable values of other associated benefits, such as those provided with it, in this and other years, is substantial (s 58P(1)(f)(iii))",
+            ),
+            (
+                "valuation_difficult",
+                "boolean, true when working out the notional taxable values of the benefit and its associated benefits (other than car benefits) is practically difficult (s 58P(1)(f)(iv))",
+            ),
+            (
+                "unexpected_event",
+                "boolean, true when the benefit was provided to help the employee deal with an unexpected event (s 58P(1)(f)(v)(A))",
+            ),
+            (
+                "reward_for_services",
+                "boolean, true when the benefit was provided wholly or principally as a reward for services rendered or to be rendered (s 58P(1)(f)(v)(B))",
+            ),
+        ],
         "fbt_entertainment_classifier" => vec![
             (
                 "lines",
@@ -2709,6 +3037,32 @@ pub fn examples(kind: &str) -> Vec<(&'static str, Example)> {
                 ),
             ),
         ],
+        // The Library's Joanne Black example (Tax Examples, GST, 12-200):
+        // land bought in January 2000, worth $448,000 on 1 July 2000, sold
+        // with a house in January 2026 for $640,000.
+        "gst_margin_scheme" => vec![
+            ("interest", Text("freehold_interest")),
+            ("agreement", Text("written_on_or_before_supply")),
+            ("acquisition", Text("before_1_july_2000")),
+            ("consideration", Text("640000.00")),
+            ("method", Text("approved_valuation")),
+            ("recipient_associate", Flag(false)),
+            ("approved_valuation", Text("448000.00")),
+            ("valuation_day", Text("2000-07-01")),
+            ("registered_on_1_july_2000", Flag(true)),
+            ("government_unimproved_on_1_july_2000", Flag(false)),
+        ],
+        // A dozen bottles sold by wholesale for $120 and a dozen at the
+        // cellar door for $140: $34.80 + $20.30 of wine tax.
+        "wine_equalisation_tax" => vec![
+            ("year", Text("2026-27")),
+            (
+                "dealings",
+                Json(
+                    r#"[{"kind": "wholesale_sale", "price_excluding_wet_and_gst": "120.00"}, {"kind": "retail_sale", "retail_price_including_wet_and_gst": "140.00"}]"#,
+                ),
+            ),
+        ],
         "trade_in" => vec![
             ("year", Text("2026-27")),
             ("cost", Text("40800.00")),
@@ -2731,6 +3085,28 @@ pub fn examples(kind: &str) -> Vec<(&'static str, Example)> {
             ("creditable_purpose", Text("0.8")),
             ("arms_length", Flag(true)),
             ("involuntary_disposal", Flag(false)),
+        ],
+        "chattel_mortgage_schedule" => vec![
+            ("year", Text("2026-27")),
+            ("amount_financed", Text("45000.00")),
+            ("annual_rate", Text("0.0799")),
+            ("instalments", Whole(60)),
+            ("balloon", Text("5000.00")),
+            ("timing", Text("in_arrears")),
+            ("start_date", Text("2026-07-15")),
+        ],
+        "loan_transactions" => vec![
+            ("year", Text("2026-27")),
+            ("opening_balance", Text("0.00")),
+            ("annual_rate", Text("0.073")),
+            ("start_date", Text("2026-07-01")),
+            ("end_date", Text("2026-09-30")),
+            (
+                "transactions",
+                Json(
+                    r#"[{"date": "2026-07-01", "kind": "drawing", "amount": "10000.00"}, {"date": "2026-08-31", "kind": "repayment", "amount": "1000.00"}]"#,
+                ),
+            ),
         ],
         "hire_purchase_schedule" => vec![
             ("year", Text("2026-27")),
@@ -2773,6 +3149,18 @@ pub fn examples(kind: &str) -> Vec<(&'static str, Example)> {
         "fbt_meal_entertainment" => vec![
             ("method", Text("50_50_split")),
             ("meal_entertainment_expenditure", Text("4000.00")),
+        ],
+        // A 12 week register kept from 1 May to 23 July 2025, so first valid
+        // for the FBT year ended 31 March 2026, checked for that year.
+        "fbt_meal_entertainment_register" => vec![
+            ("register_start", Text("2025-05-01")),
+            ("register_end", Text("2025-07-23")),
+            (
+                "entries",
+                Json(
+                    r#"[{"date": "2025-05-14", "recipients": {"employees": 3, "associates": 0, "others": 2}, "cost": "500.00", "kind": "client dinner", "location": "restaurant", "on_premises": false, "fringe_benefits_value": "300.00"}, {"date": "2025-07-02", "recipients": {"employees": 10, "associates": 2, "others": 0}, "cost": "1200.00", "kind": "end of year party", "location": "the employer's office", "on_premises": true, "in_house_dining_facility": false, "fringe_benefits_value": "1200.00"}]"#,
+                ),
+            ),
         ],
         "fbt_car_parking" => vec![
             ("method", Text("commercial_parking_station")),
@@ -2874,6 +3262,16 @@ pub fn examples(kind: &str) -> Vec<(&'static str, Example)> {
             ("non_excluded_payment", Text("17678.00")),
             ("other_taxable_payments", Text("140000.00")),
             ("date_of_birth", Text("1996-09-01")),
+        ],
+        // Shaped on the ATO's Jackson example: $102,000, terminated for
+        // invalidity a year before the 65th birthday, moved into 2026-27.
+        "etp_tax_free_component" => vec![
+            ("payment", Text("102000.00")),
+            ("employment_start", Text("2013-09-02")),
+            ("termination_date", Text("2026-09-25")),
+            ("last_retirement_day", Text("2027-09-25")),
+            ("ill_health", Flag(true)),
+            ("medical_certification", Flag(true)),
         ],
         // Schedule 7's example (Norman), which gives no accrual start: any day
         // before 16 August 1978 gives its 3 long service leave periods.
@@ -3006,6 +3404,20 @@ pub fn examples(kind: &str) -> Vec<(&'static str, Example)> {
         ],
         // TR 97/17 example 1.1 (paras 49 to 52): an end of financial year
         // function on the employer's premises, valued per head.
+        // The Library's birthday flowers (Tax Examples, FBT, 3-060): an $80
+        // bouquet on the employee's birthday, a property benefit.
+        "fbt_minor_benefit_check" => vec![
+            ("category", Text("property")),
+            ("in_house", Flag(false)),
+            ("notional_taxable_value", Text("80.00")),
+            ("salary_sacrifice", Flag(false)),
+            ("frequency", Text("infrequent_and_irregular")),
+            ("similar_benefits_substantial", Flag(false)),
+            ("other_associated_benefits_substantial", Flag(false)),
+            ("valuation_difficult", Flag(false)),
+            ("unexpected_event", Flag(false)),
+            ("reward_for_services", Flag(false)),
+        ],
         "fbt_entertainment_classifier" => vec![
             (
                 "lines",

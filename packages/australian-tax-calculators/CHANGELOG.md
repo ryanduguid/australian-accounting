@@ -4,6 +4,63 @@
 
 ### Added
 
+- `wine-equalisation-tax` works out the wine tax on a tax period's wholesale
+  sales, retail sales, applications to own use and sales under quote in
+  2023-24 to 2027-28 (WET Act ss 5-5, 7-10 and Division 9), at 29% of the
+  price, half the retail price or the average wholesale price, with GST, and
+  the producer rebate under s 19-5 at 29%, capped at $350,000 a year to
+  2025-26 and $400,000 from 2026-27, less earlier claims in the year. It
+  gives labels 1C and 1D rounded down, never netted. New codes:
+  `wine_equalisation_tax.dealing_invalid`,
+  `wine_equalisation_tax.dealings_invalid`,
+  `wine_equalisation_tax.intention_invalid`,
+  `wine_equalisation_tax.kind_invalid`,
+  `wine_equalisation_tax.method_unavailable` and
+  `wine_equalisation_tax.quantity_invalid`. `tests/wine_equalisation_tax.rs`
+  holds it to the ATO's Alison, Happy Valley and Good Wines examples, QC22758's
+  rebate table, WETR 2009/1 examples 15 and 16 and the Library's ¶22-280.
+- `fbt-meal-entertainment-register` checks a 12 week meal entertainment
+  register for the FBT year ended 31 March 2026 or 2027: the continuous
+  12 week period (FBTAA s 37CC), each entry's 6 details (s 37CE(1)), the
+  years it is valid for (s 37CD(1) and (2)) and the 20% rule (s 37CD(3)),
+  each reported with its authority and the entries it fails on. A valid
+  register gives `fbt-meal-entertainment` its values and first valid year.
+  New codes: `fbt_meal_entertainment_register.entries_invalid`,
+  `fbt_meal_entertainment_register.entry_invalid` and
+  `fbt_meal_entertainment_register.period_invalid`.
+  `tests/fbt_meal_entertainment_register.rs` holds it to the sections and the
+  Library's ¶3-220 register example.
+- `etp-tax-free-component` works out the tax free component of a life benefit
+  employment termination payment in 2026-27 or 2027-28: the invalidity
+  segment from the days to retirement (ITAA 1997 s 82-150), the pre-July 83
+  segment (s 82-155) and the taxable component left (ss 82-140 and 82-145),
+  with the day counts and whether the payment is an excluded payment
+  (s 82-10(6)(c)), whose taxable component `termination-payment` then
+  withholds from. Where s 82-150(1) is not met the invalidity segment is nil
+  and its step names the condition. New code:
+  `etp_tax_free_component.dates_invalid`. `derive` covers it.
+  `tests/etp_tax_free_component.rs` holds it to the ATO's Jackson example and
+  the Library's Jim and Jon examples.
+
+- `chattel-mortgage-schedule`: a loan to buy goods under a chattel mortgage,
+  at the rate its instalments imply or a stated `annual_rate` (monthly or
+  weekly in arrears) from which the instalment is worked out, with the
+  schedule, a printable `statement`, interest by income year and the
+  purchaser's input tax credit on the price, capped for a car at 1/11 of the
+  car limit (GST Act s 69-10(1)). New codes:
+  `chattel_mortgage.balloon_too_large`,
+  `chattel_mortgage.final_instalment_unsupported`,
+  `chattel_mortgage.stated_rate_unsupported` and
+  `chattel_mortgage.terms_conflict`; the shared instalment, rate, start and
+  GST facts codes keep their `hire_purchase.` names.
+- `loan-transactions`: a loan's statement from dated drawings and repayments,
+  with daily interest at a rate that changes on dated events, debited at each
+  month's end, interest by income year and a printable `statement`. New codes:
+  `loan_transactions.balance_below_nil`,
+  `loan_transactions.date_outside_statement`,
+  `loan_transactions.end_date_invalid`, `loan_transactions.entry_invalid`,
+  `loan_transactions.not_in_date_order` and
+  `loan_transactions.start_outside_year`.
 - `hire-purchase-schedule` takes weekly, fortnightly, quarterly and annual
   instalments (`frequency`), or dated `segments` of level instalments with
   payment holidays, in place of level monthly ones only. Each instalment's
@@ -30,6 +87,19 @@
   GST on the credit component. The 2024-25 car limit, $69,674, joins the
   2025-26 and 2026-27 ones.
 - `payout` takes `known_at_start`, which must be `false`.
+- `contract-register` reads a contracts file, CSV with one hire purchase or
+  chattel mortgage contract a line, sets out each contract through
+  `hire-purchase-schedule` or `chattel-mortgage-schedule` unchanged, and reports cashflow by month, payments, interest and principal
+  by income year, the amount outstanding at a balance date split into
+  current and non-current (AASB 101 paragraph 69(c)), contracts expiring by
+  a date, and totals by financier and by client, as JSON, text or CSV.
+  A malformed line is refused with its number. New codes:
+  `contract_register.argument_invalid`, `contract_register.column_invalid`,
+  `contract_register.contract_duplicate`, `contract_register.csv_invalid`,
+  `contract_register.kind_unsupported` and `contract_register.text_invalid`.
+  `examples/contract-register.csv` is a fabricated register of 8 contracts,
+  and `tests/contract_register.rs` holds it to each contract's own schedule.
+  `docs/contract-register.md` documents the columns and reports.
 - New codes: `hire_purchase.car_limit_unknown`,
   `hire_purchase.frequencies_mixed`, `hire_purchase.frequency_invalid`,
   `hire_purchase.gst_fact_conflict`, `hire_purchase.gst_fact_invalid`,
@@ -39,6 +109,38 @@
   `hire_purchase.segments_invalid` and
   `hire_purchase.segments_not_contiguous`. `tests/hire_purchase_worksheet.rs`
   works the cases by hand and from the ATO's Albert and Darren examples.
+- `fbt-minor-benefit-check` screens one benefit in the FBT year ended
+  31 March 2026 or 2027 against the minor benefits exemption (FBTAA s 58P).
+  It decides the exclusions (an in-house expense payment, property or
+  residual benefit, s 58P(1)(c); tax-exempt body entertainment outside
+  s 58P(1)(d); the 50/50 split and salary sacrifice, TR 2007/12 paras 14 and
+  16) and the less than $300 test (s 58P(1)(e)), and weighs the s 58P(1)(f)
+  criteria, given as facts, as TR 2007/12's examples weigh them: `exempt`,
+  `not_exempt` or `judgement_required`. New codes:
+  `fbt_minor_benefit.category_unsettled` and `fbt_minor_benefit.fact_invalid`.
+  `tests/fbt_minor_benefit.rs` runs TR 2007/12 examples 1 to 3 and 5 to 13 and
+  the Library's flowers, gym and golf day examples.
+- `gst-margin-scheme` decides whether the GST margin scheme can apply to a
+  taxable supply of real property in 2025-26 to 2027-28, condition by
+  condition (GST Act s 75-5: a freehold interest, stratum unit or long-term
+  lease, a written agreement on or before the supply or in a further period
+  the Commissioner allows, and no acquisition through a taxable supply worked
+  without it), and gives the GST with and without it: 1/11 of the margin over
+  the acquisition's consideration less any unpaid (ss 75-10(2), 75-12 and
+  75-14) or over an approved valuation as at the day s 75-10(3) items 1 to 4
+  fix, for part of the land on its share (s 75-15), rounded to the cent
+  (s 9-90(1)). Acquisitions that s 75-5(3)(b) to (g), s 75-10(3) item 2A,
+  s 75-11 or s 75-22 govern, and a supply to an associate (s 75-13), are
+  refused, naming the provision. New codes:
+  `gst_margin_scheme.acquisition_unsupported`,
+  `gst_margin_scheme.fact_conflict`, `gst_margin_scheme.fact_invalid`,
+  `gst_margin_scheme.supply_to_associate`,
+  `gst_margin_scheme.valuation_day_invalid`,
+  `gst_margin_scheme.valuation_item_unsettled` and
+  `gst_margin_scheme.valuation_unavailable`. `derive` explains it.
+  `tests/gst_margin_scheme.rs` runs the Library's Joanne Black, Hans and Luke,
+  improvements, subdivision and 1 July 2000 examples and GSTR 2006/8's
+  Tureia example.
 
 ### Changed
 

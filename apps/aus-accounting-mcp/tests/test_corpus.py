@@ -48,7 +48,7 @@ def test_an_unconfigured_corpus_names_the_snapshot_then_the_build_route(
         asyncio.run(mcp.call_tool("search_tax_legislation", {"query": "levy"}))
 
     message = str(caught.value)
-    snapshot = "https://github.com/ryanduguid/PaulGoodman/releases/tag/corpus-2026-11-11"
+    snapshot = "https://github.com/ryanduguid/PaulGoodman/releases/tag/corpus-2026-11-18"
     # The published snapshot needs no build, so it comes before the build route.
     assert snapshot in message
     assert "python -m fadden quick --out" in message

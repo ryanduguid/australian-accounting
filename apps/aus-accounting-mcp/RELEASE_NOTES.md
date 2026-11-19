@@ -1,3 +1,27 @@
+# Unreleased
+
+## Changed
+
+- `calculate_tax_worksheet` serves every worksheet in the calculators executable's
+  catalogue, 48 kinds in 1.0.0 where 0.10.0 served 14, and the scope resource lists
+  each with the engine's own scope, periods, required and optional inputs. A worksheet
+  the executable adds is served without a change here. The tool refuses a kind or an
+  input the catalogue does not list, and a number in exponent or other non-plain
+  notation in any fact; the executable validates and refuses everything else. The
+  narrowed scopes for 6 kinds are gone, so for example the 2026-27 Medicare levy and
+  quarterly PAYG pays now calculate. `facts` publishes only `kind` and
+  `scope_confirmed` in its schema; the catalogue states each kind's inputs.
+- The tax worksheets run the `australian-tax-calculators` executable only if its SHA-256
+  is that of the x86_64 Linux or Windows executable in the 1.0.0 release, or the one
+  given in `AUS_TAX_CALCULATORS_SHA256` for a build from source. It is checked before
+  the executable runs, so another program on `PATH` that prints the same version is
+  refused, not run, as is a FIFO, device or file over 256 MiB. It does not protect
+  against someone who can write the executable or its folder, who could swap it
+  between the check and the run: keep it where only you can write.
+- With no legislation corpus configured, the corpus tools' refusal names PaulGoodman's
+  `corpus-2026-11-18` snapshot, which adds each Act's compilations in force on 1 July
+  2020 to 2026, in place of `corpus-2026-11-11`.
+
 # v0.10.0
 
 ## Changed

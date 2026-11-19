@@ -113,7 +113,8 @@ ESCALATE and HARD_STOP govern what you may conclude from a result here.
 A verdict string such as LATE, UNPAID or NOT_COMPLYING is a review-aid
 classification of the facts the operator supplied, not a determination.
 - Read aus-accounting://scope before choosing a workflow. calculate_tax_worksheet
-  covers fourteen bounded worksheets, each with required scope confirmation and periods.
+  covers every bounded worksheet of the installed calculators executable, each with
+  required scope confirmation, periods and inputs.
   Establish every scope condition before calling. Do not invent confirmation.
   Broader classifications, exemptions, BAS/returns, trusts, partnerships, SMSF fund
   tax and audit, the transfer balance cap and payroll tax remain unsupported.
@@ -1059,37 +1060,32 @@ def get_lodgment_due_dates(
 
 @mcp.tool(annotations=LOCAL_READ_ONLY, title="Calculate a bounded Australian tax worksheet")
 def calculate_tax_worksheet(
-    facts: Annotated[TaxFacts, Field(description="Established facts for one worksheet kind. "
-        "Read calculation_worksheets in aus-accounting://scope before confirming scope. "
-        "Supply established zero amounts explicitly; do not infer missing facts.")],
+    facts: Annotated[TaxFacts, Field(description="Established facts for one worksheet kind: "
+        "kind, scope_confirmed and that kind's required_inputs, with any of its "
+        "optional_inputs, as calculation_worksheets in aus-accounting://scope lists them. "
+        "Read that scope before confirming it. Supply established zero amounts explicitly; "
+        "do not infer missing facts.")],
     file_note: Annotated[bool, Field(strict=True,
         description="True also returns file_note, a Markdown note restating the result: "
         "facts relied on, calculation, assumptions, provisions and dated sources, and open "
         "issues. False, the default, leaves the result unchanged.")] = False,
 ) -> TaxCalculation:
-    """Calculate one of fourteen bounded tax and super worksheets, GST to Division 293.
+    """Calculate one bounded tax, super, FBT, withholding or finance worksheet.
 
-    Each kind has a bounded scope and period in aus-accounting://scope. Most cover
-    2025-26; resident basic tax also covers 2024-25 and 2026-27. FBT covers the year
-    ended 31 March 2026. PAYG withholding covers regular pays from 1 July 2026.
-    Contribution caps and account-based pension minimums cover 2024-25 to 2026-27.
-    Study loan repayments cover 2025-26 and 2026-27 from established repayment income.
-    Study loan withholding adds the Schedule 8 component to regular pays from 1 July 2026.
-    The single Medicare levy covers 2024-25 and 2025-26; the low income tax offset
-    and Division 293 tax cover 2024-25 to 2026-27.
+    Serves every worksheet the installed australian-tax-calculators executable
+    offers. calculation_worksheets in aus-accounting://scope gives each kind's
+    bounded scope, supported periods, required and optional inputs and an example.
     Require operator-established classifications and eligibility.
     Pass scope_confirmed true only after establishing every scope condition listed
     in calculation_worksheets for the kind; resolve missing or uncertain scope first.
-    Scope confirmation is not evidence of eligibility. Never invent it. Every money
-    field is a non-negative AUD amount in plain decimal notation, such as 1234.56,
-    with at most 2 decimal places and at most 1000000000000.00.
+    Scope confirmation is not evidence of eligibility. Never invent it. Every number
+    is a string in plain decimal notation, such as 1234.56; money_format in the
+    catalogue states each kind's money bounds.
     Results include engine version, source-check date, citations and exclusions.
     With file_note true the result also carries a Markdown file note that restates
     it for a workpaper; a refused worksheet still returns only its refusal.
-    These worksheets do not prepare a BAS or return, apply Medicare family reductions,
-    exemptions or the surcharge, limit a study loan repayment to the loan balance,
-    value benefits or assets, or establish post-June 2026 SG entitlement.
-    All maths stays in australian-tax-calculators. Local review aid, not advice.
+    These worksheets do not prepare a BAS or return; each kind's scope states what
+    it excludes. All maths stays in australian-tax-calculators. Local review aid, not advice.
     """
     result = calculate(facts)
     if file_note:
