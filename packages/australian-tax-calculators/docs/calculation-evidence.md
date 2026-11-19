@@ -1823,8 +1823,9 @@ of working holiday maker.
 
 s 5(3) applies to a payment made on or after 1 July 2017, so to every year
 the command takes. The ATO's rates page gives s 6's temporary budget repair
-levy years as 2014-15 to 2016-17, so none of them is taken. The Act states percentages and no rounding; rounding
-each element's tax to the cent is the command's.
+levy years as 2014-15 to 2016-17, so none of them is taken. The Act states
+percentages and no rounding; rounding each element's tax to the cent is the
+command's.
 
 `tests/dasp_tax.rs` holds each case.
 

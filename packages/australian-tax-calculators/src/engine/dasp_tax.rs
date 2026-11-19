@@ -33,7 +33,7 @@ const TAXED: &str = "DASP Tax Act s 5(1)(b): 35% of the element taxed in the fun
 const UNTAXED: &str = "DASP Tax Act s 5(1)(c): 45% of the element untaxed in the fund";
 const TAXED_WHM: &str = "DASP Tax Act s 5(3): paid on or after 1 July 2017 and including amounts attributable to contributions made whilst a working holiday maker, so 65% of the element taxed in the fund in place of s 5(1)(b)'s 35%";
 const UNTAXED_WHM: &str = "DASP Tax Act s 5(3): paid on or after 1 July 2017 and including amounts attributable to contributions made whilst a working holiday maker, so 65% of the element untaxed in the fund in place of s 5(1)(c)'s 45%";
-const TOTAL: &str = "DASP Tax Act s 4 and ITAA 1997 s 301-175(2): the tax on the payment, the sum of the tax on each component, each rounded to the cent (0.5 cents up) so that the tax and the net payment add back to the payment";
+const TOTAL: &str = "DASP Tax Act s 4 and ITAA 1997 s 301-175(2): the tax on the payment, the sum of the tax on each component; the Act states no rounding, so this worksheet rounds each to the cent (0.5 cents up) and the tax and the net payment add back to the payment";
 const NET: &str = "ITAA 1997 s 301-175(1): the payment is not assessable income and not exempt income, so the amount left after the tax is what the person receives, with nothing to include in a tax return";
 
 /// The tax on each component's step and the rates it was worked at.

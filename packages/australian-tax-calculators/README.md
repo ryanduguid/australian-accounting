@@ -1426,8 +1426,9 @@ dasp_tax               = the sum; net_payment = payment - dasp_tax
 The 65% rates apply when `working_holiday_maker_contributions` is true: the
 payment includes amounts attributable to contributions made whilst the person
 held a subclass 417 or 462 visa or an associated bridging visa, and they then
-apply to the whole taxable component. Each element's tax is rounded to the
-cent, 0.5 cents up, so the tax and `net_payment` add back to the payment. The
+apply to the whole taxable component. The Act states no rounding: the command
+rounds each element's tax to the cent, 0.5 cents up, so the tax and
+`net_payment` add back to the payment. The
 payment is not assessable income and not exempt income (s 301-175), so the
 tax is final and nothing goes in a tax return; a payment under $200 is taxed
 like any other. It refuses a nil payment. The caller establishes that the
@@ -1436,6 +1437,7 @@ Superannuation (Unclaimed Money and Lost Members) Act 1999 with an excess
 untaxed roll-over amount (s 5(2)), the 2014-15 to 2016-17 budget repair levy
 rates (s 6) and the fund's withholding and reporting are outside it. See
 [calculation evidence](docs/calculation-evidence.md#dasp-tax).
+
 ## ETP tax free component
 
 `etp_tax_free_component` works out the tax free component of one life benefit
