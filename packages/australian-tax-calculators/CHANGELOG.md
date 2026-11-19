@@ -4,6 +4,19 @@
 
 ### Added
 
+- `borrowing-expenses-schedule` works out borrowing expenses under ITAA 1997
+  s 25-25 for several loans and every income year of each, for loans first
+  drawn from 1 July 2017: the $100 test across the loans incurred in a year
+  (s 25-25(6)), use that changes by year (s 25-25(2) and (3)), refinancing as
+  the repayment of one listed loan by another (s 25-25(5)(b)) and the totals
+  by year. Rows from 2027-28 are flagged for s 26-155 and rows after 2027-28
+  marked projected. New codes: `borrowing.income_use_invalid`,
+  `borrowing.loan_before_2017_18`, `borrowing.loan_fact_missing`,
+  `borrowing.loans_invalid`, `borrowing.other_expenses_invalid` and
+  `borrowing.refinance_invalid`. `derive` covers it.
+  `tests/borrowing_expenses_schedule.rs` holds it to the ATO's Peter and
+  Fiona and Max, the Library's Ben and `borrowing-expenses` row by row.
+
 - `etp-tax-free-component` works out the tax free component of a life benefit
   employment termination payment in 2026-27 or 2027-28: the invalidity
   segment from the days to retirement (ITAA 1997 s 82-150), the pre-July 83
@@ -72,6 +85,13 @@
   works the cases by hand and from the ATO's Albert and Darren examples.
 
 ### Changed
+
+- `borrowing-expenses` takes 2017-18 to 2027-28, not 2024-25 to 2026-27:
+  s 25-25 sets no figure by year and has its present text from 1 April 2017.
+  From 2027-28 it works the year out and warns that s 26-155 may quarantine
+  it, instead of refusing the year. A loan first drawn on 29 February is
+  worked out, its 5 years ending on 28 February (Acts Interpretation Act 1901
+  s 2G(2)); `borrowing.loan_start_29_february` is withdrawn.
 
 - `hire-purchase-schedule`'s `instalment` and `instalments` are required only
   without `segments`, and `hire_purchase.instalments_unsupported` and

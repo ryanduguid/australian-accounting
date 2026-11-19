@@ -10,7 +10,7 @@ use std::process::{Command, Stdio};
 
 /// Worksheets added after Python 0.2.0, so absent from the frozen corpus;
 /// `tests/fbt_car.rs`, `tests/main_residence.rs`,
-/// `tests/borrowing_expenses.rs`, `tests/hire_purchase.rs`,
+/// `tests/borrowing_expenses.rs`, `tests/borrowing_expenses_schedule.rs`, `tests/hire_purchase.rs`,
 /// `tests/chattel_mortgage.rs`, `tests/loan_transactions.rs`,
 /// `tests/business_capital_expenditure.rs`, `tests/balancing_adjustment.rs`, `tests/trade_in.rs`,
 /// `tests/division_296.rs`,
@@ -25,7 +25,7 @@ use std::process::{Command, Stdio};
 /// `tests/fbt_tax_exempt_body_entertainment.rs`, `tests/lump_sum_arrears_offset.rs`,
 /// `tests/fbt_entertainment_classifier.rs` and `tests/income_tests.rs` cover
 /// them.
-const NEW_KINDS: [(&str, &str); 37] = [
+const NEW_KINDS: [(&str, &str); 38] = [
     ("fbt-car-statutory", "fbt_car_statutory"),
     ("fbt-car-operating-cost", "fbt_car_operating_cost"),
     ("fbt-loan", "fbt_loan"),
@@ -36,6 +36,7 @@ const NEW_KINDS: [(&str, &str); 37] = [
     ("fbt-property", "fbt_property"),
     ("main-residence", "main_residence"),
     ("borrowing-expenses", "borrowing_expenses"),
+    ("borrowing-expenses-schedule", "borrowing_expenses_schedule"),
     ("hire-purchase-schedule", "hire_purchase_schedule"),
     ("chattel-mortgage-schedule", "chattel_mortgage_schedule"),
     ("loan-transactions", "loan_transactions"),
