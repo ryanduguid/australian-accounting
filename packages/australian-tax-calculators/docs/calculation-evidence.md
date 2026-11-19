@@ -784,6 +784,44 @@ the calendar:
 | Same, critical time 20 November 2026 | Registered 10 November 4.00 pm; 11 November | Does not vest; vests |
 | Agreement 2 February 2026, critical time 1 November 2026 | Registered 15 April; 1 May 10.00 am; 1 May 10.01 am | Latest time 1 May 10.00 am: not, not, vests |
 
+## Wine equalisation tax
+
+This worksheet was added on 19 November 2026. The WET Act was read that day
+at the ATO's legal database (ss 5-5, 5-50, 7-10, 9-5, 9-25, 9-30, 9-35, 9-40,
+9-45, 13-5, 19-5, 19-15, 19-20, 19-25, 31-1 and 33-1), and ss 19-15 and 19-25
+in compilation 32 (1 April 2026) at the Federal Register of Legislation, with
+Schedule 6 to the Treasury Laws Amendment (Supporting Choice in
+Superannuation and Other Measures) Act 2026 (No. 12, 2026), which raises the
+cap to $400,000 for assessable dealings from 1 July 2026. WETR 2009/1 and
+WETR 2009/2 were read as the ATO publishes them. The ATO's pages
+'Wholesale sales' and 'Retail sales and own use' (QC22750 and QC22751, both
+last updated 19 March 2025), 'Producer rebate' (QC22756, 30 June 2026),
+'Calculate and claim your rebate' (QC22758, 2 July 2026), 'Reporting and
+paying WET' (QC22762), 'Wine equalisation tax (WET)' (QC33703, 1 May 2025)
+and 'Instructions for completing your BAS' (QC17458, 14 September 2026) were
+read that day, as was the Library's GST collection at ¶22-280 and ¶22-290.
+
+The Act fixes no value basis for the 10% wholesale share of s 9-25(3), so the
+command takes it as a stated fact. The ATO rounds its tasting bottle's
+notional wholesale selling price to $5.83 where this command gives $5.84; the
+tax, $1.69, is the same. Years before 2023-24 are refused, as the earlier
+rebate reductions for wine of 2017 and earlier vintages sold before 1 July
+2023 are not worked.
+
+`tests/wine_equalisation_tax.rs` holds these cases.
+
+| Case | Source | Worksheet |
+| --- | --- | --- |
+| Alison sells a dozen for $120 before WET and GST | QC22750 | WET $34.80, GST $15.48, $170.28 in all |
+| Swillo sells 5 cases at $120 | Library ¶22-280 | WET $174.00, GST $77.40, $851.40 in all |
+| A dozen at the cellar door for $140 | QC22751 (Happy Valley) | Taxable value $70.00, WET $20.30 |
+| A tasting bottle normally sold for $11.67 | QC22751 | WET $1.69, no GST |
+| A $22 retail sale; a staff sale taxed at the normal $150 | WETR 2009/1 example 15 and para 159 | WET $3.19 and GST $2.00; WET $21.75 |
+| 70% of wholesale sales at $80 a dozen and 30% at $90, then a dozen at the cellar door for $190 | WETR 2009/1 example 16, QC22751 (Good Wines) | Average $83.00, WET $24.07, GST $17.27 |
+| 2026-27 rebates on a retail, a wholesale, 2 quoted and a tasting dealing | QC22758's table | WET $11,890, rebate $16,240 |
+| A $50,000 wholesale sale with $340,000 (2025-26) or $390,000 (2026-27, 2027-28) claimed earlier | Worked by hand under s 19-15(2) | Rebate earned $14,500, $10,000 within the cap |
+| A hamper's wine share, $150 | Library ¶22-280 | WET $43.50 |
+
 ## Main residence
 
 This worksheet was added on 1 November 2026; its example evidence was read
