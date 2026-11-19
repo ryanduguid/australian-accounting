@@ -247,7 +247,9 @@ fn a_deposit_and_trade_in_add_to_the_consideration_not_the_loan() {
 
 /// Paid out at the end of month 2 of 3: $200 of interest, $100 paid, so
 /// $1,100 outstanding. $1,150 exceeds it by $50 (s 240-105(2), s 240-110(1));
-/// $1,050 falls $50 short (s 240-105(3), s 240-110(2)).
+/// $1,050 falls $50 short (s 240-105(3), s 240-110(2)); $1,100 settles it
+/// with no adjustment (s 240-105). Each says the payout itself is not
+/// deductible where it acquires the property (s 240-85(b)).
 #[test]
 fn a_payout_settles_the_balance_and_its_difference_under_subdivision_240_g() {
     let base = json!({"instalments": 3, "payout": {"date": "2026-09-15", "amount": "1150.00", "known_at_start": false}});
@@ -268,7 +270,10 @@ fn a_payout_settles_the_balance_and_its_difference_under_subdivision_240_g() {
         assert_eq!(amount(&r, key), value, "{key}");
     }
     let says = r["payout"]["consequence"].as_str().unwrap();
-    assert!(says.contains("s 240-110(1)"), "{says}");
+    assert!(
+        says.contains("s 240-110(1)") && says.contains("s 240-85(b)"),
+        "{says}"
+    );
     let rows: Vec<&str> = interest(&r);
     assert_eq!(rows, ["100.00", "100.00"]);
     // A payout known at the start would have changed the implicit rate
@@ -307,6 +312,15 @@ fn a_payout_settles_the_balance_and_its_difference_under_subdivision_240_g() {
     assert_eq!(
         lines(&r["journals"]["payout"])[1],
         "payout_difference 0.00 50.00"
+    );
+    let r = run(json!({"instalments": 3, "payout": {"date": "2026-09-15", "amount": "1100.00", "known_at_start": false}}))
+        .unwrap();
+    assert_eq!(amount(&r, "payout_excess"), "0.00");
+    assert_eq!(amount(&r, "payout_shortfall"), "0.00");
+    let says = r["payout"]["consequence"].as_str().unwrap();
+    assert!(
+        says.contains("s 240-105)") && says.contains("s 240-85(b)"),
+        "{says}"
     );
 }
 

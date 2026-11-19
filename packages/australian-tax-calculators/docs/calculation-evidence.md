@@ -646,6 +646,43 @@ election, accommodation or travel taking the food or drink's occasion
 give dollar figures only in examples 11.1, 17.1 and 17.2: the other amounts are
 fabricated, and the ruling decides the treatment the test checks.
 
+## FBT meal entertainment register
+
+This worksheet's evidence was read on 19 November 2026 from 9.25 am to
+9.35 am AEDT:
+
+- FBTAA ss 37CA to 37CF on the ATO's legal database
+  (https://www.ato.gov.au/law/view/document?docid=PAC/19860039/37CC and the
+  sections beside it). s 37CA: the election, for a year the employer has a
+  valid register for; s 37CB(2): the register percentage is the value of the
+  meal entertainment fringe benefits over the value of the meal entertainment
+  in the register's 12 week period; s 37CC: the register is kept for a
+  continuous period of at least 12 weeks throughout which meal entertainment is
+  provided, representative of the first FBT year it is valid for, or it is not
+  valid; s 37CD(1) and (2): valid for the year a period within one FBT year
+  falls in, or only the second year of a period spanning 2, and the 4 FBT years
+  after; s 37CD(3): it ceases to be valid at the end of a year whose meal
+  entertainment expenses are more than 20% higher than the first valid year's,
+  or when a later valid register covers the year; s 37CE(1): the 6 details,
+  and s 37CE(2), entries made as soon as practicable; s 37CF: a false or
+  misleading entry invalidates the register.
+- The ATO's Fringe benefits tax - a guide for employers, chapter 14 (latest
+  update January 2020), 14.8: 'Valid register' and 'Details to be included in
+  register' restate those sections; the guide says the minor benefits exemption
+  can apply under this method but the property benefits exemption cannot, and
+  points to TD 94/25 on apportioning entertainment between employees and
+  others, which the check leaves to the operator's `fringe_benefits_value`.
+- The Library's ¶3-220 (tax examples, 'Fringe Benefits Tax (FBT)', last
+  reviewed 30 June 2026): ABC's register at 40%, kept in the 2025-26 FBT year,
+  can be used for that year and the following 4 (s 37CD), and
+  $177,500 x 40% = $71,000. The test builds a register at 40% kept in that
+  year, checks it valid for the year ended 31 March 2027 and passes its values
+  to `fbt-meal-entertainment`, which gives $71,000.00.
+
+Neither the Act nor the guide gives a worked example of a register failing a
+check; the tests work each failure from the section's words. 12 weeks is
+taken as 84 days with both the first and last day counted.
+
 ## Main residence
 
 This worksheet was added on 1 November 2026; its example evidence was read
