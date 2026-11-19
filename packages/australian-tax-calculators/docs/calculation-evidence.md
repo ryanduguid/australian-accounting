@@ -747,8 +747,15 @@ collateral for s 153 item 7; the Personal Property Securities (Fees)
 Determination 2018 as made (in force from 1 August 2018 with no later
 compilation, made by the Attorney-General under s 190); and the Corporations
 Act 2001, compilation 149 (19 September 2026 to 30 November 2026), ss 9
-('business day'), 588FL, 588FM and 588FN. The Registrar's 'Fees for using the
-PPSR' page, read at 12.03 am, gives the same amounts and says they are not
+('business day'), 588FL, 588FM and 588FN. On 20 November 2026 at about
+1.40 am those sections were compared with compilation 142 (from 1 July 2025):
+the text is the same. The Register lists versions from
+1 December 2026, 4 December 2026, 8 April 2027 and 1 July 2027, made by Acts
+Nos. 61, 35, 38 and 57 of 2026 and No. 72 of 2025; none of them amends the
+'business day' definition or ss 588FL to 588FN, so the command takes a
+critical time on any date. The Determination has no later version before its
+sunset on 1 October 2028. The Registrar's 'Fees for using the PPSR' page, read
+at 12.03 am and again at about 1.40 am, gives the same amounts and says they are not
 subject to GST. It names the Treasurer in one paragraph and the Attorney
 General in another; the Determination itself is the Attorney-General's.
 
@@ -782,6 +789,7 @@ the calendar:
 | Inventory, possession 2 November 2026, 3.00 pm | Registered at 3.00 pm; 3.01 pm | Super-priority; none |
 | Company, agreement 12 October 2026 | 3 November listed, or not | 10 November, or 9 November |
 | Same, critical time 20 November 2026 | Registered 10 November 4.00 pm; 11 November | Does not vest; vests |
+| Company, agreement 2 November 2026, critical time 1 March 2027 | 3 November listed; registered 25 November, or 2 December | Latest time the end of 1 December: does not vest; vests |
 | Agreement 2 February 2026, critical time 1 November 2026 | Registered 15 April; 1 May 10.00 am; 1 May 10.01 am | Latest time 1 May 10.00 am: not, not, vests |
 
 ## Wine equalisation tax

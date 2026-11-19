@@ -1084,8 +1084,9 @@ pub fn supported_periods(kind: &str) -> Vec<&'static str> {
         "fbt_minor_benefit_check" => vec!["2026", "2027"],
         // The year of the registration, possession or attachment, or
         // agreement: the fees are unchanged since 1 August 2018 and the law
-        // read is in force from 14 October 2024 (PPSA) and 19 September 2026
-        // (Corporations Act); later critical times are refused.
+        // read is in force from 14 October 2024 (PPSA), and the Corporations
+        // Act's ss 9 and 588FL to 588FN read the same from 1 July 2025 with no
+        // enacted amendment, so a critical time is not limited.
         "ppsr_timing" => vec!["2025-26", "2026-27"],
         "fbt_entertainment_classifier" => vec!["2026", "2027"],
         "fbt_housing" => keys(FBT_HOUSING_INDEXATION),
@@ -1299,7 +1300,7 @@ pub fn source_review(kind: &str) -> (&'static str, &'static str) {
         ),
         "ppsr_timing" => (
             "2026-11-20",
-            "Personal Property Securities Act 2009 ss 10 ('business day'), 62, 153 and 294, compilation 22 (14 October 2024); Personal Property Securities Regulations 2010, compilation 6 (1 July 2022), which prescribe no day for the s 10 definition; Personal Property Securities (Fees) Determination 2018 ss 2, 4 and 5, as made (from 1 August 2018); Corporations Act 2001 ss 9 ('business day'), 588FL and 588FM, compilation 149 (19 September 2026); the Registrar's 'Fees for using the PPSR' page",
+            "Personal Property Securities Act 2009 ss 10 ('business day'), 62, 153 and 294, compilation 22 (14 October 2024); Personal Property Securities Regulations 2010, compilation 6 (1 July 2022), which prescribe no day for the s 10 definition; Personal Property Securities (Fees) Determination 2018 ss 2, 4, 5 and 6, as made (from 1 August 2018); Corporations Act 2001 ss 9 ('business day'), 588FL and 588FM, compilation 149 (19 September 2026), the same text in compilation 142 (1 July 2025) and unamended by the Acts listed for its versions from 1 December 2026 to 1 July 2027 (Nos. 61, 35, 38 and 57 of 2026 and 72 of 2025); the Registrar's 'Fees for using the PPSR' page",
         ),
         "fbt_minor_benefit_check" => (
             "2026-11-19",
@@ -2157,7 +2158,7 @@ pub fn optional_inputs(kind: &str) -> Vec<(&'static str, &'static str)> {
             ),
             (
                 "critical_time",
-                "YYYY-MM-DDTHH:MM, company_grantor only: the critical time (s 588FL(7)), before 1 December 2026",
+                "YYYY-MM-DDTHH:MM, company_grantor only: the critical time (s 588FL(7))",
             ),
             (
                 "court_ordered_time",

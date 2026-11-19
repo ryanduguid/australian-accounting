@@ -13,7 +13,10 @@
 //! compilation 22 (14 October 2024); the PPS Regulations 2010, compilation 6
 //! (1 July 2022), which prescribe no day for the s 10 definition; the Fees
 //! Determination 2018 as made (in force from 1 August 2018, unamended); the
-//! Corporations Act, compilation 149 (19 September 2026).
+//! Corporations Act, compilation 149 (19 September 2026), whose ss 9
+//! ('business day') and 588FL to 588FN read as in compilation 142 (1 July
+//! 2025) and are not amended by the 5 Acts the Register lists for versions
+//! from 1 December 2026 to 1 July 2027.
 
 use std::collections::BTreeSet;
 
@@ -25,11 +28,6 @@ use crate::dates;
 const KIND: &str = "ppsr_timing";
 const DAY: i64 = 86_400;
 const QUESTIONS: [&str; 3] = ["registration", "pmsi", "company_grantor"];
-
-/// The first day whose s 588FL this command has not read: the Corporations
-/// Act's compilation 149 is in force until 30 November 2026, and later
-/// compilations were unregistered on 20 November 2026.
-const CORPORATIONS_ACT_READ_TO: &str = "2026-12-01";
 
 /// An instant in seconds from 1970-01-01 00:00, ACT legal time.
 type Instant = i64;
@@ -393,13 +391,6 @@ fn latest_time(
     court: Option<Instant>,
     safe_by: Instant,
 ) -> Result<(Instant, Instant)> {
-    let unread = dates::parse(CORPORATIONS_ACT_READ_TO).expect("date") * DAY;
-    if critical >= unread {
-        return refuse(
-            "ppsr_timing.law_unread",
-            "critical_time is on or after 1 December 2026, when a later compilation of the Corporations Act starts, which this command has not read.",
-        );
-    }
     let months = six_months_before(critical)?;
     let latest = [Some(months), Some(safe_by.min(critical)), court]
         .into_iter()

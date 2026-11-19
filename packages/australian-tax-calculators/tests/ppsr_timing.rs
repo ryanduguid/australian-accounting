@@ -298,6 +298,32 @@ fn the_20_business_days_turn_on_the_place() {
     assert_eq!(r["vests"], json!(true));
 }
 
+/// A critical time after compilation 149 ends (30 November 2026): ss 9 and
+/// 588FL are unamended by every later version the Register lists. Agreement
+/// in force Monday 2 November 2026, Melbourne Cup Day (3 November) listed:
+/// the 20th business day is 1 December; with a critical time of 1 March 2027
+/// (6 months before: 1 September 2026) that is the latest time.
+#[test]
+fn a_critical_time_from_1_december_2026_is_worked() {
+    let tested = |reg: &str| {
+        run(&company(
+            "2026-11-02T09:00",
+            json!(["2026-11-03"]),
+            &[
+                ("critical_time", json!("2027-03-01T10:00")),
+                ("registration_time", json!(reg)),
+            ],
+        ))
+    };
+    let r = tested("2026-11-25T12:00");
+    assert_eq!(r["register_by"], "2026-12-01 end of day");
+    assert_eq!(r["six_months_before"], "2026-09-01T10:00");
+    assert_eq!(r["latest_time"], "2026-12-01 end of day");
+    assert_eq!(r["vests"], json!(false));
+    assert_eq!(tested("2026-12-01T23:59")["vests"], json!(false));
+    assert_eq!(tested("2026-12-02T09:00")["vests"], json!(true));
+}
+
 /// s 588FL(2)(b)(i): a registration more than 6 months before the critical
 /// time is safe however late after the agreement it was. Agreement 2 February
 /// 2026, critical time 1 November 2026: the latest time is 1 May 2026.
@@ -386,8 +412,7 @@ fn refusals() {
     );
     let bad = registration("2026-11-19T10:00", "household", false, None);
     assert_eq!(code(&bad), "ppsr_timing.fact_invalid");
-    // A foreign-law agreement, a critical time after the law read, a 6 month
-    // day that does not exist.
+    // A foreign-law agreement, a 6 month day that does not exist.
     let foreign = input(
         "company_grantor",
         "2026-27",
@@ -398,12 +423,6 @@ fn refusals() {
         ],
     );
     assert_eq!(code(&foreign), "ppsr_timing.foreign_law_unsupported");
-    let unread = company(
-        "2026-11-02T09:00",
-        json!([]),
-        &[("critical_time", json!("2026-12-01T00:00"))],
-    );
-    assert_eq!(code(&unread), "ppsr_timing.law_unread");
     let short = company(
         "2026-07-01T09:00",
         json!([]),

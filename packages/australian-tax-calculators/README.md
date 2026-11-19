@@ -339,7 +339,7 @@ trade-in steps add GST Act ss 9-70, 9-75, 11-30, 69-10 and 132-5 and ITAA
 | FBT tax-exempt body entertainment | Years ended 31 March 2026 and 2027; established non-deductible entertainment expenditure, actual or per head |
 | FBT meal entertainment register | Years ended 31 March 2026 and 2027; one 12 week register's period, entries and validity years, with the 20% rule from the yearly expenses given; not whether the period is representative or an entry false |
 | FBT minor benefits | Years ended 31 March 2026 and 2027; one benefit's established category, notional taxable value and s 58P(1)(f) criteria, weighed as TR 2007/12's examples weigh them |
-| PPSR timing | Registrations, possession or attachment and security agreements in 2025-26 and 2026-27, ACT legal time; s 588FL critical times before 1 December 2026; the public holidays the count spans as listed by the caller |
+| PPSR timing | Registrations, possession or attachment and security agreements in 2025-26 and 2026-27, ACT legal time; the public holidays the count spans as listed by the caller |
 | FBT entertainment classifier | Years ended 31 March 2026 and 2027; an ordinary taxable employer's entertainment expense lines with established facts, split per head between attendee classes; no tax-exempt bodies, Subdivision 32-B exceptions, salary packaging or reportable fringe benefits amounts |
 | Depreciation | 2025-26 and 2026-27, an ordinary tangible Division 40 asset's start year, or a later year from its established opening adjustable value; established life and use |
 | SG | Complete quarters of 2025-26; established OTE, eligibility and qualifying contributions |
@@ -1027,7 +1027,8 @@ legal time (PPSA s 294); an end of day is shown as `YYYY-MM-DD end of day`.
 Every answer carries the fee schedule of the Personal Property Securities
 (Fees) Determination 2018 in `rates`: registration $6.00, $25.00 or $115.00,
 a search $2.00 online or $7.00 by the contact centre, maintenance $4.00 and a
-Registrar's report $300.00 an hour. The fees are not subject to GST.
+Registrar's report $300.00 for each hour or part of an hour. The fees are not
+subject to GST.
 
 - `registration`: `registration_time`, `collateral` (`consumer` or
   `commercial`), `serial_numbered` and an optional `end_date`. It gives the
@@ -1048,7 +1049,7 @@ Registrar's report $300.00 an hour. The fees are not subject to GST.
 - `company_grantor`: `agreement_in_force_time`, `place_holidays` and
   `foreign_law_agreement` (true is refused). `register_by` is the end of the
   20th business day after the agreement came into force (Corporations Act
-  s 588FL(2)(b)(ii)). With `critical_time` (before 1 December 2026) and an
+  s 588FL(2)(b)(ii)). With `critical_time` and an
   optional `court_ordered_time` (s 588FM) it gives `latest_time`, the latest
   of the s 588FL(2)(b) times, and with `registration_time`, `vests`: true when
   the registration time is after it, false when not, and null with
