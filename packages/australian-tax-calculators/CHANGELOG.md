@@ -112,6 +112,24 @@
   `loan_transactions.end_date_invalid`, `loan_transactions.entry_invalid`,
   `loan_transactions.not_in_date_order` and
   `loan_transactions.start_outside_year`.
+- `fuel-tax-credits` works out the fuel tax credits for business fuel
+  acquired from 1 July 2022 to 31 January 2027, line by line at the rate the
+  ATO publishes for the day of acquisition (Fuel Tax Act 2006 ss 41-5, 41-20,
+  43-5 and 43-10), from `data/fuel-tax-credit-rates.json`: 16 periods, each
+  with its ATO page and the day read. It totals the lines for label 7D in
+  whole dollars and, for a small claimant, offers the basic method for heavy
+  vehicles (PCG 2021/2) and PCG 2016/2 Methods 1 (litres from the cost and the
+  average price) and 2 (the rate on the period's last day across an
+  indexation change only). `return_date` flags lines s 47-5(2) may have
+  ended. New codes: `fuel_tax_credits.date_outside_year`,
+  `fuel_tax_credits.fact_conflict`, `fuel_tax_credits.fuel_invalid`,
+  `fuel_tax_credits.lines_invalid`, `fuel_tax_credits.method_invalid`,
+  `fuel_tax_credits.period_invalid`, `fuel_tax_credits.quantity_invalid`,
+  `fuel_tax_credits.rate_unpublished`,
+  `fuel_tax_credits.simplified_method_unavailable` and
+  `fuel_tax_credits.use_invalid`. `tests/fuel_tax_credits.rs` holds it to
+  every period's liquid fuel rates, the ATO's Jim and PCG 2021/2's We Deliver
+  examples (in the module's unit tests) and hand-worked cases.
 - `hire-purchase-schedule` takes weekly, fortnightly, quarterly and annual
   instalments (`frequency`), or dated `segments` of level instalments with
   payment holidays, in place of level monthly ones only. Each instalment's
@@ -205,6 +223,19 @@
 - `hire-purchase-schedule`'s `instalment` and `instalments` are required only
   without `segments`, and `hire_purchase.instalments_unsupported` and
   `hire_purchase.rate_unsupported` name the frequency's limits.
+
+### Fixed
+
+- `worksheet_catalogue()`'s evidence note for the 2 car worksheets, the 3
+  Schedule 5 methods, working holiday maker and seniors and pensioners
+  withholding, and the seniors and pensioners tax offset now opens their
+  heading in `docs/calculation-evidence.md`; before, it named an anchor the
+  document does not have.
+- `contribution-caps` cites a first year of bring forward for the
+  non-concessional cap only when the contributions are over the general cap
+  (ITAA 1997 s 292-85(3)(a)). At or under it, the step says that twice or
+  3 times the general cap applies only if bring forward is triggered. No
+  amount changes.
 
 ## 1.0.0
 
