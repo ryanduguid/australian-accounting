@@ -1849,6 +1849,58 @@ earlier ETPs in the year or for the same termination (which reduce the caps,
 s 82-10(4)(a) and (b)), delayed termination payments, payees without a TFN,
 foreign residents and working holiday makers are outside it.
 
+## ETP tax free component
+
+This worksheet's evidence was read on 19 November 2026 from 9.25 am to
+9.40 am AEDT:
+
+- ITAA 1997 ss 82-10, 82-140, 82-145, 82-150, 82-155 and 995-1(1) ('last
+  retirement day') on the ATO's legal database
+  (https://www.ato.gov.au/law/view/document?docid=PAC/19970038/82-150 and the
+  sections beside it). s 82-150(2): the invalidity segment is the ETP times the
+  days to retirement over the employment days plus the days to retirement;
+  s 82-155(2): the pre-July 83 segment is the ETP less the invalidity segment,
+  times the days of employment before 1 July 1983 over all of them; s 82-140:
+  the tax free component is the 2 segments; s 82-145: the taxable component is
+  the rest; s 82-10(6)(c): a payment that includes an invalidity segment, or
+  would but for s 82-150(1)(c), is an excluded payment. The same day's s 995-1
+  already omits the 'laundry expense' definition that Act No. 49 of 2026
+  repealed, so the database was current.
+- The ATO's 'Tax-free component of ETPs' (last updated 24 July 2025): Jackson's
+  $102,000 ETP, $102,000 x [370 / (3,305 + 370)] = $10,269 tax free and
+  $91,731 taxable, in whole dollars. Its own dates, 2 September 2013 to
+  25 September 2022 with a 65th birthday on 25 September 2023, count 3,311
+  employment days and 365 days to retirement on the worksheet's rule, not the
+  3,305 and 370 it shows. The test gives dates that make its counts, so the
+  arithmetic is held to the page, and works its own dates separately: $10,127.86.
+- The ATO's 'Employment termination payment with an invalidity segment
+  worksheet' (NAT 71949, June 2014; page last updated 24 September 2014),
+  read from its PDF: step 1 counts the days before 1 July 1983 including
+  30 June, step 2 the days from 1 July 1983 to the termination day including
+  it, and steps 6 to 9 apply the 2 formulas in that order.
+- The Library's ¶8-850 (superannuation, 'Superannuation Benefits · Termination
+  Payments', last reviewed 30 June 2026): Jim's $100,000 ETP on termination for
+  invalidity on 31 July 2026, his 65th birthday on 15 July 2027, gives 349 days
+  to retirement (1 August 2026 to 15 July 2027), the count this worksheet
+  makes, and $2,128 on 16,050 employment days. From his start on
+  20 August 1981 the days are 16,417, of which 680 fall before 1 July 1983,
+  giving $2,081.59 and a pre-July 83 segment of $4,055.83, worked by hand in
+  the test. Neither published example's employment days match its dates.
+- The Library's ¶8-860 (the same document): Jon's $70,000 at step 1 after a
+  $30,000 invalidity segment, employed from 1 January 1980 to
+  31 December 2026, has 1,277 days before 1 July 1983, the count this worksheet
+  makes, and $5,205 on 17,175 total days; the dates give 17,167, so the test
+  holds the pre-July 83 segment at $5,207.08, read on 19 November 2026.
+
+Rounding each segment half up to the cent is this command's own convention:
+neither the Act nor NAT 71949 sets a rounding rule, and the ATO's examples show
+whole dollars. Death benefit ETPs (which cannot
+include an invalidity segment), payments that relate to part of the employment
+or to broken periods of it, unused leave and superannuation disability benefits
+under s 307-145 (read the same day; its days to retirement run from the day the
+person stopped being capable of gainful employment, and its service days are
+the benefit's service period) are outside it.
+
 ## Unused leave payment
 
 This worksheet's evidence was read on 16 November 2026 from 17:57 to 18:01

@@ -4,6 +4,18 @@
 
 ### Added
 
+- `etp-tax-free-component` works out the tax free component of a life benefit
+  employment termination payment in 2026-27 or 2027-28: the invalidity
+  segment from the days to retirement (ITAA 1997 s 82-150), the pre-July 83
+  segment (s 82-155) and the taxable component left (ss 82-140 and 82-145),
+  with the day counts and whether the payment is an excluded payment
+  (s 82-10(6)(c)), whose taxable component `termination-payment` then
+  withholds from. Where s 82-150(1) is not met the invalidity segment is nil
+  and its step names the condition. New code:
+  `etp_tax_free_component.dates_invalid`. `derive` covers it.
+  `tests/etp_tax_free_component.rs` holds it to the ATO's Jackson example and
+  the Library's Jim and Jon examples.
+
 - `chattel-mortgage-schedule`: a loan to buy goods under a chattel mortgage,
   at the rate its instalments imply or a stated `annual_rate` (monthly or
   weekly in arrears) from which the instalment is worked out, with the

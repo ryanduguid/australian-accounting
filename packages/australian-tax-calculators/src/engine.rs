@@ -3591,6 +3591,8 @@ pub fn termination_payment(
     derived_result("termination_payment", &year, steps, rates)
 }
 
+mod etp_tax_free;
+pub use etp_tax_free::etp_tax_free_component;
 mod unused_leave;
 pub use unused_leave::{LeavePayee, LeaveSplits, unused_leave_payment};
 
@@ -6072,7 +6074,7 @@ pub use income_tests::income_tests;
 mod fbt_minor_benefit;
 pub use fbt_minor_benefit::{MinorBenefitArgs, fbt_minor_benefit_check};
 
-const KINDS: [&str; 51] = [
+const KINDS: [&str; 52] = [
     "gst",
     "resident_tax",
     "foreign_resident_tax",
@@ -6108,6 +6110,7 @@ const KINDS: [&str; 51] = [
     "division_293",
     "division_296",
     "termination_payment",
+    "etp_tax_free_component",
     "unused_leave_payment",
     "schedule_5_method_a",
     "schedule_5_method_b_i",
