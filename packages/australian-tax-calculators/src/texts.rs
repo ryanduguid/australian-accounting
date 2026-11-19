@@ -23,6 +23,10 @@ pub const SCOPES: &[(&str, &str)] = &[
         "Australian resident individual with established ordinary gains and eligible 50% discount gains. Losses apply to non-discount gains first, then discount gains. Excludes asset classification, cost bases, eligibility decisions, collectables, personal-use assets, indexation, exemptions, rollovers, foreign residency and small-business concessions. The result is a net gain, not CGT payable.",
     ),
     (
+        "cgt_parcels",
+        "Shares in a company or units in a unit trust held on capital account and disposed of (CGT event A1, ITAA 1997 s 104-10) under contracts made in the 2025-26 or 2026-27 income year, before Act No. 49 of 2026's changes from the income year that includes 1 July 2027, by an individual or a trust that was an Australian resident throughout and to which none of ss 115-105 to 115-120 applies, a complying superannuation entity or a company other than a life insurance company (whose gains on complying superannuation assets can be discount capital gains, ss 115-10(d) and 115-100(b)(ii)). Each parcel is units of one security acquired together, after 21 September 1999. The operator establishes each parcel's acquisition date (the contract date, s 109-5) and cost base elements (s 110-25), after any adjustment another provision requires, such as for bonus shares, rights, demergers, returns of capital and AMIT cost base adjustments, and each disposal's contract date, units, capital proceeds and incidental costs. Units are matched to parcels first in, first out by acquisition date (the earlier listed first on the same day), or as the taxpayer selects, both of which TD 33 accepts. A parcel's elements and a disposal's proceeds and selling costs are apportioned by units to the cent, half up, the last units taking what is left (ss 112-30 and 116-40). A gain is the capital proceeds above the cost base and a loss the reduced cost base, which leaves out costs of owning, above the capital proceeds (ss 104-10(4) and 110-55(2)). A gain is a discount capital gain when the parcel was acquired at least 12 months before the disposal, counting neither day (s 115-25(1)), unless the entity is a company (s 115-10). Disposals in earlier years use up units and are not counted. The year's capital losses, then earlier net capital losses, reduce the gains that are not discount capital gains first and then the discount capital gains (s 102-5(1) steps 1 and 2), and the discount percentage (50%, or 33 1/3% for a complying superannuation entity, s 115-100) reduces each discount capital gain left (step 3). The other gains and losses are the year's established capital gains and losses from other assets, and prior_net_capital_losses the earlier years' unapplied net capital losses, none from collectables or personal use assets. total_capital_gains, net_capital_gain and net_capital_losses_carried_forward are question 18 labels H, A and V of an individual's return when every capital gain and loss of the year is stated. Refuses a parcel disposed of in the year that was acquired at or before 21 September 1999 (indexation under ss 114-1 and 114-10, or pre-CGT under s 104-10(5)). Excludes shares held as trading stock or on revenue account, employee share scheme interests, interests to which s 115-45 applies, wash sales, other CGT events (such as C2, or E4 and G1 where a payment exceeds the cost base), foreign and temporary residents, the small business concessions (step 4), the affordable housing discount and CGT payable.",
+    ),
+    (
         "main_residence",
         "An individual who was an Australian resident when the CGT event happened, disposing of (CGT event A1) one dwelling, with any adjacent land used mainly for private or domestic purposes with it and of up to 2 hectares in total, acquired on or after 20 September 1985 and held as the same ownership interest throughout, with the disposal in the 2024-25, 2025-26 or 2026-27 income year, before the changes from 1 July 2027. The operator establishes the gain (cost base) or loss (reduced cost base) on the whole interest held, before any exemption or discount; the ownership period's first and last days; the days the dwelling was their main residence, including any treated as such from acquisition under s 118-135; the days it or part of it produced assessable income where interest would have been deductible, with the part of the floor area used; the days covered by a choice under s 118-145; and when a new home that became their main residence was acquired. Every day is counted, both ends included. Each day is taxable in full, in part (the floor area used while living there, s 118-190) or not at all. A choice period keeps the dwelling exempt, except a part used to produce income before the move, which stays taxable; income use is covered for 6 years per absence, to the sixth anniversary of its first day inclusive, as the ATO counts it, and counted across breaks within the same absence; later income-producing days are taxable. Under s 118-140 the last 6 months of ownership, from the same day of the month 6 months earlier (or the first of the next month where that day does not exist), or from the new home's acquisition if later, are exempt when the dwelling was the main residence for a continuous 3 months in the 12 months before ownership ended, which start the day after the same date a year earlier, and produced no income in that time while not the main residence. Under s 118-192, when income use first began after 20 August 1996, a full exemption would have applied just before, and the dwelling is only partly exempt because of that use, the ownership period starts on that day and the gain or loss must be worked out from the market value then. The assessable part is the gain or loss times the taxable days over the days in the ownership period (s 118-185). Excludes deciding residence, main residence status, interest deductibility, floor area, the choice itself and market value; inherited dwellings (s 118-195); a spouse or dependant child with a different main residence (s 118-170); building, repairing or renovating (s 118-150) and destroyed dwellings (s 118-155); adjacent land over 2 hectares or sold separately; compulsory acquisitions; marriage or relationship breakdown rollovers; granny flat arrangements; another dwelling treated as the main residence during a choice period except under s 118-140; the CGT discount and its 12-month test; and small business concessions. Refuses income use of part of the dwelling that changed, paused or stopped between its start and a move that starts a choice period, and a partial exemption with causes besides income use where s 118-192 would otherwise apply.",
     ),
@@ -89,6 +93,10 @@ pub const SCOPES: &[(&str, &str)] = &[
     (
         "fbt_car_statutory",
         "One car held by an ordinary taxable employer, as the only provider and for a single holding period, and used or available for an employee's private use in the FBT year ended 31 March 2026 or 2027, with no commitment to provide it made before 7.30 pm AEST on 10 May 2011, so the 20% statutory percentage applies. The operator establishes the base value under s 9(2) as the employer's guide (7.8.1) describes: cost_price holds the part the one-third reduction applies to (where the provider or an associate owned the car at the earliest holding time, its cost price to them with dealer delivery and non-business accessories fitted at acquisition; otherwise its leased car value then, which is the lessor's cost price only if the lease began then and the lessor bought the car at or about that time, and otherwise its arm's-length purchase price), and later_accessories holds non-business accessories fitted after the earliest holding time and still fitted while the car was held in the year, which it never reduces. one_third_reduction is true only from the FBT year starting after the car has been held for 4 years. Days used or available for private use, recipient's payments and whether the electric cars exemption applies are established facts. Excludes deciding whether a car benefit or exemption arises, the base value itself, arm's-length deeming, dealer demonstrator cars, the type 1 or type 2 choice, gross-up and FBT payable. Only the gross taxable value is rounded to cents, before the recipient's payment, which cannot take the taxable value below nil; an unused excess is shown and reduces no other benefit. An exempt electric car's taxable value is nil, and taxable_value_before_exemption is the notional value its reportable fringe benefits amount is worked out from, before gross-up.",
+    ),
+    (
+        "fbt_ev_exemption_check",
+        "Whether the car benefits from one car, provided in the FBT year ended 31 March 2026 or 2027, are exempt under FBTAA s 8A (the electric cars exemption), as compiled on 1 July 2026, with the application and transitional rules of the Treasury Laws Amendment (Electric Car Discount) Act 2022. The operator establishes that the car's private use or availability is a car benefit under s 7(1), and each fact the command takes: whether the vehicle is a car (s 136(1)), a battery electric, hydrogen fuel cell electric or plug-in hybrid electric vehicle (s 8A(3) to (5)) or another, whether the benefit is for a current employee, the earliest day anyone both held and used the car, the financial year of its first retail sale and its luxury car tax value then (LCT Act s 5-20), whether luxury car tax became payable on any other supply or importation of it, and for a plug-in hybrid the facts of Schedule 2 item 5(2). Each condition is shown as met or not, and the benefit is exempt only when all are met: a car (s 136(1)); a current employee (s 8A(1)(a)); a battery electric or hydrogen fuel cell electric vehicle (s 8A(1)(b) and (2)), or a plug-in hybrid electric vehicle whose benefit falls under Schedule 2 item 5(2): a commitment made before 1 April 2025 for a period that began before then and includes the benefit, no new commitment from 1 April 2025, and an exempt car benefit for the car before 1 April 2025; the car first both held and used on or after 1 July 2022 (Schedule 1 item 7(2)); no luxury car tax at the first retail sale, its luxury car tax value not exceeding the fuel-efficient car threshold the ATO publishes for that financial year (LCT Act s 25-1(1) and (4); $91,387 for 2024-25 and 2025-26 and $91,661 for 2026-27); and none on any other supply or importation (s 8A(1)(c)). Gives electric_car_exempt for fbt-car-statutory and fbt-car-operating-cost, and what the exemption means for reporting and car expenses (ss 53(1) and 135P(3)). Refuses a first retail sale in a financial year the ATO's table does not hold (before 2012-13 or after 2026-27), a car first held and used or first sold after the FBT year ends, plug-in hybrid facts for another vehicle, and an exempt plug-in hybrid benefit before 1 April 2025 for a car first held and used later. Excludes deciding whether a car benefit arises, the vehicle's type, the dates, the luxury car tax value and the commitments; a car that was not a fuel-efficient car under LCT Act s 25-1(4) as it read at its first retail sale (whose threshold is the other vehicles' one); a car not first sold in a retail sale in Australia, such as one imported by its user; the taxable value, which fbt-car-statutory and fbt-car-operating-cost work out; and FBT years from 1 April 2027, for which the government announced on 5 May 2026 a change that was not law when this was checked.",
     ),
     (
         "fbt_car_operating_cost",
@@ -239,6 +247,10 @@ pub const SCOPES: &[(&str, &str)] = &[
         "A screen of one benefit provided to an employee or an associate in respect of the employee's employment, in the FBT year ended 31 March 2026 or 2027, against the minor benefits exemption of FBTAA s 58P. The operator establishes the benefit's category, its notional taxable value in the current year (for one benefit to one person: TR 2007/12 paras 17 and 18), whether it is under a salary sacrifice arrangement, each criterion of s 58P(1)(f) as a stated fact, and the facts of each category's exclusion. The conditions are decided and shown as met or not: an expense payment, property or residual benefit that would not be an in-house fringe benefit (s 58P(1)(c)); tax-exempt body entertainment only within s 58P(1)(d)(i) or (ii); meal entertainment or entertainment facility leasing never qualifies under the 50/50 split method (Division 9A or s 152B: TR 2007/12 para 14), and is refused without it, to be screened under its own category; no salary sacrifice arrangement (TR 2007/12 para 16); and a notional taxable value less than $300 (s 58P(1)(e)). The criteria of s 58P(1)(f) are each shown with which way the stated fact weighs, and weighed as the Commissioner's examples in TR 2007/12 weigh them: exempt where identical or similar benefits are not provided frequently, neither total is substantial and the benefit is not both regular and a reward for services (examples 1 to 3, 5 to 7 and 9 to 11), not exempt where they are provided frequently as a reward for services, their total is substantial, they are readily valued and not for an unexpected event (example 8), and otherwise the employer's judgement, shown as such. TR 2007/12 is a public ruling, the Commissioner's view of the law, and its para 11 still lists airline transport benefits, whose exclusion (s 58P(1)(b)) Act No. 88 of 2013 repealed. Excludes deciding the benefit's category, its notional taxable value, whether benefits are associated (s 58P(2)), and the criteria themselves; benefits exempt under another provision; and what an exempt entertainment benefit means for income tax and GST.",
     ),
     (
+        "fhss",
+        "The First Home Super Saver scheme for an individual whose first home super saver determination is made from 1 July 2018 to 31 December 2026. With contributions, an estimate of the determination (TAA 1953 Sch 1 s 138-10(1)): the operator establishes that the individual is 18 or older, has never held a legal interest in an estate in fee simple in real property in Australia, a lease of land in Australia within ITAA 1997 s 104-115(1)(b) or a company title interest in land in Australia, or has a financial hardship determination (s 138-10(2) and (2A)), and has made no earlier valid release request that was not withdrawn or revoked (s 138-10(2C)); that each contribution listed is an eligible one (s 138-35(2)): made in respect of the individual in the financial year, a voluntary employer contribution that is not mandated or a member contribution made by the individual, not required by a law or the fund's rules, not to a defined benefit interest and not to a constitutionally protected fund; and that the individual had no excess concessional or non-concessional contributions in a year counted (s 138-35(3) and (4) are not applied). Contributions are counted earliest first, a non-concessional one before a concessional one made at the same time, and in a year where the individual personally made both kinds, the year's non-concessional ones first (s 138-30(2) and (3)); a year's deducted personal contributions are taken to be its latest. At most $15,000 of a financial year's contributions and $50,000 in all count, or $30,000 in all for a determination requested before 1 July 2022, tested on contributions in full (s 138-35(1); GN 2024/1 section 3). The releasable contributions amount is the non-concessional contributions counted plus 85% of the concessional (s 138-30(1)). Associated earnings (s 138-40) are worked out for each contribution on the amount counted in the releasable contributions amount, daily at the shortfall interest charge rate (s 280-105(2): the quarter's annual rate the ATO publishes over the days in the calendar year), from 1 July 2017 for a 2017-18 contribution or otherwise the first day of its month, to the determination day, rounded down to the dollar; they are an estimate, as the Commissioner's determination is what counts. With determination, its stated components are taken as given. On release of amount_requested (the maximum unless given; never more, s 131-10(1) item 4): the assessable FHSS released amount (ITAA 1997 s 313-20), the tax withheld (TAA Regulations 2017 reg 53A: the Commissioner's estimate, which GN 2024/1 section 7 gives as the estimated marginal rate plus 2% Medicare levy less 30%, or 17% where the operator states that he cannot estimate one; one of the 2 must be given; rounded down to the dollar as GN 2024/1 examples 11 to 13 are; withholding_basis is estimate for the formula and reg_53A_1_b for the 17%), the 30% non-refundable offset (s 313-25), the FHSS tax at 20% if neither a contract nor a recontribution is notified in time (s 313-60; First Home Super Saver Tax Act 2017 s 4) and the recontribution that avoids it (s 313-50: the assessable amount less the tax withheld). Excludes the deadlines for a contract, notice and recontribution, KiwiSaver and other foreign fund transfers, excess contributions, amended determinations, a release after an action under the transitional rules of item 30 of Schedule 4 to the Treasury Laws Amendment (2023 Measures No. 3) Act 2023 for a determination made before 15 September 2024 (outside Subdivisions 313-C to 313-E, so no FHSS tax or recontribution applies: flagged for every such determination), foreign residents, a Medicare levy exemption or reduction in the withholding estimate, and the income tax payable on the assessable amount.",
+    ),
+    (
         "fbt_entertainment_classifier",
         "Classifies an ordinary taxable employer's entertainment expense lines for the FBT year ended 31 March 2026 or 2027; the employer is not exempt from income tax and is registered for GST. Each line states what was provided (food or drink, recreation, or accommodation or travel to do with either), for food or drink, and for accommodation or travel to do with it, the food or drink's occasion, the venue, whether the employer provided it or reimbursed an attendee, the attendees by class (employees, their associates, and others such as clients) with head counts, and its cost and whether that includes GST. Whether food or drink is entertainment follows TR 97/17's tests (para 23) for the occasion stated; recreation, and accommodation or travel to do with entertainment, are entertainment (ITAA 1997 s 32-10), and only food or drink, with the accommodation or travel to do with it, is meal entertainment (FBTAA s 37AD). A line's cost is split per head between its classes, the last class taking the rounding remainder, and a line of more than one class without every head count is refused. For each class the classifier gives the fringe benefit and its type (s 20 expense payment, s 40 property or s 45 residual; on a reimbursed line with more than one employee, the reimbursed employee's expense payment and each other employee's property or residual benefit, TR 97/17 para 98), the s 41 exemption, the minor benefits exemption only as a possibility (s 58P(1)(e)'s $300 threshold and the operator's statement of (f)(i); the rest of (f) is the employer's judgement), the deduction (ITAA 1997 ss 8-1, 32-5 and 32-20, or ITAA 1936 s 51AEA or 51AEB under an election, less the GST credit, s 27-5) and the GST credit, the deductible share of the GST in the cost (GST Act s 69-5), and, for each fringe benefit, whether it is an excluded fringe benefit left out of reporting: meal entertainment is (FBTAA s 5E(3)(a)) and other entertainment is not. Food or drink, or accommodation or travel to do with it, with no occasion stated, and an employee's share of something other than food or drink the employer provided on its business premises on a working day, are returned undetermined with the missing fact and left out of the totals. Under the 50/50 split or 12 week register method the meal entertainment lines' cost is totalled as meal_entertainment_expenditure for fbt-meal-entertainment, which values it; others such as clients receive no fringe benefit, though their meal entertainment counts in that total and is deductible at the method's share (FBTAA ss 37BA and 37CB(3); ITAA 1936 ss 51AEA and 51AEB). The operator establishes each line's facts, that every attendee on a travel_meal line is travelling for work, that nothing is provided under a salary packaging arrangement, as an in-house benefit or by an associate of the employer, and that no exception in ITAA 1997 ss 32-30 to 32-50 applies: in-house dining and dining facilities (items 1.1 to 1.3), overtime meals (items 1.4 and 5.1), recreation facilities for employees (item 1.5), other exempt food, drink or meals (items 1.6 and 1.7), allowances (item 1.8), seminars (item 2.1), the entertainment industry (items 3.1 and 3.2), promotion and advertising (items 4.1 to 4.3) and the disadvantaged public (item 5.2). Excludes tax-exempt bodies (fbt-tax-exempt-body-entertainment), entertainment facility leasing expenses (s 152B), benefits to a client's employees under an arrangement (TR 97/17 para 126), taxable values, contributions and the otherwise deductible rule (fbt-property, fbt-expense-payment and fbt-residual), each employee's reportable fringe benefits amount, gross-up and FBT payable.",
     ),
@@ -272,6 +284,10 @@ pub const SOURCES: &[(&str, &str)] = &[
     (
         "capital_gains",
         "https://www.ato.gov.au/forms-and-instructions/capital-gains-tax-guide-2014/part-b-completing-the-capital-gains-section-of-your-tax-return/step-6-applying-current-year-capital-losses",
+    ),
+    (
+        "cgt_parcels",
+        "https://www.legislation.gov.au/C2004A05138/2026-05-21/2026-05-21/text/original/epub/OEBPS/document_3/document_3.html",
     ),
     (
         "main_residence",
@@ -345,6 +361,7 @@ pub const SOURCES: &[(&str, &str)] = &[
         "fbt_car_operating_cost",
         "https://www.ato.gov.au/law/view/document?DocID=SAV/FBTGEMP/00008",
     ),
+    ("fbt_ev_exemption_check", FBTAA_PART_1),
     (
         "fbt_loan",
         "https://www.ato.gov.au/law/view/document?DocID=SAV/FBTGEMP/00009",
@@ -479,6 +496,10 @@ pub const SOURCES: &[(&str, &str)] = &[
     (
         "fbt_minor_benefit_check",
         "https://www.ato.gov.au/law/view/document?DocID=PAC/19860039/58P",
+    ),
+    (
+        "fhss",
+        "https://www.ato.gov.au/law/view/document?DocID=PAC/19530001/SCH1-138-40",
     ),
     (
         "ppsr_timing",
@@ -735,6 +756,16 @@ pub const EXTRA_SOURCES: &[(&str, &[&str])] = &[
         ],
     ),
     (
+        "cgt_parcels",
+        &[
+            "https://www.legislation.gov.au/C2026A00049/asmade/text",
+            "https://www.ato.gov.au/law/view/document?DocID=CGD/TD33/NAT/ATO/00001",
+            "https://www.ato.gov.au/individuals-and-families/investments-and-assets/capital-gains-tax/shares-and-similar-investments/keeping-records-of-shares-and-units",
+            "https://www.ato.gov.au/individuals-and-families/investments-and-assets/capital-gains-tax/cgt-discount",
+            "https://www.ato.gov.au/forms-and-instructions/individual-tax-return-instructions-supplement-2026/income-supplementary-section/18-capital-gains-2026",
+        ],
+    ),
+    (
         "trade_in",
         &[
             "https://www.legislation.gov.au/C2004A05138/2026-10-01/2026-10-01/text/original/epub/OEBPS/document_1/document_1.html",
@@ -776,6 +807,18 @@ pub const EXTRA_SOURCES: &[(&str, &[&str])] = &[
             "https://www.ato.gov.au/forms-and-instructions/fringe-benefits-tax-return-2026-instructions/item-23-fringe-benefit-categories-for-fbt-return-2026",
             "https://www.ato.gov.au/tax-rates-and-codes/fringe-benefits-tax-rates-and-thresholds",
             "https://www.ato.gov.au/businesses-and-organisations/hiring-and-paying-your-workers/fringe-benefits-tax/types-of-fringe-benefits/fbt-on-cars-other-vehicles-parking-and-tolls/electric-cars-exemption",
+        ],
+    ),
+    (
+        "fbt_ev_exemption_check",
+        &[
+            FBTAA_PART_2,
+            "https://www.legislation.gov.au/C2022A00086/asmade/text",
+            "https://www.legislation.gov.au/C2004A00463/latest/text",
+            "https://www.ato.gov.au/businesses-and-organisations/hiring-and-paying-your-workers/fringe-benefits-tax/types-of-fringe-benefits/fbt-on-cars-other-vehicles-parking-and-tolls/electric-cars-exemption",
+            "https://www.ato.gov.au/businesses-and-organisations/hiring-and-paying-your-workers/fringe-benefits-tax/types-of-fringe-benefits/fbt-on-cars-other-vehicles-parking-and-tolls/fbt-on-plug-in-hybrid-electric-vehicles",
+            "https://www.ato.gov.au/tax-rates-and-codes/luxury-car-tax-rate-and-thresholds",
+            "https://www.ato.gov.au/about-ato/new-legislation/in-detail/businesses/electric-car-discount-more-sustainable-fbt-treatment-of-electric-cars",
         ],
     ),
     (
@@ -1024,6 +1067,21 @@ pub const EXTRA_SOURCES: &[(&str, &[&str])] = &[
         ],
     ),
     (
+        "fhss",
+        &[
+            "https://www.ato.gov.au/law/view/document?DocID=PAC/19530001/SCH1-138-30",
+            "https://www.ato.gov.au/law/view/document?DocID=PAC/19530001/SCH1-138-35",
+            "https://www.ato.gov.au/law/view/document?DocID=PAC/19530001/SCH1-280-105",
+            "https://www.ato.gov.au/law/view/document?DocID=PAC/19530001/SCH1-131-10",
+            "https://www.ato.gov.au/law/view/document?DocID=PAC/19970038/313-20",
+            "https://www.ato.gov.au/law/view/document?DocID=PAC/19970038/313-25",
+            "https://www.legislation.gov.au/F2017L01227/latest/text",
+            "https://www.legislation.gov.au/C2023A00075/asmade/2023-09-20/text/original/epub/OEBPS/document_1/document_1.html",
+            "https://www.ato.gov.au/law/view/document?DocID=GDN/GDN20241/NAT/ATO/00001",
+            "https://www.ato.gov.au/tax-rates-and-codes/shortfall-interest-charge-rates",
+        ],
+    ),
+    (
         "fbt_entertainment_classifier",
         &[
             "https://www.legislation.gov.au/C2004A05138/2026-10-01/2026-10-01/text/original/epub/OEBPS/document_10/document_10.html",
@@ -1082,6 +1140,12 @@ pub const EXTRA_WARNINGS: &[(&str, &[&str])] = &[
     ),
     ("fbt_car_statutory", &[CAR_REPORTABLE_NOTE]),
     (
+        "fbt_ev_exemption_check",
+        &[
+            "On 5 May 2026 the government announced that from 1 April 2027 the exemption would continue in full only for an electric car costing $75,000 or less, with a 25% discount for one costing more but below the luxury car tax threshold; the ATO said it was not yet law when this was checked on 19 November 2026, so the year ended 31 March 2028 is refused.",
+        ],
+    ),
+    (
         "hire_purchase_schedule",
         &[
             "interest_by_income_year totals only the periods wholly in each income year. A period spanning 30 June is listed in interest_across_30_june with its days on each side, not split: s 240-60(2) relates the part of a period that falls in an income year to it in accordance with generally accepted accounting principles, which this worksheet does not apply. The journals set the same periods apart.",
@@ -1117,6 +1181,12 @@ pub const EXTRA_WARNINGS: &[(&str, &[&str])] = &[
         &[
             "The margin, both GST amounts and the conditions are worked whether or not the margin scheme applies, so the 2 can be compared; gst is the GST payable only on the facts given.",
             "A supply of new residential premises or potential residential land may require the purchaser to pay an amount to the ATO at settlement (Schedule 1 to the Taxation Administration Act 1953 s 14-250); this worksheet does not work it out.",
+        ],
+    ),
+    (
+        "cgt_parcels",
+        &[
+            "The ATO accepts first in, first out where the shares or units sold cannot be identified, and the taxpayer's own selection (TD 33 para 4); records must support the parcels chosen.",
         ],
     ),
     (
@@ -1191,6 +1261,13 @@ pub const EXTRA_WARNINGS: &[(&str, &[&str])] = &[
         &[
             "s 58P(1)(f) asks whether, having regard to all its criteria, it would be concluded that it would be unreasonable to treat the benefit as a fringe benefit; the criteria are the operator's statements, and the screen weighs them as TR 2007/12, the Commissioner's view, weighs its examples. A judgement_required result is the employer's to decide.",
             "Where the employer uses the 12 week register method for meal entertainment, minor benefits reduce the register's meal entertainment fringe benefits value (TR 2007/12 para 15); fbt-meal-entertainment takes that value as given.",
+        ],
+    ),
+    (
+        "fhss",
+        &[
+            "associated_earnings worked out from contributions is an estimate: GN 2024/1 example 6 (Jill) states $5,190 of associated earnings, which s 138-40 at the ATO's published SIC rates does not reproduce on any reading tried (the counted amount at 85% or in full, either contribution order); the example also counts 2024-25 contributions ahead of 2023-24 ones, which s 138-30(2) counts first. The Commissioner's determination is the figure to use.",
+            "The assessable FHSS released amount is included in the income year that corresponds to the financial year in which the release was requested, even if it is paid in the next (s 313-20(1)); income-tests leaves it out of the income tests it lists.",
         ],
     ),
     (
@@ -1271,6 +1348,7 @@ pub const BORROWING_PROJECTED: &str = "A row marked projected is after 2027-28, 
 pub const UNPUBLISHED_2027_28: &[(&str, &str)] = &[
     ("capital_gains", CGT_2027_28),
     ("main_residence", CGT_2027_28),
+    ("cgt_parcels", CGT_2027_28),
     ("balancing_adjustment", CGT_2027_28),
     (
         "trade_in",
@@ -1455,6 +1533,38 @@ pub const REFUSAL_CODES: &[(&str, &str)] = &[
         "An item is stated not to be capital expenditure.",
     ),
     (
+        "cgt_parcels.entity_invalid",
+        "entity is not individual, trust, complying_superannuation_entity or company.",
+    ),
+    (
+        "cgt_parcels.fact_conflict",
+        "Parcels or disposals contradict each other or the income year: a name used twice, a parcel of another security or acquired after the disposal or the year, selected units that do not add up, or a company's discount gains.",
+    ),
+    (
+        "cgt_parcels.fact_invalid",
+        "A parcel's or disposal's fact has the wrong type or is out of range.",
+    ),
+    (
+        "cgt_parcels.fact_missing",
+        "A parcel or disposal leaves out a fact it needs.",
+    ),
+    (
+        "cgt_parcels.identification_invalid",
+        "identification is not first_in_first_out or selected.",
+    ),
+    (
+        "cgt_parcels.indexation_or_pre_cgt",
+        "A parcel disposed of in the year was acquired at or before 21 September 1999, so indexation or the pre-CGT rule may apply.",
+    ),
+    (
+        "cgt_parcels.list_invalid",
+        "parcels or disposals is not a list of 1 to 1,000 objects.",
+    ),
+    (
+        "cgt_parcels.units_not_held",
+        "A disposal takes more units than the parcels acquired by then still hold.",
+    ),
+    (
         "chattel_mortgage.balloon_too_large",
         "At a chattel mortgage's stated annual_rate the balloon alone repays the amount financed or more.",
     ),
@@ -1620,6 +1730,22 @@ pub const REFUSAL_CODES: &[(&str, &str)] = &[
         "The employer is exempt from income tax, so fbt-tax-exempt-body-entertainment applies.",
     ),
     (
+        "fbt_ev_exemption.fact_conflict",
+        "The car's dates contradict the FBT year or the plug-in hybrid facts.",
+    ),
+    (
+        "fbt_ev_exemption.sale_within_year",
+        "Luxury car tax was payable on a first retail sale within the FBT year after the car was first held and used, so the benefits before and after it differ.",
+    ),
+    (
+        "fbt_ev_exemption.threshold_year_unsupported",
+        "first_retail_sale is before the financial years whose fuel-efficient luxury car tax threshold the ATO's table lists.",
+    ),
+    (
+        "fbt_ev_exemption.vehicle_invalid",
+        "vehicle is not battery_electric, hydrogen_fuel_cell_electric, plug_in_hybrid_electric or other.",
+    ),
+    (
         "fbt_expense_payment.deduction_exceeds_portion",
         "The deduction for the expenditure an expense payment's recipient bore exceeds the recipient's portion.",
     ),
@@ -1706,6 +1832,46 @@ pub const REFUSAL_CODES: &[(&str, &str)] = &[
     (
         "fbt_tax_exempt_body_entertainment.heads_invalid",
         "The employees and associates entertained are not a JSON integer from 0 to everyone entertained, or everyone entertained is not from 1 to 1,000,000.",
+    ),
+    (
+        "fhss.basis_invalid",
+        "fhss was given both contributions and determination, or neither.",
+    ),
+    (
+        "fhss.contribution_kind_invalid",
+        "A contribution's kind is not employer_voluntary or personal, the kinds eligible to be released (TAA 1953 Sch 1 s 138-35(2)).",
+    ),
+    (
+        "fhss.contribution_out_of_period",
+        "A contribution is dated before 1 July 2017 or after the determination day.",
+    ),
+    (
+        "fhss.contributions_invalid",
+        "contributions is not a list of 1 to 10000 objects.",
+    ),
+    (
+        "fhss.deductions_invalid",
+        "personal_deductions is not a list of financial years and amounts, gives a year twice or deducts more than that year's personal contributions.",
+    ),
+    (
+        "fhss.determination_invalid",
+        "determination is not an object of concessional, non_concessional and associated_earnings.",
+    ),
+    (
+        "fhss.determination_requested_invalid",
+        "determination_requested is before 1 July 2018 or after the determination day.",
+    ),
+    (
+        "fhss.rate_unpublished",
+        "determination_date is after 31 December 2026, the last quarter with a published SIC rate.",
+    ),
+    (
+        "fhss.request_exceeds_maximum",
+        "amount_requested is more than the FHSS maximum release amount (TAA 1953 Sch 1 s 131-10(1), table item 4).",
+    ),
+    (
+        "fhss.year_mismatch",
+        "determination_date is not in the financial year given as year.",
     ),
     (
         "franking_account.distribution_invalid",
@@ -1941,7 +2107,7 @@ pub const REFUSAL_CODES: &[(&str, &str)] = &[
     ),
     (
         "input.field_unknown",
-        "A field the worksheet or command does not take, or does not take beside the other inputs given, was given (fbt-loan, fbt-meal-entertainment, fbt-car-parking, fbt-debt-waiver, fbt-expense-payment, fbt-property, fbt-residual, fbt-housing, fbt-lafha, fbt-board, fbt-tax-exempt-body-entertainment, fbt-entertainment-classifier, fbt-meal-entertainment-register and its entries, fbt-minor-benefit-check, ppsr-timing, division-296, depreciation, fuel-tax-credits and its lines, foreign-resident-tax, medicare-levy, medicare-levy-surcharge, payg-withholding, payg-gross-up, termination-payment, etp-tax-free-component, unused-leave-payment, the Schedule 5 methods, working-holiday-maker-withholding, study-loan-withholding, seniors-pensioners-withholding, seniors-pensioners-tax-offset, lump-sum-arrears-tax-offset, hire-purchase-schedule, chattel-mortgage-schedule, loan-transactions and its transactions and rate_changes, borrowing-expenses-schedule and its loans, business-capital-expenditure and its items, balancing-adjustment, its years and car_limit, trade-in, franking-account and its events, distributions and income_tax, dasp-tax, gst-margin-scheme, wine-equalisation-tax and its dealings, luxury-car-tax and its lines, payroll-tax, contribution-caps given a carry-forward input, derive, personal-tax-estimate, dgr-check, income-tests and fbt-return only).",
+        "A field the worksheet or command does not take, or does not take beside the other inputs given, was given (fbt-loan, fbt-meal-entertainment, fbt-car-parking, fbt-debt-waiver, fbt-expense-payment, fbt-property, fbt-residual, fbt-housing, fbt-lafha, fbt-board, fbt-tax-exempt-body-entertainment, fbt-entertainment-classifier, fbt-meal-entertainment-register and its entries, fbt-minor-benefit-check, ppsr-timing, fhss and its contributions, personal_deductions and determination, division-296, depreciation, fuel-tax-credits and its lines, foreign-resident-tax, medicare-levy, medicare-levy-surcharge, payg-withholding, payg-gross-up, termination-payment, etp-tax-free-component, unused-leave-payment, the Schedule 5 methods, working-holiday-maker-withholding, study-loan-withholding, seniors-pensioners-withholding, seniors-pensioners-tax-offset, lump-sum-arrears-tax-offset, hire-purchase-schedule, chattel-mortgage-schedule, loan-transactions and its transactions and rate_changes, borrowing-expenses-schedule and its loans, business-capital-expenditure and its items, balancing-adjustment, its years and car_limit, trade-in, franking-account and its events, distributions and income_tax, dasp-tax, gst-margin-scheme, wine-equalisation-tax and its dealings, luxury-car-tax and its lines, payroll-tax, cgt-parcels, its parcels and disposals, fbt-ev-exemption-check, contribution-caps given a carry-forward input, derive, personal-tax-estimate, dgr-check, income-tests and fbt-return only).",
     ),
     ("input.flag_invalid", "A flag is not a JSON boolean."),
     ("input.fraction_invalid", "A fraction is outside 0 to 1."),

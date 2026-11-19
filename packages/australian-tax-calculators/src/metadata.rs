@@ -1055,10 +1055,15 @@ pub fn supported_periods(kind: &str) -> Vec<&'static str> {
         // refused as for balancing_adjustment, and its car limit is not yet
         // published.
         "trade_in" => vec!["2025-26", "2026-27"],
+        "cgt_parcels" => vec!["2025-26", "2026-27"],
         "fbt" => vec!["2026", "2027"],
         "fbt_car_statutory" | "fbt_car_operating_cost" | "fbt_loan" => {
             keys(FBT_BENCHMARK_INTEREST_RATES)
         }
+        // The car worksheets' years. The year ended 31 March 2028 is refused:
+        // the change announced for 1 April 2027 was not law on 19 November
+        // 2026.
+        "fbt_ev_exemption_check" => vec!["2026", "2027"],
         // The methods use no published rate; the years are those the ATO's
         // return instructions and rates page were read for.
         "fbt_meal_entertainment" => vec!["2026", "2027"],
@@ -1107,6 +1112,13 @@ pub fn supported_periods(kind: &str) -> Vec<&'static str> {
         // No published rate: s 58P(1)(e)'s $300 is the Act's own. The years
         // are those the other FBT benefit worksheets cover.
         "fbt_minor_benefit_check" => vec!["2026", "2027"],
+        // The financial years of the determination day: determinations began
+        // on 1 July 2018, and the last published SIC quarter ends on
+        // 31 December 2026.
+        "fhss" => vec![
+            "2018-19", "2019-20", "2020-21", "2021-22", "2022-23", "2023-24", "2024-25", "2025-26",
+            "2026-27",
+        ],
         // The year of the registration, possession or attachment, or
         // agreement: the fees are unchanged since 1 August 2018 and the law
         // read is in force from 14 October 2024 (PPSA), and the Corporations
@@ -1187,6 +1199,10 @@ pub fn source_review(kind: &str) -> (&'static str, &'static str) {
             "2026-11-19",
             "A New Tax System (Luxury Car Tax) Act 1999 ss 5-15, 5-20, 7-15, 9-5, 9-15, 15-20, 15-25, 15-30, 18-5, 18-10, 25-1 and 27-1 at the ATO's legal database, with their history notes (ss 18-5(3) and 18-10(3) substituted by Act No. 94 of 2019 for cars supplied or imported from 1 July 2019), and compilation 27 (1 April 2025) at the Federal Register of Legislation; Treasury Laws Amendment (Tax Incentives and Integrity) Act 2025 (No. 29, 2025) Schedule 1 (the 3.5 litre fuel-efficient rating from 1 July 2025 and item 4's continued 7 litre rating); Luxury Car Tax Imposition (General) Act 1999 and (Customs) Act 1999 s 4 (33%); the ATO's 'Luxury car tax rate and thresholds' (QC38161, 1 June 2026), 'Working out the LCT on a sale' (QC22107, 1 June 2026), 'Working out the LCT on an import' (QC22108, 1 June 2026), 'Luxury car tax credits and refunds' (QC39467, 16 July 2025) and the BAS page 'Luxury car tax (LCT)' (QC33694, 1 May 2025); 'Instructions for completing your BAS' (QC17458, 14 September 2026)",
         ),
+        "cgt_parcels" => (
+            "2026-11-19",
+            "ITAA 1997 ss 102-5, 102-10, 102-15, 104-10, 109-5, 110-25, 110-35, 110-55, 112-30, 114-1, 114-10, 115-5 to 115-25, 115-100 and 116-40, compilation 264 (21 May 2026), the text for 2025-26 and 2026-27 under Act No. 49 of 2026 Schedule 1 items 82 to 84; TD 33 (identical shares); the ATO's 'Keeping records of shares and units' (last updated 22 June 2026: Boris's example), 'CGT discount' (last updated 29 June 2026: the 12 months exclude the days of acquisition and the event) and the individual tax return instructions supplement 2026, question 18 (last updated 30 May 2026: Kathleen's examples 1 to 4)",
+        ),
         "trade_in" => (
             "2026-11-18",
             "As for balancing_adjustment, with ITAA 1997 ss 27-80, 27-95, 40-180, 40-185, 40-225, 40-230 and 40-365, compilation 268 (1 October 2026); GST Act ss 9-5, 9-70, 9-75, 11-5, 11-25, 11-30, 69-10 and 132-5, compilation 96 (1 January 2026); the ATO's 'Purchasing a motor vehicle' (last updated 3 June 2026: the 2026-27 car limit and Darren's example), 'Disposing of a motor vehicle' (last updated 29 May 2024: trade-ins) and 'GST and the disposal of capital assets' (last updated 24 May 2017: Ian's decreasing adjustment)",
@@ -1206,6 +1222,10 @@ pub fn source_review(kind: &str) -> (&'static str, &'static str) {
         "fbt_car_statutory" => (
             "2026-10-29",
             "Fringe benefits tax - a guide for employers, 7.8 statutory formula method and examples 23 and 26; FBT return 2026 instructions, item 23A and example 6; Electric cars exemption, reportable fringe benefits",
+        ),
+        "fbt_ev_exemption_check" => (
+            "2026-11-19",
+            "FBTAA ss 7(1), 8A, 53(1), 135P and 136(1), compilation 97 (1 July 2026); Treasury Laws Amendment (Electric Car Discount) Act 2022 (No. 86 of 2022), as made, s 8A(2)(c) and (5) as inserted, Schedule 1 item 7 and Schedule 2 item 5; A New Tax System (Luxury Car Tax) Act 1999 ss 5-20 and 25-1, compilation of 1 April 2025; the ATO's 'Electric cars exemption' (last updated 1 April 2026: its Shelly, John and GHI Co examples), 'FBT on plug-in hybrid electric vehicles' (last updated 14 March 2025: its Sonia, Simon, Tony, Courtney and pool car examples), 'Luxury car tax rate and thresholds' (last updated 1 June 2026) and 'Electric car discount – more sustainable fringe benefits tax treatment of electric cars' (last updated 3 November 2026: not yet law)",
         ),
         "fbt_car_operating_cost" => (
             "2026-11-06",
@@ -1351,6 +1371,10 @@ pub fn source_review(kind: &str) -> (&'static str, &'static str) {
             "2026-11-19",
             "FBTAA ss 58P, 136(1) ('fringe benefit' para (g) and 'eligible premises') and 152B, from the ATO's legal database (s 58P(1)(b) repealed by Act No. 88 of 2013); TR 2007/12 (paras 8 to 23 and examples 1 to 13)",
         ),
+        "fhss" => (
+            "2026-11-20",
+            "TAA 1953 Sch 1 ss 12-460, 131-5, 131-10, 138-10, 138-25, 138-30, 138-35, 138-40 and 280-105, and ITAA 1997 ss 313-20, 313-25, 313-50 and 313-60, from the ATO's legal database; Taxation Administration Regulations 2017 reg 53A, compilation 18 (14 November 2026); Treasury Laws Amendment (2023 Measures No. 3) Act 2023 Sch 4 items 28 and 30, as made; GN 2024/1 sections 1 to 7 and examples 6, 7 and 11 to 13; the ATO's 'About FHSS release amounts' (Mary), 'FHSS tax assessment' and 'Shortfall interest charge (SIC) rates' (last updated 4 September 2026) pages",
+        ),
         "fbt_entertainment_classifier" => (
             "2026-11-16",
             "ITAA 1997 Division 32, s 27-5 and s 995-1, compilation 268 (1 October 2026); FBTAA ss 5E, 20, 37A to 37CF, 40, 41, 45, 58P and 135P(1) and s 136(1), compilation 97 (1 July 2026); Fringe Benefits Tax Assessment Regulations 2018, regulations 6 to 11, as made; ITAA 1936 ss 51AEA and 51AEB, compilation 193 (1 October 2026); GST Act s 69-5, compilation 96 (1 January 2026); TR 97/17, paras 7 to 143 and the Part A table, and TR 2007/12, paras 8 to 22 and examples 1 to 3, as the Commissioner's view",
@@ -1475,6 +1499,12 @@ pub fn library_evidence(kind: &str) -> [(&'static str, &'static str); 4] {
             "2026-06-30",
             "2026-11-19",
         ),
+        "cgt_parcels" => (
+            "tax-examples-capital-gains-tax-cgt",
+            "2-240",
+            "2026-06-30",
+            "2026-11-19",
+        ),
         "trade_in" => (
             "ATO GST pages: Purchasing a motor vehicle; GST and the disposal of capital assets",
             "Darren's example; Ian's example",
@@ -1504,6 +1534,12 @@ pub fn library_evidence(kind: &str) -> [(&'static str, &'static str); 4] {
             "3-020",
             "2026-06-30",
             "2026-10-29",
+        ),
+        "fbt_ev_exemption_check" => (
+            "tax-examples-fringe-benefits-tax-fbt",
+            "3-045",
+            "2026-06-30",
+            "2026-11-19",
         ),
         "fbt_loan" => (
             "tax-examples-fringe-benefits-tax-fbt",
@@ -1722,6 +1758,20 @@ pub fn optional_inputs(kind: &str) -> Vec<(&'static str, &'static str)> {
             "car_limit",
             "for a car only, and then required: null when s 40-230 did not reduce its cost to the car limit, or an object with limit (AUD, the car limit for the financial year in which the car was first used for any purpose), second_element_cost (AUD) and cost_ignoring_car_limit (AUD, the first and second elements ignoring the car limit, after Subdivision 27-B), cost then being limit plus second_element_cost: ITAA 1997 s 40-325",
         )],
+        "fbt_ev_exemption_check" => vec![
+            (
+                "commitment_before_1_april_2025",
+                "boolean, for a plug_in_hybrid_electric vehicle only and then required: true when, before 1 April 2025, the employer, the employee or an associate of either committed (a financially binding commitment, not an option to extend) to the car's application or availability, in respect of the employee's employment by the employer, for a period that began before 1 April 2025 and includes the benefit (Electric Car Discount Act 2022 Sch 2 item 5(2)(b))",
+            ),
+            (
+                "new_commitment_from_1_april_2025",
+                "boolean, for a plug_in_hybrid_electric vehicle only and then required: true when, on or after 1 April 2025 and before or at the benefit, any of them committed again to the car's application or availability for a period that includes the benefit, as an exercised extension, a break in a novation, a change to the lease payments or residual value, or a change of employer does (item 5(2)(c); the ATO's 'FBT on plug-in hybrid electric vehicles')",
+            ),
+            (
+                "exempt_benefit_before_1_april_2025",
+                "boolean, for a plug_in_hybrid_electric vehicle only and then required: true when a car benefit relating to the car was provided before 1 April 2025 and was exempt under s 8A as it then read (item 5(2)(d) and (e))",
+            ),
+        ],
         "payroll_tax" => vec![(
             "regional_employer",
             "boolean, for Victoria only and then required: true when the employer is a regional employer, one that pays at least 85% of its taxable wages to regional employees (Payroll Tax Act 2007 (Vic) s 3A)",
@@ -2286,6 +2336,36 @@ pub fn optional_inputs(kind: &str) -> Vec<(&'static str, &'static str)> {
                 "boolean, for meal_entertainment or entertainment_facility_leasing and then required: true when the employer elected the 50/50 split method, of Division 9A for meal entertainment or s 152B for entertainment facility leasing (TR 2007/12 para 14); false is refused, as the benefit is then screened under its own category",
             ),
         ],
+        "fhss" => vec![
+            (
+                "contributions",
+                "list of objects, to estimate the determination; give this or determination: date (YYYY-MM-DD, from 1 July 2017 to the determination day), amount (AUD decimal string) and kind, employer_voluntary (salary sacrifice or another employer contribution that is not mandated: concessional) or personal (made by you: non-concessional unless deducted)",
+            ),
+            (
+                "determination_requested",
+                "YYYY-MM-DD, with contributions and then required: the day the determination was requested; before 1 July 2022 the limit in all is $30,000, otherwise $50,000 (GN 2024/1 section 3)",
+            ),
+            (
+                "personal_deductions",
+                "list of objects, with contributions: financial_year (such as \"2024-25\") and amount (AUD), the personal contributions deducted for that year, which makes them concessional; the year's latest personal contributions are taken to be the deducted ones (s 138-30(3)(b))",
+            ),
+            (
+                "determination",
+                "object, the determination's stated components; give this or contributions: concessional (the 85% amount it states), non_concessional and associated_earnings (AUD)",
+            ),
+            (
+                "amount_requested",
+                "AUD, the amount requested for release; the FHSS maximum release amount when left out, and never more (s 131-10(1) item 4)",
+            ),
+            (
+                "estimated_marginal_rate",
+                "fraction from 0 to 0.45, the marginal rate the Commissioner estimates; withholding is it plus 2% Medicare levy less 30%, not below nil (reg 53A(1)(a); GN 2024/1 section 7); required unless commissioner_cannot_estimate is true",
+            ),
+            (
+                "commissioner_cannot_estimate",
+                "boolean: true when the Commissioner cannot estimate the tax, so 17% is withheld (reg 53A(1)(b)); not with estimated_marginal_rate",
+            ),
+        ],
         "fbt_entertainment_classifier" => vec![
             (
                 "method",
@@ -2484,6 +2564,36 @@ pub fn input_units(kind: &str) -> Vec<(&'static str, &'static str)> {
                 "list of objects, one for each income year held from the start time to the event, each with income_year (from 2001-02, and for a car from 2015-16, to the event's year), decline_in_value (AUD; for a cents per kilometre year the notional decline of s 40-370(3)) and deduction (AUD, the decline less the s 40-25 reductions); a car's rows also state method (log_book or cents_per_kilometre, which takes no deduction) and days_held (integer from 1 to the days in that income year, 366 when it includes 29 February)",
             ),
         ],
+        "fbt_ev_exemption_check" => vec![
+            (
+                "vehicle",
+                "battery_electric (only an electric motor for propulsion, no fuel cell or internal combustion engine: FBTAA s 8A(3)), hydrogen_fuel_cell_electric (an electric motor and a fuel cell converting hydrogen, no internal combustion engine: s 8A(4)), plug_in_hybrid_electric (an electric motor, energy taken and stored from an external source and an internal combustion engine: s 8A(5) as made) or other",
+            ),
+            (
+                "car",
+                "boolean, true when the vehicle is a car: a motor vehicle, except a motor cycle or similar vehicle, designed to carry a load of less than 1 tonne and fewer than 9 passengers (FBTAA s 136(1), ITAA 1997 s 995-1)",
+            ),
+            (
+                "current_employee",
+                "boolean, true when the benefit is provided in respect of the employment of a current employee (FBTAA s 8A(1)(a))",
+            ),
+            (
+                "first_held_and_used",
+                "YYYY-MM-DD date, the earliest day on which any person both held the car (owned it, including under hire purchase, leased it or had it made available) and used it or had it available for use (Electric Car Discount Act 2022 Sch 1 item 7(2)); not after the FBT year ends",
+            ),
+            (
+                "first_retail_sale",
+                "YYYY-MM-DD date of the car's first retail sale, whose financial year sets the fuel-efficient luxury car tax threshold (2012-13 to 2026-27); a sale after the FBT year comes after every benefit in it, so no threshold applies to it (FBTAA s 8A(1)(c))",
+            ),
+            (
+                "luxury_car_tax_value",
+                "AUD, the car's luxury car tax value at its first retail sale: its price including GST and customs duty, excluding luxury car tax and other Australian taxes, fees and charges such as registration and stamp duty, and including accessories supplied with it (LCT Act s 5-20)",
+            ),
+            (
+                "luxury_car_tax_on_other_supply",
+                "boolean, true when luxury car tax became payable on any other supply or importation of the car before the benefit (FBTAA s 8A(1)(c))",
+            ),
+        ],
         "dasp_tax" => vec![
             (
                 "tax_free_component",
@@ -2593,6 +2703,40 @@ pub fn input_units(kind: &str) -> Vec<(&'static str, &'static str)> {
             "lines",
             "list of 1 to 1,000 objects, the tax period's luxury car tax lines, each with kind and its inputs: sale (a taxable supply of a luxury car, s 5-10) or importation (a taxable importation, s 7-5) with luxury_car_tax_value (AUD, the value including GST and customs duty but not luxury car tax: s 5-20 for a sale, s 7-15(2) for an importation), fuel_consumption_litres_per_100km (the combined rating under the national road vehicle standards, a decimal string from 0 to 100 with at most 2 decimal places, or null for none), used_before_1_july_2025 (boolean, required only for a car rated above 3.5 and at most 7 litres supplied or imported from 1 July 2025: true where, before that day, an entity supplied or imported the car and it was used in Australia other than for a quotable purpose) and, for a sale, lct_previously_payable (AUD, optional: luxury car tax payable on an earlier supply or importation of the car, s 5-15(2)); price_adjustment (an adjustment event on an earlier sale, ss 15-20 and 15-25) with supplied_in (the financial year of the sale, 2012-13 to the tax period's), corrected_luxury_car_tax_value, the car's rating facts, lct_previously_payable (optional) and previously_attributed_lct (AUD, the luxury car tax previously attributed to the supply); change_of_use_increasing (a car supplied under quote, or one on whose supply a s 15-30(1) decreasing adjustment arose, then used other than for a quotable purpose, s 15-30(3) and (4)) with supplied_in, luxury_car_tax_value, the rating facts and lct_previously_payable (optional); change_of_use_decreasing (s 15-30(1)) with lct_payable_on_supply (AUD); and refund (s 18-5 or 18-10) with claimant (primary_producer or tourism_operator), refund_eligible_car (boolean), lct_borne (AUD) and supplied_in (optional, from 2019-20)",
         )],
+        "cgt_parcels" => vec![
+            (
+                "entity",
+                "individual, trust, complying_superannuation_entity or company (not a life insurance company): the entity that made the gains (ITAA 1997 ss 115-10 and 115-100)",
+            ),
+            (
+                "identification",
+                "first_in_first_out (the earliest acquired parcel of the security first) or selected (each disposal lists its parcels, as TD 33 para 4 accepts)",
+            ),
+            (
+                "parcels",
+                "list of 1 to 1,000 objects, each with parcel (a unique name), security (the same text for identical shares or units), acquired (YYYY-MM-DD, the contract date, s 109-5; not after the year), units (a decimal string above 0, at most 6dp), acquisition_cost (AUD, the first element, s 110-25(2)) and incidental_costs (AUD, the second element on acquiring, such as brokerage and stamp duty, ss 110-25(3) and 110-35), and optionally ownership_costs (AUD, the third element, s 110-25(4)), capital_expenditure (AUD, the fourth, s 110-25(5)) and title_costs (AUD, the fifth, s 110-25(6))",
+            ),
+            (
+                "disposals",
+                "list of 1 to 1,000 objects, each with security, date (YYYY-MM-DD, the contract date, s 104-10(3); not after the year, and one before it uses up units without being counted), units, capital_proceeds (AUD, before selling costs) and incidental_costs (AUD, the second element on disposing, such as brokerage); for selected identification also parcels, a list of objects each with parcel and units, adding up to the disposal's units",
+            ),
+            (
+                "other_discount_capital_gains",
+                "AUD, the year's other discount capital gains, before losses and the discount; 0.00 for a company",
+            ),
+            (
+                "other_capital_gains",
+                "AUD, the year's other capital gains that are not discount capital gains",
+            ),
+            (
+                "other_capital_losses",
+                "AUD, the year's other capital losses, none from collectables or personal use assets",
+            ),
+            (
+                "prior_net_capital_losses",
+                "AUD, net capital losses of earlier years not yet applied, none from collectables",
+            ),
+        ],
         "trade_in" => vec![
             (
                 "cost",
@@ -3209,6 +3353,12 @@ pub fn input_units(kind: &str) -> Vec<(&'static str, &'static str)> {
                 "boolean, true when the benefit was provided wholly or principally as a reward for services rendered or to be rendered (s 58P(1)(f)(v)(B))",
             ),
         ],
+        "fhss" => vec![
+            (
+                "determination_date",
+                "YYYY-MM-DD, the day the Commissioner makes the first home super saver determination, from 1 July 2018 to 31 December 2026; associated earnings run to it (s 138-40(3))",
+            ),
+        ],
         "fbt_entertainment_classifier" => vec![
             (
                 "lines",
@@ -3334,6 +3484,17 @@ pub fn examples(kind: &str) -> Vec<(&'static str, Example)> {
                 ),
             ),
         ],
+        // The Library's Cleancut example (Tax Examples, FBT, 3-045): an
+        // electric car bought for $72,000 plus GST on 1 July 2025.
+        "fbt_ev_exemption_check" => vec![
+            ("vehicle", Text("battery_electric")),
+            ("car", Flag(true)),
+            ("current_employee", Flag(true)),
+            ("first_held_and_used", Text("2025-07-01")),
+            ("first_retail_sale", Text("2025-07-01")),
+            ("luxury_car_tax_value", Text("79200.00")),
+            ("luxury_car_tax_on_other_supply", Flag(false)),
+        ],
         // The Library's example (Superannuation Benefits, 8-420): a $42,000
         // benefit of a $25,000 tax free component and a $17,000 element
         // taxed in the fund, applied for on 1 August 2026.
@@ -3410,6 +3571,29 @@ pub fn examples(kind: &str) -> Vec<(&'static str, Example)> {
                     r#"[{"kind": "sale", "luxury_car_tax_value": "88000.00", "fuel_consumption_litres_per_100km": "8.5"}]"#,
                 ),
             ),
+        ],
+        // The ATO's Kathleen (question 18 of the 2026 supplement, examples 1
+        // to 4), her collectables left out.
+        "cgt_parcels" => vec![
+            ("year", Text("2025-26")),
+            ("entity", Text("individual")),
+            ("identification", Text("first_in_first_out")),
+            (
+                "parcels",
+                Json(
+                    r#"[{"parcel": "K1", "security": "Company A", "acquired": "2000-11-17", "units": "1000", "acquisition_cost": "3000.00", "incidental_costs": "0.00"}, {"parcel": "K2", "security": "Company B", "acquired": "2025-10-10", "units": "130", "acquisition_cost": "520.00", "incidental_costs": "0.00"}, {"parcel": "K3", "security": "Company C", "acquired": "2025-10-10", "units": "600", "acquisition_cost": "2400.00", "incidental_costs": "0.00"}]"#,
+                ),
+            ),
+            (
+                "disposals",
+                Json(
+                    r#"[{"security": "Company A", "date": "2025-12-17", "units": "1000", "capital_proceeds": "6000.00", "incidental_costs": "0.00"}, {"security": "Company B", "date": "2026-02-27", "units": "130", "capital_proceeds": "1040.00", "incidental_costs": "0.00"}, {"security": "Company C", "date": "2026-06-25", "units": "600", "capital_proceeds": "1800.00", "incidental_costs": "0.00"}]"#,
+                ),
+            ),
+            ("other_discount_capital_gains", Text("0.00")),
+            ("other_capital_gains", Text("0.00")),
+            ("other_capital_losses", Text("0.00")),
+            ("prior_net_capital_losses", Text("400.00")),
         ],
         "trade_in" => vec![
             ("year", Text("2026-27")),
@@ -3773,6 +3957,19 @@ pub fn examples(kind: &str) -> Vec<(&'static str, Example)> {
             ("valuation_difficult", Flag(false)),
             ("unexpected_event", Flag(false)),
             ("reward_for_services", Flag(false)),
+        ],
+        // GN 2024/1 example 11 (Sue): the determination's components, released
+        // in full, with no marginal rate estimate.
+        "fhss" => vec![
+            ("year", Text("2024-25")),
+            ("determination_date", Text("2025-06-20")),
+            (
+                "determination",
+                Json(
+                    r#"{"concessional": "8500", "non_concessional": "5000", "associated_earnings": "850"}"#,
+                ),
+            ),
+            ("commissioner_cannot_estimate", Flag(true)),
         ],
         "fbt_entertainment_classifier" => vec![
             (

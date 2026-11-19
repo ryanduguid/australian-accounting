@@ -4846,6 +4846,8 @@ mod franking_account;
 pub use franking_account::{FrankingArgs, franking_year};
 mod trade_in;
 pub use trade_in::{TradeInArgs, trade_in};
+mod fbt_ev_exemption;
+pub use fbt_ev_exemption::{EvExemptionArgs, fbt_ev_exemption_check};
 mod dasp_tax;
 pub use dasp_tax::{DaspTaxArgs, dasp_tax};
 mod payroll_tax;
@@ -4853,6 +4855,8 @@ pub use payroll_tax::{PayrollTaxArgs, payroll_tax};
 mod luxury_car_tax;
 mod stated;
 pub use luxury_car_tax::{LctArgs, luxury_car_tax};
+mod cgt_parcels;
+pub use cgt_parcels::{CgtParcelsArgs, cgt_parcels};
 
 /// One pay that includes an additional payment, as Schedule 5 (NAT 3348) reads it.
 struct AdditionalPay {
@@ -6144,10 +6148,12 @@ mod fbt_minor_benefit;
 pub use fbt_minor_benefit::{MinorBenefitArgs, fbt_minor_benefit_check};
 mod gst_margin_scheme;
 pub use gst_margin_scheme::{MarginSchemeArgs, gst_margin_scheme};
+mod fhss;
+pub use fhss::{FhssArgs, fhss};
 mod ppsr_timing;
 pub use ppsr_timing::ppsr_timing;
 
-const KINDS: [&str; 62] = [
+const KINDS: [&str; 65] = [
     "gst",
     "gst_margin_scheme",
     "fuel_tax_credits",
@@ -6155,6 +6161,7 @@ const KINDS: [&str; 62] = [
     "foreign_resident_tax",
     "capital_gains",
     "main_residence",
+    "cgt_parcels",
     "borrowing_expenses",
     "borrowing_expenses_schedule",
     "hire_purchase_schedule",
@@ -6169,6 +6176,7 @@ const KINDS: [&str; 62] = [
     "fbt",
     "fbt_car_statutory",
     "fbt_car_operating_cost",
+    "fbt_ev_exemption_check",
     "fbt_loan",
     "fbt_meal_entertainment",
     "fbt_meal_entertainment_register",
@@ -6207,6 +6215,7 @@ const KINDS: [&str; 62] = [
     "fbt_tax_exempt_body_entertainment",
     "fbt_entertainment_classifier",
     "fbt_minor_benefit_check",
+    "fhss",
     "income_tests",
     "ppsr_timing",
     "wine_equalisation_tax",

@@ -18,6 +18,22 @@
   `franking_account.last_benchmark_invalid` and
   `franking_account.rate_invalid`. `tests/franking_account.rs` holds it to
   the ATO's Franking account tax return 2026 examples.
+- `cgt-parcels` works out the capital gains and losses from selling shares
+  or units held in parcels bought at different times, for contracts in
+  2025-26 or 2026-27: each sale matched first in, first out or to the parcels
+  the taxpayer selects (TD 33), each part's cost base and reduced cost base
+  (ITAA 1997 ss 110-25 and 110-55), its gain or loss (s 104-10) and whether it
+  is a discount capital gain (s 115-25), then the year's net capital gain or
+  loss with other gains and losses in the order of s 102-5(1) and the
+  discount percentage by entity (s 115-100). It lists each part and the units
+  left in each parcel. It refuses parcels acquired at or before 21 September
+  1999 that are sold in the year. New codes: `cgt_parcels.entity_invalid`,
+  `cgt_parcels.fact_conflict`, `cgt_parcels.fact_invalid`,
+  `cgt_parcels.fact_missing`, `cgt_parcels.identification_invalid`,
+  `cgt_parcels.indexation_or_pre_cgt`, `cgt_parcels.list_invalid` and
+  `cgt_parcels.units_not_held`. `derive` covers it. `tests/cgt_parcels.rs`
+  holds it to the ATO's Kathleen and Boris examples and the Library's David
+  Jones example.
 - `ppsr-timing` answers what the Personal Property Securities Register's law
   decides without a search, for 2025-26 and 2026-27: a registration's latest
   end time, the end time s 153(2) and (3) apply and its fee (PPSA s 153
@@ -192,6 +208,42 @@
   `hire_purchase.segments_invalid` and
   `hire_purchase.segments_not_contiguous`. `tests/hire_purchase_worksheet.rs`
   works the cases by hand and from the ATO's Albert and Darren examples.
+- `fhss` works out the First Home Super Saver scheme for a determination
+  made from 1 July 2018 to 31 December 2026: from contributions, the eligible
+  contributions counted against the $15,000 yearly and $50,000 (or $30,000)
+  limits in the order of TAA 1953 Sch 1 s 138-30, the releasable contributions
+  amount and the associated earnings at the SIC rate (s 138-40), labelled an
+  estimate; or from a determination's stated components. Then the assessable
+  FHSS released amount (ITAA 1997 s 313-20), the withholding (TAA Regulations
+  2017 reg 53A: the Commissioner's estimate, worked from the estimated
+  marginal rate, or 17% where he is stated to be unable to estimate), the offset, the FHSS tax and the recontribution. New codes:
+  `fhss.basis_invalid`, `fhss.contribution_kind_invalid`,
+  `fhss.contribution_out_of_period`, `fhss.contributions_invalid`,
+  `fhss.deductions_invalid`, `fhss.determination_invalid`,
+  `fhss.determination_requested_invalid`, `fhss.rate_unpublished`,
+  `fhss.request_exceeds_maximum` and `fhss.year_mismatch`. `tests/fhss.rs` runs
+  GN 2024/1 examples 6, 7 and 11 to 13, the ATO's Mary and George examples
+  and the s 138-30 example.
+- `fbt-ev-exemption-check` decides whether a car's benefits in the FBT year
+  ended 31 March 2026 or 2027 are exempt under FBTAA s 8A, the electric cars
+  exemption, and names each failing condition: a car, a current employee, a
+  battery electric or hydrogen fuel cell electric vehicle (or a plug-in
+  hybrid under the Electric Car Discount Act 2022 Sch 2 item 5(2): committed
+  to before 1 April 2025, no new commitment since, and exempt before then),
+  first both held and used on or after 1 July 2022 (Sch 1 item 7(2)), and no
+  luxury car tax before the benefit (s 8A(1)(c)): a value at a first retail
+  sale within or before the FBT year not above the ATO's fuel-efficient
+  threshold for its financial year, 2012-13 to 2026-27 (LCT Act s 25-1), and
+  none on any other supply. A sale after the FBT year meets the condition; a
+  taxed sale within it, after the car was first held and used, is refused. It gives
+  `electric_car_exempt` for the 2 car worksheets and the reportable fringe
+  benefit consequence (s 135P(3)). The year ended 31 March 2028 is refused:
+  the change announced for 1 April 2027 is not law. New codes:
+  `fbt_ev_exemption.fact_conflict`, `fbt_ev_exemption.sale_within_year`,
+  `fbt_ev_exemption.threshold_year_unsupported` and
+  `fbt_ev_exemption.vehicle_invalid`. `tests/fbt_ev_exemption.rs` runs the
+  ATO's Shelly, John, GHI Co, Sonia, Simon, Tony, Courtney and pool car
+  examples, the Library's Cleancut example and each failing condition.
 - `dasp-tax` works out the tax on a departing Australia superannuation
   payment in 2025-26 to 2027-28 by component: nil on the tax free component,
   35% on the element taxed in the fund and 45% on the element untaxed in the

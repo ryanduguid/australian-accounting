@@ -56,6 +56,7 @@ example evidence; it does not claim a fresh review of every supported period.
 | Borrowing expenses schedule | `tax-examples-deductions` (tax-examples), ¶4-160, with ITAA 1997 ss 25-25, 26-50 and 26-155 and the Acts Interpretation Act 1901 ss 2G and 36 (compilation 39) | 30 June 2026; 22 May 2026 (ATO page) | Several loans first drawn from 1 July 2017, every year of each; use by year and refinancing established by the operator; s 26-155 flagged, not applied |
 | Hire purchase schedule | Not a Library document: ITAA 1997 ss 240-17, 240-55 and 240-60 on the ATO's legal database and in compilation 268 (1 October 2026) | 15 November 2026 (read) | One agreement's monthly notional interest for the hirer, starting in 2024-25 to 2026-27, from established payments; apportionment to income years under s 240-60(2) excluded |
 | Balancing adjustment | Not a Library document: the ATO's Guide to depreciating assets 2026 (Bridget, Andrew and Louise examples) and ITAA 1997 Subdivisions 27-B and 40-D, ss 104-240, 118-5 and 118-10(1) and its example (compilation 268, 1 October 2026) | 1 June 2026 (Guide); 18 November 2026 (read) | One depreciating asset's balancing adjustment, s 40-290 reduction and K7 amount for events in 2024-25 to 2026-27, from established cost, termination value and each year's decline and deduction; pools, s 40-291A and roll-overs excluded |
+| CGT parcels | `tax-examples-capital-gains-tax-cgt` (tax-examples), ¶2-240, with the ATO's individual tax return instructions supplement 2026, question 18 (Kathleen's examples 1 to 4), 'Keeping records of shares and units' (Boris's example), 'CGT discount', TD 33 and ITAA 1997 compilation 264 | 30 June 2026; 30 May, 22 June and 29 June 2026 (ATO pages); 19 November 2026 (read) | Parcels of shares or units acquired after 21 September 1999 and sold in 2025-26 or 2026-27; cost base adjustments, indexation and the small business concessions excluded |
 | Trade-in | Not a Library document: the ATO's 'Purchasing a motor vehicle' (Darren's example) and 'GST and the disposal of capital assets' (Ian's example), with ITAA 1997 Subdivision 27-B and ss 40-180 to 40-230, 40-305 and 40-365 (compilation 268) and GST Act ss 9-75, 11-30, 69-10 and 132-5 (compilation 96) | 3 June 2026 and 24 May 2017 (ATO pages); 18 November 2026 (read) | One asset traded in at arm's length for a replacement first held and used in 2025-26 or 2026-27; GST status, credits, allowance and price established; involuntary disposals and luxury car tax on the trade-in excluded |
 | Payroll tax | Not a Library document: each revenue office's rates page and examples, with each jurisdiction's payroll tax Act and the ACT's DI2026-151 | 17 July 2024 to 29 September 2026 (revenue office pages); 19 November 2026 (read) | One employer outside a group paying wages all year in one jurisdiction in 2026-27; taxable and Australian wages established; exemptions, rebates, discounts, caps and periodic returns excluded |
 | Depreciation | `tax-examples-depreciation` (tax-examples), ¶6-000 and ¶6-020 | 30 June 2025 | First-year formulas and taxable-use apportionment in 2024–25 examples |
@@ -318,6 +319,57 @@ neither, does not decide whether the car is pooled or shared, and says so in a
 third warning. `tests/fbt_car.rs` checks a taxable car, an exempt electric car
 and a recipient's payment under both methods; `tests/properties.rs` checks the
 equality on every seeded result.
+
+## FBT EV exemption check
+
+Added on 19 November 2026. Its sources were read that morning, 9.34 am to
+9.55 am AEDT: the FBTAA (C2004A03280, compilation 97, from 1 July 2026) ss
+7(1), 8A, 45, 53(1), 135P and 136(1), from the Federal Register of
+Legislation's EPUB text; the Treasury Laws Amendment (Electric Car Discount)
+Act 2022 (C2022A00086, No. 86 of 2022) as made, for s 8A(2)(c) and (5) as
+inserted, Schedule 1 item 7 (application from 1 July 2022) and Schedule 2
+item 5 (the plug-in hybrid cut-off from 1 April 2025 and its exception); the
+A New Tax System (Luxury Car Tax) Act 1999 (C2004A00463, compilation of 1
+April 2025) ss 5-20 and 25-1; and the ATO's 'Electric cars exemption' (last
+updated 1 April 2026), 'FBT on plug-in hybrid electric vehicles' (last
+updated 14 March 2025), 'Luxury car tax rate and thresholds' (last updated 1
+June 2026), whose fuel-efficient column is the threshold table, and 'Electric
+car discount – more sustainable fringe benefits tax treatment of electric
+cars' (last updated 3 November 2026), which says the change from 1 April 2027
+is not yet law. The Library's Tax Examples, FBT, ¶3-045 (reviewed 30 June
+2026) gives the Cleancut example.
+
+s 8A(1)(c) asks whether luxury car tax has become payable on any supply or
+importation of the car before the benefit is provided. The ATO tests that by
+the value at the first retail sale against the fuel-efficient threshold for
+the sale's financial year; LCT Act s 25-1(1) makes a car a luxury car only
+when its value exceeds the threshold, so a value equal to it passes. A first
+retail sale after the FBT year comes after every benefit in it, so it meets
+the condition at any value; a taxed sale within the year after the car was
+first held and used meets it only for the benefits before the sale, and is
+refused. Any other supply or importation on which luxury car
+tax became payable is a fact the operator gives.
+
+`tests/fbt_ev_exemption.rs` holds each case. The ATO's examples are run for a
+benefit in the FBT year ended 31 March 2026 or 2027; where an example gives
+no price, the value is fabricated below the threshold.
+
+| Example | Facts given | Result |
+| --- | --- | --- |
+| Library ¶3-045, Cleancut | Battery electric, bought 1 July 2025 for $72,000 plus GST: **$79,200** against **$91,387** (2025-26) | Exempt; reportable |
+| ATO, Shelly | First held and used 1 April 2022 | Not exempt: `first_held_and_used_from_1_july_2022` |
+| ATO, John | Held 15 June 2022, first used 5 July 2022, no luxury car tax | Exempt |
+| ATO, GHI Co and Kerry | **$85,000** in 2022-23 against **$84,916** | Not exempt: `no_luxury_car_tax_at_first_retail_sale` |
+| ATO, Sonia | Plug-in hybrid delivered 1 May 2025 | Not exempt: `plug_in_hybrid_exempt_before_1_april_2025` |
+| ATO, Simon | Plug-in hybrid leased 1 April 2024 to 31 March 2027, extension not exercised | Exempt in the year ended 31 March 2027 |
+| ATO, Tony | Novation broken by unpaid leave from 1 May 2025 | Not exempt: `plug_in_hybrid_no_new_commitment` |
+| ATO, Courtney | New employer's novation from 1 October 2025 | Not exempt: no commitment before 1 April 2025 and a new one |
+| ATO, pool car | No commitment to a designated employee | Not exempt: `plug_in_hybrid_commitment_before_1_april_2025` |
+
+The tests also cover the threshold itself and a cent above it, each listed
+year's threshold, each other failing condition alone and several together, a
+hydrogen fuel cell car, a motor cycle, the check's input feeding
+`fbt-car-statutory`, and each refusal.
 
 ## FBT loan
 
@@ -690,6 +742,75 @@ This worksheet's evidence was read on 19 November 2026 from 9.25 am to
 Neither the Act nor the guide gives a worked example of a register failing a
 check; the tests work each failure from the section's words. 12 weeks is
 taken as 84 days with both the first and last day counted.
+
+## FHSS
+
+Added on 20 November 2026. Its sources were read between 11.59 pm on 19
+November and 12.15 am on 20 November 2026: from the ATO's legal database, TAA 1953 Sch 1 ss 12-460, 131-5,
+131-10, 138-10, 138-25, 138-30, 138-35, 138-40 and 280-105, and ITAA 1997
+ss 313-20, 313-25, 313-50 and 313-60; the Taxation Administration
+Regulations 2017, compilation 18 (14 November 2026), reg 53A, from the Federal
+Register of Legislation; the Commissioner's guidance note GN 2024/1 'First
+home super saver scheme'; the ATO's 'About FHSS release amounts', 'About your
+contributions' and 'FHSS tax assessment' pages; and the ATO's 'Shortfall
+interest charge (SIC) rates' page, last updated 4 September 2026, whose
+quarterly annual rates from July to September 2017 to October to December
+2026 are the table in `src/engine/fhss.rs`. The 20% FHSS tax rate is the
+First Home Super Saver Tax Act 2017 s 4, read on 19 November 2026, and GN
+2024/1 example 13 applies it.
+
+What the Act settles, where the guidance is less exact:
+
+- **The withholding rate.** s 12-460 only requires the Commissioner to
+  withhold; reg 53A sets the amount as his estimate of the tax payable on the
+  assessable FHSS released amount, or 17% of it where he cannot estimate. The
+  marginal rate plus Medicare levy less 30% is GN 2024/1's account of that
+  estimate, and the command follows it, labelled an estimate. The 17% applies
+  only where the Commissioner cannot estimate (reg 53A(1)(b)), so the caller
+  states that with `commissioner_cannot_estimate`; a missing marginal rate is
+  refused rather than taken to mean it. Neither sets a rounding; examples 11
+  to 13 round down to the dollar ($1,589.50 to $1,589).
+- **Determinations before 15 September 2024.** Schedule 4 to the Treasury
+  Laws Amendment (2023 Measures No. 3) Act 2023 (No. 75 of 2023, as made,
+  read on 20 November 2026) commenced then. Its item 28(1) applies the
+  amendments to determinations from 1 July 2018; item 28(4) keeps 14 days, not
+  90, in s 313-35(1)(c)(i) for an earlier determination, a deadline the
+  command does not compute; and item 30(4) takes a release after a
+  transitional action (amending a determination made before 15 September
+  2024, its request or its release authority by 14 September 2027) out of
+  Subdivisions 313-C to 313-E, so no FHSS tax or recontribution applies. The
+  amounts are otherwise worked the same way; the command adds
+  `transitional_note` for every determination made before 15 September 2024.
+- **The earnings base.** s 138-40(2) defines the amount of a contribution as
+  'the amount of the contribution that is counted in your FHSS releasable
+  contributions amount', and s 138-30(1)(b) counts 85% of an eligible
+  concessional contribution in that amount. The command therefore runs the
+  earnings on 85% of a concessional contribution's counted part.
+- **The order.** s 138-30(2) counts contributions earliest first across
+  financial years.
+
+The published example that does not reproduce: GN 2024/1 example 6 and the
+'About FHSS release amounts' page (Jill: $1,500 a month salary sacrifice from
+July 2020 to October 2024, determination 15 December 2024) give $15,000 in
+each of 2020-21 to 2022-23 and $5,000 from 2024-25, a releasable $42,500 and
+associated earnings of $5,190. The command reaches the $50,000 and $42,500,
+but s 138-30(2) counts July to October 2023 before July to October 2024, and
+the associated earnings come to $7,859. An independent day-by-day script
+over the same SIC table gives $7,859 on that order, $7,530 on the example's
+2024-25 order, and $9,247 or $8,860 on the contribution in full; none gives
+$5,190, and nothing in the method was changed to match it. The other published
+examples with associated earnings (Sue's $850, Alex's $1,700, Milena's
+determinations) give no contribution dates, so they cannot test the method.
+So associated earnings from contributions are labelled `estimate`, and a
+caller with the Commissioner's determination gives its components instead.
+
+The tests run Jill (limits and the 85%), Mary ($15,000 of $25,000; $12,750),
+Hasan (example 7: $3,000 of the $5,000 counted in 2023-24), the s 138-30
+example (the first 10 fortnightly contributions non-concessional), Sue
+(example 11: $1,589 withheld at 17%, a $2,805 offset), Alex (example 12: 9%,
+$765, $27,735 paid) and George (example 13 and the ATO page: $1,809 withheld,
+$24,291 paid, $4,020 FHSS tax), and one quarter's compounding against its
+closed form.
 
 ## Fuel tax credits
 
@@ -1461,6 +1582,49 @@ The working keeps each fraction exact and divides once, last, so a reduction
 of $3,125 x 9,050 / 15,125 is not rounded before the days scale it. The Act's
 own example rounds to dollars; the worksheet shows cents, half up, as every
 worksheet here does.
+
+## CGT parcels
+
+This worksheet was added on 19 November 2026. ITAA 1997 ss 102-5, 102-10,
+102-15, 104-10, 109-5, 110-25, 110-35, 110-55, 112-30, 114-1, 114-10, 115-5 to
+115-25, 115-100 and 116-40 were read that day in compilation 264 (21 May 2026),
+volume 3, at 14:39 AEDT
+(https://www.legislation.gov.au/C2004A05138/2026-05-21/2026-05-21/text/original/epub/OEBPS/document_3/document_3.html).
+That compilation is the text for 2025-26 and 2026-27: Act No. 49 of 2026,
+read at 14:40, rewrites s 102-5(1) and Subdivision 115-C, and Schedule 1
+items 82 to 84 apply those changes to assessments for the income year that
+includes 1 July 2027 and later years, so later compilations' step numbers are
+not this worksheet's. The ATO's pages were read at 14:30: 'Keeping records of
+shares and units' (last updated 22 June 2026: each parcel is a separate CGT
+asset, and Boris may choose which shares he sells), 'CGT discount' (last
+updated 29 June 2026: the 12 months exclude the day of acquisition and the day
+of the CGT event; a complying super fund's discount is 33.33%; a company has
+none) and TD 33 (the Commissioner accepts first in, first out and the
+taxpayer's selection; average cost only for shares acquired on the same day).
+Question 18 of the individual tax return instructions supplement 2026 (last
+updated 30 May 2026) gives Kathleen's examples and labels H, A and V.
+
+The Act does not say how a parcel's cost is split between the units sold and
+those kept. Each share or unit is a CGT asset, so the worksheet takes the part
+of the cost base reasonably attributable to the units (s 112-30(1) and (1A)):
+elements 1, 2, 4 and 5 together, rounded once, and costs of owning (element 3)
+apart, as the reduced cost base leaves them out (s 110-55(2)), and of a sale's
+proceeds reasonably attributable to each part (s 116-40(1)) by number of
+units, rounded to the cent, half up, with the last units taking what is left
+so the parts add up.
+
+`tests/cgt_parcels.rs` holds these cases.
+
+| Case | Source | Worksheet |
+| --- | --- | --- |
+| Kathleen: 1,000 shares bought 17 November 2000 for $3,000 and sold for $6,000; 130 bought 10 October 2025 for $520 and sold for $1,040; 600 bought then for $2,400 and sold for $1,800; $400 of earlier losses | Question 18 supplement 2026, examples 1 to 4 | Label H $3,520; $520 and $80 of the loss, then $400, applied; $1,260 net capital gain; collectables left out |
+| Boris: 1,000 shares at $5 and 3,000 at $10, 1,500 sold at $8 | 'Keeping records of shares and units' (days fabricated) | Selecting the $10 shares: $3,000 loss, 1,000 at $5 and 1,500 at $10 left; first in, first out: $3,000 discount gain and $1,000 loss, $1,000 net |
+| David Jones: 2,000 CSR originals at $2 sold at $1 first in, first out; 1,000 of 5,000 WBC shares ($60,000) sold at $20 within 12 months; IBM loss $6,660 and TEL gain $21,435 given | Library ¶2-240 (the CSR bonus shares' $2,000 cost fabricated) | $8,660 of losses take the $8,000 WBC gain and $660 of the TEL gain; $10,387.50 net |
+| Bought 2 February 2025, sold 3 February 2026 and 2 February 2026 | 'CGT discount', 12-month count | Discount capital gain from 3 February; not on 2 February |
+| A $289,755 gain held over 12 months | Worked by hand under s 115-100 | $96,585 discount for a complying superannuation entity, $144,877.50 for a trust, none for a company |
+| 3 units for $110 sold 1 then 2; 3 units sold for $100 from parcels of 1 and 2 | Worked by hand | Cost bases $36.67 and $73.33; proceeds $33.33 and $66.67 |
+| $1,000 cost and $100 costs of owning, sold for $1,050 | Worked by hand under ss 110-25(4) and 110-55(2) | Neither gain nor loss |
+| A company in 2026-27: a $100 parcel sold for nothing, $150 of other gains and $20 of earlier losses | Worked by hand under s 102-5(1) steps 1 and 2 | $30 net capital gain, nothing carried forward |
 
 ## Trade-in
 
@@ -3126,6 +3290,7 @@ year; the others refuse it and say what is missing.
 | Borrowing expenses | Worked out and flagged: s 25-25 sets no figure by year, and s 26-155 applies after it | ITAA 1997 ss 25-25 and 26-155 on the ATO's legal database, read 19 November 2026 |
 | CGT and rental deductions | Changed from 1 July 2027 by Act No. 49 of 2026 Schedules 1 and 2 (s 26-155) | ITAA 1997 s 26-155 (https://www.ato.gov.au/law/view/document?docid=PAC/19970038/26-155), 16:13 |
 | Balancing adjustment | Refused: CGT event K7 is a capital gain, which Schedule 1 to Act No. 49 of 2026 changes from 1 July 2027 | Act No. 49 of 2026 as made (https://www.legislation.gov.au/C2026A00049/asmade/text), read 18 November 2026 at 07:06; see [Balancing adjustment](#balancing-adjustment) |
+| CGT parcels | Refused: Schedule 1 to Act No. 49 of 2026 changes how capital gains are worked out from the income year that includes 1 July 2027 | Act No. 49 of 2026 as made (https://www.legislation.gov.au/C2026A00049/asmade/text), items 82 to 84, read 19 November 2026 at 14:40; see [CGT parcels](#cgt-parcels) |
 | Trade-in | Refused: the car limit for 2027-28 was not published, and CGT event K7 changes with Act No. 49 of 2026 | ATO 'Purchasing a motor vehicle' (last updated 3 June 2026, the 2026-27 limit only), read 18 November 2026 at 07:10; see [Trade-in](#trade-in) |
 | Business capital expenditure | Enacted, no year: ITAA 1997 s 40-880 and the small business entity test of Subdivision 328-C, neither amended in compilation 268 or the version from 1 December 2026; s 26-155 left out of scope | Compilation 268 (https://www.legislation.gov.au/C2004A05138/latest/text) and the Register's API, read 17 November 2026 from 01:33; see [Business capital expenditure](#business-capital-expenditure) |
 
