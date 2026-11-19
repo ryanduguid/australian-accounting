@@ -1494,7 +1494,12 @@ forward. Each franking period's benchmark is tested for a significant variation
 (s 204-70). The result gives the ledger with a running balance, each
 distribution's working, each franking period, the refunds after the year's
 end, the return's labels A to F and K, whether the return is required and its
-due date, the last day of the month after the year's end (s 214-150).
+due date, the last day of the month after the year's end (s 214-150). Label B
+includes label F, the tax from refunds after the year's end; the ATO's section B
+fills label F only on a further return for those refunds. An entity applying
+for the Commissioner's discretion prints code C and shows the reduced offset at
+label C, so give `commissioner_determination` only once the Commissioner has
+determined.
 
 Amounts are worked exactly and shown to the cent; the return's whole-dollar
 figures are not worked out. Consolidated groups, entities that cease to be
