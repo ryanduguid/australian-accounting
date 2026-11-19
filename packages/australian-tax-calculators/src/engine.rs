@@ -4772,7 +4772,10 @@ pub fn borrowing_expenses(
 }
 
 mod hire_purchase;
-pub use hire_purchase::{HirePurchaseArgs, hire_purchase_schedule};
+pub use hire_purchase::{
+    ChattelMortgageArgs, HirePurchaseArgs, LoanTransactionsArgs, chattel_mortgage_schedule,
+    hire_purchase_schedule, loan_transactions,
+};
 
 mod business_capital;
 pub use business_capital::business_capital_expenditure;
@@ -6069,7 +6072,7 @@ pub use income_tests::income_tests;
 mod gst_margin_scheme;
 pub use gst_margin_scheme::{MarginSchemeArgs, gst_margin_scheme};
 
-const KINDS: [&str; 49] = [
+const KINDS: [&str; 51] = [
     "gst",
     "gst_margin_scheme",
     "resident_tax",
@@ -6078,6 +6081,8 @@ const KINDS: [&str; 49] = [
     "main_residence",
     "borrowing_expenses",
     "hire_purchase_schedule",
+    "chattel_mortgage_schedule",
+    "loan_transactions",
     "business_capital_expenditure",
     "balancing_adjustment",
     "trade_in",

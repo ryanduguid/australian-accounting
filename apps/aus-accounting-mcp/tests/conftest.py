@@ -6,9 +6,12 @@
 The release gate runs plain `pytest` without one, and test modules call the
 calculators whilst they are collected, so this runs in pytest_configure, before
 collection. An executable in AUS_TAX_CALCULATORS_BIN or on PATH is used as it is;
-otherwise the built one's folder goes first on PATH.
+otherwise the built one's folder goes first on PATH. Either is named by its SHA-256
+in AUS_TAX_CALCULATORS_SHA256, as an operator names a source build, unless the run
+names one.
 """
 
+import hashlib
 import json
 import os
 import subprocess
@@ -27,8 +30,25 @@ SUPPLY = (
 
 
 def pytest_configure() -> None:
-    if os.environ.get(tax.BINARY_VARIABLE) or tax._executable():
+    supplied = os.environ.get(tax.BINARY_VARIABLE) or tax._executable()
+    binary = supplied or _build()
+    # A missing or relative supplied path is left for the tests that refuse it.
+    if os.path.isabs(binary) and os.path.isfile(binary):
+        with open(binary, "rb") as file:
+            os.environ.setdefault(tax.DIGEST_VARIABLE,
+                                  hashlib.file_digest(file, "sha256").hexdigest())
+    if supplied:
         return
+    try:
+        tax._binary()
+    except tax.CalculatorsUnavailable as exc:
+        raise pytest.UsageError(
+            f"The {tax.CALCULATORS} built from {PACKAGE} is not the release this server "
+            f"pins: {exc}") from exc
+
+
+def _build() -> str:
+    """Build the package, put the executable's folder first on PATH and return its path."""
     command = ["cargo", "build", "--release", "--locked",
                "--message-format=json-render-diagnostics"]
     try:
@@ -50,9 +70,4 @@ def pytest_configure() -> None:
     # PATH, as CI gives it, because test_mcp_evaluation's server inherits PATH but not
     # AUS_TAX_CALCULATORS_BIN.
     os.environ["PATH"] = os.pathsep.join([os.path.dirname(binary), os.environ["PATH"]])
-    try:
-        tax._binary()
-    except tax.CalculatorsUnavailable as exc:
-        raise pytest.UsageError(
-            f"The {tax.CALCULATORS} built from {PACKAGE} is not the release this server "
-            f"pins: {exc}") from exc
+    return binary
