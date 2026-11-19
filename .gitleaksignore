@@ -10,6 +10,9 @@ a9ff91fb88a85a89547c8d4d7ff3cba93f3a8a83:packages/ato-benchmark-compare/tests/te
 acac1e0aea0599bda885813b19ffc37654b0b4b1:packages/ato-benchmark-compare/tests/test_mapping.py:generic-api-key:194
 f1b0ebffe342a4254c218bed4d844d5e60d3bdbe:apps/aus-accounting-mcp/tests/fixtures/native/adapter-contracts.json:au-business-number:1
 f501f3f37c521e13d61bdc98f54d762dd3d63297:apps/aus-accounting-mcp/tests/fixtures/native/adapter-contracts.json:au-business-number:1
+# The same fixture came back with PR 599 (cbf081a): its line 1 records the
+# MCP tests' synthetic entities and ABN validator inputs. Checked 20 November 2026.
+cbf081a53678bfa5f6f1761958b5656b8cfba392:apps/aus-accounting-mcp/tests/fixtures/native/adapter-contracts.json:au-business-number:1
 
 # Accepted findings in branch commits never merged to main, which the weekly
 # scan reads because it scans every branch. Each value is a fixture or test
