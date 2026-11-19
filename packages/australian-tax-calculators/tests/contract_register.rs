@@ -635,6 +635,11 @@ fn a_malformed_line_is_refused_with_its_number() {
             "line 3 has 5 fields where the header has 11",
         ),
         (
+            format!("{HEADER}\n{good}\n\n{}\n", good.replace("HP-1,", "HP-2,")),
+            "contract_register.csv_invalid",
+            "line 3: an empty line may only end the file",
+        ),
+        (
             with(good),
             "contract_register.contract_duplicate",
             "line 3: contract \"HP-1\" is also on line 2",

@@ -35,7 +35,7 @@ in, so a contract it would refuse, such as one starting before 1 July 2024,
 is refused with that command's code and message, after the line number and
 contract. The register changes no schedule: it dates and adds the payments
 and interest each one gives. A line is refused, by its number, for a quote
-out of place, more or fewer fields than the header, a contract named twice, a
+out of place, being empty before the last contract, more or fewer fields than the header, a contract named twice, a
 kind the register does not set out, an empty cell its kind needs, a filled
 cell its kind does not take, or a contract, client or financier name that
 is empty, over 200 characters, holds a control character or begins with

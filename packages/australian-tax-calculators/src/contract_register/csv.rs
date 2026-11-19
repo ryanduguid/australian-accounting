@@ -13,18 +13,32 @@ fn invalid(line: usize, why: &str) -> Refusal {
     )
 }
 
-/// Each non-empty line's fields with its line number. Fields are separated by
-/// commas; one that holds a comma or a quote is quoted, with each quote in it
-/// doubled (RFC 4180). A record ends at LF or CRLF and no field may hold
-/// one, so every record is one line and a refusal can name it. A UTF-8 byte
+/// Each line's fields with its line number. Fields are separated by commas;
+/// one that holds a comma or a quote is quoted, with each quote in it doubled
+/// (RFC 4180). A record ends at LF or CRLF and no field may hold one, so every
+/// record is one line and a refusal can name it. Empty lines may only end the
+/// file: one before the last record is refused, not skipped. A UTF-8 byte
 /// order mark at the start is dropped.
 pub(super) fn records(text: &str) -> Result<Vec<(usize, Vec<String>)>, Refusal> {
     let text = text.strip_prefix('\u{feff}').unwrap_or(text);
-    text.split('\n')
+    let lines: Vec<&str> = text
+        .split('\n')
+        .map(|line| line.strip_suffix('\r').unwrap_or(line))
+        .collect();
+    let used = lines
+        .iter()
+        .rposition(|line| !line.is_empty())
+        .map_or(0, |i| i + 1);
+    lines[..used]
+        .iter()
         .enumerate()
-        .map(|(i, line)| (i + 1, line.strip_suffix('\r').unwrap_or(line)))
-        .filter(|(_, line)| !line.is_empty())
-        .map(|(at, line)| Ok((at, fields(at, line)?)))
+        .map(|(i, line)| {
+            let at = i + 1;
+            if line.is_empty() {
+                return Err(invalid(at, "an empty line may only end the file"));
+            }
+            Ok((at, fields(at, line)?))
+        })
         .collect()
 }
 
