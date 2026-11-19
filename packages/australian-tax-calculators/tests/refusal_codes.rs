@@ -43,6 +43,7 @@ fn every_code_at_a_refusal_site_is_catalogued_and_every_entry_is_used() {
         "engine/hire_purchase",
         "engine/luxury_car_tax",
         "engine/wine_equalisation_tax",
+        "engine/sb_cgt_concessions",
     ]
     .into_iter()
     .flat_map(|dir| {
@@ -163,8 +164,8 @@ fn every_catalogued_required_input_of_a_strict_command_is_read() {
     // fbt-minor-benefit-check, gst-margin-scheme, wine-equalisation-tax,
     // luxury-car-tax, borrowing-expenses-schedule, payroll-tax,
     // fuel-tax-credits, dasp-tax, ppsr-timing, cgt-parcels,
-    // fbt-ev-exemption-check, fhss and franking-account.
-    assert_eq!(checked, 51);
+    // fbt-ev-exemption-check, fhss, franking-account and sb-cgt-concessions.
+    assert_eq!(checked, 52);
 }
 
 /// Every frozen call gives the same answer through either entry point, and

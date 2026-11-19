@@ -6152,8 +6152,10 @@ mod fhss;
 pub use fhss::{FhssArgs, fhss};
 mod ppsr_timing;
 pub use ppsr_timing::ppsr_timing;
+mod sb_cgt_concessions;
+pub use sb_cgt_concessions::{SB_CGT_OPTIONAL, SbCgtConcessionsArgs, sb_cgt_concessions};
 
-const KINDS: [&str; 65] = [
+const KINDS: [&str; 66] = [
     "gst",
     "gst_margin_scheme",
     "fuel_tax_credits",
@@ -6219,6 +6221,7 @@ const KINDS: [&str; 65] = [
     "income_tests",
     "ppsr_timing",
     "wine_equalisation_tax",
+    "sb_cgt_concessions",
 ];
 
 /// `periods(kind)`: accepted period arguments and inclusive calendar boundaries.
@@ -6283,6 +6286,7 @@ fn evidence_heading(kind: &str) -> String {
         "working_holiday_maker_withholding" => "working-holiday-makers".into(),
         "seniors_pensioners_withholding" => "seniors-and-pensioners".into(),
         "seniors_pensioners_tax_offset" => "seniors-and-pensioners-tax-offset".into(),
+        "sb_cgt_concessions" => "small-business-cgt-concessions".into(),
         _ => kind.replace('_', "-"),
     }
 }

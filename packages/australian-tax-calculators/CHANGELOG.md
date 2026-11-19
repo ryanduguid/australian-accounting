@@ -286,6 +286,21 @@
   improvements, subdivision and 1 July 2000 examples and GSTR 2006/8's
   Tureia example.
 
+- `sb-cgt-concessions` shows which small business CGT concessions in ITAA
+  1997 Division 152 are open for a capital gain from CGT event A1 in 2025-26
+  or 2026-27: the basic conditions of s 152-10 (the CGT small business entity
+  test of s 328-110 at $2 million, the $6 million net asset value test, the
+  passively held asset and partnership rules and the active asset test), then
+  the 15-year exemption, the 50% active asset reduction, the retirement
+  exemption and the roll-over, each with the conditions not met and their
+  provisions. New codes: `sb_cgt_concessions.active_period_unclear`,
+  `sb_cgt_concessions.entity_invalid`, `sb_cgt_concessions.fact_conflict`,
+  `sb_cgt_concessions.fact_invalid`,
+  `sb_cgt_concessions.fifteen_years_same_day`,
+  `sb_cgt_concessions.pre_cgt_asset` and
+  `sb_cgt_concessions.share_or_trust_interest`. `tests/sb_cgt_concessions.rs`
+  holds it to the Library's Neil Swan and Wendy Simpson examples.
+
 ### Changed
 
 - `borrowing-expenses` takes 2017-18 to 2027-28, not 2024-25 to 2026-27:

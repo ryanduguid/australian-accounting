@@ -78,6 +78,7 @@ example evidence; it does not claim a fresh review of every supported period.
 | PAYG gross-up | Not a Library document: ATO Schedule 1 (NAT 1004) sample data for payments from 1 July 2026, and for 1 July 2024 to 30 June 2026, through the PAYG withholding worksheet | 17 June 2026 (published); 17 June 2024 (last updated) | The gross of one regular pay whose Schedule 1 withholding leaves an established net; refused where more than one gross does |
 | Study loan withholding | Not a Library document: ATO Schedule 8 (NAT 3539) for payments from 1 July 2026, and Schedule 8 of F2025L01016 for payments from 24 September 2025 | 17 June 2026 (published); 24 September 2025 (commenced) | Schedule 8 component on one regular weekly, fortnightly, monthly or quarterly pay, added to the Schedule 1 amount |
 | Study loan repayment | Not a Library document: the ATO minimum repayment income page and Gazette C2026G00249 | 13 October 2026 (ATO page) | Marginal repayment on established repayment income for 2025-26 and 2026-27; the loan-balance limit is outside the worksheet |
+| Small business CGT concessions | `tax-examples-capital-gains-tax-cgt` (tax-examples), ¶2-280 and ¶2-303, with ITAA 1997 compilation 264 | 30 June 2026; 19 November 2026 (read) | Conditions for CGT event A1 in 2025-26 or 2026-27 of an asset other than a share, trust interest or partnership right; amounts excluded |
 | Income tests | Not a Library document: ITAA 1997 s 995-1 and s 293-20 (compilation 268), ITAA 1936 s 6(1) (compilation 193), HESA s 154-5 (compilation 105), Family Assistance Act Sch 3 (compilation 124), FBTAA ss 135N to 135Q, the co-contribution Act s 8 (compilation 28) and the ATO's Christina and Tom examples | 16 November 2026 (read); 13 October 2026 and 22 June 2026 (ATO pages) | 6 income measures of a full-year resident for 2024-25 to 2026-27 from established, classified components; the thresholds and tests they feed are outside it |
 
 The resident passage does not establish the engine's 2025–26 and 2026–27 rate
@@ -3098,6 +3099,51 @@ from the provisions: the 53% rounding, excess concessional contributions,
 the FHSS amount, family trust distribution amounts, child support and
 business deductions.
 
+## Small business CGT concessions
+
+This worksheet was added on 19 November 2026. ITAA 1997 Division 152 was read
+that day in compilation 264 (21 May 2026), volume 4, at 14:40 AEDT
+(https://www.legislation.gov.au/C2004A05138/2026-05-21/2026-05-21/text/original/epub/OEBPS/document_4/document_4.html),
+s 104-190(1A) in volume 3 at 14:39 and s 328-110 in volume 7 at 15:20
+(document_7). That compilation is the text for 2025-26 and 2026-27: Act
+No. 49 of 2026, read at 14:40, amends Division 152, and Schedule 1 item 82
+applies those changes to assessments for the income year that includes
+1 July 2027 and later years.
+
+Choices the Act leaves to the reader:
+
+- s 152-10(1AA)(b) puts $2 million in place of each $10 million in s 328-110.
+  An entity under $2 million on any rule of s 328-110 is also under
+  $10 million on it, and one not barred by s 328-110(3) at $2 million is not
+  barred at $10 million, so s 152-10(1AA)(a) adds nothing to the test.
+- s 152-10(1A)(a) and (1B)(b) test the affiliate, connected entity or
+  partnership that carries on the business, so for a passively held asset
+  the turnover is that entity's, and s 152-10(1A)(b) and (1B)(c) add that
+  you carry on no business of your own outside partnership.
+- s 152-35 counts a total of days. The test period counts both its first and
+  last days; half is met when twice the active days reaches the period's
+  days. 7.5 years is 2,737 days (7 years with one leap day and the shortest
+  6 months, 181 days) to 2,741 days (2 leap days and 184 days), so 2,741 or
+  more is met, under 2,737 is not, and a total between them is refused.
+- 15 years from 29 February, a 55th birthday on 29 February and one year
+  before or 2 years after a 29 February event fall on 1 March.
+
+`tests/sb_cgt_concessions.rs` holds these cases.
+
+| Case | Source | Worksheet |
+| --- | --- | --- |
+| Neil Swan, 54, sells the business he bought in 2007 on turnover of $1.1 million and $1.2 million | Library ¶2-280 (the days, his birthday, the turnover 2 years back and the net value fabricated) | Basic conditions met; the 15-year exemption closed by his age; the reduction, the retirement exemption with a super contribution, and the roll-over open; as the Library concludes |
+| The same at 55 and retiring, or permanently incapacitated | ¶2-280 ('If Neil was to hold off selling') | The 15-year exemption open and the others closed by it (ss 152-215, 152-330 and 152-430) |
+| Wendy Simpson's land, owned 20 years and used throughout by her and her husband's company | Library ¶2-303 (the dates, turnover and net value fabricated) | Basic conditions met through s 152-10(1A); the 15-year exemption closed as she is not retiring |
+| The same company on $2 million or more, or Wendy with her own business, net value over $6 million | Worked by hand under s 152-10(1A)(a) and (b) | Basic conditions not met |
+| Turnover of $1,999,999.99 and $2,000,000.00 on each rule; 2 years at $2 million; winding up | Worked by hand under s 328-110(1), (3), (4) and (5) | Met under the rule each figure passes; the likely turnover barred after 2 years at $2 million |
+| 1,000 days owned, 500 and 499 active; a business that ceased 11 months or 12 months and a day before the event | Worked by hand under s 152-35 | Met at 500, not at 499; the period ends at the cessation within 12 months, or with a longer period allowed |
+| Owned more than 15 years, 2,736, 2,737, 2,740 and 2,741 days active | Worked by hand under s 152-35(1)(b) | Not met, refused, refused, met |
+| A company with and without a significant individual | Worked by hand under ss 152-110 and 152-305(2) | Without one: the 15-year and retirement exemptions closed, the reduction and roll-over open |
+| $500,000 and $125,000.50 of the retirement limit used | Worked by hand under s 152-320 | The exemption closed; $374,999.50 left |
+| Neil's roll-over also obtained for a CGT event on 30 June 2026 | Worked by hand under s 104-190(1A)(a) and (b)(i) | Replacement asset period 30 June 2025 to 30 June 2028, from the last event, not 15 May |
+| Neil's sale with a look-through earnout whose last payment could fall due on 31 January 2028, 15 November 2027 or 31 August 2028 | Worked by hand under s 104-190(1A)(b)(ii) | The period ends 31 July 2028, 6 months after it; 15 May 2028, 2 years after the event, the later; or 28 February 2029 |
+
 ## Personal tax estimate
 
 `personal-tax-estimate` adds no rate or threshold: each amount is a
@@ -3292,6 +3338,7 @@ year; the others refuse it and say what is missing.
 | Balancing adjustment | Refused: CGT event K7 is a capital gain, which Schedule 1 to Act No. 49 of 2026 changes from 1 July 2027 | Act No. 49 of 2026 as made (https://www.legislation.gov.au/C2026A00049/asmade/text), read 18 November 2026 at 07:06; see [Balancing adjustment](#balancing-adjustment) |
 | CGT parcels | Refused: Schedule 1 to Act No. 49 of 2026 changes how capital gains are worked out from the income year that includes 1 July 2027 | Act No. 49 of 2026 as made (https://www.legislation.gov.au/C2026A00049/asmade/text), items 82 to 84, read 19 November 2026 at 14:40; see [CGT parcels](#cgt-parcels) |
 | Trade-in | Refused: the car limit for 2027-28 was not published, and CGT event K7 changes with Act No. 49 of 2026 | ATO 'Purchasing a motor vehicle' (last updated 3 June 2026, the 2026-27 limit only), read 18 November 2026 at 07:10; see [Trade-in](#trade-in) |
+| Small business CGT concessions | Refused: Schedule 1 to Act No. 49 of 2026 changes Division 152 from the income year that includes 1 July 2027 | Act No. 49 of 2026 as made (https://www.legislation.gov.au/C2026A00049/asmade/text), item 82, read 19 November 2026 at 14:40; see [Small business CGT concessions](#small-business-cgt-concessions) |
 | Business capital expenditure | Enacted, no year: ITAA 1997 s 40-880 and the small business entity test of Subdivision 328-C, neither amended in compilation 268 or the version from 1 December 2026; s 26-155 left out of scope | Compilation 268 (https://www.legislation.gov.au/C2004A05138/latest/text) and the Register's API, read 17 November 2026 from 01:33; see [Business capital expenditure](#business-capital-expenditure) |
 
 Worked by hand: resident tax on $45,000 is 14% of $26,800, $3,752; on
