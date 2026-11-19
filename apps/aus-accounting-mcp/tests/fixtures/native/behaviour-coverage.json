@@ -4,11 +4,13 @@
   "status_meanings": {
     "covered": "Inspected observable assertions have explicit native proof, including complete original payload/refusal equality where appropriate. Cross-source relationships use direct checks. Existing NATIVE.md identity/parser allowances still apply.",
     "adapted": "Explicit native representation, static-link or test-instrumentation difference; see per-function limit. This is not support for substituting Python modules or malformed Python-only values at runtime.",
-    "retained-python-distribution": "Protects the still-supported Python distribution, release/Registry process or its documentation/media. Kept active; not retired, ported or an approval to publish/cut over."
+    "retained-python-distribution": "Protects the still-supported Python distribution, release/Registry process or its documentation/media. Kept active; not retired, ported or an approval to publish/cut over.",
+    "not-yet-ported": "The supported Python server has since changed this behaviour: the function's current assertions, or its replacement's, describe Python behaviour the native build does not yet have. The proofs show only the original behaviour the native build keeps. Kept active; not covered, and a port is needed before any cutover."
   },
   "counts": {
-    "adapted": 63,
-    "covered": 459,
+    "adapted": 62,
+    "covered": 453,
+    "not-yet-ported": 7,
     "retained-python-distribution": 74
   },
   "original_sources": {
@@ -25,8 +27,8 @@
     "tests/test_doctor.py": "0cd3dd9ed6f4e407d16ab908fc6fa342676e24dbe755b629c6579fc7604b27e3",
     "tests/test_engine_versions.py": "e2e9fa1c356cf8d855d20a5cef6fc73e25fb0f436ec4f54104a596989ffc5167",
     "tests/test_evidence_pack.py": "6720b62b13cd5f84808b6d91ff089ae7144700f1f62844e5e6117f519595fa24",
-    "tests/test_expansion.py": "b3a0ba87d797091ac1373ac4c27b5f9abbd271da40c2e78ce2a85c9203a37838",
-    "tests/test_file_note.py": "667909c8579e28da784acf050e64d63049faf420cdd524578742dff005854812",
+    "tests/test_expansion.py": "4f92f546eda914b4719a75537d837a1d75982729c24759b4a1721bb9d28bc7f0",
+    "tests/test_file_note.py": "19f3fed806aa356892ea828684000e0953f64b2e78cad1b5e19154c6231e251e",
     "tests/test_firm_assessment.py": "f0ec2f65ff8ec4eda7b1b90de550f39e0e7f726c032d455bcb54591f285507f7",
     "tests/test_group_review.py": "f82b82c06dc4f5f790d8f32383214a153138cacd4ab79452451800feecc79539",
     "tests/test_gst_review.py": "ee69d4655606109d17109bcd566a093a0099d4604c46085041f55cc2983c034f",
@@ -50,11 +52,11 @@
     "tests/test_rulings.py": "aa28a3ab94222143f7c25f4e8ee5aa8b1d102cc59a137a247004078fa57bb006",
     "tests/test_search_relevance.py": "f821f86ea3c1fb4c80d234587fc10862a614e38f5574aa3e805ca6e9361a9036",
     "tests/test_selection_record_integrity.py": "bfd05c2c194734932e2edaf4e278619bcb593eb2036c5efe15d7904e9463b0fa",
-    "tests/test_server_money.py": "1b07a06dc89f5f19128d35beb39bd7c29bcd18caa333354d9b051bb325bffeff",
+    "tests/test_server_money.py": "d6d0f72e4676ab4d6a086e4eaabc29ecc94d5f93f2cb4adbc3482f6eb168d210",
     "tests/test_server_paths.py": "b6bda5c356cefd1e1449028c8c5937ab8a9dfba8344a50dec057833bc1fcdf5c",
-    "tests/test_tool_discovery.py": "0eaaa7895144f08f9ed52ed76734935c654fefe96397158e25e2e86c10ac7d71",
+    "tests/test_tool_discovery.py": "676d7565564977ff39061490b38d0cb3477eff4417515e15ee765c74f1457abc",
     "tests/test_tool_table.py": "3db5cdb2489136a780f87421a9eb498855fb48567e97e1ed6e93740a0ed4ef3b",
-    "tests/test_worksheet_catalogue.py": "84ee1d77089d3321f67055e1b237acf81544bd535d3c5c596d46a4a53740605b"
+    "tests/test_worksheet_catalogue.py": "df34148d81c0cdbd52fc4a5d034449ae4dd3ba602a7cabb81de9cd982333c1e8"
   },
   "proofs": {
     "F": {
@@ -1741,7 +1743,7 @@
     {
       "original": "tests/test_expansion.py:24",
       "function": "test_group_alignment_and_employee_separation",
-      "source_sha256": "b3a0ba87d797091ac1373ac4c27b5f9abbd271da40c2e78ce2a85c9203a37838",
+      "source_sha256": "4f92f546eda914b4719a75537d837a1d75982729c24759b4a1721bb9d28bc7f0",
       "status": "covered",
       "proofs": [
         "F"
@@ -1750,7 +1752,7 @@
     {
       "original": "tests/test_expansion.py:42",
       "function": "test_group_nested_validation",
-      "source_sha256": "b3a0ba87d797091ac1373ac4c27b5f9abbd271da40c2e78ce2a85c9203a37838",
+      "source_sha256": "4f92f546eda914b4719a75537d837a1d75982729c24759b4a1721bb9d28bc7f0",
       "status": "covered",
       "proofs": [
         "F"
@@ -1759,7 +1761,7 @@
     {
       "original": "tests/test_expansion.py:49",
       "function": "test_group_preserves_partial_and_missing_receipt",
-      "source_sha256": "b3a0ba87d797091ac1373ac4c27b5f9abbd271da40c2e78ce2a85c9203a37838",
+      "source_sha256": "4f92f546eda914b4719a75537d837a1d75982729c24759b4a1721bb9d28bc7f0",
       "status": "covered",
       "proofs": [
         "F"
@@ -1768,7 +1770,7 @@
     {
       "original": "tests/test_expansion.py:59",
       "function": "test_library_search_and_bounded_citation",
-      "source_sha256": "b3a0ba87d797091ac1373ac4c27b5f9abbd271da40c2e78ce2a85c9203a37838",
+      "source_sha256": "4f92f546eda914b4719a75537d837a1d75982729c24759b4a1721bb9d28bc7f0",
       "status": "covered",
       "proofs": [
         "L"
@@ -1777,7 +1779,7 @@
     {
       "original": "tests/test_expansion.py:78",
       "function": "test_library_is_opt_in_and_does_not_read_links",
-      "source_sha256": "b3a0ba87d797091ac1373ac4c27b5f9abbd271da40c2e78ce2a85c9203a37838",
+      "source_sha256": "4f92f546eda914b4719a75537d837a1d75982729c24759b4a1721bb9d28bc7f0",
       "status": "covered",
       "proofs": [
         "L"
@@ -1786,7 +1788,7 @@
     {
       "original": "tests/test_expansion.py:100",
       "function": "test_calculator_transport",
-      "source_sha256": "b3a0ba87d797091ac1373ac4c27b5f9abbd271da40c2e78ce2a85c9203a37838",
+      "source_sha256": "4f92f546eda914b4719a75537d837a1d75982729c24759b4a1721bb9d28bc7f0",
       "status": "covered",
       "proofs": [
         "F"
@@ -1795,16 +1797,17 @@
     {
       "original": "tests/test_expansion.py:111",
       "function": "test_calculators_refuse_unestablished_or_malformed_facts",
-      "source_sha256": "b3a0ba87d797091ac1373ac4c27b5f9abbd271da40c2e78ce2a85c9203a37838",
-      "status": "covered",
+      "source_sha256": "4f92f546eda914b4719a75537d837a1d75982729c24759b4a1721bb9d28bc7f0",
+      "status": "not-yet-ported",
       "proofs": [
         "F"
-      ]
+      ],
+      "adaptation_or_limit": "The Python server now calculates GST for 2027-28, so the refused year became 2028-29. The Python server now serves every worksheet in the calculators executable's catalogue (48 kinds in 1.0.0) with its own periods, inputs and scopes, and its worksheet facts publish only kind and scope_confirmed; the native build keeps the original 14 kinds, narrowed periods and per-kind schemas, which these proofs show."
     },
     {
       "original": "tests/test_expansion.py:119",
       "function": "test_library_pagination_unicode_and_external_link",
-      "source_sha256": "b3a0ba87d797091ac1373ac4c27b5f9abbd271da40c2e78ce2a85c9203a37838",
+      "source_sha256": "4f92f546eda914b4719a75537d837a1d75982729c24759b4a1721bb9d28bc7f0",
       "status": "covered",
       "proofs": [
         "L"
@@ -1813,7 +1816,7 @@
     {
       "original": "tests/test_expansion.py:209",
       "function": "test_library_pagination_does_not_repeat_around_an_oversized_line",
-      "source_sha256": "b3a0ba87d797091ac1373ac4c27b5f9abbd271da40c2e78ce2a85c9203a37838",
+      "source_sha256": "4f92f546eda914b4719a75537d837a1d75982729c24759b4a1721bb9d28bc7f0",
       "status": "covered",
       "proofs": [
         "L"
@@ -1822,7 +1825,7 @@
     {
       "original": "tests/test_expansion.py:227",
       "function": "test_library_pagination_stops_at_the_offset_bound_instead_of_stranding_the_caller",
-      "source_sha256": "b3a0ba87d797091ac1373ac4c27b5f9abbd271da40c2e78ce2a85c9203a37838",
+      "source_sha256": "4f92f546eda914b4719a75537d837a1d75982729c24759b4a1721bb9d28bc7f0",
       "status": "adapted",
       "proofs": [
         "L"
@@ -1832,7 +1835,7 @@
     {
       "original": "tests/test_expansion.py:242",
       "function": "test_library_scan_budget_counts_invalid_utf8",
-      "source_sha256": "b3a0ba87d797091ac1373ac4c27b5f9abbd271da40c2e78ce2a85c9203a37838",
+      "source_sha256": "4f92f546eda914b4719a75537d837a1d75982729c24759b4a1721bb9d28bc7f0",
       "status": "adapted",
       "proofs": [
         "L"
@@ -1842,7 +1845,7 @@
     {
       "original": "tests/test_expansion.py:253",
       "function": "test_library_internal_excerpt_rejects_non_positive_start",
-      "source_sha256": "b3a0ba87d797091ac1373ac4c27b5f9abbd271da40c2e78ce2a85c9203a37838",
+      "source_sha256": "4f92f546eda914b4719a75537d837a1d75982729c24759b4a1721bb9d28bc7f0",
       "status": "adapted",
       "proofs": [
         "L"
@@ -1852,7 +1855,7 @@
     {
       "original": "tests/test_expansion.py:262",
       "function": "test_library_root_must_be_an_existing_folder",
-      "source_sha256": "b3a0ba87d797091ac1373ac4c27b5f9abbd271da40c2e78ce2a85c9203a37838",
+      "source_sha256": "4f92f546eda914b4719a75537d837a1d75982729c24759b4a1721bb9d28bc7f0",
       "status": "covered",
       "proofs": [
         "L"
@@ -1861,7 +1864,7 @@
     {
       "original": "tests/test_expansion.py:268",
       "function": "test_library_search_needs_a_word",
-      "source_sha256": "b3a0ba87d797091ac1373ac4c27b5f9abbd271da40c2e78ce2a85c9203a37838",
+      "source_sha256": "4f92f546eda914b4719a75537d837a1d75982729c24759b4a1721bb9d28bc7f0",
       "status": "covered",
       "proofs": [
         "L"
@@ -1870,7 +1873,7 @@
     {
       "original": "tests/test_expansion.py:274",
       "function": "test_library_read_refuses_a_start_past_the_end_and_an_oversized_file",
-      "source_sha256": "b3a0ba87d797091ac1373ac4c27b5f9abbd271da40c2e78ce2a85c9203a37838",
+      "source_sha256": "4f92f546eda914b4719a75537d837a1d75982729c24759b4a1721bb9d28bc7f0",
       "status": "adapted",
       "proofs": [
         "L"
@@ -1880,7 +1883,7 @@
     {
       "original": "tests/test_expansion.py:286",
       "function": "test_library_read_of_a_file_that_is_not_utf8_is_an_input_error",
-      "source_sha256": "b3a0ba87d797091ac1373ac4c27b5f9abbd271da40c2e78ce2a85c9203a37838",
+      "source_sha256": "4f92f546eda914b4719a75537d837a1d75982729c24759b4a1721bb9d28bc7f0",
       "status": "covered",
       "proofs": [
         "L"
@@ -1889,7 +1892,7 @@
     {
       "original": "tests/test_expansion.py:293",
       "function": "test_library_with_too_many_files_is_refused",
-      "source_sha256": "b3a0ba87d797091ac1373ac4c27b5f9abbd271da40c2e78ce2a85c9203a37838",
+      "source_sha256": "4f92f546eda914b4719a75537d837a1d75982729c24759b4a1721bb9d28bc7f0",
       "status": "adapted",
       "proofs": [
         "L"
@@ -1899,7 +1902,7 @@
     {
       "original": "tests/test_expansion.py:304",
       "function": "test_library_search_counts_a_file_it_cannot_open_as_skipped",
-      "source_sha256": "b3a0ba87d797091ac1373ac4c27b5f9abbd271da40c2e78ce2a85c9203a37838",
+      "source_sha256": "4f92f546eda914b4719a75537d837a1d75982729c24759b4a1721bb9d28bc7f0",
       "status": "adapted",
       "proofs": [
         "L"
@@ -3312,7 +3315,7 @@
     {
       "original": "tests/test_server_money.py:44",
       "function": "test_statutory_facts_reject_non_boolean_json_values",
-      "source_sha256": "1b07a06dc89f5f19128d35beb39bd7c29bcd18caa333354d9b051bb325bffeff",
+      "source_sha256": "d6d0f72e4676ab4d6a086e4eaabc29ecc94d5f93f2cb4adbc3482f6eb168d210",
       "status": "covered",
       "proofs": [
         "F"
@@ -3321,7 +3324,7 @@
     {
       "original": "tests/test_server_money.py:127",
       "function": "test_expected_input_errors_remain_visible_to_mcp_clients",
-      "source_sha256": "1b07a06dc89f5f19128d35beb39bd7c29bcd18caa333354d9b051bb325bffeff",
+      "source_sha256": "d6d0f72e4676ab4d6a086e4eaabc29ecc94d5f93f2cb4adbc3482f6eb168d210",
       "status": "covered",
       "proofs": [
         "F"
@@ -3330,7 +3333,7 @@
     {
       "original": "tests/test_server_money.py:136",
       "function": "test_payday_mcp_tool_keeps_exact_decimal_strings_from_the_engine",
-      "source_sha256": "1b07a06dc89f5f19128d35beb39bd7c29bcd18caa333354d9b051bb325bffeff",
+      "source_sha256": "d6d0f72e4676ab4d6a086e4eaabc29ecc94d5f93f2cb4adbc3482f6eb168d210",
       "status": "covered",
       "proofs": [
         "F"
@@ -3339,7 +3342,7 @@
     {
       "original": "tests/test_server_money.py:155",
       "function": "test_div7a_mcp_tool_refuses_without_inputs",
-      "source_sha256": "1b07a06dc89f5f19128d35beb39bd7c29bcd18caa333354d9b051bb325bffeff",
+      "source_sha256": "d6d0f72e4676ab4d6a086e4eaabc29ecc94d5f93f2cb4adbc3482f6eb168d210",
       "status": "covered",
       "proofs": [
         "D",
@@ -3349,7 +3352,7 @@
     {
       "original": "tests/test_server_money.py:162",
       "function": "test_every_monetary_mcp_schema_is_a_decimal_string",
-      "source_sha256": "1b07a06dc89f5f19128d35beb39bd7c29bcd18caa333354d9b051bb325bffeff",
+      "source_sha256": "d6d0f72e4676ab4d6a086e4eaabc29ecc94d5f93f2cb4adbc3482f6eb168d210",
       "status": "covered",
       "proofs": [
         "D",
@@ -3359,7 +3362,7 @@
     {
       "original": "tests/test_server_money.py:184",
       "function": "test_every_monetary_endpoint_rejects_values_above_the_domain_limit",
-      "source_sha256": "1b07a06dc89f5f19128d35beb39bd7c29bcd18caa333354d9b051bb325bffeff",
+      "source_sha256": "d6d0f72e4676ab4d6a086e4eaabc29ecc94d5f93f2cb4adbc3482f6eb168d210",
       "status": "covered",
       "proofs": [
         "F"
@@ -3368,7 +3371,7 @@
     {
       "original": "tests/test_server_money.py:201",
       "function": "test_every_monetary_endpoint_rejects_more_than_two_decimal_places",
-      "source_sha256": "1b07a06dc89f5f19128d35beb39bd7c29bcd18caa333354d9b051bb325bffeff",
+      "source_sha256": "d6d0f72e4676ab4d6a086e4eaabc29ecc94d5f93f2cb4adbc3482f6eb168d210",
       "status": "covered",
       "proofs": [
         "F"
@@ -3377,7 +3380,7 @@
     {
       "original": "tests/test_server_money.py:214",
       "function": "test_every_monetary_endpoint_accepts_the_limit_and_serialises_finite_json",
-      "source_sha256": "1b07a06dc89f5f19128d35beb39bd7c29bcd18caa333354d9b051bb325bffeff",
+      "source_sha256": "d6d0f72e4676ab4d6a086e4eaabc29ecc94d5f93f2cb4adbc3482f6eb168d210",
       "status": "adapted",
       "proofs": [
         "F"
@@ -3387,7 +3390,7 @@
     {
       "original": "tests/test_server_money.py:223",
       "function": "test_parse_amount_refuses_every_grouped_or_bracketed_form",
-      "source_sha256": "1b07a06dc89f5f19128d35beb39bd7c29bcd18caa333354d9b051bb325bffeff",
+      "source_sha256": "d6d0f72e4676ab4d6a086e4eaabc29ecc94d5f93f2cb4adbc3482f6eb168d210",
       "status": "adapted",
       "proofs": [
         "E"
@@ -3397,16 +3400,17 @@
     {
       "original": "tests/test_server_money.py:337",
       "function": "test_every_money_argument_and_only_money_publishes_the_plain_pattern",
-      "source_sha256": "1b07a06dc89f5f19128d35beb39bd7c29bcd18caa333354d9b051bb325bffeff",
-      "status": "covered",
+      "source_sha256": "d6d0f72e4676ab4d6a086e4eaabc29ecc94d5f93f2cb4adbc3482f6eb168d210",
+      "status": "not-yet-ported",
       "proofs": [
         "MONEY"
-      ]
+      ],
+      "adaptation_or_limit": "Python now publishes 26 money paths, not 46: worksheet facts no longer publish theirs. The Python server now serves every worksheet in the calculators executable's catalogue (48 kinds in 1.0.0) with its own periods, inputs and scopes, and its worksheet facts publish only kind and scope_confirmed; the native build keeps the original 14 kinds, narrowed periods and per-kind schemas, which these proofs show."
     },
     {
       "original": "tests/test_server_money.py:362",
       "function": "test_every_direct_money_argument_refuses_non_plain_notation",
-      "source_sha256": "1b07a06dc89f5f19128d35beb39bd7c29bcd18caa333354d9b051bb325bffeff",
+      "source_sha256": "d6d0f72e4676ab4d6a086e4eaabc29ecc94d5f93f2cb4adbc3482f6eb168d210",
       "status": "covered",
       "proofs": [
         "F"
@@ -3415,7 +3419,7 @@
     {
       "original": "tests/test_server_money.py:373",
       "function": "test_every_contribution_money_field_refuses_non_plain_notation",
-      "source_sha256": "1b07a06dc89f5f19128d35beb39bd7c29bcd18caa333354d9b051bb325bffeff",
+      "source_sha256": "d6d0f72e4676ab4d6a086e4eaabc29ecc94d5f93f2cb4adbc3482f6eb168d210",
       "status": "covered",
       "proofs": [
         "F"
@@ -3424,7 +3428,7 @@
     {
       "original": "tests/test_server_money.py:390",
       "function": "test_every_worksheet_money_field_refuses_non_plain_notation",
-      "source_sha256": "1b07a06dc89f5f19128d35beb39bd7c29bcd18caa333354d9b051bb325bffeff",
+      "source_sha256": "d6d0f72e4676ab4d6a086e4eaabc29ecc94d5f93f2cb4adbc3482f6eb168d210",
       "status": "covered",
       "proofs": [
         "F"
@@ -3433,7 +3437,7 @@
     {
       "original": "tests/test_server_money.py:398",
       "function": "test_every_worksheet_baseline_is_a_plain_valid_calculation",
-      "source_sha256": "1b07a06dc89f5f19128d35beb39bd7c29bcd18caa333354d9b051bb325bffeff",
+      "source_sha256": "d6d0f72e4676ab4d6a086e4eaabc29ecc94d5f93f2cb4adbc3482f6eb168d210",
       "status": "adapted",
       "proofs": [
         "F"
@@ -3443,7 +3447,7 @@
     {
       "original": "tests/test_server_money.py:404",
       "function": "test_a_plain_negative_amount_reaches_the_engine_sign_check",
-      "source_sha256": "1b07a06dc89f5f19128d35beb39bd7c29bcd18caa333354d9b051bb325bffeff",
+      "source_sha256": "d6d0f72e4676ab4d6a086e4eaabc29ecc94d5f93f2cb4adbc3482f6eb168d210",
       "status": "covered",
       "proofs": [
         "F"
@@ -3452,7 +3456,7 @@
     {
       "original": "tests/test_server_money.py:416",
       "function": "test_parse_amount_accepts_plain_notation",
-      "source_sha256": "1b07a06dc89f5f19128d35beb39bd7c29bcd18caa333354d9b051bb325bffeff",
+      "source_sha256": "d6d0f72e4676ab4d6a086e4eaabc29ecc94d5f93f2cb4adbc3482f6eb168d210",
       "status": "covered",
       "proofs": [
         "PARSE"
@@ -3461,7 +3465,7 @@
     {
       "original": "tests/test_server_money.py:452",
       "function": "test_parse_amount_keeps_one_message_per_failure",
-      "source_sha256": "1b07a06dc89f5f19128d35beb39bd7c29bcd18caa333354d9b051bb325bffeff",
+      "source_sha256": "d6d0f72e4676ab4d6a086e4eaabc29ecc94d5f93f2cb4adbc3482f6eb168d210",
       "status": "covered",
       "proofs": [
         "PARSE"
@@ -3470,7 +3474,7 @@
     {
       "original": "tests/test_server_money.py:460",
       "function": "test_parse_optional_amount_refuses_a_blank_string",
-      "source_sha256": "1b07a06dc89f5f19128d35beb39bd7c29bcd18caa333354d9b051bb325bffeff",
+      "source_sha256": "d6d0f72e4676ab4d6a086e4eaabc29ecc94d5f93f2cb4adbc3482f6eb168d210",
       "status": "covered",
       "proofs": [
         "PARSE"
@@ -3479,7 +3483,7 @@
     {
       "original": "tests/test_server_money.py:468",
       "function": "test_published_pattern_matches_the_runtime_grammar",
-      "source_sha256": "1b07a06dc89f5f19128d35beb39bd7c29bcd18caa333354d9b051bb325bffeff",
+      "source_sha256": "d6d0f72e4676ab4d6a086e4eaabc29ecc94d5f93f2cb4adbc3482f6eb168d210",
       "status": "covered",
       "proofs": [
         "MONEY"
@@ -3488,7 +3492,7 @@
     {
       "original": "tests/test_server_money.py:491",
       "function": "test_every_optional_direct_amount_refuses_a_blank_string",
-      "source_sha256": "1b07a06dc89f5f19128d35beb39bd7c29bcd18caa333354d9b051bb325bffeff",
+      "source_sha256": "d6d0f72e4676ab4d6a086e4eaabc29ecc94d5f93f2cb4adbc3482f6eb168d210",
       "status": "covered",
       "proofs": [
         "F"
@@ -3497,7 +3501,7 @@
     {
       "original": "tests/test_server_money.py:499",
       "function": "test_every_optional_contribution_amount_refuses_a_blank_string",
-      "source_sha256": "1b07a06dc89f5f19128d35beb39bd7c29bcd18caa333354d9b051bb325bffeff",
+      "source_sha256": "d6d0f72e4676ab4d6a086e4eaabc29ecc94d5f93f2cb4adbc3482f6eb168d210",
       "status": "covered",
       "proofs": [
         "F"
@@ -3506,11 +3510,12 @@
     {
       "original": "tests/test_server_money.py:510",
       "function": "test_a_draft_2020_12_validator_reads_the_published_schemas_as_intended",
-      "source_sha256": "1b07a06dc89f5f19128d35beb39bd7c29bcd18caa333354d9b051bb325bffeff",
-      "status": "covered",
+      "source_sha256": "d6d0f72e4676ab4d6a086e4eaabc29ecc94d5f93f2cb4adbc3482f6eb168d210",
+      "status": "not-yet-ported",
       "proofs": [
         "DRAFT"
-      ]
+      ],
+      "adaptation_or_limit": "Python's worksheet facts schema no longer refuses a non-plain amount; the server refuses it when called. The Python server now serves every worksheet in the calculators executable's catalogue (48 kinds in 1.0.0) with its own periods, inputs and scopes, and its worksheet facts publish only kind and scope_confirmed; the native build keeps the original 14 kinds, narrowed periods and per-kind schemas, which these proofs show."
     },
     {
       "original": "tests/test_server_paths.py:25",
@@ -3591,7 +3596,7 @@
     {
       "original": "tests/test_tool_discovery.py:21",
       "function": "test_every_input_has_a_description_in_the_public_schema",
-      "source_sha256": "0eaaa7895144f08f9ed52ed76734935c654fefe96397158e25e2e86c10ac7d71",
+      "source_sha256": "676d7565564977ff39061490b38d0cb3477eff4417515e15ee765c74f1457abc",
       "status": "covered",
       "proofs": [
         "D"
@@ -3600,7 +3605,7 @@
     {
       "original": "tests/test_tool_discovery.py:38",
       "function": "test_no_description_fuses_two_words_across_a_line_break",
-      "source_sha256": "0eaaa7895144f08f9ed52ed76734935c654fefe96397158e25e2e86c10ac7d71",
+      "source_sha256": "676d7565564977ff39061490b38d0cb3477eff4417515e15ee765c74f1457abc",
       "status": "adapted",
       "proofs": [
         "D"
@@ -3610,7 +3615,7 @@
     {
       "original": "tests/test_tool_discovery.py:60",
       "function": "test_every_tool_has_a_readable_title_for_a_host_menu",
-      "source_sha256": "0eaaa7895144f08f9ed52ed76734935c654fefe96397158e25e2e86c10ac7d71",
+      "source_sha256": "676d7565564977ff39061490b38d0cb3477eff4417515e15ee765c74f1457abc",
       "status": "covered",
       "proofs": [
         "D"
@@ -3619,7 +3624,7 @@
     {
       "original": "tests/test_tool_discovery.py:70",
       "function": "test_no_tool_reachable_only_by_supplying_facts_it_ignores",
-      "source_sha256": "0eaaa7895144f08f9ed52ed76734935c654fefe96397158e25e2e86c10ac7d71",
+      "source_sha256": "676d7565564977ff39061490b38d0cb3477eff4417515e15ee765c74f1457abc",
       "status": "covered",
       "proofs": [
         "D"
@@ -3628,7 +3633,7 @@
     {
       "original": "tests/test_tool_discovery.py:80",
       "function": "test_local_tools_disclose_their_effects_to_clients",
-      "source_sha256": "0eaaa7895144f08f9ed52ed76734935c654fefe96397158e25e2e86c10ac7d71",
+      "source_sha256": "676d7565564977ff39061490b38d0cb3477eff4417515e15ee765c74f1457abc",
       "status": "covered",
       "proofs": [
         "D"
@@ -3637,7 +3642,7 @@
     {
       "original": "tests/test_tool_discovery.py:172",
       "function": "test_every_bounded_string_input_publishes_its_length",
-      "source_sha256": "0eaaa7895144f08f9ed52ed76734935c654fefe96397158e25e2e86c10ac7d71",
+      "source_sha256": "676d7565564977ff39061490b38d0cb3477eff4417515e15ee765c74f1457abc",
       "status": "covered",
       "proofs": [
         "D"
@@ -3646,7 +3651,7 @@
     {
       "original": "tests/test_tool_discovery.py:186",
       "function": "test_the_operator_reference_bound_matches_the_engine_model",
-      "source_sha256": "0eaaa7895144f08f9ed52ed76734935c654fefe96397158e25e2e86c10ac7d71",
+      "source_sha256": "676d7565564977ff39061490b38d0cb3477eff4417515e15ee765c74f1457abc",
       "status": "covered",
       "proofs": [
         "BOUNDS",
@@ -3656,7 +3661,7 @@
     {
       "original": "tests/test_tool_discovery.py:198",
       "function": "test_the_benchmark_money_bound_matches_the_worksheet_money_type",
-      "source_sha256": "0eaaa7895144f08f9ed52ed76734935c654fefe96397158e25e2e86c10ac7d71",
+      "source_sha256": "676d7565564977ff39061490b38d0cb3477eff4417515e15ee765c74f1457abc",
       "status": "covered",
       "proofs": [
         "BOUNDS",
@@ -3666,7 +3671,7 @@
     {
       "original": "tests/test_tool_discovery.py:207",
       "function": "test_every_money_input_shares_the_worksheet_money_bound",
-      "source_sha256": "0eaaa7895144f08f9ed52ed76734935c654fefe96397158e25e2e86c10ac7d71",
+      "source_sha256": "676d7565564977ff39061490b38d0cb3477eff4417515e15ee765c74f1457abc",
       "status": "covered",
       "proofs": [
         "BOUNDS",
@@ -3676,7 +3681,7 @@
     {
       "original": "tests/test_tool_discovery.py:222",
       "function": "test_the_div7a_ratio_bounds_match_the_worksheet_ratio_type",
-      "source_sha256": "0eaaa7895144f08f9ed52ed76734935c654fefe96397158e25e2e86c10ac7d71",
+      "source_sha256": "676d7565564977ff39061490b38d0cb3477eff4417515e15ee765c74f1457abc",
       "status": "covered",
       "proofs": [
         "BOUNDS",
@@ -3686,7 +3691,7 @@
     {
       "original": "tests/test_tool_discovery.py:238",
       "function": "test_the_year_bound_is_the_width_of_the_yyyy_yy_label",
-      "source_sha256": "0eaaa7895144f08f9ed52ed76734935c654fefe96397158e25e2e86c10ac7d71",
+      "source_sha256": "676d7565564977ff39061490b38d0cb3477eff4417515e15ee765c74f1457abc",
       "status": "covered",
       "proofs": [
         "YEAR"
@@ -3695,7 +3700,7 @@
     {
       "original": "tests/test_tool_discovery.py:261",
       "function": "test_the_date_bound_admits_the_longest_date_the_engine_reads",
-      "source_sha256": "0eaaa7895144f08f9ed52ed76734935c654fefe96397158e25e2e86c10ac7d71",
+      "source_sha256": "676d7565564977ff39061490b38d0cb3477eff4417515e15ee765c74f1457abc",
       "status": "covered",
       "proofs": [
         "DATE"
@@ -3704,7 +3709,7 @@
     {
       "original": "tests/test_tool_discovery.py:292",
       "function": "test_the_industry_bound_admits_every_shipped_business_type_name",
-      "source_sha256": "0eaaa7895144f08f9ed52ed76734935c654fefe96397158e25e2e86c10ac7d71",
+      "source_sha256": "676d7565564977ff39061490b38d0cb3477eff4417515e15ee765c74f1457abc",
       "status": "covered",
       "proofs": [
         "YEAR"
@@ -3713,16 +3718,17 @@
     {
       "original": "tests/test_worksheet_catalogue.py:25",
       "function": "test_scope_serves_engine_metadata_and_every_example_is_callable",
-      "source_sha256": "84ee1d77089d3321f67055e1b237acf81544bd535d3c5c596d46a4a53740605b",
-      "status": "covered",
+      "source_sha256": "df34148d81c0cdbd52fc4a5d034449ae4dd3ba602a7cabb81de9cd982333c1e8",
+      "status": "not-yet-ported",
       "proofs": [
         "I"
-      ]
+      ],
+      "adaptation_or_limit": "Replaced in Python by test_scope_serves_the_executables_catalogue_and_every_example_is_callable, which expects the unnarrowed catalogue. The Python server now serves every worksheet in the calculators executable's catalogue (48 kinds in 1.0.0) with its own periods, inputs and scopes, and its worksheet facts publish only kind and scope_confirmed; the native build keeps the original 14 kinds, narrowed periods and per-kind schemas, which these proofs show."
     },
     {
       "original": "tests/test_worksheet_catalogue.py:44",
       "function": "test_pinned_older_engine_keeps_legacy_discovery",
-      "source_sha256": "84ee1d77089d3321f67055e1b237acf81544bd535d3c5c596d46a4a53740605b",
+      "source_sha256": "df34148d81c0cdbd52fc4a5d034449ae4dd3ba602a7cabb81de9cd982333c1e8",
       "status": "adapted",
       "proofs": [
         "I",
@@ -3733,7 +3739,7 @@
     {
       "original": "tests/test_worksheet_catalogue.py:53",
       "function": "test_pinned_engine_without_a_newer_kind_still_runs_the_others",
-      "source_sha256": "84ee1d77089d3321f67055e1b237acf81544bd535d3c5c596d46a4a53740605b",
+      "source_sha256": "df34148d81c0cdbd52fc4a5d034449ae4dd3ba602a7cabb81de9cd982333c1e8",
       "status": "adapted",
       "proofs": [
         "I",
@@ -3744,17 +3750,18 @@
     {
       "original": "tests/test_worksheet_catalogue.py:70",
       "function": "test_advertised_required_fields_match_the_mcp_discriminator",
-      "source_sha256": "84ee1d77089d3321f67055e1b237acf81544bd535d3c5c596d46a4a53740605b",
-      "status": "covered",
+      "source_sha256": "df34148d81c0cdbd52fc4a5d034449ae4dd3ba602a7cabb81de9cd982333c1e8",
+      "status": "not-yet-ported",
       "proofs": [
         "REQUIRED",
         "I"
-      ]
+      ],
+      "adaptation_or_limit": "Removed from Python with the per-kind models it compared. The Python server now serves every worksheet in the calculators executable's catalogue (48 kinds in 1.0.0) with its own periods, inputs and scopes, and its worksheet facts publish only kind and scope_confirmed; the native build keeps the original 14 kinds, narrowed periods and per-kind schemas, which these proofs show."
     },
     {
       "original": "tests/test_worksheet_catalogue.py:80",
       "function": "test_pension_days_bound_matches_the_engine",
-      "source_sha256": "84ee1d77089d3321f67055e1b237acf81544bd535d3c5c596d46a4a53740605b",
+      "source_sha256": "df34148d81c0cdbd52fc4a5d034449ae4dd3ba602a7cabb81de9cd982333c1e8",
       "status": "covered",
       "proofs": [
         "PENSION",
@@ -3764,7 +3771,7 @@
     {
       "original": "tests/test_worksheet_catalogue.py:97",
       "function": "test_study_loan_repayment_calls_through_and_refuses_cents",
-      "source_sha256": "84ee1d77089d3321f67055e1b237acf81544bd535d3c5c596d46a4a53740605b",
+      "source_sha256": "df34148d81c0cdbd52fc4a5d034449ae4dd3ba602a7cabb81de9cd982333c1e8",
       "status": "covered",
       "proofs": [
         "F"
@@ -3773,7 +3780,7 @@
     {
       "original": "tests/test_worksheet_catalogue.py:123",
       "function": "test_new_worksheets_call_through_to_the_engine",
-      "source_sha256": "84ee1d77089d3321f67055e1b237acf81544bd535d3c5c596d46a4a53740605b",
+      "source_sha256": "df34148d81c0cdbd52fc4a5d034449ae4dd3ba602a7cabb81de9cd982333c1e8",
       "status": "covered",
       "proofs": [
         "F"
@@ -3783,17 +3790,17 @@
     {
       "original": "tests/test_worksheet_catalogue.py:133",
       "function": "test_medicare_levy_refuses_a_year_without_published_thresholds",
-      "source_sha256": "84ee1d77089d3321f67055e1b237acf81544bd535d3c5c596d46a4a53740605b",
-      "status": "adapted",
+      "source_sha256": "df34148d81c0cdbd52fc4a5d034449ae4dd3ba602a7cabb81de9cd982333c1e8",
+      "status": "not-yet-ported",
       "proofs": [
         "E"
       ],
-      "adaptation_or_limit": "Original Python TypeAdapter-only refusal is exercised through the registered native boundary."
+      "adaptation_or_limit": "Removed from Python, which now calculates the 2026-27 levy from the Medicare Levy Act s 3(1) figures. The Python server now serves every worksheet in the calculators executable's catalogue (48 kinds in 1.0.0) with its own periods, inputs and scopes, and its worksheet facts publish only kind and scope_confirmed; the native build keeps the original 14 kinds, narrowed periods and per-kind schemas, which these proofs show. Native adaptation: Original Python TypeAdapter-only refusal is exercised through the registered native boundary."
     },
     {
       "original": "tests/test_worksheet_catalogue.py:140",
       "function": "test_medicare_levy_refuses_section_9a_and_requires_the_flag",
-      "source_sha256": "84ee1d77089d3321f67055e1b237acf81544bd535d3c5c596d46a4a53740605b",
+      "source_sha256": "df34148d81c0cdbd52fc4a5d034449ae4dd3ba602a7cabb81de9cd982333c1e8",
       "status": "covered",
       "proofs": [
         "F"
@@ -4301,7 +4308,7 @@
     {
       "original": "tests/test_expansion.py:136",
       "function": "test_library_search_ranks_by_where_the_words_sit",
-      "source_sha256": "b3a0ba87d797091ac1373ac4c27b5f9abbd271da40c2e78ce2a85c9203a37838",
+      "source_sha256": "4f92f546eda914b4719a75537d837a1d75982729c24759b4a1721bb9d28bc7f0",
       "status": "covered",
       "proofs": [
         "L"
@@ -4310,7 +4317,7 @@
     {
       "original": "tests/test_expansion.py:197",
       "function": "test_library_ranks_on_the_whole_heading_but_returns_it_truncated",
-      "source_sha256": "b3a0ba87d797091ac1373ac4c27b5f9abbd271da40c2e78ce2a85c9203a37838",
+      "source_sha256": "4f92f546eda914b4719a75537d837a1d75982729c24759b4a1721bb9d28bc7f0",
       "status": "covered",
       "proofs": [
         "L"
@@ -4999,7 +5006,7 @@
     {
       "original": "tests/test_expansion.py:172",
       "function": "test_library_compares_whole_words_and_keeps_a_modal_with_its_not",
-      "source_sha256": "b3a0ba87d797091ac1373ac4c27b5f9abbd271da40c2e78ce2a85c9203a37838",
+      "source_sha256": "4f92f546eda914b4719a75537d837a1d75982729c24759b4a1721bb9d28bc7f0",
       "status": "covered",
       "proofs": [
         "L"
@@ -5008,7 +5015,7 @@
     {
       "original": "tests/test_expansion.py:188",
       "function": "test_library_ranks_on_the_words_as_it_matches_them",
-      "source_sha256": "b3a0ba87d797091ac1373ac4c27b5f9abbd271da40c2e78ce2a85c9203a37838",
+      "source_sha256": "4f92f546eda914b4719a75537d837a1d75982729c24759b4a1721bb9d28bc7f0",
       "status": "covered",
       "proofs": [
         "L"
@@ -5017,7 +5024,7 @@
     {
       "original": "tests/test_file_note.py:28",
       "function": "test_the_note_is_opt_in_and_leaves_the_result_unchanged",
-      "source_sha256": "667909c8579e28da784acf050e64d63049faf420cdd524578742dff005854812",
+      "source_sha256": "19f3fed806aa356892ea828684000e0953f64b2e78cad1b5e19154c6231e251e",
       "status": "covered",
       "proofs": [
         "F"
@@ -5026,7 +5033,7 @@
     {
       "original": "tests/test_file_note.py:36",
       "function": "test_a_gst_note_restates_the_facts_figures_scope_sources_and_warnings",
-      "source_sha256": "667909c8579e28da784acf050e64d63049faf420cdd524578742dff005854812",
+      "source_sha256": "19f3fed806aa356892ea828684000e0953f64b2e78cad1b5e19154c6231e251e",
       "status": "covered",
       "proofs": [
         "F"
@@ -5035,16 +5042,17 @@
     {
       "original": "tests/test_file_note.py:60",
       "function": "test_every_kind_yields_a_note_whose_every_number_comes_from_the_result",
-      "source_sha256": "667909c8579e28da784acf050e64d63049faf420cdd524578742dff005854812",
-      "status": "covered",
+      "source_sha256": "19f3fed806aa356892ea828684000e0953f64b2e78cad1b5e19154c6231e251e",
+      "status": "not-yet-ported",
       "proofs": [
         "F"
-      ]
+      ],
+      "adaptation_or_limit": "The Python test now covers every catalogue kind at its example's period. The Python server now serves every worksheet in the calculators executable's catalogue (48 kinds in 1.0.0) with its own periods, inputs and scopes, and its worksheet facts publish only kind and scope_confirmed; the native build keeps the original 14 kinds, narrowed periods and per-kind schemas, which these proofs show."
     },
     {
       "original": "tests/test_file_note.py:74",
       "function": "test_a_refused_worksheet_returns_its_refusal_and_no_note",
-      "source_sha256": "667909c8579e28da784acf050e64d63049faf420cdd524578742dff005854812",
+      "source_sha256": "19f3fed806aa356892ea828684000e0953f64b2e78cad1b5e19154c6231e251e",
       "status": "covered",
       "proofs": [
         "F"
@@ -5053,7 +5061,7 @@
     {
       "original": "tests/test_file_note.py:80",
       "function": "test_the_option_takes_a_json_boolean_only",
-      "source_sha256": "667909c8579e28da784acf050e64d63049faf420cdd524578742dff005854812",
+      "source_sha256": "19f3fed806aa356892ea828684000e0953f64b2e78cad1b5e19154c6231e251e",
       "status": "covered",
       "proofs": [
         "F"

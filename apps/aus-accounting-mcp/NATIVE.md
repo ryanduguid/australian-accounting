@@ -109,10 +109,13 @@ benchmark name/year and engine date format. These complement frozen payload
 comparisons; neither a captured call nor this set proves every original assertion.
 
 The source-bound [behaviour record](tests/fixtures/native/behaviour-coverage.json)
-reconciles all 596 original test functions across 43 files. It records 459 with
-native observable checks, 63 with explicit native adaptations and 74 retained
+reconciles all 596 original test functions across 43 files. It records 453 with
+native observable checks, 62 with explicit native adaptations, 74 retained
 with the supported Python distribution and its release, Registry, documentation
-or media workflow. Retained checks are active and are not retirement approvals.
+or media workflow, and 7 not yet ported: the Python server has since served every
+worksheet in the calculators executable's catalogue, which the native build, still
+at the original 14 kinds, does not. Retained checks are active and are not
+retirement approvals.
 The record identifies proof symbols and limitations for each function; a Rust
 test refuses changed original source hashes until the reconciliation is reviewed.
 These are function dispositions, not 596 independent Rust tests or proof of
