@@ -10,18 +10,20 @@ the applicability of a passage.
 ## Download the published snapshot
 
 This route needs no build. PaulGoodman's
-[`corpus-2026-11-11` release](https://github.com/ryanduguid/PaulGoodman/releases/tag/corpus-2026-11-11)
+[`corpus-2026-11-18` release](https://github.com/ryanduguid/PaulGoodman/releases/tag/corpus-2026-11-18)
 holds the 9 principal Acts listed in the next section, each at its current compilation on
-11 November 2026. Download `au-tax-legislation-corpus-dist-2026-11-11.tar.gz`
-(6,227,238 bytes) and `SHA256SUMS` from it into a folder outside every source checkout,
-then check and unpack the archive:
+18 November 2026, and under `compilations/` the compilation of each in force on 1 July of
+each year from 2020 to 2026 (the TAA 1953 from 2021), which `as_at` reads. Download
+`au-tax-legislation-corpus-dist-2026-11-18.tar.gz` (45,166,634 bytes; 314,573,396
+unpacked) and `SHA256SUMS` from it into a folder outside every source checkout, then
+check and unpack the archive:
 
 ```bash
 sha256sum -c SHA256SUMS
-tar -xzf au-tax-legislation-corpus-dist-2026-11-11.tar.gz
+tar -xzf au-tax-legislation-corpus-dist-2026-11-18.tar.gz
 ```
 
-In PowerShell, compare `(Get-FileHash au-tax-legislation-corpus-dist-2026-11-11.tar.gz).Hash`
+In PowerShell, compare `(Get-FileHash au-tax-legislation-corpus-dist-2026-11-18.tar.gz).Hash`
 with the digest in `SHA256SUMS`; `tar` is part of Windows 10 and later.
 
 It unpacks to `dist/`, holding `sources.json`, `markdown/<register id>/sections.jsonl`
@@ -39,7 +41,7 @@ authorised text. It holds no instruments, rulings or case law, so a 'no match' s
 nothing about any other title. Its legislative content is licensed under
 [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/) by the Federal Register of
 Legislation; keep the attribution each row carries. The snapshot does not change: for
-an Act's compilation after 11 November 2026, build it with `quick`.
+an Act's compilation after 18 November 2026, build it with `quick`.
 
 ## Build the principal Acts with one command
 

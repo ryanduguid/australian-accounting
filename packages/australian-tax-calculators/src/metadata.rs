@@ -1004,7 +1004,10 @@ pub fn supported_periods(kind: &str) -> Vec<&'static str> {
         "main_residence" => vec!["2024-25", "2025-26", "2026-27"],
         // Borrowing expenses: s 26-155 quarantines residential rental deductions
         // from 2027-28. Hire purchase: the years read.
-        "borrowing_expenses" | "hire_purchase_schedule" => vec!["2024-25", "2025-26", "2026-27"],
+        "borrowing_expenses"
+        | "hire_purchase_schedule"
+        | "chattel_mortgage_schedule"
+        | "loan_transactions" => vec!["2024-25", "2025-26", "2026-27"],
         // s 40-880 as amended by Act No 92 of 2020 applies to expenditure
         // incurred from 1 July 2020, unamended to compilation 268. It and
         // Subdivision 328-C set no figure by year, and the Register's one later
@@ -1045,6 +1048,9 @@ pub fn supported_periods(kind: &str) -> Vec<&'static str> {
         "division_293" => DIVISION_293_YEARS.to_vec(),
         "division_296" => DIVISION_296_YEARS.to_vec(),
         "termination_payment" => TERMINATION_PAYMENT_YEARS.to_vec(),
+        // ITAA 1997 ss 82-140 to 82-155 set no figure by year; the years whose
+        // law was read as compiled on 19 November 2026.
+        "etp_tax_free_component" => vec!["2026-27", "2027-28"],
         "unused_leave_payment" => UNUSED_LEAVE_PAYMENT_YEARS.to_vec(),
         "schedule_5_method_a" | "schedule_5_method_b_i" | "schedule_5_method_b_ii" => {
             SCHEDULE_5_YEARS.to_vec()
@@ -1121,6 +1127,14 @@ pub fn source_review(kind: &str) -> (&'static str, &'static str) {
         "hire_purchase_schedule" => (
             "2026-11-18",
             "ITAA 1997 Division 240 (ss 240-17, 240-20, 240-25, 240-55, 240-60, 240-65, 240-70, 240-75, 240-85, 240-105 and 240-110), s 40-230 and s 995-1 'termination amount', compilation 268 (1 October 2026); GST Act ss 9-70, 9-75, 9-90, 11-5, 11-25, 11-30, 29-10, 69-10 and 158-5, compilation 96 (1 January 2026); the ATO's 'GST – Hire purchase and leasing' (last updated 6 April 2017), 'Purchasing a motor vehicle' (last updated 3 June 2026: the 2026-27 car limit), 'Assets and exclusions' (last updated 27 May 2026: the 2024-25 and 2025-26 car limits) and the GST issues register 'Financial services - questions and answers' (issues 1.1, 1.3, 1.9, 1.15 and 1.17, updated to 7 September 2012 and 2 May 2013)",
+        ),
+        "chattel_mortgage_schedule" => (
+            "2026-11-19",
+            "ITAA 1997 ss 8-1, 240-10 and 995-1 'hire purchase agreement', compilation 268 (1 October 2026); GST Act ss 9-75, 9-90, 11-25, 11-30, 29-10, 40-5 and 69-10, compilation 96 (1 January 2026); the ATO's GST issues register 'Financial services - questions and answers' (issues 1.1, 1.14 and 1.19 to 1.21, updated to 2 May 2013), TR 93/16 (paras 2, 18 and 28 to 31) and 'Purchasing a motor vehicle' (last updated 3 June 2026: the 2026-27 car limit and Darren's example)",
+        ),
+        "loan_transactions" => (
+            "2026-11-19",
+            "ITAA 1997 s 8-1, compilation 268 (1 October 2026)",
         ),
         "fbt_car_statutory" => (
             "2026-10-29",
@@ -1209,6 +1223,10 @@ pub fn source_review(kind: &str) -> (&'static str, &'static str) {
         "termination_payment" => (
             "2026-11-14",
             "ATO Schedule 11, tax table for employment termination payments (from 1 July 2026), Table A and examples 1 to 4; ATO Key superannuation rates, tables 17 and 20; ITAA 1997 ss 82-10, 82-130 to 82-160 and 83-170 to 83-180, compilation 268 (1 October 2026); SISR reg 6.01(2), compilation 159 (1 July 2026)",
+        ),
+        "etp_tax_free_component" => (
+            "2026-11-19",
+            "ITAA 1997 ss 82-10(6), 82-140, 82-145, 82-150 and 82-155 and s 995-1(1) 'last retirement day', on the ATO's legal database; ATO 'Tax-free component of ETPs' (last updated 24 July 2025), Jackson's example; ATO Employment termination payment with an invalidity segment worksheet (NAT 71949, June 2014), steps 1 to 9",
         ),
         "unused_leave_payment" => (
             "2026-11-16",
@@ -1334,6 +1352,18 @@ pub fn library_evidence(kind: &str) -> [(&'static str, &'static str); 4] {
             "s 240-60(1) steps 1 to 4, with s 240-60 as amended by No 79 of 2010",
             "2026-11-15",
             "2026-11-15",
+        ),
+        "chattel_mortgage_schedule" => (
+            "GST: Transport, Travel and Vehicles",
+            "12-110 (the car limit on input tax credits)",
+            "2025-06-03",
+            "2026-11-19",
+        ),
+        "loan_transactions" => (
+            "ITAA 1997, compilation 268",
+            "s 8-1",
+            "2026-10-01",
+            "2026-11-19",
         ),
         "fbt_car_statutory" | "fbt_car_operating_cost" => (
             "tax-examples-fringe-benefits-tax-fbt",
@@ -1461,6 +1491,12 @@ pub fn library_evidence(kind: &str) -> [(&'static str, &'static str); 4] {
             "2026-06-17",
             "2026-11-14",
         ),
+        "etp_tax_free_component" => (
+            "superannuation-superannuation-benefits-termination-payments",
+            "8-850",
+            "2026-06-30",
+            "2026-11-19",
+        ),
         "unused_leave_payment" => (
             "ATO Schedule 7 tax table for unused leave payments on termination of employment",
             "example: long service leave (Norman)",
@@ -1554,6 +1590,36 @@ pub fn optional_inputs(kind: &str) -> Vec<(&'static str, &'static str)> {
                 "decimal fraction above 0 and at most 1, the extent of creditable purpose of the replacement's acquisition (GST Act s 11-30); required when replacement_creditable_acquisition is true and refused otherwise",
             ),
         ],
+        "chattel_mortgage_schedule" => vec![
+            (
+                "instalment",
+                "AUD, the level instalment, from which the rate is found; give it or annual_rate, not both",
+            ),
+            (
+                "annual_rate",
+                "decimal fraction from 0 to 1, the stated annual rate, charged annual_rate / 12 a month or / 52 a week, from which the instalment is worked out; for monthly or weekly instalments in arrears only; give it or instalment, not both",
+            ),
+            (
+                "frequency",
+                "weekly, fortnightly, monthly, quarterly or annual, the instalments' frequency; monthly when omitted",
+            ),
+            (
+                "deposit",
+                "AUD, paid at the purchase towards the price, beside the amount financed; 0.00 when omitted",
+            ),
+            (
+                "trade_in",
+                "AUD, the trade-in allowance credited at the purchase towards the price; 0.00 when omitted",
+            ),
+            (
+                "gst",
+                "object of GST facts, for the purchaser's input tax credit on the price: as hire_purchase_schedule takes them. A passenger_car worth more than the car limit and not quoted for has its credit capped at 1/11 of the limit (GST Act s 69-10(1))",
+            ),
+        ],
+        "loan_transactions" => vec![(
+            "rate_changes",
+            "list of objects in date order, each with date (YYYY-MM-DD, after start_date and by end_date, one change a day) and annual_rate (decimal fraction from 0 to 1), the rate from that day",
+        )],
         "hire_purchase_schedule" => vec![
             (
                 "instalment",
@@ -2037,6 +2103,50 @@ pub fn input_units(kind: &str) -> Vec<(&'static str, &'static str)> {
                 "boolean, false only when the property is not a leisure facility, or s 26-50(3) applies to it at all times in the income year (such as a holiday home held mainly to produce rent)",
             ),
         ],
+        "chattel_mortgage_schedule" => vec![
+            (
+                "amount_financed",
+                "AUD, the amount lent and paid to the supplier for the goods: the price less any deposit or trade-in",
+            ),
+            (
+                "instalments",
+                "integer, the number of instalments: 1 to 360 monthly, 1,565 weekly, 782 fortnightly, 120 quarterly or 30 annual",
+            ),
+            (
+                "balloon",
+                "AUD, paid at the end of the term; 0.00 for none",
+            ),
+            (
+                "timing",
+                "in_arrears (each instalment at its period's end) or in_advance (at its start)",
+            ),
+            (
+                "start_date",
+                "YYYY-MM-DD, the day of the purchase and the loan, within the income year",
+            ),
+        ],
+        "loan_transactions" => vec![
+            (
+                "opening_balance",
+                "AUD, the balance owing at the start of start_date; 0.00 for a new loan",
+            ),
+            (
+                "annual_rate",
+                "decimal fraction from 0 to 1, the annual interest rate from start_date",
+            ),
+            (
+                "start_date",
+                "YYYY-MM-DD, the statement's first day, within the income year",
+            ),
+            (
+                "end_date",
+                "YYYY-MM-DD, the statement's last day, on or after start_date and less than 30 years after it",
+            ),
+            (
+                "transactions",
+                "list of at most 5,000 objects in date order, each with date (YYYY-MM-DD, from start_date to end_date), kind (drawing or repayment) and amount (AUD); [] for none",
+            ),
+        ],
         "hire_purchase_schedule" => vec![
             (
                 "amount_financed",
@@ -2395,6 +2505,32 @@ pub fn input_units(kind: &str) -> Vec<(&'static str, &'static str)> {
                 "YYYY-MM-DD, the employee's, for their preservation age (SISR reg 6.01(2))",
             ),
         ],
+        "etp_tax_free_component" => vec![
+            (
+                "payment",
+                "AUD, the whole life benefit employment termination payment (ITAA 1997 s 82-130), every part of it made because of the termination: such as a golden handshake, compensation, unused sick leave and rostered days off, but not unused annual or long service leave (s 82-135)",
+            ),
+            (
+                "employment_start",
+                "YYYY-MM-DD, the first day of the employment to which the payment relates, counted",
+            ),
+            (
+                "termination_date",
+                "YYYY-MM-DD, the day the employment was terminated, counted in the employment days",
+            ),
+            (
+                "last_retirement_day",
+                "YYYY-MM-DD, the employee's last retirement day (s 995-1(1)): the day the employment would have ended on reaching a particular age or completing a particular period of service, or otherwise the day they would turn 65",
+            ),
+            (
+                "ill_health",
+                "boolean, true when the payment was made because the employee stopped being gainfully employed, and they stopped because they suffered from ill-health, physical or mental (s 82-150(1)(a) and (b))",
+            ),
+            (
+                "medical_certification",
+                "boolean, true when 2 legally qualified medical practitioners have certified that, because of the ill-health, the employee is unlikely ever to be gainfully employed in a capacity for which they are reasonably qualified because of education, experience or training (s 82-150(1)(d))",
+            ),
+        ],
         "unused_leave_payment" => vec![
             (
                 "annual_leave",
@@ -2732,6 +2868,28 @@ pub fn examples(kind: &str) -> Vec<(&'static str, Example)> {
             ("arms_length", Flag(true)),
             ("involuntary_disposal", Flag(false)),
         ],
+        "chattel_mortgage_schedule" => vec![
+            ("year", Text("2026-27")),
+            ("amount_financed", Text("45000.00")),
+            ("annual_rate", Text("0.0799")),
+            ("instalments", Whole(60)),
+            ("balloon", Text("5000.00")),
+            ("timing", Text("in_arrears")),
+            ("start_date", Text("2026-07-15")),
+        ],
+        "loan_transactions" => vec![
+            ("year", Text("2026-27")),
+            ("opening_balance", Text("0.00")),
+            ("annual_rate", Text("0.073")),
+            ("start_date", Text("2026-07-01")),
+            ("end_date", Text("2026-09-30")),
+            (
+                "transactions",
+                Json(
+                    r#"[{"date": "2026-07-01", "kind": "drawing", "amount": "10000.00"}, {"date": "2026-08-31", "kind": "repayment", "amount": "1000.00"}]"#,
+                ),
+            ),
+        ],
         "hire_purchase_schedule" => vec![
             ("year", Text("2026-27")),
             ("amount_financed", Text("45000.00")),
@@ -2874,6 +3032,16 @@ pub fn examples(kind: &str) -> Vec<(&'static str, Example)> {
             ("non_excluded_payment", Text("17678.00")),
             ("other_taxable_payments", Text("140000.00")),
             ("date_of_birth", Text("1996-09-01")),
+        ],
+        // Shaped on the ATO's Jackson example: $102,000, terminated for
+        // invalidity a year before the 65th birthday, moved into 2026-27.
+        "etp_tax_free_component" => vec![
+            ("payment", Text("102000.00")),
+            ("employment_start", Text("2013-09-02")),
+            ("termination_date", Text("2026-09-25")),
+            ("last_retirement_day", Text("2027-09-25")),
+            ("ill_health", Flag(true)),
+            ("medical_certification", Flag(true)),
         ],
         // Schedule 7's example (Norman), which gives no accrual start: any day
         // before 16 August 1978 gives its 3 long service leave periods.
