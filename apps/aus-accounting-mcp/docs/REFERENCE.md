@@ -167,7 +167,7 @@ copy without a download until the uv cache is cleaned.
 | `calc_payday_super_deadline` | Review one contribution against Payday Super timing | payday-super-checker |
 | `review_payday_super_contributions` | Assess up to 200 related contributions for one employer | payday-super-checker |
 | `build_payday_super_evidence_pack` | Return 4 in-memory review files for supplied contributions; requires checker evidence-pack support | payday-super-checker |
-| `calculate_tax_worksheet` | Run one of 14 bounded worksheets with established scope, optionally with a file note | australian-tax-calculators |
+| `calculate_tax_worksheet` | Run any bounded worksheet in the calculators executable's catalogue with established scope, optionally with a file note | australian-tax-calculators |
 | `search_accounting_library` | Search explicitly configured local Markdown files | local read-only retrieval |
 | `read_accounting_library` | Read bounded lines with file, line, page and hash citations | local read-only retrieval |
 | `search_tax_legislation` | Find provisions in a configured local legislation corpus, cited to Act, section, compilation and register page; `as_at` answers for a date or refuses by name | local read-only retrieval |
