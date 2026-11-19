@@ -94,6 +94,27 @@
   `hire_purchase.segments_invalid` and
   `hire_purchase.segments_not_contiguous`. `tests/hire_purchase_worksheet.rs`
   works the cases by hand and from the ATO's Albert and Darren examples.
+- `gst-margin-scheme` decides whether the GST margin scheme can apply to a
+  taxable supply of real property in 2025-26 to 2027-28, condition by
+  condition (GST Act s 75-5: a freehold interest, stratum unit or long-term
+  lease, a written agreement on or before the supply or in a further period
+  the Commissioner allows, and no acquisition through a taxable supply worked
+  without it), and gives the GST with and without it: 1/11 of the margin over
+  the acquisition's consideration less any unpaid (ss 75-10(2), 75-12 and
+  75-14) or over an approved valuation as at the day s 75-10(3) items 1 to 4
+  fix, for part of the land on its share (s 75-15), rounded to the cent
+  (s 9-90(1)). Acquisitions that s 75-5(3)(b) to (g), s 75-10(3) item 2A,
+  s 75-11 or s 75-22 govern, and a supply to an associate (s 75-13), are
+  refused, naming the provision. New codes:
+  `gst_margin_scheme.acquisition_unsupported`,
+  `gst_margin_scheme.fact_conflict`, `gst_margin_scheme.fact_invalid`,
+  `gst_margin_scheme.supply_to_associate`,
+  `gst_margin_scheme.valuation_day_invalid`,
+  `gst_margin_scheme.valuation_item_unsettled` and
+  `gst_margin_scheme.valuation_unavailable`. `derive` explains it.
+  `tests/gst_margin_scheme.rs` runs the Library's Joanne Black, Hans and Luke,
+  improvements, subdivision and 1 July 2000 examples and GSTR 2006/8's
+  Tureia example.
 
 ### Changed
 

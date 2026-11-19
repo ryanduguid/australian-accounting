@@ -1023,6 +1023,8 @@ pub fn supported_periods(kind: &str) -> Vec<&'static str> {
         // The years whose car limit was read on 18 November 2026; 2027-28 is
         // refused as for balancing_adjustment, and its car limit is not yet
         // published.
+        // Division 75 sets no figure by year; the years are gst's.
+        "gst_margin_scheme" => vec!["2025-26", "2026-27", "2027-28"],
         "trade_in" => vec!["2025-26", "2026-27"],
         "fbt" => vec!["2026", "2027"],
         "fbt_car_statutory" | "fbt_car_operating_cost" | "fbt_loan" => {
@@ -1120,6 +1122,10 @@ pub fn source_review(kind: &str) -> (&'static str, &'static str) {
         "balancing_adjustment" => (
             "2026-11-18",
             "ITAA 1997 ss 40-25, 40-85, 40-230, 40-285, 40-290, 40-291A, 40-295, 40-300, 40-305, 40-325, 40-370, 104-235, 104-240, 118-5 and 118-10 (its example) and Subdivision 27-B, compilation 268 (1 October 2026), with the endnotes' amendment history; Treasury Laws Amendment (Tax Reform No. 1) Act 2026 (No 49 of 2026), Schedule 4 item 17 (s 40-291A from 2026-27); Guide to depreciating assets 2026, 'What happens if you no longer hold or use a depreciating asset?', its Bridget, Andrew and Louise examples and the car limit formula",
+        ),
+        "gst_margin_scheme" => (
+            "2026-11-19",
+            "GST Act ss 9-90, 11-5, 75-5, 75-10, 75-11, 75-12, 75-13, 75-14, 75-15, 75-20, 75-35 and 195-1 ('approved valuation', 'long-term lease', 'margin scheme'), from the ATO's legal database; GSTR 2006/8 (paras 15 to 39F: the agreement, a conditional agreement, ineligible supplies and examples 1 and 2); the ATO's 'GST and the margin scheme' (last updated 19 August 2021)",
         ),
         "trade_in" => (
             "2026-11-18",
@@ -1345,6 +1351,12 @@ pub fn library_evidence(kind: &str) -> [(&'static str, &'static str); 4] {
             "Bridget, Andrew and Louise examples; the Gayle example",
             "2026-06-01",
             "2026-11-18",
+        ),
+        "gst_margin_scheme" => (
+            "tax-examples-gst-and-other-indirect-taxes",
+            "12-200",
+            "2026-06-30",
+            "2026-11-19",
         ),
         "trade_in" => (
             "ATO GST pages: Purchasing a motor vehicle; GST and the disposal of capital assets",
@@ -1579,6 +1591,40 @@ pub fn optional_inputs(kind: &str) -> Vec<(&'static str, &'static str)> {
             "car_limit",
             "for a car only, and then required: null when s 40-230 did not reduce its cost to the car limit, or an object with limit (AUD, the car limit for the financial year in which the car was first used for any purpose), second_element_cost (AUD) and cost_ignoring_car_limit (AUD, the first and second elements ignoring the car limit, after Subdivision 27-B), cost then being limit plus second_element_cost: ITAA 1997 s 40-325",
         )],
+        "gst_margin_scheme" => vec![
+            (
+                "acquisition_consideration",
+                "AUD, with method consideration and then required: the consideration you gave for acquiring the entire interest, unit or lease, without improvements, development work, legal fees, stamp duty or other acquisitions in relation to the property (GST Act ss 75-10(2) and 75-14)",
+            ),
+            (
+                "unpaid_acquisition_consideration",
+                "AUD, with method consideration and then required: the part of acquisition_consideration not yet paid when you make the supply, 0.00 when paid in full (s 75-12)",
+            ),
+            (
+                "approved_valuation",
+                "AUD, with method approved_valuation and then required: a valuation of the entire interest, unit or lease made in accordance with the Commissioner's requirements (s 75-35), as at valuation_day",
+            ),
+            (
+                "valuation_day",
+                "YYYY-MM-DD date, with method approved_valuation and then required: the day the valuation is as at, which s 75-10(3) fixes: 1 July 2000 (items 1 and 3), the date of effect of your registration or the earlier day you applied (item 2), or the day of the supply (item 4)",
+            ),
+            (
+                "registered_on_1_july_2000",
+                "boolean, with method approved_valuation and then required: true when you were registered or required to be registered for GST on 1 July 2000 (s 75-10(3) item 2)",
+            ),
+            (
+                "government_unimproved_on_1_july_2000",
+                "boolean, with method approved_valuation and then required: true when you are the Commonwealth, a State or a Territory and there were no improvements on the land or premises on 1 July 2000 (s 75-10(3) item 4)",
+            ),
+            (
+                "subdivision_share",
+                "decimal, more than 0 and at most subdivision_whole, with subdivision_whole: for a supply of part of the land you acquired, its measure on a reasonable basis such as area or expected sale price (s 75-15)",
+            ),
+            (
+                "subdivision_whole",
+                "decimal, with subdivision_share: the same measure of all the land you acquired (s 75-15)",
+            ),
+        ],
         "trade_in" => vec![
             (
                 "car_limit",
@@ -2197,6 +2243,32 @@ pub fn input_units(kind: &str) -> Vec<(&'static str, &'static str)> {
             (
                 "years",
                 "list of objects, one for each income year held from the start time to the event, each with income_year (from 2001-02, and for a car from 2015-16, to the event's year), decline_in_value (AUD; for a cents per kilometre year the notional decline of s 40-370(3)) and deduction (AUD, the decline less the s 40-25 reductions); a car's rows also state method (log_book or cents_per_kilometre, which takes no deduction) and days_held (integer from 1 to the days in that income year, 366 when it includes 29 February)",
+            ),
+        ],
+        "gst_margin_scheme" => vec![
+            (
+                "interest",
+                "freehold_interest, stratum_unit, long_term_lease (at least 50 years, GST Act s 195-1) or other: what the supply sells or grants (s 75-5(1))",
+            ),
+            (
+                "agreement",
+                "written_on_or_before_supply, written_in_further_period_allowed (within a further period the Commissioner allowed) or none: the written agreement between you and the recipient that the margin scheme is to apply (s 75-5(1) and (1A))",
+            ),
+            (
+                "acquisition",
+                "how you acquired the entire interest, unit or lease: taxable_supply_under_margin_scheme, taxable_supply_without_margin_scheme (ineligible: s 75-5(3)(a)), other_supply_from_1_july_2000 (a supply on or after 1 July 2000 that was not a taxable supply, such as a purchase from a seller not registered for GST) or before_1_july_2000 (acquired, or contracted to acquire, before 1 July 2000: GSTR 2006/8 para 39A, and not through a taxable supply on which the GST was worked out without the margin scheme, such as a pre-1 July 2000 contract settled later as a fully taxable supply, which is taxable_supply_without_margin_scheme); refused with the provisions that apply: gst_group_member, joint_venture_operator, inheritance, gst_free_going_concern, gst_free_farm_land, associate, gst_free_government_land and part_through_ineligible_supply",
+            ),
+            (
+                "consideration",
+                "AUD, the consideration for the supply, the GST-inclusive price (s 75-10(2))",
+            ),
+            (
+                "recipient_associate",
+                "boolean, true when the recipient is your associate at the time of the supply; refused, as s 75-13 then works the margin from the GST inclusive market value",
+            ),
+            (
+                "method",
+                "consideration (the consideration for your acquisition: s 75-10(2)) or approved_valuation (for an interest acquired before 1 July 2000 only: s 75-10(3)). For an interest acquired before 1 July 2000, consideration states that no approved valuation as at the day s 75-10(3) fixes has been made: once one has, s 75-10(3) works the margin from it",
             ),
         ],
         "trade_in" => vec![
@@ -2873,6 +2945,21 @@ pub fn examples(kind: &str) -> Vec<(&'static str, Example)> {
                     r#"[{"income_year": "2025-26", "decline_in_value": "300.00", "deduction": "180.00"}, {"income_year": "2026-27", "decline_in_value": "0.00", "deduction": "0.00"}]"#,
                 ),
             ),
+        ],
+        // The Library's Joanne Black example (Tax Examples, GST, 12-200):
+        // land bought in January 2000, worth $448,000 on 1 July 2000, sold
+        // with a house in January 2026 for $640,000.
+        "gst_margin_scheme" => vec![
+            ("interest", Text("freehold_interest")),
+            ("agreement", Text("written_on_or_before_supply")),
+            ("acquisition", Text("before_1_july_2000")),
+            ("consideration", Text("640000.00")),
+            ("method", Text("approved_valuation")),
+            ("recipient_associate", Flag(false)),
+            ("approved_valuation", Text("448000.00")),
+            ("valuation_day", Text("2000-07-01")),
+            ("registered_on_1_july_2000", Flag(true)),
+            ("government_unimproved_on_1_july_2000", Flag(false)),
         ],
         "trade_in" => vec![
             ("year", Text("2026-27")),

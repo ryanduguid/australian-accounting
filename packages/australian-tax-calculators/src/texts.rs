@@ -27,6 +27,10 @@ pub const SCOPES: &[(&str, &str)] = &[
         "One hire purchase agreement whose hirer is the notional buyer (ITAA 1997 s 240-17(2)), starting in the income year given, with instalments paid in arrears (at each period's end) or in advance (at its start) and any balloon paid at the end of the term. The instalments are one level amount weekly, fortnightly, monthly, quarterly or annually, or dated segments of level amounts (a nil amount for a payment holiday), all counted in weeks or all in months, over at most 30 years. The operator establishes the amount financed (the notional loan principal: the consideration less any deposit paid or trade-in credited at or before the start, s 240-25(3)), the instalments, the balloon, the start date and any deposit, trade-in, payout and GST facts. A deposit or trade-in is taken as paid or credited on the start date, and the goods and the credit component as recorded on one tax invoice. Months run from the start date's day of the month, or the month's last day when it is shorter; weeks are 7 days. Each instalment's period is an arrangement payment period (s 240-70(1)), and an annual period is 2 periods of 6 months (s 240-70(2)). Under s 240-60(1) each period's notional interest is the outstanding notional loan principal, less any instalment due at the period's start, times the implicit interest rate for the period: (1 + r)^n - 1 for a period of n months (or weeks), where r is the compound rate a month (or a week) at which the payments repay the amount financed, found to 64 halvings of 0 to 100%. The payments themselves are not deductible but are taken into account in the notional interest (s 240-55). Each period shows the notional interest to date rounded half up to cents, less what the periods before show, so the periods add up to the total charges, each is within a cent of its amount at the rate found and the last balance is nil. The balloon is shown apart from the last instalment, on its own date. Journal lines for the start, each period's interest, each payment on its day and any payout carry the liability at the notional loan principal outstanding, and are totalled by income year: the interest by its period, with the periods spanning 30 June set apart, and each payment by its day. An early payout on the end of a period, neither known nor expected at the start, replaces every payment due from its date: the worksheet gives the notional interest and payments to that date, the balance outstanding, the difference and, under Subdivision 240-G (ss 240-105 and 240-110), which way the difference goes, flagged for review. With every GST fact given, it gives a registered hirer's input tax credit for an agreement entered into from 1 July 2012: 1/11 of every component of the supply, the notional interest included (the ATO's 'GST – Hire purchase and leasing'), less any luxury car tax for a car (GST Act s 9-75(2)), rounded to the nearest cent, 0.5 up (s 9-90), times the extent of creditable purpose (s 11-30(3)), attributable up front whether or not the hirer accounts on a cash basis (ss 29-10(1) and 158-5). A passenger car whose GST inclusive market value exceeds the car limit for the financial year it is first used ($69,674 for 2024-25 and 2025-26, $69,883 for 2026-27), where the hirer may not quote an ABN for luxury car tax, gives no GST figure and is flagged for review: s 69-10(1) caps the credit on the car, and the sources read do not settle whether the cap takes in the GST on the credit component. Refuses a rate below nil or of 100% a month (or week) or more, a rate that cannot be found closely enough to leave a nil balance to the cent, a term over 30 years, a nil amount financed or instalment, segments that do not run on from the start or mix weeks and months, a payout not on the end of a period before the term ends, a payout with GST facts, a payout known or expected at the start, a car first used in a year whose car limit is not published, and luxury car tax above the price. Excludes deciding whether Division 240 applies and what is financed; fees, charges and stamp duty; payments off a period boundary; substituted accounting periods; termination amounts other than the balloon and a stated payout, and estimates of them (s 240-60(3) and (4)); apportioning a period that spans 30 June between income years (s 240-60(2)); whether the notional interest is deductible (s 240-50) and any reduction of it for the input tax credit; the car's cost for Division 40 (ss 27-80 and 40-230); agreements entered into before 1 July 2012; GST adjustments after the start; the trade-in's own GST; and the notional seller.",
     ),
     (
+        "gst_margin_scheme",
+        "One taxable supply of real property in a financial year from 2025-26 to 2027-28, made under a contract entered into on or after 9 December 2008 and not under an option or right granted before then: whether the margin scheme of GST Act Division 75 can apply, and the GST with and without it. The operator establishes that the supply is a taxable supply apart from Division 75 (s 9-5: such as new residential premises or land sold in the course of an enterprise, not input taxed residential premises or a GST-free supply), what it sells or grants, the written agreement, how the supplier acquired the entire interest, unit or lease, and the base: the consideration for that acquisition and any of it unpaid, or an approved valuation (s 75-35) with the facts that fix its day. Each condition of s 75-5 is shown as met or not: a freehold interest, a stratum unit or a long-term lease (s 75-5(1)); a written agreement made on or before the supply or within a further period the Commissioner allows (s 75-5(1A)); and the interest not acquired through a taxable supply on which the GST was worked out without the margin scheme (s 75-5(2) and (3)(a)). The margin is the amount by which the consideration for the supply exceeds the base, or nil (s 75-10(2) and (3)): the acquisition's consideration less any of it unpaid (s 75-12), disregarding improvements and development (s 75-14), or for an interest acquired before 1 July 2000 an approved valuation as at the day s 75-10(3) items 1 to 4 fix, checked against the facts given; for a supply of part of the land, only the corresponding proportion of the base, the share of the whole given (s 75-15). The GST under the margin scheme is 1/11 of the margin (s 75-10(1)) and without it 1/11 of the consideration (ss 9-70 and 9-75(1)), each rounded to the nearest cent, 0.5 cents up, as for one supply on one invoice (s 9-90(1)); gst is the first when every condition is met and the second otherwise. Refuses an acquisition from a fellow GST group member, a GST joint venture operator or an associate, by inheritance, as a GST-free going concern or farm land, through a supply GST-free under s 38-445(1A), or in part through an ineligible supply (ss 75-5(3)(b) to (g), 75-10(3) item 2A, 75-11 and 75-22), a supply to an associate (s 75-13), an approved valuation for an interest acquired from 1 July 2000, a valuation day s 75-10(3) does not fix for the facts, a supply items 2 and 4 both describe, unpaid consideration above the consideration and a share above the whole. Excludes deciding whether the supply is taxable, the agreement's terms, the valuation and its compliance with the Commissioner's requirements, the reasonableness of the apportionment, the time of the supply, GST at settlement withholding (Schedule 1 to the Taxation Administration Act 1953 s 14-250), the increasing and decreasing adjustments of ss 75-22 and 75-27, contracts before 9 December 2008, and several supplies recorded on one invoice (s 9-90(2)).",
+    ),
+    (
         "chattel_mortgage_schedule",
         "One loan to buy goods, secured by a chattel mortgage over them and made on the day of the purchase in the income year given, under which the purchaser takes title at the purchase, so the agreement is not a hire purchase agreement (ITAA 1997 s 995-1) and Division 240 does not apply (s 240-10). The operator establishes the amount financed (paid to the supplier for the goods), the instalments, the balloon, the start date, any deposit and trade-in (taken as paid or credited on the start date, with the goods on one tax invoice) and any GST facts, and either the instalment or a stated annual rate. The instalments are one level amount weekly, fortnightly, monthly, quarterly or annually, in arrears (at each period's end) or in advance (at its start), with any balloon paid at the end of the term, over at most 30 years; months run from the start date's day of the month (or the month's last day when it is shorter) and weeks are 7 days. Each period's interest is the balance owing, less any instalment due at the period's start, times the rate for the period (the actuarial method, TR 93/16 para 18). Given the instalment, the rate is the compound rate a month (or week) at which the payments repay the amount financed, found to 64 halvings of 0 to 100%, and a period of n months (or weeks) has the rate (1 + r)^n - 1. Given annual_rate, for monthly or weekly instalments in arrears, the rate a period is annual_rate / 12 (or / 52), the instalment is the level one that repays the amount financed with the balloon at that rate, rounded half up to the cent, and the balance that rounding leaves, rounded to the cent, is added to the last instalment. Each period shows the interest to date rounded half up to cents, less what the periods before show, so the periods add up to the total interest and the last balance is nil. The interest is totalled by income year for the periods wholly in each year; a period spanning 30 June is listed apart with its days in each year. Interest charged is deductible under s 8-1 to the extent the borrowed money is used to gain or produce assessable income and is not capital, private or domestic; where the lender's statements give the interest, that figure is used (TR 93/16 para 2). With every GST fact given, it gives a registered purchaser's input tax credit on the price (the amount financed, deposit and trade-in): 1/11 of the price, less any luxury car tax for a car (GST Act s 9-75(2)), rounded to the nearest cent, 0.5 up (s 9-90(1)); for a passenger car whose GST inclusive market value exceeds the car limit for the financial year it is first used ($69,674 for 2024-25 and 2025-26, $69,883 for 2026-27), where the purchaser may not quote an ABN for luxury car tax, no more than 1/11 of that limit (s 69-10(1)); times the extent of creditable purpose (ss 11-30(3) and 69-10(3)). The interest gives no credit, as the loan is an input taxed financial supply (s 40-5(1)). The credit is attributable to the tax period of the purchase: on an accruals basis the earlier of the invoice and any payment (s 29-10(1)), on a cash basis the payment of the full price with the borrowed funds (s 29-10(2)(a)), as the ATO's GST issues register 'Financial services - questions and answers' (issue 1.21) states. Refuses both or neither of instalment and annual_rate, annual_rate with instalments in advance or other than monthly or weekly, a rate below nil or of 100% a month (or week) or more, a rate that cannot be found closely enough to leave a nil balance to the cent, a term over 30 years, a nil amount financed or instalment, a balloon that alone repays the loan at the stated rate, a rounded instalment that moves the last instalment by more than a whole instalment (below nil or above twice the instalment), a car first used in a year whose car limit is not published, and luxury car tax above the price. Excludes deciding whether the agreement is a chattel mortgage, the extent of income use and creditable purpose; fees, charges and stamp duty; irregular or changing instalments and rates (loan_transactions takes dated rates); interest charged daily; an early payout; substituted accounting periods; apportioning a period that spans 30 June between income years; the goods' decline in value and their cost for Division 40 (ss 27-80 and 40-230); the trade-in's own GST; GST adjustments after the purchase; and the lender.",
     ),
@@ -252,6 +256,10 @@ pub const SOURCES: &[(&str, &str)] = &[
     (
         "balancing_adjustment",
         "https://www.legislation.gov.au/C2004A05138/2026-10-01/2026-10-01/text/original/epub/OEBPS/document_2/document_2.html",
+    ),
+    (
+        "gst_margin_scheme",
+        "https://www.ato.gov.au/law/view/document?DocID=PAC/19990055/75-5",
     ),
     (
         "trade_in",
@@ -504,6 +512,22 @@ pub const EXTRA_SOURCES: &[(&str, &[&str])] = &[
             "https://www.legislation.gov.au/C2004A05138/2026-10-01/2026-10-01/text/original/epub/OEBPS/document_3/document_3.html",
             "https://www.ato.gov.au/law/view/document?docid=SAV/DEPRECIATING/00001",
             "https://www.legislation.gov.au/C2026A00049/asmade/text",
+        ],
+    ),
+    (
+        "gst_margin_scheme",
+        &[
+            "https://www.ato.gov.au/law/view/document?DocID=PAC/19990055/75-10",
+            "https://www.ato.gov.au/law/view/document?DocID=PAC/19990055/75-11",
+            "https://www.ato.gov.au/law/view/document?DocID=PAC/19990055/75-12",
+            "https://www.ato.gov.au/law/view/document?DocID=PAC/19990055/75-13",
+            "https://www.ato.gov.au/law/view/document?DocID=PAC/19990055/75-14",
+            "https://www.ato.gov.au/law/view/document?DocID=PAC/19990055/75-15",
+            "https://www.ato.gov.au/law/view/document?DocID=PAC/19990055/75-20",
+            "https://www.ato.gov.au/law/view/document?DocID=PAC/19990055/75-35",
+            "https://www.ato.gov.au/law/view/document?DocID=PAC/19990055/9-90",
+            "https://www.ato.gov.au/law/view/document?DocID=GST/GSTR20068/NAT/ATO/00001",
+            "https://www.ato.gov.au/businesses-and-organisations/gst-excise-and-indirect-taxes/gst/in-detail/your-industry/property/gst-and-the-margin-scheme",
         ],
     ),
     (
@@ -845,6 +869,13 @@ pub const EXTRA_WARNINGS: &[(&str, &[&str])] = &[
         "balancing_adjustment",
         &[
             "From 2026-27 a taxpayer who deducted an amount under s 25-130 may instead choose the fixed 50% reduction of s 40-291A for an asset used to produce assessable labour income; this worksheet applies s 40-290 and does not make that choice.",
+        ],
+    ),
+    (
+        "gst_margin_scheme",
+        &[
+            "The margin, both GST amounts and the conditions are worked whether or not the margin scheme applies, so the 2 can be compared; gst is the GST payable only on the facts given.",
+            "A supply of new residential premises or potential residential land may require the purchaser to pay an amount to the ATO at settlement (Schedule 1 to the Taxation Administration Act 1953 s 14-250); this worksheet does not work it out.",
         ],
     ),
     (
@@ -1378,6 +1409,34 @@ pub const REFUSAL_CODES: &[(&str, &str)] = &[
         "The employees and associates entertained are not a JSON integer from 0 to everyone entertained, or everyone entertained is not from 1 to 1,000,000.",
     ),
     (
+        "gst_margin_scheme.acquisition_unsupported",
+        "The interest was acquired in a way whose eligibility or margin s 75-5(3)(b) to (g), s 75-10(3) item 2A, s 75-11 or s 75-22 governs, which gst-margin-scheme does not work.",
+    ),
+    (
+        "gst_margin_scheme.fact_conflict",
+        "The unpaid consideration exceeds the acquisition consideration, or the subdivision share is nil or exceeds the whole.",
+    ),
+    (
+        "gst_margin_scheme.fact_invalid",
+        "interest, agreement, acquisition or method is not one of the values gst-margin-scheme takes.",
+    ),
+    (
+        "gst_margin_scheme.supply_to_associate",
+        "The supply is to the supplier's associate, whose margin s 75-13 works from the GST inclusive market value, which gst-margin-scheme does not work.",
+    ),
+    (
+        "gst_margin_scheme.valuation_day_invalid",
+        "valuation_day is not the day s 75-10(3) fixes for the facts given.",
+    ),
+    (
+        "gst_margin_scheme.valuation_item_unsettled",
+        "Both s 75-10(3) item 2 and item 4 describe the supply, and gst-margin-scheme does not choose between their valuation days.",
+    ),
+    (
+        "gst_margin_scheme.valuation_unavailable",
+        "An approved valuation was given for an interest acquired on or after 1 July 2000.",
+    ),
+    (
         "hire_purchase.amount_nil",
         "A hire purchase agreement's or chattel mortgage's amount financed or instalment is nil.",
     ),
@@ -1515,7 +1574,7 @@ pub const REFUSAL_CODES: &[(&str, &str)] = &[
     ),
     (
         "input.field_unknown",
-        "A field the worksheet or command does not take, or does not take beside the other inputs given, was given (fbt-loan, fbt-meal-entertainment, fbt-car-parking, fbt-debt-waiver, fbt-expense-payment, fbt-property, fbt-residual, fbt-housing, fbt-lafha, fbt-board, fbt-tax-exempt-body-entertainment, fbt-entertainment-classifier, fbt-meal-entertainment-register and its entries, division-296, depreciation, foreign-resident-tax, medicare-levy, medicare-levy-surcharge, payg-withholding, payg-gross-up, termination-payment, etp-tax-free-component, unused-leave-payment, the Schedule 5 methods, working-holiday-maker-withholding, study-loan-withholding, seniors-pensioners-withholding, seniors-pensioners-tax-offset, lump-sum-arrears-tax-offset, hire-purchase-schedule, chattel-mortgage-schedule, loan-transactions and its transactions and rate_changes, business-capital-expenditure and its items, balancing-adjustment, its years and car_limit, trade-in, contribution-caps given a carry-forward input, derive, personal-tax-estimate, dgr-check, income-tests and fbt-return only).",
+        "A field the worksheet or command does not take, or does not take beside the other inputs given, was given (fbt-loan, fbt-meal-entertainment, fbt-car-parking, fbt-debt-waiver, fbt-expense-payment, fbt-property, fbt-residual, fbt-housing, fbt-lafha, fbt-board, fbt-tax-exempt-body-entertainment, fbt-entertainment-classifier, fbt-meal-entertainment-register and its entries, division-296, depreciation, foreign-resident-tax, medicare-levy, medicare-levy-surcharge, payg-withholding, payg-gross-up, termination-payment, etp-tax-free-component, unused-leave-payment, the Schedule 5 methods, working-holiday-maker-withholding, study-loan-withholding, seniors-pensioners-withholding, seniors-pensioners-tax-offset, lump-sum-arrears-tax-offset, hire-purchase-schedule, chattel-mortgage-schedule, loan-transactions and its transactions and rate_changes, business-capital-expenditure and its items, balancing-adjustment, its years and car_limit, trade-in, gst-margin-scheme, contribution-caps given a carry-forward input, derive, personal-tax-estimate, dgr-check, income-tests and fbt-return only).",
     ),
     ("input.flag_invalid", "A flag is not a JSON boolean."),
     ("input.fraction_invalid", "A fraction is outside 0 to 1."),
