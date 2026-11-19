@@ -849,8 +849,8 @@ a present value check and balanced journals.
 ## Contract register
 
 `contract-register` works no amount of its own: each contract's payments,
-interest and principal are those of its `hire-purchase-schedule` result,
-unchanged, and the register only dates and adds them. The current and
+interest and principal are those of its `hire-purchase-schedule` or
+`chattel-mortgage-schedule` result, unchanged, and the register only dates and adds them. The current and
 non-current split rests on AASB 101 paragraph 69(c), 'the liability is due
 to be settled within twelve months after the reporting period', in
 compilation 6 (compilation date 31 December 2022, the latest on the Federal
@@ -858,8 +858,9 @@ Register of Legislation, F2015L01626), read on 19 November 2026. Paragraphs
 69(a), (b) and (d), and 72A to 76ZA on rights to defer settlement and
 covenants, were read and are not assessed: the preparer establishes them.
 ITAA 1997 s 240-60(2), already read for `hire-purchase-schedule`, leaves
-the interest of a period spanning 30 June to accounting principles, so the
-register sets it apart with its days rather than apportioning it.
+the interest of a period spanning 30 June to accounting principles, and a
+chattel mortgage's interest is deductible as each year incurs it (s 8-1),
+so the register sets it apart with its days rather than apportioning it.
 
 `tests/contract_register.rs` holds the fabricated register in
 `examples/contract-register.csv`, 8 contracts with monthly, weekly,
@@ -875,6 +876,7 @@ amounts, and each amount outstanding follows the schedule's closing balance.
 | $24,000 financed, 24 monthly instalments of $1,000 in arrears from 1 August 2025 | Worked by hand: nil rate; 10 paid, 12 due by 30 June 2027 | $14,000.00 outstanding, $12,000.00 current, $2,000.00 non-current |
 | Monthly from 15 September 2024 | Worked by hand: 15 to 30 June is 16 of the period's 30 days | `accruing_days_elapsed` 16 of 30 |
 | $10,000 financed, 24 monthly instalments of $10, $13,000 balloon | The balance builds up over the next 12 months | all non-current |
+| Chattel mortgage: $45,000 at a stated 7.99% from 15 July 2025, 60 monthly instalments in arrears, $5,000 balloon | Its own `chattel-mortgage-schedule` | The 11th row's closing balance outstanding; current, its fall to the 23rd row's; 16 of 30 days accruing |
 
 ## Business capital expenditure
 

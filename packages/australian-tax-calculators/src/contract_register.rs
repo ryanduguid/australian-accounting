@@ -44,18 +44,27 @@ impl Kind {
     }
 }
 
-const KINDS: [Kind; 1] = [Kind {
-    name: "hire_purchase",
-    command: "hire-purchase-schedule",
-    required: &[
-        "amount_financed",
-        "instalment",
-        "instalments",
-        "balloon",
-        "timing",
-    ],
-    optional: &["frequency"],
-}];
+const KINDS: [Kind; 2] = [
+    Kind {
+        name: "hire_purchase",
+        command: "hire-purchase-schedule",
+        required: &[
+            "amount_financed",
+            "instalment",
+            "instalments",
+            "balloon",
+            "timing",
+        ],
+        optional: &["frequency"],
+    },
+    // The command refuses both or neither of instalment and annual_rate.
+    Kind {
+        name: "chattel_mortgage",
+        command: "chattel-mortgage-schedule",
+        required: &["amount_financed", "instalments", "balloon", "timing"],
+        optional: &["instalment", "annual_rate", "frequency"],
+    },
+];
 
 /// The columns every contract fills.
 const COMMON: [&str; 5] = ["contract", "client", "financier", "kind", "start_date"];
@@ -77,13 +86,13 @@ const FIGURES: [&str; 6] = [
     "non_current",
 ];
 
-const SCOPE: &str = "A practice's finance contracts, one a line of the contracts file, each set out by its kind's schedule command on that line's facts, with year the income year its start_date falls in; kinds names each command with its scope and sources, and confirming scope confirms that scope for every contract. Takes hire_purchase contracts with level instalments, through hire-purchase-schedule, starting in a year that command supports. The register dates and adds the schedules' payments and interest and changes none of them. It takes no deposit, trade-in, payout, GST, fees or irregular payments, and does not assess AASB 101 paragraph 69(a), (b) or (d), such as a breached covenant that makes a liability payable on demand (paragraphs 72B to 75).";
+const SCOPE: &str = "A practice's finance contracts, one a line of the contracts file, each set out by its kind's schedule command on that line's facts, with year the income year its start_date falls in; kinds names each command with its scope and sources, and confirming scope confirms that scope for every contract. Takes hire_purchase contracts with level instalments, through hire-purchase-schedule, and chattel_mortgage contracts with level instalments at their instalment or a stated annual_rate, through chattel-mortgage-schedule, each starting in a year its command supports. The register dates and adds the schedules' payments and interest and changes none of them. It takes no deposit, trade-in, payout, GST, fees or irregular payments, and does not assess AASB 101 paragraph 69(a), (b) or (d), such as a breached covenant that makes a liability payable on demand (paragraphs 72B to 75).";
 
 const BASIS: [&str; 6] = [
     "A payment counts on the day it is made: an instalment on its row's payment_date, a balloon on its row's period_end. A period runs from period_start up to period_end, so its interest counts on the day before period_end, when the period ends.",
     "outstanding at a date is the amount financed plus the interest of the periods ended by then, less the payments made by then, which is remaining_payments less unexpired_interest. It leaves out the interest of the period running at the balance date: accruing_interest is that period's interest, over accruing_days, of which accruing_days_elapsed fall on or before the balance date.",
     "AASB 101 paragraph 69(c): a liability is current when it is due to be settled within twelve months after the reporting period. current is the part of outstanding that the payments due by current_to, 12 months after the balance date, settle once they have paid the interest of the periods ending by then: outstanding less the amount outstanding at current_to, or nil where that is below nil. non_current is the rest.",
-    "By income year, interest counts in the year its period ends. interest_across_30_june is the part of it from a period spanning 30 June, which runs days_before_1_july before 1 July and days_from_1_july from it: ITAA 1997 s 240-60(2) relates such a period's interest to each income year in accordance with accounting principles, which the caller applies. principal is the payments less the interest, the fall in the amount outstanding over the year, below nil where interest builds up before the payments start.",
+    "By income year, interest counts in the year its period ends. interest_across_30_june is the part of it from a period spanning 30 June, which runs days_before_1_july before 1 July and days_from_1_july from it, for the caller to relate to each income year: for hire purchase, ITAA 1997 s 240-60(2) does so in accordance with accounting principles; for a chattel mortgage, the interest each year incurs (s 8-1), from the lender's statements where they give it. principal is the payments less the interest, the fall in the amount outstanding over the year, below nil where interest builds up before the payments start.",
     "A contract that starts after the balance date has no balance-date figures and adds nil to them; its payments still count by month and by income year.",
     "expiring lists the contracts whose final payment falls after the balance date and on or before expiring_by, 12 months after the balance date unless given.",
 ];

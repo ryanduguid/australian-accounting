@@ -22,13 +22,15 @@ is a fabricated register of 8 contracts.
 | --- | --- |
 | `contract` | the contract's reference, unique in the file |
 | `client`, `financier` | the names the reports total by |
-| `kind` | `hire_purchase` |
+| `kind` | `hire_purchase` or `chattel_mortgage` |
 | `start_date` | `YYYY-MM-DD` |
-| `amount_financed`, `instalment`, `instalments`, `timing`, `balloon` | as `hire-purchase-schedule` takes them; `balloon` is `0.00` for none |
-| `frequency` | optional, as `hire-purchase-schedule` takes it; monthly when empty |
+| `amount_financed`, `instalment`, `instalments`, `timing`, `balloon` | as `hire-purchase-schedule` or `chattel-mortgage-schedule` takes them; `balloon` is `0.00` for none |
+| `annual_rate` | a chattel mortgage's stated rate, as `chattel-mortgage-schedule` takes it, in place of `instalment`; empty for hire purchase |
+| `frequency` | optional, as the schedule command takes it; monthly when empty |
 
 The columns may come in any order. `hire-purchase-schedule` sets out each
-contract on its line's facts, with `year` the income year its start falls
+hire purchase contract, and `chattel-mortgage-schedule` each chattel mortgage
+(given `instalment` or `annual_rate`, not both), on its line's facts, with `year` the income year its start falls
 in, so a contract it would refuse, such as one starting before 1 July 2024,
 is refused with that command's code and message, after the line number and
 contract. The register changes no schedule: it dates and adds the payments
@@ -65,8 +67,10 @@ its figures at the balance date, its payments `by_month` and its
 - By income year, interest counts in the year its period ends.
   `interest_across_30_june` is the part of it from a period spanning 30
   June, with that period's `days_before_1_july` and `days_from_1_july`:
-  s 240-60(2) relates such a period's interest to each year in accordance
-  with accounting principles, which the caller applies. `principal` is the
+  the caller relates such a period's interest to each year, for hire
+  purchase in accordance with accounting principles (s 240-60(2)) and for a
+  chattel mortgage as each year incurs it (s 8-1), from the lender's
+  statements where they give it. `principal` is the
   payments less the interest, the fall in the amount outstanding over the
   year, below nil where interest builds up before the payments start.
 - A contract starting after the balance date has no balance-date figures and
@@ -79,7 +83,7 @@ has none. The text output sets the same reports out as tables. The same file
 always gives the same output.
 
 The register takes no deposit, trade-in, payout, GST, fees or irregular
-payments, and no lease, chattel mortgage or loan. A further kind joins
+payments, and no lease or loan. A further kind joins
 `KINDS` in [`src/contract_register.rs`](../src/contract_register.rs) once a schedule command gives the
 schedule rows `hire-purchase-schedule` gives. `tests/contract_register.rs`
 holds the example register to each contract's own schedule; see

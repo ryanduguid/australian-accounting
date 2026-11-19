@@ -643,10 +643,10 @@ fn a_malformed_line_is_refused_with_its_number() {
             with(
                 &good
                     .replace("HP-1,", "HP-2,")
-                    .replace("hire_purchase", "chattel_mortgage"),
+                    .replace("hire_purchase", "lease"),
             ),
             "contract_register.kind_unsupported",
-            "line 3: kind \"chattel_mortgage\" is not one the register sets out; it takes hire_purchase",
+            "line 3: kind \"lease\" is not one the register sets out; it takes hire_purchase, chattel_mortgage",
         ),
         (
             with(&good.replace("HP-1,Client", "HP-2,=HYPERLINK(1)")),
@@ -812,4 +812,79 @@ fn the_arguments_are_refused_unless_complete_and_valid() {
     let (code, out, err) = run(&["--scope-confirmed"], csv);
     assert_eq!((code, out.as_str()), (2, ""));
     assert_eq!(err, "error: --balance-date is required\n");
+}
+
+/// A chattel mortgage at a stated 7.99% from 15 July 2025, 60 monthly
+/// instalments in arrears and a $5,000 balloon, is set out by its own
+/// `chattel-mortgage-schedule`: at 30 June 2026 the 11th instalment (15 June)
+/// is paid and the 12th period (15 June to 15 July, 30 days, 16 of them by
+/// the balance date) is running, so the amount outstanding is the 11th row's
+/// closing balance and the current part is its fall to the 23rd row's.
+#[test]
+fn a_chattel_mortgage_is_set_out_by_its_own_schedule() {
+    let header = format!("{HEADER},annual_rate");
+    let line = "CM-1,Client,Financier,chattel_mortgage,2025-07-15,45000.00,,60,monthly,in_arrears,5000.00,0.0799";
+    let register = register(&format!(
+        "{header}
+{line}
+"
+    ));
+    let input = json!({
+        "amount_financed": "45000.00", "annual_rate": "0.0799", "instalments": 60,
+        "frequency": "monthly", "timing": "in_arrears", "balloon": "5000.00",
+        "start_date": "2025-07-15", "year": "2025-26", "scope_confirmed": true,
+    });
+    let schedule = api::evaluate("chattel-mortgage-schedule", &input).unwrap();
+    let rows = list(&schedule, "schedule");
+    let c = contract(&register, "CM-1");
+    for key in ["amount_financed", "total_payments", "total_interest"] {
+        assert_eq!(c[key], schedule["amounts"][key], "{key}");
+    }
+    assert_eq!(c["nominal_annual_rate"], "0.0799000000000000");
+    assert_eq!(c["final_payment_date"], "2030-07-15");
+    assert_eq!(c["outstanding"], rows[10]["closing"]);
+    let fall = cents(&rows[10]["closing"]) - cents(&rows[22]["closing"]);
+    assert_eq!(cents(&c["current"]), fall);
+    assert_eq!(c["accruing_interest"], rows[11]["interest"]);
+    assert_eq!(
+        (
+            c["accruing_days"].clone(),
+            c["accruing_days_elapsed"].clone()
+        ),
+        (json!(30), json!(16))
+    );
+    let paid: i64 = payments(&schedule).iter().map(|p| p.1).sum();
+    assert_eq!(total(list(c, "by_month"), "payments"), paid);
+
+    // The command's own refusal, after the line and contract.
+    let args = ["--balance-date", BALANCE, "--scope-confirmed"];
+    let both = line.replace(",,60,", ",844.16,60,");
+    let (code, message) = refused(
+        &args,
+        &format!(
+            "{header}
+{both}
+"
+        ),
+    );
+    assert_eq!(code, "chattel_mortgage.terms_conflict");
+    assert!(
+        message.starts_with("line 2 (contract CM-1): Give instalment"),
+        "{message}"
+    );
+    // A hire purchase line does not take a stated rate.
+    let hire = "HP-1,Client,Financier,hire_purchase,2026-03-01,10000.00,100.00,12,monthly,in_arrears,10000.00,0.05";
+    let (code, message) = refused(
+        &args,
+        &format!(
+            "{header}
+{hire}
+"
+        ),
+    );
+    assert_eq!(code, "contract_register.column_invalid");
+    assert_eq!(
+        message,
+        "line 2: a hire_purchase contract does not take annual_rate; leave it empty"
+    );
 }
