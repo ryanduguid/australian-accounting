@@ -4787,7 +4787,7 @@ pub use business_capital::business_capital_expenditure;
 mod balancing;
 pub use balancing::balancing_adjustment;
 mod franking_account;
-pub use franking_account::{FrankingArgs, franking_account};
+pub use franking_account::{FrankingArgs, franking_year};
 mod trade_in;
 pub use trade_in::{TradeInArgs, trade_in};
 

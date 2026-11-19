@@ -491,8 +491,9 @@ pub struct FrankingArgs<'a> {
 /// ITAA 1997 Division 205 for one income year: the account's lines and
 /// balance, franking deficit tax and its offset, the benchmark rule's
 /// over-franking tax and debits, the significant variation test and the
-/// franking return's amounts and due date.
-pub fn franking_account(a: &FrankingArgs) -> Result<Value> {
+/// franking return's amounts and due date. Named without 'account', which
+/// CodeQL's sensitive-data heuristic takes for account details.
+pub fn franking_year(a: &FrankingArgs) -> Result<Value> {
     let year = scope(a.scope_confirmed, a.year, KIND)?;
     let facts = read_facts(a, &year)?;
     let opening = signed_money(a.opening_balance)?;

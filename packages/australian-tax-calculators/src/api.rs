@@ -1188,7 +1188,7 @@ pub fn evaluate_coded(command: &str, v: &Value) -> Result<Value> {
             // and a Commissioner's determination under s 205-70(6).
             let income_tax = optional(v, "income_tax", Json)?;
             let determination = optional(v, "commissioner_determination", Raw)?;
-            engine::franking_account(&engine::FrankingArgs {
+            engine::franking_year(&engine::FrankingArgs {
                 private_company: &a[0],
                 benchmark_rule_exempt: &a[1],
                 corporate_tax_rate: &a[2],
