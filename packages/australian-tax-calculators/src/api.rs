@@ -193,6 +193,10 @@ const COMMAND_ARGS: &[(&str, &[(&str, Kind)])] = &[
         ],
     ),
     (
+        "borrowing-expenses-schedule",
+        &[("loans", Json), ("year", Raw), ("scope_confirmed", Raw)],
+    ),
+    (
         "hire-purchase-schedule",
         &[
             ("amount_financed", Dec),
@@ -629,7 +633,7 @@ pub fn commands() -> Vec<&'static str> {
 /// command on its `gross_pay` shows that withholding. The classifier's amounts
 /// are totals over lines whose shares a decision table sets, not a formula;
 /// each line and class carries the authority for its row instead.
-const DERIVED: [&str; 50] = [
+const DERIVED: [&str; 51] = [
     "fbt",
     "fbt-car-statutory",
     "fbt-car-operating-cost",
@@ -652,6 +656,7 @@ const DERIVED: [&str; 50] = [
     "seniors-pensioners-withholding",
     "quarterly-sg",
     "borrowing-expenses",
+    "borrowing-expenses-schedule",
     "resident-tax",
     "foreign-resident-tax",
     "low-income-tax-offset",
@@ -1049,6 +1054,7 @@ pub fn evaluate_coded(command: &str, v: &Value) -> Result<Value> {
             | "hire-purchase-schedule"
             | "chattel-mortgage-schedule"
             | "loan-transactions"
+            | "borrowing-expenses-schedule"
             | "income-tests"
             | "luxury-car-tax"
             | "business-capital-expenditure"
@@ -1087,6 +1093,12 @@ pub fn evaluate_coded(command: &str, v: &Value) -> Result<Value> {
                 repaid_on: &a[5],
             };
             engine::borrowing_expenses(&a[0], &a[1], &a[2], loan, &a[6], &a[7], &a[8])
+        }
+        "borrowing-expenses-schedule" => {
+            // Optional: the income-producing share of borrowing expenses on
+            // loans not listed, by income year.
+            let other = optional(v, "other_borrowing_expenses", Json)?;
+            engine::borrowing_expenses_schedule(&a[0], other.as_ref(), &a[1], &a[2])
         }
         "hire-purchase-schedule" => {
             // Optional: the level regime's instalment, their number and
