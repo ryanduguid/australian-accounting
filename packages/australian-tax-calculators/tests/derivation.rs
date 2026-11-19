@@ -13,7 +13,7 @@ use std::io::Write;
 use std::process::{Command, Stdio};
 
 /// The commands `derive` explains.
-const DERIVED: [&str; 52] = [
+const DERIVED: [&str; 53] = [
     "fbt",
     "fbt-car-statutory",
     "fbt-car-operating-cost",
@@ -63,6 +63,7 @@ const DERIVED: [&str; 52] = [
     "business-capital-expenditure",
     "balancing-adjustment",
     "trade-in",
+    "dasp-tax",
     "gst-margin-scheme",
     "etp-tax-free-component",
     "payroll-tax",
@@ -394,6 +395,16 @@ fn cases() -> Vec<(&'static str, Value)> {
                    "replacement_creditable_acquisition": false,
                    "arms_length": true, "involuntary_disposal": false,
                    "year": "2025-26", "scope_confirmed": true}),
+        ),
+        // A former working holiday maker's payment with both elements, each
+        // at 65% (DASP Tax Act s 5(3)).
+        (
+            "dasp-tax",
+            json!({"tax_free_component": "1250.00", "taxed_element": "8400.37",
+                   "untaxed_element": "300.00",
+                   "working_holiday_maker_contributions": true,
+                   "unclaimed_money_rollover": false,
+                   "year": "2026-27", "scope_confirmed": true}),
         ),
         // Victoria's surcharges on $80 million of $150 million (the State
         // Revenue Office's example 2) and Tasmania's 2 rates on $2,400,000
@@ -2146,7 +2157,7 @@ fn derive_refuses_what_it_does_not_explain() {
          study-loan-repayment, capital-gains, main-residence, fbt-residual, fbt-housing, \
          fbt-lafha, fbt-board, fbt-tax-exempt-body-entertainment, gst, depreciation, \
          hire-purchase-schedule, chattel-mortgage-schedule, loan-transactions, \
-         lump-sum-arrears-tax-offset, income-tests, business-capital-expenditure, balancing-adjustment, trade-in, gst-margin-scheme, etp-tax-free-component, payroll-tax, not \"payg-gross-up\""
+         lump-sum-arrears-tax-offset, income-tests, business-capital-expenditure, balancing-adjustment, trade-in, dasp-tax, gst-margin-scheme, etp-tax-free-component, payroll-tax, not \"payg-gross-up\""
     );
 }
 
