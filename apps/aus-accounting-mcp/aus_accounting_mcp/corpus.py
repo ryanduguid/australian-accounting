@@ -59,7 +59,7 @@ PART_CAVEAT = (
 )
 CORPUS_ROUTES = (
     "PaulGoodman's published snapshot of 9 principal Acts needs no build: download "
-    "https://github.com/ryanduguid/PaulGoodman/releases/tag/corpus-2026-11-11, unpack it "
+    "https://github.com/ryanduguid/PaulGoodman/releases/tag/corpus-2026-11-18, unpack it "
     "and set the variable to its dist folder as an absolute path. Otherwise "
     "`python -m fadden quick --out <empty folder>` in PaulGoodman builds the same Acts on "
     "this machine and prints the setting. "
