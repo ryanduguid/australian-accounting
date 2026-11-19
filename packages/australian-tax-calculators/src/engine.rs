@@ -4789,6 +4789,7 @@ pub use balancing::balancing_adjustment;
 mod trade_in;
 pub use trade_in::{TradeInArgs, trade_in};
 mod luxury_car_tax;
+mod stated;
 pub use luxury_car_tax::{LctArgs, luxury_car_tax};
 
 /// One pay that includes an additional payment, as Schedule 5 (NAT 3348) reads it.
