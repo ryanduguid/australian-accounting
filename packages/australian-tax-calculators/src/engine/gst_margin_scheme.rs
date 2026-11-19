@@ -382,7 +382,7 @@ const NOT_APPLIES: &str = "The margin scheme does not apply: the GST is 1/11 of 
 
 /// The facts of s 75-5, checked, as condition rows, with how the interest
 /// was acquired.
-fn conditions(args: &MarginSchemeArgs) -> Result<(Vec<Value>, &str)> {
+fn conditions<'a>(args: &MarginSchemeArgs<'a>) -> Result<(Vec<Value>, &'a str)> {
     let interest = choice(
         args.interest,
         "interest",
