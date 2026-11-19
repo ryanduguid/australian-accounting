@@ -392,15 +392,16 @@ fn sic_rate(day: i64) -> Decimal {
         .expect("finite rate")
 }
 
-/// s 138-40(2) and (3): for one contribution, the sum over each day of the
-/// period of the SIC rate times the counted amount plus the earlier daily
-/// amounts, rounded down to the dollar.
+/// s 138-40(2) and (3): the sum over each day of the period of the SIC rate
+/// times the amount plus the earlier daily amounts, unrounded. Each daily
+/// amount is proportional to the amount, so the sum for $1 from a start day,
+/// worked out once, serves every contribution whose period starts then.
 fn earnings(base: &Decimal, start: i64, end: i64) -> Result<Decimal> {
     let mut total = Decimal::from_int(0);
     for day in start..=end {
         total = total.add(&sic_rate(day).mul(&base.add(&total)?)?)?;
     }
-    Ok(total.quantize(0, Rounding::Down)?)
+    Ok(total)
 }
 
 struct Components {
@@ -429,7 +430,9 @@ fn from_contributions(args: &FhssArgs, determined: i64) -> Result<(Components, V
         d("50000")
     };
     let deductions = read_deductions(args.personal_deductions)?;
-    let pieces = read_contributions(args.contributions.expect("checked"), determined)?;
+    let mut pieces = read_contributions(args.contributions.expect("checked"), determined)?;
+    // In date order, so a year's deduction reaches its latest contributions.
+    pieces.sort_by_key(|p| (p.day, p.n));
     let mut pieces = split_personal(pieces, &deductions)?;
     order(&mut pieces, &deductions);
     count(&mut pieces, &total_limit)?;
@@ -456,11 +459,17 @@ fn from_contributions(args: &FhssArgs, determined: i64) -> Result<(Components, V
     }
     let mut earned = BTreeMap::new();
     let mut total_earnings = zero.clone();
+    let mut per_dollar: BTreeMap<i64, Decimal> = BTreeMap::new();
     for (n, (start, base)) in &bases {
         let e = if base.is_zero() {
             zero.clone()
         } else {
-            earnings(base, *start, determined)?
+            if !per_dollar.contains_key(start) {
+                let unit = earnings(&Decimal::from_int(1), *start, determined)?;
+                per_dollar.insert(*start, unit);
+            }
+            // Rounded down to the dollar for each contribution (s 138-40(2)).
+            base.mul(&per_dollar[start])?.quantize(0, Rounding::Down)?
         };
         total_earnings = total_earnings.add(&e)?;
         earned.insert(*n, (*start, e));
@@ -672,6 +681,6 @@ mod tests {
         let end = dates::parse("2025-09-30").expect("date");
         let e = precise(|| earnings(&d("10000"), start, end)).expect("earnings");
         // 10000 x ((1 + 0.0678 / 365)^92 - 1) = 172.3... by hand.
-        assert_eq!(e.to_string(), "172");
+        assert_eq!(e.quantize(0, Rounding::Down).unwrap().to_string(), "172");
     }
 }

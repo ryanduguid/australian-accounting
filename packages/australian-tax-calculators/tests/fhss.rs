@@ -183,6 +183,18 @@ fn the_section_example_takes_the_first_10_as_non_concessional() {
     assert_eq!(r["amounts"]["concessional_component"], "4250.00");
     // A determination requested before 1 July 2022 has the $30,000 limit.
     assert_eq!(r["total_limit"], "30000");
+    // Listed latest first, the same contributions are the deducted ones.
+    let mut reversed = input.clone();
+    reversed["contributions"].as_array_mut().unwrap().reverse();
+    let again = run(&reversed);
+    assert_eq!(years(&again), vec![year("2018-19", "5000", "10000")]);
+    let by_date = |r: &Value| -> Vec<(String, String)> {
+        let rows = r["contributions"].as_array().unwrap();
+        rows.iter()
+            .map(|c| (c["date"].to_string(), c["treated_as"].to_string()))
+            .collect()
+    };
+    assert_eq!(by_date(&again), by_date(&r));
 }
 
 /// The date `day` days after 1 January of `y` (counting it as day 1).
