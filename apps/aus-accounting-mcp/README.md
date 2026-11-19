@@ -76,7 +76,10 @@ Both need the [GitHub CLI](https://cli.github.com/), with no sign-in, and instal
 unless the release's provenance and `SHA256SUMS` check out; the
 [calculators README](https://github.com/ryanduguid/australian-accounting/tree/main/packages/australian-tax-calculators#install) says
 what they check and where the executable goes. Restart your MCP client afterwards so it
-sees the new `PATH`. Other platforms build it from [source](https://github.com/ryanduguid/australian-accounting/tree/main/packages/australian-tax-calculators).
+sees the new `PATH`. On Linux, a client started from a desktop menu does not read the
+shell startup file that sets it: give that client `AUS_TAX_CALCULATORS_BIN`, the
+executable's path in the folder the installer names. Other platforms build it from
+[source](https://github.com/ryanduguid/australian-accounting/tree/main/packages/australian-tax-calculators).
 You can instead put the executable in a folder on `PATH` yourself or give its absolute
 path in `AUS_TAX_CALCULATORS_BIN`. Without it the tax worksheets refuse with an install
 message; every other tool works.
