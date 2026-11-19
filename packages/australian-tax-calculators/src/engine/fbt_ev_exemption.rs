@@ -151,34 +151,33 @@ const EXEMPT: [&str; 3] = [
 const NOT_EXEMPT: &str = "The car benefit is not exempt under FBTAA s 8A: give electric_car_exempt false to fbt-car-statutory or fbt-car-operating-cost, which value it under s 9 or s 10.";
 const NOT_A_CAR: &str = "Without a car there is no car benefit, so neither s 8A nor the car worksheets apply: the private use of a motor cycle or similar vehicle is a residual benefit (FBTAA s 45), for fbt-residual.";
 
-pub fn fbt_ev_exemption_check(args: &EvExemptionArgs) -> Result<Value> {
-    let (year, period, _) = fbt_year(args.scope_confirmed, args.year_ended, KIND)?;
-    let ended: i64 = year.parse().expect("FBT year");
-    let vehicle = match args.vehicle.text() {
+fn day(text: &str) -> i64 {
+    dates::parse(text).expect("a date literal")
+}
+
+fn vehicle(arg: &Arg) -> Result<&str> {
+    match arg.text() {
         Some(
             v @ ("battery_electric"
             | "hydrogen_fuel_cell_electric"
             | "plug_in_hybrid_electric"
             | "other"),
-        ) => v,
-        _ => {
-            return refuse(
-                "fbt_ev_exemption.vehicle_invalid",
-                "vehicle must be battery_electric, hydrogen_fuel_cell_electric, plug_in_hybrid_electric or other.",
-            );
-        }
-    };
-    let hybrid = hybrid_facts(args, vehicle == "plug_in_hybrid_electric")?;
-    let car = flag(args.car, "car")?;
-    let current = flag(args.current_employee, "current_employee")?;
-    let first_used = date_arg(args.first_held_and_used, "first_held_and_used")?;
-    let (sale_year, limit) = threshold(args.first_retail_sale_year)?;
-    let value = money(args.luxury_car_tax_value)?;
-    let other_supply = flag(
-        args.luxury_car_tax_on_other_supply,
-        "luxury_car_tax_on_other_supply",
-    )?;
-    let day = |text: &str| dates::parse(text).expect("a date literal");
+        ) => Ok(v),
+        _ => refuse(
+            "fbt_ev_exemption.vehicle_invalid",
+            "vehicle must be battery_electric, hydrogen_fuel_cell_electric, plug_in_hybrid_electric or other.",
+        ),
+    }
+}
+
+/// Refuses dates that cannot all be true of a benefit in the FBT year
+/// ending 31 March `ended`.
+fn refuse_conflicts(
+    ended: i64,
+    first_used: i64,
+    sale_year: &str,
+    hybrid: Option<[bool; 3]>,
+) -> Result<()> {
     if first_used > day(&format!("{ended}-03-31")) {
         return conflict(
             "first_held_and_used is after the FBT year ends: a car first held and used later cannot give a car benefit in the year.",
@@ -195,6 +194,45 @@ pub fn fbt_ev_exemption_check(args: &EvExemptionArgs) -> Result<Value> {
             "exempt_benefit_before_1_april_2025 is true, but first_held_and_used is on or after 1 April 2025: no car benefit relating to the car could be provided before then.",
         );
     }
+    Ok(())
+}
+
+/// Adds the verdict, the conditions and their consequences to `out`.
+fn add_outcome(out: &mut Value, rows: Vec<Value>, car: bool) {
+    let failing: Vec<Value> = rows
+        .iter()
+        .filter(|row| row["met"] == json!(false))
+        .map(|row| row["condition"].clone())
+        .collect();
+    let exempt = failing.is_empty();
+    out["exempt"] = json!(exempt);
+    out["failing_conditions"] = Value::Array(failing);
+    out["conditions"] = Value::Array(rows);
+    out["consequences"] = match (car, exempt) {
+        (false, _) => json!([NOT_A_CAR]),
+        (true, true) => json!(EXEMPT),
+        (true, false) => json!([NOT_EXEMPT]),
+    };
+    if car {
+        out["car_worksheet_input"] = json!({"electric_car_exempt": exempt});
+    }
+}
+
+pub fn fbt_ev_exemption_check(args: &EvExemptionArgs) -> Result<Value> {
+    let (year, period, _) = fbt_year(args.scope_confirmed, args.year_ended, KIND)?;
+    let ended: i64 = year.parse().expect("FBT year");
+    let vehicle = vehicle(args.vehicle)?;
+    let hybrid = hybrid_facts(args, vehicle == "plug_in_hybrid_electric")?;
+    let car = flag(args.car, "car")?;
+    let current = flag(args.current_employee, "current_employee")?;
+    let first_used = date_arg(args.first_held_and_used, "first_held_and_used")?;
+    let (sale_year, limit) = threshold(args.first_retail_sale_year)?;
+    let value = money(args.luxury_car_tax_value)?;
+    let other_supply = flag(
+        args.luxury_car_tax_on_other_supply,
+        "luxury_car_tax_on_other_supply",
+    )?;
+    refuse_conflicts(ended, first_used, &sale_year, hybrid)?;
     let threshold = super::d(limit);
     let mut rows = vec![
         condition("car", CAR, car),
@@ -216,27 +254,11 @@ pub fn fbt_ev_exemption_check(args: &EvExemptionArgs) -> Result<Value> {
         OTHER_SUPPLY,
         !other_supply,
     ));
-    let failing: Vec<Value> = rows
-        .iter()
-        .filter(|row| row["met"] == json!(false))
-        .map(|row| row["condition"].clone())
-        .collect();
-    let exempt = failing.is_empty();
     let rates = vec![
         rate("first_retail_sale_year", &sale_year),
         rate("fuel_efficient_luxury_car_tax_threshold", limit),
     ];
     let mut out = result(KIND, &period, vec![("luxury_car_tax_value", value)], rates)?;
-    out["exempt"] = json!(exempt);
-    out["failing_conditions"] = Value::Array(failing);
-    out["conditions"] = Value::Array(rows);
-    out["consequences"] = match (car, exempt) {
-        (false, _) => json!([NOT_A_CAR]),
-        (true, true) => json!(EXEMPT),
-        (true, false) => json!([NOT_EXEMPT]),
-    };
-    if car {
-        out["car_worksheet_input"] = json!({"electric_car_exempt": exempt});
-    }
+    add_outcome(&mut out, rows, car);
     Ok(out)
 }
