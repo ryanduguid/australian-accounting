@@ -691,6 +691,71 @@ Neither the Act nor the guide gives a worked example of a register failing a
 check; the tests work each failure from the section's words. 12 weeks is
 taken as 84 days with both the first and last day counted.
 
+## Fuel tax credits
+
+This worksheet was added on 19 November 2026. The Fuel Tax Act 2006 ss 41-5,
+41-20, 43-5, 43-10, 47-5 and 47-10 were read that day at the ATO's legal
+database (https://www.ato.gov.au/law/view/document?docid=PAC/20060072/43-5 and
+the like), with the ATO's 'Rates - business' (QC44494, last updated 29 July
+2026) and its year pages: QC69964 (2022-23) and QC72768 (2023-24), last
+updated 27 June 2024; QC102637 (2024-25), 29 January 2025; QC105117
+(2025-26), 28 April 2026; and QC107638 (2026-27), 29 July 2026. Their 16
+tables give 6 fuel rows in 2 uses each; the 192 values were read from the
+pages' text into `data/fuel-tax-credit-rates.json` and compared with
+data.gov.au's 'Historical FTC rates' workbook (August 2026 edition, read the
+same day), which gives the same 192 values. Rates are stored as published, not
+derived: the 2022 excise relief's road user charge (26.4 c/L on QC44494)
+does not match the gap the later 2022-23 rates imply (27.2 c/L), and the
+credit rates are what the ATO applies.
+
+Each period carries why it starts, for PCG 2016/2 Method 2, which applies
+where the rate changes in a tax period 'because of indexation' (para 11).
+QC44494 says rates are indexed in February and August; the February and
+August days are marked `indexation`, except 3 August 2026, when the 30.4%
+reduction also ended and the road user charge rose to 32.4 c/L (QC107638
+note 4). 1 August 2022 fell inside the 2022 excise relief and is marked
+indexation as an August indexation day; no page read states that nothing
+else changed that day. The
+ATO's 'Simplified fuel tax credits' (QC48520, last updated 6 July 2021) gives
+the period-end rate for any change 'for example, in February and August';
+the guideline's narrower words are followed.
+
+The basic method follows PCG 2021/2 paras 4 to 12; its Schedule 1 table is an
+image on the legal database, so the rigid truck rates come from the ATO's
+'Basic method for heavy vehicles' (QC64655, last updated 2 June 2021) Table
+1, and articulated combinations' rates are not held (`litres_per_km` from the
+engine's report covers them). Method 1 follows PCG 2016/2 para 9, which names
+the Australian Institute of Petroleum's state and national prices for the
+average GST inclusive price; QC48520 links its weekly retail pump prices
+(https://aip.com.au/pricing/pump-prices-retail/). The AIP's pages, read on
+19 November 2026, give weekly average retail prices for petrol and diesel by
+location and state (from MotorMouth data) and terminal gate prices, under
+'All Rights Reserved' with no licence to republish, so the price is an input.
+
+The ATO's 'Working out your fuel tax credits' (QC44511, last updated 6 July
+2021) multiplies quantity by rate, divides by 100 and claims the whole
+dollars at label 7D; QC64655's examples drop the cents ($1,885.95 is claimed
+as $1,885; $1,991.52 as $1,991). Each line is rounded half up to the cent
+before the lines are added, as the guideline's We Deliver example rounds each
+use. The Library's Tax Examples, GST and other indirect taxes, 12-300
+(reviewed 30 June 2026), gives *Linfox* [2019] FCAFC 131: a credit taken into
+account in an assessment is not lost under s 47-5, so lines past 4 years are
+flagged, not refused.
+
+`tests/fuel_tax_credits.rs` and the module's unit tests hold these cases.
+
+| Case | Source | Worksheet |
+| --- | --- | --- |
+| We Deliver: 11,430 L, 30,550 public road km at 0.35 L/km, 16.5 and 42.3 c/L | PCG 2021/2 paras 19 to 24 | $1,764.26 + $311.96 = $2,076.22 (unit test: December 2020 rates are outside the data) |
+| Jim: 11,430 L, 32,000 total km (31,488 derived), 0.35 L/km | QC64655 example 2 | $1,818.43 + $173.09; $1,991 at 7D (unit test) |
+| Jim's figures at the rates from 3 August 2026 | Worked by hand | $2,347.43 + $219.74 = $2,567.17; $2,567 at 7D |
+| 10,000 L heavy vehicle on public roads and 2,000 L off road from 3 August 2026 | Worked by hand at 21.3 and 53.7 c/L | $2,130 + $1,074 = $3,204 |
+| 100 L of diesel on the first day of each of the 16 periods, both uses | QC69964 to QC107638 | The period's rate in dollars |
+| 1,000 L acquired 10 January 2026 in a January to March 2026 quarter | PCG 2016/2 Method 2 across the 2 February 2026 indexation | $526 at 31 March's 52.6 c/L, against $516 at its own day's |
+| $2,459 of diesel at an average 245.9 c/L | PCG 2016/2 Method 1 | 1,000 L, $537 |
+| $23.98 of diesel at an average 214.8 c/L on 30 September 2026 | PCG 2016/2 Method 1, worked by hand | 23.98 x 53.7 / 214.8 = $5.995 exactly, $6.00 half up (cost x rate before the division) |
+| 300 L of E85 at 23.015 c/L | Rounding | $69.045, $69.05 half up |
+
 ## FBT minor benefit check
 
 Added on 19 November 2026. Its sources were read that afternoon, 3.00 pm to

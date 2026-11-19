@@ -26,6 +26,8 @@ pub use fbt_benefits::{
 pub use fbt_benefits::{
     fbt_debt_waiver, fbt_entertainment_classifier, fbt_expense_payment, fbt_property,
 };
+mod fuel_tax_credits;
+pub use fuel_tax_credits::{FuelArgs, fuel_tax_credits};
 
 pub const VERSION: &str = env!("CARGO_PKG_VERSION");
 const WORKING_PRECISION: i128 = 40;
@@ -6139,9 +6141,10 @@ pub use fbt_minor_benefit::{MinorBenefitArgs, fbt_minor_benefit_check};
 mod gst_margin_scheme;
 pub use gst_margin_scheme::{MarginSchemeArgs, gst_margin_scheme};
 
-const KINDS: [&str; 58] = [
+const KINDS: [&str; 59] = [
     "gst",
     "gst_margin_scheme",
+    "fuel_tax_credits",
     "resident_tax",
     "foreign_resident_tax",
     "capital_gains",
