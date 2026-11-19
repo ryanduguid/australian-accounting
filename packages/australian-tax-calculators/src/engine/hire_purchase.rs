@@ -5,11 +5,18 @@
 //! for each arrangement payment period at its implicit interest rate (ITAA
 //! 1997 s 240-60), with each payment split into interest and principal on a
 //! dated schedule, journal lines, an optional early payout and an optional
-//! input tax credit.
+//! input tax credit. Its submodules also hold the chattel mortgage schedule
+//! and loan statement, which share its payment schedule.
 
+mod chattel_mortgage;
 mod gst;
 mod journals;
+mod loan_transactions;
 mod regime;
+mod statement;
+
+pub use chattel_mortgage::{ChattelMortgageArgs, chattel_mortgage_schedule};
+pub use loan_transactions::{LoanTransactionsArgs, loan_transactions};
 
 use serde_json::{Value, json};
 
@@ -347,14 +354,21 @@ fn start_in_year(start_date: &Arg, year: &str) -> Result<i64> {
     Ok(start)
 }
 
-/// The rate `r` a unit and the nominal annual rate (12 or 52 times it), to
+/// The rate `r` a unit, implicit or stated, and the nominal annual rate (12 or 52 times it), to
 /// 16 places, so the rates reproduce a period's interest to the cent at the
 /// largest amount, and fixed-point, so a nil rate reads 0.0000000000000000;
 /// then any car limit the GST facts were worked with.
-fn rates(r: &Decimal, unit: Unit, car_limit: Option<&Decimal>) -> Result<Vec<(String, String)>> {
-    let (key, per_year) = match unit {
-        Unit::Month => ("implicit_monthly_rate", 12),
-        Unit::Week => ("implicit_weekly_rate", 52),
+fn rates(
+    r: &Decimal,
+    unit: Unit,
+    implicit: bool,
+    car_limit: Option<&Decimal>,
+) -> Result<Vec<(String, String)>> {
+    let (key, per_year) = match (unit, implicit) {
+        (Unit::Month, true) => ("implicit_monthly_rate", 12),
+        (Unit::Week, true) => ("implicit_weekly_rate", 52),
+        (Unit::Month, false) => ("monthly_rate", 12),
+        (Unit::Week, false) => ("weekly_rate", 52),
     };
     precise(|| {
         let mut rates = vec![
@@ -426,7 +440,7 @@ fn agreement(args: &HirePurchaseArgs, year: &str) -> Result<Agreed> {
             financed,
             balloon,
             in_advance,
-            regime: regime::build(plan, in_advance)?,
+            regime: regime::build(plan, in_advance, true)?,
         };
         return Ok((agreement, start, None));
     };
@@ -446,7 +460,7 @@ fn agreement(args: &HirePurchaseArgs, year: &str) -> Result<Agreed> {
         financed,
         balloon,
         in_advance,
-        regime: regime::build(plan, in_advance)?,
+        regime: regime::build(plan, in_advance, true)?,
     };
     Ok((agreement, start, Some((amount, count))))
 }
@@ -798,7 +812,7 @@ pub fn hire_purchase_schedule(args: &HirePurchaseArgs) -> Result<Value> {
     let deposit = optional_money(args.deposit)?;
     let trade_in = optional_money(args.trade_in)?;
     let payout = payout_without_gst(args, &agreement, start)?;
-    let gst_facts = gst::read(args.gst)?;
+    let gst_facts = gst::read(args.gst, true)?;
     let financed = &agreement.financed;
     let (r, rows, periods, steps, gst_worked) = precise(|| {
         amounts(
@@ -813,7 +827,7 @@ pub fn hire_purchase_schedule(args: &HirePurchaseArgs) -> Result<Value> {
     })?;
     let unit = agreement.regime.unit;
     let car_limit = gst_worked.as_ref().and_then(|w| w.car_limit.as_ref());
-    let mut out = derived_result(KIND, &year, steps, rates(&r, unit, car_limit)?)?;
+    let mut out = derived_result(KIND, &year, steps, rates(&r, unit, true, car_limit)?)?;
     let facts = journals::Facts {
         start,
         financed,
