@@ -158,6 +158,15 @@ def test_the_operators_digest_admits_a_source_build(monkeypatch, impostor) -> No
     assert len(runs) == 2
 
 
+def test_a_file_larger_than_any_build_is_refused_unread(monkeypatch, impostor) -> None:
+    binary, runs = impostor
+    monkeypatch.setenv(tax.DIGEST_VARIABLE, hashlib.sha256(binary.read_bytes()).hexdigest())
+    monkeypatch.setattr(tax, "MAX_BYTES", binary.stat().st_size - 1)
+    with pytest.raises(tax.CalculatorsUnavailable, match="larger than any"):
+        tax._binary()
+    assert runs == []
+
+
 @pytest.mark.skipif(not hasattr(os, "mkfifo"), reason="POSIX FIFOs only")
 def test_a_fifo_on_path_is_refused_without_waiting_for_a_writer(monkeypatch, tmp_path) -> None:
     fifo = tmp_path / tax.CALCULATORS

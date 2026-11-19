@@ -6,7 +6,9 @@
   is that of the x86_64 Linux or Windows executable in the 1.0.0 release, or the one
   given in `AUS_TAX_CALCULATORS_SHA256` for a build from source. It is checked before
   the executable runs, so another program on `PATH` that prints the same version is
-  refused, not run.
+  refused, not run, as is a FIFO, device or file over 256 MiB. It does not protect
+  against someone who can write the executable or its folder, who could swap it
+  between the check and the run: keep it where only you can write.
 
 # v0.10.0
 

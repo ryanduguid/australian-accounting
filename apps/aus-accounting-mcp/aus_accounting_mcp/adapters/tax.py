@@ -48,6 +48,8 @@ INSTALL = (
 )
 # A worksheet answers in milliseconds; this bounds a hung or wrong executable.
 TIMEOUT_SECONDS = 60
+#: The release executables are under 8 MiB; a source build over this is refused unread.
+MAX_BYTES = 256 * 1024 * 1024
 
 
 class CalculatorsUnavailable(ToolError):
@@ -104,8 +106,14 @@ def _trusted(binary: str) -> str:
         # Without O_NONBLOCK, opening a FIFO planted on PATH waits for a writer.
         with open(binary, "rb", opener=lambda path, flags: os.open(
                 path, flags | getattr(os, "O_NONBLOCK", 0))) as file:
-            if not stat.S_ISREG(os.fstat(file.fileno()).st_mode):
+            info = os.fstat(file.fileno())
+            if not stat.S_ISREG(info.st_mode):
                 raise CalculatorsUnavailable(f"{binary} is not a regular file. {INSTALL}")
+            # A sparse file of any size would otherwise be read to its end first.
+            if info.st_size > MAX_BYTES:
+                raise CalculatorsUnavailable(
+                    f"{binary} is {info.st_size} bytes, larger than any {CALCULATORS} "
+                    f"build this server runs ({MAX_BYTES}). {INSTALL}")
             digest = hashlib.file_digest(file, "sha256").hexdigest()
     except OSError as exc:
         raise CalculatorsUnavailable(f"{binary} did not run: {exc}. {INSTALL}") from exc
