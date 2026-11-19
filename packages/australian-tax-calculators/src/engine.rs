@@ -4826,6 +4826,8 @@ mod balancing;
 pub use balancing::balancing_adjustment;
 mod trade_in;
 pub use trade_in::{TradeInArgs, trade_in};
+mod payroll_tax;
+pub use payroll_tax::{PayrollTaxArgs, payroll_tax};
 mod luxury_car_tax;
 mod stated;
 pub use luxury_car_tax::{LctArgs, luxury_car_tax};
@@ -6121,7 +6123,7 @@ pub use fbt_minor_benefit::{MinorBenefitArgs, fbt_minor_benefit_check};
 mod gst_margin_scheme;
 pub use gst_margin_scheme::{MarginSchemeArgs, gst_margin_scheme};
 
-const KINDS: [&str; 57] = [
+const KINDS: [&str; 58] = [
     "gst",
     "gst_margin_scheme",
     "resident_tax",
@@ -6136,6 +6138,7 @@ const KINDS: [&str; 57] = [
     "business_capital_expenditure",
     "balancing_adjustment",
     "trade_in",
+    "payroll_tax",
     "fbt",
     "fbt_car_statutory",
     "fbt_car_operating_cost",

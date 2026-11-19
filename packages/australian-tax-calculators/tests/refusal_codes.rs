@@ -157,8 +157,8 @@ fn every_catalogued_required_input_of_a_strict_command_is_read() {
     // business-capital-expenditure, balancing-adjustment, trade-in,
     // etp-tax-free-component, fbt-meal-entertainment-register,
     // fbt-minor-benefit-check, gst-margin-scheme, wine-equalisation-tax,
-    // luxury-car-tax and borrowing-expenses-schedule.
-    assert_eq!(checked, 43);
+    // luxury-car-tax, borrowing-expenses-schedule and payroll-tax.
+    assert_eq!(checked, 44);
 }
 
 /// Every frozen call gives the same answer through either entry point, and

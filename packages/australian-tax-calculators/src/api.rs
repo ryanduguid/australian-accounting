@@ -264,6 +264,18 @@ const COMMAND_ARGS: &[(&str, &[(&str, Kind)])] = &[
         ],
     ),
     (
+        "payroll-tax",
+        &[
+            ("jurisdiction", Raw),
+            ("taxable_wages", Dec),
+            ("australian_wages", Dec),
+            ("group_member", Raw),
+            ("employed_all_year", Raw),
+            ("year", Raw),
+            ("scope_confirmed", Raw),
+        ],
+    ),
+    (
         "wine-equalisation-tax",
         &[("dealings", Json), ("year", Raw), ("scope_confirmed", Raw)],
     ),
@@ -633,7 +645,7 @@ pub fn commands() -> Vec<&'static str> {
 /// command on its `gross_pay` shows that withholding. The classifier's amounts
 /// are totals over lines whose shares a decision table sets, not a formula;
 /// each line and class carries the authority for its row instead.
-const DERIVED: [&str; 51] = [
+const DERIVED: [&str; 52] = [
     "fbt",
     "fbt-car-statutory",
     "fbt-car-operating-cost",
@@ -685,6 +697,7 @@ const DERIVED: [&str; 51] = [
     "trade-in",
     "gst-margin-scheme",
     "etp-tax-free-component",
+    "payroll-tax",
 ];
 
 /// `derive`: `{"command", "input"}` gives the command's result with the step
@@ -1060,6 +1073,7 @@ pub fn evaluate_coded(command: &str, v: &Value) -> Result<Value> {
             | "business-capital-expenditure"
             | "balancing-adjustment"
             | "trade-in"
+            | "payroll-tax"
             | "gst-margin-scheme"
     ) && let Some(key) = v
         .as_object()
@@ -1230,6 +1244,20 @@ pub fn evaluate_coded(command: &str, v: &Value) -> Result<Value> {
                 involuntary_disposal: &a[9],
                 year: &a[10],
                 scope_confirmed: &a[11],
+            })
+        }
+        "payroll-tax" => {
+            // Optional: whether a Victorian employer is a regional employer.
+            let regional = optional(v, "regional_employer", Raw)?;
+            engine::payroll_tax(&engine::PayrollTaxArgs {
+                jurisdiction: &a[0],
+                taxable_wages: &a[1],
+                australian_wages: &a[2],
+                regional_employer: regional.as_ref(),
+                group_member: &a[3],
+                employed_all_year: &a[4],
+                year: &a[5],
+                scope_confirmed: &a[6],
             })
         }
         "gst-margin-scheme" => {

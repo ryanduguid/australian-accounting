@@ -51,6 +51,10 @@ pub const SCOPES: &[(&str, &str)] = &[
         "Trading in one depreciating asset for a replacement in an income year from 2025-26 to 2026-27, for a taxpayer with an income year from 1 July to 30 June, at arm's length, where the replacement is started to be held and first used in that income year. The traded-in asset's facts are balancing_adjustment's, and the operator establishes them as it states. Its termination value is the trade-in allowance, the amount by which the replacement's price is reduced (ITAA 1997 s 40-305(1)(b) item 2), less the GST payable on the trade-in where it is a taxable supply (1/11 of the allowance: GST Act ss 9-70 and 9-75(1); ITAA 1997 s 27-95(1)), plus the GST Act s 132-5 decreasing adjustment for an asset acquired partly for a private purpose or for making financial supplies, from its input tax credit as adjusted and the full one (s 27-95(3)); its balancing adjustment, reduction for non-taxable use and CGT event K7 amount are then worked as balancing_adjustment works them. The replacement's cost is its price before the trade-in, including GST and any luxury car tax (ss 40-180 and 40-185(1)(b) item 2), less its input tax credit (s 27-80(1)): for a creditable acquisition the GST payable, 1/11 of the price less any luxury car tax, times the extent of creditable purpose (GST Act ss 9-75, 11-25 and 11-30), and for a passenger car no more than 1/11 of the car limit times that extent (s 69-10(1) and (3)). A passenger car's cost is then reduced to the car limit for the year (ITAA 1997 s 40-230(1)): $69,674 for 2025-26 and $69,883 for 2026-27, as the ATO publishes them. Amounts are worked exactly and shown to the cent, half up. Refuses a trade-in not at arm's length (s 40-300(2) item 6, s 27-95(2) and s 40-225 would apply), an involuntary disposal (whose s 40-365 choice is not made), a taxable trade-in with an adjusted input tax credit above the full one, a creditable acquisition with a nil creditable purpose, and luxury car tax above the price. Excludes deciding whether either supply is taxable, the allowance, price, creditable purpose and input tax credits; a car whose purchaser may quote an ABN for luxury car tax, a car that is not a luxury car under s 25-1(2) of the Luxury Car Tax Act, a car leased or hired, and a car excluded from the car limit by s 40-230(2); a trade-in of a luxury car on which luxury car tax is payable; a replacement first held or used in another year; a decreasing adjustment arising in a later income year (s 27-95(5)) and increasing adjustments (s 27-95(4)); assets in a pool or written off under s 328-180 or temporary full expensing; and everything balancing_adjustment excludes.",
     ),
     (
+        "payroll_tax",
+        "One employer's payroll tax for the 2026-27 financial year (1 July 2026 to 30 June 2027) in one of New South Wales, Victoria, Queensland, Western Australia, South Australia, Tasmania, the Australian Capital Territory and the Northern Territory, for an employer that is not a member of a group and paid or was liable to pay wages on every day of the year. The operator establishes the employer's taxable wages in the jurisdiction (the wages its Act makes taxable there, after its exemptions) and its Australian wages (those taxable wages with its interstate wages, the wages taxable in every other jurisdiction), and in Victoria whether it is a regional employer (Payroll Tax Act 2007 (Vic) s 3A). The result is the annual liability under each Act's schedule before any rebate, discount or cap, such as Queensland's regional discount (Payroll Tax Act 1971 (Qld) s 10A) and the 6.85% cap for an eligible university in the ACT (DI2026-151 s 5(c)(i)), and before the amounts paid in periodic returns.",
+    ),
+    (
         "balancing_adjustment",
         "The balancing adjustment for one depreciating asset when a balancing adjustment event occurs for it in an income year from 2024-25 to 2026-27, under ITAA 1997 Subdivision 40-D as compiled on 1 October 2026, for a taxpayer with an income year from 1 July to 30 June whose decline in value was worked out under Subdivision 40-B. The operator establishes that a balancing adjustment event occurred (s 40-295); the termination value under ss 40-300 to 40-320, after Subdivision 27-B; the cost (both elements, after Subdivision 27-B and, for a car, the car limit of s 40-230); whether the asset is a car (s 995-1), a motor cycle or similar vehicle, or another asset; and, for each income year it was held from its start time to the event's year, the decline in value (s 40-25(1)) and the deduction after the reductions s 40-25(2) to (4) required. A car states each year's car expense method (log book or cents per kilometre, from 2015-16) and days held; for a cents per kilometre year the decline is the notional decline s 40-370(3) assumes, worked on the same basis as the other years; and, where s 40-230 reduced its cost, the car limit for the financial year it was first used, the second element of cost and its total cost ignoring the car limit after Subdivision 27-B (s 40-325). The adjustable value just before the event is cost less the years' declines (s 40-85). The balancing adjustment amount is the termination value less the adjustable value: assessable if positive, deductible if negative (s 40-285), reduced by itself times the sum of the s 40-25 reductions over the total decline (s 40-290(2)). A car whose car expenses were claimed by the log book method in some years and the cents per kilometre method in others is worked under s 40-370 instead: the cents per kilometre years count 80% of their notional decline as reductions (s 40-370(4)), and the reduced amount is scaled by the days the decline was deducted over the days held. A car claimed only by the cents per kilometre method has nothing assessable or deductible (s 40-370(1) Note 2). A car's termination value is first multiplied by the s 40-325 fraction where s 40-230 reduced its cost. The capital gain or loss of CGT event K7 is (termination value less cost, or cost less termination value) times the same fraction (s 104-240), disregarded for a car, motor cycle or similar vehicle (s 118-5); it is before any other exemption, the CGT discount and the changes from 1 July 2027. Amounts are worked exactly with each fraction divided once, last; the result's amounts are shown to the cent, half up. Refuses a year after the event's year, a year before 2001-02, a car year before 2015-16 (when the one-third of actual expenses and 12% of original value methods could apply, which s 40-370 as compiled now does not count), a year given twice, years that skip one or stop before the event's, a deduction above its year's decline, declines totalling more than cost or nil, car limit facts that show s 40-230 did not reduce the cost, and a car's cost other than the car limit plus the second element (as for a car first used in a later financial year than the one it was acquired in, or held with another entity). Excludes deciding whether an event occurred and the termination value, cost, decline, use and method; assets in a low-value pool, a software development pool, a project pool or a small business pool, and assets written off under s 328-180 or temporary full expensing (Subdivision 328-D and the rules for those pools apply instead, and K7 is disregarded for a Division 328 asset, s 104-235(4)(b)); the fixed 50% reduction chosen under s 40-291A from 2026-27; second-hand assets in residential rental property (s 40-291); R&D use (ss 40-292 and 40-293); split or merged assets (s 40-290(3) and (4)); roll-over relief (s 40-340) and an asset held as a legal personal representative, whose earlier holder's reductions count; involuntary disposal roll-over (s 40-365); the deferral for vessels (s 40-285(5)); a car acquired at a discount (s 40-225, which s 40-320 adds back to the termination value); misappropriation (s 25-47); pre-CGT assets and assets acquired before 21 September 1999 or 1 July 2001 whose cost base exceeds cost; other CGT exemptions, such as collectables and personal use assets (ss 108-20 and 118-10); substituted accounting periods; and the tax payable on either amount.",
     ),
@@ -284,6 +288,10 @@ pub const SOURCES: &[(&str, &str)] = &[
     (
         "balancing_adjustment",
         "https://www.legislation.gov.au/C2004A05138/2026-10-01/2026-10-01/text/original/epub/OEBPS/document_2/document_2.html",
+    ),
+    (
+        "payroll_tax",
+        "https://www.revenue.nsw.gov.au/taxes-duties-levies-royalties/payroll-tax/lodge-and-pay-returns/thresholds-and-rates",
     ),
     (
         "gst_margin_scheme",
@@ -555,6 +563,33 @@ pub const EXTRA_SOURCES: &[(&str, &[&str])] = &[
             "https://www.legislation.gov.au/C2004A05138/2026-10-01/2026-10-01/text/original/epub/OEBPS/document_3/document_3.html",
             "https://www.ato.gov.au/law/view/document?docid=SAV/DEPRECIATING/00001",
             "https://www.legislation.gov.au/C2026A00049/asmade/text",
+        ],
+    ),
+    (
+        "payroll_tax",
+        &[
+            "https://legislation.nsw.gov.au/view/whole/html/inforce/current/act-2007-021",
+            "https://www.sro.vic.gov.au/about-us/rates-and-statistics/current-rates/payroll-tax-current-rates",
+            "https://www.sro.vic.gov.au/businesses-and-organisations/payroll-tax/thresholds-and-grouping/payroll-tax-surcharges",
+            "https://www.legislation.vic.gov.au/in-force/acts/payroll-tax-act-2007",
+            "https://qro.qld.gov.au/payroll-tax/calculate/rates-thresholds/",
+            "https://qro.qld.gov.au/payroll-tax/calculate/deductions/",
+            "https://qro.qld.gov.au/payroll-tax/mental-health-levy/calculating/",
+            "https://www.legislation.qld.gov.au/view/whole/pdf/inforce/2026-10-22/act-1971-037",
+            "https://www.wa.gov.au/government/multi-step-guides/payroll-tax-employer-guide/calculation-payroll-tax-employer-guide",
+            "https://www.legislation.wa.gov.au/legislation/statutes.nsf/law_a6335.html",
+            "https://www.legislation.wa.gov.au/legislation/statutes.nsf/law_a6336.html",
+            "https://www.revenuesa.sa.gov.au/payrolltax/rates-and-thresholds",
+            "https://www.legislation.sa.gov.au/_legislation-documents/lz/c/a/payroll-tax-act-2009/current/2009.22.auth.pdf",
+            "https://www.sro.tas.gov.au/payroll-tax/rates-thresholds",
+            "https://www.legislation.tas.gov.au/view/whole/html/inforce/current/act-2008-016",
+            "https://www.revenue.act.gov.au/business-taxes-and-levies/payroll-tax/about-payroll-tax",
+            "https://www.revenue.act.gov.au/business-taxes-and-levies/payroll-tax/calculating-payroll-tax",
+            "https://www.legislation.act.gov.au/View/di/2026-151/current/html/2026-151.html",
+            "https://www.legislation.act.gov.au/a/2011-18/",
+            "https://treasury.nt.gov.au/dtf/territory-revenue-office/payroll-tax/payroll-tax-rates-and-thresholds",
+            "https://treasury.nt.gov.au/dtf/territory-revenue-office/payroll-tax/payroll-changes-from-1-july-2026",
+            "https://legislation.nt.gov.au/en/Legislation/PAYROLL-TAX-ACT-2009",
         ],
     ),
     (
@@ -961,6 +996,13 @@ pub const EXTRA_WARNINGS: &[(&str, &[&str])] = &[
         "balancing_adjustment",
         &[
             "From 2026-27 a taxpayer who deducted an amount under s 25-130 may instead choose the fixed 50% reduction of s 40-291A for an asset used to produce assessable labour income; this worksheet applies s 40-290 and does not make that choice.",
+        ],
+    ),
+    (
+        "payroll_tax",
+        &[
+            "Each revenue office decides which payments are taxable wages and in which jurisdiction they are taxable; this worksheet takes both wage totals as established.",
+            "The annual liability is reconciled against the payroll tax and any surcharge or levy already paid in periodic returns; this worksheet does not make that reconciliation.",
         ],
     ),
     (
@@ -1709,7 +1751,7 @@ pub const REFUSAL_CODES: &[(&str, &str)] = &[
     ),
     (
         "input.field_unknown",
-        "A field the worksheet or command does not take, or does not take beside the other inputs given, was given (fbt-loan, fbt-meal-entertainment, fbt-car-parking, fbt-debt-waiver, fbt-expense-payment, fbt-property, fbt-residual, fbt-housing, fbt-lafha, fbt-board, fbt-tax-exempt-body-entertainment, fbt-entertainment-classifier, fbt-meal-entertainment-register and its entries, fbt-minor-benefit-check, division-296, depreciation, foreign-resident-tax, medicare-levy, medicare-levy-surcharge, payg-withholding, payg-gross-up, termination-payment, etp-tax-free-component, unused-leave-payment, the Schedule 5 methods, working-holiday-maker-withholding, study-loan-withholding, seniors-pensioners-withholding, seniors-pensioners-tax-offset, lump-sum-arrears-tax-offset, hire-purchase-schedule, chattel-mortgage-schedule, loan-transactions and its transactions and rate_changes, borrowing-expenses-schedule and its loans, business-capital-expenditure and its items, balancing-adjustment, its years and car_limit, trade-in, gst-margin-scheme, wine-equalisation-tax and its dealings, luxury-car-tax and its lines, contribution-caps given a carry-forward input, derive, personal-tax-estimate, dgr-check, income-tests and fbt-return only).",
+        "A field the worksheet or command does not take, or does not take beside the other inputs given, was given (fbt-loan, fbt-meal-entertainment, fbt-car-parking, fbt-debt-waiver, fbt-expense-payment, fbt-property, fbt-residual, fbt-housing, fbt-lafha, fbt-board, fbt-tax-exempt-body-entertainment, fbt-entertainment-classifier, fbt-meal-entertainment-register and its entries, fbt-minor-benefit-check, division-296, depreciation, foreign-resident-tax, medicare-levy, medicare-levy-surcharge, payg-withholding, payg-gross-up, termination-payment, etp-tax-free-component, unused-leave-payment, the Schedule 5 methods, working-holiday-maker-withholding, study-loan-withholding, seniors-pensioners-withholding, seniors-pensioners-tax-offset, lump-sum-arrears-tax-offset, hire-purchase-schedule, chattel-mortgage-schedule, loan-transactions and its transactions and rate_changes, borrowing-expenses-schedule and its loans, business-capital-expenditure and its items, balancing-adjustment, its years and car_limit, trade-in, gst-margin-scheme, wine-equalisation-tax and its dealings, luxury-car-tax and its lines, payroll-tax, contribution-caps given a carry-forward input, derive, personal-tax-estimate, dgr-check, income-tests and fbt-return only).",
     ),
     ("input.flag_invalid", "A flag is not a JSON boolean."),
     ("input.fraction_invalid", "A fraction is outside 0 to 1."),
@@ -1972,6 +2014,22 @@ pub const REFUSAL_CODES: &[(&str, &str)] = &[
     (
         "payg.tax_offsets_not_allowed",
         "Tax offsets were claimed on a scale other than 2, 5 or 6.",
+    ),
+    (
+        "payroll_tax.grouped",
+        "The employer is a member of a group, whose threshold, rate and deduction are not worked.",
+    ),
+    (
+        "payroll_tax.jurisdiction_invalid",
+        "jurisdiction is not nsw, vic, qld, wa, sa, tas, act or nt.",
+    ),
+    (
+        "payroll_tax.part_year",
+        "The employer did not pay wages for the whole year, and the threshold reduced by days is not worked.",
+    ),
+    (
+        "payroll_tax.wages_conflict",
+        "australian_wages is less than taxable_wages, which it includes.",
     ),
     (
         "period.unsupported",
