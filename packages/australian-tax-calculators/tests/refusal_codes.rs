@@ -34,6 +34,7 @@ fn every_code_at_a_refusal_site_is_catalogued_and_every_entry_is_used() {
     let modules = [
         "engine",
         "engine/balancing",
+        "engine/cgt_parcels",
         "engine/fbt_benefits",
         "engine/fbt_benefits/entertainment",
         "engine/hire_purchase",
