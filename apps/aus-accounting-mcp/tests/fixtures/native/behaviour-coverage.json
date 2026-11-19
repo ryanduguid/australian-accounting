@@ -17,7 +17,7 @@
     "tests/test_cli.py": "d4343e179eb3f52dba66f636847ad5cd528c7904dcfb69ba1861d5f1504922bd",
     "tests/test_compatibility.py": "e15d9ffa0a04c74ebff8400f813e06f295fec2e2ceddaa8a4c14cd69709d64fd",
     "tests/test_conformance_cases.py": "706fbfe053478edabcd768993caa14058b9fa8efde0d88cf5d22bc6b42397d70",
-    "tests/test_corpus.py": "e8f61e65f6e2d16db1c14c29fb28c9ac2d27d21b9dc02a6561ae95081b4df546",
+    "tests/test_corpus.py": "cdd28f5b7e761dee67da4b11d9ca5d4ec0ddf0790bb2154761c246e73e3ff98a",
     "tests/test_data_freshness.py": "003d085d767a6d52184bfd6a2b69900c928cdf901630c168baa504b3910822b6",
     "tests/test_demo.py": "c12a0f46c136c80555e14173416f019280ba8996abf7186b56a9e89ee812a388",
     "tests/test_demo_media.py": "37f01848e8eea57870c2fda14bb02df720fa6cb01c6b00743a68e8486a7c3b64",
@@ -817,7 +817,7 @@
     {
       "original": "tests/test_corpus.py:52",
       "function": "test_search_returns_a_traceable_citation",
-      "source_sha256": "e8f61e65f6e2d16db1c14c29fb28c9ac2d27d21b9dc02a6561ae95081b4df546",
+      "source_sha256": "cdd28f5b7e761dee67da4b11d9ca5d4ec0ddf0790bb2154761c246e73e3ff98a",
       "status": "covered",
       "proofs": [
         "C"
@@ -826,7 +826,7 @@
     {
       "original": "tests/test_corpus.py:69",
       "function": "test_a_superseded_compilation_is_left_out_unless_asked_for",
-      "source_sha256": "e8f61e65f6e2d16db1c14c29fb28c9ac2d27d21b9dc02a6561ae95081b4df546",
+      "source_sha256": "cdd28f5b7e761dee67da4b11d9ca5d4ec0ddf0790bb2154761c246e73e3ff98a",
       "status": "covered",
       "proofs": [
         "C"
@@ -835,7 +835,7 @@
     {
       "original": "tests/test_corpus.py:79",
       "function": "test_retrieval_preserves_the_captured_version_window_without_inventing_dates",
-      "source_sha256": "e8f61e65f6e2d16db1c14c29fb28c9ac2d27d21b9dc02a6561ae95081b4df546",
+      "source_sha256": "cdd28f5b7e761dee67da4b11d9ca5d4ec0ddf0790bb2154761c246e73e3ff98a",
       "status": "covered",
       "proofs": [
         "C"
@@ -844,7 +844,7 @@
     {
       "original": "tests/test_corpus.py:93",
       "function": "test_unrecorded_row_dates_remain_unknown",
-      "source_sha256": "e8f61e65f6e2d16db1c14c29fb28c9ac2d27d21b9dc02a6561ae95081b4df546",
+      "source_sha256": "cdd28f5b7e761dee67da4b11d9ca5d4ec0ddf0790bb2154761c246e73e3ff98a",
       "status": "covered",
       "proofs": [
         "C"
@@ -853,7 +853,7 @@
     {
       "original": "tests/test_corpus.py:99",
       "function": "test_in_force_only_keeps_a_row_with_unrecorded_currency",
-      "source_sha256": "e8f61e65f6e2d16db1c14c29fb28c9ac2d27d21b9dc02a6561ae95081b4df546",
+      "source_sha256": "cdd28f5b7e761dee67da4b11d9ca5d4ec0ddf0790bb2154761c246e73e3ff98a",
       "status": "covered",
       "proofs": [
         "C"
@@ -862,7 +862,7 @@
     {
       "original": "tests/test_corpus.py:111",
       "function": "test_search_matches_every_word_and_filters_by_act",
-      "source_sha256": "e8f61e65f6e2d16db1c14c29fb28c9ac2d27d21b9dc02a6561ae95081b4df546",
+      "source_sha256": "cdd28f5b7e761dee67da4b11d9ca5d4ec0ddf0790bb2154761c246e73e3ff98a",
       "status": "covered",
       "proofs": [
         "C"
@@ -871,7 +871,7 @@
     {
       "original": "tests/test_corpus.py:121",
       "function": "test_a_word_only_in_the_stored_metadata_is_not_a_match",
-      "source_sha256": "e8f61e65f6e2d16db1c14c29fb28c9ac2d27d21b9dc02a6561ae95081b4df546",
+      "source_sha256": "cdd28f5b7e761dee67da4b11d9ca5d4ec0ddf0790bb2154761c246e73e3ff98a",
       "status": "covered",
       "proofs": [
         "C"
@@ -880,7 +880,7 @@
     {
       "original": "tests/test_corpus.py:128",
       "function": "test_paging_continues_from_the_returned_offset",
-      "source_sha256": "e8f61e65f6e2d16db1c14c29fb28c9ac2d27d21b9dc02a6561ae95081b4df546",
+      "source_sha256": "cdd28f5b7e761dee67da4b11d9ca5d4ec0ddf0790bb2154761c246e73e3ff98a",
       "status": "covered",
       "proofs": [
         "C"
@@ -889,7 +889,7 @@
     {
       "original": "tests/test_corpus.py:142",
       "function": "test_search_truncates_a_long_provision_and_reports_the_whole_length",
-      "source_sha256": "e8f61e65f6e2d16db1c14c29fb28c9ac2d27d21b9dc02a6561ae95081b4df546",
+      "source_sha256": "cdd28f5b7e761dee67da4b11d9ca5d4ec0ddf0790bb2154761c246e73e3ff98a",
       "status": "covered",
       "proofs": [
         "C"
@@ -898,7 +898,7 @@
     {
       "original": "tests/test_corpus.py:150",
       "function": "test_read_returns_the_cited_provision_in_full",
-      "source_sha256": "e8f61e65f6e2d16db1c14c29fb28c9ac2d27d21b9dc02a6561ae95081b4df546",
+      "source_sha256": "cdd28f5b7e761dee67da4b11d9ca5d4ec0ddf0790bb2154761c246e73e3ff98a",
       "status": "covered",
       "proofs": [
         "C"
@@ -907,7 +907,7 @@
     {
       "original": "tests/test_corpus.py:158",
       "function": "test_read_stops_at_the_character_bound",
-      "source_sha256": "e8f61e65f6e2d16db1c14c29fb28c9ac2d27d21b9dc02a6561ae95081b4df546",
+      "source_sha256": "cdd28f5b7e761dee67da4b11d9ca5d4ec0ddf0790bb2154761c246e73e3ff98a",
       "status": "covered",
       "proofs": [
         "C"
@@ -916,7 +916,7 @@
     {
       "original": "tests/test_corpus.py:169",
       "function": "test_read_refuses_an_unknown_or_unsafe_row_id",
-      "source_sha256": "e8f61e65f6e2d16db1c14c29fb28c9ac2d27d21b9dc02a6561ae95081b4df546",
+      "source_sha256": "cdd28f5b7e761dee67da4b11d9ca5d4ec0ddf0790bb2154761c246e73e3ff98a",
       "status": "covered",
       "proofs": [
         "C"
@@ -925,7 +925,7 @@
     {
       "original": "tests/test_corpus.py:174",
       "function": "test_rates_keep_the_amounts_years_and_provision",
-      "source_sha256": "e8f61e65f6e2d16db1c14c29fb28c9ac2d27d21b9dc02a6561ae95081b4df546",
+      "source_sha256": "cdd28f5b7e761dee67da4b11d9ca5d4ec0ddf0790bb2154761c246e73e3ff98a",
       "status": "covered",
       "proofs": [
         "C"
@@ -934,7 +934,7 @@
     {
       "original": "tests/test_corpus.py:185",
       "function": "test_rates_filter_by_stated_year",
-      "source_sha256": "e8f61e65f6e2d16db1c14c29fb28c9ac2d27d21b9dc02a6561ae95081b4df546",
+      "source_sha256": "cdd28f5b7e761dee67da4b11d9ca5d4ec0ddf0790bb2154761c246e73e3ff98a",
       "status": "covered",
       "proofs": [
         "C"
@@ -943,7 +943,7 @@
     {
       "original": "tests/test_corpus.py:193",
       "function": "test_rates_filter_by_topic",
-      "source_sha256": "e8f61e65f6e2d16db1c14c29fb28c9ac2d27d21b9dc02a6561ae95081b4df546",
+      "source_sha256": "cdd28f5b7e761dee67da4b11d9ca5d4ec0ddf0790bb2154761c246e73e3ff98a",
       "status": "covered",
       "proofs": [
         "C"
@@ -952,7 +952,7 @@
     {
       "original": "tests/test_corpus.py:218",
       "function": "test_unconfigured_corpus_is_an_input_error",
-      "source_sha256": "e8f61e65f6e2d16db1c14c29fb28c9ac2d27d21b9dc02a6561ae95081b4df546",
+      "source_sha256": "cdd28f5b7e761dee67da4b11d9ca5d4ec0ddf0790bb2154761c246e73e3ff98a",
       "status": "covered",
       "proofs": [
         "C"
@@ -961,7 +961,7 @@
     {
       "original": "tests/test_corpus.py:224",
       "function": "test_a_folder_without_title_indexes_is_refused",
-      "source_sha256": "e8f61e65f6e2d16db1c14c29fb28c9ac2d27d21b9dc02a6561ae95081b4df546",
+      "source_sha256": "cdd28f5b7e761dee67da4b11d9ca5d4ec0ddf0790bb2154761c246e73e3ff98a",
       "status": "covered",
       "proofs": [
         "C"
@@ -970,7 +970,7 @@
     {
       "original": "tests/test_corpus.py:234",
       "function": "test_a_corpus_without_rates_refuses_the_rate_search",
-      "source_sha256": "e8f61e65f6e2d16db1c14c29fb28c9ac2d27d21b9dc02a6561ae95081b4df546",
+      "source_sha256": "cdd28f5b7e761dee67da4b11d9ca5d4ec0ddf0790bb2154761c246e73e3ff98a",
       "status": "covered",
       "proofs": [
         "C"
@@ -979,7 +979,7 @@
     {
       "original": "tests/test_corpus.py:240",
       "function": "test_unknown_arguments_are_rejected",
-      "source_sha256": "e8f61e65f6e2d16db1c14c29fb28c9ac2d27d21b9dc02a6561ae95081b4df546",
+      "source_sha256": "cdd28f5b7e761dee67da4b11d9ca5d4ec0ddf0790bb2154761c246e73e3ff98a",
       "status": "covered",
       "proofs": [
         "C"
@@ -988,7 +988,7 @@
     {
       "original": "tests/test_corpus.py:245",
       "function": "test_a_root_that_is_not_a_folder_is_refused",
-      "source_sha256": "e8f61e65f6e2d16db1c14c29fb28c9ac2d27d21b9dc02a6561ae95081b4df546",
+      "source_sha256": "cdd28f5b7e761dee67da4b11d9ca5d4ec0ddf0790bb2154761c246e73e3ff98a",
       "status": "covered",
       "proofs": [
         "C"
@@ -997,7 +997,7 @@
     {
       "original": "tests/test_corpus.py:253",
       "function": "test_a_query_without_a_word_is_refused",
-      "source_sha256": "e8f61e65f6e2d16db1c14c29fb28c9ac2d27d21b9dc02a6561ae95081b4df546",
+      "source_sha256": "cdd28f5b7e761dee67da4b11d9ca5d4ec0ddf0790bb2154761c246e73e3ff98a",
       "status": "covered",
       "proofs": [
         "C"
@@ -1006,7 +1006,7 @@
     {
       "original": "tests/test_corpus.py:260",
       "function": "test_an_unparsable_row_is_skipped_rather_than_failing_the_search",
-      "source_sha256": "e8f61e65f6e2d16db1c14c29fb28c9ac2d27d21b9dc02a6561ae95081b4df546",
+      "source_sha256": "cdd28f5b7e761dee67da4b11d9ca5d4ec0ddf0790bb2154761c246e73e3ff98a",
       "status": "covered",
       "proofs": [
         "C"
@@ -1015,7 +1015,7 @@
     {
       "original": "tests/test_corpus.py:273",
       "function": "test_a_title_folder_without_an_index_is_skipped",
-      "source_sha256": "e8f61e65f6e2d16db1c14c29fb28c9ac2d27d21b9dc02a6561ae95081b4df546",
+      "source_sha256": "cdd28f5b7e761dee67da4b11d9ca5d4ec0ddf0790bb2154761c246e73e3ff98a",
       "status": "covered",
       "proofs": [
         "C"
@@ -1024,7 +1024,7 @@
     {
       "original": "tests/test_corpus.py:279",
       "function": "test_a_corpus_without_a_manifest_still_cites_each_row",
-      "source_sha256": "e8f61e65f6e2d16db1c14c29fb28c9ac2d27d21b9dc02a6561ae95081b4df546",
+      "source_sha256": "cdd28f5b7e761dee67da4b11d9ca5d4ec0ddf0790bb2154761c246e73e3ff98a",
       "status": "covered",
       "proofs": [
         "C"
@@ -1033,7 +1033,7 @@
     {
       "original": "tests/test_corpus.py:288",
       "function": "test_an_unreadable_manifest_is_not_fatal",
-      "source_sha256": "e8f61e65f6e2d16db1c14c29fb28c9ac2d27d21b9dc02a6561ae95081b4df546",
+      "source_sha256": "cdd28f5b7e761dee67da4b11d9ca5d4ec0ddf0790bb2154761c246e73e3ff98a",
       "status": "covered",
       "proofs": [
         "C"
@@ -1042,7 +1042,7 @@
     {
       "original": "tests/test_corpus.py:294",
       "function": "test_a_corpus_past_the_scan_bounds_is_refused",
-      "source_sha256": "e8f61e65f6e2d16db1c14c29fb28c9ac2d27d21b9dc02a6561ae95081b4df546",
+      "source_sha256": "cdd28f5b7e761dee67da4b11d9ca5d4ec0ddf0790bb2154761c246e73e3ff98a",
       "status": "adapted",
       "proofs": [
         "C"
@@ -1052,7 +1052,7 @@
     {
       "original": "tests/test_corpus.py:304",
       "function": "test_the_act_filter_is_not_satisfied_by_body_text",
-      "source_sha256": "e8f61e65f6e2d16db1c14c29fb28c9ac2d27d21b9dc02a6561ae95081b4df546",
+      "source_sha256": "cdd28f5b7e761dee67da4b11d9ca5d4ec0ddf0790bb2154761c246e73e3ff98a",
       "status": "covered",
       "proofs": [
         "C"
@@ -1061,7 +1061,7 @@
     {
       "original": "tests/test_corpus.py:310",
       "function": "test_the_topic_filter_is_not_satisfied_by_row_content",
-      "source_sha256": "e8f61e65f6e2d16db1c14c29fb28c9ac2d27d21b9dc02a6561ae95081b4df546",
+      "source_sha256": "cdd28f5b7e761dee67da4b11d9ca5d4ec0ddf0790bb2154761c246e73e3ff98a",
       "status": "covered",
       "proofs": [
         "C"
@@ -1070,7 +1070,7 @@
     {
       "original": "tests/test_corpus.py:314",
       "function": "test_the_offset_boundary_asks_for_a_narrower_query",
-      "source_sha256": "e8f61e65f6e2d16db1c14c29fb28c9ac2d27d21b9dc02a6561ae95081b4df546",
+      "source_sha256": "cdd28f5b7e761dee67da4b11d9ca5d4ec0ddf0790bb2154761c246e73e3ff98a",
       "status": "adapted",
       "proofs": [
         "C"
@@ -1080,7 +1080,7 @@
     {
       "original": "tests/test_corpus.py:328",
       "function": "test_escaped_and_literal_indexes_search_and_read_alike",
-      "source_sha256": "e8f61e65f6e2d16db1c14c29fb28c9ac2d27d21b9dc02a6561ae95081b4df546",
+      "source_sha256": "cdd28f5b7e761dee67da4b11d9ca5d4ec0ddf0790bb2154761c246e73e3ff98a",
       "status": "covered",
       "proofs": [
         "C"
@@ -1089,7 +1089,7 @@
     {
       "original": "tests/test_corpus.py:354",
       "function": "test_an_escaped_row_id_reads_back_without_neighbours",
-      "source_sha256": "e8f61e65f6e2d16db1c14c29fb28c9ac2d27d21b9dc02a6561ae95081b4df546",
+      "source_sha256": "cdd28f5b7e761dee67da4b11d9ca5d4ec0ddf0790bb2154761c246e73e3ff98a",
       "status": "covered",
       "proofs": [
         "C"
@@ -1098,7 +1098,7 @@
     {
       "original": "tests/test_corpus.py:377",
       "function": "test_a_linked_markdown_directory_is_refused_by_read_as_well_as_search",
-      "source_sha256": "e8f61e65f6e2d16db1c14c29fb28c9ac2d27d21b9dc02a6561ae95081b4df546",
+      "source_sha256": "cdd28f5b7e761dee67da4b11d9ca5d4ec0ddf0790bb2154761c246e73e3ff98a",
       "status": "covered",
       "proofs": [
         "C",
@@ -1108,7 +1108,7 @@
     {
       "original": "tests/test_corpus.py:395",
       "function": "test_read_widens_to_the_provisions_either_side",
-      "source_sha256": "e8f61e65f6e2d16db1c14c29fb28c9ac2d27d21b9dc02a6561ae95081b4df546",
+      "source_sha256": "cdd28f5b7e761dee67da4b11d9ca5d4ec0ddf0790bb2154761c246e73e3ff98a",
       "status": "covered",
       "proofs": [
         "C"
@@ -1117,7 +1117,7 @@
     {
       "original": "tests/test_corpus.py:409",
       "function": "test_neighbours_stop_at_the_edges_of_the_title",
-      "source_sha256": "e8f61e65f6e2d16db1c14c29fb28c9ac2d27d21b9dc02a6561ae95081b4df546",
+      "source_sha256": "cdd28f5b7e761dee67da4b11d9ca5d4ec0ddf0790bb2154761c246e73e3ff98a",
       "status": "covered",
       "proofs": [
         "C"
@@ -1126,7 +1126,7 @@
     {
       "original": "tests/test_corpus.py:418",
       "function": "test_a_neighbour_is_truncated_like_a_search_match",
-      "source_sha256": "e8f61e65f6e2d16db1c14c29fb28c9ac2d27d21b9dc02a6561ae95081b4df546",
+      "source_sha256": "cdd28f5b7e761dee67da4b11d9ca5d4ec0ddf0790bb2154761c246e73e3ff98a",
       "status": "covered",
       "proofs": [
         "C"
@@ -1135,7 +1135,7 @@
     {
       "original": "tests/test_corpus.py:428",
       "function": "test_neighbours_outside_the_bound_are_rejected",
-      "source_sha256": "e8f61e65f6e2d16db1c14c29fb28c9ac2d27d21b9dc02a6561ae95081b4df546",
+      "source_sha256": "cdd28f5b7e761dee67da4b11d9ca5d4ec0ddf0790bb2154761c246e73e3ff98a",
       "status": "covered",
       "proofs": [
         "C"
@@ -1144,7 +1144,7 @@
     {
       "original": "tests/test_corpus.py:434",
       "function": "test_a_definition_carries_its_entry_and_the_dictionary_citation",
-      "source_sha256": "e8f61e65f6e2d16db1c14c29fb28c9ac2d27d21b9dc02a6561ae95081b4df546",
+      "source_sha256": "cdd28f5b7e761dee67da4b11d9ca5d4ec0ddf0790bb2154761c246e73e3ff98a",
       "status": "covered",
       "proofs": [
         "C"
@@ -1153,7 +1153,7 @@
     {
       "original": "tests/test_corpus.py:459",
       "function": "test_a_note_stays_with_the_definition_it_follows",
-      "source_sha256": "e8f61e65f6e2d16db1c14c29fb28c9ac2d27d21b9dc02a6561ae95081b4df546",
+      "source_sha256": "cdd28f5b7e761dee67da4b11d9ca5d4ec0ddf0790bb2154761c246e73e3ff98a",
       "status": "covered",
       "proofs": [
         "C"
@@ -1162,7 +1162,7 @@
     {
       "original": "tests/test_corpus.py:470",
       "function": "test_lettered_conditions_stay_with_the_definition_they_complete",
-      "source_sha256": "e8f61e65f6e2d16db1c14c29fb28c9ac2d27d21b9dc02a6561ae95081b4df546",
+      "source_sha256": "cdd28f5b7e761dee67da4b11d9ca5d4ec0ddf0790bb2154761c246e73e3ff98a",
       "status": "covered",
       "proofs": [
         "C"
@@ -1171,7 +1171,7 @@
     {
       "original": "tests/test_corpus.py:482",
       "function": "test_a_qualified_head_and_a_non_breaking_hyphen_still_match_exactly",
-      "source_sha256": "e8f61e65f6e2d16db1c14c29fb28c9ac2d27d21b9dc02a6561ae95081b4df546",
+      "source_sha256": "cdd28f5b7e761dee67da4b11d9ca5d4ec0ddf0790bb2154761c246e73e3ff98a",
       "status": "covered",
       "proofs": [
         "C"
@@ -1180,7 +1180,7 @@
     {
       "original": "tests/test_corpus.py:490",
       "function": "test_a_superseded_dictionary_is_left_out_unless_asked_for",
-      "source_sha256": "e8f61e65f6e2d16db1c14c29fb28c9ac2d27d21b9dc02a6561ae95081b4df546",
+      "source_sha256": "cdd28f5b7e761dee67da4b11d9ca5d4ec0ddf0790bb2154761c246e73e3ff98a",
       "status": "covered",
       "proofs": [
         "C"
@@ -1189,7 +1189,7 @@
     {
       "original": "tests/test_corpus.py:500",
       "function": "test_definitions_filter_by_act_and_put_the_exact_match_first",
-      "source_sha256": "e8f61e65f6e2d16db1c14c29fb28c9ac2d27d21b9dc02a6561ae95081b4df546",
+      "source_sha256": "cdd28f5b7e761dee67da4b11d9ca5d4ec0ddf0790bb2154761c246e73e3ff98a",
       "status": "covered",
       "proofs": [
         "C"
@@ -1198,7 +1198,7 @@
     {
       "original": "tests/test_corpus.py:509",
       "function": "test_a_word_outside_a_dictionary_section_is_not_a_definition",
-      "source_sha256": "e8f61e65f6e2d16db1c14c29fb28c9ac2d27d21b9dc02a6561ae95081b4df546",
+      "source_sha256": "cdd28f5b7e761dee67da4b11d9ca5d4ec0ddf0790bb2154761c246e73e3ff98a",
       "status": "covered",
       "proofs": [
         "C"
@@ -1207,7 +1207,7 @@
     {
       "original": "tests/test_corpus.py:518",
       "function": "test_a_definition_beyond_the_partial_cap_is_reported_not_returned",
-      "source_sha256": "e8f61e65f6e2d16db1c14c29fb28c9ac2d27d21b9dc02a6561ae95081b4df546",
+      "source_sha256": "cdd28f5b7e761dee67da4b11d9ca5d4ec0ddf0790bb2154761c246e73e3ff98a",
       "status": "adapted",
       "proofs": [
         "C"
@@ -1217,7 +1217,7 @@
     {
       "original": "tests/test_corpus.py:527",
       "function": "test_a_term_without_a_word_is_refused",
-      "source_sha256": "e8f61e65f6e2d16db1c14c29fb28c9ac2d27d21b9dc02a6561ae95081b4df546",
+      "source_sha256": "cdd28f5b7e761dee67da4b11d9ca5d4ec0ddf0790bb2154761c246e73e3ff98a",
       "status": "covered",
       "proofs": [
         "C"
@@ -1226,7 +1226,7 @@
     {
       "original": "tests/test_corpus.py:532",
       "function": "test_a_malformed_line_beside_the_cited_row_costs_no_neighbour_slot",
-      "source_sha256": "e8f61e65f6e2d16db1c14c29fb28c9ac2d27d21b9dc02a6561ae95081b4df546",
+      "source_sha256": "cdd28f5b7e761dee67da4b11d9ca5d4ec0ddf0790bb2154761c246e73e3ff98a",
       "status": "covered",
       "proofs": [
         "C"
@@ -1235,7 +1235,7 @@
     {
       "original": "tests/test_corpus.py:546",
       "function": "test_a_definition_lookup_refuses_a_corpus_past_the_scan_bounds",
-      "source_sha256": "e8f61e65f6e2d16db1c14c29fb28c9ac2d27d21b9dc02a6561ae95081b4df546",
+      "source_sha256": "cdd28f5b7e761dee67da4b11d9ca5d4ec0ddf0790bb2154761c246e73e3ff98a",
       "status": "adapted",
       "proofs": [
         "C"
@@ -1245,7 +1245,7 @@
     {
       "original": "tests/test_corpus.py:552",
       "function": "test_a_default_read_returns_no_context_even_past_an_escaped_row",
-      "source_sha256": "e8f61e65f6e2d16db1c14c29fb28c9ac2d27d21b9dc02a6561ae95081b4df546",
+      "source_sha256": "cdd28f5b7e761dee67da4b11d9ca5d4ec0ddf0790bb2154761c246e73e3ff98a",
       "status": "covered",
       "proofs": [
         "C"
@@ -1254,7 +1254,7 @@
     {
       "original": "tests/test_corpus.py:574",
       "function": "test_a_provision_headed_with_the_phrase_outranks_corpus_order",
-      "source_sha256": "e8f61e65f6e2d16db1c14c29fb28c9ac2d27d21b9dc02a6561ae95081b4df546",
+      "source_sha256": "cdd28f5b7e761dee67da4b11d9ca5d4ec0ddf0790bb2154761c246e73e3ff98a",
       "status": "covered",
       "proofs": [
         "C"
@@ -1263,7 +1263,7 @@
     {
       "original": "tests/test_corpus.py:587",
       "function": "test_a_principal_act_comes_first_within_a_tier",
-      "source_sha256": "e8f61e65f6e2d16db1c14c29fb28c9ac2d27d21b9dc02a6561ae95081b4df546",
+      "source_sha256": "cdd28f5b7e761dee67da4b11d9ca5d4ec0ddf0790bb2154761c246e73e3ff98a",
       "status": "adapted",
       "proofs": [
         "C"
@@ -1273,7 +1273,7 @@
     {
       "original": "tests/test_corpus.py:616",
       "function": "test_ranking_tiers",
-      "source_sha256": "e8f61e65f6e2d16db1c14c29fb28c9ac2d27d21b9dc02a6561ae95081b4df546",
+      "source_sha256": "cdd28f5b7e761dee67da4b11d9ca5d4ec0ddf0790bb2154761c246e73e3ff98a",
       "status": "covered",
       "proofs": [
         "C",
@@ -1283,7 +1283,7 @@
     {
       "original": "tests/test_corpus.py:624",
       "function": "test_ranked_pages_cover_every_match_once",
-      "source_sha256": "e8f61e65f6e2d16db1c14c29fb28c9ac2d27d21b9dc02a6561ae95081b4df546",
+      "source_sha256": "cdd28f5b7e761dee67da4b11d9ca5d4ec0ddf0790bb2154761c246e73e3ff98a",
       "status": "covered",
       "proofs": [
         "C"
@@ -1292,7 +1292,7 @@
     {
       "original": "tests/test_corpus.py:636",
       "function": "test_a_search_with_no_match_suggests_statutory_wording",
-      "source_sha256": "e8f61e65f6e2d16db1c14c29fb28c9ac2d27d21b9dc02a6561ae95081b4df546",
+      "source_sha256": "cdd28f5b7e761dee67da4b11d9ca5d4ec0ddf0790bb2154761c246e73e3ff98a",
       "status": "covered",
       "proofs": [
         "C"
@@ -1301,7 +1301,7 @@
     {
       "original": "tests/test_corpus.py:646",
       "function": "test_a_long_provision_is_read_in_parts",
-      "source_sha256": "e8f61e65f6e2d16db1c14c29fb28c9ac2d27d21b9dc02a6561ae95081b4df546",
+      "source_sha256": "cdd28f5b7e761dee67da4b11d9ca5d4ec0ddf0790bb2154761c246e73e3ff98a",
       "status": "covered",
       "proofs": [
         "C"
@@ -1310,7 +1310,7 @@
     {
       "original": "tests/test_corpus.py:664",
       "function": "test_a_short_provision_read_whole_carries_no_part_caveat",
-      "source_sha256": "e8f61e65f6e2d16db1c14c29fb28c9ac2d27d21b9dc02a6561ae95081b4df546",
+      "source_sha256": "cdd28f5b7e761dee67da4b11d9ca5d4ec0ddf0790bb2154761c246e73e3ff98a",
       "status": "covered",
       "proofs": [
         "C"
@@ -1319,7 +1319,7 @@
     {
       "original": "tests/test_corpus.py:678",
       "function": "test_a_start_outside_the_provision_is_refused",
-      "source_sha256": "e8f61e65f6e2d16db1c14c29fb28c9ac2d27d21b9dc02a6561ae95081b4df546",
+      "source_sha256": "cdd28f5b7e761dee67da4b11d9ca5d4ec0ddf0790bb2154761c246e73e3ff98a",
       "status": "covered",
       "proofs": [
         "C"
@@ -1328,7 +1328,7 @@
     {
       "original": "tests/test_corpus.py:695",
       "function": "test_definitions_put_a_principal_act_first",
-      "source_sha256": "e8f61e65f6e2d16db1c14c29fb28c9ac2d27d21b9dc02a6561ae95081b4df546",
+      "source_sha256": "cdd28f5b7e761dee67da4b11d9ca5d4ec0ddf0790bb2154761c246e73e3ff98a",
       "status": "adapted",
       "proofs": [
         "C"
@@ -1338,7 +1338,7 @@
     {
       "original": "tests/test_corpus.py:708",
       "function": "test_the_partial_cap_keeps_the_best_ranked_definition",
-      "source_sha256": "e8f61e65f6e2d16db1c14c29fb28c9ac2d27d21b9dc02a6561ae95081b4df546",
+      "source_sha256": "cdd28f5b7e761dee67da4b11d9ca5d4ec0ddf0790bb2154761c246e73e3ff98a",
       "status": "adapted",
       "proofs": [
         "C"
@@ -1348,7 +1348,7 @@
     {
       "original": "tests/test_corpus.py:730",
       "function": "test_an_unconfigured_corpus_tells_the_caller_not_to_retry",
-      "source_sha256": "e8f61e65f6e2d16db1c14c29fb28c9ac2d27d21b9dc02a6561ae95081b4df546",
+      "source_sha256": "cdd28f5b7e761dee67da4b11d9ca5d4ec0ddf0790bb2154761c246e73e3ff98a",
       "status": "covered",
       "proofs": [
         "C"
@@ -1357,7 +1357,7 @@
     {
       "original": "tests/test_corpus.py:736",
       "function": "test_an_index_that_is_not_utf8_is_an_input_error_while_ranking",
-      "source_sha256": "e8f61e65f6e2d16db1c14c29fb28c9ac2d27d21b9dc02a6561ae95081b4df546",
+      "source_sha256": "cdd28f5b7e761dee67da4b11d9ca5d4ec0ddf0790bb2154761c246e73e3ff98a",
       "status": "covered",
       "proofs": [
         "C"
@@ -1366,7 +1366,7 @@
     {
       "original": "tests/test_corpus.py:744",
       "function": "test_a_rate_phrase_is_not_formed_across_heading_and_topic",
-      "source_sha256": "e8f61e65f6e2d16db1c14c29fb28c9ac2d27d21b9dc02a6561ae95081b4df546",
+      "source_sha256": "cdd28f5b7e761dee67da4b11d9ca5d4ec0ddf0790bb2154761c246e73e3ff98a",
       "status": "covered",
       "proofs": [
         "C"
@@ -1375,7 +1375,7 @@
     {
       "original": "tests/test_corpus.py:775",
       "function": "test_rate_heading_fields_rank_separately",
-      "source_sha256": "e8f61e65f6e2d16db1c14c29fb28c9ac2d27d21b9dc02a6561ae95081b4df546",
+      "source_sha256": "cdd28f5b7e761dee67da4b11d9ca5d4ec0ddf0790bb2154761c246e73e3ff98a",
       "status": "adapted",
       "proofs": [
         "C"
@@ -1385,7 +1385,7 @@
     {
       "original": "tests/test_corpus.py:781",
       "function": "test_hidden_folders_and_stray_files_under_markdown_are_passed_over",
-      "source_sha256": "e8f61e65f6e2d16db1c14c29fb28c9ac2d27d21b9dc02a6561ae95081b4df546",
+      "source_sha256": "cdd28f5b7e761dee67da4b11d9ca5d4ec0ddf0790bb2154761c246e73e3ff98a",
       "status": "covered",
       "proofs": [
         "C"
@@ -1394,7 +1394,7 @@
     {
       "original": "tests/test_corpus.py:791",
       "function": "test_a_manifest_that_is_not_an_object_carries_no_provenance",
-      "source_sha256": "e8f61e65f6e2d16db1c14c29fb28c9ac2d27d21b9dc02a6561ae95081b4df546",
+      "source_sha256": "cdd28f5b7e761dee67da4b11d9ca5d4ec0ddf0790bb2154761c246e73e3ff98a",
       "status": "covered",
       "proofs": [
         "C"
@@ -1403,7 +1403,7 @@
     {
       "original": "tests/test_corpus.py:797",
       "function": "test_a_manifest_without_attribution_keeps_its_other_facts",
-      "source_sha256": "e8f61e65f6e2d16db1c14c29fb28c9ac2d27d21b9dc02a6561ae95081b4df546",
+      "source_sha256": "cdd28f5b7e761dee67da4b11d9ca5d4ec0ddf0790bb2154761c246e73e3ff98a",
       "status": "covered",
       "proofs": [
         "C"
@@ -1412,7 +1412,7 @@
     {
       "original": "tests/test_corpus.py:807",
       "function": "test_reading_an_index_that_is_not_utf8_is_an_input_error",
-      "source_sha256": "e8f61e65f6e2d16db1c14c29fb28c9ac2d27d21b9dc02a6561ae95081b4df546",
+      "source_sha256": "cdd28f5b7e761dee67da4b11d9ca5d4ec0ddf0790bb2154761c246e73e3ff98a",
       "status": "covered",
       "proofs": [
         "C"
@@ -1421,7 +1421,7 @@
     {
       "original": "tests/test_corpus.py:815",
       "function": "test_a_definition_lookup_over_an_index_that_is_not_utf8_is_an_input_error",
-      "source_sha256": "e8f61e65f6e2d16db1c14c29fb28c9ac2d27d21b9dc02a6561ae95081b4df546",
+      "source_sha256": "cdd28f5b7e761dee67da4b11d9ca5d4ec0ddf0790bb2154761c246e73e3ff98a",
       "status": "covered",
       "proofs": [
         "C"
@@ -1430,7 +1430,7 @@
     {
       "original": "tests/test_corpus.py:823",
       "function": "test_the_act_filter_for_definitions_is_not_satisfied_by_the_heading",
-      "source_sha256": "e8f61e65f6e2d16db1c14c29fb28c9ac2d27d21b9dc02a6561ae95081b4df546",
+      "source_sha256": "cdd28f5b7e761dee67da4b11d9ca5d4ec0ddf0790bb2154761c246e73e3ff98a",
       "status": "covered",
       "proofs": [
         "C"
@@ -1439,7 +1439,7 @@
     {
       "original": "tests/test_corpus.py:828",
       "function": "test_a_dictionary_paragraph_before_the_first_definition_is_not_part_of_one",
-      "source_sha256": "e8f61e65f6e2d16db1c14c29fb28c9ac2d27d21b9dc02a6561ae95081b4df546",
+      "source_sha256": "cdd28f5b7e761dee67da4b11d9ca5d4ec0ddf0790bb2154761c246e73e3ff98a",
       "status": "adapted",
       "proofs": [
         "C"
@@ -4292,7 +4292,7 @@
     {
       "original": "tests/test_corpus.py:200",
       "function": "test_a_superseded_rate_is_left_out_unless_asked_for",
-      "source_sha256": "e8f61e65f6e2d16db1c14c29fb28c9ac2d27d21b9dc02a6561ae95081b4df546",
+      "source_sha256": "cdd28f5b7e761dee67da4b11d9ca5d4ec0ddf0790bb2154761c246e73e3ff98a",
       "status": "covered",
       "proofs": [
         "C"
@@ -4762,7 +4762,7 @@
     {
       "original": "tests/test_corpus.py:40",
       "function": "test_an_unconfigured_corpus_names_the_build_route",
-      "source_sha256": "e8f61e65f6e2d16db1c14c29fb28c9ac2d27d21b9dc02a6561ae95081b4df546",
+      "source_sha256": "cdd28f5b7e761dee67da4b11d9ca5d4ec0ddf0790bb2154761c246e73e3ff98a",
       "status": "covered",
       "proofs": [
         "C"
