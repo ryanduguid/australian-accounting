@@ -293,7 +293,9 @@ fn a_company_loss_and_earlier_losses_reduce_its_other_gains() {
     let r = run(&input);
     assert_eq!(
         amounts(&r, NET),
-        ["150.00", "100.00", "0.00", "20.00", "0.00", "0.00", "30.00", "0.00"]
+        [
+            "150.00", "100.00", "0.00", "20.00", "0.00", "0.00", "30.00", "0.00"
+        ]
     );
     assert_eq!(r["matches"][0]["capital_loss"], "100.00");
 }
