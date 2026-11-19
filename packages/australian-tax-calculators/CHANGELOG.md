@@ -72,6 +72,19 @@
   GST on the credit component. The 2024-25 car limit, $69,674, joins the
   2025-26 and 2026-27 ones.
 - `payout` takes `known_at_start`, which must be `false`.
+- `contract-register` reads a contracts file, CSV with one hire purchase or
+  chattel mortgage contract a line, sets out each contract through
+  `hire-purchase-schedule` or `chattel-mortgage-schedule` unchanged, and reports cashflow by month, payments, interest and principal
+  by income year, the amount outstanding at a balance date split into
+  current and non-current (AASB 101 paragraph 69(c)), contracts expiring by
+  a date, and totals by financier and by client, as JSON, text or CSV.
+  A malformed line is refused with its number. New codes:
+  `contract_register.argument_invalid`, `contract_register.column_invalid`,
+  `contract_register.contract_duplicate`, `contract_register.csv_invalid`,
+  `contract_register.kind_unsupported` and `contract_register.text_invalid`.
+  `examples/contract-register.csv` is a fabricated register of 8 contracts,
+  and `tests/contract_register.rs` holds it to each contract's own schedule.
+  `docs/contract-register.md` documents the columns and reports.
 - New codes: `hire_purchase.car_limit_unknown`,
   `hire_purchase.frequencies_mixed`, `hire_purchase.frequency_invalid`,
   `hire_purchase.gst_fact_conflict`, `hire_purchase.gst_fact_invalid`,

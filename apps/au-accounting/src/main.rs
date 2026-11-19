@@ -183,6 +183,11 @@ fn tax(args: &[OsString]) -> Outcome {
         .iter()
         .map(|a| a.to_string_lossy().into_owned())
         .collect();
+    if let Some((command, rest)) = args.split_first()
+        && command == "contract-register"
+    {
+        return api::contract_register(rest, &mut std::io::stdin());
+    }
     let commands = api::commands();
     // The engine's CLI beyond its JSON commands: `--version`, else its own usage error.
     let usage = |args: &[String]| -> Outcome {
