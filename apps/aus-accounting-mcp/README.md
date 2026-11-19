@@ -58,15 +58,34 @@ The source checkout may be ahead of the published release. The pin selects the
 server version; it does not lock every transitive dependency.
 
 From 0.10.0 the tax worksheets also need the `australian-tax-calculators` 1.0.0
-executable, which `uvx` does not install. Download it for x86_64 Linux or Windows from
-the [australian-tax-calculators/v1.0.0 release](https://github.com/ryanduguid/australian-accounting/releases/tag/australian-tax-calculators/v1.0.0)
-(other platforms build it from [source](https://github.com/ryanduguid/australian-accounting/tree/main/packages/australian-tax-calculators)),
-verify it as that release describes, and put it in a folder on `PATH` or give its
-absolute path in `AUS_TAX_CALCULATORS_BIN`. The server runs it only if its SHA-256 is
-that of a released executable; for one you built, set `AUS_TAX_CALCULATORS_SHA256` to
-its SHA-256. Keep it in a folder only you can write: the server checks the file and
-then runs it, and someone who can change it could swap it in between. Without the
-executable the tax worksheets refuse with an install message; every other tool works.
+executable, which `uvx` does not install. On x86_64 Linux, one command downloads it
+from the [australian-tax-calculators/v1.0.0 release](https://github.com/ryanduguid/australian-accounting/releases/tag/australian-tax-calculators/v1.0.0),
+verifies it and adds its folder to `PATH`:
+
+```sh
+curl --proto '=https' --tlsv1.2 -fsSL https://raw.githubusercontent.com/ryanduguid/release-policy/d7039efe6d8c441f1f213c674902909e80535599/scripts/install.sh | sh -s -- ryanduguid/australian-accounting australian-tax-calculators/v1.0.0 --modify-path
+```
+
+In PowerShell on x86_64 Windows:
+
+```powershell
+& ([scriptblock]::Create((irm https://raw.githubusercontent.com/ryanduguid/release-policy/d7039efe6d8c441f1f213c674902909e80535599/scripts/install.ps1))) ryanduguid/australian-accounting australian-tax-calculators/v1.0.0 -ModifyPath
+```
+
+Both need the [GitHub CLI](https://cli.github.com/), with no sign-in, and install nothing
+unless the release's provenance and `SHA256SUMS` check out; the
+[calculators README](https://github.com/ryanduguid/australian-accounting/tree/main/packages/australian-tax-calculators#install) says
+what they check and where the executable goes. Restart your MCP client afterwards so it
+sees the new `PATH`. On Linux, a client started from a desktop menu does not read the
+shell startup file that sets it: give that client `AUS_TAX_CALCULATORS_BIN`, the
+executable's path in the folder the installer names. Other platforms build it from
+[source](https://github.com/ryanduguid/australian-accounting/tree/main/packages/australian-tax-calculators).
+You can instead put the executable in a folder on `PATH` yourself or give its absolute
+path in `AUS_TAX_CALCULATORS_BIN`. The server runs it only if its SHA-256 is that of a
+released executable; for one you built, set `AUS_TAX_CALCULATORS_SHA256` to its SHA-256.
+Keep it in a folder only you can write: the server checks the file and then runs it, and
+someone who can change it could swap it in between. Without the executable the tax
+worksheets refuse with an install message; every other tool works.
 
 The server waits for an MCP client over stdio. Tool calls read bundled data and any
 folders you configure. They do not contact the ATO or the Federal Register, change
