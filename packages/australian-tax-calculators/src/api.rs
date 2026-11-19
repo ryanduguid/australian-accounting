@@ -1345,6 +1345,7 @@ pub fn evaluate_coded(command: &str, v: &Value) -> Result<Value> {
                 [contributions?, requested?, deductions?, determination?];
             let amount = optional(v, "amount_requested", Dec)?;
             let marginal = optional(v, "estimated_marginal_rate", Dec)?;
+            let cannot = optional(v, "commissioner_cannot_estimate", Raw)?;
             engine::fhss(&engine::FhssArgs {
                 determination_date: &a[0],
                 year: &a[1],
@@ -1355,6 +1356,7 @@ pub fn evaluate_coded(command: &str, v: &Value) -> Result<Value> {
                 determination: determination.as_ref(),
                 amount_requested: amount.as_ref(),
                 estimated_marginal_rate: marginal.as_ref(),
+                commissioner_cannot_estimate: cannot.as_ref(),
             })
         }
         "fbt-entertainment-classifier" => {

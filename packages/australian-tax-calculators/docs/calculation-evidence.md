@@ -711,8 +711,22 @@ What the Act settles, where the guidance is less exact:
   withhold; reg 53A sets the amount as his estimate of the tax payable on the
   assessable FHSS released amount, or 17% of it where he cannot estimate. The
   marginal rate plus Medicare levy less 30% is GN 2024/1's account of that
-  estimate, and the command follows it. Neither sets a rounding; examples 11
+  estimate, and the command follows it, labelled an estimate. The 17% applies
+  only where the Commissioner cannot estimate (reg 53A(1)(b)), so the caller
+  states that with `commissioner_cannot_estimate`; a missing marginal rate is
+  refused rather than taken to mean it. Neither sets a rounding; examples 11
   to 13 round down to the dollar ($1,589.50 to $1,589).
+- **Determinations before 15 September 2024.** Schedule 4 to the Treasury
+  Laws Amendment (2023 Measures No. 3) Act 2023 (No. 75 of 2023, as made,
+  read on 20 November 2026) commenced then. Its item 28(1) applies the
+  amendments to determinations from 1 July 2018; item 28(4) keeps 14 days, not
+  90, in s 313-35(1)(c)(i) for an earlier determination, a deadline the
+  command does not compute; and item 30(4) takes a release after a
+  transitional action (amending a determination made before 15 September
+  2024, its request or its release authority by 14 September 2027) out of
+  Subdivisions 313-C to 313-E, so no FHSS tax or recontribution applies. The
+  amounts are otherwise worked the same way; the command adds
+  `transitional_note` for every determination made before 15 September 2024.
 - **The earnings base.** s 138-40(2) defines the amount of a contribution as
   'the amount of the contribution that is counted in your FHSS releasable
   contributions amount', and s 138-30(1)(b) counts 85% of an eligible

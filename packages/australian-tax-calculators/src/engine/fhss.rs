@@ -18,7 +18,7 @@ mod input;
 
 use serde_json::{Value, json};
 
-use super::{Arg, Result, d, finite_between, money, precise, rate, refuse, result, scope};
+use super::{Arg, Result, d, finite_between, flag, money, precise, rate, refuse, result, scope};
 use crate::dates;
 use crate::decimal::{Decimal, Rounding};
 use input::{day, fy_label, fy_of, item_money, only_fields};
@@ -36,6 +36,7 @@ pub struct FhssArgs<'a> {
     pub determination: Option<&'a Arg>,
     pub amount_requested: Option<&'a Arg>,
     pub estimated_marginal_rate: Option<&'a Arg>,
+    pub commissioner_cannot_estimate: Option<&'a Arg>,
 }
 
 struct Components {
@@ -107,14 +108,44 @@ pub fn fhss(args: &FhssArgs) -> Result<Value> {
             );
         }
     };
-    precise(|| release(args, &period, components, detail, basis))
+    precise(|| release(args, determined, &period, components, detail, basis))
 }
 
-/// reg 53A: the estimated marginal rate plus 2% Medicare levy less the 30%
-/// offset, not below nil (GN 2024/1 section 7), or 17% without an estimate.
-fn withholding_rate(marginal: Option<&Arg>) -> Result<Decimal> {
-    let Some(arg) = marginal else {
-        return Ok(d("0.17"));
+const WITHHELD_ESTIMATE: &str = "estimate: reg 53A(1)(a) withholds the tax the Commissioner estimates on the assessable FHSS released amount; this applies GN 2024/1 section 7's account of it, the estimated marginal rate plus 2% Medicare levy less the 30% offset, not below nil, rounded down to the dollar.";
+const WITHHELD_17: &str = "reg_53A_1_b: the Commissioner cannot estimate the tax, as stated, so 17% of the assessable FHSS released amount is withheld (reg 53A(1)(b)), rounded down to the dollar.";
+
+/// The new regime's first day: Treasury Laws Amendment (2023 Measures No. 3)
+/// Act 2023 Sch 4 commenced on 15 September 2024.
+const SCHEDULE_4_START: &str = "2024-09-15";
+const TRANSITIONAL: &str = "The determination was made before 15 September 2024. A release after an action under item 30 of Schedule 4 to the Treasury Laws Amendment (2023 Measures No. 3) Act 2023 (amending that determination, its request or its release authority by 14 September 2027 after an unsuccessful attempt) is outside Subdivisions 313-C to 313-E, so fhss_tax_if_not_used and recontribution_required do not apply to it; item 28(4) also gives 14 days, not 90, in s 313-35(1)(c)(i).";
+
+/// reg 53A, with the basis: the Commissioner's estimate, worked as GN 2024/1
+/// section 7 gives it, or 17% where he cannot estimate (reg 53A(1)(b)). One
+/// of the 2 must be given: a missing marginal rate does not show that he
+/// cannot estimate.
+fn withholding_rate(
+    marginal: Option<&Arg>,
+    cannot_estimate: Option<&Arg>,
+) -> Result<(Decimal, &'static str)> {
+    let cannot = match cannot_estimate {
+        Some(arg) => flag(arg, "commissioner_cannot_estimate")?,
+        None => false,
+    };
+    let arg = match (marginal, cannot) {
+        (Some(_), true) => {
+            return refuse(
+                "input.field_unknown",
+                "Give estimated_marginal_rate or commissioner_cannot_estimate true, not both.",
+            );
+        }
+        (None, true) => return Ok((d("0.17"), WITHHELD_17)),
+        (Some(arg), false) => arg,
+        (None, false) => {
+            return refuse(
+                "input.missing_field",
+                "estimated_marginal_rate is required unless commissioner_cannot_estimate is true: reg 53A(1)(b)'s 17% applies only where the Commissioner cannot estimate the tax.",
+            );
+        }
     };
     let Some(marginal) = finite_between(arg, "0", "0.45")? else {
         return refuse(
@@ -123,11 +154,12 @@ fn withholding_rate(marginal: Option<&Arg>) -> Result<Decimal> {
         );
     };
     let r = marginal.add(&d("0.02"))?.sub(&d("0.30"))?;
-    Ok(if r.lt(&Decimal::from_int(0))? {
+    let r = if r.lt(&Decimal::from_int(0))? {
         Decimal::from_int(0)
     } else {
         r
-    })
+    };
+    Ok((r, WITHHELD_ESTIMATE))
 }
 
 /// s 313-20: the concessional and earnings components, less any shortfall
@@ -170,6 +202,7 @@ fn rates(withholding_rate: &Decimal) -> Vec<(String, String)> {
 
 fn release(
     args: &FhssArgs,
+    determined: i64,
     period: &str,
     c: Components,
     detail: Option<Value>,
@@ -178,7 +211,10 @@ fn release(
     let maximum = c.concessional.add(&c.non_concessional)?.add(&c.earnings)?;
     let requested = requested(args.amount_requested, &maximum)?;
     let assessable = assessable(&c, &maximum, &requested)?;
-    let withholding_rate = withholding_rate(args.estimated_marginal_rate)?;
+    let (withholding_rate, withholding_basis) = withholding_rate(
+        args.estimated_marginal_rate,
+        args.commissioner_cannot_estimate,
+    )?;
     let withheld = withholding_rate
         .mul(&assessable)?
         .quantize(0, Rounding::Down)?;
@@ -202,6 +238,11 @@ fn release(
     let mut out = result(KIND, period, amounts, rates(&withholding_rate))?;
     out["associated_earnings_basis"] = json!(basis.split(':').next().expect("a basis"));
     out["basis"] = json!(basis);
+    out["withholding_basis"] = json!(withholding_basis.split(':').next().expect("a basis"));
+    out["withholding_note"] = json!(withholding_basis);
+    if determined < dates::parse(SCHEDULE_4_START).expect("date") {
+        out["transitional_note"] = json!(TRANSITIONAL);
+    }
     if let Some(Value::Object(fields)) = detail {
         for (key, value) in fields {
             out[key] = value;

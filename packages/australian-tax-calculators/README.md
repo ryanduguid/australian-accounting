@@ -1058,14 +1058,17 @@ On release of `amount_requested` (the maximum unless given, never more:
 s 131-10(1) item 4) it gives the assessable FHSS released amount (ITAA 1997
 s 313-20: the concessional and earnings components, less any shortfall below
 the maximum, not below nil), the tax withheld (TAA Regulations 2017 reg 53A:
-`estimated_marginal_rate` plus 2% Medicare levy less 30%, not below nil, or
-17% without one, as GN 2024/1 section 7 says; rounded down to the dollar as
-its examples are), what is paid to you, the 30% non-refundable offset
+`estimated_marginal_rate` plus 2% Medicare levy less 30%, not below nil, as
+GN 2024/1 section 7 says, or 17% with `commissioner_cannot_estimate` true;
+one of the 2 is required; rounded down to the dollar as its examples are, and
+labelled an estimate in `withholding_basis`), what is paid to you, the 30% non-refundable offset
 (s 313-25), the FHSS tax of 20% if neither a contract nor a recontribution is
 notified in time (s 313-60), and the recontribution that avoids it (s 313-50).
 Deadlines, KiwiSaver and foreign transfers, excess contributions, amended
-determinations, the transitional rules before 15 September 2024 and foreign
-residents are out of scope.
+determinations, a release under the transitional rules of item 30 of
+Schedule 4 to Act No. 75 of 2023 (which has no FHSS tax or recontribution;
+`transitional_note` flags every determination made before 15 September 2024)
+and foreign residents are out of scope.
 
 ## Wine equalisation tax
 

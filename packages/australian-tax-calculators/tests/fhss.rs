@@ -32,6 +32,7 @@ fn estimate(contributions: Vec<Value>, requested: &str, determined: &str) -> Val
     json!({
         "contributions": contributions, "determination_requested": requested,
         "determination_date": determined, "year": fy(determined), "scope_confirmed": true,
+        "commissioner_cannot_estimate": true,
     })
 }
 
@@ -49,7 +50,15 @@ fn stated(concessional: &str, non_concessional: &str, earnings: &str) -> Value {
             "associated_earnings": earnings,
         },
         "determination_date": "2025-06-20", "year": "2024-25", "scope_confirmed": true,
+        "commissioner_cannot_estimate": true,
     })
+}
+
+/// The Commissioner's marginal rate estimate in place of the stated inability.
+fn with_rate(input: &mut Value, rate: &str) {
+    let fields = input.as_object_mut().unwrap();
+    fields.remove("commissioner_cannot_estimate");
+    fields.insert("estimated_marginal_rate".into(), json!(rate));
 }
 
 fn years(r: &Value) -> Vec<(String, String, String)> {
@@ -230,6 +239,7 @@ fn sue_has_17_percent_withheld() {
     assert_eq!(r["amounts"]["paid_to_you"], "12761.00");
     assert_eq!(r["amounts"]["fhss_tax_offset"], "2805.00");
     assert_eq!(r["rates"]["withholding_rate"], "0.17");
+    assert_eq!(r["withholding_basis"], "reg_53A_1_b");
     assert_eq!(r["associated_earnings_basis"], "stated");
     let catalogue = api::evaluate("worksheet-catalogue", &json!({})).unwrap();
     let mut facts = catalogue["fhss"]["example"]["facts"].clone();
@@ -242,13 +252,42 @@ fn sue_has_17_percent_withheld() {
 #[test]
 fn alex_has_9_percent_withheld() {
     let mut input = stated("6800", "20000", "1700");
-    input["estimated_marginal_rate"] = json!("0.37");
+    with_rate(&mut input, "0.37");
     let r = run(&input);
     assert_eq!(r["amounts"]["maximum_release_amount"], "28500.00");
     assert_eq!(r["amounts"]["assessable_fhss_released_amount"], "8500.00");
     assert_eq!(r["amounts"]["tax_withheld"], "765.00");
     assert_eq!(r["amounts"]["paid_to_you"], "27735.00");
     assert_eq!(r["amounts"]["fhss_tax_offset"], "2550.00");
+    assert_eq!(r["withholding_basis"], "estimate");
+}
+
+/// reg 53A(1)(b): 17% only where the Commissioner cannot estimate, so a
+/// missing marginal rate is refused, as is giving both.
+#[test]
+fn seventeen_percent_needs_a_stated_inability_to_estimate() {
+    let mut input = stated("8500", "5000", "850");
+    input
+        .as_object_mut()
+        .unwrap()
+        .remove("commissioner_cannot_estimate");
+    assert_eq!(code(&input), "input.missing_field");
+    input["commissioner_cannot_estimate"] = json!(true);
+    input["estimated_marginal_rate"] = json!("0.37");
+    assert_eq!(code(&input), "input.field_unknown");
+}
+
+/// Act No. 75 of 2023 Sch 4 item 30(4): a transitional release has no FHSS
+/// tax or recontribution, so every determination made before 15 September
+/// 2024 carries the note, and one made on that day does not.
+#[test]
+fn a_determination_before_15_september_2024_is_flagged() {
+    let note = |determined: &str| {
+        let list = monthly((2023, 7), 3, "1000", "employer_voluntary");
+        run(&estimate(list, determined, determined))["transitional_note"].clone()
+    };
+    assert!(note("2024-09-14").is_string());
+    assert_eq!(note("2024-09-15"), Value::Null);
 }
 
 /// GN 2024/1 example 13 and the ATO's 'FHSS tax assessment' (George):
@@ -259,7 +298,7 @@ fn alex_has_9_percent_withheld() {
 #[test]
 fn george_pays_20_percent_if_he_keeps_the_money() {
     let mut input = stated("18000", "6000", "2100");
-    input["estimated_marginal_rate"] = json!("0.37");
+    with_rate(&mut input, "0.37");
     let r = run(&input);
     assert_eq!(r["amounts"]["assessable_fhss_released_amount"], "20100.00");
     assert_eq!(r["amounts"]["tax_withheld"], "1809.00");
@@ -278,7 +317,7 @@ fn a_partial_release_reduces_the_assessable_amount() {
     let r = run(&input);
     assert_eq!(r["amounts"]["assessable_fhss_released_amount"], "5000.00");
     input["amount_requested"] = json!("4000");
-    input["estimated_marginal_rate"] = json!("0.16");
+    with_rate(&mut input, "0.16");
     let r = run(&input);
     assert_eq!(r["amounts"]["assessable_fhss_released_amount"], "0.00");
     assert_eq!(r["rates"]["withholding_rate"], "0");
@@ -356,10 +395,9 @@ fn refusals() {
         code(&with("amount_requested", json!("99999"))),
         "fhss.request_exceeds_maximum"
     );
-    assert_eq!(
-        code(&with("estimated_marginal_rate", json!("0.46"))),
-        "input.fraction_invalid"
-    );
+    let mut high = ok();
+    with_rate(&mut high, "0.46");
+    assert_eq!(code(&high), "input.fraction_invalid");
     assert_eq!(
         code(&with("scope_confirmed", json!(false))),
         "scope.not_confirmed"

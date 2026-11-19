@@ -1305,7 +1305,7 @@ pub fn source_review(kind: &str) -> (&'static str, &'static str) {
         ),
         "fhss" => (
             "2026-11-20",
-            "TAA 1953 Sch 1 ss 12-460, 131-5, 131-10, 138-10, 138-25, 138-30, 138-35, 138-40 and 280-105, and ITAA 1997 ss 313-20, 313-25, 313-50 and 313-60, from the ATO's legal database; Taxation Administration Regulations 2017 reg 53A, compilation 18 (14 November 2026); GN 2024/1 sections 1 to 7 and examples 6, 7 and 11 to 13; the ATO's 'About FHSS release amounts' (Mary), 'FHSS tax assessment' and 'Shortfall interest charge (SIC) rates' (last updated 4 September 2026) pages",
+            "TAA 1953 Sch 1 ss 12-460, 131-5, 131-10, 138-10, 138-25, 138-30, 138-35, 138-40 and 280-105, and ITAA 1997 ss 313-20, 313-25, 313-50 and 313-60, from the ATO's legal database; Taxation Administration Regulations 2017 reg 53A, compilation 18 (14 November 2026); Treasury Laws Amendment (2023 Measures No. 3) Act 2023 Sch 4 items 28 and 30, as made; GN 2024/1 sections 1 to 7 and examples 6, 7 and 11 to 13; the ATO's 'About FHSS release amounts' (Mary), 'FHSS tax assessment' and 'Shortfall interest charge (SIC) rates' (last updated 4 September 2026) pages",
         ),
         "fbt_entertainment_classifier" => (
             "2026-11-16",
@@ -2138,7 +2138,11 @@ pub fn optional_inputs(kind: &str) -> Vec<(&'static str, &'static str)> {
             ),
             (
                 "estimated_marginal_rate",
-                "fraction from 0 to 0.45, the marginal rate the Commissioner estimates; withholding is it plus 2% Medicare levy less 30%, not below nil, and 17% when left out (reg 53A; GN 2024/1 section 7)",
+                "fraction from 0 to 0.45, the marginal rate the Commissioner estimates; withholding is it plus 2% Medicare levy less 30%, not below nil (reg 53A(1)(a); GN 2024/1 section 7); required unless commissioner_cannot_estimate is true",
+            ),
+            (
+                "commissioner_cannot_estimate",
+                "boolean: true when the Commissioner cannot estimate the tax, so 17% is withheld (reg 53A(1)(b)); not with estimated_marginal_rate",
             ),
         ],
         "fbt_entertainment_classifier" => vec![
@@ -3472,6 +3476,7 @@ pub fn examples(kind: &str) -> Vec<(&'static str, Example)> {
                     r#"{"concessional": "8500", "non_concessional": "5000", "associated_earnings": "850"}"#,
                 ),
             ),
+            ("commissioner_cannot_estimate", Flag(true)),
         ],
         "fbt_entertainment_classifier" => vec![
             (
