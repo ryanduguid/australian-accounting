@@ -6144,8 +6144,10 @@ mod gst_margin_scheme;
 pub use gst_margin_scheme::{MarginSchemeArgs, gst_margin_scheme};
 mod fhss;
 pub use fhss::{FhssArgs, fhss};
+mod ppsr_timing;
+pub use ppsr_timing::ppsr_timing;
 
-const KINDS: [&str; 61] = [
+const KINDS: [&str; 62] = [
     "gst",
     "gst_margin_scheme",
     "fuel_tax_credits",
@@ -6206,6 +6208,7 @@ const KINDS: [&str; 61] = [
     "fbt_minor_benefit_check",
     "fhss",
     "income_tests",
+    "ppsr_timing",
     "wine_equalisation_tax",
 ];
 

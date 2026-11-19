@@ -172,6 +172,7 @@ lists the commands.
 | `fbt-meal-entertainment-register` | `register_start`, `register_end`, `entries`, `year_ended`, `scope_confirmed`; `register_years_expenditure`, required for a later year of the register's validity; see [FBT meal entertainment register](#fbt-meal-entertainment-register) |
 | `fbt-minor-benefit-check` | `category`, `notional_taxable_value`, `salary_sacrifice`, `frequency`, `similar_benefits_substantial`, `other_associated_benefits_substantial`, `valuation_difficult`, `unexpected_event`, `reward_for_services`, `year_ended`, `scope_confirmed`; `in_house` for an expense payment, property or residual benefit, `tax_exempt_body_exception` for tax-exempt body entertainment and `fifty_fifty_split` for meal entertainment or entertainment facility leasing; see [FBT minor benefits](#fbt-minor-benefits) |
 | `fhss` | `determination_date`, `year`, `scope_confirmed`, and either `contributions` with `determination_requested` (optional `personal_deductions`) or `determination`; optional `amount_requested` and `estimated_marginal_rate`; see [First Home Super Saver scheme](#first-home-super-saver-scheme) |
+| `ppsr-timing` | `question` (`registration`, `pmsi` or `company_grantor`), `year`, `scope_confirmed`, and the question's own inputs; see [PPSR timing](#ppsr-timing) |
 | `fbt-entertainment-classifier` | `lines`, `income_tax_exempt`, `year_ended`, `scope_confirmed`; `method`, required when a line is meal entertainment; with `12_week_register`, `income_tax_register_percentage` |
 | `depreciation` | `cost`, `effective_life`, `days`, `taxable_use`, `method`, `scope_confirmed`, `year`; optional `opening_adjustable_value` |
 | `quarterly-sg` | `ordinary_time_earnings`, `qualifying_contributions`, `year`, `quarter`, `scope_confirmed` |
@@ -204,7 +205,7 @@ lists the commands.
 | `fbt-return` | `employer`, `year_ended`, `scope_confirmed` and `benefits`, a list of objects each with `employee`, `command` (an FBT benefit worksheet), `input` (that worksheet's arguments), `gst_type` (`type_1` or `type_2`) and `excluded`; see [FBT return](#fbt-return) |
 | `derive` | `command`, one of `fbt`, `fbt-car-statutory`, `fbt-car-operating-cost`, `fbt-loan`, `fbt-meal-entertainment`, `fbt-car-parking`, `fbt-debt-waiver`, `fbt-expense-payment`, `fbt-property`, `division-293`, `pension-minimum`, `payg-withholding`, `schedule-5-method-a`, `schedule-5-method-b-i`, `schedule-5-method-b-ii`, `termination-payment`, `etp-tax-free-component`, `unused-leave-payment`, `working-holiday-maker-withholding`, `study-loan-withholding`, `seniors-pensioners-withholding`, `quarterly-sg`, `borrowing-expenses`, `borrowing-expenses-schedule`, `resident-tax`, `foreign-resident-tax`, `low-income-tax-offset`, `seniors-pensioners-tax-offset`, `medicare-levy`, `medicare-levy-surcharge`, `division-296`, `contribution-caps`, `study-loan-repayment`, `capital-gains`, `main-residence`, `fbt-residual`, `fbt-housing`, `fbt-lafha`, `fbt-board`, `fbt-tax-exempt-body-entertainment`, `gst`, `depreciation`, `hire-purchase-schedule`, `chattel-mortgage-schedule`, `loan-transactions`, `lump-sum-arrears-tax-offset`, `income-tests`, `business-capital-expenditure`, `balancing-adjustment`, `trade-in`, `dasp-tax`, `gst-margin-scheme` and `payroll-tax`, and `input`, that command's arguments; see [Derivations](#derivations) |
 
-The 2 car commands, the 11 FBT benefit commands (`fbt-loan`, `fbt-meal-entertainment`, `fbt-car-parking`, `fbt-debt-waiver`, `fbt-expense-payment`, `fbt-property`, `fbt-residual`, `fbt-housing`, `fbt-lafha`, `fbt-board` and `fbt-tax-exempt-body-entertainment`), `main-residence`, `borrowing-expenses`, `borrowing-expenses-schedule`, `fuel-tax-credits`, `division-296`, `termination-payment`, `etp-tax-free-component`, `unused-leave-payment`, the 3 `schedule-5` commands, `working-holiday-maker-withholding`, `seniors-pensioners-withholding`, `seniors-pensioners-tax-offset`, `medicare-levy-surcharge`, `foreign-resident-tax`, `payg-gross-up`, `hire-purchase-schedule`, `chattel-mortgage-schedule`, `loan-transactions`, `lump-sum-arrears-tax-offset`, `fbt-entertainment-classifier`, `fbt-meal-entertainment-register`, `fbt-minor-benefit-check`, `fhss`, `income-tests`, `business-capital-expenditure`, `balancing-adjustment`, `trade-in`, `gst-margin-scheme`, `wine-equalisation-tax`, `luxury-car-tax`, `payroll-tax` and `dasp-tax` have no Python original; their arguments follow the same
+The 2 car commands, the 11 FBT benefit commands (`fbt-loan`, `fbt-meal-entertainment`, `fbt-car-parking`, `fbt-debt-waiver`, `fbt-expense-payment`, `fbt-property`, `fbt-residual`, `fbt-housing`, `fbt-lafha`, `fbt-board` and `fbt-tax-exempt-body-entertainment`), `main-residence`, `borrowing-expenses`, `borrowing-expenses-schedule`, `fuel-tax-credits`, `division-296`, `termination-payment`, `etp-tax-free-component`, `unused-leave-payment`, the 3 `schedule-5` commands, `working-holiday-maker-withholding`, `seniors-pensioners-withholding`, `seniors-pensioners-tax-offset`, `medicare-levy-surcharge`, `foreign-resident-tax`, `payg-gross-up`, `hire-purchase-schedule`, `chattel-mortgage-schedule`, `loan-transactions`, `lump-sum-arrears-tax-offset`, `fbt-entertainment-classifier`, `fbt-meal-entertainment-register`, `fbt-minor-benefit-check`, `fhss`, `ppsr-timing`, `income-tests`, `business-capital-expenditure`, `balancing-adjustment`, `trade-in`, `gst-margin-scheme`, `wine-equalisation-tax`, `luxury-car-tax`, `payroll-tax` and `dasp-tax` have no Python original; their arguments follow the same
 rules. `division-296` alone takes a negative amount, in `total_super_earnings`. `main-residence` also takes dates as `YYYY-MM-DD` strings, lists of
 `{"start", "end"}` periods (with `"floor_area"` for income use) and `null`
 for no new home. `borrowing-expenses` takes `loan_start` as a `YYYY-MM-DD`
@@ -354,6 +355,7 @@ its 2026 determination (DI2026-151).
 | FBT meal entertainment register | Years ended 31 March 2026 and 2027; one 12 week register's period, entries and validity years, with the 20% rule from the yearly expenses given; not whether the period is representative or an entry false |
 | FBT minor benefits | Years ended 31 March 2026 and 2027; one benefit's established category, notional taxable value and s 58P(1)(f) criteria, weighed as TR 2007/12's examples weigh them |
 | First Home Super Saver scheme | Determinations made from 1 July 2018 to 31 December 2026; established eligibility and eligible employer voluntary and personal contributions from 1 July 2017, with no excess contributions; associated earnings an estimate |
+| PPSR timing | Registrations, possession or attachment and security agreements in 2025-26 and 2026-27, ACT legal time; s 588FL critical times from 1 July 2025 to 30 June 2027; the public holidays the count spans as listed by the caller |
 | FBT entertainment classifier | Years ended 31 March 2026 and 2027; an ordinary taxable employer's entertainment expense lines with established facts, split per head between attendee classes; no tax-exempt bodies, Subdivision 32-B exceptions, salary packaging or reportable fringe benefits amounts |
 | Depreciation | 2025-26 and 2026-27, an ordinary tangible Division 40 asset's start year, or a later year from its established opening adjustable value; established life and use |
 | SG | Complete quarters of 2025-26; established OTE, eligibility and qualifying contributions |
@@ -1084,6 +1086,57 @@ determinations, a release under the transitional rules of item 30 of
 Schedule 4 to Act No. 75 of 2023 (which has no FHSS tax or recontribution;
 `transitional_note` flags every determination made before 15 September 2024)
 and foreign residents are out of scope.
+
+## PPSR timing
+
+`ppsr-timing` answers what the Personal Property Securities Register's law
+decides without a search, for a registration, possession or attachment, or
+security agreement in 2025-26 or 2026-27. Times are `YYYY-MM-DDTHH:MM` in ACT
+legal time (PPSA s 294); an end of day is shown as `YYYY-MM-DD end of day`.
+Every answer carries the fee schedule of the Personal Property Securities
+(Fees) Determination 2018 in `rates`: registration $6.00, $25.00 or $115.00,
+a search $2.00 online or $7.00 by the contact centre, maintenance $4.00 and a
+Registrar's report $300.00 for each hour or part of an hour. The fees are not
+subject to GST.
+
+- `registration`: `registration_time`, `collateral` (`consumer` or
+  `commercial`), `serial_numbered` and an optional `end_date`. It gives the
+  latest end time of PPSA s 153 item 5 (`latest_end_time`: the end of the day
+  7 years on for consumer property or property described by serial number, 25
+  years on otherwise), the end time that applies (`end_time`, with
+  `end_time_basis` `requested`, `default_time` or `no_end_time`: under
+  s 153(2) and (3) an end time later than the default time, earlier than the
+  registration time, or missing where item 5(b) requires one is taken to be
+  the default time) and `registration_fee` (Determination s 4 items 1 to 3).
+- `pmsi`: `inventory`, `goods`, `trigger_time` (possession for goods,
+  attachment otherwise) and, for collateral that is not inventory,
+  `excluded_days`. `register_by` is the trigger time itself for inventory
+  (s 62(2)(b)) and otherwise the end of the 15th business day after the
+  trigger's day (s 62(3)(b)). With `registration_time` and `pmsi_stated`
+  (the s 153 item 7 statement) it gives `registered_in_time` and
+  `super_priority`.
+- `company_grantor`: `agreement_in_force_time`, `place_holidays` and
+  `foreign_law_agreement` (true is refused). `register_by` is the end of the
+  20th business day after the agreement came into force (Corporations Act
+  s 588FL(2)(b)(ii)). With `critical_time` (1 July 2025 to 30 June 2027) and an
+  optional `court_ordered_time` (s 588FM) it gives `latest_time`, the latest
+  of the s 588FL(2)(b) times, and with `registration_time`, `vests`: true when
+  the registration time is after it, false when not, and null with
+  `registered_after_critical_time` for a registration after the critical time,
+  as s 588FL(2)(a) then turns on when the interest arose, which is not given.
+
+PPSA s 10 business days exclude weekends, a public holiday for the whole of
+any State, the ACT or the NT, the days between Christmas Day and New Year's
+Day and days the Registrar suspended the register; the PPS Regulations 2010
+prescribe no other day. Corporations Act s 9 business days exclude weekends
+and public or bank holidays in the place concerned. The caller lists the
+holidays (`excluded_days`, `place_holidays`): a count that spans 25 December
+or 1 January on a weekday without it listed is refused. Whether an
+arrangement is a security interest or a purchase money security interest,
+searches, priority between other interests, perfection by possession or
+control, amendments, ending a registration, transitional registrations,
+s 588FN's exceptions and court extensions under PPSA s 293 are out of scope.
+See [calculation evidence](docs/calculation-evidence.md#ppsr-timing).
 
 ## Wine equalisation tax
 
