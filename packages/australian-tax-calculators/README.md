@@ -51,13 +51,44 @@ The toolchain is pinned in `rust-toolchain.toml`. The executable is
 runtime is needed. PyPI still provides the historical Python release; `pip
 install` does not install this binary.
 
+## Install
+
 Each `australian-tax-calculators/v*` release on GitHub Releases carries the
 executable for x86_64 Linux (static, musl) and x86_64 Windows, built and
 attested by Release Policy's
 [`release-binary.yml`](https://github.com/ryanduguid/release-policy/blob/main/docs/binary-consumers.md).
-Download an explicit version and verify `SHA256SUMS` and the archive with `gh
-attestation verify` before running it, as that page's 'Downloading a release'
-shows. `australian-tax-calculators --version` prints the version.
+Release Policy's installer, at its v0.5.0 commit, downloads one, verifies it and
+installs it in one command. On x86_64 Linux:
+
+```sh
+curl --proto '=https' --tlsv1.2 -fsSL https://raw.githubusercontent.com/ryanduguid/release-policy/d7039efe6d8c441f1f213c674902909e80535599/scripts/install.sh | sh -s -- ryanduguid/australian-accounting australian-tax-calculators/v1.0.0 --modify-path
+```
+
+In PowerShell on x86_64 Windows:
+
+```powershell
+& ([scriptblock]::Create((irm https://raw.githubusercontent.com/ryanduguid/release-policy/d7039efe6d8c441f1f213c674902909e80535599/scripts/install.ps1))) ryanduguid/australian-accounting australian-tax-calculators/v1.0.0 -ModifyPath
+```
+
+It needs the [GitHub CLI](https://cli.github.com/) (`gh`), with no sign-in. It
+installs nothing unless `gh attestation verify` confirms that `SHA256SUMS` and
+the archive were signed by `release-binary.yml` for this repository's tag on a
+GitHub-hosted runner, and the archive matches its line in `SHA256SUMS`: a
+changed archive or digest is refused. The executable goes into
+`${XDG_DATA_HOME:-~/.local/share}/australian-tax-calculators` or
+`%LOCALAPPDATA%\Programs\australian-tax-calculators`. `--modify-path` adds a
+line putting that folder on `PATH` to the startup file of the shell `$SHELL`
+names (for bash on Linux, `~/.bashrc`, which a bash login shell reads only if
+`~/.profile` or `~/.bash_profile` sources it), and `-ModifyPath` adds it to your
+user `Path`, both for shells started afterwards; leave it off and the installer
+prints the folder instead. The command runs the script as
+GitHub serves it at that commit, so read it there first. The installer does
+not pin the commit the tag names: to check that too, verify by hand with both
+digests pinned, as the release-binary page's 'Downloading a release' shows.
+Other platforms build from source, as under Build and check. `australian-tax-calculators
+--version` prints the version. `.github/workflows/calculators-install.yml`
+runs both commands each week, and with the archive or `SHA256SUMS` altered in
+transit, which they must refuse.
 
 ## Use
 

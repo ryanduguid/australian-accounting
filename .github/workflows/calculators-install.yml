@@ -1,0 +1,61 @@
+name: calculators-install
+
+# Follows the one-command install of the australian-tax-calculators release in
+# packages/australian-tax-calculators/README.md (and the MCP README, which must
+# give the same commands) as a reader would, on Linux and Windows, against the
+# published release: the command installs an executable that answers
+# --version, and with the archive or SHA256SUMS altered in transit it refuses
+# and installs nothing. The weekly run catches a moved release or installer
+# that no README change would show. Nothing is published.
+
+on:
+  workflow_dispatch:
+  schedule:
+    # Mondays 08:45 AEST.
+    - cron: "45 22 * * 0"
+  push:
+    branches: [main]
+    paths:
+      - "packages/australian-tax-calculators/README.md"
+      - "apps/aus-accounting-mcp/README.md"
+      - ".github/ci/check_calculators_install.*"
+      - ".github/workflows/calculators-install.yml"
+  pull_request:
+    paths:
+      - "packages/australian-tax-calculators/README.md"
+      - "apps/aus-accounting-mcp/README.md"
+      - ".github/ci/check_calculators_install.*"
+      - ".github/workflows/calculators-install.yml"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: calculators-install-${{ github.event_name == 'pull_request' && github.ref || github.sha }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+jobs:
+  linux:
+    permissions:
+      contents: read
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Install from the README, then refuse altered downloads
+        run: bash .github/ci/check_calculators_install.sh
+
+  windows:
+    permissions:
+      contents: read
+    runs-on: windows-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Install from the README, then refuse altered downloads
+        shell: pwsh
+        run: ./.github/ci/check_calculators_install.ps1
