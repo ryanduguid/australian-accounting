@@ -1077,6 +1077,7 @@ pub fn supported_periods(kind: &str) -> Vec<&'static str> {
         }
         // No published rate: s 58P(1)(e)'s $300 is the Act's own. The years
         // are those the other FBT benefit worksheets cover.
+        "fbt_minor_benefit_check" => vec!["2026", "2027"],
         "fbt_entertainment_classifier" => vec!["2026", "2027"],
         "fbt_housing" => keys(FBT_HOUSING_INDEXATION),
         // The years whose definitions were read: the 1 July 2024 compilations
@@ -1283,6 +1284,10 @@ pub fn source_review(kind: &str) -> (&'static str, &'static str) {
             "2026-11-15",
             "FBTAA ss 38 and 39 and s 136(1), non-deductible exempt entertainment expenditure, compilation 97 (1 July 2026); Fringe benefits tax - a guide for employers, chapter 15, 15.9 and its per head example; FBT return 2026 instructions, item 23L and example 15",
         ),
+        "fbt_minor_benefit_check" => (
+            "2026-11-19",
+            "FBTAA ss 58P, 136(1) ('fringe benefit' para (g) and 'eligible premises') and 152B, from the ATO's legal database (s 58P(1)(b) repealed by Act No. 88 of 2013); TR 2007/12 (paras 8 to 23 and examples 1 to 13)",
+        ),
         "fbt_entertainment_classifier" => (
             "2026-11-16",
             "ITAA 1997 Division 32, s 27-5 and s 995-1, compilation 268 (1 October 2026); FBTAA ss 5E, 20, 37A to 37CF, 40, 41, 45, 58P and 135P(1) and s 136(1), compilation 97 (1 July 2026); Fringe Benefits Tax Assessment Regulations 2018, regulations 6 to 11, as made; ITAA 1936 ss 51AEA and 51AEB, compilation 193 (1 October 2026); GST Act s 69-5, compilation 96 (1 January 2026); TR 97/17, paras 7 to 143 and the Part A table, and TR 2007/12, paras 8 to 22 and examples 1 to 3, as the Commissioner's view",
@@ -1345,6 +1350,12 @@ pub fn library_evidence(kind: &str) -> [(&'static str, &'static str); 4] {
             "examples 14, 16 to 18, 21 to 25, 40A and 41",
             "2011-11-30",
             "2026-11-16",
+        ),
+        "fbt_minor_benefit_check" => (
+            "tax-examples-fringe-benefits-tax-fbt",
+            "3-060",
+            "2026-06-30",
+            "2026-11-19",
         ),
         "balancing_adjustment" => (
             "Guide to depreciating assets 2026; ITAA 1997 s 118-10(1)",
@@ -2053,6 +2064,20 @@ pub fn optional_inputs(kind: &str) -> Vec<(&'static str, &'static str)> {
             (
                 "total_heads",
                 "integer from 1, per_head only and required there: everyone entertained at the function, employees, their associates and others",
+            ),
+        ],
+        "fbt_minor_benefit_check" => vec![
+            (
+                "in_house",
+                "boolean, for an expense_payment, property or residual benefit and then required: true when, were it a fringe benefit of that kind, it would be an in-house fringe benefit (FBTAA s 58P(1)(c))",
+            ),
+            (
+                "tax_exempt_body_exception",
+                "for tax_exempt_body_entertainment and then required: incidental_to_outsiders_no_meal (incidental to entertaining outsiders, and neither a meal nor provided in connection with a meal, other than light refreshments: s 58P(1)(d)(i)), special_achievement_on_premises (on eligible premises of the employer, s 136(1): its premises, a related company's for a company, or a location at or next to a site where the employee works, solely to recognise the employee's special achievements in the employment: (d)(ii)) or none",
+            ),
+            (
+                "fifty_fifty_split",
+                "boolean, for meal_entertainment or entertainment_facility_leasing and then required: true when the employer elected the 50/50 split method, of Division 9A for meal entertainment or s 152B for entertainment facility leasing (TR 2007/12 para 14); false is refused, as the benefit is then screened under its own category",
             ),
         ],
         "fbt_entertainment_classifier" => vec![
@@ -2845,6 +2870,44 @@ pub fn input_units(kind: &str) -> Vec<(&'static str, &'static str)> {
                 "AUD, non-deductible exempt entertainment expenditure (FBTAA s 136(1)): under actual, the part incurred in entertaining employees and their associates; under per_head, the whole function's",
             ),
         ],
+        "fbt_minor_benefit_check" => vec![
+            (
+                "category",
+                "expense_payment, property, residual, tax_exempt_body_entertainment (where the provider incurs non-deductible exempt entertainment expenditure for it), meal_entertainment, entertainment_facility_leasing or other (such as a car, loan or board benefit)",
+            ),
+            (
+                "notional_taxable_value",
+                "AUD, the benefit's notional taxable value in the current FBT year, for one benefit to one employee or associate (FBTAA s 58P(1)(e); TR 2007/12 paras 17 and 18)",
+            ),
+            (
+                "salary_sacrifice",
+                "boolean, true when the benefit is provided under a salary sacrifice arrangement (TR 2007/12 para 16)",
+            ),
+            (
+                "frequency",
+                "infrequent_and_irregular, infrequent_and_regular (such as each Christmas) or frequent: how often identical or similar benefits, or benefits provided with it, have been or can reasonably be expected to be provided (s 58P(1)(f)(i))",
+            ),
+            (
+                "similar_benefits_substantial",
+                "boolean, true when the sum of the notional taxable values of the benefit and identical or similar associated benefits, in this and other years, is substantial (s 58P(1)(f)(ii))",
+            ),
+            (
+                "other_associated_benefits_substantial",
+                "boolean, true when the sum of the notional taxable values of other associated benefits, such as those provided with it, in this and other years, is substantial (s 58P(1)(f)(iii))",
+            ),
+            (
+                "valuation_difficult",
+                "boolean, true when working out the notional taxable values of the benefit and its associated benefits (other than car benefits) is practically difficult (s 58P(1)(f)(iv))",
+            ),
+            (
+                "unexpected_event",
+                "boolean, true when the benefit was provided to help the employee deal with an unexpected event (s 58P(1)(f)(v)(A))",
+            ),
+            (
+                "reward_for_services",
+                "boolean, true when the benefit was provided wholly or principally as a reward for services rendered or to be rendered (s 58P(1)(f)(v)(B))",
+            ),
+        ],
         "fbt_entertainment_classifier" => vec![
             (
                 "lines",
@@ -3302,6 +3365,20 @@ pub fn examples(kind: &str) -> Vec<(&'static str, Example)> {
         ],
         // TR 97/17 example 1.1 (paras 49 to 52): an end of financial year
         // function on the employer's premises, valued per head.
+        // The Library's birthday flowers (Tax Examples, FBT, 3-060): an $80
+        // bouquet on the employee's birthday, a property benefit.
+        "fbt_minor_benefit_check" => vec![
+            ("category", Text("property")),
+            ("in_house", Flag(false)),
+            ("notional_taxable_value", Text("80.00")),
+            ("salary_sacrifice", Flag(false)),
+            ("frequency", Text("infrequent_and_irregular")),
+            ("similar_benefits_substantial", Flag(false)),
+            ("other_associated_benefits_substantial", Flag(false)),
+            ("valuation_difficult", Flag(false)),
+            ("unexpected_event", Flag(false)),
+            ("reward_for_services", Flag(false)),
+        ],
         "fbt_entertainment_classifier" => vec![
             (
                 "lines",

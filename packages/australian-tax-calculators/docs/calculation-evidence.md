@@ -689,6 +689,51 @@ Neither the Act nor the guide gives a worked example of a register failing a
 check; the tests work each failure from the section's words. 12 weeks is
 taken as 84 days with both the first and last day counted.
 
+## FBT minor benefit check
+
+Added on 19 November 2026. Its sources were read that afternoon, 3.00 pm to
+3.10 pm AEDT, from the ATO's legal database: FBTAA s 58P (s 58P(1)(b), the
+airline transport exclusion, shown as repealed by Act No. 88 of 2013) and the
+s 136(1) definition of 'fringe benefit', whose para (g) leaves out an exempt
+benefit; and TR 2007/12 (paras 8 to 23 and examples 1 to 13). The Library's Tax
+Examples, FBT, 3-060 and 3-080 (reviewed 30 June 2026) give the flowers, gym
+and golf day examples.
+
+s 58P(1)(f) asks whether, having regard to all its criteria, it would be
+concluded that treating the benefit as a fringe benefit would be
+unreasonable: a weighing, not a test. The command takes each criterion as the
+operator's statement and decides only where TR 2007/12's examples decide: each
+exempt example has similar benefits that are not frequent and totals that are
+not substantial. Example 9's voucher is a reward for services but ad hoc, and
+examples 1 to 3 recur each Christmas but are not rewards; no example has a
+regular reward, so that is left to judgement. Example 8, the one not
+exempt on the criteria, has frequent similar benefits with a substantial
+total, given as a reward for services, readily valued and not for an
+unexpected event; the screen gives `not_exempt` only on all of those. The
+Library's 3-060 gym fees and 3-080 golf days are not exempt in the Library; the
+screen agrees when they are stated as rewards for services, and otherwise
+leaves them to judgement. Paras 14 and 16, on the 50/50 split and salary
+sacrifice, are the Commissioner's view and are cited as such.
+
+`tests/fbt_minor_benefit.rs` holds each case.
+
+| Example | Facts given | Result |
+| --- | --- | --- |
+| Library 3-060 (b), flowers | Property, **$80**, on a birthday | Exempt |
+| Library 3-060 (a), gym | Expense payment, **$50** a month | Not exempt as a reward for services; otherwise judgement |
+| Library 3-080, golf days | Expense payment, about **$83** a month | Not exempt as a reward for services; otherwise judgement |
+| TR 2007/12 examples 1 to 3 | Christmas gift or party, each year, under $300 | Exempt |
+| TR 2007/12 examples 5, 6, 7, 10, 11 | Flowers, a car after a storm, tolls, a gym membership, babysitting | Exempt |
+| TR 2007/12 example 8 | Monthly incentive vouchers, a reward | Not exempt |
+| TR 2007/12 example 9 | An ad hoc recognition voucher, a reward | Exempt |
+| TR 2007/12 example 12 | A tax-exempt body's movie tickets | Not exempt: `tax_exempt_body_exception` |
+| TR 2007/12 example 13 | A benefit under salary sacrifice | Not exempt: `not_salary_sacrifice` |
+
+The examples give no amounts beyond 'less than $300'; the values in the tests
+are fabricated under it. The tests also cover $300 itself and $299.99, each
+exclusion alone and together, both s 58P(1)(d) exceptions, mixed criteria left
+to judgement, and each refusal.
+
 ## Main residence
 
 This worksheet was added on 1 November 2026; its example evidence was read

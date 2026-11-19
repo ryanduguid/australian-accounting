@@ -94,6 +94,17 @@
   `hire_purchase.segments_invalid` and
   `hire_purchase.segments_not_contiguous`. `tests/hire_purchase_worksheet.rs`
   works the cases by hand and from the ATO's Albert and Darren examples.
+- `fbt-minor-benefit-check` screens one benefit in the FBT year ended
+  31 March 2026 or 2027 against the minor benefits exemption (FBTAA s 58P).
+  It decides the exclusions (an in-house expense payment, property or
+  residual benefit, s 58P(1)(c); tax-exempt body entertainment outside
+  s 58P(1)(d); the 50/50 split and salary sacrifice, TR 2007/12 paras 14 and
+  16) and the less than $300 test (s 58P(1)(e)), and weighs the s 58P(1)(f)
+  criteria, given as facts, as TR 2007/12's examples weigh them: `exempt`,
+  `not_exempt` or `judgement_required`. New codes:
+  `fbt_minor_benefit.category_unsettled` and `fbt_minor_benefit.fact_invalid`.
+  `tests/fbt_minor_benefit.rs` runs TR 2007/12 examples 1 to 3 and 5 to 13 and
+  the Library's flowers, gym and golf day examples.
 - `gst-margin-scheme` decides whether the GST margin scheme can apply to a
   taxable supply of real property in 2025-26 to 2027-28, condition by
   condition (GST Act s 75-5: a freehold interest, stratum unit or long-term

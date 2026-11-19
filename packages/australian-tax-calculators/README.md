@@ -164,6 +164,7 @@ lists the commands.
 | `fbt-board` | `adult_meals`, `child_meals`, `employee_contribution`, `income_use`, `contribution_deduction`, `year_ended`, `scope_confirmed` |
 | `fbt-tax-exempt-body-entertainment` | `method`, `entertainment_expenditure`, `year_ended`, `scope_confirmed`; with `per_head`, `employee_heads` and `total_heads` |
 | `fbt-meal-entertainment-register` | `register_start`, `register_end`, `entries`, `year_ended`, `scope_confirmed`; `register_years_expenditure`, required for a later year of the register's validity; see [FBT meal entertainment register](#fbt-meal-entertainment-register) |
+| `fbt-minor-benefit-check` | `category`, `notional_taxable_value`, `salary_sacrifice`, `frequency`, `similar_benefits_substantial`, `other_associated_benefits_substantial`, `valuation_difficult`, `unexpected_event`, `reward_for_services`, `year_ended`, `scope_confirmed`; `in_house` for an expense payment, property or residual benefit, `tax_exempt_body_exception` for tax-exempt body entertainment and `fifty_fifty_split` for meal entertainment or entertainment facility leasing; see [FBT minor benefits](#fbt-minor-benefits) |
 | `fbt-entertainment-classifier` | `lines`, `income_tax_exempt`, `year_ended`, `scope_confirmed`; `method`, required when a line is meal entertainment; with `12_week_register`, `income_tax_register_percentage` |
 | `depreciation` | `cost`, `effective_life`, `days`, `taxable_use`, `method`, `scope_confirmed`, `year`; optional `opening_adjustable_value` |
 | `quarterly-sg` | `ordinary_time_earnings`, `qualifying_contributions`, `year`, `quarter`, `scope_confirmed` |
@@ -196,7 +197,7 @@ lists the commands.
 | `fbt-return` | `employer`, `year_ended`, `scope_confirmed` and `benefits`, a list of objects each with `employee`, `command` (an FBT benefit worksheet), `input` (that worksheet's arguments), `gst_type` (`type_1` or `type_2`) and `excluded`; see [FBT return](#fbt-return) |
 | `derive` | `command`, one of `fbt`, `fbt-car-statutory`, `fbt-car-operating-cost`, `fbt-loan`, `fbt-meal-entertainment`, `fbt-car-parking`, `fbt-debt-waiver`, `fbt-expense-payment`, `fbt-property`, `division-293`, `pension-minimum`, `payg-withholding`, `schedule-5-method-a`, `schedule-5-method-b-i`, `schedule-5-method-b-ii`, `termination-payment`, `etp-tax-free-component`, `unused-leave-payment`, `working-holiday-maker-withholding`, `study-loan-withholding`, `seniors-pensioners-withholding`, `quarterly-sg`, `borrowing-expenses`, `resident-tax`, `foreign-resident-tax`, `low-income-tax-offset`, `seniors-pensioners-tax-offset`, `medicare-levy`, `medicare-levy-surcharge`, `division-296`, `contribution-caps`, `study-loan-repayment`, `capital-gains`, `main-residence`, `fbt-residual`, `fbt-housing`, `fbt-lafha`, `fbt-board`, `fbt-tax-exempt-body-entertainment`, `gst`, `depreciation`, `hire-purchase-schedule`, `chattel-mortgage-schedule`, `loan-transactions`, `lump-sum-arrears-tax-offset`, `income-tests`, `business-capital-expenditure`, `balancing-adjustment`, `trade-in` and `gst-margin-scheme`, and `input`, that command's arguments; see [Derivations](#derivations) |
 
-The 2 car commands, the 11 FBT benefit commands (`fbt-loan`, `fbt-meal-entertainment`, `fbt-car-parking`, `fbt-debt-waiver`, `fbt-expense-payment`, `fbt-property`, `fbt-residual`, `fbt-housing`, `fbt-lafha`, `fbt-board` and `fbt-tax-exempt-body-entertainment`), `main-residence`, `borrowing-expenses`, `division-296`, `termination-payment`, `etp-tax-free-component`, `unused-leave-payment`, the 3 `schedule-5` commands, `working-holiday-maker-withholding`, `seniors-pensioners-withholding`, `seniors-pensioners-tax-offset`, `medicare-levy-surcharge`, `foreign-resident-tax`, `payg-gross-up`, `hire-purchase-schedule`, `chattel-mortgage-schedule`, `loan-transactions`, `lump-sum-arrears-tax-offset`, `fbt-entertainment-classifier`, `fbt-meal-entertainment-register`, `income-tests`, `business-capital-expenditure`, `balancing-adjustment`, `trade-in` and `gst-margin-scheme` have no Python original; their arguments follow the same
+The 2 car commands, the 11 FBT benefit commands (`fbt-loan`, `fbt-meal-entertainment`, `fbt-car-parking`, `fbt-debt-waiver`, `fbt-expense-payment`, `fbt-property`, `fbt-residual`, `fbt-housing`, `fbt-lafha`, `fbt-board` and `fbt-tax-exempt-body-entertainment`), `main-residence`, `borrowing-expenses`, `division-296`, `termination-payment`, `etp-tax-free-component`, `unused-leave-payment`, the 3 `schedule-5` commands, `working-holiday-maker-withholding`, `seniors-pensioners-withholding`, `seniors-pensioners-tax-offset`, `medicare-levy-surcharge`, `foreign-resident-tax`, `payg-gross-up`, `hire-purchase-schedule`, `chattel-mortgage-schedule`, `loan-transactions`, `lump-sum-arrears-tax-offset`, `fbt-entertainment-classifier`, `fbt-meal-entertainment-register`, `fbt-minor-benefit-check`, `income-tests`, `business-capital-expenditure`, `balancing-adjustment`, `trade-in` and `gst-margin-scheme` have no Python original; their arguments follow the same
 rules. `division-296` alone takes a negative amount, in `total_super_earnings`. `main-residence` also takes dates as `YYYY-MM-DD` strings, lists of
 `{"start", "end"}` periods (with `"floor_area"` for income use) and `null`
 for no new home. `borrowing-expenses` takes `loan_start` as a `YYYY-MM-DD`
@@ -334,6 +335,7 @@ trade-in steps add GST Act ss 9-70, 9-75, 11-30, 69-10 and 132-5 and ITAA
 | FBT board | Years ended 31 March 2026 and 2027; the established meals at $2.00 and $1.00, contributions and deductible share |
 | FBT tax-exempt body entertainment | Years ended 31 March 2026 and 2027; established non-deductible entertainment expenditure, actual or per head |
 | FBT meal entertainment register | Years ended 31 March 2026 and 2027; one 12 week register's period, entries and validity years, with the 20% rule from the yearly expenses given; not whether the period is representative or an entry false |
+| FBT minor benefits | Years ended 31 March 2026 and 2027; one benefit's established category, notional taxable value and s 58P(1)(f) criteria, weighed as TR 2007/12's examples weigh them |
 | FBT entertainment classifier | Years ended 31 March 2026 and 2027; an ordinary taxable employer's entertainment expense lines with established facts, split per head between attendee classes; no tax-exempt bodies, Subdivision 32-B exceptions, salary packaging or reportable fringe benefits amounts |
 | Depreciation | 2025-26 and 2026-27, an ordinary tangible Division 40 asset's start year, or a later year from its established opening adjustable value; established life and use |
 | SG | Complete quarters of 2025-26; established OTE, eligibility and qualifying contributions |
@@ -961,6 +963,56 @@ was made late (s 37CE(2)), and whether a later register replaces this one, are
 the employer's to establish. The car
 parking register is outside it. See
 [calculation evidence](docs/calculation-evidence.md#fbt-meal-entertainment-register).
+
+## FBT minor benefits
+
+`fbt-minor-benefit-check` screens one benefit, in the FBT year ended 31 March
+2026 or 2027, against the minor benefits exemption of FBTAA s 58P. It decides
+the conditions and lists each with its authority, naming every one that fails
+in `failing_conditions`:
+
+- `not_in_house`: an `expense_payment`, `property` or `residual` benefit that,
+  as a fringe benefit of that kind, would not be in-house (`in_house` false:
+  s 58P(1)(c));
+- `tax_exempt_body_exception`: for `tax_exempt_body_entertainment`, the
+  entertainment is incidental to entertaining outsiders and neither a meal nor
+  provided in connection with one, other than light refreshments
+  (`incidental_to_outsiders_no_meal`), or on eligible premises of the employer
+  (s 136(1)) solely to recognise the employee's special achievements
+  (`special_achievement_on_premises`), not `none` (s 58P(1)(d));
+- `not_fifty_fifty_split`: `meal_entertainment` or
+  `entertainment_facility_leasing` is not valued by the 50/50 split method
+  (Division 9A or s 152B: TR 2007/12 para 14). It is never met:
+  `fifty_fifty_split` false is refused, and the benefit is then screened under
+  its own category;
+- `not_salary_sacrifice`: not under a salary sacrifice arrangement
+  (TR 2007/12 para 16);
+- `less_than_300`: `notional_taxable_value`, for this one benefit to this one
+  person in the current year, is less than $300 (s 58P(1)(e)); $300 itself
+  fails.
+
+The criteria of s 58P(1)(f) are stated facts: `frequency`
+(`infrequent_and_irregular`, `infrequent_and_regular` such as each Christmas,
+or `frequent`), whether the total of similar benefits and of other associated
+benefits is substantial, whether the value is hard to work out, whether it
+helped with an unexpected event and whether it is a reward for services.
+`criteria` shows which way each weighs, and `screen` weighs them as TR 2007/12,
+the Commissioner's public ruling, weighs its examples: `exempt` where similar
+benefits are not frequent, neither total is substantial and the benefit is
+not both regular and a reward for services (examples 1 to 3, 5 to 7 and 9 to
+11: a yearly gift or party, flowers, a car lent after a storm,
+ad hoc tolls, a recognition voucher, a one-off gym membership, babysitting
+during unexpected overtime), `not_exempt` where they are frequent with a
+substantial total, a reward for services, readily valued and not for an
+unexpected event (example 8, monthly incentive vouchers) or a condition fails,
+and `judgement_required` otherwise, with `exempt` null. `consequences` says
+what each outcome means: an exempt benefit is not a fringe benefit
+(s 136(1), para (g)), so it adds nothing to the FBT return or the reportable
+amount. Whether benefits are associated (s 58P(2)), the notional taxable
+value, benefits exempt under another provision and the income tax and GST
+treatment of exempt entertainment are out of scope. TR 2007/12 para 11 still
+lists airline transport benefits; Act No. 88 of 2013 repealed that exclusion.
+See [calculation evidence](docs/calculation-evidence.md#fbt-minor-benefit-check).
 
 ## Main residence
 
