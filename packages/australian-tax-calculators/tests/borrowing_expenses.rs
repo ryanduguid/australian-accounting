@@ -219,13 +219,55 @@ fn a_total_of_100_dollars_or_less_is_not_spread() {
     );
 }
 
+/// A loan first drawn on 29 February 2024: its 5 years end on 28 February
+/// 2029 (Acts Interpretation Act 1901 s 2G(2): no 29 February in the month
+/// 60 months on, so the end of that month), 1,827 days with both leap days.
+/// 2023-24 has 123 of them: $2,000 × 123 ÷ 1,827 = $134.6470, so $134.65;
+/// 2028-29 has the last 243 and takes the $266.01 left.
+#[test]
+fn a_loan_drawn_on_29_february_runs_to_28_february_5_years_on() {
+    let leap = |year: &str| {
+        run(
+            json!({"borrowing_expenses": "2000.00", "loan_start": "2024-02-29",
+                   "year": year}),
+        )
+        .unwrap()
+    };
+    let first = leap("2023-24");
+    assert_eq!(amounts(&first), ["2000.00", "134.65", "134.65", "1865.35"]);
+    assert_eq!(days(&first), ("123", "1827"));
+    assert_eq!(first["rates"]["period_of_the_loan_to"], "2029-02-28");
+    let fifth = leap("2027-28");
+    assert_eq!(amounts(&fifth), ["666.67", "400.66", "400.66", "266.01"]);
+    assert_eq!(days(&fifth), ("366", "609"));
+}
+
+/// From 2027-28 s 26-155 can quarantine residential rental deductions after
+/// s 25-25 has worked them out (s 26-155(1)), so the year is worked out and
+/// flagged, not refused: Ben's 2027-28, $1,954.01 × 366 ÷ 793 = $901.8507,
+/// so $901.85 (the Library's $902).
+#[test]
+fn from_2027_28_the_amount_is_worked_out_and_flagged_for_s_26_155() {
+    let ben = run(
+        json!({"borrowing_expenses": "3600.00", "loan_start": "2025-09-01",
+                         "loan_term_end": "2029-08-31", "year": "2027-28"}),
+    )
+    .unwrap();
+    assert_eq!(amounts(&ben), ["1954.01", "901.85", "901.85", "1052.16"]);
+    assert_eq!(days(&ben), ("366", "793"));
+    let warnings = ben["warnings"].to_string();
+    assert!(warnings.contains("s 26-155(1) quarantines"), "{warnings}");
+    let earlier = run(
+        json!({"borrowing_expenses": "3600.00", "loan_start": "2025-09-01",
+                             "loan_term_end": "2029-08-31", "year": "2026-27"}),
+    )
+    .unwrap();
+    assert!(!earlier["warnings"].to_string().contains("26-155"));
+}
+
 #[test]
 fn out_of_scope_facts_are_refused() {
     assert!(refusal(json!({"section_26_50_applies": true})).starts_with("Section 26-50 denies"));
-    assert_eq!(
-        refusal(json!({"loan_start": "2024-02-29", "year": "2024-25"})),
-        "A loan first drawn on 29 February is out of scope: no source settles when its 5 years end."
-    );
     assert_eq!(
         refusal(json!({"loan_term_end": "2024-07-02"})),
         "loan_term_end must be null or a YYYY-MM-DD date no earlier than loan_start."
@@ -243,8 +285,8 @@ fn out_of_scope_facts_are_refused() {
         "The period of the loan ended on 2024-06-30, before the 2024-25 income year began: nothing remains to deduct."
     );
     assert_eq!(
-        refusal(json!({"year": "2027-28"})),
-        "Unsupported period '2027-28'; supported: 2024-25, 2025-26, 2026-27. From 2027-28 ITAA 1997 s 26-155 limits deductions for residential rental property, and this worksheet does not apply it."
+        refusal(json!({"loan_start": "2017-06-30", "year": "2016-17"})),
+        "Unsupported period '2016-17'; supported: 2017-18, 2018-19, 2019-20, 2020-21, 2021-22, 2022-23, 2023-24, 2024-25, 2025-26, 2026-27, 2027-28."
     );
     assert_eq!(
         refusal(json!({"income_use": "1.01"})),
@@ -269,7 +311,7 @@ fn the_catalogue_lists_the_worksheet_with_a_runnable_example() {
     let r = api::evaluate("borrowing-expenses", &facts).unwrap();
     // Peter's first year from 3 July 2024: $1,600 × 363 ÷ 1,826 = $318.07.
     assert_eq!(r["amounts"]["deduction"], "318.07");
-    assert_eq!(entry["supported_periods"][0]["id"], "2024-25");
+    assert_eq!(entry["supported_periods"][0]["id"], "2017-18");
     assert_eq!(
         entry["example_evidence"]["note"],
         "docs/calculation-evidence.md#borrowing-expenses"

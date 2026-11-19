@@ -64,7 +64,11 @@ pub const SCOPES: &[(&str, &str)] = &[
     ),
     (
         "borrowing_expenses",
-        "One loan's borrowing expenses under ITAA 1997 s 25-25 for one income year from 2024-25 to 2026-27, before s 26-155 quarantines residential rental deductions from 2027-28. The operator establishes the expenditure the taxpayer incurred for borrowing the money, all in the income year the loan began; the extent the borrowed money is used to produce assessable income, the same throughout the loan; the first day the money was borrowed; the last day of the period the original loan contract specifies; any repayment day; and the income-producing share of the taxpayer's other borrowing expenses incurred in that year. Under s 25-25(6), when the money is used to produce income and this loan's income-producing share plus those other amounts is $100 or less, that share is deducted in the year incurred and later years are refused. Otherwise the period of the loan is the shortest of the contract's period, the period to the repayment day and 5 years from the first day borrowed (s 25-25(5)). Each income year's maximum deduction is the remaining expenditure over the days left in that period, times those days in the year, as determined at the end of the year, so the year of repayment takes all that remains (s 25-25(4)); each maximum is rounded to cents and carried forward at that amount, as the ATO's examples are, and the deduction is the maximum times the income-producing share (s 25-25(2) and (3)). Every day is counted, both ends included, as the ATO and the Library count: 5 years from 3 July end on 2 July. Excludes deciding which costs are borrowing expenses and the money's use; interest; refinancing, redraws and changes in use; expenditure incurred before the income year the loan began; a loan first drawn on 29 February; leisure facilities such as holiday homes unless s 26-50(3) applies at all times in the year; commercial debt forgiveness (Subdivision 245-E); private company loans (Division 7A); and s 26-155.",
+        "One loan's borrowing expenses under ITAA 1997 s 25-25 for one income year from 2017-18 to 2027-28. The operator establishes the expenditure the taxpayer incurred for borrowing the money, all in the income year the loan began; the extent the borrowed money is used to produce assessable income, the same throughout the loan; the first day the money was borrowed; the last day of the period the original loan contract specifies; any repayment day; and the income-producing share of the taxpayer's other borrowing expenses incurred in that year. Under s 25-25(6), when the money is used to produce income and this loan's income-producing share plus those other amounts is $100 or less, that share is deducted in the year incurred and later years are refused. Otherwise the period of the loan is the shortest of the contract's period, the period to the repayment day and 5 years from the first day borrowed (s 25-25(5)). Each income year's maximum deduction is the remaining expenditure over the days left in that period, times those days in the year, as determined at the end of the year, so the year of repayment takes all that remains (s 25-25(4)); each maximum is rounded to cents and carried forward at that amount, as the ATO's examples are, and the deduction is the maximum times the income-producing share (s 25-25(2) and (3)). Every day is counted, both ends included, as the ATO and the Library count: 5 years from 3 July end on 2 July, and from 29 February on 28 February (Acts Interpretation Act 1901 ss 2G(2) and 36(1)). From 2027-28 the result is flagged, not changed: s 26-155 may quarantine it. Excludes deciding which costs are borrowing expenses and the money's use; interest; refinancing, redraws and changes in use (borrowing_expenses_schedule takes refinancing and use by year); expenditure incurred before the income year the loan began; leisure facilities such as holiday homes unless s 26-50(3) applies at all times in the year; commercial debt forgiveness (Subdivision 245-E); private company loans (Division 7A); and applying s 26-155.",
+    ),
+    (
+        "borrowing_expenses_schedule",
+        "Several loans' borrowing expenses under ITAA 1997 s 25-25, each loan first drawn from 1 July 2017 to the end of the income year asked about, from 2017-18 to 2027-28: that year's amounts across the loans, and every income year of each loan with the totals by year. The operator establishes, for each loan, the expenditure incurred for borrowing the money, all in the income year the loan began; the first day the money was borrowed; the last day of the period the original loan contract specifies; any repayment day; the extent the money is used to produce assessable income, for every year or for each income year of the loan; and, for a loan that refinances an earlier one, which loan it repaid, on the day it was first drawn; and the income-producing share of borrowing expenses on loans not listed, by the income year incurred. Under s 25-25(6), the income-producing shares of everything incurred for borrowing in an income year, at $100 or less in total, are deducted that year; a loan whose money is not used to produce income at all that year is spread. Otherwise each loan is spread over its own period of the loan as borrowing_expenses spreads one loan (s 25-25(4) and (5)), each year's deduction being its maximum times that year's income-producing use (s 25-25(2) and (3)). A refinanced loan is repaid on the refinancing day, so its period ends then and that income year deducts what remains (s 25-25(5)(b)). A row from 2027-28 is flagged, not changed, because s 26-155 may quarantine it, and a row after 2027-28 applies s 25-25 as read on 19 November 2026 and is marked projected. Excludes deciding which costs are borrowing expenses, the money's use and the tracing of redraws; interest; expenditure incurred after the income year a loan began; loans first drawn before 1 July 2017; leisure facilities such as holiday homes unless s 26-50(3) applies at all times in each year (such a loan is refused); commercial debt forgiveness (Subdivision 245-E); private company loans (Division 7A); and applying s 26-155.",
     ),
     (
         "fbt",
@@ -256,6 +260,10 @@ pub const SOURCES: &[(&str, &str)] = &[
     (
         "borrowing_expenses",
         "https://www.legislation.gov.au/C2004A05138/2026-10-01/2026-10-01/text/original/epub/OEBPS/document_1/document_1.html",
+    ),
+    (
+        "borrowing_expenses_schedule",
+        "https://www.ato.gov.au/law/view/document?docid=PAC/19970038/25-25",
     ),
     (
         "hire_purchase_schedule",
@@ -511,6 +519,17 @@ pub const EXTRA_SOURCES: &[(&str, &[&str])] = &[
         "borrowing_expenses",
         &[
             "https://www.ato.gov.au/individuals-and-families/investments-and-assets/property-and-land/residential-rental-properties/rental-expenses/borrowing-expenses",
+            "https://www.ato.gov.au/law/view/document?docid=PAC/19970038/26-155",
+            "https://www.legislation.gov.au/C1901A00002/2026-03-28/text",
+        ],
+    ),
+    (
+        "borrowing_expenses_schedule",
+        &[
+            "https://www.ato.gov.au/individuals-and-families/investments-and-assets/property-and-land/residential-rental-properties/rental-expenses/borrowing-expenses",
+            "https://www.ato.gov.au/law/view/document?docid=PAC/19970038/26-155",
+            "https://www.legislation.gov.au/C1901A00002/2026-03-28/text",
+            "https://www.ato.gov.au/law/view/document?docid=PAC/19970038/26-50",
         ],
     ),
     (
@@ -1121,7 +1140,16 @@ pub const SAPTO_YEAR_NOTES: &[(&str, &str)] = &[
 
 const WITHHOLDING_2027_28: &str = "The ATO had not published withholding schedules for payments from 1 July 2027 when this was checked on 16 November 2026.";
 const CGT_2027_28: &str = "From 2027-28 Schedule 1 to Act No. 49 of 2026 changes how capital gains are worked out, and this worksheet has not been checked against it.";
-const RENTAL_2027_28: &str = "From 2027-28 ITAA 1997 s 26-155 limits deductions for residential rental property, and this worksheet does not apply it.";
+/// The flag on a borrowing expenses year from 2027-28 (ITAA 1997 s 26-155,
+/// inserted by Act No 49 of 2026 for the 2027-28 income year and later years,
+/// read on 19 November 2026).
+pub const BORROWING_S26_155: &str = "From 2027-28 ITAA 1997 s 26-155(1) quarantines the amount by which deductions relating to using or holding residential dwellings as residential accommodation exceed the assessable income from them, and this deduction is one of them where the money is used that way. The amount here is s 25-25's before s 26-155: the worksheet neither applies s 26-155 nor decides its exceptions, such as a dwelling last acquired before 7.30 pm on 12 May 2026 (ACT legal time) or a new residential dwelling (s 26-155(2)), or an excepted entity (s 26-155(4)).";
+
+/// The refusal of a leisure facility under s 26-50.
+pub const BORROWING_S26_50: &str = "Section 26-50 denies deductions for a leisure facility, such as a holiday home, unless s 26-50(3) applies at all times in the income year; part-year use under s 26-50(4) is out of scope.";
+
+/// The note on a borrowing expenses schedule with a row after the last year read.
+pub const BORROWING_PROJECTED: &str = "A row marked projected is after 2027-28, the last income year read: it applies ITAA 1997 s 25-25 as read on 19 November 2026, which sets no figure by year, and a later amendment would change it.";
 
 /// Why a worksheet that takes an income year refuses 2027-28, added to its
 /// `period.unsupported` message: the figures not yet published, or the change
@@ -1134,7 +1162,6 @@ pub const UNPUBLISHED_2027_28: &[(&str, &str)] = &[
         "trade_in",
         "The car limit for 2027-28 was not published when this worksheet was checked, and from 2027-28 Schedule 1 to Act No. 49 of 2026 changes how capital gains are worked out.",
     ),
-    ("borrowing_expenses", RENTAL_2027_28),
     (
         "lump_sum_arrears_tax_offset",
         "This worksheet has not been checked against 2027-28, when Act No. 49 of 2026 brings in the working Australians tax offset and changes how capital gains are worked out.",
@@ -1238,20 +1265,40 @@ pub const REFUSAL_CODES: &[(&str, &str)] = &[
         "years is not a non-empty list of objects.",
     ),
     (
+        "borrowing.income_use_invalid",
+        "A loan's income_use is neither a fraction from 0 to 1 nor an object giving one for each income year of the loan.",
+    ),
+    (
+        "borrowing.loan_before_2017_18",
+        "A loan was first drawn before 1 July 2017.",
+    ),
+    (
         "borrowing.loan_date_invalid",
         "A loan date is neither null nor a date on or after the start of the loan.",
+    ),
+    (
+        "borrowing.loan_fact_missing",
+        "A loan does not state a fact the schedule requires.",
     ),
     (
         "borrowing.loan_period_ended",
         "The period of the loan ended before the income year began.",
     ),
     (
-        "borrowing.loan_start_29_february",
-        "A loan first drawn on 29 February, for which no source settles when 5 years end.",
-    ),
-    (
         "borrowing.loan_starts_after_year",
         "The loan starts after the income year ended.",
+    ),
+    (
+        "borrowing.loans_invalid",
+        "loans is not a non-empty list of objects.",
+    ),
+    (
+        "borrowing.other_expenses_invalid",
+        "other_borrowing_expenses is not an object of income years and amounts.",
+    ),
+    (
+        "borrowing.refinance_invalid",
+        "refinances does not name an earlier loan repaid on the day the loan was first drawn and refinanced by no other.",
     ),
     (
         "borrowing.s25_25_6_not_spread",
@@ -1704,7 +1751,7 @@ pub const REFUSAL_CODES: &[(&str, &str)] = &[
     ),
     (
         "input.field_unknown",
-        "A field the worksheet or command does not take, or does not take beside the other inputs given, was given (fbt-loan, fbt-meal-entertainment, fbt-car-parking, fbt-debt-waiver, fbt-expense-payment, fbt-property, fbt-residual, fbt-housing, fbt-lafha, fbt-board, fbt-tax-exempt-body-entertainment, fbt-entertainment-classifier, fbt-meal-entertainment-register and its entries, fbt-minor-benefit-check, division-296, depreciation, foreign-resident-tax, medicare-levy, medicare-levy-surcharge, payg-withholding, payg-gross-up, termination-payment, etp-tax-free-component, unused-leave-payment, the Schedule 5 methods, working-holiday-maker-withholding, study-loan-withholding, seniors-pensioners-withholding, seniors-pensioners-tax-offset, lump-sum-arrears-tax-offset, hire-purchase-schedule, chattel-mortgage-schedule, loan-transactions and its transactions and rate_changes, business-capital-expenditure and its items, balancing-adjustment, its years and car_limit, trade-in, gst-margin-scheme, wine-equalisation-tax and its dealings, luxury-car-tax and its lines, payroll-tax, contribution-caps given a carry-forward input, derive, personal-tax-estimate, dgr-check, income-tests and fbt-return only).",
+        "A field the worksheet or command does not take, or does not take beside the other inputs given, was given (fbt-loan, fbt-meal-entertainment, fbt-car-parking, fbt-debt-waiver, fbt-expense-payment, fbt-property, fbt-residual, fbt-housing, fbt-lafha, fbt-board, fbt-tax-exempt-body-entertainment, fbt-entertainment-classifier, fbt-meal-entertainment-register and its entries, fbt-minor-benefit-check, division-296, depreciation, foreign-resident-tax, medicare-levy, medicare-levy-surcharge, payg-withholding, payg-gross-up, termination-payment, etp-tax-free-component, unused-leave-payment, the Schedule 5 methods, working-holiday-maker-withholding, study-loan-withholding, seniors-pensioners-withholding, seniors-pensioners-tax-offset, lump-sum-arrears-tax-offset, hire-purchase-schedule, chattel-mortgage-schedule, loan-transactions and its transactions and rate_changes, borrowing-expenses-schedule and its loans, business-capital-expenditure and its items, balancing-adjustment, its years and car_limit, trade-in, gst-margin-scheme, wine-equalisation-tax and its dealings, luxury-car-tax and its lines, payroll-tax, contribution-caps given a carry-forward input, derive, personal-tax-estimate, dgr-check, income-tests and fbt-return only).",
     ),
     ("input.flag_invalid", "A flag is not a JSON boolean."),
     ("input.fraction_invalid", "A fraction is outside 0 to 1."),

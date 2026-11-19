@@ -1002,12 +1002,17 @@ pub fn supported_periods(kind: &str) -> Vec<&'static str> {
         "resident_tax" => keys(RESIDENT_TAX_SCALES),
         "foreign_resident_tax" => keys(FOREIGN_RESIDENT_TAX_SCALES),
         "main_residence" => vec!["2024-25", "2025-26", "2026-27"],
-        // Borrowing expenses: s 26-155 quarantines residential rental deductions
-        // from 2027-28. Hire purchase: the years read.
-        "borrowing_expenses"
-        | "hire_purchase_schedule"
-        | "chattel_mortgage_schedule"
-        | "loan_transactions" => vec!["2024-25", "2025-26", "2026-27"],
+        // ITAA 1997 s 25-25 sets no figure by year; its step 1 was last
+        // substituted by Act No 15 of 2017 from 1 April 2017. From 2027-28 the
+        // result is flagged for s 26-155, which it does not apply.
+        "borrowing_expenses" | "borrowing_expenses_schedule" => vec![
+            "2017-18", "2018-19", "2019-20", "2020-21", "2021-22", "2022-23", "2023-24", "2024-25",
+            "2025-26", "2026-27", "2027-28",
+        ],
+        // Hire purchase: the years read.
+        "hire_purchase_schedule" | "chattel_mortgage_schedule" | "loan_transactions" => {
+            vec!["2024-25", "2025-26", "2026-27"]
+        }
         // s 40-880 as amended by Act No 92 of 2020 applies to expenditure
         // incurred from 1 July 2020, unamended to compilation 268. It and
         // Subdivision 328-C set no figure by year, and the Register's one later
@@ -1125,9 +1130,9 @@ pub fn source_review(kind: &str) -> (&'static str, &'static str) {
             "2026-11-01",
             "Treating former home as main residence: the 6-year rule, Roya and Helen examples; Using your home for rental or business: working out the capital gain, the home first used to produce income rule and its examples",
         ),
-        "borrowing_expenses" => (
-            "2026-11-04",
-            "ITAA 1997 s 25-25 and s 26-50, compilation 268 (1 October 2026); Borrowing expenses: the Peter and the Fiona and Max examples",
+        "borrowing_expenses" | "borrowing_expenses_schedule" => (
+            "2026-11-19",
+            "ITAA 1997 s 25-25 with its history notes, s 26-50 and s 26-155 on the ATO's legal database; Acts Interpretation Act 1901 ss 2G and 36, compilation 39 (28 March 2026); Borrowing expenses (last updated 22 May 2026): the Peter and the Fiona and Max examples",
         ),
         "business_capital_expenditure" => (
             "2026-11-16",
@@ -1364,11 +1369,11 @@ pub fn library_evidence(kind: &str) -> [(&'static str, &'static str); 4] {
             "2026-06-30",
             "2026-11-01",
         ),
-        "borrowing_expenses" => (
+        "borrowing_expenses" | "borrowing_expenses_schedule" => (
             "tax-examples-deductions",
             "4-160",
             "2026-06-30",
-            "2026-11-04",
+            "2026-11-19",
         ),
         "business_capital_expenditure" => (
             "TR 2011/6",
@@ -1741,6 +1746,10 @@ pub fn optional_inputs(kind: &str) -> Vec<(&'static str, &'static str)> {
                 "object of GST facts, for the purchaser's input tax credit on the price: as hire_purchase_schedule takes them. A passenger_car worth more than the car limit and not quoted for has its credit capped at 1/11 of the limit (GST Act s 69-10(1))",
             ),
         ],
+        "borrowing_expenses_schedule" => vec![(
+            "other_borrowing_expenses",
+            "object of income years (such as \"2025-26\") and AUD amounts: the income-producing share of borrowing expenses incurred that year on loans not in loans, for the s 25-25(6) $100 test",
+        )],
         "loan_transactions" => vec![(
             "rate_changes",
             "list of objects in date order, each with date (YYYY-MM-DD, after start_date and by end_date, one change a day) and annual_rate (decimal fraction from 0 to 1), the rate from that day",
@@ -2246,6 +2255,10 @@ pub fn input_units(kind: &str) -> Vec<(&'static str, &'static str)> {
                 "boolean, false only when the property is not a leisure facility, or s 26-50(3) applies to it at all times in the income year (such as a holiday home held mainly to produce rent)",
             ),
         ],
+        "borrowing_expenses_schedule" => vec![(
+            "loans",
+            "list of objects, one for each loan, each stating: borrowing_expenses (AUD, as for borrowing_expenses, incurred in the income year the loan began); loan_start (YYYY-MM-DD, the first day the money was borrowed, from 1 July 2017 to the end of the year asked about); loan_term_end and repaid_on (YYYY-MM-DD or null, as for borrowing_expenses); income_use (a decimal fraction from 0 to 1 for every income year of the loan, or an object giving one for each income year from the year the loan began to the year its period ends, such as {\"2025-26\": \"1\", \"2026-27\": \"0.5\"}); section_26_50_applies (boolean, as for borrowing_expenses; true is refused); and optionally refinances (the number, from 1, of an earlier loan in the list that this loan repaid on its loan_start, which must be that loan's repaid_on)",
+        )],
         "chattel_mortgage_schedule" => vec![
             (
                 "amount_financed",
@@ -3071,6 +3084,19 @@ pub fn examples(kind: &str) -> Vec<(&'static str, Example)> {
             ("loan_term_end", Text("2049-07-02")),
             ("repaid_on", Json("null")),
             ("section_26_50_applies", Flag(false)),
+            ("year", Text("2024-25")),
+        ],
+        // Peter's loan (ATO, Borrowing expenses) from 3 July 2024, refinanced
+        // on 2 March 2026 by a second loan whose money is half used to produce
+        // income from 2026-27.
+        "borrowing_expenses_schedule" => vec![
+            ("year", Text("2026-27")),
+            (
+                "loans",
+                Json(
+                    r#"[{"borrowing_expenses": "1600.00", "loan_start": "2024-07-03", "loan_term_end": "2049-07-02", "repaid_on": "2026-03-02", "income_use": "1", "section_26_50_applies": false}, {"borrowing_expenses": "900.00", "loan_start": "2026-03-02", "loan_term_end": null, "repaid_on": null, "income_use": {"2025-26": "1", "2026-27": "0.5", "2027-28": "0.5", "2028-29": "0.5", "2029-30": "0.5", "2030-31": "0.5"}, "section_26_50_applies": false, "refinances": 1}]"#,
+                ),
+            ),
         ],
         "business_capital_expenditure" => vec![
             ("year", Text("2026-27")),
