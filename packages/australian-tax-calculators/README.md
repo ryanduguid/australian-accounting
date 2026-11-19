@@ -100,6 +100,7 @@ lists the commands.
 | Command | Arguments |
 | --- | --- |
 | `gst` | `amount`, `gst_inclusive`, `scope_confirmed`, `year` |
+| `gst-margin-scheme` | `interest`, `agreement`, `acquisition`, `consideration`, `method`, `year`, `scope_confirmed`; with `consideration`, `acquisition_consideration` and `unpaid_acquisition_consideration`; with `approved_valuation`, `approved_valuation`, `valuation_day`, `registered_on_1_july_2000` and `government_unimproved_on_1_july_2000`; for part of the land, `subdivision_share` and `subdivision_whole`; see [GST margin scheme](#gst-margin-scheme) |
 | `resident-tax` | `taxable_income`, `year`, `scope_confirmed` |
 | `foreign-resident-tax` | `taxable_income`, `year`, `scope_confirmed` |
 | `capital-gains` | `other_gains`, `discount_gains`, `current_losses`, `prior_losses`, `scope_confirmed`, `year` |
@@ -152,9 +153,9 @@ lists the commands.
 | `dgr-check` | `donations`, a list of 1 to 10,000 objects, each with `abn` or `name` or both, and optional `date` and `amount`; see [DGR check](#dgr-check) |
 | `personal-tax-estimate` | `year`, `scope_confirmed`, `residency`, `taxable_income` or `assessable_labour_income` (then optional `other_assessable_income`, `work_related_deductions`, `other_deductions`), optional `tax_withheld` or, to work it out, one of `payg-withholding`, `study-loan-withholding` and `seniors-pensioners-withholding` with `pays_in_year` and optional `schedule-5-method-a`, for a resident from 2027-28 `net_labour_income` (required beside `taxable_income`), and for a full-year resident `medicare-levy` and `medicare-levy-surcharge`; optional `seniors-pensioners-tax-offset`, `study-loan-repayment` and `division-293`; see [Personal tax estimate](#personal-tax-estimate) |
 | `fbt-return` | `employer`, `year_ended`, `scope_confirmed` and `benefits`, a list of objects each with `employee`, `command` (an FBT benefit worksheet), `input` (that worksheet's arguments), `gst_type` (`type_1` or `type_2`) and `excluded`; see [FBT return](#fbt-return) |
-| `derive` | `command`, one of `fbt`, `fbt-car-statutory`, `fbt-car-operating-cost`, `fbt-loan`, `fbt-meal-entertainment`, `fbt-car-parking`, `fbt-debt-waiver`, `fbt-expense-payment`, `fbt-property`, `division-293`, `pension-minimum`, `payg-withholding`, `schedule-5-method-a`, `schedule-5-method-b-i`, `schedule-5-method-b-ii`, `termination-payment`, `unused-leave-payment`, `working-holiday-maker-withholding`, `study-loan-withholding`, `seniors-pensioners-withholding`, `quarterly-sg`, `borrowing-expenses`, `resident-tax`, `foreign-resident-tax`, `low-income-tax-offset`, `seniors-pensioners-tax-offset`, `medicare-levy`, `medicare-levy-surcharge`, `division-296`, `contribution-caps`, `study-loan-repayment`, `capital-gains`, `main-residence`, `fbt-residual`, `fbt-housing`, `fbt-lafha`, `fbt-board`, `fbt-tax-exempt-body-entertainment`, `gst`, `depreciation`, `hire-purchase-schedule`, `lump-sum-arrears-tax-offset`, `income-tests`, `business-capital-expenditure`, `balancing-adjustment` and `trade-in`, and `input`, that command's arguments; see [Derivations](#derivations) |
+| `derive` | `command`, one of `fbt`, `fbt-car-statutory`, `fbt-car-operating-cost`, `fbt-loan`, `fbt-meal-entertainment`, `fbt-car-parking`, `fbt-debt-waiver`, `fbt-expense-payment`, `fbt-property`, `division-293`, `pension-minimum`, `payg-withholding`, `schedule-5-method-a`, `schedule-5-method-b-i`, `schedule-5-method-b-ii`, `termination-payment`, `unused-leave-payment`, `working-holiday-maker-withholding`, `study-loan-withholding`, `seniors-pensioners-withholding`, `quarterly-sg`, `borrowing-expenses`, `resident-tax`, `foreign-resident-tax`, `low-income-tax-offset`, `seniors-pensioners-tax-offset`, `medicare-levy`, `medicare-levy-surcharge`, `division-296`, `contribution-caps`, `study-loan-repayment`, `capital-gains`, `main-residence`, `fbt-residual`, `fbt-housing`, `fbt-lafha`, `fbt-board`, `fbt-tax-exempt-body-entertainment`, `gst`, `depreciation`, `hire-purchase-schedule`, `lump-sum-arrears-tax-offset`, `income-tests`, `business-capital-expenditure`, `balancing-adjustment`, `trade-in` and `gst-margin-scheme`, and `input`, that command's arguments; see [Derivations](#derivations) |
 
-The 2 car commands, the 11 FBT benefit commands (`fbt-loan`, `fbt-meal-entertainment`, `fbt-car-parking`, `fbt-debt-waiver`, `fbt-expense-payment`, `fbt-property`, `fbt-residual`, `fbt-housing`, `fbt-lafha`, `fbt-board` and `fbt-tax-exempt-body-entertainment`), `main-residence`, `borrowing-expenses`, `division-296`, `termination-payment`, `unused-leave-payment`, the 3 `schedule-5` commands, `working-holiday-maker-withholding`, `seniors-pensioners-withholding`, `seniors-pensioners-tax-offset`, `medicare-levy-surcharge`, `foreign-resident-tax`, `payg-gross-up`, `hire-purchase-schedule`, `lump-sum-arrears-tax-offset`, `fbt-entertainment-classifier`, `income-tests`, `business-capital-expenditure`, `balancing-adjustment` and `trade-in` have no Python original; their arguments follow the same
+The 2 car commands, the 11 FBT benefit commands (`fbt-loan`, `fbt-meal-entertainment`, `fbt-car-parking`, `fbt-debt-waiver`, `fbt-expense-payment`, `fbt-property`, `fbt-residual`, `fbt-housing`, `fbt-lafha`, `fbt-board` and `fbt-tax-exempt-body-entertainment`), `main-residence`, `borrowing-expenses`, `division-296`, `termination-payment`, `unused-leave-payment`, the 3 `schedule-5` commands, `working-holiday-maker-withholding`, `seniors-pensioners-withholding`, `seniors-pensioners-tax-offset`, `medicare-levy-surcharge`, `foreign-resident-tax`, `payg-gross-up`, `hire-purchase-schedule`, `lump-sum-arrears-tax-offset`, `fbt-entertainment-classifier`, `income-tests`, `business-capital-expenditure`, `balancing-adjustment`, `trade-in` and `gst-margin-scheme` have no Python original; their arguments follow the same
 rules. `division-296` alone takes a negative amount, in `total_super_earnings`. `main-residence` also takes dates as `YYYY-MM-DD` strings, lists of
 `{"start", "end"}` periods (with `"floor_area"` for income use) and `null`
 for no new home. `borrowing-expenses` takes `loan_start` as a `YYYY-MM-DD`
@@ -266,6 +267,7 @@ trade-in steps add GST Act ss 9-70, 9-75, 11-30, 69-10 and 132-5 and ITAA
 | Worksheet | Period and boundary |
 | --- | --- |
 | GST | 2025-26 to 2027-28, one ordinary taxable supply at 10%; no classification or BAS |
+| GST margin scheme | 2025-26 to 2027-28, one taxable supply of real property under a contract from 9 December 2008; the s 75-5 conditions, the consideration or a valuation under s 75-10(3) items 1 to 4, and a lot's share under s 75-15; acquisitions s 75-11 governs are refused |
 | Resident tax | 2024-25 to 2027-28; full-year resident ordinary income, before offsets and levies |
 | Foreign resident tax | 2024-25 to 2027-28; full-year foreign resident ordinary income, no tax-free threshold; no Medicare levy or low income tax offset applies |
 | CGT | 2025-26 and 2026-27, resident individual's established gains and losses; losses before the 50% discount |
@@ -1260,6 +1262,69 @@ is payable, a decreasing adjustment arising in a later year (s 27-95(5)) and
 increasing adjustments are out of scope, as is everything `balancing-adjustment`
 leaves out. The tests hold it to the ATO's examples for Darren's car and Ian's
 vehicle; see [calculation evidence](docs/calculation-evidence.md#trade-in).
+
+## GST margin scheme
+
+`gst-margin-scheme` decides whether the margin scheme of GST Act Division 75
+can apply to one taxable supply of real property in 2025-26 to 2027-28, and
+works out the GST with and without it. It lists each condition of s 75-5 with
+its authority and whether it is met, names each one that fails in
+`failing_conditions`, and gives `eligible`:
+
+- `real_property_interest`: `interest` is `freehold_interest`, `stratum_unit`
+  or `long_term_lease` (at least 50 years: s 195-1), not `other`
+  (s 75-5(1));
+- `written_agreement`: `agreement` is `written_on_or_before_supply` or
+  `written_in_further_period_allowed` (a further period the Commissioner
+  allows), not `none` (s 75-5(1) and (1A)); a contract applying the scheme if
+  the supply turns out to be taxable is enough (GSTR 2006/8 para 27);
+- `acquisition_eligible`: `acquisition`, how you acquired the entire interest,
+  is not `taxable_supply_without_margin_scheme` (s 75-5(2) and (3)(a)). It is
+  otherwise `taxable_supply_under_margin_scheme`, `other_supply_from_1_july_2000`
+  (a supply that was not taxable, such as from a seller not registered for GST)
+  or `before_1_july_2000` (acquired, or contracted to acquire, before then:
+  GSTR 2006/8 para 39A).
+
+The margin is the amount by which `consideration`, the GST-inclusive price,
+exceeds the base, or nil (s 75-10(2) and (3)). `method` sets the base:
+
+- `consideration`: `acquisition_consideration`, what you gave for the
+  interest, less `unpaid_acquisition_consideration`, any of it still unpaid at
+  the supply (s 75-12), disregarding improvements, development, legal fees and
+  stamp duty (s 75-14);
+- `approved_valuation`, for an interest acquired before 1 July 2000 only: an
+  `approved_valuation` made under the Commissioner's requirements (s 75-35) as
+  at `valuation_day`, which must be the day s 75-10(3) fixes from
+  `registered_on_1_july_2000` and `government_unimproved_on_1_july_2000`:
+  1 July 2000 (items 1 and 3), the date of effect of a registration after then
+  or the earlier day of applying (item 2), or for the Commonwealth, a State or a
+  Territory with land unimproved on 1 July 2000, the day of the supply,
+  valued as if unimproved (item 4 and (3A)). A supply both items 2 and 4
+  describe is refused.
+
+For a supply of part of the land, `subdivision_share` and `subdivision_whole`
+(area, expected price or another reasonable measure) take that proportion of
+the base, `apportioned_base` (s 75-15). `gst_under_margin_scheme` is 1/11 of
+the margin (s 75-10(1)), `gst_without_margin_scheme` 1/11 of the consideration
+(ss 9-70 and 9-75(1)), each rounded to the cent, 0.5 up, as one supply on one
+invoice (s 9-90(1)); `gst` is the first when every condition is met and the
+second otherwise. Both are shown either way, so the 2 can be compared before
+the agreement is signed. `consequences` says what follows: under the scheme the
+recipient cannot claim an input tax credit (s 75-20), and can use the scheme
+on its own later sale.
+
+It refuses an acquisition whose eligibility or margin other provisions govern,
+naming them: from a fellow GST group member, a GST joint venture operator or an
+associate, by inheritance, as a GST-free going concern or farm land, through a
+supply GST-free under s 38-445(1A), or in part through an ineligible supply
+(ss 75-5(3)(b) to (g), 75-10(3) item 2A, 75-11 and 75-22). It also refuses a
+valuation for an interest acquired from 1 July 2000, a valuation day s
+75-10(3) does not fix, unpaid consideration above the consideration, and a
+share that is nil or above the whole. Deciding whether the supply is taxable,
+the valuation, the apportionment's basis, GST at settlement, adjustments under
+ss 75-22 and 75-27, contracts before 9 December 2008 and several supplies on
+one invoice are out of scope. See
+[calculation evidence](docs/calculation-evidence.md#gst-margin-scheme).
 
 ## Division 296
 

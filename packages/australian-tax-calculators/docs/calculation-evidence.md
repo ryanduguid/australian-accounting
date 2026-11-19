@@ -95,6 +95,51 @@ The smaller existing case uses $1,100 inclusive: GST is $100, exclusive value
 is $1,000. Starting with $1,000 exclusive gives `1000 × 0.10 = 100` GST and
 $1,100 inclusive.
 
+## GST margin scheme
+
+Added on 19 November 2026. Its sources were read that afternoon, 2.20 pm to
+2.40 pm AEDT, from the ATO's legal database: the A New Tax System (Goods and
+Services Tax) Act 1999 ss 9-90, 75-5, 75-10, 75-11, 75-12, 75-14, 75-15,
+75-20, 75-35 and the s 195-1 definitions of 'approved valuation', 'long-term
+lease' and 'margin scheme'; Schedule 1 to the Taxation Administration Act 1953
+s 14-250 (GST at settlement, which it does not work out); GSTR 2006/8 (paras 15
+to 39F: the written agreement, a conditional agreement, ineligible supplies,
+the time of supply, the Brady King contracts and examples 1 and 2); and the
+ATO's 'GST and the margin scheme' (last updated 19 August 2021). The Library's
+GST collection, Real Estate, Accommodation and Sale of Business, 11-100
+(reviewed 29 July 2025) and 11-110 (reviewed 27 May 2026), and its Tax
+Examples, GST, 12-200 and 12-220 (reviewed 30 June 2026), give the worked
+examples.
+
+s 75-10(3) uses an approved valuation when one 'has been made' for an interest
+held before 1 July 2000; without one, s 75-10(2) takes the consideration for
+the acquisition, so `method` is the operator's statement of which exists. The
+valuation day is checked against the item the facts select: items 1 and 3 both
+fix 1 July 2000, so the command does not ask which applies. s 9-90(1) rounds the
+GST on one supply on one invoice to the nearest cent, 0.5 up; the margin and
+the apportioned base are not rounded.
+
+`tests/gst_margin_scheme.rs` holds each case.
+
+| Example | Facts given | Result |
+| --- | --- | --- |
+| Tax Examples 12-200, Joanne Black | Held before 1 July 2000, valued at **$448,000** then, sold for **$640,000** | Margin $192,000; GST **$17,454.55** (shown as $17,454) |
+| Tax Examples 12-220, Hans | Valued at **$250,000** on 1 July 2000, sold for **$1.5 million** | GST **$113,636.36** (shown as $113,636) |
+| Tax Examples 12-220, Luke | Bought for $1.5 million under the scheme; one of 3 townhouses for **$900,000** | Base $500,000; GST **$36,363.64** (shown as $36,363) |
+| GST 11-110, improvements | Land **$250,000**, improvements $50,000, sold for **$360,000** | Margin $110,000; GST **$10,000** |
+| GST 11-110, equal blocks | $500,000 over 5 blocks of 600 m2; sold for $155,000 and $166,000 | GST **$5,000** and **$6,000** |
+| GST 11-110, unequal block | 1,200 of 3,600 m2 of $500,000, sold for **$300,000** | Margin $133,333.33; GST **$12,121.21** (shown as $12,121.18) |
+| GST 11-110, strata unit 3 | $600,000 of $2,400,000 expected, of $400,000; sold for **$610,000** | Base $100,000; GST **$46,363.64** (shown as $46,363.63) |
+| GST 11-100, held at 1 July 2000 | Valued at **$100,000**, sold for **$144,000** | GST **$4,000** |
+| GSTR 2006/8 example 1, Tureia | Bought through a taxable supply without the scheme | Not eligible: `acquisition_eligible`; GST on the full price |
+
+The Library rounds the margin to whole dollars before dividing in the unequal
+block, and cuts strata unit 3's GST off rather than rounding it; s 75-15 takes
+the corresponding proportion without rounding, and s 9-90(1) rounds only the
+GST, so the command differs from it by 3 cents and 1 cent. The tests also cover
+each failing condition alone and together, a nil margin, unpaid consideration,
+items 2 and 4 and their days, each refused acquisition, and each refusal.
+
 ## Resident tax
 
 Use ¶7-010's already established $144,014 taxable income for 2024–25. The basic
