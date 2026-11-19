@@ -185,3 +185,61 @@ pub(super) fn deferred_out(account: &Account, p: &Parts) -> Result<Value> {
     rows.extend(account.not_posted.iter().cloned());
     Ok(Value::Array(rows))
 }
+
+/// Each franking period with its benchmark, shown to 2 places, 5 up (the
+/// ATO's section C), and whether it differs from the last benchmark by more
+/// than 20 percentage points for each franking period after that one, up to
+/// and including it (s 204-70(1)). The disclosure does not apply where the
+/// benchmark rule does not (s 204-70(2)).
+pub(super) fn variations(
+    periods: &[Period],
+    last: Option<(Decimal, i64)>,
+    exempt: bool,
+) -> Result<(Vec<Value>, bool)> {
+    let mut out = Vec::new();
+    let mut any = false;
+    // The last benchmark and its period's index, counting this year's first
+    // franking period as 0.
+    let mut previous: Option<(Decimal, i64)> = last.map(|(p, since)| (p, -since));
+    for (k, period) in (0_i64..).zip(periods) {
+        let mut row = json!({
+            "start": dates::format(period.start),
+            "end": dates::format(period.end),
+            "benchmark_percentage": Value::Null,
+            "significant_variation": false,
+        });
+        if let Some(b) = &period.benchmark {
+            row["benchmark_percentage"] = json!(two_places(b)?);
+            if let Some((reference, at)) = &previous {
+                let count = k - at;
+                let gap = precise(|| Ok(b.sub(reference)?))?;
+                let gap = if gap.lt(&int(0))? { gap.neg()? } else { gap };
+                let varies = !exempt && gap.gt(&int(20 * count))?;
+                row["compared_with"] = json!(two_places(reference)?);
+                row["threshold_points"] = json!(20 * count);
+                row["significant_variation"] = json!(varies);
+                any |= varies;
+            }
+            previous = Some((b.clone(), k));
+        }
+        out.push(row);
+    }
+    Ok((out, any))
+}
+
+/// s 202-75(4): a private company's late statement in a deficit year is
+/// flagged, not decided.
+pub(super) fn late_statement_warning(out: &mut Value) {
+    out["warnings"]
+        .as_array_mut()
+        .expect("warnings")
+        .push(json!("ITAA 1997 s 202-75(4): a private company may not give a distribution statement after the distribution if the franking credit it allocates, alone or with the year's others, creates or increases franking deficit tax. A distribution here has a statement given late and the year ends in deficit: check that its allocation was allowed; this command does not decide it."));
+}
+
+pub(super) fn sum_of_worked(worked: &[Worked]) -> Result<Decimal> {
+    precise(|| {
+        worked
+            .iter()
+            .try_fold(int(0), |t, w| Ok(t.add(&w.over_franking_tax)?))
+    })
+}
