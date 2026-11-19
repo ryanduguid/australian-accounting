@@ -62,8 +62,11 @@ executable, which `uvx` does not install. Download it for x86_64 Linux or Window
 the [australian-tax-calculators/v1.0.0 release](https://github.com/ryanduguid/australian-accounting/releases/tag/australian-tax-calculators/v1.0.0)
 (other platforms build it from [source](https://github.com/ryanduguid/australian-accounting/tree/main/packages/australian-tax-calculators)),
 verify it as that release describes, and put it in a folder on `PATH` or give its
-absolute path in `AUS_TAX_CALCULATORS_BIN`. Without it the tax worksheets refuse with
-an install message; every other tool works.
+absolute path in `AUS_TAX_CALCULATORS_BIN`. The server runs it only if its SHA-256 is
+that of a released executable; for one you built, set `AUS_TAX_CALCULATORS_SHA256` to
+its SHA-256. Keep it in a folder only you can write: the server checks the file and
+then runs it, and someone who can change it could swap it in between. Without the
+executable the tax worksheets refuse with an install message; every other tool works.
 
 The server waits for an MCP client over stdio. Tool calls read bundled data and any
 folders you configure. They do not contact the ATO or the Federal Register, change
@@ -177,7 +180,7 @@ authorised Markdown folder, `AUS_ACCOUNTING_CORPUS_ROOT` to a legislation corpus
 `AUS_ACCOUNTING_RULINGS_ROOT` to ATO rulings runs, such as those built by
 [PaulGoodman](https://github.com/ryanduguid/PaulGoodman). Its
 [published snapshot](https://github.com/ryanduguid/australian-accounting/blob/main/apps/aus-accounting-mcp/docs/corpus-setup.md#download-the-published-snapshot) of 9 principal
-Acts, each at its current compilation on 11 November 2026 and with a rates index, needs no
+Acts, each at its current compilation on 18 November 2026 and with a rates index, needs no
 build: unpack it and set `AUS_ACCOUNTING_CORPUS_ROOT` to its `dist` folder.
 [`python -m fadden quick --out <empty folder>`](https://github.com/ryanduguid/australian-accounting/blob/main/apps/aus-accounting-mcp/docs/corpus-setup.md#build-the-principal-acts-with-one-command)
 in that repository builds the same Acts at their current compilations on your machine,
