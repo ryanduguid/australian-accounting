@@ -1106,6 +1106,12 @@ pub fn supported_periods(kind: &str) -> Vec<&'static str> {
         // No published rate: s 58P(1)(e)'s $300 is the Act's own. The years
         // are those the other FBT benefit worksheets cover.
         "fbt_minor_benefit_check" => vec!["2026", "2027"],
+        // The year of the registration, possession or attachment, or
+        // agreement: the fees are unchanged since 1 August 2018 and the law
+        // read is in force from 14 October 2024 (PPSA), and the Corporations
+        // Act's ss 9 and 588FL to 588FN read the same from 1 July 2025 with no
+        // enacted amendment; critical times are taken within the same years.
+        "ppsr_timing" => vec!["2025-26", "2026-27"],
         "fbt_entertainment_classifier" => vec!["2026", "2027"],
         "fbt_housing" => keys(FBT_HOUSING_INDEXATION),
         // The years whose definitions were read: the 1 July 2024 compilations
@@ -1336,6 +1342,10 @@ pub fn source_review(kind: &str) -> (&'static str, &'static str) {
             "2026-11-15",
             "FBTAA ss 38 and 39 and s 136(1), non-deductible exempt entertainment expenditure, compilation 97 (1 July 2026); Fringe benefits tax - a guide for employers, chapter 15, 15.9 and its per head example; FBT return 2026 instructions, item 23L and example 15",
         ),
+        "ppsr_timing" => (
+            "2026-11-20",
+            "Personal Property Securities Act 2009 ss 10 ('business day'), 62, 153 and 294, compilation 22 (14 October 2024); Personal Property Securities Regulations 2010, compilation 6 (1 July 2022), which prescribe no day for the s 10 definition; Personal Property Securities (Fees) Determination 2018 ss 2, 4, 5 and 6, as made (from 1 August 2018); Corporations Act 2001 ss 9 ('business day'), 588FL and 588FM, compilation 149 (19 September 2026), the same text in compilation 142 (1 July 2025) and unamended by the Acts listed for its versions from 1 December 2026 to 1 July 2027 (Nos. 61, 35, 38 and 57 of 2026 and 72 of 2025); the Registrar's 'Fees for using the PPSR' page",
+        ),
         "fbt_minor_benefit_check" => (
             "2026-11-19",
             "FBTAA ss 58P, 136(1) ('fringe benefit' para (g) and 'eligible premises') and 152B, from the ATO's legal database (s 58P(1)(b) repealed by Act No. 88 of 2013); TR 2007/12 (paras 8 to 23 and examples 1 to 13)",
@@ -1408,6 +1418,13 @@ pub fn library_evidence(kind: &str) -> [(&'static str, &'static str); 4] {
             "examples 14, 16 to 18, 21 to 25, 40A and 41",
             "2011-11-30",
             "2026-11-16",
+        ),
+        // No Library volume covers the PPSR; the Acts themselves were read.
+        "ppsr_timing" => (
+            "Personal Property Securities Act 2009, compilation 22; Corporations Act 2001, compilation 149",
+            "PPSA ss 10, 62 and 153; Corporations Act ss 9 and 588FL",
+            "2026-09-19",
+            "2026-11-20",
         ),
         "fbt_minor_benefit_check" => (
             "tax-examples-fringe-benefits-tax-fbt",
@@ -2198,6 +2215,64 @@ pub fn optional_inputs(kind: &str) -> Vec<(&'static str, &'static str)> {
             (
                 "total_heads",
                 "integer from 1, per_head only and required there: everyone entertained at the function, employees, their associates and others",
+            ),
+        ],
+        "ppsr_timing" => vec![
+            (
+                "registration_time",
+                "YYYY-MM-DDTHH:MM, ACT legal time (PPSA s 294): for registration, required, the registration time; for pmsi and company_grantor, optional, a registration time to test",
+            ),
+            (
+                "collateral",
+                "registration only and required: consumer or commercial (PPSA s 153 item 4(a))",
+            ),
+            (
+                "serial_numbered",
+                "boolean, registration only and required: true when the collateral is described by serial number",
+            ),
+            (
+                "end_date",
+                "YYYY-MM-DD, registration only: the requested end date (the registration ends at the end of that day); absent for no stated end time",
+            ),
+            (
+                "inventory",
+                "boolean, pmsi only and required: true when the collateral is inventory (PPSA s 10)",
+            ),
+            (
+                "goods",
+                "boolean, pmsi only and required: true when the collateral is goods",
+            ),
+            (
+                "trigger_time",
+                "YYYY-MM-DDTHH:MM, pmsi only and required: for goods, when the grantor, or another person at its request, obtained possession; otherwise when the interest attached (PPSA s 62(2)(b) and (3)(b))",
+            ),
+            (
+                "excluded_days",
+                "list of YYYY-MM-DD, pmsi on collateral that is not inventory, and then required: every day from the trigger to the deadline that is a public holiday for the whole of any State, the ACT or the NT, or a day the Registrar refused access to or suspended the register (PPSA s 10 'business day' (b) and (d)); weekends and the days between Christmas Day and New Year's Day are excluded without listing",
+            ),
+            (
+                "pmsi_stated",
+                "boolean, pmsi with registration_time and then required: true when the registration states that the interest is a purchase money security interest (PPSA s 153 item 7)",
+            ),
+            (
+                "agreement_in_force_time",
+                "YYYY-MM-DDTHH:MM, company_grantor only and required: when the security agreement came into force (Corporations Act s 588FL(2)(b)(ii))",
+            ),
+            (
+                "place_holidays",
+                "list of YYYY-MM-DD, company_grantor only and required: every public or bank holiday in the place concerned within the count (Corporations Act s 9 'business day')",
+            ),
+            (
+                "foreign_law_agreement",
+                "boolean, company_grantor only and required: true when the agreement came into force under the law of a foreign jurisdiction (s 588FL(2)(b)(iii)), which is refused",
+            ),
+            (
+                "critical_time",
+                "YYYY-MM-DDTHH:MM, company_grantor only: the critical time (s 588FL(7)), from 1 July 2025 to 30 June 2027",
+            ),
+            (
+                "court_ordered_time",
+                "YYYY-MM-DDTHH:MM, company_grantor with critical_time only: a later time the Court ordered (ss 588FL(2)(b)(iv) and 588FM)",
             ),
         ],
         "fbt_minor_benefit_check" => vec![
@@ -3091,6 +3166,10 @@ pub fn input_units(kind: &str) -> Vec<(&'static str, &'static str)> {
                 "AUD, non-deductible exempt entertainment expenditure (FBTAA s 136(1)): under actual, the part incurred in entertaining employees and their associates; under per_head, the whole function's",
             ),
         ],
+        "ppsr_timing" => vec![(
+            "question",
+            "registration (end time and fee), pmsi (registration deadline for super-priority) or company_grantor (Corporations Act s 588FL time)",
+        )],
         "fbt_minor_benefit_check" => vec![
             (
                 "category",
@@ -3663,6 +3742,14 @@ pub fn examples(kind: &str) -> Vec<(&'static str, Example)> {
         // function on the employer's premises, valued per head.
         // The Library's birthday flowers (Tax Examples, FBT, 3-060): an $80
         // bouquet on the employee's birthday, a property benefit.
+        // Constructed: consumer goods described by serial number, registered
+        // on 2 March 2026 with no end date asked for.
+        "ppsr_timing" => vec![
+            ("question", Text("registration")),
+            ("registration_time", Text("2026-03-02T10:30")),
+            ("collateral", Text("consumer")),
+            ("serial_numbered", Flag(true)),
+        ],
         "fbt_minor_benefit_check" => vec![
             ("category", Text("property")),
             ("in_house", Flag(false)),

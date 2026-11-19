@@ -600,6 +600,10 @@ const COMMAND_ARGS: &[(&str, &[(&str, Kind)])] = &[
         ],
     ),
     (
+        "ppsr-timing",
+        &[("question", Raw), ("year", Raw), ("scope_confirmed", Raw)],
+    ),
+    (
         "fbt-minor-benefit-check",
         &[
             ("category", Raw),
@@ -1096,6 +1100,7 @@ pub fn evaluate_coded(command: &str, v: &Value) -> Result<Value> {
             | "fbt-entertainment-classifier"
             | "fbt-meal-entertainment-register"
             | "fbt-minor-benefit-check"
+            | "ppsr-timing"
             | "hire-purchase-schedule"
             | "chattel-mortgage-schedule"
             | "loan-transactions"
@@ -1418,6 +1423,23 @@ pub fn evaluate_coded(command: &str, v: &Value) -> Result<Value> {
         "fbt-tax-exempt-body-entertainment" => {
             let given = benefit_inputs(v, params)?;
             engine::fbt_tax_exempt_body_entertainment(&a[0], &given, &a[1], &a[2])
+        }
+        "ppsr-timing" => {
+            // The question's own inputs, by name: times stay text, day lists JSON.
+            let named: Vec<(String, Arg)> = v
+                .as_object()
+                .into_iter()
+                .flatten()
+                .filter(|(key, _)| !params.iter().any(|(p, _)| p == key))
+                .map(|(key, value)| {
+                    let given = match value {
+                        Value::Array(_) => Arg::Json(value.clone()),
+                        other => arg(other),
+                    };
+                    (key.clone(), given)
+                })
+                .collect();
+            engine::ppsr_timing(&a[0], &a[1], &a[2], &named)
         }
         "fbt-minor-benefit-check" => {
             // Optional: the facts each category's exclusion needs.
