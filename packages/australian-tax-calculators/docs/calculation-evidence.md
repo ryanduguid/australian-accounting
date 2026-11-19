@@ -2256,6 +2256,36 @@ earlier ETPs in the year or for the same termination (which reduce the caps,
 s 82-10(4)(a) and (b)), delayed termination payments, payees without a TFN,
 foreign residents and working holiday makers are outside it.
 
+## DASP tax
+
+Added on 19 November 2026. Its sources were read that afternoon: the
+Superannuation (Departing Australia Superannuation Payments Tax) Act 2007
+(No. 13, 2007; compilation 5, 2 December 2016), ss 4 to 6, from the Federal
+Register of Legislation; ITAA 1997 ss 301-170 and 301-175 from the ATO's legal
+database; and the ATO's 'Payments from super' rates (last updated 16 September
+2026) and 'Departing Australia superannuation payment (DASP)' (last updated 21
+April 2026), which give the same rates, the 417 and 462 visas and that the
+65% rate covers the whole payment. The Library's Superannuation Benefits,
+8-420 (reviewed 30 June 2026), gives the worked example and the s 3A meaning
+of working holiday maker.
+
+s 5(3) applies to a payment made on or after 1 July 2017, so to every year
+the command takes. The ATO's rates page gives s 6's temporary budget repair
+levy years as 2014-15 to 2016-17, so none of them is taken. The Act states
+percentages and no rounding; rounding each element's tax to the cent is the
+command's.
+
+`tests/dasp_tax.rs` holds each case.
+
+| Example | Facts given | Tax |
+| --- | --- | --- |
+| Library 8-420 | Tax free component **$25,000**, element taxed in the fund **$17,000** | **$5,950.00** (35%) |
+| The same, working holiday maker | As above | **$11,050.00** (65%) |
+| Both elements | Tax free $1,000, taxed $10,000, untaxed $20,000 | **$12,500.00**; working holiday maker **$19,500.00** |
+
+The last 2 rows are worked by hand from s 5. The tests also cover rounding
+at the half cent, a payment under $200, a wholly tax free payment and each
+refusal.
 ## ETP tax free component
 
 This worksheet's evidence was read on 19 November 2026 from 9.25 am to

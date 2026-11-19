@@ -179,6 +179,15 @@
   `hire_purchase.segments_invalid` and
   `hire_purchase.segments_not_contiguous`. `tests/hire_purchase_worksheet.rs`
   works the cases by hand and from the ATO's Albert and Darren examples.
+- `dasp-tax` works out the tax on a departing Australia superannuation
+  payment in 2025-26 to 2027-28 by component: nil on the tax free component,
+  35% on the element taxed in the fund and 45% on the element untaxed in the
+  fund, or 65% on both where the payment includes contributions made whilst a
+  working holiday maker (Superannuation (Departing Australia Superannuation
+  Payments Tax) Act 2007 s 5(1) and (3)). `derive` explains each amount. New
+  codes: `dasp_tax.payment_nil` and `dasp_tax.unclaimed_money_rollover`, for
+  an s 5(2) roll-over with an element untaxed in the fund. `tests/dasp_tax.rs`
+  runs the Library's $42,000 example and the working holiday maker rate.
 - `fbt-minor-benefit-check` screens one benefit in the FBT year ended
   31 March 2026 or 2027 against the minor benefits exemption (FBTAA s 58P).
   It decides the exclusions (an in-house expense payment, property or
@@ -224,6 +233,19 @@
 - `hire-purchase-schedule`'s `instalment` and `instalments` are required only
   without `segments`, and `hire_purchase.instalments_unsupported` and
   `hire_purchase.rate_unsupported` name the frequency's limits.
+
+### Fixed
+
+- `worksheet_catalogue()`'s evidence note for the 2 car worksheets, the 3
+  Schedule 5 methods, working holiday maker and seniors and pensioners
+  withholding, and the seniors and pensioners tax offset now opens their
+  heading in `docs/calculation-evidence.md`; before, it named an anchor the
+  document does not have.
+- `contribution-caps` cites a first year of bring forward for the
+  non-concessional cap only when the contributions are over the general cap
+  (ITAA 1997 s 292-85(3)(a)). At or under it, the step says that twice or
+  3 times the general cap applies only if bring forward is triggered. No
+  amount changes.
 
 ## 1.0.0
 
