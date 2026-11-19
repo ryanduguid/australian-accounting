@@ -183,6 +183,15 @@
   `fbt_ev_exemption.vehicle_invalid`. `tests/fbt_ev_exemption.rs` runs the
   ATO's Shelly, John, GHI Co, Sonia, Simon, Tony, Courtney and pool car
   examples, the Library's Cleancut example and each failing condition.
+- `dasp-tax` works out the tax on a departing Australia superannuation
+  payment in 2025-26 to 2027-28 by component: nil on the tax free component,
+  35% on the element taxed in the fund and 45% on the element untaxed in the
+  fund, or 65% on both where the payment includes contributions made whilst a
+  working holiday maker (Superannuation (Departing Australia Superannuation
+  Payments Tax) Act 2007 s 5(1) and (3)). `derive` explains each amount. New
+  codes: `dasp_tax.payment_nil` and `dasp_tax.unclaimed_money_rollover`, for
+  an s 5(2) roll-over with an element untaxed in the fund. `tests/dasp_tax.rs`
+  runs the Library's $42,000 example and the working holiday maker rate.
 - `fbt-minor-benefit-check` screens one benefit in the FBT year ended
   31 March 2026 or 2027 against the minor benefits exemption (FBTAA s 58P).
   It decides the exclusions (an in-house expense payment, property or

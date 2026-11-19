@@ -1032,6 +1032,9 @@ pub fn supported_periods(kind: &str) -> Vec<&'static str> {
         // 2017 and earlier vintages ended (WETR 2009/2; the ATO's QC22756
         // and QC22757); the rate and cap are set by the Act, not indexed.
         "wine_equalisation_tax" => vec!["2023-24", "2024-25", "2025-26", "2026-27", "2027-28"],
+        // s 5 sets fixed rates; the temporary budget repair levy of s 6 ended
+        // with 2016-17. The years are the other superannuation worksheets'.
+        "dasp_tax" => vec!["2025-26", "2026-27", "2027-28"],
         // Division 75 sets no figure by year; the years are gst's.
         "gst_margin_scheme" => vec!["2025-26", "2026-27", "2027-28"],
         // The 2026-27 rates and thresholds each revenue office published, read
@@ -1152,6 +1155,10 @@ pub fn source_review(kind: &str) -> (&'static str, &'static str) {
         "balancing_adjustment" => (
             "2026-11-18",
             "ITAA 1997 ss 40-25, 40-85, 40-230, 40-285, 40-290, 40-291A, 40-295, 40-300, 40-305, 40-325, 40-370, 104-235, 104-240, 118-5 and 118-10 (its example) and Subdivision 27-B, compilation 268 (1 October 2026), with the endnotes' amendment history; Treasury Laws Amendment (Tax Reform No. 1) Act 2026 (No 49 of 2026), Schedule 4 item 17 (s 40-291A from 2026-27); Guide to depreciating assets 2026, 'What happens if you no longer hold or use a depreciating asset?', its Bridget, Andrew and Louise examples and the car limit formula",
+        ),
+        "dasp_tax" => (
+            "2026-11-19",
+            "Superannuation (Departing Australia Superannuation Payments Tax) Act 2007 ss 4 to 6 (compilation 5, 2 December 2016, Federal Register of Legislation); ITAA 1997 ss 301-170 and 301-175, from the ATO's legal database; the ATO's 'Payments from super' rates (last updated 16 September 2026) and 'Departing Australia superannuation payment (DASP)' (last updated 21 April 2026)",
         ),
         "payroll_tax" => (
             "2026-11-19",
@@ -1413,6 +1420,12 @@ pub fn library_evidence(kind: &str) -> [(&'static str, &'static str); 4] {
             "Bridget, Andrew and Louise examples; the Gayle example",
             "2026-06-01",
             "2026-11-18",
+        ),
+        "dasp_tax" => (
+            "superannuation-superannuation-benefits-termination-payments",
+            "8-420",
+            "2026-06-30",
+            "2026-11-19",
         ),
         "payroll_tax" => (
             "Revenue office payroll tax pages: Revenue NSW thresholds and rates; SRO Victoria payroll tax surcharges; QRO payroll tax deductions; RevenueWA employer guide; SRO Tasmania annual adjustment return guideline",
@@ -2429,6 +2442,28 @@ pub fn input_units(kind: &str) -> Vec<(&'static str, &'static str)> {
                 "boolean, true when luxury car tax became payable on any other supply or importation of the car before the benefit (FBTAA s 8A(1)(c))",
             ),
         ],
+        "dasp_tax" => vec![
+            (
+                "tax_free_component",
+                "AUD, the payment's tax free component, as the paying fund states it",
+            ),
+            (
+                "taxed_element",
+                "AUD, the element taxed in the fund of the payment's taxable component",
+            ),
+            (
+                "untaxed_element",
+                "AUD, the element untaxed in the fund of the payment's taxable component, 0.00 for most funds",
+            ),
+            (
+                "working_holiday_maker_contributions",
+                "boolean, true when the payment includes amounts attributable to superannuation contributions made whilst the person was a working holiday maker: the holder of a subclass 417 (Working Holiday) or 462 (Work and Holiday) visa or an associated bridging visa (DASP Tax Act s 5(3); Income Tax Rates Act 1986 s 3A). The 65% rate then applies to the whole taxable component, whatever visa the person held when other contributions were made",
+            ),
+            (
+                "unclaimed_money_rollover",
+                "boolean, true when the payment is a roll-over superannuation benefit paid under s 20H(2), (2AA) or (2A) of the Superannuation (Unclaimed Money and Lost Members) Act 1999; true with an element untaxed in the fund is refused, as s 5(2) taxes any excess untaxed roll-over amount in it at nil",
+            ),
+        ],
         "payroll_tax" => vec![
             ("jurisdiction", "nsw, vic, qld, wa, sa, tas, act or nt"),
             (
@@ -3229,6 +3264,16 @@ pub fn examples(kind: &str) -> Vec<(&'static str, Example)> {
             ("first_retail_sale", Text("2025-07-01")),
             ("luxury_car_tax_value", Text("79200.00")),
             ("luxury_car_tax_on_other_supply", Flag(false)),
+        ],
+        // The Library's example (Superannuation Benefits, 8-420): a $42,000
+        // benefit of a $25,000 tax free component and a $17,000 element
+        // taxed in the fund, applied for on 1 August 2026.
+        "dasp_tax" => vec![
+            ("tax_free_component", Text("25000.00")),
+            ("taxed_element", Text("17000.00")),
+            ("untaxed_element", Text("0.00")),
+            ("working_holiday_maker_contributions", Flag(false)),
+            ("unclaimed_money_rollover", Flag(false)),
         ],
         "payroll_tax" => vec![
             ("year", Text("2026-27")),

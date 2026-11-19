@@ -4846,6 +4846,8 @@ mod trade_in;
 pub use trade_in::{TradeInArgs, trade_in};
 mod fbt_ev_exemption;
 pub use fbt_ev_exemption::{EvExemptionArgs, fbt_ev_exemption_check};
+mod dasp_tax;
+pub use dasp_tax::{DaspTaxArgs, dasp_tax};
 mod payroll_tax;
 pub use payroll_tax::{PayrollTaxArgs, payroll_tax};
 mod luxury_car_tax;
@@ -6143,7 +6145,7 @@ pub use fbt_minor_benefit::{MinorBenefitArgs, fbt_minor_benefit_check};
 mod gst_margin_scheme;
 pub use gst_margin_scheme::{MarginSchemeArgs, gst_margin_scheme};
 
-const KINDS: [&str; 60] = [
+const KINDS: [&str; 61] = [
     "gst",
     "gst_margin_scheme",
     "fuel_tax_credits",
@@ -6159,6 +6161,7 @@ const KINDS: [&str; 60] = [
     "business_capital_expenditure",
     "balancing_adjustment",
     "trade_in",
+    "dasp_tax",
     "payroll_tax",
     "fbt",
     "fbt_car_statutory",
