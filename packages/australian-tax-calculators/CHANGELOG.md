@@ -4,6 +4,47 @@
 
 ### Added
 
+- `borrowing-expenses-schedule` works out borrowing expenses under ITAA 1997
+  s 25-25 for several loans and every income year of each, for loans first
+  drawn from 1 July 2017: the $100 test across the loans incurred in a year
+  (s 25-25(6)), use that changes by year (s 25-25(2) and (3)), refinancing as
+  the repayment of one listed loan by another (s 25-25(5)(b)) and the totals
+  by year. Rows from 2027-28 are flagged for s 26-155 and rows after 2027-28
+  marked projected. New codes: `borrowing.income_use_invalid`,
+  `borrowing.loan_before_2017_18`, `borrowing.loan_fact_missing`,
+  `borrowing.loans_invalid`, `borrowing.other_expenses_invalid` and
+  `borrowing.refinance_invalid`. `derive` covers it.
+  `tests/borrowing_expenses_schedule.rs` holds it to the ATO's Peter and
+  Fiona and Max, the Library's Ben and `borrowing-expenses` row by row.
+
+- `luxury-car-tax` works out the luxury car tax on a tax period's sales and
+  importations in 2019-20 to 2026-27 at 33% of the GST exclusive excess over
+  the year's threshold (LCT Act s 5-15), from the ATO's thresholds for
+  2012-13 to 2026-27, with the 3.5 litre fuel-efficient rating from 1 July
+  2025 and its 7 litre carry-over (Act No. 29 of 2025 Sch 1), price and
+  change of use adjustments, BAS labels 1E and 1F rounded down, and the
+  primary producer and tourism operator refunds of up to $10,000 apart from
+  the BAS. New codes: `luxury_car_tax.consumption_invalid`,
+  `luxury_car_tax.kind_invalid`, `luxury_car_tax.line_invalid`,
+  `luxury_car_tax.lines_invalid`, `luxury_car_tax.refund_invalid`,
+  `luxury_car_tax.refund_limit` and `luxury_car_tax.year_invalid`.
+  `tests/luxury_car_tax.rs` holds it to the ATO's QC22107 and QC22108
+  examples, every published threshold year and hand-worked cases.
+- `wine-equalisation-tax` works out the wine tax on a tax period's wholesale
+  sales, retail sales, applications to own use and sales under quote in
+  2023-24 to 2027-28 (WET Act ss 5-5, 7-10 and Division 9), at 29% of the
+  price, half the retail price or the average wholesale price, with GST, and
+  the producer rebate under s 19-5 at 29%, capped at $350,000 a year to
+  2025-26 and $400,000 from 2026-27, less earlier claims in the year. It
+  gives labels 1C and 1D rounded down, never netted. New codes:
+  `wine_equalisation_tax.dealing_invalid`,
+  `wine_equalisation_tax.dealings_invalid`,
+  `wine_equalisation_tax.intention_invalid`,
+  `wine_equalisation_tax.kind_invalid`,
+  `wine_equalisation_tax.method_unavailable` and
+  `wine_equalisation_tax.quantity_invalid`. `tests/wine_equalisation_tax.rs`
+  holds it to the ATO's Alison, Happy Valley and Good Wines examples, QC22758's
+  rebate table, WETR 2009/1 examples 15 and 16 and the Library's ¶22-280.
 - `fbt-meal-entertainment-register` checks a 12 week meal entertainment
   register for the FBT year ended 31 March 2026 or 2027: the continuous
   12 week period (FBTAA s 37CC), each entry's 6 details (s 37CE(1)), the
@@ -128,6 +169,13 @@
   Tureia example.
 
 ### Changed
+
+- `borrowing-expenses` takes 2017-18 to 2027-28, not 2024-25 to 2026-27:
+  s 25-25 sets no figure by year and has its present text from 1 April 2017.
+  From 2027-28 it works the year out and warns that s 26-155 may quarantine
+  it, instead of refusing the year. A loan first drawn on 29 February is
+  worked out, its 5 years ending on 28 February (Acts Interpretation Act 1901
+  s 2G(2)); `borrowing.loan_start_29_february` is withdrawn.
 
 - `hire-purchase-schedule`'s `instalment` and `instalments` are required only
   without `segments`, and `hire_purchase.instalments_unsupported` and

@@ -52,7 +52,8 @@ example evidence; it does not claim a fresh review of every supported period.
 | FBT tax-exempt body entertainment | Not a Library document: FBTAA ss 38 and 39 (compilation 97), the FBT return 2026 instructions (item 23L, example 15) and the employer's guide (chapter 15) | 1 April 2026 (item 23) | Established expenditure for the years ended 31 March 2026 and 2027, actual or per head |
 | FBT entertainment classifier | Not a Library document: ITAA 1997 Division 32, ss 27-5 and 995-1 (compilation 268), FBTAA ss 5E, 20, 37A to 37CF, 40, 41, 45, 58P, 135P and 136(1) (compilation 97), the FBT Assessment Regulations 2018 regs 6 to 11, ITAA 1936 ss 51AEA and 51AEB (compilation 193), GST Act s 69-5 (compilation 96), and TR 97/17 and TR 2007/12 as the Commissioner's view | 16 November 2026 (read) | One ordinary taxable employer's entertainment lines with established facts for the years ended 31 March 2026 and 2027; no Subdivision 32-B exception, tax-exempt body or reportable fringe benefits amount |
 | Main residence | `tax-examples-capital-gains-tax-cgt` (tax-examples), ¶2-060 and ¶2-075, with the ATO's pages 'Treating former home as main residence' (QC66030) and 'Using your home for rental or business' (QC66033) | 30 June 2026; 22 June 2026 (both ATO pages) | One dwelling's taxable days for CGT events in 2024-25 to 2026-27; cost base, market value and discount excluded |
-| Borrowing expenses | `tax-examples-deductions` (tax-examples), ¶4-160, with ITAA 1997 s 25-25 (compilation 268, 1 October 2026) and the ATO's 'Borrowing expenses' page | 30 June 2026; 22 May 2026 (ATO page) | One loan's established expenditure, use and dates for 2024-25 to 2026-27; classification, interest and refinancing excluded |
+| Borrowing expenses | `tax-examples-deductions` (tax-examples), ¶4-160, with ITAA 1997 s 25-25 (compilation 268, 1 October 2026; read again 19 November 2026) and the ATO's 'Borrowing expenses' page | 30 June 2026; 22 May 2026 (ATO page) | One loan's established expenditure, use and dates for 2017-18 to 2027-28; classification, interest and refinancing excluded |
+| Borrowing expenses schedule | `tax-examples-deductions` (tax-examples), ¶4-160, with ITAA 1997 ss 25-25, 26-50 and 26-155 and the Acts Interpretation Act 1901 ss 2G and 36 (compilation 39) | 30 June 2026; 22 May 2026 (ATO page) | Several loans first drawn from 1 July 2017, every year of each; use by year and refinancing established by the operator; s 26-155 flagged, not applied |
 | Hire purchase schedule | Not a Library document: ITAA 1997 ss 240-17, 240-55 and 240-60 on the ATO's legal database and in compilation 268 (1 October 2026) | 15 November 2026 (read) | One agreement's monthly notional interest for the hirer, starting in 2024-25 to 2026-27, from established payments; apportionment to income years under s 240-60(2) excluded |
 | Balancing adjustment | Not a Library document: the ATO's Guide to depreciating assets 2026 (Bridget, Andrew and Louise examples) and ITAA 1997 Subdivisions 27-B and 40-D, ss 104-240, 118-5 and 118-10(1) and its example (compilation 268, 1 October 2026) | 1 June 2026 (Guide); 18 November 2026 (read) | One depreciating asset's balancing adjustment, s 40-290 reduction and K7 amount for events in 2024-25 to 2026-27, from established cost, termination value and each year's decline and deduction; pools, s 40-291A and roll-overs excluded |
 | Trade-in | Not a Library document: the ATO's 'Purchasing a motor vehicle' (Darren's example) and 'GST and the disposal of capital assets' (Ian's example), with ITAA 1997 Subdivision 27-B and ss 40-180 to 40-230, 40-305 and 40-365 (compilation 268) and GST Act ss 9-75, 11-30, 69-10 and 132-5 (compilation 96) | 3 June 2026 and 24 May 2017 (ATO pages); 18 November 2026 (read) | One asset traded in at arm's length for a replacement first held and used in 2025-26 or 2026-27; GST status, credits, allowance and price established; involuntary disposals and luxury car tax on the trade-in excluded |
@@ -734,6 +735,85 @@ are fabricated under it. The tests also cover $300 itself and $299.99, each
 exclusion alone and together, both s 58P(1)(d) exceptions, mixed criteria left
 to judgement, and each refusal.
 
+## Wine equalisation tax
+
+This worksheet was added on 19 November 2026. The WET Act was read that day
+at the ATO's legal database (ss 5-5, 5-50, 7-10, 9-5, 9-25, 9-30, 9-35, 9-40,
+9-45, 13-5, 19-5, 19-15, 19-20, 19-25, 31-1 and 33-1), and ss 19-15 and 19-25
+in compilation 32 (1 April 2026) at the Federal Register of Legislation, with
+Schedule 6 to the Treasury Laws Amendment (Supporting Choice in
+Superannuation and Other Measures) Act 2026 (No. 12, 2026), which raises the
+cap to $400,000 for assessable dealings from 1 July 2026. WETR 2009/1 and
+WETR 2009/2 were read as the ATO publishes them. The ATO's pages
+'Wholesale sales' and 'Retail sales and own use' (QC22750 and QC22751, both
+last updated 19 March 2025), 'Producer rebate' (QC22756, 30 June 2026),
+'Calculate and claim your rebate' (QC22758, 2 July 2026), 'Reporting and
+paying WET' (QC22762), 'Wine equalisation tax (WET)' (QC33703, 1 May 2025)
+and 'Instructions for completing your BAS' (QC17458, 14 September 2026) were
+read that day, as was the Library's GST collection at ¶22-280 and ¶22-290.
+
+The Act fixes no value basis for the 10% wholesale share of s 9-25(3), so the
+command takes it as a stated fact. The ATO rounds its tasting bottle's
+notional wholesale selling price to $5.83 where this command gives $5.84; the
+tax, $1.69, is the same. Years before 2023-24 are refused, as the earlier
+rebate reductions for wine of 2017 and earlier vintages sold before 1 July
+2023 are not worked.
+
+`tests/wine_equalisation_tax.rs` holds these cases.
+
+| Case | Source | Worksheet |
+| --- | --- | --- |
+| Alison sells a dozen for $120 before WET and GST | QC22750 | WET $34.80, GST $15.48, $170.28 in all |
+| Swillo sells 5 cases at $120 | Library ¶22-280 | WET $174.00, GST $77.40, $851.40 in all |
+| A dozen at the cellar door for $140 | QC22751 (Happy Valley) | Taxable value $70.00, WET $20.30 |
+| A tasting bottle normally sold for $11.67 | QC22751 | WET $1.69, no GST |
+| A $22 retail sale; a staff sale taxed at the normal $150 | WETR 2009/1 example 15 and para 159 | WET $3.19 and GST $2.00; WET $21.75 |
+| 70% of wholesale sales at $80 a dozen and 30% at $90, then a dozen at the cellar door for $190 | WETR 2009/1 example 16, QC22751 (Good Wines) | Average $83.00, WET $24.07, GST $17.27 |
+| 2026-27 rebates on a retail, a wholesale, 2 quoted and a tasting dealing | QC22758's table | WET $11,890, rebate $16,240 |
+| A $50,000 wholesale sale with $340,000 (2025-26) or $390,000 (2026-27, 2027-28) claimed earlier | Worked by hand under s 19-15(2) | Rebate earned $14,500, $10,000 within the cap |
+| A hamper's wine share, $150 | Library ¶22-280 | WET $43.50 |
+
+## Luxury car tax
+
+This worksheet was added on 19 November 2026. The LCT Act was read that day
+at the ATO's legal database (ss 5-15, 5-20, 7-15, 9-5, 9-15, 15-20, 15-25,
+15-30, 18-5, 18-10, 25-1 and 27-1, with their history notes), and in
+compilation 27 (1 April 2025) at the Federal Register of Legislation, with
+Schedule 1 to the Treasury Laws Amendment (Tax Incentives and Integrity) Act
+2025 (No. 29, 2025), which lowers the fuel-efficient rating to 3.5 litres
+for supplies and importations from 1 July 2025 and keeps 7 litres for a car
+supplied or imported and used other than for a quotable purpose before then
+(item 4(2)). The rate, 33%, is s 4 of the Luxury Car Tax Imposition (General)
+Act 1999 and of the (Customs) Act. The ATO's 'Luxury car tax rate and
+thresholds' (QC38161, last updated 1 June 2026) gives both thresholds for
+each financial year from 2012-13 to 2026-27; 'Working out the LCT on a sale'
+(QC22107) and 'on an import' (QC22108), both 1 June 2026, give the
+examples; 'Luxury car tax credits and refunds' (QC39467, 16 July 2025) says
+refunds are claimed on the approved form within 4 years and not on the BAS;
+and the BAS page 'Luxury car tax (LCT)' (QC33694, 1 May 2025) gives labels
+1E and 1F. The Library's ¶12-340 (reviewed 30 June 2026) gives the same
+2025-26 thresholds.
+
+The formula's 33% x 10/11 is exactly 0.3, so each line's tax is exact before
+rounding to the cent. Tax periods start at 2019-20 because ss 18-5(3) and
+18-10(3), as substituted by Act No. 94 of 2019, give the $10,000 refunds only
+for cars supplied or imported from 1 July 2019; earlier refunds (8/33 of the
+tax, at most $3,000) are not worked. 2027-28 is refused until the ATO
+publishes its thresholds.
+
+`tests/luxury_car_tax.rs` holds these cases.
+
+| Case | Source | Worksheet |
+| --- | --- | --- |
+| A car sold for $88,000 including GST in 2026-27, not fuel efficient | QC22107 (Matty Bee Motors) | $2,157.30; charged $90,157.30 |
+| A 1977 Mustang imported in 2026-27 with an LCT value of $101,500 | QC22108 (Jimmy) | $6,207.30, paid to Home Affairs |
+| Both thresholds for each year from 2019-20 to 2026-27 | QC38161; Library ¶12-340 for 2025-26 | The year's figures |
+| A $95,000 car rated 5 litres in 2026-27; the same under item 4(2); one rated 3.5 litres | Worked by hand under s 25-1(4) and Act No. 29 of 2025 Sch 1 item 4 | $4,257.30; $1,001.70; $1,001.70 |
+| A $100,000 sale with $2,000 or $6,000 of earlier tax on the car | Worked by hand under s 5-15(2) | $3,757.30; nil |
+| A 2025-26 sale's price cut to $85,000 after $2,157.30 was attributed | Worked by hand under s 15-25 | $827.40 decreasing adjustment at 1F |
+| A car bought under quote for $100,000 in 2025-26 then used privately | Worked by hand under s 15-30(3) and (4)(a) | $5,829.90 increasing adjustment at 1E |
+| Refunds on $12,000 and $4,000 of tax borne | ss 18-5(3) and 18-10(3) | $10,000 and $4,000, off the BAS |
+
 ## Main residence
 
 This worksheet was added on 1 November 2026; its example evidence was read
@@ -797,10 +877,42 @@ not change the result.
 The $100 test in s 25-25(6) is '$100 or less'; ¶4-160 says 'less than $100',
 and the worksheet follows the Act. Money not used to produce income at all is
 outside s 25-25(6)(a) and (b), so its expenditure is spread and nothing is
-deducted (s 25-25(3), note). No source settles when 5 years from 29 February
-end, so a loan first drawn that day is refused. Treasury Laws Amendment (Tax
-Reform No. 1) Act 2026, Schedule 2 item 5, applies s 26-155 from the 2027-28
-income year, so later years are refused.
+deducted (s 25-25(3), note). From 19 November 2026 a loan first drawn on
+29 February is worked out, its 5 years ending on 28 February, and income
+years from 2017-18 to 2027-28 are taken, 2027-28 flagged for s 26-155; see
+[Borrowing expenses schedule](#borrowing-expenses-schedule) for both.
+
+## Borrowing expenses schedule
+
+This worksheet was added on 19 November 2026. ITAA 1997 s 25-25, its
+history notes, s 26-50 and s 26-155 were read on the ATO's legal database
+that day, with the ATO's Borrowing expenses page (updated 22 May 2026) and
+the Acts Interpretation Act 1901 (compilation 39, 28 March 2026) on the
+Federal Register. `tests/borrowing_expenses_schedule.rs` holds each case;
+every row also equals `borrowing_expenses` for that loan and year.
+
+| Case | Source | Worksheet | Published |
+| --- | --- | --- | --- |
+| Peter and Fiona and Max in one run, every year | ATO page | $318.07, $319.83, $319.82, $320.70, $319.83, $1.75; $259.62, $271.53, $271.53, $272.27, $271.53, $11.90 | Peter's $318.07 and $1.75 and $1,598.25 by Year 5; Fiona and Max's table |
+| Ben, every year: 303 of 1,461 days, 365 of 1,158, 366 of 793, 365 of 427, 62 of 62 | ¶4-160 | $746.61, $899.38, $901.85, $899.39, $152.77 | $747, $899, $902, $899, $153 |
+| A $1,500 loan refinanced on 31 December 2025 by an $800 loan | Built from s 25-25(4) and (5)(b) | $311.09, $1,188.91; $79.74 to $80.18 over 6 years | None published |
+
+s 25-25 has had its present text since Act No 15 of 2017 substituted step 1
+of s 25-25(4) from 1 April 2017 (correcting 'the the'); the rest dates from
+Act No 121 of 1997 and Act No 79 of 2010's note. The worksheet takes loans
+first drawn from 1 July 2017. s 26-155 was inserted by Act No 49 of 2026 for
+the 2027-28 income year and later years (history note read 19 November
+2026). It quarantines the excess of residential deductions over residential
+income after the other provisions have worked the deductions out, so it does
+not change the s 25-25 amount: the year is worked out and flagged.
+
+s 25-25(5)(c) says '5 years starting on the first day on which the money was
+borrowed'. Acts Interpretation Act 1901 s 36(1) item 2 counts that day.
+Read as 60 months, s 2G(2) ends the period immediately before the same day
+of the month 60 months on or, where that month has no such day, at its end:
+a loan first drawn on 29 February 2024 runs to 28 February 2029, 1,827 days.
+The anniversary reading (immediately before 29 February 2029, which does not
+exist) gives the same day, so both readings agree.
 
 ## Hire purchase schedule
 
@@ -2753,6 +2865,7 @@ year; the others refuse it and say what is missing.
 | Study loan repayment thresholds | Not published | ATO minimum repayment income page (last updated 30 June 2026, years to 2026-27), 16:07 |
 | Contribution caps, ETP caps | Not published | ATO contributions caps page (last updated 11 September 2026) and ETP page (17 April 2026), 16:07 |
 | Division 296 thresholds | Not published: indexed from 2027-28 | ATO Division 296 page (last updated 3 November 2026, 2026-27 only), 16:13 |
+| Borrowing expenses | Worked out and flagged: s 25-25 sets no figure by year, and s 26-155 applies after it | ITAA 1997 ss 25-25 and 26-155 on the ATO's legal database, read 19 November 2026 |
 | CGT and rental deductions | Changed from 1 July 2027 by Act No. 49 of 2026 Schedules 1 and 2 (s 26-155) | ITAA 1997 s 26-155 (https://www.ato.gov.au/law/view/document?docid=PAC/19970038/26-155), 16:13 |
 | Balancing adjustment | Refused: CGT event K7 is a capital gain, which Schedule 1 to Act No. 49 of 2026 changes from 1 July 2027 | Act No. 49 of 2026 as made (https://www.legislation.gov.au/C2026A00049/asmade/text), read 18 November 2026 at 07:06; see [Balancing adjustment](#balancing-adjustment) |
 | Trade-in | Refused: the car limit for 2027-28 was not published, and CGT event K7 changes with Act No. 49 of 2026 | ATO 'Purchasing a motor vehicle' (last updated 3 June 2026, the 2026-27 limit only), read 18 November 2026 at 07:10; see [Trade-in](#trade-in) |

@@ -35,8 +35,16 @@ pub const SCOPES: &[(&str, &str)] = &[
         "One loan to buy goods, secured by a chattel mortgage over them and made on the day of the purchase in the income year given, under which the purchaser takes title at the purchase, so the agreement is not a hire purchase agreement (ITAA 1997 s 995-1) and Division 240 does not apply (s 240-10). The operator establishes the amount financed (paid to the supplier for the goods), the instalments, the balloon, the start date, any deposit and trade-in (taken as paid or credited on the start date, with the goods on one tax invoice) and any GST facts, and either the instalment or a stated annual rate. The instalments are one level amount weekly, fortnightly, monthly, quarterly or annually, in arrears (at each period's end) or in advance (at its start), with any balloon paid at the end of the term, over at most 30 years; months run from the start date's day of the month (or the month's last day when it is shorter) and weeks are 7 days. Each period's interest is the balance owing, less any instalment due at the period's start, times the rate for the period (the actuarial method, TR 93/16 para 18). Given the instalment, the rate is the compound rate a month (or week) at which the payments repay the amount financed, found to 64 halvings of 0 to 100%, and a period of n months (or weeks) has the rate (1 + r)^n - 1. Given annual_rate, for monthly or weekly instalments in arrears, the rate a period is annual_rate / 12 (or / 52), the instalment is the level one that repays the amount financed with the balloon at that rate, rounded half up to the cent, and the balance that rounding leaves, rounded to the cent, is added to the last instalment. Each period shows the interest to date rounded half up to cents, less what the periods before show, so the periods add up to the total interest and the last balance is nil. The interest is totalled by income year for the periods wholly in each year; a period spanning 30 June is listed apart with its days in each year. Interest charged is deductible under s 8-1 to the extent the borrowed money is used to gain or produce assessable income and is not capital, private or domestic; where the lender's statements give the interest, that figure is used (TR 93/16 para 2). With every GST fact given, it gives a registered purchaser's input tax credit on the price (the amount financed, deposit and trade-in): 1/11 of the price, less any luxury car tax for a car (GST Act s 9-75(2)), rounded to the nearest cent, 0.5 up (s 9-90(1)); for a passenger car whose GST inclusive market value exceeds the car limit for the financial year it is first used ($69,674 for 2024-25 and 2025-26, $69,883 for 2026-27), where the purchaser may not quote an ABN for luxury car tax, no more than 1/11 of that limit (s 69-10(1)); times the extent of creditable purpose (ss 11-30(3) and 69-10(3)). The interest gives no credit, as the loan is an input taxed financial supply (s 40-5(1)). The credit is attributable to the tax period of the purchase: on an accruals basis the earlier of the invoice and any payment (s 29-10(1)), on a cash basis the payment of the full price with the borrowed funds (s 29-10(2)(a)), as the ATO's GST issues register 'Financial services - questions and answers' (issue 1.21) states. Refuses both or neither of instalment and annual_rate, annual_rate with instalments in advance or other than monthly or weekly, a rate below nil or of 100% a month (or week) or more, a rate that cannot be found closely enough to leave a nil balance to the cent, a term over 30 years, a nil amount financed or instalment, a balloon that alone repays the loan at the stated rate, a rounded instalment that moves the last instalment by more than a whole instalment (below nil or above twice the instalment), a car first used in a year whose car limit is not published, and luxury car tax above the price. Excludes deciding whether the agreement is a chattel mortgage, the extent of income use and creditable purpose; fees, charges and stamp duty; irregular or changing instalments and rates (loan_transactions takes dated rates); interest charged daily; an early payout; substituted accounting periods; apportioning a period that spans 30 June between income years; the goods' decline in value and their cost for Division 40 (ss 27-80 and 40-230); the trade-in's own GST; GST adjustments after the purchase; and the lender.",
     ),
     (
+        "luxury_car_tax",
+        "Luxury car tax on one tax period's taxable supplies and taxable importations of luxury cars in a financial year from 2019-20 to 2026-27, by an entity registered or required to be registered for GST, with its price and change of use adjustments and the primary producer and tourism operator refunds (A New Tax System (Luxury Car Tax) Act 1999). The operator establishes each line: that the vehicle is a car (s 27-1) and not one s 25-1(2) excludes (emergency vehicles, cars fitted out for wheelchairs, commercial vehicles not designed mainly to carry passengers, motor homes and campervans), that the supply or importation is taxable (no quote, s 9-5; not GST-free, input taxed or otherwise exempt), its luxury car tax value including GST and customs duty but not luxury car tax (ss 5-20 and 7-15(2)), and its combined fuel consumption rating. The threshold is the luxury car tax threshold for the financial year of the supply or importation, or the fuel-efficient car limit for a car rated at most 3.5 litres per 100 km for supplies and importations from 1 July 2025 (7 litres before, and after where item 4(2) of Schedule 1 to Act No. 29 of 2025 continues it), from the ATO's published table (QC38161) for 2012-13 to 2026-27. The tax is 33% x 10/11 x (value - threshold), nil at or below the threshold, rounded half up to the cent (s 5-15(1)); a sale's is less tax payable on an earlier supply or importation of the car, not below nil (s 5-15(2)). Importation tax is shown apart, as it is paid to the Department of Home Affairs. A price adjustment is the corrected tax on the sale against the tax previously attributed (ss 15-20 and 15-25); a change of use adjustment is the tax that would have been payable or was payable on the supply (s 15-30(1) to (4)). Label 1E (sales and increasing adjustments) and label 1F (decreasing adjustments) are rounded down to whole dollars. A refund is the lesser of the tax borne and $10,000 on a refund-eligible car supplied or imported from 1 July 2019 (ss 18-5 and 18-10), one car a financial year for a primary producer. Refuses a year outside 2019-20 to 2026-27, a supply year outside the table, a refund for a car supplied before 1 July 2019 and a second primary producer refund. Excludes deciding whether a vehicle is a car or a luxury car, quoting, the luxury car tax value of a car with other goods or of a demonstrator, whether a car is refund-eligible or the refund conditions are met, the s 15-30(1A) and (3A) adjustments for cars imported for the purposes of s 7-10(3)(ba), bad debts (Subdivision 15-C), attribution of a line to a tax period, deferred luxury car tax on importations and the refund claim itself, made on the approved form and not the BAS.",
+    ),
+    (
         "loan_transactions",
         "One loan's statement from start_date to end_date, starting in the income year given and ending less than 30 years later. The operator establishes the balance owing at the start, the annual interest rate from the start and each dated change to it, and each drawing and repayment with its date and amount. A day's rate change and transactions take effect on that day. Each day's interest is the balance owing at the end of the day, when above nil, times the annual rate in force that day divided by 365, in leap years too; the interest accrued is debited to the loan on the last day of each month and on end_date, rounded half up to the cent, so each income year's interest is debited by its 30 June and the interest by income year is the interest debited in it. The statement lists the opening balance, each rate change, drawing, repayment and interest debit with the running balance, as rows and as a printable table. Interest charged on money borrowed is deductible under ITAA 1997 s 8-1(1) to the extent the money is used to gain or produce assessable income, and not to the extent it is capital, private or domestic (s 8-1(2)). Refuses a start outside the income year, an end before the start or 30 years or more after it, more than 5,000 transactions or 1,000 rate changes, an entry not in date order or outside the statement, 2 rate changes on one day or one on start_date, a rate outside 0 to 1, and a balance below nil at the end of a day (a loan in credit). Excludes deciding the extent of income use, whether any amount is deductible and the purpose of the borrowing; interest on another day count, compounding or rest, or charged in advance; fees and charges; offset accounts and redraw limits; interest on a balance in credit; Division 7A loans (div7a-loan-review); substituted accounting periods; and the lender.",
+    ),
+    (
+        "wine_equalisation_tax",
+        "Wine tax on one tax period's taxable dealings in wine in a financial year from 2023-24 to 2027-28, by an entity registered or required to be registered for GST, and the producer rebate on them (A New Tax System (Wine Equalisation Tax) Act 1999). The operator establishes each dealing: what it is, that it is in assessable wine in the indirect tax zone, that no exemption other than quoting applies, and its price. Its taxable value is: for a wholesale sale, the price excluding wine tax and GST (s 5-5, items AD1a, AD1b and AD11b); for a retail sale that is an assessable dealing, and for an application to own use connected with retail sales (consuming or giving away wine in connection with retail sales, such as tastings), the notional wholesale selling price by the half retail price method, 50% of the retail price including wine tax and GST (ss 9-30 and 9-35; WETR 2009/1 para 143), or for grape wine, when chosen, by the average wholesale price method, the weighted average price excluding wine tax and GST of the tax period's wholesale sales of the same vintage and grape varieties (ss 9-25 and 9-40), allowed only where at least 10% by value of those sales are wholesale sales; and for an application to own use of wine purchased under quote, the purchase price excluding GST (items AD3c(a) and AD13c(a)). Each notional wholesale selling price is rounded half up to the cent. The wine tax is 29% of the taxable value, rounded half up to the cent (s 5-5(3)); a sale under quote is not taxable (s 7-10). For a wholesale sale, a sale under quote and a retail sale the GST is shown too, on the WET inclusive price or within the retail price, assuming a taxable supply. A dealing given with rebate_conditions earns the producer rebate, 29% of the price excluding wine tax and GST of a wholesale sale or sale under quote, or of the notional wholesale selling price of a retail sale or application to own use (s 19-15(1)), when the operator states that the entity is the wine's producer, owns the source product for at least 85% of the wine throughout its making and has it in a container of at most 5 litres (51 litres for cider or perry) suitable for retail sale and branded with its trade mark (s 19-5(1), (3) to (5) and (7)), and the dealing is one it is liable to wine tax on or, for a sale under quote, the quote states none of the intentions in s 5-50(1)(b). The rebates are capped for the financial year at $350,000 to 2025-26 and $400,000 from 2026-27 (s 19-15(2), as amended by Act No. 12 of 2026 for assessable dealings from 1 July 2026), for the producer or its group of associated producers (ss 19-15(3) and 19-20), less the rebates claimed in the year's earlier tax periods (WETR 2009/2 para 67). The amounts for BAS label 1C (wine tax payable) and 1D (wine tax refundable, here only the producer rebate) are the totals rounded down to whole dollars. Refuses a year outside 2023-24 to 2027-28, the average wholesale price method for wine that is not grape wine or without the 10% share, and a rebate on an application to own use of wine purchased under quote (its rebate would be on the notional wholesale selling price). Excludes deciding what a dealing is, whether the wine is assessable wine or grape wine, the price (arm's length, s 27-10; packages with other goods, s 27-15; containers, s 9-65), quoting entitlements, the rebate conditions and associated producers; importations and other customs dealings (paid to the Department of Home Affairs), royalty-inclusive dealings, indirect marketing schemes' notional prices, airport shop goods and other dealings valued under s 9-45; wine tax credits other than the producer rebate (s 17-5), such as bad debts and earlier wine tax; New Zealand participants; the transitional rules for 2017 and earlier vintage wine and for wine being made into fortified wine on 1 January 2018; excess claims under s 19-25; correcting earlier errors; and attributing a dealing to a tax period.",
     ),
     (
         "trade_in",
@@ -52,7 +60,11 @@ pub const SCOPES: &[(&str, &str)] = &[
     ),
     (
         "borrowing_expenses",
-        "One loan's borrowing expenses under ITAA 1997 s 25-25 for one income year from 2024-25 to 2026-27, before s 26-155 quarantines residential rental deductions from 2027-28. The operator establishes the expenditure the taxpayer incurred for borrowing the money, all in the income year the loan began; the extent the borrowed money is used to produce assessable income, the same throughout the loan; the first day the money was borrowed; the last day of the period the original loan contract specifies; any repayment day; and the income-producing share of the taxpayer's other borrowing expenses incurred in that year. Under s 25-25(6), when the money is used to produce income and this loan's income-producing share plus those other amounts is $100 or less, that share is deducted in the year incurred and later years are refused. Otherwise the period of the loan is the shortest of the contract's period, the period to the repayment day and 5 years from the first day borrowed (s 25-25(5)). Each income year's maximum deduction is the remaining expenditure over the days left in that period, times those days in the year, as determined at the end of the year, so the year of repayment takes all that remains (s 25-25(4)); each maximum is rounded to cents and carried forward at that amount, as the ATO's examples are, and the deduction is the maximum times the income-producing share (s 25-25(2) and (3)). Every day is counted, both ends included, as the ATO and the Library count: 5 years from 3 July end on 2 July. Excludes deciding which costs are borrowing expenses and the money's use; interest; refinancing, redraws and changes in use; expenditure incurred before the income year the loan began; a loan first drawn on 29 February; leisure facilities such as holiday homes unless s 26-50(3) applies at all times in the year; commercial debt forgiveness (Subdivision 245-E); private company loans (Division 7A); and s 26-155.",
+        "One loan's borrowing expenses under ITAA 1997 s 25-25 for one income year from 2017-18 to 2027-28. The operator establishes the expenditure the taxpayer incurred for borrowing the money, all in the income year the loan began; the extent the borrowed money is used to produce assessable income, the same throughout the loan; the first day the money was borrowed; the last day of the period the original loan contract specifies; any repayment day; and the income-producing share of the taxpayer's other borrowing expenses incurred in that year. Under s 25-25(6), when the money is used to produce income and this loan's income-producing share plus those other amounts is $100 or less, that share is deducted in the year incurred and later years are refused. Otherwise the period of the loan is the shortest of the contract's period, the period to the repayment day and 5 years from the first day borrowed (s 25-25(5)). Each income year's maximum deduction is the remaining expenditure over the days left in that period, times those days in the year, as determined at the end of the year, so the year of repayment takes all that remains (s 25-25(4)); each maximum is rounded to cents and carried forward at that amount, as the ATO's examples are, and the deduction is the maximum times the income-producing share (s 25-25(2) and (3)). Every day is counted, both ends included, as the ATO and the Library count: 5 years from 3 July end on 2 July, and from 29 February on 28 February (Acts Interpretation Act 1901 ss 2G(2) and 36(1)). From 2027-28 the result is flagged, not changed: s 26-155 may quarantine it. Excludes deciding which costs are borrowing expenses and the money's use; interest; refinancing, redraws and changes in use (borrowing_expenses_schedule takes refinancing and use by year); expenditure incurred before the income year the loan began; leisure facilities such as holiday homes unless s 26-50(3) applies at all times in the year; commercial debt forgiveness (Subdivision 245-E); private company loans (Division 7A); and applying s 26-155.",
+    ),
+    (
+        "borrowing_expenses_schedule",
+        "Several loans' borrowing expenses under ITAA 1997 s 25-25, each loan first drawn from 1 July 2017 to the end of the income year asked about, from 2017-18 to 2027-28: that year's amounts across the loans, and every income year of each loan with the totals by year. The operator establishes, for each loan, the expenditure incurred for borrowing the money, all in the income year the loan began; the first day the money was borrowed; the last day of the period the original loan contract specifies; any repayment day; the extent the money is used to produce assessable income, for every year or for each income year of the loan; and, for a loan that refinances an earlier one, which loan it repaid, on the day it was first drawn; and the income-producing share of borrowing expenses on loans not listed, by the income year incurred. Under s 25-25(6), the income-producing shares of everything incurred for borrowing in an income year, at $100 or less in total, are deducted that year; a loan whose money is not used to produce income at all that year is spread. Otherwise each loan is spread over its own period of the loan as borrowing_expenses spreads one loan (s 25-25(4) and (5)), each year's deduction being its maximum times that year's income-producing use (s 25-25(2) and (3)). A refinanced loan is repaid on the refinancing day, so its period ends then and that income year deducts what remains (s 25-25(5)(b)). A row from 2027-28 is flagged, not changed, because s 26-155 may quarantine it, and a row after 2027-28 applies s 25-25 as read on 19 November 2026 and is marked projected. Excludes deciding which costs are borrowing expenses, the money's use and the tracing of redraws; interest; expenditure incurred after the income year a loan began; loans first drawn before 1 July 2017; leisure facilities such as holiday homes unless s 26-50(3) applies at all times in each year (such a loan is refused); commercial debt forgiveness (Subdivision 245-E); private company loans (Division 7A); and applying s 26-155.",
     ),
     (
         "fbt",
@@ -246,8 +258,16 @@ pub const SOURCES: &[(&str, &str)] = &[
         "https://www.legislation.gov.au/C2004A05138/2026-10-01/2026-10-01/text/original/epub/OEBPS/document_1/document_1.html",
     ),
     (
+        "borrowing_expenses_schedule",
+        "https://www.ato.gov.au/law/view/document?docid=PAC/19970038/25-25",
+    ),
+    (
         "hire_purchase_schedule",
         "https://www.ato.gov.au/law/view/document?docid=PAC/19970038/240-60",
+    ),
+    (
+        "luxury_car_tax",
+        "https://www.ato.gov.au/law/view/document?docid=PAC/19990076/5-15",
     ),
     (
         "chattel_mortgage_schedule",
@@ -256,6 +276,10 @@ pub const SOURCES: &[(&str, &str)] = &[
     (
         "loan_transactions",
         "https://www.legislation.gov.au/C2004A05138/2026-10-01/2026-10-01/text/original/epub/OEBPS/document_1/document_1.html",
+    ),
+    (
+        "wine_equalisation_tax",
+        "https://www.ato.gov.au/law/view/document?docid=PAC/19990062/5-5",
     ),
     (
         "balancing_adjustment",
@@ -487,6 +511,17 @@ pub const EXTRA_SOURCES: &[(&str, &[&str])] = &[
         "borrowing_expenses",
         &[
             "https://www.ato.gov.au/individuals-and-families/investments-and-assets/property-and-land/residential-rental-properties/rental-expenses/borrowing-expenses",
+            "https://www.ato.gov.au/law/view/document?docid=PAC/19970038/26-155",
+            "https://www.legislation.gov.au/C1901A00002/2026-03-28/text",
+        ],
+    ),
+    (
+        "borrowing_expenses_schedule",
+        &[
+            "https://www.ato.gov.au/individuals-and-families/investments-and-assets/property-and-land/residential-rental-properties/rental-expenses/borrowing-expenses",
+            "https://www.ato.gov.au/law/view/document?docid=PAC/19970038/26-155",
+            "https://www.legislation.gov.au/C1901A00002/2026-03-28/text",
+            "https://www.ato.gov.au/law/view/document?docid=PAC/19970038/26-50",
         ],
     ),
     (
@@ -536,6 +571,47 @@ pub const EXTRA_SOURCES: &[(&str, &[&str])] = &[
             "https://www.ato.gov.au/law/view/document?DocID=PAC/19990055/9-90",
             "https://www.ato.gov.au/law/view/document?DocID=GST/GSTR20068/NAT/ATO/00001",
             "https://www.ato.gov.au/businesses-and-organisations/gst-excise-and-indirect-taxes/gst/in-detail/your-industry/property/gst-and-the-margin-scheme",
+        ],
+    ),
+    (
+        "wine_equalisation_tax",
+        &[
+            "https://www.ato.gov.au/law/view/document?docid=PAC/19990062/9-25",
+            "https://www.ato.gov.au/law/view/document?docid=PAC/19990062/9-35",
+            "https://www.ato.gov.au/law/view/document?docid=PAC/19990062/9-40",
+            "https://www.ato.gov.au/law/view/document?docid=PAC/19990062/19-5",
+            "https://www.ato.gov.au/law/view/document?docid=PAC/19990062/19-15",
+            "https://www.ato.gov.au/law/view/document?docid=PAC/19990062/19-20",
+            "https://www.legislation.gov.au/C2004A00452/2026-04-01/2026-04-01/text/original/epub/OEBPS/document_1/document_1.html",
+            "https://www.legislation.gov.au/C2026A00012/asmade/2026-03-26/text/original/epub/OEBPS/document_1/document_1.html",
+            "https://www.ato.gov.au/law/view/pdf/pbr/wetr2009-001.pdf",
+            "https://www.ato.gov.au/law/view/pdf/pbr/wetr2009-002.pdf",
+            "https://www.ato.gov.au/businesses-and-organisations/gst-excise-and-indirect-taxes/wine-equalisation-tax/how-much-to-pay/wholesale-sales",
+            "https://www.ato.gov.au/businesses-and-organisations/gst-excise-and-indirect-taxes/wine-equalisation-tax/how-much-to-pay/retail-sales-and-own-use",
+            "https://www.ato.gov.au/businesses-and-organisations/gst-excise-and-indirect-taxes/wine-equalisation-tax/producer-rebate",
+            "https://www.ato.gov.au/businesses-and-organisations/gst-excise-and-indirect-taxes/wine-equalisation-tax/producer-rebate/calculate-and-claim-your-rebate",
+            "https://www.ato.gov.au/businesses-and-organisations/gst-excise-and-indirect-taxes/wine-equalisation-tax/reporting-and-paying-wet",
+            "https://www.ato.gov.au/businesses-and-organisations/preparing-lodging-and-paying/business-activity-statements-bas/wine-equalisation-tax-wet",
+            "https://www.ato.gov.au/businesses-and-organisations/gst-excise-and-indirect-taxes/gst/completing-your-bas-for-gst/complete-your-bas",
+        ],
+    ),
+    (
+        "luxury_car_tax",
+        &[
+            "https://www.ato.gov.au/law/view/document?docid=PAC/19990076/5-20",
+            "https://www.ato.gov.au/law/view/document?docid=PAC/19990076/7-15",
+            "https://www.ato.gov.au/law/view/document?docid=PAC/19990076/15-20",
+            "https://www.ato.gov.au/law/view/document?docid=PAC/19990076/15-30",
+            "https://www.ato.gov.au/law/view/document?docid=PAC/19990076/18-5",
+            "https://www.ato.gov.au/law/view/document?docid=PAC/19990076/18-10",
+            "https://www.ato.gov.au/law/view/document?docid=PAC/19990076/25-1",
+            "https://www.legislation.gov.au/C2025A00029/asmade/2025-03-27/text/original/epub/OEBPS/document_1/document_1.html",
+            "https://www.ato.gov.au/tax-rates-and-codes/luxury-car-tax-rate-and-thresholds",
+            "https://www.ato.gov.au/businesses-and-organisations/gst-excise-and-indirect-taxes/luxury-car-tax/working-out-the-lct-amount/working-out-the-lct-on-a-sale",
+            "https://www.ato.gov.au/businesses-and-organisations/gst-excise-and-indirect-taxes/luxury-car-tax/working-out-the-lct-amount/working-out-the-lct-on-an-import",
+            "https://www.ato.gov.au/businesses-and-organisations/gst-excise-and-indirect-taxes/luxury-car-tax/adjustments-credits-and-refunds/credits-and-refunds",
+            "https://www.ato.gov.au/businesses-and-organisations/preparing-lodging-and-paying/business-activity-statements-bas/luxury-car-tax-lct",
+            "https://www.ato.gov.au/businesses-and-organisations/gst-excise-and-indirect-taxes/gst/completing-your-bas-for-gst/complete-your-bas",
         ],
     ),
     (
@@ -1022,7 +1098,16 @@ pub const SAPTO_YEAR_NOTES: &[(&str, &str)] = &[
 
 const WITHHOLDING_2027_28: &str = "The ATO had not published withholding schedules for payments from 1 July 2027 when this was checked on 16 November 2026.";
 const CGT_2027_28: &str = "From 2027-28 Schedule 1 to Act No. 49 of 2026 changes how capital gains are worked out, and this worksheet has not been checked against it.";
-const RENTAL_2027_28: &str = "From 2027-28 ITAA 1997 s 26-155 limits deductions for residential rental property, and this worksheet does not apply it.";
+/// The flag on a borrowing expenses year from 2027-28 (ITAA 1997 s 26-155,
+/// inserted by Act No 49 of 2026 for the 2027-28 income year and later years,
+/// read on 19 November 2026).
+pub const BORROWING_S26_155: &str = "From 2027-28 ITAA 1997 s 26-155(1) quarantines the amount by which deductions relating to using or holding residential dwellings as residential accommodation exceed the assessable income from them, and this deduction is one of them where the money is used that way. The amount here is s 25-25's before s 26-155: the worksheet neither applies s 26-155 nor decides its exceptions, such as a dwelling last acquired before 7.30 pm on 12 May 2026 (ACT legal time) or a new residential dwelling (s 26-155(2)), or an excepted entity (s 26-155(4)).";
+
+/// The refusal of a leisure facility under s 26-50.
+pub const BORROWING_S26_50: &str = "Section 26-50 denies deductions for a leisure facility, such as a holiday home, unless s 26-50(3) applies at all times in the income year; part-year use under s 26-50(4) is out of scope.";
+
+/// The note on a borrowing expenses schedule with a row after the last year read.
+pub const BORROWING_PROJECTED: &str = "A row marked projected is after 2027-28, the last income year read: it applies ITAA 1997 s 25-25 as read on 19 November 2026, which sets no figure by year, and a later amendment would change it.";
 
 /// Why a worksheet that takes an income year refuses 2027-28, added to its
 /// `period.unsupported` message: the figures not yet published, or the change
@@ -1035,7 +1120,6 @@ pub const UNPUBLISHED_2027_28: &[(&str, &str)] = &[
         "trade_in",
         "The car limit for 2027-28 was not published when this worksheet was checked, and from 2027-28 Schedule 1 to Act No. 49 of 2026 changes how capital gains are worked out.",
     ),
-    ("borrowing_expenses", RENTAL_2027_28),
     (
         "lump_sum_arrears_tax_offset",
         "This worksheet has not been checked against 2027-28, when Act No. 49 of 2026 brings in the working Australians tax offset and changes how capital gains are worked out.",
@@ -1139,20 +1223,40 @@ pub const REFUSAL_CODES: &[(&str, &str)] = &[
         "years is not a non-empty list of objects.",
     ),
     (
+        "borrowing.income_use_invalid",
+        "A loan's income_use is neither a fraction from 0 to 1 nor an object giving one for each income year of the loan.",
+    ),
+    (
+        "borrowing.loan_before_2017_18",
+        "A loan was first drawn before 1 July 2017.",
+    ),
+    (
         "borrowing.loan_date_invalid",
         "A loan date is neither null nor a date on or after the start of the loan.",
+    ),
+    (
+        "borrowing.loan_fact_missing",
+        "A loan does not state a fact the schedule requires.",
     ),
     (
         "borrowing.loan_period_ended",
         "The period of the loan ended before the income year began.",
     ),
     (
-        "borrowing.loan_start_29_february",
-        "A loan first drawn on 29 February, for which no source settles when 5 years end.",
-    ),
-    (
         "borrowing.loan_starts_after_year",
         "The loan starts after the income year ended.",
+    ),
+    (
+        "borrowing.loans_invalid",
+        "loans is not a non-empty list of objects.",
+    ),
+    (
+        "borrowing.other_expenses_invalid",
+        "other_borrowing_expenses is not an object of income years and amounts.",
+    ),
+    (
+        "borrowing.refinance_invalid",
+        "refinances does not name an earlier loan repaid on the day the loan was first drawn and refinanced by no other.",
     ),
     (
         "borrowing.s25_25_6_not_spread",
@@ -1605,7 +1709,7 @@ pub const REFUSAL_CODES: &[(&str, &str)] = &[
     ),
     (
         "input.field_unknown",
-        "A field the worksheet or command does not take, or does not take beside the other inputs given, was given (fbt-loan, fbt-meal-entertainment, fbt-car-parking, fbt-debt-waiver, fbt-expense-payment, fbt-property, fbt-residual, fbt-housing, fbt-lafha, fbt-board, fbt-tax-exempt-body-entertainment, fbt-entertainment-classifier, fbt-meal-entertainment-register and its entries, fbt-minor-benefit-check, division-296, depreciation, foreign-resident-tax, medicare-levy, medicare-levy-surcharge, payg-withholding, payg-gross-up, termination-payment, etp-tax-free-component, unused-leave-payment, the Schedule 5 methods, working-holiday-maker-withholding, study-loan-withholding, seniors-pensioners-withholding, seniors-pensioners-tax-offset, lump-sum-arrears-tax-offset, hire-purchase-schedule, chattel-mortgage-schedule, loan-transactions and its transactions and rate_changes, business-capital-expenditure and its items, balancing-adjustment, its years and car_limit, trade-in, gst-margin-scheme, contribution-caps given a carry-forward input, derive, personal-tax-estimate, dgr-check, income-tests and fbt-return only).",
+        "A field the worksheet or command does not take, or does not take beside the other inputs given, was given (fbt-loan, fbt-meal-entertainment, fbt-car-parking, fbt-debt-waiver, fbt-expense-payment, fbt-property, fbt-residual, fbt-housing, fbt-lafha, fbt-board, fbt-tax-exempt-body-entertainment, fbt-entertainment-classifier, fbt-meal-entertainment-register and its entries, fbt-minor-benefit-check, division-296, depreciation, foreign-resident-tax, medicare-levy, medicare-levy-surcharge, payg-withholding, payg-gross-up, termination-payment, etp-tax-free-component, unused-leave-payment, the Schedule 5 methods, working-holiday-maker-withholding, study-loan-withholding, seniors-pensioners-withholding, seniors-pensioners-tax-offset, lump-sum-arrears-tax-offset, hire-purchase-schedule, chattel-mortgage-schedule, loan-transactions and its transactions and rate_changes, borrowing-expenses-schedule and its loans, business-capital-expenditure and its items, balancing-adjustment, its years and car_limit, trade-in, gst-margin-scheme, wine-equalisation-tax and its dealings, luxury-car-tax and its lines, contribution-caps given a carry-forward input, derive, personal-tax-estimate, dgr-check, income-tests and fbt-return only).",
     ),
     ("input.flag_invalid", "A flag is not a JSON boolean."),
     ("input.fraction_invalid", "A fraction is outside 0 to 1."),
@@ -1723,6 +1827,31 @@ pub const REFUSAL_CODES: &[(&str, &str)] = &[
     (
         "lump_sum_arrears.recent_year_unsupported",
         "A recent accrual year is earlier than 2012-13, the first year whose resident rates the worksheet holds.",
+    ),
+    (
+        "luxury_car_tax.consumption_invalid",
+        "A fuel consumption rating is not null or a decimal string from 0 to 100 with at most 2 decimal places.",
+    ),
+    (
+        "luxury_car_tax.kind_invalid",
+        "A line's kind is not sale, importation, price_adjustment, change_of_use_increasing, change_of_use_decreasing or refund.",
+    ),
+    ("luxury_car_tax.line_invalid", "A line is not an object."),
+    (
+        "luxury_car_tax.lines_invalid",
+        "lines is not a list of 1 to 1,000 line objects.",
+    ),
+    (
+        "luxury_car_tax.refund_invalid",
+        "A refund's claimant is not primary_producer or tourism_operator, or the car was supplied or imported before 1 July 2019.",
+    ),
+    (
+        "luxury_car_tax.refund_limit",
+        "More than one primary producer refund on a refund-eligible car was given for the financial year (s 18-5(4)).",
+    ),
+    (
+        "luxury_car_tax.year_invalid",
+        "A line's supplied_in is not a financial year whose thresholds the ATO publishes, or is after the tax period's.",
     ),
     (
         "main_residence.absence_choice_period_invalid",
@@ -1867,6 +1996,30 @@ pub const REFUSAL_CODES: &[(&str, &str)] = &[
     (
         "trade_in.not_arms_length",
         "The trade-in is not at arm's length, so market value rules apply that are not worked.",
+    ),
+    (
+        "wine_equalisation_tax.dealing_invalid",
+        "A dealing, its average_wholesale, wholesale_sales or rebate_conditions is not the object or list it must be.",
+    ),
+    (
+        "wine_equalisation_tax.dealings_invalid",
+        "dealings is not a list of 1 to 1,000 dealing objects.",
+    ),
+    (
+        "wine_equalisation_tax.intention_invalid",
+        "A sale under quote's purchaser_intention is not taxable_dealing, manufacture, gst_free_supply or sale_under_quote.",
+    ),
+    (
+        "wine_equalisation_tax.kind_invalid",
+        "A dealing's kind is not wholesale_sale, retail_sale, own_use, quoted_sale or own_use_purchased_under_quote.",
+    ),
+    (
+        "wine_equalisation_tax.method_unavailable",
+        "The average wholesale price method was asked for wine that is not grape wine, or without at least 10% of the sales by value being wholesale sales.",
+    ),
+    (
+        "wine_equalisation_tax.quantity_invalid",
+        "An average wholesale price quantity is not a decimal string above 0, at most 1e12 and 4 decimal places.",
     ),
     (
         "working_holiday_maker.band_unsettled",

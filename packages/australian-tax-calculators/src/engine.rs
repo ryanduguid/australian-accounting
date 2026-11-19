@@ -4461,33 +4461,20 @@ pub struct LoanDates<'a> {
     pub repaid_on: &'a Arg,
 }
 
-/// A loan's validated dates as day numbers, read against the income year
-/// claimed.
+/// A loan's validated dates as day numbers.
 struct Loan {
     start: i64,
     term_end: Option<i64>,
     repaid: Option<i64>,
     /// The income year the loan began in, by the calendar year it starts in.
     first_year: i64,
-    /// The income year claimed, by the calendar year it starts in.
-    claim_year: i64,
-    /// The first day of the income year claimed.
-    year_start: i64,
-    /// The last day of the income year claimed.
-    year_end: i64,
 }
 
 impl LoanDates<'_> {
-    /// Each date in turn, then `loan_start` against the income year claimed.
-    fn parse(&self, year: &str) -> Result<Loan> {
+    /// Each date in turn.
+    fn parse(&self) -> Result<Loan> {
         let start = date_arg(self.start, "loan_start")?;
-        let (first_year, month, day) = dates::to_civil(start);
-        if (month, day) == (2, 29) {
-            return refuse(
-                "borrowing.loan_start_29_february",
-                "A loan first drawn on 29 February is out of scope: no source settles when its 5 years end.",
-            );
-        }
+        let (year, month, _) = dates::to_civil(start);
         let later = |value: &Arg, name: &str| match value {
             Arg::Json(Value::Null) => Ok(None),
             Arg::Json(Value::String(t)) if dates::parse(t).is_some_and(|day| day >= start) => {
@@ -4500,30 +4487,49 @@ impl LoanDates<'_> {
         };
         let term_end = later(self.term_end, "loan_term_end")?;
         let repaid = later(self.repaid_on, "repaid_on")?;
-        let claim_year: i64 = year[..4].parse().expect("income year");
-        let year_start = dates::parse(&format!("{claim_year}-07-01")).expect("income year");
-        let year_end = dates::add_months(year_start, 12) - 1;
-        if start > year_end {
-            return refuse(
-                "borrowing.loan_starts_after_year",
-                format!("loan_start must not be after the {year} income year ended."),
-            );
-        }
-        let first_year = if month >= 7 {
-            first_year
-        } else {
-            first_year - 1
-        };
+        let first_year = if month >= 7 { year } else { year - 1 };
         Ok(Loan {
             start,
             term_end,
             repaid,
             first_year,
-            claim_year,
-            year_start,
-            year_end,
         })
     }
+}
+
+/// The first day of the income year that starts in July of `first`.
+fn income_year_start(first: i64) -> i64 {
+    dates::parse(&format!("{first}-07-01")).expect("income year")
+}
+
+/// s 25-25(5)(c): the last day of the 5 years starting on `start`, that day
+/// counted (Acts Interpretation Act 1901 s 36(1) item 2). Read as 60 months
+/// under s 2G(2) of that Act, they end immediately before the same day of the
+/// month 60 months on or, where that month has no such day, at its end: a
+/// loan first drawn on 29 February 2024 has its 5 years end on 28 February
+/// 2029, as they would by the anniversary.
+fn five_years_end(start: i64) -> i64 {
+    let same_day = dates::add_months(start, 60);
+    if dates::to_civil(same_day).2 == dates::to_civil(start).2 {
+        same_day - 1
+    } else {
+        same_day
+    }
+}
+
+/// One income year of the spread under s 25-25(4).
+struct SpreadYear {
+    /// The income year, by the calendar year it starts in.
+    first: i64,
+    /// The last day of the period of the loan, as determined at the end of
+    /// the income year.
+    end: i64,
+    remaining: Decimal,
+    /// The days left in the period of the loan from the year's first day in it.
+    left: i64,
+    /// Those days in the income year.
+    days: i64,
+    maximum: Decimal,
 }
 
 impl Loan {
@@ -4532,7 +4538,7 @@ impl Loan {
     /// each day counted (the ATO's 3 July to 2 July 5 years later), as
     /// determined at the end of the income year ending on `last`.
     fn end_at(&self, last: i64) -> i64 {
-        let five_years = dates::add_months(self.start, 60) - 1;
+        let five_years = five_years_end(self.start);
         let planned = self.term_end.map_or(five_years, |end| end.min(five_years));
         // Determined at the end of each income year: a repayment counts from then.
         match self.repaid {
@@ -4541,58 +4547,48 @@ impl Loan {
         }
     }
 
-    /// The last day of the period of the loan at the end of the income year
-    /// claimed, and the paragraph of s 25-25(5) that fixes it.
-    fn period(&self, year: &str) -> Result<(i64, &'static str)> {
-        let end = self.end_at(self.year_end);
-        if end < self.year_start {
-            return refuse(
-                "borrowing.loan_period_ended",
-                format!(
-                    "The period of the loan ended on {}, before the {year} income year began: nothing remains to deduct.",
-                    dates::format(end)
-                ),
-            );
-        }
-        let basis = if self.term_end == Some(end) {
+    /// The paragraph of s 25-25(5) that ends the period of the loan on `end`.
+    fn basis(&self, end: i64) -> &'static str {
+        if self.term_end == Some(end) {
             "s 25-25(5)(a): the original loan contract"
         } else if self.repaid == Some(end) {
             "s 25-25(5)(b): to the day the loan was repaid"
         } else {
             "s 25-25(5)(c): 5 years from the first borrowing"
-        };
-        Ok((end, basis))
+        }
     }
 
-    /// For the income year claimed: the remaining expenditure, the maximum
-    /// deduction, the days left in the period of the loan, its days in the
-    /// year and the remaining expenditure's formula, each earlier year's
-    /// maximum written in.
-    fn maximum_deduction(
-        &self,
-        expenditure: &Decimal,
-    ) -> Result<(Decimal, Decimal, i64, i64, String)> {
-        // s 25-25(4), year by year from the one the loan began: the remaining
-        // expenditure over the days left, times those days in the year. Each
-        // maximum is rounded to cents and carried forward at that amount, as the
-        // ATO's examples are.
+    /// s 25-25(4), year by year from the income year the loan began to the
+    /// one its period ends in: the remaining expenditure over the days left,
+    /// times those days in the year. Each maximum is rounded to cents and
+    /// carried forward at that amount, as the ATO's examples are, so the year
+    /// the period ends takes what remains.
+    fn years(&self, expenditure: &Decimal) -> Result<Vec<SpreadYear>> {
         precise(|| {
             let mut remaining = expenditure.clone();
-            let mut formula = "borrowing_expenses".to_string();
-            let mut from =
-                dates::add_months(self.year_start, 12 * (self.first_year - self.claim_year));
+            let mut rows = Vec::new();
+            let mut first = self.first_year;
             loop {
-                let last = dates::add_months(from, 12) - 1;
+                let from = income_year_start(first);
+                let last = income_year_start(first + 1) - 1;
                 let end = self.end_at(last);
                 let begin = self.start.max(from);
                 let (left, days) = (end - begin + 1, end.min(last) - begin + 1);
                 let maximum = cents(remaining.mul(&int(days))?.div(&int(left))?)?;
-                if from == self.year_start {
-                    return Ok((remaining, maximum, left, days, formula));
+                let after = remaining.sub(&maximum)?;
+                rows.push(SpreadYear {
+                    first,
+                    end,
+                    remaining,
+                    left,
+                    days,
+                    maximum,
+                });
+                if end <= last {
+                    return Ok(rows);
                 }
-                formula.push_str(&format!(" - cents({remaining} x {days} / {left})"));
-                remaining = remaining.sub(&maximum)?;
-                from = last + 1;
+                remaining = after;
+                first += 1;
             }
         })
     }
@@ -4600,7 +4596,7 @@ impl Loan {
 
 /// The borrowing expenses steps cite ITAA 1997 s 25-25 in the ATO's legal
 /// database and the ATO's 'Borrowing expenses' page (updated 22 May 2026),
-/// both read on 15 November 2026.
+/// both read on 15 and 19 November 2026.
 const BORROWING_EXPENSES: &str =
     "ITAA 1997 s 25-25(1): the expenditure incurred for borrowing the money";
 
@@ -4633,11 +4629,15 @@ const NOT_SPREAD_STEPS: [(&str, &str, &str); 5] = [
     ),
 ];
 
+/// `2026-27` for 2026.
+fn income_year(first: i64) -> String {
+    format!("{first}-{:02}", (first + 1) % 100)
+}
+
 /// s 25-25(6): the deduction, not spread, in the income year the expenditure
 /// was incurred.
 fn not_spread(year: &str, loan: &Loan, expenditure: &Decimal, share: &Decimal) -> Result<Value> {
-    let first_year = loan.first_year;
-    let incurred_in = format!("{first_year}-{:02}", (first_year + 1) % 100);
+    let incurred_in = income_year(loan.first_year);
     if incurred_in != year {
         return refuse(
             "borrowing.s25_25_6_not_spread",
@@ -4672,13 +4672,29 @@ fn not_spread(year: &str, loan: &Loan, expenditure: &Decimal, share: &Decimal) -
 
 /// s 25-25(4): the expenditure spread by days over the period of the loan.
 fn spread(year: &str, loan: &Loan, expenditure: &Decimal, share: &Decimal) -> Result<Value> {
-    let (end, basis) = loan.period(year)?;
-    let (remaining, maximum, days_left, days_in_year, earlier) =
-        loan.maximum_deduction(expenditure)?;
+    let claimed: i64 = year[..4].parse().expect("income year");
+    let rows = loan.years(expenditure)?;
+    let Some(at) = rows.iter().position(|row| row.first == claimed) else {
+        let end = rows.last().expect("the year the loan began").end;
+        return refuse(
+            "borrowing.loan_period_ended",
+            format!(
+                "The period of the loan ended on {}, before the {year} income year began: nothing remains to deduct.",
+                dates::format(end)
+            ),
+        );
+    };
+    let row = &rows[at];
+    // Each earlier year's maximum written in, worked on the figures that year used.
+    let mut earlier = "borrowing_expenses".to_string();
+    for before in &rows[..at] {
+        let (remaining, days, left) = (&before.remaining, before.days, before.left);
+        earlier.push_str(&format!(" - cents({remaining} x {days} / {left})"));
+    }
     let steps = precise(|| {
-        let deduction = cents(maximum.mul(share)?)?;
-        let after = remaining.sub(&maximum)?;
-        let (days, left) = (int(days_in_year), int(days_left));
+        let deduction = cents(row.maximum.mul(share)?)?;
+        let after = row.remaining.sub(&row.maximum)?;
+        let (days, left) = (int(row.days), int(row.left));
         Ok(vec![
             step(
                 "borrowing_expenses",
@@ -4692,27 +4708,27 @@ fn spread(year: &str, loan: &Loan, expenditure: &Decimal, share: &Decimal) -> Re
                 "ITAA 1997 s 25-25(4) step 1: the expenditure less the maximum deduction for each earlier income year",
                 &earlier,
                 &[expenditure],
-                remaining.clone(),
+                row.remaining.clone(),
             ),
             step(
                 "maximum_deduction",
                 "ITAA 1997 s 25-25(4) steps 2 to 4, rounded to the cent and carried forward as the ATO's 'Borrowing expenses' examples are",
                 "cents(remaining_expenditure x days_in_year / remaining_loan_period_days)",
-                &[&remaining, &days, &left],
-                maximum.clone(),
+                &[&row.remaining, &days, &left],
+                row.maximum.clone(),
             ),
             step(
                 "deduction",
                 "ITAA 1997 s 25-25(2) and (3): the proportion for the income-producing use, to the cent",
                 "cents(maximum_deduction x income_use)",
-                &[&maximum, share],
+                &[&row.maximum, share],
                 deduction,
             ),
             step(
                 "remaining_expenditure_after_year",
                 "ITAA 1997 s 25-25(4) step 1: what remains for a later income year",
                 "remaining_expenditure - maximum_deduction",
-                &[&remaining, &maximum],
+                &[&row.remaining, &row.maximum],
                 after,
             ),
         ])
@@ -4725,12 +4741,24 @@ fn spread(year: &str, loan: &Loan, expenditure: &Decimal, share: &Decimal) -> Re
             rate("spread", "spread over the period of the loan (s 25-25(4))"),
             rate("income_use", share),
             rate("period_of_the_loan_from", dates::format(loan.start)),
-            rate("period_of_the_loan_to", dates::format(end)),
-            rate("period_of_the_loan", basis),
-            rate("remaining_loan_period_days", days_left),
-            rate("days_in_year", days_in_year),
+            rate("period_of_the_loan_to", dates::format(row.end)),
+            rate("period_of_the_loan", loan.basis(row.end)),
+            rate("remaining_loan_period_days", row.left),
+            rate("days_in_year", row.days),
         ],
     )
+}
+
+/// The s 26-155 flag on an income year from 2027-28: the amount is s 25-25's,
+/// which s 26-155 can then quarantine (ITAA 1997 s 26-155(1), inserted by Act
+/// No 49 of 2026 for the 2027-28 income year and later years).
+fn rental_warning(out: &mut Value, first: i64) {
+    if first >= 2027 {
+        out["warnings"]
+            .as_array_mut()
+            .expect("warnings")
+            .push(json!(texts::BORROWING_S26_155));
+    }
 }
 
 /// ITAA 1997 s 25-25: one income year's deduction for one loan's borrowing
@@ -4757,23 +4785,33 @@ pub fn borrowing_expenses(
         );
     };
     if flag(section_26_50_applies, "section_26_50_applies")? {
+        return refuse("borrowing.s26_50_denied", texts::BORROWING_S26_50);
+    }
+    let loan = loan.parse()?;
+    let claimed: i64 = year[..4].parse().expect("income year");
+    if loan.first_year > claimed {
         return refuse(
-            "borrowing.s26_50_denied",
-            "Section 26-50 denies deductions for a leisure facility, such as a holiday home, unless s 26-50(3) applies at all times in the income year; part-year use under s 26-50(4) is out of scope.",
+            "borrowing.loan_starts_after_year",
+            format!("loan_start must not be after the {year} income year ended."),
         );
     }
-    let loan = loan.parse(&year)?;
 
     // s 25-25(6): this loan's income-producing share plus the taxpayer's
     // other borrowing expenditure that year, at $100 or less, is not spread.
     // Money not used to produce income at all is outside s 25-25(6)(a) and
     // (b), so it is spread and nothing is deducted (s 25-25(3), note).
     let total = precise(|| Ok(expenditure.mul(&share)?.add(&other)?))?;
-    if !share.is_zero() && total.le(&int(100))? {
-        return not_spread(&year, &loan, &expenditure, &share);
-    }
-    spread(&year, &loan, &expenditure, &share)
+    let mut out = if !share.is_zero() && total.le(&int(100))? {
+        not_spread(&year, &loan, &expenditure, &share)?
+    } else {
+        spread(&year, &loan, &expenditure, &share)?
+    };
+    rental_warning(&mut out, claimed);
+    Ok(out)
 }
+
+mod borrowing_schedule;
+pub use borrowing_schedule::borrowing_expenses_schedule;
 
 mod hire_purchase;
 pub use hire_purchase::{
@@ -4788,6 +4826,9 @@ mod balancing;
 pub use balancing::balancing_adjustment;
 mod trade_in;
 pub use trade_in::{TradeInArgs, trade_in};
+mod luxury_car_tax;
+mod stated;
+pub use luxury_car_tax::{LctArgs, luxury_car_tax};
 
 /// One pay that includes an additional payment, as Schedule 5 (NAT 3348) reads it.
 struct AdditionalPay {
@@ -6073,12 +6114,14 @@ mod lump_sum_arrears;
 pub use lump_sum_arrears::lump_sum_arrears_tax_offset;
 mod income_tests;
 pub use income_tests::income_tests;
+mod wine_equalisation_tax;
+pub use wine_equalisation_tax::{WetArgs, wine_equalisation_tax};
 mod fbt_minor_benefit;
 pub use fbt_minor_benefit::{MinorBenefitArgs, fbt_minor_benefit_check};
 mod gst_margin_scheme;
 pub use gst_margin_scheme::{MarginSchemeArgs, gst_margin_scheme};
 
-const KINDS: [&str; 54] = [
+const KINDS: [&str; 57] = [
     "gst",
     "gst_margin_scheme",
     "resident_tax",
@@ -6086,6 +6129,7 @@ const KINDS: [&str; 54] = [
     "capital_gains",
     "main_residence",
     "borrowing_expenses",
+    "borrowing_expenses_schedule",
     "hire_purchase_schedule",
     "chattel_mortgage_schedule",
     "loan_transactions",
@@ -6125,6 +6169,7 @@ const KINDS: [&str; 54] = [
     "seniors_pensioners_withholding",
     "seniors_pensioners_tax_offset",
     "lump_sum_arrears_tax_offset",
+    "luxury_car_tax",
     "fbt_residual",
     "fbt_housing",
     "fbt_lafha",
@@ -6133,6 +6178,7 @@ const KINDS: [&str; 54] = [
     "fbt_entertainment_classifier",
     "fbt_minor_benefit_check",
     "income_tests",
+    "wine_equalisation_tax",
 ];
 
 /// `periods(kind)`: accepted period arguments and inclusive calendar boundaries.
