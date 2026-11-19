@@ -1046,8 +1046,9 @@ Payroll Tax Act 2008 (Tas) Sch 1; the Payroll Tax Act 2011 (ACT) Sch 1
 (republication R20) with the Taxation Administration (Amounts and
 Rates—Payroll Tax) Determination 2026 (DI2026-151); and the Payroll Tax Act
 2009 (NT) s 7A and Sch 1 (as in force at 1 July 2026). The NT deduction formula
-is an image in the Act's PDF; its text and the revenue office's page give the
-same taper. Every figure agrees with duguid.com.au's payroll tax calculator,
+in Sch 1 cl 3 is an image in the Act's PDF, AD = ETA - (TW + IW - ETA) / 2;
+the revenue office's pages say only that the deduction settings did not change
+on 1 July 2026. Every figure agrees with duguid.com.au's payroll tax calculator,
 published 17 November 2026, whose cases these tests also hold.
 
 The worksheet works each amount as its formula reads, to 40 digits, and rounds
