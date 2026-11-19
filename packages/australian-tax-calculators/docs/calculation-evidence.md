@@ -95,6 +95,57 @@ The smaller existing case uses $1,100 inclusive: GST is $100, exclusive value
 is $1,000. Starting with $1,000 exclusive gives `1000 × 0.10 = 100` GST and
 $1,100 inclusive.
 
+## GST margin scheme
+
+Added on 19 November 2026. Its sources were read that afternoon, 2.20 pm to
+2.40 pm AEDT, from the ATO's legal database: the A New Tax System (Goods and
+Services Tax) Act 1999 ss 9-90, 75-5, 75-10, 75-11, 75-12, 75-14, 75-15,
+75-20, 75-35 and the s 195-1 definitions of 'approved valuation', 'long-term
+lease' and 'margin scheme'; Schedule 1 to the Taxation Administration Act 1953
+s 14-250 (GST at settlement, which it does not work out); GSTR 2006/8 (paras 15
+to 39F: the written agreement, a conditional agreement, ineligible supplies,
+the time of supply, the Brady King contracts and examples 1 and 2); and the
+ATO's 'GST and the margin scheme' (last updated 19 August 2021). The Library's
+GST collection, Real Estate, Accommodation and Sale of Business, 11-100
+(reviewed 29 July 2025) and 11-110 (reviewed 27 May 2026), and its Tax
+Examples, GST, 12-200 and 12-220 (reviewed 30 June 2026), give the worked
+examples.
+
+s 75-10(3) uses an approved valuation when one 'has been made' for an interest
+held before 1 July 2000; without one, s 75-10(2) takes the consideration for
+the acquisition, so `method` is the operator's statement of which exists. The
+valuation day is checked against the item the facts select: items 1 and 3 both
+fix 1 July 2000, so the command does not ask which applies. Item 2's earlier
+day of applying for registration may fall on or before 1 July 2000, so that
+day has no lower bound. s 9-90(1) rounds the GST on one supply on one invoice
+to the nearest cent, 0.5 up; the margin and the apportioned base are not
+rounded. A supply to an associate is refused: s 75-13 (read, with s 11-5, on
+19 November 2026 at 9.13 pm) works its margin from the GST inclusive market value. An
+interest contracted for before 1 July 2000 but acquired through a fully
+taxable supply is `taxable_supply_without_margin_scheme`, ineligible under
+s 75-5(3)(a) whatever GSTR 2006/8 para 39A says of its timing.
+
+`tests/gst_margin_scheme.rs` holds each case.
+
+| Example | Facts given | Result |
+| --- | --- | --- |
+| Tax Examples 12-200, Joanne Black | Held before 1 July 2000, valued at **$448,000** then, sold for **$640,000** | Margin $192,000; GST **$17,454.55** (shown as $17,454) |
+| Tax Examples 12-220, Hans | Valued at **$250,000** on 1 July 2000, sold for **$1.5 million** | GST **$113,636.36** (shown as $113,636) |
+| Tax Examples 12-220, Luke | Bought for $1.5 million under the scheme; one of 3 townhouses for **$900,000** | Base $500,000; GST **$36,363.64** (shown as $36,363) |
+| GST 11-110, improvements | Land **$250,000**, improvements $50,000, sold for **$360,000** | Margin $110,000; GST **$10,000** |
+| GST 11-110, equal blocks | $500,000 over 5 blocks of 600 m2; sold for $155,000 and $166,000 | GST **$5,000** and **$6,000** |
+| GST 11-110, unequal block | 1,200 of 3,600 m2 of $500,000, sold for **$300,000** | Margin $133,333.33; GST **$12,121.21** (shown as $12,121.18) |
+| GST 11-110, strata unit 3 | $600,000 of $2,400,000 expected, of $400,000; sold for **$610,000** | Base $100,000; GST **$46,363.64** (shown as $46,363.63) |
+| GST 11-100, held at 1 July 2000 | Valued at **$100,000**, sold for **$144,000** | GST **$4,000** |
+| GSTR 2006/8 example 1, Tureia | Bought through a taxable supply without the scheme | Not eligible: `acquisition_eligible`; GST on the full price |
+
+The Library rounds the margin to whole dollars before dividing in the unequal
+block, and cuts strata unit 3's GST off rather than rounding it; s 75-15 takes
+the corresponding proportion without rounding, and s 9-90(1) rounds only the
+GST, so the command differs from it by 3 cents and 1 cent. The tests also cover
+each failing condition alone and together, a nil margin, unpaid consideration,
+items 2 and 4 and their days, each refused acquisition, and each refusal.
+
 ## Resident tax
 
 Use ¶7-010's already established $144,014 taxable income for 2024–25. The basic
@@ -638,6 +689,51 @@ Neither the Act nor the guide gives a worked example of a register failing a
 check; the tests work each failure from the section's words. 12 weeks is
 taken as 84 days with both the first and last day counted.
 
+## FBT minor benefit check
+
+Added on 19 November 2026. Its sources were read that afternoon, 3.00 pm to
+3.10 pm AEDT, from the ATO's legal database: FBTAA s 58P (s 58P(1)(b), the
+airline transport exclusion, shown as repealed by Act No. 88 of 2013) and the
+s 136(1) definition of 'fringe benefit', whose para (g) leaves out an exempt
+benefit; and TR 2007/12 (paras 8 to 23 and examples 1 to 13). The Library's Tax
+Examples, FBT, 3-060 and 3-080 (reviewed 30 June 2026) give the flowers, gym
+and golf day examples.
+
+s 58P(1)(f) asks whether, having regard to all its criteria, it would be
+concluded that treating the benefit as a fringe benefit would be
+unreasonable: a weighing, not a test. The command takes each criterion as the
+operator's statement and decides only where TR 2007/12's examples decide: each
+exempt example has similar benefits that are not frequent and totals that are
+not substantial. Example 9's voucher is a reward for services but ad hoc, and
+examples 1 to 3 recur each Christmas but are not rewards; no example has a
+regular reward, so that is left to judgement. Example 8, the one not
+exempt on the criteria, has frequent similar benefits with a substantial
+total, given as a reward for services, readily valued and not for an
+unexpected event; the screen gives `not_exempt` only on all of those. The
+Library's 3-060 gym fees and 3-080 golf days are not exempt in the Library; the
+screen agrees when they are stated as rewards for services, and otherwise
+leaves them to judgement. Paras 14 and 16, on the 50/50 split and salary
+sacrifice, are the Commissioner's view and are cited as such.
+
+`tests/fbt_minor_benefit.rs` holds each case.
+
+| Example | Facts given | Result |
+| --- | --- | --- |
+| Library 3-060 (b), flowers | Property, **$80**, on a birthday | Exempt |
+| Library 3-060 (a), gym | Expense payment, **$50** a month | Not exempt as a reward for services; otherwise judgement |
+| Library 3-080, golf days | Expense payment, about **$83** a month | Not exempt as a reward for services; otherwise judgement |
+| TR 2007/12 examples 1 to 3 | Christmas gift or party, each year, under $300 | Exempt |
+| TR 2007/12 examples 5, 6, 7, 10, 11 | Flowers, a car after a storm, tolls, a gym membership, babysitting | Exempt |
+| TR 2007/12 example 8 | Monthly incentive vouchers, a reward | Not exempt |
+| TR 2007/12 example 9 | An ad hoc recognition voucher, a reward | Exempt |
+| TR 2007/12 example 12 | A tax-exempt body's movie tickets | Not exempt: `tax_exempt_body_exception` |
+| TR 2007/12 example 13 | A benefit under salary sacrifice | Not exempt: `not_salary_sacrifice` |
+
+The examples give no amounts beyond 'less than $300'; the values in the tests
+are fabricated under it. The tests also cover $300 itself and $299.99, each
+exclusion alone and together, both s 58P(1)(d) exceptions, mixed criteria left
+to judgement, and each refusal.
+
 ## Wine equalisation tax
 
 This worksheet was added on 19 November 2026. The WET Act was read that day
@@ -1011,6 +1107,37 @@ exactly $0.0002 a dollar a day.
 | The same with 3.65% from 1 August | August's interest $31.09 |
 | $10,000 drawn 1 June 2026, to 31 July | $60.00 in 2025-26 and $62.37 in 2026-27 |
 | Paid out on 10 July with $10,018.00 | $18.00 interest, nil owing; $10,018.01 refused |
+## Contract register
+
+`contract-register` works no amount of its own: each contract's payments,
+interest and principal are those of its `hire-purchase-schedule` or
+`chattel-mortgage-schedule` result, unchanged, and the register only dates and adds them. The current and
+non-current split rests on AASB 101 paragraph 69(c), 'the liability is due
+to be settled within twelve months after the reporting period', in
+compilation 6 (compilation date 31 December 2022, the latest on the Federal
+Register of Legislation, F2015L01626), read on 19 November 2026. Paragraphs
+69(a), (b) and (d), and 72A to 76ZA on rights to defer settlement and
+covenants, were read and are not assessed: the preparer establishes them.
+ITAA 1997 s 240-60(2), already read for `hire-purchase-schedule`, leaves
+the interest of a period spanning 30 June to accounting principles, and a
+chattel mortgage's interest is deductible as each year incurs it (s 8-1),
+so the register sets it apart with its days rather than apportioning it.
+
+`tests/contract_register.rs` holds the fabricated register in
+`examples/contract-register.csv`, 8 contracts with monthly, weekly,
+fortnightly, quarterly and annual instalments, in arrears and in advance,
+starting from 15 September 2024 to 20 August 2026, to each contract's own
+schedule run in the test on facts written out by hand: every total by month,
+income year, financier, client and register is the sum of the schedules'
+amounts, and each amount outstanding follows the schedule's closing balance.
+
+| Case | Source | Register at 30 June 2026 |
+| --- | --- | --- |
+| $10,000 financed, 12 monthly instalments of $100 in arrears from 1 March 2026, $10,000 balloon | Worked by hand: 1% a month; 4 periods ended charge $400, 3 instalments paid $300 | $10,100.00 outstanding, all current |
+| $24,000 financed, 24 monthly instalments of $1,000 in arrears from 1 August 2025 | Worked by hand: nil rate; 10 paid, 12 due by 30 June 2027 | $14,000.00 outstanding, $12,000.00 current, $2,000.00 non-current |
+| Monthly from 15 September 2024 | Worked by hand: 15 to 30 June is 16 of the period's 30 days | `accruing_days_elapsed` 16 of 30 |
+| $10,000 financed, 24 monthly instalments of $10, $13,000 balloon | The balance builds up over the next 12 months | all non-current |
+| Chattel mortgage: $45,000 at a stated 7.99% from 15 July 2025, 60 monthly instalments in arrears, $5,000 balloon | Its own `chattel-mortgage-schedule` | The 11th row's closing balance outstanding; current, its fall to the 23rd row's; 16 of 30 days accruing |
 
 ## Business capital expenditure
 
