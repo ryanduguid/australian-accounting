@@ -773,6 +773,47 @@ rebate reductions for wine of 2017 and earlier vintages sold before 1 July
 | A $50,000 wholesale sale with $340,000 (2025-26) or $390,000 (2026-27, 2027-28) claimed earlier | Worked by hand under s 19-15(2) | Rebate earned $14,500, $10,000 within the cap |
 | A hamper's wine share, $150 | Library ¶22-280 | WET $43.50 |
 
+## Luxury car tax
+
+This worksheet was added on 19 November 2026. The LCT Act was read that day
+at the ATO's legal database (ss 5-15, 5-20, 7-15, 9-5, 9-15, 15-20, 15-25,
+15-30, 18-5, 18-10, 25-1 and 27-1, with their history notes), and in
+compilation 27 (1 April 2025) at the Federal Register of Legislation, with
+Schedule 1 to the Treasury Laws Amendment (Tax Incentives and Integrity) Act
+2025 (No. 29, 2025), which lowers the fuel-efficient rating to 3.5 litres
+for supplies and importations from 1 July 2025 and keeps 7 litres for a car
+supplied or imported and used other than for a quotable purpose before then
+(item 4(2)). The rate, 33%, is s 4 of the Luxury Car Tax Imposition (General)
+Act 1999 and of the (Customs) Act. The ATO's 'Luxury car tax rate and
+thresholds' (QC38161, last updated 1 June 2026) gives both thresholds for
+each financial year from 2012-13 to 2026-27; 'Working out the LCT on a sale'
+(QC22107) and 'on an import' (QC22108), both 1 June 2026, give the
+examples; 'Luxury car tax credits and refunds' (QC39467, 16 July 2025) says
+refunds are claimed on the approved form within 4 years and not on the BAS;
+and the BAS page 'Luxury car tax (LCT)' (QC33694, 1 May 2025) gives labels
+1E and 1F. The Library's ¶12-340 (reviewed 30 June 2026) gives the same
+2025-26 thresholds.
+
+The formula's 33% x 10/11 is exactly 0.3, so each line's tax is exact before
+rounding to the cent. Tax periods start at 2019-20 because ss 18-5(3) and
+18-10(3), as substituted by Act No. 94 of 2019, give the $10,000 refunds only
+for cars supplied or imported from 1 July 2019; earlier refunds (8/33 of the
+tax, at most $3,000) are not worked. 2027-28 is refused until the ATO
+publishes its thresholds.
+
+`tests/luxury_car_tax.rs` holds these cases.
+
+| Case | Source | Worksheet |
+| --- | --- | --- |
+| A car sold for $88,000 including GST in 2026-27, not fuel efficient | QC22107 (Matty Bee Motors) | $2,157.30; charged $90,157.30 |
+| A 1977 Mustang imported in 2026-27 with an LCT value of $101,500 | QC22108 (Jimmy) | $6,207.30, paid to Home Affairs |
+| Both thresholds for each year from 2019-20 to 2026-27 | QC38161; Library ¶12-340 for 2025-26 | The year's figures |
+| A $95,000 car rated 5 litres in 2026-27; the same under item 4(2); one rated 3.5 litres | Worked by hand under s 25-1(4) and Act No. 29 of 2025 Sch 1 item 4 | $4,257.30; $1,001.70; $1,001.70 |
+| A $100,000 sale with $2,000 or $6,000 of earlier tax on the car | Worked by hand under s 5-15(2) | $3,757.30; nil |
+| A 2025-26 sale's price cut to $85,000 after $2,157.30 was attributed | Worked by hand under s 15-25 | $827.40 decreasing adjustment at 1F |
+| A car bought under quote for $100,000 in 2025-26 then used privately | Worked by hand under s 15-30(3) and (4)(a) | $5,829.90 increasing adjustment at 1E |
+| Refunds on $12,000 and $4,000 of tax borne | ss 18-5(3) and 18-10(3) | $10,000 and $4,000, off the BAS |
+
 ## Main residence
 
 This worksheet was added on 1 November 2026; its example evidence was read
