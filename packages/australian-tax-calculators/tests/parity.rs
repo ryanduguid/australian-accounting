@@ -13,6 +13,7 @@ use std::process::{Command, Stdio};
 /// `tests/borrowing_expenses.rs`, `tests/hire_purchase.rs`,
 /// `tests/chattel_mortgage.rs`, `tests/loan_transactions.rs`,
 /// `tests/business_capital_expenditure.rs`, `tests/balancing_adjustment.rs`, `tests/trade_in.rs`,
+/// `tests/gst_margin_scheme.rs`,
 /// `tests/division_296.rs`,
 /// `tests/termination_payment.rs`, `tests/etp_tax_free_component.rs`, `tests/unused_leave_payment.rs`, `tests/schedule_5.rs`,
 /// `tests/working_holiday_maker.rs`, `tests/seniors_pensioners.rs`,
@@ -26,8 +27,9 @@ use std::process::{Command, Stdio};
 /// `tests/fbt_entertainment_classifier.rs`, `tests/fbt_minor_benefit.rs` and
 /// `tests/income_tests.rs` cover
 /// them.
-const NEW_KINDS: [(&str, &str); 39] = [
+const NEW_KINDS: [(&str, &str); 40] = [
     ("fbt-minor-benefit-check", "fbt_minor_benefit_check"),
+    ("gst-margin-scheme", "gst_margin_scheme"),
     ("fbt-car-statutory", "fbt_car_statutory"),
     ("fbt-car-operating-cost", "fbt_car_operating_cost"),
     ("fbt-loan", "fbt_loan"),

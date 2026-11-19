@@ -11,6 +11,10 @@ use crate::engine::{self, Arg};
 use serde_json::Value;
 use std::collections::HashSet;
 
+/// `contract-register`, a command over a contracts CSV rather than one JSON
+/// object; see [`crate::contract_register`].
+pub use crate::contract_register::command as contract_register;
+
 /// A refusal at the JSON boundary: its stable code and the message.
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct Refusal {
@@ -130,6 +134,19 @@ const COMMAND_ARGS: &[(&str, &[(&str, Kind)])] = &[
             ("gst_inclusive", Raw),
             ("scope_confirmed", Raw),
             ("year", Raw),
+        ],
+    ),
+    (
+        "gst-margin-scheme",
+        &[
+            ("interest", Raw),
+            ("agreement", Raw),
+            ("acquisition", Raw),
+            ("consideration", Dec),
+            ("method", Raw),
+            ("recipient_associate", Raw),
+            ("year", Raw),
+            ("scope_confirmed", Raw),
         ],
     ),
     ("resident-tax", TAXABLE_INCOME_ARGS),
@@ -604,7 +621,7 @@ pub fn commands() -> Vec<&'static str> {
 /// command on its `gross_pay` shows that withholding. The classifier's amounts
 /// are totals over lines whose shares a decision table sets, not a formula;
 /// each line and class carries the authority for its row instead.
-const DERIVED: [&str; 49] = [
+const DERIVED: [&str; 50] = [
     "fbt",
     "fbt-car-statutory",
     "fbt-car-operating-cost",
@@ -653,6 +670,7 @@ const DERIVED: [&str; 49] = [
     "business-capital-expenditure",
     "balancing-adjustment",
     "trade-in",
+    "gst-margin-scheme",
     "etp-tax-free-component",
 ];
 
@@ -1026,6 +1044,7 @@ pub fn evaluate_coded(command: &str, v: &Value) -> Result<Value> {
             | "business-capital-expenditure"
             | "balancing-adjustment"
             | "trade-in"
+            | "gst-margin-scheme"
     ) && let Some(key) = v
         .as_object()
         .into_iter()
@@ -1176,6 +1195,45 @@ pub fn evaluate_coded(command: &str, v: &Value) -> Result<Value> {
                 involuntary_disposal: &a[9],
                 year: &a[10],
                 scope_confirmed: &a[11],
+            })
+        }
+        "gst-margin-scheme" => {
+            // Optional: each method's base, its valuation facts and a
+            // subdivided lot's share.
+            let [paid, unpaid, valuation, share, whole] = [
+                "acquisition_consideration",
+                "unpaid_acquisition_consideration",
+                "approved_valuation",
+                "subdivision_share",
+                "subdivision_whole",
+            ]
+            .map(|key| optional(v, key, Dec));
+            let [day, registered, government] = [
+                "valuation_day",
+                "registered_on_1_july_2000",
+                "government_unimproved_on_1_july_2000",
+            ]
+            .map(|key| optional(v, key, Raw));
+            let [paid, unpaid, valuation, share, whole] =
+                [paid?, unpaid?, valuation?, share?, whole?];
+            let [day, registered, government] = [day?, registered?, government?];
+            engine::gst_margin_scheme(&engine::MarginSchemeArgs {
+                interest: &a[0],
+                agreement: &a[1],
+                acquisition: &a[2],
+                consideration: &a[3],
+                method: &a[4],
+                recipient_associate: &a[5],
+                acquisition_consideration: paid.as_ref(),
+                unpaid_acquisition_consideration: unpaid.as_ref(),
+                approved_valuation: valuation.as_ref(),
+                valuation_day: day.as_ref(),
+                registered_on_1_july_2000: registered.as_ref(),
+                government_unimproved_on_1_july_2000: government.as_ref(),
+                subdivision_share: share.as_ref(),
+                subdivision_whole: whole.as_ref(),
+                year: &a[6],
+                scope_confirmed: &a[7],
             })
         }
         "fbt" => engine::fbt(&a[0], &a[1], &a[2], &a[3]),

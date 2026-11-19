@@ -72,6 +72,19 @@
   GST on the credit component. The 2024-25 car limit, $69,674, joins the
   2025-26 and 2026-27 ones.
 - `payout` takes `known_at_start`, which must be `false`.
+- `contract-register` reads a contracts file, CSV with one hire purchase or
+  chattel mortgage contract a line, sets out each contract through
+  `hire-purchase-schedule` or `chattel-mortgage-schedule` unchanged, and reports cashflow by month, payments, interest and principal
+  by income year, the amount outstanding at a balance date split into
+  current and non-current (AASB 101 paragraph 69(c)), contracts expiring by
+  a date, and totals by financier and by client, as JSON, text or CSV.
+  A malformed line is refused with its number. New codes:
+  `contract_register.argument_invalid`, `contract_register.column_invalid`,
+  `contract_register.contract_duplicate`, `contract_register.csv_invalid`,
+  `contract_register.kind_unsupported` and `contract_register.text_invalid`.
+  `examples/contract-register.csv` is a fabricated register of 8 contracts,
+  and `tests/contract_register.rs` holds it to each contract's own schedule.
+  `docs/contract-register.md` documents the columns and reports.
 - New codes: `hire_purchase.car_limit_unknown`,
   `hire_purchase.frequencies_mixed`, `hire_purchase.frequency_invalid`,
   `hire_purchase.gst_fact_conflict`, `hire_purchase.gst_fact_invalid`,
@@ -89,9 +102,30 @@
   16) and the less than $300 test (s 58P(1)(e)), and weighs the s 58P(1)(f)
   criteria, given as facts, as TR 2007/12's examples weigh them: `exempt`,
   `not_exempt` or `judgement_required`. New codes:
-  `fbt_minor_benefit.category_unsettled` and `fbt_minor_benefit.fact_invalid`. `tests/fbt_minor_benefit.rs` runs
-  TR 2007/12 examples 1 to 3 and 5 to 13 and the Library's flowers, gym and
-  golf day examples.
+  `fbt_minor_benefit.category_unsettled` and `fbt_minor_benefit.fact_invalid`.
+  `tests/fbt_minor_benefit.rs` runs TR 2007/12 examples 1 to 3 and 5 to 13 and
+  the Library's flowers, gym and golf day examples.
+- `gst-margin-scheme` decides whether the GST margin scheme can apply to a
+  taxable supply of real property in 2025-26 to 2027-28, condition by
+  condition (GST Act s 75-5: a freehold interest, stratum unit or long-term
+  lease, a written agreement on or before the supply or in a further period
+  the Commissioner allows, and no acquisition through a taxable supply worked
+  without it), and gives the GST with and without it: 1/11 of the margin over
+  the acquisition's consideration less any unpaid (ss 75-10(2), 75-12 and
+  75-14) or over an approved valuation as at the day s 75-10(3) items 1 to 4
+  fix, for part of the land on its share (s 75-15), rounded to the cent
+  (s 9-90(1)). Acquisitions that s 75-5(3)(b) to (g), s 75-10(3) item 2A,
+  s 75-11 or s 75-22 govern, and a supply to an associate (s 75-13), are
+  refused, naming the provision. New codes:
+  `gst_margin_scheme.acquisition_unsupported`,
+  `gst_margin_scheme.fact_conflict`, `gst_margin_scheme.fact_invalid`,
+  `gst_margin_scheme.supply_to_associate`,
+  `gst_margin_scheme.valuation_day_invalid`,
+  `gst_margin_scheme.valuation_item_unsettled` and
+  `gst_margin_scheme.valuation_unavailable`. `derive` explains it.
+  `tests/gst_margin_scheme.rs` runs the Library's Joanne Black, Hans and Luke,
+  improvements, subdivision and 1 July 2000 examples and GSTR 2006/8's
+  Tureia example.
 
 ### Changed
 

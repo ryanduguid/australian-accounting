@@ -59,7 +59,7 @@ def _numbers(text: str) -> set[str]:
 @pytest.mark.parametrize("kind", sorted(worksheet_catalogue()))
 def test_every_kind_yields_a_note_whose_every_number_comes_from_the_result(kind) -> None:
     entry = worksheet_catalogue()[kind]
-    facts = {**entry["example"]["facts"], **entry["supported_periods"][0]["arguments"]}
+    facts = entry["example"]["facts"]
     result = _call({"facts": facts, "file_note": True})
     note = result.pop("file_note")
     assert [line for line in note.splitlines() if line.startswith("## ")] == HEADINGS
