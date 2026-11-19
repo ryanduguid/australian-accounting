@@ -14,7 +14,7 @@
   and its step names the condition. New code:
   `etp_tax_free_component.dates_invalid`. `derive` covers it.
   `tests/etp_tax_free_component.rs` holds it to the ATO's Jackson example and
-  the Library's Jim example.
+  the Library's Jim and Jon examples.
 
 - `hire-purchase-schedule` takes weekly, fortnightly, quarterly and annual
   instalments (`frequency`), or dated `segments` of level instalments with

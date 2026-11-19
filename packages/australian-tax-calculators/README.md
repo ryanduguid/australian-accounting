@@ -1331,7 +1331,7 @@ segment, or would but for its timing: such a payment is an excluded payment
 the employment or to broken periods of it, unused annual and long service leave,
 superannuation disability benefits (s 307-145) and the tax on the taxable
 component are outside it. The tests hold it to the ATO's Jackson example and
-the Library's Jim example; see
+the Library's Jim and Jon examples; see
 [calculation evidence](docs/calculation-evidence.md#etp-tax-free-component).
 
 ## Unused leave payment

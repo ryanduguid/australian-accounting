@@ -2,9 +2,10 @@
 // SPDX-License-Identifier: LicenseRef-Duguid-Public-Attribution-1.0
 
 //! The ETP tax free component against the ATO's Jackson example ('Tax-free
-//! component of ETPs', last updated 24 July 2025), the Library's Jim example
-//! (¶8-850) and ITAA 1997 ss 82-10(6), 82-140 to 82-155 and 995-1(1), read on
-//! 19 November 2026 (docs/calculation-evidence.md#etp-tax-free-component);
+//! component of ETPs', last updated 24 July 2025), the Library's Jim (¶8-850)
+//! and Jon (¶8-860) examples and ITAA 1997 ss 82-10(6), 82-140 to 82-155 and
+//! 995-1(1), read on 19 November 2026
+//! (docs/calculation-evidence.md#etp-tax-free-component);
 //! then each condition of s 82-150(1), the day counts at their edges and the
 //! refusals.
 use australian_tax_calculators::api;
@@ -144,6 +145,26 @@ fn employment_before_july_1983_adds_the_pre_july_83_segment() {
     assert_eq!(
         result["amounts"]["payment_less_invalidity_segment"],
         "97918.41"
+    );
+}
+
+/// The Library's Jon (¶8-860): employment from 1 January 1980, terminated on
+/// 31 December 2026, $70,000 at step 1 (his $100,000 ETP less its $30,000
+/// invalidity segment), given here as a payment with none. Its 1,277 days
+/// before 1 July 1983 are the count made here; its 17,175 total days are not:
+/// 1 January 1980 to 31 December 2026 is 17,167 days with both counted, so
+/// 70000 x 1277 / 17167 = 5207.0828... = 5207.08, where the example's
+/// 70000 x 1277 / 17175 gives its $5,205.
+#[test]
+fn jons_example_gives_the_librarys_pre_july_83_days() {
+    let result = run(json!({
+        "payment": "70000.00", "employment_start": "1980-01-01",
+        "termination_date": "2026-12-31", "ill_health": false,
+    }));
+    assert_eq!(days(&result), ["17167", "0", "1277"]);
+    assert_eq!(
+        components(&result),
+        ["0.00", "5207.08", "5207.08", "64792.92"]
     );
 }
 

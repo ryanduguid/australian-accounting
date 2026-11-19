@@ -1754,6 +1754,11 @@ This worksheet's evidence was read on 19 November 2026 from 9.25 am to
   20 August 1981 the days are 16,417, of which 680 fall before 1 July 1983,
   giving $2,081.59 and a pre-July 83 segment of $4,055.83, worked by hand in
   the test. Neither published example's employment days match its dates.
+- The Library's ¶8-860 (the same document): Jon's $70,000 at step 1 after a
+  $30,000 invalidity segment, employed from 1 January 1980 to
+  31 December 2026, has 1,277 days before 1 July 1983, the count this worksheet
+  makes, and $5,205 on 17,175 total days; the dates give 17,167, so the test
+  holds the pre-July 83 segment at $5,207.08, read on 19 November 2026.
 
 The worksheet rounds each segment half up to the cent; the ATO's examples show
 whole dollars, and the Act gives neither. Death benefit ETPs (which cannot
