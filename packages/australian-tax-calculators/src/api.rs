@@ -348,6 +348,20 @@ const COMMAND_ARGS: &[(&str, &[(&str, Kind)])] = &[
             ("scope_confirmed", Raw),
         ],
     ),
+    (
+        "fbt-ev-exemption-check",
+        &[
+            ("vehicle", Raw),
+            ("car", Raw),
+            ("current_employee", Raw),
+            ("first_held_and_used", Raw),
+            ("first_retail_sale", Raw),
+            ("luxury_car_tax_value", Dec),
+            ("luxury_car_tax_on_other_supply", Raw),
+            ("year_ended", Raw),
+            ("scope_confirmed", Raw),
+        ],
+    ),
     ("fbt-loan", FBT_YEAR_ARGS),
     ("fbt-meal-entertainment", FBT_METHOD_ARGS),
     ("fbt-car-parking", FBT_METHOD_ARGS),
@@ -1139,6 +1153,7 @@ pub fn evaluate_coded(command: &str, v: &Value) -> Result<Value> {
             | "business-capital-expenditure"
             | "balancing-adjustment"
             | "trade-in"
+            | "fbt-ev-exemption-check"
             | "dasp-tax"
             | "payroll-tax"
             | "gst-margin-scheme"
@@ -1410,6 +1425,28 @@ pub fn evaluate_coded(command: &str, v: &Value) -> Result<Value> {
         "fbt-car-operating-cost" => engine::fbt_car_operating_cost(
             &a[0], &a[1], &a[2], &a[3], &a[4], &a[5], &a[6], &a[7], &a[8], &a[9], &a[10],
         ),
+        "fbt-ev-exemption-check" => {
+            // Optional: a plug-in hybrid's transitional facts.
+            let [before, new, exempt] = [
+                "commitment_before_1_april_2025",
+                "new_commitment_from_1_april_2025",
+                "exempt_benefit_before_1_april_2025",
+            ]
+            .map(|key| optional(v, key, Raw));
+            let hybrid = [before?, new?, exempt?];
+            engine::fbt_ev_exemption_check(&engine::EvExemptionArgs {
+                vehicle: &a[0],
+                car: &a[1],
+                current_employee: &a[2],
+                first_held_and_used: &a[3],
+                first_retail_sale: &a[4],
+                luxury_car_tax_value: &a[5],
+                luxury_car_tax_on_other_supply: &a[6],
+                hybrid: hybrid.each_ref().map(Option::as_ref),
+                year_ended: &a[7],
+                scope_confirmed: &a[8],
+            })
+        }
         "fbt-loan" => engine::fbt_loan(&benefit_inputs(v, params)?, &a[0], &a[1]),
         "fbt-meal-entertainment" => {
             engine::fbt_meal_entertainment(&a[0], &benefit_inputs(v, params)?, &a[1], &a[2])

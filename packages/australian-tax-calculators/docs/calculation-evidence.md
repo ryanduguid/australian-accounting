@@ -321,6 +321,57 @@ third warning. `tests/fbt_car.rs` checks a taxable car, an exempt electric car
 and a recipient's payment under both methods; `tests/properties.rs` checks the
 equality on every seeded result.
 
+## FBT EV exemption check
+
+Added on 19 November 2026. Its sources were read that morning, 9.34 am to
+9.55 am AEDT: the FBTAA (C2004A03280, compilation 97, from 1 July 2026) ss
+7(1), 8A, 45, 53(1), 135P and 136(1), from the Federal Register of
+Legislation's EPUB text; the Treasury Laws Amendment (Electric Car Discount)
+Act 2022 (C2022A00086, No. 86 of 2022) as made, for s 8A(2)(c) and (5) as
+inserted, Schedule 1 item 7 (application from 1 July 2022) and Schedule 2
+item 5 (the plug-in hybrid cut-off from 1 April 2025 and its exception); the
+A New Tax System (Luxury Car Tax) Act 1999 (C2004A00463, compilation of 1
+April 2025) ss 5-20 and 25-1; and the ATO's 'Electric cars exemption' (last
+updated 1 April 2026), 'FBT on plug-in hybrid electric vehicles' (last
+updated 14 March 2025), 'Luxury car tax rate and thresholds' (last updated 1
+June 2026), whose fuel-efficient column is the threshold table, and 'Electric
+car discount – more sustainable fringe benefits tax treatment of electric
+cars' (last updated 3 November 2026), which says the change from 1 April 2027
+is not yet law. The Library's Tax Examples, FBT, ¶3-045 (reviewed 30 June
+2026) gives the Cleancut example.
+
+s 8A(1)(c) asks whether luxury car tax has become payable on any supply or
+importation of the car before the benefit is provided. The ATO tests that by
+the value at the first retail sale against the fuel-efficient threshold for
+the sale's financial year; LCT Act s 25-1(1) makes a car a luxury car only
+when its value exceeds the threshold, so a value equal to it passes. A first
+retail sale after the FBT year comes after every benefit in it, so it meets
+the condition at any value; a taxed sale within the year after the car was
+first held and used meets it only for the benefits before the sale, and is
+refused. Any other supply or importation on which luxury car
+tax became payable is a fact the operator gives.
+
+`tests/fbt_ev_exemption.rs` holds each case. The ATO's examples are run for a
+benefit in the FBT year ended 31 March 2026 or 2027; where an example gives
+no price, the value is fabricated below the threshold.
+
+| Example | Facts given | Result |
+| --- | --- | --- |
+| Library ¶3-045, Cleancut | Battery electric, bought 1 July 2025 for $72,000 plus GST: **$79,200** against **$91,387** (2025-26) | Exempt; reportable |
+| ATO, Shelly | First held and used 1 April 2022 | Not exempt: `first_held_and_used_from_1_july_2022` |
+| ATO, John | Held 15 June 2022, first used 5 July 2022, no luxury car tax | Exempt |
+| ATO, GHI Co and Kerry | **$85,000** in 2022-23 against **$84,916** | Not exempt: `no_luxury_car_tax_at_first_retail_sale` |
+| ATO, Sonia | Plug-in hybrid delivered 1 May 2025 | Not exempt: `plug_in_hybrid_exempt_before_1_april_2025` |
+| ATO, Simon | Plug-in hybrid leased 1 April 2024 to 31 March 2027, extension not exercised | Exempt in the year ended 31 March 2027 |
+| ATO, Tony | Novation broken by unpaid leave from 1 May 2025 | Not exempt: `plug_in_hybrid_no_new_commitment` |
+| ATO, Courtney | New employer's novation from 1 October 2025 | Not exempt: no commitment before 1 April 2025 and a new one |
+| ATO, pool car | No commitment to a designated employee | Not exempt: `plug_in_hybrid_commitment_before_1_april_2025` |
+
+The tests also cover the threshold itself and a cent above it, each listed
+year's threshold, each other failing condition alone and several together, a
+hydrogen fuel cell car, a motor cycle, the check's input feeding
+`fbt-car-statutory`, and each refusal.
+
 ## FBT loan
 
 These worksheets were added on 15 November 2026. Their sources were read that
