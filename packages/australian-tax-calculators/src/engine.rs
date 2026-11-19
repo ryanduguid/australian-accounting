@@ -6076,7 +6076,7 @@ pub use income_tests::income_tests;
 mod gst_margin_scheme;
 pub use gst_margin_scheme::{MarginSchemeArgs, gst_margin_scheme};
 
-const KINDS: [&str; 52] = [
+const KINDS: [&str; 53] = [
     "gst",
     "gst_margin_scheme",
     "resident_tax",
