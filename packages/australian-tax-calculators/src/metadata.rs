@@ -1578,7 +1578,7 @@ pub fn optional_inputs(kind: &str) -> Vec<(&'static str, &'static str)> {
         "sb_cgt_concessions" => vec![
             (
                 "small_business_when_stopped",
-                "boolean, for business winding_up only, and then required: the business entity was a small business entity for the income year in which it stopped carrying on the business (ITAA 1997 s 328-110(5)(b))",
+                "boolean, for business winding_up only, and then required: the business entity was a small business entity for the income year in which it stopped carrying on the business, with $2 million in place of each $10 million in s 328-110 (ITAA 1997 ss 152-10(1AA)(b) and 328-110(5)(b))",
             ),
             (
                 "longer_period_allowed",
@@ -2813,6 +2813,7 @@ pub fn input_units(kind: &str) -> Vec<(&'static str, &'static str)> {
             ("date_of_birth", "YYYY-MM-DD: the individual's, or for a company or trust that of the significant individual relied on (ss 152-105(d) and 152-110(1)(d))"),
             ("retirement", "boolean: the CGT event happens in connection with that individual's retirement"),
             ("permanently_incapacitated", "boolean: that individual is permanently incapacitated at the time of the CGT event"),
+            ("last_rollover_event", "YYYY-MM-DD, or null for this one: the last CGT event in the year for which you obtain the small business roll-over, from event_date to the end of the year; the replacement asset period runs from it (s 104-190(1A))"),
         ],
         "income_tests" => vec![
             ("taxable_income", "AUD, whole dollars: taxable income, including any assessable FHSS released amount (nil for a loss)"),
@@ -3268,6 +3269,7 @@ pub fn examples(kind: &str) -> Vec<(&'static str, Example)> {
             ("date_of_birth", Text("1972-04-10")),
             ("retirement", Flag(false)),
             ("permanently_incapacitated", Flag(false)),
+            ("last_rollover_event", Json("null")),
             ("retirement_exemption_used", Text("0.00")),
             ("choice_date", Text("2026-06-30")),
         ],

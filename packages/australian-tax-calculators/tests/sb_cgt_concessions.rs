@@ -31,6 +31,7 @@ fn neil() -> Value {
         "likely_turnover": "1200000.00", "year_turnover": "1200000.00",
         "net_asset_value": "3800000.00", "active_days": 6893, "business_ceased": null,
         "date_of_birth": "1972-04-10", "retirement": false, "permanently_incapacitated": false,
+        "last_rollover_event": null,
         "retirement_exemption_used": "0.00", "choice_date": "2026-06-30",
         "year": "2025-26", "scope_confirmed": true,
     })
@@ -115,6 +116,22 @@ fn neil_at_54_has_every_concession_but_the_15_year_exemption() {
     let mut example = catalogue["sb_cgt_concessions"]["example"]["facts"].clone();
     example.as_object_mut().unwrap().remove("kind");
     assert_eq!(example, neil());
+}
+
+/// s 104-190(1A): a roll-over also obtained for a later CGT event in the
+/// year moves the replacement asset period to run from that one.
+#[test]
+fn the_replacement_asset_period_runs_from_the_last_event_rolled_over() {
+    let later = run(&with(neil(), json!({"last_rollover_event": "2026-06-30"})));
+    assert_eq!(
+        later["replacement_asset_period"],
+        json!({"from": "2025-06-30", "to": "2028-06-30"})
+    );
+    let same = run(&with(neil(), json!({"last_rollover_event": "2026-05-15"})));
+    assert_eq!(
+        same["replacement_asset_period"],
+        json!({"from": "2025-05-15", "to": "2028-05-15"})
+    );
 }
 
 #[test]
@@ -473,6 +490,14 @@ fn refusals_name_what_is_out_of_scope_or_wrong() {
         ),
         (
             json!({"business_ceased": "2026-05-16", "longer_period_allowed": false}),
+            "sb_cgt_concessions.fact_conflict",
+        ),
+        (
+            json!({"last_rollover_event": "2026-05-14"}),
+            "sb_cgt_concessions.fact_conflict",
+        ),
+        (
+            json!({"last_rollover_event": "2026-07-01"}),
             "sb_cgt_concessions.fact_conflict",
         ),
         (

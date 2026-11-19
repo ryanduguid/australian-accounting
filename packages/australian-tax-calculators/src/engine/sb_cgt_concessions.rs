@@ -75,6 +75,7 @@ pub struct SbCgtConcessionsArgs<'a> {
     pub date_of_birth: &'a Arg,
     pub retirement: &'a Arg,
     pub permanently_incapacitated: &'a Arg,
+    pub last_rollover_event: &'a Arg,
     pub year: &'a Arg,
     pub scope_confirmed: &'a Arg,
     /// Each fact only some answers call for, in this order:
@@ -145,6 +146,9 @@ struct Facts<'a> {
     optional: [Option<&'a Arg>; 7],
     acquired: i64,
     event: i64,
+    /// The last CGT event in the year for which the roll-over is obtained
+    /// (s 104-190(1A)(a)): this one unless a later one is given.
+    last_event: i64,
     ceased: Option<i64>,
 }
 
@@ -172,7 +176,7 @@ fn facts<'a>(args: &SbCgtConcessionsArgs<'a>) -> Result<Facts<'a>> {
         individual,
     ];
     let optional = optional_facts(args, wanted)?;
-    let (acquired, event) = contract_dates(args, &year)?;
+    let (acquired, event, last_event) = contract_dates(args, &year)?;
     Ok(Facts {
         year,
         individual,
@@ -181,6 +185,7 @@ fn facts<'a>(args: &SbCgtConcessionsArgs<'a>) -> Result<Facts<'a>> {
         optional,
         acquired,
         event,
+        last_event,
         ceased,
     })
 }
@@ -208,9 +213,9 @@ fn asset<'a>(args: &SbCgtConcessionsArgs<'a>) -> Result<(bool, &'a str)> {
     Ok((partnership_asset, passively_held))
 }
 
-/// The acquisition and CGT event dates, refused where the worksheet cannot
-/// apply the tests to them.
-fn contract_dates(args: &SbCgtConcessionsArgs, year: &str) -> Result<(i64, i64)> {
+/// The acquisition, CGT event and last rolled over CGT event dates, refused
+/// where the worksheet cannot apply the tests to them.
+fn contract_dates(args: &SbCgtConcessionsArgs, year: &str) -> Result<(i64, i64, i64)> {
     let first = year_first(year).expect("a supported period is an income year");
     let (start, end) = (
         dates::parse(&format!("{first}-07-01")).expect("a date"),
@@ -228,6 +233,13 @@ fn contract_dates(args: &SbCgtConcessionsArgs, year: &str) -> Result<(i64, i64)>
     if acquired >= event {
         return conflict("acquired must be before event_date.");
     }
+    let last = optional_date(args.last_rollover_event, "last_rollover_event")?.unwrap_or(event);
+    if !(event..=end).contains(&last) {
+        return conflict(format!(
+            "last_rollover_event must be from event_date to the end of the {year} income year, {}.",
+            dates::format(end)
+        ));
+    }
     if acquired < dates::parse(CGT_START).expect("a date") {
         return refuse(
             "sb_cgt_concessions.pre_cgt_asset",
@@ -240,7 +252,7 @@ fn contract_dates(args: &SbCgtConcessionsArgs, year: &str) -> Result<(i64, i64)>
             "Whether an asset acquired on the same date 15 years before the CGT event was owned for the 15 years before it (ss 152-35 and 152-105) turns on the time of day of each contract: this worksheet cannot tell.",
         );
     }
-    Ok((acquired, event))
+    Ok((acquired, event, last))
 }
 
 /// The CGT small business entity row's id and the paragraph that makes the
@@ -506,9 +518,9 @@ pub fn sb_cgt_concessions(args: &SbCgtConcessionsArgs) -> Result<Value> {
     // contributes the CGT exempt amount to a complying super fund or RSA.
     out["super_contribution_required"] = json!(contribution);
     // s 104-190(1A)(a) and (b)(i): one year before to 2 years after the last
-    // CGT event in the year for which the roll-over is obtained, this one.
+    // CGT event in the year for which the roll-over is obtained.
     out["replacement_asset_period"] = if rollover {
-        json!({"from": dates::format(anniversary(f.event, -1)), "to": dates::format(anniversary(f.event, 2))})
+        json!({"from": dates::format(anniversary(f.last_event, -1)), "to": dates::format(anniversary(f.last_event, 2))})
     } else {
         Value::Null
     };

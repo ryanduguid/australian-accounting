@@ -551,6 +551,7 @@ const COMMAND_ARGS: &[(&str, &[(&str, Kind)])] = &[
             ("date_of_birth", Raw),
             ("retirement", Raw),
             ("permanently_incapacitated", Raw),
+            ("last_rollover_event", Raw),
             ("year", Raw),
             ("scope_confirmed", Raw),
         ],
@@ -1452,8 +1453,9 @@ pub fn evaluate_coded(command: &str, v: &Value) -> Result<Value> {
                 date_of_birth: &a[14],
                 retirement: &a[15],
                 permanently_incapacitated: &a[16],
-                year: &a[17],
-                scope_confirmed: &a[18],
+                last_rollover_event: &a[17],
+                year: &a[18],
+                scope_confirmed: &a[19],
                 optional: given.each_ref().map(Option::as_ref),
             })
         }

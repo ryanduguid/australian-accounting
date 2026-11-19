@@ -2443,6 +2443,7 @@ Choices the Act leaves to the reader:
 | Owned more than 15 years, 2,736, 2,737, 2,740 and 2,741 days active | Worked by hand under s 152-35(1)(b) | Not met, refused, refused, met |
 | A company with and without a significant individual | Worked by hand under ss 152-110 and 152-305(2) | Without one: the 15-year and retirement exemptions closed, the reduction and roll-over open |
 | $500,000 and $125,000.50 of the retirement limit used | Worked by hand under s 152-320 | The exemption closed; $374,999.50 left |
+| Neil's roll-over also obtained for a CGT event on 30 June 2026 | Worked by hand under s 104-190(1A)(a) and (b)(i) | Replacement asset period 30 June 2025 to 30 June 2028, from the last event, not 15 May |
 
 ## Personal tax estimate
 
