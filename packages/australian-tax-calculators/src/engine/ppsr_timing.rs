@@ -241,16 +241,9 @@ fn in_year(at: Instant, period: &str, key: &str) -> Result<()> {
 }
 
 const FEES: &str = "Personal Property Securities (Fees) Determination 2018 s 4 table items 1 to 3 (registering a financing statement under PPSA s 150(1)): $115.00 with no end time, $6.00 with an end time up to the end of the day 7 years after the registration time, $25.00 with an end time after that and up to the end of the day 25 years after; not subject to GST (the Registrar's fees page)";
-
-fn registration(given: &Given, period: &str) -> Result<Value> {
-    given.only(&[
-        "registration_time",
-        "collateral",
-        "serial_numbered",
-        "end_date",
-    ])?;
-    let at = time(given.need("registration_time")?, "registration_time")?;
-    in_year(at, period, "registration_time")?;
+/// Whether the collateral takes item 5(b)'s 7 years: consumer property, or
+/// property described by a serial number.
+fn short_collateral(given: &Given) -> Result<bool> {
     let consumer = match given.need("collateral")?.text() {
         Some("consumer") => true,
         Some("commercial") => false,
@@ -261,27 +254,41 @@ fn registration(given: &Given, period: &str) -> Result<Value> {
             );
         }
     };
-    let serial = flag(given.need("serial_numbered")?, "serial_numbered")?;
-    let requested = match given.get("end_date") {
-        None => None,
+    Ok(consumer || flag(given.need("serial_numbered")?, "serial_numbered")?)
+}
+
+/// The end of the requested end date, if one is given.
+fn requested_end(given: &Given) -> Result<Option<Instant>> {
+    match given.get("end_date") {
+        None => Ok(None),
         Some(arg) => match arg.text().and_then(dates::parse) {
-            Some(day) => Some(end_of_day(day)),
-            None => return refuse("input.date_invalid", "end_date must be YYYY-MM-DD."),
+            Some(day) => Ok(Some(end_of_day(day))),
+            None => refuse("input.date_invalid", "end_date must be YYYY-MM-DD."),
         },
-    };
+    }
+}
+
+const SHORT_END: &str = "PPSA s 153 item 5(b)(i): consumer property, or property described by a serial number, has an end time no later than the end of the day 7 years after the registration time";
+const LONG_END: &str = "PPSA s 153 item 5(a): other collateral has no stated end time, or one no later than the end of the day 25 years after the registration time";
+const DEFAULT_NOTE: &str = "PPSA s 153(2) and (3): an end time later than the default time, earlier than the registration time, or missing where item 5(b) requires one does not comply, and the financing statement is taken to provide for the default time as its end time.";
+
+fn registration(given: &Given, period: &str) -> Result<Value> {
+    given.only(&[
+        "registration_time",
+        "collateral",
+        "serial_numbered",
+        "end_date",
+    ])?;
+    let at = time(given.need("registration_time")?, "registration_time")?;
+    in_year(at, period, "registration_time")?;
+    let short = short_collateral(given)?;
+    let requested = requested_end(given)?;
     let day = at.div_euclid(DAY);
     let seven = end_of_day(years_after(day, 7)?);
-    let short = consumer || serial;
     let (latest, item) = if short {
-        (
-            seven,
-            "PPSA s 153 item 5(b)(i): consumer property, or property described by a serial number, has an end time no later than the end of the day 7 years after the registration time",
-        )
+        (seven, SHORT_END)
     } else {
-        (
-            end_of_day(years_after(day, 25)?),
-            "PPSA s 153 item 5(a): other collateral has no stated end time, or one no later than the end of the day 25 years after the registration time",
-        )
+        (end_of_day(years_after(day, 25)?), LONG_END)
     };
     // s 153(2) and (3): an end time that does not comply, as one after the
     // default time or before the registration time does not, is taken to be
@@ -297,12 +304,8 @@ fn registration(given: &Given, period: &str) -> Result<Value> {
         Some(end) if end <= seven => "6.00",
         Some(_) => "25.00",
     };
-    let mut out = result(
-        KIND,
-        period,
-        vec![("registration_fee", d(fee))],
-        fee_rates(),
-    )?;
+    let amounts = vec![("registration_fee", d(fee))];
+    let mut out = result(KIND, period, amounts, fee_rates())?;
     out["question"] = json!("registration");
     out["registration_time"] = json!(show(at));
     out["latest_end_time"] = json!(show(latest));
@@ -310,13 +313,39 @@ fn registration(given: &Given, period: &str) -> Result<Value> {
     out["end_time_basis"] = json!(applied);
     out["end_time_rule"] = json!(item);
     if applied == "default_time" {
-        out["end_time_note"] = json!(
-            "PPSA s 153(2) and (3): an end time later than the default time, earlier than the registration time, or missing where item 5(b) requires one does not comply, and the financing statement is taken to provide for the default time as its end time."
-        );
+        out["end_time_note"] = json!(DEFAULT_NOTE);
     }
     out["fee_rule"] = json!(FEES);
     Ok(out)
 }
+
+/// The s 62 deadline, its rule, and whether a registration at the deadline
+/// itself is in time (inventory: at the time; other property: before the end).
+fn pmsi_deadline(
+    given: &Given,
+    inventory: bool,
+    trigger: Instant,
+) -> Result<(Instant, String, bool)> {
+    let event = if flag(given.need("goods")?, "goods")? {
+        "the grantor, or another person at its request, obtains possession"
+    } else {
+        "the interest attaches"
+    };
+    if inventory {
+        let rule = format!(
+            "PPSA s 62(2)(b): inventory; perfected by registration at the time {event}, so registered no later than that time"
+        );
+        return Ok((trigger, rule, true));
+    }
+    let listed = days(given.need("excluded_days")?, "excluded_days")?;
+    let day = ppsa_business_day_after(trigger.div_euclid(DAY), 15, &listed)?;
+    let rule = format!(
+        "PPSA s 62(3)(b): not inventory; perfected by registration before the end of 15 business days (s 10) after the day {event}"
+    );
+    Ok((end_of_day(day), rule, false))
+}
+
+const SUPER_PRIORITY: &str = "PPSA s 62(2)(c) and (3)(c): the registration must also state, under s 153 item 7, that the interest is a purchase money security interest; priority over a non-purchase money interest of the same grantor in the same collateral then follows, subject to s 57 and, for inventory, ss 64 and 71";
 
 fn pmsi(given: &Given, period: &str) -> Result<Value> {
     let inventory = flag(given.need("inventory")?, "inventory")?;
@@ -328,33 +357,9 @@ fn pmsi(given: &Given, period: &str) -> Result<Value> {
         takes.push("pmsi_stated");
     }
     given.only(&takes)?;
-    let goods = flag(given.need("goods")?, "goods")?;
     let trigger = time(given.need("trigger_time")?, "trigger_time")?;
     in_year(trigger, period, "trigger_time")?;
-    let event = if goods {
-        "the grantor, or another person at its request, obtains possession"
-    } else {
-        "the interest attaches"
-    };
-    let (deadline, rule, inclusive) = if inventory {
-        (
-            trigger,
-            format!(
-                "PPSA s 62(2)(b): inventory; perfected by registration at the time {event}, so registered no later than that time"
-            ),
-            true,
-        )
-    } else {
-        let listed = days(given.need("excluded_days")?, "excluded_days")?;
-        let day = ppsa_business_day_after(trigger.div_euclid(DAY), 15, &listed)?;
-        (
-            end_of_day(day),
-            format!(
-                "PPSA s 62(3)(b): not inventory; perfected by registration before the end of 15 business days (s 10) after the day {event}"
-            ),
-            false,
-        )
-    };
+    let (deadline, rule, inclusive) = pmsi_deadline(given, inventory, trigger)?;
     let mut out = result(KIND, period, vec![], fee_rates())?;
     out["question"] = json!("pmsi");
     out["trigger_time"] = json!(show(trigger));
@@ -372,70 +377,22 @@ fn pmsi(given: &Given, period: &str) -> Result<Value> {
         out["registered_in_time"] = json!(in_time);
         out["pmsi_stated"] = json!(stated);
         out["super_priority"] = json!(in_time && stated);
-        out["super_priority_rule"] = json!(
-            "PPSA s 62(2)(c) and (3)(c): the registration must also state, under s 153 item 7, that the interest is a purchase money security interest; priority over a non-purchase money interest of the same grantor in the same collateral then follows, subject to s 57 and, for inventory, ss 64 and 71"
-        );
+        out["super_priority_rule"] = json!(SUPER_PRIORITY);
     }
     Ok(out)
 }
 
-fn company_grantor(given: &Given, period: &str) -> Result<Value> {
-    given.only(&[
-        "agreement_in_force_time",
-        "place_holidays",
-        "foreign_law_agreement",
-        "registration_time",
-        "critical_time",
-        "court_ordered_time",
-    ])?;
-    let agreed = time(
-        given.need("agreement_in_force_time")?,
-        "agreement_in_force_time",
-    )?;
-    in_year(agreed, period, "agreement_in_force_time")?;
-    if flag(
-        given.need("foreign_law_agreement")?,
-        "foreign_law_agreement",
-    )? {
-        return refuse(
-            "ppsr_timing.foreign_law_unsupported",
-            "A security agreement that came into force under a foreign law takes s 588FL(2)(b)(iii)'s 56 day time, which turns on when the interest first became enforceable in Australia; this command does not compute it.",
-        );
-    }
-    let listed = days(given.need("place_holidays")?, "place_holidays")?;
-    let day = corporations_business_day_after(agreed.div_euclid(DAY), 20, &listed)?;
-    let safe_by = end_of_day(day);
-    let mut out = result(KIND, period, vec![], fee_rates())?;
-    out["question"] = json!("company_grantor");
-    out["agreement_in_force_time"] = json!(show(agreed));
-    out["register_by"] = json!(show(safe_by));
-    out["rule"] = json!(
-        "Corporations Act s 588FL(2)(b)(ii): the end of 20 business days (s 9, in the place concerned) after the security agreement came into force; a registration no later than that time is never after the latest of the s 588FL(2)(b) times"
-    );
-    let critical = given
-        .get("critical_time")
-        .map(|arg| time(arg, "critical_time"))
-        .transpose()?;
-    let court = given
-        .get("court_ordered_time")
-        .map(|arg| time(arg, "court_ordered_time"))
-        .transpose()?;
-    let registered = given
-        .get("registration_time")
-        .map(|arg| time(arg, "registration_time"))
-        .transpose()?;
-    if let Some(at) = registered {
-        out["registration_time"] = json!(show(at));
-    }
-    let Some(critical) = critical else {
-        if court.is_some() {
-            return refuse(
-                "input.field_unknown",
-                "court_ordered_time is an input only with critical_time.",
-            );
-        }
-        return Ok(out);
-    };
+fn optional_time(given: &Given, key: &str) -> Result<Option<Instant>> {
+    given.get(key).map(|arg| time(arg, key)).transpose()
+}
+
+/// The s 588FL(2)(b) times: 6 months before the critical time, and the
+/// latest of it, the 20 day time capped at the critical time, and a court's.
+fn latest_time(
+    critical: Instant,
+    court: Option<Instant>,
+    safe_by: Instant,
+) -> Result<(Instant, Instant)> {
     let unread = dates::parse(CORPORATIONS_ACT_READ_TO).expect("date") * DAY;
     if critical >= unread {
         return refuse(
@@ -449,29 +406,83 @@ fn company_grantor(given: &Given, period: &str) -> Result<Value> {
         .flatten()
         .max()
         .expect("a time");
+    Ok((months, latest))
+}
+
+const NOT_PERFECTED: &str = "not_perfected_at_critical_time: registered after the critical time, so not perfected by registration then (s 588FL(2)(a)(ii)) unless the interest arose after it; s 588FL's note points to PPSA ss 267 and 267A for an interest unperfected at the critical time";
+const VESTS: &str = "vests: the registration time is after the latest time, so the interest vests in the company (s 588FL(4)) if, at the critical time, it was enforceable against third parties and perfected by registration only (s 588FL(2)(a)), unless s 588FN applies";
+const DOES_NOT_VEST: &str =
+    "does_not_vest: the registration time is not after the latest time (s 588FL(2)(b))";
+const TWENTY_DAYS: &str = "Corporations Act s 588FL(2)(b)(ii): the end of 20 business days (s 9, in the place concerned) after the security agreement came into force; a registration no later than that time is never after the latest of the s 588FL(2)(b) times";
+const LATEST_RULE: &str = "Corporations Act s 588FL(2)(b): the latest of 6 months before the critical time, the end of 20 business days after the agreement came into force or the critical time if earlier, and a later time the Court orders under s 588FL(2)(b)(iv) and s 588FM";
+
+/// Whether a registration at `at` vests, and why.
+fn vesting(at: Instant, critical: Instant, latest: Instant) -> (Value, &'static str) {
+    if at > critical {
+        (Value::Null, NOT_PERFECTED)
+    } else if at > latest {
+        (json!(true), VESTS)
+    } else {
+        (json!(false), DOES_NOT_VEST)
+    }
+}
+
+/// The agreement's in-force time, refusing a foreign-law agreement.
+fn agreement_time(given: &Given, period: &str) -> Result<Instant> {
+    let key = "agreement_in_force_time";
+    let agreed = time(given.need(key)?, key)?;
+    in_year(agreed, period, key)?;
+    let key = "foreign_law_agreement";
+    if flag(given.need(key)?, key)? {
+        return refuse(
+            "ppsr_timing.foreign_law_unsupported",
+            "A security agreement that came into force under a foreign law takes s 588FL(2)(b)(iii)'s 56 day time, which turns on when the interest first became enforceable in Australia; this command does not compute it.",
+        );
+    }
+    Ok(agreed)
+}
+
+fn company_grantor(given: &Given, period: &str) -> Result<Value> {
+    given.only(&[
+        "agreement_in_force_time",
+        "place_holidays",
+        "foreign_law_agreement",
+        "registration_time",
+        "critical_time",
+        "court_ordered_time",
+    ])?;
+    let agreed = agreement_time(given, period)?;
+    let listed = days(given.need("place_holidays")?, "place_holidays")?;
+    let day = corporations_business_day_after(agreed.div_euclid(DAY), 20, &listed)?;
+    let safe_by = end_of_day(day);
+    let [critical, court, registered] =
+        ["critical_time", "court_ordered_time", "registration_time"]
+            .map(|key| optional_time(given, key));
+    let [critical, court, registered] = [critical?, court?, registered?];
+    let mut out = result(KIND, period, vec![], fee_rates())?;
+    out["question"] = json!("company_grantor");
+    out["agreement_in_force_time"] = json!(show(agreed));
+    out["register_by"] = json!(show(safe_by));
+    out["rule"] = json!(TWENTY_DAYS);
+    if let Some(at) = registered {
+        out["registration_time"] = json!(show(at));
+    }
+    let Some(critical) = critical else {
+        if court.is_some() {
+            return refuse(
+                "input.field_unknown",
+                "court_ordered_time is an input only with critical_time.",
+            );
+        }
+        return Ok(out);
+    };
+    let (months, latest) = latest_time(critical, court, safe_by)?;
     out["critical_time"] = json!(show(critical));
     out["six_months_before"] = json!(show(months));
     out["latest_time"] = json!(show(latest));
-    out["latest_time_rule"] = json!(
-        "Corporations Act s 588FL(2)(b): the latest of 6 months before the critical time, the end of 20 business days after the agreement came into force or the critical time if earlier, and a later time the Court orders under s 588FL(2)(b)(iv) and s 588FM"
-    );
+    out["latest_time_rule"] = json!(LATEST_RULE);
     if let Some(at) = registered {
-        let (vests, why) = if at > critical {
-            (
-                Value::Null,
-                "not_perfected_at_critical_time: registered after the critical time, so not perfected by registration then (s 588FL(2)(a)(ii)) unless the interest arose after it; s 588FL's note points to PPSA ss 267 and 267A for an interest unperfected at the critical time",
-            )
-        } else if at > latest {
-            (
-                json!(true),
-                "vests: the registration time is after the latest time, so the interest vests in the company (s 588FL(4)) if, at the critical time, it was enforceable against third parties and perfected by registration only (s 588FL(2)(a)), unless s 588FN applies",
-            )
-        } else {
-            (
-                json!(false),
-                "does_not_vest: the registration time is not after the latest time (s 588FL(2)(b))",
-            )
-        };
+        let (vests, why) = vesting(at, critical, latest);
         out["vests"] = vests;
         out["vesting"] = json!(why.split(':').next().expect("a verdict"));
         out["vesting_reason"] = json!(why);
