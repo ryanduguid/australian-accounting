@@ -1105,7 +1105,8 @@ creditable purpose). `gst.attributable` states the tax period, from the ATO's
 GST issues register (issue 1.21). A rate below nil or of 100% a month or
 more, both or neither of `instalment` and `annual_rate`, `annual_rate` with
 other instalments, a balloon that alone repays the loan at the stated rate
-and a rounded instalment that leaves a last instalment below nil are refused.
+and a rounded instalment that moves the last instalment by more than a whole
+instalment (below nil or above twice the instalment) are refused.
 Fees, stamp duty, changing rates (see [Loan transactions](#loan-transactions)),
 daily interest, payouts, substituted accounting periods and the goods'
 decline in value are out of scope; see

@@ -274,8 +274,21 @@ fn input_the_schedule_cannot_represent_is_refused() {
     // overpaying by $17.41 by the end.
     assert_eq!(
         code(json!({"amount_financed": "1.46", "instalments": 360})),
-        "chattel_mortgage.final_instalment_negative"
+        "chattel_mortgage.final_instalment_unsupported"
     );
+    // $50,000 over 30 years at 50% a year: $2,083.3333... rounds down to
+    // $2,083.33, and the 1/3 cent unpaid each month compounds to $242,950.50
+    // by the end, more than a whole instalment.
+    let compounded = json!({"amount_financed": "50000.00", "annual_rate": "0.50",
+                            "instalments": 360});
+    assert_eq!(
+        code(compounded),
+        "chattel_mortgage.final_instalment_unsupported"
+    );
+    // At 30% the $678.01 left is less than the $1,250.17 instalment.
+    let r = run(json!({"amount_financed": "50000.00", "annual_rate": "0.30",
+                       "instalments": 360}));
+    assert_eq!(amount(&r, "final_adjustment"), "678.01");
     assert_eq!(
         code(json!({"annual_rate": "1.5"})),
         "input.fraction_invalid"

@@ -157,16 +157,19 @@ fn stated(
 }
 
 /// Adds to the last instalment the balance left before it, at `rate`: that
-/// balance to 16 places and the adjustment, its cents.
+/// balance to 16 places and the adjustment, its cents. An adjustment of more
+/// than a whole instalment either way, which a cent's rounding compounds to
+/// only at a high rate over a long term, is refused.
 fn absorb(agreement: &mut Agreement, rate: &Decimal) -> Result<(Decimal, Decimal)> {
     let left = agreement.residual(rate)?.quantize(-16, Rounding::HalfUp)?;
     let adjustment = left.quantize(-2, Rounding::HalfUp)?;
     let last = agreement.term() as usize;
-    let final_instalment = agreement.regime.due[last].add(&adjustment)?;
-    if final_instalment.lt(&int(0))? {
+    let level = &agreement.regime.due[last];
+    let final_instalment = level.add(&adjustment)?;
+    if final_instalment.lt(&int(0))? || adjustment.gt(level)? {
         return refuse(
-            "chattel_mortgage.final_instalment_negative",
-            "Rounding the instalment to the cent leaves a last instalment below nil at this rate and term; give the instalment instead.",
+            "chattel_mortgage.final_instalment_unsupported",
+            "Rounding the instalment to the cent moves the last instalment by more than a whole instalment at this rate and term, below nil or above twice the instalment; give the instalment instead.",
         );
     }
     agreement.regime.due[last] = final_instalment;
