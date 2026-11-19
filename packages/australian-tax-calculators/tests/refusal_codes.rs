@@ -149,9 +149,9 @@ fn every_catalogued_required_input_of_a_strict_command_is_read() {
     // chattel-mortgage-schedule, loan-transactions,
     // fbt-entertainment-classifier, unused-leave-payment,
     // lump-sum-arrears-tax-offset, income-tests,
-    // business-capital-expenditure, balancing-adjustment, trade-in and
-    // dasp-tax.
-    assert_eq!(checked, 37);
+    // business-capital-expenditure, balancing-adjustment, trade-in,
+    // etp-tax-free-component and dasp-tax.
+    assert_eq!(checked, 38);
 }
 
 /// Every frozen call gives the same answer through either entry point, and
