@@ -10,7 +10,7 @@ use std::process::{Command, Stdio};
 
 /// Worksheets added after Python 0.2.0, so absent from the frozen corpus;
 /// `tests/fbt_car.rs`, `tests/fbt_ev_exemption.rs`, `tests/main_residence.rs`,
-/// `tests/borrowing_expenses.rs`, `tests/hire_purchase.rs`,
+/// `tests/borrowing_expenses.rs`, `tests/borrowing_expenses_schedule.rs`, `tests/hire_purchase.rs`,
 /// `tests/chattel_mortgage.rs`, `tests/loan_transactions.rs`,
 /// `tests/business_capital_expenditure.rs`, `tests/balancing_adjustment.rs`, `tests/trade_in.rs`,
 /// `tests/payroll_tax.rs`,
@@ -26,9 +26,9 @@ use std::process::{Command, Stdio};
 /// `tests/fbt_lafha.rs`, `tests/fbt_board.rs`,
 /// `tests/fbt_tax_exempt_body_entertainment.rs`, `tests/lump_sum_arrears_offset.rs`,
 /// `tests/fbt_entertainment_classifier.rs`, `tests/fbt_minor_benefit.rs`,
-/// `tests/income_tests.rs` and `tests/wine_equalisation_tax.rs` cover
-/// them.
-const NEW_KINDS: [(&str, &str); 43] = [
+/// `tests/income_tests.rs`, `tests/wine_equalisation_tax.rs` and
+/// `tests/luxury_car_tax.rs` cover them.
+const NEW_KINDS: [(&str, &str); 45] = [
     ("fbt-minor-benefit-check", "fbt_minor_benefit_check"),
     ("gst-margin-scheme", "gst_margin_scheme"),
     ("fbt-car-statutory", "fbt_car_statutory"),
@@ -42,6 +42,7 @@ const NEW_KINDS: [(&str, &str); 43] = [
     ("fbt-property", "fbt_property"),
     ("main-residence", "main_residence"),
     ("borrowing-expenses", "borrowing_expenses"),
+    ("borrowing-expenses-schedule", "borrowing_expenses_schedule"),
     ("hire-purchase-schedule", "hire_purchase_schedule"),
     ("chattel-mortgage-schedule", "chattel_mortgage_schedule"),
     ("loan-transactions", "loan_transactions"),
@@ -93,6 +94,7 @@ const NEW_KINDS: [(&str, &str); 43] = [
         "fbt-meal-entertainment-register",
         "fbt_meal_entertainment_register",
     ),
+    ("luxury-car-tax", "luxury_car_tax"),
 ];
 
 /// The JSON boundary's answer in the corpus encoding: `{"ok": value}` or `{"error": message}`.
