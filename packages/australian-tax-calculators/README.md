@@ -1010,9 +1010,10 @@ rates were read carries a warning to check for a change since. A line's credit
 is quantity x rate in cents / 100, rounded half up to the cent (a Method 1
 line: cost x rate / average price, so no rounding comes before the cent);
 `label_7d` is the total with the cents dropped, as the ATO's examples claim
-it. Each line is rounded, so give the fuel of one type and use acquired in one
-rate period as one line, as the ATO's worksheet works one amount for each
-rate (QC44511), rather than one line per receipt.
+it. Each line is rounded, so give the fuel of one type and use acquired on
+one day as one line, rather than one line per receipt; the ATO's worksheet
+works one amount for each quantity and rate (QC44511), and a line keeps its
+day for the rate and the s 47-5(2) time limit.
 
 A small claimant (`small_claimant`: credits of $10,000 or less in the previous
 12 months and expected in the current 12 months) can also use:
