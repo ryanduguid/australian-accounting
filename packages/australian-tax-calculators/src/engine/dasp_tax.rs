@@ -82,8 +82,9 @@ fn component_steps(
     Ok(([free_tax, taxed_tax, untaxed_tax], rates))
 }
 
-pub fn dasp_tax(args: &DaspTaxArgs) -> Result<Value> {
-    let year = scope(args.scope_confirmed, args.year, KIND)?;
+/// The components and the working holiday maker flag, refusing an s 5(2)
+/// roll-over with an element untaxed in the fund.
+fn components(args: &DaspTaxArgs) -> Result<(Decimal, Decimal, Decimal, bool)> {
     let tax_free = money(args.tax_free_component)?;
     let taxed = money(args.taxed_element)?;
     let untaxed = money(args.untaxed_element)?;
@@ -96,6 +97,12 @@ pub fn dasp_tax(args: &DaspTaxArgs) -> Result<Value> {
             "The element untaxed in the fund of a roll-over paid under s 20H(2), (2AA) or (2A) of the Superannuation (Unclaimed Money and Lost Members) Act 1999 bears nil on any excess untaxed roll-over amount (DASP Tax Act s 5(2)), which this command does not take.",
         );
     }
+    Ok((tax_free, taxed, untaxed, whm))
+}
+
+pub fn dasp_tax(args: &DaspTaxArgs) -> Result<Value> {
+    let year = scope(args.scope_confirmed, args.year, KIND)?;
+    let (tax_free, taxed, untaxed, whm) = components(args)?;
     let payment = tax_free.add(&taxed)?.add(&untaxed)?;
     if payment.is_zero() {
         return refuse(
