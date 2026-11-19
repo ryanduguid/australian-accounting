@@ -88,46 +88,17 @@ fn entry(n: usize, item: &Value, period: (i64, i64)) -> Result<Entry> {
         );
     }
     let mut missing = Vec::new();
-    match recorded(fields, "date") {
-        None => missing.push("the date (s 37CE(1)(a))"),
-        Some(date) => match date.as_str().and_then(dates::parse) {
-            Some(day) if (period.0..=period.1).contains(&day) => {}
-            Some(_) => {
-                return bad(
-                    n,
-                    "its date is outside register_start to register_end: give only the entries of the register's 12 week period.",
-                );
-            }
-            None => return bad(n, "date must be a YYYY-MM-DD date from 1900 to 2100."),
-        },
+    if !entry_dated(n, fields, period)? {
+        missing.push("the date (s 37CE(1)(a))");
     }
-    let staff = match recipients(n, recorded(fields, "recipients"))? {
-        Some(staff) => Some(staff),
-        None => {
-            missing.push(
-                "whether each recipient is an employee or an associate of one (s 37CE(1)(b))",
-            );
-            None
-        }
-    };
-    let amounts = match recorded(fields, "cost") {
-        None => {
-            missing.push("the cost (s 37CE(1)(c))");
-            if fields
-                .get("fringe_benefits_value")
-                .is_some_and(|v| !v.is_null())
-            {
-                return bad(n, "fringe_benefits_value needs the cost it is part of.");
-            }
-            None
-        }
-        Some(cost) => Some(entry_amounts(
-            n,
-            cost,
-            fields.get("fringe_benefits_value"),
-            staff,
-        )?),
-    };
+    let staff = recipients(n, recorded(fields, "recipients"))?;
+    if staff.is_none() {
+        missing.push("whether each recipient is an employee or an associate of one (s 37CE(1)(b))");
+    }
+    let amounts = entry_cost(n, fields, staff)?;
+    if amounts.is_none() {
+        missing.push("the cost (s 37CE(1)(c))");
+    }
     for (field, detail) in [
         ("kind", "the kind of meal entertainment (s 37CE(1)(d))"),
         ("location", "where it was provided (s 37CE(1)(e))"),
@@ -138,29 +109,66 @@ fn entry(n: usize, item: &Value, period: (i64, i64)) -> Result<Entry> {
             Some(_) => return bad(n, format!("{field} must be a string.")),
         }
     }
-    let on_premises = match fields.get("on_premises") {
-        Some(Value::Bool(b)) => *b,
-        _ => {
-            return bad(
-                n,
-                "on_premises must be a boolean: whether it was provided on the employer's premises.",
-            );
-        }
-    };
-    match (on_premises, fields.get("in_house_dining_facility")) {
-        (true, None | Some(Value::Null)) => missing.push(
+    if !entry_facility_recorded(n, fields)? {
+        missing.push(
             "whether it was provided in an in-house dining facility, as it was on the employer's premises (s 37CE(1)(f))",
-        ),
-        (true, Some(Value::Bool(_))) | (false, None | Some(Value::Null)) => {}
-        (true, Some(_)) => return bad(n, "in_house_dining_facility must be a boolean or null."),
-        (false, Some(_)) => {
-            return bad(
-                n,
-                "in_house_dining_facility applies only to meal entertainment on the employer's premises (s 37CE(1)(f)).",
-            );
-        }
+        );
     }
     Ok(Entry { amounts, missing })
+}
+
+/// Whether the entry records its date (s 37CE(1)(a)), which must fall in the
+/// register period.
+fn entry_dated(n: usize, fields: &Map<String, Value>, period: (i64, i64)) -> Result<bool> {
+    let Some(date) = recorded(fields, "date") else {
+        return Ok(false);
+    };
+    match date.as_str().and_then(dates::parse) {
+        Some(day) if (period.0..=period.1).contains(&day) => Ok(true),
+        Some(_) => bad(
+            n,
+            "its date is outside register_start to register_end: give only the entries of the register's 12 week period.",
+        ),
+        None => bad(n, "date must be a YYYY-MM-DD date from 1900 to 2100."),
+    }
+}
+
+/// The entry's cost and fringe benefits value, or `None` where it does not
+/// record its cost (s 37CE(1)(c)).
+fn entry_cost(
+    n: usize,
+    fields: &Map<String, Value>,
+    staff: Option<i64>,
+) -> Result<Option<(Decimal, Decimal)>> {
+    let benefits = fields.get("fringe_benefits_value");
+    match recorded(fields, "cost") {
+        Some(cost) => entry_amounts(n, cost, benefits, staff).map(Some),
+        None if benefits.is_some_and(|v| !v.is_null()) => {
+            bad(n, "fringe_benefits_value needs the cost it is part of.")
+        }
+        None => Ok(None),
+    }
+}
+
+/// Whether the entry records what s 37CE(1)(f) requires: for meal
+/// entertainment on the employer's premises, whether it was in an in-house
+/// dining facility; off them, nothing.
+fn entry_facility_recorded(n: usize, fields: &Map<String, Value>) -> Result<bool> {
+    let Some(&Value::Bool(on_premises)) = fields.get("on_premises") else {
+        return bad(
+            n,
+            "on_premises must be a boolean: whether it was provided on the employer's premises.",
+        );
+    };
+    match (on_premises, fields.get("in_house_dining_facility")) {
+        (true, None | Some(Value::Null)) => Ok(false),
+        (true, Some(Value::Bool(_))) | (false, None | Some(Value::Null)) => Ok(true),
+        (true, Some(_)) => bad(n, "in_house_dining_facility must be a boolean or null."),
+        (false, Some(_)) => bad(
+            n,
+            "in_house_dining_facility applies only to meal entertainment on the employer's premises (s 37CE(1)(f)).",
+        ),
+    }
 }
 
 /// The entry's cost and the value of its meal entertainment fringe benefits,
@@ -244,9 +252,21 @@ fn validity(first: i64, year: i64, earlier: Option<&Arg>) -> Result<[Value; 2]> 
         )
     };
     let span = check("valid_years", "FBTAA s 37CD(1) and (2)", in_window, detail);
-    let needed = in_window && year > first;
+    let increase = expenditure_increase(first, year, in_window && year > first, earlier)?;
+    Ok([span, increase])
+}
+
+/// s 37CD(3): whether a later year's meal entertainment expenses were more
+/// than 20% higher than the first valid year's, `needed` when `year` is a
+/// later year of the register's validity.
+fn expenditure_increase(
+    first: i64,
+    year: i64,
+    needed: bool,
+    earlier: Option<&Arg>,
+) -> Result<Value> {
     let rule = "FBTAA s 37CD(3)";
-    let increase = match (needed, earlier) {
+    Ok(match (needed, earlier) {
         (false, None) => check(
             "expenditure_increase",
             rule,
@@ -278,8 +298,7 @@ fn validity(first: i64, year: i64, earlier: Option<&Arg>) -> Result<[Value; 2]> 
             }) => check("expenditure_increase", rule, false, message),
             Err(other) => return Err(other),
         },
-    };
-    Ok([span, increase])
+    })
 }
 
 /// FBTAA ss 37CC to 37CF: the register period, each entry's details, the FBT
@@ -294,6 +313,30 @@ pub fn fbt_meal_entertainment_register(
 ) -> Result<Value> {
     let (year, period, _) = fbt_year(scope_confirmed, year_ended, KIND)?;
     let year: i64 = year.parse().expect("FBT year");
+    let (start, end) = register_period(register_start, register_end)?;
+    let first = first_valid_year(start, end)?;
+    let items = match entries {
+        Arg::Json(Value::Array(items)) if items.len() <= 10_000 => items,
+        _ => {
+            return refuse(
+                "fbt_meal_entertainment_register.entries_invalid",
+                "entries must be a list of at most 10000 entry objects.",
+            );
+        }
+    };
+    let parsed = items
+        .iter()
+        .enumerate()
+        .map(|(i, item)| entry(i + 1, item, (start, end)))
+        .collect::<Result<Vec<_>>>()?;
+    let days = end - start + 1;
+    let mut checks = register_checks(days, &parsed);
+    checks.extend(validity(first, year, earlier)?);
+    summary(&period, (first, days), &parsed, checks, earlier)
+}
+
+/// The register period's first and last days, in order.
+fn register_period(register_start: &Arg, register_end: &Arg) -> Result<(i64, i64)> {
     let day = |value: &Arg, name: &str| match value.text().and_then(dates::parse) {
         Some(day) => Ok(day),
         None => refuse(
@@ -311,22 +354,12 @@ pub fn fbt_meal_entertainment_register(
             "register_start must be on or before register_end.",
         );
     }
-    let first = first_valid_year(start, end)?;
-    let items = match entries {
-        Arg::Json(Value::Array(items)) if items.len() <= 10_000 => items,
-        _ => {
-            return refuse(
-                "fbt_meal_entertainment_register.entries_invalid",
-                "entries must be a list of at most 10000 entry objects.",
-            );
-        }
-    };
-    let parsed = items
-        .iter()
-        .enumerate()
-        .map(|(i, item)| entry(i + 1, item, (start, end)))
-        .collect::<Result<Vec<_>>>()?;
-    let days = end - start + 1;
+    Ok((start, end))
+}
+
+/// s 37CC(1) and (3) and s 37CE(1): the period's length, that the register
+/// records meal entertainment and each entry's details.
+fn register_checks(days: i64, parsed: &[Entry]) -> Vec<Value> {
     let mut checks = vec![check(
         "period_length",
         "FBTAA s 37CC(1) and (3)",
@@ -362,8 +395,7 @@ pub fn fbt_meal_entertainment_register(
             format!("{}.", gaps.join("; "))
         },
     ));
-    checks.extend(validity(first, year, earlier)?);
-    summary(&period, (first, days), &parsed, checks, earlier)
+    checks
 }
 
 /// The result: the register's totals and percentage, the checks and, when
