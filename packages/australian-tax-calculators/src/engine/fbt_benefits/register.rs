@@ -375,7 +375,7 @@ fn register_checks(days: i64, parsed: &[Entry]) -> Vec<Value> {
         "FBTAA s 37CC(1)",
         !parsed.is_empty(),
         format!(
-            "{} entries. Whether meal entertainment was provided throughout the period is the employer's to establish.",
+            "{} entries. Whether the register was kept, and meal entertainment provided, throughout the period is the employer's to establish.",
             parsed.len()
         ),
     ));

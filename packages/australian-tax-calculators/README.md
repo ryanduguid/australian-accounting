@@ -907,10 +907,11 @@ the entry's cost or above nil with no employee or associate among its
 recipients, an in-house dining facility answer for meal entertainment off the
 employer's premises, a period that ends before it starts or spans more than
 2 FBT years (`period_invalid`) and a detail it cannot read (`entry_invalid`).
-Whether meal entertainment was provided throughout the period, whether the
-period is representative of the first valid year (s 37CC(2)), whether an entry
-is false or misleading (s 37CF) or was made late (s 37CE(2)), and whether a
-later register replaces this one, are the employer's to establish. The car
+Whether the register was kept, and meal entertainment provided, throughout
+the period (s 37CC(1)), whether the period is representative of the first
+valid year (s 37CC(2)), whether an entry is false or misleading (s 37CF) or
+was made late (s 37CE(2)), and whether a later register replaces this one, are
+the employer's to establish. The car
 parking register is outside it. See
 [calculation evidence](docs/calculation-evidence.md#fbt-meal-entertainment-register).
 
