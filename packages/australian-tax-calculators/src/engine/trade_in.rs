@@ -59,7 +59,12 @@ pub struct TradeInArgs<'a> {
 
 /// An optional input that `needed` decides: required when needed, refused
 /// when not.
-fn when<'a>(needed: bool, given: Option<&'a Arg>, key: &str, why: &str) -> Result<Option<&'a Arg>> {
+pub(super) fn when<'a>(
+    needed: bool,
+    given: Option<&'a Arg>,
+    key: &str,
+    why: &str,
+) -> Result<Option<&'a Arg>> {
     match (needed, given) {
         (true, None) => refuse("input.missing_field", format!("{key} is required {why}.")),
         (false, Some(_)) => refuse(

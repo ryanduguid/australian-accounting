@@ -6,7 +6,7 @@
 use serde_json::{Map, Value};
 
 use crate::decimal::Decimal;
-use crate::engine::{Arg, Result, money, refuse};
+use crate::engine::{Result, refuse, stated};
 
 /// The dealings the command values, each with the fields it takes.
 const KINDS: [(&str, &[&str]); 5] = [
@@ -109,40 +109,17 @@ fn only<'v>(
     let Value::Object(fields) = value else {
         return invalid(format!("dealing {n}: {what} must be an object."));
     };
-    if let Some(key) = fields.keys().find(|k| !allowed.contains(&k.as_str())) {
-        return refuse(
-            "input.field_unknown",
-            format!("dealing {n}: {key} is not an input of {what}"),
-        );
-    }
+    stated::known_keys(fields, &format!("dealing {n}"), what, allowed)?;
     Ok(fields)
 }
 
 fn required<'v>(fields: &'v Map<String, Value>, n: usize, key: &str) -> Result<&'v Value> {
-    match fields.get(key) {
-        Some(value) => Ok(value),
-        None => refuse(
-            "input.missing_field",
-            format!("dealing {n}: {key} is required"),
-        ),
-    }
+    stated::required(fields, &format!("dealing {n}"), key)
 }
 
 /// An amount in AUD, a decimal string as every money input is.
 fn amount(fields: &Map<String, Value>, n: usize, key: &str) -> Result<Decimal> {
-    let parsed = match required(fields, n, key)? {
-        Value::String(text) if text.len() <= 32 => Decimal::parse(text).ok(),
-        _ => None,
-    };
-    match parsed.map(|v| money(&Arg::Decimal(v))) {
-        Some(Ok(v)) => Ok(v),
-        _ => refuse(
-            "input.amount_invalid",
-            format!(
-                "dealing {n}: {key} must be a decimal string, finite and non-negative, at most 2dp and 1e12."
-            ),
-        ),
-    }
+    stated::amount(fields, &format!("dealing {n}"), key)
 }
 
 /// A quantity above nil, at most 1e12 and 4 decimal places.

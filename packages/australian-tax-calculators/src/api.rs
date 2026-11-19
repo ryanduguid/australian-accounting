@@ -137,6 +137,10 @@ const COMMAND_ARGS: &[(&str, &[(&str, Kind)])] = &[
         ],
     ),
     (
+        "fuel-tax-credits",
+        &[("lines", Json), ("year", Raw), ("scope_confirmed", Raw)],
+    ),
+    (
         "gst-margin-scheme",
         &[
             ("interest", Raw),
@@ -191,6 +195,10 @@ const COMMAND_ARGS: &[(&str, &[(&str, Kind)])] = &[
             ("year", Raw),
             ("scope_confirmed", Raw),
         ],
+    ),
+    (
+        "borrowing-expenses-schedule",
+        &[("loans", Json), ("year", Raw), ("scope_confirmed", Raw)],
     ),
     (
         "hire-purchase-schedule",
@@ -258,6 +266,18 @@ const COMMAND_ARGS: &[(&str, &[(&str, Kind)])] = &[
         ],
     ),
     (
+        "dasp-tax",
+        &[
+            ("tax_free_component", Dec),
+            ("taxed_element", Dec),
+            ("untaxed_element", Dec),
+            ("working_holiday_maker_contributions", Raw),
+            ("unclaimed_money_rollover", Raw),
+            ("year", Raw),
+            ("scope_confirmed", Raw),
+        ],
+    ),
+    (
         "trade-in",
         &[
             ("cost", Dec),
@@ -270,6 +290,18 @@ const COMMAND_ARGS: &[(&str, &[(&str, Kind)])] = &[
             ("replacement_creditable_acquisition", Raw),
             ("arms_length", Raw),
             ("involuntary_disposal", Raw),
+            ("year", Raw),
+            ("scope_confirmed", Raw),
+        ],
+    ),
+    (
+        "payroll-tax",
+        &[
+            ("jurisdiction", Raw),
+            ("taxable_wages", Dec),
+            ("australian_wages", Dec),
+            ("group_member", Raw),
+            ("employed_all_year", Raw),
             ("year", Raw),
             ("scope_confirmed", Raw),
         ],
@@ -569,6 +601,10 @@ const COMMAND_ARGS: &[(&str, &[(&str, Kind)])] = &[
         ],
     ),
     (
+        "ppsr-timing",
+        &[("question", Raw), ("year", Raw), ("scope_confirmed", Raw)],
+    ),
+    (
         "fbt-minor-benefit-check",
         &[
             ("category", Raw),
@@ -592,6 +628,10 @@ const COMMAND_ARGS: &[(&str, &[(&str, Kind)])] = &[
             ("year_ended", Raw),
             ("scope_confirmed", Raw),
         ],
+    ),
+    (
+        "luxury-car-tax",
+        &[("lines", Json), ("year", Raw), ("scope_confirmed", Raw)],
     ),
     (
         "income-tests",
@@ -640,7 +680,7 @@ pub fn commands() -> Vec<&'static str> {
 /// command on its `gross_pay` shows that withholding. The classifier's amounts
 /// are totals over lines whose shares a decision table sets, not a formula;
 /// each line and class carries the authority for its row instead.
-const DERIVED: [&str; 50] = [
+const DERIVED: [&str; 53] = [
     "fbt",
     "fbt-car-statutory",
     "fbt-car-operating-cost",
@@ -663,6 +703,7 @@ const DERIVED: [&str; 50] = [
     "seniors-pensioners-withholding",
     "quarterly-sg",
     "borrowing-expenses",
+    "borrowing-expenses-schedule",
     "resident-tax",
     "foreign-resident-tax",
     "low-income-tax-offset",
@@ -689,8 +730,10 @@ const DERIVED: [&str; 50] = [
     "business-capital-expenditure",
     "balancing-adjustment",
     "trade-in",
+    "dasp-tax",
     "gst-margin-scheme",
     "etp-tax-free-component",
+    "payroll-tax",
 ];
 
 /// `derive`: `{"command", "input"}` gives the command's result with the step
@@ -1026,6 +1069,7 @@ pub fn evaluate_coded(command: &str, v: &Value) -> Result<Value> {
         command,
         "division-296"
             | "depreciation"
+            | "fuel-tax-credits"
             | "medicare-levy"
             | "medicare-levy-surcharge"
             | "payg-withholding"
@@ -1057,13 +1101,18 @@ pub fn evaluate_coded(command: &str, v: &Value) -> Result<Value> {
             | "fbt-entertainment-classifier"
             | "fbt-meal-entertainment-register"
             | "fbt-minor-benefit-check"
+            | "ppsr-timing"
             | "hire-purchase-schedule"
             | "chattel-mortgage-schedule"
             | "loan-transactions"
+            | "borrowing-expenses-schedule"
             | "income-tests"
+            | "luxury-car-tax"
             | "business-capital-expenditure"
             | "balancing-adjustment"
             | "trade-in"
+            | "dasp-tax"
+            | "payroll-tax"
             | "gst-margin-scheme"
             | "franking-account"
     ) && let Some(key) = v
@@ -1085,6 +1134,21 @@ pub fn evaluate_coded(command: &str, v: &Value) -> Result<Value> {
     let pay_date = v.get("pay_date").map(arg);
     let result = match command {
         "gst" => engine::gst(&a[0], &a[1], &a[2], &a[3]),
+        "fuel-tax-credits" => {
+            // Optional: the simplified methods' small claimant statement and
+            // tax period, and the return's day for the s 47-5(2) check.
+            let small = optional(v, "small_claimant", Raw)?;
+            let period = optional(v, "rate_at_period_end", Json)?;
+            let returned = optional(v, "return_date", Raw)?;
+            engine::fuel_tax_credits(&engine::FuelArgs {
+                lines: &a[0],
+                small_claimant: small.as_ref(),
+                rate_at_period_end: period.as_ref(),
+                return_date: returned.as_ref(),
+                year: &a[1],
+                scope_confirmed: &a[2],
+            })
+        }
         "resident-tax" => engine::resident_tax(&a[0], &a[1], &a[2]),
         "foreign-resident-tax" => engine::foreign_resident_tax(&a[0], &a[1], &a[2]),
         "capital-gains" => engine::capital_gains(&a[0], &a[1], &a[2], &a[3], &a[4], &a[5]),
@@ -1098,6 +1162,12 @@ pub fn evaluate_coded(command: &str, v: &Value) -> Result<Value> {
                 repaid_on: &a[5],
             };
             engine::borrowing_expenses(&a[0], &a[1], &a[2], loan, &a[6], &a[7], &a[8])
+        }
+        "borrowing-expenses-schedule" => {
+            // Optional: the income-producing share of borrowing expenses on
+            // loans not listed, by income year.
+            let other = optional(v, "other_borrowing_expenses", Json)?;
+            engine::borrowing_expenses_schedule(&a[0], other.as_ref(), &a[1], &a[2])
         }
         "hire-purchase-schedule" => {
             // Optional: the level regime's instalment, their number and
@@ -1203,6 +1273,15 @@ pub fn evaluate_coded(command: &str, v: &Value) -> Result<Value> {
                 commissioner_determination: determination.as_ref(),
             })
         }
+        "dasp-tax" => engine::dasp_tax(&engine::DaspTaxArgs {
+            tax_free_component: &a[0],
+            taxed_element: &a[1],
+            untaxed_element: &a[2],
+            working_holiday_maker_contributions: &a[3],
+            unclaimed_money_rollover: &a[4],
+            year: &a[5],
+            scope_confirmed: &a[6],
+        }),
         "wine-equalisation-tax" => {
             // Optional: the rebate facts, required with a dealing's
             // rebate_conditions.
@@ -1249,6 +1328,20 @@ pub fn evaluate_coded(command: &str, v: &Value) -> Result<Value> {
                 involuntary_disposal: &a[9],
                 year: &a[10],
                 scope_confirmed: &a[11],
+            })
+        }
+        "payroll-tax" => {
+            // Optional: whether a Victorian employer is a regional employer.
+            let regional = optional(v, "regional_employer", Raw)?;
+            engine::payroll_tax(&engine::PayrollTaxArgs {
+                jurisdiction: &a[0],
+                taxable_wages: &a[1],
+                australian_wages: &a[2],
+                regional_employer: regional.as_ref(),
+                group_member: &a[3],
+                employed_all_year: &a[4],
+                year: &a[5],
+                scope_confirmed: &a[6],
             })
         }
         "gst-margin-scheme" => {
@@ -1329,6 +1422,23 @@ pub fn evaluate_coded(command: &str, v: &Value) -> Result<Value> {
         "fbt-tax-exempt-body-entertainment" => {
             let given = benefit_inputs(v, params)?;
             engine::fbt_tax_exempt_body_entertainment(&a[0], &given, &a[1], &a[2])
+        }
+        "ppsr-timing" => {
+            // The question's own inputs, by name: times stay text, day lists JSON.
+            let named: Vec<(String, Arg)> = v
+                .as_object()
+                .into_iter()
+                .flatten()
+                .filter(|(key, _)| !params.iter().any(|(p, _)| p == key))
+                .map(|(key, value)| {
+                    let given = match value {
+                        Value::Array(_) => Arg::Json(value.clone()),
+                        other => arg(other),
+                    };
+                    (key.clone(), given)
+                })
+                .collect();
+            engine::ppsr_timing(&a[0], &a[1], &a[2], &named)
         }
         "fbt-minor-benefit-check" => {
             // Optional: the facts each category's exclusion needs.
@@ -1577,6 +1687,11 @@ pub fn evaluate_coded(command: &str, v: &Value) -> Result<Value> {
             let named: Vec<(&str, &Arg)> = params.iter().map(|(key, _)| *key).zip(&a).collect();
             engine::income_tests(&named)
         }
+        "luxury-car-tax" => engine::luxury_car_tax(&engine::LctArgs {
+            lines: &a[0],
+            year: &a[1],
+            scope_confirmed: &a[2],
+        }),
         _ => unreachable!("listed command"),
     };
     result.or_else(|e| refusal(e.code(), e.to_string()))
