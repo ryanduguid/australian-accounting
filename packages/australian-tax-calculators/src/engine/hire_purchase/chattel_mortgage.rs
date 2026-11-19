@@ -145,7 +145,21 @@ fn stated(
         );
     }
     let mut agreement = level(args, financed, balloon, instalment.clone(), false)?;
-    let left = agreement.residual(&rate)?.quantize(-16, Rounding::HalfUp)?;
+    let (left, adjustment) = absorb(&mut agreement, &rate)?;
+    Ok(Stated {
+        agreement,
+        rate,
+        instalment,
+        exact,
+        left,
+        adjustment,
+    })
+}
+
+/// Adds to the last instalment the balance left before it, at `rate`: that
+/// balance to 16 places and the adjustment, its cents.
+fn absorb(agreement: &mut Agreement, rate: &Decimal) -> Result<(Decimal, Decimal)> {
+    let left = agreement.residual(rate)?.quantize(-16, Rounding::HalfUp)?;
     let adjustment = left.quantize(-2, Rounding::HalfUp)?;
     let last = agreement.term() as usize;
     let final_instalment = agreement.regime.due[last].add(&adjustment)?;
@@ -157,14 +171,36 @@ fn stated(
     }
     agreement.regime.due[last] = final_instalment;
     agreement.regime.total = agreement.regime.total.add(&adjustment)?;
-    Ok(Stated {
-        agreement,
-        rate,
-        instalment,
-        exact,
-        left,
-        adjustment,
-    })
+    Ok((left, adjustment))
+}
+
+/// The steps that set a stated-rate agreement's payments.
+fn stated_steps(s: &Stated, balloon: &Decimal) -> Result<[Step; 3]> {
+    let total = s.agreement.regime.total.add(balloon)?;
+    let count = int(s.agreement.regime.periods.len() as i64);
+    Ok([
+        step(
+            "instalment",
+            INSTALMENT,
+            &format!("cents({})", s.exact.fixed(16, false)),
+            &[],
+            s.instalment.clone(),
+        ),
+        step(
+            "final_adjustment",
+            ADJUSTMENT,
+            &format!("cents({})", s.left.fixed(16, false)),
+            &[],
+            s.adjustment.clone(),
+        ),
+        step(
+            "total_payments",
+            TOTAL_PAYMENTS,
+            "instalment x instalments + final_adjustment + balloon",
+            &[&s.instalment, &count, &s.adjustment, balloon],
+            total,
+        ),
+    ])
 }
 
 /// The agreement, the rate a period it is scheduled at, and the steps that
@@ -173,7 +209,6 @@ fn agreement(args: &ChattelMortgageArgs, terms: &Terms) -> Result<(Agreement, De
     let financed = money(args.amount_financed)?;
     let balloon = money(args.balloon)?;
     let in_advance = timing(args.timing)?;
-    let instalments = |agreement: &Agreement| int(agreement.regime.periods.len() as i64);
     let mut steps = vec![step(
         "amount_financed",
         FINANCED,
@@ -195,7 +230,11 @@ fn agreement(args: &ChattelMortgageArgs, terms: &Terms) -> Result<(Agreement, De
                 "total_payments",
                 TOTAL_PAYMENTS,
                 "instalment x instalments + balloon",
-                &[amount, &instalments(&agreement), &balloon],
+                &[
+                    amount,
+                    &int(agreement.regime.periods.len() as i64),
+                    &balloon,
+                ],
                 total,
             ));
             let rate = agreement.implicit_rate()?;
@@ -209,31 +248,7 @@ fn agreement(args: &ChattelMortgageArgs, terms: &Terms) -> Result<(Agreement, De
                 );
             }
             let s = stated(args, &financed, &balloon, annual_rate, in_advance)?;
-            let total = s.agreement.regime.total.add(&balloon)?;
-            let count = instalments(&s.agreement);
-            steps.extend([
-                step(
-                    "instalment",
-                    INSTALMENT,
-                    &format!("cents({})", s.exact.fixed(16, false)),
-                    &[],
-                    s.instalment.clone(),
-                ),
-                step(
-                    "final_adjustment",
-                    ADJUSTMENT,
-                    &format!("cents({})", s.left.fixed(16, false)),
-                    &[],
-                    s.adjustment.clone(),
-                ),
-                step(
-                    "total_payments",
-                    TOTAL_PAYMENTS,
-                    "instalment x instalments + final_adjustment + balloon",
-                    &[&s.instalment, &count, &s.adjustment, &balloon],
-                    total,
-                ),
-            ]);
+            steps.extend(stated_steps(&s, &balloon)?);
             Ok((s.agreement, s.rate, steps))
         }
     }

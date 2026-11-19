@@ -461,6 +461,11 @@ fn purchase_credit(price: &Decimal, car: Option<&Car>) -> Result<[Step; 2]> {
             ),
         ]);
     };
+    car_purchase_credit(price, car)
+}
+
+/// [`purchase_credit`] for a car.
+fn car_purchase_credit(price: &Decimal, car: &Car) -> Result<[Step; 2]> {
     if car.luxury_car_tax.gt(price)? {
         return refuse(
             "hire_purchase.gst_fact_conflict",

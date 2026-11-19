@@ -224,6 +224,37 @@ struct Run {
     closing: Decimal,
 }
 
+impl Run {
+    /// A line on `day` at the balance after it.
+    fn line(&mut self, day: i64, details: String, debit: Decimal, credit: Decimal) {
+        let balance = self.closing.clone();
+        self.lines.push((day, details, debit, credit, balance));
+    }
+
+    /// One drawing or repayment.
+    fn movement(&mut self, m: &Movement) -> Result<()> {
+        if m.drawing {
+            self.closing = self.closing.add(&m.amount)?;
+            self.line(m.day, "Drawing".into(), m.amount.clone(), int(0));
+        } else {
+            self.closing = self.closing.sub(&m.amount)?;
+            self.line(m.day, "Repayment".into(), int(0), m.amount.clone());
+        }
+        Ok(())
+    }
+
+    /// The interest accrued to `day`, debited to the cent.
+    fn debit(&mut self, day: i64, accrued: &Decimal) -> Result<()> {
+        let debit = accrued.quantize(-2, Rounding::HalfUp)?;
+        if !debit.is_zero() {
+            self.closing = self.closing.add(&debit)?;
+            self.line(day, "Interest".into(), debit.clone(), int(0));
+            self.debits.push((day, debit));
+        }
+        Ok(())
+    }
+}
+
 /// The days from `start` to `end`: each day's rate change and transactions,
 /// then its interest, debited at the month's end and on the last day. A day
 /// that ends below nil is refused.
@@ -235,54 +266,32 @@ fn run(
     changes: &[(i64, Decimal)],
 ) -> Result<Run> {
     let (start, end) = days;
-    let mut balance = opening.clone();
-    let (mut rate, mut accrued) = (initial_rate.clone(), int(0));
     let nil = int(0);
-    let mut lines: Vec<Line> = vec![(
-        start,
-        "Opening balance".into(),
-        nil.clone(),
-        nil.clone(),
-        balance.clone(),
-    )];
-    let mut debits = Vec::new();
+    let (mut rate, mut accrued) = (initial_rate.clone(), int(0));
+    let mut out = Run {
+        lines: Vec::new(),
+        debits: Vec::new(),
+        closing: opening.clone(),
+    };
+    out.line(start, "Opening balance".into(), nil.clone(), nil.clone());
     let (mut next_move, mut next_change) = (movements.iter().peekable(), changes.iter().peekable());
     for day in start..=end {
         if let Some((_, changed)) = next_change.next_if(|c| c.0 == day) {
             rate = changed.clone();
             let details = format!("Annual rate {changed} from this day");
-            lines.push((day, details, nil.clone(), nil.clone(), balance.clone()));
+            out.line(day, details, nil.clone(), nil.clone());
         }
         while let Some(m) = next_move.next_if(|m| m.day == day) {
-            let (details, debit, credit) = if m.drawing {
-                balance = balance.add(&m.amount)?;
-                ("Drawing", m.amount.clone(), nil.clone())
-            } else {
-                balance = balance.sub(&m.amount)?;
-                ("Repayment", nil.clone(), m.amount.clone())
-            };
-            lines.push((day, details.into(), debit, credit, balance.clone()));
+            out.movement(m)?;
         }
-        if nil.lt(&balance)? {
-            accrued = accrued.add(&balance.mul(&rate)?.div(&int(DAYS_A_YEAR))?)?;
+        if nil.lt(&out.closing)? {
+            accrued = accrued.add(&out.closing.mul(&rate)?.div(&int(DAYS_A_YEAR))?)?;
         }
-        let month_end = dates::to_civil(day + 1).2 == 1;
-        if month_end || day == end {
-            let debit = accrued.quantize(-2, Rounding::HalfUp)?;
+        if dates::to_civil(day + 1).2 == 1 || day == end {
+            out.debit(day, &accrued)?;
             accrued = int(0);
-            if !debit.is_zero() {
-                balance = balance.add(&debit)?;
-                lines.push((
-                    day,
-                    "Interest".into(),
-                    debit.clone(),
-                    nil.clone(),
-                    balance.clone(),
-                ));
-                debits.push((day, debit));
-            }
         }
-        if balance.lt(&nil)? {
+        if out.closing.lt(&nil)? {
             return refuse(
                 "loan_transactions.balance_below_nil",
                 format!(
@@ -292,11 +301,7 @@ fn run(
             );
         }
     }
-    Ok(Run {
-        lines,
-        debits,
-        closing: balance,
-    })
+    Ok(out)
 }
 
 /// The interest debited in each income year.
