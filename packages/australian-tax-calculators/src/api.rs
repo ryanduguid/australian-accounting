@@ -197,6 +197,10 @@ const COMMAND_ARGS: &[(&str, &[(&str, Kind)])] = &[
         ],
     ),
     (
+        "borrowing-expenses-schedule",
+        &[("loans", Json), ("year", Raw), ("scope_confirmed", Raw)],
+    ),
+    (
         "hire-purchase-schedule",
         &[
             ("amount_financed", Dec),
@@ -262,6 +266,10 @@ const COMMAND_ARGS: &[(&str, &[(&str, Kind)])] = &[
             ("year", Raw),
             ("scope_confirmed", Raw),
         ],
+    ),
+    (
+        "wine-equalisation-tax",
+        &[("dealings", Json), ("year", Raw), ("scope_confirmed", Raw)],
     ),
     (
         "fbt",
@@ -579,6 +587,10 @@ const COMMAND_ARGS: &[(&str, &[(&str, Kind)])] = &[
         ],
     ),
     (
+        "luxury-car-tax",
+        &[("lines", Json), ("year", Raw), ("scope_confirmed", Raw)],
+    ),
+    (
         "income-tests",
         &[
             ("taxable_income", Dec),
@@ -625,7 +637,7 @@ pub fn commands() -> Vec<&'static str> {
 /// command on its `gross_pay` shows that withholding. The classifier's amounts
 /// are totals over lines whose shares a decision table sets, not a formula;
 /// each line and class carries the authority for its row instead.
-const DERIVED: [&str; 50] = [
+const DERIVED: [&str; 51] = [
     "fbt",
     "fbt-car-statutory",
     "fbt-car-operating-cost",
@@ -648,6 +660,7 @@ const DERIVED: [&str; 50] = [
     "seniors-pensioners-withholding",
     "quarterly-sg",
     "borrowing-expenses",
+    "borrowing-expenses-schedule",
     "resident-tax",
     "foreign-resident-tax",
     "low-income-tax-offset",
@@ -1031,6 +1044,7 @@ pub fn evaluate_coded(command: &str, v: &Value) -> Result<Value> {
             | "fbt-loan"
             | "fbt-meal-entertainment"
             | "fbt-car-parking"
+            | "wine-equalisation-tax"
             | "fbt-debt-waiver"
             | "fbt-expense-payment"
             | "fbt-property"
@@ -1045,7 +1059,9 @@ pub fn evaluate_coded(command: &str, v: &Value) -> Result<Value> {
             | "hire-purchase-schedule"
             | "chattel-mortgage-schedule"
             | "loan-transactions"
+            | "borrowing-expenses-schedule"
             | "income-tests"
+            | "luxury-car-tax"
             | "business-capital-expenditure"
             | "balancing-adjustment"
             | "trade-in"
@@ -1097,6 +1113,12 @@ pub fn evaluate_coded(command: &str, v: &Value) -> Result<Value> {
                 repaid_on: &a[5],
             };
             engine::borrowing_expenses(&a[0], &a[1], &a[2], loan, &a[6], &a[7], &a[8])
+        }
+        "borrowing-expenses-schedule" => {
+            // Optional: the income-producing share of borrowing expenses on
+            // loans not listed, by income year.
+            let other = optional(v, "other_borrowing_expenses", Json)?;
+            engine::borrowing_expenses_schedule(&a[0], other.as_ref(), &a[1], &a[2])
         }
         "hire-purchase-schedule" => {
             // Optional: the level regime's instalment, their number and
@@ -1181,6 +1203,19 @@ pub fn evaluate_coded(command: &str, v: &Value) -> Result<Value> {
                 &a[4],
                 &a[5],
             )
+        }
+        "wine-equalisation-tax" => {
+            // Optional: the rebate facts, required with a dealing's
+            // rebate_conditions.
+            let earlier = optional(v, "rebate_claimed_earlier_in_year", Dec)?;
+            let group = optional(v, "associated_producer", Raw)?;
+            engine::wine_equalisation_tax(&engine::WetArgs {
+                dealings: &a[0],
+                rebate_claimed_earlier_in_year: earlier.as_ref(),
+                associated_producer: group.as_ref(),
+                year: &a[1],
+                scope_confirmed: &a[2],
+            })
         }
         "trade-in" => {
             // Optional: a car's s 40-325 facts, the traded-in asset's input
@@ -1543,6 +1578,11 @@ pub fn evaluate_coded(command: &str, v: &Value) -> Result<Value> {
             let named: Vec<(&str, &Arg)> = params.iter().map(|(key, _)| *key).zip(&a).collect();
             engine::income_tests(&named)
         }
+        "luxury-car-tax" => engine::luxury_car_tax(&engine::LctArgs {
+            lines: &a[0],
+            year: &a[1],
+            scope_confirmed: &a[2],
+        }),
         _ => unreachable!("listed command"),
     };
     result.or_else(|e| refusal(e.code(), e.to_string()))

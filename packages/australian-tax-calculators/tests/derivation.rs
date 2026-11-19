@@ -13,7 +13,7 @@ use std::io::Write;
 use std::process::{Command, Stdio};
 
 /// The commands `derive` explains.
-const DERIVED: [&str; 50] = [
+const DERIVED: [&str; 51] = [
     "fbt",
     "fbt-car-statutory",
     "fbt-car-operating-cost",
@@ -36,6 +36,7 @@ const DERIVED: [&str; 50] = [
     "seniors-pensioners-withholding",
     "quarterly-sg",
     "borrowing-expenses",
+    "borrowing-expenses-schedule",
     "resident-tax",
     "foreign-resident-tax",
     "low-income-tax-offset",
@@ -2121,7 +2122,7 @@ fn derive_refuses_what_it_does_not_explain() {
          fbt-property, division-293, pension-minimum, payg-withholding, schedule-5-method-a, \
          schedule-5-method-b-i, schedule-5-method-b-ii, termination-payment, \
          unused-leave-payment, working-holiday-maker-withholding, study-loan-withholding, \
-         seniors-pensioners-withholding, quarterly-sg, borrowing-expenses, resident-tax, \
+         seniors-pensioners-withholding, quarterly-sg, borrowing-expenses, borrowing-expenses-schedule, resident-tax, \
          foreign-resident-tax, low-income-tax-offset, seniors-pensioners-tax-offset, \
          medicare-levy, medicare-levy-surcharge, division-296, contribution-caps, \
          study-loan-repayment, capital-gains, main-residence, fbt-residual, fbt-housing, \
