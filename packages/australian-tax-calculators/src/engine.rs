@@ -4790,6 +4790,9 @@ mod trade_in;
 pub use trade_in::{TradeInArgs, trade_in};
 mod dasp_tax;
 pub use dasp_tax::{DaspTaxArgs, dasp_tax};
+mod luxury_car_tax;
+mod stated;
+pub use luxury_car_tax::{LctArgs, luxury_car_tax};
 
 /// One pay that includes an additional payment, as Schedule 5 (NAT 3348) reads it.
 struct AdditionalPay {
@@ -6082,7 +6085,7 @@ pub use fbt_minor_benefit::{MinorBenefitArgs, fbt_minor_benefit_check};
 mod gst_margin_scheme;
 pub use gst_margin_scheme::{MarginSchemeArgs, gst_margin_scheme};
 
-const KINDS: [&str; 56] = [
+const KINDS: [&str; 57] = [
     "gst",
     "gst_margin_scheme",
     "resident_tax",
@@ -6130,6 +6133,7 @@ const KINDS: [&str; 56] = [
     "seniors_pensioners_withholding",
     "seniors_pensioners_tax_offset",
     "lump_sum_arrears_tax_offset",
+    "luxury_car_tax",
     "fbt_residual",
     "fbt_housing",
     "fbt_lafha",
