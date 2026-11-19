@@ -1086,7 +1086,7 @@ pub fn supported_periods(kind: &str) -> Vec<&'static str> {
         // agreement: the fees are unchanged since 1 August 2018 and the law
         // read is in force from 14 October 2024 (PPSA), and the Corporations
         // Act's ss 9 and 588FL to 588FN read the same from 1 July 2025 with no
-        // enacted amendment, so a critical time is not limited.
+        // enacted amendment; critical times are taken within the same years.
         "ppsr_timing" => vec!["2025-26", "2026-27"],
         "fbt_entertainment_classifier" => vec!["2026", "2027"],
         "fbt_housing" => keys(FBT_HOUSING_INDEXATION),
@@ -2158,7 +2158,7 @@ pub fn optional_inputs(kind: &str) -> Vec<(&'static str, &'static str)> {
             ),
             (
                 "critical_time",
-                "YYYY-MM-DDTHH:MM, company_grantor only: the critical time (s 588FL(7))",
+                "YYYY-MM-DDTHH:MM, company_grantor only: the critical time (s 588FL(7)), from 1 July 2025 to 30 June 2027",
             ),
             (
                 "court_ordered_time",

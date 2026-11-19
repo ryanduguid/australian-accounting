@@ -350,7 +350,7 @@ fn six_months_before_the_critical_time_saves_an_old_registration() {
     // Registered after the critical time: not perfected then, so not s 588FL.
     let r = tested("2026-11-02T10:00");
     assert_eq!(r["vests"], Value::Null);
-    assert_eq!(r["vesting"], "not_perfected_at_critical_time");
+    assert_eq!(r["vesting"], "registered_after_critical_time");
 }
 
 /// s 588FL(2)(b)(ii): the critical time caps the 20 day time, and a court
@@ -412,7 +412,8 @@ fn refusals() {
     );
     let bad = registration("2026-11-19T10:00", "household", false, None);
     assert_eq!(code(&bad), "ppsr_timing.fact_invalid");
-    // A foreign-law agreement, a 6 month day that does not exist.
+    // A foreign-law agreement, a critical time outside the years read, a
+    // 6 month day that does not exist.
     let foreign = input(
         "company_grantor",
         "2026-27",
@@ -423,6 +424,20 @@ fn refusals() {
         ],
     );
     assert_eq!(code(&foreign), "ppsr_timing.foreign_law_unsupported");
+    for outside in ["2025-06-30T23:59", "2027-07-01T00:00"] {
+        let unread = company(
+            "2026-11-02T09:00",
+            json!([]),
+            &[("critical_time", json!(outside))],
+        );
+        assert_eq!(code(&unread), "ppsr_timing.law_unread");
+    }
+    let edge = company(
+        "2026-11-02T09:00",
+        json!([]),
+        &[("critical_time", json!("2027-06-30T23:59"))],
+    );
+    assert!(run(&edge)["latest_time"].is_string());
     let short = company(
         "2026-07-01T09:00",
         json!([]),

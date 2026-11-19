@@ -753,7 +753,8 @@ the text is the same. The Register lists versions from
 1 December 2026, 4 December 2026, 8 April 2027 and 1 July 2027, made by Acts
 Nos. 61, 35, 38 and 57 of 2026 and No. 72 of 2025; none of them amends the
 'business day' definition or ss 588FL to 588FN, so the command takes a
-critical time on any date. The Determination has no later version before its
+critical time on any day of its 2 income years, 1 July 2025 to 30 June 2027,
+and refuses one outside them. The Determination has no later version before its
 sunset on 1 October 2028. The Registrar's 'Fees for using the PPSR' page, read
 at 12.03 am and again at about 1.40 am, gives the same amounts and says they are not
 subject to GST. It names the Treasurer in one paragraph and the Attorney

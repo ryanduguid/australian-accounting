@@ -15,8 +15,8 @@
   Act s 9 over the holidays the caller lists. New codes:
   `ppsr_timing.date_outside_year`, `ppsr_timing.date_unsettled`,
   `ppsr_timing.days_invalid`, `ppsr_timing.fact_invalid`,
-  `ppsr_timing.foreign_law_unsupported`, `ppsr_timing.holidays_incomplete`
-  and `ppsr_timing.time_invalid`.
+  `ppsr_timing.foreign_law_unsupported`, `ppsr_timing.holidays_incomplete`,
+  `ppsr_timing.law_unread` and `ppsr_timing.time_invalid`.
   `tests/ppsr_timing.rs` holds it to each fee tier and constructed calendar
   cases.
 - `wine-equalisation-tax` works out the wine tax on a tax period's wholesale

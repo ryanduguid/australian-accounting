@@ -29,6 +29,11 @@ const KIND: &str = "ppsr_timing";
 const DAY: i64 = 86_400;
 const QUESTIONS: [&str; 3] = ["registration", "pmsi", "company_grantor"];
 
+/// The critical times taken: the command's income years, 1 July 2025 to
+/// 30 June 2027, over which Corporations Act ss 9 and 588FL were read.
+const CRITICAL_FROM: &str = "2025-07-01";
+const CRITICAL_BEFORE: &str = "2027-07-01";
+
 /// An instant in seconds from 1970-01-01 00:00, ACT legal time.
 type Instant = i64;
 
@@ -391,6 +396,14 @@ fn latest_time(
     court: Option<Instant>,
     safe_by: Instant,
 ) -> Result<(Instant, Instant)> {
+    let [from, before] =
+        [CRITICAL_FROM, CRITICAL_BEFORE].map(|day| dates::parse(day).expect("date") * DAY);
+    if critical < from || critical >= before {
+        return refuse(
+            "ppsr_timing.law_unread",
+            "critical_time must fall from 1 July 2025 to 30 June 2027, the years whose Corporations Act ss 9 and 588FL were read.",
+        );
+    }
     let months = six_months_before(critical)?;
     let latest = [Some(months), Some(safe_by.min(critical)), court]
         .into_iter()
@@ -400,7 +413,7 @@ fn latest_time(
     Ok((months, latest))
 }
 
-const NOT_PERFECTED: &str = "not_perfected_at_critical_time: registered after the critical time, so not perfected by registration then (s 588FL(2)(a)(ii)) unless the interest arose after it; s 588FL's note points to PPSA ss 267 and 267A for an interest unperfected at the critical time";
+const AFTER_CRITICAL: &str = "registered_after_critical_time: s 588FL(2)(a) asks whether the interest was perfected by registration, and by no other means, at the critical time or, if it arose later, when it arose; this command is not given when the interest arose or how else it was perfected, so it does not decide; s 588FL(1)'s note points to PPSA ss 267 and 267A for an interest unperfected at the critical time";
 const VESTS: &str = "vests: the registration time is after the latest time, so the interest vests in the company (s 588FL(4)) if, at the critical time, it was enforceable against third parties and perfected by registration only (s 588FL(2)(a)), unless s 588FN applies";
 const DOES_NOT_VEST: &str =
     "does_not_vest: the registration time is not after the latest time (s 588FL(2)(b))";
@@ -410,7 +423,7 @@ const LATEST_RULE: &str = "Corporations Act s 588FL(2)(b): the latest of 6 month
 /// Whether a registration at `at` vests, and why.
 fn vesting(at: Instant, critical: Instant, latest: Instant) -> (Value, &'static str) {
     if at > critical {
-        (Value::Null, NOT_PERFECTED)
+        (Value::Null, AFTER_CRITICAL)
     } else if at > latest {
         (json!(true), VESTS)
     } else {
