@@ -107,7 +107,7 @@ def test_calculator_transport(facts, key, expected):
 
 
 @pytest.mark.parametrize("change", [{"scope_confirmed": "true"}, {"scope_confirmed": 1},
-    {"scope_confirmed": False}, {"amount": 1100}, {"year": "2027-28"}, {"extra": True}])
+    {"scope_confirmed": False}, {"amount": 1100}, {"year": "2028-29"}, {"extra": True}])
 def test_calculators_refuse_unestablished_or_malformed_facts(change):
     facts = dict(kind="gst", amount="1100", gst_inclusive=True, scope_confirmed=True,
                  year="2025-26")

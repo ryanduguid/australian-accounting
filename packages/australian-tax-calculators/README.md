@@ -119,6 +119,12 @@ message is reworded and never moves to a different failure. `REFUSAL_CODES` in
 `src/texts.rs` is the catalogue, and a test holds every refusal to it. Without the
 flag, stdout stays empty on a refusal.
 
+`contract-register` is the one command that reads a CSV file rather than a
+JSON object: a practice's hire purchase and chattel mortgage contracts, one a
+line, set out together with cashflow by month, interest by income year and
+the amount outstanding split into current and non-current. See
+[Contract register](docs/contract-register.md).
+
 ## Commands
 
 Each command takes the original function's keyword arguments, in this order, as

@@ -1189,6 +1189,30 @@ pub const REFUSAL_CODES: &[(&str, &str)] = &[
     ),
     ("command.unknown", "The command does not exist."),
     (
+        "contract_register.argument_invalid",
+        "A contract-register argument is missing, unknown, repeated or not valid.",
+    ),
+    (
+        "contract_register.column_invalid",
+        "A contracts file column is unknown, repeated or missing, or a contract's cell is empty where its kind needs it, filled where its kind does not take it, or not valid.",
+    ),
+    (
+        "contract_register.contract_duplicate",
+        "Two lines of the contracts file name the same contract.",
+    ),
+    (
+        "contract_register.csv_invalid",
+        "The contracts file is not UTF-8 CSV with a header and 1 to 5,000 contracts, one a line, each with the header's fields.",
+    ),
+    (
+        "contract_register.kind_unsupported",
+        "A contract's kind is not one the register sets out.",
+    ),
+    (
+        "contract_register.text_invalid",
+        "A contract, client or financier name is empty, too long, holds a control character or begins with a character a spreadsheet reads as a formula.",
+    ),
+    (
         "contribution_caps.defined_benefit_interest",
         "A person with a defined benefit interest was given to the carry-forward by year (ITAA 1997 Subdivision 291-C and s 291-370).",
     ),

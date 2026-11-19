@@ -63,9 +63,9 @@ Missing facts stay unknown: a Payday Super row with a fund-receipt date but no m
   11 August 2026, because NT Picnic Day on 3 August is not a business day. The
   [ATO's worked example](https://www.ato.gov.au/businesses-and-organisations/super-for-employers/paying-super-on-payday/payment-deadlines-for-payday-super)
   gives the same date on the usual 7 business day path. Run and read 5 November 2026.
-- **MCP tools.** Aus Accounting MCP 0.9.0 listed 25 local tools on
-  15 November 2026, including `validate_abn`, `validate_acn` and `get_reviewed_rate`, as
-  0.8.0 did; 0.7.1 listed 22. 0.8.0 added the `doctor` command.
+- **MCP tools.** Aus Accounting MCP 0.10.0 listed 27 local tools on
+  19 November 2026, including `validate_abn`, `validate_acn` and `get_reviewed_rate`;
+  0.9.0 and 0.8.0 listed 25, 0.7.1 listed 22. 0.8.0 added the `doctor` command.
 
 <details>
 <summary>Commands for the Payday Super date and the tool count</summary>
@@ -78,10 +78,15 @@ curl -sSLO https://raw.githubusercontent.com/ryanduguid/australian-accounting/ma
 uvx --from payday-super-checker==0.2.3 payday-super-check quarterly_remittance_2026_27.csv --as-at 2026-11-05 -o report.csv
 ```
 
-This asks the published server for its tools and prints the count, with `jq` installed:
+This asks the published server for its tools and prints the count, in bash with `jq`
+installed. It keeps the server's input open until the tools/list reply arrives: a
+server whose input closes first can exit before answering.
 
 ```bash
-printf '%s\n' '{"jsonrpc":"2.0","id":1,"method":"initialize","params":{"protocolVersion":"2025-06-18","capabilities":{},"clientInfo":{"name":"check","version":"0"}}}' '{"jsonrpc":"2.0","method":"notifications/initialized"}' '{"jsonrpc":"2.0","id":2,"method":"tools/list"}' | uvx --from 'aus-accounting-mcp==0.9.0' aus-accounting-mcp | tail -1 | jq '.result.tools | length'
+coproc MCP { uvx --from 'aus-accounting-mcp==0.10.0' aus-accounting-mcp; }
+printf '%s\n' '{"jsonrpc":"2.0","id":1,"method":"initialize","params":{"protocolVersion":"2025-06-18","capabilities":{},"clientInfo":{"name":"check","version":"0"}}}' '{"jsonrpc":"2.0","method":"notifications/initialized"}' '{"jsonrpc":"2.0","id":2,"method":"tools/list"}' >&"${MCP[1]}"
+jq -n 'first(inputs | select(.id == 2)) | .result.tools | length' <&"${MCP[0]}"
+kill "$MCP_PID"
 ```
 
 </details>
