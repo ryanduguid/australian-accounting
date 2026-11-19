@@ -1034,6 +1034,7 @@ pub fn supported_periods(kind: &str) -> Vec<&'static str> {
         // The methods use no published rate; the years are those the ATO's
         // return instructions and rates page were read for.
         "fbt_meal_entertainment" => vec!["2026", "2027"],
+        "fbt_meal_entertainment_register" => vec!["2026", "2027"],
         "fbt_car_parking" => keys(FBT_CAR_PARKING_THRESHOLDS),
         // No published rate; the years are those the ATO's return
         // instructions and guide were read for.
@@ -1158,6 +1159,10 @@ pub fn source_review(kind: &str) -> (&'static str, &'static str) {
         "fbt_meal_entertainment" => (
             "2026-11-16",
             "FBTAA ss 37AB, 37BA, 37CB and 37CD, compilation 97 (1 July 2026); Fringe benefits tax - a guide for employers, 14.8 methods of valuing meal entertainment; FBT return 2026 instructions, item 23P and example 18",
+        ),
+        "fbt_meal_entertainment_register" => (
+            "2026-11-19",
+            "FBTAA ss 37CA to 37CF, on the ATO's legal database; Fringe benefits tax - a guide for employers, 14.8 (chapter 14 last updated January 2020), 'Valid register' and 'Details to be included in register'",
         ),
         "fbt_car_parking" => (
             "2026-11-16",
@@ -1395,6 +1400,12 @@ pub fn library_evidence(kind: &str) -> [(&'static str, &'static str); 4] {
             "3-220",
             "2026-06-30",
             "2026-11-15",
+        ),
+        "fbt_meal_entertainment_register" => (
+            "ATO Fringe benefits tax - a guide for employers, chapter 14",
+            "14.8, Valid register and Details to be included in register",
+            "2020-01-01",
+            "2026-11-19",
         ),
         "fbt_car_parking" => (
             "tax-examples-fringe-benefits-tax-fbt",
@@ -1767,6 +1778,10 @@ pub fn optional_inputs(kind: &str) -> Vec<(&'static str, &'static str)> {
                 "YYYY-MM-DD date the payment is made, within the income year, with study_loan true only; required with it for 2025-26, whose Schedule 8 coefficients apply from 24 September 2025",
             ),
         ],
+        "fbt_meal_entertainment_register" => vec![(
+            "register_years_expenditure",
+            "list of decimal strings, required when year_ended is a later year of the register's validity and refused otherwise: the meal entertainment expenses (FBTAA s 37CB(3)) of each FBT year from the register's first valid year to the year before year_ended, oldest first (s 37CD(3))",
+        )],
         "fbt_meal_entertainment" => vec![
             (
                 "register_fringe_benefits_value",
@@ -2281,6 +2296,20 @@ pub fn input_units(kind: &str) -> Vec<(&'static str, &'static str)> {
             (
                 "meal_entertainment_expenditure",
                 "AUD, the employer's total expenses for providing meal entertainment in the FBT year to all persons, excluding amounts employees paid (FBTAA ss 37AB and 37CB(3))",
+            ),
+        ],
+        "fbt_meal_entertainment_register" => vec![
+            (
+                "register_start",
+                "YYYY-MM-DD, the first day of the continuous period the 12 week register was kept for (FBTAA s 37CC(1))",
+            ),
+            (
+                "register_end",
+                "YYYY-MM-DD, its last day; at least 83 days after register_start",
+            ),
+            (
+                "entries",
+                "list of at most 10000 objects, one for each provision of meal entertainment the register records in its period, each with date (YYYY-MM-DD, within the period), recipients (an object of whole-number counts of employees, associates of employees and others), cost (AUD), kind (text, such as dinner or a corporate box), location (text), on_premises (boolean: on the employer's premises), in_house_dining_facility (boolean, for on_premises only: in an in-house dining facility under ITAA 1997 s 32-55) and fringe_benefits_value (AUD, required with cost: the part of the cost that is meal entertainment fringe benefits to employees and their associates, at most the cost and 0.00 when none received any). A detail the register does not record is left out or null, and the check reports it (FBTAA s 37CE(1))",
             ),
         ],
         "fbt_car_parking" => vec![
@@ -2971,6 +3000,18 @@ pub fn examples(kind: &str) -> Vec<(&'static str, Example)> {
         "fbt_meal_entertainment" => vec![
             ("method", Text("50_50_split")),
             ("meal_entertainment_expenditure", Text("4000.00")),
+        ],
+        // A 12 week register kept from 1 May to 23 July 2025, so first valid
+        // for the FBT year ended 31 March 2026, checked for that year.
+        "fbt_meal_entertainment_register" => vec![
+            ("register_start", Text("2025-05-01")),
+            ("register_end", Text("2025-07-23")),
+            (
+                "entries",
+                Json(
+                    r#"[{"date": "2025-05-14", "recipients": {"employees": 3, "associates": 0, "others": 2}, "cost": "500.00", "kind": "client dinner", "location": "restaurant", "on_premises": false, "fringe_benefits_value": "300.00"}, {"date": "2025-07-02", "recipients": {"employees": 10, "associates": 2, "others": 0}, "cost": "1200.00", "kind": "end of year party", "location": "the employer's office", "on_premises": true, "in_house_dining_facility": false, "fringe_benefits_value": "1200.00"}]"#,
+                ),
+            ),
         ],
         "fbt_car_parking" => vec![
             ("method", Text("commercial_parking_station")),
