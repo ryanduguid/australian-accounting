@@ -31,7 +31,7 @@ fn neil() -> Value {
         "likely_turnover": "1200000.00", "year_turnover": "1200000.00",
         "net_asset_value": "3800000.00", "active_days": 6893, "business_ceased": null,
         "date_of_birth": "1972-04-10", "retirement": false, "permanently_incapacitated": false,
-        "last_rollover_event": null,
+        "last_rollover_event": null, "earnout_latest_due": null,
         "retirement_exemption_used": "0.00", "choice_date": "2026-06-30",
         "year": "2025-26", "scope_confirmed": true,
     })
@@ -130,6 +130,18 @@ fn the_replacement_asset_period_runs_from_the_last_event_rolled_over() {
     let same = run(&with(neil(), json!({"last_rollover_event": "2026-05-15"})));
     assert_eq!(
         same["replacement_asset_period"],
+        json!({"from": "2025-05-15", "to": "2028-05-15"})
+    );
+    // (b)(ii): 6 months after an earnout's latest due time, if later.
+    let earnout = |due: &str| {
+        run(&with(neil(), json!({"earnout_latest_due": due})))["replacement_asset_period"].clone()
+    };
+    assert_eq!(
+        earnout("2028-01-31"),
+        json!({"from": "2025-05-15", "to": "2028-07-31"})
+    );
+    assert_eq!(
+        earnout("2027-11-15"),
         json!({"from": "2025-05-15", "to": "2028-05-15"})
     );
 }
@@ -498,6 +510,10 @@ fn refusals_name_what_is_out_of_scope_or_wrong() {
         ),
         (
             json!({"last_rollover_event": "2026-07-01"}),
+            "sb_cgt_concessions.fact_conflict",
+        ),
+        (
+            json!({"earnout_latest_due": "2026-05-15"}),
             "sb_cgt_concessions.fact_conflict",
         ),
         (
