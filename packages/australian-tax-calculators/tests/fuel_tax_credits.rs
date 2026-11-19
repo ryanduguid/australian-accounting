@@ -62,25 +62,11 @@ const LIQUID: [(&str, &str, &str); 16] = [
     ("2026-08-03", "21.3", "53.7"),
 ];
 
-/// 100 litres of diesel on each period's first day and the day before the
-/// next, in each use, earns the period's rate in dollars.
+/// 100 litres on each period's first day, in each use, and on its last day
+/// earns the period's rate in dollars.
 #[test]
 fn every_period_takes_the_ato_rate_for_the_day_of_acquisition() {
-    for (i, (from, heavy, other)) in LIQUID.iter().enumerate() {
-        let last = match LIQUID.get(i + 1) {
-            Some((next, _, _)) => {
-                let r = run(&input(
-                    &year_of(next),
-                    json!([line("diesel", "other_business", next, "1")]),
-                ));
-                r["lines"][0]["rate_period"]["from"]
-                    .as_str()
-                    .unwrap()
-                    .to_string()
-            }
-            None => "2026-08-03".into(),
-        };
-        assert_eq!(last, LIQUID.get(i + 1).map_or("2026-08-03", |n| n.0));
+    for (from, heavy, other) in LIQUID {
         let r = run(&input(
             &year_of(from),
             json!([
@@ -100,6 +86,15 @@ fn every_period_takes_the_ato_rate_for_the_day_of_acquisition() {
                 .unwrap()
                 .starts_with("https://www.ato.gov.au/")
         );
+        // The period's last day, the day before the next one starts, still
+        // takes its rate.
+        let to = lines[0]["rate_period"]["to"].as_str().unwrap();
+        let r = run(&input(
+            &year_of(to),
+            json!([line("petrol", "other_business", to, "100")]),
+        ));
+        assert_eq!(r["lines"][0]["rate_cents"], json!(other), "{to}");
+        assert_eq!(r["lines"][0]["rate_period"]["from"], json!(from), "{to}");
     }
 }
 
@@ -324,6 +319,21 @@ fn method_1_works_out_litres_from_the_cost_and_average_price() {
             .unwrap()
             .contains("aip.com.au")
     );
+}
+
+/// Method 1 at a half cent: $23.98 at 214.8 c/L is 11.1638... L, and
+/// 23.98 x 53.7 / 214.8 is exactly $5.995, which rounds half up to $6.00. The
+/// litres divided out first lose the half cent in the last digit ($5.99).
+#[test]
+fn method_1_rounds_an_exact_half_cent_up() {
+    let r = run(
+        &json!({"lines": [{"method": "litres_from_cost", "fuel": "diesel",
+        "use": "other_business", "acquired": "2026-09-30", "cost": "23.98",
+        "average_price_cents_per_litre": "214.8"}],
+        "small_claimant": true, "year": "2026-27", "scope_confirmed": true}),
+    );
+    assert_eq!(r["lines"][0]["credit"], json!("6.00"));
+    assert_eq!(total(&r), ["6.00", "6.00"]);
 }
 
 /// s 47-5(2): a return given on the 4th anniversary of the acquisition is in

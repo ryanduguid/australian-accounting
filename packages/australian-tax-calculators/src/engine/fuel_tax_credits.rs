@@ -25,8 +25,8 @@ const KIND: &str = "fuel_tax_credits";
 const MAX_LINES: usize = 1000;
 
 const CREDIT: &str = "Fuel Tax Act 2006 ss 41-5 and 43-5(1), (2) and (2A) item 1: the credit is the effective fuel tax at the rate in force on the day the fuel was acquired; quantity x rate in cents / 100, rounded to the cent (the ATO's 'Working out your fuel tax credits', QC44511, step 3)";
-const HEAVY: &str = "Fuel Tax Act 2006 s 43-10(3) and (6): for fuel used in a vehicle of more than 4.5 tonnes GVM travelling on a public road the credit is reduced by the road user charge, which the ATO's 'heavy vehicles for travelling on public roads' rate takes off";
-const OTHER: &str = "Fuel Tax Act 2006 s 41-5: all other business uses, including the auxiliary equipment of a heavy vehicle, travel off public roads, and a heavy vehicle whose public road travel is incidental to its main use (s 43-10(4))";
+const HEAVY: &str = "Fuel Tax Act 2006 s 43-10(3) and (6): for fuel used in a vehicle of more than 4.5 tonnes GVM travelling on a public road the credit is reduced by the road user charge, which the ATO's 'heavy vehicles for travelling on public roads' rate takes off; that rate includes fuel to power a bus's or coach's passenger air-conditioning (QC107638 note 1)";
+const OTHER: &str = "Fuel Tax Act 2006 s 41-5: all other business uses, including the auxiliary equipment of a heavy vehicle other than a bus's or coach's passenger air-conditioning, travel off public roads, and a heavy vehicle whose public road travel is incidental to its main use (s 43-10(4))";
 const LIGHT: &str = "Fuel Tax Act 2006 s 41-20: no credit for fuel to be used in a vehicle with a gross vehicle mass of 4.5 tonnes or less travelling on a public road";
 const BASIC: &str = "PCG 2021/2 paras 9 to 11: public road litres = public road kilometres (actual, or total kilometres x 98.4%) x the diesel consumption rate (Schedule 1, or the vehicle's engine diagnostic 'driving fuel' economy); other litres = total eligible diesel less public road litres; each at its rate, rounded to the cent";
 const METHOD_1: &str = "PCG 2016/2 para 9 (Method 1): litres = the total GST inclusive spend on the fuel / the average GST inclusive price of the fuel type in the area of operation for the tax period, as the Australian Institute of Petroleum publishes it (https://aip.com.au/pricing/pump-prices-retail/); quantity is shown to 4 decimal places and the credit uses the exact quotient";
@@ -197,7 +197,12 @@ fn work_line(line: &Line, n: usize, rate_day: i64) -> Result<(Value, Decimal)> {
             out["unit"] = json!(line.unit);
             out["rate_cents"] = json!(shown(&rate_cents));
             out["authority"] = json!([CREDIT, authority]);
-            credit(quantity, &rate_cents)?
+            match from_cost {
+                // cost x 100 / price litres x rate / 100, multiplied before
+                // the one division so a half cent is not lost to it.
+                Some((cost, price)) => cents(&cost.mul(&rate_cents)?.div(price)?)?,
+                None => credit(quantity, &rate_cents)?,
+            }
         }
         Work::Basic(b) => work_basic(&mut out, n, b, heavy, other)?,
     };
@@ -385,7 +390,7 @@ fn add_warnings(
         let late = time_limit(lines, day)?;
         if !late.is_empty() {
             warnings.push(json!(format!(
-                "Fuel Tax Act 2006 s 47-5(2): the entitlement for line(s) {} ceases unless a return taking it into account is given within 4 years after the day of acquisition, and the return is given on {}. That does not apply to a credit already taken into account in an assessment (Linfox Australia Pty Ltd v Commissioner of Taxation [2019] FCAFC 131; MT 2024/1) or to the s 47-10 exception; otherwise remove those lines.",
+                "Fuel Tax Act 2006 s 47-5(2): the entitlement for line(s) {} ceases unless a return taking it into account is given within 4 years after the day of acquisition, and the return is given on {}. That does not apply to a credit already taken into account in an assessment (Linfox Australia Pty Ltd v Commissioner of Taxation [2019] FCAFC 131; MT 2024/1); otherwise remove those lines.",
                 late.join(", "),
                 dates::format(day)
             )));

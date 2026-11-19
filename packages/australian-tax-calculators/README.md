@@ -989,9 +989,11 @@ in one income year from 2022-23 to 2026-27 (Fuel Tax Act 2006 ss 41-5 and
 (litres; kilograms for LNG and CNG) and its `use`:
 
 - `heavy_vehicle_public_road`: a vehicle above 4.5 tonnes GVM travelling on a
-  public road, at the rate net of the road user charge (s 43-10(3));
+  public road, at the rate net of the road user charge (s 43-10(3)), including
+  fuel to power a bus's or coach's passenger air-conditioning (QC107638
+  note 1);
 - `other_business`: every other business use, including a heavy vehicle's
-  auxiliary equipment, travel off public roads and public road travel
+  other auxiliary equipment, travel off public roads and public road travel
   incidental to the vehicle's main use (s 43-10(4));
 - `light_vehicle_public_road`: 4.5 tonnes GVM or less on a public road, which
   gets nil (s 41-20).
@@ -1005,8 +1007,12 @@ data.gov.au's 'Historical FTC rates' workbook. The ATO publishes the last
 period as from 3 August 2026 with no end; it is held open to 31 January 2027,
 before the February 2027 indexation, and fuel acquired after the day the
 rates were read carries a warning to check for a change since. A line's credit
-is quantity x rate in cents / 100, rounded half up to the cent; `label_7d` is
-the total with the cents dropped, as the ATO's examples claim it.
+is quantity x rate in cents / 100, rounded half up to the cent (a Method 1
+line: cost x rate / average price, so no rounding comes before the cent);
+`label_7d` is the total with the cents dropped, as the ATO's examples claim
+it. Each line is rounded, so give the fuel of one type and use acquired in one
+rate period as one line, as the ATO's worksheet works one amount for each
+rate (QC44511), rather than one line per receipt.
 
 A small claimant (`small_claimant`: credits of $10,000 or less in the previous
 12 months and expected in the current 12 months) can also use:

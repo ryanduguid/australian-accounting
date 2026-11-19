@@ -1420,7 +1420,7 @@ pub const REFUSAL_CODES: &[(&str, &str)] = &[
     ),
     (
         "fuel_tax_credits.rate_unpublished",
-        "A line's fuel was acquired after the last day the bundled ATO rates cover.",
+        "A line's fuel was acquired, or a Method 2 tax period ends, after the last day the bundled ATO rates cover.",
     ),
     (
         "fuel_tax_credits.simplified_method_unavailable",
