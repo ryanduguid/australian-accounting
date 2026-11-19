@@ -657,17 +657,20 @@ not substantial. Example 9's voucher is a reward for services but ad hoc, and
 examples 1 to 3 recur each Christmas but are not rewards; no example has a
 regular reward, so that is left to judgement. Example 8, the one not
 exempt on the criteria, has frequent similar benefits with a substantial
-total. The Library's 3-060 gym fees and 3-080 golf days reach the same answer
-on the same pattern. Paras 14 and 16, on the 50/50 split and salary sacrifice,
-are the Commissioner's view and are cited as such.
+total, given as a reward for services, readily valued and not for an
+unexpected event; the screen gives `not_exempt` only on all of those. The
+Library's 3-060 gym fees and 3-080 golf days are not exempt in the Library; the
+screen agrees when they are stated as rewards for services, and otherwise
+leaves them to judgement. Paras 14 and 16, on the 50/50 split and salary
+sacrifice, are the Commissioner's view and are cited as such.
 
 `tests/fbt_minor_benefit.rs` holds each case.
 
 | Example | Facts given | Result |
 | --- | --- | --- |
 | Library 3-060 (b), flowers | Property, **$80**, on a birthday | Exempt |
-| Library 3-060 (a), gym | Expense payment, **$50** a month | Not exempt: frequent, substantial |
-| Library 3-080, golf days | Expense payment, about **$83** a month | Not exempt: frequent, substantial |
+| Library 3-060 (a), gym | Expense payment, **$50** a month | Not exempt as a reward for services; otherwise judgement |
+| Library 3-080, golf days | Expense payment, about **$83** a month | Not exempt as a reward for services; otherwise judgement |
 | TR 2007/12 examples 1 to 3 | Christmas gift or party, each year, under $300 | Exempt |
 | TR 2007/12 examples 5, 6, 7, 10, 11 | Flowers, a car after a storm, tolls, a gym membership, babysitting | Exempt |
 | TR 2007/12 example 8 | Monthly incentive vouchers, a reward | Not exempt |

@@ -967,14 +967,16 @@ in `failing_conditions`:
   as a fringe benefit of that kind, would not be in-house (`in_house` false:
   s 58P(1)(c));
 - `tax_exempt_body_exception`: for `tax_exempt_body_entertainment`, the
-  entertainment is incidental to entertaining outsiders and not a meal other
-  than light refreshments (`incidental_to_outsiders_no_meal`), or on the
-  employer's premises solely to recognise the employee's special
-  achievements (`special_achievement_on_premises`), not `none`
-  (s 58P(1)(d));
+  entertainment is incidental to entertaining outsiders and neither a meal nor
+  provided in connection with one, other than light refreshments
+  (`incidental_to_outsiders_no_meal`), or on eligible premises of the employer
+  (s 136(1)) solely to recognise the employee's special achievements
+  (`special_achievement_on_premises`), not `none` (s 58P(1)(d));
 - `not_fifty_fifty_split`: `meal_entertainment` or
-  `entertainment_facility_leasing` not valued by the 50/50 split method
-  (`fifty_fifty_split` false: TR 2007/12 para 14);
+  `entertainment_facility_leasing` is not valued by the 50/50 split method
+  (Division 9A or s 152B: TR 2007/12 para 14). It is never met:
+  `fifty_fifty_split` false is refused, and the benefit is then screened under
+  its own category;
 - `not_salary_sacrifice`: not under a salary sacrifice arrangement
   (TR 2007/12 para 16);
 - `less_than_300`: `notional_taxable_value`, for this one benefit to this one
@@ -993,7 +995,8 @@ not both regular and a reward for services (examples 1 to 3, 5 to 7 and 9 to
 11: a yearly gift or party, flowers, a car lent after a storm,
 ad hoc tolls, a recognition voucher, a one-off gym membership, babysitting
 during unexpected overtime), `not_exempt` where they are frequent with a
-substantial total (example 8, monthly incentive vouchers) or a condition fails,
+substantial total, a reward for services, readily valued and not for an
+unexpected event (example 8, monthly incentive vouchers) or a condition fails,
 and `judgement_required` otherwise, with `exempt` null. `consequences` says
 what each outcome means: an exempt benefit is not a fringe benefit
 (s 136(1), para (g)), so it adds nothing to the FBT return or the reportable

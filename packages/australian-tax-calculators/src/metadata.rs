@@ -1075,8 +1075,6 @@ pub fn supported_periods(kind: &str) -> Vec<&'static str> {
         }
         // No published rate: s 58P(1)(e)'s $300 is the Act's own. The years
         // are those the other FBT benefit worksheets cover.
-        // s 58P(1)(e)'s $300 is the Act's own; the years are the other FBT
-        // worksheets'.
         "fbt_minor_benefit_check" => vec!["2026", "2027"],
         "fbt_entertainment_classifier" => vec!["2026", "2027"],
         "fbt_housing" => keys(FBT_HOUSING_INDEXATION),
@@ -1282,7 +1280,7 @@ pub fn source_review(kind: &str) -> (&'static str, &'static str) {
         ),
         "fbt_minor_benefit_check" => (
             "2026-11-19",
-            "FBTAA ss 58P and 136(1) ('fringe benefit' para (g)), from the ATO's legal database (s 58P(1)(b) repealed by Act No. 88 of 2013); TR 2007/12 (paras 8 to 23 and examples 1 to 13)",
+            "FBTAA ss 58P, 136(1) ('fringe benefit' para (g) and 'eligible premises') and 152B, from the ATO's legal database (s 58P(1)(b) repealed by Act No. 88 of 2013); TR 2007/12 (paras 8 to 23 and examples 1 to 13)",
         ),
         "fbt_entertainment_classifier" => (
             "2026-11-16",
@@ -2029,11 +2027,11 @@ pub fn optional_inputs(kind: &str) -> Vec<(&'static str, &'static str)> {
             ),
             (
                 "tax_exempt_body_exception",
-                "for tax_exempt_body_entertainment and then required: incidental_to_outsiders_no_meal (incidental to entertaining outsiders, and not a meal other than light refreshments: s 58P(1)(d)(i)), special_achievement_on_premises (on the employer's premises, solely to recognise the employee's special achievements in the employment: (d)(ii)) or none",
+                "for tax_exempt_body_entertainment and then required: incidental_to_outsiders_no_meal (incidental to entertaining outsiders, and neither a meal nor provided in connection with a meal, other than light refreshments: s 58P(1)(d)(i)), special_achievement_on_premises (on eligible premises of the employer, s 136(1): its premises, a related company's for a company, or a location at or next to a site where the employee works, solely to recognise the employee's special achievements in the employment: (d)(ii)) or none",
             ),
             (
                 "fifty_fifty_split",
-                "boolean, for meal_entertainment or entertainment_facility_leasing and then required: true when the employer elected the 50/50 split method of Division 9A (TR 2007/12 para 14)",
+                "boolean, for meal_entertainment or entertainment_facility_leasing and then required: true when the employer elected the 50/50 split method, of Division 9A for meal entertainment or s 152B for entertainment facility leasing (TR 2007/12 para 14); false is refused, as the benefit is then screened under its own category",
             ),
         ],
         "fbt_entertainment_classifier" => vec![

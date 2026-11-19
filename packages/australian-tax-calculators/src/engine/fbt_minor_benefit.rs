@@ -68,8 +68,8 @@ fn when<'a>(needed: bool, given: Option<&'a Arg>, key: &str, why: &str) -> Resul
 }
 
 const IN_HOUSE: &str = "FBTAA s 58P(1)(c): an expense payment, property or residual benefit qualifies only if, were it a fringe benefit of that kind, it would not be an in-house fringe benefit";
-const TAX_EXEMPT_BODY: &str = "FBTAA s 58P(1)(d): where the provider incurs non-deductible exempt entertainment expenditure for the entertainment, it qualifies only if the entertainment is incidental to entertaining outsiders and is not, and is not provided with, a meal other than light refreshments ((d)(i)), or is provided on the employer's premises solely to recognise the employee's special achievements in the employment ((d)(ii))";
-const FIFTY_FIFTY: &str = "TR 2007/12 para 14, the Commissioner's view: where the employer elects the 50/50 split method of Division 9A for meal entertainment or entertainment facility leasing expenses, the minor benefits exemption cannot reduce the taxable value";
+const TAX_EXEMPT_BODY: &str = "FBTAA s 58P(1)(d): where the provider incurs non-deductible exempt entertainment expenditure for the entertainment, it qualifies only if the entertainment is incidental to entertaining outsiders and neither consists of nor is provided in connection with a meal other than light refreshments ((d)(i)), or is provided on eligible premises of the employer (s 136(1): its premises, a related company's premises for a company, or a location at or next to a site where the employee works) solely to recognise the employee's special achievements in the employment ((d)(ii))";
+const FIFTY_FIFTY: &str = "TR 2007/12 para 14, the Commissioner's view: where the employer elects the 50/50 split method for meal entertainment (Division 9A) or for entertainment facility leasing expenses (s 152B), the minor benefits exemption cannot reduce the taxable value";
 const SALARY_SACRIFICE: &str = "TR 2007/12 para 16 and example 13, the Commissioner's view: the exemption does not apply to a benefit provided under a salary sacrifice arrangement";
 const LESS_THAN_300: &str = "FBTAA s 58P(1)(e): the notional taxable value of the benefit in the current year of tax is less than $300, tested for each benefit to each employee or associate (TR 2007/12 paras 17 and 18)";
 
@@ -125,8 +125,13 @@ fn category_rows(args: &MinorBenefitArgs, category: &str) -> Result<Vec<Value>> 
         rows.push(condition("tax_exempt_body_exception", TAX_EXEMPT_BODY, met));
     }
     if let Some(fifty) = fifty {
-        let met = !flag(fifty, "fifty_fifty_split")?;
-        rows.push(condition("not_fifty_fifty_split", FIFTY_FIFTY, met));
+        if !flag(fifty, "fifty_fifty_split")? {
+            return refuse(
+                "fbt_minor_benefit.category_unsettled",
+                "Meal entertainment or entertainment facility leasing not valued by the 50/50 split method is screened as the benefit it is: give category expense_payment, property, residual or tax_exempt_body_entertainment, so its s 58P(1)(c) or (d) exclusion is checked.",
+            );
+        }
+        rows.push(condition("not_fifty_fifty_split", FIFTY_FIFTY, false));
     }
     Ok(rows)
 }
@@ -154,6 +159,9 @@ struct Criteria {
     /// Infrequent but regular, and a reward for services: no example has
     /// both.
     regular_reward: bool,
+    /// Example 8's facts: frequent, a substantial similar total, a reward
+    /// for services, readily valued and not for an unexpected event.
+    example_8: bool,
     substantial: [bool; 2],
     rows: Vec<Value>,
 }
@@ -208,6 +216,7 @@ fn criteria(args: &MinorBenefitArgs) -> Result<Criteria> {
     Ok(Criteria {
         frequent: frequency == "frequent",
         regular_reward: frequency == "infrequent_and_regular" && stated[4],
+        example_8: frequency == "frequent" && stated[0] && stated[4] && !stated[2] && !stated[3],
         substantial: [stated[0], stated[1]],
         rows,
     })
@@ -215,7 +224,7 @@ fn criteria(args: &MinorBenefitArgs) -> Result<Criteria> {
 
 const EXEMPT: &str = "exempt: the stated criteria match the TR 2007/12 examples that conclude it would be unreasonable to treat the benefit as a fringe benefit (examples 1 to 3, 5 to 7 and 9 to 11: identical or similar benefits not provided frequently, neither total substantial, and not both regular and a reward for services), so it is an exempt benefit for the current year of tax (s 58P(1)), on the Commissioner's view";
 const NOT_EXEMPT_FAILED: &str = "not_exempt: a condition of s 58P(1)(c) to (e), or one the Commissioner's ruling sets, is not met";
-const NOT_EXEMPT_FREQUENT: &str = "not_exempt: the stated criteria match TR 2007/12 example 8 (vouchers provided frequently, whose total is substantial), which concludes it would not be unreasonable to treat the benefit as a fringe benefit, on the Commissioner's view";
+const NOT_EXEMPT_FREQUENT: &str = "not_exempt: the stated criteria match TR 2007/12 example 8 (vouchers provided frequently as a reward for services, whose total is substantial, readily valued and not for an unexpected event), which concludes it would not be unreasonable to treat the benefit as a fringe benefit, on the Commissioner's view";
 const JUDGEMENT: &str = "judgement_required: the stated criteria match neither the TR 2007/12 examples that reach the exemption nor example 8, which does not; whether it would be unreasonable to treat the benefit as a fringe benefit, weighing all of s 58P(1)(f), is the employer's to decide";
 
 /// The screen's verdict and its reason.
@@ -226,7 +235,7 @@ fn screen(failing: bool, c: &Criteria) -> (Value, &'static str) {
     if !c.frequent && c.substantial == [false, false] && !c.regular_reward {
         return (json!(true), EXEMPT);
     }
-    if c.frequent && c.substantial[0] {
+    if c.example_8 {
         return (json!(false), NOT_EXEMPT_FREQUENT);
     }
     (Value::Null, JUDGEMENT)

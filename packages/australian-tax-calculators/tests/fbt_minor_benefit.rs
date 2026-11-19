@@ -21,7 +21,7 @@ fn benefit(category: &str, value: &str) -> Value {
     match category {
         "expense_payment" | "property" | "residual" => input["in_house"] = json!(false),
         "meal_entertainment" | "entertainment_facility_leasing" => {
-            input["fifty_fifty_split"] = json!(false);
+            input["fifty_fifty_split"] = json!(true);
         }
         "tax_exempt_body_entertainment" => input["tax_exempt_body_exception"] = json!("none"),
         _ => {}
@@ -75,22 +75,26 @@ fn birthday_flowers_are_exempt() {
 /// Tax Examples, FBT, 3-060 (a): gym fees of $50 a month, paid every month,
 /// $600 a year, and 3-080: monthly golf days costing about $1,000 a year.
 /// Each payment is under $300, but provided frequently with a substantial
-/// total, as in TR 2007/12 example 8, so not exempt.
+/// total. Stated as a reward for services, as in TR 2007/12 example 8, it is
+/// not exempt; without that fact no example decides, so it is left to the
+/// employer.
 #[test]
 fn frequent_payments_with_a_substantial_total_are_not_exempt() {
     for value in ["50.00", "83.33"] {
-        let input = with(
+        let frequent = with(
             benefit("expense_payment", value),
             &[
                 ("frequency", json!("frequent")),
                 ("similar_benefits_substantial", json!(true)),
             ],
         );
-        let (exempt, name, failing) = screen(&input);
+        let reward = with(frequent.clone(), &[("reward_for_services", json!(true))]);
+        let (exempt, name, failing) = screen(&reward);
         assert_eq!(
             (exempt, name.as_str(), failing),
             (json!(false), "not_exempt", json!([]))
         );
+        assert_eq!(screen(&frequent).1, "judgement_required");
     }
 }
 
@@ -105,7 +109,7 @@ fn the_rulings_exempt_examples_are_exempt() {
     let regular = [("frequency", json!("infrequent_and_regular"))];
     for input in [
         with(benefit("property", "150.00"), &regular),
-        with(benefit("meal_entertainment", "180.00"), &regular),
+        with(benefit("property", "180.00"), &regular),
         benefit("property", "60.00"),
         with(
             benefit("other", "45.00"),
@@ -228,8 +232,9 @@ fn each_exclusion_fails_alone_and_together() {
 
 /// Criteria that match neither the exempt examples nor example 8 are left to
 /// the employer: frequent but not substantial, infrequent with a
-/// substantial total, or a regular reward for services, which no example
-/// has.
+/// substantial total, a regular reward for services, which no example has,
+/// or frequent with a substantial total but lacking one of example 8's other
+/// facts (a reward, ready valuation, no unexpected event).
 #[test]
 fn mixed_criteria_need_the_employers_judgement() {
     for pairs in [
@@ -243,6 +248,22 @@ fn mixed_criteria_need_the_employers_judgement() {
         vec![
             ("frequency", json!("frequent")),
             ("other_associated_benefits_substantial", json!(true)),
+        ],
+        vec![
+            ("frequency", json!("frequent")),
+            ("similar_benefits_substantial", json!(true)),
+        ],
+        vec![
+            ("frequency", json!("frequent")),
+            ("similar_benefits_substantial", json!(true)),
+            ("reward_for_services", json!(true)),
+            ("unexpected_event", json!(true)),
+        ],
+        vec![
+            ("frequency", json!("frequent")),
+            ("similar_benefits_substantial", json!(true)),
+            ("reward_for_services", json!(true)),
+            ("valuation_difficult", json!(true)),
         ],
     ] {
         let r = run(&with(benefit("property", "100.00"), &pairs));
@@ -277,6 +298,17 @@ fn bad_inputs_are_refused() {
     let mut missing = benefit("meal_entertainment", "100.00");
     missing.as_object_mut().unwrap().remove("fifty_fifty_split");
     assert_eq!(code(&missing), "input.missing_field");
+    for category in ["meal_entertainment", "entertainment_facility_leasing"] {
+        let input = with(
+            benefit(category, "100.00"),
+            &[("fifty_fifty_split", json!(false))],
+        );
+        assert_eq!(
+            code(&input),
+            "fbt_minor_benefit.category_unsettled",
+            "{category}"
+        );
+    }
     let mut missing = benefit("tax_exempt_body_entertainment", "40.00");
     missing
         .as_object_mut()
