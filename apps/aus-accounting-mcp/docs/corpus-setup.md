@@ -10,18 +10,20 @@ the applicability of a passage.
 ## Download the published snapshot
 
 This route needs no build. PaulGoodman's
-[`corpus-2026-11-11` release](https://github.com/ryanduguid/PaulGoodman/releases/tag/corpus-2026-11-11)
+[`corpus-2026-11-18` release](https://github.com/ryanduguid/PaulGoodman/releases/tag/corpus-2026-11-18)
 holds the 9 principal Acts listed in the next section, each at its current compilation on
-11 November 2026. Download `au-tax-legislation-corpus-dist-2026-11-11.tar.gz`
-(6,227,238 bytes) and `SHA256SUMS` from it into a folder outside every source checkout,
-then check and unpack the archive:
+18 November 2026, and under `compilations/` the compilation of each in force on 1 July of
+each year from 2020 to 2026 (the TAA 1953 from 2021), which `as_at` reads. Download
+`au-tax-legislation-corpus-dist-2026-11-18.tar.gz` (45,166,634 bytes; 314,573,396
+unpacked) and `SHA256SUMS` from it into a folder outside every source checkout, then
+check and unpack the archive:
 
 ```bash
 sha256sum -c SHA256SUMS
-tar -xzf au-tax-legislation-corpus-dist-2026-11-11.tar.gz
+tar -xzf au-tax-legislation-corpus-dist-2026-11-18.tar.gz
 ```
 
-In PowerShell, compare `(Get-FileHash au-tax-legislation-corpus-dist-2026-11-11.tar.gz).Hash`
+In PowerShell, compare `(Get-FileHash au-tax-legislation-corpus-dist-2026-11-18.tar.gz).Hash`
 with the digest in `SHA256SUMS`; `tar` is part of Windows 10 and later.
 
 It unpacks to `dist/`, holding `sources.json`, `markdown/<register id>/sections.jsonl`
@@ -39,7 +41,7 @@ authorised text. It holds no instruments, rulings or case law, so a 'no match' s
 nothing about any other title. Its legislative content is licensed under
 [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/) by the Federal Register of
 Legislation; keep the attribution each row carries. The snapshot does not change: for
-an Act's compilation after 11 November 2026, build it with `quick`.
+an Act's compilation after 18 November 2026, build it with `quick`.
 
 ## Build the principal Acts with one command
 
@@ -84,10 +86,51 @@ the 2 legislation tools work. The
 [full build](https://github.com/ryanduguid/PaulGoodman/blob/main/BUILD.md)
 covers the rest of the corpus and the rates index.
 
-## First verify the connection with fabricated evidence
+## Verify the native candidate with fabricated evidence
 
-This route tests the rulings tools without building any legislation. Use Python 3.14 or later and uv. Clone both public repositories into sibling
-directories. From `australian-accounting/apps/aus-accounting-mcp`, run:
+For the unpublished Rust candidates, select the corpus builder's native checkout
+explicitly and build its scripted HTTP test variant outside the source tree:
+
+```bash
+cargo build --locked --manifest-path /absolute/path/to/PaulGoodman/Cargo.toml --features fake-http --bin fadden --target-dir /absolute/path/to/disposable-builder-target
+```
+
+From this MCP component directory, run the Rust integration check:
+
+```bash
+FADDEN_SETUP_BINARY=/absolute/path/to/disposable-builder-target/debug/fadden cargo test --locked --test native_installation native_builder_fabricated_page_reaches_registered_mcp_citation_tools -- --ignored --nocapture
+```
+
+On Windows, the binary is `debug/fadden.exe`; set `$env:FADDEN_SETUP_BINARY` before
+running the same Cargo command. Package setup can download dependencies. The
+test itself uses scripted responses and loopback proxies. It first requires a
+scripted 404 refusal, then sends the fabricated HTML through the actual native
+builder. An ordinary builder without `fake-http` fails the probe. Do not use the
+scripted test build for real capture.
+
+The copied native MCP server reads the resulting immutable run through registered
+search and citation tools with an empty working directory and PATH. Assertions
+cover the full paragraph, original HTML digest, source URL, fetched date and
+`UNKNOWN` withdrawal status. The URL has the ATO shape required by the builder;
+the bytes, future date and title are fabricated and establish no ATO capture,
+reuse permission, current law or advice. The independent builder is required, so
+this test is explicitly ignored in ordinary runs. No changes to that checkout
+are needed.
+
+By default, the test cleans its temporary run files and report. To retain evidence
+for inspection, also set `FADDEN_SETUP_OUT` to an absolute, absent directory whose
+parent exists. Existing files, directories and symbolic links are refused. The
+selected directory is retained even if a later check fails. On success it holds
+`setup-report.json` with the complete search and read results beside
+`run-synthetic/`, the builder's immutable run. Keep the manifest, JSONL, raw files
+and licence notice together. The report marks the evidence as synthetic and
+records its limits.
+
+## Verify a compatible Python builder with fabricated evidence
+
+This route tests the rulings tools without building any legislation. The retained Python check requires a compatible builder checkout that still
+contains `fadden/rulings.py`. Use Python 3.14 or later and uv. Place the selected
+checkouts in sibling directories. From `australian-accounting/apps/aus-accounting-mcp`, run:
 
 ```bash
 uv run --locked --python 3.14 python scripts/check_corpus_setup.py --builder ../../../PaulGoodman --out ../../../../synthetic-corpus-setup

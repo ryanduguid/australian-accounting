@@ -8,7 +8,14 @@ import tomllib
 import unittest
 from pathlib import Path
 
-from test_boundaries import DATASETS, ROOT, RUST_APPLICATIONS, RUST_ENGINES, select_package
+from test_boundaries import (
+    DATASETS,
+    NATIVE_CANDIDATES,
+    ROOT,
+    RUST_APPLICATIONS,
+    RUST_ENGINES,
+    select_package,
+)
 
 rust_crates = runpy.run_path(str(ROOT / ".github/ci/rust_crates.py"))
 
@@ -25,6 +32,12 @@ REMOVED_IMPORTS = {
 }
 # Crates release-policy's release-binary.yml publishes as executables.
 BINARY_RELEASES = {"australian-tax-calculators"}
+# The line each audit step ends with: cargo-audit 0.22.2 prints one of these and
+# exits 0 when it cannot fetch, open or read the crates.io index.
+UNCHECKED_YANKED = (
+    "! grep -qE \"couldn't (check if the package is yanked|update crates.io index|"
+    "open crates.io index)\" \"$RUNNER_TEMP/audit.log\""
+)
 # Runtime crates an engine may use; none is another engine or a path dependency.
 ALLOWED_DEPENDENCIES = {"num-bigint", "num-integer", "num-traits", "serde_json", "jiff", "sha2"}
 
@@ -144,6 +157,8 @@ class RustEngineTests(unittest.TestCase):
             if "cargo audit" in text:
                 with self.subTest(workflow=path.name):
                     self.assertEqual(text.count("cargo audit"), text.count(audit))
+                    # cargo-audit exits 0 when its yanked lookup fails; the step must not.
+                    self.assertEqual(text.count(audit), text.count(UNCHECKED_YANKED))
             if ("cargo audit" in text and "workflow_call:" not in text) or "uses: ./.github/workflows/ci-rust.yml" in text:
                 with self.subTest(workflow=path.name, trigger="schedule"):
                     self.assertIn("  schedule:\n", text)
@@ -153,11 +168,11 @@ class RustEngineTests(unittest.TestCase):
         # derive theirs; the lists that cannot be derived must match them.
         crates = rust_crates["crates"]()
         directories = {f"{crate['root']}/{crate['package']}" for crate in crates}
-        self.assertEqual(directories, set(RUST_ENGINES) | set(DATASETS) | set(RUST_APPLICATIONS) | {"apps/au-accounting"})
+        self.assertEqual(directories, set(RUST_ENGINES) | set(DATASETS) | set(RUST_APPLICATIONS) | NATIVE_CANDIDATES | {"apps/au-accounting"})
         root = tomllib.loads((ROOT / "pyproject.toml").read_text())
         exclude = root["tool"]["uv"]["workspace"]["exclude"]
         self.assertEqual(len(exclude), len(set(exclude)))
-        self.assertEqual(set(exclude), directories)
+        self.assertEqual(set(exclude), directories - NATIVE_CANDIDATES)
         # Dependabot's directories key takes globs, but GitHub does not document
         # what a glob matching a directory without a Cargo.toml does, so the list
         # stays explicit: every crate, every crate's fuzz harness, every crate's
@@ -178,14 +193,32 @@ class RustEngineTests(unittest.TestCase):
         self.assertIn("package: lodgeit-calculator-adapter\n", (workflows / "ci-lodgeit-adapter.yml").read_text())
         self.assertIn('pattern: "${{ needs.crates.outputs.parity }}-${{ matrix.os }}"', caller)
         for crate in crates:
+            # A native candidate's Python component keeps its own CI callers.
+            if f"{crate['root']}/{crate['package']}" in NATIVE_CANDIDATES:
+                continue
             with self.subTest(crate=crate["package"]):
                 self.assertNotIn(f"package: {crate['package']}\n", caller)
         by_name = {crate["package"]: crate for crate in crates}
-        self.assertEqual(by_name["au-tax-rates-data"], {"package": "au-tax-rates-data", "root": "packages", "binary": "rates", "smoke": "validate"})
-        self.assertEqual(by_name["au-accounting"], {"package": "au-accounting", "root": "apps", "binary": "au-accounting", "smoke": "--version"})
+        no_extras = dict.fromkeys(("extra-binaries", "extra-examples", "candidate-files"), "")
+        self.assertEqual(by_name["au-tax-rates-data"], {"package": "au-tax-rates-data", "root": "packages", "binary": "rates", "smoke": "validate", "candidate-test": "", **no_extras})
+        self.assertEqual(by_name["au-accounting"], {"package": "au-accounting", "root": "apps", "binary": "au-accounting", "smoke": "--version", "candidate-test": "", **no_extras})
         self.assertEqual(by_name["the-wip-tally"]["binary"], "wip-tally")
         self.assertEqual(by_name["gst-review"]["smoke"], "--api-help")
-        self.assertEqual(by_name["lodgeit-calculator-adapter"], {"package": "lodgeit-calculator-adapter", "root": "apps", "binary": "lodgeit-adapter", "smoke": "contract"})
+        self.assertEqual(by_name["lodgeit-calculator-adapter"], {"package": "lodgeit-calculator-adapter", "root": "apps", "binary": "lodgeit-adapter", "smoke": "contract", "candidate-test": "", **no_extras})
+
+    def test_mcp_candidate_archive_inputs_reach_ci(self):
+        candidate = next(crate for crate in rust_crates["crates"](ci_yml=True)
+                         if crate["package"] == "aus-accounting-mcp")
+        caller = (ROOT / ".github/workflows/ci.yml").read_text()
+        for key in ("extra-binaries", "extra-examples", "candidate-files", "candidate-test"):
+            self.assertTrue(candidate.get(key), f"MCP candidate has no {key}")
+            self.assertIn(f"      {key}: ${{{{ matrix.{key} }}}}", caller)
+        self.assertEqual(candidate["extra-binaries"].split(),
+                         ["aus-accounting-mcp-demo", "aus-accounting-mcp-evaluate"])
+        self.assertEqual(candidate["extra-examples"].split(), ["group_review"])
+        self.assertEqual(candidate["candidate-test"], "native_candidate")
+        for path in candidate["candidate-files"].split():
+            self.assertTrue((ROOT / path).is_file(), path)
 
     def test_crate_lister_rejects_what_ci_rust_cannot_check(self):
         engine = '[package]\nname = "engine"\n'
