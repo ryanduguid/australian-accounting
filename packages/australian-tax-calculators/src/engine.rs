@@ -6066,8 +6066,10 @@ mod lump_sum_arrears;
 pub use lump_sum_arrears::lump_sum_arrears_tax_offset;
 mod income_tests;
 pub use income_tests::income_tests;
+mod sb_cgt_concessions;
+pub use sb_cgt_concessions::{SB_CGT_OPTIONAL, SbCgtConcessionsArgs, sb_cgt_concessions};
 
-const KINDS: [&str; 48] = [
+const KINDS: [&str; 49] = [
     "gst",
     "resident_tax",
     "foreign_resident_tax",
@@ -6116,6 +6118,7 @@ const KINDS: [&str; 48] = [
     "fbt_tax_exempt_body_entertainment",
     "fbt_entertainment_classifier",
     "income_tests",
+    "sb_cgt_concessions",
 ];
 
 /// `periods(kind)`: accepted period arguments and inclusive calendar boundaries.

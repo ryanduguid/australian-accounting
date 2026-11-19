@@ -495,6 +495,30 @@ const COMMAND_ARGS: &[(&str, &[(&str, Kind)])] = &[
         ],
     ),
     (
+        "sb-cgt-concessions",
+        &[
+            ("entity", Raw),
+            ("share_or_trust_interest", Raw),
+            ("acquired", Raw),
+            ("event_date", Raw),
+            ("partnership_asset", Raw),
+            ("passively_held", Raw),
+            ("business", Raw),
+            ("previous_year_turnover", Dec),
+            ("year_before_turnover", Dec),
+            ("likely_turnover", Dec),
+            ("year_turnover", Dec),
+            ("net_asset_value", Dec),
+            ("active_days", Raw),
+            ("business_ceased", Raw),
+            ("date_of_birth", Raw),
+            ("retirement", Raw),
+            ("permanently_incapacitated", Raw),
+            ("year", Raw),
+            ("scope_confirmed", Raw),
+        ],
+    ),
+    (
         "income-tests",
         &[
             ("taxable_income", Dec),
@@ -952,6 +976,7 @@ pub fn evaluate_coded(command: &str, v: &Value) -> Result<Value> {
             | "fbt-entertainment-classifier"
             | "hire-purchase-schedule"
             | "income-tests"
+            | "sb-cgt-concessions"
             | "business-capital-expenditure"
             | "balancing-adjustment"
             | "trade-in"
@@ -1311,6 +1336,41 @@ pub fn evaluate_coded(command: &str, v: &Value) -> Result<Value> {
             engine::contribution_caps(&a[0], &a[1], &a[2], &a[3], &a[4], &a[5], &a[6])
         }
         "pension-minimum" => engine::pension_minimum(&a[0], &a[1], &a[2], &a[3], &a[4]),
+        "sb-cgt-concessions" => {
+            // Optional: the facts only some answers call for.
+            let given = engine::SB_CGT_OPTIONAL.map(|key| {
+                let kind = if key == "retirement_exemption_used" {
+                    Dec
+                } else {
+                    Raw
+                };
+                optional(v, key, kind)
+            });
+            let [a0, a1, a2, a3, a4, a5, a6] = given;
+            let given = [a0?, a1?, a2?, a3?, a4?, a5?, a6?];
+            engine::sb_cgt_concessions(&engine::SbCgtConcessionsArgs {
+                entity: &a[0],
+                share_or_trust_interest: &a[1],
+                acquired: &a[2],
+                event_date: &a[3],
+                partnership_asset: &a[4],
+                passively_held: &a[5],
+                business: &a[6],
+                previous_year_turnover: &a[7],
+                year_before_turnover: &a[8],
+                likely_turnover: &a[9],
+                year_turnover: &a[10],
+                net_asset_value: &a[11],
+                active_days: &a[12],
+                business_ceased: &a[13],
+                date_of_birth: &a[14],
+                retirement: &a[15],
+                permanently_incapacitated: &a[16],
+                year: &a[17],
+                scope_confirmed: &a[18],
+                optional: given.each_ref().map(Option::as_ref),
+            })
+        }
         "income-tests" => {
             let named: Vec<(&str, &Arg)> = params.iter().map(|(key, _)| *key).zip(&a).collect();
             engine::income_tests(&named)

@@ -1074,6 +1074,7 @@ pub fn supported_periods(kind: &str) -> Vec<&'static str> {
         // define them as the current ones do, and the ATO's 2025 and 2026
         // return instructions and its current pages apply them.
         "income_tests" => vec!["2024-25", "2025-26", "2026-27"],
+        "sb_cgt_concessions" => vec!["2025-26", "2026-27"],
         _ => Vec::new(),
     }
 }
@@ -1257,6 +1258,10 @@ pub fn source_review(kind: &str) -> (&'static str, &'static str) {
         "fbt_entertainment_classifier" => (
             "2026-11-16",
             "ITAA 1997 Division 32, s 27-5 and s 995-1, compilation 268 (1 October 2026); FBTAA ss 5E, 20, 37A to 37CF, 40, 41, 45, 58P and 135P(1) and s 136(1), compilation 97 (1 July 2026); Fringe Benefits Tax Assessment Regulations 2018, regulations 6 to 11, as made; ITAA 1936 ss 51AEA and 51AEB, compilation 193 (1 October 2026); GST Act s 69-5, compilation 96 (1 January 2026); TR 97/17, paras 7 to 143 and the Part A table, and TR 2007/12, paras 8 to 22 and examples 1 to 3, as the Commissioner's view",
+        ),
+        "sb_cgt_concessions" => (
+            "2026-11-19",
+            "ITAA 1997 Division 152 (ss 152-5 to 152-35, 152-50, 152-55, 152-105, 152-110, 152-205 to 152-220, 152-305, 152-320, 152-325, 152-330, 152-410 and 152-430), s 104-190(1A) and s 328-110, compilation 264 (21 May 2026), the text for 2025-26 and 2026-27 under Act No. 49 of 2026 Schedule 1 item 82",
         ),
         "income_tests" => (
             "2026-11-16",
@@ -1509,6 +1514,12 @@ pub fn library_evidence(kind: &str) -> [(&'static str, &'static str); 4] {
             "2026-06-30",
             "2026-11-15",
         ),
+        "sb_cgt_concessions" => (
+            "tax-examples-capital-gains-tax-cgt",
+            "2-280",
+            "2026-06-30",
+            "2026-11-19",
+        ),
         "income_tests" => (
             "ATO income test pages",
             "Christina's repayment income (When you must repay your loan) and Tom's income for MLS purposes (Medicare levy surcharge income, thresholds and rates)",
@@ -1528,6 +1539,36 @@ pub fn library_evidence(kind: &str) -> [(&'static str, &'static str); 4] {
 /// Inputs a worksheet takes but does not require, with their units.
 pub fn optional_inputs(kind: &str) -> Vec<(&'static str, &'static str)> {
     match kind {
+        "sb_cgt_concessions" => vec![
+            (
+                "small_business_when_stopped",
+                "boolean, for business winding_up only, and then required: the business entity was a small business entity for the income year in which it stopped carrying on the business (ITAA 1997 s 328-110(5)(b))",
+            ),
+            (
+                "longer_period_allowed",
+                "boolean, with a business_ceased date only, and then required: the Commissioner allows longer than 12 months after the cessation (s 152-35(2)(b)(ii))",
+            ),
+            (
+                "carries_on_own_business",
+                "boolean, for a passively held asset only, and then required: you carry on a business in the year other than in partnership (s 152-10(1A)(b) and (1B)(c))",
+            ),
+            (
+                "significant_individual_before_event",
+                "boolean, for a company or trust only, and then required: it had a significant individual just before the CGT event (ss 152-50 and 152-55)",
+            ),
+            (
+                "significant_individual_15_years",
+                "boolean, for a company or trust only, and then required: it had a significant individual for a total of at least 15 years during which it owned the asset (s 152-110(1)(c))",
+            ),
+            (
+                "retirement_exemption_used",
+                "AUD, for an individual only, and then required: the CGT exempt amounts of the individual's earlier choices of the retirement exemption (s 152-320(1))",
+            ),
+            (
+                "choice_date",
+                "YYYY-MM-DD, for an individual only, and then required: when the individual chooses the retirement exemption, on or after the CGT event (s 152-305(1)(b))",
+            ),
+        ],
         "balancing_adjustment" => vec![(
             "car_limit",
             "for a car only, and then required: null when s 40-230 did not reduce its cost to the car limit, or an object with limit (AUD, the car limit for the financial year in which the car was first used for any purpose), second_element_cost (AUD) and cost_ignoring_car_limit (AUD, the first and second elements ignoring the car limit, after Subdivision 27-B), cost then being limit plus second_element_cost: ITAA 1997 s 40-325",
@@ -2618,6 +2659,25 @@ pub fn input_units(kind: &str) -> Vec<(&'static str, &'static str)> {
                 "boolean, whether the employer is exempt from income tax; true is refused, as fbt-tax-exempt-body-entertainment applies",
             ),
         ],
+        "sb_cgt_concessions" => vec![
+            ("entity", "individual, company or trust: the entity that made the capital gain"),
+            ("share_or_trust_interest", "boolean: the asset is a share in a company or an interest in a trust; true is refused (ITAA 1997 s 152-10(2))"),
+            ("acquired", "YYYY-MM-DD: when the asset was acquired, the contract date (s 109-5), from 20 September 1985"),
+            ("event_date", "YYYY-MM-DD: the CGT event, the sale contract date (s 104-10(3)), in the year"),
+            ("partnership_asset", "boolean: the asset is your interest in an asset of a partnership you are a partner in (s 152-10(1)(c)(iii))"),
+            ("passively_held", "no, affiliate_or_connected_entity or partnership: the asset is used in the business of your affiliate or an entity connected with you (s 152-10(1A)), or of a partnership you are a partner in (s 152-10(1B)), not in your own"),
+            ("business", "carried_on, winding_up or not_carried_on: the business entity's business in the year (you, the partnership, or the entity using a passively held asset; s 328-110(1)(a) and (5))"),
+            ("previous_year_turnover", "AUD, or null for no business carried on: the business entity's aggregated turnover for the previous year (s 328-110(1)(b)(i))"),
+            ("year_before_turnover", "AUD, or null for no business carried on: its aggregated turnover for the year before the previous year (s 328-110(3))"),
+            ("likely_turnover", "AUD: its likely aggregated turnover for the year, as at its first day (s 328-110(1)(b)(ii) and (2))"),
+            ("year_turnover", "AUD: its aggregated turnover for the year, as at the end of the year (s 328-110(4))"),
+            ("net_asset_value", "AUD, may be negative: the sum s 152-15 counts just before the CGT event, the net value of the CGT assets (s 152-20) of yours, your connected entities, your affiliates and entities connected with them"),
+            ("active_days", "integer: the total days in the test period on which the asset was an active asset (s 152-40)"),
+            ("business_ceased", "YYYY-MM-DD, or null: when the relevant business ceased to be carried on, if it did before the CGT event (s 152-35(2)(b)(ii))"),
+            ("date_of_birth", "YYYY-MM-DD: the individual's, or for a company or trust that of the significant individual relied on (ss 152-105(d) and 152-110(1)(d))"),
+            ("retirement", "boolean: the CGT event happens in connection with that individual's retirement"),
+            ("permanently_incapacitated", "boolean: that individual is permanently incapacitated at the time of the CGT event"),
+        ],
         "income_tests" => vec![
             ("taxable_income", "AUD, whole dollars: taxable income, including any assessable FHSS released amount (nil for a loss)"),
             ("assessable_fhss_released_amount", "AUD: the amount ITAA 1997 s 313-20 includes in assessable income for released FHSS amounts"),
@@ -3019,6 +3079,30 @@ pub fn examples(kind: &str) -> Vec<(&'static str, Example)> {
         // The ATO's Christina example for repayment income; the split of her
         // investment loss, fringe benefits and super contributions, her target
         // foreign income and her assessable income are fabricated.
+        // The Library's Neil Swan (Tax Examples ¶2-280): the days, his
+        // birthday, the turnover 2 years back and the net value are fabricated.
+        "sb_cgt_concessions" => vec![
+            ("year", Text("2025-26")),
+            ("entity", Text("individual")),
+            ("share_or_trust_interest", Flag(false)),
+            ("acquired", Text("2007-07-02")),
+            ("event_date", Text("2026-05-15")),
+            ("partnership_asset", Flag(false)),
+            ("passively_held", Text("no")),
+            ("business", Text("carried_on")),
+            ("previous_year_turnover", Text("1100000.00")),
+            ("year_before_turnover", Text("1000000.00")),
+            ("likely_turnover", Text("1200000.00")),
+            ("year_turnover", Text("1200000.00")),
+            ("net_asset_value", Text("3800000.00")),
+            ("active_days", Whole(6893)),
+            ("business_ceased", Json("null")),
+            ("date_of_birth", Text("1972-04-10")),
+            ("retirement", Flag(false)),
+            ("permanently_incapacitated", Flag(false)),
+            ("retirement_exemption_used", Text("0.00")),
+            ("choice_date", Text("2026-06-30")),
+        ],
         "income_tests" => vec![
             ("year", Text("2025-26")),
             ("taxable_income", Text("50420")),
