@@ -52,10 +52,12 @@ example evidence; it does not claim a fresh review of every supported period.
 | FBT tax-exempt body entertainment | Not a Library document: FBTAA ss 38 and 39 (compilation 97), the FBT return 2026 instructions (item 23L, example 15) and the employer's guide (chapter 15) | 1 April 2026 (item 23) | Established expenditure for the years ended 31 March 2026 and 2027, actual or per head |
 | FBT entertainment classifier | Not a Library document: ITAA 1997 Division 32, ss 27-5 and 995-1 (compilation 268), FBTAA ss 5E, 20, 37A to 37CF, 40, 41, 45, 58P, 135P and 136(1) (compilation 97), the FBT Assessment Regulations 2018 regs 6 to 11, ITAA 1936 ss 51AEA and 51AEB (compilation 193), GST Act s 69-5 (compilation 96), and TR 97/17 and TR 2007/12 as the Commissioner's view | 16 November 2026 (read) | One ordinary taxable employer's entertainment lines with established facts for the years ended 31 March 2026 and 2027; no Subdivision 32-B exception, tax-exempt body or reportable fringe benefits amount |
 | Main residence | `tax-examples-capital-gains-tax-cgt` (tax-examples), ¶2-060 and ¶2-075, with the ATO's pages 'Treating former home as main residence' (QC66030) and 'Using your home for rental or business' (QC66033) | 30 June 2026; 22 June 2026 (both ATO pages) | One dwelling's taxable days for CGT events in 2024-25 to 2026-27; cost base, market value and discount excluded |
-| Borrowing expenses | `tax-examples-deductions` (tax-examples), ¶4-160, with ITAA 1997 s 25-25 (compilation 268, 1 October 2026) and the ATO's 'Borrowing expenses' page | 30 June 2026; 22 May 2026 (ATO page) | One loan's established expenditure, use and dates for 2024-25 to 2026-27; classification, interest and refinancing excluded |
+| Borrowing expenses | `tax-examples-deductions` (tax-examples), ¶4-160, with ITAA 1997 s 25-25 (compilation 268, 1 October 2026; read again 19 November 2026) and the ATO's 'Borrowing expenses' page | 30 June 2026; 22 May 2026 (ATO page) | One loan's established expenditure, use and dates for 2017-18 to 2027-28; classification, interest and refinancing excluded |
+| Borrowing expenses schedule | `tax-examples-deductions` (tax-examples), ¶4-160, with ITAA 1997 ss 25-25, 26-50 and 26-155 and the Acts Interpretation Act 1901 ss 2G and 36 (compilation 39) | 30 June 2026; 22 May 2026 (ATO page) | Several loans first drawn from 1 July 2017, every year of each; use by year and refinancing established by the operator; s 26-155 flagged, not applied |
 | Hire purchase schedule | Not a Library document: ITAA 1997 ss 240-17, 240-55 and 240-60 on the ATO's legal database and in compilation 268 (1 October 2026) | 15 November 2026 (read) | One agreement's monthly notional interest for the hirer, starting in 2024-25 to 2026-27, from established payments; apportionment to income years under s 240-60(2) excluded |
 | Balancing adjustment | Not a Library document: the ATO's Guide to depreciating assets 2026 (Bridget, Andrew and Louise examples) and ITAA 1997 Subdivisions 27-B and 40-D, ss 104-240, 118-5 and 118-10(1) and its example (compilation 268, 1 October 2026) | 1 June 2026 (Guide); 18 November 2026 (read) | One depreciating asset's balancing adjustment, s 40-290 reduction and K7 amount for events in 2024-25 to 2026-27, from established cost, termination value and each year's decline and deduction; pools, s 40-291A and roll-overs excluded |
 | Trade-in | Not a Library document: the ATO's 'Purchasing a motor vehicle' (Darren's example) and 'GST and the disposal of capital assets' (Ian's example), with ITAA 1997 Subdivision 27-B and ss 40-180 to 40-230, 40-305 and 40-365 (compilation 268) and GST Act ss 9-75, 11-30, 69-10 and 132-5 (compilation 96) | 3 June 2026 and 24 May 2017 (ATO pages); 18 November 2026 (read) | One asset traded in at arm's length for a replacement first held and used in 2025-26 or 2026-27; GST status, credits, allowance and price established; involuntary disposals and luxury car tax on the trade-in excluded |
+| Payroll tax | Not a Library document: each revenue office's rates page and examples, with each jurisdiction's payroll tax Act and the ACT's DI2026-151 | 17 July 2024 to 29 September 2026 (revenue office pages); 19 November 2026 (read) | One employer outside a group paying wages all year in one jurisdiction in 2026-27; taxable and Australian wages established; exemptions, rebates, discounts, caps and periodic returns excluded |
 | Depreciation | `tax-examples-depreciation` (tax-examples), ¶6-000 and ¶6-020 | 30 June 2025 | First-year formulas and taxable-use apportionment in 2024–25 examples |
 | Quarterly SG | `superannuation-instant-reference-rates-thresholds-and-checklists` (superannuation), ¶18-600 and ¶18-620 | 30 June 2026 | General 2025–26 rate and quarterly maximum contribution base |
 | Contribution caps | `tax-examples-individuals` (tax-examples), ¶7-278, with ITAA 1997 s 291-20 (compilation 268, 1 October 2026) and the ATO's contributions caps and concessional contributions cap pages for the carry-forward by year | 30 June 2025; 11 September and 2 July 2026 (ATO pages) | First-year bring-forward for 2024–25 only; the later-year nil cap is outside the worksheet; unused concessional cap from 2018-19 worked out from each year's established contributions |
@@ -876,10 +878,42 @@ not change the result.
 The $100 test in s 25-25(6) is '$100 or less'; ¶4-160 says 'less than $100',
 and the worksheet follows the Act. Money not used to produce income at all is
 outside s 25-25(6)(a) and (b), so its expenditure is spread and nothing is
-deducted (s 25-25(3), note). No source settles when 5 years from 29 February
-end, so a loan first drawn that day is refused. Treasury Laws Amendment (Tax
-Reform No. 1) Act 2026, Schedule 2 item 5, applies s 26-155 from the 2027-28
-income year, so later years are refused.
+deducted (s 25-25(3), note). From 19 November 2026 a loan first drawn on
+29 February is worked out, its 5 years ending on 28 February, and income
+years from 2017-18 to 2027-28 are taken, 2027-28 flagged for s 26-155; see
+[Borrowing expenses schedule](#borrowing-expenses-schedule) for both.
+
+## Borrowing expenses schedule
+
+This worksheet was added on 19 November 2026. ITAA 1997 s 25-25, its
+history notes, s 26-50 and s 26-155 were read on the ATO's legal database
+that day, with the ATO's Borrowing expenses page (updated 22 May 2026) and
+the Acts Interpretation Act 1901 (compilation 39, 28 March 2026) on the
+Federal Register. `tests/borrowing_expenses_schedule.rs` holds each case;
+every row also equals `borrowing_expenses` for that loan and year.
+
+| Case | Source | Worksheet | Published |
+| --- | --- | --- | --- |
+| Peter and Fiona and Max in one run, every year | ATO page | $318.07, $319.83, $319.82, $320.70, $319.83, $1.75; $259.62, $271.53, $271.53, $272.27, $271.53, $11.90 | Peter's $318.07 and $1.75 and $1,598.25 by Year 5; Fiona and Max's table |
+| Ben, every year: 303 of 1,461 days, 365 of 1,158, 366 of 793, 365 of 427, 62 of 62 | ¶4-160 | $746.61, $899.38, $901.85, $899.39, $152.77 | $747, $899, $902, $899, $153 |
+| A $1,500 loan refinanced on 31 December 2025 by an $800 loan | Built from s 25-25(4) and (5)(b) | $311.09, $1,188.91; $79.74 to $80.18 over 6 years | None published |
+
+s 25-25 has had its present text since Act No 15 of 2017 substituted step 1
+of s 25-25(4) from 1 April 2017 (correcting 'the the'); the rest dates from
+Act No 121 of 1997 and Act No 79 of 2010's note. The worksheet takes loans
+first drawn from 1 July 2017. s 26-155 was inserted by Act No 49 of 2026 for
+the 2027-28 income year and later years (history note read 19 November
+2026). It quarantines the excess of residential deductions over residential
+income after the other provisions have worked the deductions out, so it does
+not change the s 25-25 amount: the year is worked out and flagged.
+
+s 25-25(5)(c) says '5 years starting on the first day on which the money was
+borrowed'. Acts Interpretation Act 1901 s 36(1) item 2 counts that day.
+Read as 60 months, s 2G(2) ends the period immediately before the same day
+of the month 60 months on or, where that month has no such day, at its end:
+a loan first drawn on 29 February 2024 runs to 28 February 2029, 1,827 days.
+The anniversary reading (immediately before 29 February 2029, which does not
+exist) gives the same day, so both readings agree.
 
 ## Hire purchase schedule
 
@@ -1345,6 +1379,68 @@ trade-in; the other side and the years held are fabricated.
 | A $11,000 asset (full credit $1,000, $800 claimed) traded in for $22,000 | Worked by hand under GST Act s 132-5(3): $2,000 x 0.2 = $400, capped at $200 | $200.00 decreasing adjustment, $2,000.00 K7 gain |
 | An asset bought without GST (nil full and adjusted credits) traded in for $22,000 | Worked by hand under GST Act s 132-5(3): the adjustment is at most the nil difference between the credits | $2,000.00 GST, nil decreasing adjustment, $20,000.00 termination value |
 | A trade-in that is not a taxable supply | GST Act s 9-5 | No GST; the termination value is the allowance |
+
+## Payroll tax
+
+This worksheet was added on 19 November 2026. The revenue offices' pages were
+read from 09:36 to 09:37 AEDT that day:
+
+- Revenue NSW, 'Payroll tax thresholds and rates' (last updated 1 July 2026):
+  $1,200,000 and 5.45% for 2026-27, the interstate formula and its $360,000
+  example.
+- The Victorian State Revenue Office, 'Payroll tax (current rates)' (updated
+  29 September 2026) and 'Payroll tax surcharges' (its example 2, $80 million
+  in Victoria and $70 million in New South Wales).
+- The Queensland Revenue Office, 'Payroll tax rates and thresholds' (last
+  updated 17 July 2024), 'Payroll tax deductions' and 'Calculating the mental
+  health levy' (last updated 11 August 2026).
+- RevenueWA, 'Calculation: Payroll Tax Employer Guide' (last updated 2 June
+  2026).
+- RevenueSA, 'Rates and Thresholds'.
+- The Tasmanian State Revenue Office, 'Rates and thresholds' for 2026-27.
+- The ACT Revenue Office, 'About payroll tax' (Table 1 for 2026-27) and
+  'Calculating payroll tax'.
+- The Territory Revenue Office, 'Payroll tax rates and thresholds' and
+  'Payroll changes from 1 July 2026'.
+
+The Acts were read the same day: the Payroll Tax Act 2007 (NSW) Sch 1 (version
+current from 10 July 2026); the Payroll Tax Act 2007 (Vic) s 3A and Sch 1
+(authorised version 041, 1 May 2026); the Payroll Tax Act 1971 (Qld) ss 10,
+29 and 43I (reprint current as at 22 October 2026); the Pay-roll Tax Assessment
+Act 2002 (WA) ss 8 and 13 (04-d0-03) and the Pay-roll Tax Act 2002 (WA) s 5
+(00-d0-02); the Payroll Tax Act 2009 (SA) Sch 1 (version 31.3.2026); the
+Payroll Tax Act 2008 (Tas) Sch 1; the Payroll Tax Act 2011 (ACT) Sch 1
+(republication R20) with the Taxation Administration (Amounts and
+Rates—Payroll Tax) Determination 2026 (DI2026-151); and the Payroll Tax Act
+2009 (NT) s 7A and Sch 1 (as in force at 1 July 2026). The NT deduction formula
+in Sch 1 cl 3 is an image in the Act's PDF, AD = ETA - (TW + IW - ETA) / 2;
+the revenue office's pages say only that the deduction settings did not change
+on 1 July 2026. Every figure agrees with duguid.com.au's payroll tax calculator,
+published 17 November 2026, whose cases these tests also hold.
+
+The worksheet works each amount as its formula reads, to 40 digits, and rounds
+each step to the cent. RevenueWA rounds the deduction in its 2 interstate
+examples to the dollar, so its published tax is 1 and 3 cents lower than the
+worksheet's. The Queensland Revenue Office gives its deduction to the dollar
+($932,460); the worksheet's is $932,459.64.
+
+`tests/payroll_tax.rs` holds these cases, and the threshold edges, rate bands
+and refusals beside them.
+
+| Case | Source | Worksheet |
+| --- | --- | --- |
+| $1,500,000 of NSW wages, all in NSW | Revenue NSW: taxed on $300,000 | $16,350.00 |
+| $900,000 of NSW wages in $3,000,000 Australian wages | Revenue NSW: a threshold of $360,000 | $540,000.00 taxed, $29,430.00 |
+| $80 million in Victoria of $150 million | SRO surcharges example 2: thresholds of $5,333,333.33 and $53,333,333.33 | $3,880,000.00 tax, $506,666.67 each surcharge, $4,893,333.34 in all |
+| $4,200,000 in Victoria, and the same for a regional employer | Worked by hand from Sch 1 cl 1: $1,000,000 - $1,200,000 x 0.5 | $400,000.00 deduction, $184,300.00 and $46,075.00 |
+| $1,356,789 in Queensland of $1,789,776 | QRO 'Payroll tax deductions': $932,460 to the dollar | $932,459.64 deduction, $20,155.64 |
+| $1,104,000 in Western Australia | RevenueWA: $6,600 | $984,000.00 deduction, $6,600.00 |
+| $500,000 in South Australia of $2,000,000 | RevenueSA: a deduction of $150,000 | $17,325.00 |
+| $800,000 in South Australia of $1,600,000 | RevenueSA: $300,000; Sch 1 cl 5(2)(a): 2.475% | $12,375.00 |
+| $2,400,000 in Tasmania, all in Tasmania | SRO Tasmania: $54,400 | $30,000.00 at 4%, $24,400.00 at 6.1% |
+| $2,400,000 in Tasmania of $3,000,000 | SRO Tasmania example 2: $72,800 | $72,800.00 |
+| $3,000,000 in the ACT | Worked by hand: ($3,000,000 - $1,750,000) x 6.75% | $84,375.00 |
+| $3,000,000 in the Northern Territory | Worked by hand from Sch 1 cl 3: $2,500,000 - $500,000 / 2 | $2,250,000.00 deduction, $41,250.00 |
 
 ## Depreciation
 
@@ -2832,6 +2928,7 @@ year; the others refuse it and say what is missing.
 | Study loan repayment thresholds | Not published | ATO minimum repayment income page (last updated 30 June 2026, years to 2026-27), 16:07 |
 | Contribution caps, ETP caps | Not published | ATO contributions caps page (last updated 11 September 2026) and ETP page (17 April 2026), 16:07 |
 | Division 296 thresholds | Not published: indexed from 2027-28 | ATO Division 296 page (last updated 3 November 2026, 2026-27 only), 16:13 |
+| Borrowing expenses | Worked out and flagged: s 25-25 sets no figure by year, and s 26-155 applies after it | ITAA 1997 ss 25-25 and 26-155 on the ATO's legal database, read 19 November 2026 |
 | CGT and rental deductions | Changed from 1 July 2027 by Act No. 49 of 2026 Schedules 1 and 2 (s 26-155) | ITAA 1997 s 26-155 (https://www.ato.gov.au/law/view/document?docid=PAC/19970038/26-155), 16:13 |
 | Balancing adjustment | Refused: CGT event K7 is a capital gain, which Schedule 1 to Act No. 49 of 2026 changes from 1 July 2027 | Act No. 49 of 2026 as made (https://www.legislation.gov.au/C2026A00049/asmade/text), read 18 November 2026 at 07:06; see [Balancing adjustment](#balancing-adjustment) |
 | Trade-in | Refused: the car limit for 2027-28 was not published, and CGT event K7 changes with Act No. 49 of 2026 | ATO 'Purchasing a motor vehicle' (last updated 3 June 2026, the 2026-27 limit only), read 18 November 2026 at 07:10; see [Trade-in](#trade-in) |

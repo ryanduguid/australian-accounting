@@ -10,9 +10,10 @@ use std::process::{Command, Stdio};
 
 /// Worksheets added after Python 0.2.0, so absent from the frozen corpus;
 /// `tests/fbt_car.rs`, `tests/main_residence.rs`,
-/// `tests/borrowing_expenses.rs`, `tests/hire_purchase.rs`,
+/// `tests/borrowing_expenses.rs`, `tests/borrowing_expenses_schedule.rs`, `tests/hire_purchase.rs`,
 /// `tests/chattel_mortgage.rs`, `tests/loan_transactions.rs`,
 /// `tests/business_capital_expenditure.rs`, `tests/balancing_adjustment.rs`, `tests/trade_in.rs`,
+/// `tests/payroll_tax.rs`,
 /// `tests/gst_margin_scheme.rs`,
 /// `tests/division_296.rs`,
 /// `tests/termination_payment.rs`, `tests/etp_tax_free_component.rs`, `tests/unused_leave_payment.rs`, `tests/schedule_5.rs`,
@@ -27,7 +28,7 @@ use std::process::{Command, Stdio};
 /// `tests/fbt_entertainment_classifier.rs`, `tests/fbt_minor_benefit.rs`,
 /// `tests/income_tests.rs`, `tests/wine_equalisation_tax.rs` and
 /// `tests/luxury_car_tax.rs` cover them.
-const NEW_KINDS: [(&str, &str); 42] = [
+const NEW_KINDS: [(&str, &str); 44] = [
     ("fbt-minor-benefit-check", "fbt_minor_benefit_check"),
     ("gst-margin-scheme", "gst_margin_scheme"),
     ("fbt-car-statutory", "fbt_car_statutory"),
@@ -40,6 +41,7 @@ const NEW_KINDS: [(&str, &str); 42] = [
     ("fbt-property", "fbt_property"),
     ("main-residence", "main_residence"),
     ("borrowing-expenses", "borrowing_expenses"),
+    ("borrowing-expenses-schedule", "borrowing_expenses_schedule"),
     ("hire-purchase-schedule", "hire_purchase_schedule"),
     ("chattel-mortgage-schedule", "chattel_mortgage_schedule"),
     ("loan-transactions", "loan_transactions"),
@@ -49,6 +51,7 @@ const NEW_KINDS: [(&str, &str); 42] = [
     ),
     ("balancing-adjustment", "balancing_adjustment"),
     ("trade-in", "trade_in"),
+    ("payroll-tax", "payroll_tax"),
     ("wine-equalisation-tax", "wine_equalisation_tax"),
     ("division-296", "division_296"),
     ("termination-payment", "termination_payment"),
