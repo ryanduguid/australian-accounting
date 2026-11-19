@@ -13,7 +13,7 @@ use std::io::Write;
 use std::process::{Command, Stdio};
 
 /// The commands `derive` explains.
-const DERIVED: [&str; 50] = [
+const DERIVED: [&str; 51] = [
     "fbt",
     "fbt-car-statutory",
     "fbt-car-operating-cost",
@@ -63,6 +63,7 @@ const DERIVED: [&str; 50] = [
     "balancing-adjustment",
     "trade-in",
     "dasp-tax",
+    "gst-margin-scheme",
     "etp-tax-free-component",
 ];
 
@@ -401,6 +402,20 @@ fn cases() -> Vec<(&'static str, Value)> {
                    "untaxed_element": "300.00",
                    "working_holiday_maker_contributions": true,
                    "unclaimed_money_rollover": false,
+                   "year": "2026-27", "scope_confirmed": true}),
+        ),
+        // A strata unit's share of land bought with some consideration unpaid
+        // (GST Act ss 75-12 and 75-15), for a supply that cannot use the
+        // margin scheme: the margin is shown beside the full GST.
+        (
+            "gst-margin-scheme",
+            json!({"interest": "stratum_unit", "agreement": "none",
+                   "acquisition": "other_supply_from_1_july_2000",
+                   "consideration": "610000.00", "method": "consideration",
+                   "recipient_associate": false,
+                   "acquisition_consideration": "400000.00",
+                   "unpaid_acquisition_consideration": "40000.00",
+                   "subdivision_share": "600000.00", "subdivision_whole": "2400000.00",
                    "year": "2026-27", "scope_confirmed": true}),
         ),
     ];
@@ -2123,7 +2138,7 @@ fn derive_refuses_what_it_does_not_explain() {
          study-loan-repayment, capital-gains, main-residence, fbt-residual, fbt-housing, \
          fbt-lafha, fbt-board, fbt-tax-exempt-body-entertainment, gst, depreciation, \
          hire-purchase-schedule, chattel-mortgage-schedule, loan-transactions, \
-         lump-sum-arrears-tax-offset, income-tests, business-capital-expenditure, balancing-adjustment, trade-in, dasp-tax, etp-tax-free-component, not \"payg-gross-up\""
+         lump-sum-arrears-tax-offset, income-tests, business-capital-expenditure, balancing-adjustment, trade-in, dasp-tax, gst-margin-scheme, etp-tax-free-component, not \"payg-gross-up\""
     );
 }
 

@@ -29,6 +29,8 @@ pub const SCOPES: &[(&str, &str)] = &[
     (
         "dasp_tax",
         "One departing Australia superannuation payment paid in a financial year from 2025-26 to 2027-28: the tax on it by component (Superannuation (Departing Australia Superannuation Payments Tax) Act 2007 s 5). The operator establishes that the payment is a departing Australia superannuation payment (ITAA 1997 s 301-170: a superannuation lump sum paid to a person who has departed Australia under the specified regulations, s 67A of the Small Superannuation Accounts Act 1995, an exempt public sector scheme's substantially similar rules, or s 20H of the Superannuation (Unclaimed Money and Lost Members) Act 1999), its tax free component and the elements taxed and untaxed in the fund of its taxable component, as the paying fund states them, whether it includes amounts attributable to contributions made whilst the person was a working holiday maker, and whether it is a roll-over superannuation benefit paid under s 20H(2), (2AA) or (2A) of the Superannuation (Unclaimed Money and Lost Members) Act 1999. The tax free component bears nil; the element taxed in the fund 35% and the element untaxed in the fund 45% (s 5(1)); where the payment includes working holiday maker contributions, both elements bear 65% (s 5(3)). The tax is the person's final liability on the payment, which is not assessable income and not exempt income (ITAA 1997 s 301-175). Refuses a payment of nil, and such a roll-over with an element untaxed in the fund. Excludes deciding whether the payment is a departing Australia superannuation payment, its components and whether contributions were made whilst a working holiday maker; a roll-over superannuation benefit paid under s 20H(2), (2AA) or (2A) of that Act with an excess untaxed roll-over amount (s 5(2): taxed at nil here and under the Superannuation (Excess Untaxed Roll-over Amounts Tax) Act 2007 instead); payments in a temporary budget repair levy year (s 6: 2014-15 to 2016-17); the payer's withholding, payment summary and reporting duties; and a refund of tax wrongly withheld.",
+        "gst_margin_scheme",
+        "One taxable supply of real property in a financial year from 2025-26 to 2027-28, made under a contract entered into on or after 9 December 2008 and not under an option or right granted before then: whether the margin scheme of GST Act Division 75 can apply, and the GST with and without it. The operator establishes that the supply is a taxable supply apart from Division 75 (s 9-5: such as new residential premises or land sold in the course of an enterprise, not input taxed residential premises or a GST-free supply), what it sells or grants, the written agreement, how the supplier acquired the entire interest, unit or lease, and the base: the consideration for that acquisition and any of it unpaid, or an approved valuation (s 75-35) with the facts that fix its day. Each condition of s 75-5 is shown as met or not: a freehold interest, a stratum unit or a long-term lease (s 75-5(1)); a written agreement made on or before the supply or within a further period the Commissioner allows (s 75-5(1A)); and the interest not acquired through a taxable supply on which the GST was worked out without the margin scheme (s 75-5(2) and (3)(a)). The margin is the amount by which the consideration for the supply exceeds the base, or nil (s 75-10(2) and (3)): the acquisition's consideration less any of it unpaid (s 75-12), disregarding improvements and development (s 75-14), or for an interest acquired before 1 July 2000 an approved valuation as at the day s 75-10(3) items 1 to 4 fix, checked against the facts given; for a supply of part of the land, only the corresponding proportion of the base, the share of the whole given (s 75-15). The GST under the margin scheme is 1/11 of the margin (s 75-10(1)) and without it 1/11 of the consideration (ss 9-70 and 9-75(1)), each rounded to the nearest cent, 0.5 cents up, as for one supply on one invoice (s 9-90(1)); gst is the first when every condition is met and the second otherwise. Refuses an acquisition from a fellow GST group member, a GST joint venture operator or an associate, by inheritance, as a GST-free going concern or farm land, through a supply GST-free under s 38-445(1A), or in part through an ineligible supply (ss 75-5(3)(b) to (g), 75-10(3) item 2A, 75-11 and 75-22), a supply to an associate (s 75-13), an approved valuation for an interest acquired from 1 July 2000, a valuation day s 75-10(3) does not fix for the facts, a supply items 2 and 4 both describe, unpaid consideration above the consideration and a share above the whole. Excludes deciding whether the supply is taxable, the agreement's terms, the valuation and its compliance with the Commissioner's requirements, the reasonableness of the apportionment, the time of the supply, GST at settlement withholding (Schedule 1 to the Taxation Administration Act 1953 s 14-250), the increasing and decreasing adjustments of ss 75-22 and 75-27, contracts before 9 December 2008, and several supplies recorded on one invoice (s 9-90(2)).",
     ),
     (
         "chattel_mortgage_schedule",
@@ -203,6 +205,10 @@ pub const SCOPES: &[(&str, &str)] = &[
         "An ordinary taxable employer's board fringe benefits (FBTAA s 35) in the FBT year ended 31 March 2026 or 2027: meals provided to employees, or their associates, that are board meals (s 136(1)), such as meals an employee entitled to accommodation and at least 2 meals a day is given, cooked and supplied on the employer's premises and not at a party, reception or other social function. Each meal is valued at $2.00 for a recipient who was 12 or older before the year began and $1.00 for another (s 36), less the recipients contribution for it, which the operator establishes in total, counting each meal's only up to its value; the contributions cannot take the value below nil, and an unused excess is shown. The otherwise deductible rule (s 37) then takes off the gross deduction, the share of the value before contributions that would have been deductible to the employee under ITAA 1997 s 8-1, rounded to cents, less the deduction for the contribution, never below nil and never taking the value below nil; it applies only to meals provided to the employee. Excludes deciding what is a board meal, exempt meals, such as those for an employee in a primary production business in a remote area (the employer's guide, 13.6), food or drink exempt under s 54, gross-up and FBT payable. Board fringe benefits are type 2 (the employer's guide, 13.2).",
     ),
     (
+        "fbt_minor_benefit_check",
+        "A screen of one benefit provided to an employee or an associate in respect of the employee's employment, in the FBT year ended 31 March 2026 or 2027, against the minor benefits exemption of FBTAA s 58P. The operator establishes the benefit's category, its notional taxable value in the current year (for one benefit to one person: TR 2007/12 paras 17 and 18), whether it is under a salary sacrifice arrangement, each criterion of s 58P(1)(f) as a stated fact, and the facts of each category's exclusion. The conditions are decided and shown as met or not: an expense payment, property or residual benefit that would not be an in-house fringe benefit (s 58P(1)(c)); tax-exempt body entertainment only within s 58P(1)(d)(i) or (ii); meal entertainment or entertainment facility leasing never qualifies under the 50/50 split method (Division 9A or s 152B: TR 2007/12 para 14), and is refused without it, to be screened under its own category; no salary sacrifice arrangement (TR 2007/12 para 16); and a notional taxable value less than $300 (s 58P(1)(e)). The criteria of s 58P(1)(f) are each shown with which way the stated fact weighs, and weighed as the Commissioner's examples in TR 2007/12 weigh them: exempt where identical or similar benefits are not provided frequently, neither total is substantial and the benefit is not both regular and a reward for services (examples 1 to 3, 5 to 7 and 9 to 11), not exempt where they are provided frequently as a reward for services, their total is substantial, they are readily valued and not for an unexpected event (example 8), and otherwise the employer's judgement, shown as such. TR 2007/12 is a public ruling, the Commissioner's view of the law, and its para 11 still lists airline transport benefits, whose exclusion (s 58P(1)(b)) Act No. 88 of 2013 repealed. Excludes deciding the benefit's category, its notional taxable value, whether benefits are associated (s 58P(2)), and the criteria themselves; benefits exempt under another provision; and what an exempt entertainment benefit means for income tax and GST.",
+    ),
+    (
         "fbt_entertainment_classifier",
         "Classifies an ordinary taxable employer's entertainment expense lines for the FBT year ended 31 March 2026 or 2027; the employer is not exempt from income tax and is registered for GST. Each line states what was provided (food or drink, recreation, or accommodation or travel to do with either), for food or drink, and for accommodation or travel to do with it, the food or drink's occasion, the venue, whether the employer provided it or reimbursed an attendee, the attendees by class (employees, their associates, and others such as clients) with head counts, and its cost and whether that includes GST. Whether food or drink is entertainment follows TR 97/17's tests (para 23) for the occasion stated; recreation, and accommodation or travel to do with entertainment, are entertainment (ITAA 1997 s 32-10), and only food or drink, with the accommodation or travel to do with it, is meal entertainment (FBTAA s 37AD). A line's cost is split per head between its classes, the last class taking the rounding remainder, and a line of more than one class without every head count is refused. For each class the classifier gives the fringe benefit and its type (s 20 expense payment, s 40 property or s 45 residual; on a reimbursed line with more than one employee, the reimbursed employee's expense payment and each other employee's property or residual benefit, TR 97/17 para 98), the s 41 exemption, the minor benefits exemption only as a possibility (s 58P(1)(e)'s $300 threshold and the operator's statement of (f)(i); the rest of (f) is the employer's judgement), the deduction (ITAA 1997 ss 8-1, 32-5 and 32-20, or ITAA 1936 s 51AEA or 51AEB under an election, less the GST credit, s 27-5) and the GST credit, the deductible share of the GST in the cost (GST Act s 69-5), and, for each fringe benefit, whether it is an excluded fringe benefit left out of reporting: meal entertainment is (FBTAA s 5E(3)(a)) and other entertainment is not. Food or drink, or accommodation or travel to do with it, with no occasion stated, and an employee's share of something other than food or drink the employer provided on its business premises on a working day, are returned undetermined with the missing fact and left out of the totals. Under the 50/50 split or 12 week register method the meal entertainment lines' cost is totalled as meal_entertainment_expenditure for fbt-meal-entertainment, which values it; others such as clients receive no fringe benefit, though their meal entertainment counts in that total and is deductible at the method's share (FBTAA ss 37BA and 37CB(3); ITAA 1936 ss 51AEA and 51AEB). The operator establishes each line's facts, that every attendee on a travel_meal line is travelling for work, that nothing is provided under a salary packaging arrangement, as an in-house benefit or by an associate of the employer, and that no exception in ITAA 1997 ss 32-30 to 32-50 applies: in-house dining and dining facilities (items 1.1 to 1.3), overtime meals (items 1.4 and 5.1), recreation facilities for employees (item 1.5), other exempt food, drink or meals (items 1.6 and 1.7), allowances (item 1.8), seminars (item 2.1), the entertainment industry (items 3.1 and 3.2), promotion and advertising (items 4.1 to 4.3) and the disadvantaged public (item 5.2). Excludes tax-exempt bodies (fbt-tax-exempt-body-entertainment), entertainment facility leasing expenses (s 152B), benefits to a client's employees under an arrangement (TR 97/17 para 126), taxable values, contributions and the otherwise deductible rule (fbt-property, fbt-expense-payment and fbt-residual), each employee's reportable fringe benefits amount, gross-up and FBT payable.",
     ),
@@ -260,6 +266,8 @@ pub const SOURCES: &[(&str, &str)] = &[
     (
         "dasp_tax",
         "https://www.legislation.gov.au/C2007A00013/latest/text",
+        "gst_margin_scheme",
+        "https://www.ato.gov.au/law/view/document?DocID=PAC/19990055/75-5",
     ),
     (
         "trade_in",
@@ -413,6 +421,10 @@ pub const SOURCES: &[(&str, &str)] = &[
         "https://www.ato.gov.au/law/view/document?DocID=SAV/FBTGEMP/00016",
     ),
     (
+        "fbt_minor_benefit_check",
+        "https://www.ato.gov.au/law/view/document?DocID=PAC/19860039/58P",
+    ),
+    (
         "fbt_entertainment_classifier",
         "https://www.legislation.gov.au/C2004A05138/2026-10-01/2026-10-01/text/original/epub/OEBPS/document_1/document_1.html",
     ),
@@ -520,6 +532,20 @@ pub const EXTRA_SOURCES: &[(&str, &[&str])] = &[
             "https://www.ato.gov.au/law/view/document?DocID=PAC/19970038/301-170",
             "https://www.ato.gov.au/law/view/document?DocID=PAC/19970038/301-175",
             "https://www.ato.gov.au/tax-rates-and-codes/key-superannuation-rates-and-thresholds/payments-from-super",
+        ],
+        "gst_margin_scheme",
+        &[
+            "https://www.ato.gov.au/law/view/document?DocID=PAC/19990055/75-10",
+            "https://www.ato.gov.au/law/view/document?DocID=PAC/19990055/75-11",
+            "https://www.ato.gov.au/law/view/document?DocID=PAC/19990055/75-12",
+            "https://www.ato.gov.au/law/view/document?DocID=PAC/19990055/75-13",
+            "https://www.ato.gov.au/law/view/document?DocID=PAC/19990055/75-14",
+            "https://www.ato.gov.au/law/view/document?DocID=PAC/19990055/75-15",
+            "https://www.ato.gov.au/law/view/document?DocID=PAC/19990055/75-20",
+            "https://www.ato.gov.au/law/view/document?DocID=PAC/19990055/75-35",
+            "https://www.ato.gov.au/law/view/document?DocID=PAC/19990055/9-90",
+            "https://www.ato.gov.au/law/view/document?DocID=GST/GSTR20068/NAT/ATO/00001",
+            "https://www.ato.gov.au/businesses-and-organisations/gst-excise-and-indirect-taxes/gst/in-detail/your-industry/property/gst-and-the-margin-scheme",
         ],
     ),
     (
@@ -794,6 +820,14 @@ pub const EXTRA_SOURCES: &[(&str, &[&str])] = &[
         &[FBTAA_PART_1, FBTAA_PART_2, FBT_RETURN_ITEM_23],
     ),
     (
+        "fbt_minor_benefit_check",
+        &[
+            "https://www.ato.gov.au/law/view/document?DocID=TXR/TR200712/NAT/ATO/00001",
+            "https://www.ato.gov.au/law/view/document?DocID=PAC/19860039/136(1)",
+            "https://www.ato.gov.au/law/view/document?DocID=PAC/19860039/152B",
+        ],
+    ),
+    (
         "fbt_entertainment_classifier",
         &[
             "https://www.legislation.gov.au/C2004A05138/2026-10-01/2026-10-01/text/original/epub/OEBPS/document_10/document_10.html",
@@ -868,6 +902,11 @@ pub const EXTRA_WARNINGS: &[(&str, &[&str])] = &[
         &[
             "Each fund decides the rate for the payment it makes from the contributions it holds: a person who held a working holiday maker visa can have the 65% rate on one fund's payment and the ordinary rates on another's.",
         ],
+        "gst_margin_scheme",
+        &[
+            "The margin, both GST amounts and the conditions are worked whether or not the margin scheme applies, so the 2 can be compared; gst is the GST payable only on the facts given.",
+            "A supply of new residential premises or potential residential land may require the purchaser to pay an amount to the ATO at settlement (Schedule 1 to the Taxation Administration Act 1953 s 14-250); this worksheet does not work it out.",
+        ],
     ),
     (
         "trade_in",
@@ -927,6 +966,13 @@ pub const EXTRA_WARNINGS: &[(&str, &[&str])] = &[
         "lump_sum_arrears_tax_offset",
         &[
             "The Medicare levy and Medicare levy surcharge are separate questions this worksheet does not answer. From 2024-25 Medicare Levy Act 1986 s 9A leaves the total arrears amount out of taxable income for the levy when it is at least 10% of normal taxable income, the arrears included, and the levy in each of the 2 latest accrual years meets a condition of s 9A(1)(c); ITAA 1997 Subdivision 61-L gives a tax offset against the surcharge on them.",
+        ],
+    ),
+    (
+        "fbt_minor_benefit_check",
+        &[
+            "s 58P(1)(f) asks whether, having regard to all its criteria, it would be concluded that it would be unreasonable to treat the benefit as a fringe benefit; the criteria are the operator's statements, and the screen weighs them as TR 2007/12, the Commissioner's view, weighs its examples. A judgement_required result is the employer's to decide.",
+            "Where the employer uses the 12 week register method for meal entertainment, minor benefits reduce the register's meal entertainment fringe benefits value (TR 2007/12 para 15); fbt-meal-entertainment takes that value as given.",
         ],
     ),
     (
@@ -1180,6 +1226,30 @@ pub const REFUSAL_CODES: &[(&str, &str)] = &[
     ),
     ("command.unknown", "The command does not exist."),
     (
+        "contract_register.argument_invalid",
+        "A contract-register argument is missing, unknown, repeated or not valid.",
+    ),
+    (
+        "contract_register.column_invalid",
+        "A contracts file column is unknown, repeated or missing, or a contract's cell is empty where its kind needs it, filled where its kind does not take it, or not valid.",
+    ),
+    (
+        "contract_register.contract_duplicate",
+        "Two lines of the contracts file name the same contract.",
+    ),
+    (
+        "contract_register.csv_invalid",
+        "The contracts file is not UTF-8 CSV with a header and 1 to 5,000 contracts, one a line, each with the header's fields.",
+    ),
+    (
+        "contract_register.kind_unsupported",
+        "A contract's kind is not one the register sets out.",
+    ),
+    (
+        "contract_register.text_invalid",
+        "A contract, client or financier name is empty, too long, holds a control character or begins with a character a spreadsheet reads as a formula.",
+    ),
+    (
         "contribution_caps.defined_benefit_interest",
         "A person with a defined benefit interest was given to the carry-forward by year (ITAA 1997 Subdivision 291-C and s 291-370).",
     ),
@@ -1352,6 +1422,14 @@ pub const REFUSAL_CODES: &[(&str, &str)] = &[
         "The register period ends before it starts or spans more than 2 FBT years.",
     ),
     (
+        "fbt_minor_benefit.category_unsettled",
+        "Meal entertainment or entertainment facility leasing not valued by the 50/50 split method was given; it is screened under its own category.",
+    ),
+    (
+        "fbt_minor_benefit.fact_invalid",
+        "category, frequency or tax_exempt_body_exception is not one of the values fbt-minor-benefit-check takes.",
+    ),
+    (
         "fbt_return.benefit_command_unsupported",
         "fbt-return was given a benefit whose command is not one of the FBT benefit worksheets.",
     ),
@@ -1382,6 +1460,34 @@ pub const REFUSAL_CODES: &[(&str, &str)] = &[
     (
         "fbt_tax_exempt_body_entertainment.heads_invalid",
         "The employees and associates entertained are not a JSON integer from 0 to everyone entertained, or everyone entertained is not from 1 to 1,000,000.",
+    ),
+    (
+        "gst_margin_scheme.acquisition_unsupported",
+        "The interest was acquired in a way whose eligibility or margin s 75-5(3)(b) to (g), s 75-10(3) item 2A, s 75-11 or s 75-22 governs, which gst-margin-scheme does not work.",
+    ),
+    (
+        "gst_margin_scheme.fact_conflict",
+        "The unpaid consideration exceeds the acquisition consideration, or the subdivision share is nil or exceeds the whole.",
+    ),
+    (
+        "gst_margin_scheme.fact_invalid",
+        "interest, agreement, acquisition or method is not one of the values gst-margin-scheme takes.",
+    ),
+    (
+        "gst_margin_scheme.supply_to_associate",
+        "The supply is to the supplier's associate, whose margin s 75-13 works from the GST inclusive market value, which gst-margin-scheme does not work.",
+    ),
+    (
+        "gst_margin_scheme.valuation_day_invalid",
+        "valuation_day is not the day s 75-10(3) fixes for the facts given.",
+    ),
+    (
+        "gst_margin_scheme.valuation_item_unsettled",
+        "Both s 75-10(3) item 2 and item 4 describe the supply, and gst-margin-scheme does not choose between their valuation days.",
+    ),
+    (
+        "gst_margin_scheme.valuation_unavailable",
+        "An approved valuation was given for an interest acquired on or after 1 July 2000.",
     ),
     (
         "hire_purchase.amount_nil",
@@ -1521,7 +1627,7 @@ pub const REFUSAL_CODES: &[(&str, &str)] = &[
     ),
     (
         "input.field_unknown",
-        "A field the worksheet or command does not take, or does not take beside the other inputs given, was given (fbt-loan, fbt-meal-entertainment, fbt-car-parking, fbt-debt-waiver, fbt-expense-payment, fbt-property, fbt-residual, fbt-housing, fbt-lafha, fbt-board, fbt-tax-exempt-body-entertainment, fbt-entertainment-classifier, fbt-meal-entertainment-register and its entries, division-296, depreciation, foreign-resident-tax, medicare-levy, medicare-levy-surcharge, payg-withholding, payg-gross-up, termination-payment, etp-tax-free-component, unused-leave-payment, the Schedule 5 methods, working-holiday-maker-withholding, study-loan-withholding, seniors-pensioners-withholding, seniors-pensioners-tax-offset, lump-sum-arrears-tax-offset, hire-purchase-schedule, chattel-mortgage-schedule, loan-transactions and its transactions and rate_changes, business-capital-expenditure and its items, balancing-adjustment, its years and car_limit, trade-in, dasp-tax, contribution-caps given a carry-forward input, derive, personal-tax-estimate, dgr-check, income-tests and fbt-return only).",
+        "A field the worksheet or command does not take, or does not take beside the other inputs given, was given (fbt-loan, fbt-meal-entertainment, fbt-car-parking, fbt-debt-waiver, fbt-expense-payment, fbt-property, fbt-residual, fbt-housing, fbt-lafha, fbt-board, fbt-tax-exempt-body-entertainment, fbt-entertainment-classifier, fbt-meal-entertainment-register and its entries, fbt-minor-benefit-check, division-296, depreciation, foreign-resident-tax, medicare-levy, medicare-levy-surcharge, payg-withholding, payg-gross-up, termination-payment, etp-tax-free-component, unused-leave-payment, the Schedule 5 methods, working-holiday-maker-withholding, study-loan-withholding, seniors-pensioners-withholding, seniors-pensioners-tax-offset, lump-sum-arrears-tax-offset, hire-purchase-schedule, chattel-mortgage-schedule, loan-transactions and its transactions and rate_changes, business-capital-expenditure and its items, balancing-adjustment, its years and car_limit, trade-in, dasp-tax, gst-margin-scheme, contribution-caps given a carry-forward input, derive, personal-tax-estimate, dgr-check, income-tests and fbt-return only).",
     ),
     ("input.flag_invalid", "A flag is not a JSON boolean."),
     ("input.fraction_invalid", "A fraction is outside 0 to 1."),

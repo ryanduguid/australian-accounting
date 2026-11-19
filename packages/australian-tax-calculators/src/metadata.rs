@@ -1026,6 +1026,8 @@ pub fn supported_periods(kind: &str) -> Vec<&'static str> {
         // s 5 sets fixed rates; the temporary budget repair levy of s 6 ended
         // with 2016-17. The years are the other superannuation worksheets'.
         "dasp_tax" => vec!["2025-26", "2026-27", "2027-28"],
+        // Division 75 sets no figure by year; the years are gst's.
+        "gst_margin_scheme" => vec!["2025-26", "2026-27", "2027-28"],
         "trade_in" => vec!["2025-26", "2026-27"],
         "fbt" => vec!["2026", "2027"],
         "fbt_car_statutory" | "fbt_car_operating_cost" | "fbt_loan" => {
@@ -1078,6 +1080,7 @@ pub fn supported_periods(kind: &str) -> Vec<&'static str> {
         }
         // No published rate: s 58P(1)(e)'s $300 is the Act's own. The years
         // are those the other FBT benefit worksheets cover.
+        "fbt_minor_benefit_check" => vec!["2026", "2027"],
         "fbt_entertainment_classifier" => vec!["2026", "2027"],
         "fbt_housing" => keys(FBT_HOUSING_INDEXATION),
         // The years whose definitions were read: the 1 July 2024 compilations
@@ -1127,6 +1130,10 @@ pub fn source_review(kind: &str) -> (&'static str, &'static str) {
         "dasp_tax" => (
             "2026-11-19",
             "Superannuation (Departing Australia Superannuation Payments Tax) Act 2007 ss 4 to 6 (compilation 5, 2 December 2016, Federal Register of Legislation); ITAA 1997 ss 301-170 and 301-175, from the ATO's legal database; the ATO's 'Payments from super' rates (last updated 16 September 2026) and 'Departing Australia superannuation payment (DASP)' (last updated 21 April 2026)",
+        ),
+        "gst_margin_scheme" => (
+            "2026-11-19",
+            "GST Act ss 9-90, 11-5, 75-5, 75-10, 75-11, 75-12, 75-13, 75-14, 75-15, 75-20, 75-35 and 195-1 ('approved valuation', 'long-term lease', 'margin scheme'), from the ATO's legal database; GSTR 2006/8 (paras 15 to 39F: the agreement, a conditional agreement, ineligible supplies and examples 1 and 2); the ATO's 'GST and the margin scheme' (last updated 19 August 2021)",
         ),
         "trade_in" => (
             "2026-11-18",
@@ -1284,6 +1291,10 @@ pub fn source_review(kind: &str) -> (&'static str, &'static str) {
             "2026-11-15",
             "FBTAA ss 38 and 39 and s 136(1), non-deductible exempt entertainment expenditure, compilation 97 (1 July 2026); Fringe benefits tax - a guide for employers, chapter 15, 15.9 and its per head example; FBT return 2026 instructions, item 23L and example 15",
         ),
+        "fbt_minor_benefit_check" => (
+            "2026-11-19",
+            "FBTAA ss 58P, 136(1) ('fringe benefit' para (g) and 'eligible premises') and 152B, from the ATO's legal database (s 58P(1)(b) repealed by Act No. 88 of 2013); TR 2007/12 (paras 8 to 23 and examples 1 to 13)",
+        ),
         "fbt_entertainment_classifier" => (
             "2026-11-16",
             "ITAA 1997 Division 32, s 27-5 and s 995-1, compilation 268 (1 October 2026); FBTAA ss 5E, 20, 37A to 37CF, 40, 41, 45, 58P and 135P(1) and s 136(1), compilation 97 (1 July 2026); Fringe Benefits Tax Assessment Regulations 2018, regulations 6 to 11, as made; ITAA 1936 ss 51AEA and 51AEB, compilation 193 (1 October 2026); GST Act s 69-5, compilation 96 (1 January 2026); TR 97/17, paras 7 to 143 and the Part A table, and TR 2007/12, paras 8 to 22 and examples 1 to 3, as the Commissioner's view",
@@ -1347,6 +1358,12 @@ pub fn library_evidence(kind: &str) -> [(&'static str, &'static str); 4] {
             "2011-11-30",
             "2026-11-16",
         ),
+        "fbt_minor_benefit_check" => (
+            "tax-examples-fringe-benefits-tax-fbt",
+            "3-060",
+            "2026-06-30",
+            "2026-11-19",
+        ),
         "balancing_adjustment" => (
             "Guide to depreciating assets 2026; ITAA 1997 s 118-10(1)",
             "Bridget, Andrew and Louise examples; the Gayle example",
@@ -1356,6 +1373,12 @@ pub fn library_evidence(kind: &str) -> [(&'static str, &'static str); 4] {
         "dasp_tax" => (
             "superannuation-superannuation-benefits-termination-payments",
             "8-420",
+            "2026-06-30",
+            "2026-11-19",
+        ),
+        "gst_margin_scheme" => (
+            "tax-examples-gst-and-other-indirect-taxes",
+            "12-200",
             "2026-06-30",
             "2026-11-19",
         ),
@@ -1592,6 +1615,40 @@ pub fn optional_inputs(kind: &str) -> Vec<(&'static str, &'static str)> {
             "car_limit",
             "for a car only, and then required: null when s 40-230 did not reduce its cost to the car limit, or an object with limit (AUD, the car limit for the financial year in which the car was first used for any purpose), second_element_cost (AUD) and cost_ignoring_car_limit (AUD, the first and second elements ignoring the car limit, after Subdivision 27-B), cost then being limit plus second_element_cost: ITAA 1997 s 40-325",
         )],
+        "gst_margin_scheme" => vec![
+            (
+                "acquisition_consideration",
+                "AUD, with method consideration and then required: the consideration you gave for acquiring the entire interest, unit or lease, without improvements, development work, legal fees, stamp duty or other acquisitions in relation to the property (GST Act ss 75-10(2) and 75-14)",
+            ),
+            (
+                "unpaid_acquisition_consideration",
+                "AUD, with method consideration and then required: the part of acquisition_consideration not yet paid when you make the supply, 0.00 when paid in full (s 75-12)",
+            ),
+            (
+                "approved_valuation",
+                "AUD, with method approved_valuation and then required: a valuation of the entire interest, unit or lease made in accordance with the Commissioner's requirements (s 75-35), as at valuation_day",
+            ),
+            (
+                "valuation_day",
+                "YYYY-MM-DD date, with method approved_valuation and then required: the day the valuation is as at, which s 75-10(3) fixes: 1 July 2000 (items 1 and 3), the date of effect of your registration or the earlier day you applied (item 2), or the day of the supply (item 4)",
+            ),
+            (
+                "registered_on_1_july_2000",
+                "boolean, with method approved_valuation and then required: true when you were registered or required to be registered for GST on 1 July 2000 (s 75-10(3) item 2)",
+            ),
+            (
+                "government_unimproved_on_1_july_2000",
+                "boolean, with method approved_valuation and then required: true when you are the Commonwealth, a State or a Territory and there were no improvements on the land or premises on 1 July 2000 (s 75-10(3) item 4)",
+            ),
+            (
+                "subdivision_share",
+                "decimal, more than 0 and at most subdivision_whole, with subdivision_whole: for a supply of part of the land you acquired, its measure on a reasonable basis such as area or expected sale price (s 75-15)",
+            ),
+            (
+                "subdivision_whole",
+                "decimal, with subdivision_share: the same measure of all the land you acquired (s 75-15)",
+            ),
+        ],
         "trade_in" => vec![
             (
                 "car_limit",
@@ -2022,6 +2079,20 @@ pub fn optional_inputs(kind: &str) -> Vec<(&'static str, &'static str)> {
                 "integer from 1, per_head only and required there: everyone entertained at the function, employees, their associates and others",
             ),
         ],
+        "fbt_minor_benefit_check" => vec![
+            (
+                "in_house",
+                "boolean, for an expense_payment, property or residual benefit and then required: true when, were it a fringe benefit of that kind, it would be an in-house fringe benefit (FBTAA s 58P(1)(c))",
+            ),
+            (
+                "tax_exempt_body_exception",
+                "for tax_exempt_body_entertainment and then required: incidental_to_outsiders_no_meal (incidental to entertaining outsiders, and neither a meal nor provided in connection with a meal, other than light refreshments: s 58P(1)(d)(i)), special_achievement_on_premises (on eligible premises of the employer, s 136(1): its premises, a related company's for a company, or a location at or next to a site where the employee works, solely to recognise the employee's special achievements in the employment: (d)(ii)) or none",
+            ),
+            (
+                "fifty_fifty_split",
+                "boolean, for meal_entertainment or entertainment_facility_leasing and then required: true when the employer elected the 50/50 split method, of Division 9A for meal entertainment or s 152B for entertainment facility leasing (TR 2007/12 para 14); false is refused, as the benefit is then screened under its own category",
+            ),
+        ],
         "fbt_entertainment_classifier" => vec![
             (
                 "method",
@@ -2232,6 +2303,32 @@ pub fn input_units(kind: &str) -> Vec<(&'static str, &'static str)> {
             (
                 "unclaimed_money_rollover",
                 "boolean, true when the payment is a roll-over superannuation benefit paid under s 20H(2), (2AA) or (2A) of the Superannuation (Unclaimed Money and Lost Members) Act 1999; true with an element untaxed in the fund is refused, as s 5(2) taxes any excess untaxed roll-over amount in it at nil",
+            ),
+        ],
+        "gst_margin_scheme" => vec![
+            (
+                "interest",
+                "freehold_interest, stratum_unit, long_term_lease (at least 50 years, GST Act s 195-1) or other: what the supply sells or grants (s 75-5(1))",
+            ),
+            (
+                "agreement",
+                "written_on_or_before_supply, written_in_further_period_allowed (within a further period the Commissioner allowed) or none: the written agreement between you and the recipient that the margin scheme is to apply (s 75-5(1) and (1A))",
+            ),
+            (
+                "acquisition",
+                "how you acquired the entire interest, unit or lease: taxable_supply_under_margin_scheme, taxable_supply_without_margin_scheme (ineligible: s 75-5(3)(a)), other_supply_from_1_july_2000 (a supply on or after 1 July 2000 that was not a taxable supply, such as a purchase from a seller not registered for GST) or before_1_july_2000 (acquired, or contracted to acquire, before 1 July 2000: GSTR 2006/8 para 39A, and not through a taxable supply on which the GST was worked out without the margin scheme, such as a pre-1 July 2000 contract settled later as a fully taxable supply, which is taxable_supply_without_margin_scheme); refused with the provisions that apply: gst_group_member, joint_venture_operator, inheritance, gst_free_going_concern, gst_free_farm_land, associate, gst_free_government_land and part_through_ineligible_supply",
+            ),
+            (
+                "consideration",
+                "AUD, the consideration for the supply, the GST-inclusive price (s 75-10(2))",
+            ),
+            (
+                "recipient_associate",
+                "boolean, true when the recipient is your associate at the time of the supply; refused, as s 75-13 then works the margin from the GST inclusive market value",
+            ),
+            (
+                "method",
+                "consideration (the consideration for your acquisition: s 75-10(2)) or approved_valuation (for an interest acquired before 1 July 2000 only: s 75-10(3)). For an interest acquired before 1 July 2000, consideration states that no approved valuation as at the day s 75-10(3) fixes has been made: once one has, s 75-10(3) works the margin from it",
             ),
         ],
         "trade_in" => vec![
@@ -2808,6 +2905,44 @@ pub fn input_units(kind: &str) -> Vec<(&'static str, &'static str)> {
                 "AUD, non-deductible exempt entertainment expenditure (FBTAA s 136(1)): under actual, the part incurred in entertaining employees and their associates; under per_head, the whole function's",
             ),
         ],
+        "fbt_minor_benefit_check" => vec![
+            (
+                "category",
+                "expense_payment, property, residual, tax_exempt_body_entertainment (where the provider incurs non-deductible exempt entertainment expenditure for it), meal_entertainment, entertainment_facility_leasing or other (such as a car, loan or board benefit)",
+            ),
+            (
+                "notional_taxable_value",
+                "AUD, the benefit's notional taxable value in the current FBT year, for one benefit to one employee or associate (FBTAA s 58P(1)(e); TR 2007/12 paras 17 and 18)",
+            ),
+            (
+                "salary_sacrifice",
+                "boolean, true when the benefit is provided under a salary sacrifice arrangement (TR 2007/12 para 16)",
+            ),
+            (
+                "frequency",
+                "infrequent_and_irregular, infrequent_and_regular (such as each Christmas) or frequent: how often identical or similar benefits, or benefits provided with it, have been or can reasonably be expected to be provided (s 58P(1)(f)(i))",
+            ),
+            (
+                "similar_benefits_substantial",
+                "boolean, true when the sum of the notional taxable values of the benefit and identical or similar associated benefits, in this and other years, is substantial (s 58P(1)(f)(ii))",
+            ),
+            (
+                "other_associated_benefits_substantial",
+                "boolean, true when the sum of the notional taxable values of other associated benefits, such as those provided with it, in this and other years, is substantial (s 58P(1)(f)(iii))",
+            ),
+            (
+                "valuation_difficult",
+                "boolean, true when working out the notional taxable values of the benefit and its associated benefits (other than car benefits) is practically difficult (s 58P(1)(f)(iv))",
+            ),
+            (
+                "unexpected_event",
+                "boolean, true when the benefit was provided to help the employee deal with an unexpected event (s 58P(1)(f)(v)(A))",
+            ),
+            (
+                "reward_for_services",
+                "boolean, true when the benefit was provided wholly or principally as a reward for services rendered or to be rendered (s 58P(1)(f)(v)(B))",
+            ),
+        ],
         "fbt_entertainment_classifier" => vec![
             (
                 "lines",
@@ -2918,6 +3053,21 @@ pub fn examples(kind: &str) -> Vec<(&'static str, Example)> {
             ("untaxed_element", Text("0.00")),
             ("working_holiday_maker_contributions", Flag(false)),
             ("unclaimed_money_rollover", Flag(false)),
+        ],
+        // The Library's Joanne Black example (Tax Examples, GST, 12-200):
+        // land bought in January 2000, worth $448,000 on 1 July 2000, sold
+        // with a house in January 2026 for $640,000.
+        "gst_margin_scheme" => vec![
+            ("interest", Text("freehold_interest")),
+            ("agreement", Text("written_on_or_before_supply")),
+            ("acquisition", Text("before_1_july_2000")),
+            ("consideration", Text("640000.00")),
+            ("method", Text("approved_valuation")),
+            ("recipient_associate", Flag(false)),
+            ("approved_valuation", Text("448000.00")),
+            ("valuation_day", Text("2000-07-01")),
+            ("registered_on_1_july_2000", Flag(true)),
+            ("government_unimproved_on_1_july_2000", Flag(false)),
         ],
         "trade_in" => vec![
             ("year", Text("2026-27")),
@@ -3260,6 +3410,20 @@ pub fn examples(kind: &str) -> Vec<(&'static str, Example)> {
         ],
         // TR 97/17 example 1.1 (paras 49 to 52): an end of financial year
         // function on the employer's premises, valued per head.
+        // The Library's birthday flowers (Tax Examples, FBT, 3-060): an $80
+        // bouquet on the employee's birthday, a property benefit.
+        "fbt_minor_benefit_check" => vec![
+            ("category", Text("property")),
+            ("in_house", Flag(false)),
+            ("notional_taxable_value", Text("80.00")),
+            ("salary_sacrifice", Flag(false)),
+            ("frequency", Text("infrequent_and_irregular")),
+            ("similar_benefits_substantial", Flag(false)),
+            ("other_associated_benefits_substantial", Flag(false)),
+            ("valuation_difficult", Flag(false)),
+            ("unexpected_event", Flag(false)),
+            ("reward_for_services", Flag(false)),
+        ],
         "fbt_entertainment_classifier" => vec![
             (
                 "lines",
