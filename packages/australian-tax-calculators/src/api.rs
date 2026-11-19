@@ -527,6 +527,16 @@ const COMMAND_ARGS: &[(&str, &[(&str, Kind)])] = &[
     ("fbt-board", FBT_YEAR_ARGS),
     ("fbt-tax-exempt-body-entertainment", FBT_METHOD_ARGS),
     (
+        "fbt-meal-entertainment-register",
+        &[
+            ("register_start", Raw),
+            ("register_end", Raw),
+            ("entries", Json),
+            ("year_ended", Raw),
+            ("scope_confirmed", Raw),
+        ],
+    ),
+    (
         "fbt-entertainment-classifier",
         &[
             ("lines", Json),
@@ -995,6 +1005,7 @@ pub fn evaluate_coded(command: &str, v: &Value) -> Result<Value> {
             | "fbt-board"
             | "fbt-tax-exempt-body-entertainment"
             | "fbt-entertainment-classifier"
+            | "fbt-meal-entertainment-register"
             | "hire-purchase-schedule"
             | "chattel-mortgage-schedule"
             | "loan-transactions"
@@ -1164,6 +1175,19 @@ pub fn evaluate_coded(command: &str, v: &Value) -> Result<Value> {
         "fbt-loan" => engine::fbt_loan(&benefit_inputs(v, params)?, &a[0], &a[1]),
         "fbt-meal-entertainment" => {
             engine::fbt_meal_entertainment(&a[0], &benefit_inputs(v, params)?, &a[1], &a[2])
+        }
+        "fbt-meal-entertainment-register" => {
+            // Optional: each earlier year's expenses, for the 20% rule in a
+            // later year of the register's validity.
+            let earlier = optional(v, "register_years_expenditure", Json)?;
+            engine::fbt_meal_entertainment_register(
+                &a[0],
+                &a[1],
+                &a[2],
+                &a[3],
+                &a[4],
+                earlier.as_ref(),
+            )
         }
         "fbt-car-parking" => {
             engine::fbt_car_parking(&a[0], &benefit_inputs(v, params)?, &a[1], &a[2])
