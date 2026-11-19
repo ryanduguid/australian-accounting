@@ -288,6 +288,10 @@ pub(super) fn parse_line(value: &Value, n: usize, year: &'static str) -> Result<
         );
     };
     let fields = only(value, n, kind, allowed)?;
+    if matches!(*kind, "price_adjustment" | "change_of_use_increasing") {
+        // The supply's year sets the threshold, which the tax period's may not.
+        required(fields, n, "supplied_in")?;
+    }
     let car = match *kind {
         "change_of_use_decreasing" | "refund" => None,
         "price_adjustment" => Some(car(fields, n, year, "corrected_luxury_car_tax_value")?),

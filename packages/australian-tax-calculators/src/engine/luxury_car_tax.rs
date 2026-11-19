@@ -81,10 +81,11 @@ const EFFICIENT_OLD: &str = "LCT Act s 25-1(4) and (5) as in force before 1 July
 const PREVIOUS: &str = "LCT Act s 5-15(2) and (3): less all luxury car tax payable on a previous importation or supply of the car (taking account of adjustments other than bad debts), not below nil";
 const IMPORT: &str = "LCT Act ss 7-15 and 13-20: luxury car tax on a taxable importation is paid with customs duty to the Department of Home Affairs, not at label 1E (the ATO's QC22108)";
 const PRICE_ADJUSTMENT: &str = "LCT Act ss 15-20 and 15-25: the corrected luxury car tax amount on the supply as it now stands, against the amount previously attributed: an increasing adjustment if more, a decreasing one if less";
-const USE_UP: &str = "LCT Act s 15-30(3) and (4)(a): a car supplied under quote and then used other than for a quotable purpose: an increasing adjustment of the luxury car tax the supplier would have had to pay (s 5-15, less earlier tax on the car)";
+const USE_UP: &str = "LCT Act s 15-30(3) and (4): a car supplied under quote (s 15-30(3)(b)(i)), or one on whose supply a s 15-30(1) decreasing adjustment arose (s 15-30(3)(b)(ii)), then used other than for a quotable purpose: an increasing adjustment of the luxury car tax payable, or that would have been payable, on the supply (s 5-15, less earlier tax on the car), which for s 15-30(3)(b)(ii) is the decreasing adjustment (s 15-30(2) and (4)(b)) when the supply's value and year are given";
 const USE_DOWN: &str = "LCT Act s 15-30(1) and (2): a registered recipient who did not quote but intends to use, and has only used, the car for a quotable purpose: a decreasing adjustment of the luxury car tax that was payable";
 const REFUND_PP: &str = "LCT Act s 18-5: a registered primary producer carrying on a primary production business at the time of the supply or importation, who bore luxury car tax on a refund-eligible car (a 4 wheel drive or all wheel drive car of the kind the regulations specify), is refunded the lesser of that tax and $10,000 (s 18-5(3) as substituted by Act No. 94 of 2019 for cars supplied or imported from 1 July 2019), for one car a financial year (s 18-5(4)), by the approved form, not on the BAS (QC39467)";
 const REFUND_TO: &str = "LCT Act s 18-10: a registered tourism operator who bore luxury car tax on a refund-eligible car, which the Commissioner is satisfied it will use solely in a business whose principal purpose is carrying tourists for tourist activities, is refunded the lesser of that tax and $10,000 for each car (s 18-10(3) as substituted by Act No. 94 of 2019 for cars supplied or imported from 1 July 2019), by the approved form, not on the BAS (QC39467)";
+const REFUND_YEAR: &str = "LCT Act s 18-5(4): a primary producer has a refund entitlement for at most one car a financial year; this command sees only this tax period's lines, so a refund for another car in an earlier period of the year means none is due here";
 const LABELS: &str = "The ATO's 'Luxury car tax (LCT)' BAS labels (QC33694): the luxury car tax on sales and increasing adjustments at 1E, decreasing adjustments at 1F; 'Instructions for completing your BAS' (QC17458): round down to whole dollars";
 
 /// The facts as the command passes them; see the README for each.
@@ -298,5 +299,12 @@ pub fn luxury_car_tax(args: &LctArgs) -> Result<Value> {
     )?;
     out["lines"] = Value::Array(worked);
     out["labels_authority"] = json!(LABELS);
+    if lines
+        .iter()
+        .any(|l| matches!(l.refund, Some(("primary_producer", true))))
+    {
+        let warnings = out["warnings"].as_array_mut().expect("warnings");
+        warnings.push(json!(REFUND_YEAR));
+    }
     Ok(out)
 }

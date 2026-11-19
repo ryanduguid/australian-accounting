@@ -972,8 +972,11 @@ tax period in 2019-20 to 2026-27 (A New Tax System (Luxury Car Tax) Act
 - `price_adjustment`: an adjustment event on a sale made in `supplied_in`,
   with the `corrected_luxury_car_tax_value` and the
   `previously_attributed_lct` (ss 15-20 and 15-25);
-- `change_of_use_increasing`: a car bought under quote then used other than
-  for a quotable purpose (s 15-30(3));
+- `change_of_use_increasing`: a car bought under quote, or one whose buyer
+  had a decreasing adjustment under s 15-30(1), then used other than for a
+  quotable purpose (s 15-30(3)), with the supply's `supplied_in` and
+  `luxury_car_tax_value`, so that the amount is the tax payable or that would
+  have been payable on the supply (s 15-30(4));
 - `change_of_use_decreasing`: a registered buyer who did not quote and has
   used the car only for a quotable purpose, with the `lct_payable_on_supply`
   (s 15-30(1));
@@ -996,9 +999,10 @@ rounded down to whole dollars (QC33694, QC17458). Refunds are claimed on the
 ATO's approved form, not the BAS (QC39467), so they are a total of their own.
 
 It refuses a year outside its range, a `supplied_in` year outside the table
-or after the tax period's, a rating it cannot read, a second primary producer
-refund in a year (s 18-5(4)) and a refund for a car supplied before 1 July
-2019. Whether a vehicle is a car or a luxury car (s 25-1(2) excludes
+or after the tax period's, an adjustment without `supplied_in`, a rating it
+cannot read, a second primary producer refund in the lines given (s 18-5(4),
+and it warns that a refund in an earlier period of the year counts too) and a
+refund for a car supplied before 1 July 2019. Whether a vehicle is a car or a luxury car (s 25-1(2) excludes
 emergency vehicles, cars fitted for wheelchairs, commercial vehicles and
 motor homes), quoting, the value of a car sold with other goods, whether a
 car is refund-eligible, bad debts, the s 15-30(1A) and (3A) adjustments and

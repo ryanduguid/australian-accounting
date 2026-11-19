@@ -215,6 +215,13 @@ fn refunds_are_capped_at_10000_and_kept_off_the_bas() {
         refund("primary_producer", true, "1000.00"),
     ]);
     assert_eq!(code(&input("2026-27", two)), "luxury_car_tax.refund_limit");
+    // The limit is the financial year's, wider than the lines given.
+    assert!(r["warnings"].to_string().contains("s 18-5(4)"));
+    let r = run(&input(
+        "2026-27",
+        json!([refund("tourism_operator", true, "4000.00")]),
+    ));
+    assert!(!r["warnings"].to_string().contains("s 18-5(4)"));
     let mut early = refund("tourism_operator", true, "4000.00");
     early["supplied_in"] = json!("2018-19");
     assert_eq!(
@@ -278,6 +285,28 @@ fn refuses_what_it_does_not_work_out() {
             "luxury_car_tax_value": "100000.00", "fuel_consumption_litres_per_100km": null,
         });
         assert_eq!(code(&one(line)), "luxury_car_tax.year_invalid", "{year}");
+    }
+    // An adjustment's threshold is its supply's year's: never assumed.
+    for kind in ["price_adjustment", "change_of_use_increasing"] {
+        let line = json!({
+            "kind": kind, "corrected_luxury_car_tax_value": "100000.00",
+            "luxury_car_tax_value": "100000.00", "fuel_consumption_litres_per_100km": null,
+            "previously_attributed_lct": "0",
+        });
+        let mut line = line.as_object().unwrap().clone();
+        line.remove(if kind == "price_adjustment" {
+            "luxury_car_tax_value"
+        } else {
+            "corrected_luxury_car_tax_value"
+        });
+        if kind != "price_adjustment" {
+            line.remove("previously_attributed_lct");
+        }
+        assert_eq!(
+            code(&one(Value::Object(line))),
+            "input.missing_field",
+            "{kind}"
+        );
     }
     let mut unknown = input("2026-27", json!([sale("90000", Value::Null)]));
     unknown["quote"] = json!(true);
