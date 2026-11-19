@@ -213,6 +213,10 @@ fn only_luxury_car_tax_before_the_benefit_fails_the_sale_condition() {
         taxed
     );
     assert_eq!(
+        failing(&run(&car("2026-10-01", "2026-04-01", "91387.01"))),
+        taxed
+    );
+    assert_eq!(
         failing(&run(&car("2025-07-01", "2026-03-31", "91387.01"))),
         taxed
     );

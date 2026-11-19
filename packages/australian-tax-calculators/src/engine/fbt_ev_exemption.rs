@@ -11,33 +11,12 @@
 
 use serde_json::{Value, json};
 
+use super::luxury_car_tax::thresholds;
 use super::{Arg, Result, date_arg, fbt_year, flag, money, rate, refuse, result};
 use crate::dates;
 use crate::decimal::Decimal;
 
 const KIND: &str = "fbt_ev_exemption_check";
-
-/// The luxury car tax threshold for fuel-efficient vehicles for each
-/// financial year, from the ATO's 'Luxury car tax rate and thresholds' (last
-/// updated 1 June 2026), read at 9.34 am AEDT on 19 November 2026. A year the
-/// table does not hold is refused for a sale within or before the FBT year.
-pub(crate) const FUEL_EFFICIENT_THRESHOLDS: [(&str, &str); 15] = [
-    ("2012-13", "75375"),
-    ("2013-14", "75375"),
-    ("2014-15", "75375"),
-    ("2015-16", "75375"),
-    ("2016-17", "75526"),
-    ("2017-18", "75526"),
-    ("2018-19", "75526"),
-    ("2019-20", "75526"),
-    ("2020-21", "77565"),
-    ("2021-22", "79659"),
-    ("2022-23", "84916"),
-    ("2023-24", "89332"),
-    ("2024-25", "91387"),
-    ("2025-26", "91387"),
-    ("2026-27", "91661"),
-];
 
 /// The facts as the command passes them; see the README for each.
 pub struct EvExemptionArgs<'a> {
@@ -82,10 +61,12 @@ fn financial_year(day: i64) -> String {
     format!("{start}-{:02}", (start + 1) % 100)
 }
 
-/// The threshold for `year`, a financial year the ATO's table holds.
+/// The fuel-efficient car limit for `year` from the ATO's table that
+/// `luxury-car-tax` uses; a year it does not hold is refused for a sale within
+/// or before the FBT year.
 fn threshold(year: &str) -> Result<&'static str> {
-    match FUEL_EFFICIENT_THRESHOLDS.iter().find(|(k, _)| *k == year) {
-        Some((_, limit)) => Ok(limit),
+    match thresholds::year(year) {
+        Some(year) => Ok(thresholds::of(year).0),
         None => refuse(
             "fbt_ev_exemption.threshold_year_unsupported",
             "first_retail_sale must be on or after 1 July 2012 unless it is after the FBT year: the ATO's 'Luxury car tax rate and thresholds' lists fuel-efficient thresholds from 2012-13 to 2026-27.",
