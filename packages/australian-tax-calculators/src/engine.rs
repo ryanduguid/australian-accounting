@@ -6075,9 +6075,14 @@ mod lump_sum_arrears;
 pub use lump_sum_arrears::lump_sum_arrears_tax_offset;
 mod income_tests;
 pub use income_tests::income_tests;
+mod fbt_minor_benefit;
+pub use fbt_minor_benefit::{MinorBenefitArgs, fbt_minor_benefit_check};
+mod gst_margin_scheme;
+pub use gst_margin_scheme::{MarginSchemeArgs, gst_margin_scheme};
 
-const KINDS: [&str; 53] = [
+const KINDS: [&str; 55] = [
     "gst",
+    "gst_margin_scheme",
     "resident_tax",
     "foreign_resident_tax",
     "capital_gains",
@@ -6129,6 +6134,7 @@ const KINDS: [&str; 53] = [
     "fbt_board",
     "fbt_tax_exempt_body_entertainment",
     "fbt_entertainment_classifier",
+    "fbt_minor_benefit_check",
     "income_tests",
 ];
 
