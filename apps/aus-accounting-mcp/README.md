@@ -180,7 +180,7 @@ authorised Markdown folder, `AUS_ACCOUNTING_CORPUS_ROOT` to a legislation corpus
 `AUS_ACCOUNTING_RULINGS_ROOT` to ATO rulings runs, such as those built by
 [PaulGoodman](https://github.com/ryanduguid/PaulGoodman). Its
 [published snapshot](https://github.com/ryanduguid/australian-accounting/blob/main/apps/aus-accounting-mcp/docs/corpus-setup.md#download-the-published-snapshot) of 9 principal
-Acts, each at its current compilation on 11 November 2026 and with a rates index, needs no
+Acts, each at its current compilation on 18 November 2026 and with a rates index, needs no
 build: unpack it and set `AUS_ACCOUNTING_CORPUS_ROOT` to its `dist` folder.
 [`python -m fadden quick --out <empty folder>`](https://github.com/ryanduguid/australian-accounting/blob/main/apps/aus-accounting-mcp/docs/corpus-setup.md#build-the-principal-acts-with-one-command)
 in that repository builds the same Acts at their current compilations on your machine,
