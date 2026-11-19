@@ -115,8 +115,13 @@ with the supported Python distribution and its release, Registry, documentation
 or media workflow. Retained checks are active and are not retirement approvals.
 The record identifies proof symbols and limitations for each function; a Rust
 test refuses changed original source hashes until the reconciliation is reviewed.
-These are function dispositions, not 596 independent Rust tests or proof of
-untested inputs, current law or real taxpayer results.
+To review a changed file, reread every row the record lists for it against the
+file's new assertions and the native proofs. Where a row's status, proofs and limit
+still hold, set the file's new SHA-256 in `original_sources` and in each of its
+rows' `source_sha256`; where they do not, correct the row first, and update `counts`
+and the figures above. Never rebind a hash without that reread. These are function
+dispositions, not 596 independent Rust tests or proof of untested inputs, current
+law or real taxpayer results.
 
 `tests/original_behaviours.rs` tests relationships that frozen payloads cannot
 establish: the exact 46 money paths, published grammar and Draft 2020-12 inputs,
