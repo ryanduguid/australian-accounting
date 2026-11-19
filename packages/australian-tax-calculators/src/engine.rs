@@ -24,6 +24,8 @@ pub use fbt_benefits::{fbt_car_parking, fbt_loan, fbt_meal_entertainment};
 pub use fbt_benefits::{
     fbt_debt_waiver, fbt_entertainment_classifier, fbt_expense_payment, fbt_property,
 };
+mod fuel_tax_credits;
+pub use fuel_tax_credits::{FuelArgs, fuel_tax_credits};
 
 pub const VERSION: &str = env!("CARGO_PKG_VERSION");
 const WORKING_PRECISION: i128 = 40;
@@ -6067,8 +6069,9 @@ pub use lump_sum_arrears::lump_sum_arrears_tax_offset;
 mod income_tests;
 pub use income_tests::income_tests;
 
-const KINDS: [&str; 48] = [
+const KINDS: [&str; 49] = [
     "gst",
+    "fuel_tax_credits",
     "resident_tax",
     "foreign_resident_tax",
     "capital_gains",
