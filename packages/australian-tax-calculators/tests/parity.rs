@@ -23,9 +23,10 @@ use std::process::{Command, Stdio};
 /// `tests/fbt_property.rs`, `tests/fbt_residual.rs`, `tests/fbt_housing.rs`,
 /// `tests/fbt_lafha.rs`, `tests/fbt_board.rs`,
 /// `tests/fbt_tax_exempt_body_entertainment.rs`, `tests/lump_sum_arrears_offset.rs`,
-/// `tests/fbt_entertainment_classifier.rs` and `tests/income_tests.rs` cover
+/// `tests/fbt_entertainment_classifier.rs`, `tests/income_tests.rs` and
+/// `tests/wine_equalisation_tax.rs` cover
 /// them.
-const NEW_KINDS: [(&str, &str); 37] = [
+const NEW_KINDS: [(&str, &str); 38] = [
     ("fbt-car-statutory", "fbt_car_statutory"),
     ("fbt-car-operating-cost", "fbt_car_operating_cost"),
     ("fbt-loan", "fbt_loan"),
@@ -45,6 +46,7 @@ const NEW_KINDS: [(&str, &str); 37] = [
     ),
     ("balancing-adjustment", "balancing_adjustment"),
     ("trade-in", "trade_in"),
+    ("wine-equalisation-tax", "wine_equalisation_tax"),
     ("division-296", "division_296"),
     ("termination-payment", "termination_payment"),
     ("etp-tax-free-component", "etp_tax_free_component"),

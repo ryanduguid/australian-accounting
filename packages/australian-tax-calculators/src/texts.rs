@@ -35,6 +35,10 @@ pub const SCOPES: &[(&str, &str)] = &[
         "One loan's statement from start_date to end_date, starting in the income year given and ending less than 30 years later. The operator establishes the balance owing at the start, the annual interest rate from the start and each dated change to it, and each drawing and repayment with its date and amount. A day's rate change and transactions take effect on that day. Each day's interest is the balance owing at the end of the day, when above nil, times the annual rate in force that day divided by 365, in leap years too; the interest accrued is debited to the loan on the last day of each month and on end_date, rounded half up to the cent, so each income year's interest is debited by its 30 June and the interest by income year is the interest debited in it. The statement lists the opening balance, each rate change, drawing, repayment and interest debit with the running balance, as rows and as a printable table. Interest charged on money borrowed is deductible under ITAA 1997 s 8-1(1) to the extent the money is used to gain or produce assessable income, and not to the extent it is capital, private or domestic (s 8-1(2)). Refuses a start outside the income year, an end before the start or 30 years or more after it, more than 5,000 transactions or 1,000 rate changes, an entry not in date order or outside the statement, 2 rate changes on one day or one on start_date, a rate outside 0 to 1, and a balance below nil at the end of a day (a loan in credit). Excludes deciding the extent of income use, whether any amount is deductible and the purpose of the borrowing; interest on another day count, compounding or rest, or charged in advance; fees and charges; offset accounts and redraw limits; interest on a balance in credit; Division 7A loans (div7a-loan-review); substituted accounting periods; and the lender.",
     ),
     (
+        "wine_equalisation_tax",
+        "Wine tax on one tax period's taxable dealings in wine in a financial year from 2023-24 to 2027-28, by an entity registered or required to be registered for GST, and the producer rebate on them (A New Tax System (Wine Equalisation Tax) Act 1999). The operator establishes each dealing: what it is, that it is in assessable wine in the indirect tax zone, that no exemption other than quoting applies, and its price. Its taxable value is: for a wholesale sale, the price excluding wine tax and GST (s 5-5, items AD1a, AD1b and AD11b); for a retail sale that is an assessable dealing, and for an application to own use connected with retail sales (consuming or giving away wine in connection with retail sales, such as tastings), the notional wholesale selling price by the half retail price method, 50% of the retail price including wine tax and GST (ss 9-30 and 9-35; WETR 2009/1 para 143), or for grape wine, when chosen, by the average wholesale price method, the weighted average price excluding wine tax and GST of the tax period's wholesale sales of the same vintage and grape varieties (ss 9-25 and 9-40), allowed only where at least 10% by value of those sales are wholesale sales; and for an application to own use of wine purchased under quote, the purchase price excluding GST (items AD3c(a) and AD13c(a)). Each notional wholesale selling price is rounded half up to the cent. The wine tax is 29% of the taxable value, rounded half up to the cent (s 5-5(3)); a sale under quote is not taxable (s 7-10). For a wholesale sale, a sale under quote and a retail sale the GST is shown too, on the WET inclusive price or within the retail price, assuming a taxable supply. A dealing given with rebate_conditions earns the producer rebate, 29% of the price excluding wine tax and GST of a wholesale sale or sale under quote, or of the notional wholesale selling price of a retail sale or application to own use (s 19-15(1)), when the operator states that the entity is the wine's producer, owns the source product for at least 85% of the wine throughout its making and has it in a container of at most 5 litres (51 litres for cider or perry) suitable for retail sale and branded with its trade mark (s 19-5(1), (3) to (5) and (7)), and the dealing is one it is liable to wine tax on or, for a sale under quote, the quote states none of the intentions in s 5-50(1)(b). The rebates are capped for the financial year at $350,000 to 2025-26 and $400,000 from 2026-27 (s 19-15(2), as amended by Act No. 12 of 2026 for assessable dealings from 1 July 2026), for the producer or its group of associated producers (ss 19-15(3) and 19-20), less the rebates claimed in the year's earlier tax periods (WETR 2009/2 para 67). The amounts for BAS label 1C (wine tax payable) and 1D (wine tax refundable, here only the producer rebate) are the totals rounded down to whole dollars. Refuses a year outside 2023-24 to 2027-28, the average wholesale price method for wine that is not grape wine or without the 10% share, and a rebate on an application to own use of wine purchased under quote (its rebate would be on the notional wholesale selling price). Excludes deciding what a dealing is, whether the wine is assessable wine or grape wine, the price (arm's length, s 27-10; packages with other goods, s 27-15; containers, s 9-65), quoting entitlements, the rebate conditions and associated producers; importations and other customs dealings (paid to the Department of Home Affairs), royalty-inclusive dealings, indirect marketing schemes' notional prices, airport shop goods and other dealings valued under s 9-45; wine tax credits other than the producer rebate (s 17-5), such as bad debts and earlier wine tax; New Zealand participants; the transitional rules for 2017 and earlier vintage wine and for wine being made into fortified wine on 1 January 2018; excess claims under s 19-25; correcting earlier errors; and attributing a dealing to a tax period.",
+    ),
+    (
         "trade_in",
         "Trading in one depreciating asset for a replacement in an income year from 2025-26 to 2026-27, for a taxpayer with an income year from 1 July to 30 June, at arm's length, where the replacement is started to be held and first used in that income year. The traded-in asset's facts are balancing_adjustment's, and the operator establishes them as it states. Its termination value is the trade-in allowance, the amount by which the replacement's price is reduced (ITAA 1997 s 40-305(1)(b) item 2), less the GST payable on the trade-in where it is a taxable supply (1/11 of the allowance: GST Act ss 9-70 and 9-75(1); ITAA 1997 s 27-95(1)), plus the GST Act s 132-5 decreasing adjustment for an asset acquired partly for a private purpose or for making financial supplies, from its input tax credit as adjusted and the full one (s 27-95(3)); its balancing adjustment, reduction for non-taxable use and CGT event K7 amount are then worked as balancing_adjustment works them. The replacement's cost is its price before the trade-in, including GST and any luxury car tax (ss 40-180 and 40-185(1)(b) item 2), less its input tax credit (s 27-80(1)): for a creditable acquisition the GST payable, 1/11 of the price less any luxury car tax, times the extent of creditable purpose (GST Act ss 9-75, 11-25 and 11-30), and for a passenger car no more than 1/11 of the car limit times that extent (s 69-10(1) and (3)). A passenger car's cost is then reduced to the car limit for the year (ITAA 1997 s 40-230(1)): $69,674 for 2025-26 and $69,883 for 2026-27, as the ATO publishes them. Amounts are worked exactly and shown to the cent, half up. Refuses a trade-in not at arm's length (s 40-300(2) item 6, s 27-95(2) and s 40-225 would apply), an involuntary disposal (whose s 40-365 choice is not made), a taxable trade-in with an adjusted input tax credit above the full one, a creditable acquisition with a nil creditable purpose, and luxury car tax above the price. Excludes deciding whether either supply is taxable, the allowance, price, creditable purpose and input tax credits; a car whose purchaser may quote an ABN for luxury car tax, a car that is not a luxury car under s 25-1(2) of the Luxury Car Tax Act, a car leased or hired, and a car excluded from the car limit by s 40-230(2); a trade-in of a luxury car on which luxury car tax is payable; a replacement first held or used in another year; a decreasing adjustment arising in a later income year (s 27-95(5)) and increasing adjustments (s 27-95(4)); assets in a pool or written off under s 328-180 or temporary full expensing; and everything balancing_adjustment excludes.",
     ),
@@ -248,6 +252,10 @@ pub const SOURCES: &[(&str, &str)] = &[
     (
         "balancing_adjustment",
         "https://www.legislation.gov.au/C2004A05138/2026-10-01/2026-10-01/text/original/epub/OEBPS/document_2/document_2.html",
+    ),
+    (
+        "wine_equalisation_tax",
+        "https://www.ato.gov.au/law/view/document?docid=PAC/19990062/5-5",
     ),
     (
         "trade_in",
@@ -496,6 +504,28 @@ pub const EXTRA_SOURCES: &[(&str, &[&str])] = &[
             "https://www.legislation.gov.au/C2004A05138/2026-10-01/2026-10-01/text/original/epub/OEBPS/document_3/document_3.html",
             "https://www.ato.gov.au/law/view/document?docid=SAV/DEPRECIATING/00001",
             "https://www.legislation.gov.au/C2026A00049/asmade/text",
+        ],
+    ),
+    (
+        "wine_equalisation_tax",
+        &[
+            "https://www.ato.gov.au/law/view/document?docid=PAC/19990062/9-25",
+            "https://www.ato.gov.au/law/view/document?docid=PAC/19990062/9-35",
+            "https://www.ato.gov.au/law/view/document?docid=PAC/19990062/9-40",
+            "https://www.ato.gov.au/law/view/document?docid=PAC/19990062/19-5",
+            "https://www.ato.gov.au/law/view/document?docid=PAC/19990062/19-15",
+            "https://www.ato.gov.au/law/view/document?docid=PAC/19990062/19-20",
+            "https://www.legislation.gov.au/C2004A00452/2026-04-01/2026-04-01/text/original/epub/OEBPS/document_1/document_1.html",
+            "https://www.legislation.gov.au/C2026A00012/asmade/2026-03-26/text/original/epub/OEBPS/document_1/document_1.html",
+            "https://www.ato.gov.au/law/view/pdf/pbr/wetr2009-001.pdf",
+            "https://www.ato.gov.au/law/view/pdf/pbr/wetr2009-002.pdf",
+            "https://www.ato.gov.au/businesses-and-organisations/gst-excise-and-indirect-taxes/wine-equalisation-tax/how-much-to-pay/wholesale-sales",
+            "https://www.ato.gov.au/businesses-and-organisations/gst-excise-and-indirect-taxes/wine-equalisation-tax/how-much-to-pay/retail-sales-and-own-use",
+            "https://www.ato.gov.au/businesses-and-organisations/gst-excise-and-indirect-taxes/wine-equalisation-tax/producer-rebate",
+            "https://www.ato.gov.au/businesses-and-organisations/gst-excise-and-indirect-taxes/wine-equalisation-tax/producer-rebate/calculate-and-claim-your-rebate",
+            "https://www.ato.gov.au/businesses-and-organisations/gst-excise-and-indirect-taxes/wine-equalisation-tax/reporting-and-paying-wet",
+            "https://www.ato.gov.au/businesses-and-organisations/preparing-lodging-and-paying/business-activity-statements-bas/wine-equalisation-tax-wet",
+            "https://www.ato.gov.au/businesses-and-organisations/gst-excise-and-indirect-taxes/gst/completing-your-bas-for-gst/complete-your-bas",
         ],
     ),
     (
@@ -1460,7 +1490,7 @@ pub const REFUSAL_CODES: &[(&str, &str)] = &[
     ),
     (
         "input.field_unknown",
-        "A field the worksheet or command does not take, or does not take beside the other inputs given, was given (fbt-loan, fbt-meal-entertainment, fbt-car-parking, fbt-debt-waiver, fbt-expense-payment, fbt-property, fbt-residual, fbt-housing, fbt-lafha, fbt-board, fbt-tax-exempt-body-entertainment, fbt-entertainment-classifier, division-296, depreciation, foreign-resident-tax, medicare-levy, medicare-levy-surcharge, payg-withholding, payg-gross-up, termination-payment, etp-tax-free-component, unused-leave-payment, the Schedule 5 methods, working-holiday-maker-withholding, study-loan-withholding, seniors-pensioners-withholding, seniors-pensioners-tax-offset, lump-sum-arrears-tax-offset, hire-purchase-schedule, chattel-mortgage-schedule, loan-transactions and its transactions and rate_changes, business-capital-expenditure and its items, balancing-adjustment, its years and car_limit, trade-in, contribution-caps given a carry-forward input, derive, personal-tax-estimate, dgr-check, income-tests and fbt-return only).",
+        "A field the worksheet or command does not take, or does not take beside the other inputs given, was given (fbt-loan, fbt-meal-entertainment, fbt-car-parking, fbt-debt-waiver, fbt-expense-payment, fbt-property, fbt-residual, fbt-housing, fbt-lafha, fbt-board, fbt-tax-exempt-body-entertainment, fbt-entertainment-classifier, division-296, depreciation, foreign-resident-tax, medicare-levy, medicare-levy-surcharge, payg-withholding, payg-gross-up, termination-payment, etp-tax-free-component, unused-leave-payment, the Schedule 5 methods, working-holiday-maker-withholding, study-loan-withholding, seniors-pensioners-withholding, seniors-pensioners-tax-offset, lump-sum-arrears-tax-offset, hire-purchase-schedule, chattel-mortgage-schedule, loan-transactions and its transactions and rate_changes, business-capital-expenditure and its items, balancing-adjustment, its years and car_limit, trade-in, wine-equalisation-tax and its dealings, contribution-caps given a carry-forward input, derive, personal-tax-estimate, dgr-check, income-tests and fbt-return only).",
     ),
     ("input.flag_invalid", "A flag is not a JSON boolean."),
     ("input.fraction_invalid", "A fraction is outside 0 to 1."),
@@ -1722,6 +1752,30 @@ pub const REFUSAL_CODES: &[(&str, &str)] = &[
     (
         "trade_in.not_arms_length",
         "The trade-in is not at arm's length, so market value rules apply that are not worked.",
+    ),
+    (
+        "wine_equalisation_tax.dealing_invalid",
+        "A dealing, its average_wholesale, wholesale_sales or rebate_conditions is not the object or list it must be.",
+    ),
+    (
+        "wine_equalisation_tax.dealings_invalid",
+        "dealings is not a list of 1 to 1,000 dealing objects.",
+    ),
+    (
+        "wine_equalisation_tax.intention_invalid",
+        "A sale under quote's purchaser_intention is not taxable_dealing, manufacture, gst_free_supply or sale_under_quote.",
+    ),
+    (
+        "wine_equalisation_tax.kind_invalid",
+        "A dealing's kind is not wholesale_sale, retail_sale, own_use, quoted_sale or own_use_purchased_under_quote.",
+    ),
+    (
+        "wine_equalisation_tax.method_unavailable",
+        "The average wholesale price method was asked for wine that is not grape wine, or without at least 10% of the sales by value being wholesale sales.",
+    ),
+    (
+        "wine_equalisation_tax.quantity_invalid",
+        "An average wholesale price quantity is not a decimal string above 0, at most 1e12 and 4 decimal places.",
     ),
     (
         "working_holiday_maker.band_unsettled",
