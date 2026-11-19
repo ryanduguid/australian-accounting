@@ -35,6 +35,10 @@ pub const SCOPES: &[(&str, &str)] = &[
         "One loan's statement from start_date to end_date, starting in the income year given and ending less than 30 years later. The operator establishes the balance owing at the start, the annual interest rate from the start and each dated change to it, and each drawing and repayment with its date and amount. A day's rate change and transactions take effect on that day. Each day's interest is the balance owing at the end of the day, when above nil, times the annual rate in force that day divided by 365, in leap years too; the interest accrued is debited to the loan on the last day of each month and on end_date, rounded half up to the cent, so each income year's interest is debited by its 30 June and the interest by income year is the interest debited in it. The statement lists the opening balance, each rate change, drawing, repayment and interest debit with the running balance, as rows and as a printable table. Interest charged on money borrowed is deductible under ITAA 1997 s 8-1(1) to the extent the money is used to gain or produce assessable income, and not to the extent it is capital, private or domestic (s 8-1(2)). Refuses a start outside the income year, an end before the start or 30 years or more after it, more than 5,000 transactions or 1,000 rate changes, an entry not in date order or outside the statement, 2 rate changes on one day or one on start_date, a rate outside 0 to 1, and a balance below nil at the end of a day (a loan in credit). Excludes deciding the extent of income use, whether any amount is deductible and the purpose of the borrowing; interest on another day count, compounding or rest, or charged in advance; fees and charges; offset accounts and redraw limits; interest on a balance in credit; Division 7A loans (div7a-loan-review); substituted accounting periods; and the lender.",
     ),
     (
+        "luxury_car_tax",
+        "Luxury car tax on one tax period's taxable supplies and taxable importations of luxury cars in a financial year from 2019-20 to 2026-27, by an entity registered or required to be registered for GST, with its price and change of use adjustments and the primary producer and tourism operator refunds (A New Tax System (Luxury Car Tax) Act 1999). The operator establishes each line: that the vehicle is a car (s 27-1) and not one s 25-1(2) excludes (emergency vehicles, cars fitted out for wheelchairs, commercial vehicles not designed mainly to carry passengers, motor homes and campervans), that the supply or importation is taxable (no quote, s 9-5; not GST-free, input taxed or otherwise exempt), its luxury car tax value including GST and customs duty but not luxury car tax (ss 5-20 and 7-15(2)), and its combined fuel consumption rating. The threshold is the luxury car tax threshold for the financial year of the supply or importation, or the fuel-efficient car limit for a car rated at most 3.5 litres per 100 km for supplies and importations from 1 July 2025 (7 litres before, and after where item 4(2) of Schedule 1 to Act No. 29 of 2025 continues it), from the ATO's published table (QC38161) for 2012-13 to 2026-27. The tax is 33% x 10/11 x (value - threshold), nil at or below the threshold, rounded half up to the cent (s 5-15(1)); a sale's is less tax payable on an earlier supply or importation of the car, not below nil (s 5-15(2)). Importation tax is shown apart, as it is paid to the Department of Home Affairs. A price adjustment is the corrected tax on the sale against the tax previously attributed (ss 15-20 and 15-25); a change of use adjustment is the tax that would have been payable or was payable on the supply (s 15-30(1) to (4)). Label 1E (sales and increasing adjustments) and label 1F (decreasing adjustments) are rounded down to whole dollars. A refund is the lesser of the tax borne and $10,000 on a refund-eligible car supplied or imported from 1 July 2019 (ss 18-5 and 18-10), one car a financial year for a primary producer. Refuses a year outside 2019-20 to 2026-27, a supply year outside the table, a refund for a car supplied before 1 July 2019 and a second primary producer refund. Excludes deciding whether a vehicle is a car or a luxury car, quoting, the luxury car tax value of a car with other goods or of a demonstrator, whether a car is refund-eligible or the refund conditions are met, the s 15-30(1A) and (3A) adjustments for cars imported for the purposes of s 7-10(3)(ba), bad debts (Subdivision 15-C), attribution of a line to a tax period, deferred luxury car tax on importations and the refund claim itself, made on the approved form and not the BAS.",
+    ),
+    (
         "trade_in",
         "Trading in one depreciating asset for a replacement in an income year from 2025-26 to 2026-27, for a taxpayer with an income year from 1 July to 30 June, at arm's length, where the replacement is started to be held and first used in that income year. The traded-in asset's facts are balancing_adjustment's, and the operator establishes them as it states. Its termination value is the trade-in allowance, the amount by which the replacement's price is reduced (ITAA 1997 s 40-305(1)(b) item 2), less the GST payable on the trade-in where it is a taxable supply (1/11 of the allowance: GST Act ss 9-70 and 9-75(1); ITAA 1997 s 27-95(1)), plus the GST Act s 132-5 decreasing adjustment for an asset acquired partly for a private purpose or for making financial supplies, from its input tax credit as adjusted and the full one (s 27-95(3)); its balancing adjustment, reduction for non-taxable use and CGT event K7 amount are then worked as balancing_adjustment works them. The replacement's cost is its price before the trade-in, including GST and any luxury car tax (ss 40-180 and 40-185(1)(b) item 2), less its input tax credit (s 27-80(1)): for a creditable acquisition the GST payable, 1/11 of the price less any luxury car tax, times the extent of creditable purpose (GST Act ss 9-75, 11-25 and 11-30), and for a passenger car no more than 1/11 of the car limit times that extent (s 69-10(1) and (3)). A passenger car's cost is then reduced to the car limit for the year (ITAA 1997 s 40-230(1)): $69,674 for 2025-26 and $69,883 for 2026-27, as the ATO publishes them. Amounts are worked exactly and shown to the cent, half up. Refuses a trade-in not at arm's length (s 40-300(2) item 6, s 27-95(2) and s 40-225 would apply), an involuntary disposal (whose s 40-365 choice is not made), a taxable trade-in with an adjusted input tax credit above the full one, a creditable acquisition with a nil creditable purpose, and luxury car tax above the price. Excludes deciding whether either supply is taxable, the allowance, price, creditable purpose and input tax credits; a car whose purchaser may quote an ABN for luxury car tax, a car that is not a luxury car under s 25-1(2) of the Luxury Car Tax Act, a car leased or hired, and a car excluded from the car limit by s 40-230(2); a trade-in of a luxury car on which luxury car tax is payable; a replacement first held or used in another year; a decreasing adjustment arising in a later income year (s 27-95(5)) and increasing adjustments (s 27-95(4)); assets in a pool or written off under s 328-180 or temporary full expensing; and everything balancing_adjustment excludes.",
     ),
@@ -252,6 +256,10 @@ pub const SOURCES: &[(&str, &str)] = &[
     (
         "balancing_adjustment",
         "https://www.legislation.gov.au/C2004A05138/2026-10-01/2026-10-01/text/original/epub/OEBPS/document_2/document_2.html",
+    ),
+    (
+        "luxury_car_tax",
+        "https://www.ato.gov.au/law/view/document?docid=PAC/19990076/5-15",
     ),
     (
         "trade_in",
@@ -504,6 +512,25 @@ pub const EXTRA_SOURCES: &[(&str, &[&str])] = &[
             "https://www.legislation.gov.au/C2004A05138/2026-10-01/2026-10-01/text/original/epub/OEBPS/document_3/document_3.html",
             "https://www.ato.gov.au/law/view/document?docid=SAV/DEPRECIATING/00001",
             "https://www.legislation.gov.au/C2026A00049/asmade/text",
+        ],
+    ),
+    (
+        "luxury_car_tax",
+        &[
+            "https://www.ato.gov.au/law/view/document?docid=PAC/19990076/5-20",
+            "https://www.ato.gov.au/law/view/document?docid=PAC/19990076/7-15",
+            "https://www.ato.gov.au/law/view/document?docid=PAC/19990076/15-20",
+            "https://www.ato.gov.au/law/view/document?docid=PAC/19990076/15-30",
+            "https://www.ato.gov.au/law/view/document?docid=PAC/19990076/18-5",
+            "https://www.ato.gov.au/law/view/document?docid=PAC/19990076/18-10",
+            "https://www.ato.gov.au/law/view/document?docid=PAC/19990076/25-1",
+            "https://www.legislation.gov.au/C2025A00029/asmade/2025-03-27/text/original/epub/OEBPS/document_1/document_1.html",
+            "https://www.ato.gov.au/tax-rates-and-codes/luxury-car-tax-rate-and-thresholds",
+            "https://www.ato.gov.au/businesses-and-organisations/gst-excise-and-indirect-taxes/luxury-car-tax/working-out-the-lct-amount/working-out-the-lct-on-a-sale",
+            "https://www.ato.gov.au/businesses-and-organisations/gst-excise-and-indirect-taxes/luxury-car-tax/working-out-the-lct-amount/working-out-the-lct-on-an-import",
+            "https://www.ato.gov.au/businesses-and-organisations/gst-excise-and-indirect-taxes/luxury-car-tax/adjustments-credits-and-refunds/credits-and-refunds",
+            "https://www.ato.gov.au/businesses-and-organisations/preparing-lodging-and-paying/business-activity-statements-bas/luxury-car-tax-lct",
+            "https://www.ato.gov.au/businesses-and-organisations/gst-excise-and-indirect-taxes/gst/completing-your-bas-for-gst/complete-your-bas",
         ],
     ),
     (
@@ -1491,7 +1518,7 @@ pub const REFUSAL_CODES: &[(&str, &str)] = &[
     ),
     (
         "input.field_unknown",
-        "A field the worksheet or command does not take, or does not take beside the other inputs given, was given (fbt-loan, fbt-meal-entertainment, fbt-car-parking, fbt-debt-waiver, fbt-expense-payment, fbt-property, fbt-residual, fbt-housing, fbt-lafha, fbt-board, fbt-tax-exempt-body-entertainment, fbt-entertainment-classifier, fbt-meal-entertainment-register and its entries, division-296, depreciation, foreign-resident-tax, medicare-levy, medicare-levy-surcharge, payg-withholding, payg-gross-up, termination-payment, etp-tax-free-component, unused-leave-payment, the Schedule 5 methods, working-holiday-maker-withholding, study-loan-withholding, seniors-pensioners-withholding, seniors-pensioners-tax-offset, lump-sum-arrears-tax-offset, hire-purchase-schedule, chattel-mortgage-schedule, loan-transactions and its transactions and rate_changes, business-capital-expenditure and its items, balancing-adjustment, its years and car_limit, trade-in, contribution-caps given a carry-forward input, derive, personal-tax-estimate, dgr-check, income-tests and fbt-return only).",
+        "A field the worksheet or command does not take, or does not take beside the other inputs given, was given (fbt-loan, fbt-meal-entertainment, fbt-car-parking, fbt-debt-waiver, fbt-expense-payment, fbt-property, fbt-residual, fbt-housing, fbt-lafha, fbt-board, fbt-tax-exempt-body-entertainment, fbt-entertainment-classifier, fbt-meal-entertainment-register and its entries, division-296, depreciation, foreign-resident-tax, medicare-levy, medicare-levy-surcharge, payg-withholding, payg-gross-up, termination-payment, etp-tax-free-component, unused-leave-payment, the Schedule 5 methods, working-holiday-maker-withholding, study-loan-withholding, seniors-pensioners-withholding, seniors-pensioners-tax-offset, lump-sum-arrears-tax-offset, hire-purchase-schedule, chattel-mortgage-schedule, loan-transactions and its transactions and rate_changes, business-capital-expenditure and its items, balancing-adjustment, its years and car_limit, trade-in, luxury-car-tax and its lines, contribution-caps given a carry-forward input, derive, personal-tax-estimate, dgr-check, income-tests and fbt-return only).",
     ),
     ("input.flag_invalid", "A flag is not a JSON boolean."),
     ("input.fraction_invalid", "A fraction is outside 0 to 1."),
@@ -1609,6 +1636,31 @@ pub const REFUSAL_CODES: &[(&str, &str)] = &[
     (
         "lump_sum_arrears.recent_year_unsupported",
         "A recent accrual year is earlier than 2012-13, the first year whose resident rates the worksheet holds.",
+    ),
+    (
+        "luxury_car_tax.consumption_invalid",
+        "A fuel consumption rating is not null or a decimal string from 0 to 100 with at most 2 decimal places.",
+    ),
+    (
+        "luxury_car_tax.kind_invalid",
+        "A line's kind is not sale, importation, price_adjustment, change_of_use_increasing, change_of_use_decreasing or refund.",
+    ),
+    ("luxury_car_tax.line_invalid", "A line is not an object."),
+    (
+        "luxury_car_tax.lines_invalid",
+        "lines is not a list of 1 to 1,000 line objects.",
+    ),
+    (
+        "luxury_car_tax.refund_invalid",
+        "A refund's claimant is not primary_producer or tourism_operator, or the car was supplied or imported before 1 July 2019.",
+    ),
+    (
+        "luxury_car_tax.refund_limit",
+        "More than one primary producer refund on a refund-eligible car was given for the financial year (s 18-5(4)).",
+    ),
+    (
+        "luxury_car_tax.year_invalid",
+        "A line's supplied_in is not a financial year whose thresholds the ATO publishes, or is after the tax period's.",
     ),
     (
         "main_residence.absence_choice_period_invalid",

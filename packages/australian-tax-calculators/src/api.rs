@@ -542,6 +542,10 @@ const COMMAND_ARGS: &[(&str, &[(&str, Kind)])] = &[
         ],
     ),
     (
+        "luxury-car-tax",
+        &[("lines", Json), ("year", Raw), ("scope_confirmed", Raw)],
+    ),
+    (
         "income-tests",
         &[
             ("taxable_income", Dec),
@@ -1006,6 +1010,7 @@ pub fn evaluate_coded(command: &str, v: &Value) -> Result<Value> {
             | "chattel-mortgage-schedule"
             | "loan-transactions"
             | "income-tests"
+            | "luxury-car-tax"
             | "business-capital-expenditure"
             | "balancing-adjustment"
             | "trade-in"
@@ -1425,6 +1430,11 @@ pub fn evaluate_coded(command: &str, v: &Value) -> Result<Value> {
             let named: Vec<(&str, &Arg)> = params.iter().map(|(key, _)| *key).zip(&a).collect();
             engine::income_tests(&named)
         }
+        "luxury-car-tax" => engine::luxury_car_tax(&engine::LctArgs {
+            lines: &a[0],
+            year: &a[1],
+            scope_confirmed: &a[2],
+        }),
         _ => unreachable!("listed command"),
     };
     result.or_else(|e| refusal(e.code(), e.to_string()))

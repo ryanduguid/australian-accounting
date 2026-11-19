@@ -4788,6 +4788,8 @@ mod balancing;
 pub use balancing::balancing_adjustment;
 mod trade_in;
 pub use trade_in::{TradeInArgs, trade_in};
+mod luxury_car_tax;
+pub use luxury_car_tax::{LctArgs, luxury_car_tax};
 
 /// One pay that includes an additional payment, as Schedule 5 (NAT 3348) reads it.
 struct AdditionalPay {
@@ -6074,7 +6076,7 @@ pub use lump_sum_arrears::lump_sum_arrears_tax_offset;
 mod income_tests;
 pub use income_tests::income_tests;
 
-const KINDS: [&str; 52] = [
+const KINDS: [&str; 53] = [
     "gst",
     "resident_tax",
     "foreign_resident_tax",
@@ -6127,6 +6129,7 @@ const KINDS: [&str; 52] = [
     "fbt_tax_exempt_body_entertainment",
     "fbt_entertainment_classifier",
     "income_tests",
+    "luxury_car_tax",
 ];
 
 /// `periods(kind)`: accepted period arguments and inclusive calendar boundaries.

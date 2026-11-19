@@ -4,6 +4,19 @@
 
 ### Added
 
+- `luxury-car-tax` works out the luxury car tax on a tax period's sales and
+  importations in 2019-20 to 2026-27 at 33% of the GST exclusive excess over
+  the year's threshold (LCT Act s 5-15), from the ATO's thresholds for
+  2012-13 to 2026-27, with the 3.5 litre fuel-efficient rating from 1 July
+  2025 and its 7 litre carry-over (Act No. 29 of 2025 Sch 1), price and
+  change of use adjustments, BAS labels 1E and 1F rounded down, and the
+  primary producer and tourism operator refunds of up to $10,000 apart from
+  the BAS. New codes: `luxury_car_tax.consumption_invalid`,
+  `luxury_car_tax.kind_invalid`, `luxury_car_tax.line_invalid`,
+  `luxury_car_tax.lines_invalid`, `luxury_car_tax.refund_invalid`,
+  `luxury_car_tax.refund_limit` and `luxury_car_tax.year_invalid`.
+  `tests/luxury_car_tax.rs` holds it to the ATO's QC22107 and QC22108
+  examples, every published threshold year and hand-worked cases.
 - `fbt-meal-entertainment-register` checks a 12 week meal entertainment
   register for the FBT year ended 31 March 2026 or 2027: the continuous
   12 week period (FBTAA s 37CC), each entry's 6 details (s 37CE(1)), the

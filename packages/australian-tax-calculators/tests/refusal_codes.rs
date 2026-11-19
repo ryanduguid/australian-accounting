@@ -37,6 +37,7 @@ fn every_code_at_a_refusal_site_is_catalogued_and_every_entry_is_used() {
         "engine/fbt_benefits",
         "engine/fbt_benefits/entertainment",
         "engine/hire_purchase",
+        "engine/luxury_car_tax",
     ]
     .into_iter()
     .flat_map(|dir| {
@@ -149,8 +150,9 @@ fn every_catalogued_required_input_of_a_strict_command_is_read() {
     // fbt-entertainment-classifier, unused-leave-payment,
     // lump-sum-arrears-tax-offset, income-tests,
     // business-capital-expenditure, balancing-adjustment, trade-in,
-    // etp-tax-free-component and fbt-meal-entertainment-register.
-    assert_eq!(checked, 38);
+    // etp-tax-free-component, fbt-meal-entertainment-register and
+    // luxury-car-tax.
+    assert_eq!(checked, 39);
 }
 
 /// Every frozen call gives the same answer through either entry point, and
