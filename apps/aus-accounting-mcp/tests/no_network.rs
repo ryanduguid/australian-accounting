@@ -11,7 +11,9 @@
 //! unexercised paths. CI installs strace; elsewhere the test skips if it is absent.
 //!
 //! Windows reads the built binary for the name of any network library or
-//! process-launching call, which an import must store in plain bytes. That covers
+//! process-launching call, which an import must store in plain bytes. A library is
+//! sought with its `.dll`, as the import table names it, since a bare name such as
+//! `urlmon` can arise from 2 adjacent string constants. That covers
 //! every linked path, but cannot see a library loaded by name at run time; the
 //! elevated Windows locality proof in the task evidence covers that.
 
@@ -159,14 +161,14 @@ fn the_binary_imports_no_network_or_process_call() {
     let names = |name: &str| binary.windows(name.len()).any(|w| w == name.as_bytes());
     assert!(names("kernel32"), "the import table is not readable");
     for name in [
-        "ws2_32",
-        "wsock32",
-        "mswsock",
-        "winhttp",
-        "wininet",
-        "dnsapi",
-        "iphlpapi",
-        "urlmon",
+        "ws2_32.dll",
+        "wsock32.dll",
+        "mswsock.dll",
+        "winhttp.dll",
+        "wininet.dll",
+        "dnsapi.dll",
+        "iphlpapi.dll",
+        "urlmon.dll",
         "createprocess",
         "shellexecute",
     ] {

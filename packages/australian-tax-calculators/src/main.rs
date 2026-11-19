@@ -54,6 +54,9 @@ fn main() {
         [command, flag] if flag == "--refusal-json" && commands.contains(&command.as_str()) => {
             run(command, true)
         }
+        [command, rest @ ..] if command == "contract-register" => {
+            api::contract_register(rest, &mut std::io::stdin())
+        }
         [flag] if flag == "--version" => (
             0,
             format!("australian-tax-calculators {}\n", engine::VERSION),

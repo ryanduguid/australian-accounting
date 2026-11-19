@@ -26,6 +26,9 @@ use std::sync::atomic::{AtomicUsize, Ordering};
 
 const ROOT: &str = concat!(env!("CARGO_MANIFEST_DIR"), "/../..");
 const EXE: &str = std::env::consts::EXE_SUFFIX;
+/// The tax engine's fabricated contracts file, for `contract-register`.
+const REGISTER: &[u8] =
+    include_bytes!("../../../packages/australian-tax-calculators/examples/contract-register.csv");
 /// (subcommand, crate directory under packages/, standalone command)
 const ENGINES: [(&str, &str, &str); 8] = [
     (
@@ -458,7 +461,15 @@ fn cases(rows: &[Value], standalone: &[PathBuf], cap: usize) -> Vec<Case> {
     }
     // Routing an engine's own main() adds outside its library must reach
     // au-accounting too; derive and verify are such commands on some branches.
-    let routing: [(&[&str], &[u8]); 8] = [
+    let register = &[
+        "contract-register",
+        "--balance-date",
+        "2026-06-30",
+        "--scope-confirmed",
+    ];
+    let routing: [(&[&str], &[u8]); 10] = [
+        (register, REGISTER),
+        (&["contract-register", "--refusal-json"], b""),
         (&["--api-help"], b""),
         (&["--help"], b""),
         (&["--version"], b""),

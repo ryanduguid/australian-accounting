@@ -52,11 +52,13 @@ example evidence; it does not claim a fresh review of every supported period.
 | FBT tax-exempt body entertainment | Not a Library document: FBTAA ss 38 and 39 (compilation 97), the FBT return 2026 instructions (item 23L, example 15) and the employer's guide (chapter 15) | 1 April 2026 (item 23) | Established expenditure for the years ended 31 March 2026 and 2027, actual or per head |
 | FBT entertainment classifier | Not a Library document: ITAA 1997 Division 32, ss 27-5 and 995-1 (compilation 268), FBTAA ss 5E, 20, 37A to 37CF, 40, 41, 45, 58P, 135P and 136(1) (compilation 97), the FBT Assessment Regulations 2018 regs 6 to 11, ITAA 1936 ss 51AEA and 51AEB (compilation 193), GST Act s 69-5 (compilation 96), and TR 97/17 and TR 2007/12 as the Commissioner's view | 16 November 2026 (read) | One ordinary taxable employer's entertainment lines with established facts for the years ended 31 March 2026 and 2027; no Subdivision 32-B exception, tax-exempt body or reportable fringe benefits amount |
 | Main residence | `tax-examples-capital-gains-tax-cgt` (tax-examples), ¶2-060 and ¶2-075, with the ATO's pages 'Treating former home as main residence' (QC66030) and 'Using your home for rental or business' (QC66033) | 30 June 2026; 22 June 2026 (both ATO pages) | One dwelling's taxable days for CGT events in 2024-25 to 2026-27; cost base, market value and discount excluded |
-| Borrowing expenses | `tax-examples-deductions` (tax-examples), ¶4-160, with ITAA 1997 s 25-25 (compilation 268, 1 October 2026) and the ATO's 'Borrowing expenses' page | 30 June 2026; 22 May 2026 (ATO page) | One loan's established expenditure, use and dates for 2024-25 to 2026-27; classification, interest and refinancing excluded |
+| Borrowing expenses | `tax-examples-deductions` (tax-examples), ¶4-160, with ITAA 1997 s 25-25 (compilation 268, 1 October 2026; read again 19 November 2026) and the ATO's 'Borrowing expenses' page | 30 June 2026; 22 May 2026 (ATO page) | One loan's established expenditure, use and dates for 2017-18 to 2027-28; classification, interest and refinancing excluded |
+| Borrowing expenses schedule | `tax-examples-deductions` (tax-examples), ¶4-160, with ITAA 1997 ss 25-25, 26-50 and 26-155 and the Acts Interpretation Act 1901 ss 2G and 36 (compilation 39) | 30 June 2026; 22 May 2026 (ATO page) | Several loans first drawn from 1 July 2017, every year of each; use by year and refinancing established by the operator; s 26-155 flagged, not applied |
 | Hire purchase schedule | Not a Library document: ITAA 1997 ss 240-17, 240-55 and 240-60 on the ATO's legal database and in compilation 268 (1 October 2026) | 15 November 2026 (read) | One agreement's monthly notional interest for the hirer, starting in 2024-25 to 2026-27, from established payments; apportionment to income years under s 240-60(2) excluded |
 | Balancing adjustment | Not a Library document: the ATO's Guide to depreciating assets 2026 (Bridget, Andrew and Louise examples) and ITAA 1997 Subdivisions 27-B and 40-D, ss 104-240, 118-5 and 118-10(1) and its example (compilation 268, 1 October 2026) | 1 June 2026 (Guide); 18 November 2026 (read) | One depreciating asset's balancing adjustment, s 40-290 reduction and K7 amount for events in 2024-25 to 2026-27, from established cost, termination value and each year's decline and deduction; pools, s 40-291A and roll-overs excluded |
 | CGT parcels | `tax-examples-capital-gains-tax-cgt` (tax-examples), ¶2-240, with the ATO's individual tax return instructions supplement 2026, question 18 (Kathleen's examples 1 to 4), 'Keeping records of shares and units' (Boris's example), 'CGT discount', TD 33 and ITAA 1997 compilation 264 | 30 June 2026; 30 May, 22 June and 29 June 2026 (ATO pages); 19 November 2026 (read) | Parcels of shares or units acquired after 21 September 1999 and sold in 2025-26 or 2026-27; cost base adjustments, indexation and the small business concessions excluded |
 | Trade-in | Not a Library document: the ATO's 'Purchasing a motor vehicle' (Darren's example) and 'GST and the disposal of capital assets' (Ian's example), with ITAA 1997 Subdivision 27-B and ss 40-180 to 40-230, 40-305 and 40-365 (compilation 268) and GST Act ss 9-75, 11-30, 69-10 and 132-5 (compilation 96) | 3 June 2026 and 24 May 2017 (ATO pages); 18 November 2026 (read) | One asset traded in at arm's length for a replacement first held and used in 2025-26 or 2026-27; GST status, credits, allowance and price established; involuntary disposals and luxury car tax on the trade-in excluded |
+| Payroll tax | Not a Library document: each revenue office's rates page and examples, with each jurisdiction's payroll tax Act and the ACT's DI2026-151 | 17 July 2024 to 29 September 2026 (revenue office pages); 19 November 2026 (read) | One employer outside a group paying wages all year in one jurisdiction in 2026-27; taxable and Australian wages established; exemptions, rebates, discounts, caps and periodic returns excluded |
 | Depreciation | `tax-examples-depreciation` (tax-examples), ¶6-000 and ¶6-020 | 30 June 2025 | First-year formulas and taxable-use apportionment in 2024–25 examples |
 | Quarterly SG | `superannuation-instant-reference-rates-thresholds-and-checklists` (superannuation), ¶18-600 and ¶18-620 | 30 June 2026 | General 2025–26 rate and quarterly maximum contribution base |
 | Contribution caps | `tax-examples-individuals` (tax-examples), ¶7-278, with ITAA 1997 s 291-20 (compilation 268, 1 October 2026) and the ATO's contributions caps and concessional contributions cap pages for the carry-forward by year | 30 June 2025; 11 September and 2 July 2026 (ATO pages) | First-year bring-forward for 2024–25 only; the later-year nil cap is outside the worksheet; unused concessional cap from 2018-19 worked out from each year's established contributions |
@@ -95,6 +97,57 @@ paragraph remain outside the worksheet.
 The smaller existing case uses $1,100 inclusive: GST is $100, exclusive value
 is $1,000. Starting with $1,000 exclusive gives `1000 × 0.10 = 100` GST and
 $1,100 inclusive.
+
+## GST margin scheme
+
+Added on 19 November 2026. Its sources were read that afternoon, 2.20 pm to
+2.40 pm AEDT, from the ATO's legal database: the A New Tax System (Goods and
+Services Tax) Act 1999 ss 9-90, 75-5, 75-10, 75-11, 75-12, 75-14, 75-15,
+75-20, 75-35 and the s 195-1 definitions of 'approved valuation', 'long-term
+lease' and 'margin scheme'; Schedule 1 to the Taxation Administration Act 1953
+s 14-250 (GST at settlement, which it does not work out); GSTR 2006/8 (paras 15
+to 39F: the written agreement, a conditional agreement, ineligible supplies,
+the time of supply, the Brady King contracts and examples 1 and 2); and the
+ATO's 'GST and the margin scheme' (last updated 19 August 2021). The Library's
+GST collection, Real Estate, Accommodation and Sale of Business, 11-100
+(reviewed 29 July 2025) and 11-110 (reviewed 27 May 2026), and its Tax
+Examples, GST, 12-200 and 12-220 (reviewed 30 June 2026), give the worked
+examples.
+
+s 75-10(3) uses an approved valuation when one 'has been made' for an interest
+held before 1 July 2000; without one, s 75-10(2) takes the consideration for
+the acquisition, so `method` is the operator's statement of which exists. The
+valuation day is checked against the item the facts select: items 1 and 3 both
+fix 1 July 2000, so the command does not ask which applies. Item 2's earlier
+day of applying for registration may fall on or before 1 July 2000, so that
+day has no lower bound. s 9-90(1) rounds the GST on one supply on one invoice
+to the nearest cent, 0.5 up; the margin and the apportioned base are not
+rounded. A supply to an associate is refused: s 75-13 (read, with s 11-5, on
+19 November 2026 at 9.13 pm) works its margin from the GST inclusive market value. An
+interest contracted for before 1 July 2000 but acquired through a fully
+taxable supply is `taxable_supply_without_margin_scheme`, ineligible under
+s 75-5(3)(a) whatever GSTR 2006/8 para 39A says of its timing.
+
+`tests/gst_margin_scheme.rs` holds each case.
+
+| Example | Facts given | Result |
+| --- | --- | --- |
+| Tax Examples 12-200, Joanne Black | Held before 1 July 2000, valued at **$448,000** then, sold for **$640,000** | Margin $192,000; GST **$17,454.55** (shown as $17,454) |
+| Tax Examples 12-220, Hans | Valued at **$250,000** on 1 July 2000, sold for **$1.5 million** | GST **$113,636.36** (shown as $113,636) |
+| Tax Examples 12-220, Luke | Bought for $1.5 million under the scheme; one of 3 townhouses for **$900,000** | Base $500,000; GST **$36,363.64** (shown as $36,363) |
+| GST 11-110, improvements | Land **$250,000**, improvements $50,000, sold for **$360,000** | Margin $110,000; GST **$10,000** |
+| GST 11-110, equal blocks | $500,000 over 5 blocks of 600 m2; sold for $155,000 and $166,000 | GST **$5,000** and **$6,000** |
+| GST 11-110, unequal block | 1,200 of 3,600 m2 of $500,000, sold for **$300,000** | Margin $133,333.33; GST **$12,121.21** (shown as $12,121.18) |
+| GST 11-110, strata unit 3 | $600,000 of $2,400,000 expected, of $400,000; sold for **$610,000** | Base $100,000; GST **$46,363.64** (shown as $46,363.63) |
+| GST 11-100, held at 1 July 2000 | Valued at **$100,000**, sold for **$144,000** | GST **$4,000** |
+| GSTR 2006/8 example 1, Tureia | Bought through a taxable supply without the scheme | Not eligible: `acquisition_eligible`; GST on the full price |
+
+The Library rounds the margin to whole dollars before dividing in the unequal
+block, and cuts strata unit 3's GST off rather than rounding it; s 75-15 takes
+the corresponding proportion without rounding, and s 9-90(1) rounds only the
+GST, so the command differs from it by 3 cents and 1 cent. The tests also cover
+each failing condition alone and together, a nil margin, unpaid consideration,
+items 2 and 4 and their days, each refused acquisition, and each refusal.
 
 ## Resident tax
 
@@ -602,6 +655,232 @@ election, accommodation or travel taking the food or drink's occasion
 give dollar figures only in examples 11.1, 17.1 and 17.2: the other amounts are
 fabricated, and the ruling decides the treatment the test checks.
 
+## FBT meal entertainment register
+
+This worksheet's evidence was read on 19 November 2026 from 9.25 am to
+9.35 am AEDT:
+
+- FBTAA ss 37CA to 37CF on the ATO's legal database
+  (https://www.ato.gov.au/law/view/document?docid=PAC/19860039/37CC and the
+  sections beside it). s 37CA: the election, for a year the employer has a
+  valid register for; s 37CB(2): the register percentage is the value of the
+  meal entertainment fringe benefits over the value of the meal entertainment
+  in the register's 12 week period; s 37CC: the register is kept for a
+  continuous period of at least 12 weeks throughout which meal entertainment is
+  provided, representative of the first FBT year it is valid for, or it is not
+  valid; s 37CD(1) and (2): valid for the year a period within one FBT year
+  falls in, or only the second year of a period spanning 2, and the 4 FBT years
+  after; s 37CD(3): it ceases to be valid at the end of a year whose meal
+  entertainment expenses are more than 20% higher than the first valid year's,
+  or when a later valid register covers the year; s 37CE(1): the 6 details,
+  and s 37CE(2), entries made as soon as practicable; s 37CF: a false or
+  misleading entry invalidates the register.
+- The ATO's Fringe benefits tax - a guide for employers, chapter 14 (latest
+  update January 2020), 14.8: 'Valid register' and 'Details to be included in
+  register' restate those sections; the guide says the minor benefits exemption
+  can apply under this method but the property benefits exemption cannot, and
+  points to TD 94/25 on apportioning entertainment between employees and
+  others, which the check leaves to the operator's `fringe_benefits_value`.
+- The Library's ¶3-220 (tax examples, 'Fringe Benefits Tax (FBT)', last
+  reviewed 30 June 2026): ABC's register at 40%, kept in the 2025-26 FBT year,
+  can be used for that year and the following 4 (s 37CD), and
+  $177,500 x 40% = $71,000. The test builds a register at 40% kept in that
+  year, checks it valid for the year ended 31 March 2027 and passes its values
+  to `fbt-meal-entertainment`, which gives $71,000.00.
+
+Neither the Act nor the guide gives a worked example of a register failing a
+check; the tests work each failure from the section's words. 12 weeks is
+taken as 84 days with both the first and last day counted.
+
+## Fuel tax credits
+
+This worksheet was added on 19 November 2026. The Fuel Tax Act 2006 ss 41-5,
+41-20, 43-5, 43-10, 47-5 and 47-10 were read that day at the ATO's legal
+database (https://www.ato.gov.au/law/view/document?docid=PAC/20060072/43-5 and
+the like), with the ATO's 'Rates - business' (QC44494, last updated 29 July
+2026) and its year pages: QC69964 (2022-23) and QC72768 (2023-24), last
+updated 27 June 2024; QC102637 (2024-25), 29 January 2025; QC105117
+(2025-26), 28 April 2026; and QC107638 (2026-27), 29 July 2026. Their 16
+tables give 6 fuel rows in 2 uses each; the 192 values were read from the
+pages' text into `data/fuel-tax-credit-rates.json` and compared with
+data.gov.au's 'Historical FTC rates' workbook (August 2026 edition, read the
+same day), which gives the same 192 values. Rates are stored as published, not
+derived: the 2022 excise relief's road user charge (26.4 c/L on QC44494)
+does not match the gap the later 2022-23 rates imply (27.2 c/L), and the
+credit rates are what the ATO applies.
+
+Each period carries why it starts, for PCG 2016/2 Method 2, which applies
+where the rate changes in a tax period 'because of indexation' (para 11).
+QC44494 says rates are indexed in February and August; the February and
+August days are marked `indexation`, except 3 August 2026, when the 30.4%
+reduction also ended and the road user charge rose to 32.4 c/L (QC107638
+note 4). 1 August 2022 fell inside the 2022 excise relief and is marked
+indexation as an August indexation day; no page read states that nothing
+else changed that day. The
+ATO's 'Simplified fuel tax credits' (QC48520, last updated 6 July 2021) gives
+the period-end rate for any change 'for example, in February and August';
+the guideline's narrower words are followed.
+
+The basic method follows PCG 2021/2 paras 4 to 12; its Schedule 1 table is an
+image on the legal database, so the rigid truck rates come from the ATO's
+'Basic method for heavy vehicles' (QC64655, last updated 2 June 2021) Table
+1, and articulated combinations' rates are not held (`litres_per_km` from the
+engine's report covers them). Method 1 follows PCG 2016/2 para 9, which names
+the Australian Institute of Petroleum's state and national prices for the
+average GST inclusive price; QC48520 links its weekly retail pump prices
+(https://aip.com.au/pricing/pump-prices-retail/). The AIP's pages, read on
+19 November 2026, give weekly average retail prices for petrol and diesel by
+location and state (from MotorMouth data) and terminal gate prices, under
+'All Rights Reserved' with no licence to republish, so the price is an input.
+
+The ATO's 'Working out your fuel tax credits' (QC44511, last updated 6 July
+2021) multiplies quantity by rate, divides by 100 and claims the whole
+dollars at label 7D; QC64655's examples drop the cents ($1,885.95 is claimed
+as $1,885; $1,991.52 as $1,991). Each line is rounded half up to the cent
+before the lines are added, as the guideline's We Deliver example rounds each
+use. The Library's Tax Examples, GST and other indirect taxes, 12-300
+(reviewed 30 June 2026), gives *Linfox* [2019] FCAFC 131: a credit taken into
+account in an assessment is not lost under s 47-5, so lines past 4 years are
+flagged, not refused.
+
+`tests/fuel_tax_credits.rs` and the module's unit tests hold these cases.
+
+| Case | Source | Worksheet |
+| --- | --- | --- |
+| We Deliver: 11,430 L, 30,550 public road km at 0.35 L/km, 16.5 and 42.3 c/L | PCG 2021/2 paras 19 to 24 | $1,764.26 + $311.96 = $2,076.22 (unit test: December 2020 rates are outside the data) |
+| Jim: 11,430 L, 32,000 total km (31,488 derived), 0.35 L/km | QC64655 example 2 | $1,818.43 + $173.09; $1,991 at 7D (unit test) |
+| Jim's figures at the rates from 3 August 2026 | Worked by hand | $2,347.43 + $219.74 = $2,567.17; $2,567 at 7D |
+| 10,000 L heavy vehicle on public roads and 2,000 L off road from 3 August 2026 | Worked by hand at 21.3 and 53.7 c/L | $2,130 + $1,074 = $3,204 |
+| 100 L of diesel on the first day of each of the 16 periods, both uses | QC69964 to QC107638 | The period's rate in dollars |
+| 1,000 L acquired 10 January 2026 in a January to March 2026 quarter | PCG 2016/2 Method 2 across the 2 February 2026 indexation | $526 at 31 March's 52.6 c/L, against $516 at its own day's |
+| $2,459 of diesel at an average 245.9 c/L | PCG 2016/2 Method 1 | 1,000 L, $537 |
+| $23.98 of diesel at an average 214.8 c/L on 30 September 2026 | PCG 2016/2 Method 1, worked by hand | 23.98 x 53.7 / 214.8 = $5.995 exactly, $6.00 half up (cost x rate before the division) |
+| 300 L of E85 at 23.015 c/L | Rounding | $69.045, $69.05 half up |
+
+## FBT minor benefit check
+
+Added on 19 November 2026. Its sources were read that afternoon, 3.00 pm to
+3.10 pm AEDT, from the ATO's legal database: FBTAA s 58P (s 58P(1)(b), the
+airline transport exclusion, shown as repealed by Act No. 88 of 2013) and the
+s 136(1) definition of 'fringe benefit', whose para (g) leaves out an exempt
+benefit; and TR 2007/12 (paras 8 to 23 and examples 1 to 13). The Library's Tax
+Examples, FBT, 3-060 and 3-080 (reviewed 30 June 2026) give the flowers, gym
+and golf day examples.
+
+s 58P(1)(f) asks whether, having regard to all its criteria, it would be
+concluded that treating the benefit as a fringe benefit would be
+unreasonable: a weighing, not a test. The command takes each criterion as the
+operator's statement and decides only where TR 2007/12's examples decide: each
+exempt example has similar benefits that are not frequent and totals that are
+not substantial. Example 9's voucher is a reward for services but ad hoc, and
+examples 1 to 3 recur each Christmas but are not rewards; no example has a
+regular reward, so that is left to judgement. Example 8, the one not
+exempt on the criteria, has frequent similar benefits with a substantial
+total, given as a reward for services, readily valued and not for an
+unexpected event; the screen gives `not_exempt` only on all of those. The
+Library's 3-060 gym fees and 3-080 golf days are not exempt in the Library; the
+screen agrees when they are stated as rewards for services, and otherwise
+leaves them to judgement. Paras 14 and 16, on the 50/50 split and salary
+sacrifice, are the Commissioner's view and are cited as such.
+
+`tests/fbt_minor_benefit.rs` holds each case.
+
+| Example | Facts given | Result |
+| --- | --- | --- |
+| Library 3-060 (b), flowers | Property, **$80**, on a birthday | Exempt |
+| Library 3-060 (a), gym | Expense payment, **$50** a month | Not exempt as a reward for services; otherwise judgement |
+| Library 3-080, golf days | Expense payment, about **$83** a month | Not exempt as a reward for services; otherwise judgement |
+| TR 2007/12 examples 1 to 3 | Christmas gift or party, each year, under $300 | Exempt |
+| TR 2007/12 examples 5, 6, 7, 10, 11 | Flowers, a car after a storm, tolls, a gym membership, babysitting | Exempt |
+| TR 2007/12 example 8 | Monthly incentive vouchers, a reward | Not exempt |
+| TR 2007/12 example 9 | An ad hoc recognition voucher, a reward | Exempt |
+| TR 2007/12 example 12 | A tax-exempt body's movie tickets | Not exempt: `tax_exempt_body_exception` |
+| TR 2007/12 example 13 | A benefit under salary sacrifice | Not exempt: `not_salary_sacrifice` |
+
+The examples give no amounts beyond 'less than $300'; the values in the tests
+are fabricated under it. The tests also cover $300 itself and $299.99, each
+exclusion alone and together, both s 58P(1)(d) exceptions, mixed criteria left
+to judgement, and each refusal.
+
+## Wine equalisation tax
+
+This worksheet was added on 19 November 2026. The WET Act was read that day
+at the ATO's legal database (ss 5-5, 5-50, 7-10, 9-5, 9-25, 9-30, 9-35, 9-40,
+9-45, 13-5, 19-5, 19-15, 19-20, 19-25, 31-1 and 33-1), and ss 19-15 and 19-25
+in compilation 32 (1 April 2026) at the Federal Register of Legislation, with
+Schedule 6 to the Treasury Laws Amendment (Supporting Choice in
+Superannuation and Other Measures) Act 2026 (No. 12, 2026), which raises the
+cap to $400,000 for assessable dealings from 1 July 2026. WETR 2009/1 and
+WETR 2009/2 were read as the ATO publishes them. The ATO's pages
+'Wholesale sales' and 'Retail sales and own use' (QC22750 and QC22751, both
+last updated 19 March 2025), 'Producer rebate' (QC22756, 30 June 2026),
+'Calculate and claim your rebate' (QC22758, 2 July 2026), 'Reporting and
+paying WET' (QC22762), 'Wine equalisation tax (WET)' (QC33703, 1 May 2025)
+and 'Instructions for completing your BAS' (QC17458, 14 September 2026) were
+read that day, as was the Library's GST collection at ¶22-280 and ¶22-290.
+
+The Act fixes no value basis for the 10% wholesale share of s 9-25(3), so the
+command takes it as a stated fact. The ATO rounds its tasting bottle's
+notional wholesale selling price to $5.83 where this command gives $5.84; the
+tax, $1.69, is the same. Years before 2023-24 are refused, as the earlier
+rebate reductions for wine of 2017 and earlier vintages sold before 1 July
+2023 are not worked.
+
+`tests/wine_equalisation_tax.rs` holds these cases.
+
+| Case | Source | Worksheet |
+| --- | --- | --- |
+| Alison sells a dozen for $120 before WET and GST | QC22750 | WET $34.80, GST $15.48, $170.28 in all |
+| Swillo sells 5 cases at $120 | Library ¶22-280 | WET $174.00, GST $77.40, $851.40 in all |
+| A dozen at the cellar door for $140 | QC22751 (Happy Valley) | Taxable value $70.00, WET $20.30 |
+| A tasting bottle normally sold for $11.67 | QC22751 | WET $1.69, no GST |
+| A $22 retail sale; a staff sale taxed at the normal $150 | WETR 2009/1 example 15 and para 159 | WET $3.19 and GST $2.00; WET $21.75 |
+| 70% of wholesale sales at $80 a dozen and 30% at $90, then a dozen at the cellar door for $190 | WETR 2009/1 example 16, QC22751 (Good Wines) | Average $83.00, WET $24.07, GST $17.27 |
+| 2026-27 rebates on a retail, a wholesale, 2 quoted and a tasting dealing | QC22758's table | WET $11,890, rebate $16,240 |
+| A $50,000 wholesale sale with $340,000 (2025-26) or $390,000 (2026-27, 2027-28) claimed earlier | Worked by hand under s 19-15(2) | Rebate earned $14,500, $10,000 within the cap |
+| A hamper's wine share, $150 | Library ¶22-280 | WET $43.50 |
+
+## Luxury car tax
+
+This worksheet was added on 19 November 2026. The LCT Act was read that day
+at the ATO's legal database (ss 5-15, 5-20, 7-15, 9-5, 9-15, 15-20, 15-25,
+15-30, 18-5, 18-10, 25-1 and 27-1, with their history notes), and in
+compilation 27 (1 April 2025) at the Federal Register of Legislation, with
+Schedule 1 to the Treasury Laws Amendment (Tax Incentives and Integrity) Act
+2025 (No. 29, 2025), which lowers the fuel-efficient rating to 3.5 litres
+for supplies and importations from 1 July 2025 and keeps 7 litres for a car
+supplied or imported and used other than for a quotable purpose before then
+(item 4(2)). The rate, 33%, is s 4 of the Luxury Car Tax Imposition (General)
+Act 1999 and of the (Customs) Act. The ATO's 'Luxury car tax rate and
+thresholds' (QC38161, last updated 1 June 2026) gives both thresholds for
+each financial year from 2012-13 to 2026-27; 'Working out the LCT on a sale'
+(QC22107) and 'on an import' (QC22108), both 1 June 2026, give the
+examples; 'Luxury car tax credits and refunds' (QC39467, 16 July 2025) says
+refunds are claimed on the approved form within 4 years and not on the BAS;
+and the BAS page 'Luxury car tax (LCT)' (QC33694, 1 May 2025) gives labels
+1E and 1F. The Library's ¶12-340 (reviewed 30 June 2026) gives the same
+2025-26 thresholds.
+
+The formula's 33% x 10/11 is exactly 0.3, so each line's tax is exact before
+rounding to the cent. Tax periods start at 2019-20 because ss 18-5(3) and
+18-10(3), as substituted by Act No. 94 of 2019, give the $10,000 refunds only
+for cars supplied or imported from 1 July 2019; earlier refunds (8/33 of the
+tax, at most $3,000) are not worked. 2027-28 is refused until the ATO
+publishes its thresholds.
+
+`tests/luxury_car_tax.rs` holds these cases.
+
+| Case | Source | Worksheet |
+| --- | --- | --- |
+| A car sold for $88,000 including GST in 2026-27, not fuel efficient | QC22107 (Matty Bee Motors) | $2,157.30; charged $90,157.30 |
+| A 1977 Mustang imported in 2026-27 with an LCT value of $101,500 | QC22108 (Jimmy) | $6,207.30, paid to Home Affairs |
+| Both thresholds for each year from 2019-20 to 2026-27 | QC38161; Library ¶12-340 for 2025-26 | The year's figures |
+| A $95,000 car rated 5 litres in 2026-27; the same under item 4(2); one rated 3.5 litres | Worked by hand under s 25-1(4) and Act No. 29 of 2025 Sch 1 item 4 | $4,257.30; $1,001.70; $1,001.70 |
+| A $100,000 sale with $2,000 or $6,000 of earlier tax on the car | Worked by hand under s 5-15(2) | $3,757.30; nil |
+| A 2025-26 sale's price cut to $85,000 after $2,157.30 was attributed | Worked by hand under s 15-25 | $827.40 decreasing adjustment at 1F |
+| A car bought under quote for $100,000 in 2025-26 then used privately | Worked by hand under s 15-30(3) and (4)(a) | $5,829.90 increasing adjustment at 1E |
+| Refunds on $12,000 and $4,000 of tax borne | ss 18-5(3) and 18-10(3) | $10,000 and $4,000, off the BAS |
+
 ## Main residence
 
 This worksheet was added on 1 November 2026; its example evidence was read
@@ -665,10 +944,42 @@ not change the result.
 The $100 test in s 25-25(6) is '$100 or less'; ¶4-160 says 'less than $100',
 and the worksheet follows the Act. Money not used to produce income at all is
 outside s 25-25(6)(a) and (b), so its expenditure is spread and nothing is
-deducted (s 25-25(3), note). No source settles when 5 years from 29 February
-end, so a loan first drawn that day is refused. Treasury Laws Amendment (Tax
-Reform No. 1) Act 2026, Schedule 2 item 5, applies s 26-155 from the 2027-28
-income year, so later years are refused.
+deducted (s 25-25(3), note). From 19 November 2026 a loan first drawn on
+29 February is worked out, its 5 years ending on 28 February, and income
+years from 2017-18 to 2027-28 are taken, 2027-28 flagged for s 26-155; see
+[Borrowing expenses schedule](#borrowing-expenses-schedule) for both.
+
+## Borrowing expenses schedule
+
+This worksheet was added on 19 November 2026. ITAA 1997 s 25-25, its
+history notes, s 26-50 and s 26-155 were read on the ATO's legal database
+that day, with the ATO's Borrowing expenses page (updated 22 May 2026) and
+the Acts Interpretation Act 1901 (compilation 39, 28 March 2026) on the
+Federal Register. `tests/borrowing_expenses_schedule.rs` holds each case;
+every row also equals `borrowing_expenses` for that loan and year.
+
+| Case | Source | Worksheet | Published |
+| --- | --- | --- | --- |
+| Peter and Fiona and Max in one run, every year | ATO page | $318.07, $319.83, $319.82, $320.70, $319.83, $1.75; $259.62, $271.53, $271.53, $272.27, $271.53, $11.90 | Peter's $318.07 and $1.75 and $1,598.25 by Year 5; Fiona and Max's table |
+| Ben, every year: 303 of 1,461 days, 365 of 1,158, 366 of 793, 365 of 427, 62 of 62 | ¶4-160 | $746.61, $899.38, $901.85, $899.39, $152.77 | $747, $899, $902, $899, $153 |
+| A $1,500 loan refinanced on 31 December 2025 by an $800 loan | Built from s 25-25(4) and (5)(b) | $311.09, $1,188.91; $79.74 to $80.18 over 6 years | None published |
+
+s 25-25 has had its present text since Act No 15 of 2017 substituted step 1
+of s 25-25(4) from 1 April 2017 (correcting 'the the'); the rest dates from
+Act No 121 of 1997 and Act No 79 of 2010's note. The worksheet takes loans
+first drawn from 1 July 2017. s 26-155 was inserted by Act No 49 of 2026 for
+the 2027-28 income year and later years (history note read 19 November
+2026). It quarantines the excess of residential deductions over residential
+income after the other provisions have worked the deductions out, so it does
+not change the s 25-25 amount: the year is worked out and flagged.
+
+s 25-25(5)(c) says '5 years starting on the first day on which the money was
+borrowed'. Acts Interpretation Act 1901 s 36(1) item 2 counts that day.
+Read as 60 months, s 2G(2) ends the period immediately before the same day
+of the month 60 months on or, where that month has no such day, at its end:
+a loan first drawn on 29 February 2024 runs to 28 February 2029, 1,827 days.
+The anniversary reading (immediately before 29 February 2029, which does not
+exist) gives the same day, so both readings agree.
 
 ## Hire purchase schedule
 
@@ -937,6 +1248,37 @@ exactly $0.0002 a dollar a day.
 | The same with 3.65% from 1 August | August's interest $31.09 |
 | $10,000 drawn 1 June 2026, to 31 July | $60.00 in 2025-26 and $62.37 in 2026-27 |
 | Paid out on 10 July with $10,018.00 | $18.00 interest, nil owing; $10,018.01 refused |
+## Contract register
+
+`contract-register` works no amount of its own: each contract's payments,
+interest and principal are those of its `hire-purchase-schedule` or
+`chattel-mortgage-schedule` result, unchanged, and the register only dates and adds them. The current and
+non-current split rests on AASB 101 paragraph 69(c), 'the liability is due
+to be settled within twelve months after the reporting period', in
+compilation 6 (compilation date 31 December 2022, the latest on the Federal
+Register of Legislation, F2015L01626), read on 19 November 2026. Paragraphs
+69(a), (b) and (d), and 72A to 76ZA on rights to defer settlement and
+covenants, were read and are not assessed: the preparer establishes them.
+ITAA 1997 s 240-60(2), already read for `hire-purchase-schedule`, leaves
+the interest of a period spanning 30 June to accounting principles, and a
+chattel mortgage's interest is deductible as each year incurs it (s 8-1),
+so the register sets it apart with its days rather than apportioning it.
+
+`tests/contract_register.rs` holds the fabricated register in
+`examples/contract-register.csv`, 8 contracts with monthly, weekly,
+fortnightly, quarterly and annual instalments, in arrears and in advance,
+starting from 15 September 2024 to 20 August 2026, to each contract's own
+schedule run in the test on facts written out by hand: every total by month,
+income year, financier, client and register is the sum of the schedules'
+amounts, and each amount outstanding follows the schedule's closing balance.
+
+| Case | Source | Register at 30 June 2026 |
+| --- | --- | --- |
+| $10,000 financed, 12 monthly instalments of $100 in arrears from 1 March 2026, $10,000 balloon | Worked by hand: 1% a month; 4 periods ended charge $400, 3 instalments paid $300 | $10,100.00 outstanding, all current |
+| $24,000 financed, 24 monthly instalments of $1,000 in arrears from 1 August 2025 | Worked by hand: nil rate; 10 paid, 12 due by 30 June 2027 | $14,000.00 outstanding, $12,000.00 current, $2,000.00 non-current |
+| Monthly from 15 September 2024 | Worked by hand: 15 to 30 June is 16 of the period's 30 days | `accruing_days_elapsed` 16 of 30 |
+| $10,000 financed, 24 monthly instalments of $10, $13,000 balloon | The balance builds up over the next 12 months | all non-current |
+| Chattel mortgage: $45,000 at a stated 7.99% from 15 July 2025, 60 monthly instalments in arrears, $5,000 balloon | Its own `chattel-mortgage-schedule` | The 11th row's closing balance outstanding; current, its fall to the 23rd row's; 16 of 30 days accruing |
 
 ## Business capital expenditure
 
@@ -1146,6 +1488,68 @@ trade-in; the other side and the years held are fabricated.
 | A $11,000 asset (full credit $1,000, $800 claimed) traded in for $22,000 | Worked by hand under GST Act s 132-5(3): $2,000 x 0.2 = $400, capped at $200 | $200.00 decreasing adjustment, $2,000.00 K7 gain |
 | An asset bought without GST (nil full and adjusted credits) traded in for $22,000 | Worked by hand under GST Act s 132-5(3): the adjustment is at most the nil difference between the credits | $2,000.00 GST, nil decreasing adjustment, $20,000.00 termination value |
 | A trade-in that is not a taxable supply | GST Act s 9-5 | No GST; the termination value is the allowance |
+
+## Payroll tax
+
+This worksheet was added on 19 November 2026. The revenue offices' pages were
+read from 09:36 to 09:37 AEDT that day:
+
+- Revenue NSW, 'Payroll tax thresholds and rates' (last updated 1 July 2026):
+  $1,200,000 and 5.45% for 2026-27, the interstate formula and its $360,000
+  example.
+- The Victorian State Revenue Office, 'Payroll tax (current rates)' (updated
+  29 September 2026) and 'Payroll tax surcharges' (its example 2, $80 million
+  in Victoria and $70 million in New South Wales).
+- The Queensland Revenue Office, 'Payroll tax rates and thresholds' (last
+  updated 17 July 2024), 'Payroll tax deductions' and 'Calculating the mental
+  health levy' (last updated 11 August 2026).
+- RevenueWA, 'Calculation: Payroll Tax Employer Guide' (last updated 2 June
+  2026).
+- RevenueSA, 'Rates and Thresholds'.
+- The Tasmanian State Revenue Office, 'Rates and thresholds' for 2026-27.
+- The ACT Revenue Office, 'About payroll tax' (Table 1 for 2026-27) and
+  'Calculating payroll tax'.
+- The Territory Revenue Office, 'Payroll tax rates and thresholds' and
+  'Payroll changes from 1 July 2026'.
+
+The Acts were read the same day: the Payroll Tax Act 2007 (NSW) Sch 1 (version
+current from 10 July 2026); the Payroll Tax Act 2007 (Vic) s 3A and Sch 1
+(authorised version 041, 1 May 2026); the Payroll Tax Act 1971 (Qld) ss 10,
+29 and 43I (reprint current as at 22 October 2026); the Pay-roll Tax Assessment
+Act 2002 (WA) ss 8 and 13 (04-d0-03) and the Pay-roll Tax Act 2002 (WA) s 5
+(00-d0-02); the Payroll Tax Act 2009 (SA) Sch 1 (version 31.3.2026); the
+Payroll Tax Act 2008 (Tas) Sch 1; the Payroll Tax Act 2011 (ACT) Sch 1
+(republication R20) with the Taxation Administration (Amounts and
+Rates—Payroll Tax) Determination 2026 (DI2026-151); and the Payroll Tax Act
+2009 (NT) s 7A and Sch 1 (as in force at 1 July 2026). The NT deduction formula
+in Sch 1 cl 3 is an image in the Act's PDF, AD = ETA - (TW + IW - ETA) / 2;
+the revenue office's pages say only that the deduction settings did not change
+on 1 July 2026. Every figure agrees with duguid.com.au's payroll tax calculator,
+published 17 November 2026, whose cases these tests also hold.
+
+The worksheet works each amount as its formula reads, to 40 digits, and rounds
+each step to the cent. RevenueWA rounds the deduction in its 2 interstate
+examples to the dollar, so its published tax is 1 and 3 cents lower than the
+worksheet's. The Queensland Revenue Office gives its deduction to the dollar
+($932,460); the worksheet's is $932,459.64.
+
+`tests/payroll_tax.rs` holds these cases, and the threshold edges, rate bands
+and refusals beside them.
+
+| Case | Source | Worksheet |
+| --- | --- | --- |
+| $1,500,000 of NSW wages, all in NSW | Revenue NSW: taxed on $300,000 | $16,350.00 |
+| $900,000 of NSW wages in $3,000,000 Australian wages | Revenue NSW: a threshold of $360,000 | $540,000.00 taxed, $29,430.00 |
+| $80 million in Victoria of $150 million | SRO surcharges example 2: thresholds of $5,333,333.33 and $53,333,333.33 | $3,880,000.00 tax, $506,666.67 each surcharge, $4,893,333.34 in all |
+| $4,200,000 in Victoria, and the same for a regional employer | Worked by hand from Sch 1 cl 1: $1,000,000 - $1,200,000 x 0.5 | $400,000.00 deduction, $184,300.00 and $46,075.00 |
+| $1,356,789 in Queensland of $1,789,776 | QRO 'Payroll tax deductions': $932,460 to the dollar | $932,459.64 deduction, $20,155.64 |
+| $1,104,000 in Western Australia | RevenueWA: $6,600 | $984,000.00 deduction, $6,600.00 |
+| $500,000 in South Australia of $2,000,000 | RevenueSA: a deduction of $150,000 | $17,325.00 |
+| $800,000 in South Australia of $1,600,000 | RevenueSA: $300,000; Sch 1 cl 5(2)(a): 2.475% | $12,375.00 |
+| $2,400,000 in Tasmania, all in Tasmania | SRO Tasmania: $54,400 | $30,000.00 at 4%, $24,400.00 at 6.1% |
+| $2,400,000 in Tasmania of $3,000,000 | SRO Tasmania example 2: $72,800 | $72,800.00 |
+| $3,000,000 in the ACT | Worked by hand: ($3,000,000 - $1,750,000) x 6.75% | $84,375.00 |
+| $3,000,000 in the Northern Territory | Worked by hand from Sch 1 cl 3: $2,500,000 - $500,000 / 2 | $2,250,000.00 deduction, $41,250.00 |
 
 ## Depreciation
 
@@ -2633,6 +3037,7 @@ year; the others refuse it and say what is missing.
 | Study loan repayment thresholds | Not published | ATO minimum repayment income page (last updated 30 June 2026, years to 2026-27), 16:07 |
 | Contribution caps, ETP caps | Not published | ATO contributions caps page (last updated 11 September 2026) and ETP page (17 April 2026), 16:07 |
 | Division 296 thresholds | Not published: indexed from 2027-28 | ATO Division 296 page (last updated 3 November 2026, 2026-27 only), 16:13 |
+| Borrowing expenses | Worked out and flagged: s 25-25 sets no figure by year, and s 26-155 applies after it | ITAA 1997 ss 25-25 and 26-155 on the ATO's legal database, read 19 November 2026 |
 | CGT and rental deductions | Changed from 1 July 2027 by Act No. 49 of 2026 Schedules 1 and 2 (s 26-155) | ITAA 1997 s 26-155 (https://www.ato.gov.au/law/view/document?docid=PAC/19970038/26-155), 16:13 |
 | Balancing adjustment | Refused: CGT event K7 is a capital gain, which Schedule 1 to Act No. 49 of 2026 changes from 1 July 2027 | Act No. 49 of 2026 as made (https://www.legislation.gov.au/C2026A00049/asmade/text), read 18 November 2026 at 07:06; see [Balancing adjustment](#balancing-adjustment) |
 | CGT parcels | Refused: Schedule 1 to Act No. 49 of 2026 changes how capital gains are worked out from the income year that includes 1 July 2027 | Act No. 49 of 2026 as made (https://www.legislation.gov.au/C2026A00049/asmade/text), items 82 to 84, read 19 November 2026 at 14:40; see [CGT parcels](#cgt-parcels) |
