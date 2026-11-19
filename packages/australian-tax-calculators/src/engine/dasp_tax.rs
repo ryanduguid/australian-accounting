@@ -23,6 +23,7 @@ pub struct DaspTaxArgs<'a> {
     pub taxed_element: &'a Arg,
     pub untaxed_element: &'a Arg,
     pub working_holiday_maker_contributions: &'a Arg,
+    pub unclaimed_money_rollover: &'a Arg,
     pub year: &'a Arg,
     pub scope_confirmed: &'a Arg,
 }
@@ -88,6 +89,13 @@ pub fn dasp_tax(args: &DaspTaxArgs) -> Result<Value> {
     let untaxed = money(args.untaxed_element)?;
     let key = "working_holiday_maker_contributions";
     let whm = flag(args.working_holiday_maker_contributions, key)?;
+    let rollover = flag(args.unclaimed_money_rollover, "unclaimed_money_rollover")?;
+    if rollover && !untaxed.is_zero() {
+        return refuse(
+            "dasp_tax.unclaimed_money_rollover",
+            "The element untaxed in the fund of a roll-over paid under s 20H(2), (2AA) or (2A) of the Superannuation (Unclaimed Money and Lost Members) Act 1999 bears nil on any excess untaxed roll-over amount (DASP Tax Act s 5(2)), which this command does not take.",
+        );
+    }
     let payment = tax_free.add(&taxed)?.add(&untaxed)?;
     if payment.is_zero() {
         return refuse(

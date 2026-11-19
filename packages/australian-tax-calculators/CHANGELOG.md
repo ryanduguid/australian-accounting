@@ -87,7 +87,8 @@
   fund, or 65% on both where the payment includes contributions made whilst a
   working holiday maker (Superannuation (Departing Australia Superannuation
   Payments Tax) Act 2007 s 5(1) and (3)). `derive` explains each amount. New
-  code: `dasp_tax.payment_nil`. `tests/dasp_tax.rs` runs the Library's
+  codes: `dasp_tax.payment_nil` and `dasp_tax.unclaimed_money_rollover`, for
+  an s 5(2) roll-over with an element untaxed in the fund. `tests/dasp_tax.rs` runs the Library's
   $42,000 example and the working holiday maker rate.
 
 ### Changed

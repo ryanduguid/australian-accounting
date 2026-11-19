@@ -400,6 +400,7 @@ fn cases() -> Vec<(&'static str, Value)> {
             json!({"tax_free_component": "1250.00", "taxed_element": "8400.37",
                    "untaxed_element": "300.00",
                    "working_holiday_maker_contributions": true,
+                   "unclaimed_money_rollover": false,
                    "year": "2026-27", "scope_confirmed": true}),
         ),
     ];

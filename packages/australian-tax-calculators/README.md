@@ -142,7 +142,7 @@ lists the commands.
 | `business-capital-expenditure` | `items`, `year`, `scope_confirmed`; see [Business capital expenditure](#business-capital-expenditure) |
 | `balancing-adjustment` | `cost`, `termination_value`, `asset`, `years`, `year`, `scope_confirmed`; for a car, `car_limit`; see [Balancing adjustment](#balancing-adjustment) |
 | `trade-in` | `cost`, `asset`, `years`, `trade_in_allowance`, `trade_in_taxable`, `replacement_price`, `replacement_asset`, `replacement_creditable_acquisition`, `arms_length`, `involuntary_disposal`, `year`, `scope_confirmed`; `car_limit`, `adjusted_input_tax_credit`, `full_input_tax_credit`, `replacement_luxury_car_tax` and `creditable_purpose` where the facts need them; see [Trade-in](#trade-in) |
-| `dasp-tax` | `tax_free_component`, `taxed_element`, `untaxed_element`, `working_holiday_maker_contributions`, `year`, `scope_confirmed`; see [DASP tax](#dasp-tax) |
+| `dasp-tax` | `tax_free_component`, `taxed_element`, `untaxed_element`, `working_holiday_maker_contributions`, `unclaimed_money_rollover`, `year`, `scope_confirmed`; see [DASP tax](#dasp-tax) |
 | `fbt` | `type_one_value`, `type_two_value`, `year_ended`, `scope_confirmed` |
 | `fbt-car-statutory` | `cost_price`, `later_accessories`, `one_third_reduction`, `days_available`, `employee_contribution`, `electric_car_exempt`, `year_ended`, `scope_confirmed` |
 | `fbt-car-operating-cost` | `running_costs`, `lease_charges`, `depreciated_value`, `effective_life_years`, `days_held`, `business_use`, `employee_contribution`, `statutory_formula_taxable_value`, `electric_car_exempt`, `year_ended`, `scope_confirmed` |
@@ -1477,10 +1477,12 @@ rounds each element's tax to the cent, 0.5 cents up, so the tax and
 payment is not assessable income and not exempt income (s 301-175), so the
 tax is final and nothing goes in a tax return; a payment under $200 is taxed
 like any other. It refuses a nil payment. The caller establishes that the
-payment is a DASP and its components; a roll-over under s 20H of the
-Superannuation (Unclaimed Money and Lost Members) Act 1999 with an excess
-untaxed roll-over amount (s 5(2)), the 2014-15 to 2016-17 budget repair levy
-rates (s 6) and the fund's withholding and reporting are outside it. See
+payment is a DASP and its components. `unclaimed_money_rollover` is true for a
+roll-over paid under s 20H(2), (2AA) or (2A) of the Superannuation (Unclaimed
+Money and Lost Members) Act 1999; with an element untaxed in the fund it is
+refused, as s 5(2) taxes any excess untaxed roll-over amount in that element
+at nil. The 2014-15 to 2016-17 budget repair levy rates (s 6) and the fund's
+withholding and reporting are outside it. See
 [calculation evidence](docs/calculation-evidence.md#dasp-tax).
 
 ## ETP tax free component

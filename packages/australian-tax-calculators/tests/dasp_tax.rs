@@ -12,7 +12,7 @@ fn payment(tax_free: &str, taxed: &str, untaxed: &str, whm: bool) -> Value {
     json!({
         "tax_free_component": tax_free, "taxed_element": taxed,
         "untaxed_element": untaxed, "working_holiday_maker_contributions": whm,
-        "year": "2026-27", "scope_confirmed": true,
+        "unclaimed_money_rollover": false, "year": "2026-27", "scope_confirmed": true,
     })
 }
 
@@ -107,6 +107,31 @@ fn each_elements_tax_is_rounded_to_the_cent() {
     assert_eq!(taxes(&input), ["0.00", "0.07", "0.07", "0.14", "0.06"]);
     let small = payment("20.00", "150.00", "0.00", false);
     assert_eq!(taxes(&small)[3], "52.50");
+    // 0.01 x 35% = 0.0035 and 0.01 x 45% = 0.0045 each round to nil, so the
+    // tax is nil where rounding their sum, 0.008, once would give 0.01.
+    let cent_each = payment("0.00", "0.01", "0.01", false);
+    assert_eq!(taxes(&cent_each), ["0.00", "0.00", "0.00", "0.00", "0.02"]);
+}
+
+/// A roll-over paid under s 20H(2), (2AA) or (2A) of the Superannuation
+/// (Unclaimed Money and Lost Members) Act 1999 with an element untaxed in the
+/// fund is refused, as s 5(2) taxes any excess untaxed roll-over amount in it
+/// at nil; without that element s 5(1) applies as usual.
+#[test]
+fn an_unclaimed_money_rollover_with_an_untaxed_element_is_refused() {
+    let mut input = payment("0.00", "100.00", "50.00", false);
+    input["unclaimed_money_rollover"] = json!(true);
+    assert_eq!(code(&input), "dasp_tax.unclaimed_money_rollover");
+    let mut input = payment("10.00", "100.00", "0.00", false);
+    input["unclaimed_money_rollover"] = json!(true);
+    assert_eq!(taxes(&input), ["0.00", "35.00", "0.00", "35.00", "75.00"]);
+    input["unclaimed_money_rollover"] = json!("no");
+    assert_eq!(code(&input), "input.flag_invalid");
+    input
+        .as_object_mut()
+        .unwrap()
+        .remove("unclaimed_money_rollover");
+    assert_eq!(code(&input), "input.missing_field");
 }
 
 /// A payment wholly of tax free component bears no tax.

@@ -232,6 +232,7 @@ const COMMAND_ARGS: &[(&str, &[(&str, Kind)])] = &[
             ("taxed_element", Dec),
             ("untaxed_element", Dec),
             ("working_holiday_maker_contributions", Raw),
+            ("unclaimed_money_rollover", Raw),
             ("year", Raw),
             ("scope_confirmed", Raw),
         ],
@@ -1144,8 +1145,9 @@ pub fn evaluate_coded(command: &str, v: &Value) -> Result<Value> {
             taxed_element: &a[1],
             untaxed_element: &a[2],
             working_holiday_maker_contributions: &a[3],
-            year: &a[4],
-            scope_confirmed: &a[5],
+            unclaimed_money_rollover: &a[4],
+            year: &a[5],
+            scope_confirmed: &a[6],
         }),
         "trade-in" => {
             // Optional: a car's s 40-325 facts, the traded-in asset's input

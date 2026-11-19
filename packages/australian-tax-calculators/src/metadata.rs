@@ -2229,6 +2229,10 @@ pub fn input_units(kind: &str) -> Vec<(&'static str, &'static str)> {
                 "working_holiday_maker_contributions",
                 "boolean, true when the payment includes amounts attributable to superannuation contributions made whilst the person was a working holiday maker: the holder of a subclass 417 (Working Holiday) or 462 (Work and Holiday) visa or an associated bridging visa (DASP Tax Act s 5(3); Income Tax Rates Act 1986 s 3A). The 65% rate then applies to the whole taxable component, whatever visa the person held when other contributions were made",
             ),
+            (
+                "unclaimed_money_rollover",
+                "boolean, true when the payment is a roll-over superannuation benefit paid under s 20H(2), (2AA) or (2A) of the Superannuation (Unclaimed Money and Lost Members) Act 1999; true with an element untaxed in the fund is refused, as s 5(2) taxes any excess untaxed roll-over amount in it at nil",
+            ),
         ],
         "trade_in" => vec![
             (
@@ -2913,6 +2917,7 @@ pub fn examples(kind: &str) -> Vec<(&'static str, Example)> {
             ("taxed_element", Text("17000.00")),
             ("untaxed_element", Text("0.00")),
             ("working_holiday_maker_contributions", Flag(false)),
+            ("unclaimed_money_rollover", Flag(false)),
         ],
         "trade_in" => vec![
             ("year", Text("2026-27")),
