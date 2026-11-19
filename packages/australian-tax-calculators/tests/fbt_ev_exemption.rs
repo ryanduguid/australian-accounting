@@ -15,13 +15,13 @@ use serde_json::{Value, json};
 
 const COMMAND: &str = "fbt-ev-exemption-check";
 
-/// A battery electric car first held and used on `first`, first sold in
-/// `sale_year` for `value`, for a current employee in the year ended 31
+/// A battery electric car first held and used on `first`, first sold at
+/// retail on `sale` for `value`, for a current employee in the year ended 31
 /// March 2026.
-fn electric(first: &str, sale_year: &str, value: &str) -> Value {
+fn electric(first: &str, sale: &str, value: &str) -> Value {
     json!({
         "vehicle": "battery_electric", "car": true, "current_employee": true,
-        "first_held_and_used": first, "first_retail_sale_year": sale_year,
+        "first_held_and_used": first, "first_retail_sale": sale,
         "luxury_car_tax_value": value, "luxury_car_tax_on_other_supply": false,
         "year_ended": 2026, "scope_confirmed": true,
     })
@@ -29,7 +29,7 @@ fn electric(first: &str, sale_year: &str, value: &str) -> Value {
 
 /// A plug-in hybrid from `electric`, with Schedule 2 item 5(2)'s facts.
 fn hybrid(first: &str, before: bool, new: bool, exempt: bool, year_ended: i64) -> Value {
-    let mut input = electric(first, "2023-24", "60000.00");
+    let mut input = electric(first, "2023-07-01", "60000.00");
     let extra = json!({
         "vehicle": "plug_in_hybrid_electric", "year_ended": year_ended,
         "commitment_before_1_april_2025": before,
@@ -78,7 +78,7 @@ fn assert_exempt(result: &Value) {
 /// of $91,387, so FBT-free and reportable.
 #[test]
 fn cleancut_electric_car_is_exempt_and_reportable() {
-    let r = run(&electric("2025-07-01", "2025-26", "79200.00"));
+    let r = run(&electric("2025-07-01", "2025-07-01", "79200.00"));
     assert_exempt(&r);
     assert_eq!(r["calculation"], "fbt_ev_exemption_check");
     assert_eq!(r["period"], "year ended 31 March 2026");
@@ -116,7 +116,7 @@ fn cleancut_electric_car_is_exempt_and_reportable() {
 /// April 2022, so ABC Co's later benefits are not exempt.
 #[test]
 fn shelly_car_first_used_before_1_july_2022_is_not_exempt() {
-    let r = run(&electric("2022-04-01", "2021-22", "60000.00"));
+    let r = run(&electric("2022-04-01", "2022-04-01", "60000.00"));
     assert_eq!(r["exempt"], false);
     assert_eq!(failing(&r), ["first_held_and_used_from_1_july_2022"]);
     assert_eq!(
@@ -131,9 +131,9 @@ fn shelly_car_first_used_before_1_july_2022_is_not_exempt() {
 /// exempt. The day before 1 July 2022 is not.
 #[test]
 fn john_car_first_used_from_1_july_2022_is_exempt() {
-    assert_exempt(&run(&electric("2022-07-05", "2021-22", "60000.00")));
-    assert_exempt(&run(&electric("2022-07-01", "2021-22", "60000.00")));
-    let r = run(&electric("2022-06-30", "2021-22", "60000.00"));
+    assert_exempt(&run(&electric("2022-07-05", "2022-06-15", "60000.00")));
+    assert_exempt(&run(&electric("2022-07-01", "2022-06-15", "60000.00")));
+    let r = run(&electric("2022-06-30", "2022-06-15", "60000.00"));
     assert_eq!(failing(&r), ["first_held_and_used_from_1_july_2022"]);
 }
 
@@ -141,7 +141,7 @@ fn john_car_first_used_from_1_july_2022_is_exempt() {
 /// luxury car tax was payable and Kerry's benefits are not exempt.
 #[test]
 fn ghi_car_above_the_threshold_at_first_sale_is_not_exempt() {
-    let r = run(&electric("2022-07-01", "2022-23", "85000.00"));
+    let r = run(&electric("2022-07-01", "2022-07-01", "85000.00"));
     assert_eq!(failing(&r), ["no_luxury_car_tax_at_first_retail_sale"]);
     assert_eq!(
         r["rates"]["fuel_efficient_luxury_car_tax_threshold"],
@@ -154,11 +154,11 @@ fn ghi_car_above_the_threshold_at_first_sale_is_not_exempt() {
 /// is.
 #[test]
 fn the_threshold_itself_is_not_exceeded() {
-    assert_exempt(&run(&electric("2025-07-01", "2025-26", "91387.00")));
-    let r = run(&electric("2025-07-01", "2025-26", "91387.01"));
+    assert_exempt(&run(&electric("2025-07-01", "2025-07-01", "91387.00")));
+    let r = run(&electric("2025-07-01", "2025-07-01", "91387.01"));
     assert_eq!(failing(&r), ["no_luxury_car_tax_at_first_retail_sale"]);
     let later = with(
-        electric("2026-07-01", "2026-27", "91661.00"),
+        electric("2026-07-01", "2026-07-01", "91661.00"),
         "year_ended",
         json!(2027),
     );
@@ -181,15 +181,54 @@ fn each_listed_year_has_its_threshold() {
         ("2025-26", "91387"),
     ];
     for (year, limit) in table {
-        let r = run(&electric("2025-07-01", year, "1.00"));
+        let r = run(&electric(
+            "2025-07-01",
+            &format!("{}-07-01", &year[..4]),
+            "1.00",
+        ));
         assert_eq!(r["rates"]["fuel_efficient_luxury_car_tax_threshold"], limit);
+    }
+}
+
+/// FBTAA s 8A(1)(c) counts luxury car tax payable before the benefit. A
+/// first retail sale after the FBT year comes after every benefit in it, so
+/// the condition is met whatever the value; a sale before the year, or on or
+/// before the day the car was first held and used, comes before every
+/// benefit and its threshold applies; a taxed sale within the year after
+/// that day comes between the benefits and is refused.
+#[test]
+fn only_luxury_car_tax_before_the_benefit_fails_the_sale_condition() {
+    let car = |first: &str, sale: &str, value: &str| {
+        with(electric(first, sale, value), "year_ended", json!(2027))
+    };
+    for sale in ["2027-04-01", "2027-06-30", "2027-07-01"] {
+        let r = run(&car("2026-07-01", sale, "120000.00"));
+        assert_exempt(&r);
+        let rates = r["rates"].as_object().unwrap();
+        assert!(!rates.contains_key("fuel_efficient_luxury_car_tax_threshold"));
+    }
+    let taxed = ["no_luxury_car_tax_at_first_retail_sale"];
+    assert_eq!(
+        failing(&run(&car("2026-07-01", "2026-07-01", "91661.01"))),
+        taxed
+    );
+    assert_eq!(
+        failing(&run(&car("2025-07-01", "2026-03-31", "91387.01"))),
+        taxed
+    );
+    assert_exempt(&run(&car("2026-07-01", "2026-10-01", "91661.00")));
+    for (first, sale) in [("2026-07-01", "2026-10-01"), ("2025-07-01", "2026-04-01")] {
+        assert_eq!(
+            code(&car(first, sale, "91661.01")),
+            "fbt_ev_exemption.sale_within_year"
+        );
     }
 }
 
 /// The other failing conditions, one at a time.
 #[test]
 fn each_other_condition_fails_alone() {
-    let base = electric("2025-07-01", "2025-26", "79200.00");
+    let base = electric("2025-07-01", "2025-07-01", "79200.00");
     let cases = [
         ("current_employee", json!(false), "current_employee"),
         ("vehicle", json!("other"), "zero_or_low_emissions_vehicle"),
@@ -227,7 +266,7 @@ fn each_other_condition_fails_alone() {
 fn every_failing_condition_is_named() {
     let input = with(
         with(
-            electric("2022-04-01", "2021-22", "90000.00"),
+            electric("2022-04-01", "2022-04-01", "90000.00"),
             "vehicle",
             json!("other"),
         ),
@@ -302,7 +341,7 @@ fn a_new_or_missing_commitment_ends_a_plug_in_hybrid_exemption() {
 /// is nil and its notional value stays reportable.
 #[test]
 fn the_result_feeds_the_statutory_car_worksheet() {
-    let check = run(&electric("2025-07-01", "2025-26", "79200.00"));
+    let check = run(&electric("2025-07-01", "2025-07-01", "79200.00"));
     let catalogue = api::evaluate("worksheet-catalogue", &json!({})).unwrap();
     let mut car = catalogue["fbt_car_statutory"]["example"]["facts"].clone();
     car.as_object_mut().unwrap().remove("kind");
@@ -317,17 +356,20 @@ fn the_result_feeds_the_statutory_car_worksheet() {
 
 #[test]
 fn refuses_what_it_cannot_decide() {
-    let base = electric("2025-07-01", "2025-26", "79200.00");
+    let base = electric("2025-07-01", "2025-07-01", "79200.00");
     let unsupported = "fbt_ev_exemption.threshold_year_unsupported";
-    for year in [
-        json!("2011-12"),
-        json!("2027-28"),
-        json!("2025-2026"),
-        json!(2025),
-    ] {
+    assert_eq!(
+        code(&with(
+            base.clone(),
+            "first_retail_sale",
+            json!("2012-06-30")
+        )),
+        unsupported
+    );
+    for sale in [json!("2025-26"), json!(2025)] {
         assert_eq!(
-            code(&with(base.clone(), "first_retail_sale_year", year)),
-            unsupported
+            code(&with(base.clone(), "first_retail_sale", sale)),
+            "input.date_invalid"
         );
     }
     let conflict = "fbt_ev_exemption.fact_conflict";
@@ -336,14 +378,6 @@ fn refuses_what_it_cannot_decide() {
             base.clone(),
             "first_held_and_used",
             json!("2026-04-01")
-        )),
-        conflict
-    );
-    assert_eq!(
-        code(&with(
-            base.clone(),
-            "first_retail_sale_year",
-            json!("2026-27")
         )),
         conflict
     );

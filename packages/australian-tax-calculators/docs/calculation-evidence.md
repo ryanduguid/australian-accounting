@@ -339,10 +339,14 @@ is not yet law. The Library's Tax Examples, FBT, ¶3-045 (reviewed 30 June
 2026) gives the Cleancut example.
 
 s 8A(1)(c) asks whether luxury car tax has become payable on any supply or
-importation of the car. The ATO tests that by the value at the first retail
-sale against the fuel-efficient threshold for that year; LCT Act s 25-1(1)
-makes a car a luxury car only when its value exceeds the threshold, so a
-value equal to it passes. Any other supply or importation on which luxury car
+importation of the car before the benefit is provided. The ATO tests that by
+the value at the first retail sale against the fuel-efficient threshold for
+the sale's financial year; LCT Act s 25-1(1) makes a car a luxury car only
+when its value exceeds the threshold, so a value equal to it passes. A first
+retail sale after the FBT year comes after every benefit in it, so it meets
+the condition at any value; a taxed sale within the year after the car was
+first held and used meets it only for the benefits before the sale, and is
+refused. Any other supply or importation on which luxury car
 tax became payable is a fact the operator gives.
 
 `tests/fbt_ev_exemption.rs` holds each case. The ATO's examples are run for a

@@ -170,13 +170,15 @@
   hybrid under the Electric Car Discount Act 2022 Sch 2 item 5(2): committed
   to before 1 April 2025, no new commitment since, and exempt before then),
   first both held and used on or after 1 July 2022 (Sch 1 item 7(2)), and no
-  luxury car tax: a value at first retail sale not above the ATO's
-  fuel-efficient threshold for that financial year, 2012-13 to 2026-27
-  (LCT Act s 25-1), and none on any other supply. It gives
+  luxury car tax before the benefit (s 8A(1)(c)): a value at a first retail
+  sale within or before the FBT year not above the ATO's fuel-efficient
+  threshold for its financial year, 2012-13 to 2026-27 (LCT Act s 25-1), and
+  none on any other supply. A sale after the FBT year meets the condition; a
+  taxed sale within it, after the car was first held and used, is refused. It gives
   `electric_car_exempt` for the 2 car worksheets and the reportable fringe
   benefit consequence (s 135P(3)). The year ended 31 March 2028 is refused:
   the change announced for 1 April 2027 is not law. New codes:
-  `fbt_ev_exemption.fact_conflict`,
+  `fbt_ev_exemption.fact_conflict`, `fbt_ev_exemption.sale_within_year`,
   `fbt_ev_exemption.threshold_year_unsupported` and
   `fbt_ev_exemption.vehicle_invalid`. `tests/fbt_ev_exemption.rs` runs the
   ATO's Shelly, John, GHI Co, Sonia, Simon, Tony, Courtney and pool car

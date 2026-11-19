@@ -19,7 +19,7 @@ const KIND: &str = "fbt_ev_exemption_check";
 /// The luxury car tax threshold for fuel-efficient vehicles for each
 /// financial year, from the ATO's 'Luxury car tax rate and thresholds' (last
 /// updated 1 June 2026), read at 9.34 am AEDT on 19 November 2026. A year the
-/// table does not hold is refused.
+/// table does not hold is refused for a sale within or before the FBT year.
 pub(crate) const FUEL_EFFICIENT_THRESHOLDS: [(&str, &str); 15] = [
     ("2012-13", "75375"),
     ("2013-14", "75375"),
@@ -44,7 +44,7 @@ pub struct EvExemptionArgs<'a> {
     pub car: &'a Arg,
     pub current_employee: &'a Arg,
     pub first_held_and_used: &'a Arg,
-    pub first_retail_sale_year: &'a Arg,
+    pub first_retail_sale: &'a Arg,
     pub luxury_car_tax_value: &'a Arg,
     pub luxury_car_tax_on_other_supply: &'a Arg,
     /// The plug-in hybrid facts of Schedule 2 item 5(2), in its order:
@@ -67,23 +67,27 @@ const HYBRID_COMMITMENT: &str = "Electric Car Discount Act 2022 Sch 2 item 5(2)(
 const HYBRID_NO_NEW_COMMITMENT: &str = "Electric Car Discount Act 2022 Sch 2 item 5(2)(c): no new commitment for a period including the benefit was made on or after 1 April 2025 and before or at the benefit (the ATO: an optional extension, a break in a novation, changed lease payments or residual value, or a change of employer is one)";
 const HYBRID_EXEMPT_BEFORE: &str = "Electric Car Discount Act 2022 Sch 2 item 5(2)(d) and (e): before 1 April 2025 a car benefit relating to the car was provided, and it was exempt under s 8A, which then included a plug-in hybrid electric vehicle (s 8A(2)(c) and (5) as made)";
 const HELD_AND_USED: &str = "Electric Car Discount Act 2022 Sch 1 item 7(2): s 8A applies only if the earliest time a person both held and used the car was at or after the start of 1 July 2022";
-const FIRST_SALE: &str = "FBTAA s 8A(1)(c); LCT Act ss 5-20 and 25-1(1) and (4); the ATO's 'Electric cars exemption': no luxury car tax was payable on the car's first retail sale, its luxury car tax value not exceeding the fuel-efficient car threshold for the financial year of that sale";
+const FIRST_SALE: &str = "FBTAA s 8A(1)(c); LCT Act ss 5-20 and 25-1(1) and (4); the ATO's 'Electric cars exemption': no luxury car tax became payable on the car's first retail sale before the benefit, its luxury car tax value not exceeding the fuel-efficient car threshold for the financial year of that sale, or the sale coming after the FBT year and so after every benefit in it";
 const OTHER_SUPPLY: &str = "FBTAA s 8A(1)(c): no luxury car tax became payable on any other supply or importation of the car before the benefit";
 
 fn conflict<T>(message: &str) -> Result<T> {
     refuse("fbt_ev_exemption.fact_conflict", message)
 }
 
+/// The financial year, 1 July to 30 June, that holds `day`.
+fn financial_year(day: i64) -> String {
+    let (year, month, _) = dates::to_civil(day);
+    let start = if month >= 7 { year } else { year - 1 };
+    format!("{start}-{:02}", (start + 1) % 100)
+}
+
 /// The threshold for `year`, a financial year the ATO's table holds.
-fn threshold(year: &Arg) -> Result<(String, &'static str)> {
-    let found = year
-        .text()
-        .and_then(|y| FUEL_EFFICIENT_THRESHOLDS.iter().find(|(k, _)| *k == y));
-    match found {
-        Some((year, limit)) => Ok((year.to_string(), limit)),
+fn threshold(year: &str) -> Result<&'static str> {
+    match FUEL_EFFICIENT_THRESHOLDS.iter().find(|(k, _)| *k == year) {
+        Some((_, limit)) => Ok(limit),
         None => refuse(
             "fbt_ev_exemption.threshold_year_unsupported",
-            "first_retail_sale_year must be a financial year from 2012-13 to 2026-27, the years whose fuel-efficient luxury car tax threshold the ATO's 'Luxury car tax rate and thresholds' lists.",
+            "first_retail_sale must be on or after 1 July 2012 unless it is after the FBT year: the ATO's 'Luxury car tax rate and thresholds' lists fuel-efficient thresholds from 2012-13 to 2026-27.",
         ),
     }
 }
@@ -172,21 +176,10 @@ fn vehicle(arg: &Arg) -> Result<&str> {
 
 /// Refuses dates that cannot all be true of a benefit in the FBT year
 /// ending 31 March `ended`.
-fn refuse_conflicts(
-    ended: i64,
-    first_used: i64,
-    sale_year: &str,
-    hybrid: Option<[bool; 3]>,
-) -> Result<()> {
+fn refuse_conflicts(ended: i64, first_used: i64, hybrid: Option<[bool; 3]>) -> Result<()> {
     if first_used > day(&format!("{ended}-03-31")) {
         return conflict(
             "first_held_and_used is after the FBT year ends: a car first held and used later cannot give a car benefit in the year.",
-        );
-    }
-    let sale_start: i64 = sale_year[..4].parse().expect("financial year");
-    if sale_start >= ended {
-        return conflict(
-            "first_retail_sale_year starts after the FBT year ends: the benefit cannot be provided before the car's first retail sale.",
         );
     }
     if hybrid.is_some_and(|[_, _, exempt]| exempt) && first_used >= day("2025-04-01") {
@@ -226,14 +219,32 @@ pub fn fbt_ev_exemption_check(args: &EvExemptionArgs) -> Result<Value> {
     let car = flag(args.car, "car")?;
     let current = flag(args.current_employee, "current_employee")?;
     let first_used = date_arg(args.first_held_and_used, "first_held_and_used")?;
-    let (sale_year, limit) = threshold(args.first_retail_sale_year)?;
+    let first_sale = date_arg(args.first_retail_sale, "first_retail_sale")?;
     let value = money(args.luxury_car_tax_value)?;
     let other_supply = flag(
         args.luxury_car_tax_on_other_supply,
         "luxury_car_tax_on_other_supply",
     )?;
-    refuse_conflicts(ended, first_used, &sale_year, hybrid)?;
-    let threshold = super::d(limit);
+    refuse_conflicts(ended, first_used, hybrid)?;
+    // s 8A(1)(c) counts luxury car tax payable before the benefit: a sale
+    // after the FBT year comes after every benefit in it, so no threshold
+    // applies to it.
+    let sale_year = financial_year(first_sale);
+    let limit = if first_sale > day(&format!("{ended}-03-31")) {
+        None
+    } else {
+        Some(threshold(&sale_year)?)
+    };
+    let taxed = match limit {
+        Some(limit) => value.gt(&super::d(limit))?,
+        None => false,
+    };
+    if taxed && first_sale > first_used && first_sale >= day(&format!("{}-04-01", ended - 1)) {
+        return refuse(
+            "fbt_ev_exemption.sale_within_year",
+            "first_retail_sale is within the FBT year, after the car was first held and used, and luxury car tax was payable on it: it fails FBTAA s 8A(1)(c) only for the benefits after it, so the year has no single result.",
+        );
+    }
     let mut rows = vec![
         condition("car", CAR, car),
         condition("current_employee", CURRENT_EMPLOYEE, current),
@@ -247,17 +258,15 @@ pub fn fbt_ev_exemption_check(args: &EvExemptionArgs) -> Result<Value> {
     rows.push(condition(
         "no_luxury_car_tax_at_first_retail_sale",
         FIRST_SALE,
-        !value.gt(&threshold)?,
+        !taxed,
     ));
     rows.push(condition(
         "no_luxury_car_tax_on_other_supply",
         OTHER_SUPPLY,
         !other_supply,
     ));
-    let rates = vec![
-        rate("first_retail_sale_year", &sale_year),
-        rate("fuel_efficient_luxury_car_tax_threshold", limit),
-    ];
+    let mut rates = vec![rate("first_retail_sale_year", &sale_year)];
+    rates.extend(limit.map(|limit| rate("fuel_efficient_luxury_car_tax_threshold", limit)));
     let mut out = result(KIND, &period, vec![("luxury_car_tax_value", value)], rates)?;
     add_outcome(&mut out, rows, car);
     Ok(out)

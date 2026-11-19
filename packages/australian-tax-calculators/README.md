@@ -155,7 +155,7 @@ lists the commands.
 | `fbt` | `type_one_value`, `type_two_value`, `year_ended`, `scope_confirmed` |
 | `fbt-car-statutory` | `cost_price`, `later_accessories`, `one_third_reduction`, `days_available`, `employee_contribution`, `electric_car_exempt`, `year_ended`, `scope_confirmed` |
 | `fbt-car-operating-cost` | `running_costs`, `lease_charges`, `depreciated_value`, `effective_life_years`, `days_held`, `business_use`, `employee_contribution`, `statutory_formula_taxable_value`, `electric_car_exempt`, `year_ended`, `scope_confirmed` |
-| `fbt-ev-exemption-check` | `vehicle`, `car`, `current_employee`, `first_held_and_used`, `first_retail_sale_year`, `luxury_car_tax_value`, `luxury_car_tax_on_other_supply`, `year_ended`, `scope_confirmed`; for a plug-in hybrid, `commitment_before_1_april_2025`, `new_commitment_from_1_april_2025` and `exempt_benefit_before_1_april_2025`; see [FBT electric cars exemption](#fbt-electric-cars-exemption) |
+| `fbt-ev-exemption-check` | `vehicle`, `car`, `current_employee`, `first_held_and_used`, `first_retail_sale`, `luxury_car_tax_value`, `luxury_car_tax_on_other_supply`, `year_ended`, `scope_confirmed`; for a plug-in hybrid, `commitment_before_1_april_2025`, `new_commitment_from_1_april_2025` and `exempt_benefit_before_1_april_2025`; see [FBT electric cars exemption](#fbt-electric-cars-exemption) |
 | `fbt-loan` | `daily_balance_total`, `interest_accrued`, `income_use`, `accrued_interest_deduction`, `year_ended`, `scope_confirmed` |
 | `fbt-meal-entertainment` | `method`, `meal_entertainment_expenditure`, `year_ended`, `scope_confirmed`; with `12_week_register`, `register_fringe_benefits_value`, `register_meal_entertainment_value`, `register_first_year` and `register_years_expenditure` |
 | `fbt-car-parking` | `method`, `year_ended`, `scope_confirmed`; with `commercial_parking_station`, `first_business_day_fee`, `benefits`, `lowest_fee` and `employee_contribution`; with `market_value`, `first_business_day_fee`, `benefits`, `market_value` and `employee_contribution`; with `average_cost`, `first_business_day_fee`, `benefits`, `first_day_fee`, `last_day_fee` and `employee_contribution`; with `spaces`, `space_groups`, `employees_at_start`, `employees_at_end`, `eligible_spaces_at_start`, `eligible_spaces_at_end` and `employee_contribution`; with `12_week_register`, `first_business_day_fee`, `register_value`, `availability_days` and `register_first_year` |
@@ -710,11 +710,15 @@ in `failing_conditions`, and gives `exempt`:
 - `first_held_and_used_from_1_july_2022`: the earliest day anyone both held
   and used the car, `first_held_and_used`, is on or after 1 July 2022 (Sch 1
   item 7(2));
-- `no_luxury_car_tax_at_first_retail_sale`: `luxury_car_tax_value`, the price
-  with GST and without luxury car tax or on-road charges (LCT Act s 5-20), does
-  not exceed the fuel-efficient threshold for `first_retail_sale_year` (s
-  25-1(1)): the ATO's table, from $75,375 for 2012-13 to $91,387 for 2024-25 and
-  2025-26 and $91,661 for 2026-27. A year outside it is refused;
+- `no_luxury_car_tax_at_first_retail_sale`: no luxury car tax became payable
+  on the first retail sale before the benefit (s 8A(1)(c)). For a sale on
+  `first_retail_sale` within or before the FBT year, `luxury_car_tax_value`,
+  the price with GST and without luxury car tax or on-road charges (LCT Act
+  s 5-20), does not exceed the fuel-efficient threshold for the sale's
+  financial year (s 25-1(1)): the ATO's table, from $75,375 for 2012-13 to
+  $91,387 for 2024-25 and 2025-26 and $91,661 for 2026-27. An earlier sale is
+  refused. A sale after the FBT year comes after every benefit in it, so the
+  condition is met and no threshold applies;
 - `no_luxury_car_tax_on_other_supply`: `luxury_car_tax_on_other_supply` is
   `false` (s 8A(1)(c)).
 
@@ -723,8 +727,10 @@ for `fbt-car-statutory` and `fbt-car-operating-cost`, and `consequences`: for
 an exempt car, a nil taxable value whose notional value still counts towards
 the employee's reportable fringe benefits amount (s 135P(3)), and car expense
 benefits exempt under s 53(1), which do not. It refuses a car first held and
-used, or first sold, after the FBT year ends, plug-in hybrid facts for another
-vehicle, and the year ended 31 March 2028: the government announced on 5 May
+used after the FBT year ends, a first retail sale within the FBT year, after
+the car was first held and used, on which luxury car tax was payable (the
+benefits before it are exempt and those after it are not), plug-in hybrid
+facts for another vehicle, and the year ended 31 March 2028: the government announced on 5 May
 2026 that from 1 April 2027 only a car costing $75,000 or less keeps the full
 exemption, and the ATO's page said on 19 November 2026 that this was not yet
 law. A car imported by its user rather than sold at retail, and a plug-in

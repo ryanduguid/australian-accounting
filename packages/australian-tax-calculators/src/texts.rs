@@ -1562,8 +1562,12 @@ pub const REFUSAL_CODES: &[(&str, &str)] = &[
         "The car's dates contradict the FBT year or the plug-in hybrid facts.",
     ),
     (
+        "fbt_ev_exemption.sale_within_year",
+        "Luxury car tax was payable on a first retail sale within the FBT year after the car was first held and used, so the benefits before and after it differ.",
+    ),
+    (
         "fbt_ev_exemption.threshold_year_unsupported",
-        "first_retail_sale_year is not a financial year whose fuel-efficient luxury car tax threshold the ATO's table lists.",
+        "first_retail_sale is before the financial years whose fuel-efficient luxury car tax threshold the ATO's table lists.",
     ),
     (
         "fbt_ev_exemption.vehicle_invalid",

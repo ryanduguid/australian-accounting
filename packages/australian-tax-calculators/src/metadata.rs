@@ -2417,8 +2417,8 @@ pub fn input_units(kind: &str) -> Vec<(&'static str, &'static str)> {
                 "YYYY-MM-DD date, the earliest day on which any person both held the car (owned it, including under hire purchase, leased it or had it made available) and used it or had it available for use (Electric Car Discount Act 2022 Sch 1 item 7(2)); not after the FBT year ends",
             ),
             (
-                "first_retail_sale_year",
-                "financial year string from 2012-13 to 2026-27, the year of the car's first retail sale, which sets the fuel-efficient luxury car tax threshold; not starting after the FBT year ends",
+                "first_retail_sale",
+                "YYYY-MM-DD date of the car's first retail sale, whose financial year sets the fuel-efficient luxury car tax threshold (2012-13 to 2026-27); a sale after the FBT year comes after every benefit in it, so no threshold applies to it (FBTAA s 8A(1)(c))",
             ),
             (
                 "luxury_car_tax_value",
@@ -3226,7 +3226,7 @@ pub fn examples(kind: &str) -> Vec<(&'static str, Example)> {
             ("car", Flag(true)),
             ("current_employee", Flag(true)),
             ("first_held_and_used", Text("2025-07-01")),
-            ("first_retail_sale_year", Text("2025-26")),
+            ("first_retail_sale", Text("2025-07-01")),
             ("luxury_car_tax_value", Text("79200.00")),
             ("luxury_car_tax_on_other_supply", Flag(false)),
         ],
