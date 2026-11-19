@@ -131,7 +131,7 @@ lists the commands.
 | Command | Arguments |
 | --- | --- |
 | `gst` | `amount`, `gst_inclusive`, `scope_confirmed`, `year` |
-| `gst-margin-scheme` | `interest`, `agreement`, `acquisition`, `consideration`, `method`, `year`, `scope_confirmed`; with `consideration`, `acquisition_consideration` and `unpaid_acquisition_consideration`; with `approved_valuation`, `approved_valuation`, `valuation_day`, `registered_on_1_july_2000` and `government_unimproved_on_1_july_2000`; for part of the land, `subdivision_share` and `subdivision_whole`; see [GST margin scheme](#gst-margin-scheme) |
+| `gst-margin-scheme` | `interest`, `agreement`, `acquisition`, `consideration`, `method`, `year`, `scope_confirmed`; with method `consideration`, `acquisition_consideration` and `unpaid_acquisition_consideration`; with method `approved_valuation`, `approved_valuation`, `valuation_day`, `registered_on_1_july_2000` and `government_unimproved_on_1_july_2000`; for part of the land, `subdivision_share` and `subdivision_whole`; see [GST margin scheme](#gst-margin-scheme) |
 | `resident-tax` | `taxable_income`, `year`, `scope_confirmed` |
 | `foreign-resident-tax` | `taxable_income`, `year`, `scope_confirmed` |
 | `capital-gains` | `other_gains`, `discount_gains`, `current_losses`, `prior_losses`, `scope_confirmed`, `year` |
@@ -1395,7 +1395,9 @@ exceeds the base, or nil (s 75-10(2) and (3)). `method` sets the base:
 - `consideration`: `acquisition_consideration`, what you gave for the
   interest, less `unpaid_acquisition_consideration`, any of it still unpaid at
   the supply (s 75-12), disregarding improvements, development, legal fees and
-  stamp duty (s 75-14);
+  stamp duty (s 75-14); for an interest acquired before 1 July 2000, this
+  states that no approved valuation as at the day s 75-10(3) fixes has been
+  made, since one that has sets the margin;
 - `approved_valuation`, for an interest acquired before 1 July 2000 only: an
   `approved_valuation` made under the Commissioner's requirements (s 75-35) as
   at `valuation_day`, which must be the day s 75-10(3) fixes from
