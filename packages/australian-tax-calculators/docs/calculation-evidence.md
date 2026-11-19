@@ -1101,6 +1101,7 @@ units taking what is left so the parts add up.
 | A $289,755 gain held over 12 months | Worked by hand under s 115-100 | $96,585 discount for a complying superannuation entity, $144,877.50 for a trust, none for a company |
 | 3 units for $110 sold 1 then 2; 3 units sold for $100 from parcels of 1 and 2 | Worked by hand | Cost bases $36.67 and $73.33; proceeds $33.33 and $66.67 |
 | $1,000 cost and $100 costs of owning, sold for $1,050 | Worked by hand under ss 110-25(4) and 110-55(2) | Neither gain nor loss |
+| A company in 2026-27: a $100 parcel sold for nothing, $150 of other gains and $20 of earlier losses | Worked by hand under s 102-5(1) steps 1 and 2 | $30 net capital gain, nothing carried forward |
 
 ## Trade-in
 

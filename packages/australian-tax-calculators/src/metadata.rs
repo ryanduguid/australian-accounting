@@ -2198,7 +2198,7 @@ pub fn input_units(kind: &str) -> Vec<(&'static str, &'static str)> {
         "cgt_parcels" => vec![
             (
                 "entity",
-                "individual, trust, complying_superannuation_entity or company: the entity that made the gains (ITAA 1997 ss 115-10 and 115-100)",
+                "individual, trust, complying_superannuation_entity or company (not a life insurance company): the entity that made the gains (ITAA 1997 ss 115-10 and 115-100)",
             ),
             (
                 "identification",

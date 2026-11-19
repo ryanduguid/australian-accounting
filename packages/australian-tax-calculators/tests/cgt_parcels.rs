@@ -276,6 +276,28 @@ fn the_discount_percentage_follows_the_entity() {
     assert_eq!(one("company"), ["0.00", "289755.00"]);
 }
 
+/// Worked by hand for a company in 2026-27: a parcel bought for $100.00 and
+/// sold for nothing is a $100 loss, which takes $100 of the $150 of other
+/// gains (step 1); $20 of earlier losses take $20 more (step 2), leaving a
+/// $30 net capital gain and nothing to carry forward.
+#[test]
+fn a_company_loss_and_earlier_losses_reduce_its_other_gains() {
+    let mut input = facts(
+        "company",
+        json!([parcel("P", "S", "2025-01-15", "10", "100.00")]),
+        json!([sale("S", "2026-09-01", "10", "0.00")]),
+    );
+    input["year"] = json!("2026-27");
+    input["other_capital_gains"] = json!("150.00");
+    input["prior_net_capital_losses"] = json!("20.00");
+    let r = run(&input);
+    assert_eq!(
+        amounts(&r, NET),
+        ["150.00", "100.00", "0.00", "20.00", "0.00", "0.00", "30.00", "0.00"]
+    );
+    assert_eq!(r["matches"][0]["capital_loss"], "100.00");
+}
+
 /// Worked by hand: 3 units bought for $100.00 and $10.00 brokerage, sold one by
 /// one and then 2 together, take $36.67 and then the $73.33 left of the cost;
 /// a sale of 3 units for $100.00 across parcels of 1 and 2 units gives them

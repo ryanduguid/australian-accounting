@@ -968,8 +968,8 @@ the proceeds exceed its cost base and a capital loss where its reduced cost
 base, which leaves out costs of owning, exceeds them (ss 104-10(4) and
 110-55(2)). A gain is a discount capital gain when the parcel was acquired at
 least 12 months before the sale, counting neither day (s 115-25(1); the ATO's
-'CGT discount'), except for a company (s 115-10). The year's capital losses
-and then the earlier net capital losses reduce the other gains first and the
+'CGT discount'), except for a company (s 115-10; a life insurance company is
+out of scope). The year's capital losses and then the earlier net capital losses reduce the other gains first and the
 discount capital gains after (s 102-5(1) steps 1 and 2, the order the ATO says
 usually gives the smallest net capital gain), and the discount percentage, 50%
 or 33 1/3% for a complying superannuation entity (s 115-100), reduces each
