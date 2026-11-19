@@ -20,7 +20,9 @@ mod fbt_benefits;
 pub use fbt_benefits::{
     fbt_board, fbt_housing, fbt_lafha, fbt_residual, fbt_tax_exempt_body_entertainment,
 };
-pub use fbt_benefits::{fbt_car_parking, fbt_loan, fbt_meal_entertainment};
+pub use fbt_benefits::{
+    fbt_car_parking, fbt_loan, fbt_meal_entertainment, fbt_meal_entertainment_register,
+};
 pub use fbt_benefits::{
     fbt_debt_waiver, fbt_entertainment_classifier, fbt_expense_payment, fbt_property,
 };
@@ -6074,7 +6076,7 @@ pub use income_tests::income_tests;
 mod wine_equalisation_tax;
 pub use wine_equalisation_tax::{WetArgs, wine_equalisation_tax};
 
-const KINDS: [&str; 52] = [
+const KINDS: [&str; 53] = [
     "gst",
     "resident_tax",
     "foreign_resident_tax",
@@ -6092,6 +6094,7 @@ const KINDS: [&str; 52] = [
     "fbt_car_operating_cost",
     "fbt_loan",
     "fbt_meal_entertainment",
+    "fbt_meal_entertainment_register",
     "fbt_car_parking",
     "fbt_debt_waiver",
     "fbt_expense_payment",

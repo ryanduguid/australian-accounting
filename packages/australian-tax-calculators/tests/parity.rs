@@ -18,7 +18,7 @@ use std::process::{Command, Stdio};
 /// `tests/working_holiday_maker.rs`, `tests/seniors_pensioners.rs`,
 /// `tests/seniors_pensioners_offset.rs`, `tests/medicare_surcharge.rs`,
 /// `tests/foreign_resident_tax.rs`, `tests/payg_gross_up.rs`, `tests/fbt_loan.rs`,
-/// `tests/fbt_meal_entertainment.rs`, `tests/fbt_car_parking.rs`,
+/// `tests/fbt_meal_entertainment.rs`, `tests/fbt_meal_entertainment_register.rs`, `tests/fbt_car_parking.rs`,
 /// `tests/fbt_debt_waiver.rs`, `tests/fbt_expense_payment.rs`,
 /// `tests/fbt_property.rs`, `tests/fbt_residual.rs`, `tests/fbt_housing.rs`,
 /// `tests/fbt_lafha.rs`, `tests/fbt_board.rs`,
@@ -26,7 +26,7 @@ use std::process::{Command, Stdio};
 /// `tests/fbt_entertainment_classifier.rs`, `tests/income_tests.rs` and
 /// `tests/wine_equalisation_tax.rs` cover
 /// them.
-const NEW_KINDS: [(&str, &str); 38] = [
+const NEW_KINDS: [(&str, &str); 39] = [
     ("fbt-car-statutory", "fbt_car_statutory"),
     ("fbt-car-operating-cost", "fbt_car_operating_cost"),
     ("fbt-loan", "fbt_loan"),
@@ -83,6 +83,10 @@ const NEW_KINDS: [(&str, &str); 38] = [
         "fbt_entertainment_classifier",
     ),
     ("income-tests", "income_tests"),
+    (
+        "fbt-meal-entertainment-register",
+        "fbt_meal_entertainment_register",
+    ),
 ];
 
 /// The JSON boundary's answer in the corpus encoding: `{"ok": value}` or `{"error": message}`.

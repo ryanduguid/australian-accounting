@@ -150,8 +150,9 @@ fn every_catalogued_required_input_of_a_strict_command_is_read() {
     // fbt-entertainment-classifier, unused-leave-payment,
     // lump-sum-arrears-tax-offset, income-tests,
     // business-capital-expenditure, balancing-adjustment, trade-in,
-    // etp-tax-free-component and wine-equalisation-tax.
-    assert_eq!(checked, 38);
+    // etp-tax-free-component, fbt-meal-entertainment-register and
+    // wine-equalisation-tax.
+    assert_eq!(checked, 39);
 }
 
 /// Every frozen call gives the same answer through either entry point, and
