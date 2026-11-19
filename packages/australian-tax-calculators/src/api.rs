@@ -137,6 +137,10 @@ const COMMAND_ARGS: &[(&str, &[(&str, Kind)])] = &[
         ],
     ),
     (
+        "fuel-tax-credits",
+        &[("lines", Json), ("year", Raw), ("scope_confirmed", Raw)],
+    ),
+    (
         "gst-margin-scheme",
         &[
             ("interest", Raw),
@@ -1047,6 +1051,7 @@ pub fn evaluate_coded(command: &str, v: &Value) -> Result<Value> {
         command,
         "division-296"
             | "depreciation"
+            | "fuel-tax-credits"
             | "medicare-levy"
             | "medicare-levy-surcharge"
             | "payg-withholding"
@@ -1109,6 +1114,21 @@ pub fn evaluate_coded(command: &str, v: &Value) -> Result<Value> {
     let pay_date = v.get("pay_date").map(arg);
     let result = match command {
         "gst" => engine::gst(&a[0], &a[1], &a[2], &a[3]),
+        "fuel-tax-credits" => {
+            // Optional: the simplified methods' small claimant statement and
+            // tax period, and the return's day for the s 47-5(2) check.
+            let small = optional(v, "small_claimant", Raw)?;
+            let period = optional(v, "rate_at_period_end", Json)?;
+            let returned = optional(v, "return_date", Raw)?;
+            engine::fuel_tax_credits(&engine::FuelArgs {
+                lines: &a[0],
+                small_claimant: small.as_ref(),
+                rate_at_period_end: period.as_ref(),
+                return_date: returned.as_ref(),
+                year: &a[1],
+                scope_confirmed: &a[2],
+            })
+        }
         "resident-tax" => engine::resident_tax(&a[0], &a[1], &a[2]),
         "foreign-resident-tax" => engine::foreign_resident_tax(&a[0], &a[1], &a[2]),
         "capital-gains" => engine::capital_gains(&a[0], &a[1], &a[2], &a[3], &a[4], &a[5]),
