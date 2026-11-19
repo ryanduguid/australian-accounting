@@ -635,6 +635,14 @@ const COMMAND_ARGS: &[(&str, &[(&str, Kind)])] = &[
         ],
     ),
     (
+        "fhss",
+        &[
+            ("determination_date", Raw),
+            ("year", Raw),
+            ("scope_confirmed", Raw),
+        ],
+    ),
+    (
         "fbt-entertainment-classifier",
         &[
             ("lines", Json),
@@ -1116,6 +1124,7 @@ pub fn evaluate_coded(command: &str, v: &Value) -> Result<Value> {
             | "fbt-entertainment-classifier"
             | "fbt-meal-entertainment-register"
             | "fbt-minor-benefit-check"
+            | "fhss"
             | "ppsr-timing"
             | "hire-purchase-schedule"
             | "chattel-mortgage-schedule"
@@ -1491,6 +1500,39 @@ pub fn evaluate_coded(command: &str, v: &Value) -> Result<Value> {
                 fifty_fifty_split: fifty.as_ref(),
                 year_ended: &a[9],
                 scope_confirmed: &a[10],
+            })
+        }
+        "fhss" => {
+            let [contributions, requested, deductions, determination] = [
+                "contributions",
+                "determination_requested",
+                "personal_deductions",
+                "determination",
+            ]
+            .map(|key| {
+                let kind = if key == "determination_requested" {
+                    Raw
+                } else {
+                    Json
+                };
+                optional(v, key, kind)
+            });
+            let [contributions, requested, deductions, determination] =
+                [contributions?, requested?, deductions?, determination?];
+            let amount = optional(v, "amount_requested", Dec)?;
+            let marginal = optional(v, "estimated_marginal_rate", Dec)?;
+            let cannot = optional(v, "commissioner_cannot_estimate", Raw)?;
+            engine::fhss(&engine::FhssArgs {
+                determination_date: &a[0],
+                year: &a[1],
+                scope_confirmed: &a[2],
+                contributions: contributions.as_ref(),
+                determination_requested: requested.as_ref(),
+                personal_deductions: deductions.as_ref(),
+                determination: determination.as_ref(),
+                amount_requested: amount.as_ref(),
+                estimated_marginal_rate: marginal.as_ref(),
+                commissioner_cannot_estimate: cannot.as_ref(),
             })
         }
         "fbt-entertainment-classifier" => {
