@@ -227,8 +227,10 @@ fn a_total_of_100_dollars_or_less_is_not_spread() {
 #[test]
 fn a_loan_drawn_on_29_february_runs_to_28_february_5_years_on() {
     let leap = |year: &str| {
-        run(json!({"borrowing_expenses": "2000.00", "loan_start": "2024-02-29",
-                   "year": year}))
+        run(
+            json!({"borrowing_expenses": "2000.00", "loan_start": "2024-02-29",
+                   "year": year}),
+        )
         .unwrap()
     };
     let first = leap("2023-24");
@@ -246,15 +248,19 @@ fn a_loan_drawn_on_29_february_runs_to_28_february_5_years_on() {
 /// so $901.85 (the Library's $902).
 #[test]
 fn from_2027_28_the_amount_is_worked_out_and_flagged_for_s_26_155() {
-    let ben = run(json!({"borrowing_expenses": "3600.00", "loan_start": "2025-09-01",
-                         "loan_term_end": "2029-08-31", "year": "2027-28"}))
+    let ben = run(
+        json!({"borrowing_expenses": "3600.00", "loan_start": "2025-09-01",
+                         "loan_term_end": "2029-08-31", "year": "2027-28"}),
+    )
     .unwrap();
     assert_eq!(amounts(&ben), ["1954.01", "901.85", "901.85", "1052.16"]);
     assert_eq!(days(&ben), ("366", "793"));
     let warnings = ben["warnings"].to_string();
     assert!(warnings.contains("s 26-155(1) quarantines"), "{warnings}");
-    let earlier = run(json!({"borrowing_expenses": "3600.00", "loan_start": "2025-09-01",
-                             "loan_term_end": "2029-08-31", "year": "2026-27"}))
+    let earlier = run(
+        json!({"borrowing_expenses": "3600.00", "loan_start": "2025-09-01",
+                             "loan_term_end": "2029-08-31", "year": "2026-27"}),
+    )
     .unwrap();
     assert!(!earlier["warnings"].to_string().contains("26-155"));
 }

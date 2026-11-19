@@ -125,11 +125,13 @@ fn uses(value: &Value, years: &[SpreadYear]) -> Result<Vec<Decimal>> {
     }
     years
         .iter()
-        .map(|row| match by_year.get(&income_year(row.first)).map(fraction) {
-            Some(Ok(Some(share))) => Ok(share),
-            Some(Err(error)) => Err(error),
-            _ => income_use_invalid(years),
-        })
+        .map(
+            |row| match by_year.get(&income_year(row.first)).map(fraction) {
+                Some(Ok(Some(share))) => Ok(share),
+                Some(Err(error)) => Err(error),
+                _ => income_use_invalid(years),
+            },
+        )
         .collect()
 }
 
@@ -272,7 +274,9 @@ fn not_spread(loans: &[Facts], other: &BTreeMap<i64, Decimal>) -> Result<Vec<boo
     let mut totals: BTreeMap<i64, Decimal> = other.clone();
     for facts in loans {
         let share = facts.expenditure.mul(&facts.uses[0])?;
-        let total = totals.entry(facts.loan.first_year).or_insert_with(|| int(0));
+        let total = totals
+            .entry(facts.loan.first_year)
+            .or_insert_with(|| int(0));
         *total = total.add(&share)?;
     }
     loans
@@ -344,12 +348,7 @@ fn row_json(row: &Row) -> Result<Value> {
 }
 
 /// A loan's row: its facts, how it is deducted, its schedule and notes.
-fn loan_json(
-    n: usize,
-    facts: &Facts,
-    rows: &[Row],
-    refinanced_by: Option<usize>,
-) -> Result<Value> {
+fn loan_json(n: usize, facts: &Facts, rows: &[Row], refinanced_by: Option<usize>) -> Result<Value> {
     let last = &facts.years[facts.years.len() - 1];
     let whole = rows[0].spread.is_none();
     let (spread, to, basis) = if whole {

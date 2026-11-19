@@ -72,7 +72,14 @@ fn rows(result: &Value, n: usize) -> Vec<[String; 6]> {
         .collect()
 }
 
-fn row(year: &str, remaining: &str, maximum: &str, deduction: &str, days: i64, left: i64) -> [String; 6] {
+fn row(
+    year: &str,
+    remaining: &str,
+    maximum: &str,
+    deduction: &str,
+    days: i64,
+    left: i64,
+) -> [String; 6] {
     [year, remaining, maximum, deduction]
         .map(str::to_string)
         .into_iter()
@@ -89,8 +96,10 @@ const FIONA_SHARE: &str = "0.8133971291866028708133971291866028708134";
 /// years put each one's Year 4 on 2023-24, which holds 29 February 2024.
 #[test]
 fn two_loans_give_every_year_of_each_as_the_ato_works_them() {
-    let fiona = loan(json!({"borrowing_expenses": "1670.00", "loan_start": "2020-07-17",
-                            "loan_term_end": "2040-07-16", "income_use": FIONA_SHARE}));
+    let fiona = loan(
+        json!({"borrowing_expenses": "1670.00", "loan_start": "2020-07-17",
+                            "loan_term_end": "2040-07-16", "income_use": FIONA_SHARE}),
+    );
     let r = schedule(json!([loan(json!({})), fiona]), "2024-25");
     assert_eq!(
         rows(&r, 1),
@@ -119,8 +128,11 @@ fn two_loans_give_every_year_of_each_as_the_ato_works_them() {
     assert_eq!(amounts["maximum_deduction"], "653.65");
     assert_eq!(amounts["deduction"], "591.36");
     assert_eq!(amounts["remaining_expenditure_after_year"], "16.38");
-    assert_eq!(r["schedule"][5], json!({"income_year": "2025-26", "maximum_deduction": "16.38",
-        "deduction": "13.65", "section_26_155": false, "projected": false}));
+    assert_eq!(
+        r["schedule"][5],
+        json!({"income_year": "2025-26", "maximum_deduction": "16.38",
+        "deduction": "13.65", "section_26_155": false, "projected": false})
+    );
     assert_eq!(r["loans"][0]["total_deduction"], "1600.00");
     assert_eq!(r["loans"][1]["total_deduction"], "1358.38");
     assert_eq!(r["loans"][0]["period_of_the_loan_to"], "2025-07-02");
@@ -136,8 +148,10 @@ fn two_loans_give_every_year_of_each_as_the_ato_works_them() {
 /// the cent; 2027-28 on is flagged for s 26-155, and 2028-29 on is projected.
 #[test]
 fn ben_runs_to_the_end_of_his_4_year_contract() {
-    let ben = loan(json!({"borrowing_expenses": "3600.00", "loan_start": "2025-09-01",
-                          "loan_term_end": "2029-08-31"}));
+    let ben = loan(
+        json!({"borrowing_expenses": "3600.00", "loan_start": "2025-09-01",
+                          "loan_term_end": "2029-08-31"}),
+    );
     let r = schedule(json!([ben]), "2027-28");
     assert_eq!(
         rows(&r, 1),
@@ -153,11 +167,22 @@ fn ben_runs_to_the_end_of_his_4_year_contract() {
         .as_array()
         .unwrap()
         .iter()
-        .map(|row| (row["section_26_155"].as_bool().unwrap(), row["projected"].as_bool().unwrap()))
+        .map(|row| {
+            (
+                row["section_26_155"].as_bool().unwrap(),
+                row["projected"].as_bool().unwrap(),
+            )
+        })
         .collect();
     assert_eq!(
         flags,
-        [(false, false), (false, false), (true, false), (true, true), (true, true)]
+        [
+            (false, false),
+            (false, false),
+            (true, false),
+            (true, true),
+            (true, true)
+        ]
     );
     let warnings = r["warnings"].to_string();
     assert!(warnings.contains("s 26-155(1) quarantines"), "{warnings}");
@@ -176,10 +201,14 @@ fn ben_runs_to_the_end_of_his_4_year_contract() {
 /// $800 × 182 ÷ 1,826 = $79.7371, so $79.74.
 #[test]
 fn refinancing_writes_off_the_old_loan_and_spreads_the_new_one() {
-    let old = loan(json!({"borrowing_expenses": "1500.00", "loan_start": "2024-09-01",
-                          "loan_term_end": "2028-08-31", "repaid_on": "2025-12-31"}));
-    let new = loan(json!({"borrowing_expenses": "800.00", "loan_start": "2025-12-31",
-                          "loan_term_end": null, "refinances": 1}));
+    let old = loan(
+        json!({"borrowing_expenses": "1500.00", "loan_start": "2024-09-01",
+                          "loan_term_end": "2028-08-31", "repaid_on": "2025-12-31"}),
+    );
+    let new = loan(
+        json!({"borrowing_expenses": "800.00", "loan_start": "2025-12-31",
+                          "loan_term_end": null, "refinances": 1}),
+    );
     let r = schedule(json!([old, new]), "2025-26");
     assert_eq!(
         rows(&r, 1),
@@ -206,13 +235,23 @@ fn refinancing_writes_off_the_old_loan_and_spreads_the_new_one() {
         r["loans"][0]["period_of_the_loan"],
         "s 25-25(5)(b): to the day the loan was repaid"
     );
-    assert!(r["loans"][0]["notes"][0].as_str().unwrap().starts_with("Refinanced by loan 2: repaid on 2025-12-31"));
+    assert!(
+        r["loans"][0]["notes"][0]
+            .as_str()
+            .unwrap()
+            .starts_with("Refinanced by loan 2: repaid on 2025-12-31")
+    );
     // Refinancing must repay the named loan on the new loan's first day.
     let mut late = new.clone();
     late["loan_start"] = json!("2026-01-01");
     assert_eq!(
-        refusal(json!([loan(json!({"borrowing_expenses": "1500.00", "loan_start": "2024-09-01",
-            "loan_term_end": "2028-08-31", "repaid_on": "2025-12-31"})), late])),
+        refusal(json!([
+            loan(
+                json!({"borrowing_expenses": "1500.00", "loan_start": "2024-09-01",
+            "loan_term_end": "2028-08-31", "repaid_on": "2025-12-31"})
+            ),
+            late
+        ])),
         "loan 2: refinances must be the number of an earlier loan in loans, repaid on this loan's loan_start and refinanced by no other loan."
     );
 }
@@ -225,7 +264,10 @@ fn use_can_change_from_year_to_year() {
                       "2024-25": "0", "2025-26": "0.5"});
     let r = schedule(json!([loan(json!({"income_use": uses}))]), "2023-24");
     let deductions: Vec<String> = rows(&r, 1).into_iter().map(|row| row[3].clone()).collect();
-    assert_eq!(deductions, ["318.07", "319.83", "159.91", "160.35", "0.00", "0.88"]);
+    assert_eq!(
+        deductions,
+        ["318.07", "319.83", "159.91", "160.35", "0.00", "0.88"]
+    );
     assert_eq!(r["amounts"]["deduction"], "160.35");
     assert_eq!(r["loans"][0]["schedule"][2]["income_use"], "0.5");
     // Every year of the loan needs its use.
@@ -243,13 +285,20 @@ fn use_can_change_from_year_to_year() {
 #[test]
 fn the_100_dollar_test_counts_every_loan_incurred_in_the_year() {
     let loans = json!([
-        loan(json!({"borrowing_expenses": "60.00", "loan_start": "2025-08-01", "loan_term_end": "2028-07-31"})),
-        loan(json!({"borrowing_expenses": "40.00", "loan_start": "2026-02-01", "loan_term_end": null})),
+        loan(
+            json!({"borrowing_expenses": "60.00", "loan_start": "2025-08-01", "loan_term_end": "2028-07-31"})
+        ),
+        loan(
+            json!({"borrowing_expenses": "40.00", "loan_start": "2026-02-01", "loan_term_end": null})
+        ),
     ]);
     let r = schedule(loans.clone(), "2025-26");
     let whole = ["2025-26", "60.00", "60.00", "60.00", "null", "null"].map(String::from);
     assert_eq!(rows(&r, 1), [whole]);
-    assert_eq!(r["loans"][1]["spread"], "not spread: $100 or less (s 25-25(6))");
+    assert_eq!(
+        r["loans"][1]["spread"],
+        "not spread: $100 or less (s 25-25(6))"
+    );
     assert_eq!(r["amounts"]["deduction"], "100.00");
     let mut over = input(loans, "2025-26");
     over["other_borrowing_expenses"] = json!({"2025-26": "0.01"});
@@ -305,8 +354,14 @@ fn each_row_is_the_one_loan_worksheets_result() {
 #[test]
 fn out_of_scope_and_malformed_loans_are_refused() {
     let cases = [
-        (json!([]), "loans must be a non-empty list of objects, one for each loan."),
-        (json!(["loan"]), "loan 1: loans must be a non-empty list of objects, one for each loan."),
+        (
+            json!([]),
+            "loans must be a non-empty list of objects, one for each loan.",
+        ),
+        (
+            json!(["loan"]),
+            "loan 1: loans must be a non-empty list of objects, one for each loan.",
+        ),
         (
             json!([loan(json!({"interest": "10.00"}))]),
             "loan 1: interest is not a fact a loan takes",
@@ -353,13 +408,29 @@ fn out_of_scope_and_malformed_loans_are_refused() {
     }
     let mut other = input(json!([loan(json!({}))]), "2026-27");
     other["other_borrowing_expenses"] = json!({"2025": "1.00"});
-    assert!(run(&other).unwrap_err().starts_with("other_borrowing_expenses must be an object"));
+    assert!(
+        run(&other)
+            .unwrap_err()
+            .starts_with("other_borrowing_expenses must be an object")
+    );
     let codes = [
         (json!([]), "borrowing.loans_invalid"),
-        (json!([loan(json!({"income_use": {}}))]), "borrowing.income_use_invalid"),
-        (json!([loan(json!({"loan_start": "2017-06-30"}))]), "borrowing.loan_before_2017_18"),
-        (json!([{"loan_start": "2020-07-03"}]), "borrowing.loan_fact_missing"),
-        (json!([loan(json!({"refinances": 0}))]), "borrowing.refinance_invalid"),
+        (
+            json!([loan(json!({"income_use": {}}))]),
+            "borrowing.income_use_invalid",
+        ),
+        (
+            json!([loan(json!({"loan_start": "2017-06-30"}))]),
+            "borrowing.loan_before_2017_18",
+        ),
+        (
+            json!([{"loan_start": "2020-07-03"}]),
+            "borrowing.loan_fact_missing",
+        ),
+        (
+            json!([loan(json!({"refinances": 0}))]),
+            "borrowing.refinance_invalid",
+        ),
     ];
     for (loans, code) in codes {
         let refused = api::evaluate_coded("borrowing-expenses-schedule", &input(loans, "2026-27"));
