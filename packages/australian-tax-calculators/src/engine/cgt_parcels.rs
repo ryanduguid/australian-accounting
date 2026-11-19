@@ -21,6 +21,11 @@ use super::{
 use crate::dates;
 use crate::decimal::Decimal;
 
+mod input;
+mod steps;
+use input::{objects, read_disposal, read_parcel};
+use steps::amount_steps;
+
 const KIND: &str = "cgt_parcels";
 
 /// The most parcels or disposals one call takes.
@@ -90,223 +95,6 @@ struct Piece {
 
 fn conflict<T>(message: String) -> Result<T> {
     refuse("cgt_parcels.fact_conflict", message)
-}
-
-/// The stated facts of one parcel or disposal, each read once.
-struct Fields<'a> {
-    what: String,
-    fields: &'a Map<String, Value>,
-    taken: Vec<&'static str>,
-}
-
-impl<'a> Fields<'a> {
-    fn invalid<T>(&self, key: &str, expected: &str) -> Result<T> {
-        refuse(
-            "cgt_parcels.fact_invalid",
-            format!("{}: {key} must be {expected}.", self.what),
-        )
-    }
-
-    fn get(&mut self, key: &'static str) -> Option<&'a Value> {
-        self.taken.push(key);
-        self.fields.get(key)
-    }
-
-    fn required(&mut self, key: &'static str) -> Result<&'a Value> {
-        let fields = self.fields;
-        match fields.get(key) {
-            Some(value) => {
-                self.taken.push(key);
-                Ok(value)
-            }
-            None => refuse(
-                "cgt_parcels.fact_missing",
-                format!("{}: {key} is required.", self.what),
-            ),
-        }
-    }
-
-    fn text(&mut self, key: &'static str) -> Result<String> {
-        match self.required(key)?.as_str() {
-            Some(text) if !text.trim().is_empty() => Ok(text.to_string()),
-            _ => self.invalid(key, "a non-empty string"),
-        }
-    }
-
-    fn date(&mut self, key: &'static str) -> Result<i64> {
-        match self.required(key)?.as_str().and_then(dates::parse) {
-            Some(day) => Ok(day),
-            None => self.invalid(key, "a YYYY-MM-DD date from 1900 to 2100"),
-        }
-    }
-
-    fn decimal(value: Option<&Value>) -> Option<Decimal> {
-        value?.as_str().and_then(|text| Decimal::parse(text).ok())
-    }
-
-    /// An amount in AUD; nil when an optional one is absent.
-    fn amount(&mut self, key: &'static str, optional: bool) -> Result<Decimal> {
-        let value = if optional {
-            match self.get(key) {
-                None => return Ok(int(0)),
-                given => given,
-            }
-        } else {
-            Some(self.required(key)?)
-        };
-        match Self::decimal(value).map(|v| money(&Arg::Decimal(v))) {
-            Some(Ok(amount)) => Ok(amount),
-            _ => self.invalid(
-                key,
-                "a finite non-negative decimal string, at most 2dp and 1e12",
-            ),
-        }
-    }
-
-    /// A number of shares or units: above nil, at most 6dp and 1e12.
-    fn units(&mut self, key: &'static str) -> Result<Decimal> {
-        let value = Self::decimal(Some(self.required(key)?));
-        match value {
-            Some(v) if v.is_finite() && v.exponent() >= -6 => {
-                if v.gt(&int(0))? && !v.gt(&Decimal::parse("1e12")?)? {
-                    return Ok(v);
-                }
-                self.invalid(key, "a decimal string above 0, at most 6dp and 1e12")
-            }
-            _ => self.invalid(key, "a decimal string above 0, at most 6dp and 1e12"),
-        }
-    }
-
-    fn none_left(&self) -> Result<()> {
-        match self
-            .fields
-            .keys()
-            .find(|key| !self.taken.contains(&key.as_str()))
-        {
-            Some(key) => refuse(
-                "input.field_unknown",
-                format!(
-                    "{}: {key} is not a fact it takes beside its other facts.",
-                    self.what
-                ),
-            ),
-            None => Ok(()),
-        }
-    }
-}
-
-fn list_invalid<T>(name: &str) -> Result<T> {
-    refuse(
-        "cgt_parcels.list_invalid",
-        format!("{name} must be a list of 1 to {MOST} objects."),
-    )
-}
-
-/// The objects of a non-empty list of at most [`MOST`].
-fn objects<'a>(value: &'a Arg, name: &str) -> Result<Vec<&'a Map<String, Value>>> {
-    let Arg::Json(Value::Array(list)) = value else {
-        return list_invalid(name);
-    };
-    if list.is_empty() || list.len() > MOST {
-        return list_invalid(name);
-    }
-    list.iter()
-        .map(|v| match v.as_object() {
-            Some(fields) => Ok(fields),
-            None => list_invalid(name),
-        })
-        .collect()
-}
-
-fn read_parcel(n: usize, fields: &Map<String, Value>) -> Result<Parcel> {
-    let mut f = Fields {
-        what: format!("parcel {n}"),
-        fields,
-        taken: Vec::new(),
-    };
-    let id = f.text("parcel")?;
-    let security = f.text("security")?;
-    let acquired = f.date("acquired")?;
-    let units = f.units("units")?;
-    let mut base = f.amount("acquisition_cost", false)?;
-    base = base.add(&f.amount("incidental_costs", false)?)?;
-    let owning = f.amount("ownership_costs", true)?;
-    base = base.add(&f.amount("capital_expenditure", true)?)?;
-    base = base.add(&f.amount("title_costs", true)?)?;
-    f.none_left()?;
-    Ok(Parcel {
-        id,
-        security,
-        acquired,
-        units,
-        base,
-        owning,
-    })
-}
-
-fn read_picks(f: &mut Fields) -> Result<Vec<Pick>> {
-    let what = f.what.clone();
-    let bad = || {
-        refuse(
-            "cgt_parcels.fact_invalid",
-            format!(
-                "{what}: parcels must be a non-empty list of objects, each with parcel and units."
-            ),
-        )
-    };
-    let Value::Array(list) = f.required("parcels")? else {
-        return bad();
-    };
-    if list.is_empty() {
-        return bad();
-    }
-    let mut picks = Vec::new();
-    for (i, value) in list.iter().enumerate() {
-        let Some(fields) = value.as_object() else {
-            return bad();
-        };
-        let mut pick = Fields {
-            what: format!("{what}, selected parcel {}", i + 1),
-            fields,
-            taken: Vec::new(),
-        };
-        let parcel = pick.text("parcel")?;
-        let units = pick.units("units")?;
-        pick.none_left()?;
-        if picks.iter().any(|p: &Pick| p.parcel == parcel) {
-            return conflict(format!("{what}: parcel {parcel} is selected twice."));
-        }
-        picks.push(Pick { parcel, units });
-    }
-    Ok(picks)
-}
-
-fn read_disposal(n: usize, fields: &Map<String, Value>, selected: bool) -> Result<Disposal> {
-    let mut f = Fields {
-        what: format!("disposal {n}"),
-        fields,
-        taken: Vec::new(),
-    };
-    let security = f.text("security")?;
-    let date = f.date("date")?;
-    let units = f.units("units")?;
-    let proceeds = f.amount("capital_proceeds", false)?;
-    let selling = f.amount("incidental_costs", false)?;
-    let picks = if selected {
-        Some(read_picks(&mut f)?)
-    } else {
-        None
-    };
-    f.none_left()?;
-    Ok(Disposal {
-        n,
-        security,
-        date,
-        units,
-        proceeds,
-        selling,
-        picks,
-    })
 }
 
 /// What is left of a parcel or a disposal as its units are matched.
@@ -525,182 +313,6 @@ fn first_in(
     }
     Ok(takes)
 }
-
-const PARCEL_DISCOUNT_GAINS: &str = "ITAA 1997 s 104-10(4), ss 115-5 to 115-25: the capital gains from disposals in the year of parcels acquired at least 12 months before, the day acquired and the day of the event not counted, by an entity that can make a discount capital gain";
-const PARCEL_OTHER_GAINS: &str = "ITAA 1997 s 104-10(4) and s 115-25(1): the capital gains from disposals in the year that are not discount capital gains";
-const PARCEL_LOSSES: &str = "ITAA 1997 s 104-10(4) and s 110-55(2): the capital losses from disposals in the year, where the capital proceeds are less than the reduced cost base, which leaves out costs of owning";
-const STEP_1: &str = "ITAA 1997 s 102-5(1) step 1 and its note 1: the year's capital losses reduce the capital gains in the order chosen, here the gains that are not discount capital gains first, which leaves the smallest net capital gain";
-const STEP_2: &str = "ITAA 1997 s 102-5(1) step 2 and its note 2, and s 102-15: net capital losses of earlier years reduce what step 1 leaves, here the gains that are not discount capital gains first";
-const STEP_3: &str = "ITAA 1997 s 102-5(1) step 3 and s 115-100: each discount capital gain left after step 2 is reduced by the discount percentage, 50% for an individual or a trust and 33 1/3% for a complying superannuation entity";
-const STEP_5: &str = "ITAA 1997 s 102-5(1) step 5: the capital gains left after step 3 (step 4's small business concessions are not applied here)";
-const NET_LOSS: &str =
-    "ITAA 1997 s 102-10(1): the year's capital losses less its capital gains, where more than nil";
-const CARRIED: &str = "ITAA 1997 ss 102-10(1) and 102-15: the year's net capital loss and the earlier years' net capital losses not applied, carried forward";
-
-/// A sum over the pieces, written out term by term.
-fn total(values: &[&Decimal]) -> Result<(String, Decimal)> {
-    let mut sum = int(0);
-    for v in values {
-        sum = sum.add(v)?;
-    }
-    let terms: Vec<String> = values.iter().map(|v| v.to_string()).collect();
-    let formula = if terms.is_empty() {
-        "0".to_string()
-    } else {
-        terms.join(" + ")
-    };
-    Ok((formula, sum))
-}
-
-/// The other gains and losses the call states: (discount gains, other gains,
-/// capital losses, earlier net capital losses).
-type Others = [Decimal; 4];
-
-fn amount_steps(pieces: &[Piece], others: &Others, fraction: [&Decimal; 2]) -> Result<Vec<Step>> {
-    let counted: Vec<&Piece> = pieces.iter().filter(|p| p.counted).collect();
-    let gains = |discount: bool| -> Vec<&Decimal> {
-        counted
-            .iter()
-            .filter(|p| p.discount == discount && !p.gain.is_zero())
-            .map(|p| &p.gain)
-            .collect()
-    };
-    let losses: Vec<&Decimal> = counted
-        .iter()
-        .filter(|p| !p.loss.is_zero())
-        .map(|p| &p.loss)
-        .collect();
-    let [other_discount, other_gains_in, other_losses, prior] = others;
-    let (fd, pdg) = total(&gains(true))?;
-    let (fo, pog) = total(&gains(false))?;
-    let (fl, pl) = total(&losses)?;
-    let dg = pdg.add(other_discount)?;
-    let og = pog.add(other_gains_in)?;
-    let h = dg.add(&og)?;
-    let cl = pl.add(other_losses)?;
-    let lo = min(&og, &cl)?;
-    let ld = min(&dg, &cl.sub(&lo)?)?;
-    let po = min(&og.sub(&lo)?, prior)?;
-    let pd = min(&dg.sub(&ld)?, &prior.sub(&po)?)?;
-    let [numerator, denominator] = fraction;
-    let left = dg.sub(&ld)?.sub(&pd)?;
-    let discount = left.mul(numerator)?.div(denominator)?;
-    let net = og
-        .sub(&lo)?
-        .sub(&po)?
-        .add(&dg)?
-        .sub(&ld)?
-        .sub(&pd)?
-        .sub(&discount)?;
-    let net_loss = cl.sub(&lo)?.sub(&ld)?;
-    let carried = net_loss.add(prior)?.sub(&po)?.sub(&pd)?;
-    Ok(vec![
-        step(
-            "parcel_discount_gains",
-            PARCEL_DISCOUNT_GAINS,
-            &fd,
-            &[],
-            pdg.clone(),
-        ),
-        step(
-            "parcel_other_gains",
-            PARCEL_OTHER_GAINS,
-            &fo,
-            &[],
-            pog.clone(),
-        ),
-        step("parcel_losses", PARCEL_LOSSES, &fl, &[], pl.clone()),
-        step(
-            "discount_gains",
-            PARCEL_DISCOUNT_GAINS,
-            "parcel_discount_gains + other_discount_capital_gains",
-            &[&pdg, other_discount],
-            dg.clone(),
-        ),
-        step(
-            "other_gains",
-            PARCEL_OTHER_GAINS,
-            "parcel_other_gains + other_capital_gains",
-            &[&pog, other_gains_in],
-            og.clone(),
-        ),
-        step(
-            "total_capital_gains",
-            "ITAA 1997 s 102-5(1) step 1: the capital gains made during the year, before losses and the discount (question 18 label H)",
-            "discount_gains + other_gains",
-            &[&dg, &og],
-            h,
-        ),
-        step(
-            "capital_losses",
-            PARCEL_LOSSES,
-            "parcel_losses + other_capital_losses",
-            &[&pl, other_losses],
-            cl.clone(),
-        ),
-        step(
-            "losses_applied_to_other_gains",
-            STEP_1,
-            "min(other_gains, capital_losses)",
-            &[&og, &cl],
-            lo.clone(),
-        ),
-        step(
-            "losses_applied_to_discount_gains",
-            STEP_1,
-            "min(discount_gains, capital_losses - losses_applied_to_other_gains)",
-            &[&dg, &cl, &lo],
-            ld.clone(),
-        ),
-        step(
-            "prior_losses_applied_to_other_gains",
-            STEP_2,
-            "min(other_gains - losses_applied_to_other_gains, prior_net_capital_losses)",
-            &[&og, &lo, prior],
-            po.clone(),
-        ),
-        step(
-            "prior_losses_applied_to_discount_gains",
-            STEP_2,
-            "min(discount_gains - losses_applied_to_discount_gains, prior_net_capital_losses - prior_losses_applied_to_other_gains)",
-            &[&dg, &ld, prior, &po],
-            pd.clone(),
-        ),
-        step(
-            "discount",
-            STEP_3,
-            "(discount_gains - losses_applied_to_discount_gains - prior_losses_applied_to_discount_gains) x discount_numerator / discount_denominator",
-            &[&dg, &ld, &pd, numerator, denominator],
-            discount.clone(),
-        ),
-        step(
-            "net_capital_gain",
-            STEP_5,
-            "other_gains - losses_applied_to_other_gains - prior_losses_applied_to_other_gains + discount_gains - losses_applied_to_discount_gains - prior_losses_applied_to_discount_gains - discount",
-            &[&og, &lo, &po, &dg, &ld, &pd, &discount],
-            net,
-        ),
-        step(
-            "net_capital_loss",
-            NET_LOSS,
-            "capital_losses - losses_applied_to_other_gains - losses_applied_to_discount_gains",
-            &[&cl, &lo, &ld],
-            net_loss.clone(),
-        ),
-        step(
-            "net_capital_losses_carried_forward",
-            CARRIED,
-            "net_capital_loss + prior_net_capital_losses - prior_losses_applied_to_other_gains - prior_losses_applied_to_discount_gains",
-            &[&net_loss, prior, &po, &pd],
-            carried,
-        ),
-    ])
-}
-
-fn min(a: &Decimal, b: &Decimal) -> Result<Decimal> {
-    Ok(if b.lt(a)? { b.clone() } else { a.clone() })
-}
-
 /// The income year a day falls in, such as `2025-26`.
 fn income_year(day: i64) -> String {
     let (y, m, _) = dates::to_civil(day);
@@ -763,13 +375,12 @@ pub struct CgtParcelsArgs<'a> {
     pub year: &'a Arg,
     pub scope_confirmed: &'a Arg,
 }
-
-pub fn cgt_parcels(args: &CgtParcelsArgs) -> Result<Value> {
-    let year = scope(args.scope_confirmed, args.year, KIND)?;
-    let start = year_first(&year).expect("a supported income year");
-    let first = dates::parse(&format!("{start}-07-01")).expect("a date");
-    let last = dates::add_months(first, 12) - 1;
-    let Some((_, (numerator, denominator))) = ENTITIES
+/// The entity's discount percentage as (numerator, denominator), whether it
+/// is a company, and whether the taxpayer selects the parcels.
+fn entity_and_identification(
+    args: &CgtParcelsArgs,
+) -> Result<((&'static str, &'static str), bool, bool)> {
+    let Some((_, fraction)) = ENTITIES
         .iter()
         .find(|(name, _)| Some(*name) == args.entity.text())
     else {
@@ -788,18 +399,11 @@ pub fn cgt_parcels(args: &CgtParcelsArgs) -> Result<Value> {
             );
         }
     };
-    let others = [
-        money(args.other_discount_capital_gains)?,
-        money(args.other_capital_gains)?,
-        money(args.other_capital_losses)?,
-        money(args.prior_net_capital_losses)?,
-    ];
-    let company = args.entity.text() == Some("company");
-    if company && !others[0].is_zero() {
-        return conflict(
-            "other_discount_capital_gains must be 0.00 for a company, which makes no discount capital gain (ITAA 1997 s 115-10).".into(),
-        );
-    }
+    Ok((*fraction, args.entity.text() == Some("company"), selected))
+}
+
+/// The parcels, each named once and acquired by the year's end.
+fn parcels_of(args: &CgtParcelsArgs, year: &str, last: i64) -> Result<Vec<Parcel>> {
     let parcels = objects(args.parcels, "parcels")?
         .into_iter()
         .enumerate()
@@ -820,7 +424,17 @@ pub fn cgt_parcels(args: &CgtParcelsArgs) -> Result<Value> {
             ));
         }
     }
-    let mut disposals = objects(args.disposals, "disposals")?
+    Ok(parcels)
+}
+
+/// The disposals, each contracted by the year's end.
+fn disposals_of(
+    args: &CgtParcelsArgs,
+    selected: bool,
+    year: &str,
+    last: i64,
+) -> Result<Vec<Disposal>> {
+    let disposals = objects(args.disposals, "disposals")?
         .into_iter()
         .enumerate()
         .map(|(i, fields)| read_disposal(i + 1, fields, selected))
@@ -831,6 +445,28 @@ pub fn cgt_parcels(args: &CgtParcelsArgs) -> Result<Value> {
             late.n
         ));
     }
+    Ok(disposals)
+}
+
+pub fn cgt_parcels(args: &CgtParcelsArgs) -> Result<Value> {
+    let year = scope(args.scope_confirmed, args.year, KIND)?;
+    let start = year_first(&year).expect("a supported income year");
+    let first = dates::parse(&format!("{start}-07-01")).expect("a date");
+    let last = dates::add_months(first, 12) - 1;
+    let ((numerator, denominator), company, selected) = entity_and_identification(args)?;
+    let others = [
+        money(args.other_discount_capital_gains)?,
+        money(args.other_capital_gains)?,
+        money(args.other_capital_losses)?,
+        money(args.prior_net_capital_losses)?,
+    ];
+    if company && !others[0].is_zero() {
+        return conflict(
+            "other_discount_capital_gains must be 0.00 for a company, which makes no discount capital gain (ITAA 1997 s 115-10).".into(),
+        );
+    }
+    let parcels = parcels_of(args, &year, last)?;
+    let mut disposals = disposals_of(args, selected, &year, last)?;
     let matching = Matching {
         company,
         first,
