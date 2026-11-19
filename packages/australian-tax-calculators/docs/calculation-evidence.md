@@ -846,6 +846,96 @@ a present value check and balanced journals.
 | $1,000, 2 x $100 in arrears and a $1,000 balloon from 1 June 2027; the same in advance | Worked by hand | June's $100 interest in 2026-27 and its payment on 1 July in 2027-28; in advance, $100 paid 1 June in 2026-27 |
 | $50,000, 260 weekly payments of $230 and a $5,000 balloon | The payments discounted at the rate shown | $50,000 to within a cent |
 
+## Chattel mortgage schedule
+
+This worksheet was added on 19 November 2026, with every source below read
+that day (AEDT). ITAA 1997 compilation 268 (1 October 2026): s 8-1 in
+volume 1 at 09:27, s 240-10 in volume 5 and s 995-1 'hire purchase
+agreement' in volume 10 at 09:30. GST Act compilation 96 (1 January 2026):
+ss 9-90, 29-10, 40-5 and 69-10 at 09:27. The ATO's GST issues register
+'Financial services - questions and answers' (issues 1.1, 1.14, 1.17 and
+1.19 to 1.21) and its issue 1.18 public ruling at 09:27 to 09:29; TR 93/16 at
+09:31; 'Purchasing a motor vehicle' (last updated 3 June 2026) at 09:27; and
+'Assets and exclusions' (last updated 27 May 2026: $69,674 for 2024-25 and
+2025-26) at 09:40. The Library's GST ¶12-110 (reviewed 3 June 2025) gives
+the same car limits.
+
+- **Not hire purchase.** Under a chattel mortgage the purchaser takes title
+  from the purchase and finances the price with a loan (register issue
+  1.20). A hire purchase agreement is a hire of goods, or an instalment
+  purchase, under which title does not pass until the option is exercised or
+  the final instalment is paid (s 995-1), and only such an agreement is
+  recharacterised as a notional sale and loan (s 240-10). So the interest is
+  the lender's actual charge, not notional interest.
+- **Interest.** TR 93/16 accepts the actuarial method for estimating the
+  interest component of instalments under a fixed term loan (para 6),
+  describes it as the outstanding balance times the rate for the instalment
+  period (para 18) and calls it the most appropriate for long loans
+  (para 29); where the interest paid in the year is known, that figure must
+  be used (para 2). Given the instalment, the rate is found as
+  `hire-purchase-schedule` finds the implicit rate. Given `annual_rate`, the
+  rate a period is `annual_rate / 12` (or `/ 52`), taken only for monthly or
+  weekly instalments in arrears, where that division is unambiguous; other
+  frequencies and instalments in advance are refused rather than guessed. The
+  instalment is the closed-form annuity payment, worked out from the
+  balance's fall per dollar of instalment, rounded half up to the cent, with
+  the balance that rounding leaves added to the last instalment.
+- **Deduction.** Section 8-1(1) allows a loss or outgoing to the extent it is
+  incurred in gaining or producing assessable income, or necessarily in
+  carrying on a business for that purpose, and s 8-1(2) denies it to the
+  extent it is capital, private or domestic. The worksheet states that rule
+  and leaves the extent to the operator. A period spanning 30 June is set
+  apart with its days on each side, as `hire-purchase-schedule` sets it
+  apart: the sources read do not say how to split it between the years.
+- **GST.** The supply of the loan is an input taxed financial supply
+  (s 40-5(1); register issue 1.14), so the input tax credit is on the price
+  alone: 1/11 of it, less luxury car tax for a car (s 9-75(2)), rounded under
+  s 9-90(1). For a car worth more than the car limit for the year it is first
+  used, where no ABN may be quoted, s 69-10(1) makes the credit 'the amount
+  of GST payable on the supply ... of the car up to 1/11 of that limit', and
+  s 69-10(3) reduces it for a partly creditable acquisition. Under register
+  issue 1.21 a purchaser accounting on a non-cash basis is entitled to the
+  whole credit in the tax period in which the invoice is received or any
+  payment is made, whichever is earlier (s 29-10(1)), and one on a cash basis
+  in the tax period in which the borrowed funds pay the full price at the
+  time of acquisition (s 29-10(2)(a)).
+
+`tests/chattel_mortgage.rs` holds these cases.
+
+| Case | Source | Worksheet |
+| --- | --- | --- |
+| $1,000 at 12% a year, 3 monthly instalments in arrears | Worked by hand: 1.01^3 = 1.030301, 10 x 1.030301 / 0.030301 = 340.0221 | $340.02 twice and $340.03; interest $10.00, $6.70, $3.37 |
+| $10,000 at 12% with a $10,000 balloon; $1,000 at 52% weekly with a $1,000 balloon | Worked by hand: interest only | $100.00 a month; $10.00 a week |
+| $45,000 at 7.99%, 60 months, $5,000 balloon | The closed-form annuity payment, PMT(0.0799/12, 60, -45000, 5000), in exact fractions | $844.16, last $843.87, interest $10,649.31; given $844.16, the implied rate is 7.99% |
+| $20,000 at 6.5%, 104 weeks | The closed-form annuity payment in exact fractions | $205.20, interest $1,340.63 |
+| $50,000 over 360 months at 30% and at 50% | The rounded instalment's shortfall carried at the rate, in exact fractions | At 30%, $1,250.17 with $678.01 added to the last; at 50%, $2,083.33 would leave $242,950.50, more than a whole instalment, so it is refused, as is a last instalment below nil |
+| $1,000, 2 x $100 and a $1,000 balloon; the same in advance with $979 | As `hire-purchase-schedule` | 10% a month; $90.00 and $89.00 |
+| Darren's car: $91,242.80 with $2,407.80 luxury car tax, 2026-27, $10,000 deposit | 'Purchasing a motor vehicle'; s 69-10(1) and (3) | GST $8,075.91; credit $6,353.00, $3,176.50 at 50%; $8,075.91 when an ABN is quoted |
+| $33,000 of other goods with a $3,000 trade-in, 50% creditable | s 9-75(1), s 11-30(3) | $3,000.00 GST; $1,500.00 credit |
+
+## Loan transactions
+
+This worksheet was added on 19 November 2026; ITAA 1997 s 8-1 (compilation
+268, volume 1) was read that day at 09:27 AEDT. A day's transactions and any
+rate change take effect on that day, and its interest is the balance at the
+end of the day, when above nil, times the annual rate then in force over 365,
+in leap years too. The interest is debited on the last day of each month and
+on `end_date`, rounded half up to the cent, so 30 June always closes a debit
+and each income year's interest is exactly what is debited in it. These are
+the worksheet's conventions, stated in its scope, not rules of law: a lender
+who counts days, rests or rounding differently gives different figures, and
+its statement prevails. A balance below nil at the end of a day is refused,
+as is everything the scope excludes.
+
+`tests/loan_transactions.rs` works these cases by hand at 7.3% a year,
+exactly $0.0002 a dollar a day.
+
+| Case | Worksheet |
+| --- | --- |
+| $10,000 drawn 1 July 2026, $1,000 repaid 31 August, to 30 September | $62.00, $62.18 and $54.75 interest; $9,178.93 owing |
+| The same with 3.65% from 1 August | August's interest $31.09 |
+| $10,000 drawn 1 June 2026, to 31 July | $60.00 in 2025-26 and $62.37 in 2026-27 |
+| Paid out on 10 July with $10,018.00 | $18.00 interest, nil owing; $10,018.01 refused |
 ## Contract register
 
 `contract-register` works no amount of its own: each contract's payments,

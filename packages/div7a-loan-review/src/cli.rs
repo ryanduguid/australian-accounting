@@ -1274,6 +1274,9 @@ fn run_rollforward() -> (i32, String, String) {
     }
 }
 
+/// The JSON stdin commands routed here rather than through the library's `api`.
+const OWN_COMMANDS: [&str; 3] = ["derive", "verify", "rollforward"];
+
 /// Shared command routing for the standalone binary and umbrella CLI.
 pub fn dispatch(args: &[String]) -> (i32, String, String) {
     match args {
@@ -1285,7 +1288,7 @@ pub fn dispatch(args: &[String]) -> (i32, String, String) {
             0,
             format!(
                 "JSON stdin commands: {}\nSee README.md for their schemas.\n",
-                api::COMMANDS.join(", ")
+                [&api::COMMANDS[..], &OWN_COMMANDS].concat().join(", ")
             ),
             String::new(),
         ),
