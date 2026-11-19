@@ -601,6 +601,43 @@ election, accommodation or travel taking the food or drink's occasion
 give dollar figures only in examples 11.1, 17.1 and 17.2: the other amounts are
 fabricated, and the ruling decides the treatment the test checks.
 
+## FBT meal entertainment register
+
+This worksheet's evidence was read on 19 November 2026 from 9.25 am to
+9.35 am AEDT:
+
+- FBTAA ss 37CA to 37CF on the ATO's legal database
+  (https://www.ato.gov.au/law/view/document?docid=PAC/19860039/37CC and the
+  sections beside it). s 37CA: the election, for a year the employer has a
+  valid register for; s 37CB(2): the register percentage is the value of the
+  meal entertainment fringe benefits over the value of the meal entertainment
+  in the register's 12 week period; s 37CC: the register is kept for a
+  continuous period of at least 12 weeks throughout which meal entertainment is
+  provided, representative of the first FBT year it is valid for, or it is not
+  valid; s 37CD(1) and (2): valid for the year a period within one FBT year
+  falls in, or only the second year of a period spanning 2, and the 4 FBT years
+  after; s 37CD(3): it ceases to be valid at the end of a year whose meal
+  entertainment expenses are more than 20% higher than the first valid year's,
+  or when a later valid register covers the year; s 37CE(1): the 6 details,
+  and s 37CE(2), entries made as soon as practicable; s 37CF: a false or
+  misleading entry invalidates the register.
+- The ATO's Fringe benefits tax - a guide for employers, chapter 14 (latest
+  update January 2020), 14.8: 'Valid register' and 'Details to be included in
+  register' restate those sections; the guide says the minor benefits exemption
+  can apply under this method but the property benefits exemption cannot, and
+  points to TD 94/25 on apportioning entertainment between employees and
+  others, which the check leaves to the operator's `fringe_benefits_value`.
+- The Library's ¶3-220 (tax examples, 'Fringe Benefits Tax (FBT)', last
+  reviewed 30 June 2026): ABC's register at 40%, kept in the 2025-26 FBT year,
+  can be used for that year and the following 4 (s 37CD), and
+  $177,500 x 40% = $71,000. The test builds a register at 40% kept in that
+  year, checks it valid for the year ended 31 March 2027 and passes its values
+  to `fbt-meal-entertainment`, which gives $71,000.00.
+
+Neither the Act nor the guide gives a worked example of a register failing a
+check; the tests work each failure from the section's words. 12 weeks is
+taken as 84 days with both the first and last day counted.
+
 ## Fuel tax credits
 
 This worksheet was added on 19 November 2026. The Fuel Tax Act 2006 ss 41-5,
@@ -1871,6 +1908,58 @@ tax-free component (an invalidity segment or a pre-July 83 segment, s 82-140),
 earlier ETPs in the year or for the same termination (which reduce the caps,
 s 82-10(4)(a) and (b)), delayed termination payments, payees without a TFN,
 foreign residents and working holiday makers are outside it.
+
+## ETP tax free component
+
+This worksheet's evidence was read on 19 November 2026 from 9.25 am to
+9.40 am AEDT:
+
+- ITAA 1997 ss 82-10, 82-140, 82-145, 82-150, 82-155 and 995-1(1) ('last
+  retirement day') on the ATO's legal database
+  (https://www.ato.gov.au/law/view/document?docid=PAC/19970038/82-150 and the
+  sections beside it). s 82-150(2): the invalidity segment is the ETP times the
+  days to retirement over the employment days plus the days to retirement;
+  s 82-155(2): the pre-July 83 segment is the ETP less the invalidity segment,
+  times the days of employment before 1 July 1983 over all of them; s 82-140:
+  the tax free component is the 2 segments; s 82-145: the taxable component is
+  the rest; s 82-10(6)(c): a payment that includes an invalidity segment, or
+  would but for s 82-150(1)(c), is an excluded payment. The same day's s 995-1
+  already omits the 'laundry expense' definition that Act No. 49 of 2026
+  repealed, so the database was current.
+- The ATO's 'Tax-free component of ETPs' (last updated 24 July 2025): Jackson's
+  $102,000 ETP, $102,000 x [370 / (3,305 + 370)] = $10,269 tax free and
+  $91,731 taxable, in whole dollars. Its own dates, 2 September 2013 to
+  25 September 2022 with a 65th birthday on 25 September 2023, count 3,311
+  employment days and 365 days to retirement on the worksheet's rule, not the
+  3,305 and 370 it shows. The test gives dates that make its counts, so the
+  arithmetic is held to the page, and works its own dates separately: $10,127.86.
+- The ATO's 'Employment termination payment with an invalidity segment
+  worksheet' (NAT 71949, June 2014; page last updated 24 September 2014),
+  read from its PDF: step 1 counts the days before 1 July 1983 including
+  30 June, step 2 the days from 1 July 1983 to the termination day including
+  it, and steps 6 to 9 apply the 2 formulas in that order.
+- The Library's ¶8-850 (superannuation, 'Superannuation Benefits · Termination
+  Payments', last reviewed 30 June 2026): Jim's $100,000 ETP on termination for
+  invalidity on 31 July 2026, his 65th birthday on 15 July 2027, gives 349 days
+  to retirement (1 August 2026 to 15 July 2027), the count this worksheet
+  makes, and $2,128 on 16,050 employment days. From his start on
+  20 August 1981 the days are 16,417, of which 680 fall before 1 July 1983,
+  giving $2,081.59 and a pre-July 83 segment of $4,055.83, worked by hand in
+  the test. Neither published example's employment days match its dates.
+- The Library's ¶8-860 (the same document): Jon's $70,000 at step 1 after a
+  $30,000 invalidity segment, employed from 1 January 1980 to
+  31 December 2026, has 1,277 days before 1 July 1983, the count this worksheet
+  makes, and $5,205 on 17,175 total days; the dates give 17,167, so the test
+  holds the pre-July 83 segment at $5,207.08, read on 19 November 2026.
+
+Rounding each segment half up to the cent is this command's own convention:
+neither the Act nor NAT 71949 sets a rounding rule, and the ATO's examples show
+whole dollars. Death benefit ETPs (which cannot
+include an invalidity segment), payments that relate to part of the employment
+or to broken periods of it, unused leave and superannuation disability benefits
+under s 307-145 (read the same day; its days to retirement run from the day the
+person stopped being capable of gainful employment, and its service days are
+the benefit's service period) are outside it.
 
 ## Unused leave payment
 

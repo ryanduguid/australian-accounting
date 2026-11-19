@@ -71,6 +71,10 @@ pub const SCOPES: &[(&str, &str)] = &[
         "One loan an ordinary taxable employer made to a current employee, in the FBT year ended 31 March 2026 or 2027, at that year's statutory interest rate (8.62% for 2026, 8.27% for 2027). The operator establishes the loan's balances at the end of each day in the year the employee owed it, added together; the interest that accrued on it for the year; the share of the notional interest that would have been a once-only income tax deduction to the employee had they paid it; and the deduction that would have been allowable for the interest accrued. Notional interest is the summed daily balances times the rate over the days in the year (s 136(1)), rounded to cents; the gross taxable value is the amount by which it exceeds the interest accrued (s 18). The otherwise deductible rule (s 19) reduces that by the notional deduction: the gross deduction on the notional interest, rounded to cents, less the deduction for the interest accrued, never below nil; the taxable value never falls below nil. The rule applies only to a loan to an employee, not an associate, and the operator establishes that the employee's declaration or documents were obtained. Excludes deciding whether a loan benefit or an exemption (s 17) arises, interest deferred or unpaid (a further loan or a debt waiver), the deduction itself, the type 2 gross-up and FBT payable.",
     ),
     (
+        "fbt_meal_entertainment_register",
+        "Whether an employer's 12 week meal entertainment register is valid for the FBT year ended 31 March 2026 or 2027 under FBTAA Division 9A Subdivision C (ss 37CA to 37CF), and the values fbt_meal_entertainment takes from it for the register percentage (s 37CB(2)). It checks that the register period is continuous and at least 12 weeks (84 days, both ends counted) and that the register records meal entertainment (s 37CC(1) and (3)); that every entry records the date, whether each recipient is an employee or an associate of one, the cost, the kind of meal entertainment, where it was provided and, on the employer's premises, whether in an in-house dining facility (s 37CE(1)); and the FBT years it is valid for: the year its period ends in, when the period begins and ends in that year, or the second year, when it spans 2, and the 4 years after (s 37CD(1) and (2)), unless a later year's meal entertainment expenses were more than 20% higher than the first valid year's, when it ceases to be valid at the end of that year (s 37CD(3)). Each check is reported with its authority and the entries it fails on; the register is valid only when every check passes, and then the result gives fbt_meal_entertainment's register inputs. The register's total value of meal entertainment is the recorded costs and its total value of meal entertainment fringe benefits the fringe_benefits_value of each entry, which the operator works out: the part provided to employees and their associates, less any exempt benefit, such as a minor benefit, which the guide says can apply under this method (the guide points to TD 94/25 on apportioning entertainment between employees and others). The register percentage is kept exact and shown to the cent. Refuses an entry dated outside the period, a fringe benefits value above the cost or above nil with no employee or associate among the recipients, a period spanning more than 2 FBT years, and an in-house dining facility answer for meal entertainment off the employer's premises. The operator establishes that the employer elects Division 9A and Subdivision C (s 37CA), that the register was kept, and meal entertainment provided, throughout the period (s 37CC(1)), that the period is representative of the first FBT year the register is valid for (s 37CC(2)), that no entry is false or misleading in a material particular (s 37CF), that each entry was made as soon as practicable (s 37CE(2)), and that no later valid register replaces this one for the year (s 37CD(3)). Excludes the car parking register (ss 39GA to 39GF), the taxable value itself (fbt_meal_entertainment works it out) and judging whether the period is representative.",
+    ),
+    (
         "fbt_meal_entertainment",
         "An ordinary taxable employer's meal entertainment fringe benefits for the FBT year ended 31 March 2026 or 2027, where the employer elected to apply Division 9A, with no meal entertainment provided under a salary packaging arrangement. The operator establishes the method and the year's total expenses for providing meal entertainment to all persons, excluding contributions by employees or their associates that the employer did not reimburse (s 37AB). The 50/50 split method takes 50% of those expenses (s 37BA). The 12 week register method (s 37CB) applies the register percentage, the value of the register's meal entertainment fringe benefits over the value of all its meal entertainment, worked out exactly and shown to 2 places, to the expenses. A register is valid for the FBT year it was first valid for and the 4 after it, and ceases to be valid at the end of a year whose expenses were more than 20% higher than its first valid year's (s 37CD); the worksheet checks both from the expenses given for each year since its first valid year. The operator establishes that the register was kept as ss 37CC and 37CE require and that no later register replaced it. Excludes deciding what is meal entertainment, the elections themselves, the actual method, exempt benefits, splitting the value between type 1 and type 2 for fbt, gross-up and FBT payable.",
     ),
@@ -140,7 +144,11 @@ pub const SCOPES: &[(&str, &str)] = &[
     ),
     (
         "termination_payment",
-        "The tax-free part of a genuine redundancy or early retirement scheme payment and the PAYG withholding from one life benefit employment termination payment (ETP) under Schedule 11, made in 2026-27 to a resident employee who gave a TFN and is not a working holiday maker, within 12 months of the termination. The operator establishes the redundancy payment as a genuine redundancy payment (ITAA 1997 s 83-175, including dismissal before pension age) or an early retirement scheme payment (s 83-180), above what voluntary termination would have paid; the completed years of service (s 83-170(3)); the rest of the ETP's taxable component, split into excluded payments (s 82-10(6)) and non-excluded payments; and the payer's other taxable payments to the employee in the year. The redundancy payment is tax-free up to $13,598 plus $6,801 for each completed year of service (s 83-170) and the rest of it is an excluded ETP part. The excluded part is taken first and capped at the $270,000 ETP cap; the non-excluded part is capped at the smaller of the ETP cap less the excluded part within it and the whole-of-income cap, $180,000 less the other taxable payments, not below nil (s 82-10(4) and (7); Schedule 11). Withholding is 17% up to the cap if the employee is their preservation age or older on 30 June 2027 (SISR reg 6.01(2)), 32% if younger, and 47% above the cap, each part rounded to the nearest dollar, 50 cents up. Excludes classifying the payments, death benefit ETPs, ETPs with a tax-free component (an invalidity segment or employment before 1 July 1983), earlier ETPs to the employee in the income year or for the same termination, unused annual and long service leave payments, delayed termination payments, payees without a TFN, foreign residents, working holiday makers and the income tax assessed on the ETP.",
+        "The tax-free part of a genuine redundancy or early retirement scheme payment and the PAYG withholding from one life benefit employment termination payment (ETP) under Schedule 11, made in 2026-27 to a resident employee who gave a TFN and is not a working holiday maker, within 12 months of the termination. The operator establishes the redundancy payment as a genuine redundancy payment (ITAA 1997 s 83-175, including dismissal before pension age) or an early retirement scheme payment (s 83-180), above what voluntary termination would have paid; the completed years of service (s 83-170(3)); the rest of the ETP's taxable component, split into excluded payments (s 82-10(6)) and non-excluded payments; and the payer's other taxable payments to the employee in the year. The redundancy payment is tax-free up to $13,598 plus $6,801 for each completed year of service (s 83-170) and the rest of it is an excluded ETP part. The excluded part is taken first and capped at the $270,000 ETP cap; the non-excluded part is capped at the smaller of the ETP cap less the excluded part within it and the whole-of-income cap, $180,000 less the other taxable payments, not below nil (s 82-10(4) and (7); Schedule 11). Withholding is 17% up to the cap if the employee is their preservation age or older on 30 June 2027 (SISR reg 6.01(2)), 32% if younger, and 47% above the cap, each part rounded to the nearest dollar, 50 cents up. Excludes classifying the payments, death benefit ETPs, working out an ETP's tax-free component (an invalidity segment or employment before 1 July 1983; etp_tax_free_component does, and gives the taxable component to classify here), earlier ETPs to the employee in the income year or for the same termination, unused annual and long service leave payments, delayed termination payments, payees without a TFN, foreign residents, working holiday makers and the income tax assessed on the ETP.",
+    ),
+    (
+        "etp_tax_free_component",
+        "The tax free component of one life benefit employment termination payment (ETP) and the taxable component left, for a payment made in 2026-27 or 2027-28 under ITAA 1997 ss 82-140 to 82-155 as compiled on 19 November 2026, which set no figure by year. The invalidity segment (s 82-150) is the payment times the days to retirement over the employment days plus the days to retirement, where the payment was made because the employee stopped being gainfully employed through ill-health, before their last retirement day, and 2 legally qualified medical practitioners have certified that they are unlikely ever to be gainfully employed in a capacity for which they are reasonably qualified; it is nil otherwise. The days to retirement run from the day after the termination to the last retirement day, both counted; the employment days from the first day of the employment to the termination day, both counted, as the ATO's worksheet NAT 71949 counts them. The pre-July 83 segment (s 82-155) is the payment less the invalidity segment, times the employment days before 1 July 1983 over all the employment days. Each segment is rounded half up to the cent, and the taxable component is the payment less both (s 82-145), so the components add up to the payment. Whether the payment includes an invalidity segment, or would but for its timing, is shown as invalidity_excluded_payment: such a payment is an excluded payment (s 82-10(6)(c)), so its taxable component is termination_payment's excluded_payment. Refuses an employment start after the termination day. The operator establishes that the payment is a life benefit ETP (s 82-130) and its amount, the ill-health, the medical certificates and the last retirement day (s 995-1(1)), and that the payment relates to one continuous period of employment from employment_start to termination_date. Excludes death benefit ETPs, which cannot include an invalidity segment; payments that relate to only part of that period or to broken periods of employment, whose employment days are not the days between the 2 dates; unused annual and long service leave (Division 83); superannuation benefits, whose disability benefits increase the tax free component under s 307-145 instead; and the tax or withholding on the taxable component, which termination_payment works out.",
     ),
     (
         "unused_leave_payment",
@@ -282,6 +290,10 @@ pub const SOURCES: &[(&str, &str)] = &[
         "https://www.ato.gov.au/law/view/document?DocID=SAV/FBTGEMP/00015",
     ),
     (
+        "fbt_meal_entertainment_register",
+        "https://www.ato.gov.au/law/view/document?docid=PAC/19860039/37CC",
+    ),
+    (
         "fbt_car_parking",
         "https://www.ato.gov.au/law/view/document?DocID=SAV/FBTGEMP/00017",
     ),
@@ -352,6 +364,10 @@ pub const SOURCES: &[(&str, &str)] = &[
     (
         "termination_payment",
         "https://www.ato.gov.au/tax-rates-and-codes/payg-withholding-schedule-11-tax-table-for-employment-termination-payments",
+    ),
+    (
+        "etp_tax_free_component",
+        "https://www.ato.gov.au/law/view/document?docid=PAC/19970038/82-150",
     ),
     (
         "unused_leave_payment",
@@ -580,6 +596,17 @@ pub const EXTRA_SOURCES: &[(&str, &[&str])] = &[
         &[FBTAA_PART_1, FBT_RETURN_ITEM_23],
     ),
     (
+        "fbt_meal_entertainment_register",
+        &[
+            "https://www.ato.gov.au/law/view/document?docid=PAC/19860039/37CA",
+            "https://www.ato.gov.au/law/view/document?docid=PAC/19860039/37CB",
+            "https://www.ato.gov.au/law/view/document?docid=PAC/19860039/37CD",
+            "https://www.ato.gov.au/law/view/document?docid=PAC/19860039/37CE",
+            "https://www.ato.gov.au/law/view/document?docid=PAC/19860039/37CF",
+            "https://www.ato.gov.au/law/view/document?DocID=SAV/FBTGEMP/00015",
+        ],
+    ),
+    (
         "fbt_car_parking",
         &[
             FBTAA_PART_1,
@@ -697,6 +724,18 @@ pub const EXTRA_SOURCES: &[(&str, &[&str])] = &[
             "https://www.ato.gov.au/businesses-and-organisations/hiring-and-paying-your-workers/engaging-a-worker/when-a-worker-leaves-your-business/taxation-of-termination-payments/applying-the-etp-caps",
             "https://www.legislation.gov.au/C2004A05138/2026-10-01/2026-10-01/text/original/epub/OEBPS/document_3/document_3.html",
             "https://www.legislation.gov.au/F1996B00580/2026-07-01/2026-07-01/text/original/epub/OEBPS/document_2/document_2.html",
+        ],
+    ),
+    (
+        "etp_tax_free_component",
+        &[
+            "https://www.ato.gov.au/law/view/document?docid=PAC/19970038/82-140",
+            "https://www.ato.gov.au/law/view/document?docid=PAC/19970038/82-145",
+            "https://www.ato.gov.au/law/view/document?docid=PAC/19970038/82-155",
+            "https://www.ato.gov.au/law/view/document?docid=PAC/19970038/82-10",
+            "https://www.ato.gov.au/law/view/document?docid=PAC/19970038/995-1",
+            "https://www.ato.gov.au/businesses-and-organisations/hiring-and-paying-your-workers/engaging-a-worker/when-a-worker-leaves-your-business/taxation-of-termination-payments/tax-free-component-of-etps",
+            "https://www.ato.gov.au/forms-and-instructions/employment-termination-payments-with-an-invalidity-segment-worksheet",
         ],
     ),
     (
@@ -1212,6 +1251,10 @@ pub const REFUSAL_CODES: &[(&str, &str)] = &[
         "personal-tax-estimate was given Medicare levy exemption days beside a Medicare levy surcharge input, whose scope excludes them.",
     ),
     (
+        "etp_tax_free_component.dates_invalid",
+        "employment_start is after termination_date.",
+    ),
+    (
         "fbt.deduction_exceeds_contribution",
         "A deduction for a recipient's contribution to a property, residual or board fringe benefit exceeds the contribution.",
     ),
@@ -1302,6 +1345,18 @@ pub const REFUSAL_CODES: &[(&str, &str)] = &[
     (
         "fbt_meal_entertainment.register_years_invalid",
         "A meal entertainment register's yearly expenses are not a list of decimal strings, one for each FBT year from its first valid year to the year before the year given.",
+    ),
+    (
+        "fbt_meal_entertainment_register.entries_invalid",
+        "The register's entries are not a list of at most 10,000 entry objects.",
+    ),
+    (
+        "fbt_meal_entertainment_register.entry_invalid",
+        "A register entry has a detail that cannot be read, is dated outside the register period, or values its fringe benefits above its cost or above nil with no employee or associate among its recipients.",
+    ),
+    (
+        "fbt_meal_entertainment_register.period_invalid",
+        "The register period ends before it starts or spans more than 2 FBT years.",
     ),
     (
         "fbt_return.benefit_command_unsupported",
@@ -1513,7 +1568,7 @@ pub const REFUSAL_CODES: &[(&str, &str)] = &[
     ),
     (
         "input.field_unknown",
-        "A field the worksheet or command does not take, or does not take beside the other inputs given, was given (fbt-loan, fbt-meal-entertainment, fbt-car-parking, fbt-debt-waiver, fbt-expense-payment, fbt-property, fbt-residual, fbt-housing, fbt-lafha, fbt-board, fbt-tax-exempt-body-entertainment, fbt-entertainment-classifier, division-296, depreciation, fuel-tax-credits and its lines, foreign-resident-tax, medicare-levy, medicare-levy-surcharge, payg-withholding, payg-gross-up, termination-payment, unused-leave-payment, the Schedule 5 methods, working-holiday-maker-withholding, study-loan-withholding, seniors-pensioners-withholding, seniors-pensioners-tax-offset, lump-sum-arrears-tax-offset, hire-purchase-schedule, chattel-mortgage-schedule, loan-transactions and its transactions and rate_changes, business-capital-expenditure and its items, balancing-adjustment, its years and car_limit, trade-in, contribution-caps given a carry-forward input, derive, personal-tax-estimate, dgr-check, income-tests and fbt-return only).",
+        "A field the worksheet or command does not take, or does not take beside the other inputs given, was given (fbt-loan, fbt-meal-entertainment, fbt-car-parking, fbt-debt-waiver, fbt-expense-payment, fbt-property, fbt-residual, fbt-housing, fbt-lafha, fbt-board, fbt-tax-exempt-body-entertainment, fbt-entertainment-classifier, fbt-meal-entertainment-register and its entries, division-296, depreciation, fuel-tax-credits and its lines, foreign-resident-tax, medicare-levy, medicare-levy-surcharge, payg-withholding, payg-gross-up, termination-payment, etp-tax-free-component, unused-leave-payment, the Schedule 5 methods, working-holiday-maker-withholding, study-loan-withholding, seniors-pensioners-withholding, seniors-pensioners-tax-offset, lump-sum-arrears-tax-offset, hire-purchase-schedule, chattel-mortgage-schedule, loan-transactions and its transactions and rate_changes, business-capital-expenditure and its items, balancing-adjustment, its years and car_limit, trade-in, contribution-caps given a carry-forward input, derive, personal-tax-estimate, dgr-check, income-tests and fbt-return only).",
     ),
     ("input.flag_invalid", "A flag is not a JSON boolean."),
     ("input.fraction_invalid", "A fraction is outside 0 to 1."),

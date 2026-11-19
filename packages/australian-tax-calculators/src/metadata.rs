@@ -1034,6 +1034,7 @@ pub fn supported_periods(kind: &str) -> Vec<&'static str> {
         // The methods use no published rate; the years are those the ATO's
         // return instructions and rates page were read for.
         "fbt_meal_entertainment" => vec!["2026", "2027"],
+        "fbt_meal_entertainment_register" => vec!["2026", "2027"],
         "fbt_car_parking" => keys(FBT_CAR_PARKING_THRESHOLDS),
         // No published rate; the years are those the ATO's return
         // instructions and guide were read for.
@@ -1051,6 +1052,9 @@ pub fn supported_periods(kind: &str) -> Vec<&'static str> {
         "division_293" => DIVISION_293_YEARS.to_vec(),
         "division_296" => DIVISION_296_YEARS.to_vec(),
         "termination_payment" => TERMINATION_PAYMENT_YEARS.to_vec(),
+        // ITAA 1997 ss 82-140 to 82-155 set no figure by year; the years whose
+        // law was read as compiled on 19 November 2026.
+        "etp_tax_free_component" => vec!["2026-27", "2027-28"],
         "unused_leave_payment" => UNUSED_LEAVE_PAYMENT_YEARS.to_vec(),
         "schedule_5_method_a" | "schedule_5_method_b_i" | "schedule_5_method_b_ii" => {
             SCHEDULE_5_YEARS.to_vec()
@@ -1156,6 +1160,10 @@ pub fn source_review(kind: &str) -> (&'static str, &'static str) {
             "2026-11-16",
             "FBTAA ss 37AB, 37BA, 37CB and 37CD, compilation 97 (1 July 2026); Fringe benefits tax - a guide for employers, 14.8 methods of valuing meal entertainment; FBT return 2026 instructions, item 23P and example 18",
         ),
+        "fbt_meal_entertainment_register" => (
+            "2026-11-19",
+            "FBTAA ss 37CA to 37CF, on the ATO's legal database; Fringe benefits tax - a guide for employers, 14.8 (chapter 14 last updated January 2020), 'Valid register' and 'Details to be included in register'",
+        ),
         "fbt_car_parking" => (
             "2026-11-16",
             "FBTAA ss 39A, 39C, 39D, 39DA, 39E, 39FA to 39FE and 39GB to 39GF, compilation 97 (1 July 2026); Fringe benefits tax - a guide for employers, chapter 16, 16.2.5, 16.2.8, examples 12, 13, 15, 17 and 18 and the 12 week register steps; FBT return 2026 instructions, item 23N and example 17; FBT rates and thresholds, car parking threshold; Car parking and FBT",
@@ -1227,6 +1235,10 @@ pub fn source_review(kind: &str) -> (&'static str, &'static str) {
         "termination_payment" => (
             "2026-11-14",
             "ATO Schedule 11, tax table for employment termination payments (from 1 July 2026), Table A and examples 1 to 4; ATO Key superannuation rates, tables 17 and 20; ITAA 1997 ss 82-10, 82-130 to 82-160 and 83-170 to 83-180, compilation 268 (1 October 2026); SISR reg 6.01(2), compilation 159 (1 July 2026)",
+        ),
+        "etp_tax_free_component" => (
+            "2026-11-19",
+            "ITAA 1997 ss 82-10(6), 82-140, 82-145, 82-150 and 82-155 and s 995-1(1) 'last retirement day', on the ATO's legal database; ATO 'Tax-free component of ETPs' (last updated 24 July 2025), Jackson's example; ATO Employment termination payment with an invalidity segment worksheet (NAT 71949, June 2014), steps 1 to 9",
         ),
         "unused_leave_payment" => (
             "2026-11-16",
@@ -1389,6 +1401,12 @@ pub fn library_evidence(kind: &str) -> [(&'static str, &'static str); 4] {
             "2026-06-30",
             "2026-11-15",
         ),
+        "fbt_meal_entertainment_register" => (
+            "ATO Fringe benefits tax - a guide for employers, chapter 14",
+            "14.8, Valid register and Details to be included in register",
+            "2020-01-01",
+            "2026-11-19",
+        ),
         "fbt_car_parking" => (
             "tax-examples-fringe-benefits-tax-fbt",
             "3-055",
@@ -1496,6 +1514,12 @@ pub fn library_evidence(kind: &str) -> [(&'static str, &'static str); 4] {
             "examples 1 to 4",
             "2026-06-17",
             "2026-11-14",
+        ),
+        "etp_tax_free_component" => (
+            "superannuation-superannuation-benefits-termination-payments",
+            "8-850",
+            "2026-06-30",
+            "2026-11-19",
         ),
         "unused_leave_payment" => (
             "ATO Schedule 7 tax table for unused leave payments on termination of employment",
@@ -1768,6 +1792,10 @@ pub fn optional_inputs(kind: &str) -> Vec<(&'static str, &'static str)> {
                 "YYYY-MM-DD date the payment is made, within the income year, with study_loan true only; required with it for 2025-26, whose Schedule 8 coefficients apply from 24 September 2025",
             ),
         ],
+        "fbt_meal_entertainment_register" => vec![(
+            "register_years_expenditure",
+            "list of decimal strings, required when year_ended is a later year of the register's validity and refused otherwise: the meal entertainment expenses (FBTAA s 37CB(3)) of each FBT year from the register's first valid year to the year before year_ended, oldest first (s 37CD(3))",
+        )],
         "fbt_meal_entertainment" => vec![
             (
                 "register_fringe_benefits_value",
@@ -2270,6 +2298,20 @@ pub fn input_units(kind: &str) -> Vec<(&'static str, &'static str)> {
                 "AUD, the employer's total expenses for providing meal entertainment in the FBT year to all persons, excluding amounts employees paid (FBTAA ss 37AB and 37CB(3))",
             ),
         ],
+        "fbt_meal_entertainment_register" => vec![
+            (
+                "register_start",
+                "YYYY-MM-DD, the first day of the continuous period the 12 week register was kept for (FBTAA s 37CC(1))",
+            ),
+            (
+                "register_end",
+                "YYYY-MM-DD, its last day; at least 83 days after register_start",
+            ),
+            (
+                "entries",
+                "list of at most 10000 objects, one for each provision of meal entertainment the register records in its period, each with date (YYYY-MM-DD, within the period), recipients (an object of whole-number counts of employees, associates of employees and others), cost (AUD), kind (text, such as dinner or a corporate box), location (text), on_premises (boolean: on the employer's premises), in_house_dining_facility (boolean, for on_premises only: in an in-house dining facility under ITAA 1997 s 32-55) and fringe_benefits_value (AUD, required with cost: the part of the cost that is meal entertainment fringe benefits to employees and their associates, at most the cost and 0.00 when none received any). A detail the register does not record is left out or null, and the check reports it (FBTAA s 37CE(1))",
+            ),
+        ],
         "fbt_car_parking" => vec![
             (
                 "method",
@@ -2521,6 +2563,32 @@ pub fn input_units(kind: &str) -> Vec<(&'static str, &'static str)> {
             (
                 "date_of_birth",
                 "YYYY-MM-DD, the employee's, for their preservation age (SISR reg 6.01(2))",
+            ),
+        ],
+        "etp_tax_free_component" => vec![
+            (
+                "payment",
+                "AUD, the whole life benefit employment termination payment (ITAA 1997 s 82-130), every part of it made because of the termination: such as a golden handshake, compensation, unused sick leave and rostered days off, but not unused annual or long service leave (s 82-135)",
+            ),
+            (
+                "employment_start",
+                "YYYY-MM-DD, the first day of the employment to which the payment relates, counted",
+            ),
+            (
+                "termination_date",
+                "YYYY-MM-DD, the day the employment was terminated, counted in the employment days",
+            ),
+            (
+                "last_retirement_day",
+                "YYYY-MM-DD, the employee's last retirement day (s 995-1(1)): the day the employment would have ended on reaching a particular age or completing a particular period of service, or otherwise the day they would turn 65",
+            ),
+            (
+                "ill_health",
+                "boolean, true when the payment was made because the employee stopped being gainfully employed, and they stopped because they suffered from ill-health, physical or mental (s 82-150(1)(a) and (b))",
+            ),
+            (
+                "medical_certification",
+                "boolean, true when 2 legally qualified medical practitioners have certified that, because of the ill-health, the employee is unlikely ever to be gainfully employed in a capacity for which they are reasonably qualified because of education, experience or training (s 82-150(1)(d))",
             ),
         ],
         "unused_leave_payment" => vec![
@@ -2935,6 +3003,18 @@ pub fn examples(kind: &str) -> Vec<(&'static str, Example)> {
             ("method", Text("50_50_split")),
             ("meal_entertainment_expenditure", Text("4000.00")),
         ],
+        // A 12 week register kept from 1 May to 23 July 2025, so first valid
+        // for the FBT year ended 31 March 2026, checked for that year.
+        "fbt_meal_entertainment_register" => vec![
+            ("register_start", Text("2025-05-01")),
+            ("register_end", Text("2025-07-23")),
+            (
+                "entries",
+                Json(
+                    r#"[{"date": "2025-05-14", "recipients": {"employees": 3, "associates": 0, "others": 2}, "cost": "500.00", "kind": "client dinner", "location": "restaurant", "on_premises": false, "fringe_benefits_value": "300.00"}, {"date": "2025-07-02", "recipients": {"employees": 10, "associates": 2, "others": 0}, "cost": "1200.00", "kind": "end of year party", "location": "the employer's office", "on_premises": true, "in_house_dining_facility": false, "fringe_benefits_value": "1200.00"}]"#,
+                ),
+            ),
+        ],
         "fbt_car_parking" => vec![
             ("method", Text("commercial_parking_station")),
             ("first_business_day_fee", Text("18.00")),
@@ -3035,6 +3115,16 @@ pub fn examples(kind: &str) -> Vec<(&'static str, Example)> {
             ("non_excluded_payment", Text("17678.00")),
             ("other_taxable_payments", Text("140000.00")),
             ("date_of_birth", Text("1996-09-01")),
+        ],
+        // Shaped on the ATO's Jackson example: $102,000, terminated for
+        // invalidity a year before the 65th birthday, moved into 2026-27.
+        "etp_tax_free_component" => vec![
+            ("payment", Text("102000.00")),
+            ("employment_start", Text("2013-09-02")),
+            ("termination_date", Text("2026-09-25")),
+            ("last_retirement_day", Text("2027-09-25")),
+            ("ill_health", Flag(true)),
+            ("medical_certification", Flag(true)),
         ],
         // Schedule 7's example (Norman), which gives no accrual start: any day
         // before 16 August 1978 gives its 3 long service leave periods.

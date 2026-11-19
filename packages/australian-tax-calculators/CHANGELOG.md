@@ -4,6 +4,29 @@
 
 ### Added
 
+- `fbt-meal-entertainment-register` checks a 12 week meal entertainment
+  register for the FBT year ended 31 March 2026 or 2027: the continuous
+  12 week period (FBTAA s 37CC), each entry's 6 details (s 37CE(1)), the
+  years it is valid for (s 37CD(1) and (2)) and the 20% rule (s 37CD(3)),
+  each reported with its authority and the entries it fails on. A valid
+  register gives `fbt-meal-entertainment` its values and first valid year.
+  New codes: `fbt_meal_entertainment_register.entries_invalid`,
+  `fbt_meal_entertainment_register.entry_invalid` and
+  `fbt_meal_entertainment_register.period_invalid`.
+  `tests/fbt_meal_entertainment_register.rs` holds it to the sections and the
+  Library's ¶3-220 register example.
+- `etp-tax-free-component` works out the tax free component of a life benefit
+  employment termination payment in 2026-27 or 2027-28: the invalidity
+  segment from the days to retirement (ITAA 1997 s 82-150), the pre-July 83
+  segment (s 82-155) and the taxable component left (ss 82-140 and 82-145),
+  with the day counts and whether the payment is an excluded payment
+  (s 82-10(6)(c)), whose taxable component `termination-payment` then
+  withholds from. Where s 82-150(1) is not met the invalidity segment is nil
+  and its step names the condition. New code:
+  `etp_tax_free_component.dates_invalid`. `derive` covers it.
+  `tests/etp_tax_free_component.rs` holds it to the ATO's Jackson example and
+  the Library's Jim and Jon examples.
+
 - `chattel-mortgage-schedule`: a loan to buy goods under a chattel mortgage,
   at the rate its instalments imply or a stated `annual_rate` (monthly or
   weekly in arrears) from which the instalment is worked out, with the
