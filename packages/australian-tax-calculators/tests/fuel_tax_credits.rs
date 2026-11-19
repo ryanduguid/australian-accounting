@@ -597,6 +597,12 @@ fn refusals_name_what_is_out_of_scope_or_wrong() {
             method_2("2026-10-01", "2027-07-31", diesel("2026-10-10")),
             "fuel_tax_credits.fact_conflict",
         ),
+        // A quarter whose last day is past the rates held: refused, not a
+        // panic on the missing period.
+        (
+            method_2("2027-01-01", "2027-03-31", diesel("2027-01-15")),
+            "fuel_tax_credits.rate_unpublished",
+        ),
         (
             method_2("2026-10-01", "2026-13-01", diesel("2026-10-10")),
             "input.date_invalid",

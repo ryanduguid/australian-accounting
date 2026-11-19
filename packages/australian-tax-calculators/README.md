@@ -956,7 +956,8 @@ lines acquired more than 4 years before it, which s 47-5(2) may have ended
 unless the credit was already taken into account in an assessment.
 
 The command refuses a year outside 2022-23 to 2026-27, an acquisition outside
-the income year or after 31 January 2027, a simplified method without the
+the income year or after 31 January 2027 (or a Method 2 tax period ending
+after it), a simplified method without the
 small claimant statement or outside its guideline, and a basic method line
 whose public road litres exceed its diesel. It does not decide entitlement,
 hire chains, public roads, the environmental criteria (s 41-25), apportionment

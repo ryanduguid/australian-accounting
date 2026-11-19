@@ -74,6 +74,17 @@ fn period_end_day(given: &Arg, year: (i64, i64), lines: &[Line]) -> Result<i64> 
             "rate_at_period_end: the tax period must start on or before it ends and lie inside the income year.".into(),
         );
     }
+    let last = rates().periods.last().expect("a period").to;
+    if end > last {
+        return refuse(
+            "fuel_tax_credits.rate_unpublished",
+            format!(
+                "rate_at_period_end: no published rate is held for {}, the tax period's last day; rates are held to {}.",
+                dates::format(end),
+                dates::format(last)
+            ),
+        );
+    }
     for (n, line) in lines.iter().enumerate() {
         if line.acquired < start || line.acquired > end {
             return conflict(format!(
