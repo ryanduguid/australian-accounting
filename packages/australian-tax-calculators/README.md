@@ -1060,8 +1060,9 @@ s 313-20: the concessional and earnings components, less any shortfall below
 the maximum, not below nil), the tax withheld (TAA Regulations 2017 reg 53A:
 `estimated_marginal_rate` plus 2% Medicare levy less 30%, not below nil, as
 GN 2024/1 section 7 says, or 17% with `commissioner_cannot_estimate` true;
-one of the 2 is required; rounded down to the dollar as its examples are, and
-labelled an estimate in `withholding_basis`), what is paid to you, the 30% non-refundable offset
+one of the 2 is required; rounded down to the dollar as its examples are;
+`withholding_basis` is `estimate` for the formula and `reg_53A_1_b` for the
+17%), what is paid to you, the 30% non-refundable offset
 (s 313-25), the FHSS tax of 20% if neither a contract nor a recontribution is
 notified in time (s 313-60), and the recontribution that avoids it (s 313-50).
 Deadlines, KiwiSaver and foreign transfers, excess contributions, amended

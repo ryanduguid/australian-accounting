@@ -116,8 +116,8 @@
   amount and the associated earnings at the SIC rate (s 138-40), labelled an
   estimate; or from a determination's stated components. Then the assessable
   FHSS released amount (ITAA 1997 s 313-20), the withholding (TAA Regulations
-  2017 reg 53A: the estimated marginal rate, or 17% where the Commissioner
-  is stated to be unable to estimate, labelled an estimate), the offset, the FHSS tax and the recontribution. New codes:
+  2017 reg 53A: the Commissioner's estimate, worked from the estimated
+  marginal rate, or 17% where he is stated to be unable to estimate), the offset, the FHSS tax and the recontribution. New codes:
   `fhss.basis_invalid`, `fhss.contribution_kind_invalid`,
   `fhss.contribution_out_of_period`, `fhss.contributions_invalid`,
   `fhss.deductions_invalid`, `fhss.determination_invalid`,
