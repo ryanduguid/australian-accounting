@@ -3,13 +3,9 @@
 
 use div7a_loan_review::{
     api,
-    decimal::{Calc, Decimal, Signal},
+    decimal::Signal,
     facts::optional_years,
-    gate::{
-        DEFAULT_MAXIMUM_TERM, GateFacts, REQUIRED_SECURITY_COVERAGE, SECURED_MAXIMUM_TERM,
-        complying_loan_gate,
-    },
-    money::d,
+    gate::{GateFacts, complying_loan_gate, maximum_term},
     myr::{GateSummary, MyrFacts, repayment_within},
     raw::Raw,
     years::parse_year,
@@ -74,21 +70,6 @@ pub fn rate(input: &Value) -> Result<Value, String> {
     Ok(result)
 }
 
-/// The s 109N(3) maximum term the security facts give, before any s 109N(3A)
-/// to (3D) reduction; None where they do not establish one. Not the gate's
-/// maximum_term_years_allowed, which is 7 years whilst the security is unknown.
-fn maximum_term(facts: &GateFacts) -> Calc<Option<Decimal>> {
-    let secured = facts.secured_by_registered_mortgage_over_real_property;
-    Ok(match (secured, &facts.security_coverage_at_first_made) {
-        (Some(false), _) => Some(d(DEFAULT_MAXIMUM_TERM)),
-        (Some(true), Some(coverage)) if !coverage.lt(&d(REQUIRED_SECURITY_COVERAGE))? => {
-            Some(d(SECURED_MAXIMUM_TERM))
-        }
-        (Some(true), Some(_)) => Some(d(DEFAULT_MAXIMUM_TERM)),
-        _ => None,
-    })
-}
-
 pub fn loan(input: &Value) -> Result<Value, String> {
     let concise = summary(input)?;
     let mut mapping = input.clone();
@@ -103,7 +84,8 @@ pub fn loan(input: &Value) -> Result<Value, String> {
         raw.get("remaining_term_years"),
         "MCP review_div7a_loan remaining_term_years",
     )?;
-    let maximum = maximum_term(&facts).map_err(|e: Signal| format!("decimal.{}", e.name()))?;
+    let (maximum, _, _) =
+        maximum_term(&facts).map_err(|e: Signal| format!("decimal.{}", e.name()))?;
     let myr = repayment_within(
         &MyrFacts {
             loan_id: facts.loan_id.clone(),
