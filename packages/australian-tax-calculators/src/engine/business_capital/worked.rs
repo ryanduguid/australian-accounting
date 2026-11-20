@@ -34,7 +34,7 @@ const AMOUNTS: [(&str, &str); 4] = [
     ),
     (
         "deduction",
-        "ITAA 1997 s 40-880(2): one fifth of each item's deductible expenditure in each of the 5 income years starting in the year incurred, or under s 40-880(2A) all of it in that year",
+        "ITAA 1997 s 40-880(2): one fifth of each item's deductible expenditure in each of the 5 income years starting in the year incurred, or under s 40-880(2A) all of it in that year. Add the exact item amounts, then round the total to cents",
     ),
     (
         "remaining_expenditure_after_year",

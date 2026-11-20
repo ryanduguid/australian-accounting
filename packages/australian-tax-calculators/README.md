@@ -788,8 +788,15 @@ takes one premises and the stations within 1 km of it; run it once for each.
 `commercial_parking_station` values each benefit at the
 day's lowest fee (s 39C), the same on every day, and `average_cost` at the
 average of the fees on the days benefits were first and last provided (s 39DA);
-the recipients' payments come off in total, each counted only up to its
-benefit's value, never below nil. `market_value` values each benefit at the
+the recipients' payments come off each benefit up to its value. For these
+methods and market value, give one benefit's payment as a decimal string.
+With several benefits and a combined payment above one benefit's value, give
+`employee_contribution` as an object with `capped_total`, a decimal string after
+capping each payment at its own benefit's value and adding them. Keep any
+half-cent from average cost, up to 3 decimal places. The worksheet works
+from the exact gross value and rounds its reported amounts to cents. When using
+that object, the worksheet reports the applied contribution without the excess
+you already took out. `market_value` values each benefit at the
 amount a suitably qualified valuer at arm's length reported (s 39D), with the
 payments taken off the same way; the operator establishes that the report came
 before the declaration date in the approved form. `spaces` (s 39FA) takes
@@ -1780,8 +1787,8 @@ if the business ceases (TR 2011/6 para 10). The result's amounts are the expendi
 year's deduction and what remains for later years. `items` gives each item's
 paragraph of s 40-880(2), its limit, `excluded_by`, the method with its
 citation, the year's deduction, `schedule` (each income year and its
-deduction) and `notes`, each worked exactly; the amounts are shown to the
-cent, half up.
+deduction) and `notes`, worked at full precision. Each total in `amounts` is the sum of the exact
+item values, rounded once to the cent, half up.
 
 It refuses expenditure that forms part of the cost of a depreciating asset
 (s 40-880(5)(a)), which Division 40 deducts, and expenditure that could be
