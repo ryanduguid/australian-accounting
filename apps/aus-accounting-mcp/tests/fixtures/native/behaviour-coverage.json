@@ -15,7 +15,7 @@
   },
   "original_sources": {
     "tests/test_as_at.py": "fb643892862b97ed86eca1ac2946d0b2c5cef0b9bd9b81048d550090172ddb34",
-    "tests/test_aus_accounting_mcp.py": "b3291dacc2993d709a5dfc381a528aeae68937a7e10bc808eb24532118920157",
+    "tests/test_aus_accounting_mcp.py": "10d41fdfa2eddf1f60a62d75be6e600f2a05d8a758ab80e626e7c5b48d7fd3a1",
     "tests/test_cli.py": "d4343e179eb3f52dba66f636847ad5cd528c7904dcfb69ba1861d5f1504922bd",
     "tests/test_compatibility.py": "e15d9ffa0a04c74ebff8400f813e06f295fec2e2ceddaa8a4c14cd69709d64fd",
     "tests/test_conformance_cases.py": "706fbfe053478edabcd768993caa14058b9fa8efde0d88cf5d22bc6b42397d70",
@@ -35,7 +35,7 @@
     "tests/test_identifiers.py": "6c0b5fd9a3e96ced670bc7109b2ca5d357ac1dbd49bc655997c57b7212791acf",
     "tests/test_industry_pagination.py": "fdd00b1d221f49bea076998bfd1c0582b6f69ab9f4552eaec725fadb037f0dfb",
     "tests/test_installed_check.py": "995a5feff18288321e7950186c6931ec95fe4f8a17796f24280baa2ed0089693",
-    "tests/test_lodgment_calendar.py": "515fb82ce955874f0caee5321ced11e79ea5e846a891eb4276ad62da30b78706",
+    "tests/test_lodgment_calendar.py": "3d74124bea731abc53a5df2dcabcbbf5323af4224caa10537936284e41940498",
     "tests/test_mcp_evaluation.py": "6afbd97998277457c49d16d97462b94d2651aa69445ade0caa9e793530190197",
     "tests/test_no_network.py": "895ffd4130254dad9e9e742d38230d68dbd07967a5f5cb06f982e442cd4f4925",
     "tests/test_output_contracts.py": "beb86e4e7a4e2dec4f2728f4d0fe4f2b5edbb6b1c293697dd2b59bd40c542832",
@@ -276,7 +276,7 @@
     {
       "original": "tests/test_aus_accounting_mcp.py:39",
       "function": "test_proof_package_surface_is_versioned_and_keeps_stdio_separate",
-      "source_sha256": "b3291dacc2993d709a5dfc381a528aeae68937a7e10bc808eb24532118920157",
+      "source_sha256": "10d41fdfa2eddf1f60a62d75be6e600f2a05d8a758ab80e626e7c5b48d7fd3a1",
       "status": "retained-python-distribution",
       "proofs": [
         "PY"
@@ -285,7 +285,7 @@
     {
       "original": "tests/test_aus_accounting_mcp.py:52",
       "function": "test_pypi_facets_are_declared_without_contradicting_the_licence_field",
-      "source_sha256": "b3291dacc2993d709a5dfc381a528aeae68937a7e10bc808eb24532118920157",
+      "source_sha256": "10d41fdfa2eddf1f60a62d75be6e600f2a05d8a758ab80e626e7c5b48d7fd3a1",
       "status": "retained-python-distribution",
       "proofs": [
         "PY"
@@ -294,7 +294,7 @@
     {
       "original": "tests/test_aus_accounting_mcp.py:75",
       "function": "test_github_about_copy_matches_the_script_that_applies_it",
-      "source_sha256": "b3291dacc2993d709a5dfc381a528aeae68937a7e10bc808eb24532118920157",
+      "source_sha256": "10d41fdfa2eddf1f60a62d75be6e600f2a05d8a758ab80e626e7c5b48d7fd3a1",
       "status": "retained-python-distribution",
       "proofs": [
         "PY"
@@ -303,7 +303,7 @@
     {
       "original": "tests/test_aus_accounting_mcp.py:99",
       "function": "test_build_backend_is_exactly_pinned_for_reproducible_wheels",
-      "source_sha256": "b3291dacc2993d709a5dfc381a528aeae68937a7e10bc808eb24532118920157",
+      "source_sha256": "10d41fdfa2eddf1f60a62d75be6e600f2a05d8a758ab80e626e7c5b48d7fd3a1",
       "status": "retained-python-distribution",
       "proofs": [
         "PY"
@@ -312,7 +312,7 @@
     {
       "original": "tests/test_aus_accounting_mcp.py:322",
       "function": "test_inlined_simulators_are_gone",
-      "source_sha256": "b3291dacc2993d709a5dfc381a528aeae68937a7e10bc808eb24532118920157",
+      "source_sha256": "10d41fdfa2eddf1f60a62d75be6e600f2a05d8a758ab80e626e7c5b48d7fd3a1",
       "status": "retained-python-distribution",
       "proofs": [
         "PY"
@@ -321,7 +321,7 @@
     {
       "original": "tests/test_aus_accounting_mcp.py:332",
       "function": "test_payday_on_time_uses_payday_super_checker",
-      "source_sha256": "b3291dacc2993d709a5dfc381a528aeae68937a7e10bc808eb24532118920157",
+      "source_sha256": "10d41fdfa2eddf1f60a62d75be6e600f2a05d8a758ab80e626e7c5b48d7fd3a1",
       "status": "covered",
       "proofs": [
         "F"
@@ -330,7 +330,7 @@
     {
       "original": "tests/test_aus_accounting_mcp.py:349",
       "function": "test_payday_without_fund_receipt_is_at_risk",
-      "source_sha256": "b3291dacc2993d709a5dfc381a528aeae68937a7e10bc808eb24532118920157",
+      "source_sha256": "10d41fdfa2eddf1f60a62d75be6e600f2a05d8a758ab80e626e7c5b48d7fd3a1",
       "status": "covered",
       "proofs": [
         "F"
@@ -339,7 +339,7 @@
     {
       "original": "tests/test_aus_accounting_mcp.py:360",
       "function": "test_payday_pre_regime_is_refused",
-      "source_sha256": "b3291dacc2993d709a5dfc381a528aeae68937a7e10bc808eb24532118920157",
+      "source_sha256": "10d41fdfa2eddf1f60a62d75be6e600f2a05d8a758ab80e626e7c5b48d7fd3a1",
       "status": "covered",
       "proofs": [
         "F"
@@ -348,7 +348,7 @@
     {
       "original": "tests/test_aus_accounting_mcp.py:370",
       "function": "test_payday_transition_period_cannot_be_confirmed_by_the_mcp",
-      "source_sha256": "b3291dacc2993d709a5dfc381a528aeae68937a7e10bc808eb24532118920157",
+      "source_sha256": "10d41fdfa2eddf1f60a62d75be6e600f2a05d8a758ab80e626e7c5b48d7fd3a1",
       "status": "covered",
       "proofs": [
         "F"
@@ -357,7 +357,7 @@
     {
       "original": "tests/test_aus_accounting_mcp.py:380",
       "function": "test_payday_rejects_non_decimal_amounts",
-      "source_sha256": "b3291dacc2993d709a5dfc381a528aeae68937a7e10bc808eb24532118920157",
+      "source_sha256": "10d41fdfa2eddf1f60a62d75be6e600f2a05d8a758ab80e626e7c5b48d7fd3a1",
       "status": "covered",
       "proofs": [
         "F"
@@ -366,7 +366,7 @@
     {
       "original": "tests/test_aus_accounting_mcp.py:390",
       "function": "test_ato_benchmarks_use_shipped_dataset",
-      "source_sha256": "b3291dacc2993d709a5dfc381a528aeae68937a7e10bc808eb24532118920157",
+      "source_sha256": "10d41fdfa2eddf1f60a62d75be6e600f2a05d8a758ab80e626e7c5b48d7fd3a1",
       "status": "covered",
       "proofs": [
         "F"
@@ -375,7 +375,7 @@
     {
       "original": "tests/test_aus_accounting_mcp.py:422",
       "function": "test_ato_omitted_buckets_are_not_treated_as_zero",
-      "source_sha256": "b3291dacc2993d709a5dfc381a528aeae68937a7e10bc808eb24532118920157",
+      "source_sha256": "10d41fdfa2eddf1f60a62d75be6e600f2a05d8a758ab80e626e7c5b48d7fd3a1",
       "status": "covered",
       "proofs": [
         "F"
@@ -384,7 +384,7 @@
     {
       "original": "tests/test_aus_accounting_mcp.py:479",
       "function": "test_ato_other_income_can_move_the_turnover_band",
-      "source_sha256": "b3291dacc2993d709a5dfc381a528aeae68937a7e10bc808eb24532118920157",
+      "source_sha256": "10d41fdfa2eddf1f60a62d75be6e600f2a05d8a758ab80e626e7c5b48d7fd3a1",
       "status": "covered",
       "proofs": [
         "F"
@@ -393,7 +393,7 @@
     {
       "original": "tests/test_aus_accounting_mcp.py:507",
       "function": "test_ato_omitted_other_income_withholds_the_turnover_band_and_ranges",
-      "source_sha256": "b3291dacc2993d709a5dfc381a528aeae68937a7e10bc808eb24532118920157",
+      "source_sha256": "10d41fdfa2eddf1f60a62d75be6e600f2a05d8a758ab80e626e7c5b48d7fd3a1",
       "status": "covered",
       "proofs": [
         "F"
@@ -402,7 +402,7 @@
     {
       "original": "tests/test_aus_accounting_mcp.py:532",
       "function": "test_ato_omitted_other_income_withholds_notes_that_quote_turnover",
-      "source_sha256": "b3291dacc2993d709a5dfc381a528aeae68937a7e10bc808eb24532118920157",
+      "source_sha256": "10d41fdfa2eddf1f60a62d75be6e600f2a05d8a758ab80e626e7c5b48d7fd3a1",
       "status": "covered",
       "proofs": [
         "F"
@@ -411,7 +411,7 @@
     {
       "original": "tests/test_aus_accounting_mcp.py:561",
       "function": "test_ato_w1_without_associated_persons_is_not_supplied",
-      "source_sha256": "b3291dacc2993d709a5dfc381a528aeae68937a7e10bc808eb24532118920157",
+      "source_sha256": "10d41fdfa2eddf1f60a62d75be6e600f2a05d8a758ab80e626e7c5b48d7fd3a1",
       "status": "covered",
       "proofs": [
         "F"
@@ -420,7 +420,7 @@
     {
       "original": "tests/test_aus_accounting_mcp.py:579",
       "function": "test_ato_w1_does_not_substitute_for_salary_wages",
-      "source_sha256": "b3291dacc2993d709a5dfc381a528aeae68937a7e10bc808eb24532118920157",
+      "source_sha256": "10d41fdfa2eddf1f60a62d75be6e600f2a05d8a758ab80e626e7c5b48d7fd3a1",
       "status": "covered",
       "proofs": [
         "F"
@@ -429,7 +429,7 @@
     {
       "original": "tests/test_aus_accounting_mcp.py:614",
       "function": "test_engine_declares_every_fact_its_labour_check_quotes",
-      "source_sha256": "b3291dacc2993d709a5dfc381a528aeae68937a7e10bc808eb24532118920157",
+      "source_sha256": "10d41fdfa2eddf1f60a62d75be6e600f2a05d8a758ab80e626e7c5b48d7fd3a1",
       "status": "covered",
       "proofs": [
         "LABOUR",
@@ -439,7 +439,7 @@
     {
       "original": "tests/test_aus_accounting_mcp.py:639",
       "function": "test_ato_omitted_salary_wages_withholds_checks_that_quote_the_label",
-      "source_sha256": "b3291dacc2993d709a5dfc381a528aeae68937a7e10bc808eb24532118920157",
+      "source_sha256": "10d41fdfa2eddf1f60a62d75be6e600f2a05d8a758ab80e626e7c5b48d7fd3a1",
       "status": "covered",
       "proofs": [
         "F"
@@ -448,7 +448,7 @@
     {
       "original": "tests/test_aus_accounting_mcp.py:681",
       "function": "test_ato_a_check_resting_only_on_supplied_buckets_survives_the_withholding",
-      "source_sha256": "b3291dacc2993d709a5dfc381a528aeae68937a7e10bc808eb24532118920157",
+      "source_sha256": "10d41fdfa2eddf1f60a62d75be6e600f2a05d8a758ab80e626e7c5b48d7fd3a1",
       "status": "covered",
       "proofs": [
         "F"
@@ -457,7 +457,7 @@
     {
       "original": "tests/test_aus_accounting_mcp.py:728",
       "function": "test_ato_withholds_every_check_that_states_an_omitted_bucket_as_a_zero",
-      "source_sha256": "b3291dacc2993d709a5dfc381a528aeae68937a7e10bc808eb24532118920157",
+      "source_sha256": "10d41fdfa2eddf1f60a62d75be6e600f2a05d8a758ab80e626e7c5b48d7fd3a1",
       "status": "covered",
       "proofs": [
         "F"
@@ -466,7 +466,7 @@
     {
       "original": "tests/test_aus_accounting_mcp.py:773",
       "function": "test_ato_omitted_cost_of_sales_does_not_pick_the_key_ratio",
-      "source_sha256": "b3291dacc2993d709a5dfc381a528aeae68937a7e10bc808eb24532118920157",
+      "source_sha256": "10d41fdfa2eddf1f60a62d75be6e600f2a05d8a758ab80e626e7c5b48d7fd3a1",
       "status": "covered",
       "proofs": [
         "F"
@@ -475,7 +475,7 @@
     {
       "original": "tests/test_aus_accounting_mcp.py:803",
       "function": "test_ato_labour_gate_declines_a_ratio_the_engine_computes_correctly",
-      "source_sha256": "b3291dacc2993d709a5dfc381a528aeae68937a7e10bc808eb24532118920157",
+      "source_sha256": "10d41fdfa2eddf1f60a62d75be6e600f2a05d8a758ab80e626e7c5b48d7fd3a1",
       "status": "covered",
       "proofs": [
         "LABOUR",
@@ -485,7 +485,7 @@
     {
       "original": "tests/test_aus_accounting_mcp.py:840",
       "function": "test_ato_partial_labour_picture_is_not_supplied",
-      "source_sha256": "b3291dacc2993d709a5dfc381a528aeae68937a7e10bc808eb24532118920157",
+      "source_sha256": "10d41fdfa2eddf1f60a62d75be6e600f2a05d8a758ab80e626e7c5b48d7fd3a1",
       "status": "covered",
       "proofs": [
         "F"
@@ -494,7 +494,7 @@
     {
       "original": "tests/test_aus_accounting_mcp.py:851",
       "function": "test_ato_complete_labour_picture_is_evidenced",
-      "source_sha256": "b3291dacc2993d709a5dfc381a528aeae68937a7e10bc808eb24532118920157",
+      "source_sha256": "10d41fdfa2eddf1f60a62d75be6e600f2a05d8a758ab80e626e7c5b48d7fd3a1",
       "status": "covered",
       "proofs": [
         "F"
@@ -503,7 +503,7 @@
     {
       "original": "tests/test_aus_accounting_mcp.py:867",
       "function": "test_ato_omitted_other_income_withholds_every_ratio",
-      "source_sha256": "b3291dacc2993d709a5dfc381a528aeae68937a7e10bc808eb24532118920157",
+      "source_sha256": "10d41fdfa2eddf1f60a62d75be6e600f2a05d8a758ab80e626e7c5b48d7fd3a1",
       "status": "covered",
       "proofs": [
         "F"
@@ -512,7 +512,7 @@
     {
       "original": "tests/test_aus_accounting_mcp.py:907",
       "function": "test_ato_refuses_turnover_only",
-      "source_sha256": "b3291dacc2993d709a5dfc381a528aeae68937a7e10bc808eb24532118920157",
+      "source_sha256": "10d41fdfa2eddf1f60a62d75be6e600f2a05d8a758ab80e626e7c5b48d7fd3a1",
       "status": "covered",
       "proofs": [
         "F"
@@ -521,7 +521,7 @@
     {
       "original": "tests/test_aus_accounting_mcp.py:912",
       "function": "test_ato_unknown_industry_is_refused",
-      "source_sha256": "b3291dacc2993d709a5dfc381a528aeae68937a7e10bc808eb24532118920157",
+      "source_sha256": "10d41fdfa2eddf1f60a62d75be6e600f2a05d8a758ab80e626e7c5b48d7fd3a1",
       "status": "covered",
       "proofs": [
         "F"
@@ -530,7 +530,7 @@
     {
       "original": "tests/test_aus_accounting_mcp.py:944",
       "function": "test_div7a_is_refused",
-      "source_sha256": "b3291dacc2993d709a5dfc381a528aeae68937a7e10bc808eb24532118920157",
+      "source_sha256": "10d41fdfa2eddf1f60a62d75be6e600f2a05d8a758ab80e626e7c5b48d7fd3a1",
       "status": "covered",
       "proofs": [
         "F"
@@ -539,7 +539,7 @@
     {
       "original": "tests/test_aus_accounting_mcp.py:953",
       "function": "test_div7a_refusal_is_reachable_without_inventing_loan_facts",
-      "source_sha256": "b3291dacc2993d709a5dfc381a528aeae68937a7e10bc808eb24532118920157",
+      "source_sha256": "10d41fdfa2eddf1f60a62d75be6e600f2a05d8a758ab80e626e7c5b48d7fd3a1",
       "status": "adapted",
       "proofs": [
         "D",
@@ -551,7 +551,7 @@
     {
       "original": "tests/test_aus_accounting_mcp.py:966",
       "function": "test_synthetic_sbr_fixtures_are_labelled",
-      "source_sha256": "b3291dacc2993d709a5dfc381a528aeae68937a7e10bc808eb24532118920157",
+      "source_sha256": "10d41fdfa2eddf1f60a62d75be6e600f2a05d8a758ab80e626e7c5b48d7fd3a1",
       "status": "covered",
       "proofs": [
         "F"
@@ -560,7 +560,7 @@
     {
       "original": "tests/test_aus_accounting_mcp.py:977",
       "function": "test_client_snippets_use_uvx_from_pypi",
-      "source_sha256": "b3291dacc2993d709a5dfc381a528aeae68937a7e10bc808eb24532118920157",
+      "source_sha256": "10d41fdfa2eddf1f60a62d75be6e600f2a05d8a758ab80e626e7c5b48d7fd3a1",
       "status": "retained-python-distribution",
       "proofs": [
         "PY"
@@ -569,43 +569,34 @@
     {
       "original": "tests/test_aus_accounting_mcp.py:1034",
       "function": "test_release_metadata_matches_the_candidate_version",
-      "source_sha256": "b3291dacc2993d709a5dfc381a528aeae68937a7e10bc808eb24532118920157",
+      "source_sha256": "10d41fdfa2eddf1f60a62d75be6e600f2a05d8a758ab80e626e7c5b48d7fd3a1",
       "status": "retained-python-distribution",
       "proofs": [
         "PY"
       ]
     },
     {
-      "original": "tests/test_aus_accounting_mcp.py:1055",
+      "original": "tests/test_aus_accounting_mcp.py:1056",
       "function": "test_active_repository_metadata_uses_canonical_identity",
-      "source_sha256": "b3291dacc2993d709a5dfc381a528aeae68937a7e10bc808eb24532118920157",
+      "source_sha256": "10d41fdfa2eddf1f60a62d75be6e600f2a05d8a758ab80e626e7c5b48d7fd3a1",
       "status": "retained-python-distribution",
       "proofs": [
         "PY"
       ]
     },
     {
-      "original": "tests/test_aus_accounting_mcp.py:1073",
+      "original": "tests/test_aus_accounting_mcp.py:1086",
       "function": "test_readme_has_stable_proof_anchor_and_mapping",
-      "source_sha256": "b3291dacc2993d709a5dfc381a528aeae68937a7e10bc808eb24532118920157",
+      "source_sha256": "10d41fdfa2eddf1f60a62d75be6e600f2a05d8a758ab80e626e7c5b48d7fd3a1",
       "status": "retained-python-distribution",
       "proofs": [
         "PY"
       ]
     },
     {
-      "original": "tests/test_aus_accounting_mcp.py:1103",
+      "original": "tests/test_aus_accounting_mcp.py:1116",
       "function": "test_committed_binary_assets_have_current_provenance",
-      "source_sha256": "b3291dacc2993d709a5dfc381a528aeae68937a7e10bc808eb24532118920157",
-      "status": "retained-python-distribution",
-      "proofs": [
-        "PY"
-      ]
-    },
-    {
-      "original": "tests/test_aus_accounting_mcp.py:1119",
-      "function": "test_repository_social_preview_has_current_name_dimensions_and_provenance",
-      "source_sha256": "b3291dacc2993d709a5dfc381a528aeae68937a7e10bc808eb24532118920157",
+      "source_sha256": "10d41fdfa2eddf1f60a62d75be6e600f2a05d8a758ab80e626e7c5b48d7fd3a1",
       "status": "retained-python-distribution",
       "proofs": [
         "PY"
@@ -613,35 +604,35 @@
     },
     {
       "original": "tests/test_aus_accounting_mcp.py:1132",
+      "function": "test_repository_social_preview_has_current_name_dimensions_and_provenance",
+      "source_sha256": "10d41fdfa2eddf1f60a62d75be6e600f2a05d8a758ab80e626e7c5b48d7fd3a1",
+      "status": "retained-python-distribution",
+      "proofs": [
+        "PY"
+      ]
+    },
+    {
+      "original": "tests/test_aus_accounting_mcp.py:1145",
       "function": "test_server_metadata_publishes_exact_pypi_release",
-      "source_sha256": "b3291dacc2993d709a5dfc381a528aeae68937a7e10bc808eb24532118920157",
+      "source_sha256": "10d41fdfa2eddf1f60a62d75be6e600f2a05d8a758ab80e626e7c5b48d7fd3a1",
       "status": "retained-python-distribution",
       "proofs": [
         "PY"
       ]
     },
     {
-      "original": "tests/test_aus_accounting_mcp.py:1149",
+      "original": "tests/test_aus_accounting_mcp.py:1162",
       "function": "test_pypi_route_rejects_a_second_publisher_workflow",
-      "source_sha256": "b3291dacc2993d709a5dfc381a528aeae68937a7e10bc808eb24532118920157",
+      "source_sha256": "10d41fdfa2eddf1f60a62d75be6e600f2a05d8a758ab80e626e7c5b48d7fd3a1",
       "status": "retained-python-distribution",
       "proofs": [
         "PY"
       ]
     },
     {
-      "original": "tests/test_aus_accounting_mcp.py:1164",
+      "original": "tests/test_aus_accounting_mcp.py:1177",
       "function": "test_pypi_route_rejects_controls_parked_in_a_dummy_job",
-      "source_sha256": "b3291dacc2993d709a5dfc381a528aeae68937a7e10bc808eb24532118920157",
-      "status": "retained-python-distribution",
-      "proofs": [
-        "PY"
-      ]
-    },
-    {
-      "original": "tests/test_aus_accounting_mcp.py:1193",
-      "function": "test_pypi_route_rejects_a_rebuilt_distribution",
-      "source_sha256": "b3291dacc2993d709a5dfc381a528aeae68937a7e10bc808eb24532118920157",
+      "source_sha256": "10d41fdfa2eddf1f60a62d75be6e600f2a05d8a758ab80e626e7c5b48d7fd3a1",
       "status": "retained-python-distribution",
       "proofs": [
         "PY"
@@ -649,89 +640,98 @@
     },
     {
       "original": "tests/test_aus_accounting_mcp.py:1206",
+      "function": "test_pypi_route_rejects_a_rebuilt_distribution",
+      "source_sha256": "10d41fdfa2eddf1f60a62d75be6e600f2a05d8a758ab80e626e7c5b48d7fd3a1",
+      "status": "retained-python-distribution",
+      "proofs": [
+        "PY"
+      ]
+    },
+    {
+      "original": "tests/test_aus_accounting_mcp.py:1219",
       "function": "test_release_workflow_uses_registered_pypi_publisher",
-      "source_sha256": "b3291dacc2993d709a5dfc381a528aeae68937a7e10bc808eb24532118920157",
+      "source_sha256": "10d41fdfa2eddf1f60a62d75be6e600f2a05d8a758ab80e626e7c5b48d7fd3a1",
       "status": "retained-python-distribution",
       "proofs": [
         "PY"
       ]
     },
     {
-      "original": "tests/test_aus_accounting_mcp.py:1210",
+      "original": "tests/test_aus_accounting_mcp.py:1223",
       "function": "test_readme_links_to_release_records",
-      "source_sha256": "b3291dacc2993d709a5dfc381a528aeae68937a7e10bc808eb24532118920157",
+      "source_sha256": "10d41fdfa2eddf1f60a62d75be6e600f2a05d8a758ab80e626e7c5b48d7fd3a1",
       "status": "retained-python-distribution",
       "proofs": [
         "PY"
       ]
     },
     {
-      "original": "tests/test_aus_accounting_mcp.py:1225",
+      "original": "tests/test_aus_accounting_mcp.py:1238",
       "function": "test_release_uses_the_hardened_shared_policy_contract",
-      "source_sha256": "b3291dacc2993d709a5dfc381a528aeae68937a7e10bc808eb24532118920157",
+      "source_sha256": "10d41fdfa2eddf1f60a62d75be6e600f2a05d8a758ab80e626e7c5b48d7fd3a1",
       "status": "retained-python-distribution",
       "proofs": [
         "PY"
       ]
     },
     {
-      "original": "tests/test_aus_accounting_mcp.py:1249",
+      "original": "tests/test_aus_accounting_mcp.py:1262",
       "function": "test_registry_publisher_is_pinned_and_checksum_verified",
-      "source_sha256": "b3291dacc2993d709a5dfc381a528aeae68937a7e10bc808eb24532118920157",
+      "source_sha256": "10d41fdfa2eddf1f60a62d75be6e600f2a05d8a758ab80e626e7c5b48d7fd3a1",
       "status": "retained-python-distribution",
       "proofs": [
         "PY"
       ]
     },
     {
-      "original": "tests/test_aus_accounting_mcp.py:1283",
+      "original": "tests/test_aus_accounting_mcp.py:1296",
       "function": "test_payday_reads_the_date_shapes_the_engine_reads",
-      "source_sha256": "b3291dacc2993d709a5dfc381a528aeae68937a7e10bc808eb24532118920157",
+      "source_sha256": "10d41fdfa2eddf1f60a62d75be6e600f2a05d8a758ab80e626e7c5b48d7fd3a1",
       "status": "covered",
       "proofs": [
         "F"
       ]
     },
     {
-      "original": "tests/test_aus_accounting_mcp.py:1289",
+      "original": "tests/test_aus_accounting_mcp.py:1302",
       "function": "test_payday_refuses_a_numeric_date_that_could_be_read_either_way",
-      "source_sha256": "b3291dacc2993d709a5dfc381a528aeae68937a7e10bc808eb24532118920157",
+      "source_sha256": "10d41fdfa2eddf1f60a62d75be6e600f2a05d8a758ab80e626e7c5b48d7fd3a1",
       "status": "covered",
       "proofs": [
         "F"
       ]
     },
     {
-      "original": "tests/test_aus_accounting_mcp.py:1312",
+      "original": "tests/test_aus_accounting_mcp.py:1325",
       "function": "test_payday_accepts_a_numeric_date_whose_reading_is_settled",
-      "source_sha256": "b3291dacc2993d709a5dfc381a528aeae68937a7e10bc808eb24532118920157",
+      "source_sha256": "10d41fdfa2eddf1f60a62d75be6e600f2a05d8a758ab80e626e7c5b48d7fd3a1",
       "status": "covered",
       "proofs": [
         "F"
       ]
     },
     {
-      "original": "tests/test_aus_accounting_mcp.py:1317",
+      "original": "tests/test_aus_accounting_mcp.py:1330",
       "function": "test_payday_refuses_a_zone_bearing_stamp_with_the_engine_reason",
-      "source_sha256": "b3291dacc2993d709a5dfc381a528aeae68937a7e10bc808eb24532118920157",
+      "source_sha256": "10d41fdfa2eddf1f60a62d75be6e600f2a05d8a758ab80e626e7c5b48d7fd3a1",
       "status": "covered",
       "proofs": [
         "F"
       ]
     },
     {
-      "original": "tests/test_aus_accounting_mcp.py:1327",
+      "original": "tests/test_aus_accounting_mcp.py:1340",
       "function": "test_payday_still_names_the_field_that_could_not_be_read",
-      "source_sha256": "b3291dacc2993d709a5dfc381a528aeae68937a7e10bc808eb24532118920157",
+      "source_sha256": "10d41fdfa2eddf1f60a62d75be6e600f2a05d8a758ab80e626e7c5b48d7fd3a1",
       "status": "covered",
       "proofs": [
         "F"
       ]
     },
     {
-      "original": "tests/test_aus_accounting_mcp.py:1333",
+      "original": "tests/test_aus_accounting_mcp.py:1346",
       "function": "test_payday_date_shapes_do_not_change_a_verdict",
-      "source_sha256": "b3291dacc2993d709a5dfc381a528aeae68937a7e10bc808eb24532118920157",
+      "source_sha256": "10d41fdfa2eddf1f60a62d75be6e600f2a05d8a758ab80e626e7c5b48d7fd3a1",
       "status": "covered",
       "proofs": [
         "F"
@@ -2110,65 +2110,65 @@
       ]
     },
     {
-      "original": "tests/test_lodgment_calendar.py:35",
+      "original": "tests/test_lodgment_calendar.py:34",
       "function": "test_agent_quarterly_bas_returns_the_engine_rows_with_provenance",
-      "source_sha256": "515fb82ce955874f0caee5321ced11e79ea5e846a891eb4276ad62da30b78706",
+      "source_sha256": "3d74124bea731abc53a5df2dcabcbbf5323af4224caa10537936284e41940498",
       "status": "covered",
       "proofs": [
         "F"
       ]
     },
     {
-      "original": "tests/test_lodgment_calendar.py:57",
+      "original": "tests/test_lodgment_calendar.py:56",
       "function": "test_self_lodged_individual_return_without_facts",
-      "source_sha256": "515fb82ce955874f0caee5321ced11e79ea5e846a891eb4276ad62da30b78706",
+      "source_sha256": "3d74124bea731abc53a5df2dcabcbbf5323af4224caa10537936284e41940498",
       "status": "covered",
       "proofs": [
         "F"
       ]
     },
     {
-      "original": "tests/test_lodgment_calendar.py:67",
+      "original": "tests/test_lodgment_calendar.py:66",
       "function": "test_missing_program_facts_stay_unknown_and_are_named",
-      "source_sha256": "515fb82ce955874f0caee5321ced11e79ea5e846a891eb4276ad62da30b78706",
+      "source_sha256": "3d74124bea731abc53a5df2dcabcbbf5323af4224caa10537936284e41940498",
       "status": "covered",
       "proofs": [
         "F"
       ]
     },
     {
-      "original": "tests/test_lodgment_calendar.py:83",
+      "original": "tests/test_lodgment_calendar.py:82",
       "function": "test_engine_refusals_reach_the_caller",
-      "source_sha256": "515fb82ce955874f0caee5321ced11e79ea5e846a891eb4276ad62da30b78706",
+      "source_sha256": "3d74124bea731abc53a5df2dcabcbbf5323af4224caa10537936284e41940498",
       "status": "covered",
       "proofs": [
         "F"
       ]
     },
     {
-      "original": "tests/test_lodgment_calendar.py:97",
+      "original": "tests/test_lodgment_calendar.py:96",
       "function": "test_malformed_arguments_are_rejected",
-      "source_sha256": "515fb82ce955874f0caee5321ced11e79ea5e846a891eb4276ad62da30b78706",
+      "source_sha256": "3d74124bea731abc53a5df2dcabcbbf5323af4224caa10537936284e41940498",
       "status": "covered",
       "proofs": [
         "F"
       ]
     },
     {
-      "original": "tests/test_lodgment_calendar.py:102",
+      "original": "tests/test_lodgment_calendar.py:101",
       "function": "test_tool_schema_describes_every_fact_and_is_read_only",
-      "source_sha256": "515fb82ce955874f0caee5321ced11e79ea5e846a891eb4276ad62da30b78706",
+      "source_sha256": "3d74124bea731abc53a5df2dcabcbbf5323af4224caa10537936284e41940498",
       "status": "adapted",
       "proofs": [
         "D",
         "LINKED"
       ],
-      "adaptation_or_limit": "The pyproject.toml pin check stays with the Python distribution; LINKED excludes the same FBT fact while the tool pins lodgment-calendar 0.1.0."
+      "adaptation_or_limit": "The Python and LINKED tool schemas expose facts for BAS, IAS and income tax returns. Lodgment Calendar 0.2.0 also supports FBT returns outside those tool schemas."
     },
     {
-      "original": "tests/test_lodgment_calendar.py:117",
+      "original": "tests/test_lodgment_calendar.py:114",
       "function": "test_resources_list_the_engine_and_tool",
-      "source_sha256": "515fb82ce955874f0caee5321ced11e79ea5e846a891eb4276ad62da30b78706",
+      "source_sha256": "3d74124bea731abc53a5df2dcabcbbf5323af4224caa10537936284e41940498",
       "status": "adapted",
       "proofs": [
         "RS",
@@ -2178,36 +2178,36 @@
       "adaptation_or_limit": "Installed distribution lookup becomes linked crate identity; complete disclaimer/scope payloads remain compared."
     },
     {
-      "original": "tests/test_lodgment_calendar.py:130",
+      "original": "tests/test_lodgment_calendar.py:127",
       "function": "test_caller_holidays_settle_dates_after_the_ato_table",
-      "source_sha256": "515fb82ce955874f0caee5321ced11e79ea5e846a891eb4276ad62da30b78706",
+      "source_sha256": "3d74124bea731abc53a5df2dcabcbbf5323af4224caa10537936284e41940498",
       "status": "covered",
       "proofs": [
         "F"
       ]
     },
     {
-      "original": "tests/test_lodgment_calendar.py:151",
+      "original": "tests/test_lodgment_calendar.py:148",
       "function": "test_invalid_holiday_inputs_reach_the_caller",
-      "source_sha256": "515fb82ce955874f0caee5321ced11e79ea5e846a891eb4276ad62da30b78706",
+      "source_sha256": "3d74124bea731abc53a5df2dcabcbbf5323af4224caa10537936284e41940498",
       "status": "covered",
       "proofs": [
         "F"
       ]
     },
     {
-      "original": "tests/test_lodgment_calendar.py:161",
+      "original": "tests/test_lodgment_calendar.py:158",
       "function": "test_malformed_holiday_inputs_are_rejected",
-      "source_sha256": "515fb82ce955874f0caee5321ced11e79ea5e846a891eb4276ad62da30b78706",
+      "source_sha256": "3d74124bea731abc53a5df2dcabcbbf5323af4224caa10537936284e41940498",
       "status": "covered",
       "proofs": [
         "F"
       ]
     },
     {
-      "original": "tests/test_lodgment_calendar.py:172",
+      "original": "tests/test_lodgment_calendar.py:169",
       "function": "test_the_tool_caps_caller_holidays_at_50",
-      "source_sha256": "515fb82ce955874f0caee5321ced11e79ea5e846a891eb4276ad62da30b78706",
+      "source_sha256": "3d74124bea731abc53a5df2dcabcbbf5323af4224caa10537936284e41940498",
       "status": "covered",
       "proofs": [
         "F",
@@ -4281,7 +4281,7 @@
     {
       "original": "tests/test_aus_accounting_mcp.py:924",
       "function": "test_ato_ambiguous_industry_keeps_the_engine_candidates",
-      "source_sha256": "b3291dacc2993d709a5dfc381a528aeae68937a7e10bc808eb24532118920157",
+      "source_sha256": "10d41fdfa2eddf1f60a62d75be6e600f2a05d8a758ab80e626e7c5b48d7fd3a1",
       "status": "covered",
       "proofs": [
         "F"
@@ -4290,7 +4290,7 @@
     {
       "original": "tests/test_aus_accounting_mcp.py:937",
       "function": "test_ato_engine_errors_reach_the_caller",
-      "source_sha256": "b3291dacc2993d709a5dfc381a528aeae68937a7e10bc808eb24532118920157",
+      "source_sha256": "10d41fdfa2eddf1f60a62d75be6e600f2a05d8a758ab80e626e7c5b48d7fd3a1",
       "status": "covered",
       "proofs": [
         "F"

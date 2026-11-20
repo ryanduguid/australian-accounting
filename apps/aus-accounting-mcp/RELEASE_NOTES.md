@@ -2,6 +2,8 @@
 
 ## Changed
 
+- The MCP server pins `lodgment-calendar` 0.2.0. Its Python 3.15 lock uses
+  a published `pydantic-core` wheel.
 - `calculate_tax_worksheet` serves every worksheet in the calculators executable's
   catalogue, 48 kinds in 1.0.0 where 0.10.0 served 14, and the scope resource lists
   each with the engine's own scope, periods, required and optional inputs. A worksheet

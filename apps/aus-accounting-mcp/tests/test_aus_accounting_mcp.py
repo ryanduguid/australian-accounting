@@ -1042,12 +1042,13 @@ def test_release_metadata_matches_the_candidate_version() -> None:
     assert re.search(rf"(?m)^version: {re.escape(VERSION)}$", citation)
     assert "date-released:" not in citation
     assert re.findall(r"(?m)^# (v\S+)$", release_notes)[0] == f"v{VERSION}"
-    # The newest section names every engine pin this release ships.
-    newest = re.split(r"(?m)^# v", release_notes)[1]
+    # Current pins are recorded in the newest release or in its pending changes.
+    unreleased, newest, *_ = re.split(r"(?m)^# v", release_notes)
+    candidate_notes = unreleased + newest
     pins = [pin.split("==") for pin in project["dependencies"] if "==" in pin]
     assert len(pins) == 5
     for name, version in pins:
-        assert f"{name}` {version}" in newest
+        assert f"{name}` {version}" in candidate_notes
     assert published_version == server["packages"][0]["version"] == VERSION
     assert project["version"] == published_version
 
