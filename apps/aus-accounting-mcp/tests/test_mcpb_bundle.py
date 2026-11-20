@@ -4,9 +4,13 @@
 """The MCP Bundle manifest must describe the server this source tree releases."""
 
 import asyncio
+import importlib.util
 import json
 import tomllib
 from pathlib import Path
+from types import SimpleNamespace
+
+import pytest
 
 from aus_accounting_mcp import doctor
 from aus_accounting_mcp.server import mcp
@@ -55,3 +59,38 @@ def test_every_retrieval_folder_is_an_optional_directory_setting() -> None:
         assert option["type"] == "directory"
         assert option["default"] == ""
         assert not option.get("required", False)
+
+
+@pytest.mark.parametrize(("platform", "machine", "filename"), [
+    ("linux", "x86_64", "australian-tax-calculators"),
+    ("win32", "AMD64", "australian-tax-calculators.exe"),
+    ("darwin", "x86_64", None),
+    ("linux", "aarch64", None),
+])
+def test_the_launcher_selects_a_supported_binary_and_preserves_an_override(
+    monkeypatch, tmp_path, platform, machine, filename,
+) -> None:
+    spec = importlib.util.spec_from_file_location("bundle_launcher", BUNDLE / "src/server.py")
+    assert spec is not None and spec.loader is not None
+    launcher = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(launcher)
+    monkeypatch.setattr(launcher, "sys", SimpleNamespace(platform=platform))
+    monkeypatch.setattr(launcher, "platform", SimpleNamespace(machine=lambda: machine))
+    (tmp_path / "src").mkdir()
+    monkeypatch.setattr(launcher, "__file__", str(tmp_path / "src/server.py"))
+    variable = "AUS_TAX_CALCULATORS_BIN"
+    monkeypatch.delenv(variable, raising=False)
+
+    launcher.configure_calculators()
+    assert variable not in launcher.os.environ
+    if filename is None:
+        return
+
+    binary = tmp_path / "bin" / filename
+    binary.parent.mkdir()
+    binary.touch()
+    launcher.configure_calculators()
+    assert launcher.os.environ.get(variable) == str(binary)
+    monkeypatch.setenv(variable, str(tmp_path / "operator-calculator"))
+    launcher.configure_calculators()
+    assert launcher.os.environ.get(variable) == str(tmp_path / "operator-calculator")

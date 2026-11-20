@@ -4,7 +4,8 @@ name: Bundle aus-accounting-mcp
 # released to PyPI. Push aus-accounting-mcp-bundle/vX.Y.Z on the commit tagged
 # aus-accounting-mcp/vX.Y.Z once release-aus-accounting-mcp.yml has published
 # it. The bundle ships no server source: its uv runtime installs exactly
-# aus-accounting-mcp==X.Y.Z from PyPI. Releases here are immutable and the
+# aus-accounting-mcp==X.Y.Z from PyPI. It includes the Linux and Windows
+# calculators executables pinned by the Python adapter. Releases here are immutable and the
 # component release takes no extra assets, so the bundle gets its own release.
 #
 # The packer's npm dependencies are not locked, so it runs alone in the pack job,
@@ -39,6 +40,10 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
+      - name: Stage the attested Linux and Windows calculators
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: bash apps/aus-accounting-mcp/scripts/stage_bundle_calculators.sh
       - name: Validate and pack the bundle
         shell: bash
         run: |
@@ -120,11 +125,15 @@ jobs:
         with:
           artifact-ids: ${{ steps.artifact.outputs.id }}
           path: ${{ runner.temp }}/packed
-      # The archive must hold exactly this checkout's mcpb/ files, byte for byte.
-      - name: Check the packed files, then start the bundle from PyPI and list its tools
+      - name: Independently stage the attested Linux and Windows calculators
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: bash apps/aus-accounting-mcp/scripts/stage_bundle_calculators.sh
+      # The archive must match the checked-out launcher and both release executables.
+      - name: Check the packed files, list the tools and run a worksheet
         env:
           VERSION: ${{ steps.bind.outputs.version }}
-        run: python -I apps/aus-accounting-mcp/scripts/check_bundle.py "$RUNNER_TEMP/packed/aus-accounting-mcp-$VERSION.mcpb" apps/aus-accounting-mcp/mcpb
+        run: python -I apps/aus-accounting-mcp/scripts/check_bundle.py "$RUNNER_TEMP/packed/aus-accounting-mcp-$VERSION.mcpb" apps/aus-accounting-mcp/mcpb --check-calculators
       - name: Record the bundle digest
         id: digest
         env:
@@ -197,7 +206,7 @@ jobs:
         working-directory: bundle
         run: |
           set -euo pipefail
-          notes="Claude Desktop MCP Bundle for aus-accounting-mcp $VERSION. Open the .mcpb file with Claude Desktop. The bundle holds no server code: on first launch uv installs aus-accounting-mcp $VERSION from PyPI, the [aus-accounting-mcp/v$VERSION](https://github.com/$GITHUB_REPOSITORY/releases/tag/aus-accounting-mcp/v$VERSION) release, and resolves its dependencies. It does not install the australian-tax-calculators executable the tax worksheets need: see that release's notes. Use SHA256SUMS to check the download and gh attestation verify $BUNDLE_FILE --repo $GITHUB_REPOSITORY to verify its provenance. Not tax, legal or financial advice."
+          notes="Claude Desktop MCP Bundle for aus-accounting-mcp $VERSION. Open the .mcpb file with Claude Desktop. On first launch uv installs aus-accounting-mcp $VERSION from PyPI and resolves its dependencies. The bundle includes the pinned tax calculators executable for x86-64 Linux and Windows. On other platforms, see the [server release notes](https://github.com/$GITHUB_REPOSITORY/releases/tag/aus-accounting-mcp/v$VERSION) for source builds. Use SHA256SUMS to check the download and gh attestation verify $BUNDLE_FILE --repo $GITHUB_REPOSITORY to verify its provenance. Not tax, legal or financial advice."
           gh release create "$GITHUB_REF_NAME" --repo "$GITHUB_REPOSITORY" --verify-tag \
             --latest=false --title "aus-accounting-mcp $VERSION bundle" --notes "$notes" \
             "$BUNDLE_FILE" SHA256SUMS
