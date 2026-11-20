@@ -568,7 +568,7 @@ pub fn fbt_car_parking(
         }
         // Each group of spaces is checked against the threshold on its own.
         "spaces" => spaces::spaces(given, &when, &threshold, days_in_year)?,
-        _ => fee_parking(given, &when, method)?,
+        _ => fee_parking(given, &when, method, &threshold)?,
     };
     // Without a benefit there is no gross value or payment to report, only the
     // nil taxable value; the method's inputs were still checked above.
@@ -591,11 +591,16 @@ type FeeMethod = (Decimal, Decimal, Vec<Step>, &'static str);
 
 /// The commercial parking station, market value or average cost method: each
 /// benefit's value, reduced by the recipients' payments, never below nil.
-fn fee_parking(given: &[(String, Arg)], when: &str, method: &str) -> Result<Parking> {
+fn fee_parking(
+    given: &[(String, Arg)],
+    when: &str,
+    method: &str,
+    threshold: &Decimal,
+) -> Result<Parking> {
     let (fee, contribution, steps, authority) = match method {
-        "average_cost" => average_cost(given, when)?,
-        "market_value" => each_benefit(given, when, "market_value", "FBTAA s 39D(2)")?,
-        _ => each_benefit(given, when, "lowest_fee", "FBTAA s 39C")?,
+        "average_cost" => average_cost(given, when, threshold)?,
+        "market_value" => each_benefit(given, when, "market_value", "FBTAA s 39D(2)", threshold)?,
+        _ => each_benefit(given, when, "lowest_fee", "FBTAA s 39C", threshold)?,
     };
     let (steps, taxable) = with_payments(steps, &contribution, authority)?;
     Ok((fee, steps, taxable))
@@ -636,6 +641,7 @@ fn each_benefit(
     when: &str,
     value: &'static str,
     authority: &'static str,
+    threshold: &Decimal,
 ) -> Result<FeeMethod> {
     let names = [
         "first_business_day_fee",
@@ -644,8 +650,9 @@ fn each_benefit(
         "employee_contribution",
     ];
     let [fee, benefits, each, contribution] = take(given, PARKING, when, names)?;
-    let (count, each) = (benefit_count(benefits)?, money(each)?);
+    let (count, each, fee) = (benefit_count(benefits)?, money(each)?, money(fee)?);
     let gross = precise(|| Ok(count.mul(&each)?))?;
+    let contribution = fee_contribution(contribution, fee.gt(threshold)?, &count, &each, &gross)?;
     let formula = format!("benefits x {value}");
     let steps = vec![step(
         "gross_taxable_value",
@@ -654,12 +661,12 @@ fn each_benefit(
         &[&count, &each],
         gross,
     )];
-    Ok((money(fee)?, money(contribution)?, steps, authority))
+    Ok((fee, contribution, steps, authority))
 }
 
 /// s 39DA: each benefit at the average of the lowest fees on the days a
 /// benefit is first and last provided in the year.
-fn average_cost(given: &[(String, Arg)], when: &str) -> Result<FeeMethod> {
+fn average_cost(given: &[(String, Arg)], when: &str, threshold: &Decimal) -> Result<FeeMethod> {
     let names = [
         "first_business_day_fee",
         "benefits",
@@ -670,28 +677,81 @@ fn average_cost(given: &[(String, Arg)], when: &str) -> Result<FeeMethod> {
     let [fee, benefits, first, last, contribution] = take(given, PARKING, when, names)?;
     let (count, first, last) = (benefit_count(benefits)?, money(first)?, money(last)?);
     let authority = "FBTAA s 39DA(2)";
-    let steps = precise(|| {
+    let fee = money(fee)?;
+    let (average, gross) = precise(|| {
         let average = first.add(&last)?.div(&int(2))?;
-        let gross = cents(count.mul(&average)?)?;
-        let formula = "(first_day_fee + last_day_fee) / 2";
-        Ok(vec![
-            step(
-                "average_cost",
-                "FBTAA s 39DA(3)",
-                formula,
-                &[&first, &last],
-                average.clone(),
-            ),
-            step(
-                "gross_taxable_value",
-                authority,
-                "cents(benefits x average_cost)",
-                &[&count, &average],
-                gross,
-            ),
-        ])
+        let gross = count.mul(&average)?;
+        Ok((average, gross))
     })?;
-    Ok((money(fee)?, money(contribution)?, steps, authority))
+    let contribution =
+        fee_contribution(contribution, fee.gt(threshold)?, &count, &average, &gross)?;
+    let steps = vec![
+        step(
+            "average_cost",
+            "FBTAA s 39DA(3)",
+            "(first_day_fee + last_day_fee) / 2",
+            &[&first, &last],
+            average.clone(),
+        ),
+        step(
+            "gross_taxable_value",
+            authority,
+            "benefits x average_cost",
+            &[&count, &average],
+            gross,
+        ),
+    ];
+    Ok((fee, contribution, steps, authority))
+}
+
+/// Under ss 39C, 39D and 39DA a payment can reduce only the benefit it is for.
+/// With several benefits, only a raw total up to one benefit's value can be
+/// used without knowing how it was allocated.
+fn fee_contribution(
+    value: &Arg,
+    benefit_arises: bool,
+    count: &Decimal,
+    each: &Decimal,
+    gross: &Decimal,
+) -> Result<Decimal> {
+    if let Arg::Json(Value::Object(fields)) = value {
+        let amount = fields
+            .get("capped_total")
+            .and_then(Value::as_str)
+            .filter(|text| text.len() <= 8192)
+            .and_then(|text| Decimal::parse(text).ok());
+        let Some(amount) = amount.filter(|_| fields.len() == 1) else {
+            return refuse(
+                "fbt_car_parking.capped_contribution_invalid",
+                "employee_contribution must contain only capped_total, a decimal string.",
+            );
+        };
+        if !amount.is_finite()
+            || amount.lt(&int(0))?
+            || amount.gt(&d("1e12"))?
+            || amount.exponent() < -3
+        {
+            return refuse(
+                "fbt_car_parking.capped_contribution_invalid",
+                "employee_contribution capped_total must be finite, non-negative, at most 3 decimal places and at most 1e12.",
+            );
+        }
+        if amount.gt(gross)? {
+            return refuse(
+                "fbt_car_parking.capped_contribution_invalid",
+                "employee_contribution capped_total cannot exceed gross taxable value.",
+            );
+        }
+        return Ok(amount);
+    }
+    let total = money(value)?;
+    if benefit_arises && count.gt(&int(1))? && total.gt(each)? {
+        return refuse(
+            "fbt_car_parking.contribution_allocation_needed",
+            "employee_contribution exceeds one benefit's value. Work each benefit separately or give capped_total after capping each payment at its own benefit's value (FBTAA ss 39C, 39D and 39DA).",
+        );
+    }
+    Ok(total)
 }
 
 /// The number of car parking benefits: a JSON integer from 0.
