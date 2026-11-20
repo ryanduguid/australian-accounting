@@ -34,7 +34,7 @@ const QUESTIONS: [&str; 3] = ["registration", "pmsi", "company_grantor"];
 const CRITICAL_FROM: &str = "2025-07-01";
 const CRITICAL_BEFORE: &str = "2027-07-01";
 
-/// An instant in seconds from 1970-01-01 00:00, ACT legal time.
+/// An unambiguous ACT wall-clock time encoded as a day and seconds within it.
 type Instant = i64;
 
 fn end_of_day(day: i64) -> Instant {
@@ -55,6 +55,31 @@ fn show(at: Instant) -> String {
     )
 }
 
+/// ACT Standard Time and Summer Time Act 1972 ss 4-7 and the dictionary.
+/// From October 2008 the first Sunday in October skips 02:00-02:59, and the
+/// first Sunday in April repeats it. Outside those hours wall times sort in
+/// the same order as instants.
+fn unique_act_time(at: Instant, key: &str) -> Result<Instant> {
+    let day = at.div_euclid(DAY);
+    let (year, month, day_of_month) = dates::to_civil(day);
+    let hour = at.rem_euclid(DAY) / 3600;
+    if hour != 2 || day_of_month > 7 || (day + 3).rem_euclid(7) != 6 || (year, month) < (2008, 10) {
+        return Ok(at);
+    }
+    let reason = match month {
+        4 => "occurs twice when ACT daylight saving ends",
+        10 => "does not occur when ACT daylight saving starts",
+        _ => return Ok(at),
+    };
+    refuse(
+        "ppsr_timing.time_unresolved",
+        format!(
+            "{key}: {} {reason}. Confirm the timing from the underlying records.",
+            show(at)
+        ),
+    )
+}
+
 /// A strict `YYYY-MM-DDTHH:MM` time, ACT legal time.
 fn time(arg: &Arg, key: &str) -> Result<Instant> {
     let parsed = arg.text().and_then(|t| {
@@ -68,7 +93,7 @@ fn time(arg: &Arg, key: &str) -> Result<Instant> {
         (h < 24 && m < 60).then_some(dates::parse(day)? * DAY + h * 3600 + m * 60)
     });
     match parsed {
-        Some(at) => Ok(at),
+        Some(at) => unique_act_time(at, key),
         None => refuse(
             "ppsr_timing.time_invalid",
             format!("{key} must be a time YYYY-MM-DDTHH:MM, ACT legal time (PPSA s 294)."),
@@ -222,7 +247,7 @@ fn six_months_before(at: Instant) -> Result<Instant> {
             ),
         );
     }
-    Ok(earlier * DAY + at.rem_euclid(DAY))
+    unique_act_time(earlier * DAY + at.rem_euclid(DAY), "six_months_before")
 }
 
 /// The income year a day falls in, as `YYYY-YY`.

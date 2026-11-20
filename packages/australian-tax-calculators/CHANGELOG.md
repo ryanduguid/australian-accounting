@@ -1,5 +1,13 @@
 # Changes
 
+## Unreleased
+
+### Fixed
+
+- `ppsr-timing` refuses the skipped spring hour and repeated autumn hour in ACT
+  local inputs and the derived six-month time. The refusal code is
+  `ppsr_timing.time_unresolved`.
+
 ## 1.1.0
 
 ### Added
