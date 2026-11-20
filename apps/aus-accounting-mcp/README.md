@@ -103,14 +103,13 @@ records. It cannot tell you whether a newer release or newer official figures ex
 From 0.8.0, each release also has an MCP Bundle for Claude Desktop: download
 `aus-accounting-mcp-<version>.mcpb` from the
 [bundle releases](https://github.com/ryanduguid/australian-accounting/releases?q=aus-accounting-mcp-bundle&expanded=true)
-and open it with Claude Desktop. The bundle holds no server code. It pins this package
-at that version, which uv installs from PyPI on first launch, resolving the package's
-own dependencies then. `SHA256SUMS` in the same release shows the download is intact;
-it does not prove who published it. The bundle does not include the calculators
-executable, so its tax worksheets refuse unless the executable, installed as under
-Install, is in a folder on the `PATH` Claude Desktop gives the server. The bundle's
-settings offer the 3 optional research folders described under Tools. If Claude Desktop does not start it, use the
-configuration below.
+and open it with Claude Desktop. On first launch uv installs the pinned server from
+PyPI and resolves its dependencies. The 0.11.0 bundle includes the pinned calculators
+executable for x86-64 Linux and Windows. On other platforms, build the calculators
+from source as described under Install and make them available to Claude Desktop.
+Use the bundle release's `SHA256SUMS` and GitHub attestation to verify the file.
+The bundle settings offer the 3 optional research folders described under Tools.
+If Claude Desktop does not start the bundle, use the configuration below.
 
 For Claude Desktop, Cursor, Windsurf and other hosts that run local stdio servers:
 
