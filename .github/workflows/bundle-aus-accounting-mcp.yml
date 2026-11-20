@@ -143,6 +143,8 @@ jobs:
     permissions:
       actions: read # Inspect and download only the bundle artefact this run built.
       contents: write # Create the release, upload the bundle and publish it.
+      attestations: write # Record provenance for the verified bundle.
+      id-token: write # Sign the attestation with this workflow's OIDC identity.
     steps:
       - name: Verify artefact identity
         env:
@@ -165,12 +167,9 @@ jobs:
         with:
           artifact-ids: ${{ needs.verify.outputs.artifact-id }}
           path: bundle
-      # gh creates a draft, uploads the assets, then publishes; the release becomes
-      # immutable only once published. A failed upload leaves a draft to delete
-      # before a rerun.
-      - name: Check the bundle digest and publish its release
+      - name: Check the bundle digest
+        id: bundle
         env:
-          GH_TOKEN: ${{ github.token }}
           VERSION: ${{ needs.verify.outputs.version }}
           BUNDLE_SHA256: ${{ needs.verify.outputs.bundle-sha256 }}
         shell: bash
@@ -181,7 +180,24 @@ jobs:
           file="aus-accounting-mcp-$VERSION.mcpb"
           printf '%s  %s\n' "$BUNDLE_SHA256" "$file" > SHA256SUMS
           sha256sum --check SHA256SUMS
-          notes="Claude Desktop MCP Bundle for aus-accounting-mcp $VERSION. Open the .mcpb file with Claude Desktop. The bundle holds no server code: on first launch uv installs aus-accounting-mcp $VERSION from PyPI, the [aus-accounting-mcp/v$VERSION](https://github.com/$GITHUB_REPOSITORY/releases/tag/aus-accounting-mcp/v$VERSION) release, and resolves its dependencies. It does not install the australian-tax-calculators executable the tax worksheets need: see that release's notes. SHA256SUMS checks the download is intact; it does not prove who published it. Not tax, legal or financial advice."
+          printf 'file=%s\n' "$file" >> "$GITHUB_OUTPUT"
+      - name: Attest the verified bundle
+        uses: actions/attest@1e69f48acb82d1966a394da916b4c1698aa569d6 # v4.2.2
+        with:
+          subject-path: bundle/${{ steps.bundle.outputs.file }}
+      # gh creates a draft, uploads the assets, then publishes; the release becomes
+      # immutable only once published. A failed upload leaves a draft to delete
+      # before a rerun.
+      - name: Publish the attested bundle
+        env:
+          GH_TOKEN: ${{ github.token }}
+          VERSION: ${{ needs.verify.outputs.version }}
+          BUNDLE_FILE: ${{ steps.bundle.outputs.file }}
+        shell: bash
+        working-directory: bundle
+        run: |
+          set -euo pipefail
+          notes="Claude Desktop MCP Bundle for aus-accounting-mcp $VERSION. Open the .mcpb file with Claude Desktop. The bundle holds no server code: on first launch uv installs aus-accounting-mcp $VERSION from PyPI, the [aus-accounting-mcp/v$VERSION](https://github.com/$GITHUB_REPOSITORY/releases/tag/aus-accounting-mcp/v$VERSION) release, and resolves its dependencies. It does not install the australian-tax-calculators executable the tax worksheets need: see that release's notes. Use SHA256SUMS to check the download and gh attestation verify $BUNDLE_FILE --repo $GITHUB_REPOSITORY to verify its provenance. Not tax, legal or financial advice."
           gh release create "$GITHUB_REF_NAME" --repo "$GITHUB_REPOSITORY" --verify-tag \
             --latest=false --title "aus-accounting-mcp $VERSION bundle" --notes "$notes" \
-            "$file" SHA256SUMS
+            "$BUNDLE_FILE" SHA256SUMS
