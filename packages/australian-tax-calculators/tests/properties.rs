@@ -941,19 +941,53 @@ fn fbt_benefit_values_reconcile_and_never_fall_below_nil() {
         let arises = d(&fee)
             .gt(&d(if year == 2026 { "11.03" } else { "11.48" }))
             .unwrap();
-        let contribution = rng.pay();
-        let mut facts = json!({"first_business_day_fee": fee, "benefits": rng.int(0, 2000),
+        let mut contribution = rng.pay();
+        let benefits = rng.int(0, 2000);
+        let mut facts = json!({"first_business_day_fee": fee, "benefits": benefits,
                                "employee_contribution": contribution,
                                "year_ended": year, "scope_confirmed": true});
-        if rng.bool() {
+        let per_benefit = if rng.bool() {
+            let day_fee = rng.cents(5000);
             facts["method"] = json!("commercial_parking_station");
-            facts["lowest_fee"] = json!(rng.cents(5000));
+            facts["lowest_fee"] = json!(day_fee);
+            d(&day_fee)
         } else {
+            let first = rng.cents(5000);
+            let last = rng.cents(5000);
             facts["method"] = json!("average_cost");
-            facts["first_day_fee"] = json!(rng.cents(5000));
-            facts["last_day_fee"] = json!(rng.cents(5000));
+            facts["first_day_fee"] = json!(first);
+            facts["last_day_fee"] = json!(last);
+            d(&first).add(&d(&last)).unwrap().div(&n(2)).unwrap()
+        };
+        let gross = per_benefit.mul(&n(benefits)).unwrap();
+        if arises && benefits > 1 && d(&contribution).gt(&per_benefit).unwrap() {
+            let err = api::evaluate_coded("fbt-car-parking", &facts).unwrap_err();
+            assert_eq!(err.code, "fbt_car_parking.contribution_allocation_needed");
+            contribution = sorted_dec(contribution, gross.to_string()).0;
+            facts["employee_contribution"] = json!({"capped_total": contribution});
         }
-        check_parking_reconciles(&run("fbt-car-parking", facts), &contribution, arises);
+        let parking = run("fbt-car-parking", facts);
+        if arises {
+            let contribution = d(&contribution);
+            let applied = if le(&contribution, &gross) {
+                &contribution
+            } else {
+                &gross
+            };
+            let excess = contribution.sub(applied).unwrap();
+            let taxable = gross.sub(applied).unwrap();
+            for (key, exact) in [
+                ("gross_taxable_value", &gross),
+                ("employee_contribution_applied", applied),
+                ("excess_employee_contribution", &excess),
+                ("taxable_value", &taxable),
+            ] {
+                let cents = exact.quantize(-2, Rounding::HalfUp).unwrap();
+                assert!(eq(&amount(&parking, key), &cents), "{key}: {parking}");
+            }
+        } else {
+            assert_eq!(parking["amounts"], json!({"taxable_value": "0.00"}));
+        }
         let value = rng.pay();
         let result = run(
             "fbt-car-parking",
