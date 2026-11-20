@@ -18,10 +18,38 @@ fn replay(commands: &[&str]) {
         if !commands.contains(&command) {
             continue;
         }
-        let actual = match api::evaluate(command, &row["input"]) {
+        let mut input = row["input"].clone();
+        if command == "benchmark"
+            && matches!(
+                row["test"].as_str(),
+                Some(
+                    "test_benchmark_rule_validation"
+                        | "test_events_without_a_rate_take_the_validators_rate"
+                        | "test_benchmark_is_keyed_to_the_earliest_distribution"
+                )
+            )
+        {
+            // These fixtures span both halves of an income year. A private
+            // company has the single benchmark the frozen Python output expects.
+            input["private_company"] = true.into();
+        }
+        let mut actual = match api::evaluate(command, &input) {
             Ok(v) => serde_json::json!({"ok":v}),
             Err(e) => serde_json::json!({"error":e}),
         };
+        if input.get("private_company").is_some()
+            && let Some(ok) = actual.get_mut("ok")
+        {
+            let periods = ok.as_object_mut().unwrap().remove("franking_periods");
+            let periods = periods.as_ref().and_then(Value::as_array).unwrap();
+            assert!(periods.len() <= 1, "{}: {periods:?}", row["test"]);
+            assert_eq!(
+                &ok["benchmark_percentage"],
+                periods
+                    .first()
+                    .map_or(&Value::Null, |p| &p["benchmark_percentage"])
+            );
+        }
         assert_eq!(
             actual, row["expected"],
             "{}: {} {}",
@@ -48,8 +76,29 @@ fn event_measurements_require_rate_even_for_nil_distribution() {
     replay(&["distribution-event"]);
 }
 #[test]
-fn benchmark_uses_exact_ratio_stable_date_order_and_cent_tolerance() {
+fn benchmark_uses_exact_ratio_and_stable_date_order() {
     replay(&["benchmark"]);
+}
+
+#[test]
+fn a_one_cent_breach_is_reported_at_a_zero_benchmark() {
+    let input = serde_json::json!({
+        "corporate_tax_rate": "0.25",
+        "distributions": [
+            {"event_date": "2025-02-01", "recipient_name": "Synthetic shareholder",
+             "distribution_amount": "3.00", "franking_credit": "0.00"},
+            {"event_date": "2025-02-15", "recipient_name": "Synthetic shareholder",
+             "distribution_amount": "3.00", "franking_credit": "0.01"}
+        ]
+    });
+    let result = api::evaluate("benchmark", &input).unwrap();
+    assert_eq!(result["benchmark_percentage"], "0.00");
+    assert_eq!(result["compliant"], false);
+    assert!(result.get("franking_periods").is_none());
+    assert_eq!(
+        breaches(&result),
+        [["2025-02-15", "0.00", "OVER_FRANKING_TAX", "0.01"]]
+    );
 }
 #[test]
 fn ledger_and_fdt_unknowns_classification_and_periods() {
@@ -413,4 +462,116 @@ fn api_output_preserves_plane_16_private_use_text() {
     assert_eq!(out.status.code(), Some(0));
     let result: Value = serde_json::from_slice(&out.stdout).unwrap();
     assert_eq!(result["entries"][0]["description"], "\u{10F7FF}\u{10F7FF}");
+}
+
+fn franking_benchmark_input() -> Value {
+    let event = |date: &str, credit: &str| serde_json::json!({"event_date":date,"recipient_name":"Synthetic shareholder","distribution_amount":"75000.00","franking_credit":credit});
+    serde_json::json!({"corporate_tax_rate":"0.25","distributions":[
+        event("2025-06-30", "25000.00"),
+        event("2024-12-31", "25000.00"),
+        event("2025-01-01", "12500.00"),
+        event("2025-07-01", "12500.00"),
+    ]})
+}
+
+fn franking_benchmark(private: bool) -> Value {
+    let mut input = franking_benchmark_input();
+    input["private_company"] = private.into();
+    api::evaluate("benchmark", &input).unwrap()
+}
+fn breaches(result: &Value) -> Vec<[&str; 4]> {
+    let fields = [
+        "event_date",
+        "benchmark_percentage",
+        "consequence_type",
+        "penalty_or_debit_amount",
+    ];
+    let rows = result["violations"].as_array().unwrap();
+    rows.iter()
+        .map(|v| fields.map(|k| v[k].as_str().unwrap()))
+        .collect()
+}
+#[test]
+fn a_public_company_benchmarks_each_half_year_against_its_own_first_distribution() {
+    // ss 203-25, 203-30 and 203-40(2) ITAA 1997: the second half year's
+    // first distribution, 50% franked, sets its own benchmark.
+    let result = franking_benchmark(false);
+    assert_eq!(
+        result["franking_periods"],
+        serde_json::json!([
+            {"start":"2024-07-01","end":"2024-12-31","benchmark_percentage":"100.00"},
+            {"start":"2025-01-01","end":"2025-06-30","benchmark_percentage":"50.00"},
+            {"start":"2025-07-01","end":"2025-12-31","benchmark_percentage":"50.00"},
+        ])
+    );
+    assert_eq!(
+        breaches(&result),
+        [["2025-06-30", "50.00", "OVER_FRANKING_TAX", "12500.00"]]
+    );
+    assert_eq!(result["compliant"], false);
+    assert_eq!(result["distributions"][0]["event_date"], "2025-06-30");
+}
+#[test]
+fn a_private_company_has_one_franking_period_in_an_income_year() {
+    // s 203-45 ITAA 1997: the income year is the franking period.
+    let result = franking_benchmark(true);
+    assert_eq!(
+        result["franking_periods"],
+        serde_json::json!([
+            {"start":"2024-07-01","end":"2025-06-30","benchmark_percentage":"100.00"},
+            {"start":"2025-07-01","end":"2026-06-30","benchmark_percentage":"50.00"},
+        ])
+    );
+    assert_eq!(
+        breaches(&result),
+        [["2025-01-01", "100.00", "FRANKING_DEBIT", "12500.00"]]
+    );
+}
+#[test]
+fn the_benchmark_needs_to_know_whether_the_company_is_private() {
+    for private in [Value::Null, "false".into()] {
+        let input = serde_json::json!({"corporate_tax_rate":"0.25","private_company":private});
+        assert!(
+            api::evaluate("benchmark", &input)
+                .unwrap_err()
+                .starts_with("private_company must be a boolean")
+        );
+    }
+    assert!(
+        api::evaluate("benchmark", &franking_benchmark_input())
+            .unwrap_err()
+            .starts_with("private_company is required")
+    );
+    let input = serde_json::json!({"corporate_tax_rate":"0.25"});
+    assert_eq!(
+        api::evaluate("benchmark", &input).unwrap(),
+        serde_json::json!({"benchmark_percentage":null,"compliant":null,"violations":[],"distributions":[]})
+    );
+}
+
+#[test]
+fn an_unfrankable_distribution_does_not_set_or_breach_the_benchmark() {
+    let mut input = serde_json::json!({"corporate_tax_rate":"0.25","distributions":[
+        {"event_date":"2024-12-31","recipient_name":"Synthetic shareholder","distribution_amount":"75000.00","franking_credit":"0","frankable":false},
+        {"event_date":"2025-01-01","recipient_name":"Synthetic shareholder","distribution_amount":"75000.00","franking_credit":"0","frankable":false},
+        {"event_date":"2025-03-31","recipient_name":"Synthetic shareholder","distribution_amount":"75000.00","franking_credit":"25000.00"},
+    ]});
+    let result = api::evaluate("benchmark", &input).unwrap();
+    assert_eq!(result["benchmark_percentage"], "100.00");
+    assert_eq!(result["compliant"], true);
+    assert!(breaches(&result).is_empty());
+    for event in &result["distributions"].as_array().unwrap()[..2] {
+        assert_eq!(event["frankable"], false);
+        assert_eq!(event["maximum_franking_credit"], "0.00");
+    }
+    input["distributions"][1]["franking_credit"] = "0.01".into();
+    assert_eq!(
+        api::evaluate("benchmark", &input).unwrap_err(),
+        "an unfrankable distribution must have zero franking_credit"
+    );
+    input["distributions"][1]["frankable"] = "false".into();
+    assert_eq!(
+        api::evaluate("benchmark", &input).unwrap_err(),
+        "frankable must be a boolean"
+    );
 }
