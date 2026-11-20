@@ -60,7 +60,7 @@ commands.
 | `max-franking-rate` | `current_fy`, optional `prior_year_test` containing the 4 BRE fields | Decimal rate string; missing or wrong-year evidence is refused |
 | `statement` | `entity_name`, `abn_or_acn`, `recipient_name`, `payment_date`, `total_distribution`, `franking_percentage`, `corporate_tax_rate` | Statement fields, total and gross assessable income |
 | `distribution-event` | `event_date`, `recipient_name`, `distribution_amount`, `franking_credit`, optional `corporate_tax_rate` | Event fields, maximum credit, exact ratio and displayed percentage; measurement requires a rate |
-| `benchmark` | `corporate_tax_rate`, optional `distributions` array of event objects | Original-order distributions, benchmark percentage, compliance status and violations |
+| `benchmark` | `corporate_tax_rate`, `private_company` (boolean), optional `distributions` array of event objects | Original-order distributions, each franking period's benchmark percentage, compliance status and violations |
 | `franking-account` | `financial_year`, optional `opening_balance`, `entries`, `records`, `append_entries` | Entries, totals, closing balance and deficit result |
 | `validate-value` | `kind` (`money`, `percentage`, `rate` or `date`), `value` string | Original CLI validator's parsed value string |
 
@@ -90,6 +90,17 @@ Every calculation revalidates that all entries belong to the stated financial
 year. `append_entries` exposes this original mutation check without a Python
 object. Omitted opening balance stays unknown; an established nil balance is
 the explicit string `"0.00"`.
+
+`benchmark` applies the benchmark rule (s 203-25 ITAA 1997): each frankable
+distribution is compared with the first in its franking period (s 203-30). A
+private company's franking period is its income year (s 203-45); any other
+company's are the first 6 months of the income year and the rest
+(s 203-40(2)). Income years run from 1 July to 30 June. Substituted accounting
+periods, income years other than 12 months (s 203-40(3) to (5)) and the
+s 203-20 exemption for listed public companies are not modelled.
+`franking_periods` lists each period with a frankable distribution, in date
+order, with its `start`, `end` and `benchmark_percentage`; `compliant` is
+`null` when there is none.
 
 ## Arithmetic and limits
 

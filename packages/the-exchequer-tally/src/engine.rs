@@ -269,8 +269,25 @@ impl Event {
         )
     }
 }
+/// The first and last days of the franking period holding `date`, for an
+/// income year from 1 July to 30 June: the income year for a private company
+/// (s 203-45 ITAA 1997), otherwise its first 6 months and the rest
+/// (s 203-40(2)).
+fn franking_period(date: &Date, private: bool) -> (String, String) {
+    let year: i32 = date.0[..4].parse().expect("a parsed date");
+    let second_half = &date.0[5..7] >= "07";
+    match (private, second_half) {
+        (true, true) => (format!("{year:04}-07-01"), format!("{:04}-06-30", year + 1)),
+        (true, false) => (format!("{:04}-07-01", year - 1), format!("{year:04}-06-30")),
+        (false, true) => (format!("{year:04}-07-01"), format!("{year:04}-12-31")),
+        (false, false) => (format!("{year:04}-01-01"), format!("{year:04}-06-30")),
+    }
+}
+/// The benchmark rule (s 203-25): the first frankable distribution in each
+/// franking period sets that period's benchmark (s 203-30), and each later
+/// one in the period is compared with it.
 /// `tax_rate` has passed `rate` and every event has passed `Event::validate`.
-pub fn benchmark(tax_rate: D, mut events: Vec<Event>) -> Result<Value> {
+pub fn benchmark(tax_rate: D, private: bool, mut events: Vec<Event>) -> Result<Value> {
     for event in &mut events {
         if event.rate.is_none() {
             event.rate = Some(tax_rate.clone());
@@ -278,18 +295,19 @@ pub fn benchmark(tax_rate: D, mut events: Vec<Event>) -> Result<Value> {
     }
     let distributions = events.iter().map(Event::json).collect::<Result<Vec<_>>>()?;
     events.sort_by(|a, b| a.date.cmp(&b.date));
-    let Some(start) = events.iter().position(|e| e.amount > d("0.00")) else {
-        return Ok(
-            json!({"benchmark_percentage":null,"compliant":null,"violations":[],"distributions":distributions}),
-        );
-    };
-    let first = &events[start];
-    let pct = first.pct()?;
-    let ratio = first.ratio()?;
+    // (start, end, benchmark percentage, benchmark ratio), in date order.
+    let mut periods: Vec<(String, String, D, D)> = Vec::new();
     let mut violations = Vec::new();
-    for event in &events[start + 1..] {
+    for event in &events {
+        let (start, end) = franking_period(&event.date, private);
+        let Some((_, _, pct, ratio)) = periods.iter().find(|p| p.0 == start) else {
+            if event.amount > d("0.00") {
+                periods.push((start, end, event.pct()?, event.ratio()?));
+            }
+            continue;
+        };
         let actual = event.pct()?;
-        let diff = actual.sub(&pct);
+        let diff = actual.sub(pct);
         let max = event.maximum()?;
         let benchmark_credit = ratio.mul(&max);
         let actual_credit = if event.credit < max {
@@ -303,8 +321,13 @@ pub fn benchmark(tax_rate: D, mut events: Vec<Event>) -> Result<Value> {
             violations.push(json!({"event_date":event.date.to_string(),"recipient_name":event.recipient,"benchmark_percentage":pct.to_string(),"actual_percentage":actual.to_string(),"variance_percentage":diff.to_string(),"consequence_type":if over {"OVER_FRANKING_TAX"} else {"FRANKING_DEBIT"},"penalty_or_debit_amount":cents(&credit_diff.abs())?.to_string(),"statutory_reference":if over {"s 203-50(1) ITAA 1997: Over-franking tax payable on excess franking credits."} else {"s 203-50(2) ITAA 1997: Franking account debit arises equal to shortfall."}}));
         }
     }
+    let compliant = (!periods.is_empty()).then_some(violations.is_empty());
+    let periods = periods
+        .iter()
+        .map(|(start, end, pct, _)| json!({"start":start,"end":end,"benchmark_percentage":pct.to_string()}))
+        .collect::<Vec<_>>();
     Ok(
-        json!({"benchmark_percentage":pct.to_string(),"compliant":violations.is_empty(),"violations":violations,"distributions":distributions}),
+        json!({"franking_periods":periods,"compliant":compliant,"violations":violations,"distributions":distributions}),
     )
 }
 
