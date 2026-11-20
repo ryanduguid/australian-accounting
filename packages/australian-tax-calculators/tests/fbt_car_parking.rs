@@ -99,6 +99,26 @@ fn the_average_cost_method_matches_the_employers_guide_example() {
 }
 
 #[test]
+fn average_cost_keeps_half_cents_through_contribution_working() {
+    let mut facts = json!({
+        "first_day_fee": "17.25", "last_day_fee": "18.50",
+        "employee_contribution": "17.88"
+    });
+    let single = amounts(average(facts.clone()));
+    assert_eq!(single["excess_employee_contribution"], "0.01");
+    assert_eq!(single["taxable_value"], "0.00");
+
+    facts["benefits"] = json!(3);
+    facts["employee_contribution"] = json!({"capped_total": "17.875"});
+    let multiple = amounts(average(facts.clone()));
+    assert_eq!(multiple["gross_taxable_value"], "53.63");
+    assert_eq!(multiple["taxable_value"], "35.75");
+
+    facts["employee_contribution"] = json!({"capped_total": "53.63"});
+    assert!(average(facts).unwrap_err().contains("gross taxable value"));
+}
+
+#[test]
 fn the_12_week_register_matches_the_employers_guide_example() {
     // Example 17: $2,500 in the register, x 52 / 12 = $10,833.33, x 183 / 366
     // = $5,416.67. The 2019-20 facts, run in 2026.

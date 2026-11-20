@@ -187,7 +187,7 @@ fn cases() -> Vec<(&'static str, Value)> {
             "fbt-car-parking",
             json!({"method": "average_cost", "first_business_day_fee": "17.00", "benefits": 3,
                    "first_day_fee": "17.25", "last_day_fee": "18.50",
-                   "employee_contribution": {"capped_total": "20.00"}}),
+                   "employee_contribution": {"capped_total": "17.875"}}),
         ),
         benefit(
             "fbt-car-parking",

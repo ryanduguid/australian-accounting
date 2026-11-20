@@ -680,7 +680,7 @@ fn average_cost(given: &[(String, Arg)], when: &str, threshold: &Decimal) -> Res
     let fee = money(fee)?;
     let (average, gross) = precise(|| {
         let average = first.add(&last)?.div(&int(2))?;
-        let gross = cents(count.mul(&average)?)?;
+        let gross = count.mul(&average)?;
         Ok((average, gross))
     })?;
     let contribution =
@@ -696,7 +696,7 @@ fn average_cost(given: &[(String, Arg)], when: &str, threshold: &Decimal) -> Res
         step(
             "gross_taxable_value",
             authority,
-            "cents(benefits x average_cost)",
+            "benefits x average_cost",
             &[&count, &average],
             gross,
         ),
@@ -726,14 +726,23 @@ fn fee_contribution(
                 "employee_contribution must contain only capped_total, a decimal string.",
             );
         };
-        let total = money(&Arg::Decimal(amount))?;
-        if total.gt(gross)? {
+        if !amount.is_finite()
+            || amount.lt(&int(0))?
+            || amount.gt(&d("1e12"))?
+            || amount.exponent() < -3
+        {
+            return refuse(
+                "fbt_car_parking.capped_contribution_invalid",
+                "employee_contribution capped_total must be finite, non-negative, at most 3 decimal places and at most 1e12.",
+            );
+        }
+        if amount.gt(gross)? {
             return refuse(
                 "fbt_car_parking.capped_contribution_invalid",
                 "employee_contribution capped_total cannot exceed gross taxable value.",
             );
         }
-        return Ok(total);
+        return Ok(amount);
     }
     let total = money(value)?;
     if benefit_arises && count.gt(&int(1))? && total.gt(each)? {

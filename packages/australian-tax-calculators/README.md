@@ -792,7 +792,9 @@ the recipients' payments come off each benefit up to its value. For these
 methods and market value, give one benefit's payment as a decimal string.
 With several benefits and a combined payment above one benefit's value, give
 `employee_contribution` as an object with `capped_total`, a decimal string after
-capping each payment at its own benefit's value and adding them. When using
+capping each payment at its own benefit's value and adding them. Keep any
+half-cent from average cost, up to 3 decimal places. The worksheet works
+from the exact gross value and rounds its reported amounts to cents. When using
 that object, the worksheet reports the applied contribution without the excess
 you already took out. `market_value` values each benefit at the
 amount a suitably qualified valuer at arm's length reported (s 39D), with the

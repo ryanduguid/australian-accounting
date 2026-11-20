@@ -2106,7 +2106,7 @@ pub fn optional_inputs(kind: &str) -> Vec<(&'static str, &'static str)> {
             ),
             (
                 "employee_contribution",
-                "Required for commercial_parking_station, market_value, average_cost and spaces. AUD net of reimbursements. For the first 3 methods, give the amount for one benefit, or a total no greater than one benefit's value. For a larger combined amount, give an object with capped_total (decimal string), the total after limiting each payment to its own benefit's value (FBTAA ss 39C, 39D and 39DA). For spaces give every relevant recipients contribution for the employees the election covers, for the FBT year (s 39FE)",
+                "Required for commercial_parking_station, market_value, average_cost and spaces. AUD net of reimbursements. For the first 3 methods, give the amount for one benefit, or a total no greater than one benefit's value. For a larger combined amount, give an object with capped_total (decimal string, up to 3 decimal places to retain half-cents in average cost), the total after limiting each payment to its own benefit's value (FBTAA ss 39C, 39D and 39DA). For spaces give every relevant recipients contribution for the employees the election covers, for the FBT year (s 39FE)",
             ),
             (
                 "space_groups",
