@@ -121,6 +121,27 @@ fn jill_reaches_the_limits_and_labels_earnings_an_estimate() {
     assert_eq!(october["earnings_from"], "2023-10-01");
 }
 
+#[test]
+fn fhss_honours_stated_earnings_when_the_estimate_differs() {
+    let result = run(&stated("42500", "0", "5190"));
+    assert_eq!(result["associated_earnings_basis"], "stated");
+    assert_eq!(result["amounts"]["associated_earnings"], "5190.00");
+    assert_eq!(result["amounts"]["maximum_release_amount"], "47690.00");
+}
+
+/// Both January contributions start earning on 1 January and include the
+/// determination day. At 7.38% / 366, each $7,000 earns $2.82 over 2 days.
+/// Each contribution floors to $2, so the sum is $4 rather than $5.
+#[test]
+fn fhss_counts_the_endpoint_and_floors_each_contribution() {
+    let contributions = vec![
+        json!({"date": "2024-01-01", "amount": "7000", "kind": "personal"}),
+        json!({"date": "2024-01-02", "amount": "7000", "kind": "personal"}),
+    ];
+    let result = run(&estimate(contributions, "2024-01-02", "2024-01-02"));
+    assert_eq!(result["amounts"]["associated_earnings"], "4.00");
+}
+
 /// The ATO's 'About FHSS release amounts' (Mary): $25,000 of salary sacrifice
 /// in 2023-24 counts $15,000, and $12,750 towards the maximum.
 #[test]

@@ -316,6 +316,10 @@
 
 ### Fixed
 
+- For a capped hire purchase car, a held invoice with separate, reconciled
+  goods and finance amounts can establish a GST credit. The car limit applies
+  to the goods credit. The worksheet leaves attribution and the split GST
+  journals for review.
 - The study loan repayment worksheet cites the ATO rate page's current title
   and update date. It uses the 2026-27 threshold in table 1. Example 3 still
   quotes the 2025-26 threshold. Repayment amounts are unchanged.
