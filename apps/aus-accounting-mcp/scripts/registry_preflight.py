@@ -216,8 +216,13 @@ def verify_readback(
     if official.get("isLatest") is not True:
         raise PreflightError("Registry record is not marked latest")
     tag = verify_github_release(fetch_json, name, version)
+    registry_url = (
+        f"{REGISTRY}/{urllib.parse.quote(SERVER_NAME, safe='')}"
+        f"/versions/{urllib.parse.quote(version, safe='')}"
+    )
     return [
-        f"Registry latest is active: {SERVER_NAME} {version}, matching package/repository/stdio",
+        f"Registry latest is active: {SERVER_NAME} {version}, matching package/repository/stdio. "
+        f"[Exact Registry record]({registry_url})",
         f"GitHub holds the published stable release {tag}",
     ]
 
