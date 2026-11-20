@@ -130,7 +130,10 @@ fn frozen_effective_adapter_contracts() {
                 native_freshness(&mut expected["structuredContent"]);
             }
             if name == "review_div7a_loan" {
-                engine::div7a(&mut expected["structuredContent"]);
+                engine::div7a(
+                    &case["request"]["arguments"],
+                    &mut expected["structuredContent"],
+                );
             }
             if name == "review_gst_coding" {
                 engine::gst(&mut expected["structuredContent"]);
