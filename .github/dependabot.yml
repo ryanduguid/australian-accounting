@@ -78,6 +78,8 @@ updates:
       - /apps/aus-accounting-mcp
     schedule:
       interval: weekly
+    cooldown:
+      default-days: 7
     open-pull-requests-limit: 2
     groups:
       rust:
@@ -91,6 +93,8 @@ updates:
       - /tools/glama-badge-worker
     schedule:
       interval: weekly
+    cooldown:
+      default-days: 7
     open-pull-requests-limit: 2
     groups:
       glama-rust:
@@ -101,6 +105,8 @@ updates:
     directory: /tools/aus-accounting-connector
     schedule:
       interval: weekly
+    cooldown:
+      default-days: 7
     open-pull-requests-limit: 2
     groups:
       connector-rust:
@@ -112,6 +118,8 @@ updates:
     directory: /tools/fixture-screen
     schedule:
       interval: weekly
+    cooldown:
+      default-days: 7
     open-pull-requests-limit: 1
 
   # The Worker's Miniflare and Wrangler test harness. Its package.json

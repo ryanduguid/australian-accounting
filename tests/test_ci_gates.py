@@ -543,15 +543,38 @@ class ApplicationGateTests(unittest.TestCase):
 
 
 class GateWiringTests(unittest.TestCase):
-    def test_application_coverage_producers_select_a_retained_interpreter(self) -> None:
-        for filename in ("ci.yml",):
-            with self.subTest(workflow=filename):
-                test = job_block((WORKFLOWS / filename).read_text(encoding="utf-8"), "test")
-                self.assertIn('python: "3.14"', test)
-                self.assertIn("matrix.python == '3.14' && '--cov-report=xml:coverage-codecov.xml'", test)
-                upload = test.split("      - name: keep the coverage report", 1)[1]
-                self.assertIn("if: matrix.os == 'ubuntu-latest' && matrix.python == '3.14'", upload)
-                self.assertNotIn("matrix.python == '3.13'", test)
+    def test_application_python_matrix_keeps_coverage_and_limits_macos_runs(self) -> None:
+        workflow = (WORKFLOWS / "ci.yml").read_text(encoding="utf-8")
+        selection = job_block(workflow, "changes")
+        test = job_block(workflow, "test")
+        self.assertIn("python-matrix: ${{ steps.python-matrix.outputs.matrix }}", selection)
+        self.assertIn('run: python3 .github/ci/app_ci.py mcp-python-matrix >> "$GITHUB_OUTPUT"', selection)
+        self.assertIn("matrix: ${{ fromJSON(needs.changes.outputs.python-matrix) }}", test)
+        self.assertIn("matrix.python == '3.14' && '--cov-report=xml:coverage-codecov.xml'", test)
+        upload = test.split("      - name: keep the coverage report", 1)[1]
+        self.assertIn("if: matrix.os == 'ubuntu-latest' && matrix.python == '3.14'", upload)
+
+        baseline = [
+            {"os": "ubuntu-latest", "python": "3.14"},
+            {"os": "ubuntu-latest", "python": "3.15"},
+            {"os": "windows-latest", "python": "3.14"},
+        ]
+        for event, ref, macos in (
+            ("pull_request", "refs/pull/1/merge", False),
+            ("workflow_dispatch", "refs/heads/main", False),
+            ("push", "refs/heads/other", False),
+            ("push", "refs/heads/main", True),
+            ("schedule", "refs/heads/main", True),
+        ):
+            with self.subTest(event=event, ref=ref):
+                expected = baseline + ([{"os": "macos-latest", "python": "3.14"}] if macos else [])
+                done = subprocess.run(
+                    [sys.executable, str(CHECK.parent / "app_ci.py"), "mcp-python-matrix"],
+                    env={**os.environ, "GITHUB_EVENT_NAME": event, "GITHUB_REF": ref},
+                    check=True, capture_output=True, text=True,
+                )
+                self.assertTrue(done.stdout.startswith("matrix="))
+                self.assertEqual(json.loads(done.stdout.removeprefix("matrix=")), {"include": expected})
 
     def test_engine_diff_uses_nul_paths_and_root_retains_its_component_suites(self) -> None:
         package = (WORKFLOWS / "ci-package.yml").read_text(encoding="utf-8")
