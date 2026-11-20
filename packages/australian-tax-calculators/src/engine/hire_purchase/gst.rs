@@ -199,24 +199,7 @@ fn read_registered(fields: &Map<String, Value>, hire_purchase: bool) -> Result<F
         .collect();
     let cash_basis = either(fields, "accounting_basis", "cash", "accruals")?;
     let purpose = creditable_purpose(fields)?;
-    let passenger_car = either(fields, "asset", "passenger_car", "other")?;
-    if passenger_car == Some(false)
-        && let Some(key) = CAR.iter().find(|k| fields.contains_key(**k))
-    {
-        return refuse(
-            "input.field_unknown",
-            format!("gst: {key} is a GST fact only for a passenger_car"),
-        );
-    }
-    // A car's facts are read (and so checked) unless the asset is not a car,
-    // and needed only once it is one.
-    let car = match passenger_car {
-        Some(false) => None,
-        _ => car(fields)?,
-    };
-    if passenger_car == Some(true) {
-        missing.extend(CAR.iter().filter(|k| !fields.contains_key(**k)));
-    }
+    let car = read_car_facts(fields, &mut missing)?;
     let (Some(cash_basis), Some(purpose)) = (cash_basis, purpose) else {
         return Ok(Facts::Missing(missing));
     };
@@ -246,6 +229,31 @@ fn read_registered(fields: &Map<String, Value>, hire_purchase: bool) -> Result<F
         car: car.map(Box::new),
         capped_invoice,
     })
+}
+
+fn read_car_facts(
+    fields: &Map<String, Value>,
+    missing: &mut Vec<&'static str>,
+) -> Result<Option<Car>> {
+    let passenger_car = either(fields, "asset", "passenger_car", "other")?;
+    if passenger_car == Some(false)
+        && let Some(key) = CAR.iter().find(|k| fields.contains_key(**k))
+    {
+        return refuse(
+            "input.field_unknown",
+            format!("gst: {key} is a GST fact only for a passenger_car"),
+        );
+    }
+    // A car's facts are read (and so checked) unless the asset is not a car,
+    // and needed only once it is one.
+    let car = match passenger_car {
+        Some(false) => None,
+        _ => car(fields)?,
+    };
+    if passenger_car == Some(true) {
+        missing.extend(CAR.iter().filter(|k| !fields.contains_key(**k)));
+    }
+    Ok(car)
 }
 
 fn read_split_invoice(value: &Value) -> Result<Option<SplitInvoice>> {
