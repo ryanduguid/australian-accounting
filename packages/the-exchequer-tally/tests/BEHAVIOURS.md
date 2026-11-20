@@ -5,6 +5,8 @@ The archive pytest suite passed before freezing its observed API and CLI inputs.
 Rust replays their Python results plus generated cases from `tests/data/`.
 Decimal values and scale, complete result objects and diagnostics are compared.
 The native tests also assert refused postings leave the ledger unchanged.
+Benchmark rows replay as a private company, whose one franking period holds
+each row's distributions; the native tests cover public company half years.
 
 | Original test | Rust coverage |
 | --- | --- |

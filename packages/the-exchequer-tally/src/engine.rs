@@ -231,17 +231,24 @@ pub struct Event {
     pub amount: D,
     pub credit: D,
     pub rate: Option<D>,
+    pub frankable: bool,
 }
 impl Event {
     pub fn validate(&self) -> Result<()> {
         nonnegative("distribution_amount", &self.amount)?;
         nonnegative("franking_credit", &self.credit)?;
+        if !self.frankable && self.credit > d("0.00") {
+            return Err("an unfrankable distribution must have zero franking_credit".into());
+        }
         if self.rate.is_some() {
             rate(self.rate.as_ref(), "DistributionEvent")?;
         }
         Ok(())
     }
     pub fn maximum(&self) -> Result<D> {
+        if !self.frankable {
+            return Ok(d("0.00"));
+        }
         let where_ = format!(
             "distribution to {} on {} (state a rate on the event, or add it through BenchmarkRuleValidator.add_distribution to take the validator's)",
             self.recipient, self.date
@@ -264,13 +271,71 @@ impl Event {
         cents(&self.ratio()?.mul(&d("100.00")))
     }
     pub fn json(&self) -> Result<Value> {
-        Ok(
-            json!({"event_date":self.date.to_string(),"recipient_name":self.recipient,"distribution_amount":self.amount.to_string(),"franking_credit":self.credit.to_string(),"corporate_tax_rate":self.rate.as_ref().map(ToString::to_string),"maximum_franking_credit":self.maximum()?.to_string(),"franking_ratio":self.ratio()?.to_string(),"franking_percentage":self.pct()?.to_string()}),
-        )
+        let mut result = json!({"event_date":self.date.to_string(),"recipient_name":self.recipient,"distribution_amount":self.amount.to_string(),"franking_credit":self.credit.to_string(),"corporate_tax_rate":self.rate.as_ref().map(ToString::to_string),"maximum_franking_credit":self.maximum()?.to_string(),"franking_ratio":self.ratio()?.to_string(),"franking_percentage":self.pct()?.to_string()});
+        if !self.frankable {
+            result["frankable"] = json!(false);
+        }
+        Ok(result)
+    }
+
+    fn benchmark_violation(&self, pct: &D, ratio: &D) -> Result<Option<Value>> {
+        let max = self.maximum()?;
+        let benchmark_credit = ratio.mul(&max);
+        let actual_credit = if self.credit < max {
+            &self.credit
+        } else {
+            &max
+        };
+        let credit_diff = actual_credit.sub(&benchmark_credit);
+        let consequence = cents(&credit_diff.abs())?;
+        if consequence.is_zero() {
+            return Ok(None);
+        }
+        let actual = self.pct()?;
+        let diff = actual.sub(pct);
+        let over = credit_diff > d("0.00");
+        Ok(Some(
+            json!({"event_date":self.date.to_string(),"recipient_name":self.recipient,"benchmark_percentage":pct.to_string(),"actual_percentage":actual.to_string(),"variance_percentage":diff.to_string(),"consequence_type":if over {"OVER_FRANKING_TAX"} else {"FRANKING_DEBIT"},"penalty_or_debit_amount":consequence.to_string(),"statutory_reference":if over {"s 203-50(1) ITAA 1997: Over-franking tax payable on excess franking credits."} else {"s 203-50(2) ITAA 1997: Franking account debit arises equal to shortfall."}}),
+        ))
     }
 }
+/// The first and last days of the franking period holding `date`, for an
+/// income year from 1 July to 30 June: the income year for a private company
+/// (s 203-45 ITAA 1997), otherwise its first 6 months and the rest
+/// (s 203-40(2)).
+fn franking_period(date: &Date, private: bool) -> (String, String) {
+    let year: i32 = date.0[..4].parse().expect("a parsed date");
+    let second_half = &date.0[5..7] >= "07";
+    match (private, second_half) {
+        (true, true) => (format!("{year:04}-07-01"), format!("{:04}-06-30", year + 1)),
+        (true, false) => (format!("{:04}-07-01", year - 1), format!("{year:04}-06-30")),
+        (false, true) => (format!("{year:04}-07-01"), format!("{year:04}-12-31")),
+        (false, false) => (format!("{year:04}-01-01"), format!("{year:04}-06-30")),
+    }
+}
+
+/// When all positive frankable events share one half-year, company type
+/// cannot change their benchmark. The events must be sorted by date.
+fn check_company_type(private: Option<bool>, events: &[Event]) -> Result<()> {
+    if private.is_none() {
+        let zero = d("0.00");
+        let mut frankable = events
+            .iter()
+            .filter(|event| event.frankable && event.amount > zero);
+        if let Some(first) = frankable.next()
+            && let Some(last) = frankable.next_back()
+            && franking_period(&first.date, false) != franking_period(&last.date, false)
+        {
+            return Err("private_company is required when frankable distributions span more than one half-year".to_string());
+        }
+    }
+    Ok(())
+}
+/// The benchmark rule (s 203-25): the first frankable distribution in each
+/// franking period sets that period's benchmark (s 203-30), and each later
+/// one in the period is compared with it.
 /// `tax_rate` has passed `rate` and every event has passed `Event::validate`.
-pub fn benchmark(tax_rate: D, mut events: Vec<Event>) -> Result<Value> {
+pub fn benchmark(tax_rate: D, private: Option<bool>, mut events: Vec<Event>) -> Result<Value> {
     for event in &mut events {
         if event.rate.is_none() {
             event.rate = Some(tax_rate.clone());
@@ -278,34 +343,46 @@ pub fn benchmark(tax_rate: D, mut events: Vec<Event>) -> Result<Value> {
     }
     let distributions = events.iter().map(Event::json).collect::<Result<Vec<_>>>()?;
     events.sort_by(|a, b| a.date.cmp(&b.date));
-    let Some(start) = events.iter().position(|e| e.amount > d("0.00")) else {
-        return Ok(
-            json!({"benchmark_percentage":null,"compliant":null,"violations":[],"distributions":distributions}),
-        );
-    };
-    let first = &events[start];
-    let pct = first.pct()?;
-    let ratio = first.ratio()?;
+    check_company_type(private, &events)?;
+    let zero = d("0.00");
+
+    // (start, end, benchmark percentage, benchmark ratio), in date order.
+    let mut periods: Vec<(String, String, D, D)> = Vec::new();
     let mut violations = Vec::new();
-    for event in &events[start + 1..] {
-        let actual = event.pct()?;
-        let diff = actual.sub(&pct);
-        let max = event.maximum()?;
-        let benchmark_credit = ratio.mul(&max);
-        let actual_credit = if event.credit < max {
-            &event.credit
-        } else {
-            &max
+    for event in events.iter().filter(|event| event.frankable) {
+        let (start, end) = franking_period(&event.date, private.unwrap_or(false));
+        let Some((_, _, pct, ratio)) = periods.last().filter(|p| p.0 == start) else {
+            if event.amount > zero {
+                periods.push((start, end, event.pct()?, event.ratio()?));
+            }
+            continue;
         };
-        let credit_diff = actual_credit.sub(&benchmark_credit);
-        if credit_diff.abs() > d("0.01") {
-            let over = credit_diff > d("0.00");
-            violations.push(json!({"event_date":event.date.to_string(),"recipient_name":event.recipient,"benchmark_percentage":pct.to_string(),"actual_percentage":actual.to_string(),"variance_percentage":diff.to_string(),"consequence_type":if over {"OVER_FRANKING_TAX"} else {"FRANKING_DEBIT"},"penalty_or_debit_amount":cents(&credit_diff.abs())?.to_string(),"statutory_reference":if over {"s 203-50(1) ITAA 1997: Over-franking tax payable on excess franking credits."} else {"s 203-50(2) ITAA 1997: Franking account debit arises equal to shortfall."}}));
+        if let Some(violation) = event.benchmark_violation(pct, ratio)? {
+            violations.push(violation);
         }
     }
-    Ok(
-        json!({"benchmark_percentage":pct.to_string(),"compliant":violations.is_empty(),"violations":violations,"distributions":distributions}),
-    )
+    let compliant = (!periods.is_empty()).then_some(violations.is_empty());
+    let benchmark_percentage = match periods.as_slice() {
+        [(_, _, pct, _)] => Some(pct.to_string()),
+        _ => None,
+    };
+    let mut result = json!({
+        "benchmark_percentage": benchmark_percentage,
+        "compliant": compliant,
+        "violations": violations,
+        "distributions": distributions,
+    });
+    if private.is_some() {
+        result["franking_periods"] = Value::Array(
+            periods
+                .into_iter()
+                .map(|(start, end, pct, _)| {
+                    json!({"start":start,"end":end,"benchmark_percentage":pct.to_string()})
+                })
+                .collect(),
+        );
+    }
+    Ok(result)
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
