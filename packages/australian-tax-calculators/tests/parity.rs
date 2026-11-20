@@ -129,6 +129,11 @@ fn without_new_kinds(command: &str, mut actual: Value) -> Value {
 /// Applies the source-record divergences CHANGELOG.md documents to a frozen
 /// Python result; the frozen corpus itself is never edited.
 fn adapt(command: &str, input: &Value, mut expected: Value) -> Value {
+    // Preserve the frozen version and check the current release's reply version.
+    if let Some(version) = expected.pointer_mut("/ok/engine_version") {
+        assert_eq!(*version, json!("1.0.0"), "frozen calculator reply version");
+        *version = json!(env!("CARGO_PKG_VERSION"));
+    }
     // The ATO moved its lump sum in arrears page; the redirect was seen on 26 October 2026.
     let lump_sum_old = "https://www.ato.gov.au/individuals-and-families/income-deductions-offsets-and-records/tax-offsets/lump-sum-payment-in-arrears-tax-offsets";
     let lump_sum_new = "https://www.ato.gov.au/individuals-and-families/income-deductions-offsets-and-records/income-you-must-declare/lump-sum-payment-in-arrears";

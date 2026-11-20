@@ -1,15 +1,12 @@
 # Australian tax calculators
 
-Australian Tax Calculators 1.0.0 is a standalone Rust binary. It replaces the
-Python `australian-tax-calculators` 0.2.0 package and its `austaxcalc` import
-API, with the same 14 worksheets, results and refusals, and adds 2 FBT car
-worksheets, FBT loan, meal entertainment, car parking, debt waiver, expense payment, property, residual, housing, living-away-from-home allowance, board and tax-exempt body entertainment worksheets, an entertainment classifier, a meal entertainment register check, a main residence worksheet, a borrowing expenses worksheet and schedule, a Division 296 estimate, a termination payment worksheet, an ETP tax free component worksheet, an unused leave payment worksheet, 3 Schedule 5 withholding worksheets, a Schedule 15 working holiday maker worksheet, a Schedule 9 seniors and pensioners worksheet, a seniors and pensioners tax offset worksheet, a Medicare levy surcharge worksheet, a foreign resident tax worksheet, a PAYG gross-up worksheet, a hire purchase schedule, a business capital expenditure worksheet and a franking account worksheet that no Python release contains. Python releases through 0.1.9
-contain 10 worksheets. MCP server releases through 0.9.0 use the 0.2.0 Python
-release from PyPI; later ones run this executable, requiring the exact version
-they were tested against, for the same 14 worksheets. The unreleased native
-build in this repository links this crate. The
-[release handoff](../../apps/aus-accounting-mcp/docs/worksheet-release.md)
-keeps the engine release and MCP integration separate.
+Australian Tax Calculators 1.1.0 is a standalone Rust binary with a JSON
+stdin interface. It replaces the Python `austaxcalc` import API. The MCP
+server through 0.9.0 used the 0.2.0 Python package from PyPI. Later versions
+run the calculator executable and require the exact version they were
+tested against. The native MCP build in this repository links this crate.
+The [release handoff](../../apps/aus-accounting-mcp/docs/worksheet-release.md)
+keeps the calculator release and MCP integration separate.
 
 <div align="center">
 
@@ -61,13 +58,13 @@ Release Policy's installer, at its v0.5.0 commit, downloads one, verifies it and
 installs it in one command. On x86_64 Linux:
 
 ```sh
-curl --proto '=https' --tlsv1.2 -fsSL https://raw.githubusercontent.com/ryanduguid/release-policy/d7039efe6d8c441f1f213c674902909e80535599/scripts/install.sh | sh -s -- ryanduguid/australian-accounting australian-tax-calculators/v1.0.0 --modify-path
+curl --proto '=https' --tlsv1.2 -fsSL https://raw.githubusercontent.com/ryanduguid/release-policy/d7039efe6d8c441f1f213c674902909e80535599/scripts/install.sh | sh -s -- ryanduguid/australian-accounting australian-tax-calculators/v1.1.0 --modify-path
 ```
 
 In PowerShell on x86_64 Windows:
 
 ```powershell
-& ([scriptblock]::Create((irm https://raw.githubusercontent.com/ryanduguid/release-policy/d7039efe6d8c441f1f213c674902909e80535599/scripts/install.ps1))) ryanduguid/australian-accounting australian-tax-calculators/v1.0.0 -ModifyPath
+& ([scriptblock]::Create((irm https://raw.githubusercontent.com/ryanduguid/release-policy/d7039efe6d8c441f1f213c674902909e80535599/scripts/install.ps1))) ryanduguid/australian-accounting australian-tax-calculators/v1.1.0 -ModifyPath
 ```
 
 It needs the [GitHub CLI](https://cli.github.com/) (`gh`), with no sign-in. It
@@ -103,7 +100,7 @@ echo '{"amount": "1100.00", "gst_inclusive": true, "scope_confirmed": true, "yea
 ```
 
 ```json
-{"ok":true,"engine":"australian-tax-calculators","engine_version":"1.0.0","calculation":"gst","period":"2025-26","amounts":{"gst":"100.00","exclusive":"1000.00","inclusive":"1100.00"},"rates":{"gst_rate":"0.10"},"scope":"One ordinary taxable supply at 10%, already classified by the operator. Excludes mixed supplies, exemptions, margin schemes, adjustments, tax invoice rounding across line items, input-credit entitlement and BAS preparation.","sources":["https://smallbusiness.taxsuperandyou.gov.au/goods-and-services-tax/fast-facts"],"source_checked":"2026-09-10","warnings":["Operator-confirmed facts and scope; eligibility is not independently verified.","Worksheet only, not advice, an assessment or a lodgment. Obtain human review."]}
+{"ok":true,"engine":"australian-tax-calculators","engine_version":"1.1.0","calculation":"gst","period":"2025-26","amounts":{"gst":"100.00","exclusive":"1000.00","inclusive":"1100.00"},"rates":{"gst_rate":"0.10"},"scope":"One ordinary taxable supply at 10%, already classified by the operator. Excludes mixed supplies, exemptions, margin schemes, adjustments, tax invoice rounding across line items, input-credit entitlement and BAS preparation.","sources":["https://smallbusiness.taxsuperandyou.gov.au/goods-and-services-tax/fast-facts"],"source_checked":"2026-09-10","warnings":["Operator-confirmed facts and scope; eligibility is not independently verified.","Worksheet only, not advice, an assessment or a lodgment. Obtain human review."]}
 ```
 
 Amounts come back as quoted decimal strings rather than numbers, so an amount

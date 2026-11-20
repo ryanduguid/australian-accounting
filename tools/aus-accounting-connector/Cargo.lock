@@ -69,7 +69,7 @@ dependencies = [
 
 [[package]]
 name = "australian-tax-calculators"
-version = "1.0.0"
+version = "1.1.0"
 dependencies = [
  "num-bigint 0.5.1",
  "num-integer",
