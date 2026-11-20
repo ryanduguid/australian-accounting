@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: LicenseRef-Duguid-Public-Attribution-1.0
 
 //! Frozen original JSON-RPC exchanges, replayed through the actual stdio binary.
-use serde_json::Value;
+use serde_json::{Value, json};
 use std::{
     io::{BufRead, BufReader, Write},
     path::PathBuf,
@@ -57,6 +57,18 @@ fn linked(_request: &Value, mut expected: Value) -> Value {
     {
         for (kind, entry) in worksheets {
             engine::catalogue(kind, entry);
+            if kind == "study_loan_repayment" {
+                entry["source_checked"] = json!("2026-11-20");
+                entry["source_passage"] = json!(
+                    "Study and training loan repayment thresholds and rates: tables 1 and 2, repayment income, examples 1 and 2; Gazette C2026G00249 for the 2026-27 minimum repayment income and replacement indexable amount"
+                );
+                let evidence = &mut entry["example_evidence"];
+                evidence["document"] =
+                    json!("ATO study and training loan repayment thresholds and rates");
+                evidence["paragraphs"] = json!("tables 1 and 2, examples 1 and 2");
+                evidence["reviewed"] = json!("2026-06-30");
+                evidence["checked"] = json!("2026-11-20");
+            }
         }
     }
     // The linked engine records that a minimum yearly repayment computed without
