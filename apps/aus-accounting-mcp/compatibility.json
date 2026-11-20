@@ -42,9 +42,9 @@
     },
     {
       "distribution": "lodgment-calendar",
-      "version": "0.1.0",
+      "version": "0.2.0",
       "repository": "https://github.com/ryanduguid/australian-accounting/tree/main/packages/lodgment-calendar",
-      "release": "https://github.com/ryanduguid/australian-accounting/releases/tag/lodgment-calendar/v0.1.0"
+      "release": "https://github.com/ryanduguid/australian-accounting/releases/tag/lodgment-calendar/v0.2.0"
     }
   ]
 }
