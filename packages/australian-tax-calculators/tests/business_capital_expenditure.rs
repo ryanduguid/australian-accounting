@@ -325,6 +325,16 @@ fn example_40a_a_cgt_asset_and_the_goodwill_exception() {
     );
 }
 
+#[test]
+fn the_total_is_rounded_once_from_the_exact_fifths() {
+    let small = item(json!({"amount": "0.03"}));
+    let r = run(json!([small, small, small]), "2022-23").unwrap();
+    for row in r["items"].as_array().unwrap() {
+        assert_eq!(row["deduction"], "0.006");
+    }
+    assert_eq!(r["amounts"]["deduction"], "0.02");
+}
+
 /// Each item is exact; the result's amounts are shown to the cent, half up.
 #[test]
 fn items_add_up_and_each_item_is_exact() {

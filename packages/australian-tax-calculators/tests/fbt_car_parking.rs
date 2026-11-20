@@ -19,7 +19,7 @@ fn parking(input: Value) -> Result<Value, String> {
 fn station(overrides: Value) -> Result<Value, String> {
     let mut input = json!({
         "method": "commercial_parking_station", "first_business_day_fee": "18.00",
-        "benefits": 230, "lowest_fee": "18.00", "employee_contribution": "1000.00",
+        "benefits": 230, "lowest_fee": "18.00", "employee_contribution": {"capped_total": "1000.00"},
     });
     for (k, v) in overrides.as_object().unwrap() {
         input[k] = v.clone();
@@ -145,7 +145,7 @@ fn the_market_value_method_takes_the_valuers_amount_for_each_benefit() {
     // $10 a benefit and $2,500 in all; the payments come off as under s 39C.
     let input = json!({"method": "market_value", "first_business_day_fee": "12.00",
                        "benefits": 250, "market_value": "20.00",
-                       "employee_contribution": "2500.00"});
+                       "employee_contribution": {"capped_total": "2500.00"}});
     let result = parking(input.clone()).unwrap();
     assert_eq!(
         result["amounts"],
@@ -153,9 +153,10 @@ fn the_market_value_method_takes_the_valuers_amount_for_each_benefit() {
                "excess_employee_contribution": "0.00", "taxable_value": "2500.00"})
     );
     let mut paid = input.clone();
-    paid["employee_contribution"] = json!("5500.00");
+    paid["benefits"] = json!(1);
+    paid["employee_contribution"] = json!("25.00");
     let a = amounts(parking(paid));
-    assert_eq!(a["excess_employee_contribution"], "500.00");
+    assert_eq!(a["excess_employee_contribution"], "5.00");
     assert_eq!(a["taxable_value"], "0.00");
     // The threshold still decides whether a benefit arises (s 39A(1)(a)(iii)).
     let mut below = input;
@@ -306,10 +307,37 @@ fn the_car_parking_threshold_decides_whether_a_benefit_arises() {
 
 #[test]
 fn a_recipients_payment_never_takes_the_value_below_nil() {
-    let a = amounts(station(json!({"employee_contribution": "5000.00"})));
-    assert_eq!(a["employee_contribution_applied"], "4140.00");
-    assert_eq!(a["excess_employee_contribution"], "860.00");
+    let a = amounts(station(
+        json!({"benefits": 1, "employee_contribution": "25.00"}),
+    ));
+    assert_eq!(a["employee_contribution_applied"], "18.00");
+    assert_eq!(a["excess_employee_contribution"], "7.00");
     assert_eq!(a["taxable_value"], "0.00");
+}
+
+#[test]
+fn grouped_recipients_payments_require_a_benefit_by_benefit_cap() {
+    let mut facts = json!({"benefits": 2, "employee_contribution": "25.00"});
+    assert!(station(facts.clone()).unwrap_err().contains("capped_total"));
+
+    // One employee paid $25 for a benefit worth $18. The other paid nil.
+    facts["employee_contribution"] = json!({"capped_total": "18.00"});
+    let result = amounts(station(facts));
+    assert_eq!(result["employee_contribution_applied"], "18.00");
+    assert_eq!(result["taxable_value"], "18.00");
+
+    // At the exact $17.875 average, $17.88 could include an overpayment.
+    let mut facts = json!({"benefits": 2, "first_day_fee": "17.25", "last_day_fee": "18.50",
+                           "employee_contribution": "17.88"});
+    assert!(average(facts.clone()).unwrap_err().contains("capped_total"));
+    facts["employee_contribution"] = json!("17.87");
+    assert_eq!(amounts(average(facts))["taxable_value"], "17.88");
+
+    assert!(
+        station(json!({"benefits": 2, "employee_contribution": {"capped_total": "36.01"}}))
+            .unwrap_err()
+            .contains("gross taxable value")
+    );
 }
 
 #[test]

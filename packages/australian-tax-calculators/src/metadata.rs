@@ -2106,7 +2106,7 @@ pub fn optional_inputs(kind: &str) -> Vec<(&'static str, &'static str)> {
             ),
             (
                 "employee_contribution",
-                "AUD, commercial_parking_station, market_value, average_cost and spaces only and required there: the recipients' payments for these benefits in total, net of any reimbursement, each benefit's payment counted only up to that benefit's value (an excess on one benefit reduces no other); with spaces, every relevant recipients contribution for the employees the election covers, for the FBT year (FBTAA s 39FE)",
+                "Required for commercial_parking_station, market_value, average_cost and spaces. AUD net of reimbursements. For the first 3 methods, give the amount for one benefit, or a total no greater than one benefit's value. For a larger combined amount, give an object with capped_total (decimal string), the total after limiting each payment to its own benefit's value (FBTAA ss 39C, 39D and 39DA). For spaces give every relevant recipients contribution for the employees the election covers, for the FBT year (s 39FE)",
             ),
             (
                 "space_groups",
@@ -3761,7 +3761,10 @@ pub fn examples(kind: &str) -> Vec<(&'static str, Example)> {
             ("first_business_day_fee", Text("18.00")),
             ("benefits", Whole(230)),
             ("lowest_fee", Text("18.00")),
-            ("employee_contribution", Text("1000.00")),
+            (
+                "employee_contribution",
+                Json(r#"{"capped_total":"1000.00"}"#),
+            ),
         ],
         "fbt_debt_waiver" => vec![("amount_waived", Text("500.00"))],
         "fbt_expense_payment" => vec![

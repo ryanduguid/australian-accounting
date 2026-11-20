@@ -1716,6 +1716,14 @@ pub const REFUSAL_CODES: &[(&str, &str)] = &[
         "A car has neither or both of a depreciated value and lease charges.",
     ),
     (
+        "fbt_car_parking.capped_contribution_invalid",
+        "A capped parking contribution has missing or extra fields or exceeds the total gross taxable value.",
+    ),
+    (
+        "fbt_car_parking.contribution_allocation_needed",
+        "A combined parking contribution exceeds one benefit's value, so the amounts need capping per benefit before combining.",
+    ),
+    (
         "fbt_car_parking.head_counts_invalid",
         "A spaces method's employees or eligible spaces at the start or end of the parking period are not a JSON integer from 0 to 1,000,000.",
     ),

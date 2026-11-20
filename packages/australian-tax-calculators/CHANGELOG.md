@@ -316,6 +316,12 @@
 
 ### Fixed
 
+- The car parking worksheet requires contributions capped per benefit when an
+  unallocated payment could reduce other benefits. The meal entertainment
+  register needs positive costs to yield a percentage. A reimbursed associate's
+  benefit type stays undetermined until their relationship is established.
+- The business capital deduction states that it adds exact item amounts before
+  rounding the total to cents.
 - The study loan repayment worksheet cites the ATO rate page's current title
   and update date. It uses the 2026-27 threshold in table 1. Example 3 still
   quotes the 2025-26 threshold. Repayment amounts are unchanged.

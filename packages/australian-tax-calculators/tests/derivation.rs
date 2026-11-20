@@ -187,7 +187,7 @@ fn cases() -> Vec<(&'static str, Value)> {
             "fbt-car-parking",
             json!({"method": "average_cost", "first_business_day_fee": "17.00", "benefits": 3,
                    "first_day_fee": "17.25", "last_day_fee": "18.50",
-                   "employee_contribution": "20.00"}),
+                   "employee_contribution": {"capped_total": "20.00"}}),
         ),
         benefit(
             "fbt-car-parking",
@@ -198,7 +198,7 @@ fn cases() -> Vec<(&'static str, Value)> {
         benefit(
             "fbt-car-parking",
             json!({"method": "commercial_parking_station", "first_business_day_fee": "11.48",
-                   "benefits": 230, "lowest_fee": "18.00", "employee_contribution": "1000.00",
+                   "benefits": 230, "lowest_fee": "18.00", "employee_contribution": {"capped_total": "1000.00"},
                    "year_ended": 2027}),
         ),
         // FBT return 2026 instructions, item 23D example 9.
@@ -316,7 +316,7 @@ fn cases() -> Vec<(&'static str, Value)> {
         benefit(
             "fbt-car-parking",
             json!({"method": "market_value", "first_business_day_fee": "12.00", "benefits": 250,
-                   "market_value": "20.00", "employee_contribution": "2500.00"}),
+                   "market_value": "20.00", "employee_contribution": {"capped_total": "2500.00"}}),
         ),
         // Guide 9.3 and 18.4: the rental's $100 public price, $50 reimbursed.
         benefit(
@@ -990,6 +990,9 @@ fn named(name: &str, earlier: &[(String, String)], doc: &Value) -> Option<String
         return Some(rate.to_string());
     }
     match &doc["input"][name] {
+        Value::Object(payment) if name == "employee_contribution" => {
+            payment.get("capped_total")?.as_str().map(str::to_owned)
+        }
         Value::String(text) => Some(text.clone()),
         Value::Number(n) => Some(n.to_string()),
         _ => None,

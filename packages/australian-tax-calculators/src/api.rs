@@ -972,8 +972,8 @@ fn argument(v: &Value, key: &str, kind: Kind) -> Result<Arg> {
 }
 
 /// The inputs `v` gives besides `params`, by name: a string as a decimal,
-/// except `fbt-housing`'s `state`, a list as JSON for the worksheet to read,
-/// any other value as given.
+/// except `fbt-housing`'s `state`, and lists and a parking contribution
+/// object as JSON for the worksheet to read.
 fn benefit_inputs(v: &Value, params: &[(&str, Kind)]) -> Result<Vec<(String, Arg)>> {
     let named = v.as_object().into_iter().flatten();
     named
@@ -981,6 +981,7 @@ fn benefit_inputs(v: &Value, params: &[(&str, Kind)]) -> Result<Vec<(String, Arg
         .map(|(key, value)| {
             let given = match value {
                 Value::String(_) if key != "state" => argument(v, key, Dec)?,
+                Value::Object(_) if key == "employee_contribution" => Arg::Json(value.clone()),
                 Value::Array(_) => Arg::Json(value.clone()),
                 other => arg(other),
             };
