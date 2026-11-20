@@ -88,7 +88,7 @@ pub const SCOPES: &[(&str, &str)] = &[
     ),
     (
         "fbt",
-        "Ordinary taxable employer, established type 1 and type 2 taxable values for the year ended 31 March 2026 or 2027, both at the 47% FBT rate and the 2.0802 and 1.8868 gross-up rates. Excludes benefit valuation, exemptions, rebates and not-for-profit caps. Retains gross-up precision for the estimate, then presents the amounts to cents. The return_item figures follow the FBT return instead: items 14A and 14B rounded to the nearest dollar, as the ATO's own worked example does, item 15 as their sum and item 16 at 47%, before any optional rounding down to 5 cents. For 2027 the items follow the FBT return 2026 instructions until the ATO publishes the 2027 return.",
+        "Ordinary taxable employer, established type 1 and type 2 taxable values for the year ended 31 March 2026 or 2027, both at the 47% FBT rate. Uses the formulas in FBTAA s 5B(1B) and (1C) for gross-up. Excludes benefit valuation, exemptions, rebates and not-for-profit caps. Retains gross-up precision for the estimate, then presents the amounts to cents. The return_item figures follow the FBT return instead: items 14A and 14B rounded to the nearest dollar, as the ATO's own worked example does, item 15 as their sum and item 16 at 47%, before any optional rounding down to 5 cents. For 2027 the items follow the FBT return 2026 instructions until the ATO publishes the 2027 return.",
     ),
     (
         "fbt_car_statutory",
@@ -1359,7 +1359,7 @@ const CGT_2027_28: &str = "From 2027-28 Schedule 1 to Act No. 49 of 2026 changes
 pub const BORROWING_S26_155: &str = "From 2027-28 ITAA 1997 s 26-155(1) quarantines the amount by which deductions relating to using or holding residential dwellings as residential accommodation exceed the assessable income from them, and this deduction is one of them where the money is used that way. The amount here is s 25-25's before s 26-155: the worksheet neither applies s 26-155 nor decides its exceptions, such as a dwelling last acquired before 7.30 pm on 12 May 2026 (ACT legal time) or a new residential dwelling (s 26-155(2)), or an excepted entity (s 26-155(4)).";
 
 /// The refusal of a leisure facility under s 26-50.
-pub const BORROWING_S26_50: &str = "Section 26-50 denies deductions for a leisure facility, such as a holiday home, unless s 26-50(3) applies at all times in the income year; part-year use under s 26-50(4) is out of scope.";
+pub const BORROWING_S26_50: &str = "Section 26-50 denies specified leisure-facility expenses, subject to the full-year exception in subsection (3), the reasonable part-year share in subsection (4) and the fringe-benefit exception in subsection (8). The anti-avoidance rule in subsection (7) can disapply the use exception. Establish whether section 26-50 restricts this deduction before using the worksheet.";
 
 /// The note on a borrowing expenses schedule with a row after the last year read.
 pub const BORROWING_PROJECTED: &str = "A row marked projected is after 2027-28, the last income year read: it applies ITAA 1997 s 25-25 as read on 19 November 2026, which sets no figure by year, and a later amendment would change it.";
@@ -1524,7 +1524,7 @@ pub const REFUSAL_CODES: &[(&str, &str)] = &[
     ),
     (
         "borrowing.s26_50_denied",
-        "s 26-50 denies the deduction for a leisure facility, or the worksheet does not cover a part-year exception.",
+        "The deduction is restricted by s 26-50, or the facts needed to apply its exceptions are outside the worksheet's scope.",
     ),
     (
         "business_capital.cgt_amount",
@@ -1714,6 +1714,14 @@ pub const REFUSAL_CODES: &[(&str, &str)] = &[
     (
         "fbt_car.cost_basis_conflict",
         "A car has neither or both of a depreciated value and lease charges.",
+    ),
+    (
+        "fbt_car_parking.capped_contribution_invalid",
+        "A capped parking contribution has missing or extra fields or exceeds the total gross taxable value.",
+    ),
+    (
+        "fbt_car_parking.contribution_allocation_needed",
+        "A combined parking contribution exceeds one benefit's value, so the amounts need capping per benefit before combining.",
     ),
     (
         "fbt_car_parking.head_counts_invalid",

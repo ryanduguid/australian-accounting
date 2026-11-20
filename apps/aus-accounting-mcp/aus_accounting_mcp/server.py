@@ -117,7 +117,8 @@ classification of the facts the operator supplied, not a determination.
   required scope confirmation, periods and inputs.
   Establish every scope condition before calling. Do not invent confirmation.
   Broader classifications, exemptions, BAS/returns, trusts, partnerships, SMSF fund
-  tax and audit, the transfer balance cap and payroll tax remain unsupported.
+  tax, SMSF audits and the transfer balance cap remain unsupported.
+  Payroll tax covers one ungrouped employer paying wages for the full year.
 - Retrieval reads only folders the operator configured: search_accounting_library
   and read_accounting_library need AUS_ACCOUNTING_LIBRARY_ROOT; search_tax_legislation,
   read_tax_legislation_section, define_tax_term and search_tax_rates need

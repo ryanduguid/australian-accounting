@@ -233,6 +233,18 @@ fn a_register_with_no_entries_is_not_valid() {
 }
 
 #[test]
+fn a_register_of_nil_costs_cannot_supply_a_register_percentage() {
+    let mut entry = entries()[0].clone();
+    entry["cost"] = json!("0.00");
+    entry["fringe_benefits_value"] = json!("0.00");
+    let result = run(json!({"entries": [entry]}));
+    assert_eq!(result["valid"], false);
+    assert!(!check(&result, "positive_total_cost").0);
+    assert!(result["amounts"].get("register_percentage").is_none());
+    assert!(result.get("fbt_meal_entertainment_input").is_none());
+}
+
+#[test]
 fn it_refuses_what_it_cannot_read() {
     let entry = |overrides: Value| {
         let mut one = entries()[0].clone();

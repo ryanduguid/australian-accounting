@@ -5,7 +5,6 @@
 use serde_json::{Value, json};
 use sha2::{Digest, Sha256};
 
-mod engine;
 use std::{
     collections::{BTreeMap, BTreeSet},
     fs,
@@ -277,8 +276,6 @@ fn extracted_archive_is_complete_and_runs_without_python_or_checkout_assets() {
     proof["calls"][1]["result"]["engine_version"] = json!(div7a_loan_review::VERSION);
     proof["calls"][1]["result"]["source"]["rate_table_uris"][0]["uri"] =
         json!("data/benchmark_rates.csv");
-    // The linked engine records that this repayment did not receive the loan's term.
-    engine::div7a(&mut proof["calls"][1]["result"]);
     assert_eq!(demo, proof, "complete packaged proof");
 
     let fixture: Value =

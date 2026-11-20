@@ -316,6 +316,20 @@
 
 ### Fixed
 
+- The FBT estimate and return use the full statutory gross-up formulas in
+  FBTAA s 5B(1B) and (1C). The return rounds items 14A and 14B to whole
+  dollars before calculating item 16. Displayed rates keep the published
+  four-decimal figures.
+- The capital gains worksheet cites the CGT method statement that applies in
+  2025-26 and 2026-27. Borrowing expenses refusals describe the leisure
+  facility exceptions in ITAA 1997 s 26-50. The CLI usage lists the CSV
+  contract register command.
+- The car parking worksheet requires contributions capped per benefit when an
+  unallocated payment could reduce other benefits. The meal entertainment
+  register needs positive costs to yield a percentage. A reimbursed associate's
+  benefit type stays undetermined until their relationship is established.
+- The business capital deduction states that it adds exact item amounts before
+  rounding the total to cents.
 - For a capped hire purchase car, a held invoice with separate, reconciled
   goods and finance amounts can establish a GST credit. The car limit applies
   to the goods credit. The worksheet leaves attribution and the split GST

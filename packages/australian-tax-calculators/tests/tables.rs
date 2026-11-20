@@ -126,15 +126,13 @@ fn worksheets_opened_for_2026_27_match_2025_26() {
     );
 }
 
-/// The FBT year ending 31 March 2027 keeps the 47% FBT rate and the 2.0802 and
-/// 1.8868 gross-up rates (ATO FBT rates and thresholds, read 4 November 2026),
-/// so the ATO's MantCo example (Calculating your FBT) gives the same figures:
-/// type 1 $16,500 × 2.0802 = $34,323.30, item 14A $34,323; type 2 $6,000 ×
-/// 1.8868 = $11,320.80, item 14B $11,321; item 15 $45,644; item 16 $45,644 ×
-/// 47% = $21,452.68. The estimate keeps the gross-up precision:
-/// ($34,323.30 + $11,320.80) × 47% = $21,452.727, so $21,452.73.
+/// Apply FBTAA s 5B to the taxable values in the ATO's MantCo example:
+/// type 1 $16,500 × 57000/27401 gives $34,323.56 and item 14A $34,324;
+/// type 2 $6,000 × 100/53 gives $11,320.75 and item 14B $11,321.
+/// The return gives $45,645 × 47% = $21,453.15. The estimate uses both
+/// unrounded results and gives $21,452.83. The same rates apply in 2027.
 #[test]
-fn fbt_opened_for_2027_matches_mantco() {
+fn fbt_opened_for_2027_uses_the_statutory_gross_ups() {
     let run = |year_ended: i64| {
         api::evaluate(
             "fbt",
@@ -145,13 +143,13 @@ fn fbt_opened_for_2027_matches_mantco() {
     let later = run(2027).unwrap();
     assert_eq!(later["period"], "year ended 31 March 2027");
     let amounts = &later["amounts"];
-    assert_eq!(amounts["type_one_grossed_up"], "34323.30");
-    assert_eq!(amounts["type_two_grossed_up"], "11320.80");
-    assert_eq!(amounts["return_item_14a"], "34323.00");
+    assert_eq!(amounts["type_one_grossed_up"], "34323.56");
+    assert_eq!(amounts["type_two_grossed_up"], "11320.75");
+    assert_eq!(amounts["return_item_14a"], "34324.00");
     assert_eq!(amounts["return_item_14b"], "11321.00");
-    assert_eq!(amounts["return_item_15"], "45644.00");
-    assert_eq!(amounts["return_item_16"], "21452.68");
-    assert_eq!(amounts["fbt_estimate"], "21452.73");
+    assert_eq!(amounts["return_item_15"], "45645.00");
+    assert_eq!(amounts["return_item_16"], "21453.15");
+    assert_eq!(amounts["fbt_estimate"], "21452.83");
     let mut earlier = run(2026).unwrap();
     assert_eq!(earlier["period"], "year ended 31 March 2026");
     earlier["period"] = later["period"].clone();
@@ -160,6 +158,21 @@ fn fbt_opened_for_2027_matches_mantco() {
         run(2028).unwrap_err(),
         "Unsupported period '2028'; supported: 2026, 2027."
     );
+}
+
+#[test]
+fn large_fbt_amounts_use_full_precision_before_rounding() {
+    let result = api::evaluate(
+        "fbt",
+        &json!({"type_one_value": "1000000", "type_two_value": "1000000",
+                "year_ended": 2026, "scope_confirmed": true}),
+    )
+    .unwrap();
+    let amounts = &result["amounts"];
+    assert_eq!(amounts["type_one_grossed_up"], "2080216.05");
+    assert_eq!(amounts["type_two_grossed_up"], "1886792.45");
+    assert_eq!(amounts["return_item_14a"], "2080216.00");
+    assert_eq!(amounts["return_item_14b"], "1886792.00");
 }
 
 /// The ATO says CGT reforms take effect from 1 July 2027:

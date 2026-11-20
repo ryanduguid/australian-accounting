@@ -19,7 +19,7 @@ keeps the engine release and MCP integration separate.
 
 </div>
 
-Sixty-three calculation worksheets for established facts: ordinary GST, fuel tax credits at the ATO's rate for each day from 1 July 2022 with the simplified methods for small claimants, resident and foreign
+66 calculation worksheets for established facts: ordinary GST, fuel tax credits at the ATO's rate for each day from 1 July 2022 with the simplified methods for small claimants, resident and foreign
 resident basic income tax, CGT losses and discount, the gains and losses from parcels of shares or units, the small business CGT concessions open for a gain, the main residence exemption's taxable share of a gain or loss, one loan's borrowing expenses deduction and a schedule of several loans' deductions over every year, a hire purchase agreement's notional interest, a chattel mortgage's interest schedule and input tax credit, a loan's statement with daily interest at changing rates, business capital expenditure (black hole and start-up costs) under s 40-880, ordinary employer FBT, car fringe benefit taxable values
 under the statutory formula and operating cost methods, loan, meal entertainment, car parking, debt waiver, expense payment, property, residual, housing, living-away-from-home allowance, board and tax-exempt body entertainment fringe benefit taxable values, the FBT, deduction and GST credit treatment of entertainment expense lines, whether a 12 week meal entertainment register is valid, depreciation in the start year and later years, a depreciating asset's balancing adjustment with its reduction for private use and CGT event K7, a trade-in's GST on both sides with the old asset's balancing adjustment and the replacement's cost, whether an electric car's fringe benefits are exempt, one employer's payroll tax in each state and territory, a company's franking account with franking deficit tax, its offset and the benchmark rule, wine equalisation tax with the producer rebate under its yearly cap and BAS labels 1C and 1D, luxury car tax on sales and importations with its adjustments, refunds and BAS labels 1E and 1F,
 quarterly super guarantee, Schedule 1 PAYG withholding and the gross pay that leaves a stated net, Schedule 5 withholding from back payments, commissions and bonuses by Methods A, B(i) and B(ii), Schedule 15 withholding for working holiday makers, Schedule 9 withholding for seniors and pensioners, super contribution caps,
@@ -788,8 +788,15 @@ takes one premises and the stations within 1 km of it; run it once for each.
 `commercial_parking_station` values each benefit at the
 day's lowest fee (s 39C), the same on every day, and `average_cost` at the
 average of the fees on the days benefits were first and last provided (s 39DA);
-the recipients' payments come off in total, each counted only up to its
-benefit's value, never below nil. `market_value` values each benefit at the
+the recipients' payments come off each benefit up to its value. For these
+methods and market value, give one benefit's payment as a decimal string.
+With several benefits and a combined payment above one benefit's value, give
+`employee_contribution` as an object with `capped_total`, a decimal string after
+capping each payment at its own benefit's value and adding them. Keep any
+half-cent from average cost, up to 3 decimal places. The worksheet works
+from the exact gross value and rounds its reported amounts to cents. When using
+that object, the worksheet reports the applied contribution without the excess
+you already took out. `market_value` values each benefit at the
 amount a suitably qualified valuer at arm's length reported (s 39D), with the
 payments taken off the same way; the operator establishes that the report came
 before the declaration date in the approved form. `spaces` (s 39FA) takes
@@ -1788,8 +1795,8 @@ if the business ceases (TR 2011/6 para 10). The result's amounts are the expendi
 year's deduction and what remains for later years. `items` gives each item's
 paragraph of s 40-880(2), its limit, `excluded_by`, the method with its
 citation, the year's deduction, `schedule` (each income year and its
-deduction) and `notes`, each worked exactly; the amounts are shown to the
-cent, half up.
+deduction) and `notes`, worked at full precision. Each total in `amounts` is the sum of the exact
+item values, rounded once to the cent, half up.
 
 It refuses expenditure that forms part of the cost of a depreciating asset
 (s 40-880(5)(a)), which Division 40 deducts, and expenditure that could be

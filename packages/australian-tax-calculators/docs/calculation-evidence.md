@@ -217,23 +217,22 @@ engine's established loss allocation; they do not choose a taxpayer's treatment.
 
 ## FBT
 
-For ¶3-020's established $8,500 type 1 value, `8500 × 2.0802 = 17681.70` and
-`17681.70 × 0.47 = 8310.399`, presented as **$8,310.40**. For ¶3-000's established
-$10,000 type 2 value, `10000 × 1.8868 = 18868` and `18868 × 0.47 = 8867.96`.
 Benefit valuation and the choice of gross-up type must already be established.
-
-The existing combined $1,000/$1,000 case gives
-`(2080.20 + 1886.80) × 0.47 = 1864.49`. The existing $16,500/$6,000 case gives
-`(34323.30 + 11320.80) × 0.47 = 21452.727`, presented as $21,452.73.
-The estimate retains gross-up precision until final presentation.
+[FBTAA s 5B(1B) and (1C)](https://www.legislation.gov.au/C2004A03280/2026-07-01/2026-07-01/text/original/epub/OEBPS/document_1/document_1.html)
+give the gross-up formulas. With 47% FBT and 10% GST they reduce to
+`57000 / 27401` for type 1 and `100 / 53` for type 2. The ATO's published
+4-place factors remain in the worksheet's rates. The estimate uses the
+unrounded grossed-up amounts before presenting the result to cents.
 
 The `return_item` figures follow the FBT return 2026 instructions instead. Their
 example enters 14A as $11,000 × 2.0802 = $22,882.20, written as $22,882; item 15 is
 the sum of 14A and 14B and item 16 is item 15 × 47%. The instructions show whole
 dollars without saying how cents are removed. The ATO's Calculating your FBT page
 works the same $16,500/$6,000 values in its MantCo example and rounds each gross-up
-to the nearest dollar, so the engine does too: 14A $34,323, 14B $11,321 (from
-$11,320.80), item 15 $45,644 and item 16 $21,452.68, against the $21,452.73 estimate.
+to the nearest dollar, so the engine does too. Applied to that example's
+taxable values, the statutory formulas give $34,323.56 and $11,320.75,
+then item 14A $34,324, item 14B $11,321, item 15 $45,645 and item 16
+$21,453.15. The estimate before rounding the return items is $21,452.83.
 The optional rounding of item 16 down to a multiple of 5 cents is left to the
 preparer.
 
@@ -246,7 +245,8 @@ Tax Reform No. 1 Act's FBT amendments apply from 1 April 2027, and none amends
 the s 8A electric car exemption. The ATO has not published the FBT return 2027
 instructions (the address the 2026 instructions' pattern gives returned 'Page
 not found' that day), so the items follow the 2026 instructions.
-`tests/tables.rs` gives MantCo's figures for 2027.
+`tests/tables.rs` checks these figures for 2026 and 2027 and the effect of
+using the full formulas on $1,000,000 of each type of benefit.
 
 ## FBT car benefits
 
@@ -546,7 +546,8 @@ lesser of that and the $1,000 notional value), less the recipient's portion
 reduction applies. ¶3-240 (review date 30 June 2026): an associate's $10,000
 HELP debt reimbursed is **$10,000.00**, type 2, `18,868.00` grossed up; ¶3-340:
 $35,000 of mortgage and $24,000 of childcare reimbursements, `59000 × 1.8868`,
-item 14B **$111,321**.
+item 14B **$111,321**. Applying the statutory s 5B(1C) formula to the same
+taxable values gives $18,867.92 and leaves item 14B at $111,321.
 
 s 22A(1)(b) makes the recipient's expenditure less the provider's portion
 (the payment less the contribution, or the reimbursement) the notional

@@ -404,7 +404,7 @@ fn summary(
     period: &str,
     (first, days): (i64, i64),
     parsed: &[Entry],
-    checks: Vec<Value>,
+    mut checks: Vec<Value>,
     earlier: Option<&Arg>,
 ) -> Result<Value> {
     let (mut total, mut benefits) = (int(0), int(0));
@@ -420,6 +420,12 @@ fn summary(
         let percentage = precise(|| Ok(benefits.div(&total)?.mul(&int(100))?))?;
         amounts.push(("register_percentage", percentage));
     }
+    checks.push(check(
+        "positive_total_cost",
+        "FBTAA s 37CB(2)",
+        !total.is_zero(),
+        "The total value of recorded meal entertainment must be positive to calculate the register percentage.".into(),
+    ));
     let valid = checks.iter().all(|c| c["passed"] == true);
     let rates = vec![
         rate("register_days", days),
@@ -430,7 +436,7 @@ fn summary(
     let mut out = result(KIND, period, amounts, rates)?;
     out["valid"] = json!(valid);
     out["checks"] = Value::Array(checks);
-    if valid && !total.is_zero() {
+    if valid {
         let mut input = json!({
             "method": "12_week_register",
             "register_fringe_benefits_value": out["amounts"]["register_fringe_benefits_value"],

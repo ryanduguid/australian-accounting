@@ -319,7 +319,14 @@ fn a_travelling_employees_spouse_follows_paras_136_to_138_1() {
     assert_eq!(result["lines"][1]["entertainment"], "meal_entertainment");
     let spouse = &result["lines"][1]["classes"][0];
     assert_eq!(spouse["fringe_benefit"], "arises");
-    assert_eq!(spouse["benefit_type"], "expense_payment");
+    // These facts do not identify the associate as the reimbursed employee's.
+    assert_eq!(spouse["benefit_type"], "undetermined");
+    assert!(
+        spouse["benefit_type_authority"]
+            .as_str()
+            .unwrap()
+            .contains("para 137")
+    );
     assert_eq!(result["amounts"]["deductible"], "160.00");
 }
 

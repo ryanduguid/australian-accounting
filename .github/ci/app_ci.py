@@ -108,6 +108,18 @@ def path_selected(paths: list[str], patterns: list[str]) -> bool:
     )
 
 
+def mcp_python_matrix(event: str, ref: str) -> list[dict[str, str]]:
+    """Run the macOS leg on scheduled runs and pushes to the default branch."""
+    rows = [
+        {"os": "ubuntu-latest", "python": "3.14"},
+        {"os": "ubuntu-latest", "python": "3.15"},
+        {"os": "windows-latest", "python": "3.14"},
+    ]
+    if event == "schedule" or (event == "push" and ref == "refs/heads/main"):
+        rows.append({"os": "macos-latest", "python": "3.14"})
+    return rows
+
+
 def changed_paths(root: Path) -> list[str]:
     """Use both sides of a PR merge; uncertainty selects all checks."""
     try:
@@ -167,8 +179,11 @@ def main(argv: list[str]) -> int:
             reason = "relevant or unknown change" if run else "only known unrelated paths"
             print(f"Application checks: {reason}", file=sys.stderr)
             print(f"run={'true' if run else 'false'}")
+        elif argv[1:] == ["mcp-python-matrix"]:
+            rows = mcp_python_matrix(event, os.environ.get("GITHUB_REF", ""))
+            print("matrix=" + json.dumps({"include": rows}, separators=(",", ":")))
         else:
-            print(f"usage: {argv[0]} select <app> | gate <app> [<app> ...]", file=sys.stderr)
+            print(f"usage: {argv[0]} select <app> | gate <app> [<app> ...] | mcp-python-matrix", file=sys.stderr)
             return 2
     except (ValueError, TypeError) as error:
         print(str(error), file=sys.stderr)
