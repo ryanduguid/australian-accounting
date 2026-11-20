@@ -60,8 +60,8 @@ const NARROWED_SCOPE: [(&str, &str, &str); 7] = [
     ),
     (
         "fbt",
-        "for the year ended 31 March 2026 or 2027, both at the 47% FBT rate and the 2.0802 and 1.8868 gross-up rates. Excludes",
-        "for the year ended 31 March 2026. Excludes",
+        "for the year ended 31 March 2026 or 2027, both at the 47% FBT rate. Uses the formulas in FBTAA s 5B(1B) and (1C) for gross-up. Excludes",
+        "for the year ended 31 March 2026 at the 47% FBT rate. Uses the formulas in FBTAA s 5B(1B) and (1C) for gross-up. Excludes",
     ),
     (
         "fbt",

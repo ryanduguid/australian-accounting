@@ -203,7 +203,7 @@ fn tax(args: &[OsString]) -> Outcome {
         }
         let commands = api::commands().join(", ");
         let text = format!(
-            "usage: australian-tax-calculators COMMAND < input.json\ncommands: {commands}\n"
+            "usage: australian-tax-calculators COMMAND < input.json\n       australian-tax-calculators contract-register FILE\ncommands: {commands}\n"
         );
         (2, String::new(), text)
     };
