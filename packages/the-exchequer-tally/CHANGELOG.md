@@ -6,7 +6,8 @@ Standalone Rust binary, replacing Python package 0.2.0 (the last Python release;
 its engine source is unchanged since 0.1.8, the parity base) and its import API.
 The two original commands preserve flags, help, validation, output and exits.
 The former API operations are JSON stdin subcommands, documented in README.md.
-No money calculation, rate table or statutory text is intentionally changed.
+Apart from the franking periods below, no money calculation, rate table or
+statutory text is intentionally changed.
 
 ### Documented divergences
 
@@ -40,6 +41,13 @@ No money calculation, rate table or statutory text is intentionally changed.
   is UTF-8 with native text-mode newlines; argparse colour and width environment
   controls remain supported. Interactive terminal behaviour is locally inspected
   but not exhaustively differential-tested across terminal implementations.
+- `benchmark` compares each frankable distribution with the first frankable distribution
+  in its franking period (ss 203-25, 203-30, 203-40 and 203-45 ITAA 1997).
+  Set `frankable: false` for an unfrankable distribution with no franking
+  credit. It remains in the output without affecting benchmarks.
+  Supply `private_company` when frankable distributions span multiple half-years.
+  The result includes period dates when this input is supplied and gives a
+  scalar benchmark percentage when one period has a benchmark.
 - The Python/PyPI release workflow is removed. Native candidate builds are
   available in CI; a signed native publisher remains a separate release task.
 

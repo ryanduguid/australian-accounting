@@ -92,6 +92,11 @@ fn event(v: &Value) -> Result<Event> {
         amount: decimal(v, "distribution_amount")?,
         credit: decimal(v, "franking_credit")?,
         rate: optional_decimal(v, "corporate_tax_rate")?,
+        frankable: v
+            .get("frankable")
+            .map(|value| value.as_bool().ok_or("frankable must be a boolean"))
+            .transpose()?
+            .unwrap_or(true),
     };
     e.validate()?;
     Ok(e)
@@ -199,11 +204,15 @@ pub fn evaluate(command: &str, v: &Value) -> Result<Value> {
                 optional_decimal(v, "corporate_tax_rate")?.as_ref(),
                 "BenchmarkRuleValidator",
             )?;
+            let private = v
+                .get("private_company")
+                .map(|value| value.as_bool().ok_or("private_company must be a boolean"))
+                .transpose()?;
             let events = array(v, "distributions")?
                 .iter()
                 .map(event)
                 .collect::<Result<Vec<_>>>()?;
-            engine::benchmark(tax_rate, events)
+            engine::benchmark(tax_rate, private, events)
         }
         "franking-account" => account(v),
         "validate-value" => {
