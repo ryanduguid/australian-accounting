@@ -109,8 +109,8 @@ benchmark name/year and engine date format. These complement frozen payload
 comparisons; neither a captured call nor this set proves every original assertion.
 
 The source-bound [behaviour record](tests/fixtures/native/behaviour-coverage.json)
-reconciles all 596 original test functions across 43 files. It records 453 with
-native observable checks, 62 with explicit native adaptations, 74 retained
+reconciles all 593 original test functions across 43 files. It records 452 with
+native observable checks, 60 with explicit native adaptations, 74 retained
 with the supported Python distribution and its release, Registry, documentation
 or media workflow, and 7 not yet ported: the Python server has since served every
 worksheet in the calculators executable's catalogue, which the native build, still
@@ -123,7 +123,7 @@ file's new assertions and the native proofs. Where a row's status, proofs and li
 still hold, set the file's new SHA-256 in `original_sources` and in each of its
 rows' `source_sha256`; where they do not, correct the row first, and update `counts`
 and the figures above. Never rebind a hash without that reread. These are function
-dispositions, not 596 independent Rust tests or proof of untested inputs, current
+dispositions, not 593 independent Rust tests or proof of untested inputs, current
 law or real taxpayer results.
 
 `tests/original_behaviours.rs` tests relationships that frozen payloads cannot

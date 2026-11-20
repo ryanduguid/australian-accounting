@@ -5,8 +5,6 @@
 use serde_json::{Value, json};
 use std::process::{Command, Stdio};
 
-mod engine;
-
 const HEADER: &str = "$ cargo run --locked --bin aus-accounting-mcp-demo\n";
 
 fn expected_payload() -> Value {
@@ -21,8 +19,6 @@ fn expected_payload() -> Value {
     let uri = &mut result["source"]["rate_table_uris"][0]["uri"];
     assert_eq!(*uri, "div7aloan/data/benchmark_rates.csv");
     *uri = json!("data/benchmark_rates.csv");
-    // The linked engine records that this repayment did not receive the loan's term.
-    engine::div7a(result);
     payload.sort_all_objects();
     payload
 }
