@@ -75,11 +75,23 @@ fn linked(request: &Value, mut expected: Value) -> Value {
             }
         }
     }
+    if let Some(engines) = expected
+        .pointer_mut("/result/contents/0/text/engines")
+        .and_then(Value::as_array_mut)
+        && let Some(calculator) = engines
+            .iter_mut()
+            .find(|engine| engine["distribution"] == "australian-tax-calculators")
+    {
+        calculator["version"] = json!("1.1.0");
+    }
     for pointer in ["/result/content/0/text", "/result/structuredContent"] {
-        if let Some(result) = expected.pointer_mut(pointer)
-            && result.get("minimum_yearly_repayment").is_some()
-        {
-            engine::div7a(&request["params"]["arguments"], result);
+        if let Some(result) = expected.pointer_mut(pointer) {
+            if result.get("minimum_yearly_repayment").is_some() {
+                engine::div7a(&request["params"]["arguments"], result);
+            }
+            if result["engine"] == "australian-tax-calculators" {
+                result["engine_version"] = json!("1.1.0");
+            }
         }
     }
     expected
