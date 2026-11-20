@@ -168,6 +168,29 @@ jobs:
           AU_ACCOUNTING_PARITY_CAP: "600"
         run: cargo test --locked --test parity -- --ignored --nocapture
 
+  dependency-policy:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: taiki-e/install-action@cfdb7ed4ccc7c7dce37759eae89dc5674b469b39 # v2.90.3
+        with:
+          tool: cargo-deny@0.22.0
+          fallback: none
+      - name: Check licences and sources for every Cargo lock
+        shell: bash
+        run: |
+          set -euo pipefail
+          git ls-files -z -- ':(glob)**/Cargo.lock' | while IFS= read -r -d '' lock; do
+            echo "Checking $lock"
+            (
+              cd "${lock%/*}"
+              cargo deny --locked --config "$GITHUB_WORKSPACE/deny.toml" check licenses sources
+            )
+          done
+
   test:
     needs: changes
     if: needs.changes.result == 'success' && needs.changes.outputs.run == 'true'
@@ -177,13 +200,11 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
+        os: ${{ fromJSON((github.event_name == 'schedule' || (github.event_name == 'push' && github.ref == 'refs/heads/main')) && '["ubuntu-latest","windows-latest","macos-latest"]' || '["ubuntu-latest","windows-latest"]') }}
+        python: ["3.14"]
         include:
           - os: ubuntu-latest
-            python: "3.14"
-          - os: ubuntu-latest
             python: "3.15"
-          - os: windows-latest
-            python: "3.14"
     runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -198,6 +219,7 @@ jobs:
         with:
           version: "0.13.5"
           enable-cache: true
+          cache-suffix: py${{ matrix.python }}
           save-cache: ${{ github.ref == 'refs/heads/main' }}
           prune-cache: true
       # The tax worksheets run the calculators executable, which the adapter finds
@@ -247,6 +269,7 @@ jobs:
         with:
           version: "0.13.5"
           enable-cache: true
+          cache-suffix: py3.15
           save-cache: ${{ github.ref == 'refs/heads/main' }}
           prune-cache: true
       - name: audit the locked project environment
@@ -275,6 +298,7 @@ jobs:
         with:
           version: "0.13.5"
           enable-cache: true
+          cache-suffix: py3.15
           save-cache: ${{ github.ref == 'refs/heads/main' }}
           prune-cache: true
       - run: uv run --locked --extra dev ruff check aus_accounting_mcp tests  # NOSONAR: unprivileged job; uv installs the hash-locked set
@@ -315,7 +339,7 @@ jobs:
     # when a job in this file is missing
     # from needs, or when a pull request removes a job without adding a
     # "# removed-jobs: <job>" comment to this file.
-    needs: [changes, packages, crates, rust, umbrella-parity, test, dependency-audit, lint]
+    needs: [changes, packages, crates, rust, umbrella-parity, dependency-policy, test, dependency-audit, lint]
     if: always()
     runs-on: ubuntu-latest
     timeout-minutes: 5
@@ -335,6 +359,10 @@ jobs:
         env:
           RESULTS: ${{ toJSON(needs) }}
         run: python3 .github/ci/app_ci.py gate aus-accounting-mcp crates
+      - name: Require dependency policy to succeed
+        env:
+          POLICY_RESULT: ${{ needs.dependency-policy.result }}
+        run: test "$POLICY_RESULT" = success
       - name: Require every job to be listed and kept
         env:
           RESULTS: ${{ toJSON(needs) }}
