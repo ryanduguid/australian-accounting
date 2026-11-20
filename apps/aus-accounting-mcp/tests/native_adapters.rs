@@ -99,7 +99,7 @@ fn frozen_effective_adapter_contracts() {
                 expected["structuredContent"]["sources"][0] = json!(
                     "https://www.ato.gov.au/tax-rates-and-codes/study-and-training-loan-minimum-repayment-income-and-rates"
                 );
-                expected["structuredContent"]["source_checked"] = json!("2026-10-20");
+                expected["structuredContent"]["source_checked"] = json!("2026-11-20");
             }
             if let (Some(kind), Some(note)) = (kind, before["file_note"].as_str()) {
                 let engine = format!(
@@ -114,8 +114,8 @@ fn frozen_effective_adapter_contracts() {
                     );
                 if kind == "study_loan_repayment" {
                     note = note.replace(
-                        "repayment thresholds and rates",
-                        "minimum repayment income and rates",
+                        "repayment income, examples 1 to 3",
+                        "repayment income, examples 1 and 2",
                     );
                 }
                 expected["structuredContent"]["file_note"] = json!(note);
@@ -273,15 +273,16 @@ fn frozen_resource_contracts() {
             let url = "https://www.ato.gov.au/tax-rates-and-codes/study-and-training-loan-minimum-repayment-income-and-rates";
             study["source"] = json!(url);
             study["sources"][0] = json!(url);
-            study["source_checked"] = json!("2026-10-20");
-            study["source_passage"] = json!(study["source_passage"].as_str().unwrap().replace(
-                "repayment thresholds and rates",
-                "minimum repayment income and rates"
-            ));
-            study["example_evidence"]["document"] =
-                json!("ATO study and training loan minimum repayment income and rates");
-            study["example_evidence"]["reviewed"] = json!("2026-10-13");
-            study["example_evidence"]["checked"] = json!("2026-10-20");
+            study["source_checked"] = json!("2026-11-20");
+            study["source_passage"] = json!(
+                study["source_passage"]
+                    .as_str()
+                    .unwrap()
+                    .replace("examples 1 to 3", "examples 1 and 2")
+            );
+            study["example_evidence"]["paragraphs"] = json!("tables 1 and 2, examples 1 and 2");
+            study["example_evidence"]["reviewed"] = json!("2026-06-30");
+            study["example_evidence"]["checked"] = json!("2026-11-20");
         }
         let expected = moved_lump_sum_page(&expected);
         let actual = aus_accounting_mcp::resources::read(uri).unwrap();
@@ -310,15 +311,12 @@ fn native_freshness(result: &mut Value) {
             row["sources"][0] = json!(
                 "https://www.ato.gov.au/tax-rates-and-codes/study-and-training-loan-minimum-repayment-income-and-rates"
             );
-            row["source_checked"] = json!("2026-10-20");
+            row["source_checked"] = json!("2026-11-20");
             row["provenance"]["source_passage"] = json!(
                 row["provenance"]["source_passage"]
                     .as_str()
                     .unwrap()
-                    .replace(
-                        "repayment thresholds and rates",
-                        "minimum repayment income and rates"
-                    )
+                    .replace("examples 1 to 3", "examples 1 and 2")
             );
         }
     }

@@ -316,6 +316,9 @@
 
 ### Fixed
 
+- The study loan repayment worksheet cites the ATO rate page's current title
+  and update date. It uses the 2026-27 threshold in table 1. Example 3 still
+  quotes the 2025-26 threshold. Repayment amounts are unchanged.
 - `worksheet_catalogue()`'s evidence note for the 2 car worksheets, the 3
   Schedule 5 methods, working holiday maker and seniors and pensioners
   withholding, and the seniors and pensioners tax offset now opens their

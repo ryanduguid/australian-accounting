@@ -141,18 +141,17 @@ fn questions_and_complete_actual_stdio_context_match_original() {
             "https://www.ato.gov.au/tax-rates-and-codes/study-and-training-support-loans-rates-and-repayment-thresholds",
             "https://www.ato.gov.au/tax-rates-and-codes/study-and-training-loan-minimum-repayment-income-and-rates",
         ),
-        ("/source_checked", "2026-09-27", "2026-10-20"),
-        ("/example_evidence/checked", "2026-09-27", "2026-10-20"),
-        ("/example_evidence/reviewed", "2026-06-30", "2026-10-13"),
+        ("/source_checked", "2026-09-27", "2026-11-20"),
+        ("/example_evidence/checked", "2026-09-27", "2026-11-20"),
         (
-            "/example_evidence/document",
-            "ATO study and training loan repayment thresholds and rates",
-            "ATO study and training loan minimum repayment income and rates",
+            "/example_evidence/paragraphs",
+            "tables 1 and 2, examples 1 to 3",
+            "tables 1 and 2, examples 1 and 2",
         ),
         (
             "/source_passage",
             "Study and training loan repayment thresholds and rates: tables 1 and 2, repayment income, examples 1 to 3; Gazette C2026G00249 for the 2026-27 minimum repayment income and replacement indexable amount",
-            "Study and training loan minimum repayment income and rates: tables 1 and 2, repayment income, examples 1 to 3; Gazette C2026G00249 for the 2026-27 minimum repayment income and replacement indexable amount",
+            "Study and training loan repayment thresholds and rates: tables 1 and 2, repayment income, examples 1 and 2; Gazette C2026G00249 for the 2026-27 minimum repayment income and replacement indexable amount",
         ),
     ] {
         let value = worksheet.pointer_mut(pointer).unwrap();
