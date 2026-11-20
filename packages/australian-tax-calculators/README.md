@@ -1158,6 +1158,11 @@ and foreign residents are out of scope.
 decides without a search, for a registration, possession or attachment, or
 security agreement in 2025-26 or 2026-27. Times are `YYYY-MM-DDTHH:MM` in ACT
 legal time (PPSA s 294); an end of day is shown as `YYYY-MM-DD end of day`.
+An input time or a calculated six-month reference in the skipped or repeated
+02:00 to 02:59 hour is refused with `ppsr_timing.time_unresolved`. Check the
+underlying timing records if either transition affects the result.
+[ACT Standard Time and Summer Time Act 1972](https://www.legislation.act.gov.au/a/1972-34/)
+
 Every answer carries the fee schedule of the Personal Property Securities
 (Fees) Determination 2018 in `rates`: registration $6.00, $25.00 or $115.00,
 a search $2.00 online or $7.00 by the contact centre, maintenance $4.00 and a
