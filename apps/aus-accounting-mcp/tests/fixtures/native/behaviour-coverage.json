@@ -35,7 +35,7 @@
     "tests/test_identifiers.py": "6c0b5fd9a3e96ced670bc7109b2ca5d357ac1dbd49bc655997c57b7212791acf",
     "tests/test_industry_pagination.py": "fdd00b1d221f49bea076998bfd1c0582b6f69ab9f4552eaec725fadb037f0dfb",
     "tests/test_installed_check.py": "995a5feff18288321e7950186c6931ec95fe4f8a17796f24280baa2ed0089693",
-    "tests/test_lodgment_calendar.py": "f801bc9ad620ac9d8a979253402b23386ccca5d946a36352a3eb9287471b42b0",
+    "tests/test_lodgment_calendar.py": "3d74124bea731abc53a5df2dcabcbbf5323af4224caa10537936284e41940498",
     "tests/test_mcp_evaluation.py": "6afbd97998277457c49d16d97462b94d2651aa69445ade0caa9e793530190197",
     "tests/test_no_network.py": "864d2ab2d8ea705daf2a6e2daa21687d3241ff0ad473c34e55e29904a03b155b",
     "tests/test_output_contracts.py": "beb86e4e7a4e2dec4f2728f4d0fe4f2b5edbb6b1c293697dd2b59bd40c542832",
@@ -2110,65 +2110,65 @@
       ]
     },
     {
-      "original": "tests/test_lodgment_calendar.py:35",
+      "original": "tests/test_lodgment_calendar.py:34",
       "function": "test_agent_quarterly_bas_returns_the_engine_rows_with_provenance",
-      "source_sha256": "f801bc9ad620ac9d8a979253402b23386ccca5d946a36352a3eb9287471b42b0",
+      "source_sha256": "3d74124bea731abc53a5df2dcabcbbf5323af4224caa10537936284e41940498",
       "status": "covered",
       "proofs": [
         "F"
       ]
     },
     {
-      "original": "tests/test_lodgment_calendar.py:57",
+      "original": "tests/test_lodgment_calendar.py:56",
       "function": "test_self_lodged_individual_return_without_facts",
-      "source_sha256": "f801bc9ad620ac9d8a979253402b23386ccca5d946a36352a3eb9287471b42b0",
+      "source_sha256": "3d74124bea731abc53a5df2dcabcbbf5323af4224caa10537936284e41940498",
       "status": "covered",
       "proofs": [
         "F"
       ]
     },
     {
-      "original": "tests/test_lodgment_calendar.py:67",
+      "original": "tests/test_lodgment_calendar.py:66",
       "function": "test_missing_program_facts_stay_unknown_and_are_named",
-      "source_sha256": "f801bc9ad620ac9d8a979253402b23386ccca5d946a36352a3eb9287471b42b0",
+      "source_sha256": "3d74124bea731abc53a5df2dcabcbbf5323af4224caa10537936284e41940498",
       "status": "covered",
       "proofs": [
         "F"
       ]
     },
     {
-      "original": "tests/test_lodgment_calendar.py:83",
+      "original": "tests/test_lodgment_calendar.py:82",
       "function": "test_engine_refusals_reach_the_caller",
-      "source_sha256": "f801bc9ad620ac9d8a979253402b23386ccca5d946a36352a3eb9287471b42b0",
+      "source_sha256": "3d74124bea731abc53a5df2dcabcbbf5323af4224caa10537936284e41940498",
       "status": "covered",
       "proofs": [
         "F"
       ]
     },
     {
-      "original": "tests/test_lodgment_calendar.py:97",
+      "original": "tests/test_lodgment_calendar.py:96",
       "function": "test_malformed_arguments_are_rejected",
-      "source_sha256": "f801bc9ad620ac9d8a979253402b23386ccca5d946a36352a3eb9287471b42b0",
+      "source_sha256": "3d74124bea731abc53a5df2dcabcbbf5323af4224caa10537936284e41940498",
       "status": "covered",
       "proofs": [
         "F"
       ]
     },
     {
-      "original": "tests/test_lodgment_calendar.py:102",
+      "original": "tests/test_lodgment_calendar.py:101",
       "function": "test_tool_schema_describes_every_fact_and_is_read_only",
-      "source_sha256": "f801bc9ad620ac9d8a979253402b23386ccca5d946a36352a3eb9287471b42b0",
+      "source_sha256": "3d74124bea731abc53a5df2dcabcbbf5323af4224caa10537936284e41940498",
       "status": "adapted",
       "proofs": [
         "D",
         "LINKED"
       ],
-      "adaptation_or_limit": "The pyproject.toml pin check stays with the Python distribution; LINKED excludes the same FBT fact while the tool pins lodgment-calendar 0.2.0."
+      "adaptation_or_limit": "The Python and LINKED tool schemas expose facts for BAS, IAS and income tax returns. Lodgment Calendar 0.2.0 also supports FBT returns outside those tool schemas."
     },
     {
-      "original": "tests/test_lodgment_calendar.py:117",
+      "original": "tests/test_lodgment_calendar.py:114",
       "function": "test_resources_list_the_engine_and_tool",
-      "source_sha256": "f801bc9ad620ac9d8a979253402b23386ccca5d946a36352a3eb9287471b42b0",
+      "source_sha256": "3d74124bea731abc53a5df2dcabcbbf5323af4224caa10537936284e41940498",
       "status": "adapted",
       "proofs": [
         "RS",
@@ -2178,36 +2178,36 @@
       "adaptation_or_limit": "Installed distribution lookup becomes linked crate identity; complete disclaimer/scope payloads remain compared."
     },
     {
-      "original": "tests/test_lodgment_calendar.py:130",
+      "original": "tests/test_lodgment_calendar.py:127",
       "function": "test_caller_holidays_settle_dates_after_the_ato_table",
-      "source_sha256": "f801bc9ad620ac9d8a979253402b23386ccca5d946a36352a3eb9287471b42b0",
+      "source_sha256": "3d74124bea731abc53a5df2dcabcbbf5323af4224caa10537936284e41940498",
       "status": "covered",
       "proofs": [
         "F"
       ]
     },
     {
-      "original": "tests/test_lodgment_calendar.py:151",
+      "original": "tests/test_lodgment_calendar.py:148",
       "function": "test_invalid_holiday_inputs_reach_the_caller",
-      "source_sha256": "f801bc9ad620ac9d8a979253402b23386ccca5d946a36352a3eb9287471b42b0",
+      "source_sha256": "3d74124bea731abc53a5df2dcabcbbf5323af4224caa10537936284e41940498",
       "status": "covered",
       "proofs": [
         "F"
       ]
     },
     {
-      "original": "tests/test_lodgment_calendar.py:161",
+      "original": "tests/test_lodgment_calendar.py:158",
       "function": "test_malformed_holiday_inputs_are_rejected",
-      "source_sha256": "f801bc9ad620ac9d8a979253402b23386ccca5d946a36352a3eb9287471b42b0",
+      "source_sha256": "3d74124bea731abc53a5df2dcabcbbf5323af4224caa10537936284e41940498",
       "status": "covered",
       "proofs": [
         "F"
       ]
     },
     {
-      "original": "tests/test_lodgment_calendar.py:172",
+      "original": "tests/test_lodgment_calendar.py:169",
       "function": "test_the_tool_caps_caller_holidays_at_50",
-      "source_sha256": "f801bc9ad620ac9d8a979253402b23386ccca5d946a36352a3eb9287471b42b0",
+      "source_sha256": "3d74124bea731abc53a5df2dcabcbbf5323af4224caa10537936284e41940498",
       "status": "covered",
       "proofs": [
         "F",
