@@ -79,10 +79,11 @@ def test_the_launcher_selects_a_supported_binary_and_preserves_an_override(
     (tmp_path / "src").mkdir()
     monkeypatch.setattr(launcher, "__file__", str(tmp_path / "src/server.py"))
     variable = "AUS_TAX_CALCULATORS_BIN"
-    monkeypatch.delenv(variable, raising=False)
+    environment: dict[str, str] = {}
+    monkeypatch.setattr(launcher, "os", SimpleNamespace(environ=environment))
 
     launcher.configure_calculators()
-    assert variable not in launcher.os.environ
+    assert variable not in environment
     if filename is None:
         return
 
@@ -90,7 +91,8 @@ def test_the_launcher_selects_a_supported_binary_and_preserves_an_override(
     binary.parent.mkdir()
     binary.touch()
     launcher.configure_calculators()
-    assert launcher.os.environ.get(variable) == str(binary)
-    monkeypatch.setenv(variable, str(tmp_path / "operator-calculator"))
+    assert environment.get(variable) == str(binary)
+    operator_calculator = str(tmp_path / "operator-calculator")
+    environment[variable] = operator_calculator
     launcher.configure_calculators()
-    assert launcher.os.environ.get(variable) == str(tmp_path / "operator-calculator")
+    assert environment.get(variable) == operator_calculator
