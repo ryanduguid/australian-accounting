@@ -76,8 +76,29 @@ fn event_measurements_require_rate_even_for_nil_distribution() {
     replay(&["distribution-event"]);
 }
 #[test]
-fn benchmark_uses_exact_ratio_stable_date_order_and_cent_tolerance() {
+fn benchmark_uses_exact_ratio_and_stable_date_order() {
     replay(&["benchmark"]);
+}
+
+#[test]
+fn a_one_cent_breach_is_reported_at_a_zero_benchmark() {
+    let input = serde_json::json!({
+        "corporate_tax_rate": "0.25",
+        "distributions": [
+            {"event_date": "2025-02-01", "recipient_name": "Synthetic shareholder",
+             "distribution_amount": "3.00", "franking_credit": "0.00"},
+            {"event_date": "2025-02-15", "recipient_name": "Synthetic shareholder",
+             "distribution_amount": "3.00", "franking_credit": "0.01"}
+        ]
+    });
+    let result = api::evaluate("benchmark", &input).unwrap();
+    assert_eq!(result["benchmark_percentage"], "0.00");
+    assert_eq!(result["compliant"], false);
+    assert!(result.get("franking_periods").is_none());
+    assert_eq!(
+        breaches(&result),
+        [["2025-02-15", "0.00", "OVER_FRANKING_TAX", "0.01"]]
+    );
 }
 #[test]
 fn ledger_and_fdt_unknowns_classification_and_periods() {
