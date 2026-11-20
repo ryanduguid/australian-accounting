@@ -1154,18 +1154,19 @@ fn a_step_value_changed_without_its_amount_is_caught() {
     let doc = derive(command, input);
     assert!(problems(&doc).is_empty());
     let mut edited = doc.clone();
-    edited["steps"][2]["value"] = json!("21452.74");
+    edited["steps"][2]["value"] = json!("21452.84");
+    let found = problems(&edited);
+    assert_eq!(found.len(), 2);
+    assert!(found[0].starts_with("fbt_estimate: value \"21452.84\" is not "));
+    assert!(found[0].ends_with(" in cents, 21452.83"));
     assert_eq!(
-        problems(&edited),
-        [
-            "fbt_estimate: value \"21452.74\" is not 21452.72700000 in cents, 21452.73",
-            "fbt_estimate: value \"21452.74\" differs from the amount \"21452.73\"",
-        ]
+        found[1],
+        "fbt_estimate: value \"21452.84\" differs from the amount \"21452.83\""
     );
     // An operand that is not the value its name stands for, and an amount
     // changed without its step, are caught the same way.
     let mut edited = doc.clone();
-    let working = "return_item_15 x fbt_rate = 45644 x 0.48 = 21452.68";
+    let working = "return_item_15 x fbt_rate = 45645 x 0.48 = 21453.15";
     edited["steps"][6]["working"] = json!(working);
     let found = problems(&edited);
     assert_eq!(
@@ -1174,13 +1175,13 @@ fn a_step_value_changed_without_its_amount_is_caught() {
     );
     assert_eq!(
         found[1],
-        "return_item_16: the operands give 21909.12, not 21452.68"
+        "return_item_16: the operands give 21909.60, not 21453.15"
     );
     let mut edited = doc;
-    edited["result"]["amounts"]["return_item_15"] = json!("45645.00");
+    edited["result"]["amounts"]["return_item_15"] = json!("45646.00");
     assert_eq!(
         problems(&edited),
-        ["return_item_15: value \"45644.00\" differs from the amount \"45645.00\""]
+        ["return_item_15: value \"45645.00\" differs from the amount \"45646.00\""]
     );
 }
 
@@ -1204,26 +1205,24 @@ fn only_the_very_large_component_may_hide_a_negative_value() {
 
 #[test]
 fn the_ato_examples_show_their_operands() {
-    // Calculating your FBT, MantCo: each gross-up rounded to the dollar for items 14A and 14B.
+    // The statutory formula for the taxable values in the ATO's MantCo example.
     let doc = derive("fbt", &cases()[1].1);
     let working = |doc: &Value, i: usize| doc["steps"][i]["working"].as_str().unwrap().to_string();
-    assert_eq!(
-        working(&doc, 0),
-        "type_one_value x type_one = 16500.00 x 2.0802 = 34323.300000"
-    );
+    assert!(working(&doc, 0).starts_with(concat!(
+        "type_one_value x (fbt_rate + 0.10) / ((1 - fbt_rate) x (1 + 0.10) x fbt_rate)",
+        " = 16500.00 x (0.47 + 0.10) / ((1 - 0.47) x (1 + 0.10) x 0.47) = 34323.56"
+    )));
     assert_eq!(
         doc["steps"][0]["authority"],
         "FBTAA s 5B(1B); Calculating your FBT, step 3"
     );
-    assert_eq!(
-        working(&doc, 3),
-        "dollars(type_one_grossed_up) = dollars(34323.300000) = 34323"
-    );
+    assert_eq!(doc["steps"][0]["value"], "34323.56");
+    assert!(working(&doc, 3).ends_with(" = 34324"));
     assert_eq!(
         working(&doc, 6),
-        "return_item_15 x fbt_rate = 45644 x 0.47 = 21452.68"
+        "return_item_15 x fbt_rate = 45645 x 0.47 = 21453.15"
     );
-    assert_eq!(doc["steps"][6]["value"], "21452.68");
+    assert_eq!(doc["steps"][6]["value"], "21453.15");
     // Item 23A example 6: $32,000 for 274 of 365 days.
     let doc = derive("fbt-car-statutory", &cases()[5].1);
     assert_eq!(
@@ -4142,7 +4141,7 @@ fn the_capital_gains_steps_apply_losses_then_the_discount() {
          = (21435.00 - min(21435.00, 8660.00 + 0.00 - min(8000.00, 8660.00 + 0.00))) x (1 - 0.50) = 10387.5000"
     );
     assert_eq!(library["result"]["amounts"]["net_capital_gain"], "10387.50");
-    assert!(authority_in(&library, "discount_applied").contains("s 115-100(aa)"));
+    assert!(authority_in(&library, "discount_applied").contains("s 115-100(a)"));
     let absorbed = super_and_cgt_doc("absorbed");
     assert_eq!(
         working_in(&absorbed, "losses_remaining"),

@@ -66,8 +66,9 @@ Comparisons ignore case but not spaces, as GitHub's do. A job can run only if
 its condition can hold and each job it needs can run in the same call; none of
 them has continue-on-error.
 
-Matrices. Plain axes, include rows alone or the matrix ci.yml computes with
-rust_crates.py; runs-on and a caller's with: values may name a row's values.
+Matrices. Plain axes, include rows alone or the matrices ci.yml computes with
+rust_crates.py and app_ci.py; runs-on and a caller's with: values may name a
+row's values.
 
 A reusable workflow's steps run for each call of it (a job of a workflow that
 is not reusable itself, whose uses: names it and which can run), once for each
@@ -95,6 +96,7 @@ import sys
 import tomllib
 from pathlib import Path
 
+from app_ci import mcp_python_matrix
 from rust_crates import crates
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -111,9 +113,10 @@ PYTEST_SKIPPED = [
 ]
 # Config files that pytest reads before pyproject.toml.
 PYTEST_FIRST = ("pytest.toml", ".pytest.toml", "pytest.ini", ".pytest.ini")
-# ci.yml's crates job prints this matrix with rust_crates.py.
+# The scheduled run includes every row of the MCP application's test matrix.
 COMPUTED_MATRICES = {
     "${{ fromJSON(needs.crates.outputs.ci-matrix) }}": lambda root: crates(root, ci_yml=True),
+    "${{ fromJSON(needs.changes.outputs.python-matrix) }}": lambda _root: mcp_python_matrix("schedule", ""),
 }
 # runner.os on the GitHub-hosted images main's workflows use.
 HOSTED = {"ubuntu-latest": "Linux", "windows-latest": "Windows", "macos-latest": "macOS"}

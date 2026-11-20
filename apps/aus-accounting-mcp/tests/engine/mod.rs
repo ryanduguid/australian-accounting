@@ -7,8 +7,8 @@
 //! engine releases (australian-tax-calculators 0.2.0 and the other PyPI pins). The
 //! native server links the engine crates as they are on main. Each function below
 //! applies one engine commit on main to a frozen Python value, mirroring the engine's
-//! own `tests/parity.rs` adaptation, so every other byte must still match. No figure is
-//! normalised except the carry-forward cap, which follows s 291-20(4) as #542 applies it.
+//! own `tests/parity.rs` adaptation, so every other byte must still match. The figures changed here
+//! follow the carry-forward cap in s 291-20(4) and the FBTAA gross-up formulas.
 #![allow(dead_code)]
 
 use australian_tax_calculators::decimal::{Decimal, Rounding};
@@ -124,10 +124,53 @@ fn carry_forward(facts: &Value, result: &mut Value) {
     result["amounts"]["carry_forward_applied"] = json!(cents.to_string());
 }
 
+/// Exact results for the three successful FBT inputs in the frozen MCP corpus,
+/// computed separately with the s 5B(1B) and (1C) ratios 57,000/27,401 and 100/53.
+fn statutory_fbt(facts: &Value, amounts: &mut Value) {
+    let values = match (
+        facts["type_one_value"].as_str(),
+        facts["type_two_value"].as_str(),
+    ) {
+        (Some("16500"), Some("6000")) => [
+            "34323.56", "11320.75", "21452.83", "34324.00", "11321.00", "45645.00", "21453.15",
+        ],
+        (Some("1000.00"), Some("2000.00")) => [
+            "2080.22", "3773.58", "2751.29", "2080.00", "3774.00", "5854.00", "2751.38",
+        ],
+        (Some("1000.00"), Some("1000.00")) => [
+            "2080.22", "1886.79", "1864.49", "2080.00", "1887.00", "3967.00", "1864.49",
+        ],
+        _ => panic!("independently verify the statutory FBT amounts for {facts}"),
+    };
+    let fields = [
+        "type_one_grossed_up",
+        "type_two_grossed_up",
+        "fbt_estimate",
+        "return_item_14a",
+        "return_item_14b",
+        "return_item_15",
+        "return_item_16",
+    ];
+    for (field, value) in fields.into_iter().zip(values) {
+        amounts[field] = json!(value);
+    }
+}
+
+pub fn statutory_fbt_text(text: &str) -> String {
+    text.replace(
+        "for the year ended 31 March 2026. Excludes",
+        "for the year ended 31 March 2026 at the 47% FBT rate. Uses the formulas in FBTAA s 5B(1B) and (1C) for gross-up. Excludes",
+    )
+}
+
 /// A frozen successful calculate_tax_worksheet result, as the linked engine gives it.
 pub fn worksheet(kind: &str, facts: &Value, result: &mut Value) {
     if kind == "contribution_caps" && result["amounts"].get("carry_forward_applied").is_some() {
         carry_forward(facts, result);
+    }
+    if kind == "fbt" {
+        statutory_fbt(facts, &mut result["amounts"]);
+        result["scope"] = json!(statutory_fbt_text(result["scope"].as_str().unwrap()));
     }
     let Some(review) = review(kind) else {
         return;
@@ -153,6 +196,9 @@ pub fn catalogue(kind: &str, entry: &mut Value) {
     } else {
         review.passage.to_owned()
     });
+    if kind == "fbt" {
+        entry["scope"] = json!(statutory_fbt_text(entry["scope"].as_str().unwrap()));
+    }
     let evidence = &mut entry["example_evidence"];
     match kind {
         "payg_withholding" => {
@@ -217,7 +263,11 @@ pub fn freshness(row: &mut Value) {
 /// Python's: each source line and its check date, changed table rows and the catalogue
 /// passage. The note's layout is Python's.
 pub fn file_note(kind: &str, note: &str, before: &Value, after: &Value) -> String {
-    let mut note = note.to_owned();
+    let mut note = if kind == "fbt" {
+        statutory_fbt_text(note)
+    } else {
+        note.to_owned()
+    };
     let lines = |result: &Value| -> String {
         result["sources"]
             .as_array()
@@ -294,13 +344,12 @@ pub fn payday(value: &mut Value) {
     }
 }
 
-/// `minimum_yearly_repayment` takes no loan term, so a figure it gives says the remaining
-/// term was not checked against the loan's term.
+/// A computed native repayment records when the agreed loan term was not supplied.
 const TERM_NOT_CHECKED: &str = "maximum_term_years was not supplied, so this engine has not checked the remaining term against the loan's term or that term less the years since the loan year (s 109E(6)). A remaining term that is too long gives a lower minimum yearly repayment than the Act requires.";
 
-pub fn div7a(result: &mut Value) {
+pub fn div7a(arguments: &Value, result: &mut Value) {
     let repayment = &mut result["minimum_yearly_repayment"];
-    if repayment["myr_required"].is_string() {
+    if arguments["maximum_term_years"].is_null() && repayment["myr_required"].is_string() {
         repayment["caveats"]
             .as_array_mut()
             .unwrap()

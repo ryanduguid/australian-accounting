@@ -291,11 +291,12 @@ compared byte for byte. These differences are deliberate:
   from its frame locals so a traceback cannot show them. A Rust `CoreError` holds only the
   category and status, and the token stays the caller's borrowed string.
   `list_clients_via` takes any dialler, which is how the tests stub the socket.
-- **Engines.** The trials link the in-tree Rust engines, which match
-  `div7a-loan-review` 0.3.2 and `australian-tax-calculators` 0.2.0. The FBT
-  trial's local figures therefore also carry `return_item_14a`, `14b`, `15`
-  and `16`, which the Python package's pinned 0.1.3 did not return. They are
-  never compared, and every evaluation is unchanged.
+- **Engines.** The trials link the in-tree Rust engines. When the port was
+  checked, they matched `div7a-loan-review` 0.3.2 and
+  `australian-tax-calculators` 0.2.0. The FBT trial compares the local estimate
+  using the full statutory gross-up ratios. A provider using the displayed
+  four-decimal ratios can differ by more than the one-cent tolerance. The
+  local FBT return labels are outside the comparison.
 - **MCP.** The MCP surface is omitted, as described above.
 
 ## Boundary

@@ -87,17 +87,17 @@ fn examples_2_and_4() -> Vec<Value> {
 }
 
 #[test]
-fn grosses_up_as_the_fbt_return_2026_examples_2_and_4_do() {
-    // $11,000 x 2.0802 = $22,882.20 and $9,000 x 1.8868 = $16,981.20; items 14A
-    // and 14B in whole dollars, so item 15 is $39,863 and the subtotal at items
-    // 16 and 19 is $18,735.61, the figure the instructions give.
+fn the_statutory_gross_up_matches_whole_dollars_in_return_examples_2_and_4() {
+    // On the example values, s 5B(1B) gives $22,882.38 and s 5B(1C) $16,981.13.
+    // Items 14A and 14B round to the same dollars as the ATO examples, giving
+    // $39,863 at item 15 and $18,735.61 at items 16 and 19.
     let result = compose(examples_2_and_4()).unwrap();
     assert_eq!(result["calculation"], "fbt_return");
     assert_eq!(result["period"], "year ended 31 March 2026");
     assert_eq!(
         result["amounts"],
         json!({"type_one_value": "11000.00", "type_two_value": "9000.00",
-               "type_one_grossed_up": "22882.20", "type_two_grossed_up": "16981.20",
+               "type_one_grossed_up": "22882.38", "type_two_grossed_up": "16981.13",
                "fringe_benefits_taxable_amount": "39863.00", "fbt_payable": "18735.61",
                "employee_contributions": "0.00"})
     );
