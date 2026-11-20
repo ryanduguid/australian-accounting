@@ -805,6 +805,8 @@ examples with associated earnings (Sue's $850, Alex's $1,700, Milena's
 determinations) give no contribution dates, so they cannot test the method.
 So associated earnings from contributions are labelled `estimate`, and a
 caller with the Commissioner's determination gives its components instead.
+The Jill regression checks both paths. The statutory estimate is $7,859 and a
+determination supplied with $5,190 keeps its own figure.
 
 The tests run Jill (limits and the 85%), Mary ($15,000 of $25,000; $12,750),
 Hasan (example 7: $3,000 of the $5,000 counted in 2023-24), the s 138-30
@@ -1299,11 +1301,14 @@ periods add up to the total interest.
   updated 7 September 2012, after the change for agreements from 1 July 2012)
   applies the cap to a car acquired under a hire purchase agreement, since for
   GST a hire purchase agreement is a sale of goods (issue 1.1). The same issue
-  1.1 calls the finance a separate supply, and s 69-10(1) caps the credit on
-  the acquisition of the car: no source read says whether the cap also takes
-  in the GST on the credit component. A car the cap reaches therefore gives
-  no GST figure, and the result says why. Each fact is its own input; a
-  missing one gives no figure.
+  1.1 distinguishes the sale of goods from the provision of finance. When
+  a held tax invoice establishes both components and their GST agrees with
+  separate cent rounding, s 69-10(1) caps the goods credit only. The worksheet
+  adds the separately shown finance GST and then applies the creditable-purpose
+  fraction. A nil finance charge carries nil GST. For an invoice that uses
+  another rounding method or does not establish both components, the preparer
+  reviews the figures. The worksheet leaves attribution and journals for the
+  split supplies to the preparer.
 - **Journals.** Each period's interest is an entry at its end, grouped with
   its period's income year, and each payment an entry on its day, grouped
   with that day's year, so an instalment paid on 1 July counts in the year it
@@ -1336,6 +1341,7 @@ a present value check and balanced journals.
 | Albert's second freezer: $33,000, 60 x $670 | 'GST – Hire purchase and leasing'; s 9-90 | $3,654.55 (the ATO prints $3,654.54); $1,827.28 at 50% |
 | Darren's car: $91,242.80 with $2,407.80 luxury car tax, 2026-27, financed by 60 x $1,800 | 'Purchasing a motor vehicle'; s 69-10(1) | No figure, `gst.review` |
 | A $60,000 car, 60 x $1,300; the same car worth $80,000, quoted for or not; worth $69,700, first used in 2026-27 or 2024-25 | GST Act s 69-10(1)(b) and (c) | $7,090.91 twice; no figure; $7,090.91; no figure |
+| A $91,242.80 car including $2,407.80 luxury car tax, with $16,757.20 in separate finance charges supported by a held invoice | GST Act ss 9-75(2), 11-25 and 69-10(1) and ATO GST issues register 1.1, 1.2 and 1.17 | $6,353.00 goods credit plus $1,523.38 finance credit, yielding $7,876.38 |
 | $1,000, 2 x $100 in arrears and a $1,000 balloon from 1 June 2027; the same in advance | Worked by hand | June's $100 interest in 2026-27 and its payment on 1 July in 2027-28; in advance, $100 paid 1 June in 2026-27 |
 | $50,000, 260 weekly payments of $230 and a $5,000 balloon | The payments discounted at the rate shown | $50,000 to within a cent |
 

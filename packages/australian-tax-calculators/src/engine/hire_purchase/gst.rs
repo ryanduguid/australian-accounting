@@ -49,14 +49,21 @@ pub(super) enum Facts {
     /// No figure: the facts it needs that were not given.
     Missing(Vec<&'static str>),
     NotRegistered,
-    /// No figure: s 69-10(1) caps a car's credit, and the sources read do not
-    /// settle what the cap takes in.
+    /// No figure: the invoice split needed for a capped car is unconfirmed.
     Review,
     Registered {
         cash_basis: bool,
         purpose: Decimal,
         car: Option<Box<Car>>,
+        capped_invoice: Option<Box<SplitInvoice>>,
     },
+}
+
+pub(super) struct SplitInvoice {
+    goods_consideration: Decimal,
+    finance_consideration: Decimal,
+    goods_gst: Decimal,
+    finance_gst: Decimal,
 }
 
 fn invalid<T>(why: &str) -> Result<T> {
@@ -124,9 +131,9 @@ fn car(fields: &Map<String, Value>) -> Result<Option<Car>> {
 }
 
 /// The GST facts in `gst`: each one a figure turns on, or the list of those
-/// missing. A fact given that the others make irrelevant is refused. With
-/// `review_cap`, a car s 69-10(1) caps gives no figure ([`Facts::Review`]).
-pub(super) fn read(gst: Option<&Arg>, review_cap: bool) -> Result<Facts> {
+/// missing. A fact given that the others make irrelevant is refused. A
+/// capped car acquired by hire purchase needs a confirmed invoice split.
+pub(super) fn read(gst: Option<&Arg>, hire_purchase: bool) -> Result<Facts> {
     let Some(gst) = gst else {
         return Ok(Facts::Missing(vec!["gst"]));
     };
@@ -140,6 +147,7 @@ pub(super) fn read(gst: Option<&Arg>, review_cap: bool) -> Result<Facts> {
             .iter()
             .chain(&REGISTERED)
             .chain(&CAR)
+            .chain(hire_purchase.then_some(&"separate_tax_invoice"))
             .copied()
             .collect(),
     };
@@ -154,7 +162,7 @@ pub(super) fn read(gst: Option<&Arg>, review_cap: bool) -> Result<Facts> {
     match registered {
         None => Ok(Facts::Missing(vec!["registered"])),
         Some(false) => Ok(Facts::NotRegistered),
-        Some(true) => read_registered(fields, review_cap),
+        Some(true) => read_registered(fields, hire_purchase),
     }
 }
 
@@ -183,7 +191,7 @@ fn creditable_purpose(fields: &Map<String, Value>) -> Result<Option<Decimal>> {
 }
 
 /// A registered hirer's facts, as [`read`] gives them.
-fn read_registered(fields: &Map<String, Value>, review_cap: bool) -> Result<Facts> {
+fn read_registered(fields: &Map<String, Value>, hire_purchase: bool) -> Result<Facts> {
     let mut missing: Vec<&'static str> = REGISTERED
         .iter()
         .copied()
@@ -191,6 +199,42 @@ fn read_registered(fields: &Map<String, Value>, review_cap: bool) -> Result<Fact
         .collect();
     let cash_basis = either(fields, "accounting_basis", "cash", "accruals")?;
     let purpose = creditable_purpose(fields)?;
+    let car = read_car_facts(fields, &mut missing)?;
+    let (Some(cash_basis), Some(purpose)) = (cash_basis, purpose) else {
+        return Ok(Facts::Missing(missing));
+    };
+    if !missing.is_empty() {
+        return Ok(Facts::Missing(missing));
+    }
+    let invoice = fields.get("separate_tax_invoice");
+    let capped_invoice = if hire_purchase
+        && let Some(car) = &car
+        && car.capped()?
+    {
+        let Some(invoice) = invoice.map(read_split_invoice).transpose()?.flatten() else {
+            return Ok(Facts::Review);
+        };
+        Some(Box::new(invoice))
+    } else {
+        if invoice.is_some() {
+            return invalid(
+                "separate_tax_invoice applies only to a passenger car reached by the hire purchase car limit",
+            );
+        }
+        None
+    };
+    Ok(Facts::Registered {
+        cash_basis,
+        purpose,
+        car: car.map(Box::new),
+        capped_invoice,
+    })
+}
+
+fn read_car_facts(
+    fields: &Map<String, Value>,
+    missing: &mut Vec<&'static str>,
+) -> Result<Option<Car>> {
     let passenger_car = either(fields, "asset", "passenger_car", "other")?;
     if passenger_car == Some(false)
         && let Some(key) = CAR.iter().find(|k| fields.contains_key(**k))
@@ -209,27 +253,50 @@ fn read_registered(fields: &Map<String, Value>, review_cap: bool) -> Result<Fact
     if passenger_car == Some(true) {
         missing.extend(CAR.iter().filter(|k| !fields.contains_key(**k)));
     }
-    let (Some(cash_basis), Some(purpose)) = (cash_basis, purpose) else {
-        return Ok(Facts::Missing(missing));
+    Ok(car)
+}
+
+fn read_split_invoice(value: &Value) -> Result<Option<SplitInvoice>> {
+    let Some(fields) = value.as_object() else {
+        return invalid("separate_tax_invoice must be an object");
     };
-    if !missing.is_empty() {
-        return Ok(Facts::Missing(missing));
-    }
-    if review_cap
-        && let Some(car) = &car
-        && car.capped()?
+    let keys = [
+        "goods_consideration",
+        "finance_consideration",
+        "goods_gst",
+        "finance_gst",
+    ];
+    if let Some(key) = fields
+        .keys()
+        .find(|k| *k != "tax_invoice_held" && !keys.contains(&k.as_str()))
     {
-        return Ok(Facts::Review);
+        return invalid(&format!("separate_tax_invoice does not take {key}"));
     }
-    Ok(Facts::Registered {
-        cash_basis,
-        purpose,
-        car: car.map(Box::new),
-    })
+    let held = flag(fields, "tax_invoice_held")?;
+    let [goods, finance, goods_gst, finance_gst] = keys.map(|key| {
+        decimal(fields, key)
+            .map(|amount| money(&amount))
+            .transpose()
+    });
+    let (
+        Some(goods_consideration),
+        Some(finance_consideration),
+        Some(goods_gst),
+        Some(finance_gst),
+    ) = (goods?, finance?, goods_gst?, finance_gst?)
+    else {
+        return Ok(None);
+    };
+    Ok((held == Some(true)).then_some(SplitInvoice {
+        goods_consideration,
+        finance_consideration,
+        goods_gst,
+        finance_gst,
+    }))
 }
 
 /// Why a car the s 69-10(1) cap reaches gets no figure.
-const CAR_REVIEW: &str = "No GST figure, for review: the car's GST inclusive market value exceeds the car limit for the financial year it is first used and the hirer may not quote an ABN for luxury car tax, so GST Act s 69-10(1) caps the input tax credit on the car at 1/11 of that limit, which the ATO's GST issues register 'Financial services - questions and answers' (issue 1.17) applies under a hire purchase agreement. The sources read do not settle whether the cap also takes in the GST on the credit component, which the same register (issue 1.1) treats as a separate supply of finance, taxable for an agreement entered into from 1 July 2012.";
+const CAR_REVIEW: &str = "No GST figure, for review: GST Act s 69-10(1) caps the car credit. Give a held tax invoice that separately identifies the goods and finance supplies, each consideration and each GST amount. See the ATO's GST issues register 'Financial services - questions and answers', issues 1.1, 1.2 and 1.17.";
 
 const TOTAL_CONSIDERATION: &str = "GST Act s 9-75(1), with the ATO's 'GST – Hire purchase and leasing': for an agreement entered into on or after 1 July 2012 every component of the supply is taxable, the credit component included, so the consideration is the price (the amount financed, deposit and trade-in) and the notional interest, the arrangement payments' excess over the amount financed";
 const GST_PAYABLE: &str = "GST Act ss 9-70 and 9-75(1): 10% of the value of the taxable supply, which is the price x 10 / 11, so 1/11 of the price, rounded to the nearest cent, 0.5 up (s 9-90(1), or (2)(a) where the credit component is a separate supply on the same invoice)";
@@ -259,11 +326,24 @@ pub(super) fn worked(
     consideration: &Decimal,
     interest: &Decimal,
 ) -> Result<Option<Worked>> {
-    let (purpose, car) = match facts {
+    let (purpose, car, capped_invoice) = match facts {
         Facts::Missing(_) | Facts::Review => return Ok(None),
         Facts::NotRegistered => return Ok(Some(no_credit(Vec::new(), NOT_REGISTERED, None))),
-        Facts::Registered { purpose, car, .. } => (purpose, car),
+        Facts::Registered {
+            purpose,
+            car,
+            capped_invoice,
+            ..
+        } => (purpose, car, capped_invoice),
     };
+    if let Some(car) = car
+        && car.luxury_car_tax.gt(consideration)?
+    {
+        return refuse(
+            "hire_purchase.gst_fact_conflict",
+            "gst: luxury_car_tax cannot exceed the price (amount_financed, deposit and trade_in), which includes it.",
+        );
+    }
     let total = consideration.add(interest)?;
     let mut steps = vec![step(
         "total_consideration",
@@ -272,7 +352,17 @@ pub(super) fn worked(
         &[consideration, interest],
         total.clone(),
     )];
-    let [payable, full] = full_credit(&total, car.as_deref(), consideration)?;
+    if let (Some(car), Some(invoice)) = (car, capped_invoice) {
+        return Ok(Some(capped_credit(
+            steps,
+            car,
+            invoice,
+            consideration,
+            interest,
+            purpose,
+        )?));
+    }
+    let [payable, full] = full_credit(&total, car.as_deref())?;
     let full_value = full.value.clone();
     steps.extend([payable, full]);
     let car_limit = car.as_ref().map(|c| c.limit.clone());
@@ -300,6 +390,48 @@ pub(super) fn worked(
     }))
 }
 
+fn capped_credit(
+    mut steps: Vec<Step>,
+    car: &Car,
+    invoice: &SplitInvoice,
+    consideration: &Decimal,
+    interest: &Decimal,
+    purpose: &Decimal,
+) -> Result<Worked> {
+    let expected_goods_gst = consideration
+        .sub(&car.luxury_car_tax)?
+        .div(&int(11))?
+        .quantize(-2, Rounding::HalfUp)?;
+    let expected_finance_gst = interest.div(&int(11))?.quantize(-2, Rounding::HalfUp)?;
+    if !invoice.goods_consideration.equals(consideration)?
+        || !invoice.finance_consideration.equals(interest)?
+        || !invoice.goods_gst.equals(&expected_goods_gst)?
+        || !invoice.finance_gst.equals(&expected_finance_gst)?
+    {
+        return refuse(
+            "hire_purchase.gst_fact_conflict",
+            "gst: the separate invoice amounts do not reconcile to the car price, luxury car tax and taxable finance charges with each supply rounded to a cent. Review the supplies and tax invoice.",
+        );
+    }
+    let payable = invoice.goods_gst.add(&invoice.finance_gst)?;
+    let goods_credit = py_min(invoice.goods_gst.clone(), car.limit.div(&int(11))?)?;
+    let full = goods_credit.add(&invoice.finance_gst)?;
+    steps.extend([
+        step("gst_payable", "GST Act ss 9-70, 9-75 and 9-90: tax on the two invoiced taxable supplies",
+            "goods_gst + finance_gst", &[&invoice.goods_gst, &invoice.finance_gst], payable),
+        step("full_input_tax_credit", "GST Act ss 11-25 and 69-10(1): cap the goods credit only. The finance is a separate taxable supply (ATO Financial services GST issues 1.1, 1.2 and 1.17)",
+            "min(goods_gst, car_limit / 11) + finance_gst", &[&invoice.goods_gst, &car.limit, &invoice.finance_gst], full.clone()),
+        step("input_tax_credit", PART, "full_input_tax_credit x creditable_purpose",
+            &[&full, purpose], full.mul(purpose)?),
+    ]);
+    Ok(Worked {
+        steps,
+        // This branch cannot establish a shared attribution date for the two supplies.
+        purpose_on_interest: None,
+        car_limit: Some(car.limit.clone()),
+    })
+}
+
 /// `steps` closed by a nil input tax credit, for the reason `authority` gives.
 fn no_credit(mut steps: Vec<Step>, authority: &'static str, car_limit: Option<Decimal>) -> Worked {
     steps.push(step("input_tax_credit", authority, "0", &[], int(0)));
@@ -312,9 +444,8 @@ fn no_credit(mut steps: Vec<Step>, authority: &'static str, car_limit: Option<De
 
 /// The GST payable on the supply, rounded to the cent (GST Act s 9-90), and
 /// the full input tax credit, which is that GST (s 11-25): for a car, less
-/// luxury car tax and not capped, as [`read`] gives no figure where s 69-10(1)
-/// would cap it.
-fn full_credit(total: &Decimal, car: Option<&Car>, consideration: &Decimal) -> Result<[Step; 2]> {
+/// luxury car tax. Capped invoices use [`capped_credit`].
+fn full_credit(total: &Decimal, car: Option<&Car>) -> Result<[Step; 2]> {
     let Some(car) = car else {
         let payable = total.div(&int(11))?.quantize(-2, Rounding::HalfUp)?;
         return Ok([
@@ -334,12 +465,6 @@ fn full_credit(total: &Decimal, car: Option<&Car>, consideration: &Decimal) -> R
             ),
         ]);
     };
-    if car.luxury_car_tax.gt(consideration)? {
-        return refuse(
-            "hire_purchase.gst_fact_conflict",
-            "gst: luxury_car_tax cannot exceed the price (amount_financed, deposit and trade_in), which includes it.",
-        );
-    }
     let payable = total
         .sub(&car.luxury_car_tax)?
         .div(&int(11))?
@@ -376,6 +501,18 @@ pub(super) fn summary(facts: &Facts, first_consideration: &str) -> Value {
         Facts::Review => json!({
             "computed": false,
             "review": CAR_REVIEW,
+        }),
+        Facts::Registered {
+            cash_basis,
+            car,
+            capped_invoice: Some(_),
+            ..
+        } => json!({
+            "computed": true,
+            "registered": true,
+            "accounting_basis": if *cash_basis { "cash" } else { "accruals" },
+            "first_used_year": car.as_ref().map(|c| c.first_used_year),
+            "notes": ["The goods and finance credits are calculated from separate invoiced supplies. Establish attribution for each supply before claiming or booking GST."],
         }),
         Facts::Registered {
             cash_basis, car, ..

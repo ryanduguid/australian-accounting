@@ -1658,13 +1658,21 @@ figure, and `gst.missing` names it; an unregistered hirer's credit is nil.
 used under an earlier hire. A passenger car worth more than the car limit for
 the year it is first used
 ($69,674 for 2024-25 and 2025-26, $69,883 for 2026-27), where the hirer may
-not quote an ABN for luxury car tax, gives no figure either: `gst.review`
-says why. GST Act s 69-10(1) caps the credit on the car at 1/11 of that limit,
-and the ATO's GST issues register 'Financial services - questions and
-answers' (issue 1.17) applies the cap under a hire purchase agreement, but the
-sources read do not settle whether the cap also takes in the GST on the
-credit component, which the same register (issue 1.1) treats as a separate
-supply of finance.
+not quote an ABN for luxury car tax, needs `gst.separate_tax_invoice`.
+Set `tax_invoice_held` to true only if a held tax invoice separately identifies
+the taxable goods and any finance supply. Supply `goods_consideration`,
+`finance_consideration`, `goods_gst` and `finance_gst` from it. The amounts
+must reconcile to the agreement and luxury car tax and agree with separate
+cent rounding for each supply under GST Act s 9-90. Enter zero for both finance
+amounts where there is no finance charge. Without that evidence, `gst.review`
+explains the missing figure. If the invoice rounds GST differently, review the
+figures with the preparer.
+
+GST Act s 69-10(1) limits the goods credit to 1/11 of the car limit. The tax
+on the separate taxable finance supply is added, and the creditable-purpose
+fraction applies to both. See the ATO's GST issues register 'Financial services
+- questions and answers', issues 1.1, 1.2 and 1.17. The worksheet leaves the
+attribution date and GST journals for these separate supplies to the preparer.
 
 The ATO's Albert example ('GST – Hire purchase and leasing') prints a credit
 of $3,654.54, one-eleventh of $40,200; the worksheet gives $3,654.55, as
