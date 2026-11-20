@@ -256,6 +256,9 @@ fn frozen_resource_contracts() {
     assert_eq!(resources.as_object().unwrap().len(), 6);
     for (uri, expected) in resources.as_object().unwrap() {
         let mut expected = expected.clone();
+        if uri == "aus-accounting://disclaimer" {
+            expected = json!(engine::statutory_fbt_text(expected.as_str().unwrap()));
+        }
         if expected.get("engine_version").is_some() {
             expected["engine_version"] = json!("1.0.0");
         }
