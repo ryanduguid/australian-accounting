@@ -434,10 +434,13 @@ tables and performs no live lookup. Beyond GIC coverage the engine estimates
 using its last known rate and flags staleness. Calendar coverage alone cannot
 establish a verdict; retain the assessment's caveats and `horizon_verdicts`.
 
-Read `calculation_worksheets` in the scope resource for the 9 worksheet boundaries.
-Their rules and sources come from `australian-tax-calculators`. Broader classifications,
-exemptions, BAS/returns, trusts, partnerships, SMSF fund tax and audit, the transfer
-balance cap and payroll tax remain unsupported. Reference text cannot establish calculation support.
+Read `calculation_worksheets` in the scope resource for the installed server's
+worksheet boundaries. Their rules and sources come from
+`australian-tax-calculators`. The Python server includes payroll tax for one
+ungrouped employer paying wages for the full financial year. The native server
+excludes state and territory payroll tax. Broader classifications, exemptions,
+BAS/returns, trusts, partnerships, SMSF fund tax and audit, and the transfer
+balance cap remain unsupported. Reference text cannot establish calculation support.
 
 The evaluation includes 42 cases: 10 original workflows, 10 unsupported-topic
 questions, grouped Payday, a tax worksheet, synthetic library retrieval, the

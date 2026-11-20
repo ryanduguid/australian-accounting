@@ -344,13 +344,12 @@ pub fn payday(value: &mut Value) {
     }
 }
 
-/// `minimum_yearly_repayment` takes no loan term, so a figure it gives says the remaining
-/// term was not checked against the loan's term.
+/// A computed native repayment records when the agreed loan term was not supplied.
 const TERM_NOT_CHECKED: &str = "maximum_term_years was not supplied, so this engine has not checked the remaining term against the loan's term or that term less the years since the loan year (s 109E(6)). A remaining term that is too long gives a lower minimum yearly repayment than the Act requires.";
 
-pub fn div7a(result: &mut Value) {
+pub fn div7a(arguments: &Value, result: &mut Value) {
     let repayment = &mut result["minimum_yearly_repayment"];
-    if repayment["myr_required"].is_string() {
+    if arguments["maximum_term_years"].is_null() && repayment["myr_required"].is_string() {
         repayment["caveats"]
             .as_array_mut()
             .unwrap()

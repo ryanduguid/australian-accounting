@@ -179,6 +179,51 @@ fn published_schemas_require_the_returned_contribution_and_registration_limits()
     }
 }
 #[test]
+fn a_remaining_term_over_its_limit_refuses_in_both_response_formats() {
+    // The ordinary limit, the agreed term and the years left are different bounds.
+    for (made, term, remaining, code) in [
+        (
+            "2025-26",
+            "7",
+            "8",
+            "REFUSED_REMAINING_TERM_ABOVE_MAXIMUM_TERM",
+        ),
+        (
+            "2025-26",
+            "5",
+            "6",
+            "REFUSED_REMAINING_TERM_ABOVE_LOAN_TERM",
+        ),
+        (
+            "2024-25",
+            "7",
+            "6.5",
+            "REFUSED_REMAINING_TERM_ABOVE_TERM_LESS_YEARS_ELAPSED",
+        ),
+    ] {
+        for detail in ["summary", "full"] {
+            let mut args = loan();
+            args["year_loan_made"] = json!(made);
+            args["maximum_term_years"] = json!(term);
+            args["remaining_term_years"] = json!(remaining);
+            args["interest_rate_for_years_after_year_loan_made"] = json!("0.0900");
+            args["response_detail"] = json!(detail);
+            let result = payload("review_div7a_loan", &args);
+            let repayment = &result["minimum_yearly_repayment"];
+            assert_eq!(repayment["verdict"], "REFUSED", "{repayment}");
+            assert_eq!(repayment["reason_codes"], json!([code]), "{repayment}");
+            for amount in [
+                "myr_required",
+                "shortfall",
+                "experimental_deemed_dividend_exposure",
+            ] {
+                assert_eq!(repayment[amount], Value::Null);
+            }
+        }
+    }
+}
+
+#[test]
 fn variants_require_audit_sections_and_preserve_engine_extensions() {
     for (name, arguments, pointer) in [
         (
