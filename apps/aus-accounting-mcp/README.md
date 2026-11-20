@@ -83,9 +83,10 @@ executable's path in the folder the installer names. Other platforms build it fr
 You can instead put the executable in a folder on `PATH` yourself or give its absolute
 path in `AUS_TAX_CALCULATORS_BIN`. The server runs it only if its SHA-256 is that of a
 released executable; for one you built, set `AUS_TAX_CALCULATORS_SHA256` to its SHA-256.
-Keep it in a folder only you can write: the server checks the file and then runs it, and
-someone who can change it could swap it in between. Without the executable the tax
-worksheets refuse with an install message; every other tool works.
+The server SHA-256 checks a private temporary copy and runs that copy for the version
+check and worksheet command. The server account's temporary folder must allow it to run
+executables. Without a usable executable the tax worksheets give an install message and
+the other tools work.
 
 The server waits for an MCP client over stdio. Tool calls read bundled data and any
 folders you configure. They do not contact the ATO or the Federal Register, change

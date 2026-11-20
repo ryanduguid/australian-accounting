@@ -15,9 +15,9 @@
   is that of the x86_64 Linux or Windows executable in the 1.0.0 release, or the one
   given in `AUS_TAX_CALCULATORS_SHA256` for a build from source. It is checked before
   the executable runs, so another program on `PATH` that prints the same version is
-  refused, not run, as is a FIFO, device or file over 256 MiB. It does not protect
-  against someone who can write the executable or its folder, who could swap it
-  between the check and the run: keep it where only you can write.
+  refused, as is a FIFO, device or file over 256 MiB. The version check and
+  worksheet command run the same verified private copy. The server account's
+  temporary folder must allow it to run executables.
 - With no legislation corpus configured, the corpus tools' refusal names PaulGoodman's
   `corpus-2026-11-18` snapshot, which adds each Act's compilations in force on 1 July
   2020 to 2026, in place of `corpus-2026-11-11`.
