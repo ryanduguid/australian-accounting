@@ -2458,6 +2458,10 @@ pub const REFUSAL_CODES: &[(&str, &str)] = &[
         "A time is not YYYY-MM-DDTHH:MM.",
     ),
     (
+        "ppsr_timing.time_unresolved",
+        "An input or calculated time falls in the skipped or repeated ACT hour at a daylight saving change.",
+    ),
+    (
         "sb_cgt_concessions.active_period_unclear",
         "The asset was owned for more than 15 years and its active days, 2,737 to 2,740, may or may not be 7.5 years.",
     ),
