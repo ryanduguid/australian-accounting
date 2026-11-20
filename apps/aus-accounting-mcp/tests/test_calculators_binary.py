@@ -10,6 +10,7 @@ import os
 import subprocess
 import threading
 from pathlib import Path
+from types import SimpleNamespace
 
 import pytest
 from mcp.server.mcpserver.exceptions import ToolError
@@ -147,29 +148,141 @@ def test_the_operators_digest_admits_a_source_build(monkeypatch, impostor) -> No
     binary, runs = impostor
     digest = hashlib.sha256(binary.read_bytes()).hexdigest()
     monkeypatch.setenv(tax.DIGEST_VARIABLE, digest)
-    assert tax._binary() == str(binary)
+    with tax._binary() as (original, staged):
+        assert original == str(binary)
+        assert staged != binary
+        assert hashlib.sha256(staged.read_bytes()).hexdigest() == digest
+    assert not staged.parent.exists()
     monkeypatch.setenv(tax.DIGEST_VARIABLE, digest.upper())
     assert tax.reported_version() == tax.CALCULATORS_VERSION
     assert len(runs) == 2
     for named in (digest[:-1], f" {digest}", f"{digest[:-1]}g"):
         monkeypatch.setenv(tax.DIGEST_VARIABLE, named)
-        with pytest.raises(tax.CalculatorsUnavailable, match="64 hexadecimal digits"):
-            tax._binary()
+        with (
+            pytest.raises(tax.CalculatorsUnavailable, match="64 hexadecimal digits"),
+            tax._binary(),
+        ):
+            pass
     assert len(runs) == 2
+
+
+@pytest.mark.parametrize("fails", [False, True], ids=["success", "run failure"])
+def test_version_and_command_use_the_same_private_copy(monkeypatch, impostor, fails):
+    original, _ = impostor
+    contents = original.read_bytes()
+    monkeypatch.setenv(tax.DIGEST_VARIABLE, hashlib.sha256(contents).hexdigest())
+    calls = []
+
+    def run(command, *, executable, cwd, **_options):
+        staged = Path(executable)
+        assert Path(command[0]) == staged and staged != original
+        assert Path(cwd) == staged.parent and staged.is_absolute()
+        assert staged.read_bytes() == contents
+        calls.append((staged, command[1:]))
+        if command[1:] == ["--version"]:
+            return _answer(f"{tax.CALCULATORS} {tax.CALCULATORS_VERSION}\n")(command)
+        if fails:
+            raise subprocess.TimeoutExpired(command, timeout=60)
+        return _answer('{"example": true}')(command)
+
+    monkeypatch.setattr(tax.subprocess, "run", run)
+    if fails:
+        with pytest.raises(tax.CalculatorsUnavailable, match="did not run"):
+            tax.worksheet_catalogue()
+    else:
+        assert tax.worksheet_catalogue() == {"example": True}
+    assert [args for _, args in calls] == [
+        ["--version"], ["worksheet-catalogue", "--refusal-json"],
+    ]
+    assert calls[0][0] == calls[1][0]
+    assert not calls[0][0].parent.exists()
+
+
+@pytest.mark.parametrize(("winerror", "locked_attempts", "retries"), [
+    (32, 1, 1),  # Windows releases the staged executable before the retry.
+    (32, 6, 5),  # A lasting lock exhausts the retry budget.
+    (5, 1, 0),   # Other permission errors do not trigger a retry.
+])
+def test_staged_executable_cleanup_retries_only_transient_sharing_errors(
+        monkeypatch, impostor, winerror, locked_attempts, retries) -> None:
+    original, _ = impostor
+    monkeypatch.setenv(tax.DIGEST_VARIABLE, hashlib.sha256(original.read_bytes()).hexdigest())
+    attempts = []
+    waits = []
+    error = PermissionError("simulated staging cleanup failure")
+    monkeypatch.setattr(error, "winerror", winerror, raising=False)
+    cleanup = tax.tempfile.TemporaryDirectory.cleanup
+
+    def clean(folder):
+        attempts.append(folder)
+        if len(attempts) <= locked_attempts:
+            raise error
+        cleanup(folder)
+
+    def run(command, **_options):
+        if command[1:] == ["--version"]:
+            return _answer(f"{tax.CALCULATORS} {tax.CALCULATORS_VERSION}\n")(command)
+        return _answer('{"example": true}')(command)
+
+    monkeypatch.setattr(tax.tempfile.TemporaryDirectory, "cleanup", clean)
+    monkeypatch.setattr(tax, "sleep", waits.append, raising=False)
+    monkeypatch.setattr(tax.subprocess, "run", run)
+    try:
+        if locked_attempts <= retries:
+            assert tax.worksheet_catalogue() == {"example": True}
+            assert not Path(attempts[0].name).exists()
+        else:
+            with pytest.raises(
+                tax.CalculatorsUnavailable, match="staging cleanup failure",
+            ) as caught:
+                tax.worksheet_catalogue()
+            assert caught.value.__cause__ is error
+        assert len(attempts) == retries + 1
+        assert all(folder is attempts[0] for folder in attempts)
+        assert len(waits) == retries
+        assert sum(waits) < 2
+    finally:
+        if attempts:
+            cleanup(attempts[0])
 
 
 def test_a_file_larger_than_any_build_is_refused_unread(monkeypatch, impostor) -> None:
     binary, runs = impostor
     monkeypatch.setenv(tax.DIGEST_VARIABLE, hashlib.sha256(binary.read_bytes()).hexdigest())
     monkeypatch.setattr(tax, "MAX_BYTES", binary.stat().st_size - 1)
-    with pytest.raises(tax.CalculatorsUnavailable, match="larger than any"):
-        tax._binary()
+    with pytest.raises(tax.CalculatorsUnavailable, match="larger than any"), tax._binary():
+        pass
+    assert runs == []
+
+
+def test_the_copy_enforces_its_size_limit_independently_of_metadata(monkeypatch, impostor):
+    binary, runs = impostor
+    info = binary.stat()
+    max_bytes = info.st_size - 1
+    monkeypatch.setattr(tax, "MAX_BYTES", max_bytes)
+    real_fstat = os.fstat
+
+    def reported_size(fd):
+        actual = real_fstat(fd)
+        if (actual.st_ino, actual.st_dev) == (info.st_ino, info.st_dev):
+            return SimpleNamespace(st_mode=actual.st_mode, st_size=max_bytes)
+        return actual
+
+    monkeypatch.setattr(os, "fstat", reported_size)
+    with (
+        pytest.raises(tax.CalculatorsUnavailable, match=f"exceeds {max_bytes} bytes"),
+        tax._binary(),
+    ):
+        pass
     assert runs == []
 
 
 def test_a_device_is_refused_without_being_read() -> None:
-    with pytest.raises(tax.CalculatorsUnavailable, match="is not a regular file"):
-        tax._trusted(os.devnull)
+    with (
+        pytest.raises(tax.CalculatorsUnavailable, match="is not a regular file"),
+        tax._trusted(os.devnull),
+    ):
+        pass
 
 
 @pytest.mark.skipif(not hasattr(os, "mkfifo"), reason="POSIX FIFOs only")
@@ -183,8 +296,11 @@ def test_a_fifo_on_path_is_refused_without_waiting_for_a_writer(monkeypatch, tmp
     writer.daemon = True
     writer.start()
     try:
-        with pytest.raises(tax.CalculatorsUnavailable, match="is not a regular file"):
-            tax._trusted(str(fifo))
+        with (
+            pytest.raises(tax.CalculatorsUnavailable, match="is not a regular file"),
+            tax._trusted(str(fifo)),
+        ):
+            pass
         assert writer.is_alive()
     finally:
         writer.cancel()
