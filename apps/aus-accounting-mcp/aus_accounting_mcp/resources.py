@@ -163,7 +163,7 @@ def scope() -> dict[str, Any]:
             "super_contribution_caps": "Contribution classification, deductions, earlier "
                                        "bring-forward periods, determinations and releases.",
             "sg_entitlement": "Worker/earnings classification and post-June 2026 SG entitlement.",
-            "payroll_tax": "State and territory payroll tax.",
+            "payroll_tax": "Payroll tax grouping, part-year calculations, exemptions and rebates.",
         },
         "payday_limitations": f"{SINGLE_CONTRIBUTION_CAVEAT} {RETURNED_CONTRIBUTIONS_CAVEAT}",
         "div7a_scope": "Read aus-accounting://div7a-scope for exclusions.",
