@@ -446,10 +446,10 @@ fn api_output_preserves_plane_16_private_use_text() {
 fn franking_benchmark_input() -> Value {
     let event = |date: &str, credit: &str| serde_json::json!({"event_date":date,"recipient_name":"Synthetic shareholder","distribution_amount":"75000.00","franking_credit":credit});
     serde_json::json!({"corporate_tax_rate":"0.25","distributions":[
-        event("2025-05-31", "25000.00"),
-        event("2024-09-30", "25000.00"),
-        event("2025-03-31", "12500.00"),
-        event("2025-07-15", "12500.00"),
+        event("2025-06-30", "25000.00"),
+        event("2024-12-31", "25000.00"),
+        event("2025-01-01", "12500.00"),
+        event("2025-07-01", "12500.00"),
     ]})
 }
 
@@ -485,10 +485,10 @@ fn a_public_company_benchmarks_each_half_year_against_its_own_first_distribution
     );
     assert_eq!(
         breaches(&result),
-        [["2025-05-31", "50.00", "OVER_FRANKING_TAX", "12500.00"]]
+        [["2025-06-30", "50.00", "OVER_FRANKING_TAX", "12500.00"]]
     );
     assert_eq!(result["compliant"], false);
-    assert_eq!(result["distributions"][0]["event_date"], "2025-05-31");
+    assert_eq!(result["distributions"][0]["event_date"], "2025-06-30");
 }
 #[test]
 fn a_private_company_has_one_franking_period_in_an_income_year() {
@@ -503,7 +503,7 @@ fn a_private_company_has_one_franking_period_in_an_income_year() {
     );
     assert_eq!(
         breaches(&result),
-        [["2025-03-31", "100.00", "FRANKING_DEBIT", "12500.00"]]
+        [["2025-01-01", "100.00", "FRANKING_DEBIT", "12500.00"]]
     );
 }
 #[test]
@@ -525,5 +525,32 @@ fn the_benchmark_needs_to_know_whether_the_company_is_private() {
     assert_eq!(
         api::evaluate("benchmark", &input).unwrap(),
         serde_json::json!({"benchmark_percentage":null,"compliant":null,"violations":[],"distributions":[]})
+    );
+}
+
+#[test]
+fn an_unfrankable_distribution_does_not_set_or_breach_the_benchmark() {
+    let mut input = serde_json::json!({"corporate_tax_rate":"0.25","distributions":[
+        {"event_date":"2024-12-31","recipient_name":"Synthetic shareholder","distribution_amount":"75000.00","franking_credit":"0","frankable":false},
+        {"event_date":"2025-01-01","recipient_name":"Synthetic shareholder","distribution_amount":"75000.00","franking_credit":"0","frankable":false},
+        {"event_date":"2025-03-31","recipient_name":"Synthetic shareholder","distribution_amount":"75000.00","franking_credit":"25000.00"},
+    ]});
+    let result = api::evaluate("benchmark", &input).unwrap();
+    assert_eq!(result["benchmark_percentage"], "100.00");
+    assert_eq!(result["compliant"], true);
+    assert!(breaches(&result).is_empty());
+    for event in &result["distributions"].as_array().unwrap()[..2] {
+        assert_eq!(event["frankable"], false);
+        assert_eq!(event["maximum_franking_credit"], "0.00");
+    }
+    input["distributions"][1]["franking_credit"] = "0.01".into();
+    assert_eq!(
+        api::evaluate("benchmark", &input).unwrap_err(),
+        "an unfrankable distribution must have zero franking_credit"
+    );
+    input["distributions"][1]["frankable"] = "false".into();
+    assert_eq!(
+        api::evaluate("benchmark", &input).unwrap_err(),
+        "frankable must be a boolean"
     );
 }

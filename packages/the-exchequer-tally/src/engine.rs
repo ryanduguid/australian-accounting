@@ -231,17 +231,24 @@ pub struct Event {
     pub amount: D,
     pub credit: D,
     pub rate: Option<D>,
+    pub frankable: bool,
 }
 impl Event {
     pub fn validate(&self) -> Result<()> {
         nonnegative("distribution_amount", &self.amount)?;
         nonnegative("franking_credit", &self.credit)?;
+        if !self.frankable && self.credit > d("0.00") {
+            return Err("an unfrankable distribution must have zero franking_credit".into());
+        }
         if self.rate.is_some() {
             rate(self.rate.as_ref(), "DistributionEvent")?;
         }
         Ok(())
     }
     pub fn maximum(&self) -> Result<D> {
+        if !self.frankable {
+            return Ok(d("0.00"));
+        }
         let where_ = format!(
             "distribution to {} on {} (state a rate on the event, or add it through BenchmarkRuleValidator.add_distribution to take the validator's)",
             self.recipient, self.date
@@ -264,9 +271,11 @@ impl Event {
         cents(&self.ratio()?.mul(&d("100.00")))
     }
     pub fn json(&self) -> Result<Value> {
-        Ok(
-            json!({"event_date":self.date.to_string(),"recipient_name":self.recipient,"distribution_amount":self.amount.to_string(),"franking_credit":self.credit.to_string(),"corporate_tax_rate":self.rate.as_ref().map(ToString::to_string),"maximum_franking_credit":self.maximum()?.to_string(),"franking_ratio":self.ratio()?.to_string(),"franking_percentage":self.pct()?.to_string()}),
-        )
+        let mut result = json!({"event_date":self.date.to_string(),"recipient_name":self.recipient,"distribution_amount":self.amount.to_string(),"franking_credit":self.credit.to_string(),"corporate_tax_rate":self.rate.as_ref().map(ToString::to_string),"maximum_franking_credit":self.maximum()?.to_string(),"franking_ratio":self.ratio()?.to_string(),"franking_percentage":self.pct()?.to_string()});
+        if !self.frankable {
+            result["frankable"] = json!(false);
+        }
+        Ok(result)
     }
 }
 /// The first and last days of the franking period holding `date`, for an
@@ -297,7 +306,9 @@ pub fn benchmark(tax_rate: D, private: Option<bool>, mut events: Vec<Event>) -> 
     events.sort_by(|a, b| a.date.cmp(&b.date));
     let zero = d("0.00");
     if private.is_none() {
-        let mut frankable = events.iter().filter(|event| event.amount > zero);
+        let mut frankable = events
+            .iter()
+            .filter(|event| event.frankable && event.amount > zero);
         if let Some(first) = frankable.next()
             && let Some(last) = frankable.next_back()
             && franking_period(&first.date, false) != franking_period(&last.date, false)
@@ -309,7 +320,7 @@ pub fn benchmark(tax_rate: D, private: Option<bool>, mut events: Vec<Event>) -> 
     // (start, end, benchmark percentage, benchmark ratio), in date order.
     let mut periods: Vec<(String, String, D, D)> = Vec::new();
     let mut violations = Vec::new();
-    for event in &events {
+    for event in events.iter().filter(|event| event.frankable) {
         let (start, end) = franking_period(&event.date, private.unwrap_or(false));
         let Some((_, _, pct, ratio)) = periods.last().filter(|p| p.0 == start) else {
             if event.amount > zero {

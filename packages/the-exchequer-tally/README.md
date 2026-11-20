@@ -98,6 +98,10 @@ company's are the first 6 months of the income year and the rest
 (s 203-40(2)). Income years run from 1 July to 30 June. Substituted accounting
 periods, income years other than 12 months (s 203-40(3) to (5)) and the
 s 203-20 exemption for listed public companies are not modelled.
+Set an event's `frankable` to `false` if it is unfrankable under s 202-45.
+It must have zero franking credit and appears in the output without affecting
+the benchmark. Omission treats the distribution as frankable. A frankable
+distribution with zero credit can set a 0% benchmark.
 Supply `private_company` if frankable distributions span more than one
 half-year. When supplied, `franking_periods` lists periods with a benchmark
 in date order, with their `start`, `end` and `benchmark_percentage`. The

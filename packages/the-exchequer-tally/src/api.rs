@@ -92,6 +92,11 @@ fn event(v: &Value) -> Result<Event> {
         amount: decimal(v, "distribution_amount")?,
         credit: decimal(v, "franking_credit")?,
         rate: optional_decimal(v, "corporate_tax_rate")?,
+        frankable: v
+            .get("frankable")
+            .map(|value| value.as_bool().ok_or("frankable must be a boolean"))
+            .transpose()?
+            .unwrap_or(true),
     };
     e.validate()?;
     Ok(e)
