@@ -19,25 +19,36 @@ fn replay(commands: &[&str]) {
             continue;
         }
         let mut input = row["input"].clone();
-        if command == "benchmark" {
-            // Python 0.1.8 held every distribution to one benchmark: the
-            // private company rule while all fall in one income year, as each
-            // frozen row's do. Its benchmark_percentage is that franking period's.
+        if command == "benchmark"
+            && matches!(
+                row["test"].as_str(),
+                Some(
+                    "test_benchmark_rule_validation"
+                        | "test_events_without_a_rate_take_the_validators_rate"
+                        | "test_benchmark_is_keyed_to_the_earliest_distribution"
+                )
+            )
+        {
+            // These fixtures span both halves of an income year. A private
+            // company has the single benchmark the frozen Python output expects.
             input["private_company"] = true.into();
         }
         let mut actual = match api::evaluate(command, &input) {
             Ok(v) => serde_json::json!({"ok":v}),
             Err(e) => serde_json::json!({"error":e}),
         };
-        if command == "benchmark"
+        if input.get("private_company").is_some()
             && let Some(ok) = actual.get_mut("ok")
         {
             let periods = ok.as_object_mut().unwrap().remove("franking_periods");
             let periods = periods.as_ref().and_then(Value::as_array).unwrap();
             assert!(periods.len() <= 1, "{}: {periods:?}", row["test"]);
-            ok["benchmark_percentage"] = periods
-                .first()
-                .map_or(Value::Null, |p| p["benchmark_percentage"].clone());
+            assert_eq!(
+                &ok["benchmark_percentage"],
+                periods
+                    .first()
+                    .map_or(&Value::Null, |p| &p["benchmark_percentage"])
+            );
         }
         assert_eq!(
             actual, row["expected"],
@@ -432,16 +443,19 @@ fn api_output_preserves_plane_16_private_use_text() {
     assert_eq!(result["entries"][0]["description"], "\u{10F7FF}\u{10F7FF}");
 }
 
-fn franking_benchmark(private: bool) -> Value {
-    let event = |date: &str, credit: &str| {
-        serde_json::json!({"event_date":date,"recipient_name":"Synthetic shareholder","distribution_amount":"75000.00","franking_credit":credit})
-    };
-    let input = serde_json::json!({"corporate_tax_rate":"0.25","private_company":private,"distributions":[
+fn franking_benchmark_input() -> Value {
+    let event = |date: &str, credit: &str| serde_json::json!({"event_date":date,"recipient_name":"Synthetic shareholder","distribution_amount":"75000.00","franking_credit":credit});
+    serde_json::json!({"corporate_tax_rate":"0.25","distributions":[
         event("2025-05-31", "25000.00"),
         event("2024-09-30", "25000.00"),
         event("2025-03-31", "12500.00"),
         event("2025-07-15", "12500.00"),
-    ]});
+    ]})
+}
+
+fn franking_benchmark(private: bool) -> Value {
+    let mut input = franking_benchmark_input();
+    input["private_company"] = private.into();
     api::evaluate("benchmark", &input).unwrap()
 }
 fn breaches(result: &Value) -> Vec<[&str; 4]> {
@@ -502,9 +516,14 @@ fn the_benchmark_needs_to_know_whether_the_company_is_private() {
                 .starts_with("private_company must be a boolean")
         );
     }
-    let input = serde_json::json!({"corporate_tax_rate":"0.25","private_company":false});
+    assert!(
+        api::evaluate("benchmark", &franking_benchmark_input())
+            .unwrap_err()
+            .starts_with("private_company is required")
+    );
+    let input = serde_json::json!({"corporate_tax_rate":"0.25"});
     assert_eq!(
         api::evaluate("benchmark", &input).unwrap(),
-        serde_json::json!({"franking_periods":[],"compliant":null,"violations":[],"distributions":[]})
+        serde_json::json!({"benchmark_percentage":null,"compliant":null,"violations":[],"distributions":[]})
     );
 }

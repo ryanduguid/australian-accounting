@@ -41,13 +41,11 @@ statutory text is intentionally changed.
   is UTF-8 with native text-mode newlines; argparse colour and width environment
   controls remain supported. Interactive terminal behaviour is locally inspected
   but not exhaustively differential-tested across terminal implementations.
-- `benchmark` requires `private_company` and compares each distribution with
-  the first frankable distribution in its own franking period (ss 203-25,
-  203-30, 203-40 and 203-45 ITAA 1997). Python 0.1.8 held every distribution
-  to the first one's percentage, so a public company's second half year was
-  compared with its first. `franking_periods` replaces the result's
-  `benchmark_percentage`. The frozen Python rows replay as a private company:
-  each falls within one income year.
+- `benchmark` compares each distribution with the first frankable distribution
+  in its franking period (ss 203-25, 203-30, 203-40 and 203-45 ITAA 1997).
+  Supply `private_company` when frankable distributions span multiple half-years.
+  The result includes period dates when this input is supplied and gives a
+  scalar benchmark percentage when one period has a benchmark.
 - The Python/PyPI release workflow is removed. Native candidate builds are
   available in CI; a signed native publisher remains a separate release task.
 

@@ -287,7 +287,7 @@ fn franking_period(date: &Date, private: bool) -> (String, String) {
 /// franking period sets that period's benchmark (s 203-30), and each later
 /// one in the period is compared with it.
 /// `tax_rate` has passed `rate` and every event has passed `Event::validate`.
-pub fn benchmark(tax_rate: D, private: bool, mut events: Vec<Event>) -> Result<Value> {
+pub fn benchmark(tax_rate: D, private: Option<bool>, mut events: Vec<Event>) -> Result<Value> {
     for event in &mut events {
         if event.rate.is_none() {
             event.rate = Some(tax_rate.clone());
@@ -295,13 +295,24 @@ pub fn benchmark(tax_rate: D, private: bool, mut events: Vec<Event>) -> Result<V
     }
     let distributions = events.iter().map(Event::json).collect::<Result<Vec<_>>>()?;
     events.sort_by(|a, b| a.date.cmp(&b.date));
+    let zero = d("0.00");
+    if private.is_none() {
+        let mut frankable = events.iter().filter(|event| event.amount > zero);
+        if let Some(first) = frankable.next()
+            && let Some(last) = frankable.next_back()
+            && franking_period(&first.date, false) != franking_period(&last.date, false)
+        {
+            return Err("private_company is required when frankable distributions span more than one half-year".to_string());
+        }
+    }
+
     // (start, end, benchmark percentage, benchmark ratio), in date order.
     let mut periods: Vec<(String, String, D, D)> = Vec::new();
     let mut violations = Vec::new();
     for event in &events {
-        let (start, end) = franking_period(&event.date, private);
-        let Some((_, _, pct, ratio)) = periods.iter().find(|p| p.0 == start) else {
-            if event.amount > d("0.00") {
+        let (start, end) = franking_period(&event.date, private.unwrap_or(false));
+        let Some((_, _, pct, ratio)) = periods.last().filter(|p| p.0 == start) else {
+            if event.amount > zero {
                 periods.push((start, end, event.pct()?, event.ratio()?));
             }
             continue;
@@ -322,13 +333,27 @@ pub fn benchmark(tax_rate: D, private: bool, mut events: Vec<Event>) -> Result<V
         }
     }
     let compliant = (!periods.is_empty()).then_some(violations.is_empty());
-    let periods = periods
-        .iter()
-        .map(|(start, end, pct, _)| json!({"start":start,"end":end,"benchmark_percentage":pct.to_string()}))
-        .collect::<Vec<_>>();
-    Ok(
-        json!({"franking_periods":periods,"compliant":compliant,"violations":violations,"distributions":distributions}),
-    )
+    let benchmark_percentage = match periods.as_slice() {
+        [(_, _, pct, _)] => Some(pct.to_string()),
+        _ => None,
+    };
+    let mut result = json!({
+        "benchmark_percentage": benchmark_percentage,
+        "compliant": compliant,
+        "violations": violations,
+        "distributions": distributions,
+    });
+    if private.is_some() {
+        result["franking_periods"] = Value::Array(
+            periods
+                .into_iter()
+                .map(|(start, end, pct, _)| {
+                    json!({"start":start,"end":end,"benchmark_percentage":pct.to_string()})
+                })
+                .collect(),
+        );
+    }
+    Ok(result)
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]

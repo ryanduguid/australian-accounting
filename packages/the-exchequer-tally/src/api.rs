@@ -201,8 +201,8 @@ pub fn evaluate(command: &str, v: &Value) -> Result<Value> {
             )?;
             let private = v
                 .get("private_company")
-                .and_then(Value::as_bool)
-                .ok_or("private_company must be a boolean: a private company has one franking period in an income year (s 203-45 ITAA 1997), any other company two (s 203-40)")?;
+                .map(|value| value.as_bool().ok_or("private_company must be a boolean"))
+                .transpose()?;
             let events = array(v, "distributions")?
                 .iter()
                 .map(event)
