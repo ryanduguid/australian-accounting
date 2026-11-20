@@ -290,6 +290,12 @@ pub(super) fn benefit_type(
     reimbursed: bool,
     (class, heads): (Class, Option<i64>),
 ) -> (&'static str, &'static str) {
+    if reimbursed && class == Associates {
+        return (
+            "undetermined",
+            "The facts do not identify whose associate attended. The reimbursed employee's own associate can give rise to an expense payment benefit (FBTAA s 20; TR 97/17 para 137). For another employee's associate, determine the benefit provided to that associate and reduce the reimbursed employee's taxable value under s 63A where it applies.",
+        );
+    }
     let shared = reimbursed && class == Employees && heads != Some(1);
     match (shared, reimbursed, provided) {
         (true, ..) if heads.is_none() => (

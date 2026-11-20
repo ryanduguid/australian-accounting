@@ -1,11 +1,13 @@
-# Unreleased
+# v0.11.0
 
 ## Changed
 
 - The MCP server pins `lodgment-calendar` 0.2.0. Its Python 3.15 lock uses
   a published `pydantic-core` wheel.
+- The other published engine pins remain `payday-super-checker` 0.2.3,
+  `ato-benchmark-compare` 0.2.2, `div7a-loan-review` 0.3.2 and `gst-review` 0.1.0.
 - `calculate_tax_worksheet` serves every worksheet in the calculators executable's
-  catalogue, 48 kinds in 1.0.0 where 0.10.0 served 14, and the scope resource lists
+  catalogue, 66 kinds in 1.1.0 where 0.10.0 served 14, and the scope resource lists
   each with the engine's own scope, periods, required and optional inputs. A worksheet
   the executable adds is served without a change here. The tool refuses a kind or an
   input the catalogue does not list, and a number in exponent or other non-plain
@@ -14,15 +16,21 @@
   quarterly PAYG pays now calculate. `facts` publishes only `kind` and
   `scope_confirmed` in its schema; the catalogue states each kind's inputs.
 - The tax worksheets run the `australian-tax-calculators` executable only if its SHA-256
-  is that of the x86_64 Linux or Windows executable in the 1.0.0 release, or the one
+  is that of the x86_64 Linux or Windows executable in the 1.1.0 release, or the one
   given in `AUS_TAX_CALCULATORS_SHA256` for a build from source. It is checked before
   the executable runs, so another program on `PATH` that prints the same version is
-  refused, not run, as is a FIFO, device or file over 256 MiB. It does not protect
-  against someone who can write the executable or its folder, who could swap it
-  between the check and the run: keep it where only you can write.
+  refused, as is a FIFO, device or file over 256 MiB. The version check and
+  worksheet command run the same verified private copy. The server account's
+  temporary folder must allow it to run executables.
 - With no legislation corpus configured, the corpus tools' refusal names PaulGoodman's
   `corpus-2026-11-18` snapshot, which adds each Act's compilations in force on 1 July
   2020 to 2026, in place of `corpus-2026-11-11`.
+
+- The Claude Desktop bundle carries the attested calculator executable for
+  x86-64 Linux and Windows. On other platforms, install a matching source
+  build. The bundle installs the pinned server from PyPI.
+- The native Division 7A adapter applies the same remaining-term boundaries
+  as the Python server.
 
 # v0.10.0
 

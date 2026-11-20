@@ -217,23 +217,22 @@ engine's established loss allocation; they do not choose a taxpayer's treatment.
 
 ## FBT
 
-For ¶3-020's established $8,500 type 1 value, `8500 × 2.0802 = 17681.70` and
-`17681.70 × 0.47 = 8310.399`, presented as **$8,310.40**. For ¶3-000's established
-$10,000 type 2 value, `10000 × 1.8868 = 18868` and `18868 × 0.47 = 8867.96`.
 Benefit valuation and the choice of gross-up type must already be established.
-
-The existing combined $1,000/$1,000 case gives
-`(2080.20 + 1886.80) × 0.47 = 1864.49`. The existing $16,500/$6,000 case gives
-`(34323.30 + 11320.80) × 0.47 = 21452.727`, presented as $21,452.73.
-The estimate retains gross-up precision until final presentation.
+[FBTAA s 5B(1B) and (1C)](https://www.legislation.gov.au/C2004A03280/2026-07-01/2026-07-01/text/original/epub/OEBPS/document_1/document_1.html)
+give the gross-up formulas. With 47% FBT and 10% GST they reduce to
+`57000 / 27401` for type 1 and `100 / 53` for type 2. The ATO's published
+4-place factors remain in the worksheet's rates. The estimate uses the
+unrounded grossed-up amounts before presenting the result to cents.
 
 The `return_item` figures follow the FBT return 2026 instructions instead. Their
 example enters 14A as $11,000 × 2.0802 = $22,882.20, written as $22,882; item 15 is
 the sum of 14A and 14B and item 16 is item 15 × 47%. The instructions show whole
 dollars without saying how cents are removed. The ATO's Calculating your FBT page
 works the same $16,500/$6,000 values in its MantCo example and rounds each gross-up
-to the nearest dollar, so the engine does too: 14A $34,323, 14B $11,321 (from
-$11,320.80), item 15 $45,644 and item 16 $21,452.68, against the $21,452.73 estimate.
+to the nearest dollar, so the engine does too. Applied to that example's
+taxable values, the statutory formulas give $34,323.56 and $11,320.75,
+then item 14A $34,324, item 14B $11,321, item 15 $45,645 and item 16
+$21,453.15. The estimate before rounding the return items is $21,452.83.
 The optional rounding of item 16 down to a multiple of 5 cents is left to the
 preparer.
 
@@ -246,7 +245,8 @@ Tax Reform No. 1 Act's FBT amendments apply from 1 April 2027, and none amends
 the s 8A electric car exemption. The ATO has not published the FBT return 2027
 instructions (the address the 2026 instructions' pattern gives returned 'Page
 not found' that day), so the items follow the 2026 instructions.
-`tests/tables.rs` gives MantCo's figures for 2027.
+`tests/tables.rs` checks these figures for 2026 and 2027 and the effect of
+using the full formulas on $1,000,000 of each type of benefit.
 
 ## FBT car benefits
 
@@ -546,7 +546,8 @@ lesser of that and the $1,000 notional value), less the recipient's portion
 reduction applies. ¶3-240 (review date 30 June 2026): an associate's $10,000
 HELP debt reimbursed is **$10,000.00**, type 2, `18,868.00` grossed up; ¶3-340:
 $35,000 of mortgage and $24,000 of childcare reimbursements, `59000 × 1.8868`,
-item 14B **$111,321**.
+item 14B **$111,321**. Applying the statutory s 5B(1C) formula to the same
+taxable values gives $18,867.92 and leaves item 14B at $111,321.
 
 s 22A(1)(b) makes the recipient's expenditure less the provider's portion
 (the payment less the contribution, or the reimbursement) the notional
@@ -804,6 +805,8 @@ examples with associated earnings (Sue's $850, Alex's $1,700, Milena's
 determinations) give no contribution dates, so they cannot test the method.
 So associated earnings from contributions are labelled `estimate`, and a
 caller with the Commissioner's determination gives its components instead.
+The Jill regression checks both paths. The statutory estimate is $7,859 and a
+determination supplied with $5,190 keeps its own figure.
 
 The tests run Jill (limits and the 85%), Mary ($15,000 of $25,000; $12,750),
 Hasan (example 7: $3,000 of the $5,000 counted in 2023-24), the s 138-30
@@ -1298,11 +1301,14 @@ periods add up to the total interest.
   updated 7 September 2012, after the change for agreements from 1 July 2012)
   applies the cap to a car acquired under a hire purchase agreement, since for
   GST a hire purchase agreement is a sale of goods (issue 1.1). The same issue
-  1.1 calls the finance a separate supply, and s 69-10(1) caps the credit on
-  the acquisition of the car: no source read says whether the cap also takes
-  in the GST on the credit component. A car the cap reaches therefore gives
-  no GST figure, and the result says why. Each fact is its own input; a
-  missing one gives no figure.
+  1.1 distinguishes the sale of goods from the provision of finance. When
+  a held tax invoice establishes both components and their GST agrees with
+  separate cent rounding, s 69-10(1) caps the goods credit only. The worksheet
+  adds the separately shown finance GST and then applies the creditable-purpose
+  fraction. A nil finance charge carries nil GST. For an invoice that uses
+  another rounding method or does not establish both components, the preparer
+  reviews the figures. The worksheet leaves attribution and journals for the
+  split supplies to the preparer.
 - **Journals.** Each period's interest is an entry at its end, grouped with
   its period's income year, and each payment an entry on its day, grouped
   with that day's year, so an instalment paid on 1 July counts in the year it
@@ -1335,6 +1341,7 @@ a present value check and balanced journals.
 | Albert's second freezer: $33,000, 60 x $670 | 'GST – Hire purchase and leasing'; s 9-90 | $3,654.55 (the ATO prints $3,654.54); $1,827.28 at 50% |
 | Darren's car: $91,242.80 with $2,407.80 luxury car tax, 2026-27, financed by 60 x $1,800 | 'Purchasing a motor vehicle'; s 69-10(1) | No figure, `gst.review` |
 | A $60,000 car, 60 x $1,300; the same car worth $80,000, quoted for or not; worth $69,700, first used in 2026-27 or 2024-25 | GST Act s 69-10(1)(b) and (c) | $7,090.91 twice; no figure; $7,090.91; no figure |
+| A $91,242.80 car including $2,407.80 luxury car tax, with $16,757.20 in separate finance charges supported by a held invoice | GST Act ss 9-75(2), 11-25 and 69-10(1) and ATO GST issues register 1.1, 1.2 and 1.17 | $6,353.00 goods credit plus $1,523.38 finance credit, yielding $7,876.38 |
 | $1,000, 2 x $100 in arrears and a $1,000 balloon from 1 June 2027; the same in advance | Worked by hand | June's $100 interest in 2026-27 and its payment on 1 July in 2027-28; in advance, $100 paid 1 June in 2026-27 |
 | $50,000, 260 weekly payments of $230 and a $5,000 balloon | The payments discounted at the rate shown | $50,000 to within a cent |
 

@@ -3,7 +3,7 @@
 
 """Check a packed MCP Bundle against its source, then start it as a host would.
 
-usage: python -I scripts/check_bundle.py BUNDLE.mcpb SOURCE_DIR
+usage: python -I scripts/check_bundle.py BUNDLE.mcpb SOURCE_DIR [--check-calculators]
 
 The archive must hold exactly the files of the clean SOURCE_DIR, byte for byte,
 apart from ``.mcpbignore``, which the packer reads and leaves out. The check
@@ -21,6 +21,7 @@ import json
 import os
 import queue
 import re
+import shutil
 import subprocess
 import sys
 import tempfile
@@ -69,7 +70,9 @@ def _request(stdin: IO[str], replies: queue.Queue[str], message: dict[str, Any])
             return reply["result"]
 
 
-def _exchange(command: list[str], environment: dict[str, str]) -> tuple[Any, Any]:
+def _exchange(
+    command: list[str], environment: dict[str, str], check_calculators: bool
+) -> tuple[Any, Any]:
     """Start the server, then return its ``initialize`` and ``tools/list`` results."""
     with subprocess.Popen(command, stdin=subprocess.PIPE, stdout=subprocess.PIPE,
                           text=True, encoding="utf-8", env=environment) as process:
@@ -86,6 +89,8 @@ def _exchange(command: list[str], environment: dict[str, str]) -> tuple[Any, Any
             })
             _request(stdin, replies, {"jsonrpc": "2.0", "method": "notifications/initialized"})
             listed = _request(stdin, replies, {"jsonrpc": "2.0", "id": 2, "method": "tools/list"})
+            if check_calculators:
+                _check_calculators(stdin, replies)
             stdin.close()
             process.wait(timeout=30)
         finally:
@@ -94,7 +99,20 @@ def _exchange(command: list[str], environment: dict[str, str]) -> tuple[Any, Any
     return started, listed
 
 
-def check(bundle: Path, source: Path) -> list[str]:
+def _check_calculators(stdin: IO[str], replies: queue.Queue[str]) -> None:
+    result = _request(stdin, replies, {
+        "jsonrpc": "2.0", "id": 3, "method": "tools/call",
+        "params": {"name": "calculate_tax_worksheet", "arguments": {"facts": {
+            "kind": "gst", "year": "2025-26", "scope_confirmed": True,
+            "amount": "1100", "gst_inclusive": True,
+        }}},
+    })
+    gst = (result.get("structuredContent") or {}).get("amounts", {}).get("gst")
+    if result.get("isError") or gst != "100.00":
+        raise SystemExit(f"FAIL bundled GST worksheet: {result}")
+
+
+def check(bundle: Path, source: Path, *, check_calculators: bool = False) -> list[str]:
     with tempfile.TemporaryDirectory() as name:
         folder = Path(name)
         with zipfile.ZipFile(bundle) as archive:
@@ -124,7 +142,12 @@ def check(bundle: Path, source: Path) -> list[str]:
             **os.environ,
             **{key: resolve(value) for key, value in config.get("env", {}).items()},
         }
-        started, listed = _exchange(command, environment)
+        if check_calculators:
+            environment.pop("AUS_TAX_CALCULATORS_BIN", None)
+            environment.pop("AUS_TAX_CALCULATORS_SHA256", None)
+            if shutil.which("australian-tax-calculators", path=environment.get("PATH")):
+                raise SystemExit("FAIL remove external calculators from PATH for the bundle check")
+        started, listed = _exchange(command, environment, check_calculators)
 
     version = started["serverInfo"]["version"]
     if version != manifest["version"]:
@@ -136,15 +159,19 @@ def check(bundle: Path, source: Path) -> list[str]:
             f"FAIL tools differ: registered only {sorted(set(registered) - set(declared))}, "
             f"declared only {sorted(set(declared) - set(registered))}"
         )
-    return [
+    report = [
         f"{bundle.name} holds exactly the {len(expected)} files of {source}",
         f"it started with {' '.join(command[:2])} ... and reports version {version}",
         f"tools/list returned the manifest's {len(declared)} tools",
     ]
+    if check_calculators:
+        report.append("bundled calculators returned $100.00 GST on $1,100")
+    return report
 
 
 if __name__ == "__main__":
-    if len(sys.argv) != 3:
+    options = sys.argv[3:]
+    if len(sys.argv) < 3 or options not in ([], ["--check-calculators"]):
         raise SystemExit(__doc__)
-    for line in check(Path(sys.argv[1]), Path(sys.argv[2])):
+    for line in check(Path(sys.argv[1]), Path(sys.argv[2]), check_calculators=bool(options)):
         print(line)

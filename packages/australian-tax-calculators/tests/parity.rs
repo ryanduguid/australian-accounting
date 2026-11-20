@@ -129,6 +129,11 @@ fn without_new_kinds(command: &str, mut actual: Value) -> Value {
 /// Applies the source-record divergences CHANGELOG.md documents to a frozen
 /// Python result; the frozen corpus itself is never edited.
 fn adapt(command: &str, input: &Value, mut expected: Value) -> Value {
+    // Preserve the frozen version and check the current release's reply version.
+    if let Some(version) = expected.pointer_mut("/ok/engine_version") {
+        assert_eq!(*version, json!("1.0.0"), "frozen calculator reply version");
+        *version = json!(env!("CARGO_PKG_VERSION"));
+    }
     // The ATO moved its lump sum in arrears page; the redirect was seen on 26 October 2026.
     let lump_sum_old = "https://www.ato.gov.au/individuals-and-families/income-deductions-offsets-and-records/tax-offsets/lump-sum-payment-in-arrears-tax-offsets";
     let lump_sum_new = "https://www.ato.gov.au/individuals-and-families/income-deductions-offsets-and-records/income-you-must-declare/lump-sum-payment-in-arrears";
@@ -359,7 +364,7 @@ fn adapt_study_loan_withholding(command: &str, input: &Value, expected: &mut Val
 /// (CHANGELOG.md).
 fn adapt_fbt(command: &str, input: &Value, expected: &mut Value) {
     let old_scope = "for the year ended 31 March 2026. Excludes";
-    let new_scope = "for the year ended 31 March 2026 or 2027, both at the 47% FBT rate and the 2.0802 and 1.8868 gross-up rates. Excludes";
+    let new_scope = "for the year ended 31 March 2026 or 2027, both at the 47% FBT rate. Uses the formulas in FBTAA s 5B(1B) and (1C) for gross-up. Excludes";
     let old_end = "before any optional rounding down to 5 cents.";
     let new_end = "before any optional rounding down to 5 cents. For 2027 the items follow the FBT return 2026 instructions until the ATO publishes the 2027 return.";
     let rates =
@@ -395,7 +400,9 @@ fn adapt_fbt(command: &str, input: &Value, expected: &mut Value) {
     );
     record["sources"].as_array_mut().unwrap().push(json!(rates));
     record["source_checked"] = json!("2026-11-04");
-    if command == "worksheet-catalogue" {
+    if command == "fbt" {
+        adapt_statutory_gross_up(input, &mut record["amounts"]);
+    } else {
         let passage = record["source_passage"].as_str().unwrap();
         record["source_passage"] = json!(format!(
             "{passage}; FBT rates and thresholds, the FBT rate and gross-up rates for years ending 31 March 2023 to 2027"
@@ -404,6 +411,45 @@ fn adapt_fbt(command: &str, input: &Value, expected: &mut Value) {
             .as_array_mut()
             .unwrap()
             .push(year);
+    }
+}
+
+/// The old corpus used the published 4-place rates. Calculate the replacement
+/// amounts independently with integer ratios and round at each reporting step.
+fn adapt_statutory_gross_up(input: &Value, amounts: &mut Value) {
+    let cents = |key: &str| {
+        Decimal::parse(input[key].as_str().unwrap())
+            .unwrap()
+            .quantize(-2, Rounding::HalfUp)
+            .unwrap()
+            .to_string()
+            .replace('.', "")
+            .parse::<i128>()
+            .unwrap()
+    };
+    let rounded = |numerator, denominator| (2 * numerator + denominator) / (2 * denominator);
+    let format_cents = |c: i128| json!(format!("{}.{:02}", c / 100, c % 100));
+    let one = cents("type_one_value") * 57_000;
+    let two = cents("type_two_value") * 100;
+    let one_denominator = 27_401;
+    let two_denominator = 53;
+    let item_14a = rounded(one, one_denominator * 100);
+    let item_14b = rounded(two, two_denominator * 100);
+    let item_15 = item_14a + item_14b;
+    let estimate = rounded(
+        (one * two_denominator + two * one_denominator) * 47,
+        one_denominator * two_denominator * 100,
+    );
+    for (key, amount) in [
+        ("type_one_grossed_up", rounded(one, one_denominator)),
+        ("type_two_grossed_up", rounded(two, two_denominator)),
+        ("fbt_estimate", estimate),
+        ("return_item_14a", item_14a * 100),
+        ("return_item_14b", item_14b * 100),
+        ("return_item_15", item_15 * 100),
+        ("return_item_16", item_15 * 47),
+    ] {
+        amounts[key] = format_cents(amount);
     }
 }
 
@@ -780,10 +826,12 @@ fn binary_runs_commands_and_refuses_bad_input() {
         err.starts_with("usage: australian-tax-calculators COMMAND"),
         "{err}"
     );
+    assert!(err.contains("australian-tax-calculators contract-register FILE"));
 
     let (code, out, _) = run(&["--api-help"], "");
     assert_eq!(code, 0);
     assert!(out.contains("worksheet-catalogue, periods"), "{out}");
+    assert!(!out.contains("contract-register"), "{out}");
 
     // The release smoke test and the MCP adapter both read this exact line.
     let (code, out, err) = run(&["--version"], "");
@@ -791,5 +839,18 @@ fn binary_runs_commands_and_refuses_bad_input() {
     assert_eq!(
         out,
         format!("australian-tax-calculators {}\n", env!("CARGO_PKG_VERSION"))
+    );
+}
+
+#[test]
+fn readme_worksheet_count_matches_the_catalogue() {
+    let catalogue = australian_tax_calculators::engine::worksheet_catalogue();
+    let count = catalogue.as_object().unwrap().len();
+    let claim = format!("{count} calculation worksheets ");
+    assert!(
+        include_str!("../README.md")
+            .lines()
+            .any(|line| line.starts_with(&claim)),
+        "README should advertise {count} calculation worksheets"
     );
 }

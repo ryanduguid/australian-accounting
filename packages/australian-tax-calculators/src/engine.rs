@@ -663,10 +663,13 @@ pub fn capital_gains(
 
 /// `capital_gains`'s amounts: (id, authority, formula). The losses of the year
 /// and earlier years reduce the other gains first, then the discount gains
-/// (s 102-5(1) step 1 note 3 lets the order within a category be chosen). Each
+/// (s 102-5(1) step 1 note 1 and step 2 note 2 let the order be chosen). Each
 /// formula writes the 2 offsets out as the arithmetic takes them, so a nil
 /// amount keeps the sign it is rendered with. The steps cite ITAA 1997
-/// compilation 268 (1 October 2026), read on 15 November 2026.
+/// compilation 264 (21 May 2026), the text for 2025-26 and 2026-27, read on
+/// 20 November 2026: Act No. 49 of 2026, Schedule 1 item 5, renumbers the
+/// method statement (discount step 5, net capital gain step 7), and item 82
+/// applies it from the income year that includes 1 July 2027.
 const CAPITAL_GAINS_STEPS: [(&str, &str, &str); 4] = [
     (
         "losses_used",
@@ -680,12 +683,12 @@ const CAPITAL_GAINS_STEPS: [(&str, &str, &str); 4] = [
     ),
     (
         "net_capital_gain",
-        "ITAA 1997 s 102-5(1) steps 5 and 7 and s 115-100(aa): the gains left, each discount gain reduced by the discount percentage",
+        "ITAA 1997 s 102-5(1) steps 3 and 5 and s 115-100(a): the gains left, each discount gain reduced by the discount percentage",
         "other_gains - min(other_gains, current_losses + prior_losses) + (discount_gains - min(discount_gains, current_losses + prior_losses - min(other_gains, current_losses + prior_losses))) x (1 - discount)",
     ),
     (
         "discount_applied",
-        "ITAA 1997 s 102-5(1) step 5 and s 115-100(aa): the discount gains left after losses, reduced by the discount percentage",
+        "ITAA 1997 s 102-5(1) step 3 and s 115-100(a): the discount gains left after losses, reduced by the discount percentage",
         "(discount_gains - min(discount_gains, current_losses + prior_losses - min(other_gains, current_losses + prior_losses))) x (1 - discount)",
     ),
 ];
@@ -695,12 +698,12 @@ const FBT_STEPS: [(&str, &str, &str); 7] = [
     (
         "type_one_grossed_up",
         "FBTAA s 5B(1B); Calculating your FBT, step 3",
-        "type_one_value x type_one",
+        "type_one_value x (fbt_rate + 0.10) / ((1 - fbt_rate) x (1 + 0.10) x fbt_rate)",
     ),
     (
         "type_two_grossed_up",
         "FBTAA s 5B(1C); Calculating your FBT, step 5",
-        "type_two_value x type_two",
+        "type_two_value / (1 - fbt_rate)",
     ),
     (
         "fbt_estimate",
@@ -737,18 +740,15 @@ pub fn fbt(
 ) -> Result<Value> {
     // `_scope` reports the period as the original's `str(year_ended)`.
     let year = scope(scope_confirmed, &Arg::Text(year_ended.py_str()), "fbt")?;
-    let rates = vec![
-        rate("type_one", "2.0802"),
-        rate("type_two", "1.8868"),
-        rate("fbt_rate", "0.47"),
-    ];
-    // The steps use the rates the result reports.
-    let [type_one, type_two, fbt_rate] = [0, 1, 2].map(|i| d(&rates[i].1));
+    let fbt_rate = d("0.47");
+    let gst_rate = d("0.10");
     let steps = precise(|| {
+        let kept = int(1).sub(&fbt_rate)?;
+        let denominator = kept.mul(&int(1).add(&gst_rate)?)?.mul(&fbt_rate)?;
         let one = money(type_one_value)?;
-        let first = one.mul(&type_one)?;
+        let first = one.mul(&fbt_rate.add(&gst_rate)?)?.div(&denominator)?;
         let two = money(type_two_value)?;
-        let second = two.mul(&type_two)?;
+        let second = two.div(&kept)?;
         let item_14a = first.quantize(0, Rounding::HalfUp)?;
         let item_14b = second.quantize(0, Rounding::HalfUp)?;
         let item_15 = item_14a.add(&item_14b)?;
@@ -757,8 +757,8 @@ pub fn fbt(
         Ok(steps_from(
             &FBT_STEPS,
             [
-                (&[&one, &type_one], first.clone()),
-                (&[&two, &type_two], second.clone()),
+                (&[&one, &fbt_rate, &fbt_rate, &fbt_rate], first.clone()),
+                (&[&two, &fbt_rate], second.clone()),
                 (&[&first, &second, &fbt_rate], estimate),
                 (&[&first], item_14a.clone()),
                 (&[&second], item_14b.clone()),
@@ -767,6 +767,13 @@ pub fn fbt(
             ],
         ))
     })?;
+    // The ATO rates are display values rounded to 4 places. The amounts use
+    // the formulas in s 5B(1B) and (1C) at full worksheet precision.
+    let rates = vec![
+        rate("type_one", "2.0802"),
+        rate("type_two", "1.8868"),
+        rate("fbt_rate", fbt_rate),
+    ];
     derived_result("fbt", &format!("year ended 31 March {year}"), steps, rates)
 }
 

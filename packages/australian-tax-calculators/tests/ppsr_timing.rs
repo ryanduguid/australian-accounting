@@ -150,6 +150,61 @@ fn pmsi(inventory: bool, goods: bool, trigger: &str, more: &[(&str, Value)]) -> 
     input("pmsi", "2026-27", &pairs)
 }
 
+#[test]
+fn refuses_the_skipped_and_repeated_act_hours() {
+    for time in [
+        "2026-10-04T02:00",
+        "2026-10-04T02:59",
+        "2027-04-04T02:00",
+        "2027-04-04T02:59",
+    ] {
+        assert_eq!(
+            code(&registration(time, "consumer", false, None)),
+            "ppsr_timing.time_unresolved",
+            "{time}"
+        );
+    }
+    for time in [
+        "2026-10-04T01:59",
+        "2026-10-04T03:00",
+        "2027-04-04T01:59",
+        "2027-04-04T03:00",
+        "2027-04-11T02:30",
+    ] {
+        assert_eq!(
+            run(&registration(time, "consumer", false, None))["registration_time"],
+            time
+        );
+    }
+}
+
+#[test]
+fn tests_only_unique_registration_times_for_inventory_priority() {
+    let priority = |at: &str| {
+        pmsi(
+            true,
+            true,
+            "2027-04-04T03:00",
+            &[
+                ("registration_time", json!(at)),
+                ("pmsi_stated", json!(true)),
+            ],
+        )
+    };
+    assert_eq!(
+        code(&priority("2027-04-04T02:25")),
+        "ppsr_timing.time_unresolved"
+    );
+    assert_eq!(
+        run(&priority("2027-04-04T01:59"))["registered_in_time"],
+        true
+    );
+    assert_eq!(
+        run(&priority("2027-04-04T03:01"))["registered_in_time"],
+        false
+    );
+}
+
 /// s 62(3)(b) with s 10: possession on Monday 21 December 2026. 22, 23 and
 /// 24 December count; 25 December and 1 January are listed holidays; 26 to
 /// 31 December fall between Christmas Day and New Year's Day; the 15th
@@ -262,6 +317,16 @@ fn company(agreed: &str, holidays: Value, more: &[(&str, Value)]) -> Value {
     ];
     pairs.extend(more.iter().cloned());
     input("company_grantor", "2026-27", &pairs)
+}
+
+#[test]
+fn refuses_a_derived_six_month_time_in_the_repeated_hour() {
+    let input = company(
+        "2026-09-01T11:00",
+        json!([]),
+        &[("critical_time", json!("2026-10-05T02:30"))],
+    );
+    assert_eq!(code(&input), "ppsr_timing.time_unresolved");
 }
 
 /// s 588FL(2)(b)(ii) with Corporations Act s 9: an agreement in force on

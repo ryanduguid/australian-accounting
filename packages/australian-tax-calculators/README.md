@@ -1,15 +1,12 @@
 # Australian tax calculators
 
-Australian Tax Calculators 1.0.0 is a standalone Rust binary. It replaces the
-Python `australian-tax-calculators` 0.2.0 package and its `austaxcalc` import
-API, with the same 14 worksheets, results and refusals, and adds 2 FBT car
-worksheets, FBT loan, meal entertainment, car parking, debt waiver, expense payment, property, residual, housing, living-away-from-home allowance, board and tax-exempt body entertainment worksheets, an entertainment classifier, a meal entertainment register check, a main residence worksheet, a borrowing expenses worksheet and schedule, a Division 296 estimate, a termination payment worksheet, an ETP tax free component worksheet, an unused leave payment worksheet, 3 Schedule 5 withholding worksheets, a Schedule 15 working holiday maker worksheet, a Schedule 9 seniors and pensioners worksheet, a seniors and pensioners tax offset worksheet, a Medicare levy surcharge worksheet, a foreign resident tax worksheet, a PAYG gross-up worksheet, a hire purchase schedule, a business capital expenditure worksheet and a franking account worksheet that no Python release contains. Python releases through 0.1.9
-contain 10 worksheets. MCP server releases through 0.9.0 use the 0.2.0 Python
-release from PyPI; later ones run this executable, requiring the exact version
-they were tested against, for the same 14 worksheets. The unreleased native
-build in this repository links this crate. The
-[release handoff](../../apps/aus-accounting-mcp/docs/worksheet-release.md)
-keeps the engine release and MCP integration separate.
+Australian Tax Calculators 1.1.0 is a standalone Rust binary with a JSON
+stdin interface. It replaces the Python `austaxcalc` import API. The MCP
+server through 0.9.0 used the 0.2.0 Python package from PyPI. Later versions
+run the calculator executable and require the exact version they were
+tested against. The native MCP build in this repository links this crate.
+The [release handoff](../../apps/aus-accounting-mcp/docs/worksheet-release.md)
+keeps the calculator release and MCP integration separate.
 
 <div align="center">
 
@@ -19,7 +16,7 @@ keeps the engine release and MCP integration separate.
 
 </div>
 
-Sixty-three calculation worksheets for established facts: ordinary GST, fuel tax credits at the ATO's rate for each day from 1 July 2022 with the simplified methods for small claimants, resident and foreign
+66 calculation worksheets for established facts: ordinary GST, fuel tax credits at the ATO's rate for each day from 1 July 2022 with the simplified methods for small claimants, resident and foreign
 resident basic income tax, CGT losses and discount, the gains and losses from parcels of shares or units, the small business CGT concessions open for a gain, the main residence exemption's taxable share of a gain or loss, one loan's borrowing expenses deduction and a schedule of several loans' deductions over every year, a hire purchase agreement's notional interest, a chattel mortgage's interest schedule and input tax credit, a loan's statement with daily interest at changing rates, business capital expenditure (black hole and start-up costs) under s 40-880, ordinary employer FBT, car fringe benefit taxable values
 under the statutory formula and operating cost methods, loan, meal entertainment, car parking, debt waiver, expense payment, property, residual, housing, living-away-from-home allowance, board and tax-exempt body entertainment fringe benefit taxable values, the FBT, deduction and GST credit treatment of entertainment expense lines, whether a 12 week meal entertainment register is valid, depreciation in the start year and later years, a depreciating asset's balancing adjustment with its reduction for private use and CGT event K7, a trade-in's GST on both sides with the old asset's balancing adjustment and the replacement's cost, whether an electric car's fringe benefits are exempt, one employer's payroll tax in each state and territory, a company's franking account with franking deficit tax, its offset and the benchmark rule, wine equalisation tax with the producer rebate under its yearly cap and BAS labels 1C and 1D, luxury car tax on sales and importations with its adjustments, refunds and BAS labels 1E and 1F,
 quarterly super guarantee, Schedule 1 PAYG withholding and the gross pay that leaves a stated net, Schedule 5 withholding from back payments, commissions and bonuses by Methods A, B(i) and B(ii), Schedule 15 withholding for working holiday makers, Schedule 9 withholding for seniors and pensioners, super contribution caps,
@@ -61,13 +58,13 @@ Release Policy's installer, at its v0.5.0 commit, downloads one, verifies it and
 installs it in one command. On x86_64 Linux:
 
 ```sh
-curl --proto '=https' --tlsv1.2 -fsSL https://raw.githubusercontent.com/ryanduguid/release-policy/d7039efe6d8c441f1f213c674902909e80535599/scripts/install.sh | sh -s -- ryanduguid/australian-accounting australian-tax-calculators/v1.0.0 --modify-path
+curl --proto '=https' --tlsv1.2 -fsSL https://raw.githubusercontent.com/ryanduguid/release-policy/d7039efe6d8c441f1f213c674902909e80535599/scripts/install.sh | sh -s -- ryanduguid/australian-accounting australian-tax-calculators/v1.1.0 --modify-path
 ```
 
 In PowerShell on x86_64 Windows:
 
 ```powershell
-& ([scriptblock]::Create((irm https://raw.githubusercontent.com/ryanduguid/release-policy/d7039efe6d8c441f1f213c674902909e80535599/scripts/install.ps1))) ryanduguid/australian-accounting australian-tax-calculators/v1.0.0 -ModifyPath
+& ([scriptblock]::Create((irm https://raw.githubusercontent.com/ryanduguid/release-policy/d7039efe6d8c441f1f213c674902909e80535599/scripts/install.ps1))) ryanduguid/australian-accounting australian-tax-calculators/v1.1.0 -ModifyPath
 ```
 
 It needs the [GitHub CLI](https://cli.github.com/) (`gh`), with no sign-in. It
@@ -103,7 +100,7 @@ echo '{"amount": "1100.00", "gst_inclusive": true, "scope_confirmed": true, "yea
 ```
 
 ```json
-{"ok":true,"engine":"australian-tax-calculators","engine_version":"1.0.0","calculation":"gst","period":"2025-26","amounts":{"gst":"100.00","exclusive":"1000.00","inclusive":"1100.00"},"rates":{"gst_rate":"0.10"},"scope":"One ordinary taxable supply at 10%, already classified by the operator. Excludes mixed supplies, exemptions, margin schemes, adjustments, tax invoice rounding across line items, input-credit entitlement and BAS preparation.","sources":["https://smallbusiness.taxsuperandyou.gov.au/goods-and-services-tax/fast-facts"],"source_checked":"2026-09-10","warnings":["Operator-confirmed facts and scope; eligibility is not independently verified.","Worksheet only, not advice, an assessment or a lodgment. Obtain human review."]}
+{"ok":true,"engine":"australian-tax-calculators","engine_version":"1.1.0","calculation":"gst","period":"2025-26","amounts":{"gst":"100.00","exclusive":"1000.00","inclusive":"1100.00"},"rates":{"gst_rate":"0.10"},"scope":"One ordinary taxable supply at 10%, already classified by the operator. Excludes mixed supplies, exemptions, margin schemes, adjustments, tax invoice rounding across line items, input-credit entitlement and BAS preparation.","sources":["https://smallbusiness.taxsuperandyou.gov.au/goods-and-services-tax/fast-facts"],"source_checked":"2026-09-10","warnings":["Operator-confirmed facts and scope; eligibility is not independently verified.","Worksheet only, not advice, an assessment or a lodgment. Obtain human review."]}
 ```
 
 Amounts come back as quoted decimal strings rather than numbers, so an amount
@@ -788,8 +785,15 @@ takes one premises and the stations within 1 km of it; run it once for each.
 `commercial_parking_station` values each benefit at the
 day's lowest fee (s 39C), the same on every day, and `average_cost` at the
 average of the fees on the days benefits were first and last provided (s 39DA);
-the recipients' payments come off in total, each counted only up to its
-benefit's value, never below nil. `market_value` values each benefit at the
+the recipients' payments come off each benefit up to its value. For these
+methods and market value, give one benefit's payment as a decimal string.
+With several benefits and a combined payment above one benefit's value, give
+`employee_contribution` as an object with `capped_total`, a decimal string after
+capping each payment at its own benefit's value and adding them. Keep any
+half-cent from average cost, up to 3 decimal places. The worksheet works
+from the exact gross value and rounds its reported amounts to cents. When using
+that object, the worksheet reports the applied contribution without the excess
+you already took out. `market_value` values each benefit at the
 amount a suitably qualified valuer at arm's length reported (s 39D), with the
 payments taken off the same way; the operator establishes that the report came
 before the declaration date in the approved form. `spaces` (s 39FA) takes
@@ -1154,6 +1158,11 @@ and foreign residents are out of scope.
 decides without a search, for a registration, possession or attachment, or
 security agreement in 2025-26 or 2026-27. Times are `YYYY-MM-DDTHH:MM` in ACT
 legal time (PPSA s 294); an end of day is shown as `YYYY-MM-DD end of day`.
+An input time or a calculated six-month reference in the skipped or repeated
+02:00 to 02:59 hour is refused with `ppsr_timing.time_unresolved`. Check the
+underlying timing records if either transition affects the result.
+[ACT Standard Time and Summer Time Act 1972](https://www.legislation.act.gov.au/a/1972-34/)
+
 Every answer carries the fee schedule of the Personal Property Securities
 (Fees) Determination 2018 in `rates`: registration $6.00, $25.00 or $115.00,
 a search $2.00 online or $7.00 by the contact centre, maintenance $4.00 and a
@@ -1651,13 +1660,21 @@ figure, and `gst.missing` names it; an unregistered hirer's credit is nil.
 used under an earlier hire. A passenger car worth more than the car limit for
 the year it is first used
 ($69,674 for 2024-25 and 2025-26, $69,883 for 2026-27), where the hirer may
-not quote an ABN for luxury car tax, gives no figure either: `gst.review`
-says why. GST Act s 69-10(1) caps the credit on the car at 1/11 of that limit,
-and the ATO's GST issues register 'Financial services - questions and
-answers' (issue 1.17) applies the cap under a hire purchase agreement, but the
-sources read do not settle whether the cap also takes in the GST on the
-credit component, which the same register (issue 1.1) treats as a separate
-supply of finance.
+not quote an ABN for luxury car tax, needs `gst.separate_tax_invoice`.
+Set `tax_invoice_held` to true only if a held tax invoice separately identifies
+the taxable goods and any finance supply. Supply `goods_consideration`,
+`finance_consideration`, `goods_gst` and `finance_gst` from it. The amounts
+must reconcile to the agreement and luxury car tax and agree with separate
+cent rounding for each supply under GST Act s 9-90. Enter zero for both finance
+amounts where there is no finance charge. Without that evidence, `gst.review`
+explains the missing figure. If the invoice rounds GST differently, review the
+figures with the preparer.
+
+GST Act s 69-10(1) limits the goods credit to 1/11 of the car limit. The tax
+on the separate taxable finance supply is added, and the creditable-purpose
+fraction applies to both. See the ATO's GST issues register 'Financial services
+- questions and answers', issues 1.1, 1.2 and 1.17. The worksheet leaves the
+attribution date and GST journals for these separate supplies to the preparer.
 
 The ATO's Albert example ('GST – Hire purchase and leasing') prints a credit
 of $3,654.54, one-eleventh of $40,200; the worksheet gives $3,654.55, as
@@ -1780,8 +1797,8 @@ if the business ceases (TR 2011/6 para 10). The result's amounts are the expendi
 year's deduction and what remains for later years. `items` gives each item's
 paragraph of s 40-880(2), its limit, `excluded_by`, the method with its
 citation, the year's deduction, `schedule` (each income year and its
-deduction) and `notes`, each worked exactly; the amounts are shown to the
-cent, half up.
+deduction) and `notes`, worked at full precision. Each total in `amounts` is the sum of the exact
+item values, rounded once to the cent, half up.
 
 It refuses expenditure that forms part of the cost of a depreciating asset
 (s 40-880(5)(a)), which Division 40 deducts, and expenditure that could be

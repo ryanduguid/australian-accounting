@@ -10,9 +10,9 @@ zero and edge amounts, the conformance cases, the scope catalogue, the
 disclaimer's worksheet section and the data freshness datasets. The oracle
 holds a placeholder for the engine version.
 
-Calculators 1.0.0 changes only what DIVERGED lists, each recorded in
-packages/australian-tax-calculators/CHANGELOG.md: newer sources, source dates and
-evidence for 7 kinds, and one amount, contribution_caps' carry_forward_applied.
+The changes are recorded in packages/australian-tax-calculators/CHANGELOG.md.
+DIVERGED lists newer sources, source dates and evidence for 7 kinds. The amount
+checks below account for carry_forward_applied and the statutory FBT gross-up.
 The tool now serves the executable's whole catalogue, so the 6 NARROWED kinds
 state the engine's scope, and every kind may offer more periods and inputs
 (WIDENED). The facade also refuses a number in exponent or other non-plain
@@ -26,7 +26,7 @@ import asyncio
 import functools
 import json
 import re
-from decimal import Decimal, InvalidOperation
+from decimal import ROUND_HALF_UP, Decimal, InvalidOperation
 from pathlib import Path
 
 import pytest
@@ -76,6 +76,27 @@ def _carry_forward(old: dict, facts: dict) -> str:
     return f"{min(Decimal(old['carry_forward_applied']), over):.2f}"
 
 
+def _statutory_fbt(facts: dict) -> dict[str, str]:
+    """Check the FBTAA s 5B ratios and the different estimate and return boundaries."""
+    first = Decimal(facts["type_one_value"]) * 57000 / 27401
+    second = Decimal(facts["type_two_value"]) * 100 / 53
+    rate = Decimal("0.47")
+    item_14a = first.quantize(Decimal(1), rounding=ROUND_HALF_UP)
+    item_14b = second.quantize(Decimal(1), rounding=ROUND_HALF_UP)
+    item_15 = item_14a + item_14b
+    fields = {
+        "type_one_grossed_up": first,
+        "type_two_grossed_up": second,
+        "fbt_estimate": (first + second) * rate,
+        "return_item_14a": item_14a,
+        "return_item_14b": item_14b,
+        "return_item_15": item_15,
+        "return_item_16": item_15 * rate,
+    }
+    return {key: str(value.quantize(Decimal("0.01"), rounding=ROUND_HALF_UP))
+            for key, value in fields.items()}
+
+
 _PREFIX = "Error executing tool calculate_tax_worksheet: "
 
 
@@ -121,6 +142,8 @@ def test_each_recorded_call_gives_the_same_answer(case) -> None:
             want["amounts"], facts)
         want["amounts"] = {**want["amounts"]}
         want["amounts"].pop("carry_forward_applied")
+    if kind == "fbt":
+        want["amounts"] = {**want["amounts"], **_statutory_fbt(facts)}
     if "file_note" in got:
         # The note restates the result, so it changes with it. It lists the facts in
         # the catalogue's order, which for quarterly_sg is not 0.2.0's.

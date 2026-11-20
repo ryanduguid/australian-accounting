@@ -18,6 +18,7 @@ on Windows is a loopback connection within the process.
 """
 
 import asyncio
+import hashlib
 import os
 import subprocess
 import sys
@@ -29,13 +30,22 @@ from mcp.client.stdio import stdio_client
 
 from aus_accounting_mcp.adapters import tax
 
-# The path the tax adapter finds, here and in the server, which shares this
-# environment; the worksheets run it and nothing else.
-GUARD = f"CALCULATORS = {tax._executable()!r}\n" + """
-import os, subprocess, sys
+# Bind the allowed staged bytes to the executable this test run selected.
+CALCULATORS = tax._executable()
+assert CALCULATORS is not None
+with open(CALCULATORS, "rb") as executable:
+    CALCULATORS_DIGEST = hashlib.file_digest(executable, "sha256").hexdigest()
 
-# Windows audits the command line Popen builds, not the argument list.
-CALCULATORS_LINE = CALCULATORS and subprocess.list2cmdline([CALCULATORS])
+GUARD = f"CALCULATORS = {CALCULATORS!r}\nEXPECTED_SHA256 = {CALCULATORS_DIGEST!r}\n" + """
+import hashlib, os, stat, subprocess, sys, tempfile
+from pathlib import Path
+
+ALLOWED_ARGUMENTS = (
+    ("--version",),
+    ("--api-help",),
+    ("gst", "--refusal-json"),
+    ("worksheet-catalogue", "--refusal-json"),
+)
 
 WATCHED = {
     "socket.bind", "socket.connect", "socket.getaddrinfo", "socket.gethostbyaddr",
@@ -53,14 +63,35 @@ def socketpair_loopback(event, args):
     return caller.f_globals.get("__name__") == "socket" and "socketpair" in caller.f_code.co_name
 
 def calculators(event, args):
-    if event not in {"subprocess.Popen", "os.posix_spawn"} or CALCULATORS is None:
+    if event != "subprocess.Popen":
         return False
-    # The program run: Popen's executable (None on Windows unless given), or the spawn path.
-    if args[0] not in (None, CALCULATORS):
+    executable, argv, cwd, _ = args
+    if not isinstance(executable, str) or not isinstance(cwd, str):
         return False
-    if isinstance(args[1], str):
-        return args[1] == CALCULATORS_LINE or args[1].startswith(f"{CALCULATORS_LINE} ")
-    return isinstance(args[1], (list, tuple)) and list(args[1][:1]) == [CALCULATORS]
+    folder = Path(cwd)
+    filename = "australian-tax-calculators.exe" if os.name == "nt" else "australian-tax-calculators"
+    binary = Path(executable)
+    if (not folder.is_absolute() or not folder.name.startswith("aus-tax-calculators-")
+            or binary != folder / filename):
+        return False
+    # Windows audits the command line Popen builds, not the argument list.
+    allowed = [[executable, *arguments] for arguments in ALLOWED_ARGUMENTS]
+    if isinstance(argv, str):
+        if not any(argv == subprocess.list2cmdline(command) for command in allowed):
+            return False
+    elif not isinstance(argv, (list, tuple)) or list(argv) not in allowed:
+        return False
+    try:
+        if (folder.parent.resolve() != Path(tempfile.gettempdir()).resolve()
+                or folder.is_symlink() or binary.is_symlink()):
+            return False
+        info = folder.stat()
+        if os.name != "nt" and (info.st_uid != os.getuid() or stat.S_IMODE(info.st_mode) != 0o700):
+            return False
+        with binary.open("rb") as file:
+            return hashlib.file_digest(file, "sha256").hexdigest() == EXPECTED_SHA256
+    except OSError:
+        return False
 
 def guard(event, args):
     if event in WATCHED and not socketpair_loopback(event, args) and not calculators(event, args):

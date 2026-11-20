@@ -51,8 +51,7 @@ class RustEngineTests(unittest.TestCase):
                 directory = ROOT / component
                 cargo = tomllib.loads((directory / "Cargo.toml").read_text())
                 self.assertEqual(cargo["package"]["name"], name)
-                self.assertEqual(cargo["package"]["version"], "1.0.0")
-                self.assertEqual(select_package.project_version(name), "1.0.0")
+                self.assertEqual(select_package.project_version(name), cargo["package"]["version"])
                 self.assertFalse((directory / "pyproject.toml").exists())
                 self.assertFalse((directory / REMOVED_IMPORTS[name]).exists())
                 self.assertTrue((directory / "src/main.rs").is_file())

@@ -106,6 +106,23 @@ class ReleaseChecksTests(unittest.TestCase):
         release = text.split("\n  release:\n", 1)[1].split("\n  pypi:", 1)[0]
         self.assertRegex(release, r"(?m)^    needs: published-pins$")
 
+    def test_mcp_release_checks_readme_pins_before_the_wheel_build(self) -> None:
+        text = (ROOT / ".github" / "workflows" / "release-aus-accounting-mcp.yml").read_text(
+            encoding="utf-8"
+        )
+        job = text.split("\n  published-pins:\n", 1)[1].split("\n  release:\n", 1)[0]
+        self.assertLess(job.index("readme_pins(Path"), job.index("uv build --wheel"))
+
+    def test_registry_readback_runs_after_publish_with_read_only_permissions(self) -> None:
+        text = (ROOT / ".github" / "workflows" / "publish-mcp.yml").read_text(encoding="utf-8")
+        _, readback = text.split("\n  readback:\n", 1)
+        self.assertIn("    needs: publish\n", readback)
+        self.assertIn("    permissions:\n      contents: read\n    steps:", readback)
+        self.assertNotIn("environment:", readback)
+        self.assertNotIn("mcp-publisher", readback)
+        self.assertIn("ref: ${{ github.sha }}", readback)
+        self.assertIn('registry_preflight.py --readback | tee -a "$GITHUB_STEP_SUMMARY"', readback)
+
     def test_python_components_pin_their_build_backend(self) -> None:
         # release-python builds without isolation, so each component's backend must
         # come from its locked dev extra, pinned exactly as [build-system] requires.
