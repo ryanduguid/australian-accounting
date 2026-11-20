@@ -4,8 +4,8 @@
 use div7a_loan_review::{
     api,
     facts::optional_years,
-    gate::{GateFacts, GateResult, complying_loan_gate},
-    myr::{GateSummary, MyrFacts, minimum_yearly_repayment},
+    gate::{GateFacts, GateResult, complying_loan_gate, maximum_term},
+    myr::{GateSummary, MyrFacts, repayment_within},
     raw::Raw,
     years::parse_year,
 };
@@ -124,8 +124,15 @@ fn loan_parts(input: &Value) -> Result<(Value, Value), String> {
     let raw = Raw::from_value(&mapping);
     let facts = GateFacts::from_mapping(&raw, "MCP review_div7a_loan")?;
     let gate = complying_loan_gate(&facts, None, None).map_err(|e| e.to_string())?;
-    let myr = minimum_yearly_repayment(&repayment_facts(input, &raw, &facts, &gate)?, None, None)
-        .map_err(|e| e.to_string())?;
+    let (maximum, _, _) = maximum_term(&facts).map_err(|e| format!("decimal.{}", e.name()))?;
+    let myr = repayment_within(
+        &repayment_facts(input, &raw, &facts, &gate)?,
+        maximum.as_ref(),
+        facts.maximum_term_years.as_ref(),
+        None,
+        None,
+    )
+    .map_err(|e| e.to_string())?;
     Ok((
         gate.to_json(),
         myr.to_json().map_err(|e| format!("decimal.{}", e.name()))?,

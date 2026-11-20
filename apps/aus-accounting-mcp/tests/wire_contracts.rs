@@ -50,7 +50,7 @@ impl Drop for Server {
     }
 }
 /// A frozen Python resource reply as the linked engine gives it (tests/engine/mod.rs).
-fn linked(_request: &Value, mut expected: Value) -> Value {
+fn linked(request: &Value, mut expected: Value) -> Value {
     if let Some(worksheets) = expected
         .pointer_mut("/result/contents/0/text/calculation_worksheets")
         .and_then(Value::as_object_mut)
@@ -71,13 +71,11 @@ fn linked(_request: &Value, mut expected: Value) -> Value {
             }
         }
     }
-    // The linked engine records that a minimum yearly repayment computed without
-    // the loan term has not been checked against s 109E(6).
     for pointer in ["/result/content/0/text", "/result/structuredContent"] {
         if let Some(result) = expected.pointer_mut(pointer)
             && result.get("minimum_yearly_repayment").is_some()
         {
-            engine::div7a(result);
+            engine::div7a(&request["params"]["arguments"], result);
         }
     }
     expected
