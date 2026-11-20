@@ -49,11 +49,13 @@ for asset in "$linux" "$windows"; do
 done
 
 # Extract only the named members, without taking any paths from the archives.
-tar -xOzf "$linux" "$name" > "$name"
-unzip -p "$windows" "$name.exe" > "$name.exe"
-printf '%s  %s\n' "$linux_digest" "$name" "$windows_digest" "$name.exe" |
+linux_payload="$scratch/linux-payload"
+windows_payload="$scratch/windows-payload.exe"
+tar -xOzf "$linux" "$name" > "$linux_payload"
+unzip -p "$windows" "$name.exe" > "$windows_payload"
+printf '%s  %s\n' "$linux_digest" "$linux_payload" "$windows_digest" "$windows_payload" |
     sha256sum --check --strict
 destination="$app/mcpb/bin"
 mkdir "$destination"
-install -m 0755 "$name" "$destination/$name"
-install -m 0644 "$name.exe" "$destination/$name.exe"
+install -m 0755 "$linux_payload" "$destination/$name"
+install -m 0644 "$windows_payload" "$destination/$name.exe"
