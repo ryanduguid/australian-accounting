@@ -525,21 +525,37 @@ mod tests {
     fn the_local_worksheet_agrees_with_the_provider_within_a_cent() {
         let outcome = computed(&[
             ("taxable_value", "8500.42"),
-            ("grossed_up_taxable_value", "16038.60"),
-            ("fbt_payable", "7538.14"),
+            ("grossed_up_taxable_value", "16038.54"),
+            ("fbt_payable", "7538.11"),
         ]);
         let compared = evaluate_outcome(&benefit("Type 2"), &outcome).expect("a comparison");
         assert!(matches!(compared.evaluation, Evaluation::Match));
         let local = |name: &str| get(&compared.local, &pts(name)).map(Decimal::to_sci_string);
-        assert_eq!(local("type_two_grossed_up").as_deref(), Some("16038.59"));
-        assert_eq!(local("fbt_estimate").as_deref(), Some("7538.14"));
+        assert_eq!(local("type_two_grossed_up").as_deref(), Some("16038.53"));
+        assert_eq!(local("fbt_estimate").as_deref(), Some("7538.11"));
 
-        let off = computed(&[("taxable_value", "8500.42"), ("fbt_payable", "7538.16")]);
+        let off = computed(&[("taxable_value", "8500.42"), ("fbt_payable", "7538.13")]);
         let compared = evaluate_outcome(&benefit("Type 2"), &off).expect("a comparison");
         assert!(matches!(compared.evaluation, Evaluation::NumericDifference));
         assert_eq!(
             compared.differences,
             vec![(pts("fbt_payable"), dec("-0.02"))]
+        );
+
+        // The earlier sample's rounded gross-up ratios leave a reportable difference.
+        let rounded = computed(&[
+            ("taxable_value", "8500.42"),
+            ("grossed_up_taxable_value", "16038.60"),
+            ("fbt_payable", "7538.14"),
+        ]);
+        let compared = evaluate_outcome(&benefit("Type 2"), &rounded).expect("a comparison");
+        assert_eq!(compared.evaluation, Evaluation::NumericDifference);
+        assert_eq!(
+            compared.differences,
+            vec![
+                (pts("fbt_payable"), dec("-0.03")),
+                (pts("grossed_up_taxable_value"), dec("-0.07")),
+            ]
         );
     }
 
@@ -559,8 +575,8 @@ mod tests {
     fn a_repeated_figure_is_read_as_its_last_value() {
         let refused = computed(&[
             ("taxable_value", "8500.42"),
-            ("grossed_up_taxable_value", "16038.60"),
-            ("fbt_payable", "7538.14"),
+            ("grossed_up_taxable_value", "16038.54"),
+            ("fbt_payable", "7538.11"),
             ("grossed_up_taxable_value", "8500.42"),
         ]);
         let error = evaluate_outcome(&benefit("Type 2"), &refused).expect_err("refused");
@@ -569,14 +585,14 @@ mod tests {
         let agreed = computed(&[
             ("taxable_value", "8500.42"),
             ("grossed_up_taxable_value", "8500.42"),
-            ("fbt_payable", "7538.14"),
-            ("grossed_up_taxable_value", "16038.60"),
+            ("fbt_payable", "7538.11"),
+            ("grossed_up_taxable_value", "16038.54"),
         ]);
         let compared = evaluate_outcome(&benefit("Type 2"), &agreed).expect("a comparison");
         assert_eq!(compared.evaluation, Evaluation::Match);
         assert_eq!(
             get(&compared.upstream, &pts("grossed_up_taxable_value")).map(Decimal::to_sci_string),
-            Some("16038.60".into())
+            Some("16038.54".into())
         );
 
         let recorded = vec![

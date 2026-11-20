@@ -74,7 +74,7 @@ fn main() {
             2,
             String::new(),
             format!(
-                "usage: australian-tax-calculators COMMAND < input.json\ncommands: {}\n",
+                "usage: australian-tax-calculators COMMAND < input.json\n       australian-tax-calculators contract-register FILE\ncommands: {}\n",
                 commands.join(", ")
             ),
         ),

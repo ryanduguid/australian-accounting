@@ -629,8 +629,8 @@ fn the_category_value_itself_still_passes_that_check() {
 fn fbt_response(overrides: &[(&str, Option<&str>)]) -> String {
     let mut pairs: Vec<(&str, Json)> = vec![
         ("taxable_value", Json::str("8000.00")),
-        ("grossed_up_taxable_value", Json::str("15094.40")),
-        ("fbt_payable", Json::str("7094.37")),
+        ("grossed_up_taxable_value", Json::str("15094.34")),
+        ("fbt_payable", Json::str("7094.34")),
         (
             "manifest",
             Json::obj([(

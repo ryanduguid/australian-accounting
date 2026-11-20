@@ -380,7 +380,7 @@ fn out_of_scope_and_malformed_loans_are_refused() {
         ),
         (
             json!([loan(json!({"section_26_50_applies": true}))]),
-            "loan 1: Section 26-50 denies deductions for a leisure facility, such as a holiday home, unless s 26-50(3) applies at all times in the income year; part-year use under s 26-50(4) is out of scope.",
+            "loan 1: Section 26-50 denies specified leisure-facility expenses, subject to the full-year exception in subsection (3), the reasonable part-year share in subsection (4) and the fringe-benefit exception in subsection (8). The anti-avoidance rule in subsection (7) can disapply the use exception. Establish whether section 26-50 restricts this deduction before using the worksheet.",
         ),
         (
             json!([loan(json!({"section_26_50_applies": "no"}))]),

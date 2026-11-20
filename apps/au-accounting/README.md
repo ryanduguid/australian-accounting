@@ -42,6 +42,8 @@ au-accounting payday-super --api-help
 
 Each engine's README documents its commands, JSON schemas, scope and limits. Help
 and error text name the engine's own command, as that engine prints them.
+The tax engine also accepts `contract-register` with the same CSV inputs and
+options as its standalone command.
 
 ## Differences from the engines' own commands
 

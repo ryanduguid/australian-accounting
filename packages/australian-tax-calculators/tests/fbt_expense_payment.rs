@@ -98,7 +98,8 @@ fn matches_the_library_examples_and_feeds_fbt_as_type_2() {
                            "year_ended": 2026, "scope_confirmed": true});
         api::evaluate("fbt", &input).unwrap()["amounts"].clone()
     };
-    assert_eq!(fbt("10000.00")["type_two_grossed_up"], "18868.00");
+    // Apply FBTAA s 5B(1C) to the Library's $10,000 taxable value.
+    assert_eq!(fbt("10000.00")["type_two_grossed_up"], "18867.92");
     // ¶3-340: $35,000 of mortgage payments and $24,000 of childcare fees
     // reimbursed, $59,000 at the type 2 rate.
     let mortgage = amounts(payment(json!({
