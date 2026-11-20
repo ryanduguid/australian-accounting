@@ -39,6 +39,7 @@ jobs:
     timeout-minutes: 2
     outputs:
       run: ${{ steps.select.outputs.run }}
+      python-matrix: ${{ steps.python-matrix.outputs.matrix }}
     steps:
       - uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
         with:
@@ -49,6 +50,8 @@ jobs:
           fetch-depth: 2
       - id: select
         run: python3 .github/ci/app_ci.py select aus-accounting-mcp >> "$GITHUB_OUTPUT"
+      - id: python-matrix
+        run: python3 .github/ci/app_ci.py mcp-python-matrix >> "$GITHUB_OUTPUT"
 
   packages:
     name: ${{ matrix.package }}
@@ -168,6 +171,37 @@ jobs:
           AU_ACCOUNTING_PARITY_CAP: "600"
         run: cargo test --locked --test parity -- --ignored --nocapture
 
+  dependency-policy:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Install verified cargo-deny 0.22.0
+        shell: bash
+        working-directory: ${{ runner.temp }}
+        run: |
+          set -euo pipefail
+          distribution=cargo-deny-0.22.0-x86_64-unknown-linux-musl
+          archive="$distribution.tar.gz"
+          curl --proto '=https' --proto-redir '=https' -fsSL --max-time 75 -o "$archive" \
+            "https://github.com/EmbarkStudios/cargo-deny/releases/download/0.22.0/$archive"
+          printf '%s  %s\n' 98c56e6a408bfa5c3c60744b6015aaa6aa08f743fdeb88386d06fca035bb1786 "$archive" | sha256sum --check
+          tar -xzf "$archive" "$distribution/cargo-deny"
+          echo "$RUNNER_TEMP/$distribution" >> "$GITHUB_PATH"
+      - name: Check licences and sources for every Cargo lock
+        shell: bash
+        run: |
+          set -euo pipefail
+          git ls-files -z -- ':(glob)**/Cargo.lock' | while IFS= read -r -d '' lock; do
+            echo "Checking $lock"
+            (
+              cd "${lock%/*}"
+              cargo deny --locked --config "$GITHUB_WORKSPACE/deny.toml" check licenses sources
+            )
+          done
+
   test:
     needs: changes
     if: needs.changes.result == 'success' && needs.changes.outputs.run == 'true'
@@ -176,14 +210,7 @@ jobs:
     timeout-minutes: 25
     strategy:
       fail-fast: false
-      matrix:
-        include:
-          - os: ubuntu-latest
-            python: "3.14"
-          - os: ubuntu-latest
-            python: "3.15"
-          - os: windows-latest
-            python: "3.14"
+      matrix: ${{ fromJSON(needs.changes.outputs.python-matrix) }}
     runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -198,6 +225,7 @@ jobs:
         with:
           version: "0.13.5"
           enable-cache: true
+          cache-suffix: py${{ matrix.python }}
           save-cache: ${{ github.ref == 'refs/heads/main' }}
           prune-cache: true
       # The tax worksheets run the calculators executable, which the adapter finds
@@ -247,6 +275,7 @@ jobs:
         with:
           version: "0.13.5"
           enable-cache: true
+          cache-suffix: py3.15
           save-cache: ${{ github.ref == 'refs/heads/main' }}
           prune-cache: true
       - name: audit the locked project environment
@@ -275,6 +304,7 @@ jobs:
         with:
           version: "0.13.5"
           enable-cache: true
+          cache-suffix: py3.15
           save-cache: ${{ github.ref == 'refs/heads/main' }}
           prune-cache: true
       - run: uv run --locked --extra dev ruff check aus_accounting_mcp tests  # NOSONAR: unprivileged job; uv installs the hash-locked set
@@ -315,7 +345,7 @@ jobs:
     # when a job in this file is missing
     # from needs, or when a pull request removes a job without adding a
     # "# removed-jobs: <job>" comment to this file.
-    needs: [changes, packages, crates, rust, umbrella-parity, test, dependency-audit, lint]
+    needs: [changes, packages, crates, rust, umbrella-parity, dependency-policy, test, dependency-audit, lint]
     if: always()
     runs-on: ubuntu-latest
     timeout-minutes: 5
