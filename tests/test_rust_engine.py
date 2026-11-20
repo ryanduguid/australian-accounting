@@ -118,7 +118,10 @@ class RustEngineTests(unittest.TestCase):
     def test_cargo_ci_security_and_publisher_boundary(self):
         workflows = ROOT / ".github/workflows"
         caller = (workflows / "ci.yml").read_text()
-        self.assertIn("needs: [changes, packages, crates, rust, umbrella-parity, test, dependency-audit, lint]", caller)
+        self.assertIn(
+            "needs: [changes, packages, crates, rust, umbrella-parity, dependency-policy, test, dependency-audit, lint]",
+            caller,
+        )
         workflow = (workflows / "ci-rust.yml").read_text()
         for gate in ("cargo fmt --check", "cargo clippy --locked --all-targets -- -D warnings", "cargo clippy --locked --all-targets --all-features -- -D warnings", "cargo test --locked", "cargo build --locked --release", "cargo audit", "cargo llvm-cov --locked --fail-under-lines"):
             self.assertIn(gate, workflow)

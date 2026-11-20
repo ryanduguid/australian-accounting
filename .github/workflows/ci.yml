@@ -39,6 +39,7 @@ jobs:
     timeout-minutes: 2
     outputs:
       run: ${{ steps.select.outputs.run }}
+      python-matrix: ${{ steps.python-matrix.outputs.matrix }}
     steps:
       - uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
         with:
@@ -49,6 +50,8 @@ jobs:
           fetch-depth: 2
       - id: select
         run: python3 .github/ci/app_ci.py select aus-accounting-mcp >> "$GITHUB_OUTPUT"
+      - id: python-matrix
+        run: python3 .github/ci/app_ci.py mcp-python-matrix >> "$GITHUB_OUTPUT"
 
   packages:
     name: ${{ matrix.package }}
@@ -175,10 +178,18 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
-      - uses: taiki-e/install-action@cfdb7ed4ccc7c7dce37759eae89dc5674b469b39 # v2.90.3
-        with:
-          tool: cargo-deny@0.22.0
-          fallback: none
+      - name: Install verified cargo-deny 0.22.0
+        shell: bash
+        working-directory: ${{ runner.temp }}
+        run: |
+          set -euo pipefail
+          distribution=cargo-deny-0.22.0-x86_64-unknown-linux-musl
+          archive="$distribution.tar.gz"
+          curl --proto '=https' --proto-redir '=https' -fsSL --max-time 75 -o "$archive" \
+            "https://github.com/EmbarkStudios/cargo-deny/releases/download/0.22.0/$archive"
+          printf '%s  %s\n' 98c56e6a408bfa5c3c60744b6015aaa6aa08f743fdeb88386d06fca035bb1786 "$archive" | sha256sum --check
+          tar -xzf "$archive" "$distribution/cargo-deny"
+          echo "$RUNNER_TEMP/$distribution" >> "$GITHUB_PATH"
       - name: Check licences and sources for every Cargo lock
         shell: bash
         run: |
@@ -199,12 +210,7 @@ jobs:
     timeout-minutes: 25
     strategy:
       fail-fast: false
-      matrix:
-        os: ${{ fromJSON((github.event_name == 'schedule' || (github.event_name == 'push' && github.ref == 'refs/heads/main')) && '["ubuntu-latest","windows-latest","macos-latest"]' || '["ubuntu-latest","windows-latest"]') }}
-        python: ["3.14"]
-        include:
-          - os: ubuntu-latest
-            python: "3.15"
+      matrix: ${{ fromJSON(needs.changes.outputs.python-matrix) }}
     runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -359,10 +365,6 @@ jobs:
         env:
           RESULTS: ${{ toJSON(needs) }}
         run: python3 .github/ci/app_ci.py gate aus-accounting-mcp crates
-      - name: Require dependency policy to succeed
-        env:
-          POLICY_RESULT: ${{ needs.dependency-policy.result }}
-        run: test "$POLICY_RESULT" = success
       - name: Require every job to be listed and kept
         env:
           RESULTS: ${{ toJSON(needs) }}
