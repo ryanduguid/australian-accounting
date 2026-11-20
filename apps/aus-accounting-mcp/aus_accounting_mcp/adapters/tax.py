@@ -18,7 +18,12 @@ import re
 import shutil
 import stat
 import subprocess
+import tempfile
+from collections.abc import Iterator
+from contextlib import contextmanager
 from decimal import Decimal, InvalidOperation
+from pathlib import Path
+from time import sleep
 from typing import Any
 
 from mcp.server.mcpserver.exceptions import ToolError
@@ -55,6 +60,7 @@ NOT_WORKSHEETS = frozenset({"worksheet-catalogue", "periods", "derive",
                             "personal-tax-estimate", "dgr-check", "fbt-return"})
 #: The release executables are under 8 MiB; a source build over this is refused unread.
 MAX_BYTES = 256 * 1024 * 1024
+COPY_CHUNK_BYTES = 1024 * 1024
 
 
 class CalculatorsUnavailable(ToolError):
@@ -79,55 +85,88 @@ def _executable() -> str | None:
     return None
 
 
-def _run(binary: str, arguments: list[str], payload: str = "") -> subprocess.CompletedProcess[str]:
+def _run(staged: Path, original: str, arguments: list[str],
+         payload: str = "") -> subprocess.CompletedProcess[str]:
     try:
-        # An argument list and no shell; the executable is the absolute path the
-        # operator named or put on PATH, and the arguments are fixed command names.
+        # Use the exact private file we verified and keep the original directory
+        # out of the executable's working directory.
         return subprocess.run(  # NOSONAR nosemgrep
-            [binary, *arguments], input=payload, capture_output=True, text=True,  # nosemgrep
+            [str(staged), *arguments], executable=str(staged), cwd=str(staged.parent),  # nosemgrep
+            input=payload, capture_output=True, text=True,
             encoding="utf-8", timeout=TIMEOUT_SECONDS, check=False,
         )
     except (OSError, subprocess.SubprocessError) as exc:
-        raise CalculatorsUnavailable(f"{binary} did not run: {exc}. {INSTALL}") from exc
+        raise CalculatorsUnavailable(f"{original} did not run: {exc}. {INSTALL}") from exc
 
 
-def _trusted(binary: str) -> str:
-    """The executable, once its SHA-256 is a released one or the operator's; else refused.
+def _copy_executable(binary: str, staged: Path) -> str:
+    digest = hashlib.sha256()
+    # Without O_NONBLOCK, opening a FIFO on PATH can wait for a writer.
+    with open(binary, "rb", opener=lambda path, flags: os.open(
+            path, flags | getattr(os, "O_NONBLOCK", 0))) as source:
+        info = os.fstat(source.fileno())
+        if not stat.S_ISREG(info.st_mode):
+            raise CalculatorsUnavailable(f"{binary} is not a regular file. {INSTALL}")
+        if info.st_size > MAX_BYTES:
+            raise CalculatorsUnavailable(
+                f"{binary} is {info.st_size} bytes, larger than any {CALCULATORS} "
+                f"build this server runs ({MAX_BYTES}). {INSTALL}")
+        copied = 0
+        with staged.open("xb") as target:
+            while chunk := source.read(min(COPY_CHUNK_BYTES, MAX_BYTES - copied + 1)):
+                copied += len(chunk)
+                if copied > MAX_BYTES:
+                    raise CalculatorsUnavailable(
+                        f"{binary} exceeds {MAX_BYTES} bytes, larger than any "
+                        f"{CALCULATORS} build this server runs. {INSTALL}")
+                # The blocking buffered file writes the whole chunk or raises.
+                target.write(chunk)
+                digest.update(chunk)
+    return digest.hexdigest()
 
-    Checked before it runs, so another program on PATH that prints the pinned
-    version is never run.
 
-    shortcut: the file is checked by path and then run by path, so whoever can write
-    it, its folder or a link on its path can swap it in between; the README tells
-    operators to keep it where only they can write. Closing that needs running the
-    checked bytes themselves, from a private copy or the descriptor that was hashed.
-    """
+@contextmanager
+def _staging_directory() -> Iterator[Path]:
+    directory = tempfile.TemporaryDirectory(prefix="aus-tax-calculators-")
+    try:
+        yield Path(directory.name)
+    finally:
+        # Windows can briefly prevent deletion of an executable after it exits.
+        for delay in (0.05, 0.1, 0.2, 0.4, 0.8):
+            try:
+                directory.cleanup()
+            except PermissionError as exc:
+                if getattr(exc, "winerror", None) != 32:
+                    raise
+                sleep(delay)
+            else:
+                break
+        else:
+            directory.cleanup()
+
+
+@contextmanager
+def _trusted(binary: str) -> Iterator[Path]:
+    """Keep the digest-verified copy alive for the duration of its use."""
     # Either case: sha256sum prints lower case, PowerShell's Get-FileHash upper.
     named = os.environ.get(DIGEST_VARIABLE, "").lower()
     if named and not re.fullmatch(r"[0-9a-f]{64}", named):
         raise CalculatorsUnavailable(
             f"{DIGEST_VARIABLE} must be a SHA-256 of 64 hexadecimal digits. {INSTALL}")
     try:
-        # Without O_NONBLOCK, opening a FIFO planted on PATH waits for a writer.
-        with open(binary, "rb", opener=lambda path, flags: os.open(
-                path, flags | getattr(os, "O_NONBLOCK", 0))) as file:
-            info = os.fstat(file.fileno())
-            if not stat.S_ISREG(info.st_mode):
-                raise CalculatorsUnavailable(f"{binary} is not a regular file. {INSTALL}")
-            # A sparse file of any size would otherwise be read to its end first.
-            if info.st_size > MAX_BYTES:
+        with _staging_directory() as folder:
+            suffix = ".exe" if os.name == "nt" else ""
+            staged = folder / f"{CALCULATORS}{suffix}"
+            digest = _copy_executable(binary, staged)
+            if digest not in RELEASED_DIGESTS and digest != named:
                 raise CalculatorsUnavailable(
-                    f"{binary} is {info.st_size} bytes, larger than any {CALCULATORS} "
-                    f"build this server runs ({MAX_BYTES}). {INSTALL}")
-            digest = hashlib.file_digest(file, "sha256").hexdigest()
+                    f"{binary} has SHA-256 {digest}, which is neither a {CALCULATORS} "
+                    f"{CALCULATORS_VERSION} release executable nor named in {DIGEST_VARIABLE}. "
+                    f"{INSTALL}")
+            staged.chmod(0o700)
+            yield staged
     except OSError as exc:
         raise CalculatorsUnavailable(f"{binary} did not run: {exc}. {INSTALL}") from exc
-    if digest not in RELEASED_DIGESTS | {named}:
-        raise CalculatorsUnavailable(
-            f"{binary} has SHA-256 {digest}, which is neither a {CALCULATORS} "
-            f"{CALCULATORS_VERSION} release executable nor named in {DIGEST_VARIABLE}. "
-            f"{INSTALL}")
-    return binary
 
 
 def reported_version() -> str | None:
@@ -136,30 +175,33 @@ def reported_version() -> str | None:
         binary = _executable()
         if binary is None:
             return None
-        reply = _run(_trusted(binary), ["--version"])
+        with _trusted(binary) as staged:
+            reply = _run(staged, binary, ["--version"])
     except CalculatorsUnavailable:
         return None
     name, _, version = reply.stdout.strip().partition(" ")
     return version if reply.returncode == 0 and name == CALCULATORS and version else None
 
 
-def _binary() -> str:
+@contextmanager
+def _binary() -> Iterator[tuple[str, Path]]:
     binary = _executable()
     if binary is None:
         raise CalculatorsUnavailable(f"No {CALCULATORS} executable was found. {INSTALL}")
-    reply = _run(_trusted(binary), ["--version"])
-    if reply.returncode != 0 or reply.stdout != f"{CALCULATORS} {CALCULATORS_VERSION}\n":
-        raise CalculatorsUnavailable(
-            f"{binary} --version answered {reply.stdout.strip()!r}, not "
-            f"'{CALCULATORS} {CALCULATORS_VERSION}'. {INSTALL}"
-        )
-    return binary
+    with _trusted(binary) as staged:
+        reply = _run(staged, binary, ["--version"])
+        if reply.returncode != 0 or reply.stdout != f"{CALCULATORS} {CALCULATORS_VERSION}\n":
+            raise CalculatorsUnavailable(
+                f"{binary} --version answered {reply.stdout.strip()!r}, not "
+                f"'{CALCULATORS} {CALCULATORS_VERSION}'. {INSTALL}"
+            )
+        yield binary, staged
 
 
 def _command(command: str, payload: dict[str, Any]) -> dict[str, Any]:
     """One JSON stdin command: its result, its refusal as InputError, or unavailability."""
-    binary = _binary()
-    reply = _run(binary, [command, "--refusal-json"], json.dumps(payload))
+    with _binary() as (binary, staged):
+        reply = _run(staged, binary, [command, "--refusal-json"], json.dumps(payload))
     try:
         answer = json.loads(reply.stdout)
     except json.JSONDecodeError:
@@ -229,8 +271,8 @@ def calculate(facts: TaxFacts) -> dict[str, Any]:
 
 def commands() -> list[str]:
     """The executable's own command list, as its --api-help states it."""
-    binary = _binary()
-    reply = _run(binary, ["--api-help"])
+    with _binary() as (binary, staged):
+        reply = _run(staged, binary, ["--api-help"])
     listed = reply.stdout.splitlines()[0] if reply.returncode == 0 and reply.stdout else ""
     if not listed.startswith("JSON stdin commands: "):
         raise CalculatorsUnavailable(f"{binary} --api-help answered {listed[:200]!r}. {INSTALL}")
