@@ -391,7 +391,9 @@ mod tests {
     /// buffers are pinned at 16 KiB, as a host that lets them grow to tens of
     /// MiB holds the whole send, and the reader drains its buffer every
     /// 100 ms, so every write makes progress well inside the timeout: a
-    /// timeout armed for each write alone runs until the reader stops at 3 s.
+    /// timeout armed for each write alone runs until the reader stops at 10 s.
+    /// The bound of 3 s for a 0.5 s timeout leaves room for a slow runner (a
+    /// macOS run once took 2.09 s) and still fails such a send.
     #[cfg(unix)]
     #[test]
     fn a_slow_reader_bounds_a_send_as_a_whole() {
@@ -418,7 +420,7 @@ mod tests {
         let server = std::thread::spawn(move || {
             let (mut peer, _) = listener.accept().unwrap();
             let mut chunk = [0u8; 64 << 10];
-            for _ in 0..30 {
+            for _ in 0..100 {
                 std::thread::sleep(Duration::from_millis(100));
                 if matches!(peer.read(&mut chunk), Ok(0) | Err(_)) {
                     break;
@@ -437,7 +439,7 @@ mod tests {
         let start = Instant::now();
         assert!(connection.write_all(&vec![b'x'; 4 << 20]).is_err());
         let elapsed = start.elapsed();
-        assert!(elapsed < Duration::from_millis(1500), "{elapsed:?}");
+        assert!(elapsed < Duration::from_secs(3), "{elapsed:?}");
         drop(connection);
         server.join().unwrap();
     }
