@@ -1,3 +1,25 @@
+# v1.1.0
+
+The standalone calculator now serves 66 worksheet kinds. Additions since
+1.0.0 include First Home Super Saver, CGT parcels and small business CGT
+concessions, a franking account, fuel tax credits, 2026-27 payroll tax,
+luxury car tax, wine equalisation tax, GST under the margin scheme and
+several FBT and employment termination checks. The hire purchase and
+chattel mortgage worksheets include loan schedules and bounded GST
+calculations. The contract register accepts CSV through its own CLI command.
+
+The FBT estimate uses the statutory gross-up ratios at full precision. The
+return uses rounded amounts for items 14A and 14B. Car parking contributions
+above an individual benefit's taxable value cannot reduce another benefit.
+The capital gains worksheet identifies the 2027-28 transition and states
+the discount holding period for the applicable years. See [CHANGELOG.md](CHANGELOG.md)
+for the affected outputs, scope and refusal codes.
+
+GitHub Releases provides attested x86-64 Linux (static musl) and Windows
+executables. Other platforms can build from source. The command
+`australian-tax-calculators --version` prints `australian-tax-calculators 1.1.0`.
+See [README.md](README.md) for installation and verification.
+
 # v1.0.0
 
 Standalone Rust major version, published on GitHub Releases only, with

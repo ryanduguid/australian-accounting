@@ -92,7 +92,11 @@ fn frozen_effective_adapter_contracts() {
                 .get("engine_version")
                 .is_some()
             {
-                expected["structuredContent"]["engine_version"] = json!("1.0.0");
+                expected["structuredContent"]["engine_version"] = if kind.is_some() {
+                    json!("1.1.0")
+                } else {
+                    json!("1.0.0")
+                };
             }
             // Already-reviewed native engine correction, commit 4915b94.
             if kind == Some("study_loan_repayment") {
@@ -110,7 +114,7 @@ fn frozen_effective_adapter_contracts() {
                 let mut note =
                     engine::file_note(kind, note, &before, &expected["structuredContent"]).replace(
                         &engine,
-                        &format!("{} 1.0.0 result", before["engine"].as_str().unwrap()),
+                        &format!("{} 1.1.0 result", before["engine"].as_str().unwrap()),
                     );
                 if kind == "study_loan_repayment" {
                     note = note.replace(
@@ -268,7 +272,11 @@ fn frozen_resource_contracts() {
         if uri == "aus-accounting://component-versions" {
             expected["server"]["version"] = json!("1.0.0");
             for engine in expected["engines"].as_array_mut().unwrap() {
-                engine["version"] = json!("1.0.0");
+                engine["version"] = if engine["distribution"] == "australian-tax-calculators" {
+                    json!("1.1.0")
+                } else {
+                    json!("1.0.0")
+                };
             }
         }
         if uri == "aus-accounting://scope" {
@@ -303,7 +311,11 @@ fn native_freshness(result: &mut Value) {
     for row in result["datasets"].as_array_mut().unwrap() {
         engine::freshness(row);
         engine::rate_records(row);
-        row["engine_version"] = json!("1.0.0");
+        row["engine_version"] = if row["engine"] == "australian-tax-calculators" {
+            json!("1.1.0")
+        } else {
+            json!("1.0.0")
+        };
         let provenance = &mut row["provenance"];
         if let Some(tables) = provenance.get_mut("tables") {
             for table in tables.as_array_mut().unwrap() {
