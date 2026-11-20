@@ -238,7 +238,7 @@ Australian Accounting holds 13 components, each in its own directory:
 
 | Path | Distribution | Import package | Commands |
 |---|---|---|---|
-| `packages/australian-tax-calculators/` | `australian-tax-calculators` (Rust) | none | `australian-tax-calculators` (JSON stdin worksheets) |
+| `packages/australian-tax-calculators/` | `australian-tax-calculators` (Rust) | none | `australian-tax-calculators` (JSON stdin worksheets and `contract-register FILE`) |
 | `apps/aus-accounting-mcp/` | `aus-accounting-mcp` | `aus_accounting_mcp` | `aus-accounting-mcp`, `aus-accounting-mcp-demo` |
 | `packages/ato-benchmark-compare/` | `ato-benchmark-compare` (Rust) | none | `ato-benchmark-compare` |
 | `packages/payday-super-checker/` | `payday-super-checker` (Rust) | none | `payday-super-check` |

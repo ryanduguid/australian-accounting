@@ -68,10 +68,18 @@ def _calculator_caps() -> dict[str, tuple[str, str]]:
 
 def _fbt_working(name: str) -> str:
     """A rate fbt() reports in its working, read from engine.rs."""
-    match = re.search(rf'rate\("{name}", "([^"]+)"\)', CALCULATIONS.read_text(encoding="utf-8"))
+    source = CALCULATIONS.read_text(encoding="utf-8")
+    body = source.split("\npub fn fbt(", 1)[1].split("\n}", 1)[0]
+    match = re.search(rf'rate\("{name}", (?:"([^"]+)"|(\w+))\)', body)
     if match is None:
         raise AssertionError(f"fbt() reports no {name} in src/engine.rs")
-    return match.group(1)
+    literal, binding = match.groups()
+    if literal is not None:
+        return literal
+    assigned = re.search(rf'let {binding} = d\("([^"]+)"\);', body)
+    if assigned is None:
+        raise AssertionError(f"fbt() reports {name} but has no literal for {binding}")
+    return assigned.group(1)
 
 
 def _record(name: str) -> dict:
