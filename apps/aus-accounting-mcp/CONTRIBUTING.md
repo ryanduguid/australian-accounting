@@ -33,9 +33,9 @@ demo output changes, then run the supplementary demo and media checks in `AGENTS
 ## Release handoff
 
 Do not publish from a contribution branch. In the release commit, set every README install
-pin, and the release link beside the first one, to the new version: the README is also the
-PyPI description. The Registry preflight below refuses a pin mismatch, but only after PyPI
-publication. After the CI gates and relevant supplementary checks pass, hand the reviewed
+pin and the release link beside the first one to the new version. The README is also the
+PyPI description. The release workflow checks the install pins before building the wheel.
+After the CI gates and relevant supplementary checks pass, hand the reviewed
 commit to the existing release workflow. A version tag
 creates the attested GitHub release, and the same workflow's **Publish to PyPI** job then
 publishes that exact distribution through the `pypi-aus-accounting-mcp` environment. Verify
@@ -59,8 +59,8 @@ The release commit also sets the version in `mcpb/manifest.json` and in
 The **Bundle aus-accounting-mcp** workflow refuses any other commit, packs the Claude
 Desktop bundle, starts it against the PyPI release and publishes it as its own release.
 
-After publication, run `uv run --locked python scripts/registry_preflight.py --readback`.
-This also requires one exact-name active latest Registry entry matching the package,
-version, repository and stdio transport, plus the published stable namespaced GitHub
-release. It reports mismatches without writing to the Registry or starting a workflow.
-Run it against the published version's source, rather than an unreleased candidate.
+After publication, the read-only `readback` job requires one exact-name active latest
+Registry entry matching the package, version, repository and stdio transport, and the
+published stable GitHub release. Its summary links to the exact Registry record. If a
+public read fails after publication, rerun the failed job. To verify locally from the
+published version's source, run `python scripts/registry_preflight.py --readback`.
