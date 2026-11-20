@@ -329,7 +329,7 @@ fn the_record_of_a_pass_is_written_with_its_money_as_exact_digits() {
     );
     assert_eq!(
         text(&parsed, "records/9/comparisons/1/result/local/fbt_estimate"),
-        "7094.37"
+        "7094.34"
     );
     assert_eq!(
         text(&parsed, "records/9/provider_result/fbt_payable"),

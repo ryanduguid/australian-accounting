@@ -27,7 +27,7 @@
     "tests/test_doctor.py": "0cd3dd9ed6f4e407d16ab908fc6fa342676e24dbe755b629c6579fc7604b27e3",
     "tests/test_engine_versions.py": "e2e9fa1c356cf8d855d20a5cef6fc73e25fb0f436ec4f54104a596989ffc5167",
     "tests/test_evidence_pack.py": "6720b62b13cd5f84808b6d91ff089ae7144700f1f62844e5e6117f519595fa24",
-    "tests/test_expansion.py": "4f92f546eda914b4719a75537d837a1d75982729c24759b4a1721bb9d28bc7f0",
+    "tests/test_expansion.py": "784c907b908fffa9f58954ec1f69f21e0f17c8f1514b38d10638dc9b4afac009",
     "tests/test_file_note.py": "19f3fed806aa356892ea828684000e0953f64b2e78cad1b5e19154c6231e251e",
     "tests/test_firm_assessment.py": "f0ec2f65ff8ec4eda7b1b90de550f39e0e7f726c032d455bcb54591f285507f7",
     "tests/test_group_review.py": "f82b82c06dc4f5f790d8f32383214a153138cacd4ab79452451800feecc79539",
@@ -1743,7 +1743,7 @@
     {
       "original": "tests/test_expansion.py:24",
       "function": "test_group_alignment_and_employee_separation",
-      "source_sha256": "4f92f546eda914b4719a75537d837a1d75982729c24759b4a1721bb9d28bc7f0",
+      "source_sha256": "784c907b908fffa9f58954ec1f69f21e0f17c8f1514b38d10638dc9b4afac009",
       "status": "covered",
       "proofs": [
         "F"
@@ -1752,7 +1752,7 @@
     {
       "original": "tests/test_expansion.py:42",
       "function": "test_group_nested_validation",
-      "source_sha256": "4f92f546eda914b4719a75537d837a1d75982729c24759b4a1721bb9d28bc7f0",
+      "source_sha256": "784c907b908fffa9f58954ec1f69f21e0f17c8f1514b38d10638dc9b4afac009",
       "status": "covered",
       "proofs": [
         "F"
@@ -1761,7 +1761,7 @@
     {
       "original": "tests/test_expansion.py:49",
       "function": "test_group_preserves_partial_and_missing_receipt",
-      "source_sha256": "4f92f546eda914b4719a75537d837a1d75982729c24759b4a1721bb9d28bc7f0",
+      "source_sha256": "784c907b908fffa9f58954ec1f69f21e0f17c8f1514b38d10638dc9b4afac009",
       "status": "covered",
       "proofs": [
         "F"
@@ -1770,7 +1770,7 @@
     {
       "original": "tests/test_expansion.py:59",
       "function": "test_library_search_and_bounded_citation",
-      "source_sha256": "4f92f546eda914b4719a75537d837a1d75982729c24759b4a1721bb9d28bc7f0",
+      "source_sha256": "784c907b908fffa9f58954ec1f69f21e0f17c8f1514b38d10638dc9b4afac009",
       "status": "covered",
       "proofs": [
         "L"
@@ -1779,7 +1779,7 @@
     {
       "original": "tests/test_expansion.py:78",
       "function": "test_library_is_opt_in_and_does_not_read_links",
-      "source_sha256": "4f92f546eda914b4719a75537d837a1d75982729c24759b4a1721bb9d28bc7f0",
+      "source_sha256": "784c907b908fffa9f58954ec1f69f21e0f17c8f1514b38d10638dc9b4afac009",
       "status": "covered",
       "proofs": [
         "L"
@@ -1788,7 +1788,7 @@
     {
       "original": "tests/test_expansion.py:100",
       "function": "test_calculator_transport",
-      "source_sha256": "4f92f546eda914b4719a75537d837a1d75982729c24759b4a1721bb9d28bc7f0",
+      "source_sha256": "784c907b908fffa9f58954ec1f69f21e0f17c8f1514b38d10638dc9b4afac009",
       "status": "covered",
       "proofs": [
         "F"
@@ -1797,7 +1797,7 @@
     {
       "original": "tests/test_expansion.py:111",
       "function": "test_calculators_refuse_unestablished_or_malformed_facts",
-      "source_sha256": "4f92f546eda914b4719a75537d837a1d75982729c24759b4a1721bb9d28bc7f0",
+      "source_sha256": "784c907b908fffa9f58954ec1f69f21e0f17c8f1514b38d10638dc9b4afac009",
       "status": "not-yet-ported",
       "proofs": [
         "F"
@@ -1807,7 +1807,7 @@
     {
       "original": "tests/test_expansion.py:119",
       "function": "test_library_pagination_unicode_and_external_link",
-      "source_sha256": "4f92f546eda914b4719a75537d837a1d75982729c24759b4a1721bb9d28bc7f0",
+      "source_sha256": "784c907b908fffa9f58954ec1f69f21e0f17c8f1514b38d10638dc9b4afac009",
       "status": "covered",
       "proofs": [
         "L"
@@ -1816,7 +1816,7 @@
     {
       "original": "tests/test_expansion.py:209",
       "function": "test_library_pagination_does_not_repeat_around_an_oversized_line",
-      "source_sha256": "4f92f546eda914b4719a75537d837a1d75982729c24759b4a1721bb9d28bc7f0",
+      "source_sha256": "784c907b908fffa9f58954ec1f69f21e0f17c8f1514b38d10638dc9b4afac009",
       "status": "covered",
       "proofs": [
         "L"
@@ -1825,7 +1825,7 @@
     {
       "original": "tests/test_expansion.py:227",
       "function": "test_library_pagination_stops_at_the_offset_bound_instead_of_stranding_the_caller",
-      "source_sha256": "4f92f546eda914b4719a75537d837a1d75982729c24759b4a1721bb9d28bc7f0",
+      "source_sha256": "784c907b908fffa9f58954ec1f69f21e0f17c8f1514b38d10638dc9b4afac009",
       "status": "adapted",
       "proofs": [
         "L"
@@ -1835,7 +1835,7 @@
     {
       "original": "tests/test_expansion.py:242",
       "function": "test_library_scan_budget_counts_invalid_utf8",
-      "source_sha256": "4f92f546eda914b4719a75537d837a1d75982729c24759b4a1721bb9d28bc7f0",
+      "source_sha256": "784c907b908fffa9f58954ec1f69f21e0f17c8f1514b38d10638dc9b4afac009",
       "status": "adapted",
       "proofs": [
         "L"
@@ -1845,7 +1845,7 @@
     {
       "original": "tests/test_expansion.py:253",
       "function": "test_library_internal_excerpt_rejects_non_positive_start",
-      "source_sha256": "4f92f546eda914b4719a75537d837a1d75982729c24759b4a1721bb9d28bc7f0",
+      "source_sha256": "784c907b908fffa9f58954ec1f69f21e0f17c8f1514b38d10638dc9b4afac009",
       "status": "adapted",
       "proofs": [
         "L"
@@ -1855,7 +1855,7 @@
     {
       "original": "tests/test_expansion.py:262",
       "function": "test_library_root_must_be_an_existing_folder",
-      "source_sha256": "4f92f546eda914b4719a75537d837a1d75982729c24759b4a1721bb9d28bc7f0",
+      "source_sha256": "784c907b908fffa9f58954ec1f69f21e0f17c8f1514b38d10638dc9b4afac009",
       "status": "covered",
       "proofs": [
         "L"
@@ -1864,7 +1864,7 @@
     {
       "original": "tests/test_expansion.py:268",
       "function": "test_library_search_needs_a_word",
-      "source_sha256": "4f92f546eda914b4719a75537d837a1d75982729c24759b4a1721bb9d28bc7f0",
+      "source_sha256": "784c907b908fffa9f58954ec1f69f21e0f17c8f1514b38d10638dc9b4afac009",
       "status": "covered",
       "proofs": [
         "L"
@@ -1873,7 +1873,7 @@
     {
       "original": "tests/test_expansion.py:274",
       "function": "test_library_read_refuses_a_start_past_the_end_and_an_oversized_file",
-      "source_sha256": "4f92f546eda914b4719a75537d837a1d75982729c24759b4a1721bb9d28bc7f0",
+      "source_sha256": "784c907b908fffa9f58954ec1f69f21e0f17c8f1514b38d10638dc9b4afac009",
       "status": "adapted",
       "proofs": [
         "L"
@@ -1883,7 +1883,7 @@
     {
       "original": "tests/test_expansion.py:286",
       "function": "test_library_read_of_a_file_that_is_not_utf8_is_an_input_error",
-      "source_sha256": "4f92f546eda914b4719a75537d837a1d75982729c24759b4a1721bb9d28bc7f0",
+      "source_sha256": "784c907b908fffa9f58954ec1f69f21e0f17c8f1514b38d10638dc9b4afac009",
       "status": "covered",
       "proofs": [
         "L"
@@ -1892,7 +1892,7 @@
     {
       "original": "tests/test_expansion.py:293",
       "function": "test_library_with_too_many_files_is_refused",
-      "source_sha256": "4f92f546eda914b4719a75537d837a1d75982729c24759b4a1721bb9d28bc7f0",
+      "source_sha256": "784c907b908fffa9f58954ec1f69f21e0f17c8f1514b38d10638dc9b4afac009",
       "status": "adapted",
       "proofs": [
         "L"
@@ -1902,7 +1902,7 @@
     {
       "original": "tests/test_expansion.py:304",
       "function": "test_library_search_counts_a_file_it_cannot_open_as_skipped",
-      "source_sha256": "4f92f546eda914b4719a75537d837a1d75982729c24759b4a1721bb9d28bc7f0",
+      "source_sha256": "784c907b908fffa9f58954ec1f69f21e0f17c8f1514b38d10638dc9b4afac009",
       "status": "adapted",
       "proofs": [
         "L"
@@ -4286,7 +4286,7 @@
     {
       "original": "tests/test_expansion.py:136",
       "function": "test_library_search_ranks_by_where_the_words_sit",
-      "source_sha256": "4f92f546eda914b4719a75537d837a1d75982729c24759b4a1721bb9d28bc7f0",
+      "source_sha256": "784c907b908fffa9f58954ec1f69f21e0f17c8f1514b38d10638dc9b4afac009",
       "status": "covered",
       "proofs": [
         "L"
@@ -4295,7 +4295,7 @@
     {
       "original": "tests/test_expansion.py:197",
       "function": "test_library_ranks_on_the_whole_heading_but_returns_it_truncated",
-      "source_sha256": "4f92f546eda914b4719a75537d837a1d75982729c24759b4a1721bb9d28bc7f0",
+      "source_sha256": "784c907b908fffa9f58954ec1f69f21e0f17c8f1514b38d10638dc9b4afac009",
       "status": "covered",
       "proofs": [
         "L"
@@ -4975,7 +4975,7 @@
     {
       "original": "tests/test_expansion.py:172",
       "function": "test_library_compares_whole_words_and_keeps_a_modal_with_its_not",
-      "source_sha256": "4f92f546eda914b4719a75537d837a1d75982729c24759b4a1721bb9d28bc7f0",
+      "source_sha256": "784c907b908fffa9f58954ec1f69f21e0f17c8f1514b38d10638dc9b4afac009",
       "status": "covered",
       "proofs": [
         "L"
@@ -4984,7 +4984,7 @@
     {
       "original": "tests/test_expansion.py:188",
       "function": "test_library_ranks_on_the_words_as_it_matches_them",
-      "source_sha256": "4f92f546eda914b4719a75537d837a1d75982729c24759b4a1721bb9d28bc7f0",
+      "source_sha256": "784c907b908fffa9f58954ec1f69f21e0f17c8f1514b38d10638dc9b4afac009",
       "status": "covered",
       "proofs": [
         "L"

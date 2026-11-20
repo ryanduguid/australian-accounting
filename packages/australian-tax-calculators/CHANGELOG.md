@@ -316,6 +316,14 @@
 
 ### Fixed
 
+- The FBT estimate and return use the full statutory gross-up formulas in
+  FBTAA s 5B(1B) and (1C). The return rounds items 14A and 14B to whole
+  dollars before calculating item 16. Displayed rates keep the published
+  four-decimal figures.
+- The capital gains worksheet cites the CGT method statement that applies in
+  2025-26 and 2026-27. Borrowing expenses refusals describe the leisure
+  facility exceptions in ITAA 1997 s 26-50. The CLI usage lists the CSV
+  contract register command.
 - The study loan repayment worksheet cites the ATO rate page's current title
   and update date. It uses the 2026-27 threshold in table 1. Example 3 still
   quotes the 2025-26 threshold. Repayment amounts are unchanged.

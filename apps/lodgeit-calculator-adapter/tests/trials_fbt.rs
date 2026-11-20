@@ -233,8 +233,8 @@ fn provider_body(overrides: &[(&str, Json)]) -> Json {
     let mut body = Json::obj([
         ("taxable_value", Json::str("8000.00")),
         ("gross_up_factor", Json::str("1.8868")),
-        ("grossed_up_taxable_value", Json::str("15094.40")),
-        ("fbt_payable", Json::str("7094.37")),
+        ("grossed_up_taxable_value", Json::str("15094.34")),
+        ("fbt_payable", Json::str("7094.34")),
         (
             "manifest",
             Json::obj([
@@ -325,11 +325,11 @@ fn double_gross_up_is_what_the_refusal_prevents() {
     let correct = money(&local, "type_two_grossed_up")
         .expect("a gross-up")
         .clone();
-    assert!(same(&correct, "15094.40"));
+    assert!(same(&correct, "15094.34"));
     let local =
         trial::run_local_aggregate(&(dec("0.00"), correct.clone()), 2026).expect("a worksheet");
     let doubled = money(&local, "type_two_grossed_up").expect("a gross-up");
-    assert!(same(doubled, "28480.11"));
+    assert!(same(doubled, "28479.89"));
     let floor = correct.mul(&dec("1.8")).expect("a product");
     assert!(doubled.gt(&floor).expect("comparable"));
 }
@@ -373,7 +373,7 @@ fn the_join_carries_the_category_value_and_agrees_on_the_gross_up() {
     ));
     assert!(same(
         money(&comparison.local, "type_two_grossed_up").expect("a figure"),
-        "15094.40"
+        "15094.34"
     ));
     assert!(mentions(&comparison, "only taxable_value crossed"));
     // The stub saw one POST to the snapshot's route.
@@ -469,7 +469,7 @@ fn a_figure_only_the_provider_returned_is_named() {
     // is named as a figure only the local side produced.
     let values = vec![
         (pts("taxable_value"), dec("8000.00")),
-        (pts("grossed_up_taxable_value"), dec("15094.40")),
+        (pts("grossed_up_taxable_value"), dec("15094.34")),
     ];
     let comparison = trial::evaluate_outcome(&benefit(), &fabricated(Status::Computed, values))
         .expect("a comparison");
