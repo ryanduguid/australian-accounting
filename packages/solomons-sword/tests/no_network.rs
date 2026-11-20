@@ -99,15 +99,17 @@ fn the_binary_imports_no_network_or_process_call() {
     let binary = std::fs::read(BINARY).unwrap().to_ascii_lowercase();
     let names = |name: &str| binary.windows(name.len()).any(|w| w == name.as_bytes());
     assert!(names("kernel32"), "the import table is not readable");
+    // A library is sought with its `.dll`, as the import table names it: a bare
+    // name such as `urlmon` can arise from 2 adjacent string constants.
     for name in [
-        "ws2_32",
-        "wsock32",
-        "mswsock",
-        "winhttp",
-        "wininet",
-        "dnsapi",
-        "iphlpapi",
-        "urlmon",
+        "ws2_32.dll",
+        "wsock32.dll",
+        "mswsock.dll",
+        "winhttp.dll",
+        "wininet.dll",
+        "dnsapi.dll",
+        "iphlpapi.dll",
+        "urlmon.dll",
         "createprocess",
         "shellexecute",
     ] {
