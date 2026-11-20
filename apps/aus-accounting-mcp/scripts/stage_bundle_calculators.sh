@@ -13,6 +13,19 @@ policy="$(sed -n 's/.*release-binary\.yml@\([0-9a-f]\{40\}\)$/\1/p' \
     "$GITHUB_WORKSPACE/.github/workflows/release-australian-tax-calculators.yml")"
 [[ "$version" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ && "$policy" =~ ^[0-9a-f]{40}$ ]]
 
+# Match the platform markers in the adapter's executable allowlist.
+release_digest() {
+    local platform="$1" digest
+    digest="$(sed -n "/^RELEASED_DIGESTS = frozenset({$/,/^})$/s/^[[:space:]]*\"\([0-9a-f]\{64\}\)\",[[:space:]]*# $platform$/\1/p" "$adapter")"
+    if [[ ! "$digest" =~ ^[0-9a-f]{64}$ ]]; then
+        printf 'Expected one calculator digest for %s\n' "$platform" >&2
+        return 1
+    fi
+    printf '%s\n' "$digest"
+}
+linux_digest="$(release_digest linux-musl)"
+windows_digest="$(release_digest windows-msvc)"
+
 name=australian-tax-calculators
 tag="$name/v$version"
 linux="$name-$version-x86_64-unknown-linux-musl.tar.gz"
@@ -38,10 +51,8 @@ done
 # Extract only the named members, without taking any paths from the archives.
 tar -xOzf "$linux" "$name" > "$name"
 unzip -p "$windows" "$name.exe" > "$name.exe"
-for binary in "$name" "$name.exe"; do
-    digest="$(sha256sum "$binary" | cut -d ' ' -f 1)"
-    grep -Fq "\"$digest\"" "$adapter"
-done
+printf '%s  %s\n' "$linux_digest" "$name" "$windows_digest" "$name.exe" |
+    sha256sum --check --strict
 destination="$app/mcpb/bin"
 mkdir "$destination"
 install -m 0755 "$name" "$destination/$name"
