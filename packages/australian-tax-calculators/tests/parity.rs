@@ -202,22 +202,21 @@ fn adapt(command: &str, input: &Value, mut expected: Value) -> Value {
     let Some(study) = study else {
         return expected;
     };
-    // The ATO moved and retitled its study loan page; read again on 20 October 2026.
+    // The ATO page's title, update date and reviewed passages, checked 20 November 2026.
     let url = "https://www.ato.gov.au/tax-rates-and-codes/study-and-training-loan-minimum-repayment-income-and-rates";
     study["sources"][0] = json!(url);
-    study["source_checked"] = json!("2026-10-20");
+    study["source_checked"] = json!("2026-11-20");
     if command == "worksheet-catalogue" {
         study["source"] = json!(url);
-        let passage = study["source_passage"].as_str().unwrap().replace(
-            "repayment thresholds and rates",
-            "minimum repayment income and rates",
-        );
+        let passage = study["source_passage"]
+            .as_str()
+            .unwrap()
+            .replace("examples 1 to 3", "examples 1 and 2");
         study["source_passage"] = json!(passage);
         let evidence = &mut study["example_evidence"];
-        evidence["document"] =
-            json!("ATO study and training loan minimum repayment income and rates");
-        evidence["reviewed"] = json!("2026-10-13");
-        evidence["checked"] = json!("2026-10-20");
+        evidence["paragraphs"] = json!("tables 1 and 2, examples 1 and 2");
+        evidence["reviewed"] = json!("2026-06-30");
+        evidence["checked"] = json!("2026-11-20");
     }
     expected
 }
