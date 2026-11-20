@@ -132,15 +132,17 @@ def _staging_directory() -> Iterator[Path]:
         yield Path(directory.name)
     finally:
         # Windows can briefly prevent deletion of an executable after it exits.
-        for delay in (0.05, 0.1, 0.2, 0.4, 0.8, None):
+        for delay in (0.05, 0.1, 0.2, 0.4, 0.8):
             try:
                 directory.cleanup()
             except PermissionError as exc:
-                if delay is None or getattr(exc, "winerror", None) != 32:
+                if getattr(exc, "winerror", None) != 32:
                     raise
                 sleep(delay)
             else:
                 break
+        else:
+            directory.cleanup()
 
 
 @contextmanager
