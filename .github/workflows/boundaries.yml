@@ -84,6 +84,7 @@ jobs:
         with:
           version: "0.13.5"
           enable-cache: true
+          cache-suffix: py3.15
           save-cache: ${{ github.ref == 'refs/heads/main' }}
           prune-cache: true
       - run: uv lock --check
