@@ -23,16 +23,15 @@ The listing identifies the distribution; it does not prove a client's installed 
   and build a 4-file evidence pack for a practitioner's workpaper.
 - **Division 7A:** get the benchmark interest rate and review s 109N loan terms and
   s 109E minimum yearly repayments for one loan. Matters outside that scope are refused.
-- **14 tax and super worksheets:** GST, resident basic tax, CGT, FBT, first-year
+- **66 tax and super worksheet kinds.** These include GST, resident basic tax, CGT, FBT, first-year
   depreciation, quarterly SG, Schedule 1 PAYG withholding, super contribution caps,
   account-based pension minimums, study and training loan repayments, Schedule 8 study
   loan withholding, a single person's Medicare levy, the low income tax offset and
   Division 293 tax, each within a stated period and scope. The Medicare levy worksheet
   refuses a person to whom s 9A (lump sum payments in arrears) applies. The annual
   Medicare worksheet does not apply Medicare adjustments to payroll withholding.
-  Worksheets added to the Rust calculators since 0.2.0, such as the main residence
-  exemption, borrowing expenses and the Division 296 estimate, run through the
-  `au-accounting` command until this server links the Rust crate.
+  The catalogue also includes the main residence exemption, borrowing expenses
+  and the Division 296 estimate.
 - **GST and BAS:** give each coded bank line a review state against supplied GST
   registration dates and compare lodged BAS label figures with ledger lines per period.
 - **Lodgment and identifiers:** list ATO 2026-27 lodgment program due dates and test
@@ -50,26 +49,26 @@ The listing identifies the distribution; it does not prove a client's installed 
 Requires Python 3.14+ and [uv](https://docs.astral.sh/uv/):
 
 ```bash
-uvx --from 'aus-accounting-mcp==0.10.0' aus-accounting-mcp
+uvx --from 'aus-accounting-mcp==0.11.0' aus-accounting-mcp
 ```
 
-This selects the published [0.10.0 release](https://github.com/ryanduguid/australian-accounting/releases/tag/aus-accounting-mcp/v0.10.0).
+This selects the published [0.11.0 release](https://github.com/ryanduguid/australian-accounting/releases/tag/aus-accounting-mcp/v0.11.0).
 The source checkout may be ahead of the published release. The pin selects the
 server version; it does not lock every transitive dependency.
 
-From 0.10.0 the tax worksheets also need the `australian-tax-calculators` 1.0.0
+The tax worksheets use the `australian-tax-calculators` 1.1.0
 executable, which `uvx` does not install. On x86_64 Linux, one command downloads it
-from the [australian-tax-calculators/v1.0.0 release](https://github.com/ryanduguid/australian-accounting/releases/tag/australian-tax-calculators/v1.0.0),
+from the [australian-tax-calculators/v1.1.0 release](https://github.com/ryanduguid/australian-accounting/releases/tag/australian-tax-calculators/v1.1.0),
 verifies it and adds its folder to `PATH`:
 
 ```sh
-curl --proto '=https' --tlsv1.2 -fsSL https://raw.githubusercontent.com/ryanduguid/release-policy/d7039efe6d8c441f1f213c674902909e80535599/scripts/install.sh | sh -s -- ryanduguid/australian-accounting australian-tax-calculators/v1.0.0 --modify-path
+curl --proto '=https' --tlsv1.2 -fsSL https://raw.githubusercontent.com/ryanduguid/release-policy/d7039efe6d8c441f1f213c674902909e80535599/scripts/install.sh | sh -s -- ryanduguid/australian-accounting australian-tax-calculators/v1.1.0 --modify-path
 ```
 
 In PowerShell on x86_64 Windows:
 
 ```powershell
-& ([scriptblock]::Create((irm https://raw.githubusercontent.com/ryanduguid/release-policy/d7039efe6d8c441f1f213c674902909e80535599/scripts/install.ps1))) ryanduguid/australian-accounting australian-tax-calculators/v1.0.0 -ModifyPath
+& ([scriptblock]::Create((irm https://raw.githubusercontent.com/ryanduguid/release-policy/d7039efe6d8c441f1f213c674902909e80535599/scripts/install.ps1))) ryanduguid/australian-accounting australian-tax-calculators/v1.1.0 -ModifyPath
 ```
 
 Both need the [GitHub CLI](https://cli.github.com/), with no sign-in, and install nothing
@@ -118,18 +117,18 @@ For Claude Desktop, Cursor, Windsurf and other hosts that run local stdio server
   "mcpServers": {
     "aus-accounting": {
       "command": "uvx",
-      "args": ["--from", "aus-accounting-mcp==0.10.0", "aus-accounting-mcp"]
+      "args": ["--from", "aus-accounting-mcp==0.11.0", "aus-accounting-mcp"]
     }
   }
 }
 ```
 
-[Add to Cursor](https://cursor.com/en/install-mcp?name=aus-accounting&config=eyJjb21tYW5kIjoidXZ4IiwiYXJncyI6WyItLWZyb20iLCJhdXMtYWNjb3VudGluZy1tY3A9PTAuMTAuMCIsImF1cy1hY2NvdW50aW5nLW1jcCJdfQ==),
+[Add to Cursor](https://cursor.com/en/install-mcp?name=aus-accounting&config=eyJjb21tYW5kIjoidXZ4IiwiYXJncyI6WyItLWZyb20iLCJhdXMtYWNjb3VudGluZy1tY3A9PTAuMTEuMCIsImF1cy1hY2NvdW50aW5nLW1jcCJdfQ==),
 or from a terminal:
 
 ```bash
-claude mcp add --scope user aus-accounting -- uvx --from 'aus-accounting-mcp==0.10.0' aus-accounting-mcp
-codex mcp add aus-accounting -- uvx --from 'aus-accounting-mcp==0.10.0' aus-accounting-mcp
+claude mcp add --scope user aus-accounting -- uvx --from 'aus-accounting-mcp==0.11.0' aus-accounting-mcp
+codex mcp add aus-accounting -- uvx --from 'aus-accounting-mcp==0.11.0' aus-accounting-mcp
 ```
 
 The [client setup guide](https://github.com/ryanduguid/australian-accounting/blob/main/apps/aus-accounting-mcp/docs/REFERENCE.md#client-setup)
@@ -261,13 +260,12 @@ Release `aus-accounting-mcp==0.5.0` provides 14 worksheets through
 `australian-tax-calculators==0.2.0`, including Schedule 8 study-loan withholding,
 the bounded annual Medicare levy, LITO and Division 293. The preceding 0.4.0
 release provides 10 through calculators 0.1.8. From 0.10.0 the 14 run through the
-`australian-tax-calculators` 1.0.0 executable instead. Unreleased source serves every
-worksheet in that executable's catalogue, 48 kinds in 1.0.0. See the
+`australian-tax-calculators` 1.0.0 executable instead. Release 0.11.0 serves all 66 kinds in the 1.1.0 catalogue. See the
 [worksheet release verification](https://github.com/ryanduguid/australian-accounting/blob/main/apps/aus-accounting-mcp/docs/worksheet-release.md) for the installed
 package checks.
 
 [Release notes](https://github.com/ryanduguid/australian-accounting/blob/main/apps/aus-accounting-mcp/RELEASE_NOTES.md),
-[v0.10.0 release record](https://github.com/ryanduguid/australian-accounting/releases/tag/aus-accounting-mcp/v0.10.0),
+[v0.11.0 release record](https://github.com/ryanduguid/australian-accounting/releases/tag/aus-accounting-mcp/v0.11.0),
 [CITATION.cff](https://github.com/ryanduguid/australian-accounting/blob/main/apps/aus-accounting-mcp/CITATION.cff).
 
 <sub>Not tax, legal or financial advice. Payday Super and Division 7A reviews are experimental and need human review before consequential accounting action; fixtures are not a lodgement. Ryan Duguid is not a registered tax agent or BAS agent. Support covers software issues reproduced with fabricated data: do not send taxpayer information or ask for advice, return preparation, tax-treatment confirmation or lodgement. See [DISCLAIMER.md](https://github.com/ryanduguid/australian-accounting/blob/main/apps/aus-accounting-mcp/DISCLAIMER.md).</sub>
