@@ -51,6 +51,10 @@ impl Drop for Server {
 }
 /// A frozen Python resource reply as the linked engine gives it (tests/engine/mod.rs).
 fn linked(request: &Value, mut expected: Value) -> Value {
+    if request["params"]["uri"] == "aus-accounting://disclaimer" {
+        let text = expected.pointer_mut("/result/contents/0/text").unwrap();
+        *text = json!(engine::statutory_fbt_text(text.as_str().unwrap()));
+    }
     if let Some(worksheets) = expected
         .pointer_mut("/result/contents/0/text/calculation_worksheets")
         .and_then(Value::as_object_mut)
