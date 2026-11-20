@@ -40,7 +40,8 @@ def pytest_configure() -> None:
     if supplied:
         return
     try:
-        tax._binary()
+        with tax._binary():
+            pass
     except tax.CalculatorsUnavailable as exc:
         raise pytest.UsageError(
             f"The {tax.CALCULATORS} built from {PACKAGE} is not the release this server "

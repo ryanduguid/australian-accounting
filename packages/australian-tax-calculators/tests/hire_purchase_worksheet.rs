@@ -411,10 +411,8 @@ fn albert_s_second_freezer() {
 
 /// Darren's car ('Purchasing a motor vehicle'): $91,242.80, worth more than
 /// the $69,883 car limit for 2026-27 and not quoted for, so s 69-10(1) caps
-/// the credit on the car at 1/11 of that limit. The sources read do not settle
-/// whether the cap also takes in the GST on the credit component, which the
-/// ATO's financial services register treats as a separate supply of finance,
-/// so there is no GST figure and the result says why.
+/// the credit on the car at 1/11 of that limit. Without an invoice that
+/// establishes the split, the worksheet gives no GST figure.
 #[test]
 fn a_car_over_the_car_limit_gives_no_figure_and_is_flagged_for_review() {
     let gst = json!({"registered": true, "accounting_basis": "accruals",
@@ -432,6 +430,78 @@ fn a_car_over_the_car_limit_gives_no_figure_and_is_flagged_for_review() {
     assert_eq!(r["gst"]["computed"], false);
     assert!(r["gst"]["review"].as_str().unwrap().contains("s 69-10(1)"));
     assert_eq!(r["journals"]["gst_booked"], false);
+}
+
+#[test]
+fn a_capped_hire_purchase_caps_only_the_verified_goods_credit() {
+    let mut input = json!({
+        "amount_financed": "91242.80", "instalment": "1800.00", "instalments": 60,
+        "balloon": "0.00", "start_date": "2026-07-12",
+        "gst": {"registered": true, "accounting_basis": "accruals",
+                "creditable_purpose": "1", "asset": "passenger_car",
+                "first_used_year": "2026-27", "gst_inclusive_market_value": "91242.80",
+                "luxury_car_tax": "2407.80", "quotes_abn_for_luxury_car_tax": false,
+                "separate_tax_invoice": {"tax_invoice_held": true,
+                    "goods_consideration": "91242.80", "finance_consideration": "16757.20",
+                    "goods_gst": "8075.91", "finance_gst": "1523.38"}}
+    });
+    let r = run(input.clone()).unwrap();
+    // A $6,353 goods cap plus the separate $1,523.38 finance GST.
+    assert_eq!(amount(&r, "gst_payable"), "9599.29");
+    assert_eq!(amount(&r, "full_input_tax_credit"), "7876.38");
+    assert_eq!(amount(&r, "input_tax_credit"), "7876.38");
+    assert!(r["gst"].get("attributable").is_none());
+    assert_eq!(r["journals"]["gst_booked"], false);
+
+    input["gst"]["creditable_purpose"] = json!("0.5");
+    assert_eq!(
+        amount(&run(input.clone()).unwrap(), "input_tax_credit"),
+        "3938.19"
+    );
+    input["gst"]["separate_tax_invoice"]["finance_gst"] = json!("0.00");
+    assert!(run(input.clone()).unwrap_err().contains("do not reconcile"));
+    input["gst"]["separate_tax_invoice"]["tax_invoice_held"] = json!(false);
+    assert_eq!(run(input.clone()).unwrap()["gst"]["computed"], false);
+    input["gst"]["separate_tax_invoice"]["tax_invoice_held"] = json!(true);
+    input["gst"]["separate_tax_invoice"]
+        .as_object_mut()
+        .unwrap()
+        .remove("finance_gst");
+    assert_eq!(run(input).unwrap()["gst"]["computed"], false);
+}
+
+#[test]
+fn a_capped_hire_purchase_uses_the_lesser_goods_credit_and_accepts_nil_finance() {
+    let mut input = json!({
+        "amount_financed": "60000.00", "instalment": "1300.00", "instalments": 60,
+        "balloon": "0.00", "start_date": "2026-07-12",
+        "gst": {"registered": true, "accounting_basis": "accruals",
+                "creditable_purpose": "1", "asset": "passenger_car",
+                "first_used_year": "2026-27", "gst_inclusive_market_value": "81000.00",
+                "luxury_car_tax": "0.00", "quotes_abn_for_luxury_car_tax": false,
+                "separate_tax_invoice": {"tax_invoice_held": true,
+                    "goods_consideration": "60000.00", "finance_consideration": "18000.00",
+                    "goods_gst": "5454.55", "finance_gst": "1636.36"}}
+    });
+    let result = run(input.clone()).unwrap();
+    assert_eq!(amount(&result, "full_input_tax_credit"), "7090.91");
+    let mut invalid = input.clone();
+    invalid["gst"]["luxury_car_tax"] = json!("60000.01");
+    invalid["gst"]["separate_tax_invoice"]["goods_gst"] = json!("0.00");
+    assert!(
+        run(invalid)
+            .unwrap_err()
+            .contains("luxury_car_tax cannot exceed the price")
+    );
+
+    input["amount_financed"] = json!("78000.00");
+    input["gst"]["separate_tax_invoice"] = json!({
+        "tax_invoice_held": true, "goods_consideration": "78000.00",
+        "finance_consideration": "0.00", "goods_gst": "7090.91", "finance_gst": "0.00"
+    });
+    let result = run(input).unwrap();
+    assert_eq!(amount(&result, "gst_payable"), "7090.91");
+    assert_eq!(amount(&result, "full_input_tax_credit"), "6353.00");
 }
 
 /// s 69-10(1)(b) and (c): no cap for a car worth no more than the car limit
