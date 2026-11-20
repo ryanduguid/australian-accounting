@@ -48,7 +48,7 @@ dependencies = [
     "ato-benchmark-compare==0.2.2",
     "div7a-loan-review==0.3.2",
     "gst-review==0.1.0",
-    "lodgment-calendar==0.1.0",
+    "lodgment-calendar==0.2.0",
 ]
 
 [project.optional-dependencies]
