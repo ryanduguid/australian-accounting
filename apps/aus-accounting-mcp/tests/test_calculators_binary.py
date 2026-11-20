@@ -198,6 +198,54 @@ def test_version_and_command_use_the_same_private_copy(monkeypatch, impostor, fa
     assert not calls[0][0].parent.exists()
 
 
+@pytest.mark.parametrize(("winerror", "locked_attempts", "retries"), [
+    (32, 1, 1),  # Windows releases the staged executable before the retry.
+    (32, 6, 5),  # A lasting lock exhausts the retry budget.
+    (5, 1, 0),   # Other permission errors do not trigger a retry.
+])
+def test_staged_executable_cleanup_retries_only_transient_sharing_errors(
+        monkeypatch, impostor, winerror, locked_attempts, retries) -> None:
+    original, _ = impostor
+    monkeypatch.setenv(tax.DIGEST_VARIABLE, hashlib.sha256(original.read_bytes()).hexdigest())
+    attempts = []
+    waits = []
+    error = PermissionError("simulated staging cleanup failure")
+    monkeypatch.setattr(error, "winerror", winerror, raising=False)
+    cleanup = tax.tempfile.TemporaryDirectory.cleanup
+
+    def clean(folder):
+        attempts.append(folder)
+        if len(attempts) <= locked_attempts:
+            raise error
+        cleanup(folder)
+
+    def run(command, **_options):
+        if command[1:] == ["--version"]:
+            return _answer(f"{tax.CALCULATORS} {tax.CALCULATORS_VERSION}\n")(command)
+        return _answer('{"example": true}')(command)
+
+    monkeypatch.setattr(tax.tempfile.TemporaryDirectory, "cleanup", clean)
+    monkeypatch.setattr(tax, "sleep", waits.append, raising=False)
+    monkeypatch.setattr(tax.subprocess, "run", run)
+    try:
+        if locked_attempts <= retries:
+            assert tax.worksheet_catalogue() == {"example": True}
+            assert not Path(attempts[0].name).exists()
+        else:
+            with pytest.raises(
+                tax.CalculatorsUnavailable, match="staging cleanup failure",
+            ) as caught:
+                tax.worksheet_catalogue()
+            assert caught.value.__cause__ is error
+        assert len(attempts) == retries + 1
+        assert all(folder is attempts[0] for folder in attempts)
+        assert len(waits) == retries
+        assert sum(waits) < 2
+    finally:
+        if attempts:
+            cleanup(attempts[0])
+
+
 def test_a_file_larger_than_any_build_is_refused_unread(monkeypatch, impostor) -> None:
     binary, runs = impostor
     monkeypatch.setenv(tax.DIGEST_VARIABLE, hashlib.sha256(binary.read_bytes()).hexdigest())

@@ -23,6 +23,7 @@ from collections.abc import Iterator
 from contextlib import contextmanager
 from decimal import Decimal, InvalidOperation
 from pathlib import Path
+from time import sleep
 from typing import Any
 
 from mcp.server.mcpserver.exceptions import ToolError
@@ -125,6 +126,24 @@ def _copy_executable(binary: str, staged: Path) -> str:
 
 
 @contextmanager
+def _staging_directory() -> Iterator[Path]:
+    directory = tempfile.TemporaryDirectory(prefix="aus-tax-calculators-")
+    try:
+        yield Path(directory.name)
+    finally:
+        # Windows can briefly prevent deletion of an executable after it exits.
+        for delay in (0.05, 0.1, 0.2, 0.4, 0.8, None):
+            try:
+                directory.cleanup()
+            except PermissionError as exc:
+                if delay is None or getattr(exc, "winerror", None) != 32:
+                    raise
+                sleep(delay)
+            else:
+                break
+
+
+@contextmanager
 def _trusted(binary: str) -> Iterator[Path]:
     """Keep the digest-verified copy alive for the duration of its use."""
     # Either case: sha256sum prints lower case, PowerShell's Get-FileHash upper.
@@ -133,9 +152,9 @@ def _trusted(binary: str) -> Iterator[Path]:
         raise CalculatorsUnavailable(
             f"{DIGEST_VARIABLE} must be a SHA-256 of 64 hexadecimal digits. {INSTALL}")
     try:
-        with tempfile.TemporaryDirectory(prefix="aus-tax-calculators-") as folder:
+        with _staging_directory() as folder:
             suffix = ".exe" if os.name == "nt" else ""
-            staged = Path(folder) / f"{CALCULATORS}{suffix}"
+            staged = folder / f"{CALCULATORS}{suffix}"
             digest = _copy_executable(binary, staged)
             if digest not in RELEASED_DIGESTS and digest != named:
                 raise CalculatorsUnavailable(
