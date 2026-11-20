@@ -391,6 +391,13 @@ class BoundaryTests(unittest.TestCase):
             with self.subTest(control=control):
                 self.assertTrue(trigger_path_filters(control))
 
+    def test_mcp_pins_the_published_lodgment_calendar_version(self) -> None:
+        with (ROOT / "packages/lodgment-calendar/pyproject.toml").open("rb") as file:
+            version = tomllib.load(file)["project"]["version"]
+        with (ROOT / "apps/aus-accounting-mcp/pyproject.toml").open("rb") as file:
+            dependencies = tomllib.load(file)["project"]["dependencies"]
+        self.assertIn(f"lodgment-calendar=={version}", dependencies)
+
     def test_release_callers_pin_the_reviewed_policy_and_matching_identity(self) -> None:
         for component, source_directory in RELEASE_CALLERS.items():
             workflow = (
