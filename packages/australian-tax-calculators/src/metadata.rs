@@ -1285,8 +1285,8 @@ pub fn source_review(kind: &str) -> (&'static str, &'static str) {
             "Income stream (pension) rules and payments: how to calculate the minimum annual payment; SISR Schedule 7 clauses 1 to 5",
         ),
         "study_loan_repayment" => (
-            "2026-10-20",
-            "Study and training loan minimum repayment income and rates: tables 1 and 2, repayment income, examples 1 to 3; Gazette C2026G00249 for the 2026-27 minimum repayment income and replacement indexable amount",
+            "2026-11-20",
+            "Study and training loan repayment thresholds and rates: tables 1 and 2, repayment income, examples 1 and 2; Gazette C2026G00249 for the 2026-27 minimum repayment income and replacement indexable amount",
         ),
         "study_loan_withholding" => (
             "2026-11-14",
@@ -1625,10 +1625,10 @@ pub fn library_evidence(kind: &str) -> [(&'static str, &'static str); 4] {
             "2026-09-24",
         ),
         "study_loan_repayment" => (
-            "ATO study and training loan minimum repayment income and rates",
-            "tables 1 and 2, examples 1 to 3",
-            "2026-10-13",
-            "2026-10-20",
+            "ATO study and training loan repayment thresholds and rates",
+            "tables 1 and 2, examples 1 and 2",
+            "2026-06-30",
+            "2026-11-20",
         ),
         "study_loan_withholding" => (
             "ATO Schedule 8 statement of formulas for STSL components, and F2025L01016 Schedule 8 for 2025-26",
