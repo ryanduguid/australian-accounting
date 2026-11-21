@@ -139,40 +139,14 @@ fn optional_facts<'a>(
 
 pub fn non_commercial_losses(args: &NonCommercialLossesArgs) -> Result<Value> {
     let year = scope(args.scope_confirmed, args.year, KIND)?;
-    let excepted = match args.activity.text() {
-        Some("other") => false,
-        Some("primary_production" | "professional_arts") => true,
-        _ => {
-            return refuse(
-                "non_commercial_losses.activity_invalid",
-                "activity must be other, primary_production or professional_arts.",
-            );
-        }
-    };
+    let excepted = excepted_activity(args.activity)?;
     let part_year = flag(args.part_year, "part_year")?;
     let [estimate, other_income] = optional_facts(args, [part_year, excepted])?;
     let income = money(args.assessable_income)?;
     let deductions = money(args.deductions)?;
     let brought_forward = money(args.brought_forward)?;
     let earlier_profits = earlier_profit_years(args.earlier_years)?;
-    let real_property = money(args.real_property_value)?;
-    let other_assets = money(args.other_assets_value)?;
-    let taxable = signed_money(args.taxable_income)?;
-    let losses = money(args.business_losses)?;
-    let fhss = money(args.assessable_fhss_released_amount)?;
-    let fringe = money(args.reportable_fringe_benefits)?;
-    let super_contributions = money(args.reportable_super_contributions)?;
-    let investment = money(args.total_net_investment_loss)?;
-    let exempt = money(args.net_exempt_income)?;
-
-    // s 35-10(2E): taxable income without the FHSS amount or the business
-    // losses (the ATO's 'use zero' for a loss), then the other 3 amounts.
-    let requirement_income = nil_floor(taxable.add(&losses)?.sub(&fhss)?)?;
-    let requirement_total = requirement_income
-        .add(&fringe)?
-        .add(&super_contributions)?
-        .add(&investment)?;
-    let requirement_met = requirement_total.lt(&Decimal::parse(INCOME_REQUIREMENT)?)?;
+    let (requirement_income, requirement_total, requirement_met) = income_requirement(args)?;
 
     // s 35-30: a reasonable full-year estimate for a part year.
     let measured = match estimate {
@@ -180,7 +154,116 @@ pub fn non_commercial_losses(args: &NonCommercialLossesArgs) -> Result<Value> {
         None => income.clone(),
     };
     let profits = earlier_profits + usize::from(deductions.lt(&income)?);
-    let tests = [
+    let tests = tests(args, part_year, &measured, profits)?;
+    let exception = match other_income {
+        Some(other) => !at_least(&money(other)?, OTHER_INCOME)?,
+        None => false,
+    };
+    let rule_applies = !(requirement_met && tests.iter().any(|t| t["met"] == true)) && !exception;
+
+    // s 35-10(2): the year's deductions, with amounts brought forward, over
+    // the activity's assessable income.
+    let excess = nil_floor(deductions.add(&brought_forward)?.sub(&income)?)?;
+    let (deferred, deductible) = deferral(&excess, &money(args.net_exempt_income)?, rule_applies)?;
+    let outcome = outcome(&excess, rule_applies);
+    let mut amounts = vec![
+        ("income_requirement_taxable_income", requirement_income),
+        ("income_requirement_total", requirement_total),
+        ("excess", excess),
+        ("deferred", deferred),
+        ("deductible_this_year", deductible),
+    ];
+    if part_year {
+        amounts.push(("assessable_income_measured", measured));
+    }
+    let mut out = result(
+        KIND,
+        &year,
+        amounts,
+        RATES.map(|(k, v)| rate(k, v)).to_vec(),
+    )?;
+    out["income_requirement"] = json!({"met": requirement_met, "authority": REQUIREMENT_RULE});
+    out["tests"] = json!(tests);
+    out["profit_years"] = json!(profits);
+    out["exception"] = json!({"applies": exception, "authority": EXCEPTION_RULE});
+    out["commissioner_discretion"] = json!({"decided": false, "authority": DISCRETION_RULE});
+    out["rule_applies"] = json!(rule_applies);
+    out["outcome"] = json!(outcome);
+    Ok(out)
+}
+
+/// Whether the activity is primary production or a professional arts
+/// business, for the s 35-10(4) exception.
+fn excepted_activity(activity: &Arg) -> Result<bool> {
+    match activity.text() {
+        Some("other") => Ok(false),
+        Some("primary_production" | "professional_arts") => Ok(true),
+        _ => refuse(
+            "non_commercial_losses.activity_invalid",
+            "activity must be other, primary_production or professional_arts.",
+        ),
+    }
+}
+
+/// s 35-10(2E): taxable income without the FHSS amount or the business
+/// losses (the ATO's 'use zero' for a loss), then the other 3 amounts.
+fn income_requirement(args: &NonCommercialLossesArgs) -> Result<(Decimal, Decimal, bool)> {
+    let taxable = signed_money(args.taxable_income)?;
+    let losses = money(args.business_losses)?;
+    let fhss = money(args.assessable_fhss_released_amount)?;
+    let income = nil_floor(taxable.add(&losses)?.sub(&fhss)?)?;
+    let total = income
+        .add(&money(args.reportable_fringe_benefits)?)?
+        .add(&money(args.reportable_super_contributions)?)?
+        .add(&money(args.total_net_investment_loss)?)?;
+    let met = total.lt(&Decimal::parse(INCOME_REQUIREMENT)?)?;
+    Ok((income, total, met))
+}
+
+/// The amount deferred and the amount deductible this year; s 35-15 takes
+/// net exempt income off the amount deferred.
+fn deferral(excess: &Decimal, exempt: &Decimal, rule_applies: bool) -> Result<(Decimal, Decimal)> {
+    Ok(if rule_applies {
+        (nil_floor(excess.sub(exempt)?)?, int(0))
+    } else {
+        (int(0), excess.clone())
+    })
+}
+
+fn outcome(excess: &Decimal, rule_applies: bool) -> &'static str {
+    if excess.is_zero() {
+        "no excess of deductions over assessable income from the activity, so nothing is deferred"
+    } else if !rule_applies {
+        "the excess is not deferred: section 35-10(2) does not apply"
+    } else {
+        "the excess is deferred to the next income year in which the activity is carried on (s 35-10(2)), unless the Commissioner decides under s 35-55 that the rule does not apply"
+    }
+}
+
+const RATES: [(&str, &str); 5] = [
+    ("income_requirement", INCOME_REQUIREMENT),
+    ("assessable_income_test", ASSESSABLE_INCOME),
+    ("real_property_test", REAL_PROPERTY),
+    ("other_assets_test", OTHER_ASSETS),
+    ("excepted_activity_other_income", OTHER_INCOME),
+];
+
+const REQUIREMENT_RULE: &str = "ITAA 1997 s 35-10(2E): taxable income (without the assessable FHSS released amount and any s 35-10(2) excess), reportable fringe benefits, reportable superannuation contributions and total net investment losses sum to less than $250,000";
+
+const EXCEPTION_RULE: &str = "ITAA 1997 s 35-10(4): a primary production or professional arts business, with assessable income from other sources (except net capital gain) under $40,000";
+
+const DISCRETION_RULE: &str = "ITAA 1997 s 35-55: on application, the Commissioner may decide the rule in s 35-10(2) does not apply for special circumstances or a lead time; this worksheet does not decide it";
+
+/// The 4 tests of ss 35-30 to 35-45, each met or not.
+fn tests(
+    args: &NonCommercialLossesArgs,
+    part_year: bool,
+    measured: &Decimal,
+    profits: usize,
+) -> Result<[Value; 4]> {
+    let real_property = money(args.real_property_value)?;
+    let other_assets = money(args.other_assets_value)?;
+    Ok([
         test(
             "assessable_income_test",
             if part_year {
@@ -188,7 +271,7 @@ pub fn non_commercial_losses(args: &NonCommercialLossesArgs) -> Result<Value> {
             } else {
                 "ITAA 1997 s 35-30(a): the activity's assessable income for the year is at least $20,000"
             },
-            at_least(&measured, ASSESSABLE_INCOME)?,
+            at_least(measured, ASSESSABLE_INCOME)?,
         ),
         test(
             "profits_test",
@@ -205,68 +288,5 @@ pub fn non_commercial_losses(args: &NonCommercialLossesArgs) -> Result<Value> {
             "ITAA 1997 s 35-45: the counted assets used on a continuing basis in the activity, not real property or cars, motor cycles and similar vehicles, total at least $100,000",
             at_least(&other_assets, OTHER_ASSETS)?,
         ),
-    ];
-    let passed = tests.iter().any(|t| t["met"] == true);
-    let exception = match other_income {
-        Some(other) => !at_least(&money(other)?, OTHER_INCOME)?,
-        None => false,
-    };
-    let rule_applies = !(requirement_met && passed) && !exception;
-
-    // s 35-10(2): the year's deductions, with amounts brought forward, over
-    // the activity's assessable income; s 35-15 takes net exempt income off
-    // the amount deferred.
-    let excess = nil_floor(deductions.add(&brought_forward)?.sub(&income)?)?;
-    let (deferred, deductible) = if rule_applies {
-        (nil_floor(excess.sub(&exempt)?)?, int(0))
-    } else {
-        (int(0), excess.clone())
-    };
-    let outcome = if excess.is_zero() {
-        "no excess of deductions over assessable income from the activity, so nothing is deferred"
-    } else if !rule_applies {
-        "the excess is not deferred: section 35-10(2) does not apply"
-    } else {
-        "the excess is deferred to the next income year in which the activity is carried on (s 35-10(2)), unless the Commissioner decides under s 35-55 that the rule does not apply"
-    };
-
-    let mut amounts = vec![
-        ("income_requirement_taxable_income", requirement_income),
-        ("income_requirement_total", requirement_total),
-        ("excess", excess),
-        ("deferred", deferred),
-        ("deductible_this_year", deductible),
-    ];
-    if part_year {
-        amounts.push(("assessable_income_measured", measured));
-    }
-    let mut out = result(
-        KIND,
-        &year,
-        amounts,
-        vec![
-            rate("income_requirement", INCOME_REQUIREMENT),
-            rate("assessable_income_test", ASSESSABLE_INCOME),
-            rate("real_property_test", REAL_PROPERTY),
-            rate("other_assets_test", OTHER_ASSETS),
-            rate("excepted_activity_other_income", OTHER_INCOME),
-        ],
-    )?;
-    out["income_requirement"] = json!({
-        "met": requirement_met,
-        "authority": "ITAA 1997 s 35-10(2E): taxable income (without the assessable FHSS released amount and any s 35-10(2) excess), reportable fringe benefits, reportable superannuation contributions and total net investment losses sum to less than $250,000",
-    });
-    out["tests"] = json!(tests);
-    out["profit_years"] = json!(profits);
-    out["exception"] = json!({
-        "applies": exception,
-        "authority": "ITAA 1997 s 35-10(4): a primary production or professional arts business, with assessable income from other sources (except net capital gain) under $40,000",
-    });
-    out["commissioner_discretion"] = json!({
-        "decided": false,
-        "authority": "ITAA 1997 s 35-55: on application, the Commissioner may decide the rule in s 35-10(2) does not apply for special circumstances or a lead time; this worksheet does not decide it",
-    });
-    out["rule_applies"] = json!(rule_applies);
-    out["outcome"] = json!(outcome);
-    Ok(out)
+    ])
 }
