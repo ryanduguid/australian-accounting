@@ -16,7 +16,7 @@ use serde_json::{Value, json};
 mod input;
 mod rates;
 use input::{Basic, Line, Work, parse_line};
-use rates::{period_json, period_on, rates};
+use rates::{Period, period_json, period_on, rates};
 
 use super::{Arg, Result, date_arg, flag, rate, refuse, result, scope};
 use crate::dates;
@@ -66,9 +66,8 @@ fn shown(value: &Decimal) -> String {
     }
 }
 
-/// PCG 2016/2 Method 2: the tax period whose last day sets every line's
-/// rate, checked against the lines and the rate changes inside it.
-fn period_end_day(given: &Arg, year: (i64, i64), lines: &[Line]) -> Result<i64> {
+/// The checked period end under PCG 2016/2 Method 2, if an applicable rate changes.
+fn period_end_day(given: &Arg, year: (i64, i64), lines: &[Line]) -> Result<Option<i64>> {
     let (start, end) = period_days(given)?;
     if start > end || start < year.0 || end > year.1 {
         return conflict(
@@ -104,8 +103,7 @@ fn period_end_day(given: &Arg, year: (i64, i64), lines: &[Line]) -> Result<i64> 
             );
         }
     }
-    indexation_only(start, end)?;
-    Ok(end)
+    indexed_period_end(start, end, lines)
 }
 
 /// `rate_at_period_end`'s start and end days.
@@ -135,14 +133,13 @@ fn period_days(given: &Arg) -> Result<(i64, i64)> {
     Ok((read("start")?, read("end")?))
 }
 
-/// Refuses Method 2 when a rate change after `start` and up to `end` is
-/// other than indexation.
-fn indexation_only(start: i64, end: i64) -> Result<()> {
-    let mut changes = rates()
+/// Apply the end date only for indexation that changes a rate used by the request.
+fn indexed_period_end(start: i64, end: i64, lines: &[Line]) -> Result<Option<i64>> {
+    let changes = rates()
         .periods
         .iter()
         .filter(|p| p.from > start && p.from <= end);
-    if let Some(p) = changes.find(|p| p.starts_with != "indexation") {
+    if let Some(p) = changes.clone().find(|p| p.starts_with != "indexation") {
         return refuse(
             "fuel_tax_credits.simplified_method_unavailable",
             format!(
@@ -152,7 +149,30 @@ fn indexation_only(start: i64, end: i64) -> Result<()> {
             ),
         );
     }
-    Ok(())
+    let initial = period_on(start);
+    for period in changes {
+        for line in lines {
+            if applicable_rate_changed(line, initial, period)? {
+                return Ok(Some(end));
+            }
+        }
+    }
+    Ok(None)
+}
+
+fn applicable_rate_changed(line: &Line, before: &Period, after: &Period) -> Result<bool> {
+    let (uses_heavy, uses_other) = match &line.work {
+        Work::Basic(_) => (true, true),
+        Work::Quantity { use_, .. } => (
+            *use_ == "heavy_vehicle_public_road",
+            *use_ == "other_business",
+        ),
+    };
+    let row = line.category;
+    Ok(
+        (uses_heavy && !before.heavy[row].equals(&after.heavy[row])?)
+            || (uses_other && !before.other[row].equals(&after.other[row])?),
+    )
 }
 
 /// The income year's first and last days for `year`, `YYYY-YY`.
@@ -254,7 +274,7 @@ pub fn fuel_tax_credits(args: &FuelArgs) -> Result<Value> {
     let lines = read_lines(args.lines, bounds, &year)?;
     check_small_claimant(args, &lines)?;
     let end_day = match args.rate_at_period_end {
-        Some(given) => Some(period_end_day(given, bounds, &lines)?),
+        Some(given) => period_end_day(given, bounds, &lines)?,
         None => None,
     };
     let mut worked = Vec::new();
@@ -379,6 +399,10 @@ fn add_warnings(
             "PCG 2016/2 Method 2: every line takes the rate in force on {}, the tax period's last day (para 11).",
             dates::format(day)
         )));
+    } else if args.rate_at_period_end.is_some() {
+        warnings.push(json!(
+            "The applicable fuel tax credit rates did not change during the tax period. The calculation uses the actual acquisition dates."
+        ));
     }
     if lines.iter().any(|l| l.acquired > read) {
         warnings.push(json!(format!(
