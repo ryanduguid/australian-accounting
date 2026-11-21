@@ -52,7 +52,7 @@ fn quantity(fields: &Map<String, Value>, n: usize, key: &str, places: i128) -> R
                 format!("line {n}: {key} is required"),
             );
         }
-        Some(Value::String(text)) if text.len() <= 32 => Decimal::parse(text).ok(),
+        Some(Value::String(text)) if text.len() <= 32 => Decimal::parse_input(text).ok(),
         Some(_) => None,
     };
     let valid = |v: &Decimal| -> Result<bool> {
@@ -239,7 +239,7 @@ fn consumption_rate(fields: &Map<String, Value>, n: usize) -> Result<(Decimal, &
 fn cost_and_price(fields: &Map<String, Value>, n: usize) -> Result<(Decimal, Decimal)> {
     let cost = match fields.get("cost") {
         None => return refuse("input.missing_field", format!("line {n}: cost is required")),
-        Some(Value::String(text)) if text.len() <= 32 => Decimal::parse(text)
+        Some(Value::String(text)) if text.len() <= 32 => Decimal::parse_input(text)
             .ok()
             .and_then(|v| money(&Arg::Decimal(v)).ok()),
         Some(_) => None,

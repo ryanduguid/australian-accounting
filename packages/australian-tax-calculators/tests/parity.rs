@@ -661,6 +661,35 @@ fn adapt_2027_28(command: &str, input: &Value, expected: &mut Value) {
     }
 }
 
+// The zero-based rows listed in CHANGELOG.md under the plain decimal change.
+const NONPLAIN_DECIMAL_ROWS: [usize; 57] = [
+    27, 517, 2456, 2497, 2498, 2553, 2696, 2708, 2746, 2763, 2829, 2903, 2928, 2946, 2969, 3014,
+    3055, 3104, 3153, 3168, 3173, 3216, 3253, 3279, 3280, 3288, 3293, 3307, 3308, 3328, 3335, 3349,
+    3424, 3467, 3577, 3593, 3635, 3638, 3645, 3701, 3719, 3817, 3869, 3873, 3902, 3923, 3925, 3929,
+    4001, 4037, 4130, 4169, 4201, 4309, 4347, 4408, 4446,
+];
+
+/// Writes the amount in one of those frozen rows as a plain decimal.
+fn with_plain_decimal(captured: &Value) -> Value {
+    let mut input = captured.clone();
+    let mut replaced = 0;
+    for value in input.as_object_mut().unwrap().values_mut() {
+        let plain = match value.as_str() {
+            Some("0E-2") => "0.00",
+            Some("1E+12") => "1000000000000",
+            Some("1E+13") => "10000000000000",
+            Some("1e2") => "100",
+            Some("1_000") => "1000",
+            Some("١٢") => "12",
+            _ => continue,
+        };
+        *value = json!(plain);
+        replaced += 1;
+    }
+    assert_eq!(replaced, 1, "{captured}");
+    input
+}
+
 /// Replays every captured call from the Python 0.2.0 tests and differential
 /// generator, comparing serialised JSON so key order must match too.
 #[test]
@@ -688,7 +717,8 @@ fn python_api_corpus_matches() {
     let (mut reopened, mut reopened_fbt, mut reopened_quarterly, mut reopened_medicare) =
         (0, 0, 0, 0);
     let mut reopened_2027_28 = 0;
-    for row in &corpus {
+    let mut plain_decimal = 0;
+    for (index, row) in corpus.iter().enumerate() {
         let command = row["command"].as_str().unwrap();
         // Python 0.2.0 refused 2025-26 PAYG withholding, which now has its own
         // coefficients; tests/tables.rs checks that year against the ATO sample.
@@ -724,8 +754,19 @@ fn python_api_corpus_matches() {
             reopened_2027_28 += 1;
             continue;
         }
-        let actual = without_new_kinds(command, outcome(command, &row["input"])).to_string();
-        let expected = adapt(command, &row["input"], row["expected"].clone()).to_string();
+        let mut input = row["input"].clone();
+        if NONPLAIN_DECIMAL_ROWS.binary_search(&index).is_ok() {
+            let refusal = api::evaluate_coded(command, &input).unwrap_err();
+            assert_eq!(
+                (refusal.code, refusal.message.as_str()),
+                ("input.decimal_unreadable", "decimal.InvalidOperation"),
+                "{index} {command} {input}"
+            );
+            input = with_plain_decimal(&input);
+            plain_decimal += 1;
+        }
+        let actual = without_new_kinds(command, outcome(command, &input)).to_string();
+        let expected = adapt(command, &input, row["expected"].clone()).to_string();
         if actual != expected {
             failures.push(format!(
                 "{} {command} {}\n  expected {expected}\n  actual   {actual}",
@@ -744,6 +785,7 @@ fn python_api_corpus_matches() {
         "frozen 2026-27 Medicare levy refusals"
     );
     assert_eq!(reopened_2027_28, 17, "frozen 2027-28 refusals now accepted");
+    assert_eq!(plain_decimal, NONPLAIN_DECIMAL_ROWS.len());
     assert!(
         failures.is_empty(),
         "{} of {} differ:\n{}",

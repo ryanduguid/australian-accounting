@@ -125,7 +125,7 @@ fn amount(fields: &Map<String, Value>, n: usize, key: &str) -> Result<Decimal> {
 /// A quantity above nil, at most 1e12 and 4 decimal places.
 fn quantity(fields: &Map<String, Value>, n: usize, key: &str) -> Result<Decimal> {
     let parsed = match required(fields, n, key)? {
-        Value::String(text) if text.len() <= 32 => Decimal::parse(text).ok(),
+        Value::String(text) if text.len() <= 32 => Decimal::parse_input(text).ok(),
         _ => None,
     };
     let valid = |v: &Decimal| -> Result<bool> {

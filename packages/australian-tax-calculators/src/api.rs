@@ -962,7 +962,7 @@ fn argument(v: &Value, key: &str, kind: Kind) -> Result<Arg> {
                     format!("{key}: decimal input exceeds 8192 bytes"),
                 );
             }
-            Decimal::parse(text)
+            Decimal::parse_input(text)
                 .map(Arg::Decimal)
                 .or_else(|s| refusal("input.decimal_unreadable", format!("decimal.{}", s.name())))
         }

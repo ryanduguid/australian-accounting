@@ -231,7 +231,7 @@ impl Facts<'_> {
         let value = self.get(key, "every item states it")?;
         Ok(value
             .as_str()
-            .and_then(|text| Decimal::parse(text).ok())
+            .and_then(|text| Decimal::parse_input(text).ok())
             .map(Arg::Decimal))
     }
 

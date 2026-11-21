@@ -109,7 +109,7 @@ fn amount(fields: &Map<String, Value>, key: &str, label: &str) -> Result<Option<
         return Ok(None);
     };
     let what = format!("{key} of {label}");
-    match given.as_str().map(Decimal::parse) {
+    match given.as_str().map(Decimal::parse_input) {
         Some(Ok(value)) => whole_dollar_money(&Arg::Decimal(value), &what).map(Some),
         _ => invalid(format!("{what} is not a decimal string")),
     }

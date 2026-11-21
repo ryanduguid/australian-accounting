@@ -183,7 +183,7 @@ fn entry_amounts(
     let amount = |value: Option<&Value>, name: &str| -> Result<Decimal> {
         let parsed = value
             .and_then(Value::as_str)
-            .and_then(|s| Decimal::parse(s).ok());
+            .and_then(|s| Decimal::parse_input(s).ok());
         match parsed.map(|d| money(&Arg::Decimal(d))) {
             Some(Ok(d)) => Ok(d),
             _ => bad(

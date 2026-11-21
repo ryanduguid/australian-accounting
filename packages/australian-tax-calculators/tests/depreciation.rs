@@ -241,7 +241,7 @@ fn inputs_beyond_the_proven_precision_are_refused() {
     for overrides in [
         json!({"effective_life": "14.000000000000000000001"}),
         json!({"effective_life": "14", "taxable_use": "0.209999999999999999999"}),
-        json!({"effective_life": "1E+3", "taxable_use": "0.2099999999999999999999"}),
+        json!({"effective_life": "1000", "taxable_use": "0.2099999999999999999999"}),
         json!({
             "cost": "3962321.67", "opening_adjustable_value": "645298.42",
             "method": "prime_cost", "days": 153,

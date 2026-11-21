@@ -340,7 +340,7 @@ fn each_refusal_has_its_code() {
             "input.amount_invalid",
         ),
         (
-            json!({"other_taxable_payments": "1e13"}),
+            json!({"other_taxable_payments": "10000000000000"}),
             "input.amount_invalid",
         ),
         (

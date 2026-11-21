@@ -47,7 +47,7 @@ pub(super) fn aud(o: &Map<String, Value>, field: &str) -> Option<Decimal> {
     let parsed = o
         .get(field)?
         .as_str()
-        .and_then(|s| Decimal::parse(s).ok())?;
+        .and_then(|s| Decimal::parse_input(s).ok())?;
     money(&Arg::Decimal(parsed)).ok()
 }
 
@@ -58,7 +58,7 @@ pub(super) fn day(o: &Map<String, Value>, field: &str) -> Option<i64> {
 
 /// `value` as a percentage from 0 to 100, or `None`.
 pub(super) fn percentage(value: &Value) -> Option<Decimal> {
-    let parsed = value.as_str().and_then(|s| Decimal::parse(s).ok())?;
+    let parsed = value.as_str().and_then(|s| Decimal::parse_input(s).ok())?;
     let ok = parsed.is_finite()
         && !parsed.lt(&int(0)).ok()?
         && parsed.le(&int(100)).ok()?
