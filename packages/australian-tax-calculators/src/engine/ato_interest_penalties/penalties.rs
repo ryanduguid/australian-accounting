@@ -8,12 +8,10 @@
 use serde_json::{Map, Value, json};
 
 use super::{
-    Facts, date_order, dollars, fact_invalid, flag, in_year, rates, remission_note, to_cents,
+    Facts, KIND, date_order, dollars, fact_invalid, flag, in_year, rates, remission_note, to_cents,
 };
 use crate::dates;
 use crate::engine::{Result, rate, refuse, result, stated};
-
-const KIND: &str = "ato_interest_penalties";
 
 const FTL_BASE: &str = "TAA 1953 Sch 1 s 286-80(2)(a): 1 penalty unit for each 28 days or part of 28 days from the day the document is due to when it is given, at most 5 (counted from the due day to the day before it is given: PS LA 2011/19 para 16); s 286-80(5): each unit at the amount applying at the start of its 28-day period";
 const FTL_SIZE: &str = "s 286-80(3): x2 for a medium entity (a medium withholder that month, or assessable income or current GST turnover more than $1 million and less than $20 million); s 286-80(4): x5 for a large entity ($20 million or more, or a large withholder); s 286-80(4A) and (4C): x500 for a significant global entity or a Pillar Two group entity, (3) and (4) then not applying; the size is a stated fact";
@@ -27,10 +25,8 @@ const SIZES: [(&str, u128); 4] = [
     ("significant_global", 500),
 ];
 
-pub(super) fn failure_to_lodge(f: &Facts, period: &str) -> Result<Value> {
-    f.only(&["due_date", "given_on", "size"])?;
-    let size = f.choice("size", &SIZES.map(|(s, _)| s))?;
-    let multiplier = SIZES.iter().find(|(s, _)| *s == size).expect("a size").1;
+/// The due and given days, checked against the dates the command works.
+fn ftl_days(f: &Facts, period: &str, size: &str) -> Result<(i64, i64)> {
     let (due, given) = (f.date("due_date")?, f.date("given_on")?);
     in_year(given, period, "given_on")?;
     if given < due {
@@ -51,17 +47,27 @@ pub(super) fn failure_to_lodge(f: &Facts, period: &str) -> Result<Value> {
             "The significant global entity penalty applies to documents due on or after 1 July 2017 (PS LA 2011/19 para 23).",
         );
     }
-    let late = given - due;
-    let count = ((late + 27) / 28).min(5);
-    let units: Vec<(i64, u32)> = (0..count)
+    Ok((due, given))
+}
+
+/// Each 28-day period's start and its penalty unit, at most 5 (s 286-80(2), (5)).
+fn unit_periods(due: i64, late: i64) -> Vec<(i64, u32)> {
+    (0..((late + 27) / 28).min(5))
         .map(|k| {
             let start = due + 28 * k;
-            (
-                start,
-                rates::penalty_unit(start).expect("a unit from the due date"),
-            )
+            let unit = rates::penalty_unit(start).expect("a unit from the due date");
+            (start, unit)
         })
-        .collect();
+        .collect()
+}
+
+pub(super) fn failure_to_lodge(f: &Facts, period: &str) -> Result<Value> {
+    f.only(&["due_date", "given_on", "size"])?;
+    let size = f.choice("size", &SIZES.map(|(s, _)| s))?;
+    let multiplier = SIZES.iter().find(|(s, _)| *s == size).expect("a size").1;
+    let (due, given) = ftl_days(f, period, size)?;
+    let late = given - due;
+    let units = unit_periods(due, late);
     let base: u128 = units.iter().map(|(_, v)| u128::from(*v) * 100).sum();
     let mut out = result(
         KIND,
@@ -74,7 +80,7 @@ pub(super) fn failure_to_lodge(f: &Facts, period: &str) -> Result<Value> {
     )?;
     out["question"] = json!("failure_to_lodge");
     out["days_late"] = json!(late);
-    out["penalty_units"] = json!(count);
+    out["penalty_units"] = json!(units.len());
     out["periods"] = Value::Array(
         units
             .iter()
@@ -122,6 +128,25 @@ fn optional_flag(fields: &Map<String, Value>, name: &str, key: &str) -> Result<b
     }
 }
 
+/// The facts that need a shortfall amount have one, within it.
+fn consistent(
+    name: &str,
+    shortfall: Option<u64>,
+    not_arguable: bool,
+    has_accepted: bool,
+    accepted: u64,
+) -> Result<()> {
+    match shortfall {
+        None if not_arguable || has_accepted => fact_invalid(format!(
+            "{name}: not_reasonably_arguable and accepted_way_amount need a shortfall_amount."
+        )),
+        Some(cents) if accepted > cents => fact_invalid(format!(
+            "{name}: accepted_way_amount cannot exceed shortfall_amount."
+        )),
+        _ => Ok(()),
+    }
+}
+
 fn part(item: &Value, name: &str) -> Result<Part> {
     let Value::Object(fields) = item else {
         return fact_invalid(format!("{name} must be an object."));
@@ -151,19 +176,13 @@ fn part(item: &Value, name: &str) -> Result<Part> {
         Some(_) => to_cents(&stated::amount(fields, name, "accepted_way_amount")?)?,
         None => 0,
     };
-    match shortfall {
-        None if not_arguable || fields.contains_key("accepted_way_amount") => {
-            return fact_invalid(format!(
-                "{name}: not_reasonably_arguable and accepted_way_amount need a shortfall_amount."
-            ));
-        }
-        Some(cents) if accepted > cents => {
-            return fact_invalid(format!(
-                "{name}: accepted_way_amount cannot exceed shortfall_amount."
-            ));
-        }
-        _ => {}
-    }
+    consistent(
+        name,
+        shortfall,
+        not_arguable,
+        fields.contains_key("accepted_way_amount"),
+        accepted,
+    )?;
     Ok(Part {
         shortfall,
         behaviour,
@@ -177,6 +196,136 @@ fn part(item: &Value, name: &str) -> Result<Part> {
 /// The cents in `scaled` ten-thousandths of a cent, half up.
 fn scaled_cents(scaled: u128) -> u128 {
     (scaled + 5_000) / 10_000
+}
+
+/// What every part's penalty depends on beside its own facts.
+struct Context {
+    /// The income tax payable on the return, in cents, when a part is not
+    /// reasonably arguable.
+    tax: Option<u64>,
+    unit: u32,
+    sge: bool,
+    /// The shortfall amounts disclosed before an examination, in cents.
+    disclosed_before: u64,
+}
+
+/// s 284-90(3)(a): the greater of $10,000 and 1% of the tax on the return,
+/// in hundredths of a cent.
+fn threshold_hundredths(tax: u64) -> u128 {
+    u128::from(tax).max(100_000_000)
+}
+
+/// The tax on the return, needed only with a part not reasonably arguable.
+fn tax_payable(f: &Facts, arguable: bool) -> Result<Option<u64>> {
+    if arguable && f.given("trust_or_partnership") && f.flag("trust_or_partnership")? {
+        return refuse(
+            "ato_interest_penalties.item_not_worked",
+            "A trust's or partnership's position that is not reasonably arguable (s 284-90(1) items 5 and 6, its threshold on net income) is not worked.",
+        );
+    }
+    match (arguable, f.given("income_tax_payable")) {
+        (true, _) => Ok(Some(f.cents("income_tax_payable")?)),
+        (false, true) => refuse(
+            "input.field_unknown",
+            format!(
+                "{}: income_tax_payable is an input only with a part that is not_reasonably_arguable.",
+                f.item()
+            ),
+        ),
+        (false, false) => Ok(None),
+    }
+}
+
+/// The base penalty amount in ten-thousandths of a cent, so that a
+/// percentage of a cent and then a percentage of that stay exact, before the
+/// significant global entity doubling.
+fn base_amount(p: &Part, c: &Context, out: &mut Value) -> u128 {
+    let (_, percentage, units) = BEHAVIOURS
+        .iter()
+        .find(|(b, _, _)| *b == p.behaviour)
+        .expect("a behaviour");
+    let Some(cents) = p.shortfall else {
+        out["penalty_units"] = json!(units.to_string());
+        out["penalty_unit"] = json!(c.unit.to_string());
+        return units * u128::from(c.unit) * 100 * 10_000;
+    };
+    let over = c
+        .tax
+        .is_some_and(|t| u128::from(cents) * 100 > threshold_hundredths(t));
+    let item4 = if p.not_arguable && over { 25 } else { 0 };
+    let applied = (*percentage).max(item4);
+    out["shortfall_amount"] = json!(dollars(u128::from(cents)).to_string());
+    if p.accepted > 0 {
+        out["accepted_way_amount"] = json!(dollars(u128::from(p.accepted)).to_string());
+    }
+    if p.not_arguable {
+        out["above_reasonably_arguable_threshold"] = json!(over);
+    }
+    out["base_percentage"] = json!(applied.to_string());
+    u128::from(cents - p.accepted) * applied * 100
+}
+
+/// s 284-225: the reduction in percent, or `None` where it reduces to nil.
+fn reduction(p: &Part, c: &Context) -> Option<u128> {
+    match (p.disclosure, p.shortfall) {
+        ("before_examination", Some(_)) if c.disclosed_before >= 100_000 => Some(80),
+        ("before_examination", _) => None,
+        ("during_examination", _) => Some(20),
+        _ => Some(0),
+    }
+}
+
+/// One part worked: its output, base penalty amount and penalty, scaled.
+fn work_part(number: usize, p: &Part, c: &Context) -> Result<(Value, u128, u128)> {
+    let mut out = json!({"part": number, "behaviour": p.behaviour});
+    let bpa = base_amount(p, c, &mut out) * if c.sge { 2 } else { 1 };
+    let increase: u128 = if p.increase { 20 } else { 0 };
+    let cut = reduction(p, c);
+    let penalty = match cut {
+        Some(cut) => bpa * (100 + increase - cut) / 100,
+        None if increase > 0 => {
+            return refuse(
+                "ato_interest_penalties.increase_with_nil",
+                format!(
+                    "part {number}: s 284-225(3)(b) and (4A) reduce the base penalty amount to nil, not by a percentage, and s 284-85 does not say how an increase then applies; this is not worked."
+                ),
+            );
+        }
+        None => 0,
+    };
+    out["base_penalty_amount"] = json!(dollars(scaled_cents(bpa)).to_string());
+    out["increase_percent"] = json!(increase.to_string());
+    out["reduction"] = json!(match cut {
+        Some(cut) => format!("{cut}%"),
+        None => "to nil".into(),
+    });
+    out["disclosure"] = json!(p.disclosure);
+    out["penalty"] = json!(dollars(scaled_cents(penalty)).to_string());
+    Ok((out, bpa, penalty))
+}
+
+fn context(f: &Facts, parts: &[Part], made: i64, sge: bool) -> Result<Context> {
+    Ok(Context {
+        tax: tax_payable(f, parts.iter().any(|p| p.not_arguable))?,
+        unit: rates::penalty_unit(made).expect("a unit from 2020-21"),
+        sge,
+        disclosed_before: parts
+            .iter()
+            .filter(|p| p.disclosure == "before_examination")
+            .filter_map(|p| p.shortfall)
+            .sum(),
+    })
+}
+
+fn rates_used(c: &Context) -> Vec<(String, String)> {
+    let mut used = vec![rate("penalty_unit", c.unit)];
+    if let Some(t) = c.tax {
+        used.push(rate(
+            "reasonably_arguable_threshold",
+            dollars(threshold_hundredths(t).div_ceil(100)),
+        ));
+    }
+    used
 }
 
 pub(super) fn statement_penalty(f: &Facts, period: &str) -> Result<Value> {
@@ -196,105 +345,13 @@ pub(super) fn statement_penalty(f: &Facts, period: &str) -> Result<Value> {
         .enumerate()
         .map(|(i, item)| part(item, &format!("part {}", i + 1)))
         .collect::<Result<_>>()?;
-    let arguable = parts.iter().any(|p| p.not_arguable);
-    let trust = f.given("trust_or_partnership") && f.flag("trust_or_partnership")?;
-    if arguable && trust {
-        return refuse(
-            "ato_interest_penalties.item_not_worked",
-            "A trust's or partnership's position that is not reasonably arguable (s 284-90(1) items 5 and 6, its threshold on net income) is not worked.",
-        );
-    }
-    let tax = match (arguable, f.given("income_tax_payable")) {
-        (true, _) => Some(f.cents("income_tax_payable")?),
-        (false, true) => {
-            return refuse(
-                "input.field_unknown",
-                format!(
-                    "{}: income_tax_payable is an input only with a part that is not_reasonably_arguable.",
-                    f.item()
-                ),
-            );
-        }
-        (false, false) => None,
-    };
-    // s 284-90(3)(a): the greater of $10,000 and 1% of the tax on the return.
-    let threshold_cents = |tax: u64| u128::from(tax).max(100_000_000);
-    let unit = rates::penalty_unit(made).expect("a unit from 2020-21");
-    let disclosed_before: u64 = parts
-        .iter()
-        .filter(|p| p.disclosure == "before_examination")
-        .filter_map(|p| p.shortfall)
-        .sum();
+    let c = context(f, &parts, made, sge)?;
     let (mut total, mut base_total, mut worked) = (0_u128, 0_u128, Vec::new());
     for (i, p) in parts.iter().enumerate() {
-        let (_, percentage, units) = BEHAVIOURS
-            .iter()
-            .find(|(b, _, _)| *b == p.behaviour)
-            .expect("a behaviour");
-        let mut out = json!({"part": i + 1, "behaviour": p.behaviour});
-        // BPA in ten-thousandths of a cent, so that a percentage of a cent and
-        // then a percentage of that stay exact.
-        let bpa = match p.shortfall {
-            Some(cents) => {
-                let over = tax.is_some_and(|t| u128::from(cents) * 100 > threshold_cents(t));
-                let item4 = if p.not_arguable && over { 25 } else { 0 };
-                let applied = (*percentage).max(item4);
-                out["shortfall_amount"] = json!(dollars(u128::from(cents)).to_string());
-                if p.accepted > 0 {
-                    out["accepted_way_amount"] = json!(dollars(u128::from(p.accepted)).to_string());
-                }
-                if p.not_arguable {
-                    out["above_reasonably_arguable_threshold"] = json!(over);
-                }
-                out["base_percentage"] = json!(applied.to_string());
-                u128::from(cents - p.accepted) * applied * 100
-            }
-            None => {
-                out["penalty_units"] = json!(units.to_string());
-                out["penalty_unit"] = json!(unit.to_string());
-                units * u128::from(unit) * 100 * 10_000
-            }
-        };
-        let bpa = if sge { bpa * 2 } else { bpa };
-        let increase: u128 = if p.increase { 20 } else { 0 };
-        let reduction: Option<u128> = match (p.disclosure, p.shortfall) {
-            ("before_examination", Some(_)) if disclosed_before >= 100_000 => Some(80),
-            ("before_examination", _) => None,
-            ("during_examination", _) => Some(20),
-            _ => Some(0),
-        };
-        let penalty = match reduction {
-            Some(cut) => bpa * (100 + increase - cut) / 100,
-            None if increase > 0 => {
-                return refuse(
-                    "ato_interest_penalties.increase_with_nil",
-                    format!(
-                        "part {}: s 284-225(3)(b) and (4A) reduce the base penalty amount to nil, not by a percentage, and s 284-85 does not say how an increase then applies; this is not worked.",
-                        i + 1
-                    ),
-                );
-            }
-            None => 0,
-        };
-        out["base_penalty_amount"] = json!(dollars(scaled_cents(bpa)).to_string());
-        out["increase_percent"] = json!(increase.to_string());
-        out["reduction"] = json!(match reduction {
-            Some(cut) => format!("{cut}%"),
-            None => "to nil".into(),
-        });
-        out["disclosure"] = json!(p.disclosure);
-        out["penalty"] = json!(dollars(scaled_cents(penalty)).to_string());
+        let (out, bpa, penalty) = work_part(i + 1, p, &c)?;
         base_total += bpa;
         total += penalty;
         worked.push(out);
-    }
-    let mut rates_used = vec![rate("penalty_unit", unit)];
-    if let Some(t) = tax {
-        let threshold = threshold_cents(t);
-        rates_used.push(rate(
-            "reasonably_arguable_threshold",
-            dollars(threshold.div_ceil(100)),
-        ));
     }
     let mut out = result(
         KIND,
@@ -303,14 +360,14 @@ pub(super) fn statement_penalty(f: &Facts, period: &str) -> Result<Value> {
             ("base_penalty_amount", dollars(scaled_cents(base_total))),
             ("penalty", dollars(scaled_cents(total))),
         ],
-        rates_used,
+        rates_used(&c),
     )?;
     out["question"] = json!("statement_penalty");
     out["parts"] = Value::Array(worked);
     out["penalty_authority"] = json!(STATEMENT);
     out["unit_authority"] = json!(UNIT);
     remission_note(&mut out);
-    if sge {
+    if c.sge {
         super::warn(
             &mut out,
             "Doubled for a significant global entity (s 284-90(1A)): stated, not tested against the trigger day.".into(),
