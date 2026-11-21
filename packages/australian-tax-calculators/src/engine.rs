@@ -6149,6 +6149,8 @@ mod lump_sum_arrears;
 pub use lump_sum_arrears::lump_sum_arrears_tax_offset;
 mod income_tests;
 pub use income_tests::income_tests;
+mod government_super_amounts;
+pub use government_super_amounts::{SPOUSE_INPUTS, government_super_amounts};
 mod wine_equalisation_tax;
 pub use wine_equalisation_tax::{WetArgs, wine_equalisation_tax};
 mod fbt_minor_benefit;
@@ -6162,7 +6164,7 @@ pub use ppsr_timing::ppsr_timing;
 mod sb_cgt_concessions;
 pub use sb_cgt_concessions::{SB_CGT_OPTIONAL, SbCgtConcessionsArgs, sb_cgt_concessions};
 
-const KINDS: [&str; 66] = [
+const KINDS: [&str; 67] = [
     "gst",
     "gst_margin_scheme",
     "fuel_tax_credits",
@@ -6229,6 +6231,7 @@ const KINDS: [&str; 66] = [
     "ppsr_timing",
     "wine_equalisation_tax",
     "sb_cgt_concessions",
+    "government_super_amounts",
 ];
 
 /// `periods(kind)`: accepted period arguments and inclusive calendar boundaries.

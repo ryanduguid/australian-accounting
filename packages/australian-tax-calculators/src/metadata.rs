@@ -1132,6 +1132,12 @@ pub fn supported_periods(kind: &str) -> Vec<&'static str> {
         // define them as the current ones do, and the ATO's 2025 and 2026
         // return instructions and its current pages apply them.
         "income_tests" => vec!["2024-25", "2025-26", "2026-27"],
+        // The ATO's co-contribution thresholds from 2020-21, under the Act's
+        // compilation 28 (1 July 2018 to 30 June 2027); income-tests'
+        // definitions read the same in the compilations of 1 July 2020.
+        "government_super_amounts" => vec![
+            "2020-21", "2021-22", "2022-23", "2023-24", "2024-25", "2025-26", "2026-27",
+        ],
         "sb_cgt_concessions" => vec!["2025-26", "2026-27"],
         _ => Vec::new(),
     }
@@ -1388,6 +1394,10 @@ pub fn source_review(kind: &str) -> (&'static str, &'static str) {
         "income_tests" => (
             "2026-11-16",
             "ITAA 1997 s 995-1 (income for surcharge purposes, reportable superannuation contributions, total net investment loss, adjusted taxable income for offsets, exempt foreign employment income, assessable FHSS released amount) and ss 4-15, 61-580, 291-15, 293-20, 301-20 and 313-20, compilation 268 (1 October 2026); Medicare Levy Act 1986 s 3(1), compilation 53 (1 July 2026); A New Tax System (Medicare Levy Surcharge—Fringe Benefits) Act 1999 s 3(1), compilation 42 (1 July 2026); ITAA 1936 s 6(1) (rebate income, adjusted taxable income for rebates, adjusted fringe benefits total) and s 251S, compilation 193 (1 October 2026); HESA ss 154-5, 154-16 and 154-17, compilation 105 (17 October 2026); A New Tax System (Family Assistance) Act 1999 Sch 3 cls 2, 4, 5, 7 and 8, compilation 124 (1 July 2026); FBTAA ss 135N, 135P and 135Q (1 July 2026); SISR reg 6.01(2) preservation age, compilation 159 (1 July 2026); Superannuation (Government Co-contribution for Low Income Earners) Act 2003 s 8, compilation 28 (1 July 2018); and the 1 July 2024 compilations of the ITAA 1997 (250), ITAA 1936 (184) and Family Assistance Act (119), compared; ATO Income tests (last updated 8 June 2026), Rebate income and Adjusted taxable income for you and your dependants for 2025 and 2026, IT1 Total reportable fringe benefits amounts 2025 and 2026, A3 Government super contributions 2025 and 2026, Medicare levy surcharge income, thresholds and rates (22 June 2026), When you must repay your loan (13 October 2026), Division 293 tax on concessional contributions by high-income earners (24 August 2026), Exempt income and other tax obligations (3 June 2026) and Fringe benefits tax - rates and thresholds (20 May 2026)",
+        ),
+        "government_super_amounts" => (
+            "2026-11-22",
+            "Superannuation (Government Co-contribution for Low Income Earners) Act 2003 ss 6 to 11, 12C and 12E, compilation 28 (1 July 2018 to 30 June 2027); its Regulations 2004 reg 24(2), compilation 8, and Regulations 2022 reg 15(2); ITAA 1997 ss 290-230 and 290-235, compilation 268 (1 October 2026), compared with compilation 210 (1 July 2020); income-tests' definitions in A New Tax System (Family Assistance) Act 1999 Sch 3 and ITAA 1997 s 995-1 compared with the 1 July 2020 compilations (101 and 210); Treasury Laws Amendment (Building a Stronger and Fairer Super System) Act 2026 Sch 4; ATO Government contributions (Table 25, 27 April 2026), Super co-contribution and Low income super tax offset (2 August 2023), Superannuation-related tax offsets (8 June 2026), myTax 2026 Government super contributions (1 June 2026) and the FBT rates pages (20 May 2026 and 1 April 2026)",
         ),
         _ => ("", ""),
     }
@@ -1739,6 +1749,12 @@ pub fn library_evidence(kind: &str) -> [(&'static str, &'static str); 4] {
             "2026-10-13",
             "2026-11-16",
         ),
+        "government_super_amounts" => (
+            "ATO super pages",
+            "Angelo (Super co-contribution), Julie (Low income super tax offset) and Examples 1 to 3 (Superannuation-related tax offsets)",
+            "2026-06-08",
+            "2026-11-22",
+        ),
         _ => ("", "", "", ""),
     };
     [
@@ -1752,6 +1768,40 @@ pub fn library_evidence(kind: &str) -> [(&'static str, &'static str); 4] {
 /// Inputs a worksheet takes but does not require, with their units.
 pub fn optional_inputs(kind: &str) -> Vec<(&'static str, &'static str)> {
     match kind {
+        "government_super_amounts" => vec![
+            (
+                "spouse_contributions",
+                "AUD, with the other spouse inputs: the contributions you made in the income year to a super fund or RSA for your spouse that s 290-230 counts: made whilst married or de facto, both Australian residents and not living separately and apart on a permanent basis, to a complying fund, not deductible under s 290-60 and not a Family Law Act payment (ITAA 1997 s 290-230(1) to (4))",
+            ),
+            (
+                "spouse_assessable_income",
+                "AUD, with the other spouse inputs: the spouse's assessable income for the year, including any assessable FHSS released amount",
+            ),
+            (
+                "spouse_assessable_fhss_released_amount",
+                "AUD, with the other spouse inputs: the spouse's assessable FHSS released amount (s 290-230(2)(c)(i))",
+            ),
+            (
+                "spouse_reportable_fringe_benefits_total",
+                "AUD, with the other spouse inputs: the spouse's reportable fringe benefits total (s 290-230(2)(c)(ii))",
+            ),
+            (
+                "spouse_reportable_employer_super_contributions",
+                "AUD, with the other spouse inputs: the spouse's reportable employer superannuation contributions (s 290-230(2)(c)(iii))",
+            ),
+            (
+                "spouse_excess_concessional_contributions",
+                "AUD, with the other spouse inputs: the spouse's excess concessional contributions for the financial year (s 290-230(5))",
+            ),
+            (
+                "spouse_non_concessional_within_cap",
+                "boolean, or null if not established, with the other spouse inputs: the spouse's non-concessional contributions for the financial year do not exceed the spouse's cap (s 290-230(4A)(a)); null is refused where it decides the offset",
+            ),
+            (
+                "spouse_total_super_balance_below_cap",
+                "boolean, or null if not established, with the other spouse inputs: the spouse's total superannuation balance immediately before the start of the financial year is less than the general transfer balance cap (s 290-230(4A)(b)); null is refused where it decides the offset",
+            ),
+        ],
         "fuel_tax_credits" => vec![
             (
                 "small_claimant",
@@ -3452,6 +3502,20 @@ pub fn input_units(kind: &str) -> Vec<(&'static str, &'static str)> {
             ("last_rollover_event", "YYYY-MM-DD, or null for this one: the last CGT event in the year for which you obtain the small business roll-over, from event_date to the end of the year; the replacement asset period runs from it (s 104-190(1A))"),
             ("earnout_latest_due", "YYYY-MM-DD, or null for no look-through earnout right: the latest time a possible financial benefit becomes or could become due under a look-through earnout right relating to the asset and this disposal, on or after event_date; the replacement asset period ends no earlier than 6 months after it (s 104-190(1A)(b)(ii))"),
         ],
+        "government_super_amounts" => {
+            let mut units = input_units("income_tests");
+            units.extend([
+                ("eligible_income", "AUD: the part of total income before business deductions attributable to activities that make the person an employee for super guarantee purposes or to carrying on a business (Co-contribution Act s 6(1)(b), (2) and s 8(3)): salary, wages, director fees and business income, not trust or non-business partnership distributions, interest, rent, dividends or lump sums for another year of employment"),
+                ("personal_contributions", "AUD: eligible personal superannuation contributions the fund received in the income year, not deducted and not a downsizer contribution (Co-contribution Act s 7)"),
+                ("concessional_contributions", "AUD: concessional contributions for the financial year, including super guarantee, salary sacrifice and deducted personal contributions, without constitutionally protected fund amounts (Co-contribution Act s 12E(3))"),
+                ("return_lodged", "boolean: an income tax return for the year is lodged (Co-contribution Act s 6(1)(d))"),
+                ("under_71", "boolean: less than 71 years old at the end of the income year (Co-contribution Act s 6(1)(e))"),
+                ("temporary_visa_held", "boolean: held a temporary visa at any time in the income year; true is refused (Co-contribution Act s 6(1)(f))"),
+                ("non_concessional_within_cap", "boolean, or null if not established: non-concessional contributions for the financial year do not exceed the cap (Co-contribution Act s 6(1)(da)); null is refused where it decides the co-contribution"),
+                ("total_super_balance_below_cap", "boolean, or null if not established: total superannuation balance immediately before the start of the financial year is less than the general transfer balance cap (Co-contribution Act s 6(1)(db)); null is refused where it decides the co-contribution"),
+            ]);
+            units
+        }
         "income_tests" => vec![
             ("taxable_income", "AUD, whole dollars: taxable income, including any assessable FHSS released amount (nil for a loss)"),
             ("assessable_fhss_released_amount", "AUD: the amount ITAA 1997 s 313-20 includes in assessable income for released FHSS amounts"),
@@ -4095,6 +4159,36 @@ pub fn examples(kind: &str) -> Vec<(&'static str, Example)> {
             ("earnout_latest_due", Json("null")),
             ("retirement_exemption_used", Text("0.00")),
             ("choice_date", Text("2026-06-30")),
+        ],
+        // The ATO's Angelo (Super co-contribution): $35,000 of salary and
+        // $1,040 of personal contributions; the year is the page's.
+        "government_super_amounts" => vec![
+            ("year", Text("2023-24")),
+            ("taxable_income", Text("35000")),
+            ("assessable_fhss_released_amount", Text("0")),
+            ("family_trust_distribution_amounts", Text("0")),
+            ("reportable_fringe_benefits_section_57a", Text("0")),
+            ("reportable_fringe_benefits_other", Text("0")),
+            ("reportable_employer_super_contributions", Text("0")),
+            ("deductible_personal_super_contributions", Text("0")),
+            ("excess_concessional_contributions", Text("0")),
+            ("net_financial_investment_loss", Text("0")),
+            ("net_rental_property_loss", Text("0")),
+            ("tax_free_government_pensions", Text("0")),
+            ("target_foreign_income", Text("0")),
+            ("exempt_foreign_employment_income", Text("0")),
+            ("child_support_paid", Text("0")),
+            ("assessable_income", Text("35000")),
+            ("business_deductions", Text("0")),
+            ("residency", Text("full_year_resident")),
+            ("eligible_income", Text("35000")),
+            ("personal_contributions", Text("1040")),
+            ("concessional_contributions", Text("0")),
+            ("return_lodged", Flag(true)),
+            ("under_71", Flag(true)),
+            ("temporary_visa_held", Flag(false)),
+            ("non_concessional_within_cap", Flag(true)),
+            ("total_super_balance_below_cap", Flag(true)),
         ],
         "income_tests" => vec![
             ("year", Text("2025-26")),

@@ -79,6 +79,7 @@ example evidence; it does not claim a fresh review of every supported period.
 | Study loan withholding | Not a Library document: ATO Schedule 8 (NAT 3539) for payments from 1 July 2026, and Schedule 8 of F2025L01016 for payments from 24 September 2025 | 17 June 2026 (published); 24 September 2025 (commenced) | Schedule 8 component on one regular weekly, fortnightly, monthly or quarterly pay, added to the Schedule 1 amount |
 | Study loan repayment | Not a Library document: [the ATO's Study and training loan repayment thresholds and rates](https://www.ato.gov.au/tax-rates-and-codes/study-and-training-loan-minimum-repayment-income-and-rates), tables 1 and 2 and examples 1 and 2, and Gazette C2026G00249 | 30 June 2026 (ATO page) | Marginal repayment on established repayment income for 2025-26 and 2026-27; the loan-balance limit is outside the worksheet |
 | Small business CGT concessions | `tax-examples-capital-gains-tax-cgt` (tax-examples), ¶2-280 and ¶2-303, with ITAA 1997 compilation 264 | 30 June 2026; 19 November 2026 (read) | Conditions for CGT event A1 in 2025-26 or 2026-27 of an asset other than a share, trust interest or partnership right; amounts excluded |
+| Government super amounts | Not a Library document: the Co-contribution Act ss 6 to 12E (compilation 28), its Regulations 2004 reg 24(2) and 2022 reg 15(2), ITAA 1997 ss 290-230 and 290-235 (compilation 268), the ATO's Table 25 and its Angelo, Julie and spouse examples | 22 November 2026 (read); 27 April 2026, 8 June 2026 and 2 August 2023 (ATO pages) | Co-contribution, LISTO and spouse contribution tax offset of a full-year resident for 2020-21 to 2026-27 from `income-tests`' components and stated tests |
 | Income tests | Not a Library document: ITAA 1997 s 995-1 and s 293-20 (compilation 268), ITAA 1936 s 6(1) (compilation 193), HESA s 154-5 (compilation 105), Family Assistance Act Sch 3 (compilation 124), FBTAA ss 135N to 135Q, the co-contribution Act s 8 (compilation 28) and the ATO's Christina and Tom examples | 16 November 2026 (read); 13 October 2026 and 22 June 2026 (ATO pages) | 6 income measures of a full-year resident for 2024-25 to 2026-27 from established, classified components; the thresholds and tests they feed are outside it |
 
 The resident passage does not establish the engine's 2025–26 and 2026–27 rate
@@ -3161,6 +3162,68 @@ Choices the Act leaves to the reader:
 | Neil's roll-over also obtained for a CGT event on 30 June 2026 | Worked by hand under s 104-190(1A)(a) and (b)(i) | Replacement asset period 30 June 2025 to 30 June 2028, from the last event, not 15 May |
 | Neil's sale with a look-through earnout whose last payment could fall due on 31 January 2028, 15 November 2027 or 31 August 2028 | Worked by hand under s 104-190(1A)(b)(ii) | The period ends 31 July 2028, 6 months after it; 15 May 2028, 2 years after the event, the later; or 28 February 2029 |
 
+## Government super amounts
+
+This worksheet was added on 22 November 2026. Read that day:
+
+- the Superannuation (Government Co-contribution for Low Income Earners) Act
+  2003, compilation 28, in force from 1 July 2018 to 30 June 2027
+  (https://www.legislation.gov.au/C2004A01195/2018-07-01/2018-07-01/text/original/epub/OEBPS/document_1/document_1.html):
+  ss 6 to 11, 12C and 12E. The Register lists one later version, from
+  1 July 2027, made by Schedule 4 to Act No. 8 of 2026
+  (https://www.legislation.gov.au/C2026A00008/asmade/text), which replaces
+  LISTO's $37,000 and $500 from 2027-28 (item 4);
+- the Superannuation (Government Co-contribution for Low Income Earners)
+  Regulations 2004, compilation 8 (in force to 31 March 2022), reg 24(2), and
+  Regulations 2022 (F2022L00155), reg 15(2): an amount paid that is not a
+  multiple of 5 cents is increased to the next multiple;
+- ITAA 1997 ss 290-230 and 290-235, compilation 268, volume 6
+  (https://www.legislation.gov.au/C2004A05138/2026-10-01/2026-10-01/text/original/epub/OEBPS/document_6/document_6.html);
+- the ATO's 'Government contributions' (QC18123, last updated 27 April 2026,
+  Table 25, the thresholds), 'Super co-contribution' and 'Low income super tax
+  offset' (last updated 2 August 2023), 'Superannuation-related tax offsets'
+  (QC72198, last updated 8 June 2026), 'myTax 2026 Government super
+  contributions' (published 1 June 2026) and the FBT rates pages (20 May 2026
+  and 1 April 2026), which give 47% for the FBT years ending 31 March 2021 to
+  2027, behind the 0.53 factor in adjusted taxable income.
+
+The years from 2020-21 rest on a comparison of the compilations in force on
+1 July 2020 with today's: the Family Assistance Act Sch 3 cls 2, 4, 5 and 8
+(compilation 101 and 1 July 2026), ITAA 1997 s 995-1 'reportable
+superannuation contributions', 'total net investment loss', 'assessable FHSS
+released amount' and 'reportable fringe benefits total', and ss 290-230 and
+290-235 (compilations 210 and 268) read the same. Sch 3 cl 7's list of tax
+free pensions changed, and FBTAA ss 135P and 135Q now count exempt zero or
+low emission car benefits; the operator supplies both amounts.
+
+Choices the Act leaves to the reader:
+
+- s 10(1C) reduces $500 by 3.333 cents 'for each dollar' above the lower
+  threshold; the worksheet applies 0.03333 to the exact excess, which is the
+  same for whole-dollar income.
+- s 12C(1)(a) presupposes concessional contributions, and the ATO's page
+  requires them, so nil contributions give no LISTO rather than the $10
+  minimum of s 12E(2)(c).
+- s 6(1)(b) asks what share of total income is eligible; with nil total income
+  there is no share, so a contribution with nil total income is refused.
+- s 290-230's conditions that turn on the time of each contribution (spouses,
+  both resident, not living apart, a complying fund, not deductible, not a
+  Family Law Act payment) decide which contributions count, so the operator
+  gives only those.
+
+`tests/government_super_amounts.rs` holds these cases.
+
+| Case | Source | Worksheet |
+| --- | --- | --- |
+| Angelo, $35,000 and $1,040 of personal contributions | ATO 'Super co-contribution' | $500 in every year from 2020-21 |
+| Julie, 2022-23, $32,000, $1,000 of deductions, $3,360 of super guarantee | ATO 'Low income super tax offset' | Adjusted taxable income $31,000; LISTO $500 |
+| Robert and Judy; Carmel and Adam; Aleah and Lewis | ATO 'Superannuation-related tax offsets', Examples 1 to 3 | $540; $360; $360 |
+| Total income at each year's lower threshold, $1 above, $1 below the higher, and at the higher | Worked by hand from Table 25 and s 10(1C) | $500; $499.97, paid $500.00; $20 (s 11); nil (s 6(1)(c)) |
+| 2025-26, $50,000 and $1,000 of contributions; $10 of contributions | Worked by hand | $416.28, paid $416.30; $20 |
+| Eligible income $4,999 and $5,000 of $50,000; $60,000 of business income less $20,000 of deductions | Worked by hand under s 6(1)(b) and s 8(2), (3) | Not met, met; total income $40,000, the test on $60,000 |
+| Adjusted taxable income $37,000 and $37,001; contributions of $50 and $1,234.57 | Worked by hand under ss 12C(1)(b) and 12E(2) | LISTO, none; $10; $185.19, paid $185.20 |
+| Spouse income $39,999 and $40,000; the cap and balance tests not met | Worked by hand under ss 290-230 and 290-235 | $0.18, nil; nil |
+
 ## Personal tax estimate
 
 `personal-tax-estimate` adds no rate or threshold: each amount is a
@@ -3356,6 +3419,7 @@ year; the others refuse it and say what is missing.
 | CGT parcels | Refused: Schedule 1 to Act No. 49 of 2026 changes how capital gains are worked out from the income year that includes 1 July 2027 | Act No. 49 of 2026 as made (https://www.legislation.gov.au/C2026A00049/asmade/text), items 82 to 84, read 19 November 2026 at 14:40; see [CGT parcels](#cgt-parcels) |
 | Trade-in | Refused: the car limit for 2027-28 was not published, and CGT event K7 changes with Act No. 49 of 2026 | ATO 'Purchasing a motor vehicle' (last updated 3 June 2026, the 2026-27 limit only), read 18 November 2026 at 07:10; see [Trade-in](#trade-in) |
 | Small business CGT concessions | Refused: Schedule 1 to Act No. 49 of 2026 changes Division 152 from the income year that includes 1 July 2027 | Act No. 49 of 2026 as made (https://www.legislation.gov.au/C2026A00049/asmade/text), item 82, read 19 November 2026 at 14:40; see [Small business CGT concessions](#small-business-cgt-concessions) |
+| Government super amounts | Refused: Schedule 4 to Act No. 8 of 2026 replaces LISTO's $37,000 limit and $500 maximum from 2027-28, and the Commissioner has not published the 2027-28 co-contribution thresholds | Act No. 8 of 2026 as made (https://www.legislation.gov.au/C2026A00008/asmade/text), item 4, and the ATO's Table 25 (last updated 27 April 2026), read 22 November 2026; see [Government super amounts](#government-super-amounts) |
 | Business capital expenditure | Enacted, no year: ITAA 1997 s 40-880 and the small business entity test of Subdivision 328-C, neither amended in compilation 268 or the version from 1 December 2026; s 26-155 left out of scope | Compilation 268 (https://www.legislation.gov.au/C2004A05138/latest/text) and the Register's API, read 17 November 2026 from 01:33; see [Business capital expenditure](#business-capital-expenditure) |
 
 Worked by hand: resident tax on $45,000 is 14% of $26,800, $3,752; on
