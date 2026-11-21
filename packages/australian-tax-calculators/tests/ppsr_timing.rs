@@ -536,3 +536,24 @@ fn refusals() {
     unconfirmed["scope_confirmed"] = json!(false);
     assert_eq!(code(&unconfirmed), "scope.not_confirmed");
 }
+
+#[test]
+fn warns_that_omitted_holidays_can_bring_a_deadline_forward() {
+    let facts = [
+        ("goods", json!(true)),
+        ("inventory", json!(false)),
+        ("trigger_time", json!("2026-05-28T10:00")),
+    ];
+    let mut input = input("pmsi", "2025-26", &facts);
+    input["excluded_days"] = json!(["2026-06-01", "2026-06-08"]);
+    let complete = run(&input);
+    input["excluded_days"] = json!(["2026-06-08"]);
+    let incomplete = run(&input);
+
+    assert_eq!(complete["register_by"], "2026-06-22 end of day");
+    assert_eq!(incomplete["register_by"], "2026-06-19 end of day");
+    let warnings = incomplete["warnings"].as_array().unwrap();
+    assert!(warnings.iter().filter_map(Value::as_str).any(|warning| {
+        warning.contains("Omitting an excluded date can make the calculated deadline too early.")
+    }));
+}
