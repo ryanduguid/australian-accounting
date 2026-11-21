@@ -1,5 +1,6 @@
 // Copyright 2026 Ryan Duguid
-// SPDX-License-Identifier: LicenseRef-Duguid-Public-Attribution-1.0
+// SPDX-License-Identifier: AGPL-3.0-or-later
+// Additional terms under AGPL-3.0 section 7(b): see NOTICE.
 
 //! JSON boundary for the removed Python import API. Each command takes the
 //! original function's keyword arguments as one JSON object: amounts and
@@ -721,6 +722,20 @@ const COMMAND_ARGS: &[(&str, &[(&str, Kind)])] = &[
         ],
     ),
 ];
+
+const LICENCE_NOTICE: &str = "\n\
+    Copyright 2026 Ryan Duguid. No warranty.\n\
+    AGPL-3.0-or-later with additional terms (see NOTICE).\n\
+    Licence: https://github.com/ryanduguid/australian-accounting/blob/main/packages/australian-tax-calculators/LICENSE\n";
+
+/// Describe the JSON commands and the licence for this executable.
+#[must_use]
+pub fn cli_help() -> String {
+    format!(
+        "JSON stdin commands: {}\nAmounts are decimal strings. See README.md for schemas.\n{LICENCE_NOTICE}",
+        commands().join(", ")
+    )
+}
 
 pub fn commands() -> Vec<&'static str> {
     let mut out: Vec<&'static str> = COMMAND_ARGS.iter().map(|(c, _)| *c).collect();

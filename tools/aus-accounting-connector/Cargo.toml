@@ -4,7 +4,7 @@ version = "0.1.0"
 edition = "2024"
 rust-version = "1.99"
 description = "Stateless Streamable HTTP MCP Worker for 6 Aus Accounting MCP calculator tools"
-license = "LicenseRef-Duguid-Public-Attribution-1.0"
+license = "AGPL-3.0-or-later"
 repository = "https://github.com/ryanduguid/australian-accounting"
 publish = false
 

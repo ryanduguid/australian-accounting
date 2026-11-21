@@ -1,5 +1,9 @@
 # Changes
 
+## Unreleased
+
+- Relicensed Ryan Duguid's code under AGPL-3.0-or-later with section 7(b) attribution terms.
+
 ## 1.0.0 (unreleased)
 
 Standalone Rust binary, replacing Python package 0.3.2 and its `div7aloan`

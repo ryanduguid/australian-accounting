@@ -1,5 +1,6 @@
 // Copyright 2026 Ryan Duguid
-// SPDX-License-Identifier: LicenseRef-Duguid-Public-Attribution-1.0
+// SPDX-License-Identifier: AGPL-3.0-or-later
+// Additional terms under AGPL-3.0 section 7(b): see NOTICE.
 
 //! argparse compatibility for the two original commands. Formatting and parsing
 //! are adapted from The Exchequer Tally's port of the qualified
@@ -381,6 +382,11 @@ fn main_usage(prog: &str, t: &Theme) -> String {
     )
 }
 
+const LICENCE_NOTICE: &str = "\n\
+    Copyright 2026 Ryan Duguid. No warranty.\n\
+    AGPL-3.0-or-later with additional terms (see NOTICE).\n\
+    Licence: https://github.com/ryanduguid/australian-accounting/blob/main/packages/solomons-sword/LICENSE\n";
+
 fn main_help(prog: &str, t: &Theme) -> String {
     let mut positional: Vec<Row> = vec![(
         2,
@@ -641,7 +647,10 @@ fn parse_command(
                 Class::Flag(flag, explicit) => {
                     ignored_argument(flag, explicit).map_err(|m| main_exit(prog, m))?;
                     return Err(Exit::Help(
-                        main_help(prog, argtheme::theme(Stream::Stdout)),
+                        format!(
+                            "{}{LICENCE_NOTICE}",
+                            main_help(prog, argtheme::theme(Stream::Stdout))
+                        ),
                         0,
                     ));
                 }

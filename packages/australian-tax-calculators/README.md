@@ -12,7 +12,7 @@ keeps the calculator release and MCP integration separate.
 
 [![tests](https://img.shields.io/github/actions/workflow/status/ryanduguid/australian-accounting/ci.yml?branch=main&label=tests&labelColor=000000&style=flat)](https://github.com/ryanduguid/australian-accounting/actions/workflows/ci.yml)
 [![Rust](https://img.shields.io/badge/Rust-1.99-66023C?logo=rust&logoColor=E5E4E2&labelColor=000000&style=flat&color=66023C)](https://www.rust-lang.org/)
-[![License: Ryan Duguid Public Attribution Licence 1.0](https://img.shields.io/badge/License-Public%20Attribution%201.0-66023C?labelColor=000000&style=flat&color=66023C)](LICENSE)
+[![License: AGPL-3.0-or-later](https://img.shields.io/badge/License-AGPL--3.0--or--later-66023C?labelColor=000000&style=flat&color=66023C)](LICENSE)
 
 </div>
 

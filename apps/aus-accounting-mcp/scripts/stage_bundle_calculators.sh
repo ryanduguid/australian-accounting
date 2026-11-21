@@ -1,8 +1,9 @@
 #!/usr/bin/env bash
 # Copyright 2026 Ryan Duguid
-# SPDX-License-Identifier: LicenseRef-Duguid-Public-Attribution-1.0
+# SPDX-License-Identifier: AGPL-3.0-or-later
+# Additional terms under AGPL-3.0 section 7(b): see NOTICE.
 
-# Reconstruct the two bundle assets from the release the Python adapter pins.
+# Reconstruct the two bundled calculators from the release the Python adapter pins.
 # Run in both the pack and the independent verification jobs.
 set -euo pipefail
 
@@ -59,3 +60,9 @@ destination="$app/mcpb/bin"
 mkdir "$destination"
 install -m 0755 "$linux_payload" "$destination/$name"
 install -m 0644 "$windows_payload" "$destination/$name.exe"
+install -m 0644 "$app/LICENSE" "$app/NOTICE" "$app/mcpb"
+for legal in LICENSE NOTICE; do
+    tar -xOzf "$linux" "$legal" > "$destination/$legal.linux"
+    unzip -p "$windows" "$legal" > "$destination/$legal.windows"
+    [[ -s "$destination/$legal.linux" && -s "$destination/$legal.windows" ]]
+done

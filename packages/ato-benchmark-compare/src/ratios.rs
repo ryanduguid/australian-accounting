@@ -1,5 +1,6 @@
 // Copyright 2026 Ryan Duguid
-// SPDX-License-Identifier: LicenseRef-Duguid-Public-Attribution-1.0
+// SPDX-License-Identifier: AGPL-3.0-or-later
+// Additional terms under AGPL-3.0 section 7(b): see NOTICE.
 
 //! The ATO benchmark ratio calculations (QC 37143, last updated 16 March
 //! 2026): every ratio is a percentage of turnover excluding GST; turnover

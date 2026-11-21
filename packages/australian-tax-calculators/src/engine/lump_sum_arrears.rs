@@ -1,5 +1,6 @@
 // Copyright 2026 Ryan Duguid
-// SPDX-License-Identifier: LicenseRef-Duguid-Public-Attribution-1.0
+// SPDX-License-Identifier: AGPL-3.0-or-later
+// Additional terms under AGPL-3.0 section 7(b): see NOTICE.
 
 //! `lump_sum_arrears_tax_offset`: the tax offset for lump sum payments in
 //! arrears (ITAA 1936 Part III Division 17 Subdivision AB, ss 159ZR to

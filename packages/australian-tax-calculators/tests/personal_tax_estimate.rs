@@ -1,5 +1,6 @@
 // Copyright 2026 Ryan Duguid
-// SPDX-License-Identifier: LicenseRef-Duguid-Public-Attribution-1.0
+// SPDX-License-Identifier: AGPL-3.0-or-later
+// Additional terms under AGPL-3.0 section 7(b): see NOTICE.
 
 //! `personal-tax-estimate`: the ATO's worked figures for tax with the Medicare
 //! levy (foreign income tax offset guides 2025 and 2026, examples 16 and 17),

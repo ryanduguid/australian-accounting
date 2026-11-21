@@ -1,5 +1,6 @@
 // Copyright 2026 Ryan Duguid
-// SPDX-License-Identifier: LicenseRef-Duguid-Public-Attribution-1.0
+// SPDX-License-Identifier: AGPL-3.0-or-later
+// Additional terms under AGPL-3.0 section 7(b): see NOTICE.
 
 //! Wine equalisation tax (A New Tax System (Wine Equalisation Tax) Act 1999
 //! ss 5-5, 9-25 to 9-40 and Division 19) on the ATO's, WETR 2009/1's and the

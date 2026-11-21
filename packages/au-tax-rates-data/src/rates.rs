@@ -1,5 +1,6 @@
 // Copyright 2026 Ryan Duguid
-// SPDX-License-Identifier: LicenseRef-Duguid-Public-Attribution-1.0
+// SPDX-License-Identifier: AGPL-3.0-or-later
+// Additional terms under AGPL-3.0 section 7(b): see NOTICE.
 
 //! `rates snapshot | validate | check | ato-tables`: `rates.py` at
 //! australian-accounting 24fcf24, ported with its output, exit codes and
@@ -2580,6 +2581,11 @@ pub fn main(argv: Vec<OsString>) -> i32 {
     run(&ctx, &argv, world, std::io::stdout().lock())
 }
 
+const LICENCE_NOTICE: &str = "\n\
+    Copyright 2026 Ryan Duguid. No warranty.\n\
+    AGPL-3.0-or-later with additional terms (see NOTICE).\n\
+    Licence: https://github.com/ryanduguid/australian-accounting/blob/main/packages/au-tax-rates-data/LICENSE\n";
+
 /// [`main`] with the package, the outside world and stdout as parameters.
 fn run(ctx: &Ctx, argv: &[OsString], mut world: World, mut stdout: impl Write) -> i32 {
     let args: Vec<String> = argv
@@ -2589,6 +2595,7 @@ fn run(ctx: &Ctx, argv: &[OsString], mut world: World, mut stdout: impl Write) -
     let namespace = match build_parser(ctx).parse(&args) {
         Ok(namespace) => namespace,
         Err(Exit::Help(text)) => {
+            let text = format!("{text}{LICENCE_NOTICE}");
             return match stdout
                 .write_all(&newlines(text.as_bytes()))
                 .and_then(|()| stdout.flush())

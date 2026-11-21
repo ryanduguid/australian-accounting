@@ -1,5 +1,6 @@
 // Copyright 2026 Ryan Duguid
-// SPDX-License-Identifier: LicenseRef-Duguid-Public-Attribution-1.0
+// SPDX-License-Identifier: AGPL-3.0-or-later
+// Additional terms under AGPL-3.0 section 7(b): see NOTICE.
 
 //! A study and training support loan on a Schedule 9 pay. Schedule 9 for
 //! payments from 1 July 2026 and from 1 July 2024 to 30 June 2026 says to

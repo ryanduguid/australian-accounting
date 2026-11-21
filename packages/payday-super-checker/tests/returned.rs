@@ -1,5 +1,6 @@
 // Copyright 2026 Ryan Duguid
-// SPDX-License-Identifier: LicenseRef-Duguid-Public-Attribution-1.0
+// SPDX-License-Identifier: AGPL-3.0-or-later
+// Additional terms under AGPL-3.0 section 7(b): see NOTICE.
 
 //! Contributions a fund returned: SIS reg 7.07G(4) and LCR 2026/2 paragraphs
 //! 24 and 25 say a returned amount is not a contribution, and the ATO says the

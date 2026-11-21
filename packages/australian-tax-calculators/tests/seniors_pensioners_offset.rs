@@ -1,5 +1,6 @@
 // Copyright 2026 Ryan Duguid
-// SPDX-License-Identifier: LicenseRef-Duguid-Public-Attribution-1.0
+// SPDX-License-Identifier: AGPL-3.0-or-later
+// Additional terms under AGPL-3.0 section 7(b): see NOTICE.
 
 //! The seniors and pensioners tax offset (ITAA 1936 s 160AAAA; Income Tax
 //! Assessment (1936 Act) Regulations 2025 and Regulation 2015 ss 9 to 12): the

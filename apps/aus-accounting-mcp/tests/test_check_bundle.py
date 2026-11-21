@@ -1,5 +1,6 @@
 # Copyright 2026 Ryan Duguid
-# SPDX-License-Identifier: LicenseRef-Duguid-Public-Attribution-1.0
+# SPDX-License-Identifier: AGPL-3.0-or-later
+# Additional terms under AGPL-3.0 section 7(b): see NOTICE.
 
 """The bundle check: what it must refuse before a bundle reaches a release."""
 
@@ -62,6 +63,11 @@ def test_a_bundle_matching_its_source_and_manifest_passes(tmp_path: Path) -> Non
     lines = check_bundle.check(*bundle(tmp_path, "1.0.0"))
     assert lines[0] == f"fake.mcpb holds exactly the 2 files of {tmp_path / 'source'}"
     assert lines[-1] == "tools/list returned the manifest's 1 tools"
+
+
+def test_a_release_check_requires_bundled_licence_material(tmp_path: Path) -> None:
+    with pytest.raises(SystemExit, match=r"licence material missing .*: LICENSE"):
+        check_bundle.check(*bundle(tmp_path, "1.0.0"), check_calculators=True)
 
 
 def test_a_server_reporting_another_version_is_refused(tmp_path: Path) -> None:

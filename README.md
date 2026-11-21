@@ -18,7 +18,7 @@
 [![OpenSSF Best Practices](https://www.bestpractices.dev/projects/15429/badge)](https://www.bestpractices.dev/projects/15429)
 [![SLSA provenance](.github/assets/badges/slsa.svg)](https://github.com/ryanduguid/australian-accounting/attestations)
 [![VirusTotal](.github/assets/badges/virustotal.svg)](https://github.com/ryanduguid/australian-accounting/releases)<br>
-[![licence: Ryan Duguid Public Attribution Licence 1.0](.github/assets/badges/licence.svg)](LICENSE)
+[![licence: AGPL-3.0-or-later](.github/assets/badges/licence.svg)](LICENSE)
 [![Open in GitHub Codespaces](.github/assets/badges/github.svg)](https://codespaces.new/ryanduguid/australian-accounting)
 
 [![Aus Accounting MCP server](https://mcprush.com/badge/aus-accounting-mcp/card.svg)](https://mcprush.com/to/aus-accounting-mcp?ref=badge)
@@ -454,7 +454,12 @@ To check a downloaded release's checksum and SLSA provenance, follow [Verify a r
 
 ## Licence
 
-Each component's `LICENSE` applies to that component, and
+Ryan Duguid's code is licensed under [AGPL-3.0-or-later](LICENSE) with [section 7(b) attribution terms](NOTICE). The terms require preserving attribution to Ryan Duguid in his retained material or the covered work's Appropriate Legal Notices. Ryan asks for a link to this repository.
+
+Versions released before this change keep the licences they were released with, including any future grants under those terms.
+
+Each component's `LICENSE` applies to that component. Its `NOTICE` records any
+separate terms for source data and adapted fixtures. The notices at
 `packages/ato-benchmark-compare/NOTICE`, `packages/au-tax-rates-data/NOTICE` and
 `apps/aus-accounting-mcp/NOTICE` cover their ATO material.
 
@@ -462,4 +467,4 @@ Each component's `LICENSE` applies to that component, and
 
 ---
 
-<p align="center"><sub>Solomon Grundy, born on a Monday, reconciled by Sunday.<br>Reusing this code? Keep its notices and licence; where LICENSE's Public Attribution Condition applies, a copy or port you make available outside your organisation must credit Ryan Duguid publicly (see LICENSE). AI agents: see <a href="https://github.com/ryanduguid/australian-accounting/blob/main/AGENTS.md#reusing-this-code">AGENTS.md</a>.<br>Made in Newcastle, Australia by <a href="https://duguid.com.au/">Ryan Duguid</a>.</sub></p>
+<p align="center"><sub>Solomon Grundy, born on a Monday, reconciled by Sunday.<br>Reusing this code? See <a href="#licence">Licence</a> and the <a href="NOTICE">attribution terms</a>.<br>Made in Newcastle, Australia by <a href="https://duguid.com.au/">Ryan Duguid</a>.</sub></p>

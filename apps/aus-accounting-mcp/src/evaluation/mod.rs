@@ -1,5 +1,6 @@
 // Copyright 2026 Ryan Duguid
-// SPDX-License-Identifier: LicenseRef-Duguid-Public-Attribution-1.0
+// SPDX-License-Identifier: AGPL-3.0-or-later
+// Additional terms under AGPL-3.0 section 7(b): see NOTICE.
 
 mod context;
 mod json;
@@ -14,6 +15,11 @@ use std::{
 
 const REFERENCE: &[u8] = include_bytes!("../../evaluation/questions.xml");
 const HELP: &str = "Offline supplementary tool-selection evaluation. Recordings are never executed.\n\nUsage: aus-accounting-mcp-evaluate [--reference PATH] <context|questions|score RECORDING [--reference-sha256 SHA]>\n\ncontext    Print actual native server instructions, tools and preloaded scope.\nquestions  Print questions without tools or answers.\nscore      Compare recorded calls and answers; an imperfect valid score exits 0.\n\nThe default reference is embedded. Context launches the sibling aus-accounting-mcp executable.\n";
+
+const LICENCE_NOTICE: &str = "\n\
+    Copyright 2026 Ryan Duguid. No warranty.\n\
+    AGPL-3.0-or-later with additional terms (see NOTICE).\n\
+    Licence: https://github.com/ryanduguid/australian-accounting/blob/main/apps/aus-accounting-mcp/LICENSE\n";
 
 async fn blocking_read(path: &Path) -> Result<Vec<u8>, String> {
     let path = path.to_path_buf();
@@ -88,7 +94,7 @@ enum Prepared {
 
 fn global_flag(command: &OsStr) -> Option<i32> {
     if command == "--help" || command == "-h" {
-        print!("{HELP}");
+        print!("{HELP}{LICENCE_NOTICE}");
         Some(0)
     } else if command == "--version" {
         println!("aus-accounting-mcp-evaluate {}", env!("CARGO_PKG_VERSION"));
@@ -134,7 +140,7 @@ fn prepare(args: Vec<OsString>) -> Prepared {
     }
     let rest: Vec<_> = args.collect();
     if subcommand_help(&command, &rest) {
-        print!("{HELP}");
+        print!("{HELP}{LICENCE_NOTICE}");
         return Prepared::Exit(0);
     }
     Prepared::Run {

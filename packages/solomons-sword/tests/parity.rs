@@ -1,5 +1,6 @@
 // Copyright 2026 Ryan Duguid
-// SPDX-License-Identifier: LicenseRef-Duguid-Public-Attribution-1.0
+// SPDX-License-Identifier: AGPL-3.0-or-later
+// Additional terms under AGPL-3.0 section 7(b): see NOTICE.
 
 use serde_json::{Value, json};
 use solomons_sword::api;
@@ -129,11 +130,21 @@ fn original_cli_exit_stdout_stderr_bytes() {
         );
         // Windows rows carry CRLF; compare text-mode bytes LF-normalised.
         for (stream, actual) in [("stdout", &run.stdout), ("stderr", &run.stderr)] {
+            let actual = lf(actual);
+            let licence = "\n\
+    Copyright 2026 Ryan Duguid. No warranty.\n\
+    AGPL-3.0-or-later with additional terms (see NOTICE).\n\
+    Licence: https://github.com/ryanduguid/australian-accounting/blob/main/packages/solomons-sword/LICENSE\n";
+            let actual = if stream == "stdout" {
+                actual.strip_suffix(licence.as_bytes()).unwrap_or(&actual)
+            } else {
+                &actual
+            };
             match &expected[stream] {
                 Value::String(hex) => {
-                    assert_eq!(lf(actual), lf(&unhex(hex)), "{stream}: {args:?}")
+                    assert_eq!(actual, lf(&unhex(hex)), "{stream}: {args:?}")
                 }
-                digest => assert!(matches(&lf(actual), digest), "{stream}: {args:?}"),
+                digest => assert!(matches(actual, digest), "{stream}: {args:?}"),
             }
         }
         if cfg!(windows) {

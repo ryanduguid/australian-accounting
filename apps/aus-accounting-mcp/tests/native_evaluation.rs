@@ -1,5 +1,6 @@
 // Copyright 2026 Ryan Duguid
-// SPDX-License-Identifier: LicenseRef-Duguid-Public-Attribution-1.0
+// SPDX-License-Identifier: AGPL-3.0-or-later
+// Additional terms under AGPL-3.0 section 7(b): see NOTICE.
 
 //! Complete output oracles captured from the unchanged Python evaluation tool.
 use serde_json::Value;
@@ -196,6 +197,10 @@ fn score_option_forms_and_nested_inputs_are_bounded() {
         let output = run(&args);
         assert!(output.status.success());
         assert!(output.stderr.is_empty());
+        assert!(
+            String::from_utf8_lossy(&output.stdout)
+                .contains("AGPL-3.0-or-later with additional terms (see NOTICE).")
+        );
     }
     for depth in [600, 990, 1_001] {
         let text = format!(

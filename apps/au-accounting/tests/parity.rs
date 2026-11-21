@@ -1,5 +1,6 @@
 // Copyright 2026 Ryan Duguid
-// SPDX-License-Identifier: LicenseRef-Duguid-Public-Attribution-1.0
+// SPDX-License-Identifier: AGPL-3.0-or-later
+// Additional terms under AGPL-3.0 section 7(b): see NOTICE.
 
 //! Holds `au-accounting ENGINE` to each engine's own command, byte for byte.
 //!
@@ -727,4 +728,36 @@ fn windows_escaped_paths_and_other_errors_are_preserved() {
 #[should_panic(expected = "env TZ must be a string or null")]
 fn a_corpus_environment_value_that_is_not_text_is_refused() {
     environment(&json!({"env": {"HOME": null, "TZ": 10}}));
+}
+
+#[test]
+fn help_displays_the_licence_notice() {
+    let binary = env!("CARGO_BIN_EXE_au-accounting");
+    for args in [
+        ["", "--help"],
+        ["benchmarks", "--help"],
+        ["div7a", "--help"],
+        ["exchequer", "--help"],
+        ["gst-review", "--help"],
+        ["payday-super", "--help"],
+        ["solomons", "--help"],
+        ["tax", "--api-help"],
+        ["wip", "--help"],
+    ] {
+        let result = Command::new(binary)
+            .args(args.into_iter().filter(|arg| !arg.is_empty()))
+            .output()
+            .unwrap();
+        assert!(result.status.success(), "{args:?}: {:?}", result.stderr);
+        let stdout = String::from_utf8(result.stdout).unwrap();
+        assert!(
+            stdout.contains("Copyright 2026 Ryan Duguid. No warranty."),
+            "{args:?}"
+        );
+        assert!(
+            stdout.contains("AGPL-3.0-or-later with additional terms (see NOTICE)."),
+            "{args:?}"
+        );
+        assert!(stdout.contains("/LICENSE"), "{args:?}");
+    }
 }

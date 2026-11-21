@@ -1,5 +1,6 @@
 # Copyright 2026 Ryan Duguid
-# SPDX-License-Identifier: LicenseRef-Duguid-Public-Attribution-1.0
+# SPDX-License-Identifier: AGPL-3.0-or-later
+# Additional terms under AGPL-3.0 section 7(b): see NOTICE.
 
 """The command answers --help and --version instead of waiting silently for a client."""
 
@@ -27,6 +28,7 @@ def test_help_names_the_retrieval_folders(capsys, monkeypatch):
     out = capsys.readouterr().out
     assert stopped.value.code == 0
     assert "AUS_ACCOUNTING_LIBRARY_ROOT" in out and "AUS_ACCOUNTING_CORPUS_ROOT" in out
+    assert "AGPL-3.0-or-later with additional terms (see NOTICE)." in " ".join(out.split())
 
 
 def test_no_arguments_starts_the_server(monkeypatch):

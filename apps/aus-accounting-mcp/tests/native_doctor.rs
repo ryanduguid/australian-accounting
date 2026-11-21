@@ -1,5 +1,6 @@
 // Copyright 2026 Ryan Duguid
-// SPDX-License-Identifier: LicenseRef-Duguid-Public-Attribution-1.0
+// SPDX-License-Identifier: AGPL-3.0-or-later
+// Additional terms under AGPL-3.0 section 7(b): see NOTICE.
 
 //! `aus-accounting-mcp doctor` as the Python server's doctor.py reports it.
 use serde_json::Value;
@@ -82,4 +83,5 @@ fn the_help_names_the_doctor_command() {
     assert!(output.status.success());
     let text = String::from_utf8(output.stdout).unwrap();
     assert!(text.contains("  doctor  ") && text.contains(&help));
+    assert!(text.contains("AGPL-3.0-or-later with additional terms (see NOTICE)."));
 }

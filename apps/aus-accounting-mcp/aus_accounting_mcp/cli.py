@@ -1,5 +1,6 @@
 # Copyright 2026 Ryan Duguid
-# SPDX-License-Identifier: LicenseRef-Duguid-Public-Attribution-1.0
+# SPDX-License-Identifier: AGPL-3.0-or-later
+# Additional terms under AGPL-3.0 section 7(b): see NOTICE.
 
 """CLI entrypoint for aus-accounting-mcp."""
 
@@ -21,7 +22,9 @@ EPILOG = (
     "server configuration, then run `aus-accounting-mcp doctor` with the same "
     "variables to check them. Setup guide: "
     "https://github.com/ryanduguid/australian-accounting/blob/main/apps/aus-accounting-mcp/"
-    "docs/REFERENCE.md#client-setup"
+    "docs/REFERENCE.md#client-setup. Copyright 2026 Ryan Duguid. No warranty. "
+    "AGPL-3.0-or-later with additional terms (see NOTICE). "
+    "Licence: https://github.com/ryanduguid/australian-accounting/blob/main/apps/aus-accounting-mcp/LICENSE"
 )
 
 

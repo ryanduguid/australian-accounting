@@ -1,5 +1,6 @@
 // Copyright 2026 Ryan Duguid
-// SPDX-License-Identifier: LicenseRef-Duguid-Public-Attribution-1.0
+// SPDX-License-Identifier: AGPL-3.0-or-later
+// Additional terms under AGPL-3.0 section 7(b): see NOTICE.
 
 //! Replays every case the differential harness froze: the calls the Python
 //! 0.3.2 tests made, generated API calls and generated command runs, with the
@@ -326,8 +327,13 @@ fn check(case: &Value) -> Option<String> {
     let out = command.output().unwrap();
     let _ = std::fs::remove_dir_all(&dir);
     let (stdout, stderr) = (lf(&out.stdout), lf(&out.stderr));
+    let licence = "\n\
+    Copyright 2026 Ryan Duguid. No warranty.\n\
+    AGPL-3.0-or-later with additional terms (see NOTICE).\n\
+    Licence: https://github.com/ryanduguid/australian-accounting/blob/main/packages/div7a-loan-review/LICENSE\n";
+    let stdout = stdout.strip_suffix(licence).unwrap_or(&stdout);
     let ok = out.status.code() == expected["code"].as_i64().map(|c| c as i32)
-        && matches_text(&stdout, &expected["stdout"])
+        && matches_text(stdout, &expected["stdout"])
         && matches_text(&stderr, &expected["stderr"]);
     (!ok).then(|| {
         format!(

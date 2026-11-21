@@ -1,5 +1,6 @@
 // Copyright 2026 Ryan Duguid
-// SPDX-License-Identifier: LicenseRef-Duguid-Public-Attribution-1.0
+// SPDX-License-Identifier: AGPL-3.0-or-later
+// Additional terms under AGPL-3.0 section 7(b): see NOTICE.
 
 //! PPSR timing and fees (PPSA ss 10, 62 and 153; Personal Property Securities
 //! (Fees) Determination 2018 s 4; Corporations Act ss 9 and 588FL, read on

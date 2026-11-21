@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Relicensed Ryan Duguid's code under AGPL-3.0-or-later with section 7(b) attribution terms.
+
 ### Fixed
 
 - `gst-margin-scheme` checks the valuation date against the registration facts

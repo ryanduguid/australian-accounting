@@ -1,5 +1,6 @@
 # Copyright 2026 Ryan Duguid
-# SPDX-License-Identifier: LicenseRef-Duguid-Public-Attribution-1.0
+# SPDX-License-Identifier: AGPL-3.0-or-later
+# Additional terms under AGPL-3.0 section 7(b): see NOTICE.
 
 """Check a packed MCP Bundle against its source, then start it as a host would.
 
@@ -143,6 +144,14 @@ def check(bundle: Path, source: Path, *, check_calculators: bool = False) -> lis
             **{key: resolve(value) for key, value in config.get("env", {}).items()},
         }
         if check_calculators:
+            for legal_path in (
+                "LICENSE", "NOTICE", "bin/LICENSE.linux", "bin/NOTICE.linux",
+                "bin/LICENSE.windows", "bin/NOTICE.windows",
+            ):
+                if not packed.get(legal_path):
+                    raise SystemExit(
+                        f"FAIL licence material missing from {bundle.name}: {legal_path}"
+                    )
             environment.pop("AUS_TAX_CALCULATORS_BIN", None)
             environment.pop("AUS_TAX_CALCULATORS_SHA256", None)
             if shutil.which("australian-tax-calculators", path=environment.get("PATH")):

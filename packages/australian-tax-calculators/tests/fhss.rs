@@ -1,5 +1,6 @@
 // Copyright 2026 Ryan Duguid
-// SPDX-License-Identifier: LicenseRef-Duguid-Public-Attribution-1.0
+// SPDX-License-Identifier: AGPL-3.0-or-later
+// Additional terms under AGPL-3.0 section 7(b): see NOTICE.
 
 //! The First Home Super Saver scheme (TAA 1953 Sch 1 Division 138, ITAA 1997
 //! Division 313 and TAA Regulations 2017 reg 53A, read on 20 November 2026)
