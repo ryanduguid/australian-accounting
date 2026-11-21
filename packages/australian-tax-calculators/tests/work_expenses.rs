@@ -206,6 +206,23 @@ fn no_hourly_rate_without_additional_running_expenses() {
         let reason = result["fixed_rate_unavailable"].as_str().unwrap();
         assert!(reason.contains("No additional running expenses"), "{year}");
     }
+    // An amount for a running expense shows one was incurred.
+    for year in YEARS {
+        let input = with(
+            home(year, "100"),
+            json!({"running_expenses_incurred": false, "energy": "100.00"}),
+        );
+        assert_eq!(code(&input), "work_expenses.fact_conflict", "{year}");
+    }
+    // Cleaning alone is not of a kind the fixed rate covers from 2022-23, but
+    // was a running expense the 52c and 80c methods needed before.
+    let cleaning = json!({"running_expenses_incurred": false, "cleaning": "10.00"});
+    let later = run(&with(home("2025-26", "100"), cleaning.clone()));
+    assert_eq!(later["methods_available"], json!(["actual_cost"]));
+    assert_eq!(
+        code(&with(home("2021-22", "100"), cleaning)),
+        "work_expenses.fact_conflict"
+    );
     let asked = with(
         home("2025-26", "100"),
         json!({"running_expenses_incurred": "remove"}),
@@ -428,7 +445,10 @@ fn category_d_never_sits_beside_log_book_car_expenses() {
         let both = with(tuition, json!({"log_book_car_in_category_a": true}));
         assert_eq!(code(&both), "work_expenses.fact_conflict", "{year}");
     }
-    // With no category D the question does not arise, but may be answered.
+    // With no category D the question does not arise, but an answer given
+    // must still be a boolean.
+    let unclear = education("2025-26", json!({"log_book_car_in_category_a": "yes"}));
+    assert_eq!(code(&unclear), "input.flag_invalid");
     let no_d = education("2025-26", json!({"log_book_car_in_category_a": true}));
     assert!(api::evaluate("work-expenses", &no_d).is_ok());
 }

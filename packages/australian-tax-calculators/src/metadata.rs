@@ -1821,7 +1821,7 @@ pub fn optional_inputs(kind: &str) -> Vec<(&'static str, &'static str)> {
             ),
             (
                 "running_expenses_incurred",
-                "boolean, for home_office only, and then required: the taxpayer paid or became liable for at least one additional running expense as a result of working from home, which every hourly rate needs (PCG 2023/1 paras 18(b) and 49 to 55; PCG 2020/3); false leaves only the actual cost",
+                "boolean, for home_office only, and then required: the taxpayer paid or became liable for at least one additional running expense as a result of working from home, which every hourly rate needs; from 2022-23 it must be energy, phone, internet, stationery or computer consumables, the kinds the fixed rate covers (PCG 2023/1 paras 14, 18(b) and 49 to 55), and before then any running expense (the ATO's 52 cent and shortcut pages); false leaves only the actual cost, and conflicts with an amount for such an expense",
             ),
             (
                 "dedicated_home_office",

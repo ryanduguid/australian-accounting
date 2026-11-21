@@ -60,6 +60,27 @@ struct Inputs {
     repairs: Decimal,
 }
 
+/// With no additional running expense incurred, refuses an amount for one:
+/// from 2022-23 the kinds the fixed rate covers (PCG 2023/1 para 14), and
+/// before then any running expense, cleaning included.
+fn no_running_expense(x: &Inputs, early: bool) -> Result<()> {
+    let mut running = vec![&x.energy, &x.phone, &x.internet, &x.stationery];
+    if early {
+        running.push(&x.cleaning);
+    }
+    if running.iter().all(|v| v.is_zero()) {
+        return Ok(());
+    }
+    let kinds = if early {
+        "energy, phone, internet, stationery or cleaning"
+    } else {
+        "energy, phone, internet or stationery"
+    };
+    conflict(format!(
+        "running_expenses_incurred is false, yet {kinds} has an amount, which is a running expense incurred."
+    ))
+}
+
 /// Refuses more hours than the income year holds: 366 days when its
 /// February has 29.
 fn within_year(hours: &Decimal, year: &str, first: i64) -> Result<()> {
@@ -121,6 +142,9 @@ fn inputs(
         assets,
         repairs,
     };
+    if !incurred {
+        no_running_expense(&x, early)?;
+    }
     Ok((x, incurred, dedicated))
 }
 

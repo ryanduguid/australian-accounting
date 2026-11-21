@@ -75,18 +75,20 @@ fn connected(connection: &Arg, employed: &Arg) -> Result<bool> {
 /// car expenses in category A (the ATO's 'Self-education reduction in
 /// expenses'), so a category D above 0 needs to know which is claimed.
 fn one_car_method(given: &[(String, Arg)], category_d: &Decimal, when: &str) -> Result<()> {
-    if category_d.is_zero() {
-        return Ok(());
-    }
-    match given.iter().find(|(n, _)| n == LOG_BOOK_CAR) {
+    let answer = match given.iter().find(|(n, _)| n == LOG_BOOK_CAR) {
+        Some((_, value)) => Some(flag(value, LOG_BOOK_CAR)?),
+        None => None,
+    };
+    match answer {
+        _ if category_d.is_zero() => Ok(()),
         None => refuse(
             "input.missing_field",
             format!("{LOG_BOOK_CAR} is required when category_d is above 0{when}"),
         ),
-        Some((_, value)) if flag(value, LOG_BOOK_CAR)? => conflict(
+        Some(true) => conflict(
             "category_d, cents per kilometre car expenses, cannot be claimed beside log book car expenses in category_a: a car's expenses take one method (ATO 'Self-education reduction in expenses').",
         ),
-        Some(_) => Ok(()),
+        Some(false) => Ok(()),
     }
 }
 

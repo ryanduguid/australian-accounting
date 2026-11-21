@@ -3206,8 +3206,11 @@ Choices the sources leave to the reader:
   covered; at worst this understates a 52c claim.
 - Every hourly rate needs an additional running expense incurred as a result
   of working from home (PCG 2023/1 paras 18(b) and 49 to 55, and the ATO's
-  52 cent and shortcut pages). Amounts of nil do not show that, as the fixed
-  rate needs no amounts, so `running_expenses_incurred` asks it.
+  52 cent and shortcut pages): from 2022-23 one of the kinds the rate covers
+  (energy, phone, internet, stationery or computer consumables, para 14), and
+  before then any running expense. Amounts of nil do not show that, as the
+  fixed rate needs no amounts, so `running_expenses_incurred` asks it; false
+  beside an amount for such an expense is refused as a conflict.
 - A log book must stay representative: the ATO's 'Logbook method' needs a new
   one after a change such as a new job or home, so
   `log_book_representative` false is refused.

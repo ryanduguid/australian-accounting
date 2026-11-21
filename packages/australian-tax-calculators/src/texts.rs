@@ -2585,7 +2585,7 @@ pub const REFUSAL_CODES: &[(&str, &str)] = &[
     ),
     (
         "work_expenses.fact_conflict",
-        "The facts contradict each other or the year: hours beyond the year, business kilometres above total kilometres, nil total kilometres, a log book after the year claimed, or category D cents per kilometre car expenses beside log book car expenses in category A.",
+        "The facts contradict each other or the year: hours beyond the year, business kilometres above total kilometres, nil total kilometres, a log book after the year claimed, an amount for a running expense when none was incurred, or category D cents per kilometre car expenses beside log book car expenses in category A.",
     ),
     (
         "work_expenses.fact_invalid",
