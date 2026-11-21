@@ -478,6 +478,16 @@ fn a_disclosure_before_examination_cuts_80_percent_or_to_nil() {
     assert_eq!(penalty(disclosed(one("1000.00"), "0.00")), "50.00");
     // MT 2012/3 para 35: 2 statements of $600 for one period, worked apart.
     assert_eq!(penalty(disclosed(one("600.00"), "600.00")), "30.00");
+    assert_eq!(penalty(disclosed(one("999.99"), "0.01")), "50.00");
+    // Amounts stop at 1e12 dollars, so the period's sum cannot overflow.
+    assert_eq!(
+        code(
+            "statement_penalty",
+            "2025-26",
+            disclosed(one("1000.00"), "184467440737095516.15")
+        ),
+        "input.amount_invalid"
+    );
     assert_eq!(
         code(
             "statement_penalty",
