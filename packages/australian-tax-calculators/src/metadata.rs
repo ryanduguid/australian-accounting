@@ -3485,8 +3485,8 @@ pub fn input_units(kind: &str) -> Vec<(&'static str, &'static str)> {
             ("construction_expenditure", "AUD: your construction expenditure attributable to the part of your area this deduction is for (ITAA 1997 s 43-210 'portion of your CE')"),
             ("construction_start", "YYYY-MM-DD: when the capital works began, from 16 September 1987"),
             ("four_percent_manner", "boolean: the part was used in the 4% manner (s 43-145, including the 4% build to rent manner); only for works begun after 26 February 1992"),
-            ("days_used", "integer from 0 to 365, or 366 in 2023-24: the days in the year you owned or leased the part and used it in that manner (the denominator stays 365)"),
-            ("taxable_use", "fraction, decimal string from 0 to 1: the extent of the part's use for producing assessable income (or R&D activities) over those days"),
+            ("days_used", "integer from 0 to the days of the income year from the later of 1 July and construction_start (365, or 366 in 2023-24, for works begun before the year): the days in the year you owned or leased the part and used it in that manner (the denominator stays 365)"),
+            ("taxable_use", "fraction, decimal string from 0 to 1: the extent of the part's use for producing assessable income over those days; use for R&D activities counts too only at 2.5% for capital works other than a hotel or apartment building (s 43-210 step 4(b), s 43-215 step 3(b)), never in the 4% manner (s 43-210 step 2)"),
             ("undeducted_construction_expenditure", "AUD: the undeducted construction expenditure for your area (s 43-235), at most construction_expenditure; the deduction cannot exceed it"),
         ],
         "sb_cgt_concessions" => vec![

@@ -2578,8 +2578,9 @@ denominator is 365 in a leap year while the days can be 366.
 | Rental properties guide 2026, example 29 | **$115,800** at 2.5% for **346** days in 2025-26 | **$2,744.30** (ATO $2,744) |
 | Leap year | $365,000 at 2.5% for 366 days in 2023-24 | **$9,150.00** |
 
-The tests also cover the 4% rate, partial use, the undeducted limit and the
-16 September 1987 and 27 February 1992 boundaries.
+The tests also cover the 4% rate, partial use, the undeducted limit, the
+16 September 1987 and 27 February 1992 boundaries and days limited by a
+start of construction in or after the year.
 
 ## ETP tax free component
 

@@ -109,6 +109,19 @@ fn low_value_assets_and_second_element_costs_take_their_rates() {
     );
 }
 
+/// The decline is rounded once, from the unrounded sum of its 2 parts.
+#[test]
+fn the_decline_is_rounded_once() {
+    let r = run(
+        LVP,
+        &low_value(json!({"previous_closing_pool_balance": "0.01", "low_cost_assets": "0.02"})),
+    );
+    assert_eq!(
+        amounts(&r, LVP_KEYS),
+        ["0.00", "0.00", "0.01", "0.02", "0.02", "0.00"]
+    );
+}
+
 /// s 40-445(2): termination values above the closing pool balance leave it at
 /// zero and the excess is assessable.
 #[test]
@@ -391,6 +404,31 @@ fn a_leap_year_counts_366_days_over_365() {
     assert_eq!(
         code(CW, &works(json!({"days_used": -1}))),
         "input.day_count_invalid"
+    );
+}
+
+/// s 43-210: the days used are at most the days of the year from the later
+/// of 1 July and the start of construction, so none for works begun after it.
+#[test]
+fn days_used_end_at_the_start_of_construction() {
+    let begun = |start: &str, days: i64| {
+        works(json!({"construction_start": start, "days_used": days, "year": "2025-26"}))
+    };
+    assert!(api::evaluate(CW, &begun("2025-07-01", 365)).is_ok());
+    assert!(api::evaluate(CW, &begun("2026-06-01", 30)).is_ok());
+    assert_eq!(
+        code(CW, &begun("2026-06-01", 31)),
+        "input.day_count_invalid"
+    );
+    assert!(api::evaluate(CW, &begun("2026-06-30", 1)).is_ok());
+    assert_eq!(code(CW, &begun("2026-06-30", 2)), "input.day_count_invalid");
+    assert_eq!(
+        code(CW, &begun("2027-07-01", 346)),
+        "input.day_count_invalid"
+    );
+    assert_eq!(
+        amounts(&run(CW, &begun("2027-07-01", 0)), CW_KEYS)[2],
+        "0.00"
     );
 }
 

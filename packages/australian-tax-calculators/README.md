@@ -2263,8 +2263,11 @@ deduction      = min(reduced_amount, undeducted_construction_expenditure)
 The rate is 4% when `four_percent_manner` is true (s 43-145, works begun after
 26 February 1992) and 2.5% otherwise. `days_used` can be 366 in 2023-24; the
 denominator stays 365. It refuses works begun before 16 September 1987, the 4%
-manner for works begun before 27 February 1992 and undeducted construction
-expenditure above the construction expenditure. The caller establishes that the
+manner for works begun before 27 February 1992, undeducted construction
+expenditure above the construction expenditure and more days than the year has
+from the later of 1 July and `construction_start`. R&D use counts in
+`taxable_use` only at 2.5% for works other than a hotel or apartment building
+(s 43-210 step 4(b), s 43-215 step 3(b)). The caller establishes that the
 works qualify for their start date and type, the days, the use and the
 undeducted construction expenditure (s 43-235), which this command does not
 carry forward.

@@ -407,7 +407,7 @@ fn works_rules(four: bool, before_1992: bool) -> (&'static str, [Rule; 3]) {
 
 /// The start date, refusing works begun before 16 September 1987 and the 4%
 /// manner before 27 February 1992; true when begun before that day.
-fn works_begun(construction_start: &Arg, four: bool) -> Result<bool> {
+fn works_begun(construction_start: &Arg, four: bool) -> Result<(i64, bool)> {
     let begun = date_arg(construction_start, "construction_start")?;
     if begun < dates::parse("1987-09-16").expect("date") {
         return refuse(
@@ -422,18 +422,23 @@ fn works_begun(construction_start: &Arg, four: bool) -> Result<bool> {
             "Capital works begun before 27 February 1992 and after 15 September 1987 have only the 2.5% rate (s 43-215 step 1(b)); the 4% manner (s 43-145) is for works begun later.",
         );
     }
-    Ok(before_1992)
+    Ok((begun, before_1992))
 }
 
-/// The days used, at most 366 in 2023-24 and 365 otherwise: the numerator can
-/// be 366 in a leap year whilst the denominator stays 365.
-fn days_in_use(days_used: &Arg, year: &str) -> Result<i64> {
-    let most = if year == "2023-24" { 366 } else { 365 };
+/// The days used, at most the days of the income year from the later of
+/// 1 July and the start of construction: 366 in 2023-24, whilst the
+/// denominator stays 365, and none for works begun after the year.
+fn days_in_use(days_used: &Arg, year: &str, begun: i64) -> Result<i64> {
+    let first = dates::parse(&format!("{}-07-01", &year[..4])).expect("year");
+    let last = dates::parse(&format!("20{}-06-30", &year[5..])).expect("year");
+    let most = (last - begun.max(first) + 1).max(0);
     match days_used.int() {
         Some(Some(n)) if (0..=most).contains(&n) => Ok(n),
         _ => refuse(
             "input.day_count_invalid",
-            format!("days_used must be an integer from 0 to {most} for {year}."),
+            format!(
+                "days_used must be an integer from 0 to {most} for {year}, the days from the later of 1 July and construction_start to 30 June."
+            ),
         ),
     }
 }
@@ -474,8 +479,8 @@ pub fn capital_works(
     let year = scope(scope_confirmed, year, "capital_works")?;
     let expenditure = money(construction_expenditure)?;
     let four = flag(four_percent_manner, "four_percent_manner")?;
-    let before_1992 = works_begun(construction_start, four)?;
-    let days = int(days_in_use(days_used, &year)?);
+    let (begun, before_1992) = works_begun(construction_start, four)?;
+    let days = int(days_in_use(days_used, &year, begun)?);
     let use_ = works_use(taxable_use)?;
     let undeducted = money(undeducted_construction_expenditure)?;
     if undeducted.gt(&expenditure)? {
