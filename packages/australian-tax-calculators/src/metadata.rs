@@ -2109,7 +2109,11 @@ pub fn optional_inputs(kind: &str) -> Vec<(&'static str, &'static str)> {
             ),
             (
                 "dependent_children",
-                "integer from 0, the dependants who are children (Fringe Benefits Act meaning) the person maintained in the year; one or more puts a person without a spouse on the family thresholds (s 22-30(1)(b)), and each after the first raises them by $1,500 (s 22-40(4)); omit for none",
+                "integer from 0, the dependants who are children (Fringe Benefits Act meaning: under 21, or a full-time student under 25, maintained by the person); each after the first raises the family thresholds by $1,500 (s 22-40(4)); only with spouse_income_for_surcharge_purposes or maintained_dependent_person true; omit for none",
+            ),
+            (
+                "maintained_dependent_person",
+                "boolean, true when on any day in the year the person contributed in a substantial way to the maintenance of a dependent person (PHI Act Schedule 1: a dependent child under 18, or a dependent student, non-student or person with a disability under the insurer's rules) who is their child or a sibling dependent on them; puts a person without a spouse on 30 June on the family thresholds (s 22-30(1)(b)); omit or false otherwise",
             ),
         ],
         "medicare_levy_surcharge" => vec![

@@ -1895,11 +1895,12 @@ pub fn evaluate_coded(command: &str, v: &Value) -> Result<Value> {
             })
         }
         "private-health-insurance-rebate" => {
-            // Optional: absent for a person without a spouse on 30 June or
-            // without dependent children.
+            // Optional: absent for a person without a spouse on 30 June or a
+            // dependant.
             let o = [
                 optional(v, "spouse_income_for_surcharge_purposes", Dec)?,
                 optional(v, "dependent_children", Raw)?,
+                optional(v, "maintained_dependent_person", Raw)?,
             ];
             engine::private_health_insurance_rebate(&engine::PhiRebateArgs {
                 income_for_surcharge_purposes: &a[0],
@@ -1910,6 +1911,7 @@ pub fn evaluate_coded(command: &str, v: &Value) -> Result<Value> {
                     spouse_income: o[0].as_ref(),
                     dependent_children: o[1].as_ref(),
                 },
+                maintained_dependent_person: o[2].as_ref(),
             })
         }
         "income-tests" => {

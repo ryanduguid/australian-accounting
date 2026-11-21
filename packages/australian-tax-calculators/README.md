@@ -181,7 +181,7 @@ booleans and counts, ages, days, quarters and scales are JSON integers.
 | `payg-gross-up` | `net_pay`, `pay_period`, `scale`, `year`, `scope_confirmed`; optional `foreign_resident` (scale 4), `study_loan`; `pay_date` with `study_loan`, required for 2025-26 |
 | `study-loan-withholding` | `earnings`, `pay_period`, `scale`, `year`, `scope_confirmed`; `pay_date`, required for 2025-26 |
 | `medicare-levy` | `taxable_income`, `section_9a_adjustment_applies`, `year`, `scope_confirmed`; optional `sapto_entitled`, `spouse_taxable_income`, `spouse_sapto_entitled`, `dependant_offset_entitled`, `dependent_children`, `medicare_levy_exemption_full_days`, `medicare_levy_exemption_half_days` |
-| `private-health-insurance-rebate` | `income_for_surcharge_purposes`, `lines`, `year`, `scope_confirmed`; optional `spouse_income_for_surcharge_purposes`, `dependent_children`; see [Private health insurance rebate](#private-health-insurance-rebate) |
+| `private-health-insurance-rebate` | `income_for_surcharge_purposes`, `lines`, `year`, `scope_confirmed`; optional `spouse_income_for_surcharge_purposes`, `maintained_dependent_person`, `dependent_children`; see [Private health insurance rebate](#private-health-insurance-rebate) |
 | `medicare-levy-surcharge` | `taxable_income`, `reportable_fringe_benefits`, `income_for_surcharge_purposes`, `days_without_cover`, `year`, `scope_confirmed`; optional `spouse_income_for_surcharge_purposes`, `dependent_children` |
 | `low-income-tax-offset` | `taxable_income`, `year`, `scope_confirmed` |
 | `seniors-pensioners-tax-offset` | `rebate_income`, `status`, `year`, `scope_confirmed`; `spouse_rebate_income`, required unless `status` is `single`; optional `spouse_taxable_income` |
@@ -653,14 +653,17 @@ person insured under 65, 65 to 69 or 70 or over).
 
 The tier comes from `income_for_surcharge_purposes` as established
 (`income-tests` works it out for 2024-25 to 2026-27), against the singles
-thresholds, or the family thresholds (double, and $1,500 more for each
-dependent child after the first) for a person married on 30 June, whose
-`spouse_income_for_surcharge_purposes` is added, or who maintained a
-dependent child (`dependent_children`) in the year (PHI Act s 22-30). Each
-line's percentage is the ATO's for its period, band and tier, and its share
-of the PHII benefit is rounded to the cent. The offset is the share less the
-rebate received; the excess is the rebate received less the share. Each line
-stands alone, so an offset on one and an excess on another are both shown.
+thresholds, or the family thresholds (PHI Act s 22-30) for a person married
+on 30 June, whose `spouse_income_for_surcharge_purposes` is added, or who
+maintained a dependent person who is their child or dependent sibling in the
+year (`maintained_dependent_person`). The family thresholds are double, and
+$1,500 more for each `dependent_children` after the first (s 22-40(4)); the
+count alone does not put a person on them. Each line's percentage is the
+ATO's for its period, band and tier, and its share of the PHII benefit is
+rounded to the cent. The offset is the share less the rebate received; the
+excess is the rebate received less the share. Each line stands alone, so an
+offset on one and an excess on another are both shown; give premiums whose
+reductions within a period differed as separate lines.
 The offset is refundable (s 67-23).
 
 It refuses premiums paid from 1 April 2027, whose percentages the ATO had not

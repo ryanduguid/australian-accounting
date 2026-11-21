@@ -2176,8 +2176,11 @@ insured (s 22-20); the statement gives each adult's share.
 | Tier 2 | $105,000 | $108,000 | $113,000 | $118,000 | $123,000 |
 | Tier 3 | $140,000 | $144,000 | $151,000 | $158,000 | $164,000 |
 
-The family thresholds are double, plus $1,500 for each dependent child after
-the first (s 22-40); income must exceed a threshold to pass it (s 22-30). The
+The family thresholds apply to a person married on 30 June, or who on any day
+in the year maintained a dependent person (Schedule 1) who is their child or
+dependent sibling (s 22-30(1)); they are double, plus $1,500 for each child
+dependant (Fringe Benefits Act meaning) after the first (s 22-40); income must
+exceed a threshold to pass it (s 22-30). The
 ATO's 2024 page dates its first table to 30 March 2024, a slip for 31 March.
 For 2023-24 and earlier, the ATO lets income for surcharge purposes be reduced
 by the taxed element of a super lump sum within the low rate cap; that figure
@@ -2187,7 +2190,8 @@ The offset is the share of the PHII benefit less the person's share of the
 premium reduction received, nil if that is as much or more (ITAA 1997
 s 61-210); the excess the person repays is the reduction share less the
 benefit share (PHI Act s 282-18(3)). Both work premium by premium, so the
-worksheet does not net one line against another. No provision sets the
+worksheet does not net one line against another; a line that sums premiums
+with different reductions gives only their net. No provision sets the
 rounding: each line's share is rounded to the cent, which reproduces the
 ATO's examples. Zoe's $39.90 needs $20.095 rounded to $20.10 before it is taken
 from $60, and Narelle's $96.94 needs each line rounded. Two published figures
@@ -2195,8 +2199,7 @@ are not reproduced: Toby's liability is stated to the dollar ($194, from
 $194.09), and Donna's offset is stated as $243.12, though $364.32 less $121 is
 $243.32.
 
-Not worked out: dependant-only policies (s 22-5(3) and (4)), a dependent
-sibling without a child, s 22-25 (the operator gives the band), a trustee's
+Not worked out: dependant-only policies (s 22-5(3) and (4)), s 22-25 (the operator gives the band), a trustee's
 offset (s 61-205(2)), the choice to claim a spouse's offset (s 61-215) and the
 reallocation of the excess (s 282-18(8) to (10)).
 

@@ -583,6 +583,14 @@ fn run_private_health(v: &Value, results: &mut Map<String, Value>) -> Result<(),
     let Some(given) = v.get(PHI) else {
         return Ok(());
     };
+    let spouse = v["medicare-levy-surcharge"]
+        .get("spouse_income_for_surcharge_purposes")
+        .is_some();
+    if given["maintained_dependent_person"] == json!(true) && !spouse {
+        return family_mismatch(format!(
+            "{PHI} states a dependent person without a spouse, which medicare-levy-surcharge excludes (Medicare Levy Act 1986 s 8C)"
+        ));
+    }
     let mut input = given.clone();
     if let Some(object) = input.as_object_mut() {
         for key in ["year", "scope_confirmed"] {

@@ -234,7 +234,7 @@ fn every_published_percentage_applies_to_its_period_band_and_tier() {
         // An income in each tier: the tier 1 threshold itself is still base.
         let incomes = [t[0], t[1], t[2], t[2] + 1];
         for (tier, income) in incomes.iter().enumerate() {
-            for (code, band, later) in [
+            for (benefit, band, later) in [
                 (30, 0, 0),
                 (31, 0, 1),
                 (35, 1, 0),
@@ -242,10 +242,14 @@ fn every_published_percentage_applies_to_its_period_band_and_tier() {
                 (40, 2, 0),
                 (41, 2, 1),
             ] {
-                let facts = input(year, &income.to_string(), json!([line("1000", "0", code)]));
+                let facts = input(
+                    year,
+                    &income.to_string(),
+                    json!([line("1000", "0", benefit)]),
+                );
                 if year == "2026-27" && later == 1 {
                     assert_eq!(
-                        code_of(&facts),
+                        code(&facts),
                         "private_health_insurance_rebate.rate_unpublished"
                     );
                     continue;
@@ -260,23 +264,19 @@ fn every_published_percentage_applies_to_its_period_band_and_tier() {
                 assert_eq!(
                     field(&r, 0, "rebate_percentage"),
                     want,
-                    "{year} {code} {income}"
+                    "{year} {benefit} {income}"
                 );
                 let share = format!("{:.2}", want.parse::<f64>().unwrap() * 10.0);
                 assert_eq!(
                     amount(&r, "private_health_insurance_offset"),
                     share,
-                    "{year} {code} {income}"
+                    "{year} {benefit} {income}"
                 );
                 checked += 1;
             }
         }
     }
     assert_eq!(checked, 7 * 4 * 6 - 4 * 3);
-}
-
-fn code_of(facts: &Value) -> &'static str {
-    code(facts)
 }
 
 fn tier(year: &str, facts: Value) -> String {
@@ -326,20 +326,70 @@ fn a_couple_is_tested_on_combined_income_against_double_thresholds() {
     assert_eq!(r["rates"]["tier_1_threshold"], "202000");
 }
 
-/// A single parent is on the family thresholds on their own income
-/// (s 22-30(1)(b)), and each dependent child after the first raises every
-/// family threshold by $1,500 (s 22-40(4)): with 3, by $3,000.
+/// A person who maintained a dependent person who is their child or dependent
+/// sibling is on the family thresholds on their own income (s 22-30(1)(b)),
+/// and each dependant who is a child after the first raises every family
+/// threshold by $1,500 (s 22-40(4)): with 3, by $3,000.
 #[test]
-fn dependent_children_bring_family_thresholds_and_raise_them() {
+fn a_dependent_person_brings_family_thresholds_and_children_raise_them() {
+    let family = |income: i64, children: i64| {
+        json!({"income_for_surcharge_purposes": income.to_string(),
+            "maintained_dependent_person": true, "dependent_children": children})
+    };
     for (year, t) in THRESHOLDS {
         let top = 2 * t[2] + 3000;
-        let at = json!({"income_for_surcharge_purposes": top.to_string(), "dependent_children": 3});
-        let above = json!({"income_for_surcharge_purposes": (top + 1).to_string(), "dependent_children": 3});
-        assert_eq!(tier(year, at), "tier_2", "{year}");
-        assert_eq!(tier(year, above), "tier_3", "{year}");
-        let one = json!({"income_for_surcharge_purposes": (2 * t[0]).to_string(), "dependent_children": 1});
-        assert_eq!(tier(year, one), "base", "{year}");
+        assert_eq!(tier(year, family(top, 3)), "tier_2", "{year}");
+        assert_eq!(tier(year, family(top + 1, 3)), "tier_3", "{year}");
+        assert_eq!(tier(year, family(2 * t[0], 1)), "base", "{year}");
+        assert_eq!(tier(year, family(2 * t[0], 0)), "base", "{year}");
+        assert_eq!(tier(year, family(2 * t[0] + 1, 0)), "tier_1", "{year}");
     }
+}
+
+/// A single parent maintaining a 26-year-old dependent student (a dependent
+/// person under the PHI Act, though not a child dependant for s 22-40(4)), on
+/// $150,000 in 2025-26: family thresholds, so base tier, and $1,000 of
+/// premiums gives $242.88, not the singles tier 2 $80.95.
+#[test]
+fn a_dependent_person_who_is_no_child_dependant_still_brings_family_thresholds() {
+    let mut facts = input("2025-26", "150000", json!([line("1000", "0", 30)]));
+    facts["maintained_dependent_person"] = json!(true);
+    let r = run(&facts);
+    assert_eq!(r["thresholds"], "families");
+    assert_eq!(r["tier"], "base");
+    assert_eq!(amount(&r, "private_health_insurance_offset"), "242.88");
+    facts["maintained_dependent_person"] = json!(false);
+    assert_eq!(run(&facts)["tier"], "tier_2");
+}
+
+/// The child count raises only family thresholds, so without a spouse or a
+/// dependent person it is refused rather than ignored.
+#[test]
+fn dependent_children_alone_are_refused() {
+    let mut facts = input("2025-26", "150000", json!([line("1000", "0", 30)]));
+    facts["dependent_children"] = json!(2);
+    assert_eq!(code(&facts), "input.field_unknown");
+    facts["maintained_dependent_person"] = json!("yes");
+    assert_eq!(code(&facts), "input.flag_invalid");
+}
+
+/// Two $1,000 premiums before 1 April, tier 1 (16.192%), one reduced at the
+/// base rate ($242.88) and one at tier 2 ($80.95): as separate lines, an
+/// excess of $80.96 and an offset of $80.97; summed into one statement line,
+/// only their net, an offset of $0.01.
+#[test]
+fn premiums_with_different_reductions_show_both_amounts_as_separate_lines() {
+    let apart = json!([line("1000", "242.88", 30), line("1000", "80.95", 30)]);
+    let r = run(&input("2025-26", "110000", apart));
+    assert_eq!(amount(&r, "excess_private_health_reduction"), "80.96");
+    assert_eq!(amount(&r, "private_health_insurance_offset"), "80.97");
+    let summed = run(&input(
+        "2025-26",
+        "110000",
+        json!([line("2000", "323.83", 30)]),
+    ));
+    assert_eq!(amount(&summed, "private_health_insurance_offset"), "0.01");
+    assert_eq!(amount(&summed, "excess_private_health_reduction"), "0.00");
 }
 
 #[test]
@@ -489,7 +539,7 @@ fn the_estimate_refuses_the_part_for_a_foreign_resident_and_income_given_twice()
     }
     let r = api::evaluate_coded(ESTIMATE, &facts).unwrap_err();
     assert_eq!(r.code, "input.field_unknown");
-    assert!(r.message.contains("61-205(1)(c)"), "{}", r.message);
+    assert!(r.message.contains("61-205(1)(c)"));
     for key in [
         "income_for_surcharge_purposes",
         "spouse_income_for_surcharge_purposes",
@@ -499,10 +549,30 @@ fn the_estimate_refuses_the_part_for_a_foreign_resident_and_income_given_twice()
         part[key] = json!("1");
         let r = estimate(json!({"private-health-insurance-rebate": part})).unwrap_err();
         assert_eq!(r.code, "input.field_unknown", "{key}");
-        assert!(
-            r.message.contains("medicare-levy-surcharge"),
-            "{}",
-            r.message
-        );
+        assert!(r.message.contains("medicare-levy-surcharge"), "{key}");
     }
+}
+
+/// The offset is refundable, so with no tax it takes the total below nil and
+/// is refunded in full: nil taxable income and withholding, $1,000 of base
+/// tier premiums with no reduction gives -$242.88 and a $242.88 refund.
+#[test]
+fn the_estimate_refunds_an_offset_beyond_the_tax() {
+    let mut nil = json!({"taxable_income": "0", "tax_withheld": "0",
+        "medicare-levy-surcharge": {"reportable_fringe_benefits": "0",
+            "income_for_surcharge_purposes": "0", "days_without_cover": 0}});
+    nil["private-health-insurance-rebate"] = json!({"lines": [line("1000", "0", 30)]});
+    let out = estimate(nil).unwrap();
+    assert_eq!(out["amounts"]["total_before_credits"], "-242.88");
+    assert_eq!(out["amounts"]["refund"], "242.88");
+    assert_eq!(out["amounts"]["amount_payable"], "0.00");
+}
+
+/// The surcharge part leaves out dependants without a spouse, so the rebate
+/// part may not state one either.
+#[test]
+fn the_estimate_refuses_a_dependent_person_without_a_spouse() {
+    let phi = json!({"lines": [line("100", "0", 30)], "maintained_dependent_person": true});
+    let r = estimate(json!({"private-health-insurance-rebate": phi})).unwrap_err();
+    assert_eq!(r.code, "estimate.family_mismatch");
 }
