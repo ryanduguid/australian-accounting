@@ -124,6 +124,7 @@ pub struct InvalidCarerArgs<'a> {
     pub spouse_days: Option<&'a Arg>,
     pub maintained_by_others: Option<&'a Arg>,
     pub ftb_b_shared_care: Option<&'a Arg>,
+    pub different_spouses: Option<&'a Arg>,
 }
 
 const LIMIT: &str = "ITAA 1997 s 61-20: no offset where the person's adjusted taxable income for offsets plus, for a spouse who is not the dependant, the spouse's (for part of the year, x days with a spouse / days in the year, s 61-20(2)) is more than the FTB Part B limit, as the ATO publishes it for the year";
@@ -165,6 +166,12 @@ pub fn invalid_carer_tax_offset(a: &InvalidCarerArgs) -> Result<Value> {
         return refuse(
             "invalid_carer_tax_offset.ftb_shared_care",
             "ITAA 1997 s 61-35 reduces the offset by the FTB Part B shared-care rate over the non-shared-care rate, which Services Australia works out; this worksheet does not.",
+        );
+    }
+    if refused_flag(a.different_spouses, "different_spouses")? {
+        return refuse(
+            "invalid_carer_tax_offset.successive_spouses",
+            "You had a different spouse during different parts of the year: ITAA 1997 s 61-20(3) adds the adjusted taxable income for offsets of each spouse who is not the dependant, each apportioned under s 61-20(2), which one spouse input does not hold; this worksheet does not.",
         );
     }
     let own = money(a.adjusted_taxable_income)?;
@@ -396,6 +403,7 @@ fn zone_residence(a: &ZoneArgs, year: &str, days: i64) -> Result<(bool, &'static
             let start: i64 = year[..4].parse().expect("income year");
             let prior = prior_year.text().filter(|t| {
                 t.len() == 7
+                    && t.is_ascii()
                     && t[..4].parse::<i64>().is_ok()
                     && t.as_bytes()[4] == b'-'
                     && t[5..].parse::<i64>().ok()
@@ -424,6 +432,14 @@ fn zone_residence(a: &ZoneArgs, year: &str, days: i64) -> Result<(bool, &'static
             }
             let prior_length = days_in(prior);
             let prior_days = day_count(prior_days, prior_length, "prior_days")?;
+            if prior_length == 366 && prior_days == 183 {
+                return refuse(
+                    "zone_tax_offset.half_year_unclear",
+                    format!(
+                        "183 days is exactly one-half of {prior}, a 366-day year: ITAA 1936 s 79A(3B)(d)(ii) and (e)(ii) carry days of not more than one-half, but the ATO counts 183 days or more as residence for that year, whose days are not carried; this worksheet does not decide."
+                    ),
+                );
+            }
             if prior_days * 2 > prior_length {
                 return refuse(
                     "zone_tax_offset.prior_year_invalid",
@@ -616,16 +632,16 @@ pub struct MedicalArgs<'a> {
     pub dependent_children: Option<&'a Arg>,
 }
 
-const MEDICAL_INCOME: &str = "ITAA 1936 s 159Q(1) (compilation 161): married on the last day of the year, the person's and the spouse's adjusted taxable income for rebates against the family tier 1 threshold; otherwise, with a dependant on any day, the person's own against the family tier 1 threshold; otherwise the person's own against the singles tier 1 threshold";
+const MEDICAL_INCOME: &str = "ITAA 1936 s 159Q(1) (compilation 161): married on the last day of the year, or on the day the person died for one who died in the year (s 159Q(2)), the person's and the spouse's adjusted taxable income for rebates against the family tier 1 threshold; otherwise, with a dependant on any day, the person's own against the family tier 1 threshold; otherwise the person's own against the singles tier 1 threshold";
 const MEDICAL_OFFSET: &str = "ITAA 1936 s 159P(3AA) (compilation 161): 10% of the net medical expenses over the higher phase-in limit where the income exceeds the threshold, otherwise 20% over the lower phase-in limit (s 159Q(5) and (6), indexed), as the ATO publishes them for the year; only disability aids, attendant care and aged care count (s 159P(1B))";
 
 /// The net medical expenses tax offset for 2016-17 to 2018-19 (ITAA 1936
 /// ss 159P and 159Q).
 pub fn net_medical_expenses_tax_offset(a: &MedicalArgs) -> Result<Value> {
     if matches!(a.scope_confirmed, Arg::Bool(true))
-        && a.year
-            .text()
-            .is_some_and(|y| y.len() == 7 && y[..4].parse::<i64>().is_ok_and(|start| start >= 2019))
+        && a.year.text().is_some_and(|y| {
+            y.len() == 7 && y.is_ascii() && y[..4].parse::<i64>().is_ok_and(|start| start >= 2019)
+        })
     {
         return refuse(
             "period.unsupported",

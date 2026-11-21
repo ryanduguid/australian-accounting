@@ -13,7 +13,8 @@
   offset (ITAA 1997 Subdivision 61-A) for 2020-21 to 2025-26 and the net
   medical expenses tax offset for 2016-17 to 2018-19, its last years. New
   codes: `invalid_carer_tax_offset.dependant_invalid`, `.ftb_shared_care`,
-  `.rate_unpublished` and `.shared_maintenance`; `zone_tax_offset.area_invalid`,
+  `.rate_unpublished`, `.shared_maintenance` and `.successive_spouses`;
+  `zone_tax_offset.area_invalid`,
   `.dependants_invalid`, `.half_year_unclear`, `.prior_year_invalid`,
   `.prior_year_unclear`, `.shared_maintenance` and
   `.sole_parent_without_dependant`. `tests/individual_offsets.rs` holds them

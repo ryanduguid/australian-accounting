@@ -185,7 +185,7 @@ booleans and counts, ages, days, quarters and scales are JSON integers.
 | `low-income-tax-offset` | `taxable_income`, `year`, `scope_confirmed` |
 | `seniors-pensioners-tax-offset` | `rebate_income`, `status`, `year`, `scope_confirmed`; `spouse_rebate_income`, required unless `status` is `single`; optional `spouse_taxable_income` |
 | `beneficiary-tax-offset` | `rebatable_benefit`, `year`, `scope_confirmed`; see [Individual tax offsets](#individual-tax-offsets) |
-| `invalid-carer-tax-offset` | `dependant`, `adjusted_taxable_income`, `dependant_adjusted_taxable_income`, `year`, `scope_confirmed`; optional `days`, `spouse_adjusted_taxable_income`, `spouse_days`, `maintained_by_others`, `ftb_b_shared_care` |
+| `invalid-carer-tax-offset` | `dependant`, `adjusted_taxable_income`, `dependant_adjusted_taxable_income`, `year`, `scope_confirmed`; optional `days`, `spouse_adjusted_taxable_income`, `spouse_days`, `maintained_by_others`, `ftb_b_shared_care`, `different_spouses` |
 | `zone-tax-offset` | `area`, `days`, `year`, `scope_confirmed`; optional `prior_year` with `prior_days`, `continuous_residence`, `includes_first_day`, `dependants`, `sole_parent_days`, `invalid_carer_tax_offset`, `remote_area_allowance` |
 | `net-medical-expenses-tax-offset` | `net_medical_expenses`, `adjusted_taxable_income`, `year`, `scope_confirmed`; optional `spouse_adjusted_taxable_income`, `dependent_children` |
 | `lump-sum-arrears-tax-offset` | `taxable_income`, `net_capital_gain`, `accrual_years`, `year`, `scope_confirmed`; see [Lump sum payment in arrears tax offset](#lump-sum-payment-in-arrears-tax-offset) |
@@ -2466,7 +2466,8 @@ and nil where the person's adjusted taxable income, with a spouse's who is not
 the dependant, is more than the FTB Part B limit. Run it once for each
 dependant. It refuses a dependant also maintained by someone else, whose
 apportionment the law and the ATO's worksheets order differently, FTB Part B
-at a shared-care rate, and 2026-27, whose amounts are not yet published.
+at a shared-care rate, a different spouse during different parts of the year
+(s 61-20(3)), and 2026-27, whose amounts are not yet published.
 
 `zone_tax_offset` works out the zone tax offset (ITAA 1936 s 79A) for one
 `area`, `special_area`, `zone_a` or `zone_b`, or the overseas forces tax
@@ -2478,8 +2479,8 @@ zone with more than one-half of the year's `days` there, or fewer with
 `prior_days` in `prior_year` adding to more than 182 (s 79A(3B)(d), or (e)
 for a year 2 to 4 years back with `continuous_residence` and
 `includes_first_day`). 183 days of 2023-24 (366 days), and days carried from
-the fifth year back, are refused: the law and the ATO's guidance read them
-differently. The amount is the fixed amount plus 50%, or 20% for Zone B, of
+the fifth year back, and carrying 183 days of 2023-24, are refused: the law and
+the ATO's guidance read them differently. The amount is the fixed amount plus 50%, or 20% for Zone B, of
 the dependants' notional offsets (`dependants`), the sole parent notional
 offset (`sole_parent_days`) and the `invalid_carer_tax_offset`, less any
 `remote_area_allowance`; overseas service of not more than one-half of the
@@ -2491,7 +2492,8 @@ offset for 2016-17 to 2018-19, the last years it ran: 20% of the net expenses
 for disability aids, attendant care or aged care over the lower limit, or 10%
 over the higher limit where adjusted taxable income, with a spouse's on
 30 June, exceeds $90,000, or $180,000 plus $1,500 for each dependent child
-after the first for a family. The former dependent spouse tax offset last ran
+after the first for a family. For a person who died in the year, the spouse is
+the one at death (s 159Q(2)). The former dependent spouse tax offset last ran
 in 2013-14 and is not worked out.
 
 `tests/individual_offsets.rs` holds each command to the ATO's examples and

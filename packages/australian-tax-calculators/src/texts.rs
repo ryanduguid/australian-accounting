@@ -2319,6 +2319,10 @@ pub const REFUSAL_CODES: &[(&str, &str)] = &[
         "Another person also maintained the dependant: ITAA 1997 s 61-40(1)(b) and the ATO's worksheets order the apportionment and the income reduction differently.",
     ),
     (
+        "invalid_carer_tax_offset.successive_spouses",
+        "The person had a different spouse during different parts of the year, whose incomes ITAA 1997 s 61-20(3) adds separately.",
+    ),
+    (
         "leave.accrual_split_invalid",
         "A part of unused leave accrued before a date is more than its total, or is given above nil though the leave's accrual started on or after that date.",
     ),

@@ -225,9 +225,20 @@ fn invalid_carer_offset_refusals() {
         code(CARER, &carer("2025-26", json!({"ftb_b_shared_care": true}))),
         "invalid_carer_tax_offset.ftb_shared_care"
     );
+    // s 61-20(3): a former invalid spouse, then a new spouse with income.
+    assert_eq!(
+        code(
+            CARER,
+            &carer(
+                "2025-26",
+                json!({"dependant": "spouse", "days": 100, "different_spouses": true})
+            )
+        ),
+        "invalid_carer_tax_offset.successive_spouses"
+    );
     let shared_false = carer(
         "2025-26",
-        json!({"maintained_by_others": false, "ftb_b_shared_care": false}),
+        json!({"maintained_by_others": false, "ftb_b_shared_care": false, "different_spouses": false}),
     );
     assert_eq!(carer_offset(&shared_false), "3396.00");
     assert_eq!(
@@ -377,6 +388,10 @@ fn garry_and_the_relevant_preceding_year() {
         json!({"prior_year": "2022-23", "prior_days": 122}),
     );
     assert_eq!(offset(&missing), "0.00");
+    // 2021-22 is the fourth year before 2025-26, the last s 79A(4) allows.
+    let fourth = json!({"prior_year": "2021-22", "prior_days": 122,
+        "continuous_residence": true, "includes_first_day": true});
+    assert_eq!(offset(&zone("2025-26", "zone_a", 92, fourth)), "338.00");
 }
 
 #[test]
@@ -411,14 +426,27 @@ fn zone_prior_year_refusals() {
         refused(json!({"prior_year": "2024-25", "prior_days": 100, "includes_first_day": true})),
         "input.field_unknown"
     );
-    // 2023-24 had 366 days: 183 is one-half of it, so may be carried.
+    // 2023-24 had 366 days: s 79A(3B)(d)(ii) carries 183 of them, which the
+    // ATO counts as residence for 2023-24 itself.
     let leap = zone(
         "2024-25",
         "zone_a",
         1,
         json!({"prior_year": "2023-24", "prior_days": 183}),
     );
-    assert_eq!(offset(&leap), "338.00");
+    assert_eq!(code(ZONE, &leap), "zone_tax_offset.half_year_unclear");
+    let short = zone(
+        "2024-25",
+        "zone_a",
+        1,
+        json!({"prior_year": "2023-24", "prior_days": 182}),
+    );
+    assert_eq!(offset(&short), "338.00");
+    // 7 bytes with a character across byte 4 is refused, not a panic.
+    assert_eq!(
+        refused(json!({"prior_year": "aééaa", "prior_days": 100})),
+        "zone_tax_offset.prior_year_invalid"
+    );
 }
 
 /// T4 table 2 and worksheets 1 to 4: $376 for a student and the oldest
@@ -659,6 +687,10 @@ fn net_medical_expenses_refusals() {
     }
     assert_eq!(
         code(MEDICAL, &medical("2015-16", json!({}))),
+        "period.unsupported"
+    );
+    assert_eq!(
+        code(MEDICAL, &medical("aééaa", json!({}))),
         "period.unsupported"
     );
     assert_eq!(

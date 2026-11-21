@@ -1799,6 +1799,7 @@ pub fn evaluate_coded(command: &str, v: &Value) -> Result<Value> {
                 optional(v, "spouse_days", Raw)?,
                 optional(v, "maintained_by_others", Raw)?,
                 optional(v, "ftb_b_shared_care", Raw)?,
+                optional(v, "different_spouses", Raw)?,
             ];
             engine::invalid_carer_tax_offset(&engine::InvalidCarerArgs {
                 dependant: &a[0],
@@ -1811,6 +1812,7 @@ pub fn evaluate_coded(command: &str, v: &Value) -> Result<Value> {
                 spouse_days: o[2].as_ref(),
                 maintained_by_others: o[3].as_ref(),
                 ftb_b_shared_care: o[4].as_ref(),
+                different_spouses: o[5].as_ref(),
             })
         }
         "zone-tax-offset" => {

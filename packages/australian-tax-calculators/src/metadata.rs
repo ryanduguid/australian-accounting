@@ -2312,6 +2312,10 @@ pub fn optional_inputs(kind: &str) -> Vec<(&'static str, &'static str)> {
                 "ftb_b_shared_care",
                 "boolean: you or your spouse were eligible for FTB Part B at a shared-care rate while the spouse was the dependant; true is refused (s 61-35)",
             ),
+            (
+                "different_spouses",
+                "boolean: you had a different spouse during different parts of the year; true is refused (s 61-20(3))",
+            ),
         ],
         "zone_tax_offset" => vec![
             (
@@ -2350,7 +2354,7 @@ pub fn optional_inputs(kind: &str) -> Vec<(&'static str, &'static str)> {
         "net_medical_expenses_tax_offset" => vec![
             (
                 "spouse_adjusted_taxable_income",
-                "AUD, for a person married on 30 June: the spouse's adjusted taxable income for rebates, added and tested against the family threshold (ITAA 1936 s 159Q(1) item 1)",
+                "AUD, for a person married on 30 June, or on the day the person died for one who died in the year (s 159Q(2)): the spouse's adjusted taxable income for rebates, added and tested against the family threshold (ITAA 1936 s 159Q(1) item 1)",
             ),
             (
                 "dependent_children",

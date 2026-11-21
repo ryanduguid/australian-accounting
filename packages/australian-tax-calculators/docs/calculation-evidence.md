@@ -1086,7 +1086,8 @@ had not published the 2027 instructions, so 2026-27 uses the law's amounts.
 
 Two points are refused rather than decided. Section 79A(3B)(a) needs residence
 for more than one-half of the year, 184 days of 2023-24, but the ATO says 183
-days or more. Section 79A(4) makes a relevant preceding year 'any of the next
+days or more, so 183 days of 2023-24 are refused in that year and when carried
+to a later one. Section 79A(4) makes a relevant preceding year 'any of the next
 4 preceding years of income other than the immediately preceding year', but
 the ATO's Garry example carries days from 2020-21, the fifth year before
 2025-26.
