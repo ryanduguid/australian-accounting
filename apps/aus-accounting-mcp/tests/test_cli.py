@@ -29,6 +29,11 @@ def test_help_names_the_retrieval_folders(capsys, monkeypatch):
     assert stopped.value.code == 0
     assert "AUS_ACCOUNTING_LIBRARY_ROOT" in out and "AUS_ACCOUNTING_CORPUS_ROOT" in out
     assert "AGPL-3.0-or-later with additional terms (see NOTICE)." in " ".join(out.split())
+    setup_url = (
+        "https://github.com/ryanduguid/australian-accounting/blob/main/"
+        "apps/aus-accounting-mcp/docs/REFERENCE.md#client-setup"
+    )
+    assert setup_url in out.splitlines()
 
 
 def test_no_arguments_starts_the_server(monkeypatch):
