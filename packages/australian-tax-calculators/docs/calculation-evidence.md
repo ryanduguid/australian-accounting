@@ -3161,6 +3161,43 @@ Choices the Act leaves to the reader:
 | Neil's roll-over also obtained for a CGT event on 30 June 2026 | Worked by hand under s 104-190(1A)(a) and (b)(i) | Replacement asset period 30 June 2025 to 30 June 2028, from the last event, not 15 May |
 | Neil's sale with a look-through earnout whose last payment could fall due on 31 January 2028, 15 November 2027 or 31 August 2028 | Worked by hand under s 104-190(1A)(b)(ii) | The period ends 31 July 2028, 6 months after it; 15 May 2028, 2 years after the event, the later; or 28 February 2029 |
 
+## Non-commercial losses
+
+This worksheet was added on 22 November 2026. ITAA 1997 Division 35 was read
+that day in compilation 268 (1 October 2026), volume 1
+(https://www.legislation.gov.au/C2004A05138/2026-10-01/2026-10-01/text/original/epub/OEBPS/document_1/document_1.html),
+and compared with compilations 210 (from 1 July 2020) and 223 (from 1 July
+2021): ss 35-10 to 35-55 read the same in all 3 but for defined-term
+asterisks. The ATO's 'Four tests', 'The income requirement', 'Excepted
+business activities' and 'How to defer your losses' pages (each last updated
+7 April 2025) were read the same day.
+
+Choices the Act leaves to the reader:
+
+- s 35-10(2E)(a) disregards the s 35-10(2) excess in taxable income. The
+  worksheet adds the business losses back to the taxable income or loss given
+  and takes out the FHSS amount, using nil for a negative result, as the
+  ATO's income requirement page does.
+- The profits test counts a year when its deductions, apart from
+  s 35-10(2) and (2C), are less than its assessable income; equal is not a
+  profit.
+- The amount deferred is the excess less net exempt income (s 35-15); when
+  the rule does not apply, the whole excess is deductible this year.
+
+`tests/non_commercial_losses.rs` holds these cases.
+
+| Case | Source | Worksheet |
+|---|---|---|
+| Slaide: $16,000 for part of the year, estimated at $22,000 | ATO Four tests | assessable income test met |
+| Nguyen: a $7,500 loss, then $17,500, $15,000, -$4,000 and $16,000 | ATO Four tests | 3 profit years: met |
+| Joe: $155,000 taxable income and a $10,000 net investment loss | ATO income requirement | $165,000: met |
+| Fred: $49,000 taxable income and $1,000 of reportable super | ATO income requirement | $50,000: met |
+| Alex: $200,000 with $20,000 FHSS and a $6,000 business loss | ATO income requirement | $186,000: met |
+| Jennifer: $9,000 income, $10,000 deductions, $2,000 brought forward | s 35-10 example | $3,000 deferred |
+| Michael: $15,000 income, $20,000 deductions, $3,000 net exempt income | ATO How to defer | $5,000 excess, $2,000 deferred |
+| $19,999.99 and $20,000; $499,999.99 and $500,000; $99,999.99 and $100,000 | ss 35-30, 35-40, 35-45 | not met; met |
+| $249,999.99 and $250,000; other income $39,999.99 and $40,000 | ss 35-10(2E), (4) | met; not met |
+
 ## Personal tax estimate
 
 `personal-tax-estimate` adds no rate or threshold: each amount is a

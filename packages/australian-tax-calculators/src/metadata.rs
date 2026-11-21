@@ -1131,6 +1131,11 @@ pub fn supported_periods(kind: &str) -> Vec<&'static str> {
         // The years whose definitions were read: the 1 July 2024 compilations
         // define them as the current ones do, and the ATO's 2025 and 2026
         // return instructions and its current pages apply them.
+        // Division 35 reads the same in compilations 210 (1 July 2020), 223
+        // (1 July 2021) and 268 (1 October 2026).
+        "non_commercial_losses" => vec![
+            "2020-21", "2021-22", "2022-23", "2023-24", "2024-25", "2025-26", "2026-27",
+        ],
         "income_tests" => vec!["2024-25", "2025-26", "2026-27"],
         "sb_cgt_concessions" => vec!["2025-26", "2026-27"],
         _ => Vec::new(),
@@ -1384,6 +1389,10 @@ pub fn source_review(kind: &str) -> (&'static str, &'static str) {
         "sb_cgt_concessions" => (
             "2026-11-19",
             "ITAA 1997 Division 152 (ss 152-5 to 152-35, 152-50, 152-55, 152-105, 152-110, 152-205 to 152-220, 152-305, 152-320, 152-325, 152-330, 152-410 and 152-430), s 104-190(1A) and s 328-110, compilation 264 (21 May 2026), the text for 2025-26 and 2026-27 under Act No. 49 of 2026 Schedule 1 item 82",
+        ),
+        "non_commercial_losses" => (
+            "2026-11-22",
+            "ITAA 1997 Division 35 (ss 35-10 to 35-55), compilation 268 (1 October 2026), against compilations 210 (1 July 2020) and 223 (1 July 2021), which read the same; the ATO's non-commercial loss pages 'Four tests', 'The income requirement', 'Excepted business activities' and 'How to defer your losses' (each last updated 7 April 2025)",
         ),
         "income_tests" => (
             "2026-11-16",
@@ -1733,6 +1742,12 @@ pub fn library_evidence(kind: &str) -> [(&'static str, &'static str); 4] {
             "2026-06-30",
             "2026-11-19",
         ),
+        "non_commercial_losses" => (
+            "ATO non-commercial loss pages",
+            "Slaide's estimate, Nguyen's profits test, Joe's, Fred's and Alex's income requirement and Michael's deferred loss",
+            "2025-04-07",
+            "2026-11-22",
+        ),
         "income_tests" => (
             "ATO income test pages",
             "Christina's repayment income (When you must repay your loan) and Tom's income for MLS purposes (Medicare levy surcharge income, thresholds and rates)",
@@ -1794,6 +1809,16 @@ pub fn optional_inputs(kind: &str) -> Vec<(&'static str, &'static str)> {
             (
                 "choice_date",
                 "YYYY-MM-DD, for an individual only, and then required: when the individual chooses the retirement exemption, on or after the CGT event (s 152-305(1)(b))",
+            ),
+        ],
+        "non_commercial_losses" => vec![
+            (
+                "assessable_income_estimate",
+                "AUD, with part_year true only, and then required: a reasonable estimate of the activity's assessable income had it been carried on for the whole year (s 35-30(b))",
+            ),
+            (
+                "other_income",
+                "AUD, for a primary_production or professional_arts activity only, and then required: your assessable income for the year from other sources not related to the activity, except net capital gain (s 35-10(4)(b))",
             ),
         ],
         "balancing_adjustment" => vec![(
@@ -3452,6 +3477,23 @@ pub fn input_units(kind: &str) -> Vec<(&'static str, &'static str)> {
             ("last_rollover_event", "YYYY-MM-DD, or null for this one: the last CGT event in the year for which you obtain the small business roll-over, from event_date to the end of the year; the replacement asset period runs from it (s 104-190(1A))"),
             ("earnout_latest_due", "YYYY-MM-DD, or null for no look-through earnout right: the latest time a possible financial benefit becomes or could become due under a look-through earnout right relating to the asset and this disposal, on or after event_date; the replacement asset period ends no earlier than 6 months after it (s 104-190(1A)(b)(ii))"),
         ],
+        "non_commercial_losses" => vec![
+            ("activity", "other, primary_production or professional_arts: the business activity, or group of similar activities (s 35-10(3)), you carry on as an individual alone or in partnership (s 35-10(1), (4) and (5))"),
+            ("assessable_income", "AUD: your assessable income from the activity for the year, or your share as a partner without the parts s 35-25 ignores"),
+            ("deductions", "AUD: the deductions attributable to the activity for the year apart from s 35-10(2) and (2C), or your share as a partner (s 35-35)"),
+            ("brought_forward", "AUD: amounts from earlier years that s 35-10(2)(b) defers to this year, and pre-business amounts s 35-10(2C) brings into it; nil for none"),
+            ("part_year", "boolean: you started or stopped carrying on the activity during the year (s 35-30(b))"),
+            ("earlier_years", "list of the 4 income years before this one, latest first, each null for a year the activity was not carried on or {assessable_income, deductions} in AUD, the deductions apart from s 35-10(2) and (2C) (s 35-35)"),
+            ("real_property_value", "AUD: the total reduced cost bases, or market values where higher, of real property used on a continuing basis in the activity at the end of the year or when it stopped, without a private dwelling and its land or a tenant's fixtures, apportioned for other use (ss 35-40 and 35-50)"),
+            ("other_assets_value", "AUD: the total values of the assets s 35-45(2) counts used on a continuing basis in the activity, without real property and cars, motor cycles and similar vehicles, apportioned for other use (ss 35-45 and 35-50)"),
+            ("taxable_income", "AUD, may be negative: your taxable income for the year, or the loss as a negative amount, as worked out with business_losses deducted"),
+            ("business_losses", "AUD: the excesses of deductions over assessable income for each business activity that taxable_income deducts (s 35-10(2E), last sentence)"),
+            ("assessable_fhss_released_amount", "AUD: the assessable FHSS released amount included in taxable_income (s 35-10(2E)(a))"),
+            ("reportable_fringe_benefits", "AUD: your reportable fringe benefits total (s 35-10(2E)(b))"),
+            ("reportable_super_contributions", "AUD: your reportable superannuation contributions (s 35-10(2E)(c))"),
+            ("total_net_investment_loss", "AUD: your total net investment losses (s 35-10(2E)(d))"),
+            ("net_exempt_income", "AUD: your net exempt income for the year left after ss 36-10 and 36-15, which reduces an amount deferred (s 35-15); nil for none"),
+        ],
         "income_tests" => vec![
             ("taxable_income", "AUD, whole dollars: taxable income, including any assessable FHSS released amount (nil for a loss)"),
             ("assessable_fhss_released_amount", "AUD: the amount ITAA 1997 s 313-20 includes in assessable income for released FHSS amounts"),
@@ -4095,6 +4137,32 @@ pub fn examples(kind: &str) -> Vec<(&'static str, Example)> {
             ("earnout_latest_due", Json("null")),
             ("retirement_exemption_used", Text("0.00")),
             ("choice_date", Text("2026-06-30")),
+        ],
+        // The ATO's Nguyen (profits test) with fabricated income, deductions,
+        // assets and income requirement figures.
+        "non_commercial_losses" => vec![
+            ("year", Text("2025-26")),
+            ("activity", Text("primary_production")),
+            ("assessable_income", Text("10000.00")),
+            ("deductions", Text("17500.00")),
+            ("brought_forward", Text("0.00")),
+            ("part_year", Flag(false)),
+            (
+                "earlier_years",
+                Json(
+                    r#"[{"assessable_income": "40000.00", "deductions": "22500.00"}, {"assessable_income": "35000.00", "deductions": "20000.00"}, {"assessable_income": "20000.00", "deductions": "24000.00"}, {"assessable_income": "36000.00", "deductions": "20000.00"}]"#,
+                ),
+            ),
+            ("real_property_value", Text("300000.00")),
+            ("other_assets_value", Text("40000.00")),
+            ("taxable_income", Text("52500.00")),
+            ("business_losses", Text("7500.00")),
+            ("assessable_fhss_released_amount", Text("0.00")),
+            ("reportable_fringe_benefits", Text("0.00")),
+            ("reportable_super_contributions", Text("0.00")),
+            ("total_net_investment_loss", Text("0.00")),
+            ("net_exempt_income", Text("0.00")),
+            ("other_income", Text("60000.00")),
         ],
         "income_tests" => vec![
             ("year", Text("2025-26")),

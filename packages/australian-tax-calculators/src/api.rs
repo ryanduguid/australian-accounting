@@ -698,6 +698,28 @@ const COMMAND_ARGS: &[(&str, &[(&str, Kind)])] = &[
         ],
     ),
     (
+        "non-commercial-losses",
+        &[
+            ("activity", Raw),
+            ("assessable_income", Dec),
+            ("deductions", Dec),
+            ("brought_forward", Dec),
+            ("part_year", Raw),
+            ("earlier_years", Json),
+            ("real_property_value", Dec),
+            ("other_assets_value", Dec),
+            ("taxable_income", Dec),
+            ("business_losses", Dec),
+            ("assessable_fhss_released_amount", Dec),
+            ("reportable_fringe_benefits", Dec),
+            ("reportable_super_contributions", Dec),
+            ("total_net_investment_loss", Dec),
+            ("net_exempt_income", Dec),
+            ("year", Raw),
+            ("scope_confirmed", Raw),
+        ],
+    ),
+    (
         "income-tests",
         &[
             ("taxable_income", Dec),
@@ -1190,6 +1212,7 @@ pub fn evaluate_coded(command: &str, v: &Value) -> Result<Value> {
             | "income-tests"
             | "luxury-car-tax"
             | "sb-cgt-concessions"
+            | "non-commercial-losses"
             | "business-capital-expenditure"
             | "balancing-adjustment"
             | "trade-in"
@@ -1887,6 +1910,32 @@ pub fn evaluate_coded(command: &str, v: &Value) -> Result<Value> {
         "income-tests" => {
             let named: Vec<(&str, &Arg)> = params.iter().map(|(key, _)| *key).zip(&a).collect();
             engine::income_tests(&named)
+        }
+        "non-commercial-losses" => {
+            // Optional: the estimate for a part year and the other income of
+            // an excepted activity.
+            let [estimate, other] = engine::NCL_OPTIONAL.map(|key| optional(v, key, Dec));
+            let given = [estimate?, other?];
+            engine::non_commercial_losses(&engine::NonCommercialLossesArgs {
+                activity: &a[0],
+                assessable_income: &a[1],
+                deductions: &a[2],
+                brought_forward: &a[3],
+                part_year: &a[4],
+                earlier_years: &a[5],
+                real_property_value: &a[6],
+                other_assets_value: &a[7],
+                taxable_income: &a[8],
+                business_losses: &a[9],
+                assessable_fhss_released_amount: &a[10],
+                reportable_fringe_benefits: &a[11],
+                reportable_super_contributions: &a[12],
+                total_net_investment_loss: &a[13],
+                net_exempt_income: &a[14],
+                year: &a[15],
+                scope_confirmed: &a[16],
+                optional: given.each_ref().map(Option::as_ref),
+            })
         }
         "luxury-car-tax" => engine::luxury_car_tax(&engine::LctArgs {
             lines: &a[0],
