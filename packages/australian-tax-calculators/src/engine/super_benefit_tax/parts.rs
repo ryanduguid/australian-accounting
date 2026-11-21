@@ -61,11 +61,12 @@ impl Parts {
     /// One part at a rate from its id, authority and formula.
     fn add(
         &mut self,
-        (id, authority, formula): (&'static str, &'static str, &str),
+        head: (&'static str, &'static str, &str),
         operands: &[&Decimal],
         value: Decimal,
         rate_text: &str,
     ) -> Result<()> {
+        let (id, authority, formula) = head;
         self.part(step(id, authority, formula, operands, value), rate_text)
     }
 
