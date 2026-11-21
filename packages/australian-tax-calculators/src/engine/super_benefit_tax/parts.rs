@@ -30,6 +30,8 @@ const PLAN_COUNTED: &str = "ITAA 1997 s 307-350(2): the element untaxed in the f
 pub(super) struct Parts {
     pub(super) steps: Vec<Step>,
     pub(super) tax: Vec<Decimal>,
+    /// Each part's id, amount and ceiling rate, for withholding.
+    pub(super) shares: Vec<(String, Decimal, String)>,
     pub(super) rates: Vec<(String, String)>,
 }
 
@@ -40,6 +42,8 @@ impl Parts {
         let r = d(rate_text);
         let tax = cents(amount.value.mul(&r)?)?;
         self.tax.push(tax.clone());
+        let share = (id.clone(), amount.value.clone(), rate_text.to_string());
+        self.shares.push(share);
         self.rates.push(rate(&format!("{id}_rate"), rate_text));
         let formula = format!("cents({id} x {id}_rate)");
         let tax_step = step(
@@ -95,7 +99,7 @@ impl Parts {
 
 /// The untaxed plan cap left, when the benefit has an element untaxed in the
 /// fund.
-fn plan_left(
+pub(super) fn plan_left(
     c: &Components,
     year: &str,
     used: Option<&Arg>,

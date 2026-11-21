@@ -1061,6 +1061,11 @@ pub fn supported_periods(kind: &str) -> Vec<&'static str> {
         "dasp_tax" => vec!["2025-26", "2026-27", "2027-28"],
         // The years the map asks for; the untaxed plan cap for 2027-28 is not
         // yet published (s 307-350, indexed each February).
+        // Schedule 12 as read covers payments from 13 October 2020; the
+        // untaxed plan cap for 2027-28 is not yet published.
+        "super_withholding" => vec![
+            "2020-21", "2021-22", "2022-23", "2023-24", "2024-25", "2025-26", "2026-27",
+        ],
         "super_benefit_tax" => vec![
             "2020-21", "2021-22", "2022-23", "2023-24", "2024-25", "2025-26", "2026-27",
         ],
@@ -1204,6 +1209,10 @@ pub fn source_review(kind: &str) -> (&'static str, &'static str) {
         "balancing_adjustment" => (
             "2026-11-18",
             "ITAA 1997 ss 40-25, 40-85, 40-230, 40-285, 40-290, 40-291A, 40-295, 40-300, 40-305, 40-325, 40-370, 104-235, 104-240, 118-5 and 118-10 (its example) and Subdivision 27-B, compilation 268 (1 October 2026), with the endnotes' amendment history; Treasury Laws Amendment (Tax Reform No. 1) Act 2026 (No 49 of 2026), Schedule 4 item 17 (s 40-291A from 2026-27); Guide to depreciating assets 2026, 'What happens if you no longer hold or use a depreciating asset?', its Bridget, Andrew and Louise examples and the car limit formula",
+        ),
+        "super_withholding" => (
+            "2026-11-22",
+            "Schedule 12 of the Taxation Administration (Withholding Schedules) Instruments 2024 (F2024L00664), 2025 (F2025L00647), (No. 2) 2025 (F2025L01016) and 2026 (F2026L00716), and the ATO's Schedule 12 from 13 October 2020 to 30 June 2024, with the super-benefit-tax sources for the components, treatments and caps",
         ),
         "super_benefit_tax" => (
             "2026-11-22",
@@ -1784,6 +1793,32 @@ pub fn library_evidence(kind: &str) -> [(&'static str, &'static str); 4] {
 /// Inputs a worksheet takes but does not require, with their units.
 pub fn optional_inputs(kind: &str) -> Vec<(&'static str, &'static str)> {
     match kind {
+        "super_withholding" => vec![
+            (
+                "date_of_birth",
+                "YYYY-MM-DD, the member's, for recipient member only, and then required: sets the age on payment_date and the preservation age, as in super-benefit-tax",
+            ),
+            (
+                "terminal_medical_condition",
+                "boolean, for recipient member only, and then required: a terminal medical condition (s 303-10) exists when the payment is received",
+            ),
+            (
+                "disability_superannuation_benefit",
+                "boolean, for recipient member only, and then required: true is refused (s 307-145)",
+            ),
+            (
+                "service_before_july_1983",
+                "boolean, required with an untaxed_element above nil except for recipient deceased_estate_trustee, and refused otherwise: true is refused (s 307-150)",
+            ),
+            (
+                "low_rate_cap_used",
+                "AUD, with a TFN for a member at or above preservation age and under 60 (possible only to 2023-24), and then required: the amounts counted towards the low rate cap for earlier lump sums",
+            ),
+            (
+                "untaxed_plan_cap_used",
+                "AUD, with a TFN for a member benefit taxed by age or a roll-over with an untaxed_element above nil, and then required: the elements untaxed in the fund of earlier lump sums from the same plan counted against the untaxed plan cap",
+            ),
+        ],
         "super_benefit_tax" => vec![
             (
                 "date_of_birth",
@@ -2712,6 +2747,40 @@ pub fn input_units(kind: &str) -> Vec<(&'static str, &'static str)> {
             (
                 "luxury_car_tax_on_other_supply",
                 "boolean, true when luxury car tax became payable on any other supply or importation of the car before the benefit (FBTAA s 8A(1)(c))",
+            ),
+        ],
+        "super_withholding" => vec![
+            (
+                "benefit",
+                "AUD, the superannuation lump sum, or for recipient rollover the amount rolled over",
+            ),
+            (
+                "interest_value",
+                "AUD, the value of the superannuation interest it is paid from (s 307-205), just before it is paid; at least the benefit",
+            ),
+            (
+                "interest_tax_free_component",
+                "AUD, the interest's tax free component (s 307-210) at the same time",
+            ),
+            (
+                "untaxed_element",
+                "AUD, the element untaxed in the fund of the benefit's taxable component as the fund states it (ss 307-275 to 307-290)",
+            ),
+            (
+                "recipient",
+                "member, death_benefits_dependant (s 302-195), non_dependant, rollover (a member's roll-over) or deceased_estate_trustee",
+            ),
+            (
+                "payment_date",
+                "YYYY-MM-DD, the day the payee receives the payment, in the income year given and on or after 13 October 2020",
+            ),
+            (
+                "tfn_provided",
+                "boolean: the payee had given the payer their TFN before the payment",
+            ),
+            (
+                "foreign_resident",
+                "boolean: the payee is a foreign resident for tax purposes and the payment is assessable in Australia",
             ),
         ],
         "super_benefit_tax" => vec![
@@ -3665,6 +3734,25 @@ pub fn examples(kind: &str) -> Vec<(&'static str, Example)> {
         // The Library's example (Superannuation Benefits, 8-420): a $42,000
         // benefit of a $25,000 tax free component and a $17,000 element
         // taxed in the fund, applied for on 1 August 2026.
+        // Schedule 12 (2026): Chloe, 62, receives $300,000 with a $30,000
+        // tax free component, a $190,000 element taxed in the fund and an
+        // $80,000 element untaxed in the fund; $13,600 is withheld.
+        "super_withholding" => vec![
+            ("year", Text("2026-27")),
+            ("benefit", Text("300000.00")),
+            ("interest_value", Text("300000.00")),
+            ("interest_tax_free_component", Text("30000.00")),
+            ("untaxed_element", Text("80000.00")),
+            ("recipient", Text("member")),
+            ("payment_date", Text("2026-09-01")),
+            ("tfn_provided", Flag(true)),
+            ("foreign_resident", Flag(false)),
+            ("date_of_birth", Text("1964-03-01")),
+            ("terminal_medical_condition", Flag(false)),
+            ("disability_superannuation_benefit", Flag(false)),
+            ("service_before_july_1983", Flag(false)),
+            ("untaxed_plan_cap_used", Text("0.00")),
+        ],
         // The ATO's 'Tax on super benefits' example: Tony, 58 and retired,
         // receives $350,000 on 25 July 2021, a $100,000 tax free component
         // and a $250,000 element taxed in the fund; $25,000 is above the

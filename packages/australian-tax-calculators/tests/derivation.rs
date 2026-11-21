@@ -14,7 +14,7 @@ use std::io::Write;
 use std::process::{Command, Stdio};
 
 /// The commands `derive` explains.
-const DERIVED: [&str; 55] = [
+const DERIVED: [&str; 56] = [
     "fbt",
     "fbt-car-statutory",
     "fbt-car-operating-cost",
@@ -66,6 +66,7 @@ const DERIVED: [&str; 55] = [
     "trade-in",
     "dasp-tax",
     "super-benefit-tax",
+    "super-withholding",
     "gst-margin-scheme",
     "etp-tax-free-component",
     "payroll-tax",
@@ -459,6 +460,39 @@ fn cases() -> Vec<(&'static str, Value)> {
                    "interest_tax_free_component": "120000.00", "untaxed_element": "0.00",
                    "recipient": "death_benefits_dependant", "payment_date": "2026-10-01",
                    "year": "2026-27", "scope_confirmed": true}),
+        ),
+        // Schedule 12: a member at preservation age with both elements in
+        // 2021-22, each part at Table A's rate and the total rounded once.
+        (
+            "super-withholding",
+            json!({"benefit": "300000.00", "interest_value": "400000.00",
+                   "interest_tax_free_component": "0.00", "untaxed_element": "100000.00",
+                   "recipient": "member", "payment_date": "2021-08-01",
+                   "date_of_birth": "1963-01-10", "terminal_medical_condition": false,
+                   "disability_superannuation_benefit": false,
+                   "service_before_july_1983": false, "low_rate_cap_used": "0.00",
+                   "untaxed_plan_cap_used": "0.00", "tfn_provided": true,
+                   "foreign_resident": false, "year": "2021-22", "scope_confirmed": true}),
+        ),
+        // Schedule 12's Tom: a roll-over above the 2026-27 untaxed plan cap.
+        (
+            "super-withholding",
+            json!({"benefit": "1967000.00", "interest_value": "1967000.00",
+                   "interest_tax_free_component": "0.00", "untaxed_element": "1967000.00",
+                   "recipient": "rollover", "payment_date": "2026-09-01",
+                   "service_before_july_1983": false, "untaxed_plan_cap_used": "0.00",
+                   "tfn_provided": true, "foreign_resident": false,
+                   "year": "2026-27", "scope_confirmed": true}),
+        ),
+        // No TFN: 47% of a member's taxable component under 60, cents ignored.
+        (
+            "super-withholding",
+            json!({"benefit": "10000.99", "interest_value": "10000.99",
+                   "interest_tax_free_component": "0.00", "untaxed_element": "0.00",
+                   "recipient": "member", "payment_date": "2026-10-01",
+                   "date_of_birth": "1980-01-01", "terminal_medical_condition": false,
+                   "disability_superannuation_benefit": false, "tfn_provided": false,
+                   "foreign_resident": false, "year": "2026-27", "scope_confirmed": true}),
         ),
         // Victoria's surcharges on $80 million of $150 million (the State
         // Revenue Office's example 2) and Tasmania's 2 rates on $2,400,000
@@ -2234,7 +2268,7 @@ fn derive_refuses_what_it_does_not_explain() {
          study-loan-repayment, capital-gains, main-residence, fbt-residual, fbt-housing, \
          fbt-lafha, fbt-board, fbt-tax-exempt-body-entertainment, gst, depreciation, \
          hire-purchase-schedule, chattel-mortgage-schedule, loan-transactions, \
-         lump-sum-arrears-tax-offset, income-tests, business-capital-expenditure, balancing-adjustment, trade-in, dasp-tax, super-benefit-tax, gst-margin-scheme, etp-tax-free-component, payroll-tax, cgt-parcels, not \"payg-gross-up\""
+         lump-sum-arrears-tax-offset, income-tests, business-capital-expenditure, balancing-adjustment, trade-in, dasp-tax, super-benefit-tax, super-withholding, gst-margin-scheme, etp-tax-free-component, payroll-tax, cgt-parcels, not \"payg-gross-up\""
     );
 }
 

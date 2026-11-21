@@ -4858,7 +4858,10 @@ pub use fbt_ev_exemption::{EvExemptionArgs, fbt_ev_exemption_check};
 mod dasp_tax;
 pub use dasp_tax::{DaspTaxArgs, dasp_tax};
 mod super_benefit_tax;
-pub use super_benefit_tax::{SUPER_BENEFIT_OPTIONAL, SuperBenefitTaxArgs, super_benefit_tax};
+pub use super_benefit_tax::{
+    SUPER_BENEFIT_OPTIONAL, SuperBenefitTaxArgs, SuperWithholdingArgs, super_benefit_tax,
+    super_withholding,
+};
 mod payroll_tax;
 pub use payroll_tax::{PayrollTaxArgs, payroll_tax};
 mod luxury_car_tax;
@@ -6164,7 +6167,7 @@ pub use ppsr_timing::ppsr_timing;
 mod sb_cgt_concessions;
 pub use sb_cgt_concessions::{SB_CGT_OPTIONAL, SbCgtConcessionsArgs, sb_cgt_concessions};
 
-const KINDS: [&str; 67] = [
+const KINDS: [&str; 68] = [
     "gst",
     "gst_margin_scheme",
     "fuel_tax_credits",
@@ -6184,6 +6187,7 @@ const KINDS: [&str; 67] = [
     "franking_account",
     "dasp_tax",
     "super_benefit_tax",
+    "super_withholding",
     "payroll_tax",
     "fbt",
     "fbt_car_statutory",
