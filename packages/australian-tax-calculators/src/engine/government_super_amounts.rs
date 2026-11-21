@@ -18,9 +18,10 @@
 
 use serde_json::{Value, json};
 
-use super::income_tests::{SECTION_57A_FACTOR, measures, named, value};
+use super::income_tests::{SECTION_57A_FACTOR, Values, measures, named, value};
 use super::{
     Arg, Result, Step, d, derived_result, flag, int, money, precise, rate, refuse, scope, step,
+    steps_from,
 };
 use crate::decimal::{Decimal, Rounding};
 
@@ -77,6 +78,100 @@ const SPOUSE_LIMIT: &str =
     "ITAA 1997 s 290-235(1)(a): $3,000 reduced by the spouse's income above $37,000";
 const SPOUSE_OFFSET: &str = "ITAA 1997 s 290-235: 18% of the lesser of the limit and the spouse contributions, at most $540, where every s 290-230 condition is met";
 
+/// Each amount's conditions: (id, authority), in the order of their facts.
+const CO_CONDITIONS: [(&str, &str); 8] = [
+    (
+        "personal_contributions_made",
+        "Co-contribution Act s 6(1)(a): one or more eligible personal superannuation contributions in the income year (s 7)",
+    ),
+    (
+        "eligible_income_10_percent",
+        "Co-contribution Act s 6(1)(b) and s 8(3): 10% or more of total income, before business deductions, from activities that make the person an employee (s 6(2)) or from carrying on a business",
+    ),
+    (
+        "below_higher_income_threshold",
+        "Co-contribution Act s 6(1)(c): total income less than the higher income threshold",
+    ),
+    (
+        "return_lodged",
+        "Co-contribution Act s 6(1)(d): an income tax return for the year is lodged",
+    ),
+    (
+        "non_concessional_within_cap",
+        "Co-contribution Act s 6(1)(da): non-concessional contributions for the financial year do not exceed the non-concessional contributions cap",
+    ),
+    (
+        "total_super_balance_below_cap",
+        "Co-contribution Act s 6(1)(db): total superannuation balance immediately before the start of the financial year less than the general transfer balance cap",
+    ),
+    (
+        "under_71",
+        "Co-contribution Act s 6(1)(e): less than 71 years old at the end of the income year",
+    ),
+    (
+        "no_temporary_visa",
+        "Co-contribution Act s 6(1)(f): no temporary visa at any time in the income year",
+    ),
+];
+const LISTO_CONDITIONS: [(&str, &str); 4] = [
+    (
+        "concessional_contributions_made",
+        "Co-contribution Act s 12C(1)(a): concessional contributions for the financial year",
+    ),
+    (
+        "adjusted_taxable_income_37000",
+        "Co-contribution Act s 12C(1)(b): adjusted taxable income (A New Tax System (Family Assistance) Act 1999 Sch 3, disregarding cls 3 and 3A) does not exceed $37,000",
+    ),
+    (
+        "eligible_income_10_percent",
+        "Co-contribution Act s 12C(1)(c) and (3): the 10% eligible income test of s 6(1)(b)",
+    ),
+    (
+        "no_temporary_visa",
+        "Co-contribution Act s 12C(1)(d): the temporary visa test of s 6(1)(f)",
+    ),
+];
+const SPOUSE_CONDITIONS: [(&str, &str); 4] = [
+    (
+        "spouse_contributions_made",
+        "ITAA 1997 s 290-230(1): a contribution in the income year to a superannuation fund or RSA for your spouse's superannuation benefits",
+    ),
+    (
+        "spouse_income_below_40000",
+        "ITAA 1997 s 290-230(2)(c): the spouse's income less than $40,000",
+    ),
+    (
+        "spouse_non_concessional_within_cap",
+        "ITAA 1997 s 290-230(4A)(a): the spouse's non-concessional contributions for the financial year do not exceed the spouse's non-concessional contributions cap",
+    ),
+    (
+        "spouse_total_super_balance_below_cap",
+        "ITAA 1997 s 290-230(4A)(b): the spouse's total superannuation balance immediately before the start of the financial year less than the general transfer balance cap",
+    ),
+];
+
+/// The rates every result shows besides the year's thresholds.
+const RATES: [(&str, &str); 13] = [
+    ("matching_rate", "0.5"),
+    ("taper_rate", "0.03333"),
+    ("maximum_co_contribution", "500"),
+    ("minimum_co_contribution", "20"),
+    ("listo_rate", "0.15"),
+    ("listo_income_limit", "37000"),
+    ("listo_maximum", "500"),
+    ("listo_minimum", "10"),
+    ("spouse_offset_rate", "0.18"),
+    ("spouse_contribution_base", "3000"),
+    ("spouse_income_taper_start", "37000"),
+    ("spouse_income_limit", "40000"),
+    ("section_57a_factor", SECTION_57A_FACTOR),
+];
+
+/// The value of the rate `key` in [`RATES`].
+fn fixed(key: &str) -> Decimal {
+    d(RATES.iter().find(|(k, _)| *k == key).expect("a rate").1)
+}
+
 /// One condition of one amount, met, not met or not given.
 struct Condition {
     amount: &'static str,
@@ -85,49 +180,59 @@ struct Condition {
     met: Option<bool>,
 }
 
-fn condition(
+/// Records `amount`'s conditions from `table` and whether each is met, and
+/// says whether the amount is payable: every condition met; not, if one is
+/// not met; and refused if a condition not given would decide it.
+fn payable<const N: usize>(
+    conditions: &mut Vec<Condition>,
     amount: &'static str,
-    id: &'static str,
-    authority: &'static str,
-    met: Option<bool>,
-) -> Condition {
-    Condition {
-        amount,
-        id,
-        authority,
-        met,
-    }
-}
-
-/// Whether `amount` is payable: every condition met; not, if one is not met;
-/// and refused if a condition not given would decide it.
-fn payable(conditions: &[Condition], amount: &str) -> Result<bool> {
-    let of_amount = || conditions.iter().filter(|c| c.amount == amount);
-    if of_amount().any(|c| c.met == Some(false)) {
+    table: &[(&'static str, &'static str); N],
+    met: [Option<bool>; N],
+) -> Result<bool> {
+    conditions.extend(
+        table
+            .iter()
+            .zip(met)
+            .map(|((id, authority), met)| Condition {
+                amount,
+                id,
+                authority,
+                met,
+            }),
+    );
+    if met.contains(&Some(false)) {
         return Ok(false);
     }
-    match of_amount().find(|c| c.met.is_none()) {
-        Some(c) => refuse(
+    match table.iter().zip(met).find(|(_, met)| met.is_none()) {
+        Some(((id, authority), _)) => refuse(
             "government_super_amounts.fact_not_supplied",
-            format!(
-                "{} decides the {amount} and was not given ({}).",
-                c.id, c.authority
-            ),
+            format!("{id} decides the {amount} and was not given ({authority})."),
         ),
         None => Ok(true),
     }
 }
 
-/// A balance or cap fact: true, false, or `null` for not established.
-fn stated(value: &Arg, name: &str) -> Result<Option<bool>> {
-    match value {
-        Arg::Other(none) if none == "None" => Ok(None),
-        other => flag(other, name).map(Some),
+/// The amount's step: `formula` on `operands` giving `value` when payable,
+/// and nil otherwise.
+fn amount_step(
+    payable: bool,
+    id: &'static str,
+    authority: &'static str,
+    formula: &str,
+    operands: &[&Decimal],
+    value: Decimal,
+) -> (Step, Decimal) {
+    if payable {
+        (step(id, authority, formula, operands, value.clone()), value)
+    } else {
+        (step(id, authority, "0", &[], int(0)), int(0))
     }
 }
 
-/// `amount` increased to the next multiple of 5 cents.
-fn up_to_5_cents(amount: &Decimal) -> Result<Decimal> {
+/// The step `{of}_paid`: `amount`, the step `of`, increased to the next
+/// multiple of 5 cents.
+fn paid_step(of: &str, amount: &Decimal) -> Result<Step> {
+    let (id, formula) = (format!("{of}_paid"), format!("dollars_up({of} x 20) / 20"));
     let twentieths = amount.mul(&int(20))?;
     let whole = twentieths.quantize(0, Rounding::Down)?;
     let whole = if whole.lt(&twentieths)? {
@@ -135,7 +240,15 @@ fn up_to_5_cents(amount: &Decimal) -> Result<Decimal> {
     } else {
         whole
     };
-    Ok(whole.div(&int(20))?)
+    Ok(step(id, PAID, &formula, &[amount], whole.div(&int(20))?))
+}
+
+/// A balance or cap fact: true, false, or `null` for not established.
+fn stated(inputs: &[(&str, &Arg)], name: &str) -> Result<Option<bool>> {
+    match named(inputs, name) {
+        Arg::Other(none) if none == "None" => Ok(None),
+        other => flag(other, name).map(Some),
+    }
 }
 
 fn lesser(a: &Decimal, b: &Decimal) -> Result<Decimal> {
@@ -146,133 +259,125 @@ fn greater(a: &Decimal, b: &Decimal) -> Result<Decimal> {
     Ok(if b.gt(a)? { b.clone() } else { a.clone() })
 }
 
-/// The co-contribution's steps and conditions.
+/// The co-contribution's working before the amount: (id, authority, formula).
+const CO_STEPS: [(&str, &str, &str); 3] = [
+    (
+        "co_contribution_matched",
+        MATCHED,
+        "personal_contributions x matching_rate",
+    ),
+    (
+        "co_contribution_taper",
+        TAPER,
+        "max(0, co_contribution_total_income - lower_income_threshold) x taper_rate",
+    ),
+    (
+        "co_contribution_maximum",
+        MAXIMUM,
+        "max(0, maximum_co_contribution - co_contribution_taper)",
+    ),
+];
+const CO_FORMULA: &str =
+    "max(minimum_co_contribution, min(co_contribution_matched, co_contribution_maximum))";
+
+/// The co-contribution's steps.
 fn co_contribution(
-    values: &[(&'static str, Decimal)],
+    values: &Values,
     facts: &Facts,
     conditions: &mut Vec<Condition>,
 ) -> Result<Vec<Step>> {
-    let (lower, higher) = (&facts.lower, &facts.higher);
     let total = value(values, "co_contribution_total_income");
-    let personal = &facts.personal;
-    let amount = "co_contribution";
-    conditions.extend([
-        condition(amount, "personal_contributions_made", "Co-contribution Act s 6(1)(a): one or more eligible personal superannuation contributions in the income year (s 7)", Some(!personal.is_zero())),
-        condition(amount, "eligible_income_10_percent", "Co-contribution Act s 6(1)(b) and s 8(3): 10% or more of total income, before business deductions, from activities that make the person an employee (s 6(2)) or from carrying on a business", Some(facts.ten_percent)),
-        condition(amount, "below_higher_income_threshold", "Co-contribution Act s 6(1)(c): total income less than the higher income threshold", Some(total.lt(higher)?)),
-        condition(amount, "return_lodged", "Co-contribution Act s 6(1)(d): an income tax return for the year is lodged", Some(facts.return_lodged)),
-        condition(amount, "non_concessional_within_cap", "Co-contribution Act s 6(1)(da): non-concessional contributions for the financial year do not exceed the non-concessional contributions cap", facts.non_concessional),
-        condition(amount, "total_super_balance_below_cap", "Co-contribution Act s 6(1)(db): total superannuation balance immediately before the start of the financial year less than the general transfer balance cap", facts.balance),
-        condition(amount, "under_71", "Co-contribution Act s 6(1)(e): less than 71 years old at the end of the income year", Some(facts.under_71)),
-        condition(amount, "no_temporary_visa", "Co-contribution Act s 6(1)(f): no temporary visa at any time in the income year", Some(true)),
-    ]);
-    let (matching, taper_rate, maximum, minimum) = (d("0.5"), d("0.03333"), int(500), int(20));
-    let matched = personal.mul(&matching)?;
-    let excess = greater(&int(0), &total.sub(lower)?)?;
-    let taper = excess.mul(&taper_rate)?;
-    let most = greater(&int(0), &maximum.sub(&taper)?)?;
-    let mut steps = vec![
-        step(
-            "co_contribution_matched",
-            MATCHED,
-            "personal_contributions x matching_rate",
-            &[personal, &matching],
-            matched.clone(),
-        ),
-        step(
-            "co_contribution_taper",
-            TAPER,
-            "max(0, co_contribution_total_income - lower_income_threshold) x taper_rate",
-            &[total, lower, &taper_rate],
-            taper.clone(),
-        ),
-        step(
-            "co_contribution_maximum",
-            MAXIMUM,
-            "max(0, maximum_co_contribution - co_contribution_taper)",
-            &[&maximum, &taper],
-            most.clone(),
-        ),
+    let (lower, personal) = (&facts.lower, &facts.personal);
+    let met = [
+        Some(!personal.is_zero()),
+        Some(facts.ten_percent),
+        Some(total.lt(&facts.higher)?),
+        Some(facts.return_lodged),
+        facts.non_concessional,
+        facts.balance,
+        Some(facts.under_71),
+        Some(true),
     ];
-    let paid = if payable(conditions, amount)? {
-        let got = greater(&minimum, &lesser(&matched, &most)?)?;
-        steps.push(step(
-            amount,
-            CO_CONTRIBUTION,
-            "max(minimum_co_contribution, min(co_contribution_matched, co_contribution_maximum))",
-            &[&minimum, &matched, &most],
-            got.clone(),
-        ));
-        got
-    } else {
-        steps.push(step(amount, CO_CONTRIBUTION, "0", &[], int(0)));
-        int(0)
-    };
-    steps.push(step(
-        "co_contribution_paid",
-        PAID,
-        "dollars_up(co_contribution x 20) / 20",
-        &[&paid],
-        up_to_5_cents(&paid)?,
-    ));
+    let ok = payable(conditions, "co_contribution", &CO_CONDITIONS, met)?;
+    let [matching, taper_rate, maximum, minimum] = [
+        "matching_rate",
+        "taper_rate",
+        "maximum_co_contribution",
+        "minimum_co_contribution",
+    ]
+    .map(fixed);
+    let matched = personal.mul(&matching)?;
+    let taper = greater(&int(0), &total.sub(lower)?)?.mul(&taper_rate)?;
+    let most = greater(&int(0), &maximum.sub(&taper)?)?;
+    let got = greater(&minimum, &lesser(&matched, &most)?)?;
+    let (amount, paid) = amount_step(
+        ok,
+        "co_contribution",
+        CO_CONTRIBUTION,
+        CO_FORMULA,
+        &[&minimum, &matched, &most],
+        got,
+    );
+    let mut steps = steps_from(
+        &CO_STEPS,
+        [
+            (&[personal, &matching], matched.clone()),
+            (&[total, lower, &taper_rate], taper.clone()),
+            (&[&maximum, &taper], most.clone()),
+        ],
+    );
+    steps.extend([amount, paid_step("co_contribution", &paid)?]);
     Ok(steps)
 }
 
-/// The low income superannuation tax offset's steps and conditions.
-fn listo(
-    values: &[(&'static str, Decimal)],
-    facts: &Facts,
-    conditions: &mut Vec<Condition>,
-) -> Result<Vec<Step>> {
-    let amount = "listo";
+/// The low income superannuation tax offset's steps.
+fn listo(values: &Values, facts: &Facts, conditions: &mut Vec<Condition>) -> Result<Vec<Step>> {
     let ati = value(values, "adjusted_taxable_income");
     let concessional = &facts.concessional;
-    let limit = int(37000);
-    conditions.extend([
-        condition(amount, "concessional_contributions_made", "Co-contribution Act s 12C(1)(a): concessional contributions for the financial year", Some(!concessional.is_zero())),
-        condition(amount, "adjusted_taxable_income_37000", "Co-contribution Act s 12C(1)(b): adjusted taxable income (A New Tax System (Family Assistance) Act 1999 Sch 3, disregarding cls 3 and 3A) does not exceed $37,000", Some(!ati.gt(&limit)?)),
-        condition(amount, "eligible_income_10_percent", "Co-contribution Act s 12C(1)(c) and (3): the 10% eligible income test of s 6(1)(b)", Some(facts.ten_percent)),
-        condition(amount, "no_temporary_visa", "Co-contribution Act s 12C(1)(d): the temporary visa test of s 6(1)(f)", Some(true)),
-    ]);
-    let (listo_rate, maximum, minimum) = (d("0.15"), int(500), int(10));
+    let [listo_rate, limit, maximum, minimum] = [
+        "listo_rate",
+        "listo_income_limit",
+        "listo_maximum",
+        "listo_minimum",
+    ]
+    .map(fixed);
+    let met = [
+        Some(!concessional.is_zero()),
+        Some(!ati.gt(&limit)?),
+        Some(facts.ten_percent),
+        Some(true),
+    ];
+    let ok = payable(conditions, "listo", &LISTO_CONDITIONS, met)?;
     let fifteen = concessional.mul(&listo_rate)?;
-    let mut steps = vec![step(
-        "listo_15_percent",
-        LISTO_15,
-        "concessional_contributions x listo_rate",
-        &[concessional, &listo_rate],
-        fifteen.clone(),
-    )];
-    let got = if payable(conditions, amount)? {
-        let cents = fifteen.quantize(-2, Rounding::HalfUp)?;
-        let got = lesser(&maximum, &greater(&minimum, &cents)?)?;
-        steps.push(step(
-            amount,
-            LISTO,
-            "min(listo_maximum, max(listo_minimum, cents(listo_15_percent)))",
-            &[&maximum, &minimum, &fifteen],
-            got.clone(),
-        ));
-        got
-    } else {
-        steps.push(step(amount, LISTO, "0", &[], int(0)));
-        int(0)
-    };
-    steps.push(step(
-        "listo_paid",
-        PAID,
-        "dollars_up(listo x 20) / 20",
-        &[&got],
-        up_to_5_cents(&got)?,
-    ));
-    Ok(steps)
+    let got = lesser(
+        &maximum,
+        &greater(&minimum, &fifteen.quantize(-2, Rounding::HalfUp)?)?,
+    )?;
+    let (amount, paid) = amount_step(
+        ok,
+        "listo",
+        LISTO,
+        "min(listo_maximum, max(listo_minimum, cents(listo_15_percent)))",
+        &[&maximum, &minimum, &fifteen],
+        got,
+    );
+    Ok(vec![
+        step(
+            "listo_15_percent",
+            LISTO_15,
+            "concessional_contributions x listo_rate",
+            &[concessional, &listo_rate],
+            fifteen.clone(),
+        ),
+        amount,
+        paid_step("listo", &paid)?,
+    ])
 }
 
-/// The spouse contribution tax offset's steps and conditions.
-fn spouse(inputs: &[(&str, &Arg)], conditions: &mut Vec<Condition>) -> Result<Vec<Step>> {
-    let amount = "spouse_contribution_offset";
-    let get = |key: &str| named(inputs, key);
-    let [contributions, assessable, fhss, fringe, employer, excess] = [
+/// The spouse's contributions and income components, each checked against
+/// the others, then the spouse's income (s 290-230(2)(c)).
+fn spouse_income(inputs: &[(&str, &Arg)]) -> Result<[Decimal; 7]> {
+    let parts = [
         "spouse_contributions",
         "spouse_assessable_income",
         "spouse_assessable_fhss_released_amount",
@@ -280,72 +385,104 @@ fn spouse(inputs: &[(&str, &Arg)], conditions: &mut Vec<Condition>) -> Result<Ve
         "spouse_reportable_employer_super_contributions",
         "spouse_excess_concessional_contributions",
     ]
-    .map(|key| money(get(key)));
-    let (contributions, assessable, fhss, fringe, employer, excess) = (
-        contributions?,
-        assessable?,
-        fhss?,
-        fringe?,
-        employer?,
-        excess?,
-    );
+    .map(|key| money(named(inputs, key)));
+    let [a, b, c, e, f, g] = parts;
+    let parts = [a?, b?, c?, e?, f?, g?];
     for (part, why) in [
         (
-            &fhss,
+            &parts[2],
             "spouse_assessable_fhss_released_amount exceeds spouse_assessable_income: it is included in assessable income (ITAA 1997 s 313-20)",
         ),
         (
-            &excess,
+            &parts[5],
             "spouse_excess_concessional_contributions exceeds spouse_assessable_income: they are included in assessable income (ITAA 1997 s 291-15(a))",
         ),
     ] {
-        if part.gt(&assessable)? {
+        if part.gt(&parts[1])? {
             return refuse("government_super_amounts.fact_conflict", format!("{why}."));
         }
     }
-    let income = assessable
-        .sub(&fhss)?
-        .add(&fringe)?
-        .add(&greater(&int(0), &employer.sub(&excess)?)?)?;
-    let (base, start, below, offset_rate) = (int(3000), int(37000), int(40000), d("0.18"));
+    let [contributions, assessable, fhss, fringe, employer, excess] = parts;
+    let reportable = greater(&int(0), &employer.sub(&excess)?)?;
+    let income = assessable.sub(&fhss)?.add(&fringe)?.add(&reportable)?;
+    Ok([
+        contributions,
+        assessable,
+        fhss,
+        fringe,
+        employer,
+        excess,
+        income,
+    ])
+}
+
+/// The spouse offset's working before the amount: (id, authority, formula).
+const SPOUSE_STEPS: [(&str, &str, &str); 2] = [
+    (
+        "spouse_income",
+        SPOUSE_INCOME,
+        "spouse_assessable_income - spouse_assessable_fhss_released_amount + spouse_reportable_fringe_benefits_total + max(0, spouse_reportable_employer_super_contributions - spouse_excess_concessional_contributions)",
+    ),
+    (
+        "spouse_contribution_limit",
+        SPOUSE_LIMIT,
+        "max(0, spouse_contribution_base - max(0, spouse_income - spouse_income_taper_start))",
+    ),
+];
+const SPOUSE_FORMULA: &str =
+    "min(spouse_contribution_limit, spouse_contributions) x spouse_offset_rate";
+
+const OFFSET: &str = "spouse_contribution_offset";
+
+/// The spouse contribution tax offset's steps.
+fn spouse(inputs: &[(&str, &Arg)], conditions: &mut Vec<Condition>) -> Result<Vec<Step>> {
+    let [
+        contributions,
+        assessable,
+        fhss,
+        fringe,
+        employer,
+        excess,
+        income,
+    ] = spouse_income(inputs)?;
+    let [base, start, below, offset_rate] = [
+        "spouse_contribution_base",
+        "spouse_income_taper_start",
+        "spouse_income_limit",
+        "spouse_offset_rate",
+    ]
+    .map(fixed);
     let limit = greater(
         &int(0),
         &base.sub(&greater(&int(0), &income.sub(&start)?)?)?,
     )?;
-    conditions.extend([
-        condition(amount, "spouse_contributions_made", "ITAA 1997 s 290-230(1): a contribution in the income year to a superannuation fund or RSA for your spouse's superannuation benefits", Some(!contributions.is_zero())),
-        condition(amount, "spouse_income_below_40000", "ITAA 1997 s 290-230(2)(c): the spouse's income less than $40,000", Some(income.lt(&below)?)),
-        condition(amount, "spouse_non_concessional_within_cap", "ITAA 1997 s 290-230(4A)(a): the spouse's non-concessional contributions for the financial year do not exceed the spouse's non-concessional contributions cap", stated(get("spouse_non_concessional_within_cap"), "spouse_non_concessional_within_cap")?),
-        condition(amount, "spouse_total_super_balance_below_cap", "ITAA 1997 s 290-230(4A)(b): the spouse's total superannuation balance immediately before the start of the financial year less than the general transfer balance cap", stated(get("spouse_total_super_balance_below_cap"), "spouse_total_super_balance_below_cap")?),
-    ]);
-    let mut steps = vec![
-        step(
-            "spouse_income",
-            SPOUSE_INCOME,
-            "spouse_assessable_income - spouse_assessable_fhss_released_amount + spouse_reportable_fringe_benefits_total + max(0, spouse_reportable_employer_super_contributions - spouse_excess_concessional_contributions)",
-            &[&assessable, &fhss, &fringe, &employer, &excess],
-            income.clone(),
-        ),
-        step(
-            "spouse_contribution_limit",
-            SPOUSE_LIMIT,
-            "max(0, spouse_contribution_base - max(0, spouse_income - spouse_income_taper_start))",
-            &[&base, &income, &start],
-            limit.clone(),
-        ),
+    let met = [
+        Some(!contributions.is_zero()),
+        Some(income.lt(&below)?),
+        stated(inputs, "spouse_non_concessional_within_cap")?,
+        stated(inputs, "spouse_total_super_balance_below_cap")?,
     ];
-    if payable(conditions, amount)? {
-        let got = lesser(&limit, &contributions)?.mul(&offset_rate)?;
-        steps.push(step(
-            amount,
-            SPOUSE_OFFSET,
-            "min(spouse_contribution_limit, spouse_contributions) x spouse_offset_rate",
-            &[&limit, &contributions, &offset_rate],
-            got,
-        ));
-    } else {
-        steps.push(step(amount, SPOUSE_OFFSET, "0", &[], int(0)));
-    }
+    let ok = payable(conditions, OFFSET, &SPOUSE_CONDITIONS, met)?;
+    let got = lesser(&limit, &contributions)?.mul(&offset_rate)?;
+    let (amount, _) = amount_step(
+        ok,
+        OFFSET,
+        SPOUSE_OFFSET,
+        SPOUSE_FORMULA,
+        &[&limit, &contributions, &offset_rate],
+        got,
+    );
+    let mut steps = steps_from(
+        &SPOUSE_STEPS,
+        [
+            (
+                &[&assessable, &fhss, &fringe, &employer, &excess],
+                income.clone(),
+            ),
+            (&[&base, &income, &start], limit),
+        ],
+    );
+    steps.push(amount);
     Ok(steps)
 }
 
@@ -362,28 +499,100 @@ struct Facts {
     balance: Option<bool>,
 }
 
+/// The spouse inputs given: all or none.
+fn spouse_given(inputs: &[(&str, &Arg)]) -> Result<bool> {
+    let given = SPOUSE_INPUTS.map(|key| inputs.iter().any(|(k, _)| *k == key));
+    match SPOUSE_INPUTS.iter().zip(given).find(|(_, g)| !g) {
+        Some((missing, _)) if given.contains(&true) => refuse(
+            "input.missing_field",
+            format!("{missing} is required with the other spouse inputs."),
+        ),
+        _ => Ok(given[0]),
+    }
+}
+
+/// The 10% eligible income test (s 6(1)(b)) on `test_total`, total income
+/// before business deductions (s 8(3)), refused where it cannot be measured.
+fn ten_percent(eligible: &Decimal, test_total: &Decimal, contributed: bool) -> Result<bool> {
+    if eligible.gt(test_total)? {
+        return refuse(
+            "government_super_amounts.fact_conflict",
+            "eligible_income exceeds total income before business deductions, of which it is a part (s 8(3)).",
+        );
+    }
+    if test_total.is_zero() && contributed {
+        return refuse(
+            "government_super_amounts.no_total_income",
+            "Total income is nil, so the 10% eligible income test (s 6(1)(b)) has no share to measure.",
+        );
+    }
+    Ok(!eligible.mul(&int(10))?.lt(test_total)?)
+}
+
+/// The person's facts for `year`, from the income measures in `values`; the
+/// 10% eligible income test is worked here, on total income before business
+/// deductions (s 8(3)), which is the step returned beside them.
+fn facts(inputs: &[(&str, &Arg)], values: &Values, year: &str) -> Result<(Facts, Step)> {
+    let get = |key: &str| named(inputs, key);
+    let (_, lower, higher) = THRESHOLDS
+        .iter()
+        .find(|(y, ..)| *y == year)
+        .expect("a supported year");
+    let [eligible, personal, concessional] = [
+        "eligible_income",
+        "personal_contributions",
+        "concessional_contributions",
+    ]
+    .map(|key| money(get(key)));
+    let (eligible, personal, concessional) = (eligible?, personal?, concessional?);
+    let (lodged, under_71) = (
+        flag(get("return_lodged"), "return_lodged")?,
+        flag(get("under_71"), "under_71")?,
+    );
+    let non_concessional = stated(inputs, "non_concessional_within_cap")?;
+    let balance = stated(inputs, "total_super_balance_below_cap")?;
+    let (total, business) = (
+        value(values, "co_contribution_total_income"),
+        value(values, "business_deductions"),
+    );
+    let test_total = total.add(business)?;
+    let contributed = !(personal.is_zero() && concessional.is_zero());
+    let ten_percent = ten_percent(&eligible, &test_total, contributed)?;
+    let step = step(
+        "eligible_income_test_total",
+        TEST_TOTAL,
+        "co_contribution_total_income + business_deductions",
+        &[total, business],
+        test_total,
+    );
+    let (lower, higher) = (d(lower), d(higher));
+    let facts = Facts {
+        lower,
+        higher,
+        personal,
+        concessional,
+        ten_percent,
+        return_lodged: lodged,
+        under_71,
+        non_concessional,
+        balance,
+    };
+    Ok((facts, step))
+}
+
 /// The super co-contribution, LISTO and, where a spouse contribution is given,
 /// the spouse contribution tax offset for one full-year resident and income
 /// year, from `inputs` by name: `income-tests`' components and `residency`,
 /// the person's contributions and facts, `year`, `scope_confirmed` and the
 /// [`SPOUSE_INPUTS`] if any.
 pub fn government_super_amounts(inputs: &[(&str, &Arg)]) -> Result<Value> {
-    let get = |key: &str| named(inputs, key);
-    let year = scope(get("scope_confirmed"), get("year"), KIND)?;
-    let given: Vec<&str> = SPOUSE_INPUTS
-        .into_iter()
-        .filter(|key| inputs.iter().any(|(k, _)| k == key))
-        .collect();
-    if let Some(missing) = SPOUSE_INPUTS
-        .iter()
-        .find(|key| !given.is_empty() && !given.contains(key))
-    {
-        return refuse(
-            "input.missing_field",
-            format!("{missing} is required with the other spouse inputs."),
-        );
-    }
-    if flag(get("temporary_visa_held"), "temporary_visa_held")? {
+    let year = scope(
+        named(inputs, "scope_confirmed"),
+        named(inputs, "year"),
+        KIND,
+    )?;
+    let with_spouse = spouse_given(inputs)?;
+    if flag(named(inputs, "temporary_visa_held"), "temporary_visa_held")? {
         return refuse(
             "government_super_amounts.temporary_visa",
             format!(
@@ -392,94 +601,31 @@ pub fn government_super_amounts(inputs: &[(&str, &Arg)]) -> Result<Value> {
         );
     }
     let (values, income_steps) = measures(inputs)?;
-    let (_, lower, higher) = THRESHOLDS
-        .iter()
-        .find(|(y, ..)| *y == year)
-        .expect("a supported year");
-    let facts_in = (
-        money(get("eligible_income"))?,
-        money(get("personal_contributions"))?,
-        money(get("concessional_contributions"))?,
-    );
-    let (eligible, personal, concessional) = facts_in;
-    let return_lodged = flag(get("return_lodged"), "return_lodged")?;
-    let under_71 = flag(get("under_71"), "under_71")?;
-    let non_concessional = stated(
-        get("non_concessional_within_cap"),
-        "non_concessional_within_cap",
-    )?;
-    let balance = stated(
-        get("total_super_balance_below_cap"),
-        "total_super_balance_below_cap",
-    )?;
     precise(|| {
-        let total = value(&values, "co_contribution_total_income");
-        let test_total = total.add(value(&values, "business_deductions"))?;
-        if eligible.gt(&test_total)? {
-            return refuse(
-                "government_super_amounts.fact_conflict",
-                "eligible_income exceeds total income before business deductions, of which it is a part (s 8(3)).",
-            );
-        }
-        if test_total.is_zero() && !(personal.is_zero() && concessional.is_zero()) {
-            return refuse(
-                "government_super_amounts.no_total_income",
-                "Total income is nil, so the 10% eligible income test (s 6(1)(b)) has no share to measure.",
-            );
-        }
-        let facts = Facts {
-            lower: d(lower),
-            higher: d(higher),
-            personal,
-            concessional,
-            ten_percent: !eligible.mul(&int(10))?.lt(&test_total)?,
-            return_lodged,
-            under_71,
-            non_concessional,
-            balance,
-        };
+        let (facts, test_step) = facts(inputs, &values, &year)?;
         let mut steps: Vec<Step> = income_steps
             .into_iter()
             .filter(|s| INCOME_STEPS.contains(&s.static_id()))
             .collect();
-        let business = value(&values, "business_deductions");
-        steps.push(step(
-            "eligible_income_test_total",
-            TEST_TOTAL,
-            "co_contribution_total_income + business_deductions",
-            &[total, business],
-            test_total.clone(),
-        ));
+        steps.push(test_step);
         let mut conditions = Vec::new();
         steps.extend(co_contribution(&values, &facts, &mut conditions)?);
         steps.extend(listo(&values, &facts, &mut conditions)?);
-        if !given.is_empty() {
+        if with_spouse {
             steps.extend(spouse(inputs, &mut conditions)?);
         }
-        let rates = vec![
+        let (_, lower, higher) = THRESHOLDS
+            .iter()
+            .find(|(y, ..)| *y == year)
+            .expect("a supported year");
+        let mut rates = vec![
             rate("lower_income_threshold", lower),
             rate("higher_income_threshold", higher),
-            rate("matching_rate", "0.5"),
-            rate("taper_rate", "0.03333"),
-            rate("maximum_co_contribution", "500"),
-            rate("minimum_co_contribution", "20"),
-            rate("listo_rate", "0.15"),
-            rate("listo_income_limit", "37000"),
-            rate("listo_maximum", "500"),
-            rate("listo_minimum", "10"),
-            rate("spouse_offset_rate", "0.18"),
-            rate("spouse_contribution_base", "3000"),
-            rate("spouse_income_taper_start", "37000"),
-            rate("spouse_income_limit", "40000"),
-            rate("section_57a_factor", SECTION_57A_FACTOR),
         ];
+        rates.extend(RATES.iter().map(|(k, v)| rate(k, v)));
         let mut out = derived_result(KIND, &year, steps, rates)?;
-        out["conditions"] = json!(
-            conditions
-                .iter()
-                .map(|c| json!({"amount": c.amount, "condition": c.id, "authority": c.authority, "met": c.met}))
-                .collect::<Vec<_>>()
-        );
+        let shown = conditions.iter().map(|c| json!({"amount": c.amount, "condition": c.id, "authority": c.authority, "met": c.met}));
+        out["conditions"] = json!(shown.collect::<Vec<_>>());
         Ok(out)
     })
 }
