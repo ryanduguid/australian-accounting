@@ -45,6 +45,7 @@ fn every_code_at_a_refusal_site_is_catalogued_and_every_entry_is_used() {
         "engine/luxury_car_tax",
         "engine/wine_equalisation_tax",
         "engine/sb_cgt_concessions",
+        "engine/work_expenses",
     ]
     .into_iter()
     .flat_map(|dir| {
