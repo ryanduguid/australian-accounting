@@ -6,6 +6,10 @@
 
 ### Fixed
 
+- Both borrowing expenses worksheets identify their deduction amounts as
+  section 25-25 calculations before the vacant land and residential limits.
+  The worksheets flag section 26-102 from 2019-20 and section 26-155 from
+  2027-28. The amounts and JSON fields are unchanged.
 - JSON worksheet amounts and ratios now use the same plain decimal notation as
   the MCP calculator. Use `"1000.00"` instead of `"1e3"` or `"1_000"`, and
   `"0.50"` instead of `".50"`. A leading minus sign and surrounding whitespace
