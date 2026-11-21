@@ -19,6 +19,7 @@ use crate::dates;
 use crate::decimal::Decimal;
 
 const KIND: &str = "gst_margin_scheme";
+const ITEM_4_SCOPE: &str = "for government land under item 4";
 
 /// The facts as the command passes them; see the README for each.
 pub struct MarginSchemeArgs<'a> {
@@ -199,6 +200,16 @@ fn later_registration_valuation_day(args: &MarginSchemeArgs, start: i64) -> Resu
     })
 }
 
+fn government_supply_valuation_day(args: &MarginSchemeArgs, year: &str) -> Result<i64> {
+    let key = "supply_day";
+    let supply = date_arg(required(args.supply_day, key, ITEM_4_SCOPE)?, key)?;
+    let (first, last) = year_days(year);
+    if !(first..=last).contains(&supply) {
+        return conflict("supply_day must be in the supply year.");
+    }
+    Ok(supply)
+}
+
 /// The s 75-10(3) item an approved valuation is under, checked against its day.
 fn valuation_item(args: &MarginSchemeArgs, why: &str, year: &str) -> Result<&'static str> {
     let key = "registered_on_1_july_2000";
@@ -218,43 +229,31 @@ fn valuation_item(args: &MarginSchemeArgs, why: &str, year: &str) -> Result<&'st
         )?;
     }
     if !government {
-        when(
-            false,
-            args.supply_day,
-            "supply_day",
-            "for government land under item 4",
-        )?;
+        when(false, args.supply_day, "supply_day", ITEM_4_SCOPE)?;
     }
-    let (item, fits, required) = match (government, registered) {
+    let (item, expected, description) = match (government, registered) {
         (true, false) => {
             return refuse(
                 "gst_margin_scheme.valuation_item_unsettled",
                 "Both s 75-10(3) item 2 (a supplier not registered until after 1 July 2000) and item 4 (government land unimproved on 1 July 2000) describe this supply, and their valuation days differ; this command does not choose between them.",
             );
         }
-        (true, true) => {
-            let (first, last) = year_days(year);
-            let key = "supply_day";
-            let supply = date_arg(
-                required(args.supply_day, key, "for government land under item 4")?,
-                key,
-            )?;
-            if !(first..=last).contains(&supply) {
-                return conflict("supply_day must be in the supply year.");
-            }
-            (ITEM_4, day == supply, "the day of the supply")
-        }
+        (true, true) => (
+            ITEM_4,
+            government_supply_valuation_day(args, year)?,
+            "the day of the supply",
+        ),
         (false, false) => (
             ITEM_2,
-            day == later_registration_valuation_day(args, start)?,
+            later_registration_valuation_day(args, start)?,
             "the date of effect of your registration or the earlier day you applied",
         ),
-        (false, true) => (ITEM_1_OR_3, day == start, "1 July 2000"),
+        (false, true) => (ITEM_1_OR_3, start, "1 July 2000"),
     };
-    if !fits {
+    if day != expected {
         return refuse(
             "gst_margin_scheme.valuation_day_invalid",
-            format!("valuation_day must be {required} for this valuation (s 75-10(3))."),
+            format!("valuation_day must be {description} for this valuation (s 75-10(3))."),
         );
     }
     Ok(item)
