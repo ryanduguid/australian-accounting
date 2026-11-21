@@ -202,6 +202,27 @@ fn tasmania_agrees_with_the_state_revenue_office_examples() {
     );
 }
 
+#[test]
+fn tasmania_attributes_per_rate_rounding_to_the_worksheet() {
+    let facts = input("tas", "2400000.21", "3000000.00");
+    let envelope = json!({"command": "payroll-tax", "input": facts});
+    let doc = api::evaluate("derive", &envelope).unwrap();
+    let payroll = doc["steps"]
+        .as_array()
+        .unwrap()
+        .iter()
+        .find(|step| step["id"] == "payroll_tax")
+        .unwrap();
+    assert_eq!(payroll["value"], "72800.00");
+    assert_eq!(doc["result"]["amounts"]["payroll_tax"], "72800.00");
+    assert!(
+        payroll["authority"]
+            .as_str()
+            .unwrap()
+            .contains("This worksheet rounds the tax at each rate to the cent before adding.")
+    );
+}
+
 /// Neither the ACT Revenue Office nor the Territory Revenue Office publishes
 /// a worked figure that could be read, so these are worked from the Acts.
 /// ACT: ($3,000,000 - $1,750,000) x 6.75% = $84,375; $25,000,000 of
