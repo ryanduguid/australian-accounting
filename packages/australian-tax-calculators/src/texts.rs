@@ -1688,26 +1688,6 @@ pub const REFUSAL_CODES: &[(&str, &str)] = &[
         "An earlier year before 2018-19 was given, which has no unused concessional contributions cap (ITAA 1997 s 291-20(7)).",
     ),
     (
-        "super_benefit_tax.benefit_nil",
-        "The superannuation lump sum or the value of the interest it is paid from is nil.",
-    ),
-    (
-        "super_benefit_tax.disability_benefit",
-        "A disability superannuation benefit was given; s 307-145's increase to its tax free component is outside the command.",
-    ),
-    (
-        "super_benefit_tax.fact_conflict",
-        "The facts given contradict each other: a benefit above the interest's value, a tax free component above the interest's value, an element untaxed in the fund above the taxable component, a payment date outside the year, a date of birth not before the payment date, or cap amounts counted above the year's cap.",
-    ),
-    (
-        "super_benefit_tax.pre_july_1983_service",
-        "An element untaxed in the fund with service before 1 July 1983 was given; s 307-150's modification is outside the command.",
-    ),
-    (
-        "super_benefit_tax.recipient_invalid",
-        "recipient is not member, death_benefits_dependant or non_dependant.",
-    ),
-    (
         "dasp_tax.payment_nil",
         "Every component of the departing Australia superannuation payment is nil.",
     ),
@@ -2548,6 +2528,26 @@ pub const REFUSAL_CODES: &[(&str, &str)] = &[
     (
         "scope.not_confirmed",
         "The stated scope conditions were not confirmed.",
+    ),
+    (
+        "super_benefit_tax.benefit_nil",
+        "The superannuation lump sum or the value of the interest it is paid from is nil.",
+    ),
+    (
+        "super_benefit_tax.disability_benefit",
+        "A disability superannuation benefit was given; s 307-145's increase to its tax free component is outside the command.",
+    ),
+    (
+        "super_benefit_tax.fact_conflict",
+        "The facts given contradict each other: a benefit above the interest's value, a tax free component above the interest's value, an element untaxed in the fund above the taxable component, a payment date outside the year, a date of birth not before the payment date, or cap amounts counted above the year's cap.",
+    ),
+    (
+        "super_benefit_tax.pre_july_1983_service",
+        "An element untaxed in the fund with service before 1 July 1983 was given; s 307-150's modification is outside the command.",
+    ),
+    (
+        "super_benefit_tax.recipient_invalid",
+        "recipient is not member, death_benefits_dependant or non_dependant.",
     ),
     (
         "trade_in.asset_invalid",
