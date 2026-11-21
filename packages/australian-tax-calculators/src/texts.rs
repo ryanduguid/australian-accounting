@@ -39,6 +39,10 @@ pub const SCOPES: &[(&str, &str)] = &[
         "One departing Australia superannuation payment paid in a financial year from 2025-26 to 2027-28: the tax on it by component (Superannuation (Departing Australia Superannuation Payments Tax) Act 2007 s 5). The operator establishes that the payment is a departing Australia superannuation payment (ITAA 1997 s 301-170: a superannuation lump sum paid to a person who has departed Australia under the specified regulations, s 67A of the Small Superannuation Accounts Act 1995, an exempt public sector scheme's substantially similar rules, or s 20H of the Superannuation (Unclaimed Money and Lost Members) Act 1999), its tax free component and the elements taxed and untaxed in the fund of its taxable component, as the paying fund states them, whether it includes amounts attributable to contributions made whilst the person was a working holiday maker, and whether it is a roll-over superannuation benefit paid under s 20H(2), (2AA) or (2A) of the Superannuation (Unclaimed Money and Lost Members) Act 1999. The tax free component bears nil; the element taxed in the fund 35% and the element untaxed in the fund 45% (s 5(1)); where the payment includes working holiday maker contributions, both elements bear 65% (s 5(3)). The tax is the person's final liability on the payment, which is not assessable income and not exempt income (ITAA 1997 s 301-175). Refuses a payment of nil, and such a roll-over with an element untaxed in the fund. Excludes deciding whether the payment is a departing Australia superannuation payment, its components and whether contributions were made whilst a working holiday maker; a roll-over superannuation benefit paid under s 20H(2), (2AA) or (2A) of that Act with an excess untaxed roll-over amount (s 5(2): taxed at nil here and under the Superannuation (Excess Untaxed Roll-over Amounts Tax) Act 2007 instead); payments in a temporary budget repair levy year (s 6: 2014-15 to 2016-17); the payer's withholding, payment summary and reporting duties; and a refund of tax wrongly withheld.",
     ),
     (
+        "super_benefit_tax",
+        "One superannuation lump sum paid in a financial year from 2020-21 to 2026-27 from a complying superannuation plan to a member, a death benefits dependant or a non-dependant: its components by the proportioning rule and the most income tax each part can bear before Medicare levy (ITAA 1997 Divisions 301, 302 and 307). The operator establishes that the payment is a superannuation lump sum and not a roll-over, the value of the interest and its tax free component at the time s 307-125(3) fixes, the element untaxed in the fund of the benefit's taxable component as the fund states it, whether the recipient is the member, a death benefits dependant (s 302-195) or neither, the payment date, and for a member the date of birth, whether a terminal medical condition exists (s 303-10), whether the benefit is a disability superannuation benefit, any requirement the regulations set for a lump sum under $200 (s 301-225(1)(d)) and the low rate cap and untaxed plan cap amounts counted for earlier lump sums. The tax free component is the benefit times the interest's tax free component over its value (s 307-125(2)), rounded to the cent, and the taxable component the rest; its element taxed in the fund is the taxable component less the element untaxed in the fund (s 307-275). A member's age is taken on the payment date and the preservation age from the date of birth (SISR reg 6.01(2)). A member 60 or over pays nothing on the tax free component and the element taxed in the fund (s 301-10), and on the element untaxed in the fund at most 15% up to the untaxed plan cap left and the top rate above it (s 301-95). A member at or above preservation age and under 60, possible only to 2023-24, pays nothing on the tax free component (s 301-15), at most 0% on the element taxed in the fund up to the low rate cap left and 15% above it (s 301-20), and on the element untaxed in the fund at most 15% up to what is left of the low rate cap after the element taxed in the fund, 30% up to the untaxed plan cap left and the top rate above it (s 301-105). A member under preservation age pays nothing on the tax free component (s 301-30), at most 20% on the element taxed in the fund (s 301-35) and on the element untaxed in the fund at most 30% up to the untaxed plan cap left and the top rate above it (s 301-115). A member's lump sum with a terminal medical condition (s 303-10), a member's lump sum under $200 that leaves the interest's value nil (s 301-225(1)) and a death benefit to a dependant (s 302-60) are wholly not assessable income and not exempt income. A non-dependant pays nothing on the tax free component (s 302-140) and at most 15% on the element taxed in the fund and 30% on the element untaxed in the fund (s 302-145). Each part's tax is its amount times the rate, rounded to the cent; maximum_tax is their sum, the most the benefit can bear before Medicare levy, as the person's marginal rates can make it less. The low rate cap left is the year's cap less the amounts counted for earlier lump sums (s 307-345), and the untaxed plan cap left the year's cap for the plan less the elements untaxed in the fund counted from it (s 307-350); the amounts this benefit counts against each are shown. Refuses a nil benefit or interest, a benefit above the interest's value, a tax free component of the interest above its value, an element untaxed in the fund above the taxable component, a payment date outside the year, a date of birth not before it, a disability superannuation benefit (s 307-145), an element untaxed in the fund with service before 1 July 1983 (s 307-150), cap amounts counted above the year's cap and member facts for a death benefit. Excludes income streams of every kind, including death benefit, reversionary and capped defined benefit income streams and the defined benefit income cap; transfer balance questions; roll-overs and excess untaxed roll-over amounts; departing Australia superannuation payments (dasp-tax); death benefit termination payments (Division 82) and other employment termination payments; benefits from a non-complying or foreign superannuation fund (Division 305); a death benefit paid to the trustee of a deceased estate (s 302-10); structured settlements and personal injury payments; an alternative method under s 307-125(4); deciding the components, dependency and a terminal medical condition; the Medicare levy and the tax at the person's marginal rates; and the payer's withholding and reporting.",
+    ),
+    (
         "gst_margin_scheme",
         "One taxable supply of real property in a financial year from 2025-26 to 2027-28, made under a contract entered into on or after 9 December 2008 and not under an option or right granted before then: whether the margin scheme of GST Act Division 75 can apply, and the GST with and without it. The operator establishes that the supply is a taxable supply apart from Division 75 (s 9-5: such as new residential premises or land sold in the course of an enterprise, not input taxed residential premises or a GST-free supply), what it sells or grants, the written agreement, how the supplier acquired the entire interest, unit or lease, and the base: the consideration for that acquisition and any of it unpaid, or an approved valuation (s 75-35) with the facts that fix its day. Each condition of s 75-5 is shown as met or not: a freehold interest, a stratum unit or a long-term lease (s 75-5(1)); a written agreement made on or before the supply or within a further period the Commissioner allows (s 75-5(1A)); and the interest not acquired through a taxable supply on which the GST was worked out without the margin scheme (s 75-5(2) and (3)(a)). The margin is the amount by which the consideration for the supply exceeds the base, or nil (s 75-10(2) and (3)): the acquisition's consideration less any of it unpaid (s 75-12), disregarding improvements and development (s 75-14), or for an interest acquired before 1 July 2000 an approved valuation as at the day s 75-10(3) items 1 to 4 fix, checked against the facts given; for a supply of part of the land, only the corresponding proportion of the base, the share of the whole given (s 75-15). The GST under the margin scheme is 1/11 of the margin (s 75-10(1)) and without it 1/11 of the consideration (ss 9-70 and 9-75(1)), each rounded to the nearest cent, 0.5 cents up, as for one supply on one invoice (s 9-90(1)); gst is the first when every condition is met and the second otherwise. Refuses an acquisition from a fellow GST group member, a GST joint venture operator or an associate, by inheritance, as a GST-free going concern or farm land, through a supply GST-free under s 38-445(1A), or in part through an ineligible supply (ss 75-5(3)(b) to (g), 75-10(3) item 2A, 75-11 and 75-22), a supply to an associate (s 75-13), an approved valuation for an interest acquired from 1 July 2000, a valuation day s 75-10(3) does not fix for the facts, a supply items 2 and 4 both describe, unpaid consideration above the consideration and a share above the whole. Excludes deciding whether the supply is taxable, the agreement's terms, the valuation and its compliance with the Commissioner's requirements, the reasonableness of the apportionment, the time of the supply, GST at settlement withholding (Schedule 1 to the Taxation Administration Act 1953 s 14-250), the increasing and decreasing adjustments of ss 75-22 and 75-27, contracts before 9 December 2008, and several supplies recorded on one invoice (s 9-90(2)).",
     ),
@@ -332,6 +336,10 @@ pub const SOURCES: &[(&str, &str)] = &[
     (
         "dasp_tax",
         "https://www.legislation.gov.au/C2007A00013/latest/text",
+    ),
+    (
+        "super_benefit_tax",
+        "https://www.ato.gov.au/tax-rates-and-codes/key-superannuation-rates-and-thresholds/payments-from-super",
     ),
     (
         "payroll_tax",
@@ -657,6 +665,19 @@ pub const EXTRA_SOURCES: &[(&str, &[&str])] = &[
             "https://www.ato.gov.au/law/view/document?DocID=PAC/19970038/301-170",
             "https://www.ato.gov.au/law/view/document?DocID=PAC/19970038/301-175",
             "https://www.ato.gov.au/tax-rates-and-codes/key-superannuation-rates-and-thresholds/payments-from-super",
+        ],
+    ),
+    (
+        "super_benefit_tax",
+        &[
+            "https://www.ato.gov.au/law/view/document?DocID=PAC/19970038/301-20",
+            "https://www.ato.gov.au/law/view/document?DocID=PAC/19970038/301-105",
+            "https://www.ato.gov.au/law/view/document?DocID=PAC/19970038/302-145",
+            "https://www.ato.gov.au/law/view/document?DocID=PAC/19970038/307-125",
+            "https://www.ato.gov.au/law/view/document?DocID=PAC/19970038/307-345",
+            "https://www.ato.gov.au/law/view/document?DocID=PAC/19970038/307-350",
+            "https://www.ato.gov.au/individuals-and-families/super-for-individuals-and-families/super/withdrawing-and-using-your-super/early-access-to-super/tax-on-super-benefits",
+            "https://www.legislation.gov.au/F2026L00716/asmade/text",
         ],
     ),
     (
@@ -1194,6 +1215,12 @@ pub const EXTRA_WARNINGS: &[(&str, &[&str])] = &[
         ],
     ),
     (
+        "super_benefit_tax",
+        &[
+            "maximum_tax excludes the Medicare levy, which the ATO's tables add at 2% to each rate, and is a ceiling: each offset ensures the rate on its part does not exceed the rate shown, so the person's marginal rates on that part can give less. Put assessable_amount in the tax return; the ATO works out the lump sum offsets.",
+        ],
+    ),
+    (
         "payroll_tax",
         &[
             "Each revenue office decides which payments are taxable wages and in which jurisdiction they are taxable; this worksheet takes both wage totals as established.",
@@ -1373,6 +1400,10 @@ pub const BORROWING_PROJECTED: &str = "A row marked projected is after 2027-28, 
 /// `period.unsupported` message: the figures not yet published, or the change
 /// in the law it does not apply.
 pub const UNPUBLISHED_2027_28: &[(&str, &str)] = &[
+    (
+        "super_benefit_tax",
+        "The untaxed plan cap for 2027-28 was not published when this worksheet was checked.",
+    ),
     ("capital_gains", CGT_2027_28),
     ("main_residence", CGT_2027_28),
     ("cgt_parcels", CGT_2027_28),
@@ -1655,6 +1686,26 @@ pub const REFUSAL_CODES: &[(&str, &str)] = &[
     (
         "contribution_caps.year_before_carry_forward",
         "An earlier year before 2018-19 was given, which has no unused concessional contributions cap (ITAA 1997 s 291-20(7)).",
+    ),
+    (
+        "super_benefit_tax.benefit_nil",
+        "The superannuation lump sum or the value of the interest it is paid from is nil.",
+    ),
+    (
+        "super_benefit_tax.disability_benefit",
+        "A disability superannuation benefit was given; s 307-145's increase to its tax free component is outside the command.",
+    ),
+    (
+        "super_benefit_tax.fact_conflict",
+        "The facts given contradict each other: a benefit above the interest's value, a tax free component above the interest's value, an element untaxed in the fund above the taxable component, a payment date outside the year, a date of birth not before the payment date, or cap amounts counted above the year's cap.",
+    ),
+    (
+        "super_benefit_tax.pre_july_1983_service",
+        "An element untaxed in the fund with service before 1 July 1983 was given; s 307-150's modification is outside the command.",
+    ),
+    (
+        "super_benefit_tax.recipient_invalid",
+        "recipient is not member, death_benefits_dependant or non_dependant.",
     ),
     (
         "dasp_tax.payment_nil",
@@ -2146,7 +2197,7 @@ pub const REFUSAL_CODES: &[(&str, &str)] = &[
     ),
     (
         "input.field_unknown",
-        "A field the worksheet or command does not take, or does not take beside the other inputs given, was given (fbt-loan, fbt-meal-entertainment, fbt-car-parking, fbt-debt-waiver, fbt-expense-payment, fbt-property, fbt-residual, fbt-housing, fbt-lafha, fbt-board, fbt-tax-exempt-body-entertainment, fbt-entertainment-classifier, fbt-meal-entertainment-register and its entries, fbt-minor-benefit-check, ppsr-timing, fhss and its contributions, personal_deductions and determination, division-296, depreciation, fuel-tax-credits and its lines, foreign-resident-tax, medicare-levy, medicare-levy-surcharge, payg-withholding, payg-gross-up, termination-payment, etp-tax-free-component, unused-leave-payment, the Schedule 5 methods, working-holiday-maker-withholding, study-loan-withholding, seniors-pensioners-withholding, seniors-pensioners-tax-offset, lump-sum-arrears-tax-offset, hire-purchase-schedule, chattel-mortgage-schedule, loan-transactions and its transactions and rate_changes, borrowing-expenses-schedule and its loans, business-capital-expenditure and its items, balancing-adjustment, its years and car_limit, trade-in, franking-account and its events, distributions and income_tax, dasp-tax, gst-margin-scheme, wine-equalisation-tax and its dealings, luxury-car-tax and its lines, payroll-tax, cgt-parcels, its parcels and disposals, fbt-ev-exemption-check, sb-cgt-concessions, contribution-caps given a carry-forward input, derive, personal-tax-estimate, dgr-check, income-tests and fbt-return only).",
+        "A field the worksheet or command does not take, or does not take beside the other inputs given, was given (fbt-loan, fbt-meal-entertainment, fbt-car-parking, fbt-debt-waiver, fbt-expense-payment, fbt-property, fbt-residual, fbt-housing, fbt-lafha, fbt-board, fbt-tax-exempt-body-entertainment, fbt-entertainment-classifier, fbt-meal-entertainment-register and its entries, fbt-minor-benefit-check, ppsr-timing, fhss and its contributions, personal_deductions and determination, division-296, depreciation, fuel-tax-credits and its lines, foreign-resident-tax, medicare-levy, medicare-levy-surcharge, payg-withholding, payg-gross-up, termination-payment, etp-tax-free-component, unused-leave-payment, the Schedule 5 methods, working-holiday-maker-withholding, study-loan-withholding, seniors-pensioners-withholding, seniors-pensioners-tax-offset, lump-sum-arrears-tax-offset, hire-purchase-schedule, chattel-mortgage-schedule, loan-transactions and its transactions and rate_changes, borrowing-expenses-schedule and its loans, business-capital-expenditure and its items, balancing-adjustment, its years and car_limit, trade-in, franking-account and its events, distributions and income_tax, dasp-tax, super-benefit-tax, gst-margin-scheme, wine-equalisation-tax and its dealings, luxury-car-tax and its lines, payroll-tax, cgt-parcels, its parcels and disposals, fbt-ev-exemption-check, sb-cgt-concessions, contribution-caps given a carry-forward input, derive, personal-tax-estimate, dgr-check, income-tests and fbt-return only).",
     ),
     ("input.flag_invalid", "A flag is not a JSON boolean."),
     ("input.fraction_invalid", "A fraction is outside 0 to 1."),

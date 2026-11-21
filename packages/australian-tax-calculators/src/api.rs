@@ -294,6 +294,19 @@ const COMMAND_ARGS: &[(&str, &[(&str, Kind)])] = &[
         ],
     ),
     (
+        "super-benefit-tax",
+        &[
+            ("benefit", Dec),
+            ("interest_value", Dec),
+            ("interest_tax_free_component", Dec),
+            ("untaxed_element", Dec),
+            ("recipient", Raw),
+            ("payment_date", Raw),
+            ("year", Raw),
+            ("scope_confirmed", Raw),
+        ],
+    ),
+    (
         "trade-in",
         &[
             ("cost", Dec),
@@ -758,7 +771,7 @@ pub fn commands() -> Vec<&'static str> {
 /// command on its `gross_pay` shows that withholding. The classifier's amounts
 /// are totals over lines whose shares a decision table sets, not a formula;
 /// each line and class carries the authority for its row instead.
-const DERIVED: [&str; 54] = [
+const DERIVED: [&str; 55] = [
     "fbt",
     "fbt-car-statutory",
     "fbt-car-operating-cost",
@@ -809,6 +822,7 @@ const DERIVED: [&str; 54] = [
     "balancing-adjustment",
     "trade-in",
     "dasp-tax",
+    "super-benefit-tax",
     "gst-margin-scheme",
     "etp-tax-free-component",
     "payroll-tax",
@@ -1195,6 +1209,7 @@ pub fn evaluate_coded(command: &str, v: &Value) -> Result<Value> {
             | "trade-in"
             | "fbt-ev-exemption-check"
             | "dasp-tax"
+            | "super-benefit-tax"
             | "payroll-tax"
             | "gst-margin-scheme"
             | "franking-account"
@@ -1367,6 +1382,26 @@ pub fn evaluate_coded(command: &str, v: &Value) -> Result<Value> {
                 scope_confirmed: &a[9],
                 income_tax: income_tax.as_ref(),
                 commissioner_determination: determination.as_ref(),
+            })
+        }
+        "super-benefit-tax" => {
+            // Optional: the facts only a member benefit, or only some, call for.
+            let given = engine::SUPER_BENEFIT_OPTIONAL.map(|key| {
+                let kind = if key.ends_with("_used") { Dec } else { Raw };
+                optional(v, key, kind)
+            });
+            let [a0, a1, a2, a3, a4, a5] = given;
+            let given = [a0?, a1?, a2?, a3?, a4?, a5?];
+            engine::super_benefit_tax(&engine::SuperBenefitTaxArgs {
+                benefit: &a[0],
+                interest_value: &a[1],
+                interest_tax_free_component: &a[2],
+                untaxed_element: &a[3],
+                recipient: &a[4],
+                payment_date: &a[5],
+                year: &a[6],
+                scope_confirmed: &a[7],
+                optional: given.each_ref().map(Option::as_ref),
             })
         }
         "dasp-tax" => engine::dasp_tax(&engine::DaspTaxArgs {

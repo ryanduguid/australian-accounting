@@ -14,7 +14,7 @@ use std::io::Write;
 use std::process::{Command, Stdio};
 
 /// The commands `derive` explains.
-const DERIVED: [&str; 54] = [
+const DERIVED: [&str; 55] = [
     "fbt",
     "fbt-car-statutory",
     "fbt-car-operating-cost",
@@ -65,6 +65,7 @@ const DERIVED: [&str; 54] = [
     "balancing-adjustment",
     "trade-in",
     "dasp-tax",
+    "super-benefit-tax",
     "gst-margin-scheme",
     "etp-tax-free-component",
     "payroll-tax",
@@ -407,6 +408,20 @@ fn cases() -> Vec<(&'static str, Value)> {
                    "working_holiday_maker_contributions": true,
                    "unclaimed_money_rollover": false,
                    "year": "2026-27", "scope_confirmed": true}),
+        ),
+        // A member at preservation age with both elements in 2021-22: the
+        // low rate cap goes to the element taxed in the fund first
+        // (ITAA 1997 s 301-105(6)).
+        (
+            "super-benefit-tax",
+            json!({"benefit": "300000.00", "interest_value": "400000.00",
+                   "interest_tax_free_component": "0.00", "untaxed_element": "100000.00",
+                   "recipient": "member", "payment_date": "2021-08-01",
+                   "date_of_birth": "1963-01-10", "terminal_medical_condition": false,
+                   "disability_superannuation_benefit": false,
+                   "service_before_july_1983": false, "low_rate_cap_used": "0.00",
+                   "untaxed_plan_cap_used": "0.00",
+                   "year": "2021-22", "scope_confirmed": true}),
         ),
         // Victoria's surcharges on $80 million of $150 million (the State
         // Revenue Office's example 2) and Tasmania's 2 rates on $2,400,000
@@ -2182,7 +2197,7 @@ fn derive_refuses_what_it_does_not_explain() {
          study-loan-repayment, capital-gains, main-residence, fbt-residual, fbt-housing, \
          fbt-lafha, fbt-board, fbt-tax-exempt-body-entertainment, gst, depreciation, \
          hire-purchase-schedule, chattel-mortgage-schedule, loan-transactions, \
-         lump-sum-arrears-tax-offset, income-tests, business-capital-expenditure, balancing-adjustment, trade-in, dasp-tax, gst-margin-scheme, etp-tax-free-component, payroll-tax, cgt-parcels, not \"payg-gross-up\""
+         lump-sum-arrears-tax-offset, income-tests, business-capital-expenditure, balancing-adjustment, trade-in, dasp-tax, super-benefit-tax, gst-margin-scheme, etp-tax-free-component, payroll-tax, cgt-parcels, not \"payg-gross-up\""
     );
 }
 

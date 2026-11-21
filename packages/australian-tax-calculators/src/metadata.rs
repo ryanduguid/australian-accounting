@@ -542,6 +542,29 @@ pub const TERMINATION_PAYMENT: [(&str, &str); 7] = [
 ];
 pub const TERMINATION_PAYMENT_YEARS: [&str; 1] = ["2026-27"];
 
+/// The low rate cap amount (ITAA 1997 s 307-345) for the years anyone can be
+/// at or above preservation age and under 60: from 1 July 2024 the
+/// preservation age is 60 for everyone born after 30 June 1964. The ATO's
+/// 'Payments from super', Table 9 (last updated 16 September 2026).
+pub const SUPER_LOW_RATE_CAP: [(&str, &str); 4] = [
+    ("2020-21", "215000"),
+    ("2021-22", "225000"),
+    ("2022-23", "230000"),
+    ("2023-24", "235000"),
+];
+
+/// The untaxed plan cap amount (ITAA 1997 s 307-350): the same page,
+/// Table 10; Schedule 12 (2026) gives $1,935,000 for 2026-27.
+pub const SUPER_UNTAXED_PLAN_CAP: [(&str, &str); 7] = [
+    ("2020-21", "1565000"),
+    ("2021-22", "1615000"),
+    ("2022-23", "1650000"),
+    ("2023-24", "1705000"),
+    ("2024-25", "1780000"),
+    ("2025-26", "1865000"),
+    ("2026-27", "1935000"),
+];
+
 /// Unused leave paid on termination: Schedule 7's 32% rate for the parts a tax
 /// offset caps at 30% (30% plus the 2% Medicare levy) and its $300 limit for a
 /// small post-17 August 1993 payment, its 47% (45% for a foreign resident) of
@@ -1036,6 +1059,11 @@ pub fn supported_periods(kind: &str) -> Vec<&'static str> {
         // s 5 sets fixed rates; the temporary budget repair levy of s 6 ended
         // with 2016-17. The years are the other superannuation worksheets'.
         "dasp_tax" => vec!["2025-26", "2026-27", "2027-28"],
+        // The years the map asks for; the untaxed plan cap for 2027-28 is not
+        // yet published (s 307-350, indexed each February).
+        "super_benefit_tax" => vec![
+            "2020-21", "2021-22", "2022-23", "2023-24", "2024-25", "2025-26", "2026-27",
+        ],
         // Division 75 sets no figure by year; the years are gst's.
         "gst_margin_scheme" => vec!["2025-26", "2026-27", "2027-28"],
         // ITAA 1997 Division 205 sets no figure by year; the years the
@@ -1176,6 +1204,10 @@ pub fn source_review(kind: &str) -> (&'static str, &'static str) {
         "balancing_adjustment" => (
             "2026-11-18",
             "ITAA 1997 ss 40-25, 40-85, 40-230, 40-285, 40-290, 40-291A, 40-295, 40-300, 40-305, 40-325, 40-370, 104-235, 104-240, 118-5 and 118-10 (its example) and Subdivision 27-B, compilation 268 (1 October 2026), with the endnotes' amendment history; Treasury Laws Amendment (Tax Reform No. 1) Act 2026 (No 49 of 2026), Schedule 4 item 17 (s 40-291A from 2026-27); Guide to depreciating assets 2026, 'What happens if you no longer hold or use a depreciating asset?', its Bridget, Andrew and Louise examples and the car limit formula",
+        ),
+        "super_benefit_tax" => (
+            "2026-11-22",
+            "ITAA 1997 ss 301-10 to 301-40, 301-90 to 301-115, 301-225, 302-60, 302-140, 302-145, 302-195, 303-10, 307-120, 307-125, 307-145, 307-150, 307-205, 307-275 to 307-290, 307-345, 307-350 and 960-285, from the ATO's legal database; the ATO's 'Payments from super' (last updated 16 September 2026, Tables 9, 10, 12 and 13), 'Tax on super benefits' (2 August 2023) and 'Tax rates – Australian resident' (13 August 2026); Schedule 12 of the Taxation Administration (Withholding Schedules) Instrument 2026 (F2026L00716) and the ATO's Schedule 12 from 13 October 2020 to 30 June 2024",
         ),
         "dasp_tax" => (
             "2026-11-19",
@@ -1752,6 +1784,32 @@ pub fn library_evidence(kind: &str) -> [(&'static str, &'static str); 4] {
 /// Inputs a worksheet takes but does not require, with their units.
 pub fn optional_inputs(kind: &str) -> Vec<(&'static str, &'static str)> {
     match kind {
+        "super_benefit_tax" => vec![
+            (
+                "date_of_birth",
+                "YYYY-MM-DD, the member's, for recipient member only, and then required: sets the age on payment_date (an age is reached on the birthday; 29 February falls on 1 March in a common year) and the preservation age (SISR reg 6.01(2))",
+            ),
+            (
+                "terminal_medical_condition",
+                "boolean, for recipient member only, and then required: a terminal medical condition (s 303-10: two registered medical practitioners' certificates, one a specialist, within their 24 month certification periods) exists when the benefit is received or within 90 days after",
+            ),
+            (
+                "disability_superannuation_benefit",
+                "boolean, for recipient member only, and then required: true is refused, as s 307-145 increases a disability superannuation benefit's tax free component",
+            ),
+            (
+                "service_before_july_1983",
+                "boolean, required with an untaxed_element above nil and refused otherwise: true (the benefit is attributable to an interest that existed before 1 July 2007 and its service period began before 1 July 1983) is refused, as s 307-150 then moves part of the element untaxed in the fund to the tax free component",
+            ),
+            (
+                "low_rate_cap_used",
+                "AUD, for a member at or above preservation age and under 60 (possible only to 2023-24), and then required: the amounts counted towards the s 301-20(2) and 301-105(4) offsets for earlier lump sums, in earlier years and earlier in this year; at most the year's low rate cap",
+            ),
+            (
+                "untaxed_plan_cap_used",
+                "AUD, for a member benefit taxed by age with an untaxed_element above nil, and then required: the elements untaxed in the fund of earlier lump sums from the same plan counted under s 307-350(2); at most the year's untaxed plan cap",
+            ),
+        ],
         "fuel_tax_credits" => vec![
             (
                 "small_claimant",
@@ -2654,6 +2712,32 @@ pub fn input_units(kind: &str) -> Vec<(&'static str, &'static str)> {
             (
                 "luxury_car_tax_on_other_supply",
                 "boolean, true when luxury car tax became payable on any other supply or importation of the car before the benefit (FBTAA s 8A(1)(c))",
+            ),
+        ],
+        "super_benefit_tax" => vec![
+            (
+                "benefit",
+                "AUD, the superannuation lump sum paid to the recipient, not rolled over",
+            ),
+            (
+                "interest_value",
+                "AUD, the value of the superannuation interest it is paid from (s 307-205), just before it is paid, or for a commutation of an income stream when the stream commenced (s 307-125(3)); at least the benefit",
+            ),
+            (
+                "interest_tax_free_component",
+                "AUD, the interest's tax free component (s 307-210: its contributions segment and crystallised segment) at the same time",
+            ),
+            (
+                "untaxed_element",
+                "AUD, the element untaxed in the fund of the benefit's taxable component as the fund states it under ss 307-275 to 307-290; 0.00 for a taxed fund that claims no s 295-465 or 295-470 deduction for a death benefit",
+            ),
+            (
+                "recipient",
+                "member, death_benefits_dependant (s 302-195, including any recipient where the deceased died in the line of duty) or non_dependant",
+            ),
+            (
+                "payment_date",
+                "YYYY-MM-DD, the day the recipient receives the benefit, in the income year given",
             ),
         ],
         "dasp_tax" => vec![
@@ -3581,6 +3665,23 @@ pub fn examples(kind: &str) -> Vec<(&'static str, Example)> {
         // The Library's example (Superannuation Benefits, 8-420): a $42,000
         // benefit of a $25,000 tax free component and a $17,000 element
         // taxed in the fund, applied for on 1 August 2026.
+        // The ATO's 'Tax on super benefits' example: Tony, 58 and retired,
+        // receives $350,000 on 25 July 2021, a $100,000 tax free component
+        // and a $250,000 element taxed in the fund; $25,000 is above the
+        // 2021-22 low rate cap of $225,000.
+        "super_benefit_tax" => vec![
+            ("year", Text("2021-22")),
+            ("benefit", Text("350000.00")),
+            ("interest_value", Text("350000.00")),
+            ("interest_tax_free_component", Text("100000.00")),
+            ("untaxed_element", Text("0.00")),
+            ("recipient", Text("member")),
+            ("payment_date", Text("2021-07-25")),
+            ("date_of_birth", Text("1963-03-01")),
+            ("terminal_medical_condition", Flag(false)),
+            ("disability_superannuation_benefit", Flag(false)),
+            ("low_rate_cap_used", Text("0.00")),
+        ],
         "dasp_tax" => vec![
             ("tax_free_component", Text("25000.00")),
             ("taxed_element", Text("17000.00")),
