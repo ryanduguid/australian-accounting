@@ -1997,7 +1997,7 @@ pub const REFUSAL_CODES: &[(&str, &str)] = &[
     ),
     (
         "gst_margin_scheme.valuation_item_unsettled",
-        "Both s 75-10(3) item 2 and item 4 describe the supply, and gst-margin-scheme does not choose between their valuation days.",
+        "Item 2 of s 75-10(3) overlaps with item 3 or 4 for the facts given, and gst-margin-scheme does not choose between their valuation days.",
     ),
     (
         "gst_margin_scheme.valuation_unavailable",

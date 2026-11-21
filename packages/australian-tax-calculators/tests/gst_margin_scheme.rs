@@ -314,36 +314,101 @@ fn unpaid_consideration_reduces_the_base() {
 
 /// s 75-10(3) item 2: a supplier registered after 1 July 2000 uses a
 /// valuation as at its registration, or the earlier day it applied, which may
-/// be on or before 1 July 2000; item 4: government land unimproved on
-/// 1 July 2000 uses one as at the day of the supply, in its year.
+/// be on or before 1 July 2000.
 #[test]
-fn the_valuation_day_follows_the_item() {
+fn the_valuation_day_follows_item_2_registration_facts() {
     let late = with(
         valued("500000.00", "300000.00", "2004-03-01"),
-        &[("registered_on_1_july_2000", json!(false))],
+        &[
+            ("registered_on_1_july_2000", json!(false)),
+            ("improved_on_1_july_2000", json!(false)),
+            ("registration_effective_day", json!("2004-03-01")),
+            ("applied_for_registration", json!(false)),
+        ],
     );
     let r = run(&late);
     assert!(r["base_rule"].as_str().unwrap().contains("item 2"));
     assert_eq!(amount(&r, "gst"), "18181.82");
-    for day in ["2000-06-30", "2000-07-01"] {
-        let applied = with(late.clone(), &[("valuation_day", json!(day))]);
+    for key in [
+        "registration_effective_day",
+        "applied_for_registration",
+        "improved_on_1_july_2000",
+    ] {
+        assert_eq!(
+            code(&without(late.clone(), key)),
+            "input.missing_field",
+            "{key}"
+        );
+    }
+    for day in ["2000-06-30", "2000-07-01", "2004-02-29"] {
+        let applied = with(
+            late.clone(),
+            &[
+                ("applied_for_registration", json!(true)),
+                ("registration_application_day", json!(day)),
+                ("valuation_day", json!(day)),
+            ],
+        );
         assert!(
             run(&applied)["base_rule"]
                 .as_str()
                 .unwrap()
                 .contains("item 2")
         );
+        let wrong_day = with(applied, &[("valuation_day", json!("2004-03-01"))]);
+        assert_eq!(code(&wrong_day), "gst_margin_scheme.valuation_day_invalid");
     }
-    let bad = with(late.clone(), &[("valuation_day", json!("2026-07-01"))]);
-    assert_eq!(code(&bad), "gst_margin_scheme.valuation_day_invalid");
+    let applied = with(late.clone(), &[("applied_for_registration", json!(true))]);
+    assert_eq!(code(&applied), "input.missing_field");
+    let retrospectively_applied = with(
+        applied,
+        &[
+            ("registration_effective_day", json!("2026-03-20")),
+            ("registration_application_day", json!("2026-07-01")),
+            ("valuation_day", json!("2026-03-20")),
+        ],
+    );
+    assert_eq!(amount(&run(&retrospectively_applied), "gst"), "18181.82");
+    // The supplier was required to register at the taxable supply, before
+    // its registration took effect. Item 2 does not cap the valuation date.
+    let effective_after_supply_year = with(
+        late.clone(),
+        &[
+            ("registration_effective_day", json!("2026-07-01")),
+            ("valuation_day", json!("2026-07-01")),
+        ],
+    );
+    assert_eq!(
+        amount(&run(&effective_after_supply_year), "gst"),
+        "18181.82"
+    );
+    let improved = with(late.clone(), &[("improved_on_1_july_2000", json!(true))]);
+    assert_eq!(
+        code(&improved),
+        "gst_margin_scheme.valuation_item_unsettled"
+    );
+    let wrong_day = with(late, &[("valuation_day", json!("2004-03-02"))]);
+    assert_eq!(code(&wrong_day), "gst_margin_scheme.valuation_day_invalid");
+}
+
+/// Item 4: government land unimproved on 1 July 2000 uses the day of supply.
+#[test]
+fn the_valuation_day_follows_item_4_supply_day() {
     let crown = with(
         valued("500000.00", "500000.00", "2026-02-10"),
-        &[("government_unimproved_on_1_july_2000", json!(true))],
+        &[
+            ("government_unimproved_on_1_july_2000", json!(true)),
+            ("supply_day", json!("2026-02-10")),
+        ],
     );
     let r = run(&crown);
     assert!(r["base_rule"].as_str().unwrap().contains("item 4"));
     assert_eq!(amount(&r, "gst"), "0.00");
-    for day in ["2000-07-01", "2025-06-30", "2026-07-01"] {
+    assert_eq!(
+        code(&without(crown.clone(), "supply_day")),
+        "input.missing_field"
+    );
+    for day in ["2000-07-01", "2025-06-30", "2026-02-09", "2026-07-01"] {
         let bad = with(crown.clone(), &[("valuation_day", json!(day))]);
         assert_eq!(
             code(&bad),
@@ -351,6 +416,8 @@ fn the_valuation_day_follows_the_item() {
             "{day}"
         );
     }
+    let next_year = with(crown.clone(), &[("supply_day", json!("2026-07-01"))]);
+    assert_eq!(code(&next_year), "gst_margin_scheme.fact_conflict");
     let both = with(crown, &[("registered_on_1_july_2000", json!(false))]);
     assert_eq!(code(&both), "gst_margin_scheme.valuation_item_unsettled");
     let bad = valued("640000.00", "448000.00", "2000-06-30");
