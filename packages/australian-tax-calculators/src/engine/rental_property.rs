@@ -408,9 +408,9 @@ fn scale_tax(income: &Decimal, year: &str) -> Result<Decimal> {
     Ok(Decimal::parse(tax)?)
 }
 
-/// The tax at the resident scale without and with the net rent, and the
-/// difference, for the years the scale is held for.
-fn tax_effect(other: &Arg, net: &Decimal, year: &Year, label: &str) -> Result<Vec<Step>> {
+/// Other taxable income, the net rent with its cents dropped, and the
+/// taxable income with it, nil if negative.
+fn taxable(other: &Arg, net: &Decimal, year: &Year) -> Result<[Decimal; 3]> {
     if year.first < FIRST_TAX_YEAR {
         return refuse(
             "rental_property.tax_effect_year",
@@ -422,45 +422,58 @@ fn tax_effect(other: &Arg, net: &Decimal, year: &Year, label: &str) -> Result<Ve
     let dropped = net.quantize(0, Rounding::Down)?;
     let sum = without.add(&dropped)?;
     let with = if sum.lt(&int(0))? { int(0) } else { sum };
+    Ok([without, dropped, with])
+}
+
+/// The tax at the resident scale without and with the net rent, and the
+/// difference, for the years the scale is held for.
+fn tax_effect(other: &Arg, net: &Decimal, year: &Year, label: &str) -> Result<Vec<Step>> {
+    let [without, dropped, with] = taxable(other, net, year)?;
     let (tax_without, tax_with) = (scale_tax(&without, label)?, scale_tax(&with, label)?);
     let effect = tax_without.sub(&tax_with)?;
-    Ok(vec![
-        step(
+    let rows: [(&'static str, &'static str, &str, Vec<&Decimal>, Decimal); 5] = [
+        (
             "taxable_income_without_rental",
             TAXABLE_WITHOUT,
             "other_taxable_income",
-            &[&without],
+            vec![&without],
             without.clone(),
         ),
-        step(
+        (
             "taxable_income_with_rental",
             TAXABLE_WITH,
             "max(0, other_taxable_income + net_rent_whole_dollars)",
-            &[&without, &dropped],
+            vec![&without, &dropped],
             with.clone(),
         ),
-        step(
+        (
             "tax_without_rental",
             TAX_WITHOUT,
             "resident_tax(taxable_income_without_rental)",
-            &[&without],
+            vec![&without],
             tax_without.clone(),
         ),
-        step(
+        (
             "tax_with_rental",
             TAX_WITH,
             "resident_tax(taxable_income_with_rental)",
-            &[&with],
+            vec![&with],
             tax_with.clone(),
         ),
-        step(
+        (
             "tax_effect",
             TAX_EFFECT,
             "tax_without_rental - tax_with_rental",
-            &[&tax_without, &tax_with],
+            vec![&tax_without, &tax_with],
             effect,
         ),
-    ])
+    ];
+    Ok(rows
+        .into_iter()
+        .map(|(id, authority, formula, operands, value)| {
+            step(id, authority, formula, &operands, value)
+        })
+        .collect())
 }
 
 /// A step summing the values of `parts`.
@@ -476,9 +489,8 @@ fn sum_step(id: &'static str, authority: &'static str, parts: &[&Step]) -> Resul
     Ok(step(id, authority, &formula, &values, total))
 }
 
-pub fn rental_property(args: &RentalPropertyArgs) -> Result<Value> {
-    let label = scope(args.scope_confirmed, args.year, KIND)?;
-    let year = Year::of(&label);
+/// The owner's legal interest, refusing a holiday home s 26-50 denies.
+fn checked_share(args: &RentalPropertyArgs) -> Result<Decimal> {
     let share = ownership(args.ownership_share)?;
     if flag(args.section_26_50_applies, "section_26_50_applies")? {
         return refuse(
@@ -486,7 +498,11 @@ pub fn rental_property(args: &RentalPropertyArgs) -> Result<Value> {
             "Section 26-50 denies the costs of owning a holiday home not used or held mainly to produce rent at all times in the year, before any apportionment (TR 2026/1 paragraphs 17 and 31); the worksheet does not decide 'mainly'.",
         );
     }
-    let held = held(args, &year)?;
+    Ok(share)
+}
+
+/// The gross rent and the expense lines' steps.
+fn line_steps(args: &RentalPropertyArgs, share: &Decimal, held: &Held) -> Result<Vec<Step>> {
     let income = lines(args.income, "income", &INCOME)?;
     let apportioned = lines(args.expenses, "expenses", &CATEGORIES)?;
     let rental_only = lines(
@@ -494,44 +510,57 @@ pub fn rental_property(args: &RentalPropertyArgs) -> Result<Value> {
         "rental_only_expenses",
         &CATEGORIES,
     )?;
-    let (rent, other) = (
-        line(&income, "rental_income").cloned().unwrap_or(int(0)),
-        line(&income, "other_rental_income")
-            .cloned()
-            .unwrap_or(int(0)),
-    );
-    let (interest, loan_rows) = interest(args.loans, &held)?;
-    let (borrowing, schedule) = borrowing(args.borrowing_loans, &label)?;
-    let (works, works_rows) = capital_works::deduction(args.capital_works, &share, &held, &year)?;
-    let (decline, asset_rows) = assets::deduction(args.depreciating_assets, &share, &held)?;
+    let given = |key| line(&income, key).cloned().unwrap_or(int(0));
+    let (rent, other) = (given("rental_income"), given("other_rental_income"));
     let gross = step(
         "gross_rent",
         GROSS_RENT,
         "cents((rental_income + other_rental_income) x ownership_share)",
-        &[&rent, &other, &share],
-        cents(rent.add(&other)?.mul(&share)?)?,
+        &[&rent, &other, share],
+        cents(rent.add(&other)?.mul(share)?)?,
     );
     let mut steps = vec![gross];
-    steps.extend(expense_steps(&apportioned, &rental_only, &share, &held)?);
-    let decline = step("decline_in_value", DECLINE, &decline.0, &[], decline.1);
-    let works = step("capital_works", CAPITAL_WORKS, &works.0, &[], works.1);
-    steps.extend([interest, borrowing, decline, works]);
+    steps.extend(expense_steps(&apportioned, &rental_only, share, held)?);
+    Ok(steps)
+}
+
+/// Adds the total deductions and the net rent after the gross rent and the
+/// deductions, and returns the net rent.
+fn add_net(steps: &mut Vec<Step>) -> Result<Decimal> {
     let parts: Vec<&Step> = steps[1..]
         .iter()
         .filter(|s| s.id != "travel_denied")
         .collect();
     let total = sum_step("total_deductions", TOTAL, &parts)?;
+    let gross = &steps[0].value;
+    let value = gross.sub(&total.value)?;
     let net = step(
         "net_rent",
         NET,
         "gross_rent - total_deductions",
-        &[&steps[0].value, &total.value],
-        steps[0].value.sub(&total.value)?,
+        &[gross, &total.value],
+        value.clone(),
     );
-    let net_value = net.value.clone();
     steps.extend([total, net]);
+    Ok(value)
+}
+
+pub fn rental_property(args: &RentalPropertyArgs) -> Result<Value> {
+    let label = scope(args.scope_confirmed, args.year, KIND)?;
+    let year = Year::of(&label);
+    let share = checked_share(args)?;
+    let held = held(args, &year)?;
+    let mut steps = line_steps(args, &share, &held)?;
+    let (interest, loan_rows) = interest(args.loans, &held)?;
+    let (borrowing, schedule) = borrowing(args.borrowing_loans, &label)?;
+    let (works, works_rows) = capital_works::deduction(args.capital_works, &share, &held, &year)?;
+    let (decline, asset_rows) = assets::deduction(args.depreciating_assets, &share, &held)?;
+    let decline = step("decline_in_value", DECLINE, &decline.0, &[], decline.1);
+    let works = step("capital_works", CAPITAL_WORKS, &works.0, &[], works.1);
+    steps.extend([interest, borrowing, decline, works]);
+    let net = add_net(&mut steps)?;
     if let Some(other) = args.other_taxable_income {
-        steps.extend(tax_effect(other, &net_value, &year, &label)?);
+        steps.extend(tax_effect(other, &net, &year, &label)?);
     }
     let rates = vec![
         rate("ownership_share", &share),
@@ -543,9 +572,6 @@ pub fn rental_property(args: &RentalPropertyArgs) -> Result<Value> {
     out["borrowing_loans"] = schedule;
     out["capital_works"] = Value::Array(works_rows);
     out["depreciating_assets"] = Value::Array(asset_rows);
-    out["held"] = json!({
-        "from": dates::format(held.from),
-        "to": dates::format(held.to),
-    });
+    out["held"] = json!({"from": dates::format(held.from), "to": dates::format(held.to)});
     Ok(out)
 }

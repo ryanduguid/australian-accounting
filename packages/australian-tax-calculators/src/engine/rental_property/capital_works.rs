@@ -100,6 +100,25 @@ fn use_days(first_used: i64, held: &Held, year: &Year) -> i64 {
     (end - first_used + 1).max(0)
 }
 
+/// The undeducted construction expenditure at the year's start and the
+/// deduction for the days used, no more than it (ss 43-15(1), 43-210 and
+/// 43-235).
+fn limited(portion: &Decimal, rate: &Decimal, used: i64, spent: i64) -> Result<(Decimal, Decimal)> {
+    let written = portion.mul(rate)?.mul(&int(spent))?.div(&int(365))?;
+    let undeducted = if written.gt(portion)? {
+        int(0)
+    } else {
+        portion.sub(&written)?
+    };
+    let full = portion.mul(rate)?.mul(&int(used))?.div(&int(365))?;
+    let deduction = cents(if full.lt(&undeducted)? {
+        full
+    } else {
+        undeducted.clone()
+    })?;
+    Ok((undeducted, deduction))
+}
+
 /// One item's deduction, its formula and its row.
 fn work(
     value: &Value,
@@ -132,18 +151,7 @@ fn work(
     let used = days_used(first_used, held)?;
     let spent = use_days(first_used, held, year);
     let portion = expenditure.mul(share)?;
-    let written = portion.mul(&rate)?.mul(&int(spent))?.div(&int(365))?;
-    let undeducted = if written.gt(&portion)? {
-        int(0)
-    } else {
-        portion.sub(&written)?
-    };
-    let full = portion.mul(&rate)?.mul(&int(used))?.div(&int(365))?;
-    let deduction = cents(if full.lt(&undeducted)? {
-        full
-    } else {
-        undeducted.clone()
-    })?;
+    let (undeducted, deduction) = limited(&portion, &rate, used, spent)?;
     let formula = format!(
         "cents(min({expenditure} x {share} x {rate} x {used} / 365, {} - {expenditure} x {share} x {rate} x {spent} / 365))",
         portion
