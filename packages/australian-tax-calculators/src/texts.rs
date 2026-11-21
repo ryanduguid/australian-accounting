@@ -259,6 +259,10 @@ pub const SCOPES: &[(&str, &str)] = &[
         "Tax-exempt body entertainment fringe benefits (FBTAA s 38) in the FBT year ended 31 March 2026 or 2027: non-deductible exempt entertainment expenditure (s 136(1)) an employer wholly or partly exempt from income tax, or without assessable income from the activities the entertainment relates to, incurred in entertaining employees or their associates. The taxable value is so much of the expenditure as is attributable to that entertainment (s 39): actual takes the amount the operator attributes to employees and associates; per_head apportions a function's expenditure by the employees and associates entertained over everyone entertained, rounded to cents, where the actual amount cannot easily be worked out (the employer's guide, 15.9). No recipient's contribution or reduction applies (FBT return 2026 instructions, item 23L). Excludes deciding what is entertainment or exempt (such as minor benefits, s 58P), meal entertainment valued under Division 9A (fbt-meal-entertainment), the 50/50 split for entertainment facility leasing expenses (s 152B), splitting the value between type 1 and type 2 for fbt, gross-up and FBT payable.",
     ),
     (
+        "work_expenses",
+        "An employee's deduction for one of 4 kinds of work expense in an income year from 2020-21 to 2026-27, from amounts the taxpayer incurred and bore, none reimbursed or paid for by an employer or anyone else and none covered by an allowance. home_office: working from home running expenses by the fixed rate (52c an hour before 2022-23, with a dedicated home office; PCG 2023/1 Table 1 from 2022-23, 67c to 2023-24 and 70c from 1 July 2024) plus the expenses it does not cover, the 80c shortcut (PCG 2020/3) in 2020-21 and 2021-22, and the actual cost, each with its return amount and the higher named; the operator establishes the recorded hours and the records each method needs (PCG 2023/1 paras 18 and 56 to 63) and apportions each expense's work-related amount. car_cents_per_kilometre: ITAA 1997 s 28-25, the first 5,000 business kilometres at the rate the Commissioner determines for the year. car_log_book: s 28-90, each car expense deductible outside Division 28 (decline in value included, as worked out under Division 40 with the car limit) at the business use percentage, with a log book of at least 12 continuous weeks (s 28-120(1)) kept for the year or one of the 4 before it (s 28-115(2)). Both car methods are for one car the taxpayer owned or leased (s 28-12(1)). self_education: the connection to current employment when the expense was incurred (ITAA 1997 s 8-1, TR 2024/3) and, before 2022-23, the $250 reduction of ITAA 1936 s 82A for a prescribed course of education, over the ATO's categories A to E. Excludes occupancy expenses (rent, mortgage interest, rates, house insurance) and whether the home is a place of business; the substantiation rules of Division 900 and their exceptions; reasonable allowance amounts and occupation-specific guidance; a log book notice or an added car requiring a new log book (s 28-115(3) and (4)), a car held under 12 weeks, cars taken on hire (s 28-165) and joint ownership splits; working out decline in value, the electric vehicle home charging rate and the apportionment of each expense; HELP, VET student loan and similar repayments, which are not deductible; foreign employment income; and the tax effect of the deduction.",
+    ),
+    (
         "sb_cgt_concessions",
         "A capital gain from CGT event A1 (a disposal, ITAA 1997 s 104-10) of a CGT asset acquired from 20 September 1985 that is not a share in a company, an interest in a trust (s 152-10(2)) or a right or interest in a partnership's income or capital (s 152-10(2C)), under a contract made in the 2025-26 or 2026-27 income year, before Act No. 49 of 2026's changes to Division 152 from the income year that includes 1 July 2027 (Schedule 1 item 82), by an individual, a company or a trust that is not a public entity (s 152-305(3)), none of them acting for a deceased estate (s 152-80). The operator establishes whether the business entity (you; the partnership for an interest in a partnership asset; or the affiliate, connected entity or partnership whose business uses a passively held asset) carried on a business in the year, its aggregated turnovers (s 328-115, with connected entities and affiliates), the net value of the CGT assets under ss 152-15 and 152-20, the total days in the test period on which the asset was an active asset (s 152-40), whether the business ceased and when, and the retirement, incapacity and significant individual facts. The CGT small business entity test is s 328-110 with $2 million for each $10 million (s 152-10(1AA)). The test period counts both its first and last days; a total that may or may not be 7.5 years (2,737 to 2,740 days) is refused, as is an asset acquired on the same date 15 years before the event. The 15-year exemption, the 50% active asset reduction, the retirement exemption and the roll-over are each shown open or not, with the conditions not met; the amounts, the choices (ss 103-25, 152-220 and 152-315), the payments a company or trust must make (s 152-325), each stakeholder's limit (s 152-320(2)), the replacement asset (s 152-420), CGT events J2, J5 and J6, and look-through earnout rights other than their extension of the replacement asset period (s 104-190(1A)(b)(ii)) are outside it.",
     ),
@@ -520,6 +524,10 @@ pub const SOURCES: &[(&str, &str)] = &[
     (
         "sb_cgt_concessions",
         "https://www.legislation.gov.au/C2004A05138/2026-05-21/2026-05-21/text/original/epub/OEBPS/document_4/document_4.html",
+    ),
+    (
+        "work_expenses",
+        "https://www.ato.gov.au/law/view/document?docid=COG/PCG20231/NAT/ATO/00001",
     ),
 ];
 
@@ -1105,6 +1113,25 @@ pub const EXTRA_SOURCES: &[(&str, &[&str])] = &[
         ],
     ),
     (
+        "work_expenses",
+        &[
+            "https://www.ato.gov.au/individuals-and-families/income-deductions-offsets-and-records/deductions-you-can-claim/work-related-deductions/working-from-home-expenses/fixed-rate-method",
+            "https://www.ato.gov.au/forms-and-instructions/fixed-rate-method-52-cents",
+            "https://www.ato.gov.au/forms-and-instructions/shortcut-method",
+            "https://www.ato.gov.au/individuals-and-families/income-deductions-offsets-and-records/deductions-you-can-claim/work-related-deductions/working-from-home-expenses/actual-cost-method",
+            "https://www.ato.gov.au/law/view/document?docid=PAC/19970038/28-25",
+            "https://www.ato.gov.au/law/view/document?docid=PAC/19970038/28-90",
+            "https://www.ato.gov.au/law/view/document?docid=PAC/19970038/28-115",
+            "https://www.ato.gov.au/law/view/document?docid=PAC/19970038/28-120",
+            "https://www.ato.gov.au/individuals-and-families/income-deductions-offsets-and-records/deductions-you-can-claim/work-related-deductions/cars-transport-and-travel/motor-vehicle-and-car-expenses/expenses-for-a-car-you-own-or-lease/cents-per-kilometre-method",
+            "https://www.ato.gov.au/individuals-and-families/income-deductions-offsets-and-records/deductions-you-can-claim/work-related-deductions/cars-transport-and-travel/motor-vehicle-and-car-expenses/expenses-for-a-car-you-own-or-lease/logbook-method",
+            "https://www.legislation.gov.au/F2026L00785/asmade/text",
+            "https://www.ato.gov.au/individuals-and-families/income-deductions-offsets-and-records/deductions-you-can-claim/work-related-deductions/education-training-and-seminars/self-education-expenses",
+            "https://www.ato.gov.au/individuals-and-families/income-deductions-offsets-and-records/deductions-you-can-claim/work-related-deductions/education-training-and-seminars/self-education-expenses/self-education-reduction-in-expenses",
+            "https://www.ato.gov.au/law/view/document?docid=TXR/TR989/NAT/ATO/00001",
+        ],
+    ),
+    (
         "sb_cgt_concessions",
         &[
             "https://www.legislation.gov.au/C2004A05138/2026-05-21/2026-05-21/text/original/epub/OEBPS/document_3/document_3.html",
@@ -1154,6 +1181,12 @@ pub const EXTRA_WARNINGS: &[(&str, &[&str])] = &[
         "fuel_tax_credits",
         &[
             "Each line's rate is the one the ATO publishes for its acquisition day; the ATO's fuel tax credit calculator remains the authority for an amount claimed.",
+        ],
+    ),
+    (
+        "work_expenses",
+        &[
+            "The higher method is named for comparison only: each method has its own records (PCG 2023/1 paras 56 to 63, ITAA 1997 Division 900 and Subdivision 28-G), and the taxpayer chooses one for the year.",
         ],
     ),
     (
@@ -1373,6 +1406,10 @@ pub const BORROWING_PROJECTED: &str = "A row marked projected is after 2027-28, 
 /// `period.unsupported` message: the figures not yet published, or the change
 /// in the law it does not apply.
 pub const UNPUBLISHED_2027_28: &[(&str, &str)] = &[
+    (
+        "work_expenses",
+        "No cents per kilometre rate for 2027-28 had been determined under ITAA 1997 s 28-25(4) when this worksheet was checked.",
+    ),
     ("capital_gains", CGT_2027_28),
     ("main_residence", CGT_2027_28),
     ("cgt_parcels", CGT_2027_28),
@@ -2146,7 +2183,7 @@ pub const REFUSAL_CODES: &[(&str, &str)] = &[
     ),
     (
         "input.field_unknown",
-        "A field the worksheet or command does not take, or does not take beside the other inputs given, was given (fbt-loan, fbt-meal-entertainment, fbt-car-parking, fbt-debt-waiver, fbt-expense-payment, fbt-property, fbt-residual, fbt-housing, fbt-lafha, fbt-board, fbt-tax-exempt-body-entertainment, fbt-entertainment-classifier, fbt-meal-entertainment-register and its entries, fbt-minor-benefit-check, ppsr-timing, fhss and its contributions, personal_deductions and determination, division-296, depreciation, fuel-tax-credits and its lines, foreign-resident-tax, medicare-levy, medicare-levy-surcharge, payg-withholding, payg-gross-up, termination-payment, etp-tax-free-component, unused-leave-payment, the Schedule 5 methods, working-holiday-maker-withholding, study-loan-withholding, seniors-pensioners-withholding, seniors-pensioners-tax-offset, lump-sum-arrears-tax-offset, hire-purchase-schedule, chattel-mortgage-schedule, loan-transactions and its transactions and rate_changes, borrowing-expenses-schedule and its loans, business-capital-expenditure and its items, balancing-adjustment, its years and car_limit, trade-in, franking-account and its events, distributions and income_tax, dasp-tax, gst-margin-scheme, wine-equalisation-tax and its dealings, luxury-car-tax and its lines, payroll-tax, cgt-parcels, its parcels and disposals, fbt-ev-exemption-check, sb-cgt-concessions, contribution-caps given a carry-forward input, derive, personal-tax-estimate, dgr-check, income-tests and fbt-return only).",
+        "A field the worksheet or command does not take, or does not take beside the other inputs given, was given (fbt-loan, fbt-meal-entertainment, fbt-car-parking, fbt-debt-waiver, fbt-expense-payment, fbt-property, fbt-residual, fbt-housing, fbt-lafha, fbt-board, fbt-tax-exempt-body-entertainment, fbt-entertainment-classifier, fbt-meal-entertainment-register and its entries, fbt-minor-benefit-check, ppsr-timing, fhss and its contributions, personal_deductions and determination, division-296, depreciation, fuel-tax-credits and its lines, foreign-resident-tax, medicare-levy, medicare-levy-surcharge, payg-withholding, payg-gross-up, termination-payment, etp-tax-free-component, unused-leave-payment, the Schedule 5 methods, working-holiday-maker-withholding, study-loan-withholding, seniors-pensioners-withholding, seniors-pensioners-tax-offset, lump-sum-arrears-tax-offset, hire-purchase-schedule, chattel-mortgage-schedule, loan-transactions and its transactions and rate_changes, borrowing-expenses-schedule and its loans, business-capital-expenditure and its items, balancing-adjustment, its years and car_limit, trade-in, franking-account and its events, distributions and income_tax, dasp-tax, gst-margin-scheme, wine-equalisation-tax and its dealings, luxury-car-tax and its lines, payroll-tax, cgt-parcels, its parcels and disposals, fbt-ev-exemption-check, sb-cgt-concessions, work-expenses, contribution-caps given a carry-forward input, derive, personal-tax-estimate, dgr-check, income-tests and fbt-return only).",
     ),
     ("input.flag_invalid", "A flag is not a JSON boolean."),
     ("input.fraction_invalid", "A fraction is outside 0 to 1."),
@@ -2537,6 +2574,38 @@ pub const REFUSAL_CODES: &[(&str, &str)] = &[
     (
         "wine_equalisation_tax.quantity_invalid",
         "An average wholesale price quantity is not a decimal string above 0, at most 1e12 and 4 decimal places.",
+    ),
+    (
+        "work_expenses.allowance_received",
+        "An allowance was received for the expenses, so the reasonable allowance exceptions and occupation-specific guidance the worksheet does not apply would be needed.",
+    ),
+    (
+        "work_expenses.car_not_held",
+        "The car was neither owned nor leased by the taxpayer, so neither Division 28 method applies (ITAA 1997 s 28-12(1)).",
+    ),
+    (
+        "work_expenses.fact_conflict",
+        "The facts contradict each other or the year: hours beyond the year, business kilometres above total kilometres, nil total kilometres or a log book after the year claimed.",
+    ),
+    (
+        "work_expenses.fact_invalid",
+        "connection, log_book_year or log_book_weeks is not one of the answers the worksheet takes.",
+    ),
+    (
+        "work_expenses.log_book_expired",
+        "The log book was kept more than 4 income years before the year claimed (ITAA 1997 s 28-115(2)).",
+    ),
+    (
+        "work_expenses.log_book_too_short",
+        "The log book covers fewer than 12 continuous weeks (ITAA 1997 s 28-120(1)).",
+    ),
+    (
+        "work_expenses.method_invalid",
+        "method is not home_office, car_cents_per_kilometre, car_log_book or self_education.",
+    ),
+    (
+        "work_expenses.reimbursed",
+        "The expenses were reimbursed or paid for by someone else, so the taxpayer did not bear them.",
     ),
     (
         "working_holiday_maker.band_unsettled",

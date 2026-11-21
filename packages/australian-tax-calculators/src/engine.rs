@@ -6161,8 +6161,10 @@ mod ppsr_timing;
 pub use ppsr_timing::ppsr_timing;
 mod sb_cgt_concessions;
 pub use sb_cgt_concessions::{SB_CGT_OPTIONAL, SbCgtConcessionsArgs, sb_cgt_concessions};
+mod work_expenses;
+pub use work_expenses::{WORK_EXPENSES_OPTIONAL, work_expenses};
 
-const KINDS: [&str; 66] = [
+const KINDS: [&str; 67] = [
     "gst",
     "gst_margin_scheme",
     "fuel_tax_credits",
@@ -6229,6 +6231,7 @@ const KINDS: [&str; 66] = [
     "ppsr_timing",
     "wine_equalisation_tax",
     "sb_cgt_concessions",
+    "work_expenses",
 ];
 
 /// `periods(kind)`: accepted period arguments and inclusive calendar boundaries.
@@ -6362,6 +6365,8 @@ pub fn worksheet_catalogue() -> Value {
             "methods".into(),
             if kind == "depreciation" {
                 json!(["prime_cost", "diminishing_value"])
+            } else if kind == "work_expenses" {
+                json!(work_expenses::METHODS)
             } else {
                 json!(fbt_benefits::methods(kind))
             },

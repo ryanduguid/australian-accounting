@@ -14,7 +14,7 @@ use std::io::Write;
 use std::process::{Command, Stdio};
 
 /// The commands `derive` explains.
-const DERIVED: [&str; 54] = [
+const DERIVED: [&str; 55] = [
     "fbt",
     "fbt-car-statutory",
     "fbt-car-operating-cost",
@@ -69,6 +69,7 @@ const DERIVED: [&str; 54] = [
     "etp-tax-free-component",
     "payroll-tax",
     "cgt-parcels",
+    "work-expenses",
 ];
 
 /// (command, input) for each derived kind: the ATO's published examples and
@@ -459,6 +460,53 @@ fn cases() -> Vec<(&'static str, Value)> {
                    "other_discount_capital_gains": "100.00", "other_capital_gains": "0.01",
                    "other_capital_losses": "0.00", "prior_net_capital_losses": "50.00",
                    "year": "2025-26", "scope_confirmed": true}),
+        ),
+        // Work expenses: PCG 2023/1's Piruntha (fixed rate and actual cost),
+        // 2021-22's 52c and 80c methods, Johan's and a capped cents per
+        // kilometre claim, Lana's log book and the TR 98/9 Con reduction.
+        (
+            "work-expenses",
+            json!({"method": "home_office", "reimbursed": false, "allowance_received": false,
+                   "hours": "560", "energy": "120.00", "phone": "200.00", "internet": "180.00",
+                   "stationery": "15.00", "cleaning": "0.00", "furniture_decline": "439.20",
+                   "asset_decline": "696.52", "repairs": "0.00",
+                   "year": "2024-25", "scope_confirmed": true}),
+        ),
+        (
+            "work-expenses",
+            json!({"method": "home_office", "reimbursed": false, "allowance_received": false,
+                   "hours": "1000.5", "energy": "100.00", "phone": "120.00", "internet": "200.00",
+                   "stationery": "30.00", "cleaning": "40.00", "furniture_decline": "60.00",
+                   "asset_decline": "300.00", "repairs": "12.34", "dedicated_home_office": true,
+                   "year": "2021-22", "scope_confirmed": true}),
+        ),
+        (
+            "work-expenses",
+            json!({"method": "car_cents_per_kilometre", "reimbursed": false,
+                   "allowance_received": false, "owned_or_leased": true,
+                   "business_kilometres": "2514", "year": "2025-26", "scope_confirmed": true}),
+        ),
+        (
+            "work-expenses",
+            json!({"method": "car_cents_per_kilometre", "reimbursed": false,
+                   "allowance_received": false, "owned_or_leased": true,
+                   "business_kilometres": "5085.5", "year": "2026-27", "scope_confirmed": true}),
+        ),
+        (
+            "work-expenses",
+            json!({"method": "car_log_book", "reimbursed": false, "allowance_received": false,
+                   "owned_or_leased": true, "business_kilometres": "3000",
+                   "total_kilometres": "9000", "car_expenses": "17275.33",
+                   "log_book_year": "2022-23", "log_book_weeks": 12,
+                   "year": "2025-26", "scope_confirmed": true}),
+        ),
+        (
+            "work-expenses",
+            json!({"method": "self_education", "reimbursed": false, "allowance_received": false,
+                   "connection": "increases_income", "employed_when_incurred": true,
+                   "prescribed_course": true, "category_a": "350.00", "category_b": "200.00",
+                   "category_c": "100.00", "category_d": "0.00", "category_e": "40.00",
+                   "year": "2020-21", "scope_confirmed": true}),
         ),
     ];
     cases.extend(
@@ -2182,7 +2230,7 @@ fn derive_refuses_what_it_does_not_explain() {
          study-loan-repayment, capital-gains, main-residence, fbt-residual, fbt-housing, \
          fbt-lafha, fbt-board, fbt-tax-exempt-body-entertainment, gst, depreciation, \
          hire-purchase-schedule, chattel-mortgage-schedule, loan-transactions, \
-         lump-sum-arrears-tax-offset, income-tests, business-capital-expenditure, balancing-adjustment, trade-in, dasp-tax, gst-margin-scheme, etp-tax-free-component, payroll-tax, cgt-parcels, not \"payg-gross-up\""
+         lump-sum-arrears-tax-offset, income-tests, business-capital-expenditure, balancing-adjustment, trade-in, dasp-tax, gst-margin-scheme, etp-tax-free-component, payroll-tax, cgt-parcels, work-expenses, not \"payg-gross-up\""
     );
 }
 

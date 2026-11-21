@@ -3161,6 +3161,73 @@ Choices the Act leaves to the reader:
 | Neil's roll-over also obtained for a CGT event on 30 June 2026 | Worked by hand under s 104-190(1A)(a) and (b)(i) | Replacement asset period 30 June 2025 to 30 June 2028, from the last event, not 15 May |
 | Neil's sale with a look-through earnout whose last payment could fall due on 31 January 2028, 15 November 2027 or 31 August 2028 | Worked by hand under s 104-190(1A)(b)(ii) | The period ends 31 July 2028, 6 months after it; 15 May 2028, 2 years after the event, the later; or 28 February 2029 |
 
+## Work expenses
+
+This worksheet was added on 22 November 2026, when every source below was
+read.
+
+- ITAA 1997 ss 28-12, 28-25, 28-90, 28-95, 28-100, 28-110, 28-115, 28-120 and
+  28-125 on the ATO legal database
+  (https://www.ato.gov.au/law/view/document?docid=PAC/19970038/28-25 and the
+  same address for each section).
+- The cents per kilometre rates for every year on the ATO's 'Cents per
+  kilometre method' (last updated 12 August 2026); the 2020 instrument
+  (F2020L00676, https://www.ato.gov.au/law/view/pdf/ldt/mve2020-001.pdf), the
+  2023 one (F2023L00767, LI 2023/23, 'income years commencing on or after
+  1 July 2023 is 85 cents') and the 2026 one (F2026L00785, LI 2026/19, s 6,
+  91c for the year commencing 1 July 2026, a base of 89c with a one-off 2c
+  uplift) in full; the 2022 (F2022L00813, 78c) and 2024 (F2024L00697, 88c)
+  ones through the ATO's software developer notices. The ATO notice for 2022
+  records that 2021-22 kept 2020-21's 72c.
+- PCG 2023/1 as updated 16 April 2025, paras 14 to 28, 45 to 89 and Table 1
+  (https://www.ato.gov.au/law/view/document?docid=COG/PCG20231/NAT/ATO/00001).
+- The ATO's 'Fixed rate method' (8 June 2026), 'Fixed rate method - 52 cents'
+  and 'Shortcut method' (both 25 June 2024), 'Actual cost method' (8 June
+  2026), 'Logbook method' (12 June 2026), 'Self-education expenses' and
+  'Self-education reduction in expenses' (both 8 June 2026) and the 2022 D4
+  instructions (26 May 2022).
+- TR 98/9 (point in time 1 July 2004) paras 25 to 30 and 119 to 155 on ITAA
+  1936 s 82A, and Treasury Laws Amendment (2022 Measures No. 2) Act 2022
+  (No. 84, 2022) Schedule 3 items 26 and 33(1), which repeal s 82A for
+  assessments for 2022-23 and later years. The text of s 82A itself was not
+  read: the ATO legal database returned 'currently unavailable' and then not
+  found for the repealed section. Its rule is taken from the ATO page and
+  TR 98/9, which state and apply it.
+
+Choices the sources leave to the reader:
+
+- PCG 2023/1 Table 1 gives 70c 'From 1 July 2024' with no end, so 2026-27
+  takes 70c; the ATO's 'Fixed rate method' page lists only 2024-25 and
+  2025-26.
+- The 52c rate's coverage (energy, cleaning and home office furniture) and
+  its dedicated home office condition are the ATO's 52 cent page's.
+- The business use percentage is not rounded: the deduction uses the exact
+  share, and the percentage shown is rounded to 2 places.
+- A tie between methods names the fixed rate, which needs fewer records.
+- Return amounts disregard cents, as PCG 2023/1's footnotes (TAA 1953 Sch 1
+  s 388-85) and the ATO's examples do; the ATO's Johan example shows
+  $2,212.32 as $2,212.
+
+`tests/work_expenses.rs` holds these cases.
+
+| Case | Source | Worksheet |
+| --- | --- | --- |
+| Keisha, 843 hours in 2025-26 | ATO 'Fixed rate method' | $590.10, $590 claimed |
+| Yang, 567 hours, a $299 chair and a $250 desk | ATO 'Fixed rate method' | $396.90 + $549.00 = $945.90, $945 claimed |
+| Wanda, 136 recorded hours | ATO 'Fixed rate method' | $95.20, $95 claimed |
+| Gerry, 768 hours in 2024-25 | PCG 2023/1 example 1 | $537.60, $537 claimed |
+| Piruntha, 560 hours, desk and chair $439.20, laptop $696.52 | PCG 2023/1 example 8 | $392 + $1,135.72 = $1,527.72, $1,527 claimed |
+| 100 hours in each year | Rates above | 52c and 80c to 2021-22, 67c to 2023-24, 70c from 2024-25 |
+| 2021-22 with and without a dedicated home office | ATO 52 cent and shortcut pages | 52c plus phone, internet, stationery and other assets; without one, the shortcut and actual cost only |
+| Johan, 2,514 km in 2025-26 | ATO 'Cents per kilometre method' | $2,212.32, $2,212 claimed |
+| 1,000 km in each year; 5,000 and 5,085 km | Rates above; s 28-25(2) example | Each year's rate; 5,000 km counted |
+| Lana, $17,275.33 decline in value at 69% | ATO 'Logbook method' | $11,919.98 |
+| Log books kept 4 and 5 years before, after the year, for 11 and 12 weeks | ss 28-115(2) and 28-120(1) | Accepted, refused, refused, refused, accepted |
+| Maureen, $290 of category A in 2021-22 | ATO 'Self-education reduction in expenses' | $40 |
+| Con, categories A $350, B $200, C $100, D $100, E $500; then A $500, B $400, E $2,200 | TR 98/9 paras 145 to 155 | $750; $900 |
+| $290 of category A in 2022-23; a seminar in 2021-22 | Act No. 84, 2022 Sch 3; TR 98/9 para 129 | $290 each, no reduction |
+| Wendy (new employment), Bert (general only), Callum's second semester (not employed) | ATO 'Self-education expenses' | Nil in every year |
+
 ## Personal tax estimate
 
 `personal-tax-estimate` adds no rate or threshold: each amount is a
@@ -3356,6 +3423,7 @@ year; the others refuse it and say what is missing.
 | CGT parcels | Refused: Schedule 1 to Act No. 49 of 2026 changes how capital gains are worked out from the income year that includes 1 July 2027 | Act No. 49 of 2026 as made (https://www.legislation.gov.au/C2026A00049/asmade/text), items 82 to 84, read 19 November 2026 at 14:40; see [CGT parcels](#cgt-parcels) |
 | Trade-in | Refused: the car limit for 2027-28 was not published, and CGT event K7 changes with Act No. 49 of 2026 | ATO 'Purchasing a motor vehicle' (last updated 3 June 2026, the 2026-27 limit only), read 18 November 2026 at 07:10; see [Trade-in](#trade-in) |
 | Small business CGT concessions | Refused: Schedule 1 to Act No. 49 of 2026 changes Division 152 from the income year that includes 1 July 2027 | Act No. 49 of 2026 as made (https://www.legislation.gov.au/C2026A00049/asmade/text), item 82, read 19 November 2026 at 14:40; see [Small business CGT concessions](#small-business-cgt-concessions) |
+| Work expenses | Refused: no cents per kilometre rate has been determined under ITAA 1997 s 28-25(4) for 2027-28; LI 2026/19 sets 91c for the income year commencing 1 July 2026 only | LI 2026/19 (https://www.ato.gov.au/law/view/view.htm?docid=OPS/LI202619/00001), read 22 November 2026 |
 | Business capital expenditure | Enacted, no year: ITAA 1997 s 40-880 and the small business entity test of Subdivision 328-C, neither amended in compilation 268 or the version from 1 December 2026; s 26-155 left out of scope | Compilation 268 (https://www.legislation.gov.au/C2004A05138/latest/text) and the Register's API, read 17 November 2026 from 01:33; see [Business capital expenditure](#business-capital-expenditure) |
 
 Worked by hand: resident tax on $45,000 is 14% of $26,800, $3,752; on
