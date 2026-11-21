@@ -16,9 +16,9 @@ keeps the calculator release and MCP integration separate.
 
 </div>
 
-66 calculation worksheets for established facts: ordinary GST, fuel tax credits at the ATO's rate for each day from 1 July 2022 with the simplified methods for small claimants, resident and foreign
+67 calculation worksheets for established facts: ordinary GST, fuel tax credits at the ATO's rate for each day from 1 July 2022 with the simplified methods for small claimants, resident and foreign
 resident basic income tax, CGT losses and discount, the gains and losses from parcels of shares or units, the small business CGT concessions open for a gain, the main residence exemption's taxable share of a gain or loss, one loan's borrowing expenses deduction and a schedule of several loans' deductions over every year, a hire purchase agreement's notional interest, a chattel mortgage's interest schedule and input tax credit, a loan's statement with daily interest at changing rates, business capital expenditure (black hole and start-up costs) under s 40-880, ordinary employer FBT, car fringe benefit taxable values
-under the statutory formula and operating cost methods, loan, meal entertainment, car parking, debt waiver, expense payment, property, residual, housing, living-away-from-home allowance, board and tax-exempt body entertainment fringe benefit taxable values, the FBT, deduction and GST credit treatment of entertainment expense lines, whether a 12 week meal entertainment register is valid, depreciation in the start year and later years, a depreciating asset's balancing adjustment with its reduction for private use and CGT event K7, a trade-in's GST on both sides with the old asset's balancing adjustment and the replacement's cost, whether an electric car's fringe benefits are exempt, one employer's payroll tax in each state and territory, a company's franking account with franking deficit tax, its offset and the benchmark rule, wine equalisation tax with the producer rebate under its yearly cap and BAS labels 1C and 1D, luxury car tax on sales and importations with its adjustments, refunds and BAS labels 1E and 1F,
+under the statutory formula and operating cost methods, loan, meal entertainment, car parking, debt waiver, expense payment, property, residual, housing, living-away-from-home allowance, board and tax-exempt body entertainment fringe benefit taxable values, the FBT, deduction and GST credit treatment of entertainment expense lines, whether a 12 week meal entertainment register is valid, depreciation in the start year and later years, a depreciating asset's balancing adjustment with its reduction for private use and CGT event K7, a trade-in's GST on both sides with the old asset's balancing adjustment and the replacement's cost, whether an electric car's fringe benefits are exempt, one employer's payroll tax in each state and territory, a company's franking account with franking deficit tax, its offset and the benchmark rule, wine equalisation tax with the producer rebate under its yearly cap and BAS labels 1C and 1D, luxury car tax on sales and importations with its adjustments, refunds and BAS labels 1E and 1F, the general and shortfall interest charges, failure to lodge and statement penalties before remission and the interest the ATO pays on early payments and overpayments,
 quarterly super guarantee, Schedule 1 PAYG withholding and the gross pay that leaves a stated net, Schedule 5 withholding from back payments, commissions and bonuses by Methods A, B(i) and B(ii), Schedule 15 withholding for working holiday makers, Schedule 9 withholding for seniors and pensioners, super contribution caps,
 account-based pension minimums, study and training loan repayments, Schedule 8 study
 loan withholding, the Medicare levy with its low-income, SAPTO and family reductions and full or half exemptions, the Medicare levy surcharge, the low income tax offset, the seniors and pensioners tax offset, the lump sum payment in arrears tax offset,
@@ -1242,7 +1242,8 @@ refused with `ato_interest_penalties.year_mismatch`. Dates are `YYYY-MM-DD`.
   (s 286-80(2)), each at the unit applying at the start of its 28 days
   (s 286-80(5)), times 1, 2, 5 or 500. End date: `given_on`.
 - `statement_penalty`: `statement_date`, `significant_global_entity` and
-  `parts`, one matter each: `shortfall_amount` (or `null` for a false or
+  `parts`, the matters in one statement for one accounting period (a
+  statement for another period is its own question), one matter each: `shortfall_amount` (or `null` for a false or
   misleading statement with no shortfall amount), `behaviour`
   (`intentional_disregard`, `recklessness`, `failure_to_take_reasonable_care`
   or `reasonable_care`) and optionally `not_reasonably_arguable`,
@@ -1260,14 +1261,16 @@ refused with `ato_interest_penalties.year_mismatch`. Dates are `YYYY-MM-DD`.
 - `early_payment_interest`: `amount`, `liability` (`income_tax`,
   `shortfall_interest_charge`, `compulsory_study_loan_repayment` or
   `fs_assessment_debt`), `paid_on`, `due_date`, `full_self_assessment` and,
-  when that is false, `notice_issued`. Interest is due only on a payment more
+  when that is false, `notice_issued`; `paid_on` after `due_date` is refused.
+  Interest is due only on a payment more
   than 14 days early (Overpayments Act s 8A), from the later of the payment
   and notice days (the payment day for a full self-assessment taxpayer) to
   the due day, both counted (s 8B). End date: `due_date`.
 - `overpayment_interest`: `payments` (`{"paid_on", "amount"}`), `refunded`,
   `refunded_on`, `notice_issued`, and `relevant_tax` and
-  `decision_to_which_act_applies`, both true (false is refused). A partial
-  refund goes to the payments in reverse order (s 9(3)); each part earns
+  `decision_to_which_act_applies`, both true (false is refused). `refunded` is
+  the one refund or application of these payments; a later refund of the same
+  payments is not worked. A partial refund goes to the payments in reverse order (s 9(3)); each part earns
   interest from the later of the notice and its payment to the refund day
   (s 10). End date: `refunded_on`.
 

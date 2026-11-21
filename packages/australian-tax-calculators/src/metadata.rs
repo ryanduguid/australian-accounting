@@ -1828,7 +1828,7 @@ pub fn optional_inputs(kind: &str) -> Vec<(&'static str, &'static str)> {
             ),
             (
                 "parts",
-                "list of 1 to 100 objects, statement_penalty only and required: one matter each, with shortfall_amount (AUD, or null for a false or misleading statement with no shortfall amount), behaviour (intentional_disregard, recklessness, failure_to_take_reasonable_care or reasonable_care) and optionally not_reasonably_arguable (boolean), accepted_way_amount (AUD, the part of the shortfall from treating the law in an accepted way, s 284-224), increase (boolean, a s 284-220 ground) and disclosure (none, before_examination or during_examination, the latter for one that saved significant time or resources, s 284-225)",
+                "list of 1 to 100 objects, statement_penalty only and required: the matters in one statement for one accounting period, whose before-examination disclosures are added for s 284-225(3) (a statement for another period is its own question), one matter each, with shortfall_amount (AUD, or null for a false or misleading statement with no shortfall amount), behaviour (intentional_disregard, recklessness, failure_to_take_reasonable_care or reasonable_care) and optionally not_reasonably_arguable (boolean), accepted_way_amount (AUD, the part of the shortfall from treating the law in an accepted way, s 284-224), increase (boolean, a s 284-220 ground) and disclosure (none, before_examination or during_examination, the latter for one that saved significant time or resources, s 284-225)",
             ),
             (
                 "liability",
@@ -1848,7 +1848,7 @@ pub fn optional_inputs(kind: &str) -> Vec<(&'static str, &'static str)> {
             ),
             (
                 "refunded",
-                "AUD, overpayment_interest only and required: the amount refunded or applied as a result of the decision, no more than the payments",
+                "AUD, overpayment_interest only and required: the one amount refunded or applied as a result of the decision, attributed to the payments in reverse order, no more than the payments (a later refund of the same payments is not worked)",
             ),
             (
                 "refunded_on",

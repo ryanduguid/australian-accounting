@@ -712,3 +712,72 @@ fn remission_and_scheme_penalties_are_refused() {
     );
     assert!(r["remission"].as_str().unwrap().contains("s 280-160"));
 }
+
+/// Each table's first day is worked and the day before it refused; older
+/// penalty unit changes fall on their periods' starts.
+#[test]
+fn each_tables_first_day_and_older_unit_changes() {
+    let first = json!({"amount": "100.00", "due_date": "1999-07-01", "to": "2020-07-01"});
+    assert_eq!(run("gic", "2020-21", first)["days"], json!(7672));
+    let r = run("sic", "2020-21", sic("100.00", "2005-04-01", "2020-07-01"));
+    assert_eq!(r["first_day"], json!("2005-04-01"));
+    assert_eq!(
+        code("sic", "2020-21", sic("100.00", "2005-03-31", "2020-07-01")),
+        "ato_interest_penalties.rate_unpublished"
+    );
+    // $170 from 28 December 2012 for every period.
+    let r = run(
+        "failure_to_lodge",
+        "2020-21",
+        ftl("2012-12-28", "2020-07-01", "small"),
+    );
+    assert_eq!(amount(&r, "penalty"), "850.00");
+    // $170 for periods from 1 and 29 July 2015, $180 from 26 August.
+    let r = run(
+        "failure_to_lodge",
+        "2020-21",
+        ftl("2015-07-01", "2020-07-01", "small"),
+    );
+    assert_eq!(amount(&r, "penalty"), "880.00");
+    // $210 from 1 July 2017, the significant global entity penalty's first day.
+    let r = run(
+        "failure_to_lodge",
+        "2020-21",
+        ftl("2017-07-01", "2020-07-01", "significant_global"),
+    );
+    assert_eq!(amount(&r, "penalty"), "525000.00");
+}
+
+/// An empty payments list is no payments; an amended notice before the due
+/// day leaves no day of SIC (s 280-100(2)); a payment after its due day is
+/// not early; 49.5 cents rounds to 50 and is paid (ss 12D and 12E).
+#[test]
+fn empty_lists_reversed_days_and_the_50_cent_floor() {
+    let none = json!({"amount": "100.00", "due_date": "2026-11-21", "to": "2026-11-21"});
+    let empty = gic("100.00", "2026-11-21", "2026-11-21", json!([]));
+    assert_eq!(
+        amount(&run("gic", "2026-27", empty), "gic"),
+        amount(&run("gic", "2026-27", none), "gic")
+    );
+    let r = run("sic", "2025-26", sic("500.00", "2025-11-21", "2025-11-20"));
+    assert_eq!((amount(&r, "sic"), r["days"].clone()), ("0.00", json!(0)));
+    assert_eq!(
+        code(
+            "early_payment_interest",
+            "2025-26",
+            early("100.00", "2025-11-22", "2025-11-21", None)
+        ),
+        "ato_interest_penalties.date_order"
+    );
+    for (paid, interest, payable) in [("312.80", "0.49", "0.00"), ("312.81", "0.50", "0.50")] {
+        let r = run(
+            "early_payment_interest",
+            "2025-26",
+            early(paid, "2025-11-06", "2025-11-21", None),
+        );
+        assert_eq!(
+            (amount(&r, "interest"), amount(&r, "interest_payable")),
+            (interest, payable)
+        );
+    }
+}

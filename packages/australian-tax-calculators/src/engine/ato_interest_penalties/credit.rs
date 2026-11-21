@@ -105,6 +105,12 @@ fn early_facts(f: &Facts, period: &str) -> Result<(u64, i64, i64, i64)> {
     let amount = f.cents("amount")?;
     let (paid, due) = (f.date("paid_on")?, f.date("due_date")?);
     in_year(due, period, "due_date")?;
+    if paid > due {
+        return date_order(format!(
+            "{}: paid_on is after due_date, so the payment is not early (s 8A(1)(b)).",
+            f.item()
+        ));
+    }
     let start = if fsa {
         paid
     } else {

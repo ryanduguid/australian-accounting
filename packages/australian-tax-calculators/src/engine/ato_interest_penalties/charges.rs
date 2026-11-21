@@ -69,7 +69,8 @@ fn compound(
 
 /// GIC payments: a list of `{date, amount}` from the due day to `to`.
 fn payments(f: &Facts, due: i64, to: i64) -> Result<Vec<(i64, u64)>> {
-    if !f.given("payments") {
+    // No payments may be left out or given as an empty list.
+    if !f.given("payments") || f.map["payments"].as_array().is_some_and(Vec::is_empty) {
         return Ok(Vec::new());
     }
     let paid = dated_amounts(f, "date")?;
