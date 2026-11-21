@@ -25,6 +25,10 @@ use super::{
 };
 use crate::decimal::{Decimal, Rounding};
 
+mod spouse;
+pub use spouse::SPOUSE_INPUTS;
+use spouse::{spouse, spouse_given};
+
 const KIND: &str = "government_super_amounts";
 
 /// The ATO's co-contribution income thresholds (Table 25): the lower income
@@ -37,18 +41,6 @@ const THRESHOLDS: [(&str, &str, &str); 7] = [
     ("2024-25", "45400", "60400"),
     ("2025-26", "47488", "62488"),
     ("2026-27", "49293", "64293"),
-];
-
-/// The spouse inputs: all given, for a spouse contribution, or none.
-pub const SPOUSE_INPUTS: [&str; 8] = [
-    "spouse_contributions",
-    "spouse_assessable_income",
-    "spouse_assessable_fhss_released_amount",
-    "spouse_reportable_fringe_benefits_total",
-    "spouse_reportable_employer_super_contributions",
-    "spouse_excess_concessional_contributions",
-    "spouse_non_concessional_within_cap",
-    "spouse_total_super_balance_below_cap",
 ];
 
 /// The `income-tests` steps the amounts are worked from.
@@ -73,10 +65,6 @@ const CO_CONTRIBUTION: &str = "Superannuation (Government Co-contribution for Lo
 const PAID: &str = "Superannuation (Government Co-contribution for Low Income Earners) Regulations 2022 reg 15(2) (2004 Regulations reg 24(2) before 1 April 2022): an amount paid that is not a multiple of 5 cents is increased to the next multiple of 5 cents";
 const LISTO_15: &str = "Superannuation (Government Co-contribution for Low Income Earners) Act 2003 s 12E(2)(a) and (3): 15% of the concessional contributions for the financial year, without constitutionally protected fund amounts and other s 291-165(1)(c) amounts";
 const LISTO: &str = "Superannuation (Government Co-contribution for Low Income Earners) Act 2003 s 12E(2): 15% to the nearest cent (the ATO's 'Low income super tax offset'), at most $500 and at least $10, where every s 12C(1) condition is met";
-const SPOUSE_INCOME: &str = "ITAA 1997 s 290-230(2)(c) and (5): the spouse's assessable income without the assessable FHSS released amount, reportable fringe benefits total and reportable employer superannuation contributions less (not below nil) excess concessional contributions";
-const SPOUSE_LIMIT: &str =
-    "ITAA 1997 s 290-235(1)(a): $3,000 reduced by the spouse's income above $37,000";
-const SPOUSE_OFFSET: &str = "ITAA 1997 s 290-235: 18% of the lesser of the limit and the spouse contributions, at most $540, where every s 290-230 condition is met";
 
 /// Each amount's conditions: (id, authority), in the order of their facts.
 const CO_CONDITIONS: [(&str, &str); 8] = [
@@ -129,24 +117,6 @@ const LISTO_CONDITIONS: [(&str, &str); 4] = [
     (
         "no_temporary_visa",
         "Co-contribution Act s 12C(1)(d): the temporary visa test of s 6(1)(f)",
-    ),
-];
-const SPOUSE_CONDITIONS: [(&str, &str); 4] = [
-    (
-        "spouse_contributions_made",
-        "ITAA 1997 s 290-230(1): a contribution in the income year to a superannuation fund or RSA for your spouse's superannuation benefits",
-    ),
-    (
-        "spouse_income_below_40000",
-        "ITAA 1997 s 290-230(2)(c): the spouse's income less than $40,000",
-    ),
-    (
-        "spouse_non_concessional_within_cap",
-        "ITAA 1997 s 290-230(4A)(a): the spouse's non-concessional contributions for the financial year do not exceed the spouse's non-concessional contributions cap",
-    ),
-    (
-        "spouse_total_super_balance_below_cap",
-        "ITAA 1997 s 290-230(4A)(b): the spouse's total superannuation balance immediately before the start of the financial year less than the general transfer balance cap",
     ),
 ];
 
@@ -374,118 +344,6 @@ fn listo(values: &Values, facts: &Facts, conditions: &mut Vec<Condition>) -> Res
     ])
 }
 
-/// The spouse's contributions and income components, each checked against
-/// the others, then the spouse's income (s 290-230(2)(c)).
-fn spouse_income(inputs: &[(&str, &Arg)]) -> Result<[Decimal; 7]> {
-    let parts = [
-        "spouse_contributions",
-        "spouse_assessable_income",
-        "spouse_assessable_fhss_released_amount",
-        "spouse_reportable_fringe_benefits_total",
-        "spouse_reportable_employer_super_contributions",
-        "spouse_excess_concessional_contributions",
-    ]
-    .map(|key| money(named(inputs, key)));
-    let [a, b, c, e, f, g] = parts;
-    let parts = [a?, b?, c?, e?, f?, g?];
-    for (part, why) in [
-        (
-            &parts[2],
-            "spouse_assessable_fhss_released_amount exceeds spouse_assessable_income: it is included in assessable income (ITAA 1997 s 313-20)",
-        ),
-        (
-            &parts[5],
-            "spouse_excess_concessional_contributions exceeds spouse_assessable_income: they are included in assessable income (ITAA 1997 s 291-15(a))",
-        ),
-    ] {
-        if part.gt(&parts[1])? {
-            return refuse("government_super_amounts.fact_conflict", format!("{why}."));
-        }
-    }
-    let [contributions, assessable, fhss, fringe, employer, excess] = parts;
-    let reportable = greater(&int(0), &employer.sub(&excess)?)?;
-    let income = assessable.sub(&fhss)?.add(&fringe)?.add(&reportable)?;
-    Ok([
-        contributions,
-        assessable,
-        fhss,
-        fringe,
-        employer,
-        excess,
-        income,
-    ])
-}
-
-/// The spouse offset's working before the amount: (id, authority, formula).
-const SPOUSE_STEPS: [(&str, &str, &str); 2] = [
-    (
-        "spouse_income",
-        SPOUSE_INCOME,
-        "spouse_assessable_income - spouse_assessable_fhss_released_amount + spouse_reportable_fringe_benefits_total + max(0, spouse_reportable_employer_super_contributions - spouse_excess_concessional_contributions)",
-    ),
-    (
-        "spouse_contribution_limit",
-        SPOUSE_LIMIT,
-        "max(0, spouse_contribution_base - max(0, spouse_income - spouse_income_taper_start))",
-    ),
-];
-const SPOUSE_FORMULA: &str =
-    "min(spouse_contribution_limit, spouse_contributions) x spouse_offset_rate";
-
-const OFFSET: &str = "spouse_contribution_offset";
-
-/// The spouse contribution tax offset's steps.
-fn spouse(inputs: &[(&str, &Arg)], conditions: &mut Vec<Condition>) -> Result<Vec<Step>> {
-    let [
-        contributions,
-        assessable,
-        fhss,
-        fringe,
-        employer,
-        excess,
-        income,
-    ] = spouse_income(inputs)?;
-    let [base, start, below, offset_rate] = [
-        "spouse_contribution_base",
-        "spouse_income_taper_start",
-        "spouse_income_limit",
-        "spouse_offset_rate",
-    ]
-    .map(fixed);
-    let limit = greater(
-        &int(0),
-        &base.sub(&greater(&int(0), &income.sub(&start)?)?)?,
-    )?;
-    let met = [
-        Some(!contributions.is_zero()),
-        Some(income.lt(&below)?),
-        stated(inputs, "spouse_non_concessional_within_cap")?,
-        stated(inputs, "spouse_total_super_balance_below_cap")?,
-    ];
-    let ok = payable(conditions, OFFSET, &SPOUSE_CONDITIONS, met)?;
-    let got = lesser(&limit, &contributions)?.mul(&offset_rate)?;
-    let (amount, _) = amount_step(
-        ok,
-        OFFSET,
-        SPOUSE_OFFSET,
-        SPOUSE_FORMULA,
-        &[&limit, &contributions, &offset_rate],
-        got,
-    );
-    let mut steps = steps_from(
-        &SPOUSE_STEPS,
-        [
-            (
-                &[&assessable, &fhss, &fringe, &employer, &excess],
-                income.clone(),
-            ),
-            (&[&base, &income, &start], limit),
-        ],
-    );
-    steps.push(amount);
-    Ok(steps)
-}
-
 /// The person's facts every amount reads.
 struct Facts {
     lower: Decimal,
@@ -497,18 +355,6 @@ struct Facts {
     under_71: bool,
     non_concessional: Option<bool>,
     balance: Option<bool>,
-}
-
-/// The spouse inputs given: all or none.
-fn spouse_given(inputs: &[(&str, &Arg)]) -> Result<bool> {
-    let given = SPOUSE_INPUTS.map(|key| inputs.iter().any(|(k, _)| *k == key));
-    match SPOUSE_INPUTS.iter().zip(given).find(|(_, g)| !g) {
-        Some((missing, _)) if given.contains(&true) => refuse(
-            "input.missing_field",
-            format!("{missing} is required with the other spouse inputs."),
-        ),
-        _ => Ok(given[0]),
-    }
 }
 
 /// The 10% eligible income test (s 6(1)(b)) on `test_total`, total income
