@@ -69,28 +69,7 @@ fn turnover(value: &Arg) -> Result<Option<Decimal>> {
 fn small_business_entity(given: [Option<&Arg>; 6]) -> Result<Option<&'static str>> {
     let [business, stopped, previous, before, likely, at_end] = given;
     let business = business.expect("required with net small business income");
-    let carried = match (business.text(), stopped) {
-        (Some("carried_on"), None) => true,
-        (Some("winding_up"), Some(stopped)) => flag(stopped, "small_business_when_stopped")?,
-        (Some("winding_up"), None) => {
-            return refuse(
-                "input.missing_field",
-                "small_business_when_stopped is required for a business being wound up.",
-            );
-        }
-        (Some("carried_on"), Some(_)) => {
-            return refuse(
-                "input.field_unknown",
-                "small_business_when_stopped is an input only for a business being wound up",
-            );
-        }
-        _ => {
-            return refuse(
-                "small_business_income_offset.business_invalid",
-                "business must be carried_on or winding_up.",
-            );
-        }
-    };
+    let carried = carried_on(business, stopped)?;
     let [Some(previous), Some(before), Some(likely), Some(at_end)] =
         [previous, before, likely, at_end]
     else {
@@ -119,6 +98,28 @@ fn small_business_entity(given: [Option<&Arg>; 6]) -> Result<Option<&'static str
     } else {
         None
     })
+}
+
+/// Whether the business counts as carried on: yes while it runs, and while
+/// it is wound up only if it was a small business entity when it stopped
+/// (s 328-110(5)).
+fn carried_on(business: &Arg, stopped: Option<&Arg>) -> Result<bool> {
+    match (business.text(), stopped) {
+        (Some("carried_on"), None) => Ok(true),
+        (Some("winding_up"), Some(stopped)) => flag(stopped, "small_business_when_stopped"),
+        (Some("winding_up"), None) => refuse(
+            "input.missing_field",
+            "small_business_when_stopped is required for a business being wound up.",
+        ),
+        (Some("carried_on"), Some(_)) => refuse(
+            "input.field_unknown",
+            "small_business_when_stopped is an input only for a business being wound up",
+        ),
+        _ => refuse(
+            "small_business_income_offset.business_invalid",
+            "business must be carried_on or winding_up.",
+        ),
+    }
 }
 
 /// Each s 328-355(b) or (c) amount less its s 328-370 deductions, not below
@@ -183,6 +184,29 @@ fn optional_facts<'a>(
     Ok(args.optional)
 }
 
+const PRESCRIBED: &str = "A prescribed person under s 102AC of the ITAA 1936 (broadly, under 18 at the end of the year) works out total net small business income from business income under s 102AE (ITAA 1997 s 328-375), which this worksheet does not take.";
+
+const ENTITY_RULE: &str = "ITAA 1997 ss 328-355(a), 328-357 and 328-110: you carry on a business in the income year (s 328-110(5) for one being wound up) and your aggregated turnover is under $5 million for the previous year, likely for the year (not after 2 years at $5 million or more, s 328-110(3)), or for the year at its end (s 328-110(4))";
+
+const STEPS: [(&str, &str); 4] = [
+    (
+        "total_net_small_business_income",
+        "ITAA 1997 s 328-360(1): your net small business income if you are a small business entity, plus each s 328-355(b) or (c) amount less its s 328-370 deductions (not below zero), no more than your taxable income",
+    ),
+    (
+        "offset_before_cap",
+        "ITAA 1997 s 328-360(1): the rate x total net small business income / taxable income x basic income tax liability (13% for 2020-21, 16% from 2021-22)",
+    ),
+    (
+        "offset",
+        "ITAA 1997 s 328-360(2): $1,000 if the amount under s 328-360(1) exceeds $1,000",
+    ),
+    (
+        "offset_applied",
+        "ITAA 1997 s 63-10(1) item 20: applied against the basic income tax liability left after offsets_applied_first; the rest cannot be refunded, transferred or carried forward",
+    ),
+];
+
 fn condition(id: &str, authority: &str, met: bool) -> Value {
     json!({"condition": id, "authority": authority, "met": met})
 }
@@ -190,10 +214,7 @@ fn condition(id: &str, authority: &str, met: bool) -> Value {
 pub fn small_business_income_offset(args: &SmallBusinessIncomeOffsetArgs) -> Result<Value> {
     let year = scope(args.scope_confirmed, args.year, KIND)?;
     if flag(args.prescribed_person, "prescribed_person")? {
-        return refuse(
-            "small_business_income_offset.prescribed_person",
-            "A prescribed person under s 102AC of the ITAA 1936 (broadly, under 18 at the end of the year) works out total net small business income from business income under s 102AE (ITAA 1997 s 328-375), which this worksheet does not take.",
-        );
+        return refuse("small_business_income_offset.prescribed_person", PRESCRIBED);
     }
     let taxable = money(args.taxable_income)?;
     super::whole_dollars(&taxable, "taxable income")?;
@@ -203,17 +224,11 @@ pub fn small_business_income_offset(args: &SmallBusinessIncomeOffsetArgs) -> Res
     let shares = shares(args.shares)?;
     let optional = optional_facts(args, !own.is_zero())?;
 
-    let mut conditions = Vec::new();
+    // None without own income; Some(None) when not a small business entity.
     let entity = if own.is_zero() {
         None
     } else {
-        let rule = small_business_entity(optional)?;
-        conditions.push(condition(
-            "small_business_entity",
-            "ITAA 1997 ss 328-355(a), 328-357 and 328-110: you carry on a business in the income year (s 328-110(5) for one being wound up) and your aggregated turnover is under $5 million for the previous year, likely for the year (not after 2 years at $5 million or more, s 328-110(3)), or for the year at its end (s 328-110(4))",
-            rule.is_some(),
-        ));
-        Some(rule)
+        Some(small_business_entity(optional)?)
     };
     let counted = match entity {
         Some(Some(_)) => own.clone(),
@@ -222,25 +237,9 @@ pub fn small_business_income_offset(args: &SmallBusinessIncomeOffsetArgs) -> Res
     let shares_net = shares
         .iter()
         .try_fold(int(0), |sum, share| sum.add(share))?;
-
-    let sum = counted.add(&shares_net)?;
-    let total = py_min(sum, taxable.clone())?;
-    let cap = Decimal::parse(CAP)?;
-    let (before_cap, offset, applied) = precise(|| {
-        let before_cap = if taxable.is_zero() {
-            int(0)
-        } else {
-            Decimal::parse(offset_rate(&year))?
-                .mul(&liability)?
-                .mul(&total)?
-                .div(&taxable)?
-        };
-        let offset = py_min(before_cap.clone(), cap.clone())?;
-        let left = liability.sub(&first)?;
-        let left = if left.lt(&int(0))? { int(0) } else { left };
-        let applied = py_min(offset.clone(), left)?;
-        Ok((before_cap, offset, applied))
-    })?;
+    let total = py_min(counted.add(&shares_net)?, taxable.clone())?;
+    let (before_cap, offset, applied) =
+        offset_amounts(&year, &taxable, &liability, &first, &total)?;
     let unused = offset.sub(&applied)?;
 
     let mut out = result(
@@ -261,28 +260,53 @@ pub fn small_business_income_offset(args: &SmallBusinessIncomeOffsetArgs) -> Res
             rate("turnover_threshold", TURNOVER),
         ],
     )?;
+    explain(&mut out, entity);
+    Ok(out)
+}
+
+/// The small business entity condition and rule, when the individual has
+/// net small business income of their own, and the authorities.
+fn explain(out: &mut Value, entity: Option<Option<&'static str>>) {
+    let conditions: Vec<Value> = entity
+        .iter()
+        .map(|rule| condition("small_business_entity", ENTITY_RULE, rule.is_some()))
+        .collect();
     out["conditions"] = json!(conditions);
     out["small_business_entity_rule"] = match entity {
         Some(Some(rule)) => json!(rule),
         _ => Value::Null,
     };
-    let mut steps = Map::new();
-    steps.insert(
-        "total_net_small_business_income".into(),
-        json!("ITAA 1997 s 328-360(1): your net small business income if you are a small business entity, plus each s 328-355(b) or (c) amount less its s 328-370 deductions (not below zero), no more than your taxable income"),
+    out["authorities"] = Value::Object(
+        STEPS
+            .iter()
+            .map(|(step, text)| ((*step).to_owned(), json!(text)))
+            .collect::<Map<_, _>>(),
     );
-    steps.insert(
-        "offset_before_cap".into(),
-        json!("ITAA 1997 s 328-360(1): the rate x total net small business income / taxable income x basic income tax liability (13% for 2020-21, 16% from 2021-22)"),
-    );
-    steps.insert(
-        "offset".into(),
-        json!("ITAA 1997 s 328-360(2): $1,000 if the amount under s 328-360(1) exceeds $1,000"),
-    );
-    steps.insert(
-        "offset_applied".into(),
-        json!("ITAA 1997 s 63-10(1) item 20: applied against the basic income tax liability left after offsets_applied_first; the rest cannot be refunded, transferred or carried forward"),
-    );
-    out["authorities"] = Value::Object(steps);
-    Ok(out)
+}
+
+/// The offset before the cap, the offset and the part applied (s 328-360 and
+/// s 63-10(1) item 20).
+fn offset_amounts(
+    year: &str,
+    taxable: &Decimal,
+    liability: &Decimal,
+    first: &Decimal,
+    total: &Decimal,
+) -> Result<(Decimal, Decimal, Decimal)> {
+    let cap = Decimal::parse(CAP)?;
+    precise(|| {
+        let before_cap = if taxable.is_zero() {
+            int(0)
+        } else {
+            Decimal::parse(offset_rate(year))?
+                .mul(liability)?
+                .mul(total)?
+                .div(taxable)?
+        };
+        let offset = py_min(before_cap.clone(), cap.clone())?;
+        let left = liability.sub(first)?;
+        let left = if left.lt(&int(0))? { int(0) } else { left };
+        let applied = py_min(offset.clone(), left)?;
+        Ok((before_cap, offset, applied))
+    })
 }

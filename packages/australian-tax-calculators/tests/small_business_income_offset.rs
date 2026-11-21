@@ -292,6 +292,7 @@ fn each_share_is_net_of_its_deductions_and_not_below_zero() {
     assert_eq!(code(&extra), "input.field_unknown");
     let none = run(&partner(json!([])));
     assert_eq!(none["amounts"]["offset"], "0.00");
+    assert_eq!(none["conditions"], json!([]));
 }
 
 /// Own and partnership income together, capped at taxable income.
