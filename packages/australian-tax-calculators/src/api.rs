@@ -698,6 +698,19 @@ const COMMAND_ARGS: &[(&str, &[(&str, Kind)])] = &[
         ],
     ),
     (
+        "small-business-income-offset",
+        &[
+            ("taxable_income", Dec),
+            ("basic_income_tax_liability", Dec),
+            ("offsets_applied_first", Dec),
+            ("net_small_business_income", Dec),
+            ("shares", Json),
+            ("prescribed_person", Raw),
+            ("year", Raw),
+            ("scope_confirmed", Raw),
+        ],
+    ),
+    (
         "income-tests",
         &[
             ("taxable_income", Dec),
@@ -1190,6 +1203,7 @@ pub fn evaluate_coded(command: &str, v: &Value) -> Result<Value> {
             | "income-tests"
             | "luxury-car-tax"
             | "sb-cgt-concessions"
+            | "small-business-income-offset"
             | "business-capital-expenditure"
             | "balancing-adjustment"
             | "trade-in"
@@ -1887,6 +1901,26 @@ pub fn evaluate_coded(command: &str, v: &Value) -> Result<Value> {
         "income-tests" => {
             let named: Vec<(&str, &Arg)> = params.iter().map(|(key, _)| *key).zip(&a).collect();
             engine::income_tests(&named)
+        }
+        "small-business-income-offset" => {
+            // Optional: the facts only net small business income of your own calls for.
+            let given = engine::SBITO_OPTIONAL.map(|key| {
+                let kind = if key.ends_with("_turnover") { Dec } else { Raw };
+                optional(v, key, kind)
+            });
+            let [a0, a1, a2, a3, a4, a5] = given;
+            let given = [a0?, a1?, a2?, a3?, a4?, a5?];
+            engine::small_business_income_offset(&engine::SmallBusinessIncomeOffsetArgs {
+                taxable_income: &a[0],
+                basic_income_tax_liability: &a[1],
+                offsets_applied_first: &a[2],
+                net_small_business_income: &a[3],
+                shares: &a[4],
+                prescribed_person: &a[5],
+                year: &a[6],
+                scope_confirmed: &a[7],
+                optional: given.each_ref().map(Option::as_ref),
+            })
         }
         "luxury-car-tax" => engine::luxury_car_tax(&engine::LctArgs {
             lines: &a[0],

@@ -3161,6 +3161,45 @@ Choices the Act leaves to the reader:
 | Neil's roll-over also obtained for a CGT event on 30 June 2026 | Worked by hand under s 104-190(1A)(a) and (b)(i) | Replacement asset period 30 June 2025 to 30 June 2028, from the last event, not 15 May |
 | Neil's sale with a look-through earnout whose last payment could fall due on 31 January 2028, 15 November 2027 or 31 August 2028 | Worked by hand under s 104-190(1A)(b)(ii) | The period ends 31 July 2028, 6 months after it; 15 May 2028, 2 years after the event, the later; or 28 February 2029 |
 
+## Small business income offset
+
+This worksheet was added on 22 November 2026. ITAA 1997 Subdivision 328-F and
+s 328-110 were read that day in compilation 268 (1 October 2026), volume 7
+(https://www.legislation.gov.au/C2004A05138/2026-10-01/2026-10-01/text/original/epub/OEBPS/document_7/document_7.html),
+s 4-10 in volume 1 and s 63-10 in volume 2, and compared with compilations 210
+(from 1 July 2020) and 223 (from 1 July 2021), volume 7. Subdivision 328-F
+reads the same in all 3 but for the rate in s 328-360(1): 13% in compilation
+210 and 16% from compilation 223. The ATO's 'Small business income tax
+offset' page (last updated 7 May 2025, read on 22 November 2026) gives the
+same table: 13% for 2020-21 and 16% from 2021-22, each with the $5 million
+turnover and the $1,000 cap.
+
+Choices the Act leaves to the reader:
+
+- s 63-10(1) puts this offset and the low income and low and middle income
+  tax offsets in the same item (item 20) without an order among them.
+  `offset_applied` takes `offsets_applied_first` before this one, as the
+  site's sole trader page does with those 2 offsets; the total tax is the
+  same in any order.
+- The amount is worked exactly and shown to the cent, half up, as the site
+  does.
+
+`tests/small_business_income_offset.rs` holds these cases.
+
+| Case | Source | Worksheet |
+|---|---|---|
+| 2026-27, $79,000 taxable, $20,000 of business income, $14,220 liability | site sole trader vector | $576.00 |
+| 2026-27, $75,000 all business, $13,020 liability | site vector | $2,083.20 capped at $1,000.00 |
+| 2024-25, $160,584 taxable, $29,000 business, $40,754.08 liability | site vector | $1,177.57 capped at $1,000.00 |
+| 2025-26, $120,000 all business, $26,788 liability | site vector | $1,000.00 |
+| 2023-24, $32,000 taxable, $35,000 business, $2,622 liability, $700 first | site vector | $419.52 |
+| 2021-22, $25,000 all business, $1,292 liability, $1,292 first | site vector | $206.72, none applied |
+| 2020-21, $50,000 all business, $6,717 liability | the 13% rate | $873.21 |
+| Turnovers at $4,999,999.99 and $5,000,000.00 by each rule of s 328-110 | s 328-357 | met; not met |
+| Shares of $10,000 less $12,000 and $5,000 less $1,000 | s 328-360(1)(b) | $4,000.00 |
+
+`resident-tax` gives the site's liabilities for the 2024-25 to 2026-27 vectors.
+
 ## Personal tax estimate
 
 `personal-tax-estimate` adds no rate or threshold: each amount is a
