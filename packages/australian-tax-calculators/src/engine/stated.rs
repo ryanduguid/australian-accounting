@@ -25,7 +25,7 @@ pub(super) fn required<'v>(
 /// An amount in AUD, a decimal string as every money input is.
 pub(super) fn amount(fields: &Map<String, Value>, item: &str, key: &str) -> Result<Decimal> {
     let parsed = match required(fields, item, key)? {
-        Value::String(text) if text.len() <= 32 => Decimal::parse(text).ok(),
+        Value::String(text) if text.len() <= 32 => Decimal::parse_input(text).ok(),
         _ => None,
     };
     match parsed.map(|v| money(&Arg::Decimal(v))) {

@@ -94,7 +94,7 @@ fn year_of(text: &str) -> Option<i64> {
 
 /// A decimal fraction from 0 to 1 given as a string.
 fn fraction(value: &Value) -> Result<Option<Decimal>> {
-    match value.as_str().map(Decimal::parse) {
+    match value.as_str().map(Decimal::parse_input) {
         Some(Ok(share)) => finite_between(&Arg::Decimal(share), "0", "1").map_err(Error::from),
         _ => Ok(None),
     }
@@ -213,7 +213,7 @@ fn read_loan(value: &Value, claimed: i64, year: &str) -> Result<Facts> {
     // money refuses anything but a decimal, as the one-loan worksheet does.
     let amount = fields["borrowing_expenses"]
         .as_str()
-        .and_then(|text| Decimal::parse(text).ok());
+        .and_then(|text| Decimal::parse_input(text).ok());
     let expenditure = money(&amount.map_or(Arg::Json(Value::Null), Arg::Decimal))?;
     check_s26_50(&fields["section_26_50_applies"])?;
     let loan = loan_dates(fields)?;
@@ -279,7 +279,8 @@ fn other_expenses(value: Option<&Arg>) -> Result<BTreeMap<i64, Decimal>> {
     };
     let mut out = BTreeMap::new();
     for (key, amount) in by_year {
-        let (Some(first), Some(Ok(amount))) = (year_of(key), amount.as_str().map(Decimal::parse))
+        let (Some(first), Some(Ok(amount))) =
+            (year_of(key), amount.as_str().map(Decimal::parse_input))
         else {
             return invalid();
         };

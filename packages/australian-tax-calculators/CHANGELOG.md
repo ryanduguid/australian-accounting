@@ -6,6 +6,25 @@
 
 ### Fixed
 
+- JSON worksheet amounts and ratios now use the same plain decimal notation as
+  the MCP calculator. Use `"1000.00"` instead of `"1e3"` or `"1_000"`, and
+  `"0.50"` instead of `".50"`. A leading minus sign and surrounding whitespace
+  still work where the worksheet allows the value.
+- The frozen Python 0.2.0 replay now refuses these 57 zero-based entries with
+  `decimal.InvalidOperation`. The replay also checks each entry with its
+  amount written in plain decimal notation.
+  - `capital-gains`: 2497, 2553, 2763, 2903, 3467, 3593, 3635, 3719, 3817,
+    3873, 3929, 4001, 4169, 4309.
+  - `contribution-caps`: 2829, 3055, 3153, 3279, 3293, 3307, 3335, 3349,
+    3645, 3701, 3869, 3925, 4347.
+  - `fbt`: 2456, 2498, 2708, 2946, 3424, 3902, 4408.
+  - `pension-minimum`: 2746, 2928, 3014, 3168, 3280, 3308, 4446.
+  - `quarterly-sg`: 2696, 3104, 3216, 3328, 3638, 4130.
+  - `division-293`: 2969, 3923, 4037.
+  - `gst`: 27, 3253, 3577.
+  - `payg-withholding`: 517, 4201.
+  - `depreciation`: 3173. `study-loan-withholding`: 3288.
+
 - `gst-margin-scheme` checks the valuation date against the registration facts
   for item 2 or the taxable supply date for item 4 of GST Act s 75-10(3).
   Supply those facts with the affected valuations. The command refers a

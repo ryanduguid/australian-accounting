@@ -125,7 +125,7 @@ pub(super) fn parse_line(value: &Value, n: usize) -> Result<Line> {
 /// The line's cost: the employer's expense, net of unreimbursed contributions.
 fn line_cost(fields: &Map<String, Value>, n: usize) -> Result<Decimal> {
     let cost = match fields.get("cost").and_then(Value::as_str) {
-        Some(text) if text.len() <= 32 => match Decimal::parse(text) {
+        Some(text) if text.len() <= 32 => match Decimal::parse_input(text) {
             Ok(amount) => money(&Arg::Decimal(amount)).ok(),
             Err(_) => None,
         },

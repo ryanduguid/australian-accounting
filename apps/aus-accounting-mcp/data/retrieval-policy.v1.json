@@ -30,7 +30,7 @@
     "NOT_CURRENT_CAVEAT": "This title was not the current version when the corpus was built. Check the register page for a later compilation.",
     "TRUNCATED_CAVEAT": "Text is truncated at {kept} of {total} characters. Read the register page for the whole provision.",
     "PART_CAVEAT": "This part holds characters {start} to {end} of {total}. Pass next_start as start to read the next part; the register page has the whole provision.",
-    "QUICK_BUILD": "`python -m fadden quick --out <empty folder>` in PaulGoodman builds 9 principal Acts on this machine and prints the setting. ",
+    "SETUP_ROUTES": "PaulGoodman's published snapshot of 9 principal Acts needs no build: download https://github.com/ryanduguid/PaulGoodman/releases/tag/corpus-2026-11-18, unpack it and set the variable to its dist folder as an absolute path. Otherwise `python -m fadden quick --out <empty folder>` in PaulGoodman builds the same Acts on this machine and prints the setting. ",
     "WITHHELD_CAVEAT": "Text withheld: this title's status for {date} is {status}. Follow as_at.next_step. A read without as_at returns the compilation the corpus holds, which is not established as text for this date.",
     "OMITTED_REFUSALS": "refusals lists {listed} of {total} refused titles, principal Acts first; as_at_summary.unlisted_titles names the rest under their status. Pass one of those Register IDs as act to see that title's refusal.",
     "NO_MATCH_HINT": "No provision holds every word. Statutes often word a concept differently from ATO guidance or everyday usage, so try fewer or different words, the statutory expression (define_tax_term finds defined ones) or a section number. No match is not evidence that the law is silent.",

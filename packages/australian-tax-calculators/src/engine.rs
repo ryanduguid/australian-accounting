@@ -4100,7 +4100,7 @@ fn spans(value: &Arg, name: &str, with_part: bool, first: i64, last: i64) -> Res
         let part = if with_part {
             let fraction = fields["floor_area"]
                 .as_str()
-                .and_then(|t| Decimal::parse(t).ok());
+                .and_then(|t| Decimal::parse_input(t).ok());
             match fraction {
                 Some(f)
                     if f.is_finite()
@@ -5208,7 +5208,7 @@ fn back_payment_periods(value: &Arg, most: i64) -> Result<Vec<BackPaidPeriod>> {
                 return back_payment_periods_invalid(most);
             }
             let amount = |key: &str| match fields.get(key).and_then(Value::as_str) {
-                Some(text) => match Decimal::parse(text) {
+                Some(text) => match Decimal::parse_input(text) {
                     Ok(v) => money(&Arg::Decimal(v)),
                     Err(_) => back_payment_periods_invalid(most),
                 },

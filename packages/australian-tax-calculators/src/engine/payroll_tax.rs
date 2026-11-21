@@ -246,8 +246,7 @@ const TAS_BASE: &str = "Payroll Tax Act 2008 (Tas) Sch 1 cl 1 (TA $1,250,000 for
 const TAS_SHARED: &str = "Payroll Tax Act 2008 (Tas) Sch 1 cl 4(4) and (5): TW / (TW + IW) x TA, the threshold shared by the Tasmanian taxable wages over the Australian wages";
 const TAS_LOWER: &str = "Payroll Tax Act 2008 (Tas) Sch 1 cl 1 (R1 4%) and cl 4(4) and (5): R1 on the Tasmanian share of the Australian wages from the threshold to the top tax bracket threshold, TTB $2,000,000 (the State Revenue Office: 4% on $1,250,001 to $2,000,000)";
 const TAS_HIGHER: &str = "Payroll Tax Act 2008 (Tas) Sch 1 cl 1 (R2 6.1%) and cl 4(5): R2 on the Tasmanian wages less the Tasmanian share of TTB (the State Revenue Office: 6.1% from $2,000,001)";
-const TAS_TOTAL: &str =
-    "Payroll Tax Act 2008 (Tas) Sch 1 cl 4(5): the tax at the 2 rates, each to the cent";
+const TAS_TOTAL: &str = "Payroll Tax Act 2008 (Tas) Sch 1 cl 4(5) supplies the 2-rate formula. This worksheet rounds the tax at each rate to the cent before adding.";
 
 fn tasmania(w: &Wages) -> Result<Worked> {
     let [threshold, top, lower, higher] = ["1250000", "2000000", "0.04", "0.061"].map(d);

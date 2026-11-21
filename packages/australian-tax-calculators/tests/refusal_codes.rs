@@ -226,6 +226,31 @@ fn unreadable_decimal_text_and_an_undefined_step_have_their_own_codes() {
     assert_eq!(step.code(), "decimal.invalid_operation");
 }
 
+#[test]
+fn gst_accepts_plain_decimal_strings_at_the_cli_boundary() {
+    let input = |amount| {
+        json!({"amount": amount, "gst_inclusive": true, "scope_confirmed": true, "year": "2025-26"})
+            .to_string()
+    };
+    let (status, expected, stderr) = run(&["gst"], input("1000").as_bytes());
+    assert_eq!(status, 0, "{stderr}");
+    for plain in ["1000.00", " 1000.00 ", "\u{a0}1000.00\u{3000}"] {
+        assert_eq!(
+            run(&["gst"], input(plain).as_bytes()),
+            (0, expected.clone(), String::new()),
+            "{plain:?}"
+        );
+    }
+    for alternate in [
+        "1e3", "1000e0", "1e-1", "1_000", "1__000", "+1000", ".10", "1000.", "١٢",
+    ] {
+        let (status, stdout, stderr) = run(&["gst", "--refusal-json"], input(alternate).as_bytes());
+        assert_eq!(status, 2, "{alternate:?} {stderr}");
+        let refusal: Value = serde_json::from_str(&stdout).unwrap();
+        assert_eq!(refusal["code"], "input.decimal_unreadable", "{alternate:?}");
+    }
+}
+
 fn run(args: &[&str], stdin: &[u8]) -> (i32, String, String) {
     let mut child = Command::new(env!("CARGO_BIN_EXE_australian-tax-calculators"))
         .args(args)

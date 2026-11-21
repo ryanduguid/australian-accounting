@@ -115,7 +115,7 @@ fn space_groups(value: &Arg, threshold: &Decimal, days_in_year: i64) -> Result<V
                 Value::Object(f) if f.len() == 4 && GROUP_FIELDS.iter().all(|k| f.contains_key(*k)) => f,
                 _ => return groups_invalid(),
             };
-            let amount = |key: &str| match fields[key].as_str().map(Decimal::parse) {
+            let amount = |key: &str| match fields[key].as_str().map(Decimal::parse_input) {
                 Some(Ok(v)) => money(&Arg::Decimal(v)),
                 _ => groups_invalid(),
             };

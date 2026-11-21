@@ -132,7 +132,7 @@ fn entry(item: &Value) -> Result<Earlier> {
     }
     let amount = |key: &str| match fields.get(key) {
         None => Ok(None),
-        Some(Value::String(text)) => match Decimal::parse(text) {
+        Some(Value::String(text)) => match Decimal::parse_input(text) {
             Ok(v) => money(&Arg::Decimal(v)).map(Some),
             Err(_) => shape(),
         },

@@ -163,7 +163,7 @@ fn read_segment(n: usize, value: &Value) -> Result<(i64, Segment)> {
     else {
         return segment_invalid(n, "count must be a JSON integer of 1 or more");
     };
-    let Some(amount) = text("amount").and_then(|t| Decimal::parse(t).ok()) else {
+    let Some(amount) = text("amount").and_then(|t| Decimal::parse_input(t).ok()) else {
         return segment_invalid(n, "amount must be a decimal string");
     };
     let amount = money(&Arg::Decimal(amount))?;

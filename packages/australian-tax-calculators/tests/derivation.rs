@@ -292,7 +292,7 @@ fn cases() -> Vec<(&'static str, Value)> {
                    "employee_heads": 1, "total_heads": 3}),
         ),
         // The employer's guide, example 18 (the spaces method, with s 39FB),
-        // then 2 groups in exponent form and a negative zero, without s 39FB.
+        // then 2 groups and a negative zero, without s 39FB.
         benefit(
             "fbt-car-parking",
             json!({"method": "spaces", "space_groups": [{"first_business_day_fee": "12.00",
@@ -304,9 +304,9 @@ fn cases() -> Vec<(&'static str, Value)> {
         benefit(
             "fbt-car-parking",
             json!({"method": "spaces", "space_groups": [
-                       {"first_business_day_fee": "12.00", "daily_rate_amount": "1E+1",
+                       {"first_business_day_fee": "12.00", "daily_rate_amount": "10",
                         "availability_days": 182, "spaces": 4},
-                       {"first_business_day_fee": "1.2E+1", "daily_rate_amount": "-0.00",
+                       {"first_business_day_fee": "12", "daily_rate_amount": "-0.00",
                         "availability_days": 365, "spaces": 1}],
                    "employees_at_start": 3, "employees_at_end": 4,
                    "eligible_spaces_at_start": 3, "eligible_spaces_at_end": 4,
@@ -587,11 +587,11 @@ const SCHEDULE_5: [(&str, &str, &str); 14] = [
         B_II,
         r#"{"earnings": "1800.00", "additional_payment": "2480.00", "year_to_date_earnings": "18000.00", "pay_periods_to_date": 10, "earlier_additional_payments": "1000.00", "earlier_additional_withholding": "9999.00", "pay_period": "fortnightly"}"#,
     ),
-    // Figures in exponent form and negative zeros, as a list item may give them.
+    // Plain integers and a negative zero in the earlier payments.
     (
-        "b_i_exponent",
+        "b_i_whole_dollars",
         B_I,
-        r#"{"earnings": "1.7E+3", "back_payment_periods": [{"earnings": "1.6E+3", "back_payment": "1E+2", "withheld": "3.31E+2"}, {"earnings": "1600.00", "back_payment": "5E+1", "withheld": "-0.00"}], "pay_period": "weekly"}"#,
+        r#"{"earnings": "1700", "back_payment_periods": [{"earnings": "1600", "back_payment": "100", "withheld": "331"}, {"earnings": "1600.00", "back_payment": "50", "withheld": "-0.00"}], "pay_period": "weekly"}"#,
     ),
     (
         "b_i_negative_zero",
@@ -1712,20 +1712,20 @@ fn each_schedule_5_branch_gives_the_amount_its_source_sets() {
         amount("b_i_monthly", "withholding_on_back_payment"),
         "42.00"
     );
-    // Back payments given as 1E+2 and 5E+1, or -0.00, are written as the
+    // Back payments given as 100 and 50, or -0.00, are written as the
     // total adds them.
-    let exponent = schedule_5_doc("b_i_exponent");
+    let whole_dollars = schedule_5_doc("b_i_whole_dollars");
     assert_eq!(
-        working_in(&exponent, "back_payment"),
+        working_in(&whole_dollars, "back_payment"),
         "100 + 50 = 100 + 50 = 150"
     );
     assert!(
-        working_in(&exponent, "withholding_on_back_payment")
-            .contains("(floor(1.6E+3 + 1E+2) + 0.99)")
+        working_in(&whole_dollars, "withholding_on_back_payment")
+            .contains("(floor(1600 + 100) + 0.99)")
     );
     // $1,700 gives $363 less $331; $1,650 gives $347 less nothing; $363 on
     // $1,700 now: $742.
-    assert_eq!(amount("b_i_exponent", "withholding"), "742.00");
+    assert_eq!(amount("b_i_whole_dollars", "withholding"), "742.00");
     assert_eq!(
         working_in(&schedule_5_doc("b_i_negative_zero"), "back_payment"),
         "0.00 = 0.00 = 0.00"
@@ -3035,16 +3035,16 @@ const PERSONAL: [(&str, &str, &str); 42] = [
         "medicare-levy-surcharge",
         r#"{"taxable_income": "50000", "reportable_fringe_benefits": "0", "income_for_surcharge_purposes": "50000", "days_without_cover": 365, "spouse_income_for_surcharge_purposes": "50000"}"#,
     ),
-    // A positive exponent in an input stays a number the working can name.
+    // Whole-dollar inputs without a fractional part stay exact in the working.
     (
-        "resident_exponent",
+        "resident_whole_dollars",
         "resident-tax",
-        r#"{"taxable_income": "1E+5"}"#,
+        r#"{"taxable_income": "100000"}"#,
     ),
     (
-        "levy_exponent",
+        "levy_whole_dollars",
         "medicare-levy",
-        r#"{"taxable_income": "4E+4", "dependant_offset_entitled": true}"#,
+        r#"{"taxable_income": "40000", "dependant_offset_entitled": true}"#,
     ),
 ];
 

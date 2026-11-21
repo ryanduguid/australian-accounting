@@ -518,7 +518,7 @@ fn register_still_valid(earlier: &Arg, first: i64, year: i64) -> Result<()> {
     }
     let amounts = items
         .iter()
-        .map(|item| match item.as_str().map(Decimal::parse) {
+        .map(|item| match item.as_str().map(Decimal::parse_input) {
             Some(Ok(amount)) => money(&Arg::Decimal(amount)),
             _ => shape(years),
         })
@@ -720,7 +720,7 @@ fn fee_contribution(
             .get("capped_total")
             .and_then(Value::as_str)
             .filter(|text| text.len() <= 8192)
-            .and_then(|text| Decimal::parse(text).ok());
+            .and_then(|text| Decimal::parse_input(text).ok());
         let Some(amount) = amount.filter(|_| fields.len() == 1) else {
             return refuse(
                 "fbt_car_parking.capped_contribution_invalid",
