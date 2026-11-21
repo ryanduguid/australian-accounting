@@ -186,6 +186,8 @@ fn ben_runs_to_the_end_of_his_4_year_contract() {
     );
     let warnings = r["warnings"].to_string();
     assert!(warnings.contains("s 26-155(1) quarantines"), "{warnings}");
+    assert!(warnings.contains("s 26-102"), "{warnings}");
+    assert!(r["scope"].as_str().unwrap().contains("before either limit"));
     assert!(warnings.contains("marked projected"), "{warnings}");
     assert_eq!(r["amounts"]["deduction"], "901.85");
     assert_eq!(
