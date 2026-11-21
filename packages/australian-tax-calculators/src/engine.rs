@@ -4774,15 +4774,14 @@ fn spread(year: &str, loan: &Loan, expenditure: &Decimal, share: &Decimal) -> Re
     )
 }
 
-/// The s 26-155 flag on an income year from 2027-28: the amount is s 25-25's,
-/// which s 26-155 can then quarantine (ITAA 1997 s 26-155(1), inserted by Act
-/// No 49 of 2026 for the 2027-28 income year and later years).
-fn rental_warning(out: &mut Value, first: i64) {
+/// Identifies limits that can affect the s 25-25 amount for the income year.
+fn borrowing_limit_warnings(out: &mut Value, first: i64) {
+    let warnings = out["warnings"].as_array_mut().expect("warnings");
+    if first >= 2019 {
+        warnings.push(json!(texts::BORROWING_S26_102));
+    }
     if first >= 2027 {
-        out["warnings"]
-            .as_array_mut()
-            .expect("warnings")
-            .push(json!(texts::BORROWING_S26_155));
+        warnings.push(json!(texts::BORROWING_S26_155));
     }
 }
 
@@ -4831,7 +4830,7 @@ pub fn borrowing_expenses(
     } else {
         spread(&year, &loan, &expenditure, &share)?
     };
-    rental_warning(&mut out, claimed);
+    borrowing_limit_warnings(&mut out, claimed);
     Ok(out)
 }
 

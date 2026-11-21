@@ -263,6 +263,20 @@ fn from_2027_28_the_amount_is_worked_out_and_flagged_for_s_26_155() {
     )
     .unwrap();
     assert!(!earlier["warnings"].to_string().contains("26-155"));
+    assert!(earlier["warnings"].to_string().contains("s 26-102"));
+    assert!(
+        earlier["scope"]
+            .as_str()
+            .unwrap()
+            .contains("before either limit")
+    );
+    let before_vacant_land_limit =
+        run(json!({"loan_start": "2018-07-01", "year": "2018-19"})).unwrap();
+    assert!(
+        !before_vacant_land_limit["warnings"]
+            .to_string()
+            .contains("26-102")
+    );
 }
 
 #[test]

@@ -1487,7 +1487,10 @@ holiday home or other leisure facility unless s 26-50(3) applies at all times
 in the year. A loan first drawn on 29 February has its 5 years end on
 28 February (Acts Interpretation Act 1901 s 2G(2)). From 2027-28 the year is
 worked out and flagged: s 26-155 may then quarantine the deduction, which the
-worksheet does not apply. The tests hold it to the ATO's and the Library's
+worksheet does not apply. Section 26-102 can limit deductions for vacant
+land holding costs incurred from 1 July 2019, including ongoing costs of
+borrowing to acquire the land. The `deduction` amount is the section 25-25
+calculation before any applicable limit. The tests hold it to the ATO's and the Library's
 worked examples; see
 [calculation evidence](docs/calculation-evidence.md#borrowing-expenses).
 `borrowing_expenses_schedule` takes several loans, refinancing and use by
@@ -1526,7 +1529,9 @@ maximum, use, deduction and what remains), its total deduction and notes on
 refinancing; `schedule` at the top gives each year's totals. A row from
 2027-28 has `section_26_155` true and the result warns that s 26-155 may
 quarantine it: s 26-155(1) applies after s 25-25 has worked the amount out,
-and the worksheet does not apply it or decide its exceptions. A row after
+and the worksheet does not apply it or decide its exceptions. The schedule's
+`deduction` amounts are section 25-25 calculations before any applicable
+section 26-102 or 26-155 limit. A row after
 2027-28 has `projected` true: it applies s 25-25 as read on 19 November
 2026. It refuses a loan first drawn before 1 July 2017 or after the year
 asked about, a leisure facility unless s 26-50(3) applies at all times, a

@@ -504,10 +504,13 @@ fn totals(rows: &[Vec<Row>]) -> Result<Vec<Value>> {
         .collect()
 }
 
-/// Warns when a row falls under s 26-155 or after the law read.
+/// Identifies limits on the s 25-25 amounts and any projected years.
 fn add_warnings(out: &mut Value, rows: &[Vec<Row>]) {
     let years: Vec<i64> = rows.iter().flatten().map(|row| row.first).collect();
     let warnings = out["warnings"].as_array_mut().expect("warnings");
+    if years.iter().any(|first| *first >= 2019) {
+        warnings.push(json!(texts::BORROWING_S26_102));
+    }
     if years.iter().any(|first| *first >= 2027) {
         warnings.push(json!(texts::BORROWING_S26_155));
     }
