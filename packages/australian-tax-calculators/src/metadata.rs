@@ -1853,6 +1853,26 @@ pub fn optional_inputs(kind: &str) -> Vec<(&'static str, &'static str)> {
                 "boolean, with method approved_valuation and then required: true when you are the Commonwealth, a State or a Territory and there were no improvements on the land or premises on 1 July 2000 (s 75-10(3) item 4)",
             ),
             (
+                "improved_on_1_july_2000",
+                "boolean, required for later registration under item 2: true if the land or premises had improvements on 1 July 2000. Overlapping items 2 and 3 need separate review",
+            ),
+            (
+                "registration_effective_day",
+                "YYYY-MM-DD date, required for later registration under item 2: the date your GST registration took effect",
+            ),
+            (
+                "applied_for_registration",
+                "boolean, required for later registration under item 2: true if you applied for GST registration, false if you did not apply",
+            ),
+            (
+                "registration_application_day",
+                "YYYY-MM-DD date, required under item 2 when applied_for_registration is true: the day you applied for GST registration, which may be on or before 1 July 2000",
+            ),
+            (
+                "supply_day",
+                "YYYY-MM-DD date, required for government land under item 4: the day the taxable supply took place, in year",
+            ),
+            (
                 "subdivision_share",
                 "decimal, more than 0 and at most subdivision_whole, with subdivision_whole: for a supply of part of the land you acquired, its measure on a reasonable basis such as area or expected sale price (s 75-15)",
             ),

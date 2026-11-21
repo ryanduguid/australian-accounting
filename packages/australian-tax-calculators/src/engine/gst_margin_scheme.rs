@@ -34,6 +34,11 @@ pub struct MarginSchemeArgs<'a> {
     pub valuation_day: Option<&'a Arg>,
     pub registered_on_1_july_2000: Option<&'a Arg>,
     pub government_unimproved_on_1_july_2000: Option<&'a Arg>,
+    pub improved_on_1_july_2000: Option<&'a Arg>,
+    pub registration_effective_day: Option<&'a Arg>,
+    pub applied_for_registration: Option<&'a Arg>,
+    pub registration_application_day: Option<&'a Arg>,
+    pub supply_day: Option<&'a Arg>,
     pub subdivision_share: Option<&'a Arg>,
     pub subdivision_whole: Option<&'a Arg>,
     pub year: &'a Arg,
@@ -141,23 +146,85 @@ fn year_days(year: &str) -> (i64, i64) {
     )
 }
 
-/// The s 75-10(3) item an approved valuation is under, checked against its
-/// day.
-fn valuation_item(args: &MarginSchemeArgs, why: &str, year: &str) -> Result<&'static str> {
-    fn read<'a>(given: Option<&'a Arg>, key: &str, why: &str) -> Result<&'a Arg> {
-        when(true, given, key, why).map(|given| given.expect("required"))
+fn required<'a>(given: Option<&'a Arg>, key: &str, why: &str) -> Result<&'a Arg> {
+    when(true, given, key, why).map(|given| given.expect("required"))
+}
+
+/// Facts required only when item 2 determines the statutory valuation date.
+fn later_registration_facts<'a>(
+    args: &MarginSchemeArgs<'a>,
+) -> [(Option<&'a Arg>, &'static str); 4] {
+    [
+        (args.improved_on_1_july_2000, "improved_on_1_july_2000"),
+        (
+            args.registration_effective_day,
+            "registration_effective_day",
+        ),
+        (args.applied_for_registration, "applied_for_registration"),
+        (
+            args.registration_application_day,
+            "registration_application_day",
+        ),
+    ]
+}
+
+fn later_registration_valuation_day(args: &MarginSchemeArgs, start: i64) -> Result<i64> {
+    let why = "for a supplier first registered or required to register after 1 July 2000";
+    let key = "improved_on_1_july_2000";
+    if flag(required(args.improved_on_1_july_2000, key, why)?, key)? {
+        return refuse(
+            "gst_margin_scheme.valuation_item_unsettled",
+            "Both s 75-10(3) item 2 (later registration) and item 3 (improvements on 1 July 2000) describe this supply, and their valuation days can differ.",
+        );
     }
+    let key = "registration_effective_day";
+    let effective = date_arg(required(args.registration_effective_day, key, why)?, key)?;
+    if effective <= start {
+        return conflict(
+            "registration_effective_day must be after 1 July 2000 for later registration.",
+        );
+    }
+    let key = "applied_for_registration";
+    let applied = flag(required(args.applied_for_registration, key, why)?, key)?;
+    let key = "registration_application_day";
+    let application = when(
+        applied,
+        args.registration_application_day,
+        key,
+        "when the supplier applied for GST registration",
+    )?;
+    Ok(match application {
+        Some(arg) => effective.min(date_arg(arg, key)?),
+        None => effective,
+    })
+}
+
+/// The s 75-10(3) item an approved valuation is under, checked against its day.
+fn valuation_item(args: &MarginSchemeArgs, why: &str, year: &str) -> Result<&'static str> {
     let key = "registered_on_1_july_2000";
-    let registered = flag(read(args.registered_on_1_july_2000, key, why)?, key)?;
+    let registered = flag(required(args.registered_on_1_july_2000, key, why)?, key)?;
     let key = "government_unimproved_on_1_july_2000";
     let government = flag(
-        read(args.government_unimproved_on_1_july_2000, key, why)?,
+        required(args.government_unimproved_on_1_july_2000, key, why)?,
         key,
     )?;
     let key = "valuation_day";
-    let day = date_arg(read(args.valuation_day, key, why)?, key)?;
+    let day = date_arg(required(args.valuation_day, key, why)?, key)?;
     let start = dates::parse("2000-07-01").expect("a date literal");
-    let (first, last) = year_days(year);
+    if registered {
+        none_of(
+            &later_registration_facts(args),
+            "for a later registration under item 2",
+        )?;
+    }
+    if !government {
+        when(
+            false,
+            args.supply_day,
+            "supply_day",
+            "for government land under item 4",
+        )?;
+    }
     let (item, fits, required) = match (government, registered) {
         (true, false) => {
             return refuse(
@@ -165,15 +232,22 @@ fn valuation_item(args: &MarginSchemeArgs, why: &str, year: &str) -> Result<&'st
                 "Both s 75-10(3) item 2 (a supplier not registered until after 1 July 2000) and item 4 (government land unimproved on 1 July 2000) describe this supply, and their valuation days differ; this command does not choose between them.",
             );
         }
-        (true, true) => (
-            ITEM_4,
-            first <= day && day <= last,
-            "the day of the supply, in the year",
-        ),
+        (true, true) => {
+            let (first, last) = year_days(year);
+            let key = "supply_day";
+            let supply = date_arg(
+                required(args.supply_day, key, "for government land under item 4")?,
+                key,
+            )?;
+            if !(first..=last).contains(&supply) {
+                return conflict("supply_day must be in the supply year.");
+            }
+            (ITEM_4, day == supply, "the day of the supply")
+        }
         (false, false) => (
             ITEM_2,
-            day <= last,
-            "the date of effect of your registration (or the earlier day you applied), not after the year",
+            day == later_registration_valuation_day(args, start)?,
+            "the date of effect of your registration or the earlier day you applied",
         ),
         (false, true) => (ITEM_1_OR_3, day == start, "1 July 2000"),
     };
@@ -232,6 +306,16 @@ fn base_step(
         ),
     ];
     none_of(&valued, "with method approved_valuation")?;
+    none_of(
+        &later_registration_facts(args),
+        "with method approved_valuation under item 2",
+    )?;
+    when(
+        false,
+        args.supply_day,
+        "supply_day",
+        "with method approved_valuation under item 4",
+    )?;
     consideration_base(args)
 }
 

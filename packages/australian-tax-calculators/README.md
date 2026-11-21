@@ -135,7 +135,7 @@ lists the commands.
 | --- | --- |
 | `gst` | `amount`, `gst_inclusive`, `scope_confirmed`, `year` |
 | `fuel-tax-credits` | `lines`, `year`, `scope_confirmed`; `small_claimant` with a simplified method, `rate_at_period_end` and `return_date` optionally; see [Fuel tax credits](#fuel-tax-credits) |
-| `gst-margin-scheme` | `interest`, `agreement`, `acquisition`, `consideration`, `method`, `recipient_associate`, `year`, `scope_confirmed`; with method `consideration`, `acquisition_consideration` and `unpaid_acquisition_consideration`; with method `approved_valuation`, `approved_valuation`, `valuation_day`, `registered_on_1_july_2000` and `government_unimproved_on_1_july_2000`; for part of the land, `subdivision_share` and `subdivision_whole`; see [GST margin scheme](#gst-margin-scheme) |
+| `gst-margin-scheme` | `interest`, `agreement`, `acquisition`, `consideration`, `method`, `recipient_associate`, `year`, `scope_confirmed`; with method `consideration`, `acquisition_consideration` and `unpaid_acquisition_consideration`; with method `approved_valuation`, `approved_valuation`, `valuation_day`, `registered_on_1_july_2000`, `government_unimproved_on_1_july_2000` and the applicable date facts below; for part of the land, `subdivision_share` and `subdivision_whole`; see [GST margin scheme](#gst-margin-scheme) |
 | `resident-tax` | `taxable_income`, `year`, `scope_confirmed` |
 | `foreign-resident-tax` | `taxable_income`, `year`, `scope_confirmed` |
 | `capital-gains` | `other_gains`, `discount_gains`, `current_losses`, `prior_losses`, `scope_confirmed`, `year` |
@@ -2097,14 +2097,16 @@ exceeds the base, or nil (s 75-10(2) and (3)). `method` sets the base:
   made, since one that has sets the margin;
 - `approved_valuation`, for an interest acquired before 1 July 2000 only: an
   `approved_valuation` made under the Commissioner's requirements (s 75-35) as
-  at `valuation_day`, which must be the day s 75-10(3) fixes from
-  `registered_on_1_july_2000` and `government_unimproved_on_1_july_2000`:
-  1 July 2000 (items 1 and 3), the date of effect of a registration after then
-  or the earlier day of applying, which may be on or before 1 July 2000
-  (item 2), or for the Commonwealth, a State or a
-  Territory with land unimproved on 1 July 2000, the day of the supply,
-  valued as if unimproved (item 4 and (3A)). A supply both items 2 and 4
-  describe is refused.
+  at `valuation_day`. Supply `registered_on_1_july_2000` (true if registered
+  or required to be registered on that day) and
+  `government_unimproved_on_1_july_2000`. Items 1 and 3 use 1 July 2000.
+  For item 2, supply `improved_on_1_july_2000`, `registration_effective_day`
+  and `applied_for_registration`. If you applied, also give
+  `registration_application_day`. The earlier of the application and effective
+  dates sets the valuation day, which may be on or before 1 July 2000.
+  A government supplier within item 4 supplies `supply_day` in the selected
+  financial year and values the land as if unimproved on that day (s 75-10(3A)).
+  If item 2 overlaps with item 3 or 4, the command refuses the valuation.
 
 For a supply of part of the land, `subdivision_share` and `subdivision_whole`
 (area, expected price or another reasonable measure) take that proportion of

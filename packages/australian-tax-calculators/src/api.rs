@@ -1442,6 +1442,14 @@ pub fn evaluate_coded(command: &str, v: &Value) -> Result<Value> {
                 "government_unimproved_on_1_july_2000",
             ]
             .map(|key| optional(v, key, Raw));
+            let [improved, effective, applied, application, supply] = [
+                "improved_on_1_july_2000",
+                "registration_effective_day",
+                "applied_for_registration",
+                "registration_application_day",
+                "supply_day",
+            ]
+            .map(|key| optional(v, key, Raw));
             let [paid, unpaid, valuation, share, whole] =
                 [paid?, unpaid?, valuation?, share?, whole?];
             let [day, registered, government] = [day?, registered?, government?];
@@ -1458,6 +1466,11 @@ pub fn evaluate_coded(command: &str, v: &Value) -> Result<Value> {
                 valuation_day: day.as_ref(),
                 registered_on_1_july_2000: registered.as_ref(),
                 government_unimproved_on_1_july_2000: government.as_ref(),
+                improved_on_1_july_2000: improved?.as_ref(),
+                registration_effective_day: effective?.as_ref(),
+                applied_for_registration: applied?.as_ref(),
+                registration_application_day: application?.as_ref(),
+                supply_day: supply?.as_ref(),
                 subdivision_share: share.as_ref(),
                 subdivision_whole: whole.as_ref(),
                 year: &a[6],

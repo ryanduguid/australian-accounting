@@ -4,6 +4,11 @@
 
 ### Fixed
 
+- `gst-margin-scheme` checks the valuation date against the registration facts
+  for item 2 or the taxable supply date for item 4 of GST Act s 75-10(3).
+  Supply those facts with the affected valuations. The command refers a
+  possible overlap of items 2 and 3 for separate review.
+
 - `ppsr-timing` refuses the skipped spring hour and repeated autumn hour in ACT
   local inputs and the derived six-month time. The refusal code is
   `ppsr_timing.time_unresolved`.
