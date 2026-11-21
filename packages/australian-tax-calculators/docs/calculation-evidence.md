@@ -3161,6 +3161,35 @@ Choices the Act leaves to the reader:
 | Neil's roll-over also obtained for a CGT event on 30 June 2026 | Worked by hand under s 104-190(1A)(a) and (b)(i) | Replacement asset period 30 June 2025 to 30 June 2028, from the last event, not 15 May |
 | Neil's sale with a look-through earnout whose last payment could fall due on 31 January 2028, 15 November 2027 or 31 August 2028 | Worked by hand under s 104-190(1A)(b)(ii) | The period ends 31 July 2028, 6 months after it; 15 May 2028, 2 years after the event, the later; or 28 February 2029 |
 
+## PSI test
+
+This worksheet was added on 22 November 2026. ITAA 1997 Part 2-42 was read
+that day in compilation 268 (1 October 2026), volume 3
+(https://www.legislation.gov.au/C2004A05138/2026-10-01/2026-10-01/text/original/epub/OEBPS/document_3/document_3.html),
+and compared with compilations 210 (from 1 July 2020) and 223 (from 1 July
+2021): ss 84-5, 85-30, 85-35 and 87-15 to 87-40 read the same in all 3.
+TR 2022/3 was read the same day for examples 20, 29, 30 and 40.
+
+The worksheet follows ryanduguid.github.io's PSI page
+(`assets/psi-determination.mjs`, checked 17 November 2026) step for step, so
+the two agree on every case the page's tests hold. Its choices:
+
+- each payer is entered with its associates as one source (s 87-15(3));
+- the employment test's 20% is measured against the PSI entered, as
+  TR 2022/3 paragraph 118 does with the market value of the principal work;
+- the other 3 tests are worked out even at 80% from one source, as the
+  Commissioner weighs them for a determination (s 87-15(1), note 2).
+
+`tests/psi_test.rs` runs the page's 19 cases.
+
+| Case | Source | Worksheet |
+|---|---|---|
+| Joe: $18,000 for a result, tools and defects | TR 2022/3 example 20 | s 87-18(1), 100.00% |
+| Ian's $26,000 of $140,000 from 2 payers | TR 2022/3 example 30 | 18.57%, not a PSB |
+| Tom's $36,000 of $156,000 from one payer | TR 2022/3 example 29 | 23.07%, but s 87-15(3) |
+| Chris: 70% commission | TR 2022/3 example 40 | the principal is one payer |
+| 75% and 74.99% for a result; 80% and 79.99% from one payer; 20% by others | ss 87-18, 87-15(3), 87-25 | met; not met |
+
 ## Personal tax estimate
 
 `personal-tax-estimate` adds no rate or threshold: each amount is a

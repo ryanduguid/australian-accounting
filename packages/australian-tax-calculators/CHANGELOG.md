@@ -339,6 +339,15 @@
   `sb_cgt_concessions.share_or_trust_interest`. `tests/sb_cgt_concessions.rs`
   holds it to the Library's Neil Swan and Wendy Simpson examples.
 
+- `psi-test` says whether the personal services income rules (ITAA 1997
+  Part 2-42) apply to an individual's PSI for 2020-21 to 2026-27: s 84-5,
+  s 85-35, a determination in force, the results test, the 80% rule and the
+  unrelated clients, employment and business premises tests, step for step as
+  the site's PSI page. New codes: `psi_test.agent_payments_invalid`,
+  `psi_test.agent_rules`, `psi_test.earner_invalid`, `psi_test.no_psi`,
+  `psi_test.others_exceed_psi`, `psi_test.payers_invalid` and
+  `psi_test.premises_invalid`. `tests/psi_test.rs` runs the page's 19 cases.
+
 ### Changed
 
 - `borrowing-expenses` takes 2017-18 to 2027-28, not 2024-25 to 2026-27:

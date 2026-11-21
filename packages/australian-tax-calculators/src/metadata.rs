@@ -1131,6 +1131,11 @@ pub fn supported_periods(kind: &str) -> Vec<&'static str> {
         // The years whose definitions were read: the 1 July 2024 compilations
         // define them as the current ones do, and the ATO's 2025 and 2026
         // return instructions and its current pages apply them.
+        // Part 2-42 reads the same in compilations 210 (1 July 2020), 223
+        // (1 July 2021) and 268 (1 October 2026).
+        "psi_test" => vec![
+            "2020-21", "2021-22", "2022-23", "2023-24", "2024-25", "2025-26", "2026-27",
+        ],
         "income_tests" => vec!["2024-25", "2025-26", "2026-27"],
         "sb_cgt_concessions" => vec!["2025-26", "2026-27"],
         _ => Vec::new(),
@@ -1384,6 +1389,10 @@ pub fn source_review(kind: &str) -> (&'static str, &'static str) {
         "sb_cgt_concessions" => (
             "2026-11-19",
             "ITAA 1997 Division 152 (ss 152-5 to 152-35, 152-50, 152-55, 152-105, 152-110, 152-205 to 152-220, 152-305, 152-320, 152-325, 152-330, 152-410 and 152-430), s 104-190(1A) and s 328-110, compilation 264 (21 May 2026), the text for 2025-26 and 2026-27 under Act No. 49 of 2026 Schedule 1 item 82",
+        ),
+        "psi_test" => (
+            "2026-11-22",
+            "ITAA 1997 Part 2-42 (ss 84-5, 85-30, 85-35, 87-15 to 87-40, 87-60 and 87-65), compilation 268 (1 October 2026), against compilations 210 (1 July 2020) and 223 (1 July 2021), which read the same; TR 2022/3, examples 20, 29, 30 and 40 and paragraph 118; the site's PSI page and its 19 cases (checked 17 November 2026)",
         ),
         "income_tests" => (
             "2026-11-16",
@@ -1733,6 +1742,12 @@ pub fn library_evidence(kind: &str) -> [(&'static str, &'static str); 4] {
             "2026-06-30",
             "2026-11-19",
         ),
+        "psi_test" => (
+            "TR 2022/3",
+            "Example 20 (Joe's ducts, the results test), 29 (Tom's 23.07%), 30 (Ian's 18.57%) and 40 (Chris, an agent on 70% commission)",
+            "2022-08-10",
+            "2026-11-22",
+        ),
         "income_tests" => (
             "ATO income test pages",
             "Christina's repayment income (When you must repay your loan) and Tom's income for MLS purposes (Medicare levy surcharge income, thresholds and rates)",
@@ -1794,6 +1809,16 @@ pub fn optional_inputs(kind: &str) -> Vec<(&'static str, &'static str)> {
             (
                 "choice_date",
                 "YYYY-MM-DD, for an individual only, and then required: when the individual chooses the retirement exemption, on or after the CGT event (s 152-305(1)(b))",
+            ),
+        ],
+        "psi_test" => vec![
+            (
+                "commission",
+                "AUD, with agent true only, and then required: the part of the principal's payments to you that is commissions or fees based on your performance (s 87-40(2)(c))",
+            ),
+            (
+                "principal_payments",
+                "AUD, with agent true only, and then required: the principal's payments to you for services to its customers (s 87-40(2)(b))",
             ),
         ],
         "balancing_adjustment" => vec![(
@@ -3452,6 +3477,16 @@ pub fn input_units(kind: &str) -> Vec<(&'static str, &'static str)> {
             ("last_rollover_event", "YYYY-MM-DD, or null for this one: the last CGT event in the year for which you obtain the small business roll-over, from event_date to the end of the year; the replacement asset period runs from it (s 104-190(1A))"),
             ("earnout_latest_due", "YYYY-MM-DD, or null for no look-through earnout right: the latest time a possible financial benefit becomes or could become due under a look-through earnout right relating to the asset and this disposal, on or after event_date; the replacement asset period ends no earlier than 6 months after it (s 104-190(1A)(b)(ii))"),
         ],
+        "psi_test" => vec![
+            ("earner", "employee, sole_trader or entity: who receives the income: the individual as an employee, office holder or religious practitioner (s 85-35), the individual as a contractor, or a company, partnership or trust (a personal services entity)"),
+            ("mainly_personal_efforts", "boolean: the income is mainly a reward for the individual's personal efforts or skills (s 84-5(1))"),
+            ("determination_in_force", "boolean: a personal services business determination is in force for the individual's PSI (s 87-15(1)(a) or (b))"),
+            ("payers", "list of 1 to 50 objects, one for each payer with its associates (s 87-15(3)): amount (AUD, the PSI from it in the year), associate (it is an associate of the individual or entity), offer (it engaged the individual or entity as a direct result of offers to the public, s 87-20), and result, tools and defects (the income is for producing a result, the individual or entity supplies the tools and is liable for defects, s 87-18), each a boolean"),
+            ("agent", "boolean: the individual or entity is an agent of a principal, not its employee, paid for services to the principal's customers (s 87-40(2)); then commission and principal_payments are required"),
+            ("principal_work_by_others", "AUD: the market value of the principal work others the individual or entity engaged performed in the year (s 87-25(1) and (2)); TR 2022/3 paragraph 118 measures it against the PSI"),
+            ("apprentice", "boolean: the individual or entity had one or more apprentices for at least half the year (s 87-25(3))"),
+            ("premises", "object of 5 booleans for the business premises test (s 87-30): at_all_times (maintained and used at all times in the year), mainly_for_psi, exclusive_use, separate_from_private and separate_from_clients"),
+        ],
         "income_tests" => vec![
             ("taxable_income", "AUD, whole dollars: taxable income, including any assessable FHSS released amount (nil for a loss)"),
             ("assessable_fhss_released_amount", "AUD: the amount ITAA 1997 s 313-20 includes in assessable income for released FHSS amounts"),
@@ -4095,6 +4130,29 @@ pub fn examples(kind: &str) -> Vec<(&'static str, Example)> {
             ("earnout_latest_due", Json("null")),
             ("retirement_exemption_used", Text("0.00")),
             ("choice_date", Text("2026-06-30")),
+        ],
+        // TR 2022/3 example 20: Joe installs ducts to plans with his own tools
+        // and is liable for defects; the amount is the site's.
+        "psi_test" => vec![
+            ("year", Text("2025-26")),
+            ("earner", Text("sole_trader")),
+            ("mainly_personal_efforts", Flag(true)),
+            ("determination_in_force", Flag(false)),
+            (
+                "payers",
+                Json(
+                    r#"[{"amount": "18000.00", "associate": false, "offer": false, "result": true, "tools": true, "defects": true}]"#,
+                ),
+            ),
+            ("agent", Flag(false)),
+            ("principal_work_by_others", Text("0.00")),
+            ("apprentice", Flag(false)),
+            (
+                "premises",
+                Json(
+                    r#"{"at_all_times": false, "mainly_for_psi": false, "exclusive_use": false, "separate_from_private": false, "separate_from_clients": false}"#,
+                ),
+            ),
         ],
         "income_tests" => vec![
             ("year", Text("2025-26")),

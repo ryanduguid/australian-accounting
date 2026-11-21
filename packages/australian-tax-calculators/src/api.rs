@@ -698,6 +698,21 @@ const COMMAND_ARGS: &[(&str, &[(&str, Kind)])] = &[
         ],
     ),
     (
+        "psi-test",
+        &[
+            ("earner", Raw),
+            ("mainly_personal_efforts", Raw),
+            ("determination_in_force", Raw),
+            ("payers", Json),
+            ("agent", Raw),
+            ("principal_work_by_others", Dec),
+            ("apprentice", Raw),
+            ("premises", Json),
+            ("year", Raw),
+            ("scope_confirmed", Raw),
+        ],
+    ),
+    (
         "income-tests",
         &[
             ("taxable_income", Dec),
@@ -1190,6 +1205,7 @@ pub fn evaluate_coded(command: &str, v: &Value) -> Result<Value> {
             | "income-tests"
             | "luxury-car-tax"
             | "sb-cgt-concessions"
+            | "psi-test"
             | "business-capital-expenditure"
             | "balancing-adjustment"
             | "trade-in"
@@ -1887,6 +1903,24 @@ pub fn evaluate_coded(command: &str, v: &Value) -> Result<Value> {
         "income-tests" => {
             let named: Vec<(&str, &Arg)> = params.iter().map(|(key, _)| *key).zip(&a).collect();
             engine::income_tests(&named)
+        }
+        "psi-test" => {
+            // Optional: an agent's commission and the principal's payments.
+            let [commission, principal] = engine::PSI_OPTIONAL.map(|key| optional(v, key, Dec));
+            let given = [commission?, principal?];
+            engine::psi_test(&engine::PsiTestArgs {
+                earner: &a[0],
+                mainly_personal_efforts: &a[1],
+                determination_in_force: &a[2],
+                payers: &a[3],
+                agent: &a[4],
+                principal_work_by_others: &a[5],
+                apprentice: &a[6],
+                premises: &a[7],
+                year: &a[8],
+                scope_confirmed: &a[9],
+                optional: given.each_ref().map(Option::as_ref),
+            })
         }
         "luxury-car-tax" => engine::luxury_car_tax(&engine::LctArgs {
             lines: &a[0],
