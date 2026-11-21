@@ -1830,7 +1830,7 @@ pub fn optional_inputs(kind: &str) -> Vec<(&'static str, &'static str)> {
             ),
             (
                 "likely_turnover",
-                "AUD, with net_small_business_income above nil only, and then required: your likely aggregated turnover for the year, as at its first day (s 328-110(1)(b)(ii) and (2))",
+                "AUD, with net_small_business_income above nil only, and then required: your likely aggregated turnover for the year, worked out as at its first day, or as at the day you started the business if that was during the year (s 328-110(1)(b)(ii) and (2))",
             ),
             (
                 "year_turnover",

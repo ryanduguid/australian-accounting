@@ -224,7 +224,6 @@ fn the_turnover_test_is_at_5_million() {
     assert_eq!(barred["small_business_entity_rule"], Value::Null);
     assert_eq!(barred["amounts"]["offset"], "0.00");
     assert_eq!(barred["conditions"][0]["met"], false);
-    assert_eq!(barred["conditions"][1]["met"], false);
     let at_end = turnovers(
         json!("5000000.00"),
         json!("5000000.00"),
@@ -287,14 +286,12 @@ fn each_share_is_net_of_its_deductions_and_not_below_zero() {
     // 16% x 18,788 x 4,000 / 90,000 = 133.60.
     assert_eq!(result["amounts"]["offset"], "133.60");
     assert_eq!(result["small_business_entity_rule"], Value::Null);
-    assert_eq!(result["conditions"][0]["condition"], "entitled");
-    assert_eq!(result["conditions"][0]["met"], true);
+    assert_eq!(result["conditions"], json!([]));
     // No business facts are taken without net small business income of your own.
     let extra = with(partner(json!([])), json!({"business": "carried_on"}));
     assert_eq!(code(&extra), "input.field_unknown");
     let none = run(&partner(json!([])));
     assert_eq!(none["amounts"]["offset"], "0.00");
-    assert_eq!(none["conditions"][0]["met"], false);
 }
 
 /// Own and partnership income together, capped at taxable income.
@@ -311,6 +308,14 @@ fn own_and_share_income_add_up_to_taxable_income() {
     // 16% of 2,242 = 358.72; 1,542 is left after the low income tax offset.
     assert_eq!(result["amounts"]["offset"], "358.72");
     assert_eq!(result["amounts"]["offset_applied"], "358.72");
+}
+
+/// Offsets applied first that leave less than this offset: the liability
+/// left absorbs part of it and the rest is lost (s 63-10(1) item 20).
+#[test]
+fn part_of_the_offset_is_absorbed() {
+    let result = run(&sole("2021-22", "25000", "25000.00", "1292.00", "1200.00"));
+    assert_eq!(amounts(&result), ["25000.00", "206.72", "92.00", "114.72"]);
 }
 
 #[test]

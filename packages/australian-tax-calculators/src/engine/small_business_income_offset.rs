@@ -222,11 +222,6 @@ pub fn small_business_income_offset(args: &SmallBusinessIncomeOffsetArgs) -> Res
     let shares_net = shares
         .iter()
         .try_fold(int(0), |sum, share| sum.add(share))?;
-    conditions.push(condition(
-        "entitled",
-        "ITAA 1997 s 328-355: you are a small business entity for the income year, or your assessable income includes a share of a small business entity's net small business income or an amount s 328-355(c) covers",
-        matches!(entity, Some(Some(_))) || !shares.is_empty(),
-    ));
 
     let sum = counted.add(&shares_net)?;
     let total = py_min(sum, taxable.clone())?;
