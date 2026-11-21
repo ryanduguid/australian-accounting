@@ -164,6 +164,7 @@ pub(super) fn text(register: &Value) -> String {
         date("current_to"),
         date("expiring_by")
     );
+    out.push_str("Current and non-current amounts follow scheduled payments. The preparer determines the applicable reporting framework and assesses the other classification criteria.\n");
     balance_tables(&mut out, register);
     period_tables(&mut out, register);
     interest_tables(&mut out, register);

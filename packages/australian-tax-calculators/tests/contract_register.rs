@@ -615,6 +615,101 @@ fn refused(args: &[&str], csv: &str) -> (String, String) {
 }
 
 #[test]
+fn payments_on_the_balance_date_and_current_cutoff_are_included() {
+    let arrears =
+        "AA,Client A,Financier,hire_purchase,2025-06-30,3600.00,100.00,36,monthly,in_arrears,0.00";
+    let advance = "BB,Client B,Financier,hire_purchase,2025-06-30,3000.00,100.00,24,monthly,in_advance,600.00";
+    let report = register(&format!("{HEADER}\n{arrears}\n{advance}\n"));
+    assert_eq!(report["current_to"], "2027-06-30");
+
+    // In arrears, the 12th payment reduces the closing balance on 30 June
+    // 2026. The 24th payment on 30 June 2027 falls within the current window.
+    let first = contract(&report, "AA");
+    assert_eq!(first["outstanding"], "2400.00");
+    assert_eq!(first["current"], "1200.00");
+    assert_eq!(first["non_current"], "1200.00");
+
+    // In advance, any instalment due on 30 June belongs to the year ending
+    // that day. The last $600 balloon settles when the current window closes.
+    let second = contract(&report, "BB");
+    assert_eq!(second["outstanding"], "1700.00");
+    assert_eq!(second["current"], "1700.00");
+    assert_eq!(second["non_current"], "0.00");
+    assert_eq!(second["final_payment_date"], "2027-06-30");
+    let years: Vec<_> = list(second, "by_income_year")
+        .iter()
+        .map(|row| {
+            (
+                row["income_year"].as_str().unwrap(),
+                row["payments"].as_str().unwrap(),
+            )
+        })
+        .collect();
+    assert_eq!(
+        years,
+        [
+            ("2024-25", "100.00"),
+            ("2025-26", "1200.00"),
+            ("2026-27", "1700.00")
+        ]
+    );
+}
+
+#[test]
+fn the_scheduled_split_names_the_applicable_authorities() {
+    let loan =
+        "AA,Client,Financier,hire_purchase,2024-07-01,6000.00,100.00,60,monthly,in_arrears,0.00";
+    let csv = format!("{HEADER}\n{loan}\n");
+    let args = ["--balance-date", "2027-12-31", "--scope-confirmed"];
+    let (code, json, err) = run(&args, &csv);
+    assert_eq!(code, 0, "{err}");
+    let report: Value = serde_json::from_str(&json).unwrap();
+    assert_eq!(report["current_to"], "2028-12-31");
+    let basis = list(&report, "basis")
+        .iter()
+        .filter_map(Value::as_str)
+        .find(|line| line.contains("scheduled for settlement"))
+        .unwrap();
+    assert!(basis.contains("AASB 101 paragraph 69(c)"));
+    assert!(basis.contains("AASB 18 paragraph 101(c)"));
+    assert!(basis.contains("AASB 1060 paragraph 40(c)"));
+    assert!(
+        report["scope"]
+            .as_str()
+            .unwrap()
+            .contains("preparer determines")
+    );
+
+    let args = [
+        "--balance-date",
+        "2027-12-31",
+        "--scope-confirmed",
+        "--format",
+        "text",
+    ];
+    let (code, text, err) = run(&args, &csv);
+    assert_eq!(code, 0, "{err}");
+    assert!(text.lines().nth(1).unwrap().contains("scheduled payments"));
+    assert!(text.contains("AASB 18 paragraph 101(c)"));
+}
+
+#[test]
+fn windows_csv_accepts_a_bom_and_trailing_blank_lines() {
+    let loan =
+        "HP-1,Client,Financier,hire_purchase,2025-07-01,1200.00,100.00,12,monthly,in_arrears,0.00";
+    let expected = register(&format!("{HEADER}\n{loan}\n"));
+
+    assert_eq!(
+        register(&format!("\u{feff}{HEADER}\r\n{loan}\r\n\r\n")),
+        expected
+    );
+    let args = ["--balance-date", BALANCE, "--scope-confirmed"];
+    let (code, message) = refused(&args, &format!("{HEADER}\r\n{loan}\r\n\r\n{loan}\r\n"));
+    assert_eq!(code, "contract_register.csv_invalid");
+    assert_eq!(message, "line 3: an empty line may only end the file");
+}
+
+#[test]
 fn a_malformed_line_is_refused_with_its_number() {
     let args = ["--balance-date", BALANCE, "--scope-confirmed"];
     let good = "HP-1,Client,Financier,hire_purchase,2026-03-01,10000.00,100.00,12,monthly,in_arrears,10000.00";
