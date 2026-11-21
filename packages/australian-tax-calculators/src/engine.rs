@@ -6161,8 +6161,10 @@ mod ppsr_timing;
 pub use ppsr_timing::ppsr_timing;
 mod sb_cgt_concessions;
 pub use sb_cgt_concessions::{SB_CGT_OPTIONAL, SbCgtConcessionsArgs, sb_cgt_concessions};
+mod rental_property;
+pub use rental_property::{RentalPropertyArgs, rental_property};
 
-const KINDS: [&str; 66] = [
+const KINDS: [&str; 67] = [
     "gst",
     "gst_margin_scheme",
     "fuel_tax_credits",
@@ -6229,6 +6231,7 @@ const KINDS: [&str; 66] = [
     "ppsr_timing",
     "wine_equalisation_tax",
     "sb_cgt_concessions",
+    "rental_property",
 ];
 
 /// `periods(kind)`: accepted period arguments and inclusive calendar boundaries.

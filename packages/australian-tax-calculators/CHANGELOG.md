@@ -4,6 +4,25 @@
 
 - Relicensed Ryan Duguid's code under AGPL-3.0-or-later with section 7(b) attribution terms.
 
+### Added
+
+- `rental-property`: one residential rental property's income and deductions
+  for one owner and income year from 2020-21 to 2026-27, by the lines of the
+  ATO's rental property worksheet at the owner's legal interest, apportioned
+  by the days let or available for rent; travel denied (s 26-31); interest on
+  a mixed-use loan (TR 2000/2); borrowing expenses through
+  `borrowing-expenses-schedule`; capital works at 2.5% or 4% within the
+  undeducted construction expenditure (Division 43); decline in value nil
+  where s 40-27 reduces it; the net rent and, for 2024-25 to 2026-27, its
+  effect on tax at the resident scale. New codes:
+  `rental_property.asset_acquired_9_may_2017`,
+  `rental_property.asset_transition_unclear`,
+  `rental_property.fact_conflict`, `rental_property.fact_invalid`,
+  `rental_property.interest_redraw`, `rental_property.s26_50_denied`,
+  `rental_property.tax_effect_year` and
+  `rental_property.works_days_unclear`. `tests/rental_property.rs` holds it to
+  the ATO's Rental properties guide 2026 examples.
+
 ### Fixed
 
 - Both borrowing expenses worksheets identify their deduction amounts as

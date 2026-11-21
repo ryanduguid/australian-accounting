@@ -259,6 +259,10 @@ pub const SCOPES: &[(&str, &str)] = &[
         "Tax-exempt body entertainment fringe benefits (FBTAA s 38) in the FBT year ended 31 March 2026 or 2027: non-deductible exempt entertainment expenditure (s 136(1)) an employer wholly or partly exempt from income tax, or without assessable income from the activities the entertainment relates to, incurred in entertaining employees or their associates. The taxable value is so much of the expenditure as is attributable to that entertainment (s 39): actual takes the amount the operator attributes to employees and associates; per_head apportions a function's expenditure by the employees and associates entertained over everyone entertained, rounded to cents, where the actual amount cannot easily be worked out (the employer's guide, 15.9). No recipient's contribution or reduction applies (FBT return 2026 instructions, item 23L). Excludes deciding what is entertainment or exempt (such as minor benefits, s 58P), meal entertainment valued under Division 9A (fbt-meal-entertainment), the 50/50 split for entertainment facility leasing expenses (s 152B), splitting the value between type 1 and type 2 for fbt, gross-up and FBT payable.",
     ),
     (
+        "rental_property",
+        "One residential rental property for one owner and one income year from 2020-21 to 2026-27: the owner's share of rent and other rental income (ITAA 1997 s 6-5) and of the expenses by the ATO worksheet's lines, apportioned by the days let or available for rent on commercial terms over the days held except those relating solely to renting (s 8-1; Rental properties guide 2026, 'Time-based method'), travel shown and denied (s 26-31); interest on the owner's own loans at the share of principal used for the rental (TR 2000/2); borrowing expenses through borrowing-expenses-schedule (s 25-25); capital works at 2.5% or 4% by when they began, for the days used and within the undeducted construction expenditure (Division 43); each depreciating asset's decline in value as given, nil where s 40-27 reduces it; the net rent; and, with other taxable income for 2024-25 to 2026-27, the tax at the resident scale without and with it. The operator establishes that the owner is an individual not carrying on a business of letting and not an entity excepted by ss 26-31(2), 40-27(3) or 26-102(5); the owner's legal interest; that the whole dwelling is let as residential accommodation at a market rent, with no area-based apportionment and no non-commercial letting; that the days counted as available exclude any day the land was vacant under s 26-102 and any private use; the line each expense belongs on, that it is revenue (not capital, an initial repair or an improvement) and whether it relates solely to renting; each loan's interest and principal split with no redraw or further drawing in the year; the construction expenditure from a builder's contract or a qualified estimate, and when the works began and were first used; and each asset's decline in value and the facts s 40-27 turns on. Excludes holiday homes whose costs s 26-50 denies (refused); the 4% manner (build to rent and short-term traveller accommodation); GST on short-stay letting; s 26-155 from 2027-28; Medicare levy, the surcharge, offsets and tax losses in the effect on tax; and working out the decline in value or the construction expenditure.",
+    ),
+    (
         "sb_cgt_concessions",
         "A capital gain from CGT event A1 (a disposal, ITAA 1997 s 104-10) of a CGT asset acquired from 20 September 1985 that is not a share in a company, an interest in a trust (s 152-10(2)) or a right or interest in a partnership's income or capital (s 152-10(2C)), under a contract made in the 2025-26 or 2026-27 income year, before Act No. 49 of 2026's changes to Division 152 from the income year that includes 1 July 2027 (Schedule 1 item 82), by an individual, a company or a trust that is not a public entity (s 152-305(3)), none of them acting for a deceased estate (s 152-80). The operator establishes whether the business entity (you; the partnership for an interest in a partnership asset; or the affiliate, connected entity or partnership whose business uses a passively held asset) carried on a business in the year, its aggregated turnovers (s 328-115, with connected entities and affiliates), the net value of the CGT assets under ss 152-15 and 152-20, the total days in the test period on which the asset was an active asset (s 152-40), whether the business ceased and when, and the retirement, incapacity and significant individual facts. The CGT small business entity test is s 328-110 with $2 million for each $10 million (s 152-10(1AA)). The test period counts both its first and last days; a total that may or may not be 7.5 years (2,737 to 2,740 days) is refused, as is an asset acquired on the same date 15 years before the event. The 15-year exemption, the 50% active asset reduction, the retirement exemption and the roll-over are each shown open or not, with the conditions not met; the amounts, the choices (ss 103-25, 152-220 and 152-315), the payments a company or trust must make (s 152-325), each stakeholder's limit (s 152-320(2)), the replacement asset (s 152-420), CGT events J2, J5 and J6, and look-through earnout rights other than their extension of the replacement asset period (s 104-190(1A)(b)(ii)) are outside it.",
     ),
@@ -520,6 +524,10 @@ pub const SOURCES: &[(&str, &str)] = &[
     (
         "sb_cgt_concessions",
         "https://www.legislation.gov.au/C2004A05138/2026-05-21/2026-05-21/text/original/epub/OEBPS/document_4/document_4.html",
+    ),
+    (
+        "rental_property",
+        "https://www.ato.gov.au/forms-and-instructions/rental-properties-2026",
     ),
 ];
 
@@ -1105,6 +1113,21 @@ pub const EXTRA_SOURCES: &[(&str, &[&str])] = &[
         ],
     ),
     (
+        "rental_property",
+        &[
+            "https://www.ato.gov.au/law/view/document?docid=PAC/19970038/8-1",
+            "https://www.ato.gov.au/law/view/document?docid=PAC/19970038/26-31",
+            "https://www.ato.gov.au/law/view/document?docid=PAC/19970038/40-27",
+            "https://www.ato.gov.au/law/view/document?docid=PAC/19970038/43-25",
+            "https://www.ato.gov.au/law/view/document?docid=PAC/19970038/43-210",
+            "https://www.ato.gov.au/law/view/document?docid=PAC/19970038/43-230",
+            "https://www.ato.gov.au/law/view/document?docid=PAC/19970038/43-235",
+            "https://www.legislation.gov.au/C2017A00126/asmade/text",
+            "https://www.ato.gov.au/law/view/document?docid=TXR/TR20002/NAT/ATO/00001",
+            "https://www.ato.gov.au/law/view/document?docid=TXR/TR9332/NAT/ATO/00001",
+        ],
+    ),
+    (
         "sb_cgt_concessions",
         &[
             "https://www.legislation.gov.au/C2004A05138/2026-05-21/2026-05-21/text/original/epub/OEBPS/document_3/document_3.html",
@@ -1154,6 +1177,13 @@ pub const EXTRA_WARNINGS: &[(&str, &[&str])] = &[
         "fuel_tax_credits",
         &[
             "Each line's rate is the one the ATO publishes for its acquisition day; the ATO's fuel tax credit calculator remains the authority for an amount claimed.",
+        ],
+    ),
+    (
+        "rental_property",
+        &[
+            "Each line is the operator's classification: an expense that is capital, an initial repair or an improvement is not deductible under s 8-1 and goes to the cost base or capital works instead.",
+            "The amounts are to the cent; a return shows whole dollars, and the ATO's examples round the same figures to the dollar.",
         ],
     ),
     (
@@ -1377,6 +1407,10 @@ pub const UNPUBLISHED_2027_28: &[(&str, &str)] = &[
     ("main_residence", CGT_2027_28),
     ("cgt_parcels", CGT_2027_28),
     ("balancing_adjustment", CGT_2027_28),
+    (
+        "rental_property",
+        "From 2027-28 ITAA 1997 s 26-155 (Act No. 49 of 2026) can quarantine residential rental deductions above the rental income, which this worksheet does not apply.",
+    ),
     (
         "sb_cgt_concessions",
         "From 2027-28 Schedule 1 to Act No. 49 of 2026 changes Division 152, and this worksheet has not been checked against it.",
@@ -2146,7 +2180,7 @@ pub const REFUSAL_CODES: &[(&str, &str)] = &[
     ),
     (
         "input.field_unknown",
-        "A field the worksheet or command does not take, or does not take beside the other inputs given, was given (fbt-loan, fbt-meal-entertainment, fbt-car-parking, fbt-debt-waiver, fbt-expense-payment, fbt-property, fbt-residual, fbt-housing, fbt-lafha, fbt-board, fbt-tax-exempt-body-entertainment, fbt-entertainment-classifier, fbt-meal-entertainment-register and its entries, fbt-minor-benefit-check, ppsr-timing, fhss and its contributions, personal_deductions and determination, division-296, depreciation, fuel-tax-credits and its lines, foreign-resident-tax, medicare-levy, medicare-levy-surcharge, payg-withholding, payg-gross-up, termination-payment, etp-tax-free-component, unused-leave-payment, the Schedule 5 methods, working-holiday-maker-withholding, study-loan-withholding, seniors-pensioners-withholding, seniors-pensioners-tax-offset, lump-sum-arrears-tax-offset, hire-purchase-schedule, chattel-mortgage-schedule, loan-transactions and its transactions and rate_changes, borrowing-expenses-schedule and its loans, business-capital-expenditure and its items, balancing-adjustment, its years and car_limit, trade-in, franking-account and its events, distributions and income_tax, dasp-tax, gst-margin-scheme, wine-equalisation-tax and its dealings, luxury-car-tax and its lines, payroll-tax, cgt-parcels, its parcels and disposals, fbt-ev-exemption-check, sb-cgt-concessions, contribution-caps given a carry-forward input, derive, personal-tax-estimate, dgr-check, income-tests and fbt-return only).",
+        "A field the worksheet or command does not take, or does not take beside the other inputs given, was given (fbt-loan, fbt-meal-entertainment, fbt-car-parking, fbt-debt-waiver, fbt-expense-payment, fbt-property, fbt-residual, fbt-housing, fbt-lafha, fbt-board, fbt-tax-exempt-body-entertainment, fbt-entertainment-classifier, fbt-meal-entertainment-register and its entries, fbt-minor-benefit-check, ppsr-timing, fhss and its contributions, personal_deductions and determination, division-296, depreciation, fuel-tax-credits and its lines, foreign-resident-tax, medicare-levy, medicare-levy-surcharge, payg-withholding, payg-gross-up, termination-payment, etp-tax-free-component, unused-leave-payment, the Schedule 5 methods, working-holiday-maker-withholding, study-loan-withholding, seniors-pensioners-withholding, seniors-pensioners-tax-offset, lump-sum-arrears-tax-offset, hire-purchase-schedule, chattel-mortgage-schedule, loan-transactions and its transactions and rate_changes, borrowing-expenses-schedule and its loans, business-capital-expenditure and its items, balancing-adjustment, its years and car_limit, trade-in, franking-account and its events, distributions and income_tax, dasp-tax, gst-margin-scheme, wine-equalisation-tax and its dealings, luxury-car-tax and its lines, payroll-tax, cgt-parcels, its parcels and disposals, fbt-ev-exemption-check, sb-cgt-concessions, rental-property and its loans, capital_works and depreciating_assets, contribution-caps given a carry-forward input, derive, personal-tax-estimate, dgr-check, income-tests and fbt-return only).",
     ),
     ("input.flag_invalid", "A flag is not a JSON boolean."),
     ("input.fraction_invalid", "A fraction is outside 0 to 1."),
@@ -2465,6 +2499,38 @@ pub const REFUSAL_CODES: &[(&str, &str)] = &[
     (
         "ppsr_timing.time_unresolved",
         "An input or calculated time falls in the skipped or repeated ACT hour at a daylight saving change.",
+    ),
+    (
+        "rental_property.asset_acquired_9_may_2017",
+        "A depreciating asset was acquired on 9 May 2017, and s 40-27 applies only from 7.30 pm that day.",
+    ),
+    (
+        "rental_property.asset_transition_unclear",
+        "A depreciating asset acquired before 9 May 2017 had nothing deductible for 2016-17, so s 40-27 turns on its start time, which the worksheet does not take.",
+    ),
+    (
+        "rental_property.fact_conflict",
+        "The facts contradict each other or the income year: dates outside it or out of order, days available over the days held, or principal for the rental over the total.",
+    ),
+    (
+        "rental_property.fact_invalid",
+        "A rental property input is not the kind of value it takes: a list, an object of amounts, a date, a whole number of days, a kind of capital works or an ownership share.",
+    ),
+    (
+        "rental_property.interest_redraw",
+        "A loan had a redraw or further drawing in the year, which changes its share of principal used for the rental from that day.",
+    ),
+    (
+        "rental_property.s26_50_denied",
+        "The property is a holiday home whose ownership costs s 26-50 denies.",
+    ),
+    (
+        "rental_property.tax_effect_year",
+        "other_taxable_income was given for a year before 2024-25, for which resident-tax holds no scale.",
+    ),
+    (
+        "rental_property.works_days_unclear",
+        "Capital works were first used after the property was first held in the year, and it was not available on every day held, so their days used are not known.",
     ),
     (
         "sb_cgt_concessions.active_period_unclear",
