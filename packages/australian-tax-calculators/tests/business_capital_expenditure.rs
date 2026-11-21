@@ -457,6 +457,8 @@ fn refusals_name_what_is_missing() {
     );
     for (bad, expected) in [
         (json!({"amount": "-1.00"}), "input.amount_invalid"),
+        (json!({"amount": "1e4"}), "input.amount_invalid"),
+        (json!({"amount": "10__000"}), "input.amount_invalid"),
         (json!({"amount": "NaN"}), "input.amount_invalid"),
         (json!({"amount": "Infinity"}), "input.amount_invalid"),
         (json!({"amount": 100}), "input.amount_invalid"),
@@ -480,6 +482,7 @@ fn refusals_name_what_is_missing() {
             "business_capital.fact_invalid",
         ),
         (json!({"taxable_purpose": "1.5"}), "input.fraction_invalid"),
+        (json!({"taxable_purpose": ".5"}), "input.fraction_invalid"),
         (
             json!({"exclusions": ["5(k)"]}),
             "business_capital.fact_invalid",

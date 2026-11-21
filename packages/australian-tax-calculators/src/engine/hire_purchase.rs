@@ -503,7 +503,7 @@ fn read_payout(value: &Arg, agreement: &Agreement, start: i64) -> Result<Payout>
     let text = |key: &str| fields.get(key).and_then(Value::as_str);
     let (Some(day), Some(amount), Some(known)) = (
         text("date").and_then(dates::parse),
-        text("amount").and_then(|t| Decimal::parse(t).ok()),
+        text("amount").and_then(|t| Decimal::parse_input(t).ok()),
         fields.get("known_at_start").and_then(Value::as_bool),
     ) else {
         return payout_invalid();

@@ -173,7 +173,7 @@ fn movements(value: &Arg, days: (i64, i64)) -> Result<Vec<Movement>> {
         let Some(amount) = fields
             .get("amount")
             .and_then(Value::as_str)
-            .and_then(|t| Decimal::parse(t).ok())
+            .and_then(|t| Decimal::parse_input(t).ok())
         else {
             return invalid(what, n, "amount must be a decimal string");
         };
@@ -204,7 +204,7 @@ fn rate_changes(value: Option<&Arg>, (start, end): (i64, i64)) -> Result<Vec<(i6
         let given = fields
             .get("annual_rate")
             .and_then(Value::as_str)
-            .and_then(|t| Decimal::parse(t).ok());
+            .and_then(|t| Decimal::parse_input(t).ok());
         let Some(given) = given else {
             return invalid(what, n, "annual_rate must be a decimal string");
         };

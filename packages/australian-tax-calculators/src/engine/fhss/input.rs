@@ -49,7 +49,7 @@ pub(super) fn fy_label(start: i64) -> String {
 /// A decimal string field of a list item, as `money` reads one.
 pub(super) fn item_money(fields: &Map<String, Value>, key: &str, what: &str) -> Result<Decimal> {
     let parsed = match fields.get(key) {
-        Some(Value::String(text)) if text.len() <= 64 => Decimal::parse(text).ok(),
+        Some(Value::String(text)) if text.len() <= 64 => Decimal::parse_input(text).ok(),
         _ => None,
     };
     match parsed.map(|v| money(&Arg::Decimal(v))) {

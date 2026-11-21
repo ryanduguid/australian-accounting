@@ -129,7 +129,7 @@ fn consumption(fields: &Map<String, Value>, n: usize) -> Result<Option<Decimal>>
     let key = "fuel_consumption_litres_per_100km";
     let parsed = match required(fields, n, key)? {
         Value::Null => return Ok(None),
-        Value::String(text) if text.len() <= 32 => Decimal::parse(text).ok(),
+        Value::String(text) if text.len() <= 32 => Decimal::parse_input(text).ok(),
         _ => None,
     };
     let valid = |v: &Decimal| -> Result<bool> {

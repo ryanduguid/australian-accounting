@@ -83,7 +83,7 @@ fn flag(fields: &Map<String, Value>, key: &str) -> Result<Option<bool>> {
 
 fn decimal(fields: &Map<String, Value>, key: &str) -> Option<Arg> {
     fields.get(key).map(
-        |value| match value.as_str().and_then(|t| Decimal::parse(t).ok()) {
+        |value| match value.as_str().and_then(|t| Decimal::parse_input(t).ok()) {
             Some(v) => Arg::Decimal(v),
             None => Arg::Other(value.to_string()),
         },

@@ -125,11 +125,12 @@ the amount outstanding split into current and non-current. See
 ## Commands
 
 Each command takes the original function's keyword arguments, in this order, as
-one JSON object. Amounts and ratios are decimal strings; a JSON number, `null`
-or text that is not a decimal is refused, as the Python function refused a
-value that was not a `Decimal`. Flags are JSON booleans and counts, ages, days,
-quarters and scales are JSON integers. `australian-tax-calculators --api-help`
-lists the commands.
+one JSON object. For amounts and ratios, pass a string of ASCII digits with an
+optional leading minus sign and optional decimal point followed by digits,
+such as `"1000.00"` or `"-0.50"`. Surrounding whitespace is allowed. Expand
+exponents and remove digit separators before sending a value. Flags are JSON
+booleans and counts, ages, days, quarters and scales are JSON integers.
+`australian-tax-calculators --api-help` lists the commands.
 
 | Command | Arguments |
 | --- | --- |

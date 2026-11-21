@@ -80,7 +80,7 @@ fn row_invalid<T>(n: usize, key: &str, expected: &str) -> Result<T> {
 fn amount(fields: &Map<String, Value>, key: &str, at: &str) -> Result<Decimal> {
     let parsed = match fields.get(key) {
         None => return missing(at, key),
-        Some(Value::String(text)) => Decimal::parse(text).ok(),
+        Some(Value::String(text)) => Decimal::parse_input(text).ok(),
         Some(_) => None,
     };
     match parsed.map(|value| money(&Arg::Decimal(value))) {

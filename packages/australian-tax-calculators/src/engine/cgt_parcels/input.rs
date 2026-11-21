@@ -54,7 +54,9 @@ impl<'a> Fields<'a> {
     }
 
     fn decimal(value: Option<&Value>) -> Option<Decimal> {
-        value?.as_str().and_then(|text| Decimal::parse(text).ok())
+        value?
+            .as_str()
+            .and_then(|text| Decimal::parse_input(text).ok())
     }
 
     /// An amount in AUD; nil when an optional one is absent.

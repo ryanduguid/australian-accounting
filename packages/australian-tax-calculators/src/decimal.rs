@@ -160,6 +160,22 @@ impl Decimal {
         parse_ascii(&ascii).ok_or(Signal::InvalidOperation)
     }
 
+    /// A worksheet's typed decimal input. Non-finite values reach the worksheet's own refusal.
+    pub(crate) fn parse_input(text: &str) -> Calc<Decimal> {
+        let parsed = Self::parse(text)?;
+        let stripped = pytext::strip(text);
+        let unsigned = stripped.strip_prefix('-').unwrap_or(stripped);
+        if !parsed.is_finite()
+            || unsigned
+                .splitn(2, '.')
+                .all(|part| !part.is_empty() && part.bytes().all(|byte| byte.is_ascii_digit()))
+        {
+            Ok(parsed)
+        } else {
+            Err(Signal::InvalidOperation)
+        }
+    }
+
     pub fn is_finite(&self) -> bool {
         self.kind == Kind::Finite
     }
