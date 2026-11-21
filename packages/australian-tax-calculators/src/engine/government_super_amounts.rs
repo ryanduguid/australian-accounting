@@ -63,8 +63,12 @@ const TAPER: &str = "Superannuation (Government Co-contribution for Low Income E
 const MAXIMUM: &str = "Superannuation (Government Co-contribution for Low Income Earners) Act 2003 s 10(1C): $500, less the taper between the thresholds";
 const CO_CONTRIBUTION: &str = "Superannuation (Government Co-contribution for Low Income Earners) Act 2003 ss 9, 10(1C) and 11: the matched amount up to the maximum, and at least $20, where every s 6(1) condition is met";
 const PAID: &str = "Superannuation (Government Co-contribution for Low Income Earners) Regulations 2022 reg 15(2) (2004 Regulations reg 24(2) before 1 April 2022): an amount paid that is not a multiple of 5 cents is increased to the next multiple of 5 cents";
-const LISTO_15: &str = "Superannuation (Government Co-contribution for Low Income Earners) Act 2003 s 12E(2)(a) and (3): 15% of the concessional contributions for the financial year, without constitutionally protected fund amounts and other s 291-165(1)(c) amounts";
+const LISTO_15: &str = "Superannuation (Government Co-contribution for Low Income Earners) Act 2003 s 12E(2)(a) and (3): 15% of the concessional contributions for the financial year; a person with contributions or amounts s 12E(3) disregards (constitutionally protected funds, ITAA 1997 s 291-370(1)(a), and other s 291-165(1)(c) amounts) is outside scope";
 const LISTO: &str = "Superannuation (Government Co-contribution for Low Income Earners) Act 2003 s 12E(2): 15% to the nearest cent (the ATO's 'Low income super tax offset'), at most $500 and at least $10, where every s 12C(1) condition is met";
+
+/// The 10% eligible income test's condition, which nil total income leaves
+/// unmeasured.
+const TEN_PERCENT: &str = "eligible_income_10_percent";
 
 /// Each amount's conditions: (id, authority), in the order of their facts.
 const CO_CONDITIONS: [(&str, &str); 8] = [
@@ -73,7 +77,7 @@ const CO_CONDITIONS: [(&str, &str); 8] = [
         "Co-contribution Act s 6(1)(a): one or more eligible personal superannuation contributions in the income year (s 7)",
     ),
     (
-        "eligible_income_10_percent",
+        TEN_PERCENT,
         "Co-contribution Act s 6(1)(b) and s 8(3): 10% or more of total income, before business deductions, from activities that make the person an employee (s 6(2)) or from carrying on a business",
     ),
     (
@@ -111,7 +115,7 @@ const LISTO_CONDITIONS: [(&str, &str); 4] = [
         "Co-contribution Act s 12C(1)(b): adjusted taxable income (A New Tax System (Family Assistance) Act 1999 Sch 3, disregarding cls 3 and 3A) does not exceed $37,000",
     ),
     (
-        "eligible_income_10_percent",
+        TEN_PERCENT,
         "Co-contribution Act s 12C(1)(c) and (3): the 10% eligible income test of s 6(1)(b)",
     ),
     (
@@ -174,6 +178,12 @@ fn payable<const N: usize>(
         return Ok(false);
     }
     match table.iter().zip(met).find(|(_, met)| met.is_none()) {
+        Some(((TEN_PERCENT, _), _)) => refuse(
+            "government_super_amounts.no_total_income",
+            format!(
+                "Total income is nil, so the 10% eligible income test (s 6(1)(b)) has no share to measure, and it decides the {amount}."
+            ),
+        ),
         Some(((id, authority), _)) => refuse(
             "government_super_amounts.fact_not_supplied",
             format!("{id} decides the {amount} and was not given ({authority})."),
@@ -260,7 +270,7 @@ fn co_contribution(
     let (lower, personal) = (&facts.lower, &facts.personal);
     let met = [
         Some(!personal.is_zero()),
-        Some(facts.ten_percent),
+        facts.ten_percent,
         Some(total.lt(&facts.higher)?),
         Some(facts.return_lodged),
         facts.non_concessional,
@@ -314,7 +324,7 @@ fn listo(values: &Values, facts: &Facts, conditions: &mut Vec<Condition>) -> Res
     let met = [
         Some(!concessional.is_zero()),
         Some(!ati.gt(&limit)?),
-        Some(facts.ten_percent),
+        facts.ten_percent,
         Some(true),
     ];
     let ok = payable(conditions, "listo", &LISTO_CONDITIONS, met)?;
@@ -350,7 +360,7 @@ struct Facts {
     higher: Decimal,
     personal: Decimal,
     concessional: Decimal,
-    ten_percent: bool,
+    ten_percent: Option<bool>,
     return_lodged: bool,
     under_71: bool,
     non_concessional: Option<bool>,
@@ -358,21 +368,19 @@ struct Facts {
 }
 
 /// The 10% eligible income test (s 6(1)(b)) on `test_total`, total income
-/// before business deductions (s 8(3)), refused where it cannot be measured.
-fn ten_percent(eligible: &Decimal, test_total: &Decimal, contributed: bool) -> Result<bool> {
+/// before business deductions (s 8(3)); none when total income is nil, as
+/// there is then no share to measure.
+fn ten_percent(eligible: &Decimal, test_total: &Decimal) -> Result<Option<bool>> {
     if eligible.gt(test_total)? {
         return refuse(
             "government_super_amounts.fact_conflict",
             "eligible_income exceeds total income before business deductions, of which it is a part (s 8(3)).",
         );
     }
-    if test_total.is_zero() && contributed {
-        return refuse(
-            "government_super_amounts.no_total_income",
-            "Total income is nil, so the 10% eligible income test (s 6(1)(b)) has no share to measure.",
-        );
+    if test_total.is_zero() {
+        return Ok(None);
     }
-    Ok(!eligible.mul(&int(10))?.lt(test_total)?)
+    Ok(Some(!eligible.mul(&int(10))?.lt(test_total)?))
 }
 
 /// The person's facts for `year`, from the income measures in `values`; the
@@ -402,8 +410,7 @@ fn facts(inputs: &[(&str, &Arg)], values: &Values, year: &str) -> Result<(Facts,
         value(values, "business_deductions"),
     );
     let test_total = total.add(business)?;
-    let contributed = !(personal.is_zero() && concessional.is_zero());
-    let ten_percent = ten_percent(&eligible, &test_total, contributed)?;
+    let ten_percent = ten_percent(&eligible, &test_total)?;
     let step = step(
         "eligible_income_test_total",
         TEST_TOTAL,

@@ -429,6 +429,21 @@ fn refusals() {
         refusal("2025-26", json!({"personal_contributions": "100"})).0,
         "government_super_amounts.no_total_income"
     );
+    // Nil total income where another condition already fails: no refusal.
+    let unlodged = evaluate(
+        "2025-26",
+        json!({"personal_contributions": "100", "return_lodged": false}),
+    );
+    assert_eq!(amount(&unlodged, "co_contribution"), "0.00");
+    assert_eq!(amount(&unlodged, "listo"), "0.00");
+    assert_eq!(
+        met(&unlodged, "co_contribution", "eligible_income_10_percent"),
+        Value::Null
+    );
+    assert_eq!(
+        refusal("2025-26", json!({"concessional_contributions": "100"})).0,
+        "government_super_amounts.no_total_income"
+    );
     // Nothing to decide: no refusal.
     assert_eq!(
         amount(&evaluate("2025-26", json!({})), "co_contribution"),

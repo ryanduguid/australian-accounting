@@ -3205,7 +3205,12 @@ Choices the Act leaves to the reader:
   requires them, so nil contributions give no LISTO rather than the $10
   minimum of s 12E(2)(c).
 - s 6(1)(b) asks what share of total income is eligible; with nil total income
-  there is no share, so a contribution with nil total income is refused.
+  there is no share, so nil total income is refused where the test would decide
+  an amount, and not where another condition already fails.
+- s 12C(1)(a) counts concessional contributions that s 12E(3) leaves out of
+  the amount (constitutionally protected funds and other ITAA 1997
+  s 291-165(1)(c) amounts), so a person with them could be owed the $10
+  minimum on a nil 15%; such a person is out of scope.
 - s 290-230's conditions that turn on the time of each contribution (spouses,
   both resident, not living apart, a complying fund, not deductible, not a
   Family Law Act payment) decide which contributions count, so the operator
