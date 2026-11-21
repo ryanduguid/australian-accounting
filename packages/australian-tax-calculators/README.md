@@ -1248,7 +1248,12 @@ refused with `ato_interest_penalties.year_mismatch`. Dates are `YYYY-MM-DD`.
   (`intentional_disregard`, `recklessness`, `failure_to_take_reasonable_care`
   or `reasonable_care`) and optionally `not_reasonably_arguable`,
   `accepted_way_amount` (s 284-224), `increase` (s 284-220) and `disclosure`
-  (`none`, `before_examination` or `during_examination`, s 284-225). A
+  (`none`, `before_examination` or `during_examination`, s 284-225). A part
+  with a shortfall amount disclosed before an examination needs
+  `other_disclosed_before_examination`: the period's shortfall amounts
+  disclosed so in other statements (`0.00` when none), added to these parts'
+  for the $1,000 test of s 284-225(3) (MT 2012/3 para 35); a later disclosure
+  for the period means working the earlier statements again. A
   `not_reasonably_arguable` part needs `income_tax_payable` on the return for
   the threshold of s 284-90(3)(a); `trust_or_partnership: true` with one is
   refused. The base penalty amount is 75%, 50% or 25% of the shortfall less

@@ -1823,6 +1823,10 @@ pub fn optional_inputs(kind: &str) -> Vec<(&'static str, &'static str)> {
                 "boolean, statement_penalty only: true for a trust or partnership, whose not reasonably arguable positions (items 5 and 6) are refused",
             ),
             (
+                "other_disclosed_before_examination",
+                "AUD, statement_penalty with a part with a shortfall_amount disclosed before_examination only, and then required (0.00 when none): the shortfall amounts for the same accounting period disclosed before an examination in other statements, added to these parts' for s 284-225(3) (MT 2012/3 para 35)",
+            ),
+            (
                 "income_tax_payable",
                 "AUD, statement_penalty with a not_reasonably_arguable part only, and then required: the income tax payable for the year on the basis of the return (s 284-90(3)(a))",
             ),

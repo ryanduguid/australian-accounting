@@ -205,7 +205,8 @@ struct Context {
     tax: Option<u64>,
     unit: u32,
     sge: bool,
-    /// The shortfall amounts disclosed before an examination, in cents.
+    /// The period's shortfall amounts disclosed before an examination, in
+    /// cents: these parts' and the other statements' (MT 2012/3 para 35).
     disclosed_before: u64,
 }
 
@@ -304,16 +305,35 @@ fn work_part(number: usize, p: &Part, c: &Context) -> Result<(Value, u128, u128)
     Ok((out, bpa, penalty))
 }
 
+/// The period's shortfall amounts disclosed before an examination in other
+/// statements, needed only with a part here disclosed so.
+fn other_disclosures(f: &Facts, disclosed: bool) -> Result<u64> {
+    let key = "other_disclosed_before_examination";
+    match (disclosed, f.given(key)) {
+        (true, _) => f.cents(key),
+        (false, true) => refuse(
+            "input.field_unknown",
+            format!(
+                "{}: {key} is an input only with a part with a shortfall_amount disclosed before_examination.",
+                f.item()
+            ),
+        ),
+        (false, false) => Ok(0),
+    }
+}
+
 fn context(f: &Facts, parts: &[Part], made: i64, sge: bool) -> Result<Context> {
+    let disclosed: Vec<u64> = parts
+        .iter()
+        .filter(|p| p.disclosure == "before_examination")
+        .filter_map(|p| p.shortfall)
+        .collect();
+    let other = other_disclosures(f, !disclosed.is_empty())?;
     Ok(Context {
         tax: tax_payable(f, parts.iter().any(|p| p.not_arguable))?,
         unit: rates::penalty_unit(made).expect("a unit from 2020-21"),
         sge,
-        disclosed_before: parts
-            .iter()
-            .filter(|p| p.disclosure == "before_examination")
-            .filter_map(|p| p.shortfall)
-            .sum(),
+        disclosed_before: disclosed.iter().sum::<u64>() + other,
     })
 }
 
@@ -334,6 +354,7 @@ pub(super) fn statement_penalty(f: &Facts, period: &str) -> Result<Value> {
         "significant_global_entity",
         "trust_or_partnership",
         "income_tax_payable",
+        "other_disclosed_before_examination",
         "parts",
     ])?;
     let made = f.date("statement_date")?;

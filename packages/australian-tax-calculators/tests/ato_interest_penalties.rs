@@ -390,6 +390,14 @@ fn statement(date: &str, sge: bool, parts: Value) -> Value {
     json!({"statement_date": date, "significant_global_entity": sge, "parts": parts})
 }
 
+/// A statement whose parts were disclosed before examination, with the
+/// period's other such disclosures.
+fn disclosed(parts: Value, other: &str) -> Value {
+    let mut out = statement("2026-03-15", false, parts);
+    out["other_disclosed_before_examination"] = json!(other);
+    out
+}
+
 fn penalty(facts: Value) -> String {
     let year = {
         let day = facts["statement_date"].as_str().unwrap();
@@ -466,25 +474,39 @@ fn statement_penalties_work_each_part_at_its_own_rate() {
 #[test]
 fn a_disclosure_before_examination_cuts_80_percent_or_to_nil() {
     let one = |amount: &str| json!([{"shortfall_amount": amount, "behaviour": "failure_to_take_reasonable_care", "disclosure": "before_examination"}]);
+    assert_eq!(penalty(disclosed(one("999.99"), "0.00")), "0.00");
+    assert_eq!(penalty(disclosed(one("1000.00"), "0.00")), "50.00");
+    // MT 2012/3 para 35: 2 statements of $600 for one period, worked apart.
+    assert_eq!(penalty(disclosed(one("600.00"), "600.00")), "30.00");
     assert_eq!(
-        penalty(statement("2026-03-15", false, one("999.99"))),
-        "0.00"
+        code(
+            "statement_penalty",
+            "2025-26",
+            statement("2026-03-15", false, one("600.00"))
+        ),
+        "input.missing_field"
     );
+    let mut stray = statement(
+        "2026-03-15",
+        false,
+        json!([{"shortfall_amount": "600.00", "behaviour": "recklessness"}]),
+    );
+    stray["other_disclosed_before_examination"] = json!("0.00");
     assert_eq!(
-        penalty(statement("2026-03-15", false, one("1000.00"))),
-        "50.00"
+        code("statement_penalty", "2025-26", stray),
+        "input.field_unknown"
     );
     let two = json!([
         {"shortfall_amount": "600.00", "behaviour": "failure_to_take_reasonable_care", "disclosure": "before_examination"},
         {"shortfall_amount": "600.00", "behaviour": "failure_to_take_reasonable_care", "disclosure": "before_examination"},
     ]);
-    assert_eq!(penalty(statement("2026-03-15", false, two)), "60.00");
+    assert_eq!(penalty(disclosed(two, "0.00")), "60.00");
     let nil_and_up = json!([{"shortfall_amount": "500.00", "behaviour": "recklessness", "increase": true, "disclosure": "before_examination"}]);
     assert_eq!(
         code(
             "statement_penalty",
             "2025-26",
-            statement("2026-03-15", false, nil_and_up)
+            disclosed(nil_and_up, "0.00")
         ),
         "ato_interest_penalties.increase_with_nil"
     );
