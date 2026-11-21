@@ -6161,8 +6161,10 @@ mod ppsr_timing;
 pub use ppsr_timing::ppsr_timing;
 mod sb_cgt_concessions;
 pub use sb_cgt_concessions::{SB_CGT_OPTIONAL, SbCgtConcessionsArgs, sb_cgt_concessions};
+mod ato_interest_penalties;
+pub use ato_interest_penalties::ato_interest_penalties;
 
-const KINDS: [&str; 66] = [
+const KINDS: [&str; 67] = [
     "gst",
     "gst_margin_scheme",
     "fuel_tax_credits",
@@ -6229,6 +6231,7 @@ const KINDS: [&str; 66] = [
     "ppsr_timing",
     "wine_equalisation_tax",
     "sb_cgt_concessions",
+    "ato_interest_penalties",
 ];
 
 /// `periods(kind)`: accepted period arguments and inclusive calendar boundaries.
@@ -6294,6 +6297,7 @@ fn evidence_heading(kind: &str) -> String {
         "seniors_pensioners_withholding" => "seniors-and-pensioners".into(),
         "seniors_pensioners_tax_offset" => "seniors-and-pensioners-tax-offset".into(),
         "sb_cgt_concessions" => "small-business-cgt-concessions".into(),
+        "ato_interest_penalties" => "ato-penalties-and-interest".into(),
         _ => kind.replace('_', "-"),
     }
 }

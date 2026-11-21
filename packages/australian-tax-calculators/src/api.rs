@@ -672,6 +672,10 @@ const COMMAND_ARGS: &[(&str, &[(&str, Kind)])] = &[
         &[("lines", Json), ("year", Raw), ("scope_confirmed", Raw)],
     ),
     (
+        "ato-interest-penalties",
+        &[("question", Raw), ("year", Raw), ("scope_confirmed", Raw)],
+    ),
+    (
         "sb-cgt-concessions",
         &[
             ("entity", Raw),
@@ -1190,6 +1194,7 @@ pub fn evaluate_coded(command: &str, v: &Value) -> Result<Value> {
             | "income-tests"
             | "luxury-car-tax"
             | "sb-cgt-concessions"
+            | "ato-interest-penalties"
             | "business-capital-expenditure"
             | "balancing-adjustment"
             | "trade-in"
@@ -1847,6 +1852,17 @@ pub fn evaluate_coded(command: &str, v: &Value) -> Result<Value> {
             engine::contribution_caps(&a[0], &a[1], &a[2], &a[3], &a[4], &a[5], &a[6])
         }
         "pension-minimum" => engine::pension_minimum(&a[0], &a[1], &a[2], &a[3], &a[4]),
+        "ato-interest-penalties" => {
+            // The question's own facts, by name, as JSON.
+            let facts: serde_json::Map<String, Value> = v
+                .as_object()
+                .into_iter()
+                .flatten()
+                .filter(|(key, _)| !params.iter().any(|(p, _)| p == key))
+                .map(|(key, value)| (key.clone(), value.clone()))
+                .collect();
+            engine::ato_interest_penalties(&a[0], &a[1], &a[2], &facts)
+        }
         "sb-cgt-concessions" => {
             // Optional: the facts only some answers call for.
             let given = engine::SB_CGT_OPTIONAL.map(|key| {

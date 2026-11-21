@@ -173,6 +173,7 @@ booleans and counts, ages, days, quarters and scales are JSON integers.
 | `fbt-meal-entertainment-register` | `register_start`, `register_end`, `entries`, `year_ended`, `scope_confirmed`; `register_years_expenditure`, required for a later year of the register's validity; see [FBT meal entertainment register](#fbt-meal-entertainment-register) |
 | `fbt-minor-benefit-check` | `category`, `notional_taxable_value`, `salary_sacrifice`, `frequency`, `similar_benefits_substantial`, `other_associated_benefits_substantial`, `valuation_difficult`, `unexpected_event`, `reward_for_services`, `year_ended`, `scope_confirmed`; `in_house` for an expense payment, property or residual benefit, `tax_exempt_body_exception` for tax-exempt body entertainment and `fifty_fifty_split` for meal entertainment or entertainment facility leasing; see [FBT minor benefits](#fbt-minor-benefits) |
 | `fhss` | `determination_date`, `year`, `scope_confirmed`, and either `contributions` with `determination_requested` (optional `personal_deductions`) or `determination`; optional `amount_requested` and `estimated_marginal_rate`; see [First Home Super Saver scheme](#first-home-super-saver-scheme) |
+| `ato-interest-penalties` | `question` (`gic`, `sic`, `failure_to_lodge`, `statement_penalty`, `early_payment_interest` or `overpayment_interest`), `year`, `scope_confirmed`, and the question's own inputs; see [ATO penalties and interest](#ato-penalties-and-interest) |
 | `ppsr-timing` | `question` (`registration`, `pmsi` or `company_grantor`), `year`, `scope_confirmed`, and the question's own inputs; see [PPSR timing](#ppsr-timing) |
 | `fbt-entertainment-classifier` | `lines`, `income_tax_exempt`, `year_ended`, `scope_confirmed`; `method`, required when a line is meal entertainment; with `12_week_register`, `income_tax_register_percentage` |
 | `depreciation` | `cost`, `effective_life`, `days`, `taxable_use`, `method`, `scope_confirmed`, `year`; optional `opening_adjustable_value` |
@@ -207,11 +208,11 @@ booleans and counts, ages, days, quarters and scales are JSON integers.
 | `fbt-return` | `employer`, `year_ended`, `scope_confirmed` and `benefits`, a list of objects each with `employee`, `command` (an FBT benefit worksheet), `input` (that worksheet's arguments), `gst_type` (`type_1` or `type_2`) and `excluded`; see [FBT return](#fbt-return) |
 | `derive` | `command`, one of `fbt`, `fbt-car-statutory`, `fbt-car-operating-cost`, `fbt-loan`, `fbt-meal-entertainment`, `fbt-car-parking`, `fbt-debt-waiver`, `fbt-expense-payment`, `fbt-property`, `division-293`, `pension-minimum`, `payg-withholding`, `schedule-5-method-a`, `schedule-5-method-b-i`, `schedule-5-method-b-ii`, `termination-payment`, `etp-tax-free-component`, `unused-leave-payment`, `working-holiday-maker-withholding`, `study-loan-withholding`, `seniors-pensioners-withholding`, `quarterly-sg`, `borrowing-expenses`, `borrowing-expenses-schedule`, `resident-tax`, `foreign-resident-tax`, `low-income-tax-offset`, `seniors-pensioners-tax-offset`, `medicare-levy`, `medicare-levy-surcharge`, `division-296`, `contribution-caps`, `study-loan-repayment`, `capital-gains`, `main-residence`, `fbt-residual`, `fbt-housing`, `fbt-lafha`, `fbt-board`, `fbt-tax-exempt-body-entertainment`, `gst`, `depreciation`, `hire-purchase-schedule`, `chattel-mortgage-schedule`, `loan-transactions`, `lump-sum-arrears-tax-offset`, `income-tests`, `business-capital-expenditure`, `balancing-adjustment`, `trade-in`, `dasp-tax`, `gst-margin-scheme`, `payroll-tax` and `cgt-parcels`, and `input`, that command's arguments; see [Derivations](#derivations) |
 
-The 2 car commands, the 11 FBT benefit commands (`fbt-loan`, `fbt-meal-entertainment`, `fbt-car-parking`, `fbt-debt-waiver`, `fbt-expense-payment`, `fbt-property`, `fbt-residual`, `fbt-housing`, `fbt-lafha`, `fbt-board` and `fbt-tax-exempt-body-entertainment`), `main-residence`, `borrowing-expenses`, `borrowing-expenses-schedule`, `fuel-tax-credits`, `division-296`, `termination-payment`, `etp-tax-free-component`, `unused-leave-payment`, the 3 `schedule-5` commands, `working-holiday-maker-withholding`, `seniors-pensioners-withholding`, `seniors-pensioners-tax-offset`, `medicare-levy-surcharge`, `foreign-resident-tax`, `payg-gross-up`, `hire-purchase-schedule`, `chattel-mortgage-schedule`, `loan-transactions`, `lump-sum-arrears-tax-offset`, `fbt-entertainment-classifier`, `fbt-meal-entertainment-register`, `fbt-minor-benefit-check`, `fhss`, `ppsr-timing`, `income-tests`, `business-capital-expenditure`, `balancing-adjustment`, `trade-in`, `gst-margin-scheme`, `franking-account`, `wine-equalisation-tax`, `luxury-car-tax`, `payroll-tax`, `dasp-tax`, `cgt-parcels`, `fbt-ev-exemption-check` and `sb-cgt-concessions` have no Python original; their arguments follow the same
+The 2 car commands, the 11 FBT benefit commands (`fbt-loan`, `fbt-meal-entertainment`, `fbt-car-parking`, `fbt-debt-waiver`, `fbt-expense-payment`, `fbt-property`, `fbt-residual`, `fbt-housing`, `fbt-lafha`, `fbt-board` and `fbt-tax-exempt-body-entertainment`), `main-residence`, `borrowing-expenses`, `borrowing-expenses-schedule`, `fuel-tax-credits`, `division-296`, `termination-payment`, `etp-tax-free-component`, `unused-leave-payment`, the 3 `schedule-5` commands, `working-holiday-maker-withholding`, `seniors-pensioners-withholding`, `seniors-pensioners-tax-offset`, `medicare-levy-surcharge`, `foreign-resident-tax`, `payg-gross-up`, `hire-purchase-schedule`, `chattel-mortgage-schedule`, `loan-transactions`, `lump-sum-arrears-tax-offset`, `fbt-entertainment-classifier`, `fbt-meal-entertainment-register`, `fbt-minor-benefit-check`, `fhss`, `ppsr-timing`, `income-tests`, `business-capital-expenditure`, `balancing-adjustment`, `trade-in`, `gst-margin-scheme`, `franking-account`, `wine-equalisation-tax`, `luxury-car-tax`, `payroll-tax`, `dasp-tax`, `cgt-parcels`, `fbt-ev-exemption-check`, `sb-cgt-concessions` and `ato-interest-penalties` have no Python original; their arguments follow the same
 rules. `division-296` alone takes a negative amount, in `total_super_earnings`. `main-residence` also takes dates as `YYYY-MM-DD` strings, lists of
 `{"start", "end"}` periods (with `"floor_area"` for income use) and `null`
 for no new home. `borrowing-expenses` takes `loan_start` as a `YYYY-MM-DD`
-string and `loan_term_end` and `repaid_on` as dates or `null`. `hire-purchase-schedule` takes `instalments` as a JSON integer, `timing` as `in_arrears` or `in_advance`, `start_date` as a `YYYY-MM-DD` string and `segments`, `payout` and `gst` as described under [Hire purchase schedule](#hire-purchase-schedule), and refuses a field it, a segment, the payout or the GST facts do not take. `business-capital-expenditure` takes `items` as a list of objects, and refuses a field it or an item does not take. `balancing-adjustment` takes `years` as a list of objects and a car's `car_limit` as an object or `null`, and refuses a field it, a row or `car_limit` does not take; `trade-in` takes them as it does, and refuses an optional input its other facts do not call for. `cgt-parcels` takes `parcels` and `disposals` as lists of objects, and refuses a field it, a parcel or a disposal does not take. `termination-payment` takes `completed_years_of_service` as a JSON integer and `date_of_birth` as a `YYYY-MM-DD` string. `unused-leave-payment` takes `leave_accrual_start` as a `YYYY-MM-DD` string, `termination_reason` as `normal`, `genuine_redundancy`, `early_retirement_scheme` or `invalidity`, and its 4 accrual parts as optional decimal strings, described under [Unused leave payment](#unused-leave-payment). `schedule-5-method-b-i` takes `back_payment_periods` as a list of `{"earnings", "back_payment", "withheld"}` decimal strings, one for each earlier pay period. Every argument is required, as the Python functions had no defaults, except `depreciation`'s optional `opening_adjustable_value`: give it, as a decimal string, for a year after the asset's start time, as cost less the earlier years' decline in value; and `medicare-levy`'s optional family inputs, described under [Medicare levy](#medicare-levy-and-low-income-tax-offset). `medicare-levy` refuses a field it does not take, as does `medicare-levy-surcharge`, whose optional inputs are described under [Medicare levy surcharge](#medicare-levy-surcharge). `payg-withholding`'s optional inputs are described under [PAYG withholding](#payg-withholding), `payg-gross-up` under [PAYG gross-up](#payg-gross-up), `study-loan-withholding`'s `pay_date` under [Study loan withholding](#study-loan-withholding), `seniors-pensioners-withholding`'s `study_loan` and `pay_date` under [Seniors and pensioners](#seniors-and-pensioners) and `seniors-pensioners-tax-offset`'s spouse inputs under [Seniors and pensioners tax offset](#seniors-and-pensioners-tax-offset). `income-tests` requires every component and refuses a field it does not take; see [Income tests](#income-tests). `sb-cgt-concessions` takes `previous_year_turnover`, `year_before_turnover`, `business_ceased`, `last_rollover_event` and `earnout_latest_due` as `null` for none, `active_days` as a JSON integer and its flags as booleans, requires the optional facts its other answers call for, and refuses any other field. The FBT benefit commands take the inputs their `method` needs and refuse any other, as [FBT loans, meal entertainment and car parking](#fbt-loans-meal-entertainment-and-car-parking), [FBT debt waivers, expense payments and property](#fbt-debt-waivers-expense-payments-and-property) and [FBT residual, housing, LAFHA, board and entertainment benefits](#fbt-residual-housing-lafha-board-and-entertainment-benefits) describe. `fbt-entertainment-classifier` takes `lines` as a list of line objects and refuses a field it does not take, as [FBT entertainment classifier](#fbt-entertainment-classifier) describes. `wine-equalisation-tax` takes `dealings` as a list of dealing objects and refuses a field it, a dealing, `average_wholesale` or `rebate_conditions` does not take; see [Wine equalisation tax](#wine-equalisation-tax). `luxury-car-tax` takes `lines` as a list of line objects and refuses a field it or a line does not take; see [Luxury car tax](#luxury-car-tax). `fuel-tax-credits` takes `lines` the same way, `rate_at_period_end` as an object and `return_date` as a `YYYY-MM-DD` string, and refuses a field it or a line does not take; see [Fuel tax credits](#fuel-tax-credits). Input over 8 MiB,
+string and `loan_term_end` and `repaid_on` as dates or `null`. `hire-purchase-schedule` takes `instalments` as a JSON integer, `timing` as `in_arrears` or `in_advance`, `start_date` as a `YYYY-MM-DD` string and `segments`, `payout` and `gst` as described under [Hire purchase schedule](#hire-purchase-schedule), and refuses a field it, a segment, the payout or the GST facts do not take. `business-capital-expenditure` takes `items` as a list of objects, and refuses a field it or an item does not take. `balancing-adjustment` takes `years` as a list of objects and a car's `car_limit` as an object or `null`, and refuses a field it, a row or `car_limit` does not take; `trade-in` takes them as it does, and refuses an optional input its other facts do not call for. `cgt-parcels` takes `parcels` and `disposals` as lists of objects, and refuses a field it, a parcel or a disposal does not take. `termination-payment` takes `completed_years_of_service` as a JSON integer and `date_of_birth` as a `YYYY-MM-DD` string. `unused-leave-payment` takes `leave_accrual_start` as a `YYYY-MM-DD` string, `termination_reason` as `normal`, `genuine_redundancy`, `early_retirement_scheme` or `invalidity`, and its 4 accrual parts as optional decimal strings, described under [Unused leave payment](#unused-leave-payment). `schedule-5-method-b-i` takes `back_payment_periods` as a list of `{"earnings", "back_payment", "withheld"}` decimal strings, one for each earlier pay period. Every argument is required, as the Python functions had no defaults, except `depreciation`'s optional `opening_adjustable_value`: give it, as a decimal string, for a year after the asset's start time, as cost less the earlier years' decline in value; and `medicare-levy`'s optional family inputs, described under [Medicare levy](#medicare-levy-and-low-income-tax-offset). `medicare-levy` refuses a field it does not take, as does `medicare-levy-surcharge`, whose optional inputs are described under [Medicare levy surcharge](#medicare-levy-surcharge). `payg-withholding`'s optional inputs are described under [PAYG withholding](#payg-withholding), `payg-gross-up` under [PAYG gross-up](#payg-gross-up), `study-loan-withholding`'s `pay_date` under [Study loan withholding](#study-loan-withholding), `seniors-pensioners-withholding`'s `study_loan` and `pay_date` under [Seniors and pensioners](#seniors-and-pensioners) and `seniors-pensioners-tax-offset`'s spouse inputs under [Seniors and pensioners tax offset](#seniors-and-pensioners-tax-offset). `income-tests` requires every component and refuses a field it does not take; see [Income tests](#income-tests). `sb-cgt-concessions` takes `previous_year_turnover`, `year_before_turnover`, `business_ceased`, `last_rollover_event` and `earnout_latest_due` as `null` for none, `active_days` as a JSON integer and its flags as booleans, requires the optional facts its other answers call for, and refuses any other field. `ato-interest-penalties` takes its question's amounts as decimal strings, dates as `YYYY-MM-DD` strings, `payments` and `parts` as lists of objects and its flags as booleans, and refuses a field its question does not take; see [ATO penalties and interest](#ato-penalties-and-interest). The FBT benefit commands take the inputs their `method` needs and refuse any other, as [FBT loans, meal entertainment and car parking](#fbt-loans-meal-entertainment-and-car-parking), [FBT debt waivers, expense payments and property](#fbt-debt-waivers-expense-payments-and-property) and [FBT residual, housing, LAFHA, board and entertainment benefits](#fbt-residual-housing-lafha-board-and-entertainment-benefits) describe. `fbt-entertainment-classifier` takes `lines` as a list of line objects and refuses a field it does not take, as [FBT entertainment classifier](#fbt-entertainment-classifier) describes. `wine-equalisation-tax` takes `dealings` as a list of dealing objects and refuses a field it, a dealing, `average_wholesale` or `rebate_conditions` does not take; see [Wine equalisation tax](#wine-equalisation-tax). `luxury-car-tax` takes `lines` as a list of line objects and refuses a field it or a line does not take; see [Luxury car tax](#luxury-car-tax). `fuel-tax-credits` takes `lines` the same way, `rate_at_period_end` as an object and `return_date` as a `YYYY-MM-DD` string, and refuses a field it or a line does not take; see [Fuel tax credits](#fuel-tax-credits). Input over 8 MiB,
 or a decimal string over 8,192 bytes, is refused.
 
 ## Derivations
@@ -328,6 +329,7 @@ own dates and figures.
 
 | Worksheet | Period and boundary |
 | --- | --- |
+| ATO penalties and interest | `year` is the financial year of the question's end date, 2020-21 to 2027-28; GIC days from 1 July 1999 and SIC days from 1 April 2005 to 31 December 2026, the last published quarter, and GIC days after it at a stated assumed rate; penalty units from 28 December 2012; established behaviour, positions, disclosures, size and entitlement facts; amounts before remission |
 | Luxury car tax | Tax periods in 2019-20 to 2026-27, the years from the $10,000 refunds to the last thresholds the ATO publishes, with supplies from 2012-13 for adjustments; established cars, values, ratings, quotes and refund conditions |
 | GST | 2025-26 to 2027-28, one ordinary taxable supply at 10%; no classification or BAS |
 | Fuel tax credits | 2022-23 to 2026-27, fuel acquired from 1 July 2022 to 31 January 2027 at the ATO's 16 published rate periods; established entitlement, fuel, quantity and use |
@@ -1208,6 +1210,78 @@ searches, priority between other interests, perfection by possession or
 control, amendments, ending a registration, transitional registrations,
 s 588FN's exceptions and court extensions under PPSA s 293 are out of scope.
 See [calculation evidence](docs/calculation-evidence.md#ppsr-timing).
+
+## ATO penalties and interest
+
+`ato-interest-penalties` answers one `question` at a time, each amount before
+any remission (the Commissioner's discretion: `question: remission` is
+refused with `ato_interest_penalties.remission_discretionary`, as is
+`scheme_penalty` with `ato_interest_penalties.scheme_penalty`). `year` is the
+financial year of the question's end date, named below; another year is
+refused with `ato_interest_penalties.year_mismatch`. Dates are `YYYY-MM-DD`.
+
+- `gic`: `amount` unpaid from `due_date` (the first day of the charge, ITAA
+  1997 s 5-15), `to` (the last day, such as the day before payment in full)
+  and optional `payments`, a list of `{"date", "amount"}` from `due_date` to
+  `to`. Each day's charge is the day's rate (TAA 1953 s 8AAD: the published
+  annual GIC rate over the days in the calendar year) on the amount and GIC
+  still unpaid at the end of the day (s 8AAC(3)), a payment that day applied
+  first. It is worked exactly and rounded half up to the cent once, as the
+  site's GIC payment plan oracle does: `gic`, `paid` and `balance`, with each
+  stretch of days at one rate. Days after 31 December 2026 need
+  `assumed_annual_rate` (a percentage), and the result counts them in
+  `assumed_days`. End date: `to`.
+- `sic`: `amount` of additional income tax, the first assessment's
+  `due_date` and the amended assessment's `notice_date`. SIC (TAA Sch 1
+  ss 280-100 and 280-105, the published SIC rates) compounds daily from the
+  due day to the day before the notice, whether or not the shortfall was paid
+  earlier. End date: `notice_date`.
+- `failure_to_lodge`: `due_date`, `given_on` (or an as-at day for a document
+  not yet given) and `size` (`small`, `medium`, `large` or
+  `significant_global`). One penalty unit for each 28 days or part, at most 5
+  (s 286-80(2)), each at the unit applying at the start of its 28 days
+  (s 286-80(5)), times 1, 2, 5 or 500. End date: `given_on`.
+- `statement_penalty`: `statement_date`, `significant_global_entity` and
+  `parts`, one matter each: `shortfall_amount` (or `null` for a false or
+  misleading statement with no shortfall amount), `behaviour`
+  (`intentional_disregard`, `recklessness`, `failure_to_take_reasonable_care`
+  or `reasonable_care`) and optionally `not_reasonably_arguable`,
+  `accepted_way_amount` (s 284-224), `increase` (s 284-220) and `disclosure`
+  (`none`, `before_examination` or `during_examination`, s 284-225). A
+  `not_reasonably_arguable` part needs `income_tax_payable` on the return for
+  the threshold of s 284-90(3)(a); `trust_or_partnership: true` with one is
+  refused. The base penalty amount is 75%, 50% or 25% of the shortfall less
+  the accepted part, 25% for a position not reasonably arguable above the
+  threshold, the greater where 2 apply, or 60, 40 or 20 penalty units without
+  a shortfall amount; doubled for a significant global entity; then
+  s 284-85's formula with the increase and reduction. An increase beside a
+  disclosure that reduces the amount to nil is refused
+  (`ato_interest_penalties.increase_with_nil`). End date: `statement_date`.
+- `early_payment_interest`: `amount`, `liability` (`income_tax`,
+  `shortfall_interest_charge`, `compulsory_study_loan_repayment` or
+  `fs_assessment_debt`), `paid_on`, `due_date`, `full_self_assessment` and,
+  when that is false, `notice_issued`. Interest is due only on a payment more
+  than 14 days early (Overpayments Act s 8A), from the later of the payment
+  and notice days (the payment day for a full self-assessment taxpayer) to
+  the due day, both counted (s 8B). End date: `due_date`.
+- `overpayment_interest`: `payments` (`{"paid_on", "amount"}`), `refunded`,
+  `refunded_on`, `notice_issued`, and `relevant_tax` and
+  `decision_to_which_act_applies`, both true (false is refused). A partial
+  refund goes to the payments in reverse order (s 9(3)); each part earns
+  interest from the later of the notice and its payment to the refund day
+  (s 10). End date: `refunded_on`.
+
+Credit interest is simple interest at the base interest rate (the GIC rate
+less 7 points, s 8AAD(1)), day by day at each day's rate and year length,
+rounded to the nearest cent with half a cent up (s 12D); under 50 cents it is
+not payable (s 12E), so `interest_payable` is then nil. Whether a position is
+reasonably arguable, the behaviour, whether a disclosure was voluntary or
+saved resources, the entity's size and significant global entity status, and
+Part III entitlement are the caller's established facts. Division 296 GIC,
+trust, partnership, petroleum resource rent tax and minimum tax positions,
+the s 284-75(3) penalty, refunds before the due day and other credit interest
+are out of scope. See
+[calculation evidence](docs/calculation-evidence.md#ato-penalties-and-interest).
 
 ## Wine equalisation tax
 
