@@ -176,6 +176,9 @@ booleans and counts, ages, days, quarters and scales are JSON integers.
 | `ppsr-timing` | `question` (`registration`, `pmsi` or `company_grantor`), `year`, `scope_confirmed`, and the question's own inputs; see [PPSR timing](#ppsr-timing) |
 | `fbt-entertainment-classifier` | `lines`, `income_tax_exempt`, `year_ended`, `scope_confirmed`; `method`, required when a line is meal entertainment; with `12_week_register`, `income_tax_register_percentage` |
 | `depreciation` | `cost`, `effective_life`, `days`, `taxable_use`, `method`, `scope_confirmed`, `year`; optional `opening_adjustable_value` |
+| `depreciation-low-value-pool` | `previous_closing_pool_balance`, `low_cost_assets`, `low_value_assets`, `second_element_costs`, `termination_values`, `year`, `scope_confirmed`; see [Depreciation pools and capital works](#depreciation-pools-and-capital-works) |
+| `depreciation-small-business-pool` | `opening_pool_balance`, `additions`, `cost_additions`, `termination_values`, `year`, `scope_confirmed` |
+| `capital-works` | `construction_expenditure`, `construction_start`, `four_percent_manner`, `days_used`, `taxable_use`, `undeducted_construction_expenditure`, `year`, `scope_confirmed` |
 | `quarterly-sg` | `ordinary_time_earnings`, `qualifying_contributions`, `year`, `quarter`, `scope_confirmed` |
 | `payg-withholding` | `earnings`, `pay_period`, `scale`, `year`, `scope_confirmed`; optional `foreign_resident` (scale 4), `tax_offsets`, `medicare_adjustment_children`, `extra_pay_withholding` |
 | `payg-gross-up` | `net_pay`, `pay_period`, `scale`, `year`, `scope_confirmed`; optional `foreign_resident` (scale 4), `study_loan`; `pay_date` with `study_loan`, required for 2025-26 |
@@ -205,7 +208,7 @@ booleans and counts, ages, days, quarters and scales are JSON integers.
 | `dgr-check` | `donations`, a list of 1 to 10,000 objects, each with `abn` or `name` or both, and optional `date` and `amount`; see [DGR check](#dgr-check) |
 | `personal-tax-estimate` | `year`, `scope_confirmed`, `residency`, `taxable_income` or `assessable_labour_income` (then optional `other_assessable_income`, `work_related_deductions`, `other_deductions`), optional `tax_withheld` or, to work it out, one of `payg-withholding`, `study-loan-withholding` and `seniors-pensioners-withholding` with `pays_in_year` and optional `schedule-5-method-a`, for a resident from 2027-28 `net_labour_income` (required beside `taxable_income`), and for a full-year resident `medicare-levy` and `medicare-levy-surcharge`; optional `seniors-pensioners-tax-offset`, `study-loan-repayment` and `division-293`; see [Personal tax estimate](#personal-tax-estimate) |
 | `fbt-return` | `employer`, `year_ended`, `scope_confirmed` and `benefits`, a list of objects each with `employee`, `command` (an FBT benefit worksheet), `input` (that worksheet's arguments), `gst_type` (`type_1` or `type_2`) and `excluded`; see [FBT return](#fbt-return) |
-| `derive` | `command`, one of `fbt`, `fbt-car-statutory`, `fbt-car-operating-cost`, `fbt-loan`, `fbt-meal-entertainment`, `fbt-car-parking`, `fbt-debt-waiver`, `fbt-expense-payment`, `fbt-property`, `division-293`, `pension-minimum`, `payg-withholding`, `schedule-5-method-a`, `schedule-5-method-b-i`, `schedule-5-method-b-ii`, `termination-payment`, `etp-tax-free-component`, `unused-leave-payment`, `working-holiday-maker-withholding`, `study-loan-withholding`, `seniors-pensioners-withholding`, `quarterly-sg`, `borrowing-expenses`, `borrowing-expenses-schedule`, `resident-tax`, `foreign-resident-tax`, `low-income-tax-offset`, `seniors-pensioners-tax-offset`, `medicare-levy`, `medicare-levy-surcharge`, `division-296`, `contribution-caps`, `study-loan-repayment`, `capital-gains`, `main-residence`, `fbt-residual`, `fbt-housing`, `fbt-lafha`, `fbt-board`, `fbt-tax-exempt-body-entertainment`, `gst`, `depreciation`, `hire-purchase-schedule`, `chattel-mortgage-schedule`, `loan-transactions`, `lump-sum-arrears-tax-offset`, `income-tests`, `business-capital-expenditure`, `balancing-adjustment`, `trade-in`, `dasp-tax`, `gst-margin-scheme`, `payroll-tax` and `cgt-parcels`, and `input`, that command's arguments; see [Derivations](#derivations) |
+| `derive` | `command`, one of `fbt`, `fbt-car-statutory`, `fbt-car-operating-cost`, `fbt-loan`, `fbt-meal-entertainment`, `fbt-car-parking`, `fbt-debt-waiver`, `fbt-expense-payment`, `fbt-property`, `division-293`, `pension-minimum`, `payg-withholding`, `schedule-5-method-a`, `schedule-5-method-b-i`, `schedule-5-method-b-ii`, `termination-payment`, `etp-tax-free-component`, `unused-leave-payment`, `working-holiday-maker-withholding`, `study-loan-withholding`, `seniors-pensioners-withholding`, `quarterly-sg`, `borrowing-expenses`, `borrowing-expenses-schedule`, `resident-tax`, `foreign-resident-tax`, `low-income-tax-offset`, `seniors-pensioners-tax-offset`, `medicare-levy`, `medicare-levy-surcharge`, `division-296`, `contribution-caps`, `study-loan-repayment`, `capital-gains`, `main-residence`, `fbt-residual`, `fbt-housing`, `fbt-lafha`, `fbt-board`, `fbt-tax-exempt-body-entertainment`, `gst`, `depreciation`, `depreciation-low-value-pool`, `depreciation-small-business-pool`, `capital-works`, `hire-purchase-schedule`, `chattel-mortgage-schedule`, `loan-transactions`, `lump-sum-arrears-tax-offset`, `income-tests`, `business-capital-expenditure`, `balancing-adjustment`, `trade-in`, `dasp-tax`, `gst-margin-scheme`, `payroll-tax` and `cgt-parcels`, and `input`, that command's arguments; see [Derivations](#derivations) |
 
 The 2 car commands, the 11 FBT benefit commands (`fbt-loan`, `fbt-meal-entertainment`, `fbt-car-parking`, `fbt-debt-waiver`, `fbt-expense-payment`, `fbt-property`, `fbt-residual`, `fbt-housing`, `fbt-lafha`, `fbt-board` and `fbt-tax-exempt-body-entertainment`), `main-residence`, `borrowing-expenses`, `borrowing-expenses-schedule`, `fuel-tax-credits`, `division-296`, `termination-payment`, `etp-tax-free-component`, `unused-leave-payment`, the 3 `schedule-5` commands, `working-holiday-maker-withholding`, `seniors-pensioners-withholding`, `seniors-pensioners-tax-offset`, `medicare-levy-surcharge`, `foreign-resident-tax`, `payg-gross-up`, `hire-purchase-schedule`, `chattel-mortgage-schedule`, `loan-transactions`, `lump-sum-arrears-tax-offset`, `fbt-entertainment-classifier`, `fbt-meal-entertainment-register`, `fbt-minor-benefit-check`, `fhss`, `ppsr-timing`, `income-tests`, `business-capital-expenditure`, `balancing-adjustment`, `trade-in`, `gst-margin-scheme`, `franking-account`, `wine-equalisation-tax`, `luxury-car-tax`, `payroll-tax`, `dasp-tax`, `cgt-parcels`, `fbt-ev-exemption-check` and `sb-cgt-concessions` have no Python original; their arguments follow the same
 rules. `division-296` alone takes a negative amount, in `total_super_earnings`. `main-residence` also takes dates as `YYYY-MM-DD` strings, lists of
@@ -366,6 +369,8 @@ own dates and figures.
 | PPSR timing | Registrations, possession or attachment and security agreements in 2025-26 and 2026-27, ACT legal time; s 588FL critical times from 1 July 2025 to 30 June 2027; the public holidays the count spans as listed by the caller |
 | FBT entertainment classifier | Years ended 31 March 2026 and 2027; an ordinary taxable employer's entertainment expense lines with established facts, split per head between attendee classes; no tax-exempt bodies, Subdivision 32-B exceptions, salary packaging or reportable fringe benefits amounts |
 | Depreciation | 2025-26 and 2026-27, an ordinary tangible Division 40 asset's start year, or a later year from its established opening adjustable value; established life and use |
+| Depreciation pools | 2020-21 to 2026-27; one holder's low-value pool, or a small business entity's general small business pool with each year's low pool value threshold; established taxable use amounts |
+| Capital works | 2020-21 to 2026-27, works begun from 16 September 1987 at 2.5% or 4%; established expenditure, days, use and undeducted construction expenditure |
 | SG | Complete quarters of 2025-26; established OTE, eligibility and qualifying contributions |
 | Contribution caps | 2024-25 to 2026-27; one individual's classified contributions, no bring-forward period started in the 2 previous years |
 | Pension minimum | 2024-25 to 2027-28; one account-based pension paying under SISR Schedule 7 |
@@ -2213,6 +2218,59 @@ refused, as s 5(2) taxes any excess untaxed roll-over amount in that element
 at nil. The 2014-15 to 2016-17 budget repair levy rates (s 6) and the fund's
 withholding and reporting are outside it. See
 [calculation evidence](docs/calculation-evidence.md#dasp-tax).
+
+## Depreciation pools and capital works
+
+`depreciation-low-value-pool` works out one holder's low-value pool for an
+income year from 2020-21 to 2026-27 (ITAA 1997 ss 40-440 and 40-445). Each
+input is already the taxable use percentage of the amount (s 40-435):
+
+```text
+new_assets_decline       = 18.75% x (low_cost_assets + second_element_costs)
+pool_decline             = 37.5% x (previous_closing_pool_balance + low_value_assets)
+decline_in_value         = new_assets_decline + pool_decline
+closing_before_disposals = previous + low cost + low value + second element - decline
+closing_pool_balance     = closing_before_disposals - termination_values, not below 0
+assessable_excess        = termination_values - closing_before_disposals, if above 0
+```
+
+`depreciation-small-business-pool` works out a small business entity's
+general small business pool for 2020-21 to 2026-27 (ss 328-190 to 328-215).
+Its s 328-210(2) amount, the opening pool balance plus the year's `additions`
+and `cost_additions` less `termination_values`, each the taxable purpose
+proportion, is deducted in full when above zero and below the year's low pool
+value threshold, and the pool closes at zero. The threshold is none for
+2020-21 to 2022-23 (IT(TP)A 1997 s 328-181(5), temporary full expensing's pool
+write-off), $20,000 for 2023-24 to 2025-26 (IT(TP)A s 328-180(6)(e)) and
+$20,000 for 2026-27 (s 328-210(1) as amended by Act No. 71 of 2026).
+Otherwise it deducts 30% of the opening pool balance and 15% of the additions
+and cost additions, each rounded to the cent, and the rest is the closing pool
+balance. An amount or closing balance below zero is assessable and the pool
+closes at zero (s 328-215). In 2020-21 an amount of exactly zero with
+additions is refused, as the 57.5% backing business investment rate could
+apply. Which assets the instant asset write-off or temporary full expensing
+took instead of the pool is the caller's to establish.
+
+`capital-works` works out one area's Division 43 deduction for 2020-21 to
+2026-27, for capital works begun from 16 September 1987:
+
+```text
+rate_amount    = construction_expenditure x days_used x rate / 365   s 43-210 steps 1 and 3, s 43-215 step 1
+reduced_amount = rate_amount x taxable_use                            s 43-210 steps 2 and 4, s 43-215 step 3
+deduction      = min(reduced_amount, undeducted_construction_expenditure)
+```
+
+The rate is 4% when `four_percent_manner` is true (s 43-145, works begun after
+26 February 1992) and 2.5% otherwise. `days_used` can be 366 in 2023-24; the
+denominator stays 365. It refuses works begun before 16 September 1987, the 4%
+manner for works begun before 27 February 1992 and undeducted construction
+expenditure above the construction expenditure. The caller establishes that the
+works qualify for their start date and type, the days, the use and the
+undeducted construction expenditure (s 43-235), which this command does not
+carry forward.
+
+The single-asset `depreciation` command is unchanged. See
+[calculation evidence](docs/calculation-evidence.md#depreciation-low-value-pool).
 
 ## ETP tax free component
 

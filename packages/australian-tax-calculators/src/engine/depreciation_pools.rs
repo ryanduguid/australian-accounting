@@ -1,0 +1,442 @@
+// Copyright 2026 Ryan Duguid
+// SPDX-License-Identifier: AGPL-3.0-or-later
+// Additional terms under AGPL-3.0 section 7(b): see NOTICE.
+
+//! The pools and capital works beside the single-asset `depreciation`
+//! worksheet: a low-value pool (ITAA 1997 ss 40-425 to 40-445), a small
+//! business entity's general small business pool (ss 328-185 to 328-215, with
+//! the low pool value thresholds of IT(TP)A 1997 ss 328-180(6) and 328-181(5)
+//! and Act No. 71 of 2026 Sch 2) and a capital works deduction (Division 43,
+//! ss 43-210 and 43-215). The sections are from the ATO's legal database and
+//! the Act from its published text, all read on 22 November 2026.
+
+use serde_json::{Value, json};
+
+use super::{
+    Arg, Result, Step, cents, d, date_arg, derived_result, finite_between, flag, int, money,
+    precise, py_max, py_min, rate, refuse, scope, step,
+};
+use crate::dates;
+use crate::decimal::Decimal;
+
+/// The years whose pool write-off is temporary full expensing's (IT(TP)A s 328-181(5)).
+const FULL_EXPENSING_YEARS: [&str; 3] = ["2020-21", "2021-22", "2022-23"];
+
+/// A step for an amount the year's rule does not take.
+fn nil(id: &'static str, authority: &'static str) -> Step {
+    step(id, authority, "0", &[], int(0))
+}
+
+/// `warnings` with `note` added, for a year that needs it.
+fn warn(mut out: Value, note: &str) -> Value {
+    if let Some(warnings) = out["warnings"].as_array_mut() {
+        warnings.push(json!(note));
+    }
+    out
+}
+
+const LVP_FULL_EXPENSING: &str = "2020-21 to 2022-23 are temporary full expensing years: this worksheet does not decide whether temporary full expensing applied to an asset, and only amounts allocated to the low-value pool belong in its inputs.";
+
+/// ITAA 1997 s 40-440: the decline in value of a low-value pool and its
+/// closing pool balance, then s 40-445 for disposals. Every input is the
+/// taxable use percentage of the amount (s 40-435).
+pub fn depreciation_low_value_pool(
+    previous_closing_pool_balance: &Arg,
+    low_cost_assets: &Arg,
+    low_value_assets: &Arg,
+    second_element_costs: &Arg,
+    termination_values: &Arg,
+    year: &Arg,
+    scope_confirmed: &Arg,
+) -> Result<Value> {
+    const KIND: &str = "depreciation_low_value_pool";
+    let year = scope(scope_confirmed, year, KIND)?;
+    let previous = money(previous_closing_pool_balance)?;
+    let low_cost = money(low_cost_assets)?;
+    let low_value = money(low_value_assets)?;
+    let second = money(second_element_costs)?;
+    let termination = money(termination_values)?;
+    let steps = precise(|| {
+        let new_assets = low_cost.add(&second)?.mul(&d("0.1875"))?;
+        let pool = previous.add(&low_value)?.mul(&d("0.375"))?;
+        let decline = new_assets.add(&pool)?;
+        let before = previous
+            .add(&low_cost)?
+            .add(&low_value)?
+            .add(&second)?
+            .sub(&cents(decline.clone())?)?;
+        let closing = py_max(before.sub(&termination)?, int(0))?;
+        let excess = py_max(termination.sub(&before)?, int(0))?;
+        Ok(vec![
+            step(
+                "new_assets_decline",
+                "ITAA 1997 s 40-440(1) steps 1 and 2: 18 3/4% of the taxable use percentage of the cost of low-cost assets allocated for the year and of second element amounts for the year",
+                "0.1875 x (low_cost_assets + second_element_costs)",
+                &[&low_cost, &second],
+                new_assets.clone(),
+            ),
+            step(
+                "pool_decline",
+                "ITAA 1997 s 40-440(1) step 3: 37 1/2% of the closing pool balance for the previous year and the taxable use percentage of the opening adjustable values of low-value assets allocated for the year",
+                "0.375 x (previous_closing_pool_balance + low_value_assets)",
+                &[&previous, &low_value],
+                pool.clone(),
+            ),
+            step(
+                "decline_in_value",
+                "ITAA 1997 s 40-440(1) step 4: the decline in value of the assets in the pool, the deduction (s 40-25(1)), the taxable use percentage being in each amount already",
+                "new_assets_decline + pool_decline",
+                &[&new_assets, &pool],
+                decline.clone(),
+            ),
+            step(
+                "closing_before_disposals",
+                "ITAA 1997 s 40-440(2): the previous closing pool balance plus the year's amounts allocated, less the decline in value",
+                "previous_closing_pool_balance + low_cost_assets + low_value_assets + second_element_costs - cents(decline_in_value)",
+                &[&previous, &low_cost, &low_value, &second, &decline],
+                before.clone(),
+            ),
+            step(
+                "closing_pool_balance",
+                "ITAA 1997 s 40-445(1): reduced, but not below zero, by the taxable use percentage of the termination values of pooled assets with a balancing adjustment event in the year",
+                "max(closing_before_disposals - termination_values, 0)",
+                &[&before, &termination],
+                closing,
+            ),
+            step(
+                "assessable_excess",
+                "ITAA 1997 s 40-445(2): the excess of those termination values over the closing pool balance is assessable income",
+                "max(termination_values - closing_before_disposals, 0)",
+                &[&termination, &before],
+                excess,
+            ),
+        ])
+    })?;
+    let rates = vec![
+        rate("first_year_rate", "0.1875"),
+        rate("pool_rate", "0.375"),
+    ];
+    let out = derived_result(KIND, &year, steps, rates)?;
+    Ok(if FULL_EXPENSING_YEARS.contains(&year.as_str()) {
+        warn(out, LVP_FULL_EXPENSING)
+    } else {
+        out
+    })
+}
+
+const SBP_FULL_EXPENSING: &str = "2020-21 to 2022-23 are temporary full expensing years: the pool's whole balance above zero is written off (IT(TP)A 1997 s 328-181(5)); whether an asset was fully expensed instead of pooled is not decided here.";
+const AMOUNT: &str = "ITAA 1997 s 328-210(2): the opening pool balance plus the taxable purpose proportions of the adjustable values of assets allocated for the year and of cost addition amounts, less the taxable purpose proportions of termination values";
+const LOW_POOL: &str = "ITAA 1997 s 328-210(1) and (3): an amount above zero and below the year's low pool value threshold is the deduction, and the closing pool balance becomes zero";
+const NO_LOW_POOL: &str = "ITAA 1997 s 328-210(1): not taken, as the amount is not above zero and below the year's low pool value threshold";
+const POOL: &str = "ITAA 1997 s 328-190(1): 30% of the opening pool balance";
+const NEW_ASSETS: &str = "ITAA 1997 s 328-190(2): 15% of the taxable purpose proportion of the adjustable value of each asset allocated for the year";
+const COST_ADDITIONS: &str = "ITAA 1997 s 328-190(3) and (4): 15% of the taxable purpose proportion of cost addition amounts";
+const NOT_RATED: &str = "ITAA 1997 s 328-210(1): not taken, as the low pool value rule or s 328-215(2)(b) applies instead of s 328-190";
+const ASSESSABLE: &str = "ITAA 1997 s 328-215(2) and (3): a closing pool balance, or s 328-210(2) amount, below zero is assessable income, and the closing pool balance becomes zero";
+const CLOSING: &str = "ITAA 1997 s 328-200: the s 328-210(2) amount less the deductions under s 328-190, not below zero (s 328-215(3)); zero after a low pool value deduction (s 328-210(3))";
+
+/// The low pool value threshold the s 328-210(2) amount must be below, with
+/// its provision: `None` for no limit.
+fn low_pool_threshold(year: &str) -> (Option<Decimal>, &'static str) {
+    if FULL_EXPENSING_YEARS.contains(&year) {
+        (
+            None,
+            "IT(TP)A 1997 s 328-181(5): no limit for an income year ending from 7.30 pm AEDT on 6 October 2020 to 30 June 2023",
+        )
+    } else if year == "2026-27" {
+        (
+            Some(int(20000)),
+            "ITAA 1997 s 328-210(1), $20,000 as amended by Act No. 71 of 2026 Sch 2 item 7 for income years ending on or after 1 July 2026 (item 15(3))",
+        )
+    } else {
+        (
+            Some(int(20000)),
+            "IT(TP)A 1997 s 328-180(6)(e): $20,000 for an income year ending from 1 July 2023 to 30 June 2026",
+        )
+    }
+}
+
+/// ITAA 1997 Subdivision 328-D: a general small business pool's deduction for
+/// the year, the low pool value write-off and the closing pool balance. Every
+/// input is the taxable purpose proportion of the amount.
+pub fn depreciation_small_business_pool(
+    opening_pool_balance: &Arg,
+    additions: &Arg,
+    cost_additions: &Arg,
+    termination_values: &Arg,
+    year: &Arg,
+    scope_confirmed: &Arg,
+) -> Result<Value> {
+    const KIND: &str = "depreciation_small_business_pool";
+    let year = scope(scope_confirmed, year, KIND)?;
+    let opening = money(opening_pool_balance)?;
+    let added = money(additions)?;
+    let improved = money(cost_additions)?;
+    let termination = money(termination_values)?;
+    let (threshold, threshold_rule) = low_pool_threshold(&year);
+    let zero = int(0);
+    let amount = precise(|| Ok(opening.add(&added)?.add(&improved)?.sub(&termination)?))?;
+    let below = match &threshold {
+        None => true,
+        Some(limit) => amount.lt(limit)?,
+    };
+    let positive = amount.gt(&zero)?;
+    // 2020-21 is the one year a zero amount leaves s 328-190(2) to run on
+    // additions that backing business investment (IT(TP)A s 40-120) could rate at 57.5%.
+    if year == "2020-21" && amount.is_zero() && !added.is_zero() {
+        return refuse(
+            "depreciation_small_business_pool.backing_business_investment",
+            "In 2020-21 a pool whose s 328-210(2) amount is exactly zero deducts 15% of additions, which backing business investment may rate at 57.5% instead; this worksheet does not model it.",
+        );
+    }
+    let amount_step = step(
+        "low_pool_value_amount",
+        AMOUNT,
+        "opening_pool_balance + additions + cost_additions - termination_values",
+        &[&opening, &added, &improved, &termination],
+        amount.clone(),
+    );
+    let steps = precise(|| {
+        let mut steps = vec![amount_step];
+        if positive && below {
+            steps.extend([
+                step(
+                    "low_pool_value_deduction",
+                    LOW_POOL,
+                    "low_pool_value_amount",
+                    &[&amount],
+                    amount.clone(),
+                ),
+                nil("pool_deduction", NOT_RATED),
+                nil("new_asset_deduction", NOT_RATED),
+                nil("cost_addition_deduction", NOT_RATED),
+                step(
+                    "deduction",
+                    "The deduction for the pool for the year: the low pool value amount",
+                    "low_pool_value_deduction",
+                    &[&amount],
+                    amount.clone(),
+                ),
+                nil("assessable_income", ASSESSABLE),
+                nil("closing_pool_balance", CLOSING),
+            ]);
+            return Ok(steps);
+        }
+        if amount.lt(&zero)? {
+            steps.extend([
+                nil("low_pool_value_deduction", NO_LOW_POOL),
+                nil("pool_deduction", NOT_RATED),
+                nil("new_asset_deduction", NOT_RATED),
+                nil("cost_addition_deduction", NOT_RATED),
+                nil(
+                    "deduction",
+                    "No deduction: the s 328-210(2) amount is below zero",
+                ),
+                step(
+                    "assessable_income",
+                    ASSESSABLE,
+                    "0 - low_pool_value_amount",
+                    &[&amount],
+                    zero.sub(&amount)?,
+                ),
+                nil("closing_pool_balance", CLOSING),
+            ]);
+            return Ok(steps);
+        }
+        let pool = opening.mul(&d("0.30"))?;
+        let new_assets = added.mul(&d("0.15"))?;
+        let addition = improved.mul(&d("0.15"))?;
+        let total = cents(pool.clone())?
+            .add(&cents(new_assets.clone())?)?
+            .add(&cents(addition.clone())?)?;
+        let rest = amount.sub(&total)?;
+        steps.extend([
+            nil("low_pool_value_deduction", NO_LOW_POOL),
+            step(
+                "pool_deduction",
+                POOL,
+                "0.30 x opening_pool_balance",
+                &[&opening],
+                pool.clone(),
+            ),
+            step(
+                "new_asset_deduction",
+                NEW_ASSETS,
+                "0.15 x additions",
+                &[&added],
+                new_assets.clone(),
+            ),
+            step(
+                "cost_addition_deduction",
+                COST_ADDITIONS,
+                "0.15 x cost_additions",
+                &[&improved],
+                addition.clone(),
+            ),
+            step(
+                "deduction",
+                "The deduction for the pool for the year: the s 328-190 deductions, each in cents",
+                "cents(pool_deduction) + cents(new_asset_deduction) + cents(cost_addition_deduction)",
+                &[&pool, &new_assets, &addition],
+                total.clone(),
+            ),
+            step(
+                "assessable_income",
+                ASSESSABLE,
+                "max(deduction - low_pool_value_amount, 0)",
+                &[&total, &amount],
+                py_max(total.sub(&amount)?, int(0))?,
+            ),
+            step(
+                "closing_pool_balance",
+                CLOSING,
+                "max(low_pool_value_amount - deduction, 0)",
+                &[&amount, &total],
+                py_max(rest, int(0))?,
+            ),
+        ]);
+        Ok(steps)
+    })?;
+    let rates = vec![
+        rate("pool_rate", "0.30"),
+        rate("new_asset_rate", "0.15"),
+        rate(
+            "low_pool_value_threshold",
+            threshold.map_or_else(|| "none".to_string(), |t| t.to_string()),
+        ),
+        rate("low_pool_value_threshold_rule", threshold_rule),
+    ];
+    let out = derived_result(KIND, &year, steps, rates)?;
+    Ok(if FULL_EXPENSING_YEARS.contains(&year.as_str()) {
+        warn(out, SBP_FULL_EXPENSING)
+    } else {
+        out
+    })
+}
+
+/// ITAA 1997 Division 43: one area's capital works deduction for the year, at
+/// 4% for use in the 4% manner (s 43-145) or else 2.5%, for works begun from
+/// 16 September 1987 (s 43-210 after 26 February 1992, s 43-215 before).
+#[allow(clippy::too_many_arguments)]
+pub fn capital_works(
+    construction_expenditure: &Arg,
+    construction_start: &Arg,
+    four_percent_manner: &Arg,
+    days_used: &Arg,
+    taxable_use: &Arg,
+    undeducted_construction_expenditure: &Arg,
+    year: &Arg,
+    scope_confirmed: &Arg,
+) -> Result<Value> {
+    const KIND: &str = "capital_works";
+    let year = scope(scope_confirmed, year, KIND)?;
+    let expenditure = money(construction_expenditure)?;
+    let begun = date_arg(construction_start, "construction_start")?;
+    let four = flag(four_percent_manner, "four_percent_manner")?;
+    let first = dates::parse("1987-09-16").expect("date");
+    let section_43_210 = dates::parse("1992-02-27").expect("date");
+    if begun < first {
+        return refuse(
+            "capital_works.begun_before_16_september_1987",
+            "Capital works begun before 16 September 1987 (the 4% rate from 22 August 1984 and the earlier rules of s 43-215) are outside this worksheet.",
+        );
+    }
+    if four && begun < section_43_210 {
+        return refuse(
+            "capital_works.four_percent_before_27_february_1992",
+            "Capital works begun before 27 February 1992 and after 15 September 1987 have only the 2.5% rate (s 43-215 step 1(b)); the 4% manner (s 43-145) is for works begun later.",
+        );
+    }
+    // The numerator can be 366 in a leap year; the denominator stays 365.
+    let most = if year == "2023-24" { 366 } else { 365 };
+    let Some(Some(days)) = days_used
+        .int()
+        .filter(|n| n.is_some_and(|n| (0..=most).contains(&n)))
+    else {
+        return refuse(
+            "input.day_count_invalid",
+            format!("days_used must be an integer from 0 to {most} for {year}."),
+        );
+    };
+    let Some(use_) = finite_between(taxable_use, "0", "1")? else {
+        return refuse(
+            "input.fraction_invalid",
+            "taxable_use must be a finite Decimal fraction from 0 to 1.",
+        );
+    };
+    // Exact to the cent within this bound: the 40-digit product of at most 14
+    // digits of expenditure, 3 of days, 3 of rate and 20 of use is exact, and
+    // its one division by 365 is then closer to a cent boundary than it errs.
+    if use_.adjusted() - use_.exponent() + 1 > 20 {
+        return refuse(
+            "capital_works.precision_exceeded",
+            "taxable_use must have 20 or fewer significant digits, as written.",
+        );
+    }
+    let undeducted = money(undeducted_construction_expenditure)?;
+    if undeducted.gt(&expenditure)? {
+        return refuse(
+            "capital_works.undeducted_above_expenditure",
+            "undeducted_construction_expenditure cannot exceed construction_expenditure.",
+        );
+    }
+    let (rate_text, rule) = match (four, begun < section_43_210) {
+        (true, _) => (
+            "0.04",
+            "ITAA 1997 s 43-210 step 1: the part used in the 4% manner (s 43-145), at 4% for the days so used over 365",
+        ),
+        (false, false) => (
+            "0.025",
+            "ITAA 1997 s 43-210 step 3: the part used as Table 43-140 describes and not in the 4% manner, at 2.5% for the days so used over 365",
+        ),
+        (false, true) => (
+            "0.025",
+            "ITAA 1997 s 43-215 step 1(b): works begun after 15 September 1987 and before 27 February 1992, at 2.5% for the days used over 365",
+        ),
+    };
+    let reduce = if begun < section_43_210 {
+        "ITAA 1997 s 43-215 step 3: reduced to the extent the area was used only partly for producing assessable income or R&D activities"
+    } else if four {
+        "ITAA 1997 s 43-210 step 2: reduced to the extent the part was used only partly for producing assessable income"
+    } else {
+        "ITAA 1997 s 43-210 step 4: reduced to the extent the part was used only partly for producing assessable income or R&D activities"
+    };
+    let limit = if begun < section_43_210 {
+        "ITAA 1997 s 43-215 step 4: the lesser of the reduced amount and the undeducted construction expenditure"
+    } else {
+        "ITAA 1997 s 43-210 steps 5 and 6: the lesser of the reduced amount and the undeducted construction expenditure"
+    };
+    let rate_value = d(rate_text);
+    let days = int(days);
+    let steps = precise(|| {
+        // Divide once, last, as the single-asset worksheet does.
+        let product = expenditure.mul(&days)?.mul(&rate_value)?;
+        let full = product.div(&int(365))?;
+        let reduced = product.mul(&use_)?.div(&int(365))?;
+        let deduction = py_min(reduced.clone(), undeducted.clone())?;
+        Ok(vec![
+            step(
+                "rate_amount",
+                rule,
+                "construction_expenditure x days_used x rate / 365",
+                &[&expenditure, &days, &rate_value],
+                full,
+            ),
+            step(
+                "reduced_amount",
+                reduce,
+                "construction_expenditure x days_used x rate x taxable_use / 365",
+                &[&expenditure, &days, &rate_value, &use_],
+                reduced.clone(),
+            ),
+            step(
+                "deduction",
+                limit,
+                "min(reduced_amount, undeducted_construction_expenditure)",
+                &[&reduced, &undeducted],
+                deduction,
+            ),
+        ])
+    })?;
+    derived_result(KIND, &year, steps, vec![rate("rate", rate_text)])
+}
