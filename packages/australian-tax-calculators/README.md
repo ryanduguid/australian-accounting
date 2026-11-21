@@ -2499,18 +2499,22 @@ at a market rent.
   deduction for the year is the borrowing expenses line.
 - `capital_works` items take the construction expenditure as given, never
   derived from a price: 4% for a building begun from 18 July 1985 to 15
-  September 1987 (or later under a contract made before 16 September 1987,
-  s 43-220), 2.5% otherwise, nil for a building begun before 18 July 1985 or a
+  September 1987 (or later but taken to have begun earlier under s 43-220),
+  2.5% otherwise, nil for a building begun before 22 August 1979 or a
   structural improvement begun before 27 February 1992; the days used over 365,
-  no more than the undeducted construction expenditure (Division 43).
-- `depreciating_assets` take each asset's decline in value as given and set it
-  to nil where s 40-27 reduces it: a second-hand asset not supplied with new
+  no more than the undeducted construction expenditure (Division 43). A
+  building begun from 22 August 1979 to 17 July 1985 is refused, as it
+  qualifies only by its intended use on completion.
+- `depreciating_assets` take each asset's decline in value as given, from its
+  start time (`first_used`), apportioned like the other lines unless it was
+  first used after the property was first held in a year available every day,
+  and set it to nil where s 40-27 reduces it: a second-hand asset not supplied with new
   residential premises, or one used in a residence or privately, acquired from
   7.30 pm on 9 May 2017 (Act No. 126 of 2017 Schedule 2 item 13).
 
 It refuses a holiday home whose costs s 26-50 denies, a redraw, an asset
 acquired on 9 May 2017 or acquired earlier with nothing deductible for 2016-17,
-works first used in a year with private use, and the effect on tax before
+works or an asset first used after the property was first held in a year with private use, a building begun from 22 August 1979 to 17 July 1985, and the effect on tax before
 2024-25. From 2027-28 s 26-155 can quarantine rental deductions; that year is
 not supported. `tests/rental_property.rs` holds it to the ATO's Rental
 properties guide 2026 Examples 12, 20, 21, 23, 29, 33 and 34.

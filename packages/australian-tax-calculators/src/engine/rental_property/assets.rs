@@ -12,13 +12,14 @@
 use serde_json::{Map, Value, json};
 
 use super::super::{Arg, Result, cents, int, refuse};
-use super::{Held, amount, at, invalid, item, item_flag, list};
+use super::{Held, amount, at, conflict, invalid, item, item_flag, list};
 use crate::dates;
 use crate::decimal::Decimal;
 
-const FACTS: [(&str, bool); 7] = [
+const FACTS: [(&str, bool); 8] = [
     ("decline_in_value", true),
     ("acquired", true),
+    ("first_used", true),
     ("held_when_first_used", true),
     ("residence_or_private_use", true),
     ("low_value_pool", true),
@@ -85,30 +86,46 @@ fn reduced(fields: &Map<String, Value>, acquired: i64) -> Result<Option<&'static
     ))
 }
 
+fn date(fields: &Map<String, Value>, key: &str) -> Result<i64> {
+    match fields
+        .get(key)
+        .and_then(Value::as_str)
+        .and_then(dates::parse)
+    {
+        Some(day) => Ok(day),
+        None => invalid(format!("{key} must be a YYYY-MM-DD date.")),
+    }
+}
+
+/// The days available and held the asset's decline is apportioned by: the
+/// property's, or all of them for an asset first used after the property was
+/// first held in a year it was available every day held.
+fn days(first_used: i64, acquired: i64, held: &Held) -> Result<(i64, i64)> {
+    if first_used > held.to || first_used < acquired {
+        return conflict(
+            "first_used must not be before acquired or after the property was last held in the year.",
+        );
+    }
+    if first_used <= held.from || held.available == held.days {
+        return Ok((held.available, held.days));
+    }
+    refuse(
+        "rental_property.days_unclear",
+        "The asset was first used after the property was first held in the year, and it was not available for rent on every day held, so the share of its decline for rental use is not known from days_available.",
+    )
+}
+
 fn asset(value: &Value, share: &Decimal, held: &Held) -> Result<(String, Decimal, Value)> {
     let fields = item(value, "depreciating_assets", &FACTS)?;
     let decline = amount(fields.get("decline_in_value"))?;
-    let Some(acquired) = fields
-        .get("acquired")
-        .and_then(Value::as_str)
-        .and_then(dates::parse)
-    else {
-        return invalid("acquired must be a YYYY-MM-DD date.");
-    };
+    let acquired = date(fields, "acquired")?;
+    let (available, all) = days(date(fields, "first_used")?, acquired, held)?;
     let why = reduced(fields, acquired)?;
     let (formula, deduction) = match why {
         Some(_) => (format!("0 x {decline}"), int(0)),
         None => (
-            format!(
-                "cents({decline} x {share} x {} / {})",
-                held.available, held.days
-            ),
-            cents(
-                decline
-                    .mul(share)?
-                    .mul(&int(held.available))?
-                    .div(&int(held.days))?,
-            )?,
+            format!("cents({decline} x {share} x {available} / {all})"),
+            cents(decline.mul(share)?.mul(&int(available))?.div(&int(all))?)?,
         ),
     };
     let row = json!({

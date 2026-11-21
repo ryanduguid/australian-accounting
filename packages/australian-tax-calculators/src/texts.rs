@@ -260,7 +260,7 @@ pub const SCOPES: &[(&str, &str)] = &[
     ),
     (
         "rental_property",
-        "One residential rental property for one owner and one income year from 2020-21 to 2026-27: the owner's share of rent and other rental income (ITAA 1997 s 6-5) and of the expenses by the ATO worksheet's lines, apportioned by the days let or available for rent on commercial terms over the days held except those relating solely to renting (s 8-1; Rental properties guide 2026, 'Time-based method'), travel shown and denied (s 26-31); interest on the owner's own loans at the share of principal used for the rental (TR 2000/2); borrowing expenses through borrowing-expenses-schedule (s 25-25); capital works at 2.5% or 4% by when they began, for the days used and within the undeducted construction expenditure (Division 43); each depreciating asset's decline in value as given, nil where s 40-27 reduces it; the net rent; and, with other taxable income for 2024-25 to 2026-27, the tax at the resident scale without and with it. The operator establishes that the owner is an individual not carrying on a business of letting and not an entity excepted by ss 26-31(2), 40-27(3) or 26-102(5); the owner's legal interest; that the whole dwelling is let as residential accommodation at a market rent, with no area-based apportionment and no non-commercial letting; that the days counted as available exclude any day the land was vacant under s 26-102 and any private use; the line each expense belongs on, that it is revenue (not capital, an initial repair or an improvement) and whether it relates solely to renting; each loan's interest and principal split with no redraw or further drawing in the year; the construction expenditure from a builder's contract or a qualified estimate, and when the works began and were first used; and each asset's decline in value and the facts s 40-27 turns on. Excludes holiday homes whose costs s 26-50 denies (refused); the 4% manner (build to rent and short-term traveller accommodation); GST on short-stay letting; s 26-155 from 2027-28; Medicare levy, the surcharge, offsets and tax losses in the effect on tax; and working out the decline in value or the construction expenditure.",
+        "One residential rental property for one owner and one income year from 2020-21 to 2026-27: the owner's share of rent and other rental income (ITAA 1997 s 6-5) and of the expenses by the ATO worksheet's lines, apportioned by the days let or available for rent on commercial terms over the days held except those relating solely to renting (s 8-1; Rental properties guide 2026, 'Time-based method'), travel shown and denied (s 26-31); interest on the owner's own loans at the share of principal used for the rental (TR 2000/2); borrowing expenses through borrowing-expenses-schedule (s 25-25); capital works at 2.5% or 4% by when they began, for the days used and within the undeducted construction expenditure (Division 43); each depreciating asset's decline in value as given, nil where s 40-27 reduces it; the net rent; and, with other taxable income for 2024-25 to 2026-27, the tax at the resident scale without and with it. The operator establishes that the owner is an individual not carrying on a business of letting and not an entity excepted by ss 26-31(2), 40-27(3) or 26-102(5); the owner's legal interest; that the property is in Australia and the whole dwelling is let as residential accommodation at a market rent, with no area-based apportionment and no non-commercial letting; that the days counted as available exclude any day the land was vacant under s 26-102 and any private use; the line each expense belongs on, that it is revenue (not capital, an initial repair or an improvement) and whether it relates solely to renting; each loan's interest and principal split with no redraw or further drawing in the year; the construction expenditure from a builder's contract or a qualified estimate, whether each item is a building or a structural improvement (not earthworks s 43-20(4) excludes), when it began and was first used and whether s 43-220 applies; and each asset's decline in value and the facts s 40-27 turns on. Excludes holiday homes whose costs s 26-50 denies (refused); the 4% manner (build to rent and short-term traveller accommodation); GST on short-stay letting; s 26-155 from 2027-28; Medicare levy, the surcharge, offsets and tax losses in the effect on tax; and working out the decline in value or the construction expenditure.",
     ),
     (
         "sb_cgt_concessions",
@@ -2509,6 +2509,10 @@ pub const REFUSAL_CODES: &[(&str, &str)] = &[
         "A depreciating asset acquired before 9 May 2017 had nothing deductible for 2016-17, so s 40-27 turns on its start time, which the worksheet does not take.",
     ),
     (
+        "rental_property.days_unclear",
+        "Capital works or a depreciating asset were first used after the property was first held in the year, and it was not available on every day held, so their days of rental use are not known.",
+    ),
+    (
         "rental_property.fact_conflict",
         "The facts contradict each other or the income year: dates outside it or out of order, days available over the days held, or principal for the rental over the total.",
     ),
@@ -2529,8 +2533,8 @@ pub const REFUSAL_CODES: &[(&str, &str)] = &[
         "other_taxable_income was given for a year before 2024-25, for which resident-tax holds no scale.",
     ),
     (
-        "rental_property.works_days_unclear",
-        "Capital works were first used after the property was first held in the year, and it was not available on every day held, so their days used are not known.",
+        "rental_property.works_intended_use",
+        "A building begun from 22 August 1979 to 17 July 1985 qualifies only if intended on completion for short-term traveller accommodation or non-residential use, which the worksheet does not take.",
     ),
     (
         "sb_cgt_concessions.active_period_unclear",

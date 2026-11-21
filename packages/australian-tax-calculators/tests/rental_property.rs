@@ -161,7 +161,7 @@ fn works(expenditure: &str, kind: &str, began: &str, first_used: &str) -> Value 
 #[test]
 fn example_29_capital_works_for_part_of_the_year() {
     let mut item = works("115800.00", "building", "1991-08-01", "1992-03-01");
-    item["contract_before_16_september_1987"] = json!(false);
+    item["taken_to_begin_before_16_september_1987"] = json!(false);
     let input = with(json!({
         "acquired": "2025-07-20", "days_available": 346, "capital_works": [item],
     }));
@@ -181,7 +181,7 @@ fn example_29_capital_works_for_part_of_the_year() {
 fn rate_of(kind: &str, began: &str, contract: Option<bool>) -> Value {
     let mut item = works("100000.00", kind, began, "2015-07-01");
     if let Some(flag) = contract {
-        item["contract_before_16_september_1987"] = json!(flag);
+        item["taken_to_begin_before_16_september_1987"] = json!(flag);
     }
     run(&with(json!({"capital_works": [item]})))["capital_works"][0]["rate"].clone()
 }
@@ -189,13 +189,24 @@ fn rate_of(kind: &str, began: &str, contract: Option<bool>) -> Value {
 /// ss 43-20, 43-25 and 43-220 and the guide's Tables 1 and 2, at each edge.
 #[test]
 fn capital_works_rate_by_when_works_began() {
-    assert_eq!(rate_of("building", "1985-07-17", None), Value::Null);
+    assert_eq!(rate_of("building", "1979-08-21", None), Value::Null);
+    for began in ["1979-08-22", "1985-07-17"] {
+        let item = works("1.00", "building", began, "2015-07-01");
+        let input = with(json!({"capital_works": [item]}));
+        assert_eq!(
+            code(&input),
+            "rental_property.works_intended_use",
+            "{began}"
+        );
+    }
     assert_eq!(rate_of("building", "1985-07-18", None), "0.04");
     assert_eq!(rate_of("building", "1987-09-15", None), "0.04");
     assert_eq!(rate_of("building", "1987-09-16", Some(false)), "0.025");
     assert_eq!(rate_of("building", "1987-09-16", Some(true)), "0.04");
     assert_eq!(rate_of("building", "1992-02-26", Some(true)), "0.04");
     assert_eq!(rate_of("building", "1992-02-27", None), "0.025");
+    // s 43-220 applies to any building begun after 15 September 1987.
+    assert_eq!(rate_of("building", "1992-02-27", Some(true)), "0.04");
     assert_eq!(
         rate_of("structural_improvement", "1992-02-26", None),
         Value::Null
@@ -253,7 +264,7 @@ fn works_first_used_in_the_year() {
     assert_eq!(amount(&all, "capital_works"), "452.50");
     let mut part = all.clone();
     part["days_available"] = json!(300);
-    assert_eq!(code(&part), "rental_property.works_days_unclear");
+    assert_eq!(code(&part), "rental_property.days_unclear");
     let later =
         with(json!({"capital_works": [works("1.00", "building", "2026-07-01", "2026-07-02")]}));
     assert_eq!(amount(&later, "capital_works"), "0.00");
@@ -264,7 +275,7 @@ fn works_first_used_in_the_year() {
 
 fn asset(acquired: &str, held_first: bool, private: bool) -> Value {
     json!({
-        "decline_in_value": "1000.00", "acquired": acquired,
+        "decline_in_value": "1000.00", "acquired": acquired, "first_used": acquired,
         "held_when_first_used": held_first, "residence_or_private_use": private,
         "low_value_pool": false,
     })
@@ -324,7 +335,7 @@ fn example_23_new_premises_and_pools_are_deductible() {
     // Apportioned like the rest: 1,000 x 0.5 x 200 / 315.
     let mut half =
         with(json!({"acquired": "2025-08-20", "days_available": 200, "ownership_share": "0.5"}));
-    half["depreciating_assets"] = json!([asset("2025-08-25", true, false)]);
+    half["depreciating_assets"] = json!([asset("2025-08-20", true, false)]);
     assert_eq!(amount(&half, "decline_in_value"), "317.46");
 }
 
@@ -373,7 +384,7 @@ fn section_40_27_applies_from_9_may_2017() {
 #[test]
 fn example_33_worksheet_denies_travel() {
     let mut cw = works("115800.00", "building", "1991-08-01", "1992-03-01");
-    cw["contract_before_16_september_1987"] = json!(false);
+    cw["taken_to_begin_before_16_september_1987"] = json!(false);
     let input = with(json!({
         "acquired": "2025-07-20", "days_available": 346,
         "income": {"rental_income": "8500.00", "other_rental_income": "800.00"},
@@ -551,4 +562,43 @@ fn disposal_in_the_year() {
     let r = run(&input);
     assert_eq!(r["amounts"]["council_rates"], "1000.00");
     assert_eq!(r["held"]["to"], "2025-12-31");
+}
+
+/// An asset first used after the property was first held counts all its
+/// decline when the property was available every day held, and is refused
+/// otherwise; one first used after the year, or before it was acquired, is a
+/// conflict.
+#[test]
+fn asset_first_used_in_the_year() {
+    let mut curtains = asset("2026-01-01", true, false);
+    curtains["decline_in_value"] = json!("100.00");
+    let all = with(json!({"depreciating_assets": [curtains]}));
+    assert_eq!(amount(&all, "decline_in_value"), "100.00");
+    let mut private_half = all.clone();
+    private_half["days_available"] = json!(181);
+    assert_eq!(code(&private_half), "rental_property.days_unclear");
+    let mut late = asset("2026-07-01", true, false);
+    late["first_used"] = json!("2026-07-01");
+    assert_eq!(
+        code(&with(json!({"depreciating_assets": [late]}))),
+        "rental_property.fact_conflict"
+    );
+    let mut backwards = asset("2024-01-02", true, false);
+    backwards["first_used"] = json!("2024-01-01");
+    assert_eq!(
+        code(&with(json!({"depreciating_assets": [backwards]}))),
+        "rental_property.fact_conflict"
+    );
+    // A contract made on 8 May 2017 for an asset first used on 10 May, which
+    // was deductible for 2016-17, is outside s 40-27 (item 13).
+    let mut contracted = asset("2017-05-08", false, true);
+    contracted["first_used"] = json!("2017-05-10");
+    contracted["deductible_in_2016_17"] = json!(true);
+    assert_eq!(
+        amount(
+            &with(json!({"depreciating_assets": [contracted]})),
+            "decline_in_value"
+        ),
+        "1000.00"
+    );
 }

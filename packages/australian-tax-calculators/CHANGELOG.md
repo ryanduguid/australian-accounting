@@ -16,11 +16,11 @@
   where s 40-27 reduces it; the net rent and, for 2024-25 to 2026-27, its
   effect on tax at the resident scale. New codes:
   `rental_property.asset_acquired_9_may_2017`,
-  `rental_property.asset_transition_unclear`,
+  `rental_property.asset_transition_unclear`, `rental_property.days_unclear`,
   `rental_property.fact_conflict`, `rental_property.fact_invalid`,
   `rental_property.interest_redraw`, `rental_property.s26_50_denied`,
   `rental_property.tax_effect_year` and
-  `rental_property.works_days_unclear`. `tests/rental_property.rs` holds it to
+  `rental_property.works_intended_use`. `tests/rental_property.rs` holds it to
   the ATO's Rental properties guide 2026 examples.
 
 ### Fixed

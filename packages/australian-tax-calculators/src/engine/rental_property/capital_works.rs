@@ -22,7 +22,7 @@ const FACTS: [(&str, bool); 5] = [
     ("kind", true),
     ("began", true),
     ("first_used", true),
-    ("contract_before_16_september_1987", false),
+    ("taken_to_begin_before_16_september_1987", false),
 ];
 
 /// Why an item has no deduction, or its rate.
@@ -51,25 +51,35 @@ fn rate(kind: &str, began: i64, fields: &Map<String, Value>) -> Result<Rate> {
             Rate::Of("0.025")
         });
     }
-    if began < day("1985-07-18") {
+    if began < day("1979-08-22") {
         return Ok(Rate::Nil(
-            "a building begun before 18 July 1985, before which only short-term traveller accommodation and non-residential buildings qualify (Rental properties guide 2026, Table 1)",
+            "a building begun before 22 August 1979, to which Division 43 does not apply (ITAA 1997 s 43-20(1))",
         ));
+    }
+    if began < day("1985-07-18") {
+        return refuse(
+            "rental_property.works_intended_use",
+            "A building begun from 22 August 1979 to 17 July 1985 qualifies only if it was intended on completion for short-term traveller accommodation or non-residential use (Rental properties guide 2026, Table 1), which the worksheet does not take.",
+        );
     }
     if began < day("1987-09-16") {
         return Ok(Rate::Of("0.04"));
     }
-    if began < day("1992-02-27") {
-        return match item_flag(fields, "contract_before_16_september_1987")? {
-            Some(true) => Ok(Rate::Of("0.04")),
-            Some(false) => Ok(Rate::Of("0.025")),
-            None => refuse(
-                "input.missing_field",
-                "contract_before_16_september_1987 is required for a building begun from 16 September 1987 to 26 February 1992 (ITAA 1997 s 43-220(1)(a))",
+    // s 43-220: a building begun after 15 September 1987 under a contract
+    // made before 16 September 1987, or financed by a qualifying investor's
+    // borrowing under one, is taken to have begun before that day.
+    let key = "taken_to_begin_before_16_september_1987";
+    match item_flag(fields, key)? {
+        Some(true) => Ok(Rate::Of("0.04")),
+        Some(false) => Ok(Rate::Of("0.025")),
+        None if began >= day("1992-02-27") => Ok(Rate::Of("0.025")),
+        None => refuse(
+            "input.missing_field",
+            format!(
+                "{key} is required for a building begun from 16 September 1987 to 26 February 1992 (ITAA 1997 s 43-220(1)(a) and (b))"
             ),
-        };
+        ),
     }
-    Ok(Rate::Of("0.025"))
 }
 
 /// The days the item was used to produce rent in the year.
@@ -82,7 +92,7 @@ fn days_used(first_used: i64, held: &Held) -> Result<i64> {
     }
     if held.available < held.days {
         return refuse(
-            "rental_property.works_days_unclear",
+            "rental_property.days_unclear",
             "The works were first used after the property was first held in the year, and it was not available for rent on every day held, so their days used are not known from days_available.",
         );
     }

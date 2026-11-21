@@ -3131,14 +3131,20 @@ the build to rent manner, out of scope), so the rules hold from 2020-21.
 Choices the law leaves to the reader:
 
 - The guide's Table 1 limits a residential building to works begun from 18
-  July 1985; s 43-20(1) alone reaches back to 22 August 1979, for
-  non-residential and short-term traveller buildings.
+  July 1985; s 43-20(1) reaches back to 22 August 1979 for buildings intended
+  for non-residential use or short-term traveller accommodation, so a building
+  begun in between is refused rather than given nil, as a converted one may
+  qualify.
+- s 43-220 is taken as one fact, covering the contract of (1)(a) and the
+  qualifying investor's financing of (1)(b); it is required from 16 September
+  1987 to 26 February 1992 and honoured if given for a later building.
 - The use period starts at first use by any entity after construction
   (s 43-230(2)(a)); the worksheet takes it as `first_used` and counts both
   ends. The divisor is 365 in every year, so a leap year's 366 days give
   366/365 of the rate (Example 29's note).
-- Works first used during the year count from that day when the property was
-  available every day held; otherwise the days are not known and are refused.
+- Works and depreciating assets first used during the year count from that
+  day when the property was available every day held; otherwise the days are
+  not known and are refused.
 - The decline in value given is for the days held before any private use
   reduction, and the time-based share applies to it as to the other lines.
 - Each line is rounded to the cent. The ATO's examples round to the dollar,

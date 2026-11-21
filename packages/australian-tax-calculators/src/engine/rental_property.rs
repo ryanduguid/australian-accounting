@@ -378,12 +378,8 @@ fn borrowing(loans: &Arg, year: &str) -> Result<(Step, Value)> {
         let none = step("borrowing_expenses", BORROWING, "0", &[], int(0));
         return Ok((none, json!([])));
     }
-    let out = borrowing_expenses_schedule(
-        &Arg::Json(Value::Array(list.to_vec())),
-        None,
-        &Arg::Text(year.to_string()),
-        &Arg::Bool(true),
-    )?;
+    let out =
+        borrowing_expenses_schedule(loans, None, &Arg::Text(year.to_string()), &Arg::Bool(true))?;
     let deduction = Decimal::parse(out["amounts"]["deduction"].as_str().expect("an amount"))?;
     let step = step(
         "borrowing_expenses",
