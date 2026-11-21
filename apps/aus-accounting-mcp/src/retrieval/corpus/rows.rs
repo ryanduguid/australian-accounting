@@ -24,7 +24,7 @@ pub(super) fn root(context: &Context) -> Result<PathBuf, String> {
     context.root(
         "AUS_ACCOUNTING_CORPUS_ROOT",
         "legislation corpus folder",
-        policy("QUICK_BUILD"),
+        policy("SETUP_ROUTES"),
     )
 }
 pub(super) fn query_terms(query: &str, field: &str) -> Result<Vec<String>, String> {

@@ -231,6 +231,22 @@ fn replay_tier(item: &Value, args: &Value) {
     );
 }
 
+// Replay the setup wording that replaced the original Python build-only guidance.
+fn current_corpus_setup(expected: &str) -> String {
+    let old = concat!(
+        "`python -m fadden quick --out <empty folder>` in PaulGoodman builds 9 ",
+        "principal Acts on this machine and prints the setting. "
+    );
+    let current = concat!(
+        "PaulGoodman's published snapshot of 9 principal Acts needs no build: download ",
+        "https://github.com/ryanduguid/PaulGoodman/releases/tag/corpus-2026-11-18, unpack it ",
+        "and set the variable to its dist folder as an absolute path. Otherwise ",
+        "`python -m fadden quick --out <empty folder>` in PaulGoodman builds the same Acts on ",
+        "this machine and prints the setting. "
+    );
+    expected.replacen(old.trim_end(), current.trim_end(), 1)
+}
+
 fn replay_corpus_call(tree: &Path, item: &Value, blobs: &Value, function: &str, args: &Value) {
     let context = restore(tree, item, blobs);
     let name = match function {
@@ -244,7 +260,7 @@ fn replay_corpus_call(tree: &Path, item: &Value, blobs: &Value, function: &str, 
     if item.get("error").is_some() {
         assert_eq!(
             result.expect_err(item["test"].as_str().unwrap()),
-            item["error"]["message"],
+            current_corpus_setup(item["error"]["message"].as_str().unwrap()),
             "{}",
             item["test"]
         );
@@ -421,14 +437,20 @@ fn frozen_census_contracts() {
         match item.get("error") {
             Some(error) => assert_eq!(
                 found.as_ref().unwrap_err(),
-                &error["message"],
+                &current_corpus_setup(error["message"].as_str().unwrap()),
                 "{}",
                 item["test"]
             ),
             None => assert_eq!(found.as_ref().unwrap(), &item["result"], "{}", item["test"]),
         }
         let (ok, line) = crate::doctor::judged(variable, found);
-        assert_eq!(json!([ok, line]), item["check"], "{}", item["test"]);
+        assert_eq!(ok, item["check"][0].as_bool().unwrap(), "{}", item["test"]);
+        assert_eq!(
+            line,
+            current_corpus_setup(item["check"][1].as_str().unwrap()),
+            "{}",
+            item["test"]
+        );
         count += 1;
     }
     assert_eq!(count, 28);
