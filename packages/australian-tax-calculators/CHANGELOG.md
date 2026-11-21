@@ -4,6 +4,21 @@
 
 - Relicensed Ryan Duguid's code under AGPL-3.0-or-later with section 7(b) attribution terms.
 
+### Added
+
+- `beneficiary-tax-offset`, `invalid-carer-tax-offset`, `zone-tax-offset` and
+  `net-medical-expenses-tax-offset` work out the beneficiary tax offset
+  (ITAA 1936 s 160AAA) and the zone and overseas forces tax offsets
+  (ss 79A and 79B) for 2020-21 to 2026-27, the invalid and invalid carer tax
+  offset (ITAA 1997 Subdivision 61-A) for 2020-21 to 2025-26 and the net
+  medical expenses tax offset for 2016-17 to 2018-19, its last years. New
+  codes: `invalid_carer_tax_offset.dependant_invalid`, `.ftb_shared_care`,
+  `.rate_unpublished` and `.shared_maintenance`; `zone_tax_offset.area_invalid`,
+  `.dependants_invalid`, `.half_year_unclear`, `.prior_year_invalid`,
+  `.prior_year_unclear`, `.shared_maintenance` and
+  `.sole_parent_without_dependant`. `tests/individual_offsets.rs` holds them
+  to the ATO's examples and every published amount and limit.
+
 ### Fixed
 
 - Both borrowing expenses worksheets identify their deduction amounts as

@@ -165,8 +165,10 @@ fn every_catalogued_required_input_of_a_strict_command_is_read() {
     // fbt-minor-benefit-check, gst-margin-scheme, wine-equalisation-tax,
     // luxury-car-tax, borrowing-expenses-schedule, payroll-tax,
     // fuel-tax-credits, dasp-tax, ppsr-timing, cgt-parcels,
-    // fbt-ev-exemption-check, fhss, franking-account and sb-cgt-concessions.
-    assert_eq!(checked, 52);
+    // fbt-ev-exemption-check, fhss, franking-account, sb-cgt-concessions,
+    // beneficiary-tax-offset, invalid-carer-tax-offset, zone-tax-offset and
+    // net-medical-expenses-tax-offset.
+    assert_eq!(checked, 56);
 }
 
 /// Every frozen call gives the same answer through either entry point, and

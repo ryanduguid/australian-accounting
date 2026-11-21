@@ -16,12 +16,12 @@ keeps the calculator release and MCP integration separate.
 
 </div>
 
-66 calculation worksheets for established facts: ordinary GST, fuel tax credits at the ATO's rate for each day from 1 July 2022 with the simplified methods for small claimants, resident and foreign
+70 calculation worksheets for established facts: ordinary GST, fuel tax credits at the ATO's rate for each day from 1 July 2022 with the simplified methods for small claimants, resident and foreign
 resident basic income tax, CGT losses and discount, the gains and losses from parcels of shares or units, the small business CGT concessions open for a gain, the main residence exemption's taxable share of a gain or loss, one loan's borrowing expenses deduction and a schedule of several loans' deductions over every year, a hire purchase agreement's notional interest, a chattel mortgage's interest schedule and input tax credit, a loan's statement with daily interest at changing rates, business capital expenditure (black hole and start-up costs) under s 40-880, ordinary employer FBT, car fringe benefit taxable values
 under the statutory formula and operating cost methods, loan, meal entertainment, car parking, debt waiver, expense payment, property, residual, housing, living-away-from-home allowance, board and tax-exempt body entertainment fringe benefit taxable values, the FBT, deduction and GST credit treatment of entertainment expense lines, whether a 12 week meal entertainment register is valid, depreciation in the start year and later years, a depreciating asset's balancing adjustment with its reduction for private use and CGT event K7, a trade-in's GST on both sides with the old asset's balancing adjustment and the replacement's cost, whether an electric car's fringe benefits are exempt, one employer's payroll tax in each state and territory, a company's franking account with franking deficit tax, its offset and the benchmark rule, wine equalisation tax with the producer rebate under its yearly cap and BAS labels 1C and 1D, luxury car tax on sales and importations with its adjustments, refunds and BAS labels 1E and 1F,
 quarterly super guarantee, Schedule 1 PAYG withholding and the gross pay that leaves a stated net, Schedule 5 withholding from back payments, commissions and bonuses by Methods A, B(i) and B(ii), Schedule 15 withholding for working holiday makers, Schedule 9 withholding for seniors and pensioners, super contribution caps,
 account-based pension minimums, study and training loan repayments, Schedule 8 study
-loan withholding, the Medicare levy with its low-income, SAPTO and family reductions and full or half exemptions, the Medicare levy surcharge, the low income tax offset, the seniors and pensioners tax offset, the lump sum payment in arrears tax offset,
+loan withholding, the Medicare levy with its low-income, SAPTO and family reductions and full or half exemptions, the Medicare levy surcharge, the low income tax offset, the seniors and pensioners tax offset, the lump sum payment in arrears tax offset, the beneficiary, invalid and invalid carer, zone and overseas forces and net medical expenses tax offsets,
 Division 293 tax, an estimate of Division 296 tax on large super balances and the tax-free part of a genuine redundancy payment with Schedule 11 withholding from an employment termination payment, the invalidity and pre-July 83 segments of an employment termination payment's tax free component, the assessable share, Schedule 7 withholding and income statement label of unused leave paid on termination, and the income measures the surcharge, Division 293 tax, the offsets, study loan repayments and the super co-contribution are tested against. Callers must establish every scope condition before calculating. `personal-tax-estimate` composes the personal ones into one year's tax and levies,
 and `fbt-return` composes the FBT ones into an employer's FBT return.
 
@@ -184,6 +184,10 @@ booleans and counts, ages, days, quarters and scales are JSON integers.
 | `medicare-levy-surcharge` | `taxable_income`, `reportable_fringe_benefits`, `income_for_surcharge_purposes`, `days_without_cover`, `year`, `scope_confirmed`; optional `spouse_income_for_surcharge_purposes`, `dependent_children` |
 | `low-income-tax-offset` | `taxable_income`, `year`, `scope_confirmed` |
 | `seniors-pensioners-tax-offset` | `rebate_income`, `status`, `year`, `scope_confirmed`; `spouse_rebate_income`, required unless `status` is `single`; optional `spouse_taxable_income` |
+| `beneficiary-tax-offset` | `rebatable_benefit`, `year`, `scope_confirmed`; see [Individual tax offsets](#individual-tax-offsets) |
+| `invalid-carer-tax-offset` | `dependant`, `adjusted_taxable_income`, `dependant_adjusted_taxable_income`, `year`, `scope_confirmed`; optional `days`, `spouse_adjusted_taxable_income`, `spouse_days`, `maintained_by_others`, `ftb_b_shared_care` |
+| `zone-tax-offset` | `area`, `days`, `year`, `scope_confirmed`; optional `prior_year` with `prior_days`, `continuous_residence`, `includes_first_day`, `dependants`, `sole_parent_days`, `invalid_carer_tax_offset`, `remote_area_allowance` |
+| `net-medical-expenses-tax-offset` | `net_medical_expenses`, `adjusted_taxable_income`, `year`, `scope_confirmed`; optional `spouse_adjusted_taxable_income`, `dependent_children` |
 | `lump-sum-arrears-tax-offset` | `taxable_income`, `net_capital_gain`, `accrual_years`, `year`, `scope_confirmed`; see [Lump sum payment in arrears tax offset](#lump-sum-payment-in-arrears-tax-offset) |
 | `division-293` | `division_293_income`, `low_tax_contributions`, `year`, `scope_confirmed` |
 | `sb-cgt-concessions` | `entity`, `share_or_trust_interest`, `acquired`, `event_date`, `partnership_asset`, `passively_held`, `business`, `previous_year_turnover`, `year_before_turnover`, `likely_turnover`, `year_turnover`, `net_asset_value`, `active_days`, `business_ceased`, `date_of_birth`, `retirement`, `permanently_incapacitated`, `last_rollover_event`, `earnout_latest_due`, `year`, `scope_confirmed`; the facts some answers call for; see [Small business CGT concessions](#small-business-cgt-concessions) |
@@ -375,6 +379,10 @@ own dates and figures.
 | Medicare levy surcharge | 2024-25, 2025-26 and 2026-27, and 2027-28 with no day without hospital cover (nil); full-year resident in no exemption category, single without dependants or married for the whole year; established income for surcharge purposes and days without hospital cover |
 | Low income tax offset | 2024-25 to 2027-28; resident individual's established taxable income; the offset amount, not applied against tax |
 | Seniors and pensioners tax offset | 2024-25 to 2027-28; an established eligible individual's rebate income and whole-year status, and a spouse's rebate income; the offset amount with any transfer from a resident spouse, not applied against tax |
+| Beneficiary tax offset | 2020-21 to 2026-27; an established rebatable benefit in assessable income; the offset amount, not compared with SAPTO or applied against tax |
+| Invalid and invalid carer tax offset | 2020-21 to 2025-26; one dependant at a time, with established adjusted taxable incomes and the days that count; the offset amount, not applied against tax |
+| Zone and overseas forces tax offsets | 2020-21 to 2026-27; one zone, special area or overseas forces a run, with residence days and days carried from an earlier year, and the dependant, sole parent and invalid carer base amounts; the offset amount, not applied against tax |
+| Net medical expenses tax offset | 2016-17 to 2018-19; established net expenses for disability aids, attendant care or aged care and adjusted taxable income; the offset amount, not applied against tax |
 | Lump sum payment in arrears tax offset | Years of receipt 2013-14 to 2026-27; a full-year resident individual's established eligible lump sums by accrual year, recent accrual years from 2012-13 at resident rates and earlier distant years at their average; the offset amount, not applied against tax, without the Medicare levy and surcharge relief |
 | Division 293 | 2024-25 to 2027-28; established Division 293 income and low tax contributions; no defined benefit interests |
 | Small business CGT concessions | CGT event A1 in 2025-26 and 2026-27, before Act No. 49 of 2026's changes to Division 152; an asset other than a share, a trust interest or a partnership right, with established turnover, net value, active days and retirement facts; conditions only, not amounts |
@@ -2434,6 +2442,61 @@ it refuses a field it does not take. The tests hold it to the ATO's Sudeep and
 Anthony results, work its Heather and Yan facts by hand with assumed taxable
 incomes and check its prior-year rates; see
 [calculation evidence](docs/calculation-evidence.md#lump-sum-arrears-tax-offset).
+
+## Individual tax offsets
+
+4 commands work out an individual's remaining non-refundable tax offsets,
+each the offset amount only: applying it against tax, and choosing between
+offsets the law allows only one of, are the operator's.
+
+`beneficiary_tax_offset` (ITAA 1936 s 160AAA(3)) takes the
+`rebatable_benefit` in assessable income (s 160AAA(1)), as established, for
+2020-21 to 2026-27. The offset is 15%
+of the amount, rounded down to the dollar, above $6,000, plus 15% of it above
+$45,000, rounded up to the dollar (Income Tax Assessment (1936 Act)
+Regulations 2025 s 13 and the 2015 Regulation before 2026-27). A person also
+entitled to the seniors and pensioners tax offset gets only the greater
+(s 160AAA(4)).
+
+`invalid_carer_tax_offset` (ITAA 1997 Subdivision 61-A) works out the offset
+for one `dependant`, `spouse` or `other`, for 2020-21 to 2025-26: the indexed
+amount the ATO publishes, or for part of the year `days` x its daily rate,
+less $1 for every $4 of the dependant's adjusted taxable income above $282,
+and nil where the person's adjusted taxable income, with a spouse's who is not
+the dependant, is more than the FTB Part B limit. Run it once for each
+dependant. It refuses a dependant also maintained by someone else, whose
+apportionment the law and the ATO's worksheets order differently, FTB Part B
+at a shared-care rate, and 2026-27, whose amounts are not yet published.
+
+`zone_tax_offset` works out the zone tax offset (ITAA 1936 s 79A) for one
+`area`, `special_area`, `zone_a` or `zone_b`, or the overseas forces tax
+offset (s 79B) for `overseas_forces`, for 2020-21 to 2026-27. The area is the
+operator's, from the ATO's [Australian zone
+list](https://www.ato.gov.au/calculators-and-tools/tax-offsets-australian-zones),
+which is not exhaustive, and ITAA 1936 Schedule 2. A person is a resident of a
+zone with more than one-half of the year's `days` there, or fewer with
+`prior_days` in `prior_year` adding to more than 182 (s 79A(3B)(d), or (e)
+for a year 2 to 4 years back with `continuous_residence` and
+`includes_first_day`). 183 days of 2023-24 (366 days), and days carried from
+the fifth year back, are refused: the law and the ATO's guidance read them
+differently. The amount is the fixed amount plus 50%, or 20% for Zone B, of
+the dependants' notional offsets (`dependants`), the sole parent notional
+offset (`sole_parent_days`) and the `invalid_carer_tax_offset`, less any
+`remote_area_allowance`; overseas service of not more than one-half of the
+year gives the amount x days / 183, the ATO's method. Cents are dropped, as on
+the return.
+
+`net_medical_expenses_tax_offset` (ITAA 1936 ss 159P and 159Q) works out the
+offset for 2016-17 to 2018-19, the last years it ran: 20% of the net expenses
+for disability aids, attendant care or aged care over the lower limit, or 10%
+over the higher limit where adjusted taxable income, with a spouse's on
+30 June, exceeds $90,000, or $180,000 plus $1,500 for each dependent child
+after the first for a family. The former dependent spouse tax offset last ran
+in 2013-14 and is not worked out.
+
+`tests/individual_offsets.rs` holds each command to the ATO's examples and
+every published amount and limit; see [calculation
+evidence](docs/calculation-evidence.md#zone-tax-offset).
 
 ## Income tests
 

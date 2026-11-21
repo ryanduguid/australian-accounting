@@ -6159,10 +6159,15 @@ mod fhss;
 pub use fhss::{FhssArgs, fhss};
 mod ppsr_timing;
 pub use ppsr_timing::ppsr_timing;
+mod individual_offsets;
+pub use individual_offsets::{
+    InvalidCarerArgs, MedicalArgs, ZoneArgs, beneficiary_tax_offset, invalid_carer_tax_offset,
+    net_medical_expenses_tax_offset, zone_tax_offset,
+};
 mod sb_cgt_concessions;
 pub use sb_cgt_concessions::{SB_CGT_OPTIONAL, SbCgtConcessionsArgs, sb_cgt_concessions};
 
-const KINDS: [&str; 66] = [
+const KINDS: [&str; 70] = [
     "gst",
     "gst_margin_scheme",
     "fuel_tax_credits",
@@ -6216,6 +6221,10 @@ const KINDS: [&str; 66] = [
     "seniors_pensioners_withholding",
     "seniors_pensioners_tax_offset",
     "lump_sum_arrears_tax_offset",
+    "beneficiary_tax_offset",
+    "invalid_carer_tax_offset",
+    "zone_tax_offset",
+    "net_medical_expenses_tax_offset",
     "luxury_car_tax",
     "fbt_residual",
     "fbt_housing",

@@ -215,6 +215,22 @@ pub const SCOPES: &[(&str, &str)] = &[
         "Withholding under Schedule 9 (NAT 4466), the tax table for seniors and pensioners, from one regular weekly, fortnightly or monthly payment made from 1 July 2024 in the income year given, to a payee the operator established it applies to: a senior or pensioner 67 or older at the end of the financial year, or a veteran with a service pension or a war widow or widower with an income support supplement from the Department of Veterans' Affairs who is at least 60, who gave a Withholding declaration, or its short version for seniors and pensioners, saying they are an Australian resident for tax purposes and answering yes to the questions the schedule names. The year selects the coefficients: 2024-25 and 2025-26 use the schedule for payments from 1 July 2024 to 30 June 2026, and 2026-27 the one for payments from 1 July 2026. Earnings include allowances and irregular payments subject to withholding. The payee's status (single, a member of an illness-separated couple or a member of a couple) and any full or half Medicare levy exemption claimed on a Medicare levy variation declaration select scales 1 to 9. The weekly amount is a x weekly earnings - b, on the weekly earnings in whole dollars plus 99 cents, rounded to the dollar with 50 cents up; a fortnightly pay uses half its earnings and twice the weekly amount, and a monthly pay 3/13 of its earnings, after adding a cent to an amount ending in 33 cents, and 13/3 of the weekly amount, rounded to the dollar. For a payee who declared a study and training support loan debt and claimed no Medicare levy reduction for a spouse or dependants and low family income, the schedule refers the payer to the study and training support loans weekly tax table, which adds Schedule 8's component for a payee claiming the tax-free threshold, as a Schedule 9 payee does: a x the same weekly earnings - b, rounded to the dollar and converted to the pay period in the same way, on the coefficients for the pay date, for 2026-27 and for 2025-26 pays made from 24 September 2025. Excludes other tax offsets, which the schedule values only by combining its ready reckoner's weekly amounts, the Medicare levy adjustment, which it leaves to the Medicare levy adjustment weekly tax table, quarterly pays, for which it has no rule, payees who gave no TFN, study and training support loans in 2024-25 and before 24 September 2025, whose Schedule 8 used a percentage of weekly earnings, lump sum leave loading (Schedule 5), super income streams (also Schedule 13), withholding variations and other schedules.",
     ),
     (
+        "beneficiary_tax_offset",
+        "One individual's beneficiary tax offset (ITAA 1936 s 160AAA(3)) for an income year from 2020-21 to 2026-27, from the rebatable benefit included in assessable income as the operator establishes it: a benefit under Part 2.11, 2.11A, 2.12, 2.15 or 2.23B of the Social Security Act 1991, parenting payment (partnered) not exempt under ITAA 1997 Division 52, a Commonwealth education or training payment, or another payment s 160AAA(1) and (2) list. Whether a payment is one, and the Centrelink facts behind it, are the operator's. The offset is 15% of the rebatable benefit amount (rounded down to the dollar) above $6,000, plus 15% of it above $45,000, the top of the lowest marginal rate, rounded up to the dollar (Income Tax Assessment (1936 Act) Regulations 2025 s 13 from 2026-27, and the 2015 Regulation s 13 before it, whose formula is the same). A person also entitled to the seniors and pensioners tax offset gets only the greater (s 160AAA(4)), which this worksheet does not compare. Excludes a trust beneficiary whose trustee has a s 160AAAB rebate for them (s 160AAA(4A)) and applying the offset, which is non-refundable (ITAA 1997 s 63-10(1) item 15), against tax.",
+    ),
+    (
+        "invalid_carer_tax_offset",
+        "One individual's invalid and invalid carer tax offset (ITAA 1997 Subdivision 61-A) for one dependant and an income year from 2020-21 to 2025-26: a spouse, a parent or the spouse's parent, or a child, brother or sister of the person or the spouse aged 16 or over, whom the person maintained, who is paid a disability support pension or special needs disability support pension or an invalidity service pension, or who is a spouse or parent paid carer allowance or carer payment for, or wholly engaged in caring for, such a person aged 16 or over (s 61-10), meeting the residence condition (s 61-10(1)(c)); those facts, the dependant's and the person's adjusted taxable income for offsets and the days that count are the operator's. No offset where the person's adjusted taxable income, with that of a spouse who is not the dependant (scaled by days with that spouse), is more than the FTB Part B limit (s 61-20). The amount is the indexed amount the ATO publishes for the year, or for part of the year days x the ATO's daily rate, counting for a spouse only days when neither was eligible for FTB Part B or received parental leave pay (ss 61-25 and 61-40), less $1 for every $4 of the dependant's adjusted taxable income above $282 (s 61-45), and nil below $1. Run once for each dependant; the offsets add (s 61-10(5)). Refuses a dependant also maintained by another person (s 61-40(1)(b), whose order against s 61-45 the ATO's worksheets do not follow), FTB Part B at a shared-care rate (s 61-35), and 2026-27, whose indexed amounts were unpublished on 22 November 2026. Excludes 2 or more spouses at once (s 61-15) and applying the offset, which is non-refundable, against tax.",
+    ),
+    (
+        "zone_tax_offset",
+        "One individual's zone tax offset (ITAA 1936 s 79A) for a usual place of residence in one area, a special area in Zone A or B, Zone A or Zone B, or overseas forces tax offset (s 79B) for a Defence Force member's service at overseas localities, for an income year from 2020-21 to 2026-27. The area is the operator's, from ITAA 1936 Schedule 2 and s 79A(3D) to (3F) and the ATO's Australian zone list, which is not exhaustive; the overseas localities are the Minister's declarations. A resident of the area is one whose usual place of residence was there for more than one-half of the year, or less with days carried from the immediately preceding year or a relevant preceding year under s 79A(3B)(d) or (e), which the operator establishes the person was not a resident of the area in; the 2023-24 year has 366 days, so 183 days is refused, as the ATO says 183 days or more. The amount is the fixed amount ($1,173 special area, $338 Zone A and overseas forces, $57 Zone B) plus 50% (20% for Zone B) of the relevant rebate amount: the invalid and invalid carer tax offset as given, the dependant notional tax offsets ($376 for each student and the oldest non-student child, $282 for each other child, apportioned by days and reduced by the dependant's adjusted taxable income over $282) and the sole parent notional tax offset ($1,607, or by days), as ITAA 1997 Division 961 and the ATO's T4 worksheets give them. The zone offset is reduced by the remote area allowance (s 79A(2A)); overseas forces service of not more than one-half of the year gives the amount x days / 183, the ATO's method for the Commissioner's amount (s 79B(2)(b)). Cents are dropped. Excludes residence in more than one zone or special area, and a zone and an overseas locality together, in one run (the Commissioner's amount under s 79A(2)(f)); a person who died in the year (s 79A(3B)(c)); a dependant also maintained by another person; United Nations armed force service (s 23AB); choosing between the zone and overseas forces offsets, of which only one is allowed (s 79B(4) and (4A)); and applying the offset, which is non-refundable, against tax.",
+    ),
+    (
+        "net_medical_expenses_tax_offset",
+        "One individual's net medical expenses tax offset (ITAA 1936 ss 159P and 159Q, compilation 161) for 2016-17, 2017-18 or 2018-19, the last year it ran (s 159P(1A)): expenses for disability aids, attendant care for a person with a disability or aged care from an approved provider (s 159P(1B)), paid in the year for the person or a resident dependant, less refunds from a government, public authority, society, association or fund (s 159P(1)), as the operator establishes them. The offset is 20% of the net expenses over the lower phase-in limit, or 10% over the higher limit where the adjusted taxable income for rebates (with the spouse's for a person married on 30 June) exceeds the threshold: $90,000 for a single person, or for a person married on 30 June or with a dependant on any day $180,000 plus $1,500 for each dependent child after the first (s 159Q(1)), as the ATO's return instructions publish them. Excludes a trustee's offset (s 159P(3)), 2015-16 and earlier years, and applying the offset, which is non-refundable, against tax.",
+    ),
+    (
         "lump_sum_arrears_tax_offset",
         "The tax offset for lump sum payments in arrears (ITAA 1936 Part III Division 17 Subdivision AB, ss 159ZR to 159ZRD) of an individual, not a trustee (s 159ZRA(2)), whose assessable income of the year of receipt includes eligible lump sums the operator has classified (s 159ZR(1)): lump sum payments, received on or after 1 July 1986, of salary or wages (Taxation Administration Act 1953 Schedule 1 ss 12-35, 12-40 except to a director who is an associate of the company, 12-45, 12-80, 12-110, 12-115 and 12-120) to the extent they accrued in a period ending more than 12 months before payment, of salary or wages for a period of suspension paid after reinstatement, of a payment covered by s 12-80 or 12-120, of a Commonwealth education or training payment, or of a payment covered by ITAA 1997 Division 52, 53 or 55 that is not exempt, or a similar payment under a foreign law, less any part taken into account in an act of grace tax reimbursement; a BSWAT payment amount counts as one (s 159ZR(2)). The operator gives each earlier income year in which part of them accrued, once, with its annual arrears amount from every payer. The individual was an Australian resident for the whole of the year of receipt and of each recent accrual year, entitled to the whole tax-free threshold and taxed at the resident rates on all of that taxable income: none of it a minor's eligible taxable income (Division 6AA) or a superannuation or employment termination remainder taxed at another rate. None of those years' taxable income includes an amount under ITAA 1997 Division 82 (employment termination payments), s 83-10 or 83-80 (unused annual or long service leave) or Division 301 or 302 (superannuation benefits) or Income Tax (Transitional Provisions) Act 1997 Division 82, or above-average special professional income, and none had the primary producers' averaging tax offset (s 392-35(2)), so that rebated tax and gross tax (s 159ZR(1)) are the tax at the year's resident rates and normal taxable income is taxable income less any net capital gain. The offset is due when the total arrears amount is at least 10% of normal taxable income less that amount (s 159ZRA(1)(b)). It is the tax on the arrears, the tax on the year's taxable income less the tax on it without the arrears (s 159ZRB), less the notional tax: for each recent accrual year (the latest 2 when there are 3 or more accrual years, otherwise each one), the tax on its taxable income with its arrears added less the tax without them (s 159ZRC), and for the other, distant accrual years their arrears at the average of the recent accrual years' rates, each rate the increase in tax on normal taxable income over the arrears, to 3 decimal places, increased by 0.001 when the fourth decimal place would be more than 4 (s 159ZRD); nil when the notional tax is the greater. A recent accrual year that was itself a rebate year, or in which part of an earlier rebate year's total arrears amount accrued, is adjusted as ss 159ZRC and 159ZRD direct, from the amounts given. Each year's resident rates are the ATO's published rates from 2012-13, with the temporary budget repair levy of 2% above $180,000, which Income Tax (Transitional Provisions) Act 1997 s 4-11 makes extra income tax, for 2014-15 to 2016-17; a recent accrual year before 2012-13 is refused. Excludes foreign and part-year residents, employment termination payments and superannuation lump sums, which are not eligible income, an amount the operator has not classified as eligible income, the Medicare levy exemption for lump sums in arrears (Medicare Levy Act 1986 s 9A), the Medicare levy surcharge tax offset for them (ITAA 1997 Subdivision 61-L), and applying the offset against tax payable.",
     ),
@@ -472,6 +488,22 @@ pub const SOURCES: &[(&str, &str)] = &[
     (
         "seniors_pensioners_tax_offset",
         "https://www.ato.gov.au/individuals-and-families/income-deductions-offsets-and-records/tax-offsets/seniors-and-pensioners-tax-offset",
+    ),
+    (
+        "beneficiary_tax_offset",
+        "https://www.legislation.gov.au/F2025L01060/asmade/text",
+    ),
+    (
+        "invalid_carer_tax_offset",
+        "https://www.ato.gov.au/forms-and-instructions/individual-supplementary-tax-return-2026-instructions/tax-offset-questions-t3-t9-supplementary-tax-return-2026/t5-invalid-and-invalid-carer-2026",
+    ),
+    (
+        "zone_tax_offset",
+        "https://www.ato.gov.au/forms-and-instructions/individual-supplementary-tax-return-2026-instructions/tax-offset-questions-t3-t9-supplementary-tax-return-2026/t4-zone-or-overseas-forces-2026",
+    ),
+    (
+        "net_medical_expenses_tax_offset",
+        "https://www.ato.gov.au/individuals-and-families/your-tax-return/instructions-to-complete-your-tax-return/paper-tax-return-instructions/2019/supplementary-tax-return/tax-offset-questions-t3-t11/t5-total-net-medical-expenses-for-disability-aids-attendant-care-or-aged-care-2019",
     ),
     (
         "lump_sum_arrears_tax_offset",
@@ -1030,6 +1062,51 @@ pub const EXTRA_SOURCES: &[(&str, &[&str])] = &[
         ],
     ),
     (
+        "beneficiary_tax_offset",
+        &[
+            "https://www.legislation.gov.au/F2015L01415/2022-12-09/text",
+            "https://www.legislation.gov.au/C1936A00027/2026-10-01/text",
+            "https://www.legislation.gov.au/C2004A03348/latest/text",
+            "https://www.ato.gov.au/individuals-and-families/income-deductions-offsets-and-records/tax-offsets/beneficiary-tax-offset",
+        ],
+    ),
+    (
+        "invalid_carer_tax_offset",
+        &[
+            "https://www.legislation.gov.au/C2004A05138/2026-10-01/text",
+            "https://www.ato.gov.au/forms-and-instructions/individual-supplementary-tax-return-2025-instructions/tax-offset-questions-t3-t9-supplementary-tax-return-2025/t5-invalid-and-invalid-carer-2025",
+            "https://www.ato.gov.au/individuals-and-families/your-tax-return/instructions-to-complete-your-tax-return/paper-tax-return-instructions/2021/supplementary-tax-return/tax-offset-questions-t3-t9/t5-invalid-and-invalid-carer-2021",
+            "https://www.ato.gov.au/individuals-and-families/your-tax-return/instructions-to-complete-your-tax-return/paper-tax-return-instructions/2022/supplementary-tax-return/tax-offset-questions-t3-t9/t5-invalid-and-invalid-carer-2022",
+            "https://www.ato.gov.au/individuals-and-families/your-tax-return/instructions-to-complete-your-tax-return/paper-tax-return-instructions/2023/supplementary-tax-return/tax-offset-questions-t3-t9/t5-invalid-and-invalid-carer-2023",
+            "https://www.ato.gov.au/individuals-and-families/your-tax-return/instructions-to-complete-your-tax-return/paper-tax-return-instructions/2024/supplementary-tax-return/tax-offset-questions-t3-t9/t5-invalid-and-invalid-carer-2024",
+            "https://www.ato.gov.au/individuals-and-families/income-deductions-offsets-and-records/tax-offsets/offset-for-maintaining-an-invalid-or-invalid-carer",
+        ],
+    ),
+    (
+        "zone_tax_offset",
+        &[
+            "https://www.legislation.gov.au/C1936A00027/2026-10-01/text",
+            "https://www.legislation.gov.au/C2004A05138/2026-10-01/text",
+            "https://www.ato.gov.au/forms-and-instructions/individual-supplementary-tax-return-2025-instructions/tax-offset-questions-t3-t9-supplementary-tax-return-2025/t4-zone-or-overseas-forces-2025",
+            "https://www.ato.gov.au/individuals-and-families/your-tax-return/instructions-to-complete-your-tax-return/paper-tax-return-instructions/2021/supplementary-tax-return/tax-offset-questions-t3-t9/t4-zone-or-overseas-forces-2021",
+            "https://www.ato.gov.au/individuals-and-families/your-tax-return/instructions-to-complete-your-tax-return/paper-tax-return-instructions/2022/supplementary-tax-return/tax-offset-questions-t3-t9/t4-zone-or-overseas-forces-2022",
+            "https://www.ato.gov.au/individuals-and-families/your-tax-return/instructions-to-complete-your-tax-return/paper-tax-return-instructions/2023/supplementary-tax-return/tax-offset-questions-t3-t9/t4-zone-or-overseas-forces-2023",
+            "https://www.ato.gov.au/individuals-and-families/your-tax-return/instructions-to-complete-your-tax-return/paper-tax-return-instructions/2024/supplementary-tax-return/tax-offset-questions-t3-t9/t4-zone-or-overseas-forces-2024",
+            "https://www.ato.gov.au/individuals-and-families/income-deductions-offsets-and-records/tax-offsets/zone-or-overseas-forces-tax-offsets/zone-tax-offset",
+            "https://www.ato.gov.au/individuals-and-families/income-deductions-offsets-and-records/tax-offsets/zone-or-overseas-forces-tax-offsets/overseas-forces-tax-offset",
+            "https://www.ato.gov.au/calculators-and-tools/tax-offsets-australian-zones",
+        ],
+    ),
+    (
+        "net_medical_expenses_tax_offset",
+        &[
+            "https://www.legislation.gov.au/C1936A00027/2019-04-06/text",
+            "https://www.ato.gov.au/individuals-and-families/your-tax-return/instructions-to-complete-your-tax-return/paper-tax-return-instructions/2017/supplementary-tax-return/tax-offset-questions-t3-t11/t5-total-net-medical-expenses-for-disability-aids-attendant-care-or-aged-care-2017",
+            "https://www.ato.gov.au/individuals-and-families/your-tax-return/instructions-to-complete-your-tax-return/paper-tax-return-instructions/2018/supplementary-tax-return/tax-offset-questions-t3-t11/t5-total-net-medical-expenses-for-disability-aids-attendant-care-or-aged-care-2018",
+            "https://www.ato.gov.au/forms-and-instructions/medical-expenses-tax-offset",
+        ],
+    ),
+    (
         "lump_sum_arrears_tax_offset",
         &[
             "https://www.legislation.gov.au/C1936A00027/2026-10-01/2026-10-01/text/original/epub/OEBPS/document_3/document_3.html",
@@ -1265,6 +1342,18 @@ pub const EXTRA_WARNINGS: &[(&str, &[&str])] = &[
         "fbt_board",
         &[
             "A board fringe benefit is a type 2 benefit (the employer's guide, 13.2): give taxable_value to fbt as part of type_two_value.",
+        ],
+    ),
+    (
+        "invalid_carer_tax_offset",
+        &[
+            "For part of the year the offset is days x the ATO's published daily rate, the ATO's reasonable apportionment (ITAA 1997 s 61-40(2)); the Commissioner may apportion otherwise.",
+        ],
+    ),
+    (
+        "zone_tax_offset",
+        &[
+            "The area is the operator's: the ATO's Australian zone list is not exhaustive, and ITAA 1936 Schedule 2 and s 79A(3D) to (3F) define the zones and special areas. For 2026-27 the ATO had not published its T4 instructions on 22 November 2026: the amounts are the law's, and the part-year sole parent daily rate is $1,607 / 365, the rule its earlier rates follow.",
         ],
     ),
     (
@@ -2146,7 +2235,7 @@ pub const REFUSAL_CODES: &[(&str, &str)] = &[
     ),
     (
         "input.field_unknown",
-        "A field the worksheet or command does not take, or does not take beside the other inputs given, was given (fbt-loan, fbt-meal-entertainment, fbt-car-parking, fbt-debt-waiver, fbt-expense-payment, fbt-property, fbt-residual, fbt-housing, fbt-lafha, fbt-board, fbt-tax-exempt-body-entertainment, fbt-entertainment-classifier, fbt-meal-entertainment-register and its entries, fbt-minor-benefit-check, ppsr-timing, fhss and its contributions, personal_deductions and determination, division-296, depreciation, fuel-tax-credits and its lines, foreign-resident-tax, medicare-levy, medicare-levy-surcharge, payg-withholding, payg-gross-up, termination-payment, etp-tax-free-component, unused-leave-payment, the Schedule 5 methods, working-holiday-maker-withholding, study-loan-withholding, seniors-pensioners-withholding, seniors-pensioners-tax-offset, lump-sum-arrears-tax-offset, hire-purchase-schedule, chattel-mortgage-schedule, loan-transactions and its transactions and rate_changes, borrowing-expenses-schedule and its loans, business-capital-expenditure and its items, balancing-adjustment, its years and car_limit, trade-in, franking-account and its events, distributions and income_tax, dasp-tax, gst-margin-scheme, wine-equalisation-tax and its dealings, luxury-car-tax and its lines, payroll-tax, cgt-parcels, its parcels and disposals, fbt-ev-exemption-check, sb-cgt-concessions, contribution-caps given a carry-forward input, derive, personal-tax-estimate, dgr-check, income-tests and fbt-return only).",
+        "A field the worksheet or command does not take, or does not take beside the other inputs given, was given (fbt-loan, fbt-meal-entertainment, fbt-car-parking, fbt-debt-waiver, fbt-expense-payment, fbt-property, fbt-residual, fbt-housing, fbt-lafha, fbt-board, fbt-tax-exempt-body-entertainment, fbt-entertainment-classifier, fbt-meal-entertainment-register and its entries, fbt-minor-benefit-check, ppsr-timing, fhss and its contributions, personal_deductions and determination, division-296, depreciation, fuel-tax-credits and its lines, foreign-resident-tax, medicare-levy, medicare-levy-surcharge, payg-withholding, payg-gross-up, termination-payment, etp-tax-free-component, unused-leave-payment, the Schedule 5 methods, working-holiday-maker-withholding, study-loan-withholding, seniors-pensioners-withholding, seniors-pensioners-tax-offset, lump-sum-arrears-tax-offset, hire-purchase-schedule, chattel-mortgage-schedule, loan-transactions and its transactions and rate_changes, borrowing-expenses-schedule and its loans, business-capital-expenditure and its items, balancing-adjustment, its years and car_limit, trade-in, franking-account and its events, distributions and income_tax, dasp-tax, gst-margin-scheme, wine-equalisation-tax and its dealings, luxury-car-tax and its lines, payroll-tax, cgt-parcels, its parcels and disposals, fbt-ev-exemption-check, sb-cgt-concessions, beneficiary-tax-offset, invalid-carer-tax-offset, zone-tax-offset and its dependants, net-medical-expenses-tax-offset, contribution-caps given a carry-forward input, derive, personal-tax-estimate, dgr-check, income-tests and fbt-return only).",
     ),
     ("input.flag_invalid", "A flag is not a JSON boolean."),
     ("input.fraction_invalid", "A fraction is outside 0 to 1."),
@@ -2212,6 +2301,22 @@ pub const REFUSAL_CODES: &[(&str, &str)] = &[
     (
         "input.years_of_service_invalid",
         "A count of completed years of service is not a whole number from 0 to 150.",
+    ),
+    (
+        "invalid_carer_tax_offset.dependant_invalid",
+        "dependant is not spouse or other.",
+    ),
+    (
+        "invalid_carer_tax_offset.ftb_shared_care",
+        "You or your spouse were eligible for FTB Part B at a shared-care rate, whose reduction (ITAA 1997 s 61-35) needs rates this worksheet does not work out.",
+    ),
+    (
+        "invalid_carer_tax_offset.rate_unpublished",
+        "The year is 2026-27, whose indexed offset amount and FTB Part B limit had not been published.",
+    ),
+    (
+        "invalid_carer_tax_offset.shared_maintenance",
+        "Another person also maintained the dependant: ITAA 1997 s 61-40(1)(b) and the ATO's worksheets order the apportionment and the income reduction differently.",
     ),
     (
         "leave.accrual_split_invalid",
@@ -2543,4 +2648,32 @@ pub const REFUSAL_CODES: &[(&str, &str)] = &[
         "Payments before are from $135,000.01 to $135,000.99, which none of Schedule 15's columns covers.",
     ),
     ("worksheet.unknown", "The worksheet does not exist."),
+    (
+        "zone_tax_offset.area_invalid",
+        "area is not special_area, zone_a, zone_b or overseas_forces.",
+    ),
+    (
+        "zone_tax_offset.dependants_invalid",
+        "dependants is not a list of up to 50 objects with kind student or child, adjusted_taxable_income and optional days.",
+    ),
+    (
+        "zone_tax_offset.half_year_unclear",
+        "The usual place of residence was in the area for 183 days of 2023-24, exactly one-half of the year, which ITAA 1936 s 79A(3B)(a) and the ATO's guidance treat differently.",
+    ),
+    (
+        "zone_tax_offset.prior_year_invalid",
+        "prior_year is not an income year 1 to 4 years before, or prior_days is more than one-half of it.",
+    ),
+    (
+        "zone_tax_offset.prior_year_unclear",
+        "prior_year is 5 years before, a relevant preceding year on the ATO's reading of ITAA 1936 s 79A(4) but not on its words.",
+    ),
+    (
+        "zone_tax_offset.shared_maintenance",
+        "A dependant was also maintained by another person, whose apportionment the ATO does not publish.",
+    ),
+    (
+        "zone_tax_offset.sole_parent_without_dependant",
+        "sole_parent_days was given without a dependant notional tax offset of at least $1 (ITAA 1997 s 961-55(1)(b)).",
+    ),
 ];
