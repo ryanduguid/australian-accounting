@@ -698,6 +698,15 @@ const COMMAND_ARGS: &[(&str, &[(&str, Kind)])] = &[
         ],
     ),
     (
+        "private-health-insurance-rebate",
+        &[
+            ("income_for_surcharge_purposes", Dec),
+            ("lines", Json),
+            ("year", Raw),
+            ("scope_confirmed", Raw),
+        ],
+    ),
+    (
         "income-tests",
         &[
             ("taxable_income", Dec),
@@ -1190,6 +1199,7 @@ pub fn evaluate_coded(command: &str, v: &Value) -> Result<Value> {
             | "income-tests"
             | "luxury-car-tax"
             | "sb-cgt-concessions"
+            | "private-health-insurance-rebate"
             | "business-capital-expenditure"
             | "balancing-adjustment"
             | "trade-in"
@@ -1882,6 +1892,24 @@ pub fn evaluate_coded(command: &str, v: &Value) -> Result<Value> {
                 year: &a[19],
                 scope_confirmed: &a[20],
                 optional: given.each_ref().map(Option::as_ref),
+            })
+        }
+        "private-health-insurance-rebate" => {
+            // Optional: absent for a person without a spouse on 30 June or
+            // without dependent children.
+            let o = [
+                optional(v, "spouse_income_for_surcharge_purposes", Dec)?,
+                optional(v, "dependent_children", Raw)?,
+            ];
+            engine::private_health_insurance_rebate(&engine::PhiRebateArgs {
+                income_for_surcharge_purposes: &a[0],
+                lines: &a[1],
+                year: &a[2],
+                scope_confirmed: &a[3],
+                family: engine::SurchargeFamily {
+                    spouse_income: o[0].as_ref(),
+                    dependent_children: o[1].as_ref(),
+                },
             })
         }
         "income-tests" => {

@@ -4,6 +4,19 @@
 
 - Relicensed Ryan Duguid's code under AGPL-3.0-or-later with section 7(b) attribution terms.
 
+### Added
+
+- `private-health-insurance-rebate` works out the private health insurance
+  tax offset or the excess premium reduction to repay for 2020-21 to 2026-27
+  from the statement's lines: the tier from income for surcharge purposes, the
+  percentage for each period and age band, and each line's share of the PHII
+  benefit. `personal-tax-estimate` composes it for a full-year resident. New
+  codes: `private_health_insurance_rebate.lhc_loading`,
+  `private_health_insurance_rebate.lines_invalid` and
+  `private_health_insurance_rebate.rate_unpublished`.
+  `tests/private_health_insurance_rebate.rs` holds it to the ATO's examples
+  and every published percentage and threshold.
+
 ### Fixed
 
 - Both borrowing expenses worksheets identify their deduction amounts as
