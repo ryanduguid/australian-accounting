@@ -1439,13 +1439,17 @@ exactly $0.0002 a dollar a day.
 
 `contract-register` works no amount of its own: each contract's payments,
 interest and principal are those of its `hire-purchase-schedule` or
-`chattel-mortgage-schedule` result, unchanged, and the register only dates and adds them. The current and
-non-current split rests on AASB 101 paragraph 69(c), 'the liability is due
-to be settled within twelve months after the reporting period', in
-compilation 6 (compilation date 31 December 2022, the latest on the Federal
-Register of Legislation, F2015L01626), read on 19 November 2026. Paragraphs
-69(a), (b) and (d), and 72A to 76ZA on rights to defer settlement and
-covenants, were read and are not assessed: the preparer establishes them.
+`chattel-mortgage-schedule` result, unchanged, and the register only dates
+and adds them. Its scheduled 12-month split uses the due-date test in
+AASB 101 paragraph 69(c), AASB 18 paragraph 101(c) and AASB 1060 paragraph
+40(c), read on 21 November 2026. The preparer determines the applicable
+standard and assesses other classification grounds, including deferral
+rights and covenants. See [Contract register](contract-register.md) for
+application dates.
+[AASB 101](https://standards.aasb.gov.au/node/3592),
+[AASB 18](https://standards.aasb.gov.au/node/3717),
+[AASB 1060](https://standards.aasb.gov.au/node/4270).
+
 ITAA 1997 s 240-60(2), already read for `hire-purchase-schedule`, leaves
 the interest of a period spanning 30 June to accounting principles, and a
 chattel mortgage's interest is deductible as each year incurs it (s 8-1),

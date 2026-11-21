@@ -59,11 +59,15 @@ its figures at the balance date, its payments `by_month` and its
   fall on or before the balance date, for the preparer to accrue.
 - `current` is `outstanding` less the amount outstanding at `current_to`, 12
   months after the balance date, or nil where that is below nil, and
-  `non_current` is the rest. AASB 101 paragraph 69(c) makes a liability
-  current when it is due to be settled within twelve months after the
-  reporting period. The register does not assess paragraph 69(a), (b) or
-  (d): a breached covenant that makes a loan payable on demand (paragraphs
-  72B to 75) is for the preparer.
+  `non_current` is the rest. This is the scheduled 12-month split. The
+  preparer determines the applicable reporting framework and assesses the
+  other classification criteria, including rights to defer settlement and
+  covenants that make a liability payable on demand. Reconcile the figures
+  to the recognised liability carrying amount. The due-date criterion
+  appears in each of these provisions.
+  [AASB 101 paragraph 69(c)](https://standards.aasb.gov.au/node/3592),
+  [AASB 18 paragraph 101(c)](https://standards.aasb.gov.au/node/3717),
+  [AASB 1060 paragraph 40(c)](https://standards.aasb.gov.au/node/4270).
 - By income year, interest counts in the year its period ends.
   `interest_across_30_june` is the part of it from a period spanning 30
   June, with that period's `days_before_1_july` and `days_from_1_july`:
@@ -75,6 +79,15 @@ its figures at the balance date, its payments `by_month` and its
   year, below nil where interest builds up before the payments start.
 - A contract starting after the balance date has no balance-date figures and
   adds nil to them; its payments still count by month and by income year.
+
+AASB 18 supersedes AASB 101 for applicable Tier 1 annual reporting periods
+beginning on or after 1 January 2027 for for-profit entities other than
+superannuation entities applying AASB 1056. The date is 1 January 2028 for
+not-for-profit entities and those superannuation entities. Earlier application is permitted. For Tier 2, the AASB 2026-6
+amendments to AASB 1060 apply from annual periods beginning on or after
+1 July 2030 and may be applied earlier.
+[AASB 18 application dates](https://standards.aasb.gov.au/aasb-18-jun-2024-0),
+[AASB 2026-6 application dates](https://www.aasb.gov.au/news/amendments-to-tier-2-classification-and-presentation/).
 
 The CSV is one table: a `report` column (`contract`, `contract_month`,
 `contract_income_year`, `expiring`, `financier`, `client`, `month`,
