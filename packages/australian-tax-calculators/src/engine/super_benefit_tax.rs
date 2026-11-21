@@ -276,7 +276,7 @@ fn cap_left(
     if used.gt(&cap)? {
         return conflict(&format!("{key} cannot exceed the year's cap of {cap}."));
     }
-    let formula = format!("cap - {key}");
+    let formula = format!("{} - {key}", key.trim_end_matches("_used"));
     Ok(step(
         id,
         authority,
@@ -305,7 +305,7 @@ impl Parts {
         let tax_step = step(
             format!("{id}_tax"),
             amount.authority,
-            &format!("cents({id} x rate)"),
+            &format!("cents({id} x {id}_rate)"),
             &[&amount.value, &r],
             tax,
         );
@@ -367,7 +367,7 @@ fn untaxed_parts(
         let s = step(
             "untaxed_within_low_rate_cap",
             UNTAXED_LOW,
-            "min(untaxed_element, untaxed_plan_cap_left, low_rate_cap_left - taxed_within_low_rate_cap)",
+            "min(min(untaxed_element, untaxed_plan_cap_left), low_rate_cap_left - taxed_within_low_rate_cap)",
             &[untaxed, left, low_cap_left, taxed_low],
             counted.clone(),
         );
@@ -376,8 +376,12 @@ fn untaxed_parts(
     let s = step(
         "untaxed_within_plan_cap",
         within_rule.0,
-        "min(untaxed_element, untaxed_plan_cap_left) - untaxed_within_low_rate_cap",
-        &[untaxed, left, &counted],
+        if low_left.is_some() {
+            "min(untaxed_element, untaxed_plan_cap_left) - untaxed_within_low_rate_cap"
+        } else {
+            "min(untaxed_element, untaxed_plan_cap_left) - 0"
+        },
+        &[untaxed, left, &counted][..if low_left.is_some() { 3 } else { 2 }],
         within.sub(&counted)?,
     );
     p.part(s, within_rule.1)?;
@@ -485,8 +489,12 @@ fn member_parts(
         let s = step(
             "low_rate_cap_counted",
             LOW_COUNTED,
-            "taxed_within_low_rate_cap + untaxed_within_low_rate_cap",
-            &[&taxed_low, &untaxed_low],
+            if plan.is_some() {
+                "taxed_within_low_rate_cap + untaxed_within_low_rate_cap"
+            } else {
+                "taxed_within_low_rate_cap + 0"
+            },
+            &[&taxed_low, &untaxed_low][..if plan.is_some() { 2 } else { 1 }],
             taxed_low.add(&untaxed_low)?,
         );
         p.steps.push(s);
@@ -602,8 +610,18 @@ pub fn super_benefit_tax(args: &SuperBenefitTaxArgs) -> Result<Value> {
     steps.push(step(
         "assessable_amount",
         ASSESSABLE,
-        "assessable_amount",
-        &[&assessable],
+        match t {
+            Treatment::Aged60 => "untaxed_element",
+            Treatment::PreservationTo59
+            | Treatment::UnderPreservation
+            | Treatment::NonDependant => "taxable_component",
+            _ => "0",
+        },
+        &if t.wholly_free().is_some() {
+            vec![]
+        } else {
+            vec![&assessable]
+        },
         assessable.clone(),
     ));
     steps.push(step(

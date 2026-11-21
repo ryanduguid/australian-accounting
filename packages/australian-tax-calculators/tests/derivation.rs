@@ -423,6 +423,43 @@ fn cases() -> Vec<(&'static str, Value)> {
                    "untaxed_plan_cap_used": "0.00",
                    "year": "2021-22", "scope_confirmed": true}),
         ),
+        // The ATO's Mei, 60 (untaxed at 15%), and Frankie, 45 (20% and 30%),
+        // past the plan cap; a non-dependant's and a dependant's death benefit.
+        (
+            "super-benefit-tax",
+            json!({"benefit": "380000.00", "interest_value": "380000.00",
+                   "interest_tax_free_component": "45000.00", "untaxed_element": "205000.00",
+                   "recipient": "member", "payment_date": "2021-09-25",
+                   "date_of_birth": "1961-06-01", "terminal_medical_condition": false,
+                   "disability_superannuation_benefit": false,
+                   "service_before_july_1983": false, "untaxed_plan_cap_used": "1500000.00",
+                   "year": "2021-22", "scope_confirmed": true}),
+        ),
+        (
+            "super-benefit-tax",
+            json!({"benefit": "70000.00", "interest_value": "70000.00",
+                   "interest_tax_free_component": "5000.00", "untaxed_element": "20000.00",
+                   "recipient": "member", "payment_date": "2022-10-01",
+                   "date_of_birth": "1977-05-01", "terminal_medical_condition": false,
+                   "disability_superannuation_benefit": false,
+                   "service_before_july_1983": false, "untaxed_plan_cap_used": "1640000.00",
+                   "year": "2022-23", "scope_confirmed": true}),
+        ),
+        (
+            "super-benefit-tax",
+            json!({"benefit": "500000.00", "interest_value": "600000.00",
+                   "interest_tax_free_component": "120000.00", "untaxed_element": "100000.00",
+                   "recipient": "non_dependant", "payment_date": "2026-10-01",
+                   "service_before_july_1983": false,
+                   "year": "2026-27", "scope_confirmed": true}),
+        ),
+        (
+            "super-benefit-tax",
+            json!({"benefit": "500000.00", "interest_value": "600000.00",
+                   "interest_tax_free_component": "120000.00", "untaxed_element": "0.00",
+                   "recipient": "death_benefits_dependant", "payment_date": "2026-10-01",
+                   "year": "2026-27", "scope_confirmed": true}),
+        ),
         // Victoria's surcharges on $80 million of $150 million (the State
         // Revenue Office's example 2) and Tasmania's 2 rates on $2,400,000
         // of $3,000,000 (its guideline's example 2).
