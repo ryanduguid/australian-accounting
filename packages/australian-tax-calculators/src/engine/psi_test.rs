@@ -16,6 +16,8 @@
 //! from offers to the public, whether a payer is an associate, and each
 //! market value are the operator's answers: the worksheet counts them.
 
+use std::collections::BTreeSet;
+
 use serde_json::{Map, Value, json};
 
 use super::stated;
@@ -27,7 +29,17 @@ const KIND: &str = "psi_test";
 /// The largest number of payers the worksheet takes.
 const MAX_PAYERS: usize = 50;
 const PSB: &str = "a personal services business, so Divisions 85 and 86 do not apply";
-const PAYER_KEYS: [&str; 6] = ["amount", "associate", "offer", "result", "tools", "defects"];
+const PAYER_KEYS: [&str; 7] = [
+    "amount",
+    "associate",
+    "offer",
+    "result",
+    "tools",
+    "defects",
+    "source",
+];
+/// The longest `source` label a payer row takes.
+const MAX_SOURCE: usize = 100;
 const PREMISES_KEYS: [&str; 5] = [
     "at_all_times",
     "mainly_for_psi",
@@ -55,6 +67,9 @@ pub struct PsiTestArgs<'a> {
 }
 
 struct Payer {
+    /// The payer and its associates (s 87-15(3)): the row's `source`
+    /// label, or the row alone when it has none.
+    source: String,
     amount: Decimal,
     associate: bool,
     offer: bool,
@@ -77,7 +92,7 @@ fn bad_payers<T>() -> Result<T> {
     refuse(
         "psi_test.payers_invalid",
         format!(
-            "payers must be a list of 1 to {MAX_PAYERS} objects, each with amount, associate, offer, result, tools and defects."
+            "payers must be a list of 1 to {MAX_PAYERS} objects, each with amount, associate, offer, result, tools and defects, and a source label of 1 to {MAX_SOURCE} characters if given."
         ),
     )
 }
@@ -98,7 +113,15 @@ fn payers(given: &Arg) -> Result<Vec<Payer>> {
                 return bad_payers();
             };
             stated::known_keys(fields, &name, "a payer", &PAYER_KEYS)?;
+            let source = match fields.get("source") {
+                None => format!("row {i}"),
+                Some(Value::String(label)) if !label.is_empty() && label.len() <= MAX_SOURCE => {
+                    format!("label {label}")
+                }
+                Some(_) => return bad_payers(),
+            };
             Ok(Payer {
+                source,
                 amount: stated::amount(fields, &name, "amount")?,
                 associate: boolean(fields, &name, "associate")?,
                 offer: boolean(fields, &name, "offer")?,
@@ -191,18 +214,46 @@ fn outcome(rule: impl Into<String>, effect: impl Into<String>, psb: Option<bool>
 
 const DETERMINATION: &str = "ITAA 1997 ss 87-60 and 87-65: whether the Commissioner would make a personal services business determination is not decided; determination_in_force is your answer";
 
-/// `None` for an employee, else whether a company, partnership or trust
-/// (a personal services entity) receives the income.
-fn earner(given: &Arg) -> Result<Option<bool>> {
+/// Who receives the income.
+#[derive(Clone, Copy)]
+enum Earner {
+    /// An employee or office holder (s 85-35(1)).
+    Employee,
+    /// A religious practitioner paid as s 12-47 of Schedule 1 to the TAA 1953
+    /// describes (s 85-35(2)).
+    Religious,
+    /// The individual as a contractor (`false`) or a company, partnership or
+    /// trust, a personal services entity (`true`).
+    Business(bool),
+}
+
+fn earner(given: &Arg) -> Result<Earner> {
     match given.text() {
-        Some("employee") => Ok(None),
-        Some("sole_trader") => Ok(Some(false)),
-        Some("entity") => Ok(Some(true)),
+        Some("employee") => Ok(Earner::Employee),
+        Some("religious_practitioner") => Ok(Earner::Religious),
+        Some("sole_trader") => Ok(Earner::Business(false)),
+        Some("entity") => Ok(Earner::Business(true)),
         _ => refuse(
             "psi_test.earner_invalid",
-            "earner must be employee, sole_trader or entity.",
+            "earner must be employee, religious_practitioner, sole_trader or entity.",
         ),
     }
+}
+
+/// s 87-40(2): the principal's payments and the commission in them, checked
+/// whenever an agent is entered.
+fn agent_payments(agent: Option<(&Arg, &Arg)>) -> Result<Option<(Decimal, Decimal)>> {
+    let Some((commission, principal)) = agent else {
+        return Ok(None);
+    };
+    let (commission, principal) = (money(commission)?, money(principal)?);
+    if principal.is_zero() || commission.gt(&principal)? {
+        return refuse(
+            "psi_test.agent_payments_invalid",
+            "Enter the principal's payments and the part of them that is commission or performance fees.",
+        );
+    }
+    Ok(Some((commission, principal)))
 }
 
 pub fn psi_test(args: &PsiTestArgs) -> Result<Value> {
@@ -213,6 +264,7 @@ pub fn psi_test(args: &PsiTestArgs) -> Result<Value> {
     let payers = payers(args.payers)?;
     let agent = flag(args.agent, "agent")?;
     let [commission, principal] = optional_facts(args, agent)?;
+    let agent = agent_payments(commission.zip(principal))?;
     let others = money(args.principal_work_by_others)?;
     let apprentice = flag(args.apprentice, "apprentice")?;
     let premises_met = premises(args.premises)?;
@@ -233,7 +285,7 @@ pub fn psi_test(args: &PsiTestArgs) -> Result<Value> {
         determination,
         payers: &payers,
         total: &total,
-        agent: commission.zip(principal),
+        agent,
         others: &others,
         apprentice,
         premises: premises_met,
@@ -255,12 +307,12 @@ pub fn psi_test(args: &PsiTestArgs) -> Result<Value> {
 }
 
 struct Facts<'a> {
-    entity: Option<bool>,
+    entity: Earner,
     mainly: bool,
     determination: bool,
     payers: &'a [Payer],
     total: &'a Decimal,
-    agent: Option<(&'a Arg, &'a Arg)>,
+    agent: Option<(Decimal, Decimal)>,
     others: &'a Decimal,
     apprentice: bool,
     premises: bool,
@@ -294,16 +346,9 @@ impl Work {
                 None,
             ));
         }
-        let Some(entity) = f.entity else {
-            self.push(
-                "Subsection 85-35(1): received as an employee, office holder or religious practitioner",
-                said(true),
-            );
-            return Ok(outcome(
-                "subsection 85-35(1)",
-                "income as an employee, so the PSI rules do not apply",
-                None,
-            ));
+        let entity = match f.entity {
+            Earner::Business(entity) => entity,
+            other => return Ok(self.outside_division_85(other)),
         };
         let paragraph = if entity { "b" } else { "a" };
         self.push(
@@ -328,12 +373,30 @@ impl Work {
         if let Some(met) = self.results_test(f, entity)? {
             return Ok(met);
         }
-        if let Some((commission, principal)) = f.agent {
-            self.agent(&money(commission)?, &money(principal)?)?;
+        if let Some((commission, principal)) = &f.agent {
+            self.agent(commission, principal)?;
         }
         let one_source = self.one_source(f)?;
         let passes = self.other_tests(f)?;
         Ok(conclude(entity, one_source, &passes))
+    }
+
+    /// s 85-35: an employee, office holder or religious practitioner.
+    fn outside_division_85(&mut self, earner: Earner) -> Outcome {
+        let (label, rule, effect) = match earner {
+            Earner::Religious => (
+                "Subsection 85-35(2): a payment to a religious practitioner",
+                "subsection 85-35(2)",
+                "a payment to a religious practitioner, so the PSI rules do not apply",
+            ),
+            _ => (
+                "Subsection 85-35(1): received as an employee or office holder",
+                "subsection 85-35(1)",
+                "income as an employee, so the PSI rules do not apply",
+            ),
+        };
+        self.push(label, said(true));
+        outcome(rule, effect, None)
     }
 
     /// s 87-18: at least 75% of the PSI meets all 3 conditions.
@@ -361,15 +424,10 @@ impl Work {
         Ok(passed.then(|| outcome(rule, PSB, Some(true))))
     }
 
-    /// s 87-40: refused at 75% or more commission; under it, the principal
-    /// stays the one source.
+    /// s 87-40: refused at 75% or more commission once the 80% rule is
+    /// reached (a determination or the results test settles it first);
+    /// under it, the principal stays the one source.
     fn agent(&mut self, commission: &Decimal, principal: &Decimal) -> Result<()> {
-        if principal.is_zero() || commission.gt(principal)? {
-            return refuse(
-                "psi_test.agent_payments_invalid",
-                "Enter the principal's payments and the part of them that is commission or performance fees.",
-            );
-        }
         if reaches(commission, principal, 3, 4)? {
             return refuse(
                 "psi_test.agent_rules",
@@ -386,15 +444,21 @@ impl Work {
         Ok(())
     }
 
-    /// s 87-15(3): each payer row is one entity with its associates.
+    /// s 87-15(3): the rows with one source are one entity with its
+    /// associates.
     fn one_source(&mut self, f: &Facts) -> Result<bool> {
-        let largest = f
-            .payers
-            .iter()
-            .map(|p| &p.amount)
-            .try_fold(int(0), |max, a| -> Result<Decimal> {
-                Ok(if a.gt(&max)? { a.clone() } else { max })
-            })?;
+        let sources: BTreeSet<&str> = f.payers.iter().map(|p| p.source.as_str()).collect();
+        let mut largest = int(0);
+        for source in sources {
+            let sum = f
+                .payers
+                .iter()
+                .filter(|p| p.source == source)
+                .try_fold(int(0), |sum, p| sum.add(&p.amount))?;
+            if sum.gt(&largest)? {
+                largest = sum;
+            }
+        }
         let source = share(&largest, f.total)?;
         let one_source = reaches(&largest, f.total, 4, 5)?;
         self.push(
@@ -418,7 +482,9 @@ impl Work {
             .payers
             .iter()
             .filter(|p| !p.amount.is_zero() && !p.associate && p.offer)
-            .count();
+            .map(|p| p.source.as_str())
+            .collect::<BTreeSet<_>>()
+            .len();
         let employment = share(f.others, f.total)?;
         let fifth = reaches(f.others, f.total, 1, 5)?;
         let employs = fifth || f.apprentice;

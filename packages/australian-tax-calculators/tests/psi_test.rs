@@ -481,3 +481,120 @@ fn refusals() {
         "input.missing_field"
     );
 }
+
+/// One payer whose contracts differ is entered as one row per contract with
+/// one source label: the results test counts each contract and the 80% rule
+/// and the unrelated clients test count the payer once.
+#[test]
+fn a_payers_contracts_share_one_source() {
+    let mut rows = vec![payer("80.00", "rtd"), payer("20.00", "")];
+    for row in &mut rows {
+        row["source"] = json!("Acme and associates");
+    }
+    let out = run(&with(base(&[]), json!({"payers": rows})));
+    assert_eq!(decided(&out), ("subsection 87-18(1)", PSB));
+    assert_eq!(out["tests"]["results_test_percent"], "80.00");
+    rows[0]["amount"] = json!("74.00");
+    rows[1]["amount"] = json!("26.00");
+    let out = run(&with(base(&[]), json!({"payers": rows})));
+    assert_eq!(decided(&out), ("subsection 87-15(3)", S87_15_3));
+    assert_eq!(out["tests"]["one_source_percent"], "100.00");
+    let mut offers = vec![
+        payer("50.00", "o"),
+        payer("30.00", "o"),
+        payer("20.00", "o"),
+    ];
+    offers[0]["source"] = json!("A");
+    offers[1]["source"] = json!("A");
+    let out = run(&with(base(&[]), json!({"payers": offers})));
+    assert_eq!(out["tests"]["unrelated_clients"], 2);
+    assert_eq!(out["tests"]["one_source_percent"], "80.00");
+    assert_eq!(out["rule"], "subsection 87-15(3)");
+    for bad in [json!(""), json!(1), json!("x".repeat(101))] {
+        let mut row = payer("1.00", "");
+        row["source"] = bad;
+        let input = with(base(&[]), json!({"payers": [row]}));
+        assert_eq!(code(&input), "psi_test.payers_invalid");
+    }
+}
+
+/// s 85-35(2): a religious practitioner's payment, apart from an employee's
+/// (s 85-35(1)).
+#[test]
+fn a_religious_practitioner_is_under_subsection_85_35_2() {
+    let out = run(&with(
+        base(&[("100.00", "")]),
+        json!({"earner": "religious_practitioner"}),
+    ));
+    assert_eq!(out["rule"], "subsection 85-35(2)");
+    assert_eq!(out["personal_services_business"], Value::Null);
+    let employee = run(&with(
+        base(&[("100.00", "")]),
+        json!({"earner": "employee"}),
+    ));
+    assert_eq!(employee["rule"], "subsection 85-35(1)");
+}
+
+/// An agent's payments are checked whenever an agent is entered; the 75%
+/// refusal waits for the 80% rule, as the results test settles it first.
+#[test]
+fn an_agents_payments_are_checked_before_any_outcome() {
+    let agent = |commission: &str| {
+        with(
+            base(&[("100.00", "rtd")]),
+            json!({"agent": true, "commission": commission, "principal_payments": "100.00"}),
+        )
+    };
+    assert_eq!(code(&agent("100.01")), "psi_test.agent_payments_invalid");
+    let determined = with(agent("100.01"), json!({"determination_in_force": true}));
+    assert_eq!(code(&determined), "psi_test.agent_payments_invalid");
+    assert_eq!(decided(&run(&agent("75.00"))), ("subsection 87-18(1)", PSB));
+}
+
+/// The steps appear in the page's order, stopping where the outcome is
+/// settled.
+#[test]
+fn the_steps_follow_the_page() {
+    let labels = |input: &Value| -> Vec<String> {
+        run(input)["steps"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .map(|s| {
+                s["step"]
+                    .as_str()
+                    .unwrap()
+                    .split(':')
+                    .next()
+                    .unwrap()
+                    .to_owned()
+            })
+            .collect()
+    };
+    let eighty = with(
+        base(&[("80.00", "o"), ("20.00", "o")]),
+        json!({"agent": true, "commission": "10.00", "principal_payments": "100.00"}),
+    );
+    assert_eq!(
+        labels(&eighty),
+        [
+            "Subsection 84-5(1)",
+            "Paragraph 87-15(1)(a)",
+            "Subsection 87-18(1)",
+            "Paragraph 87-40(2)(c)",
+            "Subsection 87-15(3)",
+            "Section 87-20",
+            "Section 87-25",
+            "Section 87-30",
+        ]
+    );
+    let early = with(base(&[("100.00", "rtd")]), json!({}));
+    assert_eq!(
+        labels(&early),
+        [
+            "Subsection 84-5(1)",
+            "Paragraph 87-15(1)(a)",
+            "Subsection 87-18(1)"
+        ]
+    );
+}

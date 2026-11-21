@@ -3174,7 +3174,11 @@ The worksheet follows ryanduguid.github.io's PSI page
 (`assets/psi-determination.mjs`, checked 17 November 2026) step for step, so
 the two agree on every case the page's tests hold. Its choices:
 
-- each payer is entered with its associates as one source (s 87-15(3));
+- each payer is entered with its associates as one row, or as one row for
+  each contract when its contracts differ for the results test, the rows
+  sharing a `source` label (s 87-15(3));
+- a religious practitioner's payment is outside Division 85 under
+  s 85-35(2), which the site's page folds into s 85-35(1);
 - the employment test's 20% is measured against the PSI entered, as
   TR 2022/3 paragraph 118 does with the market value of the principal work;
 - the other 3 tests are worked out even at 80% from one source, as the
