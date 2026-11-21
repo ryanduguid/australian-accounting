@@ -1135,7 +1135,9 @@ pub fn supported_periods(kind: &str) -> Vec<&'static str> {
         // The pools' rates and the capital works rates do not change in these
         // years; the small business pool's low pool value threshold does, by year.
         "depreciation_low_value_pool" | "depreciation_small_business_pool" | "capital_works" => {
-            vec!["2020-21", "2021-22", "2022-23", "2023-24", "2024-25", "2025-26", "2026-27"]
+            vec![
+                "2020-21", "2021-22", "2022-23", "2023-24", "2024-25", "2025-26", "2026-27",
+            ]
         }
         "sb_cgt_concessions" => vec!["2025-26", "2026-27"],
         _ => Vec::new(),

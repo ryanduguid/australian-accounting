@@ -1708,9 +1708,9 @@ pub fn evaluate_coded(command: &str, v: &Value) -> Result<Value> {
         "depreciation-small-business-pool" => {
             engine::depreciation_small_business_pool(&a[0], &a[1], &a[2], &a[3], &a[4], &a[5])
         }
-        "capital-works" => engine::capital_works(
-            &a[0], &a[1], &a[2], &a[3], &a[4], &a[5], &a[6], &a[7],
-        ),
+        "capital-works" => {
+            engine::capital_works(&a[0], &a[1], &a[2], &a[3], &a[4], &a[5], &a[6], &a[7])
+        }
         "quarterly-sg" => engine::quarterly_sg(&a[0], &a[1], &a[2], &a[3], &a[4]),
         "payg-withholding" => {
             // Optional: each is absent unless the payee's declarations call for it.

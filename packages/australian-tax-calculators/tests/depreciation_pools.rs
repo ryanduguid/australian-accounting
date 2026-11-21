@@ -67,7 +67,9 @@ const LVP_KEYS: [&str; 6] = [
 fn the_guides_low_value_pool_example() {
     let r = run(
         LVP,
-        &low_value(json!({"previous_closing_pool_balance": "5000.00", "low_cost_assets": "594.00"})),
+        &low_value(
+            json!({"previous_closing_pool_balance": "5000.00", "low_cost_assets": "594.00"}),
+        ),
     );
     assert_eq!(
         amounts(&r, LVP_KEYS),
@@ -127,7 +129,9 @@ fn termination_values_above_the_balance_are_assessable() {
 fn the_full_expensing_years_are_flagged() {
     for year in YEARS {
         let r = run(LVP, &low_value(json!({"year": year})));
-        let flagged = r["warnings"].to_string().contains("temporary full expensing");
+        let flagged = r["warnings"]
+            .to_string()
+            .contains("temporary full expensing");
         assert_eq!(flagged, year <= "2022-23", "{year}");
     }
 }
@@ -161,12 +165,23 @@ const SBP_KEYS: [&str; 8] = [
 fn the_atos_pool_example() {
     let r = run(
         SBP,
-        &small(json!({"opening_pool_balance": "100000.00", "additions": "28000.00",
-            "termination_values": "8000.00"})),
+        &small(
+            json!({"opening_pool_balance": "100000.00", "additions": "28000.00",
+            "termination_values": "8000.00"}),
+        ),
     );
     assert_eq!(
         amounts(&r, SBP_KEYS),
-        ["120000.00", "0.00", "30000.00", "4200.00", "0.00", "34200.00", "0.00", "85800.00"]
+        [
+            "120000.00",
+            "0.00",
+            "30000.00",
+            "4200.00",
+            "0.00",
+            "34200.00",
+            "0.00",
+            "85800.00"
+        ]
     );
     assert_eq!(r["rates"]["pool_rate"], "0.30");
     assert_eq!(r["rates"]["new_asset_rate"], "0.15");
@@ -178,12 +193,16 @@ fn the_atos_pool_example() {
 fn cassidys_gardens_writes_off_a_low_pool_value() {
     let r = run(
         SBP,
-        &small(json!({"opening_pool_balance": "28500.00", "additions": "16800.00",
-            "termination_values": "29600.00", "year": "2024-25"})),
+        &small(
+            json!({"opening_pool_balance": "28500.00", "additions": "16800.00",
+            "termination_values": "29600.00", "year": "2024-25"}),
+        ),
     );
     assert_eq!(
         amounts(&r, SBP_KEYS),
-        ["15700.00", "15700.00", "0.00", "0.00", "0.00", "15700.00", "0.00", "0.00"]
+        [
+            "15700.00", "15700.00", "0.00", "0.00", "0.00", "15700.00", "0.00", "0.00"
+        ]
     );
 }
 
@@ -205,9 +224,14 @@ fn a_full_expensing_year_writes_off_the_whole_pool() {
 fn each_years_low_pool_value_threshold() {
     for year in YEARS {
         let limited = year >= "2023-24";
-        let r = run(SBP, &small(json!({"opening_pool_balance": "1000000.00", "year": year})));
+        let r = run(
+            SBP,
+            &small(json!({"opening_pool_balance": "1000000.00", "year": year})),
+        );
         let threshold = &r["rates"]["low_pool_value_threshold"];
-        let rule = r["rates"]["low_pool_value_threshold_rule"].as_str().unwrap();
+        let rule = r["rates"]["low_pool_value_threshold_rule"]
+            .as_str()
+            .unwrap();
         if limited {
             assert_eq!(*threshold, "20000", "{year}");
             assert_eq!(r["amounts"]["pool_deduction"], "300000.00", "{year}");
@@ -224,8 +248,14 @@ fn each_years_low_pool_value_threshold() {
             assert!(rule.contains("328-181(5)"), "{year}: {rule}");
         }
         // Either side of $20,000: below it is written off, at it is not.
-        let at = run(SBP, &small(json!({"opening_pool_balance": "20000.00", "year": year})));
-        let under = run(SBP, &small(json!({"opening_pool_balance": "19999.99", "year": year})));
+        let at = run(
+            SBP,
+            &small(json!({"opening_pool_balance": "20000.00", "year": year})),
+        );
+        let under = run(
+            SBP,
+            &small(json!({"opening_pool_balance": "19999.99", "year": year})),
+        );
         assert_eq!(under["amounts"]["deduction"], "19999.99", "{year}");
         let at_deduction = if limited { "6000.00" } else { "20000.00" };
         assert_eq!(at["amounts"]["deduction"], at_deduction, "{year}");
@@ -237,12 +267,16 @@ fn each_years_low_pool_value_threshold() {
 fn a_negative_pool_amount_is_assessable() {
     let r = run(
         SBP,
-        &small(json!({"opening_pool_balance": "10000.00", "termination_values": "15000.00",
-            "year": "2026-27"})),
+        &small(
+            json!({"opening_pool_balance": "10000.00", "termination_values": "15000.00",
+            "year": "2026-27"}),
+        ),
     );
     assert_eq!(
         amounts(&r, SBP_KEYS),
-        ["-5000.00", "0.00", "0.00", "0.00", "0.00", "0.00", "5000.00", "0.00"]
+        [
+            "-5000.00", "0.00", "0.00", "0.00", "0.00", "0.00", "5000.00", "0.00"
+        ]
     );
 }
 
@@ -252,12 +286,23 @@ fn a_negative_pool_amount_is_assessable() {
 fn a_negative_closing_balance_is_assessable() {
     let r = run(
         SBP,
-        &small(json!({"opening_pool_balance": "1000000.00", "termination_values": "950000.00",
-            "year": "2026-27"})),
+        &small(
+            json!({"opening_pool_balance": "1000000.00", "termination_values": "950000.00",
+            "year": "2026-27"}),
+        ),
     );
     assert_eq!(
         amounts(&r, SBP_KEYS),
-        ["50000.00", "0.00", "300000.00", "0.00", "0.00", "300000.00", "250000.00", "0.00"]
+        [
+            "50000.00",
+            "0.00",
+            "300000.00",
+            "0.00",
+            "0.00",
+            "300000.00",
+            "250000.00",
+            "0.00"
+        ]
     );
     // Below the threshold after a sale, the remainder is written off.
     let r = run(
@@ -272,26 +317,34 @@ fn a_negative_closing_balance_is_assessable() {
 fn cost_additions_take_fifteen_percent() {
     let r = run(
         SBP,
-        &small(json!({"opening_pool_balance": "33333.33", "additions": "11111.11",
-            "cost_additions": "2222.22"})),
+        &small(
+            json!({"opening_pool_balance": "33333.33", "additions": "11111.11",
+            "cost_additions": "2222.22"}),
+        ),
     );
     assert_eq!(
         amounts(&r, SBP_KEYS),
-        ["46666.66", "0.00", "10000.00", "1666.67", "333.33", "12000.00", "0.00", "34666.66"]
+        [
+            "46666.66", "0.00", "10000.00", "1666.67", "333.33", "12000.00", "0.00", "34666.66"
+        ]
     );
 }
 
 /// Only 2020-21's zero amount with additions could take the 57.5% rate.
 #[test]
 fn backing_business_investment_is_refused_where_it_could_apply() {
-    let input = small(json!({"additions": "5000.00", "termination_values": "5000.00",
-        "year": "2020-21"}));
+    let input = small(
+        json!({"additions": "5000.00", "termination_values": "5000.00",
+        "year": "2020-21"}),
+    );
     assert_eq!(
         code(SBP, &input),
         "depreciation_small_business_pool.backing_business_investment"
     );
-    let later = small(json!({"additions": "5000.00", "termination_values": "5000.00",
-        "year": "2021-22"}));
+    let later = small(
+        json!({"additions": "5000.00", "termination_values": "5000.00",
+        "year": "2021-22"}),
+    );
     assert_eq!(run(SBP, &later)["amounts"]["new_asset_deduction"], "750.00");
 }
 
@@ -384,7 +437,10 @@ fn the_construction_start_boundaries() {
 #[test]
 fn capital_works_inputs_are_checked() {
     assert_eq!(
-        code(CW, &works(json!({"undeducted_construction_expenditure": "115800.01"}))),
+        code(
+            CW,
+            &works(json!({"undeducted_construction_expenditure": "115800.01"}))
+        ),
         "capital_works.undeducted_above_expenditure"
     );
     assert_eq!(
@@ -392,7 +448,10 @@ fn capital_works_inputs_are_checked() {
         "input.fraction_invalid"
     );
     assert_eq!(
-        code(CW, &works(json!({"taxable_use": "0.123456789012345678901"}))),
+        code(
+            CW,
+            &works(json!({"taxable_use": "0.123456789012345678901"}))
+        ),
         "capital_works.precision_exceeded"
     );
     assert_eq!(
@@ -416,7 +475,11 @@ fn the_supported_years() {
         }
         for year in ["2019-20", "2027-28"] {
             let refused = with(input.clone(), json!({ "year": year }));
-            assert_eq!(code(command, &refused), "period.unsupported", "{command} {year}");
+            assert_eq!(
+                code(command, &refused),
+                "period.unsupported",
+                "{command} {year}"
+            );
         }
         let unconfirmed = with(input.clone(), json!({"scope_confirmed": false}));
         assert_eq!(code(command, &unconfirmed), "scope.not_confirmed");
@@ -448,6 +511,12 @@ fn the_catalogue_examples_run() {
         facts.as_object_mut().unwrap().remove("kind");
         let r = run(&kind.replace('_', "-"), &facts);
         assert_eq!(r["amounts"][key], expected, "{kind}");
-        assert_eq!(catalogue[kind]["supported_periods"].as_array().unwrap().len(), 7);
+        assert_eq!(
+            catalogue[kind]["supported_periods"]
+                .as_array()
+                .unwrap()
+                .len(),
+            7
+        );
     }
 }
