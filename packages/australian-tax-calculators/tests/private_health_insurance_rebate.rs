@@ -568,11 +568,19 @@ fn the_estimate_refunds_an_offset_beyond_the_tax() {
     assert_eq!(out["amounts"]["amount_payable"], "0.00");
 }
 
-/// The surcharge part leaves out dependants without a spouse, so the rebate
-/// part may not state one either.
+/// A single person maintaining a 26-year-old dependent student: no surcharge
+/// dependant, but the rebate's family thresholds (s 22-30(1)(b)), so $150,000
+/// is base tier and $1,000 of premiums gives a $242.88 offset.
 #[test]
-fn the_estimate_refuses_a_dependent_person_without_a_spouse() {
-    let phi = json!({"lines": [line("100", "0", 30)], "maintained_dependent_person": true});
-    let r = estimate(json!({"private-health-insurance-rebate": phi})).unwrap_err();
-    assert_eq!(r.code, "estimate.family_mismatch");
+fn the_estimate_gives_a_dependent_person_without_a_spouse_family_thresholds() {
+    let mut single = json!({"taxable_income": "150000",
+        "medicare-levy-surcharge": {"reportable_fringe_benefits": "0",
+            "income_for_surcharge_purposes": "150000", "days_without_cover": 0}});
+    single["private-health-insurance-rebate"] =
+        json!({"lines": [line("1000", "0", 30)], "maintained_dependent_person": true});
+    let out = estimate(single).unwrap();
+    let part = &out["components"]["private-health-insurance-rebate"];
+    assert_eq!(part["thresholds"], "families");
+    assert_eq!(part["tier"], "base");
+    assert_eq!(out["amounts"]["private_health_insurance_offset"], "242.88");
 }
