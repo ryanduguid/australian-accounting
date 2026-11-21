@@ -1720,6 +1720,12 @@ examples to the dollar, so its published tax is 1 and 3 cents lower than the
 worksheet's. The Queensland Revenue Office gives its deduction to the dollar
 ($932,460); the worksheet's is $932,459.64.
 
+For Tasmania, the worksheet rounds the tax at each rate to the cent before
+adding. On $2,400,000.21 of Tasmanian wages out of $3,000,000 in Australia, the
+unrounded amounts are $24,000.0021 and $48,800.00427. Rounding each gives
+$72,800.00. Rounding only the sum would give $72,800.01. The 2-rate formula
+comes from [Payroll Tax Act 2008 (Tas) Sch 1 cl 4(5)](https://www.legislation.tas.gov.au/view/whole/html/inforce/current/act-2008-016).
+
 `tests/payroll_tax.rs` holds these cases, and the threshold edges, rate bands
 and refusals beside them.
 
