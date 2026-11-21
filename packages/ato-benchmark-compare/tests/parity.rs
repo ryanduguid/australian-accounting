@@ -343,8 +343,21 @@ fn check(case: &Value) -> Option<String> {
     let written = written_ok(&dir, case);
     let _ = std::fs::remove_dir_all(&dir);
     let (stdout, stderr) = (lf(&out.stdout), lf(&out.stderr));
+    // Only the top-level help acquired a licence notice after the Python capture.
+    let help_notice = "\n\
+        Copyright 2026 Ryan Duguid. No warranty.\n\
+        AGPL-3.0-or-later with additional terms (see NOTICE).\n\
+        Licence: https://github.com/ryanduguid/australian-accounting/blob/main/packages/ato-benchmark-compare/LICENSE\n";
+    let legacy_stdout = if expected["stdout"]
+        .as_str()
+        .is_some_and(|text| text.contains("{industries,show,buckets,map,compare}"))
+    {
+        stdout.strip_suffix(help_notice)
+    } else {
+        Some(stdout.as_str())
+    };
     let ok = out.status.code() == expected["code"].as_i64().map(|c| c as i32)
-        && matches_text(&stdout, &expected["stdout"])
+        && legacy_stdout.is_some_and(|text| matches_text(text, &expected["stdout"]))
         && matches_text(&stderr, &expected["stderr"])
         && written.is_ok();
     (!ok).then(|| {

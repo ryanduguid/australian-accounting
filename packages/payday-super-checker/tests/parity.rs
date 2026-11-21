@@ -471,8 +471,21 @@ fn check(case: &Value) -> Option<String> {
         lf(&localise(&out.stderr, &dir)),
     );
     let _ = std::fs::remove_dir_all(&dir);
+    // Only the top-level help acquired a licence notice after the Python capture.
+    let help_notice = "\n\
+        Copyright 2026 Ryan Duguid. No warranty.\n\
+        AGPL-3.0-or-later with additional terms (see NOTICE).\n\
+        Licence: https://github.com/ryanduguid/australian-accounting/blob/main/packages/payday-super-checker/LICENSE\n";
+    let legacy_stdout = if expected["stdout"].as_str().is_some_and(|text| {
+        text.starts_with("usage: payday-super-check [-h]")
+            || text.starts_with("\x1b[1;34musage: \x1b[0m\x1b[1;35mpayday-super-check\x1b[0m")
+    }) {
+        stdout.strip_suffix(help_notice)
+    } else {
+        Some(stdout.as_str())
+    };
     let ok = out.status.code() == expected["code"].as_i64().map(|c| c as i32)
-        && matches_text(&stdout, &expected["stdout"])
+        && legacy_stdout.is_some_and(|text| matches_text(text, &expected["stdout"]))
         && matches_stderr(&stderr, &expected["stderr"], &before, &after)
         && written.is_ok();
     (!ok).then(|| {
