@@ -134,6 +134,18 @@ pub(super) fn invalid<T>(message: impl Into<String>) -> Result<T> {
 }
 
 /// A decimal string as an amount, refused as `money` refuses one.
+/// An item's date field, refused unless it is a YYYY-MM-DD date.
+pub(super) fn date(fields: &Map<String, Value>, key: &str) -> Result<i64> {
+    match fields
+        .get(key)
+        .and_then(Value::as_str)
+        .and_then(dates::parse)
+    {
+        Some(day) => Ok(day),
+        None => invalid(format!("{key} must be a YYYY-MM-DD date.")),
+    }
+}
+
 pub(super) fn amount(value: Option<&Value>) -> Result<Decimal> {
     let parsed = value
         .and_then(Value::as_str)

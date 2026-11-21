@@ -2505,10 +2505,6 @@ pub const REFUSAL_CODES: &[(&str, &str)] = &[
         "A depreciating asset was acquired on 9 May 2017, and s 40-27 applies only from 7.30 pm that day.",
     ),
     (
-        "rental_property.asset_transition_unclear",
-        "A depreciating asset acquired before 9 May 2017 had nothing deductible for 2016-17, so s 40-27 turns on its start time, which the worksheet does not take.",
-    ),
-    (
         "rental_property.days_unclear",
         "Capital works or a depreciating asset were first used after the property was first held in the year, and it was not available on every day held, so their days of rental use are not known.",
     ),

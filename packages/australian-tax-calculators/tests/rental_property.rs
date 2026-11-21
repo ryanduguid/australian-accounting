@@ -150,10 +150,14 @@ fn a_mixed_use_loan_repaid_early_reduces_by_the_maximum() {
 }
 
 fn works(expenditure: &str, kind: &str, began: &str, first_used: &str) -> Value {
-    json!({
+    let mut item = json!({
         "construction_expenditure": expenditure, "kind": kind,
         "began": began, "first_used": first_used,
-    })
+    });
+    if kind == "building" {
+        item["taken_to_begin_before_16_september_1987"] = json!(false);
+    }
+    item
 }
 
 /// Example 29: $115,800 of construction expenditure on a house built in
@@ -180,8 +184,12 @@ fn example_29_capital_works_for_part_of_the_year() {
 
 fn rate_of(kind: &str, began: &str, contract: Option<bool>) -> Value {
     let mut item = works("100000.00", kind, began, "2015-07-01");
-    if let Some(flag) = contract {
-        item["taken_to_begin_before_16_september_1987"] = json!(flag);
+    let key = "taken_to_begin_before_16_september_1987";
+    match contract {
+        Some(flag) => item[key] = json!(flag),
+        None => {
+            item.as_object_mut().unwrap().remove(key);
+        }
     }
     run(&with(json!({"capital_works": [item]})))["capital_works"][0]["rate"].clone()
 }
@@ -204,8 +212,9 @@ fn capital_works_rate_by_when_works_began() {
     assert_eq!(rate_of("building", "1987-09-16", Some(false)), "0.025");
     assert_eq!(rate_of("building", "1987-09-16", Some(true)), "0.04");
     assert_eq!(rate_of("building", "1992-02-26", Some(true)), "0.04");
-    assert_eq!(rate_of("building", "1992-02-27", None), "0.025");
-    // s 43-220 applies to any building begun after 15 September 1987.
+    // s 43-220 has no end date: the fact is needed for any building begun
+    // after 15 September 1987.
+    assert_eq!(rate_of("building", "1992-02-27", Some(false)), "0.025");
     assert_eq!(rate_of("building", "1992-02-27", Some(true)), "0.04");
     assert_eq!(
         rate_of("structural_improvement", "1992-02-26", None),
@@ -215,9 +224,14 @@ fn capital_works_rate_by_when_works_began() {
         rate_of("structural_improvement", "1992-02-27", None),
         "0.025"
     );
-    let missing =
-        with(json!({"capital_works": [works("1.00", "building", "1990-01-01", "2015-07-01")]}));
-    assert_eq!(code(&missing), "input.missing_field");
+    for began in ["1990-01-01", "1992-02-27", "2010-01-01"] {
+        let mut item = works("1.00", "building", began, "2015-07-01");
+        item.as_object_mut()
+            .unwrap()
+            .remove("taken_to_begin_before_16_september_1987");
+        let missing = with(json!({"capital_works": [item]}));
+        assert_eq!(code(&missing), "input.missing_field", "{began}");
+    }
     let bad = with(json!({"capital_works": [works("1.00", "shed", "2000-01-01", "2015-07-01")]}));
     assert_eq!(code(&bad), "rental_property.fact_invalid");
 }
@@ -360,11 +374,19 @@ fn section_40_27_applies_from_9_may_2017() {
         decline(json!([before]))["amounts"]["decline_in_value"],
         "1000.00"
     );
-    let mut unclear = asset("2017-05-08", false, false);
-    unclear["deductible_in_2016_17"] = json!(false);
+    // Acquired earlier with nothing deductible for 2016-17: s 40-27 applies
+    // only if the start time was by 30 June 2017 (item 13(2)).
+    let mut late_start = asset("2017-05-08", true, true);
+    late_start["deductible_in_2016_17"] = json!(false);
+    late_start["first_used"] = json!("2017-07-01");
     assert_eq!(
-        code(&with(json!({"depreciating_assets": [unclear]}))),
-        "rental_property.asset_transition_unclear"
+        decline(json!([late_start.clone()]))["amounts"]["decline_in_value"],
+        "1000.00"
+    );
+    late_start["first_used"] = json!("2017-05-10");
+    assert_eq!(
+        decline(json!([late_start]))["amounts"]["decline_in_value"],
+        "0.00"
     );
     let missing = asset("2017-05-08", true, false);
     assert_eq!(
@@ -601,4 +623,17 @@ fn asset_first_used_in_the_year() {
         ),
         "1000.00"
     );
+}
+
+/// A property acquired on 1 January 2026 and available every day held: an
+/// asset first used in March takes all its stated decline, which is for its
+/// own days.
+#[test]
+fn asset_first_used_after_a_part_year_acquisition() {
+    let mut oven = asset("2026-03-01", true, false);
+    oven["decline_in_value"] = json!("250.00");
+    let input = with(json!({
+        "acquired": "2026-01-01", "days_available": 181, "depreciating_assets": [oven],
+    }));
+    assert_eq!(amount(&input, "decline_in_value"), "250.00");
 }

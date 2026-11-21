@@ -3136,8 +3136,8 @@ Choices the law leaves to the reader:
   begun in between is refused rather than given nil, as a converted one may
   qualify.
 - s 43-220 is taken as one fact, covering the contract of (1)(a) and the
-  qualifying investor's financing of (1)(b); it is required from 16 September
-  1987 to 26 February 1992 and honoured if given for a later building.
+  qualifying investor's financing of (1)(b). It has no end date, so it is
+  required for every building begun after 15 September 1987.
 - The use period starts at first use by any entity after construction
   (s 43-230(2)(a)); the worksheet takes it as `first_used` and counts both
   ends. The divisor is 365 in every year, so a leap year's 366 days give
@@ -3147,6 +3147,9 @@ Choices the law leaves to the reader:
   not known and are refused.
 - The decline in value given is for the days held before any private use
   reduction, and the time-based share applies to it as to the other lines.
+- An asset's `first_used` is its start time, so item 13(2)(a) is decided:
+  one acquired before 9 May 2017 with nothing deductible for 2016-17 is under
+  s 40-27 if first used by 30 June 2017 and outside it otherwise.
 - Each line is rounded to the cent. The ATO's examples round to the dollar,
   and Example 12 halves the rounded $11,475 to $5,737.50 where the worksheet
   gives $5,737.70.

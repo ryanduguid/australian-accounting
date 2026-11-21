@@ -13,7 +13,7 @@
 use serde_json::{Map, Value, json};
 
 use super::super::{Result, cents, d, int, refuse};
-use super::{Held, Year, amount, at, conflict, invalid, item, item_flag, list};
+use super::{Held, Year, amount, at, conflict, date, invalid, item, item_flag, list};
 use crate::dates;
 use crate::decimal::Decimal;
 
@@ -72,11 +72,10 @@ fn rate(kind: &str, began: i64, fields: &Map<String, Value>) -> Result<Rate> {
     match item_flag(fields, key)? {
         Some(true) => Ok(Rate::Of("0.04")),
         Some(false) => Ok(Rate::Of("0.025")),
-        None if began >= day("1992-02-27") => Ok(Rate::Of("0.025")),
         None => refuse(
             "input.missing_field",
             format!(
-                "{key} is required for a building begun from 16 September 1987 to 26 February 1992 (ITAA 1997 s 43-220(1)(a) and (b))"
+                "{key} is required for a building begun after 15 September 1987 (ITAA 1997 s 43-220(1)(a) and (b))"
             ),
         ),
     }
@@ -138,15 +137,7 @@ fn work(
 ) -> Result<(String, Decimal, Value)> {
     let fields = item(value, "capital_works", &FACTS)?;
     let expenditure = amount(fields.get("construction_expenditure"))?;
-    let date = |key: &str| match fields
-        .get(key)
-        .and_then(Value::as_str)
-        .and_then(dates::parse)
-    {
-        Some(day) => Ok(day),
-        None => invalid(format!("{key} must be a YYYY-MM-DD date.")),
-    };
-    let (began, first_used) = (date("began")?, date("first_used")?);
+    let (began, first_used) = (date(fields, "began")?, date(fields, "first_used")?);
     if first_used < began {
         return conflict("first_used must not be before began.");
     }

@@ -2510,11 +2510,13 @@ at a market rent.
   first used after the property was first held in a year available every day,
   and set it to nil where s 40-27 reduces it: a second-hand asset not supplied with new
   residential premises, or one used in a residence or privately, acquired from
-  7.30 pm on 9 May 2017 (Act No. 126 of 2017 Schedule 2 item 13).
+  7.30 pm on 9 May 2017, or earlier with nothing deductible for 2016-17 and
+  first used by 30 June 2017 (Act No. 126 of 2017 Schedule 2 item 13).
+- A building begun after 15 September 1987 needs
+  `taken_to_begin_before_16_september_1987` (s 43-220).
 
 It refuses a holiday home whose costs s 26-50 denies, a redraw, an asset
-acquired on 9 May 2017 or acquired earlier with nothing deductible for 2016-17,
-works or an asset first used after the property was first held in a year with private use, a building begun from 22 August 1979 to 17 July 1985, and the effect on tax before
+acquired on 9 May 2017, works or an asset first used after the property was first held in a year with private use, a building begun from 22 August 1979 to 17 July 1985, and the effect on tax before
 2024-25. From 2027-28 s 26-155 can quarantine rental deductions; that year is
 not supported. `tests/rental_property.rs` holds it to the ATO's Rental
 properties guide 2026 Examples 12, 20, 21, 23, 29, 33 and 34.

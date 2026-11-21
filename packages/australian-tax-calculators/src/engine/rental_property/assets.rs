@@ -12,7 +12,7 @@
 use serde_json::{Map, Value, json};
 
 use super::super::{Arg, Result, cents, int, refuse};
-use super::{Held, amount, at, conflict, invalid, item, item_flag, list};
+use super::{Held, amount, at, conflict, date, item, item_flag, list};
 use crate::dates;
 use crate::decimal::Decimal;
 
@@ -39,8 +39,8 @@ fn required(fields: &Map<String, Value>, key: &str, when: &str) -> Result<bool> 
 
 /// Whether s 40-27 applies to the asset (Act No. 126 of 2017 Schedule 2 item
 /// 13): acquired at or after 7.30 pm on 9 May 2017, or earlier with nothing
-/// deductible for 2016-17 and a start time in 2016-17 or before.
-fn applies(fields: &Map<String, Value>, acquired: i64) -> Result<bool> {
+/// deductible for 2016-17 and a start time (`first_used`) in 2016-17 or before.
+fn applies(fields: &Map<String, Value>, acquired: i64, first_used: i64) -> Result<bool> {
     let cutoff = dates::parse("2017-05-09").expect("a valid date");
     if acquired > cutoff {
         return Ok(true);
@@ -58,15 +58,16 @@ fn applies(fields: &Map<String, Value>, acquired: i64) -> Result<bool> {
     )? {
         return Ok(false);
     }
-    refuse(
-        "rental_property.asset_transition_unclear",
-        "The asset was acquired before 9 May 2017 and nothing was deductible for it for 2016-17, so s 40-27 applies only if its start time was in 2016-17 or earlier (Act No. 126 of 2017 Schedule 2 item 13(2)), which the worksheet does not take.",
-    )
+    Ok(first_used <= dates::parse("2017-06-30").expect("a valid date"))
 }
 
 /// Why s 40-27 reduces the asset's decline to nil, or `None`.
-fn reduced(fields: &Map<String, Value>, acquired: i64) -> Result<Option<&'static str>> {
-    if required(fields, "low_value_pool", "")? || !applies(fields, acquired)? {
+fn reduced(
+    fields: &Map<String, Value>,
+    acquired: i64,
+    first_used: i64,
+) -> Result<Option<&'static str>> {
+    if required(fields, "low_value_pool", "")? || !applies(fields, acquired, first_used)? {
         return Ok(None);
     }
     if required(fields, "residence_or_private_use", "")? {
@@ -84,17 +85,6 @@ fn reduced(fields: &Map<String, Value>, acquired: i64) -> Result<Option<&'static
     Ok(Some(
         "second-hand: you did not hold it when it was first used or installed ready for use by any entity, and it was not supplied with new residential premises (s 40-27(2)(c), (4) and (5))",
     ))
-}
-
-fn date(fields: &Map<String, Value>, key: &str) -> Result<i64> {
-    match fields
-        .get(key)
-        .and_then(Value::as_str)
-        .and_then(dates::parse)
-    {
-        Some(day) => Ok(day),
-        None => invalid(format!("{key} must be a YYYY-MM-DD date.")),
-    }
 }
 
 /// The days available and held the asset's decline is apportioned by: the
@@ -119,8 +109,9 @@ fn asset(value: &Value, share: &Decimal, held: &Held) -> Result<(String, Decimal
     let fields = item(value, "depreciating_assets", &FACTS)?;
     let decline = amount(fields.get("decline_in_value"))?;
     let acquired = date(fields, "acquired")?;
-    let (available, all) = days(date(fields, "first_used")?, acquired, held)?;
-    let why = reduced(fields, acquired)?;
+    let first_used = date(fields, "first_used")?;
+    let (available, all) = days(first_used, acquired, held)?;
+    let why = reduced(fields, acquired, first_used)?;
     let (formula, deduction) = match why {
         Some(_) => (format!("0 x {decline}"), int(0)),
         None => (
