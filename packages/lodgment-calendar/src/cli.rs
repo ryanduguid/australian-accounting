@@ -1,5 +1,6 @@
 // Copyright 2026 Ryan Duguid
-// SPDX-License-Identifier: LicenseRef-Duguid-Public-Attribution-1.0
+// SPDX-License-Identifier: AGPL-3.0-or-later
+// Additional terms under AGPL-3.0 section 7(b): see NOTICE.
 
 //! Small native interface, shared with the umbrella command.
 use std::ffi::OsStr;
@@ -31,6 +32,13 @@ pub fn run(args: &[String]) -> Outcome {
         ),
     }
 }
+const LICENCE_NOTICE: &str = "\n\
+    Copyright 2026 Ryan Duguid. No warranty.\n\
+    AGPL-3.0-or-later with additional terms (see NOTICE).\n\
+    Licence: https://github.com/ryanduguid/australian-accounting/blob/main/packages/lodgment-calendar/LICENSE\n";
+
 fn help() -> String {
-    "lodgment-calendar: cited Australian lodgment program dates\n\nUsage: lodgment-calendar due-dates < input.json\nDates use YYYY-MM-DD. Unknown facts and incomplete holiday coverage remain UNKNOWN.\nPreparation aid only. Confirm each client's dates with the ATO and obtain human review.\n".into()
+    format!(
+        "lodgment-calendar: cited Australian lodgment program dates\n\nUsage: lodgment-calendar due-dates < input.json\nDates use YYYY-MM-DD. Unknown facts and incomplete holiday coverage remain UNKNOWN.\nPreparation aid only. Confirm each client's dates with the ATO and obtain human review.\n{LICENCE_NOTICE}"
+    )
 }

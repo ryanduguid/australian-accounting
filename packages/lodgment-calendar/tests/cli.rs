@@ -1,5 +1,6 @@
 // Copyright 2026 Ryan Duguid
-// SPDX-License-Identifier: LicenseRef-Duguid-Public-Attribution-1.0
+// SPDX-License-Identifier: AGPL-3.0-or-later
+// Additional terms under AGPL-3.0 section 7(b): see NOTICE.
 
 use std::io::Write;
 use std::process::{Command, Stdio};
@@ -52,7 +53,13 @@ fn bounded_input_and_command_help() {
         String::from_utf8(output.stderr).unwrap(),
         "error: JSON input exceeds 8 MiB\n"
     );
-    for flag in ["--version", "--help", "--api-help"] {
+    let help = run(&["--help"], b"");
+    assert!(help.status.success());
+    assert!(
+        String::from_utf8_lossy(&help.stdout)
+            .contains("AGPL-3.0-or-later with additional terms (see NOTICE).")
+    );
+    for flag in ["--version", "--api-help"] {
         let output = run(&[flag], b"");
         assert!(output.status.success());
         assert!(output.stderr.is_empty());

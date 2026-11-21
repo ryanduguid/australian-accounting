@@ -1,5 +1,6 @@
 // Copyright 2026 Ryan Duguid
-// SPDX-License-Identifier: LicenseRef-Duguid-Public-Attribution-1.0
+// SPDX-License-Identifier: AGPL-3.0-or-later
+// Additional terms under AGPL-3.0 section 7(b): see NOTICE.
 
 //! The behaviours of `tests/test_dataset.py`, `test_numeric_validation.py`,
 //! `test_pattern_reports.py` and `test_ato_tables.py` at 24fcf24, one test
@@ -1955,6 +1956,10 @@ fn main_help_is_written_to_its_stdout() {
     );
     assert_eq!(code, 0);
     assert!(printed.starts_with("usage: rates"), "{printed}");
+    assert!(
+        printed.contains("AGPL-3.0-or-later with additional terms (see NOTICE)."),
+        "{printed}"
+    );
 }
 
 #[test]

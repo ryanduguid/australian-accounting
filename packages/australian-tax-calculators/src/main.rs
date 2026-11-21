@@ -1,5 +1,6 @@
 // Copyright 2026 Ryan Duguid
-// SPDX-License-Identifier: LicenseRef-Duguid-Public-Attribution-1.0
+// SPDX-License-Identifier: AGPL-3.0-or-later
+// Additional terms under AGPL-3.0 section 7(b): see NOTICE.
 
 use australian_tax_calculators::{api, engine};
 use serde_json::{Value, json};
@@ -62,14 +63,7 @@ fn main() {
             format!("australian-tax-calculators {}\n", engine::VERSION),
             String::new(),
         ),
-        [flag] if flag == "--api-help" => (
-            0,
-            format!(
-                "JSON stdin commands: {}\nAmounts are decimal strings. See README.md for schemas.\n",
-                commands.join(", ")
-            ),
-            String::new(),
-        ),
+        [flag] if flag == "--api-help" => (0, api::cli_help(), String::new()),
         _ => (
             2,
             String::new(),

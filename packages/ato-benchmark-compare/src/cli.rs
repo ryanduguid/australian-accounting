@@ -1,5 +1,6 @@
 // Copyright 2026 Ryan Duguid
-// SPDX-License-Identifier: LicenseRef-Duguid-Public-Attribution-1.0
+// SPDX-License-Identifier: AGPL-3.0-or-later
+// Additional terms under AGPL-3.0 section 7(b): see NOTICE.
 
 //! The `ato-benchmark-compare` command line. argparse formatting and option
 //! parsing are reused from The WIP Tally's and Division 7A's ports.
@@ -615,6 +616,11 @@ fn heading(text: &str, t: &Theme) -> String {
     format!("{}{text}:{}", t.heading, t.reset)
 }
 
+const LICENCE_NOTICE: &str = "\n\
+    Copyright 2026 Ryan Duguid. No warranty.\n\
+    AGPL-3.0-or-later with additional terms (see NOTICE).\n\
+    Licence: https://github.com/ryanduguid/australian-accounting/blob/main/packages/ato-benchmark-compare/LICENSE\n";
+
 fn main_help(prog: &str, t: &Theme) -> String {
     let mut positional: Vec<Row> = vec![(2, coloured(&choices(), t.action, t), None)];
     positional.extend(
@@ -791,7 +797,10 @@ fn parse(prog: &str, args: &[String]) -> Result<Parsed, Exit> {
                     return Err(Exit::Help(format!("{text}\n"), 0));
                 }
                 return Err(Exit::Help(
-                    main_help(prog, argtheme::theme(Stream::Stdout)),
+                    format!(
+                        "{}{LICENCE_NOTICE}",
+                        main_help(prog, argtheme::theme(Stream::Stdout))
+                    ),
                     0,
                 ));
             }

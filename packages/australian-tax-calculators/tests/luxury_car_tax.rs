@@ -1,5 +1,6 @@
 // Copyright 2026 Ryan Duguid
-// SPDX-License-Identifier: LicenseRef-Duguid-Public-Attribution-1.0
+// SPDX-License-Identifier: AGPL-3.0-or-later
+// Additional terms under AGPL-3.0 section 7(b): see NOTICE.
 
 //! Luxury car tax (A New Tax System (Luxury Car Tax) Act 1999 ss 5-15, 7-15,
 //! 15-20 to 15-30, 18-5, 18-10 and 25-1) on the ATO's worked examples and

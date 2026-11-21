@@ -9,7 +9,7 @@ authors:
 abstract: "Local engines that apply Australian tax and payroll rules to figures you supply, including ATO small-business benchmarks, Payday Super 2026 and Division 7A loan review, with the aus-accounting-mcp Model Context Protocol server. Synthetic fixtures only."
 repository-code: "https://github.com/ryanduguid/australian-accounting"
 url: "https://duguid.com.au/tools/australian-tax-ai-agents/"
-license-url: "https://github.com/ryanduguid/australian-accounting/blob/main/LICENSE"
+license: AGPL-3.0-or-later
 keywords:
   - accounting
   - accounting-ai

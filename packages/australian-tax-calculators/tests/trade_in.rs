@@ -1,5 +1,6 @@
 // Copyright 2026 Ryan Duguid
-// SPDX-License-Identifier: LicenseRef-Duguid-Public-Attribution-1.0
+// SPDX-License-Identifier: AGPL-3.0-or-later
+// Additional terms under AGPL-3.0 section 7(b): see NOTICE.
 
 //! Trading in a depreciating asset for a replacement (ITAA 1997 Subdivisions
 //! 27-B and 40-D, ss 40-180 and 40-185, compilation 268; GST Act ss 9-75,

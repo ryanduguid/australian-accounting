@@ -1,5 +1,6 @@
 // Copyright 2026 Ryan Duguid
-// SPDX-License-Identifier: LicenseRef-Duguid-Public-Attribution-1.0
+// SPDX-License-Identifier: AGPL-3.0-or-later
+// Additional terms under AGPL-3.0 section 7(b): see NOTICE.
 
 use serde_json::{Value, json};
 use std::path::{Path, PathBuf};
@@ -390,8 +391,17 @@ fn original_cli_runs_with_their_files() {
                 "{}: {args:?}",
                 row["test"]
             );
+            let licence = "\n\
+    Copyright 2026 Ryan Duguid. No warranty.\n\
+    AGPL-3.0-or-later with additional terms (see NOTICE).\n\
+    Licence: https://github.com/ryanduguid/australian-accounting/blob/main/packages/the-wip-tally/LICENSE\n";
+            let licence = licence.replace('\n', if cfg!(windows) { "\r\n" } else { "\n" });
+            let stdout = run
+                .stdout
+                .strip_suffix(licence.as_bytes())
+                .unwrap_or(&run.stdout);
             assert!(
-                matches(&run.stdout, &native_text(&want["stdout"], &args)),
+                matches(stdout, &native_text(&want["stdout"], &args)),
                 "stdout {}: {args:?}",
                 row["test"]
             );

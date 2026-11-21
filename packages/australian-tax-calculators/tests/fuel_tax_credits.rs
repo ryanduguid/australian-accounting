@@ -1,5 +1,6 @@
 // Copyright 2026 Ryan Duguid
-// SPDX-License-Identifier: LicenseRef-Duguid-Public-Attribution-1.0
+// SPDX-License-Identifier: AGPL-3.0-or-later
+// Additional terms under AGPL-3.0 section 7(b): see NOTICE.
 
 //! Fuel tax credits (Fuel Tax Act 2006 ss 41-5, 41-20, 43-5, 43-10 and 47-5)
 //! at the ATO's published rates for fuel acquired from 1 July 2022, with the

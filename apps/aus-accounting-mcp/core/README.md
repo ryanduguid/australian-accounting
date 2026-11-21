@@ -76,4 +76,6 @@ through `call`, and [`tests/validation.rs`](tests/validation.rs) compares the
 argument refusals with the Python server's, recorded in
 `tests/fixtures/python-refusals.json`.
 
-Licensed under the [Ryan Duguid Public Attribution Licence 1.0](../../../LICENSE); see [NOTICE](../../../NOTICE).
+Ryan Duguid's code is licensed under [AGPL-3.0-or-later](../../../LICENSE) with [section 7(b) attribution terms](../../../NOTICE).
+
+Versions released before this change keep the licences they were released with, including any future grants under those terms.

@@ -1,5 +1,6 @@
 // Copyright 2026 Ryan Duguid
-// SPDX-License-Identifier: LicenseRef-Duguid-Public-Attribution-1.0
+// SPDX-License-Identifier: AGPL-3.0-or-later
+// Additional terms under AGPL-3.0 section 7(b): see NOTICE.
 
 //! The steps of `cgt_parcels`: the year's gains and losses from the parcels
 //! and the call's other figures, through ITAA 1997 s 102-5(1) steps 1 to 3 and

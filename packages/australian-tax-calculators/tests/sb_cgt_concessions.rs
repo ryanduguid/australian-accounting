@@ -1,5 +1,6 @@
 // Copyright 2026 Ryan Duguid
-// SPDX-License-Identifier: LicenseRef-Duguid-Public-Attribution-1.0
+// SPDX-License-Identifier: AGPL-3.0-or-later
+// Additional terms under AGPL-3.0 section 7(b): see NOTICE.
 
 //! The small business CGT concessions (ITAA 1997 Division 152 and s 328-110,
 //! compilation 264, read on 19 November 2026) against the Library's Neil Swan

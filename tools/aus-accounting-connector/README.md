@@ -97,4 +97,6 @@ Deploying needs a separate approval and Ryan's own Cloudflare sign-in;
 [`live-check.mjs`](live-check.mjs) checks a running endpoint with the
 conformance cases; its tests run it only against the local Worker.
 
-Licensed under the [Ryan Duguid Public Attribution Licence 1.0](../../LICENSE); see [NOTICE](../../NOTICE).
+Ryan Duguid's code is licensed under [AGPL-3.0-or-later](../../LICENSE) with [section 7(b) attribution terms](../../NOTICE).
+
+Versions released before this change keep the licences they were released with, including any future grants under those terms.

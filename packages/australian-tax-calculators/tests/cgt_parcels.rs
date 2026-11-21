@@ -1,5 +1,6 @@
 // Copyright 2026 Ryan Duguid
-// SPDX-License-Identifier: LicenseRef-Duguid-Public-Attribution-1.0
+// SPDX-License-Identifier: AGPL-3.0-or-later
+// Additional terms under AGPL-3.0 section 7(b): see NOTICE.
 
 //! Capital gains and losses from parcels of shares or units (ITAA 1997
 //! ss 102-5, 104-10, 110-25, 110-55, 115-25 and 115-100, compilation 264)

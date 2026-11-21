@@ -1,5 +1,6 @@
 // Copyright 2026 Ryan Duguid
-// SPDX-License-Identifier: LicenseRef-Duguid-Public-Attribution-1.0
+// SPDX-License-Identifier: AGPL-3.0-or-later
+// Additional terms under AGPL-3.0 section 7(b): see NOTICE.
 
 //! `cli.py`: the `lodgeit-adapter` command line. Nothing here reaches the
 //! network without `--enable-network`.
@@ -229,11 +230,17 @@ pub fn run_with(args: &[String], stdout: &mut dyn Write, stderr: &mut dyn Write)
     run_io(args, stdout, stderr, &mut io)
 }
 
+const LICENCE_NOTICE: &str = "\n\
+    Copyright 2026 Ryan Duguid. No warranty.\n\
+    AGPL-3.0-or-later with additional terms (see NOTICE).\n\
+    Licence: https://github.com/ryanduguid/australian-accounting/blob/main/apps/lodgeit-calculator-adapter/LICENSE\n";
+
 /// `run_with` with the environment, dialler and sleep given.
 pub fn run_io(args: &[String], stdout: &mut dyn Write, stderr: &mut dyn Write, io: &mut Io) -> i32 {
     let ns = match build_parser().parse(args) {
         Ok(ns) => ns,
         Err(Exit::Help(help)) => {
+            let help = format!("{help}{LICENCE_NOTICE}");
             return match stdout
                 .write_all(&newlines(help.as_bytes()))
                 .and_then(|()| stdout.flush())
@@ -754,6 +761,19 @@ mod tests {
         );
         assert_eq!(verified, 0, "{}", String::from_utf8_lossy(&out));
         std::fs::remove_dir_all(&dir).unwrap();
+    }
+
+    #[test]
+    fn help_displays_the_licence_notice() {
+        let mut stdout = Vec::new();
+        assert_eq!(
+            run_with(&["--help".into()], &mut stdout, &mut Vec::new()),
+            0
+        );
+        assert!(
+            String::from_utf8_lossy(&stdout)
+                .contains("AGPL-3.0-or-later with additional terms (see NOTICE).")
+        );
     }
 
     /// A stdout that refuses every write, as `/dev/full` does.

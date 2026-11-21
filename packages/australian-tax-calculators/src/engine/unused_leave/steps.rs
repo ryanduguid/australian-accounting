@@ -1,5 +1,6 @@
 // Copyright 2026 Ryan Duguid
-// SPDX-License-Identifier: LicenseRef-Duguid-Public-Attribution-1.0
+// SPDX-License-Identifier: AGPL-3.0-or-later
+// Additional terms under AGPL-3.0 section 7(b): see NOTICE.
 
 //! The unused leave worksheet's steps: each part's assessable share and offset
 //! (ITAA 1997 ss 83-10 to 83-90), the Schedule 7 withholding and the income

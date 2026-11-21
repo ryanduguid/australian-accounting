@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 # Copyright 2026 Ryan Duguid
-# SPDX-License-Identifier: LicenseRef-Duguid-Public-Attribution-1.0
+# SPDX-License-Identifier: AGPL-3.0-or-later
+# Additional terms under AGPL-3.0 section 7(b): see NOTICE.
 
 # Apply docs/DISCOVERY.md to GitHub About. Requires gh, authenticated to
 # ryanduguid/australian-accounting with repo metadata write access.

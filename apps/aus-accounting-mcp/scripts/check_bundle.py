@@ -1,5 +1,6 @@
 # Copyright 2026 Ryan Duguid
-# SPDX-License-Identifier: LicenseRef-Duguid-Public-Attribution-1.0
+# SPDX-License-Identifier: AGPL-3.0-or-later
+# Additional terms under AGPL-3.0 section 7(b): see NOTICE.
 
 """Check a packed MCP Bundle against its source, then start it as a host would.
 
@@ -112,20 +113,38 @@ def _check_calculators(stdin: IO[str], replies: queue.Queue[str]) -> None:
         raise SystemExit(f"FAIL bundled GST worksheet: {result}")
 
 
+def _unpack_matching_files(bundle: Path, source: Path, folder: Path) -> dict[str, bytes]:
+    with zipfile.ZipFile(bundle) as archive:
+        archive.extractall(folder)
+    packed = _files(folder)
+    expected = {path: data for path, data in _files(source).items() if path != ".mcpbignore"}
+    if packed != expected:
+        differ = sorted(
+            path for path in packed.keys() | expected.keys()
+            if packed.get(path) != expected.get(path)
+        )
+        raise SystemExit(f"FAIL {bundle.name} differs from {source} in {differ}")
+    return packed
+
+
+def _prepare_calculator_check(
+    bundle: Path, packed: dict[str, bytes], environment: dict[str, str]
+) -> None:
+    for legal_path in (
+        "LICENSE", "NOTICE", "bin/LICENSE.linux", "bin/NOTICE.linux",
+        "bin/LICENSE.windows", "bin/NOTICE.windows",
+    ):
+        if not packed.get(legal_path):
+            raise SystemExit(f"FAIL licence material missing from {bundle.name}: {legal_path}")
+    environment.pop("AUS_TAX_CALCULATORS_BIN", None)
+    environment.pop("AUS_TAX_CALCULATORS_SHA256", None)
+    if shutil.which("australian-tax-calculators", path=environment.get("PATH")):
+        raise SystemExit("FAIL remove external calculators from PATH for the bundle check")
+
+
 def check(bundle: Path, source: Path, *, check_calculators: bool = False) -> list[str]:
     with tempfile.TemporaryDirectory() as name:
-        folder = Path(name)
-        with zipfile.ZipFile(bundle) as archive:
-            archive.extractall(folder)
-        packed = _files(folder)
-        expected = {path: data for path, data in _files(source).items() if path != ".mcpbignore"}
-        if packed != expected:
-            differ = sorted(
-                path for path in packed.keys() | expected.keys()
-                if packed.get(path) != expected.get(path)
-            )
-            raise SystemExit(f"FAIL {bundle.name} differs from {source} in {differ}")
-
+        packed = _unpack_matching_files(bundle, source, Path(name))
         manifest = json.loads(packed["manifest.json"])
         defaults = {
             key: str(option.get("default", ""))
@@ -143,10 +162,7 @@ def check(bundle: Path, source: Path, *, check_calculators: bool = False) -> lis
             **{key: resolve(value) for key, value in config.get("env", {}).items()},
         }
         if check_calculators:
-            environment.pop("AUS_TAX_CALCULATORS_BIN", None)
-            environment.pop("AUS_TAX_CALCULATORS_SHA256", None)
-            if shutil.which("australian-tax-calculators", path=environment.get("PATH")):
-                raise SystemExit("FAIL remove external calculators from PATH for the bundle check")
+            _prepare_calculator_check(bundle, packed, environment)
         started, listed = _exchange(command, environment, check_calculators)
 
     version = started["serverInfo"]["version"]
@@ -160,7 +176,7 @@ def check(bundle: Path, source: Path, *, check_calculators: bool = False) -> lis
             f"declared only {sorted(set(declared) - set(registered))}"
         )
     report = [
-        f"{bundle.name} holds exactly the {len(expected)} files of {source}",
+        f"{bundle.name} holds exactly the {len(packed)} files of {source}",
         f"it started with {' '.join(command[:2])} ... and reports version {version}",
         f"tools/list returned the manifest's {len(declared)} tools",
     ]

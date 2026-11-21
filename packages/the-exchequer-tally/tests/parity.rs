@@ -1,5 +1,6 @@
 // Copyright 2026 Ryan Duguid
-// SPDX-License-Identifier: LicenseRef-Duguid-Public-Attribution-1.0
+// SPDX-License-Identifier: AGPL-3.0-or-later
+// Additional terms under AGPL-3.0 section 7(b): see NOTICE.
 
 use serde_json::Value;
 use std::io::Write;
@@ -148,8 +149,15 @@ fn original_cli_exit_stdout_stderr_bytes() {
             row["expected"]["code"].as_i64().unwrap() as i32,
             "{args:?}"
         );
+        let licence = "\n\
+    Copyright 2026 Ryan Duguid. No warranty.\n\
+    AGPL-3.0-or-later with additional terms (see NOTICE).\n\
+    Licence: https://github.com/ryanduguid/australian-accounting/blob/main/packages/the-exchequer-tally/LICENSE\n";
+        let licence = licence.replace('\n', if cfg!(windows) { "\r\n" } else { "\n" });
         assert_eq!(
-            run.stdout,
+            run.stdout
+                .strip_suffix(licence.as_bytes())
+                .unwrap_or(&run.stdout),
             native_bytes(row["expected"]["stdout"].as_str().unwrap()),
             "stdout: {args:?}"
         );

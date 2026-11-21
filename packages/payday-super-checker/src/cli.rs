@@ -500,6 +500,11 @@ fn usage_text(parser: &Parser, t: &Theme) -> String {
     usage(&parser.prog, &parts, &positional, t)
 }
 
+const LICENCE_NOTICE: &str = "\n\
+    Copyright 2026 Ryan Duguid. No warranty.\n\
+    AGPL-3.0-or-later with additional terms (see NOTICE).\n\
+    Licence: https://github.com/ryanduguid/australian-accounting/blob/main/packages/payday-super-checker/LICENSE\n";
+
 fn help_text(parser: &Parser, t: &Theme) -> String {
     let positional: Vec<Row> = parser
         .positional
@@ -551,6 +556,9 @@ fn help_text(parser: &Parser, t: &Theme) -> String {
         heading("options", t),
         action_rows(&options, &all)
     ));
+    if parser.prog == PROG {
+        out.push_str(LICENCE_NOTICE);
+    }
     out
 }
 

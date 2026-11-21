@@ -1,5 +1,6 @@
 // Copyright 2026 Ryan Duguid
-// SPDX-License-Identifier: LicenseRef-Duguid-Public-Attribution-1.0
+// SPDX-License-Identifier: AGPL-3.0-or-later
+// Additional terms under AGPL-3.0 section 7(b): see NOTICE.
 
 //! `fbt_minor_benefit_check`: a screen of one benefit against the minor
 //! benefits exemption, FBTAA s 58P. The exclusions of s 58P(1)(c) and (d) and

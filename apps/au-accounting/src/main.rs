@@ -1,5 +1,6 @@
 // Copyright 2026 Ryan Duguid
-// SPDX-License-Identifier: LicenseRef-Duguid-Public-Attribution-1.0
+// SPDX-License-Identifier: AGPL-3.0-or-later
+// Additional terms under AGPL-3.0 section 7(b): see NOTICE.
 
 //! One command for the Rust engines in this repository. `au-accounting <engine> ...`
 //! hands the remaining arguments to that engine's library exactly as the engine's
@@ -187,6 +188,9 @@ fn tax(args: &[OsString]) -> Outcome {
         && command == "contract-register"
     {
         return api::contract_register(rest, &mut std::io::stdin());
+    }
+    if args == ["--api-help"] {
+        return (0, api::cli_help(), String::new());
     }
     let commands = api::commands();
     // The engine's CLI beyond its JSON commands: `--version`, else its own usage error.
@@ -517,6 +521,11 @@ fn plain_number(n: &serde_json::Number) -> Result<serde_json::Number, String> {
         .ok_or_else(|| "number out of range".into())
 }
 
+const LICENCE_NOTICE: &str = "\n\
+    Copyright 2026 Ryan Duguid. No warranty.\n\
+    AGPL-3.0-or-later with additional terms (see NOTICE).\n\
+    Licence: https://github.com/ryanduguid/australian-accounting/blob/main/apps/au-accounting/LICENSE\n";
+
 fn help() -> String {
     let mut text = String::from(
         "usage: au-accounting ENGINE [ARGS...]\n\n\
@@ -542,7 +551,9 @@ fn main() {
         .and_then(|name| ENGINES.iter().find(|e| name == e.name || name == e.command));
     let Some(engine) = selected else {
         let (code, out, err) = match first.as_ref().map(|f| f.to_string_lossy()) {
-            Some(f) if f == "-h" || f == "--help" => (0, help(), String::new()),
+            Some(f) if f == "-h" || f == "--help" => {
+                (0, format!("{}{LICENCE_NOTICE}", help()), String::new())
+            }
             Some(f) if f == "-V" || f == "--version" => (
                 0,
                 format!("au-accounting {}\n", env!("CARGO_PKG_VERSION")),

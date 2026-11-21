@@ -4,7 +4,7 @@
 
 [![tests](https://img.shields.io/github/actions/workflow/status/ryanduguid/australian-accounting/ci.yml?branch=main&label=tests&labelColor=000000&style=flat)](https://github.com/ryanduguid/australian-accounting/actions/workflows/ci.yml)<br>
 [![PyPI](https://img.shields.io/pypi/v/aus-accounting-mcp.svg?color=66023C&labelColor=000000&style=flat)](https://pypi.org/project/aus-accounting-mcp/)
-[![License: Ryan Duguid Public Attribution Licence 1.0](https://img.shields.io/badge/License-Public%20Attribution%201.0-66023C?labelColor=000000&style=flat&color=66023C)](https://github.com/ryanduguid/australian-accounting/blob/main/apps/aus-accounting-mcp/LICENSE)
+[![License: AGPL-3.0-or-later](https://img.shields.io/badge/License-AGPL--3.0--or--later-66023C?labelColor=000000&style=flat&color=66023C)](https://github.com/ryanduguid/australian-accounting/blob/main/apps/aus-accounting-mcp/LICENSE)
 [![Python 3.14+](https://img.shields.io/badge/python-3.14%2B-66023C?logo=python&logoColor=E5E4E2&labelColor=000000&style=flat&color=66023C)](https://www.python.org/downloads/)
 
 </div>
@@ -254,7 +254,9 @@ it leaves `UNKNOWN` or refuses, pin this server's own results, each with its rea
 
 ## Licence and releases
 
-Licensed under the [Ryan Duguid Public Attribution Licence 1.0](https://github.com/ryanduguid/australian-accounting/blob/main/apps/aus-accounting-mcp/LICENSE), the FSL-1.1-ALv2 text with a public attribution condition. You may use, modify and redistribute it for any purpose except a Competing Use as defined in LICENSE (making it available to others in a competing commercial product or service), and each version becomes available under Apache-2.0 2 years after it is made available. For versions made available from 4 November 2026, LICENSE's Public Attribution Condition applies to the FSL grant: anyone who makes a copy, port or derivative available outside their organisation must credit Ryan Duguid publicly, with a link to this repository. Internal use is exempt, and the condition does not apply to each version's Apache-2.0 licence. See [LICENSE](https://github.com/ryanduguid/australian-accounting/blob/main/apps/aus-accounting-mcp/LICENSE) and [NOTICE](https://github.com/ryanduguid/australian-accounting/blob/main/apps/aus-accounting-mcp/NOTICE). Created by Ryan Duguid. If you redistribute this work or build on it, keep the copyright notices in [NOTICE](https://github.com/ryanduguid/australian-accounting/blob/main/apps/aus-accounting-mcp/NOTICE).
+Ryan Duguid's code is licensed under [AGPL-3.0-or-later](https://github.com/ryanduguid/australian-accounting/blob/main/apps/aus-accounting-mcp/LICENSE) with [section 7(b) attribution terms](https://github.com/ryanduguid/australian-accounting/blob/main/apps/aus-accounting-mcp/NOTICE). Created by Ryan Duguid. If you redistribute this work or build on it, keep the copyright notices in [NOTICE](https://github.com/ryanduguid/australian-accounting/blob/main/apps/aus-accounting-mcp/NOTICE).
+
+Versions released before this change keep the licences they were released with, including any future grants under those terms.
 
 Release `aus-accounting-mcp==0.5.0` provides 14 worksheets through
 `australian-tax-calculators==0.2.0`, including Schedule 8 study-loan withholding,
