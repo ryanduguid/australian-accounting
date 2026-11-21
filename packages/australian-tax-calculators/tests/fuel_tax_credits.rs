@@ -297,6 +297,69 @@ fn method_2_takes_the_rate_on_the_last_day_across_indexation() {
     assert_eq!(total(&r), ["206.00", "206.00"]);
 }
 
+#[test]
+fn period_end_request_without_a_rate_change_uses_acquisition_dates() {
+    for (fuel, use_, start, acquired, end, expected) in [
+        (
+            "diesel",
+            "other_business",
+            "2025-03-01",
+            "2025-03-03",
+            "2025-03-31",
+            "50.80",
+        ),
+        (
+            "b100",
+            "other_business",
+            "2025-01-01",
+            "2025-01-06",
+            "2025-03-31",
+            "15.20",
+        ),
+        (
+            "e85",
+            "heavy_vehicle_public_road",
+            "2025-01-01",
+            "2025-01-06",
+            "2025-03-31",
+            "0.00",
+        ),
+    ] {
+        let r = run(&json!({
+            "lines": [line(fuel, use_, acquired, "100")],
+            "small_claimant": true,
+            "rate_at_period_end": {"start": start, "end": end},
+            "year": "2024-25",
+            "scope_confirmed": true,
+        }));
+        assert_eq!(r["amounts"]["fuel_tax_credits"], expected, "{fuel}");
+        assert_eq!(r["lines"][0]["rate_day"], acquired, "{fuel}");
+        let warnings = r["warnings"].to_string();
+        assert!(warnings.contains("did not change"), "{warnings}");
+        assert!(warnings.contains("acquisition dates"), "{warnings}");
+        assert!(!warnings.contains("Method 2"), "{warnings}");
+    }
+}
+
+#[test]
+fn indexed_basic_vehicle_rate_selects_the_period_end_for_every_line() {
+    let r = run(&json!({
+        "lines": [
+            line("b100", "other_business", "2025-01-03", "100"),
+            {"method": "basic_heavy_vehicle", "fuel": "diesel", "acquired": "2025-01-06",
+             "litres": "100", "public_road_km": "100", "litres_per_km": "0.3"},
+        ],
+        "small_claimant": true,
+        "rate_at_period_end": {"start": "2025-01-01", "end": "2025-03-31"},
+        "year": "2024-25",
+        "scope_confirmed": true,
+    }));
+    assert_eq!(total(&r), ["56.85", "56.00"]);
+    assert_eq!(r["lines"][0]["rate_day"], "2025-03-31");
+    assert_eq!(r["lines"][1]["rate_day"], "2025-03-31");
+    assert!(r["warnings"].to_string().contains("Method 2"));
+}
+
 /// PCG 2016/2 Method 1: $2,459 of diesel at an average 245.9 c/L is 1,000 L
 /// ($537 off road from 3 August 2026); $100 is 40.6669 L shown, and its
 /// exact quotient x 53.7 c/L is $21.84.

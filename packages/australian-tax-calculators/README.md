@@ -1384,9 +1384,11 @@ A small claimant (`small_claimant`: credits of $10,000 or less in the previous
   guideline names (para 9). The site reserves all rights, so the command holds
   no prices;
 - PCG 2016/2 Method 2: `rate_at_period_end` (`start` and `end` of the tax
-  period) takes every line at the rate on the period's last day, refused
-  where the rate changes inside the period for any reason but indexation
-  alone (as on 29 September 2022, 1 April 2026 and 3 August 2026).
+  period) takes every line at the rate on the period's last day when
+  indexation changes an applicable rate. When all applicable rates stay
+  flat, the worksheet uses each acquisition date. It refuses period-end
+  requests across changes for reasons other than indexation alone (as on
+  29 September 2022, 1 April 2026 and 3 August 2026).
 
 Methods 1 and 2 are for liquid fuels only (PCG 2016/2 para 4(b)). With
 `return_date`, the day the return is given, `time_limit_lines` lists the

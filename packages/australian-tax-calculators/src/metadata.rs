@@ -1759,7 +1759,7 @@ pub fn optional_inputs(kind: &str) -> Vec<(&'static str, &'static str)> {
             ),
             (
                 "rate_at_period_end",
-                "object with start and end (YYYY-MM-DD), a tax period inside the income year that holds every line's acquisition: PCG 2016/2 Method 2 then takes every line at the rate in force on end (para 11); refused across a rate change other than indexation alone, when end is after the last day a rate is held for, and for lpg or lng_cng lines",
+                "object with start and end (YYYY-MM-DD), a tax period inside the income year that holds every line's acquisition: PCG 2016/2 Method 2 takes every line at the rate in force on end if indexation changes an applicable rate (para 11). If the applicable rates stay flat, the worksheet uses actual acquisition dates. Refused across a rate change other than indexation alone, when end is after the last day a rate is held for, and for lpg or lng_cng lines",
             ),
             (
                 "return_date",
