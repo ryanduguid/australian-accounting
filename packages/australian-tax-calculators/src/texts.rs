@@ -1274,7 +1274,7 @@ pub const EXTRA_WARNINGS: &[(&str, &[&str])] = &[
     (
         "ppsr_timing",
         &[
-            "Business days turn on the public holidays listed: PPSA s 10 excludes a public holiday for the whole of any State, the ACT or the NT, and Corporations Act s 9 one in the place concerned. A holiday missing from the list moves the deadline later than the law's; one in part of a State only is not excluded under PPSA s 10.",
+            "For PPSA s 10, list public holidays for the whole of any State, the ACT or the NT and dates of Registrar suspensions under s 147(5). For Corporations Act s 9, list public and bank holidays in the place concerned. Omitting an excluded date can make the calculated deadline too early. Listing a date that should count can make it too late.",
             "A court may extend the PPSA s 62(3) period (s 293) or fix a later s 588FL time (s 588FM); the times given are those without an order, unless court_ordered_time is given.",
         ],
     ),
