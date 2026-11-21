@@ -2548,25 +2548,28 @@ expense in an income year from 2020-21 to 2026-27, chosen by `method`:
   plus decline in value, repairs and cleaning, which the rate does not cover)
   and the actual cost; for 2020-21 and 2021-22 the 52c fixed rate (only with
   `dedicated_home_office` true, and with phone, internet, stationery, other
-  assets and repairs added) and the 80c shortcut (PCG 2020/3) instead. Each
-  method's total comes with its return amount, cents disregarded, and the
-  higher is named;
+  assets and repairs added) and the 80c shortcut (PCG 2020/3) instead. The
+  hourly rates need `running_expenses_incurred` true (PCG 2023/1 paras 18(b)
+  and 49 to 55); without it only the actual cost remains. Each method's total
+  comes with its return amount, cents disregarded, and the higher is named;
 - `car_cents_per_kilometre`: the first 5,000 `business_kilometres` (ITAA 1997
   s 28-25(2)) at the year's rate: 72c for 2020-21 and 2021-22, 78c for
   2022-23, 85c for 2023-24, 88c for 2024-25 and 2025-26 and 91c for 2026-27;
 - `car_log_book`: `car_expenses` x `business_kilometres` / `total_kilometres`
   (s 28-90), with a log book of `log_book_weeks`, at least 12 (s 28-120(1)),
   kept for `log_book_year`, the year claimed or one of the 4 before it
-  (s 28-115(2));
+  (s 28-115(2)), and still representative (`log_book_representative`);
 - `self_education`: `category_a` to `category_d`, nil unless the taxpayer was
   employed when the expenses were incurred and they maintain or improve the
   skills of the current employment or are likely to increase its income
   (s 8-1, TR 2024/3); before 2022-23, for a `prescribed_course`, ITAA 1936
   s 82A takes $250 off category A, less categories C, D and E (`category_e`,
-  expenses incurred but not deductible).
+  expenses incurred but not deductible). A category D above 0 needs
+  `log_book_car_in_category_a` false, as a car's expenses take one method.
 
 Both car methods need `owned_or_leased` true (s 28-12(1)). It refuses
-reimbursed expenses, an allowance for them, an expired or short log book, and
+reimbursed expenses, an allowance for them, an expired, short or
+unrepresentative log book, and
 2027-28, for which no cents per kilometre rate has been determined. Occupancy
 expenses have no input. `derive` shows each step with its provision. The
 tests hold it to the ATO's Keisha, Yang, Wanda, Johan, Lana and Maureen

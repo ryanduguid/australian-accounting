@@ -40,13 +40,14 @@ fn amount<'a>(result: &'a Value, id: &str) -> &'a str {
         .unwrap_or_else(|| panic!("no {id} in {}", result["amounts"]))
 }
 
-/// A home office claim with `hours` and no other expenses.
+/// A home office claim with `hours` and no other expenses entered, with
+/// additional running expenses incurred.
 fn home(year: &str, hours: &str) -> Value {
     let mut input = json!({
         "method": "home_office", "reimbursed": false, "allowance_received": false,
         "hours": hours, "energy": "0.00", "phone": "0.00", "internet": "0.00",
         "stationery": "0.00", "cleaning": "0.00", "furniture_decline": "0.00",
-        "asset_decline": "0.00", "repairs": "0.00",
+        "asset_decline": "0.00", "repairs": "0.00", "running_expenses_incurred": true,
         "year": year, "scope_confirmed": true,
     });
     if year < "2022-23" {
@@ -127,7 +128,7 @@ fn each_year_has_its_hourly_rates() {
         let result = run(&home(year, "100"));
         assert_eq!(result["period"], year);
         assert_eq!(result["rates"]["fixed_rate"], fixed, "{year}");
-        let expected = format!("{:.2}", fixed.parse::<f64>().unwrap() * 100.0);
+        let expected = format!("{}.00", fixed.replace("0.", ""));
         assert_eq!(amount(&result, "fixed_rate_amount"), expected, "{year}");
         match shortcut {
             Some(rate) => {
@@ -184,6 +185,35 @@ fn before_2022_23_the_52c_rate_needs_a_dedicated_home_office() {
 }
 
 #[test]
+fn no_hourly_rate_without_additional_running_expenses() {
+    // PCG 2023/1 example 6, Sergei: he pays none of the household's bills, so
+    // only the actual cost (here an owned laptop's decline in value) remains.
+    for year in YEARS {
+        let input = with(
+            home(year, "100"),
+            json!({"running_expenses_incurred": false, "asset_decline": "50.00"}),
+        );
+        let result = run(&input);
+        assert_eq!(
+            result["methods_available"],
+            json!(["actual_cost"]),
+            "{year}"
+        );
+        assert!(result["amounts"].get("fixed_rate_amount").is_none());
+        assert!(result["amounts"].get("shortcut_method").is_none());
+        assert_eq!(amount(&result, "actual_cost_return_amount"), "50.00");
+        assert_eq!(result["higher_method"], "actual_cost");
+        let reason = result["fixed_rate_unavailable"].as_str().unwrap();
+        assert!(reason.contains("No additional running expenses"), "{year}");
+    }
+    let asked = with(
+        home("2025-26", "100"),
+        json!({"running_expenses_incurred": "remove"}),
+    );
+    assert_eq!(code(&asked), "input.missing_field");
+}
+
+#[test]
 fn hours_cannot_exceed_the_year() {
     // 2023-24 includes 29 February 2024: 8,784 hours.
     assert!(api::evaluate("work-expenses", &home("2023-24", "8784")).is_ok());
@@ -221,7 +251,7 @@ fn each_year_has_its_cents_per_kilometre_rate() {
     for (year, rate) in YEARS.iter().zip(rates) {
         let result = run(&cents(year, "1000"));
         assert_eq!(result["rates"]["rate_per_kilometre"], rate, "{year}");
-        let expected = format!("{:.2}", rate.parse::<f64>().unwrap() * 1000.0);
+        let expected = format!("{}0.00", rate.replace("0.", ""));
         assert_eq!(amount(&result, "deduction"), expected, "{year}");
     }
 }
@@ -244,6 +274,7 @@ fn log_book(changes: Value) -> Value {
             "method": "car_log_book", "reimbursed": false, "allowance_received": false,
             "owned_or_leased": true, "business_kilometres": "69", "total_kilometres": "100",
             "car_expenses": "17275.33", "log_book_year": "2025-26", "log_book_weeks": 12,
+            "log_book_representative": true,
             "year": "2025-26", "scope_confirmed": true,
         }),
         changes,
@@ -281,6 +312,17 @@ fn a_log_book_serves_5_years_and_needs_12_weeks() {
     assert_eq!(
         code(&log_book(json!({"log_book_weeks": 11}))),
         "work_expenses.log_book_too_short"
+    );
+    // A change of job or home leaves an earlier log book unrepresentative.
+    assert_eq!(
+        code(&log_book(
+            json!({"log_book_year": "2021-22", "log_book_representative": false})
+        )),
+        "work_expenses.log_book_unrepresentative"
+    );
+    assert_eq!(
+        code(&log_book(json!({"log_book_representative": "remove"}))),
+        "input.missing_field"
     );
     for bad in [json!("2025-27"), json!("2025"), json!(2025)] {
         assert_eq!(
@@ -330,7 +372,7 @@ fn the_250_reduction_examples_match_before_2022_23() {
     let con = run(&education(
         "2020-21",
         json!({"category_a": "350.00", "category_b": "200.00", "category_c": "100.00",
-            "category_d": "100.00", "category_e": "500.00"}),
+            "category_d": "100.00", "category_e": "500.00", "log_book_car_in_category_a": false}),
     ));
     assert_eq!(amount(&con, "reduction"), "0.00");
     assert_eq!(amount(&con, "deduction"), "750.00");
@@ -369,6 +411,26 @@ fn the_reduction_ends_for_2022_23_and_never_reaches_a_seminar() {
     assert_eq!(amount(&run(&seminar), "deduction"), "290.00");
     let with_e = with(seminar, json!({"category_e": "10.00"}));
     assert_eq!(code(&with_e), "input.field_unknown");
+}
+
+#[test]
+fn category_d_never_sits_beside_log_book_car_expenses() {
+    // The ATO: a car's expenses take one method, so cents per kilometre in
+    // category D cannot join log book car expenses in category A.
+    let d = json!({"category_a": "500.00", "category_d": "100.00"});
+    for year in ["2022-23", "2025-26"] {
+        assert_eq!(code(&education(year, d.clone())), "input.missing_field");
+        let tuition = with(
+            education(year, d.clone()),
+            json!({"log_book_car_in_category_a": false}),
+        );
+        assert_eq!(amount(&run(&tuition), "deduction"), "600.00", "{year}");
+        let both = with(tuition, json!({"log_book_car_in_category_a": true}));
+        assert_eq!(code(&both), "work_expenses.fact_conflict", "{year}");
+    }
+    // With no category D the question does not arise, but may be answered.
+    let no_d = education("2025-26", json!({"log_book_car_in_category_a": true}));
+    assert!(api::evaluate("work-expenses", &no_d).is_ok());
 }
 
 #[test]

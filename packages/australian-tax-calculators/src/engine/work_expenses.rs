@@ -39,7 +39,7 @@ pub const METHODS: [&str; 4] = [
 ];
 
 /// Each input only some methods or years take, and whether it is a decimal.
-pub const WORK_EXPENSES_OPTIONAL: [(&str, bool); 24] = [
+pub const WORK_EXPENSES_OPTIONAL: [(&str, bool); 27] = [
     ("hours", true),
     ("energy", true),
     ("phone", true),
@@ -49,6 +49,7 @@ pub const WORK_EXPENSES_OPTIONAL: [(&str, bool); 24] = [
     ("furniture_decline", true),
     ("asset_decline", true),
     ("repairs", true),
+    ("running_expenses_incurred", false),
     ("dedicated_home_office", false),
     ("owned_or_leased", false),
     ("business_kilometres", true),
@@ -56,9 +57,11 @@ pub const WORK_EXPENSES_OPTIONAL: [(&str, bool); 24] = [
     ("car_expenses", true),
     ("log_book_year", false),
     ("log_book_weeks", false),
+    ("log_book_representative", false),
     ("connection", false),
     ("employed_when_incurred", false),
     ("prescribed_course", false),
+    ("log_book_car_in_category_a", false),
     ("category_a", true),
     ("category_b", true),
     ("category_c", true),

@@ -3200,7 +3200,23 @@ Choices the sources leave to the reader:
   takes 70c; the ATO's 'Fixed rate method' page lists only 2024-25 and
   2025-26.
 - The 52c rate's coverage (energy, cleaning and home office furniture) and
-  its dedicated home office condition are the ATO's 52 cent page's.
+  its dedicated home office condition are the ATO's 52 cent page's. That page
+  covers energy for heating, cooling and lighting and lists no energy claimed
+  beside the rate, so the whole `energy` input, devices included, is taken as
+  covered; at worst this understates a 52c claim.
+- Every hourly rate needs an additional running expense incurred as a result
+  of working from home (PCG 2023/1 paras 18(b) and 49 to 55, and the ATO's
+  52 cent and shortcut pages). Amounts of nil do not show that, as the fixed
+  rate needs no amounts, so `running_expenses_incurred` asks it.
+- A log book must stay representative: the ATO's 'Logbook method' needs a new
+  one after a change such as a new job or home, so
+  `log_book_representative` false is refused.
+- Category D (cents per kilometre) cannot sit beside log book car expenses in
+  category A ('Self-education reduction in expenses'), so a category D above
+  0 needs `log_book_car_in_category_a` false.
+- TR 98/9 para 129 excludes short-term refresher and staff development
+  courses, seminars, conferences and workshops from s 82A, not every course
+  of short duration; `prescribed_course` is the operator's answer.
 - The business use percentage is not rounded: the deduction uses the exact
   share, and the percentage shown is rounded to 2 places.
 - A tie between methods names the fixed rate, which needs fewer records.
@@ -3219,13 +3235,16 @@ Choices the sources leave to the reader:
 | Piruntha, 560 hours, desk and chair $439.20, laptop $696.52 | PCG 2023/1 example 8 | $392 + $1,135.72 = $1,527.72, $1,527 claimed |
 | 100 hours in each year | Rates above | 52c and 80c to 2021-22, 67c to 2023-24, 70c from 2024-25 |
 | 2021-22 with and without a dedicated home office | ATO 52 cent and shortcut pages | 52c plus phone, internet, stationery and other assets; without one, the shortcut and actual cost only |
+| Sergei, no household bills, a $50 laptop decline in value, each year | PCG 2023/1 example 6 | No hourly rate; actual cost $50 |
 | Johan, 2,514 km in 2025-26 | ATO 'Cents per kilometre method' | $2,212.32, $2,212 claimed |
 | 1,000 km in each year; 5,000 and 5,085 km | Rates above; s 28-25(2) example | Each year's rate; 5,000 km counted |
 | Lana, $17,275.33 decline in value at 69% | ATO 'Logbook method' | $11,919.98 |
 | Log books kept 4 and 5 years before, after the year, for 11 and 12 weeks | ss 28-115(2) and 28-120(1) | Accepted, refused, refused, refused, accepted |
+| A 2021-22 log book no longer representative in 2025-26 | ATO 'Logbook method' | Refused |
 | Maureen, $290 of category A in 2021-22 | ATO 'Self-education reduction in expenses' | $40 |
 | Con, categories A $350, B $200, C $100, D $100, E $500; then A $500, B $400, E $2,200 | TR 98/9 paras 145 to 155 | $750; $900 |
 | $290 of category A in 2022-23; a seminar in 2021-22 | Act No. 84, 2022 Sch 3; TR 98/9 para 129 | $290 each, no reduction |
+| Category A $500 and D $100, with and without log book car expenses in A | ATO 'Self-education reduction in expenses' | $600; refused |
 | Wendy (new employment), Bert (general only), Callum's second semester (not employed) | ATO 'Self-education expenses' | Nil in every year |
 
 ## Personal tax estimate

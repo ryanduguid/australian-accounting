@@ -8,11 +8,12 @@
 use serde_json::{Value, json};
 
 use super::{
-    Arg, COMMAND, Decimal, KIND, Result, Step, d, derived_result, flag, int, invalid, money, named,
-    py_max, rate, step, sum, with_return,
+    Arg, COMMAND, Decimal, KIND, Result, Step, conflict, d, derived_result, flag, int, invalid,
+    money, named, py_max, rate, refuse, step, sum, with_return,
 };
 
 const SELF_EDUCATION_REDUCTION: &str = "250";
+const LOG_BOOK_CAR: &str = "log_book_car_in_category_a";
 
 const CONNECTIONS: [&str; 4] = [
     "maintains_or_improves_skills",
@@ -38,6 +39,9 @@ fn names(given: &[(String, Arg)], early: bool) -> Vec<&'static str> {
         "category_c",
         "category_d",
     ];
+    if given.iter().any(|(n, _)| n == LOG_BOOK_CAR) {
+        names.push(LOG_BOOK_CAR);
+    }
     if early {
         names.push("prescribed_course");
         if given
@@ -65,6 +69,25 @@ fn connected(connection: &Arg, employed: &Arg) -> Result<bool> {
             connection,
             "maintains_or_improves_skills" | "increases_income"
         ))
+}
+
+/// Category D's cents per kilometre car expenses cannot sit beside log book
+/// car expenses in category A (the ATO's 'Self-education reduction in
+/// expenses'), so a category D above 0 needs to know which is claimed.
+fn one_car_method(given: &[(String, Arg)], category_d: &Decimal, when: &str) -> Result<()> {
+    if category_d.is_zero() {
+        return Ok(());
+    }
+    match given.iter().find(|(n, _)| n == LOG_BOOK_CAR) {
+        None => refuse(
+            "input.missing_field",
+            format!("{LOG_BOOK_CAR} is required when category_d is above 0{when}"),
+        ),
+        Some((_, value)) if flag(value, LOG_BOOK_CAR)? => conflict(
+            "category_d, cents per kilometre car expenses, cannot be claimed beside log book car expenses in category_a: a car's expenses take one method (ATO 'Self-education reduction in expenses').",
+        ),
+        Some(_) => Ok(()),
+    }
 }
 
 /// The s 82A steps: the offset, the reduction, category A after it and the
@@ -122,6 +145,7 @@ pub(super) fn self_education(
         amounts.push(money(get(name))?);
     }
     let [a, b, c, dd] = <[Decimal; 4]>::try_from(amounts).expect("4 categories");
+    one_car_method(given, &dd, when)?;
     let prescribed = early && flag(get("prescribed_course"), "prescribed_course")?;
     let e = if prescribed {
         Some(money(get("category_e"))?)

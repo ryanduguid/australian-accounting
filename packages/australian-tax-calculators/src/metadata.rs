@@ -1789,7 +1789,7 @@ pub fn optional_inputs(kind: &str) -> Vec<(&'static str, &'static str)> {
             ),
             (
                 "energy",
-                "AUD, for home_office only, and then required: the work-related portion of electricity and gas for heating, cooling, lighting and electronic items used whilst working from home",
+                "AUD, for home_office only, and then required: the work-related portion of electricity and gas for heating, cooling, lighting and electronic items used whilst working from home; the 52c rate before 2022-23 is taken to cover all of it, as the ATO lists no energy claimed beside that rate",
             ),
             (
                 "phone",
@@ -1820,6 +1820,10 @@ pub fn optional_inputs(kind: &str) -> Vec<(&'static str, &'static str)> {
                 "AUD, for home_office only, and then required: the work-related portion of repairs to those depreciating assets",
             ),
             (
+                "running_expenses_incurred",
+                "boolean, for home_office only, and then required: the taxpayer paid or became liable for at least one additional running expense as a result of working from home, which every hourly rate needs (PCG 2023/1 paras 18(b) and 49 to 55; PCG 2020/3); false leaves only the actual cost",
+            ),
+            (
                 "dedicated_home_office",
                 "boolean, for home_office in 2020-21 or 2021-22 only, and then required: the taxpayer had a dedicated home office, which the 52c fixed rate needs",
             ),
@@ -1848,6 +1852,10 @@ pub fn optional_inputs(kind: &str) -> Vec<(&'static str, &'static str)> {
                 "integer, for car_log_book only, and then required: the continuous weeks the log book covers, at least 12 (s 28-120(1))",
             ),
             (
+                "log_book_representative",
+                "boolean, for car_log_book only, and then required: the log book still represents the car's business use in the year claimed; false, as after a change of job or home, is refused (ATO 'Logbook method')",
+            ),
+            (
                 "connection",
                 "for self_education only, and then required: maintains_or_improves_skills, increases_income, general_only or new_employment, the self-education's connection to current employment when incurred (TR 2024/3)",
             ),
@@ -1857,7 +1865,7 @@ pub fn optional_inputs(kind: &str) -> Vec<(&'static str, &'static str)> {
             ),
             (
                 "prescribed_course",
-                "boolean, for self_education in 2020-21 or 2021-22 only, and then required: the expenses were for a course of education at a school, college, university or other place of education, which ITAA 1936 s 82A reduces; a seminar, conference or short course is not one",
+                "boolean, for self_education in 2020-21 or 2021-22 only, and then required: the expenses were for a course of education at a school, college, university or other place of education, which ITAA 1936 s 82A reduces; a short-term refresher or staff development course, seminar, conference or workshop is not one (TR 98/9 para 129)",
             ),
             (
                 "category_a",
@@ -1874,6 +1882,10 @@ pub fn optional_inputs(kind: &str) -> Vec<(&'static str, &'static str)> {
             (
                 "category_d",
                 "AUD, for self_education only, and then required: category D, car expenses by the cents per kilometre method",
+            ),
+            (
+                "log_book_car_in_category_a",
+                "boolean, for self_education with category_d above 0 only, and then required: category_a includes log book car expenses; true is refused, as a car's expenses take one method",
             ),
             (
                 "category_e",
@@ -4207,6 +4219,7 @@ pub fn examples(kind: &str) -> Vec<(&'static str, Example)> {
             ("furniture_decline", Text("0.00")),
             ("asset_decline", Text("0.00")),
             ("repairs", Text("0.00")),
+            ("running_expenses_incurred", Flag(true)),
         ],
         "sb_cgt_concessions" => vec![
             ("year", Text("2025-26")),

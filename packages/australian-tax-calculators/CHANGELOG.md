@@ -18,7 +18,8 @@
   `work_expenses.allowance_received`, `work_expenses.car_not_held`,
   `work_expenses.fact_conflict`, `work_expenses.fact_invalid`,
   `work_expenses.log_book_expired`, `work_expenses.log_book_too_short`,
-  `work_expenses.method_invalid` and `work_expenses.reimbursed`.
+  `work_expenses.log_book_unrepresentative`, `work_expenses.method_invalid`
+  and `work_expenses.reimbursed`.
   `tests/work_expenses.rs` holds it to the ATO's, PCG 2023/1's and TR 98/9's
   examples.
 

@@ -96,9 +96,10 @@ fn income_year(value: &Arg, name: &str) -> Result<i64> {
     )
 }
 
-/// The log book's year, once it is shown to serve `year` and to cover at
-/// least 12 weeks.
-fn log_book_kept(kept: &Arg, weeks: &Arg, year: &str, first: i64) -> Result<i64> {
+/// The log book's year, once it is shown to serve `year`, to cover at least
+/// 12 weeks and still to represent the car's business use.
+fn log_book_kept<'a>(get: impl Fn(&str) -> &'a Arg, year: &str, first: i64) -> Result<i64> {
+    let (kept, weeks) = (get("log_book_year"), get("log_book_weeks"));
     let kept = income_year(kept, "log_book_year")?;
     if kept > first {
         return conflict("log_book_year cannot be after the year claimed.");
@@ -122,6 +123,12 @@ fn log_book_kept(kept: &Arg, weeks: &Arg, year: &str, first: i64) -> Result<i64>
             "A log book must cover a continuous period of at least 12 weeks (ITAA 1997 s 28-120(1)); the shorter period for a car held under 12 weeks is outside the worksheet.",
         );
     }
+    if !flag(get("log_book_representative"), "log_book_representative")? {
+        return refuse(
+            "work_expenses.log_book_unrepresentative",
+            "A log book that no longer represents the car's business use, as after a change of job or home, does not serve: a new 12 week log book is needed (ATO 'Logbook method').",
+        );
+    }
     Ok(kept)
 }
 
@@ -138,10 +145,11 @@ pub(super) fn log_book(
         "car_expenses",
         "log_book_year",
         "log_book_weeks",
+        "log_book_representative",
     ];
     let get = named(given, COMMAND, when, &names)?;
     car_held(get("owned_or_leased"))?;
-    let kept = log_book_kept(get("log_book_year"), get("log_book_weeks"), year, first)?;
+    let kept = log_book_kept(&get, year, first)?;
     let business = money(get("business_kilometres"))?;
     let total = money(get("total_kilometres"))?;
     let expenses = money(get("car_expenses"))?;

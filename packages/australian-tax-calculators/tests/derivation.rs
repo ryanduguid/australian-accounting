@@ -470,6 +470,7 @@ fn cases() -> Vec<(&'static str, Value)> {
                    "hours": "560", "energy": "120.00", "phone": "200.00", "internet": "180.00",
                    "stationery": "15.00", "cleaning": "0.00", "furniture_decline": "439.20",
                    "asset_decline": "696.52", "repairs": "0.00",
+                   "running_expenses_incurred": true,
                    "year": "2024-25", "scope_confirmed": true}),
         ),
         (
@@ -478,6 +479,7 @@ fn cases() -> Vec<(&'static str, Value)> {
                    "hours": "1000.5", "energy": "100.00", "phone": "120.00", "internet": "200.00",
                    "stationery": "30.00", "cleaning": "40.00", "furniture_decline": "60.00",
                    "asset_decline": "300.00", "repairs": "12.34", "dedicated_home_office": true,
+                   "running_expenses_incurred": true,
                    "year": "2021-22", "scope_confirmed": true}),
         ),
         (
@@ -498,6 +500,7 @@ fn cases() -> Vec<(&'static str, Value)> {
                    "owned_or_leased": true, "business_kilometres": "3000",
                    "total_kilometres": "9000", "car_expenses": "17275.33",
                    "log_book_year": "2022-23", "log_book_weeks": 12,
+                   "log_book_representative": true,
                    "year": "2025-26", "scope_confirmed": true}),
         ),
         (

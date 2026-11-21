@@ -32,6 +32,8 @@ const SEPARATE_PCG: &str = "PCG 2023/1 paras 15 and 26(c): the work-related decl
 const SEPARATE_52: &str = "ATO 'Fixed rate method - 52 cents': phone, internet, stationery and computer consumables, the decline in value of depreciating assets other than home office furniture and furnishings, and repairs are claimed beside the 52c rate at their work-related amounts";
 const FIXED_TOTAL: &str = "PCG 2023/1 para 26(d), and the ATO's 52 cent method before 2022-23: the hourly amount plus the expenses claimed beside it";
 const SHORTCUT: &str = "PCG 2020/3 and ATO 'Shortcut method' (2020-21 and 2021-22): 80c for each hour worked from home, covering every working from home expense, with nothing claimed beside it";
+const NOT_INCURRED: &str = "No additional running expenses were incurred as a result of working from home, so no hourly rate applies (PCG 2023/1 paras 18(b) and 49 to 55; PCG 2020/3); the actual cost remains.";
+const NOT_DEDICATED: &str = "Before 2022-23 the 52c fixed rate needs a dedicated home office; the shortcut and actual cost methods remain.";
 const ACTUAL: &str = "ATO 'Actual cost method' and ITAA 1997 s 8-1: the work-related portion of each additional running expense and of each depreciating asset's decline in value, as apportioned";
 
 /// The working from home fixed rate per hour in dollars: 52c to 2021-22,
@@ -58,11 +60,31 @@ struct Inputs {
     repairs: Decimal,
 }
 
-/// The inputs, and whether the 52c rate's dedicated home office was there
-/// (always true from 2022-23, which does not ask).
-fn inputs(given: &[(String, Arg)], when: &str, year: &str, first: i64) -> Result<(Inputs, bool)> {
+/// Refuses more hours than the income year holds: 366 days when its
+/// February has 29.
+fn within_year(hours: &Decimal, year: &str, first: i64) -> Result<()> {
+    let days = if (first + 1) % 4 == 0 { 366 } else { 365 };
+    if hours.gt(&int(24 * days))? {
+        return conflict(format!(
+            "hours cannot exceed the {} hours in {year}.",
+            24 * days
+        ));
+    }
+    Ok(())
+}
+
+/// The inputs, whether additional running expenses were incurred, which
+/// every hourly rate needs, and whether the 52c rate's dedicated home office
+/// was there (always true from 2022-23, which does not ask).
+fn inputs(
+    given: &[(String, Arg)],
+    when: &str,
+    year: &str,
+    first: i64,
+) -> Result<(Inputs, bool, bool)> {
     let early = first < 2022;
     let mut names = NAMES.to_vec();
+    names.push("running_expenses_incurred");
     if early {
         names.push("dedicated_home_office");
     }
@@ -82,14 +104,11 @@ fn inputs(given: &[(String, Arg)], when: &str, year: &str, first: i64) -> Result
         assets,
         repairs,
     ] = <[Decimal; 9]>::try_from(values).expect("9 inputs");
-    // Hours in the income year: 366 days when its February has 29.
-    let days = if (first + 1) % 4 == 0 { 366 } else { 365 };
-    if hours.gt(&int(24 * days))? {
-        return conflict(format!(
-            "hours cannot exceed the {} hours in {year}.",
-            24 * days
-        ));
-    }
+    within_year(&hours, year, first)?;
+    let incurred = flag(
+        get("running_expenses_incurred"),
+        "running_expenses_incurred",
+    )?;
     let dedicated = !early || flag(get("dedicated_home_office"), "dedicated_home_office")?;
     let x = Inputs {
         hours,
@@ -102,12 +121,12 @@ fn inputs(given: &[(String, Arg)], when: &str, year: &str, first: i64) -> Result
         assets,
         repairs,
     };
-    Ok((x, dedicated))
+    Ok((x, incurred, dedicated))
 }
 
-/// The fixed rate method's steps: the hourly amount, the expenses claimed
-/// beside it, their total and its return amount.
-fn fixed(x: &Inputs, early: bool, hourly: &Decimal) -> Result<Vec<Step>> {
+/// The fixed rate method's steps (the hourly amount, the expenses claimed
+/// beside it, their total and its return amount) and its total.
+fn fixed(x: &Inputs, early: bool, hourly: &Decimal) -> Result<(Vec<Step>, Decimal)> {
     let amount = x.hours.mul(hourly)?;
     let hours_step = step(
         "fixed_rate_amount",
@@ -133,16 +152,30 @@ fn fixed(x: &Inputs, early: bool, hourly: &Decimal) -> Result<Vec<Step>> {
         &beside,
         separate.clone(),
     );
+    let value = amount.add(&separate)?;
     let total = step(
         "fixed_rate_method",
         FIXED_TOTAL,
         "fixed_rate_amount + fixed_rate_separate_expenses",
         &[&amount, &separate],
-        amount.add(&separate)?,
+        value.clone(),
     );
     let mut steps = vec![hours_step, separate_step];
     steps.extend(with_return(total, "fixed_rate_return_amount")?);
-    Ok(steps)
+    Ok((steps, value))
+}
+
+/// The 80c shortcut's steps for 2020-21 and 2021-22 and its total.
+fn shortcut(x: &Inputs, rate: &Decimal) -> Result<([Step; 2], Decimal)> {
+    let value = x.hours.mul(rate)?;
+    let total = step(
+        "shortcut_method",
+        SHORTCUT,
+        "hours x shortcut_rate",
+        &[&x.hours, rate],
+        value.clone(),
+    );
+    Ok((with_return(total, "shortcut_return_amount")?, value))
 }
 
 /// The actual cost method's steps: every expense's work-related amount.
@@ -186,26 +219,21 @@ pub(super) fn home_office(
     first: i64,
 ) -> Result<Value> {
     let early = first < 2022;
-    let (x, dedicated) = inputs(given, when, year, first)?;
+    let (x, incurred, dedicated) = inputs(given, when, year, first)?;
     let hourly = d(fixed_rate(first));
-    let shortcut_rate = d("0.80");
     let mut steps = Vec::new();
     let mut methods = Vec::new();
     let mut rates = vec![rate("fixed_rate", &hourly)];
-    if dedicated {
-        steps.extend(fixed(&x, early, &hourly)?);
-        methods.push(("fixed_rate", steps[2].value.clone()));
+    if incurred && dedicated {
+        let (fixed_steps, total) = fixed(&x, early, &hourly)?;
+        steps.extend(fixed_steps);
+        methods.push(("fixed_rate", total));
     }
-    if early {
-        let total = step(
-            "shortcut_method",
-            SHORTCUT,
-            "hours x shortcut_rate",
-            &[&x.hours, &shortcut_rate],
-            x.hours.mul(&shortcut_rate)?,
-        );
-        methods.push(("shortcut", total.value.clone()));
-        steps.extend(with_return(total, "shortcut_return_amount")?);
+    if incurred && early {
+        let shortcut_rate = d("0.80");
+        let (shortcut_steps, total) = shortcut(&x, &shortcut_rate)?;
+        steps.extend(shortcut_steps);
+        methods.push(("shortcut", total));
         rates.push(rate("shortcut_rate", &shortcut_rate));
     }
     let [total, back] = actual(&x)?;
@@ -215,12 +243,10 @@ pub(super) fn home_office(
     let mut out = derived_result(KIND, year, steps, rates)?;
     out["method"] = json!("home_office");
     out["methods_available"] = json!(methods.iter().map(|m| m.0).collect::<Vec<_>>());
-    out["fixed_rate_unavailable"] = if dedicated {
-        Value::Null
-    } else {
-        json!(
-            "Before 2022-23 the 52c fixed rate needs a dedicated home office; the shortcut and actual cost methods remain."
-        )
+    out["fixed_rate_unavailable"] = match (incurred, dedicated) {
+        (false, _) => json!(NOT_INCURRED),
+        (true, false) => json!(NOT_DEDICATED),
+        (true, true) => Value::Null,
     };
     out["higher_method"] = json!(higher);
     Ok(out)

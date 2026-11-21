@@ -2585,7 +2585,7 @@ pub const REFUSAL_CODES: &[(&str, &str)] = &[
     ),
     (
         "work_expenses.fact_conflict",
-        "The facts contradict each other or the year: hours beyond the year, business kilometres above total kilometres, nil total kilometres or a log book after the year claimed.",
+        "The facts contradict each other or the year: hours beyond the year, business kilometres above total kilometres, nil total kilometres, a log book after the year claimed, or category D cents per kilometre car expenses beside log book car expenses in category A.",
     ),
     (
         "work_expenses.fact_invalid",
@@ -2598,6 +2598,10 @@ pub const REFUSAL_CODES: &[(&str, &str)] = &[
     (
         "work_expenses.log_book_too_short",
         "The log book covers fewer than 12 continuous weeks (ITAA 1997 s 28-120(1)).",
+    ),
+    (
+        "work_expenses.log_book_unrepresentative",
+        "The log book no longer represents the car's business use, as after a change of job or home, so a new one is needed (ATO 'Logbook method').",
     ),
     (
         "work_expenses.method_invalid",
