@@ -255,6 +255,18 @@ fn a_low_daily_wage_has_nil_withholding() {
     assert_eq!(amount(&r, "withholding"), "0.00");
 }
 
+/// $76 a day: 76 x 5 + 0.99 = 380.99 gives $3 a week in each year
+/// (0.16 x 380.99 - 57.8462 = 3.11 to 30 June 2026, 0.15 x 380.99 - 54.3462 =
+/// 2.80 from 1 July 2026), and $3 / 5 = 0.60 rounds up to $1 a day.
+#[test]
+fn a_fifth_of_the_weekly_amount_rounds_half_up() {
+    for year in ["2024-25", "2025-26", "2026-27"] {
+        let r = run(DAILY, &casual(json!({"earnings": "76.00", "year": year})));
+        assert_eq!(amount(&r, "weekly_withholding"), "3.00", "{year}");
+        assert_eq!(amount(&r, "withholding"), "1.00", "{year}");
+    }
+}
+
 /// Without a TFN: 47% of the daily earnings with cents ignored ($90.71), or
 /// 45% for a foreign resident ($86.85), cents in the result ignored.
 #[test]
@@ -267,6 +279,11 @@ fn the_daily_table_without_a_tfn() {
     );
     assert_eq!(amount(&r, "withholding"), "86.00");
     assert_eq!(r["rates"]["rate"], "0.45");
+    let r = run(
+        DAILY,
+        &casual(json!({"tfn_quoted": false, "tax_offsets": "0.00"})),
+    );
+    assert_eq!(amount(&r, "withholding"), "90.00");
 }
 
 #[test]

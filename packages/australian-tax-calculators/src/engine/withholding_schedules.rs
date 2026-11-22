@@ -346,7 +346,7 @@ pub fn daily_casual_withholding(
     )?;
     let offsets = tax_offsets.map(money).transpose()?;
     if !tfn {
-        if offsets.is_some() {
+        if offsets.as_ref().is_some_and(|o| !o.is_zero()) {
             return refuse(
                 "daily_casual_withholding.tax_offsets_not_allowed",
                 "Tax offsets do not reduce withholding when no TFN has been provided.",
