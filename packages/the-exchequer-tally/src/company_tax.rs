@@ -49,7 +49,7 @@ pub fn amount(x: &D) -> Value {
     json!(x.fixed(2, false))
 }
 
-const OUT_OF_SCOPE: [(&str, &str, &str); 5] = [
+const OUT_OF_SCOPE: [(&str, &str, &str); 7] = [
     (
         "consolidated_group",
         "a head company of a consolidated or MEC group is not modelled",
@@ -74,6 +74,16 @@ const OUT_OF_SCOPE: [(&str, &str, &str); 5] = [
         "subdivision_165_b_applies",
         "a year of change of ownership or control without the business continuity test is worked out by periods",
         "Subdiv 165-B ITAA 1997",
+    ),
+    (
+        "deductions_limited_by_s_26_55",
+        "deductions limited so that they cannot contribute to a tax loss are not modelled",
+        "s 26-55 ITAA 1997; s 36-10 note 1",
+    ),
+    (
+        "shipping_exempt_income",
+        "net exempt income relating to shipping exempt income is partly disregarded",
+        "ss 36-10(5), 36-17(4A) ITAA 1997",
     ),
 ];
 fn scope(v: &Value, fy: i64) -> Result<()> {
@@ -108,7 +118,7 @@ fn loss(e: &Value, fy: i64) -> Result<Loss> {
     }
     let test = text(e, "test")?;
     let (deductible, basis) = match test {
-        "continuity_of_ownership" => (true, "s 165-12 ITAA 1997"),
+        "continuity_of_ownership" => (true, "ss 165-12, 165-15 ITAA 1997"),
         "same_business" => (true, "ss 165-13, 165-210 ITAA 1997"),
         "similar_business" if year >= 2016 => (true, "ss 165-13, 165-211 ITAA 1997"),
         "similar_business" => {
@@ -120,9 +130,17 @@ fn loss(e: &Value, fy: i64) -> Result<Loss> {
             ));
         }
         "failed" => (false, "s 165-10 ITAA 1997: not deductible"),
+        "part_year" => {
+            return Err(refuse(
+                format!(
+                    "a part-year deduction of the loss for the year ending in {year} is not modelled"
+                ),
+                "s 165-20 ITAA 1997",
+            ));
+        }
         _ => {
             return Err(
-                "test must be continuity_of_ownership, same_business, similar_business or failed"
+                "test must be continuity_of_ownership, same_business, similar_business, failed or part_year"
                     .into(),
             );
         }
@@ -141,7 +159,7 @@ pub struct Income {
     pub taxable: D,
     pub tax_loss: D,
     pub nei: D,
-    pub used: D,
+    pub choice: D,
     json: Value,
 }
 fn chosen(v: &Value, cap: &D, excess: &D) -> Result<D> {
@@ -169,6 +187,12 @@ fn income(v: &Value, fy: i64) -> Result<Income> {
         .map(|e| loss(e, fy))
         .collect::<Result<Vec<_>>>()?;
     losses.sort_by_key(|l| l.year);
+    if let Some(w) = losses.windows(2).find(|w| w[0].year == w[1].year) {
+        return Err(format!(
+            "prior_year_losses lists the loss year ending in {} twice",
+            w[0].year
+        ));
+    }
     let assessable = money(v, "assessable_income")?;
     let deductions = money(v, "deductions")?;
     let nei = money(v, "net_exempt_income")?;
@@ -178,7 +202,12 @@ fn income(v: &Value, fy: i64) -> Result<Income> {
         .filter(|l| l.deductible)
         .fold(d("0"), |t, l| t.add(&l.amount));
     // s 36-17(3)(a) and (4): net exempt income, less any shortfall, absorbs losses first.
-    let nei_left = floor(nei.sub(&floor(d("0").sub(&excess))));
+    // With assessable income equal to deductions neither subsection applies.
+    let nei_left = if excess.is_zero() {
+        d("0")
+    } else {
+        floor(nei.sub(&floor(d("0").sub(&excess))))
+    };
     let from_nei = least(nei_left, available.clone());
     let cap = least(floor(available.sub(&from_nei)), floor(excess.clone()));
     let choice = chosen(v, &cap, &excess)?;
@@ -193,7 +222,7 @@ fn income(v: &Value, fy: i64) -> Result<Income> {
         taxable: floor(excess.sub(&choice)),
         tax_loss: floor(shortfall.sub(&nei)),
         nei,
-        used,
+        choice,
         json,
     })
 }
@@ -221,7 +250,7 @@ fn offset_limits(v: &Value, inc: &Income, gross: &D) -> Result<()> {
     if franking > c {
         return Err("franking_tax_offsets is part of non_refundable_non_carry_forward_offsets and cannot exceed it".into());
     }
-    if franking > d("0") && inc.used > d("0") {
+    if franking > d("0") && inc.choice > d("0") {
         return Err(refuse(
             "franking tax offsets limit the choice of prior-year loss deduction",
             "s 36-17(5) ITAA 1997",
@@ -274,7 +303,7 @@ fn statement(v: &Value, taxable: &D, gross: &D, carry_back: &D) -> Result<(Value
 
 const STEPS: [&str; 7] = [
     "Rate: base rate entity rate for the year if aggregated turnover is under the threshold and base rate entity passive income is no more than 80% of assessable income, otherwise 30% (Income Tax Rates Act 1986 ss 23(2), 23AA, 23AB).",
-    "Prior-year losses are deducted only where the stated continuity of ownership (s 165-12) or business continuity (ss 165-13, 165-210, 165-211) outcome allows (s 165-10), oldest first (s 36-17(7)); the command does not judge either test.",
+    "Prior-year losses are deducted only where the stated continuity of ownership (ss 165-12, 165-15) or business continuity (ss 165-13, 165-210, 165-211) outcome allows (s 165-10), oldest first (s 36-17(7)); the command does not judge either test.",
     "Net exempt income absorbs losses first; the company then deducts the amount it chooses from the excess of assessable income over deductions, or the most allowed when no choice is stated (s 36-17(2) to (4)).",
     "Tax loss: deductions less assessable income, less net exempt income (s 36-10).",
     "Gross tax: taxable income times the rate, rounded half up to the cent (CTR 2026 labels T1 and B).",

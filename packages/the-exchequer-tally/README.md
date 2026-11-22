@@ -118,10 +118,12 @@ for 2020-21 to 2026-27 (`financial_year` 2021 to 2027), at the rate
 `corporate-tax` gives for the year.
 
 - Prior-year losses: `prior_year_losses` lists `{loss_year, amount, test}`, where
-  `test` is the stated outcome: `continuity_of_ownership` (s 165-12 ITAA 1997),
+  `test` is the stated final outcome under ss 165-10 and 165-15 ITAA 1997:
+  `continuity_of_ownership` (s 165-12, with s 165-15 not denying it),
   `same_business` (ss 165-13, 165-210), `similar_business` (s 165-211, loss years
-  starting on or after 1 July 2015 only) or `failed` (s 165-10). The command never
-  judges either test. Losses go oldest first (s 36-17(7)); `net_exempt_income`
+  starting on or after 1 July 2015 only), `failed` (no part deductible) or
+  `part_year` (refused: s 165-20). Each loss year appears once. The command never
+  judges either test. Assessable income equal to deductions deducts no loss. Losses go oldest first (s 36-17(7)); `net_exempt_income`
   absorbs them first; `loss_deduction_chosen` is the s 36-17(2) or (3) choice,
   and without it the most allowed is deducted. A tax loss is worked out under
   s 36-10.
@@ -134,14 +136,16 @@ for 2020-21 to 2026-27 (`financial_year` 2021 to 2027), at the rate
   up to the cent.
 - Loss carry back (Div 160): `loss_carry_back` takes
   `franking_account_balance`, `carry_backs` (`loss_year`, `earlier_year`,
-  `amount`), `earlier_years` (`year`, `income_tax_liability`, optional
-  `net_exempt_income` and `liability_previously_used`), `loss_years` for loss
+  `amount`), `earlier_years` (`year`, `income_tax_liability` and
+  `liability_previously_used`, both required even when nil, and optional
+  `net_exempt_income`), `loss_years` for loss
   years before the claim year (`year`, `tax_loss` and that year's 3 rate facts)
   and `conditions`, each stated `true`. Claim years 2020-21 to 2022-23 use
   Div 160 as in force to 30 June 2026 (conditions
   `corporate_tax_entity_throughout`, `returns_lodged`,
   `choice_in_approved_form`, `carried_on_business_each_loss_year`,
-  `no_transferred_losses`, `no_integrity_scheme`); 2026-27 uses the Div 160
+  `no_transferred_losses`, `no_excess_franking_offset_losses`,
+  `no_integrity_scheme`); 2026-27 uses the Div 160
   that Treasury Laws Amendment (Tax Reform No. 2) Act 2026 substituted
   (`not_significant_global_entity` in place of
   `carried_on_business_each_loss_year`). 2023-24 to 2025-26 have no offset.
@@ -149,8 +153,9 @@ for 2020-21 to 2026-27 (`financial_year` 2021 to 2027), at the rate
 - Refused, each with its provision: consolidated or MEC groups, controlled
   foreign company or foreign hybrid attributable income, foreign residents,
   companies with other rates (RSA providers, PDFs, life insurance, non-profit,
-  credit unions, trustees), a Subdiv 165-B year, franking tax offsets with a
-  prior-year loss deduction (s 36-17(5)) or in excess (s 36-55), carry-forward
+  credit unions, trustees), a Subdiv 165-B year, deductions limited by s 26-55,
+  shipping exempt income (ss 36-10(5), 36-17(4A)), franking tax offsets with a
+  chosen prior-year loss deduction (s 36-17(5)) or in excess (s 36-55), carry-forward
   offsets with net exempt income (Div 65), and any carry back outside its
   version's years, conditions or limits.
 

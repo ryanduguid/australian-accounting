@@ -18,15 +18,16 @@ enum Regime {
     Temporary,
     Permanent,
 }
-const TEMPORARY: [(&str, &str); 6] = [
+const TEMPORARY: [(&str, &str); 7] = [
     ("corporate_tax_entity_throughout", "ss 160-5(b), 160-25"),
     ("returns_lodged", "s 160-5(e)"),
     ("choice_in_approved_form", "ss 160-5(f), 160-15(2)"),
     ("carried_on_business_each_loss_year", "s 160-20"),
-    ("no_transferred_losses", "s 160-30"),
+    ("no_transferred_losses", "s 160-30(1)(a), (2)"),
+    ("no_excess_franking_offset_losses", "s 160-30(1)(b)"),
     ("no_integrity_scheme", "s 160-35"),
 ];
-const PERMANENT: [(&str, &str); 6] = [
+const PERMANENT: [(&str, &str); 7] = [
     (
         "corporate_tax_entity_throughout",
         "s 160-5(1)(b) and (2)(c)",
@@ -34,7 +35,8 @@ const PERMANENT: [(&str, &str); 6] = [
     ("not_significant_global_entity", "s 160-5(1)(e)"),
     ("returns_lodged", "s 160-5(1)(f)"),
     ("choice_in_approved_form", "ss 160-5(1)(g), 160-15(2)"),
-    ("no_transferred_losses", "s 160-25"),
+    ("no_transferred_losses", "s 160-25(1)(a), (2)"),
+    ("no_excess_franking_offset_losses", "s 160-25(1)(b)"),
     ("no_integrity_scheme", "s 160-30"),
 ];
 const FIVE_BILLION: &str = "5000000000";
@@ -79,11 +81,23 @@ struct Earlier {
 fn earlier_years(lcb: &Value) -> Result<BTreeMap<i64, Earlier>> {
     let mut years = BTreeMap::new();
     for e in array(lcb, "earlier_years")? {
+        // Stated even when nil: a missing amount must not reuse liability an earlier
+        // claim already took (s 160-10(2)(b)(i); s 160-10(4), (4B) as in force to 30 June 2026).
+        for key in ["income_tax_liability", "liability_previously_used"] {
+            if e.get(key).is_none_or(Value::is_null) {
+                return Err(format!("earlier_years.{key} is required, even when nil"));
+            }
+        }
         let row = Earlier {
             liability: money(e, "income_tax_liability")?,
             nei: money(e, "net_exempt_income")?,
             used: money(e, "liability_previously_used")?,
         };
+        if row.used > row.liability {
+            return Err(
+                "earlier_years.liability_previously_used exceeds income_tax_liability".into(),
+            );
+        }
         if years.insert(number(e, "year")?, row).is_some() {
             return Err("earlier_years lists a year twice".into());
         }

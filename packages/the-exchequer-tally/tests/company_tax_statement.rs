@@ -24,20 +24,22 @@ fn company(fy: i64, turnover: &str, assessable: &str, deductions: &str) -> Value
 fn labels(v: &Value) -> Value {
     ok(v)["calculation_statement"].clone()
 }
-const TEMPORARY: [&str; 6] = [
+const TEMPORARY: [&str; 7] = [
     "corporate_tax_entity_throughout",
     "returns_lodged",
     "choice_in_approved_form",
     "carried_on_business_each_loss_year",
     "no_transferred_losses",
+    "no_excess_franking_offset_losses",
     "no_integrity_scheme",
 ];
-const PERMANENT: [&str; 6] = [
+const PERMANENT: [&str; 7] = [
     "corporate_tax_entity_throughout",
     "not_significant_global_entity",
     "returns_lodged",
     "choice_in_approved_form",
     "no_transferred_losses",
+    "no_excess_franking_offset_losses",
     "no_integrity_scheme",
 ];
 fn conditions(keys: &[&str]) -> Value {
@@ -50,8 +52,8 @@ fn company_a(fy: i64, first: i64, balance: &str) -> Value {
     v["loss_carry_back"] = json!({"franking_account_balance": balance, "conditions": conditions(keys),
         "carry_backs": [{"loss_year": fy, "earlier_year": first, "amount": "405000"},
                         {"loss_year": fy, "earlier_year": first + 1, "amount": "495000"}],
-        "earlier_years": [{"year": first, "income_tax_liability": "120000", "net_exempt_income": "5000"},
-                          {"year": first + 1, "income_tax_liability": "210000"}]});
+        "earlier_years": [{"year": first, "income_tax_liability": "120000", "net_exempt_income": "5000", "liability_previously_used": "0"},
+                          {"year": first + 1, "income_tax_liability": "210000", "liability_previously_used": "0"}]});
     v
 }
 
@@ -103,7 +105,7 @@ fn ato_ghi_example() {
     v["loss_carry_back"] = json!({"franking_account_balance": "25000", "conditions": conditions(&TEMPORARY),
         "loss_years": [loss_year(2020, "100000", "60000000")],
         "carry_backs": [{"loss_year": 2020, "earlier_year": 2019, "amount": "100000"}],
-        "earlier_years": [{"year": 2019, "income_tax_liability": "40000"}]});
+        "earlier_years": [{"year": 2019, "income_tax_liability": "40000", "liability_previously_used": "0"}]});
     let r = ok(&v);
     assert_eq!(
         r["loss_carry_back"]["components"][0]["losses"][0]["step_3"],
@@ -125,7 +127,7 @@ fn ato_mno_exempt_income_example() {
         "loss_years": [loss_year(2020, "100000", "60000000")],
         "carry_backs": [{"loss_year": 2021, "earlier_year": 2019, "amount": "50000"},
                         {"loss_year": 2020, "earlier_year": 2019, "amount": "100000"}],
-        "earlier_years": [{"year": 2019, "income_tax_liability": "1000000", "net_exempt_income": "20000"}]});
+        "earlier_years": [{"year": 2019, "income_tax_liability": "1000000", "net_exempt_income": "20000", "liability_previously_used": "0"}]});
     let losses = ok(&v)["loss_carry_back"]["components"][0]["losses"].clone();
     assert_eq!(losses[0]["loss_year"], 2020);
     assert_eq!(losses[0]["after_net_exempt_income"], "80000.00");
@@ -245,6 +247,8 @@ fn rate_for_each_year() {
         (2021, "0.260"),
         (2022, "0.250"),
         (2023, "0.250"),
+        (2024, "0.250"),
+        (2025, "0.250"),
         (2026, "0.250"),
         (2027, "0.250"),
     ] {
@@ -270,7 +274,7 @@ fn loss_year_2019_20_rate_is_27_5_percent() {
     v["loss_carry_back"] = json!({"franking_account_balance": "100000", "conditions": conditions(&TEMPORARY),
         "loss_years": [loss_year(2020, "10000", "1000000")],
         "carry_backs": [{"loss_year": 2020, "earlier_year": 2019, "amount": "10000"}],
-        "earlier_years": [{"year": 2019, "income_tax_liability": "100000"}]});
+        "earlier_years": [{"year": 2019, "income_tax_liability": "100000", "liability_previously_used": "0"}]});
     let step = ok(&v)["loss_carry_back"]["components"][0]["losses"][0].clone();
     assert_eq!(
         (&step["loss_year_rate"], &step["step_3"]),
@@ -384,6 +388,8 @@ fn scope_flags_are_refused() {
         ("foreign_resident", "160-10(3)"),
         ("special_rate_company", "23A"),
         ("subdivision_165_b_applies", "Subdiv 165-B"),
+        ("deductions_limited_by_s_26_55", "s 26-55"),
+        ("shipping_exempt_income", "36-17(4A)"),
     ] {
         let mut v = company(2026, "1", "1", "0");
         v[flag] = json!(true);
@@ -423,6 +429,11 @@ fn carry_back_refusals() {
         v["loss_carry_back"]["conditions"][key] = json!(false);
         refused(&v, key);
     }
+    for key in PERMANENT {
+        let mut v = company_a(2027, 2025, "280000");
+        v["loss_carry_back"]["conditions"][key] = json!(false);
+        refused(&v, key);
+    }
     let mut v = company_a(2027, 2025, "280000");
     v["loss_carry_back"]["conditions"]["not_significant_global_entity"] = json!(false);
     refused(&v, "160-5(1)(e)");
@@ -451,4 +462,69 @@ fn malformed_amounts_are_refused() {
     assert!(run(&v).unwrap_err().contains("at most 2 decimal places"));
     v["payg_instalments"] = json!("-1");
     assert!(run(&v).is_err());
+}
+
+#[test]
+fn equal_income_and_deductions_deduct_no_loss() {
+    let mut v = company(2026, "1000000", "100000", "100000");
+    v["net_exempt_income"] = json!("15000");
+    v["prior_year_losses"] =
+        json!([{"loss_year": 2024, "amount": "5000", "test": "same_business"}]);
+    let r = ok(&v);
+    assert_eq!(
+        r["taxable_income"]["losses_deducted_from_net_exempt_income"],
+        "0.00"
+    );
+    assert_eq!(
+        r["taxable_income"]["prior_year_losses"][0]["remaining"],
+        "5000.00"
+    );
+    assert_eq!(r["taxable_income"]["tax_loss"], "0.00");
+}
+#[test]
+fn part_year_and_duplicate_losses_are_refused() {
+    refused(
+        &with_losses(json!([{"loss_year": 2024, "amount": "1", "test": "part_year"}])),
+        "s 165-20",
+    );
+    let twice = json!({"loss_year": 2024, "amount": "50000", "test": "same_business"});
+    assert!(
+        run(&with_losses(json!([twice.clone(), twice])))
+            .unwrap_err()
+            .contains("twice")
+    );
+}
+#[test]
+fn liability_already_used_is_stated_and_capped() {
+    let mut v = company_a(2022, 2020, "280000");
+    v["loss_carry_back"]["earlier_years"][0]["liability_previously_used"] = json!("100000");
+    let r = ok(&v);
+    assert_eq!(
+        r["loss_carry_back"]["components"][0]["component"],
+        "20000.00"
+    );
+    assert_eq!(r["loss_carry_back"]["offset"], "168500.00");
+    v["loss_carry_back"]["earlier_years"][0]["liability_previously_used"] = json!("120000.01");
+    assert!(
+        run(&v)
+            .unwrap_err()
+            .contains("exceeds income_tax_liability")
+    );
+    v["loss_carry_back"]["earlier_years"][0]["liability_previously_used"] = Value::Null;
+    assert!(run(&v).unwrap_err().contains("required, even when nil"));
+}
+#[test]
+fn franking_offsets_allow_a_nil_choice() {
+    let mut v =
+        with_losses(json!([{"loss_year": 2024, "amount": "50000", "test": "same_business"}]));
+    v["net_exempt_income"] = json!("10000");
+    v["loss_deduction_chosen"] = json!("0");
+    v[C] = json!("100");
+    v["franking_tax_offsets"] = json!("100");
+    let r = ok(&v);
+    assert_eq!(
+        r["taxable_income"]["losses_deducted_from_net_exempt_income"],
+        "10000.00"
+    );
+    assert_eq!(r["calculation_statement"]["T2"], "14900.00");
 }
