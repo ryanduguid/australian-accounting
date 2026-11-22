@@ -212,7 +212,7 @@ const DAILY: &str = "daily-casual-withholding";
 fn casual(overrides: Value) -> Value {
     with(
         json!({
-            "daily_earnings": "193.62", "tfn_quoted": true, "foreign_resident": false,
+            "earnings": "193.62", "tfn_quoted": true, "foreign_resident": false,
             "tax_free_threshold_claimed": true, "working_holiday_maker": false,
             "year": "2026-27", "scope_confirmed": true,
         }),
@@ -250,7 +250,7 @@ fn the_daily_tables_example_in_each_year() {
 /// Below the scale 2 threshold ($362 a week in 2026-27) nothing is withheld.
 #[test]
 fn a_low_daily_wage_has_nil_withholding() {
-    let r = run(DAILY, &casual(json!({"daily_earnings": "70.00"})));
+    let r = run(DAILY, &casual(json!({"earnings": "70.00"})));
     assert_eq!(amount(&r, "weekly_earnings_used"), "350.99");
     assert_eq!(amount(&r, "withholding"), "0.00");
 }
@@ -289,7 +289,7 @@ fn daily_table_refusals() {
             "daily_casual_withholding.tax_offsets_not_allowed",
         ),
         (
-            json!({"daily_earnings": "100.00", "tax_offsets": "5000.00"}),
+            json!({"earnings": "100.00", "tax_offsets": "5000.00"}),
             "daily_casual_withholding.offsets_exceed_withholding",
         ),
         (json!({"year": "2023-24"}), "period.unsupported"),

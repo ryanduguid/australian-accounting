@@ -136,9 +136,9 @@ pub fn horticulture_shearing_withholding(
     foreign_resident: &Arg,
     tax_free_threshold_claimed: &Arg,
     working_holiday_maker: &Arg,
-    labour_mobility_scheme: &Arg,
     year: &Arg,
     scope_confirmed: &Arg,
+    labour_mobility_scheme: &Arg,
 ) -> Result<Value> {
     let year = scope(scope_confirmed, year, HORTICULTURE)?;
     let earnings = money(earnings)?;
@@ -260,7 +260,7 @@ fn daily_steps(year: &str, earnings: &Decimal) -> Result<(Vec<Step>, Decimal, De
             step(
                 "weekly_earnings_used",
                 "Schedule 1, daily or casual basis, step 1: earnings ignoring any cents, times 5, plus 99 cents",
-                "floor(daily_earnings) x 5 + 0.99",
+                "floor(earnings) x 5 + 0.99",
                 &[earnings],
                 x.clone(),
             ),
@@ -326,7 +326,7 @@ fn daily_offsets(mut steps: Vec<Step>, offsets: Option<Decimal>) -> Result<Vec<S
 /// The tax table for daily and casual workers, with the Schedule 1 formula.
 #[allow(clippy::too_many_arguments)]
 pub fn daily_casual_withholding(
-    daily_earnings: &Arg,
+    earnings: &Arg,
     tfn_quoted: &Arg,
     foreign_resident: &Arg,
     tax_free_threshold_claimed: &Arg,
@@ -336,7 +336,7 @@ pub fn daily_casual_withholding(
     tax_offsets: Option<&Arg>,
 ) -> Result<Value> {
     let year = scope(scope_confirmed, year, DAILY)?;
-    let earnings = money(daily_earnings)?;
+    let earnings = money(earnings)?;
     let tfn = flag(tfn_quoted, "tfn_quoted")?;
     let foreign = flag(foreign_resident, "foreign_resident")?;
     daily_eligible(tfn, foreign, tax_free_threshold_claimed)?;
@@ -353,7 +353,7 @@ pub fn daily_casual_withholding(
             );
         }
         let steps = no_tfn_steps(
-            ("daily_earnings", &earnings),
+            ("earnings", &earnings),
             foreign,
             "Tax table for daily and casual workers, 'When a TFN has not been provided': the payment, ignoring any cents",
         )?;

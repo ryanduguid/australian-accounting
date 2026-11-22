@@ -179,9 +179,9 @@ booleans and counts, ages, days, quarters and scales are JSON integers.
 | `depreciation-low-value-pool` | `previous_closing_pool_balance`, `low_cost_assets`, `low_value_assets`, `second_element_costs`, `termination_values`, `year`, `scope_confirmed`; see [Depreciation pools and capital works](#depreciation-pools-and-capital-works) |
 | `depreciation-small-business-pool` | `opening_pool_balance`, `additions`, `cost_additions`, `termination_values`, `year`, `scope_confirmed` |
 | `capital-works` | `construction_expenditure`, `construction_start`, `four_percent_manner`, `days_used`, `taxable_use`, `undeducted_construction_expenditure`, `year`, `scope_confirmed` |
-| `horticulture-shearing-withholding` | `earnings`, `tfn_quoted`, `foreign_resident`, `tax_free_threshold_claimed`, `working_holiday_maker`, `labour_mobility_scheme`, `year`, `scope_confirmed`; see [Other withholding schedules](#other-withholding-schedules) |
+| `horticulture-shearing-withholding` | `earnings`, `tfn_quoted`, `foreign_resident`, `tax_free_threshold_claimed`, `working_holiday_maker`, `year`, `scope_confirmed`, `labour_mobility_scheme`; see [Other withholding schedules](#other-withholding-schedules) |
 | `upward-variation-withholding` | `earnings`, `pay_period`, `scale`, `additional_amount`, `year`, `scope_confirmed`; optional as `payg-withholding` |
-| `daily-casual-withholding` | `daily_earnings`, `tfn_quoted`, `foreign_resident`, `tax_free_threshold_claimed`, `working_holiday_maker`, `year`, `scope_confirmed`; optional `tax_offsets` |
+| `daily-casual-withholding` | `earnings`, `tfn_quoted`, `foreign_resident`, `tax_free_threshold_claimed`, `working_holiday_maker`, `year`, `scope_confirmed`; optional `tax_offsets` |
 | `no-abn-withholding` | `payment`, `gst_included`, `supply_total_excluding_gst`, `year`, `scope_confirmed` |
 | `quarterly-sg` | `ordinary_time_earnings`, `qualifying_contributions`, `year`, `quarter`, `scope_confirmed` |
 | `payg-withholding` | `earnings`, `pay_period`, `scale`, `year`, `scope_confirmed`; optional `foreign_resident` (scale 4), `tax_offsets`, `medicare_adjustment_children`, `extra_pay_withholding` |

@@ -119,6 +119,18 @@ const PAY_ARGS: &[(&str, Kind)] = &[
     ("scope_confirmed", Raw),
 ];
 
+/// Schedule 2's parameters. The daily and casual table takes all but the last.
+const PAYEE_ARGS: &[(&str, Kind)] = &[
+    ("earnings", Dec),
+    ("tfn_quoted", Raw),
+    ("foreign_resident", Raw),
+    ("tax_free_threshold_claimed", Raw),
+    ("working_holiday_maker", Raw),
+    ("year", Raw),
+    ("scope_confirmed", Raw),
+    ("labour_mobility_scheme", Raw),
+];
+
 /// The parameters of the worksheets that take taxable income alone.
 const TAXABLE_INCOME_ARGS: &[(&str, Kind)] = &[
     ("taxable_income", Dec),
@@ -432,19 +444,7 @@ const COMMAND_ARGS: &[(&str, &[(&str, Kind)])] = &[
             ("scope_confirmed", Raw),
         ],
     ),
-    (
-        "horticulture-shearing-withholding",
-        &[
-            ("earnings", Dec),
-            ("tfn_quoted", Raw),
-            ("foreign_resident", Raw),
-            ("tax_free_threshold_claimed", Raw),
-            ("working_holiday_maker", Raw),
-            ("labour_mobility_scheme", Raw),
-            ("year", Raw),
-            ("scope_confirmed", Raw),
-        ],
-    ),
+    ("horticulture-shearing-withholding", PAYEE_ARGS),
     (
         "upward-variation-withholding",
         &[
@@ -456,18 +456,7 @@ const COMMAND_ARGS: &[(&str, &[(&str, Kind)])] = &[
             ("scope_confirmed", Raw),
         ],
     ),
-    (
-        "daily-casual-withholding",
-        &[
-            ("daily_earnings", Dec),
-            ("tfn_quoted", Raw),
-            ("foreign_resident", Raw),
-            ("tax_free_threshold_claimed", Raw),
-            ("working_holiday_maker", Raw),
-            ("year", Raw),
-            ("scope_confirmed", Raw),
-        ],
-    ),
+    ("daily-casual-withholding", PAYEE_ARGS.split_at(7).0),
     (
         "no-abn-withholding",
         &[

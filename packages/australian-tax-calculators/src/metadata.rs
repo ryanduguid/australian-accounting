@@ -3555,7 +3555,7 @@ pub fn input_units(kind: &str) -> Vec<(&'static str, &'static str)> {
             units
         }
         "daily_casual_withholding" => vec![
-            ("daily_earnings", "AUD: the payee's earnings for the day"),
+            ("earnings", "AUD: the payee's earnings for the day"),
             ("tfn_quoted", "boolean: the payee has given a valid TFN"),
             ("foreign_resident", "boolean: the payee answered that they are a foreign resident; true with a TFN is refused"),
             ("tax_free_threshold_claimed", "boolean: the payee has claimed the tax-free threshold, which this table requires when a TFN is quoted"),
@@ -4258,7 +4258,7 @@ pub fn examples(kind: &str) -> Vec<(&'static str, Example)> {
         // The daily and casual table's example, without its tax offsets.
         "daily_casual_withholding" => vec![
             ("year", Text("2026-27")),
-            ("daily_earnings", Text("193.62")),
+            ("earnings", Text("193.62")),
             ("tfn_quoted", Flag(true)),
             ("foreign_resident", Flag(false)),
             ("tax_free_threshold_claimed", Flag(true)),
