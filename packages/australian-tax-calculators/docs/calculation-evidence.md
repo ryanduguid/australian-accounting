@@ -3529,7 +3529,10 @@ Choices the Act leaves to the reader:
 | $14,500 taxable income | SAR 2026 Section D, SMSF B | T1 $2,175.00 |
 | $10,000 contributions, $15,000 net NALI, $6,000 general expense NALI, $5,000 deductions ($1,000 on contributions) | SAR 2026 Section D, SMSF BB | NALC $11,000; T1 $6,300.00 |
 | Gross tax $2,175 with C $675, D $675, E $500 or $2,000 | SAR 2026 T2, T3 and T5 examples | T2 $1,500; T3 $1,500; T5 $1,000 or I $500 |
+| Gross tax $2,000 ($13,312 taxable, $10 no-TFN) with C $2,500 | SAR 2026 T2 example 1 | T2 nil; $500 lost |
 | $10,000 of no-TFN contributions, 2024-25 | SAR 2026 E2 example | J $3,200.00 |
+| $3,200 no-TFN tax offset, 2025-26 | SAR 2026 E2 example | I $3,200.00; S -$2,941.00 |
+| $200,000 segregated, $34,200 other at 40% | both methods together | ECPI $213,680; T1 $3,078.00 |
 | Existing, new, wound up, new and wound up, each year | SAR 2026 table 9 | levy $259, $518, nil, $259 |
 | $1,001 at 33.33% | rounding choice | ECPI $333 |
 

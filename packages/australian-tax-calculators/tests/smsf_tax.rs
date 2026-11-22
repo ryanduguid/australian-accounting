@@ -200,6 +200,58 @@ fn the_ato_offset_examples_agree() {
     );
 }
 
+/// T2 example 1 on its own $2,000 of gross tax: $13,312 at 15% plus 32% of
+/// $10 of no-TFN contributions. $2,000 of the $2,500 offsets is used and
+/// $500 is lost.
+#[test]
+fn the_ato_t2_example_1_agrees() {
+    let out = run(&fund(json!({
+        "assessable_contributions": "10", "no_tfn_contributions": "10",
+        "unsegregated_income": "13302", "non_refundable_offsets": "2500.00",
+    })));
+    assert_amounts(
+        &out,
+        &[
+            ("gross_tax", "2000.00"),
+            ("subtotal_1", "0.00"),
+            ("non_refundable_offsets_lost", "500.00"),
+        ],
+    );
+}
+
+/// The E2 example's 2025-26 return: the $3,200 no-TFN tax offset is
+/// refundable, so with no other tax it is refunded less the levy.
+#[test]
+fn the_ato_no_tfn_offset_example_agrees() {
+    let out = run(&fund(json!({"refundable_offsets": "3200.00"})));
+    assert_amounts(
+        &out,
+        &[
+            ("tax_payable", "0.00"),
+            ("tax_offset_refunds", "3200.00"),
+            ("amount_due_or_refundable", "-2941.00"),
+        ],
+    );
+}
+
+/// Both methods together: segregated pension income is exempt in full and
+/// the actuary's proportion applies to the other income only.
+#[test]
+fn segregated_and_proportionate_methods_combine() {
+    let out = run(&fund(json!({
+        "segregated_pension_income": "200000", "unsegregated_income": "34200",
+        "exempt_proportion": "0.4",
+    })));
+    assert_amounts(
+        &out,
+        &[
+            ("exempt_current_pension_income", "213680.00"),
+            ("taxable_income", "20520.00"),
+            ("tax_on_taxable_income", "3078.00"),
+        ],
+    );
+}
+
 /// The E2 example: Julie's $10,000 of no-TFN contributions for 2024-25 bore
 /// $3,200 of extra tax, on top of the 15%.
 #[test]
@@ -357,6 +409,7 @@ fn each_refusal_has_its_code() {
             json!({"net_non_arms_length_income": "-1"}),
             "input.amount_invalid",
         ),
+        (json!({"eligible_credits": "0.005"}), "input.amount_invalid"),
         (json!({"wound_up": "yes"}), "input.flag_invalid"),
         (json!({"scope_confirmed": false}), "scope.not_confirmed"),
         (json!({"member_balance": "1"}), "input.field_unknown"),
