@@ -3711,14 +3711,6 @@ pub const REFUSAL_CODES: &[(&str, &str)] = &[
         "Medicare Levy Act 1986 s 9A applies, and the worksheet does not make that adjustment.",
     ),
     (
-        "no_abn_withholding.gst_above_payment",
-        "The GST included is more than the payment.",
-    ),
-    (
-        "no_abn_withholding.total_below_payment",
-        "The total of the payments for the supply, disregarding GST, is less than this payment without its GST.",
-    ),
-    (
         "minors_income.excepted_income_invalid",
         "excepted_income is not a list of at most 50 objects, each with a ground ITAA 1936 s 102AE(2) lists and an amount.",
     ),
@@ -3741,6 +3733,14 @@ pub const REFUSAL_CODES: &[(&str, &str)] = &[
     (
         "minors_income.trust_shares_invalid",
         "trust_shares is not a list of at most 50 objects, each with amount and division_6aa_part, the part no more than the amount.",
+    ),
+    (
+        "no_abn_withholding.gst_above_payment",
+        "The GST included is more than the payment.",
+    ),
+    (
+        "no_abn_withholding.total_below_payment",
+        "The total of the payments for the supply, disregarding GST, is less than this payment without its GST.",
     ),
     (
         "non_commercial_losses.activity_invalid",

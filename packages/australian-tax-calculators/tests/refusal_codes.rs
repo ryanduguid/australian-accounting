@@ -189,8 +189,7 @@ fn every_catalogued_required_input_of_a_strict_command_is_read() {
     // gst-financial-acquisitions-threshold, gst-going-concern,
     // gst-second-hand-goods, gst-bad-debt, deferred-tax,
     // cgt-cost-base-adjustments, super-withholding, foreign-income-conversion,
-    // foreign-income-tax-offset, trading-stock and prepayments and
-    // minors-income.
+    // foreign-income-tax-offset, trading-stock, prepayments and minors-income.
     assert_eq!(checked, 93);
 }
 
