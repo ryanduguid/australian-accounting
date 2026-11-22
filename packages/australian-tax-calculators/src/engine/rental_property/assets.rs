@@ -87,18 +87,15 @@ fn reduced(
     ))
 }
 
-/// The days available and held the asset's decline is apportioned by: the
-/// property's, or all of them for an asset in use for the rental only from
-/// after the property was first held, in a year it was available every day
-/// held. The start time can come before the asset was acquired (s 40-60(2)),
-/// but then it was not held when first used, and its rental use starts when
-/// both have happened.
-fn days(
+/// The day the asset's rental use can start, once it was both first used and
+/// acquired. The start time can come before the asset was acquired
+/// (s 40-60(2)), but then it was not held when first used.
+fn rental_start(
     fields: &Map<String, Value>,
     first_used: i64,
     acquired: i64,
     held: &Held,
-) -> Result<(i64, i64)> {
+) -> Result<i64> {
     let from = first_used.max(acquired);
     if from > held.to {
         return conflict(
@@ -110,6 +107,13 @@ fn days(
             "An asset first used before it was acquired was not held when it was first used.",
         );
     }
+    Ok(from)
+}
+
+/// The days available and held the asset's decline is apportioned by: the
+/// property's, or all of them for an asset in rental use only from after the
+/// property was first held, in a year it was available every day held.
+fn days(from: i64, held: &Held) -> Result<(i64, i64)> {
     if from <= held.from || held.available == held.days {
         return Ok((held.available, held.days));
     }
@@ -124,14 +128,17 @@ fn asset(value: &Value, share: &Decimal, held: &Held) -> Result<(String, Decimal
     let decline = amount(fields.get("decline_in_value"))?;
     let acquired = date(fields, "acquired")?;
     let first_used = date(fields, "first_used")?;
-    let (available, all) = days(fields, first_used, acquired, held)?;
+    let from = rental_start(fields, first_used, acquired, held)?;
     let why = reduced(fields, acquired, first_used)?;
     let (formula, deduction) = match why {
         Some(_) => (format!("0 x {decline}"), int(0)),
-        None => (
-            format!("cents({decline} x {share} x {available} / {all})"),
-            cents(decline.mul(share)?.mul(&int(available))?.div(&int(all))?)?,
-        ),
+        None => {
+            let (available, all) = days(from, held)?;
+            (
+                format!("cents({decline} x {share} x {available} / {all})"),
+                cents(decline.mul(share)?.mul(&int(available))?.div(&int(all))?)?,
+            )
+        }
     };
     let row = json!({
         "decline_in_value": decline.to_string(),

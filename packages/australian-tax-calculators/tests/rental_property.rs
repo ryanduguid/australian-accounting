@@ -677,6 +677,12 @@ fn asset_rental_use_starts_at_the_later_of_first_use_and_acquisition() {
     let private_half =
         with(json!({"days_available": 181, "depreciating_assets": [pooled.clone()]}));
     assert_eq!(code(&private_half), "rental_property.days_unclear");
-    let every_day = with(json!({"depreciating_assets": [pooled]}));
+    let every_day = with(json!({"depreciating_assets": [pooled.clone()]}));
     assert_eq!(amount(&every_day, "decline_in_value"), "100.00");
+    // Outside the pool and used privately, s 40-27(2)(d) makes it nil
+    // whatever its days.
+    pooled["low_value_pool"] = json!(false);
+    pooled["residence_or_private_use"] = json!(true);
+    let nil = with(json!({"days_available": 181, "depreciating_assets": [pooled]}));
+    assert_eq!(amount(&nil, "decline_in_value"), "0.00");
 }
