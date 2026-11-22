@@ -3297,7 +3297,9 @@ each date below was chosen to fit its narrative.
 | Brian: domiciled here, permanent abode in Vietnam, 34 days here | example 10 | not a resident |
 | Megan: here all 2025-26, intends to stay | example 16 | resident (resides, 183 days) |
 | Aiko: resides from arrival, 72 days here | example 13 | resident (resides) |
-| Alani, Grace and Ryan: a year here as visitors | examples 14, 15 and 18 | 365 days; not a resident |
+| Alani: 1 September 2025 to 31 May 2026 of seasonal work, abode in Papua New Guinea | example 14 | 273 days; not a resident |
+| Grace: 15 August 2025 to 14 August 2026 on a working holiday, abode in the UK | example 15 | 320 days in 2025-26; not a resident |
+| Ryan: 1 July 2024 to 30 June 2026 on 2 working holidays, abode in Ireland | example 18 | 365 days in each of 2024-25 and 2025-26; not a resident in either |
 | Mark: abroad on assignment, family home here | example 7 | resident (resides, domicile) |
 | 182 and 183 days from 1 July in each year but 2023-24; 183 and 184 in 2023-24 | footnote 51 | not met; met |
 | A period of one day; periods touching or overlapping; periods across 1 July or 30 June | paragraphs 86 and 87 | each day counted once, inside the year |

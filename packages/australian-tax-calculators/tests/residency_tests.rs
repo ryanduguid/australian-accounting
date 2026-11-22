@@ -161,12 +161,51 @@ fn the_ruling_examples_decide_alike() {
             72,
         ),
         (
-            "examples 14, 15 and 18, Alani, Grace and Ryan: a year here as visitors",
+            "example 14, Alani: 9 months of seasonal work, abode in Papua New Guinea",
             with(
                 base("2025-26"),
                 with(
                     visitor.clone(),
-                    json!({"presence": [span("2025-07-01", "2026-06-30")]}),
+                    json!({"presence": [span("2025-09-01", "2026-05-31")]}),
+                ),
+            ),
+            false,
+            vec![],
+            273,
+        ),
+        (
+            "example 15, Grace: a 12-month working holiday from August, abode in the UK",
+            with(
+                base("2025-26"),
+                with(
+                    visitor.clone(),
+                    json!({"presence": [span("2025-08-15", "2026-08-14")]}),
+                ),
+            ),
+            false,
+            vec![],
+            320,
+        ),
+        (
+            "example 18, Ryan: first year of 2 working holidays, abode in Ireland",
+            with(
+                base("2024-25"),
+                with(
+                    visitor.clone(),
+                    json!({"presence": [span("2024-07-01", "2026-06-30")]}),
+                ),
+            ),
+            false,
+            vec![],
+            365,
+        ),
+        (
+            "example 18, Ryan: second year, a share house on a 12-month lease",
+            with(
+                base("2025-26"),
+                with(
+                    visitor.clone(),
+                    json!({"presence": [span("2024-07-01", "2026-06-30")]}),
                 ),
             ),
             false,
