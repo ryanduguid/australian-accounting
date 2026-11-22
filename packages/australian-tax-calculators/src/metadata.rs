@@ -1844,7 +1844,7 @@ pub fn optional_inputs(kind: &str) -> Vec<(&'static str, &'static str)> {
             ),
             (
                 "untaxed_plan_cap_used",
-                "AUD, for a member benefit taxed by age with an untaxed_element above nil, and then required: the total by which earlier lump sums from the same plan reduced the untaxed plan cap (each one's untaxed_plan_cap_counted: its element untaxed in the fund up to the cap left then, as s 307-350(2)(b) reduces the cap to nil rather than counting an excess), in this and earlier years; at most the year's untaxed plan cap",
+                "AUD, for a member benefit with an untaxed_element above nil (a wholly tax free one too, as s 307-350 still reduces the cap), and then required: the total by which earlier lump sums from the same plan reduced the untaxed plan cap (each one's untaxed_plan_cap_counted: its element untaxed in the fund up to the cap left then, as s 307-350(2)(b) reduces the cap to nil rather than counting an excess), in this and earlier years; at most the year's untaxed plan cap",
             ),
             (
                 "other_lump_sums_this_year",

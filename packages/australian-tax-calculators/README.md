@@ -2260,7 +2260,8 @@ reduces the cap to nil rather than counting (s 307-350(2)). Each cap left is
 the year's cap less the amount counted, and the output shows what this benefit
 counts against each. A terminal medical
 condition (s 303-10) or a lump sum under $200 that leaves the interest's value
-nil (s 301-225(1)) makes a member's benefit tax free.
+nil (s 301-225(1)) makes a member's benefit tax free; its element untaxed in
+the fund still counts against the untaxed plan cap.
 
 The rates are ceilings: each offset ensures the rate on its part 'does not
 exceed' the rate, so the person's marginal rates can give less, and the ATO
@@ -2268,7 +2269,7 @@ adds the 2% Medicare levy to each. `assessable_amount` goes in the tax return.
 It refuses a disability superannuation benefit (s 307-145), an element untaxed
 in the fund with service before 1 July 1983 (s 307-150), facts that conflict
 and cap amounts counted above the year's cap. Income streams and their
-commutations, roll-overs,
+commutations, benefits accessed illegally (s 304-10), roll-overs,
 departing Australia superannuation payments (`dasp-tax`), death benefit
 termination payments, foreign and non-complying funds, a deceased estate's
 benefit and withholding are outside it. See

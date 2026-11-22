@@ -456,13 +456,19 @@ fn terminal_medical_condition_and_small_closing_balance() {
         ["0.00", "50000.00", "1000.00"],
     );
     input["terminal_medical_condition"] = json!(true);
+    input["untaxed_plan_cap_used"] = json!("1934500.00");
+    let r = run(&input);
+    assert_eq!(r["treatment"], "terminal_medical_condition");
+    assert_eq!(amount(&r, "maximum_tax"), "0.00");
+    // Tax free, yet its element untaxed in the fund still reduces the
+    // untaxed plan cap (s 307-350(1A) and (2)), here to nil.
+    assert_eq!(amount(&r, "untaxed_plan_cap_left"), "500.00");
+    assert_eq!(amount(&r, "untaxed_plan_cap_counted"), "500.00");
     input
         .as_object_mut()
         .unwrap()
         .remove("untaxed_plan_cap_used");
-    let r = run(&input);
-    assert_eq!(r["treatment"], "terminal_medical_condition");
-    assert_eq!(amount(&r, "maximum_tax"), "0.00");
+    assert_eq!(code(&input), "input.missing_field");
     let small = member(
         "2026-27",
         "2026-10-01",
@@ -664,4 +670,39 @@ fn under_preservation_age_above_the_untaxed_plan_cap() {
     assert_eq!(amount(&r, "untaxed_within_plan_cap_tax"), "15000.00");
     assert_eq!(amount(&r, "untaxed_above_plan_cap_tax"), "22500.00");
     assert_eq!(amount(&r, "maximum_tax"), "37500.00");
+}
+
+/// low_rate_cap_used is earlier income years' counted amounts: $150,000 of
+/// the 2021-22 cap of $225,000 leaves $75,000.
+#[test]
+fn part_of_the_low_rate_cap_used_in_earlier_years() {
+    let mut input = member(
+        "2021-22",
+        "2021-08-01",
+        "1963-01-10",
+        ["0.00", "100000.00", "0.00"],
+    );
+    input["low_rate_cap_used"] = json!("150000.00");
+    input["other_lump_sums_this_year"] = json!(false);
+    let r = run(&input);
+    assert_eq!(amount(&r, "low_rate_cap_left"), "75000.00");
+    assert_eq!(amount(&r, "taxed_above_low_rate_cap_tax"), "3750.00");
+}
+
+/// With no low rate cap left another lump sum in the year cannot change the
+/// parts: the element untaxed in the fund bears 30% within the plan cap.
+#[test]
+fn other_lump_sums_with_no_low_rate_cap_left() {
+    let mut input = member(
+        "2021-22",
+        "2021-08-01",
+        "1963-01-10",
+        ["0.00", "0.00", "10000.00"],
+    );
+    input["low_rate_cap_used"] = json!("225000.00");
+    input["other_lump_sums_this_year"] = json!(true);
+    let r = run(&input);
+    assert_eq!(amount(&r, "untaxed_within_low_rate_cap"), "0.00");
+    assert_eq!(amount(&r, "untaxed_within_plan_cap_tax"), "3000.00");
+    assert_eq!(amount(&r, "maximum_tax"), "3000.00");
 }
