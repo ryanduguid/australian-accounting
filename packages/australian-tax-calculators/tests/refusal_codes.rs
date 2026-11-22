@@ -176,11 +176,11 @@ fn every_catalogued_required_input_of_a_strict_command_is_read() {
     // small-business-income-offset, government-super-amounts,
     // beneficiary-tax-offset, invalid-carer-tax-offset, zone-tax-offset,
     // net-medical-expenses-tax-offset, non-commercial-losses, psi-test,
-    // private-health-insurance-rebate, rental-property and super-benefit-tax, horticulture-shearing-withholding,
-    // upward-variation-withholding, daily-casual-withholding,
-    // no-abn-withholding, entertainer-withholding,
-    // return-to-work-withholding, annuity-withholding and
-    // voluntary-agreement-withholding and residency-tests and lodgment-required.
+    // private-health-insurance-rebate, rental-property, super-benefit-tax,
+    // horticulture-shearing-withholding, upward-variation-withholding,
+    // daily-casual-withholding, no-abn-withholding, entertainer-withholding,
+    // return-to-work-withholding, annuity-withholding,
+    // voluntary-agreement-withholding, residency-tests and lodgment-required.
     assert_eq!(checked, 78);
 }
 

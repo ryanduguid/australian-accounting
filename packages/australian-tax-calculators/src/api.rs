@@ -1079,7 +1079,7 @@ pub fn commands() -> Vec<&'static str> {
 /// command on its `gross_pay` shows that withholding. The classifier's amounts
 /// are totals over lines whose shares a decision table sets, not a formula;
 /// each line and class carries the authority for its row instead.
-const DERIVED: [&str; 65] = [
+const DERIVED: [&str; 69] = [
     "fbt",
     "fbt-car-statutory",
     "fbt-car-operating-cost",

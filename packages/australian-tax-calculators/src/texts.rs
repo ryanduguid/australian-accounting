@@ -2053,6 +2053,18 @@ pub const MEDICARE_SHARED_REDUCTION_NOTE: &str = "The family reduction is shared
 /// A code carries no message text, parameter value or source location.
 pub const REFUSAL_CODES: &[(&str, &str)] = &[
     (
+        "annuity_withholding.deductible_above_payment",
+        "The deductible amount divided by the instalments exceeds the annuity payment.",
+    ),
+    (
+        "annuity_withholding.extra_pay_without_tfn",
+        "The additional amount for 53 weekly or 27 fortnightly pays was asked for on scale 4, for which Schedule 6 gives only the no TFN rate.",
+    ),
+    (
+        "annuity_withholding.income_not_whole_cents",
+        "The annuity payment less the deductible amount divided by the instalments does not come to whole cents, which Schedule 6 does not round.",
+    ),
+    (
         "ato_interest_penalties.date_order",
         "A date is out of the order the question's period needs.",
     ),
@@ -2107,18 +2119,6 @@ pub const REFUSAL_CODES: &[(&str, &str)] = &[
     (
         "ato_interest_penalties.year_mismatch",
         "year is not the financial year of the question's end date.",
-    ),
-    (
-        "annuity_withholding.deductible_above_payment",
-        "The deductible amount divided by the instalments exceeds the annuity payment.",
-    ),
-    (
-        "annuity_withholding.extra_pay_without_tfn",
-        "The additional amount for 53 weekly or 27 fortnightly pays was asked for on scale 4, for which Schedule 6 gives only the no TFN rate.",
-    ),
-    (
-        "annuity_withholding.income_not_whole_cents",
-        "The annuity payment less the deductible amount divided by the instalments does not come to whole cents, which Schedule 6 does not round.",
     ),
     (
         "balancing.asset_invalid",
@@ -3184,20 +3184,20 @@ pub const REFUSAL_CODES: &[(&str, &str)] = &[
         "Medicare Levy Act 1986 s 9A applies, and the worksheet does not make that adjustment.",
     ),
     (
-        "non_commercial_losses.activity_invalid",
-        "activity is not other, primary_production or professional_arts.",
-    ),
-    (
-        "non_commercial_losses.earlier_years_invalid",
-        "earlier_years is not a list of 4 entries, each null or an object with assessable_income and deductions.",
-    ),
-    (
         "no_abn_withholding.gst_above_payment",
         "The GST included is more than the payment.",
     ),
     (
         "no_abn_withholding.total_below_payment",
         "The total of the payments for the supply, disregarding GST, is less than this payment without its GST.",
+    ),
+    (
+        "non_commercial_losses.activity_invalid",
+        "activity is not other, primary_production or professional_arts.",
+    ),
+    (
+        "non_commercial_losses.earlier_years_invalid",
+        "earlier_years is not a list of 4 entries, each null or an object with assessable_income and deductions.",
     ),
     (
         "payg.extra_pays_not_weekly_or_fortnightly",
@@ -3501,6 +3501,10 @@ pub const REFUSAL_CODES: &[(&str, &str)] = &[
         "An average wholesale price quantity is not a decimal string above 0, at most 1e12 and 4 decimal places.",
     ),
     (
+        "withholding.working_holiday_maker",
+        "The payee is a working holiday maker, for whom Schedule 15 governs every payment.",
+    ),
+    (
         "work_expenses.allowance_received",
         "An allowance was received for the expenses, so the reasonable allowance exceptions and occupation-specific guidance the worksheet does not apply would be needed.",
     ),
@@ -3535,10 +3539,6 @@ pub const REFUSAL_CODES: &[(&str, &str)] = &[
     (
         "work_expenses.reimbursed",
         "The expenses were reimbursed or paid for by someone else, so the taxpayer did not bear them.",
-    ),
-    (
-        "withholding.working_holiday_maker",
-        "The payee is a working holiday maker, for whom Schedule 15 governs every payment.",
     ),
     (
         "working_holiday_maker.band_unsettled",
