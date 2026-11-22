@@ -26,13 +26,14 @@ pub use withholding::{SuperWithholdingArgs, super_withholding};
 const KIND: &str = "super_benefit_tax";
 
 /// The inputs only a member benefit, or only some, call for.
-pub const SUPER_BENEFIT_OPTIONAL: [&str; 6] = [
+pub const SUPER_BENEFIT_OPTIONAL: [&str; 7] = [
     "date_of_birth",
     "terminal_medical_condition",
     "disability_superannuation_benefit",
     "service_before_july_1983",
     "low_rate_cap_used",
     "untaxed_plan_cap_used",
+    "other_lump_sums_this_year",
 ];
 
 /// The facts as the command passes them; see the README for each.
@@ -46,14 +47,13 @@ pub struct SuperBenefitTaxArgs<'a> {
     pub year: &'a Arg,
     pub scope_confirmed: &'a Arg,
     /// [`SUPER_BENEFIT_OPTIONAL`] in order.
-    pub optional: [Option<&'a Arg>; 6],
+    pub optional: [Option<&'a Arg>; 7],
 }
 
 const TAX_FREE: &str = "ITAA 1997 s 307-125(2) and (3)(b): the tax free component bears the same proportion to the benefit as the interest's tax free component bears to its value just before the benefit is paid; the Act states no rounding, so this worksheet rounds it to the cent (0.5 cents up)";
 const TAXABLE: &str =
     "ITAA 1997 ss 307-120(2) and 307-125(2): the taxable component is the rest of the benefit";
 const TAXED: &str = "ITAA 1997 s 307-275(1) and (2): the taxable component is an element taxed in the fund except as ss 307-280 to 307-290 make part of it untaxed, as the fund states it";
-const NANE: &str = "the parts the Act makes not assessable income and not exempt income";
 const ASSESSABLE: &str = "ITAA 1997 ss 301-20(1), 301-35(1), 301-95(1), 301-105(1), 301-115(1) and 302-145(1): the parts included in assessable income";
 const MAXIMUM: &str = "The sum of each part's tax at the rate its offset ensures is not exceeded: the most income tax the benefit can bear before Medicare levy, which the person's marginal rates can make lower; the ATO's tables add the 2% Medicare levy to each rate";
 
@@ -97,6 +97,26 @@ impl Treatment {
                 "ITAA 1997 s 301-225(1): a member lump sum under $200 that leaves the interest's value nil is not assessable income and not exempt income",
             ),
             _ => None,
+        }
+    }
+
+    /// The provision that makes the parts other than the assessable amount
+    /// not assessable income and not exempt income.
+    fn rest_free(self) -> &'static str {
+        match self {
+            Self::Aged60 => {
+                "ITAA 1997 s 301-10: at 60 or over, the lump sum other than the element untaxed in the fund (s 301-90(a)) is not assessable income and not exempt income"
+            }
+            Self::PreservationTo59 => {
+                "ITAA 1997 s 301-15: the tax free component is not assessable income and not exempt income"
+            }
+            Self::UnderPreservation => {
+                "ITAA 1997 s 301-30: the tax free component is not assessable income and not exempt income"
+            }
+            Self::NonDependant => {
+                "ITAA 1997 s 302-140: the tax free component is not assessable income and not exempt income"
+            }
+            _ => self.wholly_free().expect("wholly free"),
         }
     }
 }
@@ -337,7 +357,7 @@ fn totals(t: Treatment, c: &Components, ids: &[String], tax: &[Decimal]) -> Resu
         assessable.clone(),
     );
     let free = c.benefit.sub(&assessable)?;
-    let authority = t.wholly_free().unwrap_or(NANE);
+    let authority = t.rest_free();
     let rest = step(
         "non_assessable_non_exempt",
         authority,

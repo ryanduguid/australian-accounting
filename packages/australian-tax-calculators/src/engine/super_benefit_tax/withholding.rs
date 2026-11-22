@@ -88,7 +88,7 @@ fn rollover(
     }
     none_of(
         args,
-        &[0, 1, 2, 4],
+        &[0, 1, 2, 4, 6],
         "for a member benefit (recipient member)",
     )?;
     refuse_pre_1983_service(args, c)?;
@@ -222,7 +222,7 @@ fn by_treatment(
     let (t, ages) = treatment(args, c, paid)?;
     refuse_pre_1983_service(args, c)?;
     let tail = if !tfn {
-        none_of(args, &[4, 5], "with a TFN (tfn_provided true)")?;
+        none_of(args, &[4, 5, 6], "with a TFN (tfn_provided true)")?;
         no_tfn(t, c, foreign)?
     } else {
         let p = parts::parts(t, c, year, args)?;
@@ -264,7 +264,7 @@ pub fn super_withholding(args: &SuperWithholdingArgs) -> Result<Value> {
         Some("deceased_estate_trustee") => {
             none_of(
                 b,
-                &[0, 1, 2, 3, 4, 5],
+                &[0, 1, 2, 3, 4, 5, 6],
                 "for a member benefit or a roll-over",
             )?;
             ("deceased_estate_trustee", None, nil())

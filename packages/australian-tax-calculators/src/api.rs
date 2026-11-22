@@ -1449,8 +1449,8 @@ pub fn evaluate_coded(command: &str, v: &Value) -> Result<Value> {
                 let kind = if key.ends_with("_used") { Dec } else { Raw };
                 optional(v, key, kind)
             });
-            let [a0, a1, a2, a3, a4, a5] = given;
-            let given = [a0?, a1?, a2?, a3?, a4?, a5?];
+            let [a0, a1, a2, a3, a4, a5, a6] = given;
+            let given = [a0?, a1?, a2?, a3?, a4?, a5?, a6?];
             engine::super_benefit_tax(&engine::SuperBenefitTaxArgs {
                 benefit: &a[0],
                 interest_value: &a[1],
@@ -1469,8 +1469,8 @@ pub fn evaluate_coded(command: &str, v: &Value) -> Result<Value> {
                 let kind = if key.ends_with("_used") { Dec } else { Raw };
                 optional(v, key, kind)
             });
-            let [a0, a1, a2, a3, a4, a5] = given;
-            let given = [a0?, a1?, a2?, a3?, a4?, a5?];
+            let [a0, a1, a2, a3, a4, a5, a6] = given;
+            let given = [a0?, a1?, a2?, a3?, a4?, a5?, a6?];
             engine::super_withholding(&engine::SuperWithholdingArgs {
                 base: engine::SuperBenefitTaxArgs {
                     benefit: &a[0],

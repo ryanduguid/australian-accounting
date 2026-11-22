@@ -2555,9 +2555,15 @@ everyone born after 30 June 1964, and everyone born before is 60 by 30 June
 2023-24 and the command holds no low rate cap for those years. Table 9 prints
 '2025–26 $260,000' with no 2026-27 row whilst its text says the cap is
 $260,000 from 1 July 2026; neither figure is used. Each cap left is the
-year's cap less the amounts counted for earlier lump sums: each amount
-counted never exceeds the cap then, so this equals the section's year by
-year reduction and indexation (the ATO's Talise and Anh examples). The Act
+year's cap less the amounts counted for earlier lump sums: the low rate cap
+by those of earlier income years (s 307-345(2) reduces the next year's cap),
+the untaxed plan cap by each earlier lump sum's amount counted, which never
+exceeds the cap left then (s 307-350(2)(b) reduces it to nil). This equals the
+sections' year by year reduction and indexation (the ATO's Talise and Anh
+examples). Other lump sums in the same year at or above preservation age and
+under 60 are refused while any of the low rate cap is left: ss 301-20(3) and 301-105(5) and (6) share that year's
+low rate cap across them, the element taxed in the fund first, whatever the
+order of payment. The Act
 states no rounding of the proportioning rule; rounding the tax free component
 to the cent and each part's tax to the cent is the command's.
 

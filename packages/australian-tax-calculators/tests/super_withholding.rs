@@ -148,7 +148,25 @@ fn heather_and_dean_follow_schedule_12() {
         ["30000.00", "220000.00", "0.00"],
     );
     heather["low_rate_cap_used"] = json!("0.00");
+    heather["other_lump_sums_this_year"] = json!(false);
     assert_eq!(withheld(&heather), "850.00");
+    // Another lump sum that year with cap left is refused, as in
+    // super-benefit-tax; without a TFN the input is not taken.
+    heather["other_lump_sums_this_year"] = json!(true);
+    assert_eq!(
+        api::evaluate_coded("super-withholding", &heather)
+            .unwrap_err()
+            .code,
+        "super_benefit_tax.other_lump_sums_this_year"
+    );
+    heather["tfn_provided"] = json!(false);
+    heather.as_object_mut().unwrap().remove("low_rate_cap_used");
+    assert_eq!(
+        api::evaluate_coded("super-withholding", &heather)
+            .unwrap_err()
+            .code,
+        "input.field_unknown"
+    );
     let dean = member(
         "2020-21",
         "2020-12-01",
@@ -180,11 +198,13 @@ fn table_a_member_rates() {
         ["0.00", "10000.00", "20000.00"],
     );
     band["low_rate_cap_used"] = json!("224000.00");
+    band["other_lump_sums_this_year"] = json!(false);
     band["untaxed_plan_cap_used"] = json!("1605000.00");
     assert_eq!(withheld(&band), "9430.00");
     // Low rate cap left after the taxed element goes to the untaxed element
     // at 17%: taxed $10,000 nil; untaxed $5,000 at 17% and $15,000 at 32%.
     band["low_rate_cap_used"] = json!("210000.00");
+    band["other_lump_sums_this_year"] = json!(false);
     band["untaxed_plan_cap_used"] = json!("0.00");
     assert_eq!(withheld(&band), "5650.00");
     let mut aged = member(

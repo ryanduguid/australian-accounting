@@ -1849,11 +1849,15 @@ pub fn optional_inputs(kind: &str) -> Vec<(&'static str, &'static str)> {
             ),
             (
                 "low_rate_cap_used",
-                "AUD, with a TFN for a member at or above preservation age and under 60 (possible only to 2023-24), and then required: the amounts counted towards the low rate cap for earlier lump sums",
+                "AUD, with a TFN for a member at or above preservation age and under 60 (possible only to 2023-24), and then required: the amounts counted towards the low rate cap in earlier income years, as in super-benefit-tax",
             ),
             (
                 "untaxed_plan_cap_used",
-                "AUD, with a TFN for a member benefit taxed by age or a roll-over with an untaxed_element above nil, and then required: the elements untaxed in the fund of earlier lump sums from the same plan counted against the untaxed plan cap",
+                "AUD, with a TFN for a member benefit taxed by age or a roll-over with an untaxed_element above nil, and then required: the total by which earlier lump sums from the same plan reduced the untaxed plan cap (each one's untaxed_plan_cap_counted in super-benefit-tax)",
+            ),
+            (
+                "other_lump_sums_this_year",
+                "boolean, with a TFN for a member at or above preservation age and under 60, and then required: true is refused while any of the low rate cap is left, as in super-benefit-tax",
             ),
         ],
         "super_benefit_tax" => vec![
@@ -1875,11 +1879,15 @@ pub fn optional_inputs(kind: &str) -> Vec<(&'static str, &'static str)> {
             ),
             (
                 "low_rate_cap_used",
-                "AUD, for a member at or above preservation age and under 60 (possible only to 2023-24), and then required: the amounts counted towards the s 301-20(2) and 301-105(4) offsets for earlier lump sums, in earlier years and earlier in this year; at most the year's low rate cap",
+                "AUD, for a member at or above preservation age and under 60 (possible only to 2023-24), and then required: the amounts counted towards the s 301-20(2) and 301-105(4) offsets for lump sums in earlier income years (each year's low_rate_cap_counted), which reduce the cap for later years (s 307-345(2)); at most the year's low rate cap",
             ),
             (
                 "untaxed_plan_cap_used",
-                "AUD, for a member benefit taxed by age with an untaxed_element above nil, and then required: the elements untaxed in the fund of earlier lump sums from the same plan counted under s 307-350(2); at most the year's untaxed plan cap",
+                "AUD, for a member benefit taxed by age with an untaxed_element above nil, and then required: the total by which earlier lump sums from the same plan reduced the untaxed plan cap (each one's untaxed_plan_cap_counted: its element untaxed in the fund up to the cap left then, as s 307-350(2)(b) reduces the cap to nil rather than counting an excess), in this and earlier years; at most the year's untaxed plan cap",
+            ),
+            (
+                "other_lump_sums_this_year",
+                "boolean, for a member at or above preservation age and under 60, and then required: true (the member receives another superannuation lump sum in the same income year in that band) is refused while any of the low rate cap is left, as ss 301-20(3) and 301-105(5) and (6) share the year's low rate cap across them, the element taxed in the fund first",
             ),
         ],
         "fuel_tax_credits" => vec![
@@ -2793,7 +2801,7 @@ pub fn input_units(kind: &str) -> Vec<(&'static str, &'static str)> {
             ),
             (
                 "interest_value",
-                "AUD, the value of the superannuation interest it is paid from (s 307-205), just before it is paid; at least the benefit",
+                "AUD, the value of the superannuation interest it is paid from (s 307-205), just before it is paid; at least the benefit. A commutation of an income stream is outside the command",
             ),
             (
                 "interest_tax_free_component",
@@ -2827,7 +2835,7 @@ pub fn input_units(kind: &str) -> Vec<(&'static str, &'static str)> {
             ),
             (
                 "interest_value",
-                "AUD, the value of the superannuation interest it is paid from (s 307-205), just before it is paid, or for a commutation of an income stream when the stream commenced (s 307-125(3)); at least the benefit",
+                "AUD, the value of the superannuation interest it is paid from (s 307-205) just before it is paid (s 307-125(3)(b)); at least the benefit. A commutation of an income stream, valued when the stream commenced (s 307-125(3)(c)), is outside the command",
             ),
             (
                 "interest_tax_free_component",
@@ -3827,6 +3835,7 @@ pub fn examples(kind: &str) -> Vec<(&'static str, Example)> {
             ("terminal_medical_condition", Flag(false)),
             ("disability_superannuation_benefit", Flag(false)),
             ("low_rate_cap_used", Text("0.00")),
+            ("other_lump_sums_this_year", Flag(false)),
         ],
         "dasp_tax" => vec![
             ("tax_free_component", Text("25000.00")),

@@ -7,10 +7,12 @@
 
 use super::{Components, SuperBenefitTaxArgs, Treatment, conflict, when};
 use crate::decimal::Decimal;
-use crate::engine::{Arg, Result, Step, cents, d, int, lookup, money, py_min, rate, step};
+use crate::engine::{
+    Arg, Result, Step, cents, d, flag, int, lookup, money, py_min, rate, refuse, step,
+};
 use crate::metadata as meta;
 
-const LOW_CAP_LEFT: &str = "ITAA 1997 s 307-345: the year's indexed low rate cap amount less the amounts counted towards the s 301-20(2) and 301-105(4) offsets for earlier lump sums (s 307-345(2) for earlier years; ss 301-20(3) and 301-105(5) within the year)";
+const LOW_CAP_LEFT: &str = "ITAA 1997 s 307-345: the year's indexed low rate cap amount less the amounts counted towards the s 301-20(2) and 301-105(4) offsets for lump sums in earlier income years (s 307-345(2)); no other lump sum in this income year shares it";
 const PLAN_CAP_LEFT: &str = "ITAA 1997 s 307-350: the year's indexed untaxed plan cap amount for the plan less the elements untaxed in the fund of earlier lump sums from it counted under s 307-350(2)";
 const TAXED_LOW: &str = "ITAA 1997 s 301-20(2) and (3), with s 301-90(b): preservation age to under 60, the element taxed in the fund up to the low rate cap amount, at a rate not above 0%";
 const TAXED_ABOVE_LOW: &str = "ITAA 1997 s 301-20(4) and (5), with s 301-90(b): preservation age to under 60, the element taxed in the fund above the low rate cap amount, at a rate not above 15%";
@@ -188,6 +190,7 @@ fn preservation_parts(
     year: &str,
     used: &Arg,
     plan: Option<&Decimal>,
+    others: bool,
     p: &mut Parts,
 ) -> Result<Option<Decimal>> {
     // From 1 July 2024 the preservation age is 60 for everyone born after
@@ -196,6 +199,12 @@ fn preservation_parts(
     let cap = lookup(&meta::SUPER_LOW_RATE_CAP, year);
     let id = ("low_rate_cap_left", LOW_CAP_LEFT);
     let low_left = p.cap_left(id, cap, used, "low_rate_cap_used")?;
+    if others && !low_left.is_zero() {
+        return refuse(
+            "super_benefit_tax.other_lump_sums_this_year",
+            "Other lump sums received in the same income year at or above preservation age and under 60 share the year's low rate cap left under ITAA 1997 ss 301-20(3) and 301-105(5) and (6), the element taxed in the fund first whatever the order of payment, which this command does not take; with none of the cap left they do not change the result.",
+        );
+    }
     let low = taxed_low_parts(c, &low_left, p)?;
     let rule = (UNTAXED_ABOVE_LOW, "0.30");
     let untaxed = plan
@@ -250,14 +259,18 @@ fn member_parts(
     args: &SuperBenefitTaxArgs,
     p: &mut Parts,
 ) -> Result<()> {
-    let [.., low_used, plan_used] = args.optional;
+    let [.., low_used, plan_used, others] = args.optional;
     let why = "for a member at or above preservation age and under 60";
     let needed = t == Treatment::PreservationTo59;
     let low_used = when(needed, low_used, "low_rate_cap_used", why)?;
+    let others = match when(needed, others, "other_lump_sums_this_year", why)? {
+        Some(others) => flag(others, "other_lump_sums_this_year")?,
+        None => false,
+    };
     let plan = plan_left(c, year, plan_used, p)?;
     let within = match (t, &plan, low_used) {
         (Treatment::PreservationTo59, _, Some(used)) => {
-            preservation_parts(c, year, used, plan.as_ref(), p)?
+            preservation_parts(c, year, used, plan.as_ref(), others, p)?
         }
         (Treatment::UnderPreservation, ..) => under_preservation_parts(c, plan.as_ref(), p)?,
         (_, Some(left), _) => Some(untaxed_parts(c, left, (UNTAXED_60, "0.15"), None, p)?.0),
@@ -307,9 +320,10 @@ pub(super) fn parts(
         Treatment::Aged60 | Treatment::PreservationTo59 | Treatment::UnderPreservation
     ) {
         let why = "for a member benefit taxed by age (not wholly tax free)";
-        let [.., low_used, plan_used] = args.optional;
+        let [.., low_used, plan_used, others] = args.optional;
         when(false, low_used, "low_rate_cap_used", why)?;
         when(false, plan_used, "untaxed_plan_cap_used", why)?;
+        when(false, others, "other_lump_sums_this_year", why)?;
     }
     Ok(p)
 }
