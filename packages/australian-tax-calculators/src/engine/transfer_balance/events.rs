@@ -178,8 +178,9 @@ fn check_dates(events: &[Event], to: i64) -> Result<()> {
         .map(|e| e.day)
         .min()
         .expect("at least one event");
-    if !events.iter().any(|e| e.day == first && e.credit) {
-        return date_order("The first event's day must have a credit: the account starts with a retirement phase income stream (ITAA 1997 s 294-15).".into());
+    let starts = |e: &Event| matches!(e.kind, "existing_income_stream" | "new_income_stream");
+    if !events.iter().any(|e| e.day == first && starts(e)) {
+        return date_order("The first event's day must have an existing_income_stream or new_income_stream credit: the account starts when you first become a retirement phase recipient (ITAA 1997 s 294-15), and an LRBA repayment credit needs an income stream already in the account (s 294-55(1)(b)).".into());
     }
     Ok(())
 }
@@ -204,7 +205,8 @@ pub(super) fn parse(events: &Arg, to: i64) -> Result<Vec<Event>> {
 /// Whether IT(TP)A 1997 s 294-30 disregards the excess on each day from
 /// 1 July to 31 December 2017: only item 1 credits in that period, their sum
 /// above the $1,600,000 cap and at most $1,700,000, and debits by 31 December
-/// 2017 of at least that excess.
+/// 2017 of at least that excess. Every condition looks at the whole period,
+/// so a `to` before its end is refused once (a) and (b) hold so far.
 pub(super) fn transitional(events: &[Event], to: i64) -> Result<bool> {
     let window: Vec<&Event> = events.iter().filter(|e| e.day <= TRANSITION_END).collect();
     let credits = window.iter().filter(|e| e.credit);
@@ -216,17 +218,14 @@ pub(super) fn transitional(events: &[Event], to: i64) -> Result<bool> {
     if sum <= cap || sum > limit {
         return Ok(false);
     }
-    let debits: i64 = window.iter().filter(|e| !e.credit).map(|e| e.cents).sum();
-    if debits >= sum - cap {
-        return Ok(true);
-    }
     if to < TRANSITION_END {
         return refuse(
             "transfer_balance.transition_undecided",
-            "IT(TP)A 1997 s 294-30 may disregard this excess if debits by 31 December 2017 reach it; give to on or after 31 December 2017.",
+            "IT(TP)A 1997 s 294-30 may disregard this excess, which depends on every credit and debit to 31 December 2017; give to on or after 31 December 2017.",
         );
     }
-    Ok(false)
+    let debits: i64 = window.iter().filter(|e| !e.credit).map(|e| e.cents).sum();
+    Ok(debits >= sum - cap)
 }
 
 #[cfg(test)]

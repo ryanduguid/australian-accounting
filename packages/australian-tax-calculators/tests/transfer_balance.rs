@@ -281,6 +281,47 @@ fn the_2017_transitional_rule() {
         code("transfer-balance", &early),
         "transfer_balance.transition_undecided"
     );
+    // Debits already cover the excess, but a later credit other than item 1
+    // before 31 December 2017 would still end the relief (s 294-30(a)).
+    let covered = tba(
+        &[
+            ("2017-07-01", "existing_income_stream", "1650000.00"),
+            ("2017-08-01", "commutation", "50000.00"),
+        ],
+        "2017-09-30",
+        "2017-18",
+        false,
+    );
+    assert_eq!(
+        code("transfer-balance", &covered),
+        "transfer_balance.transition_undecided"
+    );
+}
+
+/// Each debit kind takes its amount off the balance, and an LRBA repayment
+/// credit adds to an account an income stream has started.
+#[test]
+fn every_event_kind_moves_the_balance() {
+    for debit in [
+        "commutation",
+        "reduced_super",
+        "payment_split",
+        "stopped_retirement_phase",
+    ] {
+        let out = run(
+            &[
+                ("2020-01-01", "new_income_stream", "1000000.00"),
+                ("2020-03-01", debit, "100000.00"),
+                ("2020-04-01", "lrba_repayment", "2500.00"),
+            ],
+            "2020-06-30",
+            "2019-20",
+        );
+        assert_eq!(amount(&out, "transfer_balance"), "902500.00", "{debit}");
+        assert_eq!(out["ledger"][1]["kind"], debit);
+        assert_eq!(out["ledger"][1]["debit"], "100000.00");
+        assert_eq!(out["ledger"][2]["credit"], "2500.00");
+    }
 }
 
 #[test]
@@ -331,6 +372,18 @@ fn transfer_balance_refusals() {
         (
             tba(
                 &[("2020-01-01", "commutation", "1.00")],
+                "2020-06-30",
+                "2019-20",
+                false,
+            ),
+            "transfer_balance.date_order",
+        ),
+        (
+            tba(
+                &[
+                    ("2020-01-01", "lrba_repayment", "1.00"),
+                    ("2020-02-01", "new_income_stream", "1.00"),
+                ],
                 "2020-06-30",
                 "2019-20",
                 false,
@@ -589,6 +642,11 @@ fn proxy_rates_against_the_atos_table_5() {
             .parse()
             .unwrap();
         assert_eq!(format!("{:.2}", exact + 1e-9), rounded, "{year}");
+        if year == "2022-23" {
+            // The Act's day-weighted rate, not the ATO's published 9.46%.
+            assert_eq!(out["rates"]["proxy_rate_percent"], "9.451452");
+            assert!(out["warnings"].to_string().contains("9.46%"));
+        }
     }
 }
 
