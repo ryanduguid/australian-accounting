@@ -52,13 +52,6 @@
   `tests/foreign_income_tax_offset.rs` holds it to Examples 16 and 17 of the
   ATO's foreign income tax offset guides for 2024 to 2026 and its part-year
   threshold examples.
-
-## 1.2.0
-
-- Relicensed Ryan Duguid's code under AGPL-3.0-or-later with section 7(b) attribution terms.
-
-### Added
-
 - `fbt-return` takes `employer_kind`: a rebatable employer's items 17 to 19
   (FBTAA s 65J, the $30,000 cap and `rebatable_days`), and a public benevolent
   institution's or health promotion charity's ($30,000) or a public hospital's,
@@ -71,7 +64,6 @@
   `fbt_return.nfp_exempt_car_unsupported` and
   `fbt_return.rebatable_days_invalid`. `tests/fbt_return_nfp.rs` holds it to
   the ATO's not-for-profit worked examples 1 to 3.
-
 - `fbt-instalment` works out one quarter's FBT instalment for the years ended
   31 March 2026 and 2027: F1 copied to 6A, or a variation on the year's
   estimate (F2) with the relevant fraction (FBTAA ss 109 to 112A) to F3, 6A
@@ -79,6 +71,12 @@
   `fbt_instalment.ato_instalment_missing`, `fbt_instalment.quarter_invalid`
   and `fbt_instalment.variation_invalid`. `tests/fbt_instalment.rs` holds it
   to the ATO's and the employer's guide's examples.
+
+## 1.2.0
+
+- Relicensed Ryan Duguid's code under AGPL-3.0-or-later with section 7(b) attribution terms.
+
+### Added
 
 - `work-expenses` works out an employee's working from home, car or
   self-education deduction for 2020-21 to 2026-27, one `method` a call: the
