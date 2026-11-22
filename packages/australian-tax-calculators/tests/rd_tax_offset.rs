@@ -257,7 +257,7 @@ fn a_clawback_across_the_tier_split_and_the_cap() {
     let tiers = run(&input(json!({
         "notional_deductions": "300000.00", "total_expenses": "10000000.00",
         "aggregated_turnover": "60000000.00", "base_rate_entity": false,
-        "recoupment_clawback": "150000.00",
+        "recoupment_clawback": "150000.00", "present_year_base_rate_entity": false,
     })));
     assert_eq!(
         clawback(&tiers),
@@ -267,7 +267,7 @@ fn a_clawback_across_the_tier_split_and_the_cap() {
     let cap = run(&input(json!({
         "notional_deductions": "160000000.00", "total_expenses": "2000000000.00",
         "aggregated_turnover": "500000000.00", "base_rate_entity": false,
-        "recoupment_clawback": "20000000.00",
+        "recoupment_clawback": "20000000.00", "present_year_base_rate_entity": false,
     })));
     assert_eq!(
         clawback(&cap),
