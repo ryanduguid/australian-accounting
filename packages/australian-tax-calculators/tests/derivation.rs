@@ -423,6 +423,7 @@ fn cases() -> Vec<(&'static str, Value)> {
                    "date_of_birth": "1963-01-10", "terminal_medical_condition": false,
                    "disability_superannuation_benefit": false,
                    "service_before_july_1983": false, "low_rate_cap_used": "0.00",
+                   "other_lump_sums_this_year": false,
                    "untaxed_plan_cap_used": "0.00",
                    "year": "2021-22", "scope_confirmed": true}),
         ),

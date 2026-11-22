@@ -152,7 +152,7 @@ booleans and counts, ages, days, quarters and scales are JSON integers.
 | `cgt-parcels` | `entity`, `identification`, `parcels`, `disposals`, `other_discount_capital_gains`, `other_capital_gains`, `other_capital_losses`, `prior_net_capital_losses`, `year`, `scope_confirmed`; see [CGT parcels](#cgt-parcels) |
 | `trade-in` | `cost`, `asset`, `years`, `trade_in_allowance`, `trade_in_taxable`, `replacement_price`, `replacement_asset`, `replacement_creditable_acquisition`, `arms_length`, `involuntary_disposal`, `year`, `scope_confirmed`; `car_limit`, `adjusted_input_tax_credit`, `full_input_tax_credit`, `replacement_luxury_car_tax` and `creditable_purpose` where the facts need them; see [Trade-in](#trade-in) |
 | `dasp-tax` | `tax_free_component`, `taxed_element`, `untaxed_element`, `working_holiday_maker_contributions`, `unclaimed_money_rollover`, `year`, `scope_confirmed`; see [DASP tax](#dasp-tax) |
-| `super-benefit-tax` | `benefit`, `interest_value`, `interest_tax_free_component`, `untaxed_element`, `recipient`, `payment_date`, `year`, `scope_confirmed`; optionally `date_of_birth`, `terminal_medical_condition`, `disability_superannuation_benefit`, `service_before_july_1983`, `low_rate_cap_used`, `untaxed_plan_cap_used`; see [Super benefit tax](#super-benefit-tax) |
+| `super-benefit-tax` | `benefit`, `interest_value`, `interest_tax_free_component`, `untaxed_element`, `recipient`, `payment_date`, `year`, `scope_confirmed`; optionally `date_of_birth`, `terminal_medical_condition`, `disability_superannuation_benefit`, `service_before_july_1983`, `low_rate_cap_used`, `untaxed_plan_cap_used`, `other_lump_sums_this_year`; see [Super benefit tax](#super-benefit-tax) |
 | `payroll-tax` | `jurisdiction`, `taxable_wages`, `australian_wages`, `group_member`, `employed_all_year`, `year`, `scope_confirmed`; in Victoria, `regional_employer`; see [Payroll tax](#payroll-tax) |
 | `fbt` | `type_one_value`, `type_two_value`, `year_ended`, `scope_confirmed` |
 | `fbt-car-statutory` | `cost_price`, `later_accessories`, `one_third_reduction`, `days_available`, `employee_contribution`, `electric_car_exempt`, `year_ended`, `scope_confirmed` |
@@ -2247,12 +2247,18 @@ member gives `date_of_birth`, `terminal_medical_condition` and
 is taken on `payment_date`, and the preservation age from the date of birth
 (55 before 1 July 1960, rising a year for each later financial year of birth
 to 60 from 1 July 1964). From 1 July 2024 nobody is at or above preservation
-age and under 60, so `low_rate_cap_used` is asked for only to 2023-24. It is
-the amounts counted towards the s 301-20(2) and 301-105(4) offsets for earlier
-lump sums; `untaxed_plan_cap_used`, asked for with an element untaxed in the
-fund, is the elements untaxed in the fund counted from the same plan
-(s 307-350). Each cap left is the year's cap less the amount counted, and the
-output shows what this benefit counts against each. A terminal medical
+age and under 60, so `low_rate_cap_used` and `other_lump_sums_this_year` are
+asked for only to 2023-24. `low_rate_cap_used` is the amounts counted towards
+the s 301-20(2) and 301-105(4) offsets in earlier income years (s 307-345(2));
+another lump sum in the same year in that band is refused while any of the
+low rate cap is left, as ss 301-20(3) and
+301-105(5) and (6) share the year's cap across the lump sums, the element taxed
+in the fund first. `untaxed_plan_cap_used`, asked for with an element untaxed
+in the fund, is the total by which earlier lump sums from the same plan reduced
+the untaxed plan cap: each one's `untaxed_plan_cap_counted`, as an excess
+reduces the cap to nil rather than counting (s 307-350(2)). Each cap left is
+the year's cap less the amount counted, and the output shows what this benefit
+counts against each. A terminal medical
 condition (s 303-10) or a lump sum under $200 that leaves the interest's value
 nil (s 301-225(1)) makes a member's benefit tax free.
 
@@ -2261,7 +2267,8 @@ exceed' the rate, so the person's marginal rates can give less, and the ATO
 adds the 2% Medicare levy to each. `assessable_amount` goes in the tax return.
 It refuses a disability superannuation benefit (s 307-145), an element untaxed
 in the fund with service before 1 July 1983 (s 307-150), facts that conflict
-and cap amounts counted above the year's cap. Income streams, roll-overs,
+and cap amounts counted above the year's cap. Income streams and their
+commutations, roll-overs,
 departing Australia superannuation payments (`dasp-tax`), death benefit
 termination payments, foreign and non-complying funds, a deceased estate's
 benefit and withholding are outside it. See

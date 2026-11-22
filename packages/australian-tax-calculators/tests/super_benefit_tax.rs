@@ -114,6 +114,7 @@ fn tony_pays_15_percent_above_the_low_rate_cap() {
         ["100000.00", "250000.00", "0.00"],
     );
     input["low_rate_cap_used"] = json!("0.00");
+    input["other_lump_sums_this_year"] = json!(false);
     let r = run(&input);
     assert_eq!(r["treatment"], "preservation_age_to_59");
     assert_eq!(r["rates"]["age"], "58");
@@ -146,6 +147,7 @@ fn heather_and_dean_follow_schedule_12() {
         ["30000.00", "220000.00", "0.00"],
     );
     heather["low_rate_cap_used"] = json!("0.00");
+    heather["other_lump_sums_this_year"] = json!(false);
     let r = run(&heather);
     assert_eq!(r["rates"]["preservation_age"], "56");
     assert_eq!(amount(&r, "taxed_above_low_rate_cap"), "5000.00");
@@ -222,6 +224,7 @@ fn past_both_caps_the_untaxed_element_bears_the_top_rate() {
         ["20000.00", "40000.00", "45000.00"],
     );
     peta["low_rate_cap_used"] = json!("215000.00");
+    peta["other_lump_sums_this_year"] = json!(true);
     peta["untaxed_plan_cap_used"] = json!("1565000.00");
     let r = run(&peta);
     assert_eq!(amount(&r, "low_rate_cap_left"), "0.00");
@@ -285,6 +288,7 @@ fn the_low_rate_cap_goes_to_the_taxed_element_first() {
         ["0.00", "200000.00", "100000.00"],
     );
     input["low_rate_cap_used"] = json!("0.00");
+    input["other_lump_sums_this_year"] = json!(false);
     let r = run(&input);
     assert_eq!(amount(&r, "taxed_within_low_rate_cap"), "200000.00");
     assert_eq!(amount(&r, "untaxed_within_low_rate_cap"), "25000.00");
@@ -322,6 +326,7 @@ fn each_years_caps() {
             ["0.00", "1000.00", "0.00"],
         );
         input["low_rate_cap_used"] = json!("0.00");
+        input["other_lump_sums_this_year"] = json!(false);
         let r = run(&input);
         assert_eq!(r["treatment"], "preservation_age_to_59", "{year}");
         assert_eq!(r["rates"]["low_rate_cap"], cap, "{year}");
@@ -356,6 +361,7 @@ fn age_and_preservation_age_boundaries() {
         let r = api::evaluate("super-benefit-tax", &input);
         if r.is_err() {
             input["low_rate_cap_used"] = json!("0.00");
+            input["other_lump_sums_this_year"] = json!(false);
         }
         run(&input)["treatment"].as_str().unwrap().to_string()
     };
@@ -568,6 +574,7 @@ fn bad_inputs_are_refused() {
     // never above the year's cap.
     let mut late = base.clone();
     late["low_rate_cap_used"] = json!("0.00");
+    late["other_lump_sums_this_year"] = json!(false);
     assert_eq!(code(&late), "input.field_unknown");
     let mut untaxed = with("untaxed_element", json!("100.00"));
     assert_eq!(code(&untaxed), "input.missing_field");
@@ -585,8 +592,76 @@ fn bad_inputs_are_refused() {
     );
     assert_eq!(code(&low), "input.missing_field");
     low["low_rate_cap_used"] = json!("225000.01");
+    low["other_lump_sums_this_year"] = json!(false);
     assert_eq!(code(&low), "super_benefit_tax.fact_conflict");
     let mut dependant = death("death_benefits_dependant", ["0.00", "1000.00", "0.00"]);
     dependant["untaxed_plan_cap_used"] = json!("0.00");
     assert_eq!(code(&dependant), "input.field_unknown");
+}
+
+/// ss 301-20(3) and 301-105(5) and (6) share a year's low rate cap across its
+/// lump sums, the element taxed in the fund first whatever the order: another
+/// lump sum that year is refused while any cap is left, and taken when none is.
+#[test]
+fn other_lump_sums_in_the_year_share_the_low_rate_cap() {
+    let mut input = member(
+        "2021-22",
+        "2021-08-01",
+        "1963-01-10",
+        ["0.00", "200000.00", "0.00"],
+    );
+    input["low_rate_cap_used"] = json!("0.00");
+    input["other_lump_sums_this_year"] = json!(true);
+    assert_eq!(code(&input), "super_benefit_tax.other_lump_sums_this_year");
+    input["low_rate_cap_used"] = json!("225000.00");
+    assert_eq!(amount(&run(&input), "maximum_tax"), "30000.00");
+    input
+        .as_object_mut()
+        .unwrap()
+        .remove("other_lump_sums_this_year");
+    assert_eq!(code(&input), "input.missing_field");
+    let mut aged = member(
+        "2021-22",
+        "2021-08-01",
+        "1950-01-01",
+        ["0.00", "1000.00", "0.00"],
+    );
+    aged["other_lump_sums_this_year"] = json!(false);
+    assert_eq!(code(&aged), "input.field_unknown");
+}
+
+/// s 307-350(2)(b): an untaxed element above the cap reduces it to nil, so
+/// the next year's cap left is the indexation, $50,000, not $15,000.
+#[test]
+fn an_exhausted_untaxed_plan_cap_counts_only_the_cap() {
+    let mut first = member(
+        "2020-21",
+        "2020-10-01",
+        "1950-01-01",
+        ["0.00", "0.00", "1600000.00"],
+    );
+    let r = run(&first);
+    assert_eq!(amount(&r, "untaxed_plan_cap_counted"), "1565000.00");
+    first["year"] = json!("2021-22");
+    first["payment_date"] = json!("2021-10-01");
+    first["untaxed_plan_cap_used"] = json!("1565000.00");
+    let r = run(&first);
+    assert_eq!(amount(&r, "untaxed_plan_cap_left"), "50000.00");
+}
+
+/// Under preservation age above the untaxed plan cap: 30% within it and the
+/// top rate above it (s 301-115 and its note; Table 13).
+#[test]
+fn under_preservation_age_above_the_untaxed_plan_cap() {
+    let mut input = member(
+        "2022-23",
+        "2022-10-01",
+        "1972-05-01",
+        ["0.00", "0.00", "100000.00"],
+    );
+    input["untaxed_plan_cap_used"] = json!("1600000.00");
+    let r = run(&input);
+    assert_eq!(amount(&r, "untaxed_within_plan_cap_tax"), "15000.00");
+    assert_eq!(amount(&r, "untaxed_above_plan_cap_tax"), "22500.00");
+    assert_eq!(amount(&r, "maximum_tax"), "37500.00");
 }
