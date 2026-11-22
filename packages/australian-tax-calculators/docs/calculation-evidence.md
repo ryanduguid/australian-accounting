@@ -4197,6 +4197,52 @@ Choices the Act leaves to the reader:
 | Existing, new, wound up, new and wound up, each year | SAR 2026 table 9 | levy $259, $518, nil, $259 |
 | $1,001 at 33.33% | rounding choice | ECPI $333 |
 
+## ESS discount
+
+This worksheet was added on 22 November 2026. ITAA 1997 Division 83A was read
+that day in compilation 268 (1 October 2026), volume 3
+(https://www.legislation.gov.au/C2004A05138/2026-10-01/2026-10-01/text/original/epub/OEBPS/document_3/document_3.html),
+and compared with compilations 234 (1 July 2022), which reads the same, and
+210 (1 July 2020), which adds only the cessation of employment taxing point
+(former ss 83A-115(5) and 83A-120(5)). Act No. 8, 2022 Sch 10 item 9 applies
+its repeal to taxing points from 1 July 2022. The Income Tax Assessment (1997
+Act) Regulations 2021 ss 83A-315.01 to 83A-315.09 were read in compilation 16
+(27 June 2026); their s 83A-315.08 table (266 entries) and s 83A-315.09(2)
+percentages (19 rows) agree with the ATO legal database's copy read the same
+day. They apply to income years from 2021-22 (s 1000-1.02; commenced 1 April
+2021), so the worksheet values a right by them only on a day from 1 July 2021.
+
+Choices the Act leaves to the reader:
+
+- The exercise period is compared by calendar months: a period is no more
+  than N months when the last exercise day is on or before the same day N
+  months after the valuation day (the month's last day where shorter). The
+  ATO's example counts whole months.
+- s 83A-110(1) with a cost base above the market value includes nil; the
+  loss is a CGT matter.
+- Salary sacrificed shares or rights at a real risk of forfeiture, their
+  discount equal to their market value, beside shares relying on
+  s 83A-105(4) in one year are refused: whether the first count toward the
+  $5,000 is not settled here.
+- Act No. 8, 2022 Sch 10 item 9 is applied to the taxing point after the
+  30-day rule: ending employment before 1 July 2022 counts only where that
+  point is before then.
+- The 15-year taxing point is the day before the 15th anniversary of
+  acquisition, the end of the period starting then.
+
+`tests/ess_discount.rs` holds these cases.
+
+| Case | Source | Worksheet |
+|---|---|---|
+| $1,500 discount, $91,000 adjusted taxable income | ATO $1,000 reduction example 1 (Lester) | $1,000 reduction, $500 |
+| $1,300 discount, $200,000 | example 2 (Jane) | no reduction, $1,300 |
+| 2,500 shares at $1.00 bought for $0.85 | ATO start-up concession example (Sarah) | start-up, nil; at $2,124.99, taxed upfront |
+| 200,000 rights at 10 cents, shares at 12 cents, 48 months | ATO unlisted rights example (Barry) | 19.4%, $3,880; value $4,000 intrinsic |
+| Restrictions lifted 23 June, sold 20 July for $1,518 | s 83A-115(3), the 30-day rule | taxing point 20 July, $1,518 in the next year |
+| Employment ended 1 March 2022, then 1 July 2022 | former s 83A-120(5), Act No. 8, 2022 | taxing point 1 March 2022; then the restrictions |
+| Forfeited by a hurdle, a lapse, a market value condition | ATO forfeiture examples 1, 7, 9 and 10 | excluded, excluded, not excluded |
+| Every s 83A-315.08 entry and s 83A-315.09 row | the regulations | each entry |
+
 ## Government super amounts
 
 This worksheet was added on 22 November 2026. Read that day:
