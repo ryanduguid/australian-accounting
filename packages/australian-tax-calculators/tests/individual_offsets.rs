@@ -236,6 +236,22 @@ fn invalid_carer_offset_refusals() {
         ),
         "invalid_carer_tax_offset.successive_spouses"
     );
+    // With 2 faults, shared maintenance is refused first.
+    let both = json!({"maintained_by_others": true, "different_spouses": true});
+    assert_eq!(
+        code(CARER, &carer("2025-26", both)),
+        "invalid_carer_tax_offset.shared_maintenance"
+    );
+    // The limit is strict: a spouse's $3.65 for 1 day of 365 is $0.01,
+    // reaching $120,007 exactly; $3.66 goes over it.
+    for (spouse, eligible) in [("3.65", true), ("3.66", false)] {
+        let facts = carer(
+            "2025-26",
+            json!({"adjusted_taxable_income": "120006.99",
+                "spouse_adjusted_taxable_income": spouse, "spouse_days": 1}),
+        );
+        assert_eq!(run(CARER, &facts)["eligible"], json!(eligible), "{spouse}");
+    }
     let shared_false = carer(
         "2025-26",
         json!({"maintained_by_others": false, "ftb_b_shared_care": false, "different_spouses": false}),
@@ -435,6 +451,17 @@ fn zone_prior_year_refusals() {
         json!({"prior_year": "2023-24", "prior_days": 183}),
     );
     assert_eq!(code(ZONE, &leap), "zone_tax_offset.half_year_unclear");
+    // With invalid dependants too, the residence refusal comes first.
+    let leap_and_dependants = zone(
+        "2024-25",
+        "zone_a",
+        1,
+        json!({"prior_year": "2023-24", "prior_days": 183, "dependants": "none"}),
+    );
+    assert_eq!(
+        code(ZONE, &leap_and_dependants),
+        "zone_tax_offset.half_year_unclear"
+    );
     let short = zone(
         "2024-25",
         "zone_a",
