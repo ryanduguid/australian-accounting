@@ -2191,8 +2191,9 @@ premium reduction received, nil if that is as much or more (ITAA 1997
 s 61-210); the excess the person repays is the reduction share less the
 benefit share (PHI Act s 282-18(3)). Both work premium by premium, so the
 worksheet does not net one line against another; a line that sums premiums
-with different reductions gives only their net, which changes the tax by the same
-amount, as the offset comes off it and the excess goes on. No provision sets the
+with different reductions gives only their net, not each premium's offset or
+excess; as its share is rounded once, that net can differ from theirs by a cent.
+No provision sets the
 rounding: each line's share is rounded to the cent, which reproduces the
 ATO's examples. Zoe's $39.90 needs $20.095 rounded to $20.10 before it is taken
 from $60, and Narelle's $96.94 needs each line rounded. Two published figures

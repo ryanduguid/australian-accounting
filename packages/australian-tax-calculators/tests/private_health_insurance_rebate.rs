@@ -392,10 +392,11 @@ fn premiums_with_different_reductions_show_both_amounts_as_separate_lines() {
     assert_eq!(amount(&summed, "excess_private_health_reduction"), "0.00");
 }
 
-/// The summed line's net changes the estimate's total by the same amount as
-/// the separate lines' offset and excess.
+/// A summed line's net moves the estimate's total as the separate lines'
+/// offset and excess do, give or take the cent its single rounding can shift:
+/// $1,000.03 lines each share $161.92 at 16.192%, but $2,000.06 shares $323.85.
 #[test]
-fn a_summed_line_changes_the_estimate_total_as_separate_lines_do() {
+fn a_summed_line_moves_the_estimate_total_within_a_cent_of_separate_lines() {
     let total = |lines: Value| {
         let mut facts = json!({"taxable_income": "110000",
             "medicare-levy-surcharge": {"reportable_fringe_benefits": "0",
@@ -408,6 +409,16 @@ fn a_summed_line_changes_the_estimate_total_as_separate_lines_do() {
         line("1000", "80.95", 30)
     ]));
     assert_eq!(apart, total(json!([line("2000", "323.83", 30)])));
+    let apart = total(json!([
+        line("1000.03", "242.89", 30),
+        line("1000.03", "80.95", 30)
+    ]));
+    let summed = total(json!([line("2000.06", "323.84", 30)]));
+    let gap = |v: &Value| v.as_str().unwrap().parse::<f64>().unwrap();
+    assert!(
+        (gap(&apart) - gap(&summed) - 0.01).abs() < 1e-9,
+        "{apart} {summed}"
+    );
 }
 
 #[test]

@@ -1180,7 +1180,7 @@ pub const EXTRA_WARNINGS: &[(&str, &[&str])] = &[
     (
         "private_health_insurance_rebate",
         &[
-            "Each line's share of the PHII benefit is rounded to the cent, as the ATO's worked examples do; no provision sets the rounding. An offset on one line and an excess on another are both shown, as ITAA 1997 s 61-210 and PHI Act s 282-18 each work on a premium; a line that sums premiums with different reductions shows only their net, which changes the tax by the same amount as the offset and excess it nets; give such premiums as separate lines to show each.",
+            "Each line's share of the PHII benefit is rounded to the cent, as the ATO's worked examples do; no provision sets the rounding. An offset on one line and an excess on another are both shown, as ITAA 1997 s 61-210 and PHI Act s 282-18 each work on a premium; a line that sums premiums with different reductions shows only their net, not each premium's offset or excess, and as its share is rounded once its net can differ from theirs by a cent; give such premiums as separate lines.",
         ],
     ),
     (
