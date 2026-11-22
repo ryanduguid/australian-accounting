@@ -118,7 +118,10 @@ fn frozen_effective_adapter_contracts() {
                 let mut note =
                     engine::file_note(kind, note, &before, &expected["structuredContent"]).replace(
                         &engine,
-                        &format!("{} {CALCULATORS} result", before["engine"].as_str().unwrap()),
+                        &format!(
+                            "{} {CALCULATORS} result",
+                            before["engine"].as_str().unwrap()
+                        ),
                     );
                 if kind == "study_loan_repayment" {
                     note = note.replace(
