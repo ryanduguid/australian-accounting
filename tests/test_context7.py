@@ -6,10 +6,13 @@
 name the calculator's withholding worksheets as its command table describes them."""
 
 import json
+import os
 import re
+import urllib.error
 import urllib.request
 from pathlib import Path
 
+import pytest
 from jsonschema import Draft7Validator
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -22,12 +25,52 @@ ARGUMENTS = dict(re.findall(
 ))
 
 
+def published_schema() -> dict:
+    """The schema, or a skip on a runner with no network; GitHub Actions never skips."""
+    try:
+        with urllib.request.urlopen(SCHEMA_URL, timeout=30) as response:
+            return json.load(response)
+    except urllib.error.URLError as error:
+        # An offline runner fails to connect. An HTTP error means the network
+        # answered, and hosted CI has the network, so those failures are real.
+        if isinstance(error, urllib.error.HTTPError) or os.environ.get("GITHUB_ACTIONS") == "true":
+            raise
+        pytest.skip(f"needs network to fetch {SCHEMA_URL}: {error.reason}")
+
+
 def test_config_passes_the_published_schema() -> None:
     # Context7 publishes the schema only at this URL; the copy in upstash/context7 is older.
     assert CONFIG["$schema"] == SCHEMA_URL
-    with urllib.request.urlopen(SCHEMA_URL, timeout=30) as response:
-        schema = json.load(response)
+    schema = published_schema()
     assert [error.message for error in Draft7Validator(schema).iter_errors(CONFIG)] == []
+
+
+def unreachable(*_args, **_kwargs):
+    raise urllib.error.URLError(OSError("Network is unreachable"))
+
+
+def test_an_offline_runner_skips_the_schema_fetch(monkeypatch) -> None:
+    monkeypatch.delenv("GITHUB_ACTIONS", raising=False)
+    monkeypatch.setattr(urllib.request, "urlopen", unreachable)
+    with pytest.raises(pytest.skip.Exception, match="needs network"):
+        published_schema()
+
+
+def test_github_actions_fails_rather_than_skips_without_the_schema(monkeypatch) -> None:
+    monkeypatch.setenv("GITHUB_ACTIONS", "true")
+    monkeypatch.setattr(urllib.request, "urlopen", unreachable)
+    with pytest.raises(urllib.error.URLError):
+        published_schema()
+
+
+def test_an_http_error_fails_everywhere(monkeypatch) -> None:
+    def refused(*_args, **_kwargs):
+        raise urllib.error.HTTPError(SCHEMA_URL, 404, "Not Found", None, None)
+
+    monkeypatch.delenv("GITHUB_ACTIONS", raising=False)
+    monkeypatch.setattr(urllib.request, "urlopen", refused)
+    with pytest.raises(urllib.error.HTTPError):
+        published_schema()
 
 
 def test_rules_name_only_calculator_commands_that_exist() -> None:
