@@ -266,6 +266,25 @@
   `ato_interest_penalties.scheme_penalty`,
   `ato_interest_penalties.sge_before_2017` and
   `ato_interest_penalties.year_mismatch`.
+- `residency-tests` says whether an individual was a resident of Australia
+  for an income year from 2020-21 to 2026-27 under each test in ITAA 1936
+  s 6(1), resident (a): resides, domicile, 183 days (counted from the dates
+  in Australia, 184 in 2023-24) and the Commonwealth superannuation fund
+  test. Residing, domicile, places of abode and intention are the
+  operator's answers. New codes: `residency_tests.presence_invalid`,
+  `residency_tests.super_invalid` and `residency_tests.treaty_tie_breaker`.
+  `tests/residency_tests.rs` holds it to TR 2023/1's examples.
+- `lodgment-required` says whether an individual must lodge their own
+  income tax return for 2020-21 to 2025-26 under that year's lodgment
+  instrument (the Notices for 2020-21 to 2022-23, the Taxation Laws
+  instruments from 2023-24): s 6(2), 6(3) and 6(10), the exceptions in
+  s 7(1)(f), 7(2) and 7(3), and the 31 October due date. New codes:
+  `lodgment_required.child_support_parent`,
+  `lodgment_required.group_invalid`,
+  `lodgment_required.instrument_not_made`,
+  `lodgment_required.residency_invalid` and
+  `lodgment_required.triggers_invalid`. `tests/lodgment_required.rs` holds it
+  to each year's thresholds.
 
 ### Fixed
 
@@ -601,28 +620,6 @@
   `sb_cgt_concessions.pre_cgt_asset` and
   `sb_cgt_concessions.share_or_trust_interest`. `tests/sb_cgt_concessions.rs`
   holds it to the Library's Neil Swan and Wendy Simpson examples.
-
-
-- `residency-tests` says whether an individual was a resident of Australia
-  for an income year from 2020-21 to 2026-27 under each test in ITAA 1936
-  s 6(1), resident (a): resides, domicile, 183 days (counted from the dates
-  in Australia, 184 in 2023-24) and the Commonwealth superannuation fund
-  test. Residing, domicile, places of abode and intention are the
-  operator's answers. New codes: `residency_tests.presence_invalid`,
-  `residency_tests.super_invalid` and `residency_tests.treaty_tie_breaker`.
-  `tests/residency_tests.rs` holds it to TR 2023/1's examples.
-
-- `lodgment-required` says whether an individual must lodge their own
-  income tax return for 2020-21 to 2025-26 under that year's lodgment
-  instrument (the Notices for 2020-21 to 2022-23, the Taxation Laws
-  instruments from 2023-24): s 6(2), 6(3) and 6(10), the exceptions in
-  s 7(1)(f), 7(2) and 7(3), and the 31 October due date. New codes:
-  `lodgment_required.child_support_parent`,
-  `lodgment_required.group_invalid`,
-  `lodgment_required.instrument_not_made`,
-  `lodgment_required.residency_invalid` and
-  `lodgment_required.triggers_invalid`. `tests/lodgment_required.rs` holds it
-  to each year's thresholds.
 
 ### Changed
 
