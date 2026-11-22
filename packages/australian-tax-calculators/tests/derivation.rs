@@ -14,7 +14,7 @@ use std::io::Write;
 use std::process::{Command, Stdio};
 
 /// The commands `derive` explains.
-const DERIVED: [&str; 60] = [
+const DERIVED: [&str; 77] = [
     "fbt",
     "fbt-car-statutory",
     "fbt-car-operating-cost",
@@ -59,6 +59,16 @@ const DERIVED: [&str; 60] = [
     "depreciation-low-value-pool",
     "depreciation-small-business-pool",
     "capital-works",
+    "horticulture-shearing-withholding",
+    "upward-variation-withholding",
+    "daily-casual-withholding",
+    "no-abn-withholding",
+    "entertainer-withholding",
+    "return-to-work-withholding",
+    "annuity-withholding",
+    "voluntary-agreement-withholding",
+    "rd-tax-offset",
+    "deferred-tax",
     "hire-purchase-schedule",
     "chattel-mortgage-schedule",
     "loan-transactions",
@@ -70,11 +80,18 @@ const DERIVED: [&str; 60] = [
     "trade-in",
     "dasp-tax",
     "super-benefit-tax",
+    "super-withholding",
     "gst-margin-scheme",
     "etp-tax-free-component",
     "payroll-tax",
     "cgt-parcels",
     "work-expenses",
+    "gst-creditable-purpose-change",
+    "gst-annual-apportionment",
+    "gst-financial-acquisitions-threshold",
+    "gst-second-hand-goods",
+    "gst-bad-debt",
+    "cgt-cost-base-adjustments",
 ];
 
 /// (command, input) for each derived kind: the ATO's published examples and
@@ -466,6 +483,40 @@ fn cases() -> Vec<(&'static str, Value)> {
                    "recipient": "death_benefits_dependant", "payment_date": "2026-10-01",
                    "year": "2026-27", "scope_confirmed": true}),
         ),
+        // Schedule 12: a member at preservation age with both elements in
+        // 2021-22, each part at Table A's rate and the total rounded once.
+        (
+            "super-withholding",
+            json!({"benefit": "300000.00", "interest_value": "400000.00",
+                   "interest_tax_free_component": "0.00", "untaxed_element": "100000.00",
+                   "recipient": "member", "payment_date": "2021-08-01",
+                   "date_of_birth": "1963-01-10", "terminal_medical_condition": false,
+                   "disability_superannuation_benefit": false,
+                   "service_before_july_1983": false, "low_rate_cap_used": "0.00",
+                   "other_lump_sums_this_year": false,
+                   "untaxed_plan_cap_used": "0.00", "tfn_provided": true,
+                   "foreign_resident": false, "year": "2021-22", "scope_confirmed": true}),
+        ),
+        // Schedule 12's Tom: a roll-over above the 2026-27 untaxed plan cap.
+        (
+            "super-withholding",
+            json!({"benefit": "1967000.00", "interest_value": "1967000.00",
+                   "interest_tax_free_component": "0.00", "untaxed_element": "1967000.00",
+                   "recipient": "rollover", "payment_date": "2026-09-01",
+                   "service_before_july_1983": false, "untaxed_plan_cap_used": "0.00",
+                   "tfn_provided": true, "foreign_resident": false,
+                   "year": "2026-27", "scope_confirmed": true}),
+        ),
+        // No TFN: 47% of a member's taxable component under 60, cents ignored.
+        (
+            "super-withholding",
+            json!({"benefit": "10000.99", "interest_value": "10000.99",
+                   "interest_tax_free_component": "0.00", "untaxed_element": "0.00",
+                   "recipient": "member", "payment_date": "2026-10-01",
+                   "date_of_birth": "1980-01-01", "terminal_medical_condition": false,
+                   "disability_superannuation_benefit": false, "tfn_provided": false,
+                   "foreign_resident": false, "year": "2026-27", "scope_confirmed": true}),
+        ),
         // Victoria's surcharges on $80 million of $150 million (the State
         // Revenue Office's example 2) and Tasmania's 2 rates on $2,400,000
         // of $3,000,000 (its guideline's example 2).
@@ -567,6 +618,99 @@ fn cases() -> Vec<(&'static str, Value)> {
                    "prescribed_course": true, "category_a": "350.00", "category_b": "200.00",
                    "category_c": "100.00", "category_d": "0.00", "category_e": "40.00",
                    "year": "2020-21", "scope_confirmed": true}),
+        ),
+        // GSTR 2000/24's Bill, 20 years on: an increase, then a decrease.
+        (
+            "gst-creditable-purpose-change",
+            json!({"gst_exclusive_value": "3000.00", "relates_to_business_finance": false,
+                   "full_input_tax_credit": "300.00", "intended_or_former_application": "0.9",
+                   "actual_application": "0.6", "application_basis": "Hours logged",
+                   "attributed_period_end": "2021-03-31", "tax_period_months": 3,
+                   "year": "2021-22", "scope_confirmed": true}),
+        ),
+        (
+            "gst-creditable-purpose-change",
+            json!({"gst_exclusive_value": "3000.00", "relates_to_business_finance": false,
+                   "full_input_tax_credit": "300.00", "intended_or_former_application": "0.6",
+                   "actual_application": "0.7", "application_basis": "Hours logged",
+                   "attributed_period_end": "2021-03-31", "tax_period_months": 3,
+                   "year": "2022-23", "scope_confirmed": true}),
+        ),
+        // The GST Act's s 131-55 example, and part consideration.
+        (
+            "gst-annual-apportionment",
+            json!({"small_business_entity": true, "carries_on_business": true,
+                   "instalment_election": false, "annual_tax_period_election": false,
+                   "election_made": true, "gst_on_acquisition": "100.00",
+                   "creditable_purpose": "0.1", "car": false,
+                   "reduced_credit_acquisition": false, "year": "2025-26",
+                   "scope_confirmed": true}),
+        ),
+        (
+            "gst-annual-apportionment",
+            json!({"small_business_entity": true, "carries_on_business": true,
+                   "instalment_election": false, "annual_tax_period_election": false,
+                   "election_made": true, "gst_on_acquisition": "1000.00",
+                   "creditable_purpose": "0.4", "non_input_taxed_extent": "0.8",
+                   "consideration_extent": "0.5", "car": false,
+                   "reduced_credit_acquisition": false, "year": "2025-26",
+                   "scope_confirmed": true}),
+        ),
+        // GSTR 2003/9's Cedar, Examples 1A and 2A.
+        (
+            "gst-financial-acquisitions-threshold",
+            json!({"current_financial_credits": "104550.00", "current_total_credits": "1100000.00",
+                   "future_financial_credits": "131000.00", "future_total_credits": "1220000.00",
+                   "gst_group": false, "year": "2025-26", "scope_confirmed": true}),
+        ),
+        // GSTD 2012/6's $5,500 vehicle, resold for $3,300: capped at $300.
+        (
+            "gst-second-hand-goods",
+            json!({"consideration": "5500.00", "acquired_for_sale_or_exchange": true,
+                   "animals_or_plants": false, "supply_to_you": "neither", "imported": false,
+                   "by_way_of_hire": false, "resupply_taxable": true, "resupply_gst": "300.00",
+                   "divided_for_resupply": false, "valuable_metal": false,
+                   "leased_before_sale": false, "year": "2025-26", "scope_confirmed": true}),
+        ),
+        // GSTR 2000/2's Y (para 72): $4,400 at a 25% extent of consideration.
+        (
+            "gst-bad-debt",
+            json!({"party": "recipient", "event": "written_off", "amount": "4400.00",
+                   "taxable_or_creditable": true, "cash_basis": false,
+                   "special_rule": "none", "attributed": true, "creditable_purpose": "1",
+                   "consideration_extent": "0.25", "reduced_credit_acquisition": false,
+                   "annual_apportionment": false, "year": "2025-26", "scope_confirmed": true}),
+        ),
+        // GSTR 2000/2's ABC Pty Ltd (para 55): $660 at 40% taxable.
+        (
+            "gst-bad-debt",
+            json!({"party": "supplier", "event": "written_off", "amount": "660.00",
+                   "taxable_or_creditable": true, "cash_basis": false,
+                   "special_rule": "none", "attributed": true, "taxable_proportion": "0.4",
+                   "year": "2025-26", "scope_confirmed": true}),
+        ),
+        // Cost base adjustments for a trust: a demerger without roll-over,
+        // a return of capital above one parcel's cost base, and an AMIT
+        // excess and a tax-deferred amount with a tax-free part.
+        (
+            "cgt-cost-base-adjustments",
+            json!({"entity": "trust",
+                   "parcels": [{"parcel": "W", "security": "WOW", "acquired": "2020-03-02", "units": "300",
+                                "acquisition_cost": "3000.00", "incidental_costs": "29.95"},
+                               {"parcel": "X", "security": "WOW", "acquired": "2021-05-03", "units": "7",
+                                "acquisition_cost": "3.00", "incidental_costs": "0.00"},
+                               {"parcel": "A", "security": "AM", "acquired": "2019-01-07", "units": "10",
+                                "acquisition_cost": "100.00", "incidental_costs": "0.00",
+                                "ownership_costs": "5.00"},
+                               {"parcel": "U", "security": "UT", "acquired": "2019-01-07", "units": "3",
+                                "acquisition_cost": "90.00", "incidental_costs": "0.00"}],
+                   "events": [{"event": "demerger", "demerger": "woolworths_endeavour_2021",
+                               "security": "WOW", "new_security": "EDV", "rollover": false},
+                              {"event": "amit_excess", "security": "AM", "income_year": "2021-22",
+                               "amount": "33.33"},
+                              {"event": "tax_deferred", "security": "UT", "income_year": "2021-22",
+                               "amount": "10.00", "tax_free": "2.00"}],
+                   "year": "2021-22", "scope_confirmed": true}),
         ),
     ];
     cases.extend(
@@ -2289,9 +2433,14 @@ fn derive_refuses_what_it_does_not_explain() {
          medicare-levy, medicare-levy-surcharge, division-296, contribution-caps, \
          study-loan-repayment, capital-gains, main-residence, fbt-residual, fbt-housing, \
          fbt-lafha, fbt-board, fbt-tax-exempt-body-entertainment, gst, depreciation, \
-         depreciation-low-value-pool, depreciation-small-business-pool, capital-works, \
+         depreciation-low-value-pool, depreciation-small-business-pool, capital-works, deferred-tax, \
+         horticulture-shearing-withholding, upward-variation-withholding, \
+         daily-casual-withholding, no-abn-withholding, \
+         entertainer-withholding, return-to-work-withholding, \
+         annuity-withholding, voluntary-agreement-withholding, \
+         rd-tax-offset, \
          hire-purchase-schedule, chattel-mortgage-schedule, loan-transactions, \
-         lump-sum-arrears-tax-offset, income-tests, government-super-amounts, business-capital-expenditure, balancing-adjustment, trade-in, dasp-tax, super-benefit-tax, gst-margin-scheme, etp-tax-free-component, payroll-tax, cgt-parcels, work-expenses, rental-property, not \"payg-gross-up\""
+         lump-sum-arrears-tax-offset, income-tests, government-super-amounts, business-capital-expenditure, balancing-adjustment, trade-in, dasp-tax, super-benefit-tax, super-withholding, gst-margin-scheme, etp-tax-free-component, payroll-tax, cgt-parcels, work-expenses, rental-property, gst-creditable-purpose-change, gst-annual-apportionment, gst-financial-acquisitions-threshold, gst-second-hand-goods, gst-bad-debt, cgt-cost-base-adjustments, not \"payg-gross-up\""
     );
 }
 

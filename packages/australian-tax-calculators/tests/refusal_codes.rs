@@ -50,6 +50,8 @@ fn every_code_at_a_refusal_site_is_catalogued_and_every_entry_is_used() {
         "engine/ato_interest_penalties",
         "engine/rental_property",
         "engine/super_benefit_tax",
+        "engine/gst_adjustments",
+        "engine/deferred_tax",
     ]
     .into_iter()
     .flat_map(|dir| {
@@ -176,8 +178,16 @@ fn every_catalogued_required_input_of_a_strict_command_is_read() {
     // small-business-income-offset, government-super-amounts,
     // beneficiary-tax-offset, invalid-carer-tax-offset, zone-tax-offset,
     // net-medical-expenses-tax-offset, non-commercial-losses, psi-test,
-    // private-health-insurance-rebate, rental-property and super-benefit-tax.
-    assert_eq!(checked, 68);
+    // private-health-insurance-rebate, rental-property, super-benefit-tax,
+    // horticulture-shearing-withholding, upward-variation-withholding,
+    // daily-casual-withholding, no-abn-withholding, entertainer-withholding,
+    // return-to-work-withholding, annuity-withholding,
+    // voluntary-agreement-withholding, residency-tests, lodgment-required,
+    // rd-tax-offset, gst-creditable-purpose-change, gst-annual-apportionment,
+    // gst-financial-acquisitions-threshold, gst-going-concern,
+    // gst-second-hand-goods, gst-bad-debt, deferred-tax,
+    // cgt-cost-base-adjustments and super-withholding.
+    assert_eq!(checked, 88);
 }
 
 /// Every frozen call gives the same answer through either entry point, and

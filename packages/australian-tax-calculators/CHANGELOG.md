@@ -33,6 +33,13 @@
   `private_health_insurance_rebate.rate_unpublished`.
   `tests/private_health_insurance_rebate.rs` holds it to the ATO's examples
   and every published percentage and threshold.
+- `super-withholding` gives Schedule 12 withholding from a superannuation lump
+  sum or roll-over paid from 13 October 2020 to 30 June 2027: Table A's rates
+  on the same parts `super-benefit-tax` works, nil payments, roll-overs above
+  the untaxed plan cap and the no-TFN rates. New codes:
+  `super_withholding.no_tfn_unstated`, `super_withholding.recipient_invalid`
+  and `super_withholding.schedule_not_read`. `tests/super_withholding.rs` runs the
+  schedules' Tom, Chloe, Heather and Dean examples.
 - `super-benefit-tax` works out one superannuation lump sum's components by
   the proportioning rule (ITAA 1997 s 307-125) and the most income tax, before
   Medicare levy, each part can bear in 2020-21 to 2026-27: a member's by age
@@ -47,6 +54,111 @@
   ATO's Tony, Suzi, Frankie, Peta, Mei, Howard and Anh examples and
   Schedule 12's Heather, Dean and Chloe.
 
+- `entertainer-withholding`, `return-to-work-withholding`,
+  `annuity-withholding` and `voluntary-agreement-withholding` work out
+  Schedule 3 (actors, variety artists and other entertainers), Schedule 4
+  (return to work payments), Schedule 6 (annuities, on `payg-withholding`'s
+  Schedule 1 amount) and Schedule 10 (voluntary agreements), each for 2024-25
+  to 2026-27. New codes: `annuity_withholding.deductible_above_payment`,
+  `annuity_withholding.extra_pay_without_tfn`,
+  `annuity_withholding.income_not_whole_cents`,
+  `entertainer_withholding.foreign_resident_tfn`,
+  `entertainer_withholding.offsets_exceed_withholding`,
+  `entertainer_withholding.offsets_several_performances`,
+  `entertainer_withholding.tax_offsets_not_allowed`, `input.count_invalid`,
+  `input.percentage_invalid`,
+  `voluntary_agreement_withholding.abn_not_quoted`,
+  `voluntary_agreement_withholding.agreement_not_in_force`,
+  `voluntary_agreement_withholding.gst_above_payment` and
+  `voluntary_agreement_withholding.instalment_rate_missing`.
+  `tests/payment_withholding.rs` holds them to the published examples.
+- `horticulture-shearing-withholding`, `upward-variation-withholding`,
+  `daily-casual-withholding` and `no-abn-withholding` work out Schedule 2
+  (horticulture and shearing), Schedule 14 (an agreed additional amount on
+  the Schedule 1 amount), the tax table for daily and casual workers and
+  withholding where no ABN is quoted (TAA 1953 Sch 1 s 12-190, Taxation
+  Administration Regulations 2017 s 38), each for 2024-25 to 2026-27. New
+  codes: `daily_casual_withholding.foreign_resident_tfn`,
+  `daily_casual_withholding.offsets_exceed_withholding`,
+  `daily_casual_withholding.tax_offsets_not_allowed`,
+  `daily_casual_withholding.threshold_not_claimed`,
+  `horticulture_shearing_withholding.labour_mobility_scheme`,
+  `horticulture_shearing_withholding.threshold_not_claimed`,
+  `no_abn_withholding.gst_above_payment`,
+  `no_abn_withholding.total_below_payment` and
+  `withholding.working_holiday_maker`. `tests/withholding_schedules.rs` holds
+  them to the published examples.
+- `rd-tax-offset` works out an R&D entity's refundable or non-refundable
+  R&D tax offset (ITAA 1997 s 355-100: the corporate tax rate plus 18.5
+  percentage points, or plus 8.5% and 16.5% by intensity, with the $20,000
+  threshold and the $150 million cap) and the amount s 355-450 includes in
+  assessable income for a recoupment or feedstock clawback amount, for
+  2021-22 to 2026-27. New codes: `rd_tax_offset.clawback_above_total`,
+  `rd_tax_offset.clawback_below_threshold`,
+  `rd_tax_offset.feedstock_expenditure_above_total` and
+  `rd_tax_offset.threshold_expenditure_above_total`. `tests/rd_tax_offset.rs`
+  holds it to the ATO's clawback examples and the schedule's Part E method.
+- `gst-going-concern`, `gst-second-hand-goods` and `gst-bad-debt` test
+  whether a supply of a going concern is GST-free (s 38-325), work the
+  Subdivision 66-A credit for second-hand goods and a Division 21 bad debt
+  adjustment reduced under Subdivision 136-A, each for 2020-21 to 2026-27.
+  New codes: `gst_bad_debt.accounting_basis_changed`,
+  `gst_bad_debt.annual_apportionment`, `gst_bad_debt.dates_invalid`,
+  `gst_bad_debt.fact_conflict`, `gst_bad_debt.fact_invalid`,
+  `gst_bad_debt.reduced_credit_acquisition`, `gst_bad_debt.special_rule`,
+  `gst_going_concern.fact_invalid`, `gst_going_concern.farm_land`,
+  `gst_going_concern.part_outside_arrangement`,
+  `gst_second_hand_goods.divided_for_resupply`,
+  `gst_second_hand_goods.fact_invalid`,
+  `gst_second_hand_goods.leased_before_sale` and
+  `gst_second_hand_goods.valuable_metal`. `tests/gst_special_rules.rs` holds
+  them to GSTR 2002/5, GSTD 2012/6 and GSTR 2000/2.
+
+- `gst-creditable-purpose-change`, `gst-annual-apportionment` and
+  `gst-financial-acquisitions-threshold` work a Division 129 adjustment for a
+  change in creditable purpose with its adjustment periods, Division 131
+  annual apportionment eligibility with the credit and s 131-55 adjustment,
+  and the Division 189 financial acquisitions threshold tests, each for
+  2020-21 to 2026-27. New codes: `gst_annual_apportionment.car`,
+  `gst_annual_apportionment.election_status_unsettled`,
+  `gst_annual_apportionment.fact_conflict`,
+  `gst_annual_apportionment.not_partly_creditable`,
+  `gst_annual_apportionment.reduced_credit_acquisition`,
+  `gst_creditable_purpose_change.basis_missing`,
+  `gst_creditable_purpose_change.last_period_unsettled`,
+  `gst_creditable_purpose_change.period_end_invalid`,
+  `gst_creditable_purpose_change.tax_period_unsupported` and
+  `gst_financial_acquisitions_threshold.fact_conflict`.
+  `tests/gst_adjustments.rs` holds them to the examples of GSTR 2000/24, the
+  GST Act and GSTR 2003/9.
+
+- `deferred-tax` works out a company's tax effect worksheet under AASB 112
+  for 2020-21 to 2026-27: temporary differences from carrying amounts and
+  tax bases, the deferred tax liability and asset at 25% or 30% (paras 15,
+  24, 34 and 47; Income Tax Rates Act 1986 s 23(2)), the movement split
+  into rate change, recognition change and origination (para 80), current
+  tax at the year's rate (26% for a base rate entity in 2020-21) and the
+  para 81(c)(i) reconciliation with the average effective tax rate. New
+  codes: `deferred_tax.business_combination`,
+  `deferred_tax.expected_rate_invalid`, `deferred_tax.item_invalid`,
+  `deferred_tax.offsets_above_tax`, `deferred_tax.opening_rate_unscheduled`,
+  `deferred_tax.outside_profit_or_loss`,
+  `deferred_tax.rate_change_unscheduled`,
+  `deferred_tax.tax_consolidated_group`,
+  `deferred_tax.uncertain_tax_treatment`,
+  `deferred_tax.unrecognised_above_deductible` and
+  `deferred_tax.unrecognised_used_above_opening`.
+- `cgt-cost-base-adjustments` applies returns of capital (CGT event G1, ITAA
+  1997 s 104-135), a non-AMIT trust's non-assessable parts (CGT event E4,
+  ss 104-70 and 104-71), AMIT cost base net amounts (ss 104-107A to 104-107C,
+  CGT event E10) and the Coles (2018) and Endeavour (2021) demergers
+  (Subdivision 125-B, CR 2018/59 and CR 2021/50) to `cgt-parcels`' parcels,
+  for 2018-19 to 2026-27, and returns the gains and the adjusted parcels. New
+  codes: `cgt_cost_base.below_reduced_cost_base`,
+  `cgt_cost_base.company_indexation`, `cgt_cost_base.demerger_unknown`,
+  `cgt_cost_base.event_year_unsupported` and `cgt_cost_base.pre_cgt`.
+  `derive` covers it. `tests/cgt_cost_base_adjustments.rs` holds it to the
+  ATO's examples. `cgt-parcels` is unchanged.
 - `depreciation-low-value-pool`, `depreciation-small-business-pool` and
   `capital-works` work out a low-value pool (ITAA 1997 ss 40-440 and
   40-445), a general small business pool with each year's low pool value
@@ -154,6 +266,25 @@
   `ato_interest_penalties.scheme_penalty`,
   `ato_interest_penalties.sge_before_2017` and
   `ato_interest_penalties.year_mismatch`.
+- `residency-tests` says whether an individual was a resident of Australia
+  for an income year from 2020-21 to 2026-27 under each test in ITAA 1936
+  s 6(1), resident (a): resides, domicile, 183 days (counted from the dates
+  in Australia, 184 in 2023-24) and the Commonwealth superannuation fund
+  test. Residing, domicile, places of abode and intention are the
+  operator's answers. New codes: `residency_tests.presence_invalid`,
+  `residency_tests.super_invalid` and `residency_tests.treaty_tie_breaker`.
+  `tests/residency_tests.rs` holds it to TR 2023/1's examples.
+- `lodgment-required` says whether an individual must lodge their own
+  income tax return for 2020-21 to 2025-26 under that year's lodgment
+  instrument (the Notices for 2020-21 to 2022-23, the Taxation Laws
+  instruments from 2023-24): s 6(2), 6(3) and 6(10), the exceptions in
+  s 7(1)(f), 7(2) and 7(3), and the 31 October due date. New codes:
+  `lodgment_required.child_support_parent`,
+  `lodgment_required.group_invalid`,
+  `lodgment_required.instrument_not_made`,
+  `lodgment_required.residency_invalid` and
+  `lodgment_required.triggers_invalid`. `tests/lodgment_required.rs` holds it
+  to each year's thresholds.
 
 ### Fixed
 

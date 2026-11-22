@@ -1385,8 +1385,10 @@ fn payg_rows(year: &str, scale: i64) -> Option<&'static [CoefficientRow]> {
 }
 
 /// `_payg_checks`: scope, earnings, pay period and scale, in that order. Only
-/// `payg_withholding` and `unused_leave_payment` take scale 4, which Schedules 1
-/// and 7 cover and Schedule 5 does not, and only `payg_withholding` and
+/// the Schedule 1 kinds (`payg_withholding`, and `upward_variation_withholding`
+/// and `annuity_withholding`, which work out its amount) and
+/// `unused_leave_payment` take scale 4, which Schedules 1 and 7 cover and
+/// Schedule 5 does not, and only the Schedule 1 kinds and
 /// `study_loan_withholding` quarterly pays, which Schedules 1 and 8 cover.
 fn payg_checks(
     kind: &str,
@@ -1398,7 +1400,12 @@ fn payg_checks(
 ) -> Result<(String, Decimal, String, i64)> {
     let year = scope(scope_confirmed, year, kind)?;
     let earnings = money(earnings)?;
-    let schedule_1 = kind == "payg_withholding";
+    // Schedules 14 and 6 work out the Schedule 1 amount, so take Schedule 1's
+    // pays and scale 4 (Schedule 6 applies its own no TFN rule to the payment).
+    let schedule_1 = matches!(
+        kind,
+        "payg_withholding" | "upward_variation_withholding" | "annuity_withholding"
+    );
     let quarterly = schedule_1 || kind == "study_loan_withholding";
     let period = match pay_period.text() {
         Some(p @ ("weekly" | "fortnightly" | "monthly")) => p.to_string(),
@@ -4858,14 +4865,17 @@ pub use fbt_ev_exemption::{EvExemptionArgs, fbt_ev_exemption_check};
 mod dasp_tax;
 pub use dasp_tax::{DaspTaxArgs, dasp_tax};
 mod super_benefit_tax;
-pub use super_benefit_tax::{SUPER_BENEFIT_OPTIONAL, SuperBenefitTaxArgs, super_benefit_tax};
+pub use super_benefit_tax::{
+    SUPER_BENEFIT_OPTIONAL, SuperBenefitTaxArgs, SuperWithholdingArgs, super_benefit_tax,
+    super_withholding,
+};
 mod payroll_tax;
 pub use payroll_tax::{PayrollTaxArgs, payroll_tax};
 mod luxury_car_tax;
 mod stated;
 pub use luxury_car_tax::{LctArgs, luxury_car_tax};
 mod cgt_parcels;
-pub use cgt_parcels::{CgtParcelsArgs, cgt_parcels};
+pub use cgt_parcels::{CgtCostBaseArgs, CgtParcelsArgs, cgt_cost_base_adjustments, cgt_parcels};
 
 /// One pay that includes an additional payment, as Schedule 5 (NAT 3348) reads it.
 struct AdditionalPay {
@@ -6192,8 +6202,33 @@ mod psi_test;
 pub use psi_test::{PSI_OPTIONAL, PsiTestArgs, psi_test};
 mod rental_property;
 pub use rental_property::{RentalPropertyArgs, rental_property};
+mod withholding_schedules;
+pub use withholding_schedules::{
+    daily_casual_withholding, horticulture_shearing_withholding, no_abn_withholding,
+    upward_variation_withholding,
+};
+mod payment_withholding;
+pub use payment_withholding::{
+    annuity_withholding, entertainer_withholding, return_to_work_withholding,
+    voluntary_agreement_withholding,
+};
+mod residency_tests;
+pub use residency_tests::{ResidencyTestsArgs, residency_tests};
+mod lodgment_required;
+pub use lodgment_required::{LodgmentRequiredArgs, lodgment_required};
+mod rd_tax_offset;
+pub use rd_tax_offset::{RdTaxOffsetArgs, rd_tax_offset};
+mod gst_adjustments;
+pub use gst_adjustments::{
+    AnnualApportionmentArgs, BadDebtArgs, CreditablePurposeArgs, FinancialAcquisitionsArgs,
+    GoingConcernArgs, SecondHandGoodsArgs, gst_annual_apportionment, gst_bad_debt,
+    gst_creditable_purpose_change, gst_financial_acquisitions_threshold, gst_going_concern,
+    gst_second_hand_goods,
+};
+mod deferred_tax;
+pub use deferred_tax::{DeferredTaxArgs, deferred_tax};
 
-const KINDS: [&str; 82] = [
+const KINDS: [&str; 102] = [
     "gst",
     "gst_margin_scheme",
     "fuel_tax_credits",
@@ -6213,6 +6248,7 @@ const KINDS: [&str; 82] = [
     "franking_account",
     "dasp_tax",
     "super_benefit_tax",
+    "super_withholding",
     "payroll_tax",
     "fbt",
     "fbt_car_statutory",
@@ -6276,6 +6312,25 @@ const KINDS: [&str; 82] = [
     "psi_test",
     "government_super_amounts",
     "rental_property",
+    "horticulture_shearing_withholding",
+    "upward_variation_withholding",
+    "daily_casual_withholding",
+    "no_abn_withholding",
+    "entertainer_withholding",
+    "return_to_work_withholding",
+    "annuity_withholding",
+    "voluntary_agreement_withholding",
+    "residency_tests",
+    "lodgment_required",
+    "rd_tax_offset",
+    "gst_creditable_purpose_change",
+    "gst_annual_apportionment",
+    "gst_financial_acquisitions_threshold",
+    "gst_going_concern",
+    "gst_second_hand_goods",
+    "gst_bad_debt",
+    "deferred_tax",
+    "cgt_cost_base_adjustments",
 ];
 
 /// `periods(kind)`: accepted period arguments and inclusive calendar boundaries.

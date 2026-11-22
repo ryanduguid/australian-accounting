@@ -101,6 +101,99 @@ The smaller existing case uses $1,100 inclusive: GST is $100, exclusive value
 is $1,000. Starting with $1,000 exclusive gives `1000 × 0.10 = 100` GST and
 $1,100 inclusive.
 
+## GST creditable purpose change
+
+Added on 22 November 2026 with `gst-annual-apportionment` and
+`gst-financial-acquisitions-threshold`. The A New Tax System (Goods and
+Services Tax) Act 1999 was read that afternoon from the Federal Register of
+Legislation's API: compilation 96 (C2026C00081, in force from 1 January 2026,
+current, no unincorporated amendments) and compilation 82 (C2020C00143, in
+force on 1 July 2020). Divisions 21, 66, 129, 131, 136 and 189, Subdivision
+38-J and the s 195-1 definitions they use were compared line by line: they
+read the same in both, apart from s 131-60(1) step 3, which now refers to an
+instrument rather than a Gazette notice. The GST Regulations 2019 (compilation
+5, F2025C01015) specify no other amount for ss 131-5(2) and 189-5 or 189-10
+and no kind for s 131-40(1)(b). The formulas of ss 11-30, 129-70, 129-75 and
+131-40 are images; their alternative text in the EPUB gives them.
+
+GSTR 2000/24 (28 June 2000), GSTR 2003/9 (14 May 2003) and the ATO's 'Annual
+private apportionment of GST: Eligibility' (last updated 14 September 2026)
+were read from ato.gov.au the same afternoon. The ruling's examples are from
+2001 to 2006; the tests move their dates 20 years later, which the unchanged
+provisions allow.
+
+s 129-20(1) needs a tax period that 'starts at least 12 months after the end
+of' the attributable tax period: the command takes the day after
+`attributed_period_end`, adds 12 months, and accepts a 30 June tax period that
+starts on or after it. GSTR 2000/24's Farmco (paras 30 and 31: the quarter to
+31 March 2001, first adjustment period 1 April to 30 June 2002) fixes the
+reading. Para 34's table says '$5,001 to $499,999'; the Act's 'more than
+$5,000 but less than $500,000' is applied to the cent.
+
+| Example | Facts given | Result |
+| --- | --- | --- |
+| GSTR 2000/24 paras 57 to 71, Bill | $300 GST, 90% intended, 60% actual | Increasing **$90**, adjustment period 1 of 2 |
+| GSTR 2000/24 paras 64 to 72, XYZ Credit Union | $10,000, 75% intended, 85% actual | Decreasing **$1,000** |
+| GSTR 2000/24 paras 75 to 78, Elizabeth | $2,400 after Divisions 19 and 21, 90% to 50% | Increasing **$960** |
+| GSTR 2000/24 paras 30 to 36, Farmco | $100,000, quarter to 31 March | 5 adjustment periods from the next June quarter |
+| GSTR 2000/24 para 42, Isabelle | Destroyed on 15 March, before the first period | That June quarter is the last |
+| GST Act s 131-55 example | $1,100 at 10%; then $10 and $60 adjustments | Credit $100, adjustment **$90**; then **$45** |
+| GSTR 2003/9 Examples 1A and 2A, Cedar | $104,550 of $1,100,000; $131,000 of $1,220,000 | Current within; future **exceeded** |
+| GSTR 2003/9 Examples 13 and 14, ABC group | $3,600 of $69,000; $10,200 of $99,000 | Current within; future **exceeded** |
+
+`tests/gst_adjustments.rs` holds each case and each boundary.
+
+## GST annual apportionment
+
+See [GST creditable purpose change](#gst-creditable-purpose-change).
+
+## GST financial acquisitions threshold
+
+See [GST creditable purpose change](#gst-creditable-purpose-change).
+
+## GST going concern
+
+Added on 22 November 2026 with `gst-second-hand-goods` and `gst-bad-debt`,
+from the same reading of the GST Act as
+[GST creditable purpose change](#gst-creditable-purpose-change): s 38-325,
+Subdivision 66-A, Division 21, Subdivision 136-A and the s 195-1 definitions
+of second-hand goods, valuable metal and overdue read the same in
+compilations 82 and 96. GSTR 2002/5 (16 October 2002, last amended 27 March
+2013), GSTD 2012/6 (1 August 2012) and GSTR 2000/2 (29 March 2000, last
+amended 31 October 2012) were read from ato.gov.au that afternoon. The bad
+debt examples are from 2001 and 2002; the tests move Marcus's dates 20 years
+later, which the unchanged provisions allow.
+
+`gst-going-concern` works no amount: it reports each condition of
+s 38-325 against the stated facts. GSTR 2002/5 para 182 places the written
+agreement on or before the day of the supply; paras 168 and 169 put a supply
+partly outside the arrangement under s 9-80, which is refused.
+
+s 21-5(1)(c) asks whether the debt 'has been overdue for 12 months or more':
+the command takes `overdue_from`, the first day overdue, adds 12 months, and
+finds the condition met on that day or later. GSTR 2000/2's Marcus (paras
+49AC and 49AD: overdue on 16 April 2001, overdue 12 months on 16 April 2002)
+fixes the reading.
+
+| Example | Facts given | Result |
+| --- | --- | --- |
+| GSTD 2012/6 para 7, Finance Co | $5,500 vehicle from an unregistered vendor | Credit **$500** under an $800 resale GST |
+| GST Act s 66-10(1)(b) | The same vehicle resold for $3,300 | Credit **$300** |
+| GSTR 2000/2 paras 49AA to 53, Marcus | $550 overdue from 16 April | Decreasing **$50**; none a day early |
+| GSTR 2000/2 para 55, ABC Pty Ltd | $660 at 40% taxable | Decreasing **$24** |
+| GSTR 2000/2 paras 69 and 70, Isabella | $1,100 written off, 60% creditable purpose | Increasing **$60** |
+| GSTR 2000/2 para 72, Y | $4,400 written off, liable for $1,100 of it | Increasing **$100** |
+
+`tests/gst_special_rules.rs` holds each case and each boundary.
+
+## GST second-hand goods
+
+See [GST going concern](#gst-going-concern).
+
+## GST bad debt
+
+See [GST going concern](#gst-going-concern).
+
 ## GST margin scheme
 
 Added on 19 November 2026. Its sources were read that afternoon, 2.20 pm to
@@ -817,6 +910,46 @@ example (the first 10 fortnightly contributions non-concessional), Sue
 $765, $27,735 paid) and George (example 13 and the ATO page: $1,809 withheld,
 $24,291 paid, $4,020 FHSS tax), and one quarter's compounding against its
 closed form.
+
+## R&D tax offset
+
+Added on 22 November 2026. The sources were read that day: ITAA 1997 ss
+355-100, 355-105, 355-115, 355-435, 355-440, 355-445, 355-450, 63-10(1) item
+35, 67-30 and the s 995-1 'corporate tax rate' definition, and Income Tax
+Rates Act 1986 s 23(2), from the ATO's legal database; Act No. 92 of 2020 as
+made, whose Sch 4 (the 18.5 percentage point premium, the 8.5% and 16.5% tiers,
+the $150 million cap and s 355-115) applies to income years commencing on or
+after 1 July 2021 (item 14) and whose Sch 5 Part 2 (the clawback formula) does
+too (item 56(3)); the ATO's 'Rates of R&D tax incentive offset' and 'Calculate
+the clawback adjustment' (both last updated 13 May 2026), 'Clawback of
+feedstock adjustments' and the R&D tax incentive schedule 2022 instructions,
+Part E. The current compilation of s 355-100 has the same figures, so the
+command runs from 2021-22 to 2026-27.
+
+| Example | Facts given | Result |
+| --- | --- | --- |
+| Company V (grant), 2021-22 | **$3.6 million**, total expenses **$15 million**, 30%, **$2.3 million** recouped | Offset **$1,650,000**, adjusted **$580,500**, deduction amount **$690,000**, included **$1,265,000** |
+| Company F, 2022-23 | **$1 million** at 43.5%, **$500,000** recouped | **$435,000**, **$217,500**, **$125,000**, **$370,000** |
+| Company Y, 2023-24 and 2024-25 | **$350,000** and **$150,000**, recouped **$150,000** and **$50,000** | Included **$111,000** and **$37,000** |
+| Company Y, alternative | **$1 million** and **$1.5 million**, recouped **$300,000** and **$100,000** | Included **$222,000** and **$74,000** |
+| Company Q (grant cap) | **$100,000**, capped recoupment **$9,000** | **$43,500**, **$39,585**, **$2,250**, **$6,660** |
+| Company L | **$700,000**, **$250,000** recouped | Included **$185,000** |
+| Company J, before and after repayment | **$400,000**, recouped **$200,000** then **$50,000** | Included **$148,000** then **$37,000** |
+| Schedule 2022 Part E method | **$200 million**, total expenses **$2,000 million**, 30% | **$15.4 million** + **$51.15 million** + **$15 million** = **$81.55 million** |
+
+The ATO's feedstock example (Landscape Supplies: $22,000 of notional
+deductions, $9,000 clawed back, $6,660 included) works the adjusted offset on
+$13,000 at 43.5%. On its face s 355-100(2) would limit an offset on a total
+under $20,000 to research service provider and CRC expenditure, so the command
+refuses a clawback that takes the total, or starts it, under $20,000
+(`rd_tax_offset.clawback_below_threshold`), and the test holds the same
+feedstock figures on $122,000 instead, which give the same $6,660. The schedule
+instructions compare R&D intensity with 2% after rounding it to 4 decimal
+places; the command splits the tiers at exactly 2% of total expenses, as s
+355-100(1A) does. `tests/rd_tax_offset.rs` also covers the $20,000 threshold,
+the $20 million turnover boundary, exempt entity control, the 2% boundary, the
+cap at and above $150 million for both offsets, the present year's rate, each
+year boundary and each refusal.
 
 ## Fuel tax credits
 
@@ -1791,6 +1924,75 @@ so the parts add up.
 | 3 units for $110 sold 1 then 2; 3 units sold for $100 from parcels of 1 and 2 | Worked by hand | Cost bases $36.67 and $73.33; proceeds $33.33 and $66.67 |
 | $1,000 cost and $100 costs of owning, sold for $1,050 | Worked by hand under ss 110-25(4) and 110-55(2) | Neither gain nor loss |
 | A company in 2026-27: a $100 parcel sold for nothing, $150 of other gains and $20 of earlier losses | Worked by hand under s 102-5(1) steps 1 and 2 | $30 net capital gain, nothing carried forward |
+
+## CGT cost base adjustments
+
+This worksheet was added on 22 November 2026, and its sources were read that
+day from 13:50 to 14:05 AEDT. ITAA 1997 ss 104-70, 104-71, 104-107A to
+104-107E, 104-135, 109-5, 110-25, 110-55, 114-1, 114-10, 115-25, 115-30 and
+125-55 to 125-85 were read on the ATO's legal database
+(https://www.ato.gov.au/law/view/document?docid=PAC/19970038/104-135 and the
+same address for each section) with their history notes. s 104-135 was last
+amended by No 91 of 2008, s 104-70 by No 53 of 2016, ss 104-107B to 104-107E
+by No 53 of 2016 and Subdivision 125-B by 2014 at the latest; s 104-107A was
+substituted in part by No 15 of 2019 for the 2018-19 income year and later
+years, so the worksheet starts at 2018-19. Act No. 49 of 2026 changes Division
+115 and s 102-5 from the income year that includes 1 July 2027, so 2027-28 is
+refused, as for CGT parcels.
+
+The ATO material: CR 2018/59 (Wesfarmers demerger of Coles, implemented
+28 November 2018: 71.09% and 28.91%, $5.68 a share) and the ATO's 'Wesfarmers
+Limited – demerger of Coles Group Limited (2018)' (last updated 28 June 2019,
+examples 1 to 4); CR 2021/50 (Woolworths demerger of Endeavour, implemented
+1 July 2021: 85.81% and 14.19%, 71 cents a share), which has no worked
+example; the Guide to capital gains tax 2025 (examples 20, 30 and 45); and the
+Personal investors guide to capital gains tax 2025, Part C (examples 26 to
+28). No CPI figure or indexation factor is used: a company's parcel from
+before 22 September 1999 is refused, and another entity's is worked without
+indexation, as the Guide's example 45 does for a taxpayer who has not chosen
+indexation.
+
+Each side of a demerger is the sum of the post-CGT head shares' cost bases
+times its percentage, rounded to the cent on its own, as the ATO's examples
+round it (the Guide's example 30 gives $2,373.43 and $126.58 of $2,500), so
+the sides can differ from the sum by a cent. Each side, and each E4 or AMIT
+amount, is spread over the parcels by units, the last parcel taking what is
+left. A G1 payment per share is multiplied by the units and rounded to the
+cent.
+
+An E4 or AMIT amount happens just before the year's end, or just before
+another CGT event to the units in that year after the payment, which the
+operator gives as `before_cgt_event` (ss 104-70(3) and 104-107B(4)). As the
+payment date is not an input, an amount without named parcels is refused when
+a parcel of the security was acquired in that year, since units bought after
+the payment take no part of it (s 104-70(1)). A parcel given an E4 and an AMIT
+amount for one year, or 2 AMIT amounts, is refused: an AMIT unit has no CGT
+event E4 (s 104-70(1A)) and one AMIT cost base net amount a year
+(s 104-107C).
+
+`tests/cgt_cost_base_adjustments.rs` and the unit tests in
+`src/engine/cgt_parcels/demergers.rs` hold these cases.
+
+| Case | Source | Worksheet |
+| --- | --- | --- |
+| Tom: 2,000 Wesfarmers shares at $4.00 and 1,000 at $15.00 (post-CGT), no roll-over | COLES examples 1 and 2 | $3,360 G1 gain; $16,350.70 and $6,649.30 ($5.4502 and $2.2164 a share) |
+| Tom with roll-over | COLES example 1 | Gain disregarded; the same cost bases |
+| Sarah: 150 shares at $43.00 | COLES example 3 | $4,585.31 and $1,864.70 ($30.5687 and $12.4313 a share) |
+| Denise's 200 at $5.00 and 150 at $30.00, as a resident | COLES example 4 | $3,909.95 and $1,590.05, spread $2,234.26 and $1,675.69, $908.60 and $681.45 |
+| 1,000 Woolworths shares at $30.00, or at $0.50 (fabricated) | CR 2021/50 paras 10 and 16 | $25,743.00 and $4,257.00; at $0.50 a $210.00 G1 gain |
+| Rob: 1,500 shares at $5.00 from 1996, 50 cents a share (date moved into 2025-26) | Guide example 45 | $6,750.00, unindexed, with a warning; refused for a company |
+| Bob: cost base $1,200, reduced cost base $1,050, $105 tax-deferred | Guide example 20; investors guide example 26 | $1,095.00 and $945.00 |
+| Ilena: $5,000 and $4,700, $30 tax-deferred and $35 tax-free | Investors guide example 27 | $4,970.00 and $4,635.00 |
+| Miriam: $55 a unit, $10 a unit AMIT shortfall, or excess | Investors guide example 28 | $65 and $45 a unit |
+| Peter: 400 shares at $4.60, 5% to the new shares | s 125-80(3) example | $1,748.00 and $92.00 |
+| Anita: $2,500 at 94.937% and 5.063% | Guide example 30 | $2,373.43 and $126.58 |
+| G1, E4 and AMIT amounts above the cost base, and an AMIT excess on a nil cost base | Worked by hand under ss 104-135(3), 104-70(4) and (5) and 104-107A(3) | Gains of the excess, then of the whole excess; both bases nil |
+
+COLES is the ATO's page above. The tests also cover a parcel bought after the
+record date, an amount spread by units or over named parcels, an amount just
+before a sale in the year, a G1 on a new share either side of 12 months from
+the head share's date, the parcels passed to `cgt-parcels`, each year boundary
+and each refusal.
 
 ## Trade-in
 
@@ -2808,6 +3010,33 @@ cover the low rate cap going to the element taxed in the fund first
 benefits, a terminal medical condition, a lump sum under $200 and each
 refusal.
 
+## Super withholding
+
+Sources, read on 22 November 2026: the ATO's Schedule 12 from 13 October 2020
+to 30 June 2024, and Schedule 12 of the Taxation Administration (Withholding
+Schedules) Instruments 2024 (F2024L00664), 2025 (F2025L00647), (No. 2) 2025
+(F2025L01016, the same Schedule 12 text) and 2026 (F2026L00716). Each Table A
+rate is the matching tax offset ceiling rate in `super-benefit-tax` plus the
+2% Medicare levy; the 2024 to 2026 tables drop the preservation age to 59 rows,
+as nobody is in that band from 1 July 2024. The schedules round 'withholding
+amounts' to the nearest dollar with no preliminary rounding to the cent; the
+command rounds the total once, and the schedules give no example where
+rounding each part would differ. `tests/super_withholding.rs` holds each case.
+
+| Example | Facts given | Withheld |
+| --- | --- | --- |
+| Tom, roll-over, 2020-21 | $1,585,000 untaxed; cap $1,565,000 | **$9,400** |
+| Tom, roll-over, 2024-25 | $1,820,000 untaxed; cap $1,780,000 | **$18,800** |
+| Tom, roll-over, 2025-26 | $1,900,000 untaxed; cap $1,865,000 | **$16,450** |
+| Tom, roll-over, 2026-27 | $1,967,000 untaxed; cap $1,935,000 | **$15,040** |
+| Chloe, 62, 2026-27 | $30,000, $190,000 taxed, $80,000 untaxed | **$13,600** |
+| Heather, 59, 2020-21 | $30,000, $220,000 taxed | **$850** |
+| Dean, 61, 2020-21 | As Heather | **$0** |
+
+The tests also cover each Table A rate, the total's rounding, a foreign
+resident, death benefits, nil payments, the no-TFN rates ignoring cents, each
+year's untaxed plan cap and each refusal.
+
 ## Depreciation low-value pool
 
 Added on 22 November 2026, with the 2 sections after it. The sources were read
@@ -2865,6 +3094,133 @@ denominator is 365 in a leap year while the days can be 366.
 The tests also cover the 4% rate, partial use, the undeducted limit, the
 16 September 1987 and 27 February 1992 boundaries and days limited by a
 start of construction in or after the year.
+
+## Horticulture shearing withholding
+
+Schedule 2 of the Taxation Administration (Withholding Schedules) Instruments
+2024 (F2024L00664), 2025 (F2025L00647), (No. 2) 2025 (F2025L01016) and 2026
+(F2026L00716), read on 22 November 2026, with the ATO's Schedule 2 page
+(NAT 1013, published 17 June 2026). Table A is 0.13 (resident) and 0.30
+(foreign resident) with a TFN, and 0.47 and 0.45 without, in each instrument.
+
+| Example | Facts given | Result |
+| --- | --- | --- |
+| Schedule 2 example, each year | Earnings **$231.50**, ignoring cents $231 | **$30**, **$108**, **$69** and **$103** (resident with and without a TFN, foreign resident with and without) |
+| Half a dollar | $1,150 at 13% | **$150** ($149.50, 50 cents up) |
+
+The tests also cover a worker without a TFN, each refusal (a working holiday
+maker, a labour mobility scheme worker and a TFN-quoting worker who has not
+claimed the tax-free threshold) and the 2023-24 and 2027-28 boundaries.
+
+## Upward variation withholding
+
+Schedule 14 of the same instruments, read on 22 November 2026, with the ATO's
+Schedule 14 page (NAT 5441, published 17 June 2026). The normal amount is
+`payg-withholding`'s; see [PAYG withholding](#payg-withholding).
+
+| Example | Facts given | Result |
+| --- | --- | --- |
+| Schedule 14 example, 2026-27 | **$563.00** weekly, scale 2, **$50** more | **$33** + $50 = **$83** |
+| Schedule 14 example, 2024 and (No. 2) 2025 instruments | The same | **$39** + $50 = **$89** |
+
+The tests also hold the normal amount equal to `payg-withholding`'s for each
+pay period, scale 4 and the tax offset, Medicare levy adjustment and 53 pay
+options, in each year.
+
+## Daily casual withholding
+
+Schedule 1, 'Calculating withholding amounts for payments made on a daily or
+casual basis', of the same instruments, and the ATO's tax table for daily and
+casual workers (NAT 1024) for payments from 1 July 2026 (published 17 June
+2026) and from 1 July 2024 to 30 June 2026 (last updated 17 June 2024), read
+on 22 November 2026. The daily value of tax offsets is 0.38% of the amount
+claimed, rounded to the dollar, in both versions.
+
+| Example | Facts given | Result |
+| --- | --- | --- |
+| NAT 1024 example, 2026-27 | **$193.62** a day, **$500** of tax offsets | $193 x 5 + 0.99 = 965.99, **$127** a week, **$25** a day, less **$2**: **$23** |
+| NAT 1024 example, from 1 July 2024 | The same | **$26** less **$2**: **$24** |
+
+The tests also cover a wage below the tax-free threshold, the no TFN rates,
+each refusal and the 2023-24 boundary.
+
+## No ABN withholding
+
+TAA 1953 Sch 1 ss 12-190 and 15-10 from the ATO's legal database; the
+Taxation Administration Regulations 2017 ss 4 ('top rate'), 26 and 38 in
+compilations 12 (from 1 July 2024) and 18 (from 14 November 2026); the A New
+Tax System (Goods and Services Tax) Regulations 2019 s 29-80.01 ($75) in
+compilations 4 and 5; the ATO's 'Payments you don't withhold from' (last
+updated 11 June 2025) and 'Rental expenses' (Rental properties 2025, last
+updated 29 May 2025). All read on 22 November 2026.
+
+| Example | Facts given | Result |
+| --- | --- | --- |
+| Rental expenses, Derek | **$1,800** cash, no ABN | **$846** |
+| Payments you don't withhold from, Ana | **$150** sign paid as 2 payments of $75 | **$35** from each |
+| $75 threshold | One $75.00 supply | **nil** |
+
+The tests also cover GST disregarded for the threshold but not for the amount,
+cents in the payment and the result, and each refusal.
+
+## Entertainer withholding
+
+Schedule 3 of the Taxation Administration (Withholding Schedules) Instruments
+2024 (F2024L00664), 2025 (F2025L00647), (No. 2) 2025 (F2025L01016) and 2026
+(F2026L00716), read on 22 November 2026, with the ATO's Schedule 3 page (NAT
+1023, published 17 June 2026). Tables A and B are the same in the first 3
+instruments and changed on 1 July 2026.
+
+| Example | Facts given | Result |
+| --- | --- | --- |
+| Sandra, 2026-27 | **$500.35** a performance, 2 in the week, 1 a day, threshold claimed | 1,000.99 x 0.1432 - 60.8377 = 82.5041, **$83**, / 2, **$42** |
+| Sandra, 2024 and 2025 instruments | The same | 1,000.99 x 0.1512 - 64.3365 = 87.0132, **$87**, **$44** |
+| Lookup tool example, by the formula | **$279.35** a day, 3 performances, **$500** of tax offsets | **$20** less **$3** = **$17** (2026-27); **$21** less $3 = **$18** before |
+
+The tests also cover Table B, 2 performances in a day, the nil band, the no
+TFN rates, each refusal and the 2023-24 and 2027-28 boundaries.
+
+## Return to work withholding
+
+Schedule 4 of the same instruments and TAA 1953 Sch 1 s 12-50, read on 22
+November 2026, with the ATO's Schedule 4 page (published 17 June 2026).
+
+| Example | Facts given | Result |
+| --- | --- | --- |
+| George, each instrument | **$18,000** return to work payment | 32%, **$5,760** |
+| Cents with a TFN | $101.57 | 32.5024, **$33** |
+
+The tests also cover the no TFN rates with cents ignored and each refusal.
+
+## Annuity withholding
+
+Schedule 6 of the same instruments and TAA 1953 Sch 1 s 12-80, read on 22
+November 2026, with the ATO's Schedule 6 page (NAT 1005, published 17 June
+2026). The amount on the income is `payg-withholding`'s; see
+[PAYG withholding](#payg-withholding).
+
+| Example | Facts given | Result |
+| --- | --- | --- |
+| Barbara, 2026-27 | **$1,000** a week, deductible amount **$5,200**, 52 instalments, threshold claimed | $1,000 - $5,200 / 52 = **$900**, **$106** |
+| Barbara, 2024 and 2025 instruments | The same | **$111** |
+| Kenneth, each instrument | **$850** a fortnight, **$1,000** over 10 instalments | **$750**, **$4** |
+
+The tests also hold the amount equal to `payg-withholding`'s on the income for
+each pay period, scale and option, and cover the no TFN rates on the payment
+and each refusal.
+
+## Voluntary agreement withholding
+
+Schedule 10 of the same instruments and TAA 1953 Sch 1 s 12-55, read on 22
+November 2026, with the ATO's Schedule 10 page (published 17 June 2026).
+
+| Example | Facts given | Result |
+| --- | --- | --- |
+| Francesca, agreement applies her CIR | CIR **16.44%**, $1,000 excluding GST | $164.40, **$164** |
+| Francesca, without that term | The same | 20%, **$200** |
+
+The tests also cover a CIR of 20% or more, GST excluded, 50 cents rounded up
+and each refusal.
 
 ## ETP tax free component
 
@@ -3827,6 +4183,159 @@ Choices the sources leave to the reader:
 | Category A $500 and D $100, with and without log book car expenses in A | ATO 'Self-education reduction in expenses' | $600; refused |
 | Wendy (new employment), Bert (general only), Callum's second semester (not employed) | ATO 'Self-education expenses' | Nil in every year |
 
+## Residency tests
+
+This worksheet was added on 22 November 2026. Paragraph (a) of 'resident or
+resident of Australia' in ITAA 1936 s 6(1) was read that day in compilation
+193 (1 October 2026, the latest on the register), volume 1
+(https://www.legislation.gov.au/C1936A00027/2026-10-01/2026-10-01/text/original/epub/OEBPS/document_1/document_1.html),
+and compared with compilation 169 (1 July 2020): the definition reads the
+same, so one rule set serves 2020-21 to 2026-27. TR 2023/1 (issued 7 June
+2023, applying before and after its issue, paragraph 170) was read the same
+day at https://www.ato.gov.au/law/view/document?docid=TXR/TR20231/NAT/ATO/00001.
+
+Choices the Act leaves to the reader, settled by TR 2023/1:
+
+- 'More than one-half of the year of income' is 183 days or more, 184 in a
+  leap year (paragraph 83 and footnote 51). Of 2020-21 to 2026-27 only
+  2023-24 holds 29 February.
+- Days are added together whether continuous or intermittent, and part of a
+  day counts as a whole day (paragraph 86), over 1 July to 30 June
+  (paragraph 87). The worksheet counts each calendar day the periods given
+  cover once.
+- Residing, domicile, permanent and usual places of abode and intention turn
+  on all the facts (paragraph 4); the worksheet takes them as answers and
+  infers none.
+- A resident under any test may be one for part of the year only
+  (paragraph 105); the worksheet answers for the year and does not set the
+  part-year dates.
+- A treaty may allocate residence to another country for its purposes
+  (paragraph 108); a resident who is also resident elsewhere is refused.
+
+`tests/residency_tests.rs` holds these cases. The examples give no dates, so
+each date below was chosen to fit its narrative.
+
+| Case | Source | Worksheet |
+|---|---|---|
+| Conchita: 1 August 2025 to 30 April 2026 on holiday, abode in Mexico | TR 2023/1 example 5 | 273 days; not a resident |
+| Stuart: domiciled here, no permanent abode abroad, 21 days here | example 11 | resident (domicile) |
+| Brian: domiciled here, permanent abode in Vietnam, 34 days here | example 10 | not a resident |
+| Megan: here all 2025-26, intends to stay | example 16 | resident (resides, 183 days) |
+| Aiko: resides from arrival, 72 days here | example 13 | resident (resides) |
+| Alani: 1 September 2025 to 31 May 2026 of seasonal work, abode in Papua New Guinea | example 14 | 273 days; not a resident |
+| Grace: 15 August 2025 to 14 August 2026 on a working holiday, abode in the UK | example 15 | 320 days in 2025-26; not a resident |
+| Ryan: 1 July 2024 to 30 June 2026 on 2 working holidays, abode in Ireland | example 18 | 365 days in each of 2024-25 and 2025-26; not a resident in either |
+| Mark: abroad on assignment, family home here | example 7 | resident (resides, domicile) |
+| 182 and 183 days from 1 July in each year but 2023-24; 183 and 184 in 2023-24 | footnote 51 | not met; met |
+| A period of one day; periods touching or overlapping; periods across 1 July or 30 June | paragraphs 86 and 87 | each day counted once, inside the year |
+| Each Commonwealth fund link | s 6(1)(a)(iii) | resident |
+
+## Lodgment required
+
+This worksheet was added on 22 November 2026. Each year's lodgment
+instrument was read that day on the Federal Register of Legislation, as made
+(epub text and PDF):
+
+| Year | Instrument |
+|---|---|
+| 2020-21 | Notice of Requirement to Lodge a Return for the Income Year Ended 30 June 2021, F2021L00577 |
+| 2021-22 | Notice ... Ended 30 June 2022, F2022L00508 |
+| 2022-23 | Notice ... Ended 30 June 2023, F2023L00533 |
+| 2023-24 | Taxation Laws (Requirement to Lodge a Return for the 2024 Year) Instrument 2024, F2024L00550 |
+| 2024-25 | ... for the 2025 Year) Instrument 2025, F2025L00570 |
+| 2025-26 | ... for the 2026 Year) Instrument 2026, F2026L00618 |
+
+A search of the register that day for 'Requirement to Lodge a Return' found
+no instrument for the 2027 year, so 2026-27 is refused. Tables A and B read
+the same in the 3 Notices but for the name of the labour mobility program;
+s 6(2) and 6(3)(a) read the same in the 3 instruments, and s 6(3)(b) adds
+s 6(2)(a)(iv) payments to its exclusions from 2024-25. The amounts that
+change by year are in the README.
+
+Choices the instruments leave to the reader:
+
+- Table K is 'to be read with Tables B and E', and s 7(2) names s 6(2)(i)
+  and 6(3) and s 7(3) names s 6(3); each says the person 'is not required to
+  lodge ... under this instrument', and the notes to s 7 say the same of a
+  person covered by s 7(2) or 7(3). So a person covered by a named provision
+  whom the exception relieves has no requirement under the instrument, even
+  one that also meets a provision it does not name, such as PAYG
+  withholding; a person covered by none of the named provisions is not
+  relieved. The 2024 explanatory statement (paragraph 17) says the redrafting
+  was not meant to change who must lodge, but s 7(2) names s 6(2)(i), which
+  Table K did not reach; each year follows its own text.
+- Tables E to G and s 6(6) to 6(8) cover trustees, agents and ship masters;
+  the worksheet is for an individual's own return, so they are out of scope.
+  Each year's instrument sets 31 October after the year as the due date for
+  the rest.
+- Table P and s 7(1)(f) relieve every requirement of the instrument, so a
+  working holiday maker under $45,001 is relieved whatever else holds.
+- s 6(10) reaches 'a foreign resident ... during the year': a part-year
+  resident is one.
+
+`tests/lodgment_required.rs` holds these cases. The instruments publish no
+worked examples, so the facts are fabricated, each at a threshold.
+
+| Case | Provision | Worksheet |
+|---|---|---|
+| Full-year resident at $18,200.00 and $18,200.01, each year | s 6(3)(a)(i), Table B(1)(a) | not required; required |
+| Part-year resident for 1, 5, 11 and 12 months, at the limit and $1 over | s 6(3)(a)(ii) | $13,859, $15,439, $17,809 and $18,200 |
+| Non-resident with and without income taxable here | s 6(3)(b) | required; not |
+| Under 18 at $416.00 and $416.01, own income or dividends | s 6(2)(i), Table A(9) | not required; required |
+| Dividends and franking credits at $18,200.00 and $18,200.01 | s 6(2)(o) | not required; required |
+| Each stated condition, 2025-26 and 2021-22 | s 6(2), Table A | required, cited by year |
+| Foreign resident with a study debt at each year's amount and $1 over | s 6(10), Table J | not required; required |
+| Working holiday maker with PAYG withheld at $45,000 and $45,001 | s 7(1)(f), Table P | relieved; required |
+| Listed payment at each year's amount, 'less than' and 'at most' | s 7(2), Table K(1) | relieved below; required at or above |
+| Seniors offset, each category, $1 under and at each amount | s 7(3), Table K(2) | relieved; required |
+| Seniors offset with PAYG withheld | s 7(3) and 6(2)(a) | refused |
+| Under 18 with a listed payment, 2024-25 and 2022-23 | s 7(2); Table K | relieved; refused |
+
+## Deferred tax
+
+Added on 22 November 2026, when the sources were read: the AASB 112
+compilations of September 2023 (F2023C00930, the current version on the AASB's
+portal) and March 2020 (compilation no. 4) with their tables of amendments;
+the AASB's list of AASB 112 versions; AASB 2021-5; AASB 18 Appendix D (June
+2024); the AASB's December 2012 agenda decision on substantive enactment; the
+Income Tax Rates Act 1986 ss 23(2) and 23AA (compilation 66, 1 July 2026); and
+the ATO's company tax rate tables for 2020-21 to 2025-26.
+
+The paragraphs applied (5, 7, 8, 15, 24, 34 to 36, 46 to 48, 53, 56, 58, 60,
+80, 81(c), 81(e), 85 and 86) read the same for every reporting period of
+2020-21 to 2026-27. AASB 2021-5 changed paras 15 and 24 from 1 January 2023
+only in the initial recognition exception, which the caller applies by leaving
+those differences out; AASB 1060 replaced Appendix A alone; and AASB 18
+Appendix D amends none of the applied paragraphs. The standard is copyright:
+the command and these notes state its rules in their own words, and the
+vectors below are made up to apply the paragraphs, not the AASB's illustrative
+examples.
+
+| Income year | Base rate entity | Otherwise | Source |
+| --- | --- | --- | --- |
+| 2020-21 | 26% | 30% | ATO, Tax rates 2011-12 to 2020-21 |
+| 2021-22 to 2025-26 | 25% | 30% | ATO tables for each year; s 23(2) |
+| 2026-27 | 25% | 30% | s 23(2), compilation 66 |
+
+Deferred tax is measured at 25% or 30% as the caller expects the company to be
+a base rate entity or not when the differences reverse, which for every
+supported year is 2021-22 or later. Opening balances of 2020-21 at the base
+rate entity rate are refused: they reverse partly at 26%. A change in the
+expected rate with opening balances is refused when the year's rate is not the
+closing rate: the balances that reverse in the year do so at the year's rate,
+and only the rest is remeasured (paras 47 and 60(a)).
+
+| Vector | Facts given | Result |
+| --- | --- | --- |
+| V1, 2025-26, 30% | Plant $70,000 / $50,000, leave provision $12,000 / nil, prepayment $3,000 / nil; opening $80,000 / $65,000, $10,000, $2,000; profit $100,000 with $4,000 not deductible | DTL **$6,900**, DTA **$3,600**, deferred expense **$1,200**, current **$30,000**, expense **$31,200**, effective rate 31.2% |
+| V2, 2024-25, 30% to 25% | Equipment $40,000 / $30,000 (opening $50,000 / $45,000), losses $20,000 unrecognised at the start, $15,000 used in the year and $5,000 left and recognised at the end, profit $30,000 with $2,000 not assessable | Rate change **-$250**, recognition **-$1,250**, origination **$1,250**, losses used **-$3,750** (para 80(e)), expense **$1,750** |
+| V3, 2020-21, 26% and 25% | A new $10,000 taxable difference, profit $50,000, taxable income $40,000 | Current **$10,400**, deferred **$2,500**, expense **$12,900**, a **-$100** rate difference line |
+
+`tests/deferred_tax.rs` also covers an unexplained taxable income, tax
+offsets, each class's sign, a loss before tax, each year's rates, a rate
+change with the year's rate at and away from the closing rate, a 2-cent
+rounding remainder and every refusal.
+
 ## Personal tax estimate
 
 `personal-tax-estimate` adds no rate or threshold: each amount is a
@@ -4020,6 +4529,7 @@ year; the others refuse it and say what is missing.
 | CGT and rental deductions | Changed from 1 July 2027 by Act No. 49 of 2026 Schedules 1 and 2 (s 26-155) | ITAA 1997 s 26-155 (https://www.ato.gov.au/law/view/document?docid=PAC/19970038/26-155), 16:13 |
 | Balancing adjustment | Refused: CGT event K7 is a capital gain, which Schedule 1 to Act No. 49 of 2026 changes from 1 July 2027 | Act No. 49 of 2026 as made (https://www.legislation.gov.au/C2026A00049/asmade/text), read 18 November 2026 at 07:06; see [Balancing adjustment](#balancing-adjustment) |
 | CGT parcels | Refused: Schedule 1 to Act No. 49 of 2026 changes how capital gains are worked out from the income year that includes 1 July 2027 | Act No. 49 of 2026 as made (https://www.legislation.gov.au/C2026A00049/asmade/text), items 82 to 84, read 19 November 2026 at 14:40; see [CGT parcels](#cgt-parcels) |
+| CGT cost base adjustments | Refused: Schedule 1 to Act No. 49 of 2026 changes how capital gains are worked out from the income year that includes 1 July 2027 | Act No. 49 of 2026 as made (https://www.legislation.gov.au/C2026A00049/asmade/text), Schedule 1 items 82 to 84, read 22 November 2026 at 14:16; see [CGT cost base adjustments](#cgt-cost-base-adjustments) |
 | Trade-in | Refused: the car limit for 2027-28 was not published, and CGT event K7 changes with Act No. 49 of 2026 | ATO 'Purchasing a motor vehicle' (last updated 3 June 2026, the 2026-27 limit only), read 18 November 2026 at 07:10; see [Trade-in](#trade-in) |
 | Rental property | Refused: s 26-155 (Act No. 49 of 2026) can quarantine residential rental deductions from 2027-28 | ITAA 1997 s 26-155 as the borrowing expenses worksheets read it, 19 November 2026; see [Rental property](#rental-property) |
 | Small business CGT concessions | Refused: Schedule 1 to Act No. 49 of 2026 changes Division 152 from the income year that includes 1 July 2027 | Act No. 49 of 2026 as made (https://www.legislation.gov.au/C2026A00049/asmade/text), item 82, read 19 November 2026 at 14:40; see [Small business CGT concessions](#small-business-cgt-concessions) |
