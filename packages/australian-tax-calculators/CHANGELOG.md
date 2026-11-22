@@ -6,6 +6,22 @@
 
 ### Added
 
+- `gst-going-concern`, `gst-second-hand-goods` and `gst-bad-debt` test
+  whether a supply of a going concern is GST-free (s 38-325), work the
+  Subdivision 66-A credit for second-hand goods and a Division 21 bad debt
+  adjustment reduced under Subdivision 136-A, each for 2020-21 to 2026-27.
+  New codes: `gst_bad_debt.annual_apportionment`,
+  `gst_bad_debt.dates_invalid`, `gst_bad_debt.fact_invalid`,
+  `gst_bad_debt.less_than_one_eleventh`,
+  `gst_bad_debt.reduced_credit_acquisition`,
+  `gst_going_concern.fact_invalid`, `gst_going_concern.farm_land`,
+  `gst_going_concern.part_outside_arrangement`,
+  `gst_second_hand_goods.divided_for_resupply`,
+  `gst_second_hand_goods.fact_invalid`,
+  `gst_second_hand_goods.leased_before_sale` and
+  `gst_second_hand_goods.valuable_metal`. `tests/gst_special_rules.rs` holds
+  them to GSTR 2002/5, GSTD 2012/6 and GSTR 2000/2.
+
 - `gst-creditable-purpose-change`, `gst-annual-apportionment` and
   `gst-financial-acquisitions-threshold` work a Division 129 adjustment for a
   change in creditable purpose with its adjustment periods, Division 131

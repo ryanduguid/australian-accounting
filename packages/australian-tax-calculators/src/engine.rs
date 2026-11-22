@@ -6171,11 +6171,13 @@ pub use small_business_income_offset::{
 };
 mod gst_adjustments;
 pub use gst_adjustments::{
-    AnnualApportionmentArgs, CreditablePurposeArgs, FinancialAcquisitionsArgs,
-    gst_annual_apportionment, gst_creditable_purpose_change, gst_financial_acquisitions_threshold,
+    AnnualApportionmentArgs, BadDebtArgs, CreditablePurposeArgs, FinancialAcquisitionsArgs,
+    GoingConcernArgs, SecondHandGoodsArgs, gst_annual_apportionment, gst_bad_debt,
+    gst_creditable_purpose_change, gst_financial_acquisitions_threshold, gst_going_concern,
+    gst_second_hand_goods,
 };
 
-const KINDS: [&str; 73] = [
+const KINDS: [&str; 76] = [
     "gst",
     "gst_margin_scheme",
     "fuel_tax_credits",
@@ -6249,6 +6251,9 @@ const KINDS: [&str; 73] = [
     "gst_creditable_purpose_change",
     "gst_annual_apportionment",
     "gst_financial_acquisitions_threshold",
+    "gst_going_concern",
+    "gst_second_hand_goods",
+    "gst_bad_debt",
 ];
 
 /// `periods(kind)`: accepted period arguments and inclusive calendar boundaries.

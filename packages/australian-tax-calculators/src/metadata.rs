@@ -1144,6 +1144,11 @@ pub fn supported_periods(kind: &str) -> Vec<&'static str> {
         | "gst_financial_acquisitions_threshold" => vec![
             "2020-21", "2021-22", "2022-23", "2023-24", "2024-25", "2025-26", "2026-27",
         ],
+        // GST Act s 38-325, Subdivision 66-A, Division 21 and Subdivision
+        // 136-A read the same in compilations 82 and 96.
+        "gst_going_concern" | "gst_second_hand_goods" | "gst_bad_debt" => vec![
+            "2020-21", "2021-22", "2022-23", "2023-24", "2024-25", "2025-26", "2026-27",
+        ],
         "income_tests" => vec!["2024-25", "2025-26", "2026-27"],
         // The pools' rates and the capital works rates do not change in these
         // years; the small business pool's low pool value threshold does, by year.
@@ -1432,6 +1437,18 @@ pub fn source_review(kind: &str) -> (&'static str, &'static str) {
         "gst_financial_acquisitions_threshold" => (
             "2026-11-22",
             "GST Act ss 11-15(4), 129-5(2), 189-5, 189-10 and 189-15, compilation 96 (C2026C00081, from 1 January 2026), against compilation 82 (C2020C00143, in force on 1 July 2020); GST Regulations 2019 compilation 5 (F2025C01015), which specify no other amount; GSTR 2003/9 paras 12 to 20C and 103 to 118",
+        ),
+        "gst_going_concern" => (
+            "2026-11-22",
+            "GST Act ss 38-325, 38-480, 135-5 and 135-10 and the s 195-1 definition of supply of a going concern, compilation 96 (C2026C00081, from 1 January 2026), against compilation 82 (C2020C00143, in force on 1 July 2020); GSTR 2002/5 paras 13, 14, 168, 169 and 182",
+        ),
+        "gst_second_hand_goods" => (
+            "2026-11-22",
+            "GST Act ss 66-5, 66-10, 66-15, 66-17 and 66-40 and the s 195-1 definitions of second-hand goods and valuable metal, compilation 96 (C2026C00081, from 1 January 2026), against compilation 82 (C2020C00143, in force on 1 July 2020); GSTD 2012/6 paras 1 to 13",
+        ),
+        "gst_bad_debt" => (
+            "2026-11-22",
+            "GST Act ss 21-5, 21-10, 21-15, 21-20, 136-5, 136-10 and 136-30 and the s 195-1 definition of overdue, compilation 96 (C2026C00081, from 1 January 2026), against compilation 82 (C2020C00143, in force on 1 July 2020); GSTR 2000/2 paras 49AA to 75",
         ),
         "income_tests" => (
             "2026-11-16",
@@ -1823,6 +1840,24 @@ pub fn library_evidence(kind: &str) -> [(&'static str, &'static str); 4] {
             "2003-05-14",
             "2026-11-22",
         ),
+        "gst_going_concern" => (
+            "GSTR 2002/5",
+            "The 5 conditions of s 38-325, the written agreement on or before the day of the supply (para 182) and the apportionment of a supply partly outside the arrangement (paras 168 and 169)",
+            "2002-10-16",
+            "2026-11-22",
+        ),
+        "gst_second_hand_goods" => (
+            "GSTD 2012/6",
+            "Finance Co's $5,500 vehicle: a notional credit of $500, 1/11 of the consideration (para 7)",
+            "2012-08-01",
+            "2026-11-22",
+        ),
+        "gst_bad_debt" => (
+            "GSTR 2000/2",
+            "Marcus's $50 on a $550 debt overdue 12 months (paras 49AA to 53), ABC Pty Ltd's $24 at 40% taxable (para 55), Isabella's $60 at 60% creditable purpose (paras 69 and 70) and Y's $100 at a 25% extent of consideration (para 72)",
+            "2000-03-29",
+            "2026-11-22",
+        ),
         "income_tests" => (
             "ATO income test pages",
             "Christina's repayment income (When you must repay your loan) and Tom's income for MLS purposes (Medicare levy surcharge income, thresholds and rates)",
@@ -1842,6 +1877,44 @@ pub fn library_evidence(kind: &str) -> [(&'static str, &'static str); 4] {
 /// Inputs a worksheet takes but does not require, with their units.
 pub fn optional_inputs(kind: &str) -> Vec<(&'static str, &'static str)> {
     match kind {
+        "gst_second_hand_goods" => vec![(
+            "resupply_gst",
+            "AUD, required when consideration is more than $300 and refused otherwise: the GST on your taxable supply of the goods, which caps the credit (GST Act s 66-10(1)(b))",
+        )],
+        "gst_bad_debt" => vec![
+            (
+                "overdue_from",
+                "YYYY-MM-DD, required with event overdue_12_months and refused otherwise: the first day the debt was overdue (GST Act s 195-1)",
+            ),
+            (
+                "as_at",
+                "YYYY-MM-DD, required with event overdue_12_months and refused otherwise: the day the debt is tested; overdue for 12 months or more from 12 months after overdue_from",
+            ),
+            (
+                "prior_adjustment",
+                "boolean, required with event recovered and refused otherwise: you had the s 21-5 or s 21-15 adjustment for the debt (ss 21-10(a) and 21-20(a))",
+            ),
+            (
+                "taxable_proportion",
+                "fraction, decimal string from 0 to 1, supplier only: the taxable proportion of a partly taxable supply (s 136-5); omit for a wholly taxable supply",
+            ),
+            (
+                "creditable_purpose",
+                "fraction, decimal string from 0 to 1, recipient only: the extent of creditable purpose last used for the credit or a Division 129 adjustment (s 136-10(1)); omit for a wholly creditable acquisition",
+            ),
+            (
+                "consideration_extent",
+                "fraction, decimal string from 0 to 1, recipient only: the extent you are liable to provide the consideration (s 136-10(1)); for part of a debt, your share of what remains outstanding (GSTR 2000/2 para 71)",
+            ),
+            (
+                "reduced_credit_acquisition",
+                "boolean, required for a recipient and refused for a supplier: the acquisition is a reduced credit acquisition (s 136-10(2)); true is refused",
+            ),
+            (
+                "annual_apportionment",
+                "boolean, required for a recipient and refused for a supplier: the credit was worked out under Division 131 (s 136-10(3)); true is refused",
+            ),
+        ],
         "gst_creditable_purpose_change" => vec![
             (
                 "ended_on",
@@ -3649,6 +3722,35 @@ pub fn input_units(kind: &str) -> Vec<(&'static str, &'static str)> {
             ("future_total_credits", "AUD: the input tax credits for all acquisitions and importations of those 12 months, the financial acquisitions included"),
             ("gst_group", "boolean: you are a GST group member and the 4 amounts are every member's (ss 189-5(2) and 189-10(2))"),
         ],
+        "gst_going_concern" => vec![
+            ("for_consideration", "boolean: the supply is for consideration (GST Act s 38-325(1)(a))"),
+            ("recipient_registration", "registered, required_to_be_registered or neither: the recipient's GST registration status (s 38-325(1)(b))"),
+            ("written_agreement", "on_or_before_supply_day, after_supply_day or none: when the supplier and the recipient agreed in writing that the supply is of a going concern (s 38-325(1)(c); GSTR 2002/5 para 182)"),
+            ("all_things_necessary", "boolean: under the arrangement the supplier supplies all of the things necessary for the continued operation of the enterprise (s 38-325(2)(a))"),
+            ("carried_on_until_supply", "boolean: the supplier carries on, or will carry on, the enterprise until the day of the supply (s 38-325(2)(b))"),
+            ("farm_land", "boolean: the supply is of farm land for farming (Subdivision 38-O); true is refused"),
+            ("part_outside_arrangement", "boolean: part of the supply is not under the arrangement (GSTR 2002/5 paras 168 and 169); true is refused"),
+        ],
+        "gst_second_hand_goods" => vec![
+            ("consideration", "AUD: the consideration you provide, or are liable to provide, for the acquisition (GST Act s 66-10)"),
+            ("acquired_for_sale_or_exchange", "boolean: the goods are acquired for sale or exchange, not manufacture, in the ordinary course of business (s 66-5(1))"),
+            ("animals_or_plants", "boolean: the goods are animals or plants, which are not second-hand goods (s 195-1)"),
+            ("supply_to_you", "neither, taxable or gst_free: the supply of the goods to you (s 66-5(2)(a))"),
+            ("imported", "boolean: you imported the goods (s 66-5(2)(b))"),
+            ("by_way_of_hire", "boolean: the supply to you was by way of hire (s 66-5(2)(c))"),
+            ("resupply_taxable", "boolean: your supply of the goods is a taxable supply (s 66-5(2)(e))"),
+            ("divided_for_resupply", "boolean: you can reasonably be expected to divide the goods before supplying them in 2 or more supplies (s 66-40); true is refused"),
+            ("valuable_metal", "boolean: the goods consist to any extent of gold, silver or platinum (s 195-1); true is refused"),
+            ("leased_before_sale", "boolean: you lease the goods before you sell them (GSTD 2012/6); true is refused"),
+        ],
+        "gst_bad_debt" => vec![
+            ("party", "supplier or recipient: you made the supply (ss 21-5 and 21-10) or the acquisition (ss 21-15 and 21-20)"),
+            ("event", "written_off, overdue_12_months or recovered: the debt, or part of it, is written off as bad (by the supplier), has been overdue for 12 months or more, or is recovered by the supplier or paid by the recipient after the earlier adjustment"),
+            ("amount", "AUD, GST inclusive: the amount written off, overdue for 12 months or more, recovered or paid"),
+            ("taxable_or_creditable", "boolean: for a supplier, the supply was a taxable supply (s 21-5(1)(a)); for a recipient, a creditable acquisition for consideration (s 21-15(1)(a))"),
+            ("cash_basis", "boolean: you account on a cash basis (ss 21-5(2) and 21-15(2)); Division 159 on changing basis is not applied"),
+            ("taxable_at_less_than_one_eleventh", "boolean: the supply was taxable, or the acquisition creditable, at less than 1/11 of the price, as under the margin scheme (Subdivision 136-B); true is refused"),
+        ],
         "income_tests" => vec![
             ("taxable_income", "AUD, whole dollars: taxable income, including any assessable FHSS released amount (nil for a loss)"),
             ("assessable_fhss_released_amount", "AUD: the amount ITAA 1997 s 313-20 includes in assessable income for released FHSS amounts"),
@@ -4377,6 +4479,44 @@ pub fn examples(kind: &str) -> Vec<(&'static str, Example)> {
             ("future_financial_credits", Text("131000.00")),
             ("future_total_credits", Text("1220000.00")),
             ("gst_group", Flag(false)),
+        ],
+        // The 5 conditions of GST Act s 38-325 all met.
+        "gst_going_concern" => vec![
+            ("year", Text("2025-26")),
+            ("for_consideration", Flag(true)),
+            ("recipient_registration", Text("registered")),
+            ("written_agreement", Text("on_or_before_supply_day")),
+            ("all_things_necessary", Flag(true)),
+            ("carried_on_until_supply", Flag(true)),
+            ("farm_land", Flag(false)),
+            ("part_outside_arrangement", Flag(false)),
+        ],
+        // GSTD 2012/6's $5,500 vehicle, resold for $8,800.
+        "gst_second_hand_goods" => vec![
+            ("year", Text("2025-26")),
+            ("consideration", Text("5500.00")),
+            ("acquired_for_sale_or_exchange", Flag(true)),
+            ("animals_or_plants", Flag(false)),
+            ("supply_to_you", Text("neither")),
+            ("imported", Flag(false)),
+            ("by_way_of_hire", Flag(false)),
+            ("resupply_taxable", Flag(true)),
+            ("resupply_gst", Text("800.00")),
+            ("divided_for_resupply", Flag(false)),
+            ("valuable_metal", Flag(false)),
+            ("leased_before_sale", Flag(false)),
+        ],
+        // GSTR 2000/2's Marcus (paras 49AA to 53), 20 years on.
+        "gst_bad_debt" => vec![
+            ("year", Text("2021-22")),
+            ("party", Text("supplier")),
+            ("event", Text("overdue_12_months")),
+            ("amount", Text("550.00")),
+            ("taxable_or_creditable", Flag(true)),
+            ("cash_basis", Flag(false)),
+            ("taxable_at_less_than_one_eleventh", Flag(false)),
+            ("overdue_from", Text("2021-04-16")),
+            ("as_at", Text("2022-04-16")),
         ],
         "income_tests" => vec![
             ("year", Text("2025-26")),

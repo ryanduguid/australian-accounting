@@ -169,9 +169,10 @@ fn every_catalogued_required_input_of_a_strict_command_is_read() {
     // fbt-ev-exemption-check, fhss, franking-account, sb-cgt-concessions,
     // depreciation-low-value-pool, depreciation-small-business-pool,
     // capital-works, small-business-income-offset,
-    // gst-creditable-purpose-change, gst-annual-apportionment and
-    // gst-financial-acquisitions-threshold.
-    assert_eq!(checked, 59);
+    // gst-creditable-purpose-change, gst-annual-apportionment,
+    // gst-financial-acquisitions-threshold, gst-going-concern,
+    // gst-second-hand-goods and gst-bad-debt.
+    assert_eq!(checked, 62);
 }
 
 /// Every frozen call gives the same answer through either entry point, and

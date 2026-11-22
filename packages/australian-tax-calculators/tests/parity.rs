@@ -33,7 +33,7 @@ use std::process::{Command, Stdio};
 /// `tests/luxury_car_tax.rs`, `tests/sb_cgt_concessions.rs`,
 /// `tests/depreciation_pools.rs`, `tests/small_business_income_offset.rs` and
 /// `tests/gst_adjustments.rs` cover them.
-const NEW_KINDS: [(&str, &str); 59] = [
+const NEW_KINDS: [(&str, &str); 62] = [
     ("fhss", "fhss"),
     ("ppsr-timing", "ppsr_timing"),
     ("dasp-tax", "dasp_tax"),
@@ -84,6 +84,9 @@ const NEW_KINDS: [(&str, &str); 59] = [
         "gst-financial-acquisitions-threshold",
         "gst_financial_acquisitions_threshold",
     ),
+    ("gst-going-concern", "gst_going_concern"),
+    ("gst-second-hand-goods", "gst_second_hand_goods"),
+    ("gst-bad-debt", "gst_bad_debt"),
     ("division-296", "division_296"),
     ("termination-payment", "termination_payment"),
     ("etp-tax-free-component", "etp_tax_free_component"),
