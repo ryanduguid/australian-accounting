@@ -283,6 +283,10 @@ pub const SCOPES: &[(&str, &str)] = &[
         "Whether ITAA 1997 Division 35 defers the loss from one business activity, or a group of similar ones, of one individual carrying it on alone or in partnership, for an income year from 2020-21 to 2026-27: the activity's income, deductions, asset values and earlier years and the income requirement amounts are the operator's established figures; not a bankruptcy (s 35-20), not section 40-880 expenditure (s 35-10(2A) and (2B)), and the Commissioner's discretion (s 35-55) is not decided.",
     ),
     (
+        "psi_test",
+        "Whether the personal services income rules (ITAA 1997 Part 2-42) apply to one individual's personal services income for an income year from 2020-21 to 2026-27, from the operator's answers: whether the income is mainly a reward for personal efforts or skills, who receives it, a determination in force, each payer with its associates and what it paid for, the principal work by others, an apprentice and the business premises; s 87-40 is not applied to an agent on 75% or more commission, Australian government agencies are entered as s 87-35 treats them, and whether the Commissioner would make a determination is not decided.",
+    ),
+    (
         "income_tests",
         "The income measures of one individual who was an Australian resident for the whole income year and alive at its end, each the person's own for the whole year, from components the operator has established and classified: income for surcharge purposes (ITAA 1997 s 995-1), Division 293 income (s 293-20(1)(a)), rebate income (ITAA 1936 s 6(1)), repayment income for study and training loans (HESA s 154-5), adjusted taxable income for offsets (ITAA 1997 s 995-1, ITAA 1936 s 6(1) and A New Tax System (Family Assistance) Act 1999 Sch 3, disregarding cls 3 and 3A) and total income for the super co-contribution (Superannuation (Government Co-contribution for Low Income Earners) Act 2003 s 8). A spouse's measures come from the spouse's own components. A dependant's adjusted taxable income for part of a year, a deceased person's annualised adjusted taxable income (Sch 3 cl 2(2)), the co-contribution's 10% eligible income test, the combined family amounts and every threshold and eligibility test the measures feed are outside it. Income for surcharge purposes follows s 995-1, which does not add exempt foreign employment income; the ATO's surcharge page adds it where taxable income is $1 or more, and the result warns when that changes the figure. Measures another agency applies are outside it: the Commonwealth Seniors Health Card income test and family assistance adjusted taxable income are Services Australia's (https://www.servicesaustralia.gov.au/income-test-for-commonwealth-seniors-health-card). Refuses part-year residents, working holiday makers and foreign residents, and components that cannot all be true together.",
     ),
@@ -560,6 +564,10 @@ pub const SOURCES: &[(&str, &str)] = &[
     (
         "non_commercial_losses",
         "https://www.legislation.gov.au/C2004A05138/2026-10-01/2026-10-01/text/original/epub/OEBPS/document_1/document_1.html",
+    ),
+    (
+        "psi_test",
+        "https://www.legislation.gov.au/C2004A05138/2026-10-01/2026-10-01/text/original/epub/OEBPS/document_3/document_3.html",
     ),
 ];
 
@@ -1203,6 +1211,14 @@ pub const EXTRA_SOURCES: &[(&str, &[&str])] = &[
         ],
     ),
     (
+        "psi_test",
+        &[
+            "https://www.legislation.gov.au/C2004A05138/2020-07-01/2020-07-01/text/original/epub/OEBPS/document_3/document_3.html",
+            "https://www.ato.gov.au/law/view/document?docid=TXR/TR20223/NAT/ATO/00001",
+            "https://www.ato.gov.au/businesses-and-organisations/income-deductions-and-concessions/personal-services-income/working-out-if-the-psi-rules-apply/results-test",
+        ],
+    ),
+    (
         "income_tests",
         &[
             "https://www.legislation.gov.au/C2004A05138/2026-10-01/2026-10-01/text/original/epub/OEBPS/document_10/document_10.html",
@@ -1274,6 +1290,12 @@ pub const EXTRA_WARNINGS: &[(&str, &[&str])] = &[
         "non_commercial_losses",
         &[
             "The tests are applied to the figures given; whether the activity is a business, which activities are similar, what is used on a continuing basis and whether an estimate is reasonable stay with the operator.",
+        ],
+    ),
+    (
+        "psi_test",
+        &[
+            "A personal services business is still subject to Part IVA of the ITAA 1936 on splitting the income (TR 2022/3 paragraphs 25 and 160); the PSI is still reported in the tax return.",
         ],
     ),
     ("fbt_car_statutory", &[CAR_REPORTABLE_NOTE]),
@@ -2280,7 +2302,7 @@ pub const REFUSAL_CODES: &[(&str, &str)] = &[
     ),
     (
         "input.field_unknown",
-        "A field the worksheet or command does not take, or does not take beside the other inputs given, was given (fbt-loan, fbt-meal-entertainment, fbt-car-parking, fbt-debt-waiver, fbt-expense-payment, fbt-property, fbt-residual, fbt-housing, fbt-lafha, fbt-board, fbt-tax-exempt-body-entertainment, fbt-entertainment-classifier, fbt-meal-entertainment-register and its entries, fbt-minor-benefit-check, ppsr-timing, fhss and its contributions, personal_deductions and determination, division-296, depreciation, fuel-tax-credits and its lines, foreign-resident-tax, medicare-levy, medicare-levy-surcharge, payg-withholding, payg-gross-up, termination-payment, etp-tax-free-component, unused-leave-payment, the Schedule 5 methods, working-holiday-maker-withholding, study-loan-withholding, seniors-pensioners-withholding, seniors-pensioners-tax-offset, lump-sum-arrears-tax-offset, hire-purchase-schedule, chattel-mortgage-schedule, loan-transactions and its transactions and rate_changes, borrowing-expenses-schedule and its loans, business-capital-expenditure and its items, balancing-adjustment, its years and car_limit, trade-in, franking-account and its events, distributions and income_tax, dasp-tax, gst-margin-scheme, wine-equalisation-tax and its dealings, luxury-car-tax and its lines, payroll-tax, cgt-parcels, its parcels and disposals, fbt-ev-exemption-check, sb-cgt-concessions, small-business-income-offset, depreciation-low-value-pool, depreciation-small-business-pool, capital-works, non-commercial-losses, contribution-caps given a carry-forward input, derive, personal-tax-estimate, dgr-check, income-tests and fbt-return only).",
+        "A field the worksheet or command does not take, or does not take beside the other inputs given, was given (fbt-loan, fbt-meal-entertainment, fbt-car-parking, fbt-debt-waiver, fbt-expense-payment, fbt-property, fbt-residual, fbt-housing, fbt-lafha, fbt-board, fbt-tax-exempt-body-entertainment, fbt-entertainment-classifier, fbt-meal-entertainment-register and its entries, fbt-minor-benefit-check, ppsr-timing, fhss and its contributions, personal_deductions and determination, division-296, depreciation, fuel-tax-credits and its lines, foreign-resident-tax, medicare-levy, medicare-levy-surcharge, payg-withholding, payg-gross-up, termination-payment, etp-tax-free-component, unused-leave-payment, the Schedule 5 methods, working-holiday-maker-withholding, study-loan-withholding, seniors-pensioners-withholding, seniors-pensioners-tax-offset, lump-sum-arrears-tax-offset, hire-purchase-schedule, chattel-mortgage-schedule, loan-transactions and its transactions and rate_changes, borrowing-expenses-schedule and its loans, business-capital-expenditure and its items, balancing-adjustment, its years and car_limit, trade-in, franking-account and its events, distributions and income_tax, dasp-tax, gst-margin-scheme, wine-equalisation-tax and its dealings, luxury-car-tax and its lines, payroll-tax, cgt-parcels, its parcels and disposals, fbt-ev-exemption-check, sb-cgt-concessions, small-business-income-offset, depreciation-low-value-pool, depreciation-small-business-pool, capital-works, non-commercial-losses, psi-test, contribution-caps given a carry-forward input, derive, personal-tax-estimate, dgr-check, income-tests and fbt-return only).",
     ),
     ("input.flag_invalid", "A flag is not a JSON boolean."),
     ("input.fraction_invalid", "A fraction is outside 0 to 1."),
@@ -2607,6 +2629,31 @@ pub const REFUSAL_CODES: &[(&str, &str)] = &[
     (
         "ppsr_timing.time_unresolved",
         "An input or calculated time falls in the skipped or repeated ACT hour at a daylight saving change.",
+    ),
+    (
+        "psi_test.agent_payments_invalid",
+        "An agent's principal payments are nil or less than the commission given.",
+    ),
+    (
+        "psi_test.agent_rules",
+        "At least 75% of an agent's payments from the principal are commission or performance fees, so s 87-40 may apply; the worksheet does not apply it.",
+    ),
+    (
+        "psi_test.earner_invalid",
+        "earner is not employee, religious_practitioner, sole_trader or entity.",
+    ),
+    ("psi_test.no_psi", "The payers' PSI totals nil."),
+    (
+        "psi_test.others_exceed_psi",
+        "The market value of principal work by others exceeds the PSI given.",
+    ),
+    (
+        "psi_test.payers_invalid",
+        "payers is not a list of 1 to 50 payer objects.",
+    ),
+    (
+        "psi_test.premises_invalid",
+        "premises is not an object of the 5 business premises answers.",
     ),
     (
         "sb_cgt_concessions.active_period_unclear",

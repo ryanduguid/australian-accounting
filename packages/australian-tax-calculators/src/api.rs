@@ -769,6 +769,21 @@ const COMMAND_ARGS: &[(&str, &[(&str, Kind)])] = &[
         ],
     ),
     (
+        "psi-test",
+        &[
+            ("earner", Raw),
+            ("mainly_personal_efforts", Raw),
+            ("determination_in_force", Raw),
+            ("payers", Json),
+            ("agent", Raw),
+            ("principal_work_by_others", Dec),
+            ("apprentice", Raw),
+            ("premises", Json),
+            ("year", Raw),
+            ("scope_confirmed", Raw),
+        ],
+    ),
+    (
         "income-tests",
         &[
             ("taxable_income", Dec),
@@ -1269,6 +1284,7 @@ pub fn evaluate_coded(command: &str, v: &Value) -> Result<Value> {
             | "capital-works"
             | "small-business-income-offset"
             | "non-commercial-losses"
+            | "psi-test"
             | "business-capital-expenditure"
             | "balancing-adjustment"
             | "trade-in"
@@ -2019,6 +2035,24 @@ pub fn evaluate_coded(command: &str, v: &Value) -> Result<Value> {
                 net_exempt_income: &a[14],
                 year: &a[15],
                 scope_confirmed: &a[16],
+                optional: given.each_ref().map(Option::as_ref),
+            })
+        }
+        "psi-test" => {
+            // Optional: an agent's commission and the principal's payments.
+            let [commission, principal] = engine::PSI_OPTIONAL.map(|key| optional(v, key, Dec));
+            let given = [commission?, principal?];
+            engine::psi_test(&engine::PsiTestArgs {
+                earner: &a[0],
+                mainly_personal_efforts: &a[1],
+                determination_in_force: &a[2],
+                payers: &a[3],
+                agent: &a[4],
+                principal_work_by_others: &a[5],
+                apprentice: &a[6],
+                premises: &a[7],
+                year: &a[8],
+                scope_confirmed: &a[9],
                 optional: given.each_ref().map(Option::as_ref),
             })
         }

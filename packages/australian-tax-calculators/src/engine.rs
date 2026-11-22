@@ -6171,8 +6171,10 @@ pub use small_business_income_offset::{
 };
 mod non_commercial_losses;
 pub use non_commercial_losses::{NCL_OPTIONAL, NonCommercialLossesArgs, non_commercial_losses};
+mod psi_test;
+pub use psi_test::{PSI_OPTIONAL, PsiTestArgs, psi_test};
 
-const KINDS: [&str; 71] = [
+const KINDS: [&str; 72] = [
     "gst",
     "gst_margin_scheme",
     "fuel_tax_credits",
@@ -6244,6 +6246,7 @@ const KINDS: [&str; 71] = [
     "capital_works",
     "small_business_income_offset",
     "non_commercial_losses",
+    "psi_test",
 ];
 
 /// `periods(kind)`: accepted period arguments and inclusive calendar boundaries.

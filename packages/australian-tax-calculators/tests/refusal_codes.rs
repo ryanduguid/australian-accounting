@@ -168,8 +168,9 @@ fn every_catalogued_required_input_of_a_strict_command_is_read() {
     // fbt-ev-exemption-check, fhss, franking-account, sb-cgt-concessions and
     // non-commercial-losses,
     // depreciation-low-value-pool, depreciation-small-business-pool,
-    // capital-works and small-business-income-offset.
-    assert_eq!(checked, 57);
+    // capital-works and small-business-income-offset and
+    // psi-test.
+    assert_eq!(checked, 58);
 }
 
 /// Every frozen call gives the same answer through either entry point, and

@@ -1141,6 +1141,11 @@ pub fn supported_periods(kind: &str) -> Vec<&'static str> {
         "non_commercial_losses" => vec![
             "2020-21", "2021-22", "2022-23", "2023-24", "2024-25", "2025-26", "2026-27",
         ],
+        // Part 2-42 reads the same in compilations 210 (1 July 2020), 223
+        // (1 July 2021) and 268 (1 October 2026).
+        "psi_test" => vec![
+            "2020-21", "2021-22", "2022-23", "2023-24", "2024-25", "2025-26", "2026-27",
+        ],
         "income_tests" => vec!["2024-25", "2025-26", "2026-27"],
         // The pools' rates and the capital works rates do not change in these
         // years; the small business pool's low pool value threshold does, by year.
@@ -1421,6 +1426,10 @@ pub fn source_review(kind: &str) -> (&'static str, &'static str) {
         "non_commercial_losses" => (
             "2026-11-22",
             "ITAA 1997 Division 35 (ss 35-10 to 35-55), compilation 268 (1 October 2026), against compilations 210 (1 July 2020) and 223 (1 July 2021), which read the same; the ATO's non-commercial loss pages 'Four tests', 'The income requirement', 'Excepted business activities' and 'How to defer your losses' (each last updated 7 April 2025)",
+        ),
+        "psi_test" => (
+            "2026-11-22",
+            "ITAA 1997 Part 2-42 (ss 84-5, 85-30, 85-35, 87-15 to 87-40, 87-60 and 87-65), compilation 268 (1 October 2026), against compilations 210 (1 July 2020) and 223 (1 July 2021), which read the same; TR 2022/3, examples 20, 29, 30 and 40 and paragraph 118; the site's PSI page and its 19 cases (checked 17 November 2026)",
         ),
         "income_tests" => (
             "2026-11-16",
@@ -1800,6 +1809,12 @@ pub fn library_evidence(kind: &str) -> [(&'static str, &'static str); 4] {
             "2025-04-07",
             "2026-11-22",
         ),
+        "psi_test" => (
+            "TR 2022/3",
+            "Example 20 (Joe's ducts, the results test), 29 (Tom's 23.07%), 30 (Ian's 18.57%) and 40 (Chris, an agent on 70% commission)",
+            "2022-08-10",
+            "2026-11-22",
+        ),
         "income_tests" => (
             "ATO income test pages",
             "Christina's repayment income (When you must repay your loan) and Tom's income for MLS purposes (Medicare levy surcharge income, thresholds and rates)",
@@ -1897,6 +1912,16 @@ pub fn optional_inputs(kind: &str) -> Vec<(&'static str, &'static str)> {
             (
                 "other_income",
                 "AUD, for a primary_production or professional_arts activity only, and then required: your assessable income for the year from other sources not related to the activity, except net capital gain (s 35-10(4)(b))",
+            ),
+        ],
+        "psi_test" => vec![
+            (
+                "commission",
+                "AUD, with agent true only, and then required: the part of the principal's payments to you that is commissions or fees based on your performance (s 87-40(2)(c))",
+            ),
+            (
+                "principal_payments",
+                "AUD, with agent true only, and then required: the principal's payments to you for services to its customers (s 87-40(2)(b))",
             ),
         ],
         "balancing_adjustment" => vec![(
@@ -3601,6 +3626,16 @@ pub fn input_units(kind: &str) -> Vec<(&'static str, &'static str)> {
             ("total_net_investment_loss", "AUD: your total net investment losses (s 35-10(2E)(d))"),
             ("net_exempt_income", "AUD: your net exempt income for the year left after ss 36-10 and 36-15, which reduces an amount deferred (s 35-15); nil for none"),
         ],
+        "psi_test" => vec![
+            ("earner", "employee, religious_practitioner, sole_trader or entity: who receives the income: the individual as an employee or office holder (s 85-35(1)), as a religious practitioner paid under s 12-47 of Schedule 1 to the TAA 1953 (s 85-35(2)), or as a contractor, or a company, partnership or trust (a personal services entity)"),
+            ("mainly_personal_efforts", "boolean: the income is mainly a reward for the individual's personal efforts or skills (s 84-5(1))"),
+            ("determination_in_force", "boolean: a personal services business determination is in force for the individual's PSI (s 87-15(1)(a) or (b))"),
+            ("payers", "list of 1 to 50 objects, one for each payer with its associates, or for each contract when a payer's contracts differ: amount (AUD, the PSI from it in the year), associate (it is an associate of the individual or entity), offer (it engaged the individual or entity as a direct result of offers to the public, s 87-20), and result, tools and defects (the income is for producing a result, the individual or entity supplies the tools and is liable for defects, s 87-18), each a boolean; and source, an optional label of 1 to 100 characters: rows with the same source are one payer with its associates for the 80% rule and the unrelated clients test (s 87-15(3))"),
+            ("agent", "boolean: the individual or entity is an agent of a principal, not its employee, paid for services to the principal's customers (s 87-40(2)); then commission and principal_payments are required"),
+            ("principal_work_by_others", "AUD: the market value of the principal work performed in the year by entities the individual or entity engaged, not counting associates that are not individuals and, for a personal services entity, individuals whose PSI is in its income; a partner's work counts for a partnership (s 87-25(1), (2) and (2A)); TR 2022/3 paragraph 118 measures it against the PSI"),
+            ("apprentice", "boolean: the individual or entity had one or more apprentices for at least half the year (s 87-25(3))"),
+            ("premises", "object of 5 booleans for the business premises test (s 87-30): at_all_times (maintained and used at all times in the year), mainly_for_psi, exclusive_use, separate_from_private and separate_from_clients"),
+        ],
         "income_tests" => vec![
             ("taxable_income", "AUD, whole dollars: taxable income, including any assessable FHSS released amount (nil for a loss)"),
             ("assessable_fhss_released_amount", "AUD: the amount ITAA 1997 s 313-20 includes in assessable income for released FHSS amounts"),
@@ -4316,6 +4351,29 @@ pub fn examples(kind: &str) -> Vec<(&'static str, Example)> {
             ("total_net_investment_loss", Text("0.00")),
             ("net_exempt_income", Text("0.00")),
             ("other_income", Text("60000.00")),
+        ],
+        // TR 2022/3 example 20: Joe installs ducts to plans with his own tools
+        // and is liable for defects; the amount is the site's.
+        "psi_test" => vec![
+            ("year", Text("2025-26")),
+            ("earner", Text("sole_trader")),
+            ("mainly_personal_efforts", Flag(true)),
+            ("determination_in_force", Flag(false)),
+            (
+                "payers",
+                Json(
+                    r#"[{"amount": "18000.00", "associate": false, "offer": false, "result": true, "tools": true, "defects": true}]"#,
+                ),
+            ),
+            ("agent", Flag(false)),
+            ("principal_work_by_others", Text("0.00")),
+            ("apprentice", Flag(false)),
+            (
+                "premises",
+                Json(
+                    r#"{"at_all_times": false, "mainly_for_psi": false, "exclusive_use": false, "separate_from_private": false, "separate_from_clients": false}"#,
+                ),
+            ),
         ],
         "income_tests" => vec![
             ("year", Text("2025-26")),
