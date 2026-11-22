@@ -1182,6 +1182,12 @@ pub fn supported_periods(kind: &str) -> Vec<&'static str> {
         ],
         // Part 2-42 reads the same in compilations 210 (1 July 2020), 223
         // (1 July 2021) and 268 (1 October 2026).
+        // Division 83A reads the same in compilations 234 (1 July 2022) and
+        // 268 (1 October 2026); compilation 210 (1 July 2020) adds only the
+        // cessation taxing point, applied before 1 July 2022.
+        "ess_discount" => vec![
+            "2020-21", "2021-22", "2022-23", "2023-24", "2024-25", "2025-26", "2026-27",
+        ],
         "psi_test" => vec![
             "2020-21", "2021-22", "2022-23", "2023-24", "2024-25", "2025-26", "2026-27",
         ],
@@ -1508,6 +1514,10 @@ pub fn source_review(kind: &str) -> (&'static str, &'static str) {
         "non_commercial_losses" => (
             "2026-11-22",
             "ITAA 1997 Division 35 (ss 35-10 to 35-55), compilation 268 (1 October 2026), against compilations 210 (1 July 2020) and 223 (1 July 2021), which read the same; the ATO's non-commercial loss pages 'Four tests', 'The income requirement', 'Excepted business activities' and 'How to defer your losses' (each last updated 7 April 2025)",
+        ),
+        "ess_discount" => (
+            "2026-11-22",
+            "ITAA 1997 Division 83A (ss 83A-10 to 83A-45, 83A-105 to 83A-125, 83A-305 to 83A-315 and 83A-330), compilation 268 (1 October 2026), against compilations 234 (1 July 2022), the same, and 210 (1 July 2020), with the cessation of employment taxing point; Act No. 8 of 2022 Sch 10 items 3, 6 and 9; Income Tax Assessment (1997 Act) Regulations 2021 ss 83A-315.01 to 83A-315.09 and 1000-1.02, compilation 16 (27 June 2026), the tables checked against the ATO legal database's copy; the ATO's ESS pages on unlisted rights (27 June 2022), the $1,000 reduction and the start-up concession (21 December 2015), deferred taxing points (6 April 2022) and forfeiture (17 September 2020), and question 12 of the 2025 return instructions (27 May 2025)",
         ),
         "psi_test" => (
             "2026-11-22",
@@ -1923,6 +1933,12 @@ pub fn library_evidence(kind: &str) -> [(&'static str, &'static str); 4] {
             "ATO non-commercial loss pages",
             "Slaide's estimate, Nguyen's profits test, Joe's, Fred's and Alex's income requirement and Michael's deferred loss",
             "2025-04-07",
+            "2026-11-22",
+        ),
+        "ess_discount" => (
+            "ATO employee share scheme pages",
+            "Barry's unlisted rights at 120% and 48 months ($4,000), Lester's and Jane's $1,000 reduction ($500; $1,300), Sarah's start-up shares at a 15% discount, the 30-day rule and the forfeiture examples",
+            "2022-06-27",
             "2026-11-22",
         ),
         "psi_test" => (
@@ -4099,6 +4115,11 @@ pub fn input_units(kind: &str) -> Vec<(&'static str, &'static str)> {
             ("total_net_investment_loss", "AUD: your total net investment losses (s 35-10(2E)(d))"),
             ("net_exempt_income", "AUD: your net exempt income for the year left after ss 36-10 and 36-15, which reduces an amount deferred (s 35-15); nil for none"),
         ],
+        "ess_discount" => vec![
+            ("interests", "list of 1 to 50 objects, each one parcel of identical ESS interests (a stapled security counts as a share, s 83A-335) with kind (share or right), acquired (date, from 2015-07-01), consideration (AUD, total paid to acquire), conditions (booleans for ss 83A-45(1), (2), (3), (4), (6), 83A-35(6), 83A-105(3) and, for a share, 83A-105(2) and (4), for a right, 83A-105(6)), start_up (null or the s 83A-33 company facts), market_value (AUD, total at acquisition) and, for a right, exercise_price, share_market_value, last_exercise_day and valuation (market_value or regulations); a deferred interest adds its dated facts and cost_base; a forfeited one takes kind, acquired and forfeiture only; see the README"),
+            ("income_test", "null, or an object of AUD amounts for s 83A-35(2)(b): taxable_income (without the reduction and any assessable FHSS released amount), reportable_fringe_benefits_total, reportable_super_contributions and total_net_investment_loss; required with an upfront discount eligible for the reduction"),
+            ("foreign_employment", "boolean: any discount relates to employment outside Australia, or you were a foreign or temporary resident from acquisition to the taxing point; true is refused"),
+        ],
         "psi_test" => vec![
             ("earner", "employee, religious_practitioner, sole_trader or entity: who receives the income: the individual as an employee or office holder (s 85-35(1)), as a religious practitioner paid under s 12-47 of Schedule 1 to the TAA 1953 (s 85-35(2)), or as a contractor, or a company, partnership or trust (a personal services entity)"),
             ("mainly_personal_efforts", "boolean: the income is mainly a reward for the individual's personal efforts or skills (s 84-5(1))"),
@@ -4901,6 +4922,24 @@ pub fn examples(kind: &str) -> Vec<(&'static str, Example)> {
         ],
         // TR 2022/3 example 20: Joe installs ducts to plans with his own tools
         // and is liable for defects; the amount is the site's.
+        // Lester's figures (the ATO's $1,000 reduction example 1) in 2025-26;
+        // the date and conditions are fabricated.
+        "ess_discount" => vec![
+            ("year", Text("2025-26")),
+            (
+                "interests",
+                Json(
+                    r#"[{"kind": "share", "acquired": "2025-07-29", "consideration": "1500.00", "market_value": "3000.00", "conditions": {"employed": true, "ordinary_shares_only": true, "not_share_trading_company": true, "minimum_holding_period": true, "ten_percent_limit": true, "non_discriminatory": true, "real_risk_of_forfeiture": false, "broad_availability": true, "salary_sacrifice": false}, "start_up": null}]"#,
+                ),
+            ),
+            (
+                "income_test",
+                Json(
+                    r#"{"taxable_income": "91000.00", "reportable_fringe_benefits_total": "0.00", "reportable_super_contributions": "0.00", "total_net_investment_loss": "0.00"}"#,
+                ),
+            ),
+            ("foreign_employment", Flag(false)),
+        ],
         "psi_test" => vec![
             ("year", Text("2025-26")),
             ("earner", Text("sole_trader")),

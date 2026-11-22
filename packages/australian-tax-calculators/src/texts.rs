@@ -307,6 +307,10 @@ pub const SCOPES: &[(&str, &str)] = &[
         "Whether ITAA 1997 Division 35 defers the loss from one business activity, or a group of similar ones, of one individual carrying it on alone or in partnership, for an income year from 2020-21 to 2026-27: the activity's income, deductions, asset values and earlier years and the income requirement amounts are the operator's established figures; not a bankruptcy (s 35-20), not section 40-880 expenditure (s 35-10(2A) and (2B)), and the Commissioner's discretion (s 35-55) is not decided.",
     ),
     (
+        "ess_discount",
+        "What ITAA 1997 Division 83A includes in one individual's assessable income for an income year from 2020-21 to 2026-27 for employee share scheme interests (shares, stapled securities and rights to acquire them) acquired from 1 July 2015 in relation to employment in Australia, by an individual who was an Australian resident, not a temporary resident, throughout: the discount, the start-up concession (s 83A-33), the upfront inclusion (s 83A-25) with the $1,000 reduction and its income test (s 83A-35), deferral (s 83A-105) to the taxing point (ss 83A-115 and 83A-120, with cessation of employment before 1 July 2022) and the amount then (s 83A-110), the value of an unlisted right under the Income Tax Assessment (1997 Act) Regulations 2021 on a day from 1 July 2021 where chosen, and the s 83A-310 exclusion for a forfeited interest. Market values (including of unlisted shares), consideration, cost bases, dates and the scheme and personal conditions are the operator's established facts. Excludes a share acquired by exercising an ESS right (s 83A-20(2): list the right), takeovers and restructures (s 83A-130), indeterminate rights (s 83A-340), the employer's deduction (Subdivision 83A-D), CGT on a later disposal and the amendment itself.",
+    ),
+    (
         "psi_test",
         "Whether the personal services income rules (ITAA 1997 Part 2-42) apply to one individual's personal services income for an income year from 2020-21 to 2026-27, from the operator's answers: whether the income is mainly a reward for personal efforts or skills, who receives it, a determination in force, each payer with its associates and what it paid for, the principal work by others, an apprentice and the business premises; s 87-40 is not applied to an agent on 75% or more commission, Australian government agencies are entered as s 87-35 treats them, and whether the Commissioner would make a determination is not decided.",
     ),
@@ -620,6 +624,10 @@ pub const SOURCES: &[(&str, &str)] = &[
     (
         "non_commercial_losses",
         "https://www.legislation.gov.au/C2004A05138/2026-10-01/2026-10-01/text/original/epub/OEBPS/document_1/document_1.html",
+    ),
+    (
+        "ess_discount",
+        "https://www.legislation.gov.au/C2004A05138/2026-10-01/2026-10-01/text/original/epub/OEBPS/document_3/document_3.html",
     ),
     (
         "psi_test",
@@ -1355,6 +1363,21 @@ pub const EXTRA_SOURCES: &[(&str, &[&str])] = &[
         ],
     ),
     (
+        "ess_discount",
+        &[
+            "https://www.legislation.gov.au/C2004A05138/2022-07-01/2022-07-01/text/original/epub/OEBPS/document_3/document_3.html",
+            "https://www.legislation.gov.au/C2004A05138/2020-07-01/2020-07-01/text/original/epub/OEBPS/document_3/document_3.html",
+            "https://www.legislation.gov.au/C2022A00008/asmade/2021-04-04/text/original/epub/OEBPS/document_1/document_1.html",
+            "https://www.legislation.gov.au/F2021L00206/2026-06-27/2026-06-27/text/original/epub/OEBPS/document_1/document_1.html",
+            "https://www.ato.gov.au/law/view/print?DocID=REG/20210206/83A-315.08&PiT=99991231235958",
+            "https://www.ato.gov.au/businesses-and-organisations/corporate-tax-measures-and-assurance/employee-share-schemes/in-detail/market-value/market-value-of-unlisted-rights-to-acquire-listed-shares-and-stapled-securities",
+            "https://www.ato.gov.au/businesses-and-organisations/corporate-tax-measures-and-assurance/employee-share-schemes/employees/ess-and-your-tax/income-test-for-the-upfront-concession-1000-dollar-reduction",
+            "https://www.ato.gov.au/businesses-and-organisations/corporate-tax-measures-and-assurance/employee-share-schemes/employers/types-of-ess/concessional-ess/start-up-concession-interests-acquired-after-30-june-2015",
+            "https://www.ato.gov.au/businesses-and-organisations/corporate-tax-measures-and-assurance/employee-share-schemes/in-detail/restrictions-and-forfeitures/genuine-disposal-restrictions-and-deferred-taxing-points",
+            "https://www.ato.gov.au/forms-and-instructions/individual-tax-return-2025-instructions/income-questions-1-12-individual-tax-return-2025/12-employee-share-schemes-2025",
+        ],
+    ),
+    (
         "psi_test",
         &[
             "https://www.legislation.gov.au/C2004A05138/2020-07-01/2020-07-01/text/original/epub/OEBPS/document_3/document_3.html",
@@ -1458,6 +1481,12 @@ pub const EXTRA_WARNINGS: &[(&str, &[&str])] = &[
         "non_commercial_losses",
         &[
             "The tests are applied to the figures given; whether the activity is a business, which activities are similar, what is used on a continuing basis and whether an estimate is reasonable stay with the operator.",
+        ],
+    ),
+    (
+        "ess_discount",
+        &[
+            "The employer's ESS statement reports the discounts; this checks them from the facts given. A forfeiture exclusion is claimed by asking the ATO to amend the assessment for the year included, which has no time limit for this.",
         ],
     ),
     (
@@ -2091,6 +2120,42 @@ pub const REFUSAL_CODES: &[(&str, &str)] = &[
         "derive was asked to explain a command whose amounts it does not derive.",
     ),
     (
+        "ess_discount.acquired_before_2015",
+        "An interest was acquired before 1 July 2015, when the 7-year deferral, no start-up concession and a narrower forfeiture rule applied.",
+    ),
+    (
+        "ess_discount.dates_inconsistent",
+        "An interest's dates cannot all be true together: a date before acquisition, a share's restrictions lifted without or before an exercise, a last exercise day before acquisition, or a disposal before the deferred taxing point.",
+    ),
+    (
+        "ess_discount.employment_end_not_stated",
+        "A deferred interest acquired before 1 July 2022 does not state when employment ended (or null), which was a taxing point before then (former ss 83A-115(5) and 83A-120(5)).",
+    ),
+    (
+        "ess_discount.foreign_employment",
+        "A discount relates to employment outside Australia, or the individual was a foreign or temporary resident (ss 83A-25(2) and 83A-110(2)).",
+    ),
+    (
+        "ess_discount.income_test_invalid",
+        "income_test is not null or an object of the 4 amounts s 83A-35(2)(b) adds.",
+    ),
+    (
+        "ess_discount.interests_invalid",
+        "interests is not a list of 1 to 50 objects, or an interest, its conditions, start-up facts, value or forfeiture is malformed.",
+    ),
+    (
+        "ess_discount.salary_sacrifice_unclear",
+        "In one income year salary sacrificed shares at a real risk of forfeiture sit beside others relying on s 83A-105(4), whose $5,000 limit the worksheet does not settle for them together.",
+    ),
+    (
+        "ess_discount.taxing_point_value",
+        "A deferred taxing point falls in the year without the value at it, or the value is stated on another day.",
+    ),
+    (
+        "ess_discount.valuation_unavailable",
+        "The regulations' value was chosen where they do not apply: a valuation day before 1 July 2021, a right exercisable more than 15 years after acquisition, a right already exercised, or a taxing point that is a disposal.",
+    ),
+    (
         "estimate.family_mismatch",
         "personal-tax-estimate was given parts that describe different families: a spouse in one but not another, 2 spouse taxable incomes, or dependants without a spouse.",
     ),
@@ -2568,7 +2633,7 @@ pub const REFUSAL_CODES: &[(&str, &str)] = &[
     ),
     (
         "input.field_unknown",
-        "A field the worksheet or command does not take, or does not take beside the other inputs given, was given (fbt-loan, fbt-meal-entertainment, fbt-car-parking, fbt-debt-waiver, fbt-expense-payment, fbt-property, fbt-residual, fbt-housing, fbt-lafha, fbt-board, fbt-tax-exempt-body-entertainment, fbt-entertainment-classifier, fbt-meal-entertainment-register and its entries, fbt-minor-benefit-check, ppsr-timing, fhss and its contributions, government-super-amounts, personal_deductions and determination, division-296, depreciation, fuel-tax-credits and its lines, foreign-resident-tax, medicare-levy, medicare-levy-surcharge, payg-withholding, payg-gross-up, termination-payment, etp-tax-free-component, unused-leave-payment, the Schedule 5 methods, working-holiday-maker-withholding, study-loan-withholding, seniors-pensioners-withholding, seniors-pensioners-tax-offset, lump-sum-arrears-tax-offset, hire-purchase-schedule, chattel-mortgage-schedule, loan-transactions and its transactions and rate_changes, borrowing-expenses-schedule and its loans, business-capital-expenditure and its items, balancing-adjustment, its years and car_limit, trade-in, franking-account and its events, distributions and income_tax, dasp-tax, gst-margin-scheme, wine-equalisation-tax and its dealings, luxury-car-tax and its lines, payroll-tax, cgt-parcels, its parcels and disposals, fbt-ev-exemption-check, sb-cgt-concessions, small-business-income-offset, depreciation-low-value-pool, depreciation-small-business-pool, capital-works, non-commercial-losses, psi-test, beneficiary-tax-offset, invalid-carer-tax-offset, zone-tax-offset and its dependants, net-medical-expenses-tax-offset, work-expenses, ato-interest-penalties and its payments and parts, contribution-caps given a carry-forward input, derive, personal-tax-estimate, dgr-check, income-tests and fbt-return only).",
+        "A field the worksheet or command does not take, or does not take beside the other inputs given, was given (fbt-loan, fbt-meal-entertainment, fbt-car-parking, fbt-debt-waiver, fbt-expense-payment, fbt-property, fbt-residual, fbt-housing, fbt-lafha, fbt-board, fbt-tax-exempt-body-entertainment, fbt-entertainment-classifier, fbt-meal-entertainment-register and its entries, fbt-minor-benefit-check, ppsr-timing, fhss and its contributions, government-super-amounts, personal_deductions and determination, division-296, depreciation, fuel-tax-credits and its lines, foreign-resident-tax, medicare-levy, medicare-levy-surcharge, payg-withholding, payg-gross-up, termination-payment, etp-tax-free-component, unused-leave-payment, the Schedule 5 methods, working-holiday-maker-withholding, study-loan-withholding, seniors-pensioners-withholding, seniors-pensioners-tax-offset, lump-sum-arrears-tax-offset, hire-purchase-schedule, chattel-mortgage-schedule, loan-transactions and its transactions and rate_changes, borrowing-expenses-schedule and its loans, business-capital-expenditure and its items, balancing-adjustment, its years and car_limit, trade-in, franking-account and its events, distributions and income_tax, dasp-tax, gst-margin-scheme, wine-equalisation-tax and its dealings, luxury-car-tax and its lines, payroll-tax, cgt-parcels, its parcels and disposals, fbt-ev-exemption-check, sb-cgt-concessions, small-business-income-offset, ess-discount, depreciation-low-value-pool, depreciation-small-business-pool, capital-works, non-commercial-losses, psi-test, beneficiary-tax-offset, invalid-carer-tax-offset, zone-tax-offset and its dependants, net-medical-expenses-tax-offset, work-expenses, ato-interest-penalties and its payments and parts, contribution-caps given a carry-forward input, derive, personal-tax-estimate, dgr-check, income-tests and fbt-return only).",
     ),
     ("input.flag_invalid", "A flag is not a JSON boolean."),
     ("input.fraction_invalid", "A fraction is outside 0 to 1."),
