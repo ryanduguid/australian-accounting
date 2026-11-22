@@ -122,6 +122,26 @@ fn anna_2025_26() {
     );
 }
 
+/// Anna again with a $1,000 foreign loss component of a tax loss deducted,
+/// which the note to s 770-75(4) disallows on the assumptions (the 2025
+/// guide's step 2): it goes in `disregarded_deductions`, so assumed tax rises
+/// by $160 and the limit falls by the same.
+#[test]
+fn a_foreign_loss_component_lowers_the_limit() {
+    let result = evaluate(&worked(
+        "2025-26",
+        "3400.00",
+        ["31130", "12000.00", "1700.00", "390.80", "0.00"],
+    ));
+    let keys = [
+        "assumed_taxable_income",
+        "tax_payable_assumed",
+        "offset_limit",
+    ];
+    let got: Vec<&str> = keys.iter().map(|k| amount(&result, k)).collect();
+    assert_eq!(got, ["20830.00", "420.80", "2038.80"]);
+}
+
 /// Example 16, 2024-25: the same incomes, step 1 $2,581.80, limit $2,321.00.
 #[test]
 fn anna_2024_25() {
