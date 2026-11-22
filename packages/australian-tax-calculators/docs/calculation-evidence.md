@@ -3524,7 +3524,7 @@ Choices the Act leaves to the reader:
 | $1,300 discount, $200,000 | example 2 (Jane) | no reduction, $1,300 |
 | 2,500 shares at $1.00 bought for $0.85 | ATO start-up concession example (Sarah) | start-up, nil; at $2,124.99, taxed upfront |
 | 200,000 rights at 10 cents, shares at 12 cents, 48 months | ATO unlisted rights example (Barry) | 19.4%, $3,880; value $4,000 intrinsic |
-| Restrictions lifted 23 June, sold 20 July for $1,518 | ATO 30-day rule example (Wyatt) | taxing point 20 July, $1,518 in the next year |
+| Restrictions lifted 23 June, sold 20 July for $1,518 | s 83A-115(3), the 30-day rule | taxing point 20 July, $1,518 in the next year |
 | Employment ended 1 March 2022, then 1 July 2022 | former s 83A-120(5), Act No. 8, 2022 | taxing point 1 March 2022; then the restrictions |
 | Forfeited by a hurdle, a lapse, a market value condition | ATO forfeiture examples 1, 7, 9 and 10 | excluded, excluded, not excluded |
 | Every s 83A-315.08 entry and s 83A-315.09 row | the regulations | each entry |

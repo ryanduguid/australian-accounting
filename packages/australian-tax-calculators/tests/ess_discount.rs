@@ -391,14 +391,14 @@ fn deferred_share(lifted: &str, disposed: Value, value: Value) -> Value {
     s
 }
 
-/// Wyatt (the ATO's 30-day rule example): restrictions lift on 23 June and
-/// the shares are sold for $1,518 on 20 July, within 30 days, so the taxing
-/// point is the sale, in the next income year; the dates are moved to 2025.
+/// The 30-day rule (s 83A-115(3)): restrictions lift on 23 June and the
+/// shares are sold for $1,518 on 20 July, within 30 days, so the taxing point
+/// is the sale, in the next income year.
 #[test]
-fn wyatt_sells_within_30_days() {
+fn a_sale_within_30_days_moves_the_taxing_point() {
     let value = json!({"date": "2025-07-20", "market_value": "1518.00"});
-    let wyatt = deferred_share("2025-06-23", json!("2025-07-20"), value);
-    let r = run(&call("2025-26", json!([wyatt.clone()]), Value::Null));
+    let sold = deferred_share("2025-06-23", json!("2025-07-20"), value);
+    let r = run(&call("2025-26", json!([sold.clone()]), Value::Null));
     let w = row(&r, 0);
     assert_eq!(w["treatment"], "deferred");
     assert_eq!(w["rule"], "s 83A-105(3)");
@@ -406,7 +406,7 @@ fn wyatt_sells_within_30_days() {
     assert_eq!(w["taxing_point_rule"], "s 83A-115(3)");
     assert_eq!(amount(&r, "deferred_amounts"), "1518.00");
     assert_eq!(amount(&r, "assessable_discount"), "1518.00");
-    let before = run(&call("2024-25", json!([wyatt]), Value::Null));
+    let before = run(&call("2024-25", json!([sold]), Value::Null));
     assert_eq!(amount(&before, "deferred_amounts"), "0.00");
     assert_eq!(row(&before, 0)["income_year"], "2025-26");
 }

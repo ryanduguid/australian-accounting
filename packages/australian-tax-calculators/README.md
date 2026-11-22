@@ -2919,8 +2919,8 @@ It refuses a discount relating to foreign employment or a foreign or
 temporary resident, interests acquired before 1 July 2015, a deferred
 interest acquired before 1 July 2022 without `employment_ended`, and a
 taxing point in the year without its value. The tests hold it to the ATO's
-examples (Lester, Jane, Sarah, Barry, Wyatt and the forfeiture examples) and
-every entry of the regulations' tables; see
+examples (Lester, Jane, Sarah, Barry and the forfeiture examples), the
+30-day rule and every entry of the regulations' tables; see
 [calculation evidence](docs/calculation-evidence.md#ess-discount).
 
 ## Government super amounts
