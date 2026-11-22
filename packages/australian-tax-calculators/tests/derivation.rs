@@ -14,7 +14,7 @@ use std::io::Write;
 use std::process::{Command, Stdio};
 
 /// The commands `derive` explains.
-const DERIVED: [&str; 60] = [
+const DERIVED: [&str; 59] = [
     "fbt",
     "fbt-car-statutory",
     "fbt-car-operating-cost",
@@ -74,7 +74,6 @@ const DERIVED: [&str; 60] = [
     "payroll-tax",
     "cgt-parcels",
     "work-expenses",
-    "rental-property",
 ];
 
 /// (command, input) for each derived kind: the ATO's published examples and
