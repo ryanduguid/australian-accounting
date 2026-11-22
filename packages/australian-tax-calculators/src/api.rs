@@ -485,6 +485,42 @@ const COMMAND_ARGS: &[(&str, &[(&str, Kind)])] = &[
         ],
     ),
     (
+        "beneficiary-tax-offset",
+        &[
+            ("rebatable_benefit", Dec),
+            ("year", Raw),
+            ("scope_confirmed", Raw),
+        ],
+    ),
+    (
+        "invalid-carer-tax-offset",
+        &[
+            ("dependant", Raw),
+            ("adjusted_taxable_income", Dec),
+            ("dependant_adjusted_taxable_income", Dec),
+            ("year", Raw),
+            ("scope_confirmed", Raw),
+        ],
+    ),
+    (
+        "zone-tax-offset",
+        &[
+            ("area", Raw),
+            ("days", Raw),
+            ("year", Raw),
+            ("scope_confirmed", Raw),
+        ],
+    ),
+    (
+        "net-medical-expenses-tax-offset",
+        &[
+            ("net_medical_expenses", Dec),
+            ("adjusted_taxable_income", Dec),
+            ("year", Raw),
+            ("scope_confirmed", Raw),
+        ],
+    ),
+    (
         "lump-sum-arrears-tax-offset",
         &[
             ("taxable_income", Dec),
@@ -1255,6 +1291,10 @@ pub fn evaluate_coded(command: &str, v: &Value) -> Result<Value> {
             | "seniors-pensioners-withholding"
             | "seniors-pensioners-tax-offset"
             | "lump-sum-arrears-tax-offset"
+            | "beneficiary-tax-offset"
+            | "invalid-carer-tax-offset"
+            | "zone-tax-offset"
+            | "net-medical-expenses-tax-offset"
             | "fbt-loan"
             | "fbt-meal-entertainment"
             | "fbt-car-parking"
@@ -1852,6 +1892,75 @@ pub fn evaluate_coded(command: &str, v: &Value) -> Result<Value> {
                 taxable_income: o[1].as_ref(),
             };
             engine::seniors_pensioners_tax_offset(&a[0], &a[1], &a[2], &a[3], spouse)
+        }
+        "beneficiary-tax-offset" => engine::rebatable_benefit_offset(&a[0], &a[1], &a[2]),
+        "invalid-carer-tax-offset" => {
+            // Optional: the part-year days, a spouse who is not the dependant
+            // and the refused shared cases.
+            let o = [
+                optional(v, "days", Raw)?,
+                optional(v, "spouse_adjusted_taxable_income", Dec)?,
+                optional(v, "spouse_days", Raw)?,
+                optional(v, "maintained_by_others", Raw)?,
+                optional(v, "ftb_b_shared_care", Raw)?,
+                optional(v, "different_spouses", Raw)?,
+            ];
+            engine::invalid_carer_tax_offset(&engine::InvalidCarerArgs {
+                dependant: &a[0],
+                adjusted_taxable_income: &a[1],
+                dependant_adjusted_taxable_income: &a[2],
+                year: &a[3],
+                scope_confirmed: &a[4],
+                days: o[0].as_ref(),
+                spouse_adjusted_taxable_income: o[1].as_ref(),
+                spouse_days: o[2].as_ref(),
+                maintained_by_others: o[3].as_ref(),
+                ftb_b_shared_care: o[4].as_ref(),
+                different_spouses: o[5].as_ref(),
+            })
+        }
+        "zone-tax-offset" => {
+            // Optional: the days carried from an earlier year, the base
+            // amount's parts and the remote area allowance.
+            let o = [
+                optional(v, "prior_year", Raw)?,
+                optional(v, "prior_days", Raw)?,
+                optional(v, "continuous_residence", Raw)?,
+                optional(v, "includes_first_day", Raw)?,
+                optional(v, "dependants", Json)?,
+                optional(v, "sole_parent_days", Raw)?,
+                optional(v, "invalid_carer_tax_offset", Dec)?,
+                optional(v, "remote_area_allowance", Dec)?,
+            ];
+            engine::zone_tax_offset(&engine::ZoneArgs {
+                area: &a[0],
+                days: &a[1],
+                year: &a[2],
+                scope_confirmed: &a[3],
+                prior_year: o[0].as_ref(),
+                prior_days: o[1].as_ref(),
+                continuous_residence: o[2].as_ref(),
+                includes_first_day: o[3].as_ref(),
+                dependants: o[4].as_ref(),
+                sole_parent_days: o[5].as_ref(),
+                invalid_carer_tax_offset: o[6].as_ref(),
+                remote_area_allowance: o[7].as_ref(),
+            })
+        }
+        "net-medical-expenses-tax-offset" => {
+            // Optional: a spouse on 30 June and dependent children.
+            let o = [
+                optional(v, "spouse_adjusted_taxable_income", Dec)?,
+                optional(v, "dependent_children", Raw)?,
+            ];
+            engine::disability_expenses_offset(&engine::MedicalArgs {
+                net_medical_expenses: &a[0],
+                adjusted_taxable_income: &a[1],
+                year: &a[2],
+                scope_confirmed: &a[3],
+                spouse_adjusted_taxable_income: o[0].as_ref(),
+                dependent_children: o[1].as_ref(),
+            })
         }
         "lump-sum-arrears-tax-offset" => {
             engine::lump_sum_arrears_tax_offset(&a[0], &a[1], &a[2], &a[3], &a[4])

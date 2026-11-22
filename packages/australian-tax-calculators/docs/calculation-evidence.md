@@ -1023,6 +1023,102 @@ rebate reductions for wine of 2017 and earlier vintages sold before 1 July
 | A $50,000 wholesale sale with $340,000 (2025-26) or $390,000 (2026-27, 2027-28) claimed earlier | Worked by hand under s 19-15(2) | Rebate earned $14,500, $10,000 within the cap |
 | A hamper's wine share, $150 | Library ¶22-280 | WET $43.50 |
 
+## Beneficiary tax offset
+
+Added on 22 November 2026. ITAA 1936 s 160AAA was read in compilation 193
+(1 October 2026), and s 13 of the Income Tax Assessment (1936 Act)
+Regulations 2025 (F2025L01060) and of the Regulation 2015 (F2015L01415,
+compilation 8) at the Federal Register of Legislation that day. Both formulas
+are images; their alternative text reads '0.15 times (Rebatable benefit amount
+minus $6,000)' and, above the threshold at the upper conclusion of the lowest
+marginal tax rate, that plus '0.15 times (Rebatable benefit amount minus
+Threshold ...)'. The 2025 Regulations apply to years starting after they
+commenced (s 23), so from 2026-27. The threshold is $45,000 in every year
+from 2020-21 to 2026-27 (Income Tax Rates Act 1986 Sch 7 Part I, compilations
+61 and 66). The ATO's 'Beneficiary tax offset' (QC72199, 8 June 2026) gives
+no worked figures; the cases below are worked by hand from s 13.
+
+| Case | Worksheet |
+| --- | --- |
+| $6,000, and $6,000.99 rounded down to it | nil |
+| $6,001 | $1 (15 cents, rounded up) |
+| $30,123 | $3,619 ($3,618.45 up) |
+| $45,000; $45,001 | $5,850; $5,851 |
+| $50,000.75 | $7,350 |
+
+## Invalid carer tax offset
+
+Added on 22 November 2026. ITAA 1997 Subdivision 61-A was read in compilation
+268 (1 October 2026), and the ATO's 'T5 Invalid and invalid carer'
+supplementary return instructions for 2021 to 2026 that day (last updated
+27 May 2021, 26 May 2022, 25 May 2023, 11 April 2025, 27 May 2025 and
+30 May 2026). Each gives the year's amount, the daily rate for part of the
+year (the amount over the days in the year, to the cent), the FTB Part B
+limit and the income at which the offset is nil ($282 plus 4 times the
+amount):
+
+| Year | Amount | Daily rate | FTB Part B limit | Nil from |
+| --- | --- | --- | --- | --- |
+| 2020-21 | $2,816 | $7.72 | $100,000 | $11,546 |
+| 2021-22 | $2,833 | $7.76 | $100,900 | $11,614 |
+| 2022-23 | $2,943 | $8.06 | $104,432 | $12,054 |
+| 2023-24 | $3,152 | $8.61 | $112,578 | $12,890 |
+| 2024-25 | $3,300 | $9.04 | $117,194 | $13,482 |
+| 2025-26 | $3,396 | $9.30 | $120,007 | $13,866 |
+
+The ATO's worksheets 1F, 2B and 3C multiply by the share of maintenance after
+the income reduction; s 61-45 reduces the amount 'under sections 61-30 to
+61-40', after s 61-40(1)(b)'s apportionment for other contributors. The
+orders differ, so a dependant also maintained by another person is refused.
+`tests/individual_offsets.rs` holds each year's amount, cut-out, daily rate
+and limit.
+
+## Zone tax offset
+
+Added on 22 November 2026. ITAA 1936 ss 79A and 79B and Schedule 2 were read
+in compilation 193 and ITAA 1997 Subdivisions 961-A and 961-B in compilation
+268 that day, with the ATO's 'T4 Zone or overseas forces' supplementary return
+instructions for 2021 to 2026, 'Zone tax offset' (QC105018, 8 June 2026) and
+the 'Australian zone list' (1 July 2026). Every year's T4 gives the same fixed
+amounts ($1,173, $338, $57 and $338), percentages, notional offsets ($376,
+$282, $1,607) and sole parent daily rate ($4.40; $4.39 in 2023-24); the ATO
+had not published the 2027 instructions, so 2026-27 uses the law's amounts.
+
+Two points are refused rather than decided. Section 79A(3B)(a) needs residence
+for more than one-half of the year, 184 days of 2023-24, but the ATO says 183
+days or more, so 183 days of 2023-24 are refused in that year and when carried
+to a later one. Section 79A(4) makes a relevant preceding year 'any of the next
+4 preceding years of income other than the immediately preceding year', but
+the ATO's Garry example carries days from 2020-21, the fifth year before
+2025-26.
+
+| Case | Source | Worksheet |
+| --- | --- | --- |
+| 365 days in each area, no base amount, each year | T4 table 1, 2021 to 2026 | $1,173, $338, $57, $338 |
+| Narendra: Lord Howe Island, 100 days in 2024-25 and 124 in 2025-26 | QC105018 | resident under s 79A(3B)(d); $1,173 |
+| Garry: 122 days in 2020-21 and 92 in 2025-26 | T4 2026 | refused (fifth year back) |
+| Sharon: 100 days of overseas service | T4 2026 worksheet 6 | $338 x 100 / 183 = $184 |
+| Zone A with a student; 2 children; Zone B with a child | T4 table 2 and worksheets 4 and 5, by hand | $526; $667; $132 |
+| A child with $1,000 of income; a child for 100 days | T4 worksheets 1 and 2, by hand | $197 base, $436; $103.01 base, $389 |
+| Sole parent for the year with a child; for 100 days | T4 worksheet 3, by hand | $1,329; $440 base |
+
+## Net medical expenses tax offset
+
+Added on 22 November 2026. ITAA 1936 ss 159P and 159Q were read in
+compilation 161 (6 April 2019), the last before the offset ended
+(s 159P(1A)), and the ATO's 'T5 Total net medical expenses for disability
+aids, attendant care or aged care' instructions for 2017, 2018 and 2019 that
+day (last updated 25 May 2017, 31 May 2018 and 30 May 2019). The 2016 page at
+the same address returns 404, so 2015-16 is refused. The limits are s 159Q's
+$2,000 and $5,000 indexed; the thresholds are $90,000 and $180,000 plus $1,500
+for each child after the first in each year.
+
+| Year | Lower limit (20%) | Higher limit (10%) | $10,000 at $90,000; at $90,001 |
+| --- | --- | --- | --- |
+| 2016-17 | $2,299 | $5,423 | $1,540.20; $457.70 |
+| 2017-18 | $2,333 | $5,504 | $1,533.40; $449.60 |
+| 2018-19 | $2,377 | $5,609 | $1,524.60; $439.10 |
+
 ## Luxury car tax
 
 This worksheet was added on 19 November 2026. The LCT Act was read that day

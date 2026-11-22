@@ -989,6 +989,36 @@ pub const PENSION_MINIMUM_FACTORS: [(i64, &str); 7] = [
     (0, "0.04"),
 ];
 
+/// The beneficiary tax offset's amounts (Income Tax Assessment (1936 Act)
+/// Regulations 2025 s 13(2) and (3), and the 2015 Regulation s 13): $6,000,
+/// and the threshold at the upper conclusion of the lowest marginal tax rate,
+/// the top of item 1 of Income Tax Rates Act 1986 Sch 7 Part I, $45,000 for
+/// each year 2020-21 to 2026-27 (compilations 61 and 66).
+pub const BENEFICIARY_LOWER_THRESHOLD: i64 = 6_000;
+pub const BENEFICIARY_UPPER_THRESHOLD: i64 = 45_000;
+
+/// The invalid and invalid carer tax offset by year: the indexed amount
+/// (ITAA 1997 s 61-30), the ATO's daily rate for part of the year and the
+/// FTB Part B income limit (s 61-20), from the ATO's T5 Invalid and invalid
+/// carer instructions for 2021 to 2026, read on 22 November 2026.
+pub const INVALID_CARER_OFFSET: &[(&str, [&str; 3])] = &[
+    ("2020-21", ["2816", "7.72", "100000"]),
+    ("2021-22", ["2833", "7.76", "100900"]),
+    ("2022-23", ["2943", "8.06", "104432"]),
+    ("2023-24", ["3152", "8.61", "112578"]),
+    ("2024-25", ["3300", "9.04", "117194"]),
+    ("2025-26", ["3396", "9.30", "120007"]),
+];
+
+/// The net medical expenses tax offset's lower and higher phase-in limits
+/// (ITAA 1936 s 159Q(5) and (6), indexed), from the ATO's T5 Total net medical
+/// expenses instructions for 2017, 2018 and 2019, read on 22 November 2026.
+pub const NET_MEDICAL_LIMITS: &[(&str, [&str; 2])] = &[
+    ("2016-17", ["2299", "5423"]),
+    ("2017-18", ["2333", "5504"]),
+    ("2018-19", ["2377", "5609"]),
+];
+
 fn keys<T>(table: &[(&'static str, T)]) -> Vec<&'static str> {
     table.iter().map(|(k, _)| *k).collect()
 }
@@ -1098,6 +1128,15 @@ pub fn supported_periods(kind: &str) -> Vec<&'static str> {
         // The years checked against the regulations; the thresholds follow each
         // year's Schedule 7 rates, but a new year needs its own review.
         "seniors_pensioners_tax_offset" => vec!["2024-25", "2025-26", "2026-27", "2027-28"],
+        // The years whose rates the ATO's return instructions publish (the
+        // beneficiary and zone amounts are fixed in the law); the invalid carer
+        // amount for 2026-27 is unpublished, and the net medical expenses
+        // offset ran to 2018-19 (ITAA 1936 s 159P(1A)).
+        "beneficiary_tax_offset" | "zone_tax_offset" => vec![
+            "2020-21", "2021-22", "2022-23", "2023-24", "2024-25", "2025-26", "2026-27",
+        ],
+        "invalid_carer_tax_offset" => keys(INVALID_CARER_OFFSET),
+        "net_medical_expenses_tax_offset" => keys(NET_MEDICAL_LIMITS),
         // The years of receipt with rates for an earlier, recent accrual year,
         // to 2026-27: later years have not been checked against their law.
         "lump_sum_arrears_tax_offset" => [&PRIOR_RESIDENT_TAX_SCALES[1..], RESIDENT_TAX_SCALES]
@@ -1362,6 +1401,22 @@ pub fn source_review(kind: &str) -> (&'static str, &'static str) {
         "seniors_pensioners_tax_offset" => (
             "2026-11-14",
             "ITAA 1936 ss 6(1) (rebate income) and 160AAAA, compilation 193 (1 October 2026); Income Tax Assessment (1936 Act) Regulations 2025 ss 4 and 9 to 12 and 23 (F2025L01060), and the Income Tax Assessment (1936 Act) Regulation 2015 ss 4 and 9 to 12, compilation 8; ATO Seniors and pensioners tax offset: income limits, rates and thresholds for 2025-26, tax offset reduction and rounding, examples and transferring unused SAPTO with example 9; Do you need to lodge a tax return? 2025, reason 2",
+        ),
+        "beneficiary_tax_offset" => (
+            "2026-11-22",
+            "ITAA 1936 s 160AAA(1) to (4), compilation 193 (1 October 2026); Income Tax Assessment (1936 Act) Regulations 2025 ss 4, 13 and 23 (F2025L01060) and Regulation 2015 s 13, compilation 8 (9 December 2022); Income Tax Rates Act 1986 Sch 7 Part I, compilations 61 (20 October 2023) and 66 (1 July 2026); ITAA 1997 s 63-10(1) item 15; ATO Beneficiary tax offset (QC72199, 8 June 2026)",
+        ),
+        "invalid_carer_tax_offset" => (
+            "2026-11-22",
+            "ITAA 1997 Subdivision 61-A, ss 61-10 to 61-45, compilation 268 (1 October 2026); ATO T5 Invalid and invalid carer, supplementary tax return instructions 2021 to 2026 (worksheets 1A to 3C, the amounts, daily rates and FTB Part B limits); Offset for maintaining an invalid or invalid carer (QC72202, 8 June 2026)",
+        ),
+        "zone_tax_offset" => (
+            "2026-11-22",
+            "ITAA 1936 ss 79A and 79B and Schedule 2, compilation 193 (1 October 2026); ITAA 1997 Subdivisions 961-A and 961-B, compilation 268; ATO T4 Zone or overseas forces, supplementary tax return instructions 2021 to 2026 (tables 1 to 3, worksheets 1 to 7, the Garry and Sharon examples); Zone tax offset (QC105018, 8 June 2026, the Narendra example); Australian zone list (1 July 2026)",
+        ),
+        "net_medical_expenses_tax_offset" => (
+            "2026-11-22",
+            "ITAA 1936 ss 159P and 159Q, compilation 161 (6 April 2019); ATO T5 Total net medical expenses for disability aids, attendant care or aged care, supplementary tax return instructions 2017, 2018 and 2019 (tables 1 and 2); Medical expenses tax offset (16 June 2025)",
         ),
         "lump_sum_arrears_tax_offset" => (
             "2026-11-16",
@@ -1754,6 +1809,30 @@ pub fn library_evidence(kind: &str) -> [(&'static str, &'static str); 4] {
             "rates and thresholds for 2025-26, the examples (Clare and Roy, Deb and Ivan, Ying and Li Jun, Marko, Simon, José, Keith and Jean, Vanh and Mai) and example 9",
             "2026-10-02",
             "2026-11-14",
+        ),
+        "beneficiary_tax_offset" => (
+            "Income Tax Assessment (1936 Act) Regulations 2025 s 13; ATO Beneficiary tax offset",
+            "the formula and its rounding; no worked example is published",
+            "2026-06-08",
+            "2026-11-22",
+        ),
+        "invalid_carer_tax_offset" => (
+            "ATO T5 Invalid and invalid carer 2021 to 2026",
+            "the amounts, daily rates, FTB Part B limits and worksheets 1A to 3C",
+            "2026-05-30",
+            "2026-11-22",
+        ),
+        "zone_tax_offset" => (
+            "ATO T4 Zone or overseas forces 2021 to 2026; Zone tax offset",
+            "tables 1 to 3, worksheets 1 to 7, examples (Garry, Sharon, Narendra)",
+            "2026-05-30",
+            "2026-11-22",
+        ),
+        "net_medical_expenses_tax_offset" => (
+            "ATO T5 Total net medical expenses for disability aids, attendant care or aged care 2017 to 2019",
+            "tables 1 and 2: the phase-in limits and thresholds",
+            "2019-05-30",
+            "2026-11-22",
         ),
         "lump_sum_arrears_tax_offset" => (
             "ATO Lump sum payment in arrears",
@@ -2338,6 +2417,76 @@ pub fn optional_inputs(kind: &str) -> Vec<(&'static str, &'static str)> {
             (
                 "spouse_taxable_income",
                 "AUD, whole dollars, not for a single person: to transfer the spouse's unused base rebate amount (regulations s 12), the spouse's taxable income for the year with any exempt disability support, carer, invalidity service or partner service pension added (s 12(5)); give it only for a spouse entitled to the offset whose whole taxable income is ordinary taxable income taxed at the resident scale (Income Tax Rates Act 1986 Sch 7 Part I item table, with no superannuation or employment termination remainder taxed at 45%); omit for no transfer",
+            ),
+        ],
+        "invalid_carer_tax_offset" => vec![
+            (
+                "days",
+                "integer from 0 to the days in the year: the days that count for part of the year (ITAA 1997 s 61-40): for a spouse, days the spouse was an invalid or carer when neither of you was eligible for FTB Part B or received parental leave pay; for another dependant, days you maintained them while they qualified; omit for the whole year",
+            ),
+            (
+                "spouse_adjusted_taxable_income",
+                "AUD, the adjusted taxable income for offsets of a spouse who is not the dependant, added for the income limit (s 61-20(1)(b)); not taken when dependant is spouse; omit for no spouse",
+            ),
+            (
+                "spouse_days",
+                "integer, with spouse_adjusted_taxable_income only: the days you had that spouse, which scale their income (s 61-20(2)); omit for the whole year",
+            ),
+            (
+                "maintained_by_others",
+                "boolean: another person also contributed to the dependant's maintenance; true is refused (s 61-40(1)(b))",
+            ),
+            (
+                "ftb_b_shared_care",
+                "boolean: you or your spouse were eligible for FTB Part B at a shared-care rate while the spouse was the dependant; true is refused (s 61-35)",
+            ),
+            (
+                "different_spouses",
+                "boolean: you had a different spouse during different parts of the year; true is refused (s 61-20(3))",
+            ),
+        ],
+        "zone_tax_offset" => vec![
+            (
+                "prior_year",
+                "income year string, zones only, with prior_days: the immediately preceding year (ITAA 1936 s 79A(3B)(d)) or a relevant preceding year 2 to 4 years before (s 79A(3B)(e)) in which you were not a resident of the area",
+            ),
+            (
+                "prior_days",
+                "integer, with prior_year: the days your usual place of residence was in the area in prior_year, not more than one-half of it, without days in a period s 23AB(8) or 79B(3) applied to",
+            ),
+            (
+                "continuous_residence",
+                "boolean, with a relevant preceding year only: your usual place of residence was in the area continuously from the start of prior_days' period to the end of this year's (s 79A(3B)(e)(v))",
+            ),
+            (
+                "includes_first_day",
+                "boolean, with a relevant preceding year only: this year's period in the area included 1 July (s 79A(3B)(e)(i))",
+            ),
+            (
+                "dependants",
+                "list of up to 50 objects, each with kind (\"student\": full-time, under 25; \"child\": not a student, under 21), adjusted_taxable_income (AUD decimal string, for the period you maintained them) and optional days (integer, days you maintained them while they qualified; omit for the whole year): your dependants under ITAA 1997 Subdivision 961-A, non-student children oldest first; a dependant also maintained by another person is refused",
+            ),
+            (
+                "sole_parent_days",
+                "integer: the days you had sole care of a dependant listed in dependants, with no spouse in the year (ITAA 1997 s 961-55)",
+            ),
+            (
+                "invalid_carer_tax_offset",
+                "AUD: the invalid and invalid carer tax offset you are entitled to for the year (ITAA 1997 Subdivision 61-A), as invalid-carer-tax-offset works it out",
+            ),
+            (
+                "remote_area_allowance",
+                "AUD, zones only: the remote area allowance paid to you for the year under the Social Security Act 1991 or the Veterans' Entitlements Act 1986 (s 79A(2A))",
+            ),
+        ],
+        "net_medical_expenses_tax_offset" => vec![
+            (
+                "spouse_adjusted_taxable_income",
+                "AUD, for a person married on 30 June, or on the day the person died for one who died in the year (s 159Q(2)): the spouse's adjusted taxable income for rebates, added and tested against the family threshold (ITAA 1936 s 159Q(1) item 1)",
+            ),
+            (
+                "dependent_children",
+                "integer from 0: dependent children (A New Tax System (Medicare Levy Surcharge - Fringe Benefits) Act 1999 meaning) on any day; one or more puts a person on the family threshold, raised by $1,500 for each after the first",
             ),
         ],
         "unused_leave_payment" => vec![
@@ -3429,6 +3578,44 @@ pub fn input_units(kind: &str) -> Vec<(&'static str, &'static str)> {
                 "single (not a spouse at any time in the year), illness_separated (a member of an illness-separated couple at any time in the year) or couple (a spouse for the whole year, never illness-separated)",
             ),
         ],
+        "beneficiary_tax_offset" => vec![(
+            "rebatable_benefit",
+            "AUD: the rebatable benefit included in assessable income (ITAA 1936 s 160AAA(1)), such as a Social Security Act 1991 Part 2.11, 2.11A, 2.12, 2.15 or 2.23B benefit, as established",
+        )],
+        "invalid_carer_tax_offset" => vec![
+            (
+                "dependant",
+                "spouse, or other (a parent or the spouse's parent, or a child, brother or sister of you or your spouse aged 16 or over): the person maintained, who meets ITAA 1997 s 61-10(2), (3) or (4)",
+            ),
+            (
+                "adjusted_taxable_income",
+                "AUD: your adjusted taxable income for offsets for the year, as income-tests works it out for 2024-25 to 2026-27",
+            ),
+            (
+                "dependant_adjusted_taxable_income",
+                "AUD: the dependant's adjusted taxable income for offsets, including their pension or carer payment, for the period you maintained them",
+            ),
+        ],
+        "zone_tax_offset" => vec![
+            (
+                "area",
+                "special_area, zone_a or zone_b (the zone of your usual place of residence: ITAA 1936 Schedule 2 and the ATO's Australian zone list), or overseas_forces",
+            ),
+            (
+                "days",
+                "integer from 0 to the days in the year: days your usual place of residence was in the area, or for overseas_forces days of service as a Defence Force member at overseas localities, counting service in the prescribed area (s 79B(3)) and not service whose income s 23AD or 23AG exempts",
+            ),
+        ],
+        "net_medical_expenses_tax_offset" => vec![
+            (
+                "net_medical_expenses",
+                "AUD: expenses paid in the year for disability aids, attendant care or aged care for you or a resident dependant, less refunds from the NDIS, a private health insurer or another government, public authority, society, association or fund (ITAA 1936 s 159P(1) and (1B))",
+            ),
+            (
+                "adjusted_taxable_income",
+                "AUD: your adjusted taxable income for rebates for the year",
+            ),
+        ],
         "lump_sum_arrears_tax_offset" => vec![
             (
                 "taxable_income",
@@ -4150,6 +4337,33 @@ pub fn examples(kind: &str) -> Vec<(&'static str, Example)> {
             ("year", Text("2025-26")),
             ("rebate_income", Text("39000")),
             ("status", Text("single")),
+        ],
+        // Fabricated: $20,000 of a rebatable benefit in 2025-26.
+        "beneficiary_tax_offset" => vec![
+            ("year", Text("2025-26")),
+            ("rebatable_benefit", Text("20000")),
+        ],
+        // Fabricated: a parent on a disability support pension, 2025-26.
+        "invalid_carer_tax_offset" => vec![
+            ("year", Text("2025-26")),
+            ("dependant", Text("other")),
+            ("adjusted_taxable_income", Text("80000")),
+            ("dependant_adjusted_taxable_income", Text("4282")),
+        ],
+        // The ATO's Narendra example (Zone tax offset, QC105018): Lord Howe
+        // Island for 100 days in 2024-25 and 124 in 2025-26.
+        "zone_tax_offset" => vec![
+            ("year", Text("2025-26")),
+            ("area", Text("special_area")),
+            ("days", Whole(124)),
+            ("prior_year", Text("2024-25")),
+            ("prior_days", Whole(100)),
+        ],
+        // Fabricated: $10,000 of net aged care expenses in 2018-19.
+        "net_medical_expenses_tax_offset" => vec![
+            ("year", Text("2018-19")),
+            ("net_medical_expenses", Text("10000")),
+            ("adjusted_taxable_income", Text("90000")),
         ],
         // The ATO's Yan example's combined breakdown, received in 2025-26, with
         // made-up taxable incomes.

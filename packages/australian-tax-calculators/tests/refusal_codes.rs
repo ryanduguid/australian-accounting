@@ -45,6 +45,7 @@ fn every_code_at_a_refusal_site_is_catalogued_and_every_entry_is_used() {
         "engine/luxury_car_tax",
         "engine/wine_equalisation_tax",
         "engine/sb_cgt_concessions",
+        "engine/individual_offsets",
     ]
     .into_iter()
     .flat_map(|dir| {
@@ -169,8 +170,10 @@ fn every_catalogued_required_input_of_a_strict_command_is_read() {
     // non-commercial-losses,
     // depreciation-low-value-pool, depreciation-small-business-pool,
     // capital-works and small-business-income-offset and
-    // psi-test.
-    assert_eq!(checked, 58);
+    // psi-test,
+    // beneficiary-tax-offset, invalid-carer-tax-offset, zone-tax-offset and
+    // net-medical-expenses-tax-offset.
+    assert_eq!(checked, 62);
 }
 
 /// Every frozen call gives the same answer through either entry point, and

@@ -6159,6 +6159,11 @@ mod fhss;
 pub use fhss::{FhssArgs, fhss};
 mod ppsr_timing;
 pub use ppsr_timing::ppsr_timing;
+mod individual_offsets;
+pub use individual_offsets::{
+    InvalidCarerArgs, MedicalArgs, ZoneArgs, disability_expenses_offset, invalid_carer_tax_offset,
+    rebatable_benefit_offset, zone_tax_offset,
+};
 mod sb_cgt_concessions;
 pub use sb_cgt_concessions::{SB_CGT_OPTIONAL, SbCgtConcessionsArgs, sb_cgt_concessions};
 mod depreciation_pools;
@@ -6174,7 +6179,7 @@ pub use non_commercial_losses::{NCL_OPTIONAL, NonCommercialLossesArgs, non_comme
 mod psi_test;
 pub use psi_test::{PSI_OPTIONAL, PsiTestArgs, psi_test};
 
-const KINDS: [&str; 72] = [
+const KINDS: [&str; 76] = [
     "gst",
     "gst_margin_scheme",
     "fuel_tax_credits",
@@ -6228,6 +6233,10 @@ const KINDS: [&str; 72] = [
     "seniors_pensioners_withholding",
     "seniors_pensioners_tax_offset",
     "lump_sum_arrears_tax_offset",
+    "beneficiary_tax_offset",
+    "invalid_carer_tax_offset",
+    "zone_tax_offset",
+    "net_medical_expenses_tax_offset",
     "luxury_car_tax",
     "fbt_residual",
     "fbt_housing",
