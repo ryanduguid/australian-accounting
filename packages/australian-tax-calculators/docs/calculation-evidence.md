@@ -3479,6 +3479,10 @@ days, $572 and $678. 1 January to 30 June 2026 has 181 days, and the 2021
 guide's same example gives 181 days, $571 and $679; the worksheet follows the
 Act.
 
+The same guide gives Mike's lease from 1 December 2025 to 31 December 2026 as
+397 days; the period has 396, as the 2021 guide counts the same dates a year
+earlier.
+
 ## Non-commercial losses
 
 This worksheet was added on 22 November 2026. ITAA 1997 Division 35 was read

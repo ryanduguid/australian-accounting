@@ -604,3 +604,128 @@ fn prepayment_refusals() {
     let after = with(tom(), json!({"agreement_date": "1999-11-12"}));
     assert!(api::evaluate("prepayments", &after).is_ok());
 }
+
+/// Round 1 S1: a s 82KZMD choice for expenditure it cannot apply to is
+/// refused: an individual's non-business expenditure (s 82KZMA(3)(a)),
+/// excluded expenditure (s 82KZMA(4)) and a thing done in the expenditure year
+/// (s 82KZMA(3)(c)). S2: a stated tax shelter that s 82KZME cannot cover.
+#[test]
+fn contradicted_choices_and_shelters_are_refused() {
+    let chose = with(tom(), json!({"chose_82kzmd": true}));
+    let cases = [
+        (
+            json!({"individual": true, "business_expenditure": false}),
+            "prepayments.choice_unavailable",
+        ),
+        (
+            json!({"expenditure": "999.99"}),
+            "prepayments.choice_unavailable",
+        ),
+        (
+            json!({"service_end": "2026-06-30"}),
+            "prepayments.choice_unavailable",
+        ),
+        (
+            json!({"tax_shelter": true}),
+            "prepayments.choice_unavailable",
+        ),
+    ];
+    for (changes, expected) in cases {
+        assert_eq!(
+            code("prepayments", &with(chose.clone(), changes.clone())),
+            expected,
+            "{changes}"
+        );
+    }
+    assert_eq!(
+        run("prepayments", &chose)["treatment"],
+        "apportioned_82kzmd"
+    );
+    let shelter = with(tom(), json!({"tax_shelter": true}));
+    for changes in [
+        json!({"exclusion": "law_or_court_order"}),
+        json!({"expenditure": "950.00"}),
+        json!({"service_end": "2026-06-30"}),
+        json!({"service_start": "2025-07-01", "service_end": "2026-03-31"}),
+    ] {
+        assert_eq!(
+            code("prepayments", &with(shelter.clone(), changes.clone())),
+            "prepayments.tax_shelter_conflict",
+            "{changes}"
+        );
+    }
+    assert_eq!(
+        run("prepayments", &shelter)["treatment"],
+        "apportioned_82kzmf"
+    );
+}
+
+/// Round 1 evidence gaps: Mike's period, 396 days as the 2021 guide counts it
+/// (the 2026 guide says 397; the amount is fabricated), Jasmin's $1,500 for 2025-26 (2026 guide), Martin on the 2026
+/// guide's dates and the 10-year edge.
+#[test]
+fn more_published_periods_and_the_10_year_edge() {
+    let mike = with(
+        tom(),
+        json!({"expenditure": "3960.00", "incurred": "2025-12-01", "service_start": "2025-12-01",
+               "service_end": "2026-12-31", "agreement_date": "2025-12-01"}),
+    );
+    let out = run("prepayments", &mike);
+    assert_eq!(out["eligible_service_period"]["days"], 396);
+    assert_eq!(
+        schedule(&out),
+        rows(&[("2025-26", 212, "2120.00"), ("2026-27", 184, "1840.00")])
+    );
+    let jasmin = with(
+        tom(),
+        json!({"taxpayer": "other", "individual": true, "business_expenditure": false,
+               "expenditure": "1500.00", "incurred": "2025-07-01", "service_start": "2025-07-01",
+               "service_end": "2026-06-30", "agreement_date": "2025-07-01"}),
+    );
+    assert_eq!(run("prepayments", &jasmin)["treatment"], "done_in_year");
+    let martin = with(
+        jasmin,
+        json!({"expenditure": "1250.00", "incurred": "2026-01-01", "service_start": "2026-01-01",
+               "service_end": "2027-01-31", "agreement_date": "2026-01-01"}),
+    );
+    let out = run("prepayments", &martin);
+    assert_eq!(
+        schedule(&out),
+        rows(&[("2025-26", 181, "571.34"), ("2026-27", 215, "678.66")])
+    );
+    let ten = |end: &str| {
+        let input = with(
+            tom(),
+            json!({"incurred": "2026-06-30", "service_start": "2026-07-01", "service_end": end,
+                   "agreement_date": "2026-06-30"}),
+        );
+        run("prepayments", &input)["eligible_service_period"]["end"].clone()
+    };
+    assert_eq!(ten("2036-06-30"), "2036-06-30");
+    assert_eq!(ten("2036-07-01"), "2036-06-30");
+    assert_eq!(ten("2036-06-29"), "2036-06-29");
+}
+
+/// Round 1 evidence gap: no opening stock, the choice made on an estimate
+/// that differs from the stocktake.
+#[test]
+fn the_choice_rests_on_the_estimate_not_the_stocktake() {
+    let input = with(
+        stock("0.00", json!("4000.00"), true),
+        json!({"items": [item("9000.00", "9500.00", "9200.00", "cost")]}),
+    );
+    let out = run("trading-stock", &input);
+    assert_eq!(amount(&out, "stocktake_value"), "9000.00");
+    assert_eq!(amount(&out, "estimate_difference"), "4000.00");
+    assert_eq!(amount(&out, "closing_value"), "0.00");
+    assert_eq!(amount(&out, "assessable_increase"), "0.00");
+    let counted = with(input.clone(), json!({"estimated_closing_value": null}));
+    assert_eq!(
+        code("trading-stock", &counted),
+        "trading_stock.simplified_unavailable"
+    );
+    let without = with(input, json!({"simplified_choice": false}));
+    let out = run("trading-stock", &without);
+    assert_eq!(amount(&out, "assessable_increase"), "9000.00");
+    assert_eq!(out["simplified_available"], true);
+}

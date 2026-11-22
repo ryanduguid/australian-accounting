@@ -2970,7 +2970,7 @@ pub const REFUSAL_CODES: &[(&str, &str)] = &[
     ),
     (
         "prepayments.choice_unavailable",
-        "chose_82kzmd is true for a taxpayer that is neither a small business entity nor covered by ITAA 1936 s 82KZMA(2A).",
+        "chose_82kzmd is true for a taxpayer that is neither a small business entity nor covered by ITAA 1936 s 82KZMA(2A), or for expenditure s 82KZMD cannot apply to (ss 82KZMA(3) and (4)).",
     ),
     (
         "prepayments.dates_invalid",
@@ -2979,6 +2979,10 @@ pub const REFUSAL_CODES: &[(&str, &str)] = &[
     (
         "prepayments.exclusion_invalid",
         "exclusion is not none, law_or_court_order or contract_of_service.",
+    ),
+    (
+        "prepayments.tax_shelter_conflict",
+        "tax_shelter is true for excluded expenditure or a thing done by the end of the expenditure year, which s 82KZME cannot cover (ss 82KZME(2)(b) and (7)).",
     ),
     (
         "prepayments.taxpayer_invalid",

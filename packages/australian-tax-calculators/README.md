@@ -2841,7 +2841,9 @@ was open, with `estimated_closing_value`, or the items' total when that is
 
 Months are read under Acts Interpretation Act 1901 s 2G(2), and each year's
 amount is rounded to the cent on the running total so the years add up. An
-agreement entered into on or before 11 November 1999 is refused. See
+agreement entered into on or before 11 November 1999 is refused, as are a
+s 82KZMD choice for expenditure it cannot apply to and a stated tax shelter
+for excluded expenditure or a thing done in the expenditure year. See
 [calculation evidence](docs/calculation-evidence.md#prepayments).
 
 ## Non-commercial losses

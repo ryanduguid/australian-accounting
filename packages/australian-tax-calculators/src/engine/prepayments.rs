@@ -216,6 +216,27 @@ fn treatment(facts: &Facts, first: i64, period: Option<(i64, i64)>) -> Treatment
     }
 }
 
+/// Refuses a stated fact the treatment contradicts: a s 82KZMD choice that
+/// cannot apply to the expenditure (ss 82KZMA(3) and (4); an individual's
+/// non-business expenditure stays under s 82KZM(1)(aa)(ii)), and a tax
+/// shelter that s 82KZME cannot cover (excluded expenditure, s 82KZME(7), or a
+/// thing done by the end of the expenditure year, s 82KZME(2)(b)).
+fn consistent(facts: &Facts, treatment: Treatment) -> Result<()> {
+    if facts.chose && treatment != Treatment::Apportioned("apportioned_82kzmd") {
+        return refuse(
+            "prepayments.choice_unavailable",
+            "A s 82KZMD choice applies only to business expenditure, or a non-individual's non-business expenditure, that is not excluded expenditure, is not under a stated tax shelter and pays for a thing not wholly done in the expenditure year (ITAA 1936 ss 82KZMA(3) and (4)).",
+        );
+    }
+    if facts.shelter && matches!(treatment, Treatment::Immediate(_)) {
+        return refuse(
+            "prepayments.tax_shelter_conflict",
+            "s 82KZME cannot apply to excluded expenditure (s 82KZME(7)) or to expenditure for a thing done by the end of the expenditure year (s 82KZME(2)(b)), so tax_shelter contradicts the other facts.",
+        );
+    }
+    Ok(())
+}
+
 /// Each income year's deduction from the expenditure year on. Apportioned
 /// amounts are worked on the running total of days and rounded to the cent
 /// half up there, so the years add up to the expenditure.
@@ -255,6 +276,7 @@ pub fn prepayments(args: &PrepaymentsArgs) -> Result<Value> {
     let facts = read_facts(args, first)?;
     let period = service_period(&facts);
     let treatment = treatment(&facts, first, period);
+    consistent(&facts, treatment)?;
     let rows = schedule(&facts.expenditure, first, treatment, period)?;
     let now = rows[0].2.clone();
     let mut out = result(

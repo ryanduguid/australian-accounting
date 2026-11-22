@@ -27,6 +27,15 @@ const MAX_ITEMS: usize = 500;
 /// The 3 values of s 70-45(1), in its order.
 const VALUES: [&str; 3] = ["cost", "market_selling_value", "replacement_value"];
 
+/// The keys an item takes.
+const ITEM_KEYS: [&str; 5] = [
+    VALUES[0],
+    VALUES[1],
+    VALUES[2],
+    "method",
+    "obsolescence_value",
+];
+
 /// The facts as the command passes them; see the README for each.
 pub struct TradingStockArgs<'a> {
     pub entity: &'a Arg,
@@ -105,9 +114,7 @@ fn value_item(i: usize, item: &Value) -> Result<Valued> {
             format!("{name} must be an object."),
         );
     };
-    let mut allowed = VALUES.to_vec();
-    allowed.extend(["method", "obsolescence_value"]);
-    stated::known_keys(fields, &name, "an item", &allowed)?;
+    stated::known_keys(fields, &name, "an item", &ITEM_KEYS)?;
     let values = [
         maybe(fields, &name, VALUES[0])?,
         maybe(fields, &name, VALUES[1])?,

@@ -76,8 +76,8 @@
   the 12-month rule of s 82KZM, or apportionment by days under s 82KZM,
   s 82KZMD or s 82KZMF, with each year's deduction. New codes:
   `prepayments.agreement_before_cutoff`, `prepayments.choice_unavailable`,
-  `prepayments.dates_invalid`, `prepayments.exclusion_invalid` and
-  `prepayments.taxpayer_invalid`. `tests/trading_stock_prepayments.rs` holds
+  `prepayments.dates_invalid`, `prepayments.exclusion_invalid`,
+  `prepayments.tax_shelter_conflict` and `prepayments.taxpayer_invalid`. `tests/trading_stock_prepayments.rs` holds
   both to the ATO's examples.
 
 - `small-business-income-offset` works out an individual's small business
