@@ -3147,7 +3147,9 @@ Choices the law leaves to the reader:
   not known and are refused.
 - The decline in value given is for the days held before any private use
   reduction, and the time-based share applies to it as to the other lines.
-- An asset's `first_used` is its start time, so item 13(2)(a) is decided:
+- An asset's `first_used` is its start time, the taxpayer's own first use
+  (s 40-60(2)), which can come before it was acquired, though not with
+  `held_when_first_used` true. So item 13(2)(a) is decided:
   one acquired before 9 May 2017 with nothing deductible for 2016-17 is under
   s 40-27 if first used by 30 June 2017 and outside it otherwise.
 - Each line is rounded to the cent. The ATO's examples round to the dollar,

@@ -164,8 +164,7 @@ fn works(expenditure: &str, kind: &str, began: &str, first_used: &str) -> Value 
 /// 1991, acquired on 20 July 2025: 2.5% for 346 days over 365, $2,744.
 #[test]
 fn example_29_capital_works_for_part_of_the_year() {
-    let mut item = works("115800.00", "building", "1991-08-01", "1992-03-01");
-    item["taken_to_begin_before_16_september_1987"] = json!(false);
+    let item = works("115800.00", "building", "1991-08-01", "1992-03-01");
     let input = with(json!({
         "acquired": "2025-07-20", "days_available": 346, "capital_works": [item],
     }));
@@ -405,8 +404,7 @@ fn section_40_27_applies_from_9_may_2017() {
 /// ATO's $20,629 claims $436 of travel, which s 26-31 denies (its Note 2).
 #[test]
 fn example_33_worksheet_denies_travel() {
-    let mut cw = works("115800.00", "building", "1991-08-01", "1992-03-01");
-    cw["taken_to_begin_before_16_september_1987"] = json!(false);
+    let cw = works("115800.00", "building", "1991-08-01", "1992-03-01");
     let input = with(json!({
         "acquired": "2025-07-20", "days_available": 346,
         "income": {"rental_income": "8500.00", "other_rental_income": "800.00"},
@@ -636,4 +634,28 @@ fn asset_first_used_after_a_part_year_acquisition() {
         "acquired": "2026-01-01", "days_available": 181, "depreciating_assets": [oven],
     }));
     assert_eq!(amount(&input, "decline_in_value"), "250.00");
+}
+
+/// The start time is the taxpayer's own first use, which can come before
+/// they acquired the asset: a borrowed asset used privately from July 2016 and
+/// bought on 8 May 2017, with nothing deductible for 2016-17, is under s 40-27
+/// (item 13(2)) and is not held when first used.
+#[test]
+fn asset_used_before_it_was_acquired() {
+    let mut borrowed = asset("2017-05-08", false, true);
+    borrowed["first_used"] = json!("2016-07-01");
+    borrowed["deductible_in_2016_17"] = json!(false);
+    let r = decline(json!([borrowed.clone()]));
+    assert_eq!(r["amounts"]["decline_in_value"], "0.00");
+    assert!(
+        r["depreciating_assets"][0]["section_40_27"]
+            .as_str()
+            .unwrap()
+            .contains("40-27(2)(d)")
+    );
+    borrowed["held_when_first_used"] = json!(true);
+    assert_eq!(
+        code(&with(json!({"depreciating_assets": [borrowed]}))),
+        "rental_property.fact_conflict"
+    );
 }

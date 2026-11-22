@@ -89,11 +89,21 @@ fn reduced(
 
 /// The days available and held the asset's decline is apportioned by: the
 /// property's, or all of them for an asset first used after the property was
-/// first held in a year it was available every day held.
-fn days(first_used: i64, acquired: i64, held: &Held) -> Result<(i64, i64)> {
-    if first_used > held.to || first_used < acquired {
+/// first held in a year it was available every day held. The start time can
+/// come before the asset was acquired (s 40-60(2)), but then it was not held
+/// when first used.
+fn days(
+    fields: &Map<String, Value>,
+    first_used: i64,
+    acquired: i64,
+    held: &Held,
+) -> Result<(i64, i64)> {
+    if first_used > held.to {
+        return conflict("first_used must not be after the property was last held in the year.");
+    }
+    if first_used < acquired && item_flag(fields, "held_when_first_used")? == Some(true) {
         return conflict(
-            "first_used must not be before acquired or after the property was last held in the year.",
+            "An asset first used before it was acquired was not held when it was first used.",
         );
     }
     if first_used <= held.from || held.available == held.days {
@@ -110,7 +120,7 @@ fn asset(value: &Value, share: &Decimal, held: &Held) -> Result<(String, Decimal
     let decline = amount(fields.get("decline_in_value"))?;
     let acquired = date(fields, "acquired")?;
     let first_used = date(fields, "first_used")?;
-    let (available, all) = days(first_used, acquired, held)?;
+    let (available, all) = days(fields, first_used, acquired, held)?;
     let why = reduced(fields, acquired, first_used)?;
     let (formula, deduction) = match why {
         Some(_) => (format!("0 x {decline}"), int(0)),
