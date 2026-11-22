@@ -526,7 +526,7 @@ fn cases() -> Vec<(&'static str, Value)> {
             "gst-bad-debt",
             json!({"party": "recipient", "event": "written_off", "amount": "4400.00",
                    "taxable_or_creditable": true, "cash_basis": false,
-                   "taxable_at_less_than_one_eleventh": false, "creditable_purpose": "1",
+                   "special_rule": "none", "attributed": true, "creditable_purpose": "1",
                    "consideration_extent": "0.25", "reduced_credit_acquisition": false,
                    "annual_apportionment": false, "year": "2025-26", "scope_confirmed": true}),
         ),
@@ -535,7 +535,7 @@ fn cases() -> Vec<(&'static str, Value)> {
             "gst-bad-debt",
             json!({"party": "supplier", "event": "written_off", "amount": "660.00",
                    "taxable_or_creditable": true, "cash_basis": false,
-                   "taxable_at_less_than_one_eleventh": false, "taxable_proportion": "0.4",
+                   "special_rule": "none", "attributed": true, "taxable_proportion": "0.4",
                    "year": "2025-26", "scope_confirmed": true}),
         ),
     ];

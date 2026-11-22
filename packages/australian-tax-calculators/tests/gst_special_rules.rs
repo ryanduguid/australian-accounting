@@ -243,7 +243,7 @@ fn marcus(overrides: Value) -> Value {
         json!({
             "party": "supplier", "event": "overdue_12_months", "amount": "550.00",
             "taxable_or_creditable": true, "cash_basis": false,
-            "taxable_at_less_than_one_eleventh": false, "overdue_from": "2021-04-16",
+            "special_rule": "none", "attributed": true, "overdue_from": "2021-04-16",
             "as_at": "2022-04-16", "year": "2021-22", "scope_confirmed": true,
         }),
         overrides,
@@ -256,7 +256,7 @@ fn recipient(overrides: Value) -> Value {
         json!({
             "party": "recipient", "event": "written_off", "amount": "1100.00",
             "taxable_or_creditable": true, "cash_basis": false,
-            "taxable_at_less_than_one_eleventh": false, "reduced_credit_acquisition": false,
+            "special_rule": "none", "attributed": true, "reduced_credit_acquisition": false,
             "annual_apportionment": false, "year": "2025-26", "scope_confirmed": true,
         }),
         overrides,
@@ -309,20 +309,51 @@ fn isabella_and_y_have_increases() {
 fn recoveries_reverse_the_adjustment() {
     let supplier = marcus(
         json!({"event": "recovered", "amount": "110.00", "overdue_from": null,
-                                 "as_at": null, "prior_adjustment": true}),
+                                 "as_at": null, "attributed": null, "prior_adjustment": true}),
     );
     assert_eq!(
         amount(&run(BD, &supplier), "increasing_adjustment"),
         "10.00"
     );
-    let paid =
-        recipient(json!({"event": "recovered", "amount": "220.00", "prior_adjustment": true}));
+    let paid = recipient(
+        json!({"event": "recovered", "amount": "220.00", "attributed": null,
+                         "prior_adjustment": true}),
+    );
     assert_eq!(amount(&run(BD, &paid), "decreasing_adjustment"), "20.00");
-    let none = recipient(json!({"event": "recovered", "prior_adjustment": false}));
+    let none =
+        recipient(json!({"event": "recovered", "attributed": null, "prior_adjustment": false}));
     assert_eq!(
         run(BD, &none)["failing_conditions"],
         json!(["prior_adjustment"])
     );
+    // ss 136-5 and 136-10(1) reduce recoveries too: $10 x 40% and
+    // $20 x 60% x 50%.
+    let partly = marcus(
+        json!({"event": "recovered", "amount": "110.00", "overdue_from": null,
+                               "as_at": null, "attributed": null, "prior_adjustment": true,
+                               "taxable_proportion": "0.4"}),
+    );
+    assert_eq!(amount(&run(BD, &partly), "increasing_adjustment"), "4.00");
+    let repaid = recipient(
+        json!({"event": "recovered", "amount": "220.00", "attributed": null,
+                                  "prior_adjustment": true, "creditable_purpose": "0.6",
+                                  "consideration_extent": "0.5"}),
+    );
+    assert_eq!(amount(&run(BD, &repaid), "decreasing_adjustment"), "6.00");
+}
+
+/// GSTR 2000/2 paras 15 and 21: no adjustment before the GST or the credit is
+/// attributed.
+#[test]
+fn no_adjustment_before_attribution() {
+    for input in [
+        marcus(json!({"attributed": false})),
+        recipient(json!({"attributed": false})),
+    ] {
+        let r = run(BD, &input);
+        assert_eq!(r["applies"], false);
+        assert_eq!(r["failing_conditions"], json!(["attributed"]));
+    }
 }
 
 /// ss 21-5(2) and 21-15(2): no adjustment on a cash basis.
@@ -339,10 +370,53 @@ fn no_adjustment_on_a_cash_basis() {
 fn bad_debt_refusals() {
     let supplier = |o: Value| code(BD, &marcus(o));
     let buyer = |o: Value| code(BD, &recipient(o));
+    for rule in [
+        "taxable_at_less_than_one_eleventh",
+        "gambling_supply",
+        "debt_assigned",
+        "transition_act_s15g",
+        "incapacitated_entity_representative",
+    ] {
+        assert_eq!(
+            supplier(json!({"special_rule": rule})),
+            "gst_bad_debt.special_rule",
+            "{rule}"
+        );
+    }
     assert_eq!(
-        supplier(json!({"taxable_at_less_than_one_eleventh": true})),
-        "gst_bad_debt.less_than_one_eleventh"
+        supplier(json!({"special_rule": "other"})),
+        "gst_bad_debt.fact_invalid"
     );
+    let recovery = json!({"event": "recovered", "attributed": null, "prior_adjustment": true,
+                          "cash_basis": true});
+    assert_eq!(
+        buyer(recovery.clone()),
+        "gst_bad_debt.accounting_basis_changed"
+    );
+    assert_eq!(
+        buyer(with(recovery.clone(), json!({"cash_basis": "no"}))),
+        "input.flag_invalid"
+    );
+    assert_eq!(
+        buyer(with(
+            recovery,
+            json!({"cash_basis": false, "attributed": true})
+        )),
+        "input.field_unknown"
+    );
+    assert_eq!(supplier(json!({"attributed": null})), "input.missing_field");
+    for zero in [
+        json!({"taxable_proportion": "0"}),
+        json!({"creditable_purpose": "0"}),
+        json!({"consideration_extent": "0"}),
+    ] {
+        let party = if zero.get("taxable_proportion").is_some() {
+            supplier(zero.clone())
+        } else {
+            buyer(zero.clone())
+        };
+        assert_eq!(party, "gst_bad_debt.fact_conflict", "{zero}");
+    }
     assert_eq!(
         buyer(json!({"reduced_credit_acquisition": true})),
         "gst_bad_debt.reduced_credit_acquisition"

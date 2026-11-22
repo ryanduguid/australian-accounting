@@ -25,7 +25,8 @@ pub struct BadDebtArgs<'a> {
     pub amount: &'a Arg,
     pub taxable_or_creditable: &'a Arg,
     pub cash_basis: &'a Arg,
-    pub taxable_at_less_than_one_eleventh: &'a Arg,
+    pub special_rule: &'a Arg,
+    pub attributed: Option<&'a Arg>,
     pub overdue_from: Option<&'a Arg>,
     pub as_at: Option<&'a Arg>,
     pub prior_adjustment: Option<&'a Arg>,
@@ -114,51 +115,79 @@ fn field<'a>(
     }
 }
 
-/// The cases this command does not work.
-fn excluded(args: &BadDebtArgs, case: &Case) -> Result<()> {
-    if flag(
-        args.taxable_at_less_than_one_eleventh,
+/// The special rules that take a debt outside this command, by `special_rule`.
+const SPECIAL_RULES: [(&str, &str); 6] = [
+    ("none", ""),
+    (
         "taxable_at_less_than_one_eleventh",
-    )? {
-        return refuse(
-            "gst_bad_debt.less_than_one_eleventh",
-            "A supply or acquisition taxable or creditable at less than 1/11 of the price, such as under the margin scheme: Subdivision 136-B works the adjustment instead (ss 136-30 to 136-45), which this command does not work.",
-        );
-    }
-    let recipient = !case.supplier;
-    let reduced = field(
-        args.reduced_credit_acquisition,
-        "reduced_credit_acquisition",
-        recipient,
-        recipient,
-    )?;
-    if reduced
-        .map(|v| flag(v, "reduced_credit_acquisition"))
-        .transpose()?
-        == Some(true)
-    {
-        return refuse(
+        "The supply or acquisition was taxable or creditable at less than 1/11 of the price, such as under the margin scheme: Subdivision 136-B works the adjustment (ss 136-30 to 136-45).",
+    ),
+    (
+        "gambling_supply",
+        "A bad debt from a gambling supply: Division 126 deals with it, not Division 21 (GSTR 2000/2 para 7).",
+    ),
+    (
+        "debt_assigned",
+        "The debt was assigned: Division 21 cannot operate, and an assignee has no adjustment (GSTR 2000/2 para 47).",
+    ),
+    (
+        "transition_act_s15g",
+        "A decreasing adjustment under s 15G of the GST Transition Act, which displaces s 21-5 (GSTR 2000/2 para 8A).",
+    ),
+    (
+        "incapacitated_entity_representative",
+        "A representative of an incapacitated entity: Division 58 has special rules for bad debt adjustments (s 21-99).",
+    ),
+];
+
+/// A recipient's reduced credit acquisition or Division 131 credit.
+fn recipient_excluded(args: &BadDebtArgs, recipient: bool) -> Result<()> {
+    for (value, name, code, why) in [
+        (
+            args.reduced_credit_acquisition,
+            "reduced_credit_acquisition",
             "gst_bad_debt.reduced_credit_acquisition",
             "A reduced credit acquisition: s 136-10(2) reduces the adjustment by the percentage credit reduction of Division 70, which this command does not work.",
-        );
-    }
-    let annual = field(
-        args.annual_apportionment,
-        "annual_apportionment",
-        recipient,
-        recipient,
-    )?;
-    if annual
-        .map(|v| flag(v, "annual_apportionment"))
-        .transpose()?
-        == Some(true)
-    {
-        return refuse(
+        ),
+        (
+            args.annual_apportionment,
+            "annual_apportionment",
             "gst_bad_debt.annual_apportionment",
             "The credit was worked out under Division 131: s 136-10(3) turns on whether the adjustment is attributable to a tax period no later than the s 131-55 adjustment's, which this command does not work.",
-        );
+        ),
+    ] {
+        let given = field(value, name, recipient, recipient)?;
+        if given.map(|v| flag(v, name)).transpose()? == Some(true) {
+            return refuse(code, why);
+        }
     }
     Ok(())
+}
+
+/// The cases this command does not work.
+fn excluded(args: &BadDebtArgs, case: &Case) -> Result<()> {
+    let rule = SPECIAL_RULES
+        .iter()
+        .find(|(name, _)| args.special_rule.text() == Some(name));
+    match rule {
+        None => {
+            return refuse(
+                "gst_bad_debt.fact_invalid",
+                "special_rule must be one of none, taxable_at_less_than_one_eleventh, gambling_supply, debt_assigned, transition_act_s15g, incapacitated_entity_representative.",
+            );
+        }
+        Some((name, why)) if *name != "none" => {
+            return refuse("gst_bad_debt.special_rule", *why);
+        }
+        _ => {}
+    }
+    if case.recovered && flag(args.cash_basis, "cash_basis")? {
+        return refuse(
+            "gst_bad_debt.accounting_basis_changed",
+            "A recovery or payment on a cash basis: the earlier adjustment needed a non-cash basis (ss 21-5(2) and 21-15(2)), so the basis has changed, which Division 159 governs.",
+        );
+    }
+    recipient_excluded(args, !case.supplier)
 }
 
 /// Whether the debt is written off, or overdue for 12 months or more on `as_at`.
@@ -184,9 +213,38 @@ fn written_off_or_overdue(args: &BadDebtArgs, case: &Case) -> Result<bool> {
 const QUALIFIES_SUPPLIER: &str = "GST Act s 21-5(1)(a): you made a taxable supply";
 const QUALIFIES_RECIPIENT: &str =
     "GST Act s 21-15(1)(a): you made a creditable acquisition for consideration";
+const ATTRIBUTED_SUPPLIER: &str = "GSTR 2000/2 para 15: the GST on the supply was attributed to an earlier tax period, or is attributed to the one in which the debt is written off";
+const ATTRIBUTED_RECIPIENT: &str = "GSTR 2000/2 para 21: the input tax credit was attributed to an earlier tax period, or is attributed to the one in which you become aware the debt is written off";
 const WRITTEN_OFF: &str = "GST Act ss 21-5(1)(c) and 21-15(1)(c): the debt is written off as bad, or has been overdue for 12 months or more (s 195-1 'overdue')";
 const NOT_CASH: &str = "GST Act ss 21-5(2) and 21-15(2): you do not account on a cash basis";
 const PRIOR: &str = "GST Act ss 21-10(a) and 21-20(a): you had the earlier adjustment under s 21-5 or s 21-15 for the debt";
+
+/// The rows for a write-off or an overdue debt.
+fn initial_rows(args: &BadDebtArgs, case: &Case) -> Result<Vec<Value>> {
+    let initial = !case.recovered;
+    let attributed = field(args.attributed, "attributed", initial, initial)?;
+    let Some(attributed) = attributed else {
+        return Ok(vec![]);
+    };
+    let rule = if case.supplier {
+        ATTRIBUTED_SUPPLIER
+    } else {
+        ATTRIBUTED_RECIPIENT
+    };
+    Ok(vec![
+        condition("attributed", rule, flag(attributed, "attributed")?),
+        condition(
+            "written_off_or_overdue_12_months",
+            WRITTEN_OFF,
+            written_off_or_overdue(args, case)?,
+        ),
+        condition(
+            "not_cash_basis",
+            NOT_CASH,
+            !flag(args.cash_basis, "cash_basis")?,
+        ),
+    ])
+}
 
 /// The conditions for the case, each met or not.
 fn conditions(args: &BadDebtArgs, case: &Case) -> Result<Vec<Value>> {
@@ -206,26 +264,46 @@ fn conditions(args: &BadDebtArgs, case: &Case) -> Result<Vec<Value>> {
         qualifies,
         flag(args.taxable_or_creditable, "taxable_or_creditable")?,
     )];
-    match prior {
-        Some(prior) => rows.push(condition(
+    if let Some(prior) = prior {
+        rows.push(condition(
             "prior_adjustment",
             PRIOR,
             flag(prior, "prior_adjustment")?,
-        )),
-        None => {
-            rows.push(condition(
-                "written_off_or_overdue_12_months",
-                WRITTEN_OFF,
-                written_off_or_overdue(args, case)?,
-            ));
-            rows.push(condition(
-                "not_cash_basis",
-                NOT_CASH,
-                !flag(args.cash_basis, "cash_basis")?,
-            ));
-        }
+        ));
     }
+    rows.extend(initial_rows(args, case)?);
     Ok(rows)
+}
+
+/// The Subdivision 136-A proportion or extents given, none of them nil.
+struct Reductions {
+    proportion: Option<Decimal>,
+    purpose: Option<Decimal>,
+    extent: Option<Decimal>,
+}
+
+fn reductions(args: &BadDebtArgs, case: &Case) -> Result<Reductions> {
+    let (supplier, recipient) = (case.supplier, !case.supplier);
+    let given = |value: Option<&Arg>, name, used| -> Result<Option<Decimal>> {
+        let Some(value) = field(value, name, used, false)? else {
+            return Ok(None);
+        };
+        let fraction = fraction(value, name)?;
+        if fraction.equals(&d("0"))? {
+            return refuse(
+                "gst_bad_debt.fact_conflict",
+                format!(
+                    "{name} of nil contradicts taxable_or_creditable: omit it for a wholly taxable supply or creditable acquisition."
+                ),
+            );
+        }
+        Ok(Some(fraction))
+    };
+    Ok(Reductions {
+        proportion: given(args.taxable_proportion, "taxable_proportion", supplier)?,
+        purpose: given(args.creditable_purpose, "creditable_purpose", recipient)?,
+        extent: given(args.consideration_extent, "consideration_extent", recipient)?,
+    })
 }
 
 const PARTLY_TAXABLE: &str = "GST Act s 136-5: the full adjustment times the taxable proportion";
@@ -233,24 +311,14 @@ const PARTLY_CREDITABLE: &str = "GST Act s 136-10(1): the full adjustment times 
 
 /// The adjustment: 1/11 of the amount, reduced under Subdivision 136-A when a
 /// proportion or extent is given.
-fn adjustment(args: &BadDebtArgs, case: &Case, amount: &Decimal) -> Result<Vec<Step>> {
-    let (supplier, recipient) = (case.supplier, !case.supplier);
-    let given = |value: Option<&Arg>, name, used| -> Result<Option<Decimal>> {
-        field(value, name, used, false)?
-            .map(|v| fraction(v, name))
-            .transpose()
-    };
-    let proportion = given(args.taxable_proportion, "taxable_proportion", supplier)?;
-    let purpose = given(args.creditable_purpose, "creditable_purpose", recipient)?;
-    let extent = given(args.consideration_extent, "consideration_extent", recipient)?;
+fn adjustment(case: &Case, amount: &Decimal, r: &Reductions) -> Result<Vec<Step>> {
     let id = if case.increasing() {
         "increasing_adjustment"
     } else {
         "decreasing_adjustment"
     };
     let full = precise(|| Ok(amount.div(&d("11"))?))?;
-    let reduced = proportion.is_some() || purpose.is_some() || extent.is_some();
-    if !reduced {
+    if r.proportion.is_none() && r.purpose.is_none() && r.extent.is_none() {
         return Ok(vec![step(
             id,
             case.section(),
@@ -266,17 +334,17 @@ fn adjustment(args: &BadDebtArgs, case: &Case, amount: &Decimal) -> Result<Vec<S
         &[amount],
         full.clone(),
     );
-    let (rule, factors) = if supplier {
+    let (rule, factors) = if case.supplier {
         (
             PARTLY_TAXABLE,
-            [("taxable_proportion", proportion.as_ref()), ("", None)],
+            [("taxable_proportion", r.proportion.as_ref()), ("", None)],
         )
     } else {
         (
             PARTLY_CREDITABLE,
             [
-                ("creditable_purpose", purpose.as_ref()),
-                ("consideration_extent", extent.as_ref()),
+                ("creditable_purpose", r.purpose.as_ref()),
+                ("consideration_extent", r.extent.as_ref()),
             ],
         )
     };
@@ -290,11 +358,12 @@ pub fn gst_bad_debt(args: &BadDebtArgs) -> Result<Value> {
     let case = case(args)?;
     excluded(args, &case)?;
     let amount = money(args.amount)?;
+    let r = reductions(args, &case)?;
     let rows = conditions(args, &case)?;
     let failing = failing(&rows);
     let applies = failing.is_empty();
     let steps = if applies {
-        adjustment(args, &case, &amount)?
+        adjustment(&case, &amount, &r)?
     } else {
         vec![]
     };

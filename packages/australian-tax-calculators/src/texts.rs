@@ -2215,6 +2215,10 @@ pub const REFUSAL_CODES: &[(&str, &str)] = &[
         "The acquisition is to any extent a reduced credit acquisition, which s 131-40(5) excludes.",
     ),
     (
+        "gst_bad_debt.accounting_basis_changed",
+        "A recovery or payment is stated on a cash basis, so the accounting basis changed after the earlier adjustment, which Division 159 governs.",
+    ),
+    (
         "gst_bad_debt.annual_apportionment",
         "The recipient's credit was worked out under Division 131, where s 136-10(3) turns on the tax period of the s 131-55 adjustment.",
     ),
@@ -2223,16 +2227,20 @@ pub const REFUSAL_CODES: &[(&str, &str)] = &[
         "as_at is before overdue_from.",
     ),
     (
-        "gst_bad_debt.fact_invalid",
-        "party or event is not one of its allowed values.",
+        "gst_bad_debt.fact_conflict",
+        "A taxable proportion, extent of creditable purpose or extent of consideration of nil contradicts a taxable supply or creditable acquisition.",
     ),
     (
-        "gst_bad_debt.less_than_one_eleventh",
-        "The supply or acquisition was taxable or creditable at less than 1/11 of the price, which Subdivision 136-B works.",
+        "gst_bad_debt.fact_invalid",
+        "party, event or special_rule is not one of its allowed values.",
     ),
     (
         "gst_bad_debt.reduced_credit_acquisition",
         "The recipient's acquisition is a reduced credit acquisition, which s 136-10(2) reduces by the Division 70 percentage.",
+    ),
+    (
+        "gst_bad_debt.special_rule",
+        "A special rule displaces or changes Division 21 for the debt: Subdivision 136-B, Division 126 (gambling), an assigned debt, GST Transition Act s 15G or Division 58 (representatives).",
     ),
     (
         "gst_creditable_purpose_change.basis_missing",

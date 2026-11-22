@@ -828,7 +828,7 @@ const COMMAND_ARGS: &[(&str, &[(&str, Kind)])] = &[
             ("amount", Dec),
             ("taxable_or_creditable", Raw),
             ("cash_basis", Raw),
-            ("taxable_at_less_than_one_eleventh", Raw),
+            ("special_rule", Raw),
             ("year", Raw),
             ("scope_confirmed", Raw),
         ],
@@ -2158,6 +2158,7 @@ pub fn evaluate_coded(command: &str, v: &Value) -> Result<Value> {
             // Optional: inputs used only for some parties and events.
             let raw = |key| optional(v, key, Raw);
             let dec = |key| optional(v, key, Dec);
+            let attributed = raw("attributed")?;
             let (overdue_from, as_at, prior) = (
                 raw("overdue_from")?,
                 raw("as_at")?,
@@ -2178,7 +2179,8 @@ pub fn evaluate_coded(command: &str, v: &Value) -> Result<Value> {
                 amount: &a[2],
                 taxable_or_creditable: &a[3],
                 cash_basis: &a[4],
-                taxable_at_less_than_one_eleventh: &a[5],
+                special_rule: &a[5],
+                attributed: attributed.as_ref(),
                 overdue_from: overdue_from.as_ref(),
                 as_at: as_at.as_ref(),
                 prior_adjustment: prior.as_ref(),

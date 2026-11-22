@@ -1883,6 +1883,10 @@ pub fn optional_inputs(kind: &str) -> Vec<(&'static str, &'static str)> {
         )],
         "gst_bad_debt" => vec![
             (
+                "attributed",
+                "boolean, required with event written_off or overdue_12_months and refused with recovered: the GST on the supply (supplier) or the input tax credit (recipient) was attributed to an earlier tax period, or is attributed to the one in which the debt is written off or you become aware of it (GSTR 2000/2 paras 15 and 21)",
+            ),
+            (
                 "overdue_from",
                 "YYYY-MM-DD, required with event overdue_12_months and refused otherwise: the first day the debt was overdue (GST Act s 195-1)",
             ),
@@ -3749,7 +3753,7 @@ pub fn input_units(kind: &str) -> Vec<(&'static str, &'static str)> {
             ("amount", "AUD, GST inclusive: the amount written off, overdue for 12 months or more, recovered or paid"),
             ("taxable_or_creditable", "boolean: for a supplier, the supply was a taxable supply (s 21-5(1)(a)); for a recipient, a creditable acquisition for consideration (s 21-15(1)(a))"),
             ("cash_basis", "boolean: you account on a cash basis (ss 21-5(2) and 21-15(2)); Division 159 on changing basis is not applied"),
-            ("taxable_at_less_than_one_eleventh", "boolean: the supply was taxable, or the acquisition creditable, at less than 1/11 of the price, as under the margin scheme (Subdivision 136-B); true is refused"),
+            ("special_rule", "none, taxable_at_less_than_one_eleventh (Subdivision 136-B, such as the margin scheme), gambling_supply (Division 126), debt_assigned (GSTR 2000/2 para 47), transition_act_s15g (GST Transition Act s 15G) or incapacitated_entity_representative (Division 58): any but none is refused"),
         ],
         "income_tests" => vec![
             ("taxable_income", "AUD, whole dollars: taxable income, including any assessable FHSS released amount (nil for a loss)"),
@@ -4514,7 +4518,8 @@ pub fn examples(kind: &str) -> Vec<(&'static str, Example)> {
             ("amount", Text("550.00")),
             ("taxable_or_creditable", Flag(true)),
             ("cash_basis", Flag(false)),
-            ("taxable_at_less_than_one_eleventh", Flag(false)),
+            ("special_rule", Text("none")),
+            ("attributed", Flag(true)),
             ("overdue_from", Text("2021-04-16")),
             ("as_at", Text("2022-04-16")),
         ],
