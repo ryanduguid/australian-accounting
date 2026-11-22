@@ -6200,6 +6200,8 @@ mod non_commercial_losses;
 pub use non_commercial_losses::{NCL_OPTIONAL, NonCommercialLossesArgs, non_commercial_losses};
 mod psi_test;
 pub use psi_test::{PSI_OPTIONAL, PsiTestArgs, psi_test};
+mod payg_instalment;
+pub use payg_instalment::{PAYG_INSTALMENT_OPTIONAL, PaygInstalmentArgs, payg_instalment};
 mod rental_property;
 pub use rental_property::{RentalPropertyArgs, rental_property};
 mod withholding_schedules;
@@ -6228,7 +6230,7 @@ pub use gst_adjustments::{
 mod deferred_tax;
 pub use deferred_tax::{DeferredTaxArgs, deferred_tax};
 
-const KINDS: [&str; 102] = [
+const KINDS: [&str; 103] = [
     "gst",
     "gst_margin_scheme",
     "fuel_tax_credits",
@@ -6331,6 +6333,7 @@ const KINDS: [&str; 102] = [
     "gst_bad_debt",
     "deferred_tax",
     "cgt_cost_base_adjustments",
+    "payg_instalment",
 ];
 
 /// `periods(kind)`: accepted period arguments and inclusive calendar boundaries.

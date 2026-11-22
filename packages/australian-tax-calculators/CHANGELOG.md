@@ -6,6 +6,19 @@
 
 ### Added
 
+- `payg-instalment` works out one quarterly PAYG instalment for 2025-26 or
+  2026-27 under Division 45 of Schedule 1 to the TAA 1953: the T7 amount
+  (s 45-112), an amount varied from estimated tax with its credit (ss 45-410
+  and 45-420), T1 x T2 (s 45-110) and a varied rate with its credit
+  (ss 45-205 and 45-215), mirroring the site's PAYG instalments page. New
+  codes: `payg_instalment.credits_before_third`,
+  `payg_instalment.credits_exceed_earlier`,
+  `payg_instalment.first_has_earlier`,
+  `payg_instalment.instalment_number_invalid`,
+  `payg_instalment.method_invalid`, `payg_instalment.rate_invalid` and
+  `payg_instalment.tax_exceeds_income`. `tests/payg_instalment.rs` holds it
+  to the ATO's examples and the site's cases.
+
 - `work-expenses` works out an employee's working from home, car or
   self-education deduction for 2020-21 to 2026-27, one `method` a call: the
   fixed rate (52c with a dedicated home office to 2021-22, then PCG 2023/1's

@@ -4027,6 +4027,43 @@ the two agree on every case the page's tests hold. Its choices:
 | Chris: 70% commission | TR 2022/3 example 40 | the principal is one payer |
 | 75% and 74.99% for a result; 80% and 79.99% from one payer; 20% by others | ss 87-18, 87-15(3), 87-25 | met; not met |
 
+## PAYG instalment
+
+This worksheet was added on 22 November 2026. Schedule 1 to the TAA 1953,
+Division 45, was read that day in compilation 227 (C2026C00468, from
+1 October 2026), volume 2
+(https://www.legislation.gov.au/C1953A00001/2026-10-01/2026-10-01/text/original/epub/OEBPS/document_2/document_2.html),
+and compared with compilation 219 (C2025C00404, from 1 July 2025): from
+s 45-110 to the start of Subdivision 45-N the only change is to the offsets
+left out of the Commissioner's notional tax, which this worksheet does not
+work out. The ATO's 'How to vary your PAYG instalments' (last updated 23 June
+2026), 'PAYG instalments: how to complete your activity statement' (last
+updated 9 January 2023) and 'Complete your BAS' pages were read the same day.
+
+The worksheet follows ryanduguid.github.io's PAYG instalments page
+(`paygInstalment` in `assets/business-calculators.mjs`, checked 15 November
+2026). Its 11 cases and 400 seeded random inputs were run through the
+command on 22 November 2026: each case agrees, and of the random inputs all
+agree or are refused by both except one, a credit claimed before the second
+instalment. The page adds such a credit back; s 45-410(3) does not, and no
+credit can exist then (s 45-410(2) never gives a negative first amount, and
+s 45-215(1)(b) needs an earlier quarter), so the worksheet refuses it. Its
+other choices:
+
+- money rounds half up to the cent, and the instalment and credit drop their
+  cents ('round down to whole dollars' on Complete your BAS);
+- a varied rate keeps 2 decimal places and drops the rest, as the ATO's
+  example 2 gives 12.27% for $10,125 / $82,480; the Act prescribes no
+  rounding;
+- each method takes only its own facts, where the page ignores the others.
+
+| Case | Source | Worksheet |
+|---|---|---|
+| Sophia: $20,100 at 1.7% | Activity statement page | $341.70, 341 at T11 and 5A |
+| Cari: $14,000, third quarter after $10,000 | How to vary, example 1 | $500, then $3,500 |
+| Harmander: $10,125 / $82,480 | How to vary, example 2 | 12.27% |
+| Bill: 10% then 5% on $10,000 | Activity statement page | $500 at 5B |
+
 ## Government super amounts
 
 This worksheet was added on 22 November 2026. Read that day:

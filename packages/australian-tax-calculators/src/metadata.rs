@@ -1282,6 +1282,10 @@ pub fn supported_periods(kind: &str) -> Vec<&'static str> {
         "psi_test" => vec![
             "2020-21", "2021-22", "2022-23", "2023-24", "2024-25", "2025-26", "2026-27",
         ],
+        // Division 45 of Schedule 1 to the TAA 1953 reads the same for
+        // ss 45-110 to 45-420 in compilations 219 (1 July 2025) and 227
+        // (1 October 2026), apart from the Commissioner's notional tax.
+        "payg_instalment" => vec!["2025-26", "2026-27"],
         // ITAA 1936 s 6(1) 'resident' reads the same in compilations 169
         // (1 July 2020) and 193 (1 October 2026).
         "residency_tests" => vec![
@@ -1719,6 +1723,10 @@ pub fn source_review(kind: &str) -> (&'static str, &'static str) {
         "psi_test" => (
             "2026-11-22",
             "ITAA 1997 Part 2-42 (ss 84-5, 85-30, 85-35, 87-15 to 87-40, 87-60 and 87-65), compilation 268 (1 October 2026), against compilations 210 (1 July 2020) and 223 (1 July 2021), which read the same; TR 2022/3, examples 20, 29, 30 and 40 and paragraph 118; the site's PSI page and its 19 cases (checked 17 November 2026)",
+        ),
+        "payg_instalment" => (
+            "2026-11-22",
+            "TAA 1953 Sch 1 ss 45-110, 45-112, 45-205, 45-215, 45-410 and 45-420, compilation 227 (C2026C00468, 1 October 2026), against compilation 219 (C2025C00404, 1 July 2025), which reads the same for them; the ATO's 'How to vary your PAYG instalments' (last updated 23 June 2026) and 'PAYG instalments: how to complete your activity statement' (last updated 9 January 2023) pages; the site's PAYG instalments page and its 11 cases (checked 15 November 2026)",
         ),
         "rental_property" => (
             "2026-11-22",
@@ -2248,6 +2256,12 @@ pub fn library_evidence(kind: &str) -> [(&'static str, &'static str); 4] {
             "TR 2022/3",
             "Example 20 (Joe's ducts, the results test), 29 (Tom's 23.07%), 30 (Ian's 18.57%) and 40 (Chris, an agent on 70% commission)",
             "2022-08-10",
+            "2026-11-22",
+        ),
+        "payg_instalment" => (
+            "ATO PAYG instalment pages",
+            "Sophia's T1 x T2 ($341.70, entered as 341), Cari's varied amount (example 1), Harmander's varied rate (example 2, 12.27%) and Bill's credit at 5B",
+            "2026-06-23",
             "2026-11-22",
         ),
         "residency_tests" => (
@@ -2786,6 +2800,44 @@ pub fn optional_inputs(kind: &str) -> Vec<(&'static str, &'static str)> {
             (
                 "principal_payments",
                 "AUD, with agent true only, and then required: the principal's payments to you for services to its customers (s 87-40(2)(b))",
+            ),
+        ],
+        "payg_instalment" => vec![
+            (
+                "notified_amount",
+                "AUD, method amount only, and then required: the instalment amount the ATO notifies at T7 (s 45-112(1)(a) or (c))",
+            ),
+            (
+                "instalment_number",
+                "integer 1 to 4, method varied_amount only, and then required: which of the year's instalments this is, counting from the first for which you are liable (s 45-410(2) to (5))",
+            ),
+            (
+                "estimated_tax",
+                "AUD, methods varied_amount and varied_rate only, and then required: your estimate of the tax on instalment income for the year (T8; the benchmark tax of s 45-415)",
+            ),
+            (
+                "earlier_instalments",
+                "AUD, methods varied_amount and varied_rate only, and then required: the year's earlier instalments as at 5A, even if unpaid; nil for the first instalment",
+            ),
+            (
+                "credits_claimed",
+                "AUD, methods varied_amount and varied_rate only, and then required: the credits claimed at 5B for earlier quarters of the year (ss 45-215 and 45-420); nil before the third instalment",
+            ),
+            (
+                "instalment_income",
+                "AUD, methods rate and varied_rate only, and then required: the quarter's instalment income at T1, generally gross business and investment income without GST",
+            ),
+            (
+                "instalment_rate",
+                "per cent, 0 to 100 at most 2 decimal places, methods rate and varied_rate only, and then required: the rate at T2, the Commissioner's or your most recent varied rate (s 45-110(2))",
+            ),
+            (
+                "estimated_instalment_income",
+                "AUD, method varied_rate only, and then required: your estimate of instalment income for the year",
+            ),
+            (
+                "earlier_instalment_income",
+                "AUD, method varied_rate only, and then required: the instalment income of the year's earlier quarters (s 45-215(1), step 3)",
             ),
         ],
         "balancing_adjustment" => vec![(
@@ -4799,6 +4851,9 @@ pub fn input_units(kind: &str) -> Vec<(&'static str, &'static str)> {
             ("apprentice", "boolean: the individual or entity had one or more apprentices for at least half the year (s 87-25(3))"),
             ("premises", "object of 5 booleans for the business premises test (s 87-30): at_all_times (maintained and used at all times in the year), mainly_for_psi, exclusive_use, separate_from_private and separate_from_clients"),
         ],
+        "payg_instalment" => vec![
+            ("method", "amount, varied_amount, rate or varied_rate: option 1 (the T7 amount, s 45-112), option 1 varied from estimated tax (s 45-410), option 2 (T1 x T2, s 45-110) or option 2 at a varied rate (s 45-205); each takes only its own facts"),
+        ],
         "government_super_amounts" => {
             let mut units = input_units("income_tests");
             units.extend([
@@ -5884,6 +5939,19 @@ pub fn examples(kind: &str) -> Vec<(&'static str, Example)> {
                     r#"{"at_all_times": false, "mainly_for_psi": false, "exclusive_use": false, "separate_from_private": false, "separate_from_clients": false}"#,
                 ),
             ),
+        ],
+        // The ATO's Harmander (example 2 on 'How to vary your PAYG
+        // instalments'), with fabricated quarterly and earlier figures.
+        "payg_instalment" => vec![
+            ("year", Text("2026-27")),
+            ("method", Text("varied_rate")),
+            ("instalment_income", Text("20620.00")),
+            ("instalment_rate", Text("16.84")),
+            ("estimated_tax", Text("10125.00")),
+            ("estimated_instalment_income", Text("82480.00")),
+            ("earlier_instalments", Text("6944.00")),
+            ("credits_claimed", Text("0.00")),
+            ("earlier_instalment_income", Text("41240.00")),
         ],
         // The ATO's Angelo (Super co-contribution): $35,000 of salary and
         // $1,040 of personal contributions; the year is the page's.

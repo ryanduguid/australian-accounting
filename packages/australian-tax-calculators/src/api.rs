@@ -978,6 +978,10 @@ const COMMAND_ARGS: &[(&str, &[(&str, Kind)])] = &[
         ],
     ),
     (
+        "payg-instalment",
+        &[("method", Raw), ("year", Raw), ("scope_confirmed", Raw)],
+    ),
+    (
         "work-expenses",
         &[
             ("method", Raw),
@@ -1727,6 +1731,7 @@ pub fn evaluate_coded(command: &str, v: &Value) -> Result<Value> {
             | "small-business-income-offset"
             | "non-commercial-losses"
             | "psi-test"
+            | "payg-instalment"
             | "government-super-amounts"
             | "rental-property"
             | "horticulture-shearing-withholding"
@@ -2774,6 +2779,21 @@ pub fn evaluate_coded(command: &str, v: &Value) -> Result<Value> {
                 premises: &a[7],
                 year: &a[8],
                 scope_confirmed: &a[9],
+                optional: given.each_ref().map(Option::as_ref),
+            })
+        }
+        "payg-instalment" => {
+            // Optional: the facts of the chosen method, and only those.
+            let given = engine::PAYG_INSTALMENT_OPTIONAL.map(|key| {
+                let kind = if key == "instalment_number" { Raw } else { Dec };
+                optional(v, key, kind)
+            });
+            let [a0, a1, a2, a3, a4, a5, a6, a7, a8] = given;
+            let given = [a0?, a1?, a2?, a3?, a4?, a5?, a6?, a7?, a8?];
+            engine::payg_instalment(&engine::PaygInstalmentArgs {
+                method: &a[0],
+                year: &a[1],
+                scope_confirmed: &a[2],
                 optional: given.each_ref().map(Option::as_ref),
             })
         }

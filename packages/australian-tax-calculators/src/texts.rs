@@ -331,6 +331,10 @@ pub const SCOPES: &[(&str, &str)] = &[
         "Whether the personal services income rules (ITAA 1997 Part 2-42) apply to one individual's personal services income for an income year from 2020-21 to 2026-27, from the operator's answers: whether the income is mainly a reward for personal efforts or skills, who receives it, a determination in force, each payer with its associates and what it paid for, the principal work by others, an apprentice and the business premises; s 87-40 is not applied to an agent on 75% or more commission, Australian government agencies are entered as s 87-35 treats them, and whether the Commissioner would make a determination is not decided.",
     ),
     (
+        "payg_instalment",
+        "One quarterly PAYG instalment of a quarterly payer who pays 4 instalments a year, for the 2025-26 or 2026-27 income year, under Division 45 of Schedule 1 to the TAA 1953: the T7 amount, an amount varied from estimated tax, instalment income times the T2 rate, or a varied rate with any credit for earlier quarters. The figures, estimates and method are the operator's; not monthly, 2-a-year or annual instalments, a multi-rate trustee or a consolidated group; no GDP adjustment is applied (it is in the T7 amount already), and neither general interest charge on a low variation (ss 45-230 and 45-232), the right to claim a credit nor a due date is decided.",
+    ),
+    (
         "government_super_amounts",
         "The super co-contribution (Superannuation (Government Co-contribution for Low Income Earners) Act 2003, the Co-contribution Act, Part 2), the low income superannuation tax offset (LISTO, Part 2A, s 12C(1) only) and the spouse contribution tax offset (ITAA 1997 Subdivision 290-D) for one individual who was an Australian resident for the whole income year, in 2020-21 to 2026-27. Total income (Co-contribution Act s 8) and adjusted taxable income (A New Tax System (Family Assistance) Act 1999 Sch 3, disregarding cls 3 and 3A) are income-tests' measures, from the same established and classified components. The operator establishes the eligible income for the 10% test (s 6(1)(b), (2) and s 8(3)), the eligible personal contributions the fund received in the year (s 7; not deducted, not a downsizer contribution), the concessional contributions for the financial year (a person with contributions or amounts Co-contribution Act s 12E(3) disregards, for constitutionally protected funds or under ITAA 1997 s 291-165(1)(c), is out of scope, as s 12C(1)(a) counts them and s 12E(2)(a) does not), whether a return is lodged, the age, temporary visa, non-concessional cap and total super balance facts, and for a spouse the contributions s 290-230 counts (made whilst spouses, both resident and not living apart, to a complying fund the spouse could contribute to, not deductible and not a Family Law Act payment) and the spouse's income components and cap and balance facts. Thresholds are the ATO's published ones (Table 25). The payable co-contribution and LISTO are increased to a multiple of 5 cents (Regulations 2022 reg 15(2), 2004 reg 24(2)). Refuses a temporary visa held in the year, as the New Zealand citizen and prescribed visa exceptions are not worked out, a balance or cap fact not established where it decides an amount, and nil total income where a contribution makes the 10% test decide. Excludes contributions not yet received by the fund, LISTO the Commissioner estimates without a return (s 12C(2)), a deceased person's annualised income, interest on late payments (ss 12, 21 and 22), the co-contribution for an earlier year, the order and timing of payment, and 2027-28, when Act No. 8 of 2026 Schedule 4 changes LISTO.",
     ),
@@ -732,6 +736,10 @@ pub const SOURCES: &[(&str, &str)] = &[
     (
         "psi_test",
         "https://www.legislation.gov.au/C2004A05138/2026-10-01/2026-10-01/text/original/epub/OEBPS/document_3/document_3.html",
+    ),
+    (
+        "payg_instalment",
+        "https://www.legislation.gov.au/C1953A00001/2026-10-01/2026-10-01/text/original/epub/OEBPS/document_2/document_2.html",
     ),
     (
         "rental_property",
@@ -1755,6 +1763,16 @@ pub const EXTRA_SOURCES: &[(&str, &[&str])] = &[
             "https://www.legislation.gov.au/C2004A05138/2020-07-01/2020-07-01/text/original/epub/OEBPS/document_3/document_3.html",
             "https://www.ato.gov.au/law/view/document?docid=TXR/TR20223/NAT/ATO/00001",
             "https://www.ato.gov.au/businesses-and-organisations/income-deductions-and-concessions/personal-services-income/working-out-if-the-psi-rules-apply/results-test",
+        ],
+    ),
+    (
+        "payg_instalment",
+        &[
+            "https://www.legislation.gov.au/C1953A00001/2025-07-01/2025-07-01/text/original/epub/OEBPS/document_2/document_2.html",
+            "https://www.ato.gov.au/businesses-and-organisations/income-deductions-and-concessions/payg-instalments/how-to-vary-your-payg-instalments",
+            "https://www.ato.gov.au/forms-and-instructions/payg-instalments-how-to-complete-your-activity-statement",
+            "https://www.ato.gov.au/businesses-and-organisations/gst-excise-and-indirect-taxes/gst/completing-your-bas-for-gst/complete-your-bas",
+            "https://www.ato.gov.au/businesses-and-organisations/income-deductions-and-concessions/payg-instalments/calculate-your-payg-instalments/how-we-calculate-your-payg-instalment-amount-or-rate",
         ],
     ),
     (
@@ -3282,7 +3300,7 @@ pub const REFUSAL_CODES: &[(&str, &str)] = &[
     ),
     (
         "input.field_unknown",
-        "A field the worksheet or command does not take, or does not take beside the other inputs given, was given (fbt-loan, fbt-meal-entertainment, fbt-car-parking, fbt-debt-waiver, fbt-expense-payment, fbt-property, fbt-residual, fbt-housing, fbt-lafha, fbt-board, fbt-tax-exempt-body-entertainment, fbt-entertainment-classifier, fbt-meal-entertainment-register and its entries, fbt-minor-benefit-check, ppsr-timing, fhss and its contributions, government-super-amounts, personal_deductions and determination, division-296, depreciation, fuel-tax-credits and its lines, foreign-resident-tax, medicare-levy, medicare-levy-surcharge, payg-withholding, payg-gross-up, termination-payment, etp-tax-free-component, unused-leave-payment, the Schedule 5 methods, working-holiday-maker-withholding, study-loan-withholding, seniors-pensioners-withholding, seniors-pensioners-tax-offset, lump-sum-arrears-tax-offset, hire-purchase-schedule, chattel-mortgage-schedule, loan-transactions and its transactions and rate_changes, borrowing-expenses-schedule and its loans, business-capital-expenditure and its items, balancing-adjustment, its years and car_limit, trade-in, franking-account and its events, distributions and income_tax, dasp-tax, super-benefit-tax, super-withholding, gst-margin-scheme, wine-equalisation-tax and its dealings, luxury-car-tax and its lines, payroll-tax, cgt-parcels, its parcels and disposals, cgt-cost-base-adjustments, its parcels and events, fbt-ev-exemption-check, sb-cgt-concessions, small-business-income-offset, residency-tests, lodgment-required, depreciation-low-value-pool, gst-creditable-purpose-change, gst-annual-apportionment, gst-financial-acquisitions-threshold, gst-going-concern, gst-second-hand-goods, gst-bad-debt, depreciation-small-business-pool, capital-works, non-commercial-losses, psi-test, beneficiary-tax-offset, invalid-carer-tax-offset, zone-tax-offset and its dependants, net-medical-expenses-tax-offset, work-expenses, ato-interest-penalties and its payments and parts, private-health-insurance-rebate, rental-property and its loans, capital_works and depreciating_assets, horticulture-shearing-withholding, upward-variation-withholding, daily-casual-withholding, no-abn-withholding, entertainer-withholding, return-to-work-withholding, annuity-withholding, voluntary-agreement-withholding, rd-tax-offset, deferred-tax, contribution-caps given a carry-forward input, derive, personal-tax-estimate, dgr-check, income-tests and fbt-return only).",
+        "A field the worksheet or command does not take, or does not take beside the other inputs given, was given (fbt-loan, fbt-meal-entertainment, fbt-car-parking, fbt-debt-waiver, fbt-expense-payment, fbt-property, fbt-residual, fbt-housing, fbt-lafha, fbt-board, fbt-tax-exempt-body-entertainment, fbt-entertainment-classifier, fbt-meal-entertainment-register and its entries, fbt-minor-benefit-check, ppsr-timing, fhss and its contributions, government-super-amounts, personal_deductions and determination, division-296, depreciation, fuel-tax-credits and its lines, foreign-resident-tax, medicare-levy, medicare-levy-surcharge, payg-withholding, payg-gross-up, termination-payment, etp-tax-free-component, unused-leave-payment, the Schedule 5 methods, working-holiday-maker-withholding, study-loan-withholding, seniors-pensioners-withholding, seniors-pensioners-tax-offset, lump-sum-arrears-tax-offset, hire-purchase-schedule, chattel-mortgage-schedule, loan-transactions and its transactions and rate_changes, borrowing-expenses-schedule and its loans, business-capital-expenditure and its items, balancing-adjustment, its years and car_limit, trade-in, franking-account and its events, distributions and income_tax, dasp-tax, super-benefit-tax, super-withholding, gst-margin-scheme, wine-equalisation-tax and its dealings, luxury-car-tax and its lines, payroll-tax, cgt-parcels, its parcels and disposals, cgt-cost-base-adjustments, its parcels and events, fbt-ev-exemption-check, sb-cgt-concessions, small-business-income-offset, residency-tests, lodgment-required, depreciation-low-value-pool, gst-creditable-purpose-change, gst-annual-apportionment, gst-financial-acquisitions-threshold, gst-going-concern, gst-second-hand-goods, gst-bad-debt, depreciation-small-business-pool, capital-works, non-commercial-losses, psi-test, payg-instalment, beneficiary-tax-offset, invalid-carer-tax-offset, zone-tax-offset and its dependants, net-medical-expenses-tax-offset, work-expenses, ato-interest-penalties and its payments and parts, private-health-insurance-rebate, rental-property and its loans, capital_works and depreciating_assets, horticulture-shearing-withholding, upward-variation-withholding, daily-casual-withholding, no-abn-withholding, entertainer-withholding, return-to-work-withholding, annuity-withholding, voluntary-agreement-withholding, rd-tax-offset, deferred-tax, contribution-caps given a carry-forward input, derive, personal-tax-estimate, dgr-check, income-tests and fbt-return only).",
     ),
     ("input.flag_invalid", "A flag is not a JSON boolean."),
     ("input.fraction_invalid", "A fraction is outside 0 to 1."),
@@ -3605,6 +3623,34 @@ pub const REFUSAL_CODES: &[(&str, &str)] = &[
     (
         "payg.tax_offsets_not_allowed",
         "Tax offsets were claimed on a scale other than 2, 5 or 6.",
+    ),
+    (
+        "payg_instalment.credits_before_third",
+        "Credits were claimed before the second instalment, when none can exist (s 45-410(2) and s 45-215(1)(b) of Schedule 1 to the TAA 1953).",
+    ),
+    (
+        "payg_instalment.credits_exceed_earlier",
+        "credits_claimed is more than earlier_instalments.",
+    ),
+    (
+        "payg_instalment.first_has_earlier",
+        "The first instalment of the year was given earlier instalments.",
+    ),
+    (
+        "payg_instalment.instalment_number_invalid",
+        "instalment_number is not a JSON integer from 1 to 4.",
+    ),
+    (
+        "payg_instalment.method_invalid",
+        "method is not amount, varied_amount, rate or varied_rate.",
+    ),
+    (
+        "payg_instalment.rate_invalid",
+        "instalment_rate is not a per cent from 0 to 100 with at most 2 decimal places.",
+    ),
+    (
+        "payg_instalment.tax_exceeds_income",
+        "estimated_tax is more than estimated_instalment_income, a varied rate over 100%.",
     ),
     (
         "payroll_tax.grouped",
