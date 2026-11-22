@@ -1286,6 +1286,10 @@ pub fn supported_periods(kind: &str) -> Vec<&'static str> {
         ],
         // Part 2-42 reads the same in compilations 210 (1 July 2020), 223
         // (1 July 2021) and 268 (1 October 2026).
+        // Division 6AA and ITRA ss 13 and 15 and Schedule 11 read the same in the
+        // 1 July 2020 and current compilations; the ordinary scales it reuses
+        // (RESIDENT_TAX_SCALES, FOREIGN_RESIDENT_TAX_SCALES) start at 2024-25.
+        "minors_income" => vec!["2024-25", "2025-26", "2026-27"],
         "psi_test" => vec![
             "2020-21", "2021-22", "2022-23", "2023-24", "2024-25", "2025-26", "2026-27",
         ],
@@ -1736,6 +1740,10 @@ pub fn source_review(kind: &str) -> (&'static str, &'static str) {
         "non_commercial_losses" => (
             "2026-11-22",
             "ITAA 1997 Division 35 (ss 35-10 to 35-55), compilation 268 (1 October 2026), against compilations 210 (1 July 2020) and 223 (1 July 2021), which read the same; the ATO's non-commercial loss pages 'Four tests', 'The income requirement', 'Excepted business activities' and 'How to defer your losses' (each last updated 7 April 2025)",
+        ),
+        "minors_income" => (
+            "2026-11-22",
+            "ITAA 1936 Division 6AA (ss 102AA to 102AGA), compilation 193 (1 October 2026), against compilation 169 (1 July 2020), which reads the same; Income Tax Rates Act 1986 ss 3, 13 and 15 and Schedules 7 and 11, compilation 66 (1 July 2026), against compilation 55 (1 July 2020), the same but for editorial changes; ITAA 1997 ss 61-115 and 995-1 (apportionable deductions), compilation 268 (1 October 2026); the ATO's 'Tax rates if you're under 18 years old' (last updated 1 June 2026) and 'A1 Under 18 2026' (30 May 2026)",
         ),
         "psi_test" => (
             "2026-11-22",
@@ -2285,6 +2293,12 @@ pub fn library_evidence(kind: &str) -> [(&'static str, &'static str); 4] {
             "2025-04-07",
             "2026-11-22",
         ),
+        "minors_income" => (
+            "ATO Tax rates if you're under 18 years old",
+            "tables 1 to 4: nil to $416, then 66% of the excess to $1,307 and 45% of the whole above it for a resident; 30% of the whole to $416, $124.80 plus 66% of the excess to $713 and 45% of the whole above it for a foreign resident",
+            "2026-06-01",
+            "2026-11-22",
+        ),
         "psi_test" => (
             "TR 2022/3",
             "Example 20 (Joe's ducts, the results test), 29 (Tom's 23.07%), 30 (Ian's 18.57%) and 40 (Chris, an agent on 70% commission)",
@@ -2829,6 +2843,16 @@ pub fn optional_inputs(kind: &str) -> Vec<(&'static str, &'static str)> {
             (
                 "other_income",
                 "AUD, for a primary_production or professional_arts activity only, and then required: your assessable income for the year from other sources not related to the activity, except net capital gain (s 35-10(4)(b))",
+            ),
+        ],
+        "minors_income" => vec![
+            (
+                "full_time_occupation",
+                "object of 4 booleans, for excepted_person full_time_occupation only, and then required: engaged_on_last_day (engaged in a full-time occupation on 30 June), three_months_in_year (for periods totalling at least 3 months in the year, ignoring a period followed later in the year by full-time education), intends_full_time_occupation_next_year and intends_full_time_education_next_year (on 30 June, for the next income year): ITAA 1936 s 102AC(6) to (8)",
+            ),
+            (
+                "dependent_on_relatives",
+                "boolean, for excepted_person double_orphan_pension, double_orphan_pension_s1003 or permanent_disability_certificate only, and then required: wholly or substantially dependent on relatives for support for the whole period, taken to be so whilst living with relatives unless the contrary is established (ITAA 1936 s 102AC(3) to (5)); true means not excepted",
             ),
         ],
         "psi_test" => vec![
@@ -4900,6 +4924,19 @@ pub fn input_units(kind: &str) -> Vec<(&'static str, &'static str)> {
             ("total_net_investment_loss", "AUD: your total net investment losses (s 35-10(2E)(d))"),
             ("net_exempt_income", "AUD: your net exempt income for the year left after ss 36-10 and 36-15, which reduces an amount deferred (s 35-15); nil for none"),
         ],
+        "minors_income" => vec![
+            ("taxable_income", "AUD, whole dollars: your taxable income for the income year, from ordinary taxable income only"),
+            ("residency", "resident (an Australian resident for the whole year) or foreign_resident (a foreign resident for the whole year and a prescribed non-resident, as foreign-resident-tax takes)"),
+            ("under_18_on_30_june", "boolean: you were under 18 on 30 June, the last day of the income year (ITAA 1936 s 102AC(1)(a))"),
+            ("excepted_person", "none or the ITAA 1936 s 102AC(2) ground: full_time_occupation (b), carer_allowance (c)(i), disability_support_pension (c)(ii), disability_certificate (d), special_disability_trust (da), double_orphan_pension (e), double_orphan_pension_s1003 (f) or permanent_disability_certificate (g)"),
+            ("excepted_income", "list of up to 50 objects, each {ground, amount} with amount in AUD: excepted assessable income (ITAA 1936 s 102AE(2)) other than trust shares, ground employment, business, damages_or_compensation, death_benefit, public_fund, family_breakdown, deceased_estate, lottery_prize, partnership or accumulations, as limited by s 102AE(3) and (5) to (10); [] for none"),
+            ("trust_shares", "list of up to 50 objects, each {amount, division_6aa_part} in AUD: a share of a trust's net income included under s 97 or 100, and the part of it to which Division 6AA applies, attributable to trust income that is not excepted trust income (s 102AG); [] for none"),
+            ("other_assessable_income", "AUD: all other assessable income, which is eligible assessable income (s 102AE(1)), such as interest, dividends with franking credits, rent and net capital gains not from excepted property; nil for none"),
+            ("deductions_exclusive", "AUD: deductions that relate exclusively to eligible assessable income (s 102AD(a))"),
+            ("deductions_related", "AUD: the part of your other deductions, not apportionable deductions, that may appropriately be related to eligible assessable income (s 102AD(b))"),
+            ("apportionable_deductions", "AUD: your apportionable deductions (ITAA 1997 s 995-1: gifts under s 30-15 items 1, 2, 7 and 8 and rates and land tax under s 25-75), apportioned by s 102AD(c)"),
+            ("special_income_component", "boolean: your taxable income includes a special income component (an abnormal income amount, Income Tax Rates Act 1986 s 3(1)); true is refused"),
+        ],
         "psi_test" => vec![
             ("earner", "employee, religious_practitioner, sole_trader or entity: who receives the income: the individual as an employee or office holder (s 85-35(1)), as a religious practitioner paid under s 12-47 of Schedule 1 to the TAA 1953 (s 85-35(2)), or as a contractor, or a company, partnership or trust (a personal services entity)"),
             ("mainly_personal_efforts", "boolean: the income is mainly a reward for the individual's personal efforts or skills (s 84-5(1))"),
@@ -6014,6 +6051,25 @@ pub fn examples(kind: &str) -> Vec<(&'static str, Example)> {
         ],
         // TR 2022/3 example 20: Joe installs ducts to plans with his own tools
         // and is liable for defects; the amount is the site's.
+        // The ATO's table 1 row 3 (Tax rates if you're under 18 years old):
+        // part-time wages of $28,000 and $2,000 of dividends; figures fabricated.
+        "minors_income" => vec![
+            ("year", Text("2025-26")),
+            ("taxable_income", Text("30000")),
+            ("residency", Text("resident")),
+            ("under_18_on_30_june", Flag(true)),
+            ("excepted_person", Text("none")),
+            (
+                "excepted_income",
+                Json(r#"[{"ground": "employment", "amount": "28000.00"}]"#),
+            ),
+            ("trust_shares", Json("[]")),
+            ("other_assessable_income", Text("2000.00")),
+            ("deductions_exclusive", Text("0.00")),
+            ("deductions_related", Text("0.00")),
+            ("apportionable_deductions", Text("0.00")),
+            ("special_income_component", Flag(false)),
+        ],
         "psi_test" => vec![
             ("year", Text("2025-26")),
             ("earner", Text("sole_trader")),
