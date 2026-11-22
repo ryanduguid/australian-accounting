@@ -56,7 +56,6 @@ fn every_code_at_a_refusal_site_is_catalogued_and_every_entry_is_used() {
         "engine/deferred_tax",
         "engine/foreign_income_conversion",
         "engine/foreign_income_tax_offset",
-        "engine/ess_discount",
     ]
     .into_iter()
     .flat_map(|dir| {
@@ -192,10 +191,10 @@ fn every_catalogued_required_input_of_a_strict_command_is_read() {
     // gst-financial-acquisitions-threshold, gst-going-concern,
     // gst-second-hand-goods, gst-bad-debt, deferred-tax,
     // cgt-cost-base-adjustments, super-withholding, foreign-income-conversion,
-    // foreign-income-tax-offset, trading-stock, prepayments, minors-income,
-    // smsf-tax and ess-discount.
+    // foreign-income-tax-offset, trading-stock, prepayments, minors-income and
+    // smsf-tax.
     // With transfer-balance and excess-contributions.
-    assert_eq!(checked, 98);
+    assert_eq!(checked, 97);
 }
 
 /// Every frozen call gives the same answer through either entry point, and

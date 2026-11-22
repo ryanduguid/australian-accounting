@@ -104,19 +104,6 @@
   `transfer_balance.year_mismatch`. `tests/transfer_balance.rs` holds them to
   the ATO's examples and to an exact-fraction oracle over the ATO's rates.
 
-- `ess-discount` works out the employee share scheme amounts ITAA 1997
-  Division 83A includes for an income year from 2020-21 to 2026-27 for
-  interests acquired from 1 July 2015: the discount, the start-up concession,
-  deferral to the taxing point (with cessation of employment before 1 July
-  2022 and the 30-day rule), the $1,000 reduction and its $180,000 income
-  test, the regulations' value of an unlisted right and the s 83A-310
-  forfeiture exclusion. New codes: `ess_discount.acquired_before_2015`,
-  `ess_discount.dates_inconsistent`, `ess_discount.employment_end_not_stated`,
-  `ess_discount.foreign_employment`, `ess_discount.income_test_invalid`,
-  `ess_discount.interests_invalid`, `ess_discount.salary_sacrifice_unclear`,
-  `ess_discount.taxing_point_value` and `ess_discount.valuation_unavailable`.
-  `tests/ess_discount.rs` holds it to the ATO's examples and every table entry.
-
 ## 1.2.0
 
 - Relicensed Ryan Duguid's code under AGPL-3.0-or-later with section 7(b) attribution terms.

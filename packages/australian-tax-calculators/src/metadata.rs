@@ -1314,12 +1314,6 @@ pub fn supported_periods(kind: &str) -> Vec<&'static str> {
         "smsf_tax" => vec![
             "2020-21", "2021-22", "2022-23", "2023-24", "2024-25", "2025-26", "2026-27",
         ],
-        // Division 83A reads the same in compilations 234 (1 July 2022) and
-        // 268 (1 October 2026); compilation 210 (1 July 2020) adds only the
-        // cessation taxing point, applied before 1 July 2022.
-        "ess_discount" => vec![
-            "2020-21", "2021-22", "2022-23", "2023-24", "2024-25", "2025-26", "2026-27",
-        ],
         "psi_test" => vec![
             "2020-21", "2021-22", "2022-23", "2023-24", "2024-25", "2025-26", "2026-27",
         ],
@@ -1803,10 +1797,6 @@ pub fn source_review(kind: &str) -> (&'static str, &'static str) {
         "smsf_tax" => (
             "2026-11-22",
             "ITAA 1997 ss 295-10, 295-160, 295-385, 295-387, 295-390, 295-545, 295-550, 295-605 and 295-610 on the ATO legal database with their history notes (s 295-545 last amended by Act No. 52 of 2024, whose Schedule 7 item 5 applies it to income derived from 2018-19); Income Tax Rates Act 1986 ss 26 and 29 and Schedule 7 Part I, compilation 66 (1 July 2026); Superannuation (Self Managed Superannuation Funds) Supervisory Levy Imposition Act 1991 s 6 and Regulations 2018 s 6; the ATO's Instructions to complete your SMSF annual return 2026 Sections B and D and Appendix 1 (30 May 2026), SAR 2021 levy questions (6 August 2024), Exempt current pension income (16 September 2025) and Tax rates - Australian residents (13 August 2026)",
-        ),
-        "ess_discount" => (
-            "2026-11-22",
-            "ITAA 1997 Division 83A (ss 83A-10 to 83A-45, 83A-105 to 83A-125, 83A-305 to 83A-315 and 83A-330), compilation 268 (1 October 2026), against compilations 234 (1 July 2022), the same, and 210 (1 July 2020), with the cessation of employment taxing point; Act No. 8 of 2022 Sch 10 items 3, 6 and 9; Income Tax Assessment (1997 Act) Regulations 2021 ss 83A-315.01 to 83A-315.09 and 1000-1.02, compilation 16 (27 June 2026), the tables checked against the ATO legal database's copy; the ATO's ESS pages on unlisted rights (27 June 2022), the $1,000 reduction and the start-up concession (21 December 2015), deferred taxing points (6 April 2022) and forfeiture (17 September 2020), and question 12 of the 2025 return instructions (27 May 2025)",
         ),
         "psi_test" => (
             "2026-11-22",
@@ -2366,12 +2356,6 @@ pub fn library_evidence(kind: &str) -> [(&'static str, &'static str); 4] {
             "Instructions to complete your SMSF annual return 2026",
             "Appendix 1 examples 1 and 2 (proportionate and segregated ECPI, refunds of $44,176 and $56,611), Section D label B examples 1 and 2 (SMSF B and SMSF BB), the T2, T3 and T5 examples, the E2 no-TFN example and table 9 (supervisory levy)",
             "2026-05-30",
-            "2026-11-22",
-        ),
-        "ess_discount" => (
-            "ATO employee share scheme pages",
-            "Barry's unlisted rights at 120% and 48 months ($4,000), Lester's and Jane's $1,000 reduction ($500; $1,300), Sarah's start-up shares at a 15% discount, the 30-day rule and the forfeiture examples",
-            "2022-06-27",
             "2026-11-22",
         ),
         "psi_test" => (
@@ -5084,11 +5068,6 @@ pub fn input_units(kind: &str) -> Vec<(&'static str, &'static str)> {
             ("newly_registered", "boolean: this is the first annual return of a fund newly registered in the year (label N)"),
             ("wound_up", "boolean: the fund was wound up in the year (label M)"),
         ],
-        "ess_discount" => vec![
-            ("interests", "list of 1 to 50 objects, each one parcel of identical ESS interests (a stapled security counts as a share, s 83A-335) with kind (share or right), acquired (date, from 2015-07-01), consideration (AUD, total paid to acquire), conditions (booleans for ss 83A-45(1), (2), (3), (4), (6), 83A-35(6), 83A-105(3) and (4) and, for a share, 83A-105(2), for a right, 83A-105(6)), start_up (null or the s 83A-33 company facts), market_value (AUD, total at acquisition) and, for a right, exercise_price, share_market_value, last_exercise_day and valuation (market_value or regulations); a deferred interest adds its dated facts and cost_base; a forfeited one takes kind, acquired and forfeiture only; see the README"),
-            ("income_test", "null, or an object of AUD amounts for s 83A-35(2)(b): taxable_income (without the reduction and any assessable FHSS released amount), reportable_fringe_benefits_total, reportable_super_contributions and total_net_investment_loss; required with an upfront discount eligible for the reduction"),
-            ("foreign_employment", "boolean: any discount relates to employment outside Australia, or you were a foreign or temporary resident from acquisition to the taxing point; true is refused"),
-        ],
         "psi_test" => vec![
             ("earner", "employee, religious_practitioner, sole_trader or entity: who receives the income: the individual as an employee or office holder (s 85-35(1)), as a religious practitioner paid under s 12-47 of Schedule 1 to the TAA 1953 (s 85-35(2)), or as a contractor, or a company, partnership or trust (a personal services entity)"),
             ("mainly_personal_efforts", "boolean: the income is mainly a reward for the individual's personal efforts or skills (s 84-5(1))"),
@@ -6278,24 +6257,6 @@ pub fn examples(kind: &str) -> Vec<(&'static str, Example)> {
             ("deductions_related", Text("0.00")),
             ("apportionable_deductions", Text("0.00")),
             ("special_income_component", Flag(false)),
-        ],
-        // Lester's figures (the ATO's $1,000 reduction example 1) in 2025-26;
-        // the date and conditions are fabricated.
-        "ess_discount" => vec![
-            ("year", Text("2025-26")),
-            (
-                "interests",
-                Json(
-                    r#"[{"kind": "share", "acquired": "2025-07-29", "consideration": "1500.00", "market_value": "3000.00", "conditions": {"employed": true, "ordinary_shares_only": true, "not_share_trading_company": true, "minimum_holding_period": true, "ten_percent_limit": true, "non_discriminatory": true, "real_risk_of_forfeiture": false, "broad_availability": true, "salary_sacrifice": false}, "start_up": null}]"#,
-                ),
-            ),
-            (
-                "income_test",
-                Json(
-                    r#"{"taxable_income": "91000.00", "reportable_fringe_benefits_total": "0.00", "reportable_super_contributions": "0.00", "total_net_investment_loss": "0.00"}"#,
-                ),
-            ),
-            ("foreign_employment", Flag(false)),
         ],
         "psi_test" => vec![
             ("year", Text("2025-26")),
