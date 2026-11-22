@@ -1206,6 +1206,13 @@ pub fn supported_periods(kind: &str) -> Vec<&'static str> {
             "2020-21", "2021-22", "2022-23", "2023-24", "2024-25", "2025-26", "2026-27",
         ],
         "sb_cgt_concessions" => vec!["2025-26", "2026-27"],
+        // The question's end date. GIC days run back to 1 July 1999 and SIC
+        // days to 1 April 2005; the penalty unit holds at $364 until the next
+        // indexation day, 1 July 2029 (Crimes Act s 4AA(3)); GIC days after
+        // 31 December 2026 need an assumed rate.
+        "ato_interest_penalties" => vec![
+            "2020-21", "2021-22", "2022-23", "2023-24", "2024-25", "2025-26", "2026-27", "2027-28",
+        ],
         _ => Vec::new(),
     }
 }
@@ -1473,6 +1480,10 @@ pub fn source_review(kind: &str) -> (&'static str, &'static str) {
         "work_expenses" => (
             "2026-11-22",
             "ITAA 1997 ss 28-12, 28-25, 28-90, 28-95, 28-100, 28-110, 28-115, 28-120 and 28-125 (ATO legal database); the cents per kilometre instruments of 2020 (F2020L00676), 2022 (F2022L00813), 2023 (F2023L00767), 2024 (F2024L00697) and 2026 (F2026L00785); PCG 2023/1 as updated 16 April 2025, paras 14 to 28, 45 to 89 and Table 1; the ATO's 52 cent fixed rate, shortcut (PCG 2020/3), fixed rate, actual cost, cents per kilometre, log book and self-education pages; the 2022 D4 instructions; TR 98/9 paras 25 to 30 and 119 to 155 on ITAA 1936 s 82A; Act No. 84, 2022, Schedule 3 items 26 and 33",
+        ),
+        "ato_interest_penalties" => (
+            "2026-11-22",
+            "TAA 1953 ss 8AAC and 8AAD and Sch 1 ss 280-100, 280-105, 284-75, 284-80, 284-85, 284-90, 284-220, 284-224, 284-225, 286-75, 286-80 and 298-20, ITAA 1997 s 5-15 and Crimes Act 1914 s 4AA at the ATO's legal database; Taxation (Interest on Overpayments and Early Payments) Act 1983 ss 3, 3C, 8A to 8C, 9, 10, 12D and 12E (compilation 58, 14 October 2024, at the Federal Register of Legislation, and the ATO's legal database); the ATO's 'General interest charge (GIC) rates' and 'Shortfall interest charge (SIC) rates' (last updated 4 September 2026), 'Credit interest rates and calculation' (QC58284, 19 June 2026), 'Penalty units' (QC71196, 26 June 2026) and 'Significant global entities - penalties' (1 July 2026); PS LA 2006/8, PS LA 2011/19 paras 15 to 30, PS LA 2011/23 para 4, PS LA 2012/5 paras 95 to 137, MT 2008/2 paras 33 and 55 to 63 and MT 2012/3 paras 35 and 88 to 89",
         ),
         "depreciation_low_value_pool" => (
             "2026-11-22",
@@ -2101,6 +2112,96 @@ pub fn optional_inputs(kind: &str) -> Vec<(&'static str, &'static str)> {
             (
                 "category_e",
                 "AUD, for self_education with prescribed_course true only, and then required: category E, expenses incurred for the course that are not deductible, such as child care for attendance or the capital cost of a computer",
+            ),
+        ],
+        "ato_interest_penalties" => vec![
+            (
+                "amount",
+                "AUD: gic, the unpaid amount; sic, the additional income tax from the amendment; early_payment_interest, the payment (no more than the amount due)",
+            ),
+            (
+                "due_date",
+                "YYYY-MM-DD: gic, the day the amount was due, the first day of GIC (ITAA 1997 s 5-15); sic, the day the first assessment's tax was due (or the earlier amended assessment's for a reinstated liability, s 280-100(3)); failure_to_lodge, the day the document was due (the deferred day if deferred); early_payment_interest, the day the amount is due and payable",
+            ),
+            (
+                "to",
+                "YYYY-MM-DD, gic only and required: the last day of GIC, the day before payment in full or an as-at day",
+            ),
+            (
+                "payments",
+                "gic: optional list of objects with date (YYYY-MM-DD, from due_date to to) and amount (AUD), each applied before that day's charge; overpayment_interest: required list of objects with paid_on and amount, each instalment of the relevant tax paid",
+            ),
+            (
+                "assumed_annual_rate",
+                "percentage above 0 and at most 100, gic only: the annual rate for days after 31 December 2026, the last published quarter; without it such days are refused",
+            ),
+            (
+                "notice_date",
+                "YYYY-MM-DD, sic only and required: the day the Commissioner gave notice of the amended assessment; SIC runs to the day before",
+            ),
+            (
+                "given_on",
+                "YYYY-MM-DD, failure_to_lodge only and required: the day the document was given, or an as-at day for one not yet given (s 286-80(6))",
+            ),
+            (
+                "size",
+                "failure_to_lodge only and required: small, medium (x2, s 286-80(3)), large (x5, s 286-80(4)) or significant_global (x500, s 286-80(4A) or (4C)), as established",
+            ),
+            (
+                "statement_date",
+                "YYYY-MM-DD, statement_penalty only and required: the day the statement was made; it sets the penalty unit for a statement with no shortfall amount",
+            ),
+            (
+                "significant_global_entity",
+                "boolean, statement_penalty only and required: true when s 284-90(1A) doubles the base penalty amount, as established",
+            ),
+            (
+                "trust_or_partnership",
+                "boolean, statement_penalty only: true for a trust or partnership, whose not reasonably arguable positions (items 5 and 6) are refused",
+            ),
+            (
+                "other_disclosed_before_examination",
+                "AUD, statement_penalty with a part with a shortfall_amount disclosed before_examination only, and then required (0.00 when none): the shortfall amounts for the same accounting period disclosed before an examination in other statements, added to these parts' for s 284-225(3) (MT 2012/3 para 35)",
+            ),
+            (
+                "income_tax_payable",
+                "AUD, statement_penalty with a not_reasonably_arguable part only, and then required: the income tax payable for the year on the basis of the return (s 284-90(3)(a))",
+            ),
+            (
+                "parts",
+                "list of 1 to 100 objects, statement_penalty only and required: the matters in one statement for one accounting period, whose before-examination disclosures are added for s 284-225(3) (a statement for another period is its own question), one matter each, with shortfall_amount (AUD, or null for a false or misleading statement with no shortfall amount), behaviour (intentional_disregard, recklessness, failure_to_take_reasonable_care or reasonable_care) and optionally not_reasonably_arguable (boolean), accepted_way_amount (AUD, the part of the shortfall from treating the law in an accepted way, s 284-224), increase (boolean, a s 284-220 ground) and disclosure (none, before_examination or during_examination, the latter for one that saved significant time or resources, s 284-225)",
+            ),
+            (
+                "liability",
+                "early_payment_interest only and required: income_tax, shortfall_interest_charge, compulsory_study_loan_repayment or fs_assessment_debt (Overpayments Act s 8A(1)(a))",
+            ),
+            (
+                "paid_on",
+                "YYYY-MM-DD, early_payment_interest only and required: the day the payment was made",
+            ),
+            (
+                "full_self_assessment",
+                "boolean, early_payment_interest only and required: true for a full self-assessment taxpayer (ITAA 1936 s 6(1)), such as a company",
+            ),
+            (
+                "notice_issued",
+                "YYYY-MM-DD: early_payment_interest when full_self_assessment is false, and then required, the day the notice of the amount was issued; overpayment_interest, required, the day the notice of the assessment, determination or decision the decision was made about was issued (s 10(1)(a)(i))",
+            ),
+            (
+                "refunded",
+                "AUD, overpayment_interest only and required: the one amount refunded or applied as a result of the decision, attributed to the payments in reverse order, no more than the payments (a later refund of the same payments is not worked)",
+            ),
+            (
+                "refunded_on",
+                "YYYY-MM-DD, overpayment_interest only and required: the day it was refunded or applied",
+            ),
+            (
+                "relevant_tax",
+                "boolean, overpayment_interest only and required: true when the amount paid is relevant tax (Overpayments Act s 3C); false is refused",
+            ),
+            (
+                "decision_to_which_act_applies",
+                "boolean, overpayment_interest only and required: true when the overpayment results from a decision to which the Act applies (s 3(1)); false is refused",
             ),
         ],
         "sb_cgt_concessions" => vec![
@@ -3927,6 +4028,10 @@ pub fn input_units(kind: &str) -> Vec<(&'static str, &'static str)> {
             ("reimbursed", "boolean: any of the expenses was reimbursed or paid for by an employer or anyone else; true is refused, so an unknown reimbursement is too"),
             ("allowance_received", "boolean: an allowance was received for the expenses; true is refused"),
         ],
+        "ato_interest_penalties" => vec![(
+            "question",
+            "gic, sic, failure_to_lodge, statement_penalty, early_payment_interest or overpayment_interest; remission and scheme_penalty are refused",
+        )],
         "depreciation_low_value_pool" => vec![
             ("previous_closing_pool_balance", "AUD: the pool's closing pool balance for the previous income year (ITAA 1997 s 40-440(1) step 3(a)); 0.00 in the year the pool starts"),
             ("low_cost_assets", "AUD: the taxable use percentage of the cost of the low-cost assets (cost under $1,000, s 40-425(2)) allocated to the pool for the year"),
@@ -4682,6 +4787,21 @@ pub fn examples(kind: &str) -> Vec<(&'static str, Example)> {
             ("asset_decline", Text("0.00")),
             ("repairs", Text("0.00")),
             ("running_expenses_incurred", Flag(true)),
+        ],
+        // The site's GIC payment plan oracle, hand-worked: $1,000 due 1 October
+        // 2026, 2 instalments of $336.56 and a final $336.56 on 1 December.
+        "ato_interest_penalties" => vec![
+            ("question", Text("gic")),
+            ("year", Text("2026-27")),
+            ("amount", Text("1000.00")),
+            ("due_date", Text("2026-10-01")),
+            ("to", Text("2026-11-30")),
+            (
+                "payments",
+                Json(
+                    r#"[{"date": "2026-10-01", "amount": "336.56"}, {"date": "2026-11-01", "amount": "336.56"}]"#,
+                ),
+            ),
         ],
         // The Guide to depreciating assets 2026's John: $5,000 closing balance
         // for 2024-25 and a $990 printer used 60% for taxable purposes.

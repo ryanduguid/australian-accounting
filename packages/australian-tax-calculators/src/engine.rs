@@ -6170,6 +6170,9 @@ mod sb_cgt_concessions;
 pub use sb_cgt_concessions::{SB_CGT_OPTIONAL, SbCgtConcessionsArgs, sb_cgt_concessions};
 mod work_expenses;
 pub use work_expenses::{WORK_EXPENSES_OPTIONAL, work_expenses};
+mod ato_interest_penalties;
+pub use ato_interest_penalties::ato_interest_penalties;
+
 mod depreciation_pools;
 pub use depreciation_pools::{
     capital_works, depreciation_low_value_pool, depreciation_small_business_pool,
@@ -6183,7 +6186,7 @@ pub use non_commercial_losses::{NCL_OPTIONAL, NonCommercialLossesArgs, non_comme
 mod psi_test;
 pub use psi_test::{PSI_OPTIONAL, PsiTestArgs, psi_test};
 
-const KINDS: [&str; 78] = [
+const KINDS: [&str; 79] = [
     "gst",
     "gst_margin_scheme",
     "fuel_tax_credits",
@@ -6255,6 +6258,7 @@ const KINDS: [&str; 78] = [
     "wine_equalisation_tax",
     "sb_cgt_concessions",
     "work_expenses",
+    "ato_interest_penalties",
     "depreciation_low_value_pool",
     "depreciation_small_business_pool",
     "capital_works",
@@ -6327,6 +6331,7 @@ fn evidence_heading(kind: &str) -> String {
         "seniors_pensioners_withholding" => "seniors-and-pensioners".into(),
         "seniors_pensioners_tax_offset" => "seniors-and-pensioners-tax-offset".into(),
         "sb_cgt_concessions" => "small-business-cgt-concessions".into(),
+        "ato_interest_penalties" => "ato-penalties-and-interest".into(),
         _ => kind.replace('_', "-"),
     }
 }

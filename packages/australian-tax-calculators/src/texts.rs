@@ -279,6 +279,10 @@ pub const SCOPES: &[(&str, &str)] = &[
         "An employee's deduction for one of 4 kinds of work expense in an income year from 2020-21 to 2026-27, from amounts the taxpayer incurred and bore, none reimbursed or paid for by an employer or anyone else and none covered by an allowance. home_office: working from home running expenses by the fixed rate (52c an hour before 2022-23, with a dedicated home office; PCG 2023/1 Table 1 from 2022-23, 67c to 2023-24 and 70c from 1 July 2024) plus the expenses it does not cover, the 80c shortcut (PCG 2020/3) in 2020-21 and 2021-22, and the actual cost, each with its return amount and the higher named; the operator establishes the recorded hours and the records each method needs (PCG 2023/1 paras 18 and 56 to 63) and apportions each expense's work-related amount. car_cents_per_kilometre: ITAA 1997 s 28-25, the first 5,000 business kilometres at the rate the Commissioner determines for the year. car_log_book: s 28-90, each car expense deductible outside Division 28 (decline in value included, as worked out under Division 40 with the car limit) at the business use percentage, with a log book of at least 12 continuous weeks (s 28-120(1)) kept for the year or one of the 4 before it (s 28-115(2)). Both car methods are for one car the taxpayer owned or leased (s 28-12(1)). self_education: the connection to current employment when the expense was incurred (ITAA 1997 s 8-1, TR 2024/3) and, before 2022-23, the $250 reduction of ITAA 1936 s 82A for a prescribed course of education, over the ATO's categories A to E. Excludes occupancy expenses (rent, mortgage interest, rates, house insurance) and whether the home is a place of business; the substantiation rules of Division 900 and their exceptions; reasonable allowance amounts and occupation-specific guidance; a log book notice or an added car requiring a new log book (s 28-115(3) and (4)), a car held under 12 weeks, cars taken on hire (s 28-165) and joint ownership splits; working out decline in value, the electric vehicle home charging rate and the apportionment of each expense; HELP, VET student loan and similar repayments, which are not deductible; foreign employment income; and the tax effect of the deduction.",
     ),
     (
+        "ato_interest_penalties",
+        "One question before remission: the general interest charge on one unpaid amount from its due day, with its payments; the shortfall interest charge on the additional income tax of one amended assessment; the failure to lodge on time penalty on one document; the false or misleading statement and not reasonably arguable penalties on one statement's or one period's parts; or the interest the Commissioner pays on one early payment, or on one refund of relevant tax overpaid as a result of a decision to which the Overpayments Act applies. The behaviour behind a shortfall, whether a position is reasonably arguable, whether a disclosure was voluntary or saved resources, the entity's size and significant global entity status are the operator's established facts. Excludes remission (the Commissioner's discretion), Division 296 GIC, scheme penalties, trust, partnership, petroleum resource rent tax and minimum tax positions, the s 284-75(3) penalty, part of a payment refunded before its due day, and other credit interest (Overpayments Act Parts IIB to IIG, IIIA and IIIAA).",
+    ),
+    (
         "sb_cgt_concessions",
         "A capital gain from CGT event A1 (a disposal, ITAA 1997 s 104-10) of a CGT asset acquired from 20 September 1985 that is not a share in a company, an interest in a trust (s 152-10(2)) or a right or interest in a partnership's income or capital (s 152-10(2C)), under a contract made in the 2025-26 or 2026-27 income year, before Act No. 49 of 2026's changes to Division 152 from the income year that includes 1 July 2027 (Schedule 1 item 82), by an individual, a company or a trust that is not a public entity (s 152-305(3)), none of them acting for a deceased estate (s 152-80). The operator establishes whether the business entity (you; the partnership for an interest in a partnership asset; or the affiliate, connected entity or partnership whose business uses a passively held asset) carried on a business in the year, its aggregated turnovers (s 328-115, with connected entities and affiliates), the net value of the CGT assets under ss 152-15 and 152-20, the total days in the test period on which the asset was an active asset (s 152-40), whether the business ceased and when, and the retirement, incapacity and significant individual facts. The CGT small business entity test is s 328-110 with $2 million for each $10 million (s 152-10(1AA)). The test period counts both its first and last days; a total that may or may not be 7.5 years (2,737 to 2,740 days) is refused, as is an asset acquired on the same date 15 years before the event. The 15-year exemption, the 50% active asset reduction, the retirement exemption and the roll-over are each shown open or not, with the conditions not met; the amounts, the choices (ss 103-25, 152-220 and 152-315), the payments a company or trust must make (s 152-325), each stakeholder's limit (s 152-320(2)), the replacement asset (s 152-420), CGT events J2, J5 and J6, and look-through earnout rights other than their extension of the replacement asset period (s 104-190(1A)(b)(ii)) are outside it.",
     ),
@@ -584,6 +588,10 @@ pub const SOURCES: &[(&str, &str)] = &[
     (
         "government_super_amounts",
         "https://www.legislation.gov.au/C2004A01195/2018-07-01/2018-07-01/text/original/epub/OEBPS/document_1/document_1.html",
+    ),
+    (
+        "ato_interest_penalties",
+        "https://www.ato.gov.au/tax-rates-and-codes/general-interest-charge-rates",
     ),
     (
         "sb_cgt_concessions",
@@ -1265,6 +1273,30 @@ pub const EXTRA_SOURCES: &[(&str, &[&str])] = &[
         ],
     ),
     (
+        "ato_interest_penalties",
+        &[
+            "https://www.ato.gov.au/tax-rates-and-codes/shortfall-interest-charge-rates",
+            "https://www.ato.gov.au/tax-rates-and-codes/credit-interest-rates-and-calculation",
+            "https://www.ato.gov.au/individuals-and-families/paying-the-ato/interest-and-penalties/penalties/penalty-units",
+            "https://www.ato.gov.au/businesses-and-organisations/corporate-tax-measures-and-assurance/public-business-and-international/significant-global-entities/significant-global-entities-penalties",
+            "https://www.ato.gov.au/law/view/document?docid=PAC/19530001/8AAD",
+            "https://www.ato.gov.au/law/view/document?docid=PAC/19530001/8AAC",
+            "https://www.ato.gov.au/law/view/document?docid=PAC/19970038/5-15",
+            "https://www.ato.gov.au/law/view/document?docid=PAC/19530001/Sch1-280-105",
+            "https://www.ato.gov.au/law/view/document?docid=PAC/19530001/Sch1-286-80",
+            "https://www.ato.gov.au/law/view/document?docid=PAC/19530001/Sch1-284-90",
+            "https://www.ato.gov.au/law/view/document?docid=PAC/19530001/Sch1-284-225",
+            "https://www.ato.gov.au/law/view/document?docid=PAC/19140012/4AA",
+            "https://www.legislation.gov.au/C2004A02729/2024-10-14/2024-10-14/text/original/epub/OEBPS/document_1/document_1.html",
+            "https://www.ato.gov.au/law/view/document?DocID=PSR/PS201119/NAT/ATO/00001",
+            "https://www.ato.gov.au/law/view/document?DocID=PSR/PS201123/NAT/ATO/00001",
+            "https://www.ato.gov.au/law/view/document?docid=PSR/PS20125/NAT/ATO/00001",
+            "https://www.ato.gov.au/law/view/document?docid=MXR/MT20082/NAT/ATO/00001",
+            "https://www.ato.gov.au/law/view/document?docid=MXR/MT20123/NAT/ATO/00001",
+            "https://www.ato.gov.au/law/view/document?Docid=PSR/PS20068/NAT/ATO/00001",
+        ],
+    ),
+    (
         "depreciation_low_value_pool",
         &[
             "https://www.ato.gov.au/law/view/document?docid=PAC/19970038/40-425",
@@ -1390,6 +1422,12 @@ pub const EXTRA_WARNINGS: &[(&str, &[&str])] = &[
         "work_expenses",
         &[
             "The higher method is named for comparison only: each method has its own records (PCG 2023/1 paras 56 to 63, ITAA 1997 Division 900 and Subdivision 28-G), and the taxpayer chooses one for the year.",
+        ],
+    ),
+    (
+        "ato_interest_penalties",
+        &[
+            "Every amount is before remission, which is the Commissioner's discretion (TAA 1953 s 8AAG, Sch 1 ss 280-160 and 298-20). GIC and SIC are worked exactly and rounded once, so a statement that rounds daily may differ by a few cents.",
         ],
     ),
     (
@@ -1723,6 +1761,62 @@ pub const MEDICARE_SHARED_REDUCTION_NOTE: &str = "The family reduction is shared
 /// reworded and never moves to a different failure; a new failure gets a new code.
 /// A code carries no message text, parameter value or source location.
 pub const REFUSAL_CODES: &[(&str, &str)] = &[
+    (
+        "ato_interest_penalties.date_order",
+        "A date is out of the order the question's period needs.",
+    ),
+    (
+        "ato_interest_penalties.fact_invalid",
+        "A fact is not of the form the question takes.",
+    ),
+    (
+        "ato_interest_penalties.increase_with_nil",
+        "A statement penalty part has an increase and a voluntary disclosure that reduces its base penalty amount to nil, which the law does not settle.",
+    ),
+    (
+        "ato_interest_penalties.item_not_worked",
+        "A trust's or partnership's position that is not reasonably arguable (s 284-90(1) items 5 and 6) is not worked.",
+    ),
+    (
+        "ato_interest_penalties.liability_not_listed",
+        "The early payment is of an amount Overpayments Act s 8A(1)(a) does not list.",
+    ),
+    (
+        "ato_interest_penalties.not_entitled",
+        "The amount is not relevant tax overpaid as a result of a decision to which the Overpayments Act applies.",
+    ),
+    (
+        "ato_interest_penalties.overpaid",
+        "A GIC payment is more than the amount owing that day, or a refund more than the payments.",
+    ),
+    (
+        "ato_interest_penalties.penalty_unit_unpublished",
+        "The failure to lodge due date is before 28 December 2012, where the ATO's penalty unit table starts its values.",
+    ),
+    (
+        "ato_interest_penalties.question_invalid",
+        "question is not one the command answers.",
+    ),
+    (
+        "ato_interest_penalties.rate_unpublished",
+        "A day falls outside the ATO's published GIC, SIC or base interest rates, and for GIC no assumed rate was given.",
+    ),
+    (
+        "ato_interest_penalties.remission_discretionary",
+        "Remission is the Commissioner's discretion: amounts are given before it and it is not estimated.",
+    ),
+    (
+        "ato_interest_penalties.scheme_penalty",
+        "Scheme penalties (TAA Sch 1 Subdiv 284-C) are not worked.",
+    ),
+    (
+        "ato_interest_penalties.sge_before_2017",
+        "The significant global entity failure to lodge penalty applies only to documents due on or after 1 July 2017.",
+    ),
+    (
+        "ato_interest_penalties.year_mismatch",
+        "year is not the financial year of the question's end date.",
+    ),
     (
         "balancing.asset_invalid",
         "asset is not car, motor_cycle_or_similar or other.",
@@ -2474,7 +2568,7 @@ pub const REFUSAL_CODES: &[(&str, &str)] = &[
     ),
     (
         "input.field_unknown",
-        "A field the worksheet or command does not take, or does not take beside the other inputs given, was given (fbt-loan, fbt-meal-entertainment, fbt-car-parking, fbt-debt-waiver, fbt-expense-payment, fbt-property, fbt-residual, fbt-housing, fbt-lafha, fbt-board, fbt-tax-exempt-body-entertainment, fbt-entertainment-classifier, fbt-meal-entertainment-register and its entries, fbt-minor-benefit-check, ppsr-timing, fhss and its contributions, government-super-amounts, personal_deductions and determination, division-296, depreciation, fuel-tax-credits and its lines, foreign-resident-tax, medicare-levy, medicare-levy-surcharge, payg-withholding, payg-gross-up, termination-payment, etp-tax-free-component, unused-leave-payment, the Schedule 5 methods, working-holiday-maker-withholding, study-loan-withholding, seniors-pensioners-withholding, seniors-pensioners-tax-offset, lump-sum-arrears-tax-offset, hire-purchase-schedule, chattel-mortgage-schedule, loan-transactions and its transactions and rate_changes, borrowing-expenses-schedule and its loans, business-capital-expenditure and its items, balancing-adjustment, its years and car_limit, trade-in, franking-account and its events, distributions and income_tax, dasp-tax, gst-margin-scheme, wine-equalisation-tax and its dealings, luxury-car-tax and its lines, payroll-tax, cgt-parcels, its parcels and disposals, fbt-ev-exemption-check, sb-cgt-concessions, small-business-income-offset, depreciation-low-value-pool, depreciation-small-business-pool, capital-works, non-commercial-losses, psi-test, beneficiary-tax-offset, invalid-carer-tax-offset, zone-tax-offset and its dependants, net-medical-expenses-tax-offset, work-expenses, contribution-caps given a carry-forward input, derive, personal-tax-estimate, dgr-check, income-tests and fbt-return only).",
+        "A field the worksheet or command does not take, or does not take beside the other inputs given, was given (fbt-loan, fbt-meal-entertainment, fbt-car-parking, fbt-debt-waiver, fbt-expense-payment, fbt-property, fbt-residual, fbt-housing, fbt-lafha, fbt-board, fbt-tax-exempt-body-entertainment, fbt-entertainment-classifier, fbt-meal-entertainment-register and its entries, fbt-minor-benefit-check, ppsr-timing, fhss and its contributions, government-super-amounts, personal_deductions and determination, division-296, depreciation, fuel-tax-credits and its lines, foreign-resident-tax, medicare-levy, medicare-levy-surcharge, payg-withholding, payg-gross-up, termination-payment, etp-tax-free-component, unused-leave-payment, the Schedule 5 methods, working-holiday-maker-withholding, study-loan-withholding, seniors-pensioners-withholding, seniors-pensioners-tax-offset, lump-sum-arrears-tax-offset, hire-purchase-schedule, chattel-mortgage-schedule, loan-transactions and its transactions and rate_changes, borrowing-expenses-schedule and its loans, business-capital-expenditure and its items, balancing-adjustment, its years and car_limit, trade-in, franking-account and its events, distributions and income_tax, dasp-tax, gst-margin-scheme, wine-equalisation-tax and its dealings, luxury-car-tax and its lines, payroll-tax, cgt-parcels, its parcels and disposals, fbt-ev-exemption-check, sb-cgt-concessions, small-business-income-offset, depreciation-low-value-pool, depreciation-small-business-pool, capital-works, non-commercial-losses, psi-test, beneficiary-tax-offset, invalid-carer-tax-offset, zone-tax-offset and its dependants, net-medical-expenses-tax-offset, work-expenses, ato-interest-penalties and its payments and parts, contribution-caps given a carry-forward input, derive, personal-tax-estimate, dgr-check, income-tests and fbt-return only).",
     ),
     ("input.flag_invalid", "A flag is not a JSON boolean."),
     ("input.fraction_invalid", "A fraction is outside 0 to 1."),

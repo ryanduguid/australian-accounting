@@ -94,6 +94,27 @@
   `psi_test.others_exceed_psi`, `psi_test.payers_invalid` and
   `psi_test.premises_invalid`. `tests/psi_test.rs` runs the page's 19 cases.
 
+- `ato-interest-penalties` works the general interest charge (TAA 1953
+  ss 8AAC and 8AAD), the shortfall interest charge (Sch 1 s 280-105), the
+  failure to lodge on time penalty (s 286-80), the false or misleading
+  statement and not reasonably arguable penalties (ss 284-85 to 284-225) and
+  the interest the Commissioner pays on early payments and overpayments, each
+  before remission, on the ATO's published rates and penalty units read on
+  22 November 2026. Its GIC agrees with the site's GIC payment plan oracle.
+  New codes: `ato_interest_penalties.date_order`,
+  `ato_interest_penalties.fact_invalid`,
+  `ato_interest_penalties.increase_with_nil`,
+  `ato_interest_penalties.item_not_worked`,
+  `ato_interest_penalties.liability_not_listed`,
+  `ato_interest_penalties.not_entitled`, `ato_interest_penalties.overpaid`,
+  `ato_interest_penalties.penalty_unit_unpublished`,
+  `ato_interest_penalties.question_invalid`,
+  `ato_interest_penalties.rate_unpublished`,
+  `ato_interest_penalties.remission_discretionary`,
+  `ato_interest_penalties.scheme_penalty`,
+  `ato_interest_penalties.sge_before_2017` and
+  `ato_interest_penalties.year_mismatch`.
+
 ### Fixed
 
 - Both borrowing expenses worksheets identify their deduction amounts as
