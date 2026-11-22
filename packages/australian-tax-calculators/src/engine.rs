@@ -4856,7 +4856,9 @@ pub use franking_account::{FrankingArgs, franking_year};
 mod trade_in;
 pub use trade_in::{TradeInArgs, trade_in};
 mod fbt_ev_exemption;
+mod fbt_instalment;
 pub use fbt_ev_exemption::{EvExemptionArgs, fbt_ev_exemption_check};
+pub use fbt_instalment::{FBT_INSTALMENT_OPTIONAL, FbtInstalmentArgs, fbt_instalment};
 mod dasp_tax;
 pub use dasp_tax::{DaspTaxArgs, dasp_tax};
 mod super_benefit_tax;
@@ -6235,7 +6237,7 @@ pub use foreign_income_tax_offset::{
 mod minors_income;
 pub use minors_income::{MINORS_OPTIONAL, MinorsIncomeArgs, minors_income};
 
-const KINDS: [&str; 107] = [
+const KINDS: [&str; 108] = [
     "gst",
     "gst_margin_scheme",
     "fuel_tax_credits",
@@ -6261,6 +6263,7 @@ const KINDS: [&str; 107] = [
     "fbt_car_statutory",
     "fbt_car_operating_cost",
     "fbt_ev_exemption_check",
+    "fbt_instalment",
     "fbt_loan",
     "fbt_meal_entertainment",
     "fbt_meal_entertainment_register",

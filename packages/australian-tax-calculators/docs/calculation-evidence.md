@@ -1016,6 +1016,48 @@ flagged, not refused.
 | $23.98 of diesel at an average 214.8 c/L on 30 September 2026 | PCG 2016/2 Method 1, worked by hand | 23.98 x 53.7 / 214.8 = $5.995 exactly, $6.00 half up (cost x rate before the division) |
 | 300 L of E85 at 23.015 c/L | Rounding | $69.045, $69.05 half up |
 
+## FBT instalment
+
+Added on 22 November 2026. Its sources were read that afternoon, 5.30 pm to
+6.00 pm AEDT:
+
+- FBTAA, compilation 97 (C2026C00332, 1 July 2026), volume 2, Part VII
+  Division 2: s 102 (4 instalments a year), s 103 (due dates), s 104 (notice
+  in the approved form), s 105 (the credit on assessment, instalments less
+  s 112A credits), s 109 (the relevant fraction: 0.25, 0.50, 0.75, 1.00),
+  s 110(1) and (5) (the notional tax amount, and the employer's estimate as
+  that amount from the quarter's end), s 111(1) (the formula, read from its
+  image's text: '(Notional tax amount x Relevant fraction) - (Previous
+  instalments - Previous credits)'; nil unless positive), s 111(2) and (3)
+  (an instalment is not payable below $1,000 or an amount the Commissioner
+  determines), s 112 (the estimate and the Commissioner's own), s 112A (a
+  negative amount is a credit) and s 112B (GIC where the estimate is under
+  90% of the tax assessed). The map that scoped this build named TAA 1953
+  Sch 1 Div 45; FBT instalments are in the FBTAA, and TAA Sch 1 Part 4-15
+  only collects them (the note to s 103).
+- ATO, 'Fringe benefits tax (FBT) instalment' (last updated 1 May 2025):
+  labels F1 to F4, 6A and 6B; the F3 formula with 25%, 50%, 75% and 100%; nil
+  at F3 and a credit at 6B for a negative amount; the 4 reason codes; and the
+  example ($28,000 x 75% - $20,000 = $1,000, code 31). It says instalments
+  apply after FBT of $3,000 or more; the instrument setting that amount under
+  s 111(3) was not found, so the worksheet takes F1 as given and does not
+  decide whether instalments are payable.
+- ATO, Fringe benefits tax - a guide for employers, chapter 3: the varied
+  instalments of $4,000, $3,000 and $4,000 on a $16,000 estimate, and $600 on
+  $2,400.
+
+The Act states no rounding for the estimate times the fraction; the worksheet
+rounds it half up to the cent. `tests/fbt_instalment.rs` holds each case.
+
+| Case | Source | Result |
+|---|---|---|
+| December quarter, $28,000 estimate, $20,000 paid | ATO instalment page | F3 and 6A $1,000 |
+| $16,000 estimate at quarters 1, 2 (after $5,000) and 3 (after $8,000) | Employer's guide, chapter 3 | $4,000, $3,000, $4,000 |
+| $2,400 estimate at quarter 1 | Employer's guide, chapter 3 | $600 |
+| $8,000 estimate at quarter 2 after $5,000 | s 112A | F3 nil, 6B $1,000 |
+| $1,000.02 estimate at quarter 1 | Rounding | $250.005, $250.01 half up |
+| $500.01 of credits after $500 of instalments | s 112A | Refused: a credit is at most the instalments before it |
+
 ## FBT minor benefit check
 
 Added on 19 November 2026. Its sources were read that afternoon, 3.00 pm to
@@ -4681,6 +4723,39 @@ amount is a worksheet's or `fbt`'s, and the tests check the composition. Read on
   the years ending 31 March 2023 to 2027.
 - ATO, FBT return 2027 instructions: not found (HTTP 404), so 2027 follows the
   2026 labels with a warning.
+
+Not-for-profit employers were added on 22 November 2026 from sources read that
+afternoon, 5.00 pm to 5.40 pm AEDT:
+
+- FBTAA, compilation 97, volume 1: s 5B(1D) to (1M) (the aggregate
+  non-exempt amount: the $17,000 cap for public hospitals, not-for-profit
+  hospitals and public ambulance services at step 2, $30,000 for others at
+  step 3, and the lesser of $5,000 and the salary packaged meal entertainment
+  and entertainment facility leasing amount at step 4; (1L) disregards meal
+  entertainment, car parking and entertainment facility leasing among the
+  excluded benefits); s 57A(1) to (5) (the exempt employers); s 65J(1),
+  (2A) (the rebate, read from the formula image's text: 'FBT rate x (Gross tax
+  - Aggregate non-rebatable amount) x Rebatable days in year / Total days in
+  year'), (2B) to (2J) (the aggregate non-rebatable amount, times the FBT
+  rate at step 4). Volume 2: s 135Q (a s 57A employer's reportable amount, and
+  at (1)(c) a car exempt under s 8A counted as if a fringe benefit, which
+  s 5B(1K) step 1 reads; refused for these kinds). A rebatable employer's
+  bases follow s 65J(2G) step 1, which reads s 5E, so an exempt electric car
+  adds nothing; s 135P(3), in the same volume 2 text, brings the car into the
+  reportable amount only.
+- ATO, 'Completing your FBT return 2026 - not-for-profit employers' and
+  'Worked examples for NFP employers completing FBT return 2026' (both
+  published 1 April 2026): the steps for items 14C, 17 and 18, item 23 for
+  capped employers, and examples 1 to 3 (rebatable: items 17 $13,322.05 and
+  18 $35,320.85 at 2.0802 and 1.8868, $13,322.21 and $35,321.00 by the
+  formulas; public benevolent institution: 14C $22,005, 16 $10,342.35, 22
+  $5,657.65; public hospital: 14C $35,005, 16 $16,452.35, 21 $452.35, all
+  matched).
+- ATO, FBT return 2026 calculation details for taxable employers, items 20 to
+  22 (instalments reported, payment due and credit).
+
+`tests/fbt_return_nfp.rs` holds these cases, the caps' boundaries and the
+refusals; `tests/fbt_return.rs` is unchanged and passes.
 
 The reportable amount follows s 135P(2)'s formula, the individual amount over
 1 - 0.47, not the ATO's 1.8868 (1 / 0.53 is 1.88679...). No provision states
