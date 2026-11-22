@@ -1176,6 +1176,66 @@ under either daily compounding or simple interest, so they are not used.
 | ATO's Evan, in 2025 | $1,926 paid 3 November, due 21 November, at 3.61% | 19 days, $3.62 |
 | Overpayment, 2 instalments | $4,000 of $6,000 refunded 15 August 2025 | $3,000 and $1,000 attributed, $86.51 |
 
+## Transfer balance
+
+Added on 22 November 2026. Its sources were read that day: ITAA 1997
+ss 292-20 to 292-30, 294-5 to 294-55, 294-80, 294-85, 294-90, 294-200 and
+294-230 to 294-245 at the ATO's legal database; IT(TP)A 1997 ss 294-30 and
+294-55 (compilation 104, C2026C00450) and the Superannuation (Excess Transfer
+Balance Tax) Imposition Act 2016 (C2016A00080) at the Federal Register of
+Legislation; the ATO's 'Calculating your personal transfer balance cap'
+(QC60627, 31 March 2026), 'Transfer balance account' (18 June 2025),
+'Excess transfer balance' (QC54355, 7 February 2025), 'Upcoming personal
+transfer balance cap changes' and 'General interest charge (GIC) rates'
+(4 September 2026); LCR 2016/9.
+
+The general transfer balance cap is $1.6 million for 2017-18 to 2020-21,
+$1.7 million for 2021-22 and 2022-23, $1.9 million for 2023-24 and 2024-25,
+$2 million for 2025-26 and $2.1 million for 2026-27 (the CCH note to
+s 294-35, the ATO's 'Contributions caps' page and the 2026 pages above); the
+last 3 come from `CONTRIBUTION_CAPS`. Earnings use the GIC table of
+[ATO penalties and interest](#ato-penalties-and-interest). A title search of
+the Federal Register on 22 November 2026 found no rate determined under
+s 294-235(3).
+
+`tests/transfer_balance.rs` holds the 6 indexation examples of 'Calculating
+your personal transfer balance cap' (Nina, Leanne, Nada twice, Maryanne and
+Simon) and the 'Transfer balance account' examples of Elisabeth (a $30,000
+negative balance, then $10,000 of excess) and Paolo. The Paolo example states
+$2,745.15 of earnings for 31 days on $350,000; no published GIC rate gives
+that (it implies about 9.2% a year, where July to September 2017 was 8.73%),
+so the test keeps its shape and takes the figure, $2,604.41, from the oracle.
+Earnings, tax and balances come from an independent exact-fraction oracle
+over the ATO's GIC page, written apart from this code.
+
+## Excess contributions
+
+Added on 22 November 2026. Its sources were read that day: TAA 1953 s 8AAD
+and Sch 1 ss 97-1 to 97-35 and 136-10 in compilation 227 (C2026C00468), with
+the s 97-25(1)(c) and s 97-30(1) formulas read from the compilation's images;
+Sch 1 former Div 95 in compilation 180 (C2021C00276); the Superannuation
+(Excess Concessional Contributions Charge) Act 2013 ss 3 to 5 (C2013A00116);
+Treasury Laws Amendment (More Flexible Superannuation) Act 2021 Sch 2 items 6
+and 14 (C2021A00045); ITAA 1997 ss 292-20, 292-25 and 292-30; and the ATO's
+'Contributions caps' page (11 September 2026), Tables 3 and 5.
+
+The charge's rate is the base interest rate plus 3 points over the days in the
+calendar year, which is the SIC table's rate: every quarter of the ATO's
+Table 3, July 2013 to September 2026, equals the GIC rate less 4 points.
+
+The proxy rate is s 97-30's: the average of the base interest rates for each
+day of the contributions year plus 7 points, over the days in the calendar
+year of its first day. The ATO's Table 5 rounds a simple average of the 4
+quarterly rates to 2 places and divides by the days in the financial year:
+the Act's day-weighted rate rounds to the ATO's in every year from 2013-14 to
+2025-26 but 2022-23 (Act 9.451452%, ATO 9.46%), and the divisors differ in
+2015-16, 2019-20 and 2023-24 (ATO 366, Act 365). The command follows the Act
+and warns with the ATO's figure. No rate determined under s 97-30(2) was
+found. Test vectors from the oracle: $100,000 for 2024-25 to 15 September
+2025, $14,663; $50,000 for 2020-21 to 30 November 2021, $5,251; the charge on
+$1,000.00 for 2020-21 due 1 December 2021, $44.17, and on $2,500.50 for
+2013-14 due 21 November 2014, $205.03.
+
 ## Wine equalisation tax
 
 This worksheet was added on 19 November 2026. The WET Act was read that day

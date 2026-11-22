@@ -299,6 +299,14 @@ pub const SCOPES: &[(&str, &str)] = &[
         "One question before remission: the general interest charge on one unpaid amount from its due day, with its payments; the shortfall interest charge on the additional income tax of one amended assessment; the failure to lodge on time penalty on one document; the false or misleading statement and not reasonably arguable penalties on one statement's or one period's parts; or the interest the Commissioner pays on one early payment, or on one refund of relevant tax overpaid as a result of a decision to which the Overpayments Act applies. The behaviour behind a shortfall, whether a position is reasonably arguable, whether a disclosure was voluntary or saved resources, the entity's size and significant global entity status are the operator's established facts. Excludes remission (the Commissioner's discretion), Division 296 GIC, scheme penalties, trust, partnership, petroleum resource rent tax and minimum tax positions, the s 284-75(3) penalty, part of a payment refunded before its due day, and other credit interest (Overpayments Act Parts IIB to IIG, IIIA and IIIAA).",
     ),
     (
+        "transfer_balance",
+        "One person's transfer balance account from 1 July 2017 to a day in 2017-18 to 2026-27, from its credits (income streams existing on 1 July 2017, new retirement phase income streams, LRBA repayments) and debits (commutations, s 294-85 events, payment splits, income streams leaving retirement phase): the personal transfer balance cap with proportional indexation, each day's excess, excess transfer balance earnings at the GIC rate credited daily, and excess transfer balance tax for each excess transfer balance period. An estimate before any determination: reversionary, child recipient, capped defined benefit, structured settlement and regulation events and the Commissioner's determinations, authorities and notices are refused. The person is alive on every day to the day worked: a transfer balance account ends on death (ITAA 1997 s 294-45).",
+    ),
+    (
+        "excess_contributions",
+        "One question: concessional_charge, the excess concessional contributions charge for 2013-14 to 2020-21 on the additional income tax from including excess concessional contributions, from 1 July to the day before tax under the first assessment is due; or non_concessional_release, the associated earnings, total release amount, assessable amount and 15% tax offset for an excess of non-concessional contributions for a contributions year from 2013-14 to 2025-26, released in full, to an assumed first determination date. Estimates by the method TAA 1953 Sch 1 s 97-30 sets out, which can differ by some dollars from a determination using the ATO's published Table 5 rates.",
+    ),
+    (
         "rental_property",
         "One residential rental property for one owner and one income year from 2020-21 to 2026-27: the owner's share of rent and other rental income (ITAA 1997 s 6-5) and of the expenses by the ATO worksheet's lines, apportioned by the days let or available for rent on commercial terms over the days held except those relating solely to renting (s 8-1; Rental properties guide 2026, 'Time-based method'), travel shown and denied (s 26-31); interest on the owner's own loans at the share of principal used for the rental (TR 2000/2); borrowing expenses through borrowing-expenses-schedule (s 25-25); capital works at 2.5% or 4% by when they began, for the days used and within the undeducted construction expenditure (Division 43); each depreciating asset's decline in value as given, nil where s 40-27 reduces it; the net rent; and, with other taxable income for 2024-25 to 2026-27, the tax at the resident scale without and with it. The operator establishes that the owner is an individual not carrying on a business of letting and not an entity excepted by ss 26-31(2), 40-27(3) or 26-102(5); the owner's legal interest; that the property is in Australia and the whole dwelling is let as residential accommodation at a market rent, with no area-based apportionment and no non-commercial letting; that the days counted as available exclude any day the land was vacant under s 26-102 and any private use; the line each expense belongs on, that it is revenue (not capital, an initial repair or an improvement) and whether it relates solely to renting; each loan's interest and principal split with no redraw or further drawing in the year; the construction expenditure from a builder's contract or a qualified estimate, whether each item is a building or a structural improvement (not earthworks s 43-20(4) excludes), when it began and was first used and whether s 43-220 applies; and each asset's decline in value and the facts s 40-27 turns on. Excludes holiday homes whose costs s 26-50 denies (refused); the 4% manner (build to rent and short-term traveller accommodation); GST on short-stay letting; s 26-155 from 2027-28; Medicare levy, the surcharge, offsets and tax losses in the effect on tax; and working out the decline in value or the construction expenditure.",
     ),
@@ -732,6 +740,14 @@ pub const SOURCES: &[(&str, &str)] = &[
     (
         "ato_interest_penalties",
         "https://www.ato.gov.au/tax-rates-and-codes/general-interest-charge-rates",
+    ),
+    (
+        "transfer_balance",
+        "https://www.ato.gov.au/individuals-and-families/super-for-individuals-and-families/super/withdrawing-and-using-your-super/retirement-withdrawal-lump-sum-or-income-stream/calculating-your-personal-transfer-balance-cap",
+    ),
+    (
+        "excess_contributions",
+        "https://www.ato.gov.au/tax-rates-and-codes/key-superannuation-rates-and-thresholds/contributions-caps",
     ),
     (
         "sb_cgt_concessions",
@@ -1594,6 +1610,35 @@ pub const EXTRA_SOURCES: &[(&str, &[&str])] = &[
             "https://www.ato.gov.au/law/view/document?docid=MXR/MT20082/NAT/ATO/00001",
             "https://www.ato.gov.au/law/view/document?docid=MXR/MT20123/NAT/ATO/00001",
             "https://www.ato.gov.au/law/view/document?Docid=PSR/PS20068/NAT/ATO/00001",
+        ],
+    ),
+    (
+        "transfer_balance",
+        &[
+            "https://www.ato.gov.au/law/view/document?docid=PAC/19970038/294-25",
+            "https://www.ato.gov.au/law/view/document?docid=PAC/19970038/294-30",
+            "https://www.ato.gov.au/law/view/document?docid=PAC/19970038/294-35",
+            "https://www.ato.gov.au/law/view/document?docid=PAC/19970038/294-40",
+            "https://www.ato.gov.au/law/view/document?docid=PAC/19970038/294-80",
+            "https://www.ato.gov.au/law/view/document?docid=PAC/19970038/294-230",
+            "https://www.ato.gov.au/law/view/document?docid=PAC/19970038/294-235",
+            "https://www.legislation.gov.au/C2016A00080/latest/text",
+            "https://www.legislation.gov.au/C2004A05128/latest/text",
+            "https://www.ato.gov.au/individuals-and-families/super-for-individuals-and-families/super/withdrawing-and-using-your-super/retirement-withdrawal-lump-sum-or-income-stream/transfer-balance-account",
+            "https://www.ato.gov.au/individuals-and-families/super-for-individuals-and-families/super/withdrawing-and-using-your-super/retirement-withdrawal-lump-sum-or-income-stream/excess-transfer-balance",
+            "https://www.ato.gov.au/tax-rates-and-codes/general-interest-charge-rates",
+        ],
+    ),
+    (
+        "excess_contributions",
+        &[
+            "https://www.legislation.gov.au/C1953A00001/latest/text",
+            "https://www.legislation.gov.au/C2021C00276/asmade/text",
+            "https://www.legislation.gov.au/C2013A00116/latest/text",
+            "https://www.legislation.gov.au/C2021A00045/asmade/text",
+            "https://www.ato.gov.au/law/view/document?docid=PAC/19970038/292-25",
+            "https://www.ato.gov.au/law/view/document?docid=PAC/19970038/292-30",
+            "https://www.ato.gov.au/individuals-and-families/super-for-individuals-and-families/super/growing-and-keeping-track-of-your-super/caps-limits-and-tax-on-super-contributions/non-concessional-contributions-cap",
         ],
     ),
     (
@@ -2987,6 +3032,26 @@ pub const REFUSAL_CODES: &[(&str, &str)] = &[
         "employment_start is after termination_date.",
     ),
     (
+        "excess_contributions.charge_abolished",
+        "An excess concessional contributions charge was asked for a year from 2021-22, when the charge no longer applies.",
+    ),
+    (
+        "excess_contributions.date_order",
+        "A date is out of the order the question's period needs.",
+    ),
+    (
+        "excess_contributions.fact_invalid",
+        "A fact is not of the form the question takes.",
+    ),
+    (
+        "excess_contributions.question_invalid",
+        "The question is not one the command answers.",
+    ),
+    (
+        "excess_contributions.rate_unpublished",
+        "A day's charge rate, or a base interest rate the proxy rate averages, is not yet published.",
+    ),
+    (
         "fbt.deduction_exceeds_contribution",
         "A deduction for a recipient's contribution to a property, residual or board fringe benefit exceeds the contribution.",
     ),
@@ -3592,7 +3657,7 @@ pub const REFUSAL_CODES: &[(&str, &str)] = &[
     ),
     (
         "input.field_unknown",
-        "A field the worksheet or command does not take, or does not take beside the other inputs given, was given (fbt-loan, fbt-meal-entertainment, fbt-car-parking, fbt-debt-waiver, fbt-expense-payment, fbt-property, fbt-residual, fbt-housing, fbt-lafha, fbt-board, fbt-tax-exempt-body-entertainment, fbt-entertainment-classifier, fbt-meal-entertainment-register and its entries, fbt-minor-benefit-check, ppsr-timing, fhss and its contributions, government-super-amounts, personal_deductions and determination, division-296, depreciation, fuel-tax-credits and its lines, alcohol-excise and its lines, foreign-resident-tax, medicare-levy, medicare-levy-surcharge, payg-withholding, payg-gross-up, termination-payment, etp-tax-free-component, unused-leave-payment, the Schedule 5 methods, working-holiday-maker-withholding, study-loan-withholding, seniors-pensioners-withholding, seniors-pensioners-tax-offset, lump-sum-arrears-tax-offset, hire-purchase-schedule, chattel-mortgage-schedule, loan-transactions and its transactions and rate_changes, borrowing-expenses-schedule and its loans, business-capital-expenditure and its items, balancing-adjustment, its years and car_limit, trade-in, franking-account and its events, distributions and income_tax, dasp-tax, super-benefit-tax, super-withholding, gst-margin-scheme, wine-equalisation-tax and its dealings, luxury-car-tax and its lines, payroll-tax, cgt-parcels, its parcels and disposals, cgt-cost-base-adjustments, its parcels and events, fbt-ev-exemption-check, sb-cgt-concessions, small-business-income-offset, residency-tests, lodgment-required, trading-stock and its items, prepayments, ess-discount, depreciation-low-value-pool, gst-creditable-purpose-change, gst-annual-apportionment, gst-financial-acquisitions-threshold, gst-going-concern, gst-second-hand-goods, gst-bad-debt, depreciation-small-business-pool, capital-works, non-commercial-losses, psi-test, minors-income, smsf-tax, beneficiary-tax-offset, invalid-carer-tax-offset, zone-tax-offset and its dependants, net-medical-expenses-tax-offset, work-expenses, ato-interest-penalties and its payments and parts, private-health-insurance-rebate, rental-property and its loans, capital_works and depreciating_assets, horticulture-shearing-withholding, upward-variation-withholding, daily-casual-withholding, no-abn-withholding, entertainer-withholding, return-to-work-withholding, annuity-withholding, voluntary-agreement-withholding, rd-tax-offset, deferred-tax, foreign-income-conversion, foreign-income-tax-offset, contribution-caps given a carry-forward input, derive, personal-tax-estimate, dgr-check, income-tests and fbt-return only).",
+        "A field the worksheet or command does not take, or does not take beside the other inputs given, was given (fbt-loan, fbt-meal-entertainment, fbt-car-parking, fbt-debt-waiver, fbt-expense-payment, fbt-property, fbt-residual, fbt-housing, fbt-lafha, fbt-board, fbt-tax-exempt-body-entertainment, fbt-entertainment-classifier, fbt-meal-entertainment-register and its entries, fbt-minor-benefit-check, ppsr-timing, fhss and its contributions, government-super-amounts, personal_deductions and determination, division-296, depreciation, fuel-tax-credits and its lines, alcohol-excise and its lines, foreign-resident-tax, medicare-levy, medicare-levy-surcharge, payg-withholding, payg-gross-up, termination-payment, etp-tax-free-component, unused-leave-payment, the Schedule 5 methods, working-holiday-maker-withholding, study-loan-withholding, seniors-pensioners-withholding, seniors-pensioners-tax-offset, lump-sum-arrears-tax-offset, hire-purchase-schedule, chattel-mortgage-schedule, loan-transactions and its transactions and rate_changes, borrowing-expenses-schedule and its loans, business-capital-expenditure and its items, balancing-adjustment, its years and car_limit, trade-in, franking-account and its events, distributions and income_tax, dasp-tax, super-benefit-tax, super-withholding, gst-margin-scheme, wine-equalisation-tax and its dealings, luxury-car-tax and its lines, payroll-tax, cgt-parcels, its parcels and disposals, cgt-cost-base-adjustments, its parcels and events, fbt-ev-exemption-check, sb-cgt-concessions, small-business-income-offset, residency-tests, lodgment-required, trading-stock and its items, prepayments, ess-discount, depreciation-low-value-pool, gst-creditable-purpose-change, gst-annual-apportionment, gst-financial-acquisitions-threshold, gst-going-concern, gst-second-hand-goods, gst-bad-debt, depreciation-small-business-pool, capital-works, non-commercial-losses, psi-test, minors-income, smsf-tax, beneficiary-tax-offset, invalid-carer-tax-offset, zone-tax-offset and its dependants, net-medical-expenses-tax-offset, work-expenses, ato-interest-penalties and its payments and parts, private-health-insurance-rebate, rental-property and its loans, capital_works and depreciating_assets, horticulture-shearing-withholding, upward-variation-withholding, daily-casual-withholding, no-abn-withholding, entertainer-withholding, return-to-work-withholding, annuity-withholding, voluntary-agreement-withholding, rd-tax-offset, deferred-tax, foreign-income-conversion, foreign-income-tax-offset, transfer-balance and its events, excess-contributions, contribution-caps given a carry-forward input, derive, personal-tax-estimate, dgr-check, income-tests and fbt-return only).",
     ),
     ("input.flag_invalid", "A flag is not a JSON boolean."),
     ("input.fraction_invalid", "A fraction is outside 0 to 1."),
@@ -4272,6 +4337,30 @@ pub const REFUSAL_CODES: &[(&str, &str)] = &[
     (
         "voluntary_agreement_withholding.instalment_rate_missing",
         "The agreement applies the payee's Commissioner's instalment rate, but no instalment_rate was given.",
+    ),
+    (
+        "transfer_balance.date_order",
+        "An event or date is out of the order the account needs.",
+    ),
+    (
+        "transfer_balance.event_refused",
+        "An event of a kind the command does not work, with the reason.",
+    ),
+    (
+        "transfer_balance.fact_invalid",
+        "An event or fact is not of the form the command takes.",
+    ),
+    (
+        "transfer_balance.rate_unpublished",
+        "A day with excess needs a GIC rate the ATO has not yet published.",
+    ),
+    (
+        "transfer_balance.transition_undecided",
+        "IT(TP)A 1997 s 294-30 may disregard the 2017 excess, which only the debits to 31 December 2017 decide.",
+    ),
+    (
+        "transfer_balance.year_mismatch",
+        "The year is not the financial year of the last day worked.",
     ),
     (
         "wine_equalisation_tax.dealing_invalid",

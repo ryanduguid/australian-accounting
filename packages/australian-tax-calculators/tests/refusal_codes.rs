@@ -49,6 +49,7 @@ fn every_code_at_a_refusal_site_is_catalogued_and_every_entry_is_used() {
         "engine/individual_offsets",
         "engine/work_expenses",
         "engine/ato_interest_penalties",
+        "engine/transfer_balance",
         "engine/rental_property",
         "engine/super_benefit_tax",
         "engine/gst_adjustments",
@@ -194,7 +195,8 @@ fn every_catalogued_required_input_of_a_strict_command_is_read() {
     // cgt-cost-base-adjustments, super-withholding, foreign-income-conversion,
     // foreign-income-tax-offset, trading-stock, prepayments, minors-income and
     // smsf-tax.
-    assert_eq!(checked, 96);
+    // With transfer-balance and excess-contributions.
+    assert_eq!(checked, 98);
 }
 
 /// Every frozen call gives the same answer through either entry point, and

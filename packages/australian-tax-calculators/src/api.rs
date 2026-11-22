@@ -887,6 +887,20 @@ const COMMAND_ARGS: &[(&str, &[(&str, Kind)])] = &[
         &[("question", Raw), ("year", Raw), ("scope_confirmed", Raw)],
     ),
     (
+        "transfer-balance",
+        &[
+            ("events", Json),
+            ("to", Raw),
+            ("previously_liable", Raw),
+            ("year", Raw),
+            ("scope_confirmed", Raw),
+        ],
+    ),
+    (
+        "excess-contributions",
+        &[("question", Raw), ("year", Raw), ("scope_confirmed", Raw)],
+    ),
+    (
         "rental-property",
         &[
             ("ownership_share", Dec),
@@ -1717,10 +1731,12 @@ fn contribution_caps_by_year(v: &Value) -> Result<Value> {
     let earlier = argument(v, "earlier_concessional_contributions", Json)?;
     let flag = argument(v, "defined_benefit_interest", Raw)?;
     let proposed = optional(v, "proposed_concessional_contribution", Dec)?;
+    let date = optional(v, "determination_date", Raw)?;
     let carry = engine::CarryForward {
         earlier_contributions: &earlier,
         proposed_contribution: proposed.as_ref(),
         defined_benefit_interest: &flag,
+        determination_date: date.as_ref(),
     };
     engine::contribution_caps_by_year(&a[0], &a[1], &a[2], &a[3], carry, &a[4], &a[5])
         .or_else(|e| refusal(e.code(), e.to_string()))
@@ -1827,6 +1843,8 @@ pub fn evaluate_coded(command: &str, v: &Value) -> Result<Value> {
             | "sb-cgt-concessions"
             | "work-expenses"
             | "ato-interest-penalties"
+            | "transfer-balance"
+            | "excess-contributions"
             | "private-health-insurance-rebate"
             | "depreciation-low-value-pool"
             | "depreciation-small-business-pool"
@@ -2736,7 +2754,17 @@ pub fn evaluate_coded(command: &str, v: &Value) -> Result<Value> {
         }
         "study-loan-repayment" => engine::study_loan_repayment(&a[0], &a[1], &a[2]),
         "contribution-caps" => {
-            engine::contribution_caps(&a[0], &a[1], &a[2], &a[3], &a[4], &a[5], &a[6])
+            let date = optional(v, "determination_date", Raw)?;
+            engine::contribution_caps(
+                &a[0],
+                &a[1],
+                &a[2],
+                &a[3],
+                &a[4],
+                &a[5],
+                &a[6],
+                date.as_ref(),
+            )
         }
         "pension-minimum" => engine::pension_minimum(&a[0], &a[1], &a[2], &a[3], &a[4]),
         "ato-interest-penalties" => {
@@ -2749,6 +2777,17 @@ pub fn evaluate_coded(command: &str, v: &Value) -> Result<Value> {
                 .map(|(key, value)| (key.clone(), value.clone()))
                 .collect();
             engine::ato_interest_penalties(&a[0], &a[1], &a[2], &facts)
+        }
+        "transfer-balance" => engine::transfer_balance(&a[0], &a[1], &a[2], &a[3], &a[4]),
+        "excess-contributions" => {
+            let facts: serde_json::Map<String, Value> = v
+                .as_object()
+                .into_iter()
+                .flatten()
+                .filter(|(key, _)| !params.iter().any(|(p, _)| p == key))
+                .map(|(key, value)| (key.clone(), value.clone()))
+                .collect();
+            engine::excess_contributions(&a[0], &a[1], &a[2], &facts)
         }
         "rental-property" => {
             // Optional: other taxable income, for the effect on tax.
