@@ -66,3 +66,30 @@ def test_a_dataset_that_cannot_be_found_fails_rather_than_matching_nothing(tmp_p
 
 def test_the_script_compares_the_real_dataset_in_this_checkout():
     assert CHECK.check_records(reviewed_rates.RECORDS, CHECK.REVIEWED_RECORDS) == 74
+
+
+def test_every_public_text_states_one_worksheet_count():
+    # The release check compares this count with the pinned executable's catalogue.
+    stated = CHECK.stated_counts(CHECK.REPOSITORY)
+    assert len({count for counts in stated.values() for count in counts}) == 1
+
+
+def test_a_text_that_drops_its_count_fails_and_is_named(tmp_path):
+    for name in CHECK.COUNT_STATEMENTS:
+        (tmp_path / name).parent.mkdir(parents=True, exist_ok=True)
+        (tmp_path / name).write_text(
+            (CHECK.REPOSITORY / name).read_text(encoding="utf-8"), encoding="utf-8")
+    pyproject = tmp_path / "apps/aus-accounting-mcp/pyproject.toml"
+    pyproject.write_text(CHECK.COUNT.sub(
+        lambda found: "fourteen" + found.group(0)[len(found.group(1)):],
+        pyproject.read_text(encoding="utf-8")), encoding="utf-8")
+
+    with pytest.raises(ValueError, match="pyproject.toml states a worksheet count 0 times"):
+        CHECK.stated_counts(tmp_path)
+
+
+def test_a_count_the_executable_does_not_serve_fails_and_is_named():
+    CHECK.check_counts({"a": [70], "b": [70, 70]}, 70)
+
+    with pytest.raises(ValueError, match=r"serves 70 worksheet kinds; \['b'\]"):
+        CHECK.check_counts({"a": [70], "b": [66, 70]}, 70)

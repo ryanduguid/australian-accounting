@@ -10,13 +10,48 @@ import asyncio
 import hashlib
 import importlib.metadata
 import json
+import re
 from pathlib import Path
 
 from aus_accounting_mcp import reviewed_rates, server
 from aus_accounting_mcp.adapters import tax
 
 ENGINES = ("ato-benchmark-compare", "payday-super-checker", "div7a-loan-review")
-REVIEWED_RECORDS = Path(__file__).resolve().parents[3] / "packages" / "au-tax-rates-data" / "data"
+REPOSITORY = Path(__file__).resolve().parents[3]
+REVIEWED_RECORDS = REPOSITORY / "packages" / "au-tax-rates-data" / "data"
+#: Each public text that says how many worksheet kinds the server serves, and how many
+#: times it says so. The server serves the pinned executable's whole catalogue, so the
+#: count follows CALCULATORS_VERSION, not the calculators source on main.
+COUNT_STATEMENTS = {
+    "README.md": 1,
+    "apps/aus-accounting-mcp/README.md": 1,
+    "apps/aus-accounting-mcp/docs/DISCOVERY.md": 2,
+    "apps/aus-accounting-mcp/docs/firm-assessment.md": 1,
+    "apps/aus-accounting-mcp/mcpb/manifest.json": 3,
+    "apps/aus-accounting-mcp/pyproject.toml": 1,
+    "apps/aus-accounting-mcp/scripts/publish-github-about.sh": 1,
+    "apps/aus-accounting-mcp/server.json": 1,
+}
+COUNT = re.compile(r"\b(\d+) (?:bounded tax and super worksheets|tax and super worksheet kinds"
+                   r"|worksheet kinds|worksheets with established scope)")
+
+
+def stated_counts(root: Path) -> dict[str, list[int]]:
+    """Each public text's worksheet counts, refusing a text that states them more or less often."""
+    stated = {}
+    for name, times in COUNT_STATEMENTS.items():
+        found = [int(count) for count in COUNT.findall((root / name).read_text(encoding="utf-8"))]
+        if len(found) != times:
+            raise ValueError(f"{name} states a worksheet count {len(found)} times, not {times}")
+        stated[name] = found
+    return stated
+
+
+def check_counts(stated: dict[str, list[int]], served: int) -> None:
+    """Refuse any public text whose count differs from the kinds the executable serves."""
+    wrong = sorted(name for name, counts in stated.items() if set(counts) != {served})
+    if wrong:
+        raise ValueError(f"the executable serves {served} worksheet kinds; {wrong} state otherwise")
 
 
 def _digests(folder: Path) -> dict[str, str]:
@@ -54,6 +89,7 @@ async def check() -> None:
                   if command not in tax.NOT_WORKSHEETS}
     if not catalogue or catalogue.keys() != worksheets:
         raise ValueError("candidate does not expose every worksheet the executable offers")
+    check_counts(stated_counts(REPOSITORY), len(catalogue))
     calls = 0
     for kind, entry in catalogue.items():
         # Each example is dated in one of the kind's periods.
