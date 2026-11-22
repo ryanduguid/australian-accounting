@@ -6,6 +6,23 @@
 
 ### Added
 
+- `entertainer-withholding`, `return-to-work-withholding`,
+  `annuity-withholding` and `voluntary-agreement-withholding` work out
+  Schedule 3 (actors, variety artists and other entertainers), Schedule 4
+  (return to work payments), Schedule 6 (annuities, on `payg-withholding`'s
+  Schedule 1 amount) and Schedule 10 (voluntary agreements), each for 2024-25
+  to 2026-27. New codes: `annuity_withholding.deductible_above_payment`,
+  `annuity_withholding.income_not_whole_cents`,
+  `entertainer_withholding.foreign_resident_tfn`,
+  `entertainer_withholding.offsets_exceed_withholding`,
+  `entertainer_withholding.offsets_several_performances`,
+  `entertainer_withholding.tax_offsets_not_allowed`, `input.count_invalid`,
+  `input.percentage_invalid`,
+  `voluntary_agreement_withholding.abn_not_quoted`,
+  `voluntary_agreement_withholding.agreement_not_in_force`,
+  `voluntary_agreement_withholding.gst_above_payment` and
+  `voluntary_agreement_withholding.instalment_rate_missing`.
+  `tests/payment_withholding.rs` holds them to the published examples.
 - `horticulture-shearing-withholding`, `upward-variation-withholding`,
   `daily-casual-withholding` and `no-abn-withholding` work out Schedule 2
   (horticulture and shearing), Schedule 14 (an agreed additional amount on

@@ -168,9 +168,11 @@ fn every_catalogued_required_input_of_a_strict_command_is_read() {
     // fbt-ev-exemption-check, fhss, franking-account, sb-cgt-concessions,
     // depreciation-low-value-pool, depreciation-small-business-pool,
     // capital-works, horticulture-shearing-withholding,
-    // upward-variation-withholding, daily-casual-withholding and
-    // no-abn-withholding.
-    assert_eq!(checked, 59);
+    // upward-variation-withholding, daily-casual-withholding,
+    // no-abn-withholding, entertainer-withholding,
+    // return-to-work-withholding, annuity-withholding and
+    // voluntary-agreement-withholding.
+    assert_eq!(checked, 63);
 }
 
 /// Every frozen call gives the same answer through either entry point, and

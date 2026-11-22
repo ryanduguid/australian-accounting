@@ -31,8 +31,9 @@ use std::process::{Command, Stdio};
 /// `tests/fhss.rs`, `tests/ppsr_timing.rs`, `tests/dasp_tax.rs`, `tests/income_tests.rs`,
 /// `tests/franking_account.rs`, `tests/wine_equalisation_tax.rs`,
 /// `tests/luxury_car_tax.rs`, `tests/sb_cgt_concessions.rs`,
-/// `tests/depreciation_pools.rs` and `tests/withholding_schedules.rs` cover them.
-const NEW_KINDS: [(&str, &str); 59] = [
+/// `tests/depreciation_pools.rs`, `tests/withholding_schedules.rs` and
+/// `tests/payment_withholding.rs` cover them.
+const NEW_KINDS: [(&str, &str); 63] = [
     ("fhss", "fhss"),
     ("ppsr-timing", "ppsr_timing"),
     ("dasp-tax", "dasp_tax"),
@@ -80,6 +81,13 @@ const NEW_KINDS: [(&str, &str); 59] = [
     ),
     ("daily-casual-withholding", "daily_casual_withholding"),
     ("no-abn-withholding", "no_abn_withholding"),
+    ("entertainer-withholding", "entertainer_withholding"),
+    ("return-to-work-withholding", "return_to_work_withholding"),
+    ("annuity-withholding", "annuity_withholding"),
+    (
+        "voluntary-agreement-withholding",
+        "voluntary_agreement_withholding",
+    ),
     ("division-296", "division_296"),
     ("termination-payment", "termination_payment"),
     ("etp-tax-free-component", "etp_tax_free_component"),

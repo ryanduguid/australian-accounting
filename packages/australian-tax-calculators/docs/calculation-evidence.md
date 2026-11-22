@@ -2650,6 +2650,65 @@ updated 29 May 2025). All read on 22 November 2026.
 The tests also cover GST disregarded for the threshold but not for the amount,
 cents in the payment and the result, and each refusal.
 
+## Entertainer withholding
+
+Schedule 3 of the Taxation Administration (Withholding Schedules) Instruments
+2024 (F2024L00664), 2025 (F2025L00647), (No. 2) 2025 (F2025L01016) and 2026
+(F2026L00716), read on 22 November 2026, with the ATO's Schedule 3 page (NAT
+1023, published 17 June 2026). Tables A and B are the same in the first 3
+instruments and changed on 1 July 2026.
+
+| Example | Facts given | Result |
+| --- | --- | --- |
+| Sandra, 2026-27 | **$500.35** a performance, 2 in the week, 1 a day, threshold claimed | 1,000.99 x 0.1432 - 60.8377 = 82.5041, **$83**, / 2, **$42** |
+| Sandra, 2024 and 2025 instruments | The same | 1,000.99 x 0.1512 - 64.3365 = 87.0132, **$87**, **$44** |
+| Lookup tool example, by the formula | **$279.35** a day, 3 performances, **$500** of tax offsets | **$20** less **$3** = **$17** (2026-27); **$21** less $3 = **$18** before |
+
+The tests also cover Table B, 2 performances in a day, the nil band, the no
+TFN rates, each refusal and the 2023-24 and 2027-28 boundaries.
+
+## Return to work withholding
+
+Schedule 4 of the same instruments and TAA 1953 Sch 1 s 12-50, read on 22
+November 2026, with the ATO's Schedule 4 page (published 17 June 2026).
+
+| Example | Facts given | Result |
+| --- | --- | --- |
+| George, each instrument | **$18,000** return to work payment | 32%, **$5,760** |
+| Cents with a TFN | $101.57 | 32.5024, **$33** |
+
+The tests also cover the no TFN rates with cents ignored and each refusal.
+
+## Annuity withholding
+
+Schedule 6 of the same instruments and TAA 1953 Sch 1 s 12-80, read on 22
+November 2026, with the ATO's Schedule 6 page (NAT 1005, published 17 June
+2026). The amount on the income is `payg-withholding`'s; see
+[PAYG withholding](#payg-withholding).
+
+| Example | Facts given | Result |
+| --- | --- | --- |
+| Barbara, 2026-27 | **$1,000** a week, deductible amount **$5,200**, 52 instalments, threshold claimed | $1,000 - $5,200 / 52 = **$900**, **$106** |
+| Barbara, 2024 and 2025 instruments | The same | **$111** |
+| Kenneth, each instrument | **$850** a fortnight, **$1,000** over 10 instalments | **$750**, **$4** |
+
+The tests also hold the amount equal to `payg-withholding`'s on the income for
+each pay period, scale and option, and cover the no TFN rates on the payment
+and each refusal.
+
+## Voluntary agreement withholding
+
+Schedule 10 of the same instruments and TAA 1953 Sch 1 s 12-55, read on 22
+November 2026, with the ATO's Schedule 10 page (published 17 June 2026).
+
+| Example | Facts given | Result |
+| --- | --- | --- |
+| Francesca, agreement applies her CIR | CIR **16.44%**, $1,000 excluding GST | $164.40, **$164** |
+| Francesca, without that term | The same | 20%, **$200** |
+
+The tests also cover a CIR of 20% or more, GST excluded, 50 cents rounded up
+and each refusal.
+
 ## ETP tax free component
 
 This worksheet's evidence was read on 19 November 2026 from 9.25 am to

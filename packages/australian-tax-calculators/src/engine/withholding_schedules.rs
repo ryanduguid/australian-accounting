@@ -24,10 +24,10 @@ use crate::decimal::{Decimal, Rounding};
 use crate::metadata as meta;
 
 /// Each schedule's rates when no TFN is quoted: resident, foreign resident.
-const NO_TFN_RATES: (&str, &str) = ("0.47", "0.45");
+pub(super) const NO_TFN_RATES: (&str, &str) = ("0.47", "0.45");
 
 /// A refusal for a working holiday maker, whom Schedule 15 governs.
-fn not_working_holiday_maker(value: &Arg, schedule: &str) -> Result<()> {
+pub(super) fn not_working_holiday_maker(value: &Arg, schedule: &str) -> Result<()> {
     if flag(value, "working_holiday_maker")? {
         return refuse(
             "withholding.working_holiday_maker",
@@ -81,7 +81,7 @@ fn flat_rate_steps(
 
 /// 47%, or 45% for a foreign resident, of the amount with cents ignored, cents
 /// in the result ignored: the no TFN rule of each schedule here.
-fn no_tfn_steps(base: Base, foreign: bool, schedule: &'static str) -> Result<Vec<Step>> {
+pub(super) fn no_tfn_steps(base: Base, foreign: bool, schedule: &'static str) -> Result<Vec<Step>> {
     let a = if foreign {
         NO_TFN_RATES.1
     } else {

@@ -1398,8 +1398,12 @@ fn payg_checks(
 ) -> Result<(String, Decimal, String, i64)> {
     let year = scope(scope_confirmed, year, kind)?;
     let earnings = money(earnings)?;
-    // Schedule 14 adds to the Schedule 1 amount, so it takes Schedule 1's pays.
-    let schedule_1 = matches!(kind, "payg_withholding" | "upward_variation_withholding");
+    // Schedules 14 and 6 work out the Schedule 1 amount, so take Schedule 1's
+    // pays and scale 4 (Schedule 6 applies its own no TFN rule to the payment).
+    let schedule_1 = matches!(
+        kind,
+        "payg_withholding" | "upward_variation_withholding" | "annuity_withholding"
+    );
     let quarterly = schedule_1 || kind == "study_loan_withholding";
     let period = match pay_period.text() {
         Some(p @ ("weekly" | "fortnightly" | "monthly")) => p.to_string(),
@@ -6171,8 +6175,13 @@ pub use withholding_schedules::{
     daily_casual_withholding, horticulture_shearing_withholding, no_abn_withholding,
     upward_variation_withholding,
 };
+mod payment_withholding;
+pub use payment_withholding::{
+    annuity_withholding, entertainer_withholding, return_to_work_withholding,
+    voluntary_agreement_withholding,
+};
 
-const KINDS: [&str; 73] = [
+const KINDS: [&str; 77] = [
     "gst",
     "gst_margin_scheme",
     "fuel_tax_credits",
@@ -6246,6 +6255,10 @@ const KINDS: [&str; 73] = [
     "upward_variation_withholding",
     "daily_casual_withholding",
     "no_abn_withholding",
+    "entertainer_withholding",
+    "return_to_work_withholding",
+    "annuity_withholding",
+    "voluntary_agreement_withholding",
 ];
 
 /// `periods(kind)`: accepted period arguments and inclusive calendar boundaries.

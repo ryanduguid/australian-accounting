@@ -468,6 +468,55 @@ const COMMAND_ARGS: &[(&str, &[(&str, Kind)])] = &[
         ],
     ),
     (
+        "entertainer-withholding",
+        &[
+            ("earnings", Dec),
+            ("tfn_quoted", Raw),
+            ("foreign_resident", Raw),
+            ("tax_free_threshold_claimed", Raw),
+            ("working_holiday_maker", Raw),
+            ("year", Raw),
+            ("scope_confirmed", Raw),
+            ("performances_per_week", Raw),
+            ("performances_per_day", Raw),
+        ],
+    ),
+    (
+        "return-to-work-withholding",
+        &[
+            ("payment", Dec),
+            ("tfn_quoted", Raw),
+            ("foreign_resident", Raw),
+            ("working_holiday_maker", Raw),
+            ("year", Raw),
+            ("scope_confirmed", Raw),
+        ],
+    ),
+    (
+        "annuity-withholding",
+        &[
+            ("payment", Dec),
+            ("deductible_amount", Dec),
+            ("instalments", Raw),
+            ("pay_period", Raw),
+            ("scale", Raw),
+            ("year", Raw),
+            ("scope_confirmed", Raw),
+        ],
+    ),
+    (
+        "voluntary-agreement-withholding",
+        &[
+            ("payment", Dec),
+            ("gst_included", Dec),
+            ("agreement_in_force", Raw),
+            ("abn_quoted", Raw),
+            ("agreement_applies_instalment_rate", Raw),
+            ("year", Raw),
+            ("scope_confirmed", Raw),
+        ],
+    ),
+    (
         "quarterly-sg",
         &[
             ("ordinary_time_earnings", Dec),
@@ -829,7 +878,7 @@ pub fn commands() -> Vec<&'static str> {
 /// command on its `gross_pay` shows that withholding. The classifier's amounts
 /// are totals over lines whose shares a decision table sets, not a formula;
 /// each line and class carries the authority for its row instead.
-const DERIVED: [&str; 61] = [
+const DERIVED: [&str; 65] = [
     "fbt",
     "fbt-car-statutory",
     "fbt-car-operating-cost",
@@ -878,6 +927,10 @@ const DERIVED: [&str; 61] = [
     "upward-variation-withholding",
     "daily-casual-withholding",
     "no-abn-withholding",
+    "entertainer-withholding",
+    "return-to-work-withholding",
+    "annuity-withholding",
+    "voluntary-agreement-withholding",
     "hire-purchase-schedule",
     "chattel-mortgage-schedule",
     "loan-transactions",
@@ -1300,6 +1353,10 @@ pub fn evaluate_coded(command: &str, v: &Value) -> Result<Value> {
             | "upward-variation-withholding"
             | "daily-casual-withholding"
             | "no-abn-withholding"
+            | "entertainer-withholding"
+            | "return-to-work-withholding"
+            | "annuity-withholding"
+            | "voluntary-agreement-withholding"
             | "business-capital-expenditure"
             | "balancing-adjustment"
             | "trade-in"
@@ -1809,6 +1866,51 @@ pub fn evaluate_coded(command: &str, v: &Value) -> Result<Value> {
             )
         }
         "no-abn-withholding" => engine::no_abn_withholding(&a[0], &a[1], &a[2], &a[3], &a[4]),
+        "entertainer-withholding" => {
+            // Optional: absent unless the performer claimed tax offsets.
+            let offsets = optional(v, "tax_offsets", Dec)?;
+            engine::entertainer_withholding(
+                &a[0],
+                &a[1],
+                &a[2],
+                &a[3],
+                &a[4],
+                &a[5],
+                &a[6],
+                (&a[7], &a[8]),
+                offsets.as_ref(),
+            )
+        }
+        "return-to-work-withholding" => {
+            engine::return_to_work_withholding(&a[0], &a[1], &a[2], &a[3], &a[4], &a[5])
+        }
+        "annuity-withholding" => {
+            let o = payg_option_args(v)?;
+            engine::annuity_withholding(
+                &a[0],
+                &a[1],
+                &a[2],
+                &a[3],
+                &a[4],
+                &a[5],
+                &a[6],
+                &payg_options(&o),
+            )
+        }
+        "voluntary-agreement-withholding" => {
+            // Optional: absent when the payee has no Commissioner's instalment rate.
+            let cir = optional(v, "instalment_rate", Dec)?;
+            engine::voluntary_agreement_withholding(
+                &a[0],
+                &a[1],
+                &a[2],
+                &a[3],
+                &a[4],
+                &a[5],
+                &a[6],
+                cir.as_ref(),
+            )
+        }
         "quarterly-sg" => engine::quarterly_sg(&a[0], &a[1], &a[2], &a[3], &a[4]),
         "payg-withholding" => {
             let o = payg_option_args(v)?;
