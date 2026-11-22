@@ -14,7 +14,7 @@ use std::io::Write;
 use std::process::{Command, Stdio};
 
 /// The commands `derive` explains.
-const DERIVED: [&str; 59] = [
+const DERIVED: [&str; 60] = [
     "fbt",
     "fbt-car-statutory",
     "fbt-car-operating-cost",
@@ -65,6 +65,7 @@ const DERIVED: [&str; 59] = [
     "lump-sum-arrears-tax-offset",
     "income-tests",
     "government-super-amounts",
+    "smsf-tax",
     "business-capital-expenditure",
     "balancing-adjustment",
     "trade-in",
@@ -2238,7 +2239,7 @@ fn derive_refuses_what_it_does_not_explain() {
          fbt-lafha, fbt-board, fbt-tax-exempt-body-entertainment, gst, depreciation, \
          depreciation-low-value-pool, depreciation-small-business-pool, capital-works, \
          hire-purchase-schedule, chattel-mortgage-schedule, loan-transactions, \
-         lump-sum-arrears-tax-offset, income-tests, government-super-amounts, business-capital-expenditure, balancing-adjustment, trade-in, dasp-tax, gst-margin-scheme, etp-tax-free-component, payroll-tax, cgt-parcels, work-expenses, not \"payg-gross-up\""
+         lump-sum-arrears-tax-offset, income-tests, government-super-amounts, smsf-tax, business-capital-expenditure, balancing-adjustment, trade-in, dasp-tax, gst-margin-scheme, etp-tax-free-component, payroll-tax, cgt-parcels, work-expenses, not \"payg-gross-up\""
     );
 }
 

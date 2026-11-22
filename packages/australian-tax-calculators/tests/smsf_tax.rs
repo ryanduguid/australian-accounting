@@ -257,7 +257,7 @@ fn the_rates_hold_from_2020_21_to_2026_27() {
         assert_eq!(out["rates"]["low_tax_rate"], "0.15");
         assert_eq!(out["rates"]["non_arms_length_rate"], "0.45");
         assert_eq!(out["rates"]["no_tfn_rate"], "0.32");
-        assert_eq!(out["rates"]["supervisory_levy"], "259");
+        assert_eq!(out["rates"]["levy"], "259");
     }
     for year in ["2019-20", "2027-28"] {
         assert_eq!(code(&fund(json!({"year": year}))), "period.unsupported");

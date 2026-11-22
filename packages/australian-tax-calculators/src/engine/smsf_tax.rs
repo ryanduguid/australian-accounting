@@ -20,6 +20,7 @@
 
 use serde_json::{Map, Value, json};
 
+use super::income_tests::{Values, named, total, value};
 use super::{
     Arg, Result, Step, d, derived_result, finite_between, flag, int, money, precise, py_max,
     py_min, rate, refuse, scope, step_by_name, whole_dollars,
@@ -186,13 +187,13 @@ const STEPS: [(&str, &str, &str, &str); 20] = [
     (
         "levy_adjustment_wound_up",
         "SAR 2026 label M and table 9: an existing fund wound up in the year pays no levy for the next year",
-        "levy x wound_up_existing_fund",
+        "levy",
         "M",
     ),
     (
         "levy_adjustment_new_fund",
         "SAR 2026 label N and table 9: a newly registered fund not wound up in the year also pays the levy for this year",
-        "levy x new_fund_not_wound_up",
+        "levy",
         "N",
     ),
     (
@@ -202,42 +203,6 @@ const STEPS: [(&str, &str, &str, &str); 20] = [
         "S",
     ),
 ];
-
-type Values = Vec<(&'static str, Decimal)>;
-
-fn value<'a>(values: &'a [(&str, Decimal)], name: &str) -> &'a Decimal {
-    &values
-        .iter()
-        .find(|(n, _)| *n == name)
-        .unwrap_or_else(|| panic!("a value for {name}"))
-        .1
-}
-
-/// The input `key`, which the command always passes.
-fn named<'a>(inputs: &[(&str, &'a Arg)], key: &str) -> &'a Arg {
-    inputs
-        .iter()
-        .find(|(k, _)| *k == key)
-        .unwrap_or_else(|| panic!("{key} is an input"))
-        .1
-}
-
-/// A formula of names joined by `+` and `-`, left to right.
-fn total(values: &[(&str, Decimal)], formula: &str) -> Result<Decimal> {
-    let mut out = int(0);
-    let mut minus = false;
-    for token in formula.split(' ') {
-        match token {
-            "+" => minus = false,
-            "-" => minus = true,
-            name => {
-                let v = value(values, name);
-                out = if minus { out.sub(v)? } else { out.add(v)? };
-            }
-        }
-    }
-    Ok(out)
-}
 
 /// `max(0, a - b)` for the 2 names in `formula`.
 fn excess(values: &[(&str, Decimal)], formula: &str) -> Result<Decimal> {
@@ -264,8 +229,7 @@ fn amount(id: &str, formula: &str, values: &[(&str, Decimal)]) -> Result<Decimal
             .mul(&v("low_tax_rate"))?
             .add(&v("non_arms_length_component").mul(&v("non_arms_length_rate"))?)?,
         "no_tfn_contributions_tax" => v("no_tfn_contributions").mul(&v("no_tfn_rate"))?,
-        "levy_adjustment_wound_up" => v("levy").mul(&v("wound_up_existing_fund"))?,
-        "levy_adjustment_new_fund" => v("levy").mul(&v("new_fund_not_wound_up"))?,
+        _ if formula == "0" => int(0),
         _ if formula.starts_with("max(0, ") => excess(values, formula)?,
         _ => total(values, formula)?,
     })
@@ -326,7 +290,7 @@ fn values(inputs: &[(&str, &Arg)]) -> Result<Values> {
     Ok(values)
 }
 
-/// The rates, the levy and table 9's 2 adjustments as 1 or 0.
+/// The rates, the levy and whether table 9 puts it at M or N, as 1 or 0.
 fn levy_flags(inputs: &[(&str, &Arg)]) -> Result<Values> {
     let new = flag(named(inputs, "newly_registered"), "newly_registered")?;
     let wound_up = flag(named(inputs, "wound_up"), "wound_up")?;
@@ -341,10 +305,22 @@ fn levy_flags(inputs: &[(&str, &Arg)]) -> Result<Values> {
     ])
 }
 
+/// Table 9: the levy at M for an existing fund wound up in the year and at N
+/// for a new fund not wound up; nil otherwise.
+fn levy_formula(id: &str, formula: &'static str, values: &[(&str, Decimal)]) -> &'static str {
+    let off = |flag: &str| value(values, flag).is_zero();
+    match id {
+        "levy_adjustment_wound_up" if off("wound_up_existing_fund") => "0",
+        "levy_adjustment_new_fund" if off("new_fund_not_wound_up") => "0",
+        _ => formula,
+    }
+}
+
 /// Every step, each worked from the inputs and the steps before it.
 fn working(values: &mut Values) -> Result<Vec<Step>> {
     let mut steps = Vec::new();
     for (id, authority, formula, _) in STEPS {
+        let formula = levy_formula(id, formula, values);
         let result = amount(id, formula, values)?;
         steps.push(step_by_name(id, authority, formula, values, result.clone()));
         values.push((id, result));
@@ -367,7 +343,7 @@ pub fn smsf_tax(inputs: &[(&str, &Arg)]) -> Result<Value> {
         rate("low_tax_rate", LOW_TAX_RATE),
         rate("non_arms_length_rate", NON_ARMS_LENGTH_RATE),
         rate("no_tfn_rate", NO_TFN_RATE),
-        rate("supervisory_levy", LEVY),
+        rate("levy", LEVY),
     ];
     let mut out = derived_result(KIND, &year, steps, rates)?;
     out["return_labels"] = Value::Object(
