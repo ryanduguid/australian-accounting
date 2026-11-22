@@ -2815,7 +2815,7 @@ makes that choice: the closing value is then the opening value and nothing is
 assessable or deductible (s 328-295). `simplified_available` says whether it
 was open, with `estimated_closing_value`, or the items' total when that is
 `null`. A choice that is not open is refused. See
-[calculation evidence](docs/calculation-evidence.md#trading-stock-and-prepayments).
+[calculation evidence](docs/calculation-evidence.md#trading-stock).
 
 ## Prepayments
 
@@ -2842,7 +2842,7 @@ was open, with `estimated_closing_value`, or the items' total when that is
 Months are read under Acts Interpretation Act 1901 s 2G(2), and each year's
 amount is rounded to the cent on the running total so the years add up. An
 agreement entered into on or before 11 November 1999 is refused. See
-[calculation evidence](docs/calculation-evidence.md#trading-stock-and-prepayments).
+[calculation evidence](docs/calculation-evidence.md#prepayments).
 
 ## Non-commercial losses
 

@@ -3411,20 +3411,41 @@ Choices the Act leaves to the reader:
 
 `resident-tax` gives the site's liabilities for the 2024-25 to 2026-27 vectors.
 
-## Trading stock and prepayments
+## Trading stock
 
-These worksheets were added on 22 November 2026. ITAA 1997 ss 70-35 to 70-50
+This worksheet was added on 22 November 2026. ITAA 1997 ss 70-35 to 70-50
 (volume 3) and ss 328-280 to 328-295 (volume 7) were read that day in
 compilation 268 (1 October 2026) and compared with compilations 210
 (1 July 2020) and 223 (1 July 2021): Division 70 reads the same in all 3, and
-s 328-285 has no subsection (2) in compilation 210. ITAA 1936 ss 82KZL to
-82KZMF were read in compilation 193 (1 October 2026) and compared with
+s 328-285 has no subsection (2) in compilation 210. Act No. 92 of 2020
+Schedule 3 item 40(8) applies subsection (2) to income years starting on or
+after 1 July 2021.
+
+Choices the Act leaves to the reader:
+
+- `lowest` takes the first of equal values in s 70-45(1)'s order.
+- Without `estimated_closing_value`, the items' total is the estimate for the
+  s 328-285(1)(b) test.
+
+`tests/trading_stock_prepayments.rs` holds these cases.
+
+| Case | Source | Worksheet |
+|---|---|---|
+| Angela, $30,000 opening, $34,000 estimate, choice made | s 328-295 example | closing $30,000, nil |
+| Colin, $6,800 and $7,820 | ATO Simplified trading stock rules (27 May 2026) | choice open |
+| Joel, $5,600 against $8,000 and $12,000 | same page | open; refused, and $6,400 assessable on a $12,000 stocktake |
+| A medium business in 2020-21 and 2021-22 | Act No. 92 of 2020 Sch 3 item 40(8) | not open; open |
+| Lowest, market selling value and obsolescence items against $10,000 | worked by hand | closing $6,600, $3,400 deductible |
+
+## Prepayments
+
+This worksheet was added on 22 November 2026. ITAA 1936 ss 82KZL to 82KZMF
+were read that day in compilation 193 (1 October 2026) and compared with
 compilations 169 (1 July 2020) and 175 (4 April 2021): 169 lacks
 ss 82KZM(1A) and 82KZMA(2A), and 175 reads as 193. Act No. 92 of 2020
-Schedule 3 item 40 applies the prepayment changes to expenditure incurred on
-or after 1 July 2020 (subitem (5)) and the trading stock change to income
-years starting on or after 1 July 2021 (subitem (8)). The formulas of
-ss 82KZM(1), 82KZMD(2) and 82KZMF(1) were read from the images' text.
+Schedule 3 item 40(5) applies those subsections to expenditure incurred on or
+after 1 July 2020. The formulas of ss 82KZM(1), 82KZMD(2) and 82KZMF(1) were
+read from the images' text.
 
 Choices the Act leaves to the reader:
 
@@ -3438,17 +3459,11 @@ Choices the Act leaves to the reader:
 - Each apportioned year is rounded to the cent half up on the running total,
   so the years add up to the expenditure; the ATO's examples show whole
   dollars.
-- `lowest` takes the first of equal values in s 70-45(1)'s order.
 
 `tests/trading_stock_prepayments.rs` holds these cases.
 
 | Case | Source | Worksheet |
 |---|---|---|
-| Angela, $30,000 opening, $34,000 estimate, choice made | s 328-295 example | closing $30,000, nil |
-| Colin, $6,800 and $7,820 | ATO Simplified trading stock rules (27 May 2026) | choice open |
-| Joel, $5,600 against $8,000 and $12,000 | same page | open; refused, and $6,400 assessable on a $12,000 stocktake |
-| A medium business in 2020-21 and 2021-22 | Act No. 92 of 2020 Sch 3 item 40(8) | not open; open |
-| Lowest, market selling value and obsolescence items against $10,000 | worked by hand | closing $6,600, $3,400 deductible |
 | Tom Pty Ltd, $15,000 over 395 days | ATO prepaid expenses 2026 | $1,139.24 and $13,860.76 ($1,139, $13,861) |
 | Noel Pty Ltd, $10,200 for 15 July 2026 to 14 July 2027 | same | nil, $9,808.77, $391.23 ($9,809, $391) |
 | Jacobs Trust, $24,000 lease for 2026-27 paid 1 June 2026 | same | $24,000 in 2025-26 |

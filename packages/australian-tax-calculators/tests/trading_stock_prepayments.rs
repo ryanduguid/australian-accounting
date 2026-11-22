@@ -7,7 +7,7 @@
 //! against the ATO's examples (Simplified trading stock rules, 27 May 2026;
 //! Deductions for prepaid expenses 2021 and 2026), the s 328-295 example and
 //! hand-worked cases at each edge
-//! (docs/calculation-evidence.md#trading-stock-and-prepayments).
+//! (docs/calculation-evidence.md#trading-stock and #prepayments).
 use australian_tax_calculators::api;
 use serde_json::{Value, json};
 
