@@ -67,6 +67,7 @@ fn every_code_at_a_refusal_site_is_catalogued_and_every_entry_is_used() {
         ("dgr/input.rs", &["Refusal::new("][..]),
         ("fbt_return.rs", &["Refusal::new("][..]),
         ("fbt_return/input.rs", &["Refusal::new("][..]),
+        ("fbt_return/kind.rs", &["Refusal::new("][..]),
         ("contract_register.rs", &["Refusal::new("][..]),
         ("contract_register/csv.rs", &["Refusal::new("][..]),
         ("contract_register/figures.rs", &["Refusal::new("][..]),
@@ -173,8 +174,9 @@ fn every_catalogued_required_input_of_a_strict_command_is_read() {
     // capital-works, ato-interest-penalties, work-expenses,
     // small-business-income-offset, government-super-amounts,
     // beneficiary-tax-offset, invalid-carer-tax-offset, zone-tax-offset,
-    // net-medical-expenses-tax-offset, non-commercial-losses and psi-test.
-    assert_eq!(checked, 65);
+    // net-medical-expenses-tax-offset, non-commercial-losses, psi-test and
+    // fbt-instalment.
+    assert_eq!(checked, 66);
 }
 
 /// Every frozen call gives the same answer through either entry point, and

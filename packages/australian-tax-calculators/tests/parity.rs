@@ -34,8 +34,9 @@ use std::process::{Command, Stdio};
 /// `tests/depreciation_pools.rs`, `tests/work_expenses.rs`,
 /// `tests/ato_interest_penalties.rs`, `tests/small_business_income_offset.rs`,
 /// `tests/government_super_amounts.rs`, `tests/individual_offsets.rs`,
-/// `tests/non_commercial_losses.rs` and `tests/psi_test.rs` cover them.
-const NEW_KINDS: [(&str, &str); 65] = [
+/// `tests/non_commercial_losses.rs`, `tests/psi_test.rs` and
+/// `tests/fbt_instalment.rs` cover them.
+const NEW_KINDS: [(&str, &str); 66] = [
     ("fhss", "fhss"),
     ("ato-interest-penalties", "ato_interest_penalties"),
     ("ppsr-timing", "ppsr_timing"),
@@ -45,6 +46,7 @@ const NEW_KINDS: [(&str, &str); 65] = [
     ("fbt-car-statutory", "fbt_car_statutory"),
     ("fbt-car-operating-cost", "fbt_car_operating_cost"),
     ("fbt-ev-exemption-check", "fbt_ev_exemption_check"),
+    ("fbt-instalment", "fbt_instalment"),
     ("fbt-loan", "fbt_loan"),
     ("fbt-meal-entertainment", "fbt_meal_entertainment"),
     ("fbt-car-parking", "fbt_car_parking"),

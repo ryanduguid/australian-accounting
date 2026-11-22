@@ -4854,7 +4854,9 @@ pub use franking_account::{FrankingArgs, franking_year};
 mod trade_in;
 pub use trade_in::{TradeInArgs, trade_in};
 mod fbt_ev_exemption;
+mod fbt_instalment;
 pub use fbt_ev_exemption::{EvExemptionArgs, fbt_ev_exemption_check};
+pub use fbt_instalment::{FBT_INSTALMENT_OPTIONAL, FbtInstalmentArgs, fbt_instalment};
 mod dasp_tax;
 pub use dasp_tax::{DaspTaxArgs, dasp_tax};
 mod payroll_tax;
@@ -6186,7 +6188,7 @@ pub use non_commercial_losses::{NCL_OPTIONAL, NonCommercialLossesArgs, non_comme
 mod psi_test;
 pub use psi_test::{PSI_OPTIONAL, PsiTestArgs, psi_test};
 
-const KINDS: [&str; 79] = [
+const KINDS: [&str; 80] = [
     "gst",
     "gst_margin_scheme",
     "fuel_tax_credits",
@@ -6210,6 +6212,7 @@ const KINDS: [&str; 79] = [
     "fbt_car_statutory",
     "fbt_car_operating_cost",
     "fbt_ev_exemption_check",
+    "fbt_instalment",
     "fbt_loan",
     "fbt_meal_entertainment",
     "fbt_meal_entertainment_register",

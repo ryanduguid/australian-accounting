@@ -95,6 +95,10 @@ pub const SCOPES: &[(&str, &str)] = &[
         "One car held by an ordinary taxable employer, as the only provider and for a single holding period, and used or available for an employee's private use in the FBT year ended 31 March 2026 or 2027, with no commitment to provide it made before 7.30 pm AEST on 10 May 2011, so the 20% statutory percentage applies. The operator establishes the base value under s 9(2) as the employer's guide (7.8.1) describes: cost_price holds the part the one-third reduction applies to (where the provider or an associate owned the car at the earliest holding time, its cost price to them with dealer delivery and non-business accessories fitted at acquisition; otherwise its leased car value then, which is the lessor's cost price only if the lease began then and the lessor bought the car at or about that time, and otherwise its arm's-length purchase price), and later_accessories holds non-business accessories fitted after the earliest holding time and still fitted while the car was held in the year, which it never reduces. one_third_reduction is true only from the FBT year starting after the car has been held for 4 years. Days used or available for private use, recipient's payments and whether the electric cars exemption applies are established facts. Excludes deciding whether a car benefit or exemption arises, the base value itself, arm's-length deeming, dealer demonstrator cars, the type 1 or type 2 choice, gross-up and FBT payable. Only the gross taxable value is rounded to cents, before the recipient's payment, which cannot take the taxable value below nil; an unused excess is shown and reduces no other benefit. An exempt electric car's taxable value is nil, and taxable_value_before_exemption is the notional value its reportable fringe benefits amount is worked out from, before gross-up.",
     ),
     (
+        "fbt_instalment",
+        "One FBT instalment of one employer for one quarter of the FBT year ended 31 March 2026 or 2027, on the activity statement (FBTAA Part VII Division 2, compilation 97, 1 July 2026). Not varying, label 6A is the ATO instalment amount at label F1, taken as the activity statement shows it: the ATO works it out from the notional tax amount, generally the tax on the most recent assessment (s 110(1)), and decides whether instalments are payable at all (s 111(2)). Varying, the employer's estimate of the year's tax (label F2, s 112(1)) is the notional tax amount from the end of the quarter (s 110(5)); the instalment is that estimate x the relevant fraction (0.25, 0.50, 0.75 or 1.00 for the quarters ending 30 June, 30 September, 31 December and 31 March, s 109), in cents 0.5 up, less the instalments for the year that fell due before it and plus the credits claimed for them (s 111(1)); a positive amount is label F3 and 6A, otherwise both are nil, and a negative amount is a credit claimable at label 6B (s 112A). Label F4 is the reason code given, one of the ATO's 4 (22, 30, 31 and 32). The operator establishes F1, the estimate and the earlier instalments and credits. Excludes: the notional tax amount, the base year and the instalment threshold, which are the ATO's; the Commissioner's own estimate under s 112(3); the general interest charge under s 112B where the estimate is less than 90% of the tax assessed; due dates (s 103); rounding a payment down to a multiple of 5 cents, which the ATO allows.",
+    ),
+    (
         "fbt_ev_exemption_check",
         "Whether the car benefits from one car, provided in the FBT year ended 31 March 2026 or 2027, are exempt under FBTAA s 8A (the electric cars exemption), as compiled on 1 July 2026, with the application and transitional rules of the Treasury Laws Amendment (Electric Car Discount) Act 2022. The operator establishes that the car's private use or availability is a car benefit under s 7(1), and each fact the command takes: whether the vehicle is a car (s 136(1)), a battery electric, hydrogen fuel cell electric or plug-in hybrid electric vehicle (s 8A(3) to (5)) or another, whether the benefit is for a current employee, the earliest day anyone both held and used the car, the financial year of its first retail sale and its luxury car tax value then (LCT Act s 5-20), whether luxury car tax became payable on any other supply or importation of it, and for a plug-in hybrid the facts of Schedule 2 item 5(2). Each condition is shown as met or not, and the benefit is exempt only when all are met: a car (s 136(1)); a current employee (s 8A(1)(a)); a battery electric or hydrogen fuel cell electric vehicle (s 8A(1)(b) and (2)), or a plug-in hybrid electric vehicle whose benefit falls under Schedule 2 item 5(2): a commitment made before 1 April 2025 for a period that began before then and includes the benefit, no new commitment from 1 April 2025, and an exempt car benefit for the car before 1 April 2025; the car first both held and used on or after 1 July 2022 (Schedule 1 item 7(2)); no luxury car tax at the first retail sale, its luxury car tax value not exceeding the fuel-efficient car threshold the ATO publishes for that financial year (LCT Act s 25-1(1) and (4); $91,387 for 2024-25 and 2025-26 and $91,661 for 2026-27); and none on any other supply or importation (s 8A(1)(c)). Gives electric_car_exempt for fbt-car-statutory and fbt-car-operating-cost, and what the exemption means for reporting and car expenses (ss 53(1) and 135P(3)). Refuses a first retail sale in a financial year the ATO's table does not hold (before 2012-13 or after 2026-27), a car first held and used or first sold after the FBT year ends, plug-in hybrid facts for another vehicle, and an exempt plug-in hybrid benefit before 1 April 2025 for a car first held and used later. Excludes deciding whether a car benefit arises, the vehicle's type, the dates, the luxury car tax value and the commitments; a car that was not a fuel-efficient car under LCT Act s 25-1(4) as it read at its first retail sale (whose threshold is the other vehicles' one); a car not first sold in a retail sale in Australia, such as one imported by its user; the taxable value, which fbt-car-statutory and fbt-car-operating-cost work out; and FBT years from 1 April 2027, for which the government announced on 5 May 2026 a change that was not law when this was checked.",
     ),
@@ -418,6 +422,7 @@ pub const SOURCES: &[(&str, &str)] = &[
         "https://www.ato.gov.au/law/view/document?DocID=SAV/FBTGEMP/00008",
     ),
     ("fbt_ev_exemption_check", FBTAA_PART_1),
+    ("fbt_instalment", FBTAA_PART_2),
     (
         "fbt_loan",
         "https://www.ato.gov.au/law/view/document?DocID=SAV/FBTGEMP/00009",
@@ -921,6 +926,13 @@ pub const EXTRA_SOURCES: &[(&str, &[&str])] = &[
             "https://www.ato.gov.au/forms-and-instructions/fringe-benefits-tax-return-2026-instructions/item-23-fringe-benefit-categories-for-fbt-return-2026",
             "https://www.ato.gov.au/tax-rates-and-codes/fringe-benefits-tax-rates-and-thresholds",
             "https://www.ato.gov.au/businesses-and-organisations/hiring-and-paying-your-workers/fringe-benefits-tax/types-of-fringe-benefits/fbt-on-cars-other-vehicles-parking-and-tolls/electric-cars-exemption",
+        ],
+    ),
+    (
+        "fbt_instalment",
+        &[
+            "https://www.ato.gov.au/businesses-and-organisations/preparing-lodging-and-paying/business-activity-statements-bas/fringe-benefits-tax-fbt-instalment",
+            "https://www.ato.gov.au/law/view/document?DocID=SAV/FBTGEMP/00004",
         ],
     ),
     (
@@ -1473,6 +1485,12 @@ pub const EXTRA_WARNINGS: &[(&str, &[&str])] = &[
         ],
     ),
     ("fbt_car_statutory", &[CAR_REPORTABLE_NOTE]),
+    (
+        "fbt_instalment",
+        &[
+            "If the instalments are varied on an estimate less than 90% of the tax assessed for the year, the general interest charge may apply to the shortfall (FBTAA s 112B); this worksheet does not work it out.",
+        ],
+    ),
     (
         "fbt_ev_exemption_check",
         &[
@@ -2207,6 +2225,18 @@ pub const REFUSAL_CODES: &[(&str, &str)] = &[
         "A housing right's last base year is not one of the 9 FBT years before the year given.",
     ),
     (
+        "fbt_instalment.ato_instalment_missing",
+        "fbt-instalment was given neither the ATO instalment amount at label F1 nor an estimate at F2 to vary it.",
+    ),
+    (
+        "fbt_instalment.quarter_invalid",
+        "fbt-instalment was given a quarter other than 1 to 4.",
+    ),
+    (
+        "fbt_instalment.variation_invalid",
+        "fbt-instalment was given a variation without a reason code from the ATO's list or without the earlier instalments it needs, or variation facts without an estimate.",
+    ),
+    (
         "fbt_lafha.components_exceed_allowance",
         "A living-away-from-home allowance's accommodation and food components together exceed the allowance.",
     ),
@@ -2255,6 +2285,14 @@ pub const REFUSAL_CODES: &[(&str, &str)] = &[
         "fbt-return was given an operating cost car whose statutory formula value is lower, so FBTAA s 10(5) values it under s 9 and fbt-car-statutory gives its item 23 amounts.",
     ),
     (
+        "fbt_return.employer_kind_unsupported",
+        "fbt-return was given an employer_kind it does not compose, such as a government body under FBTAA s 57A(2) or an organisation partly a public benevolent institution and partly rebatable.",
+    ),
+    (
+        "fbt_return.entertainment_invalid",
+        "fbt-return was given a benefit's entertainment marker that is not salary_packaged or not_salary_packaged, or that contradicts its worksheet or whether it is excluded.",
+    ),
+    (
         "fbt_return.exclusion_conflict",
         "fbt-return was told a car parking or meal entertainment benefit is not excluded from reporting, which FBTAA s 5E(3) excludes.",
     ),
@@ -2271,8 +2309,16 @@ pub const REFUSAL_CODES: &[(&str, &str)] = &[
         "fbt-return was given more than one employer.",
     ),
     (
+        "fbt_return.nfp_exempt_car_unsupported",
+        "fbt-return was given an exempt electric car for a rebatable or FBTAA s 57A employer, whose place under the caps no ATO example shows.",
+    ),
+    (
         "fbt_return.payroll_tax_unsupported",
         "fbt-return was asked for a payroll tax gross-up, which each state and territory sets and it does not work out.",
+    ),
+    (
+        "fbt_return.rebatable_days_invalid",
+        "fbt-return was given rebatable_days and employer_days that are not 2 whole numbers, rebatable_days at most employer_days and employer_days at most the days in the FBT year.",
     ),
     (
         "fbt_tax_exempt_body_entertainment.heads_invalid",
@@ -2568,7 +2614,7 @@ pub const REFUSAL_CODES: &[(&str, &str)] = &[
     ),
     (
         "input.field_unknown",
-        "A field the worksheet or command does not take, or does not take beside the other inputs given, was given (fbt-loan, fbt-meal-entertainment, fbt-car-parking, fbt-debt-waiver, fbt-expense-payment, fbt-property, fbt-residual, fbt-housing, fbt-lafha, fbt-board, fbt-tax-exempt-body-entertainment, fbt-entertainment-classifier, fbt-meal-entertainment-register and its entries, fbt-minor-benefit-check, ppsr-timing, fhss and its contributions, government-super-amounts, personal_deductions and determination, division-296, depreciation, fuel-tax-credits and its lines, foreign-resident-tax, medicare-levy, medicare-levy-surcharge, payg-withholding, payg-gross-up, termination-payment, etp-tax-free-component, unused-leave-payment, the Schedule 5 methods, working-holiday-maker-withholding, study-loan-withholding, seniors-pensioners-withholding, seniors-pensioners-tax-offset, lump-sum-arrears-tax-offset, hire-purchase-schedule, chattel-mortgage-schedule, loan-transactions and its transactions and rate_changes, borrowing-expenses-schedule and its loans, business-capital-expenditure and its items, balancing-adjustment, its years and car_limit, trade-in, franking-account and its events, distributions and income_tax, dasp-tax, gst-margin-scheme, wine-equalisation-tax and its dealings, luxury-car-tax and its lines, payroll-tax, cgt-parcels, its parcels and disposals, fbt-ev-exemption-check, sb-cgt-concessions, small-business-income-offset, depreciation-low-value-pool, depreciation-small-business-pool, capital-works, non-commercial-losses, psi-test, beneficiary-tax-offset, invalid-carer-tax-offset, zone-tax-offset and its dependants, net-medical-expenses-tax-offset, work-expenses, ato-interest-penalties and its payments and parts, contribution-caps given a carry-forward input, derive, personal-tax-estimate, dgr-check, income-tests and fbt-return only).",
+        "A field the worksheet or command does not take, or does not take beside the other inputs given, was given (fbt-loan, fbt-meal-entertainment, fbt-car-parking, fbt-debt-waiver, fbt-expense-payment, fbt-property, fbt-residual, fbt-housing, fbt-lafha, fbt-board, fbt-tax-exempt-body-entertainment, fbt-entertainment-classifier, fbt-meal-entertainment-register and its entries, fbt-minor-benefit-check, ppsr-timing, fhss and its contributions, government-super-amounts, personal_deductions and determination, division-296, depreciation, fuel-tax-credits and its lines, foreign-resident-tax, medicare-levy, medicare-levy-surcharge, payg-withholding, payg-gross-up, termination-payment, etp-tax-free-component, unused-leave-payment, the Schedule 5 methods, working-holiday-maker-withholding, study-loan-withholding, seniors-pensioners-withholding, seniors-pensioners-tax-offset, lump-sum-arrears-tax-offset, hire-purchase-schedule, chattel-mortgage-schedule, loan-transactions and its transactions and rate_changes, borrowing-expenses-schedule and its loans, business-capital-expenditure and its items, balancing-adjustment, its years and car_limit, trade-in, franking-account and its events, distributions and income_tax, dasp-tax, gst-margin-scheme, wine-equalisation-tax and its dealings, luxury-car-tax and its lines, payroll-tax, cgt-parcels, its parcels and disposals, fbt-ev-exemption-check, fbt-instalment, sb-cgt-concessions, small-business-income-offset, depreciation-low-value-pool, depreciation-small-business-pool, capital-works, non-commercial-losses, psi-test, beneficiary-tax-offset, invalid-carer-tax-offset, zone-tax-offset and its dependants, net-medical-expenses-tax-offset, work-expenses, ato-interest-penalties and its payments and parts, contribution-caps given a carry-forward input, derive, personal-tax-estimate, dgr-check, income-tests and fbt-return only).",
     ),
     ("input.flag_invalid", "A flag is not a JSON boolean."),
     ("input.fraction_invalid", "A fraction is outside 0 to 1."),
