@@ -3487,6 +3487,52 @@ the two agree on every case the page's tests hold. Its choices:
 | Chris: 70% commission | TR 2022/3 example 40 | the principal is one payer |
 | 75% and 74.99% for a result; 80% and 79.99% from one payer; 20% by others | ss 87-18, 87-15(3), 87-25 | met; not met |
 
+## SMSF tax
+
+This worksheet was added on 22 November 2026. That day ITAA 1997 ss 295-10,
+295-160, 295-385, 295-387, 295-390, 295-545, 295-550, 295-605 and 295-610
+were read on the ATO legal database with their history notes; Division 295 is
+in volume 6 of compilation 268 (1 October 2026)
+(https://www.legislation.gov.au/C2004A05138/2026-10-01/2026-10-01/text/original/epub/OEBPS/document_6/document_6.html).
+Since 2015 s 295-390 was last amended by No 81 of 2016, s 295-385 by No 10 of
+2022 (the trustee's choice in subsections (8) to (10)), s 295-387 by No 111
+of 2021, and ss 295-545 and 295-550 by Act No. 52 of 2024, whose Schedule 7
+item 5 applies s 295-545(2A) to income derived in 2018-19 and later years.
+The Income Tax Rates Act 1986, compilation 66 (1 July 2026), gives 15% and
+45% in s 26(1) (last amended 2007) and the no-TFN rate in s 29(2) (last
+amended 2018): Schedule 7 Part I's 45% top rate, plus 2%, less 15%, so 32%;
+the ATO's 'Tax rates - Australian residents' (last updated 13 August 2026)
+gives 45% as the top rate for each year from 2020-21. The Superannuation (Self
+Managed Superannuation Funds) Supervisory Levy Imposition Regulations 2018
+s 6 (in force, unamended) set $259 for 2018-19 and each later year, under the
+$300 cap of s 6 of the 1991 Imposition Act. The ATO's Instructions to complete
+your SMSF annual return 2026 (Sections B and D and Appendix 1, last updated
+30 May 2026) and the 2021 return's levy questions (last updated 6 August 2024)
+give the same labels and table 9.
+
+Choices the Act leaves to the reader:
+
+- Exempt current pension income from the proportion is rounded down to the
+  whole dollar, as Section B takes no cents; this never understates tax.
+- A loss gives nil taxable income; the loss and its carry forward (Division
+  36) are not worked out beyond the amount.
+- Deductions attributable to contributions above the contributions are
+  refused rather than allowed to lift the non-arm's length component above
+  taxable income.
+
+`tests/smsf_tax.rs` holds these cases.
+
+| Case | Source | Worksheet |
+|---|---|---|
+| $234,200 unsegregated, 50% proportion, $62,000 franking credits | SAR 2026 Appendix 1 example 1 | ECPI $117,100; T1 $17,565.00; I $44,435.00; S -$44,176.00 |
+| $200,000 segregated, $34,200 other, $62,000 franking credits | SAR 2026 Appendix 1 example 2 | T1 $5,130.00; I $56,870.00; S -$56,611.00 |
+| $14,500 taxable income | SAR 2026 Section D, SMSF B | T1 $2,175.00 |
+| $10,000 contributions, $15,000 net NALI, $6,000 general expense NALI, $5,000 deductions ($1,000 on contributions) | SAR 2026 Section D, SMSF BB | NALC $11,000; T1 $6,300.00 |
+| Gross tax $2,175 with C $675, D $675, E $500 or $2,000 | SAR 2026 T2, T3 and T5 examples | T2 $1,500; T3 $1,500; T5 $1,000 or I $500 |
+| $10,000 of no-TFN contributions, 2024-25 | SAR 2026 E2 example | J $3,200.00 |
+| Existing, new, wound up, new and wound up, each year | SAR 2026 table 9 | levy $259, $518, nil, $259 |
+| $1,001 at 33.33% | rounding choice | ECPI $333 |
+
 ## Government super amounts
 
 This worksheet was added on 22 November 2026. Read that day:

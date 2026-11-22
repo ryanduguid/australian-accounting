@@ -1182,6 +1182,12 @@ pub fn supported_periods(kind: &str) -> Vec<&'static str> {
         ],
         // Part 2-42 reads the same in compilations 210 (1 July 2020), 223
         // (1 July 2021) and 268 (1 October 2026).
+        // Division 295's rules and the Rates Act's rates read the same for
+        // each year (history notes and endnotes read on 22 November 2026);
+        // s 295-545(2A) applies to income derived from 2018-19.
+        "smsf_tax" => vec![
+            "2020-21", "2021-22", "2022-23", "2023-24", "2024-25", "2025-26", "2026-27",
+        ],
         "psi_test" => vec![
             "2020-21", "2021-22", "2022-23", "2023-24", "2024-25", "2025-26", "2026-27",
         ],
@@ -1508,6 +1514,10 @@ pub fn source_review(kind: &str) -> (&'static str, &'static str) {
         "non_commercial_losses" => (
             "2026-11-22",
             "ITAA 1997 Division 35 (ss 35-10 to 35-55), compilation 268 (1 October 2026), against compilations 210 (1 July 2020) and 223 (1 July 2021), which read the same; the ATO's non-commercial loss pages 'Four tests', 'The income requirement', 'Excepted business activities' and 'How to defer your losses' (each last updated 7 April 2025)",
+        ),
+        "smsf_tax" => (
+            "2026-11-22",
+            "ITAA 1997 ss 295-10, 295-160, 295-385, 295-387, 295-390, 295-545, 295-550, 295-605 and 295-610 on the ATO legal database with their history notes (s 295-545 last amended by Act No. 52 of 2024, whose Schedule 7 item 5 applies it to income derived from 2018-19); Income Tax Rates Act 1986 ss 26 and 29 and Schedule 7 Part I, compilation 66 (1 July 2026); Superannuation (Self Managed Superannuation Funds) Supervisory Levy Imposition Act 1991 s 6 and Regulations 2018 s 6; the ATO's Instructions to complete your SMSF annual return 2026 Sections B and D and Appendix 1 (30 May 2026), SAR 2021 levy questions (6 August 2024), Exempt current pension income (16 September 2025) and Tax rates - Australian residents (13 August 2026)",
         ),
         "psi_test" => (
             "2026-11-22",
@@ -1923,6 +1933,12 @@ pub fn library_evidence(kind: &str) -> [(&'static str, &'static str); 4] {
             "ATO non-commercial loss pages",
             "Slaide's estimate, Nguyen's profits test, Joe's, Fred's and Alex's income requirement and Michael's deferred loss",
             "2025-04-07",
+            "2026-11-22",
+        ),
+        "smsf_tax" => (
+            "Instructions to complete your SMSF annual return 2026",
+            "Appendix 1 examples 1 and 2 (proportionate and segregated ECPI, refunds of $44,176 and $56,611), Section D label B examples 1 and 2 (SMSF B and SMSF BB), the T2, T3 and T5 examples, the E2 no-TFN example and table 9 (supervisory levy)",
+            "2026-05-30",
             "2026-11-22",
         ),
         "psi_test" => (
@@ -4099,6 +4115,29 @@ pub fn input_units(kind: &str) -> Vec<(&'static str, &'static str)> {
             ("total_net_investment_loss", "AUD: your total net investment losses (s 35-10(2E)(d))"),
             ("net_exempt_income", "AUD: your net exempt income for the year left after ss 36-10 and 36-15, which reduces an amount deferred (s 35-15); nil for none"),
         ],
+        "smsf_tax" => vec![
+            ("complying_fund", "boolean: the fund is a complying superannuation fund for the year; false is refused"),
+            ("australian_superannuation_fund", "boolean: the fund is an Australian superannuation fund for the year; false is refused"),
+            ("assessable_contributions", "AUD, whole dollars: contributions included in assessable income under Subdivision 295-C (label R), including no-TFN-quoted ones"),
+            ("no_tfn_contributions", "AUD, whole dollars: the part of assessable_contributions that is no-TFN contributions income (s 295-610; label R3)"),
+            ("net_non_arms_length_income", "AUD, whole dollars: non-arm's length income under s 295-550(1), (2), (4) and (5) less the deductions attributable to it (label U); nil for none or a loss"),
+            ("general_expense_non_arms_length_income", "AUD: non-arm's length income under s 295-550(8) and (9), twice each general expense shortfall, which is not part of label U; nil for none"),
+            ("segregated_pension_income", "AUD, whole dollars: ordinary and statutory income from segregated current pension assets (s 295-385), other than non-arm's length income and contributions"),
+            ("unsegregated_income", "AUD, whole dollars: the other ordinary and statutory income to which the actuary's proportion applies (s 295-390), net capital gain included; not contributions, non-arm's length income or income from segregated assets"),
+            ("segregated_non_current_income", "AUD, whole dollars: income from segregated non-current assets, to which the proportion does not apply (s 295-390(2)(c))"),
+            ("exempt_proportion", "decimal fraction from 0 to 1: the actuary's certificate's proportion of average current pension liabilities to average superannuation liabilities (s 295-390(3)), 0.5 for 50%; 0 with no retirement phase interest"),
+            ("disregarded_small_fund_assets", "boolean: the fund's assets are disregarded small fund assets for the year (s 295-387); with true, segregated_pension_income above nil is refused (s 295-385(7))"),
+            ("deductions", "AUD, whole dollars: the fund's deductions (Section C), already apportioned for exempt income, other than those netted in net_non_arms_length_income"),
+            ("contribution_deductions", "AUD, whole dollars: the part of deductions attributable to assessable contributions (s 295-545(2A)(b)(ii)); at most assessable_contributions"),
+            ("non_refundable_offsets", "AUD: non-refundable non-carry forward tax offsets (label C: foreign income tax offset and other rebates)"),
+            ("carry_forward_offsets", "AUD: non-refundable carry forward tax offsets (label D: the early stage venture capital and early stage investor offsets)"),
+            ("refundable_offsets", "AUD: refundable tax offsets (label E: the complying fund's franking credits, no-TFN and NRAS tax offsets)"),
+            ("eligible_credits", "AUD: credits for amounts withheld and interest on no-TFN tax offsets (label H)"),
+            ("payg_instalments", "AUD: PAYG instalments raised for the year (label K)"),
+            ("interest_charge", "AUD: the s 102AAM interest charge (label G)"),
+            ("newly_registered", "boolean: this is the first annual return of a fund newly registered in the year (label N)"),
+            ("wound_up", "boolean: the fund was wound up in the year (label M)"),
+        ],
         "psi_test" => vec![
             ("earner", "employee, religious_practitioner, sole_trader or entity: who receives the income: the individual as an employee or office holder (s 85-35(1)), as a religious practitioner paid under s 12-47 of Schedule 1 to the TAA 1953 (s 85-35(2)), or as a contractor, or a company, partnership or trust (a personal services entity)"),
             ("mainly_personal_efforts", "boolean: the income is mainly a reward for the individual's personal efforts or skills (s 84-5(1))"),
@@ -4898,6 +4937,32 @@ pub fn examples(kind: &str) -> Vec<(&'static str, Example)> {
             ("total_net_investment_loss", Text("0.00")),
             ("net_exempt_income", Text("0.00")),
             ("other_income", Text("60000.00")),
+        ],
+        // The ATO's SAR 2026 Appendix 1 example 1: $234,200 of income, an
+        // actuary's 50% and $62,000 of franking credits, a $44,176 refund.
+        "smsf_tax" => vec![
+            ("year", Text("2025-26")),
+            ("complying_fund", Flag(true)),
+            ("australian_superannuation_fund", Flag(true)),
+            ("assessable_contributions", Text("0")),
+            ("no_tfn_contributions", Text("0")),
+            ("net_non_arms_length_income", Text("0")),
+            ("general_expense_non_arms_length_income", Text("0")),
+            ("segregated_pension_income", Text("0")),
+            ("unsegregated_income", Text("234200")),
+            ("segregated_non_current_income", Text("0")),
+            ("exempt_proportion", Text("0.5")),
+            ("disregarded_small_fund_assets", Flag(false)),
+            ("deductions", Text("0")),
+            ("contribution_deductions", Text("0")),
+            ("non_refundable_offsets", Text("0.00")),
+            ("carry_forward_offsets", Text("0.00")),
+            ("refundable_offsets", Text("62000.00")),
+            ("eligible_credits", Text("0.00")),
+            ("payg_instalments", Text("0.00")),
+            ("interest_charge", Text("0.00")),
+            ("newly_registered", Flag(false)),
+            ("wound_up", Flag(false)),
         ],
         // TR 2022/3 example 20: Joe installs ducts to plans with his own tools
         // and is liable for defects; the amount is the site's.

@@ -6185,8 +6185,10 @@ mod non_commercial_losses;
 pub use non_commercial_losses::{NCL_OPTIONAL, NonCommercialLossesArgs, non_commercial_losses};
 mod psi_test;
 pub use psi_test::{PSI_OPTIONAL, PsiTestArgs, psi_test};
+mod smsf_tax;
+pub use smsf_tax::smsf_tax;
 
-const KINDS: [&str; 79] = [
+const KINDS: [&str; 80] = [
     "gst",
     "gst_margin_scheme",
     "fuel_tax_credits",
@@ -6266,6 +6268,7 @@ const KINDS: [&str; 79] = [
     "non_commercial_losses",
     "psi_test",
     "government_super_amounts",
+    "smsf_tax",
 ];
 
 /// `periods(kind)`: accepted period arguments and inclusive calendar boundaries.
