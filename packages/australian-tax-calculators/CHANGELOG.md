@@ -368,6 +368,16 @@
   `tests/small_business_income_offset.rs` holds it to the site's sole trader
   vectors.
 
+- `non-commercial-losses` says whether ITAA 1997 Division 35 defers an
+  individual's business activity loss for 2020-21 to 2026-27: the income
+  requirement, the assessable income, profits, real property and other assets
+  tests, the primary production and professional arts exception, and the
+  excess deferred after net exempt income, with the Commissioner's discretion
+  reported as not decided. New codes:
+  `non_commercial_losses.activity_invalid` and
+  `non_commercial_losses.earlier_years_invalid`.
+  `tests/non_commercial_losses.rs` holds it to the ATO's examples.
+
 ### Changed
 
 - `borrowing-expenses` takes 2017-18 to 2027-28, not 2024-25 to 2026-27:

@@ -30,10 +30,11 @@ use std::process::{Command, Stdio};
 /// `tests/fbt_entertainment_classifier.rs`, `tests/fbt_minor_benefit.rs`,
 /// `tests/fhss.rs`, `tests/ppsr_timing.rs`, `tests/dasp_tax.rs`, `tests/income_tests.rs`,
 /// `tests/franking_account.rs`, `tests/wine_equalisation_tax.rs`,
-/// `tests/luxury_car_tax.rs`, `tests/sb_cgt_concessions.rs`,
+/// `tests/luxury_car_tax.rs`, `tests/sb_cgt_concessions.rs` and
+/// `tests/non_commercial_losses.rs`,
 /// `tests/depreciation_pools.rs` and `tests/small_business_income_offset.rs`
 /// cover them.
-const NEW_KINDS: [(&str, &str); 56] = [
+const NEW_KINDS: [(&str, &str); 57] = [
     ("fhss", "fhss"),
     ("ppsr-timing", "ppsr_timing"),
     ("dasp-tax", "dasp_tax"),
@@ -75,6 +76,7 @@ const NEW_KINDS: [(&str, &str); 56] = [
         "small-business-income-offset",
         "small_business_income_offset",
     ),
+    ("non-commercial-losses", "non_commercial_losses"),
     ("division-296", "division_296"),
     ("termination-payment", "termination_payment"),
     ("etp-tax-free-component", "etp_tax_free_component"),
