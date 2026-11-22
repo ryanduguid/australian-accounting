@@ -61,6 +61,7 @@ fn gic_agrees_with_the_sites_published_payment_plans() {
             "336.56",
             "9.68",
         ),
+        // The site's single $2,500 instalment is paid here, so the balance after it is $0.
         (
             "2026-27",
             "2500.00",
