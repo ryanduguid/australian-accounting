@@ -123,7 +123,6 @@ pub(super) struct Composed {
     labels: Vec<(&'static str, Value)>,
     amounts: Vec<(&'static str, Value, &'static str)>,
     capping: Value,
-    warnings: Vec<Value>,
     exempt: bool,
 }
 
@@ -156,7 +155,6 @@ fn exempt_return(capping: Value, total: &Decimal, rate: &Decimal) -> Result<Comp
             ),
         ],
         capping,
-        warnings: Vec::new(),
         exempt: true,
     })
 }
@@ -167,21 +165,14 @@ fn rebatable_return(
     total: &Decimal,
     rate: &Decimal,
     gross_tax: &Decimal,
-    days: Option<[i64; 2]>,
+    [rebatable, employer]: [i64; 2],
 ) -> Result<Composed, Refusal> {
     let item_17 = calc(calc(total.mul(rate))?.quantize(-2, Rounding::HalfUp))?;
-    let [rebatable, employer] = days.unwrap_or([1, 1]);
     let base = calc(calc(gross_tax.sub(&item_17))?.mul(rate))?;
     let share = calc(base.mul(&Decimal::from_int(rebatable)))?;
     let rebate = calc(share.div(&Decimal::from_int(employer)))?;
     let item_18 = not_below_nil(calc(rebate.quantize(-2, Rounding::HalfUp))?)?;
     let item_19 = calc(gross_tax.sub(&item_18))?;
-    let warnings = match days {
-        Some(_) => Vec::new(),
-        None => vec![json!(
-            "rebatable_days and employer_days were not given: the employer is taken as a rebatable employer on every day of the year on which it was an employer, so the rebate's days fraction is 1 (FBTAA s 65J(2A))."
-        )],
-    };
     Ok(Composed {
         labels: vec![
             ("17", cents(&item_17)?),
@@ -206,7 +197,6 @@ fn rebatable_return(
             ),
         ],
         capping,
-        warnings,
         exempt: false,
     })
 }
@@ -232,12 +222,13 @@ pub(super) fn apply(
         Kind::Rebatable => {
             let (capping, total) = capping(v, year, valued, REBATE_CAP)?;
             let gross_tax = super::amount(fbt, "return_item_16")?.expect("fbt's item 16");
+            let days = days.expect("check_days requires a rebatable employer's days");
             rebatable_return(capping, &total, &rate, &gross_tax, days).map(Some)
         }
     }
 }
 
-const NFP_SCOPE: &str = "As for a taxable employer, with the employer's kind (employer_kind) established by the operator, for the whole FBT year: a rebatable employer (FBTAA s 65J(1)), a registered public benevolent institution endorsed under s 123C (s 57A(1)), a registered health promotion charity endorsed under s 123D(1) (s 57A(5)), a public hospital (s 57A(3)(a)), a not-for-profit hospital (s 57A(4)) or a provider of public ambulance services every one of whose employees in the return is predominantly involved in those services (s 57A(3)(b)). Each employee's individual grossed-up amount is the type 1 base grossed up by fbt's s 5B(1B) formula plus the type 2 base x 1 / (1 - the FBT rate), each to the cent (s 5B(1F) and (1G); s 65J(2C) and (2D)); the bases are the taxable values of the employee's benefits by GST type, excluded benefits included except meal entertainment, car parking and benefits marked entertainment not_salary_packaged (s 5B(1H) to (1L); s 65J(2E) to (2H)). That amount less the cap ($30,000 for a rebatable employer, a public benevolent institution or a health promotion charity; $17,000 for a hospital or ambulance service), not below nil, is reduced where positive by the lesser of $5,000 and the grossed-up value of the employee's benefits marked entertainment salary_packaged (s 5B(1E) steps 2 to 4 and (1M); s 65J(2B) steps 2 and 2A and (2J)). For a s 57A employer the sum is the aggregate non-exempt amount, given at items 14C and 15 in whole dollars, and items 14A and 14B are blank; item 23 leaves out the benefits the caps disregard. For a rebatable employer items 14A to 16 are as for a taxable employer, item 17 is the sum x the FBT rate and item 18 the rebate of s 65J(2A). Not for: a government body under s 57A(2); an organisation partly a public benevolent institution and partly rebatable; s 58 live-in residential care workers; one employee's benefits from more than one employer (each return caps its own employer's benefits); an exempt electric car; the operator's choice of whether a benefit is salary packaged, meal entertainment or attributable to entertainment facility leasing expenses. Reportable fringe benefits amounts are as for a taxable employer, as s 135Q(2) to (4) gives them for a s 57A employer on the same benefits.";
+const NFP_SCOPE: &str = "As for a taxable employer, with the employer's kind (employer_kind) established by the operator, for the whole FBT year: a rebatable employer (FBTAA s 65J(1)), a registered public benevolent institution endorsed under s 123C (s 57A(1)), a registered health promotion charity endorsed under s 123D(1) (s 57A(5)), a public hospital (s 57A(3)(a)), a not-for-profit hospital (s 57A(4)) or a provider of public ambulance services every one of whose employees in the return is predominantly involved in those services (s 57A(3)(b)). Each employee's individual grossed-up amount is the type 1 base grossed up by fbt's s 5B(1B) formula plus the type 2 base x 1 / (1 - the FBT rate), each to the cent (s 5B(1F) and (1G); s 65J(2C) and (2D)); the bases are the taxable values of the employee's benefits by GST type, excluded benefits included except meal entertainment, car parking and benefits marked entertainment not_salary_packaged (s 5B(1H) to (1L); s 65J(2E) to (2H)). That amount less the cap ($30,000 for a rebatable employer, a public benevolent institution or a health promotion charity; $17,000 for a hospital or ambulance service), not below nil, is reduced where positive by the lesser of $5,000 and the grossed-up value of the employee's benefits marked entertainment salary_packaged (s 5B(1E) steps 2 to 4 and (1M); s 65J(2B) steps 2 and 2A and (2J)). For a s 57A employer the sum is the aggregate non-exempt amount, given at items 14C and 15 in whole dollars, and items 14A and 14B are blank; item 23 leaves out the benefits the caps disregard. For a rebatable employer items 14A to 16 are as for a taxable employer, item 17 is the sum x the FBT rate and item 18 the rebate of s 65J(2A), with the rebatable days and the days it was an employer given; an exempt electric car adds nothing to its caps, as s 65J(2G) reads s 5E. Not for: a government body under s 57A(2); an organisation partly a public benevolent institution and partly rebatable; s 58 live-in residential care workers; one employee's benefits from more than one employer (each return caps its own employer's benefits); an employee label that stands for more than one person, as the caps apply to each individual; an exempt electric car for a s 57A employer; the operator's choice of whether a benefit is salary packaged, meal entertainment or attributable to entertainment facility leasing expenses. Reportable fringe benefits amounts are as for a taxable employer, as s 135Q(2) to (4) gives them for a s 57A employer on the same benefits.";
 
 const NFP_SOURCES: [&str; 3] = [
     "https://www.legislation.gov.au/C2004A03280/2026-07-01/2026-07-01/text/original/epub/OEBPS/document_1/document_1.html",
@@ -271,10 +262,6 @@ pub(super) fn merge(out: &mut Value, name: &str, composed: Composed) {
     let sources = out["sources"].as_array_mut().expect("the sources");
     sources.extend(NFP_SOURCES.map(|s| json!(s)));
     out["source_checked"] = json!("2026-11-22");
-    let warnings = out["warnings"].as_array_mut().expect("the warnings");
-    for (at, warning) in composed.warnings.into_iter().enumerate() {
-        warnings.insert(at, warning);
-    }
 }
 
 fn remove(out: &mut Value, section: &str, key: &str) {

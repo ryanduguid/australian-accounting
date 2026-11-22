@@ -2310,7 +2310,7 @@ pub const REFUSAL_CODES: &[(&str, &str)] = &[
     ),
     (
         "fbt_return.nfp_exempt_car_unsupported",
-        "fbt-return was given an exempt electric car for a rebatable or FBTAA s 57A employer, whose place under the caps no ATO example shows.",
+        "fbt-return was given an exempt electric car for an FBTAA s 57A employer, whose place under the caps no ATO example shows.",
     ),
     (
         "fbt_return.payroll_tax_unsupported",

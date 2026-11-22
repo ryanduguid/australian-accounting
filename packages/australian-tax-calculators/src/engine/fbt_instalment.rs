@@ -127,6 +127,11 @@ fn previous(at: usize, paid: Option<&Arg>, credits: Option<&Arg>) -> Result<[Dec
             "the first instalment has no earlier instalments or credits in the year: previous_instalments and previous_credits must be nil for quarter 1",
         );
     }
+    if credits.gt(&paid)? {
+        return variation_invalid(
+            "previous_credits exceed previous_instalments: an s 112A credit is at most the instalments paid before it, less earlier credits",
+        );
+    }
     Ok([paid, credits])
 }
 

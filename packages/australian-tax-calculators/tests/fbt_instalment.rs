@@ -99,6 +99,11 @@ fn a_negative_amount_is_a_credit_at_6b() {
                               "previous_instalments": "5000.00",
                               "previous_credits": "1000.00", "reason_code": 31}));
     assert_eq!(after["F3"], "2000.00");
+    // Credits equal to the instalments before them: 75% of $1,000 - nil.
+    let all_back = labels(json!({"quarter": 3, "estimated_tax": "1000.00",
+                                 "previous_instalments": "500.00",
+                                 "previous_credits": "500.00", "reason_code": 30}));
+    assert_eq!(all_back["F3"], "750.00");
 }
 
 #[test]
@@ -182,6 +187,12 @@ fn refuses_what_it_does_not_take() {
         (
             json!({"quarter": 1, "estimated_tax": "100.00", "previous_credits": "1.00",
                    "reason_code": 30}),
+            "fbt_instalment.variation_invalid",
+        ),
+        // s 112A: a credit is at most the instalments paid before it.
+        (
+            json!({"quarter": 3, "estimated_tax": "1000.00", "previous_instalments": "500.00",
+                   "previous_credits": "500.01", "reason_code": 30}),
             "fbt_instalment.variation_invalid",
         ),
     ];

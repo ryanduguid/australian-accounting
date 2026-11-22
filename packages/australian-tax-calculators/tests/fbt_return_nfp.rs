@@ -39,9 +39,15 @@ fn entertainment(spent: &str) -> Value {
     json!({"method": "actual", "entertainment_expenditure": spent})
 }
 
+/// A rebatable employer is given a whole year of rebatable days.
 fn top(kind: &str, benefits: Vec<Value>) -> Value {
-    json!({"employer": "Employer", "year_ended": 2026, "scope_confirmed": true,
-           "employer_kind": kind, "benefits": benefits})
+    let mut out = json!({"employer": "Employer", "year_ended": 2026, "scope_confirmed": true,
+                         "employer_kind": kind, "benefits": benefits});
+    if kind == "rebatable" {
+        out["rebatable_days"] = json!(365);
+        out["employer_days"] = json!(365);
+    }
+    out
 }
 
 fn compose(input: &Value) -> Value {
@@ -152,14 +158,26 @@ fn the_rebate_takes_the_rebatable_days() {
     input["employer_days"] = json!(365);
     let result = compose(&input);
     labels(&result, &[("18", "17612.11"), ("19", "70861.16")]);
-    let warned = result["warnings"].to_string();
-    assert!(!warned.contains("rebatable_days and employer_days were not given"));
-    let whole = compose(&top("rebatable", example_1()));
-    assert!(
-        whole["warnings"][0]
-            .as_str()
-            .unwrap()
-            .starts_with("rebatable_days and employer_days were not given")
+}
+
+#[test]
+fn a_rebatable_employer_takes_an_exempt_electric_car_as_nil() {
+    // s 65J(2G) step 1 reads s 5E, which counts no exempt car: Sam's car,
+    // exempt, leaves his cap and the tax as if he had no car.
+    let mut with_car = top("rebatable", example_1());
+    with_car["benefits"][1]["input"]["electric_car_exempt"] = json!(true);
+    let mut without = top("rebatable", example_1());
+    without["benefits"].as_array_mut().unwrap().remove(1);
+    let [with_car, without] = [with_car, without].map(|input| compose(&input));
+    for label in ["15", "16", "17", "18", "19"] {
+        assert_eq!(
+            with_car["return_labels"][label], without["return_labels"][label],
+            "{label}"
+        );
+    }
+    assert_eq!(
+        with_car["capping"]["employees"]["Sam"],
+        without["capping"]["employees"]["Sam"]
     );
 }
 
@@ -502,11 +520,16 @@ fn refuses_rebatable_days_that_do_not_fit_the_year() {
         (json!(0), json!(0)),
         (json!("100"), json!(365)),
         (json!(100), Value::Null),
+        (Value::Null, json!(365)),
+        (Value::Null, Value::Null),
     ] {
         let mut input = top("rebatable", example_1());
-        input["rebatable_days"] = rebatable;
-        if !employer.is_null() {
-            input["employer_days"] = employer;
+        for (key, value) in [("rebatable_days", rebatable), ("employer_days", employer)] {
+            if value.is_null() {
+                input.as_object_mut().unwrap().remove(key);
+            } else {
+                input[key] = value;
+            }
         }
         assert_eq!(
             refused(&input).code,

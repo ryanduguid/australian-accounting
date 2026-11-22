@@ -922,6 +922,7 @@ rounds it half up to the cent. `tests/fbt_instalment.rs` holds each case.
 | $2,400 estimate at quarter 1 | Employer's guide, chapter 3 | $600 |
 | $8,000 estimate at quarter 2 after $5,000 | s 112A | F3 nil, 6B $1,000 |
 | $1,000.02 estimate at quarter 1 | Rounding | $250.005, $250.01 half up |
+| $500.01 of credits after $500 of instalments | s 112A | Refused: a credit is at most the instalments before it |
 
 ## FBT minor benefit check
 
@@ -3841,7 +3842,10 @@ afternoon, 5.00 pm to 5.40 pm AEDT:
   year'), (2B) to (2J) (the aggregate non-rebatable amount, times the FBT
   rate at step 4). Volume 2: s 135Q (a s 57A employer's reportable amount, and
   at (1)(c) a car exempt under s 8A counted as if a fringe benefit, which
-  s 5B(1K) step 1 reads; refused for these kinds).
+  s 5B(1K) step 1 reads; refused for these kinds). A rebatable employer's
+  bases follow s 65J(2G) step 1, which reads s 5E, so an exempt electric car
+  adds nothing; s 135P(3), in the same volume 2 text, brings the car into the
+  reportable amount only.
 - ATO, 'Completing your FBT return 2026 - not-for-profit employers' and
   'Worked examples for NFP employers completing FBT return 2026' (both
   published 1 April 2026): the steps for items 14C, 17 and 18, item 23 for

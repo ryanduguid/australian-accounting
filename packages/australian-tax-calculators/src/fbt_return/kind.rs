@@ -84,18 +84,20 @@ pub(super) fn check_kind(v: &Value) -> Result<(&'static str, Kind), Refusal> {
     }
 }
 
-fn invalid_days(year: i64, days: i64) -> Refusal {
+fn invalid_days(year: i64) -> Refusal {
+    // The FBT year ended 31 March `year` holds February of `year`.
+    let days = days_in(year);
     Refusal::new(
         "fbt_return.rebatable_days_invalid",
         format!(
-            "rebatable_days and employer_days are given together as JSON integers: employer_days from 1 to {days}, the days of the FBT year ended 31 March {year}, on which the employer was an employer, and rebatable_days from 0 to employer_days, the whole days on which it was a rebatable employer (FBTAA s 65J(2A))"
+            "a rebatable employer gives rebatable_days and employer_days together as JSON integers: employer_days from 1 to {days}, the days of the FBT year ended 31 March {year}, on which the employer was an employer, and rebatable_days from 0 to employer_days, the whole days on which it was a rebatable employer (FBTAA s 65J(2A))"
         ),
     )
 }
 
 /// The rebatable days and the days the employer was an employer in the year
-/// (s 65J(2A)), given together for a rebatable employer only; absent, every
-/// day.
+/// (s 65J(2A)), required together for a rebatable employer and refused for
+/// any other kind.
 pub(super) fn check_days(v: &Value, kind: Kind, year: i64) -> Result<Option<[i64; 2]>, Refusal> {
     let given = ["rebatable_days", "employer_days"].map(|key| v.get(key));
     let Some(key) = ["rebatable_days", "employer_days"]
@@ -103,7 +105,11 @@ pub(super) fn check_days(v: &Value, kind: Kind, year: i64) -> Result<Option<[i64
         .zip(given)
         .find_map(|(key, value)| value.map(|_| key))
     else {
-        return Ok(None);
+        return if kind == Kind::Rebatable {
+            Err(invalid_days(year))
+        } else {
+            Ok(None)
+        };
     };
     if kind != Kind::Rebatable {
         return Err(Refusal::new(
@@ -111,16 +117,19 @@ pub(super) fn check_days(v: &Value, kind: Kind, year: i64) -> Result<Option<[i64
             format!("{key} is an input of {COMMAND} only with employer_kind rebatable"),
         ));
     }
-    // The FBT year ended 31 March `year` holds February of `year`.
-    let days = if year % 4 == 0 { 366 } else { 365 };
+    let days = days_in(year);
     match given.map(|value| value.and_then(Value::as_i64)) {
         [Some(rebatable), Some(employer)]
             if (1..=days).contains(&employer) && (0..=employer).contains(&rebatable) =>
         {
             Ok(Some([rebatable, employer]))
         }
-        _ => Err(invalid_days(year, days)),
+        _ => Err(invalid_days(year)),
     }
+}
+
+fn days_in(year: i64) -> i64 {
+    if year % 4 == 0 { 366 } else { 365 }
 }
 
 /// The FBT instalments reported for the year, less any credits claimed
@@ -202,13 +211,13 @@ pub(super) fn check_entertainment(
 
 /// An exempt electric car under a rebatable or s 57A employer is refused.
 pub(super) fn check_exempt_car(at: &str, input: &Value, kind: Kind) -> Result<(), Refusal> {
-    if kind == Kind::Taxable || input["electric_car_exempt"] != json!(true) {
+    if !matches!(kind, Kind::Exempt(_)) || input["electric_car_exempt"] != json!(true) {
         return Ok(());
     }
     Err(Refusal::new(
         "fbt_return.nfp_exempt_car_unsupported",
         format!(
-            "{at}: an exempt electric car is not composed for a rebatable or s 57A employer: s 135Q(1)(c), which s 5B(1K) step 1 reads, counts a car exempt under s 8A as if it were a fringe benefit, and no ATO example shows how it meets the cap"
+            "{at}: an exempt electric car is not composed for an s 57A employer: s 135Q(1)(c), which s 5B(1K) step 1 reads, counts a car exempt under s 8A as if it were a fringe benefit, and no ATO example shows how it meets the cap"
         ),
     ))
 }

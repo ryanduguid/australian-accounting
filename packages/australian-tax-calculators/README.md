@@ -3117,8 +3117,9 @@ estimate is under 90% of the tax assessed (s 112B, a warning), due dates
 (s 103) and rounding a payment down to 5 cents are not worked out. It refuses a
 quarter other than 1 to 4 (`fbt_instalment.quarter_invalid`), neither F1 nor an
 estimate (`fbt_instalment.ato_instalment_missing`), and a variation without a
-listed reason code or the previous instalments it needs, or variation facts
-without an estimate (`fbt_instalment.variation_invalid`). See
+listed reason code or the previous instalments it needs, previous credits
+above the previous instalments, or variation facts without an estimate
+(`fbt_instalment.variation_invalid`). See
 [calculation evidence](docs/calculation-evidence.md#fbt-instalment).
 
 ## FBT return
@@ -3188,8 +3189,8 @@ GST-creditable, is given as separate benefits.
 `taxable` and the return is as above. `rebatable` (s 65J) keeps items 14A to
 16, then gives item 17, the aggregate non-rebatable amount, item 18, the rebate
 of 47% of item 16 less item 17 times `rebatable_days` over `employer_days`
-(both optional together; absent, the fraction is 1 and a warning says so), and
-item 19. `public_benevolent_institution` and `health_promotion_charity`
+(both required), and item 19; an exempt electric car adds nothing to its caps,
+as s 65J(2G) reads s 5E. `public_benevolent_institution` and `health_promotion_charity`
 (s 57A(1) and (5), a $30,000 cap) and `public_hospital`,
 `not_for_profit_hospital` and `public_ambulance_service` (s 57A(3) and (4), a
 $17,000 cap) give items 14C, 15, 16 and 19, with 14A and 14B blank: each
@@ -3201,19 +3202,20 @@ cent, the cap comes off, not below nil, and then the lesser of $5,000 and the
 grossed-up value of their benefits marked `entertainment: salary_packaged`
 (salary packaged meal entertainment or entertainment facility leasing,
 s 5B(1E) and (1M), s 65J(2B) and (2J)). `capping` shows each employee's
-amounts. Item 14C is the sum in whole dollars, 0.5 up as `fbt` rounds 14A and
+amounts, so for these kinds each employee label must stand for one person.
+Item 14C is the sum in whole dollars, 0.5 up as `fbt` rounds 14A and
 14B; items 17 and 18 are in cents. For a s 57A employer item 23 leaves out the
 benefits the caps disregard. The ATO's worked examples 1 to 3 for
 not-for-profit employers multiply by 2.0802 and 1.8868, so the rebatable
 example's items differ by cents or a dollar; the public benevolent institution
 and public hospital examples match. Refused: any other kind, such as a
 government body under s 57A(2), a partly public benevolent institution, or
-s 58 (`fbt_return.employer_kind_unsupported`); an exempt electric car for these
-kinds, which s 135Q(1)(c) brings into the cap with no ATO example
+s 58 (`fbt_return.employer_kind_unsupported`); an exempt electric car for a s 57A
+kind, which s 135Q(1)(c) brings into the cap with no ATO example
 (`fbt_return.nfp_exempt_car_unsupported`); an `entertainment` marker that is
 neither value, contradicts `excluded` or sits on car parking or meal
-entertainment (`fbt_return.entertainment_invalid`); and days that do not fit
-the year (`fbt_return.rebatable_days_invalid`). Each return caps its own
+entertainment (`fbt_return.entertainment_invalid`); and rebatable days absent or
+not fitting the year (`fbt_return.rebatable_days_invalid`). Each return caps its own
 employer's benefits; one employee's benefits from several employers are not
 apportioned.
 
