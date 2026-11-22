@@ -6227,8 +6227,14 @@ pub use gst_adjustments::{
 };
 mod deferred_tax;
 pub use deferred_tax::{DeferredTaxArgs, deferred_tax};
+mod foreign_income_conversion;
+pub use foreign_income_conversion::foreign_income_conversion;
+mod foreign_income_tax_offset;
+pub use foreign_income_tax_offset::{
+    FITO_OPTIONAL, ForeignIncomeTaxOffsetArgs, foreign_income_tax_offset,
+};
 
-const KINDS: [&str; 102] = [
+const KINDS: [&str; 104] = [
     "gst",
     "gst_margin_scheme",
     "fuel_tax_credits",
@@ -6331,6 +6337,8 @@ const KINDS: [&str; 102] = [
     "gst_bad_debt",
     "deferred_tax",
     "cgt_cost_base_adjustments",
+    "foreign_income_conversion",
+    "foreign_income_tax_offset",
 ];
 
 /// `periods(kind)`: accepted period arguments and inclusive calendar boundaries.

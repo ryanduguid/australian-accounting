@@ -624,6 +624,26 @@
   `lodgment_required.triggers_invalid`. `tests/lodgment_required.rs` holds it
   to each year's thresholds.
 
+- `foreign-income-conversion` translates foreign currency income,
+  deductions, asset costs, CGT amounts and foreign tax paid into AUD under
+  ITAA 1997 s 960-50 for 2020-21 to 2026-27, each at the stated rate for the
+  day its item names or an average over at most 12 months (item 12 and
+  Schedule 2 of the 1997 or 2021 Regulations). New codes:
+  `foreign_income_conversion.average_period`, `.basis_invalid`,
+  `.currency_invalid`, `.items_invalid`, `.kind_invalid`, `.rate_date` and
+  `.text_invalid`. `tests/foreign_income_conversion.rs` holds it to the
+  ATO's rental expense and income examples.
+- `foreign-income-tax-offset` works out the foreign income tax offset
+  (ITAA 1997 Division 770) for 2020-21 to 2026-27 with the $1,000 default
+  limit, a limit from stated income tax figures, or, for 2024-25 to 2026-27,
+  one worked at the resident rates with a part-year resident's tax-free
+  threshold (Income Tax Rates Act 1986 ss 18 and 20). New codes:
+  `foreign_income_tax_offset.limit_method_invalid`,
+  `.residency_periods_invalid` and `.worked_year`.
+  `tests/foreign_income_tax_offset.rs` holds it to Examples 16 and 17 of the
+  ATO's foreign income tax offset guides for 2024 to 2026 and its part-year
+  threshold examples.
+
 ### Changed
 
 - `borrowing-expenses` takes 2017-18 to 2027-28, not 2024-25 to 2026-27:

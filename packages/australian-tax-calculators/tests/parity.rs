@@ -40,7 +40,7 @@ use std::process::{Command, Stdio};
 /// `tests/lodgment_required.rs`, `tests/rd_tax_offset.rs`,
 /// `tests/gst_adjustments.rs`, `tests/deferred_tax.rs` and
 /// `tests/cgt_cost_base_adjustments.rs` cover them.
-const NEW_KINDS: [(&str, &str); 88] = [
+const NEW_KINDS: [(&str, &str); 90] = [
     ("super-withholding", "super_withholding"),
     ("super-benefit-tax", "super_benefit_tax"),
     ("fhss", "fhss"),
@@ -135,6 +135,8 @@ const NEW_KINDS: [(&str, &str); 88] = [
     ("gst-second-hand-goods", "gst_second_hand_goods"),
     ("gst-bad-debt", "gst_bad_debt"),
     ("deferred-tax", "deferred_tax"),
+    ("foreign-income-conversion", "foreign_income_conversion"),
+    ("foreign-income-tax-offset", "foreign_income_tax_offset"),
     ("division-296", "division_296"),
     ("termination-payment", "termination_payment"),
     ("etp-tax-free-component", "etp_tax_free_component"),

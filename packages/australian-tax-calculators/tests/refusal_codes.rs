@@ -52,6 +52,8 @@ fn every_code_at_a_refusal_site_is_catalogued_and_every_entry_is_used() {
         "engine/super_benefit_tax",
         "engine/gst_adjustments",
         "engine/deferred_tax",
+        "engine/foreign_income_conversion",
+        "engine/foreign_income_tax_offset",
     ]
     .into_iter()
     .flat_map(|dir| {
@@ -187,7 +189,7 @@ fn every_catalogued_required_input_of_a_strict_command_is_read() {
     // gst-financial-acquisitions-threshold, gst-going-concern,
     // gst-second-hand-goods, gst-bad-debt, deferred-tax,
     // cgt-cost-base-adjustments and super-withholding.
-    assert_eq!(checked, 88);
+    assert_eq!(checked, 90);
 }
 
 /// Every frozen call gives the same answer through either entry point, and

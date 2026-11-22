@@ -1141,6 +1141,20 @@ const COMMAND_ARGS: &[(&str, &[(&str, Kind)])] = &[
         ],
     ),
     (
+        "foreign-income-conversion",
+        &[("items", Json), ("year", Raw), ("scope_confirmed", Raw)],
+    ),
+    (
+        "foreign-income-tax-offset",
+        &[
+            ("foreign_tax_paid", Dec),
+            ("nane_foreign_tax", Dec),
+            ("limit_method", Raw),
+            ("year", Raw),
+            ("scope_confirmed", Raw),
+        ],
+    ),
+    (
         "income-tests",
         &[
             ("taxable_income", Dec),
@@ -1233,7 +1247,7 @@ pub fn commands() -> Vec<&'static str> {
 /// command on its `gross_pay` shows that withholding. The classifier's amounts
 /// are totals over lines whose shares a decision table sets, not a formula;
 /// each line and class carries the authority for its row instead.
-const DERIVED: [&str; 78] = [
+const DERIVED: [&str; 79] = [
     "fbt",
     "fbt-car-statutory",
     "fbt-car-operating-cost",
@@ -1312,6 +1326,7 @@ const DERIVED: [&str; 78] = [
     "gst-second-hand-goods",
     "gst-bad-debt",
     "cgt-cost-base-adjustments",
+    "foreign-income-tax-offset",
 ];
 
 /// `derive`: `{"command", "input"}` gives the command's result with the step
@@ -1747,6 +1762,8 @@ pub fn evaluate_coded(command: &str, v: &Value) -> Result<Value> {
             | "gst-second-hand-goods"
             | "gst-bad-debt"
             | "deferred-tax"
+            | "foreign-income-conversion"
+            | "foreign-income-tax-offset"
             | "business-capital-expenditure"
             | "balancing-adjustment"
             | "trade-in"
@@ -2960,6 +2977,28 @@ pub fn evaluate_coded(command: &str, v: &Value) -> Result<Value> {
             year: &a[18],
             scope_confirmed: &a[19],
         }),
+        "foreign-income-conversion" => engine::foreign_income_conversion(&a[0], &a[1], &a[2]),
+        "foreign-income-tax-offset" => {
+            // Optional: the facts only the stated or worked limit takes.
+            let given = engine::FITO_OPTIONAL.map(|key| {
+                let kind = match key {
+                    "residency_periods" => Json,
+                    "eligible_pensioner" => Raw,
+                    _ => Dec,
+                };
+                optional(v, key, kind)
+            });
+            let [a0, a1, a2, a3, a4, a5, a6, a7, a8] = given;
+            let given = [a0?, a1?, a2?, a3?, a4?, a5?, a6?, a7?, a8?];
+            engine::foreign_income_tax_offset(&engine::ForeignIncomeTaxOffsetArgs {
+                foreign_tax_paid: &a[0],
+                nane_foreign_tax: &a[1],
+                limit_method: &a[2],
+                year: &a[3],
+                scope_confirmed: &a[4],
+                optional: given.each_ref().map(Option::as_ref),
+            })
+        }
         "luxury-car-tax" => engine::luxury_car_tax(&engine::LctArgs {
             lines: &a[0],
             year: &a[1],

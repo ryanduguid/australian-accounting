@@ -407,6 +407,14 @@ pub const SCOPES: &[(&str, &str)] = &[
         "One Australian resident company's tax effect worksheet under AASB 112 for an income year from 2020-21 to 2026-27, the company taxed at the Income Tax Rates Act 1986 s 23(2) rates (not a life insurance company, RSA provider, PDF, non-profit company under s 23(6) or credit union under s 23(7)) on Australian income tax alone. Each item's temporary difference is its carrying amount less its tax base for an asset, or its tax base less its carrying amount for a liability (paras 5, 7 and 8): positive is taxable, negative deductible. A deferred tax liability is taken on every taxable difference (para 15) and a deferred tax asset on deductible differences and unused tax losses less those the preparer states have no deferred tax asset, as future taxable profit is not probable (paras 24, 34 to 36 and 56), each at 25% or 30% as the preparer expects the company to be a base rate entity or not when they reverse (paras 47 and 48; s 23(2), s 23AA), undiscounted (para 53). The movement is split into the rate change on opening balances (para 80(d)), the recognition change (para 80(f) and (g)), with previously unrecognised amounts used in the year shown apart (para 80(e)), and origination and reversal (para 80(c)). Current tax is taxable income at the year's s 23(2) rate (25%, 26% in 2020-21, for a base rate entity; 30% otherwise) less non-refundable offsets the preparer has worked out, and the para 81(c)(i) reconciliation starts from accounting profit at that rate, with the average effective tax rate (para 86). The preparer establishes the carrying amounts, tax bases, unused tax losses, the probability judgement, the expected rates, taxable income, non-deductible expenses, non-assessable income and offsets, and leaves out of the items the differences the initial recognition exception covers (paras 15 and 24, as amended by AASB 2021-5 from 1 January 2023) and those on investments in subsidiaries, branches, associates and joint arrangements (paras 39 and 44). Excludes unused tax credits, adjustments for prior periods' current tax (para 80(b)), Pillar Two top-up taxes (para 4A), offsetting in the statement of financial position (para 74) and presentation. Refuses business combinations (paras 19 and 66 to 68), uncertain tax treatments (AASB Interpretation 23), tax-consolidated group members (AASB Interpretation 1052), tax on items outside profit or loss (paras 61A to 63), a change in the expected rate with opening balances when the year's rate is not the closing rate (the reversals in the year need a schedule) and, in 2020-21, opening balances measured at the base rate entity rate.",
     ),
     (
+        "foreign_income_conversion",
+        "Foreign currency amounts of one taxpayer translated into Australian dollars under ITAA 1997 s 960-50 for an income year from 2020-21 to 2026-27 that starts on 1 July: ordinary income (s 960-50(6) item 6), statutory income other than a Division 102 amount (item 7), deductions other than under s 25-35 or Division 40 (item 8 as the regulations substitute it), a depreciating asset's cost (item 2), amounts relevant to CGT (item 5) and payments no other item covers, such as foreign income tax paid (item 11), each at the rate for the day its item names or, under item 12, at an average of the rates over a period of at most 12 months containing that day (Income Tax Assessment Regulations 1997 Schedule 2 clause 1.3 for 2020-21; Income Tax Assessment (1997 Act) Regulations 2021 Schedule 2 clause 3 from 2021-22). The operator states each rate as the foreign currency equal to 1 AUD, with its source; the command neither fetches nor assumes one, and refuses a specific rate for any other day. The operator establishes each amount's kind and dates, that an average rate reasonably approximates the item's rate and comes from a source that is not an associate or the taxpayer, and that the same time of day is used for daily rates. Excludes functional currency (Subdivision 960-D), CFC attribution, branch income of an overseas permanent establishment, forex gains and losses (Division 775), bad debts (item 8A), trading stock (items 3 and 4), withholding (item 10), film and digital game amounts, spot contracts, item 11A amounts, the financial report and records consistency rules, and which country is an amount's source.",
+    ),
+    (
+        "foreign_income_tax_offset",
+        "The foreign income tax offset (ITAA 1997 Division 770) for an income year from 2020-21 to 2026-27: the foreign income tax that counts towards it (s 770-70) and its limit (s 770-75), either $1,000 without working out s 770-75(2)(b) (note 1), or the greater of $1,000 and the income tax payable less that payable on the s 770-75(4) assumptions, each disregarding tax offsets and including the Medicare levy and surcharge (the ATO's Guide to foreign income tax offset rules, steps 1 to 3), raised by tax on s 23AI and 23AK income (s 770-80). The 2 income tax figures are stated, for any taxpayer, or worked out for an individual who was an Australian resident for the whole year or part of it, not a working holiday maker or trustee, in 2024-25 to 2026-27: basic income tax at the year's resident rates on whole-dollar taxable income with no amount taxed at another rate, with the part-year tax-free threshold of the Income Tax Rates Act 1986 ss 18 and 20, plus the Medicare levy and surcharge the operator gives for each income. The operator establishes which foreign income tax counts (s 770-10, including what a treaty allows, that foreign IIR and UTPR tax does not count where s 770-10(6) applies, that it was paid, s 770-130, and not refunded, s 770-140), translated into AUD, and the disregarded income and reasonably related deductions. The offset is applied against basic income tax, then the levy and the surcharge, and the rest is lost (s 63-10(1) item 22); applying it is outside it. Excludes CFC attributed tax (s 770-135), the Joint Petroleum Development Area rule, life insurance classes, deferred non-commercial losses' adjustment, pre-commencement excess foreign income tax and amendments (s 770-190).",
+    ),
+    (
         "income_tests",
         "The income measures of one individual who was an Australian resident for the whole income year and alive at its end, each the person's own for the whole year, from components the operator has established and classified: income for surcharge purposes (ITAA 1997 s 995-1), Division 293 income (s 293-20(1)(a)), rebate income (ITAA 1936 s 6(1)), repayment income for study and training loans (HESA s 154-5), adjusted taxable income for offsets (ITAA 1997 s 995-1, ITAA 1936 s 6(1) and A New Tax System (Family Assistance) Act 1999 Sch 3, disregarding cls 3 and 3A) and total income for the super co-contribution (Superannuation (Government Co-contribution for Low Income Earners) Act 2003 s 8). A spouse's measures come from the spouse's own components. A dependant's adjusted taxable income for part of a year, a deceased person's annualised adjusted taxable income (Sch 3 cl 2(2)), the co-contribution's 10% eligible income test, the combined family amounts and every threshold and eligibility test the measures feed are outside it. Income for surcharge purposes follows s 995-1, which does not add exempt foreign employment income; the ATO's surcharge page adds it where taxable income is $1 or more, and the result warns when that changes the figure. Measures another agency applies are outside it: the Commonwealth Seniors Health Card income test and family assistance adjusted taxable income are Services Australia's (https://www.servicesaustralia.gov.au/income-test-for-commonwealth-seniors-health-card). Refuses part-year residents, working holiday makers and foreign residents, and components that cannot all be true together.",
     ),
@@ -808,6 +816,14 @@ pub const SOURCES: &[(&str, &str)] = &[
     (
         "deferred_tax",
         "https://standards.aasb.gov.au/aasb-112-sep-2023",
+    ),
+    (
+        "foreign_income_conversion",
+        "https://www.ato.gov.au/law/view/document?docid=PAC/19970038/960-50",
+    ),
+    (
+        "foreign_income_tax_offset",
+        "https://www.ato.gov.au/law/view/document?docid=PAC/19970038/770-75",
     ),
 ];
 
@@ -1798,6 +1814,25 @@ pub const EXTRA_SOURCES: &[(&str, &[&str])] = &[
         ],
     ),
     (
+        "foreign_income_conversion",
+        &[
+            "https://www.legislation.gov.au/F2021L00206/latest/text",
+            "https://www.legislation.gov.au/F1997B02703/2020-04-01/2020-04-01/text/original/epub/OEBPS/document_1/document_1.html",
+            "https://www.ato.gov.au/businesses-and-organisations/corporate-tax-measures-and-assurance/foreign-exchange-gains-and-losses/translation-conversion-rules",
+            "https://www.ato.gov.au/businesses-and-organisations/corporate-tax-measures-and-assurance/foreign-exchange-gains-and-losses/in-detail/general-information-on-average-rates",
+            "https://www.ato.gov.au/tax-rates-and-codes/foreign-exchange-rates-overview",
+        ],
+    ),
+    (
+        "foreign_income_tax_offset",
+        &[
+            "https://www.ato.gov.au/law/view/document?docid=PAC/19860107/20",
+            "https://www.ato.gov.au/law/view/document?docid=PAC/19860107/18",
+            "https://www.ato.gov.au/individuals-and-families/coming-to-australia-or-going-overseas/coming-to-australia/tax-free-threshold-for-newcomers-to-australia",
+            "https://www.ato.gov.au/individuals-and-families/coming-to-australia-or-going-overseas/living-overseas-and-becoming-a-foreign-tax-resident",
+        ],
+    ),
+    (
         "income_tests",
         &[
             "https://www.legislation.gov.au/C2004A05138/2026-10-01/2026-10-01/text/original/epub/OEBPS/document_10/document_10.html",
@@ -1926,6 +1961,18 @@ pub const EXTRA_WARNINGS: &[(&str, &[&str])] = &[
         &[
             "A person not required to lodge may still choose to, for example to claim a refund of tax withheld; the ATO may also ask a person to lodge.",
             "The due date is the instrument's for lodging yourself; a registered tax agent's lodgment program may allow a later date.",
+        ],
+    ),
+    (
+        "foreign_income_conversion",
+        &[
+            "Each Australian dollar amount is rounded half up to cents and the totals add the rounded amounts; keep the rate used and its source with your records.",
+        ],
+    ),
+    (
+        "foreign_income_tax_offset",
+        &[
+            "The ATO works out the offset from the return; this checks the amount, and does not decide which foreign tax counts or what a tax treaty allows.",
         ],
     ),
     ("fbt_car_statutory", &[CAR_REPORTABLE_NOTE]),
@@ -2925,6 +2972,46 @@ pub const REFUSAL_CODES: &[(&str, &str)] = &[
         "determination_date is not in the financial year given as year.",
     ),
     (
+        "foreign_income_conversion.average_period",
+        "An average rate's period is longer than 12 months, runs backwards or does not contain the day the amount is translated on.",
+    ),
+    (
+        "foreign_income_conversion.basis_invalid",
+        "basis is not specific or average.",
+    ),
+    (
+        "foreign_income_conversion.currency_invalid",
+        "currency is not a 3-letter code other than AUD.",
+    ),
+    (
+        "foreign_income_conversion.items_invalid",
+        "items is not a list of 1 to 200 objects.",
+    ),
+    (
+        "foreign_income_conversion.kind_invalid",
+        "kind is not one of the amounts the worksheet translates.",
+    ),
+    (
+        "foreign_income_conversion.rate_date",
+        "A specific rate is for a day other than the one the amount's translation rule names.",
+    ),
+    (
+        "foreign_income_conversion.text_invalid",
+        "rate_source is not text of 1 to 200 characters.",
+    ),
+    (
+        "foreign_income_tax_offset.limit_method_invalid",
+        "limit_method is not default, stated or worked.",
+    ),
+    (
+        "foreign_income_tax_offset.residency_periods_invalid",
+        "residency_periods is not a list of 1 to 12 periods inside the income year, each running forwards.",
+    ),
+    (
+        "foreign_income_tax_offset.worked_year",
+        "The worked limit was asked for a year resident-tax has no rates for.",
+    ),
+    (
         "franking_account.distribution_invalid",
         "A distribution is not an object of date (in the income year, in date order), amount above nil and franking_credit, with optional permitted_percentage (from 0 to 100, after the first in its franking period) and statement_after_distribution (a private company's only), or distributions is not a list of at most 10,000.",
     ),
@@ -3282,7 +3369,7 @@ pub const REFUSAL_CODES: &[(&str, &str)] = &[
     ),
     (
         "input.field_unknown",
-        "A field the worksheet or command does not take, or does not take beside the other inputs given, was given (fbt-loan, fbt-meal-entertainment, fbt-car-parking, fbt-debt-waiver, fbt-expense-payment, fbt-property, fbt-residual, fbt-housing, fbt-lafha, fbt-board, fbt-tax-exempt-body-entertainment, fbt-entertainment-classifier, fbt-meal-entertainment-register and its entries, fbt-minor-benefit-check, ppsr-timing, fhss and its contributions, government-super-amounts, personal_deductions and determination, division-296, depreciation, fuel-tax-credits and its lines, foreign-resident-tax, medicare-levy, medicare-levy-surcharge, payg-withholding, payg-gross-up, termination-payment, etp-tax-free-component, unused-leave-payment, the Schedule 5 methods, working-holiday-maker-withholding, study-loan-withholding, seniors-pensioners-withholding, seniors-pensioners-tax-offset, lump-sum-arrears-tax-offset, hire-purchase-schedule, chattel-mortgage-schedule, loan-transactions and its transactions and rate_changes, borrowing-expenses-schedule and its loans, business-capital-expenditure and its items, balancing-adjustment, its years and car_limit, trade-in, franking-account and its events, distributions and income_tax, dasp-tax, super-benefit-tax, super-withholding, gst-margin-scheme, wine-equalisation-tax and its dealings, luxury-car-tax and its lines, payroll-tax, cgt-parcels, its parcels and disposals, cgt-cost-base-adjustments, its parcels and events, fbt-ev-exemption-check, sb-cgt-concessions, small-business-income-offset, residency-tests, lodgment-required, depreciation-low-value-pool, gst-creditable-purpose-change, gst-annual-apportionment, gst-financial-acquisitions-threshold, gst-going-concern, gst-second-hand-goods, gst-bad-debt, depreciation-small-business-pool, capital-works, non-commercial-losses, psi-test, beneficiary-tax-offset, invalid-carer-tax-offset, zone-tax-offset and its dependants, net-medical-expenses-tax-offset, work-expenses, ato-interest-penalties and its payments and parts, private-health-insurance-rebate, rental-property and its loans, capital_works and depreciating_assets, horticulture-shearing-withholding, upward-variation-withholding, daily-casual-withholding, no-abn-withholding, entertainer-withholding, return-to-work-withholding, annuity-withholding, voluntary-agreement-withholding, rd-tax-offset, deferred-tax, contribution-caps given a carry-forward input, derive, personal-tax-estimate, dgr-check, income-tests and fbt-return only).",
+        "A field the worksheet or command does not take, or does not take beside the other inputs given, was given (fbt-loan, fbt-meal-entertainment, fbt-car-parking, fbt-debt-waiver, fbt-expense-payment, fbt-property, fbt-residual, fbt-housing, fbt-lafha, fbt-board, fbt-tax-exempt-body-entertainment, fbt-entertainment-classifier, fbt-meal-entertainment-register and its entries, fbt-minor-benefit-check, ppsr-timing, fhss and its contributions, government-super-amounts, personal_deductions and determination, division-296, depreciation, fuel-tax-credits and its lines, foreign-resident-tax, medicare-levy, medicare-levy-surcharge, payg-withholding, payg-gross-up, termination-payment, etp-tax-free-component, unused-leave-payment, the Schedule 5 methods, working-holiday-maker-withholding, study-loan-withholding, seniors-pensioners-withholding, seniors-pensioners-tax-offset, lump-sum-arrears-tax-offset, hire-purchase-schedule, chattel-mortgage-schedule, loan-transactions and its transactions and rate_changes, borrowing-expenses-schedule and its loans, business-capital-expenditure and its items, balancing-adjustment, its years and car_limit, trade-in, franking-account and its events, distributions and income_tax, dasp-tax, super-benefit-tax, super-withholding, gst-margin-scheme, wine-equalisation-tax and its dealings, luxury-car-tax and its lines, payroll-tax, cgt-parcels, its parcels and disposals, cgt-cost-base-adjustments, its parcels and events, fbt-ev-exemption-check, sb-cgt-concessions, small-business-income-offset, residency-tests, lodgment-required, depreciation-low-value-pool, gst-creditable-purpose-change, gst-annual-apportionment, gst-financial-acquisitions-threshold, gst-going-concern, gst-second-hand-goods, gst-bad-debt, depreciation-small-business-pool, capital-works, non-commercial-losses, psi-test, beneficiary-tax-offset, invalid-carer-tax-offset, zone-tax-offset and its dependants, net-medical-expenses-tax-offset, work-expenses, ato-interest-penalties and its payments and parts, private-health-insurance-rebate, rental-property and its loans, capital_works and depreciating_assets, horticulture-shearing-withholding, upward-variation-withholding, daily-casual-withholding, no-abn-withholding, entertainer-withholding, return-to-work-withholding, annuity-withholding, voluntary-agreement-withholding, rd-tax-offset, deferred-tax, foreign-income-conversion, foreign-income-tax-offset, contribution-caps given a carry-forward input, derive, personal-tax-estimate, dgr-check, income-tests and fbt-return only).",
     ),
     ("input.flag_invalid", "A flag is not a JSON boolean."),
     ("input.fraction_invalid", "A fraction is outside 0 to 1."),
