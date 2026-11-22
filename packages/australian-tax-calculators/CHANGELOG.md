@@ -1,6 +1,6 @@
 # Changes
 
-## Unreleased
+## 1.2.0
 
 - Relicensed Ryan Duguid's code under AGPL-3.0-or-later with section 7(b) attribution terms.
 
@@ -337,6 +337,12 @@
   to each year's thresholds.
 
 ### Fixed
+
+- `fuel-tax-credits` with `rate_at_period_end` (PCG 2016/2 Method 2) takes each
+  line at the rate for its acquisition date when every applicable rate stays
+  flat across the period. It still takes the period's last day when
+  indexation changes an applicable rate, and still refuses a period across
+  any other rate change.
 
 - Both borrowing expenses worksheets identify their deduction amounts as
   section 25-25 calculations before the vacant land and residential limits.

@@ -17,6 +17,9 @@ use std::{
 };
 
 mod engine;
+
+/// The linked calculators crate, whose version its replies report.
+const CALCULATORS: &str = australian_tax_calculators::engine::VERSION;
 struct SessionDirectory(PathBuf);
 impl SessionDirectory {
     fn new() -> Self {
@@ -83,7 +86,7 @@ fn linked(request: &Value, mut expected: Value) -> Value {
             .iter_mut()
             .find(|engine| engine["distribution"] == "australian-tax-calculators")
     {
-        calculator["version"] = json!("1.1.0");
+        calculator["version"] = json!(CALCULATORS);
     }
     for pointer in ["/result/content/0/text", "/result/structuredContent"] {
         if let Some(result) = expected.pointer_mut(pointer) {
@@ -91,7 +94,7 @@ fn linked(request: &Value, mut expected: Value) -> Value {
                 engine::div7a(&request["params"]["arguments"], result);
             }
             if result["engine"] == "australian-tax-calculators" {
-                result["engine_version"] = json!("1.1.0");
+                result["engine_version"] = json!(CALCULATORS);
             }
         }
     }

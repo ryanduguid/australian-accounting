@@ -23,7 +23,7 @@ The listing identifies the distribution; it does not prove a client's installed 
   and build a 4-file evidence pack for a practitioner's workpaper.
 - **Division 7A:** get the benchmark interest rate and review s 109N loan terms and
   s 109E minimum yearly repayments for one loan. Matters outside that scope are refused.
-- **66 tax and super worksheet kinds.** These include GST, resident basic tax, CGT, FBT, first-year
+- **102 tax and super worksheet kinds.** These include GST, resident basic tax, CGT, FBT, first-year
   depreciation, quarterly SG, Schedule 1 PAYG withholding, super contribution caps,
   account-based pension minimums, study and training loan repayments, Schedule 8 study
   loan withholding, a single person's Medicare levy, the low income tax offset and
