@@ -85,6 +85,19 @@
   `non_commercial_losses.earlier_years_invalid`.
   `tests/non_commercial_losses.rs` holds it to the ATO's examples.
 
+- `minors-income` works out the tax on a minor's taxable income under
+  ITAA 1936 Division 6AA and the Income Tax Rates Act 1986 ss 13 and 15 and
+  Schedule 11 for 2024-25 to 2026-27: the prescribed person and excepted
+  person tests (s 102AC, the full-time occupation test on stated facts),
+  excepted income by its s 102AE(2) ground and trust share parts (s 102AG),
+  eligible taxable income with apportionable deductions (s 102AD), and the
+  resident and foreign resident special rates with their phase-in caps.
+  New codes: `minors_income.excepted_income_invalid`,
+  `minors_income.excepted_person_invalid`, `minors_income.facts_inconsistent`,
+  `minors_income.residency_invalid`, `minors_income.special_income_component`
+  and `minors_income.trust_shares_invalid`. `tests/minors_income.rs` holds it
+  to the ATO's under 18 rate tables.
+
 - `psi-test` says whether the personal services income rules (ITAA 1997
   Part 2-42) apply to an individual's PSI for 2020-21 to 2026-27: s 84-5,
   s 85-35, a determination in force, the results test, the 80% rule and the

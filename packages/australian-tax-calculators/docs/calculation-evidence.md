@@ -3454,6 +3454,55 @@ Choices the Act leaves to the reader:
 | $19,999.99 and $20,000; $499,999.99 and $500,000; $99,999.99 and $100,000 | ss 35-30, 35-40, 35-45 | not met; met |
 | $249,999.99 and $250,000; other income $39,999.99 and $40,000 | ss 35-10(2E), (4) | met; not met |
 
+## Minors income
+
+This worksheet was added on 22 November 2026. ITAA 1936 Division 6AA
+(ss 102AA to 102AGA) was read that day in compilation 193 (1 October 2026),
+volume 2
+(https://www.legislation.gov.au/C1936A00027/2026-10-01/2026-10-01/text/original/epub/OEBPS/document_2/document_2.html),
+and compared with compilation 169 (from 1 July 2020), which reads word for
+word the same; its amendment history lists nothing after Act No 64 of 2020.
+The Income Tax Rates Act 1986 ss 3, 13 and 15 and Schedules 7 and 11 were
+read in compilation 66 (1 July 2026)
+(https://www.legislation.gov.au/C2004A03348/2026-07-01/2026-07-01/text/original/epub/OEBPS/document_1/document_1.html)
+against compilation 55 (1 July 2020): the same but for editorial changes, and
+no amendment to ss 13 or 15 or Schedule 11 after 2013. The phase-out limits
+are the formulas of s 13(10) and s 15(8) (images in the compilation, read
+from their text alternatives): $416 x 66% / (66% - 45%) = $1,307 and
+$416 x (66% - 30%) / (66% - 45%) = $713, each rounded down. ITAA 1997
+s 61-115 and s 995-1 'apportionable deductions' were read in compilation
+268 (1 October 2026). The ATO's 'Tax rates if you're under 18 years old'
+(last updated 1 June 2026) gives the same bands for 2020-21 to 2025-26; it
+has no 2026-27 table yet, so 2026-27 rests on the Act alone, whose rates for
+it are the same at every point the worksheet uses but the 15% first band of
+the other income.
+
+Choices the Act leaves to the reader:
+
+- Eligible taxable income is worked exactly, not rounded to the dollar, and
+  each amount is shown to the cent, half up.
+- Schedule 11's 45% applies to eligible taxable income over $416 (any amount
+  for a foreign resident), and s 13(2) or s 15(2) only caps it: the tax on it
+  is the lesser of 45% and the greater amount those subsections give.
+- Where no special rate applies, `tax_on_eligible_income` is the top slice of
+  the ordinary tax, so the 2 parts add up to the ordinary tax.
+- The second resident personal tax rate is item 2 of the year's Schedule 7
+  Part I table (30%), not the first band above the tax-free threshold.
+
+`tests/minors_income.rs` holds these cases.
+
+| Case | Source | Worksheet |
+|---|---|---|
+| Resident, $416, $417, $1,307, $1,308 and $2,000 of unearned income | ATO table 1 | $0.00, $0.66, $588.06, $588.60, $900.00 |
+| Resident, $1,000 of unearned income | TR 92/12 Example 5A (s 13(2)) | $385.44 |
+| Foreign resident, $416, $417, $500, $713 and $714, each year | ATO tables 3 and 4; s 15(2) | $124.80, $125.46, $180.24, $320.82, $321.30 |
+| $28,000 of wages and $2,000 of dividends, 2025-26 | ATO table 1 row 3 | $1,568.00 + $900.00 |
+| $30,000 of wages and $2,000 of interest by year | Schedule 7 tables | other part $1,888.00, $1,888.00, $1,770.00 |
+| $45,000 of wages and $500 of dividends | ATO table 1 note (top slice) | $150.00 on the eligible part |
+| $2,000 of dividends with a $100 gift, with and without $2,000 of wages | s 102AD(c) | $100.00 and $50.00 apportioned |
+| A $5,000 trust share with a $3,000 Division 6AA part | s 102AE(4), s 102AG | $1,260.00 |
+| Full-time 3 months, intending full-time study next year | s 102AC(8)(b) | prescribed |
+
 ## PSI test
 
 This worksheet was added on 22 November 2026. ITAA 1997 Part 2-42 was read

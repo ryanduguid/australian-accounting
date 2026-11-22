@@ -889,6 +889,24 @@ const COMMAND_ARGS: &[(&str, &[(&str, Kind)])] = &[
             ("scope_confirmed", Raw),
         ],
     ),
+    (
+        "minors-income",
+        &[
+            ("taxable_income", Dec),
+            ("residency", Raw),
+            ("under_18_on_30_june", Raw),
+            ("excepted_person", Raw),
+            ("excepted_income", Json),
+            ("trust_shares", Json),
+            ("other_assessable_income", Dec),
+            ("deductions_exclusive", Dec),
+            ("deductions_related", Dec),
+            ("apportionable_deductions", Dec),
+            ("special_income_component", Raw),
+            ("year", Raw),
+            ("scope_confirmed", Raw),
+        ],
+    ),
 ];
 
 const LICENCE_NOTICE: &str = "\n\
@@ -1376,6 +1394,7 @@ pub fn evaluate_coded(command: &str, v: &Value) -> Result<Value> {
             | "non-commercial-losses"
             | "psi-test"
             | "government-super-amounts"
+            | "minors-income"
             | "business-capital-expenditure"
             | "balancing-adjustment"
             | "trade-in"
@@ -2234,6 +2253,37 @@ pub fn evaluate_coded(command: &str, v: &Value) -> Result<Value> {
                 premises: &a[7],
                 year: &a[8],
                 scope_confirmed: &a[9],
+                optional: given.each_ref().map(Option::as_ref),
+            })
+        }
+        "minors-income" => {
+            // Optional: the facts some excepted person grounds call for.
+            let [full_time, dependent] = engine::MINORS_OPTIONAL.map(|key| {
+                optional(
+                    v,
+                    key,
+                    if key == "full_time_occupation" {
+                        Json
+                    } else {
+                        Raw
+                    },
+                )
+            });
+            let given = [full_time?, dependent?];
+            engine::minors_income(&engine::MinorsIncomeArgs {
+                taxable_income: &a[0],
+                residency: &a[1],
+                under_18_on_30_june: &a[2],
+                excepted_person: &a[3],
+                excepted_income: &a[4],
+                trust_shares: &a[5],
+                other_assessable_income: &a[6],
+                deductions_exclusive: &a[7],
+                deductions_related: &a[8],
+                apportionable_deductions: &a[9],
+                special_income_component: &a[10],
+                year: &a[11],
+                scope_confirmed: &a[12],
                 optional: given.each_ref().map(Option::as_ref),
             })
         }
