@@ -3672,6 +3672,22 @@ pub const REFUSAL_CODES: &[(&str, &str)] = &[
         "premises is not an object of the 5 business premises answers.",
     ),
     (
+        "rd_tax_offset.clawback_above_total",
+        "The clawback amount is more than notional_deductions, the total the adjusted offset reduces.",
+    ),
+    (
+        "rd_tax_offset.clawback_below_threshold",
+        "There is a clawback amount and notional_deductions, or notional_deductions less the clawback amount, is under $20,000, where s 355-100(2) and the ATO's feedstock example differ.",
+    ),
+    (
+        "rd_tax_offset.feedstock_expenditure_above_total",
+        "feedstock_expenditure is more than notional_deductions, of which it is part.",
+    ),
+    (
+        "rd_tax_offset.threshold_expenditure_above_total",
+        "rsp_crc_expenditure is more than notional_deductions, of which it is part.",
+    ),
+    (
         "rental_property.asset_acquired_9_may_2017",
         "A depreciating asset was acquired on 9 May 2017, and s 40-27 applies only from 7.30 pm that day.",
     ),
@@ -3714,22 +3730,6 @@ pub const REFUSAL_CODES: &[(&str, &str)] = &[
     (
         "residency_tests.treaty_tie_breaker",
         "The individual is a resident under ITAA 1936 s 6(1) and also of another country under its law; a tax treaty's tie-breaker may apply, and the worksheet does not apply treaties.",
-    ),
-    (
-        "rd_tax_offset.clawback_above_total",
-        "The clawback amount is more than notional_deductions, the total the adjusted offset reduces.",
-    ),
-    (
-        "rd_tax_offset.clawback_below_threshold",
-        "There is a clawback amount and notional_deductions, or notional_deductions less the clawback amount, is under $20,000, where s 355-100(2) and the ATO's feedstock example differ.",
-    ),
-    (
-        "rd_tax_offset.feedstock_expenditure_above_total",
-        "feedstock_expenditure is more than notional_deductions, of which it is part.",
-    ),
-    (
-        "rd_tax_offset.threshold_expenditure_above_total",
-        "rsp_crc_expenditure is more than notional_deductions, of which it is part.",
     ),
     (
         "sb_cgt_concessions.active_period_unclear",
