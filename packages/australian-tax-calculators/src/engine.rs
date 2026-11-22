@@ -3728,6 +3728,7 @@ pub fn contribution_caps(
     under_75_in_year: &Arg,
     year: &Arg,
     scope_confirmed: &Arg,
+    determination_date: Option<&Arg>,
 ) -> Result<Value> {
     let year = scope(scope_confirmed, year, "contribution_caps")?;
     let balance = money(total_super_balance)?;
@@ -3752,6 +3753,7 @@ pub fn contribution_caps(
         steps,
         (&non_concessional, *under_75),
         Vec::new(),
+        determination_date,
     )
 }
 
@@ -3763,8 +3765,10 @@ fn caps_result(
     mut steps: Vec<Step>,
     (non_concessional, under_75): (&Decimal, bool),
     more_rates: Vec<(String, String)>,
+    determination_date: Option<&Arg>,
 ) -> Result<Value> {
     let (cap, transfer) = lookup(meta::CONTRIBUTION_CAPS, year);
+    let mut release_warning = None;
     let rates = precise(|| {
         let (cap, transfer) = (d(cap), d(transfer));
         let annual = cap.mul(&int(4))?;
@@ -3804,9 +3808,22 @@ fn caps_result(
             ),
         ];
         rates.extend(more_rates);
+        if let Some(date) = determination_date {
+            // The excess non-concessional contributions, the last step.
+            let excess = steps.last().expect("the excess").value.clone();
+            let (more, release_rates, warning) =
+                excess_contributions::release_steps(&excess, year, date)?;
+            steps.extend(more);
+            rates.extend(release_rates);
+            release_warning = Some(warning);
+        }
         Ok(rates)
     })?;
-    derived_result("contribution_caps", year, steps, rates)
+    let mut out = derived_result("contribution_caps", year, steps, rates)?;
+    if let Some(warning) = release_warning {
+        ato_interest_penalties::warn(&mut out, warning);
+    }
+    Ok(out)
 }
 
 /// The concessional amounts. s 291-20(3)-(4): the unused cap raises this
@@ -6172,6 +6189,10 @@ mod work_expenses;
 pub use work_expenses::{WORK_EXPENSES_OPTIONAL, work_expenses};
 mod ato_interest_penalties;
 pub use ato_interest_penalties::ato_interest_penalties;
+mod excess_contributions;
+pub use excess_contributions::excess_contributions;
+mod transfer_balance;
+pub use transfer_balance::transfer_balance;
 
 mod depreciation_pools;
 pub use depreciation_pools::{
@@ -6186,7 +6207,7 @@ pub use non_commercial_losses::{NCL_OPTIONAL, NonCommercialLossesArgs, non_comme
 mod psi_test;
 pub use psi_test::{PSI_OPTIONAL, PsiTestArgs, psi_test};
 
-const KINDS: [&str; 79] = [
+const KINDS: [&str; 81] = [
     "gst",
     "gst_margin_scheme",
     "fuel_tax_credits",
@@ -6259,6 +6280,8 @@ const KINDS: [&str; 79] = [
     "sb_cgt_concessions",
     "work_expenses",
     "ato_interest_penalties",
+    "transfer_balance",
+    "excess_contributions",
     "depreciation_low_value_pool",
     "depreciation_small_business_pool",
     "capital_works",

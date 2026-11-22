@@ -425,6 +425,21 @@ pub const EARLIER_CONCESSIONAL_CAPS: &[(&str, &str)] = &[
     ("2023-24", "27500"),
 ];
 
+/// The general transfer balance cap (ITAA 1997 s 294-35(3)) for the years
+/// before [`CONTRIBUTION_CAPS`] begins: $1,600,000 for 2017-18, indexed in
+/// $100,000 steps (s 960-285), as the CCH note to s 294-35 at the ATO's legal
+/// database and the ATO's 'Contributions caps' page (last updated
+/// 11 September 2026) give them, read on 22 November 2026.
+pub const EARLIER_TRANSFER_BALANCE_CAPS: &[(&str, &str)] = &[
+    ("2017-18", "1600000"),
+    ("2018-19", "1600000"),
+    ("2019-20", "1600000"),
+    ("2020-21", "1600000"),
+    ("2021-22", "1700000"),
+    ("2022-23", "1700000"),
+    ("2023-24", "1900000"),
+];
+
 /// Study loan repayment thresholds: minimum, step, printed base, flat-from.
 pub const STUDY_LOAN_REPAYMENT_THRESHOLDS: &[(&str, [(&str, &str); 4])] = &[
     (
@@ -1213,6 +1228,19 @@ pub fn supported_periods(kind: &str) -> Vec<&'static str> {
         "ato_interest_penalties" => vec![
             "2020-21", "2021-22", "2022-23", "2023-24", "2024-25", "2025-26", "2026-27", "2027-28",
         ],
+        // The financial year of `to`: accounts start from 1 July 2017, and
+        // the general cap for 2027-28 is not yet known.
+        "transfer_balance" => vec![
+            "2017-18", "2018-19", "2019-20", "2020-21", "2021-22", "2022-23", "2023-24", "2024-25",
+            "2025-26", "2026-27",
+        ],
+        // The charge's or contributions' year: the charge runs from 2013-14 to
+        // 2020-21, and the release needs every base rate of the year, published
+        // to 31 December 2026.
+        "excess_contributions" => vec![
+            "2013-14", "2014-15", "2015-16", "2016-17", "2017-18", "2018-19", "2019-20", "2020-21",
+            "2021-22", "2022-23", "2023-24", "2024-25", "2025-26",
+        ],
         _ => Vec::new(),
     }
 }
@@ -1484,6 +1512,14 @@ pub fn source_review(kind: &str) -> (&'static str, &'static str) {
         "ato_interest_penalties" => (
             "2026-11-22",
             "TAA 1953 ss 8AAC and 8AAD and Sch 1 ss 280-100, 280-105, 284-75, 284-80, 284-85, 284-90, 284-220, 284-224, 284-225, 286-75, 286-80 and 298-20, ITAA 1997 s 5-15 and Crimes Act 1914 s 4AA at the ATO's legal database; Taxation (Interest on Overpayments and Early Payments) Act 1983 ss 3, 3C, 8A to 8C, 9, 10, 12D and 12E (compilation 58, 14 October 2024, at the Federal Register of Legislation, and the ATO's legal database); the ATO's 'General interest charge (GIC) rates' and 'Shortfall interest charge (SIC) rates' (last updated 4 September 2026), 'Credit interest rates and calculation' (QC58284, 19 June 2026), 'Penalty units' (QC71196, 26 June 2026) and 'Significant global entities - penalties' (1 July 2026); PS LA 2006/8, PS LA 2011/19 paras 15 to 30, PS LA 2011/23 para 4, PS LA 2012/5 paras 95 to 137, MT 2008/2 paras 33 and 55 to 63 and MT 2012/3 paras 35 and 88 to 89",
+        ),
+        "transfer_balance" => (
+            "2026-11-22",
+            "ITAA 1997 ss 294-15 to 294-55, 294-80, 294-85, 294-90, 294-230 and 294-235 (ATO legal database); IT(TP)A 1997 ss 294-30 and 294-55 (compilation 104); Superannuation (Excess Transfer Balance Tax) Imposition Act 2016 s 5; ATO Calculating your personal transfer balance cap (31 March 2026), its 6 examples; Transfer balance account (18 June 2025); Excess transfer balance (7 February 2025); GIC rates (4 September 2026)",
+        ),
+        "excess_contributions" => (
+            "2026-11-22",
+            "TAA 1953 s 8AAD and Sch 1 ss 97-25 and 97-30 (compilation 227) and former Div 95 (compilation 180); Superannuation (Excess Concessional Contributions Charge) Act 2013 ss 4 and 5; Act No. 45 of 2021 Sch 2 item 14; ITAA 1997 ss 292-20, 292-25 and 292-30; ATO Contributions caps (11 September 2026), Tables 3 and 5",
         ),
         "depreciation_low_value_pool" => (
             "2026-11-22",
@@ -2204,6 +2240,24 @@ pub fn optional_inputs(kind: &str) -> Vec<(&'static str, &'static str)> {
                 "boolean, overpayment_interest only and required: true when the overpayment results from a decision to which the Act applies (s 3(1)); false is refused",
             ),
         ],
+        "excess_contributions" => vec![
+            (
+                "additional_tax",
+                "AUD, concessional_charge only and required: the tax for the income year less the tax disregarding the excess concessional contributions (TAA 1953 Sch 1 former s 95-10(1) and (2)), the amount the charge is on",
+            ),
+            (
+                "tax_due_date",
+                "YYYY-MM-DD, concessional_charge only and required: the day tax under the first notice of assessment for the year is or would be due; the charge runs to the day before (former s 95-10(3))",
+            ),
+            (
+                "excess",
+                "AUD above nil, non_concessional_release only and required: the excess of non-concessional contributions over the cap for the contributions year (s 97-25(1)(a)), such as contribution-caps' excess_non_concessional",
+            ),
+            (
+                "determination_date",
+                "YYYY-MM-DD, non_concessional_release only and required: the day the Commissioner makes, or is assumed to make, the first determination for the year, the last day of associated earnings (s 97-30(1)(b))",
+            ),
+        ],
         "sb_cgt_concessions" => vec![
             (
                 "small_business_when_stopped",
@@ -2512,6 +2566,10 @@ pub fn optional_inputs(kind: &str) -> Vec<(&'static str, &'static str)> {
             (
                 "proposed_concessional_contribution",
                 "AUD, with earlier_concessional_contributions only: a further concessional contribution for the year; the unused cap it applies and what is left are worked out after it; omit for none",
+            ),
+            (
+                "determination_date",
+                "YYYY-MM-DD, 2024-25 and 2025-26: the day the Commissioner is assumed to make the first excess non-concessional contributions determination for the year; adds associated_earnings, total_release_amount and associated_earnings_tax_offset for excess_non_concessional (TAA 1953 Sch 1 ss 97-25 and 97-30, ITAA 1997 s 292-30); omit for none",
             ),
         ],
         "medicare_levy_surcharge" => vec![
@@ -4032,6 +4090,15 @@ pub fn input_units(kind: &str) -> Vec<(&'static str, &'static str)> {
             "question",
             "gic, sic, failure_to_lodge, statement_penalty, early_payment_interest or overpayment_interest; remission and scheme_penalty are refused",
         )],
+        "transfer_balance" => vec![
+            ("events", "list of 1 to 1000 objects, each date (YYYY-MM-DD, from 1 July 2017), kind and amount (AUD above nil): credits existing_income_stream (1 July 2017 only), new_income_stream and lrba_repayment; debits commutation, reduced_super, payment_split and stopped_retirement_phase; reversionary, child, capped defined benefit, structured settlement, regulation and Commissioner's events are refused"),
+            ("to", "YYYY-MM-DD: the last day worked, on or after every event; year is its financial year"),
+            ("previously_liable", "boolean: liable to excess transfer balance tax for an excess transfer balance period starting on or after 1 July 2018 before these events (Imposition Act 2016 s 5(2))"),
+        ],
+        "excess_contributions" => vec![(
+            "question",
+            "concessional_charge (2013-14 to 2020-21) or non_concessional_release (contributions years 2013-14 to 2025-26)",
+        )],
         "depreciation_low_value_pool" => vec![
             ("previous_closing_pool_balance", "AUD: the pool's closing pool balance for the previous income year (ITAA 1997 s 40-440(1) step 3(a)); 0.00 in the year the pool starts"),
             ("low_cost_assets", "AUD: the taxable use percentage of the cost of the low-cost assets (cost under $1,000, s 40-425(2)) allocated to the pool for the year"),
@@ -4802,6 +4869,25 @@ pub fn examples(kind: &str) -> Vec<(&'static str, Example)> {
                     r#"[{"date": "2026-10-01", "amount": "336.56"}, {"date": "2026-11-01", "amount": "336.56"}]"#,
                 ),
             ),
+        ],
+        // The ATO's Leanne: $1 million from 1 October 2025, $200,000 commuted
+        // on 13 May 2026; her cap is indexed by 50% of $100,000 to $2.05 million.
+        "transfer_balance" => vec![
+            (
+                "events",
+                Json(
+                    r#"[{"date": "2025-10-01", "kind": "new_income_stream", "amount": "1000000.00"}, {"date": "2026-05-13", "kind": "commutation", "amount": "200000.00"}]"#,
+                ),
+            ),
+            ("to", Text("2026-07-01")),
+            ("previously_liable", Flag(false)),
+            ("year", Text("2026-27")),
+        ],
+        "excess_contributions" => vec![
+            ("question", Text("non_concessional_release")),
+            ("year", Text("2024-25")),
+            ("excess", Text("100000.00")),
+            ("determination_date", Text("2025-09-15")),
         ],
         // The Guide to depreciating assets 2026's John: $5,000 closing balance
         // for 2024-25 and a $990 printer used 60% for taxable purposes.

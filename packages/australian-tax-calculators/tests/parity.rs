@@ -34,10 +34,13 @@ use std::process::{Command, Stdio};
 /// `tests/depreciation_pools.rs`, `tests/work_expenses.rs`,
 /// `tests/ato_interest_penalties.rs`, `tests/small_business_income_offset.rs`,
 /// `tests/government_super_amounts.rs`, `tests/individual_offsets.rs`,
-/// `tests/non_commercial_losses.rs` and `tests/psi_test.rs` cover them.
-const NEW_KINDS: [(&str, &str); 65] = [
+/// `tests/non_commercial_losses.rs`, `tests/psi_test.rs` and
+/// `tests/transfer_balance.rs` cover them.
+const NEW_KINDS: [(&str, &str); 67] = [
     ("fhss", "fhss"),
     ("ato-interest-penalties", "ato_interest_penalties"),
+    ("transfer-balance", "transfer_balance"),
+    ("excess-contributions", "excess_contributions"),
     ("ppsr-timing", "ppsr_timing"),
     ("dasp-tax", "dasp_tax"),
     ("fbt-minor-benefit-check", "fbt_minor_benefit_check"),

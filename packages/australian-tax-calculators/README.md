@@ -174,6 +174,8 @@ booleans and counts, ages, days, quarters and scales are JSON integers.
 | `fbt-minor-benefit-check` | `category`, `notional_taxable_value`, `salary_sacrifice`, `frequency`, `similar_benefits_substantial`, `other_associated_benefits_substantial`, `valuation_difficult`, `unexpected_event`, `reward_for_services`, `year_ended`, `scope_confirmed`; `in_house` for an expense payment, property or residual benefit, `tax_exempt_body_exception` for tax-exempt body entertainment and `fifty_fifty_split` for meal entertainment or entertainment facility leasing; see [FBT minor benefits](#fbt-minor-benefits) |
 | `fhss` | `determination_date`, `year`, `scope_confirmed`, and either `contributions` with `determination_requested` (optional `personal_deductions`) or `determination`; optional `amount_requested` and `estimated_marginal_rate`; see [First Home Super Saver scheme](#first-home-super-saver-scheme) |
 | `ato-interest-penalties` | `question` (`gic`, `sic`, `failure_to_lodge`, `statement_penalty`, `early_payment_interest` or `overpayment_interest`), `year`, `scope_confirmed`, and the question's own inputs; see [ATO penalties and interest](#ato-penalties-and-interest) |
+| `transfer-balance` | `events`, `to`, `previously_liable`, `year`, `scope_confirmed`; see [Transfer balance and excess contributions](#transfer-balance-and-excess-contributions) |
+| `excess-contributions` | `question` (`concessional_charge` or `non_concessional_release`), `year`, `scope_confirmed`, and the question's own inputs; see [Transfer balance and excess contributions](#transfer-balance-and-excess-contributions) |
 | `ppsr-timing` | `question` (`registration`, `pmsi` or `company_grantor`), `year`, `scope_confirmed`, and the question's own inputs; see [PPSR timing](#ppsr-timing) |
 | `fbt-entertainment-classifier` | `lines`, `income_tax_exempt`, `year_ended`, `scope_confirmed`; `method`, required when a line is meal entertainment; with `12_week_register`, `income_tax_register_percentage` |
 | `depreciation` | `cost`, `effective_life`, `days`, `taxable_use`, `method`, `scope_confirmed`, `year`; optional `opening_adjustable_value` |
@@ -211,7 +213,7 @@ booleans and counts, ages, days, quarters and scales are JSON integers.
 | `working-holiday-maker-withholding` | `payment`, `payments_before`, `employer_registered`, `tfn_quoted`, `pay_period`, `year`, `scope_confirmed` |
 | `seniors-pensioners-withholding` | `earnings`, `pay_period`, `status`, `medicare_levy_exemption`, `year`, `scope_confirmed`; optional `study_loan`; `pay_date`, with `study_loan` only and required with it for 2025-26 |
 | `study-loan-repayment` | `repayment_income`, `year`, `scope_confirmed` |
-| `contribution-caps` | `total_super_balance`, `concessional_contributions`, `non_concessional_contributions`, `under_75_in_year`, `year`, `scope_confirmed`, and either `unused_concessional_cap` or `earlier_concessional_contributions` with `defined_benefit_interest`; with the latter, optional `proposed_concessional_contribution` |
+| `contribution-caps` | `total_super_balance`, `concessional_contributions`, `non_concessional_contributions`, `under_75_in_year`, `year`, `scope_confirmed`, and either `unused_concessional_cap` or `earlier_concessional_contributions` with `defined_benefit_interest`; with the latter, optional `proposed_concessional_contribution`; optional `determination_date` (2024-25 and 2025-26) for the release figures, see [Transfer balance and excess contributions](#transfer-balance-and-excess-contributions) |
 | `pension-minimum` | `account_balance`, `age`, `days`, `year`, `scope_confirmed` |
 | `worksheet-catalogue` | none: send `{}` |
 | `periods` | `kind`, the worksheet name, such as `"payg_withholding"` |
@@ -224,7 +226,7 @@ The 2 car commands, the 11 FBT benefit commands (`fbt-loan`, `fbt-meal-entertain
 rules. `division-296` alone takes a negative amount, in `total_super_earnings`. `main-residence` also takes dates as `YYYY-MM-DD` strings, lists of
 `{"start", "end"}` periods (with `"floor_area"` for income use) and `null`
 for no new home. `borrowing-expenses` takes `loan_start` as a `YYYY-MM-DD`
-string and `loan_term_end` and `repaid_on` as dates or `null`. `hire-purchase-schedule` takes `instalments` as a JSON integer, `timing` as `in_arrears` or `in_advance`, `start_date` as a `YYYY-MM-DD` string and `segments`, `payout` and `gst` as described under [Hire purchase schedule](#hire-purchase-schedule), and refuses a field it, a segment, the payout or the GST facts do not take. `business-capital-expenditure` takes `items` as a list of objects, and refuses a field it or an item does not take. `balancing-adjustment` takes `years` as a list of objects and a car's `car_limit` as an object or `null`, and refuses a field it, a row or `car_limit` does not take; `trade-in` takes them as it does, and refuses an optional input its other facts do not call for. `cgt-parcels` takes `parcels` and `disposals` as lists of objects, and refuses a field it, a parcel or a disposal does not take. `termination-payment` takes `completed_years_of_service` as a JSON integer and `date_of_birth` as a `YYYY-MM-DD` string. `unused-leave-payment` takes `leave_accrual_start` as a `YYYY-MM-DD` string, `termination_reason` as `normal`, `genuine_redundancy`, `early_retirement_scheme` or `invalidity`, and its 4 accrual parts as optional decimal strings, described under [Unused leave payment](#unused-leave-payment). `schedule-5-method-b-i` takes `back_payment_periods` as a list of `{"earnings", "back_payment", "withheld"}` decimal strings, one for each earlier pay period. Every argument is required, as the Python functions had no defaults, except `depreciation`'s optional `opening_adjustable_value`: give it, as a decimal string, for a year after the asset's start time, as cost less the earlier years' decline in value; and `medicare-levy`'s optional family inputs, described under [Medicare levy](#medicare-levy-and-low-income-tax-offset). `medicare-levy` refuses a field it does not take, as does `medicare-levy-surcharge`, whose optional inputs are described under [Medicare levy surcharge](#medicare-levy-surcharge). `payg-withholding`'s optional inputs are described under [PAYG withholding](#payg-withholding), `payg-gross-up` under [PAYG gross-up](#payg-gross-up), `study-loan-withholding`'s `pay_date` under [Study loan withholding](#study-loan-withholding), `seniors-pensioners-withholding`'s `study_loan` and `pay_date` under [Seniors and pensioners](#seniors-and-pensioners) and `seniors-pensioners-tax-offset`'s spouse inputs under [Seniors and pensioners tax offset](#seniors-and-pensioners-tax-offset). `income-tests` requires every component and refuses a field it does not take; see [Income tests](#income-tests). `sb-cgt-concessions` takes `previous_year_turnover`, `year_before_turnover`, `business_ceased`, `last_rollover_event` and `earnout_latest_due` as `null` for none, `active_days` as a JSON integer and its flags as booleans, requires the optional facts its other answers call for, and refuses any other field. `small-business-income-offset` takes `shares` as a JSON list of `{amount, deductions}` objects, `previous_year_turnover` and `year_before_turnover` as `null` for none and `prescribed_person` and `small_business_when_stopped` as booleans, takes `business` and the turnovers only with net small business income of your own, and refuses any other field. `non-commercial-losses` takes `earlier_years` as a JSON list of 4 entries, each `null` or `{assessable_income, deductions}`, `part_year` as a boolean and `taxable_income` as a decimal string that may be negative, takes `assessable_income_estimate` only for a part year and `other_income` only for an excepted activity, and refuses any other field. `psi-test` takes `payers` as a JSON list of objects with `amount`, 5 booleans and an optional `source` label, `premises` as an object of 5 booleans and its other answers as booleans, takes `commission` and `principal_payments` only for an agent, and refuses any other field. `government-super-amounts` takes its yes-or-no facts as booleans, `non_concessional_within_cap`, `total_super_balance_below_cap` and the spouse's 2 like it also as `null` for not established, and the 8 spouse inputs all together or not at all, and refuses any other field. `work-expenses` takes the inputs its `method` and year need, `log_book_weeks` as a JSON integer and its flags as booleans, and refuses any other field; see [Work expenses](#work-expenses). `ato-interest-penalties` takes its question's amounts as decimal strings, dates as `YYYY-MM-DD` strings, `payments` and `parts` as lists of objects and its flags as booleans, and refuses a field its question does not take; see [ATO penalties and interest](#ato-penalties-and-interest). The FBT benefit commands take the inputs their `method` needs and refuse any other, as [FBT loans, meal entertainment and car parking](#fbt-loans-meal-entertainment-and-car-parking), [FBT debt waivers, expense payments and property](#fbt-debt-waivers-expense-payments-and-property) and [FBT residual, housing, LAFHA, board and entertainment benefits](#fbt-residual-housing-lafha-board-and-entertainment-benefits) describe. `fbt-entertainment-classifier` takes `lines` as a list of line objects and refuses a field it does not take, as [FBT entertainment classifier](#fbt-entertainment-classifier) describes. `wine-equalisation-tax` takes `dealings` as a list of dealing objects and refuses a field it, a dealing, `average_wholesale` or `rebate_conditions` does not take; see [Wine equalisation tax](#wine-equalisation-tax). `luxury-car-tax` takes `lines` as a list of line objects and refuses a field it or a line does not take; see [Luxury car tax](#luxury-car-tax). `fuel-tax-credits` takes `lines` the same way, `rate_at_period_end` as an object and `return_date` as a `YYYY-MM-DD` string, and refuses a field it or a line does not take; see [Fuel tax credits](#fuel-tax-credits). Input over 8 MiB,
+string and `loan_term_end` and `repaid_on` as dates or `null`. `hire-purchase-schedule` takes `instalments` as a JSON integer, `timing` as `in_arrears` or `in_advance`, `start_date` as a `YYYY-MM-DD` string and `segments`, `payout` and `gst` as described under [Hire purchase schedule](#hire-purchase-schedule), and refuses a field it, a segment, the payout or the GST facts do not take. `business-capital-expenditure` takes `items` as a list of objects, and refuses a field it or an item does not take. `balancing-adjustment` takes `years` as a list of objects and a car's `car_limit` as an object or `null`, and refuses a field it, a row or `car_limit` does not take; `trade-in` takes them as it does, and refuses an optional input its other facts do not call for. `cgt-parcels` takes `parcels` and `disposals` as lists of objects, and refuses a field it, a parcel or a disposal does not take. `termination-payment` takes `completed_years_of_service` as a JSON integer and `date_of_birth` as a `YYYY-MM-DD` string. `unused-leave-payment` takes `leave_accrual_start` as a `YYYY-MM-DD` string, `termination_reason` as `normal`, `genuine_redundancy`, `early_retirement_scheme` or `invalidity`, and its 4 accrual parts as optional decimal strings, described under [Unused leave payment](#unused-leave-payment). `schedule-5-method-b-i` takes `back_payment_periods` as a list of `{"earnings", "back_payment", "withheld"}` decimal strings, one for each earlier pay period. Every argument is required, as the Python functions had no defaults, except `depreciation`'s optional `opening_adjustable_value`: give it, as a decimal string, for a year after the asset's start time, as cost less the earlier years' decline in value; and `medicare-levy`'s optional family inputs, described under [Medicare levy](#medicare-levy-and-low-income-tax-offset). `medicare-levy` refuses a field it does not take, as does `medicare-levy-surcharge`, whose optional inputs are described under [Medicare levy surcharge](#medicare-levy-surcharge). `payg-withholding`'s optional inputs are described under [PAYG withholding](#payg-withholding), `payg-gross-up` under [PAYG gross-up](#payg-gross-up), `study-loan-withholding`'s `pay_date` under [Study loan withholding](#study-loan-withholding), `seniors-pensioners-withholding`'s `study_loan` and `pay_date` under [Seniors and pensioners](#seniors-and-pensioners) and `seniors-pensioners-tax-offset`'s spouse inputs under [Seniors and pensioners tax offset](#seniors-and-pensioners-tax-offset). `income-tests` requires every component and refuses a field it does not take; see [Income tests](#income-tests). `sb-cgt-concessions` takes `previous_year_turnover`, `year_before_turnover`, `business_ceased`, `last_rollover_event` and `earnout_latest_due` as `null` for none, `active_days` as a JSON integer and its flags as booleans, requires the optional facts its other answers call for, and refuses any other field. `small-business-income-offset` takes `shares` as a JSON list of `{amount, deductions}` objects, `previous_year_turnover` and `year_before_turnover` as `null` for none and `prescribed_person` and `small_business_when_stopped` as booleans, takes `business` and the turnovers only with net small business income of your own, and refuses any other field. `non-commercial-losses` takes `earlier_years` as a JSON list of 4 entries, each `null` or `{assessable_income, deductions}`, `part_year` as a boolean and `taxable_income` as a decimal string that may be negative, takes `assessable_income_estimate` only for a part year and `other_income` only for an excepted activity, and refuses any other field. `psi-test` takes `payers` as a JSON list of objects with `amount`, 5 booleans and an optional `source` label, `premises` as an object of 5 booleans and its other answers as booleans, takes `commission` and `principal_payments` only for an agent, and refuses any other field. `government-super-amounts` takes its yes-or-no facts as booleans, `non_concessional_within_cap`, `total_super_balance_below_cap` and the spouse's 2 like it also as `null` for not established, and the 8 spouse inputs all together or not at all, and refuses any other field. `work-expenses` takes the inputs its `method` and year need, `log_book_weeks` as a JSON integer and its flags as booleans, and refuses any other field; see [Work expenses](#work-expenses). `ato-interest-penalties` takes its question's amounts as decimal strings, dates as `YYYY-MM-DD` strings, `payments` and `parts` as lists of objects and its flags as booleans, and refuses a field its question does not take; see [ATO penalties and interest](#ato-penalties-and-interest). `transfer-balance` takes `events` as a JSON list of `{date, kind, amount}` objects, `to` as a `YYYY-MM-DD` string and `previously_liable` as a boolean, and refuses any other field; `excess-contributions` takes its question's amounts as decimal strings and dates as `YYYY-MM-DD` strings, and refuses a field its question does not take; see [Transfer balance and excess contributions](#transfer-balance-and-excess-contributions). The FBT benefit commands take the inputs their `method` needs and refuse any other, as [FBT loans, meal entertainment and car parking](#fbt-loans-meal-entertainment-and-car-parking), [FBT debt waivers, expense payments and property](#fbt-debt-waivers-expense-payments-and-property) and [FBT residual, housing, LAFHA, board and entertainment benefits](#fbt-residual-housing-lafha-board-and-entertainment-benefits) describe. `fbt-entertainment-classifier` takes `lines` as a list of line objects and refuses a field it does not take, as [FBT entertainment classifier](#fbt-entertainment-classifier) describes. `wine-equalisation-tax` takes `dealings` as a list of dealing objects and refuses a field it, a dealing, `average_wholesale` or `rebate_conditions` does not take; see [Wine equalisation tax](#wine-equalisation-tax). `luxury-car-tax` takes `lines` as a list of line objects and refuses a field it or a line does not take; see [Luxury car tax](#luxury-car-tax). `fuel-tax-credits` takes `lines` the same way, `rate_at_period_end` as an object and `return_date` as a `YYYY-MM-DD` string, and refuses a field it or a line does not take; see [Fuel tax credits](#fuel-tax-credits). Input over 8 MiB,
 or a decimal string over 8,192 bytes, is refused.
 
 ## Derivations
@@ -341,6 +343,8 @@ own dates and figures.
 
 | Worksheet | Period and boundary |
 | --- | --- |
+| Transfer balance | `year` is the financial year of `to`, 2017-18 to 2026-27; one person's account from 1 July 2017 with the general cap of each year and GIC days to 31 December 2026, the last published quarter; established events and values; an estimate before any determination |
+| Excess contributions | The concessional contributions charge for 2013-14 to 2020-21, on days to 31 December 2026; the non-concessional release for contributions years 2013-14 to 2025-26, released in full; established excess, tax and dates; estimates of the determination |
 | ATO penalties and interest | `year` is the financial year of the question's end date, 2020-21 to 2027-28; GIC days from 1 July 1999 and SIC days from 1 April 2005 to 31 December 2026, the last published quarter, and GIC days after it at a stated assumed rate; penalty units from 28 December 2012; established behaviour, positions, disclosures, size and entitlement facts; amounts before remission |
 | Luxury car tax | Tax periods in 2019-20 to 2026-27, the years from the $10,000 refunds to the last thresholds the ATO publishes, with supplies from 2012-13 for adjustments; established cars, values, ratings, quotes and refund conditions |
 | GST | 2025-26 to 2027-28, one ordinary taxable supply at 10%; no classification or BAS |
@@ -562,6 +566,76 @@ pension starts on or after 1 June, and rounded to the nearest $10 with an exact 
 rounding up. The tests check every band boundary against the ATO's published
 tables; see [calculation evidence](docs/calculation-evidence.md#contribution-caps).
 These worksheets are published in the 0.1.6 wheel.
+
+## Transfer balance and excess contributions
+
+`transfer-balance` works one person's transfer balance account (ITAA 1997
+Subdivs 294-B and 294-C) from 1 July 2017 to the end of the day `to`, from
+`events`, each `{date, kind, amount}`:
+
+- credits: `existing_income_stream` (s 294-25(1) item 1, dated 1 July 2017,
+  the value just before it), `new_income_stream` (item 2, the value on the
+  starting day; a transition to retirement income stream entering retirement
+  phase is one) and `lrba_repayment` (item 4 and s 294-55);
+- debits: `commutation` (s 294-80(1) item 1), `reduced_super` (item 3,
+  s 294-85), `payment_split` (item 4, s 294-90) and `stopped_retirement_phase`
+  (items 5 and 6).
+
+It gives the personal transfer balance cap for each financial year
+(`caps`): the general cap for the year the account starts (s 294-35(1)),
+then each year's proportional indexation (s 294-40), the unused cap
+percentage being 100% less the highest end-of-day balance as a percentage,
+rounded down, of the cap on the earliest day it was reached, and nil once the
+balance has exceeded the cap. The `ledger` shows each event with the balance
+after it. On each day the balance exceeds the cap at its end, excess transfer
+balance earnings accrue at that day's GIC rate (s 294-235) and are credited
+at the start of the next day (s 294-25(1) item 3), so they compound; each run
+of such days is an `excess_periods` entry with its notional earnings and
+excess transfer balance tax at 15%, or 30% for a period starting from 1 July
+2018 after liability for an earlier such period, in these events or, by
+`previously_liable`, before them (Imposition Act 2016 s 5). IT(TP)A 1997
+s 294-30 removes the excess from 1 July to 31 December 2017 when its
+conditions hold. Amounts are worked exactly and rounded half up to the cent
+only for display; the ATO's figures may round each daily credit.
+
+The command gives an estimate before any determination. It refuses
+(`transfer_balance.event_refused`) reversionary income streams (credited 12
+months later), child recipients (Subdiv 294-E), capped defined benefit income
+streams (Subdiv 294-D), structured settlement contributions, credits and
+debits under regulations, and the Commissioner's excess transfer balance
+determinations, commutation authorities and non-commutable notices. It also
+refuses an event before 1 July 2017 or after `to`, an account whose first day
+has no credit (`transfer_balance.date_order`), a day with excess after
+31 December 2026, the last published GIC quarter
+(`transfer_balance.rate_unpublished`), and a 2017 excess that s 294-30 may
+yet remove (`transfer_balance.transition_undecided`).
+
+`excess-contributions` answers one `question`:
+
+- `concessional_charge`, for 2013-14 to 2020-21: the excess concessional
+  contributions charge (TAA 1953 Sch 1 former Div 95) on `additional_tax`,
+  the tax less the tax disregarding the excess concessional contributions,
+  from 1 July of the year to the day before `tax_due_date`, compounding daily
+  at the base interest rate plus 3 points (Superannuation (Excess Concessional
+  Contributions Charge) Act 2013 s 4, the shortfall interest charge's rate).
+  2021-22 onwards is refused (`excess_contributions.charge_abolished`): Act
+  No. 45 of 2021 Sch 2 repealed the charge for those years.
+- `non_concessional_release`, for contributions years 2013-14 to 2025-26:
+  from `excess` and the first determination's day `determination_date`,
+  the associated earnings (TAA 1953 Sch 1 s 97-30: daily compounding at the
+  proxy rate, the average of the year's daily base interest rates plus 7
+  points, rounded down to the dollar), the total release amount (the excess
+  plus 85% of the earnings, s 97-25(1)(c)), the amount in assessable income
+  and the 15% tax offset (ITAA 1997 ss 292-25 and 292-30), the release being
+  in full. The ATO publishes a rate for each year that rounds a simple
+  average of the 4 quarters to 2 places and divides by the days in the
+  financial year; the command follows the Act and warns with the ATO's rate.
+
+`contribution-caps` with `determination_date`, for 2024-25 or 2025-26, adds
+the same release figures for its own `excess_non_concessional`; without it
+the result is unchanged.
+
+Sources and test vectors: see [calculation evidence](docs/calculation-evidence.md#transfer-balance).
 
 ## Study and training loan repayment
 

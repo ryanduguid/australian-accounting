@@ -6,6 +6,30 @@
 
 ### Added
 
+- `transfer-balance` works one person's transfer balance account from
+  1 July 2017 to a day in 2017-18 to 2026-27 from its credits and debits
+  (ITAA 1997 ss 294-25 and 294-80): the personal transfer balance cap with
+  proportional indexation (s 294-40), each day's excess, excess transfer
+  balance earnings at the GIC rate credited daily (s 294-235), and excess
+  transfer balance tax at 15% or 30% for each excess transfer balance period
+  (Imposition Act 2016 s 5), with IT(TP)A 1997 s 294-30. Reversionary, child,
+  capped defined benefit, structured settlement and regulation events and the
+  Commissioner's determinations are refused. `excess-contributions` works
+  the excess concessional contributions charge for 2013-14 to 2020-21 and the
+  release of excess non-concessional contributions with their associated
+  earnings for contributions years 2013-14 to 2025-26 (TAA 1953 Sch 1
+  ss 97-25 and 97-30). `contribution-caps` takes an optional
+  `determination_date` that adds the release figures to its own excess. New
+  codes: `excess_contributions.charge_abolished`,
+  `excess_contributions.date_order`, `excess_contributions.fact_invalid`,
+  `excess_contributions.question_invalid`,
+  `excess_contributions.rate_unpublished`, `transfer_balance.date_order`,
+  `transfer_balance.event_refused`, `transfer_balance.fact_invalid`,
+  `transfer_balance.rate_unpublished`,
+  `transfer_balance.transition_undecided` and
+  `transfer_balance.year_mismatch`. `tests/transfer_balance.rs` holds them to
+  the ATO's examples and to an exact-fraction oracle over the ATO's rates.
+
 - `work-expenses` works out an employee's working from home, car or
   self-education deduction for 2020-21 to 2026-27, one `method` a call: the
   fixed rate (52c with a dedicated home office to 2021-22, then PCG 2023/1's

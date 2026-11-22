@@ -283,6 +283,14 @@ pub const SCOPES: &[(&str, &str)] = &[
         "One question before remission: the general interest charge on one unpaid amount from its due day, with its payments; the shortfall interest charge on the additional income tax of one amended assessment; the failure to lodge on time penalty on one document; the false or misleading statement and not reasonably arguable penalties on one statement's or one period's parts; or the interest the Commissioner pays on one early payment, or on one refund of relevant tax overpaid as a result of a decision to which the Overpayments Act applies. The behaviour behind a shortfall, whether a position is reasonably arguable, whether a disclosure was voluntary or saved resources, the entity's size and significant global entity status are the operator's established facts. Excludes remission (the Commissioner's discretion), Division 296 GIC, scheme penalties, trust, partnership, petroleum resource rent tax and minimum tax positions, the s 284-75(3) penalty, part of a payment refunded before its due day, and other credit interest (Overpayments Act Parts IIB to IIG, IIIA and IIIAA).",
     ),
     (
+        "transfer_balance",
+        "One person's transfer balance account from 1 July 2017 to a day in 2017-18 to 2026-27, from its credits (income streams existing on 1 July 2017, new retirement phase income streams, LRBA repayments) and debits (commutations, s 294-85 events, payment splits, income streams leaving retirement phase): the personal transfer balance cap with proportional indexation, each day's excess, excess transfer balance earnings at the GIC rate credited daily, and excess transfer balance tax for each excess transfer balance period. An estimate before any determination: reversionary, child recipient, capped defined benefit, structured settlement and regulation events and the Commissioner's determinations, authorities and notices are refused.",
+    ),
+    (
+        "excess_contributions",
+        "One question: concessional_charge, the excess concessional contributions charge for 2013-14 to 2020-21 on the additional income tax from including excess concessional contributions, from 1 July to the day before tax under the first assessment is due; or non_concessional_release, the associated earnings, total release amount, assessable amount and 15% tax offset for an excess of non-concessional contributions for a contributions year from 2013-14 to 2025-26, released in full, to an assumed first determination date. Estimates of the Commissioner's determination.",
+    ),
+    (
         "sb_cgt_concessions",
         "A capital gain from CGT event A1 (a disposal, ITAA 1997 s 104-10) of a CGT asset acquired from 20 September 1985 that is not a share in a company, an interest in a trust (s 152-10(2)) or a right or interest in a partnership's income or capital (s 152-10(2C)), under a contract made in the 2025-26 or 2026-27 income year, before Act No. 49 of 2026's changes to Division 152 from the income year that includes 1 July 2027 (Schedule 1 item 82), by an individual, a company or a trust that is not a public entity (s 152-305(3)), none of them acting for a deceased estate (s 152-80). The operator establishes whether the business entity (you; the partnership for an interest in a partnership asset; or the affiliate, connected entity or partnership whose business uses a passively held asset) carried on a business in the year, its aggregated turnovers (s 328-115, with connected entities and affiliates), the net value of the CGT assets under ss 152-15 and 152-20, the total days in the test period on which the asset was an active asset (s 152-40), whether the business ceased and when, and the retirement, incapacity and significant individual facts. The CGT small business entity test is s 328-110 with $2 million for each $10 million (s 152-10(1AA)). The test period counts both its first and last days; a total that may or may not be 7.5 years (2,737 to 2,740 days) is refused, as is an asset acquired on the same date 15 years before the event. The 15-year exemption, the 50% active asset reduction, the retirement exemption and the roll-over are each shown open or not, with the conditions not met; the amounts, the choices (ss 103-25, 152-220 and 152-315), the payments a company or trust must make (s 152-325), each stakeholder's limit (s 152-320(2)), the replacement asset (s 152-420), CGT events J2, J5 and J6, and look-through earnout rights other than their extension of the replacement asset period (s 104-190(1A)(b)(ii)) are outside it.",
     ),
@@ -592,6 +600,14 @@ pub const SOURCES: &[(&str, &str)] = &[
     (
         "ato_interest_penalties",
         "https://www.ato.gov.au/tax-rates-and-codes/general-interest-charge-rates",
+    ),
+    (
+        "transfer_balance",
+        "https://www.ato.gov.au/individuals-and-families/super-for-individuals-and-families/super/withdrawing-and-using-your-super/retirement-withdrawal-lump-sum-or-income-stream/calculating-your-personal-transfer-balance-cap",
+    ),
+    (
+        "excess_contributions",
+        "https://www.ato.gov.au/tax-rates-and-codes/key-superannuation-rates-and-thresholds/contributions-caps",
     ),
     (
         "sb_cgt_concessions",
@@ -1294,6 +1310,35 @@ pub const EXTRA_SOURCES: &[(&str, &[&str])] = &[
             "https://www.ato.gov.au/law/view/document?docid=MXR/MT20082/NAT/ATO/00001",
             "https://www.ato.gov.au/law/view/document?docid=MXR/MT20123/NAT/ATO/00001",
             "https://www.ato.gov.au/law/view/document?Docid=PSR/PS20068/NAT/ATO/00001",
+        ],
+    ),
+    (
+        "transfer_balance",
+        &[
+            "https://www.ato.gov.au/law/view/document?docid=PAC/19970038/294-25",
+            "https://www.ato.gov.au/law/view/document?docid=PAC/19970038/294-30",
+            "https://www.ato.gov.au/law/view/document?docid=PAC/19970038/294-35",
+            "https://www.ato.gov.au/law/view/document?docid=PAC/19970038/294-40",
+            "https://www.ato.gov.au/law/view/document?docid=PAC/19970038/294-80",
+            "https://www.ato.gov.au/law/view/document?docid=PAC/19970038/294-230",
+            "https://www.ato.gov.au/law/view/document?docid=PAC/19970038/294-235",
+            "https://www.legislation.gov.au/C2016A00080/latest/text",
+            "https://www.legislation.gov.au/C2004A05128/latest/text",
+            "https://www.ato.gov.au/individuals-and-families/super-for-individuals-and-families/super/withdrawing-and-using-your-super/retirement-withdrawal-lump-sum-or-income-stream/transfer-balance-account",
+            "https://www.ato.gov.au/individuals-and-families/super-for-individuals-and-families/super/withdrawing-and-using-your-super/retirement-withdrawal-lump-sum-or-income-stream/excess-transfer-balance",
+            "https://www.ato.gov.au/tax-rates-and-codes/general-interest-charge-rates",
+        ],
+    ),
+    (
+        "excess_contributions",
+        &[
+            "https://www.legislation.gov.au/C1953A00001/latest/text",
+            "https://www.legislation.gov.au/C2021C00276/asmade/text",
+            "https://www.legislation.gov.au/C2013A00116/latest/text",
+            "https://www.legislation.gov.au/C2021A00045/asmade/text",
+            "https://www.ato.gov.au/law/view/document?docid=PAC/19970038/292-25",
+            "https://www.ato.gov.au/law/view/document?docid=PAC/19970038/292-30",
+            "https://www.ato.gov.au/individuals-and-families/super-for-individuals-and-families/super/growing-and-keeping-track-of-your-super/caps-limits-and-tax-on-super-contributions/non-concessional-contributions-cap",
         ],
     ),
     (
@@ -2109,6 +2154,26 @@ pub const REFUSAL_CODES: &[(&str, &str)] = &[
     (
         "etp_tax_free_component.dates_invalid",
         "employment_start is after termination_date.",
+    ),
+    (
+        "excess_contributions.charge_abolished",
+        "An excess concessional contributions charge was asked for a year from 2021-22, when the charge no longer applies.",
+    ),
+    (
+        "excess_contributions.date_order",
+        "A date is out of the order the question's period needs.",
+    ),
+    (
+        "excess_contributions.fact_invalid",
+        "A fact is not of the form the question takes.",
+    ),
+    (
+        "excess_contributions.question_invalid",
+        "The question is not one the command answers.",
+    ),
+    (
+        "excess_contributions.rate_unpublished",
+        "A day's charge rate, or a base interest rate the proxy rate averages, is not yet published.",
     ),
     (
         "fbt.deduction_exceeds_contribution",
@@ -3000,6 +3065,30 @@ pub const REFUSAL_CODES: &[(&str, &str)] = &[
     (
         "trade_in.not_arms_length",
         "The trade-in is not at arm's length, so market value rules apply that are not worked.",
+    ),
+    (
+        "transfer_balance.date_order",
+        "An event or date is out of the order the account needs.",
+    ),
+    (
+        "transfer_balance.event_refused",
+        "An event of a kind the command does not work, with the reason.",
+    ),
+    (
+        "transfer_balance.fact_invalid",
+        "An event or fact is not of the form the command takes.",
+    ),
+    (
+        "transfer_balance.rate_unpublished",
+        "A day with excess needs a GIC rate the ATO has not yet published.",
+    ),
+    (
+        "transfer_balance.transition_undecided",
+        "IT(TP)A 1997 s 294-30 may disregard the 2017 excess, which only the debits to 31 December 2017 decide.",
+    ),
+    (
+        "transfer_balance.year_mismatch",
+        "The year is not the financial year of the last day worked.",
     ),
     (
         "wine_equalisation_tax.dealing_invalid",
