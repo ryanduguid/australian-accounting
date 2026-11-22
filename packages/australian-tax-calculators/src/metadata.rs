@@ -1919,7 +1919,7 @@ pub fn optional_inputs(kind: &str) -> Vec<(&'static str, &'static str)> {
             ),
             (
                 "disregarded_deductions",
-                "AUD, for limit_method worked only, and then required: the deductions s 770-75(4)(b) leaves out: debt deductions attributable to an overseas permanent establishment and other deductions reasonably related to the disregarded income (not, for example, gifts or tax agent fees)",
+                "AUD, for limit_method worked only, and then required: the deductions s 770-75(4)(b) leaves out: debt deductions attributable to an overseas permanent establishment and other deductions reasonably related to the disregarded income (not, for example, gifts or tax agent fees), and the foreign loss component of any tax losses deducted in the year (the note to s 770-75(4); Income Tax (Transitional Provisions) Act 1997 s 770-35)",
             ),
             (
                 "medicare_levy",
@@ -1935,7 +1935,7 @@ pub fn optional_inputs(kind: &str) -> Vec<(&'static str, &'static str)> {
             ),
             (
                 "eligible_pensioner",
-                "boolean, with residency_periods only: you were an eligible pensioner for the year (s 16: paid a taxable pension, allowance or benefit under the Veterans' Entitlements Act 1986, the Military Rehabilitation and Compensation Act 2004 or the Social Security Act 1991 other than Youth Allowance, JobSeeker Payment or Special Benefit), so the full $18,200 applies (s 18(2)(a))",
+                "boolean, with residency_periods only: you were an eligible pensioner for the year (s 16 as it applies to the year; in compilation 66: paid a taxable pension, allowance or benefit under the Veterans' Entitlements Act 1986, the Military Rehabilitation and Compensation Act 2004 or the Social Security Act 1991 other than Youth Allowance, JobSeeker Payment or Special Benefit), so the full $18,200 applies (s 18(2)(a))",
             ),
         ],
         "balancing_adjustment" => vec![(

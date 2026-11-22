@@ -38,7 +38,7 @@ const TAX_PAYABLE: Rule = (
 );
 const ASSUMED_INCOME: Rule = (
     "assumed_taxable_income",
-    "ITAA 1997 s 770-75(4): taxable income without the amounts on which counted foreign income tax was paid and other foreign-source income, and without the debt deductions of an overseas permanent establishment and other deductions reasonably related to those amounts, not below nil",
+    "ITAA 1997 s 770-75(4): taxable income without the amounts on which counted foreign income tax was paid and other foreign-source income, and without the debt deductions of an overseas permanent establishment and other deductions reasonably related to those amounts, and (the note to s 770-75(4)) without the foreign loss component of tax losses deducted, not below nil",
     "max(0, taxable_income - disregarded_income + disregarded_deductions)",
 );
 const TAX_PAYABLE_ASSUMED: Rule = (
@@ -204,6 +204,10 @@ fn months(periods: &Arg, year: &str) -> Result<i64> {
         day(&format!("{first}-07-01")),
         day(&format!("{}-06-30", first + 1)),
     );
+    let index = |day: i64| {
+        let (y, m, _) = dates::to_civil(day);
+        y * 12 + m
+    };
     let mut months = BTreeSet::new();
     for (i, item) in items.iter().enumerate() {
         let name = format!("period {}", i + 1);
@@ -216,15 +220,11 @@ fn months(periods: &Arg, year: &str) -> Result<i64> {
                 "{name} must run forwards inside the income year {year}."
             ));
         }
-        if (from, to) == (start, end) {
+        if (index(from), index(to)) == (index(start), index(end)) {
             return invalid(format!(
-                "{name} is the whole income year, which is not a part-year residency period (Income Tax Rates Act 1986 s 18(2)(b)); leave residency_periods out."
+                "{name} runs from the first month of the income year to the last, so under Income Tax Rates Act 1986 s 18(1) it is the whole year, which s 18(2)(b) says is not a part-year residency period; leave residency_periods out."
             ));
         }
-        let index = |day: i64| {
-            let (y, m, _) = dates::to_civil(day);
-            y * 12 + m
-        };
         months.extend(index(from)..=index(to));
     }
     Ok(i64::try_from(months.len()).expect("at most 12"))

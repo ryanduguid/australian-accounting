@@ -312,6 +312,11 @@ fn residency_period_refusals() {
             periods(json!([{"from": "2025-07-01", "to": "2026-06-30"}])),
             invalid,
         ),
+        // s 18(1)(c) runs a period to whole months, so this is the whole year too.
+        (
+            periods(json!([{"from": "2025-07-17", "to": "2026-06-15"}])),
+            invalid,
+        ),
         (
             periods(json!([{"from": "2026-01-01"}])),
             "input.missing_field",
