@@ -187,10 +187,11 @@ fn option_payments_reduce_the_base() {
     let r = run(&input);
     assert_eq!(r["amounts"]["withholding_base"], "990000.00");
     assert_eq!(r["amounts"]["amount_payable"], "148500.00");
-    // A notice's maximum price caps the price, not the base after the fee.
+    // The first element includes the option fee (ITAA 1997 s 134-1(1) item
+    // 1); a notice's maximum caps the sale price, the base without it.
     let notice = json!({"interest": "1", "document": "variation", "rate": "0.05", "maximum_price": "995000.00"});
     input["vendors"] = json!([notice]);
-    assert_eq!(payable(&input), "148500.00");
+    assert_eq!(payable(&input), "49500.00");
     input["option_payments"] = json!("1000000.01");
     assert_eq!(
         code(&input),
@@ -316,4 +317,16 @@ fn refuses_unconfirmed_scope() {
         code(&with(json!({"scope_confirmed": false}))),
         "scope.not_confirmed"
     );
+}
+
+/// With no vendor holding a document the class variations do not apply: the
+/// amount is one s 14-200(3)(a) figure, rounded once (15.009 to 15.01, not
+/// 2 x 7.50).
+#[test]
+fn no_documents_round_the_single_amount_once() {
+    let mut input = price("2025-03-01", "2024-25", "100.06");
+    input["vendors"] = json!([none(), none()]);
+    let r = run(&input);
+    assert_eq!(r["amounts"]["amount_payable"], "15.01");
+    assert_eq!(r["amounts"]["amount_at_full_rate"], "15.01");
 }

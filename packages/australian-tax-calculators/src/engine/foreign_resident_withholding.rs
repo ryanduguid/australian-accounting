@@ -201,8 +201,6 @@ fn rate_for(day: i64) -> (&'static str, Option<&'static str>) {
 struct Facts {
     day: i64,
     market_value: Decimal,
-    /// The first element of the cost base: the price a notice's maximum caps.
-    price: Decimal,
     base: Decimal,
     vendors: Vec<Vendor>,
     excluded: Option<&'static str>,
@@ -228,7 +226,6 @@ fn facts(args: &ForeignResidentWithholdingArgs, year: &str) -> Result<Facts> {
         day,
         market_value,
         base: first.sub(&option)?,
-        price: first,
         vendors,
         excluded,
         nil_class,
@@ -279,7 +276,7 @@ fn vendor_rows(facts: &Facts, full: &Decimal) -> Result<Vec<(Decimal, Decimal, &
                 let (applied, basis) = match &v.document {
                     Document::None => (full.clone(), "no document: full rate"),
                     Document::Clearance => (int(0), "clearance certificate: nil"),
-                    Document::Variation { maximum, .. } if facts.price.gt(maximum)? => (
+                    Document::Variation { maximum, .. } if facts.base.gt(maximum)? => (
                         full.clone(),
                         "variation does not apply above its maximum price: full rate",
                     ),
@@ -331,11 +328,17 @@ pub fn foreign_resident_withholding(args: &ForeignResidentWithholdingArgs) -> Re
     }
     let nil = whole_nil(&facts, threshold)?;
     let rows = vendor_rows(&facts, &full)?;
+    let full_amount = precise(|| Ok(full.mul(&facts.base)?))?;
+    // No document: no class variation applies, so one s 14-200(3)(a) figure.
+    let undocumented = facts
+        .vendors
+        .iter()
+        .all(|v| matches!(v.document, Document::None));
     let payable = match nil {
         Some(_) => int(0),
+        None if undocumented => precise(|| Ok(cents(full_amount.clone())?))?,
         None => rows.iter().try_fold(int(0), |sum, row| sum.add(&row.1))?,
     };
-    let full_amount = precise(|| Ok(full.mul(&facts.base)?))?;
     let mut rates = vec![rate("rate", full_rate)];
     rates.push(rate("threshold", threshold.unwrap_or("none")));
     let mut out = result(

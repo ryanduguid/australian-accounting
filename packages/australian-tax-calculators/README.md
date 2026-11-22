@@ -2856,7 +2856,9 @@ interest, for an acquisition date (the contract date, ITAA 1997 s 109-5) from
   rate, at its notice of variation's rate up to the notice's maximum price, or
   not at all with a certificate, as the multiple vendor class variations
   (F2016L01123; LI 2026/38 s 6) and the ATO's examples do; each amount is
-  rounded to the cent.
+  rounded to the cent, and with no document at all the one s 14-200(3)(a)
+  amount is rounded once. A notice's maximum price caps the price without
+  option payments.
 - `exclusion` (a s 14-215 paragraph) and `class_variation_to_nil`
   (s 14-235(5), such as LI 2026/38 ss 7 to 10) give nil.
 

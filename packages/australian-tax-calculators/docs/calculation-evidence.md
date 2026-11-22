@@ -3487,7 +3487,11 @@ Choices the law leaves to the reader:
   class variations' 'not all' condition is not met; the worksheet follows the
   ATO's Zac and Jen example and treats each vendor alike.
 - The law sets no rounding; each vendor's amount is rounded half up to the
-  cent.
+  cent, except that with no document at all no class variation applies and
+  the single s 14-200(3)(a) amount is rounded once.
+- With an exercised option the first element includes the option fee (ITAA
+  1997 s 134-1(1) item 1); a notice's maximum price is compared with the
+  price without it, the base.
 
 | Case | Source | Worksheet |
 | --- | --- | --- |
