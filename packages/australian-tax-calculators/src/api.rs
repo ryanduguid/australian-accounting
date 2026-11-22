@@ -747,6 +747,49 @@ const COMMAND_ARGS: &[(&str, &[(&str, Kind)])] = &[
         ],
     ),
     (
+        "gst-creditable-purpose-change",
+        &[
+            ("gst_exclusive_value", Dec),
+            ("relates_to_business_finance", Raw),
+            ("full_input_tax_credit", Dec),
+            ("intended_or_former_application", Dec),
+            ("actual_application", Dec),
+            ("application_basis", Raw),
+            ("attributed_period_end", Raw),
+            ("tax_period_months", Raw),
+            ("year", Raw),
+            ("scope_confirmed", Raw),
+        ],
+    ),
+    (
+        "gst-annual-apportionment",
+        &[
+            ("small_business_entity", Raw),
+            ("carries_on_business", Raw),
+            ("instalment_election", Raw),
+            ("annual_tax_period_election", Raw),
+            ("election_made", Raw),
+            ("gst_on_acquisition", Dec),
+            ("creditable_purpose", Dec),
+            ("car", Raw),
+            ("reduced_credit_acquisition", Raw),
+            ("year", Raw),
+            ("scope_confirmed", Raw),
+        ],
+    ),
+    (
+        "gst-financial-acquisitions-threshold",
+        &[
+            ("current_financial_credits", Dec),
+            ("current_total_credits", Dec),
+            ("future_financial_credits", Dec),
+            ("future_total_credits", Dec),
+            ("gst_group", Raw),
+            ("year", Raw),
+            ("scope_confirmed", Raw),
+        ],
+    ),
+    (
         "income-tests",
         &[
             ("taxable_income", Dec),
@@ -807,7 +850,7 @@ pub fn commands() -> Vec<&'static str> {
 /// command on its `gross_pay` shows that withholding. The classifier's amounts
 /// are totals over lines whose shares a decision table sets, not a formula;
 /// each line and class carries the authority for its row instead.
-const DERIVED: [&str; 57] = [
+const DERIVED: [&str; 60] = [
     "fbt",
     "fbt-car-statutory",
     "fbt-car-operating-cost",
@@ -865,6 +908,9 @@ const DERIVED: [&str; 57] = [
     "etp-tax-free-component",
     "payroll-tax",
     "cgt-parcels",
+    "gst-creditable-purpose-change",
+    "gst-annual-apportionment",
+    "gst-financial-acquisitions-threshold",
 ];
 
 /// `derive`: `{"command", "input"}` gives the command's result with the step
@@ -1246,6 +1292,9 @@ pub fn evaluate_coded(command: &str, v: &Value) -> Result<Value> {
             | "depreciation-small-business-pool"
             | "capital-works"
             | "small-business-income-offset"
+            | "gst-creditable-purpose-change"
+            | "gst-annual-apportionment"
+            | "gst-financial-acquisitions-threshold"
             | "business-capital-expenditure"
             | "balancing-adjustment"
             | "trade-in"
@@ -1971,6 +2020,59 @@ pub fn evaluate_coded(command: &str, v: &Value) -> Result<Value> {
                 year: &a[6],
                 scope_confirmed: &a[7],
                 optional: given.each_ref().map(Option::as_ref),
+            })
+        }
+        "gst-creditable-purpose-change" => {
+            // Optional: when the thing was disposed of or its period ended.
+            let ended = optional(v, "ended_on", Raw)?;
+            let by_132 = optional(v, "division_132_disposal", Raw)?;
+            engine::gst_creditable_purpose_change(&engine::CreditablePurposeArgs {
+                gst_exclusive_value: &a[0],
+                relates_to_business_finance: &a[1],
+                full_input_tax_credit: &a[2],
+                intended_or_former_application: &a[3],
+                actual_application: &a[4],
+                application_basis: &a[5],
+                attributed_period_end: &a[6],
+                tax_period_months: &a[7],
+                ended_on: ended.as_ref(),
+                division_132_disposal: by_132.as_ref(),
+                year: &a[8],
+                scope_confirmed: &a[9],
+            })
+        }
+        "gst-annual-apportionment" => {
+            // Optional: a non-business entity's turnover and the extents
+            // other than creditable purpose.
+            let turnover = optional(v, "gst_turnover", Dec)?;
+            let input_taxed = optional(v, "non_input_taxed_extent", Dec)?;
+            let consideration = optional(v, "consideration_extent", Dec)?;
+            engine::gst_annual_apportionment(&engine::AnnualApportionmentArgs {
+                small_business_entity: &a[0],
+                carries_on_business: &a[1],
+                gst_turnover: turnover.as_ref(),
+                instalment_election: &a[2],
+                annual_tax_period_election: &a[3],
+                election_made: &a[4],
+                gst_on_acquisition: &a[5],
+                creditable_purpose: &a[6],
+                non_input_taxed_extent: input_taxed.as_ref(),
+                consideration_extent: consideration.as_ref(),
+                car: &a[7],
+                reduced_credit_acquisition: &a[8],
+                year: &a[9],
+                scope_confirmed: &a[10],
+            })
+        }
+        "gst-financial-acquisitions-threshold" => {
+            engine::gst_financial_acquisitions_threshold(&engine::FinancialAcquisitionsArgs {
+                current_financial_credits: &a[0],
+                current_total_credits: &a[1],
+                future_financial_credits: &a[2],
+                future_total_credits: &a[3],
+                gst_group: &a[4],
+                year: &a[5],
+                scope_confirmed: &a[6],
             })
         }
         "luxury-car-tax" => engine::luxury_car_tax(&engine::LctArgs {

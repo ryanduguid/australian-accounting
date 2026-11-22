@@ -6,6 +6,23 @@
 
 ### Added
 
+- `gst-creditable-purpose-change`, `gst-annual-apportionment` and
+  `gst-financial-acquisitions-threshold` work a Division 129 adjustment for a
+  change in creditable purpose with its adjustment periods, Division 131
+  annual apportionment eligibility with the credit and s 131-55 adjustment,
+  and the Division 189 financial acquisitions threshold tests, each for
+  2020-21 to 2026-27. New codes: `gst_annual_apportionment.car`,
+  `gst_annual_apportionment.fact_conflict`,
+  `gst_annual_apportionment.not_partly_creditable`,
+  `gst_annual_apportionment.reduced_credit_acquisition`,
+  `gst_creditable_purpose_change.basis_missing`,
+  `gst_creditable_purpose_change.last_period_unsettled`,
+  `gst_creditable_purpose_change.period_end_invalid`,
+  `gst_creditable_purpose_change.tax_period_unsupported` and
+  `gst_financial_acquisitions_threshold.fact_conflict`.
+  `tests/gst_adjustments.rs` holds them to the examples of GSTR 2000/24, the
+  GST Act and GSTR 2003/9.
+
 - `depreciation-low-value-pool`, `depreciation-small-business-pool` and
   `capital-works` work out a low-value pool (ITAA 1997 ss 40-440 and
   40-445), a general small business pool with each year's low pool value

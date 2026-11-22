@@ -14,7 +14,7 @@ use std::io::Write;
 use std::process::{Command, Stdio};
 
 /// The commands `derive` explains.
-const DERIVED: [&str; 57] = [
+const DERIVED: [&str; 60] = [
     "fbt",
     "fbt-car-statutory",
     "fbt-car-operating-cost",
@@ -72,6 +72,9 @@ const DERIVED: [&str; 57] = [
     "etp-tax-free-component",
     "payroll-tax",
     "cgt-parcels",
+    "gst-creditable-purpose-change",
+    "gst-annual-apportionment",
+    "gst-financial-acquisitions-threshold",
 ];
 
 /// (command, input) for each derived kind: the ATO's published examples and
@@ -462,6 +465,50 @@ fn cases() -> Vec<(&'static str, Value)> {
                    "other_discount_capital_gains": "100.00", "other_capital_gains": "0.01",
                    "other_capital_losses": "0.00", "prior_net_capital_losses": "50.00",
                    "year": "2025-26", "scope_confirmed": true}),
+        ),
+        // GSTR 2000/24's Bill, 20 years on: an increase, then a decrease.
+        (
+            "gst-creditable-purpose-change",
+            json!({"gst_exclusive_value": "3000.00", "relates_to_business_finance": false,
+                   "full_input_tax_credit": "300.00", "intended_or_former_application": "0.9",
+                   "actual_application": "0.6", "application_basis": "Hours logged",
+                   "attributed_period_end": "2021-03-31", "tax_period_months": 3,
+                   "year": "2021-22", "scope_confirmed": true}),
+        ),
+        (
+            "gst-creditable-purpose-change",
+            json!({"gst_exclusive_value": "3000.00", "relates_to_business_finance": false,
+                   "full_input_tax_credit": "300.00", "intended_or_former_application": "0.6",
+                   "actual_application": "0.7", "application_basis": "Hours logged",
+                   "attributed_period_end": "2021-03-31", "tax_period_months": 3,
+                   "year": "2022-23", "scope_confirmed": true}),
+        ),
+        // The GST Act's s 131-55 example, and part consideration.
+        (
+            "gst-annual-apportionment",
+            json!({"small_business_entity": true, "carries_on_business": true,
+                   "instalment_election": false, "annual_tax_period_election": false,
+                   "election_made": true, "gst_on_acquisition": "100.00",
+                   "creditable_purpose": "0.1", "car": false,
+                   "reduced_credit_acquisition": false, "year": "2025-26",
+                   "scope_confirmed": true}),
+        ),
+        (
+            "gst-annual-apportionment",
+            json!({"small_business_entity": true, "carries_on_business": true,
+                   "instalment_election": false, "annual_tax_period_election": false,
+                   "election_made": true, "gst_on_acquisition": "1000.00",
+                   "creditable_purpose": "0.4", "non_input_taxed_extent": "0.8",
+                   "consideration_extent": "0.5", "car": false,
+                   "reduced_credit_acquisition": false, "year": "2025-26",
+                   "scope_confirmed": true}),
+        ),
+        // GSTR 2003/9's Cedar, Examples 1A and 2A.
+        (
+            "gst-financial-acquisitions-threshold",
+            json!({"current_financial_credits": "104550.00", "current_total_credits": "1100000.00",
+                   "future_financial_credits": "131000.00", "future_total_credits": "1220000.00",
+                   "gst_group": false, "year": "2025-26", "scope_confirmed": true}),
         ),
     ];
     cases.extend(
@@ -2186,7 +2233,7 @@ fn derive_refuses_what_it_does_not_explain() {
          fbt-lafha, fbt-board, fbt-tax-exempt-body-entertainment, gst, depreciation, \
          depreciation-low-value-pool, depreciation-small-business-pool, capital-works, \
          hire-purchase-schedule, chattel-mortgage-schedule, loan-transactions, \
-         lump-sum-arrears-tax-offset, income-tests, business-capital-expenditure, balancing-adjustment, trade-in, dasp-tax, gst-margin-scheme, etp-tax-free-component, payroll-tax, cgt-parcels, not \"payg-gross-up\""
+         lump-sum-arrears-tax-offset, income-tests, business-capital-expenditure, balancing-adjustment, trade-in, dasp-tax, gst-margin-scheme, etp-tax-free-component, payroll-tax, cgt-parcels, gst-creditable-purpose-change, gst-annual-apportionment, gst-financial-acquisitions-threshold, not \"payg-gross-up\""
     );
 }
 

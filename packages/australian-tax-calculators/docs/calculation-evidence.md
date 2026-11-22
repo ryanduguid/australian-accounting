@@ -99,6 +99,56 @@ The smaller existing case uses $1,100 inclusive: GST is $100, exclusive value
 is $1,000. Starting with $1,000 exclusive gives `1000 × 0.10 = 100` GST and
 $1,100 inclusive.
 
+## GST creditable purpose change
+
+Added on 22 November 2026 with `gst-annual-apportionment` and
+`gst-financial-acquisitions-threshold`. The A New Tax System (Goods and
+Services Tax) Act 1999 was read that afternoon from the Federal Register of
+Legislation's API: compilation 96 (C2026C00081, in force from 1 January 2026,
+current, no unincorporated amendments) and compilation 82 (C2020C00143, in
+force on 1 July 2020). Divisions 21, 66, 129, 131, 136 and 189, Subdivision
+38-J and the s 195-1 definitions they use were compared line by line: they
+read the same in both, apart from s 131-60(1) step 3, which now refers to an
+instrument rather than a Gazette notice. The GST Regulations 2019 (compilation
+5, F2025C01015) specify no other amount for ss 131-5(2) and 189-5 or 189-10
+and no kind for s 131-40(1)(b). The formulas of ss 11-30, 129-70, 129-75 and
+131-40 are images; their alternative text in the EPUB gives them.
+
+GSTR 2000/24 (28 June 2000), GSTR 2003/9 (14 May 2003) and the ATO's 'Annual
+private apportionment of GST: Eligibility' (last updated 14 September 2026)
+were read from ato.gov.au the same afternoon. The ruling's examples are from
+2001 to 2006; the tests move their dates 20 years later, which the unchanged
+provisions allow.
+
+s 129-20(1) needs a tax period that 'starts at least 12 months after the end
+of' the attributable tax period: the command takes the day after
+`attributed_period_end`, adds 12 months, and accepts a 30 June tax period that
+starts on or after it. GSTR 2000/24's Farmco (paras 30 and 31: the quarter to
+31 March 2001, first adjustment period 1 April to 30 June 2002) fixes the
+reading. Para 34's table says '$5,001 to $499,999'; the Act's 'more than
+$5,000 but less than $500,000' is applied to the cent.
+
+| Example | Facts given | Result |
+| --- | --- | --- |
+| GSTR 2000/24 paras 57 to 71, Bill | $300 GST, 90% intended, 60% actual | Increasing **$90**, adjustment period 1 of 2 |
+| GSTR 2000/24 paras 64 to 72, XYZ Credit Union | $10,000, 75% intended, 85% actual | Decreasing **$1,000** |
+| GSTR 2000/24 paras 75 to 78, Elizabeth | $2,400 after Divisions 19 and 21, 90% to 50% | Increasing **$960** |
+| GSTR 2000/24 paras 30 to 36, Farmco | $100,000, quarter to 31 March | 5 adjustment periods from the next June quarter |
+| GSTR 2000/24 para 42, Isabelle | Destroyed on 15 March, before the first period | That June quarter is the last |
+| GST Act s 131-55 example | $1,100 at 10%; then $10 and $60 adjustments | Credit $100, adjustment **$90**; then **$45** |
+| GSTR 2003/9 Examples 1A and 2A, Cedar | $104,550 of $1,100,000; $131,000 of $1,220,000 | Current within; future **exceeded** |
+| GSTR 2003/9 Examples 13 and 14, ABC group | $3,600 of $69,000; $10,200 of $99,000 | Current within; future **exceeded** |
+
+`tests/gst_adjustments.rs` holds each case and each boundary.
+
+## GST annual apportionment
+
+See [GST creditable purpose change](#gst-creditable-purpose-change).
+
+## GST financial acquisitions threshold
+
+See [GST creditable purpose change](#gst-creditable-purpose-change).
+
 ## GST margin scheme
 
 Added on 19 November 2026. Its sources were read that afternoon, 2.20 pm to

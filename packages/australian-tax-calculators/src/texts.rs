@@ -279,6 +279,18 @@ pub const SCOPES: &[(&str, &str)] = &[
         "The small business income tax offset (ITAA 1997 Subdivision 328-F) of one individual, not as a trustee, who is not a prescribed person under s 102AC of the ITAA 1936, for an income year from 2020-21 to 2026-27: net small business income (s 328-365), each partnership or trust amount and its s 328-370 deductions, the basic income tax liability and the offsets applied before this one are the operator's established figures, and each partnership or trust is a small business entity at $5 million that is not a corporate tax entity.",
     ),
     (
+        "gst_creditable_purpose_change",
+        "One acquisition's adjustment under GST Act Division 129 for the tax period ending on 30 June of a year from 2020-21 to 2026-27, for an entity whose tax periods are calendar months, quarters or the financial year: whether that tax period is an adjustment period (s 129-20, with the number of them by GST exclusive value and business finance, and s 129-25 after a disposal, loss or expiry), the value thresholds of s 129-10, and the increasing or decreasing adjustment of ss 129-70 and 129-75. The operator establishes the full input tax credit with any Division 19, 21, 133 and 134 adjustments (s 129-80), the intended or former and the actual applications as percentages by a method they state, disregarding changes in applying the thing to financial supplies unless the entity exceeds the financial acquisitions threshold (s 129-5(2)), a reduced credit acquisition's extent under s 129-40(3), and that no Division 130 adjustment was had for the acquisition (s 129-15). Excludes judging whether the method is fair or reasonable, substituted and concluding tax periods (ss 27-39, 27-40, 151-55 and 162-85), a Commissioner's determination of fewer adjustment periods, gifts to charities (s 129-45) and importations' GST exclusive value other than as stated.",
+    ),
+    (
+        "gst_annual_apportionment",
+        "One entity's eligibility to make an annual apportionment election (GST Act s 131-5), and one partly creditable acquisition's input tax credit with and without the election (ss 131-40 and 11-30) and the increasing adjustment of s 131-55, for a tax period in a year from 2020-21 to 2026-27. The operator establishes small business entity status for the income year (ITAA 1997 s 328-110, not because of s 328-110(4)), GST turnover for an entity that carries on no business, the elections in effect, the GST payable on the supply taking into account Division 19, 21 and 134 adjustments, and the extents of creditable purpose, non-input-taxed purpose and consideration. A GST group's representative member can elect only if each member is eligible (s 131-15). Excludes cars (s 131-50), reduced credit acquisitions (s 131-40(5)), importations (s 131-45), when the election took effect or ceased (ss 131-10 and 131-20) and the tax period the adjustment is attributable to (s 131-60), which is stated, not worked out.",
+    ),
+    (
+        "gst_financial_acquisitions_threshold",
+        "Whether an entity, or a GST group member, exceeds the financial acquisitions threshold at a time in a month in a year from 2020-21 to 2026-27 (GST Act Division 189): the current acquisitions test over the 12 months ending at the end of the month (s 189-5) and the future acquisitions test over the month and the next 11 months (s 189-10), each exceeded when the input tax credits for financial acquisitions, treated as solely for a creditable purpose, are more than $150,000 or more than 10% of the input tax credits for all acquisitions and importations of the same months. The operator establishes which acquisitions are financial acquisitions (s 189-15: relating to financial supplies other than borrowings) and the credit amounts, with a GST group's taken across every member. Excludes which supplies are financial supplies and the reduced credit acquisitions an entity over the threshold may still claim.",
+    ),
+    (
         "income_tests",
         "The income measures of one individual who was an Australian resident for the whole income year and alive at its end, each the person's own for the whole year, from components the operator has established and classified: income for surcharge purposes (ITAA 1997 s 995-1), Division 293 income (s 293-20(1)(a)), rebate income (ITAA 1936 s 6(1)), repayment income for study and training loans (HESA s 154-5), adjusted taxable income for offsets (ITAA 1997 s 995-1, ITAA 1936 s 6(1) and A New Tax System (Family Assistance) Act 1999 Sch 3, disregarding cls 3 and 3A) and total income for the super co-contribution (Superannuation (Government Co-contribution for Low Income Earners) Act 2003 s 8). A spouse's measures come from the spouse's own components. A dependant's adjusted taxable income for part of a year, a deceased person's annualised adjusted taxable income (Sch 3 cl 2(2)), the co-contribution's 10% eligible income test, the combined family amounts and every threshold and eligibility test the measures feed are outside it. Income for surcharge purposes follows s 995-1, which does not add exempt foreign employment income; the ATO's surcharge page adds it where taxable income is $1 or more, and the result warns when that changes the figure. Measures another agency applies are outside it: the Commonwealth Seniors Health Card income test and family assistance adjusted taxable income are Services Australia's (https://www.servicesaustralia.gov.au/income-test-for-commonwealth-seniors-health-card). Refuses part-year residents, working holiday makers and foreign residents, and components that cannot all be true together.",
     ),
@@ -552,6 +564,18 @@ pub const SOURCES: &[(&str, &str)] = &[
     (
         "small_business_income_offset",
         "https://www.legislation.gov.au/C2004A05138/2026-10-01/2026-10-01/text/original/epub/OEBPS/document_7/document_7.html",
+    ),
+    (
+        "gst_creditable_purpose_change",
+        "https://www.legislation.gov.au/C2004A00446/2026-01-01/2026-01-01/text/original/epub/OEBPS/document_2/document_2.html",
+    ),
+    (
+        "gst_annual_apportionment",
+        "https://www.legislation.gov.au/C2004A00446/2026-01-01/2026-01-01/text/original/epub/OEBPS/document_2/document_2.html",
+    ),
+    (
+        "gst_financial_acquisitions_threshold",
+        "https://www.legislation.gov.au/C2004A00446/2026-01-01/2026-01-01/text/original/epub/OEBPS/document_2/document_2.html",
     ),
 ];
 
@@ -1175,6 +1199,31 @@ pub const EXTRA_SOURCES: &[(&str, &[&str])] = &[
         ],
     ),
     (
+        "gst_creditable_purpose_change",
+        &[
+            "https://www.legislation.gov.au/C2004A00446/2020-04-01/2020-04-01/text/original/epub/OEBPS/document_2/document_2.html",
+            "https://www.ato.gov.au/law/view/document?docid=GST/GSTR200024/NAT/ATO/00001",
+        ],
+    ),
+    (
+        "gst_annual_apportionment",
+        &[
+            "https://www.legislation.gov.au/C2004A00446/2026-01-01/2026-01-01/text/original/epub/OEBPS/document_1/document_1.html",
+            "https://www.legislation.gov.au/C2004A00446/2020-04-01/2020-04-01/text/original/epub/OEBPS/document_2/document_2.html",
+            "https://www.legislation.gov.au/F2019L00417/latest/text",
+            "https://www.ato.gov.au/businesses-and-organisations/gst-excise-and-indirect-taxes/gst/in-detail/managing-gst-in-your-business/reporting-paying-and-activity-statements/annual-private-apportionment-of-gst/eligibility",
+        ],
+    ),
+    (
+        "gst_financial_acquisitions_threshold",
+        &[
+            "https://www.legislation.gov.au/C2004A00446/2026-01-01/2026-01-01/text/original/epub/OEBPS/document_1/document_1.html",
+            "https://www.legislation.gov.au/C2004A00446/2020-04-01/2020-04-01/text/original/epub/OEBPS/document_2/document_2.html",
+            "https://www.legislation.gov.au/F2019L00417/latest/text",
+            "https://www.ato.gov.au/law/view/document?docid=GST/GSTR20039/NAT/ATO/00001",
+        ],
+    ),
+    (
         "small_business_income_offset",
         &[
             "https://www.legislation.gov.au/C2004A05138/2026-10-01/2026-10-01/text/original/epub/OEBPS/document_1/document_1.html",
@@ -1244,6 +1293,12 @@ pub const EXTRA_WARNINGS: &[(&str, &[&str])] = &[
         "sb_cgt_concessions",
         &[
             "An open concession is one whose conditions the facts given meet; the choices, the order (s 152-210) and the amounts are the taxpayer's, and a company or trust must pay its CGT concession stakeholders within the time s 152-325 sets.",
+        ],
+    ),
+    (
+        "gst_creditable_purpose_change",
+        &[
+            "application_basis is the operator's statement of the apportionment method; the command does not judge whether it is fair or reasonable (GSTR 2006/4 and GSTR 2006/3 discuss direct and indirect methods).",
         ],
     ),
     (
@@ -2091,6 +2146,42 @@ pub const REFUSAL_CODES: &[(&str, &str)] = &[
         "A line's use is not heavy_vehicle_public_road, other_business or light_vehicle_public_road.",
     ),
     (
+        "gst_annual_apportionment.car",
+        "The acquisition is of a car, whose credit s 131-50 limits to the s 69-10 car limit amount.",
+    ),
+    (
+        "gst_annual_apportionment.fact_conflict",
+        "creditable_purpose is above non_input_taxed_extent, or a small business entity carries on no business.",
+    ),
+    (
+        "gst_annual_apportionment.not_partly_creditable",
+        "The acquisition is not partly creditable: creditable_purpose or consideration_extent is nil, or both are 1.",
+    ),
+    (
+        "gst_annual_apportionment.reduced_credit_acquisition",
+        "The acquisition is to any extent a reduced credit acquisition, which s 131-40(5) excludes.",
+    ),
+    (
+        "gst_creditable_purpose_change.basis_missing",
+        "application_basis is not text of 1 to 200 characters stating the method the applications rest on.",
+    ),
+    (
+        "gst_creditable_purpose_change.last_period_unsettled",
+        "ended_on falls in a tax period that itself ends on 30 June, where s 129-25(1)'s next tax period ending on 30 June is not settled.",
+    ),
+    (
+        "gst_creditable_purpose_change.period_end_invalid",
+        "attributed_period_end is not the last day of a month.",
+    ),
+    (
+        "gst_creditable_purpose_change.tax_period_unsupported",
+        "tax_period_months is not 1, 3 or 12.",
+    ),
+    (
+        "gst_financial_acquisitions_threshold.fact_conflict",
+        "The financial acquisitions' credits are more than the total credits that include them.",
+    ),
+    (
         "gst_margin_scheme.acquisition_unsupported",
         "The interest was acquired in a way whose eligibility or margin s 75-5(3)(b) to (g), s 75-10(3) item 2A, s 75-11 or s 75-22 governs, which gst-margin-scheme does not work.",
     ),
@@ -2256,7 +2347,7 @@ pub const REFUSAL_CODES: &[(&str, &str)] = &[
     ),
     (
         "input.field_unknown",
-        "A field the worksheet or command does not take, or does not take beside the other inputs given, was given (fbt-loan, fbt-meal-entertainment, fbt-car-parking, fbt-debt-waiver, fbt-expense-payment, fbt-property, fbt-residual, fbt-housing, fbt-lafha, fbt-board, fbt-tax-exempt-body-entertainment, fbt-entertainment-classifier, fbt-meal-entertainment-register and its entries, fbt-minor-benefit-check, ppsr-timing, fhss and its contributions, personal_deductions and determination, division-296, depreciation, fuel-tax-credits and its lines, foreign-resident-tax, medicare-levy, medicare-levy-surcharge, payg-withholding, payg-gross-up, termination-payment, etp-tax-free-component, unused-leave-payment, the Schedule 5 methods, working-holiday-maker-withholding, study-loan-withholding, seniors-pensioners-withholding, seniors-pensioners-tax-offset, lump-sum-arrears-tax-offset, hire-purchase-schedule, chattel-mortgage-schedule, loan-transactions and its transactions and rate_changes, borrowing-expenses-schedule and its loans, business-capital-expenditure and its items, balancing-adjustment, its years and car_limit, trade-in, franking-account and its events, distributions and income_tax, dasp-tax, gst-margin-scheme, wine-equalisation-tax and its dealings, luxury-car-tax and its lines, payroll-tax, cgt-parcels, its parcels and disposals, fbt-ev-exemption-check, sb-cgt-concessions, small-business-income-offset, depreciation-low-value-pool, depreciation-small-business-pool, capital-works, contribution-caps given a carry-forward input, derive, personal-tax-estimate, dgr-check, income-tests and fbt-return only).",
+        "A field the worksheet or command does not take, or does not take beside the other inputs given, was given (fbt-loan, fbt-meal-entertainment, fbt-car-parking, fbt-debt-waiver, fbt-expense-payment, fbt-property, fbt-residual, fbt-housing, fbt-lafha, fbt-board, fbt-tax-exempt-body-entertainment, fbt-entertainment-classifier, fbt-meal-entertainment-register and its entries, fbt-minor-benefit-check, ppsr-timing, fhss and its contributions, personal_deductions and determination, division-296, depreciation, fuel-tax-credits and its lines, foreign-resident-tax, medicare-levy, medicare-levy-surcharge, payg-withholding, payg-gross-up, termination-payment, etp-tax-free-component, unused-leave-payment, the Schedule 5 methods, working-holiday-maker-withholding, study-loan-withholding, seniors-pensioners-withholding, seniors-pensioners-tax-offset, lump-sum-arrears-tax-offset, hire-purchase-schedule, chattel-mortgage-schedule, loan-transactions and its transactions and rate_changes, borrowing-expenses-schedule and its loans, business-capital-expenditure and its items, balancing-adjustment, its years and car_limit, trade-in, franking-account and its events, distributions and income_tax, dasp-tax, gst-margin-scheme, wine-equalisation-tax and its dealings, luxury-car-tax and its lines, payroll-tax, cgt-parcels, its parcels and disposals, fbt-ev-exemption-check, sb-cgt-concessions, small-business-income-offset, depreciation-low-value-pool, gst-creditable-purpose-change, gst-annual-apportionment, gst-financial-acquisitions-threshold, depreciation-small-business-pool, capital-works, contribution-caps given a carry-forward input, derive, personal-tax-estimate, dgr-check, income-tests and fbt-return only).",
     ),
     ("input.flag_invalid", "A flag is not a JSON boolean."),
     ("input.fraction_invalid", "A fraction is outside 0 to 1."),

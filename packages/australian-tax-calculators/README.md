@@ -16,7 +16,7 @@ keeps the calculator release and MCP integration separate.
 
 </div>
 
-70 calculation worksheets for established facts: ordinary GST, fuel tax credits at the ATO's rate for each day from 1 July 2022 with the simplified methods for small claimants, resident and foreign
+73 calculation worksheets for established facts: ordinary GST, fuel tax credits at the ATO's rate for each day from 1 July 2022 with the simplified methods for small claimants, resident and foreign
 resident basic income tax, CGT losses and discount, the gains and losses from parcels of shares or units, the small business CGT concessions open for a gain, the small business income tax offset, the main residence exemption's taxable share of a gain or loss, one loan's borrowing expenses deduction and a schedule of several loans' deductions over every year, a hire purchase agreement's notional interest, a chattel mortgage's interest schedule and input tax credit, a loan's statement with daily interest at changing rates, business capital expenditure (black hole and start-up costs) under s 40-880, ordinary employer FBT, car fringe benefit taxable values
 under the statutory formula and operating cost methods, loan, meal entertainment, car parking, debt waiver, expense payment, property, residual, housing, living-away-from-home allowance, board and tax-exempt body entertainment fringe benefit taxable values, the FBT, deduction and GST credit treatment of entertainment expense lines, whether a 12 week meal entertainment register is valid, depreciation in the start year and later years, a depreciating asset's balancing adjustment with its reduction for private use and CGT event K7, a trade-in's GST on both sides with the old asset's balancing adjustment and the replacement's cost, whether an electric car's fringe benefits are exempt, one employer's payroll tax in each state and territory, a company's franking account with franking deficit tax, its offset and the benchmark rule, wine equalisation tax with the producer rebate under its yearly cap and BAS labels 1C and 1D, luxury car tax on sales and importations with its adjustments, refunds and BAS labels 1E and 1F,
 quarterly super guarantee, Schedule 1 PAYG withholding and the gross pay that leaves a stated net, Schedule 5 withholding from back payments, commissions and bonuses by Methods A, B(i) and B(ii), Schedule 15 withholding for working holiday makers, Schedule 9 withholding for seniors and pensioners, super contribution caps,
@@ -190,6 +190,9 @@ booleans and counts, ages, days, quarters and scales are JSON integers.
 | `lump-sum-arrears-tax-offset` | `taxable_income`, `net_capital_gain`, `accrual_years`, `year`, `scope_confirmed`; see [Lump sum payment in arrears tax offset](#lump-sum-payment-in-arrears-tax-offset) |
 | `division-293` | `division_293_income`, `low_tax_contributions`, `year`, `scope_confirmed` |
 | `sb-cgt-concessions` | `entity`, `share_or_trust_interest`, `acquired`, `event_date`, `partnership_asset`, `passively_held`, `business`, `previous_year_turnover`, `year_before_turnover`, `likely_turnover`, `year_turnover`, `net_asset_value`, `active_days`, `business_ceased`, `date_of_birth`, `retirement`, `permanently_incapacitated`, `last_rollover_event`, `earnout_latest_due`, `year`, `scope_confirmed`; the facts some answers call for; see [Small business CGT concessions](#small-business-cgt-concessions) |
+| `gst-creditable-purpose-change` | `gst_exclusive_value`, `relates_to_business_finance`, `full_input_tax_credit`, `intended_or_former_application`, `actual_application`, `application_basis`, `attributed_period_end`, `tax_period_months`, `year`, `scope_confirmed`; optional `ended_on` and `division_132_disposal`; see [GST adjustments](#gst-adjustments) |
+| `gst-annual-apportionment` | `small_business_entity`, `carries_on_business`, `instalment_election`, `annual_tax_period_election`, `election_made`, `gst_on_acquisition`, `creditable_purpose`, `car`, `reduced_credit_acquisition`, `year`, `scope_confirmed`; optional `gst_turnover`, `non_input_taxed_extent` and `consideration_extent` |
+| `gst-financial-acquisitions-threshold` | `current_financial_credits`, `current_total_credits`, `future_financial_credits`, `future_total_credits`, `gst_group`, `year`, `scope_confirmed` |
 | `small-business-income-offset` | `taxable_income`, `basic_income_tax_liability`, `offsets_applied_first`, `net_small_business_income`, `shares`, `prescribed_person`, `year`, `scope_confirmed`; with net small business income of your own, `business` and the 4 turnovers; see [Small business income offset](#small-business-income-offset) |
 | `income-tests` | `taxable_income`, `assessable_fhss_released_amount`, `family_trust_distribution_amounts`, `reportable_fringe_benefits_section_57a`, `reportable_fringe_benefits_other`, `reportable_employer_super_contributions`, `deductible_personal_super_contributions`, `excess_concessional_contributions`, `net_financial_investment_loss`, `net_rental_property_loss`, `tax_free_government_pensions`, `target_foreign_income`, `exempt_foreign_employment_income`, `child_support_paid`, `assessable_income`, `business_deductions`, `residency`, `year`, `scope_confirmed`; see [Income tests](#income-tests) |
 | `division-296` | `total_super_balance_end_of_year`, `total_super_earnings`, `child_recipient`, `structured_settlement_contribution`, `died_in_year`, `year`, `scope_confirmed` |
@@ -209,7 +212,7 @@ booleans and counts, ages, days, quarters and scales are JSON integers.
 | `dgr-check` | `donations`, a list of 1 to 10,000 objects, each with `abn` or `name` or both, and optional `date` and `amount`; see [DGR check](#dgr-check) |
 | `personal-tax-estimate` | `year`, `scope_confirmed`, `residency`, `taxable_income` or `assessable_labour_income` (then optional `other_assessable_income`, `work_related_deductions`, `other_deductions`), optional `tax_withheld` or, to work it out, one of `payg-withholding`, `study-loan-withholding` and `seniors-pensioners-withholding` with `pays_in_year` and optional `schedule-5-method-a`, for a resident from 2027-28 `net_labour_income` (required beside `taxable_income`), and for a full-year resident `medicare-levy` and `medicare-levy-surcharge`; optional `seniors-pensioners-tax-offset`, `study-loan-repayment` and `division-293`; see [Personal tax estimate](#personal-tax-estimate) |
 | `fbt-return` | `employer`, `year_ended`, `scope_confirmed` and `benefits`, a list of objects each with `employee`, `command` (an FBT benefit worksheet), `input` (that worksheet's arguments), `gst_type` (`type_1` or `type_2`) and `excluded`; see [FBT return](#fbt-return) |
-| `derive` | `command`, one of `fbt`, `fbt-car-statutory`, `fbt-car-operating-cost`, `fbt-loan`, `fbt-meal-entertainment`, `fbt-car-parking`, `fbt-debt-waiver`, `fbt-expense-payment`, `fbt-property`, `division-293`, `pension-minimum`, `payg-withholding`, `schedule-5-method-a`, `schedule-5-method-b-i`, `schedule-5-method-b-ii`, `termination-payment`, `etp-tax-free-component`, `unused-leave-payment`, `working-holiday-maker-withholding`, `study-loan-withholding`, `seniors-pensioners-withholding`, `quarterly-sg`, `borrowing-expenses`, `borrowing-expenses-schedule`, `resident-tax`, `foreign-resident-tax`, `low-income-tax-offset`, `seniors-pensioners-tax-offset`, `medicare-levy`, `medicare-levy-surcharge`, `division-296`, `contribution-caps`, `study-loan-repayment`, `capital-gains`, `main-residence`, `fbt-residual`, `fbt-housing`, `fbt-lafha`, `fbt-board`, `fbt-tax-exempt-body-entertainment`, `gst`, `depreciation`, `depreciation-low-value-pool`, `depreciation-small-business-pool`, `capital-works`, `hire-purchase-schedule`, `chattel-mortgage-schedule`, `loan-transactions`, `lump-sum-arrears-tax-offset`, `income-tests`, `business-capital-expenditure`, `balancing-adjustment`, `trade-in`, `dasp-tax`, `gst-margin-scheme`, `payroll-tax` and `cgt-parcels`, and `input`, that command's arguments; see [Derivations](#derivations) |
+| `derive` | `command`, one of `fbt`, `fbt-car-statutory`, `fbt-car-operating-cost`, `fbt-loan`, `fbt-meal-entertainment`, `fbt-car-parking`, `fbt-debt-waiver`, `fbt-expense-payment`, `fbt-property`, `division-293`, `pension-minimum`, `payg-withholding`, `schedule-5-method-a`, `schedule-5-method-b-i`, `schedule-5-method-b-ii`, `termination-payment`, `etp-tax-free-component`, `unused-leave-payment`, `working-holiday-maker-withholding`, `study-loan-withholding`, `seniors-pensioners-withholding`, `quarterly-sg`, `borrowing-expenses`, `borrowing-expenses-schedule`, `resident-tax`, `foreign-resident-tax`, `low-income-tax-offset`, `seniors-pensioners-tax-offset`, `medicare-levy`, `medicare-levy-surcharge`, `division-296`, `contribution-caps`, `study-loan-repayment`, `capital-gains`, `main-residence`, `fbt-residual`, `fbt-housing`, `fbt-lafha`, `fbt-board`, `fbt-tax-exempt-body-entertainment`, `gst`, `depreciation`, `depreciation-low-value-pool`, `depreciation-small-business-pool`, `capital-works`, `hire-purchase-schedule`, `chattel-mortgage-schedule`, `loan-transactions`, `lump-sum-arrears-tax-offset`, `income-tests`, `business-capital-expenditure`, `balancing-adjustment`, `trade-in`, `dasp-tax`, `gst-margin-scheme`, `payroll-tax`, `cgt-parcels`, `gst-creditable-purpose-change`, `gst-annual-apportionment` and `gst-financial-acquisitions-threshold`, and `input`, that command's arguments; see [Derivations](#derivations) |
 
 The 2 car commands, the 11 FBT benefit commands (`fbt-loan`, `fbt-meal-entertainment`, `fbt-car-parking`, `fbt-debt-waiver`, `fbt-expense-payment`, `fbt-property`, `fbt-residual`, `fbt-housing`, `fbt-lafha`, `fbt-board` and `fbt-tax-exempt-body-entertainment`), `main-residence`, `borrowing-expenses`, `borrowing-expenses-schedule`, `fuel-tax-credits`, `division-296`, `termination-payment`, `etp-tax-free-component`, `unused-leave-payment`, the 3 `schedule-5` commands, `working-holiday-maker-withholding`, `seniors-pensioners-withholding`, `seniors-pensioners-tax-offset`, `medicare-levy-surcharge`, `foreign-resident-tax`, `payg-gross-up`, `hire-purchase-schedule`, `chattel-mortgage-schedule`, `loan-transactions`, `lump-sum-arrears-tax-offset`, `fbt-entertainment-classifier`, `fbt-meal-entertainment-register`, `fbt-minor-benefit-check`, `fhss`, `ppsr-timing`, `income-tests`, `business-capital-expenditure`, `balancing-adjustment`, `trade-in`, `gst-margin-scheme`, `franking-account`, `wine-equalisation-tax`, `luxury-car-tax`, `payroll-tax`, `dasp-tax`, `cgt-parcels`, `fbt-ev-exemption-check`, `sb-cgt-concessions` and `small-business-income-offset` have no Python original; their arguments follow the same
 rules. `division-296` alone takes a negative amount, in `total_super_earnings`. `main-residence` also takes dates as `YYYY-MM-DD` strings, lists of
@@ -384,6 +387,7 @@ own dates and figures.
 | Lump sum payment in arrears tax offset | Years of receipt 2013-14 to 2026-27; a full-year resident individual's established eligible lump sums by accrual year, recent accrual years from 2012-13 at resident rates and earlier distant years at their average; the offset amount, not applied against tax, without the Medicare levy and surcharge relief |
 | Division 293 | 2024-25 to 2027-28; established Division 293 income and low tax contributions; no defined benefit interests |
 | Small business CGT concessions | CGT event A1 in 2025-26 and 2026-27, before Act No. 49 of 2026's changes to Division 152; an asset other than a share, a trust interest or a partnership right, with established turnover, net value, active days and retirement facts; conditions only, not amounts |
+| GST adjustments | 2020-21 to 2026-27; one acquisition's Division 129 adjustment for a 30 June tax period of a month, quarter or year; Division 131 eligibility and one partly creditable acquisition's credit and adjustment; the Division 189 tests on established credit amounts; the apportionment method is the caller's, not judged |
 | Small business income offset | 2020-21 to 2026-27; one individual, not a trustee or a prescribed person under s 102AC of the ITAA 1936; established net small business income, partnership and trust amounts, basic income tax liability and offsets applied first |
 | Income tests | 2024-25, 2025-26 and 2026-27; a full-year resident's established and classified components; the measures, not the thresholds and tests they feed |
 | Division 296 | 2026-27; one individual's established balance at 30 June 2027 and total superannuation earnings; no defined benefit or other s 296-70 interests; an estimate, as the Commissioner assesses |
@@ -2634,6 +2638,53 @@ It refuses a prescribed person under s 102AC of the ITAA 1936 (s 328-375),
 and years before 2020-21 and after 2026-27. The tests hold it to the site's
 6 sole trader vectors and the ATO's rate table; see
 [calculation evidence](docs/calculation-evidence.md#small-business-income-offset).
+
+## GST adjustments
+
+3 commands work GST Act tests and adjustments for tax periods from 1 July 2020
+to 30 June 2027. Divisions 129, 131 and 189 read the same in compilation 82,
+in force on 1 July 2020, and compilation 96, current from 1 January 2026; both
+were read on 22 November 2026.
+
+`gst-creditable-purpose-change` works one acquisition's Division 129
+adjustment for the tax period ending on 30 June of `year`:
+
+```text
+adjustment period   starts at least 12 months after attributed_period_end, ends 30 June   s 129-20(1)
+number of periods   business finance: 1 to $50,000, 5 to under $500,000, else 10          s 129-20(2)
+                    otherwise: 2 to $5,000, 5 to under $500,000, else 10                 s 129-20(3)
+no adjustment       GST exclusive value not above $10,000 (business finance) or $1,000   s 129-10
+increasing          full_input_tax_credit x (intended_or_former - actual)                 s 129-70
+decreasing          full_input_tax_credit x (actual - intended_or_former)                 s 129-75
+```
+
+Tax periods are calendar months, quarters or the financial year
+(`tax_period_months` 1, 3 or 12). After a disposal, loss, theft, destruction
+or expiry on `ended_on`, the next tax period ending on 30 June is the last
+adjustment period (s 129-25(1)); after a disposal with a Division 132
+decreasing adjustment, the last to end before it (s 129-25(2)). An `ended_on`
+inside the 30 June tax period itself is refused, as s 129-25(1) could mean that
+period or the next. The 2 applications rest on the caller's method, stated in
+`application_basis` and echoed; the command does not judge whether it is fair
+or reasonable.
+
+`gst-annual-apportionment` checks the 3 conditions of s 131-5(1) (a small
+business entity, or an entity without a business whose GST turnover is not
+over $2 million; no GST instalment election; no annual tax period election)
+and, for one partly creditable acquisition, gives the credit without the
+election (s 11-30), the credit with it (the GST on the supply, s 131-40(1), or
+that times the non-input-taxed and consideration extents, s 131-40(2)) and the
+s 131-55 increasing adjustment, their difference. Cars and reduced credit
+acquisitions are refused (ss 131-50 and 131-40(5)); the tax period the
+adjustment is attributable to (s 131-60) is stated, not worked out.
+
+`gst-financial-acquisitions-threshold` runs the current (s 189-5) and future
+(s 189-10) acquisitions tests: either is exceeded when the credits for
+financial acquisitions, treated as solely for a creditable purpose, are more
+than $150,000 or more than 10% of the credits for all acquisitions and
+importations of the same 12 months. A GST group member's amounts are the
+group's (`gst_group`). See
+[calculation evidence](docs/calculation-evidence.md#gst-creditable-purpose-change).
 
 ## Personal tax estimate
 

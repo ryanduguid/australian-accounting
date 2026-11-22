@@ -6169,8 +6169,13 @@ mod small_business_income_offset;
 pub use small_business_income_offset::{
     SBITO_OPTIONAL, SmallBusinessIncomeOffsetArgs, small_business_income_offset,
 };
+mod gst_adjustments;
+pub use gst_adjustments::{
+    AnnualApportionmentArgs, CreditablePurposeArgs, FinancialAcquisitionsArgs,
+    gst_annual_apportionment, gst_creditable_purpose_change, gst_financial_acquisitions_threshold,
+};
 
-const KINDS: [&str; 70] = [
+const KINDS: [&str; 73] = [
     "gst",
     "gst_margin_scheme",
     "fuel_tax_credits",
@@ -6241,6 +6246,9 @@ const KINDS: [&str; 70] = [
     "depreciation_small_business_pool",
     "capital_works",
     "small_business_income_offset",
+    "gst_creditable_purpose_change",
+    "gst_annual_apportionment",
+    "gst_financial_acquisitions_threshold",
 ];
 
 /// `periods(kind)`: accepted period arguments and inclusive calendar boundaries.
