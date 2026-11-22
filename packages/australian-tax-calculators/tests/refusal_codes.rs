@@ -185,8 +185,8 @@ fn every_catalogued_required_input_of_a_strict_command_is_read() {
     // voluntary-agreement-withholding, residency-tests, lodgment-required,
     // rd-tax-offset, gst-creditable-purpose-change, gst-annual-apportionment,
     // gst-financial-acquisitions-threshold, gst-going-concern,
-    // gst-second-hand-goods, gst-bad-debt, deferred-tax and
-    // cgt-cost-base-adjustments.
+    // gst-second-hand-goods, gst-bad-debt, deferred-tax,
+    // cgt-cost-base-adjustments and super-withholding.
     assert_eq!(checked, 88);
 }
 
