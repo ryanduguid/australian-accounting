@@ -1853,7 +1853,7 @@ pub fn optional_inputs(kind: &str) -> Vec<(&'static str, &'static str)> {
             ),
             (
                 "untaxed_plan_cap_used",
-                "AUD, with a TFN for a member benefit taxed by age or a roll-over with an untaxed_element above nil, and then required: the total by which earlier lump sums from the same plan reduced the untaxed plan cap (each one's untaxed_plan_cap_counted in super-benefit-tax)",
+                "AUD, for a member benefit taxed by age with a TFN, or a roll-over, with an untaxed_element above nil, and then required: the total by which earlier lump sums from the same plan reduced the untaxed plan cap (each one's untaxed_plan_cap_counted in super-benefit-tax)",
             ),
             (
                 "other_lump_sums_this_year",

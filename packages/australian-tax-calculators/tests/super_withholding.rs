@@ -124,17 +124,43 @@ fn each_years_untaxed_plan_cap() {
     }
 }
 
-/// Schedule 12 (2026): Chloe, 62, has $13,600 withheld, 17% of her $80,000
-/// element untaxed in the fund.
+/// Schedule 12 (2024, 2025 and 2026): Chloe, 62, has $13,600 withheld, 17%
+/// of her $80,000 element untaxed in the fund.
 #[test]
 fn chloe_has_17_percent_withheld() {
-    let chloe = member(
-        "2026-27",
-        "2026-09-01",
-        "1964-03-01",
-        ["30000.00", "190000.00", "80000.00"],
-    );
-    assert_eq!(withheld(&chloe), "13600.00");
+    for (year, paid, born) in [
+        ("2024-25", "2024-09-01", "1962-03-01"),
+        ("2025-26", "2025-09-01", "1963-03-01"),
+        ("2026-27", "2026-09-01", "1964-03-01"),
+    ] {
+        let chloe = member(year, paid, born, ["30000.00", "190000.00", "80000.00"]);
+        assert_eq!(withheld(&chloe), "13600.00", "{year}");
+    }
+}
+
+/// The roll-over rule states one rate whatever the TFN or residency: 47% of
+/// the untaxed element above the untaxed plan cap left, cents ignored
+/// without a TFN.
+#[test]
+fn rollovers_without_a_tfn_or_to_a_foreign_resident() {
+    let tom = rollover("2026-27", "2026-09-01", "1967000.00");
+    let mut no_tfn = tom.clone();
+    no_tfn["tfn_provided"] = json!(false);
+    assert_eq!(withheld(&no_tfn), "15040.00");
+    let mut foreign = tom.clone();
+    foreign["foreign_resident"] = json!(true);
+    assert_eq!(withheld(&foreign), "15040.00");
+    // $1,001.99 above the cap: 470.9353 rounds to $471 with a TFN; without
+    // one, 47% of $1,001 is $470.47, cents ignored.
+    let cents = rollover("2026-27", "2026-09-01", "1936001.99");
+    assert_eq!(withheld(&cents), "471.00");
+    let mut cents = cents;
+    cents["tfn_provided"] = json!(false);
+    assert_eq!(withheld(&cents), "470.00");
+    // Within the cap, nothing either way.
+    let mut within = rollover("2026-27", "2026-09-01", "1935000.00");
+    within["tfn_provided"] = json!(false);
+    assert_eq!(withheld(&within), "0.00");
 }
 
 /// Schedule 12 (2020): Heather, 59, has 17% withheld from the $5,000 above
@@ -386,15 +412,8 @@ fn bad_inputs_are_refused() {
     );
     capped["tfn_provided"] = json!(false);
     assert_eq!(code(&capped), "input.field_unknown");
-    // Roll-overs: a TFN and residency are required, and member facts are not
-    // taken.
+    // Roll-overs: member facts are not taken.
     let tom = rollover("2026-27", "2026-09-01", "1967000.00");
-    let mut no_tfn = tom.clone();
-    no_tfn["tfn_provided"] = json!(false);
-    assert_eq!(code(&no_tfn), "super_withholding.rollover_unstated");
-    let mut foreign = tom.clone();
-    foreign["foreign_resident"] = json!(true);
-    assert_eq!(code(&foreign), "super_withholding.rollover_unstated");
     let mut born = tom.clone();
     born["date_of_birth"] = json!("1960-01-01");
     assert_eq!(code(&born), "input.field_unknown");

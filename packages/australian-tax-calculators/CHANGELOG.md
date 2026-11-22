@@ -10,9 +10,8 @@
   sum or roll-over paid from 13 October 2020 to 30 June 2027: Table A's rates
   on the same parts `super-benefit-tax` works, nil payments, roll-overs above
   the untaxed plan cap and the no-TFN rates. New codes:
-  `super_withholding.no_tfn_unstated`, `super_withholding.recipient_invalid`,
-  `super_withholding.rollover_unstated` and
-  `super_withholding.schedule_not_read`. `tests/super_withholding.rs` runs the
+  `super_withholding.no_tfn_unstated`, `super_withholding.recipient_invalid`
+  and `super_withholding.schedule_not_read`. `tests/super_withholding.rs` runs the
   schedules' Tom, Chloe, Heather and Dean examples.
 - `super-benefit-tax` works out one superannuation lump sum's components by
   the proportioning rule (ITAA 1997 s 307-125) and the most income tax, before

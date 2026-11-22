@@ -2301,9 +2301,8 @@ no TFN        floor(floor(taxable component) x 47%) under 60; untaxed element on
 ```
 
 It refuses a payment before 13 October 2020 (the schedule then was not read),
-no TFN for a non-dependant, a roll-over or a member benefit under $200, and a
-foreign resident's roll-over, for which the schedule states no rate, as well
-as everything `super-benefit-tax` refuses. Tax treaties, income streams
+no TFN for a non-dependant or a member benefit under $200, for which the
+schedule states no rate, as well as everything `super-benefit-tax` refuses. Tax treaties, income streams
 (Schedule 13), departing Australia superannuation payments (`dasp-tax`) and
 the tax itself (`super-benefit-tax`) are outside it. See
 [calculation evidence](docs/calculation-evidence.md#super-withholding).

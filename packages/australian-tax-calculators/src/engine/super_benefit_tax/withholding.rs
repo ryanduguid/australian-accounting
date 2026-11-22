@@ -33,6 +33,7 @@ const TABLE_A: &str = "Withholding Schedules, Schedule 12, Table A: the rate for
 const ROUNDED: &str = "Schedule 12, 'Rounding of withholding amounts': the amount to withhold to the nearest dollar, 50 cents up, with no preliminary rounding to the cent";
 const NIL: &str = "Schedule 12, 'Payments not subject to PAYG withholding' and Table A: nothing is withheld from a terminal medical condition payment, a member benefit under $200 that is the payee's entire benefit, a death benefit to a dependant or a death benefit to the trustee of a deceased estate";
 const ROLLOVER: &str = "Schedule 12, 'Rollovers': nothing is withheld from the element untaxed in the fund up to the untaxed plan cap, and 47% from the amount above it";
+const ROLLOVER_NO_TFN: &str = "Schedule 12, 'Rollovers' and 'Rounding of withholding amounts': 47% from the element untaxed in the fund above the untaxed plan cap, ignoring cents where no TFN was provided";
 const NO_TFN_BASE: &str = "Schedule 12, 'When a TFN has not been provided': the taxable component under 60, or the element untaxed in the fund at 60 or over, ignoring cents";
 const NO_TFN: &str = "Schedule 12, 'When a TFN has not been provided': 47% for an Australian resident or 45% for a foreign resident, ignoring cents, with no tax offsets or Medicare levy adjustments";
 const ABOVE_PLAN: &str = "Schedule 12, 'Rollovers', with ITAA 1997 s 307-350: the element untaxed in the fund above the untaxed plan cap amount left";
@@ -73,19 +74,9 @@ fn total(ids: &[String], values: &[Decimal]) -> Result<Step> {
 
 /// A member's roll-over: 47% of the element untaxed in the fund above the
 /// untaxed plan cap left, the rest nil.
-fn rollover(
-    args: &SuperBenefitTaxArgs,
-    c: &Components,
-    year: &str,
-    tfn: bool,
-    foreign: bool,
-) -> Result<Tail> {
-    if !tfn || foreign {
-        return refuse(
-            "super_withholding.rollover_unstated",
-            "Schedule 12 states no roll-over rate for a payee without a TFN or a foreign resident.",
-        );
-    }
+fn rollover(args: &SuperBenefitTaxArgs, c: &Components, year: &str, tfn: bool) -> Result<Tail> {
+    // The 'Rollovers' rule states one rate whatever the TFN or residency;
+    // without a TFN, cents are ignored ('Rounding of withholding amounts').
     none_of(
         args,
         &[0, 1, 2, 4, 6],
@@ -108,11 +99,22 @@ fn rollover(
     ));
     let r = d("0.47");
     p.rates.push(rate("rollover_rate", &r));
-    let withheld = above.mul(&r)?.quantize(0, Rounding::HalfUp)?;
-    let formula = "dollars(untaxed_above_plan_cap x rollover_rate)";
+    let (formula, authority, withheld) = if tfn {
+        let withheld = above.mul(&r)?.quantize(0, Rounding::HalfUp)?;
+        (
+            "dollars(untaxed_above_plan_cap x rollover_rate)",
+            ROLLOVER,
+            withheld,
+        )
+    } else {
+        let used = above.quantize(0, Rounding::Down)?;
+        let withheld = used.mul(&r)?.quantize(0, Rounding::Down)?;
+        let formula = "floor(floor(untaxed_above_plan_cap) x rollover_rate)";
+        (formula, ROLLOVER_NO_TFN, withheld)
+    };
     p.steps.push(step(
         "withholding",
-        ROLLOVER,
+        authority,
         formula,
         &[&above, &r],
         withheld,
@@ -259,7 +261,7 @@ pub fn super_withholding(args: &SuperWithholdingArgs) -> Result<Value> {
     }
     let c = components(b)?;
     let (name, ages, (tail, mut rates)) = match recipient {
-        Some("rollover") => ("rollover", None, rollover(b, &c, &year, tfn, foreign)?),
+        Some("rollover") => ("rollover", None, rollover(b, &c, &year, tfn)?),
         Some("deceased_estate_trustee") => {
             none_of(
                 b,
