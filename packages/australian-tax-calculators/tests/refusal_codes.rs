@@ -187,7 +187,7 @@ fn every_catalogued_required_input_of_a_strict_command_is_read() {
     // gst-financial-acquisitions-threshold, gst-going-concern,
     // gst-second-hand-goods, gst-bad-debt, deferred-tax and
     // cgt-cost-base-adjustments.
-    assert_eq!(checked, 87);
+    assert_eq!(checked, 88);
 }
 
 /// Every frozen call gives the same answer through either entry point, and

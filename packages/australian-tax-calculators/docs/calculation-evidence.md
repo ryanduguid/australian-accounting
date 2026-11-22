@@ -3010,6 +3010,33 @@ cover the low rate cap going to the element taxed in the fund first
 benefits, a terminal medical condition, a lump sum under $200 and each
 refusal.
 
+## Super withholding
+
+Sources, read on 22 November 2026: the ATO's Schedule 12 from 13 October 2020
+to 30 June 2024, and Schedule 12 of the Taxation Administration (Withholding
+Schedules) Instruments 2024 (F2024L00664), 2025 (F2025L00647), (No. 2) 2025
+(F2025L01016, the same Schedule 12 text) and 2026 (F2026L00716). Each Table A
+rate is the matching tax offset ceiling rate in `super-benefit-tax` plus the
+2% Medicare levy; the 2024 to 2026 tables drop the preservation age to 59 rows,
+as nobody is in that band from 1 July 2024. The schedules round 'withholding
+amounts' to the nearest dollar with no preliminary rounding to the cent; the
+command rounds the total once, and the schedules give no example where
+rounding each part would differ. `tests/super_withholding.rs` holds each case.
+
+| Example | Facts given | Withheld |
+| --- | --- | --- |
+| Tom, roll-over, 2020-21 | $1,585,000 untaxed; cap $1,565,000 | **$9,400** |
+| Tom, roll-over, 2024-25 | $1,820,000 untaxed; cap $1,780,000 | **$18,800** |
+| Tom, roll-over, 2025-26 | $1,900,000 untaxed; cap $1,865,000 | **$16,450** |
+| Tom, roll-over, 2026-27 | $1,967,000 untaxed; cap $1,935,000 | **$15,040** |
+| Chloe, 62, 2026-27 | $30,000, $190,000 taxed, $80,000 untaxed | **$13,600** |
+| Heather, 59, 2020-21 | $30,000, $220,000 taxed | **$850** |
+| Dean, 61, 2020-21 | As Heather | **$0** |
+
+The tests also cover each Table A rate, the total's rounding, a foreign
+resident, death benefits, nil payments, the no-TFN rates ignoring cents, each
+year's untaxed plan cap and each refusal.
+
 ## Depreciation low-value pool
 
 Added on 22 November 2026, with the 2 sections after it. The sources were read
