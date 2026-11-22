@@ -3554,7 +3554,9 @@ current_provision   = short-term lines + long-term lines with no right to defer 
 non_current_provision = total_provision - current_provision
 ```
 
-`years_to_settlement` is a whole number of years from 1 to 50. The discount
+`years_to_settlement` is a whole number of years from 0 to 50; 0, for a
+portion expected within 6 months, leaves the amount neither grown nor
+discounted. The discount
 rate, salary growth and probabilities are the caller's stated assumptions;
 none has a default. The discount rate is the market yield at the reporting
 date on high quality corporate bonds of a consistent term, or government bonds

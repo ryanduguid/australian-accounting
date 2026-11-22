@@ -4372,7 +4372,7 @@ the cents dropped.
 | P68 | 1 to 4 years' benefit at rates $100.00, $107.00, $114.49 and $122.50, 4 to 1 years | **$89.53**, **$196.96**, **$324.99**, **$476.64** |
 
 `tests/leave_provisions.rs` also covers each year, the year boundaries, each
-assumption's bounds and every refusal.
+assumption's bounds (0 to 50 years), and every refusal.
 
 ## Personal tax estimate
 

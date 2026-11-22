@@ -192,7 +192,7 @@ fn invalid_lines() {
         ("probability", json!("0.0000001")),
         ("discount_rate", json!("-0.01")),
         ("salary_growth", json!("1.5")),
-        ("years_to_settlement", json!(0)),
+        ("years_to_settlement", json!(-1)),
         ("years_to_settlement", json!(51)),
         ("hours", json!("-1")),
         ("label", json!("")),
@@ -220,7 +220,23 @@ fn invalid_lines() {
     }
 }
 
-/// The boundaries of each assumption are accepted: 0 and 1, 1 and 50 years.
+/// The boundaries of each assumption are accepted: 0 and 1, 0 and 50 years.
+/// A long-term portion expected within 6 months rounds to 0 years: grown and
+/// discounted for no year, it is undiscounted (fresh-context finding 1).
+#[test]
+fn a_long_term_portion_due_within_months_takes_0_years() {
+    let l = long(
+        "long_service",
+        ["100.00", "50.00", "0.03", "0.05", "1"],
+        0,
+        false,
+    );
+    let r = run(&input(json!([l])));
+    assert_eq!(amount(&r, "total_provision"), "5000.00");
+    assert_eq!(amount(&r, "current_provision"), "5000.00");
+    assert_eq!(line(&r, 0, "projected_value"), "5000.00");
+}
+
 #[test]
 fn assumption_boundaries() {
     let l = long("long_service", ["10.00", "10.00", "0", "0", "0"], 50, true);
