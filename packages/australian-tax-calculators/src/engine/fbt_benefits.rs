@@ -81,7 +81,7 @@ fn take<'a, const N: usize>(
 }
 
 /// [`take`] for a list of `names` known only at run time: a lookup of each.
-fn named<'a>(
+pub(super) fn named<'a>(
     given: &'a [(String, Arg)],
     command: &str,
     when: &str,

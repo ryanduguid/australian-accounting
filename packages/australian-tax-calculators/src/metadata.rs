@@ -1186,6 +1186,12 @@ pub fn supported_periods(kind: &str) -> Vec<&'static str> {
             "2020-21", "2021-22", "2022-23", "2023-24", "2024-25", "2025-26", "2026-27",
         ],
         "income_tests" => vec!["2024-25", "2025-26", "2026-27"],
+        // Each year's rates were read at the ATO, the Commissioner's
+        // instruments and PCG 2023/1 on 22 November 2026; 2027-28 has no cents
+        // per kilometre rate yet.
+        "work_expenses" => vec![
+            "2020-21", "2021-22", "2022-23", "2023-24", "2024-25", "2025-26", "2026-27",
+        ],
         // The pools' rates and the capital works rates do not change in these
         // years; the small business pool's low pool value threshold does, by year.
         "depreciation_low_value_pool" | "depreciation_small_business_pool" | "capital_works" => {
@@ -1463,6 +1469,10 @@ pub fn source_review(kind: &str) -> (&'static str, &'static str) {
         "fbt_entertainment_classifier" => (
             "2026-11-16",
             "ITAA 1997 Division 32, s 27-5 and s 995-1, compilation 268 (1 October 2026); FBTAA ss 5E, 20, 37A to 37CF, 40, 41, 45, 58P and 135P(1) and s 136(1), compilation 97 (1 July 2026); Fringe Benefits Tax Assessment Regulations 2018, regulations 6 to 11, as made; ITAA 1936 ss 51AEA and 51AEB, compilation 193 (1 October 2026); GST Act s 69-5, compilation 96 (1 January 2026); TR 97/17, paras 7 to 143 and the Part A table, and TR 2007/12, paras 8 to 22 and examples 1 to 3, as the Commissioner's view",
+        ),
+        "work_expenses" => (
+            "2026-11-22",
+            "ITAA 1997 ss 28-12, 28-25, 28-90, 28-95, 28-100, 28-110, 28-115, 28-120 and 28-125 (ATO legal database); the cents per kilometre instruments of 2020 (F2020L00676), 2022 (F2022L00813), 2023 (F2023L00767), 2024 (F2024L00697) and 2026 (F2026L00785); PCG 2023/1 as updated 16 April 2025, paras 14 to 28, 45 to 89 and Table 1; the ATO's 52 cent fixed rate, shortcut (PCG 2020/3), fixed rate, actual cost, cents per kilometre, log book and self-education pages; the 2022 D4 instructions; TR 98/9 paras 25 to 30 and 119 to 155 on ITAA 1936 s 82A; Act No. 84, 2022, Schedule 3 items 26 and 33",
         ),
         "depreciation_low_value_pool" => (
             "2026-11-22",
@@ -1862,6 +1872,12 @@ pub fn library_evidence(kind: &str) -> [(&'static str, &'static str); 4] {
             "2026-06-30",
             "2026-11-15",
         ),
+        "work_expenses" => (
+            "ATO working from home, car and self-education pages; PCG 2023/1; TR 98/9",
+            "Keisha, Yang and Wanda (fixed rate method), PCG 2023/1 examples 1 (Gerry) and 8 (Piruntha), Johan (cents per kilometre), Lana (log book), Maureen (self-education reduction) and TR 98/9 paras 145 to 155 (Con)",
+            "2026-08-12",
+            "2026-11-22",
+        ),
         "depreciation_low_value_pool" => (
             "ATO Low-value pool page and Guide to depreciating assets 2026",
             "John's printer: $111 and $1,875, a $1,986 decline and a $3,608 closing balance; then $1,353, a $300 disposal and $1,955",
@@ -1975,6 +1991,116 @@ pub fn optional_inputs(kind: &str) -> Vec<(&'static str, &'static str)> {
             (
                 "return_date",
                 "YYYY-MM-DD, the day the return taking these credits into account is given, not before any line's acquisition: lines acquired more than 4 years before it are listed in time_limit_lines, with the s 47-5(2) warning",
+            ),
+        ],
+        "work_expenses" => vec![
+            (
+                "hours",
+                "hours, at most 2 decimal places, for home_office only, and then required: the actual hours worked from home in the year, from a record kept at the time (PCG 2023/1 paras 56 to 59), at most 24 x the days in the year",
+            ),
+            (
+                "energy",
+                "AUD, for home_office only, and then required: the work-related portion of electricity and gas for heating, cooling, lighting and electronic items used whilst working from home; the 52c rate before 2022-23 is taken to cover all of it, as the ATO lists no energy claimed beside that rate",
+            ),
+            (
+                "phone",
+                "AUD, for home_office only, and then required: the work-related portion of mobile and home phone usage",
+            ),
+            (
+                "internet",
+                "AUD, for home_office only, and then required: the work-related portion of home and mobile internet and data",
+            ),
+            (
+                "stationery",
+                "AUD, for home_office only, and then required: the work-related portion of stationery and computer consumables",
+            ),
+            (
+                "cleaning",
+                "AUD, for home_office only, and then required: the work-related portion of cleaning a dedicated home office",
+            ),
+            (
+                "furniture_decline",
+                "AUD, for home_office only, and then required: the work-related decline in value (or immediate deduction at $300 or less) of home office furniture and furnishings",
+            ),
+            (
+                "asset_decline",
+                "AUD, for home_office only, and then required: the work-related decline in value of other depreciating assets used whilst working from home, such as computers and phones",
+            ),
+            (
+                "repairs",
+                "AUD, for home_office only, and then required: the work-related portion of repairs to those depreciating assets",
+            ),
+            (
+                "running_expenses_incurred",
+                "boolean, for home_office only, and then required: the taxpayer paid or became liable for at least one additional running expense as a result of working from home, which every hourly rate needs; from 2022-23 it must be energy, phone, internet, stationery or computer consumables, the kinds the fixed rate covers (PCG 2023/1 paras 14, 18(b) and 49 to 55), and before then any running expense (the ATO's 52 cent and shortcut pages); false leaves only the actual cost, and conflicts with an amount for such an expense",
+            ),
+            (
+                "dedicated_home_office",
+                "boolean, for home_office in 2020-21 or 2021-22 only, and then required: the taxpayer had a dedicated home office, which the 52c fixed rate needs",
+            ),
+            (
+                "owned_or_leased",
+                "boolean, for car_cents_per_kilometre and car_log_book only, and then required: the taxpayer owned or leased the car (ITAA 1997 s 28-12(1)); false is refused",
+            ),
+            (
+                "business_kilometres",
+                "kilometres, at most 2 decimal places, for car_cents_per_kilometre and car_log_book only, and then required: the reasonable estimate of business kilometres the car travelled in the year, or for car_log_book in the period held in the year (ss 28-25(3) and 28-90(5))",
+            ),
+            (
+                "total_kilometres",
+                "kilometres above 0, for car_log_book only, and then required: the total kilometres the car travelled in the period held in the year, from odometer records (s 28-90(3))",
+            ),
+            (
+                "car_expenses",
+                "AUD, for car_log_book only, and then required: the car expenses for the period held in the year that are deductible outside Division 28, decline in value included (s 28-90(2))",
+            ),
+            (
+                "log_book_year",
+                "income year YYYY-YY, for car_log_book only, and then required: the year the log book was kept for, the year claimed or one of the 4 before it (s 28-115(2))",
+            ),
+            (
+                "log_book_weeks",
+                "integer, for car_log_book only, and then required: the continuous weeks the log book covers, at least 12 (s 28-120(1))",
+            ),
+            (
+                "log_book_representative",
+                "boolean, for car_log_book only, and then required: the log book still represents the car's business use in the year claimed; false, as after a change of job or home, is refused (ATO 'Logbook method')",
+            ),
+            (
+                "connection",
+                "for self_education only, and then required: maintains_or_improves_skills, increases_income, general_only or new_employment, the self-education's connection to current employment when incurred (TR 2024/3)",
+            ),
+            (
+                "employed_when_incurred",
+                "boolean, for self_education only, and then required: the taxpayer was employed when the expenses were incurred",
+            ),
+            (
+                "prescribed_course",
+                "boolean, for self_education in 2020-21 or 2021-22 only, and then required: the expenses were for a course of education at a school, college, university or other place of education, which ITAA 1936 s 82A reduces; a short-term refresher or staff development course, seminar, conference or workshop is not one (TR 98/9 para 129)",
+            ),
+            (
+                "category_a",
+                "AUD, for self_education only, and then required: category A, deductible general expenses such as fees, textbooks, stationery, fares and log book car expenses other than decline in value",
+            ),
+            (
+                "category_b",
+                "AUD, for self_education only, and then required: category B, decline in value of depreciating assets used for the self-education",
+            ),
+            (
+                "category_c",
+                "AUD, for self_education only, and then required: category C, repairs to assets used for the self-education, not car repairs",
+            ),
+            (
+                "category_d",
+                "AUD, for self_education only, and then required: category D, car expenses by the cents per kilometre method",
+            ),
+            (
+                "log_book_car_in_category_a",
+                "boolean, for self_education with category_d above 0 only, and then required: category_a includes log book car expenses; true is refused, as a car's expenses take one method",
+            ),
+            (
+                "category_e",
+                "AUD, for self_education with prescribed_course true only, and then required: category E, expenses incurred for the course that are not deductible, such as child care for attendance or the capital cost of a computer",
             ),
         ],
         "sb_cgt_concessions" => vec![
@@ -3796,6 +3922,11 @@ pub fn input_units(kind: &str) -> Vec<(&'static str, &'static str)> {
                 "boolean, whether the employer is exempt from income tax; true is refused, as fbt-tax-exempt-body-entertainment applies",
             ),
         ],
+        "work_expenses" => vec![
+            ("method", "home_office, car_cents_per_kilometre, car_log_book or self_education"),
+            ("reimbursed", "boolean: any of the expenses was reimbursed or paid for by an employer or anyone else; true is refused, so an unknown reimbursement is too"),
+            ("allowance_received", "boolean: an allowance was received for the expenses; true is refused"),
+        ],
         "depreciation_low_value_pool" => vec![
             ("previous_closing_pool_balance", "AUD: the pool's closing pool balance for the previous income year (ITAA 1997 s 40-440(1) step 3(a)); 0.00 in the year the pool starts"),
             ("low_cost_assets", "AUD: the taxable use percentage of the cost of the low-cost assets (cost under $1,000, s 40-425(2)) allocated to the pool for the year"),
@@ -4534,6 +4665,24 @@ pub fn examples(kind: &str) -> Vec<(&'static str, Example)> {
         // foreign income and her assessable income are fabricated.
         // The Library's Neil Swan (Tax Examples ¶2-280): the days, his
         // birthday, the turnover 2 years back and the net value are fabricated.
+        // Keisha, the ATO's fixed rate method example: 843 hours in 2025-26.
+        // Her actual expenses are fabricated.
+        "work_expenses" => vec![
+            ("year", Text("2025-26")),
+            ("method", Text("home_office")),
+            ("reimbursed", Flag(false)),
+            ("allowance_received", Flag(false)),
+            ("hours", Text("843")),
+            ("energy", Text("180.00")),
+            ("phone", Text("240.00")),
+            ("internet", Text("300.00")),
+            ("stationery", Text("0.00")),
+            ("cleaning", Text("0.00")),
+            ("furniture_decline", Text("0.00")),
+            ("asset_decline", Text("0.00")),
+            ("repairs", Text("0.00")),
+            ("running_expenses_incurred", Flag(true)),
+        ],
         // The Guide to depreciating assets 2026's John: $5,000 closing balance
         // for 2024-25 and a $990 printer used 60% for taxable purposes.
         "depreciation_low_value_pool" => vec![

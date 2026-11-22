@@ -6168,6 +6168,8 @@ pub use individual_offsets::{
 };
 mod sb_cgt_concessions;
 pub use sb_cgt_concessions::{SB_CGT_OPTIONAL, SbCgtConcessionsArgs, sb_cgt_concessions};
+mod work_expenses;
+pub use work_expenses::{WORK_EXPENSES_OPTIONAL, work_expenses};
 mod depreciation_pools;
 pub use depreciation_pools::{
     capital_works, depreciation_low_value_pool, depreciation_small_business_pool,
@@ -6181,7 +6183,7 @@ pub use non_commercial_losses::{NCL_OPTIONAL, NonCommercialLossesArgs, non_comme
 mod psi_test;
 pub use psi_test::{PSI_OPTIONAL, PsiTestArgs, psi_test};
 
-const KINDS: [&str; 77] = [
+const KINDS: [&str; 78] = [
     "gst",
     "gst_margin_scheme",
     "fuel_tax_credits",
@@ -6252,6 +6254,7 @@ const KINDS: [&str; 77] = [
     "ppsr_timing",
     "wine_equalisation_tax",
     "sb_cgt_concessions",
+    "work_expenses",
     "depreciation_low_value_pool",
     "depreciation_small_business_pool",
     "capital_works",
@@ -6392,6 +6395,8 @@ pub fn worksheet_catalogue() -> Value {
             "methods".into(),
             if kind == "depreciation" {
                 json!(["prime_cost", "diminishing_value"])
+            } else if kind == "work_expenses" {
+                json!(work_expenses::METHODS)
             } else {
                 json!(fbt_benefits::methods(kind))
             },

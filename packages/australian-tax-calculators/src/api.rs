@@ -820,6 +820,16 @@ const COMMAND_ARGS: &[(&str, &[(&str, Kind)])] = &[
         ],
     ),
     (
+        "work-expenses",
+        &[
+            ("method", Raw),
+            ("reimbursed", Raw),
+            ("allowance_received", Raw),
+            ("year", Raw),
+            ("scope_confirmed", Raw),
+        ],
+    ),
+    (
         "income-tests",
         &[
             ("taxable_income", Dec),
@@ -971,6 +981,7 @@ const DERIVED: [&str; 58] = [
     "etp-tax-free-component",
     "payroll-tax",
     "cgt-parcels",
+    "work-expenses",
 ];
 
 /// `derive`: `{"command", "input"}` gives the command's result with the step
@@ -1352,6 +1363,7 @@ pub fn evaluate_coded(command: &str, v: &Value) -> Result<Value> {
             | "income-tests"
             | "luxury-car-tax"
             | "sb-cgt-concessions"
+            | "work-expenses"
             | "depreciation-low-value-pool"
             | "depreciation-small-business-pool"
             | "capital-works"
@@ -2130,6 +2142,16 @@ pub fn evaluate_coded(command: &str, v: &Value) -> Result<Value> {
                 scope_confirmed: &a[20],
                 optional: given.each_ref().map(Option::as_ref),
             })
+        }
+        "work-expenses" => {
+            // The method's and the year's own inputs, by name.
+            let mut given = Vec::new();
+            for (key, decimal) in engine::WORK_EXPENSES_OPTIONAL {
+                if let Some(arg) = optional(v, key, if decimal { Dec } else { Raw })? {
+                    given.push((key.to_string(), arg));
+                }
+            }
+            engine::work_expenses(&a[0], &a[1], &a[2], &given, &a[3], &a[4])
         }
         "income-tests" => {
             let named: Vec<(&str, &Arg)> = params.iter().map(|(key, _)| *key).zip(&a).collect();

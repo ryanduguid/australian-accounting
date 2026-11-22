@@ -6,6 +6,23 @@
 
 ### Added
 
+- `work-expenses` works out an employee's working from home, car or
+  self-education deduction for 2020-21 to 2026-27, one `method` a call: the
+  fixed rate (52c with a dedicated home office to 2021-22, then PCG 2023/1's
+  67c and 70c) and the 80c shortcut against the actual cost; the cents per
+  kilometre method at each year's rate with the 5,000 km cap (ITAA 1997
+  s 28-25); the log book method with its 12 weeks and 5 years (ss 28-90,
+  28-115 and 28-120); and self-education's connection test and, before
+  2022-23, the $250 reduction of ITAA 1936 s 82A. Each has its return amount
+  with cents disregarded, and `derive` explains it. New codes:
+  `work_expenses.allowance_received`, `work_expenses.car_not_held`,
+  `work_expenses.fact_conflict`, `work_expenses.fact_invalid`,
+  `work_expenses.log_book_expired`, `work_expenses.log_book_too_short`,
+  `work_expenses.log_book_unrepresentative`, `work_expenses.method_invalid`
+  and `work_expenses.reimbursed`.
+  `tests/work_expenses.rs` holds it to the ATO's, PCG 2023/1's and TR 98/9's
+  examples.
+
 - `depreciation-low-value-pool`, `depreciation-small-business-pool` and
   `capital-works` work out a low-value pool (ITAA 1997 ss 40-440 and
   40-445), a general small business pool with each year's low pool value

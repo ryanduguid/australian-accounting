@@ -31,10 +31,10 @@ use std::process::{Command, Stdio};
 /// `tests/fhss.rs`, `tests/ppsr_timing.rs`, `tests/dasp_tax.rs`, `tests/income_tests.rs`,
 /// `tests/franking_account.rs`, `tests/wine_equalisation_tax.rs`,
 /// `tests/luxury_car_tax.rs`, `tests/sb_cgt_concessions.rs`,
-/// `tests/depreciation_pools.rs`, `tests/small_business_income_offset.rs`,
+/// `tests/depreciation_pools.rs` and `tests/work_expenses.rs`, `tests/small_business_income_offset.rs`,
 /// `tests/government_super_amounts.rs`, `tests/individual_offsets.rs`,
 /// `tests/non_commercial_losses.rs` and `tests/psi_test.rs` cover them.
-const NEW_KINDS: [(&str, &str); 63] = [
+const NEW_KINDS: [(&str, &str); 64] = [
     ("fhss", "fhss"),
     ("ppsr-timing", "ppsr_timing"),
     ("dasp-tax", "dasp_tax"),
@@ -66,6 +66,7 @@ const NEW_KINDS: [(&str, &str); 63] = [
     ("wine-equalisation-tax", "wine_equalisation_tax"),
     ("cgt-parcels", "cgt_parcels"),
     ("sb-cgt-concessions", "sb_cgt_concessions"),
+    ("work-expenses", "work_expenses"),
     ("depreciation-low-value-pool", "depreciation_low_value_pool"),
     (
         "depreciation-small-business-pool",
