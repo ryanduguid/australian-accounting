@@ -2681,8 +2681,9 @@ election (s 11-30), the credit with it (the GST on the supply, s 131-40(1), or
 that times the non-input-taxed and consideration extents, s 131-40(2)) and the
 s 131-55 increasing adjustment, their difference. Cars and reduced credit
 acquisitions are refused (ss 131-50 and 131-40(5)), as is an election stated
-to have effect when an eligibility condition fails, since whether it ceased
-turns on s 131-20; the tax period the adjustment is attributable to (s 131-60)
+to have effect when the entity test fails, since whether it ceased turns on
+s 131-20(1)(c) or (d); a later instalment or annual tax period election does
+not end one; the tax period the adjustment is attributable to (s 131-60)
 is stated, not worked out.
 
 `gst-financial-acquisitions-threshold` runs the current (s 189-5) and future

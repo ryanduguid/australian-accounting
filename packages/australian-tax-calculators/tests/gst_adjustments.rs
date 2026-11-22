@@ -421,9 +421,10 @@ fn input_taxed_purpose_and_part_consideration() {
 }
 
 /// s 131-5(1): each condition failing in turn, without an election, leaves
-/// the s 11-30 credit and no adjustment; with one, whether it still has effect
-/// turns on s 131-20, so it is refused. An eligible entity that has not
-/// elected also has the s 11-30 credit.
+/// the s 11-30 credit and no adjustment. With an election in effect, a later
+/// instalment or annual tax period election does not end it (s 131-20(1)),
+/// while the entity test failing may, so that alone is refused. An eligible
+/// entity that has not elected also has the s 11-30 credit.
 #[test]
 fn each_eligibility_condition() {
     for (overrides, failing) in [
@@ -437,11 +438,18 @@ fn each_eligibility_condition() {
         ),
         (json!({"small_business_entity": false}), "entity_eligible"),
     ] {
-        assert_eq!(
-            code(AA, &apportion(overrides.clone())),
-            "gst_annual_apportionment.election_status_unsettled",
-            "{overrides}"
-        );
+        if failing == "entity_eligible" {
+            assert_eq!(
+                code(AA, &apportion(overrides.clone())),
+                "gst_annual_apportionment.election_status_unsettled",
+                "{overrides}"
+            );
+        } else {
+            let r = run(AA, &apportion(overrides.clone()));
+            assert_eq!(r["eligible"], false, "{overrides}");
+            assert_eq!(r["applies"], true, "{overrides}");
+            assert_eq!(amounts(&r, AA_KEYS), ["10.00", "100.00", "90.00"]);
+        }
         let r = run(
             AA,
             &apportion(with(overrides, json!({"election_made": false}))),

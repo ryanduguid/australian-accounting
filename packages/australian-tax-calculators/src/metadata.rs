@@ -3713,7 +3713,7 @@ pub fn input_units(kind: &str) -> Vec<(&'static str, &'static str)> {
             ("carries_on_business", "boolean: you carry on a business"),
             ("instalment_election", "boolean: an election to pay GST by instalments (GST Act s 162-15) is in effect"),
             ("annual_tax_period_election", "boolean: an annual tax period election (s 151-10) is in effect"),
-            ("election_made", "boolean: you have made an annual apportionment election (s 131-10) that has effect at the end of the tax period the credit is attributable to; true with an eligibility condition failing is refused, as whether the election ceased turns on s 131-20"),
+            ("election_made", "boolean: you have made an annual apportionment election (s 131-10) that has effect at the end of the tax period the credit is attributable to; true with the entity test of s 131-5(1)(a) failing is refused, as whether the election ceased turns on s 131-20(1)(c) or (d); a later instalment or annual tax period election does not end it"),
             ("gst_on_acquisition", "AUD: the GST payable on the supply of the thing acquired, the full input tax credit, taking into account Division 19, 21 and 134 adjustments for it (s 131-55(3) and (4))"),
             ("creditable_purpose", "fraction, decimal string above 0 and at most 1: the extent of creditable purpose (s 11-15); 1 only with part of the consideration"),
             ("car", "boolean: the acquisition is of a car (s 131-50); true is refused"),
