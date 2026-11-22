@@ -363,6 +363,10 @@ pub const SCOPES: &[(&str, &str)] = &[
         "Whether one individual (not a company, trust or fund) was a resident of Australia at some time in an income year from 2020-21 to 2026-27 (1 July to 30 June, no substituted accounting period) under each of the 4 tests in ITAA 1936 s 6(1), resident (a): resides, domicile, 183 days and the Commonwealth superannuation fund test, from the operator's own judgements on residing, domicile, places of abode, intention and fund membership, and the dates in Australia, which it counts. It does not set the dates residency began or ended, pro-rate the tax-free threshold or apply a tax treaty.",
     ),
     (
+        "lodgment_required",
+        "Whether one individual must lodge their own income tax return for an income year from 2020-21 to 2025-26 under that year's lodgment instrument, made under ITAA 1936 s 161: not as a trustee, partner, agent, ship's master or person controlling a non-resident's money, not a full self-assessment taxpayer and without a substituted accounting period. The residency status, the conditions in s 6(2) that need a judgement and the exceptions' facts are the operator's answers. It does not apply the separate instrument for parents liable for or entitled to child support, or say whether lodging would be worthwhile.",
+    ),
+    (
         "income_tests",
         "The income measures of one individual who was an Australian resident for the whole income year and alive at its end, each the person's own for the whole year, from components the operator has established and classified: income for surcharge purposes (ITAA 1997 s 995-1), Division 293 income (s 293-20(1)(a)), rebate income (ITAA 1936 s 6(1)), repayment income for study and training loans (HESA s 154-5), adjusted taxable income for offsets (ITAA 1997 s 995-1, ITAA 1936 s 6(1) and A New Tax System (Family Assistance) Act 1999 Sch 3, disregarding cls 3 and 3A) and total income for the super co-contribution (Superannuation (Government Co-contribution for Low Income Earners) Act 2003 s 8). A spouse's measures come from the spouse's own components. A dependant's adjusted taxable income for part of a year, a deceased person's annualised adjusted taxable income (Sch 3 cl 2(2)), the co-contribution's 10% eligible income test, the combined family amounts and every threshold and eligibility test the measures feed are outside it. Income for surcharge purposes follows s 995-1, which does not add exempt foreign employment income; the ATO's surcharge page adds it where taxable income is $1 or more, and the result warns when that changes the figure. Measures another agency applies are outside it: the Commonwealth Seniors Health Card income test and family assistance adjusted taxable income are Services Australia's (https://www.servicesaustralia.gov.au/income-test-for-commonwealth-seniors-health-card). Refuses part-year residents, working holiday makers and foreign residents, and components that cannot all be true together.",
     ),
@@ -720,6 +724,10 @@ pub const SOURCES: &[(&str, &str)] = &[
     (
         "residency_tests",
         "https://www.legislation.gov.au/C1936A00027/2026-10-01/2026-10-01/text/original/epub/OEBPS/document_1/document_1.html",
+    ),
+    (
+        "lodgment_required",
+        "https://www.legislation.gov.au/F2026L00618/asmade/text",
     ),
 ];
 
@@ -1596,6 +1604,16 @@ pub const EXTRA_SOURCES: &[(&str, &[&str])] = &[
         ],
     ),
     (
+        "lodgment_required",
+        &[
+            "https://www.legislation.gov.au/F2021L00577/asmade/text",
+            "https://www.legislation.gov.au/F2022L00508/asmade/text",
+            "https://www.legislation.gov.au/F2023L00533/asmade/text",
+            "https://www.legislation.gov.au/F2024L00550/asmade/text",
+            "https://www.legislation.gov.au/F2025L00570/asmade/text",
+        ],
+    ),
+    (
         "income_tests",
         &[
             "https://www.legislation.gov.au/C2004A05138/2026-10-01/2026-10-01/text/original/epub/OEBPS/document_10/document_10.html",
@@ -1711,6 +1729,13 @@ pub const EXTRA_WARNINGS: &[(&str, &[&str])] = &[
         &[
             "Residing, domicile, the places of abode and intention are your judgements under TR 2023/1; the worksheet applies them and counts days, and does not test them.",
             "A resident under any test is a resident for at least part of the year, and a resident for at least one day is taxed at resident rates; when residency began or ended, and the part-year tax-free threshold, are not worked out (TR 2023/1 paragraphs 105 to 107).",
+        ],
+    ),
+    (
+        "lodgment_required",
+        &[
+            "A person not required to lodge may still choose to, for example to claim a refund of tax withheld; the ATO may also ask a person to lodge.",
+            "The due date is the instrument's for lodging yourself; a registered tax agent's lodgment program may allow a later date.",
         ],
     ),
     ("fbt_car_statutory", &[CAR_REPORTABLE_NOTE]),
@@ -2890,7 +2915,7 @@ pub const REFUSAL_CODES: &[(&str, &str)] = &[
     ),
     (
         "input.field_unknown",
-        "A field the worksheet or command does not take, or does not take beside the other inputs given, was given (fbt-loan, fbt-meal-entertainment, fbt-car-parking, fbt-debt-waiver, fbt-expense-payment, fbt-property, fbt-residual, fbt-housing, fbt-lafha, fbt-board, fbt-tax-exempt-body-entertainment, fbt-entertainment-classifier, fbt-meal-entertainment-register and its entries, fbt-minor-benefit-check, ppsr-timing, fhss and its contributions, government-super-amounts, personal_deductions and determination, division-296, depreciation, fuel-tax-credits and its lines, foreign-resident-tax, medicare-levy, medicare-levy-surcharge, payg-withholding, payg-gross-up, termination-payment, etp-tax-free-component, unused-leave-payment, the Schedule 5 methods, working-holiday-maker-withholding, study-loan-withholding, seniors-pensioners-withholding, seniors-pensioners-tax-offset, lump-sum-arrears-tax-offset, hire-purchase-schedule, chattel-mortgage-schedule, loan-transactions and its transactions and rate_changes, borrowing-expenses-schedule and its loans, business-capital-expenditure and its items, balancing-adjustment, its years and car_limit, trade-in, franking-account and its events, distributions and income_tax, dasp-tax, super-benefit-tax, gst-margin-scheme, wine-equalisation-tax and its dealings, luxury-car-tax and its lines, payroll-tax, cgt-parcels, its parcels and disposals, fbt-ev-exemption-check, sb-cgt-concessions, small-business-income-offset, residency-tests, depreciation-low-value-pool, depreciation-small-business-pool, capital-works, non-commercial-losses, psi-test, beneficiary-tax-offset, invalid-carer-tax-offset, zone-tax-offset and its dependants, net-medical-expenses-tax-offset, work-expenses, ato-interest-penalties and its payments and parts, private-health-insurance-rebate, rental-property and its loans, capital_works and depreciating_assets, horticulture-shearing-withholding, upward-variation-withholding, daily-casual-withholding, no-abn-withholding, entertainer-withholding, return-to-work-withholding, annuity-withholding, voluntary-agreement-withholding, contribution-caps given a carry-forward input, derive, personal-tax-estimate, dgr-check, income-tests and fbt-return only).",
+        "A field the worksheet or command does not take, or does not take beside the other inputs given, was given (fbt-loan, fbt-meal-entertainment, fbt-car-parking, fbt-debt-waiver, fbt-expense-payment, fbt-property, fbt-residual, fbt-housing, fbt-lafha, fbt-board, fbt-tax-exempt-body-entertainment, fbt-entertainment-classifier, fbt-meal-entertainment-register and its entries, fbt-minor-benefit-check, ppsr-timing, fhss and its contributions, government-super-amounts, personal_deductions and determination, division-296, depreciation, fuel-tax-credits and its lines, foreign-resident-tax, medicare-levy, medicare-levy-surcharge, payg-withholding, payg-gross-up, termination-payment, etp-tax-free-component, unused-leave-payment, the Schedule 5 methods, working-holiday-maker-withholding, study-loan-withholding, seniors-pensioners-withholding, seniors-pensioners-tax-offset, lump-sum-arrears-tax-offset, hire-purchase-schedule, chattel-mortgage-schedule, loan-transactions and its transactions and rate_changes, borrowing-expenses-schedule and its loans, business-capital-expenditure and its items, balancing-adjustment, its years and car_limit, trade-in, franking-account and its events, distributions and income_tax, dasp-tax, super-benefit-tax, gst-margin-scheme, wine-equalisation-tax and its dealings, luxury-car-tax and its lines, payroll-tax, cgt-parcels, its parcels and disposals, fbt-ev-exemption-check, sb-cgt-concessions, small-business-income-offset, residency-tests, lodgment-required, depreciation-low-value-pool, depreciation-small-business-pool, capital-works, non-commercial-losses, psi-test, beneficiary-tax-offset, invalid-carer-tax-offset, zone-tax-offset and its dependants, net-medical-expenses-tax-offset, work-expenses, ato-interest-penalties and its payments and parts, private-health-insurance-rebate, rental-property and its loans, capital_works and depreciating_assets, horticulture-shearing-withholding, upward-variation-withholding, daily-casual-withholding, no-abn-withholding, entertainer-withholding, return-to-work-withholding, annuity-withholding, voluntary-agreement-withholding, contribution-caps given a carry-forward input, derive, personal-tax-estimate, dgr-check, income-tests and fbt-return only).",
     ),
     ("input.flag_invalid", "A flag is not a JSON boolean."),
     ("input.fraction_invalid", "A fraction is outside 0 to 1."),
@@ -3024,6 +3049,26 @@ pub const REFUSAL_CODES: &[(&str, &str)] = &[
     (
         "loan_transactions.start_outside_year",
         "A loan statement starts outside the income year given.",
+    ),
+    (
+        "lodgment_required.child_support_parent",
+        "This instrument does not require a return, and the parent may be required to lodge under the separate child support instrument, which the worksheet does not apply.",
+    ),
+    (
+        "lodgment_required.group_invalid",
+        "under_18, study_loan, working_holiday_maker, listed_payment or sapto is not null or an object of its facts.",
+    ),
+    (
+        "lodgment_required.instrument_not_made",
+        "No lodgment instrument for the year was on the Federal Register of Legislation when the worksheet was checked.",
+    ),
+    (
+        "lodgment_required.residency_invalid",
+        "residency is not whole_year, part_year with 1 to 12 months, or none with taxable_australian_income.",
+    ),
+    (
+        "lodgment_required.triggers_invalid",
+        "triggers is not a list of the conditions the worksheet takes.",
     ),
     (
         "lump_sum_arrears.accrual_years_invalid",
@@ -3527,5 +3572,148 @@ pub const REFUSAL_CODES: &[(&str, &str)] = &[
     (
         "zone_tax_offset.sole_parent_without_dependant",
         "sole_parent_days was given without a dependant notional tax offset of at least $1 (ITAA 1997 s 961-55(1)(b)).",
+    ),
+];
+
+/// `lodgment_required`: each condition, its key, its provision in the instruments from 2023-24
+/// and in the Notices before, and what it says.
+pub const LODGMENT_PROVISIONS: [(&str, &str, &str, &str); 23] = [
+    (
+        "payg_withheld",
+        "paragraph 6(2)(a)",
+        "Table A item (1)",
+        "an amount withheld under PAYG withholding, other than from the payments the paragraph excludes",
+    ),
+    (
+        "tax_loss",
+        "paragraph 6(2)(b)",
+        "Table A item (2)",
+        "a tax loss incurred, or an entitlement to deduct one",
+    ),
+    (
+        "net_capital_loss",
+        "paragraph 6(2)(c)",
+        "Table A item (3)",
+        "a net capital loss made, or an entitlement to apply one of an earlier year",
+    ),
+    (
+        "business",
+        "paragraph 6(2)(f)",
+        "Table A item (6)",
+        "a business carried on",
+    ),
+    (
+        "primary_production_trust",
+        "paragraph 6(2)(g)",
+        "Table A item (7)",
+        "income as a beneficiary of a trust that operated a primary production business in Australia",
+    ),
+    (
+        "primary_production_partnership",
+        "paragraph 6(2)(h)",
+        "Table A item (8)",
+        "an individual interest in the net income or partnership loss of a partnership that operated a primary production business in Australia",
+    ),
+    (
+        "under_18",
+        "paragraph 6(2)(i)",
+        "Table A item (9)",
+        "under 18 at all times, with income other than from work, or from dividends and franking credits, over $416",
+    ),
+    (
+        "exempt_overseas_income",
+        "paragraph 6(2)(j)",
+        "Table A item (10)",
+        "income under ITAA 1936 s 23AF or 23AG and $1 or more of other income",
+    ),
+    (
+        "payg_instalment",
+        "paragraph 6(2)(k)",
+        "Table A item (11)",
+        "a PAYG instalment paid",
+    ),
+    (
+        "special_professional",
+        "paragraph 6(2)(l)",
+        "Table A item (12)",
+        "a special professional under ITAA 1997 Division 405",
+    ),
+    (
+        "private_health_offset",
+        "paragraph 6(2)(m)",
+        "Table A item (13)",
+        "entitled to the private health insurance offset and not claiming the correct offset as a premium reduction, unless a choice was made under ITAA 1997 s 61-215",
+    ),
+    (
+        "reportable_amounts",
+        "paragraph 6(2)(n)",
+        "Table A item (14)",
+        "reportable fringe benefits or reportable employer superannuation contributions on a payment summary or income statement",
+    ),
+    (
+        "dividends",
+        "paragraph 6(2)(o)",
+        "Table A item (15)",
+        "assessable income from dividends or distributions and franking credits over $18,200",
+    ),
+    (
+        "co_contribution",
+        "paragraph 6(2)(p)",
+        "Table A item (16)",
+        "personal contributions that will receive a super co-contribution",
+    ),
+    (
+        "contributions_cap",
+        "paragraph 6(2)(q)",
+        "Table A item (17)",
+        "a concessional or non-concessional contributions cap exceeded",
+    ),
+    (
+        "super_lump_sum",
+        "paragraph 6(2)(r)",
+        "Table A item (18)",
+        "an Australian superannuation lump sum with an untaxed element at 60 or over, or a taxed or untaxed element under 60",
+    ),
+    (
+        "resident_whole_year",
+        "subparagraph 6(3)(a)(i)",
+        "Table B item (1)(a)",
+        "a resident for the whole year with taxable income over $18,200",
+    ),
+    (
+        "resident_part_year",
+        "subparagraph 6(3)(a)(ii)",
+        "Table B item (1)(b)",
+        "a resident for part of the year with taxable income over the lesser of $18,200 and $13,464 plus $395 a month",
+    ),
+    (
+        "not_resident",
+        "paragraph 6(3)(b)",
+        "Table B item (2)",
+        "not a resident at any time, with income taxable in Australia other than the excluded withholding payments",
+    ),
+    (
+        "study_loan",
+        "subsection 6(10)",
+        "Table J",
+        "a foreign resident with a study or training loan debt on 1 June before the year and income over the year's amount",
+    ),
+    (
+        "working_holiday_maker",
+        "paragraph 7(1)(f)",
+        "Table P",
+        "a working holiday maker with no other assessable income and taxable income, without super or ETP remainders, under $45,001",
+    ),
+    (
+        "listed_payment",
+        "subsection 7(2)",
+        "Table K item (1)",
+        "a payment the instrument lists, and no other assessable income or taxable income under the year's amount",
+    ),
+    (
+        "sapto",
+        "subsection 7(3)",
+        "Table K item (2)",
+        "eligible for the seniors and pensioners tax offset, with rebate income under the year's amount",
     ),
 ];

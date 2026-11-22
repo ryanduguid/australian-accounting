@@ -534,6 +534,18 @@
   `residency_tests.super_invalid` and `residency_tests.treaty_tie_breaker`.
   `tests/residency_tests.rs` holds it to TR 2023/1's examples.
 
+- `lodgment-required` says whether an individual must lodge their own
+  income tax return for 2020-21 to 2025-26 under that year's lodgment
+  instrument (the Notices for 2020-21 to 2022-23, the Taxation Laws
+  instruments from 2023-24): s 6(2), 6(3) and 6(10), the exceptions in
+  s 7(1)(f), 7(2) and 7(3), and the 31 October due date. New codes:
+  `lodgment_required.child_support_parent`,
+  `lodgment_required.group_invalid`,
+  `lodgment_required.instrument_not_made`,
+  `lodgment_required.residency_invalid` and
+  `lodgment_required.triggers_invalid`. `tests/lodgment_required.rs` holds it
+  to each year's thresholds.
+
 ### Changed
 
 - `borrowing-expenses` takes 2017-18 to 2027-28, not 2024-25 to 2026-27:

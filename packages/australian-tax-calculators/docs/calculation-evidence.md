@@ -4001,6 +4001,67 @@ each date below was chosen to fit its narrative.
 | A period of one day; periods touching or overlapping; periods across 1 July or 30 June | paragraphs 86 and 87 | each day counted once, inside the year |
 | Each Commonwealth fund link | s 6(1)(a)(iii) | resident |
 
+## Lodgment required
+
+This worksheet was added on 22 November 2026. Each year's lodgment
+instrument was read that day on the Federal Register of Legislation, as made
+(epub text and PDF):
+
+| Year | Instrument |
+|---|---|
+| 2020-21 | Notice of Requirement to Lodge a Return for the Income Year Ended 30 June 2021, F2021L00577 |
+| 2021-22 | Notice ... Ended 30 June 2022, F2022L00508 |
+| 2022-23 | Notice ... Ended 30 June 2023, F2023L00533 |
+| 2023-24 | Taxation Laws (Requirement to Lodge a Return for the 2024 Year) Instrument 2024, F2024L00550 |
+| 2024-25 | ... for the 2025 Year) Instrument 2025, F2025L00570 |
+| 2025-26 | ... for the 2026 Year) Instrument 2026, F2026L00618 |
+
+A search of the register that day for 'Requirement to Lodge a Return' found
+no instrument for the 2027 year, so 2026-27 is refused. Tables A and B read
+the same in the 3 Notices but for the name of the labour mobility program;
+s 6(2) and 6(3)(a) read the same in the 3 instruments, and s 6(3)(b) adds
+s 6(2)(a)(iv) payments to its exclusions from 2024-25. The amounts that
+change by year are in the README.
+
+Choices the instruments leave to the reader:
+
+- Table K is 'to be read with Tables B and E', and s 7(2) names s 6(2)(i)
+  and 6(3) and s 7(3) names s 6(3); each says the person 'is not required to
+  lodge ... under this instrument', and the notes to s 7 say the same of a
+  person covered by s 7(2) or 7(3). So a person covered by a named provision
+  whom the exception relieves has no requirement under the instrument, even
+  one that also meets a provision it does not name, such as PAYG
+  withholding; a person covered by none of the named provisions is not
+  relieved. The 2024 explanatory statement (paragraph 17) says the redrafting
+  was not meant to change who must lodge, but s 7(2) names s 6(2)(i), which
+  Table K did not reach; each year follows its own text.
+- Tables E to G and s 6(6) to 6(8) cover trustees, agents and ship masters;
+  the worksheet is for an individual's own return, so they are out of scope.
+  Each year's instrument sets 31 October after the year as the due date for
+  the rest.
+- Table P and s 7(1)(f) relieve every requirement of the instrument, so a
+  working holiday maker under $45,001 is relieved whatever else holds.
+- s 6(10) reaches 'a foreign resident ... during the year': a part-year
+  resident is one.
+
+`tests/lodgment_required.rs` holds these cases. The instruments publish no
+worked examples, so the facts are fabricated, each at a threshold.
+
+| Case | Provision | Worksheet |
+|---|---|---|
+| Full-year resident at $18,200.00 and $18,200.01, each year | s 6(3)(a)(i), Table B(1)(a) | not required; required |
+| Part-year resident for 1, 5, 11 and 12 months, at the limit and $1 over | s 6(3)(a)(ii) | $13,859, $15,439, $17,809 and $18,200 |
+| Non-resident with and without income taxable here | s 6(3)(b) | required; not |
+| Under 18 at $416.00 and $416.01, own income or dividends | s 6(2)(i), Table A(9) | not required; required |
+| Dividends and franking credits at $18,200.00 and $18,200.01 | s 6(2)(o) | not required; required |
+| Each stated condition, 2025-26 and 2021-22 | s 6(2), Table A | required, cited by year |
+| Foreign resident with a study debt at each year's amount and $1 over | s 6(10), Table J | not required; required |
+| Working holiday maker with PAYG withheld at $45,000 and $45,001 | s 7(1)(f), Table P | relieved; required |
+| Listed payment at each year's amount, 'less than' and 'at most' | s 7(2), Table K(1) | relieved below; required at or above |
+| Seniors offset, each category, $1 under and at each amount | s 7(3), Table K(2) | relieved; required |
+| Seniors offset with PAYG withheld | s 7(3) and 6(2)(a) | refused |
+| Under 18 with a listed payment, 2024-25 and 2022-23 | s 7(2); Table K | relieved; refused |
+
 ## Personal tax estimate
 
 `personal-tax-estimate` adds no rate or threshold: each amount is a
