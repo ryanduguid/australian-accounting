@@ -327,6 +327,22 @@ pub const SCOPES: &[(&str, &str)] = &[
         "The super co-contribution (Superannuation (Government Co-contribution for Low Income Earners) Act 2003, the Co-contribution Act, Part 2), the low income superannuation tax offset (LISTO, Part 2A, s 12C(1) only) and the spouse contribution tax offset (ITAA 1997 Subdivision 290-D) for one individual who was an Australian resident for the whole income year, in 2020-21 to 2026-27. Total income (Co-contribution Act s 8) and adjusted taxable income (A New Tax System (Family Assistance) Act 1999 Sch 3, disregarding cls 3 and 3A) are income-tests' measures, from the same established and classified components. The operator establishes the eligible income for the 10% test (s 6(1)(b), (2) and s 8(3)), the eligible personal contributions the fund received in the year (s 7; not deducted, not a downsizer contribution), the concessional contributions for the financial year (a person with contributions or amounts Co-contribution Act s 12E(3) disregards, for constitutionally protected funds or under ITAA 1997 s 291-165(1)(c), is out of scope, as s 12C(1)(a) counts them and s 12E(2)(a) does not), whether a return is lodged, the age, temporary visa, non-concessional cap and total super balance facts, and for a spouse the contributions s 290-230 counts (made whilst spouses, both resident and not living apart, to a complying fund the spouse could contribute to, not deductible and not a Family Law Act payment) and the spouse's income components and cap and balance facts. Thresholds are the ATO's published ones (Table 25). The payable co-contribution and LISTO are increased to a multiple of 5 cents (Regulations 2022 reg 15(2), 2004 reg 24(2)). Refuses a temporary visa held in the year, as the New Zealand citizen and prescribed visa exceptions are not worked out, a balance or cap fact not established where it decides an amount, and nil total income where a contribution makes the 10% test decide. Excludes contributions not yet received by the fund, LISTO the Commissioner estimates without a return (s 12C(2)), a deceased person's annualised income, interest on late payments (ss 12, 21 and 22), the co-contribution for an earlier year, the order and timing of payment, and 2027-28, when Act No. 8 of 2026 Schedule 4 changes LISTO.",
     ),
     (
+        "horticulture_shearing_withholding",
+        "Schedule 2 withholding (TAA 1953 Sch 1 s 12-35) for payments made from 1 July 2024 to 30 June 2027 to an individual in the horticultural industry (any process of producing, cultivating or harvesting a horticultural crop, on the grower's property) or the shearing industry (shearer, crutcher, wool classer, cook, shed hand or presser) who has not worked for the same grower (horticulture), or the same employer (shearing, payments to 30 June 2026) or woolgrower (shearing, payments from 1 July 2026), for a continuous period of more than 6 months and, when a TFN is quoted, has given a TFN declaration claiming the tax-free threshold. 13% of the earnings for the pay period with cents ignored, or 30% for a foreign resident, rounded to the dollar; without a TFN 47%, or 45% for a foreign resident, with cents ignored. No study and training support loan amount, Medicare levy adjustment or tax offset applies. Refuses a working holiday maker (Schedule 15), a worker under the Seasonal Worker Programme, Pacific Labour Scheme or Pacific Australia Labour Mobility scheme, and a TFN-quoting worker who has not claimed the tax-free threshold (Schedule 1). Excludes a variation the Commissioner has made and 2021-22 to 2023-24, whose schedules were not read for this worksheet.",
+    ),
+    (
+        "upward_variation_withholding",
+        "Schedule 14 withholding for a payment from 1 July 2024 to 30 June 2027 covered by Schedule 1, where the payee asked in writing for an additional amount to be withheld and the payer agreed: the Schedule 1 amount for the pay period, as payg-withholding works it out from the same inputs (its scale, residency, tax offsets, Medicare levy adjustment and 53 or 27 pay options), plus the additional amount. The normal amount under any other schedule (Schedules 2, 3, 5, 9, 15 and the others) is outside it: work that out with its own command and add the additional amount. Excludes a Commissioner's variation and 2021-22 to 2023-24, for which the Schedule 1 coefficients are not held.",
+    ),
+    (
+        "daily_casual_withholding",
+        "The tax table for daily and casual workers (NAT 1024) for payments from 1 July 2024 to 30 June 2027 of salary, wages, allowances, leave loading, paid parental leave, directors' fees, office holders' pay or payments to labour-hire workers or religious practitioners, to a payee engaged on a daily or casual basis who has claimed the tax-free threshold: Schedule 1 scale 2 on 5 times the daily earnings with cents ignored plus 99 cents, rounded to the dollar, divided by 5 and rounded to the dollar, less 0.38% of any yearly tax offsets claimed, rounded to the dollar. Without a TFN, 47%, or 45% for a foreign resident, of the earnings with cents ignored. No study and training support loan amount or Medicare levy variation applies. Refuses a working holiday maker (Schedule 15), a TFN-quoting payee who has not claimed the tax-free threshold, and a foreign resident who quoted a TFN, whose weekly rates the table gives with no step from daily earnings. Excludes a payee entitled to the seniors and pensioners tax offset (Schedule 9 coefficients: seniors-pensioners-withholding), a Commissioner's variation and 2021-22 to 2023-24.",
+    ),
+    (
+        "no_abn_withholding",
+        "Withholding from a payment from 1 July 2024 to 30 June 2027 for a supply made in the course or furtherance of an enterprise the supplier carries on in Australia, when the supplier has not quoted an ABN (TAA 1953 Sch 1 s 12-190(1)): the top rate, 45% plus the 2% Medicare levy (Taxation Administration Regulations 2017 ss 4 and 38), of the payment with cents disregarded, cents in the result disregarded (s 26); nil when the payments for the supply, disregarding GST, do not exceed $75 (s 12-190(4)(b), GST Regulations 2019 s 29-80.01). The operator establishes that s 12-190(1) applies and that none of its other exceptions does: an ABN quoted on an invoice or other document by the supplier or an agent, an incorrectly quoted ABN the payer had no reason to doubt, a payment outside the payer's own enterprise in Australia, a local governing body member's supply, a wholly input taxed supply, an investment or closely held trust payment under ss 12-140 to 12-180, or an individual's written hobby or private statement the payer has no reason to doubt; also the ATO's further cases (a supplier whose income is exempt, an individual under 18 paid $350 or less a week). Excludes a Commissioner's variation and 2021-22 to 2023-24, which were not read for this worksheet.",
+    ),
+    (
         "income_tests",
         "The income measures of one individual who was an Australian resident for the whole income year and alive at its end, each the person's own for the whole year, from components the operator has established and classified: income for surcharge purposes (ITAA 1997 s 995-1), Division 293 income (s 293-20(1)(a)), rebate income (ITAA 1936 s 6(1)), repayment income for study and training loans (HESA s 154-5), adjusted taxable income for offsets (ITAA 1997 s 995-1, ITAA 1936 s 6(1) and A New Tax System (Family Assistance) Act 1999 Sch 3, disregarding cls 3 and 3A) and total income for the super co-contribution (Superannuation (Government Co-contribution for Low Income Earners) Act 2003 s 8). A spouse's measures come from the spouse's own components. A dependant's adjusted taxable income for part of a year, a deceased person's annualised adjusted taxable income (Sch 3 cl 2(2)), the co-contribution's 10% eligible income test, the combined family amounts and every threshold and eligibility test the measures feed are outside it. Income for surcharge purposes follows s 995-1, which does not add exempt foreign employment income; the ATO's surcharge page adds it where taxable income is $1 or more, and the result warns when that changes the figure. Measures another agency applies are outside it: the Commonwealth Seniors Health Card income test and family assistance adjusted taxable income are Services Australia's (https://www.servicesaustralia.gov.au/income-test-for-commonwealth-seniors-health-card). Refuses part-year residents, working holiday makers and foreign residents, and components that cannot all be true together.",
     ),
@@ -648,6 +664,22 @@ pub const SOURCES: &[(&str, &str)] = &[
     (
         "rental_property",
         "https://www.ato.gov.au/forms-and-instructions/rental-properties-2026",
+    ),
+    (
+        "horticulture_shearing_withholding",
+        "https://www.ato.gov.au/tax-rates-and-codes/payg-withholding-schedule-2-tax-table-for-the-horticultural-or-shearing-industry",
+    ),
+    (
+        "upward_variation_withholding",
+        "https://www.ato.gov.au/tax-rates-and-codes/sch-14-table-of-additional-amounts-to-withhold-as-a-result-of-an-agreement-to-increase-withholding",
+    ),
+    (
+        "daily_casual_withholding",
+        "https://www.ato.gov.au/tax-rates-and-codes/tax-table-daily-and-casual-workers",
+    ),
+    (
+        "no_abn_withholding",
+        "https://www.ato.gov.au/law/view/document?docid=PAC/19530001/Sch1-12-190",
     ),
 ];
 
@@ -1392,6 +1424,43 @@ pub const EXTRA_SOURCES: &[(&str, &[&str])] = &[
         ],
     ),
     (
+        "horticulture_shearing_withholding",
+        &[
+            "https://www.legislation.gov.au/F2026L00716/asmade/text",
+            "https://www.legislation.gov.au/F2025L01016/asmade/text",
+            "https://www.legislation.gov.au/F2025L00647/asmade/text",
+            "https://www.legislation.gov.au/F2024L00664/asmade/text",
+        ],
+    ),
+    (
+        "upward_variation_withholding",
+        &[
+            "https://www.legislation.gov.au/F2026L00716/asmade/text",
+            "https://www.legislation.gov.au/F2025L01016/asmade/text",
+            "https://www.legislation.gov.au/F2024L00664/asmade/text",
+            "https://www.ato.gov.au/tax-rates-and-codes/payg-withholding-schedule-1-statement-of-formulas-for-calculating-amounts-to-be-withheld",
+        ],
+    ),
+    (
+        "daily_casual_withholding",
+        &[
+            "https://www.ato.gov.au/tax-rates-and-codes/tax-table-daily-and-casual-workers-01-july-2024-to-30-june-2026",
+            "https://www.legislation.gov.au/F2026L00716/asmade/text",
+            "https://www.legislation.gov.au/F2025L01016/asmade/text",
+            "https://www.legislation.gov.au/F2024L00664/asmade/text",
+        ],
+    ),
+    (
+        "no_abn_withholding",
+        &[
+            "https://www.ato.gov.au/law/view/document?docid=PAC/19530001/Sch1-15-10",
+            "https://www.legislation.gov.au/F2017L01227/latest/text",
+            "https://www.legislation.gov.au/F2019L00417/latest/text",
+            "https://www.ato.gov.au/businesses-and-organisations/hiring-and-paying-your-workers/payg-withholding/payments-you-need-to-withhold-from/withholding-from-suppliers/payments-you-don-t-withhold-from",
+            "https://www.ato.gov.au/forms-and-instructions/rental-properties-2025/rental-expenses",
+        ],
+    ),
+    (
         "sb_cgt_concessions",
         &[
             "https://www.legislation.gov.au/C2004A05138/2026-05-21/2026-05-21/text/original/epub/OEBPS/document_3/document_3.html",
@@ -1816,6 +1885,9 @@ pub const UNPUBLISHED_2027_28: &[(&str, &str)] = &[
         "2027-28 has 366 days, and this worksheet takes at most 365 days held.",
     ),
     ("payg_withholding", WITHHOLDING_2027_28),
+    ("horticulture_shearing_withholding", WITHHOLDING_2027_28),
+    ("upward_variation_withholding", WITHHOLDING_2027_28),
+    ("daily_casual_withholding", WITHHOLDING_2027_28),
     ("payg_gross_up", WITHHOLDING_2027_28),
     ("study_loan_withholding", WITHHOLDING_2027_28),
     ("schedule_5_method_a", WITHHOLDING_2027_28),
@@ -2153,6 +2225,22 @@ pub const REFUSAL_CODES: &[(&str, &str)] = &[
     (
         "contribution_caps.year_before_carry_forward",
         "An earlier year before 2018-19 was given, which has no unused concessional contributions cap (ITAA 1997 s 291-20(7)).",
+    ),
+    (
+        "daily_casual_withholding.foreign_resident_tfn",
+        "A foreign resident who quoted a TFN was given: the tax table for daily and casual workers gives weekly foreign resident rates with no step from daily earnings to them.",
+    ),
+    (
+        "daily_casual_withholding.offsets_exceed_withholding",
+        "The daily value of the tax offsets exceeds the daily amount withheld before them.",
+    ),
+    (
+        "daily_casual_withholding.tax_offsets_not_allowed",
+        "Tax offsets were given for a payee who has not provided a TFN.",
+    ),
+    (
+        "daily_casual_withholding.threshold_not_claimed",
+        "A payee who quoted a TFN has not claimed the tax-free threshold, which the tax table for daily and casual workers requires.",
     ),
     (
         "dasp_tax.payment_nil",
@@ -2591,6 +2679,14 @@ pub const REFUSAL_CODES: &[(&str, &str)] = &[
         "A hire purchase agreement or chattel mortgage starts outside the income year given.",
     ),
     (
+        "horticulture_shearing_withholding.labour_mobility_scheme",
+        "The worker is employed under the Seasonal Worker Programme, Pacific Labour Scheme or Pacific Australia Labour Mobility scheme, to which Schedule 2 does not apply.",
+    ),
+    (
+        "horticulture_shearing_withholding.threshold_not_claimed",
+        "A worker who quoted a TFN has not claimed the tax-free threshold, which Schedule 2 requires.",
+    ),
+    (
         "income_tests.components_inconsistent",
         "income-tests was given a component larger than the amount that includes it: taxable income, the assessable FHSS released amount or excess concessional contributions above assessable income, or exempt foreign employment income above target foreign income.",
     ),
@@ -2664,7 +2760,7 @@ pub const REFUSAL_CODES: &[(&str, &str)] = &[
     ),
     (
         "input.field_unknown",
-        "A field the worksheet or command does not take, or does not take beside the other inputs given, was given (fbt-loan, fbt-meal-entertainment, fbt-car-parking, fbt-debt-waiver, fbt-expense-payment, fbt-property, fbt-residual, fbt-housing, fbt-lafha, fbt-board, fbt-tax-exempt-body-entertainment, fbt-entertainment-classifier, fbt-meal-entertainment-register and its entries, fbt-minor-benefit-check, ppsr-timing, fhss and its contributions, government-super-amounts, personal_deductions and determination, division-296, depreciation, fuel-tax-credits and its lines, foreign-resident-tax, medicare-levy, medicare-levy-surcharge, payg-withholding, payg-gross-up, termination-payment, etp-tax-free-component, unused-leave-payment, the Schedule 5 methods, working-holiday-maker-withholding, study-loan-withholding, seniors-pensioners-withholding, seniors-pensioners-tax-offset, lump-sum-arrears-tax-offset, hire-purchase-schedule, chattel-mortgage-schedule, loan-transactions and its transactions and rate_changes, borrowing-expenses-schedule and its loans, business-capital-expenditure and its items, balancing-adjustment, its years and car_limit, trade-in, franking-account and its events, distributions and income_tax, dasp-tax, super-benefit-tax, gst-margin-scheme, wine-equalisation-tax and its dealings, luxury-car-tax and its lines, payroll-tax, cgt-parcels, its parcels and disposals, fbt-ev-exemption-check, sb-cgt-concessions, small-business-income-offset, depreciation-low-value-pool, depreciation-small-business-pool, capital-works, non-commercial-losses, psi-test, beneficiary-tax-offset, invalid-carer-tax-offset, zone-tax-offset and its dependants, net-medical-expenses-tax-offset, work-expenses, ato-interest-penalties and its payments and parts, private-health-insurance-rebate, rental-property and its loans, capital_works and depreciating_assets, contribution-caps given a carry-forward input, derive, personal-tax-estimate, dgr-check, income-tests and fbt-return only).",
+        "A field the worksheet or command does not take, or does not take beside the other inputs given, was given (fbt-loan, fbt-meal-entertainment, fbt-car-parking, fbt-debt-waiver, fbt-expense-payment, fbt-property, fbt-residual, fbt-housing, fbt-lafha, fbt-board, fbt-tax-exempt-body-entertainment, fbt-entertainment-classifier, fbt-meal-entertainment-register and its entries, fbt-minor-benefit-check, ppsr-timing, fhss and its contributions, government-super-amounts, personal_deductions and determination, division-296, depreciation, fuel-tax-credits and its lines, foreign-resident-tax, medicare-levy, medicare-levy-surcharge, payg-withholding, payg-gross-up, termination-payment, etp-tax-free-component, unused-leave-payment, the Schedule 5 methods, working-holiday-maker-withholding, study-loan-withholding, seniors-pensioners-withholding, seniors-pensioners-tax-offset, lump-sum-arrears-tax-offset, hire-purchase-schedule, chattel-mortgage-schedule, loan-transactions and its transactions and rate_changes, borrowing-expenses-schedule and its loans, business-capital-expenditure and its items, balancing-adjustment, its years and car_limit, trade-in, franking-account and its events, distributions and income_tax, dasp-tax, super-benefit-tax, gst-margin-scheme, wine-equalisation-tax and its dealings, luxury-car-tax and its lines, payroll-tax, cgt-parcels, its parcels and disposals, fbt-ev-exemption-check, sb-cgt-concessions, small-business-income-offset, depreciation-low-value-pool, depreciation-small-business-pool, capital-works, non-commercial-losses, psi-test, beneficiary-tax-offset, invalid-carer-tax-offset, zone-tax-offset and its dependants, net-medical-expenses-tax-offset, work-expenses, ato-interest-penalties and its payments and parts, private-health-insurance-rebate, rental-property and its loans, capital_works and depreciating_assets, horticulture-shearing-withholding, upward-variation-withholding, daily-casual-withholding, no-abn-withholding, contribution-caps given a carry-forward input, derive, personal-tax-estimate, dgr-check, income-tests and fbt-return only).",
     ),
     ("input.flag_invalid", "A flag is not a JSON boolean."),
     ("input.fraction_invalid", "A fraction is outside 0 to 1."),
@@ -2915,6 +3011,14 @@ pub const REFUSAL_CODES: &[(&str, &str)] = &[
     (
         "non_commercial_losses.earlier_years_invalid",
         "earlier_years is not a list of 4 entries, each null or an object with assessable_income and deductions.",
+    ),
+    (
+        "no_abn_withholding.gst_above_payment",
+        "The GST included is more than the payment.",
+    ),
+    (
+        "no_abn_withholding.total_below_payment",
+        "The total of the payments for the supply, disregarding GST, is less than this payment without its GST.",
     ),
     (
         "payg.extra_pays_not_weekly_or_fortnightly",
@@ -3224,6 +3328,10 @@ pub const REFUSAL_CODES: &[(&str, &str)] = &[
     (
         "work_expenses.reimbursed",
         "The expenses were reimbursed or paid for by someone else, so the taxpayer did not bear them.",
+    ),
+    (
+        "withholding.working_holiday_maker",
+        "The payee is a working holiday maker, for whom Schedule 15 governs every payment.",
     ),
     (
         "working_holiday_maker.band_unsettled",

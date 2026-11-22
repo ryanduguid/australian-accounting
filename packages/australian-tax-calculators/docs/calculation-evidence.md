@@ -2866,6 +2866,74 @@ The tests also cover the 4% rate, partial use, the undeducted limit, the
 16 September 1987 and 27 February 1992 boundaries and days limited by a
 start of construction in or after the year.
 
+## Horticulture shearing withholding
+
+Schedule 2 of the Taxation Administration (Withholding Schedules) Instruments
+2024 (F2024L00664), 2025 (F2025L00647), (No. 2) 2025 (F2025L01016) and 2026
+(F2026L00716), read on 22 November 2026, with the ATO's Schedule 2 page
+(NAT 1013, published 17 June 2026). Table A is 0.13 (resident) and 0.30
+(foreign resident) with a TFN, and 0.47 and 0.45 without, in each instrument.
+
+| Example | Facts given | Result |
+| --- | --- | --- |
+| Schedule 2 example, each year | Earnings **$231.50**, ignoring cents $231 | **$30**, **$108**, **$69** and **$103** (resident with and without a TFN, foreign resident with and without) |
+| Half a dollar | $1,150 at 13% | **$150** ($149.50, 50 cents up) |
+
+The tests also cover a worker without a TFN, each refusal (a working holiday
+maker, a labour mobility scheme worker and a TFN-quoting worker who has not
+claimed the tax-free threshold) and the 2023-24 and 2027-28 boundaries.
+
+## Upward variation withholding
+
+Schedule 14 of the same instruments, read on 22 November 2026, with the ATO's
+Schedule 14 page (NAT 5441, published 17 June 2026). The normal amount is
+`payg-withholding`'s; see [PAYG withholding](#payg-withholding).
+
+| Example | Facts given | Result |
+| --- | --- | --- |
+| Schedule 14 example, 2026-27 | **$563.00** weekly, scale 2, **$50** more | **$33** + $50 = **$83** |
+| Schedule 14 example, 2024 and (No. 2) 2025 instruments | The same | **$39** + $50 = **$89** |
+
+The tests also hold the normal amount equal to `payg-withholding`'s for each
+pay period, scale 4 and the tax offset, Medicare levy adjustment and 53 pay
+options, in each year.
+
+## Daily casual withholding
+
+Schedule 1, 'Calculating withholding amounts for payments made on a daily or
+casual basis', of the same instruments, and the ATO's tax table for daily and
+casual workers (NAT 1024) for payments from 1 July 2026 (published 17 June
+2026) and from 1 July 2024 to 30 June 2026 (last updated 17 June 2024), read
+on 22 November 2026. The daily value of tax offsets is 0.38% of the amount
+claimed, rounded to the dollar, in both versions.
+
+| Example | Facts given | Result |
+| --- | --- | --- |
+| NAT 1024 example, 2026-27 | **$193.62** a day, **$500** of tax offsets | $193 x 5 + 0.99 = 965.99, **$127** a week, **$25** a day, less **$2**: **$23** |
+| NAT 1024 example, from 1 July 2024 | The same | **$26** less **$2**: **$24** |
+
+The tests also cover a wage below the tax-free threshold, the no TFN rates,
+each refusal and the 2023-24 boundary.
+
+## No ABN withholding
+
+TAA 1953 Sch 1 ss 12-190 and 15-10 from the ATO's legal database; the
+Taxation Administration Regulations 2017 ss 4 ('top rate'), 26 and 38 in
+compilations 12 (from 1 July 2024) and 18 (from 14 November 2026); the A New
+Tax System (Goods and Services Tax) Regulations 2019 s 29-80.01 ($75) in
+compilations 4 and 5; the ATO's 'Payments you don't withhold from' (last
+updated 11 June 2025) and 'Rental expenses' (Rental properties 2025, last
+updated 29 May 2025). All read on 22 November 2026.
+
+| Example | Facts given | Result |
+| --- | --- | --- |
+| Rental expenses, Derek | **$1,800** cash, no ABN | **$846** |
+| Payments you don't withhold from, Ana | **$150** sign paid as 2 payments of $75 | **$35** from each |
+| $75 threshold | One $75.00 supply | **nil** |
+
+The tests also cover GST disregarded for the threshold but not for the amount,
+cents in the payment and the result, and each refusal.
+
 ## ETP tax free component
 
 This worksheet's evidence was read on 19 November 2026 from 9.25 am to

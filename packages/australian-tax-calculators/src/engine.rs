@@ -1398,7 +1398,8 @@ fn payg_checks(
 ) -> Result<(String, Decimal, String, i64)> {
     let year = scope(scope_confirmed, year, kind)?;
     let earnings = money(earnings)?;
-    let schedule_1 = kind == "payg_withholding";
+    // Schedule 14 adds to the Schedule 1 amount, so it takes Schedule 1's pays.
+    let schedule_1 = matches!(kind, "payg_withholding" | "upward_variation_withholding");
     let quarterly = schedule_1 || kind == "study_loan_withholding";
     let period = match pay_period.text() {
         Some(p @ ("weekly" | "fortnightly" | "monthly")) => p.to_string(),
@@ -6192,8 +6193,13 @@ mod psi_test;
 pub use psi_test::{PSI_OPTIONAL, PsiTestArgs, psi_test};
 mod rental_property;
 pub use rental_property::{RentalPropertyArgs, rental_property};
+mod withholding_schedules;
+pub use withholding_schedules::{
+    daily_casual_withholding, horticulture_shearing_withholding, no_abn_withholding,
+    upward_variation_withholding,
+};
 
-const KINDS: [&str; 82] = [
+const KINDS: [&str; 86] = [
     "gst",
     "gst_margin_scheme",
     "fuel_tax_credits",
@@ -6276,6 +6282,10 @@ const KINDS: [&str; 82] = [
     "psi_test",
     "government_super_amounts",
     "rental_property",
+    "horticulture_shearing_withholding",
+    "upward_variation_withholding",
+    "daily_casual_withholding",
+    "no_abn_withholding",
 ];
 
 /// `periods(kind)`: accepted period arguments and inclusive calendar boundaries.
