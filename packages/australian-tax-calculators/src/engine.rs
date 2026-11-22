@@ -6192,8 +6192,12 @@ mod psi_test;
 pub use psi_test::{PSI_OPTIONAL, PsiTestArgs, psi_test};
 mod rental_property;
 pub use rental_property::{RentalPropertyArgs, rental_property};
+mod foreign_resident_withholding;
+pub use foreign_resident_withholding::{
+    ForeignResidentWithholdingArgs, foreign_resident_withholding,
+};
 
-const KINDS: [&str; 82] = [
+const KINDS: [&str; 83] = [
     "gst",
     "gst_margin_scheme",
     "fuel_tax_credits",
@@ -6276,6 +6280,7 @@ const KINDS: [&str; 82] = [
     "psi_test",
     "government_super_amounts",
     "rental_property",
+    "foreign_resident_withholding",
 ];
 
 /// `periods(kind)`: accepted period arguments and inclusive calendar boundaries.

@@ -1310,6 +1310,12 @@ pub fn supported_periods(kind: &str) -> Vec<&'static str> {
         "rental_property" => vec![
             "2020-21", "2021-22", "2022-23", "2023-24", "2024-25", "2025-26", "2026-27",
         ],
+        // TAA Sch 1 s 14-200 from 1 July 2017 (Act No. 57 of 2017) to 30 June
+        // 2027; 15% and no threshold from 1 January 2025 (Act No. 135 of 2024).
+        "foreign_resident_withholding" => vec![
+            "2017-18", "2018-19", "2019-20", "2020-21", "2021-22", "2022-23", "2023-24", "2024-25",
+            "2025-26", "2026-27",
+        ],
         _ => Vec::new(),
     }
 }
@@ -1621,6 +1627,10 @@ pub fn source_review(kind: &str) -> (&'static str, &'static str) {
         "rental_property" => (
             "2026-11-22",
             "ITAA 1997 ss 6-5, 8-1, 26-31, 26-102, 40-27, 43-10, 43-15, 43-20, 43-25, 43-80, 43-140, 43-145, 43-210, 43-215, 43-220, 43-230, 43-235 and 43-240 on the ATO's legal database, with the amendment history of compilation 264 (21 May 2026); Treasury Laws Amendment (Housing Tax Integrity) Act 2017 (No. 126, 2017) Schedule 1 and Schedule 2 item 13; TR 2000/2 paragraphs 13 to 26; TR 93/32 paragraphs 6 and 11 to 13; ATO Rental properties guide 2026 (NAT 1729-06.2026, current at 1 June 2026): the time-based method, Tables 1 and 2 and Examples 1, 2, 12, 20 to 23, 29, 33, 34 and 40; s 25-25 through borrowing-expenses-schedule (checked 19 November 2026) and the resident scale through resident-tax",
+        ),
+        "foreign_resident_withholding" => (
+            "2026-11-22",
+            "TAA 1953 Sch 1 ss 14-200, 14-210, 14-215, 14-220 and 14-235, compilation 227 (1 October 2026), against compilations 148 (1 July 2017) and 215 (11 December 2024) and the compilation of 1 January 2025; Acts No. 57 of 2017 and No. 135 of 2024 Sch 1; ITAA 1997 ss 108-7 and 109-5; F2016L01123 and LI 2026/38 (F2026L01231); the ATO's foreign resident capital gains withholding pages (last updated 22 June to 9 October 2026)",
         ),
         "income_tests" => (
             "2026-11-16",
@@ -2026,6 +2036,12 @@ pub fn library_evidence(kind: &str) -> [(&'static str, &'static str); 4] {
             "ATO Rental properties guide 2026 (NAT 1729-06.2026)",
             "Examples 1, 2, 12, 20 to 23, 29, 33, 34 and 40 and Tables 1 and 2",
             "2026-05-30",
+            "2026-11-22",
+        ),
+        "foreign_resident_withholding" => (
+            "ATO foreign resident capital gains withholding pages",
+            "the rate examples (Jane and Toni), the clearance certificate examples (Willow and Stanley, Maisie and Max) and the multiple vendor examples (Zac and Jen, Kim)",
+            "2026-10-09",
             "2026-11-22",
         ),
         "sb_cgt_concessions" => (
@@ -3278,6 +3294,17 @@ pub fn input_units(kind: &str) -> Vec<(&'static str, &'static str)> {
             ("capital_works", "list of objects, the whole property's, each with construction_expenditure (AUD, given, never derived), kind (building or structural_improvement), began and first_used (YYYY-MM-DD) and taken_to_begin_before_16_september_1987 (boolean, s 43-220(1)(a) or (b); required for a building begun after 15 September 1987)"),
             ("depreciating_assets", "list of objects, the whole property's, each with decline_in_value (AUD from its start time to the end of the days held, before any private use reduction), acquired (YYYY-MM-DD, when you acquired it or entered into the contract under which you did, if earlier: Act No. 126 of 2017 Schedule 2 item 13), first_used (YYYY-MM-DD, its start time, first used or installed ready for use), held_when_first_used, residence_or_private_use and low_value_pool (booleans), and new_premises_exception (boolean, for an asset not held when first used) and deductible_in_2016_17 (boolean, for an asset acquired before 9 May 2017) where needed (s 40-27)"),
         ],
+        "foreign_resident_withholding" => vec![
+            ("payment", "capital_gains: foreign resident capital gains withholding (TAA Sch 1 s 14-200); any other payment is refused"),
+            ("acquisition_date", "YYYY-MM-DD in the year given: when the contract was entered into or, if none, when the vendor stopped being the owner (ITAA 1997 s 109-5(2) item A1); it sets the rate"),
+            ("asset", "taxable_australian_real_property or company_title_interest (s 14-210(1)(e)); anything else is refused"),
+            ("market_value", "AUD: the asset's market value just after the transaction, with similar interests in the same property (s 14-215(2), (3)); before 1 January 2025 a value under $750,000 excludes the transaction"),
+            ("cost_base_first_element", "AUD: the first element of the asset's cost base just after the acquisition: the price, or market value where you do not deal at arm's length, GST inclusive less any input tax credit you are entitled to (s 14-200(3)(a)(i))"),
+            ("option_payments", "AUD: what you paid, and the market value of property you gave, for an option you exercised to acquire the asset (s 14-200(3)(a)(ii)); nil for none"),
+            ("vendors", "list of 1 to 50 objects {interest, document}: interest, a positive decimal string, is the vendor's share of the asset just before the acquisition relative to the others (equal for joint tenants); document is none, clearance_certificate (given before you pay, its period covering the contract date) or variation with rate (the notice's varied rate, 0 to 1) and maximum_price (AUD)"),
+            ("exclusion", "null, or the s 14-215 exclusion that applies: approved_stock_exchange, crossing_system, already_withheld, securities_lending, insolvent_company or bankruptcy"),
+            ("class_variation_to_nil", "boolean: a class variation under s 14-235(5) varies the amount to nil, such as LI 2026/38 ss 7 to 10 (death, exempt entity, relationship breakdown, mortgagee sale with no residue)"),
+        ],
         "borrowing_expenses_schedule" => vec![(
             "loans",
             "list of objects, one for each loan, each stating: borrowing_expenses (AUD, as for borrowing_expenses, incurred in the income year the loan began); loan_start (YYYY-MM-DD, the first day the money was borrowed, from 1 July 2017 to the end of the year asked about); loan_term_end and repaid_on (YYYY-MM-DD or null, as for borrowing_expenses); income_use (a decimal fraction from 0 to 1 for every income year of the loan, or an object giving one for each income year from the year the loan began to the year its period ends, such as {\"2025-26\": \"1\", \"2026-27\": \"0.5\"}); section_26_50_applies (boolean, as for borrowing_expenses; true is refused); and optionally refinances (the number, from 1, of an earlier loan in the list that this loan repaid on its loan_start, which must be that loan's repaid_on)",
@@ -4447,6 +4474,26 @@ pub fn examples(kind: &str) -> Vec<(&'static str, Example)> {
             ("borrowing_loans", Json("[]")),
             ("capital_works", Json("[]")),
             ("depreciating_assets", Json("[]")),
+        ],
+        // The ATO's multiple vendor example: Zac (foreign resident, no
+        // document) and Jen (clearance certificate) sell a $1 million property
+        // in equal shares under a contract of 1 February 2025.
+        "foreign_resident_withholding" => vec![
+            ("year", Text("2024-25")),
+            ("payment", Text("capital_gains")),
+            ("acquisition_date", Text("2025-02-01")),
+            ("asset", Text("taxable_australian_real_property")),
+            ("market_value", Text("1000000.00")),
+            ("cost_base_first_element", Text("1000000.00")),
+            ("option_payments", Text("0.00")),
+            (
+                "vendors",
+                Json(
+                    r#"[{"interest": "1", "document": "none"}, {"interest": "1", "document": "clearance_certificate"}]"#,
+                ),
+            ),
+            ("exclusion", Json("null")),
+            ("class_variation_to_nil", Flag(false)),
         ],
         "borrowing_expenses_schedule" => vec![
             ("year", Text("2026-27")),

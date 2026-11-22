@@ -16,8 +16,8 @@ keeps the calculator release and MCP integration separate.
 
 </div>
 
-82 calculation worksheets for established facts: ordinary GST, fuel tax credits at the ATO's rate for each day from 1 July 2022 with the simplified methods for small claimants, resident and foreign
-resident basic income tax, CGT losses and discount, the gains and losses from parcels of shares or units, the small business CGT concessions open for a gain, the small business income tax offset, whether Division 35 defers a business activity loss, whether the personal services income rules apply, an employee's working from home, car and self-education deductions, the main residence exemption's taxable share of a gain or loss, one loan's borrowing expenses deduction and a schedule of several loans' deductions over every year, a residential rental property's income, deductions by category and net rent with its effect on tax, a hire purchase agreement's notional interest, a chattel mortgage's interest schedule and input tax credit, a loan's statement with daily interest at changing rates, business capital expenditure (black hole and start-up costs) under s 40-880, ordinary employer FBT, car fringe benefit taxable values
+83 calculation worksheets for established facts: ordinary GST, fuel tax credits at the ATO's rate for each day from 1 July 2022 with the simplified methods for small claimants, resident and foreign
+resident basic income tax, CGT losses and discount, the gains and losses from parcels of shares or units, the small business CGT concessions open for a gain, the foreign resident capital gains withholding a purchaser pays on Australian real property, the small business income tax offset, whether Division 35 defers a business activity loss, whether the personal services income rules apply, an employee's working from home, car and self-education deductions, the main residence exemption's taxable share of a gain or loss, one loan's borrowing expenses deduction and a schedule of several loans' deductions over every year, a residential rental property's income, deductions by category and net rent with its effect on tax, a hire purchase agreement's notional interest, a chattel mortgage's interest schedule and input tax credit, a loan's statement with daily interest at changing rates, business capital expenditure (black hole and start-up costs) under s 40-880, ordinary employer FBT, car fringe benefit taxable values
 under the statutory formula and operating cost methods, loan, meal entertainment, car parking, debt waiver, expense payment, property, residual, housing, living-away-from-home allowance, board and tax-exempt body entertainment fringe benefit taxable values, the FBT, deduction and GST credit treatment of entertainment expense lines, whether a 12 week meal entertainment register is valid, depreciation in the start year and later years, a depreciating asset's balancing adjustment with its reduction for private use and CGT event K7, a trade-in's GST on both sides with the old asset's balancing adjustment and the replacement's cost, whether an electric car's fringe benefits are exempt, one employer's payroll tax in each state and territory, a company's franking account with franking deficit tax, its offset and the benchmark rule, wine equalisation tax with the producer rebate under its yearly cap and BAS labels 1C and 1D, luxury car tax on sales and importations with its adjustments, refunds and BAS labels 1E and 1F, the general and shortfall interest charges, failure to lodge and statement penalties before remission and the interest the ATO pays on early payments and overpayments,
 quarterly super guarantee, Schedule 1 PAYG withholding and the gross pay that leaves a stated net, Schedule 5 withholding from back payments, commissions and bonuses by Methods A, B(i) and B(ii), Schedule 15 withholding for working holiday makers, Schedule 9 withholding for seniors and pensioners, super contribution caps, the super co-contribution, the low income super tax offset and the spouse contribution tax offset,
 account-based pension minimums, study and training loan repayments, Schedule 8 study
@@ -203,6 +203,7 @@ booleans and counts, ages, days, quarters and scales are JSON integers.
 | `government-super-amounts` | `income-tests`' 16 components and `residency`, `eligible_income`, `personal_contributions`, `concessional_contributions`, `return_lodged`, `under_71`, `temporary_visa_held`, `non_concessional_within_cap`, `total_super_balance_below_cap`, `year`, `scope_confirmed`; for a spouse contribution all of `spouse_contributions`, `spouse_assessable_income`, `spouse_assessable_fhss_released_amount`, `spouse_reportable_fringe_benefits_total`, `spouse_reportable_employer_super_contributions`, `spouse_excess_concessional_contributions`, `spouse_non_concessional_within_cap` and `spouse_total_super_balance_below_cap`; see [Government super amounts](#government-super-amounts) |
 | `work-expenses` | `method` (`home_office`, `car_cents_per_kilometre`, `car_log_book` or `self_education`), `reimbursed`, `allowance_received`, `year`, `scope_confirmed`, and the inputs the method and year take; see [Work expenses](#work-expenses) |
 | `rental-property` | `ownership_share`, `acquired`, `disposed`, `days_available`, `section_26_50_applies`, `income`, `expenses`, `rental_only_expenses`, `loans`, `borrowing_loans`, `capital_works`, `depreciating_assets`, `year`, `scope_confirmed`; optional `other_taxable_income`; see [Rental property](#rental-property) |
+| `foreign-resident-withholding` | `payment`, `acquisition_date`, `asset`, `market_value`, `cost_base_first_element`, `option_payments`, `vendors`, `exclusion`, `class_variation_to_nil`, `year`, `scope_confirmed`; see [Foreign resident withholding](#foreign-resident-withholding) |
 | `income-tests` | `taxable_income`, `assessable_fhss_released_amount`, `family_trust_distribution_amounts`, `reportable_fringe_benefits_section_57a`, `reportable_fringe_benefits_other`, `reportable_employer_super_contributions`, `deductible_personal_super_contributions`, `excess_concessional_contributions`, `net_financial_investment_loss`, `net_rental_property_loss`, `tax_free_government_pensions`, `target_foreign_income`, `exempt_foreign_employment_income`, `child_support_paid`, `assessable_income`, `business_deductions`, `residency`, `year`, `scope_confirmed`; see [Income tests](#income-tests) |
 | `division-296` | `total_super_balance_end_of_year`, `total_super_earnings`, `child_recipient`, `structured_settlement_contribution`, `died_in_year`, `year`, `scope_confirmed` |
 | `termination-payment` | `redundancy_payment`, `completed_years_of_service`, `excluded_payment`, `non_excluded_payment`, `other_taxable_payments`, `date_of_birth`, `year`, `scope_confirmed` |
@@ -2835,6 +2836,36 @@ acquired on 9 May 2017, works or an asset first used after the property was firs
 2024-25. From 2027-28 s 26-155 can quarantine rental deductions; that year is
 not supported. `tests/rental_property.rs` holds it to the ATO's Rental
 properties guide 2026 Examples 12, 20, 21, 23, 29, 33 and 34.
+
+## Foreign resident withholding
+
+`foreign_resident_withholding` works out the foreign resident capital gains
+withholding amount a purchaser pays the Commissioner under TAA 1953 Schedule 1
+s 14-200 on acquiring taxable Australian real property or a company title
+interest, for an acquisition date (the contract date, ITAA 1997 s 109-5) from
+1 July 2017 to 30 June 2027; `year` is the income year it falls in.
+
+- The rate is 12.5% before 1 January 2025 (Act No. 57 of 2017) and 15% from
+  then (Act No. 135 of 2024). Before 1 January 2025 a `market_value` under
+  $750,000 excludes the transaction (s 14-215(1)(a)); from then there is no
+  threshold.
+- The base is `cost_base_first_element` less `option_payments`
+  (s 14-200(3)(a)).
+- Every vendor counts unless it gave a clearance certificate (s 14-210(1)(e)
+  and (2)). Each vendor's `interest` share of the base is withheld at the full
+  rate, at its notice of variation's rate up to the notice's maximum price, or
+  not at all with a certificate, as the multiple vendor class variations
+  (F2016L01123; LI 2026/38 s 6) and the ATO's examples do; each amount is
+  rounded to the cent.
+- `exclusion` (a s 14-215 paragraph) and `class_variation_to_nil`
+  (s 14-235(5), such as LI 2026/38 ss 7 to 10) give nil.
+
+It refuses other indirect Australian real property interests, options or
+rights as the asset, look-through earnouts (s 14-205), and interest,
+dividend, royalty, managed investment trust and s 12-315 withholding, which
+are not built. `tests/foreign_resident_withholding.rs` holds it to the ATO's
+foreign resident capital gains withholding examples; see
+[calculation evidence](docs/calculation-evidence.md#foreign-resident-withholding).
 
 ## Small business CGT concessions
 

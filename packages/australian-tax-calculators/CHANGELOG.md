@@ -6,6 +6,22 @@
 
 ### Added
 
+- `foreign-resident-withholding` works out the foreign resident capital gains
+  withholding amount under TAA 1953 Sch 1 s 14-200 for taxable Australian real
+  property or a company title interest acquired from 1 July 2017 to 30 June
+  2027: 12.5% with the $750,000 market value exclusion before 1 January 2025,
+  15% with none from then, the option payment reduction, clearance
+  certificates, notices of variation, class variations to nil and s 14-215
+  exclusions as stated facts, and each vendor's interest share. New codes:
+  `foreign_resident_withholding.asset_unsupported`,
+  `foreign_resident_withholding.date_outside_year`,
+  `foreign_resident_withholding.exclusion_invalid`,
+  `foreign_resident_withholding.option_exceeds_price`,
+  `foreign_resident_withholding.payment_unsupported`,
+  `foreign_resident_withholding.variation_invalid` and
+  `foreign_resident_withholding.vendors_invalid`.
+  `tests/foreign_resident_withholding.rs` holds it to the ATO's examples.
+
 - `work-expenses` works out an employee's working from home, car or
   self-education deduction for 2020-21 to 2026-27, one `method` a call: the
   fixed rate (52c with a dedicated home office to 2021-22, then PCG 2023/1's

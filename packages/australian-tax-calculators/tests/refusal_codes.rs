@@ -176,8 +176,9 @@ fn every_catalogued_required_input_of_a_strict_command_is_read() {
     // small-business-income-offset, government-super-amounts,
     // beneficiary-tax-offset, invalid-carer-tax-offset, zone-tax-offset,
     // net-medical-expenses-tax-offset, non-commercial-losses, psi-test,
-    // private-health-insurance-rebate, rental-property and super-benefit-tax.
-    assert_eq!(checked, 68);
+    // private-health-insurance-rebate, rental-property, super-benefit-tax and
+    // foreign-resident-withholding.
+    assert_eq!(checked, 69);
 }
 
 /// Every frozen call gives the same answer through either entry point, and

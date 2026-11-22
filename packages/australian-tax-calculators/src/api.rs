@@ -780,6 +780,22 @@ const COMMAND_ARGS: &[(&str, &[(&str, Kind)])] = &[
         ],
     ),
     (
+        "foreign-resident-withholding",
+        &[
+            ("payment", Raw),
+            ("acquisition_date", Raw),
+            ("asset", Raw),
+            ("market_value", Dec),
+            ("cost_base_first_element", Dec),
+            ("option_payments", Dec),
+            ("vendors", Json),
+            ("exclusion", Raw),
+            ("class_variation_to_nil", Raw),
+            ("year", Raw),
+            ("scope_confirmed", Raw),
+        ],
+    ),
+    (
         "sb-cgt-concessions",
         &[
             ("entity", Raw),
@@ -1421,6 +1437,7 @@ pub fn evaluate_coded(command: &str, v: &Value) -> Result<Value> {
             | "psi-test"
             | "government-super-amounts"
             | "rental-property"
+            | "foreign-resident-withholding"
             | "business-capital-expenditure"
             | "balancing-adjustment"
             | "trade-in"
@@ -2207,6 +2224,21 @@ pub fn evaluate_coded(command: &str, v: &Value) -> Result<Value> {
                 other_taxable_income: other.as_ref(),
                 year: &a[12],
                 scope_confirmed: &a[13],
+            })
+        }
+        "foreign-resident-withholding" => {
+            engine::foreign_resident_withholding(&engine::ForeignResidentWithholdingArgs {
+                payment: &a[0],
+                acquisition_date: &a[1],
+                asset: &a[2],
+                market_value: &a[3],
+                cost_base_first_element: &a[4],
+                option_payments: &a[5],
+                vendors: &a[6],
+                exclusion: &a[7],
+                class_variation_to_nil: &a[8],
+                year: &a[9],
+                scope_confirmed: &a[10],
             })
         }
         "sb-cgt-concessions" => {

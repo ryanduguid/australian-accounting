@@ -35,8 +35,9 @@ use std::process::{Command, Stdio};
 /// `tests/work_expenses.rs`, `tests/ato_interest_penalties.rs`,
 /// `tests/small_business_income_offset.rs`, `tests/government_super_amounts.rs`,
 /// `tests/individual_offsets.rs`, `tests/non_commercial_losses.rs`,
-/// `tests/psi_test.rs` and `tests/rental_property.rs` cover them.
-const NEW_KINDS: [(&str, &str); 68] = [
+/// `tests/psi_test.rs`, `tests/rental_property.rs` and
+/// `tests/foreign_resident_withholding.rs` cover them.
+const NEW_KINDS: [(&str, &str); 69] = [
     ("super-benefit-tax", "super_benefit_tax"),
     ("fhss", "fhss"),
     ("ato-interest-penalties", "ato_interest_penalties"),
@@ -96,6 +97,10 @@ const NEW_KINDS: [(&str, &str); 68] = [
     ),
     ("government-super-amounts", "government_super_amounts"),
     ("rental-property", "rental_property"),
+    (
+        "foreign-resident-withholding",
+        "foreign_resident_withholding",
+    ),
     ("division-296", "division_296"),
     ("termination-payment", "termination_payment"),
     ("etp-tax-free-component", "etp_tax_free_component"),
