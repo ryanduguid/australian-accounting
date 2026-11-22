@@ -16,10 +16,7 @@ use serde_json::{Map, Value, json};
 use std::collections::{BTreeMap, BTreeSet};
 
 mod input;
-mod kind;
-mod nfp;
 use input::{Given, check_benefit, check_employer, check_fields, check_year};
-use kind::Kind;
 
 const COMMAND: &str = "fbt-return";
 
@@ -266,12 +263,7 @@ fn value_benefit<'a>(at: &str, given: Given<'a>) -> Result<Valued<'a>, Refusal> 
 }
 
 /// Check every benefit, then value each one.
-fn run_benefits<'a>(
-    v: &'a Value,
-    employer: &str,
-    year: i64,
-    kind: Kind,
-) -> Result<Vec<Valued<'a>>, Refusal> {
+fn run_benefits<'a>(v: &'a Value, employer: &str, year: i64) -> Result<Vec<Valued<'a>>, Refusal> {
     let benefits = match v.get("benefits").and_then(Value::as_array) {
         Some(list) if !list.is_empty() => list,
         _ => {
@@ -287,7 +279,7 @@ fn run_benefits<'a>(
             b,
             v,
             employer,
-            (year, kind),
+            year,
         )?);
     }
     given
@@ -313,15 +305,10 @@ fn sum(values: &[Decimal]) -> Result<Decimal, Refusal> {
 }
 
 /// Item 23, by label: an exempt electric car is not a fringe benefit and has
-/// no place there, nor, for a s 57A employer, a benefit the caps disregard.
-/// A column the instructions leave blank is absent.
-fn item_23(valued: &[Valued], kind: Kind) -> Result<Map<String, Value>, Refusal> {
-    let capped = matches!(kind, Kind::Exempt(_));
+/// no place there. A column the instructions leave blank is absent.
+fn item_23(valued: &[Valued]) -> Result<Map<String, Value>, Refusal> {
     let mut rows: BTreeMap<&str, (Count, Columns, Row)> = BTreeMap::new();
-    for b in valued
-        .iter()
-        .filter(|b| !b.exempt && !(capped && nfp::disregarded(b)))
-    {
+    for b in valued.iter().filter(|b| !b.exempt) {
         let (.., row) =
             rows.entry(b.given.label)
                 .or_insert((b.given.count, b.given.columns, Row::default()));
@@ -451,11 +438,7 @@ fn amounts(
 }
 
 /// The amounts by the return's labels.
-fn return_labels(
-    fbt: &Value,
-    valued: &[Valued],
-    kind: Kind,
-) -> Result<Map<String, Value>, Refusal> {
+fn return_labels(fbt: &Value, valued: &[Valued]) -> Result<Map<String, Value>, Refusal> {
     let mut labels = Map::new();
     for (label, key) in [
         ("14A", "return_item_14a"),
@@ -466,7 +449,7 @@ fn return_labels(
     ] {
         labels.insert(label.into(), fbt["amounts"][key].clone());
     }
-    labels.extend(item_23(valued, kind)?);
+    labels.extend(item_23(valued)?);
     Ok(labels)
 }
 
@@ -499,10 +482,7 @@ pub fn compose(v: &Value) -> Result<Value, Refusal> {
     check_fields(v)?;
     let employer = check_employer(v)?;
     let year = check_year(v)?;
-    let (kind_name, kind) = kind::check_kind(v)?;
-    let days = kind::check_days(v, kind, year)?;
-    let instalments = kind::check_instalments(v)?;
-    let valued = run_benefits(v, employer, year, kind)?;
+    let valued = run_benefits(v, employer, year)?;
     let totals = aggregates(&valued)?;
     let fbt = gross_up(v, year, &totals[0], &totals[1])?;
     let fbt_rate = calc(Decimal::parse(
@@ -510,10 +490,9 @@ pub fn compose(v: &Value) -> Result<Value, Refusal> {
     ))?;
     let (amounts, reconciliation) = amounts(&valued, &fbt, &totals)?;
     let employees = employees(&valued, &fbt_rate)?;
-    let labels = return_labels(&fbt, &valued, kind)?;
-    let composed = nfp::apply(kind, v, year, &valued, &fbt, days)?;
+    let labels = return_labels(&fbt, &valued)?;
     let results: Vec<Value> = valued.into_iter().map(|b| b.result).collect();
-    let mut out = json!({
+    Ok(json!({
         "ok": true,
         "engine": fbt["engine"],
         "engine_version": fbt["engine_version"],
@@ -532,10 +511,5 @@ pub fn compose(v: &Value) -> Result<Value, Refusal> {
         "sources": SOURCES,
         "source_checked": "2026-11-16",
         "warnings": warnings(year),
-    });
-    if let Some(composed) = composed {
-        nfp::merge(&mut out, kind_name, composed);
-    }
-    nfp::instalment_labels(&mut out, instalments)?;
-    Ok(out)
+    }))
 }

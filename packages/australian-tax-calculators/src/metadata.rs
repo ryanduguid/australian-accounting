@@ -1191,9 +1191,6 @@ pub fn supported_periods(kind: &str) -> Vec<&'static str> {
         // The car worksheets' years. The year ended 31 March 2028 is refused:
         // the change announced for 1 April 2027 was not law on 19 November
         // 2026.
-        // FBTAA ss 101 to 112A, compilation 97 (1 July 2026), the same for
-        // both years; the ATO's labels page was last updated 1 May 2025.
-        "fbt_instalment" => vec!["2026", "2027"],
         "fbt_ev_exemption_check" => vec!["2026", "2027"],
         // The methods use no published rate; the years are those the ATO's
         // return instructions and rates page were read for.
@@ -1497,10 +1494,6 @@ pub fn source_review(kind: &str) -> (&'static str, &'static str) {
         "fbt_car_statutory" => (
             "2026-10-29",
             "Fringe benefits tax - a guide for employers, 7.8 statutory formula method and examples 23 and 26; FBT return 2026 instructions, item 23A and example 6; Electric cars exemption, reportable fringe benefits",
-        ),
-        "fbt_instalment" => (
-            "2026-11-22",
-            "FBTAA ss 101 to 112B, compilation 97 (1 July 2026), with the formula images' text; the ATO's 'Fringe benefits tax (FBT) instalment' page (last updated 1 May 2025: labels F1 to F4, 6A and 6B, the reason codes and the varying example); Fringe benefits tax - a guide for employers, chapter 3 (the variation examples)",
         ),
         "fbt_ev_exemption_check" => (
             "2026-11-19",
@@ -1979,12 +1972,6 @@ pub fn library_evidence(kind: &str) -> [(&'static str, &'static str); 4] {
             "3-020",
             "2026-06-30",
             "2026-10-29",
-        ),
-        "fbt_instalment" => (
-            "ATO 'Fringe benefits tax (FBT) instalment' page; Fringe benefits tax - a guide for employers, chapter 3",
-            "the varying example ($28,000 estimate at the December quarter after $20,000: $1,000, code 31) and the guide's $3,000, $4,000 and $600 varied instalments",
-            "2025-05-01",
-            "2026-11-22",
         ),
         "fbt_ev_exemption_check" => (
             "tax-examples-fringe-benefits-tax-fbt",
@@ -2936,28 +2923,6 @@ pub fn optional_inputs(kind: &str) -> Vec<(&'static str, &'static str)> {
             "car_limit",
             "for a car only, and then required: null when s 40-230 did not reduce its cost to the car limit, or an object with limit (AUD, the car limit for the financial year in which the car was first used for any purpose), second_element_cost (AUD) and cost_ignoring_car_limit (AUD, the first and second elements ignoring the car limit, after Subdivision 27-B), cost then being limit plus second_element_cost: ITAA 1997 s 40-325",
         )],
-        "fbt_instalment" => vec![
-            (
-                "ato_instalment",
-                "AUD, without estimated_tax and then required: the ATO instalment amount the activity statement shows at label F1",
-            ),
-            (
-                "estimated_tax",
-                "AUD, to vary the instalment: the employer's estimate of the FBT payable for the year (label F2, FBTAA s 112(1))",
-            ),
-            (
-                "previous_instalments",
-                "AUD, with estimated_tax only, and then required for quarters 2 to 4: the instalments for the year that fell due before this one (FBTAA s 111(1A))",
-            ),
-            (
-                "previous_credits",
-                "AUD, with estimated_tax only; nil when not given: the credits claimed at 6B under FBTAA s 112A for earlier instalments of the year (s 111(1A))",
-            ),
-            (
-                "reason_code",
-                "integer, with estimated_tax only, and then required: the label F4 reason code, 22, 30, 31 or 32",
-            ),
-        ],
         "fbt_ev_exemption_check" => vec![
             (
                 "commitment_before_1_april_2025",
@@ -3885,9 +3850,6 @@ pub fn input_units(kind: &str) -> Vec<(&'static str, &'static str)> {
                 "years",
                 "list of objects, one for each income year held from the start time to the event, each with income_year (from 2001-02, and for a car from 2015-16, to the event's year), decline_in_value (AUD; for a cents per kilometre year the notional decline of s 40-370(3)) and deduction (AUD, the decline less the s 40-25 reductions); a car's rows also state method (log_book or cents_per_kilometre, which takes no deduction) and days_held (integer from 1 to the days in that income year, 366 when it includes 29 February)",
             ),
-        ],
-        "fbt_instalment" => vec![
-            ("quarter", "integer from 1 to 4: the instalment for the quarter ending 30 June, 30 September, 31 December or 31 March of the FBT year (FBTAA ss 103 and 109)"),
         ],
         "fbt_ev_exemption_check" => vec![
             (
@@ -5283,15 +5245,6 @@ pub fn examples(kind: &str) -> Vec<(&'static str, Example)> {
         ],
         // The Library's Cleancut example (Tax Examples, FBT, 3-045): an
         // electric car bought for $72,000 plus GST on 1 July 2025.
-        // The ATO's varying example: the December quarter, a $28,000
-        // estimate after $20,000 of instalments, reason code 31.
-        "fbt_instalment" => vec![
-            ("quarter", Whole(3)),
-            ("estimated_tax", Text("28000.00")),
-            ("previous_instalments", Text("20000.00")),
-            ("previous_credits", Text("0.00")),
-            ("reason_code", Whole(31)),
-        ],
         "fbt_ev_exemption_check" => vec![
             ("vehicle", Text("battery_electric")),
             ("car", Flag(true)),

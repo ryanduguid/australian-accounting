@@ -418,14 +418,6 @@ const COMMAND_ARGS: &[(&str, &[(&str, Kind)])] = &[
         ],
     ),
     (
-        "fbt-instalment",
-        &[
-            ("quarter", Raw),
-            ("year_ended", Raw),
-            ("scope_confirmed", Raw),
-        ],
-    ),
-    (
         "fbt-ev-exemption-check",
         &[
             ("vehicle", Raw),
@@ -1857,7 +1849,6 @@ pub fn evaluate_coded(command: &str, v: &Value) -> Result<Value> {
             | "balancing-adjustment"
             | "trade-in"
             | "fbt-ev-exemption-check"
-            | "fbt-instalment"
             | "dasp-tax"
             | "super-benefit-tax"
             | "super-withholding"
@@ -2239,21 +2230,6 @@ pub fn evaluate_coded(command: &str, v: &Value) -> Result<Value> {
                 hybrid: hybrid.each_ref().map(Option::as_ref),
                 year_ended: &a[7],
                 scope_confirmed: &a[8],
-            })
-        }
-        "fbt-instalment" => {
-            // Optional: F1, or the variation's facts.
-            let given = engine::FBT_INSTALMENT_OPTIONAL.map(|key| {
-                let kind = if key == "reason_code" { Raw } else { Dec };
-                optional(v, key, kind)
-            });
-            let [a0, a1, a2, a3, a4] = given;
-            let given = [a0?, a1?, a2?, a3?, a4?];
-            engine::fbt_instalment(&engine::FbtInstalmentArgs {
-                quarter: &a[0],
-                year_ended: &a[1],
-                scope_confirmed: &a[2],
-                optional: given.each_ref().map(Option::as_ref),
             })
         }
         "fbt-loan" => engine::fbt_loan(&benefit_inputs(v, params)?, &a[0], &a[1]),

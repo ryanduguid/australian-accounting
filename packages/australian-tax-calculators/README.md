@@ -16,7 +16,7 @@ keeps the calculator release and MCP integration separate.
 
 </div>
 
-109 calculation worksheets for established facts: ordinary GST, fuel tax credits at the ATO's rate for each day from 1 July 2022 with the simplified methods for small claimants, resident and foreign
+108 calculation worksheets for established facts: ordinary GST, fuel tax credits at the ATO's rate for each day from 1 July 2022 with the simplified methods for small claimants, resident and foreign
 resident basic income tax, CGT losses and discount, the gains and losses from parcels of shares or units, their cost base after returns of capital, trust and AMIT adjustments and 2 demergers, the small business CGT concessions open for a gain, the small business income tax offset, a company's deferred tax under AASB 112 with its tax expense and rate reconciliation, whether an individual must lodge a return under each year's lodgment instrument, the 4 residency tests for an individual, the change in value of trading stock with each item's valuation and the small business choice, when a prepaid expense is deductible, whether Division 35 defers a business activity loss, whether the personal services income rules apply, a complying SMSF's annual return tax, levy and amount due, the tax on a minor's unearned income at the Division 6AA rates, an employee's working from home, car and self-education deductions, foreign currency amounts in Australian dollars, the foreign income tax offset with a part-year resident's tax-free threshold, the main residence exemption's taxable share of a gain or loss, one loan's borrowing expenses deduction and a schedule of several loans' deductions over every year, a residential rental property's income, deductions by category and net rent with its effect on tax, a hire purchase agreement's notional interest, a chattel mortgage's interest schedule and input tax credit, a loan's statement with daily interest at changing rates, business capital expenditure (black hole and start-up costs) under s 40-880, ordinary employer FBT, car fringe benefit taxable values
 under the statutory formula and operating cost methods, loan, meal entertainment, car parking, debt waiver, expense payment, property, residual, housing, living-away-from-home allowance, board and tax-exempt body entertainment fringe benefit taxable values, the FBT, deduction and GST credit treatment of entertainment expense lines, whether a 12 week meal entertainment register is valid, depreciation in the start year and later years, a depreciating asset's balancing adjustment with its reduction for private use and CGT event K7, a trade-in's GST on both sides with the old asset's balancing adjustment and the replacement's cost, whether an electric car's fringe benefits are exempt, one employer's payroll tax in each state and territory, a company's franking account with franking deficit tax, its offset and the benchmark rule, an R&D entity's refundable or non-refundable R&D tax offset with the amount a recoupment or feedstock clawback adds to assessable income, wine equalisation tax with the producer rebate under its yearly cap and BAS labels 1C and 1D, luxury car tax on sales and importations with its adjustments, refunds and BAS labels 1E and 1F, the general and shortfall interest charges, failure to lodge and statement penalties before remission and the interest the ATO pays on early payments and overpayments,
 quarterly super guarantee, Schedule 1 PAYG withholding and the gross pay that leaves a stated net, Schedule 5 withholding from back payments, commissions and bonuses by Methods A, B(i) and B(ii), Schedule 15 withholding for working holiday makers, Schedule 9 withholding for seniors and pensioners, Schedule 2 withholding for horticulture and shearing, Schedule 14 additional amounts, daily and casual withholding, withholding where no ABN is quoted, Schedule 3 withholding for entertainers, Schedule 4 return to work payments, Schedule 6 annuities, Schedule 10 voluntary agreements, super contribution caps, the super co-contribution, the low income super tax offset and the spouse contribution tax offset,
@@ -163,7 +163,6 @@ booleans and counts, ages, days, quarters and scales are JSON integers.
 | `fbt` | `type_one_value`, `type_two_value`, `year_ended`, `scope_confirmed` |
 | `fbt-car-statutory` | `cost_price`, `later_accessories`, `one_third_reduction`, `days_available`, `employee_contribution`, `electric_car_exempt`, `year_ended`, `scope_confirmed` |
 | `fbt-car-operating-cost` | `running_costs`, `lease_charges`, `depreciated_value`, `effective_life_years`, `days_held`, `business_use`, `employee_contribution`, `statutory_formula_taxable_value`, `electric_car_exempt`, `year_ended`, `scope_confirmed` |
-| `fbt-instalment` | `quarter`, `year_ended`, `scope_confirmed`, and `ato_instalment` or, to vary it, `estimated_tax`, `previous_instalments`, `previous_credits` and `reason_code`; see [FBT instalments](#fbt-instalments) |
 | `fbt-ev-exemption-check` | `vehicle`, `car`, `current_employee`, `first_held_and_used`, `first_retail_sale`, `luxury_car_tax_value`, `luxury_car_tax_on_other_supply`, `year_ended`, `scope_confirmed`; for a plug-in hybrid, `commitment_before_1_april_2025`, `new_commitment_from_1_april_2025` and `exempt_benefit_before_1_april_2025`; see [FBT electric cars exemption](#fbt-electric-cars-exemption) |
 | `fbt-loan` | `daily_balance_total`, `interest_accrued`, `income_use`, `accrued_interest_deduction`, `year_ended`, `scope_confirmed` |
 | `fbt-meal-entertainment` | `method`, `meal_entertainment_expenditure`, `year_ended`, `scope_confirmed`; with `12_week_register`, `register_fringe_benefits_value`, `register_meal_entertainment_value`, `register_first_year` and `register_years_expenditure` |
@@ -251,7 +250,7 @@ booleans and counts, ages, days, quarters and scales are JSON integers.
 | `periods` | `kind`, the worksheet name, such as `"payg_withholding"` |
 | `dgr-check` | `donations`, a list of 1 to 10,000 objects, each with `abn` or `name` or both, and optional `date` and `amount`; see [DGR check](#dgr-check) |
 | `personal-tax-estimate` | `year`, `scope_confirmed`, `residency`, `taxable_income` or `assessable_labour_income` (then optional `other_assessable_income`, `work_related_deductions`, `other_deductions`), optional `tax_withheld` or, to work it out, one of `payg-withholding`, `study-loan-withholding` and `seniors-pensioners-withholding` with `pays_in_year` and optional `schedule-5-method-a`, for a resident from 2027-28 `net_labour_income` (required beside `taxable_income`), and for a full-year resident `medicare-levy` and `medicare-levy-surcharge`; optional `seniors-pensioners-tax-offset`, `study-loan-repayment`, `division-293` and `private-health-insurance-rebate`; see [Personal tax estimate](#personal-tax-estimate) |
-| `fbt-return` | `employer`, `year_ended`, `scope_confirmed` and `benefits`, a list of objects each with `employee`, `command` (an FBT benefit worksheet), `input` (that worksheet's arguments), `gst_type` (`type_1` or `type_2`) and `excluded`, and for a not-for-profit employer `entertainment`; optionally `employer_kind`, `rebatable_days` and `employer_days`, and `instalments_reported`; see [FBT return](#fbt-return) |
+| `fbt-return` | `employer`, `year_ended`, `scope_confirmed` and `benefits`, a list of objects each with `employee`, `command` (an FBT benefit worksheet), `input` (that worksheet's arguments), `gst_type` (`type_1` or `type_2`) and `excluded`; see [FBT return](#fbt-return) |
 | `derive` | `command`, one of `fbt`, `fbt-car-statutory`, `fbt-car-operating-cost`, `fbt-loan`, `fbt-meal-entertainment`, `fbt-car-parking`, `fbt-debt-waiver`, `fbt-expense-payment`, `fbt-property`, `division-293`, `pension-minimum`, `payg-withholding`, `schedule-5-method-a`, `schedule-5-method-b-i`, `schedule-5-method-b-ii`, `termination-payment`, `etp-tax-free-component`, `unused-leave-payment`, `working-holiday-maker-withholding`, `study-loan-withholding`, `seniors-pensioners-withholding`, `quarterly-sg`, `borrowing-expenses`, `borrowing-expenses-schedule`, `resident-tax`, `foreign-resident-tax`, `low-income-tax-offset`, `seniors-pensioners-tax-offset`, `medicare-levy`, `medicare-levy-surcharge`, `division-296`, `contribution-caps`, `study-loan-repayment`, `capital-gains`, `main-residence`, `fbt-residual`, `fbt-housing`, `fbt-lafha`, `fbt-board`, `fbt-tax-exempt-body-entertainment`, `gst`, `depreciation`, `depreciation-low-value-pool`, `depreciation-small-business-pool`, `capital-works`, `rd-tax-offset`, `horticulture-shearing-withholding`, `upward-variation-withholding`, `daily-casual-withholding`, `no-abn-withholding`, `entertainer-withholding`, `return-to-work-withholding`, `annuity-withholding`, `voluntary-agreement-withholding`, `deferred-tax`, `hire-purchase-schedule`, `chattel-mortgage-schedule`, `loan-transactions`, `lump-sum-arrears-tax-offset`, `income-tests`, `government-super-amounts`, `business-capital-expenditure`, `balancing-adjustment`, `trade-in`, `dasp-tax`, `super-benefit-tax`, `super-withholding`, `gst-margin-scheme`, `payroll-tax`, `cgt-parcels`, `cgt-cost-base-adjustments`, `work-expenses`, `rental-property`, `gst-creditable-purpose-change`, `gst-annual-apportionment`, `gst-financial-acquisitions-threshold`, `gst-second-hand-goods`, `gst-bad-debt`, `foreign-income-tax-offset` and `smsf-tax`, and `input`, that command's arguments; see [Derivations](#derivations) |
 
 The 2 car commands, the 11 FBT benefit commands (`fbt-loan`, `fbt-meal-entertainment`, `fbt-car-parking`, `fbt-debt-waiver`, `fbt-expense-payment`, `fbt-property`, `fbt-residual`, `fbt-housing`, `fbt-lafha`, `fbt-board` and `fbt-tax-exempt-body-entertainment`), `main-residence`, `borrowing-expenses`, `borrowing-expenses-schedule`, `fuel-tax-credits`, `division-296`, `termination-payment`, `etp-tax-free-component`, `unused-leave-payment`, the 3 `schedule-5` commands, `working-holiday-maker-withholding`, `seniors-pensioners-withholding`, the 8 schedule withholding commands (`annuity-withholding`, `daily-casual-withholding`, `entertainer-withholding`, `horticulture-shearing-withholding`, `no-abn-withholding`, `return-to-work-withholding`, `upward-variation-withholding` and `voluntary-agreement-withholding`), `seniors-pensioners-tax-offset`, `medicare-levy-surcharge`, `foreign-resident-tax`, `payg-gross-up`, `hire-purchase-schedule`, `chattel-mortgage-schedule`, `loan-transactions`, `lump-sum-arrears-tax-offset`, `fbt-entertainment-classifier`, `fbt-meal-entertainment-register`, `fbt-minor-benefit-check`, `fhss`, `ppsr-timing`, `income-tests`, `business-capital-expenditure`, `balancing-adjustment`, `trade-in`, `gst-margin-scheme`, `franking-account`, `wine-equalisation-tax`, `luxury-car-tax`, `payroll-tax`, `dasp-tax`, `super-benefit-tax`, `super-withholding`, `cgt-parcels`, `cgt-cost-base-adjustments`, `fbt-ev-exemption-check`, `sb-cgt-concessions`, `ato-interest-penalties`, `government-super-amounts`, `non-commercial-losses`, `small-business-income-offset`, `psi-test`, `rental-property`, `residency-tests`, `lodgment-required`, `deferred-tax`, `foreign-income-conversion`, `foreign-income-tax-offset`, `trading-stock`, `prepayments`, `minors-income` and `smsf-tax` have no Python original; their arguments follow the same
@@ -400,7 +399,6 @@ own dates and figures.
 | Wine equalisation tax | Dealings in 2023-24 to 2027-28, after the 1 July 2023 end of the transitional rebate rules; the rebate cap of $350,000 to 2025-26 and $400,000 from 2026-27; established dealings, quotes, rebate conditions and earlier claims |
 | FBT | Years ended 31 March 2026 and 2027; established type 1 and type 2 taxable values, ordinary employer |
 | FBT car benefits | Years ended 31 March 2026 and 2027; one car's established base value or operating costs, the 20% statutory percentage and a deemed depreciation rate of 200% over the established effective life |
-| FBT instalments | Years ended 31 March 2026 and 2027; one quarter's instalment, as the ATO's F1 shows it or varied on an established estimate of the year's tax |
 | FBT electric cars exemption | Years ended 31 March 2026 and 2027, before the change announced for 1 April 2027; first retail sales in 2012-13 to 2026-27, at the ATO's fuel-efficient luxury car tax thresholds; established vehicle type, dates, value and commitments |
 | FBT loans | Years ended 31 March 2026 and 2027 at the statutory interest rate (8.62% and 8.27%); one loan to a current employee, its established daily balances, interest accrued and deductible share |
 | FBT meal entertainment | Years ended 31 March 2026 and 2027; the established year's expenditure, by the 50/50 split or a 12 week register checked against its age and the 20% rule |
@@ -3874,38 +3872,6 @@ The tests hold it to the ATO's figures for tax with the levy, the surcharge,
 SAPTO and the foreign resident rates, and to the sum of its parts called alone; see
 [calculation evidence](docs/calculation-evidence.md#personal-tax-estimate).
 
-## FBT instalments
-
-`fbt-instalment` works out one quarter's FBT instalment on the activity
-statement (FBTAA Part VII Division 2, compilation 97). Not varying, give
-`ato_instalment`, the amount the ATO shows at F1; 6A is that amount. To vary,
-give `estimated_tax` (F2, the estimate of the year's FBT, s 112(1)), the
-`previous_instalments` that fell due earlier in the year (not needed for
-quarter 1), any `previous_credits` claimed at 6B, and `reason_code` (F4: 22,
-30, 31 or 32). The estimate becomes the notional tax amount (s 110(5)), and the
-instalment is it times the relevant fraction (0.25, 0.50, 0.75 or 1.00 for
-quarters 1 to 4, s 109), in cents 0.5 up, less the previous instalments net of
-the credits (s 111(1)). A positive amount is F3 and 6A; otherwise both are nil
-and a negative amount is a credit at 6B (s 112A).
-
-```json
-{"quarter": 3, "year_ended": 2027, "scope_confirmed": true,
- "estimated_tax": "28000.00", "previous_instalments": "20000.00", "reason_code": 31}
-```
-
-gives F3 and 6A of $1,000, as the ATO's example does. `activity_statement_labels`
-holds the labels. The notional tax amount, the base year and whether
-instalments are payable at all are the ATO's, so F1 is taken as given; the
-Commissioner's own estimate (s 112(3)), the general interest charge where an
-estimate is under 90% of the tax assessed (s 112B, a warning), due dates
-(s 103) and rounding a payment down to 5 cents are not worked out. It refuses a
-quarter other than 1 to 4 (`fbt_instalment.quarter_invalid`), neither F1 nor an
-estimate (`fbt_instalment.ato_instalment_missing`), and a variation without a
-listed reason code or the previous instalments it needs, previous credits
-above the previous instalments, or variation facts without an estimate
-(`fbt_instalment.variation_invalid`). See
-[calculation evidence](docs/calculation-evidence.md#fbt-instalment).
-
 ## FBT return
 
 `fbt-return` composes one ordinary taxable employer's fringe benefits for an FBT
@@ -3958,7 +3924,7 @@ totals, so the gross-up and the tax are `fbt`'s. The result gives:
   associates; the number of cars, loans and units of accommodation at 23A,
   23B, 23C and 23F, as one can be given as several benefits; items 14C, 17
   and 18, which a taxable employer leaves blank;
-  items 20 to 22 when `instalments_reported` is not given;
+  items 20 to 22, which need the instalments reported on activity statements;
   and the declarations.
 - `reconciliation`: the benefits' taxable values added one by one beside the 2
   aggregate amounts, and the difference, which is nil.
@@ -3967,45 +3933,9 @@ The FBT return 2026 instructions were the latest the ATO had published on
 16 November 2026, so a 2027 result follows their labels and says so in its
 first warning; the 2027 form may differ. A benefit must belong wholly to one employee label: a benefit shared
 by employees or valued with others in a class (s 5F(3) and (4)), or partly
-GST-creditable, is given as separate benefits.
-
-`employer_kind` composes a not-for-profit employer's return; absent, it is
-`taxable` and the return is as above. `rebatable` (s 65J) keeps items 14A to
-16, then gives item 17, the aggregate non-rebatable amount, item 18, the rebate
-of 47% of item 16 less item 17 times `rebatable_days` over `employer_days`
-(both required), and item 19; an exempt electric car adds nothing to its caps,
-as s 65J(2G) reads s 5E. `public_benevolent_institution` and `health_promotion_charity`
-(s 57A(1) and (5), a $30,000 cap) and `public_hospital`,
-`not_for_profit_hospital` and `public_ambulance_service` (s 57A(3) and (4), a
-$17,000 cap) give items 14C, 15, 16 and 19, with 14A and 14B blank: each
-benefit is exempt, and the aggregate non-exempt amount is the tax base
-(s 5B(1D)). For every one, each employee's type 1 and type 2 bases (excluded
-benefits included, but not car parking, meal entertainment or a benefit marked
-`entertainment: not_salary_packaged`) are grossed up by `fbt`'s formulas to the
-cent, the cap comes off, not below nil, and then the lesser of $5,000 and the
-grossed-up value of their benefits marked `entertainment: salary_packaged`
-(salary packaged meal entertainment or entertainment facility leasing,
-s 5B(1E) and (1M), s 65J(2B) and (2J)). `capping` shows each employee's
-amounts, so for these kinds each employee label must stand for one person.
-Item 14C is the sum in whole dollars, 0.5 up as `fbt` rounds 14A and
-14B; items 17 and 18 are in cents. For a s 57A employer item 23 leaves out the
-benefits the caps disregard. The ATO's worked examples 1 to 3 for
-not-for-profit employers multiply by 2.0802 and 1.8868, so the rebatable
-example's items differ by cents or a dollar; the public benevolent institution
-and public hospital examples match. Refused: any other kind, such as a
-government body under s 57A(2), a partly public benevolent institution, or
-s 58 (`fbt_return.employer_kind_unsupported`); an exempt electric car for a s 57A
-kind, which s 135Q(1)(c) brings into the cap with no ATO example
-(`fbt_return.nfp_exempt_car_unsupported`); an `entertainment` marker that is
-neither value, contradicts `excluded` or sits on car parking or meal
-entertainment (`fbt_return.entertainment_invalid`); and rebatable days absent or
-not fitting the year (`fbt_return.rebatable_days_invalid`). Each return caps its own
-employer's benefits; one employee's benefits from several employers are not
-apportioned.
-
-`instalments_reported`, the FBT instalments for the year less credits claimed
-(s 105(2)), fills item 20 and item 21 (item 19 less item 20) or item 22 (item
-20 less item 19) for any kind.
+GST-creditable, is given as separate benefits. It is not for a rebatable
+employer, a public or not-for-profit hospital, a public ambulance service or an
+employer exempt under s 57A or s 58 (items 14C, 17 and 18, and s 135Q).
 
 It refuses a benefit without a `gst_type` of `type_1` or `type_2` as
 `fbt_return.gst_type_missing`, a year without `fbt`'s rates as
