@@ -182,12 +182,13 @@ pub(super) fn right_value(
     precise(|| table_value(share, exercise, row))
 }
 
-/// The greater of the intrinsic value and the table value (s 83A-315.02(1)).
-fn table_value(share: &Decimal, exercise: &Decimal, row: usize) -> Result<(Decimal, Value)> {
-    let calculation = share.mul(&int(100))?.div(exercise)?;
-    let (rule, tabled) = if calculation.lt(&int(50))? {
-        ("s 83A-315.05 step 2", int(0))
-    } else if calculation.lt(&int(110))? {
+/// The table's percentage of the exercise price for a calculation percentage
+/// and exercise period row, and the section that gives it.
+fn table_rate(calculation: &Decimal, row: usize) -> Result<(&'static str, Decimal)> {
+    if calculation.lt(&int(50))? {
+        return Ok(("s 83A-315.05 step 2", int(0)));
+    }
+    if calculation.lt(&int(110))? {
         let column = COLUMNS
             .iter()
             .position(|top| {
@@ -196,14 +197,19 @@ fn table_value(share: &Decimal, exercise: &Decimal, row: usize) -> Result<(Decim
                     .unwrap_or(false)
             })
             .expect("below 110");
-        let rate = percent(TABLE[row][column])?;
-        ("s 83A-315.08", exercise.mul(&rate)?)
-    } else {
-        let excess = calculation.sub(&int(110))?.quantize(0, Rounding::Down)?;
-        let (base, additional) = BASE[row];
-        let rate = percent(base)?.add(&excess.mul(&percent(additional)?)?)?;
-        ("s 83A-315.09", exercise.mul(&rate)?)
-    };
+        return Ok(("s 83A-315.08", percent(TABLE[row][column])?));
+    }
+    let excess = calculation.sub(&int(110))?.quantize(0, Rounding::Down)?;
+    let (base, additional) = BASE[row];
+    let rate = percent(base)?.add(&excess.mul(&percent(additional)?)?)?;
+    Ok(("s 83A-315.09", rate))
+}
+
+/// The greater of the intrinsic value and the table value (s 83A-315.02(1)).
+fn table_value(share: &Decimal, exercise: &Decimal, row: usize) -> Result<(Decimal, Value)> {
+    let calculation = share.mul(&int(100))?.div(exercise)?;
+    let (rule, rate) = table_rate(&calculation, row)?;
+    let tabled = exercise.mul(&rate)?;
     let intrinsic = share.sub(exercise)?;
     let value = py_max(intrinsic.clone(), tabled.clone())?;
     let detail = json!({

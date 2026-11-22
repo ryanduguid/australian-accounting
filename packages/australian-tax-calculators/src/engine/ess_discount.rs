@@ -336,16 +336,7 @@ fn treat(
         return Ok(("start_up", START_UP_RULE, Some((acquired_year, int(0)))));
     }
     if let Some(rule) = deferral_rule(ctx.kind, &held.conditions, sacrifice_ok) {
-        let (point, amount, detail) = deferral::deferred(held, ctx.kind, ctx.acquired)?;
-        merge(row, detail);
-        let point_year = income_year(point);
-        let amount = match amount {
-            Some(amount) => amount,
-            None if point_year == ctx.year => return missing_value(&held.reader.name, point),
-            None => int(0),
-        };
-        add_if(&mut totals.deferred, point_year == ctx.year, &amount)?;
-        return Ok(("deferred", rule, Some((point_year, amount))));
+        return treat_deferred(ctx, held, rule, totals, row);
     }
     let c = &held.conditions;
     let eligible = c.non_discriminatory && !c.real_risk && further(c);
@@ -365,6 +356,26 @@ fn treat(
         UPFRONT_RULE,
         Some((acquired_year, a.discount.clone())),
     ))
+}
+
+/// Subdivision 83A-C: the amount at the taxing point, in its income year.
+fn treat_deferred(
+    ctx: &Context<'_>,
+    held: &mut Held<'_>,
+    rule: &'static str,
+    totals: &mut Totals,
+    row: &mut Value,
+) -> Result<Treated> {
+    let (point, amount, detail) = deferral::deferred(held, ctx.kind, ctx.acquired)?;
+    merge(row, detail);
+    let point_year = income_year(point);
+    let amount = match amount {
+        Some(amount) => amount,
+        None if point_year == ctx.year => return missing_value(&held.reader.name, point),
+        None => int(0),
+    };
+    add_if(&mut totals.deferred, point_year == ctx.year, &amount)?;
+    Ok(("deferred", rule, Some((point_year, amount))))
 }
 
 fn py_max0(amount: &Decimal) -> Result<Decimal> {
