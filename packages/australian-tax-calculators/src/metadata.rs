@@ -1136,6 +1136,13 @@ pub fn supported_periods(kind: &str) -> Vec<&'static str> {
         "small_business_income_offset" => vec![
             "2020-21", "2021-22", "2022-23", "2023-24", "2024-25", "2025-26", "2026-27",
         ],
+        // AASB 112's applied paragraphs read the same for every reporting
+        // period these years cover (compilations of March 2020 and September
+        // 2023, AASB 18 Appendix D), and the s 23(2) rates are on the ATO's
+        // tables for 2020-21 to 2025-26 and in compilation 66 for 2026-27.
+        "deferred_tax" => vec![
+            "2020-21", "2021-22", "2022-23", "2023-24", "2024-25", "2025-26", "2026-27",
+        ],
         "income_tests" => vec!["2024-25", "2025-26", "2026-27"],
         // The pools' rates and the capital works rates do not change in these
         // years; the small business pool's low pool value threshold does, by year.
@@ -1412,6 +1419,10 @@ pub fn source_review(kind: &str) -> (&'static str, &'static str) {
         "small_business_income_offset" => (
             "2026-11-22",
             "ITAA 1997 ss 328-110, 328-355 to 328-375, 4-10(3) and 63-10, compilation 268 (1 October 2026), against compilations 210 (1 July 2020; s 328-360(1) at 13%) and 223 (1 July 2021; 16%); the ATO's 'Small business income tax offset' page (last updated 7 May 2025)",
+        ),
+        "deferred_tax" => (
+            "2026-11-22",
+            "AASB 112 compilations of September 2023 (F2023C00930) and March 2020 (compilation no. 4) with their tables of amendments, paras 5, 7, 8, 15, 24, 34 to 36, 46 to 48, 53, 56, 58, 60, 61A to 63, 66 to 68, 74, 80, 81(c), 81(e), 85 and 86; AASB 2021-5; AASB 18 Appendix D (June 2024); AASB agenda decision on substantive enactment (December 2012); Income Tax Rates Act 1986 ss 23(2) and 23AA, compilation 66 (1 July 2026); ATO company tax rates for 2020-21 to 2025-26",
         ),
         "income_tests" => (
             "2026-11-16",
@@ -3559,6 +3570,25 @@ pub fn input_units(kind: &str) -> Vec<(&'static str, &'static str)> {
             ("shares", "list of up to 50 objects, each {amount, deductions} in AUD: a share of a small business entity's net small business income, or an amount s 328-355(c) covers, included in your assessable income (s 328-355(b), (c)), and your deductions attributable to it that s 328-370 covers; [] for none"),
             ("prescribed_person", "boolean: you are a prescribed person under s 102AC of the ITAA 1936 for the year (broadly, under 18 at its end); true is refused (s 328-375)"),
         ],
+        "deferred_tax" => vec![
+            ("items", "list of 1 to 500 objects, each {label, class, carrying_amount, tax_base, opening_carrying_amount, opening_tax_base}: class is asset or liability, amounts in AUD at the end and start of the year (0.00 when the item did not exist), the tax base the amount attributed for tax purposes (AASB 112 paras 7 and 8)"),
+            ("unused_tax_losses", "AUD: tax losses carried forward at the end of the year (para 34)"),
+            ("opening_unused_tax_losses", "AUD: tax losses carried forward at the start of the year"),
+            ("unrecognised_deductible", "AUD: the deductible temporary differences and unused tax losses at the end of the year for which no deferred tax asset is recognised, as future taxable profit is not probable (paras 24, 34 to 36 and 81(e)); at most their total"),
+            ("opening_unrecognised_deductible", "AUD: the same amount at the start of the year"),
+            ("accounting_profit", "AUD, may be negative: profit or loss before tax expense (para 5)"),
+            ("non_deductible_expenses", "AUD: expenses in accounting profit never deductible for tax"),
+            ("non_assessable_income", "AUD: income in accounting profit never assessable (exempt or non-assessable non-exempt)"),
+            ("taxable_income", "AUD: the company's taxable income for the year, after any tax losses deducted; 0.00 for a tax loss year, with the loss in unused_tax_losses"),
+            ("tax_offsets", "AUD: non-refundable tax offsets applied against the year's tax, at most the tax"),
+            ("base_rate_entity", "boolean: the company is a base rate entity for the year (Income Tax Rates Act 1986 s 23AA)"),
+            ("expected_rate", "base_rate_entity (25%) or standard (30%): the rate the company expects when the closing differences reverse (paras 47 and 48)"),
+            ("opening_expected_rate", "base_rate_entity or standard: the rate the opening balances were measured at; base_rate_entity is refused for 2020-21"),
+            ("business_combination", "boolean: deferred tax arises in a business combination; true is refused"),
+            ("uncertain_tax_treatment", "boolean: an uncertain tax treatment under AASB Interpretation 23 applies; true is refused"),
+            ("tax_consolidated_group", "boolean: the company is a member of a tax-consolidated group (AASB Interpretation 1052); true is refused"),
+            ("outside_profit_or_loss", "boolean: any tax relates to items recognised in other comprehensive income or equity (paras 61A to 63); true is refused"),
+        ],
         "income_tests" => vec![
             ("taxable_income", "AUD, whole dollars: taxable income, including any assessable FHSS released amount (nil for a loss)"),
             ("assessable_fhss_released_amount", "AUD: the amount ITAA 1997 s 313-20 includes in assessable income for released FHSS amounts"),
@@ -4248,6 +4278,33 @@ pub fn examples(kind: &str) -> Vec<(&'static str, Example)> {
             ("year_before_turnover", Text("18000.00")),
             ("likely_turnover", Text("22000.00")),
             ("year_turnover", Text("22000.00")),
+        ],
+        // Fabricated: plant, a leave provision and a prepayment of a company
+        // that is not a base rate entity.
+        "deferred_tax" => vec![
+            ("year", Text("2025-26")),
+            (
+                "items",
+                Json(
+                    r#"[{"label": "Plant", "class": "asset", "carrying_amount": "70000.00", "tax_base": "50000.00", "opening_carrying_amount": "80000.00", "opening_tax_base": "65000.00"}, {"label": "Leave provision", "class": "liability", "carrying_amount": "12000.00", "tax_base": "0.00", "opening_carrying_amount": "10000.00", "opening_tax_base": "0.00"}, {"label": "Prepayment", "class": "asset", "carrying_amount": "3000.00", "tax_base": "0.00", "opening_carrying_amount": "2000.00", "opening_tax_base": "0.00"}]"#,
+                ),
+            ),
+            ("unused_tax_losses", Text("0.00")),
+            ("opening_unused_tax_losses", Text("0.00")),
+            ("unrecognised_deductible", Text("0.00")),
+            ("opening_unrecognised_deductible", Text("0.00")),
+            ("accounting_profit", Text("100000.00")),
+            ("non_deductible_expenses", Text("4000.00")),
+            ("non_assessable_income", Text("0.00")),
+            ("taxable_income", Text("100000.00")),
+            ("tax_offsets", Text("0.00")),
+            ("base_rate_entity", Flag(false)),
+            ("expected_rate", Text("standard")),
+            ("opening_expected_rate", Text("standard")),
+            ("business_combination", Flag(false)),
+            ("uncertain_tax_treatment", Flag(false)),
+            ("tax_consolidated_group", Flag(false)),
+            ("outside_profit_or_loss", Flag(false)),
         ],
         "income_tests" => vec![
             ("year", Text("2025-26")),

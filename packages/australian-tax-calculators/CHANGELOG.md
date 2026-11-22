@@ -6,6 +6,20 @@
 
 ### Added
 
+- `deferred-tax` works out a company's tax effect worksheet under AASB 112
+  for 2020-21 to 2026-27: temporary differences from carrying amounts and
+  tax bases, the deferred tax liability and asset at 25% or 30% (paras 15,
+  24, 34 and 47; Income Tax Rates Act 1986 s 23(2)), the movement split
+  into rate change, recognition change and origination (para 80), current
+  tax at the year's rate (26% for a base rate entity in 2020-21) and the
+  para 81(c)(i) reconciliation with the average effective tax rate. New
+  codes: `deferred_tax.business_combination`,
+  `deferred_tax.expected_rate_invalid`, `deferred_tax.item_invalid`,
+  `deferred_tax.offsets_above_tax`, `deferred_tax.opening_rate_unscheduled`,
+  `deferred_tax.outside_profit_or_loss`,
+  `deferred_tax.tax_consolidated_group`,
+  `deferred_tax.uncertain_tax_treatment` and
+  `deferred_tax.unrecognised_above_deductible`.
 - `depreciation-low-value-pool`, `depreciation-small-business-pool` and
   `capital-works` work out a low-value pool (ITAA 1997 ss 40-440 and
   40-445), a general small business pool with each year's low pool value
