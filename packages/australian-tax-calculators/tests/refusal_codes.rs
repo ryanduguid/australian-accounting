@@ -166,13 +166,11 @@ fn every_catalogued_required_input_of_a_strict_command_is_read() {
     // fbt-minor-benefit-check, gst-margin-scheme, wine-equalisation-tax,
     // luxury-car-tax, borrowing-expenses-schedule, payroll-tax,
     // fuel-tax-credits, dasp-tax, ppsr-timing, cgt-parcels,
-    // fbt-ev-exemption-check, fhss, franking-account, sb-cgt-concessions and
-    // non-commercial-losses,
+    // fbt-ev-exemption-check, fhss, franking-account, sb-cgt-concessions,
     // depreciation-low-value-pool, depreciation-small-business-pool,
-    // capital-works and government-super-amounts and small-business-income-offset and
-    // psi-test,
-    // beneficiary-tax-offset, invalid-carer-tax-offset, zone-tax-offset and
-    // net-medical-expenses-tax-offset.
+    // capital-works, small-business-income-offset, government-super-amounts,
+    // beneficiary-tax-offset, invalid-carer-tax-offset, zone-tax-offset,
+    // net-medical-expenses-tax-offset, non-commercial-losses and psi-test.
     assert_eq!(checked, 63);
 }
 
