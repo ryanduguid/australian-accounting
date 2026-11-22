@@ -214,6 +214,24 @@
   `tests/government_super_amounts.rs` holds it to the ATO's Angelo, Julie
   and spouse examples.
 
+- `trading-stock` works out the change in value of trading stock under ITAA
+  1997 s 70-35 for 2020-21 to 2026-27, each closing item valued by its own
+  election (cost, market selling value, replacement value, the lowest, or an
+  obsolescence value under s 70-50), and the s 328-285 choice for a small
+  business entity, or from 2021-22 an entity under $50 million, with the
+  $5,000 test and the s 328-295 values. New codes:
+  `trading_stock.entity_invalid`, `trading_stock.items_invalid`,
+  `trading_stock.method_invalid`, `trading_stock.obsolescence_not_below`,
+  `trading_stock.simplified_unavailable` and `trading_stock.value_missing`.
+- `prepayments` works out when a prepaid amount incurred in 2020-21 to
+  2026-27 is deductible under ITAA 1936 Subdivision H: excluded expenditure,
+  the 12-month rule of s 82KZM, or apportionment by days under s 82KZM,
+  s 82KZMD or s 82KZMF, with each year's deduction. New codes:
+  `prepayments.agreement_before_cutoff`, `prepayments.choice_unavailable`,
+  `prepayments.dates_invalid`, `prepayments.exclusion_invalid`,
+  `prepayments.tax_shelter_conflict` and `prepayments.taxpayer_invalid`. `tests/trading_stock_prepayments.rs` holds
+  both to the ATO's examples.
+
 - `small-business-income-offset` works out an individual's small business
   income tax offset (ITAA 1997 Subdivision 328-F) for 2020-21 to 2026-27: the
   small business entity test of s 328-110 at $5 million (s 328-357), total net
