@@ -42,6 +42,9 @@ pub(super) struct Work {
     pub(super) first: i64,
     pub(super) last: i64,
     pub(super) unindexed: bool,
+    /// Each parcel given a year's E4 or AMIT amount: its index, the income
+    /// year's first day and whether the amount was an AMIT's.
+    pub(super) trust_years: Vec<(usize, i64, bool)>,
 }
 
 /// A parcel's cost base and reduced cost base (s 110-55(2) leaves out costs
@@ -76,10 +79,31 @@ impl Work {
                 event.security
             ));
         }
+        self.bought_in_year(event)?;
         for &i in &found {
             self.check_age(&what, i, event.day)?;
         }
         Ok(found)
+    }
+
+    /// A year's E4 or AMIT amount without `parcels` is for every parcel held
+    /// by then, which holds only when none was acquired in that year: one
+    /// acquired after the trustee's payment took no part (s 104-70(1)).
+    fn bought_in_year(&self, event: &Event) -> Result<()> {
+        let (None, Some(start)) = (&event.parcels, event.year) else {
+            return Ok(());
+        };
+        let late = self
+            .parcels
+            .iter()
+            .find(|p| p.security == event.security && (start..=event.day).contains(&p.acquired));
+        match late {
+            Some(p) => conflict(format!(
+                "event {}: parcel {} was acquired in the income year, so the event must name the parcels the amount was paid for in parcels.",
+                event.n, p.id
+            )),
+            None => Ok(()),
+        }
     }
 
     fn check_age(&mut self, what: &str, i: usize, day: i64) -> Result<()> {
@@ -204,12 +228,35 @@ impl Work {
     /// Each affected parcel's share of a year's amount, by units.
     fn shares(&mut self, event: &Event, amount: &Decimal) -> Result<Vec<(usize, Decimal)>> {
         let found = self.affected(event, event.day)?;
+        self.once_a_year(event, &found)?;
         let weights: Vec<&Decimal> = found.iter().map(|&i| &self.parcels[i].units).collect();
         Ok(found
             .iter()
             .copied()
             .zip(split(amount, &weights)?)
             .collect())
+    }
+
+    /// An AMIT unit has one AMIT cost base net amount a year (s 104-107C) and
+    /// no CGT event E4 (s 104-70(1A)).
+    fn once_a_year(&mut self, event: &Event, found: &[usize]) -> Result<()> {
+        let amit = matches!(event.change, Change::Amit { .. });
+        let year = event.year.expect("a year's amount");
+        for &i in found {
+            let clash = self
+                .trust_years
+                .iter()
+                .any(|&(j, y, a)| j == i && y == year && (a || amit));
+            if clash {
+                return conflict(format!(
+                    "event {}: parcel {} already has an amount for that income year, and an AMIT unit has one AMIT cost base net amount a year (ITAA 1997 s 104-107C) and no CGT event E4 (s 104-70(1A)).",
+                    event.n, self.parcels[i].id
+                ));
+            }
+        }
+        self.trust_years
+            .extend(found.iter().map(|&i| (i, year, amit)));
+        Ok(())
     }
 
     /// A year's E4 or AMIT excess amount, with any tax-free amounts that cut

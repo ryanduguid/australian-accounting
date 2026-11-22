@@ -2897,7 +2897,7 @@ pub fn input_units(kind: &str) -> Vec<(&'static str, &'static str)> {
         "cgt_cost_base_adjustments" => vec![
             (
                 "entity",
-                "individual, trust, complying_superannuation_entity or company: the entity that owns the parcels; a company makes no discount capital gain (ITAA 1997 s 115-10)",
+                "individual, trust, complying_superannuation_entity or company (not a life insurance company): the entity that owns the parcels; a company makes no discount capital gain (ITAA 1997 s 115-10)",
             ),
             (
                 "parcels",
@@ -2905,7 +2905,7 @@ pub fn input_units(kind: &str) -> Vec<(&'static str, &'static str)> {
             ),
             (
                 "events",
-                "list of 1 to 1,000 objects, each with event and security: return_of_capital with date (the payment, s 104-135(2)) and per_unit (AUD a share, at most 6dp); tax_deferred with income_year and amount (the year's non-assessable part after s 104-71, a non-AMIT trust) and optionally tax_free (AUD, the s 104-71(3) amounts); amit_excess or amit_shortfall with income_year and amount (the AMMA statement's AMIT cost base net amount); the first 3 optionally with parcels (the parcel names the amount is for); demerger with demerger (wesfarmers_coles_2018 or woolworths_endeavour_2021), new_security and rollover (boolean: roll-over chosen)",
+                "list of 1 to 1,000 objects, each with event and security: return_of_capital with date (the payment, s 104-135(2)) and per_unit (AUD a share, at most 6dp); tax_deferred with income_year and amount (the year's non-assessable part after s 104-71, a non-AMIT trust) and optionally tax_free (AUD, the s 104-71(3) amounts); amit_excess or amit_shortfall with income_year and amount (the AMMA statement's AMIT cost base net amount); the first 3 optionally with parcels (the parcel names the amount is for, required for a year's amount when a parcel of the security was acquired in that year); tax_deferred, amit_excess and amit_shortfall optionally with before_cgt_event (YYYY-MM-DD in income_year: another CGT event to the units after the payment, just before which the amount happens, ss 104-70(3)(b) and 104-107B(4)(b)); demerger with demerger (wesfarmers_coles_2018 or woolworths_endeavour_2021), new_security and rollover (boolean: roll-over chosen)",
             ),
         ],
         "trade_in" => vec![

@@ -295,7 +295,7 @@ fn amounts_above_the_cost_base_are_gains_of_the_excess() {
         json!([{"event": "return_of_capital", "security": "CO", "date": "2025-09-01",
                 "per_unit": "0.75"},
                {"event": "tax_deferred", "security": "UT", "income_year": "2025-26",
-                "amount": "45.00"},
+                "amount": "45.00", "parcels": ["U"]},
                {"event": "amit_excess", "security": "AM", "income_year": "2024-25",
                 "amount": "36.00"},
                {"event": "amit_excess", "security": "AM", "income_year": "2025-26",
@@ -347,6 +347,105 @@ fn a_year_s_amount_is_spread_by_units_over_the_parcels_named() {
         held(&one),
         expected.map(|(a, b)| (a.to_string(), b.to_string()))
     );
+}
+
+/// A G1 on a new share counts 12 months from the head share's acquisition,
+/// 10 January 2018 for Tom's T3, whether or not roll-over was chosen
+/// (s 115-30(1) item 2): 10 January 2019 is too soon, 11 January is not.
+#[test]
+fn a_new_share_s_g1_gain_takes_the_head_share_s_date() {
+    for rollover in [false, true] {
+        let discounted = |date: &str| {
+            let mut input = tom(rollover);
+            input["events"].as_array_mut().unwrap().push(
+                json!({"event": "return_of_capital", "security": "COL", "date": date,
+                       "per_unit": "3"}),
+            );
+            let result = run(&input);
+            let rows = result["adjustments"].as_array().unwrap();
+            let row = rows
+                .iter()
+                .find(|r| r["change"] == "return_of_capital" && r["parcel"] == "COL from T3")
+                .unwrap();
+            assert_eq!(row["capital_gain"], "783.57");
+            row["discount_capital_gain"].clone()
+        };
+        assert_eq!(discounted("2019-01-10"), json!(false));
+        assert_eq!(discounted("2019-01-11"), json!(true));
+    }
+}
+
+/// E4 and an AMIT amount happen just before another CGT event to the units in
+/// the year after the payment (ss 104-70(3)(b) and 104-107B(4)(b)): units
+/// bought 20 May 2025 and sold 15 May 2026 have held under 12 months then.
+#[test]
+fn a_year_s_amount_happens_just_before_a_sale_in_the_year() {
+    for kind in ["tax_deferred", "amit_excess"] {
+        let input = |sold: Option<&str>| {
+            let mut event = json!({"event": kind, "security": "UT",
+                                   "income_year": "2025-26", "amount": "150.00"});
+            if let Some(day) = sold {
+                event["before_cgt_event"] = json!(day);
+            }
+            facts(
+                "individual",
+                "2025-26",
+                json!([parcel("U", "UT", "2025-05-20", "10", "100.00")]),
+                json!([event]),
+            )
+        };
+        let at_end = run(&input(None));
+        assert_eq!(at_end["adjustments"][0]["date"], "2026-06-30");
+        assert_eq!(amount(&at_end, "discount_capital_gains"), "50.00");
+        let before_sale = run(&input(Some("2026-05-15")));
+        assert_eq!(before_sale["adjustments"][0]["date"], "2026-05-15");
+        assert_eq!(amount(&before_sale, "other_capital_gains"), "50.00");
+        assert_eq!(code(&input(Some("2026-07-01"))), "cgt_parcels.fact_invalid");
+    }
+}
+
+/// A year's amount without `parcels` needs every parcel held for the whole
+/// year, as one bought after the payment took no part (s 104-70(1)); an AMIT
+/// unit takes one net amount a year and no E4 (ss 104-107C and 104-70(1A)).
+#[test]
+fn a_year_s_amount_names_its_parcels_and_comes_once() {
+    let input = |events: Value| {
+        facts(
+            "individual",
+            "2025-26",
+            json!([
+                parcel("P1", "F", "2021-01-04", "10", "500.00"),
+                parcel("P2", "F", "2026-03-02", "10", "500.00")
+            ]),
+            events,
+        )
+    };
+    let year = |kind: &str, named: Value| {
+        json!({"event": kind, "security": "F", "income_year": "2025-26",
+               "amount": "10.00", "parcels": named})
+    };
+    let mut unnamed = year("tax_deferred", json!(["P1"]));
+    unnamed.as_object_mut().unwrap().remove("parcels");
+    assert_eq!(code(&input(json!([unnamed]))), "cgt_parcels.fact_conflict");
+    let named = run(&input(json!([year("tax_deferred", json!(["P1"]))])));
+    assert_eq!(held(&named)[0].1, "490.00");
+    let twice = json!([
+        year("tax_deferred", json!(["P1"])),
+        year("tax_deferred", json!(["P1"]))
+    ]);
+    assert_eq!(held(&run(&input(twice)))[0].1, "480.00");
+    for clash in [
+        json!([
+            year("tax_deferred", json!(["P1"])),
+            year("amit_excess", json!(["P1", "P2"]))
+        ]),
+        json!([
+            year("amit_shortfall", json!(["P1"])),
+            year("amit_excess", json!(["P1"]))
+        ]),
+    ] {
+        assert_eq!(code(&input(clash)), "cgt_parcels.fact_conflict");
+    }
 }
 
 /// The output parcels go straight into cgt-parcels.

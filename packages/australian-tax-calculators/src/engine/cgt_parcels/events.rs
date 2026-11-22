@@ -27,9 +27,12 @@ pub(super) enum Change {
 pub(super) struct Event {
     pub(super) n: usize,
     pub(super) security: String,
-    /// The day of the event; just before the end of 30 June for a year's
-    /// E4 or AMIT amount.
+    /// The day of the event; for a year's E4 or AMIT amount, just before the
+    /// year's end or just before another CGT event to the units in the year
+    /// (ss 104-70(3) and 104-107B(4)).
     pub(super) day: i64,
+    /// The first day of the income year of an E4 or AMIT amount.
+    pub(super) year: Option<i64>,
     /// The parcels named for it; all the security's parcels held by then
     /// when `None`.
     pub(super) parcels: Option<Vec<String>>,
@@ -53,13 +56,25 @@ fn invalid<T>(what: &str, key: &str, expected: &str) -> Result<T> {
     )
 }
 
-/// The last day of an income year given as `2025-26`.
-fn year_end(f: &mut Fields, what: &str) -> Result<i64> {
+/// When a year's E4 or AMIT amount happens, and the year's first day: just
+/// before the end of the income year given as `2025-26`, or just before
+/// `before_cgt_event`, another CGT event to the units in that year
+/// (ss 104-70(3)(b) and 104-107B(4)(b)).
+fn timing(f: &mut Fields, what: &str) -> Result<(i64, Option<i64>)> {
     let text = f.text("income_year")?;
-    match year_first(&text) {
-        Some(first) => Ok(dates::parse(&format!("{}-06-30", first + 1)).expect("a date")),
-        None => invalid(what, "income_year", "an income year such as 2025-26"),
+    let Some(first) = year_first(&text) else {
+        return invalid(what, "income_year", "an income year such as 2025-26");
+    };
+    let start = dates::parse(&format!("{first}-07-01")).expect("a date");
+    let end = dates::parse(&format!("{}-06-30", first + 1)).expect("a date");
+    if f.get("before_cgt_event").is_none() {
+        return Ok((end, Some(start)));
     }
+    let day = f.date("before_cgt_event")?;
+    if day < start || day > end {
+        return invalid(what, "before_cgt_event", "a date in income_year");
+    }
+    Ok((day, Some(start)))
 }
 
 fn parcel_names(f: &mut Fields, what: &str) -> Result<Option<Vec<String>>> {
@@ -81,7 +96,7 @@ fn parcel_names(f: &mut Fields, what: &str) -> Result<Option<Vec<String>>> {
     }
 }
 
-fn demerger(f: &mut Fields, what: &str) -> Result<(i64, Change)> {
+fn demerger(f: &mut Fields, what: &str) -> Result<((i64, Option<i64>), Change)> {
     let key = f.text("demerger")?;
     let Some(demerger) = DEMERGERS.iter().find(|d| d.key == key) else {
         let known: Vec<&str> = DEMERGERS.iter().map(|d| d.key).collect();
@@ -104,7 +119,7 @@ fn demerger(f: &mut Fields, what: &str) -> Result<(i64, Change)> {
         new_security,
         rollover,
     };
-    Ok((day, change))
+    Ok(((day, None), change))
 }
 
 pub(super) fn read_event(n: usize, fields: &Map<String, Value>) -> Result<Event> {
@@ -112,23 +127,23 @@ pub(super) fn read_event(n: usize, fields: &Map<String, Value>) -> Result<Event>
     let mut f = Fields::new(what.clone(), fields);
     let kind = f.text("event")?;
     let security = f.text("security")?;
-    let (day, change) = match kind.as_str() {
+    let ((day, year), change) = match kind.as_str() {
         "return_of_capital" => {
             let day = f.date("date")?;
             let per_unit = f.units("per_unit")?;
-            (day, Change::ReturnOfCapital { per_unit })
+            ((day, None), Change::ReturnOfCapital { per_unit })
         }
         "tax_deferred" => {
-            let day = year_end(&mut f, &what)?;
+            let when = timing(&mut f, &what)?;
             let amount = f.amount("amount", false)?;
             let tax_free = f.amount("tax_free", true)?;
-            (day, Change::TaxDeferred { amount, tax_free })
+            (when, Change::TaxDeferred { amount, tax_free })
         }
         "amit_excess" | "amit_shortfall" => {
-            let day = year_end(&mut f, &what)?;
+            let when = timing(&mut f, &what)?;
             let amount = f.amount("amount", false)?;
             let excess = kind == "amit_excess";
-            (day, Change::Amit { amount, excess })
+            (when, Change::Amit { amount, excess })
         }
         "demerger" => demerger(&mut f, &what)?,
         _ => {
@@ -149,6 +164,7 @@ pub(super) fn read_event(n: usize, fields: &Map<String, Value>) -> Result<Event>
         n,
         security,
         day,
+        year,
         parcels,
         change,
     })

@@ -1497,7 +1497,13 @@ capital gains they make and the parcels as they then stand:
     AMMA statement's AMIT cost base net amount, s 104-107C), just before the
     year's end (s 104-107B(4));
   - each of these optionally with `parcels`, the names of the parcels the
-    amount is for; otherwise every parcel of the security held by then;
+    amount is for; otherwise every parcel of the security held by then,
+    which a year's E4 or AMIT amount takes only when no parcel of the
+    security was acquired in that year;
+  - a year's E4 or AMIT amount optionally with `before_cgt_event`, the date
+    of another CGT event to those units in the year after the payment, such
+    as a sale: the amount then happens just before it (ss 104-70(3)(b) and
+    104-107B(4)(b));
   - `demerger` with `demerger` (`wesfarmers_coles_2018` or
     `woolworths_endeavour_2021`), `new_security` and `rollover` (whether
     roll-over is chosen).
@@ -1526,15 +1532,18 @@ least 12 months before the event (s 115-25(1)), except for a company.
 `year`, for `cgt-parcels`' `other_discount_capital_gains` and
 `other_capital_gains`; `cost_base_held` and `reduced_cost_base_held` total the
 parcels at the year's end. `adjustments` lists each event's effect on each
-parcel, before and after, and `parcels` can go straight to `cgt-parcels`, its
+parcel, before and after, and `parcels` are in `cgt-parcels`' shape, its
 reduced cost base as `acquisition_cost` and the rest of its cost base as
-`ownership_costs`.
+`ownership_costs`; `cgt-parcels` refuses to sell one acquired at or before
+21 September 1999, including a new share that keeps such a date.
 
 It refuses events before 1 July 2018 (s 104-107A took its present form for
 2018-19) or after `year`, 2027-28 (Act No. 49 of 2026), a demerger it does not
 carry, a pre-CGT parcel an event touches, a company's parcel acquired at or
-before 21 September 1999 (indexed), and a cut to the reduced cost base larger
-than it. Another entity's parcel from before 22 September 1999 is worked
+before 21 September 1999 (indexed), a cut to the reduced cost base larger
+than it, and a parcel given both an E4 and an AMIT amount, or 2 AMIT amounts,
+for one year (ss 104-70(1A) and 104-107C). A life insurance company is out of
+scope. Another entity's parcel from before 22 September 1999 is worked
 without indexation, with a warning. Partial roll-over, foreign residents,
 revenue assets, liquidator payments and working out s 104-71 from a trust's
 components are out of scope. See

@@ -118,6 +118,7 @@ fn work(args: &CgtCostBaseArgs, year: &str) -> Result<Work> {
         first,
         last,
         unindexed: false,
+        trust_years: Vec::new(),
     };
     for event in events_of(args, year, last)? {
         work.apply(&event)?;

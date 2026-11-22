@@ -1673,6 +1673,16 @@ amount, is spread over the parcels by units, the last parcel taking what is
 left. A G1 payment per share is multiplied by the units and rounded to the
 cent.
 
+An E4 or AMIT amount happens just before the year's end, or just before
+another CGT event to the units in that year after the payment, which the
+operator gives as `before_cgt_event` (ss 104-70(3) and 104-107B(4)). As the
+payment date is not an input, an amount without named parcels is refused when
+a parcel of the security was acquired in that year, since units bought after
+the payment take no part of it (s 104-70(1)). A parcel given an E4 and an AMIT
+amount for one year, or 2 AMIT amounts, is refused: an AMIT unit has no CGT
+event E4 (s 104-70(1A)) and one AMIT cost base net amount a year
+(s 104-107C).
+
 `tests/cgt_cost_base_adjustments.rs` and the unit tests in
 `src/engine/cgt_parcels/demergers.rs` hold these cases.
 
@@ -1692,8 +1702,10 @@ cent.
 | G1, E4 and AMIT amounts above the cost base, and an AMIT excess on a nil cost base | Worked by hand under ss 104-135(3), 104-70(4) and (5) and 104-107A(3) | Gains of the excess, then of the whole excess; both bases nil |
 
 COLES is the ATO's page above. The tests also cover a parcel bought after the
-record date, an amount spread by units or over named parcels, the parcels
-passed to `cgt-parcels`, each year boundary and each refusal.
+record date, an amount spread by units or over named parcels, an amount just
+before a sale in the year, a G1 on a new share either side of 12 months from
+the head share's date, the parcels passed to `cgt-parcels`, each year boundary
+and each refusal.
 
 ## Trade-in
 
