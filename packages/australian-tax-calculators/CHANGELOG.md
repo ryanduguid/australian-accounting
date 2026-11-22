@@ -65,6 +65,45 @@
   `tests/smsf_tax.rs` holds it to the ATO's SMSF annual return 2026
   instructions' examples.
 
+- `alcohol-excise` works out the excise duty on beer, spirits and other
+  excisable beverages entered for home consumption from 1 July 2022 to 31
+  January 2027, line by line at the Commissioner's substituted rate for the
+  day (Excise Tariff Act 1921 Schedule items 1 to 3, ss 6A and 6L), with the
+  remission for alcohol manufacturers under its $350,000 or $400,000 yearly
+  cap and the refund of duty paid where it was available (Excise Regulation
+  2015 Sch 1 cl 2(1) item 10 and cl 2(2)). New codes:
+  `alcohol_excise.classification_unsettled`,
+  `alcohol_excise.date_outside_year`, `alcohol_excise.fact_conflict`,
+  `alcohol_excise.line_invalid`, `alcohol_excise.lines_invalid`,
+  `alcohol_excise.not_excisable`, `alcohol_excise.product_invalid`,
+  `alcohol_excise.product_out_of_scope`, `alcohol_excise.quantity_invalid`
+  and `alcohol_excise.rate_unpublished`. `tests/alcohol_excise.rs` holds it
+  to the ATO's and the Excise guidelines' examples and every notice's rates.
+
+- `transfer-balance` works one person's transfer balance account from
+  1 July 2017 to a day in 2017-18 to 2026-27 from its credits and debits
+  (ITAA 1997 ss 294-25 and 294-80): the personal transfer balance cap with
+  proportional indexation (s 294-40), each day's excess, excess transfer
+  balance earnings at the GIC rate credited daily (s 294-235), and excess
+  transfer balance tax at 15% or 30% for each excess transfer balance period
+  (Imposition Act 2016 s 5), with IT(TP)A 1997 s 294-30. Reversionary, child,
+  capped defined benefit, structured settlement and regulation events and the
+  Commissioner's determinations are refused. `excess-contributions` works
+  the excess concessional contributions charge for 2013-14 to 2020-21 and the
+  release of excess non-concessional contributions with their associated
+  earnings for contributions years 2013-14 to 2025-26 (TAA 1953 Sch 1
+  ss 97-25 and 97-30). `contribution-caps` takes an optional
+  `determination_date` that adds the release figures to its own excess. New
+  codes: `excess_contributions.charge_abolished`,
+  `excess_contributions.date_order`, `excess_contributions.fact_invalid`,
+  `excess_contributions.question_invalid`,
+  `excess_contributions.rate_unpublished`, `transfer_balance.date_order`,
+  `transfer_balance.event_refused`, `transfer_balance.fact_invalid`,
+  `transfer_balance.rate_unpublished`,
+  `transfer_balance.transition_undecided` and
+  `transfer_balance.year_mismatch`. `tests/transfer_balance.rs` holds them to
+  the ATO's examples and to an exact-fraction oracle over the ATO's rates.
+
 ## 1.2.0
 
 - Relicensed Ryan Duguid's code under AGPL-3.0-or-later with section 7(b) attribution terms.

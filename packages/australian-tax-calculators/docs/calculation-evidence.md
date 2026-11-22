@@ -1176,6 +1176,66 @@ under either daily compounding or simple interest, so they are not used.
 | ATO's Evan, in 2025 | $1,926 paid 3 November, due 21 November, at 3.61% | 19 days, $3.62 |
 | Overpayment, 2 instalments | $4,000 of $6,000 refunded 15 August 2025 | $3,000 and $1,000 attributed, $86.51 |
 
+## Transfer balance
+
+Added on 22 November 2026. Its sources were read that day: ITAA 1997
+ss 292-20 to 292-30, 294-5 to 294-55, 294-80, 294-85, 294-90, 294-200 and
+294-230 to 294-245 at the ATO's legal database; IT(TP)A 1997 ss 294-30 and
+294-55 (compilation 104, C2026C00450) and the Superannuation (Excess Transfer
+Balance Tax) Imposition Act 2016 (C2016A00080) at the Federal Register of
+Legislation; the ATO's 'Calculating your personal transfer balance cap'
+(QC60627, 31 March 2026), 'Transfer balance account' (18 June 2025),
+'Excess transfer balance' (QC54355, 7 February 2025), 'Upcoming personal
+transfer balance cap changes' and 'General interest charge (GIC) rates'
+(4 September 2026); LCR 2016/9.
+
+The general transfer balance cap is $1.6 million for 2017-18 to 2020-21,
+$1.7 million for 2021-22 and 2022-23, $1.9 million for 2023-24 and 2024-25,
+$2 million for 2025-26 and $2.1 million for 2026-27 (the CCH note to
+s 294-35, the ATO's 'Contributions caps' page and the 2026 pages above); the
+last 3 come from `CONTRIBUTION_CAPS`. Earnings use the GIC table of
+[ATO penalties and interest](#ato-penalties-and-interest). A title search of
+the Federal Register on 22 November 2026 found no rate determined under
+s 294-235(3).
+
+`tests/transfer_balance.rs` holds the 6 indexation examples of 'Calculating
+your personal transfer balance cap' (Nina, Leanne, Nada twice, Maryanne and
+Simon) and the 'Transfer balance account' examples of Elisabeth (a $30,000
+negative balance, then $10,000 of excess) and Paolo. The Paolo example states
+$2,745.15 of earnings for 31 days on $350,000; no published GIC rate gives
+that (it implies about 9.2% a year, where July to September 2017 was 8.73%),
+so the test keeps its shape and takes the figure, $2,604.41, from the oracle.
+Earnings, tax and balances come from an independent exact-fraction oracle
+over the ATO's GIC page, written apart from this code.
+
+## Excess contributions
+
+Added on 22 November 2026. Its sources were read that day: TAA 1953 s 8AAD
+and Sch 1 ss 97-1 to 97-35 and 136-10 in compilation 227 (C2026C00468), with
+the s 97-25(1)(c) and s 97-30(1) formulas read from the compilation's images;
+Sch 1 former Div 95 in compilation 180 (C2021C00276); the Superannuation
+(Excess Concessional Contributions Charge) Act 2013 ss 3 to 5 (C2013A00116);
+Treasury Laws Amendment (More Flexible Superannuation) Act 2021 Sch 2 items 6
+and 14 (C2021A00045); ITAA 1997 ss 292-20, 292-25 and 292-30; and the ATO's
+'Contributions caps' page (11 September 2026), Tables 3 and 5.
+
+The charge's rate is the base interest rate plus 3 points over the days in the
+calendar year, which is the SIC table's rate: every quarter of the ATO's
+Table 3, July 2013 to September 2026, equals the GIC rate less 4 points.
+
+The proxy rate is s 97-30's: the average of the base interest rates for each
+day of the contributions year plus 7 points, over the days in the calendar
+year of its first day. The ATO's Table 5 rounds a simple average of the 4
+quarterly rates to 2 places and divides by the days in the financial year:
+the Act's day-weighted rate rounds to the ATO's in every year from 2013-14 to
+2025-26 but 2022-23 (Act 9.451452%, ATO 9.46%), and the divisors differ in
+2015-16, 2019-20 and 2023-24 (ATO 366, Act 365). The command follows the Act
+and warns with the ATO's figure. No rate determined under s 97-30(2) was
+found. Test vectors from the oracle: $100,000 for 2024-25 to 15 September
+2025, $14,663; $50,000 for 2020-21 to 30 November 2021, $5,251; the charge on
+$1,000.00 for 2020-21 due 1 December 2021, $44.17, and on $2,500.50 for
+2013-14 due 21 November 2014, $205.03.
+
 ## Wine equalisation tax
 
 This worksheet was added on 19 November 2026. The WET Act was read that day
@@ -1213,6 +1273,46 @@ rebate reductions for wine of 2017 and earlier vintages sold before 1 July
 | 2026-27 rebates on a retail, a wholesale, 2 quoted and a tasting dealing | QC22758's table | WET $11,890, rebate $16,240 |
 | A $50,000 wholesale sale with $340,000 (2025-26) or $390,000 (2026-27, 2027-28) claimed earlier | Worked by hand under s 19-15(2) | Rebate earned $14,500, $10,000 within the cap |
 | A hamper's wine share, $150 | Library ¶22-280 | WET $43.50 |
+
+## Alcohol excise
+
+This worksheet was added on 22 November 2026. The Excise Tariff Act 1921 was
+read that day in compilation 58 (1 July 2026): ss 6A and 6L and the
+Schedule's definitions and items 1 to 3, whose text is the same in
+compilations 54 (31 March 2022), 55 (1 July 2023) and 56 (1 July 2024). The
+Excise Act 1901 ss 77FA and 78 were read in compilation 69 (27 August 2026),
+and the Excise Regulation 2015 s 8, ss 62 and 64 and Schedule 1 in
+compilation 6 (29 November 2025), with compilations 4 and 5 for the $350,000
+cap. The rates are the Commissioner's Notices of Substituted Rates of Excise
+Duty No. 1 and 3 of each year from 2022 to 2026, the February and August
+indexation; every value equals the ATO's Historical Excise Rates workbook
+(data.gov.au, 1 September 2026; 336 values across 28 dates from 1 February
+2022) and, for 2026, the ATO's 'Excise duty rates for alcohol' (QC63605, 29
+July 2026). The ATO's 'Calculating alcohol excise duty' (QC63603), 'Remission
+scheme for alcohol manufacturers' (QC65935, 18 November 2026) and chapter 6
+of the Excise guidelines for the alcohol industry were read the same day.
+
+Truncating the litres of alcohol to one decimal place is the option the
+guidelines give for the excise return ('may be truncated'); the command
+takes it, as the ATO's examples do. Section 77FA does not say which
+subitem's rate applies where the labelled strength would move the goods to
+another subitem, so that case is refused. The part-year cap is truncated to
+the cent; the ATO's example shows whole dollars.
+
+`tests/alcohol_excise.rs` holds these cases.
+
+| Case | Source | Worksheet |
+| --- | --- | --- |
+| 10 cases of 24 x 355 ml at 5% on 8 March 2023 | QC63603 (Brewery Co) | 1.10 at $57.79; 3.2802 LAL, 3.2; $184.92 |
+| 840 litres of gin at 37.2% on 10 February 2023 | QC63603 (Bottler's Gin) | 3.2 at $97.90; 312.4 LAL; $30,583.96 |
+| The same gin on 10 February 2025 | Excise guidelines Example 6M | $104.31; $32,586.444 truncated to $32,586.44 |
+| 840 litres of brandy at 37.2%; 100 litres of beer at 5% | Examples 6B and 6D | 312.48 LAL; 3.85 LAL |
+| RTDs of 189.5 LAL on 2 February 2025 and 1,041.3 LAL after | Example 6O | 2 lines: $103.89 and $104.31; $19,687.15 and $108,618.00 |
+| 3 days of brandy, 2,356.79 LAL | Examples 6K and 6L | One line, 2,356.7 LAL |
+| Every subitem on each period's first and last day | Notices No. 1 and 3, 2022 to 2026 | 10 LAL x each rate |
+| Draught beer from 3 February 2025 to 2026 | Excise Tariff Act s 6L | 1.11 stays $43.39 |
+| A licence from 30 October 2026 | QC65935 | Cap $267,397.26 |
+| Remission lines over the cap in 2025-26 and 2026-27 | Excise Regulation 2015 item 10(c)(i) | $350,000; $400,000 |
 
 ## Beneficiary tax offset
 
