@@ -8,6 +8,9 @@ use sha2::{Digest, Sha256};
 
 mod engine;
 
+/// The linked calculators crate, whose version its replies report.
+const CALCULATORS: &str = australian_tax_calculators::engine::VERSION;
+
 fn difference(left: &Value, right: &Value, path: &str) -> Option<String> {
     match (left, right) {
         (Value::Object(a), Value::Object(b)) => {
@@ -94,7 +97,7 @@ fn frozen_effective_adapter_contracts() {
                 .is_some()
             {
                 expected["structuredContent"]["engine_version"] = if kind.is_some() {
-                    json!("1.1.0")
+                    json!(CALCULATORS)
                 } else {
                     json!("1.0.0")
                 };
@@ -115,7 +118,7 @@ fn frozen_effective_adapter_contracts() {
                 let mut note =
                     engine::file_note(kind, note, &before, &expected["structuredContent"]).replace(
                         &engine,
-                        &format!("{} 1.1.0 result", before["engine"].as_str().unwrap()),
+                        &format!("{} {CALCULATORS} result", before["engine"].as_str().unwrap()),
                     );
                 if kind == "study_loan_repayment" {
                     note = note.replace(
@@ -274,7 +277,7 @@ fn frozen_resource_contracts() {
             expected["server"]["version"] = json!("1.0.0");
             for engine in expected["engines"].as_array_mut().unwrap() {
                 engine["version"] = if engine["distribution"] == "australian-tax-calculators" {
-                    json!("1.1.0")
+                    json!(CALCULATORS)
                 } else {
                     json!("1.0.0")
                 };
@@ -313,7 +316,7 @@ fn native_freshness(result: &mut Value) {
         engine::freshness(row);
         engine::rate_records(row);
         row["engine_version"] = if row["engine"] == "australian-tax-calculators" {
-            json!("1.1.0")
+            json!(CALCULATORS)
         } else {
             json!("1.0.0")
         };
