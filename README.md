@@ -29,10 +29,10 @@
 </div>
 
 ```bash
-claude mcp add --scope user aus-accounting -- uvx --from 'aus-accounting-mcp==0.11.0' aus-accounting-mcp
+claude mcp add --scope user aus-accounting -- uvx --from 'aus-accounting-mcp==0.12.0' aus-accounting-mcp
 ```
 
-That connects Claude Code; it needs Python 3.14+ and [uv](https://docs.astral.sh/uv/), and no API key. The tax worksheets also need the [australian-tax-calculators 1.1.0 executable](https://github.com/ryanduguid/australian-accounting/releases/tag/australian-tax-calculators/v1.1.0) on `PATH` ([how](apps/aus-accounting-mcp/README.md#install)); every other tool works without it. For Claude Desktop, download the `.mcpb` file from the [bundle releases](https://github.com/ryanduguid/australian-accounting/releases?q=aus-accounting-mcp-bundle&expanded=true) and open it with Claude Desktop. The server runs on your machine, so ChatGPT connectors and the Claude.ai web app, which accept only remote servers, cannot run it. [Other clients](apps/aus-accounting-mcp/README.md#client-integration).
+That connects Claude Code; it needs Python 3.14+ and [uv](https://docs.astral.sh/uv/), and no API key. The tax worksheets also need the [australian-tax-calculators 1.2.0 executable](https://github.com/ryanduguid/australian-accounting/releases/tag/australian-tax-calculators/v1.2.0) on `PATH` ([how](apps/aus-accounting-mcp/README.md#install)); every other tool works without it. For Claude Desktop, download the `.mcpb` file from the [bundle releases](https://github.com/ryanduguid/australian-accounting/releases?q=aus-accounting-mcp-bundle&expanded=true) and open it with Claude Desktop. The server runs on your machine, so ChatGPT connectors and the Claude.ai web app, which accept only remote servers, cannot run it. [Other clients](apps/aus-accounting-mcp/README.md#client-integration).
 
 Australian Accounting is a set of local tax and payroll calculation engines and an
 MCP server for Australian accountants and bookkeepers, and the developers who build
@@ -150,10 +150,10 @@ For the MCP server, install Python 3.14+ and [uv](https://docs.astral.sh/uv/), t
 configure your MCP client to run:
 
 ```bash
-uvx --from 'aus-accounting-mcp==0.11.0' aus-accounting-mcp
+uvx --from 'aus-accounting-mcp==0.12.0' aus-accounting-mcp
 ```
 
-The tax worksheets also need the `australian-tax-calculators` 1.1.0 executable on
+The tax worksheets also need the `australian-tax-calculators` 1.2.0 executable on
 `PATH` or at the absolute path in `AUS_TAX_CALCULATORS_BIN`; the
 [MCP install notes](apps/aus-accounting-mcp/README.md#install) say where to get it.
 Without it they refuse with an install message and every other tool works.
@@ -164,7 +164,7 @@ the tools then use bundled data without network requests or record writes. The
 MCP host you connect it to is a separate boundary: it sends every tool argument
 and result to its model provider, so use fabricated data with a hosted model.
 
-The pin selects the published 0.11.0 release, so a new release does not reach you on
+The pin selects the published 0.12.0 release, so a new release does not reach you on
 its own. To move to a later release, replace the version in your client configuration
 with one from [PyPI](https://pypi.org/project/aus-accounting-mcp/);
 uvx downloads it, and later launches reuse the cached copy without a download until

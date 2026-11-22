@@ -50,9 +50,8 @@ install` does not install this binary.
 
 ## Install
 
-These commands install 1.1.0, the release the published MCP server 0.11.0
-accepts. For 1.2.0, give the tag `australian-tax-calculators/v1.2.0`
-instead.
+These commands install 1.2.0, the release the published MCP server 0.12.0
+accepts.
 
 Each `australian-tax-calculators/v*` release on GitHub Releases carries the
 executable for x86_64 Linux (static, musl) and x86_64 Windows, built and
@@ -62,13 +61,13 @@ Release Policy's installer, at its v0.5.0 commit, downloads one, verifies it and
 installs it in one command. On x86_64 Linux:
 
 ```sh
-curl --proto '=https' --tlsv1.2 -fsSL https://raw.githubusercontent.com/ryanduguid/release-policy/d7039efe6d8c441f1f213c674902909e80535599/scripts/install.sh | sh -s -- ryanduguid/australian-accounting australian-tax-calculators/v1.1.0 --modify-path
+curl --proto '=https' --tlsv1.2 -fsSL https://raw.githubusercontent.com/ryanduguid/release-policy/d7039efe6d8c441f1f213c674902909e80535599/scripts/install.sh | sh -s -- ryanduguid/australian-accounting australian-tax-calculators/v1.2.0 --modify-path
 ```
 
 In PowerShell on x86_64 Windows:
 
 ```powershell
-& ([scriptblock]::Create((irm https://raw.githubusercontent.com/ryanduguid/release-policy/d7039efe6d8c441f1f213c674902909e80535599/scripts/install.ps1))) ryanduguid/australian-accounting australian-tax-calculators/v1.1.0 -ModifyPath
+& ([scriptblock]::Create((irm https://raw.githubusercontent.com/ryanduguid/release-policy/d7039efe6d8c441f1f213c674902909e80535599/scripts/install.ps1))) ryanduguid/australian-accounting australian-tax-calculators/v1.2.0 -ModifyPath
 ```
 
 It needs the [GitHub CLI](https://cli.github.com/) (`gh`), with no sign-in. It
