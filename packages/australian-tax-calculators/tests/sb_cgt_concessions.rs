@@ -554,3 +554,18 @@ fn refusals_name_what_is_out_of_scope_or_wrong() {
         "maximum_net_asset_value_test"
     ));
 }
+
+/// s 328-110(2): likely turnover is worked out as at the year's first day, or
+/// as at the day the business started if it started during the year.
+#[test]
+fn likely_turnover_names_both_days_in_s_328_110_2() {
+    let catalogue = api::evaluate("worksheet-catalogue", &json!({})).unwrap();
+    let text = catalogue["sb_cgt_concessions"]["required_inputs"]["likely_turnover"]
+        .as_str()
+        .unwrap();
+    assert!(text.contains("as at its first day"), "{text}");
+    assert!(
+        text.contains("as at the day it started the business"),
+        "{text}"
+    );
+}
