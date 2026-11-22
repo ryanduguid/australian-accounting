@@ -1918,7 +1918,7 @@ pub fn optional_inputs(kind: &str) -> Vec<(&'static str, &'static str)> {
         "gst_creditable_purpose_change" => vec![
             (
                 "ended_on",
-                "YYYY-MM-DD: the day the thing was disposed of, lost, stolen or destroyed, or the period it was acquired for expired (GST Act s 129-25); refused when it falls in a tax period that itself ends on 30 June",
+                "YYYY-MM-DD: the day the thing was disposed of, lost, stolen or destroyed, or the period it was acquired for expired (GST Act s 129-25); refused when it falls in a tax period that itself ends on 30 June, and for the year whose 30 June tax period would be the last one when that period ends before the first adjustment period s 129-20(1) allows",
             ),
             (
                 "division_132_disposal",
@@ -3695,7 +3695,7 @@ pub fn input_units(kind: &str) -> Vec<(&'static str, &'static str)> {
             ("prescribed_person", "boolean: you are a prescribed person under s 102AC of the ITAA 1936 for the year (broadly, under 18 at its end); true is refused (s 328-375)"),
         ],
         "gst_creditable_purpose_change" => vec![
-            ("gst_exclusive_value", "AUD: the GST exclusive value of the thing acquired (GST Act s 195-1: 10/11 of the price), each thing separately (GSTR 2000/24 para 18)"),
+            ("gst_exclusive_value", "AUD: the GST exclusive value of the thing acquired (GST Act s 195-1: 10/11 of the price, for a luxury car excluding the luxury car tax payable on the supply), each thing separately (GSTR 2000/24 para 18)"),
             ("relates_to_business_finance", "boolean: at the acquisition the thing related solely or partly to making financial supplies and was not solely or partly of a private or domestic nature (s 129-10(3))"),
             ("full_input_tax_credit", "AUD: the input tax credit had the acquisition been solely for a creditable purpose (ss 129-70 and 129-75), taking into account Division 19, 21, 133 and 134 adjustments for it (s 129-80; GSTR 2000/24 para 74)"),
             ("intended_or_former_application", "fraction, decimal string from 0 to 1: the extent the thing was acquired for a creditable purpose or, after an earlier Division 129 adjustment, the actual application at the last one (s 129-40(1) step 2)"),
@@ -3709,7 +3709,7 @@ pub fn input_units(kind: &str) -> Vec<(&'static str, &'static str)> {
             ("carries_on_business", "boolean: you carry on a business"),
             ("instalment_election", "boolean: an election to pay GST by instalments (GST Act s 162-15) is in effect"),
             ("annual_tax_period_election", "boolean: an annual tax period election (s 151-10) is in effect"),
-            ("election_made", "boolean: you have made an annual apportionment election (s 131-10) that has effect at the end of the tax period the credit is attributable to"),
+            ("election_made", "boolean: you have made an annual apportionment election (s 131-10) that has effect at the end of the tax period the credit is attributable to; true with an eligibility condition failing is refused, as whether the election ceased turns on s 131-20"),
             ("gst_on_acquisition", "AUD: the GST payable on the supply of the thing acquired, the full input tax credit, taking into account Division 19, 21 and 134 adjustments for it (s 131-55(3) and (4))"),
             ("creditable_purpose", "fraction, decimal string above 0 and at most 1: the extent of creditable purpose (s 11-15); 1 only with part of the consideration"),
             ("car", "boolean: the acquisition is of a car (s 131-50); true is refused"),
@@ -3720,7 +3720,7 @@ pub fn input_units(kind: &str) -> Vec<(&'static str, &'static str)> {
             ("current_total_credits", "AUD: the input tax credits for all acquisitions and importations of those 12 months, the financial acquisitions included as if solely for a creditable purpose"),
             ("future_financial_credits", "AUD: the same credits for the financial acquisitions made or likely in the month and the next 11 months (s 189-10)"),
             ("future_total_credits", "AUD: the input tax credits for all acquisitions and importations of those 12 months, the financial acquisitions included"),
-            ("gst_group", "boolean: you are a GST group member and the 4 amounts are every member's (ss 189-5(2) and 189-10(2))"),
+            ("gst_group", "boolean: you are a GST group member and the 4 amounts are every member's, counting only acquisitions made, or likely to be made, whilst each was a member (ss 189-5(2) and 189-10(2); GSTR 2003/9 para 108)"),
         ],
         "gst_going_concern" => vec![
             ("for_consideration", "boolean: the supply is for consideration (GST Act s 38-325(1)(a))"),

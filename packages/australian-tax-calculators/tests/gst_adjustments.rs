@@ -189,6 +189,32 @@ fn isabelles_destroyed_acquisition() {
         code(CPC, &in_june),
         "gst_creditable_purpose_change.last_period_unsettled"
     );
+    // Destroyed on 1 July 2021, the next 30 June tax period (the June 2022
+    // quarter) ends before the first one s 129-20(1) allows (the June 2023
+    // quarter): whether s 129-25(1) makes it one is refused; the year before
+    // is too early, and the years after are past the last.
+    let early = |year: &str| {
+        bill(
+            json!({"attributed_period_end": "2021-06-30", "ended_on": "2021-07-01",
+                    "year": year}),
+        )
+    };
+    assert_eq!(
+        code(CPC, &early("2021-22")),
+        "gst_creditable_purpose_change.last_period_unsettled"
+    );
+    let r = run(CPC, &early("2020-21"));
+    assert_eq!(r["adjustment_period"]["is_adjustment_period"], false);
+    for year in ["2022-23", "2023-24"] {
+        let r = run(CPC, &early(year));
+        assert!(
+            r["no_adjustment_reason"]
+                .as_str()
+                .unwrap()
+                .contains("s 129-25(1)"),
+            "{year}"
+        );
+    }
 }
 
 /// s 129-25(2): a Division 132 disposal on 15 March 2023 ends the periods at
@@ -394,8 +420,10 @@ fn input_taxed_purpose_and_part_consideration() {
     );
 }
 
-/// s 131-5(1): each condition failing in turn leaves the s 11-30 credit and
-/// no adjustment; an eligible entity that has not elected likewise.
+/// s 131-5(1): each condition failing in turn, without an election, leaves
+/// the s 11-30 credit and no adjustment; with one, whether it still has effect
+/// turns on s 131-20, so it is refused. An eligible entity that has not
+/// elected also has the s 11-30 credit.
 #[test]
 fn each_eligibility_condition() {
     for (overrides, failing) in [
@@ -409,7 +437,15 @@ fn each_eligibility_condition() {
         ),
         (json!({"small_business_entity": false}), "entity_eligible"),
     ] {
-        let r = run(AA, &apportion(overrides));
+        assert_eq!(
+            code(AA, &apportion(overrides.clone())),
+            "gst_annual_apportionment.election_status_unsettled",
+            "{overrides}"
+        );
+        let r = run(
+            AA,
+            &apportion(with(overrides, json!({"election_made": false}))),
+        );
         assert_eq!(r["eligible"], false);
         assert_eq!(r["failing_conditions"], json!([failing]));
         assert_eq!(amounts(&r, AA_KEYS), ["10.00", "10.00", "0.00"]);
@@ -424,7 +460,8 @@ fn each_eligibility_condition() {
 /// turnover of $2 million is eligible; one cent more is not.
 #[test]
 fn the_non_business_turnover_threshold() {
-    let base = json!({"small_business_entity": false, "carries_on_business": false});
+    let base = json!({"small_business_entity": false, "carries_on_business": false,
+                      "election_made": false});
     for (turnover, eligible) in [("2000000.00", true), ("2000000.01", false)] {
         let input = apportion(with(base.clone(), json!({"gst_turnover": turnover})));
         assert_eq!(run(AA, &input)["eligible"], eligible, "{turnover}");
@@ -456,6 +493,10 @@ fn annual_apportionment_refusals() {
         ),
         (
             json!({"non_input_taxed_extent": "0.05"}),
+            "gst_annual_apportionment.fact_conflict",
+        ),
+        (
+            json!({"creditable_purpose": "1", "non_input_taxed_extent": "0.8"}),
             "gst_annual_apportionment.fact_conflict",
         ),
         (

@@ -2668,7 +2668,8 @@ or expiry on `ended_on`, the next tax period ending on 30 June is the last
 adjustment period (s 129-25(1)); after a disposal with a Division 132
 decreasing adjustment, the last to end before it (s 129-25(2)). An `ended_on`
 inside the 30 June tax period itself is refused, as s 129-25(1) could mean that
-period or the next. The 2 applications rest on the caller's method, stated in
+period or the next; so is the 30 June tax period after `ended_on` when it ends
+before the first adjustment period s 129-20(1) allows. The 2 applications rest on the caller's method, stated in
 `application_basis` and echoed; the command does not judge whether it is fair
 or reasonable.
 
@@ -2679,8 +2680,10 @@ and, for one partly creditable acquisition, gives the credit without the
 election (s 11-30), the credit with it (the GST on the supply, s 131-40(1), or
 that times the non-input-taxed and consideration extents, s 131-40(2)) and the
 s 131-55 increasing adjustment, their difference. Cars and reduced credit
-acquisitions are refused (ss 131-50 and 131-40(5)); the tax period the
-adjustment is attributable to (s 131-60) is stated, not worked out.
+acquisitions are refused (ss 131-50 and 131-40(5)), as is an election stated
+to have effect when an eligibility condition fails, since whether it ceased
+turns on s 131-20; the tax period the adjustment is attributable to (s 131-60)
+is stated, not worked out.
 
 `gst-financial-acquisitions-threshold` runs the current (s 189-5) and future
 (s 189-10) acquisitions tests: either is exceeded when the credits for
