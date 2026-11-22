@@ -2113,7 +2113,7 @@ pub fn optional_inputs(kind: &str) -> Vec<(&'static str, &'static str)> {
             ),
             (
                 "maintained_dependent_person",
-                "boolean, true when on any day in the year the person contributed in a substantial way to the maintenance of a dependent person (PHI Act Schedule 1: a person under 18 without a partner; a person aged 18 to 31 without a partner who is a dependent student, in full-time education, or a dependent non-student under the insurer's rules; or a person 18 or over, partnered or not, with a disability as the Private Health Insurance (Complying Product) Rules or the insurer's rules define it) who is their child or a sibling dependent on them; puts a person without a spouse on 30 June on the family thresholds (s 22-30(1)(b)); omit or false otherwise",
+                "boolean, true when on any day in the year the person contributed in a substantial way to the maintenance of a dependent person (PHI Act Schedule 1: a person under 18 without a partner; a person aged 18 to 31 without a partner who is either in full-time education and a dependent student under the insurer's rules, or not in full-time education and a dependent non-student under the insurer's rules; or a person 18 or over, partnered or not, with a disability as the Private Health Insurance (Complying Product) Rules or the insurer's rules define it) who is their child or a sibling dependent on them; puts a person without a spouse on 30 June on the family thresholds (s 22-30(1)(b)); omit or false otherwise",
             ),
         ],
         "medicare_levy_surcharge" => vec![

@@ -392,6 +392,24 @@ fn premiums_with_different_reductions_show_both_amounts_as_separate_lines() {
     assert_eq!(amount(&summed, "excess_private_health_reduction"), "0.00");
 }
 
+/// The summed line's net changes the estimate's total by the same amount as
+/// the separate lines' offset and excess.
+#[test]
+fn a_summed_line_changes_the_estimate_total_as_separate_lines_do() {
+    let total = |lines: Value| {
+        let mut facts = json!({"taxable_income": "110000",
+            "medicare-levy-surcharge": {"reportable_fringe_benefits": "0",
+                "income_for_surcharge_purposes": "110000", "days_without_cover": 0}});
+        facts["private-health-insurance-rebate"] = json!({ "lines": lines });
+        estimate(facts).unwrap()["amounts"]["total_before_credits"].clone()
+    };
+    let apart = total(json!([
+        line("1000", "242.88", 30),
+        line("1000", "80.95", 30)
+    ]));
+    assert_eq!(apart, total(json!([line("2000", "323.83", 30)])));
+}
+
 #[test]
 fn premiums_paid_from_1_april_2027_are_refused() {
     for c in [31, 36, 41] {
