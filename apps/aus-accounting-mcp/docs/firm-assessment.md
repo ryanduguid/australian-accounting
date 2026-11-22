@@ -6,7 +6,7 @@ questions it would put to any tax-research product. Both describe this server, t
 [PaulGoodman](https://github.com/ryanduguid/PaulGoodman)
 builder and the [DrDebits](https://github.com/ryanduguid/DrDebits) guardrails
 as their documentation stood on 29 September 2026. Version and worksheet inventory
-were refreshed for 0.11.0; response times remain dated 26 September 2026.
+were refreshed for 0.12.0; response times remain dated 26 September 2026.
 Neither is a certification, an approval of any use or a statement that a firm's
 use complies with anything.
 
@@ -31,7 +31,7 @@ conformance counts move without this page.
 
 | Field | Entry |
 | --- | --- |
-| Name and version | Aus Accounting MCP (`aus-accounting-mcp`) 0.11.0, a local MCP server of Australian accounting tools |
+| Name and version | Aus Accounting MCP (`aus-accounting-mcp`) 0.12.0, a local MCP server of Australian accounting tools |
 | Source and updates | Ryan Duguid, the sole maintainer, with no warranty or support agreement. The current source uses [AGPL-3.0-or-later](../LICENSE) with [section 7(b) attribution terms](../NOTICE). The 0.8.0 release introduced the Ryan Duguid Public Attribution Licence 1.0; 0.7.0 and 0.7.1 keep FSL-1.1-ALv2. Each release has [release notes](../RELEASE_NOTES.md). `uvx` keeps the version it first downloaded, so name the release in the client configuration (`aus-accounting-mcp==<version>`) to control which version runs. |
 | Intended use cases | Gives an assistant bounded calculations and reviews (ATO benchmarks, Payday Super timing, Division 7A s 109N and s 109E, 102 worksheet kinds), cited retrieval from folders the firm configures, and synthetic test data |
 | Known limitations and prohibited use | Not tax advice, and not for use without human review; Payday Super and Division 7A reviews are experimental; Payday Super does not assess contributions the fund returned, so `ON_TIME` assumes the fund kept every receipt; each worksheet holds only within its stated period and scope; retrieval returns point-in-time copies, and no match does not mean no rule; library search does not rank by authority |
