@@ -152,7 +152,8 @@ fn concessional_charge(facts: &Map<String, Value>, period: &str) -> Result<Value
     Ok(out)
 }
 
-/// Associated earnings worked exactly: the proxy daily rate as `n / den`.
+/// A release's figures: the earnings days, the proxy rate, the associated
+/// earnings, the total release amount, the tax offset and the ATO's figures.
 pub(super) struct Release {
     days: i64,
     proxy_percent: String,

@@ -3772,20 +3772,7 @@ fn caps_result(
     let rates = precise(|| {
         let (cap, transfer) = (d(cap), d(transfer));
         let annual = cap.mul(&int(4))?;
-        // s 292-85: nil at or above the transfer balance cap; otherwise the
-        // balance band sets how many annual caps the first year can bring forward.
-        let multiple: i64 = if balance.compare(&transfer)?.is_ge() {
-            0
-        } else if !under_75 || balance.compare(&transfer.sub(&annual)?)?.is_ge() {
-            1
-        } else if balance
-            .compare(&transfer.sub(&annual.mul(&int(2))?)?)?
-            .is_ge()
-        {
-            2
-        } else {
-            3
-        };
+        let multiple = bring_forward_multiple(balance, &transfer, &annual, under_75)?;
         let triggered = multiple > 1 && non_concessional.gt(&annual)?;
         steps.extend(non_concessional_steps(
             non_concessional,
@@ -3809,13 +3796,7 @@ fn caps_result(
         ];
         rates.extend(more_rates);
         if let Some(date) = determination_date {
-            // The excess non-concessional contributions, the last step.
-            let excess = steps.last().expect("the excess").value.clone();
-            let (more, release_rates, warning) =
-                excess_contributions::release_steps(&excess, year, date)?;
-            steps.extend(more);
-            rates.extend(release_rates);
-            release_warning = Some(warning);
+            release_warning = Some(add_release(&mut steps, &mut rates, year, date)?);
         }
         Ok(rates)
     })?;
@@ -3824,6 +3805,43 @@ fn caps_result(
         ato_interest_penalties::warn(&mut out, warning);
     }
     Ok(out)
+}
+
+/// s 292-85: nil at or above the transfer balance cap; otherwise the balance
+/// band sets how many annual caps the first year can bring forward.
+fn bring_forward_multiple(
+    balance: &Decimal,
+    transfer: &Decimal,
+    annual: &Decimal,
+    under_75: bool,
+) -> Result<i64> {
+    Ok(if balance.compare(transfer)?.is_ge() {
+        0
+    } else if !under_75 || balance.compare(&transfer.sub(annual)?)?.is_ge() {
+        1
+    } else if balance
+        .compare(&transfer.sub(&annual.mul(&int(2))?)?)?
+        .is_ge()
+    {
+        2
+    } else {
+        3
+    })
+}
+
+/// Appends the release of the excess non-concessional contributions (the
+/// last step) to `determination_date`, returning the ATO-figures warning.
+fn add_release(
+    steps: &mut Vec<Step>,
+    rates: &mut Vec<(String, String)>,
+    year: &str,
+    date: &Arg,
+) -> Result<String> {
+    let excess = steps.last().expect("the excess").value.clone();
+    let (more, release_rates, warning) = excess_contributions::release_steps(&excess, year, date)?;
+    steps.extend(more);
+    rates.extend(release_rates);
+    Ok(warning)
 }
 
 /// The concessional amounts. s 291-20(3)-(4): the unused cap raises this
