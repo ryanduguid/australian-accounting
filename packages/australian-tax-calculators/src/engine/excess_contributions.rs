@@ -32,7 +32,8 @@ const EARNINGS: &str = "TAA 1953 Sch 1 s 97-30(1): for each day from the first d
 const PROXY: &str = "TAA 1953 Sch 1 s 97-30(1) 'proxy rate': the s 8AAD(1) rate for the first day of the contributions year with the base interest rate replaced by the average of the base interest rates for each day of the year (the base interest rate plus 7 points over the days in that calendar year); no lower rate has been determined under s 97-30(2)";
 const RELEASE: &str = "TAA 1953 Sch 1 s 97-25(1)(c): the excess + 0.85 x the associated earnings";
 const ASSESSABLE: &str = "ITAA 1997 ss 292-20 and 292-25(1): the associated earnings, when the total release amount is released in full";
-const OFFSET: &str = "ITAA 1997 s 292-30: a non-refundable tax offset of 15% of the amount in assessable income";
+const OFFSET: &str =
+    "ITAA 1997 s 292-30: a non-refundable tax offset of 15% of the amount in assessable income";
 
 /// The ATO's published associated earnings rates ('Contributions caps',
 /// Table 5): (contributions year, annual rate, daily rate), for the warning.
@@ -71,11 +72,17 @@ fn year_length(day: i64) -> i64 {
 
 fn cents(amount: &Decimal) -> Result<BigInt> {
     let text = amount.quantize(-2, Rounding::HalfUp)?.to_string();
-    Ok(text.replace('.', "").parse().expect("cents of a checked amount"))
+    Ok(text
+        .replace('.', "")
+        .parse()
+        .expect("cents of a checked amount"))
 }
 
 fn fact_date(facts: &Map<String, Value>, item: &str, key: &str) -> Result<i64> {
-    match stated::required(facts, item, key)?.as_str().and_then(dates::parse) {
+    match stated::required(facts, item, key)?
+        .as_str()
+        .and_then(dates::parse)
+    {
         Some(day) => Ok(day),
         None => fact_invalid(format!("{item}: {key} must be a date YYYY-MM-DD.")),
     }
@@ -105,7 +112,12 @@ fn charge(tax: &BigInt, start: i64, due: i64) -> Result<BigInt> {
 
 fn concessional_charge(facts: &Map<String, Value>, period: &str) -> Result<Value> {
     let item = "question concessional_charge";
-    stated::known_keys(facts, item, "concessional_charge", &["additional_tax", "tax_due_date"])?;
+    stated::known_keys(
+        facts,
+        item,
+        "concessional_charge",
+        &["additional_tax", "tax_due_date"],
+    )?;
     let start: i64 = period[..4].parse().expect("a supported year");
     if start >= 2021 {
         return refuse(
@@ -116,14 +128,19 @@ fn concessional_charge(facts: &Map<String, Value>, period: &str) -> Result<Value
     let tax = cents(&stated::amount(facts, item, "additional_tax")?)?;
     let due = fact_date(facts, item, "tax_due_date")?;
     if due <= first_day(start) {
-        return date_order(format!("{item}: tax_due_date must be after 1 July of the year, the charge's first day."));
+        return date_order(format!(
+            "{item}: tax_due_date must be after 1 July of the year, the charge's first day."
+        ));
     }
     let owed = charge(&tax, start, due)?;
     let one = BigInt::from(1);
     let mut out = result(
         KIND,
         period,
-        vec![("excess_concessional_contributions_charge", dollars(&owed, &one))],
+        vec![(
+            "excess_concessional_contributions_charge",
+            dollars(&owed, &one),
+        )],
         Vec::new(),
     )?;
     out["question"] = json!("concessional_charge");
@@ -185,10 +202,17 @@ fn warning(start: i64, label: &str) -> String {
 
 /// The release figures for an excess (in dollars) of the contributions year
 /// from `start`, the first determination made on `determination`.
-pub(super) fn release(excess: &Decimal, start: i64, label: &str, determination: i64) -> Result<Release> {
+pub(super) fn release(
+    excess: &Decimal,
+    start: i64,
+    label: &str,
+    determination: i64,
+) -> Result<Release> {
     let (n, den, proxy_percent) = proxy(start)?;
     if determination < first_day(start) {
-        return date_order("determination_date must be on or after 1 July of the contributions year.".into());
+        return date_order(
+            "determination_date must be on or after 1 July of the contributions year.".into(),
+        );
     }
     let days = determination - first_day(start) + 1;
     let k = u32::try_from(days).expect("a period in days");
@@ -210,7 +234,12 @@ pub(super) fn release(excess: &Decimal, start: i64, label: &str, determination: 
 
 fn non_concessional_release(facts: &Map<String, Value>, period: &str) -> Result<Value> {
     let item = "question non_concessional_release";
-    stated::known_keys(facts, item, "non_concessional_release", &["excess", "determination_date"])?;
+    stated::known_keys(
+        facts,
+        item,
+        "non_concessional_release",
+        &["excess", "determination_date"],
+    )?;
     let excess = stated::amount(facts, item, "excess")?;
     if !excess.gt(&d("0"))? {
         return fact_invalid(format!("{item}: excess must be above nil."));
@@ -258,11 +287,33 @@ pub(super) fn release_steps(
         year_length(first_day(start))
     );
     let steps = vec![
-        step("associated_earnings", EARNINGS, &formula, &[excess, &d(&r.proxy_percent), &days], r.earnings.clone()),
-        step("total_release_amount", RELEASE, "excess_non_concessional + 0.85 x associated_earnings", &[excess, &r.earnings], r.total.clone()),
-        step("associated_earnings_tax_offset", OFFSET, "0.15 x associated_earnings", &[&r.earnings], r.offset.clone()),
+        step(
+            "associated_earnings",
+            EARNINGS,
+            &formula,
+            &[excess, &d(&r.proxy_percent), &days],
+            r.earnings.clone(),
+        ),
+        step(
+            "total_release_amount",
+            RELEASE,
+            "excess_non_concessional + 0.85 x associated_earnings",
+            &[excess, &r.earnings],
+            r.total.clone(),
+        ),
+        step(
+            "associated_earnings_tax_offset",
+            OFFSET,
+            "0.15 x associated_earnings",
+            &[&r.earnings],
+            r.offset.clone(),
+        ),
     ];
-    Ok((steps, vec![rate("proxy_rate_percent", &r.proxy_percent)], r.warning))
+    Ok((
+        steps,
+        vec![rate("proxy_rate_percent", &r.proxy_percent)],
+        r.warning,
+    ))
 }
 
 /// The command: one `question` with its facts.

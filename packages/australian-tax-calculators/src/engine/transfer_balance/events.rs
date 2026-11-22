@@ -130,7 +130,9 @@ fn event(value: &Value, item: &str) -> Result<Event> {
     else {
         return fact_invalid(format!("{item}: date must be a date YYYY-MM-DD."));
     };
-    let name = stated::required(fields, item, "kind")?.as_str().unwrap_or("");
+    let name = stated::required(fields, item, "kind")?
+        .as_str()
+        .unwrap_or("");
     let (kind, credit, authority) = kind_of(name, item)?;
     let amount = stated::amount(fields, item, "amount")?;
     let cents: i64 = amount
@@ -156,16 +158,26 @@ fn check_dates(events: &[Event], to: i64) -> Result<()> {
     for (i, e) in events.iter().enumerate() {
         let item = format!("event {}", i + 1);
         if e.day < START {
-            return date_order(format!("{item}: no event arises before 1 July 2017 (ITAA 1997 s 294-15(2))."));
+            return date_order(format!(
+                "{item}: no event arises before 1 July 2017 (ITAA 1997 s 294-15(2))."
+            ));
         }
         if e.kind == "existing_income_stream" && e.day != START {
-            return date_order(format!("{item}: an existing_income_stream credit arises on 1 July 2017 (s 294-25(1) item 1)."));
+            return date_order(format!(
+                "{item}: an existing_income_stream credit arises on 1 July 2017 (s 294-25(1) item 1)."
+            ));
         }
         if e.day > to {
-            return date_order(format!("{item}: is after to; give to on or after the last event."));
+            return date_order(format!(
+                "{item}: is after to; give to on or after the last event."
+            ));
         }
     }
-    let first = events.iter().map(|e| e.day).min().expect("at least one event");
+    let first = events
+        .iter()
+        .map(|e| e.day)
+        .min()
+        .expect("at least one event");
     if !events.iter().any(|e| e.day == first && e.credit) {
         return date_order("The first event's day must have a credit: the account starts with a retirement phase income stream (ITAA 1997 s 294-15).".into());
     }

@@ -109,7 +109,11 @@ fn the_other_indexation_examples() {
     );
     assert_eq!(cap_in(&leanne, "2026-27"), "2050000.00");
     assert_eq!(amount(&leanne, "transfer_balance"), "800000.00");
-    let first = run(&[("2024-05-14", "new_income_stream", "490000.00")], "2025-07-01", "2025-26");
+    let first = run(
+        &[("2024-05-14", "new_income_stream", "490000.00")],
+        "2025-07-01",
+        "2025-26",
+    );
     assert_eq!(cap_in(&first, "2025-26"), "1975000.00");
     let nada = run(
         &[
@@ -167,7 +171,11 @@ fn elisabeth_goes_negative_then_into_excess() {
     assert_eq!(amount(&out, "excess_transfer_balance_tax"), "26.80");
     assert_eq!(amount(&out, "transfer_balance"), "1610176.42");
     assert_eq!(amount(&out, "excess_transfer_balance"), "10176.42");
-    let again = api::evaluate("transfer-balance", &tba(&list, "2019-12-31", "2019-20", true)).unwrap();
+    let again = api::evaluate(
+        "transfer-balance",
+        &tba(&list, "2019-12-31", "2019-20", true),
+    )
+    .unwrap();
     assert_eq!(again["excess_periods"][0]["tax_rate_percent"], 30);
     assert_eq!(amount(&again, "excess_transfer_balance_tax"), "53.59");
 }
@@ -186,7 +194,10 @@ fn paolo_commutes_his_excess() {
         "2017-18",
     );
     let period = &out["excess_periods"][0];
-    assert_eq!((period["from"].as_str(), period["to"].as_str()), (Some("2017-07-01"), Some("2017-07-31")));
+    assert_eq!(
+        (period["from"].as_str(), period["to"].as_str()),
+        (Some("2017-07-01"), Some("2017-07-31"))
+    );
     assert_eq!(amount(&out, "notional_earnings"), "2604.41");
     assert_eq!(amount(&out, "transfer_balance"), "1599604.41");
     assert_eq!(amount(&out, "excess_transfer_balance_tax"), "390.66");
@@ -219,9 +230,21 @@ fn a_second_period_is_taxed_at_30_percent() {
     );
     let periods = out["excess_periods"].as_array().unwrap();
     assert_eq!(periods.len(), 2);
-    assert_eq!((&periods[0]["notional_earnings"], &periods[0]["tax_rate_percent"]), (&json!("76.21"), &json!(15)));
+    assert_eq!(
+        (
+            &periods[0]["notional_earnings"],
+            &periods[0]["tax_rate_percent"]
+        ),
+        (&json!("76.21"), &json!(15))
+    );
     assert_eq!(periods[0]["excess_transfer_balance_tax"], "11.43");
-    assert_eq!((&periods[1]["notional_earnings"], &periods[1]["tax_rate_percent"]), (&json!("134.94"), &json!(30)));
+    assert_eq!(
+        (
+            &periods[1]["notional_earnings"],
+            &periods[1]["tax_rate_percent"]
+        ),
+        (&json!("134.94"), &json!(30))
+    );
     assert_eq!(periods[1]["excess_transfer_balance_tax"], "40.48");
 }
 
@@ -248,14 +271,25 @@ fn the_2017_transitional_rule() {
         "2017-18",
     );
     assert_eq!(short["excess_periods"][0]["from"], "2017-07-01");
-    let early = tba(&[("2017-07-01", "existing_income_stream", "1650000.00")], "2017-09-30", "2017-18", false);
-    assert_eq!(code("transfer-balance", &early), "transfer_balance.transition_undecided");
+    let early = tba(
+        &[("2017-07-01", "existing_income_stream", "1650000.00")],
+        "2017-09-30",
+        "2017-18",
+        false,
+    );
+    assert_eq!(
+        code("transfer-balance", &early),
+        "transfer_balance.transition_undecided"
+    );
 }
 
 #[test]
 fn transfer_balance_refusals() {
     let refused = [
-        ("reversionary_income_stream", "transfer_balance.event_refused"),
+        (
+            "reversionary_income_stream",
+            "transfer_balance.event_refused",
+        ),
         ("child_recipient", "transfer_balance.event_refused"),
         ("capped_defined_benefit", "transfer_balance.event_refused"),
         ("structured_settlement", "transfer_balance.event_refused"),
@@ -267,23 +301,97 @@ fn transfer_balance_refusals() {
         ("pension", "transfer_balance.fact_invalid"),
     ];
     for (kind, expected) in refused {
-        let input = tba(&[("2020-01-01", kind, "1.00")], "2020-06-30", "2019-20", false);
+        let input = tba(
+            &[("2020-01-01", kind, "1.00")],
+            "2020-06-30",
+            "2019-20",
+            false,
+        );
         assert_eq!(code("transfer-balance", &input), expected, "{kind}");
     }
     let cases = [
-        (tba(&[("2017-06-30", "new_income_stream", "1.00")], "2018-06-30", "2017-18", false), "transfer_balance.date_order"),
-        (tba(&[("2017-07-02", "existing_income_stream", "1.00")], "2018-06-30", "2017-18", false), "transfer_balance.date_order"),
-        (tba(&[("2020-01-01", "commutation", "1.00")], "2020-06-30", "2019-20", false), "transfer_balance.date_order"),
-        (tba(&[("2020-07-01", "new_income_stream", "1.00")], "2020-06-30", "2019-20", false), "transfer_balance.date_order"),
-        (tba(&[("2020-01-01", "new_income_stream", "0.00")], "2020-06-30", "2019-20", false), "transfer_balance.fact_invalid"),
-        (tba(&[("2020-01-01", "new_income_stream", "1.00")], "2020-07-01", "2019-20", false), "transfer_balance.year_mismatch"),
-        (tba(&[("2026-07-01", "new_income_stream", "2200000.00")], "2027-01-01", "2026-27", false), "transfer_balance.rate_unpublished"),
-        (tba(&[("2020-01-01", "new_income_stream", "1.00")], "2027-07-01", "2027-28", false), "period.unsupported"),
+        (
+            tba(
+                &[("2017-06-30", "new_income_stream", "1.00")],
+                "2018-06-30",
+                "2017-18",
+                false,
+            ),
+            "transfer_balance.date_order",
+        ),
+        (
+            tba(
+                &[("2017-07-02", "existing_income_stream", "1.00")],
+                "2018-06-30",
+                "2017-18",
+                false,
+            ),
+            "transfer_balance.date_order",
+        ),
+        (
+            tba(
+                &[("2020-01-01", "commutation", "1.00")],
+                "2020-06-30",
+                "2019-20",
+                false,
+            ),
+            "transfer_balance.date_order",
+        ),
+        (
+            tba(
+                &[("2020-07-01", "new_income_stream", "1.00")],
+                "2020-06-30",
+                "2019-20",
+                false,
+            ),
+            "transfer_balance.date_order",
+        ),
+        (
+            tba(
+                &[("2020-01-01", "new_income_stream", "0.00")],
+                "2020-06-30",
+                "2019-20",
+                false,
+            ),
+            "transfer_balance.fact_invalid",
+        ),
+        (
+            tba(
+                &[("2020-01-01", "new_income_stream", "1.00")],
+                "2020-07-01",
+                "2019-20",
+                false,
+            ),
+            "transfer_balance.year_mismatch",
+        ),
+        (
+            tba(
+                &[("2026-07-01", "new_income_stream", "2200000.00")],
+                "2027-01-01",
+                "2026-27",
+                false,
+            ),
+            "transfer_balance.rate_unpublished",
+        ),
+        (
+            tba(
+                &[("2020-01-01", "new_income_stream", "1.00")],
+                "2027-07-01",
+                "2027-28",
+                false,
+            ),
+            "period.unsupported",
+        ),
     ];
     for (input, expected) in cases {
         assert_eq!(code("transfer-balance", &input), expected, "{input}");
     }
-    let mut flag = tba(&[("2020-01-01", "new_income_stream", "1.00")], "2020-06-30", "2019-20", false);
+    let mut flag = tba(
+        &[("2020-01-01", "new_income_stream", "1.00")],
+        "2020-06-30",
+        "2019-20",
+        false,
+    );
     flag["previously_liable"] = json!("no");
     assert_eq!(code("transfer-balance", &flag), "input.flag_invalid");
     flag["previously_liable"] = json!(false);
@@ -294,7 +402,11 @@ fn transfer_balance_refusals() {
 /// The last published GIC day, 31 December 2026, still earns.
 #[test]
 fn excess_runs_to_the_last_published_rate() {
-    let out = run(&[("2026-12-31", "new_income_stream", "2100000.01")], "2026-12-31", "2026-27");
+    let out = run(
+        &[("2026-12-31", "new_income_stream", "2100000.01")],
+        "2026-12-31",
+        "2026-27",
+    );
     assert_eq!(out["excess_periods"][0]["days"], 1);
 }
 
@@ -314,43 +426,129 @@ fn the_concessional_charge_compounds_daily_to_the_day_before_tax_is_due() {
         ("2013-14", "2500.50", "2014-11-21", "205.03", 508),
     ];
     for (year, tax, due, charge, days) in cases {
-        let input = excess("concessional_charge", year, json!({"additional_tax": tax, "tax_due_date": due}));
+        let input = excess(
+            "concessional_charge",
+            year,
+            json!({"additional_tax": tax, "tax_due_date": due}),
+        );
         let out = api::evaluate("excess-contributions", &input).unwrap();
-        assert_eq!(amount(&out, "excess_concessional_contributions_charge"), charge, "{year}");
+        assert_eq!(
+            amount(&out, "excess_concessional_contributions_charge"),
+            charge,
+            "{year}"
+        );
         assert_eq!(out["days"], days);
     }
-    let abolished = excess("concessional_charge", "2021-22", json!({"additional_tax": "1.00", "tax_due_date": "2022-12-01"}));
-    assert_eq!(code("excess-contributions", &abolished), "excess_contributions.charge_abolished");
-    let early = excess("concessional_charge", "2020-21", json!({"additional_tax": "1.00", "tax_due_date": "2020-07-01"}));
-    assert_eq!(code("excess-contributions", &early), "excess_contributions.date_order");
-    let late = excess("concessional_charge", "2020-21", json!({"additional_tax": "1.00", "tax_due_date": "2027-01-02"}));
-    assert_eq!(code("excess-contributions", &late), "excess_contributions.rate_unpublished");
+    let abolished = excess(
+        "concessional_charge",
+        "2021-22",
+        json!({"additional_tax": "1.00", "tax_due_date": "2022-12-01"}),
+    );
+    assert_eq!(
+        code("excess-contributions", &abolished),
+        "excess_contributions.charge_abolished"
+    );
+    let early = excess(
+        "concessional_charge",
+        "2020-21",
+        json!({"additional_tax": "1.00", "tax_due_date": "2020-07-01"}),
+    );
+    assert_eq!(
+        code("excess-contributions", &early),
+        "excess_contributions.date_order"
+    );
+    let late = excess(
+        "concessional_charge",
+        "2020-21",
+        json!({"additional_tax": "1.00", "tax_due_date": "2027-01-02"}),
+    );
+    assert_eq!(
+        code("excess-contributions", &late),
+        "excess_contributions.rate_unpublished"
+    );
 }
 
 /// Oracle: s 97-30's day-weighted proxy rate, compounding daily, rounded
 /// down to the dollar; 85% released beside the excess; 15% offset.
 #[test]
 fn the_non_concessional_release() {
-    let input = excess("non_concessional_release", "2024-25", json!({"excess": "100000.00", "determination_date": "2025-09-15"}));
+    let input = excess(
+        "non_concessional_release",
+        "2024-25",
+        json!({"excess": "100000.00", "determination_date": "2025-09-15"}),
+    );
     let out = api::evaluate("excess-contributions", &input).unwrap();
     assert_eq!(amount(&out, "associated_earnings"), "14663.00");
     assert_eq!(amount(&out, "total_release_amount"), "112463.55");
     assert_eq!(amount(&out, "assessable_associated_earnings"), "14663.00");
     assert_eq!(amount(&out, "associated_earnings_tax_offset"), "2199.45");
     assert_eq!(out["rates"]["proxy_rate_percent"], "11.332466");
-    let warned = out["warnings"].as_array().unwrap().iter().any(|w| w.as_str().unwrap().contains("11.33% a year"));
+    let warned = out["warnings"]
+        .as_array()
+        .unwrap()
+        .iter()
+        .any(|w| w.as_str().unwrap().contains("11.33% a year"));
     assert!(warned);
-    let earlier = excess("non_concessional_release", "2020-21", json!({"excess": "50000.00", "determination_date": "2021-11-30"}));
+    let earlier = excess(
+        "non_concessional_release",
+        "2020-21",
+        json!({"excess": "50000.00", "determination_date": "2021-11-30"}),
+    );
     let out = api::evaluate("excess-contributions", &earlier).unwrap();
     assert_eq!(amount(&out, "associated_earnings"), "5251.00");
     let bad = [
-        (excess("non_concessional_release", "2024-25", json!({"excess": "0.00", "determination_date": "2025-09-15"})), "excess_contributions.fact_invalid"),
-        (excess("non_concessional_release", "2024-25", json!({"excess": "1.00", "determination_date": "2024-06-30"})), "excess_contributions.date_order"),
-        (excess("non_concessional_release", "2026-27", json!({"excess": "1.00", "determination_date": "2027-09-15"})), "period.unsupported"),
-        (excess("non_concessional_release", "2012-13", json!({"excess": "1.00", "determination_date": "2013-09-15"})), "period.unsupported"),
-        (excess("refund", "2024-25", json!({})), "excess_contributions.question_invalid"),
-        (excess("non_concessional_release", "2024-25", json!({"excess": "1.00"})), "input.missing_field"),
-        (excess("non_concessional_release", "2024-25", json!({"excess": "1.00", "determination_date": "2025-09-15", "tax_due_date": "2025-12-01"})), "input.field_unknown"),
+        (
+            excess(
+                "non_concessional_release",
+                "2024-25",
+                json!({"excess": "0.00", "determination_date": "2025-09-15"}),
+            ),
+            "excess_contributions.fact_invalid",
+        ),
+        (
+            excess(
+                "non_concessional_release",
+                "2024-25",
+                json!({"excess": "1.00", "determination_date": "2024-06-30"}),
+            ),
+            "excess_contributions.date_order",
+        ),
+        (
+            excess(
+                "non_concessional_release",
+                "2026-27",
+                json!({"excess": "1.00", "determination_date": "2027-09-15"}),
+            ),
+            "period.unsupported",
+        ),
+        (
+            excess(
+                "non_concessional_release",
+                "2012-13",
+                json!({"excess": "1.00", "determination_date": "2013-09-15"}),
+            ),
+            "period.unsupported",
+        ),
+        (
+            excess("refund", "2024-25", json!({})),
+            "excess_contributions.question_invalid",
+        ),
+        (
+            excess(
+                "non_concessional_release",
+                "2024-25",
+                json!({"excess": "1.00"}),
+            ),
+            "input.missing_field",
+        ),
+        (
+            excess(
+                "non_concessional_release",
+                "2024-25",
+                json!({"excess": "1.00", "determination_date": "2025-09-15", "tax_due_date": "2025-12-01"}),
+            ),
+            "input.field_unknown",
+        ),
     ];
     for (input, expected) in bad {
         assert_eq!(code("excess-contributions", &input), expected, "{input}");
@@ -363,16 +561,33 @@ fn the_non_concessional_release() {
 #[test]
 fn proxy_rates_against_the_atos_table_5() {
     let table = [
-        ("2013-14", "9.66"), ("2014-15", "9.61"), ("2015-16", "9.20"), ("2016-17", "8.83"),
-        ("2017-18", "8.73"), ("2018-19", "8.96"), ("2019-20", "8.08"), ("2020-21", "7.06"),
-        ("2021-22", "7.04"), ("2022-23", "9.45"), ("2023-24", "11.19"), ("2024-25", "11.33"),
+        ("2013-14", "9.66"),
+        ("2014-15", "9.61"),
+        ("2015-16", "9.20"),
+        ("2016-17", "8.83"),
+        ("2017-18", "8.73"),
+        ("2018-19", "8.96"),
+        ("2019-20", "8.08"),
+        ("2020-21", "7.06"),
+        ("2021-22", "7.04"),
+        ("2022-23", "9.45"),
+        ("2023-24", "11.19"),
+        ("2024-25", "11.33"),
         ("2025-26", "10.75"),
     ];
     for (year, rounded) in table {
         let next: i64 = year[..4].parse::<i64>().unwrap() + 1;
-        let input = excess("non_concessional_release", year, json!({"excess": "1000.00", "determination_date": format!("{next}-06-30")}));
+        let input = excess(
+            "non_concessional_release",
+            year,
+            json!({"excess": "1000.00", "determination_date": format!("{next}-06-30")}),
+        );
         let out = api::evaluate("excess-contributions", &input).unwrap();
-        let exact: f64 = out["rates"]["proxy_rate_percent"].as_str().unwrap().parse().unwrap();
+        let exact: f64 = out["rates"]["proxy_rate_percent"]
+            .as_str()
+            .unwrap()
+            .parse()
+            .unwrap();
         assert_eq!(format!("{:.2}", exact + 1e-9), rounded, "{year}");
     }
 }
@@ -398,13 +613,23 @@ fn contribution_caps_adds_the_release() {
     assert_eq!(amount(&out, "associated_earnings"), "5865.00");
     assert_eq!(amount(&out, "total_release_amount"), "44985.25");
     assert_eq!(amount(&out, "associated_earnings_tax_offset"), "879.75");
-    for key in ["concessional_available", "excess_non_concessional", "non_concessional_available"] {
+    for key in [
+        "concessional_available",
+        "excess_non_concessional",
+        "non_concessional_available",
+    ] {
         assert_eq!(out["amounts"][key], plain["amounts"][key]);
     }
     input["year"] = json!("2026-27");
     input["determination_date"] = json!("2027-09-15");
-    assert_eq!(code("contribution-caps", &input), "excess_contributions.rate_unpublished");
+    assert_eq!(
+        code("contribution-caps", &input),
+        "excess_contributions.rate_unpublished"
+    );
     input["year"] = json!("2024-25");
     input["determination_date"] = json!("15/09/2025");
-    assert_eq!(code("contribution-caps", &input), "excess_contributions.fact_invalid");
+    assert_eq!(
+        code("contribution-caps", &input),
+        "excess_contributions.fact_invalid"
+    );
 }

@@ -86,21 +86,28 @@ impl Account {
             "general_transfer_balance_cap": dollars_of(general_cap(year)),
         });
         let raised = if increase <= 0 {
-            row["authority"] = json!("ITAA 1997 s 294-35(2): the previous year's cap; the general cap was not increased by indexation (s 294-40(1)(a))");
+            row["authority"] = json!(
+                "ITAA 1997 s 294-35(2): the previous year's cap; the general cap was not increased by indexation (s 294-40(1)(a))"
+            );
             0
         } else if self.exceeded {
-            row["authority"] = json!("ITAA 1997 s 294-40(1)(b): no proportional indexation, the balance having exceeded the cap at the end of a day before the year");
+            row["authority"] = json!(
+                "ITAA 1997 s 294-40(1)(b): no proportional indexation, the balance having exceeded the cap at the end of a day before the year"
+            );
             0
         } else {
             let percent = self.unused_percent();
             if let Some(h) = &self.highest {
-                row["highest_transfer_balance"] = json!(dollars(&h.cents, &BigInt::from(1)).to_string());
+                row["highest_transfer_balance"] =
+                    json!(dollars(&h.cents, &BigInt::from(1)).to_string());
                 row["highest_on"] = json!(dates::format(h.day));
                 row["cap_on_that_day"] = dollars_of(h.cap);
             }
             row["unused_cap_percentage"] = json!(percent);
             row["indexation_increase"] = dollars_of(increase);
-            row["authority"] = json!("ITAA 1997 s 294-40(2): unused cap percentage (100% less the highest end-of-day balance up to the end of the previous year as a percentage, rounded down, of the cap on the earliest day it was reached) x the general cap's indexation increase");
+            row["authority"] = json!(
+                "ITAA 1997 s 294-40(2): unused cap percentage (100% less the highest end-of-day balance up to the end of the previous year as a percentage, rounded down, of the cap on the earliest day it was reached) x the general cap's indexation increase"
+            );
             increase * percent / 100
         };
         self.cap += raised;
@@ -247,9 +254,15 @@ impl Account {
                 ("cap_space", dollars(&space, &self.den)),
                 ("excess_transfer_balance", dollars(&excess, &self.den)),
                 ("notional_earnings", dollars(&earnings, &self.den)),
-                ("excess_transfer_balance_tax", dollars(&tax, &(&self.den * 100))),
+                (
+                    "excess_transfer_balance_tax",
+                    dollars(&tax, &(&self.den * 100)),
+                ),
             ],
-            vec![rate("general_transfer_balance_cap", general_cap(year_of(to)))],
+            vec![rate(
+                "general_transfer_balance_cap",
+                general_cap(year_of(to)),
+            )],
         )?;
         out["to"] = json!(dates::format(to));
         out["caps"] = Value::Array(std::mem::take(&mut self.caps));

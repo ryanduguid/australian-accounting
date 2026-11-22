@@ -118,10 +118,7 @@ pub fn transfer_balance(
     let to = date_text(to, "to")?;
     to_in_year(to, &period)?;
     let Arg::Bool(previously_liable) = previously_liable else {
-        return refuse(
-            "input.flag_invalid",
-            "previously_liable must be a boolean.",
-        );
+        return refuse("input.flag_invalid", "previously_liable must be a boolean.");
     };
     let events = events::parse(events, to)?;
     let transitional = events::transitional(&events, to)?;
@@ -141,7 +138,10 @@ mod tests {
     #[test]
     fn dollars_round_half_up_away_from_nil() {
         let (n, den) = (BigInt::from, BigInt::from);
-        assert_eq!(dollars(&n(-3_000_000_i64), &den(1)).to_string(), "-30000.00");
+        assert_eq!(
+            dollars(&n(-3_000_000_i64), &den(1)).to_string(),
+            "-30000.00"
+        );
         assert_eq!(dollars(&n(1), &den(2)).to_string(), "0.01");
         assert_eq!(dollars(&n(-1), &den(3)).to_string(), "0.00");
         assert_eq!(dollars(&n(5), &den(1)).to_string(), "0.05");
