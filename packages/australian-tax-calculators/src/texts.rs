@@ -27,6 +27,10 @@ pub const SCOPES: &[(&str, &str)] = &[
         "Shares in a company or units in a unit trust held on capital account and disposed of (CGT event A1, ITAA 1997 s 104-10) under contracts made in the 2025-26 or 2026-27 income year, before Act No. 49 of 2026's changes from the income year that includes 1 July 2027, by an individual or a trust that was an Australian resident throughout and to which none of ss 115-105 to 115-120 applies, a complying superannuation entity or a company other than a life insurance company (whose gains on complying superannuation assets can be discount capital gains, ss 115-10(d) and 115-100(b)(ii)). Each parcel is units of one security acquired together, after 21 September 1999. The operator establishes each parcel's acquisition date (the contract date, s 109-5) and cost base elements (s 110-25), after any adjustment another provision requires, such as for bonus shares, rights, demergers, returns of capital and AMIT cost base adjustments, and each disposal's contract date, units, capital proceeds and incidental costs. Units are matched to parcels first in, first out by acquisition date (the earlier listed first on the same day), or as the taxpayer selects, both of which TD 33 accepts. A parcel's elements and a disposal's proceeds and selling costs are apportioned by units to the cent, half up, the last units taking what is left (ss 112-30 and 116-40). A gain is the capital proceeds above the cost base and a loss the reduced cost base, which leaves out costs of owning, above the capital proceeds (ss 104-10(4) and 110-55(2)). A gain is a discount capital gain when the parcel was acquired at least 12 months before the disposal, counting neither day (s 115-25(1)), unless the entity is a company (s 115-10). Disposals in earlier years use up units and are not counted. The year's capital losses, then earlier net capital losses, reduce the gains that are not discount capital gains first and then the discount capital gains (s 102-5(1) steps 1 and 2), and the discount percentage (50%, or 33 1/3% for a complying superannuation entity, s 115-100) reduces each discount capital gain left (step 3). The other gains and losses are the year's established capital gains and losses from other assets, and prior_net_capital_losses the earlier years' unapplied net capital losses, none from collectables or personal use assets. total_capital_gains, net_capital_gain and net_capital_losses_carried_forward are question 18 labels H, A and V of an individual's return when every capital gain and loss of the year is stated. Refuses a parcel disposed of in the year that was acquired at or before 21 September 1999 (indexation under ss 114-1 and 114-10, or pre-CGT under s 104-10(5)). Excludes shares held as trading stock or on revenue account, employee share scheme interests, interests to which s 115-45 applies, wash sales, other CGT events (such as C2, or E4 and G1 where a payment exceeds the cost base), foreign and temporary residents, the small business concessions (step 4), the affordable housing discount and CGT payable.",
     ),
     (
+        "cgt_cost_base_adjustments",
+        "Parcels of shares in a company or units in a trust held on capital account by an Australian resident individual, trust, complying superannuation entity or company, each acquired from 20 September 1985, and the events that adjust their cost base and reduced cost base from 1 July 2018 to the end of the income year (2018-19 to 2026-27): a company's non-assessable payment (CGT event G1, ITAA 1997 s 104-135), a non-AMIT trust's non-assessable part for a year (CGT event E4, ss 104-70 and 104-71), an AMIT cost base net amount (ss 104-107A to 104-107C, CGT event E10) and the Wesfarmers demerger of Coles (2018) and Woolworths demerger of Endeavour (2021) under their class rulings (Subdivision 125-B). The operator establishes each parcel's cost base just before the first event and the units held when each event happened (a demerger takes the parcels acquired by its record date), the non-assessable part after s 104-71 and any tax-free amount from the trust's statement, the AMIT cost base net amount from the AMMA statement, and the roll-over choice. A parcel acquired at or before 21 September 1999 is worked without indexation (refused for a company); pre-CGT parcels, other demergers, partial roll-over (s 125-80(8)), foreign residents, revenue assets and trading stock (ss 104-107G and 104-107H), liquidator payments (s 104-135(6)), s 104-70(8) and (9), employee share scheme interests and the disposals themselves (cgt-parcels) are outside it. From 2027-28 Act No. 49 of 2026 changes how capital gains are worked out, so 2027-28 is refused.",
+    ),
+    (
         "main_residence",
         "An individual who was an Australian resident when the CGT event happened, disposing of (CGT event A1) one dwelling, with any adjacent land used mainly for private or domestic purposes with it and of up to 2 hectares in total, acquired on or after 20 September 1985 and held as the same ownership interest throughout, with the disposal in the 2024-25, 2025-26 or 2026-27 income year, before the changes from 1 July 2027. The operator establishes the gain (cost base) or loss (reduced cost base) on the whole interest held, before any exemption or discount; the ownership period's first and last days; the days the dwelling was their main residence, including any treated as such from acquisition under s 118-135; the days it or part of it produced assessable income where interest would have been deductible, with the part of the floor area used; the days covered by a choice under s 118-145; and when a new home that became their main residence was acquired. Every day is counted, both ends included. Each day is taxable in full, in part (the floor area used while living there, s 118-190) or not at all. A choice period keeps the dwelling exempt, except a part used to produce income before the move, which stays taxable; income use is covered for 6 years per absence, to the sixth anniversary of its first day inclusive, as the ATO counts it, and counted across breaks within the same absence; later income-producing days are taxable. Under s 118-140 the last 6 months of ownership, from the same day of the month 6 months earlier (or the first of the next month where that day does not exist), or from the new home's acquisition if later, are exempt when the dwelling was the main residence for a continuous 3 months in the 12 months before ownership ended, which start the day after the same date a year earlier, and produced no income in that time while not the main residence. Under s 118-192, when income use first began after 20 August 1996, a full exemption would have applied just before, and the dwelling is only partly exempt because of that use, the ownership period starts on that day and the gain or loss must be worked out from the market value then. The assessable part is the gain or loss times the taxable days over the days in the ownership period (s 118-185). Excludes deciding residence, main residence status, interest deductibility, floor area, the choice itself and market value; inherited dwellings (s 118-195); a spouse or dependant child with a different main residence (s 118-170); building, repairing or renovating (s 118-150) and destroyed dwellings (s 118-155); adjacent land over 2 hectares or sold separately; compulsory acquisitions; marriage or relationship breakdown rollovers; granny flat arrangements; another dwelling treated as the main residence during a choice period except under s 118-140; the CGT discount and its 12-month test; and small business concessions. Refuses income use of part of the dwelling that changed, paused or stopped between its start and a move that starts a choice period, and a partial exemption with causes besides income use where s 118-192 would otherwise apply.",
     ),
@@ -308,6 +312,10 @@ pub const SOURCES: &[(&str, &str)] = &[
     (
         "cgt_parcels",
         "https://www.legislation.gov.au/C2004A05138/2026-05-21/2026-05-21/text/original/epub/OEBPS/document_3/document_3.html",
+    ),
+    (
+        "cgt_cost_base_adjustments",
+        "https://www.ato.gov.au/law/view/document?docid=PAC/19970038/104-135",
     ),
     (
         "main_residence",
@@ -808,6 +816,23 @@ pub const EXTRA_SOURCES: &[(&str, &[&str])] = &[
         ],
     ),
     (
+        "cgt_cost_base_adjustments",
+        &[
+            "https://www.ato.gov.au/law/view/document?docid=PAC/19970038/104-70",
+            "https://www.ato.gov.au/law/view/document?docid=PAC/19970038/104-71",
+            "https://www.ato.gov.au/law/view/document?docid=PAC/19970038/104-107A",
+            "https://www.ato.gov.au/law/view/document?docid=PAC/19970038/104-107B",
+            "https://www.ato.gov.au/law/view/document?docid=PAC/19970038/125-80",
+            "https://www.ato.gov.au/law/view/document?docid=PAC/19970038/125-85",
+            "https://www.ato.gov.au/law/view/document?docid=PAC/19970038/115-30",
+            "https://www.ato.gov.au/law/view/document?DocID=CLR/CR201859/NAT/ATO/00001",
+            "https://www.ato.gov.au/law/view/document?DocID=CLR/CR202150/NAT/ATO/00001",
+            "https://www.ato.gov.au/individuals-and-families/your-tax-return/instructions-to-complete-your-tax-return/paper-tax-return-instructions/2019/supporting-information/wesfarmers-limited-demerger-of-coles-group-limited-2018",
+            "https://www.ato.gov.au/law/view/print?DocID=SAV/GCGT/00004&PiT=99991231235958",
+            "https://www.ato.gov.au/law/view/print?DocID=SAV/PIG/00007&PiT=99991231235958",
+        ],
+    ),
+    (
         "trade_in",
         &[
             "https://www.legislation.gov.au/C2004A05138/2026-10-01/2026-10-01/text/original/epub/OEBPS/document_1/document_1.html",
@@ -1304,6 +1329,12 @@ pub const EXTRA_WARNINGS: &[(&str, &[&str])] = &[
         ],
     ),
     (
+        "cgt_cost_base_adjustments",
+        &[
+            "The amounts adjust the parcels' cost bases only: give discount_capital_gains and other_capital_gains to cgt-parcels as its other_discount_capital_gains and other_capital_gains for the same year, and its parcels as cgt-parcels' parcels.",
+        ],
+    ),
+    (
         "trade_in",
         &[
             "From 2026-27 a taxpayer who deducted an amount under s 25-130 may instead choose the fixed 50% reduction of s 40-291A for an asset used to produce assessable labour income; this worksheet applies s 40-290 and does not make that choice.",
@@ -1466,6 +1497,7 @@ pub const UNPUBLISHED_2027_28: &[(&str, &str)] = &[
     ("capital_gains", CGT_2027_28),
     ("main_residence", CGT_2027_28),
     ("cgt_parcels", CGT_2027_28),
+    ("cgt_cost_base_adjustments", CGT_2027_28),
     ("balancing_adjustment", CGT_2027_28),
     (
         "sb_cgt_concessions",
@@ -1668,6 +1700,26 @@ pub const REFUSAL_CODES: &[(&str, &str)] = &[
     (
         "capital_works.undeducted_above_expenditure",
         "The undeducted construction expenditure is more than the construction expenditure.",
+    ),
+    (
+        "cgt_cost_base.below_reduced_cost_base",
+        "An event would cut a parcel's reduced cost base by more than it is, without the cut to the cost base being above the cost base.",
+    ),
+    (
+        "cgt_cost_base.company_indexation",
+        "A company's parcel acquired at or before 21 September 1999, whose cost base is indexed, is touched by an event.",
+    ),
+    (
+        "cgt_cost_base.demerger_unknown",
+        "The demerger is not one whose class ruling the command carries.",
+    ),
+    (
+        "cgt_cost_base.event_year_unsupported",
+        "An event is before 1 July 2018.",
+    ),
+    (
+        "cgt_cost_base.pre_cgt",
+        "A parcel acquired before 20 September 1985 is touched by an event.",
     ),
     (
         "cgt_parcels.entity_invalid",
@@ -2256,7 +2308,7 @@ pub const REFUSAL_CODES: &[(&str, &str)] = &[
     ),
     (
         "input.field_unknown",
-        "A field the worksheet or command does not take, or does not take beside the other inputs given, was given (fbt-loan, fbt-meal-entertainment, fbt-car-parking, fbt-debt-waiver, fbt-expense-payment, fbt-property, fbt-residual, fbt-housing, fbt-lafha, fbt-board, fbt-tax-exempt-body-entertainment, fbt-entertainment-classifier, fbt-meal-entertainment-register and its entries, fbt-minor-benefit-check, ppsr-timing, fhss and its contributions, personal_deductions and determination, division-296, depreciation, fuel-tax-credits and its lines, foreign-resident-tax, medicare-levy, medicare-levy-surcharge, payg-withholding, payg-gross-up, termination-payment, etp-tax-free-component, unused-leave-payment, the Schedule 5 methods, working-holiday-maker-withholding, study-loan-withholding, seniors-pensioners-withholding, seniors-pensioners-tax-offset, lump-sum-arrears-tax-offset, hire-purchase-schedule, chattel-mortgage-schedule, loan-transactions and its transactions and rate_changes, borrowing-expenses-schedule and its loans, business-capital-expenditure and its items, balancing-adjustment, its years and car_limit, trade-in, franking-account and its events, distributions and income_tax, dasp-tax, gst-margin-scheme, wine-equalisation-tax and its dealings, luxury-car-tax and its lines, payroll-tax, cgt-parcels, its parcels and disposals, fbt-ev-exemption-check, sb-cgt-concessions, small-business-income-offset, depreciation-low-value-pool, depreciation-small-business-pool, capital-works, contribution-caps given a carry-forward input, derive, personal-tax-estimate, dgr-check, income-tests and fbt-return only).",
+        "A field the worksheet or command does not take, or does not take beside the other inputs given, was given (fbt-loan, fbt-meal-entertainment, fbt-car-parking, fbt-debt-waiver, fbt-expense-payment, fbt-property, fbt-residual, fbt-housing, fbt-lafha, fbt-board, fbt-tax-exempt-body-entertainment, fbt-entertainment-classifier, fbt-meal-entertainment-register and its entries, fbt-minor-benefit-check, ppsr-timing, fhss and its contributions, personal_deductions and determination, division-296, depreciation, fuel-tax-credits and its lines, foreign-resident-tax, medicare-levy, medicare-levy-surcharge, payg-withholding, payg-gross-up, termination-payment, etp-tax-free-component, unused-leave-payment, the Schedule 5 methods, working-holiday-maker-withholding, study-loan-withholding, seniors-pensioners-withholding, seniors-pensioners-tax-offset, lump-sum-arrears-tax-offset, hire-purchase-schedule, chattel-mortgage-schedule, loan-transactions and its transactions and rate_changes, borrowing-expenses-schedule and its loans, business-capital-expenditure and its items, balancing-adjustment, its years and car_limit, trade-in, franking-account and its events, distributions and income_tax, dasp-tax, gst-margin-scheme, wine-equalisation-tax and its dealings, luxury-car-tax and its lines, payroll-tax, cgt-parcels, its parcels and disposals, cgt-cost-base-adjustments, its parcels and events, fbt-ev-exemption-check, sb-cgt-concessions, small-business-income-offset, depreciation-low-value-pool, depreciation-small-business-pool, capital-works, contribution-caps given a carry-forward input, derive, personal-tax-estimate, dgr-check, income-tests and fbt-return only).",
     ),
     ("input.flag_invalid", "A flag is not a JSON boolean."),
     ("input.fraction_invalid", "A fraction is outside 0 to 1."),

@@ -4863,7 +4863,7 @@ mod luxury_car_tax;
 mod stated;
 pub use luxury_car_tax::{LctArgs, luxury_car_tax};
 mod cgt_parcels;
-pub use cgt_parcels::{CgtParcelsArgs, cgt_parcels};
+pub use cgt_parcels::{CgtCostBaseArgs, CgtParcelsArgs, cgt_cost_base_adjustments, cgt_parcels};
 
 /// One pay that includes an additional payment, as Schedule 5 (NAT 3348) reads it.
 struct AdditionalPay {
@@ -6170,7 +6170,7 @@ pub use small_business_income_offset::{
     SBITO_OPTIONAL, SmallBusinessIncomeOffsetArgs, small_business_income_offset,
 };
 
-const KINDS: [&str; 70] = [
+const KINDS: [&str; 71] = [
     "gst",
     "gst_margin_scheme",
     "fuel_tax_credits",
@@ -6241,6 +6241,7 @@ const KINDS: [&str; 70] = [
     "depreciation_small_business_pool",
     "capital_works",
     "small_business_income_offset",
+    "cgt_cost_base_adjustments",
 ];
 
 /// `periods(kind)`: accepted period arguments and inclusive calendar boundaries.

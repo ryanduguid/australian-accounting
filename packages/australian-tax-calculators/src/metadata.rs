@@ -1057,6 +1057,13 @@ pub fn supported_periods(kind: &str) -> Vec<&'static str> {
         // published.
         "trade_in" => vec!["2025-26", "2026-27"],
         "cgt_parcels" => vec!["2025-26", "2026-27"],
+        // ITAA 1997 s 104-107A took its present form for 2018-19 (Act No. 15
+        // of 2019, Sch 1 items 3 to 5); the other provisions applied are older.
+        // 2027-28 is refused as for cgt_parcels.
+        "cgt_cost_base_adjustments" => vec![
+            "2018-19", "2019-20", "2020-21", "2021-22", "2022-23", "2023-24", "2024-25", "2025-26",
+            "2026-27",
+        ],
         "fbt" => vec!["2026", "2027"],
         "fbt_car_statutory" | "fbt_car_operating_cost" | "fbt_loan" => {
             keys(FBT_BENCHMARK_INTEREST_RATES)
@@ -1216,6 +1223,10 @@ pub fn source_review(kind: &str) -> (&'static str, &'static str) {
         "cgt_parcels" => (
             "2026-11-19",
             "ITAA 1997 ss 102-5, 102-10, 102-15, 104-10, 109-5, 110-25, 110-35, 110-55, 112-30, 114-1, 114-10, 115-5 to 115-25, 115-100 and 116-40, compilation 264 (21 May 2026), the text for 2025-26 and 2026-27 under Act No. 49 of 2026 Schedule 1 items 82 to 84; TD 33 (identical shares); the ATO's 'Keeping records of shares and units' (last updated 22 June 2026: Boris's example), 'CGT discount' (last updated 29 June 2026: the 12 months exclude the days of acquisition and the event) and the individual tax return instructions supplement 2026, question 18 (last updated 30 May 2026: Kathleen's examples 1 to 4)",
+        ),
+        "cgt_cost_base_adjustments" => (
+            "2026-11-22",
+            "ITAA 1997 ss 104-70, 104-71, 104-107A to 104-107E, 104-135, 109-5, 110-25, 110-55, 114-1, 115-25, 115-30 and 125-55 to 125-85, with their history notes, on the ATO's legal database; CR 2018/59 and CR 2021/50; the ATO's 'Wesfarmers Limited – demerger of Coles Group Limited (2018)' (last updated 28 June 2019: examples 1 to 4); the Guide to capital gains tax 2025 (examples 20, 30 and 45); the Personal investors guide to capital gains tax 2025, Part C (examples 26 to 28)",
         ),
         "trade_in" => (
             "2026-11-18",
@@ -1538,6 +1549,12 @@ pub fn library_evidence(kind: &str) -> [(&'static str, &'static str); 4] {
             "2-240",
             "2026-06-30",
             "2026-11-19",
+        ),
+        "cgt_cost_base_adjustments" => (
+            "ATO 'Wesfarmers Limited – demerger of Coles Group Limited (2018)' and Personal investors guide to capital gains tax 2025",
+            "Tom's $23,000 split $16,350.70 and $6,649.30 with a $3,360 G1 gain; Bob's $105, Ilena's $30 and $35 and Miriam's $10 a unit",
+            "2019-06-28",
+            "2026-11-22",
         ),
         "trade_in" => (
             "ATO GST pages: Purchasing a motor vehicle; GST and the disposal of capital assets",
@@ -2877,6 +2894,20 @@ pub fn input_units(kind: &str) -> Vec<(&'static str, &'static str)> {
                 "AUD, net capital losses of earlier years not yet applied, none from collectables",
             ),
         ],
+        "cgt_cost_base_adjustments" => vec![
+            (
+                "entity",
+                "individual, trust, complying_superannuation_entity or company: the entity that owns the parcels; a company makes no discount capital gain (ITAA 1997 s 115-10)",
+            ),
+            (
+                "parcels",
+                "list of 1 to 1,000 parcel objects as cgt-parcels takes them (parcel, security, acquired, units, acquisition_cost, incidental_costs and optionally ownership_costs, capital_expenditure and title_costs), each with its cost base just before the first event",
+            ),
+            (
+                "events",
+                "list of 1 to 1,000 objects, each with event and security: return_of_capital with date (the payment, s 104-135(2)) and per_unit (AUD a share, at most 6dp); tax_deferred with income_year and amount (the year's non-assessable part after s 104-71, a non-AMIT trust) and optionally tax_free (AUD, the s 104-71(3) amounts); amit_excess or amit_shortfall with income_year and amount (the AMMA statement's AMIT cost base net amount); the first 3 optionally with parcels (the parcel names the amount is for); demerger with demerger (wesfarmers_coles_2018 or woolworths_endeavour_2021), new_security and rollover (boolean: roll-over chosen)",
+            ),
+        ],
         "trade_in" => vec![
             (
                 "cost",
@@ -3784,6 +3815,24 @@ pub fn examples(kind: &str) -> Vec<(&'static str, Example)> {
             ("other_capital_gains", Text("0.00")),
             ("other_capital_losses", Text("0.00")),
             ("prior_net_capital_losses", Text("400.00")),
+        ],
+        // The ATO's Tom (Wesfarmers demerger of Coles, examples 1 and 2), his
+        // pre-CGT parcel left out; the acquisition dates are fabricated.
+        "cgt_cost_base_adjustments" => vec![
+            ("year", Text("2018-19")),
+            ("entity", Text("individual")),
+            (
+                "parcels",
+                Json(
+                    r#"[{"parcel": "T2", "security": "Wesfarmers", "acquired": "2005-03-01", "units": "2000", "acquisition_cost": "8000.00", "incidental_costs": "0.00"}, {"parcel": "T3", "security": "Wesfarmers", "acquired": "2012-06-01", "units": "1000", "acquisition_cost": "15000.00", "incidental_costs": "0.00"}]"#,
+                ),
+            ),
+            (
+                "events",
+                Json(
+                    r#"[{"event": "demerger", "security": "Wesfarmers", "demerger": "wesfarmers_coles_2018", "new_security": "Coles", "rollover": false}]"#,
+                ),
+            ),
         ],
         "trade_in" => vec![
             ("year", Text("2026-27")),

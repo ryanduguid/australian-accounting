@@ -1638,6 +1638,63 @@ so the parts add up.
 | $1,000 cost and $100 costs of owning, sold for $1,050 | Worked by hand under ss 110-25(4) and 110-55(2) | Neither gain nor loss |
 | A company in 2026-27: a $100 parcel sold for nothing, $150 of other gains and $20 of earlier losses | Worked by hand under s 102-5(1) steps 1 and 2 | $30 net capital gain, nothing carried forward |
 
+## CGT cost base adjustments
+
+This worksheet was added on 22 November 2026, and its sources were read that
+day from 13:50 to 14:05 AEDT. ITAA 1997 ss 104-70, 104-71, 104-107A to
+104-107E, 104-135, 109-5, 110-25, 110-55, 114-1, 114-10, 115-25, 115-30 and
+125-55 to 125-85 were read on the ATO's legal database
+(https://www.ato.gov.au/law/view/document?docid=PAC/19970038/104-135 and the
+same address for each section) with their history notes. s 104-135 was last
+amended by No 91 of 2008, s 104-70 by No 53 of 2016, ss 104-107B to 104-107E
+by No 53 of 2016 and Subdivision 125-B by 2014 at the latest; s 104-107A was
+substituted in part by No 15 of 2019 for the 2018-19 income year and later
+years, so the worksheet starts at 2018-19. Act No. 49 of 2026 changes Division
+115 and s 102-5 from the income year that includes 1 July 2027, so 2027-28 is
+refused, as for CGT parcels.
+
+The ATO material: CR 2018/59 (Wesfarmers demerger of Coles, implemented
+28 November 2018: 71.09% and 28.91%, $5.68 a share) and the ATO's 'Wesfarmers
+Limited – demerger of Coles Group Limited (2018)' (last updated 28 June 2019,
+examples 1 to 4); CR 2021/50 (Woolworths demerger of Endeavour, implemented
+1 July 2021: 85.81% and 14.19%, 71 cents a share), which has no worked
+example; the Guide to capital gains tax 2025 (examples 20, 30 and 45); and the
+Personal investors guide to capital gains tax 2025, Part C (examples 26 to
+28). No CPI figure or indexation factor is used: a company's parcel from
+before 22 September 1999 is refused, and another entity's is worked without
+indexation, as the Guide's example 45 does for a taxpayer who has not chosen
+indexation.
+
+Each side of a demerger is the sum of the post-CGT head shares' cost bases
+times its percentage, rounded to the cent on its own, as the ATO's examples
+round it (the Guide's example 30 gives $2,373.43 and $126.58 of $2,500), so
+the sides can differ from the sum by a cent. Each side, and each E4 or AMIT
+amount, is spread over the parcels by units, the last parcel taking what is
+left. A G1 payment per share is multiplied by the units and rounded to the
+cent.
+
+`tests/cgt_cost_base_adjustments.rs` and the unit tests in
+`src/engine/cgt_parcels/demergers.rs` hold these cases.
+
+| Case | Source | Worksheet |
+| --- | --- | --- |
+| Tom: 2,000 Wesfarmers shares at $4.00 and 1,000 at $15.00 (post-CGT), no roll-over | COLES examples 1 and 2 | $3,360 G1 gain; $16,350.70 and $6,649.30 ($5.4502 and $2.2164 a share) |
+| Tom with roll-over | COLES example 1 | Gain disregarded; the same cost bases |
+| Sarah: 150 shares at $43.00 | COLES example 3 | $4,585.31 and $1,864.70 ($30.5687 and $12.4313 a share) |
+| Denise's 200 at $5.00 and 150 at $30.00, as a resident | COLES example 4 | $3,909.95 and $1,590.05, spread $2,234.26 and $1,675.69, $908.60 and $681.45 |
+| 1,000 Woolworths shares at $30.00, or at $0.50 (fabricated) | CR 2021/50 paras 10 and 16 | $25,743.00 and $4,257.00; at $0.50 a $210.00 G1 gain |
+| Rob: 1,500 shares at $5.00 from 1996, 50 cents a share (date moved into 2025-26) | Guide example 45 | $6,750.00, unindexed, with a warning; refused for a company |
+| Bob: cost base $1,200, reduced cost base $1,050, $105 tax-deferred | Guide example 20; investors guide example 26 | $1,095.00 and $945.00 |
+| Ilena: $5,000 and $4,700, $30 tax-deferred and $35 tax-free | Investors guide example 27 | $4,970.00 and $4,635.00 |
+| Miriam: $55 a unit, $10 a unit AMIT shortfall, or excess | Investors guide example 28 | $65 and $45 a unit |
+| Peter: 400 shares at $4.60, 5% to the new shares | s 125-80(3) example | $1,748.00 and $92.00 |
+| Anita: $2,500 at 94.937% and 5.063% | Guide example 30 | $2,373.43 and $126.58 |
+| G1, E4 and AMIT amounts above the cost base, and an AMIT excess on a nil cost base | Worked by hand under ss 104-135(3), 104-70(4) and (5) and 104-107A(3) | Gains of the excess, then of the whole excess; both bases nil |
+
+COLES is the ATO's page above. The tests also cover a parcel bought after the
+record date, an amount spread by units or over named parcels, the parcels
+passed to `cgt-parcels`, each year boundary and each refusal.
+
 ## Trade-in
 
 This worksheet was added on 18 November 2026, beside the balancing adjustment,
@@ -3451,6 +3508,7 @@ year; the others refuse it and say what is missing.
 | CGT and rental deductions | Changed from 1 July 2027 by Act No. 49 of 2026 Schedules 1 and 2 (s 26-155) | ITAA 1997 s 26-155 (https://www.ato.gov.au/law/view/document?docid=PAC/19970038/26-155), 16:13 |
 | Balancing adjustment | Refused: CGT event K7 is a capital gain, which Schedule 1 to Act No. 49 of 2026 changes from 1 July 2027 | Act No. 49 of 2026 as made (https://www.legislation.gov.au/C2026A00049/asmade/text), read 18 November 2026 at 07:06; see [Balancing adjustment](#balancing-adjustment) |
 | CGT parcels | Refused: Schedule 1 to Act No. 49 of 2026 changes how capital gains are worked out from the income year that includes 1 July 2027 | Act No. 49 of 2026 as made (https://www.legislation.gov.au/C2026A00049/asmade/text), items 82 to 84, read 19 November 2026 at 14:40; see [CGT parcels](#cgt-parcels) |
+| CGT cost base adjustments | Refused: Schedule 1 to Act No. 49 of 2026 changes how capital gains are worked out from the income year that includes 1 July 2027 | Act No. 49 of 2026 as made (https://www.legislation.gov.au/C2026A00049/asmade/text), Schedule 1 items 82 to 84, read 22 November 2026 at 14:16; see [CGT cost base adjustments](#cgt-cost-base-adjustments) |
 | Trade-in | Refused: the car limit for 2027-28 was not published, and CGT event K7 changes with Act No. 49 of 2026 | ATO 'Purchasing a motor vehicle' (last updated 3 June 2026, the 2026-27 limit only), read 18 November 2026 at 07:10; see [Trade-in](#trade-in) |
 | Small business CGT concessions | Refused: Schedule 1 to Act No. 49 of 2026 changes Division 152 from the income year that includes 1 July 2027 | Act No. 49 of 2026 as made (https://www.legislation.gov.au/C2026A00049/asmade/text), item 82, read 19 November 2026 at 14:40; see [Small business CGT concessions](#small-business-cgt-concessions) |
 | Business capital expenditure | Enacted, no year: ITAA 1997 s 40-880 and the small business entity test of Subdivision 328-C, neither amended in compilation 268 or the version from 1 December 2026; s 26-155 left out of scope | Compilation 268 (https://www.legislation.gov.au/C2004A05138/latest/text) and the Register's API, read 17 November 2026 from 01:33; see [Business capital expenditure](#business-capital-expenditure) |

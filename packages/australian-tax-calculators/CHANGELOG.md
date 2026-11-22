@@ -6,6 +6,17 @@
 
 ### Added
 
+- `cgt-cost-base-adjustments` applies returns of capital (CGT event G1, ITAA
+  1997 s 104-135), a non-AMIT trust's non-assessable parts (CGT event E4,
+  ss 104-70 and 104-71), AMIT cost base net amounts (ss 104-107A to 104-107C,
+  CGT event E10) and the Coles (2018) and Endeavour (2021) demergers
+  (Subdivision 125-B, CR 2018/59 and CR 2021/50) to `cgt-parcels`' parcels,
+  for 2018-19 to 2026-27, and returns the gains and the adjusted parcels. New
+  codes: `cgt_cost_base.below_reduced_cost_base`,
+  `cgt_cost_base.company_indexation`, `cgt_cost_base.demerger_unknown`,
+  `cgt_cost_base.event_year_unsupported` and `cgt_cost_base.pre_cgt`.
+  `derive` covers it. `tests/cgt_cost_base_adjustments.rs` holds it to the
+  ATO's examples. `cgt-parcels` is unchanged.
 - `depreciation-low-value-pool`, `depreciation-small-business-pool` and
   `capital-works` work out a low-value pool (ITAA 1997 ss 40-440 and
   40-445), a general small business pool with each year's low pool value

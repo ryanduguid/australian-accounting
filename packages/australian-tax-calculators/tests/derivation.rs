@@ -14,7 +14,7 @@ use std::io::Write;
 use std::process::{Command, Stdio};
 
 /// The commands `derive` explains.
-const DERIVED: [&str; 57] = [
+const DERIVED: [&str; 58] = [
     "fbt",
     "fbt-car-statutory",
     "fbt-car-operating-cost",
@@ -72,6 +72,7 @@ const DERIVED: [&str; 57] = [
     "etp-tax-free-component",
     "payroll-tax",
     "cgt-parcels",
+    "cgt-cost-base-adjustments",
 ];
 
 /// (command, input) for each derived kind: the ATO's published examples and
@@ -462,6 +463,29 @@ fn cases() -> Vec<(&'static str, Value)> {
                    "other_discount_capital_gains": "100.00", "other_capital_gains": "0.01",
                    "other_capital_losses": "0.00", "prior_net_capital_losses": "50.00",
                    "year": "2025-26", "scope_confirmed": true}),
+        ),
+        // Cost base adjustments for a trust: a demerger without roll-over,
+        // a return of capital above one parcel's cost base, and an AMIT
+        // excess and a tax-deferred amount with a tax-free part.
+        (
+            "cgt-cost-base-adjustments",
+            json!({"entity": "trust",
+                   "parcels": [{"parcel": "W", "security": "WOW", "acquired": "2020-03-02", "units": "300",
+                                "acquisition_cost": "3000.00", "incidental_costs": "29.95"},
+                               {"parcel": "X", "security": "WOW", "acquired": "2021-05-03", "units": "7",
+                                "acquisition_cost": "3.00", "incidental_costs": "0.00"},
+                               {"parcel": "A", "security": "AM", "acquired": "2019-01-07", "units": "10",
+                                "acquisition_cost": "100.00", "incidental_costs": "0.00",
+                                "ownership_costs": "5.00"},
+                               {"parcel": "U", "security": "UT", "acquired": "2019-01-07", "units": "3",
+                                "acquisition_cost": "90.00", "incidental_costs": "0.00"}],
+                   "events": [{"event": "demerger", "demerger": "woolworths_endeavour_2021",
+                               "security": "WOW", "new_security": "EDV", "rollover": false},
+                              {"event": "amit_excess", "security": "AM", "income_year": "2021-22",
+                               "amount": "33.33"},
+                              {"event": "tax_deferred", "security": "UT", "income_year": "2021-22",
+                               "amount": "10.00", "tax_free": "2.00"}],
+                   "year": "2021-22", "scope_confirmed": true}),
         ),
     ];
     cases.extend(
@@ -2186,7 +2210,7 @@ fn derive_refuses_what_it_does_not_explain() {
          fbt-lafha, fbt-board, fbt-tax-exempt-body-entertainment, gst, depreciation, \
          depreciation-low-value-pool, depreciation-small-business-pool, capital-works, \
          hire-purchase-schedule, chattel-mortgage-schedule, loan-transactions, \
-         lump-sum-arrears-tax-offset, income-tests, business-capital-expenditure, balancing-adjustment, trade-in, dasp-tax, gst-margin-scheme, etp-tax-free-component, payroll-tax, cgt-parcels, not \"payg-gross-up\""
+         lump-sum-arrears-tax-offset, income-tests, business-capital-expenditure, balancing-adjustment, trade-in, dasp-tax, gst-margin-scheme, etp-tax-free-component, payroll-tax, cgt-parcels, cgt-cost-base-adjustments, not \"payg-gross-up\""
     );
 }
 

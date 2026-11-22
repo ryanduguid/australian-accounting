@@ -16,8 +16,8 @@ keeps the calculator release and MCP integration separate.
 
 </div>
 
-70 calculation worksheets for established facts: ordinary GST, fuel tax credits at the ATO's rate for each day from 1 July 2022 with the simplified methods for small claimants, resident and foreign
-resident basic income tax, CGT losses and discount, the gains and losses from parcels of shares or units, the small business CGT concessions open for a gain, the small business income tax offset, the main residence exemption's taxable share of a gain or loss, one loan's borrowing expenses deduction and a schedule of several loans' deductions over every year, a hire purchase agreement's notional interest, a chattel mortgage's interest schedule and input tax credit, a loan's statement with daily interest at changing rates, business capital expenditure (black hole and start-up costs) under s 40-880, ordinary employer FBT, car fringe benefit taxable values
+71 calculation worksheets for established facts: ordinary GST, fuel tax credits at the ATO's rate for each day from 1 July 2022 with the simplified methods for small claimants, resident and foreign
+resident basic income tax, CGT losses and discount, the gains and losses from parcels of shares or units, their cost base after returns of capital, trust and AMIT adjustments and 2 demergers, the small business CGT concessions open for a gain, the small business income tax offset, the main residence exemption's taxable share of a gain or loss, one loan's borrowing expenses deduction and a schedule of several loans' deductions over every year, a hire purchase agreement's notional interest, a chattel mortgage's interest schedule and input tax credit, a loan's statement with daily interest at changing rates, business capital expenditure (black hole and start-up costs) under s 40-880, ordinary employer FBT, car fringe benefit taxable values
 under the statutory formula and operating cost methods, loan, meal entertainment, car parking, debt waiver, expense payment, property, residual, housing, living-away-from-home allowance, board and tax-exempt body entertainment fringe benefit taxable values, the FBT, deduction and GST credit treatment of entertainment expense lines, whether a 12 week meal entertainment register is valid, depreciation in the start year and later years, a depreciating asset's balancing adjustment with its reduction for private use and CGT event K7, a trade-in's GST on both sides with the old asset's balancing adjustment and the replacement's cost, whether an electric car's fringe benefits are exempt, one employer's payroll tax in each state and territory, a company's franking account with franking deficit tax, its offset and the benchmark rule, wine equalisation tax with the producer rebate under its yearly cap and BAS labels 1C and 1D, luxury car tax on sales and importations with its adjustments, refunds and BAS labels 1E and 1F,
 quarterly super guarantee, Schedule 1 PAYG withholding and the gross pay that leaves a stated net, Schedule 5 withholding from back payments, commissions and bonuses by Methods A, B(i) and B(ii), Schedule 15 withholding for working holiday makers, Schedule 9 withholding for seniors and pensioners, super contribution caps,
 account-based pension minimums, study and training loan repayments, Schedule 8 study
@@ -150,6 +150,7 @@ booleans and counts, ages, days, quarters and scales are JSON integers.
 | `balancing-adjustment` | `cost`, `termination_value`, `asset`, `years`, `year`, `scope_confirmed`; for a car, `car_limit`; see [Balancing adjustment](#balancing-adjustment) |
 | `franking-account` | `private_company`, `benchmark_rule_exempt`, `corporate_tax_rate`, `opening_balance`, `rd_deferred_debit_brought_forward`, `last_benchmark`, `events`, `distributions`, `year`, `scope_confirmed`; optional `income_tax` (required for a private company whose offset reduction would otherwise apply) and `commissioner_determination`; see [Franking account](#franking-account) |
 | `cgt-parcels` | `entity`, `identification`, `parcels`, `disposals`, `other_discount_capital_gains`, `other_capital_gains`, `other_capital_losses`, `prior_net_capital_losses`, `year`, `scope_confirmed`; see [CGT parcels](#cgt-parcels) |
+| `cgt-cost-base-adjustments` | `entity`, `parcels`, `events`, `year`, `scope_confirmed`; see [CGT cost base adjustments](#cgt-cost-base-adjustments) |
 | `trade-in` | `cost`, `asset`, `years`, `trade_in_allowance`, `trade_in_taxable`, `replacement_price`, `replacement_asset`, `replacement_creditable_acquisition`, `arms_length`, `involuntary_disposal`, `year`, `scope_confirmed`; `car_limit`, `adjusted_input_tax_credit`, `full_input_tax_credit`, `replacement_luxury_car_tax` and `creditable_purpose` where the facts need them; see [Trade-in](#trade-in) |
 | `dasp-tax` | `tax_free_component`, `taxed_element`, `untaxed_element`, `working_holiday_maker_contributions`, `unclaimed_money_rollover`, `year`, `scope_confirmed`; see [DASP tax](#dasp-tax) |
 | `payroll-tax` | `jurisdiction`, `taxable_wages`, `australian_wages`, `group_member`, `employed_all_year`, `year`, `scope_confirmed`; in Victoria, `regional_employer`; see [Payroll tax](#payroll-tax) |
@@ -209,9 +210,9 @@ booleans and counts, ages, days, quarters and scales are JSON integers.
 | `dgr-check` | `donations`, a list of 1 to 10,000 objects, each with `abn` or `name` or both, and optional `date` and `amount`; see [DGR check](#dgr-check) |
 | `personal-tax-estimate` | `year`, `scope_confirmed`, `residency`, `taxable_income` or `assessable_labour_income` (then optional `other_assessable_income`, `work_related_deductions`, `other_deductions`), optional `tax_withheld` or, to work it out, one of `payg-withholding`, `study-loan-withholding` and `seniors-pensioners-withholding` with `pays_in_year` and optional `schedule-5-method-a`, for a resident from 2027-28 `net_labour_income` (required beside `taxable_income`), and for a full-year resident `medicare-levy` and `medicare-levy-surcharge`; optional `seniors-pensioners-tax-offset`, `study-loan-repayment` and `division-293`; see [Personal tax estimate](#personal-tax-estimate) |
 | `fbt-return` | `employer`, `year_ended`, `scope_confirmed` and `benefits`, a list of objects each with `employee`, `command` (an FBT benefit worksheet), `input` (that worksheet's arguments), `gst_type` (`type_1` or `type_2`) and `excluded`; see [FBT return](#fbt-return) |
-| `derive` | `command`, one of `fbt`, `fbt-car-statutory`, `fbt-car-operating-cost`, `fbt-loan`, `fbt-meal-entertainment`, `fbt-car-parking`, `fbt-debt-waiver`, `fbt-expense-payment`, `fbt-property`, `division-293`, `pension-minimum`, `payg-withholding`, `schedule-5-method-a`, `schedule-5-method-b-i`, `schedule-5-method-b-ii`, `termination-payment`, `etp-tax-free-component`, `unused-leave-payment`, `working-holiday-maker-withholding`, `study-loan-withholding`, `seniors-pensioners-withholding`, `quarterly-sg`, `borrowing-expenses`, `borrowing-expenses-schedule`, `resident-tax`, `foreign-resident-tax`, `low-income-tax-offset`, `seniors-pensioners-tax-offset`, `medicare-levy`, `medicare-levy-surcharge`, `division-296`, `contribution-caps`, `study-loan-repayment`, `capital-gains`, `main-residence`, `fbt-residual`, `fbt-housing`, `fbt-lafha`, `fbt-board`, `fbt-tax-exempt-body-entertainment`, `gst`, `depreciation`, `depreciation-low-value-pool`, `depreciation-small-business-pool`, `capital-works`, `hire-purchase-schedule`, `chattel-mortgage-schedule`, `loan-transactions`, `lump-sum-arrears-tax-offset`, `income-tests`, `business-capital-expenditure`, `balancing-adjustment`, `trade-in`, `dasp-tax`, `gst-margin-scheme`, `payroll-tax` and `cgt-parcels`, and `input`, that command's arguments; see [Derivations](#derivations) |
+| `derive` | `command`, one of `fbt`, `fbt-car-statutory`, `fbt-car-operating-cost`, `fbt-loan`, `fbt-meal-entertainment`, `fbt-car-parking`, `fbt-debt-waiver`, `fbt-expense-payment`, `fbt-property`, `division-293`, `pension-minimum`, `payg-withholding`, `schedule-5-method-a`, `schedule-5-method-b-i`, `schedule-5-method-b-ii`, `termination-payment`, `etp-tax-free-component`, `unused-leave-payment`, `working-holiday-maker-withholding`, `study-loan-withholding`, `seniors-pensioners-withholding`, `quarterly-sg`, `borrowing-expenses`, `borrowing-expenses-schedule`, `resident-tax`, `foreign-resident-tax`, `low-income-tax-offset`, `seniors-pensioners-tax-offset`, `medicare-levy`, `medicare-levy-surcharge`, `division-296`, `contribution-caps`, `study-loan-repayment`, `capital-gains`, `main-residence`, `fbt-residual`, `fbt-housing`, `fbt-lafha`, `fbt-board`, `fbt-tax-exempt-body-entertainment`, `gst`, `depreciation`, `depreciation-low-value-pool`, `depreciation-small-business-pool`, `capital-works`, `hire-purchase-schedule`, `chattel-mortgage-schedule`, `loan-transactions`, `lump-sum-arrears-tax-offset`, `income-tests`, `business-capital-expenditure`, `balancing-adjustment`, `trade-in`, `dasp-tax`, `gst-margin-scheme`, `payroll-tax`, `cgt-parcels` and `cgt-cost-base-adjustments`, and `input`, that command's arguments; see [Derivations](#derivations) |
 
-The 2 car commands, the 11 FBT benefit commands (`fbt-loan`, `fbt-meal-entertainment`, `fbt-car-parking`, `fbt-debt-waiver`, `fbt-expense-payment`, `fbt-property`, `fbt-residual`, `fbt-housing`, `fbt-lafha`, `fbt-board` and `fbt-tax-exempt-body-entertainment`), `main-residence`, `borrowing-expenses`, `borrowing-expenses-schedule`, `fuel-tax-credits`, `division-296`, `termination-payment`, `etp-tax-free-component`, `unused-leave-payment`, the 3 `schedule-5` commands, `working-holiday-maker-withholding`, `seniors-pensioners-withholding`, `seniors-pensioners-tax-offset`, `medicare-levy-surcharge`, `foreign-resident-tax`, `payg-gross-up`, `hire-purchase-schedule`, `chattel-mortgage-schedule`, `loan-transactions`, `lump-sum-arrears-tax-offset`, `fbt-entertainment-classifier`, `fbt-meal-entertainment-register`, `fbt-minor-benefit-check`, `fhss`, `ppsr-timing`, `income-tests`, `business-capital-expenditure`, `balancing-adjustment`, `trade-in`, `gst-margin-scheme`, `franking-account`, `wine-equalisation-tax`, `luxury-car-tax`, `payroll-tax`, `dasp-tax`, `cgt-parcels`, `fbt-ev-exemption-check`, `sb-cgt-concessions` and `small-business-income-offset` have no Python original; their arguments follow the same
+The 2 car commands, the 11 FBT benefit commands (`fbt-loan`, `fbt-meal-entertainment`, `fbt-car-parking`, `fbt-debt-waiver`, `fbt-expense-payment`, `fbt-property`, `fbt-residual`, `fbt-housing`, `fbt-lafha`, `fbt-board` and `fbt-tax-exempt-body-entertainment`), `main-residence`, `borrowing-expenses`, `borrowing-expenses-schedule`, `fuel-tax-credits`, `division-296`, `termination-payment`, `etp-tax-free-component`, `unused-leave-payment`, the 3 `schedule-5` commands, `working-holiday-maker-withholding`, `seniors-pensioners-withholding`, `seniors-pensioners-tax-offset`, `medicare-levy-surcharge`, `foreign-resident-tax`, `payg-gross-up`, `hire-purchase-schedule`, `chattel-mortgage-schedule`, `loan-transactions`, `lump-sum-arrears-tax-offset`, `fbt-entertainment-classifier`, `fbt-meal-entertainment-register`, `fbt-minor-benefit-check`, `fhss`, `ppsr-timing`, `income-tests`, `business-capital-expenditure`, `balancing-adjustment`, `trade-in`, `gst-margin-scheme`, `franking-account`, `wine-equalisation-tax`, `luxury-car-tax`, `payroll-tax`, `dasp-tax`, `cgt-parcels`, `cgt-cost-base-adjustments`, `fbt-ev-exemption-check`, `sb-cgt-concessions` and `small-business-income-offset` have no Python original; their arguments follow the same
 rules. `division-296` alone takes a negative amount, in `total_super_earnings`. `main-residence` also takes dates as `YYYY-MM-DD` strings, lists of
 `{"start", "end"}` periods (with `"floor_area"` for income use) and `null`
 for no new home. `borrowing-expenses` takes `loan_start` as a `YYYY-MM-DD`
@@ -345,6 +346,7 @@ own dates and figures.
 | Balancing adjustment | Balancing adjustment events in 2024-25 to 2026-27, before Act No. 49 of 2026's CGT changes from 1 July 2027; one depreciating asset's established cost, termination value and each year's decline and deduction, with s 40-370 for a car from 2015-16; no pooled or written-off assets |
 | Franking account | 2025-26 and 2026-27, income years from 1 July to 30 June; one corporate tax entity that meets the residency requirement and is a franking entity all year; established events, amounts and corporate tax rate for imputation purposes; no consolidated groups, ceasing entities or late balancers |
 | CGT parcels | Contracts in 2025-26 and 2026-27, before Act No. 49 of 2026's changes; parcels of shares or units acquired after 21 September 1999 with established cost base elements; first in, first out or selected |
+| CGT cost base adjustments | Events from 1 July 2018 to 2026-27; G1, E4 and AMIT amounts as established, and the Coles (2018) and Endeavour (2021) demergers from their class rulings; parcels from 20 September 1985, unindexed, and no company parcel from before 22 September 1999 |
 | Trade-in | 2025-26 and 2026-27, at the car limits of $69,674 and $69,883; one depreciating asset traded in at arm's length for a replacement first held and used that year; established GST status, credits, allowance and price |
 | DASP tax | Payments in 2025-26 to 2027-28; one departing Australia superannuation payment's established components, at the ordinary or working holiday maker rates; no excess untaxed roll-over amount |
 | Payroll tax | 2026-27; one employer outside a group that pays wages all year in one state or territory; established taxable and Australian wages and, in Victoria, regional status; before exemptions, rebates, discounts and caps |
@@ -1474,6 +1476,69 @@ No. 49 of 2026 changes how capital gains are worked out, so 2027-28 is
 refused. The tests hold it to the ATO's Kathleen and Boris examples and the
 Library's David Jones example; see
 [calculation evidence](docs/calculation-evidence.md#cgt-parcels).
+
+## CGT cost base adjustments
+
+`cgt_cost_base_adjustments` applies the events that change the cost base and
+reduced cost base of parcels of shares or units, in time order, from
+1 July 2018 to the end of `year` (2018-19 to 2026-27), and returns the
+capital gains they make and the parcels as they then stand:
+
+- `parcels`: `cgt-parcels`' own parcel objects, each with its cost base just
+  before the first event;
+- `events`: each with `event` and `security`:
+  - `return_of_capital` with `date` and `per_unit`: a company's
+    non-assessable payment a share (CGT event G1, ITAA 1997 s 104-135);
+  - `tax_deferred` with `income_year`, `amount` (the year's non-assessable
+    part after s 104-71, from a trust that is not an AMIT) and optional
+    `tax_free` (the s 104-71(3) amounts, which reduce only the reduced cost
+    base, s 104-70(6)(b)): CGT event E4, just before the year's end;
+  - `amit_excess` or `amit_shortfall` with `income_year` and `amount` (the
+    AMMA statement's AMIT cost base net amount, s 104-107C), just before the
+    year's end (s 104-107B(4));
+  - each of these optionally with `parcels`, the names of the parcels the
+    amount is for; otherwise every parcel of the security held by then;
+  - `demerger` with `demerger` (`wesfarmers_coles_2018` or
+    `woolworths_endeavour_2021`), `new_security` and `rollover` (whether
+    roll-over is chosen).
+
+```text
+G1, E4, AMIT excess:  amount <= cost base: cost base and reduced cost base - amount
+                      amount >  cost base: capital gain = amount - cost base; both nil
+AMIT shortfall:       cost base and reduced cost base + amount
+demerger:             sum = cost bases of the head shares held at the record date
+                      head shares = sum x head share %, new shares = sum x new share %
+                      G1 gain without roll-over = units x capital reduction - cost base, if above 0
+```
+
+An E4 or AMIT amount, and each side of a demerger, is spread over the parcels
+by units, to the cent, the last parcel taking what is left; each side of a
+demerger is rounded to the cent on its own, as the ATO's examples do. The
+demergers are those whose class rulings were read: CR 2018/59 (71.09% and
+28.91%, $5.68 a share, 28 November 2018) and CR 2021/50 (85.81% and 14.19%,
+71 cents a share, 1 July 2021), each one new share for each head share. A new
+share keeps the head share's acquisition date in `parcels`, the date the
+discount uses (s 115-30(1) item 2); it was acquired on the implementation date
+(s 109-5). A gain is a discount capital gain when the parcel was acquired at
+least 12 months before the event (s 115-25(1)), except for a company.
+
+`discount_capital_gains` and `other_capital_gains` are the gains of events in
+`year`, for `cgt-parcels`' `other_discount_capital_gains` and
+`other_capital_gains`; `cost_base_held` and `reduced_cost_base_held` total the
+parcels at the year's end. `adjustments` lists each event's effect on each
+parcel, before and after, and `parcels` can go straight to `cgt-parcels`, its
+reduced cost base as `acquisition_cost` and the rest of its cost base as
+`ownership_costs`.
+
+It refuses events before 1 July 2018 (s 104-107A took its present form for
+2018-19) or after `year`, 2027-28 (Act No. 49 of 2026), a demerger it does not
+carry, a pre-CGT parcel an event touches, a company's parcel acquired at or
+before 21 September 1999 (indexed), and a cut to the reduced cost base larger
+than it. Another entity's parcel from before 22 September 1999 is worked
+without indexation, with a warning. Partial roll-over, foreign residents,
+revenue assets, liquidator payments and working out s 104-71 from a trust's
+components are out of scope. See
+[calculation evidence](docs/calculation-evidence.md#cgt-cost-base-adjustments).
 
 ## Borrowing expenses
 
