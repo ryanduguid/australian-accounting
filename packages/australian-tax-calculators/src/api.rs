@@ -787,6 +787,36 @@ const COMMAND_ARGS: &[(&str, &[(&str, Kind)])] = &[
         ],
     ),
     (
+        "trading-stock",
+        &[
+            ("entity", Raw),
+            ("opening_value", Dec),
+            ("items", Json),
+            ("estimated_closing_value", Dec),
+            ("simplified_choice", Raw),
+            ("year", Raw),
+            ("scope_confirmed", Raw),
+        ],
+    ),
+    (
+        "prepayments",
+        &[
+            ("taxpayer", Raw),
+            ("individual", Raw),
+            ("business_expenditure", Raw),
+            ("chose_82kzmd", Raw),
+            ("expenditure", Dec),
+            ("incurred", Raw),
+            ("service_start", Raw),
+            ("service_end", Raw),
+            ("agreement_date", Raw),
+            ("exclusion", Raw),
+            ("tax_shelter", Raw),
+            ("year", Raw),
+            ("scope_confirmed", Raw),
+        ],
+    ),
+    (
         "non-commercial-losses",
         &[
             ("activity", Raw),
@@ -1373,6 +1403,8 @@ pub fn evaluate_coded(command: &str, v: &Value) -> Result<Value> {
             | "depreciation-small-business-pool"
             | "capital-works"
             | "small-business-income-offset"
+            | "trading-stock"
+            | "prepayments"
             | "non-commercial-losses"
             | "psi-test"
             | "government-super-amounts"
@@ -2193,6 +2225,30 @@ pub fn evaluate_coded(command: &str, v: &Value) -> Result<Value> {
                 optional: given.each_ref().map(Option::as_ref),
             })
         }
+        "trading-stock" => engine::trading_stock(&engine::TradingStockArgs {
+            entity: &a[0],
+            opening_value: &a[1],
+            items: &a[2],
+            estimated_closing_value: &a[3],
+            simplified_choice: &a[4],
+            year: &a[5],
+            scope_confirmed: &a[6],
+        }),
+        "prepayments" => engine::prepayments(&engine::PrepaymentsArgs {
+            taxpayer: &a[0],
+            individual: &a[1],
+            business_expenditure: &a[2],
+            chose_82kzmd: &a[3],
+            expenditure: &a[4],
+            incurred: &a[5],
+            service_start: &a[6],
+            service_end: &a[7],
+            agreement_date: &a[8],
+            exclusion: &a[9],
+            tax_shelter: &a[10],
+            year: &a[11],
+            scope_confirmed: &a[12],
+        }),
         "non-commercial-losses" => {
             // Optional: the estimate for a part year and the other income of
             // an excepted activity.

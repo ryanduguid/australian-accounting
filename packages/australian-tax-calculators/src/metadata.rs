@@ -1175,6 +1175,13 @@ pub fn supported_periods(kind: &str) -> Vec<&'static str> {
         "small_business_income_offset" => vec![
             "2020-21", "2021-22", "2022-23", "2023-24", "2024-25", "2025-26", "2026-27",
         ],
+        // Sections 70-35 to 70-50 and 328-285 to 328-295 of ITAA 1997 and
+        // ss 82KZL to 82KZMF of ITAA 1936 read the same from these years'
+        // compilations to the current ones, but for the $50 million entity
+        // (trading stock from 2021-22; prepayments from 1 July 2020).
+        "trading_stock" | "prepayments" => vec![
+            "2020-21", "2021-22", "2022-23", "2023-24", "2024-25", "2025-26", "2026-27",
+        ],
         // Division 35 reads the same in compilations 210 (1 July 2020), 223
         // (1 July 2021) and 268 (1 October 2026).
         "non_commercial_losses" => vec![
@@ -1500,6 +1507,14 @@ pub fn source_review(kind: &str) -> (&'static str, &'static str) {
         "sb_cgt_concessions" => (
             "2026-11-19",
             "ITAA 1997 Division 152 (ss 152-5 to 152-35, 152-50, 152-55, 152-105, 152-110, 152-205 to 152-220, 152-305, 152-320, 152-325, 152-330, 152-410 and 152-430), s 104-190(1A) and s 328-110, compilation 264 (21 May 2026), the text for 2025-26 and 2026-27 under Act No. 49 of 2026 Schedule 1 item 82",
+        ),
+        "trading_stock" => (
+            "2026-11-22",
+            "ITAA 1997 ss 70-35, 70-40, 70-45, 70-50, 328-285 and 328-295, compilation 268 (1 October 2026), against compilations 210 (1 July 2020; s 328-285 without subsection (2)) and 223 (1 July 2021); Act No. 92 of 2020 Sch 3 item 40(8); the ATO's 'Simplified trading stock rules' (last updated 27 May 2026) and 'Valuing trading stock' (7 May 2025) pages",
+        ),
+        "prepayments" => (
+            "2026-11-22",
+            "ITAA 1936 ss 82KZL, 82KZM, 82KZMA, 82KZMD, 82KZME and 82KZMF, compilation 193 (1 October 2026), against compilations 169 (1 July 2020) and 175 (4 April 2021); Act No. 92 of 2020 Sch 3 item 40(5); Acts Interpretation Act 1901 s 2G, compilation 39 (28 March 2026); the ATO's Deductions for prepaid expenses 2021 (27 May 2021) and 2026 (30 May 2026)",
         ),
         "small_business_income_offset" => (
             "2026-11-22",
@@ -1912,6 +1927,18 @@ pub fn library_evidence(kind: &str) -> [(&'static str, &'static str); 4] {
             "2-280",
             "2026-06-30",
             "2026-11-19",
+        ),
+        "trading_stock" => (
+            "ATO Simplified trading stock rules page and the s 328-295 example",
+            "Colin's $6,800 and $7,820, Joel's $5,600 against $8,000 and $12,000, and Angela's $30,000 and $34,000",
+            "2026-05-27",
+            "2026-11-22",
+        ),
+        "prepayments" => (
+            "ATO Deductions for prepaid expenses 2021 and 2026",
+            "Martin (2021), Tom Pty Ltd, Noel Pty Ltd, the Jacobs Trust, Marion, Jasmin, John and Maree (2026)",
+            "2026-05-30",
+            "2026-11-22",
         ),
         "small_business_income_offset" => (
             "ATO Small business income tax offset page and the site's sole trader vectors",
@@ -4074,6 +4101,26 @@ pub fn input_units(kind: &str) -> Vec<(&'static str, &'static str)> {
             ("last_rollover_event", "YYYY-MM-DD, or null for this one: the last CGT event in the year for which you obtain the small business roll-over, from event_date to the end of the year; the replacement asset period runs from it (s 104-190(1A))"),
             ("earnout_latest_due", "YYYY-MM-DD, or null for no look-through earnout right: the latest time a possible financial benefit becomes or could become due under a look-through earnout right relating to the asset and this disposal, on or after event_date; the replacement asset period ends no earlier than 6 months after it (s 104-190(1A)(b)(ii))"),
         ],
+        "trading_stock" => vec![
+            ("entity", "small_business_entity, medium_business_entity (not a small business entity, but one at $50 million: ITAA 1997 s 328-285(2)) or other: the entity's status for the income year, which the operator establishes (s 328-110)"),
+            ("opening_value", "AUD: the value of all trading stock on hand at the start of the year, the amount taken into account at the end of the last year; nil for none (ss 70-40 and 328-295(1))"),
+            ("items", "list of up to 500 objects, one per item or line of like items on hand at the end of the year, each {cost, market_selling_value, replacement_value} in AUD or null for a value not given, net of any input tax credit (s 70-45(1A)), and method: cost, market_selling_value, replacement_value, lowest (the least of all 3) or obsolescence, with obsolescence_value (AUD) for obsolescence only (s 70-50); [] for none"),
+            ("estimated_closing_value", "AUD, or null to use the items' total: your reasonable estimate of the value of all trading stock on hand at the end of the year (s 328-285(1)(b))"),
+            ("simplified_choice", "boolean: you choose not to account for changes in the value of trading stock (s 328-285); refused when the choice is not open"),
+        ],
+        "prepayments" => vec![
+            ("taxpayer", "small_business_entity, medium_business_entity (covered by ITAA 1936 s 82KZM(1A): a small business entity at $50 million) or other: the taxpayer's status for the expenditure year, which the operator establishes"),
+            ("individual", "boolean: the taxpayer is an individual"),
+            ("business_expenditure", "boolean: the expenditure is incurred in carrying on a business"),
+            ("chose_82kzmd", "boolean: a small or medium business chose to apply s 82KZMD to the expenditure (s 82KZMA(2)(b)); true is refused for other"),
+            ("expenditure", "AUD: the amount ITAA 1997 s 8-1 would allow as a deduction in the year incurred, net of any input tax credit"),
+            ("incurred", "YYYY-MM-DD: the day the expenditure is incurred, in the income year"),
+            ("service_start", "YYYY-MM-DD: the first day on which the thing to be done under the agreement for the expenditure is required or permitted to start being done (s 82KZL(1) and (2))"),
+            ("service_end", "YYYY-MM-DD: the last day on which it is required or permitted to be done"),
+            ("agreement_date", "YYYY-MM-DD: the day the agreement was entered into; on or before 11 November 1999 is refused"),
+            ("exclusion", "none, law_or_court_order or contract_of_service: the excluded expenditure limb of s 82KZL(1) (b) or (c) the expenditure falls in; an amount under $1,000 is excluded without it"),
+            ("tax_shelter", "boolean: the operator has established that s 82KZME applies to the expenditure (subsections (2) and (3) met, none of (5), (8) or (9))"),
+        ],
         "small_business_income_offset" => vec![
             ("taxable_income", "AUD, whole dollars: your taxable income for the income year"),
             ("basic_income_tax_liability", "AUD: your basic income tax liability for the year, the tax on your taxable income at your rates before tax offsets and without the Medicare levy (ITAA 1997 s 4-10(3) step 2)"),
@@ -4856,6 +4903,37 @@ pub fn examples(kind: &str) -> Vec<(&'static str, Example)> {
             ("earnout_latest_due", Json("null")),
             ("retirement_exemption_used", Text("0.00")),
             ("choice_date", Text("2026-06-30")),
+        ],
+        // Joel's knitwear store (ATO 'Simplified trading stock rules'): a
+        // $12,000 stocktake against $5,600, without the choice; the items are
+        // fabricated.
+        "trading_stock" => vec![
+            ("year", Text("2025-26")),
+            ("entity", Text("small_business_entity")),
+            ("opening_value", Text("5600.00")),
+            (
+                "items",
+                Json(
+                    r#"[{"cost": "7000.00", "market_selling_value": "9000.00", "replacement_value": "7200.00", "method": "cost"}, {"cost": "5500.00", "market_selling_value": "5000.00", "replacement_value": "5600.00", "method": "lowest"}]"#,
+                ),
+            ),
+            ("estimated_closing_value", Text("12000.00")),
+            ("simplified_choice", Flag(false)),
+        ],
+        // Tom Pty Ltd (ATO Deductions for prepaid expenses 2026).
+        "prepayments" => vec![
+            ("year", Text("2025-26")),
+            ("taxpayer", Text("small_business_entity")),
+            ("individual", Flag(false)),
+            ("business_expenditure", Flag(true)),
+            ("chose_82kzmd", Flag(false)),
+            ("expenditure", Text("15000.00")),
+            ("incurred", Text("2026-05-31")),
+            ("service_start", Text("2026-06-01")),
+            ("service_end", Text("2027-06-30")),
+            ("agreement_date", Text("2026-05-31")),
+            ("exclusion", Text("none")),
+            ("tax_shelter", Flag(false)),
         ],
         // The site's sole trader vector for 2026-27 ($20,000 of profit on top
         // of $60,000 of wages); the turnovers are fabricated.

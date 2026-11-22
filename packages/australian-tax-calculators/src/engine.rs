@@ -4535,12 +4535,7 @@ fn income_year_start(first: i64) -> i64 {
 /// loan first drawn on 29 February 2024 has its 5 years end on 28 February
 /// 2029, as they would by the anniversary.
 fn five_years_end(start: i64) -> i64 {
-    let same_day = dates::add_months(start, 60);
-    if dates::to_civil(same_day).2 == dates::to_civil(start).2 {
-        same_day - 1
-    } else {
-        same_day
-    }
+    dates::months_end(start, 60)
 }
 
 /// One income year of the spread under s 25-25(4).
@@ -6181,12 +6176,16 @@ mod small_business_income_offset;
 pub use small_business_income_offset::{
     SBITO_OPTIONAL, SmallBusinessIncomeOffsetArgs, small_business_income_offset,
 };
+mod trading_stock;
+pub use trading_stock::{TradingStockArgs, trading_stock};
+mod prepayments;
+pub use prepayments::{PrepaymentsArgs, prepayments};
 mod non_commercial_losses;
 pub use non_commercial_losses::{NCL_OPTIONAL, NonCommercialLossesArgs, non_commercial_losses};
 mod psi_test;
 pub use psi_test::{PSI_OPTIONAL, PsiTestArgs, psi_test};
 
-const KINDS: [&str; 79] = [
+const KINDS: [&str; 81] = [
     "gst",
     "gst_margin_scheme",
     "fuel_tax_credits",
@@ -6266,6 +6265,8 @@ const KINDS: [&str; 79] = [
     "non_commercial_losses",
     "psi_test",
     "government_super_amounts",
+    "trading_stock",
+    "prepayments",
 ];
 
 /// `periods(kind)`: accepted period arguments and inclusive calendar boundaries.

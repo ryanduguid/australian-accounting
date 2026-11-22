@@ -303,6 +303,14 @@ pub const SCOPES: &[(&str, &str)] = &[
         "The small business income tax offset (ITAA 1997 Subdivision 328-F) of one individual, not as a trustee, who is not a prescribed person under s 102AC of the ITAA 1936, for an income year from 2020-21 to 2026-27: net small business income (s 328-365), each partnership or trust amount and its s 328-370 deductions, the basic income tax liability and the offsets applied before this one are the operator's established figures, and each partnership or trust is a small business entity at $5 million that is not a corporate tax entity.",
     ),
     (
+        "trading_stock",
+        "The change in value of the trading stock of one entity carrying on a business, for an income year from 1 July to 30 June, 2020-21 to 2026-27, under ITAA 1997 s 70-35: the excess of the value of all trading stock on hand at the end of the year over its value at the start is assessable, and the excess of the start value over the end value is deductible. The start value is the amount taken into account at the end of the last year (s 70-40). Each item on hand at the end is valued at its cost, market selling value or replacement value as elected for that item (s 70-45(1)), the least of the 3 for lowest, or below all 3 where obsolescence or other special circumstances warrant it (s 70-50), each net of input tax credits (s 70-45(1A)). A small business entity, or from 2021-22 an entity covered by s 328-285(2) ($50 million; Act No. 92 of 2020 Sch 3 item 40(8)), may choose not to account for the change when its reasonable estimate of the end value is within $5,000 of the start value (s 328-285(1)); the end value is then the start value (s 328-295). The operator establishes the entity's status, what is trading stock, each value, the elected methods, the obsolescence value and that it is reasonable, and the estimate. Excludes live stock acquired by natural increase and horse breeding stock (ss 70-55 to 70-65), stock taken for private use, disposals outside the ordinary course of business, assets becoming or ceasing to be trading stock (ss 70-30, 70-90 to 70-115), the cases in the s 70-45(2) table, primary producers' Subdivision 385, absorption costing and substituted accounting periods.",
+    ),
+    (
+        "prepayments",
+        "When one amount of expenditure incurred under an agreement in an income year from 1 July to 30 June, 2020-21 to 2026-27, is deductible under ITAA 1936 Subdivision H, where ITAA 1997 s 8-1 would otherwise allow it in full in the year incurred. Excluded expenditure (under $1,000, required by a law or court order, or under a contract of service: s 82KZL(1)) is deductible when incurred. The eligible service period runs from the later of the first day of the thing to be done and the day the expenditure is incurred to the last day, at most 10 years (s 82KZL(1)), months being read under Acts Interpretation Act 1901 s 2G(2). A thing wholly done in the expenditure year is deductible then. Where the operator states s 82KZME applies, s 82KZMF apportions the deduction by days. A small business entity or an entity covered by s 82KZM(1A) ($50 million, for expenditure incurred on or after 1 July 2020: Act No. 92 of 2020 Sch 3 item 40(5)) that has not chosen s 82KZMD, and an individual's non-business expenditure, deduct the whole amount in the expenditure year when the eligible service period is no longer than 12 months and ends by the last day of the next income year (s 82KZM(1)); otherwise s 82KZM, or for other taxpayers s 82KZMD, apportions it by days. Each year's amount is rounded to the cent half up on the running total. The operator establishes the deductible amount net of input tax credits, the taxpayer's status, the dates, the excluded expenditure limb and whether s 82KZME applies. Refuses agreements entered into on or before 11 November 1999. Excludes R&D expenditure (ss 355-205 and 355-480), Division 230 financial arrangements (s 82KZLA), Division 245, general insurers' expenditure, capital, private or domestic amounts, the STS accounting method and substituted accounting periods.",
+    ),
+    (
         "non_commercial_losses",
         "Whether ITAA 1997 Division 35 defers the loss from one business activity, or a group of similar ones, of one individual carrying it on alone or in partnership, for an income year from 2020-21 to 2026-27: the activity's income, deductions, asset values and earlier years and the income requirement amounts are the operator's established figures; not a bankruptcy (s 35-20), not section 40-880 expenditure (s 35-10(2A) and (2B)), and the Commissioner's discretion (s 35-55) is not decided.",
     ),
@@ -616,6 +624,14 @@ pub const SOURCES: &[(&str, &str)] = &[
     (
         "small_business_income_offset",
         "https://www.legislation.gov.au/C2004A05138/2026-10-01/2026-10-01/text/original/epub/OEBPS/document_7/document_7.html",
+    ),
+    (
+        "trading_stock",
+        "https://www.legislation.gov.au/C2004A05138/2026-10-01/2026-10-01/text/original/epub/OEBPS/document_3/document_3.html",
+    ),
+    (
+        "prepayments",
+        "https://www.legislation.gov.au/C1936A00027/2026-10-01/2026-10-01/text/original/epub/OEBPS/document_1/document_1.html",
     ),
     (
         "non_commercial_losses",
@@ -1345,6 +1361,26 @@ pub const EXTRA_SOURCES: &[(&str, &[&str])] = &[
         ],
     ),
     (
+        "trading_stock",
+        &[
+            "https://www.legislation.gov.au/C2004A05138/2026-10-01/2026-10-01/text/original/epub/OEBPS/document_7/document_7.html",
+            "https://www.legislation.gov.au/C2004A05138/2020-07-01/2020-07-01/text/original/epub/OEBPS/document_7/document_7.html",
+            "https://www.legislation.gov.au/C2020A00092/asmade/2020-10-14/text/original/epub/OEBPS/document_1/document_1.html",
+            "https://www.ato.gov.au/businesses-and-organisations/income-deductions-and-concessions/income-and-deductions-for-business/accounting-for-trading-stock/simplified-trading-stock-rules",
+            "https://www.ato.gov.au/businesses-and-organisations/income-deductions-and-concessions/income-and-deductions-for-business/accounting-for-trading-stock/valuing-trading-stock",
+        ],
+    ),
+    (
+        "prepayments",
+        &[
+            "https://www.legislation.gov.au/C1936A00027/2020-07-01/2020-07-01/text/original/epub/OEBPS/document_2/document_2.html",
+            "https://www.legislation.gov.au/C2020A00092/asmade/2020-10-14/text/original/epub/OEBPS/document_1/document_1.html",
+            "https://www.legislation.gov.au/C1901A00002/2026-03-28/2026-03-28/text/original/epub/OEBPS/document_1/document_1.html",
+            "https://www.ato.gov.au/api/public/content/0-3a8a1b7d-086d-40b2-abfe-55615b4f3528",
+            "https://www.ato.gov.au/api/public/content/0-347c6a18-4343-461e-b4f3-9f12a5ddb904",
+        ],
+    ),
+    (
         "non_commercial_losses",
         &[
             "https://www.legislation.gov.au/C2004A05138/2020-07-01/2020-07-01/text/original/epub/OEBPS/document_1/document_1.html",
@@ -1452,6 +1488,18 @@ pub const EXTRA_WARNINGS: &[(&str, &[&str])] = &[
         "small_business_income_offset",
         &[
             "The ATO works out the offset from the return and shows it on the notice of assessment; this is a check of that amount, not a claim.",
+        ],
+    ),
+    (
+        "trading_stock",
+        &[
+            "Making or not making the s 328-285 choice, and each item's valuation method, are the taxpayer's elections; the result shows the consequence of the ones given.",
+        ],
+    ),
+    (
+        "prepayments",
+        &[
+            "Whether s 82KZME applies is taken as stated; the worksheet does not test the tax shelter conditions.",
         ],
     ),
     (
@@ -2568,7 +2616,7 @@ pub const REFUSAL_CODES: &[(&str, &str)] = &[
     ),
     (
         "input.field_unknown",
-        "A field the worksheet or command does not take, or does not take beside the other inputs given, was given (fbt-loan, fbt-meal-entertainment, fbt-car-parking, fbt-debt-waiver, fbt-expense-payment, fbt-property, fbt-residual, fbt-housing, fbt-lafha, fbt-board, fbt-tax-exempt-body-entertainment, fbt-entertainment-classifier, fbt-meal-entertainment-register and its entries, fbt-minor-benefit-check, ppsr-timing, fhss and its contributions, government-super-amounts, personal_deductions and determination, division-296, depreciation, fuel-tax-credits and its lines, foreign-resident-tax, medicare-levy, medicare-levy-surcharge, payg-withholding, payg-gross-up, termination-payment, etp-tax-free-component, unused-leave-payment, the Schedule 5 methods, working-holiday-maker-withholding, study-loan-withholding, seniors-pensioners-withholding, seniors-pensioners-tax-offset, lump-sum-arrears-tax-offset, hire-purchase-schedule, chattel-mortgage-schedule, loan-transactions and its transactions and rate_changes, borrowing-expenses-schedule and its loans, business-capital-expenditure and its items, balancing-adjustment, its years and car_limit, trade-in, franking-account and its events, distributions and income_tax, dasp-tax, gst-margin-scheme, wine-equalisation-tax and its dealings, luxury-car-tax and its lines, payroll-tax, cgt-parcels, its parcels and disposals, fbt-ev-exemption-check, sb-cgt-concessions, small-business-income-offset, depreciation-low-value-pool, depreciation-small-business-pool, capital-works, non-commercial-losses, psi-test, beneficiary-tax-offset, invalid-carer-tax-offset, zone-tax-offset and its dependants, net-medical-expenses-tax-offset, work-expenses, ato-interest-penalties and its payments and parts, contribution-caps given a carry-forward input, derive, personal-tax-estimate, dgr-check, income-tests and fbt-return only).",
+        "A field the worksheet or command does not take, or does not take beside the other inputs given, was given (fbt-loan, fbt-meal-entertainment, fbt-car-parking, fbt-debt-waiver, fbt-expense-payment, fbt-property, fbt-residual, fbt-housing, fbt-lafha, fbt-board, fbt-tax-exempt-body-entertainment, fbt-entertainment-classifier, fbt-meal-entertainment-register and its entries, fbt-minor-benefit-check, ppsr-timing, fhss and its contributions, government-super-amounts, personal_deductions and determination, division-296, depreciation, fuel-tax-credits and its lines, foreign-resident-tax, medicare-levy, medicare-levy-surcharge, payg-withholding, payg-gross-up, termination-payment, etp-tax-free-component, unused-leave-payment, the Schedule 5 methods, working-holiday-maker-withholding, study-loan-withholding, seniors-pensioners-withholding, seniors-pensioners-tax-offset, lump-sum-arrears-tax-offset, hire-purchase-schedule, chattel-mortgage-schedule, loan-transactions and its transactions and rate_changes, borrowing-expenses-schedule and its loans, business-capital-expenditure and its items, balancing-adjustment, its years and car_limit, trade-in, franking-account and its events, distributions and income_tax, dasp-tax, gst-margin-scheme, wine-equalisation-tax and its dealings, luxury-car-tax and its lines, payroll-tax, cgt-parcels, its parcels and disposals, fbt-ev-exemption-check, sb-cgt-concessions, small-business-income-offset, trading-stock and its items, prepayments, depreciation-low-value-pool, depreciation-small-business-pool, capital-works, non-commercial-losses, psi-test, beneficiary-tax-offset, invalid-carer-tax-offset, zone-tax-offset and its dependants, net-medical-expenses-tax-offset, work-expenses, ato-interest-penalties and its payments and parts, contribution-caps given a carry-forward input, derive, personal-tax-estimate, dgr-check, income-tests and fbt-return only).",
     ),
     ("input.flag_invalid", "A flag is not a JSON boolean."),
     ("input.fraction_invalid", "A fraction is outside 0 to 1."),
@@ -2917,6 +2965,26 @@ pub const REFUSAL_CODES: &[(&str, &str)] = &[
         "An input or calculated time falls in the skipped or repeated ACT hour at a daylight saving change.",
     ),
     (
+        "prepayments.agreement_before_cutoff",
+        "The agreement was entered into on or before 11 November 1999, when a pre-RBT obligation (ITAA 1936 s 82KZL(1)) or a pre-existing obligation (s 82KZME(8)) may apply.",
+    ),
+    (
+        "prepayments.choice_unavailable",
+        "chose_82kzmd is true for a taxpayer that is neither a small business entity nor covered by ITAA 1936 s 82KZMA(2A).",
+    ),
+    (
+        "prepayments.dates_invalid",
+        "incurred is outside the income year, service_end is before service_start, or agreement_date is after incurred.",
+    ),
+    (
+        "prepayments.exclusion_invalid",
+        "exclusion is not none, law_or_court_order or contract_of_service.",
+    ),
+    (
+        "prepayments.taxpayer_invalid",
+        "taxpayer is not small_business_entity, medium_business_entity or other.",
+    ),
+    (
         "psi_test.agent_payments_invalid",
         "An agent's principal payments are nil or less than the commission given.",
     ),
@@ -3000,6 +3068,30 @@ pub const REFUSAL_CODES: &[(&str, &str)] = &[
     (
         "trade_in.not_arms_length",
         "The trade-in is not at arm's length, so market value rules apply that are not worked.",
+    ),
+    (
+        "trading_stock.entity_invalid",
+        "entity is not small_business_entity, medium_business_entity or other.",
+    ),
+    (
+        "trading_stock.items_invalid",
+        "items is not a list of at most 500 objects.",
+    ),
+    (
+        "trading_stock.method_invalid",
+        "An item's method is not cost, market_selling_value, replacement_value, lowest or obsolescence.",
+    ),
+    (
+        "trading_stock.obsolescence_not_below",
+        "An item's obsolescence value is not below its cost, market selling value and replacement value (ITAA 1997 s 70-50).",
+    ),
+    (
+        "trading_stock.simplified_unavailable",
+        "The s 328-285 choice was made by an entity that cannot make it for the year, or with the estimated closing value more than $5,000 from the opening value.",
+    ),
+    (
+        "trading_stock.value_missing",
+        "An item's elected value is null, or lowest or obsolescence lacks one of the 3 values.",
     ),
     (
         "wine_equalisation_tax.dealing_invalid",
