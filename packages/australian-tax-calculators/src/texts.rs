@@ -3013,6 +3013,18 @@ pub const REFUSAL_CODES: &[(&str, &str)] = &[
         "An input or calculated time falls in the skipped or repeated ACT hour at a daylight saving change.",
     ),
     (
+        "private_health_insurance_rebate.lhc_loading",
+        "A statement line gave a lifetime health cover loading, which is outside the rebate (PHI Act s 22-15(6)) and is not worked out.",
+    ),
+    (
+        "private_health_insurance_rebate.lines_invalid",
+        "The statement lines are not a list of 1 to 100 objects with premiums_eligible, rebate_received and a benefit code of 30, 31, 35, 36, 40 or 41.",
+    ),
+    (
+        "private_health_insurance_rebate.rate_unpublished",
+        "A line is for premiums paid from 1 April 2027, whose rebate percentages had not been published.",
+    ),
+    (
         "psi_test.agent_payments_invalid",
         "An agent's principal payments are nil or less than the commission given.",
     ),
@@ -3036,18 +3048,6 @@ pub const REFUSAL_CODES: &[(&str, &str)] = &[
     (
         "psi_test.premises_invalid",
         "premises is not an object of the 5 business premises answers.",
-    ),
-    (
-        "private_health_insurance_rebate.lhc_loading",
-        "A statement line gave a lifetime health cover loading, which is outside the rebate (PHI Act s 22-15(6)) and is not worked out.",
-    ),
-    (
-        "private_health_insurance_rebate.lines_invalid",
-        "The statement lines are not a list of 1 to 100 objects with premiums_eligible, rebate_received and a benefit code of 30, 31, 35, 36, 40 or 41.",
-    ),
-    (
-        "private_health_insurance_rebate.rate_unpublished",
-        "A line is for premiums paid from 1 April 2027, whose rebate percentages had not been published.",
     ),
     (
         "rental_property.asset_acquired_9_may_2017",
