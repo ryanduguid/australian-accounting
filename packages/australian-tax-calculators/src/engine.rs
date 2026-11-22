@@ -6215,8 +6215,13 @@ mod lodgment_required;
 pub use lodgment_required::{LodgmentRequiredArgs, lodgment_required};
 mod rd_tax_offset;
 pub use rd_tax_offset::{RdTaxOffsetArgs, rd_tax_offset};
+mod gst_adjustments;
+pub use gst_adjustments::{
+    AnnualApportionmentArgs, CreditablePurposeArgs, FinancialAcquisitionsArgs,
+    gst_annual_apportionment, gst_creditable_purpose_change, gst_financial_acquisitions_threshold,
+};
 
-const KINDS: [&str; 93] = [
+const KINDS: [&str; 96] = [
     "gst",
     "gst_margin_scheme",
     "fuel_tax_credits",
@@ -6310,6 +6315,9 @@ const KINDS: [&str; 93] = [
     "residency_tests",
     "lodgment_required",
     "rd_tax_offset",
+    "gst_creditable_purpose_change",
+    "gst_annual_apportionment",
+    "gst_financial_acquisitions_threshold",
 ];
 
 /// `periods(kind)`: accepted period arguments and inclusive calendar boundaries.

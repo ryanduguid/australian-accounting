@@ -1280,6 +1280,14 @@ pub fn supported_periods(kind: &str) -> Vec<&'static str> {
         "lodgment_required" => vec![
             "2020-21", "2021-22", "2022-23", "2023-24", "2024-25", "2025-26",
         ],
+        // GST Act Divisions 129, 131 and 189 read the same in compilation 82
+        // (in force on 1 July 2020) and compilation 96 (from 1 January 2026,
+        // current on 22 November 2026, with no unincorporated amendments).
+        "gst_creditable_purpose_change"
+        | "gst_annual_apportionment"
+        | "gst_financial_acquisitions_threshold" => vec![
+            "2020-21", "2021-22", "2022-23", "2023-24", "2024-25", "2025-26", "2026-27",
+        ],
         "income_tests" => vec!["2024-25", "2025-26", "2026-27"],
         // Each year's rates were read at the ATO, the Commissioner's
         // instruments and PCG 2023/1 on 22 November 2026; 2027-28 has no cents
@@ -1691,6 +1699,18 @@ pub fn source_review(kind: &str) -> (&'static str, &'static str) {
         "lodgment_required" => (
             "2026-11-22",
             "Notices of Requirement to Lodge a Return for the Income Year Ended 30 June 2021 (F2021L00577), 2022 (F2022L00508) and 2023 (F2023L00533), Tables A, B, J, K and P and sections 3.3 and 4; Taxation Laws (Requirement to Lodge a Return for the 2024 Year) Instrument 2024 (F2024L00550), 2025 Year (F2025L00570) and 2026 Year (F2026L00618), ss 6(2), 6(3), 6(10), 7(1)(f), 7(2), 7(3) and 8(1); the 2024 explanatory statement, paragraph 17",
+        ),
+        "gst_creditable_purpose_change" => (
+            "2026-11-22",
+            "GST Act ss 129-5, 129-10, 129-15, 129-20, 129-25, 129-40, 129-70, 129-75, 129-80 and 129-90 and the s 195-1 definition of GST exclusive value, compilation 96 (C2026C00081, from 1 January 2026), against compilation 82 (C2020C00143, in force on 1 July 2020); GSTR 2000/24 paras 12 to 83",
+        ),
+        "gst_annual_apportionment" => (
+            "2026-11-22",
+            "GST Act ss 11-15, 11-30, 131-5, 131-10, 131-15, 131-20, 131-40, 131-50, 131-55 and 131-60, compilation 96 (C2026C00081, from 1 January 2026), against compilation 82 (C2020C00143, in force on 1 July 2020); GST Regulations 2019 compilation 5 (F2025C01015), which specify no other threshold or kind; the ATO's 'Annual private apportionment of GST: Eligibility' (last updated 14 September 2026)",
+        ),
+        "gst_financial_acquisitions_threshold" => (
+            "2026-11-22",
+            "GST Act ss 11-15(4), 129-5(2), 189-5, 189-10 and 189-15, compilation 96 (C2026C00081, from 1 January 2026), against compilation 82 (C2020C00143, in force on 1 July 2020); GST Regulations 2019 compilation 5 (F2025C01015), which specify no other amount; GSTR 2003/9 paras 12 to 20C and 103 to 118",
         ),
         "income_tests" => (
             "2026-11-16",
@@ -2188,6 +2208,24 @@ pub fn library_evidence(kind: &str) -> [(&'static str, &'static str); 4] {
             "2026-05-22",
             "2026-11-22",
         ),
+        "gst_creditable_purpose_change" => (
+            "GSTR 2000/24",
+            "Bill's computer ($300 x (90% - 60%) = $90, paras 57 to 71), the XYZ Credit Union's $1,000 decrease (paras 64 to 72), Elizabeth's $960 (paras 75 to 78) and the adjustment periods of Farmco and Isabelle (paras 30 to 42)",
+            "2000-06-28",
+            "2026-11-22",
+        ),
+        "gst_annual_apportionment" => (
+            "GST Act s 131-55 example and the ATO's eligibility page",
+            "A $1,100 acquisition at 10% creditable purpose: a $100 credit and, after a $10 Division 19 and a $60 Division 21 adjustment, a $45 increasing adjustment",
+            "2026-09-14",
+            "2026-11-22",
+        ),
+        "gst_financial_acquisitions_threshold" => (
+            "GSTR 2003/9",
+            "Cedar's current and future tests (Examples 1A and 2A: $104,550 of $1,100,000, then $131,000 of $1,220,000) and the ABC group (Examples 13 and 14: $3,600 of $69,000, then $10,200 of $99,000)",
+            "2003-05-14",
+            "2026-11-22",
+        ),
         "income_tests" => (
             "ATO income test pages",
             "Christina's repayment income (When you must repay your loan) and Tom's income for MLS purposes (Medicare levy surcharge income, thresholds and rates)",
@@ -2292,6 +2330,30 @@ pub fn optional_inputs(kind: &str) -> Vec<(&'static str, &'static str)> {
             "tax_offsets",
             "AUD, with a TFN only: the yearly total the payee claimed at the tax offsets questions on their Withholding declaration; the daily value is 0.38% of it",
         )],
+        "gst_creditable_purpose_change" => vec![
+            (
+                "ended_on",
+                "YYYY-MM-DD: the day the thing was disposed of, lost, stolen or destroyed, or the period it was acquired for expired (GST Act s 129-25); refused when it falls in a tax period that itself ends on 30 June, and for the year whose 30 June tax period would be the last one when that period ends before the first adjustment period s 129-20(1) allows",
+            ),
+            (
+                "division_132_disposal",
+                "boolean, with ended_on only, default false: the disposal gave rise to a Division 132 decreasing adjustment, so the last adjustment period is the last to end before it (s 129-25(2))",
+            ),
+        ],
+        "gst_annual_apportionment" => vec![
+            (
+                "gst_turnover",
+                "AUD, required for an entity that is not a small business entity and does not carry on a business, and refused otherwise: its GST turnover (s 188-10), against the $2 million annual apportionment turnover threshold (s 131-5(1)(a)(ii))",
+            ),
+            (
+                "non_input_taxed_extent",
+                "fraction, decimal string from 0 to 1, default 1: the extent the acquisition does not relate to making input taxed supplies (s 131-40(2)), at least creditable_purpose",
+            ),
+            (
+                "consideration_extent",
+                "fraction, decimal string above 0 and at most 1, default 1: the extent you provide, or are liable to provide, the consideration (ss 11-30(3) and 131-40(2))",
+            ),
+        ],
         "fuel_tax_credits" => vec![
             (
                 "small_claimant",
@@ -4581,6 +4643,34 @@ pub fn input_units(kind: &str) -> Vec<(&'static str, &'static str)> {
             ("sapto", "null, or when you qualified for the seniors and pensioners tax offset {rebate_income: AUD, category: single (single, widowed or separated at any time), apart (otherwise, living apart from your spouse due to illness, or either of you in a nursing home, at any time) or together} (s 7(3))"),
             ("child_support_parent", "boolean: you were a parent liable for or entitled to child support; refused when this instrument does not require a return, as the separate instrument for parents may"),
         ],
+        "gst_creditable_purpose_change" => vec![
+            ("gst_exclusive_value", "AUD: the GST exclusive value of the thing acquired (GST Act s 195-1: 10/11 of the price, for a luxury car excluding the luxury car tax payable on the supply), each thing separately (GSTR 2000/24 para 18)"),
+            ("relates_to_business_finance", "boolean: at the acquisition the thing related solely or partly to making financial supplies and was not solely or partly of a private or domestic nature (s 129-10(3))"),
+            ("full_input_tax_credit", "AUD: the input tax credit had the acquisition been solely for a creditable purpose (ss 129-70 and 129-75), taking into account Division 19, 21, 133 and 134 adjustments for it (s 129-80; GSTR 2000/24 para 74)"),
+            ("intended_or_former_application", "fraction, decimal string from 0 to 1: the extent the thing was acquired for a creditable purpose or, after an earlier Division 129 adjustment, the actual application at the last one (s 129-40(1) step 2)"),
+            ("actual_application", "fraction, decimal string from 0 to 1: the extent the thing was applied for a creditable purpose from its acquisition to the end of this tax period (s 129-40(1) step 1)"),
+            ("application_basis", "text of 1 to 200 characters: the method and records the 2 applications rest on, such as kilometres or floor area (GSTR 2000/24 paras 50 to 52); echoed, never judged"),
+            ("attributed_period_end", "YYYY-MM-DD, the last day of a month: the end of the tax period the acquisition is attributable to, or would be if it were creditable (s 129-20(1)(a))"),
+            ("tax_period_months", "integer 1, 3 or 12: your tax periods are calendar months, quarters or the financial year, so one ends on 30 June each year"),
+        ],
+        "gst_annual_apportionment" => vec![
+            ("small_business_entity", "boolean: you are a small business entity (ITAA 1997 s 328-110), other than because of s 328-110(4), for the income year"),
+            ("carries_on_business", "boolean: you carry on a business"),
+            ("instalment_election", "boolean: an election to pay GST by instalments (GST Act s 162-15) is in effect"),
+            ("annual_tax_period_election", "boolean: an annual tax period election (s 151-10) is in effect"),
+            ("election_made", "boolean: you have made an annual apportionment election (s 131-10) that has effect at the end of the tax period the credit is attributable to; true with the entity test of s 131-5(1)(a) failing is refused, as whether the election ceased turns on s 131-20(1)(c) or (d); a later instalment or annual tax period election does not end it"),
+            ("gst_on_acquisition", "AUD: the GST payable on the supply of the thing acquired, the full input tax credit, taking into account Division 19, 21 and 134 adjustments for it (s 131-55(3) and (4))"),
+            ("creditable_purpose", "fraction, decimal string above 0 and at most 1: the extent of creditable purpose (s 11-15); 1 only with part of the consideration"),
+            ("car", "boolean: the acquisition is of a car (s 131-50); true is refused"),
+            ("reduced_credit_acquisition", "boolean: the acquisition is to any extent a reduced credit acquisition (s 131-40(5)); true is refused"),
+        ],
+        "gst_financial_acquisitions_threshold" => vec![
+            ("current_financial_credits", "AUD: the input tax credits for the financial acquisitions (s 189-15: relating to financial supplies other than borrowings) made or likely in the 12 months ending at the end of the month, as if solely for a creditable purpose (s 189-5)"),
+            ("current_total_credits", "AUD: the input tax credits for all acquisitions and importations of those 12 months, the financial acquisitions included as if solely for a creditable purpose"),
+            ("future_financial_credits", "AUD: the same credits for the financial acquisitions made or likely in the month and the next 11 months (s 189-10)"),
+            ("future_total_credits", "AUD: the input tax credits for all acquisitions and importations of those 12 months, the financial acquisitions included"),
+            ("gst_group", "boolean: you are a GST group member and the 4 amounts are every member's, counting only acquisitions made, or likely to be made, whilst each was a member (ss 189-5(2) and 189-10(2); GSTR 2003/9 para 108)"),
+        ],
         "income_tests" => vec![
             ("taxable_income", "AUD, whole dollars: taxable income, including any assessable FHSS released amount (nil for a loss)"),
             ("assessable_fhss_released_amount", "AUD: the amount ITAA 1997 s 313-20 includes in assessable income for released FHSS amounts"),
@@ -5577,6 +5667,45 @@ pub fn examples(kind: &str) -> Vec<(&'static str, Example)> {
             ("listed_payment", Json("null")),
             ("sapto", Json("null")),
             ("child_support_parent", Flag(false)),
+        ],
+        // GSTR 2000/24's Bill (paras 57 to 71), 20 years on: a $3,300
+        // computer attributable to the quarter to 31 March 2021, 90% intended
+        // and 60% actual by 30 June 2022.
+        "gst_creditable_purpose_change" => vec![
+            ("year", Text("2021-22")),
+            ("gst_exclusive_value", Text("3000.00")),
+            ("relates_to_business_finance", Flag(false)),
+            ("full_input_tax_credit", Text("300.00")),
+            ("intended_or_former_application", Text("0.9")),
+            ("actual_application", Text("0.6")),
+            (
+                "application_basis",
+                Text("Hours of business use in a computer log"),
+            ),
+            ("attributed_period_end", Text("2021-03-31")),
+            ("tax_period_months", Whole(3)),
+        ],
+        // The GST Act's s 131-55 example: $1,100 at 10% creditable purpose.
+        "gst_annual_apportionment" => vec![
+            ("year", Text("2025-26")),
+            ("small_business_entity", Flag(true)),
+            ("carries_on_business", Flag(true)),
+            ("instalment_election", Flag(false)),
+            ("annual_tax_period_election", Flag(false)),
+            ("election_made", Flag(true)),
+            ("gst_on_acquisition", Text("100.00")),
+            ("creditable_purpose", Text("0.1")),
+            ("car", Flag(false)),
+            ("reduced_credit_acquisition", Flag(false)),
+        ],
+        // GSTR 2003/9's Cedar, Examples 1A and 2A.
+        "gst_financial_acquisitions_threshold" => vec![
+            ("year", Text("2025-26")),
+            ("current_financial_credits", Text("104550.00")),
+            ("current_total_credits", Text("1100000.00")),
+            ("future_financial_credits", Text("131000.00")),
+            ("future_total_credits", Text("1220000.00")),
+            ("gst_group", Flag(false)),
         ],
         "income_tests" => vec![
             ("year", Text("2025-26")),

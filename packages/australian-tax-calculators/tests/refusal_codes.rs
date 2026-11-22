@@ -50,6 +50,7 @@ fn every_code_at_a_refusal_site_is_catalogued_and_every_entry_is_used() {
         "engine/ato_interest_penalties",
         "engine/rental_property",
         "engine/super_benefit_tax",
+        "engine/gst_adjustments",
     ]
     .into_iter()
     .flat_map(|dir| {
@@ -181,7 +182,7 @@ fn every_catalogued_required_input_of_a_strict_command_is_read() {
     // daily-casual-withholding, no-abn-withholding, entertainer-withholding,
     // return-to-work-withholding, annuity-withholding,
     // voluntary-agreement-withholding, residency-tests and lodgment-required and rd-tax-offset.
-    assert_eq!(checked, 79);
+    assert_eq!(checked, 82);
 }
 
 /// Every frozen call gives the same answer through either entry point, and
