@@ -4872,7 +4872,7 @@ mod luxury_car_tax;
 mod stated;
 pub use luxury_car_tax::{LctArgs, luxury_car_tax};
 mod cgt_parcels;
-pub use cgt_parcels::{CgtParcelsArgs, cgt_parcels};
+pub use cgt_parcels::{CgtCostBaseArgs, CgtParcelsArgs, cgt_cost_base_adjustments, cgt_parcels};
 
 /// One pay that includes an additional payment, as Schedule 5 (NAT 3348) reads it.
 struct AdditionalPay {
@@ -6225,7 +6225,7 @@ pub use gst_adjustments::{
 mod deferred_tax;
 pub use deferred_tax::{DeferredTaxArgs, deferred_tax};
 
-const KINDS: [&str; 100] = [
+const KINDS: [&str; 101] = [
     "gst",
     "gst_margin_scheme",
     "fuel_tax_credits",
@@ -6326,6 +6326,7 @@ const KINDS: [&str; 100] = [
     "gst_second_hand_goods",
     "gst_bad_debt",
     "deferred_tax",
+    "cgt_cost_base_adjustments",
 ];
 
 /// `periods(kind)`: accepted period arguments and inclusive calendar boundaries.

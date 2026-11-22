@@ -271,6 +271,16 @@ const COMMAND_ARGS: &[(&str, &[(&str, Kind)])] = &[
         ],
     ),
     (
+        "cgt-cost-base-adjustments",
+        &[
+            ("entity", Raw),
+            ("parcels", Json),
+            ("events", Json),
+            ("year", Raw),
+            ("scope_confirmed", Raw),
+        ],
+    ),
+    (
         "balancing-adjustment",
         &[
             ("cost", Dec),
@@ -1208,7 +1218,7 @@ pub fn commands() -> Vec<&'static str> {
 /// command on its `gross_pay` shows that withholding. The classifier's amounts
 /// are totals over lines whose shares a decision table sets, not a formula;
 /// each line and class carries the authority for its row instead.
-const DERIVED: [&str; 76] = [
+const DERIVED: [&str; 77] = [
     "fbt",
     "fbt-car-statutory",
     "fbt-car-operating-cost",
@@ -1285,6 +1295,7 @@ const DERIVED: [&str; 76] = [
     "gst-financial-acquisitions-threshold",
     "gst-second-hand-goods",
     "gst-bad-debt",
+    "cgt-cost-base-adjustments",
 ];
 
 /// `derive`: `{"command", "input"}` gives the command's result with the step
@@ -1730,6 +1741,7 @@ pub fn evaluate_coded(command: &str, v: &Value) -> Result<Value> {
             | "gst-margin-scheme"
             | "franking-account"
             | "cgt-parcels"
+            | "cgt-cost-base-adjustments"
     ) && let Some(key) = v
         .as_object()
         .into_iter()
@@ -1867,6 +1879,15 @@ pub fn evaluate_coded(command: &str, v: &Value) -> Result<Value> {
             year: &a[8],
             scope_confirmed: &a[9],
         }),
+        "cgt-cost-base-adjustments" => {
+            engine::cgt_cost_base_adjustments(&engine::CgtCostBaseArgs {
+                entity: &a[0],
+                parcels: &a[1],
+                events: &a[2],
+                year: &a[3],
+                scope_confirmed: &a[4],
+            })
+        }
         "balancing-adjustment" => {
             // Optional: a car's s 40-325 facts, or null; refused for any other asset.
             let car_limit = optional(v, "car_limit", Json)?;

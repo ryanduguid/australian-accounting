@@ -16,7 +16,7 @@ use std::process::{Command, Stdio};
 /// `tests/business_capital_expenditure.rs`, `tests/balancing_adjustment.rs`, `tests/trade_in.rs`, `tests/fuel_tax_credits.rs`,
 /// `tests/payroll_tax.rs`,
 /// `tests/gst_margin_scheme.rs`,
-/// `tests/cgt_parcels.rs`,
+/// `tests/cgt_parcels.rs`, `tests/cgt_cost_base_adjustments.rs`,
 /// `tests/division_296.rs`,
 /// `tests/termination_payment.rs`, `tests/etp_tax_free_component.rs`, `tests/unused_leave_payment.rs`, `tests/schedule_5.rs`,
 /// `tests/working_holiday_maker.rs`, `tests/seniors_pensioners.rs`,
@@ -38,7 +38,7 @@ use std::process::{Command, Stdio};
 /// `tests/individual_offsets.rs`, `tests/non_commercial_losses.rs`,
 /// `tests/psi_test.rs`, `tests/rental_property.rs`, `tests/residency_tests.rs`
 /// and `tests/lodgment_required.rs` and `tests/rd_tax_offset.rs` cover them.
-const NEW_KINDS: [(&str, &str); 86] = [
+const NEW_KINDS: [(&str, &str); 87] = [
     ("super-benefit-tax", "super_benefit_tax"),
     ("fhss", "fhss"),
     ("ato-interest-penalties", "ato_interest_penalties"),
@@ -71,6 +71,7 @@ const NEW_KINDS: [(&str, &str); 86] = [
     ("payroll-tax", "payroll_tax"),
     ("wine-equalisation-tax", "wine_equalisation_tax"),
     ("cgt-parcels", "cgt_parcels"),
+    ("cgt-cost-base-adjustments", "cgt_cost_base_adjustments"),
     ("sb-cgt-concessions", "sb_cgt_concessions"),
     ("work-expenses", "work_expenses"),
     (
