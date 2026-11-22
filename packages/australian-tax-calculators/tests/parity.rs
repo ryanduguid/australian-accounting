@@ -29,13 +29,13 @@ use std::process::{Command, Stdio};
 /// `tests/fbt_tax_exempt_body_entertainment.rs`, `tests/lump_sum_arrears_offset.rs`,
 /// `tests/fbt_entertainment_classifier.rs`, `tests/fbt_minor_benefit.rs`,
 /// `tests/fhss.rs`, `tests/ppsr_timing.rs`, `tests/dasp_tax.rs`, `tests/income_tests.rs`,
-/// `tests/franking_account.rs`, `tests/wine_equalisation_tax.rs`,
+/// `tests/franking_account.rs`, `tests/wine_equalisation_tax.rs`, `tests/alcohol_excise.rs`,
 /// `tests/luxury_car_tax.rs`, `tests/sb_cgt_concessions.rs`,
 /// `tests/depreciation_pools.rs`, `tests/work_expenses.rs`,
 /// `tests/ato_interest_penalties.rs`, `tests/small_business_income_offset.rs`,
 /// `tests/government_super_amounts.rs`, `tests/individual_offsets.rs`,
 /// `tests/non_commercial_losses.rs` and `tests/psi_test.rs` cover them.
-const NEW_KINDS: [(&str, &str); 65] = [
+const NEW_KINDS: [(&str, &str); 66] = [
     ("fhss", "fhss"),
     ("ato-interest-penalties", "ato_interest_penalties"),
     ("ppsr-timing", "ppsr_timing"),
@@ -66,6 +66,7 @@ const NEW_KINDS: [(&str, &str); 65] = [
     ("fuel-tax-credits", "fuel_tax_credits"),
     ("payroll-tax", "payroll_tax"),
     ("wine-equalisation-tax", "wine_equalisation_tax"),
+    ("alcohol-excise", "alcohol_excise"),
     ("cgt-parcels", "cgt_parcels"),
     ("sb-cgt-concessions", "sb_cgt_concessions"),
     ("work-expenses", "work_expenses"),

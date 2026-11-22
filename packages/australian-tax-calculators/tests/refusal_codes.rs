@@ -41,6 +41,7 @@ fn every_code_at_a_refusal_site_is_catalogued_and_every_entry_is_used() {
         "engine/fhss",
         "engine/franking_account",
         "engine/fuel_tax_credits",
+        "engine/alcohol_excise",
         "engine/hire_purchase",
         "engine/luxury_car_tax",
         "engine/wine_equalisation_tax",
@@ -167,14 +168,14 @@ fn every_catalogued_required_input_of_a_strict_command_is_read() {
     // etp-tax-free-component, fbt-meal-entertainment-register,
     // fbt-minor-benefit-check, gst-margin-scheme, wine-equalisation-tax,
     // luxury-car-tax, borrowing-expenses-schedule, payroll-tax,
-    // fuel-tax-credits, dasp-tax, ppsr-timing, cgt-parcels,
+    // fuel-tax-credits, alcohol-excise, dasp-tax, ppsr-timing, cgt-parcels,
     // fbt-ev-exemption-check, fhss, franking-account, sb-cgt-concessions,
     // depreciation-low-value-pool, depreciation-small-business-pool,
     // capital-works, ato-interest-penalties, work-expenses,
     // small-business-income-offset, government-super-amounts,
     // beneficiary-tax-offset, invalid-carer-tax-offset, zone-tax-offset,
     // net-medical-expenses-tax-offset, non-commercial-losses and psi-test.
-    assert_eq!(checked, 65);
+    assert_eq!(checked, 66);
 }
 
 /// Every frozen call gives the same answer through either entry point, and

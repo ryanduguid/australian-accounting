@@ -6153,6 +6153,8 @@ mod government_super_amounts;
 pub use government_super_amounts::{SPOUSE_INPUTS, government_super_amounts};
 mod wine_equalisation_tax;
 pub use wine_equalisation_tax::{WetArgs, wine_equalisation_tax};
+mod alcohol_excise;
+pub use alcohol_excise::{AlcoholExciseArgs, alcohol_excise};
 mod fbt_minor_benefit;
 pub use fbt_minor_benefit::{MinorBenefitArgs, fbt_minor_benefit_check};
 mod gst_margin_scheme;
@@ -6186,7 +6188,7 @@ pub use non_commercial_losses::{NCL_OPTIONAL, NonCommercialLossesArgs, non_comme
 mod psi_test;
 pub use psi_test::{PSI_OPTIONAL, PsiTestArgs, psi_test};
 
-const KINDS: [&str; 79] = [
+const KINDS: [&str; 80] = [
     "gst",
     "gst_margin_scheme",
     "fuel_tax_credits",
@@ -6256,6 +6258,7 @@ const KINDS: [&str; 79] = [
     "income_tests",
     "ppsr_timing",
     "wine_equalisation_tax",
+    "alcohol_excise",
     "sb_cgt_concessions",
     "work_expenses",
     "ato_interest_penalties",

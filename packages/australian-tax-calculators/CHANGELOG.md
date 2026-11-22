@@ -6,6 +6,21 @@
 
 ### Added
 
+- `alcohol-excise` works out the excise duty on beer, spirits and other
+  excisable beverages entered for home consumption from 1 July 2022 to 31
+  January 2027, line by line at the Commissioner's substituted rate for the
+  day (Excise Tariff Act 1921 Schedule items 1 to 3, ss 6A and 6L), with the
+  remission for alcohol manufacturers under its $350,000 or $400,000 yearly
+  cap and the refund of duty paid where it was available (Excise Regulation
+  2015 Sch 1 cl 2(1) item 10 and cl 2(2)). New codes:
+  `alcohol_excise.classification_unsettled`,
+  `alcohol_excise.date_outside_year`, `alcohol_excise.fact_conflict`,
+  `alcohol_excise.line_invalid`, `alcohol_excise.lines_invalid`,
+  `alcohol_excise.not_excisable`, `alcohol_excise.product_invalid`,
+  `alcohol_excise.product_out_of_scope`, `alcohol_excise.quantity_invalid`
+  and `alcohol_excise.rate_unpublished`. `tests/alcohol_excise.rs` holds it
+  to the ATO's and the Excise guidelines' examples and every notice's rates.
+
 - `work-expenses` works out an employee's working from home, car or
   self-education deduction for 2020-21 to 2026-27, one `method` a call: the
   fixed rate (52c with a dedicated home office to 2021-22, then PCG 2023/1's
