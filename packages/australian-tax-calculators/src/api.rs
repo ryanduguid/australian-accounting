@@ -955,6 +955,21 @@ const COMMAND_ARGS: &[(&str, &[(&str, Kind)])] = &[
         ],
     ),
     (
+        "residency-tests",
+        &[
+            ("resides", Raw),
+            ("domicile_in_australia", Raw),
+            ("permanent_place_of_abode_outside", Raw),
+            ("presence", Json),
+            ("usual_place_of_abode_outside", Raw),
+            ("intends_to_take_up_residence", Raw),
+            ("commonwealth_super", Raw),
+            ("resident_elsewhere", Raw),
+            ("year", Raw),
+            ("scope_confirmed", Raw),
+        ],
+    ),
+    (
         "income-tests",
         &[
             ("taxable_income", Dec),
@@ -1542,6 +1557,7 @@ pub fn evaluate_coded(command: &str, v: &Value) -> Result<Value> {
             | "return-to-work-withholding"
             | "annuity-withholding"
             | "voluntary-agreement-withholding"
+            | "residency-tests"
             | "business-capital-expenditure"
             | "balancing-adjustment"
             | "trade-in"
@@ -2536,6 +2552,18 @@ pub fn evaluate_coded(command: &str, v: &Value) -> Result<Value> {
             named.extend(spouse.iter().flatten().map(|(key, arg)| (*key, arg)));
             engine::government_super_amounts(&named)
         }
+        "residency-tests" => engine::residency_tests(&engine::ResidencyTestsArgs {
+            resides: &a[0],
+            domicile_in_australia: &a[1],
+            permanent_place_of_abode_outside: &a[2],
+            presence: &a[3],
+            usual_place_of_abode_outside: &a[4],
+            intends_to_take_up_residence: &a[5],
+            commonwealth_super: &a[6],
+            resident_elsewhere: &a[7],
+            year: &a[8],
+            scope_confirmed: &a[9],
+        }),
         "luxury-car-tax" => engine::luxury_car_tax(&engine::LctArgs {
             lines: &a[0],
             year: &a[1],

@@ -6209,8 +6209,10 @@ pub use payment_withholding::{
     annuity_withholding, entertainer_withholding, return_to_work_withholding,
     voluntary_agreement_withholding,
 };
+mod residency_tests;
+pub use residency_tests::{ResidencyTestsArgs, residency_tests};
 
-const KINDS: [&str; 90] = [
+const KINDS: [&str; 91] = [
     "gst",
     "gst_margin_scheme",
     "fuel_tax_credits",
@@ -6301,6 +6303,7 @@ const KINDS: [&str; 90] = [
     "return_to_work_withholding",
     "annuity_withholding",
     "voluntary_agreement_withholding",
+    "residency_tests",
 ];
 
 /// `periods(kind)`: accepted period arguments and inclusive calendar boundaries.

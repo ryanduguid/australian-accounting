@@ -524,6 +524,16 @@
   `sb_cgt_concessions.share_or_trust_interest`. `tests/sb_cgt_concessions.rs`
   holds it to the Library's Neil Swan and Wendy Simpson examples.
 
+
+- `residency-tests` says whether an individual was a resident of Australia
+  for an income year from 2020-21 to 2026-27 under each test in ITAA 1936
+  s 6(1), resident (a): resides, domicile, 183 days (counted from the dates
+  in Australia, 184 in 2023-24) and the Commonwealth superannuation fund
+  test. Residing, domicile, places of abode and intention are the
+  operator's answers. New codes: `residency_tests.presence_invalid`,
+  `residency_tests.super_invalid` and `residency_tests.treaty_tie_breaker`.
+  `tests/residency_tests.rs` holds it to TR 2023/1's examples.
+
 ### Changed
 
 - `borrowing-expenses` takes 2017-18 to 2027-28, not 2024-25 to 2026-27:
