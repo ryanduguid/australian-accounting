@@ -5,7 +5,8 @@ own `AGENTS.md`, `CONTRIBUTING.md` and `SECURITY.md` before changing it, and run
 checks from its own directory.
 
 - Setup: `uv sync` at the root installs every component and the shared toolchain into
-  one `.venv`; `just test` runs every component's suite plus the boundary checks. That
+  one `.venv`; `just test` runs every component's suite plus the boundary checks, as
+  `just python-test` and `just rust-test [crate directory ...]`, which can run apart. That
   is the whole setup for a fresh clone. `just` comes from `uv tool install rust-just`.
 - Components: `apps/aus-accounting-mcp/` (the MCP application),
   `apps/lodgeit-calculator-adapter/` (a Rust command, an optional adapter for a
