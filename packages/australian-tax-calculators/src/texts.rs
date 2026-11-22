@@ -263,6 +263,18 @@ pub const SCOPES: &[(&str, &str)] = &[
         "A capital gain from CGT event A1 (a disposal, ITAA 1997 s 104-10) of a CGT asset acquired from 20 September 1985 that is not a share in a company, an interest in a trust (s 152-10(2)) or a right or interest in a partnership's income or capital (s 152-10(2C)), under a contract made in the 2025-26 or 2026-27 income year, before Act No. 49 of 2026's changes to Division 152 from the income year that includes 1 July 2027 (Schedule 1 item 82), by an individual, a company or a trust that is not a public entity (s 152-305(3)), none of them acting for a deceased estate (s 152-80). The operator establishes whether the business entity (you; the partnership for an interest in a partnership asset; or the affiliate, connected entity or partnership whose business uses a passively held asset) carried on a business in the year, its aggregated turnovers (s 328-115, with connected entities and affiliates), the net value of the CGT assets under ss 152-15 and 152-20, the total days in the test period on which the asset was an active asset (s 152-40), whether the business ceased and when, and the retirement, incapacity and significant individual facts. The CGT small business entity test is s 328-110 with $2 million for each $10 million (s 152-10(1AA)). The test period counts both its first and last days; a total that may or may not be 7.5 years (2,737 to 2,740 days) is refused, as is an asset acquired on the same date 15 years before the event. The 15-year exemption, the 50% active asset reduction, the retirement exemption and the roll-over are each shown open or not, with the conditions not met; the amounts, the choices (ss 103-25, 152-220 and 152-315), the payments a company or trust must make (s 152-325), each stakeholder's limit (s 152-320(2)), the replacement asset (s 152-420), CGT events J2, J5 and J6, and look-through earnout rights other than their extension of the replacement asset period (s 104-190(1A)(b)(ii)) are outside it.",
     ),
     (
+        "depreciation_low_value_pool",
+        "One holder's low-value pool (ITAA 1997 Subdivision 40-E) for an income year from 2020-21 to 2026-27: the decline in value at 18.75% of the taxable use percentage of the cost of low-cost assets allocated for the year and of second element amounts for the year, and at 37.5% of the previous closing pool balance and the taxable use percentage of the opening adjustable values of low-value assets allocated for the year (s 40-440), then the closing pool balance, reduced by the taxable use percentage of termination values, with any excess assessable (s 40-445). The operator establishes which assets may be and are allocated (s 40-425: low-cost assets cost under $1,000; low-value assets were written down by diminishing value to an opening adjustable value under $1,000; not assets of a small business entity under Subdivision 328-D, assets under s 40-82, R&D assets, assets for assessable labour income or assets costing $300 or less used mainly for non-business income) and each taxable use percentage (s 40-435). Excludes whether temporary full expensing applied to an asset in 2020-21 to 2022-23, the sampling rule, the capital gain or loss on the non-taxable part of a disposal and primary production apportionment.",
+    ),
+    (
+        "depreciation_small_business_pool",
+        "A small business entity's general small business pool (ITAA 1997 Subdivision 328-D) for an income year from 2020-21 to 2026-27, for an entity that chose the simplified depreciation rules for the year or continues its pool under s 328-220. The pool's s 328-210(2) amount (opening pool balance, plus the taxable purpose proportions of the adjustable values of assets allocated for the year and of cost addition amounts, less those of termination values) is written off when above zero and below the year's low pool value threshold: no limit for 2020-21 to 2022-23 (IT(TP)A 1997 s 328-181(5)), $20,000 for 2023-24 to 2025-26 (IT(TP)A s 328-180(6)(e)) and $20,000 for 2026-27 (s 328-210(1) as amended by Act No. 71 of 2026). Otherwise 30% of the opening pool balance and 15% of the year's additions and cost addition amounts are deducted (s 328-190) and the closing pool balance follows (s 328-200); a balance or amount below zero is assessable and the pool closes at zero (s 328-215). The operator establishes the entity's eligibility, which assets the instant asset write-off (s 328-180) or temporary full expensing took instead of the pool, each taxable purpose proportion and any s 328-225 adjustment, which belongs in the opening pool balance. Excludes roll-over relief (ss 328-243 to 328-247), assets excluded from simplified depreciation, the car limit, and the 57.5% backing business investment rate, refused in the one 2020-21 case it could change the result.",
+    ),
+    (
+        "capital_works",
+        "One area's capital works deduction under ITAA 1997 Division 43 for an income year from 2020-21 to 2026-27, for capital works begun on or after 16 September 1987 that qualify for a deduction for their start date and type (the operator establishes this, for example from the Rental properties guide 2026 table 1: structural improvements begun before 27 February 1992 do not). The rate is 4% for the part used in the 4% manner (s 43-145, including the 4% build to rent manner) for works begun after 26 February 1992, and 2.5% otherwise (s 43-210 steps 1 and 3; s 43-215 step 1(b) for works begun 16 September 1987 to 26 February 1992), on the construction expenditure for the part, for the days in the year it was owned or leased and used in that way over 365 (366 days are allowed in 2023-24), reduced for use only partly for producing assessable income, and limited to the undeducted construction expenditure (s 43-210 step 6, s 43-215 step 4). The operator establishes the construction expenditure attributable to their own area (a co-owner's own part), the days, the taxable use and the undeducted construction expenditure (s 43-235). Excludes works begun before 16 September 1987, works taken by s 43-220 to have begun before then, hotel and apartment buildings begun before 27 February 1992 (s 43-215 step 2), the calculation of undeducted construction expenditure, destruction (s 43-40) and splitting expenditure amongst co-owners.",
+    ),
+    (
         "small_business_income_offset",
         "The small business income tax offset (ITAA 1997 Subdivision 328-F) of one individual, not as a trustee, who is not a prescribed person under s 102AC of the ITAA 1936, for an income year from 2020-21 to 2026-27: net small business income (s 328-365), each partnership or trust amount and its s 328-370 deductions, the basic income tax liability and the offsets applied before this one are the operator's established figures, and each partnership or trust is a small business entity at $5 million that is not a corporate tax entity.",
     ),
@@ -524,6 +536,18 @@ pub const SOURCES: &[(&str, &str)] = &[
     (
         "sb_cgt_concessions",
         "https://www.legislation.gov.au/C2004A05138/2026-05-21/2026-05-21/text/original/epub/OEBPS/document_4/document_4.html",
+    ),
+    (
+        "depreciation_low_value_pool",
+        "https://www.ato.gov.au/law/view/document?docid=PAC/19970038/40-440",
+    ),
+    (
+        "depreciation_small_business_pool",
+        "https://www.ato.gov.au/law/view/document?docid=PAC/19970038/328-210",
+    ),
+    (
+        "capital_works",
+        "https://www.ato.gov.au/law/view/document?docid=PAC/19970038/43-210",
     ),
     (
         "small_business_income_offset",
@@ -1113,6 +1137,36 @@ pub const EXTRA_SOURCES: &[(&str, &[&str])] = &[
         ],
     ),
     (
+        "depreciation_low_value_pool",
+        &[
+            "https://www.ato.gov.au/law/view/document?docid=PAC/19970038/40-425",
+            "https://www.ato.gov.au/law/view/document?docid=PAC/19970038/40-435",
+            "https://www.ato.gov.au/law/view/document?docid=PAC/19970038/40-445",
+            "https://www.ato.gov.au/businesses-and-organisations/income-deductions-and-concessions/depreciation-and-capital-expenses-and-allowances/general-depreciation-rules-capital-allowances/low-value-assets-pool",
+        ],
+    ),
+    (
+        "depreciation_small_business_pool",
+        &[
+            "https://www.ato.gov.au/law/view/document?docid=PAC/19970038/328-190",
+            "https://www.ato.gov.au/law/view/document?docid=PAC/19970038/328-200",
+            "https://www.ato.gov.au/law/view/document?docid=PAC/19970038/328-215",
+            "https://www.ato.gov.au/law/view/document?docid=PAC/19970040/328-180",
+            "https://www.ato.gov.au/law/view/document?docid=PAC/19970040/328-181",
+            "https://www.legislation.gov.au/C2026A00071/asmade/text",
+            "https://www.ato.gov.au/businesses-and-organisations/income-deductions-and-concessions/depreciation-and-capital-expenses-and-allowances/simpler-depreciation-for-small-business/small-business-pool-calculations",
+        ],
+    ),
+    (
+        "capital_works",
+        &[
+            "https://www.ato.gov.au/law/view/document?docid=PAC/19970038/43-140",
+            "https://www.ato.gov.au/law/view/document?docid=PAC/19970038/43-145",
+            "https://www.ato.gov.au/law/view/document?docid=PAC/19970038/43-215",
+            "https://www.ato.gov.au/businesses-and-organisations/income-deductions-and-concessions/depreciation-and-capital-expenses-and-allowances/capital-works-deductions",
+        ],
+    ),
+    (
         "sb_cgt_concessions",
         &[
             "https://www.legislation.gov.au/C2004A05138/2026-05-21/2026-05-21/text/original/epub/OEBPS/document_3/document_3.html",
@@ -1172,6 +1226,18 @@ pub const EXTRA_WARNINGS: &[(&str, &[&str])] = &[
         "fuel_tax_credits",
         &[
             "Each line's rate is the one the ATO publishes for its acquisition day; the ATO's fuel tax credit calculator remains the authority for an amount claimed.",
+        ],
+    ),
+    (
+        "depreciation_small_business_pool",
+        &[
+            "Which assets the instant asset write-off or temporary full expensing took instead of the pool is the operator's to establish; this worksheet works out the pool only.",
+        ],
+    ),
+    (
+        "capital_works",
+        &[
+            "undeducted_construction_expenditure is not carried forward here: it falls by more than the deduction where the area was not used to produce income (s 43-235).",
         ],
     ),
     (
@@ -1588,6 +1654,22 @@ pub const REFUSAL_CODES: &[(&str, &str)] = &[
         "An item is stated not to be capital expenditure.",
     ),
     (
+        "capital_works.begun_before_16_september_1987",
+        "The capital works began before 16 September 1987, under rates and rules of ITAA 1997 s 43-215 the worksheet does not take.",
+    ),
+    (
+        "capital_works.four_percent_before_27_february_1992",
+        "The 4% manner was given for capital works begun before 27 February 1992, which have only the 2.5% rate (ITAA 1997 s 43-215 step 1(b)).",
+    ),
+    (
+        "capital_works.precision_exceeded",
+        "taxable_use has more than 20 significant digits.",
+    ),
+    (
+        "capital_works.undeducted_above_expenditure",
+        "The undeducted construction expenditure is more than the construction expenditure.",
+    ),
+    (
         "cgt_parcels.entity_invalid",
         "entity is not individual, trust, complying_superannuation_entity or company.",
     ),
@@ -1703,6 +1785,10 @@ pub const REFUSAL_CODES: &[(&str, &str)] = &[
     (
         "depreciation.precision_exceeded",
         "An effective life's significant digits and the taxable use's decimal places total more than 22.",
+    ),
+    (
+        "depreciation_small_business_pool.backing_business_investment",
+        "In 2020-21 a pool's s 328-210(2) amount is exactly zero and additions are above zero, so the 57.5% backing business investment rate could change the result.",
     ),
     (
         "derivation.unsupported",
@@ -2170,7 +2256,7 @@ pub const REFUSAL_CODES: &[(&str, &str)] = &[
     ),
     (
         "input.field_unknown",
-        "A field the worksheet or command does not take, or does not take beside the other inputs given, was given (fbt-loan, fbt-meal-entertainment, fbt-car-parking, fbt-debt-waiver, fbt-expense-payment, fbt-property, fbt-residual, fbt-housing, fbt-lafha, fbt-board, fbt-tax-exempt-body-entertainment, fbt-entertainment-classifier, fbt-meal-entertainment-register and its entries, fbt-minor-benefit-check, ppsr-timing, fhss and its contributions, personal_deductions and determination, division-296, depreciation, fuel-tax-credits and its lines, foreign-resident-tax, medicare-levy, medicare-levy-surcharge, payg-withholding, payg-gross-up, termination-payment, etp-tax-free-component, unused-leave-payment, the Schedule 5 methods, working-holiday-maker-withholding, study-loan-withholding, seniors-pensioners-withholding, seniors-pensioners-tax-offset, lump-sum-arrears-tax-offset, hire-purchase-schedule, chattel-mortgage-schedule, loan-transactions and its transactions and rate_changes, borrowing-expenses-schedule and its loans, business-capital-expenditure and its items, balancing-adjustment, its years and car_limit, trade-in, franking-account and its events, distributions and income_tax, dasp-tax, gst-margin-scheme, wine-equalisation-tax and its dealings, luxury-car-tax and its lines, payroll-tax, cgt-parcels, its parcels and disposals, fbt-ev-exemption-check, sb-cgt-concessions, small-business-income-offset, contribution-caps given a carry-forward input, derive, personal-tax-estimate, dgr-check, income-tests and fbt-return only).",
+        "A field the worksheet or command does not take, or does not take beside the other inputs given, was given (fbt-loan, fbt-meal-entertainment, fbt-car-parking, fbt-debt-waiver, fbt-expense-payment, fbt-property, fbt-residual, fbt-housing, fbt-lafha, fbt-board, fbt-tax-exempt-body-entertainment, fbt-entertainment-classifier, fbt-meal-entertainment-register and its entries, fbt-minor-benefit-check, ppsr-timing, fhss and its contributions, personal_deductions and determination, division-296, depreciation, fuel-tax-credits and its lines, foreign-resident-tax, medicare-levy, medicare-levy-surcharge, payg-withholding, payg-gross-up, termination-payment, etp-tax-free-component, unused-leave-payment, the Schedule 5 methods, working-holiday-maker-withholding, study-loan-withholding, seniors-pensioners-withholding, seniors-pensioners-tax-offset, lump-sum-arrears-tax-offset, hire-purchase-schedule, chattel-mortgage-schedule, loan-transactions and its transactions and rate_changes, borrowing-expenses-schedule and its loans, business-capital-expenditure and its items, balancing-adjustment, its years and car_limit, trade-in, franking-account and its events, distributions and income_tax, dasp-tax, gst-margin-scheme, wine-equalisation-tax and its dealings, luxury-car-tax and its lines, payroll-tax, cgt-parcels, its parcels and disposals, fbt-ev-exemption-check, sb-cgt-concessions, small-business-income-offset, depreciation-low-value-pool, depreciation-small-business-pool, capital-works, contribution-caps given a carry-forward input, derive, personal-tax-estimate, dgr-check, income-tests and fbt-return only).",
     ),
     ("input.flag_invalid", "A flag is not a JSON boolean."),
     ("input.fraction_invalid", "A fraction is outside 0 to 1."),

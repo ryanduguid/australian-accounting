@@ -6161,12 +6161,16 @@ mod ppsr_timing;
 pub use ppsr_timing::ppsr_timing;
 mod sb_cgt_concessions;
 pub use sb_cgt_concessions::{SB_CGT_OPTIONAL, SbCgtConcessionsArgs, sb_cgt_concessions};
+mod depreciation_pools;
+pub use depreciation_pools::{
+    capital_works, depreciation_low_value_pool, depreciation_small_business_pool,
+};
 mod small_business_income_offset;
 pub use small_business_income_offset::{
     SBITO_OPTIONAL, SmallBusinessIncomeOffsetArgs, small_business_income_offset,
 };
 
-const KINDS: [&str; 67] = [
+const KINDS: [&str; 70] = [
     "gst",
     "gst_margin_scheme",
     "fuel_tax_credits",
@@ -6233,6 +6237,9 @@ const KINDS: [&str; 67] = [
     "ppsr_timing",
     "wine_equalisation_tax",
     "sb_cgt_concessions",
+    "depreciation_low_value_pool",
+    "depreciation_small_business_pool",
+    "capital_works",
     "small_business_income_offset",
 ];
 
