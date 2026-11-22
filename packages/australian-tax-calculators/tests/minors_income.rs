@@ -329,3 +329,73 @@ fn item_limit() {
     let fifty_one = with(fifty, json!({"excepted_income": vec![item; 51]}));
     assert_eq!(code(&fifty_one), "minors_income.excepted_income_invalid");
 }
+
+/// Review finding S1: s 102AG(1) applies only to a prescribed beneficiary,
+/// and the excepted person ground is not tested for a person 18 or over.
+#[test]
+fn trust_share_and_ground_of_a_non_prescribed_person() {
+    let share = json!({
+        "trust_shares": [{"amount": "5000.00", "division_6aa_part": "3000.00"}],
+        "taxable_income": "5000",
+    });
+    let minor_share = run(&with(minor("2025-26", "resident", 0, 0), share.clone()));
+    assert_eq!(
+        amount(&minor_share, "eligible_assessable_income"),
+        "3000.00"
+    );
+    let adult = with(
+        minor("2025-26", "resident", 0, 0),
+        json!({"under_18_on_30_june": false}),
+    );
+    let out = run(&with(adult.clone(), share));
+    assert_eq!(amount(&out, "excepted_assessable_income"), "5000.00");
+    assert_eq!(amount(&out, "eligible_assessable_income"), "0.00");
+    assert_eq!(amount(&out, "basic_income_tax"), "0.00");
+    let out = run(&with(
+        adult,
+        json!({"excepted_person": "full_time_occupation", "taxable_income": "0"}),
+    ));
+    assert_eq!(out["prescribed_person"], false);
+    let worker = with(
+        minor("2025-26", "resident", 0, 2000),
+        json!({"excepted_person": "full_time_occupation"}),
+    );
+    assert_eq!(code(&worker), "input.missing_field");
+}
+
+/// s 102AD(c)'s other branches: a nil numerator with apportionable
+/// deductions, a nil denominator, and negative deductions refused.
+#[test]
+fn apportionment_edges() {
+    let out = run(&with(
+        minor("2025-26", "resident", 1000, 500),
+        json!({"deductions_exclusive": "600.00", "apportionable_deductions": "100.00", "taxable_income": "800"}),
+    ));
+    assert_eq!(amount(&out, "apportioned_deductions"), "0.00");
+    assert_eq!(amount(&out, "eligible_taxable_income"), "0.00");
+    let nil = run(&minor("2025-26", "resident", 0, 0));
+    assert_eq!(taxes(&nil), ["0.00", "0.00", "0.00"]);
+    let no_taxable_income = with(
+        minor("2025-26", "resident", 0, 100),
+        json!({"taxable_income": "0"}),
+    );
+    assert_eq!(code(&no_taxable_income), "minors_income.facts_inconsistent");
+    for key in [
+        "deductions_exclusive",
+        "deductions_related",
+        "apportionable_deductions",
+    ] {
+        let negative = with(minor("2025-26", "resident", 0, 2000), json!({key: "-1.00"}));
+        assert_eq!(code(&negative), "input.amount_invalid", "{key}");
+    }
+}
+
+/// s 15(2): the foreign resident top-slice tax at 37% beats both phase-in
+/// amounts.
+#[test]
+fn foreign_top_slice() {
+    let out = run(&minor("2025-26", "foreign_resident", 135000, 500));
+    assert_eq!(taxes(&out), ["40500.00", "185.00", "40685.00"]);
+    let out = run(&minor("2025-26", "foreign_resident", 135000, 400));
+    assert_eq!(taxes(&out)[1], "148.00");
+}

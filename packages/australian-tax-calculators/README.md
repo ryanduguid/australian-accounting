@@ -2841,10 +2841,12 @@ established facts:
    (s 102AC(1)); `excepted_person` names the s 102AC(2) ground, the full-time
    occupation ground runs the s 102AC(6) to (8) test on 4 stated facts, and
    a double orphan or permanently disabled minor dependent on relatives is
-   not excepted (s 102AC(3) to (5));
+   not excepted (s 102AC(3) to (5)); for a person 18 or over on 30 June the
+   ground is not tested;
 2. excepted assessable income is listed by its s 102AE(2) ground, and each
    trust share with the part to which Division 6AA applies (s 102AE(4),
-   s 102AG); the rest of assessable income is eligible (s 102AE(1));
+   s 102AG), which applies only to a prescribed person, so otherwise the whole
+   share is excepted; the rest of assessable income is eligible (s 102AE(1));
 3. eligible taxable income is eligible assessable income less the
    deductions relating to it and its share of apportionable deductions
    (s 102AD), nil if negative;

@@ -155,8 +155,13 @@ fn full_time_test(given: Option<&Arg>) -> Result<bool> {
     Ok((on_last_day || three_months) && occupation_next && !education_next)
 }
 
-/// The ground given and whether the minor is an excepted person by it.
-fn excepted_person(args: &MinorsIncomeArgs) -> Result<Option<(&'static str, bool)>> {
+/// The ground given and whether the minor is an excepted person by it; for
+/// a person 18 or over on 30 June, who is not prescribed whatever the ground
+/// (s 102AC(1)(a)), the ground is not tested.
+fn excepted_person(
+    args: &MinorsIncomeArgs,
+    under_18: bool,
+) -> Result<Option<(&'static str, bool)>> {
     let ground = args.excepted_person.text();
     if ground == Some("none") {
         if let Some(key) = MINORS_OPTIONAL
@@ -174,6 +179,9 @@ fn excepted_person(args: &MinorsIncomeArgs) -> Result<Option<(&'static str, bool
             "excepted_person must be none or a ground of ITAA 1936 s 102AC(2) the README lists.",
         );
     };
+    if !under_18 {
+        return Ok(None);
+    }
     Ok(Some((citation, ground_holds(name, args.optional)?)))
 }
 
@@ -340,9 +348,7 @@ const SPECIAL: &str =
 /// Returns the apportioned deductions (s 102AD(c)) and the result.
 fn eligible_taxable_income(
     eligible_assessable: &Decimal,
-    exclusive: &Decimal,
-    related: &Decimal,
-    apportionable: &Decimal,
+    [exclusive, related, apportionable]: &[Decimal; 3],
     taxable: &Decimal,
 ) -> Result<(Decimal, Decimal)> {
     precise(|| {
@@ -391,35 +397,38 @@ fn inconsistent<T>(message: &str) -> Result<T> {
     refuse("minors_income.facts_inconsistent", message.to_string())
 }
 
+/// Excepted and eligible assessable income: s 102AG(1) applies only to a
+/// prescribed beneficiary, so otherwise the whole trust share is excepted
+/// (s 102AE(2)(e)).
+fn assessable(args: &MinorsIncomeArgs, prescribed: bool) -> Result<(Decimal, Decimal)> {
+    let excepted = excepted_items(args.excepted_income)?;
+    let (trust_excepted, trust_eligible) = trust_parts(args.trust_shares)?;
+    let other = money(args.other_assessable_income)?;
+    Ok(if prescribed {
+        (excepted.add(&trust_excepted)?, other.add(&trust_eligible)?)
+    } else {
+        (excepted.add(&trust_excepted)?.add(&trust_eligible)?, other)
+    })
+}
+
 pub fn minors_income(args: &MinorsIncomeArgs) -> Result<Value> {
     let (year, resident) = preliminaries(args)?;
     let taxable = money(args.taxable_income)?;
     whole_dollars(&taxable, "taxable income")?;
     let under_18 = flag(args.under_18_on_30_june, "under_18_on_30_june")?;
-    let person = excepted_person(args)?;
-    let excepted = excepted_items(args.excepted_income)?;
-    let (trust_excepted, trust_eligible) = trust_parts(args.trust_shares)?;
-    let other = money(args.other_assessable_income)?;
+    let person = excepted_person(args, under_18)?;
+    let prescribed = under_18 && !person.is_some_and(|(_, holds)| holds);
+    let (excepted_total, eligible_assessable) = assessable(args, prescribed)?;
     let deductions = [
         money(args.deductions_exclusive)?,
         money(args.deductions_related)?,
         money(args.apportionable_deductions)?,
     ];
-    let eligible_assessable = other.add(&trust_eligible)?;
-    let excepted_total = excepted.add(&trust_excepted)?;
     if taxable.gt(&eligible_assessable.add(&excepted_total)?)? {
         return inconsistent("taxable_income exceeds the assessable income given.");
     }
-    let prescribed = under_18 && !person.is_some_and(|(_, holds)| holds);
-    let [exclusive, related, apportionable] = &deductions;
     let (apportioned, eligible) = if prescribed {
-        eligible_taxable_income(
-            &eligible_assessable,
-            exclusive,
-            related,
-            apportionable,
-            &taxable,
-        )?
+        eligible_taxable_income(&eligible_assessable, &deductions, &taxable)?
     } else {
         (int(0), int(0))
     };
