@@ -187,6 +187,10 @@ fn option_payments_reduce_the_base() {
     let r = run(&input);
     assert_eq!(r["amounts"]["withholding_base"], "990000.00");
     assert_eq!(r["amounts"]["amount_payable"], "148500.00");
+    // A notice's maximum price caps the price, not the base after the fee.
+    let notice = json!({"interest": "1", "document": "variation", "rate": "0.05", "maximum_price": "995000.00"});
+    input["vendors"] = json!([notice]);
+    assert_eq!(payable(&input), "148500.00");
     input["option_payments"] = json!("1000000.01");
     assert_eq!(
         code(&input),

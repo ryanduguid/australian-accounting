@@ -201,6 +201,8 @@ fn rate_for(day: i64) -> (&'static str, Option<&'static str>) {
 struct Facts {
     day: i64,
     market_value: Decimal,
+    /// The first element of the cost base: the price a notice's maximum caps.
+    price: Decimal,
     base: Decimal,
     vendors: Vec<Vendor>,
     excluded: Option<&'static str>,
@@ -226,6 +228,7 @@ fn facts(args: &ForeignResidentWithholdingArgs, year: &str) -> Result<Facts> {
         day,
         market_value,
         base: first.sub(&option)?,
+        price: first,
         vendors,
         excluded,
         nil_class,
@@ -276,7 +279,7 @@ fn vendor_rows(facts: &Facts, full: &Decimal) -> Result<Vec<(Decimal, Decimal, &
                 let (applied, basis) = match &v.document {
                     Document::None => (full.clone(), "no document: full rate"),
                     Document::Clearance => (int(0), "clearance certificate: nil"),
-                    Document::Variation { maximum, .. } if facts.base.gt(maximum)? => (
+                    Document::Variation { maximum, .. } if facts.price.gt(maximum)? => (
                         full.clone(),
                         "variation does not apply above its maximum price: full rate",
                     ),
