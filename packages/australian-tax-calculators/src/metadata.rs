@@ -3621,13 +3621,13 @@ pub fn input_units(kind: &str) -> Vec<(&'static str, &'static str)> {
             ("supply_total_excluding_gst", "AUD: the total of all payments made or to be made for the supply, this one included, disregarding GST (TAA 1953 Sch 1 s 12-190(4)(b))"),
         ],
         "entertainer_withholding" => vec![
+            ("performances_per_week", "integer from 1: the performer's performances for the week"),
+            ("performances_per_day", "integer from 1 to performances_per_week: the performances in the day being paid for"),
             ("earnings", "AUD: the performer's earnings for one performance"),
             ("tfn_quoted", "boolean: the performer has given a valid TFN"),
             ("foreign_resident", "boolean: the performer answered that they are a foreign resident; true with a TFN is refused"),
             ("tax_free_threshold_claimed", "boolean: the performer has claimed the tax-free threshold (Table A); false uses Table B"),
             ("working_holiday_maker", "boolean: the performer is a working holiday maker; true is refused (Schedule 15)"),
-            ("performances_per_week", "integer from 1: the performer's performances for the week"),
-            ("performances_per_day", "integer from 1 to performances_per_week: the performances in the day being paid for"),
         ],
         "return_to_work_withholding" => vec![
             ("payment", "AUD: the return to work payment"),
@@ -4357,13 +4357,13 @@ pub fn examples(kind: &str) -> Vec<(&'static str, Example)> {
         // Schedule 3's example: Sandra's 2 performances at $500.35, one a day.
         "entertainer_withholding" => vec![
             ("year", Text("2026-27")),
+            ("performances_per_week", Whole(2)),
+            ("performances_per_day", Whole(1)),
             ("earnings", Text("500.35")),
             ("tfn_quoted", Flag(true)),
             ("foreign_resident", Flag(false)),
             ("tax_free_threshold_claimed", Flag(true)),
             ("working_holiday_maker", Flag(false)),
-            ("performances_per_week", Whole(2)),
-            ("performances_per_day", Whole(1)),
         ],
         // Schedule 4's example: George's $18,000 return to work payment.
         "return_to_work_withholding" => vec![

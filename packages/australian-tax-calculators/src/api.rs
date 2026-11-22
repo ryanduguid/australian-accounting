@@ -119,8 +119,11 @@ const PAY_ARGS: &[(&str, Kind)] = &[
     ("scope_confirmed", Raw),
 ];
 
-/// Schedule 2's parameters. The daily and casual table takes all but the last.
+/// Schedule 3's parameters and Schedule 2's after the first 2. The daily and
+/// casual table takes those the 2 schedules share.
 const PAYEE_ARGS: &[(&str, Kind)] = &[
+    ("performances_per_week", Raw),
+    ("performances_per_day", Raw),
     ("earnings", Dec),
     ("tfn_quoted", Raw),
     ("foreign_resident", Raw),
@@ -444,7 +447,10 @@ const COMMAND_ARGS: &[(&str, &[(&str, Kind)])] = &[
             ("scope_confirmed", Raw),
         ],
     ),
-    ("horticulture-shearing-withholding", PAYEE_ARGS),
+    (
+        "horticulture-shearing-withholding",
+        PAYEE_ARGS.split_at(2).1,
+    ),
     (
         "upward-variation-withholding",
         &[
@@ -456,7 +462,10 @@ const COMMAND_ARGS: &[(&str, &[(&str, Kind)])] = &[
             ("scope_confirmed", Raw),
         ],
     ),
-    ("daily-casual-withholding", PAYEE_ARGS.split_at(7).0),
+    (
+        "daily-casual-withholding",
+        PAYEE_ARGS.split_at(9).0.split_at(2).1,
+    ),
     (
         "no-abn-withholding",
         &[
@@ -467,20 +476,7 @@ const COMMAND_ARGS: &[(&str, &[(&str, Kind)])] = &[
             ("scope_confirmed", Raw),
         ],
     ),
-    (
-        "entertainer-withholding",
-        &[
-            ("earnings", Dec),
-            ("tfn_quoted", Raw),
-            ("foreign_resident", Raw),
-            ("tax_free_threshold_claimed", Raw),
-            ("working_holiday_maker", Raw),
-            ("year", Raw),
-            ("scope_confirmed", Raw),
-            ("performances_per_week", Raw),
-            ("performances_per_day", Raw),
-        ],
-    ),
+    ("entertainer-withholding", PAYEE_ARGS.split_at(9).0),
     (
         "return-to-work-withholding",
         &[
@@ -1870,14 +1866,14 @@ pub fn evaluate_coded(command: &str, v: &Value) -> Result<Value> {
             // Optional: absent unless the performer claimed tax offsets.
             let offsets = optional(v, "tax_offsets", Dec)?;
             engine::entertainer_withholding(
-                &a[0],
-                &a[1],
+                (&a[0], &a[1]),
                 &a[2],
                 &a[3],
                 &a[4],
                 &a[5],
                 &a[6],
-                (&a[7], &a[8]),
+                &a[7],
+                &a[8],
                 offsets.as_ref(),
             )
         }

@@ -183,7 +183,7 @@ booleans and counts, ages, days, quarters and scales are JSON integers.
 | `upward-variation-withholding` | `earnings`, `pay_period`, `scale`, `additional_amount`, `year`, `scope_confirmed`; optional as `payg-withholding` |
 | `daily-casual-withholding` | `earnings`, `tfn_quoted`, `foreign_resident`, `tax_free_threshold_claimed`, `working_holiday_maker`, `year`, `scope_confirmed`; optional `tax_offsets` |
 | `no-abn-withholding` | `payment`, `gst_included`, `supply_total_excluding_gst`, `year`, `scope_confirmed` |
-| `entertainer-withholding` | `earnings`, `tfn_quoted`, `foreign_resident`, `tax_free_threshold_claimed`, `working_holiday_maker`, `year`, `scope_confirmed`, `performances_per_week`, `performances_per_day`; optional `tax_offsets` |
+| `entertainer-withholding` | `performances_per_week`, `performances_per_day`, `earnings`, `tfn_quoted`, `foreign_resident`, `tax_free_threshold_claimed`, `working_holiday_maker`, `year`, `scope_confirmed`; optional `tax_offsets` |
 | `return-to-work-withholding` | `payment`, `tfn_quoted`, `foreign_resident`, `working_holiday_maker`, `year`, `scope_confirmed` |
 | `annuity-withholding` | `payment`, `deductible_amount`, `instalments`, `pay_period`, `scale`, `year`, `scope_confirmed`; optional as `payg-withholding` |
 | `voluntary-agreement-withholding` | `payment`, `gst_included`, `agreement_in_force`, `abn_quoted`, `agreement_applies_instalment_rate`, `year`, `scope_confirmed`; optional `instalment_rate` |

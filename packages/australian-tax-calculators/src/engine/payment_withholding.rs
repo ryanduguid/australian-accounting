@@ -49,52 +49,28 @@ const ENTERTAINER: &str = "entertainer_withholding";
 
 /// Schedule 3, Table A (tax-free threshold claimed) and Table B (not
 /// claimed), for payments from 1 July 2024 to 30 June 2026 (F2024L00664,
-/// F2025L00647 and F2025L01016).
+/// F2025L00647 and F2025L01016): weekly earnings less than the limit, a, b.
+#[rustfmt::skip]
 const SCHEDULE_3_FROM_JULY_2024: [&[CoefficientRow]; 2] = [
-    &[
-        (Some(451), "0", "0"),
-        (Some(625), "0.1280", "57.8462"),
-        (Some(781), "0.2080", "107.8462"),
-        (Some(901), "0.1440", "57.8462"),
-        (Some(1081), "0.1512", "64.3365"),
-        (Some(1602), "0.2582", "180.0385"),
-        (Some(3245), "0.2560", "176.5769"),
-        (Some(4567), "0.3120", "358.3077"),
-        (None, "0.3760", "650.6154"),
-    ],
-    &[
-        (Some(187), "0.1280", "0.1280"),
-        (Some(463), "0.1694", "7.7550"),
-        (Some(644), "0.1512", "-0.6702"),
-        (Some(1165), "0.2582", "68.2367"),
-        (Some(2807), "0.2560", "65.7202"),
-        (Some(4129), "0.3120", "222.9510"),
-        (None, "0.3760", "487.2587"),
-    ],
+    &[(Some(451), "0", "0"), (Some(625), "0.1280", "57.8462"), (Some(781), "0.2080", "107.8462"),
+      (Some(901), "0.1440", "57.8462"), (Some(1081), "0.1512", "64.3365"),
+      (Some(1602), "0.2582", "180.0385"), (Some(3245), "0.2560", "176.5769"),
+      (Some(4567), "0.3120", "358.3077"), (None, "0.3760", "650.6154")],
+    &[(Some(187), "0.1280", "0.1280"), (Some(463), "0.1694", "7.7550"), (Some(644), "0.1512", "-0.6702"),
+      (Some(1165), "0.2582", "68.2367"), (Some(2807), "0.2560", "65.7202"),
+      (Some(4129), "0.3120", "222.9510"), (None, "0.3760", "487.2587")],
 ];
 
 /// Schedule 3, Tables A and B, for payments from 1 July 2026 (F2026L00716).
+#[rustfmt::skip]
 const SCHEDULE_3_FROM_JULY_2026: [&[CoefficientRow]; 2] = [
-    &[
-        (Some(452), "0", "0"),
-        (Some(673), "0.1200", "54.3462"),
-        (Some(841), "0.2000", "108.2135"),
-        (Some(901), "0.1360", "54.3473"),
-        (Some(1081), "0.1432", "60.8377"),
-        (Some(1602), "0.2582", "185.1935"),
-        (Some(3245), "0.2560", "181.7319"),
-        (Some(4567), "0.3120", "363.4627"),
-        (None, "0.3760", "655.7704"),
-    ],
-    &[
-        (Some(235), "0.1200", "0.1200"),
-        (Some(463), "0.1667", "11.0185"),
-        (Some(644), "0.1432", "0.1066"),
-        (Some(1165), "0.2582", "74.1674"),
-        (Some(2807), "0.2560", "71.6508"),
-        (Some(4129), "0.3120", "228.8816"),
-        (None, "0.3760", "493.1893"),
-    ],
+    &[(Some(452), "0", "0"), (Some(673), "0.1200", "54.3462"), (Some(841), "0.2000", "108.2135"),
+      (Some(901), "0.1360", "54.3473"), (Some(1081), "0.1432", "60.8377"),
+      (Some(1602), "0.2582", "185.1935"), (Some(3245), "0.2560", "181.7319"),
+      (Some(4567), "0.3120", "363.4627"), (None, "0.3760", "655.7704")],
+    &[(Some(235), "0.1200", "0.1200"), (Some(463), "0.1667", "11.0185"), (Some(644), "0.1432", "0.1066"),
+      (Some(1165), "0.2582", "74.1674"), (Some(2807), "0.2560", "71.6508"),
+      (Some(4129), "0.3120", "228.8816"), (None, "0.3760", "493.1893")],
 ];
 
 /// The performances in the week and in the day.
@@ -259,6 +235,7 @@ fn entertainer_no_tfn(earnings: &Decimal, day: i64, foreign: bool) -> Result<Vec
 /// Schedule 3: the amount to withhold from a day's performances.
 #[allow(clippy::too_many_arguments)]
 pub fn entertainer_withholding(
+    performances: (&Arg, &Arg),
     earnings: &Arg,
     tfn_quoted: &Arg,
     foreign_resident: &Arg,
@@ -266,7 +243,6 @@ pub fn entertainer_withholding(
     working_holiday_maker: &Arg,
     year: &Arg,
     scope_confirmed: &Arg,
-    performances: (&Arg, &Arg),
     tax_offsets: Option<&Arg>,
 ) -> Result<Value> {
     let year = scope(scope_confirmed, year, ENTERTAINER)?;
