@@ -347,3 +347,72 @@ fn refusals() {
         "input.field_unknown"
     );
 }
+
+/// s 35-30(a) or (b): for a part year, the actual assessable income or the
+/// full-year estimate reaching $20,000 passes.
+#[test]
+fn a_part_year_passes_on_actual_income_or_the_estimate() {
+    let part = |income: &str, estimate: &str| {
+        run(&with(
+            base(),
+            json!({"assessable_income": income, "deductions": "21000.00", "part_year": true,
+                "assessable_income_estimate": estimate}),
+        ))
+    };
+    let actual = part("20000.00", "19999.99");
+    assert!(met(&actual, "assessable_income_test"));
+    assert_eq!(amount(&actual, "assessable_income_measured"), "20000.00");
+    assert_eq!(amount(&actual, "deferred"), "0.00");
+    assert_eq!(amount(&actual, "deductible_this_year"), "1000.00");
+    let neither = part("19999.99", "19999.99");
+    assert!(!met(&neither, "assessable_income_test"));
+    assert_eq!(amount(&neither, "deferred"), "1000.01");
+}
+
+/// s 35-15: the outcome says when net exempt income leaves nothing, or
+/// less than the excess, deferred.
+#[test]
+fn the_outcome_follows_the_amount_deferred() {
+    let nil = run(&with(base(), json!({"net_exempt_income": "1000.00"})));
+    assert_eq!(amount(&nil, "deferred"), "0.00");
+    let text = nil["outcome"].as_str().unwrap();
+    assert!(
+        text.contains("reduces the amount deferred to nil"),
+        "{text}"
+    );
+    let part = run(&with(base(), json!({"net_exempt_income": "400.00"})));
+    assert_eq!(amount(&part, "deferred"), "600.00");
+    let text = part["outcome"].as_str().unwrap();
+    assert!(
+        text.starts_with("the excess less net exempt income"),
+        "{text}"
+    );
+}
+
+/// s 35-15(2) reduces only an amount s 35-10(2)(b) applies to for the year:
+/// when a test is passed, the brought-forward amount and the year's excess
+/// are deductible in full.
+#[test]
+fn net_exempt_income_reduces_only_an_amount_deferred() {
+    let passed = run(&with(
+        base(),
+        json!({"brought_forward": "2000.00", "net_exempt_income": "1000.00",
+            "real_property_value": "500000.00"}),
+    ));
+    assert!(!passed["rule_applies"].as_bool().unwrap());
+    assert_eq!(amount(&passed, "deductible_this_year"), "3000.00");
+    assert_eq!(amount(&passed, "deferred"), "0.00");
+}
+
+/// s 35-10(2E): an FHSS amount over taxable income with the losses added
+/// back leaves nil, not a negative amount.
+#[test]
+fn an_fhss_amount_over_taxable_income_leaves_nil() {
+    let out = run(&with(
+        base(),
+        json!({"taxable_income": "5000.00", "business_losses": "1000.00",
+            "assessable_fhss_released_amount": "8000.00", "reportable_fringe_benefits": "100.00"}),
+    ));
+    assert_eq!(amount(&out, "income_requirement_taxable_income"), "0.00");
+    assert_eq!(amount(&out, "income_requirement_total"), "100.00");
+}

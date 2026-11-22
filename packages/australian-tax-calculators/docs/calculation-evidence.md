@@ -3181,8 +3181,14 @@ Choices the Act leaves to the reader:
 - The profits test counts a year when its deductions, apart from
   s 35-10(2) and (2C), are less than its assessable income; equal is not a
   profit.
+- For a part year, the assessable income test is met by the year's
+  assessable income or a reasonable full-year estimate of it reaching
+  $20,000 (s 35-30(a) or (b)), and `assessable_income_measured` is the
+  larger.
 - The amount deferred is the excess less net exempt income (s 35-15); when
-  the rule does not apply, the whole excess is deductible this year.
+  the rule does not apply, the whole excess is deductible this year:
+  s 35-15(2) reduces only an amount s 35-10(2)(b) applies to for the year,
+  so that year's net exempt income is left to Division 36.
 
 `tests/non_commercial_losses.rs` holds these cases.
 

@@ -148,11 +148,7 @@ pub fn non_commercial_losses(args: &NonCommercialLossesArgs) -> Result<Value> {
     let earlier_profits = earlier_profit_years(args.earlier_years)?;
     let (requirement_income, requirement_total, requirement_met) = income_requirement(args)?;
 
-    // s 35-30: a reasonable full-year estimate for a part year.
-    let measured = match estimate {
-        Some(estimate) => money(estimate)?,
-        None => income.clone(),
-    };
+    let measured = measured_income(estimate, &income)?;
     let profits = earlier_profits + usize::from(deductions.lt(&income)?);
     let tests = tests(args, part_year, &measured, profits)?;
     let exception = match other_income {
@@ -165,7 +161,7 @@ pub fn non_commercial_losses(args: &NonCommercialLossesArgs) -> Result<Value> {
     // the activity's assessable income.
     let excess = nil_floor(deductions.add(&brought_forward)?.sub(&income)?)?;
     let (deferred, deductible) = deferral(&excess, &money(args.net_exempt_income)?, rule_applies)?;
-    let outcome = outcome(&excess, rule_applies);
+    let outcome = outcome(&excess, &deferred, rule_applies)?;
     let mut amounts = vec![
         ("income_requirement_taxable_income", requirement_income),
         ("income_requirement_total", requirement_total),
@@ -230,14 +226,32 @@ fn deferral(excess: &Decimal, exempt: &Decimal, rule_applies: bool) -> Result<(D
     })
 }
 
-fn outcome(excess: &Decimal, rule_applies: bool) -> &'static str {
-    if excess.is_zero() {
+/// s 35-30: the year's assessable income, or for a part year the larger of
+/// it and a reasonable full-year estimate, as either meeting $20,000 passes.
+fn measured_income(estimate: Option<&Arg>, income: &Decimal) -> Result<Decimal> {
+    let Some(estimate) = estimate else {
+        return Ok(income.clone());
+    };
+    let estimate = money(estimate)?;
+    Ok(if estimate.gt(income)? {
+        estimate
+    } else {
+        income.clone()
+    })
+}
+
+fn outcome(excess: &Decimal, deferred: &Decimal, rule_applies: bool) -> Result<&'static str> {
+    Ok(if excess.is_zero() {
         "no excess of deductions over assessable income from the activity, so nothing is deferred"
     } else if !rule_applies {
         "the excess is not deferred: section 35-10(2) does not apply"
+    } else if deferred.is_zero() {
+        "section 35-10(2) applies, but net exempt income reduces the amount deferred to nil (s 35-15), so nothing is deferred"
+    } else if deferred.lt(excess)? {
+        "the excess less net exempt income (s 35-15) is deferred to the next income year in which the activity is carried on (s 35-10(2)), unless the Commissioner decides under s 35-55 that the rule does not apply"
     } else {
         "the excess is deferred to the next income year in which the activity is carried on (s 35-10(2)), unless the Commissioner decides under s 35-55 that the rule does not apply"
-    }
+    })
 }
 
 const RATES: [(&str, &str); 5] = [
@@ -267,7 +281,7 @@ fn tests(
         test(
             "assessable_income_test",
             if part_year {
-                "ITAA 1997 s 35-30(b): a reasonable estimate of the activity's assessable income for a full year is at least $20,000"
+                "ITAA 1997 s 35-30(a) or (b): the activity's assessable income for the year, or a reasonable estimate of it for a full year, is at least $20,000"
             } else {
                 "ITAA 1997 s 35-30(a): the activity's assessable income for the year is at least $20,000"
             },
