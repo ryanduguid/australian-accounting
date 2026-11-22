@@ -748,6 +748,25 @@ const COMMAND_ARGS: &[(&str, &[(&str, Kind)])] = &[
         &[("question", Raw), ("year", Raw), ("scope_confirmed", Raw)],
     ),
     (
+        "rental-property",
+        &[
+            ("ownership_share", Dec),
+            ("acquired", Raw),
+            ("disposed", Json),
+            ("days_available", Raw),
+            ("section_26_50_applies", Raw),
+            ("income", Json),
+            ("expenses", Json),
+            ("rental_only_expenses", Json),
+            ("loans", Json),
+            ("borrowing_loans", Json),
+            ("capital_works", Json),
+            ("depreciating_assets", Json),
+            ("year", Raw),
+            ("scope_confirmed", Raw),
+        ],
+    ),
+    (
         "sb-cgt-concessions",
         &[
             ("entity", Raw),
@@ -935,7 +954,7 @@ pub fn commands() -> Vec<&'static str> {
 /// command on its `gross_pay` shows that withholding. The classifier's amounts
 /// are totals over lines whose shares a decision table sets, not a formula;
 /// each line and class carries the authority for its row instead.
-const DERIVED: [&str; 59] = [
+const DERIVED: [&str; 60] = [
     "fbt",
     "fbt-car-statutory",
     "fbt-car-operating-cost",
@@ -995,6 +1014,7 @@ const DERIVED: [&str; 59] = [
     "payroll-tax",
     "cgt-parcels",
     "work-expenses",
+    "rental-property",
 ];
 
 /// `derive`: `{"command", "input"}` gives the command's result with the step
@@ -1386,6 +1406,7 @@ pub fn evaluate_coded(command: &str, v: &Value) -> Result<Value> {
             | "non-commercial-losses"
             | "psi-test"
             | "government-super-amounts"
+            | "rental-property"
             | "business-capital-expenditure"
             | "balancing-adjustment"
             | "trade-in"
@@ -2131,6 +2152,27 @@ pub fn evaluate_coded(command: &str, v: &Value) -> Result<Value> {
                 .map(|(key, value)| (key.clone(), value.clone()))
                 .collect();
             engine::ato_interest_penalties(&a[0], &a[1], &a[2], &facts)
+        }
+        "rental-property" => {
+            // Optional: other taxable income, for the effect on tax.
+            let other = optional(v, "other_taxable_income", Dec)?;
+            engine::rental_property(&engine::RentalPropertyArgs {
+                ownership_share: &a[0],
+                acquired: &a[1],
+                disposed: &a[2],
+                days_available: &a[3],
+                section_26_50_applies: &a[4],
+                income: &a[5],
+                expenses: &a[6],
+                rental_only_expenses: &a[7],
+                loans: &a[8],
+                borrowing_loans: &a[9],
+                capital_works: &a[10],
+                depreciating_assets: &a[11],
+                other_taxable_income: other.as_ref(),
+                year: &a[12],
+                scope_confirmed: &a[13],
+            })
         }
         "sb-cgt-concessions" => {
             // Optional: the facts only some answers call for.

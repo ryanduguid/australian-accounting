@@ -1275,6 +1275,13 @@ pub fn supported_periods(kind: &str) -> Vec<&'static str> {
         "ato_interest_penalties" => vec![
             "2020-21", "2021-22", "2022-23", "2023-24", "2024-25", "2025-26", "2026-27", "2027-28",
         ],
+        // ITAA 1997 ss 8-1, 26-31, 40-27 and Division 43 read the same from
+        // 2020-21 (no amendment after Act No. 126 of 2017 in compilation 264's
+        // history but s 43-145's build to rent manner, out of scope); the tax
+        // effect is refused before 2024-25, the first year resident-tax holds.
+        "rental_property" => vec![
+            "2020-21", "2021-22", "2022-23", "2023-24", "2024-25", "2025-26", "2026-27",
+        ],
         _ => Vec::new(),
     }
 }
@@ -1578,6 +1585,10 @@ pub fn source_review(kind: &str) -> (&'static str, &'static str) {
         "psi_test" => (
             "2026-11-22",
             "ITAA 1997 Part 2-42 (ss 84-5, 85-30, 85-35, 87-15 to 87-40, 87-60 and 87-65), compilation 268 (1 October 2026), against compilations 210 (1 July 2020) and 223 (1 July 2021), which read the same; TR 2022/3, examples 20, 29, 30 and 40 and paragraph 118; the site's PSI page and its 19 cases (checked 17 November 2026)",
+        ),
+        "rental_property" => (
+            "2026-11-22",
+            "ITAA 1997 ss 6-5, 8-1, 26-31, 26-102, 40-27, 43-10, 43-15, 43-20, 43-25, 43-80, 43-140, 43-145, 43-210, 43-215, 43-220, 43-230, 43-235 and 43-240 on the ATO's legal database, with the amendment history of compilation 264 (21 May 2026); Treasury Laws Amendment (Housing Tax Integrity) Act 2017 (No. 126, 2017) Schedule 1 and Schedule 2 item 13; TR 2000/2 paragraphs 13 to 26; TR 93/32 paragraphs 6 and 11 to 13; ATO Rental properties guide 2026 (NAT 1729-06.2026, current at 1 June 2026): the time-based method, Tables 1 and 2 and Examples 1, 2, 12, 20 to 23, 29, 33, 34 and 40; s 25-25 through borrowing-expenses-schedule (checked 19 November 2026) and the resident scale through resident-tax",
         ),
         "income_tests" => (
             "2026-11-16",
@@ -1977,6 +1988,12 @@ pub fn library_evidence(kind: &str) -> [(&'static str, &'static str); 4] {
             "ATO Rental properties guide 2026",
             "Example 29: Greg and Suzie's $115,800 at 2.5% for 346 days, $2,744",
             "2026-06-30",
+            "2026-11-22",
+        ),
+        "rental_property" => (
+            "ATO Rental properties guide 2026 (NAT 1729-06.2026)",
+            "Examples 1, 2, 12, 20 to 23, 29, 33, 34 and 40 and Tables 1 and 2",
+            "2026-05-30",
             "2026-11-22",
         ),
         "sb_cgt_concessions" => (
@@ -2496,6 +2513,10 @@ pub fn optional_inputs(kind: &str) -> Vec<(&'static str, &'static str)> {
                 "object of GST facts, for the purchaser's input tax credit on the price: as hire_purchase_schedule takes them. A passenger_car worth more than the car limit and not quoted for has its credit capped at 1/11 of the limit (GST Act s 69-10(1))",
             ),
         ],
+        "rental_property" => vec![(
+            "other_taxable_income",
+            "AUD, whole dollars, 2024-25 to 2026-27 only: the taxable income apart from this property, for the tax at the resident scale without and with the net rent",
+        )],
         "borrowing_expenses_schedule" => vec![(
             "other_borrowing_expenses",
             "object of income years (such as \"2025-26\") and AUD amounts: the income-producing share of borrowing expenses incurred that year on loans not in loans, for the s 25-25(6) $100 test",
@@ -3180,6 +3201,20 @@ pub fn input_units(kind: &str) -> Vec<(&'static str, &'static str)> {
                 "section_26_50_applies",
                 "boolean, false only when the property is not a leisure facility, or s 26-50(3) applies to it at all times in the income year (such as a holiday home held mainly to produce rent)",
             ),
+        ],
+        "rental_property" => vec![
+            ("ownership_share", "decimal fraction above 0 and at most 1: your legal interest in the property (TR 93/32); income, expenses, decline in value and construction expenditure are the whole property's and are multiplied by it"),
+            ("acquired", "YYYY-MM-DD: when you acquired the property, on or before the last day of the year"),
+            ("disposed", "YYYY-MM-DD or null: when you stopped holding it, in the year"),
+            ("days_available", "integer: the days in the year you held it that it was let, or available for rent on commercial terms (Rental properties guide 2026, 'Time-based method')"),
+            ("section_26_50_applies", "boolean: s 26-50 denies the costs of owning it as a holiday home; true is refused"),
+            ("income", "object of AUD amounts, the whole property's: rental_income and other_rental_income (ITAA 1997 s 6-5)"),
+            ("expenses", "object of AUD amounts, the whole property's, for expenses relating to it for the whole period held, which the time-based share apportions, by line: advertising_for_tenants, body_corporate_fees, cleaning, council_rates, gardening, insurance, land_tax, legal_expenses, pest_control, property_agent_fees, repairs_and_maintenance, stationery_telephone_postage, travel (denied, s 26-31), water_charges and sundry"),
+            ("rental_only_expenses", "object of AUD amounts by the same lines, for expenses relating solely to renting (agent commission, advertising for tenants), which are not apportioned"),
+            ("loans", "list of objects, your own share of each loan, each with interest (AUD charged in the year), principal_for_rental and principal_total (AUD, the outstanding principal used for the rental and in total, TR 2000/2 paragraph 16) and redrawn_in_year (boolean; true is refused)"),
+            ("borrowing_loans", "list of objects as borrowing-expenses-schedule takes loans, your own borrowing expenses only; empty for none"),
+            ("capital_works", "list of objects, the whole property's, each with construction_expenditure (AUD, given, never derived), kind (building or structural_improvement), began and first_used (YYYY-MM-DD) and taken_to_begin_before_16_september_1987 (boolean, s 43-220(1)(a) or (b); required for a building begun after 15 September 1987)"),
+            ("depreciating_assets", "list of objects, the whole property's, each with decline_in_value (AUD from its start time to the end of the days held, before any private use reduction), acquired (YYYY-MM-DD, when you acquired it or entered into the contract under which you did, if earlier: Act No. 126 of 2017 Schedule 2 item 13), first_used (YYYY-MM-DD, its start time, first used or installed ready for use), held_when_first_used, residence_or_private_use and low_value_pool (booleans), and new_premises_exception (boolean, for an asset not held when first used) and deductible_in_2016_17 (boolean, for an asset acquired before 9 May 2017) where needed (s 40-27)"),
         ],
         "borrowing_expenses_schedule" => vec![(
             "loans",
@@ -4304,6 +4339,27 @@ pub fn examples(kind: &str) -> Vec<(&'static str, Example)> {
         // Peter's loan (ATO, Borrowing expenses) from 3 July 2024, refinanced
         // on 2 March 2026 by a second loan whose money is half used to produce
         // income from 2026-27.
+        // The ATO's Rental properties guide 2026, Example 34: a holiday home
+        // let mainly for rent, held all year and available 330 days, owned in
+        // equal shares; the $37,000 of costs is entered on one line.
+        "rental_property" => vec![
+            ("year", Text("2025-26")),
+            ("ownership_share", Text("0.5")),
+            ("acquired", Text("2024-07-01")),
+            ("disposed", Json("null")),
+            ("days_available", Whole(330)),
+            ("section_26_50_applies", Flag(false)),
+            ("income", Json(r#"{"rental_income": "50000.00"}"#)),
+            ("expenses", Json(r#"{"sundry": "37000.00"}"#)),
+            (
+                "rental_only_expenses",
+                Json(r#"{"property_agent_fees": "3000.00"}"#),
+            ),
+            ("loans", Json("[]")),
+            ("borrowing_loans", Json("[]")),
+            ("capital_works", Json("[]")),
+            ("depreciating_assets", Json("[]")),
+        ],
         "borrowing_expenses_schedule" => vec![
             ("year", Text("2026-27")),
             (

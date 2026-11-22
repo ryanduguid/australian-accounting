@@ -53,6 +53,7 @@ example evidence; it does not claim a fresh review of every supported period.
 | FBT entertainment classifier | Not a Library document: ITAA 1997 Division 32, ss 27-5 and 995-1 (compilation 268), FBTAA ss 5E, 20, 37A to 37CF, 40, 41, 45, 58P, 135P and 136(1) (compilation 97), the FBT Assessment Regulations 2018 regs 6 to 11, ITAA 1936 ss 51AEA and 51AEB (compilation 193), GST Act s 69-5 (compilation 96), and TR 97/17 and TR 2007/12 as the Commissioner's view | 16 November 2026 (read) | One ordinary taxable employer's entertainment lines with established facts for the years ended 31 March 2026 and 2027; no Subdivision 32-B exception, tax-exempt body or reportable fringe benefits amount |
 | Main residence | `tax-examples-capital-gains-tax-cgt` (tax-examples), ¶2-060 and ¶2-075, with the ATO's pages 'Treating former home as main residence' (QC66030) and 'Using your home for rental or business' (QC66033) | 30 June 2026; 22 June 2026 (both ATO pages) | One dwelling's taxable days for CGT events in 2024-25 to 2026-27; cost base, market value and discount excluded |
 | Borrowing expenses | `tax-examples-deductions` (tax-examples), ¶4-160, with ITAA 1997 s 25-25 (compilation 268, 1 October 2026; read again 19 November 2026) and the ATO's 'Borrowing expenses' page | 30 June 2026; 22 May 2026 (ATO page) | One loan's established expenditure, use and dates for 2017-18 to 2027-28; classification, interest and refinancing excluded |
+| Rental property | Not a Library document: the ATO's Rental properties guide 2026 (NAT 1729-06.2026), Examples 1, 2, 12, 20 to 23, 29, 33, 34 and 40 and Tables 1 and 2, with ITAA 1997 ss 8-1, 26-31, 40-27 and Division 43, TR 2000/2 and TR 93/32 | 30 May 2026 (last updated); 22 November 2026 (read) | One residential property's lines, interest, borrowing expenses, capital works and decline in value for 2020-21 to 2026-27 |
 | Borrowing expenses schedule | `tax-examples-deductions` (tax-examples), ¶4-160, with ITAA 1997 ss 25-25, 26-50 and 26-155 and the Acts Interpretation Act 1901 ss 2G and 36 (compilation 39) | 30 June 2026; 22 May 2026 (ATO page) | Several loans first drawn from 1 July 2017, every year of each; use by year and refinancing established by the operator; s 26-155 flagged, not applied |
 | Hire purchase schedule | Not a Library document: ITAA 1997 ss 240-17, 240-55 and 240-60 on the ATO's legal database and in compilation 268 (1 October 2026) | 15 November 2026 (read) | One agreement's monthly notional interest for the hirer, starting in 2024-25 to 2026-27, from established payments; apportionment to income years under s 240-60(2) excluded |
 | Balancing adjustment | Not a Library document: the ATO's Guide to depreciating assets 2026 (Bridget, Andrew and Louise examples) and ITAA 1997 Subdivisions 27-B and 40-D, ss 104-240, 118-5 and 118-10(1) and its example (compilation 268, 1 October 2026) | 1 June 2026 (Guide); 18 November 2026 (read) | One depreciating asset's balancing adjustment, s 40-290 reduction and K7 amount for events in 2024-25 to 2026-27, from established cost, termination value and each year's decline and deduction; pools, s 40-291A and roll-overs excluded |
@@ -3389,6 +3390,59 @@ from the provisions: the 53% rounding, excess concessional contributions,
 the FHSS amount, family trust distribution amounts, child support and
 business deductions.
 
+## Rental property
+
+`rental_property` was checked on 22 November 2026 against ITAA 1997 ss 6-5,
+8-1, 26-31, 26-102, 40-27, 43-10, 43-15, 43-20, 43-25, 43-80, 43-140, 43-145,
+43-210, 43-215, 43-220, 43-230, 43-235 and 43-240 on the ATO's legal database,
+Act No. 126 of 2017 Schedule 2 item 13, TR 2000/2, TR 93/32 and the ATO's
+Rental properties guide 2026 (current at 1 June 2026). The amendment history
+in ITAA 1997 compilation 264 (Volume 12, Endnote 4) shows none of those
+sections amended after Act No. 126 of 2017 except s 43-145 (No. 138 of 2024,
+the build to rent manner, out of scope), so the rules hold from 2020-21.
+
+Choices the law leaves to the reader:
+
+- The guide's Table 1 limits a residential building to works begun from 18
+  July 1985; s 43-20(1) reaches back to 22 August 1979 for buildings intended
+  for non-residential use or short-term traveller accommodation, so a building
+  begun in between is refused rather than given nil, as a converted one may
+  qualify.
+- s 43-220 is taken as one fact, covering the contract of (1)(a) and the
+  qualifying investor's financing of (1)(b). It has no end date, so it is
+  required for every building begun after 15 September 1987.
+- The use period starts at first use by any entity after construction
+  (s 43-230(2)(a)); the worksheet takes it as `first_used` and counts both
+  ends. The divisor is 365 in every year, so a leap year's 366 days give
+  366/365 of the rate (Example 29's note).
+- Works and depreciating assets first used during the year count from that
+  day when the property was available every day held; otherwise the days are
+  not known and are refused.
+- The decline in value given is for the days held before any private use
+  reduction, and the time-based share applies to it as to the other lines.
+- An asset's `first_used` is its start time, the taxpayer's own first use
+  (s 40-60(2)), which can come before it was acquired, though not with
+  `held_when_first_used` true. So item 13(2)(a) is decided:
+  one acquired before 9 May 2017 with nothing deductible for 2016-17 is under
+  s 40-27 if first used by 30 June 2017 and outside it otherwise.
+- Each line is rounded to the cent. The ATO's examples round to the dollar,
+  and Example 12 halves the rounded $11,475 to $5,737.50 where the worksheet
+  gives $5,737.70.
+
+| Case | Source | Worksheet |
+| --- | --- | --- |
+| $50,000 rent, $37,000 of costs, $3,000 of commission and advertising, 330 of 365 days, 2 equal owners | Guide Example 34 ($36,452, $13,548, $6,774 each) | $36,452.05 and $13,547.95; $6,773.97 each |
+| $14,108 of interest, $170,000 of $209,000 for the rental | Example 12 ($11,475) | $11,475.41; $5,737.70 for a borrower of half |
+| $1,670 of borrowing expenses from 17 July, 20-year loan, $170,000 of $209,000 | Example 20 ($259.62, $271.53, $271.53) | The same, through `borrowing-expenses-schedule` |
+| $1,826 from 1 July 2024, repaid 31 March 2026, used 75% then 50% | The rental skill's card (skills PR 464) | $273.75, then $730.50 |
+| $115,800 of construction expenditure, built 1991, acquired 20 July 2025 | Example 29 ($2,744) | $2,744.30 for 346 days |
+| Works begun on each edge of the rate table | ss 43-20, 43-25, 43-220; Tables 1 and 2 | Nil, 4% or 2.5% as each sets |
+| 4% works first used in 1986 and in December 2000 | ss 43-15(1), 43-240 | Nil; $1,610.96 of $4,000, the undeducted expenditure |
+| New curtains, the previous owner's carpet, a friend's television, a dryer from home | Example 21 | The curtains only |
+| Assets supplied with new apartments within 6 months; a low-value pool | Example 23; s 40-27(6) | Deductible |
+| The worksheet's lines with travel of $436 | Example 33 ($20,629 with travel) | $20,193.33 and -$10,893.33; travel denied (s 26-31) |
+| $90,000 of other income and that net rent in 2025-26 | The 2025-26 resident scale | $17,788.00 and $14,520.10; $3,267.90 less tax |
+
 ## Small business CGT concessions
 
 This worksheet was added on 19 November 2026. ITAA 1997 Division 152 was read
@@ -3899,6 +3953,7 @@ year; the others refuse it and say what is missing.
 | Balancing adjustment | Refused: CGT event K7 is a capital gain, which Schedule 1 to Act No. 49 of 2026 changes from 1 July 2027 | Act No. 49 of 2026 as made (https://www.legislation.gov.au/C2026A00049/asmade/text), read 18 November 2026 at 07:06; see [Balancing adjustment](#balancing-adjustment) |
 | CGT parcels | Refused: Schedule 1 to Act No. 49 of 2026 changes how capital gains are worked out from the income year that includes 1 July 2027 | Act No. 49 of 2026 as made (https://www.legislation.gov.au/C2026A00049/asmade/text), items 82 to 84, read 19 November 2026 at 14:40; see [CGT parcels](#cgt-parcels) |
 | Trade-in | Refused: the car limit for 2027-28 was not published, and CGT event K7 changes with Act No. 49 of 2026 | ATO 'Purchasing a motor vehicle' (last updated 3 June 2026, the 2026-27 limit only), read 18 November 2026 at 07:10; see [Trade-in](#trade-in) |
+| Rental property | Refused: s 26-155 (Act No. 49 of 2026) can quarantine residential rental deductions from 2027-28 | ITAA 1997 s 26-155 as the borrowing expenses worksheets read it, 19 November 2026; see [Rental property](#rental-property) |
 | Small business CGT concessions | Refused: Schedule 1 to Act No. 49 of 2026 changes Division 152 from the income year that includes 1 July 2027 | Act No. 49 of 2026 as made (https://www.legislation.gov.au/C2026A00049/asmade/text), item 82, read 19 November 2026 at 14:40; see [Small business CGT concessions](#small-business-cgt-concessions) |
 | Government super amounts | Refused: Schedule 4 to Act No. 8 of 2026 replaces LISTO's $37,000 limit and $500 maximum from 2027-28, and the Commissioner has not published the 2027-28 co-contribution thresholds | Act No. 8 of 2026 as made (https://www.legislation.gov.au/C2026A00008/asmade/text), item 4, and the ATO's Table 25 (last updated 27 April 2026), read 22 November 2026; see [Government super amounts](#government-super-amounts) |
 | Work expenses | Refused: no cents per kilometre rate has been determined under ITAA 1997 s 28-25(4) for 2027-28; LI 2026/19 sets 91c for the income year commencing 1 July 2026 only | LI 2026/19 (https://www.ato.gov.au/law/view/view.htm?docid=OPS/LI202619/00001), read 22 November 2026 |
