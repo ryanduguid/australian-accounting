@@ -182,8 +182,7 @@ fn every_catalogued_required_input_of_a_strict_command_is_read() {
     // capital-works, ato-interest-penalties, work-expenses,
     // small-business-income-offset, government-super-amounts,
     // beneficiary-tax-offset, invalid-carer-tax-offset, zone-tax-offset,
-    // net-medical-expenses-tax-offset, non-commercial-losses, psi-test and
-    // ess-discount,
+    // net-medical-expenses-tax-offset, non-commercial-losses, psi-test,
     // private-health-insurance-rebate, rental-property, super-benefit-tax,
     // horticulture-shearing-withholding, upward-variation-withholding,
     // daily-casual-withholding, no-abn-withholding, entertainer-withholding,
@@ -193,8 +192,8 @@ fn every_catalogued_required_input_of_a_strict_command_is_read() {
     // gst-financial-acquisitions-threshold, gst-going-concern,
     // gst-second-hand-goods, gst-bad-debt, deferred-tax,
     // cgt-cost-base-adjustments, super-withholding, foreign-income-conversion,
-    // foreign-income-tax-offset, trading-stock, prepayments, minors-income and
-    // smsf-tax.
+    // foreign-income-tax-offset, trading-stock, prepayments, minors-income,
+    // smsf-tax and ess-discount.
     // With transfer-balance and excess-contributions.
     assert_eq!(checked, 98);
 }
