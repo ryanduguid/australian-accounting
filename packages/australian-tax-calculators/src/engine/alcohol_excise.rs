@@ -30,14 +30,14 @@ const MAX_LINES: usize = 1000;
 
 const LAL_BEER: &str = "Excise Tariff Act 1921 Schedule item 1: beer's rate is per litre of alcohol 'calculated on that alcohol content by which the percentage by volume of alcohol of the goods exceeds 1.15', so litres of alcohol = volume x (strength - 1.15) / 100 (the ATO's QC63603; Excise guidelines for the alcohol industry 6.3.5)";
 const LAL_OTHER: &str = "Excise Tariff Act 1921 Schedule items 2 and 3: litres of alcohol = volume x strength / 100 (the ATO's QC63603; Excise guidelines for the alcohol industry 6.3.5)";
-const LABELLED: &str = "Excise Act 1901 s 77FA(1): where the label states a higher percentage by volume of alcohol than the actual one, duty is charged on the labelled percentage";
+const LABELLED: &str = "Excise Act 1901 s 77FA(1): where the label states a higher percentage by volume of alcohol than the actual one, duty is charged on the labelled percentage; under s 77FA(2) goods a manufacturer enters unlabelled are treated as labelled with the strength of the same kind of beverage it enters labelled";
 const RATE: &str = "Excise Tariff Act 1921 s 6A(1), (8) and (9): the rate is the substituted rate the Commissioner gave notice of, in force on the day the goods are entered for home consumption; under a periodic settlement permission the day of delivery, otherwise the day of payment (Excise guidelines for the alcohol industry 6.3.5, Examples 6I and 6J)";
 const FREEZE: &str = "Excise Tariff Act 1921 s 6L: subitems 1.2, 1.6 and 1.11 are not indexed on 1 August 2025, 1 February 2026, 1 August 2026 or 1 February 2027";
 const RETURN_LINE: &str = "Excise guidelines for the alcohol industry 6.3.5, Examples 6K to 6O; the ATO's QC63603: goods of one subitem at one rate are one return line; their litres of alcohol may be truncated to one decimal place, and the duty (litres x rate) is truncated to the cent; goods at a different rate are a separate line";
 const REMISSION: &str = "Excise Regulation 2015 s 8 and Sch 1 cl 2(1) item 10 (Excise Act 1901 s 78(1)(b)): duty on an alcoholic beverage manufactured and entered for home consumption by an alcohol manufacturer is remitted where it is payable by the manufacturer (a), the manufacturer is legally and economically independent of any other that has received the remission in the year (b), it fermented or distilled at least 70% by volume of the alcohol content (d), and for a distilled beverage after its first 2 financial years it solely owns a still of at least 5 litres installed at the start of the year and used in it (e); a line marked remission states (a), (b), (d) and (e), and the cap (c) is applied here";
 const CAP: &str = "Excise Regulation 2015 Sch 1 cl 2(1) item 10(c)(i) and s 64: the duty remitted, rebated or refunded under item 10 (or refunded under cl 2(2)) for goods entered in a financial year is at most $400,000 for goods entered from 1 July 2026, and $350,000 for goods entered from 1 July 2021 to 30 June 2026 (compilations 4 and 5; the ATO's QC65935)";
 const PART_YEAR: &str = "Excise Regulation 2015 Sch 1 cl 2(1) item 10(c)(ii) and cl 2(3): for a manufacturer that first becomes an alcohol manufacturer after the start of the financial year, the cap x eligible days / 365, the eligible days running from that day to the end of the financial year; truncated to the cent here (the ATO's QC65935 example: $400,000 x 244 / 365 = $267,397)";
-const REFUND: &str = "Excise Regulation 2015 Sch 1 cl 1(1) item 3 and cl 2(2): duty paid on goods for which the remission was available may be refunded (refund code ERRO), and the refund counts towards the same cap (the ATO's QC65935)";
+const REFUND: &str = "Excise Regulation 2015 Sch 1 cl 1(1) item 3 and cl 2(2): duty paid because of manifest error of fact or patent misconception of the law on goods for which the remission was available may be refunded on application (refund code ERRO), and the refund counts towards the same cap (the ATO's QC65935); duty_paid states that ground";
 
 /// The facts as the command passes them; see the README for each.
 pub struct AlcoholExciseArgs<'a> {
@@ -50,9 +50,9 @@ pub struct AlcoholExciseArgs<'a> {
 }
 
 /// One excise return line: the goods of one subitem at one rate, with or
-/// without the remission.
+/// without the remission, over every rate period that held that rate.
 struct ReturnLine {
-    period: &'static Period,
+    periods: Vec<&'static Period>,
     subitem: &'static str,
     remission: bool,
     lal: Decimal,
@@ -104,19 +104,29 @@ fn work_line(line: &Line, n: usize) -> Result<(Value, Decimal)> {
     Ok((out, lal))
 }
 
-/// Add line `n` to its return line, opening one where none matches.
+/// Add line `n` to its return line, opening one where none matches. Goods
+/// of one subitem stay on one line across a rate period whose notice left
+/// their rate unchanged, as the s 6L freeze does (Excise guidelines 6.3.5:
+/// separate lines only where the rate changes).
 fn file_line(groups: &mut Vec<ReturnLine>, line: &Line, n: usize, lal: Decimal) -> Result<()> {
     let period = period_on(line.date);
+    let rate = rate_of(period, line.subitem);
     let found = groups.iter_mut().find(|g| {
-        g.period.from == period.from && g.subitem == line.subitem && g.remission == line.remission
+        g.subitem == line.subitem
+            && g.remission == line.remission
+            && rate_of(g.periods[0], g.subitem).to_string() == rate.to_string()
     });
     match found {
         Some(g) => {
             g.lal = g.lal.add(&lal)?;
             g.lines.push(n);
+            if !g.periods.iter().any(|p| p.from == period.from) {
+                g.periods.push(period);
+                g.periods.sort_by_key(|p| p.from);
+            }
         }
         None => groups.push(ReturnLine {
-            period,
+            periods: vec![period],
             subitem: line.subitem,
             remission: line.remission,
             lal,
@@ -128,18 +138,19 @@ fn file_line(groups: &mut Vec<ReturnLine>, line: &Line, n: usize, lal: Decimal) 
 
 /// A return line's working and its duty.
 fn work_return_line(g: &ReturnLine) -> Result<(Value, Decimal)> {
-    let rate_per_litre = rate_of(g.period, g.subitem);
+    let rate_per_litre = rate_of(g.periods[0], g.subitem);
     let truncated = g.lal.quantize(-1, Rounding::Down)?;
     let duty = truncated
         .mul(rate_per_litre)?
         .quantize(-2, Rounding::Down)?;
     let mut authority = vec![RATE, RETURN_LINE];
-    if matches!(g.subitem, "1.2" | "1.6" | "1.11") {
+    let frozen = dates::parse("2025-08-01").expect("date");
+    if matches!(g.subitem, "1.2" | "1.6" | "1.11") && g.periods.iter().any(|p| p.from >= frozen) {
         authority.push(FREEZE);
     }
     let out = json!({
         "subitem": g.subitem,
-        "rate_period": period_json(g.period),
+        "rate_periods": g.periods.iter().map(|p| period_json(p)).collect::<Vec<_>>(),
         "rate_per_litre_of_alcohol": rate_per_litre.to_string(),
         "litres_of_alcohol": shown(&g.lal),
         "litres_of_alcohol_truncated": truncated.fixed(1, false),
@@ -163,7 +174,7 @@ pub fn alcohol_excise(args: &AlcoholExciseArgs) -> Result<Value> {
     }
     groups.sort_by_key(|g| {
         let order = SUBITEMS.iter().position(|s| *s == g.subitem);
-        (g.period.from, order, g.remission)
+        (g.periods[0].from, order, g.remission)
     });
     let (mut returned, mut duty, mut eligible) = (Vec::new(), int(0), int(0));
     for g in &groups {
@@ -380,6 +391,9 @@ fn with_remission(
 /// The read date and remission statement warnings.
 fn add_warnings(out: &mut Value, lines: &[Line], remission: bool) {
     let read = dates::parse(&rates().read).expect("read date");
+    let refund = out["amounts"]["refund"]
+        .as_str()
+        .is_some_and(|r| r != "0.00");
     let warnings = out["warnings"].as_array_mut().expect("warnings");
     if lines.iter().any(|l| l.date > read) {
         warnings.push(json!(format!(
@@ -389,7 +403,12 @@ fn add_warnings(out: &mut Value, lines: &[Line], remission: bool) {
     }
     if remission {
         warnings.push(json!(
-            "A line marked remission states that the manufacturer meets Excise Regulation 2015 Sch 1 cl 2(1) item 10 (a), (b), (d) and (e) for those goods: independence, 70% fermented or distilled, and the still ownership test. remission_used_this_year must include refunds under cl 2(2) in the same year."
+            "A line marked remission states that the manufacturer meets Excise Regulation 2015 Sch 1 cl 2(1) item 10 (a), (b), (d) and (e) for those goods: independence, 70% fermented or distilled, and the still ownership test. remission_used_this_year must include refunds under cl 2(2) in the same year. Without manufacturer_from the manufacturer is taken to be one at the start of the year (item 10(c)(i))."
+        ));
+    }
+    if refund {
+        warnings.push(json!(
+            "duty_paid states that the duty was paid because of manifest error of fact or patent misconception of the law (Excise Regulation 2015 Sch 1 cl 1(1) item 3), as where the remission was available but not applied (the ATO's QC65935); the refund is made only on application, under refund code ERRO."
         ));
     }
 }

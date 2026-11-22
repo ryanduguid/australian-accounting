@@ -1379,7 +1379,9 @@ subitem (1.1 to 1.16 by strength and container, 2 or 3.2 either side of 10%,
 3.1 for brandy, 3.10 for other spirits) and works out its litres of alcohol:
 volume x (strength - 1.15%) for beer, volume x strength otherwise. A
 `labelled_strength_percent` above the actual one is charged instead (Excise
-Act 1901 s 77FA). Lines of one subitem at one rate form a return line whose
+Act 1901 s 77FA); for goods entered unlabelled, give the strength on the label
+of the same kind of beverage the manufacturer enters labelled (s 77FA(2)). Lines of one subitem at one rate, across rate periods that left the rate
+unchanged, form a return line whose
 litres of alcohol are truncated to one decimal place and whose duty is
 truncated to the cent, as the ATO's examples show. The rate is the one the
 Commissioner gave notice of under s 6A(9) for the day, held in
@@ -1391,8 +1393,11 @@ Regulation 2015 Sch 1 cl 2(1) item 10's conditions other than the cap. The
 remission is the duty on those lines up to the cap, $350,000 for 2022-23 to
 2025-26 and $400,000 from 1 July 2026, less `remission_used_this_year`.
 `manufacturer_from` pro-rates the cap for a manufacturer that started during
-the year (cap x eligible days / 365), and `duty_paid` reports the amount as a
-refund of duty already paid (cl 2(2)). `net_duty` is the duty less it.
+the year (cap x eligible days / 365); without it the manufacturer is taken to
+be one at the start of the year. `duty_paid` states that the duty was paid by
+manifest error of fact or patent misconception of the law, as where the
+remission was available but not applied (cl 1(1) item 3), and reports the
+amount as a refund of that duty (cl 2(2)). `net_duty` is the duty less it.
 
 It refuses wine (use `wine-equalisation-tax`), tobacco, fuel, the free spirit
 subitems 3.5 to 3.8, non-commercial liquor, imported goods, beverages of

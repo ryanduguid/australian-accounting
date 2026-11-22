@@ -238,6 +238,40 @@ fn the_draught_beer_freeze() {
     assert_eq!(first_return_line(&r)["rate_per_litre_of_alcohol"], "62.56");
 }
 
+/// A frozen rate does not change at an indexation day, so goods of 1.11 on
+/// either side stay one return line (Excise guidelines 6.3.5: separate lines
+/// only where the rate changes): 1.775 + 1.775 LAL = 3.55, truncated to 3.5,
+/// x $43.39 = $151.865, not 2 lines of 1.7. Packaged 1.10 changes rate and
+/// splits. The s 6L authority goes only with a period it applies to.
+#[test]
+fn a_frozen_rate_keeps_one_return_line_across_periods() {
+    let lines = json!([
+        beer("2025-08-04", "50", "4.7", "50"),
+        beer("2026-02-02", "50", "4.7", "50"),
+    ]);
+    let r = run(&input("2025-26", lines));
+    let g = r["return_lines"].as_array().unwrap();
+    assert_eq!(g.len(), 1);
+    assert_eq!(g[0]["litres_of_alcohol_truncated"], "3.5");
+    assert_eq!(g[0]["duty"], "151.86");
+    let periods = g[0]["rate_periods"].as_array().unwrap();
+    let froms: Vec<_> = periods.iter().map(|p| p["from"].clone()).collect();
+    assert_eq!(froms, vec![json!("2025-08-04"), json!("2026-02-02")]);
+    assert!(g[0]["authority"].to_string().contains("s 6L"));
+    let lines = json!([
+        beer("2025-08-04", "50", "4.7", "0.375"),
+        beer("2026-02-02", "50", "4.7", "0.375"),
+    ]);
+    let r = run(&input("2025-26", lines));
+    assert_eq!(r["return_lines"].as_array().unwrap().len(), 2);
+    let before = one(beer("2025-02-03", "100", "5.15", "50"));
+    assert!(
+        !first_return_line(&before)["authority"]
+            .to_string()
+            .contains("s 6L")
+    );
+}
+
 /// Excise Act 1901 s 77FA: duty on the labelled strength where it is the
 /// higher; refused where the label would change the subitem.
 #[test]
@@ -587,6 +621,13 @@ fn duty_paid_is_a_refund() {
     assert_eq!(amount(&r, "refund"), "4406.00");
     assert_eq!(amount(&r, "remission"), "0.00");
     assert_eq!(amount(&r, "net_duty"), "0.00");
+    // The refund rests on cl 1(1) item 3's ground, which duty_paid states.
+    assert!(r["warnings"].to_string().contains("manifest error of fact"));
+    assert!(
+        r["remission_authority"]
+            .to_string()
+            .contains("manifest error")
+    );
 }
 
 #[test]
