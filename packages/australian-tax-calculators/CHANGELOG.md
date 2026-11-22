@@ -36,6 +36,17 @@
   `.sole_parent_without_dependant`. `tests/individual_offsets.rs` holds them
   to the ATO's examples and every published amount and limit.
 
+- `government-super-amounts` works out the super co-contribution, the low
+  income super tax offset and the spouse contribution tax offset for a
+  full-year resident in 2020-21 to 2026-27, from `income-tests`' components,
+  the contributions and the stated tests, with each condition and its
+  provision. New codes: `government_super_amounts.fact_conflict`,
+  `government_super_amounts.fact_not_supplied`,
+  `government_super_amounts.no_total_income` and
+  `government_super_amounts.temporary_visa`.
+  `tests/government_super_amounts.rs` holds it to the ATO's Angelo, Julie
+  and spouse examples.
+
 ### Fixed
 
 - Both borrowing expenses worksheets identify their deduction amounts as

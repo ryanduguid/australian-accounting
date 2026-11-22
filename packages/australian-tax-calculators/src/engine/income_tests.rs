@@ -53,7 +53,7 @@ const COMPONENTS: [&str; 16] = [
 /// ATO's 'Fringe benefits tax - rates and thresholds', last updated 20 May
 /// 2026): a section 57A employer's reportable amount is its individual
 /// quasi-fringe benefits amount grossed up at 1 / (1 - rate) (FBTAA s 135Q(4)).
-const SECTION_57A_FACTOR: &str = "0.53";
+pub(super) const SECTION_57A_FACTOR: &str = "0.53";
 
 /// The measures, each a step below, whose unused components the result lists.
 const MEASURES: [&str; 6] = [
@@ -177,7 +177,7 @@ fn check_residency(residency: &Arg) -> Result<()> {
 }
 
 /// The value `values` holds for `name`.
-fn value<'a>(values: &'a [(&str, Decimal)], name: &str) -> &'a Decimal {
+pub(super) fn value<'a>(values: &'a [(&str, Decimal)], name: &str) -> &'a Decimal {
     &values
         .iter()
         .find(|(n, _)| *n == name)
@@ -270,18 +270,23 @@ fn not_used() -> Map<String, Value> {
         .collect()
 }
 
-/// The income measures for one full-year resident and income year, from
-/// `inputs`: each of [`COMPONENTS`] and `residency`, `year` and
-/// `scope_confirmed`, by name.
-pub fn income_tests(inputs: &[(&str, &Arg)]) -> Result<Value> {
-    let get = |key: &str| {
-        inputs
-            .iter()
-            .find(|(k, _)| *k == key)
-            .unwrap_or_else(|| panic!("{key} is an input of income-tests"))
-            .1
-    };
-    let year = scope(get("scope_confirmed"), get("year"), KIND)?;
+/// Each component and step by name, with its value.
+pub(super) type Values = Vec<(&'static str, Decimal)>;
+
+/// The input `key` of `inputs`, which the command always passes.
+pub(super) fn named<'a>(inputs: &[(&str, &'a Arg)], key: &str) -> &'a Arg {
+    inputs
+        .iter()
+        .find(|(k, _)| *k == key)
+        .unwrap_or_else(|| panic!("{key} is an input"))
+        .1
+}
+
+/// The components and every measure's step for one full-year resident, from
+/// `inputs`: each of [`COMPONENTS`] and `residency`, by name. The government
+/// super amounts take their income measures from here, for their own years.
+pub(super) fn measures(inputs: &[(&str, &Arg)]) -> Result<(Values, Vec<Step>)> {
+    let get = |key: &str| named(inputs, key);
     check_residency(get("residency"))?;
     let mut values = Vec::new();
     for key in COMPONENTS {
@@ -298,6 +303,19 @@ pub fn income_tests(inputs: &[(&str, &Arg)]) -> Result<Value> {
     }
     values.push(("section_57a_factor", d(SECTION_57A_FACTOR)));
     let steps = precise(|| working(&mut values))?;
+    Ok((values, steps))
+}
+
+/// The income measures for one full-year resident and income year, from
+/// `inputs`: each of [`COMPONENTS`] and `residency`, `year` and
+/// `scope_confirmed`, by name.
+pub fn income_tests(inputs: &[(&str, &Arg)]) -> Result<Value> {
+    let year = scope(
+        named(inputs, "scope_confirmed"),
+        named(inputs, "year"),
+        KIND,
+    )?;
+    let (values, steps) = measures(inputs)?;
     let rates = vec![rate("section_57a_factor", SECTION_57A_FACTOR)];
     let mut out = derived_result(KIND, &year, steps, rates)?;
     out["not_used"] = Value::Object(not_used());

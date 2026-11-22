@@ -303,6 +303,10 @@ pub const SCOPES: &[(&str, &str)] = &[
         "Whether the personal services income rules (ITAA 1997 Part 2-42) apply to one individual's personal services income for an income year from 2020-21 to 2026-27, from the operator's answers: whether the income is mainly a reward for personal efforts or skills, who receives it, a determination in force, each payer with its associates and what it paid for, the principal work by others, an apprentice and the business premises; s 87-40 is not applied to an agent on 75% or more commission, Australian government agencies are entered as s 87-35 treats them, and whether the Commissioner would make a determination is not decided.",
     ),
     (
+        "government_super_amounts",
+        "The super co-contribution (Superannuation (Government Co-contribution for Low Income Earners) Act 2003, the Co-contribution Act, Part 2), the low income superannuation tax offset (LISTO, Part 2A, s 12C(1) only) and the spouse contribution tax offset (ITAA 1997 Subdivision 290-D) for one individual who was an Australian resident for the whole income year, in 2020-21 to 2026-27. Total income (Co-contribution Act s 8) and adjusted taxable income (A New Tax System (Family Assistance) Act 1999 Sch 3, disregarding cls 3 and 3A) are income-tests' measures, from the same established and classified components. The operator establishes the eligible income for the 10% test (s 6(1)(b), (2) and s 8(3)), the eligible personal contributions the fund received in the year (s 7; not deducted, not a downsizer contribution), the concessional contributions for the financial year (a person with contributions or amounts Co-contribution Act s 12E(3) disregards, for constitutionally protected funds or under ITAA 1997 s 291-165(1)(c), is out of scope, as s 12C(1)(a) counts them and s 12E(2)(a) does not), whether a return is lodged, the age, temporary visa, non-concessional cap and total super balance facts, and for a spouse the contributions s 290-230 counts (made whilst spouses, both resident and not living apart, to a complying fund the spouse could contribute to, not deductible and not a Family Law Act payment) and the spouse's income components and cap and balance facts. Thresholds are the ATO's published ones (Table 25). The payable co-contribution and LISTO are increased to a multiple of 5 cents (Regulations 2022 reg 15(2), 2004 reg 24(2)). Refuses a temporary visa held in the year, as the New Zealand citizen and prescribed visa exceptions are not worked out, a balance or cap fact not established where it decides an amount, and nil total income where a contribution makes the 10% test decide. Excludes contributions not yet received by the fund, LISTO the Commissioner estimates without a return (s 12C(2)), a deceased person's annualised income, interest on late payments (ss 12, 21 and 22), the co-contribution for an earlier year, the order and timing of payment, and 2027-28, when Act No. 8 of 2026 Schedule 4 changes LISTO.",
+    ),
+    (
         "income_tests",
         "The income measures of one individual who was an Australian resident for the whole income year and alive at its end, each the person's own for the whole year, from components the operator has established and classified: income for surcharge purposes (ITAA 1997 s 995-1), Division 293 income (s 293-20(1)(a)), rebate income (ITAA 1936 s 6(1)), repayment income for study and training loans (HESA s 154-5), adjusted taxable income for offsets (ITAA 1997 s 995-1, ITAA 1936 s 6(1) and A New Tax System (Family Assistance) Act 1999 Sch 3, disregarding cls 3 and 3A) and total income for the super co-contribution (Superannuation (Government Co-contribution for Low Income Earners) Act 2003 s 8). A spouse's measures come from the spouse's own components. A dependant's adjusted taxable income for part of a year, a deceased person's annualised adjusted taxable income (Sch 3 cl 2(2)), the co-contribution's 10% eligible income test, the combined family amounts and every threshold and eligibility test the measures feed are outside it. Income for surcharge purposes follows s 995-1, which does not add exempt foreign employment income; the ATO's surcharge page adds it where taxable income is $1 or more, and the result warns when that changes the figure. Measures another agency applies are outside it: the Commonwealth Seniors Health Card income test and family assistance adjusted taxable income are Services Australia's (https://www.servicesaustralia.gov.au/income-test-for-commonwealth-seniors-health-card). Refuses part-year residents, working holiday makers and foreign residents, and components that cannot all be true together.",
     ),
@@ -572,6 +576,10 @@ pub const SOURCES: &[(&str, &str)] = &[
     (
         "income_tests",
         "https://www.ato.gov.au/individuals-and-families/income-deductions-offsets-and-records/income-tests",
+    ),
+    (
+        "government_super_amounts",
+        "https://www.legislation.gov.au/C2004A01195/2018-07-01/2018-07-01/text/original/epub/OEBPS/document_1/document_1.html",
     ),
     (
         "sb_cgt_concessions",
@@ -1296,6 +1304,18 @@ pub const EXTRA_SOURCES: &[(&str, &[&str])] = &[
         ],
     ),
     (
+        "government_super_amounts",
+        &[
+            "https://www.ato.gov.au/tax-rates-and-codes/key-superannuation-rates-and-thresholds/government-contributions",
+            "https://www.ato.gov.au/individuals-and-families/super-for-individuals-and-families/super/growing-and-keeping-track-of-your-super/how-to-save-more-in-your-super/government-super-contributions/super-co-contribution",
+            "https://www.ato.gov.au/individuals-and-families/super-for-individuals-and-families/super/growing-and-keeping-track-of-your-super/how-to-save-more-in-your-super/government-super-contributions/low-income-super-tax-offset",
+            "https://www.ato.gov.au/individuals-and-families/income-deductions-offsets-and-records/tax-offsets/superannuation-related-tax-offsets",
+            "https://www.legislation.gov.au/C2004A05138/2026-10-01/2026-10-01/text/original/epub/OEBPS/document_6/document_6.html",
+            "https://www.legislation.gov.au/F2022L00155/asmade/2022-02-18/text/original/epub/OEBPS/document_1/document_1.html",
+            "https://www.legislation.gov.au/C2026A00008/asmade/text",
+        ],
+    ),
+    (
         "income_tests",
         &[
             "https://www.legislation.gov.au/C2004A05138/2026-10-01/2026-10-01/text/original/epub/OEBPS/document_10/document_10.html",
@@ -1373,6 +1393,12 @@ pub const EXTRA_WARNINGS: &[(&str, &[&str])] = &[
         "psi_test",
         &[
             "A personal services business is still subject to Part IVA of the ITAA 1936 on splitting the income (TR 2022/3 paragraphs 25 and 160); the PSI is still reported in the tax return.",
+        ],
+    ),
+    (
+        "government_super_amounts",
+        &[
+            "The Commissioner determines the co-contribution and LISTO from the return and the fund's reports and pays them to the fund; these are estimates from the facts given.",
         ],
     ),
     ("fbt_car_statutory", &[CAR_REPORTABLE_NOTE]),
@@ -1605,6 +1631,10 @@ pub const UNPUBLISHED_2027_28: &[(&str, &str)] = &[
     (
         "sb_cgt_concessions",
         "From 2027-28 Schedule 1 to Act No. 49 of 2026 changes Division 152, and this worksheet has not been checked against it.",
+    ),
+    (
+        "government_super_amounts",
+        "From 2027-28 Schedule 4 to Act No. 8 of 2026 replaces LISTO's $37,000 limit and $500 maximum, and the Commissioner has not published the 2027-28 co-contribution thresholds.",
     ),
     (
         "trade_in",
@@ -2226,6 +2256,22 @@ pub const REFUSAL_CODES: &[(&str, &str)] = &[
         "A line's use is not heavy_vehicle_public_road, other_business or light_vehicle_public_road.",
     ),
     (
+        "government_super_amounts.fact_conflict",
+        "Facts that cannot all be true: eligible income above total income before business deductions, or a spouse's assessable FHSS released amount or excess concessional contributions above the spouse's assessable income.",
+    ),
+    (
+        "government_super_amounts.fact_not_supplied",
+        "A total super balance or non-concessional cap fact given as null would decide an amount.",
+    ),
+    (
+        "government_super_amounts.no_total_income",
+        "Total income is nil, so the 10% eligible income test has no share to measure, and it would decide an amount.",
+    ),
+    (
+        "government_super_amounts.temporary_visa",
+        "A temporary visa was held in the income year; the New Zealand citizen and prescribed visa exceptions in s 6(1)(f) are not worked out.",
+    ),
+    (
         "gst_margin_scheme.acquisition_unsupported",
         "The interest was acquired in a way whose eligibility or margin s 75-5(3)(b) to (g), s 75-10(3) item 2A, s 75-11 or s 75-22 governs, which gst-margin-scheme does not work.",
     ),
@@ -2391,7 +2437,7 @@ pub const REFUSAL_CODES: &[(&str, &str)] = &[
     ),
     (
         "input.field_unknown",
-        "A field the worksheet or command does not take, or does not take beside the other inputs given, was given (fbt-loan, fbt-meal-entertainment, fbt-car-parking, fbt-debt-waiver, fbt-expense-payment, fbt-property, fbt-residual, fbt-housing, fbt-lafha, fbt-board, fbt-tax-exempt-body-entertainment, fbt-entertainment-classifier, fbt-meal-entertainment-register and its entries, fbt-minor-benefit-check, ppsr-timing, fhss and its contributions, personal_deductions and determination, division-296, depreciation, fuel-tax-credits and its lines, foreign-resident-tax, medicare-levy, medicare-levy-surcharge, payg-withholding, payg-gross-up, termination-payment, etp-tax-free-component, unused-leave-payment, the Schedule 5 methods, working-holiday-maker-withholding, study-loan-withholding, seniors-pensioners-withholding, seniors-pensioners-tax-offset, lump-sum-arrears-tax-offset, hire-purchase-schedule, chattel-mortgage-schedule, loan-transactions and its transactions and rate_changes, borrowing-expenses-schedule and its loans, business-capital-expenditure and its items, balancing-adjustment, its years and car_limit, trade-in, franking-account and its events, distributions and income_tax, dasp-tax, gst-margin-scheme, wine-equalisation-tax and its dealings, luxury-car-tax and its lines, payroll-tax, cgt-parcels, its parcels and disposals, fbt-ev-exemption-check, sb-cgt-concessions, small-business-income-offset, depreciation-low-value-pool, depreciation-small-business-pool, capital-works, non-commercial-losses, psi-test, beneficiary-tax-offset, invalid-carer-tax-offset, zone-tax-offset and its dependants, net-medical-expenses-tax-offset, contribution-caps given a carry-forward input, derive, personal-tax-estimate, dgr-check, income-tests and fbt-return only).",
+        "A field the worksheet or command does not take, or does not take beside the other inputs given, was given (fbt-loan, fbt-meal-entertainment, fbt-car-parking, fbt-debt-waiver, fbt-expense-payment, fbt-property, fbt-residual, fbt-housing, fbt-lafha, fbt-board, fbt-tax-exempt-body-entertainment, fbt-entertainment-classifier, fbt-meal-entertainment-register and its entries, fbt-minor-benefit-check, ppsr-timing, fhss and its contributions, government-super-amounts, personal_deductions and determination, division-296, depreciation, fuel-tax-credits and its lines, foreign-resident-tax, medicare-levy, medicare-levy-surcharge, payg-withholding, payg-gross-up, termination-payment, etp-tax-free-component, unused-leave-payment, the Schedule 5 methods, working-holiday-maker-withholding, study-loan-withholding, seniors-pensioners-withholding, seniors-pensioners-tax-offset, lump-sum-arrears-tax-offset, hire-purchase-schedule, chattel-mortgage-schedule, loan-transactions and its transactions and rate_changes, borrowing-expenses-schedule and its loans, business-capital-expenditure and its items, balancing-adjustment, its years and car_limit, trade-in, franking-account and its events, distributions and income_tax, dasp-tax, gst-margin-scheme, wine-equalisation-tax and its dealings, luxury-car-tax and its lines, payroll-tax, cgt-parcels, its parcels and disposals, fbt-ev-exemption-check, sb-cgt-concessions, small-business-income-offset, depreciation-low-value-pool, depreciation-small-business-pool, capital-works, non-commercial-losses, psi-test, beneficiary-tax-offset, invalid-carer-tax-offset, zone-tax-offset and its dependants, net-medical-expenses-tax-offset, contribution-caps given a carry-forward input, derive, personal-tax-estimate, dgr-check, income-tests and fbt-return only).",
     ),
     ("input.flag_invalid", "A flag is not a JSON boolean."),
     ("input.fraction_invalid", "A fraction is outside 0 to 1."),

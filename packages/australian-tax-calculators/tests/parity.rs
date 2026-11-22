@@ -30,13 +30,13 @@ use std::process::{Command, Stdio};
 /// `tests/fbt_entertainment_classifier.rs`, `tests/fbt_minor_benefit.rs`,
 /// `tests/fhss.rs`, `tests/ppsr_timing.rs`, `tests/dasp_tax.rs`, `tests/income_tests.rs`,
 /// `tests/franking_account.rs`, `tests/wine_equalisation_tax.rs`,
-/// `tests/luxury_car_tax.rs`, `tests/sb_cgt_concessions.rs` and
+/// `tests/luxury_car_tax.rs`, `tests/sb_cgt_concessions.rs`,
 /// `tests/individual_offsets.rs` and
 /// `tests/psi_test.rs` and
 /// `tests/non_commercial_losses.rs`,
-/// `tests/depreciation_pools.rs` and `tests/small_business_income_offset.rs`
+/// `tests/depreciation_pools.rs` and `tests/government_super_amounts.rs` and `tests/small_business_income_offset.rs`
 /// cover them.
-const NEW_KINDS: [(&str, &str); 62] = [
+const NEW_KINDS: [(&str, &str); 63] = [
     ("fhss", "fhss"),
     ("ppsr-timing", "ppsr_timing"),
     ("dasp-tax", "dasp_tax"),
@@ -87,6 +87,7 @@ const NEW_KINDS: [(&str, &str); 62] = [
         "net-medical-expenses-tax-offset",
         "net_medical_expenses_tax_offset",
     ),
+    ("government-super-amounts", "government_super_amounts"),
     ("division-296", "division_296"),
     ("termination-payment", "termination_payment"),
     ("etp-tax-free-component", "etp_tax_free_component"),

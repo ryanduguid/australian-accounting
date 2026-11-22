@@ -6149,6 +6149,8 @@ mod lump_sum_arrears;
 pub use lump_sum_arrears::lump_sum_arrears_tax_offset;
 mod income_tests;
 pub use income_tests::income_tests;
+mod government_super_amounts;
+pub use government_super_amounts::{SPOUSE_INPUTS, government_super_amounts};
 mod wine_equalisation_tax;
 pub use wine_equalisation_tax::{WetArgs, wine_equalisation_tax};
 mod fbt_minor_benefit;
@@ -6179,7 +6181,7 @@ pub use non_commercial_losses::{NCL_OPTIONAL, NonCommercialLossesArgs, non_comme
 mod psi_test;
 pub use psi_test::{PSI_OPTIONAL, PsiTestArgs, psi_test};
 
-const KINDS: [&str; 76] = [
+const KINDS: [&str; 77] = [
     "gst",
     "gst_margin_scheme",
     "fuel_tax_credits",
@@ -6256,6 +6258,7 @@ const KINDS: [&str; 76] = [
     "small_business_income_offset",
     "non_commercial_losses",
     "psi_test",
+    "government_super_amounts",
 ];
 
 /// `periods(kind)`: accepted period arguments and inclusive calendar boundaries.

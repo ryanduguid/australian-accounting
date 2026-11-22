@@ -843,6 +843,38 @@ const COMMAND_ARGS: &[(&str, &[(&str, Kind)])] = &[
             ("scope_confirmed", Raw),
         ],
     ),
+    (
+        "government-super-amounts",
+        &[
+            ("taxable_income", Dec),
+            ("assessable_fhss_released_amount", Dec),
+            ("family_trust_distribution_amounts", Dec),
+            ("reportable_fringe_benefits_section_57a", Dec),
+            ("reportable_fringe_benefits_other", Dec),
+            ("reportable_employer_super_contributions", Dec),
+            ("deductible_personal_super_contributions", Dec),
+            ("excess_concessional_contributions", Dec),
+            ("net_financial_investment_loss", Dec),
+            ("net_rental_property_loss", Dec),
+            ("tax_free_government_pensions", Dec),
+            ("target_foreign_income", Dec),
+            ("exempt_foreign_employment_income", Dec),
+            ("child_support_paid", Dec),
+            ("assessable_income", Dec),
+            ("business_deductions", Dec),
+            ("residency", Raw),
+            ("eligible_income", Dec),
+            ("personal_contributions", Dec),
+            ("concessional_contributions", Dec),
+            ("return_lodged", Raw),
+            ("under_71", Raw),
+            ("temporary_visa_held", Raw),
+            ("non_concessional_within_cap", Raw),
+            ("total_super_balance_below_cap", Raw),
+            ("year", Raw),
+            ("scope_confirmed", Raw),
+        ],
+    ),
 ];
 
 const LICENCE_NOTICE: &str = "\n\
@@ -880,7 +912,7 @@ pub fn commands() -> Vec<&'static str> {
 /// command on its `gross_pay` shows that withholding. The classifier's amounts
 /// are totals over lines whose shares a decision table sets, not a formula;
 /// each line and class carries the authority for its row instead.
-const DERIVED: [&str; 57] = [
+const DERIVED: [&str; 58] = [
     "fbt",
     "fbt-car-statutory",
     "fbt-car-operating-cost",
@@ -930,6 +962,7 @@ const DERIVED: [&str; 57] = [
     "loan-transactions",
     "lump-sum-arrears-tax-offset",
     "income-tests",
+    "government-super-amounts",
     "business-capital-expenditure",
     "balancing-adjustment",
     "trade-in",
@@ -1325,6 +1358,7 @@ pub fn evaluate_coded(command: &str, v: &Value) -> Result<Value> {
             | "small-business-income-offset"
             | "non-commercial-losses"
             | "psi-test"
+            | "government-super-amounts"
             | "business-capital-expenditure"
             | "balancing-adjustment"
             | "trade-in"
@@ -2164,6 +2198,19 @@ pub fn evaluate_coded(command: &str, v: &Value) -> Result<Value> {
                 scope_confirmed: &a[9],
                 optional: given.each_ref().map(Option::as_ref),
             })
+        }
+        "government-super-amounts" => {
+            // Optional: the spouse inputs, all or none.
+            let spouse = engine::SPOUSE_INPUTS
+                .iter()
+                .map(|key| {
+                    let kind = if key.ends_with("_cap") { Raw } else { Dec };
+                    Ok(optional(v, key, kind)?.map(|arg| (*key, arg)))
+                })
+                .collect::<Result<Vec<_>>>()?;
+            let mut named: Vec<(&str, &Arg)> = params.iter().map(|(key, _)| *key).zip(&a).collect();
+            named.extend(spouse.iter().flatten().map(|(key, arg)| (*key, arg)));
+            engine::government_super_amounts(&named)
         }
         "luxury-car-tax" => engine::luxury_car_tax(&engine::LctArgs {
             lines: &a[0],

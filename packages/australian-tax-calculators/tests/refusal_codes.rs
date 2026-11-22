@@ -169,11 +169,11 @@ fn every_catalogued_required_input_of_a_strict_command_is_read() {
     // fbt-ev-exemption-check, fhss, franking-account, sb-cgt-concessions and
     // non-commercial-losses,
     // depreciation-low-value-pool, depreciation-small-business-pool,
-    // capital-works and small-business-income-offset and
+    // capital-works and government-super-amounts and small-business-income-offset and
     // psi-test,
     // beneficiary-tax-offset, invalid-carer-tax-offset, zone-tax-offset and
     // net-medical-expenses-tax-offset.
-    assert_eq!(checked, 62);
+    assert_eq!(checked, 63);
 }
 
 /// Every frozen call gives the same answer through either entry point, and
