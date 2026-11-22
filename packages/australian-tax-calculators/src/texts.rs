@@ -2715,3 +2715,146 @@ pub const REFUSAL_CODES: &[(&str, &str)] = &[
     ),
     ("worksheet.unknown", "The worksheet does not exist."),
 ];
+
+/// `lodgment_required`: each condition, its key, its provision in the instruments from 2023-24
+/// and in the Notices before, and what it says.
+pub const LODGMENT_PROVISIONS: [(&str, &str, &str, &str); 23] = [
+    (
+        "payg_withheld",
+        "paragraph 6(2)(a)",
+        "Table A item (1)",
+        "an amount withheld under PAYG withholding, other than from the payments the paragraph excludes",
+    ),
+    (
+        "tax_loss",
+        "paragraph 6(2)(b)",
+        "Table A item (2)",
+        "a tax loss incurred or deducted",
+    ),
+    (
+        "net_capital_loss",
+        "paragraph 6(2)(c)",
+        "Table A item (3)",
+        "a net capital loss made or applied",
+    ),
+    (
+        "business",
+        "paragraph 6(2)(f)",
+        "Table A item (6)",
+        "a business carried on",
+    ),
+    (
+        "primary_production_trust",
+        "paragraph 6(2)(g)",
+        "Table A item (7)",
+        "income as a beneficiary of a trust that operated a primary production business in Australia",
+    ),
+    (
+        "primary_production_partnership",
+        "paragraph 6(2)(h)",
+        "Table A item (8)",
+        "an interest in a partnership that operated a primary production business in Australia",
+    ),
+    (
+        "under_18",
+        "paragraph 6(2)(i)",
+        "Table A item (9)",
+        "under 18 at all times, with income other than from work, or from dividends and franking credits, over $416",
+    ),
+    (
+        "exempt_overseas_income",
+        "paragraph 6(2)(j)",
+        "Table A item (10)",
+        "income under ITAA 1936 s 23AF or 23AG and $1 or more of other income",
+    ),
+    (
+        "payg_instalment",
+        "paragraph 6(2)(k)",
+        "Table A item (11)",
+        "a PAYG instalment paid",
+    ),
+    (
+        "special_professional",
+        "paragraph 6(2)(l)",
+        "Table A item (12)",
+        "a special professional under ITAA 1997 Division 405",
+    ),
+    (
+        "private_health_offset",
+        "paragraph 6(2)(m)",
+        "Table A item (13)",
+        "entitled to the private health insurance offset and not claiming the correct amount as a premium reduction",
+    ),
+    (
+        "reportable_amounts",
+        "paragraph 6(2)(n)",
+        "Table A item (14)",
+        "reportable fringe benefits or reportable employer superannuation contributions on a payment summary or income statement",
+    ),
+    (
+        "dividends",
+        "paragraph 6(2)(o)",
+        "Table A item (15)",
+        "assessable income from dividends or distributions and franking credits over $18,200",
+    ),
+    (
+        "co_contribution",
+        "paragraph 6(2)(p)",
+        "Table A item (16)",
+        "personal contributions that will receive a super co-contribution",
+    ),
+    (
+        "contributions_cap",
+        "paragraph 6(2)(q)",
+        "Table A item (17)",
+        "a concessional or non-concessional contributions cap exceeded",
+    ),
+    (
+        "super_lump_sum",
+        "paragraph 6(2)(r)",
+        "Table A item (18)",
+        "an Australian superannuation lump sum with an untaxed element at 60 or over, or a taxed or untaxed element under 60",
+    ),
+    (
+        "resident_whole_year",
+        "subparagraph 6(3)(a)(i)",
+        "Table B item (1)(a)",
+        "a resident for the whole year with taxable income over $18,200",
+    ),
+    (
+        "resident_part_year",
+        "subparagraph 6(3)(a)(ii)",
+        "Table B item (1)(b)",
+        "a resident for part of the year with taxable income over the lesser of $18,200 and $13,464 plus $395 a month",
+    ),
+    (
+        "not_resident",
+        "paragraph 6(3)(b)",
+        "Table B item (2)",
+        "not a resident at any time, with income taxable in Australia other than the excluded withholding payments",
+    ),
+    (
+        "study_loan",
+        "subsection 6(10)",
+        "Table J",
+        "a foreign resident with a study or training loan debt on 1 June before the year and income over the year's amount",
+    ),
+    (
+        "working_holiday_maker",
+        "paragraph 7(1)(f)",
+        "Table P",
+        "a working holiday maker with no other assessable income and taxable income, without super or ETP remainders, under $45,001",
+    ),
+    (
+        "listed_payment",
+        "subsection 7(2)",
+        "Table K item (1)",
+        "a payment the instrument lists, and no other assessable income or taxable income under the year's amount",
+    ),
+    (
+        "sapto",
+        "subsection 7(3)",
+        "Table K item (2)",
+        "eligible for the seniors and pensioners tax offset, with rebate income under the year's amount",
+    ),
+];

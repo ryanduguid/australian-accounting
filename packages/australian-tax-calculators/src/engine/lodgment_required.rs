@@ -20,244 +20,60 @@ use serde_json::{Map, Value, json};
 use super::stated;
 use super::{Arg, Result, flag, int, money, refuse, result, scope};
 use crate::decimal::Decimal;
+use crate::texts;
 
 const KIND: &str = "lodgment_required";
 
-/// One year's instrument and its amounts, in whole dollars.
-struct Instrument {
-    year: &'static str,
-    title: &'static str,
-    id: &'static str,
-    /// A Notice with Tables A to P (to 2022-23), not sections 6 to 8.
-    notice: bool,
-    /// s 6(10)(b) [Table J(2)]: income more than this.
-    study_loan_income: i64,
-    /// s 7(2)(b)(ii) [Table K(1)]: taxable income under this, or at most
-    /// it when `payment_inclusive`.
-    payment_limit: i64,
-    payment_inclusive: bool,
-    /// s 7(3)(b) [Table K(2)]: rebate income under these, single, apart
-    /// and together.
-    sapto: [i64; 3],
-    due: &'static str,
-}
+/// One year's instrument: the year, its register id, the income over which
+/// s 6(10)(b) [Table J(2)] applies, the taxable income limit of s 7(2)(b)(ii)
+/// [Table K(1)] and whether it is 'less than or equal to' rather than 'less
+/// than', and the rebate income limits of s 7(3)(b) [Table K(2)] for single,
+/// apart and together; amounts in whole dollars.
+type Instrument = (&'static str, &'static str, i64, i64, bool, [i64; 3]);
 
-const NOTICE: &str = "Notice of Requirement to Lodge a Return for the Income Year Ended 30 June";
-const TAXATION_LAWS: &str = "Taxation Laws (Requirement to Lodge a Return for the";
 const OLD_SAPTO: [i64; 3] = [32_280, 31_280, 28_975];
 const NEW_SAPTO: [i64; 3] = [34_919, 33_732, 30_994];
 
 const INSTRUMENTS: [Instrument; 6] = [
-    Instrument {
-        year: "2020-21",
-        title: NOTICE,
-        id: "F2021L00577",
-        notice: true,
-        study_loan_income: 11_655,
-        payment_limit: 21_885,
-        payment_inclusive: false,
-        sapto: OLD_SAPTO,
-        due: "2021-10-31",
-    },
-    Instrument {
-        year: "2021-22",
-        title: NOTICE,
-        id: "F2022L00508",
-        notice: true,
-        study_loan_income: 11_753,
-        payment_limit: 21_885,
-        payment_inclusive: false,
-        sapto: OLD_SAPTO,
-        due: "2022-10-31",
-    },
-    Instrument {
-        year: "2022-23",
-        title: NOTICE,
-        id: "F2023L00533",
-        notice: true,
-        study_loan_income: 12_090,
-        payment_limit: 21_885,
-        payment_inclusive: false,
-        sapto: OLD_SAPTO,
-        due: "2023-10-31",
-    },
-    Instrument {
-        year: "2023-24",
-        title: TAXATION_LAWS,
-        id: "F2024L00550",
-        notice: false,
-        study_loan_income: 12_887,
-        payment_limit: 21_885,
-        payment_inclusive: false,
-        sapto: OLD_SAPTO,
-        due: "2024-10-31",
-    },
-    Instrument {
-        year: "2024-25",
-        title: TAXATION_LAWS,
-        id: "F2025L00570",
-        notice: false,
-        study_loan_income: 13_609,
-        payment_limit: 22_575,
-        payment_inclusive: false,
-        sapto: NEW_SAPTO,
-        due: "2025-10-31",
-    },
-    Instrument {
-        year: "2025-26",
-        title: TAXATION_LAWS,
-        id: "F2026L00618",
-        notice: false,
-        study_loan_income: 16_750,
-        payment_limit: 22_575,
-        payment_inclusive: true,
-        sapto: NEW_SAPTO,
-        due: "2026-10-31",
-    },
+    ("2020-21", "F2021L00577", 11_655, 21_885, false, OLD_SAPTO),
+    ("2021-22", "F2022L00508", 11_753, 21_885, false, OLD_SAPTO),
+    ("2022-23", "F2023L00533", 12_090, 21_885, false, OLD_SAPTO),
+    ("2023-24", "F2024L00550", 12_887, 21_885, false, OLD_SAPTO),
+    ("2024-25", "F2025L00570", 13_609, 22_575, false, NEW_SAPTO),
+    ("2025-26", "F2026L00618", 16_750, 22_575, true, NEW_SAPTO),
 ];
 
-/// Each condition: its key, its provision in the instruments from 2023-24
-/// and in the Notices before, and what it says.
-const PROVISIONS: [(&str, &str, &str, &str); 23] = [
-    (
-        "payg_withheld",
-        "paragraph 6(2)(a)",
-        "Table A item (1)",
-        "an amount withheld under PAYG withholding, other than from the payments the paragraph excludes",
-    ),
-    (
-        "tax_loss",
-        "paragraph 6(2)(b)",
-        "Table A item (2)",
-        "a tax loss incurred or deducted",
-    ),
-    (
-        "net_capital_loss",
-        "paragraph 6(2)(c)",
-        "Table A item (3)",
-        "a net capital loss made or applied",
-    ),
-    (
-        "business",
-        "paragraph 6(2)(f)",
-        "Table A item (6)",
-        "a business carried on",
-    ),
-    (
-        "primary_production_trust",
-        "paragraph 6(2)(g)",
-        "Table A item (7)",
-        "income as a beneficiary of a trust that operated a primary production business in Australia",
-    ),
-    (
-        "primary_production_partnership",
-        "paragraph 6(2)(h)",
-        "Table A item (8)",
-        "an interest in a partnership that operated a primary production business in Australia",
-    ),
-    (
-        "under_18",
-        "paragraph 6(2)(i)",
-        "Table A item (9)",
-        "under 18 at all times, with income other than from work, or from dividends and franking credits, over $416",
-    ),
-    (
-        "exempt_overseas_income",
-        "paragraph 6(2)(j)",
-        "Table A item (10)",
-        "income under ITAA 1936 s 23AF or 23AG and $1 or more of other income",
-    ),
-    (
-        "payg_instalment",
-        "paragraph 6(2)(k)",
-        "Table A item (11)",
-        "a PAYG instalment paid",
-    ),
-    (
-        "special_professional",
-        "paragraph 6(2)(l)",
-        "Table A item (12)",
-        "a special professional under ITAA 1997 Division 405",
-    ),
-    (
-        "private_health_offset",
-        "paragraph 6(2)(m)",
-        "Table A item (13)",
-        "entitled to the private health insurance offset and not claiming the correct amount as a premium reduction",
-    ),
-    (
-        "reportable_amounts",
-        "paragraph 6(2)(n)",
-        "Table A item (14)",
-        "reportable fringe benefits or reportable employer superannuation contributions on a payment summary or income statement",
-    ),
-    (
-        "dividends",
-        "paragraph 6(2)(o)",
-        "Table A item (15)",
-        "assessable income from dividends or distributions and franking credits over $18,200",
-    ),
-    (
-        "co_contribution",
-        "paragraph 6(2)(p)",
-        "Table A item (16)",
-        "personal contributions that will receive a super co-contribution",
-    ),
-    (
-        "contributions_cap",
-        "paragraph 6(2)(q)",
-        "Table A item (17)",
-        "a concessional or non-concessional contributions cap exceeded",
-    ),
-    (
-        "super_lump_sum",
-        "paragraph 6(2)(r)",
-        "Table A item (18)",
-        "an Australian superannuation lump sum with an untaxed element at 60 or over, or a taxed or untaxed element under 60",
-    ),
-    (
-        "resident_whole_year",
-        "subparagraph 6(3)(a)(i)",
-        "Table B item (1)(a)",
-        "a resident for the whole year with taxable income over $18,200",
-    ),
-    (
-        "resident_part_year",
-        "subparagraph 6(3)(a)(ii)",
-        "Table B item (1)(b)",
-        "a resident for part of the year with taxable income over the lesser of $18,200 and $13,464 plus $395 a month",
-    ),
-    (
-        "not_resident",
-        "paragraph 6(3)(b)",
-        "Table B item (2)",
-        "not a resident at any time, with income taxable in Australia other than the excluded withholding payments",
-    ),
-    (
-        "study_loan",
-        "subsection 6(10)",
-        "Table J",
-        "a foreign resident with a study or training loan debt on 1 June before the year and income over the year's amount",
-    ),
-    (
-        "working_holiday_maker",
-        "paragraph 7(1)(f)",
-        "Table P",
-        "a working holiday maker with no other assessable income and taxable income, without super or ETP remainders, under $45,001",
-    ),
-    (
-        "listed_payment",
-        "subsection 7(2)",
-        "Table K item (1)",
-        "a payment the instrument lists, and no other assessable income or taxable income under the year's amount",
-    ),
-    (
-        "sapto",
-        "subsection 7(3)",
-        "Table K item (2)",
-        "eligible for the seniors and pensioners tax offset, with rebate income under the year's amount",
-    ),
-];
+/// A year's instrument, read from its row.
+struct Year {
+    year: &'static str,
+    id: &'static str,
+    /// A Notice with Tables A to P (to 2022-23), not sections 6 to 8.
+    notice: bool,
+    study_loan_income: i64,
+    payment_limit: i64,
+    payment_inclusive: bool,
+    sapto: [i64; 3],
+    /// The calendar year the income year ends in.
+    end: i64,
+}
+
+fn instrument(year: &str) -> Year {
+    let (year, id, study_loan_income, payment_limit, payment_inclusive, sapto) = *INSTRUMENTS
+        .iter()
+        .find(|row| row.0 == year)
+        .expect("supported year");
+    let end = year[..4].parse::<i64>().expect("year") + 1;
+    Year {
+        year,
+        id,
+        notice: end <= 2023,
+        study_loan_income,
+        payment_limit,
+        payment_inclusive,
+        sapto,
+        end,
+    }
+}
 
 /// The conditions the operator states in `triggers`.
 const STATED: [&str; 14] = [
@@ -295,20 +111,21 @@ pub struct LodgmentRequiredArgs<'a> {
     pub scope_confirmed: &'a Arg,
 }
 
-fn cite(notice: bool, key: &str) -> &'static str {
-    let (_, new, old, _) = PROVISIONS
+/// A condition's row in [`texts::LODGMENT_PROVISIONS`].
+fn provision(key: &str) -> &'static (&'static str, &'static str, &'static str, &'static str) {
+    texts::LODGMENT_PROVISIONS
         .iter()
         .find(|p| p.0 == key)
-        .expect("known provision");
+        .expect("known provision")
+}
+
+fn cite(notice: bool, key: &str) -> &'static str {
+    let (_, new, old, _) = provision(key);
     if notice { old } else { new }
 }
 
 fn says(key: &str) -> &'static str {
-    PROVISIONS
-        .iter()
-        .find(|p| p.0 == key)
-        .expect("known provision")
-        .3
+    provision(key).3
 }
 
 /// An optional fact group: `null`, or an object of the keys given.
@@ -495,7 +312,7 @@ fn section_6_3(w: &mut Work, f: &Facts) -> Result<()> {
 }
 
 /// s 6(10) [Table J]: a foreign resident at some time in the year.
-fn section_6_10(w: &mut Work, f: &Facts, i: &Instrument) -> Result<()> {
+fn section_6_10(w: &mut Work, f: &Facts, i: &Year) -> Result<()> {
     let (Some(income), false) = (&f.study_loan, matches!(f.residency, Residency::Whole)) else {
         return Ok(());
     };
@@ -563,7 +380,7 @@ fn holiday_maker(given: &Arg, w: &mut Work) -> Result<Option<Relief>> {
 }
 
 /// s 7(2) [Table K(1)]: a listed payment.
-fn listed_payment(given: &Arg, w: &mut Work, f: &Facts, i: &Instrument) -> Result<Option<Relief>> {
+fn listed_payment(given: &Arg, w: &mut Work, f: &Facts, i: &Year) -> Result<Option<Relief>> {
     let Some(g) = group(given, "listed_payment", &["other_assessable_income"])? else {
         return Ok(None);
     };
@@ -589,7 +406,7 @@ fn listed_payment(given: &Arg, w: &mut Work, f: &Facts, i: &Instrument) -> Resul
 }
 
 /// s 7(3) [Table K(2)]: the seniors and pensioners tax offset.
-fn seniors(given: &Arg, w: &mut Work, i: &Instrument) -> Result<Option<Relief>> {
+fn seniors(given: &Arg, w: &mut Work, i: &Year) -> Result<Option<Relief>> {
     let Some(g) = group(given, "sapto", &["rebate_income", "category"])? else {
         return Ok(None);
     };
@@ -622,7 +439,7 @@ fn exceptions(
     args: &LodgmentRequiredArgs,
     w: &mut Work,
     f: &Facts,
-    i: &Instrument,
+    i: &Year,
 ) -> Result<Vec<Relief>> {
     let held = [
         holiday_maker(args.working_holiday_maker, w)?,
@@ -680,10 +497,7 @@ pub fn lodgment_required(args: &LodgmentRequiredArgs) -> Result<Value> {
         );
     }
     let year = scope(args.scope_confirmed, args.year, KIND)?;
-    let i = INSTRUMENTS
-        .iter()
-        .find(|i| i.year == year)
-        .expect("supported year");
+    let i = &instrument(&year);
     let f = facts(args)?;
     let parent = flag(args.child_support_parent, "child_support_parent")?;
     let mut w = Work {
@@ -714,7 +528,7 @@ pub fn lodgment_required(args: &LodgmentRequiredArgs) -> Result<Value> {
     out["due_date"] = if left.is_empty() {
         Value::Null
     } else {
-        json!(i.due)
+        json!(format!("{}-10-31", i.end))
     };
     out["instrument"] = json!({"id": i.id, "title": title(i)});
     out["tests"] = Value::Object(w.figures);
@@ -722,11 +536,11 @@ pub fn lodgment_required(args: &LodgmentRequiredArgs) -> Result<Value> {
     Ok(out)
 }
 
-fn title(i: &Instrument) -> String {
-    let end = &i.due[..4];
+fn title(i: &Year) -> String {
+    let end = i.end;
     if i.notice {
-        format!("{} {end}", i.title)
+        format!("Notice of Requirement to Lodge a Return for the Income Year Ended 30 June {end}")
     } else {
-        format!("{} {end} Year) Instrument {end}", i.title)
+        format!("Taxation Laws (Requirement to Lodge a Return for the {end} Year) Instrument {end}")
     }
 }
