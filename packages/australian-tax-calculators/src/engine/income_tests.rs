@@ -186,7 +186,7 @@ pub(super) fn value<'a>(values: &'a [(&str, Decimal)], name: &str) -> &'a Decima
 }
 
 /// The value of a formula of names joined by `+` and `-`, left to right.
-fn total(values: &[(&str, Decimal)], formula: &str) -> Result<Decimal> {
+pub(super) fn total(values: &[(&str, Decimal)], formula: &str) -> Result<Decimal> {
     let mut out = int(0);
     let mut minus = false;
     for token in formula.split(' ') {
