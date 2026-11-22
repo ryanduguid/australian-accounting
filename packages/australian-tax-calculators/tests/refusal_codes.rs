@@ -180,8 +180,8 @@ fn every_catalogued_required_input_of_a_strict_command_is_read() {
     // horticulture-shearing-withholding, upward-variation-withholding,
     // daily-casual-withholding, no-abn-withholding, entertainer-withholding,
     // return-to-work-withholding, annuity-withholding,
-    // voluntary-agreement-withholding, residency-tests and lodgment-required.
-    assert_eq!(checked, 78);
+    // voluntary-agreement-withholding, residency-tests and lodgment-required and rd-tax-offset.
+    assert_eq!(checked, 79);
 }
 
 /// Every frozen call gives the same answer through either entry point, and

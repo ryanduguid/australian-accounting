@@ -1305,6 +1305,11 @@ pub fn supported_periods(kind: &str) -> Vec<&'static str> {
         "government_super_amounts" => vec![
             "2020-21", "2021-22", "2022-23", "2023-24", "2024-25", "2025-26", "2026-27",
         ],
+        // Act No. 92 of 2020's rates, cap and clawback rules, for income years
+        // starting on or after 1 July 2021, are unchanged to 2026-27.
+        "rd_tax_offset" => vec![
+            "2021-22", "2022-23", "2023-24", "2024-25", "2025-26", "2026-27",
+        ],
         "sb_cgt_concessions" => vec!["2025-26", "2026-27"],
         // The question's end date. GIC days run back to 1 July 1999 and SIC
         // days to 1 April 2005; the penalty unit holds at $364 until the next
@@ -1654,6 +1659,10 @@ pub fn source_review(kind: &str) -> (&'static str, &'static str) {
         "voluntary_agreement_withholding" => (
             "2026-11-22",
             "Schedule 10 (voluntary agreements) of F2024L00664, F2025L00647, F2025L01016 and F2026L00716: using this schedule, how to work out the withholding amount, the CIR and GST rules, Francesca's example and rounding; TAA 1953 Sch 1 s 12-55 (ATO legal database)",
+        ),
+        "rd_tax_offset" => (
+            "2026-11-22",
+            "ITAA 1997 ss 355-100, 355-105, 355-115, 355-435, 355-440, 355-445, 355-450, 63-10(1) item 35, 67-30 and s 995-1 'corporate tax rate', and Income Tax Rates Act 1986 s 23(2) (ATO legal database); Act No. 92 of 2020 Sch 4 items 1 and 14 and Sch 5 items 29 and 56; ATO Rates of R&D tax incentive offset and Calculate the clawback adjustment (last updated 13 May 2026), its examples for Companies V, F, Y, Q, L and J; R&D tax incentive schedule 2022 instructions, Part E",
         ),
         "sb_cgt_concessions" => (
             "2026-11-19",
@@ -2135,6 +2144,12 @@ pub fn library_evidence(kind: &str) -> [(&'static str, &'static str); 4] {
             "ATO Schedule 10 tax table for payments made under voluntary agreements",
             "Francesca's CIR of 16.44% applied by agreement, otherwise 20%",
             "2026-06-17",
+            "2026-11-22",
+        ),
+        "rd_tax_offset" => (
+            "ATO Calculate the clawback adjustment",
+            "Company F: $1,000,000 at 43.5% ($435,000), $500,000 reimbursed, adjusted offset $217,500, deduction amount $125,000, $370,000 included in assessable income",
+            "2026-05-13",
             "2026-11-22",
         ),
         "sb_cgt_concessions" => (
@@ -4462,6 +4477,18 @@ pub fn input_units(kind: &str) -> Vec<(&'static str, &'static str)> {
             ("abn_quoted", "boolean: the payee has an ABN in force and it is quoted in the agreement; false is refused"),
             ("agreement_applies_instalment_rate", "boolean: the agreement says the payee's Commissioner's instalment rate applies; true needs instalment_rate"),
         ],
+        "rd_tax_offset" => vec![
+            ("notional_deductions", "AUD: the total of the amounts the R&D entity can deduct for the year under ITAA 1997 ss 355-205, 355-305, 355-480, 355-520 and 355-580 (s 355-100(1)), as established"),
+            ("rsp_crc_expenditure", "AUD: the part of notional_deductions s 355-100(2) keeps when the total is under $20,000: s 355-205 expenditure incurred to a research service provider that is not an associate, for services within a research field it is registered for and applicable to the R&D activities, and s 355-580 CRC contributions; at most notional_deductions"),
+            ("aggregated_turnover", "AUD: the entity's aggregated turnover for the year (s 328-115)"),
+            ("exempt_entity_controlled", "boolean: exempt entities would control the entity at any time in the year as s 355-100(1) item 2 describes (s 328-125 at 50%, without s 328-125(6))"),
+            ("base_rate_entity", "boolean: Income Tax Rates Act 1986 s 23(2)(a) applies to the company for the year (a base rate entity to which ss 23(3) to (5) and 23A do not apply), so its corporate tax rate is 25%; otherwise 30% (ITAA 1997 s 995-1 'corporate tax rate')"),
+            ("total_expenses", "AUD: the entity's total expenses for the year under s 355-115, used for the premium tiers where item 1 does not apply"),
+            ("recoupment_clawback", "AUD: the s 355-440 amount attributable to this offset year, after repayments (s 355-440(3)) and the grant cap (s 355-440(4)); 0.00 if none"),
+            ("feedstock_revenue", "AUD: the feedstock revenue (s 355-445(4)) of feedstock outputs supplied or applied to own use in the present year; 0.00 if none"),
+            ("feedstock_expenditure", "AUD: the amounts deducted for this offset year that are reasonably attributable to producing those feedstock outputs (s 355-445(2)(b)); at most notional_deductions; 0.00 if none"),
+            ("present_year_base_rate_entity", "boolean: as base_rate_entity, for the present year, the year the clawback amount arises, whose corporate tax rate divides the s 355-450 amount"),
+        ],
         "sb_cgt_concessions" => vec![
             ("entity", "individual, company or trust: the entity that made the capital gain"),
             ("share_or_trust_interest", "boolean: the asset is a share in a company or an interest in a trust; true is refused (ITAA 1997 s 152-10(2))"),
@@ -5385,6 +5412,21 @@ pub fn examples(kind: &str) -> Vec<(&'static str, Example)> {
             ("agreement_in_force", Flag(true)),
             ("abn_quoted", Flag(true)),
             ("agreement_applies_instalment_rate", Flag(false)),
+        ],
+        // Calculate the clawback adjustment, Company F; its turnover, given
+        // only as under $20 million, is fabricated.
+        "rd_tax_offset" => vec![
+            ("year", Text("2022-23")),
+            ("notional_deductions", Text("1000000.00")),
+            ("rsp_crc_expenditure", Text("0.00")),
+            ("aggregated_turnover", Text("10000000.00")),
+            ("exempt_entity_controlled", Flag(false)),
+            ("base_rate_entity", Flag(true)),
+            ("total_expenses", Text("0.00")),
+            ("recoupment_clawback", Text("500000.00")),
+            ("feedstock_revenue", Text("0.00")),
+            ("feedstock_expenditure", Text("0.00")),
+            ("present_year_base_rate_entity", Flag(true)),
         ],
         "sb_cgt_concessions" => vec![
             ("year", Text("2025-26")),

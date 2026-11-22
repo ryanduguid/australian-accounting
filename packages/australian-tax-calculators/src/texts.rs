@@ -367,6 +367,10 @@ pub const SCOPES: &[(&str, &str)] = &[
         "Whether one individual must lodge their own income tax return for an income year from 2020-21 to 2025-26 under that year's lodgment instrument, made under ITAA 1936 s 161: not as a trustee, partner, agent, ship's master or person controlling a non-resident's money, not a full self-assessment taxpayer and without a substituted accounting period. The residency status, the conditions in s 6(2) that need a judgement and the exceptions' facts are the operator's answers. It does not apply the separate instrument for parents liable for or entitled to child support, or say whether lodging would be worthwhile.",
     ),
     (
+        "rd_tax_offset",
+        "One R&D entity's tax offset under ITAA 1997 s 355-100 for an income year starting on or after 1 July 2021, from 2021-22 to 2026-27 (Act No. 92 of 2020 Sch 4 item 14), and the amount s 355-450 includes in assessable income for a clawback amount attributable to that year. The entity is a company whose corporate tax rate is 25% where Income Tax Rates Act 1986 s 23(2)(a) applies to it (a base rate entity to which ss 23(3) to (5) and 23A do not apply) and otherwise 30% (ITAA 1997 s 995-1 'corporate tax rate'). The offset is worked on the s 355-100(1) total, or under $20,000 on the research service provider and CRC expenditure only (s 355-100(2)): where aggregated turnover is under $20 million and no exempt entity control applies, the corporate tax rate plus 18.5 percentage points, refundable (item 1, s 67-30(1)); otherwise the corporate tax rate plus 8.5% of the part up to 2% of total expenses (s 355-115) and 16.5% of the part above it, non-refundable (items 2 and 3, s 355-100(1A), s 63-10(1) item 35); the part above $150 million at the corporate tax rate (s 355-100(3)). The clawback amount is the s 355-440 recoupment amount given plus the lesser of feedstock revenue and the attributable feedstock expenditure (s 355-445(2)); the adjusted offset reduces the s 355-100(1) total by it, the deduction amount is it at the offset year's corporate tax rate, and the amount included is the starting offset less both, over the present year's corporate tax rate (s 355-450(1)). Amounts are worked exactly and shown to the cent, half up. The operator establishes the notional deductions, total expenses, turnover, control and the clawback inputs. Excludes deciding whether activities are core or supporting R&D activities or registered with AusIndustry (ss 355-20 to 355-35; Industry Research and Development Act 1986 s 27A), whether the entity is an R&D entity, whether expenditure to an associate was paid (s 355-480) or was on activities overseas or under an overseas finding, the s 355-440 amount itself (including the grant cap and repayments), balancing adjustment clawbacks (ss 355-446 to 355-449) and catch up deductions (s 355-475), an offset year with an earlier clawback or catch up amount (s 355-450(2)), R&D partnerships, entities that are not companies, substituted accounting periods starting before 1 July 2021, earlier years' offsets and carrying forward a non-refundable offset (Division 65).",
+    ),
+    (
         "income_tests",
         "The income measures of one individual who was an Australian resident for the whole income year and alive at its end, each the person's own for the whole year, from components the operator has established and classified: income for surcharge purposes (ITAA 1997 s 995-1), Division 293 income (s 293-20(1)(a)), rebate income (ITAA 1936 s 6(1)), repayment income for study and training loans (HESA s 154-5), adjusted taxable income for offsets (ITAA 1997 s 995-1, ITAA 1936 s 6(1) and A New Tax System (Family Assistance) Act 1999 Sch 3, disregarding cls 3 and 3A) and total income for the super co-contribution (Superannuation (Government Co-contribution for Low Income Earners) Act 2003 s 8). A spouse's measures come from the spouse's own components. A dependant's adjusted taxable income for part of a year, a deceased person's annualised adjusted taxable income (Sch 3 cl 2(2)), the co-contribution's 10% eligible income test, the combined family amounts and every threshold and eligibility test the measures feed are outside it. Income for surcharge purposes follows s 995-1, which does not add exempt foreign employment income; the ATO's surcharge page adds it where taxable income is $1 or more, and the result warns when that changes the figure. Measures another agency applies are outside it: the Commonwealth Seniors Health Card income test and family assistance adjusted taxable income are Services Australia's (https://www.servicesaustralia.gov.au/income-test-for-commonwealth-seniors-health-card). Refuses part-year residents, working holiday makers and foreign residents, and components that cannot all be true together.",
     ),
@@ -728,6 +732,10 @@ pub const SOURCES: &[(&str, &str)] = &[
     (
         "lodgment_required",
         "https://www.legislation.gov.au/F2026L00618/asmade/text",
+    ),
+    (
+        "rd_tax_offset",
+        "https://www.ato.gov.au/law/view/document?docid=PAC/19970038/355-100",
     ),
 ];
 
@@ -1546,6 +1554,22 @@ pub const EXTRA_SOURCES: &[(&str, &[&str])] = &[
             "https://www.legislation.gov.au/F2025L00647/asmade/text",
             "https://www.legislation.gov.au/F2024L00664/asmade/text",
             "https://www.ato.gov.au/law/view/document?docid=PAC/19530001/Sch1-12-55",
+        ],
+    ),
+    (
+        "rd_tax_offset",
+        &[
+            "https://www.ato.gov.au/law/view/document?docid=PAC/19970038/355-115",
+            "https://www.ato.gov.au/law/view/document?docid=PAC/19970038/355-440",
+            "https://www.ato.gov.au/law/view/document?docid=PAC/19970038/355-445",
+            "https://www.ato.gov.au/law/view/document?docid=PAC/19970038/355-450",
+            "https://www.ato.gov.au/law/view/document?docid=PAC/19970038/67-30",
+            "https://www.ato.gov.au/law/view/document?docid=PAC/19860107/23",
+            "https://www.legislation.gov.au/C2020A00092/asmade/text",
+            "https://www.ato.gov.au/businesses-and-organisations/income-deductions-and-concessions/incentives-and-concessions/research-and-development-tax-incentive/clawback-of-r-d-tax-incentive-offset-and-catch-up-deductions/clawback-of-feedstock-adjustments",
+            "https://www.ato.gov.au/forms-and-instructions/research-and-development-tax-incentive-schedule-2022-instructions/part-e-rd-tax-offset-calculation",
+            "https://www.ato.gov.au/businesses-and-organisations/income-deductions-and-concessions/incentives-and-concessions/research-and-development-tax-incentive-and-concessions/research-and-development-tax-incentive/rates-of-r-d-tax-incentive-offset",
+            "https://www.ato.gov.au/businesses-and-organisations/income-deductions-and-concessions/incentives-and-concessions/research-and-development-tax-incentive-and-concessions/research-and-development-tax-incentive/in-detail/clawback-guide-government-grants-and-reimbursements/calculate-the-claw-back-adjustment",
         ],
     ),
     (
@@ -2915,7 +2939,7 @@ pub const REFUSAL_CODES: &[(&str, &str)] = &[
     ),
     (
         "input.field_unknown",
-        "A field the worksheet or command does not take, or does not take beside the other inputs given, was given (fbt-loan, fbt-meal-entertainment, fbt-car-parking, fbt-debt-waiver, fbt-expense-payment, fbt-property, fbt-residual, fbt-housing, fbt-lafha, fbt-board, fbt-tax-exempt-body-entertainment, fbt-entertainment-classifier, fbt-meal-entertainment-register and its entries, fbt-minor-benefit-check, ppsr-timing, fhss and its contributions, government-super-amounts, personal_deductions and determination, division-296, depreciation, fuel-tax-credits and its lines, foreign-resident-tax, medicare-levy, medicare-levy-surcharge, payg-withholding, payg-gross-up, termination-payment, etp-tax-free-component, unused-leave-payment, the Schedule 5 methods, working-holiday-maker-withholding, study-loan-withholding, seniors-pensioners-withholding, seniors-pensioners-tax-offset, lump-sum-arrears-tax-offset, hire-purchase-schedule, chattel-mortgage-schedule, loan-transactions and its transactions and rate_changes, borrowing-expenses-schedule and its loans, business-capital-expenditure and its items, balancing-adjustment, its years and car_limit, trade-in, franking-account and its events, distributions and income_tax, dasp-tax, super-benefit-tax, gst-margin-scheme, wine-equalisation-tax and its dealings, luxury-car-tax and its lines, payroll-tax, cgt-parcels, its parcels and disposals, fbt-ev-exemption-check, sb-cgt-concessions, small-business-income-offset, residency-tests, lodgment-required, depreciation-low-value-pool, depreciation-small-business-pool, capital-works, non-commercial-losses, psi-test, beneficiary-tax-offset, invalid-carer-tax-offset, zone-tax-offset and its dependants, net-medical-expenses-tax-offset, work-expenses, ato-interest-penalties and its payments and parts, private-health-insurance-rebate, rental-property and its loans, capital_works and depreciating_assets, horticulture-shearing-withholding, upward-variation-withholding, daily-casual-withholding, no-abn-withholding, entertainer-withholding, return-to-work-withholding, annuity-withholding, voluntary-agreement-withholding, contribution-caps given a carry-forward input, derive, personal-tax-estimate, dgr-check, income-tests and fbt-return only).",
+        "A field the worksheet or command does not take, or does not take beside the other inputs given, was given (fbt-loan, fbt-meal-entertainment, fbt-car-parking, fbt-debt-waiver, fbt-expense-payment, fbt-property, fbt-residual, fbt-housing, fbt-lafha, fbt-board, fbt-tax-exempt-body-entertainment, fbt-entertainment-classifier, fbt-meal-entertainment-register and its entries, fbt-minor-benefit-check, ppsr-timing, fhss and its contributions, government-super-amounts, personal_deductions and determination, division-296, depreciation, fuel-tax-credits and its lines, foreign-resident-tax, medicare-levy, medicare-levy-surcharge, payg-withholding, payg-gross-up, termination-payment, etp-tax-free-component, unused-leave-payment, the Schedule 5 methods, working-holiday-maker-withholding, study-loan-withholding, seniors-pensioners-withholding, seniors-pensioners-tax-offset, lump-sum-arrears-tax-offset, hire-purchase-schedule, chattel-mortgage-schedule, loan-transactions and its transactions and rate_changes, borrowing-expenses-schedule and its loans, business-capital-expenditure and its items, balancing-adjustment, its years and car_limit, trade-in, franking-account and its events, distributions and income_tax, dasp-tax, super-benefit-tax, gst-margin-scheme, wine-equalisation-tax and its dealings, luxury-car-tax and its lines, payroll-tax, cgt-parcels, its parcels and disposals, fbt-ev-exemption-check, sb-cgt-concessions, small-business-income-offset, residency-tests, lodgment-required, depreciation-low-value-pool, depreciation-small-business-pool, capital-works, non-commercial-losses, psi-test, beneficiary-tax-offset, invalid-carer-tax-offset, zone-tax-offset and its dependants, net-medical-expenses-tax-offset, work-expenses, ato-interest-penalties and its payments and parts, private-health-insurance-rebate, rental-property and its loans, capital_works and depreciating_assets, horticulture-shearing-withholding, upward-variation-withholding, daily-casual-withholding, no-abn-withholding, entertainer-withholding, return-to-work-withholding, annuity-withholding, voluntary-agreement-withholding, rd-tax-offset, contribution-caps given a carry-forward input, derive, personal-tax-estimate, dgr-check, income-tests and fbt-return only).",
     ),
     ("input.flag_invalid", "A flag is not a JSON boolean."),
     ("input.fraction_invalid", "A fraction is outside 0 to 1."),
@@ -3375,6 +3399,22 @@ pub const REFUSAL_CODES: &[(&str, &str)] = &[
     (
         "residency_tests.treaty_tie_breaker",
         "The individual is a resident under ITAA 1936 s 6(1) and also of another country under its law; a tax treaty's tie-breaker may apply, and the worksheet does not apply treaties.",
+    ),
+    (
+        "rd_tax_offset.clawback_above_total",
+        "The clawback amount is more than notional_deductions, the total the adjusted offset reduces.",
+    ),
+    (
+        "rd_tax_offset.clawback_below_threshold",
+        "There is a clawback amount and notional_deductions, or notional_deductions less the clawback amount, is under $20,000, where s 355-100(2) and the ATO's feedstock example differ.",
+    ),
+    (
+        "rd_tax_offset.feedstock_expenditure_above_total",
+        "feedstock_expenditure is more than notional_deductions, of which it is part.",
+    ),
+    (
+        "rd_tax_offset.threshold_expenditure_above_total",
+        "rsp_crc_expenditure is more than notional_deductions, of which it is part.",
     ),
     (
         "sb_cgt_concessions.active_period_unclear",

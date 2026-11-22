@@ -6213,8 +6213,10 @@ mod residency_tests;
 pub use residency_tests::{ResidencyTestsArgs, residency_tests};
 mod lodgment_required;
 pub use lodgment_required::{LodgmentRequiredArgs, lodgment_required};
+mod rd_tax_offset;
+pub use rd_tax_offset::{RdTaxOffsetArgs, rd_tax_offset};
 
-const KINDS: [&str; 92] = [
+const KINDS: [&str; 93] = [
     "gst",
     "gst_margin_scheme",
     "fuel_tax_credits",
@@ -6307,6 +6309,7 @@ const KINDS: [&str; 92] = [
     "voluntary_agreement_withholding",
     "residency_tests",
     "lodgment_required",
+    "rd_tax_offset",
 ];
 
 /// `periods(kind)`: accepted period arguments and inclusive calendar boundaries.

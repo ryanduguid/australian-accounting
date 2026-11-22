@@ -81,6 +81,16 @@
   `no_abn_withholding.total_below_payment` and
   `withholding.working_holiday_maker`. `tests/withholding_schedules.rs` holds
   them to the published examples.
+- `rd-tax-offset` works out an R&D entity's refundable or non-refundable
+  R&D tax offset (ITAA 1997 s 355-100: the corporate tax rate plus 18.5
+  percentage points, or plus 8.5% and 16.5% by intensity, with the $20,000
+  threshold and the $150 million cap) and the amount s 355-450 includes in
+  assessable income for a recoupment or feedstock clawback amount, for
+  2021-22 to 2026-27. New codes: `rd_tax_offset.clawback_above_total`,
+  `rd_tax_offset.clawback_below_threshold`,
+  `rd_tax_offset.feedstock_expenditure_above_total` and
+  `rd_tax_offset.threshold_expenditure_above_total`. `tests/rd_tax_offset.rs`
+  holds it to the ATO's clawback examples and the schedule's Part E method.
 - `depreciation-low-value-pool`, `depreciation-small-business-pool` and
   `capital-works` work out a low-value pool (ITAA 1997 ss 40-440 and
   40-445), a general small business pool with each year's low pool value
