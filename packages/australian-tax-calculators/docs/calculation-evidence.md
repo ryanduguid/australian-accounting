@@ -2740,6 +2740,74 @@ command's.
 The last 2 rows are worked by hand from s 5. The tests also cover rounding
 at the half cent, a payment under $200, a wholly tax free payment and each
 refusal.
+## Super benefit tax
+
+Added on 22 November 2026. Its sources were read that day: ITAA 1997
+ss 301-10 to 301-40, 301-90 to 301-115, 301-225, 302-60, 302-140, 302-145,
+302-195, 303-10, 307-120, 307-125, 307-145, 307-150, 307-205, 307-275 to
+307-290, 307-345, 307-350 and 960-285 from the ATO's legal database; the
+ATO's 'Payments from super' (last updated 16 September 2026): Table 9 (low
+rate cap), Table 10 (untaxed plan cap), Table 12 (preservation age) and
+Table 13 (the lump sum tax table); 'Tax on super benefits' (last updated
+2 August 2023) for the worked examples; 'Tax rates – Australian resident'
+(last updated 13 August 2026) for the 45% top rate in each year; and
+Schedule 12 of the Taxation Administration (Withholding Schedules)
+Instrument 2026 (F2026L00716) and the ATO's Schedule 12 from 13 October 2020
+to 30 June 2024.
+
+| Year | Low rate cap | Untaxed plan cap |
+| --- | --- | --- |
+| 2020-21 | $215,000 | $1,565,000 |
+| 2021-22 | $225,000 | $1,615,000 |
+| 2022-23 | $230,000 | $1,650,000 |
+| 2023-24 | $235,000 | $1,705,000 |
+| 2024-25 | not used | $1,780,000 |
+| 2025-26 | not used | $1,865,000 |
+| 2026-27 | not used | $1,935,000 |
+
+Schedule 12 (2026) says that from 2024-25 the preservation age is 60 for
+everyone born after 30 June 1964, and everyone born before is 60 by 30 June
+2024, so no member is at or above preservation age and under 60 after
+2023-24 and the command holds no low rate cap for those years. Table 9 prints
+'2025–26 $260,000' with no 2026-27 row whilst its text says the cap is
+$260,000 from 1 July 2026; neither figure is used. Each cap left is the
+year's cap less the amounts counted for earlier lump sums: the low rate cap
+by those of earlier income years (s 307-345(2) reduces the next year's cap),
+the untaxed plan cap by each earlier lump sum's amount counted, which never
+exceeds the cap left then (s 307-350(2)(b) reduces it to nil). This equals the
+sections' year by year reduction and indexation (the ATO's Talise and Anh
+examples). Other lump sums in the same year at or above preservation age and
+under 60 are refused while any of the low rate cap is left: ss 301-20(3) and 301-105(5) and (6) share that year's
+low rate cap across them, the element taxed in the fund first, whatever the
+order of payment. The Act
+states no rounding of the proportioning rule; rounding the tax free component
+to the cent and each part's tax to the cent is the command's.
+
+`tests/super_benefit_tax.rs` holds each case. The figures in brackets are the
+ATO's rates with the 2% Medicare levy; the command gives them without it.
+
+| Example | Facts given | Most tax |
+| --- | --- | --- |
+| s 307-125(2) | $100 from a $1,000 interest with $200 tax free | tax free **$20**, taxable **$80** |
+| Tony, 58, 2021-22 | $100,000 tax free, $250,000 taxed | **$3,750.00** on $25,000 above the cap (17%) |
+| Heather, 59, 2020-21 | $30,000 tax free, $220,000 taxed | **$750.00** on $5,000 (withheld $850 at 17%) |
+| Dean, 61, 2020-21 | As Heather | **$0.00** |
+| Mei, 60, 2021-22 | $45,000, $130,000 taxed, $205,000 untaxed | **$30,750.00** (17%) |
+| Suzi, 50 | $1,000, $10,000 taxed | **$2,000.00** (22%) |
+| Frankie, 45 | $5,000, $45,000 taxed, $20,000 untaxed | **$15,000.00** (22% and 32%) |
+| Peta, 59, 2020-21, past both caps | $20,000, $40,000 taxed, $45,000 untaxed | **$26,250.00** (17% and the top rate) |
+| Howard, 72, past the plan cap | As Peta | **$20,250.00** (the top rate) |
+| Anh, 2020-21 | $90,000 untaxed after $165,000 | plan cap left **$1,400,000** |
+| Chloe, 62, 2026-27 | $30,000, $190,000 taxed, $80,000 untaxed | **$12,000.00** (withheld $13,600 at 17%) |
+
+The ATO examples give rates, not dollar amounts, except Heather's, Chloe's
+and Anh's; the amounts are worked by hand from those rates. The tests also
+cover the low rate cap going to the element taxed in the fund first
+(s 301-105(6)), the untaxed plan cap's edge, each year's caps, birthdays
+(29 February included) and the preservation age table's edges, death
+benefits, a terminal medical condition, a lump sum under $200 and each
+refusal.
+
 ## Depreciation low-value pool
 
 Added on 22 November 2026, with the 2 sections after it. The sources were read

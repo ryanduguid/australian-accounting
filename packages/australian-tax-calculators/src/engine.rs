@@ -4857,6 +4857,8 @@ mod fbt_ev_exemption;
 pub use fbt_ev_exemption::{EvExemptionArgs, fbt_ev_exemption_check};
 mod dasp_tax;
 pub use dasp_tax::{DaspTaxArgs, dasp_tax};
+mod super_benefit_tax;
+pub use super_benefit_tax::{SUPER_BENEFIT_OPTIONAL, SuperBenefitTaxArgs, super_benefit_tax};
 mod payroll_tax;
 pub use payroll_tax::{PayrollTaxArgs, payroll_tax};
 mod luxury_car_tax;
@@ -6191,7 +6193,7 @@ pub use psi_test::{PSI_OPTIONAL, PsiTestArgs, psi_test};
 mod rental_property;
 pub use rental_property::{RentalPropertyArgs, rental_property};
 
-const KINDS: [&str; 81] = [
+const KINDS: [&str; 82] = [
     "gst",
     "gst_margin_scheme",
     "fuel_tax_credits",
@@ -6210,6 +6212,7 @@ const KINDS: [&str; 81] = [
     "trade_in",
     "franking_account",
     "dasp_tax",
+    "super_benefit_tax",
     "payroll_tax",
     "fbt",
     "fbt_car_statutory",

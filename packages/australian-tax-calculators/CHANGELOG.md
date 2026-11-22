@@ -33,6 +33,20 @@
   `private_health_insurance_rebate.rate_unpublished`.
   `tests/private_health_insurance_rebate.rs` holds it to the ATO's examples
   and every published percentage and threshold.
+- `super-benefit-tax` works out one superannuation lump sum's components by
+  the proportioning rule (ITAA 1997 s 307-125) and the most income tax, before
+  Medicare levy, each part can bear in 2020-21 to 2026-27: a member's by age
+  and preservation age with the low rate cap and untaxed plan cap
+  (ss 301-10 to 301-115), a death benefit to a dependant (s 302-60) or a
+  non-dependant (s 302-145), a terminal medical condition (s 303-10) and a
+  lump sum under $200 that closes the interest (s 301-225). `derive` explains
+  each amount. New codes: `super_benefit_tax.benefit_nil`,
+  `super_benefit_tax.disability_benefit`, `super_benefit_tax.fact_conflict`,
+  `super_benefit_tax.pre_july_1983_service` and
+  `super_benefit_tax.recipient_invalid`. `tests/super_benefit_tax.rs` runs the
+  ATO's Tony, Suzi, Frankie, Peta, Mei, Howard and Anh examples and
+  Schedule 12's Heather, Dean and Chloe.
+
 - `depreciation-low-value-pool`, `depreciation-small-business-pool` and
   `capital-works` work out a low-value pool (ITAA 1997 ss 40-440 and
   40-445), a general small business pool with each year's low pool value
