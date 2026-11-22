@@ -14,7 +14,7 @@ use std::io::Write;
 use std::process::{Command, Stdio};
 
 /// The commands `derive` explains.
-const DERIVED: [&str; 72] = [
+const DERIVED: [&str; 74] = [
     "fbt",
     "fbt-car-statutory",
     "fbt-car-operating-cost",
@@ -87,6 +87,8 @@ const DERIVED: [&str; 72] = [
     "gst-creditable-purpose-change",
     "gst-annual-apportionment",
     "gst-financial-acquisitions-threshold",
+    "gst-second-hand-goods",
+    "gst-bad-debt",
 ];
 
 /// (command, input) for each derived kind: the ATO's published examples and
@@ -623,6 +625,32 @@ fn cases() -> Vec<(&'static str, Value)> {
             json!({"current_financial_credits": "104550.00", "current_total_credits": "1100000.00",
                    "future_financial_credits": "131000.00", "future_total_credits": "1220000.00",
                    "gst_group": false, "year": "2025-26", "scope_confirmed": true}),
+        ),
+        // GSTD 2012/6's $5,500 vehicle, resold for $3,300: capped at $300.
+        (
+            "gst-second-hand-goods",
+            json!({"consideration": "5500.00", "acquired_for_sale_or_exchange": true,
+                   "animals_or_plants": false, "supply_to_you": "neither", "imported": false,
+                   "by_way_of_hire": false, "resupply_taxable": true, "resupply_gst": "300.00",
+                   "divided_for_resupply": false, "valuable_metal": false,
+                   "leased_before_sale": false, "year": "2025-26", "scope_confirmed": true}),
+        ),
+        // GSTR 2000/2's Y (para 72): $4,400 at a 25% extent of consideration.
+        (
+            "gst-bad-debt",
+            json!({"party": "recipient", "event": "written_off", "amount": "4400.00",
+                   "taxable_or_creditable": true, "cash_basis": false,
+                   "special_rule": "none", "attributed": true, "creditable_purpose": "1",
+                   "consideration_extent": "0.25", "reduced_credit_acquisition": false,
+                   "annual_apportionment": false, "year": "2025-26", "scope_confirmed": true}),
+        ),
+        // GSTR 2000/2's ABC Pty Ltd (para 55): $660 at 40% taxable.
+        (
+            "gst-bad-debt",
+            json!({"party": "supplier", "event": "written_off", "amount": "660.00",
+                   "taxable_or_creditable": true, "cash_basis": false,
+                   "special_rule": "none", "attributed": true, "taxable_proportion": "0.4",
+                   "year": "2025-26", "scope_confirmed": true}),
         ),
     ];
     cases.extend(
@@ -2352,7 +2380,7 @@ fn derive_refuses_what_it_does_not_explain() {
          annuity-withholding, voluntary-agreement-withholding, \
          rd-tax-offset, \
          hire-purchase-schedule, chattel-mortgage-schedule, loan-transactions, \
-         lump-sum-arrears-tax-offset, income-tests, government-super-amounts, business-capital-expenditure, balancing-adjustment, trade-in, dasp-tax, super-benefit-tax, gst-margin-scheme, etp-tax-free-component, payroll-tax, cgt-parcels, work-expenses, rental-property, gst-creditable-purpose-change, gst-annual-apportionment, gst-financial-acquisitions-threshold, not \"payg-gross-up\""
+         lump-sum-arrears-tax-offset, income-tests, government-super-amounts, business-capital-expenditure, balancing-adjustment, trade-in, dasp-tax, super-benefit-tax, gst-margin-scheme, etp-tax-free-component, payroll-tax, cgt-parcels, work-expenses, rental-property, gst-creditable-purpose-change, gst-annual-apportionment, gst-financial-acquisitions-threshold, gst-second-hand-goods, gst-bad-debt, not \"payg-gross-up\""
     );
 }
 

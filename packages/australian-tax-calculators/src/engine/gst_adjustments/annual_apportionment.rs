@@ -13,7 +13,7 @@ use serde_json::{Value, json};
 use super::super::{
     Arg, Result, Step, d, derived_result, flag, money, precise, rate, refuse, scope, step,
 };
-use super::{condition, failing, fraction};
+use super::{condition, failing, fraction, product};
 use crate::decimal::Decimal;
 
 const KIND: &str = "gst_annual_apportionment";
@@ -148,24 +148,6 @@ fn extents(args: &AnnualApportionmentArgs) -> Result<Extents> {
         );
     }
     Ok(e)
-}
-
-/// `first` times each factor given: the formula naming them, its operands and
-/// the product.
-fn product<'a>(
-    first: (&str, &'a Decimal),
-    rest: [(&str, Option<&'a Decimal>); 2],
-) -> Result<(String, Vec<&'a Decimal>, Decimal)> {
-    let (mut formula, mut operands, mut value) =
-        (first.0.to_string(), vec![first.1], first.1.clone());
-    for (name, factor) in rest {
-        if let Some(factor) = factor {
-            formula = format!("{formula} x {name}");
-            operands.push(factor);
-            value = value.mul(factor)?;
-        }
-    }
-    Ok((formula, operands, value))
 }
 
 const WITHOUT: &str = "GST Act s 11-30(3): the full input tax credit times the extent of creditable purpose times the extent of consideration";

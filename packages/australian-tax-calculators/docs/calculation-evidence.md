@@ -151,6 +151,49 @@ See [GST creditable purpose change](#gst-creditable-purpose-change).
 
 See [GST creditable purpose change](#gst-creditable-purpose-change).
 
+## GST going concern
+
+Added on 22 November 2026 with `gst-second-hand-goods` and `gst-bad-debt`,
+from the same reading of the GST Act as
+[GST creditable purpose change](#gst-creditable-purpose-change): s 38-325,
+Subdivision 66-A, Division 21, Subdivision 136-A and the s 195-1 definitions
+of second-hand goods, valuable metal and overdue read the same in
+compilations 82 and 96. GSTR 2002/5 (16 October 2002, last amended 27 March
+2013), GSTD 2012/6 (1 August 2012) and GSTR 2000/2 (29 March 2000, last
+amended 31 October 2012) were read from ato.gov.au that afternoon. The bad
+debt examples are from 2001 and 2002; the tests move Marcus's dates 20 years
+later, which the unchanged provisions allow.
+
+`gst-going-concern` works no amount: it reports each condition of
+s 38-325 against the stated facts. GSTR 2002/5 para 182 places the written
+agreement on or before the day of the supply; paras 168 and 169 put a supply
+partly outside the arrangement under s 9-80, which is refused.
+
+s 21-5(1)(c) asks whether the debt 'has been overdue for 12 months or more':
+the command takes `overdue_from`, the first day overdue, adds 12 months, and
+finds the condition met on that day or later. GSTR 2000/2's Marcus (paras
+49AC and 49AD: overdue on 16 April 2001, overdue 12 months on 16 April 2002)
+fixes the reading.
+
+| Example | Facts given | Result |
+| --- | --- | --- |
+| GSTD 2012/6 para 7, Finance Co | $5,500 vehicle from an unregistered vendor | Credit **$500** under an $800 resale GST |
+| GST Act s 66-10(1)(b) | The same vehicle resold for $3,300 | Credit **$300** |
+| GSTR 2000/2 paras 49AA to 53, Marcus | $550 overdue from 16 April | Decreasing **$50**; none a day early |
+| GSTR 2000/2 para 55, ABC Pty Ltd | $660 at 40% taxable | Decreasing **$24** |
+| GSTR 2000/2 paras 69 and 70, Isabella | $1,100 written off, 60% creditable purpose | Increasing **$60** |
+| GSTR 2000/2 para 72, Y | $4,400 written off, liable for $1,100 of it | Increasing **$100** |
+
+`tests/gst_special_rules.rs` holds each case and each boundary.
+
+## GST second-hand goods
+
+See [GST going concern](#gst-going-concern).
+
+## GST bad debt
+
+See [GST going concern](#gst-going-concern).
+
 ## GST margin scheme
 
 Added on 19 November 2026. Its sources were read that afternoon, 2.20 pm to

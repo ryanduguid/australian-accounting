@@ -1047,6 +1047,50 @@ const COMMAND_ARGS: &[(&str, &[(&str, Kind)])] = &[
         ],
     ),
     (
+        "gst-going-concern",
+        &[
+            ("for_consideration", Raw),
+            ("recipient_registration", Raw),
+            ("written_agreement", Raw),
+            ("all_things_necessary", Raw),
+            ("carried_on_until_supply", Raw),
+            ("farm_land", Raw),
+            ("part_outside_arrangement", Raw),
+            ("year", Raw),
+            ("scope_confirmed", Raw),
+        ],
+    ),
+    (
+        "gst-second-hand-goods",
+        &[
+            ("consideration", Dec),
+            ("acquired_for_sale_or_exchange", Raw),
+            ("animals_or_plants", Raw),
+            ("supply_to_you", Raw),
+            ("imported", Raw),
+            ("by_way_of_hire", Raw),
+            ("resupply_taxable", Raw),
+            ("divided_for_resupply", Raw),
+            ("valuable_metal", Raw),
+            ("leased_before_sale", Raw),
+            ("year", Raw),
+            ("scope_confirmed", Raw),
+        ],
+    ),
+    (
+        "gst-bad-debt",
+        &[
+            ("party", Raw),
+            ("event", Raw),
+            ("amount", Dec),
+            ("taxable_or_creditable", Raw),
+            ("cash_basis", Raw),
+            ("special_rule", Raw),
+            ("year", Raw),
+            ("scope_confirmed", Raw),
+        ],
+    ),
+    (
         "income-tests",
         &[
             ("taxable_income", Dec),
@@ -1139,7 +1183,7 @@ pub fn commands() -> Vec<&'static str> {
 /// command on its `gross_pay` shows that withholding. The classifier's amounts
 /// are totals over lines whose shares a decision table sets, not a formula;
 /// each line and class carries the authority for its row instead.
-const DERIVED: [&str; 73] = [
+const DERIVED: [&str; 75] = [
     "fbt",
     "fbt-car-statutory",
     "fbt-car-operating-cost",
@@ -1213,6 +1257,8 @@ const DERIVED: [&str; 73] = [
     "gst-creditable-purpose-change",
     "gst-annual-apportionment",
     "gst-financial-acquisitions-threshold",
+    "gst-second-hand-goods",
+    "gst-bad-debt",
 ];
 
 /// `derive`: `{"command", "input"}` gives the command's result with the step
@@ -1644,6 +1690,9 @@ pub fn evaluate_coded(command: &str, v: &Value) -> Result<Value> {
             | "gst-creditable-purpose-change"
             | "gst-annual-apportionment"
             | "gst-financial-acquisitions-threshold"
+            | "gst-going-concern"
+            | "gst-second-hand-goods"
+            | "gst-bad-debt"
             | "business-capital-expenditure"
             | "balancing-adjustment"
             | "trade-in"
@@ -2729,6 +2778,75 @@ pub fn evaluate_coded(command: &str, v: &Value) -> Result<Value> {
                 gst_group: &a[4],
                 year: &a[5],
                 scope_confirmed: &a[6],
+            })
+        }
+        "gst-going-concern" => engine::gst_going_concern(&engine::GoingConcernArgs {
+            for_consideration: &a[0],
+            recipient_registration: &a[1],
+            written_agreement: &a[2],
+            all_things_necessary: &a[3],
+            carried_on_until_supply: &a[4],
+            farm_land: &a[5],
+            part_outside_arrangement: &a[6],
+            year: &a[7],
+            scope_confirmed: &a[8],
+        }),
+        "gst-second-hand-goods" => {
+            // Optional: the GST on your taxable supply of the goods.
+            let resupply = optional(v, "resupply_gst", Dec)?;
+            engine::gst_second_hand_goods(&engine::SecondHandGoodsArgs {
+                consideration: &a[0],
+                acquired_for_sale_or_exchange: &a[1],
+                animals_or_plants: &a[2],
+                supply_to_you: &a[3],
+                imported: &a[4],
+                by_way_of_hire: &a[5],
+                resupply_taxable: &a[6],
+                resupply_gst: resupply.as_ref(),
+                divided_for_resupply: &a[7],
+                valuable_metal: &a[8],
+                leased_before_sale: &a[9],
+                year: &a[10],
+                scope_confirmed: &a[11],
+            })
+        }
+        "gst-bad-debt" => {
+            // Optional: inputs used only for some parties and events.
+            let raw = |key| optional(v, key, Raw);
+            let dec = |key| optional(v, key, Dec);
+            let attributed = raw("attributed")?;
+            let (overdue_from, as_at, prior) = (
+                raw("overdue_from")?,
+                raw("as_at")?,
+                raw("prior_adjustment")?,
+            );
+            let (proportion, purpose, extent) = (
+                dec("taxable_proportion")?,
+                dec("creditable_purpose")?,
+                dec("consideration_extent")?,
+            );
+            let (reduced, annual) = (
+                raw("reduced_credit_acquisition")?,
+                raw("annual_apportionment")?,
+            );
+            engine::gst_bad_debt(&engine::BadDebtArgs {
+                party: &a[0],
+                event: &a[1],
+                amount: &a[2],
+                taxable_or_creditable: &a[3],
+                cash_basis: &a[4],
+                special_rule: &a[5],
+                attributed: attributed.as_ref(),
+                overdue_from: overdue_from.as_ref(),
+                as_at: as_at.as_ref(),
+                prior_adjustment: prior.as_ref(),
+                taxable_proportion: proportion.as_ref(),
+                creditable_purpose: purpose.as_ref(),
+                consideration_extent: extent.as_ref(),
+                reduced_credit_acquisition: reduced.as_ref(),
+                annual_apportionment: annual.as_ref(),
+                year: &a[6],
+                scope_confirmed: &a[7],
             })
         }
         "luxury-car-tax" => engine::luxury_car_tax(&engine::LctArgs {

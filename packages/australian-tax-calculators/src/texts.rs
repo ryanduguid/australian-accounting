@@ -383,6 +383,18 @@ pub const SCOPES: &[(&str, &str)] = &[
         "Whether an entity, or a GST group member, exceeds the financial acquisitions threshold at a time in a month in a year from 2020-21 to 2026-27 (GST Act Division 189): the current acquisitions test over the 12 months ending at the end of the month (s 189-5) and the future acquisitions test over the month and the next 11 months (s 189-10), each exceeded when the input tax credits for financial acquisitions, treated as solely for a creditable purpose, are more than $150,000 or more than 10% of the input tax credits for all acquisitions and importations of the same months. The operator establishes which acquisitions are financial acquisitions (s 189-15: relating to financial supplies other than borrowings) and the credit amounts, with a GST group's taken across every member. Excludes which supplies are financial supplies and the reduced credit acquisitions an entity over the threshold may still claim.",
     ),
     (
+        "gst_going_concern",
+        "Whether one supply of a going concern is GST-free under GST Act s 38-325 in a year from 2020-21 to 2026-27, condition by condition, on facts the operator states: consideration, the recipient's registration, the written agreement and its timing (GSTR 2002/5 para 182), the supply of all things necessary for the continued operation of the enterprise and the supplier carrying it on until the day of the supply. The operator establishes each fact; the command never infers whether a supply is of a going concern from facts not stated. Excludes farm land supplied for farming (Subdivision 38-O), supplies partly outside the arrangement (s 9-80), the price and the recipient's s 135-5 and s 135-10 adjustments, which are noted, not worked out.",
+    ),
+    (
+        "gst_second_hand_goods",
+        "One acquisition of second-hand goods under GST Act Subdivision 66-A in a year from 2020-21 to 2026-27: the conditions of s 66-5 and the s 195-1 definition, and the notional input tax credit of s 66-10, 1/11 of the consideration, capped above $300 at the GST on your taxable supply of the goods. The operator establishes the facts, the consideration and that GST. Excludes goods divided for re-supply (Subdivision 66-B), goods of valuable metal, goods leased before sale (GSTD 2012/6), the tax period the credit is attributable to (s 66-15), which is noted, not worked out, and the records s 66-17 requires.",
+    ),
+    (
+        "gst_bad_debt",
+        "One bad debt adjustment under GST Act Division 21 in a year from 2020-21 to 2026-27, for the supplier (ss 21-5 and 21-10) or the recipient (ss 21-15 and 21-20): 1/11 of the amount written off, overdue for 12 months or more, recovered or paid, reduced for a partly taxable supply (s 136-5) or a partly creditable acquisition (s 136-10(1)). The operator establishes the amount, that it is overdue (s 195-1), the earlier adjustment for a recovery, and the proportion or extents. Excludes supplies and acquisitions taxable or creditable at less than 1/11 of the price (Subdivision 136-B, such as the margin scheme), reduced credit acquisitions (s 136-10(2)), credits worked out under Division 131 (s 136-10(3)), a change of accounting basis (Division 159) and the tax period the adjustment is attributable to.",
+    ),
+    (
         "income_tests",
         "The income measures of one individual who was an Australian resident for the whole income year and alive at its end, each the person's own for the whole year, from components the operator has established and classified: income for surcharge purposes (ITAA 1997 s 995-1), Division 293 income (s 293-20(1)(a)), rebate income (ITAA 1936 s 6(1)), repayment income for study and training loans (HESA s 154-5), adjusted taxable income for offsets (ITAA 1997 s 995-1, ITAA 1936 s 6(1) and A New Tax System (Family Assistance) Act 1999 Sch 3, disregarding cls 3 and 3A) and total income for the super co-contribution (Superannuation (Government Co-contribution for Low Income Earners) Act 2003 s 8). A spouse's measures come from the spouse's own components. A dependant's adjusted taxable income for part of a year, a deceased person's annualised adjusted taxable income (Sch 3 cl 2(2)), the co-contribution's 10% eligible income test, the combined family amounts and every threshold and eligibility test the measures feed are outside it. Income for surcharge purposes follows s 995-1, which does not add exempt foreign employment income; the ATO's surcharge page adds it where taxable income is $1 or more, and the result warns when that changes the figure. Measures another agency applies are outside it: the Commonwealth Seniors Health Card income test and family assistance adjusted taxable income are Services Australia's (https://www.servicesaustralia.gov.au/income-test-for-commonwealth-seniors-health-card). Refuses part-year residents, working holiday makers and foreign residents, and components that cannot all be true together.",
     ),
@@ -760,6 +772,18 @@ pub const SOURCES: &[(&str, &str)] = &[
     (
         "gst_financial_acquisitions_threshold",
         "https://www.legislation.gov.au/C2004A00446/2026-01-01/2026-01-01/text/original/epub/OEBPS/document_2/document_2.html",
+    ),
+    (
+        "gst_going_concern",
+        "https://www.legislation.gov.au/C2004A00446/2026-01-01/2026-01-01/text/original/epub/OEBPS/document_1/document_1.html",
+    ),
+    (
+        "gst_second_hand_goods",
+        "https://www.legislation.gov.au/C2004A00446/2026-01-01/2026-01-01/text/original/epub/OEBPS/document_1/document_1.html",
+    ),
+    (
+        "gst_bad_debt",
+        "https://www.legislation.gov.au/C2004A00446/2026-01-01/2026-01-01/text/original/epub/OEBPS/document_1/document_1.html",
     ),
 ];
 
@@ -1627,6 +1651,31 @@ pub const EXTRA_SOURCES: &[(&str, &[&str])] = &[
             "https://www.legislation.gov.au/C2004A00446/2020-04-01/2020-04-01/text/original/epub/OEBPS/document_2/document_2.html",
             "https://www.legislation.gov.au/F2019L00417/latest/text",
             "https://www.ato.gov.au/law/view/document?docid=GST/GSTR20039/NAT/ATO/00001",
+        ],
+    ),
+    (
+        "gst_going_concern",
+        &[
+            "https://www.legislation.gov.au/C2004A00446/2026-01-01/2026-01-01/text/original/epub/OEBPS/document_2/document_2.html",
+            "https://www.legislation.gov.au/C2004A00446/2020-04-01/2020-04-01/text/original/epub/OEBPS/document_1/document_1.html",
+            "https://www.ato.gov.au/law/view/document?docid=GST/GSTR20025/NAT/ATO/00001",
+        ],
+    ),
+    (
+        "gst_second_hand_goods",
+        &[
+            "https://www.legislation.gov.au/C2004A00446/2026-01-01/2026-01-01/text/original/epub/OEBPS/document_2/document_2.html",
+            "https://www.legislation.gov.au/C2004A00446/2020-04-01/2020-04-01/text/original/epub/OEBPS/document_1/document_1.html",
+            "https://www.ato.gov.au/law/view/document?docid=GSD/GSTD20126/NAT/ATO/00001",
+        ],
+    ),
+    (
+        "gst_bad_debt",
+        &[
+            "https://www.legislation.gov.au/C2004A00446/2026-01-01/2026-01-01/text/original/epub/OEBPS/document_2/document_2.html",
+            "https://www.legislation.gov.au/C2004A00446/2020-04-01/2020-04-01/text/original/epub/OEBPS/document_1/document_1.html",
+            "https://www.legislation.gov.au/C2004A00446/2020-04-01/2020-04-01/text/original/epub/OEBPS/document_2/document_2.html",
+            "https://www.ato.gov.au/law/view/document?docid=GST/GSTR20002/NAT/ATO/00001",
         ],
     ),
     (
@@ -2837,6 +2886,34 @@ pub const REFUSAL_CODES: &[(&str, &str)] = &[
         "The acquisition is to any extent a reduced credit acquisition, which s 131-40(5) excludes.",
     ),
     (
+        "gst_bad_debt.accounting_basis_changed",
+        "A recovery or payment is stated on a cash basis, so the accounting basis changed after the earlier adjustment, which Division 159 governs.",
+    ),
+    (
+        "gst_bad_debt.annual_apportionment",
+        "The recipient's credit was worked out under Division 131, where s 136-10(3) turns on the tax period of the s 131-55 adjustment.",
+    ),
+    (
+        "gst_bad_debt.dates_invalid",
+        "as_at is before overdue_from.",
+    ),
+    (
+        "gst_bad_debt.fact_conflict",
+        "A taxable proportion, extent of creditable purpose or extent of consideration of nil contradicts a taxable supply or creditable acquisition.",
+    ),
+    (
+        "gst_bad_debt.fact_invalid",
+        "party, event or special_rule is not one of its allowed values.",
+    ),
+    (
+        "gst_bad_debt.reduced_credit_acquisition",
+        "The recipient's acquisition is a reduced credit acquisition, which s 136-10(2) reduces by the Division 70 percentage.",
+    ),
+    (
+        "gst_bad_debt.special_rule",
+        "A special rule displaces or changes Division 21 for the debt: Subdivision 136-B, Division 126 (gambling), an assigned debt, GST Transition Act s 15G or Division 58 (representatives).",
+    ),
+    (
         "gst_creditable_purpose_change.basis_missing",
         "application_basis is not text of 1 to 200 characters stating the method the applications rest on.",
     ),
@@ -2855,6 +2932,18 @@ pub const REFUSAL_CODES: &[(&str, &str)] = &[
     (
         "gst_financial_acquisitions_threshold.fact_conflict",
         "The financial acquisitions' credits are more than the total credits that include them.",
+    ),
+    (
+        "gst_going_concern.fact_invalid",
+        "recipient_registration or written_agreement is not one of its allowed values.",
+    ),
+    (
+        "gst_going_concern.farm_land",
+        "The supply is of farm land for farming, which Subdivision 38-O governs.",
+    ),
+    (
+        "gst_going_concern.part_outside_arrangement",
+        "Part of the supply is outside the arrangement, so s 9-80 apportions it.",
     ),
     (
         "gst_margin_scheme.acquisition_unsupported",
@@ -2883,6 +2972,22 @@ pub const REFUSAL_CODES: &[(&str, &str)] = &[
     (
         "gst_margin_scheme.valuation_unavailable",
         "An approved valuation was given for an interest acquired on or after 1 July 2000.",
+    ),
+    (
+        "gst_second_hand_goods.divided_for_resupply",
+        "The goods are to be divided for re-supply, where Subdivision 66-B may apply instead.",
+    ),
+    (
+        "gst_second_hand_goods.fact_invalid",
+        "supply_to_you is not one of its allowed values.",
+    ),
+    (
+        "gst_second_hand_goods.leased_before_sale",
+        "The goods are leased before they are sold, where GSTD 2012/6 attributes the credit in parts.",
+    ),
+    (
+        "gst_second_hand_goods.valuable_metal",
+        "The goods consist to any extent of valuable metal, which s 195-1 excludes from second-hand goods unless incidental.",
     ),
     (
         "hire_purchase.amount_nil",
@@ -3034,7 +3139,7 @@ pub const REFUSAL_CODES: &[(&str, &str)] = &[
     ),
     (
         "input.field_unknown",
-        "A field the worksheet or command does not take, or does not take beside the other inputs given, was given (fbt-loan, fbt-meal-entertainment, fbt-car-parking, fbt-debt-waiver, fbt-expense-payment, fbt-property, fbt-residual, fbt-housing, fbt-lafha, fbt-board, fbt-tax-exempt-body-entertainment, fbt-entertainment-classifier, fbt-meal-entertainment-register and its entries, fbt-minor-benefit-check, ppsr-timing, fhss and its contributions, government-super-amounts, personal_deductions and determination, division-296, depreciation, fuel-tax-credits and its lines, foreign-resident-tax, medicare-levy, medicare-levy-surcharge, payg-withholding, payg-gross-up, termination-payment, etp-tax-free-component, unused-leave-payment, the Schedule 5 methods, working-holiday-maker-withholding, study-loan-withholding, seniors-pensioners-withholding, seniors-pensioners-tax-offset, lump-sum-arrears-tax-offset, hire-purchase-schedule, chattel-mortgage-schedule, loan-transactions and its transactions and rate_changes, borrowing-expenses-schedule and its loans, business-capital-expenditure and its items, balancing-adjustment, its years and car_limit, trade-in, franking-account and its events, distributions and income_tax, dasp-tax, super-benefit-tax, gst-margin-scheme, wine-equalisation-tax and its dealings, luxury-car-tax and its lines, payroll-tax, cgt-parcels, its parcels and disposals, fbt-ev-exemption-check, sb-cgt-concessions, small-business-income-offset, residency-tests, lodgment-required, depreciation-low-value-pool, gst-creditable-purpose-change, gst-annual-apportionment, gst-financial-acquisitions-threshold, depreciation-small-business-pool, capital-works, non-commercial-losses, psi-test, beneficiary-tax-offset, invalid-carer-tax-offset, zone-tax-offset and its dependants, net-medical-expenses-tax-offset, work-expenses, ato-interest-penalties and its payments and parts, private-health-insurance-rebate, rental-property and its loans, capital_works and depreciating_assets, horticulture-shearing-withholding, upward-variation-withholding, daily-casual-withholding, no-abn-withholding, entertainer-withholding, return-to-work-withholding, annuity-withholding, voluntary-agreement-withholding, rd-tax-offset, contribution-caps given a carry-forward input, derive, personal-tax-estimate, dgr-check, income-tests and fbt-return only).",
+        "A field the worksheet or command does not take, or does not take beside the other inputs given, was given (fbt-loan, fbt-meal-entertainment, fbt-car-parking, fbt-debt-waiver, fbt-expense-payment, fbt-property, fbt-residual, fbt-housing, fbt-lafha, fbt-board, fbt-tax-exempt-body-entertainment, fbt-entertainment-classifier, fbt-meal-entertainment-register and its entries, fbt-minor-benefit-check, ppsr-timing, fhss and its contributions, government-super-amounts, personal_deductions and determination, division-296, depreciation, fuel-tax-credits and its lines, foreign-resident-tax, medicare-levy, medicare-levy-surcharge, payg-withholding, payg-gross-up, termination-payment, etp-tax-free-component, unused-leave-payment, the Schedule 5 methods, working-holiday-maker-withholding, study-loan-withholding, seniors-pensioners-withholding, seniors-pensioners-tax-offset, lump-sum-arrears-tax-offset, hire-purchase-schedule, chattel-mortgage-schedule, loan-transactions and its transactions and rate_changes, borrowing-expenses-schedule and its loans, business-capital-expenditure and its items, balancing-adjustment, its years and car_limit, trade-in, franking-account and its events, distributions and income_tax, dasp-tax, super-benefit-tax, gst-margin-scheme, wine-equalisation-tax and its dealings, luxury-car-tax and its lines, payroll-tax, cgt-parcels, its parcels and disposals, fbt-ev-exemption-check, sb-cgt-concessions, small-business-income-offset, residency-tests, lodgment-required, depreciation-low-value-pool, gst-creditable-purpose-change, gst-annual-apportionment, gst-financial-acquisitions-threshold, gst-going-concern, gst-second-hand-goods, gst-bad-debt, depreciation-small-business-pool, capital-works, non-commercial-losses, psi-test, beneficiary-tax-offset, invalid-carer-tax-offset, zone-tax-offset and its dependants, net-medical-expenses-tax-offset, work-expenses, ato-interest-penalties and its payments and parts, private-health-insurance-rebate, rental-property and its loans, capital_works and depreciating_assets, horticulture-shearing-withholding, upward-variation-withholding, daily-casual-withholding, no-abn-withholding, entertainer-withholding, return-to-work-withholding, annuity-withholding, voluntary-agreement-withholding, rd-tax-offset, contribution-caps given a carry-forward input, derive, personal-tax-estimate, dgr-check, income-tests and fbt-return only).",
     ),
     ("input.flag_invalid", "A flag is not a JSON boolean."),
     ("input.fraction_invalid", "A fraction is outside 0 to 1."),

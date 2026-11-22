@@ -182,7 +182,7 @@ fn every_catalogued_required_input_of_a_strict_command_is_read() {
     // daily-casual-withholding, no-abn-withholding, entertainer-withholding,
     // return-to-work-withholding, annuity-withholding,
     // voluntary-agreement-withholding, residency-tests and lodgment-required and rd-tax-offset.
-    assert_eq!(checked, 82);
+    assert_eq!(checked, 85);
 }
 
 /// Every frozen call gives the same answer through either entry point, and
