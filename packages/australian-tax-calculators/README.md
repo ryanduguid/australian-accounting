@@ -406,6 +406,7 @@ own dates and figures.
 | Small business income offset | 2020-21 to 2026-27; one individual, not a trustee or a prescribed person under s 102AC of the ITAA 1936; established net small business income, partnership and trust amounts, basic income tax liability and offsets applied first |
 | Non-commercial losses | 2020-21 to 2026-27; one individual's business activity, alone or in partnership, with established figures; no bankruptcy or section 40-880 expenditure; the Commissioner's discretion not decided |
 | PSI test | 2020-21 to 2026-27; one individual's PSI with the operator's answers to each test; no s 87-40 for an agent on 75% or more commission; a determination not decided |
+| Work expenses | 2020-21 to 2026-27; one employee's working from home, car (cents per kilometre or log book) or self-education deduction, one `method` a call; no reimbursed expenses or allowance for them; occupancy expenses not covered |
 | Income tests | 2024-25, 2025-26 and 2026-27; a full-year resident's established and classified components; the measures, not the thresholds and tests they feed |
 | Division 296 | 2026-27; one individual's established balance at 30 June 2027 and total superannuation earnings; no defined benefit or other s 296-70 interests; an estimate, as the Commissioner assesses |
 | Termination payment | 2026-27; one life benefit ETP to a resident employee who gave a TFN, paid within 12 months; established genuine redundancy and classified ETP parts; Schedule 11 withholding, not the tax assessed |
