@@ -1160,6 +1160,13 @@ pub fn supported_periods(kind: &str) -> Vec<&'static str> {
         // define them as the current ones do, and the ATO's 2025 and 2026
         // return instructions and its current pages apply them.
         "income_tests" => vec!["2024-25", "2025-26", "2026-27"],
+        // The pools' rates and the capital works rates do not change in these
+        // years; the small business pool's low pool value threshold does, by year.
+        "depreciation_low_value_pool" | "depreciation_small_business_pool" | "capital_works" => {
+            vec![
+                "2020-21", "2021-22", "2022-23", "2023-24", "2024-25", "2025-26", "2026-27",
+            ]
+        }
         "sb_cgt_concessions" => vec!["2025-26", "2026-27"],
         _ => Vec::new(),
     }
@@ -1412,6 +1419,18 @@ pub fn source_review(kind: &str) -> (&'static str, &'static str) {
         "fbt_entertainment_classifier" => (
             "2026-11-16",
             "ITAA 1997 Division 32, s 27-5 and s 995-1, compilation 268 (1 October 2026); FBTAA ss 5E, 20, 37A to 37CF, 40, 41, 45, 58P and 135P(1) and s 136(1), compilation 97 (1 July 2026); Fringe Benefits Tax Assessment Regulations 2018, regulations 6 to 11, as made; ITAA 1936 ss 51AEA and 51AEB, compilation 193 (1 October 2026); GST Act s 69-5, compilation 96 (1 January 2026); TR 97/17, paras 7 to 143 and the Part A table, and TR 2007/12, paras 8 to 22 and examples 1 to 3, as the Commissioner's view",
+        ),
+        "depreciation_low_value_pool" => (
+            "2026-11-22",
+            "ITAA 1997 ss 40-425, 40-430, 40-435, 40-440 and 40-445 (ATO legal database); ATO Low-value pool (last updated 26 June 2025), examples 1 to 3 and the closing balance example; Guide to depreciating assets 2026, Working out the decline in value of depreciating assets in a low-value pool and its examples",
+        ),
+        "depreciation_small_business_pool" => (
+            "2026-11-22",
+            "ITAA 1997 ss 328-185, 328-190, 328-195, 328-200, 328-210 and 328-215 (ATO legal database); IT(TP)A 1997 ss 328-180(6) and 328-181(5); Treasury Laws Amendment (Tax Reform No. 2) Act 2026 (No. 71 of 2026) Sch 2 items 7 and 15; ATO Small business pool calculations (last updated 16 June 2025), examples 2 and 3; Instant asset write-off for eligible businesses (last updated 28 August 2026), table 1; LCR 2021/3, example 13",
+        ),
+        "capital_works" => (
+            "2026-11-22",
+            "ITAA 1997 ss 43-140, 43-145, 43-210 and 43-215 (ATO legal database); ATO Rental properties guide 2026, Capital works deductions, tables 1 and 2 and example 29; Guide to depreciating assets 2026, days held in a leap year",
         ),
         "sb_cgt_concessions" => (
             "2026-11-19",
@@ -1758,6 +1777,24 @@ pub fn library_evidence(kind: &str) -> [(&'static str, &'static str); 4] {
             "3-160, 3-180",
             "2026-06-30",
             "2026-11-15",
+        ),
+        "depreciation_low_value_pool" => (
+            "ATO Low-value pool page and Guide to depreciating assets 2026",
+            "John's printer: $111 and $1,875, a $1,986 decline and a $3,608 closing balance; then $1,353, a $300 disposal and $1,955",
+            "2025-06-26",
+            "2026-11-22",
+        ),
+        "depreciation_small_business_pool" => (
+            "ATO Small business pool calculations, s 328-210(3) and LCR 2021/3",
+            "Loretta's 2018-19 pool ($30,000 and $4,200, closing $85,800), Cassidy's Gardens ($15,700 written off) and example 13 ($200,000 written off in 2020-21)",
+            "2025-06-16",
+            "2026-11-22",
+        ),
+        "capital_works" => (
+            "ATO Rental properties guide 2026",
+            "Example 29: Greg and Suzie's $115,800 at 2.5% for 346 days, $2,744",
+            "2026-06-30",
+            "2026-11-22",
         ),
         "sb_cgt_concessions" => (
             "tax-examples-capital-gains-tax-cgt",
@@ -3515,6 +3552,27 @@ pub fn input_units(kind: &str) -> Vec<(&'static str, &'static str)> {
                 "boolean, whether the employer is exempt from income tax; true is refused, as fbt-tax-exempt-body-entertainment applies",
             ),
         ],
+        "depreciation_low_value_pool" => vec![
+            ("previous_closing_pool_balance", "AUD: the pool's closing pool balance for the previous income year (ITAA 1997 s 40-440(1) step 3(a)); 0.00 in the year the pool starts"),
+            ("low_cost_assets", "AUD: the taxable use percentage of the cost of the low-cost assets (cost under $1,000, s 40-425(2)) allocated to the pool for the year"),
+            ("low_value_assets", "AUD: the taxable use percentage of the opening adjustable values of the low-value assets (s 40-425(5)) allocated to the pool for the year"),
+            ("second_element_costs", "AUD: the taxable use percentage of amounts included for the year in the second element of cost of assets allocated for an earlier year and of low-value assets allocated for the year"),
+            ("termination_values", "AUD: the taxable use percentage of the termination values of pooled assets for which a balancing adjustment event happened in the year (s 40-445)"),
+        ],
+        "depreciation_small_business_pool" => vec![
+            ("opening_pool_balance", "AUD: the general small business pool's opening pool balance (ITAA 1997 s 328-195), including any s 328-225 adjustment"),
+            ("additions", "AUD: the taxable purpose proportions of the adjustable values of assets first used, or installed ready for use, for a taxable purpose in the year and allocated to the pool (s 328-185(4)), not those written off under s 328-180 or temporary full expensing"),
+            ("cost_additions", "AUD: the taxable purpose proportion of cost addition amounts for the year for pooled assets (s 328-190(3))"),
+            ("termination_values", "AUD: the taxable purpose proportions of the termination values of pooled assets for which a balancing adjustment event happened in the year"),
+        ],
+        "capital_works" => vec![
+            ("construction_expenditure", "AUD: your construction expenditure attributable to the part of your area this deduction is for (ITAA 1997 s 43-210 'portion of your CE')"),
+            ("construction_start", "YYYY-MM-DD: when the capital works began, from 16 September 1987"),
+            ("four_percent_manner", "boolean: the part was used in the 4% manner (s 43-145, including the 4% build to rent manner); only for works begun after 26 February 1992"),
+            ("days_used", "integer from 0 to the days of the income year from the later of 1 July and construction_start (365, or 366 in 2023-24, for works begun before the year): the days in the year you owned or leased the part and used it in that manner (the denominator stays 365)"),
+            ("taxable_use", "fraction, decimal string from 0 to 1: the extent of the part's use for producing assessable income over those days; use for R&D activities counts too only at 2.5% for capital works other than a hotel or apartment building (s 43-210 step 4(b), s 43-215 step 3(b)), never in the 4% manner (s 43-210 step 2)"),
+            ("undeducted_construction_expenditure", "AUD: the undeducted construction expenditure for your area (s 43-235), at most construction_expenditure; the deduction cannot exceed it"),
+        ],
         "sb_cgt_concessions" => vec![
             ("entity", "individual, company or trust: the entity that made the capital gain"),
             ("share_or_trust_interest", "boolean: the asset is a share in a company or an interest in a trust; true is refused (ITAA 1997 s 152-10(2))"),
@@ -4173,6 +4231,36 @@ pub fn examples(kind: &str) -> Vec<(&'static str, Example)> {
         // foreign income and her assessable income are fabricated.
         // The Library's Neil Swan (Tax Examples ¶2-280): the days, his
         // birthday, the turnover 2 years back and the net value are fabricated.
+        // The Guide to depreciating assets 2026's John: $5,000 closing balance
+        // for 2024-25 and a $990 printer used 60% for taxable purposes.
+        "depreciation_low_value_pool" => vec![
+            ("year", Text("2025-26")),
+            ("previous_closing_pool_balance", Text("5000.00")),
+            ("low_cost_assets", Text("594.00")),
+            ("low_value_assets", Text("0.00")),
+            ("second_element_costs", Text("0.00")),
+            ("termination_values", Text("0.00")),
+        ],
+        // The ATO's Loretta (Small business pool calculations, example 2,
+        // 2018-19) worked under the same rules in 2025-26.
+        "depreciation_small_business_pool" => vec![
+            ("year", Text("2025-26")),
+            ("opening_pool_balance", Text("100000.00")),
+            ("additions", Text("28000.00")),
+            ("cost_additions", Text("0.00")),
+            ("termination_values", Text("8000.00")),
+        ],
+        // Rental properties guide 2026, example 29; the day in August 1991 and
+        // the undeducted construction expenditure are fabricated.
+        "capital_works" => vec![
+            ("year", Text("2025-26")),
+            ("construction_expenditure", Text("115800.00")),
+            ("construction_start", Text("1991-08-01")),
+            ("four_percent_manner", Flag(false)),
+            ("days_used", Whole(346)),
+            ("taxable_use", Text("1")),
+            ("undeducted_construction_expenditure", Text("20000.00")),
+        ],
         "sb_cgt_concessions" => vec![
             ("year", Text("2025-26")),
             ("entity", Text("individual")),
