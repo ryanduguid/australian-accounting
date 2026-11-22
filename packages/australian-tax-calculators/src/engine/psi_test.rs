@@ -115,7 +115,9 @@ fn payers(given: &Arg) -> Result<Vec<Payer>> {
             stated::known_keys(fields, &name, "a payer", &PAYER_KEYS)?;
             let source = match fields.get("source") {
                 None => format!("row {i}"),
-                Some(Value::String(label)) if !label.is_empty() && label.len() <= MAX_SOURCE => {
+                Some(Value::String(label))
+                    if !label.is_empty() && label.chars().count() <= MAX_SOURCE =>
+                {
                     format!("label {label}")
                 }
                 Some(_) => return bad_payers(),

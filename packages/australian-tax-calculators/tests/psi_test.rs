@@ -510,7 +510,15 @@ fn a_payers_contracts_share_one_source() {
     assert_eq!(out["tests"]["unrelated_clients"], 2);
     assert_eq!(out["tests"]["one_source_percent"], "80.00");
     assert_eq!(out["rule"], "subsection 87-15(3)");
-    for bad in [json!(""), json!(1), json!("x".repeat(101))] {
+    let mut wide = payer("1.00", "");
+    wide["source"] = json!("é".repeat(100));
+    assert!(api::evaluate("psi-test", &with(base(&[]), json!({"payers": [wide]}))).is_ok());
+    for bad in [
+        json!(""),
+        json!(1),
+        json!("x".repeat(101)),
+        json!("é".repeat(101)),
+    ] {
         let mut row = payer("1.00", "");
         row["source"] = bad;
         let input = with(base(&[]), json!({"payers": [row]}));

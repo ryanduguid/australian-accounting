@@ -2498,7 +2498,7 @@ pub const REFUSAL_CODES: &[(&str, &str)] = &[
     ),
     (
         "psi_test.earner_invalid",
-        "earner is not employee, sole_trader or entity.",
+        "earner is not employee, religious_practitioner, sole_trader or entity.",
     ),
     ("psi_test.no_psi", "The payers' PSI totals nil."),
     (
