@@ -267,6 +267,18 @@ pub const SCOPES: &[(&str, &str)] = &[
         "One individual's private health insurance tax offset or excess premium reduction for an income year from 2020-21 to 2026-27, worked out from the lines of the private health insurance statements for complying health insurance policies under which the person was an adult insured (a PHIIB, Private Health Insurance Act 2007 s 22-5(1)), every person insured being an eligible person under Health Insurance Act 1973 s 3 (ITAA 1997 s 61-205(1)(c)). Each line gives the person's share of the premiums paid in the period, divided among the adults insured (s 22-20) and without lifetime health cover loading (s 22-15(6)), the person's share of the premium reduction received, and the benefit code for the period (1 July to 31 March, or 1 April to 30 June) and the oldest insured person's age band; a premium is in the period it was paid, and the operator splits premiums by age band where the oldest person turned 65 or 70 in the period and applies s 22-25 to a person 65 or over who left the policy. The tier comes from income for surcharge purposes (ITAA 1997 s 995-1) as established, with the spouse's for a person married on 30 June, against the singles thresholds, or the family thresholds for a person married on 30 June or who maintained a dependent person who is their child or dependent sibling in the year (s 22-30). Each line is worked as a whole, as the statement and the assessment take it; give a line for each premium where the reductions within a period differed, to show the offset and the excess on each (ITAA 1997 s 61-210 and PHI Act s 282-18 work premium by premium). Excludes dependant-only policies (s 22-5(3) and (4)), a trustee's offset (ITAA 1997 s 61-205(2)), the choice to claim a spouse's offset (s 61-215) and the reallocation of the excess between spouses (PHI Act s 282-18(8) to (10)), and the lifetime health cover loading itself. Refuses premiums paid from 1 April 2027, whose percentages were not published.",
     ),
     (
+        "depreciation_low_value_pool",
+        "One holder's low-value pool (ITAA 1997 Subdivision 40-E) for an income year from 2020-21 to 2026-27: the decline in value at 18.75% of the taxable use percentage of the cost of low-cost assets allocated for the year and of second element amounts for the year, and at 37.5% of the previous closing pool balance and the taxable use percentage of the opening adjustable values of low-value assets allocated for the year (s 40-440), then the closing pool balance, reduced by the taxable use percentage of termination values, with any excess assessable (s 40-445). The operator establishes which assets may be and are allocated (s 40-425: low-cost assets cost under $1,000; low-value assets were written down by diminishing value to an opening adjustable value under $1,000; not assets of a small business entity under Subdivision 328-D, assets under s 40-82, R&D assets, assets for assessable labour income or assets costing $300 or less used mainly for non-business income) and each taxable use percentage (s 40-435). Excludes whether temporary full expensing applied to an asset in 2020-21 to 2022-23, the sampling rule, the capital gain or loss on the non-taxable part of a disposal and primary production apportionment.",
+    ),
+    (
+        "depreciation_small_business_pool",
+        "A small business entity's general small business pool (ITAA 1997 Subdivision 328-D) for an income year from 2020-21 to 2026-27, for an entity that chose the simplified depreciation rules for the year or continues its pool under s 328-220. The pool's s 328-210(2) amount (opening pool balance, plus the taxable purpose proportions of the adjustable values of assets allocated for the year and of cost addition amounts, less those of termination values) is written off when above zero and below the year's low pool value threshold: no limit for 2020-21 to 2022-23 (IT(TP)A 1997 s 328-181(5)), $20,000 for 2023-24 to 2025-26 (IT(TP)A s 328-180(6)(e)) and $20,000 for 2026-27 (s 328-210(1) as amended by Act No. 71 of 2026). Otherwise 30% of the opening pool balance and 15% of the year's additions and cost addition amounts are deducted (s 328-190) and the closing pool balance follows (s 328-200); a balance or amount below zero is assessable and the pool closes at zero (s 328-215). The operator establishes the entity's eligibility, which assets the instant asset write-off (s 328-180) or temporary full expensing took instead of the pool, each taxable purpose proportion and any s 328-225 adjustment, which belongs in the opening pool balance. Excludes roll-over relief (ss 328-243 to 328-247), assets excluded from simplified depreciation, the car limit, and the 57.5% backing business investment rate, refused in the one 2020-21 case it could change the result.",
+    ),
+    (
+        "capital_works",
+        "One area's capital works deduction under ITAA 1997 Division 43 for an income year from 2020-21 to 2026-27, for capital works begun on or after 16 September 1987 that qualify for a deduction for their start date and type (the operator establishes this, for example from the Rental properties guide 2026 table 1: structural improvements begun before 27 February 1992 do not). The rate is 4% for the part used in the 4% manner (s 43-145, including the 4% build to rent manner) for works begun after 26 February 1992, and 2.5% otherwise (s 43-210 steps 1 and 3; s 43-215 step 1(b) for works begun 16 September 1987 to 26 February 1992), on the construction expenditure for the part, for the days in the year it was owned or leased and used in that way over 365 (366 days are allowed in 2023-24), reduced for use only partly for producing assessable income, and limited to the undeducted construction expenditure (s 43-210 step 6, s 43-215 step 4). The operator establishes the construction expenditure attributable to their own area (a co-owner's own part), the days, the taxable use and the undeducted construction expenditure (s 43-235). Excludes works begun before 16 September 1987, works taken by s 43-220 to have begun before then, hotel and apartment buildings begun before 27 February 1992 (s 43-215 step 2), the calculation of undeducted construction expenditure, destruction (s 43-40) and splitting expenditure amongst co-owners.",
+    ),
+    (
         "income_tests",
         "The income measures of one individual who was an Australian resident for the whole income year and alive at its end, each the person's own for the whole year, from components the operator has established and classified: income for surcharge purposes (ITAA 1997 s 995-1), Division 293 income (s 293-20(1)(a)), rebate income (ITAA 1936 s 6(1)), repayment income for study and training loans (HESA s 154-5), adjusted taxable income for offsets (ITAA 1997 s 995-1, ITAA 1936 s 6(1) and A New Tax System (Family Assistance) Act 1999 Sch 3, disregarding cls 3 and 3A) and total income for the super co-contribution (Superannuation (Government Co-contribution for Low Income Earners) Act 2003 s 8). A spouse's measures come from the spouse's own components. A dependant's adjusted taxable income for part of a year, a deceased person's annualised adjusted taxable income (Sch 3 cl 2(2)), the co-contribution's 10% eligible income test, the combined family amounts and every threshold and eligibility test the measures feed are outside it. Income for surcharge purposes follows s 995-1, which does not add exempt foreign employment income; the ATO's surcharge page adds it where taxable income is $1 or more, and the result warns when that changes the figure. Measures another agency applies are outside it: the Commonwealth Seniors Health Card income test and family assistance adjusted taxable income are Services Australia's (https://www.servicesaustralia.gov.au/income-test-for-commonwealth-seniors-health-card). Refuses part-year residents, working holiday makers and foreign residents, and components that cannot all be true together.",
     ),
@@ -528,6 +540,18 @@ pub const SOURCES: &[(&str, &str)] = &[
     (
         "private_health_insurance_rebate",
         "https://www.ato.gov.au/individuals-and-families/medicare-and-private-health-insurance/private-health-insurance-rebate/income-thresholds-and-rates-for-the-private-health-insurance-rebate",
+    ),
+    (
+        "depreciation_low_value_pool",
+        "https://www.ato.gov.au/law/view/document?docid=PAC/19970038/40-440",
+    ),
+    (
+        "depreciation_small_business_pool",
+        "https://www.ato.gov.au/law/view/document?docid=PAC/19970038/328-210",
+    ),
+    (
+        "capital_works",
+        "https://www.ato.gov.au/law/view/document?docid=PAC/19970038/43-210",
     ),
 ];
 
@@ -1126,6 +1150,36 @@ pub const EXTRA_SOURCES: &[(&str, &[&str])] = &[
         ],
     ),
     (
+        "depreciation_low_value_pool",
+        &[
+            "https://www.ato.gov.au/law/view/document?docid=PAC/19970038/40-425",
+            "https://www.ato.gov.au/law/view/document?docid=PAC/19970038/40-435",
+            "https://www.ato.gov.au/law/view/document?docid=PAC/19970038/40-445",
+            "https://www.ato.gov.au/businesses-and-organisations/income-deductions-and-concessions/depreciation-and-capital-expenses-and-allowances/general-depreciation-rules-capital-allowances/low-value-assets-pool",
+        ],
+    ),
+    (
+        "depreciation_small_business_pool",
+        &[
+            "https://www.ato.gov.au/law/view/document?docid=PAC/19970038/328-190",
+            "https://www.ato.gov.au/law/view/document?docid=PAC/19970038/328-200",
+            "https://www.ato.gov.au/law/view/document?docid=PAC/19970038/328-215",
+            "https://www.ato.gov.au/law/view/document?docid=PAC/19970040/328-180",
+            "https://www.ato.gov.au/law/view/document?docid=PAC/19970040/328-181",
+            "https://www.legislation.gov.au/C2026A00071/asmade/text",
+            "https://www.ato.gov.au/businesses-and-organisations/income-deductions-and-concessions/depreciation-and-capital-expenses-and-allowances/simpler-depreciation-for-small-business/small-business-pool-calculations",
+        ],
+    ),
+    (
+        "capital_works",
+        &[
+            "https://www.ato.gov.au/law/view/document?docid=PAC/19970038/43-140",
+            "https://www.ato.gov.au/law/view/document?docid=PAC/19970038/43-145",
+            "https://www.ato.gov.au/law/view/document?docid=PAC/19970038/43-215",
+            "https://www.ato.gov.au/businesses-and-organisations/income-deductions-and-concessions/depreciation-and-capital-expenses-and-allowances/capital-works-deductions",
+        ],
+    ),
+    (
         "sb_cgt_concessions",
         &[
             "https://www.legislation.gov.au/C2004A05138/2026-05-21/2026-05-21/text/original/epub/OEBPS/document_3/document_3.html",
@@ -1181,6 +1235,18 @@ pub const EXTRA_WARNINGS: &[(&str, &[&str])] = &[
         "private_health_insurance_rebate",
         &[
             "Each line's share of the PHII benefit is rounded to the cent, as the ATO's worked examples do; no provision sets the rounding. An offset on one line and an excess on another are both shown, as ITAA 1997 s 61-210 and PHI Act s 282-18 each work on a premium; a line that sums premiums with different reductions shows only their net, not each premium's offset or excess, and as its share is rounded once its net can differ from theirs by a cent; give such premiums as separate lines.",
+        ],
+    ),
+    (
+        "depreciation_small_business_pool",
+        &[
+            "Which assets the instant asset write-off or temporary full expensing took instead of the pool is the operator's to establish; this worksheet works out the pool only.",
+        ],
+    ),
+    (
+        "capital_works",
+        &[
+            "undeducted_construction_expenditure is not carried forward here: it falls by more than the deduction where the area was not used to produce income (s 43-235).",
         ],
     ),
     (
@@ -1595,6 +1661,22 @@ pub const REFUSAL_CODES: &[(&str, &str)] = &[
         "An item is stated not to be capital expenditure.",
     ),
     (
+        "capital_works.begun_before_16_september_1987",
+        "The capital works began before 16 September 1987, under rates and rules of ITAA 1997 s 43-215 the worksheet does not take.",
+    ),
+    (
+        "capital_works.four_percent_before_27_february_1992",
+        "The 4% manner was given for capital works begun before 27 February 1992, which have only the 2.5% rate (ITAA 1997 s 43-215 step 1(b)).",
+    ),
+    (
+        "capital_works.precision_exceeded",
+        "taxable_use has more than 20 significant digits.",
+    ),
+    (
+        "capital_works.undeducted_above_expenditure",
+        "The undeducted construction expenditure is more than the construction expenditure.",
+    ),
+    (
         "cgt_parcels.entity_invalid",
         "entity is not individual, trust, complying_superannuation_entity or company.",
     ),
@@ -1710,6 +1792,10 @@ pub const REFUSAL_CODES: &[(&str, &str)] = &[
     (
         "depreciation.precision_exceeded",
         "An effective life's significant digits and the taxable use's decimal places total more than 22.",
+    ),
+    (
+        "depreciation_small_business_pool.backing_business_investment",
+        "In 2020-21 a pool's s 328-210(2) amount is exactly zero and additions are above zero, so the 57.5% backing business investment rate could change the result.",
     ),
     (
         "derivation.unsupported",
@@ -2177,7 +2263,7 @@ pub const REFUSAL_CODES: &[(&str, &str)] = &[
     ),
     (
         "input.field_unknown",
-        "A field the worksheet or command does not take, or does not take beside the other inputs given, was given (fbt-loan, fbt-meal-entertainment, fbt-car-parking, fbt-debt-waiver, fbt-expense-payment, fbt-property, fbt-residual, fbt-housing, fbt-lafha, fbt-board, fbt-tax-exempt-body-entertainment, fbt-entertainment-classifier, fbt-meal-entertainment-register and its entries, fbt-minor-benefit-check, ppsr-timing, fhss and its contributions, personal_deductions and determination, division-296, depreciation, fuel-tax-credits and its lines, foreign-resident-tax, medicare-levy, medicare-levy-surcharge, payg-withholding, payg-gross-up, termination-payment, etp-tax-free-component, unused-leave-payment, the Schedule 5 methods, working-holiday-maker-withholding, study-loan-withholding, seniors-pensioners-withholding, seniors-pensioners-tax-offset, lump-sum-arrears-tax-offset, hire-purchase-schedule, chattel-mortgage-schedule, loan-transactions and its transactions and rate_changes, borrowing-expenses-schedule and its loans, business-capital-expenditure and its items, balancing-adjustment, its years and car_limit, trade-in, franking-account and its events, distributions and income_tax, dasp-tax, gst-margin-scheme, wine-equalisation-tax and its dealings, luxury-car-tax and its lines, payroll-tax, cgt-parcels, its parcels and disposals, fbt-ev-exemption-check, sb-cgt-concessions, private-health-insurance-rebate, contribution-caps given a carry-forward input, derive, personal-tax-estimate, dgr-check, income-tests and fbt-return only).",
+        "A field the worksheet or command does not take, or does not take beside the other inputs given, was given (fbt-loan, fbt-meal-entertainment, fbt-car-parking, fbt-debt-waiver, fbt-expense-payment, fbt-property, fbt-residual, fbt-housing, fbt-lafha, fbt-board, fbt-tax-exempt-body-entertainment, fbt-entertainment-classifier, fbt-meal-entertainment-register and its entries, fbt-minor-benefit-check, ppsr-timing, fhss and its contributions, personal_deductions and determination, division-296, depreciation, fuel-tax-credits and its lines, foreign-resident-tax, medicare-levy, medicare-levy-surcharge, payg-withholding, payg-gross-up, termination-payment, etp-tax-free-component, unused-leave-payment, the Schedule 5 methods, working-holiday-maker-withholding, study-loan-withholding, seniors-pensioners-withholding, seniors-pensioners-tax-offset, lump-sum-arrears-tax-offset, hire-purchase-schedule, chattel-mortgage-schedule, loan-transactions and its transactions and rate_changes, borrowing-expenses-schedule and its loans, business-capital-expenditure and its items, balancing-adjustment, its years and car_limit, trade-in, franking-account and its events, distributions and income_tax, dasp-tax, gst-margin-scheme, wine-equalisation-tax and its dealings, luxury-car-tax and its lines, payroll-tax, cgt-parcels, its parcels and disposals, fbt-ev-exemption-check, sb-cgt-concessions, depreciation-low-value-pool, depreciation-small-business-pool, capital-works, private-health-insurance-rebate, contribution-caps given a carry-forward input, derive, personal-tax-estimate, dgr-check, income-tests and fbt-return only).",
     ),
     ("input.flag_invalid", "A flag is not a JSON boolean."),
     ("input.fraction_invalid", "A fraction is outside 0 to 1."),

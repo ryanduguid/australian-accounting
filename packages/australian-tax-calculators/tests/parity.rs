@@ -30,9 +30,9 @@ use std::process::{Command, Stdio};
 /// `tests/fbt_entertainment_classifier.rs`, `tests/fbt_minor_benefit.rs`,
 /// `tests/fhss.rs`, `tests/ppsr_timing.rs`, `tests/dasp_tax.rs`, `tests/income_tests.rs`,
 /// `tests/franking_account.rs`, `tests/wine_equalisation_tax.rs`,
-/// `tests/luxury_car_tax.rs`, `tests/sb_cgt_concessions.rs` and
-/// `tests/private_health_insurance_rebate.rs` cover them.
-const NEW_KINDS: [(&str, &str); 53] = [
+/// `tests/luxury_car_tax.rs`, `tests/sb_cgt_concessions.rs`,
+/// `tests/private_health_insurance_rebate.rs` and `tests/depreciation_pools.rs` cover them.
+const NEW_KINDS: [(&str, &str); 56] = [
     ("fhss", "fhss"),
     ("ppsr-timing", "ppsr_timing"),
     ("dasp-tax", "dasp_tax"),
@@ -68,6 +68,12 @@ const NEW_KINDS: [(&str, &str); 53] = [
         "private-health-insurance-rebate",
         "private_health_insurance_rebate",
     ),
+    ("depreciation-low-value-pool", "depreciation_low_value_pool"),
+    (
+        "depreciation-small-business-pool",
+        "depreciation_small_business_pool",
+    ),
+    ("capital-works", "capital_works"),
     ("division-296", "division_296"),
     ("termination-payment", "termination_payment"),
     ("etp-tax-free-component", "etp_tax_free_component"),

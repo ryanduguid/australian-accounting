@@ -2586,6 +2586,64 @@ command's.
 The last 2 rows are worked by hand from s 5. The tests also cover rounding
 at the half cent, a payment under $200, a wholly tax free payment and each
 refusal.
+## Depreciation low-value pool
+
+Added on 22 November 2026, with the 2 sections after it. The sources were read
+that day: ITAA 1997 ss 40-425, 40-430, 40-435, 40-440 and 40-445 from the ATO's
+legal database; the ATO's 'Low-value pool' (last updated 26 June 2025), whose
+examples 1 to 3 are John's printer in 2020-21 and 2021-22; and the Guide to
+depreciating assets 2026 (NAT 1996-06.2026), which repeats the example for
+2025-26. The 18.75% and 37.5% rates do not change in 2020-21 to 2026-27. The
+ATO shows whole dollars; the command shows cents, rounding the decline once.
+
+| Example | Facts given | Result |
+| --- | --- | --- |
+| Guide 2026, John | Closing balance **$5,000**, printer **$594** (60% of $990) | Decline **$1,986.38** (ATO $1,986), closing **$3,607.62** (ATO $3,608) |
+| Low-value pool page, 2021-22 | Closing balance **$3,608**, printer sold, **$300** (60% of $500) | Decline **$1,353.00**, closing **$1,955.00** |
+
+`tests/depreciation_pools.rs` also covers low-value assets, second element
+amounts, an excess termination value and the temporary full expensing warning.
+
+## Depreciation small business pool
+
+ITAA 1997 ss 328-185, 328-190, 328-195, 328-200, 328-210 and 328-215 and
+IT(TP)A 1997 ss 328-180 and 328-181 from the ATO's legal database; Treasury
+Laws Amendment (Tax Reform No. 2) Act 2026 (No. 71 of 2026) Sch 2 items 7 and
+15; the ATO's 'Small business pool calculations' (last updated 16 June 2025)
+and 'Instant asset write-off for eligible businesses' (last updated 28 August
+2026); and LCR 2021/3. The low pool value threshold by year:
+
+| Years | Threshold | Provision |
+| --- | --- | --- |
+| 2020-21 to 2022-23 | None: the whole balance above zero | IT(TP)A s 328-181(5) |
+| 2023-24 to 2025-26 | $20,000 | IT(TP)A s 328-180(6)(e) |
+| 2026-27 | $20,000 | s 328-210(1), Act No. 71 of 2026 Sch 2 item 7, item 15(3) |
+
+| Example | Facts given | Result |
+| --- | --- | --- |
+| Pool calculations, example 2 (Loretta, 2018-19, run for 2025-26) | Opening **$100,000**, trailer **$28,000**, sale **$8,000** | **$30,000** + **$4,200**, closing **$85,800** |
+| s 328-210(3), Cassidy's Gardens, 2024-25 | Opening **$28,500**, mower **$16,800**, car sold **$29,600** | **$15,700** written off, closing nil |
+| LCR 2021/3, example 13, 2020-21 | Opening **$200,000** | **$200,000** written off |
+
+The tests also cover each year's threshold either side of $20,000, an amount
+below zero, a closing balance below zero and the 2020-21 refusal.
+
+## Capital works
+
+ITAA 1997 ss 43-140, 43-145, 43-210 and 43-215 from the ATO's legal database;
+the ATO's 'Capital works deductions'; and the Rental properties guide 2026
+(NAT 1729-06.2026), tables 1 and 2 and example 29, which also says the
+denominator is 365 in a leap year while the days can be 366.
+
+| Example | Facts given | Result |
+| --- | --- | --- |
+| Rental properties guide 2026, example 29 | **$115,800** at 2.5% for **346** days in 2025-26 | **$2,744.30** (ATO $2,744) |
+| Leap year | $365,000 at 2.5% for 366 days in 2023-24 | **$9,150.00** |
+
+The tests also cover the 4% rate, partial use, the undeducted limit, the
+16 September 1987 and 27 February 1992 boundaries and days limited by a
+start of construction in or after the year.
+
 ## ETP tax free component
 
 This worksheet's evidence was read on 19 November 2026 from 9.25 am to

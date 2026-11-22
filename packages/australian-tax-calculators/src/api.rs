@@ -397,6 +397,42 @@ const COMMAND_ARGS: &[(&str, &[(&str, Kind)])] = &[
         ],
     ),
     (
+        "depreciation-low-value-pool",
+        &[
+            ("previous_closing_pool_balance", Dec),
+            ("low_cost_assets", Dec),
+            ("low_value_assets", Dec),
+            ("second_element_costs", Dec),
+            ("termination_values", Dec),
+            ("year", Raw),
+            ("scope_confirmed", Raw),
+        ],
+    ),
+    (
+        "depreciation-small-business-pool",
+        &[
+            ("opening_pool_balance", Dec),
+            ("additions", Dec),
+            ("cost_additions", Dec),
+            ("termination_values", Dec),
+            ("year", Raw),
+            ("scope_confirmed", Raw),
+        ],
+    ),
+    (
+        "capital-works",
+        &[
+            ("construction_expenditure", Dec),
+            ("construction_start", Raw),
+            ("four_percent_manner", Raw),
+            ("days_used", Raw),
+            ("taxable_use", Dec),
+            ("undeducted_construction_expenditure", Dec),
+            ("year", Raw),
+            ("scope_confirmed", Raw),
+        ],
+    ),
+    (
         "quarterly-sg",
         &[
             ("ordinary_time_earnings", Dec),
@@ -767,7 +803,7 @@ pub fn commands() -> Vec<&'static str> {
 /// command on its `gross_pay` shows that withholding. The classifier's amounts
 /// are totals over lines whose shares a decision table sets, not a formula;
 /// each line and class carries the authority for its row instead.
-const DERIVED: [&str; 54] = [
+const DERIVED: [&str; 57] = [
     "fbt",
     "fbt-car-statutory",
     "fbt-car-operating-cost",
@@ -809,6 +845,9 @@ const DERIVED: [&str; 54] = [
     "fbt-tax-exempt-body-entertainment",
     "gst",
     "depreciation",
+    "depreciation-low-value-pool",
+    "depreciation-small-business-pool",
+    "capital-works",
     "hire-purchase-schedule",
     "chattel-mortgage-schedule",
     "loan-transactions",
@@ -1200,6 +1239,9 @@ pub fn evaluate_coded(command: &str, v: &Value) -> Result<Value> {
             | "luxury-car-tax"
             | "sb-cgt-concessions"
             | "private-health-insurance-rebate"
+            | "depreciation-low-value-pool"
+            | "depreciation-small-business-pool"
+            | "capital-works"
             | "business-capital-expenditure"
             | "balancing-adjustment"
             | "trade-in"
@@ -1669,6 +1711,15 @@ pub fn evaluate_coded(command: &str, v: &Value) -> Result<Value> {
                 &a[6],
                 opening.as_ref(),
             )
+        }
+        "depreciation-low-value-pool" => {
+            engine::depreciation_low_value_pool(&a[0], &a[1], &a[2], &a[3], &a[4], &a[5], &a[6])
+        }
+        "depreciation-small-business-pool" => {
+            engine::depreciation_small_business_pool(&a[0], &a[1], &a[2], &a[3], &a[4], &a[5])
+        }
+        "capital-works" => {
+            engine::capital_works(&a[0], &a[1], &a[2], &a[3], &a[4], &a[5], &a[6], &a[7])
         }
         "quarterly-sg" => engine::quarterly_sg(&a[0], &a[1], &a[2], &a[3], &a[4]),
         "payg-withholding" => {

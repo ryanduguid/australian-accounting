@@ -6164,7 +6164,12 @@ pub use sb_cgt_concessions::{SB_CGT_OPTIONAL, SbCgtConcessionsArgs, sb_cgt_conce
 mod private_health_insurance_rebate;
 pub use private_health_insurance_rebate::{PhiRebateArgs, private_health_insurance_rebate};
 
-const KINDS: [&str; 67] = [
+mod depreciation_pools;
+pub use depreciation_pools::{
+    capital_works, depreciation_low_value_pool, depreciation_small_business_pool,
+};
+
+const KINDS: [&str; 70] = [
     "gst",
     "gst_margin_scheme",
     "fuel_tax_credits",
@@ -6232,6 +6237,9 @@ const KINDS: [&str; 67] = [
     "wine_equalisation_tax",
     "sb_cgt_concessions",
     "private_health_insurance_rebate",
+    "depreciation_low_value_pool",
+    "depreciation_small_business_pool",
+    "capital_works",
 ];
 
 /// `periods(kind)`: accepted period arguments and inclusive calendar boundaries.
