@@ -2502,18 +2502,6 @@ pub const MEDICARE_SHARED_REDUCTION_NOTE: &str = "The family reduction is shared
 /// A code carries no message text, parameter value or source location.
 pub const REFUSAL_CODES: &[(&str, &str)] = &[
     (
-        "annuity_withholding.deductible_above_payment",
-        "The deductible amount divided by the instalments exceeds the annuity payment.",
-    ),
-    (
-        "annuity_withholding.extra_pay_without_tfn",
-        "The additional amount for 53 weekly or 27 fortnightly pays was asked for on scale 4, for which Schedule 6 gives only the no TFN rate.",
-    ),
-    (
-        "annuity_withholding.income_not_whole_cents",
-        "The annuity payment less the deductible amount divided by the instalments does not come to whole cents, which Schedule 6 does not round.",
-    ),
-    (
         "alcohol_excise.classification_unsettled",
         "A line's labelled strength is above its actual strength and would put the goods in another subitem, which Excise Act 1901 s 77FA does not settle.",
     ),
@@ -2549,6 +2537,18 @@ pub const REFUSAL_CODES: &[(&str, &str)] = &[
     (
         "alcohol_excise.rate_unpublished",
         "A line is on or after 1 February 2027, when the next substituted rates apply and none is held.",
+    ),
+    (
+        "annuity_withholding.deductible_above_payment",
+        "The deductible amount divided by the instalments exceeds the annuity payment.",
+    ),
+    (
+        "annuity_withholding.extra_pay_without_tfn",
+        "The additional amount for 53 weekly or 27 fortnightly pays was asked for on scale 4, for which Schedule 6 gives only the no TFN rate.",
+    ),
+    (
+        "annuity_withholding.income_not_whole_cents",
+        "The annuity payment less the deductible amount divided by the instalments does not come to whole cents, which Schedule 6 does not round.",
     ),
     (
         "ato_interest_penalties.date_order",
@@ -4323,22 +4323,6 @@ pub const REFUSAL_CODES: &[(&str, &str)] = &[
         "An item's elected value is null, or lowest or obsolescence lacks one of the 3 values.",
     ),
     (
-        "voluntary_agreement_withholding.abn_not_quoted",
-        "The payee's ABN is not in force or not quoted in the voluntary agreement (TAA 1953 Sch 1 s 12-55(1)(d)).",
-    ),
-    (
-        "voluntary_agreement_withholding.agreement_not_in_force",
-        "The voluntary agreement is not in force (TAA 1953 Sch 1 s 12-55(1)(c)).",
-    ),
-    (
-        "voluntary_agreement_withholding.gst_above_payment",
-        "The GST included is more than the payment.",
-    ),
-    (
-        "voluntary_agreement_withholding.instalment_rate_missing",
-        "The agreement applies the payee's Commissioner's instalment rate, but no instalment_rate was given.",
-    ),
-    (
         "transfer_balance.date_order",
         "An event or date is out of the order the account needs.",
     ),
@@ -4361,6 +4345,22 @@ pub const REFUSAL_CODES: &[(&str, &str)] = &[
     (
         "transfer_balance.year_mismatch",
         "The year is not the financial year of the last day worked.",
+    ),
+    (
+        "voluntary_agreement_withholding.abn_not_quoted",
+        "The payee's ABN is not in force or not quoted in the voluntary agreement (TAA 1953 Sch 1 s 12-55(1)(d)).",
+    ),
+    (
+        "voluntary_agreement_withholding.agreement_not_in_force",
+        "The voluntary agreement is not in force (TAA 1953 Sch 1 s 12-55(1)(c)).",
+    ),
+    (
+        "voluntary_agreement_withholding.gst_above_payment",
+        "The GST included is more than the payment.",
+    ),
+    (
+        "voluntary_agreement_withholding.instalment_rate_missing",
+        "The agreement applies the payee's Commissioner's instalment rate, but no instalment_rate was given.",
     ),
     (
         "wine_equalisation_tax.dealing_invalid",
