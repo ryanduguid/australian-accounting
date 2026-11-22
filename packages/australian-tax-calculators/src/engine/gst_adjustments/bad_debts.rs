@@ -142,24 +142,24 @@ const SPECIAL_RULES: [(&str, &str); 6] = [
 
 /// A recipient's reduced credit acquisition or Division 131 credit.
 fn recipient_excluded(args: &BadDebtArgs, recipient: bool) -> Result<()> {
-    for (value, name, code, why) in [
-        (
-            args.reduced_credit_acquisition,
-            "reduced_credit_acquisition",
+    let stated = |value, name| -> Result<bool> {
+        let given = field(value, name, recipient, recipient)?;
+        Ok(given.map(|v| flag(v, name)).transpose()? == Some(true))
+    };
+    if stated(
+        args.reduced_credit_acquisition,
+        "reduced_credit_acquisition",
+    )? {
+        return refuse(
             "gst_bad_debt.reduced_credit_acquisition",
             "A reduced credit acquisition: s 136-10(2) reduces the adjustment by the percentage credit reduction of Division 70, which this command does not work.",
-        ),
-        (
-            args.annual_apportionment,
-            "annual_apportionment",
+        );
+    }
+    if stated(args.annual_apportionment, "annual_apportionment")? {
+        return refuse(
             "gst_bad_debt.annual_apportionment",
             "The credit was worked out under Division 131: s 136-10(3) turns on whether the adjustment is attributable to a tax period no later than the s 131-55 adjustment's, which this command does not work.",
-        ),
-    ] {
-        let given = field(value, name, recipient, recipient)?;
-        if given.map(|v| flag(v, name)).transpose()? == Some(true) {
-            return refuse(code, why);
-        }
+        );
     }
     Ok(())
 }
