@@ -166,9 +166,9 @@ fn every_catalogued_required_input_of_a_strict_command_is_read() {
     // luxury-car-tax, borrowing-expenses-schedule, payroll-tax,
     // fuel-tax-credits, dasp-tax, ppsr-timing, cgt-parcels,
     // fbt-ev-exemption-check, fhss, franking-account, sb-cgt-concessions,
-    // depreciation-low-value-pool, depreciation-small-business-pool and
-    // capital-works.
-    assert_eq!(checked, 55);
+    // depreciation-low-value-pool, depreciation-small-business-pool,
+    // capital-works and small-business-income-offset.
+    assert_eq!(checked, 56);
 }
 
 /// Every frozen call gives the same answer through either entry point, and

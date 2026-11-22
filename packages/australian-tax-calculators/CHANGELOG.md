@@ -355,6 +355,19 @@
   `sb_cgt_concessions.share_or_trust_interest`. `tests/sb_cgt_concessions.rs`
   holds it to the Library's Neil Swan and Wendy Simpson examples.
 
+- `small-business-income-offset` works out an individual's small business
+  income tax offset (ITAA 1997 Subdivision 328-F) for 2020-21 to 2026-27: the
+  small business entity test of s 328-110 at $5 million (s 328-357), total net
+  small business income from your own and each partnership or trust amount
+  net of its s 328-370 deductions, capped at taxable income, the 13% (2020-21)
+  or 16% share of the basic income tax liability, the $1,000 cap and the part
+  the liability left after other offsets absorbs. New codes:
+  `small_business_income_offset.business_invalid`,
+  `small_business_income_offset.prescribed_person` and
+  `small_business_income_offset.shares_invalid`.
+  `tests/small_business_income_offset.rs` holds it to the site's sole trader
+  vectors.
+
 ### Changed
 
 - `borrowing-expenses` takes 2017-18 to 2027-28, not 2024-25 to 2026-27:

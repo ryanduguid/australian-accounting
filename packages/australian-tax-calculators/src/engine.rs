@@ -6165,8 +6165,12 @@ mod depreciation_pools;
 pub use depreciation_pools::{
     capital_works, depreciation_low_value_pool, depreciation_small_business_pool,
 };
+mod small_business_income_offset;
+pub use small_business_income_offset::{
+    SBITO_OPTIONAL, SmallBusinessIncomeOffsetArgs, small_business_income_offset,
+};
 
-const KINDS: [&str; 69] = [
+const KINDS: [&str; 70] = [
     "gst",
     "gst_margin_scheme",
     "fuel_tax_credits",
@@ -6236,6 +6240,7 @@ const KINDS: [&str; 69] = [
     "depreciation_low_value_pool",
     "depreciation_small_business_pool",
     "capital_works",
+    "small_business_income_offset",
 ];
 
 /// `periods(kind)`: accepted period arguments and inclusive calendar boundaries.

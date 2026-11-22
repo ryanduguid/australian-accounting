@@ -1131,6 +1131,11 @@ pub fn supported_periods(kind: &str) -> Vec<&'static str> {
         // The years whose definitions were read: the 1 July 2024 compilations
         // define them as the current ones do, and the ATO's 2025 and 2026
         // return instructions and its current pages apply them.
+        // Subdivision 328-F reads the same in compilations 210 (1 July 2020),
+        // 223 (1 July 2021) and 268 (1 October 2026) but for the rate.
+        "small_business_income_offset" => vec![
+            "2020-21", "2021-22", "2022-23", "2023-24", "2024-25", "2025-26", "2026-27",
+        ],
         "income_tests" => vec!["2024-25", "2025-26", "2026-27"],
         // The pools' rates and the capital works rates do not change in these
         // years; the small business pool's low pool value threshold does, by year.
@@ -1403,6 +1408,10 @@ pub fn source_review(kind: &str) -> (&'static str, &'static str) {
         "sb_cgt_concessions" => (
             "2026-11-19",
             "ITAA 1997 Division 152 (ss 152-5 to 152-35, 152-50, 152-55, 152-105, 152-110, 152-205 to 152-220, 152-305, 152-320, 152-325, 152-330, 152-410 and 152-430), s 104-190(1A) and s 328-110, compilation 264 (21 May 2026), the text for 2025-26 and 2026-27 under Act No. 49 of 2026 Schedule 1 item 82",
+        ),
+        "small_business_income_offset" => (
+            "2026-11-22",
+            "ITAA 1997 ss 328-110, 328-355 to 328-375, 4-10(3) and 63-10, compilation 268 (1 October 2026), against compilations 210 (1 July 2020; s 328-360(1) at 13%) and 223 (1 July 2021; 16%); the ATO's 'Small business income tax offset' page (last updated 7 May 2025)",
         ),
         "income_tests" => (
             "2026-11-16",
@@ -1770,6 +1779,12 @@ pub fn library_evidence(kind: &str) -> [(&'static str, &'static str); 4] {
             "2026-06-30",
             "2026-11-19",
         ),
+        "small_business_income_offset" => (
+            "ATO Small business income tax offset page and the site's sole trader vectors",
+            "the rate table (13% for 2020-21, 16% from 2021-22, $1,000 cap, $5 million turnover) and the offset as the proportion of the basic income tax liability",
+            "2025-05-07",
+            "2026-11-22",
+        ),
         "income_tests" => (
             "ATO income test pages",
             "Christina's repayment income (When you must repay your loan) and Tom's income for MLS purposes (Medicare levy surcharge income, thresholds and rates)",
@@ -1831,6 +1846,32 @@ pub fn optional_inputs(kind: &str) -> Vec<(&'static str, &'static str)> {
             (
                 "choice_date",
                 "YYYY-MM-DD, for an individual only, and then required: when the individual chooses the retirement exemption, on or after the CGT event (s 152-305(1)(b))",
+            ),
+        ],
+        "small_business_income_offset" => vec![
+            (
+                "business",
+                "carried_on or winding_up, with net_small_business_income above nil only, and then required: your business in the income year (s 328-110(1)(a) and (5))",
+            ),
+            (
+                "small_business_when_stopped",
+                "boolean, for business winding_up only, and then required: you were a small business entity, at $5 million, for the income year in which you stopped carrying on the business (s 328-110(5)(b))",
+            ),
+            (
+                "previous_year_turnover",
+                "AUD, or null for no business carried on, with net_small_business_income above nil only, and then required: your aggregated turnover for the previous income year (s 328-110(1)(b)(i))",
+            ),
+            (
+                "year_before_turnover",
+                "AUD, or null for no business carried on, with net_small_business_income above nil only, and then required: your aggregated turnover for the income year before that (s 328-110(3))",
+            ),
+            (
+                "likely_turnover",
+                "AUD, with net_small_business_income above nil only, and then required: your likely aggregated turnover for the year, worked out as at its first day, or as at the day you started the business if that was during the year (s 328-110(1)(b)(ii) and (2))",
+            ),
+            (
+                "year_turnover",
+                "AUD, with net_small_business_income above nil only, and then required: your aggregated turnover for the year, worked out at its end (s 328-110(4))",
             ),
         ],
         "balancing_adjustment" => vec![(
@@ -3510,6 +3551,14 @@ pub fn input_units(kind: &str) -> Vec<(&'static str, &'static str)> {
             ("last_rollover_event", "YYYY-MM-DD, or null for this one: the last CGT event in the year for which you obtain the small business roll-over, from event_date to the end of the year; the replacement asset period runs from it (s 104-190(1A))"),
             ("earnout_latest_due", "YYYY-MM-DD, or null for no look-through earnout right: the latest time a possible financial benefit becomes or could become due under a look-through earnout right relating to the asset and this disposal, on or after event_date; the replacement asset period ends no earlier than 6 months after it (s 104-190(1A)(b)(ii))"),
         ],
+        "small_business_income_offset" => vec![
+            ("taxable_income", "AUD, whole dollars: your taxable income for the income year"),
+            ("basic_income_tax_liability", "AUD: your basic income tax liability for the year, the tax on your taxable income at your rates before tax offsets and without the Medicare levy (ITAA 1997 s 4-10(3) step 2)"),
+            ("offsets_applied_first", "AUD: the tax offsets you apply against that liability before this one (s 63-10), such as the low income tax offset; nil for none"),
+            ("net_small_business_income", "AUD: your net small business income for the year as a sole trader (s 328-365: business income less s 328-370 deductions, without net capital gains or personal services income not from a personal services business; nil for none or a loss); it counts only if you are a small business entity at $5 million"),
+            ("shares", "list of up to 50 objects, each {amount, deductions} in AUD: a share of a small business entity's net small business income, or an amount s 328-355(c) covers, included in your assessable income (s 328-355(b), (c)), and your deductions attributable to it that s 328-370 covers; [] for none"),
+            ("prescribed_person", "boolean: you are a prescribed person under s 102AC of the ITAA 1936 for the year (broadly, under 18 at its end); true is refused (s 328-375)"),
+        ],
         "income_tests" => vec![
             ("taxable_income", "AUD, whole dollars: taxable income, including any assessable FHSS released amount (nil for a loss)"),
             ("assessable_fhss_released_amount", "AUD: the amount ITAA 1997 s 313-20 includes in assessable income for released FHSS amounts"),
@@ -4183,6 +4232,22 @@ pub fn examples(kind: &str) -> Vec<(&'static str, Example)> {
             ("earnout_latest_due", Json("null")),
             ("retirement_exemption_used", Text("0.00")),
             ("choice_date", Text("2026-06-30")),
+        ],
+        // The site's sole trader vector for 2026-27 ($20,000 of profit on top
+        // of $60,000 of wages); the turnovers are fabricated.
+        "small_business_income_offset" => vec![
+            ("year", Text("2026-27")),
+            ("taxable_income", Text("79000")),
+            ("basic_income_tax_liability", Text("14220.00")),
+            ("offsets_applied_first", Text("0.00")),
+            ("net_small_business_income", Text("20000.00")),
+            ("shares", Json("[]")),
+            ("prescribed_person", Flag(false)),
+            ("business", Text("carried_on")),
+            ("previous_year_turnover", Text("21000.00")),
+            ("year_before_turnover", Text("18000.00")),
+            ("likely_turnover", Text("22000.00")),
+            ("year_turnover", Text("22000.00")),
         ],
         "income_tests" => vec![
             ("year", Text("2025-26")),
