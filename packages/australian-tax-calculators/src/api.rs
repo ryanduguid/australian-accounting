@@ -2788,8 +2788,8 @@ pub fn evaluate_coded(command: &str, v: &Value) -> Result<Value> {
                 let kind = if key == "instalment_number" { Raw } else { Dec };
                 optional(v, key, kind)
             });
-            let [a0, a1, a2, a3, a4, a5, a6, a7, a8] = given;
-            let given = [a0?, a1?, a2?, a3?, a4?, a5?, a6?, a7?, a8?];
+            let [a0, a1, a2, a3, a4, a5, a6, a7, a8, a9] = given;
+            let given = [a0?, a1?, a2?, a3?, a4?, a5?, a6?, a7?, a8?, a9?];
             engine::payg_instalment(&engine::PaygInstalmentArgs {
                 method: &a[0],
                 year: &a[1],

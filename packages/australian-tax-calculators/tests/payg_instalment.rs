@@ -41,7 +41,7 @@ fn varied_amount(number: i64, tax: &str, earlier: &str, credits: &str) -> Value 
     facts(
         "varied_amount",
         json!({"instalment_number": number, "estimated_tax": tax,
-               "earlier_instalments": earlier, "credits_claimed": credits}),
+               "earlier_instalments": earlier, "credits_entitled": credits}),
     )
 }
 
@@ -287,7 +287,7 @@ fn each_method_takes_only_its_own_facts() {
     extra["notified_amount"] = json!("1");
     assert_eq!(code(&extra), "input.field_unknown");
     let mut missing = varied_amount(3, "1", "0", "0");
-    missing.as_object_mut().unwrap().remove("credits_claimed");
+    missing.as_object_mut().unwrap().remove("credits_entitled");
     assert_eq!(code(&missing), "input.missing_field");
     let mut unknown = rate("1", "1");
     unknown["quarter"] = json!(1);
@@ -314,4 +314,30 @@ fn only_2025_26_and_2026_27_are_supported() {
     let mut unconfirmed = rate("1", "1");
     unconfirmed["scope_confirmed"] = json!(false);
     assert_eq!(code(&unconfirmed), "scope.not_confirmed");
+}
+
+/// s 45-410(5) step 2 adds back each s 45-420 credit the payer was entitled
+/// to claim, claimed at 5B or not: Q3 was nil with a $4,000 credit, so Q4 is
+/// $8,000 less $10,000 plus $4,000.
+#[test]
+fn an_unclaimed_credit_is_still_added_back() {
+    let fourth = run(&varied_amount(4, "8000", "10000", "4000"));
+    assert_eq!(amounts(&fourth), ["8000.00", "2000.00", "2000.00", "0.00"]);
+    let mut claimed = varied_amount(4, "8000", "10000", "4000");
+    let credits = claimed
+        .as_object_mut()
+        .unwrap()
+        .remove("credits_entitled")
+        .unwrap();
+    claimed["credits_claimed"] = credits;
+    assert_eq!(code(&claimed), "input.field_unknown");
+}
+
+/// ATO, How to vary, step 3: nil estimated instalment income varies the rate
+/// to nil without an estimate of tax.
+#[test]
+fn nil_estimated_income_needs_no_tax_estimate() {
+    let nil = run(&varied_rate(["5000", "8", "100", "0", "0", "0", "0"]));
+    assert_eq!(applied(&nil), "0.00");
+    assert_eq!(amounts(&nil), ["-", "0.00", "0.00", "0.00"]);
 }

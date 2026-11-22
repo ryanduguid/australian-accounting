@@ -2821,7 +2821,7 @@ pub fn optional_inputs(kind: &str) -> Vec<(&'static str, &'static str)> {
             ),
             (
                 "credits_claimed",
-                "AUD, methods varied_amount and varied_rate only, and then required: the credits claimed at 5B for earlier quarters of the year (ss 45-215 and 45-420); nil before the third instalment",
+                "AUD, method varied_rate only, and then required: the credits claimed at 5B for earlier quarters of the year under ss 45-215 and 45-420 (s 45-215(1), step 2)",
             ),
             (
                 "instalment_income",
@@ -2838,6 +2838,10 @@ pub fn optional_inputs(kind: &str) -> Vec<(&'static str, &'static str)> {
             (
                 "earlier_instalment_income",
                 "AUD, method varied_rate only, and then required: the instalment income of the year's earlier quarters (s 45-215(1), step 3)",
+            ),
+            (
+                "credits_entitled",
+                "AUD, method varied_amount only, and then required: each s 45-420 credit you were entitled to claim for the year's earlier quarters, claimed at 5B or not (s 45-410(4) and (5), step 2); nil before the third instalment",
             ),
         ],
         "balancing_adjustment" => vec![(

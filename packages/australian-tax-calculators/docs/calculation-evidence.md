@@ -4055,7 +4055,14 @@ other choices:
 - a varied rate keeps 2 decimal places and drops the rest, as the ATO's
   example 2 gives 12.27% for $10,125 / $82,480; the Act prescribes no
   rounding;
-- each method takes only its own facts, where the page ignores the others.
+- each method takes only its own facts, where the page ignores the others;
+- a varied amount adds back each s 45-420 credit the payer was entitled to,
+  claimed or not (s 45-410(4) and (5), step 2), so it takes
+  `credits_entitled`; the page and the ATO's 'How to vary' page speak of
+  credits claimed, which agree when every credit was claimed;
+- nil estimated instalment income varies the rate to nil whatever the
+  estimated tax ('How to vary', step 3), where the page refuses an estimated
+  tax above it.
 
 | Case | Source | Worksheet |
 |---|---|---|

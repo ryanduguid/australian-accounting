@@ -22,7 +22,7 @@ const KIND: &str = "payg_instalment";
 
 /// The facts each method takes beside `method`, `year` and
 /// `scope_confirmed`, in [`PaygInstalmentArgs::optional`].
-pub const PAYG_INSTALMENT_OPTIONAL: [&str; 9] = [
+pub const PAYG_INSTALMENT_OPTIONAL: [&str; 10] = [
     "notified_amount",
     "instalment_number",
     "estimated_tax",
@@ -32,6 +32,7 @@ pub const PAYG_INSTALMENT_OPTIONAL: [&str; 9] = [
     "instalment_rate",
     "estimated_instalment_income",
     "earlier_instalment_income",
+    "credits_entitled",
 ];
 
 /// The facts as the command passes them; see the README for each.
@@ -39,14 +40,14 @@ pub struct PaygInstalmentArgs<'a> {
     pub method: &'a Arg,
     pub year: &'a Arg,
     pub scope_confirmed: &'a Arg,
-    pub optional: [Option<&'a Arg>; 9],
+    pub optional: [Option<&'a Arg>; 10],
 }
 
 /// The indices into [`PAYG_INSTALMENT_OPTIONAL`] each method takes.
 fn fields(method: &str) -> Option<&'static [usize]> {
     Some(match method {
         "amount" => &[0],
-        "varied_amount" => &[1, 2, 3, 4],
+        "varied_amount" => &[1, 2, 3, 9],
         "rate" => &[5, 6],
         "varied_rate" => &[2, 3, 4, 5, 6, 7, 8],
         _ => return None,
@@ -54,7 +55,7 @@ fn fields(method: &str) -> Option<&'static [usize]> {
 }
 
 /// Each of the method's facts given, and no other.
-fn checked<'a>(args: &PaygInstalmentArgs<'a>, wanted: &[usize]) -> Result<[Option<&'a Arg>; 9]> {
+fn checked<'a>(args: &PaygInstalmentArgs<'a>, wanted: &[usize]) -> Result<[Option<&'a Arg>; 10]> {
     for (i, (key, given)) in PAYG_INSTALMENT_OPTIONAL
         .iter()
         .zip(args.optional)
@@ -80,7 +81,7 @@ fn checked<'a>(args: &PaygInstalmentArgs<'a>, wanted: &[usize]) -> Result<[Optio
 }
 
 /// The method's facts, each present once [`checked`] has passed.
-struct Facts<'a>([Option<&'a Arg>; 9]);
+struct Facts<'a>([Option<&'a Arg>; 10]);
 
 impl<'a> Facts<'a> {
     fn get(&self, i: usize) -> &'a Arg {
@@ -166,35 +167,36 @@ fn instalment_number(given: &Arg) -> Result<i64> {
     }
 }
 
-/// Earlier instalments less the credits claimed against them; credits
-/// claimed cannot exceed the instalments they came from.
-fn net_earlier(earlier: &Decimal, credits: &Decimal) -> Result<Decimal> {
+/// Earlier instalments less the credits on them, named `key`; the credits
+/// cannot exceed the instalments they came from.
+fn net_earlier(earlier: &Decimal, credits: &Decimal, key: &str) -> Result<Decimal> {
     if credits.gt(earlier)? {
         return refuse(
             "payg_instalment.credits_exceed_earlier",
-            "credits_claimed cannot exceed earlier_instalments.",
+            format!("{key} cannot exceed earlier_instalments."),
         );
     }
     Ok(earlier.sub(credits)?)
 }
 
 /// Option 1 varied: s 45-410(2) to (5), 25%, 50%, 75% or 100% of the
-/// estimate of benchmark tax, less earlier instalments, plus credits claimed.
+/// estimate of benchmark tax, less earlier instalments, plus each s 45-420
+/// credit the payer was entitled to for them, claimed or not.
 fn varied_amount(given: &Facts) -> Result<Worked> {
     let number = instalment_number(given.get(1))?;
     let tax = money(given.get(2))?;
-    let (earlier, credits) = (money(given.get(3))?, money(given.get(4))?);
+    let (earlier, credits) = (money(given.get(3))?, money(given.get(9))?);
     if number == 1 && !earlier.is_zero() {
         return refuse(
             "payg_instalment.first_has_earlier",
             "The first instalment of the year has no earlier instalments.",
         );
     }
-    let net = net_earlier(&earlier, &credits)?;
+    let net = net_earlier(&earlier, &credits, "credits_entitled")?;
     if number == 2 && !credits.is_zero() {
         return refuse(
             "payg_instalment.credits_before_third",
-            "No credit can be claimed before the second instalment: the first instalment is never negative (s 45-410(2)) and s 45-215(1)(b) needs an earlier quarter.",
+            "No credit can exist before the second instalment: the first instalment is never negative (s 45-410(2)) and s 45-215(1)(b) needs an earlier quarter.",
         );
     }
     let due = cents(&tax.mul(&int(number))?.div(&int(4))?)?;
@@ -237,16 +239,17 @@ fn percent(given: &Arg) -> Result<Decimal> {
 
 /// s 45-205 as the ATO's step 4 works it: estimated tax over estimated
 /// instalment income, times 100, cut to 2 decimal places as its example 2
-/// does; nil income varies the rate to nil.
+/// does; nil income varies the rate to nil without an estimate of tax
+/// (step 3).
 fn varied_rate(tax: &Decimal, income: &Decimal) -> Result<Decimal> {
+    if income.is_zero() {
+        return Ok(int(0));
+    }
     if tax.gt(income)? {
         return refuse(
             "payg_instalment.tax_exceeds_income",
             "estimated_tax cannot exceed estimated_instalment_income.",
         );
-    }
-    if income.is_zero() {
-        return Ok(int(0));
     }
     Ok(tax
         .mul(&int(100))?
@@ -257,7 +260,11 @@ fn varied_rate(tax: &Decimal, income: &Decimal) -> Result<Decimal> {
 /// s 45-215(1): earlier instalments less credits claimed, less earlier
 /// instalment income times the lower varied rate; a positive result.
 fn lower_rate_credit(given: &Facts, varied: &Decimal) -> Result<(Decimal, Decimal)> {
-    let net = net_earlier(&money(given.get(3))?, &money(given.get(4))?)?;
+    let net = net_earlier(
+        &money(given.get(3))?,
+        &money(given.get(4))?,
+        "credits_claimed",
+    )?;
     let at_rate = cents(&money(given.get(8))?.mul(varied)?.div(&int(100))?)?;
     let left = net.sub(&at_rate)?;
     Ok((
@@ -315,7 +322,7 @@ const WHOLE_DOLLARS_RULE: &str = "ATO, Complete your BAS: activity statement amo
 
 const SHARE_RULE: &str = "TAA 1953 Sch 1 s 45-410(2) to (5): 25%, 50%, 75% or 100% of the estimate of benchmark tax (T8) for the first, second, third or fourth instalment of the year for which you are liable, half up to the cent";
 
-const EARLIER_RULE: &str = "TAA 1953 Sch 1 s 45-410(3) to (5): the earlier instalments of the year are subtracted and the s 45-420 credits claimed for them are added back";
+const EARLIER_RULE: &str = "TAA 1953 Sch 1 s 45-410(3) to (5): the earlier instalments of the year are subtracted and each s 45-420 credit the payer was entitled to claim for them is added back, claimed at 5B or not";
 
 const AMOUNT_RULE: &str = "TAA 1953 Sch 1 s 45-410(1): the amount due by this instalment less earlier instalments net of credits; nil if negative";
 
