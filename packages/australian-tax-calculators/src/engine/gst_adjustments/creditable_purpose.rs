@@ -155,7 +155,17 @@ fn adjustment_period(
     let tested: i64 = year[..4].parse::<i64>().expect("year") + 1;
     let count = period_count(value, finance)?;
     let number = tested - first_year + 1;
-    let not_one = match last_year(args, months)? {
+    let last = last_year(args, months)?;
+    if let Some((end, AFTER_END)) = last
+        && end < first_year
+        && end == tested
+    {
+        return refuse(
+            "gst_creditable_purpose_change.last_period_unsettled",
+            "The next tax period ending on 30 June after ended_on ends before the first adjustment period s 129-20(1) allows; whether s 129-25(1), which applies despite s 129-20, makes it an adjustment period is not settled here.",
+        );
+    }
+    let not_one = match last {
         _ if number < 1 => Some(TOO_EARLY),
         Some((last, why)) if tested > last => Some(why),
         _ if number > count => Some(TOO_LATE),

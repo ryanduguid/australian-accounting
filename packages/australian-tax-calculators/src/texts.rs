@@ -2150,6 +2150,10 @@ pub const REFUSAL_CODES: &[(&str, &str)] = &[
         "The acquisition is of a car, whose credit s 131-50 limits to the s 69-10 car limit amount.",
     ),
     (
+        "gst_annual_apportionment.election_status_unsettled",
+        "election_made is true but an eligibility condition of s 131-5(1) fails, and whether the election still has effect under s 131-20 is not worked out.",
+    ),
+    (
         "gst_annual_apportionment.fact_conflict",
         "creditable_purpose is above non_input_taxed_extent, or a small business entity carries on no business.",
     ),

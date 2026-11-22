@@ -12,6 +12,7 @@
   annual apportionment eligibility with the credit and s 131-55 adjustment,
   and the Division 189 financial acquisitions threshold tests, each for
   2020-21 to 2026-27. New codes: `gst_annual_apportionment.car`,
+  `gst_annual_apportionment.election_status_unsettled`,
   `gst_annual_apportionment.fact_conflict`,
   `gst_annual_apportionment.not_partly_creditable`,
   `gst_annual_apportionment.reduced_credit_acquisition`,

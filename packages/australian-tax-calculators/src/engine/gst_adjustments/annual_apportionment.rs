@@ -133,18 +133,18 @@ fn extents(args: &AnnualApportionmentArgs) -> Result<Extents> {
         non_input_taxed: given(args.non_input_taxed_extent, "non_input_taxed_extent")?,
         consideration: given(args.consideration_extent, "consideration_extent")?,
     };
+    if e.purpose.gt(&e.non_input_taxed())? {
+        return refuse(
+            "gst_annual_apportionment.fact_conflict",
+            "creditable_purpose cannot exceed non_input_taxed_extent: an acquisition is not for a creditable purpose to the extent it relates to making input taxed supplies (s 11-15(2)(a)).",
+        );
+    }
     let (one, nil) = (d("1"), d("0"));
     let whole = e.purpose.equals(&one)? && e.consideration().equals(&one)?;
     if e.purpose.equals(&nil)? || e.consideration().equals(&nil)? || whole {
         return refuse(
             "gst_annual_apportionment.not_partly_creditable",
             "Division 131 is for partly creditable acquisitions (s 11-30(1)): some, but not all, for a creditable purpose, or only part of the consideration provided.",
-        );
-    }
-    if e.purpose.gt(&e.non_input_taxed())? {
-        return refuse(
-            "gst_annual_apportionment.fact_conflict",
-            "creditable_purpose cannot exceed non_input_taxed_extent: an acquisition is not for a creditable purpose to the extent it relates to making input taxed supplies (s 11-15(2)(a)).",
         );
     }
     Ok(e)
@@ -240,6 +240,12 @@ pub fn gst_annual_apportionment(args: &AnnualApportionmentArgs) -> Result<Value>
     let e = extents(args)?;
     let failing = failing(&rows);
     let eligible = failing.is_empty();
+    if elected && !eligible {
+        return refuse(
+            "gst_annual_apportionment.election_status_unsettled",
+            "election_made is true but an eligibility condition of s 131-5(1) fails: s 131-5 governs making an election and s 131-20 when one ceases, which turns on the eligibility route and dates this command does not take.",
+        );
+    }
     let applies = eligible && elected;
     let steps = credits(&gst, &e, applies)?;
     let rates = vec![rate("turnover_threshold", TURNOVER_THRESHOLD)];
