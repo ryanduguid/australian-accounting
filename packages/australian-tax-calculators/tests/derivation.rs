@@ -14,7 +14,7 @@ use std::io::Write;
 use std::process::{Command, Stdio};
 
 /// The commands `derive` explains.
-const DERIVED: [&str; 58] = [
+const DERIVED: [&str; 59] = [
     "fbt",
     "fbt-car-statutory",
     "fbt-car-operating-cost",
