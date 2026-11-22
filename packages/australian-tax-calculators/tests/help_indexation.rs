@@ -169,6 +169,74 @@ fn before_the_2025_reduction_an_early_repayment_cost_more() {
 }
 
 #[test]
+fn a_proposed_repayment_above_the_indexed_debts_goes_on_to_the_years_debts() {
+    // HESA s 151-10(2): a payment without directions goes first to the
+    // accumulated HELP debt, then to HELP debts in the order incurred. Found
+    // by a fresh-context read; the command refused this before.
+    let mut input = base("2025-26", "100.00");
+    input["current_debts"] = json!([{"incurred": "2025-08-01", "amount": "1000.00"}]);
+    input["proposed_repayment"] = json!("500.00");
+    let out = run(&input);
+    assert_eq!(amount(&out, "accumulated_debt"), "1102.00");
+    assert_eq!(
+        amount(&out, "accumulated_debt_if_paid_before_1_june"),
+        "600.00"
+    );
+    assert_eq!(
+        amount(&out, "accumulated_debt_if_paid_on_or_after_1_june"),
+        "602.00"
+    );
+    assert_eq!(amount(&out, "saving_if_paid_before_1_june"), "2.00");
+    // 2024-25: the part on the year's debts is inside s 140-26(2)'s 80%.
+    let mut input = base("2024-25", "100.00");
+    input["current_debts"] = json!([{"incurred": "2024-08-01", "amount": "1000.00"}]);
+    input["proposed_repayment"] = json!("500.00");
+    let out = run(&input);
+    assert_eq!(
+        amount(&out, "accumulated_debt_if_paid_before_1_june"),
+        "480.00"
+    );
+    assert_eq!(
+        amount(&out, "accumulated_debt_if_paid_on_or_after_1_june"),
+        "382.00"
+    );
+    // Above both, refused.
+    let mut input = base("2025-26", "100.00");
+    input["current_debts"] = json!([{"incurred": "2025-08-01", "amount": "1000.00"}]);
+    input["proposed_repayment"] = json!("1100.01");
+    assert_eq!(code(&input), "help_indexation.repayments_exceed_debt");
+}
+
+#[test]
+fn the_2025_26_balance_is_the_reduced_1_june_2025_debt() {
+    // s 140-5(1) step 1 takes the 1 June 2025 accumulated HELP debt, which
+    // s 140-26 already reduced: Asha's 8,256 carried on gives 8,487. Found by
+    // a fresh-context read; the command refused the reduced balance before.
+    let first = run(&base("2024-25", "10000.00"));
+    let carried = amount(&first, "accumulated_debt");
+    let next = with(
+        base("2025-26", &carried),
+        "debts_already_reduced",
+        json!(true),
+    );
+    assert_eq!(amount(&run(&next), "accumulated_debt"), "8487.00");
+    // A debt of 1 January to 1 June 2025 is still reduced by the command.
+    let early = json!([{"incurred": "2025-03-01", "amount": "100.00"}]);
+    let reduced = with(next, "earlier_debts", early);
+    assert_eq!(code(&reduced), "help_indexation.reduction_already_applied");
+    let later = json!([{"incurred": "2025-06-02", "amount": "100.00"}]);
+    let input = with(
+        base("2025-26", "0.00"),
+        "debts_already_reduced",
+        json!(true),
+    );
+    assert_eq!(
+        amount(&run(&with(input, "earlier_debts", later)), "earlier_debts"),
+        "100.00"
+    );
+}
+
+#[test]
 fn a_repayment_larger_than_the_debt_after_1_june_leaves_nil() {
     let input = with(
         base("2025-26", "100.00"),

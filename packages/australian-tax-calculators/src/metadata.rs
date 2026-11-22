@@ -3537,7 +3537,7 @@ pub fn optional_inputs(kind: &str) -> Vec<(&'static str, &'static str)> {
         "help_indexation" => vec![
             (
                 "previous_accumulated_debt",
-                "AUD, required (refused with its own code when absent): the accumulated HELP debt incurred on the preceding 1 June, as your ATO account shows it, before any 20% reduction; nil for none (HESA s 140-5(1) step 1)",
+                "AUD, required (refused with its own code when absent): the accumulated HELP debt incurred on the preceding 1 June as the Act works it out; nil for none (HESA s 140-5(1) step 1). For 2024-25 give the 1 June 2024 debt, which the command reduces by 20% (s 140-26); for 2025-26 give the 1 June 2025 debt after that reduction, as your ATO account now shows it",
             ),
             (
                 "earlier_debts",
@@ -3573,7 +3573,7 @@ pub fn optional_inputs(kind: &str) -> Vec<(&'static str, &'static str)> {
             ),
             (
                 "debts_already_reduced",
-                "boolean: the amounts given already include the 20% reduction; true is refused, as the command applies it itself (HESA ss 137-19A and 140-26)",
+                "boolean: the amounts the command reduces by 20% (every amount for 2024-25 under HESA s 140-26, and earlier_debts incurred from 1 January to 1 June 2025 under s 137-19A) already include that reduction; true is then refused, as the command applies it itself, and has no effect otherwise",
             ),
         ],
         _ => Vec::new(),

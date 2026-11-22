@@ -3210,11 +3210,14 @@ repayments (s 140-25), cents disregarded (s 140-30). The factor is the ATO's
 published rate plus one: the CPI factor to 2021-22 and the lower of the CPI
 and WPI factors from 2022-23 (Act No. 108, 2024 Sch 1 item 56). For 2024-25
 it takes 20% off before indexation (s 140-26), and s 137-19A takes 20% off
-each debt incurred from 1 January to 1 June 2025. With `proposed_repayment`
-it shows the debt with that repayment made before 1 June and on or after it.
+each debt incurred from 1 January to 1 June 2025. For 2025-26 the preceding debt is
+the 1 June 2025 debt after the reduction. With `proposed_repayment` it shows
+the debt with that repayment made before 1 June (applied first to the debts
+indexed, then to the year's own, s 151-10(2)) and on or after it.
 
 It refuses a missing balance, a location-preferred HELP debtor's reduced
-indexation, amounts already reduced by 20%, dates outside their period,
+indexation, 2024-25 amounts or 1 January to 1 June 2025 debts already reduced
+by 20%, dates outside their period,
 repayments above the debt, and years before 2019-20 or after 2025-26. The
 tests hold it to the ATO's rates and its 2 reduction examples; see
 [calculation evidence](docs/calculation-evidence.md#help-indexation).

@@ -3175,7 +3175,7 @@ pub const REFUSAL_CODES: &[(&str, &str)] = &[
     ),
     (
         "help_indexation.reduction_already_applied",
-        "The amounts given already include the 20% reduction, which the command applies only as HESA ss 137-19A and 140-26 state.",
+        "Amounts the command reduces by 20% (every amount for 2024-25, and debts incurred from 1 January to 1 June 2025) were given already reduced; it applies HESA ss 140-26 and 137-19A itself.",
     ),
     (
         "help_indexation.repayments_exceed_debt",

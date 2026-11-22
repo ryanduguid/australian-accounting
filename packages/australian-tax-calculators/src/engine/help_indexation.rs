@@ -17,7 +17,7 @@ use std::collections::BTreeMap;
 use serde_json::{Map, Value, json};
 
 use super::stated;
-use super::{Arg, Result, flag, int, money, precise, rate, refuse, result, scope};
+use super::{Arg, Result, flag, int, money, precise, py_min, rate, refuse, result, scope};
 use crate::dates;
 use crate::decimal::{Decimal, Rounding};
 
@@ -69,7 +69,7 @@ pub struct HelpIndexationArgs<'a> {
 
 const DEBT_MISSING: &str = "Supply previous_accumulated_debt, the accumulated HELP debt incurred on the preceding 1 June as your ATO account shows it (nil for none): the command never estimates a balance.";
 const LOCATION_PREFERRED: &str = "A Secretary's determination for a location-preferred HELP debtor reduces the indexation factor (HESA s 140-10(1)(a) and (1A)) or the debt (ss 142-15 and 144-10), which this command does not take.";
-const ALREADY_REDUCED: &str = "Give each debt and balance before the 20% reduction: the command applies it only as HESA ss 137-19A and 140-26 state, and reducing an amount twice would go beyond what the Act states.";
+const ALREADY_REDUCED: &str = "For 2024-25, give the balance and debts before the 20% reduction, and give a debt incurred from 1 January to 1 June 2025 as incurred: the command applies HESA ss 140-26 and 137-19A to them itself, and reducing an amount twice would go beyond what the Act states.";
 
 /// The calendar year in which `year` ends: 2020 for 2019-20.
 fn end_year(year: &str) -> i64 {
@@ -138,10 +138,12 @@ fn dated(
 
 /// HESA s 140-5(1) steps 2 and 2A, or s 140-25(1A): each debt (less 20% when
 /// s 137-19A reduces it) added to its group, and each group's total cut to
-/// whole dollars. A debt without a `group` is a group of its own.
-fn debt_total(given: Option<&Arg>, name: &str, period: (i64, i64)) -> Result<Decimal> {
+/// whole dollars. A debt without a `group` is a group of its own. The flag
+/// says whether s 137-19A reduced any of them.
+fn debt_total(given: Option<&Arg>, name: &str, period: (i64, i64)) -> Result<(Decimal, bool)> {
     let reduced = (day(REDUCED_FROM), day(REDUCED_TO));
     let mut groups: BTreeMap<String, Decimal> = BTreeMap::new();
+    let mut any_reduced = false;
     for (i, fields) in objects(given, name)?.into_iter().enumerate() {
         let item = format!("{name} {}", i + 1);
         stated::known_keys(fields, &item, "a debt", &["incurred", "amount", "group"])?;
@@ -149,6 +151,7 @@ fn debt_total(given: Option<&Arg>, name: &str, period: (i64, i64)) -> Result<Dec
         let mut amount = stated::amount(fields, &item, "amount")?;
         if on >= reduced.0 && on <= reduced.1 {
             amount = amount.mul(&Decimal::parse(KEPT)?)?;
+            any_reduced = true;
         }
         let key = match fields.get("group") {
             None => format!("\u{0}{i}"),
@@ -160,9 +163,10 @@ fn debt_total(given: Option<&Arg>, name: &str, period: (i64, i64)) -> Result<Dec
         let total = groups.entry(key).or_insert_with(|| int(0));
         *total = total.add(&amount)?;
     }
-    groups.values().try_fold(int(0), |sum, group| {
-        Ok(sum.add(&group.quantize(0, Rounding::Down)?)?)
-    })
+    let total = groups.values().try_fold(int(0), |sum, group| {
+        Ok::<_, super::Error>(sum.add(&group.quantize(0, Rounding::Down)?)?)
+    })?;
+    Ok((total, any_reduced))
 }
 
 /// HESA s 140-5(1) step 3: the voluntary repayments made from 1 June in the
@@ -181,6 +185,7 @@ fn repayment_total(given: Option<&Arg>, period: (i64, i64)) -> Result<Decimal> {
 }
 
 /// The facts read from the inputs, each step's amount as HESA names it.
+#[derive(Clone)]
 struct Facts {
     previous: Decimal,
     earlier: Decimal,
@@ -209,31 +214,36 @@ fn facts(year: &str, given: [Option<&Arg>; 10]) -> Result<Facts> {
     let Some(previous) = previous else {
         return refuse("help_indexation.debt_missing", DEBT_MISSING);
     };
-    if reduced
-        .map(|r| flag(r, "debts_already_reduced"))
-        .transpose()?
-        == Some(true)
+    let y = end_year(year);
+    let date = |m: &str, y: i64| day(&format!("{y:04}-{m}"));
+    let first_half = (date("07-01", y - 1), date("12-31", y - 1));
+    let (earlier, earlier_reduced) = debt_total(
+        earlier,
+        "earlier_debts",
+        (date("01-01", y - 1), date("06-30", y - 1)),
+    )?;
+    let (current, _) = debt_total(current, "current_debts", first_half)?;
+    // Only amounts the command itself reduces must be given unreduced: every
+    // input for 2024-25 (s 140-26) and debts of 1 January to 1 June 2025
+    // (s 137-19A). The 1 June 2025 debt that 2025-26 starts from is the
+    // reduced one (s 140-5(1) step 1).
+    let reduces = year == REDUCTION_YEAR || earlier_reduced;
+    if reduces
+        && reduced
+            .map(|r| flag(r, "debts_already_reduced"))
+            .transpose()?
+            == Some(true)
     {
         return refuse("help_indexation.reduction_already_applied", ALREADY_REDUCED);
     }
-    let y = end_year(year);
-    let date = |m: &str, y: i64| day(&format!("{y:04}-{m}"));
     Ok(Facts {
         previous: money(previous)?,
-        earlier: debt_total(
-            earlier,
-            "earlier_debts",
-            (date("01-01", y - 1), date("06-30", y - 1)),
-        )?,
+        earlier,
         repaid: repayment_total(repaid, (date("06-01", y - 1), date("05-31", y)))?,
         compulsory: amount_or_nil(compulsory)?,
         increases: amount_or_nil(increases)?,
         reductions: amount_or_nil(reductions)?,
-        current: debt_total(
-            current,
-            "current_debts",
-            (date("07-01", y - 1), date("12-31", y - 1)),
-        )?,
+        current,
         current_repaid: amount_or_nil(current_repaid)?,
         proposed: proposed.map(money).transpose()?,
     })
@@ -358,7 +368,7 @@ pub fn help_indexation(args: &HelpIndexationArgs) -> Result<Value> {
         ("accumulated_debt", w.accumulated.clone()),
     ];
     if let Some(proposed) = &f.proposed {
-        amounts.extend(timing(&year, &f, &factor, &w.accumulated, proposed)?);
+        amounts.extend(timing(&year, &f, &factor, &w, proposed)?);
     }
     let mut rates = vec![
         rate("indexation_factor", factor_text),
@@ -382,16 +392,23 @@ pub fn help_indexation(args: &HelpIndexationArgs) -> Result<Value> {
 }
 
 /// The accumulated HELP debt with `proposed` repaid before 1 June and on or
-/// after it, and the indexation the earlier payment avoids.
+/// after it, and the indexation the earlier payment avoids. Paid before
+/// 1 June, it goes first to the debts indexed (step 3) and the rest to the
+/// year's own debts (s 140-25), as HESA s 151-10(2) applies a payment without
+/// directions.
 fn timing(
     year: &str,
     f: &Facts,
     factor: &Decimal,
-    accumulated: &Decimal,
+    w: &Worked,
     proposed: &Decimal,
 ) -> Result<Vec<(&'static str, Decimal)>> {
-    let before = work(year, f, &f.repaid.add(proposed)?, factor)?.accumulated;
-    let after = accumulated.sub(proposed)?;
+    let to_indexed = py_min(proposed.clone(), w.before_indexation.clone())?;
+    let mut paid = f.clone();
+    paid.repaid = f.repaid.add(&to_indexed)?;
+    paid.current_repaid = f.current_repaid.add(&proposed.sub(&to_indexed)?)?;
+    let before = work(year, &paid, &paid.repaid, factor)?.accumulated;
+    let after = w.accumulated.sub(proposed)?;
     let after = if after.lt(&int(0))? { int(0) } else { after };
     Ok(vec![
         ("proposed_repayment", proposed.clone()),
