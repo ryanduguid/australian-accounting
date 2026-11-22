@@ -6173,6 +6173,9 @@ pub use work_expenses::{WORK_EXPENSES_OPTIONAL, work_expenses};
 mod ato_interest_penalties;
 pub use ato_interest_penalties::ato_interest_penalties;
 
+mod private_health_insurance_rebate;
+pub use private_health_insurance_rebate::{PhiRebateArgs, private_health_insurance_rebate};
+
 mod depreciation_pools;
 pub use depreciation_pools::{
     capital_works, depreciation_low_value_pool, depreciation_small_business_pool,
@@ -6186,7 +6189,7 @@ pub use non_commercial_losses::{NCL_OPTIONAL, NonCommercialLossesArgs, non_comme
 mod psi_test;
 pub use psi_test::{PSI_OPTIONAL, PsiTestArgs, psi_test};
 
-const KINDS: [&str; 79] = [
+const KINDS: [&str; 80] = [
     "gst",
     "gst_margin_scheme",
     "fuel_tax_credits",
@@ -6259,6 +6262,7 @@ const KINDS: [&str; 79] = [
     "sb_cgt_concessions",
     "work_expenses",
     "ato_interest_penalties",
+    "private_health_insurance_rebate",
     "depreciation_low_value_pool",
     "depreciation_small_business_pool",
     "capital_works",

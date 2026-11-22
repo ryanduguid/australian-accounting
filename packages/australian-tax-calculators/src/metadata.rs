@@ -500,6 +500,63 @@ pub const SURCHARGE_RATES: [&str; 3] = ["0.01", "0.0125", "0.015"];
 /// first, on the same ATO page for each year.
 pub const SURCHARGE_CHILD_INCREASE: &str = "1500";
 
+/// The same singles thresholds for the private health insurance rebate's
+/// earlier years, from the ATO's 'Income thresholds and rates for the private
+/// health insurance rebate' pages for 2021 to 2024 (published 14 May 2025) and
+/// its Medicare levy surcharge pages, read on 22 November 2026. PHI Act s 22-35
+/// states the 2021-22 and 2022-23 amounts; s 22-45 indexes them from 2023-24.
+pub const PHI_EARLIER_THRESHOLDS: &[(&str, [&str; 3])] = &[
+    ("2020-21", ["90000", "105000", "140000"]),
+    ("2021-22", ["90000", "105000", "140000"]),
+    ("2022-23", ["90000", "105000", "140000"]),
+    ("2023-24", ["93000", "108000", "144000"]),
+];
+
+/// The private health insurance rebate percentages for each adjustment year,
+/// keyed by the calendar year of the 1 April it starts on (PHI Act s 22-15(5A)
+/// to (5D)): for the oldest insured person under 65, 65 to 69 and 70 or over,
+/// the base tier, tier 1 and tier 2 percentages; tier 3 is nil (s 22-15(4)).
+/// From the ATO's rates pages for 2020-21 to 2023-24 (published 14 May 2025)
+/// and its current page (last updated 22 June 2026), read on 22 November 2026.
+/// The percentages from 1 April 2027 were not published.
+pub const PHI_REBATE_PERCENTAGES: &[(&str, [[&str; 3]; 3])] = &[
+    (
+        "2020",
+        [
+            ["25.059", "16.706", "8.352"],
+            ["29.236", "20.883", "12.529"],
+            ["33.413", "25.059", "16.706"],
+        ],
+    ),
+    ("2021", PHI_2021_TO_2024),
+    ("2022", PHI_2021_TO_2024),
+    ("2023", PHI_2021_TO_2024),
+    ("2024", PHI_2021_TO_2024),
+    (
+        "2025",
+        [
+            ["24.288", "16.192", "8.095"],
+            ["28.337", "20.240", "12.143"],
+            ["32.385", "24.288", "16.192"],
+        ],
+    ),
+    (
+        "2026",
+        [
+            ["24.118", "16.079", "8.038"],
+            ["28.139", "20.098", "12.058"],
+            ["32.158", "24.118", "16.079"],
+        ],
+    ),
+];
+
+/// Unchanged from 1 April 2021 to 31 March 2025.
+const PHI_2021_TO_2024: [[&str; 3]; 3] = [
+    ["24.608", "16.405", "8.202"],
+    ["28.710", "20.507", "12.303"],
+    ["32.812", "24.608", "16.405"],
+];
+
 /// ITAA 1997 s 61-115(1) table, in the Python dict's order.
 pub const LOW_INCOME_TAX_OFFSET: [(&str, &str); 7] = [
     ("maximum", "700"),
@@ -1192,6 +1249,11 @@ pub fn supported_periods(kind: &str) -> Vec<&'static str> {
         "work_expenses" => vec![
             "2020-21", "2021-22", "2022-23", "2023-24", "2024-25", "2025-26", "2026-27",
         ],
+        // The years whose thresholds and percentages the ATO publishes, from
+        // 2020-21; the percentages from 1 April 2027 are refused line by line.
+        "private_health_insurance_rebate" => {
+            [keys(PHI_EARLIER_THRESHOLDS), keys(SURCHARGE_THRESHOLDS)].concat()
+        }
         // The pools' rates and the capital works rates do not change in these
         // years; the small business pool's low pool value threshold does, by year.
         "depreciation_low_value_pool" | "depreciation_small_business_pool" | "capital_works" => {
@@ -1376,6 +1438,10 @@ pub fn source_review(kind: &str) -> (&'static str, &'static str) {
         "medicare_levy" => (
             "2026-11-14",
             "Medicare Levy Act 1986 ss 3(1) and (3), 6(1), 7(1) and (2) and 8, compilations 52 (2024-25) and 53; Treasury Laws Amendment (More Cost of Living Relief) Act 2025 Sch 2 item 14 (2024-25 and later years); Treasury Laws Amendment (Delivering an Efficient and Trusted Tax System) Act 2026 Sch 5 item 14 (2025-26 and later years); ATO Medicare levy reduction for low-income earners and Medicare levy reduction - family income, with the Ashton example (2025-26); myTax 2025 tables 2 and 3 and worksheet 2 (2024-25); exemptions: Medicare Levy Act 1986 s 9(1), ITAA 1936 ss 251T and 251U(1) to (3), ATO Medical exemption from Medicare levy (the Paul example), Not entitled to Medicare benefits (the Priya example) and M1 Medicare levy reduction or exemption 2026, part B",
+        ),
+        "private_health_insurance_rebate" => (
+            "2026-11-22",
+            "Private Health Insurance Act 2007 ss 22-5, 22-15, 22-20, 22-25, 22-30, 22-35, 22-40, 22-45 and 282-18, compilation 42 (19 September 2026); ITAA 1997 ss 61-205, 61-210, 61-215 and 67-23, compilation 268 (1 October 2026); ATO Income thresholds and rates for the private health insurance rebate (22 June 2026) and its 2021 to 2024 pages (14 May 2025), with the Narelle, Peta, Mike and Elle, and Zoe and Charlie examples; Claiming the private health insurance rebate (QC72945), with the Toby and Donna examples; Your private health insurance statement (benefit codes)",
         ),
         "medicare_levy_surcharge" => (
             "2026-11-14",
@@ -1774,6 +1840,12 @@ pub fn library_evidence(kind: &str) -> [(&'static str, &'static str); 4] {
             "table of single thresholds, example (Angie); family taxable income thresholds, example (Ashton); claiming an exemption, example (Priya)",
             "2026-06-30",
             "2026-11-14",
+        ),
+        "private_health_insurance_rebate" => (
+            "ATO Income thresholds and rates for the private health insurance rebate; Claiming the private health insurance rebate",
+            "thresholds and rates for 2020-21 to 2026-27, examples (Narelle, Peta, Mike and Elle, Zoe and Charlie); examples (Toby, Donna)",
+            "2026-06-22",
+            "2026-11-22",
         ),
         "medicare_levy_surcharge" => (
             "ATO Medicare levy surcharge income, thresholds and rates; M2 Medicare levy surcharge 2026",
@@ -2512,6 +2584,20 @@ pub fn optional_inputs(kind: &str) -> Vec<(&'static str, &'static str)> {
             (
                 "proposed_concessional_contribution",
                 "AUD, with earlier_concessional_contributions only: a further concessional contribution for the year; the unused cap it applies and what is left are worked out after it; omit for none",
+            ),
+        ],
+        "private_health_insurance_rebate" => vec![
+            (
+                "spouse_income_for_surcharge_purposes",
+                "AUD, the income for surcharge purposes of the person's spouse, for a person married on 30 June (PHI Act s 22-30(1)(a) and (2); the ATO counts a spouse who died in the year); tests the combined income against the family thresholds; omit for a person without a spouse on 30 June",
+            ),
+            (
+                "dependent_children",
+                "integer from 0, the dependants who are children (Fringe Benefits Act meaning: under 21, or a full-time student under 25, maintained by the person); each after the first raises the family thresholds by $1,500 (s 22-40(4)); only with spouse_income_for_surcharge_purposes or maintained_dependent_person true; omit for none",
+            ),
+            (
+                "maintained_dependent_person",
+                "boolean, true when on any day in the year the person contributed in a substantial way to the maintenance of a dependent person (PHI Act Schedule 1: a person under 18 without a partner; a person aged 18 to 31 without a partner who is either in full-time education and a dependent student under the insurer's rules, or not in full-time education and a dependent non-student under the insurer's rules; or a person 18 or over, partnered or not, with a disability as the Private Health Insurance (Complying Product) Rules or the insurer's rules define it) who is their child or a sibling dependent on them; puts a person without a spouse on 30 June on the family thresholds (s 22-30(1)(b)); omit or false otherwise",
             ),
         ],
         "medicare_levy_surcharge" => vec![
@@ -3611,6 +3697,16 @@ pub fn input_units(kind: &str) -> Vec<(&'static str, &'static str)> {
                 "boolean, whether Medicare Levy Act 1986 s 9A removes lump sums in arrears; true is refused",
             ),
         ],
+        "private_health_insurance_rebate" => vec![
+            (
+                "income_for_surcharge_purposes",
+                "AUD, the person's own income for surcharge purposes (ITAA 1997 s 995-1), as income-tests works it out for 2024-25 to 2026-27",
+            ),
+            (
+                "lines",
+                "list of 1 to 100 lines of the private health insurance statement, each an object with premiums_eligible (AUD decimal string, label J: the person's share of the premiums paid, without lifetime health cover loading), rebate_received (AUD decimal string, label K: the person's share of the premium reduction received, \"0\" for none) and benefit_code (integer, label L: 30, 35 or 40 for premiums paid 1 July to 31 March, 31, 36 or 41 for 1 April to 30 June, with the oldest insured person under 65, 65 to 69 or 70 or over)",
+            ),
+        ],
         "medicare_levy_surcharge" => vec![
             (
                 "taxable_income",
@@ -4523,6 +4619,18 @@ pub fn examples(kind: &str) -> Vec<(&'static str, Example)> {
         "medicare_levy" => vec![
             ("taxable_income", Text("30000")),
             ("section_9a_adjustment_applies", Flag(false)),
+        ],
+        // The ATO's Narelle example, 2025-26 (Income thresholds and rates for
+        // the private health insurance rebate).
+        "private_health_insurance_rebate" => vec![
+            ("year", Text("2025-26")),
+            ("income_for_surcharge_purposes", Text("83000")),
+            (
+                "lines",
+                Json(
+                    r#"[{"premiums_eligible": "900", "rebate_received": "146", "benefit_code": 30}, {"premiums_eligible": "300", "rebate_received": "48", "benefit_code": 31}]"#,
+                ),
+            ),
         ],
         // The ATO's Tom example, 2026-27.
         "medicare_levy_surcharge" => vec![

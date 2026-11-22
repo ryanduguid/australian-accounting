@@ -2296,6 +2296,68 @@ s 251U(2) and (3), trustees (ss 8E to 8G), part-year residents, the tax offset
 for the surcharge on lump sums in arrears and the private health insurance
 rebate are also outside it.
 
+## Private health insurance rebate
+
+Read on 22 November 2026: the Private Health Insurance Act 2007 as compiled at
+19 September 2026 (compilation 42), Divisions 22 and 23 and s 282-18; the ITAA
+1997 as compiled at 1 October 2026 (compilation 268), Subdivision 61-G and
+s 67-23; the ATO pages "Income thresholds and rates for the private health
+insurance rebate" (last updated 22 June 2026), its pages for 2021 to 2024
+(published 14 May 2025), "Claiming the private health insurance rebate"
+(QC72945) and "Your private health insurance statement".
+
+The share of the PHII benefit is 30%, 35% or 40% of the premium for the days
+on which the oldest person insured is under 65, 65 to 69 or 70 or over
+(s 22-15(1)), less 10 or 20 percentage points for a tier 1 or 2 earner and
+nil for tier 3 (s 22-15(2) to (4)). Each percentage is adjusted from 1 April
+each year, to 3 decimal places, and applies to premiums paid in that
+adjustment year (s 22-15(5A) to (5E)), so premiums paid before 1 April take
+the percentages from the previous 1 April. The premium excludes lifetime
+health cover loading (s 22-15(6)) and is shared equally among the adults
+insured (s 22-20); the statement gives each adult's share.
+
+| From 1 April | Under 65 (base, tier 1, tier 2) | 65 to 69 | 70 or over |
+| --- | --- | --- | --- |
+| 2020 | 25.059%, 16.706%, 8.352% | 29.236%, 20.883%, 12.529% | 33.413%, 25.059%, 16.706% |
+| 2021 to 2024 | 24.608%, 16.405%, 8.202% | 28.710%, 20.507%, 12.303% | 32.812%, 24.608%, 16.405% |
+| 2025 | 24.288%, 16.192%, 8.095% | 28.337%, 20.240%, 12.143% | 32.385%, 24.288%, 16.192% |
+| 2026 | 24.118%, 16.079%, 8.038% | 28.139%, 20.098%, 12.058% | 32.158%, 24.118%, 16.079% |
+
+| Singles threshold | 2020-21 to 2022-23 | 2023-24 | 2024-25 | 2025-26 | 2026-27 |
+| --- | --- | --- | --- | --- | --- |
+| Tier 1 | $90,000 | $93,000 | $97,000 | $101,000 | $105,000 |
+| Tier 2 | $105,000 | $108,000 | $113,000 | $118,000 | $123,000 |
+| Tier 3 | $140,000 | $144,000 | $151,000 | $158,000 | $164,000 |
+
+The family thresholds apply to a person married on 30 June, or who on any day
+in the year maintained a dependent person (Schedule 1) who is their child or
+dependent sibling (s 22-30(1)); they are double, plus $1,500 for each child
+dependant (Fringe Benefits Act meaning) after the first (s 22-40); income must
+exceed a threshold to pass it (s 22-30). The
+ATO's 2024 page dates its first table to 30 March 2024, a slip for 31 March.
+For 2023-24 and earlier, the ATO lets income for surcharge purposes be reduced
+by the taxed element of a super lump sum within the low rate cap; that figure
+is the operator's.
+
+The offset is the share of the PHII benefit less the person's share of the
+premium reduction received, nil if that is as much or more (ITAA 1997
+s 61-210); the excess the person repays is the reduction share less the
+benefit share (PHI Act s 282-18(3)). Both work premium by premium, so the
+worksheet does not net one line against another; a line that sums premiums
+with different reductions gives only their net, not each premium's offset or
+excess; as its share is rounded once, that net can differ from theirs by a cent.
+No provision sets the
+rounding: each line's share is rounded to the cent, which reproduces the
+ATO's examples. Zoe's $39.90 needs $20.095 rounded to $20.10 before it is taken
+from $60, and Narelle's $96.94 needs each line rounded. Two published figures
+are not reproduced: Toby's liability is stated to the dollar ($194, from
+$194.09), and Donna's offset is stated as $243.12, though $364.32 less $121 is
+$243.32.
+
+Not worked out: dependant-only policies (s 22-5(3) and (4)), s 22-25 (the operator gives the band), a trustee's
+offset (s 61-205(2)), the choice to claim a spouse's offset (s 61-215) and the
+reallocation of the excess (s 282-18(8) to (10)).
+
 ## Low income tax offset
 
 This worksheet's evidence is not a Library document. The table was read on 15

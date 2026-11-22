@@ -287,6 +287,10 @@ pub const SCOPES: &[(&str, &str)] = &[
         "A capital gain from CGT event A1 (a disposal, ITAA 1997 s 104-10) of a CGT asset acquired from 20 September 1985 that is not a share in a company, an interest in a trust (s 152-10(2)) or a right or interest in a partnership's income or capital (s 152-10(2C)), under a contract made in the 2025-26 or 2026-27 income year, before Act No. 49 of 2026's changes to Division 152 from the income year that includes 1 July 2027 (Schedule 1 item 82), by an individual, a company or a trust that is not a public entity (s 152-305(3)), none of them acting for a deceased estate (s 152-80). The operator establishes whether the business entity (you; the partnership for an interest in a partnership asset; or the affiliate, connected entity or partnership whose business uses a passively held asset) carried on a business in the year, its aggregated turnovers (s 328-115, with connected entities and affiliates), the net value of the CGT assets under ss 152-15 and 152-20, the total days in the test period on which the asset was an active asset (s 152-40), whether the business ceased and when, and the retirement, incapacity and significant individual facts. The CGT small business entity test is s 328-110 with $2 million for each $10 million (s 152-10(1AA)). The test period counts both its first and last days; a total that may or may not be 7.5 years (2,737 to 2,740 days) is refused, as is an asset acquired on the same date 15 years before the event. The 15-year exemption, the 50% active asset reduction, the retirement exemption and the roll-over are each shown open or not, with the conditions not met; the amounts, the choices (ss 103-25, 152-220 and 152-315), the payments a company or trust must make (s 152-325), each stakeholder's limit (s 152-320(2)), the replacement asset (s 152-420), CGT events J2, J5 and J6, and look-through earnout rights other than their extension of the replacement asset period (s 104-190(1A)(b)(ii)) are outside it.",
     ),
     (
+        "private_health_insurance_rebate",
+        "One individual's private health insurance tax offset or excess premium reduction for an income year from 2020-21 to 2026-27, worked out from the lines of the private health insurance statements for complying health insurance policies under which the person was an adult insured (a PHIIB, Private Health Insurance Act 2007 s 22-5(1)), every person insured being an eligible person under Health Insurance Act 1973 s 3 (ITAA 1997 s 61-205(1)(c)). Each line gives the person's share of the premiums paid in the period, divided among the adults insured (s 22-20) and without lifetime health cover loading (s 22-15(6)), the person's share of the premium reduction received, and the benefit code for the period (1 July to 31 March, or 1 April to 30 June) and the oldest insured person's age band; a premium is in the period it was paid, and the operator splits premiums by age band where the oldest person turned 65 or 70 in the period and applies s 22-25 to a person 65 or over who left the policy. The tier comes from income for surcharge purposes (ITAA 1997 s 995-1) as established, with the spouse's for a person married on 30 June, against the singles thresholds, or the family thresholds for a person married on 30 June or who maintained a dependent person who is their child or dependent sibling in the year (s 22-30). Each line is worked as a whole, as the statement and the assessment take it; give a line for each premium where the reductions within a period differed, to show the offset and the excess on each (ITAA 1997 s 61-210 and PHI Act s 282-18 work premium by premium). Excludes dependant-only policies (s 22-5(3) and (4)), a trustee's offset (ITAA 1997 s 61-205(2)), the choice to claim a spouse's offset (s 61-215) and the reallocation of the excess between spouses (PHI Act s 282-18(8) to (10)), and the lifetime health cover loading itself. Refuses premiums paid from 1 April 2027, whose percentages were not published.",
+    ),
+    (
         "depreciation_low_value_pool",
         "One holder's low-value pool (ITAA 1997 Subdivision 40-E) for an income year from 2020-21 to 2026-27: the decline in value at 18.75% of the taxable use percentage of the cost of low-cost assets allocated for the year and of second element amounts for the year, and at 37.5% of the previous closing pool balance and the taxable use percentage of the opening adjustable values of low-value assets allocated for the year (s 40-440), then the closing pool balance, reduced by the taxable use percentage of termination values, with any excess assessable (s 40-445). The operator establishes which assets may be and are allocated (s 40-425: low-cost assets cost under $1,000; low-value assets were written down by diminishing value to an opening adjustable value under $1,000; not assets of a small business entity under Subdivision 328-D, assets under s 40-82, R&D assets, assets for assessable labour income or assets costing $300 or less used mainly for non-business income) and each taxable use percentage (s 40-435). Excludes whether temporary full expensing applied to an asset in 2020-21 to 2022-23, the sampling rule, the capital gain or loss on the non-taxable part of a disposal and primary production apportionment.",
     ),
@@ -600,6 +604,10 @@ pub const SOURCES: &[(&str, &str)] = &[
     (
         "work_expenses",
         "https://www.ato.gov.au/law/view/document?docid=COG/PCG20231/NAT/ATO/00001",
+    ),
+    (
+        "private_health_insurance_rebate",
+        "https://www.ato.gov.au/individuals-and-families/medicare-and-private-health-insurance/private-health-insurance-rebate/income-thresholds-and-rates-for-the-private-health-insurance-rebate",
     ),
     (
         "depreciation_low_value_pool",
@@ -1297,6 +1305,19 @@ pub const EXTRA_SOURCES: &[(&str, &[&str])] = &[
         ],
     ),
     (
+        "private_health_insurance_rebate",
+        &[
+            "https://www.legislation.gov.au/C2007A00031/2026-09-19/2026-09-19/text/original/epub/OEBPS/document_1/document_1.html",
+            "https://www.legislation.gov.au/C2004A05138/2026-10-01/2026-10-01/text/original/epub/OEBPS/document_1/document_1.html",
+            "https://www.ato.gov.au/forms-and-instructions/income-thresholds-and-rates-for-the-phi-rebate-2021",
+            "https://www.ato.gov.au/forms-and-instructions/income-thresholds-and-rates-for-the-phi-rebate-2022",
+            "https://www.ato.gov.au/forms-and-instructions/income-thresholds-and-rates-for-the-phi-rebate-2023",
+            "https://www.ato.gov.au/forms-and-instructions/income-thresholds-and-rates-for-the-phi-rebate-2024",
+            "https://www.ato.gov.au/individuals-and-families/medicare-and-private-health-insurance/private-health-insurance-rebate/claiming-the-private-health-insurance-rebate",
+            "https://www.ato.gov.au/individuals-and-families/medicare-and-private-health-insurance/private-health-insurance-rebate/your-private-health-insurance-statement",
+        ],
+    ),
+    (
         "depreciation_low_value_pool",
         &[
             "https://www.ato.gov.au/law/view/document?docid=PAC/19970038/40-425",
@@ -1428,6 +1449,12 @@ pub const EXTRA_WARNINGS: &[(&str, &[&str])] = &[
         "ato_interest_penalties",
         &[
             "Every amount is before remission, which is the Commissioner's discretion (TAA 1953 s 8AAG, Sch 1 ss 280-160 and 298-20). GIC and SIC are worked exactly and rounded once, so a statement that rounds daily may differ by a few cents.",
+        ],
+    ),
+    (
+        "private_health_insurance_rebate",
+        &[
+            "Each line's share of the PHII benefit is rounded to the cent, as the ATO's worked examples do; no provision sets the rounding. An offset on one line and an excess on another are both shown, as ITAA 1997 s 61-210 and PHI Act s 282-18 each work on a premium; a line that sums premiums with different reductions shows only their net, not each premium's offset or excess, and as its share is rounded once its net can differ from theirs by a cent; give such premiums as separate lines.",
         ],
     ),
     (
@@ -1743,6 +1770,10 @@ pub const UNPUBLISHED_2027_28: &[(&str, &str)] = &[
     (
         "study_loan_repayment",
         "The 2027-28 study and training loan repayment thresholds had not been published when this was checked on 16 November 2026.",
+    ),
+    (
+        "private_health_insurance_rebate",
+        "The 2027-28 private health insurance income thresholds, and the rebate percentages from 1 April 2027, had not been published when this was checked on 22 November 2026.",
     ),
     (
         "medicare_levy_surcharge",
@@ -2568,7 +2599,7 @@ pub const REFUSAL_CODES: &[(&str, &str)] = &[
     ),
     (
         "input.field_unknown",
-        "A field the worksheet or command does not take, or does not take beside the other inputs given, was given (fbt-loan, fbt-meal-entertainment, fbt-car-parking, fbt-debt-waiver, fbt-expense-payment, fbt-property, fbt-residual, fbt-housing, fbt-lafha, fbt-board, fbt-tax-exempt-body-entertainment, fbt-entertainment-classifier, fbt-meal-entertainment-register and its entries, fbt-minor-benefit-check, ppsr-timing, fhss and its contributions, government-super-amounts, personal_deductions and determination, division-296, depreciation, fuel-tax-credits and its lines, foreign-resident-tax, medicare-levy, medicare-levy-surcharge, payg-withholding, payg-gross-up, termination-payment, etp-tax-free-component, unused-leave-payment, the Schedule 5 methods, working-holiday-maker-withholding, study-loan-withholding, seniors-pensioners-withholding, seniors-pensioners-tax-offset, lump-sum-arrears-tax-offset, hire-purchase-schedule, chattel-mortgage-schedule, loan-transactions and its transactions and rate_changes, borrowing-expenses-schedule and its loans, business-capital-expenditure and its items, balancing-adjustment, its years and car_limit, trade-in, franking-account and its events, distributions and income_tax, dasp-tax, gst-margin-scheme, wine-equalisation-tax and its dealings, luxury-car-tax and its lines, payroll-tax, cgt-parcels, its parcels and disposals, fbt-ev-exemption-check, sb-cgt-concessions, small-business-income-offset, depreciation-low-value-pool, depreciation-small-business-pool, capital-works, non-commercial-losses, psi-test, beneficiary-tax-offset, invalid-carer-tax-offset, zone-tax-offset and its dependants, net-medical-expenses-tax-offset, work-expenses, ato-interest-penalties and its payments and parts, contribution-caps given a carry-forward input, derive, personal-tax-estimate, dgr-check, income-tests and fbt-return only).",
+        "A field the worksheet or command does not take, or does not take beside the other inputs given, was given (fbt-loan, fbt-meal-entertainment, fbt-car-parking, fbt-debt-waiver, fbt-expense-payment, fbt-property, fbt-residual, fbt-housing, fbt-lafha, fbt-board, fbt-tax-exempt-body-entertainment, fbt-entertainment-classifier, fbt-meal-entertainment-register and its entries, fbt-minor-benefit-check, ppsr-timing, fhss and its contributions, government-super-amounts, personal_deductions and determination, division-296, depreciation, fuel-tax-credits and its lines, foreign-resident-tax, medicare-levy, medicare-levy-surcharge, payg-withholding, payg-gross-up, termination-payment, etp-tax-free-component, unused-leave-payment, the Schedule 5 methods, working-holiday-maker-withholding, study-loan-withholding, seniors-pensioners-withholding, seniors-pensioners-tax-offset, lump-sum-arrears-tax-offset, hire-purchase-schedule, chattel-mortgage-schedule, loan-transactions and its transactions and rate_changes, borrowing-expenses-schedule and its loans, business-capital-expenditure and its items, balancing-adjustment, its years and car_limit, trade-in, franking-account and its events, distributions and income_tax, dasp-tax, gst-margin-scheme, wine-equalisation-tax and its dealings, luxury-car-tax and its lines, payroll-tax, cgt-parcels, its parcels and disposals, fbt-ev-exemption-check, sb-cgt-concessions, small-business-income-offset, depreciation-low-value-pool, depreciation-small-business-pool, capital-works, non-commercial-losses, psi-test, beneficiary-tax-offset, invalid-carer-tax-offset, zone-tax-offset and its dependants, net-medical-expenses-tax-offset, work-expenses, ato-interest-penalties and its payments and parts, private-health-insurance-rebate, contribution-caps given a carry-forward input, derive, personal-tax-estimate, dgr-check, income-tests and fbt-return only).",
     ),
     ("input.flag_invalid", "A flag is not a JSON boolean."),
     ("input.fraction_invalid", "A fraction is outside 0 to 1."),
@@ -2940,6 +2971,18 @@ pub const REFUSAL_CODES: &[(&str, &str)] = &[
     (
         "psi_test.premises_invalid",
         "premises is not an object of the 5 business premises answers.",
+    ),
+    (
+        "private_health_insurance_rebate.lhc_loading",
+        "A statement line gave a lifetime health cover loading, which is outside the rebate (PHI Act s 22-15(6)) and is not worked out.",
+    ),
+    (
+        "private_health_insurance_rebate.lines_invalid",
+        "The statement lines are not a list of 1 to 100 objects with premiums_eligible, rebate_received and a benefit code of 30, 31, 35, 36, 40 or 41.",
+    ),
+    (
+        "private_health_insurance_rebate.rate_unpublished",
+        "A line is for premiums paid from 1 April 2027, whose rebate percentages had not been published.",
     ),
     (
         "sb_cgt_concessions.active_period_unclear",

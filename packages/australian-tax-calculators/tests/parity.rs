@@ -31,11 +31,11 @@ use std::process::{Command, Stdio};
 /// `tests/fhss.rs`, `tests/ppsr_timing.rs`, `tests/dasp_tax.rs`, `tests/income_tests.rs`,
 /// `tests/franking_account.rs`, `tests/wine_equalisation_tax.rs`,
 /// `tests/luxury_car_tax.rs`, `tests/sb_cgt_concessions.rs`,
-/// `tests/depreciation_pools.rs`, `tests/work_expenses.rs`,
+/// `tests/private_health_insurance_rebate.rs`, `tests/depreciation_pools.rs`, `tests/work_expenses.rs`,
 /// `tests/ato_interest_penalties.rs`, `tests/small_business_income_offset.rs`,
 /// `tests/government_super_amounts.rs`, `tests/individual_offsets.rs`,
 /// `tests/non_commercial_losses.rs` and `tests/psi_test.rs` cover them.
-const NEW_KINDS: [(&str, &str); 65] = [
+const NEW_KINDS: [(&str, &str); 66] = [
     ("fhss", "fhss"),
     ("ato-interest-penalties", "ato_interest_penalties"),
     ("ppsr-timing", "ppsr_timing"),
@@ -69,6 +69,10 @@ const NEW_KINDS: [(&str, &str); 65] = [
     ("cgt-parcels", "cgt_parcels"),
     ("sb-cgt-concessions", "sb_cgt_concessions"),
     ("work-expenses", "work_expenses"),
+    (
+        "private-health-insurance-rebate",
+        "private_health_insurance_rebate",
+    ),
     ("depreciation-low-value-pool", "depreciation_low_value_pool"),
     (
         "depreciation-small-business-pool",

@@ -834,6 +834,15 @@ const COMMAND_ARGS: &[(&str, &[(&str, Kind)])] = &[
         ],
     ),
     (
+        "private-health-insurance-rebate",
+        &[
+            ("income_for_surcharge_purposes", Dec),
+            ("lines", Json),
+            ("year", Raw),
+            ("scope_confirmed", Raw),
+        ],
+    ),
+    (
         "income-tests",
         &[
             ("taxable_income", Dec),
@@ -1369,6 +1378,7 @@ pub fn evaluate_coded(command: &str, v: &Value) -> Result<Value> {
             | "sb-cgt-concessions"
             | "work-expenses"
             | "ato-interest-penalties"
+            | "private-health-insurance-rebate"
             | "depreciation-low-value-pool"
             | "depreciation-small-business-pool"
             | "capital-works"
@@ -2168,6 +2178,26 @@ pub fn evaluate_coded(command: &str, v: &Value) -> Result<Value> {
                 }
             }
             engine::work_expenses(&a[0], &a[1], &a[2], &given, &a[3], &a[4])
+        }
+        "private-health-insurance-rebate" => {
+            // Optional: absent for a person without a spouse on 30 June or a
+            // dependant.
+            let o = [
+                optional(v, "spouse_income_for_surcharge_purposes", Dec)?,
+                optional(v, "dependent_children", Raw)?,
+                optional(v, "maintained_dependent_person", Raw)?,
+            ];
+            engine::private_health_insurance_rebate(&engine::PhiRebateArgs {
+                income_for_surcharge_purposes: &a[0],
+                lines: &a[1],
+                year: &a[2],
+                scope_confirmed: &a[3],
+                family: engine::SurchargeFamily {
+                    spouse_income: o[0].as_ref(),
+                    dependent_children: o[1].as_ref(),
+                },
+                maintained_dependent_person: o[2].as_ref(),
+            })
         }
         "income-tests" => {
             let named: Vec<(&str, &Arg)> = params.iter().map(|(key, _)| *key).zip(&a).collect();

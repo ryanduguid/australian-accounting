@@ -16,13 +16,13 @@ keeps the calculator release and MCP integration separate.
 
 </div>
 
-79 calculation worksheets for established facts: ordinary GST, fuel tax credits at the ATO's rate for each day from 1 July 2022 with the simplified methods for small claimants, resident and foreign
+80 calculation worksheets for established facts: ordinary GST, fuel tax credits at the ATO's rate for each day from 1 July 2022 with the simplified methods for small claimants, resident and foreign
 resident basic income tax, CGT losses and discount, the gains and losses from parcels of shares or units, the small business CGT concessions open for a gain, the small business income tax offset, whether Division 35 defers a business activity loss, whether the personal services income rules apply, an employee's working from home, car and self-education deductions, the main residence exemption's taxable share of a gain or loss, one loan's borrowing expenses deduction and a schedule of several loans' deductions over every year, a hire purchase agreement's notional interest, a chattel mortgage's interest schedule and input tax credit, a loan's statement with daily interest at changing rates, business capital expenditure (black hole and start-up costs) under s 40-880, ordinary employer FBT, car fringe benefit taxable values
 under the statutory formula and operating cost methods, loan, meal entertainment, car parking, debt waiver, expense payment, property, residual, housing, living-away-from-home allowance, board and tax-exempt body entertainment fringe benefit taxable values, the FBT, deduction and GST credit treatment of entertainment expense lines, whether a 12 week meal entertainment register is valid, depreciation in the start year and later years, a depreciating asset's balancing adjustment with its reduction for private use and CGT event K7, a trade-in's GST on both sides with the old asset's balancing adjustment and the replacement's cost, whether an electric car's fringe benefits are exempt, one employer's payroll tax in each state and territory, a company's franking account with franking deficit tax, its offset and the benchmark rule, wine equalisation tax with the producer rebate under its yearly cap and BAS labels 1C and 1D, luxury car tax on sales and importations with its adjustments, refunds and BAS labels 1E and 1F, the general and shortfall interest charges, failure to lodge and statement penalties before remission and the interest the ATO pays on early payments and overpayments,
 quarterly super guarantee, Schedule 1 PAYG withholding and the gross pay that leaves a stated net, Schedule 5 withholding from back payments, commissions and bonuses by Methods A, B(i) and B(ii), Schedule 15 withholding for working holiday makers, Schedule 9 withholding for seniors and pensioners, super contribution caps, the super co-contribution, the low income super tax offset and the spouse contribution tax offset,
 account-based pension minimums, study and training loan repayments, Schedule 8 study
 loan withholding, the Medicare levy with its low-income, SAPTO and family reductions and full or half exemptions, the Medicare levy surcharge, the low income tax offset, the seniors and pensioners tax offset, the lump sum payment in arrears tax offset, the beneficiary, invalid and invalid carer, zone and overseas forces and net medical expenses tax offsets,
-Division 293 tax, an estimate of Division 296 tax on large super balances and the tax-free part of a genuine redundancy payment with Schedule 11 withholding from an employment termination payment, the invalidity and pre-July 83 segments of an employment termination payment's tax free component, the assessable share, Schedule 7 withholding and income statement label of unused leave paid on termination, and the income measures the surcharge, Division 293 tax, the offsets, study loan repayments and the super co-contribution are tested against. Callers must establish every scope condition before calculating. `personal-tax-estimate` composes the personal ones into one year's tax and levies,
+Division 293 tax, an estimate of Division 296 tax on large super balances and the tax-free part of a genuine redundancy payment with Schedule 11 withholding from an employment termination payment, the invalidity and pre-July 83 segments of an employment termination payment's tax free component, the assessable share, Schedule 7 withholding and income statement label of unused leave paid on termination, the private health insurance tax offset or excess premium reduction from the statement's lines, and the income measures the surcharge, Division 293 tax, the offsets, study loan repayments and the super co-contribution are tested against. Callers must establish every scope condition before calculating. `personal-tax-estimate` composes the personal ones into one year's tax and levies,
 and `fbt-return` composes the FBT ones into an employer's FBT return.
 
 Each worksheet is a subcommand that reads one JSON object on stdin and writes
@@ -185,6 +185,7 @@ booleans and counts, ages, days, quarters and scales are JSON integers.
 | `payg-gross-up` | `net_pay`, `pay_period`, `scale`, `year`, `scope_confirmed`; optional `foreign_resident` (scale 4), `study_loan`; `pay_date` with `study_loan`, required for 2025-26 |
 | `study-loan-withholding` | `earnings`, `pay_period`, `scale`, `year`, `scope_confirmed`; `pay_date`, required for 2025-26 |
 | `medicare-levy` | `taxable_income`, `section_9a_adjustment_applies`, `year`, `scope_confirmed`; optional `sapto_entitled`, `spouse_taxable_income`, `spouse_sapto_entitled`, `dependant_offset_entitled`, `dependent_children`, `medicare_levy_exemption_full_days`, `medicare_levy_exemption_half_days` |
+| `private-health-insurance-rebate` | `income_for_surcharge_purposes`, `lines`, `year`, `scope_confirmed`; optional `spouse_income_for_surcharge_purposes`, `maintained_dependent_person`, `dependent_children`; see [Private health insurance rebate](#private-health-insurance-rebate) |
 | `medicare-levy-surcharge` | `taxable_income`, `reportable_fringe_benefits`, `income_for_surcharge_purposes`, `days_without_cover`, `year`, `scope_confirmed`; optional `spouse_income_for_surcharge_purposes`, `dependent_children` |
 | `low-income-tax-offset` | `taxable_income`, `year`, `scope_confirmed` |
 | `seniors-pensioners-tax-offset` | `rebate_income`, `status`, `year`, `scope_confirmed`; `spouse_rebate_income`, required unless `status` is `single`; optional `spouse_taxable_income` |
@@ -216,7 +217,7 @@ booleans and counts, ages, days, quarters and scales are JSON integers.
 | `worksheet-catalogue` | none: send `{}` |
 | `periods` | `kind`, the worksheet name, such as `"payg_withholding"` |
 | `dgr-check` | `donations`, a list of 1 to 10,000 objects, each with `abn` or `name` or both, and optional `date` and `amount`; see [DGR check](#dgr-check) |
-| `personal-tax-estimate` | `year`, `scope_confirmed`, `residency`, `taxable_income` or `assessable_labour_income` (then optional `other_assessable_income`, `work_related_deductions`, `other_deductions`), optional `tax_withheld` or, to work it out, one of `payg-withholding`, `study-loan-withholding` and `seniors-pensioners-withholding` with `pays_in_year` and optional `schedule-5-method-a`, for a resident from 2027-28 `net_labour_income` (required beside `taxable_income`), and for a full-year resident `medicare-levy` and `medicare-levy-surcharge`; optional `seniors-pensioners-tax-offset`, `study-loan-repayment` and `division-293`; see [Personal tax estimate](#personal-tax-estimate) |
+| `personal-tax-estimate` | `year`, `scope_confirmed`, `residency`, `taxable_income` or `assessable_labour_income` (then optional `other_assessable_income`, `work_related_deductions`, `other_deductions`), optional `tax_withheld` or, to work it out, one of `payg-withholding`, `study-loan-withholding` and `seniors-pensioners-withholding` with `pays_in_year` and optional `schedule-5-method-a`, for a resident from 2027-28 `net_labour_income` (required beside `taxable_income`), and for a full-year resident `medicare-levy` and `medicare-levy-surcharge`; optional `seniors-pensioners-tax-offset`, `study-loan-repayment`, `division-293` and `private-health-insurance-rebate`; see [Personal tax estimate](#personal-tax-estimate) |
 | `fbt-return` | `employer`, `year_ended`, `scope_confirmed` and `benefits`, a list of objects each with `employee`, `command` (an FBT benefit worksheet), `input` (that worksheet's arguments), `gst_type` (`type_1` or `type_2`) and `excluded`; see [FBT return](#fbt-return) |
 | `derive` | `command`, one of `fbt`, `fbt-car-statutory`, `fbt-car-operating-cost`, `fbt-loan`, `fbt-meal-entertainment`, `fbt-car-parking`, `fbt-debt-waiver`, `fbt-expense-payment`, `fbt-property`, `division-293`, `pension-minimum`, `payg-withholding`, `schedule-5-method-a`, `schedule-5-method-b-i`, `schedule-5-method-b-ii`, `termination-payment`, `etp-tax-free-component`, `unused-leave-payment`, `working-holiday-maker-withholding`, `study-loan-withholding`, `seniors-pensioners-withholding`, `quarterly-sg`, `borrowing-expenses`, `borrowing-expenses-schedule`, `resident-tax`, `foreign-resident-tax`, `low-income-tax-offset`, `seniors-pensioners-tax-offset`, `medicare-levy`, `medicare-levy-surcharge`, `division-296`, `contribution-caps`, `study-loan-repayment`, `capital-gains`, `main-residence`, `fbt-residual`, `fbt-housing`, `fbt-lafha`, `fbt-board`, `fbt-tax-exempt-body-entertainment`, `gst`, `depreciation`, `depreciation-low-value-pool`, `depreciation-small-business-pool`, `capital-works`, `hire-purchase-schedule`, `chattel-mortgage-schedule`, `loan-transactions`, `lump-sum-arrears-tax-offset`, `income-tests`, `government-super-amounts`, `business-capital-expenditure`, `balancing-adjustment`, `trade-in`, `dasp-tax`, `gst-margin-scheme`, `payroll-tax`, `cgt-parcels` and `work-expenses`, and `input`, that command's arguments; see [Derivations](#derivations) |
 
@@ -389,6 +390,7 @@ own dates and figures.
 | Study loan withholding | Regular weekly, fortnightly, monthly or quarterly pays from 24 September 2025 on scale 1, 2, 3, 5 or 6; the Schedule 1 amount plus the Schedule 8 component |
 | Medicare levy | 2024-25 to 2027-28; full-year resident; the 2% rate, the low-income reduction at the single or SAPTO thresholds, the family reduction from established spouse, offset and dependent child facts, and established full and half exemption days |
 | Medicare levy surcharge | 2024-25, 2025-26 and 2026-27, and 2027-28 with no day without hospital cover (nil); full-year resident in no exemption category, single without dependants or married for the whole year; established income for surcharge purposes and days without hospital cover |
+| Private health insurance rebate | 2020-21 to 2026-27, premiums paid to 31 March 2027; one adult insured under complying policies whose insured are all eligible persons, from the statement's lines; established income for surcharge purposes; no dependant-only policy, spouse's claim or trustee's offset |
 | Low income tax offset | 2024-25 to 2027-28; resident individual's established taxable income; the offset amount, not applied against tax |
 | Seniors and pensioners tax offset | 2024-25 to 2027-28; an established eligible individual's rebate income and whole-year status, and a spouse's rebate income; the offset amount with any transfer from a resident spouse, not applied against tax |
 | Beneficiary tax offset | 2020-21 to 2026-27; an established rebatable benefit in assessable income; the offset amount, not compared with SAPTO or applied against tax |
@@ -659,6 +661,45 @@ the surcharge is then nil, and any day without cover is refused as
 `period.unsupported`. The tests hold it to the ATO's Tom, Josh,
 Jacinta and Jill and Kevin examples and every tier boundary; see
 [calculation evidence](docs/calculation-evidence.md#medicare-levy-surcharge).
+
+## Private health insurance rebate
+
+`private_health_insurance_rebate` works out one person's private health
+insurance tax offset (ITAA 1997 Subdivision 61-G) and any excess premium
+reduction to repay (Private Health Insurance Act 2007 s 282-18) for an income
+year from 2020-21 to 2026-27. It takes the lines of the person's private
+health insurance statements as `lines`: each line's `premiums_eligible`
+(label J, the person's share of the premiums paid without lifetime health
+cover loading), `rebate_received` (label K, the person's share of the premium
+reduction) and `benefit_code` (label L: 30, 35 or 40 for premiums paid
+1 July to 31 March, 31, 36 or 41 for 1 April to 30 June, with the oldest
+person insured under 65, 65 to 69 or 70 or over).
+
+The tier comes from `income_for_surcharge_purposes` as established
+(`income-tests` works it out for 2024-25 to 2026-27), against the singles
+thresholds, or the family thresholds (PHI Act s 22-30) for a person married
+on 30 June, whose `spouse_income_for_surcharge_purposes` is added, or who
+maintained a dependent person who is their child or dependent sibling in the
+year (`maintained_dependent_person`). The family thresholds are double, and
+$1,500 more for each `dependent_children` after the first (s 22-40(4)); the
+count alone does not put a person on them. Each line's percentage is the
+ATO's for its period, band and tier, and its share of the PHII benefit is
+rounded to the cent. The offset is the share less the rebate received; the
+excess is the rebate received less the share. Each line stands alone, so an
+offset on one and an excess on another are both shown; give premiums whose
+reductions within a period differed as separate lines.
+The offset is refundable (s 67-23).
+
+It refuses premiums paid from 1 April 2027, whose percentages the ATO had not
+published (`private_health_insurance_rebate.rate_unpublished`), a line with a
+lifetime health cover loading (`private_health_insurance_rebate.lhc_loading`)
+and malformed lines (`private_health_insurance_rebate.lines_invalid`).
+`personal-tax-estimate` composes it for a full-year resident, taking the
+income figures from `medicare-levy-surcharge`: the offset comes off the total
+and the excess goes on it. The tests hold it to the ATO's Narelle, Peta, Mike
+and Elle, Zoe and Charlie, Toby and Donna examples and every published
+percentage and threshold; see
+[calculation evidence](docs/calculation-evidence.md#private-health-insurance-rebate).
 
 ## Division 293
 

@@ -23,6 +23,16 @@
   `tests/work_expenses.rs` holds it to the ATO's, PCG 2023/1's and TR 98/9's
   examples.
 
+- `private-health-insurance-rebate` works out the private health insurance
+  tax offset or the excess premium reduction to repay for 2020-21 to 2026-27
+  from the statement's lines: the tier from income for surcharge purposes, the
+  percentage for each period and age band, and each line's share of the PHII
+  benefit. `personal-tax-estimate` composes it for a full-year resident. New
+  codes: `private_health_insurance_rebate.lhc_loading`,
+  `private_health_insurance_rebate.lines_invalid` and
+  `private_health_insurance_rebate.rate_unpublished`.
+  `tests/private_health_insurance_rebate.rs` holds it to the ATO's examples
+  and every published percentage and threshold.
 - `depreciation-low-value-pool`, `depreciation-small-business-pool` and
   `capital-works` work out a low-value pool (ITAA 1997 ss 40-440 and
   40-445), a general small business pool with each year's low pool value
