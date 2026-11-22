@@ -48,6 +48,7 @@ fn every_code_at_a_refusal_site_is_catalogued_and_every_entry_is_used() {
         "engine/individual_offsets",
         "engine/work_expenses",
         "engine/ato_interest_penalties",
+        "engine/ess_discount",
     ]
     .into_iter()
     .flat_map(|dir| {

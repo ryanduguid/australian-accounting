@@ -38,8 +38,11 @@ impl<'a> Reader<'a> {
         }
     }
 
-    pub fn bad<T>(&self, key: &str, expected: &str) -> Result<T> {
-        refuse(INVALID, format!("{}: {key} must be {expected}.", self.name))
+    pub fn invalid<T>(&self, key: &str, expected: &str) -> Result<T> {
+        refuse(
+            "ess_discount.interests_invalid",
+            format!("{}: {key} must be {expected}.", self.name),
+        )
     }
 
     pub fn has(&self, key: &str) -> bool {
@@ -59,7 +62,7 @@ impl<'a> Reader<'a> {
     pub fn flag(&mut self, key: &'static str) -> Result<bool> {
         match self.value(key)? {
             Value::Bool(b) => Ok(*b),
-            _ => self.bad(key, "a boolean"),
+            _ => self.invalid(key, "a boolean"),
         }
     }
 
@@ -68,7 +71,7 @@ impl<'a> Reader<'a> {
         match self.value(key)? {
             Value::Null if nullable => Ok(None),
             Value::String(text) if dates::parse(text).is_some() => Ok(dates::parse(text)),
-            _ => self.bad(
+            _ => self.invalid(
                 key,
                 if nullable {
                     "a YYYY-MM-DD date or null"
@@ -83,7 +86,7 @@ impl<'a> Reader<'a> {
         let given = self.value(key)?.as_str();
         match allowed.iter().find(|a| Some(**a) == given) {
             Some(found) => Ok(found),
-            None => self.bad(key, &format!("one of {}", allowed.join(", "))),
+            None => self.invalid(key, &format!("one of {}", allowed.join(", "))),
         }
     }
 
@@ -250,7 +253,7 @@ fn held(mut reader: Reader<'_>, kind: Kind, acquired: i64) -> Result<Held<'_>> {
         _ => (reader.amount("market_value")?, Value::Null),
     };
     let mut conditions = reader.object("conditions")?.map_or_else(
-        || reader.bad("conditions", "an object"),
+        || reader.invalid("conditions", "an object"),
         |c| conditions(c, kind),
     )?;
     conditions.start_up = start_up(&mut reader)?;
@@ -336,11 +339,11 @@ const CAUSES: [&str; 5] = [
 
 fn forfeiture(reader: &mut Reader<'_>, kind: Kind, acquired: i64) -> Result<Forfeiture> {
     let Some(mut f) = reader.object("forfeiture")? else {
-        return reader.bad("forfeiture", "an object");
+        return reader.invalid("forfeiture", "an object");
     };
     let cause = f.choice("cause", &CAUSES)?;
     if kind == Kind::Share && matches!(cause, "lapsed_unexercised" | "cancellation_allowed") {
-        return f.bad(
+        return f.invalid(
             "cause",
             "scheme_condition, ceased_employment or other_choice for a share",
         );
@@ -367,7 +370,7 @@ fn included_year(f: &mut Reader<'_>, acquired: i64) -> Result<String> {
     if (first..=2026).any(|y| given == format!("{y}-{:02}", (y + 1) % 100)) {
         Ok(given)
     } else {
-        f.bad(
+        f.invalid(
             "year_included",
             &format!(
                 "an income year from {} to 2026-27",
