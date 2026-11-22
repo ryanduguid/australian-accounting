@@ -240,24 +240,25 @@ pub fn gst_annual_apportionment(args: &AnnualApportionmentArgs) -> Result<Value>
     let e = extents(args)?;
     let failing = failing(&rows);
     let eligible = failing.is_empty();
-    if elected && !eligible {
+    // s 131-20(1) ends an election on revocation, disallowance or the entity
+    // test failing, not on a later instalment or annual tax period election.
+    if elected && rows[0]["met"] == json!(false) {
         return refuse(
             "gst_annual_apportionment.election_status_unsettled",
-            "election_made is true but an eligibility condition of s 131-5(1) fails: s 131-5 governs making an election and s 131-20 when one ceases, which turns on the eligibility route and dates this command does not take.",
+            "election_made is true but the entity test of s 131-5(1)(a) fails: whether the election ceased turns on s 131-20(1)(c) or (d) and the income year or 31 July test, which this command does not take.",
         );
     }
-    let applies = eligible && elected;
-    let steps = credits(&gst, &e, applies)?;
+    let steps = credits(&gst, &e, elected)?;
     let rates = vec![rate("turnover_threshold", TURNOVER_THRESHOLD)];
     let mut out = derived_result(KIND, &year, steps, rates)?;
     out["eligible"] = json!(eligible);
-    out["applies"] = json!(applies);
+    out["applies"] = json!(elected);
     out["failing_conditions"] = Value::Array(failing);
     out["conditions"] = Value::Array(rows);
     out["consequences"] = match (eligible, elected) {
-        (true, true) => json!([ATTRIBUTION, CEASES]),
+        (_, true) => json!([ATTRIBUTION, CEASES]),
         (true, false) => json!([NO_ELECTION]),
-        (false, _) => json!([NOT_ELIGIBLE, CEASES]),
+        (false, false) => json!([NOT_ELIGIBLE, CEASES]),
     };
     Ok(out)
 }

@@ -2151,7 +2151,7 @@ pub const REFUSAL_CODES: &[(&str, &str)] = &[
     ),
     (
         "gst_annual_apportionment.election_status_unsettled",
-        "election_made is true but an eligibility condition of s 131-5(1) fails, and whether the election still has effect under s 131-20 is not worked out.",
+        "election_made is true but the entity test of s 131-5(1)(a) fails, and whether the election ceased under s 131-20(1)(c) or (d) is not worked out.",
     ),
     (
         "gst_annual_apportionment.fact_conflict",
