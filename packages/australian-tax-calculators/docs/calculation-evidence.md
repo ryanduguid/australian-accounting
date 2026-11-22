@@ -3951,6 +3951,55 @@ Choices the Act leaves to the reader:
 
 `resident-tax` gives the site's liabilities for the 2024-25 to 2026-27 vectors.
 
+## HELP indexation
+
+This command was added on 22 November 2026. HESA Division 140 and s 137-19A
+were read that day in compilation 105 (17 October 2026, C2026C00478, the latest
+on the Register), with the Universities Accord (Student Support and Other
+Measures) Act 2024 (No. 108, 2024, rectified version 2) and the Universities
+Accord (Cutting Student Debt by 20 Per Cent) Act 2025 (No. 30, 2025), each as
+made. The factors are the ATO's 'Study and training loan indexation rates'
+(last updated 17 April 2026) plus one, as s 140-20 has the Commissioner
+publish them.
+
+- Act No. 108, 2024 Sch 1 Part 1 made the factor the lower of the CPI and WPI
+  factors, and item 56 applies that from the financial year ending 30 June
+  2023, recalculating 2022-23 and 2023-24: the ATO shows 3.2% (previously
+  7.1%) and 4% (previously 4.7%). Before that the factor was the CPI factor
+  (the replaced words 'worked out as follows:'). Items 18 and 19 move both
+  factors to the quarters ending 31 December from 1 June 2025.
+- s 140-26 (Act No. 30, 2025 Sch 2 item 37), for 2024-25 only, takes 20% off
+  the step 6 amount before indexation and off the debts incurred from 1 July
+  to 31 December 2024 less their repayments; s 137-19A takes 20% off each
+  debt incurred from 1 January to 1 June 2025, which joins the 1 June 2026
+  calculation.
+- The map named 'ss 140-5 to 140-25'; there is no s 140-15 in compilation
+  105, and ss 140-26, 140-30 and 137-19A also apply.
+
+Choices the Act leaves to the reader:
+
+- A voluntary repayment counts from the date the operator gives. The ATO
+  says a payment can take up to 4 business days to be received and that
+  indexation applies if it is not received and processed before 1 June; the
+  result warns of this.
+- The operator places each voluntary repayment: against the debts indexed
+  (`voluntary_repayments`, step 3) or against the debts of the first half of
+  the year (`current_repayments`, s 140-25).
+- A debt with no `group` is a group of its own for the whole-dollar rule of
+  step 2A and s 140-25(1A).
+
+`tests/help_indexation.rs` holds these cases.
+
+| Case | Source | Command |
+|---|---|---|
+| 2024-25, $90,000 and an $11,000 debt in November 2024 | ATO Example 1 (Maylin) | $18,000 off, indexation $2,304, $83,104 (with the May 2025 debt, $90,304) |
+| 2024-25, $10,000 | ATO Example 2 (Asha, a VSL debt with the same arithmetic) | $2,000 off, indexation $256, $8,256 |
+| 2019-20, $15,000, $1,500 debt, $525 voluntary, $3,000 compulsory | HESA s 140-5 example, 7 years later | $12,975 before indexation, $13,208 |
+| $10,000 for each year | ATO rates | $10,180; $10,060; $10,390; $10,320; $10,400; $8,256; $10,280 |
+| 2025-26, $20,000, $5,000 proposed | steps 3 and s 140-25 | $15,420 before 1 June, $15,560 after, $140 saved |
+| 2024-25, $10,000, $1,000 proposed | s 140-26(1) | $7,430 before 1 June, $7,256 after |
+| Debts on 1 January, 1 June and 2 June 2025 | s 137-19A | $800, $800, $1,000 |
+
 ## Non-commercial losses
 
 This worksheet was added on 22 November 2026. ITAA 1997 Division 35 was read

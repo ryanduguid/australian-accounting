@@ -1368,6 +1368,12 @@ pub fn supported_periods(kind: &str) -> Vec<&'static str> {
         | "return_to_work_withholding"
         | "annuity_withholding"
         | "voluntary_agreement_withholding" => keys(PAYG_WITHHOLDING_COEFFICIENTS),
+        // HESA Division 140 as compilation 105 (17 October 2026) and the 2024 and
+        // 2025 amending Acts give it; the ATO has published a factor for 1 June
+        // 2020 to 2026 and none yet for 1 June 2027.
+        "help_indexation" => vec![
+            "2019-20", "2020-21", "2021-22", "2022-23", "2023-24", "2024-25", "2025-26",
+        ],
         _ => Vec::new(),
     }
 }
@@ -1767,6 +1773,10 @@ pub fn source_review(kind: &str) -> (&'static str, &'static str) {
         "government_super_amounts" => (
             "2026-11-22",
             "Superannuation (Government Co-contribution for Low Income Earners) Act 2003 ss 6 to 11, 12C and 12E, compilation 28 (1 July 2018 to 30 June 2027); its Regulations 2004 reg 24(2), compilation 8, and Regulations 2022 reg 15(2); ITAA 1997 ss 290-230 and 290-235, compilation 268 (1 October 2026), compared with compilation 210 (1 July 2020); income-tests' definitions in A New Tax System (Family Assistance) Act 1999 Sch 3 and ITAA 1997 s 995-1 compared with the 1 July 2020 compilations (101 and 210); Treasury Laws Amendment (Building a Stronger and Fairer Super System) Act 2026 Sch 4; ATO Government contributions (Table 25, 27 April 2026), Super co-contribution and Low income super tax offset (2 August 2023), Superannuation-related tax offsets (8 June 2026), myTax 2026 Government super contributions (1 June 2026) and the FBT rates pages (20 May 2026 and 1 April 2026)",
+        ),
+        "help_indexation" => (
+            "2026-11-22",
+            "HESA ss 137-19A, 140-5, 140-10, 140-20, 140-25, 140-26 and 140-30, compilation 105 (17 October 2026); Universities Accord (Student Support and Other Measures) Act 2024 (No. 108, 2024) Sch 1 items 18, 19 and 56; Universities Accord (Cutting Student Debt by 20 Per Cent) Act 2025 (No. 30, 2025) Sch 2 items 33 and 37; the ATO's 'Study and training loan indexation rates' (last updated 17 April 2026), 'View your study loan account online' Examples 1 and 2 (last updated 3 June 2026) and 'Voluntary repayments'",
         ),
         _ => ("", ""),
     }
@@ -2308,6 +2318,12 @@ pub fn library_evidence(kind: &str) -> [(&'static str, &'static str); 4] {
             "ATO super pages",
             "Angelo (Super co-contribution), Julie (Low income super tax offset) and Examples 1 to 3 (Superannuation-related tax offsets)",
             "2026-06-08",
+            "2026-11-22",
+        ),
+        "help_indexation" => (
+            "ATO View your study loan account online",
+            "Examples 1 (Maylin) and 2 (Asha)",
+            "2026-06-03",
             "2026-11-22",
         ),
         _ => ("", "", "", ""),
@@ -3516,6 +3532,48 @@ pub fn optional_inputs(kind: &str) -> Vec<(&'static str, &'static str)> {
             (
                 "income_tax_register_percentage",
                 "decimal string from 0 to 100, 12_week_register only and required there when a line is meal entertainment: the register percentage of ITAA 1936 s 51AEB(2), the deductions that would be allowable for the register period's meal entertainment over its expenses, x 100",
+            ),
+        ],
+        "help_indexation" => vec![
+            (
+                "previous_accumulated_debt",
+                "AUD, required (refused with its own code when absent): the accumulated HELP debt incurred on the preceding 1 June, as your ATO account shows it, before any 20% reduction; nil for none (HESA s 140-5(1) step 1)",
+            ),
+            (
+                "earlier_debts",
+                "list of up to 100 objects {incurred (YYYY-MM-DD, 1 January to 30 June of the preceding financial year), amount (AUD, as incurred, before any 20% reduction), group (optional text: debts with the same group are one step 2 group, such as one course with one provider)} (HESA s 140-5(1) steps 2 to 2C; s 137-19A reduces a debt incurred from 1 January to 1 June 2025)",
+            ),
+            (
+                "voluntary_repayments",
+                "list of up to 100 objects {date (YYYY-MM-DD, from 1 June of the preceding financial year to 31 May), amount (AUD)}: voluntary repayments of the debts above (HESA s 140-5(1) step 3)",
+            ),
+            (
+                "compulsory_repayments",
+                "AUD: compulsory repayment amounts assessed from the preceding 1 June to 31 May (HESA s 140-5(1) step 4); nil for none",
+            ),
+            (
+                "assessment_increases",
+                "AUD: increases to compulsory repayment amounts by amended assessments made in that period (step 5); nil for none",
+            ),
+            (
+                "assessment_reductions",
+                "AUD: reductions to compulsory repayment amounts by amended assessments made in that period (step 6); nil for none",
+            ),
+            (
+                "current_debts",
+                "list of up to 100 objects {incurred (YYYY-MM-DD, 1 July to 31 December of the financial year), amount (AUD, as incurred), group (optional text)}: HELP debts added after indexation (HESA s 140-25(1) and (1A))",
+            ),
+            (
+                "current_repayments",
+                "AUD: voluntary repayments of those current debts made on or after 1 July and before 1 June (HESA s 140-25(1)); nil for none",
+            ),
+            (
+                "proposed_repayment",
+                "AUD: a voluntary repayment to compare made before 1 June and on or after it; the command adds the two resulting debts and the saving from paying before 1 June",
+            ),
+            (
+                "debts_already_reduced",
+                "boolean: the amounts given already include the 20% reduction; true is refused, as the command applies it itself (HESA ss 137-19A and 140-26)",
             ),
         ],
         _ => Vec::new(),
@@ -4931,6 +4989,9 @@ pub fn input_units(kind: &str) -> Vec<(&'static str, &'static str)> {
             ("business_deductions", "AUD: deductions the person is entitled to as a result of carrying on a business"),
             ("residency", "full_year_resident; part_year_resident, working_holiday_maker and foreign_resident are refused"),
         ],
+        "help_indexation" => vec![
+            ("location_preferred", "boolean: the Secretary has determined that your indexation or debt is reduced as a location-preferred HELP debtor (HESA ss 140-10(1)(a), 142-10, 142-15, 144-5 and 144-10); true is refused"),
+        ],
         _ => Vec::new(),
     }
 }
@@ -6071,6 +6132,17 @@ pub fn examples(kind: &str) -> Vec<(&'static str, Example)> {
             ("assessable_income", Text("50420")),
             ("business_deductions", Text("0")),
             ("residency", Text("full_year_resident")),
+        ],
+        // The ATO's Maylin (View your study loan account online, Example 1):
+        // $90,000 on 1 July 2024 and an $11,000 debt in November 2024.
+        "help_indexation" => vec![
+            ("year", Text("2024-25")),
+            ("location_preferred", Flag(false)),
+            ("previous_accumulated_debt", Text("90000.00")),
+            (
+                "current_debts",
+                Json(r#"[{"incurred": "2024-11-15", "amount": "11000.00"}]"#),
+            ),
         ],
         _ => Vec::new(),
     }

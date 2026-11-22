@@ -6,6 +6,17 @@
 
 ### Added
 
+- `help-indexation` works out a HELP debt on each 1 June from 2020 to 2026
+  under HESA Division 140: the preceding balance, debts, repayments and
+  compulsory repayment amounts, indexation at the ATO's published factor (the
+  lower of CPI and WPI from 2022-23), the 2025 20% reduction of ss 137-19A
+  and 140-26 and the s 140-30 rounding, and a voluntary repayment's effect
+  made before 1 June or on or after it. New codes:
+  `help_indexation.date_outside_period`, `help_indexation.debt_missing`,
+  `help_indexation.entries_invalid`, `help_indexation.location_preferred`,
+  `help_indexation.reduction_already_applied` and
+  `help_indexation.repayments_exceed_debt`. `tests/help_indexation.rs` holds
+  it to the ATO's rates and its 2 reduction examples.
 - `work-expenses` works out an employee's working from home, car or
   self-education deduction for 2020-21 to 2026-27, one `method` a call: the
   fixed rate (52c with a dedicated home office to 2021-22, then PCG 2023/1's
