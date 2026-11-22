@@ -4082,6 +4082,26 @@ pub const REFUSAL_CODES: &[(&str, &str)] = &[
         "shares is not a list of at most 50 objects, each with amount and deductions.",
     ),
     (
+        "smsf_tax.disregarded_small_fund_assets",
+        "Income from segregated current pension assets was given for a fund with disregarded small fund assets (ITAA 1997 s 295-385(7)).",
+    ),
+    (
+        "smsf_tax.foreign_fund",
+        "The fund is not an Australian superannuation fund.",
+    ),
+    (
+        "smsf_tax.non_complying",
+        "The fund is not a complying superannuation fund for the year.",
+    ),
+    (
+        "smsf_tax.part_exceeds_total",
+        "No-TFN contributions exceed assessable contributions, or contribution deductions exceed deductions or assessable contributions.",
+    ),
+    (
+        "smsf_tax.proportion_invalid",
+        "exempt_proportion is not a decimal from 0 to 1.",
+    ),
+    (
         "super_benefit_tax.benefit_nil",
         "The superannuation lump sum or the value of the interest it is paid from is nil.",
     ),
@@ -4116,26 +4136,6 @@ pub const REFUSAL_CODES: &[(&str, &str)] = &[
     (
         "super_withholding.schedule_not_read",
         "The payment date is before 13 October 2020; Schedule 12 as it stood then was not read for this command.",
-    ),
-    (
-        "smsf_tax.disregarded_small_fund_assets",
-        "Income from segregated current pension assets was given for a fund with disregarded small fund assets (ITAA 1997 s 295-385(7)).",
-    ),
-    (
-        "smsf_tax.foreign_fund",
-        "The fund is not an Australian superannuation fund.",
-    ),
-    (
-        "smsf_tax.non_complying",
-        "The fund is not a complying superannuation fund for the year.",
-    ),
-    (
-        "smsf_tax.part_exceeds_total",
-        "No-TFN contributions exceed assessable contributions, or contribution deductions exceed deductions or assessable contributions.",
-    ),
-    (
-        "smsf_tax.proportion_invalid",
-        "exempt_proportion is not a decimal from 0 to 1.",
     ),
     (
         "trade_in.asset_invalid",
