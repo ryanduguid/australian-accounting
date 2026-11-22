@@ -1111,6 +1111,9 @@ pub fn supported_periods(kind: &str) -> Vec<&'static str> {
         // The income years holding the ATO rate periods bundled in
         // data/fuel-tax-credit-rates.json, 1 July 2022 to 31 January 2027.
         "fuel_tax_credits" => vec!["2022-23", "2023-24", "2024-25", "2025-26", "2026-27"],
+        // The financial years holding the substituted rates bundled in
+        // data/alcohol-excise-rates.json, 1 July 2022 to 31 January 2027.
+        "alcohol_excise" => vec!["2022-23", "2023-24", "2024-25", "2025-26", "2026-27"],
         "capital_gains" | "depreciation" => vec!["2025-26", "2026-27"],
         "quarterly_sg" => vec!["2025-26"],
         "resident_tax" => keys(RESIDENT_TAX_SCALES),
@@ -1405,6 +1408,10 @@ pub fn supported_periods(kind: &str) -> Vec<&'static str> {
 pub fn source_review(kind: &str) -> (&'static str, &'static str) {
     match kind {
         "gst" => ("2026-09-10", "GST fast facts: Charging GST"),
+        "alcohol_excise" => (
+            "2026-11-22",
+            "Excise Tariff Act 1921 ss 6A and 6L and the Schedule (definitions, the note on non-commercial liquor, items 1 to 3), compilation 58 (1 July 2026), the Schedule's items 1 to 3 compared with compilations 54, 55 and 56; Excise Act 1901 ss 77FA and 78, compilation 69 (27 August 2026); Excise Regulation 2015 ss 8, 62 and 64 and Sch 1 cl 1(1) item 3 and cl 2(1) item 10, (2) to (4), compilation 6 (29 November 2025), compared with compilations 4 and 5; the Commissioner's Notices of Substituted Rates of Excise Duty No. 1 and 3 of 2022 to 2025 and No. 1 and 3 of 2026; the ATO's Historical Excise Rates workbook (data.gov.au, 1 September 2026); the ATO's Excise duty rates for alcohol (QC63605, 29 July 2026), Calculating alcohol excise duty (QC63603, 15 May 2023), Remission scheme for alcohol manufacturers (QC65935, 18 November 2026) and Excise guidelines for the alcohol industry chapter 6",
+        ),
         "fuel_tax_credits" => (
             "2026-11-19",
             "Fuel Tax Act 2006 ss 41-5, 41-20, 43-5, 43-10, 47-5 and 47-10 at the ATO's legal database; the ATO's 'Rates - business' (QC44494, last updated 29 July 2026) and its pages for 2022-23 to 2026-27 (QC69964 and QC72768, last updated 27 June 2024; QC102637, 29 January 2025; QC105117, 28 April 2026; QC107638, 29 July 2026), their 192 rates equal to data.gov.au's 'Historical FTC rates' (August 2026); 'Working out your fuel tax credits' (QC44511, last updated 6 July 2021, step 3); 'Simplified fuel tax credits' (QC48520, 6 July 2021); 'Basic method for heavy vehicles' (QC64655, 2 June 2021: Table 1 and Jim's example); PCG 2016/2 paras 4 and 9 to 13; PCG 2021/2 paras 4 to 12 and its We Deliver example (paras 19 to 24)",
@@ -2597,6 +2604,20 @@ pub fn optional_inputs(kind: &str) -> Vec<(&'static str, &'static str)> {
                 "fraction, decimal string above 0 and at most 1, default 1: the extent you provide, or are liable to provide, the consideration (ss 11-30(3) and 131-40(2))",
             ),
         ],
+        "alcohol_excise" => vec![
+            (
+                "remission_used_this_year",
+                "AUD, required with a line marked remission and refused otherwise: the remissions and refunds under Excise Regulation 2015 Sch 1 cl 2(1) item 10 and cl 2(2) already applied for goods entered earlier in the financial year; the cap left is the year's cap less it",
+            ),
+            (
+                "manufacturer_from",
+                "YYYY-MM-DD date, with a line marked remission: the day the entity first became an alcohol manufacturer (its manufacturer licence's start); after the financial year's start it pro-rates the cap by the eligible days / 365 (cl 2(3)); absent, the entity was an alcohol manufacturer at the start of the year",
+            ),
+            (
+                "duty_paid",
+                "boolean, with a line marked remission: true when the duty on those goods was paid, so the amount is a refund (Sch 1 cl 1(1) item 3 and cl 2(2), refund code ERRO) counted towards the same cap",
+            ),
+        ],
         "fuel_tax_credits" => vec![
             (
                 "small_claimant",
@@ -3689,6 +3710,10 @@ pub fn input_units(kind: &str) -> Vec<(&'static str, &'static str)> {
     ];
     match kind {
         "gst" => vec![("amount", "AUD"), ("gst_inclusive", "boolean")],
+        "alcohol_excise" => vec![(
+            "lines",
+            "list of 1 to 1,000 objects, each with date (YYYY-MM-DD, the day the goods are entered for home consumption: the day of delivery under a periodic settlement permission, otherwise the day of payment; inside the financial year and from 1 July 2022 to 31 January 2027), product (beer, brandy, spirit for spirits not elsewhere included, or other_excisable_beverage, which includes a spirit beverage or RTD; wine, tobacco, fuel, concessional_spirit and non_commercial are refused), volume_litres (decimal string above 0, at most 4 decimal places, the dutiable volume at 20 degrees Celsius) and strength_percent (decimal string above 0 to 100, at most 3 decimal places, the alcoholic strength by volume at 20 degrees Celsius); for beer, container_litres (the individual container) with pressurised_system (boolean, required for a container of 8 to 48 litres: designed to connect to a pressurised gas or pump delivery system) unless brew_on_premises is true (produced for non-commercial purposes using commercial facilities, subitems 1.15 and 1.16); optionally labelled_strength_percent (Excise Act 1901 s 77FA: duty on it where higher; for goods entered unlabelled, the labelled strength of the same kind the manufacturer enters labelled, s 77FA(2)), remission (boolean: the goods meet Excise Regulation 2015 Sch 1 cl 2(1) item 10 (a), (b), (d) and (e)) and imported (boolean; true is refused)",
+        )],
         "fuel_tax_credits" => vec![(
             "lines",
             "list of 1 to 1,000 objects, each acquired (YYYY-MM-DD, the day the fuel was acquired, inside the income year and from 1 July 2022 to 31 January 2027) and either a line by use, with fuel (diesel, petrol, b5, b20, e10, e85, lpg, lng_cng or b100), quantity (decimal string at most 4 decimal places: litres, or kilograms for lng_cng) and use (heavy_vehicle_public_road: a vehicle above 4.5 tonnes GVM travelling on a public road, including fuel to power a bus's or coach's passenger air-conditioning, QC107638 note 1; other_business: every other business use, including other auxiliary equipment, off public roads and public road travel incidental to the vehicle's main use; light_vehicle_public_road: 4.5 tonnes GVM or less on a public road, which gets nil), or a line by the basic method for heavy vehicles (PCG 2021/2), with method basic_heavy_vehicle, fuel diesel, litres (the vehicle's eligible diesel), exactly one of public_road_km (actual) and total_km (98.4% taken as on public roads), and exactly one of rigid_truck_gross_weight_tonnes (above 4.5, at most 3 decimal places) and litres_per_km (the engine diagnostic report's driving fuel economy, above 0, at most 6 decimal places), or a line by use whose litres PCG 2016/2 Method 1 works out, with method litres_from_cost, fuel (a liquid fuel: diesel, petrol, b5, b20, e10, e85 or b100), use, cost (AUD, the GST inclusive spend on the fuel) and average_price_cents_per_litre (above 0, at most 4 decimal places: the average GST inclusive retail price of that fuel in the area of operation over the tax period, read from the Australian Institute of Petroleum's weekly pump prices, https://aip.com.au/pricing/pump-prices-retail/, as PCG 2016/2 para 9 says; this command holds no prices)",
@@ -5165,6 +5190,18 @@ pub fn examples(kind: &str) -> Vec<(&'static str, Example)> {
     use Example::{Flag, Json, Text, Whole};
     match kind {
         "gst" => vec![("amount", Text("1100.00")), ("gst_inclusive", Flag(true))],
+        // 10 cases of 24 x 375 ml cans and a 50 litre keg of 4.8% beer
+        // delivered on 15 September 2026: $208.09 at subitem 1.10 and $78.10
+        // at 1.11.
+        "alcohol_excise" => vec![
+            ("year", Text("2026-27")),
+            (
+                "lines",
+                Json(
+                    r#"[{"date": "2026-09-15", "product": "beer", "volume_litres": "90", "strength_percent": "4.8", "container_litres": "0.375"}, {"date": "2026-09-15", "product": "beer", "volume_litres": "50", "strength_percent": "4.8", "container_litres": "50"}]"#,
+                ),
+            ),
+        ],
         // 10,000 litres of diesel in a heavy vehicle on public roads and
         // 2,000 litres off road, acquired from 3 August 2026: $2,130 + $1,074.
         "fuel_tax_credits" => vec![

@@ -3,6 +3,10 @@
 
 pub const SCOPES: &[(&str, &str)] = &[
     (
+        "alcohol_excise",
+        "Excise duty on beer, spirits and other excisable beverages manufactured in Australia and entered for home consumption from 1 July 2022 to 31 January 2027, in one financial year from 2022-23 to 2026-27, at the substituted rate the Commissioner published for the day (Excise Tariff Act 1921 Schedule items 1 to 3, s 6A), with the remission for alcohol manufacturers under its yearly cap and the refund of duty paid where it was available (Excise Regulation 2015 Sch 1 cl 2(1) item 10). The operator establishes each line's product, dutiable volume and strength at 20 degrees Celsius under the measurement determinations, container and entry day, and the remission conditions other than the cap. Excludes licences, approvals and the free subitems 3.5 to 3.8, quotas in a declared period, other remissions, refunds and drawbacks, imported goods (customs duty), wine (wine equalisation tax), tobacco and fuel.",
+    ),
+    (
         "fuel_tax_credits",
         "Fuel tax credits for taxable fuel acquired from 1 July 2022 to 31 January 2027, in one income year from 2022-23 to 2026-27, by an entity registered or required to be registered for GST, for use in carrying on its enterprise (Fuel Tax Act 2006 s 41-5). The operator establishes each line: the fuel (diesel, petrol, B5, B20, E10, E85, LPG, LNG or CNG, or B100), the day it was acquired, its quantity in litres (LNG and CNG in kilograms) and its use: in a heavy vehicle (gross vehicle mass above 4.5 tonnes) travelling on a public road, including fuel to power a bus's or coach's passenger air-conditioning (QC107638 note 1); in all other business uses, including a heavy vehicle's other auxiliary equipment, travel off public roads and a heavy vehicle whose public road travel is incidental to its main use (s 43-10(4)); or in a vehicle of 4.5 tonnes GVM or less on a public road, which gets no credit (s 41-20). Each line takes the ATO's published rate for the day it was acquired (s 43-5(2) and (2A) item 1; for a heavy vehicle on a public road the rate net of the road user charge, s 43-10(3) and (6)), from the 16 rate periods bundled with this command, each with its ATO page and the day it was read; its credit is the quantity times the rate in cents, divided by 100 and rounded half up to the cent, and the lines' credits are added and the whole dollars, cents dropped, are the amount for BAS label 7D. A small claimant (credits of $10,000 or less in the previous 12 months and expected to be so in the current 12 months) may use the basic method for heavy vehicles for diesel (PCG 2021/2: public road litres are the public road kilometres, actual or 98.4% of the total, times the diesel consumption rate, from the ATO's rigid truck table by gross weight or the engine's diagnostic report; the rest of the diesel takes the other rate), PCG 2016/2 Method 1 (a liquid fuel's litres are its GST inclusive cost divided by the average GST inclusive price the operator reads for its fuel type, area and tax period from the Australian Institute of Petroleum's weekly retail prices) and Method 2 (every liquid fuel line at the rate on the last day of a tax period in which the rate changed only because of indexation). Given the day the return is given, lines acquired more than 4 years before it are flagged under s 47-5(2). Refuses a year outside 2022-23 to 2026-27, an acquisition outside the income year or after 31 January 2027 (the rates change at the February 2027 indexation), a basic method line for a fuel other than diesel, a Method 1 line for LPG, LNG or CNG, a rigid truck of 4.5 tonnes or less, public road litres above the diesel, Method 2 across a change other than indexation alone (29 September 2022, 1 April 2026 and 3 August 2026, and each 1 July) or for LPG, LNG or CNG, and a simplified method without the small claimant statement. Excludes deciding entitlement and registration, who acquired the fuel in a hire or supply chain, whether a road is public or travel incidental, the environmental criteria (s 41-25), apportioning fuel between uses (PCG 2016/8, FTD 2010/1), the auxiliary equipment percentages (PCG 2016/11) and the list of heavy vehicles used mainly off public roads, consumption rates for articulated combinations (give litres_per_km from the engine's report), the average price itself, converting LPG kilograms to litres, aviation fuel, fuel for packaging or supply, domestic heating, electricity generation and non-business claims, fuel manufactured or imported (s 43-5(2A) item 2), fuel tax adjustments (Division 44), attributing credits to a tax period (s 65-5), the s 47-5(1) limit and the s 47-10 exception, and substituted accounting periods.",
     ),
@@ -441,6 +445,10 @@ pub const SCOPES: &[(&str, &str)] = &[
 ];
 
 pub const SOURCES: &[(&str, &str)] = &[
+    (
+        "alcohol_excise",
+        "https://www.ato.gov.au/businesses-and-organisations/gst-excise-and-indirect-taxes/excise-on-alcohol/excise-duty-rates-for-alcohol",
+    ),
     (
         "fuel_tax_credits",
         "https://www.ato.gov.au/businesses-and-organisations/income-deductions-and-concessions/incentives-and-concessions/fuel-schemes/fuel-tax-credits-business/rates-business",
@@ -891,6 +899,18 @@ const FBT_GUIDE_REDUCTIONS: &str =
     "https://www.ato.gov.au/law/view/document?DocID=SAV/FBTGEMP/00020";
 
 pub const EXTRA_SOURCES: &[(&str, &[&str])] = &[
+    (
+        "alcohol_excise",
+        &[
+            "https://www.ato.gov.au/businesses-and-organisations/gst-excise-and-indirect-taxes/excise-on-alcohol/calculating-alcohol-excise-duty",
+            "https://www.ato.gov.au/businesses-and-organisations/gst-excise-and-indirect-taxes/excise-on-alcohol/excise-remissions-for-excisable-alcohol/remission-scheme-for-alcohol-manufacturers",
+            "https://www.ato.gov.au/law/view/document?DocID=SAV/ALCOHOL/00007",
+            "https://www.legislation.gov.au/C1921A00026/2026-07-01/2026-07-01/text/original/epub/OEBPS/document_1/document_1.html",
+            "https://www.legislation.gov.au/C1901A00009/2026-08-27/2026-08-27/text/original/epub/OEBPS/document_1/document_1.html",
+            "https://www.legislation.gov.au/F2015L00355/2025-11-29/2025-11-29/text/original/epub/OEBPS/document_1/document_1.html",
+            "https://data.gov.au/data/dataset/excise-data",
+        ],
+    ),
     (
         "fuel_tax_credits",
         &[
@@ -2343,6 +2363,10 @@ pub const BORROWING_PROJECTED: &str = "A row marked projected is after 2027-28, 
 /// in the law it does not apply.
 pub const UNPUBLISHED_2027_28: &[(&str, &str)] = &[
     (
+        "alcohol_excise",
+        "The excise duty rates for goods entered from 1 February 2027 had not been published when this worksheet was checked, so no 2027-28 rate is held.",
+    ),
+    (
         "work_expenses",
         "No cents per kilometre rate for 2027-28 had been determined under ITAA 1997 s 28-25(4) when this worksheet was checked.",
     ),
@@ -2443,6 +2467,43 @@ pub const REFUSAL_CODES: &[(&str, &str)] = &[
     (
         "annuity_withholding.income_not_whole_cents",
         "The annuity payment less the deductible amount divided by the instalments does not come to whole cents, which Schedule 6 does not round.",
+    ),
+    (
+        "alcohol_excise.classification_unsettled",
+        "A line's labelled strength is above its actual strength and would put the goods in another subitem, which Excise Act 1901 s 77FA does not settle.",
+    ),
+    (
+        "alcohol_excise.date_outside_year",
+        "A line's date is outside the financial year given.",
+    ),
+    (
+        "alcohol_excise.fact_conflict",
+        "manufacturer_from is after a line marked remission.",
+    ),
+    ("alcohol_excise.line_invalid", "A line is not an object."),
+    (
+        "alcohol_excise.lines_invalid",
+        "lines is not a list of 1 to 1,000 line objects.",
+    ),
+    (
+        "alcohol_excise.not_excisable",
+        "The goods are wine, non-commercial liquor made with non-commercial equipment, or beer or another beverage of 1.15% alcohol by volume or less, none of which is in Excise Tariff Act 1921 Schedule items 1 to 3.",
+    ),
+    (
+        "alcohol_excise.product_invalid",
+        "A line's product is not beer, brandy, spirit or other_excisable_beverage.",
+    ),
+    (
+        "alcohol_excise.product_out_of_scope",
+        "The line is tobacco, fuel, spirit under the free subitems 3.5 to 3.8 (an approval or determination), or imported goods (customs duty), none of which the worksheet works.",
+    ),
+    (
+        "alcohol_excise.quantity_invalid",
+        "A volume, container or strength is not a decimal string above 0 within its limit and decimal places.",
+    ),
+    (
+        "alcohol_excise.rate_unpublished",
+        "A line is on or after 1 February 2027, when the next substituted rates apply and none is held.",
     ),
     (
         "ato_interest_penalties.date_order",
@@ -3531,7 +3592,7 @@ pub const REFUSAL_CODES: &[(&str, &str)] = &[
     ),
     (
         "input.field_unknown",
-        "A field the worksheet or command does not take, or does not take beside the other inputs given, was given (fbt-loan, fbt-meal-entertainment, fbt-car-parking, fbt-debt-waiver, fbt-expense-payment, fbt-property, fbt-residual, fbt-housing, fbt-lafha, fbt-board, fbt-tax-exempt-body-entertainment, fbt-entertainment-classifier, fbt-meal-entertainment-register and its entries, fbt-minor-benefit-check, ppsr-timing, fhss and its contributions, government-super-amounts, personal_deductions and determination, division-296, depreciation, fuel-tax-credits and its lines, foreign-resident-tax, medicare-levy, medicare-levy-surcharge, payg-withholding, payg-gross-up, termination-payment, etp-tax-free-component, unused-leave-payment, the Schedule 5 methods, working-holiday-maker-withholding, study-loan-withholding, seniors-pensioners-withholding, seniors-pensioners-tax-offset, lump-sum-arrears-tax-offset, hire-purchase-schedule, chattel-mortgage-schedule, loan-transactions and its transactions and rate_changes, borrowing-expenses-schedule and its loans, business-capital-expenditure and its items, balancing-adjustment, its years and car_limit, trade-in, franking-account and its events, distributions and income_tax, dasp-tax, super-benefit-tax, super-withholding, gst-margin-scheme, wine-equalisation-tax and its dealings, luxury-car-tax and its lines, payroll-tax, cgt-parcels, its parcels and disposals, cgt-cost-base-adjustments, its parcels and events, fbt-ev-exemption-check, sb-cgt-concessions, small-business-income-offset, residency-tests, lodgment-required, trading-stock and its items, prepayments, ess-discount, depreciation-low-value-pool, gst-creditable-purpose-change, gst-annual-apportionment, gst-financial-acquisitions-threshold, gst-going-concern, gst-second-hand-goods, gst-bad-debt, depreciation-small-business-pool, capital-works, non-commercial-losses, psi-test, minors-income, smsf-tax, beneficiary-tax-offset, invalid-carer-tax-offset, zone-tax-offset and its dependants, net-medical-expenses-tax-offset, work-expenses, ato-interest-penalties and its payments and parts, private-health-insurance-rebate, rental-property and its loans, capital_works and depreciating_assets, horticulture-shearing-withholding, upward-variation-withholding, daily-casual-withholding, no-abn-withholding, entertainer-withholding, return-to-work-withholding, annuity-withholding, voluntary-agreement-withholding, rd-tax-offset, deferred-tax, foreign-income-conversion, foreign-income-tax-offset, contribution-caps given a carry-forward input, derive, personal-tax-estimate, dgr-check, income-tests and fbt-return only).",
+        "A field the worksheet or command does not take, or does not take beside the other inputs given, was given (fbt-loan, fbt-meal-entertainment, fbt-car-parking, fbt-debt-waiver, fbt-expense-payment, fbt-property, fbt-residual, fbt-housing, fbt-lafha, fbt-board, fbt-tax-exempt-body-entertainment, fbt-entertainment-classifier, fbt-meal-entertainment-register and its entries, fbt-minor-benefit-check, ppsr-timing, fhss and its contributions, government-super-amounts, personal_deductions and determination, division-296, depreciation, fuel-tax-credits and its lines, alcohol-excise and its lines, foreign-resident-tax, medicare-levy, medicare-levy-surcharge, payg-withholding, payg-gross-up, termination-payment, etp-tax-free-component, unused-leave-payment, the Schedule 5 methods, working-holiday-maker-withholding, study-loan-withholding, seniors-pensioners-withholding, seniors-pensioners-tax-offset, lump-sum-arrears-tax-offset, hire-purchase-schedule, chattel-mortgage-schedule, loan-transactions and its transactions and rate_changes, borrowing-expenses-schedule and its loans, business-capital-expenditure and its items, balancing-adjustment, its years and car_limit, trade-in, franking-account and its events, distributions and income_tax, dasp-tax, super-benefit-tax, super-withholding, gst-margin-scheme, wine-equalisation-tax and its dealings, luxury-car-tax and its lines, payroll-tax, cgt-parcels, its parcels and disposals, cgt-cost-base-adjustments, its parcels and events, fbt-ev-exemption-check, sb-cgt-concessions, small-business-income-offset, residency-tests, lodgment-required, trading-stock and its items, prepayments, ess-discount, depreciation-low-value-pool, gst-creditable-purpose-change, gst-annual-apportionment, gst-financial-acquisitions-threshold, gst-going-concern, gst-second-hand-goods, gst-bad-debt, depreciation-small-business-pool, capital-works, non-commercial-losses, psi-test, minors-income, smsf-tax, beneficiary-tax-offset, invalid-carer-tax-offset, zone-tax-offset and its dependants, net-medical-expenses-tax-offset, work-expenses, ato-interest-penalties and its payments and parts, private-health-insurance-rebate, rental-property and its loans, capital_works and depreciating_assets, horticulture-shearing-withholding, upward-variation-withholding, daily-casual-withholding, no-abn-withholding, entertainer-withholding, return-to-work-withholding, annuity-withholding, voluntary-agreement-withholding, rd-tax-offset, deferred-tax, foreign-income-conversion, foreign-income-tax-offset, contribution-caps given a carry-forward input, derive, personal-tax-estimate, dgr-check, income-tests and fbt-return only).",
     ),
     ("input.flag_invalid", "A flag is not a JSON boolean."),
     ("input.fraction_invalid", "A fraction is outside 0 to 1."),

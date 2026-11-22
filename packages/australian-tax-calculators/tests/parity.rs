@@ -29,7 +29,7 @@ use std::process::{Command, Stdio};
 /// `tests/fbt_tax_exempt_body_entertainment.rs`, `tests/lump_sum_arrears_offset.rs`,
 /// `tests/fbt_entertainment_classifier.rs`, `tests/fbt_minor_benefit.rs`,
 /// `tests/fhss.rs`, `tests/ppsr_timing.rs`, `tests/dasp_tax.rs`, `tests/super_benefit_tax.rs`, `tests/super_withholding.rs`, `tests/income_tests.rs`,
-/// `tests/franking_account.rs`, `tests/wine_equalisation_tax.rs`,
+/// `tests/franking_account.rs`, `tests/wine_equalisation_tax.rs`, `tests/alcohol_excise.rs`,
 /// `tests/luxury_car_tax.rs`, `tests/sb_cgt_concessions.rs`,
 /// `tests/private_health_insurance_rebate.rs`, `tests/depreciation_pools.rs`,
 /// `tests/withholding_schedules.rs`, `tests/payment_withholding.rs`,
@@ -43,7 +43,7 @@ use std::process::{Command, Stdio};
 /// `tests/foreign_income_tax_offset.rs`, `tests/trading_stock_prepayments.rs`,
 /// `tests/minors_income.rs`, `tests/smsf_tax.rs` and `tests/ess_discount.rs` cover
 /// them.
-const NEW_KINDS: [(&str, &str); 95] = [
+const NEW_KINDS: [(&str, &str); 96] = [
     ("super-withholding", "super_withholding"),
     ("super-benefit-tax", "super_benefit_tax"),
     ("fhss", "fhss"),
@@ -78,6 +78,7 @@ const NEW_KINDS: [(&str, &str); 95] = [
     ("fuel-tax-credits", "fuel_tax_credits"),
     ("payroll-tax", "payroll_tax"),
     ("wine-equalisation-tax", "wine_equalisation_tax"),
+    ("alcohol-excise", "alcohol_excise"),
     ("cgt-parcels", "cgt_parcels"),
     ("cgt-cost-base-adjustments", "cgt_cost_base_adjustments"),
     ("sb-cgt-concessions", "sb_cgt_concessions"),

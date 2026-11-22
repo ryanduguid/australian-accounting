@@ -1214,6 +1214,46 @@ rebate reductions for wine of 2017 and earlier vintages sold before 1 July
 | A $50,000 wholesale sale with $340,000 (2025-26) or $390,000 (2026-27, 2027-28) claimed earlier | Worked by hand under s 19-15(2) | Rebate earned $14,500, $10,000 within the cap |
 | A hamper's wine share, $150 | Library ¶22-280 | WET $43.50 |
 
+## Alcohol excise
+
+This worksheet was added on 22 November 2026. The Excise Tariff Act 1921 was
+read that day in compilation 58 (1 July 2026): ss 6A and 6L and the
+Schedule's definitions and items 1 to 3, whose text is the same in
+compilations 54 (31 March 2022), 55 (1 July 2023) and 56 (1 July 2024). The
+Excise Act 1901 ss 77FA and 78 were read in compilation 69 (27 August 2026),
+and the Excise Regulation 2015 s 8, ss 62 and 64 and Schedule 1 in
+compilation 6 (29 November 2025), with compilations 4 and 5 for the $350,000
+cap. The rates are the Commissioner's Notices of Substituted Rates of Excise
+Duty No. 1 and 3 of each year from 2022 to 2026, the February and August
+indexation; every value equals the ATO's Historical Excise Rates workbook
+(data.gov.au, 1 September 2026; 336 values across 28 dates from 1 February
+2022) and, for 2026, the ATO's 'Excise duty rates for alcohol' (QC63605, 29
+July 2026). The ATO's 'Calculating alcohol excise duty' (QC63603), 'Remission
+scheme for alcohol manufacturers' (QC65935, 18 November 2026) and chapter 6
+of the Excise guidelines for the alcohol industry were read the same day.
+
+Truncating the litres of alcohol to one decimal place is the option the
+guidelines give for the excise return ('may be truncated'); the command
+takes it, as the ATO's examples do. Section 77FA does not say which
+subitem's rate applies where the labelled strength would move the goods to
+another subitem, so that case is refused. The part-year cap is truncated to
+the cent; the ATO's example shows whole dollars.
+
+`tests/alcohol_excise.rs` holds these cases.
+
+| Case | Source | Worksheet |
+| --- | --- | --- |
+| 10 cases of 24 x 355 ml at 5% on 8 March 2023 | QC63603 (Brewery Co) | 1.10 at $57.79; 3.2802 LAL, 3.2; $184.92 |
+| 840 litres of gin at 37.2% on 10 February 2023 | QC63603 (Bottler's Gin) | 3.2 at $97.90; 312.4 LAL; $30,583.96 |
+| The same gin on 10 February 2025 | Excise guidelines Example 6M | $104.31; $32,586.444 truncated to $32,586.44 |
+| 840 litres of brandy at 37.2%; 100 litres of beer at 5% | Examples 6B and 6D | 312.48 LAL; 3.85 LAL |
+| RTDs of 189.5 LAL on 2 February 2025 and 1,041.3 LAL after | Example 6O | 2 lines: $103.89 and $104.31; $19,687.15 and $108,618.00 |
+| 3 days of brandy, 2,356.79 LAL | Examples 6K and 6L | One line, 2,356.7 LAL |
+| Every subitem on each period's first and last day | Notices No. 1 and 3, 2022 to 2026 | 10 LAL x each rate |
+| Draught beer from 3 February 2025 to 2026 | Excise Tariff Act s 6L | 1.11 stays $43.39 |
+| A licence from 30 October 2026 | QC65935 | Cap $267,397.26 |
+| Remission lines over the cap in 2025-26 and 2026-27 | Excise Regulation 2015 item 10(c)(i) | $350,000; $400,000 |
+
 ## Beneficiary tax offset
 
 Added on 22 November 2026. ITAA 1936 s 160AAA was read in compilation 193

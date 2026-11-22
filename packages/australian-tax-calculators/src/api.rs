@@ -157,6 +157,10 @@ const COMMAND_ARGS: &[(&str, &[(&str, Kind)])] = &[
         &[("lines", Json), ("year", Raw), ("scope_confirmed", Raw)],
     ),
     (
+        "alcohol-excise",
+        &[("lines", Json), ("year", Raw), ("scope_confirmed", Raw)],
+    ),
+    (
         "gst-margin-scheme",
         &[
             ("interest", Raw),
@@ -1776,6 +1780,7 @@ pub fn evaluate_coded(command: &str, v: &Value) -> Result<Value> {
         "division-296"
             | "depreciation"
             | "fuel-tax-credits"
+            | "alcohol-excise"
             | "medicare-levy"
             | "medicare-levy-surcharge"
             | "payg-withholding"
@@ -1898,6 +1903,21 @@ pub fn evaluate_coded(command: &str, v: &Value) -> Result<Value> {
                 small_claimant: small.as_ref(),
                 rate_at_period_end: period.as_ref(),
                 return_date: returned.as_ref(),
+                year: &a[1],
+                scope_confirmed: &a[2],
+            })
+        }
+        "alcohol-excise" => {
+            // Optional: the remission facts, required or taken only with a
+            // line marked remission.
+            let used = optional(v, "remission_used_this_year", Dec)?;
+            let from = optional(v, "manufacturer_from", Raw)?;
+            let paid = optional(v, "duty_paid", Raw)?;
+            engine::alcohol_excise(&engine::AlcoholExciseArgs {
+                lines: &a[0],
+                remission_used_this_year: used.as_ref(),
+                manufacturer_from: from.as_ref(),
+                duty_paid: paid.as_ref(),
                 year: &a[1],
                 scope_confirmed: &a[2],
             })

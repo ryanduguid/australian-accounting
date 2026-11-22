@@ -6160,6 +6160,8 @@ mod government_super_amounts;
 pub use government_super_amounts::{SPOUSE_INPUTS, government_super_amounts};
 mod wine_equalisation_tax;
 pub use wine_equalisation_tax::{WetArgs, wine_equalisation_tax};
+mod alcohol_excise;
+pub use alcohol_excise::{AlcoholExciseArgs, alcohol_excise};
 mod fbt_minor_benefit;
 pub use fbt_minor_benefit::{MinorBenefitArgs, fbt_minor_benefit_check};
 mod gst_margin_scheme;
@@ -6239,7 +6241,7 @@ pub use smsf_tax::smsf_tax;
 mod ess_discount;
 pub use ess_discount::{EssDiscountArgs, ess_discount};
 
-const KINDS: [&str; 109] = [
+const KINDS: [&str; 110] = [
     "gst",
     "gst_margin_scheme",
     "fuel_tax_credits",
@@ -6311,6 +6313,7 @@ const KINDS: [&str; 109] = [
     "income_tests",
     "ppsr_timing",
     "wine_equalisation_tax",
+    "alcohol_excise",
     "sb_cgt_concessions",
     "work_expenses",
     "ato_interest_penalties",
