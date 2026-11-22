@@ -586,8 +586,8 @@ fn disposal_in_the_year() {
 
 /// An asset first used after the property was first held counts all its
 /// decline when the property was available every day held, and is refused
-/// otherwise; one first used after the year, or before it was acquired, is a
-/// conflict.
+/// otherwise; one first used after the year, or before it was acquired yet
+/// said to be held when first used, is a conflict.
 #[test]
 fn asset_first_used_in_the_year() {
     let mut curtains = asset("2026-01-01", true, false);
@@ -658,4 +658,25 @@ fn asset_used_before_it_was_acquired() {
         code(&with(json!({"depreciating_assets": [borrowed]}))),
         "rental_property.fact_conflict"
     );
+}
+
+/// An asset used before it was acquired counts for the rental from its
+/// acquisition: one acquired after the property was disposed of is a
+/// conflict, and one acquired part way through a year with private use is
+/// refused.
+#[test]
+fn asset_rental_use_starts_at_the_later_of_first_use_and_acquisition() {
+    let mut pooled = asset("2026-03-01", false, false);
+    pooled["decline_in_value"] = json!("100.00");
+    pooled["first_used"] = json!("2025-01-01");
+    pooled["low_value_pool"] = json!(true);
+    let disposed = with(json!({
+        "disposed": "2025-12-31", "days_available": 184, "depreciating_assets": [pooled.clone()],
+    }));
+    assert_eq!(code(&disposed), "rental_property.fact_conflict");
+    let private_half =
+        with(json!({"days_available": 181, "depreciating_assets": [pooled.clone()]}));
+    assert_eq!(code(&private_half), "rental_property.days_unclear");
+    let every_day = with(json!({"depreciating_assets": [pooled]}));
+    assert_eq!(amount(&every_day, "decline_in_value"), "100.00");
 }

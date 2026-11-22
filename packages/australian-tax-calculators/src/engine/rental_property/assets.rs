@@ -88,30 +88,34 @@ fn reduced(
 }
 
 /// The days available and held the asset's decline is apportioned by: the
-/// property's, or all of them for an asset first used after the property was
-/// first held in a year it was available every day held. The start time can
-/// come before the asset was acquired (s 40-60(2)), but then it was not held
-/// when first used.
+/// property's, or all of them for an asset in use for the rental only from
+/// after the property was first held, in a year it was available every day
+/// held. The start time can come before the asset was acquired (s 40-60(2)),
+/// but then it was not held when first used, and its rental use starts when
+/// both have happened.
 fn days(
     fields: &Map<String, Value>,
     first_used: i64,
     acquired: i64,
     held: &Held,
 ) -> Result<(i64, i64)> {
-    if first_used > held.to {
-        return conflict("first_used must not be after the property was last held in the year.");
+    let from = first_used.max(acquired);
+    if from > held.to {
+        return conflict(
+            "first_used and acquired must not be after the property was last held in the year.",
+        );
     }
     if first_used < acquired && item_flag(fields, "held_when_first_used")? == Some(true) {
         return conflict(
             "An asset first used before it was acquired was not held when it was first used.",
         );
     }
-    if first_used <= held.from || held.available == held.days {
+    if from <= held.from || held.available == held.days {
         return Ok((held.available, held.days));
     }
     refuse(
         "rental_property.days_unclear",
-        "The asset was first used after the property was first held in the year, and it was not available for rent on every day held, so the share of its decline for rental use is not known from days_available.",
+        "The asset was first used or acquired after the property was first held in the year, and it was not available for rent on every day held, so the share of its decline for rental use is not known from days_available.",
     )
 }
 
