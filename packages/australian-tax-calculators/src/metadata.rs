@@ -4194,7 +4194,7 @@ pub fn input_units(kind: &str) -> Vec<(&'static str, &'static str)> {
             ("business", "carried_on, winding_up or not_carried_on: the business entity's business in the year (you, the partnership, or the entity using a passively held asset; s 328-110(1)(a) and (5))"),
             ("previous_year_turnover", "AUD, or null for no business carried on: the business entity's aggregated turnover for the previous year (s 328-110(1)(b)(i))"),
             ("year_before_turnover", "AUD, or null for no business carried on: its aggregated turnover for the year before the previous year (s 328-110(3))"),
-            ("likely_turnover", "AUD: its likely aggregated turnover for the year, as at its first day (s 328-110(1)(b)(ii) and (2))"),
+            ("likely_turnover", "AUD: its likely aggregated turnover for the year, worked out as at its first day, or as at the day it started the business if that was during the year (s 328-110(1)(b)(ii) and (2))"),
             ("year_turnover", "AUD: its aggregated turnover for the year, as at the end of the year (s 328-110(4))"),
             ("net_asset_value", "AUD, may be negative: the sum s 152-15 counts just before the CGT event, the net value of the CGT assets (s 152-20) of yours, your connected entities, your affiliates and entities connected with them"),
             ("active_days", "integer: the total days in the test period on which the asset was an active asset (s 152-40)"),
