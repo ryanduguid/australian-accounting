@@ -3258,6 +3258,89 @@ Choices the Act leaves to the reader:
 
 `resident-tax` gives the site's liabilities for the 2024-25 to 2026-27 vectors.
 
+## Foreign income conversion
+
+This worksheet was added on 22 November 2026. ITAA 1997 ss 960-49 to 960-55
+were read that day in compilation 268 (1 October 2026) and compared with
+compilation 210 (from 1 July 2020): s 960-50(6) differs only by items 9D to 9F
+(digital games), which the worksheet does not take. The Income Tax Assessment
+(1997 Act) Regulations 2021 (compilation 16, 27 June 2026; commenced 1 April
+2021) s 960-50.01 substitute item 8 and add items 11A and 12, and Schedule 2
+clause 3 sets the average rate; they apply to income years starting on or
+after 1 April 2021 (s 1000-1.02), so 2020-21 is under the Income Tax
+Assessment Regulations 1997 (compilation 85, in force 1 July 2020), reg
+960-50.01 and Schedule 2 clause 1.3, which read the same in substance. The
+ATO's Foreign exchange rates pages (read the same day) publish rates as the
+foreign currency equal to 1 AUD, from the Reserve Bank since 1 January 2020,
+and accept a bank's or another reliable external rate for a currency they do
+not list.
+
+Choices the Act leaves to the reader:
+
+- A specific rate must be for the day the item names. A rate for another day,
+  such as the last published one before a weekend, is the operator's judgement
+  and is refused rather than used.
+- Each amount is rounded half up to cents and the totals add the rounded
+  amounts; the ATO's examples show whole dollars.
+
+`tests/foreign_income_conversion.rs` holds these cases.
+
+| Case | Source | Worksheet |
+|---|---|---|
+| NZD1,000 and NZD1,500 paid when deductible at 1.10 | ATO 'Translation of foreign currency rental expenses' (AUD909, AUD1,364) | $909.09, $1,363.64 |
+| NZD600 at 1.20 | the same example (AUD500) | $500.00 |
+| NZD2,000 air conditioner held and paid for on the day of 1.05 | the same example's reasoning (AUD1,905); its answer line names the installation day, its figure the day of holding | $1,904.76 at item 2(a) |
+| Rent derived when the agent receives it | ATO 'Translation of foreign currency rental income' | item 6(b) |
+| USD6,000 at 0.6785, the average for the year ended 30 June 2026 | ATO rates for the financial year ending 30 June 2026 | $8,843.04 |
+| An average over 1 July 2025 to 1 July 2026 | Schedule 2 clause 3(1) | refused |
+| A specific rate for the day before | s 960-50(6) | refused |
+
+## Foreign income tax offset
+
+This worksheet was added on 22 November 2026. ITAA 1997 Division 770 and
+s 63-10(1) item 22 were read that day in compilation 268 (1 October 2026) and
+compared with compilation 210 (from 1 July 2020): ss 770-70 to 770-80 are the
+same; s 770-10 differs only by a removed offshore banking note and the added
+s 770-10(6) on foreign IIR and UTPR taxes, which decide what counts. The
+Income Tax Rates Act 1986 ss 3(1), 16, 18 and 20 were read in compilation 66
+(1 July 2026) and compared with compilation 55 (1 July 2020): the same, with
+the tax-free threshold $18,200 in both. The s 20(1) formula, (the tax-free
+threshold - $4,736) + $4,736 x months / 12, is an image in the Act; the
+ATO's legal database shows it with the history note that No 150 of 2011
+substituted it for 2012-13 onwards. The ATO's Guides to foreign income tax
+offset rules 2024, 2025 and 2026 add the Medicare levy and surcharge to income
+tax payable in steps 1 and 2.
+
+Choices the Act leaves to the reader:
+
+- The months of a part-year residency period run from the start of the month
+  residency began to the end of the month it ended (s 18(1)); 2 periods in one
+  month count it once. The threshold is worked exactly and shown to the cent.
+- A departure in July, which s 18(1)(a) does not literally cover, counts that
+  month, as the ATO's departure page counts the month you left.
+- The 2024 guide's step 1 for Anna includes $622.60 of Medicare levy, 2% of
+  $31,130 without the low income reduction; the stated method takes it as
+  given and the worked method is not offered for 2023-24.
+
+`tests/foreign_income_tax_offset.rs` holds these cases.
+
+| Case | Source | Worksheet |
+|---|---|---|
+| Anna, 2025-26: $31,130 taxable, $12,000 and $700 disregarded, $390.80 levy, $3,400 paid | FITO guide 2026 Example 16 | $2,459.60 - $260.80: $2,198.80 |
+| Anna, 2024-25, $513.00 levy | FITO guide 2025 Example 16 | $2,581.80; $2,321.00 |
+| Karen, 2025-26: $80,000 and $60,000, $2,000 paid | FITO guide 2026 Example 17 | $16,388 - $9,988: $6,400; $2,000 |
+| Anna and Karen, 2023-24, stated | FITO guide 2024 Examples 16 and 17 | $2,769.60; $6,900 and $2,000 |
+| $800 and $1,500 paid, default | s 770-75(2)(a) and note 1 | $800.00; $1,000.00 |
+| $1,500 and $300 under s 770-10(2), default | s 770-80 | $1,300.00 |
+| John, resident from 17 April, 3 months | ATO 'Tax-free threshold for newcomers to Australia' | $14,648.00 |
+| Britney, resident to 22 December 2025, 6 months | ATO 'Living overseas and becoming a foreign tax-resident' | $15,832.00 |
+| An eligible pensioner for part of the year | Rates Act s 18(2)(a) | $18,200.00 |
+| The worked limit for 2023-24 | resident-tax's years | refused |
+
+`medicare-levy` gives the levy for a single person without an exemption:
+$390.80 on $31,130 for 2025-26 and $513.00 for 2024-25, the guides' step 1
+totals less the basic tax.
+
 ## Personal tax estimate
 
 `personal-tax-estimate` adds no rate or threshold: each amount is a

@@ -6169,8 +6169,14 @@ mod small_business_income_offset;
 pub use small_business_income_offset::{
     SBITO_OPTIONAL, SmallBusinessIncomeOffsetArgs, small_business_income_offset,
 };
+mod foreign_income_conversion;
+pub use foreign_income_conversion::foreign_income_conversion;
+mod foreign_income_tax_offset;
+pub use foreign_income_tax_offset::{
+    FITO_OPTIONAL, ForeignIncomeTaxOffsetArgs, foreign_income_tax_offset,
+};
 
-const KINDS: [&str; 70] = [
+const KINDS: [&str; 72] = [
     "gst",
     "gst_margin_scheme",
     "fuel_tax_credits",
@@ -6241,6 +6247,8 @@ const KINDS: [&str; 70] = [
     "depreciation_small_business_pool",
     "capital_works",
     "small_business_income_offset",
+    "foreign_income_conversion",
+    "foreign_income_tax_offset",
 ];
 
 /// `periods(kind)`: accepted period arguments and inclusive calendar boundaries.

@@ -1136,6 +1136,12 @@ pub fn supported_periods(kind: &str) -> Vec<&'static str> {
         "small_business_income_offset" => vec![
             "2020-21", "2021-22", "2022-23", "2023-24", "2024-25", "2025-26", "2026-27",
         ],
+        // ITAA 1997 s 960-50 and ss 770-70 to 770-80 read the same in
+        // compilations 210 (1 July 2020) and 268 (1 October 2026); the worked
+        // limit takes only the years of RESIDENT_TAX_SCALES.
+        "foreign_income_conversion" | "foreign_income_tax_offset" => vec![
+            "2020-21", "2021-22", "2022-23", "2023-24", "2024-25", "2025-26", "2026-27",
+        ],
         "income_tests" => vec!["2024-25", "2025-26", "2026-27"],
         // The pools' rates and the capital works rates do not change in these
         // years; the small business pool's low pool value threshold does, by year.
@@ -1412,6 +1418,14 @@ pub fn source_review(kind: &str) -> (&'static str, &'static str) {
         "small_business_income_offset" => (
             "2026-11-22",
             "ITAA 1997 ss 328-110, 328-355 to 328-375, 4-10(3) and 63-10, compilation 268 (1 October 2026), against compilations 210 (1 July 2020; s 328-360(1) at 13%) and 223 (1 July 2021; 16%); the ATO's 'Small business income tax offset' page (last updated 7 May 2025)",
+        ),
+        "foreign_income_conversion" => (
+            "2026-11-22",
+            "ITAA 1997 ss 960-49 to 960-55, compilation 268 (1 October 2026), against compilation 210 (1 July 2020); Income Tax Assessment (1997 Act) Regulations 2021 s 960-50.01, Schedule 2 and s 1000-1.02, compilation 16 (27 June 2026); Income Tax Assessment Regulations 1997 reg 960-50.01 and Schedule 2, compilation 85 (in force 1 July 2020); the ATO's Translation (conversion) rules, General information on average rates and Foreign exchange rates pages",
+        ),
+        "foreign_income_tax_offset" => (
+            "2026-11-22",
+            "ITAA 1997 Division 770 (ss 770-5 to 770-80) and s 63-10(1) item 22, compilation 268 (1 October 2026), against compilation 210 (1 July 2020); Income Tax Rates Act 1986 ss 3(1), 16, 18 and 20, compilation 66 (1 July 2026), against compilation 55 (1 July 2020); the ATO's Guide to foreign income tax offset rules 2024, 2025 and 2026 and its part-year tax-free threshold pages",
         ),
         "income_tests" => (
             "2026-11-16",
@@ -1785,6 +1799,18 @@ pub fn library_evidence(kind: &str) -> [(&'static str, &'static str); 4] {
             "2025-05-07",
             "2026-11-22",
         ),
+        "foreign_income_conversion" => (
+            "ATO Translation of foreign currency rental expenses and rental income",
+            "NZD1,000 and NZD1,500 at 1.10, NZD600 at 1.20 and an NZD2,000 asset held and paid for on the day of 1.05: AUD909, AUD1,364, AUD500 and AUD1,905 in whole dollars",
+            "2016-03-01",
+            "2026-11-22",
+        ),
+        "foreign_income_tax_offset" => (
+            "ATO Guide to foreign income tax offset rules 2026, 2025 and 2024 and the part-year tax-free threshold pages",
+            "Anna's offset limit ($2,198.80 for 2025-26, $2,321.00 for 2024-25, $2,769.60 for 2023-24), Karen's ($6,400 and $6,900) and the thresholds of John ($14,648) and Britney ($15,832)",
+            "2026-06-03",
+            "2026-11-22",
+        ),
         "income_tests" => (
             "ATO income test pages",
             "Christina's repayment income (When you must repay your loan) and Tom's income for MLS purposes (Medicare levy surcharge income, thresholds and rates)",
@@ -1872,6 +1898,44 @@ pub fn optional_inputs(kind: &str) -> Vec<(&'static str, &'static str)> {
             (
                 "year_turnover",
                 "AUD, with net_small_business_income above nil only, and then required: your aggregated turnover for the year, worked out at its end (s 328-110(4))",
+            ),
+        ],
+        "foreign_income_tax_offset" => vec![
+            (
+                "tax_payable",
+                "AUD, for limit_method stated only, and then required: your income tax payable for the year disregarding tax offsets, with the Medicare levy and surcharge and without penalties or interest (s 770-75(2)(b)(i) and (3); the ATO guide's step 1)",
+            ),
+            (
+                "tax_payable_assumed",
+                "AUD, for limit_method stated only, and then required: the same on the s 770-75(4) assumptions (the guide's step 2)",
+            ),
+            (
+                "taxable_income",
+                "AUD, whole dollars, for limit_method worked only, and then required: your taxable income for the year",
+            ),
+            (
+                "disregarded_income",
+                "AUD, for limit_method worked only, and then required: the assessable income s 770-75(4)(a) leaves out: amounts on which foreign income tax that counts was paid, and other foreign-source ordinary or statutory income",
+            ),
+            (
+                "disregarded_deductions",
+                "AUD, for limit_method worked only, and then required: the deductions s 770-75(4)(b) leaves out: debt deductions attributable to an overseas permanent establishment and other deductions reasonably related to the disregarded income (not, for example, gifts or tax agent fees)",
+            ),
+            (
+                "medicare_levy",
+                "AUD, for limit_method worked only, and then required: the Medicare levy and Medicare levy surcharge on your taxable income, such as medicare-levy and medicare-levy-surcharge give",
+            ),
+            (
+                "medicare_levy_assumed",
+                "AUD, for limit_method worked only, and then required: the Medicare levy and surcharge on the income under the s 770-75(4) assumptions",
+            ),
+            (
+                "residency_periods",
+                "list of 1 to 12 objects {from, to}, YYYY-MM-DD dates inside the income year, for limit_method worked only: the periods you were an Australian resident when you were one for part of the year; omit for a resident for the whole year (Income Tax Rates Act 1986 ss 18 and 20)",
+            ),
+            (
+                "eligible_pensioner",
+                "boolean, with residency_periods only: you were an eligible pensioner for the year (s 16: paid a taxable pension, allowance or benefit under the Veterans' Entitlements Act 1986, the Military Rehabilitation and Compensation Act 2004 or the Social Security Act 1991 other than Youth Allowance, JobSeeker Payment or Special Benefit), so the full $18,200 applies (s 18(2)(a))",
             ),
         ],
         "balancing_adjustment" => vec![(
@@ -3559,6 +3623,14 @@ pub fn input_units(kind: &str) -> Vec<(&'static str, &'static str)> {
             ("shares", "list of up to 50 objects, each {amount, deductions} in AUD: a share of a small business entity's net small business income, or an amount s 328-355(c) covers, included in your assessable income (s 328-355(b), (c)), and your deductions attributable to it that s 328-370 covers; [] for none"),
             ("prescribed_person", "boolean: you are a prescribed person under s 102AC of the ITAA 1936 for the year (broadly, under 18 at its end); true is refused (s 328-375)"),
         ],
+        "foreign_income_conversion" => vec![
+            ("items", "list of 1 to 200 objects: kind (ordinary_income, statutory_income, deduction, depreciating_asset_cost, cgt_event or foreign_tax_paid); currency (a 3-letter code other than AUD); amount (a decimal string in that currency, at most 4dp); the kind's YYYY-MM-DD dates (derived, and received if received; included, and received if received; deductible, and paid if paid; held, and satisfied if the obligation was satisfied; event; paid); rate (the foreign currency equal to 1 AUD, as the ATO publishes rates, above zero, at most 6dp); rate_source (text of 1 to 200 characters: where the rate comes from); basis: specific with rate_date, the day the kind's rule translates on, or average with average_from and average_to, a period of at most 12 months containing that day"),
+        ],
+        "foreign_income_tax_offset" => vec![
+            ("foreign_tax_paid", "AUD: the foreign income tax you paid, or are treated as paying, on amounts included in your assessable income for the year that counts towards the offset (ITAA 1997 s 770-10(1), after s 770-10(3) to (6), s 770-130 and s 770-140), translated into AUD"),
+            ("nane_foreign_tax", "AUD: foreign income tax paid on s 23AI or 23AK non-assessable non-exempt income that counts towards the offset (s 770-10(2)); nil for none"),
+            ("limit_method", "default ($1,000, for a claim of no more than $1,000 or without working out s 770-75(2)(b)), stated (from your 2 income tax payable figures) or worked (a resident individual's, 2024-25 to 2026-27)"),
+        ],
         "income_tests" => vec![
             ("taxable_income", "AUD, whole dollars: taxable income, including any assessable FHSS released amount (nil for a loss)"),
             ("assessable_fhss_released_amount", "AUD: the amount ITAA 1997 s 313-20 includes in assessable income for released FHSS amounts"),
@@ -4248,6 +4320,30 @@ pub fn examples(kind: &str) -> Vec<(&'static str, Example)> {
             ("year_before_turnover", Text("18000.00")),
             ("likely_turnover", Text("22000.00")),
             ("year_turnover", Text("22000.00")),
+        ],
+        // Ex 16 of the ATO's Guide to foreign income tax offset rules 2026:
+        // Anna's $3,400 of foreign tax limited to $2,198.80.
+        "foreign_income_tax_offset" => vec![
+            ("year", Text("2025-26")),
+            ("foreign_tax_paid", Text("3400.00")),
+            ("nane_foreign_tax", Text("0.00")),
+            ("limit_method", Text("worked")),
+            ("taxable_income", Text("31130")),
+            ("disregarded_income", Text("12000.00")),
+            ("disregarded_deductions", Text("700.00")),
+            ("medicare_levy", Text("390.80")),
+            ("medicare_levy_assumed", Text("0.00")),
+        ],
+        // The ATO's rental expense example: NZD1,500 of interest paid on
+        // the day the rate was 1.10.
+        "foreign_income_conversion" => vec![
+            ("year", Text("2025-26")),
+            (
+                "items",
+                Json(
+                    r#"[{"kind": "deduction", "currency": "NZD", "amount": "1500.00", "deductible": "2025-07-01", "paid": "2025-07-01", "rate": "1.10", "rate_source": "the ATO's rental expense example", "basis": "specific", "rate_date": "2025-07-01"}]"#,
+                ),
+            ),
         ],
         "income_tests" => vec![
             ("year", Text("2025-26")),
