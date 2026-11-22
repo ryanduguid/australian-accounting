@@ -6236,8 +6236,10 @@ pub use foreign_income_tax_offset::{
 };
 mod minors_income;
 pub use minors_income::{MINORS_OPTIONAL, MinorsIncomeArgs, minors_income};
+mod smsf_tax;
+pub use smsf_tax::smsf_tax;
 
-const KINDS: [&str; 108] = [
+const KINDS: [&str; 109] = [
     "gst",
     "gst_margin_scheme",
     "fuel_tax_credits",
@@ -6346,6 +6348,7 @@ const KINDS: [&str; 108] = [
     "trading_stock",
     "prepayments",
     "minors_income",
+    "smsf_tax",
 ];
 
 /// `periods(kind)`: accepted period arguments and inclusive calendar boundaries.

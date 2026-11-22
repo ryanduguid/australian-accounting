@@ -14,7 +14,7 @@ use std::io::Write;
 use std::process::{Command, Stdio};
 
 /// The commands `derive` explains.
-const DERIVED: [&str; 78] = [
+const DERIVED: [&str; 79] = [
     "fbt",
     "fbt-car-statutory",
     "fbt-car-operating-cost",
@@ -75,6 +75,7 @@ const DERIVED: [&str; 78] = [
     "lump-sum-arrears-tax-offset",
     "income-tests",
     "government-super-amounts",
+    "smsf-tax",
     "business-capital-expenditure",
     "balancing-adjustment",
     "trade-in",
@@ -2441,7 +2442,7 @@ fn derive_refuses_what_it_does_not_explain() {
          annuity-withholding, voluntary-agreement-withholding, \
          rd-tax-offset, \
          hire-purchase-schedule, chattel-mortgage-schedule, loan-transactions, \
-         lump-sum-arrears-tax-offset, income-tests, government-super-amounts, business-capital-expenditure, balancing-adjustment, trade-in, dasp-tax, super-benefit-tax, super-withholding, gst-margin-scheme, etp-tax-free-component, payroll-tax, cgt-parcels, work-expenses, rental-property, gst-creditable-purpose-change, gst-annual-apportionment, gst-financial-acquisitions-threshold, gst-second-hand-goods, gst-bad-debt, cgt-cost-base-adjustments, foreign-income-tax-offset, not \"payg-gross-up\""
+         lump-sum-arrears-tax-offset, income-tests, government-super-amounts, smsf-tax, business-capital-expenditure, balancing-adjustment, trade-in, dasp-tax, super-benefit-tax, super-withholding, gst-margin-scheme, etp-tax-free-component, payroll-tax, cgt-parcels, work-expenses, rental-property, gst-creditable-purpose-change, gst-annual-apportionment, gst-financial-acquisitions-threshold, gst-second-hand-goods, gst-bad-debt, cgt-cost-base-adjustments, foreign-income-tax-offset, not \"payg-gross-up\""
     );
 }
 

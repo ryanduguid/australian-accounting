@@ -343,6 +343,10 @@ pub const SCOPES: &[(&str, &str)] = &[
         "The tax on one individual's taxable income under Division 6AA of Part III of the ITAA 1936 (minors' unearned income) for an income year from 2024-25 to 2026-27 ending on 30 June, on the individual's own return, not a trustee's under s 98 (Income Tax Rates Act 1986 Schedule 12): a full-year Australian resident, or a full-year foreign resident who is a prescribed non-resident, with ordinary taxable income only (no special income component, superannuation or employment termination remainder, or part-year tax-free threshold). Whether the individual is an excepted person, which income is excepted assessable income, the part of each trust share to which the Division applies and every deduction the Act relates to eligible income are the operator's established facts, as the Commissioner's opinion settles them. Basic income tax before offsets and levies; years before 2024-25 are outside it because the ordinary scales it uses start then.",
     ),
     (
+        "smsf_tax",
+        "The income tax calculation statement (item 13) of one complying self managed superannuation fund that is an Australian superannuation fund, for an income year from 2020-21 to 2026-27, from the operator's established figures: assessable contributions (ITAA 1997 Subdivision 295-C) and the no-TFN-quoted part (s 295-610); net non-arm's length income (s 295-550(1), (2), (4) and (5), less the deductions attributable to it; label U) and the general expense amounts of s 295-550(8) and (9); income from segregated current pension assets (s 295-385), other income to which the actuary's proportion applies (s 295-390), and income from segregated non-current assets; the actuary's proportion; deductions, already apportioned for exempt income, and the part attributable to contributions; the tax offsets, credits, PAYG instalments and s 102AAM interest charge; and whether the fund was newly registered or wound up in the year. It works out exempt current pension income (the proportion's product rounded down to whole dollars), taxable income, the non-arm's length component (s 295-545(2A)) taxed at 45% and the low tax component at 15% (Income Tax Rates Act 1986 s 26(1)), the 32% extra tax on no-TFN-quoted contributions (s 29), gross tax, the offsets in the return's order, the supervisory levy lines L, M and N ($259 a year, Supervisory Levy Imposition Regulations 2018 s 6) and the amount due or refundable. Excludes non-complying and foreign funds, a change of tax status (ss 295-320 and 295-325), funds other than SMSFs, the actuary's certificate and every judgement it rests on (which assets are segregated, the s 295-385(9) choice, the disregarded small fund assets test), whether income is non-arm's length (including under a limited recourse borrowing arrangement), deduction apportionment (TR 93/17), tax losses (Division 36) and capital losses, and the offsets' own rules.",
+    ),
+    (
         "psi_test",
         "Whether the personal services income rules (ITAA 1997 Part 2-42) apply to one individual's personal services income for an income year from 2020-21 to 2026-27, from the operator's answers: whether the income is mainly a reward for personal efforts or skills, who receives it, a determination in force, each payer with its associates and what it paid for, the principal work by others, an apprentice and the business premises; s 87-40 is not applied to an agent on 75% or more commission, Australian government agencies are entered as s 87-35 treats them, and whether the Commissioner would make a determination is not decided.",
     ),
@@ -853,6 +857,10 @@ pub const SOURCES: &[(&str, &str)] = &[
     (
         "foreign_income_tax_offset",
         "https://www.ato.gov.au/law/view/document?docid=PAC/19970038/770-75",
+    ),
+    (
+        "smsf_tax",
+        "https://www.legislation.gov.au/C2004A05138/2026-10-01/2026-10-01/text/original/epub/OEBPS/document_6/document_6.html",
     ),
 ];
 
@@ -1833,6 +1841,16 @@ pub const EXTRA_SOURCES: &[(&str, &[&str])] = &[
         ],
     ),
     (
+        "smsf_tax",
+        &[
+            "https://www.legislation.gov.au/C2004A03348/latest/text",
+            "https://www.legislation.gov.au/F2018L00605/latest/text",
+            "https://www.legislation.gov.au/C2024A00052/asmade/text",
+            "https://www.ato.gov.au/forms-and-instructions/self-managed-superannuation-fund-annual-return-2026-instructions/instructions-to-complete-your-smsf-annual-return-2026/section-d-income-tax-calculation-statement-item-13",
+            "https://www.ato.gov.au/individuals-and-families/super-for-individuals-and-families/self-managed-super-funds-smsf/smsf-administration-and-reporting/exempt-current-pension-income",
+        ],
+    ),
+    (
         "psi_test",
         &[
             "https://www.legislation.gov.au/C2004A05138/2020-07-01/2020-07-01/text/original/epub/OEBPS/document_3/document_3.html",
@@ -2020,6 +2038,12 @@ pub const EXTRA_WARNINGS: &[(&str, &[&str])] = &[
         "minors_income",
         &[
             "A prescribed person's low income tax offset cannot exceed the basic income tax liability not attributable to eligible taxable income (ITAA 1997 s 61-115(2)); tax_on_other_income is that part where the special rates apply. No offset or levy is applied here.",
+        ],
+    ),
+    (
+        "smsf_tax",
+        &[
+            "The ATO assesses the fund from its return; this is a check of the return's item 13, not a lodgment. The ATO has not published the SMSF annual return 2027 instructions, so 2026-27 follows the law in force on 22 November 2026 and the 2026 return's labels.",
         ],
     ),
     (
@@ -3488,7 +3512,7 @@ pub const REFUSAL_CODES: &[(&str, &str)] = &[
     ),
     (
         "input.field_unknown",
-        "A field the worksheet or command does not take, or does not take beside the other inputs given, was given (fbt-loan, fbt-meal-entertainment, fbt-car-parking, fbt-debt-waiver, fbt-expense-payment, fbt-property, fbt-residual, fbt-housing, fbt-lafha, fbt-board, fbt-tax-exempt-body-entertainment, fbt-entertainment-classifier, fbt-meal-entertainment-register and its entries, fbt-minor-benefit-check, ppsr-timing, fhss and its contributions, government-super-amounts, personal_deductions and determination, division-296, depreciation, fuel-tax-credits and its lines, foreign-resident-tax, medicare-levy, medicare-levy-surcharge, payg-withholding, payg-gross-up, termination-payment, etp-tax-free-component, unused-leave-payment, the Schedule 5 methods, working-holiday-maker-withholding, study-loan-withholding, seniors-pensioners-withholding, seniors-pensioners-tax-offset, lump-sum-arrears-tax-offset, hire-purchase-schedule, chattel-mortgage-schedule, loan-transactions and its transactions and rate_changes, borrowing-expenses-schedule and its loans, business-capital-expenditure and its items, balancing-adjustment, its years and car_limit, trade-in, franking-account and its events, distributions and income_tax, dasp-tax, super-benefit-tax, super-withholding, gst-margin-scheme, wine-equalisation-tax and its dealings, luxury-car-tax and its lines, payroll-tax, cgt-parcels, its parcels and disposals, cgt-cost-base-adjustments, its parcels and events, fbt-ev-exemption-check, fbt-instalment, sb-cgt-concessions, small-business-income-offset, residency-tests, lodgment-required, trading-stock and its items, prepayments, depreciation-low-value-pool, gst-creditable-purpose-change, gst-annual-apportionment, gst-financial-acquisitions-threshold, gst-going-concern, gst-second-hand-goods, gst-bad-debt, depreciation-small-business-pool, capital-works, non-commercial-losses, psi-test, minors-income, beneficiary-tax-offset, invalid-carer-tax-offset, zone-tax-offset and its dependants, net-medical-expenses-tax-offset, work-expenses, ato-interest-penalties and its payments and parts, private-health-insurance-rebate, rental-property and its loans, capital_works and depreciating_assets, horticulture-shearing-withholding, upward-variation-withholding, daily-casual-withholding, no-abn-withholding, entertainer-withholding, return-to-work-withholding, annuity-withholding, voluntary-agreement-withholding, rd-tax-offset, deferred-tax, foreign-income-conversion, foreign-income-tax-offset, contribution-caps given a carry-forward input, derive, personal-tax-estimate, dgr-check, income-tests and fbt-return only).",
+        "A field the worksheet or command does not take, or does not take beside the other inputs given, was given (fbt-loan, fbt-meal-entertainment, fbt-car-parking, fbt-debt-waiver, fbt-expense-payment, fbt-property, fbt-residual, fbt-housing, fbt-lafha, fbt-board, fbt-tax-exempt-body-entertainment, fbt-entertainment-classifier, fbt-meal-entertainment-register and its entries, fbt-minor-benefit-check, ppsr-timing, fhss and its contributions, government-super-amounts, personal_deductions and determination, division-296, depreciation, fuel-tax-credits and its lines, foreign-resident-tax, medicare-levy, medicare-levy-surcharge, payg-withholding, payg-gross-up, termination-payment, etp-tax-free-component, unused-leave-payment, the Schedule 5 methods, working-holiday-maker-withholding, study-loan-withholding, seniors-pensioners-withholding, seniors-pensioners-tax-offset, lump-sum-arrears-tax-offset, hire-purchase-schedule, chattel-mortgage-schedule, loan-transactions and its transactions and rate_changes, borrowing-expenses-schedule and its loans, business-capital-expenditure and its items, balancing-adjustment, its years and car_limit, trade-in, franking-account and its events, distributions and income_tax, dasp-tax, super-benefit-tax, super-withholding, gst-margin-scheme, wine-equalisation-tax and its dealings, luxury-car-tax and its lines, payroll-tax, cgt-parcels, its parcels and disposals, cgt-cost-base-adjustments, its parcels and events, fbt-ev-exemption-check, fbt-instalment, sb-cgt-concessions, small-business-income-offset, residency-tests, lodgment-required, trading-stock and its items, prepayments, depreciation-low-value-pool, gst-creditable-purpose-change, gst-annual-apportionment, gst-financial-acquisitions-threshold, gst-going-concern, gst-second-hand-goods, gst-bad-debt, depreciation-small-business-pool, capital-works, non-commercial-losses, psi-test, minors-income, smsf-tax, beneficiary-tax-offset, invalid-carer-tax-offset, zone-tax-offset and its dependants, net-medical-expenses-tax-offset, work-expenses, ato-interest-penalties and its payments and parts, private-health-insurance-rebate, rental-property and its loans, capital_works and depreciating_assets, horticulture-shearing-withholding, upward-variation-withholding, daily-casual-withholding, no-abn-withholding, entertainer-withholding, return-to-work-withholding, annuity-withholding, voluntary-agreement-withholding, rd-tax-offset, deferred-tax, foreign-income-conversion, foreign-income-tax-offset, contribution-caps given a carry-forward input, derive, personal-tax-estimate, dgr-check, income-tests and fbt-return only).",
     ),
     ("input.flag_invalid", "A flag is not a JSON boolean."),
     ("input.fraction_invalid", "A fraction is outside 0 to 1."),
@@ -4094,6 +4118,26 @@ pub const REFUSAL_CODES: &[(&str, &str)] = &[
         "The payment date is before 13 October 2020; Schedule 12 as it stood then was not read for this command.",
     ),
     (
+        "smsf_tax.disregarded_small_fund_assets",
+        "Income from segregated current pension assets was given for a fund with disregarded small fund assets (ITAA 1997 s 295-385(7)).",
+    ),
+    (
+        "smsf_tax.foreign_fund",
+        "The fund is not an Australian superannuation fund.",
+    ),
+    (
+        "smsf_tax.non_complying",
+        "The fund is not a complying superannuation fund for the year.",
+    ),
+    (
+        "smsf_tax.part_exceeds_total",
+        "No-TFN contributions exceed assessable contributions, or contribution deductions exceed deductions or assessable contributions.",
+    ),
+    (
+        "smsf_tax.proportion_invalid",
+        "exempt_proportion is not a decimal from 0 to 1.",
+    ),
+    (
         "trade_in.asset_invalid",
         "replacement_asset is not passenger_car or other.",
     ),
@@ -4388,5 +4432,129 @@ pub const LODGMENT_PROVISIONS: [(&str, &str, &str, &str); 23] = [
         "subsection 7(3)",
         "Table K item (2)",
         "eligible for the seniors and pensioners tax offset, with rebate income under the year's amount",
+    ),
+];
+
+/// `smsf_tax`: (id, authority, formula, return label) for each amount, in order.
+pub const SMSF_TAX_STEPS: [(&str, &str, &str, &str); 20] = [
+    (
+        "gross_income",
+        "ITAA 1997 s 295-10(1) step 2 and SAR 2026 label W: assessable contributions (Subdivision 295-C), net non-arm's length income (label U) and the fund's other ordinary and statutory income",
+        "assessable_contributions + net_non_arms_length_income + segregated_pension_income + unsegregated_income + segregated_non_current_income",
+        "W",
+    ),
+    (
+        "exempt_current_pension_income",
+        "ITAA 1997 s 295-385(1) (income from segregated current pension assets) and s 295-390(1) and (3) (the actuary's proportion of other income, not non-arm's length income, contributions or income from segregated non-current assets, s 295-390(2)); SAR 2026 label Y, in whole dollars, the proportion's product rounded down",
+        "segregated_pension_income + floor(unsegregated_income x exempt_proportion)",
+        "Y",
+    ),
+    (
+        "total_assessable_income",
+        "SAR 2026 label V: gross income less exempt current pension income",
+        "gross_income - exempt_current_pension_income",
+        "V",
+    ),
+    (
+        "taxable_income",
+        "ITAA 1997 s 4-15 and SAR 2026 labels O and A: total assessable income less deductions; nil for a loss",
+        "max(0, total_assessable_income - deductions)",
+        "A",
+    ),
+    (
+        "loss",
+        "SAR 2026 label O: the loss, which Section E carries forward (Division 36, not worked out here)",
+        "max(0, deductions - total_assessable_income)",
+        "",
+    ),
+    (
+        "non_arms_length_component",
+        "ITAA 1997 s 295-545(2A): the lesser of net non-arm's length income under s 295-550(1), (2), (4) and (5) plus that under s 295-550(8) and (9), and taxable income less assessable contributions plus the deductions attributable to them (not below nil)",
+        "min(net_non_arms_length_income + general_expense_non_arms_length_income, max(0, taxable_income - assessable_contributions + contribution_deductions))",
+        "",
+    ),
+    (
+        "low_tax_component",
+        "ITAA 1997 s 295-545(3): the rest of taxable income",
+        "taxable_income - non_arms_length_component",
+        "",
+    ),
+    (
+        "tax_on_taxable_income",
+        "Income Tax Rates Act 1986 s 26(1): 15% of the low tax component and 45% of the non-arm's length component",
+        "low_tax_component x low_tax_rate + non_arms_length_component x non_arms_length_rate",
+        "T1",
+    ),
+    (
+        "no_tfn_contributions_tax",
+        "ITAA 1997 ss 295-605 and 295-610 and Income Tax Rates Act 1986 s 29(2): the 45% top rate plus 2% less 15%",
+        "no_tfn_contributions x no_tfn_rate",
+        "J",
+    ),
+    (
+        "gross_tax",
+        "ITAA 1997 s 295-10(1) steps 1 and 5; SAR 2026 label B",
+        "tax_on_taxable_income + no_tfn_contributions_tax",
+        "B",
+    ),
+    (
+        "subtotal_1",
+        "ITAA 1997 s 295-10(1) step 6; SAR 2026 label T2: gross tax less non-refundable non-carry forward tax offsets (label C), not below nil",
+        "max(0, gross_tax - non_refundable_offsets)",
+        "T2",
+    ),
+    (
+        "non_refundable_offsets_lost",
+        "SAR 2026 label T2: the non-refundable non-carry forward tax offsets above gross tax are lost",
+        "max(0, non_refundable_offsets - gross_tax)",
+        "",
+    ),
+    (
+        "subtotal_2",
+        "SAR 2026 label T3: subtotal 1 less non-refundable carry forward tax offsets (label D), not below nil",
+        "max(0, subtotal_1 - carry_forward_offsets)",
+        "T3",
+    ),
+    (
+        "carry_forward_offsets_unused",
+        "SAR 2026 label T3: the carry forward tax offsets above subtotal 1, which Division 65 may carry forward",
+        "max(0, carry_forward_offsets - subtotal_1)",
+        "",
+    ),
+    (
+        "tax_payable",
+        "SAR 2026 label T5: subtotal 2 less refundable tax offsets (label E), not below nil",
+        "max(0, subtotal_2 - refundable_offsets)",
+        "T5",
+    ),
+    (
+        "tax_offset_refunds",
+        "SAR 2026 label I: the refundable tax offsets above subtotal 2",
+        "max(0, refundable_offsets - subtotal_2)",
+        "I",
+    ),
+    (
+        "supervisory_levy",
+        "Superannuation (Self Managed Superannuation Funds) Supervisory Levy Imposition Regulations 2018 s 6; SAR 2026 label L: the levy for the next year, paid with this return",
+        "levy",
+        "L",
+    ),
+    (
+        "levy_adjustment_wound_up",
+        "SAR 2026 label M and table 9: an existing fund wound up in the year pays no levy for the next year",
+        "levy",
+        "M",
+    ),
+    (
+        "levy_adjustment_new_fund",
+        "SAR 2026 label N and table 9: a newly registered fund not wound up in the year also pays the levy for this year",
+        "levy",
+        "N",
+    ),
+    (
+        "amount_due_or_refundable",
+        "SAR 2026 label S: tax payable, the s 102AAM interest charge (G), the levy (L) and the new fund adjustment (N), less eligible credits (H), tax offset refunds (I), PAYG instalments (K) and the wound up adjustment (M); negative is a refund",
+        "tax_payable + interest_charge + supervisory_levy + levy_adjustment_new_fund - eligible_credits - tax_offset_refunds - payg_instalments - levy_adjustment_wound_up",
+        "S",
     ),
 ];

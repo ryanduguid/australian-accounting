@@ -318,6 +318,19 @@
   `psi_test.others_exceed_psi`, `psi_test.payers_invalid` and
   `psi_test.premises_invalid`. `tests/psi_test.rs` runs the page's 19 cases.
 
+- `smsf-tax` works out a complying SMSF's income tax calculation statement
+  (item 13 of the annual return) for 2020-21 to 2026-27: exempt current
+  pension income by the segregated method, the actuary's proportion or both
+  (ITAA 1997 ss 295-385 and 295-390), the non-arm's length component of
+  s 295-545(2A) at 45% and the low tax component at 15%, the 32% extra tax on
+  no-TFN-quoted contributions, the offsets in the return's order, the $259
+  supervisory levy with the new and wound up fund adjustments, and the amount
+  due or refundable. New codes: `smsf_tax.disregarded_small_fund_assets`,
+  `smsf_tax.foreign_fund`, `smsf_tax.non_complying`,
+  `smsf_tax.part_exceeds_total` and `smsf_tax.proportion_invalid`.
+  `tests/smsf_tax.rs` holds it to the ATO's SMSF annual return 2026
+  instructions' examples.
+
 - `ato-interest-penalties` works the general interest charge (TAA 1953
   ss 8AAC and 8AAD), the shortfall interest charge (Sch 1 s 280-105), the
   failure to lodge on time penalty (s 286-80), the false or misleading

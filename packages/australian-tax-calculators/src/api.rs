@@ -1016,6 +1016,34 @@ const COMMAND_ARGS: &[(&str, &[(&str, Kind)])] = &[
         ],
     ),
     (
+        "smsf-tax",
+        &[
+            ("complying_fund", Raw),
+            ("australian_superannuation_fund", Raw),
+            ("assessable_contributions", Dec),
+            ("no_tfn_contributions", Dec),
+            ("net_non_arms_length_income", Dec),
+            ("general_expense_non_arms_length_income", Dec),
+            ("segregated_pension_income", Dec),
+            ("unsegregated_income", Dec),
+            ("segregated_non_current_income", Dec),
+            ("exempt_proportion", Dec),
+            ("disregarded_small_fund_assets", Raw),
+            ("deductions", Dec),
+            ("contribution_deductions", Dec),
+            ("non_refundable_offsets", Dec),
+            ("carry_forward_offsets", Dec),
+            ("refundable_offsets", Dec),
+            ("eligible_credits", Dec),
+            ("payg_instalments", Dec),
+            ("interest_charge", Dec),
+            ("newly_registered", Raw),
+            ("wound_up", Raw),
+            ("year", Raw),
+            ("scope_confirmed", Raw),
+        ],
+    ),
+    (
         "work-expenses",
         &[
             ("method", Raw),
@@ -1303,7 +1331,7 @@ pub fn commands() -> Vec<&'static str> {
 /// command on its `gross_pay` shows that withholding. The classifier's amounts
 /// are totals over lines whose shares a decision table sets, not a formula;
 /// each line and class carries the authority for its row instead.
-const DERIVED: [&str; 79] = [
+const DERIVED: [&str; 80] = [
     "fbt",
     "fbt-car-statutory",
     "fbt-car-operating-cost",
@@ -1364,6 +1392,7 @@ const DERIVED: [&str; 79] = [
     "lump-sum-arrears-tax-offset",
     "income-tests",
     "government-super-amounts",
+    "smsf-tax",
     "business-capital-expenditure",
     "balancing-adjustment",
     "trade-in",
@@ -1800,6 +1829,7 @@ pub fn evaluate_coded(command: &str, v: &Value) -> Result<Value> {
             | "prepayments"
             | "non-commercial-losses"
             | "psi-test"
+            | "smsf-tax"
             | "government-super-amounts"
             | "rental-property"
             | "horticulture-shearing-withholding"
@@ -2804,6 +2834,10 @@ pub fn evaluate_coded(command: &str, v: &Value) -> Result<Value> {
         "income-tests" => {
             let named: Vec<(&str, &Arg)> = params.iter().map(|(key, _)| *key).zip(&a).collect();
             engine::income_tests(&named)
+        }
+        "smsf-tax" => {
+            let named: Vec<(&str, &Arg)> = params.iter().map(|(key, _)| *key).zip(&a).collect();
+            engine::smsf_tax(&named)
         }
         "small-business-income-offset" => {
             // Optional: the facts only net small business income of your own calls for.

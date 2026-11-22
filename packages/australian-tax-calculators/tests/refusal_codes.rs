@@ -192,8 +192,9 @@ fn every_catalogued_required_input_of_a_strict_command_is_read() {
     // gst-second-hand-goods, gst-bad-debt, deferred-tax,
     // cgt-cost-base-adjustments, super-withholding, foreign-income-conversion,
     // foreign-income-tax-offset, trading-stock, prepayments, minors-income and
-    // fbt-instalment.
-    assert_eq!(checked, 94);
+    // fbt-instalment and
+    // smsf-tax.
+    assert_eq!(checked, 95);
 }
 
 /// Every frozen call gives the same answer through either entry point, and
