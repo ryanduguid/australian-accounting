@@ -26,6 +26,7 @@ use super::{
     py_min, rate, refuse, scope, step_by_name, whole_dollars,
 };
 use crate::decimal::{Decimal, Rounding};
+use crate::texts::SMSF_TAX_STEPS as STEPS;
 
 const KIND: &str = "smsf_tax";
 
@@ -77,130 +78,6 @@ const PARTS_OF: [(&str, &str, &str); 3] = [
         "contribution_deductions",
         "assessable_contributions",
         "the command does not take deductions attributable to contributions above the contributions",
-    ),
-];
-
-/// (id, authority, formula, return label) for each amount, in order.
-const STEPS: [(&str, &str, &str, &str); 20] = [
-    (
-        "gross_income",
-        "ITAA 1997 s 295-10(1) step 2 and SAR 2026 label W: assessable contributions (Subdivision 295-C), net non-arm's length income (label U) and the fund's other ordinary and statutory income",
-        "assessable_contributions + net_non_arms_length_income + segregated_pension_income + unsegregated_income + segregated_non_current_income",
-        "W",
-    ),
-    (
-        "exempt_current_pension_income",
-        "ITAA 1997 s 295-385(1) (income from segregated current pension assets) and s 295-390(1) and (3) (the actuary's proportion of other income, not non-arm's length income, contributions or income from segregated non-current assets, s 295-390(2)); SAR 2026 label Y, in whole dollars, the proportion's product rounded down",
-        "segregated_pension_income + floor(unsegregated_income x exempt_proportion)",
-        "Y",
-    ),
-    (
-        "total_assessable_income",
-        "SAR 2026 label V: gross income less exempt current pension income",
-        "gross_income - exempt_current_pension_income",
-        "V",
-    ),
-    (
-        "taxable_income",
-        "ITAA 1997 s 4-15 and SAR 2026 labels O and A: total assessable income less deductions; nil for a loss",
-        "max(0, total_assessable_income - deductions)",
-        "A",
-    ),
-    (
-        "loss",
-        "SAR 2026 label O: the loss, which Section E carries forward (Division 36, not worked out here)",
-        "max(0, deductions - total_assessable_income)",
-        "",
-    ),
-    (
-        "non_arms_length_component",
-        "ITAA 1997 s 295-545(2A): the lesser of net non-arm's length income under s 295-550(1), (2), (4) and (5) plus that under s 295-550(8) and (9), and taxable income less assessable contributions plus the deductions attributable to them (not below nil)",
-        "min(net_non_arms_length_income + general_expense_non_arms_length_income, max(0, taxable_income - assessable_contributions + contribution_deductions))",
-        "",
-    ),
-    (
-        "low_tax_component",
-        "ITAA 1997 s 295-545(3): the rest of taxable income",
-        "taxable_income - non_arms_length_component",
-        "",
-    ),
-    (
-        "tax_on_taxable_income",
-        "Income Tax Rates Act 1986 s 26(1): 15% of the low tax component and 45% of the non-arm's length component",
-        "low_tax_component x low_tax_rate + non_arms_length_component x non_arms_length_rate",
-        "T1",
-    ),
-    (
-        "no_tfn_contributions_tax",
-        "ITAA 1997 ss 295-605 and 295-610 and Income Tax Rates Act 1986 s 29(2): the 45% top rate plus 2% less 15%",
-        "no_tfn_contributions x no_tfn_rate",
-        "J",
-    ),
-    (
-        "gross_tax",
-        "ITAA 1997 s 295-10(1) steps 1 and 5; SAR 2026 label B",
-        "tax_on_taxable_income + no_tfn_contributions_tax",
-        "B",
-    ),
-    (
-        "subtotal_1",
-        "ITAA 1997 s 295-10(1) step 6; SAR 2026 label T2: gross tax less non-refundable non-carry forward tax offsets (label C), not below nil",
-        "max(0, gross_tax - non_refundable_offsets)",
-        "T2",
-    ),
-    (
-        "non_refundable_offsets_lost",
-        "SAR 2026 label T2: the non-refundable non-carry forward tax offsets above gross tax are lost",
-        "max(0, non_refundable_offsets - gross_tax)",
-        "",
-    ),
-    (
-        "subtotal_2",
-        "SAR 2026 label T3: subtotal 1 less non-refundable carry forward tax offsets (label D), not below nil",
-        "max(0, subtotal_1 - carry_forward_offsets)",
-        "T3",
-    ),
-    (
-        "carry_forward_offsets_unused",
-        "SAR 2026 label T3: the carry forward tax offsets above subtotal 1, which Division 65 may carry forward",
-        "max(0, carry_forward_offsets - subtotal_1)",
-        "",
-    ),
-    (
-        "tax_payable",
-        "SAR 2026 label T5: subtotal 2 less refundable tax offsets (label E), not below nil",
-        "max(0, subtotal_2 - refundable_offsets)",
-        "T5",
-    ),
-    (
-        "tax_offset_refunds",
-        "SAR 2026 label I: the refundable tax offsets above subtotal 2",
-        "max(0, refundable_offsets - subtotal_2)",
-        "I",
-    ),
-    (
-        "supervisory_levy",
-        "Superannuation (Self Managed Superannuation Funds) Supervisory Levy Imposition Regulations 2018 s 6; SAR 2026 label L: the levy for the next year, paid with this return",
-        "levy",
-        "L",
-    ),
-    (
-        "levy_adjustment_wound_up",
-        "SAR 2026 label M and table 9: an existing fund wound up in the year pays no levy for the next year",
-        "levy",
-        "M",
-    ),
-    (
-        "levy_adjustment_new_fund",
-        "SAR 2026 label N and table 9: a newly registered fund not wound up in the year also pays the levy for this year",
-        "levy",
-        "N",
-    ),
-    (
-        "amount_due_or_refundable",
-        "SAR 2026 label S: tax payable, the s 102AAM interest charge (G), the levy (L) and the new fund adjustment (N), less eligible credits (H), tax offset refunds (I), PAYG instalments (K) and the wound up adjustment (M); negative is a refund",
-        "tax_payable + interest_charge + supervisory_levy + levy_adjustment_new_fund - eligible_credits - tax_offset_refunds - payg_instalments - levy_adjustment_wound_up",
-        "S",
     ),
 ];
 
