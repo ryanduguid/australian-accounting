@@ -1385,8 +1385,10 @@ fn payg_rows(year: &str, scale: i64) -> Option<&'static [CoefficientRow]> {
 }
 
 /// `_payg_checks`: scope, earnings, pay period and scale, in that order. Only
-/// `payg_withholding` and `unused_leave_payment` take scale 4, which Schedules 1
-/// and 7 cover and Schedule 5 does not, and only `payg_withholding` and
+/// the Schedule 1 kinds (`payg_withholding`, and `upward_variation_withholding`
+/// and `annuity_withholding`, which work out its amount) and
+/// `unused_leave_payment` take scale 4, which Schedules 1 and 7 cover and
+/// Schedule 5 does not, and only the Schedule 1 kinds and
 /// `study_loan_withholding` quarterly pays, which Schedules 1 and 8 cover.
 fn payg_checks(
     kind: &str,
