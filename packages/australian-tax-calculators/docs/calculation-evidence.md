@@ -3258,6 +3258,51 @@ Choices the Act leaves to the reader:
 
 `resident-tax` gives the site's liabilities for the 2024-25 to 2026-27 vectors.
 
+## Residency tests
+
+This worksheet was added on 22 November 2026. Paragraph (a) of 'resident or
+resident of Australia' in ITAA 1936 s 6(1) was read that day in compilation
+193 (1 October 2026, the latest on the register), volume 1
+(https://www.legislation.gov.au/C1936A00027/2026-10-01/2026-10-01/text/original/epub/OEBPS/document_1/document_1.html),
+and compared with compilation 169 (1 July 2020): the definition reads the
+same, so one rule set serves 2020-21 to 2026-27. TR 2023/1 (issued 7 June
+2023, applying before and after its issue, paragraph 170) was read the same
+day at https://www.ato.gov.au/law/view/document?docid=TXR/TR20231/NAT/ATO/00001.
+
+Choices the Act leaves to the reader, settled by TR 2023/1:
+
+- 'More than one-half of the year of income' is 183 days or more, 184 in a
+  leap year (paragraph 83 and footnote 51). Of 2020-21 to 2026-27 only
+  2023-24 holds 29 February.
+- Days are added together whether continuous or intermittent, and part of a
+  day counts as a whole day (paragraph 86), over 1 July to 30 June
+  (paragraph 87). The worksheet counts each calendar day the periods given
+  cover once.
+- Residing, domicile, permanent and usual places of abode and intention turn
+  on all the facts (paragraph 4); the worksheet takes them as answers and
+  infers none.
+- A resident under any test may be one for part of the year only
+  (paragraph 105); the worksheet answers for the year and does not set the
+  part-year dates.
+- A treaty may allocate residence to another country for its purposes
+  (paragraph 108); a resident who is also resident elsewhere is refused.
+
+`tests/residency_tests.rs` holds these cases. The examples give no dates, so
+each date below was chosen to fit its narrative.
+
+| Case | Source | Worksheet |
+|---|---|---|
+| Conchita: 1 August 2025 to 30 April 2026 on holiday, abode in Mexico | TR 2023/1 example 5 | 273 days; not a resident |
+| Stuart: domiciled here, no permanent abode abroad, 21 days here | example 11 | resident (domicile) |
+| Brian: domiciled here, permanent abode in Vietnam, 34 days here | example 10 | not a resident |
+| Megan: here all 2025-26, intends to stay | example 16 | resident (resides, 183 days) |
+| Aiko: resides from arrival, 72 days here | example 13 | resident (resides) |
+| Alani, Grace and Ryan: a year here as visitors | examples 14, 15 and 18 | 365 days; not a resident |
+| Mark: abroad on assignment, family home here | example 7 | resident (resides, domicile) |
+| 182 and 183 days from 1 July in each year but 2023-24; 183 and 184 in 2023-24 | footnote 51 | not met; met |
+| A period of one day; periods touching or overlapping; periods across 1 July or 30 June | paragraphs 86 and 87 | each day counted once, inside the year |
+| Each Commonwealth fund link | s 6(1)(a)(iii) | resident |
+
 ## Personal tax estimate
 
 `personal-tax-estimate` adds no rate or threshold: each amount is a

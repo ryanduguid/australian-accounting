@@ -1136,6 +1136,11 @@ pub fn supported_periods(kind: &str) -> Vec<&'static str> {
         "small_business_income_offset" => vec![
             "2020-21", "2021-22", "2022-23", "2023-24", "2024-25", "2025-26", "2026-27",
         ],
+        // ITAA 1936 s 6(1) 'resident' reads the same in compilations 169
+        // (1 July 2020) and 193 (1 October 2026).
+        "residency_tests" => vec![
+            "2020-21", "2021-22", "2022-23", "2023-24", "2024-25", "2025-26", "2026-27",
+        ],
         "income_tests" => vec!["2024-25", "2025-26", "2026-27"],
         // The pools' rates and the capital works rates do not change in these
         // years; the small business pool's low pool value threshold does, by year.
@@ -1412,6 +1417,10 @@ pub fn source_review(kind: &str) -> (&'static str, &'static str) {
         "small_business_income_offset" => (
             "2026-11-22",
             "ITAA 1997 ss 328-110, 328-355 to 328-375, 4-10(3) and 63-10, compilation 268 (1 October 2026), against compilations 210 (1 July 2020; s 328-360(1) at 13%) and 223 (1 July 2021; 16%); the ATO's 'Small business income tax offset' page (last updated 7 May 2025)",
+        ),
+        "residency_tests" => (
+            "2026-11-22",
+            "ITAA 1936 s 6(1), 'resident or resident of Australia' paragraph (a), compilation 193 (1 October 2026), against compilation 169 (1 July 2020), which reads the same; TR 2023/1 paragraphs 3, 55, 63 to 65, 83 to 87 and footnote 51, 96, 105 to 108 and examples 5, 7, 10, 11, 13, 14, 15, 16 and 18",
         ),
         "income_tests" => (
             "2026-11-16",
@@ -1783,6 +1792,12 @@ pub fn library_evidence(kind: &str) -> [(&'static str, &'static str); 4] {
             "ATO Small business income tax offset page and the site's sole trader vectors",
             "the rate table (13% for 2020-21, 16% from 2021-22, $1,000 cap, $5 million turnover) and the offset as the proportion of the basic income tax liability",
             "2025-05-07",
+            "2026-11-22",
+        ),
+        "residency_tests" => (
+            "TR 2023/1",
+            "Examples 5 (Conchita), 7 (Mark), 10 (Brian), 11 (Stuart), 13 (Aiko), 14 (Alani), 15 (Grace), 16 (Megan) and 18 (Ryan); paragraph 86 and footnote 51 for the day count",
+            "2023-06-07",
             "2026-11-22",
         ),
         "income_tests" => (
@@ -3559,6 +3574,16 @@ pub fn input_units(kind: &str) -> Vec<(&'static str, &'static str)> {
             ("shares", "list of up to 50 objects, each {amount, deductions} in AUD: a share of a small business entity's net small business income, or an amount s 328-355(c) covers, included in your assessable income (s 328-355(b), (c)), and your deductions attributable to it that s 328-370 covers; [] for none"),
             ("prescribed_person", "boolean: you are a prescribed person under s 102AC of the ITAA 1936 for the year (broadly, under 18 at its end); true is refused (s 328-375)"),
         ],
+        "residency_tests" => vec![
+            ("resides", "boolean, your judgement: you resided in Australia according to the ordinary meaning of the word at some time in the income year (s 6(1), resident (a); TR 2023/1 paragraphs 12 and 17 to 54); never inferred from the dates"),
+            ("domicile_in_australia", "boolean, your judgement: your domicile (of origin, dependence or choice, under the common law and the Domicile Act 1982) was in Australia (s 6(1)(a)(i); TR 2023/1 paragraphs 56 to 62)"),
+            ("permanent_place_of_abode_outside", "boolean, your judgement: your permanent place of abode was outside Australia, having definitely abandoned residence in Australia and begun living permanently in one other country (s 6(1)(a)(i); TR 2023/1 paragraphs 63 to 82); read only when domicile_in_australia is true"),
+            ("presence", "list of up to 400 objects {from, to}, each a YYYY-MM-DD date: the periods you were in Australia, both days counted; the days inside the income year are counted once each, part days as whole days (TR 2023/1 paragraphs 86 and 87); an empty list for none"),
+            ("usual_place_of_abode_outside", "boolean, your judgement: your usual place of abode was outside Australia (s 6(1)(a)(ii); TR 2023/1 paragraphs 88 to 91); read only at 183 days or more (184 in 2023-24)"),
+            ("intends_to_take_up_residence", "boolean, your judgement: you intended to take up residence in Australia (s 6(1)(a)(ii); TR 2023/1 paragraphs 92 to 95); read only at 183 days or more (184 in 2023-24)"),
+            ("commonwealth_super", "none, pss_member (a member of the PSS, the scheme established by deed under the Superannuation Act 1990), css_eligible_employee (an eligible employee for the Superannuation Act 1976), partner_of_member (the spouse, including a de facto partner, of either) or child_under_16_of_member (s 6(1)(a)(iii)); TR 2023/1 paragraph 96: active members only"),
+            ("resident_elsewhere", "boolean: you were also a resident of another country under that country's law; with a resident result this is refused, as a tax treaty's tie-breaker may apply (TR 2023/1 paragraph 108)"),
+        ],
         "income_tests" => vec![
             ("taxable_income", "AUD, whole dollars: taxable income, including any assessable FHSS released amount (nil for a loss)"),
             ("assessable_fhss_released_amount", "AUD: the amount ITAA 1997 s 313-20 includes in assessable income for released FHSS amounts"),
@@ -4248,6 +4273,22 @@ pub fn examples(kind: &str) -> Vec<(&'static str, Example)> {
             ("year_before_turnover", Text("18000.00")),
             ("likely_turnover", Text("22000.00")),
             ("year_turnover", Text("22000.00")),
+        ],
+        // TR 2023/1 example 5: Conchita holidays in Australia for 9 months;
+        // the dates are fabricated to fit.
+        "residency_tests" => vec![
+            ("year", Text("2025-26")),
+            ("resides", Flag(false)),
+            ("domicile_in_australia", Flag(false)),
+            ("permanent_place_of_abode_outside", Flag(false)),
+            (
+                "presence",
+                Json(r#"[{"from": "2025-08-01", "to": "2026-04-30"}]"#),
+            ),
+            ("usual_place_of_abode_outside", Flag(true)),
+            ("intends_to_take_up_residence", Flag(false)),
+            ("commonwealth_super", Text("none")),
+            ("resident_elsewhere", Flag(false)),
         ],
         "income_tests" => vec![
             ("year", Text("2025-26")),
