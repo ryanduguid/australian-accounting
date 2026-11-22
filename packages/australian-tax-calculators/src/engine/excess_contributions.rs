@@ -270,13 +270,16 @@ fn non_concessional_release(facts: &Map<String, Value>, period: &str) -> Result<
     Ok(out)
 }
 
+/// The release's steps, its rates and the ATO-figures warning.
+pub(super) type ReleaseSteps = (Vec<Step>, Vec<(String, String)>, String);
+
 /// `contribution-caps`' release steps for its excess non-concessional
 /// contributions, with `determination_date`.
 pub(super) fn release_steps(
     excess: &Decimal,
     year: &str,
     determination_date: &Arg,
-) -> Result<(Vec<Step>, Vec<(String, String)>, String)> {
+) -> Result<ReleaseSteps> {
     let Some(day) = determination_date.text().and_then(dates::parse) else {
         return fact_invalid("determination_date must be a date YYYY-MM-DD.".into());
     };
