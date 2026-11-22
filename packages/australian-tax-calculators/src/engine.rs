@@ -6227,8 +6227,10 @@ pub use gst_adjustments::{
 };
 mod deferred_tax;
 pub use deferred_tax::{DeferredTaxArgs, deferred_tax};
+mod leave_provisions;
+pub use leave_provisions::{LeaveProvisionsArgs, leave_provisions};
 
-const KINDS: [&str; 102] = [
+const KINDS: [&str; 103] = [
     "gst",
     "gst_margin_scheme",
     "fuel_tax_credits",
@@ -6331,6 +6333,7 @@ const KINDS: [&str; 102] = [
     "gst_bad_debt",
     "deferred_tax",
     "cgt_cost_base_adjustments",
+    "leave_provisions",
 ];
 
 /// `periods(kind)`: accepted period arguments and inclusive calendar boundaries.

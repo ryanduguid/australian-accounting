@@ -1116,6 +1116,16 @@ const COMMAND_ARGS: &[(&str, &[(&str, Kind)])] = &[
         ],
     ),
     (
+        "leave-provisions",
+        &[
+            ("lines", Json),
+            ("defined_benefit_plan", Raw),
+            ("plan_assets", Raw),
+            ("year", Raw),
+            ("scope_confirmed", Raw),
+        ],
+    ),
+    (
         "deferred-tax",
         &[
             ("items", Json),
@@ -1233,7 +1243,7 @@ pub fn commands() -> Vec<&'static str> {
 /// command on its `gross_pay` shows that withholding. The classifier's amounts
 /// are totals over lines whose shares a decision table sets, not a formula;
 /// each line and class carries the authority for its row instead.
-const DERIVED: [&str; 78] = [
+const DERIVED: [&str; 79] = [
     "fbt",
     "fbt-car-statutory",
     "fbt-car-operating-cost",
@@ -1279,6 +1289,7 @@ const DERIVED: [&str; 78] = [
     "depreciation-small-business-pool",
     "capital-works",
     "deferred-tax",
+    "leave-provisions",
     "horticulture-shearing-withholding",
     "upward-variation-withholding",
     "daily-casual-withholding",
@@ -1747,6 +1758,7 @@ pub fn evaluate_coded(command: &str, v: &Value) -> Result<Value> {
             | "gst-second-hand-goods"
             | "gst-bad-debt"
             | "deferred-tax"
+            | "leave-provisions"
             | "business-capital-expenditure"
             | "balancing-adjustment"
             | "trade-in"
@@ -2959,6 +2971,13 @@ pub fn evaluate_coded(command: &str, v: &Value) -> Result<Value> {
             outside_profit_or_loss: &a[17],
             year: &a[18],
             scope_confirmed: &a[19],
+        }),
+        "leave-provisions" => engine::leave_provisions(&engine::LeaveProvisionsArgs {
+            lines: &a[0],
+            defined_benefit_plan: &a[1],
+            plan_assets: &a[2],
+            year: &a[3],
+            scope_confirmed: &a[4],
         }),
         "luxury-car-tax" => engine::luxury_car_tax(&engine::LctArgs {
             lines: &a[0],

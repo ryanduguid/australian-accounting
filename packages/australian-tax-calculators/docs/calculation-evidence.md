@@ -4336,6 +4336,44 @@ offsets, each class's sign, a loss before tax, each year's rates, a rate
 change with the year's rate at and away from the closing rate, a 2-cent
 rounding remainder and every refusal.
 
+## Leave provisions
+
+Added on 22 November 2026, when the sources were read: AASB 119 compilation
+no. 5 (COMPdec22_01-23, periods beginning from 1 January 2023 to before
+1 July 2026) with its tables of standards and amendments; AASB 2022-9
+(December 2022), effective from 1 July 2026 and not compiled there; and
+AASB 101 compilation no. 6 (COMPdec22_01-24).
+
+Of the paragraphs applied (AASB 119 paras 8, 9, 11, 13, 15, 16, 67, 68, 70,
+72, 75 to 87 and 153 to 156; AASB 101 paras 69, 70 and 75A), the table of
+amendments shows only para 8 (AASB 17 and AASB 2022-8, insurance definitions)
+and para 156 (AASB 2018-2, a cross-reference to para 122A, from 1 January
+2019) changed since the August 2015 standard; AASB 2022-9 changes only
+footnote Aus1 in para 8. None changes a rule applied here, so the rules read
+the same for every reporting period ending from 1 July 2020 to 30 June 2027.
+AASB 101 para 69(d) said 'unconditional right' before AASB 2020-1 (periods
+from 1 January 2024); the caller states the right to defer either way.
+
+AASB 119 has no numeric example for annual or long service leave. V1 to V6
+are made-up figures worked independently in Python's `decimal`. P68 applies
+the para 68 illustrative example (a lump sum of 1% of final salary for each
+year of service, salary 10,000 growing 7%, discount 10%): its obligations at
+the end of years 1 to 4 (89, 196, 324 and 476) are the command's amounts with
+the cents dropped.
+
+| Vector | Facts given | Result |
+| --- | --- | --- |
+| V1 | Annual, short-term, 152 h x $45.50, probability 1 | **$6,916.00** current |
+| V2 | Long service, 400 h x $52.00, 2 years, growth 3%, discount 4.5%, probability 1, no right to defer | projected $22,066.72, **$20,207.16** current |
+| V3 | Long service, 120 h x $38.00, 5 years, growth 3.5%, discount 4.25%, probability 0.4, right to defer | projected $5,415.85, **$1,759.33** non-current |
+| V4 | Annual, long-term, 300 h x $40.00, 1 year, growth 3%, discount 4% | **$11,884.62** current |
+| V6 | Annual, short-term, 80 h x $30.00, probability 0.85 | **$2,040.00** current |
+| V1, V2, V3, V4 and V6 together | | annual **$20,840.62**, long service **$21,966.49**, total **$42,807.11**, current **$41,047.78**, non-current **$1,759.33** |
+| P68 | 1 to 4 years' benefit at rates $100.00, $107.00, $114.49 and $122.50, 4 to 1 years | **$89.53**, **$196.96**, **$324.99**, **$476.64** |
+
+`tests/leave_provisions.rs` also covers each year, the year boundaries, each
+assumption's bounds and every refusal.
+
 ## Personal tax estimate
 
 `personal-tax-estimate` adds no rate or threshold: each amount is a
