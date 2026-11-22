@@ -183,11 +183,9 @@ fn proxy(start: i64) -> Result<(BigInt, BigInt, String)> {
     let n = BigInt::from(sum + 700 * days);
     let den = BigInt::from(days * 10_000 * year_length(first));
     let micro = (BigInt::from(sum + 700 * days) * 10_000 * 2 / days + 1) / 2;
-    let text = format!("{micro:07}");
-    let (whole, part) = text.split_at(text.len() - 6);
-    let whole = whole.trim_start_matches('0');
-    let whole = if whole.is_empty() { "0" } else { whole };
-    Ok((n, den, format!("{whole}.{part}")))
+    let million = BigInt::from(1_000_000);
+    let percent = format!("{}.{:06}", &micro / &million, &micro % &million);
+    Ok((n, den, percent))
 }
 
 fn warning(start: i64, label: &str) -> String {
