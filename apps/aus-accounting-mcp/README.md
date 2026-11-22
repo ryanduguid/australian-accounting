@@ -123,7 +123,7 @@ For Claude Desktop, Cursor, Windsurf and other hosts that run local stdio server
 }
 ```
 
-[Add to Cursor](https://cursor.com/en/install-mcp?name=aus-accounting&config=eyJjb21tYW5kIjoidXZ4IiwiYXJncyI6WyItLWZyb20iLCJhdXMtYWNjb3VudGluZy1tY3A9PTAuMTEuMCIsImF1cy1hY2NvdW50aW5nLW1jcCJdfQ==),
+[Add to Cursor](https://cursor.com/en/install-mcp?name=aus-accounting&config=eyJjb21tYW5kIjoidXZ4IiwiYXJncyI6WyItLWZyb20iLCJhdXMtYWNjb3VudGluZy1tY3A9PTAuMTIuMCIsImF1cy1hY2NvdW50aW5nLW1jcCJdfQ==),
 or from a terminal:
 
 ```bash

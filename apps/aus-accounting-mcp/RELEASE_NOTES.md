@@ -19,6 +19,9 @@
   ([#779](https://github.com/ryanduguid/australian-accounting/pull/779)).
 - The Claude Desktop bundle carries the 1.2.0 calculator executable for x86-64 Linux
   and Windows.
+- The published engine pins are unchanged: `payday-super-checker` 0.2.3,
+  `ato-benchmark-compare` 0.2.2, `div7a-loan-review` 0.3.2, `gst-review` 0.1.0 and
+  `lodgment-calendar` 0.2.0.
 
 # v0.11.0
 
