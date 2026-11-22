@@ -6222,8 +6222,10 @@ pub use gst_adjustments::{
     gst_creditable_purpose_change, gst_financial_acquisitions_threshold, gst_going_concern,
     gst_second_hand_goods,
 };
+mod deferred_tax;
+pub use deferred_tax::{DeferredTaxArgs, deferred_tax};
 
-const KINDS: [&str; 99] = [
+const KINDS: [&str; 100] = [
     "gst",
     "gst_margin_scheme",
     "fuel_tax_credits",
@@ -6323,6 +6325,7 @@ const KINDS: [&str; 99] = [
     "gst_going_concern",
     "gst_second_hand_goods",
     "gst_bad_debt",
+    "deferred_tax",
 ];
 
 /// `periods(kind)`: accepted period arguments and inclusive calendar boundaries.

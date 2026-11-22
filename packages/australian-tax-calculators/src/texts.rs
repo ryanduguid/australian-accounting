@@ -395,6 +395,10 @@ pub const SCOPES: &[(&str, &str)] = &[
         "One bad debt adjustment under GST Act Division 21 in a year from 2020-21 to 2026-27, for the supplier (ss 21-5 and 21-10) or the recipient (ss 21-15 and 21-20): 1/11 of the amount written off, overdue for 12 months or more, recovered or paid, reduced for a partly taxable supply (s 136-5) or a partly creditable acquisition (s 136-10(1)). The operator establishes the amount, that it is overdue (s 195-1), the earlier adjustment for a recovery, and the proportion or extents. Excludes supplies and acquisitions taxable or creditable at less than 1/11 of the price (Subdivision 136-B, such as the margin scheme), reduced credit acquisitions (s 136-10(2)), credits worked out under Division 131 (s 136-10(3)), a change of accounting basis (Division 159) and the tax period the adjustment is attributable to.",
     ),
     (
+        "deferred_tax",
+        "One Australian resident company's tax effect worksheet under AASB 112 for an income year from 2020-21 to 2026-27, the company taxed at the Income Tax Rates Act 1986 s 23(2) rates (not a life insurance company, RSA provider, PDF, non-profit company under s 23(6) or credit union under s 23(7)) on Australian income tax alone. Each item's temporary difference is its carrying amount less its tax base for an asset, or its tax base less its carrying amount for a liability (paras 5, 7 and 8): positive is taxable, negative deductible. A deferred tax liability is taken on every taxable difference (para 15) and a deferred tax asset on deductible differences and unused tax losses less those the preparer states have no deferred tax asset, as future taxable profit is not probable (paras 24, 34 to 36 and 56), each at 25% or 30% as the preparer expects the company to be a base rate entity or not when they reverse (paras 47 and 48; s 23(2), s 23AA), undiscounted (para 53). The movement is split into the rate change on opening balances (para 80(d)), the recognition change (para 80(f) and (g)), with previously unrecognised amounts used in the year shown apart (para 80(e)), and origination and reversal (para 80(c)). Current tax is taxable income at the year's s 23(2) rate (25%, 26% in 2020-21, for a base rate entity; 30% otherwise) less non-refundable offsets the preparer has worked out, and the para 81(c)(i) reconciliation starts from accounting profit at that rate, with the average effective tax rate (para 86). The preparer establishes the carrying amounts, tax bases, unused tax losses, the probability judgement, the expected rates, taxable income, non-deductible expenses, non-assessable income and offsets, and leaves out of the items the differences the initial recognition exception covers (paras 15 and 24, as amended by AASB 2021-5 from 1 January 2023) and those on investments in subsidiaries, branches, associates and joint arrangements (paras 39 and 44). Excludes unused tax credits, adjustments for prior periods' current tax (para 80(b)), Pillar Two top-up taxes (para 4A), offsetting in the statement of financial position (para 74) and presentation. Refuses business combinations (paras 19 and 66 to 68), uncertain tax treatments (AASB Interpretation 23), tax-consolidated group members (AASB Interpretation 1052), tax on items outside profit or loss (paras 61A to 63), a change in the expected rate with opening balances when the year's rate is not the closing rate (the reversals in the year need a schedule) and, in 2020-21, opening balances measured at the base rate entity rate.",
+    ),
+    (
         "income_tests",
         "The income measures of one individual who was an Australian resident for the whole income year and alive at its end, each the person's own for the whole year, from components the operator has established and classified: income for surcharge purposes (ITAA 1997 s 995-1), Division 293 income (s 293-20(1)(a)), rebate income (ITAA 1936 s 6(1)), repayment income for study and training loans (HESA s 154-5), adjusted taxable income for offsets (ITAA 1997 s 995-1, ITAA 1936 s 6(1) and A New Tax System (Family Assistance) Act 1999 Sch 3, disregarding cls 3 and 3A) and total income for the super co-contribution (Superannuation (Government Co-contribution for Low Income Earners) Act 2003 s 8). A spouse's measures come from the spouse's own components. A dependant's adjusted taxable income for part of a year, a deceased person's annualised adjusted taxable income (Sch 3 cl 2(2)), the co-contribution's 10% eligible income test, the combined family amounts and every threshold and eligibility test the measures feed are outside it. Income for surcharge purposes follows s 995-1, which does not add exempt foreign employment income; the ATO's surcharge page adds it where taxable income is $1 or more, and the result warns when that changes the figure. Measures another agency applies are outside it: the Commonwealth Seniors Health Card income test and family assistance adjusted taxable income are Services Australia's (https://www.servicesaustralia.gov.au/income-test-for-commonwealth-seniors-health-card). Refuses part-year residents, working holiday makers and foreign residents, and components that cannot all be true together.",
     ),
@@ -784,6 +788,10 @@ pub const SOURCES: &[(&str, &str)] = &[
     (
         "gst_bad_debt",
         "https://www.legislation.gov.au/C2004A00446/2026-01-01/2026-01-01/text/original/epub/OEBPS/document_1/document_1.html",
+    ),
+    (
+        "deferred_tax",
+        "https://standards.aasb.gov.au/aasb-112-sep-2023",
     ),
 ];
 
@@ -1736,6 +1744,17 @@ pub const EXTRA_SOURCES: &[(&str, &[&str])] = &[
         ],
     ),
     (
+        "deferred_tax",
+        &[
+            "https://www.aasb.gov.au/admin/file/content105/c9/AASB112_08-15_COMPmar20_07-21.pdf",
+            "https://standards.aasb.gov.au/sites/default/files/2024-06/AASB18_06-24_AppendixD_0.pdf",
+            "https://standards.aasb.gov.au/ad-aasb-112-12-12-dec-2012",
+            "https://www.legislation.gov.au/C2004A03348/2026-07-01/2026-07-01/text/original/epub/OEBPS/document_1/document_1.html",
+            "https://www.ato.gov.au/tax-rates-and-codes/company-tax-rates/tax-rates-201112-to-202021",
+            "https://www.ato.gov.au/tax-rates-and-codes/company-tax-rates/tax-rates-2025-26",
+        ],
+    ),
+    (
         "income_tests",
         &[
             "https://www.legislation.gov.au/C2004A05138/2026-10-01/2026-10-01/text/original/epub/OEBPS/document_10/document_10.html",
@@ -2526,6 +2545,50 @@ pub const REFUSAL_CODES: &[(&str, &str)] = &[
         "A worksheet step exceeded the decimal range.",
     ),
     (
+        "deferred_tax.business_combination",
+        "Deferred tax arising in a business combination was stated (AASB 112 paras 19 and 66 to 68).",
+    ),
+    (
+        "deferred_tax.expected_rate_invalid",
+        "expected_rate or opening_expected_rate is not base_rate_entity or standard.",
+    ),
+    (
+        "deferred_tax.item_invalid",
+        "items is not a list of 1 to 500 objects, each with a label, a class of asset or liability and 4 non-negative amounts, and no other field.",
+    ),
+    (
+        "deferred_tax.offsets_above_tax",
+        "tax_offsets is more than current tax before offsets.",
+    ),
+    (
+        "deferred_tax.opening_rate_unscheduled",
+        "2020-21 opening balances measured at the base rate entity rate, which reverse partly at 26% and partly at 25%.",
+    ),
+    (
+        "deferred_tax.outside_profit_or_loss",
+        "Tax on items recognised in other comprehensive income or equity was stated (AASB 112 paras 61A to 63).",
+    ),
+    (
+        "deferred_tax.rate_change_unscheduled",
+        "The expected rate changed while the year's rate is not the closing rate, with opening balances to remeasure.",
+    ),
+    (
+        "deferred_tax.tax_consolidated_group",
+        "A tax-consolidated group member was stated (AASB Interpretation 1052).",
+    ),
+    (
+        "deferred_tax.uncertain_tax_treatment",
+        "An uncertain tax treatment was stated (AASB Interpretation 23).",
+    ),
+    (
+        "deferred_tax.unrecognised_above_deductible",
+        "An unrecognised amount is more than that date's deductible temporary differences and unused tax losses.",
+    ),
+    (
+        "deferred_tax.unrecognised_used_above_opening",
+        "unrecognised_used is more than opening_unrecognised_deductible.",
+    ),
+    (
         "depreciation.precision_exceeded",
         "An effective life's significant digits and the taxable use's decimal places total more than 22.",
     ),
@@ -3139,7 +3202,7 @@ pub const REFUSAL_CODES: &[(&str, &str)] = &[
     ),
     (
         "input.field_unknown",
-        "A field the worksheet or command does not take, or does not take beside the other inputs given, was given (fbt-loan, fbt-meal-entertainment, fbt-car-parking, fbt-debt-waiver, fbt-expense-payment, fbt-property, fbt-residual, fbt-housing, fbt-lafha, fbt-board, fbt-tax-exempt-body-entertainment, fbt-entertainment-classifier, fbt-meal-entertainment-register and its entries, fbt-minor-benefit-check, ppsr-timing, fhss and its contributions, government-super-amounts, personal_deductions and determination, division-296, depreciation, fuel-tax-credits and its lines, foreign-resident-tax, medicare-levy, medicare-levy-surcharge, payg-withholding, payg-gross-up, termination-payment, etp-tax-free-component, unused-leave-payment, the Schedule 5 methods, working-holiday-maker-withholding, study-loan-withholding, seniors-pensioners-withholding, seniors-pensioners-tax-offset, lump-sum-arrears-tax-offset, hire-purchase-schedule, chattel-mortgage-schedule, loan-transactions and its transactions and rate_changes, borrowing-expenses-schedule and its loans, business-capital-expenditure and its items, balancing-adjustment, its years and car_limit, trade-in, franking-account and its events, distributions and income_tax, dasp-tax, super-benefit-tax, gst-margin-scheme, wine-equalisation-tax and its dealings, luxury-car-tax and its lines, payroll-tax, cgt-parcels, its parcels and disposals, fbt-ev-exemption-check, sb-cgt-concessions, small-business-income-offset, residency-tests, lodgment-required, depreciation-low-value-pool, gst-creditable-purpose-change, gst-annual-apportionment, gst-financial-acquisitions-threshold, gst-going-concern, gst-second-hand-goods, gst-bad-debt, depreciation-small-business-pool, capital-works, non-commercial-losses, psi-test, beneficiary-tax-offset, invalid-carer-tax-offset, zone-tax-offset and its dependants, net-medical-expenses-tax-offset, work-expenses, ato-interest-penalties and its payments and parts, private-health-insurance-rebate, rental-property and its loans, capital_works and depreciating_assets, horticulture-shearing-withholding, upward-variation-withholding, daily-casual-withholding, no-abn-withholding, entertainer-withholding, return-to-work-withholding, annuity-withholding, voluntary-agreement-withholding, rd-tax-offset, contribution-caps given a carry-forward input, derive, personal-tax-estimate, dgr-check, income-tests and fbt-return only).",
+        "A field the worksheet or command does not take, or does not take beside the other inputs given, was given (fbt-loan, fbt-meal-entertainment, fbt-car-parking, fbt-debt-waiver, fbt-expense-payment, fbt-property, fbt-residual, fbt-housing, fbt-lafha, fbt-board, fbt-tax-exempt-body-entertainment, fbt-entertainment-classifier, fbt-meal-entertainment-register and its entries, fbt-minor-benefit-check, ppsr-timing, fhss and its contributions, government-super-amounts, personal_deductions and determination, division-296, depreciation, fuel-tax-credits and its lines, foreign-resident-tax, medicare-levy, medicare-levy-surcharge, payg-withholding, payg-gross-up, termination-payment, etp-tax-free-component, unused-leave-payment, the Schedule 5 methods, working-holiday-maker-withholding, study-loan-withholding, seniors-pensioners-withholding, seniors-pensioners-tax-offset, lump-sum-arrears-tax-offset, hire-purchase-schedule, chattel-mortgage-schedule, loan-transactions and its transactions and rate_changes, borrowing-expenses-schedule and its loans, business-capital-expenditure and its items, balancing-adjustment, its years and car_limit, trade-in, franking-account and its events, distributions and income_tax, dasp-tax, super-benefit-tax, gst-margin-scheme, wine-equalisation-tax and its dealings, luxury-car-tax and its lines, payroll-tax, cgt-parcels, its parcels and disposals, fbt-ev-exemption-check, sb-cgt-concessions, small-business-income-offset, residency-tests, lodgment-required, depreciation-low-value-pool, gst-creditable-purpose-change, gst-annual-apportionment, gst-financial-acquisitions-threshold, gst-going-concern, gst-second-hand-goods, gst-bad-debt, depreciation-small-business-pool, capital-works, non-commercial-losses, psi-test, beneficiary-tax-offset, invalid-carer-tax-offset, zone-tax-offset and its dependants, net-medical-expenses-tax-offset, work-expenses, ato-interest-penalties and its payments and parts, private-health-insurance-rebate, rental-property and its loans, capital_works and depreciating_assets, horticulture-shearing-withholding, upward-variation-withholding, daily-casual-withholding, no-abn-withholding, entertainer-withholding, return-to-work-withholding, annuity-withholding, voluntary-agreement-withholding, rd-tax-offset, deferred-tax, contribution-caps given a carry-forward input, derive, personal-tax-estimate, dgr-check, income-tests and fbt-return only).",
     ),
     ("input.flag_invalid", "A flag is not a JSON boolean."),
     ("input.fraction_invalid", "A fraction is outside 0 to 1."),

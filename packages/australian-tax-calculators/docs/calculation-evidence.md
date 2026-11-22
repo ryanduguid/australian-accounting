@@ -4195,6 +4195,51 @@ worked examples, so the facts are fabricated, each at a threshold.
 | Seniors offset with PAYG withheld | s 7(3) and 6(2)(a) | refused |
 | Under 18 with a listed payment, 2024-25 and 2022-23 | s 7(2); Table K | relieved; refused |
 
+## Deferred tax
+
+Added on 22 November 2026, when the sources were read: the AASB 112
+compilations of September 2023 (F2023C00930, the current version on the AASB's
+portal) and March 2020 (compilation no. 4) with their tables of amendments;
+the AASB's list of AASB 112 versions; AASB 2021-5; AASB 18 Appendix D (June
+2024); the AASB's December 2012 agenda decision on substantive enactment; the
+Income Tax Rates Act 1986 ss 23(2) and 23AA (compilation 66, 1 July 2026); and
+the ATO's company tax rate tables for 2020-21 to 2025-26.
+
+The paragraphs applied (5, 7, 8, 15, 24, 34 to 36, 46 to 48, 53, 56, 58, 60,
+80, 81(c), 81(e), 85 and 86) read the same for every reporting period of
+2020-21 to 2026-27. AASB 2021-5 changed paras 15 and 24 from 1 January 2023
+only in the initial recognition exception, which the caller applies by leaving
+those differences out; AASB 1060 replaced Appendix A alone; and AASB 18
+Appendix D amends none of the applied paragraphs. The standard is copyright:
+the command and these notes state its rules in their own words, and the
+vectors below are made up to apply the paragraphs, not the AASB's illustrative
+examples.
+
+| Income year | Base rate entity | Otherwise | Source |
+| --- | --- | --- | --- |
+| 2020-21 | 26% | 30% | ATO, Tax rates 2011-12 to 2020-21 |
+| 2021-22 to 2025-26 | 25% | 30% | ATO tables for each year; s 23(2) |
+| 2026-27 | 25% | 30% | s 23(2), compilation 66 |
+
+Deferred tax is measured at 25% or 30% as the caller expects the company to be
+a base rate entity or not when the differences reverse, which for every
+supported year is 2021-22 or later. Opening balances of 2020-21 at the base
+rate entity rate are refused: they reverse partly at 26%. A change in the
+expected rate with opening balances is refused when the year's rate is not the
+closing rate: the balances that reverse in the year do so at the year's rate,
+and only the rest is remeasured (paras 47 and 60(a)).
+
+| Vector | Facts given | Result |
+| --- | --- | --- |
+| V1, 2025-26, 30% | Plant $70,000 / $50,000, leave provision $12,000 / nil, prepayment $3,000 / nil; opening $80,000 / $65,000, $10,000, $2,000; profit $100,000 with $4,000 not deductible | DTL **$6,900**, DTA **$3,600**, deferred expense **$1,200**, current **$30,000**, expense **$31,200**, effective rate 31.2% |
+| V2, 2024-25, 30% to 25% | Equipment $40,000 / $30,000 (opening $50,000 / $45,000), losses $20,000 unrecognised at the start, $15,000 used in the year and $5,000 left and recognised at the end, profit $30,000 with $2,000 not assessable | Rate change **-$250**, recognition **-$1,250**, origination **$1,250**, losses used **-$3,750** (para 80(e)), expense **$1,750** |
+| V3, 2020-21, 26% and 25% | A new $10,000 taxable difference, profit $50,000, taxable income $40,000 | Current **$10,400**, deferred **$2,500**, expense **$12,900**, a **-$100** rate difference line |
+
+`tests/deferred_tax.rs` also covers an unexplained taxable income, tax
+offsets, each class's sign, a loss before tax, each year's rates, a rate
+change with the year's rate at and away from the closing rate, a 2-cent
+rounding remainder and every refusal.
+
 ## Personal tax estimate
 
 `personal-tax-estimate` adds no rate or threshold: each amount is a

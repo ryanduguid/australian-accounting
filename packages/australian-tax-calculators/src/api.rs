@@ -1091,6 +1091,31 @@ const COMMAND_ARGS: &[(&str, &[(&str, Kind)])] = &[
         ],
     ),
     (
+        "deferred-tax",
+        &[
+            ("items", Json),
+            ("unused_tax_losses", Dec),
+            ("opening_unused_tax_losses", Dec),
+            ("unrecognised_deductible", Dec),
+            ("opening_unrecognised_deductible", Dec),
+            ("unrecognised_used", Dec),
+            ("accounting_profit", Dec),
+            ("non_deductible_expenses", Dec),
+            ("non_assessable_income", Dec),
+            ("taxable_income", Dec),
+            ("tax_offsets", Dec),
+            ("base_rate_entity", Raw),
+            ("expected_rate", Raw),
+            ("opening_expected_rate", Raw),
+            ("business_combination", Raw),
+            ("uncertain_tax_treatment", Raw),
+            ("tax_consolidated_group", Raw),
+            ("outside_profit_or_loss", Raw),
+            ("year", Raw),
+            ("scope_confirmed", Raw),
+        ],
+    ),
+    (
         "income-tests",
         &[
             ("taxable_income", Dec),
@@ -1183,7 +1208,7 @@ pub fn commands() -> Vec<&'static str> {
 /// command on its `gross_pay` shows that withholding. The classifier's amounts
 /// are totals over lines whose shares a decision table sets, not a formula;
 /// each line and class carries the authority for its row instead.
-const DERIVED: [&str; 75] = [
+const DERIVED: [&str; 76] = [
     "fbt",
     "fbt-car-statutory",
     "fbt-car-operating-cost",
@@ -1237,6 +1262,7 @@ const DERIVED: [&str; 75] = [
     "annuity-withholding",
     "voluntary-agreement-withholding",
     "rd-tax-offset",
+    "deferred-tax",
     "hire-purchase-schedule",
     "chattel-mortgage-schedule",
     "loan-transactions",
@@ -1693,6 +1719,7 @@ pub fn evaluate_coded(command: &str, v: &Value) -> Result<Value> {
             | "gst-going-concern"
             | "gst-second-hand-goods"
             | "gst-bad-debt"
+            | "deferred-tax"
             | "business-capital-expenditure"
             | "balancing-adjustment"
             | "trade-in"
@@ -2849,6 +2876,28 @@ pub fn evaluate_coded(command: &str, v: &Value) -> Result<Value> {
                 scope_confirmed: &a[7],
             })
         }
+        "deferred-tax" => engine::deferred_tax(&engine::DeferredTaxArgs {
+            items: &a[0],
+            unused_tax_losses: &a[1],
+            opening_unused_tax_losses: &a[2],
+            unrecognised_deductible: &a[3],
+            opening_unrecognised_deductible: &a[4],
+            unrecognised_used: &a[5],
+            accounting_profit: &a[6],
+            non_deductible_expenses: &a[7],
+            non_assessable_income: &a[8],
+            taxable_income: &a[9],
+            tax_offsets: &a[10],
+            base_rate_entity: &a[11],
+            expected_rate: &a[12],
+            opening_expected_rate: &a[13],
+            business_combination: &a[14],
+            uncertain_tax_treatment: &a[15],
+            tax_consolidated_group: &a[16],
+            outside_profit_or_loss: &a[17],
+            year: &a[18],
+            scope_confirmed: &a[19],
+        }),
         "luxury-car-tax" => engine::luxury_car_tax(&engine::LctArgs {
             lines: &a[0],
             year: &a[1],
