@@ -277,15 +277,37 @@ fn member_parts(
         _ => None,
     };
     if let (Some(within), Some(left)) = (within, plan) {
-        let formula = "min(untaxed_element, untaxed_plan_cap_left)";
-        let operands = [&c.untaxed.value, &left];
-        p.steps.push(step(
-            "untaxed_plan_cap_counted",
-            PLAN_COUNTED,
-            formula,
-            &operands,
-            within,
-        ));
+        push_plan_counted(c, &left, within, p);
+    }
+    Ok(())
+}
+
+/// What the benefit counts against the untaxed plan cap (s 307-350(2)).
+fn push_plan_counted(c: &Components, left: &Decimal, within: Decimal, p: &mut Parts) {
+    let formula = "min(untaxed_element, untaxed_plan_cap_left)";
+    let operands = [&c.untaxed.value, left];
+    p.steps.push(step(
+        "untaxed_plan_cap_counted",
+        PLAN_COUNTED,
+        formula,
+        &operands,
+        within,
+    ));
+}
+
+/// A wholly tax free member benefit still reduces the untaxed plan cap by
+/// its element untaxed in the fund (s 307-350(1A) and (2) cover every member
+/// lump sum), but counts nothing against the low rate cap.
+fn free_member_parts(
+    c: &Components,
+    year: &str,
+    args: &SuperBenefitTaxArgs,
+    p: &mut Parts,
+) -> Result<()> {
+    let [.., plan_used, _] = args.optional;
+    if let Some(left) = plan_left(c, year, plan_used, p)? {
+        let within = py_min(c.untaxed.value.clone(), left.clone())?;
+        push_plan_counted(c, &left, within, p);
     }
     Ok(())
 }
@@ -311,19 +333,20 @@ pub(super) fn parts(
             p.add(id, &[untaxed], untaxed.clone(), "0.30")?;
         }
         Treatment::Aged60 | Treatment::PreservationTo59 | Treatment::UnderPreservation => {
-            member_parts(t, c, year, args, &mut p)?
+            return member_parts(t, c, year, args, &mut p).map(|()| p);
         }
-        _ => {}
+        Treatment::TerminalMedicalCondition | Treatment::SmallClosingBalance => {
+            free_member_parts(c, year, args, &mut p)?
+        }
+        Treatment::Dependant => {}
     }
-    if !matches!(
-        t,
-        Treatment::Aged60 | Treatment::PreservationTo59 | Treatment::UnderPreservation
-    ) {
-        let why = "for a member benefit taxed by age (not wholly tax free)";
-        let [.., low_used, plan_used, others] = args.optional;
-        when(false, low_used, "low_rate_cap_used", why)?;
-        when(false, plan_used, "untaxed_plan_cap_used", why)?;
-        when(false, others, "other_lump_sums_this_year", why)?;
+    if matches!(t, Treatment::Dependant | Treatment::NonDependant) {
+        let why = "for a member benefit (recipient member)";
+        when(false, args.optional[5], "untaxed_plan_cap_used", why)?;
     }
+    let why = "for a member benefit taxed by age (not wholly tax free)";
+    let [.., low_used, _, others] = args.optional;
+    when(false, low_used, "low_rate_cap_used", why)?;
+    when(false, others, "other_lump_sums_this_year", why)?;
     Ok(p)
 }
