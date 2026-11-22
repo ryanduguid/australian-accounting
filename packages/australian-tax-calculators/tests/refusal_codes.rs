@@ -188,9 +188,8 @@ fn every_catalogued_required_input_of_a_strict_command_is_read() {
     // rd-tax-offset, gst-creditable-purpose-change, gst-annual-apportionment,
     // gst-financial-acquisitions-threshold, gst-going-concern,
     // gst-second-hand-goods, gst-bad-debt, deferred-tax,
-    // cgt-cost-base-adjustments, super-withholding, foreign-income-conversion and
-    // foreign-income-tax-offset,
-    // trading-stock and prepayments.
+    // cgt-cost-base-adjustments, super-withholding, foreign-income-conversion,
+    // foreign-income-tax-offset, trading-stock and prepayments.
     assert_eq!(checked, 92);
 }
 

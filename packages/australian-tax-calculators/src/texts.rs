@@ -3798,18 +3798,6 @@ pub const REFUSAL_CODES: &[(&str, &str)] = &[
         "An input or calculated time falls in the skipped or repeated ACT hour at a daylight saving change.",
     ),
     (
-        "private_health_insurance_rebate.lhc_loading",
-        "A statement line gave a lifetime health cover loading, which is outside the rebate (PHI Act s 22-15(6)) and is not worked out.",
-    ),
-    (
-        "private_health_insurance_rebate.lines_invalid",
-        "The statement lines are not a list of 1 to 100 objects with premiums_eligible, rebate_received and a benefit code of 30, 31, 35, 36, 40 or 41.",
-    ),
-    (
-        "private_health_insurance_rebate.rate_unpublished",
-        "A line is for premiums paid from 1 April 2027, whose rebate percentages had not been published.",
-    ),
-    (
         "prepayments.agreement_before_cutoff",
         "The agreement was entered into on or before 11 November 1999, when a pre-RBT obligation (ITAA 1936 s 82KZL(1)) or a pre-existing obligation (s 82KZME(8)) may apply.",
     ),
@@ -3832,6 +3820,18 @@ pub const REFUSAL_CODES: &[(&str, &str)] = &[
     (
         "prepayments.taxpayer_invalid",
         "taxpayer is not small_business_entity, medium_business_entity or other.",
+    ),
+    (
+        "private_health_insurance_rebate.lhc_loading",
+        "A statement line gave a lifetime health cover loading, which is outside the rebate (PHI Act s 22-15(6)) and is not worked out.",
+    ),
+    (
+        "private_health_insurance_rebate.lines_invalid",
+        "The statement lines are not a list of 1 to 100 objects with premiums_eligible, rebate_received and a benefit code of 30, 31, 35, 36, 40 or 41.",
+    ),
+    (
+        "private_health_insurance_rebate.rate_unpublished",
+        "A line is for premiums paid from 1 April 2027, whose rebate percentages had not been published.",
     ),
     (
         "psi_test.agent_payments_invalid",
@@ -4015,22 +4015,6 @@ pub const REFUSAL_CODES: &[(&str, &str)] = &[
         "The trade-in is not at arm's length, so market value rules apply that are not worked.",
     ),
     (
-        "voluntary_agreement_withholding.abn_not_quoted",
-        "The payee's ABN is not in force or not quoted in the voluntary agreement (TAA 1953 Sch 1 s 12-55(1)(d)).",
-    ),
-    (
-        "voluntary_agreement_withholding.agreement_not_in_force",
-        "The voluntary agreement is not in force (TAA 1953 Sch 1 s 12-55(1)(c)).",
-    ),
-    (
-        "voluntary_agreement_withholding.gst_above_payment",
-        "The GST included is more than the payment.",
-    ),
-    (
-        "voluntary_agreement_withholding.instalment_rate_missing",
-        "The agreement applies the payee's Commissioner's instalment rate, but no instalment_rate was given.",
-    ),
-    (
         "trading_stock.entity_invalid",
         "entity is not small_business_entity, medium_business_entity or other.",
     ),
@@ -4053,6 +4037,22 @@ pub const REFUSAL_CODES: &[(&str, &str)] = &[
     (
         "trading_stock.value_missing",
         "An item's elected value is null, or lowest or obsolescence lacks one of the 3 values.",
+    ),
+    (
+        "voluntary_agreement_withholding.abn_not_quoted",
+        "The payee's ABN is not in force or not quoted in the voluntary agreement (TAA 1953 Sch 1 s 12-55(1)(d)).",
+    ),
+    (
+        "voluntary_agreement_withholding.agreement_not_in_force",
+        "The voluntary agreement is not in force (TAA 1953 Sch 1 s 12-55(1)(c)).",
+    ),
+    (
+        "voluntary_agreement_withholding.gst_above_payment",
+        "The GST included is more than the payment.",
+    ),
+    (
+        "voluntary_agreement_withholding.instalment_rate_missing",
+        "The agreement applies the payee's Commissioner's instalment rate, but no instalment_rate was given.",
     ),
     (
         "wine_equalisation_tax.dealing_invalid",

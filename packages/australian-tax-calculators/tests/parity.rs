@@ -39,8 +39,9 @@ use std::process::{Command, Stdio};
 /// `tests/psi_test.rs`, `tests/rental_property.rs`, `tests/residency_tests.rs`,
 /// `tests/lodgment_required.rs`, `tests/rd_tax_offset.rs`,
 /// `tests/gst_adjustments.rs`, `tests/deferred_tax.rs`,
-/// `tests/cgt_cost_base_adjustments.rs`, `tests/foreign_income_conversion.rs` and
-/// `tests/foreign_income_tax_offset.rs` cover them.
+/// `tests/cgt_cost_base_adjustments.rs`, `tests/foreign_income_conversion.rs`,
+/// `tests/foreign_income_tax_offset.rs` and `tests/trading_stock_prepayments.rs`
+/// cover them.
 const NEW_KINDS: [(&str, &str); 92] = [
     ("super-withholding", "super_withholding"),
     ("super-benefit-tax", "super_benefit_tax"),
