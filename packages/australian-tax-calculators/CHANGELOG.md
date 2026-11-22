@@ -2,7 +2,23 @@
 
 ## Unreleased
 
+- Relicensed Ryan Duguid's code under AGPL-3.0-or-later with section 7(b) attribution terms.
+
 ### Added
+
+- `depreciation-low-value-pool`, `depreciation-small-business-pool` and
+  `capital-works` work out a low-value pool (ITAA 1997 ss 40-440 and
+  40-445), a general small business pool with each year's low pool value
+  threshold (ss 328-190 to 328-215, IT(TP)A 1997 ss 328-180(6) and
+  328-181(5), Act No. 71 of 2026) and a Division 43 capital works deduction
+  (ss 43-210 and 43-215), each for 2020-21 to 2026-27. New codes:
+  `capital_works.begun_before_16_september_1987`,
+  `capital_works.four_percent_before_27_february_1992`,
+  `capital_works.precision_exceeded`,
+  `capital_works.undeducted_above_expenditure` and
+  `depreciation_small_business_pool.backing_business_investment`.
+  `tests/depreciation_pools.rs` holds them to the ATO's examples. The
+  single-asset `depreciation` command is unchanged.
 
 - `ato-interest-penalties` works the general interest charge (TAA 1953
   ss 8AAC and 8AAD), the shortfall interest charge (Sch 1 s 280-105), the
@@ -24,8 +40,6 @@
   `ato_interest_penalties.scheme_penalty`,
   `ato_interest_penalties.sge_before_2017` and
   `ato_interest_penalties.year_mismatch`.
-
-- Relicensed Ryan Duguid's code under AGPL-3.0-or-later with section 7(b) attribution terms.
 
 ### Fixed
 
