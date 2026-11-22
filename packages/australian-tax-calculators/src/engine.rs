@@ -6165,8 +6165,10 @@ mod depreciation_pools;
 pub use depreciation_pools::{
     capital_works, depreciation_low_value_pool, depreciation_small_business_pool,
 };
+mod rd_tax_offset;
+pub use rd_tax_offset::{RdTaxOffsetArgs, rd_tax_offset};
 
-const KINDS: [&str; 69] = [
+const KINDS: [&str; 70] = [
     "gst",
     "gst_margin_scheme",
     "fuel_tax_credits",
@@ -6236,6 +6238,7 @@ const KINDS: [&str; 69] = [
     "depreciation_low_value_pool",
     "depreciation_small_business_pool",
     "capital_works",
+    "rd_tax_offset",
 ];
 
 /// `periods(kind)`: accepted period arguments and inclusive calendar boundaries.

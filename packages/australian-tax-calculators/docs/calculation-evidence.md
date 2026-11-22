@@ -816,6 +816,46 @@ $765, $27,735 paid) and George (example 13 and the ATO page: $1,809 withheld,
 $24,291 paid, $4,020 FHSS tax), and one quarter's compounding against its
 closed form.
 
+## R&D tax offset
+
+Added on 22 November 2026. The sources were read that day: ITAA 1997 ss
+355-100, 355-105, 355-115, 355-435, 355-440, 355-445, 355-450, 63-10(1) item
+35, 67-30 and the s 995-1 'corporate tax rate' definition, and Income Tax
+Rates Act 1986 s 23(2), from the ATO's legal database; Act No. 92 of 2020 as
+made, whose Sch 4 (the 18.5 percentage point premium, the 8.5% and 16.5% tiers,
+the $150 million cap and s 355-115) applies to income years commencing on or
+after 1 July 2021 (item 14) and whose Sch 5 Part 2 (the clawback formula) does
+too (item 56(3)); the ATO's 'Rates of R&D tax incentive offset' and 'Calculate
+the clawback adjustment' (both last updated 13 May 2026), 'Clawback of
+feedstock adjustments' and the R&D tax incentive schedule 2022 instructions,
+Part E. The current compilation of s 355-100 has the same figures, so the
+command runs from 2021-22 to 2026-27.
+
+| Example | Facts given | Result |
+| --- | --- | --- |
+| Company V (grant), 2021-22 | **$3.6 million**, total expenses **$15 million**, 30%, **$2.3 million** recouped | Offset **$1,650,000**, adjusted **$580,500**, deduction amount **$690,000**, included **$1,265,000** |
+| Company F, 2022-23 | **$1 million** at 43.5%, **$500,000** recouped | **$435,000**, **$217,500**, **$125,000**, **$370,000** |
+| Company Y, 2023-24 and 2024-25 | **$350,000** and **$150,000**, recouped **$150,000** and **$50,000** | Included **$111,000** and **$37,000** |
+| Company Y, alternative | **$1 million** and **$1.5 million**, recouped **$300,000** and **$100,000** | Included **$222,000** and **$74,000** |
+| Company Q (grant cap) | **$100,000**, capped recoupment **$9,000** | **$43,500**, **$39,585**, **$2,250**, **$6,660** |
+| Company L | **$700,000**, **$250,000** recouped | Included **$185,000** |
+| Company J, before and after repayment | **$400,000**, recouped **$200,000** then **$50,000** | Included **$148,000** then **$37,000** |
+| Schedule 2022 Part E method | **$200 million**, total expenses **$2,000 million**, 30% | **$15.4 million** + **$51.15 million** + **$15 million** = **$81.55 million** |
+
+The ATO's feedstock example (Landscape Supplies: $22,000 of notional
+deductions, $9,000 clawed back, $6,660 included) works the adjusted offset on
+$13,000 at 43.5%. On its face s 355-100(2) would limit an offset on a total
+under $20,000 to research service provider and CRC expenditure, so the command
+refuses a clawback that takes the total, or starts it, under $20,000
+(`rd_tax_offset.clawback_below_threshold`), and the test holds the same
+feedstock figures on $122,000 instead, which give the same $6,660. The schedule
+instructions compare R&D intensity with 2% after rounding it to 4 decimal
+places; the command splits the tiers at exactly 2% of total expenses, as s
+355-100(1A) does. `tests/rd_tax_offset.rs` also covers the $20,000 threshold,
+the $20 million turnover boundary, exempt entity control, the 2% boundary, the
+cap at and above $150 million for both offsets, the present year's rate, each
+year boundary and each refusal.
+
 ## Fuel tax credits
 
 This worksheet was added on 19 November 2026. The Fuel Tax Act 2006 ss 41-5,

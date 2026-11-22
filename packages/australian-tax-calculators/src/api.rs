@@ -433,6 +433,23 @@ const COMMAND_ARGS: &[(&str, &[(&str, Kind)])] = &[
         ],
     ),
     (
+        "rd-tax-offset",
+        &[
+            ("notional_deductions", Dec),
+            ("rsp_crc_expenditure", Dec),
+            ("aggregated_turnover", Dec),
+            ("exempt_entity_controlled", Raw),
+            ("base_rate_entity", Raw),
+            ("total_expenses", Dec),
+            ("recoupment_clawback", Dec),
+            ("feedstock_revenue", Dec),
+            ("feedstock_expenditure", Dec),
+            ("present_year_base_rate_entity", Raw),
+            ("year", Raw),
+            ("scope_confirmed", Raw),
+        ],
+    ),
+    (
         "quarterly-sg",
         &[
             ("ordinary_time_earnings", Dec),
@@ -794,7 +811,7 @@ pub fn commands() -> Vec<&'static str> {
 /// command on its `gross_pay` shows that withholding. The classifier's amounts
 /// are totals over lines whose shares a decision table sets, not a formula;
 /// each line and class carries the authority for its row instead.
-const DERIVED: [&str; 57] = [
+const DERIVED: [&str; 58] = [
     "fbt",
     "fbt-car-statutory",
     "fbt-car-operating-cost",
@@ -839,6 +856,7 @@ const DERIVED: [&str; 57] = [
     "depreciation-low-value-pool",
     "depreciation-small-business-pool",
     "capital-works",
+    "rd-tax-offset",
     "hire-purchase-schedule",
     "chattel-mortgage-schedule",
     "loan-transactions",
@@ -1232,6 +1250,7 @@ pub fn evaluate_coded(command: &str, v: &Value) -> Result<Value> {
             | "depreciation-low-value-pool"
             | "depreciation-small-business-pool"
             | "capital-works"
+            | "rd-tax-offset"
             | "business-capital-expenditure"
             | "balancing-adjustment"
             | "trade-in"
@@ -1711,6 +1730,20 @@ pub fn evaluate_coded(command: &str, v: &Value) -> Result<Value> {
         "capital-works" => {
             engine::capital_works(&a[0], &a[1], &a[2], &a[3], &a[4], &a[5], &a[6], &a[7])
         }
+        "rd-tax-offset" => engine::rd_tax_offset(&engine::RdTaxOffsetArgs {
+            notional_deductions: &a[0],
+            rsp_crc_expenditure: &a[1],
+            aggregated_turnover: &a[2],
+            exempt_entity_controlled: &a[3],
+            base_rate_entity: &a[4],
+            total_expenses: &a[5],
+            recoupment_clawback: &a[6],
+            feedstock_revenue: &a[7],
+            feedstock_expenditure: &a[8],
+            present_year_base_rate_entity: &a[9],
+            year: &a[10],
+            scope_confirmed: &a[11],
+        }),
         "quarterly-sg" => engine::quarterly_sg(&a[0], &a[1], &a[2], &a[3], &a[4]),
         "payg-withholding" => {
             // Optional: each is absent unless the payee's declarations call for it.
