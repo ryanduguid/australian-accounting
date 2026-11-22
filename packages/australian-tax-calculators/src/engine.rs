@@ -6169,8 +6169,10 @@ mod small_business_income_offset;
 pub use small_business_income_offset::{
     SBITO_OPTIONAL, SmallBusinessIncomeOffsetArgs, small_business_income_offset,
 };
+mod lodgment_required;
+pub use lodgment_required::{LodgmentRequiredArgs, lodgment_required};
 
-const KINDS: [&str; 70] = [
+const KINDS: [&str; 71] = [
     "gst",
     "gst_margin_scheme",
     "fuel_tax_credits",
@@ -6241,6 +6243,7 @@ const KINDS: [&str; 70] = [
     "depreciation_small_business_pool",
     "capital_works",
     "small_business_income_offset",
+    "lodgment_required",
 ];
 
 /// `periods(kind)`: accepted period arguments and inclusive calendar boundaries.

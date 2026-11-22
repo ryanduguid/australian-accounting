@@ -747,6 +747,23 @@ const COMMAND_ARGS: &[(&str, &[(&str, Kind)])] = &[
         ],
     ),
     (
+        "lodgment-required",
+        &[
+            ("residency", Json),
+            ("taxable_income", Dec),
+            ("dividends_and_franking_credits", Dec),
+            ("under_18", Json),
+            ("triggers", Json),
+            ("study_loan", Json),
+            ("working_holiday_maker", Json),
+            ("listed_payment", Json),
+            ("sapto", Json),
+            ("child_support_parent", Raw),
+            ("year", Raw),
+            ("scope_confirmed", Raw),
+        ],
+    ),
+    (
         "income-tests",
         &[
             ("taxable_income", Dec),
@@ -1246,6 +1263,7 @@ pub fn evaluate_coded(command: &str, v: &Value) -> Result<Value> {
             | "depreciation-small-business-pool"
             | "capital-works"
             | "small-business-income-offset"
+            | "lodgment-required"
             | "business-capital-expenditure"
             | "balancing-adjustment"
             | "trade-in"
@@ -1973,6 +1991,20 @@ pub fn evaluate_coded(command: &str, v: &Value) -> Result<Value> {
                 optional: given.each_ref().map(Option::as_ref),
             })
         }
+        "lodgment-required" => engine::lodgment_required(&engine::LodgmentRequiredArgs {
+            residency: &a[0],
+            taxable_income: &a[1],
+            dividends_and_franking_credits: &a[2],
+            under_18: &a[3],
+            triggers: &a[4],
+            study_loan: &a[5],
+            working_holiday_maker: &a[6],
+            listed_payment: &a[7],
+            sapto: &a[8],
+            child_support_parent: &a[9],
+            year: &a[10],
+            scope_confirmed: &a[11],
+        }),
         "luxury-car-tax" => engine::luxury_car_tax(&engine::LctArgs {
             lines: &a[0],
             year: &a[1],

@@ -1136,6 +1136,11 @@ pub fn supported_periods(kind: &str) -> Vec<&'static str> {
         "small_business_income_offset" => vec![
             "2020-21", "2021-22", "2022-23", "2023-24", "2024-25", "2025-26", "2026-27",
         ],
+        // Each year's lodgment instrument, read on the register; none for the
+        // 2027 year yet.
+        "lodgment_required" => vec![
+            "2020-21", "2021-22", "2022-23", "2023-24", "2024-25", "2025-26",
+        ],
         "income_tests" => vec!["2024-25", "2025-26", "2026-27"],
         // The pools' rates and the capital works rates do not change in these
         // years; the small business pool's low pool value threshold does, by year.
@@ -1412,6 +1417,10 @@ pub fn source_review(kind: &str) -> (&'static str, &'static str) {
         "small_business_income_offset" => (
             "2026-11-22",
             "ITAA 1997 ss 328-110, 328-355 to 328-375, 4-10(3) and 63-10, compilation 268 (1 October 2026), against compilations 210 (1 July 2020; s 328-360(1) at 13%) and 223 (1 July 2021; 16%); the ATO's 'Small business income tax offset' page (last updated 7 May 2025)",
+        ),
+        "lodgment_required" => (
+            "2026-11-22",
+            "Notices of Requirement to Lodge a Return for the Income Year Ended 30 June 2021 (F2021L00577), 2022 (F2022L00508) and 2023 (F2023L00533), Tables A, B, J, K and P and sections 3.3 and 4; Taxation Laws (Requirement to Lodge a Return for the 2024 Year) Instrument 2024 (F2024L00550), 2025 Year (F2025L00570) and 2026 Year (F2026L00618), ss 6(2), 6(3), 6(10), 7(1)(f), 7(2), 7(3) and 8(1); the 2024 explanatory statement, paragraph 17",
         ),
         "income_tests" => (
             "2026-11-16",
@@ -1783,6 +1792,12 @@ pub fn library_evidence(kind: &str) -> [(&'static str, &'static str); 4] {
             "ATO Small business income tax offset page and the site's sole trader vectors",
             "the rate table (13% for 2020-21, 16% from 2021-22, $1,000 cap, $5 million turnover) and the offset as the proportion of the basic income tax liability",
             "2025-05-07",
+            "2026-11-22",
+        ),
+        "lodgment_required" => (
+            "Each year's lodgment instrument",
+            "The thresholds of s 6(2)(i) and (o), 6(3)(a), 6(10)(b), 7(1)(f)(ii), 7(2)(b) and 7(3)(b), and Tables A, B, J, K and P of the Notices",
+            "2026-05-22",
             "2026-11-22",
         ),
         "income_tests" => (
@@ -3559,6 +3574,18 @@ pub fn input_units(kind: &str) -> Vec<(&'static str, &'static str)> {
             ("shares", "list of up to 50 objects, each {amount, deductions} in AUD: a share of a small business entity's net small business income, or an amount s 328-355(c) covers, included in your assessable income (s 328-355(b), (c)), and your deductions attributable to it that s 328-370 covers; [] for none"),
             ("prescribed_person", "boolean: you are a prescribed person under s 102AC of the ITAA 1936 for the year (broadly, under 18 at its end); true is refused (s 328-375)"),
         ],
+        "lodgment_required" => vec![
+            ("residency", "object: {status: whole_year}, {status: part_year, months: 1 to 12, counting the months you became and stopped being a resident} or {status: none, taxable_australian_income: boolean, income including capital gains taxable in Australia other than the withholding payments s 6(3)(b) excludes}; residency-tests gives the status"),
+            ("taxable_income", "AUD: your taxable income for the year"),
+            ("dividends_and_franking_credits", "AUD: your assessable income from dividends or distributions and franking credits (s 6(2)(i) and (o))"),
+            ("under_18", "null, or for a person under 18 at all times in the year {income_excluding_work: AUD, income other than salary, wages or other payments for work personally performed} (s 6(2)(i))"),
+            ("triggers", "list of the conditions that applied in the year, each a stated fact: payg_withheld (s 6(2)(a), other than the payments it excludes), tax_loss, net_capital_loss, business, primary_production_trust, primary_production_partnership, exempt_overseas_income (s 23AF or 23AG income and $1 or more of other income), payg_instalment, special_professional, private_health_offset (s 6(2)(m)), reportable_amounts (s 6(2)(n)), co_contribution, contributions_cap and super_lump_sum (s 6(2)(r))"),
+            ("study_loan", "null, or with an accumulated HELP, TSL or AASL, or VSL debt on the 1 June before the year {income: AUD, income including foreign-sourced income} (s 6(10)); read only for a foreign resident at some time in the year"),
+            ("working_holiday_maker", "null, or when you derived assessable income from Australian sources as a working holiday maker {other_assessable_income: boolean, taxable_income_excluding_remainders: AUD} (s 7(1)(f))"),
+            ("listed_payment", "null, or when your assessable income included a payment the year's instrument lists, such as jobseeker or austudy payment {other_assessable_income: boolean} (s 7(2))"),
+            ("sapto", "null, or when you qualified for the seniors and pensioners tax offset {rebate_income: AUD, category: single (single, widowed or separated at any time), apart (otherwise, living apart from your spouse due to illness, or either of you in a nursing home, at any time) or together} (s 7(3))"),
+            ("child_support_parent", "boolean: you were a parent liable for or entitled to child support; refused when this instrument does not require a return, as the separate instrument for parents may"),
+        ],
         "income_tests" => vec![
             ("taxable_income", "AUD, whole dollars: taxable income, including any assessable FHSS released amount (nil for a loss)"),
             ("assessable_fhss_released_amount", "AUD: the amount ITAA 1997 s 313-20 includes in assessable income for released FHSS amounts"),
@@ -4248,6 +4275,21 @@ pub fn examples(kind: &str) -> Vec<(&'static str, Example)> {
             ("year_before_turnover", Text("18000.00")),
             ("likely_turnover", Text("22000.00")),
             ("year_turnover", Text("22000.00")),
+        ],
+        // A resident employee for the whole of 2025-26 whose employer withheld
+        // PAYG; the figures are fabricated.
+        "lodgment_required" => vec![
+            ("year", Text("2025-26")),
+            ("residency", Json(r#"{"status": "whole_year"}"#)),
+            ("taxable_income", Text("15000.00")),
+            ("dividends_and_franking_credits", Text("0.00")),
+            ("under_18", Json("null")),
+            ("triggers", Json(r#"["payg_withheld"]"#)),
+            ("study_loan", Json("null")),
+            ("working_holiday_maker", Json("null")),
+            ("listed_payment", Json("null")),
+            ("sapto", Json("null")),
+            ("child_support_parent", Flag(false)),
         ],
         "income_tests" => vec![
             ("year", Text("2025-26")),
