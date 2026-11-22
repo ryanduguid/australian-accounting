@@ -177,9 +177,11 @@ fn every_catalogued_required_input_of_a_strict_command_is_read() {
     // beneficiary-tax-offset, invalid-carer-tax-offset, zone-tax-offset,
     // net-medical-expenses-tax-offset, non-commercial-losses, psi-test,
     // private-health-insurance-rebate, rental-property and super-benefit-tax, horticulture-shearing-withholding,
-    // upward-variation-withholding, daily-casual-withholding and
-    // no-abn-withholding.
-    assert_eq!(checked, 72);
+    // upward-variation-withholding, daily-casual-withholding,
+    // no-abn-withholding, entertainer-withholding,
+    // return-to-work-withholding, annuity-withholding and
+    // voluntary-agreement-withholding.
+    assert_eq!(checked, 76);
 }
 
 /// Every frozen call gives the same answer through either entry point, and

@@ -1310,13 +1310,17 @@ pub fn supported_periods(kind: &str) -> Vec<&'static str> {
         "rental_property" => vec![
             "2020-21", "2021-22", "2022-23", "2023-24", "2024-25", "2025-26", "2026-27",
         ],
-        // The years payg_withholding's Schedule 1 holds: Schedule 14 and the
-        // daily and casual table use it, and Schedule 2 and s 12-190 were read
-        // for the same years only.
+        // The years payg_withholding's Schedule 1 holds: Schedules 6 and 14 and
+        // the daily and casual table use it, and Schedules 2, 3, 4 and 10 and
+        // s 12-190 were read for the same years only.
         "horticulture_shearing_withholding"
         | "upward_variation_withholding"
         | "daily_casual_withholding"
-        | "no_abn_withholding" => keys(PAYG_WITHHOLDING_COEFFICIENTS),
+        | "no_abn_withholding"
+        | "entertainer_withholding"
+        | "return_to_work_withholding"
+        | "annuity_withholding"
+        | "voluntary_agreement_withholding" => keys(PAYG_WITHHOLDING_COEFFICIENTS),
         _ => Vec::new(),
     }
 }
@@ -1624,6 +1628,22 @@ pub fn source_review(kind: &str) -> (&'static str, &'static str) {
         "no_abn_withholding" => (
             "2026-11-22",
             "TAA 1953 Sch 1 ss 12-190 and 15-10 (ATO legal database); Taxation Administration Regulations 2017 ss 4 ('top rate'), 26 and 38, compilations 12 (1 July 2024) and 18 (14 November 2026); A New Tax System (Goods and Services Tax) Regulations 2019 s 29-80.01, compilations 4 and 5; ATO Payments you don't withhold from (last updated 11 June 2025); Rental expenses (Rental properties 2025)",
+        ),
+        "entertainer_withholding" => (
+            "2026-11-22",
+            "Schedule 3 (NAT 1023, actors, variety artists and other entertainers) of F2024L00664, F2025L00647, F2025L01016 and F2026L00716: using this schedule, working out the withholding amount and its example, using a formula, Tables A and B and Sandra's example, TFN declarations, foreign residents and claiming tax offsets",
+        ),
+        "return_to_work_withholding" => (
+            "2026-11-22",
+            "Schedule 4 (return to work payments) of F2024L00664, F2025L00647, F2025L01016 and F2026L00716: using this schedule, working out the withholding amount and George's example, rounding and TFN declarations; TAA 1953 Sch 1 s 12-50 (ATO legal database)",
+        ),
+        "annuity_withholding" => (
+            "2026-11-22",
+            "Schedule 6 (NAT 1005, annuities) of F2024L00664, F2025L00647, F2025L01016 and F2026L00716: using this schedule, working out the withholding amount, rounding, Barbara's and Kenneth's examples and TFN declarations; TAA 1953 Sch 1 s 12-80 (ATO legal database); Schedule 1 as payg_withholding records",
+        ),
+        "voluntary_agreement_withholding" => (
+            "2026-11-22",
+            "Schedule 10 (voluntary agreements) of F2024L00664, F2025L00647, F2025L01016 and F2026L00716: using this schedule, how to work out the withholding amount, the CIR and GST rules, Francesca's example and rounding; TAA 1953 Sch 1 s 12-55 (ATO legal database)",
         ),
         "sb_cgt_concessions" => (
             "2026-11-19",
@@ -2075,6 +2095,30 @@ pub fn library_evidence(kind: &str) -> [(&'static str, &'static str); 4] {
             "2025-06-11",
             "2026-11-22",
         ),
+        "entertainer_withholding" => (
+            "ATO Schedule 3 tax table for actors, variety artists and other entertainers (NAT 1023)",
+            "Sandra's 2 performances at $500.35, $42 each (2026-27), $44 in the 2024 and 2025 schedules; $279.35 a day, 3 performances and $500 of tax offsets, $17 ($18)",
+            "2026-06-17",
+            "2026-11-22",
+        ),
+        "return_to_work_withholding" => (
+            "ATO Schedule 4 tax table for return to work payments",
+            "George's $18,000 return to work payment, $5,760 withheld",
+            "2026-06-17",
+            "2026-11-22",
+        ),
+        "annuity_withholding" => (
+            "ATO Schedule 6 tax table for annuities (NAT 1005)",
+            "Barbara's $1,000 a week less $5,200 over 52, $106 on $900 (2026-27), $111 in the 2024 and 2025 schedules; Kenneth's $850 a fortnight less $1,000 over 10, $4 on $750",
+            "2026-06-17",
+            "2026-11-22",
+        ),
+        "voluntary_agreement_withholding" => (
+            "ATO Schedule 10 tax table for payments made under voluntary agreements",
+            "Francesca's CIR of 16.44% applied by agreement, otherwise 20%",
+            "2026-06-17",
+            "2026-11-22",
+        ),
         "sb_cgt_concessions" => (
             "tax-examples-capital-gains-tax-cgt",
             "2-280",
@@ -2188,7 +2232,17 @@ pub fn optional_inputs(kind: &str) -> Vec<(&'static str, &'static str)> {
                 "boolean, for a member at or above preservation age and under 60, and then required: true (the member receives another superannuation lump sum in the same income year in that band) is refused while any of the low rate cap is left, as ss 301-20(3) and 301-105(5) and (6) share the year's low rate cap across them, the element taxed in the fund first",
             ),
         ],
-        "upward_variation_withholding" => optional_inputs("payg_withholding"),
+        "upward_variation_withholding" | "annuity_withholding" => {
+            optional_inputs("payg_withholding")
+        }
+        "entertainer_withholding" => vec![(
+            "tax_offsets",
+            "AUD, with a TFN and the tax-free threshold only, and one performance a day: the yearly total the performer claimed on their Withholding declaration",
+        )],
+        "voluntary_agreement_withholding" => vec![(
+            "instalment_rate",
+            "decimal string from 0 to 100: the payee's Commissioner's instalment rate as a percentage, absent when they have told you they have none",
+        )],
         "daily_casual_withholding" => vec![(
             "tax_offsets",
             "AUD, with a TFN only: the yearly total the payee claimed at the tax offsets questions on their Withholding declaration; the daily value is 0.38% of it",
@@ -4349,6 +4403,35 @@ pub fn input_units(kind: &str) -> Vec<(&'static str, &'static str)> {
             ("gst_included", "AUD: the GST included in the payment, 0.00 for none; at most the payment"),
             ("supply_total_excluding_gst", "AUD: the total of all payments made or to be made for the supply, this one included, disregarding GST (TAA 1953 Sch 1 s 12-190(4)(b))"),
         ],
+        "entertainer_withholding" => vec![
+            ("performances_per_week", "integer from 1: the performer's performances for the week"),
+            ("performances_per_day", "integer from 1 to performances_per_week: the performances on the day this payment covers; 1 when each performance is paid separately"),
+            ("earnings", "AUD: the performer's earnings for one performance"),
+            ("tfn_quoted", "boolean: the performer has given a valid TFN"),
+            ("foreign_resident", "boolean: the performer answered that they are a foreign resident; true with a TFN is refused"),
+            ("tax_free_threshold_claimed", "boolean: the performer has claimed the tax-free threshold (Table A); false uses Table B"),
+            ("working_holiday_maker", "boolean: the performer is a working holiday maker; true is refused (Schedule 15)"),
+        ],
+        "return_to_work_withholding" => vec![
+            ("payment", "AUD: the return to work payment"),
+            ("tfn_quoted", "boolean: the payee has given a valid TFN"),
+            ("foreign_resident", "boolean: the payee is a foreign resident; it matters only without a TFN"),
+            ("working_holiday_maker", "boolean: the payee is a working holiday maker; true is refused (Schedule 15)"),
+        ],
+        "annuity_withholding" => vec![
+            ("payment", "AUD: the annuity payment"),
+            ("deductible_amount", "AUD: the deductible amount for the income year (ITAA 1936 s 27H), the payee's share where 2 or more people hold the annuity"),
+            ("instalments", "integer 1 to 366: the instalments of the annuity payable in the income year"),
+            ("pay_period", "weekly, fortnightly, monthly or quarterly: how often the annuity is paid"),
+            ("scale", "integer 1 to 6, as payg_withholding; scale 4 (no TFN) also needs foreign_resident"),
+        ],
+        "voluntary_agreement_withholding" => vec![
+            ("payment", "AUD: the payment, including any GST in it"),
+            ("gst_included", "AUD: the GST included in the payment, 0.00 for none; at most the payment"),
+            ("agreement_in_force", "boolean: a voluntary agreement in the approved form covering the payment is in force (not terminated under s 12-55(3)); false is refused"),
+            ("abn_quoted", "boolean: the payee has an ABN in force and it is quoted in the agreement; false is refused"),
+            ("agreement_applies_instalment_rate", "boolean: the agreement says the payee's Commissioner's instalment rate applies; true needs instalment_rate"),
+        ],
         "sb_cgt_concessions" => vec![
             ("entity", "individual, company or trust: the entity that made the capital gain"),
             ("share_or_trust_interest", "boolean: the asset is a share in a company or an interest in a trust; true is refused (ITAA 1997 s 152-10(2))"),
@@ -5213,6 +5296,43 @@ pub fn examples(kind: &str) -> Vec<(&'static str, Example)> {
             ("payment", Text("1800.00")),
             ("gst_included", Text("0.00")),
             ("supply_total_excluding_gst", Text("1800.00")),
+        ],
+        // Schedule 3's example: Sandra's 2 performances at $500.35, one a day.
+        "entertainer_withholding" => vec![
+            ("year", Text("2026-27")),
+            ("performances_per_week", Whole(2)),
+            ("performances_per_day", Whole(1)),
+            ("earnings", Text("500.35")),
+            ("tfn_quoted", Flag(true)),
+            ("foreign_resident", Flag(false)),
+            ("tax_free_threshold_claimed", Flag(true)),
+            ("working_holiday_maker", Flag(false)),
+        ],
+        // Schedule 4's example: George's $18,000 return to work payment.
+        "return_to_work_withholding" => vec![
+            ("year", Text("2026-27")),
+            ("payment", Text("18000.00")),
+            ("tfn_quoted", Flag(true)),
+            ("foreign_resident", Flag(false)),
+            ("working_holiday_maker", Flag(false)),
+        ],
+        // Schedule 6's example 1: Barbara's $1,000 a week, $5,200 over 52.
+        "annuity_withholding" => vec![
+            ("year", Text("2026-27")),
+            ("payment", Text("1000.00")),
+            ("deductible_amount", Text("5200.00")),
+            ("instalments", Whole(52)),
+            ("pay_period", Text("weekly")),
+            ("scale", Whole(2)),
+        ],
+        // Schedule 10's example without the term applying Francesca's CIR: 20%.
+        "voluntary_agreement_withholding" => vec![
+            ("year", Text("2026-27")),
+            ("payment", Text("1000.00")),
+            ("gst_included", Text("0.00")),
+            ("agreement_in_force", Flag(true)),
+            ("abn_quoted", Flag(true)),
+            ("agreement_applies_instalment_rate", Flag(false)),
         ],
         "sb_cgt_concessions" => vec![
             ("year", Text("2025-26")),

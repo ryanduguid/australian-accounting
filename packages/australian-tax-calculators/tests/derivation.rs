@@ -14,7 +14,7 @@ use std::io::Write;
 use std::process::{Command, Stdio};
 
 /// The commands `derive` explains.
-const DERIVED: [&str; 64] = [
+const DERIVED: [&str; 68] = [
     "fbt",
     "fbt-car-statutory",
     "fbt-car-operating-cost",
@@ -63,6 +63,10 @@ const DERIVED: [&str; 64] = [
     "upward-variation-withholding",
     "daily-casual-withholding",
     "no-abn-withholding",
+    "entertainer-withholding",
+    "return-to-work-withholding",
+    "annuity-withholding",
+    "voluntary-agreement-withholding",
     "hire-purchase-schedule",
     "chattel-mortgage-schedule",
     "loan-transactions",
@@ -2296,6 +2300,8 @@ fn derive_refuses_what_it_does_not_explain() {
          depreciation-low-value-pool, depreciation-small-business-pool, capital-works, \
          horticulture-shearing-withholding, upward-variation-withholding, \
          daily-casual-withholding, no-abn-withholding, \
+         entertainer-withholding, return-to-work-withholding, \
+         annuity-withholding, voluntary-agreement-withholding, \
          hire-purchase-schedule, chattel-mortgage-schedule, loan-transactions, \
          lump-sum-arrears-tax-offset, income-tests, government-super-amounts, business-capital-expenditure, balancing-adjustment, trade-in, dasp-tax, super-benefit-tax, gst-margin-scheme, etp-tax-free-component, payroll-tax, cgt-parcels, work-expenses, rental-property, not \"payg-gross-up\""
     );
