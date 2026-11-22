@@ -2877,9 +2877,10 @@ of the return groups it. `interests` lists up to 50 parcels; each gives
 `conditions` (booleans for the subsections they name: `employed`,
 `ordinary_shares_only`, `not_share_trading_company`, `minimum_holding_period`
 and `ten_percent_limit` for s 83A-45(1) to (4) and (6), `non_discriminatory`
-for s 83A-35(6), `real_risk_of_forfeiture` for s 83A-105(3), and for a share
-`broad_availability` (s 83A-105(2)) and `salary_sacrifice` (s 83A-105(4)(a),
-(b)(ii) and (iii)), for a right `deferral_stated` (s 83A-105(6))) and
+for s 83A-35(6), `real_risk_of_forfeiture` for s 83A-105(3),
+`salary_sacrifice` (s 83A-105(4)(a), (b)(ii) and (iii); a right's counts
+only toward the $5,000), for a share `broad_availability` (s 83A-105(2)),
+for a right `deferral_stated` (s 83A-105(6))) and
 `start_up` (`null`, or `unlisted`, `incorporated_under_10_years`,
 `aggregated_turnover` and `employer_australian_resident` for s 83A-33(2) to
 (4) and (6)). A right adds `exercise_price` and `share_market_value` (totals
@@ -2896,10 +2897,15 @@ Each parcel is treated in this order:
    `exercised` and `share_restrictions_lifted`, `employment_ended` if acquired
    before 1 July 2022, `disposed` (each a date or `null`), `cost_base` and
    `taxing_point_value` (`null`, or `date` and `market_value`, or for a right
-   not yet exercised `share_market_value` for the regulations). The taxing
-   point is the earliest of the times ss 83A-115 and 83A-120 give, 15 years
-   at the latest, ending employment counting only before 1 July 2022 (Act
-   No. 8, 2022 Sch 10 item 9), moved to a disposal within 30 days after it.
+   not yet exercised `share_market_value` for the regulations).
+   `restrictions_lifted` is the first day there is neither a real risk of
+   forfeiture nor a genuine disposal restriction (ss 83A-115(4),
+   83A-120(4)), and `share_restrictions_lifted` the same for the share
+   acquired on exercise (s 83A-120(7)); a right is exercised by its
+   `last_exercise_day` and before any disposal. The taxing point is the
+   earliest of the times ss 83A-115 and 83A-120 give, 15 years at the latest,
+   moved to a disposal within 30 days after it; ending employment counts only
+   where that point is before 1 July 2022 (Act No. 8, 2022 Sch 10 item 9).
    The amount is the value then less the cost base, not below nil
    (s 83A-110(1)), in the taxing point's income year;
 4. otherwise taxed upfront in the year acquired (s 83A-25(1)), eligible for
@@ -2908,9 +2914,10 @@ Each parcel is treated in this order:
 
 The reduction is at most $1,000 of the year's label D, only where
 `income_test`'s 4 amounts total $180,000 or less (s 83A-35(2)). A parcel
-with `forfeiture` (`cause`, `protects_against_fall`, `amount_included`,
-`year_included`) shows whether s 83A-310 excludes the amount included in
-that year. The regulations' value of an unlisted right is the greater of its
+with `forfeiture` (`cause`, `protects_against_fall`, `consideration_received`,
+`amount_included`, `year_included`) shows whether s 83A-310 excludes the
+amount included in that year; valuable consideration for the loss makes it a
+disposal, which is not excluded. The regulations' value of an unlisted right is the greater of its
 intrinsic value and the s 83A-315.08 or s 83A-315.09 table value, on a day
 from 1 July 2021, for a right exercisable within 15 years of acquisition; a
 period or percentage on a boundary takes the lower range.

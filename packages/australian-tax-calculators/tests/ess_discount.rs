@@ -40,11 +40,10 @@ fn conditions(kind: &str) -> Value {
     let mut c = json!({
         "employed": true, "ordinary_shares_only": true, "not_share_trading_company": true,
         "minimum_holding_period": true, "ten_percent_limit": true, "non_discriminatory": true,
-        "real_risk_of_forfeiture": false,
+        "real_risk_of_forfeiture": false, "salary_sacrifice": false,
     });
     if kind == "share" {
         c["broad_availability"] = json!(true);
-        c["salary_sacrifice"] = json!(false);
     } else {
         c["deferral_stated"] = json!(false);
     }
@@ -637,7 +636,7 @@ fn forfeited(kind: &str, cause: &str, protects: bool) -> Value {
         "kind": kind, "acquired": "2022-09-01",
         "forfeiture": {
             "cause": cause, "protects_against_fall": protects,
-            "amount_included": "2400.00", "year_included": "2024-25",
+            "consideration_received": false, "amount_included": "2400.00", "year_included": "2024-25",
         },
     })
 }
@@ -668,6 +667,12 @@ fn forfeiture_excludes_the_amount_included() {
         Value::Null,
     );
     assert_eq!(code(&lapsed_share), "ess_discount.interests_invalid");
+    // Example 11: rights cancelled for their market value are disposed of,
+    // not forfeited.
+    let mut cashed = forfeited("right", "cancellation_allowed", false);
+    cashed["forfeiture"]["consideration_received"] = json!(true);
+    let r = run(&call("2025-26", json!([cashed]), Value::Null));
+    assert_eq!(row(&r, 0)["excluded"], false);
     let mut early = forfeited("share", "scheme_condition", false);
     early["forfeiture"]["year_included"] = json!("2021-22");
     assert_eq!(
@@ -961,3 +966,131 @@ const BASE: [(&str, &str, &str); 19] = [
     ("3 to 6", "7.8", "0.9"),
     ("0 to 3", "7.5", "1.0"),
 ];
+
+/// Act No. 8, 2022 Sch 10 item 9 looks at the taxing point after the 30-day
+/// rule: employment ending on 30 June 2022 with a sale on 20 July 2022 gives
+/// a point after 30 June 2022, so ending employment no longer counts and the
+/// sale before restrictions lift is refused; a sale on 20 June 2022 keeps it.
+#[test]
+fn cessation_then_a_sale_after_30_june_2022() {
+    let share = |disposed: &str| {
+        let value = json!({"date": disposed, "market_value": "2500.00"});
+        set(
+            deferred_share("2023-08-01", json!(disposed), value),
+            json!({"acquired": "2020-08-01", "employment_ended": "2022-06-30"}),
+        )
+    };
+    let right = |disposed: &str| {
+        let mut r = early_right(json!("2022-06-30"), disposed);
+        r["disposed"] = json!(disposed);
+        r
+    };
+    for interest in [share("2022-07-20"), right("2022-07-20")] {
+        let late = call("2022-23", json!([interest]), Value::Null);
+        assert_eq!(code(&late), "ess_discount.dates_inconsistent");
+    }
+    let mut early_sale = right("2022-07-20");
+    early_sale["employment_ended"] = json!("2022-06-01");
+    early_sale["disposed"] = json!("2022-06-20");
+    early_sale["taxing_point_value"]["date"] = json!("2022-06-20");
+    for (interest, rule) in [
+        (
+            set(
+                share("2022-06-20"),
+                json!({"employment_ended": "2022-06-01"}),
+            ),
+            "s 83A-115(3)",
+        ),
+        (early_sale, "s 83A-120(3)"),
+    ] {
+        let r = run(&call("2021-22", json!([interest]), Value::Null));
+        assert_eq!(row(&r, 0)["deferred_taxing_point"], "2022-06-20");
+        assert_eq!(row(&r, 0)["taxing_point_rule"], rule);
+        assert_eq!(amount(&r, "deferred_amounts"), "2500.00");
+    }
+}
+
+/// A right is exercised by its last exercise day and not after it is
+/// disposed of.
+#[test]
+fn impossible_right_dates_are_refused() {
+    let mut expired = early_right(Value::Null, "2030-08-02");
+    expired["exercised"] = json!("2030-08-02");
+    expired["share_restrictions_lifted"] = json!("2030-08-02");
+    let mut sold_first = early_right(Value::Null, "2023-01-01");
+    sold_first["disposed"] = json!("2023-09-01");
+    sold_first["exercised"] = json!("2023-09-02");
+    sold_first["share_restrictions_lifted"] = json!("2023-09-02");
+    for interest in [expired, sold_first] {
+        let refused = call("2023-24", json!([interest]), Value::Null);
+        assert_eq!(code(&refused), "ess_discount.dates_inconsistent");
+    }
+}
+
+/// s 83A-105(4)(c): a salary sacrificed right at a real risk of forfeiture
+/// beside a share relying on s 83A-105(4) is refused as unsettled; a
+/// salary sacrificed share whose discount is less than its market value is
+/// not one that could count.
+#[test]
+fn salary_sacrificed_rights_and_the_5000() {
+    let sacrificed = || {
+        let mut s = with_conditions(
+            share("2025-08-01", "0.00", "3000.00"),
+            json!({"salary_sacrifice": true}),
+        );
+        s["restrictions_lifted"] = json!("2027-08-01");
+        s["disposed"] = Value::Null;
+        s["cost_base"] = json!("0.00");
+        s["taxing_point_value"] = Value::Null;
+        s
+    };
+    let mut right = early_right(Value::Null, "2027-08-01");
+    right["acquired"] = json!("2025-08-01");
+    right["market_value"] = json!("3000.00");
+    right["conditions"]["salary_sacrifice"] = json!(true);
+    right["restrictions_lifted"] = json!("2027-08-01");
+    right["taxing_point_value"] = Value::Null;
+    right.as_object_mut().unwrap().remove("employment_ended");
+    let mixed = call("2025-26", json!([sacrificed(), right]), Value::Null);
+    assert_eq!(code(&mixed), "ess_discount.salary_sacrifice_unclear");
+    let mut paid = with_conditions(sacrificed(), json!({"real_risk_of_forfeiture": true}));
+    paid["consideration"] = json!("1.00");
+    let r = run(&call("2025-26", json!([sacrificed(), paid]), Value::Null));
+    assert_eq!(row(&r, 0)["rule"], "s 83A-105(4)");
+    assert_eq!(row(&r, 1)["rule"], "s 83A-105(3)");
+}
+
+/// s 83A-315.08(2): a calculation percentage on each column's upper edge
+/// and a period of exactly each row's months take the lower range.
+#[test]
+fn every_table_boundary_takes_the_lower_range() {
+    let lower = [60.0, 70.0, 75.0, 80.0, 85.0, 90.0, 92.5];
+    let upper = [95.0, 97.5, 100.0, 102.5, 105.0, 107.5];
+    for (item, period, entries) in ITEMS {
+        let top: i64 = period.split(" to ").nth(1).unwrap().parse().unwrap();
+        let last = months_after("2023-01-10", top);
+        let edges: &[f64] = if item <= 19 { &lower } else { &upper };
+        for (edge, entry) in edges.iter().zip(entries) {
+            let shares = format!("{:.2}", edge * 1000.0);
+            let v = valued("100000.00", &shares, &last);
+            let expected = format!("{:.2}", entry.parse::<f64>().unwrap() * 1000.0);
+            assert_eq!(v["table_value"], expected, "item {item} at {edge}%");
+        }
+    }
+}
+
+/// s 83A-115(6) for a share and s 83A-120(3) for a right.
+#[test]
+fn a_share_at_15_years_and_a_right_sold_within_30_days() {
+    let mut s = deferred_share("2022-07-23", Value::Null, Value::Null);
+    s["restrictions_lifted"] = Value::Null;
+    let r = run(&call("2025-26", json!([s]), Value::Null));
+    assert_eq!(row(&r, 0)["deferred_taxing_point"], "2037-07-22");
+    assert_eq!(row(&r, 0)["taxing_point_rule"], "s 83A-115(6)");
+    let mut right = early_right(Value::Null, "2023-08-31");
+    right["disposed"] = json!("2023-08-31");
+    let r = run(&call("2023-24", json!([right]), Value::Null));
+    assert_eq!(row(&r, 0)["deferred_taxing_point"], "2023-08-31");
+    assert_eq!(row(&r, 0)["taxing_point_rule"], "s 83A-120(3)");
+    assert_eq!(amount(&r, "deferred_amounts"), "2500.00");
+}

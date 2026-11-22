@@ -145,7 +145,8 @@ pub(super) struct Conditions {
     pub real_risk: bool,
     /// Shares only: s 83A-105(2).
     pub broad_availability: bool,
-    /// Shares only: s 83A-105(4)(a), (b)(ii) and (iii).
+    /// s 83A-105(4)(a), (b)(ii) and (iii); a right's counts only toward the
+    /// $5,000 of s 83A-105(4)(c).
     pub salary_sacrifice: bool,
     /// Rights only: s 83A-105(6)(b).
     pub deferral_stated: bool,
@@ -164,6 +165,8 @@ pub(super) struct Held<'a> {
 pub(super) struct Forfeiture {
     pub cause: &'static str,
     pub protects_against_fall: bool,
+    /// Valuable consideration for the loss: a disposal, not a forfeiture.
+    pub consideration_received: bool,
     pub amount_included: Decimal,
     pub year_included: String,
 }
@@ -298,7 +301,7 @@ fn conditions(mut c: Reader<'_>, kind: Kind) -> Result<Conditions> {
         non_discriminatory: c.flag("non_discriminatory")?,
         real_risk: c.flag("real_risk_of_forfeiture")?,
         broad_availability: shares_only(&mut c, "broad_availability")?,
-        salary_sacrifice: shares_only(&mut c, "salary_sacrifice")?,
+        salary_sacrifice: c.flag("salary_sacrifice")?,
         deferral_stated: if share {
             false
         } else {
@@ -351,6 +354,7 @@ fn forfeiture(reader: &mut Reader<'_>, kind: Kind, acquired: i64) -> Result<Forf
     let out = Forfeiture {
         cause,
         protects_against_fall: f.flag("protects_against_fall")?,
+        consideration_received: f.flag("consideration_received")?,
         amount_included: f.amount("amount_included")?,
         year_included: included_year(&mut f, acquired)?,
     };

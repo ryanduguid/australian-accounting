@@ -26,7 +26,7 @@ struct Facts {
     disposed: Option<i64>,
 }
 
-fn facts(r: &mut Reader<'_>, kind: Kind, acquired: i64) -> Result<Facts> {
+fn facts(r: &mut Reader<'_>, kind: Kind, acquired: i64, last: Option<i64>) -> Result<Facts> {
     let lifted = r.day("restrictions_lifted", true)?;
     let (exercised, share_lifted) = match kind {
         Kind::Right => (
@@ -57,11 +57,14 @@ fn facts(r: &mut Reader<'_>, kind: Kind, acquired: i64) -> Result<Facts> {
         employment_ended,
         disposed,
     };
-    consistent(r, &out, acquired)?;
+    consistent(r, &out, acquired, last)?;
     Ok(out)
 }
 
-fn consistent(r: &Reader<'_>, f: &Facts, acquired: i64) -> Result<()> {
+/// The dates in order: none before acquisition, a share's restrictions
+/// lifting only after an exercise, an exercise by the last exercise day and
+/// no disposal of a right before it is exercised.
+fn consistent(r: &Reader<'_>, f: &Facts, acquired: i64, last: Option<i64>) -> Result<()> {
     let early = [
         f.lifted,
         f.exercised,
@@ -74,11 +77,13 @@ fn consistent(r: &Reader<'_>, f: &Facts, acquired: i64) -> Result<()> {
     .any(|d| *d < acquired);
     let unexercised = f.share_lifted.is_some() && f.exercised.is_none();
     let before_exercise = matches!((f.exercised, f.share_lifted), (Some(e), Some(s)) if s < e);
-    if early || unexercised || before_exercise {
+    let expired = matches!((f.exercised, last), (Some(e), Some(l)) if e > l);
+    let disposed_first = matches!((f.disposed, f.exercised), (Some(d), Some(e)) if d < e);
+    if early || unexercised || before_exercise || expired || disposed_first {
         return refuse(
             "ess_discount.dates_inconsistent",
             format!(
-                "{}: every date must be on or after acquired, and share_restrictions_lifted needs an exercise on or before it.",
+                "{}: every date must be on or after acquired, share_restrictions_lifted needs an exercise on or before it, and a right is exercised by its last_exercise_day and before any disposal.",
                 r.name
             ),
         );
@@ -90,8 +95,9 @@ fn day(text: &str) -> i64 {
     dates::parse(text).expect("date")
 }
 
-/// The earliest time s 83A-115(2) or s 83A-120(2) gives, and its rule.
-fn earliest(kind: Kind, acquired: i64, f: &Facts) -> (i64, &'static str) {
+/// The earliest time s 83A-115(2) or s 83A-120(2) gives, and its rule, with
+/// or without the former cessation of employment point.
+fn earliest(kind: Kind, acquired: i64, f: &Facts, cessation: bool) -> (i64, &'static str) {
     let share = kind == Kind::Share;
     let fifteen = dates::add_months(acquired, 180) - 1;
     let mut points = vec![(
@@ -110,7 +116,10 @@ fn earliest(kind: Kind, acquired: i64, f: &Facts) -> (i64, &'static str) {
     if let (Some(e), Some(s)) = (f.exercised, f.share_lifted) {
         points.push((e.max(s), "s 83A-120(7)"));
     }
-    if let Some(e) = f.employment_ended.filter(|e| *e < day(CESSATION_ENDS)) {
+    if let Some(e) = f
+        .employment_ended
+        .filter(|e| cessation && *e < day(CESSATION_ENDS))
+    {
         points.push((
             e,
             if share {
@@ -127,13 +136,29 @@ fn earliest(kind: Kind, acquired: i64, f: &Facts) -> (i64, &'static str) {
 }
 
 /// The taxing point after the 30-day rule (ss 83A-115(3), 83A-120(3)).
+/// Act No. 8, 2022 Sch 10 item 9 applies the repeal of the cessation point
+/// where the taxing point, after that rule, is on or after 1 July 2022, so
+/// such a point is worked out again without it.
 fn taxing_point(
     r: &Reader<'_>,
     kind: Kind,
     acquired: i64,
     f: &Facts,
 ) -> Result<(i64, &'static str)> {
-    let (base, rule) = earliest(kind, acquired, f);
+    let point = moved(r, kind, f, earliest(kind, acquired, f, true))?;
+    if point.0 < day(CESSATION_ENDS) {
+        return Ok(point);
+    }
+    moved(r, kind, f, earliest(kind, acquired, f, false))
+}
+
+/// A point moved to a disposal within 30 days after it.
+fn moved(
+    r: &Reader<'_>,
+    kind: Kind,
+    f: &Facts,
+    (base, rule): (i64, &'static str),
+) -> Result<(i64, &'static str)> {
     match f.disposed {
         Some(d) if d < base => refuse(
             "ess_discount.dates_inconsistent",
@@ -163,7 +188,8 @@ pub(super) fn deferred(
     kind: Kind,
     acquired: i64,
 ) -> Result<(i64, Option<Decimal>, Value)> {
-    let f = facts(&mut held.reader, kind, acquired)?;
+    let last = held.right.as_ref().map(|t| t.last_exercise_day);
+    let f = facts(&mut held.reader, kind, acquired, last)?;
     let (point, rule) = taxing_point(&held.reader, kind, acquired, &f)?;
     let cost_base = held.reader.amount("cost_base")?;
     // The regulations value a right not yet exercised, not one disposed of

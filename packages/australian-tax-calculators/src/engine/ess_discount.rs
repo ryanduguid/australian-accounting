@@ -138,6 +138,19 @@ fn sacrificed(interest: &Interest<'_>, assessed: &Assessed) -> Result<bool> {
         && c.broad_availability)
 }
 
+/// A salary sacrificed interest at a real risk of forfeiture that s 83A-105(4)
+/// could also apply to: deferred by s 83A-105(3), its discount equal to its
+/// market value.
+fn may_count(kind: Kind, held: &Held<'_>, assessed: &Assessed) -> Result<bool> {
+    let c = &held.conditions;
+    Ok(c.salary_sacrifice
+        && c.real_risk
+        && !assessed.start_up
+        && assessed.discount.gt(&int(0))?
+        && assessed.discount.equals(&held.value)?
+        && deferral_rule(kind, c, false) == Some("s 83A-105(3)"))
+}
+
 /// s 83A-105(4)(c) and (5): the total market value at acquisition of the
 /// salary sacrificed shares in each income year, and whether it is within
 /// $5,000.
@@ -155,7 +168,7 @@ fn sacrifice_years(
         if sacrificed(interest, assessed)? {
             let total = totals.remove(&year).unwrap_or_else(|| int(0));
             totals.insert(year, total.add(&held.value)?);
-        } else if held.conditions.salary_sacrifice && held.conditions.real_risk {
+        } else if may_count(interest.kind, held, assessed)? {
             at_risk.push(year);
         }
     }
@@ -163,7 +176,7 @@ fn sacrifice_years(
         return refuse(
             "ess_discount.salary_sacrifice_unclear",
             format!(
-                "In {year} salary sacrificed shares at a real risk of forfeiture sit beside others relying on s 83A-105(4); whether the first count toward the $5,000 of s 83A-105(4)(c) is not settled here: work them separately."
+                "In {year} salary sacrificed interests at a real risk of forfeiture sit beside shares relying on s 83A-105(4); whether the first count toward the $5,000 of s 83A-105(4)(c) is not settled here: work them separately."
             ),
         );
     }
@@ -415,7 +428,10 @@ fn forfeited_row(number: usize, kind: Kind, f: &Forfeiture, totals: &mut Totals)
         f.cause,
         "scheme_condition" | "ceased_employment" | "lapsed_unexercised" | "cancellation_allowed"
     );
-    let excluded = not_a_choice && !f.protects_against_fall && f.amount_included.gt(&int(0))?;
+    let excluded = not_a_choice
+        && !f.protects_against_fall
+        && !f.consideration_received
+        && f.amount_included.gt(&int(0))?;
     let amount = if excluded {
         f.amount_included.clone()
     } else {

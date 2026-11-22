@@ -3510,9 +3510,13 @@ Choices the Act leaves to the reader:
   ATO's example counts whole months.
 - s 83A-110(1) with a cost base above the market value includes nil; the
   loss is a CGT matter.
-- Salary sacrificed shares at a real risk of forfeiture beside others
-  relying on s 83A-105(4) in one year are refused: whether the first count
-  toward the $5,000 is not settled here.
+- Salary sacrificed shares or rights at a real risk of forfeiture, their
+  discount equal to their market value, beside shares relying on
+  s 83A-105(4) in one year are refused: whether the first count toward the
+  $5,000 is not settled here.
+- Act No. 8, 2022 Sch 10 item 9 is applied to the taxing point after the
+  30-day rule: ending employment before 1 July 2022 counts only where that
+  point is before then.
 - The 15-year taxing point is the day before the 15th anniversary of
   acquisition, the end of the period starting then.
 
