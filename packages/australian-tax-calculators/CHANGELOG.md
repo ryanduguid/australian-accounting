@@ -45,6 +45,38 @@
   `tests/government_super_amounts.rs` holds it to the ATO's Angelo, Julie
   and spouse examples.
 
+- `small-business-income-offset` works out an individual's small business
+  income tax offset (ITAA 1997 Subdivision 328-F) for 2020-21 to 2026-27: the
+  small business entity test of s 328-110 at $5 million (s 328-357), total net
+  small business income from your own and each partnership or trust amount
+  net of its s 328-370 deductions, capped at taxable income, the 13% (2020-21)
+  or 16% share of the basic income tax liability, the $1,000 cap and the part
+  the liability left after other offsets absorbs. New codes:
+  `small_business_income_offset.business_invalid`,
+  `small_business_income_offset.prescribed_person` and
+  `small_business_income_offset.shares_invalid`.
+  `tests/small_business_income_offset.rs` holds it to the site's sole trader
+  vectors.
+
+- `non-commercial-losses` says whether ITAA 1997 Division 35 defers an
+  individual's business activity loss for 2020-21 to 2026-27: the income
+  requirement, the assessable income, profits, real property and other assets
+  tests, the primary production and professional arts exception, and the
+  excess deferred after net exempt income, with the Commissioner's discretion
+  reported as not decided. New codes:
+  `non_commercial_losses.activity_invalid` and
+  `non_commercial_losses.earlier_years_invalid`.
+  `tests/non_commercial_losses.rs` holds it to the ATO's examples.
+
+- `psi-test` says whether the personal services income rules (ITAA 1997
+  Part 2-42) apply to an individual's PSI for 2020-21 to 2026-27: s 84-5,
+  s 85-35, a determination in force, the results test, the 80% rule and the
+  unrelated clients, employment and business premises tests, step for step as
+  the site's PSI page. New codes: `psi_test.agent_payments_invalid`,
+  `psi_test.agent_rules`, `psi_test.earner_invalid`, `psi_test.no_psi`,
+  `psi_test.others_exceed_psi`, `psi_test.payers_invalid` and
+  `psi_test.premises_invalid`. `tests/psi_test.rs` runs the page's 19 cases.
+
 ### Fixed
 
 - Both borrowing expenses worksheets identify their deduction amounts as
@@ -379,38 +411,6 @@
   `sb_cgt_concessions.pre_cgt_asset` and
   `sb_cgt_concessions.share_or_trust_interest`. `tests/sb_cgt_concessions.rs`
   holds it to the Library's Neil Swan and Wendy Simpson examples.
-
-- `small-business-income-offset` works out an individual's small business
-  income tax offset (ITAA 1997 Subdivision 328-F) for 2020-21 to 2026-27: the
-  small business entity test of s 328-110 at $5 million (s 328-357), total net
-  small business income from your own and each partnership or trust amount
-  net of its s 328-370 deductions, capped at taxable income, the 13% (2020-21)
-  or 16% share of the basic income tax liability, the $1,000 cap and the part
-  the liability left after other offsets absorbs. New codes:
-  `small_business_income_offset.business_invalid`,
-  `small_business_income_offset.prescribed_person` and
-  `small_business_income_offset.shares_invalid`.
-  `tests/small_business_income_offset.rs` holds it to the site's sole trader
-  vectors.
-
-- `non-commercial-losses` says whether ITAA 1997 Division 35 defers an
-  individual's business activity loss for 2020-21 to 2026-27: the income
-  requirement, the assessable income, profits, real property and other assets
-  tests, the primary production and professional arts exception, and the
-  excess deferred after net exempt income, with the Commissioner's discretion
-  reported as not decided. New codes:
-  `non_commercial_losses.activity_invalid` and
-  `non_commercial_losses.earlier_years_invalid`.
-  `tests/non_commercial_losses.rs` holds it to the ATO's examples.
-
-- `psi-test` says whether the personal services income rules (ITAA 1997
-  Part 2-42) apply to an individual's PSI for 2020-21 to 2026-27: s 84-5,
-  s 85-35, a determination in force, the results test, the 80% rule and the
-  unrelated clients, employment and business premises tests, step for step as
-  the site's PSI page. New codes: `psi_test.agent_payments_invalid`,
-  `psi_test.agent_rules`, `psi_test.earner_invalid`, `psi_test.no_psi`,
-  `psi_test.others_exceed_psi`, `psi_test.payers_invalid` and
-  `psi_test.premises_invalid`. `tests/psi_test.rs` runs the page's 19 cases.
 
 ### Changed
 
