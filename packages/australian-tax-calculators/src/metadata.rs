@@ -515,6 +515,63 @@ pub const SURCHARGE_RATES: [&str; 3] = ["0.01", "0.0125", "0.015"];
 /// first, on the same ATO page for each year.
 pub const SURCHARGE_CHILD_INCREASE: &str = "1500";
 
+/// The same singles thresholds for the private health insurance rebate's
+/// earlier years, from the ATO's 'Income thresholds and rates for the private
+/// health insurance rebate' pages for 2021 to 2024 (published 14 May 2025) and
+/// its Medicare levy surcharge pages, read on 22 November 2026. PHI Act s 22-35
+/// states the 2021-22 and 2022-23 amounts; s 22-45 indexes them from 2023-24.
+pub const PHI_EARLIER_THRESHOLDS: &[(&str, [&str; 3])] = &[
+    ("2020-21", ["90000", "105000", "140000"]),
+    ("2021-22", ["90000", "105000", "140000"]),
+    ("2022-23", ["90000", "105000", "140000"]),
+    ("2023-24", ["93000", "108000", "144000"]),
+];
+
+/// The private health insurance rebate percentages for each adjustment year,
+/// keyed by the calendar year of the 1 April it starts on (PHI Act s 22-15(5A)
+/// to (5D)): for the oldest insured person under 65, 65 to 69 and 70 or over,
+/// the base tier, tier 1 and tier 2 percentages; tier 3 is nil (s 22-15(4)).
+/// From the ATO's rates pages for 2020-21 to 2023-24 (published 14 May 2025)
+/// and its current page (last updated 22 June 2026), read on 22 November 2026.
+/// The percentages from 1 April 2027 were not published.
+pub const PHI_REBATE_PERCENTAGES: &[(&str, [[&str; 3]; 3])] = &[
+    (
+        "2020",
+        [
+            ["25.059", "16.706", "8.352"],
+            ["29.236", "20.883", "12.529"],
+            ["33.413", "25.059", "16.706"],
+        ],
+    ),
+    ("2021", PHI_2021_TO_2024),
+    ("2022", PHI_2021_TO_2024),
+    ("2023", PHI_2021_TO_2024),
+    ("2024", PHI_2021_TO_2024),
+    (
+        "2025",
+        [
+            ["24.288", "16.192", "8.095"],
+            ["28.337", "20.240", "12.143"],
+            ["32.385", "24.288", "16.192"],
+        ],
+    ),
+    (
+        "2026",
+        [
+            ["24.118", "16.079", "8.038"],
+            ["28.139", "20.098", "12.058"],
+            ["32.158", "24.118", "16.079"],
+        ],
+    ),
+];
+
+/// Unchanged from 1 April 2021 to 31 March 2025.
+const PHI_2021_TO_2024: [[&str; 3]; 3] = [
+    ["24.608", "16.405", "8.202"],
+    ["28.710", "20.507", "12.303"],
+    ["32.812", "24.608", "16.405"],
+];
+
 /// ITAA 1997 s 61-115(1) table, in the Python dict's order.
 pub const LOW_INCOME_TAX_OFFSET: [(&str, &str); 7] = [
     ("maximum", "700"),
@@ -556,6 +613,29 @@ pub const TERMINATION_PAYMENT: [(&str, &str); 7] = [
     ("above_cap_rate", "0.47"),
 ];
 pub const TERMINATION_PAYMENT_YEARS: [&str; 1] = ["2026-27"];
+
+/// The low rate cap amount (ITAA 1997 s 307-345) for the years anyone can be
+/// at or above preservation age and under 60: from 1 July 2024 the
+/// preservation age is 60 for everyone born after 30 June 1964. The ATO's
+/// 'Payments from super', Table 9 (last updated 16 September 2026).
+pub const SUPER_LOW_RATE_CAP: [(&str, &str); 4] = [
+    ("2020-21", "215000"),
+    ("2021-22", "225000"),
+    ("2022-23", "230000"),
+    ("2023-24", "235000"),
+];
+
+/// The untaxed plan cap amount (ITAA 1997 s 307-350): the same page,
+/// Table 10; Schedule 12 (2026) gives $1,935,000 for 2026-27.
+pub const SUPER_UNTAXED_PLAN_CAP: [(&str, &str); 7] = [
+    ("2020-21", "1565000"),
+    ("2021-22", "1615000"),
+    ("2022-23", "1650000"),
+    ("2023-24", "1705000"),
+    ("2024-25", "1780000"),
+    ("2025-26", "1865000"),
+    ("2026-27", "1935000"),
+];
 
 /// Unused leave paid on termination: Schedule 7's 32% rate for the parts a tax
 /// offset caps at 30% (30% plus the 2% Medicare levy) and its $300 limit for a
@@ -1081,6 +1161,11 @@ pub fn supported_periods(kind: &str) -> Vec<&'static str> {
         // s 5 sets fixed rates; the temporary budget repair levy of s 6 ended
         // with 2016-17. The years are the other superannuation worksheets'.
         "dasp_tax" => vec!["2025-26", "2026-27", "2027-28"],
+        // The years the map asks for; the untaxed plan cap for 2027-28 is not
+        // yet published (s 307-350, indexed each February).
+        "super_benefit_tax" => vec![
+            "2020-21", "2021-22", "2022-23", "2023-24", "2024-25", "2025-26", "2026-27",
+        ],
         // Division 75 sets no figure by year; the years are gst's.
         "gst_margin_scheme" => vec!["2025-26", "2026-27", "2027-28"],
         // ITAA 1997 Division 205 sets no figure by year; the years the
@@ -1207,6 +1292,11 @@ pub fn supported_periods(kind: &str) -> Vec<&'static str> {
         "work_expenses" => vec![
             "2020-21", "2021-22", "2022-23", "2023-24", "2024-25", "2025-26", "2026-27",
         ],
+        // The years whose thresholds and percentages the ATO publishes, from
+        // 2020-21; the percentages from 1 April 2027 are refused line by line.
+        "private_health_insurance_rebate" => {
+            [keys(PHI_EARLIER_THRESHOLDS), keys(SURCHARGE_THRESHOLDS)].concat()
+        }
         // The pools' rates and the capital works rates do not change in these
         // years; the small business pool's low pool value threshold does, by year.
         "depreciation_low_value_pool" | "depreciation_small_business_pool" | "capital_works" => {
@@ -1240,6 +1330,13 @@ pub fn supported_periods(kind: &str) -> Vec<&'static str> {
         "excess_contributions" => vec![
             "2013-14", "2014-15", "2015-16", "2016-17", "2017-18", "2018-19", "2019-20", "2020-21",
             "2021-22", "2022-23", "2023-24", "2024-25", "2025-26",
+        ],
+        // ITAA 1997 ss 8-1, 26-31, 40-27 and Division 43 read the same from
+        // 2020-21 (no amendment after Act No. 126 of 2017 in compilation 264's
+        // history but s 43-145's build to rent manner, out of scope); the tax
+        // effect is refused before 2024-25, the first year resident-tax holds.
+        "rental_property" => vec![
+            "2020-21", "2021-22", "2022-23", "2023-24", "2024-25", "2025-26", "2026-27",
         ],
         _ => Vec::new(),
     }
@@ -1284,6 +1381,10 @@ pub fn source_review(kind: &str) -> (&'static str, &'static str) {
         "balancing_adjustment" => (
             "2026-11-18",
             "ITAA 1997 ss 40-25, 40-85, 40-230, 40-285, 40-290, 40-291A, 40-295, 40-300, 40-305, 40-325, 40-370, 104-235, 104-240, 118-5 and 118-10 (its example) and Subdivision 27-B, compilation 268 (1 October 2026), with the endnotes' amendment history; Treasury Laws Amendment (Tax Reform No. 1) Act 2026 (No 49 of 2026), Schedule 4 item 17 (s 40-291A from 2026-27); Guide to depreciating assets 2026, 'What happens if you no longer hold or use a depreciating asset?', its Bridget, Andrew and Louise examples and the car limit formula",
+        ),
+        "super_benefit_tax" => (
+            "2026-11-22",
+            "ITAA 1997 ss 301-10 to 301-40, 301-90 to 301-115, 301-225, 302-60, 302-140, 302-145, 302-195, 303-10, 307-120, 307-125, 307-145, 307-150, 307-205, 307-275 to 307-290, 307-345, 307-350 and 960-285, from the ATO's legal database; the ATO's 'Payments from super' (last updated 16 September 2026, Tables 9, 10, 12 and 13), 'Tax on super benefits' (2 August 2023) and 'Tax rates – Australian resident' (13 August 2026); Schedule 12 of the Taxation Administration (Withholding Schedules) Instrument 2026 (F2026L00716) and the ATO's Schedule 12 from 13 October 2020 to 30 June 2024",
         ),
         "dasp_tax" => (
             "2026-11-19",
@@ -1404,6 +1505,10 @@ pub fn source_review(kind: &str) -> (&'static str, &'static str) {
         "medicare_levy" => (
             "2026-11-14",
             "Medicare Levy Act 1986 ss 3(1) and (3), 6(1), 7(1) and (2) and 8, compilations 52 (2024-25) and 53; Treasury Laws Amendment (More Cost of Living Relief) Act 2025 Sch 2 item 14 (2024-25 and later years); Treasury Laws Amendment (Delivering an Efficient and Trusted Tax System) Act 2026 Sch 5 item 14 (2025-26 and later years); ATO Medicare levy reduction for low-income earners and Medicare levy reduction - family income, with the Ashton example (2025-26); myTax 2025 tables 2 and 3 and worksheet 2 (2024-25); exemptions: Medicare Levy Act 1986 s 9(1), ITAA 1936 ss 251T and 251U(1) to (3), ATO Medical exemption from Medicare levy (the Paul example), Not entitled to Medicare benefits (the Priya example) and M1 Medicare levy reduction or exemption 2026, part B",
+        ),
+        "private_health_insurance_rebate" => (
+            "2026-11-22",
+            "Private Health Insurance Act 2007 ss 22-5, 22-15, 22-20, 22-25, 22-30, 22-35, 22-40, 22-45 and 282-18, compilation 42 (19 September 2026); ITAA 1997 ss 61-205, 61-210, 61-215 and 67-23, compilation 268 (1 October 2026); ATO Income thresholds and rates for the private health insurance rebate (22 June 2026) and its 2021 to 2024 pages (14 May 2025), with the Narelle, Peta, Mike and Elle, and Zoe and Charlie examples; Claiming the private health insurance rebate (QC72945), with the Toby and Donna examples; Your private health insurance statement (benefit codes)",
         ),
         "medicare_levy_surcharge" => (
             "2026-11-14",
@@ -1548,6 +1653,10 @@ pub fn source_review(kind: &str) -> (&'static str, &'static str) {
         "psi_test" => (
             "2026-11-22",
             "ITAA 1997 Part 2-42 (ss 84-5, 85-30, 85-35, 87-15 to 87-40, 87-60 and 87-65), compilation 268 (1 October 2026), against compilations 210 (1 July 2020) and 223 (1 July 2021), which read the same; TR 2022/3, examples 20, 29, 30 and 40 and paragraph 118; the site's PSI page and its 19 cases (checked 17 November 2026)",
+        ),
+        "rental_property" => (
+            "2026-11-22",
+            "ITAA 1997 ss 6-5, 8-1, 26-31, 26-102, 40-27, 43-10, 43-15, 43-20, 43-25, 43-80, 43-140, 43-145, 43-210, 43-215, 43-220, 43-230, 43-235 and 43-240 on the ATO's legal database, with the amendment history of compilation 264 (21 May 2026); Treasury Laws Amendment (Housing Tax Integrity) Act 2017 (No. 126, 2017) Schedule 1 and Schedule 2 item 13; TR 2000/2 paragraphs 13 to 26; TR 93/32 paragraphs 6 and 11 to 13; ATO Rental properties guide 2026 (NAT 1729-06.2026, current at 1 June 2026): the time-based method, Tables 1 and 2 and Examples 1, 2, 12, 20 to 23, 29, 33, 34 and 40; s 25-25 through borrowing-expenses-schedule (checked 19 November 2026) and the resident scale through resident-tax",
         ),
         "income_tests" => (
             "2026-11-16",
@@ -1811,6 +1920,12 @@ pub fn library_evidence(kind: &str) -> [(&'static str, &'static str); 4] {
             "2026-06-30",
             "2026-11-14",
         ),
+        "private_health_insurance_rebate" => (
+            "ATO Income thresholds and rates for the private health insurance rebate; Claiming the private health insurance rebate",
+            "thresholds and rates for 2020-21 to 2026-27, examples (Narelle, Peta, Mike and Elle, Zoe and Charlie); examples (Toby, Donna)",
+            "2026-06-22",
+            "2026-11-22",
+        ),
         "medicare_levy_surcharge" => (
             "ATO Medicare levy surcharge income, thresholds and rates; M2 Medicare levy surcharge 2026",
             "thresholds and rates for 2024-25 to 2026-27, example (Tom); examples (Josh, Jacinta, Jill and Kevin)",
@@ -1943,6 +2058,12 @@ pub fn library_evidence(kind: &str) -> [(&'static str, &'static str); 4] {
             "2026-06-30",
             "2026-11-22",
         ),
+        "rental_property" => (
+            "ATO Rental properties guide 2026 (NAT 1729-06.2026)",
+            "Examples 1, 2, 12, 20 to 23, 29, 33, 34 and 40 and Tables 1 and 2",
+            "2026-05-30",
+            "2026-11-22",
+        ),
         "sb_cgt_concessions" => (
             "tax-examples-capital-gains-tax-cgt",
             "2-280",
@@ -2024,6 +2145,36 @@ pub fn optional_inputs(kind: &str) -> Vec<(&'static str, &'static str)> {
             (
                 "spouse_total_super_balance_below_cap",
                 "boolean, or null if not established, with the other spouse inputs: the spouse's total superannuation balance immediately before the start of the financial year is less than the general transfer balance cap (s 290-230(4A)(b)); null is refused where it decides the offset",
+            ),
+        ],
+        "super_benefit_tax" => vec![
+            (
+                "date_of_birth",
+                "YYYY-MM-DD, the member's, for recipient member only, and then required: sets the age on payment_date (an age is reached on the birthday; 29 February falls on 1 March in a common year) and the preservation age (SISR reg 6.01(2))",
+            ),
+            (
+                "terminal_medical_condition",
+                "boolean, for recipient member only, and then required: a terminal medical condition (s 303-10: two registered medical practitioners' certificates, one a specialist, within their 24 month certification periods) exists when the benefit is received or within 90 days after",
+            ),
+            (
+                "disability_superannuation_benefit",
+                "boolean, for recipient member only, and then required: true is refused, as s 307-145 increases a disability superannuation benefit's tax free component",
+            ),
+            (
+                "service_before_july_1983",
+                "boolean, required with an untaxed_element above nil and refused otherwise: true (the benefit is attributable to an interest that existed before 1 July 2007 and its service period began before 1 July 1983) is refused, as s 307-150 then moves part of the element untaxed in the fund to the tax free component",
+            ),
+            (
+                "low_rate_cap_used",
+                "AUD, for a member at or above preservation age and under 60 (possible only to 2023-24), and then required: the amounts counted towards the s 301-20(2) and 301-105(4) offsets for lump sums in earlier income years (each year's low_rate_cap_counted), which reduce the cap for later years (s 307-345(2)); at most the year's low rate cap",
+            ),
+            (
+                "untaxed_plan_cap_used",
+                "AUD, for a member benefit with an untaxed_element above nil (a wholly tax free one too, as s 307-350 still reduces the cap), and then required: the total by which earlier lump sums from the same plan reduced the untaxed plan cap (each one's untaxed_plan_cap_counted: its element untaxed in the fund up to the cap left then, as s 307-350(2)(b) reduces the cap to nil rather than counting an excess), in this and earlier years; at most the year's untaxed plan cap",
+            ),
+            (
+                "other_lump_sums_this_year",
+                "boolean, for a member at or above preservation age and under 60, and then required: true (the member receives another superannuation lump sum in the same income year in that band) is refused while any of the low rate cap is left, as ss 301-20(3) and 301-105(5) and (6) share the year's low rate cap across them, the element taxed in the fund first",
             ),
         ],
         "fuel_tax_credits" => vec![
@@ -2478,6 +2629,10 @@ pub fn optional_inputs(kind: &str) -> Vec<(&'static str, &'static str)> {
                 "object of GST facts, for the purchaser's input tax credit on the price: as hire_purchase_schedule takes them. A passenger_car worth more than the car limit and not quoted for has its credit capped at 1/11 of the limit (GST Act s 69-10(1))",
             ),
         ],
+        "rental_property" => vec![(
+            "other_taxable_income",
+            "AUD, whole dollars, 2024-25 to 2026-27 only: the taxable income apart from this property, for the tax at the resident scale without and with the net rent",
+        )],
         "borrowing_expenses_schedule" => vec![(
             "other_borrowing_expenses",
             "object of income years (such as \"2025-26\") and AUD amounts: the income-producing share of borrowing expenses incurred that year on loans not in loans, for the s 25-25(6) $100 test",
@@ -2570,6 +2725,20 @@ pub fn optional_inputs(kind: &str) -> Vec<(&'static str, &'static str)> {
             (
                 "determination_date",
                 "YYYY-MM-DD, 2024-25 and 2025-26: the day the Commissioner is assumed to make the first excess non-concessional contributions determination for the year; adds associated_earnings, total_release_amount and associated_earnings_tax_offset for excess_non_concessional (TAA 1953 Sch 1 ss 97-25 and 97-30, ITAA 1997 s 292-30); omit for none",
+            ),
+        ],
+        "private_health_insurance_rebate" => vec![
+            (
+                "spouse_income_for_surcharge_purposes",
+                "AUD, the income for surcharge purposes of the person's spouse, for a person married on 30 June (PHI Act s 22-30(1)(a) and (2); the ATO counts a spouse who died in the year); tests the combined income against the family thresholds; omit for a person without a spouse on 30 June",
+            ),
+            (
+                "dependent_children",
+                "integer from 0, the dependants who are children (Fringe Benefits Act meaning: under 21, or a full-time student under 25, maintained by the person); each after the first raises the family thresholds by $1,500 (s 22-40(4)); only with spouse_income_for_surcharge_purposes or maintained_dependent_person true; omit for none",
+            ),
+            (
+                "maintained_dependent_person",
+                "boolean, true when on any day in the year the person contributed in a substantial way to the maintenance of a dependent person (PHI Act Schedule 1: a person under 18 without a partner; a person aged 18 to 31 without a partner who is either in full-time education and a dependent student under the insurer's rules, or not in full-time education and a dependent non-student under the insurer's rules; or a person 18 or over, partnered or not, with a disability as the Private Health Insurance (Complying Product) Rules or the insurer's rules define it) who is their child or a sibling dependent on them; puts a person without a spouse on 30 June on the family thresholds (s 22-30(1)(b)); omit or false otherwise",
             ),
         ],
         "medicare_levy_surcharge" => vec![
@@ -3153,6 +3322,20 @@ pub fn input_units(kind: &str) -> Vec<(&'static str, &'static str)> {
                 "boolean, false only when the property is not a leisure facility, or s 26-50(3) applies to it at all times in the income year (such as a holiday home held mainly to produce rent)",
             ),
         ],
+        "rental_property" => vec![
+            ("ownership_share", "decimal fraction above 0 and at most 1: your legal interest in the property (TR 93/32); income, expenses, decline in value and construction expenditure are the whole property's and are multiplied by it"),
+            ("acquired", "YYYY-MM-DD: when you acquired the property, on or before the last day of the year"),
+            ("disposed", "YYYY-MM-DD or null: when you stopped holding it, in the year"),
+            ("days_available", "integer: the days in the year you held it that it was let, or available for rent on commercial terms (Rental properties guide 2026, 'Time-based method')"),
+            ("section_26_50_applies", "boolean: s 26-50 denies the costs of owning it as a holiday home; true is refused"),
+            ("income", "object of AUD amounts, the whole property's: rental_income and other_rental_income (ITAA 1997 s 6-5)"),
+            ("expenses", "object of AUD amounts, the whole property's, for expenses relating to it for the whole period held, which the time-based share apportions, by line: advertising_for_tenants, body_corporate_fees, cleaning, council_rates, gardening, insurance, land_tax, legal_expenses, pest_control, property_agent_fees, repairs_and_maintenance, stationery_telephone_postage, travel (denied, s 26-31), water_charges and sundry"),
+            ("rental_only_expenses", "object of AUD amounts by the same lines, for expenses relating solely to renting (agent commission, advertising for tenants), which are not apportioned"),
+            ("loans", "list of objects, your own share of each loan, each with interest (AUD charged in the year), principal_for_rental and principal_total (AUD, the outstanding principal used for the rental and in total, TR 2000/2 paragraph 16) and redrawn_in_year (boolean; true is refused)"),
+            ("borrowing_loans", "list of objects as borrowing-expenses-schedule takes loans, your own borrowing expenses only; empty for none"),
+            ("capital_works", "list of objects, the whole property's, each with construction_expenditure (AUD, given, never derived), kind (building or structural_improvement), began and first_used (YYYY-MM-DD) and taken_to_begin_before_16_september_1987 (boolean, s 43-220(1)(a) or (b); required for a building begun after 15 September 1987)"),
+            ("depreciating_assets", "list of objects, the whole property's, each with decline_in_value (AUD from its start time to the end of the days held, before any private use reduction), acquired (YYYY-MM-DD, when you acquired it or entered into the contract under which you did, if earlier: Act No. 126 of 2017 Schedule 2 item 13), first_used (YYYY-MM-DD, its start time, first used or installed ready for use), held_when_first_used, residence_or_private_use and low_value_pool (booleans), and new_premises_exception (boolean, for an asset not held when first used) and deductible_in_2016_17 (boolean, for an asset acquired before 9 May 2017) where needed (s 40-27)"),
+        ],
         "borrowing_expenses_schedule" => vec![(
             "loans",
             "list of objects, one for each loan, each stating: borrowing_expenses (AUD, as for borrowing_expenses, incurred in the income year the loan began); loan_start (YYYY-MM-DD, the first day the money was borrowed, from 1 July 2017 to the end of the year asked about); loan_term_end and repaid_on (YYYY-MM-DD or null, as for borrowing_expenses); income_use (a decimal fraction from 0 to 1 for every income year of the loan, or an object giving one for each income year from the year the loan began to the year its period ends, such as {\"2025-26\": \"1\", \"2026-27\": \"0.5\"}); section_26_50_applies (boolean, as for borrowing_expenses; true is refused); and optionally refinances (the number, from 1, of an earlier loan in the list that this loan repaid on its loan_start, which must be that loan's repaid_on)",
@@ -3266,6 +3449,32 @@ pub fn input_units(kind: &str) -> Vec<(&'static str, &'static str)> {
             (
                 "luxury_car_tax_on_other_supply",
                 "boolean, true when luxury car tax became payable on any other supply or importation of the car before the benefit (FBTAA s 8A(1)(c))",
+            ),
+        ],
+        "super_benefit_tax" => vec![
+            (
+                "benefit",
+                "AUD, the superannuation lump sum paid to the recipient, not rolled over",
+            ),
+            (
+                "interest_value",
+                "AUD, the value of the superannuation interest it is paid from (s 307-205) just before it is paid (s 307-125(3)(b)); at least the benefit. A commutation of an income stream, valued when the stream commenced (s 307-125(3)(c)), is outside the command",
+            ),
+            (
+                "interest_tax_free_component",
+                "AUD, the interest's tax free component (s 307-210: its contributions segment and crystallised segment) at the same time",
+            ),
+            (
+                "untaxed_element",
+                "AUD, the element untaxed in the fund of the benefit's taxable component as the fund states it under ss 307-275 to 307-290; 0.00 for a taxed fund that claims no s 295-465 or 295-470 deduction for a death benefit",
+            ),
+            (
+                "recipient",
+                "member, death_benefits_dependant (s 302-195, including any recipient where the deceased died in the line of duty) or non_dependant",
+            ),
+            (
+                "payment_date",
+                "YYYY-MM-DD, the day the recipient receives the benefit, in the income year given",
             ),
         ],
         "dasp_tax" => vec![
@@ -3667,6 +3876,16 @@ pub fn input_units(kind: &str) -> Vec<(&'static str, &'static str)> {
             (
                 "section_9a_adjustment_applies",
                 "boolean, whether Medicare Levy Act 1986 s 9A removes lump sums in arrears; true is refused",
+            ),
+        ],
+        "private_health_insurance_rebate" => vec![
+            (
+                "income_for_surcharge_purposes",
+                "AUD, the person's own income for surcharge purposes (ITAA 1997 s 995-1), as income-tests works it out for 2024-25 to 2026-27",
+            ),
+            (
+                "lines",
+                "list of 1 to 100 lines of the private health insurance statement, each an object with premiums_eligible (AUD decimal string, label J: the person's share of the premiums paid, without lifetime health cover loading), rebate_received (AUD decimal string, label K: the person's share of the premium reduction received, \"0\" for none) and benefit_code (integer, label L: 30, 35 or 40 for premiums paid 1 July to 31 March, 31, 36 or 41 for 1 April to 30 June, with the oldest insured person under 65, 65 to 69 or 70 or over)",
             ),
         ],
         "medicare_levy_surcharge" => vec![
@@ -4130,7 +4349,7 @@ pub fn input_units(kind: &str) -> Vec<(&'static str, &'static str)> {
             ("business", "carried_on, winding_up or not_carried_on: the business entity's business in the year (you, the partnership, or the entity using a passively held asset; s 328-110(1)(a) and (5))"),
             ("previous_year_turnover", "AUD, or null for no business carried on: the business entity's aggregated turnover for the previous year (s 328-110(1)(b)(i))"),
             ("year_before_turnover", "AUD, or null for no business carried on: its aggregated turnover for the year before the previous year (s 328-110(3))"),
-            ("likely_turnover", "AUD: its likely aggregated turnover for the year, as at its first day (s 328-110(1)(b)(ii) and (2))"),
+            ("likely_turnover", "AUD: its likely aggregated turnover for the year, worked out as at its first day, or as at the day it started the business if that was during the year (s 328-110(1)(b)(ii) and (2))"),
             ("year_turnover", "AUD: its aggregated turnover for the year, as at the end of the year (s 328-110(4))"),
             ("net_asset_value", "AUD, may be negative: the sum s 152-15 counts just before the CGT event, the net value of the CGT assets (s 152-20) of yours, your connected entities, your affiliates and entities connected with them"),
             ("active_days", "integer: the total days in the test period on which the asset was an active asset (s 152-40)"),
@@ -4275,6 +4494,27 @@ pub fn examples(kind: &str) -> Vec<(&'static str, Example)> {
         // Peter's loan (ATO, Borrowing expenses) from 3 July 2024, refinanced
         // on 2 March 2026 by a second loan whose money is half used to produce
         // income from 2026-27.
+        // The ATO's Rental properties guide 2026, Example 34: a holiday home
+        // let mainly for rent, held all year and available 330 days, owned in
+        // equal shares; the $37,000 of costs is entered on one line.
+        "rental_property" => vec![
+            ("year", Text("2025-26")),
+            ("ownership_share", Text("0.5")),
+            ("acquired", Text("2024-07-01")),
+            ("disposed", Json("null")),
+            ("days_available", Whole(330)),
+            ("section_26_50_applies", Flag(false)),
+            ("income", Json(r#"{"rental_income": "50000.00"}"#)),
+            ("expenses", Json(r#"{"sundry": "37000.00"}"#)),
+            (
+                "rental_only_expenses",
+                Json(r#"{"property_agent_fees": "3000.00"}"#),
+            ),
+            ("loans", Json("[]")),
+            ("borrowing_loans", Json("[]")),
+            ("capital_works", Json("[]")),
+            ("depreciating_assets", Json("[]")),
+        ],
         "borrowing_expenses_schedule" => vec![
             ("year", Text("2026-27")),
             (
@@ -4319,6 +4559,24 @@ pub fn examples(kind: &str) -> Vec<(&'static str, Example)> {
         // The Library's example (Superannuation Benefits, 8-420): a $42,000
         // benefit of a $25,000 tax free component and a $17,000 element
         // taxed in the fund, applied for on 1 August 2026.
+        // The ATO's 'Tax on super benefits' example: Tony, 58 and retired,
+        // receives $350,000 on 25 July 2021, a $100,000 tax free component
+        // and a $250,000 element taxed in the fund; $25,000 is above the
+        // 2021-22 low rate cap of $225,000.
+        "super_benefit_tax" => vec![
+            ("year", Text("2021-22")),
+            ("benefit", Text("350000.00")),
+            ("interest_value", Text("350000.00")),
+            ("interest_tax_free_component", Text("100000.00")),
+            ("untaxed_element", Text("0.00")),
+            ("recipient", Text("member")),
+            ("payment_date", Text("2021-07-25")),
+            ("date_of_birth", Text("1963-03-01")),
+            ("terminal_medical_condition", Flag(false)),
+            ("disability_superannuation_benefit", Flag(false)),
+            ("low_rate_cap_used", Text("0.00")),
+            ("other_lump_sums_this_year", Flag(false)),
+        ],
         "dasp_tax" => vec![
             ("tax_free_component", Text("25000.00")),
             ("taxed_element", Text("17000.00")),
@@ -4590,6 +4848,18 @@ pub fn examples(kind: &str) -> Vec<(&'static str, Example)> {
         "medicare_levy" => vec![
             ("taxable_income", Text("30000")),
             ("section_9a_adjustment_applies", Flag(false)),
+        ],
+        // The ATO's Narelle example, 2025-26 (Income thresholds and rates for
+        // the private health insurance rebate).
+        "private_health_insurance_rebate" => vec![
+            ("year", Text("2025-26")),
+            ("income_for_surcharge_purposes", Text("83000")),
+            (
+                "lines",
+                Json(
+                    r#"[{"premiums_eligible": "900", "rebate_received": "146", "benefit_code": 30}, {"premiums_eligible": "300", "rebate_received": "48", "benefit_code": 31}]"#,
+                ),
+            ),
         ],
         // The ATO's Tom example, 2026-27.
         "medicare_levy_surcharge" => vec![

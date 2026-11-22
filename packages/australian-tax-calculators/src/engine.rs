@@ -4874,6 +4874,8 @@ mod fbt_ev_exemption;
 pub use fbt_ev_exemption::{EvExemptionArgs, fbt_ev_exemption_check};
 mod dasp_tax;
 pub use dasp_tax::{DaspTaxArgs, dasp_tax};
+mod super_benefit_tax;
+pub use super_benefit_tax::{SUPER_BENEFIT_OPTIONAL, SuperBenefitTaxArgs, super_benefit_tax};
 mod payroll_tax;
 pub use payroll_tax::{PayrollTaxArgs, payroll_tax};
 mod luxury_car_tax;
@@ -6194,6 +6196,9 @@ pub use excess_contributions::excess_contributions;
 mod transfer_balance;
 pub use transfer_balance::transfer_balance;
 
+mod private_health_insurance_rebate;
+pub use private_health_insurance_rebate::{PhiRebateArgs, private_health_insurance_rebate};
+
 mod depreciation_pools;
 pub use depreciation_pools::{
     capital_works, depreciation_low_value_pool, depreciation_small_business_pool,
@@ -6206,8 +6211,10 @@ mod non_commercial_losses;
 pub use non_commercial_losses::{NCL_OPTIONAL, NonCommercialLossesArgs, non_commercial_losses};
 mod psi_test;
 pub use psi_test::{PSI_OPTIONAL, PsiTestArgs, psi_test};
+mod rental_property;
+pub use rental_property::{RentalPropertyArgs, rental_property};
 
-const KINDS: [&str; 81] = [
+const KINDS: [&str; 84] = [
     "gst",
     "gst_margin_scheme",
     "fuel_tax_credits",
@@ -6226,6 +6233,7 @@ const KINDS: [&str; 81] = [
     "trade_in",
     "franking_account",
     "dasp_tax",
+    "super_benefit_tax",
     "payroll_tax",
     "fbt",
     "fbt_car_statutory",
@@ -6282,6 +6290,7 @@ const KINDS: [&str; 81] = [
     "ato_interest_penalties",
     "transfer_balance",
     "excess_contributions",
+    "private_health_insurance_rebate",
     "depreciation_low_value_pool",
     "depreciation_small_business_pool",
     "capital_works",
@@ -6289,6 +6298,7 @@ const KINDS: [&str; 81] = [
     "non_commercial_losses",
     "psi_test",
     "government_super_amounts",
+    "rental_property",
 ];
 
 /// `periods(kind)`: accepted period arguments and inclusive calendar boundaries.

@@ -163,12 +163,47 @@ const PARTS: [(&str, bool, bool, &str); 7] = [
 
 const SAPTO: &str = "seniors-pensioners-tax-offset";
 
+/// The private health insurance rebate: composed outside [`PARTS`], after
+/// them, with its income figures from the surcharge part.
+const PHI: &str = "private-health-insurance-rebate";
+
+/// The surcharge part's inputs the rebate part takes from it: the estimate
+/// describes one family for the whole year, so the person married on 30 June
+/// is the one married all year.
+const PHI_FROM_SURCHARGE: [&str; 3] = [
+    "income_for_surcharge_purposes",
+    "spouse_income_for_surcharge_purposes",
+    "dependent_children",
+];
+
+/// The rebate part's lines, before `total_before_credits`, and the total's
+/// line when it is composed.
+const PHI_WORKING: [(&str, &str); 3] = [
+    (
+        "private_health_insurance_offset",
+        "private-health-insurance-rebate: private_health_insurance_offset, refundable (ITAA 1997 s 67-23 item 5), so it can take the total below nil",
+    ),
+    (
+        "excess_private_health_reduction",
+        "private-health-insurance-rebate: excess_private_health_reduction, payable with the year's income tax (Private Health Insurance Act 2007 s 282-18(6))",
+    ),
+    (
+        "total_before_credits",
+        "income_tax_after_offsets + medicare_levy + medicare_levy_surcharge + study_loan_repayment + excess_private_health_reduction - private_health_insurance_offset",
+    ),
+];
+
 /// A foreign resident's basic tax, in place of `resident-tax`.
 const FOREIGN_TAX: &str = "foreign-resident-tax";
 
 /// The parts not composed for a foreign resident: command, the code a caller
 /// who gives its input gets, and why.
-const NOT_FOR_FOREIGN: [(&str, &str, &str); 7] = [
+const NOT_FOR_FOREIGN: [(&str, &str, &str); 8] = [
+    (
+        PHI,
+        "input.field_unknown",
+        "the offset needs every person insured to be an eligible person (ITAA 1997 s 61-205(1)(c); Health Insurance Act 1973 s 3), which the estimate does not test for a foreign resident",
+    ),
     (
         "low-income-tax-offset",
         "input.field_unknown",
@@ -224,7 +259,7 @@ fn takes_object(command: &str) -> bool {
     )
 }
 
-const SCOPE: &str = "One individual who was an Australian resident for the full income year and not a working holiday maker, or a foreign resident for the full year, with established whole-dollar taxable income, or with established whole-dollar assessable labour income (ITAA 1997 s 25-130(4)), other assessable income, work-related deductions of the kinds s 25-130(2)(c) to (g) count and other deductions, from which taxable income is worked out (s 4-15(1)), with the standard deduction for work-related expenses (s 25-130) for a resident from 2026-27. For a resident, composes resident-tax, low-income-tax-offset, medicare-levy and medicare-levy-surcharge, and seniors-pensioners-tax-offset, study-loan-repayment and division-293 when their inputs are given; confirming scope confirms the scope each of them states under components, where each keeps its own sources and warnings. For a foreign resident, composes foreign-resident-tax and, when its inputs are given, division-293: a foreign resident has no low income tax offset (ITAA 1997 s 61-110(1)(a)) and pays no Medicare levy or surcharge (ITAA 1936 s 251S(1)(a)); the estimate refuses the seniors and pensioners tax offset for one, and a study loan repayment, which for a foreign resident includes the overseas levy on worldwide income that no worksheet here works out. Applies the seniors and pensioners tax offset, then the low income tax offset, against basic income tax only, never below nil (ITAA 1997 s 63-10(1) items 5 and 20); neither reduces the Medicare levy or the surcharge. For a resident from 2027-28, first applies the working Australians tax offset (s 63-10(1) item 3): the lesser of $250 and the basic income tax at the resident rates on net labour income (ss 61-155 and 61-160), given as net_labour_income or, with assessable_labour_income, worked out as it less work_related_deductions and the standard deduction, taking other_assessable_income and other_deductions to hold no labour amounts or labour deductions under s 61-155(2), such as business or personal services income, or the union fees and income protection premiums s 25-130(3) leaves out of work-related deductions; give net_labour_income where they do. From 2027-28 the scope excludes a minimum tax capital gain: the extra income tax on one (s 119-10, for CGT events from 1 July 2027) is not worked out. The total is before PAYG withholding and other credits, refundable offsets, every other tax offset (such as the private health insurance, franking and foreign income tax offsets), the transfer of unused SAPTO to a spouse and any refund or amount payable. Division 293 tax is shown but left out of the total, because it is assessed on its own notice. When tax_withheld is given, or worked out from one employer's regular pays, the total is compared with it (TAA 1953 Sch 1 s 18-15(1)) to give a refund or an amount payable before every other credit, refundable offset and amount owed. The tax withheld worked out is the withholding payg-withholding, study-loan-withholding or seniors-pensioners-withholding gives for one pay, times the established number of pays in the year at that same pay, plus Schedule 5 Method A's withholding on one bonus, commission or back payment paid with one of them; pays of other amounts, other payers' withholding and withholding variations are not in it. Classifying income and deductions, any tax loss and the limits on deductions that would create one are the operator's. Refuses part-year residents and working holiday makers, and parts that describe different families: a spouse in one part but not another, 2 spouse taxable incomes, or dependants without a spouse, whom the surcharge worksheet excludes.";
+const SCOPE: &str = "One individual who was an Australian resident for the full income year and not a working holiday maker, or a foreign resident for the full year, with established whole-dollar taxable income, or with established whole-dollar assessable labour income (ITAA 1997 s 25-130(4)), other assessable income, work-related deductions of the kinds s 25-130(2)(c) to (g) count and other deductions, from which taxable income is worked out (s 4-15(1)), with the standard deduction for work-related expenses (s 25-130) for a resident from 2026-27. For a resident, composes resident-tax, low-income-tax-offset, medicare-levy and medicare-levy-surcharge, and seniors-pensioners-tax-offset, study-loan-repayment, division-293 and private-health-insurance-rebate when their inputs are given; confirming scope confirms the scope each of them states under components, where each keeps its own sources and warnings. For a foreign resident, composes foreign-resident-tax and, when its inputs are given, division-293: a foreign resident has no low income tax offset (ITAA 1997 s 61-110(1)(a)) and pays no Medicare levy or surcharge (ITAA 1936 s 251S(1)(a)); the estimate refuses the private health insurance rebate for one, whose offset needs every person insured to be an eligible person (s 61-205(1)(c)), the seniors and pensioners tax offset, and a study loan repayment, which for a foreign resident includes the overseas levy on worldwide income that no worksheet here works out. Applies the seniors and pensioners tax offset, then the low income tax offset, against basic income tax only, never below nil (ITAA 1997 s 63-10(1) items 5 and 20); neither reduces the Medicare levy or the surcharge. For a resident from 2027-28, first applies the working Australians tax offset (s 63-10(1) item 3): the lesser of $250 and the basic income tax at the resident rates on net labour income (ss 61-155 and 61-160), given as net_labour_income or, with assessable_labour_income, worked out as it less work_related_deductions and the standard deduction, taking other_assessable_income and other_deductions to hold no labour amounts or labour deductions under s 61-155(2), such as business or personal services income, or the union fees and income protection premiums s 25-130(3) leaves out of work-related deductions; give net_labour_income where they do. From 2027-28 the scope excludes a minimum tax capital gain: the extra income tax on one (s 119-10, for CGT events from 1 July 2027) is not worked out. private-health-insurance-rebate takes income_for_surcharge_purposes, spouse_income_for_surcharge_purposes and dependent_children from medicare-levy-surcharge, the person married on 30 June being the spouse of the whole year; when it is composed, the total takes off its private health insurance tax offset, which is refundable (ITAA 1997 s 67-23 item 5) and can take the total below nil, and adds its excess premium reduction (Private Health Insurance Act 2007 s 282-18). The total is before PAYG withholding and other credits, every other refundable offset, every other tax offset (such as the franking and foreign income tax offsets), the transfer of unused SAPTO to a spouse and any refund or amount payable. Division 293 tax is shown but left out of the total, because it is assessed on its own notice. When tax_withheld is given, or worked out from one employer's regular pays, the total is compared with it (TAA 1953 Sch 1 s 18-15(1)) to give a refund or an amount payable before every other credit, refundable offset and amount owed. The tax withheld worked out is the withholding payg-withholding, study-loan-withholding or seniors-pensioners-withholding gives for one pay, times the established number of pays in the year at that same pay, plus Schedule 5 Method A's withholding on one bonus, commission or back payment paid with one of them; pays of other amounts, other payers' withholding and withholding variations are not in it. Classifying income and deductions, any tax loss and the limits on deductions that would create one are the operator's. Refuses part-year residents and working holiday makers, and parts that describe different families: a spouse in one part but not another, 2 spouse taxable incomes, or dependants without a spouse, whom the surcharge worksheet excludes.";
 
 const SOURCES: [&str; 12] = [
     "https://www.ato.gov.au/law/view/document?docid=PAC/19970038/4-15",
@@ -345,6 +380,7 @@ fn check_fields(v: &Value) -> Result<(), Refusal> {
             || SHARED.contains(&key)
             || PAY_PARTS.contains(&key)
             || PARTS.iter().any(|(c, ..)| *c == key && takes_object(c))
+            || key == PHI
     };
     let object = v.as_object().into_iter().flatten();
     if let Some((key, _)) = object.clone().find(|(k, _)| !taken(k)) {
@@ -367,6 +403,20 @@ fn check_fields(v: &Value) -> Result<(), Refusal> {
                 "input.field_unknown",
                 format!(
                     "{key} is not an input of {command} within {COMMAND}: it is given once, for every part"
+                ),
+            ));
+        }
+        if command == PHI
+            && let Some(key) = input
+                .as_object()
+                .into_iter()
+                .flat_map(|o| o.keys())
+                .find(|k| PHI_FROM_SURCHARGE.contains(&k.as_str()))
+        {
+            return Err(Refusal::new(
+                "input.field_unknown",
+                format!(
+                    "{key} is not an input of {PHI} within {COMMAND}: it comes from medicare-levy-surcharge"
                 ),
             ));
         }
@@ -525,6 +575,29 @@ fn run_parts(v: &Value, foreign: bool) -> Result<Map<String, Value>, Refusal> {
         results.insert(command.into(), result);
     }
     Ok(results)
+}
+
+/// The rebate part, when given: its own inputs, the shared ones and the
+/// surcharge part's income figures.
+fn run_private_health(v: &Value, results: &mut Map<String, Value>) -> Result<(), Refusal> {
+    let Some(given) = v.get(PHI) else {
+        return Ok(());
+    };
+    let mut input = given.clone();
+    if let Some(object) = input.as_object_mut() {
+        for key in ["year", "scope_confirmed"] {
+            object.insert(key.into(), v[key].clone());
+        }
+        for key in PHI_FROM_SURCHARGE {
+            if let Some(value) = v["medicare-levy-surcharge"].get(key) {
+                object.insert(key.into(), value.clone());
+            }
+        }
+    }
+    let result = evaluate_coded(PHI, &input)
+        .map_err(|r| Refusal::new(r.code, format!("{PHI}: {}", r.message)))?;
+    results.insert(PHI.into(), result);
+    Ok(())
 }
 
 /// A part's amount, or nil when the part was not composed.
@@ -972,8 +1045,19 @@ pub fn compose(v: &Value) -> Result<Value, Refusal> {
         facts["taxable_income"] = json!(lines[3].to_string());
     }
     let mut results = run_parts(&facts, foreign)?;
+    run_private_health(v, &mut results)?;
     let offset = wato.as_ref().map_or(Decimal::from_int(0), |w| w.1.clone());
-    let (composed, wato_applied) = compose_amounts(&results, foreign, &offset)?;
+    let (mut composed, wato_applied) = compose_amounts(&results, foreign, &offset)?;
+    // The rebate's offset and excess, which move the total.
+    let phi = if results.contains_key(PHI) {
+        let offset = amount(&results, PHI, PHI_WORKING[0].0)?;
+        let excess = amount(&results, PHI, PHI_WORKING[1].0)?;
+        let total = composed[7].add(&excess).and_then(|t| t.sub(&offset));
+        composed[7] = total.map_err(signal)?;
+        Some((offset, excess))
+    } else {
+        None
+    };
     // A worked-out tax withheld carries its own working, in place of the
     // first credit line's.
     let (pay_lines, withheld) = match pay {
@@ -1011,6 +1095,19 @@ pub fn compose(v: &Value) -> Result<Value, Refusal> {
             (applied_line.0, applied_line.1, wato_applied),
         ];
         parts.splice(1..1, wato_lines);
+    }
+    if let Some((offset, excess)) = phi {
+        let at = parts
+            .iter()
+            .position(|(key, ..)| *key == PHI_WORKING[2].0)
+            .expect("the total");
+        parts[at].1 = PHI_WORKING[2].1;
+        let [offset_line, excess_line, _] = PHI_WORKING;
+        let phi_lines = [
+            (offset_line.0, offset_line.1, offset),
+            (excess_line.0, excess_line.1, excess),
+        ];
+        parts.splice(at..at, phi_lines);
     }
     let skip = usize::from(pay.is_some());
     let lines = income
