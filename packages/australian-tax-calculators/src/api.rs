@@ -294,6 +294,19 @@ const COMMAND_ARGS: &[(&str, &[(&str, Kind)])] = &[
         ],
     ),
     (
+        "super-benefit-tax",
+        &[
+            ("benefit", Dec),
+            ("interest_value", Dec),
+            ("interest_tax_free_component", Dec),
+            ("untaxed_element", Dec),
+            ("recipient", Raw),
+            ("payment_date", Raw),
+            ("year", Raw),
+            ("scope_confirmed", Raw),
+        ],
+    ),
+    (
         "trade-in",
         &[
             ("cost", Dec),
@@ -748,6 +761,25 @@ const COMMAND_ARGS: &[(&str, &[(&str, Kind)])] = &[
         &[("question", Raw), ("year", Raw), ("scope_confirmed", Raw)],
     ),
     (
+        "rental-property",
+        &[
+            ("ownership_share", Dec),
+            ("acquired", Raw),
+            ("disposed", Json),
+            ("days_available", Raw),
+            ("section_26_50_applies", Raw),
+            ("income", Json),
+            ("expenses", Json),
+            ("rental_only_expenses", Json),
+            ("loans", Json),
+            ("borrowing_loans", Json),
+            ("capital_works", Json),
+            ("depreciating_assets", Json),
+            ("year", Raw),
+            ("scope_confirmed", Raw),
+        ],
+    ),
+    (
         "sb-cgt-concessions",
         &[
             ("entity", Raw),
@@ -829,6 +861,15 @@ const COMMAND_ARGS: &[(&str, &[(&str, Kind)])] = &[
             ("method", Raw),
             ("reimbursed", Raw),
             ("allowance_received", Raw),
+            ("year", Raw),
+            ("scope_confirmed", Raw),
+        ],
+    ),
+    (
+        "private-health-insurance-rebate",
+        &[
+            ("income_for_surcharge_purposes", Dec),
+            ("lines", Json),
             ("year", Raw),
             ("scope_confirmed", Raw),
         ],
@@ -926,7 +967,7 @@ pub fn commands() -> Vec<&'static str> {
 /// command on its `gross_pay` shows that withholding. The classifier's amounts
 /// are totals over lines whose shares a decision table sets, not a formula;
 /// each line and class carries the authority for its row instead.
-const DERIVED: [&str; 59] = [
+const DERIVED: [&str; 61] = [
     "fbt",
     "fbt-car-statutory",
     "fbt-car-operating-cost",
@@ -981,11 +1022,13 @@ const DERIVED: [&str; 59] = [
     "balancing-adjustment",
     "trade-in",
     "dasp-tax",
+    "super-benefit-tax",
     "gst-margin-scheme",
     "etp-tax-free-component",
     "payroll-tax",
     "cgt-parcels",
     "work-expenses",
+    "rental-property",
 ];
 
 /// `derive`: `{"command", "input"}` gives the command's result with the step
@@ -1369,6 +1412,7 @@ pub fn evaluate_coded(command: &str, v: &Value) -> Result<Value> {
             | "sb-cgt-concessions"
             | "work-expenses"
             | "ato-interest-penalties"
+            | "private-health-insurance-rebate"
             | "depreciation-low-value-pool"
             | "depreciation-small-business-pool"
             | "capital-works"
@@ -1376,11 +1420,13 @@ pub fn evaluate_coded(command: &str, v: &Value) -> Result<Value> {
             | "non-commercial-losses"
             | "psi-test"
             | "government-super-amounts"
+            | "rental-property"
             | "business-capital-expenditure"
             | "balancing-adjustment"
             | "trade-in"
             | "fbt-ev-exemption-check"
             | "dasp-tax"
+            | "super-benefit-tax"
             | "payroll-tax"
             | "gst-margin-scheme"
             | "franking-account"
@@ -1553,6 +1599,26 @@ pub fn evaluate_coded(command: &str, v: &Value) -> Result<Value> {
                 scope_confirmed: &a[9],
                 income_tax: income_tax.as_ref(),
                 commissioner_determination: determination.as_ref(),
+            })
+        }
+        "super-benefit-tax" => {
+            // Optional: the facts only a member benefit, or only some, call for.
+            let given = engine::SUPER_BENEFIT_OPTIONAL.map(|key| {
+                let kind = if key.ends_with("_used") { Dec } else { Raw };
+                optional(v, key, kind)
+            });
+            let [a0, a1, a2, a3, a4, a5, a6] = given;
+            let given = [a0?, a1?, a2?, a3?, a4?, a5?, a6?];
+            engine::super_benefit_tax(&engine::SuperBenefitTaxArgs {
+                benefit: &a[0],
+                interest_value: &a[1],
+                interest_tax_free_component: &a[2],
+                untaxed_element: &a[3],
+                recipient: &a[4],
+                payment_date: &a[5],
+                year: &a[6],
+                scope_confirmed: &a[7],
+                optional: given.each_ref().map(Option::as_ref),
             })
         }
         "dasp-tax" => engine::dasp_tax(&engine::DaspTaxArgs {
@@ -2122,6 +2188,27 @@ pub fn evaluate_coded(command: &str, v: &Value) -> Result<Value> {
                 .collect();
             engine::ato_interest_penalties(&a[0], &a[1], &a[2], &facts)
         }
+        "rental-property" => {
+            // Optional: other taxable income, for the effect on tax.
+            let other = optional(v, "other_taxable_income", Dec)?;
+            engine::rental_property(&engine::RentalPropertyArgs {
+                ownership_share: &a[0],
+                acquired: &a[1],
+                disposed: &a[2],
+                days_available: &a[3],
+                section_26_50_applies: &a[4],
+                income: &a[5],
+                expenses: &a[6],
+                rental_only_expenses: &a[7],
+                loans: &a[8],
+                borrowing_loans: &a[9],
+                capital_works: &a[10],
+                depreciating_assets: &a[11],
+                other_taxable_income: other.as_ref(),
+                year: &a[12],
+                scope_confirmed: &a[13],
+            })
+        }
         "sb-cgt-concessions" => {
             // Optional: the facts only some answers call for.
             let given = engine::SB_CGT_OPTIONAL.map(|key| {
@@ -2168,6 +2255,26 @@ pub fn evaluate_coded(command: &str, v: &Value) -> Result<Value> {
                 }
             }
             engine::work_expenses(&a[0], &a[1], &a[2], &given, &a[3], &a[4])
+        }
+        "private-health-insurance-rebate" => {
+            // Optional: absent for a person without a spouse on 30 June or a
+            // dependant.
+            let o = [
+                optional(v, "spouse_income_for_surcharge_purposes", Dec)?,
+                optional(v, "dependent_children", Raw)?,
+                optional(v, "maintained_dependent_person", Raw)?,
+            ];
+            engine::private_health_insurance_rebate(&engine::PhiRebateArgs {
+                income_for_surcharge_purposes: &a[0],
+                lines: &a[1],
+                year: &a[2],
+                scope_confirmed: &a[3],
+                family: engine::SurchargeFamily {
+                    spouse_income: o[0].as_ref(),
+                    dependent_children: o[1].as_ref(),
+                },
+                maintained_dependent_person: o[2].as_ref(),
+            })
         }
         "income-tests" => {
             let named: Vec<(&str, &Arg)> = params.iter().map(|(key, _)| *key).zip(&a).collect();

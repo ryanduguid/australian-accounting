@@ -23,6 +23,30 @@
   `tests/work_expenses.rs` holds it to the ATO's, PCG 2023/1's and TR 98/9's
   examples.
 
+- `private-health-insurance-rebate` works out the private health insurance
+  tax offset or the excess premium reduction to repay for 2020-21 to 2026-27
+  from the statement's lines: the tier from income for surcharge purposes, the
+  percentage for each period and age band, and each line's share of the PHII
+  benefit. `personal-tax-estimate` composes it for a full-year resident. New
+  codes: `private_health_insurance_rebate.lhc_loading`,
+  `private_health_insurance_rebate.lines_invalid` and
+  `private_health_insurance_rebate.rate_unpublished`.
+  `tests/private_health_insurance_rebate.rs` holds it to the ATO's examples
+  and every published percentage and threshold.
+- `super-benefit-tax` works out one superannuation lump sum's components by
+  the proportioning rule (ITAA 1997 s 307-125) and the most income tax, before
+  Medicare levy, each part can bear in 2020-21 to 2026-27: a member's by age
+  and preservation age with the low rate cap and untaxed plan cap
+  (ss 301-10 to 301-115), a death benefit to a dependant (s 302-60) or a
+  non-dependant (s 302-145), a terminal medical condition (s 303-10) and a
+  lump sum under $200 that closes the interest (s 301-225). `derive` explains
+  each amount. New codes: `super_benefit_tax.benefit_nil`,
+  `super_benefit_tax.disability_benefit`, `super_benefit_tax.fact_conflict`,
+  `super_benefit_tax.pre_july_1983_service` and
+  `super_benefit_tax.recipient_invalid`. `tests/super_benefit_tax.rs` runs the
+  ATO's Tony, Suzi, Frankie, Peta, Mei, Howard and Anh examples and
+  Schedule 12's Heather, Dean and Chloe.
+
 - `depreciation-low-value-pool`, `depreciation-small-business-pool` and
   `capital-works` work out a low-value pool (ITAA 1997 ss 40-440 and
   40-445), a general small business pool with each year's low pool value
@@ -36,6 +60,22 @@
   `depreciation_small_business_pool.backing_business_investment`.
   `tests/depreciation_pools.rs` holds them to the ATO's examples. The
   single-asset `depreciation` command is unchanged.
+- `rental-property`: one residential rental property's income and deductions
+  for one owner and income year from 2020-21 to 2026-27, by the lines of the
+  ATO's rental property worksheet at the owner's legal interest, apportioned
+  by the days let or available for rent; travel denied (s 26-31); interest on
+  a mixed-use loan (TR 2000/2); borrowing expenses through
+  `borrowing-expenses-schedule`; capital works at 2.5% or 4% within the
+  undeducted construction expenditure (Division 43); decline in value nil
+  where s 40-27 reduces it; the net rent and, for 2024-25 to 2026-27, its
+  effect on tax at the resident scale. New codes:
+  `rental_property.asset_acquired_9_may_2017`,
+  `rental_property.days_unclear`,
+  `rental_property.fact_conflict`, `rental_property.fact_invalid`,
+  `rental_property.interest_redraw`, `rental_property.s26_50_denied`,
+  `rental_property.tax_effect_year` and
+  `rental_property.works_intended_use`. `tests/rental_property.rs` holds it to
+  the ATO's Rental properties guide 2026 examples.
 
 - `beneficiary-tax-offset`, `invalid-carer-tax-offset`, `zone-tax-offset` and
   `net-medical-expenses-tax-offset` work out the beneficiary tax offset

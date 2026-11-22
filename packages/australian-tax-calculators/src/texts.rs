@@ -39,6 +39,10 @@ pub const SCOPES: &[(&str, &str)] = &[
         "One departing Australia superannuation payment paid in a financial year from 2025-26 to 2027-28: the tax on it by component (Superannuation (Departing Australia Superannuation Payments Tax) Act 2007 s 5). The operator establishes that the payment is a departing Australia superannuation payment (ITAA 1997 s 301-170: a superannuation lump sum paid to a person who has departed Australia under the specified regulations, s 67A of the Small Superannuation Accounts Act 1995, an exempt public sector scheme's substantially similar rules, or s 20H of the Superannuation (Unclaimed Money and Lost Members) Act 1999), its tax free component and the elements taxed and untaxed in the fund of its taxable component, as the paying fund states them, whether it includes amounts attributable to contributions made whilst the person was a working holiday maker, and whether it is a roll-over superannuation benefit paid under s 20H(2), (2AA) or (2A) of the Superannuation (Unclaimed Money and Lost Members) Act 1999. The tax free component bears nil; the element taxed in the fund 35% and the element untaxed in the fund 45% (s 5(1)); where the payment includes working holiday maker contributions, both elements bear 65% (s 5(3)). The tax is the person's final liability on the payment, which is not assessable income and not exempt income (ITAA 1997 s 301-175). Refuses a payment of nil, and such a roll-over with an element untaxed in the fund. Excludes deciding whether the payment is a departing Australia superannuation payment, its components and whether contributions were made whilst a working holiday maker; a roll-over superannuation benefit paid under s 20H(2), (2AA) or (2A) of that Act with an excess untaxed roll-over amount (s 5(2): taxed at nil here and under the Superannuation (Excess Untaxed Roll-over Amounts Tax) Act 2007 instead); payments in a temporary budget repair levy year (s 6: 2014-15 to 2016-17); the payer's withholding, payment summary and reporting duties; and a refund of tax wrongly withheld.",
     ),
     (
+        "super_benefit_tax",
+        "One superannuation lump sum paid in a financial year from 2020-21 to 2026-27 from a complying superannuation plan to a member, a death benefits dependant or a non-dependant: its components by the proportioning rule and the most income tax each part can bear before Medicare levy (ITAA 1997 Divisions 301, 302 and 307). The operator establishes that the payment is a superannuation lump sum paid on a condition of release, not a roll-over, not a commutation of an income stream and not a benefit paid in breach of the payment rules (s 304-10 makes such a benefit assessable in full), the value of the interest and its tax free component at the time s 307-125(3) fixes, the element untaxed in the fund of the benefit's taxable component as the fund states it, whether the recipient is the member, a death benefits dependant (s 302-195) or neither, the payment date, and for a member the date of birth, whether a terminal medical condition exists (s 303-10), whether the benefit is a disability superannuation benefit, any requirement the regulations set for a lump sum under $200 (s 301-225(1)(d)) and the low rate cap and untaxed plan cap amounts counted for earlier lump sums. The tax free component is the benefit times the interest's tax free component over its value (s 307-125(2)), rounded to the cent, and the taxable component the rest; its element taxed in the fund is the taxable component less the element untaxed in the fund (s 307-275). A member's age is taken on the payment date and the preservation age from the date of birth (SISR reg 6.01(2)). A member 60 or over pays nothing on the tax free component and the element taxed in the fund (s 301-10), and on the element untaxed in the fund at most 15% up to the untaxed plan cap left and the top rate above it (s 301-95). A member at or above preservation age and under 60, possible only to 2023-24, pays nothing on the tax free component (s 301-15), at most 0% on the element taxed in the fund up to the low rate cap left and 15% above it (s 301-20), and on the element untaxed in the fund at most 15% up to what is left of the low rate cap after the element taxed in the fund, 30% up to the untaxed plan cap left and the top rate above it (s 301-105). A member under preservation age pays nothing on the tax free component (s 301-30), at most 20% on the element taxed in the fund (s 301-35) and on the element untaxed in the fund at most 30% up to the untaxed plan cap left and the top rate above it (s 301-115). A member's lump sum with a terminal medical condition (s 303-10), a member's lump sum under $200 that leaves the interest's value nil (s 301-225(1)) and a death benefit to a dependant (s 302-60) are wholly not assessable income and not exempt income. A member's wholly tax free lump sum still counts its element untaxed in the fund against the untaxed plan cap (s 307-350). A non-dependant pays nothing on the tax free component (s 302-140) and at most 15% on the element taxed in the fund and 30% on the element untaxed in the fund (s 302-145). Each part's tax is its amount times the rate, rounded to the cent; maximum_tax is their sum, the most the benefit can bear before Medicare levy, as the person's marginal rates can make it less. The low rate cap left is the year's cap less the amounts counted for earlier lump sums (s 307-345), and the untaxed plan cap left the year's cap for the plan less the elements untaxed in the fund counted from it (s 307-350); the amounts this benefit counts against each are shown. Refuses a nil benefit or interest, a benefit above the interest's value, a tax free component of the interest above its value, an element untaxed in the fund above the taxable component, a payment date outside the year, a date of birth not before it, a disability superannuation benefit (s 307-145), an element untaxed in the fund with service before 1 July 1983 (s 307-150), cap amounts counted above the year's cap and member facts for a death benefit. Excludes income streams of every kind, including death benefit, reversionary and capped defined benefit income streams and the defined benefit income cap; transfer balance questions; roll-overs and excess untaxed roll-over amounts; departing Australia superannuation payments (dasp-tax); death benefit termination payments (Division 82) and other employment termination payments; benefits from a non-complying or foreign superannuation fund (Division 305); a death benefit paid to the trustee of a deceased estate (s 302-10); structured settlements and personal injury payments; an alternative method under s 307-125(4); deciding the components, dependency and a terminal medical condition; the Medicare levy and the tax at the person's marginal rates; and the payer's withholding and reporting.",
+    ),
+    (
         "gst_margin_scheme",
         "One taxable supply of real property in a financial year from 2025-26 to 2027-28, made under a contract entered into on or after 9 December 2008 and not under an option or right granted before then: whether the margin scheme of GST Act Division 75 can apply, and the GST with and without it. The operator establishes that the supply is a taxable supply apart from Division 75 (s 9-5: such as new residential premises or land sold in the course of an enterprise, not input taxed residential premises or a GST-free supply), what it sells or grants, the written agreement, how the supplier acquired the entire interest, unit or lease, and the base: the consideration for that acquisition and any of it unpaid, or an approved valuation (s 75-35) with the facts that fix its day. Each condition of s 75-5 is shown as met or not: a freehold interest, a stratum unit or a long-term lease (s 75-5(1)); a written agreement made on or before the supply or within a further period the Commissioner allows (s 75-5(1A)); and the interest not acquired through a taxable supply on which the GST was worked out without the margin scheme (s 75-5(2) and (3)(a)). The margin is the amount by which the consideration for the supply exceeds the base, or nil (s 75-10(2) and (3)): the acquisition's consideration less any of it unpaid (s 75-12), disregarding improvements and development (s 75-14), or for an interest acquired before 1 July 2000 an approved valuation as at the day s 75-10(3) items 1 to 4 fix, checked against the facts given; for a supply of part of the land, only the corresponding proportion of the base, the share of the whole given (s 75-15). The GST under the margin scheme is 1/11 of the margin (s 75-10(1)) and without it 1/11 of the consideration (ss 9-70 and 9-75(1)), each rounded to the nearest cent, 0.5 cents up, as for one supply on one invoice (s 9-90(1)); gst is the first when every condition is met and the second otherwise. Refuses an acquisition from a fellow GST group member, a GST joint venture operator or an associate, by inheritance, as a GST-free going concern or farm land, through a supply GST-free under s 38-445(1A), or in part through an ineligible supply (ss 75-5(3)(b) to (g), 75-10(3) item 2A, 75-11 and 75-22), a supply to an associate (s 75-13), an approved valuation for an interest acquired from 1 July 2000, a valuation day s 75-10(3) does not fix for the facts, a supply items 2 and 4 both describe, unpaid consideration above the consideration and a share above the whole. Excludes deciding whether the supply is taxable, the agreement's terms, the valuation and its compliance with the Commissioner's requirements, the reasonableness of the apportionment, the time of the supply, GST at settlement withholding (Schedule 1 to the Taxation Administration Act 1953 s 14-250), the increasing and decreasing adjustments of ss 75-22 and 75-27, contracts before 9 December 2008, and several supplies recorded on one invoice (s 9-90(2)).",
     ),
@@ -283,8 +287,16 @@ pub const SCOPES: &[(&str, &str)] = &[
         "One question before remission: the general interest charge on one unpaid amount from its due day, with its payments; the shortfall interest charge on the additional income tax of one amended assessment; the failure to lodge on time penalty on one document; the false or misleading statement and not reasonably arguable penalties on one statement's or one period's parts; or the interest the Commissioner pays on one early payment, or on one refund of relevant tax overpaid as a result of a decision to which the Overpayments Act applies. The behaviour behind a shortfall, whether a position is reasonably arguable, whether a disclosure was voluntary or saved resources, the entity's size and significant global entity status are the operator's established facts. Excludes remission (the Commissioner's discretion), Division 296 GIC, scheme penalties, trust, partnership, petroleum resource rent tax and minimum tax positions, the s 284-75(3) penalty, part of a payment refunded before its due day, and other credit interest (Overpayments Act Parts IIB to IIG, IIIA and IIIAA).",
     ),
     (
+        "rental_property",
+        "One residential rental property for one owner and one income year from 2020-21 to 2026-27: the owner's share of rent and other rental income (ITAA 1997 s 6-5) and of the expenses by the ATO worksheet's lines, apportioned by the days let or available for rent on commercial terms over the days held except those relating solely to renting (s 8-1; Rental properties guide 2026, 'Time-based method'), travel shown and denied (s 26-31); interest on the owner's own loans at the share of principal used for the rental (TR 2000/2); borrowing expenses through borrowing-expenses-schedule (s 25-25); capital works at 2.5% or 4% by when they began, for the days used and within the undeducted construction expenditure (Division 43); each depreciating asset's decline in value as given, nil where s 40-27 reduces it; the net rent; and, with other taxable income for 2024-25 to 2026-27, the tax at the resident scale without and with it. The operator establishes that the owner is an individual not carrying on a business of letting and not an entity excepted by ss 26-31(2), 40-27(3) or 26-102(5); the owner's legal interest; that the property is in Australia and the whole dwelling is let as residential accommodation at a market rent, with no area-based apportionment and no non-commercial letting; that the days counted as available exclude any day the land was vacant under s 26-102 and any private use; the line each expense belongs on, that it is revenue (not capital, an initial repair or an improvement) and whether it relates solely to renting; each loan's interest and principal split with no redraw or further drawing in the year; the construction expenditure from a builder's contract or a qualified estimate, whether each item is a building or a structural improvement (not earthworks s 43-20(4) excludes), when it began and was first used and whether s 43-220 applies; and each asset's decline in value and the facts s 40-27 turns on. Excludes holiday homes whose costs s 26-50 denies (refused); the 4% manner (build to rent and short-term traveller accommodation); GST on short-stay letting; s 26-155 from 2027-28; Medicare levy, the surcharge, offsets and tax losses in the effect on tax; and working out the decline in value or the construction expenditure.",
+    ),
+    (
         "sb_cgt_concessions",
         "A capital gain from CGT event A1 (a disposal, ITAA 1997 s 104-10) of a CGT asset acquired from 20 September 1985 that is not a share in a company, an interest in a trust (s 152-10(2)) or a right or interest in a partnership's income or capital (s 152-10(2C)), under a contract made in the 2025-26 or 2026-27 income year, before Act No. 49 of 2026's changes to Division 152 from the income year that includes 1 July 2027 (Schedule 1 item 82), by an individual, a company or a trust that is not a public entity (s 152-305(3)), none of them acting for a deceased estate (s 152-80). The operator establishes whether the business entity (you; the partnership for an interest in a partnership asset; or the affiliate, connected entity or partnership whose business uses a passively held asset) carried on a business in the year, its aggregated turnovers (s 328-115, with connected entities and affiliates), the net value of the CGT assets under ss 152-15 and 152-20, the total days in the test period on which the asset was an active asset (s 152-40), whether the business ceased and when, and the retirement, incapacity and significant individual facts. The CGT small business entity test is s 328-110 with $2 million for each $10 million (s 152-10(1AA)). The test period counts both its first and last days; a total that may or may not be 7.5 years (2,737 to 2,740 days) is refused, as is an asset acquired on the same date 15 years before the event. The 15-year exemption, the 50% active asset reduction, the retirement exemption and the roll-over are each shown open or not, with the conditions not met; the amounts, the choices (ss 103-25, 152-220 and 152-315), the payments a company or trust must make (s 152-325), each stakeholder's limit (s 152-320(2)), the replacement asset (s 152-420), CGT events J2, J5 and J6, and look-through earnout rights other than their extension of the replacement asset period (s 104-190(1A)(b)(ii)) are outside it.",
+    ),
+    (
+        "private_health_insurance_rebate",
+        "One individual's private health insurance tax offset or excess premium reduction for an income year from 2020-21 to 2026-27, worked out from the lines of the private health insurance statements for complying health insurance policies under which the person was an adult insured (a PHIIB, Private Health Insurance Act 2007 s 22-5(1)), every person insured being an eligible person under Health Insurance Act 1973 s 3 (ITAA 1997 s 61-205(1)(c)). Each line gives the person's share of the premiums paid in the period, divided among the adults insured (s 22-20) and without lifetime health cover loading (s 22-15(6)), the person's share of the premium reduction received, and the benefit code for the period (1 July to 31 March, or 1 April to 30 June) and the oldest insured person's age band; a premium is in the period it was paid, and the operator splits premiums by age band where the oldest person turned 65 or 70 in the period and applies s 22-25 to a person 65 or over who left the policy. The tier comes from income for surcharge purposes (ITAA 1997 s 995-1) as established, with the spouse's for a person married on 30 June, against the singles thresholds, or the family thresholds for a person married on 30 June or who maintained a dependent person who is their child or dependent sibling in the year (s 22-30). Each line is worked as a whole, as the statement and the assessment take it; give a line for each premium where the reductions within a period differed, to show the offset and the excess on each (ITAA 1997 s 61-210 and PHI Act s 282-18 work premium by premium). Excludes dependant-only policies (s 22-5(3) and (4)), a trustee's offset (ITAA 1997 s 61-205(2)), the choice to claim a spouse's offset (s 61-215) and the reallocation of the excess between spouses (PHI Act s 282-18(8) to (10)), and the lifetime health cover loading itself. Refuses premiums paid from 1 April 2027, whose percentages were not published.",
     ),
     (
         "depreciation_low_value_pool",
@@ -384,6 +396,10 @@ pub const SOURCES: &[(&str, &str)] = &[
     (
         "dasp_tax",
         "https://www.legislation.gov.au/C2007A00013/latest/text",
+    ),
+    (
+        "super_benefit_tax",
+        "https://www.ato.gov.au/tax-rates-and-codes/key-superannuation-rates-and-thresholds/payments-from-super",
     ),
     (
         "payroll_tax",
@@ -602,6 +618,10 @@ pub const SOURCES: &[(&str, &str)] = &[
         "https://www.ato.gov.au/law/view/document?docid=COG/PCG20231/NAT/ATO/00001",
     ),
     (
+        "private_health_insurance_rebate",
+        "https://www.ato.gov.au/individuals-and-families/medicare-and-private-health-insurance/private-health-insurance-rebate/income-thresholds-and-rates-for-the-private-health-insurance-rebate",
+    ),
+    (
         "depreciation_low_value_pool",
         "https://www.ato.gov.au/law/view/document?docid=PAC/19970038/40-440",
     ),
@@ -624,6 +644,10 @@ pub const SOURCES: &[(&str, &str)] = &[
     (
         "psi_test",
         "https://www.legislation.gov.au/C2004A05138/2026-10-01/2026-10-01/text/original/epub/OEBPS/document_3/document_3.html",
+    ),
+    (
+        "rental_property",
+        "https://www.ato.gov.au/forms-and-instructions/rental-properties-2026",
     ),
 ];
 
@@ -761,6 +785,19 @@ pub const EXTRA_SOURCES: &[(&str, &[&str])] = &[
             "https://www.ato.gov.au/law/view/document?DocID=PAC/19970038/301-170",
             "https://www.ato.gov.au/law/view/document?DocID=PAC/19970038/301-175",
             "https://www.ato.gov.au/tax-rates-and-codes/key-superannuation-rates-and-thresholds/payments-from-super",
+        ],
+    ),
+    (
+        "super_benefit_tax",
+        &[
+            "https://www.ato.gov.au/law/view/document?DocID=PAC/19970038/301-20",
+            "https://www.ato.gov.au/law/view/document?DocID=PAC/19970038/301-105",
+            "https://www.ato.gov.au/law/view/document?DocID=PAC/19970038/302-145",
+            "https://www.ato.gov.au/law/view/document?DocID=PAC/19970038/307-125",
+            "https://www.ato.gov.au/law/view/document?DocID=PAC/19970038/307-345",
+            "https://www.ato.gov.au/law/view/document?DocID=PAC/19970038/307-350",
+            "https://www.ato.gov.au/individuals-and-families/super-for-individuals-and-families/super/withdrawing-and-using-your-super/early-access-to-super/tax-on-super-benefits",
+            "https://www.legislation.gov.au/F2026L00716/asmade/text",
         ],
     ),
     (
@@ -1297,6 +1334,19 @@ pub const EXTRA_SOURCES: &[(&str, &[&str])] = &[
         ],
     ),
     (
+        "private_health_insurance_rebate",
+        &[
+            "https://www.legislation.gov.au/C2007A00031/2026-09-19/2026-09-19/text/original/epub/OEBPS/document_1/document_1.html",
+            "https://www.legislation.gov.au/C2004A05138/2026-10-01/2026-10-01/text/original/epub/OEBPS/document_1/document_1.html",
+            "https://www.ato.gov.au/forms-and-instructions/income-thresholds-and-rates-for-the-phi-rebate-2021",
+            "https://www.ato.gov.au/forms-and-instructions/income-thresholds-and-rates-for-the-phi-rebate-2022",
+            "https://www.ato.gov.au/forms-and-instructions/income-thresholds-and-rates-for-the-phi-rebate-2023",
+            "https://www.ato.gov.au/forms-and-instructions/income-thresholds-and-rates-for-the-phi-rebate-2024",
+            "https://www.ato.gov.au/individuals-and-families/medicare-and-private-health-insurance/private-health-insurance-rebate/claiming-the-private-health-insurance-rebate",
+            "https://www.ato.gov.au/individuals-and-families/medicare-and-private-health-insurance/private-health-insurance-rebate/your-private-health-insurance-statement",
+        ],
+    ),
+    (
         "depreciation_low_value_pool",
         &[
             "https://www.ato.gov.au/law/view/document?docid=PAC/19970038/40-425",
@@ -1324,6 +1374,21 @@ pub const EXTRA_SOURCES: &[(&str, &[&str])] = &[
             "https://www.ato.gov.au/law/view/document?docid=PAC/19970038/43-145",
             "https://www.ato.gov.au/law/view/document?docid=PAC/19970038/43-215",
             "https://www.ato.gov.au/businesses-and-organisations/income-deductions-and-concessions/depreciation-and-capital-expenses-and-allowances/capital-works-deductions",
+        ],
+    ),
+    (
+        "rental_property",
+        &[
+            "https://www.ato.gov.au/law/view/document?docid=PAC/19970038/8-1",
+            "https://www.ato.gov.au/law/view/document?docid=PAC/19970038/26-31",
+            "https://www.ato.gov.au/law/view/document?docid=PAC/19970038/40-27",
+            "https://www.ato.gov.au/law/view/document?docid=PAC/19970038/43-25",
+            "https://www.ato.gov.au/law/view/document?docid=PAC/19970038/43-210",
+            "https://www.ato.gov.au/law/view/document?docid=PAC/19970038/43-230",
+            "https://www.ato.gov.au/law/view/document?docid=PAC/19970038/43-235",
+            "https://www.legislation.gov.au/C2017A00126/asmade/text",
+            "https://www.ato.gov.au/law/view/document?docid=TXR/TR20002/NAT/ATO/00001",
+            "https://www.ato.gov.au/law/view/document?docid=TXR/TR9332/NAT/ATO/00001",
         ],
     ),
     (
@@ -1431,6 +1496,12 @@ pub const EXTRA_WARNINGS: &[(&str, &[&str])] = &[
         ],
     ),
     (
+        "private_health_insurance_rebate",
+        &[
+            "Each line's share of the PHII benefit is rounded to the cent, as the ATO's worked examples do; no provision sets the rounding. An offset on one line and an excess on another are both shown, as ITAA 1997 s 61-210 and PHI Act s 282-18 each work on a premium; a line that sums premiums with different reductions shows only their net, not each premium's offset or excess, and as its share is rounded once its net can differ from theirs by a cent; give such premiums as separate lines.",
+        ],
+    ),
+    (
         "depreciation_small_business_pool",
         &[
             "Which assets the instant asset write-off or temporary full expensing took instead of the pool is the operator's to establish; this worksheet works out the pool only.",
@@ -1440,6 +1511,13 @@ pub const EXTRA_WARNINGS: &[(&str, &[&str])] = &[
         "capital_works",
         &[
             "undeducted_construction_expenditure is not carried forward here: it falls by more than the deduction where the area was not used to produce income (s 43-235).",
+        ],
+    ),
+    (
+        "rental_property",
+        &[
+            "Each line is the operator's classification: an expense that is capital, an initial repair or an improvement is not deductible under s 8-1 and goes to the cost base or capital works instead.",
+            "The amounts are to the cent; a return shows whole dollars, and the ATO's examples round the same figures to the dollar.",
         ],
     ),
     (
@@ -1501,6 +1579,12 @@ pub const EXTRA_WARNINGS: &[(&str, &[&str])] = &[
         "dasp_tax",
         &[
             "Each fund decides the rate for the payment it makes from the contributions it holds: a person who held a working holiday maker visa can have the 65% rate on one fund's payment and the ordinary rates on another's.",
+        ],
+    ),
+    (
+        "super_benefit_tax",
+        &[
+            "maximum_tax excludes the Medicare levy, which the ATO's tables add at 2% to each rate, and is a ceiling: each offset ensures the rate on its part does not exceed the rate shown, so the person's marginal rates on that part can give less. Put assessable_amount in the tax return; the ATO works out the lump sum offsets.",
         ],
     ),
     (
@@ -1699,10 +1783,18 @@ pub const UNPUBLISHED_2027_28: &[(&str, &str)] = &[
         "work_expenses",
         "No cents per kilometre rate for 2027-28 had been determined under ITAA 1997 s 28-25(4) when this worksheet was checked.",
     ),
+    (
+        "super_benefit_tax",
+        "The untaxed plan cap for 2027-28 was not published when this worksheet was checked.",
+    ),
     ("capital_gains", CGT_2027_28),
     ("main_residence", CGT_2027_28),
     ("cgt_parcels", CGT_2027_28),
     ("balancing_adjustment", CGT_2027_28),
+    (
+        "rental_property",
+        "From 2027-28 ITAA 1997 s 26-155 (Act No. 49 of 2026) can quarantine residential rental deductions above the rental income, which this worksheet does not apply.",
+    ),
     (
         "sb_cgt_concessions",
         "From 2027-28 Schedule 1 to Act No. 49 of 2026 changes Division 152, and this worksheet has not been checked against it.",
@@ -1743,6 +1835,10 @@ pub const UNPUBLISHED_2027_28: &[(&str, &str)] = &[
     (
         "study_loan_repayment",
         "The 2027-28 study and training loan repayment thresholds had not been published when this was checked on 16 November 2026.",
+    ),
+    (
+        "private_health_insurance_rebate",
+        "The 2027-28 private health insurance income thresholds, and the rebate percentages from 1 April 2027, had not been published when this was checked on 22 November 2026.",
     ),
     (
         "medicare_levy_surcharge",
@@ -2568,7 +2664,7 @@ pub const REFUSAL_CODES: &[(&str, &str)] = &[
     ),
     (
         "input.field_unknown",
-        "A field the worksheet or command does not take, or does not take beside the other inputs given, was given (fbt-loan, fbt-meal-entertainment, fbt-car-parking, fbt-debt-waiver, fbt-expense-payment, fbt-property, fbt-residual, fbt-housing, fbt-lafha, fbt-board, fbt-tax-exempt-body-entertainment, fbt-entertainment-classifier, fbt-meal-entertainment-register and its entries, fbt-minor-benefit-check, ppsr-timing, fhss and its contributions, government-super-amounts, personal_deductions and determination, division-296, depreciation, fuel-tax-credits and its lines, foreign-resident-tax, medicare-levy, medicare-levy-surcharge, payg-withholding, payg-gross-up, termination-payment, etp-tax-free-component, unused-leave-payment, the Schedule 5 methods, working-holiday-maker-withholding, study-loan-withholding, seniors-pensioners-withholding, seniors-pensioners-tax-offset, lump-sum-arrears-tax-offset, hire-purchase-schedule, chattel-mortgage-schedule, loan-transactions and its transactions and rate_changes, borrowing-expenses-schedule and its loans, business-capital-expenditure and its items, balancing-adjustment, its years and car_limit, trade-in, franking-account and its events, distributions and income_tax, dasp-tax, gst-margin-scheme, wine-equalisation-tax and its dealings, luxury-car-tax and its lines, payroll-tax, cgt-parcels, its parcels and disposals, fbt-ev-exemption-check, sb-cgt-concessions, small-business-income-offset, depreciation-low-value-pool, depreciation-small-business-pool, capital-works, non-commercial-losses, psi-test, beneficiary-tax-offset, invalid-carer-tax-offset, zone-tax-offset and its dependants, net-medical-expenses-tax-offset, work-expenses, ato-interest-penalties and its payments and parts, contribution-caps given a carry-forward input, derive, personal-tax-estimate, dgr-check, income-tests and fbt-return only).",
+        "A field the worksheet or command does not take, or does not take beside the other inputs given, was given (fbt-loan, fbt-meal-entertainment, fbt-car-parking, fbt-debt-waiver, fbt-expense-payment, fbt-property, fbt-residual, fbt-housing, fbt-lafha, fbt-board, fbt-tax-exempt-body-entertainment, fbt-entertainment-classifier, fbt-meal-entertainment-register and its entries, fbt-minor-benefit-check, ppsr-timing, fhss and its contributions, government-super-amounts, personal_deductions and determination, division-296, depreciation, fuel-tax-credits and its lines, foreign-resident-tax, medicare-levy, medicare-levy-surcharge, payg-withholding, payg-gross-up, termination-payment, etp-tax-free-component, unused-leave-payment, the Schedule 5 methods, working-holiday-maker-withholding, study-loan-withholding, seniors-pensioners-withholding, seniors-pensioners-tax-offset, lump-sum-arrears-tax-offset, hire-purchase-schedule, chattel-mortgage-schedule, loan-transactions and its transactions and rate_changes, borrowing-expenses-schedule and its loans, business-capital-expenditure and its items, balancing-adjustment, its years and car_limit, trade-in, franking-account and its events, distributions and income_tax, dasp-tax, super-benefit-tax, gst-margin-scheme, wine-equalisation-tax and its dealings, luxury-car-tax and its lines, payroll-tax, cgt-parcels, its parcels and disposals, fbt-ev-exemption-check, sb-cgt-concessions, small-business-income-offset, depreciation-low-value-pool, depreciation-small-business-pool, capital-works, non-commercial-losses, psi-test, beneficiary-tax-offset, invalid-carer-tax-offset, zone-tax-offset and its dependants, net-medical-expenses-tax-offset, work-expenses, ato-interest-penalties and its payments and parts, private-health-insurance-rebate, rental-property and its loans, capital_works and depreciating_assets, contribution-caps given a carry-forward input, derive, personal-tax-estimate, dgr-check, income-tests and fbt-return only).",
     ),
     ("input.flag_invalid", "A flag is not a JSON boolean."),
     ("input.fraction_invalid", "A fraction is outside 0 to 1."),
@@ -2917,6 +3013,18 @@ pub const REFUSAL_CODES: &[(&str, &str)] = &[
         "An input or calculated time falls in the skipped or repeated ACT hour at a daylight saving change.",
     ),
     (
+        "private_health_insurance_rebate.lhc_loading",
+        "A statement line gave a lifetime health cover loading, which is outside the rebate (PHI Act s 22-15(6)) and is not worked out.",
+    ),
+    (
+        "private_health_insurance_rebate.lines_invalid",
+        "The statement lines are not a list of 1 to 100 objects with premiums_eligible, rebate_received and a benefit code of 30, 31, 35, 36, 40 or 41.",
+    ),
+    (
+        "private_health_insurance_rebate.rate_unpublished",
+        "A line is for premiums paid from 1 April 2027, whose rebate percentages had not been published.",
+    ),
+    (
         "psi_test.agent_payments_invalid",
         "An agent's principal payments are nil or less than the commission given.",
     ),
@@ -2940,6 +3048,38 @@ pub const REFUSAL_CODES: &[(&str, &str)] = &[
     (
         "psi_test.premises_invalid",
         "premises is not an object of the 5 business premises answers.",
+    ),
+    (
+        "rental_property.asset_acquired_9_may_2017",
+        "A depreciating asset was acquired on 9 May 2017, and s 40-27 applies only from 7.30 pm that day.",
+    ),
+    (
+        "rental_property.days_unclear",
+        "Capital works or a depreciating asset were first used after the property was first held in the year, and it was not available on every day held, so their days of rental use are not known.",
+    ),
+    (
+        "rental_property.fact_conflict",
+        "The facts contradict each other or the income year: dates outside it or out of order, days available over the days held, or principal for the rental over the total.",
+    ),
+    (
+        "rental_property.fact_invalid",
+        "A rental property input is not the kind of value it takes: a list, an object of amounts, a date, a whole number of days, a kind of capital works or an ownership share.",
+    ),
+    (
+        "rental_property.interest_redraw",
+        "A loan had a redraw or further drawing in the year, which changes its share of principal used for the rental from that day.",
+    ),
+    (
+        "rental_property.s26_50_denied",
+        "The property is a holiday home whose ownership costs s 26-50 denies.",
+    ),
+    (
+        "rental_property.tax_effect_year",
+        "other_taxable_income was given for a year before 2024-25, for which resident-tax holds no scale.",
+    ),
+    (
+        "rental_property.works_intended_use",
+        "A building begun from 22 August 1979 to 17 July 1985 qualifies only if intended on completion for short-term traveller accommodation or non-residential use, which the worksheet does not take.",
     ),
     (
         "sb_cgt_concessions.active_period_unclear",
@@ -2984,6 +3124,30 @@ pub const REFUSAL_CODES: &[(&str, &str)] = &[
     (
         "small_business_income_offset.shares_invalid",
         "shares is not a list of at most 50 objects, each with amount and deductions.",
+    ),
+    (
+        "super_benefit_tax.benefit_nil",
+        "The superannuation lump sum or the value of the interest it is paid from is nil.",
+    ),
+    (
+        "super_benefit_tax.disability_benefit",
+        "A disability superannuation benefit was given; s 307-145's increase to its tax free component is outside the command.",
+    ),
+    (
+        "super_benefit_tax.fact_conflict",
+        "The facts given contradict each other: a benefit above the interest's value, a tax free component above the interest's value, an element untaxed in the fund above the taxable component, a payment date outside the year, a date of birth not before the payment date, or cap amounts counted above the year's cap.",
+    ),
+    (
+        "super_benefit_tax.other_lump_sums_this_year",
+        "Another lump sum in the same income year at or above preservation age and under 60 was given with some of the low rate cap left; ss 301-20(3) and 301-105(5) and (6) share the year's low rate cap across the lump sums, which the command does not take.",
+    ),
+    (
+        "super_benefit_tax.pre_july_1983_service",
+        "An element untaxed in the fund with service before 1 July 1983 was given; s 307-150's modification is outside the command.",
+    ),
+    (
+        "super_benefit_tax.recipient_invalid",
+        "recipient is not member, death_benefits_dependant or non_dependant.",
     ),
     (
         "trade_in.asset_invalid",

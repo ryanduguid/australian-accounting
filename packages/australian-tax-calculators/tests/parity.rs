@@ -28,14 +28,16 @@ use std::process::{Command, Stdio};
 /// `tests/fbt_lafha.rs`, `tests/fbt_board.rs`,
 /// `tests/fbt_tax_exempt_body_entertainment.rs`, `tests/lump_sum_arrears_offset.rs`,
 /// `tests/fbt_entertainment_classifier.rs`, `tests/fbt_minor_benefit.rs`,
-/// `tests/fhss.rs`, `tests/ppsr_timing.rs`, `tests/dasp_tax.rs`, `tests/income_tests.rs`,
+/// `tests/fhss.rs`, `tests/ppsr_timing.rs`, `tests/dasp_tax.rs`, `tests/super_benefit_tax.rs`, `tests/income_tests.rs`,
 /// `tests/franking_account.rs`, `tests/wine_equalisation_tax.rs`,
 /// `tests/luxury_car_tax.rs`, `tests/sb_cgt_concessions.rs`,
-/// `tests/depreciation_pools.rs`, `tests/work_expenses.rs`,
-/// `tests/ato_interest_penalties.rs`, `tests/small_business_income_offset.rs`,
-/// `tests/government_super_amounts.rs`, `tests/individual_offsets.rs`,
-/// `tests/non_commercial_losses.rs` and `tests/psi_test.rs` cover them.
-const NEW_KINDS: [(&str, &str); 65] = [
+/// `tests/private_health_insurance_rebate.rs`, `tests/depreciation_pools.rs`,
+/// `tests/work_expenses.rs`, `tests/ato_interest_penalties.rs`,
+/// `tests/small_business_income_offset.rs`, `tests/government_super_amounts.rs`,
+/// `tests/individual_offsets.rs`, `tests/non_commercial_losses.rs`,
+/// `tests/psi_test.rs` and `tests/rental_property.rs` cover them.
+const NEW_KINDS: [(&str, &str); 68] = [
+    ("super-benefit-tax", "super_benefit_tax"),
     ("fhss", "fhss"),
     ("ato-interest-penalties", "ato_interest_penalties"),
     ("ppsr-timing", "ppsr_timing"),
@@ -69,6 +71,10 @@ const NEW_KINDS: [(&str, &str); 65] = [
     ("cgt-parcels", "cgt_parcels"),
     ("sb-cgt-concessions", "sb_cgt_concessions"),
     ("work-expenses", "work_expenses"),
+    (
+        "private-health-insurance-rebate",
+        "private_health_insurance_rebate",
+    ),
     ("depreciation-low-value-pool", "depreciation_low_value_pool"),
     (
         "depreciation-small-business-pool",
@@ -89,6 +95,7 @@ const NEW_KINDS: [(&str, &str); 65] = [
         "net_medical_expenses_tax_offset",
     ),
     ("government-super-amounts", "government_super_amounts"),
+    ("rental-property", "rental_property"),
     ("division-296", "division_296"),
     ("termination-payment", "termination_payment"),
     ("etp-tax-free-component", "etp_tax_free_component"),

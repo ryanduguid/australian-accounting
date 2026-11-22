@@ -48,6 +48,8 @@ fn every_code_at_a_refusal_site_is_catalogued_and_every_entry_is_used() {
         "engine/individual_offsets",
         "engine/work_expenses",
         "engine/ato_interest_penalties",
+        "engine/rental_property",
+        "engine/super_benefit_tax",
     ]
     .into_iter()
     .flat_map(|dir| {
@@ -173,8 +175,9 @@ fn every_catalogued_required_input_of_a_strict_command_is_read() {
     // capital-works, ato-interest-penalties, work-expenses,
     // small-business-income-offset, government-super-amounts,
     // beneficiary-tax-offset, invalid-carer-tax-offset, zone-tax-offset,
-    // net-medical-expenses-tax-offset, non-commercial-losses and psi-test.
-    assert_eq!(checked, 65);
+    // net-medical-expenses-tax-offset, non-commercial-losses, psi-test,
+    // private-health-insurance-rebate, rental-property and super-benefit-tax.
+    assert_eq!(checked, 68);
 }
 
 /// Every frozen call gives the same answer through either entry point, and
