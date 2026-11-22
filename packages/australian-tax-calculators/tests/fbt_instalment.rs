@@ -174,6 +174,16 @@ fn refuses_what_it_does_not_take() {
             json!({"quarter": 1, "ato_instalment": "-5.00"}),
             "input.amount_invalid",
         ),
+        (
+            json!({"quarter": 1, "estimated_tax": "100.00", "previous_instalments": "1.00",
+                   "reason_code": 30}),
+            "fbt_instalment.variation_invalid",
+        ),
+        (
+            json!({"quarter": 1, "estimated_tax": "100.00", "previous_credits": "1.00",
+                   "reason_code": 30}),
+            "fbt_instalment.variation_invalid",
+        ),
     ];
     for (fields, code) in cases {
         assert_eq!(refused(fields.clone()).code, code, "{fields}");

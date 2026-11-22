@@ -122,6 +122,11 @@ fn previous(at: usize, paid: Option<&Arg>, credits: Option<&Arg>) -> Result<[Dec
         }
     };
     let credits = credits.map(money).transpose()?.unwrap_or_else(|| int(0));
+    if at == 0 && !(paid.is_zero() && credits.is_zero()) {
+        return variation_invalid(
+            "the first instalment has no earlier instalments or credits in the year: previous_instalments and previous_credits must be nil for quarter 1",
+        );
+    }
     Ok([paid, credits])
 }
 
