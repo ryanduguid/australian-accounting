@@ -289,32 +289,39 @@ fn a_seniors_offset_relieves_under_the_years_amount() {
     }
 }
 
-/// An exception that reaches some requirements but not all is refused.
+/// An exception that holds for a person covered by a provision it names
+/// leaves nothing required under the instrument, whatever else they meet;
+/// for anyone else it relieves nothing.
 #[test]
-fn an_exception_reaching_part_of_the_requirement_is_refused() {
-    let both = with(
-        base("2025-26", "30000.00"),
-        json!({"triggers": ["payg_withheld"],
-            "sapto": {"rebate_income": "30000.00", "category": "single"}}),
-    );
-    assert_eq!(code(&both), "lodgment_required.exception_overlap");
-    let withheld_only = with(
+fn an_exception_relieves_the_instrument_only_for_a_person_it_covers() {
+    for year in ["2022-23", "2025-26"] {
+        let both = run(&with(
+            base(year, "25000.00"),
+            json!({"triggers": ["payg_withheld"],
+                "sapto": {"rebate_income": "25000.00", "category": "single"}}),
+        ));
+        assert_eq!(both["lodgment_required"], false, "{year}");
+        assert_eq!(both["exceptions_applied"].as_array().unwrap().len(), 1);
+    }
+    let withheld_only = run(&with(
         base("2025-26", "15000.00"),
         json!({"triggers": ["payg_withheld"],
             "sapto": {"rebate_income": "15000.00", "category": "single"}}),
-    );
-    assert!(decided(&withheld_only).0);
+    ));
+    assert_eq!(withheld_only["lodgment_required"], true);
+    assert_eq!(withheld_only["exceptions_applied"], json!([]));
+    // s 7(2) names s 6(2)(i); section 4 of the Notices reaches Table B only.
     let minor = |year: &str| {
         with(
-            base(year, "20000.00"),
+            base(year, "10000.00"),
             json!({"under_18": {"income_excluding_work": "500.00"},
                 "listed_payment": {"other_assessable_income": false}}),
         )
     };
     assert_eq!(decided(&minor("2024-25")), (false, vec![]));
     assert_eq!(
-        code(&minor("2022-23")),
-        "lodgment_required.exception_overlap"
+        decided(&minor("2022-23")),
+        (true, vec!["Table A item (9)".to_owned()])
     );
 }
 

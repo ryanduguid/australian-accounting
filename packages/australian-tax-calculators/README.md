@@ -2669,13 +2669,14 @@ taxable income, without super or ETP remainders, under $45,001 is relieved
 of every requirement (s 7(1)(f)). A listed payment, such as jobseeker or
 austudy payment, with no other assessable income or taxable income less
 than $21,885 (to 2023-24), less than $22,575 (2024-25) or at most $22,575
-(2025-26), relieves s 6(2)(i) and 6(3) (s 7(2)); in the Notices, Table K
-relieves Table B only. Rebate income under the seniors and pensioners
-amounts for the year ($32,280, $31,280 and $28,975 to 2023-24; $34,919,
-$33,732 and $30,994 after) relieves s 6(3) (s 7(3)). Where an exception
-relieves some of the provisions you meet but not others, the worksheet
-refuses: the instrument says a person covered by the named provisions is not
-required to lodge 'under this instrument', which can be read either way.
+(2025-26), relieves a person covered by s 6(2)(i) or 6(3) (s 7(2)); in the
+Notices, Table K relieves a person described in Table B only. Rebate income
+under the seniors and pensioners amounts for the year ($32,280, $31,280 and
+$28,975 to 2023-24; $34,919, $33,732 and $30,994 after) relieves a person
+covered by s 6(3) (s 7(3)). A person an exception relieves is 'not required
+to lodge ... under this instrument', so no other provision they meet, such
+as PAYG withholding, requires a return; an exception relieves nothing for a
+person covered by none of the provisions it names.
 
 A return required is due on 31 October after the year (s 8(1)). The
 worksheet refuses 2026-27, as no instrument for the 2027 year was on the

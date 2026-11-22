@@ -434,7 +434,7 @@ fn seniors(given: &Arg, w: &mut Work, i: &Year) -> Result<Option<Relief>> {
     Ok(holds.then(|| ("sapto", SUBSECTION_6_3.to_vec())))
 }
 
-/// The exceptions that hold, each with the conditions it relieves.
+/// The exceptions that hold, each with the provisions it names.
 fn exceptions(
     args: &LodgmentRequiredArgs,
     w: &mut Work,
@@ -449,7 +449,8 @@ fn exceptions(
     Ok(held.into_iter().flatten().collect())
 }
 
-/// s 7(2) names s 6(2)(i) and 6(3); Table K is read with Table B only.
+/// s 7(2) names s 6(2)(i) and 6(3); section 4 of the Notices reaches a
+/// person described in Table B only.
 fn payment_relief(notice: bool) -> Vec<&'static str> {
     let mut relief = SUBSECTION_6_3.to_vec();
     if !notice {
@@ -466,27 +467,28 @@ fn applies(holds: bool) -> &'static str {
     if holds { "applies" } else { "does not apply" }
 }
 
-/// The answer: the conditions still requiring a return, refusing a case
-/// that an exception reaches only in part.
-fn decide(w: &Work, held: &[Relief]) -> Result<Vec<&'static str>> {
-    let relieved: BTreeSet<&str> = held.iter().flat_map(|(_, r)| r.iter().copied()).collect();
-    let left: Vec<&'static str> = w
-        .required
-        .iter()
-        .copied()
-        .filter(|k| !relieved.contains(k))
-        .collect();
-    if !left.is_empty() && left.len() < w.required.len() {
-        let names: Vec<&str> = left.iter().map(|k| cite(w.notice, k)).collect();
-        return refuse(
-            "lodgment_required.exception_overlap",
-            format!(
-                "An exception relieves a person covered by the provisions it names, but you are also covered by {}; the instrument can be read either way, so the worksheet does not decide.",
-                names.join(", ")
-            ),
-        );
+/// The answer: the conditions still requiring a return and the exceptions
+/// applied. An exception that holds for a person covered by a provision it
+/// names leaves no requirement 'under this instrument' (s 7(1) to 7(3); in
+/// the Notices, section 4 with Table K for a person described in Table B).
+fn decide(w: &mut Work, held: Vec<Relief>) -> (Vec<&'static str>, Vec<&'static str>) {
+    let mut applied = Vec::new();
+    for (key, names) in held {
+        if names.iter().any(|k| w.required.contains(k)) {
+            applied.push(key);
+        } else {
+            w.push(
+                key,
+                "covered by no provision it names, so it relieves nothing",
+            );
+        }
     }
-    Ok(left)
+    let left = if applied.is_empty() {
+        w.required.clone()
+    } else {
+        Vec::new()
+    };
+    (left, applied)
 }
 
 pub fn lodgment_required(args: &LodgmentRequiredArgs) -> Result<Value> {
@@ -510,7 +512,7 @@ pub fn lodgment_required(args: &LodgmentRequiredArgs) -> Result<Value> {
     section_6_3(&mut w, &f)?;
     section_6_10(&mut w, &f, i)?;
     let held = exceptions(args, &mut w, &f, i)?;
-    let left = decide(&w, &held)?;
+    let (left, applied) = decide(&mut w, held);
     if left.is_empty() && parent {
         return refuse(
             "lodgment_required.child_support_parent",
@@ -521,8 +523,9 @@ pub fn lodgment_required(args: &LodgmentRequiredArgs) -> Result<Value> {
     out["lodgment_required"] = json!(!left.is_empty());
     out["required_by"] = json!(left.iter().map(|k| cite(i.notice, k)).collect::<Vec<_>>());
     out["exceptions_applied"] = json!(
-        held.iter()
-            .map(|(k, _)| cite(i.notice, k))
+        applied
+            .iter()
+            .map(|k| cite(i.notice, k))
             .collect::<Vec<_>>()
     );
     out["due_date"] = if left.is_empty() {

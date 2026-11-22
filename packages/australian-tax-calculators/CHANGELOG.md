@@ -374,7 +374,7 @@
   instruments from 2023-24): s 6(2), 6(3) and 6(10), the exceptions in
   s 7(1)(f), 7(2) and 7(3), and the 31 October due date. New codes:
   `lodgment_required.child_support_parent`,
-  `lodgment_required.exception_overlap`, `lodgment_required.group_invalid`,
+  `lodgment_required.group_invalid`,
   `lodgment_required.instrument_not_made`,
   `lodgment_required.residency_invalid` and
   `lodgment_required.triggers_invalid`. `tests/lodgment_required.rs` holds it

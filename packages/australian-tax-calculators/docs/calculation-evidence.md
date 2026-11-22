@@ -3284,12 +3284,18 @@ Choices the instruments leave to the reader:
 
 - Table K is 'to be read with Tables B and E', and s 7(2) names s 6(2)(i)
   and 6(3) and s 7(3) names s 6(3); each says the person 'is not required to
-  lodge ... under this instrument'. Whether that relieves a person who also
-  meets a provision it does not name, such as PAYG withholding, can be read
-  either way, so that case is refused. The 2024 explanatory statement
-  (paragraph 17) says the redrafting was not meant to change who must lodge,
-  but s 7(2) names s 6(2)(i), which Table K did not reach; each year follows
-  its own text.
+  lodge ... under this instrument', and the notes to s 7 say the same of a
+  person covered by s 7(2) or 7(3). So a person covered by a named provision
+  whom the exception relieves has no requirement under the instrument, even
+  one that also meets a provision it does not name, such as PAYG
+  withholding; a person covered by none of the named provisions is not
+  relieved. The 2024 explanatory statement (paragraph 17) says the redrafting
+  was not meant to change who must lodge, but s 7(2) names s 6(2)(i), which
+  Table K did not reach; each year follows its own text.
+- Tables E to G and s 6(6) to 6(8) cover trustees, agents and ship masters;
+  the worksheet is for an individual's own return, so they are out of scope.
+  Each year's instrument sets 31 October after the year as the due date for
+  the rest.
 - Table P and s 7(1)(f) relieve every requirement of the instrument, so a
   working holiday maker under $45,001 is relieved whatever else holds.
 - s 6(10) reaches 'a foreign resident ... during the year': a part-year

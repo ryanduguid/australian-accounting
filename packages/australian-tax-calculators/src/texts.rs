@@ -2397,10 +2397,6 @@ pub const REFUSAL_CODES: &[(&str, &str)] = &[
         "This instrument does not require a return, and the parent may be required to lodge under the separate child support instrument, which the worksheet does not apply.",
     ),
     (
-        "lodgment_required.exception_overlap",
-        "An exception holds for some provisions requiring a return but not for others the person also meets; the instrument can be read either way.",
-    ),
-    (
         "lodgment_required.group_invalid",
         "under_18, study_loan, working_holiday_maker, listed_payment or sapto is not null or an object of its facts.",
     ),
@@ -2729,13 +2725,13 @@ pub const LODGMENT_PROVISIONS: [(&str, &str, &str, &str); 23] = [
         "tax_loss",
         "paragraph 6(2)(b)",
         "Table A item (2)",
-        "a tax loss incurred or deducted",
+        "a tax loss incurred, or an entitlement to deduct one",
     ),
     (
         "net_capital_loss",
         "paragraph 6(2)(c)",
         "Table A item (3)",
-        "a net capital loss made or applied",
+        "a net capital loss made, or an entitlement to apply one of an earlier year",
     ),
     (
         "business",
@@ -2753,7 +2749,7 @@ pub const LODGMENT_PROVISIONS: [(&str, &str, &str, &str); 23] = [
         "primary_production_partnership",
         "paragraph 6(2)(h)",
         "Table A item (8)",
-        "an interest in a partnership that operated a primary production business in Australia",
+        "an individual interest in the net income or partnership loss of a partnership that operated a primary production business in Australia",
     ),
     (
         "under_18",
@@ -2783,7 +2779,7 @@ pub const LODGMENT_PROVISIONS: [(&str, &str, &str, &str); 23] = [
         "private_health_offset",
         "paragraph 6(2)(m)",
         "Table A item (13)",
-        "entitled to the private health insurance offset and not claiming the correct amount as a premium reduction",
+        "entitled to the private health insurance offset and not claiming the correct offset as a premium reduction, unless a choice was made under ITAA 1997 s 61-215",
     ),
     (
         "reportable_amounts",
