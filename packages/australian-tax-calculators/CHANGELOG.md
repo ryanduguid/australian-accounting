@@ -6,6 +6,23 @@
 
 ### Added
 
+- `work-expenses` works out an employee's working from home, car or
+  self-education deduction for 2020-21 to 2026-27, one `method` a call: the
+  fixed rate (52c with a dedicated home office to 2021-22, then PCG 2023/1's
+  67c and 70c) and the 80c shortcut against the actual cost; the cents per
+  kilometre method at each year's rate with the 5,000 km cap (ITAA 1997
+  s 28-25); the log book method with its 12 weeks and 5 years (ss 28-90,
+  28-115 and 28-120); and self-education's connection test and, before
+  2022-23, the $250 reduction of ITAA 1936 s 82A. Each has its return amount
+  with cents disregarded, and `derive` explains it. New codes:
+  `work_expenses.allowance_received`, `work_expenses.car_not_held`,
+  `work_expenses.fact_conflict`, `work_expenses.fact_invalid`,
+  `work_expenses.log_book_expired`, `work_expenses.log_book_too_short`,
+  `work_expenses.log_book_unrepresentative`, `work_expenses.method_invalid`
+  and `work_expenses.reimbursed`.
+  `tests/work_expenses.rs` holds it to the ATO's, PCG 2023/1's and TR 98/9's
+  examples.
+
 - `depreciation-low-value-pool`, `depreciation-small-business-pool` and
   `capital-works` work out a low-value pool (ITAA 1997 ss 40-440 and
   40-445), a general small business pool with each year's low pool value
@@ -19,6 +36,84 @@
   `depreciation_small_business_pool.backing_business_investment`.
   `tests/depreciation_pools.rs` holds them to the ATO's examples. The
   single-asset `depreciation` command is unchanged.
+
+- `beneficiary-tax-offset`, `invalid-carer-tax-offset`, `zone-tax-offset` and
+  `net-medical-expenses-tax-offset` work out the beneficiary tax offset
+  (ITAA 1936 s 160AAA) and the zone and overseas forces tax offsets
+  (ss 79A and 79B) for 2020-21 to 2026-27, the invalid and invalid carer tax
+  offset (ITAA 1997 Subdivision 61-A) for 2020-21 to 2025-26 and the net
+  medical expenses tax offset for 2016-17 to 2018-19, its last years. New
+  codes: `invalid_carer_tax_offset.dependant_invalid`, `.ftb_shared_care`,
+  `.rate_unpublished`, `.shared_maintenance` and `.successive_spouses`;
+  `zone_tax_offset.area_invalid`,
+  `.dependants_invalid`, `.half_year_unclear`, `.prior_year_invalid`,
+  `.prior_year_unclear`, `.shared_maintenance` and
+  `.sole_parent_without_dependant`. `tests/individual_offsets.rs` holds them
+  to the ATO's examples and every published amount and limit.
+
+- `government-super-amounts` works out the super co-contribution, the low
+  income super tax offset and the spouse contribution tax offset for a
+  full-year resident in 2020-21 to 2026-27, from `income-tests`' components,
+  the contributions and the stated tests, with each condition and its
+  provision. New codes: `government_super_amounts.fact_conflict`,
+  `government_super_amounts.fact_not_supplied`,
+  `government_super_amounts.no_total_income` and
+  `government_super_amounts.temporary_visa`.
+  `tests/government_super_amounts.rs` holds it to the ATO's Angelo, Julie
+  and spouse examples.
+
+- `small-business-income-offset` works out an individual's small business
+  income tax offset (ITAA 1997 Subdivision 328-F) for 2020-21 to 2026-27: the
+  small business entity test of s 328-110 at $5 million (s 328-357), total net
+  small business income from your own and each partnership or trust amount
+  net of its s 328-370 deductions, capped at taxable income, the 13% (2020-21)
+  or 16% share of the basic income tax liability, the $1,000 cap and the part
+  the liability left after other offsets absorbs. New codes:
+  `small_business_income_offset.business_invalid`,
+  `small_business_income_offset.prescribed_person` and
+  `small_business_income_offset.shares_invalid`.
+  `tests/small_business_income_offset.rs` holds it to the site's sole trader
+  vectors.
+
+- `non-commercial-losses` says whether ITAA 1997 Division 35 defers an
+  individual's business activity loss for 2020-21 to 2026-27: the income
+  requirement, the assessable income, profits, real property and other assets
+  tests, the primary production and professional arts exception, and the
+  excess deferred after net exempt income, with the Commissioner's discretion
+  reported as not decided. New codes:
+  `non_commercial_losses.activity_invalid` and
+  `non_commercial_losses.earlier_years_invalid`.
+  `tests/non_commercial_losses.rs` holds it to the ATO's examples.
+
+- `psi-test` says whether the personal services income rules (ITAA 1997
+  Part 2-42) apply to an individual's PSI for 2020-21 to 2026-27: s 84-5,
+  s 85-35, a determination in force, the results test, the 80% rule and the
+  unrelated clients, employment and business premises tests, step for step as
+  the site's PSI page. New codes: `psi_test.agent_payments_invalid`,
+  `psi_test.agent_rules`, `psi_test.earner_invalid`, `psi_test.no_psi`,
+  `psi_test.others_exceed_psi`, `psi_test.payers_invalid` and
+  `psi_test.premises_invalid`. `tests/psi_test.rs` runs the page's 19 cases.
+
+- `ato-interest-penalties` works the general interest charge (TAA 1953
+  ss 8AAC and 8AAD), the shortfall interest charge (Sch 1 s 280-105), the
+  failure to lodge on time penalty (s 286-80), the false or misleading
+  statement and not reasonably arguable penalties (ss 284-85 to 284-225) and
+  the interest the Commissioner pays on early payments and overpayments, each
+  before remission, on the ATO's published rates and penalty units read on
+  22 November 2026. Its GIC agrees with the site's GIC payment plan oracle.
+  New codes: `ato_interest_penalties.date_order`,
+  `ato_interest_penalties.fact_invalid`,
+  `ato_interest_penalties.increase_with_nil`,
+  `ato_interest_penalties.item_not_worked`,
+  `ato_interest_penalties.liability_not_listed`,
+  `ato_interest_penalties.not_entitled`, `ato_interest_penalties.overpaid`,
+  `ato_interest_penalties.penalty_unit_unpublished`,
+  `ato_interest_penalties.question_invalid`,
+  `ato_interest_penalties.rate_unpublished`,
+  `ato_interest_penalties.remission_discretionary`,
+  `ato_interest_penalties.scheme_penalty`,
+  `ato_interest_penalties.sge_before_2017` and
+  `ato_interest_penalties.year_mismatch`.
 
 ### Fixed
 
@@ -354,19 +449,6 @@
   `sb_cgt_concessions.pre_cgt_asset` and
   `sb_cgt_concessions.share_or_trust_interest`. `tests/sb_cgt_concessions.rs`
   holds it to the Library's Neil Swan and Wendy Simpson examples.
-
-- `small-business-income-offset` works out an individual's small business
-  income tax offset (ITAA 1997 Subdivision 328-F) for 2020-21 to 2026-27: the
-  small business entity test of s 328-110 at $5 million (s 328-357), total net
-  small business income from your own and each partnership or trust amount
-  net of its s 328-370 deductions, capped at taxable income, the 13% (2020-21)
-  or 16% share of the basic income tax liability, the $1,000 cap and the part
-  the liability left after other offsets absorbs. New codes:
-  `small_business_income_offset.business_invalid`,
-  `small_business_income_offset.prescribed_person` and
-  `small_business_income_offset.shares_invalid`.
-  `tests/small_business_income_offset.rs` holds it to the site's sole trader
-  vectors.
 
 ### Changed
 
