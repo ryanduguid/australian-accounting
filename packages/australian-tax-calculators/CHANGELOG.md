@@ -1,5 +1,58 @@
 # Changes
 
+## Unreleased
+
+### Added
+
+- `trading-stock` works out the change in value of trading stock under ITAA
+  1997 s 70-35 for 2020-21 to 2026-27, each closing item valued by its own
+  election (cost, market selling value, replacement value, the lowest, or an
+  obsolescence value under s 70-50), and the s 328-285 choice for a small
+  business entity, or from 2021-22 an entity under $50 million, with the
+  $5,000 test and the s 328-295 values. New codes:
+  `trading_stock.entity_invalid`, `trading_stock.items_invalid`,
+  `trading_stock.method_invalid`, `trading_stock.obsolescence_not_below`,
+  `trading_stock.simplified_unavailable` and `trading_stock.value_missing`.
+- `prepayments` works out when a prepaid amount incurred in 2020-21 to
+  2026-27 is deductible under ITAA 1936 Subdivision H: excluded expenditure,
+  the 12-month rule of s 82KZM, or apportionment by days under s 82KZM,
+  s 82KZMD or s 82KZMF, with each year's deduction. New codes:
+  `prepayments.agreement_before_cutoff`, `prepayments.choice_unavailable`,
+  `prepayments.dates_invalid`, `prepayments.exclusion_invalid`,
+  `prepayments.tax_shelter_conflict` and `prepayments.taxpayer_invalid`. `tests/trading_stock_prepayments.rs` holds
+  both to the ATO's examples.
+- `minors-income` works out the tax on a minor's taxable income under
+  ITAA 1936 Division 6AA and the Income Tax Rates Act 1986 ss 13 and 15 and
+  Schedule 11 for 2024-25 to 2026-27: the prescribed person and excepted
+  person tests (s 102AC, the full-time occupation test on stated facts),
+  excepted income by its s 102AE(2) ground and trust share parts (s 102AG),
+  eligible taxable income with apportionable deductions (s 102AD), and the
+  resident and foreign resident special rates with their phase-in caps.
+  New codes: `minors_income.excepted_income_invalid`,
+  `minors_income.excepted_person_invalid`, `minors_income.facts_inconsistent`,
+  `minors_income.residency_invalid`, `minors_income.special_income_component`
+  and `minors_income.trust_shares_invalid`. `tests/minors_income.rs` holds it
+  to the ATO's under 18 rate tables.
+- `foreign-income-conversion` translates foreign currency income,
+  deductions, asset costs, CGT amounts and foreign tax paid into AUD under
+  ITAA 1997 s 960-50 for 2020-21 to 2026-27, each at the stated rate for the
+  day its item names or an average over at most 12 months (item 12 and
+  Schedule 2 of the 1997 or 2021 Regulations). New codes:
+  `foreign_income_conversion.average_period`, `.basis_invalid`,
+  `.currency_invalid`, `.items_invalid`, `.kind_invalid`, `.rate_date` and
+  `.text_invalid`. `tests/foreign_income_conversion.rs` holds it to the
+  ATO's rental expense and income examples.
+- `foreign-income-tax-offset` works out the foreign income tax offset
+  (ITAA 1997 Division 770) for 2020-21 to 2026-27 with the $1,000 default
+  limit, a limit from stated income tax figures, or, for 2024-25 to 2026-27,
+  one worked at the resident rates with a part-year resident's tax-free
+  threshold (Income Tax Rates Act 1986 ss 18 and 20). New codes:
+  `foreign_income_tax_offset.limit_method_invalid`,
+  `.residency_periods_invalid` and `.worked_year`.
+  `tests/foreign_income_tax_offset.rs` holds it to Examples 16 and 17 of the
+  ATO's foreign income tax offset guides for 2024 to 2026 and its part-year
+  threshold examples.
+
 ## 1.2.0
 
 - Relicensed Ryan Duguid's code under AGPL-3.0-or-later with section 7(b) attribution terms.
@@ -214,24 +267,6 @@
   `tests/government_super_amounts.rs` holds it to the ATO's Angelo, Julie
   and spouse examples.
 
-- `trading-stock` works out the change in value of trading stock under ITAA
-  1997 s 70-35 for 2020-21 to 2026-27, each closing item valued by its own
-  election (cost, market selling value, replacement value, the lowest, or an
-  obsolescence value under s 70-50), and the s 328-285 choice for a small
-  business entity, or from 2021-22 an entity under $50 million, with the
-  $5,000 test and the s 328-295 values. New codes:
-  `trading_stock.entity_invalid`, `trading_stock.items_invalid`,
-  `trading_stock.method_invalid`, `trading_stock.obsolescence_not_below`,
-  `trading_stock.simplified_unavailable` and `trading_stock.value_missing`.
-- `prepayments` works out when a prepaid amount incurred in 2020-21 to
-  2026-27 is deductible under ITAA 1936 Subdivision H: excluded expenditure,
-  the 12-month rule of s 82KZM, or apportionment by days under s 82KZM,
-  s 82KZMD or s 82KZMF, with each year's deduction. New codes:
-  `prepayments.agreement_before_cutoff`, `prepayments.choice_unavailable`,
-  `prepayments.dates_invalid`, `prepayments.exclusion_invalid`,
-  `prepayments.tax_shelter_conflict` and `prepayments.taxpayer_invalid`. `tests/trading_stock_prepayments.rs` holds
-  both to the ATO's examples.
-
 - `small-business-income-offset` works out an individual's small business
   income tax offset (ITAA 1997 Subdivision 328-F) for 2020-21 to 2026-27: the
   small business entity test of s 328-110 at $5 million (s 328-357), total net
@@ -254,19 +289,6 @@
   `non_commercial_losses.activity_invalid` and
   `non_commercial_losses.earlier_years_invalid`.
   `tests/non_commercial_losses.rs` holds it to the ATO's examples.
-
-- `minors-income` works out the tax on a minor's taxable income under
-  ITAA 1936 Division 6AA and the Income Tax Rates Act 1986 ss 13 and 15 and
-  Schedule 11 for 2024-25 to 2026-27: the prescribed person and excepted
-  person tests (s 102AC, the full-time occupation test on stated facts),
-  excepted income by its s 102AE(2) ground and trust share parts (s 102AG),
-  eligible taxable income with apportionable deductions (s 102AD), and the
-  resident and foreign resident special rates with their phase-in caps.
-  New codes: `minors_income.excepted_income_invalid`,
-  `minors_income.excepted_person_invalid`, `minors_income.facts_inconsistent`,
-  `minors_income.residency_invalid`, `minors_income.special_income_component`
-  and `minors_income.trust_shares_invalid`. `tests/minors_income.rs` holds it
-  to the ATO's under 18 rate tables.
 
 - `psi-test` says whether the personal services income rules (ITAA 1997
   Part 2-42) apply to an individual's PSI for 2020-21 to 2026-27: s 84-5,
@@ -297,25 +319,6 @@
   `ato_interest_penalties.scheme_penalty`,
   `ato_interest_penalties.sge_before_2017` and
   `ato_interest_penalties.year_mismatch`.
-- `foreign-income-conversion` translates foreign currency income,
-  deductions, asset costs, CGT amounts and foreign tax paid into AUD under
-  ITAA 1997 s 960-50 for 2020-21 to 2026-27, each at the stated rate for the
-  day its item names or an average over at most 12 months (item 12 and
-  Schedule 2 of the 1997 or 2021 Regulations). New codes:
-  `foreign_income_conversion.average_period`, `.basis_invalid`,
-  `.currency_invalid`, `.items_invalid`, `.kind_invalid`, `.rate_date` and
-  `.text_invalid`. `tests/foreign_income_conversion.rs` holds it to the
-  ATO's rental expense and income examples.
-- `foreign-income-tax-offset` works out the foreign income tax offset
-  (ITAA 1997 Division 770) for 2020-21 to 2026-27 with the $1,000 default
-  limit, a limit from stated income tax figures, or, for 2024-25 to 2026-27,
-  one worked at the resident rates with a part-year resident's tax-free
-  threshold (Income Tax Rates Act 1986 ss 18 and 20). New codes:
-  `foreign_income_tax_offset.limit_method_invalid`,
-  `.residency_periods_invalid` and `.worked_year`.
-  `tests/foreign_income_tax_offset.rs` holds it to Examples 16 and 17 of the
-  ATO's foreign income tax offset guides for 2024 to 2026 and its part-year
-  threshold examples.
 - `residency-tests` says whether an individual was a resident of Australia
   for an income year from 2020-21 to 2026-27 under each test in ITAA 1936
   s 6(1), resident (a): resides, domicile, 183 days (counted from the dates
