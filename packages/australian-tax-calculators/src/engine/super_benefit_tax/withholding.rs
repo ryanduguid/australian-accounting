@@ -224,13 +224,12 @@ fn by_treatment(
     let tail = if !tfn {
         none_of(args, &[4, 5, 6], "with a TFN (tfn_provided true)")?;
         no_tfn(t, c, foreign)?
+    } else if t.wholly_free().is_some() {
+        // Nil whatever the caps: the cap inputs do not bear on it.
+        none_of(args, &[4, 5, 6], "for a benefit taxed by age")?;
+        nil()
     } else {
-        let p = parts::parts(t, c, year, args)?;
-        if t.wholly_free().is_some() {
-            nil()
-        } else {
-            table_a(p, foreign)?
-        }
+        table_a(parts::parts(t, c, year, args)?, foreign)?
     };
     Ok((t, ages, tail))
 }

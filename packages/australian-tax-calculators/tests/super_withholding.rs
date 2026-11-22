@@ -287,6 +287,20 @@ fn terminal_medical_condition_and_small_balances() {
         ["0.00", "199.99", "0.00"],
     );
     assert_eq!(withheld(&small), "0.00");
+    // The untaxed plan cap does not bear on a nil amount, so it is not taken.
+    let mut untaxed = member(
+        "2026-27",
+        "2026-10-01",
+        "1980-01-01",
+        ["0.00", "0.00", "1000.00"],
+    );
+    untaxed["terminal_medical_condition"] = json!(true);
+    assert_eq!(code(&untaxed), "input.field_unknown");
+    untaxed
+        .as_object_mut()
+        .unwrap()
+        .remove("untaxed_plan_cap_used");
+    assert_eq!(withheld(&untaxed), "0.00");
 }
 
 /// No TFN: 47% (45% foreign) of the taxable component under 60, of the
