@@ -20,8 +20,6 @@
   `tests/depreciation_pools.rs` holds them to the ATO's examples. The
   single-asset `depreciation` command is unchanged.
 
-### Added
-
 - `beneficiary-tax-offset`, `invalid-carer-tax-offset`, `zone-tax-offset` and
   `net-medical-expenses-tax-offset` work out the beneficiary tax offset
   (ITAA 1936 s 160AAA) and the zone and overseas forces tax offsets
