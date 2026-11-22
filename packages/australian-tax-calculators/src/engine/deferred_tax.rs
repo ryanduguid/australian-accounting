@@ -32,6 +32,7 @@ pub struct DeferredTaxArgs<'a> {
     pub opening_unused_tax_losses: &'a Arg,
     pub unrecognised_deductible: &'a Arg,
     pub opening_unrecognised_deductible: &'a Arg,
+    pub unrecognised_used: &'a Arg,
     pub accounting_profit: &'a Arg,
     pub non_deductible_expenses: &'a Arg,
     pub non_assessable_income: &'a Arg,
@@ -84,6 +85,7 @@ struct Facts {
     opening_losses: Decimal,
     unrecognised: Decimal,
     opening_unrecognised: Decimal,
+    used: Decimal,
     profit: Decimal,
     non_deductible: Decimal,
     non_assessable: Decimal,
@@ -124,13 +126,14 @@ fn read(a: &DeferredTaxArgs) -> Result<Facts> {
             "Balances open at the start of 2020-21 reverse partly in 2020-21, at 26% for a base rate entity, and partly later at 25%; measuring them needs a reversal schedule this worksheet does not take.",
         );
     }
-    Ok(Facts {
+    let f = Facts {
         year,
         items,
         losses: money(a.unused_tax_losses)?,
         opening_losses: money(a.opening_unused_tax_losses)?,
         unrecognised: money(a.unrecognised_deductible)?,
         opening_unrecognised: money(a.opening_unrecognised_deductible)?,
+        used: money(a.unrecognised_used)?,
         profit: signed_money(a.accounting_profit)?,
         non_deductible: money(a.non_deductible_expenses)?,
         non_assessable: money(a.non_assessable_income)?,
@@ -139,7 +142,14 @@ fn read(a: &DeferredTaxArgs) -> Result<Facts> {
         applicable: d(applicable),
         closing_rate: d(closing_rate),
         opening_rate: d(opening_rate),
-    })
+    };
+    if f.used.gt(&f.opening_unrecognised)? {
+        return refuse(
+            "deferred_tax.unrecognised_used_above_opening",
+            "unrecognised_used is more than opening_unrecognised_deductible: only amounts with no deferred tax asset at the start of the year can be used as previously unrecognised.",
+        );
+    }
+    Ok(f)
 }
 
 /// A step's id, authority and formula.
@@ -238,6 +248,22 @@ fn unrecognised_within(
     Ok(())
 }
 
+/// AASB 112 paras 47 and 60(a): when the expected rate changes and the
+/// year's own rate is not the closing rate, the opening balances that
+/// reversed in the year did so at the year's rate and only the rest is
+/// remeasured; telling them apart needs a reversal schedule.
+fn remeasurable(f: &Facts, opening_liability: &Decimal, opening_asset: &Decimal) -> Result<()> {
+    let changed = !f.opening_rate.equals(&f.closing_rate)?;
+    let split = !f.applicable.equals(&f.closing_rate)?;
+    if changed && split && !(opening_liability.is_zero() && opening_asset.is_zero()) {
+        return refuse(
+            "deferred_tax.rate_change_unscheduled",
+            "The expected rate changed while the year's rate is not the closing rate: opening balances that reversed in the year did so at the year's rate and only the rest is remeasured, which needs a reversal schedule this worksheet does not take.",
+        );
+    }
+    Ok(())
+}
+
 /// The balances at both dates, from the 4 difference totals in turn.
 fn balances(f: &Facts, t: [&Decimal; 4]) -> Result<Vec<Step>> {
     let [taxable, deductible, opening_taxable, opening_deductible] = t;
@@ -252,6 +278,7 @@ fn balances(f: &Facts, t: [&Decimal; 4]) -> Result<Vec<Step>> {
         .add(&f.opening_losses)?
         .sub(&f.opening_unrecognised)?;
     let opening_asset = cents(opening_recognised.mul(&f.opening_rate)?)?;
+    remeasurable(f, &opening_liability, &opening_asset)?;
     let net = plain(liability.sub(&asset)?)?;
     let rows = [
         (vec![taxable, &f.closing_rate], liability.clone()),

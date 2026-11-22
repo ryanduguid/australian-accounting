@@ -3287,17 +3287,21 @@ examples.
 Deferred tax is measured at 25% or 30% as the caller expects the company to be
 a base rate entity or not when the differences reverse, which for every
 supported year is 2021-22 or later. Opening balances of 2020-21 at the base
-rate entity rate are refused: they reverse partly at 26%.
+rate entity rate are refused: they reverse partly at 26%. A change in the
+expected rate with opening balances is refused when the year's rate is not the
+closing rate: the balances that reverse in the year do so at the year's rate,
+and only the rest is remeasured (paras 47 and 60(a)).
 
 | Vector | Facts given | Result |
 | --- | --- | --- |
 | V1, 2025-26, 30% | Plant $70,000 / $50,000, leave provision $12,000 / nil, prepayment $3,000 / nil; opening $80,000 / $65,000, $10,000, $2,000; profit $100,000 with $4,000 not deductible | DTL **$6,900**, DTA **$3,600**, deferred expense **$1,200**, current **$30,000**, expense **$31,200**, effective rate 31.2% |
-| V2, 2024-25, 30% to 25% | Equipment $40,000 / $30,000 (opening $50,000 / $45,000), losses $20,000 unrecognised at the start and $5,000 left and recognised at the end, profit $30,000 with $2,000 not assessable | Rate change **-$250**, recognition **-$5,000**, origination **$5,000**, expense **$1,750** |
+| V2, 2024-25, 30% to 25% | Equipment $40,000 / $30,000 (opening $50,000 / $45,000), losses $20,000 unrecognised at the start, $15,000 used in the year and $5,000 left and recognised at the end, profit $30,000 with $2,000 not assessable | Rate change **-$250**, recognition **-$1,250**, origination **$1,250**, losses used **-$3,750** (para 80(e)), expense **$1,750** |
 | V3, 2020-21, 26% and 25% | A new $10,000 taxable difference, profit $50,000, taxable income $40,000 | Current **$10,400**, deferred **$2,500**, expense **$12,900**, a **-$100** rate difference line |
 
 `tests/deferred_tax.rs` also covers an unexplained taxable income, tax
-offsets, each class's sign, a loss before tax, each year's rates and every
-refusal.
+offsets, each class's sign, a loss before tax, each year's rates, a rate
+change with the year's rate at and away from the closing rate, a 2-cent
+rounding remainder and every refusal.
 
 ## Personal tax estimate
 

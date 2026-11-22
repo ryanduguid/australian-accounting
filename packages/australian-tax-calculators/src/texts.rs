@@ -280,7 +280,7 @@ pub const SCOPES: &[(&str, &str)] = &[
     ),
     (
         "deferred_tax",
-        "One Australian resident company's tax effect worksheet under AASB 112 for an income year from 2020-21 to 2026-27, the company taxed at the Income Tax Rates Act 1986 s 23(2) rates (not a life insurance company, RSA provider, PDF, non-profit company under s 23(6) or credit union under s 23(7)) on Australian income tax alone. Each item's temporary difference is its carrying amount less its tax base for an asset, or its tax base less its carrying amount for a liability (paras 5, 7 and 8): positive is taxable, negative deductible. A deferred tax liability is taken on every taxable difference (para 15) and a deferred tax asset on deductible differences and unused tax losses less those the preparer states have no deferred tax asset, as future taxable profit is not probable (paras 24, 34 to 36 and 56), each at 25% or 30% as the preparer expects the company to be a base rate entity or not when they reverse (paras 47 and 48; s 23(2), s 23AA), undiscounted (para 53). The movement is split into the rate change on opening balances (para 80(d)), the recognition change (para 80(f) and (g)) and origination and reversal (para 80(c)). Current tax is taxable income at the year's s 23(2) rate (25%, 26% in 2020-21, for a base rate entity; 30% otherwise) less non-refundable offsets the preparer has worked out, and the para 81(c)(i) reconciliation starts from accounting profit at that rate, with the average effective tax rate (para 86). The preparer establishes the carrying amounts, tax bases, unused tax losses, the probability judgement, the expected rates, taxable income, non-deductible expenses, non-assessable income and offsets, and leaves out of the items the differences the initial recognition exception covers (paras 15 and 24, as amended by AASB 2021-5 from 1 January 2023) and those on investments in subsidiaries, branches, associates and joint arrangements (paras 39 and 44). Excludes unused tax credits, adjustments for prior periods' current tax (para 80(b)), Pillar Two top-up taxes (para 4A), offsetting in the statement of financial position (para 74) and presentation. Refuses business combinations (paras 19 and 66 to 68), uncertain tax treatments (AASB Interpretation 23), tax-consolidated group members (AASB Interpretation 1052), tax on items outside profit or loss (paras 61A to 63) and, in 2020-21, opening balances measured at the base rate entity rate.",
+        "One Australian resident company's tax effect worksheet under AASB 112 for an income year from 2020-21 to 2026-27, the company taxed at the Income Tax Rates Act 1986 s 23(2) rates (not a life insurance company, RSA provider, PDF, non-profit company under s 23(6) or credit union under s 23(7)) on Australian income tax alone. Each item's temporary difference is its carrying amount less its tax base for an asset, or its tax base less its carrying amount for a liability (paras 5, 7 and 8): positive is taxable, negative deductible. A deferred tax liability is taken on every taxable difference (para 15) and a deferred tax asset on deductible differences and unused tax losses less those the preparer states have no deferred tax asset, as future taxable profit is not probable (paras 24, 34 to 36 and 56), each at 25% or 30% as the preparer expects the company to be a base rate entity or not when they reverse (paras 47 and 48; s 23(2), s 23AA), undiscounted (para 53). The movement is split into the rate change on opening balances (para 80(d)), the recognition change (para 80(f) and (g)), with previously unrecognised amounts used in the year shown apart (para 80(e)), and origination and reversal (para 80(c)). Current tax is taxable income at the year's s 23(2) rate (25%, 26% in 2020-21, for a base rate entity; 30% otherwise) less non-refundable offsets the preparer has worked out, and the para 81(c)(i) reconciliation starts from accounting profit at that rate, with the average effective tax rate (para 86). The preparer establishes the carrying amounts, tax bases, unused tax losses, the probability judgement, the expected rates, taxable income, non-deductible expenses, non-assessable income and offsets, and leaves out of the items the differences the initial recognition exception covers (paras 15 and 24, as amended by AASB 2021-5 from 1 January 2023) and those on investments in subsidiaries, branches, associates and joint arrangements (paras 39 and 44). Excludes unused tax credits, adjustments for prior periods' current tax (para 80(b)), Pillar Two top-up taxes (para 4A), offsetting in the statement of financial position (para 74) and presentation. Refuses business combinations (paras 19 and 66 to 68), uncertain tax treatments (AASB Interpretation 23), tax-consolidated group members (AASB Interpretation 1052), tax on items outside profit or loss (paras 61A to 63), a change in the expected rate with opening balances when the year's rate is not the closing rate (the reversals in the year need a schedule) and, in 2020-21, opening balances measured at the base rate entity rate.",
     ),
     (
         "income_tests",
@@ -1826,6 +1826,10 @@ pub const REFUSAL_CODES: &[(&str, &str)] = &[
         "Tax on items recognised in other comprehensive income or equity was stated (AASB 112 paras 61A to 63).",
     ),
     (
+        "deferred_tax.rate_change_unscheduled",
+        "The expected rate changed while the year's rate is not the closing rate, with opening balances to remeasure.",
+    ),
+    (
         "deferred_tax.tax_consolidated_group",
         "A tax-consolidated group member was stated (AASB Interpretation 1052).",
     ),
@@ -1836,6 +1840,10 @@ pub const REFUSAL_CODES: &[(&str, &str)] = &[
     (
         "deferred_tax.unrecognised_above_deductible",
         "An unrecognised amount is more than that date's deductible temporary differences and unused tax losses.",
+    ),
+    (
+        "deferred_tax.unrecognised_used_above_opening",
+        "unrecognised_used is more than opening_unrecognised_deductible.",
     ),
     (
         "depreciation.precision_exceeded",

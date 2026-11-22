@@ -17,9 +17,11 @@
   `deferred_tax.expected_rate_invalid`, `deferred_tax.item_invalid`,
   `deferred_tax.offsets_above_tax`, `deferred_tax.opening_rate_unscheduled`,
   `deferred_tax.outside_profit_or_loss`,
+  `deferred_tax.rate_change_unscheduled`,
   `deferred_tax.tax_consolidated_group`,
-  `deferred_tax.uncertain_tax_treatment` and
-  `deferred_tax.unrecognised_above_deductible`.
+  `deferred_tax.uncertain_tax_treatment`,
+  `deferred_tax.unrecognised_above_deductible` and
+  `deferred_tax.unrecognised_used_above_opening`.
 - `depreciation-low-value-pool`, `depreciation-small-business-pool` and
   `capital-works` work out a low-value pool (ITAA 1997 ss 40-440 and
   40-445), a general small business pool with each year's low pool value

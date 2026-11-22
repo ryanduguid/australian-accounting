@@ -31,8 +31,8 @@ const MOVEMENT: [Rule; 5] = [
     ),
     (
         "recognition_change_effect",
-        "AASB 112 paras 56, 60(b), 80(f) and 80(g): the change in deductible amounts with no deferred tax asset, at the closing rate",
-        "cents((unrecognised_deductible - opening_unrecognised_deductible) x closing_rate)",
+        "AASB 112 paras 56, 60(b), 80(f) and 80(g): deductible amounts and losses newly given a deferred tax asset, or written down, at the closing rate: the change in unrecognised amounts plus those used in the year, which para 80(e) puts in current tax",
+        "cents((unrecognised_deductible - opening_unrecognised_deductible + unrecognised_used) x closing_rate)",
     ),
     (
         "origination_and_reversal",
@@ -51,8 +51,13 @@ const MOVEMENT: [Rule; 5] = [
 fn effects(f: &Facts, opening_net: &Decimal) -> Calc<(Decimal, Decimal)> {
     let recognised = opening_net.add(&f.opening_unrecognised)?;
     let rate_change = cents(recognised.mul(&f.closing_rate.sub(&f.opening_rate)?)?)?;
-    let unrecognised = f.unrecognised.sub(&f.opening_unrecognised)?;
+    let unrecognised = f.unrecognised.sub(&f.opening_unrecognised)?.add(&f.used)?;
     Ok((rate_change, cents(unrecognised.mul(&f.closing_rate)?)?))
+}
+
+/// Taxable differences less deductible differences and losses.
+fn net_of(taxable: &Decimal, deductible: &Decimal, losses: &Decimal) -> Calc<Decimal> {
+    taxable.sub(deductible)?.sub(losses)
 }
 
 /// The movement steps, from the 4 difference totals and the balance steps.
@@ -62,12 +67,10 @@ pub(super) fn movement(f: &Facts, t: [&Decimal; 4], built: &[Step]) -> Result<Ve
     let opening_liability = value(&[built], "opening_deferred_tax_liability");
     let opening_asset = value(&[built], "opening_deferred_tax_asset");
     let expense = plain(net.sub(&opening_liability.sub(opening_asset)?)?)?;
-    let opening_net = opening_taxable
-        .sub(opening_deductible)?
-        .sub(&f.opening_losses)?;
+    let opening_net = net_of(opening_taxable, opening_deductible, &f.opening_losses)?;
     let (rate_change, recognition) = effects(f, &opening_net)?;
     let origination = plain(expense.sub(&rate_change)?.sub(&recognition)?)?;
-    let closing_net = taxable.sub(deductible)?.sub(&f.losses)?;
+    let closing_net = net_of(taxable, deductible, &f.losses)?;
     let change = plain(closing_net.sub(&opening_net)?)?;
     let rows = [
         (vec![net, opening_liability, opening_asset], expense.clone()),
@@ -83,7 +86,12 @@ pub(super) fn movement(f: &Facts, t: [&Decimal; 4], built: &[Step]) -> Result<Ve
             rate_change.clone(),
         ),
         (
-            vec![&f.unrecognised, &f.opening_unrecognised, &f.closing_rate],
+            vec![
+                &f.unrecognised,
+                &f.opening_unrecognised,
+                &f.used,
+                &f.closing_rate,
+            ],
             recognition.clone(),
         ),
         (vec![&expense, &rate_change, &recognition], origination),
@@ -140,7 +148,7 @@ fn current(f: &Facts, steps: &[Step]) -> Result<Vec<Step>> {
     Ok(rule_steps(&CURRENT, rows))
 }
 
-const RECONCILIATION: [Rule; 7] = [
+const RECONCILIATION: [Rule; 8] = [
     (
         "tax_at_applicable_rate",
         "AASB 112 paras 81(c)(i) and 85: accounting profit at the applicable rate (the year's s 23(2) company rate)",
@@ -162,14 +170,19 @@ const RECONCILIATION: [Rule; 7] = [
         "cents(temporary_difference_movement x (closing_rate - applicable_rate))",
     ),
     (
+        "unrecognised_used_effect",
+        "AASB 112 paras 80(e) and 81(c)(i): previously unrecognised deductible amounts and losses used in the year reduce tax with no deferred tax asset reversed; at the closing rate, as deferred_rate_difference carries their difference from the applicable rate",
+        "0 - cents(unrecognised_used x closing_rate)",
+    ),
+    (
         "tax_offsets_effect",
         "AASB 112 para 81(c)(i): tax offsets reduce current tax",
         "0 - tax_offsets",
     ),
     (
         "reconciliation_difference",
-        "AASB 112 para 81(c)(i): income tax expense less the reconciling lines above, the rate change effect and the recognition change effect; nil, or a cent of rounding, when the inputs explain taxable income",
-        "income_tax_expense - (tax_at_applicable_rate + non_deductible_expenses_effect + non_assessable_income_effect + deferred_rate_difference + rate_change_effect + recognition_change_effect + tax_offsets_effect)",
+        "AASB 112 para 81(c)(i): income tax expense less the reconciling lines above, the rate change effect and the recognition change effect; nil, or a few cents from rounding each line to the cent, when the inputs explain taxable income",
+        "income_tax_expense - (tax_at_applicable_rate + non_deductible_expenses_effect + non_assessable_income_effect + deferred_rate_difference + rate_change_effect + recognition_change_effect + unrecognised_used_effect + tax_offsets_effect)",
     ),
     (
         "taxable_income_difference",
@@ -202,6 +215,7 @@ fn reconciliation(f: &Facts, steps: &[&[Step]]) -> Result<Vec<Step>> {
     let non_assessable = plain(cents(f.non_assessable.mul(r)?)?.neg()?)?;
     let change = value(steps, "temporary_difference_movement");
     let rate_gap = cents(change.mul(&f.closing_rate.sub(r)?)?)?;
+    let used = plain(cents(f.used.mul(&f.closing_rate)?)?.neg()?)?;
     let offsets = plain(f.offsets.neg()?)?;
     let rate_change = value(steps, "rate_change_effect");
     let recognition = value(steps, "recognition_change_effect");
@@ -213,6 +227,7 @@ fn reconciliation(f: &Facts, steps: &[&[Step]]) -> Result<Vec<Step>> {
         &rate_gap,
         rate_change,
         recognition,
+        &used,
         &offsets,
     ];
     let difference = left_over(expense, &lines)?;
@@ -224,6 +239,7 @@ fn reconciliation(f: &Facts, steps: &[&[Step]]) -> Result<Vec<Step>> {
         (vec![&f.non_deductible, r], non_deductible.clone()),
         (vec![&f.non_assessable, r], non_assessable.clone()),
         (vec![change, &f.closing_rate, r], rate_gap.clone()),
+        (vec![&f.used, &f.closing_rate], used.clone()),
         (vec![&f.offsets], offsets.clone()),
         (operands, difference),
         (

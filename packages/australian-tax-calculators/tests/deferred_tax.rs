@@ -56,7 +56,7 @@ fn v1(overrides: Value) -> Value {
             ],
             "unused_tax_losses": "0.00", "opening_unused_tax_losses": "0.00",
             "unrecognised_deductible": "0.00", "opening_unrecognised_deductible": "0.00",
-            "accounting_profit": "100000.00", "non_deductible_expenses": "4000.00",
+            "unrecognised_used": "0.00", "accounting_profit": "100000.00", "non_deductible_expenses": "4000.00",
             "non_assessable_income": "0.00", "taxable_income": "100000.00",
             "tax_offsets": "0.00", "base_rate_entity": false,
             "expected_rate": "standard", "opening_expected_rate": "standard",
@@ -119,14 +119,15 @@ fn a_standard_company_with_no_rate_change() {
 }
 
 /// V2: a base rate entity whose balances move from 30% to 25% (paras 60(a)
-/// and 80(d)) and whose losses, unrecognised at the start, are recognised
-/// and partly used (paras 34, 37 and 80(f)).
+/// and 80(d)) and whose losses, unrecognised at the start, are partly used
+/// against current tax (para 80(e)) and the rest recognised (paras 34, 37
+/// and 80(f)).
 #[test]
 fn a_rate_change_and_newly_recognised_losses() {
     let r = run(&v1(json!({
         "items": [item("Equipment", "asset", ["40000.00", "30000.00"], ["50000.00", "45000.00"])],
         "unused_tax_losses": "5000.00", "opening_unused_tax_losses": "20000.00",
-        "opening_unrecognised_deductible": "20000.00",
+        "opening_unrecognised_deductible": "20000.00", "unrecognised_used": "15000.00",
         "accounting_profit": "30000.00", "non_deductible_expenses": "0.00",
         "non_assessable_income": "2000.00", "taxable_income": "8000.00",
         "base_rate_entity": true, "expected_rate": "base_rate_entity", "year": "2024-25",
@@ -141,14 +142,15 @@ fn a_rate_change_and_newly_recognised_losses() {
             ("opening_deferred_tax_asset", "0.00"),
             ("deferred_tax_expense", "-250.00"),
             ("rate_change_effect", "-250.00"),
-            ("recognition_change_effect", "-5000.00"),
-            ("origination_and_reversal", "5000.00"),
+            ("recognition_change_effect", "-1250.00"),
+            ("origination_and_reversal", "1250.00"),
             ("temporary_difference_movement", "20000.00"),
             ("current_tax", "2000.00"),
             ("income_tax_expense", "1750.00"),
             ("tax_at_applicable_rate", "7500.00"),
             ("non_assessable_income_effect", "-500.00"),
             ("deferred_rate_difference", "0.00"),
+            ("unrecognised_used_effect", "-3750.00"),
             ("reconciliation_difference", "0.00"),
             ("taxable_income_difference", "0.00"),
         ],
@@ -296,9 +298,10 @@ fn each_years_rates() {
             assert_eq!(r["period"], year);
             assert_eq!(r["rates"]["applicable_rate"], want, "{year} {bre}");
         }
-        let r = run(&v1(
-            json!({"year": year, "expected_rate": "base_rate_entity"}),
-        ));
+        let r = run(&v1(json!({
+            "items": [item("Plant", "asset", ["23000.00", "0.00"], ["0.00", "0.00"])],
+            "year": year, "expected_rate": "base_rate_entity",
+        })));
         assert_eq!(r["rates"]["closing_rate"], "0.25");
         assert_eq!(amount(&r, "deferred_tax_liability"), "5750.00");
     }
@@ -350,6 +353,12 @@ fn the_refusals() {
     assert_eq!(
         code(&opening_above),
         "deferred_tax.unrecognised_above_deductible"
+    );
+    let used_above = v1(json!({"opening_unrecognised_deductible": "10000.00",
+                               "unrecognised_used": "10000.01"}));
+    assert_eq!(
+        code(&used_above),
+        "deferred_tax.unrecognised_used_above_opening"
     );
     assert_eq!(
         code(&v1(json!({"scope_confirmed": false}))),
@@ -432,4 +441,59 @@ fn the_catalogue_example_runs() {
         .as_array()
         .unwrap();
     assert_eq!(years.len(), 7);
+}
+
+/// A rate change with opening balances is refused when the year's rate is
+/// not the closing rate: the reversals in the year happen at the year's rate
+/// (paras 47 and 60(a)); with the year's rate at the closing rate, or no
+/// opening balances, the whole remeasurement holds.
+#[test]
+fn a_rate_change_needs_the_years_rate_at_the_closing_rate() {
+    let halved = json!({
+        "items": [item("Plant", "asset", ["150000.00", "100000.00"], ["200000.00", "100000.00"])],
+        "accounting_profit": "50000.00", "non_deductible_expenses": "0.00",
+        "taxable_income": "100000.00", "year": "2021-22",
+        "expected_rate": "base_rate_entity",
+    });
+    assert_eq!(
+        code(&v1(halved.clone())),
+        "deferred_tax.rate_change_unscheduled"
+    );
+    let mut earlier = halved.clone();
+    earlier["year"] = json!("2020-21");
+    earlier["base_rate_entity"] = json!(true);
+    assert_eq!(code(&v1(earlier)), "deferred_tax.rate_change_unscheduled");
+    let mut matched = halved;
+    matched["base_rate_entity"] = json!(true);
+    let r = run(&v1(matched));
+    check(
+        &r,
+        &[
+            ("rate_change_effect", "-5000.00"),
+            ("deferred_tax_expense", "-17500.00"),
+            ("reconciliation_difference", "0.00"),
+        ],
+    );
+}
+
+/// Each line is rounded to the cent, so the reconciliation can be left with
+/// a few cents even when the inputs explain taxable income.
+#[test]
+fn rounding_each_line_can_leave_a_few_cents() {
+    let r = run(&v1(json!({
+        "items": [
+            item("Software", "asset", ["10000.02", "0.00"], ["0.00", "0.00"]),
+            item("Provision", "liability", ["2000.01", "0.00"], ["0.00", "0.00"]),
+        ],
+        "accounting_profit": "50000.01", "non_deductible_expenses": "1000.01",
+        "non_assessable_income": "500.02", "taxable_income": "42499.99",
+        "base_rate_entity": true, "expected_rate": "base_rate_entity", "year": "2020-21",
+    })));
+    check(
+        &r,
+        &[
+            ("taxable_income_difference", "0.00"),
+            ("reconciliation_difference", "0.02"),
+        ],
+    );
 }

@@ -191,7 +191,7 @@ booleans and counts, ages, days, quarters and scales are JSON integers.
 | `division-293` | `division_293_income`, `low_tax_contributions`, `year`, `scope_confirmed` |
 | `sb-cgt-concessions` | `entity`, `share_or_trust_interest`, `acquired`, `event_date`, `partnership_asset`, `passively_held`, `business`, `previous_year_turnover`, `year_before_turnover`, `likely_turnover`, `year_turnover`, `net_asset_value`, `active_days`, `business_ceased`, `date_of_birth`, `retirement`, `permanently_incapacitated`, `last_rollover_event`, `earnout_latest_due`, `year`, `scope_confirmed`; the facts some answers call for; see [Small business CGT concessions](#small-business-cgt-concessions) |
 | `small-business-income-offset` | `taxable_income`, `basic_income_tax_liability`, `offsets_applied_first`, `net_small_business_income`, `shares`, `prescribed_person`, `year`, `scope_confirmed`; with net small business income of your own, `business` and the 4 turnovers; see [Small business income offset](#small-business-income-offset) |
-| `deferred-tax` | `items`, `unused_tax_losses`, `opening_unused_tax_losses`, `unrecognised_deductible`, `opening_unrecognised_deductible`, `accounting_profit`, `non_deductible_expenses`, `non_assessable_income`, `taxable_income`, `tax_offsets`, `base_rate_entity`, `expected_rate`, `opening_expected_rate`, `business_combination`, `uncertain_tax_treatment`, `tax_consolidated_group`, `outside_profit_or_loss`, `year`, `scope_confirmed`; see [Deferred tax](#deferred-tax) |
+| `deferred-tax` | `items`, `unused_tax_losses`, `opening_unused_tax_losses`, `unrecognised_deductible`, `opening_unrecognised_deductible`, `unrecognised_used`, `accounting_profit`, `non_deductible_expenses`, `non_assessable_income`, `taxable_income`, `tax_offsets`, `base_rate_entity`, `expected_rate`, `opening_expected_rate`, `business_combination`, `uncertain_tax_treatment`, `tax_consolidated_group`, `outside_profit_or_loss`, `year`, `scope_confirmed`; see [Deferred tax](#deferred-tax) |
 | `income-tests` | `taxable_income`, `assessable_fhss_released_amount`, `family_trust_distribution_amounts`, `reportable_fringe_benefits_section_57a`, `reportable_fringe_benefits_other`, `reportable_employer_super_contributions`, `deductible_personal_super_contributions`, `excess_concessional_contributions`, `net_financial_investment_loss`, `net_rental_property_loss`, `tax_free_government_pensions`, `target_foreign_income`, `exempt_foreign_employment_income`, `child_support_paid`, `assessable_income`, `business_deductions`, `residency`, `year`, `scope_confirmed`; see [Income tests](#income-tests) |
 | `division-296` | `total_super_balance_end_of_year`, `total_super_earnings`, `child_recipient`, `structured_settlement_contribution`, `died_in_year`, `year`, `scope_confirmed` |
 | `termination-payment` | `redundancy_payment`, `completed_years_of_service`, `excluded_payment`, `non_excluded_payment`, `other_taxable_payments`, `date_of_birth`, `year`, `scope_confirmed` |
@@ -2651,7 +2651,7 @@ deferred_tax_liability   = cents(taxable differences x closing rate)            
 deferred_tax_asset       = cents((deductible + losses - unrecognised) x closing rate)         paras 24, 34, 47
 deferred_tax_expense     = net closing balance - net opening balance                          paras 58, 80
 rate_change_effect       = cents(opening recognised net x (closing rate - opening rate))      paras 60(a), 80(d)
-recognition_change_effect = cents((unrecognised - opening unrecognised) x closing rate)       paras 56, 80(f), 80(g)
+recognition_change_effect = cents((unrecognised - opening unrecognised + used) x closing rate) paras 56, 80(f), 80(g)
 origination_and_reversal = the rest of the movement                                           para 80(c)
 current_tax              = cents(taxable income x the year's rate) - tax offsets              para 46, ITRA s 23(2)
 income_tax_expense       = current_tax + deferred_tax_expense
@@ -2663,7 +2663,8 @@ when the differences reverse (paras 47 and 48). The year's rate is 25% for a
 base rate entity (s 23AA), 26% in 2020-21, and 30% otherwise. The para
 81(c)(i) reconciliation starts from accounting profit at the year's rate and
 adds non-deductible expenses, non-assessable income, the deferred tax measured
-at a different rate, the rate change, the recognition change and the offsets;
+at a different rate, the rate change, the recognition change, previously
+unrecognised amounts used in the year (para 80(e)) and the offsets;
 `reconciliation_difference` is what is left, and `taxable_income_difference`
 shows by how much the inputs fail to explain taxable income, with a warning.
 `effective_tax_rate` is the expense over accounting profit (para 86). `items`
@@ -2671,11 +2672,14 @@ in the result signs each item's differences.
 
 `unrecognised_deductible` is the caller's judgement of the deductible amounts
 with no deferred tax asset, as future taxable profit is not probable (paras 24
-and 34 to 36). The caller leaves out differences the initial recognition
+and 34 to 36); `unrecognised_used` is the part of the opening amount used in
+the year against current tax. The caller leaves out differences the initial recognition
 exception covers and those on investments in subsidiaries, branches,
 associates and joint arrangements. It refuses business combinations, uncertain
 tax treatments (AASB Interpretation 23), tax-consolidated group members (AASB
-Interpretation 1052), tax on items outside profit or loss, 2020-21 opening
+Interpretation 1052), tax on items outside profit or loss, a change in the
+expected rate with opening balances when the year's rate is not the closing
+rate (the reversals in the year would need a schedule), 2020-21 opening
 balances at the base rate entity rate, and years before 2020-21 and after
 2026-27. See [calculation evidence](docs/calculation-evidence.md#deferred-tax).
 
