@@ -216,6 +216,11 @@ fn months(periods: &Arg, year: &str) -> Result<i64> {
                 "{name} must run forwards inside the income year {year}."
             ));
         }
+        if (from, to) == (start, end) {
+            return invalid(format!(
+                "{name} is the whole income year, which is not a part-year residency period (Income Tax Rates Act 1986 s 18(2)(b)); leave residency_periods out."
+            ));
+        }
         let index = |day: i64| {
             let (y, m, _) = dates::to_civil(day);
             y * 12 + m

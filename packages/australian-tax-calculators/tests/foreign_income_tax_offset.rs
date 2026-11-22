@@ -307,6 +307,11 @@ fn residency_period_refusals() {
             periods(json!([{"from": "2026-01-31", "to": "2026-01-01"}])),
             invalid,
         ),
+        // s 18(2)(b): the whole year is not a part-year residency period.
+        (
+            periods(json!([{"from": "2025-07-01", "to": "2026-06-30"}])),
+            invalid,
+        ),
         (
             periods(json!([{"from": "2026-01-01"}])),
             "input.missing_field",
