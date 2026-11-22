@@ -1797,10 +1797,7 @@ pub const REFUSAL_CODES: &[(&str, &str)] = &[
         "alcohol_excise.fact_conflict",
         "manufacturer_from is after a line marked remission.",
     ),
-    (
-        "alcohol_excise.line_invalid",
-        "A line is not an object.",
-    ),
+    ("alcohol_excise.line_invalid", "A line is not an object."),
     (
         "alcohol_excise.lines_invalid",
         "lines is not a list of 1 to 1,000 line objects.",

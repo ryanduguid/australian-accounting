@@ -78,7 +78,12 @@ fn the_ato_beer_example() {
 /// subitem 3.2 at $97.90: 312.48 LAL, 312.4, $30,583.96.
 #[test]
 fn the_ato_spirits_example() {
-    let r = one(line("2023-02-10", "other_excisable_beverage", "840", "37.2"));
+    let r = one(line(
+        "2023-02-10",
+        "other_excisable_beverage",
+        "840",
+        "37.2",
+    ));
     let g = first_return_line(&r);
     assert_eq!(g["subitem"], "3.2");
     assert_eq!(g["litres_of_alcohol"], "312.48");
@@ -90,7 +95,12 @@ fn the_ato_spirits_example() {
 /// 10 February 2025 at $104.31: 32,586.444 truncated to $32,586.44.
 #[test]
 fn the_guidelines_example_6m_truncates_the_duty() {
-    let r = one(line("2025-02-10", "other_excisable_beverage", "840", "37.2"));
+    let r = one(line(
+        "2025-02-10",
+        "other_excisable_beverage",
+        "840",
+        "37.2",
+    ));
     assert_eq!(first_return_line(&r)["rate_per_litre_of_alcohol"], "104.31");
     assert_eq!(amount(&r, "excise_duty"), "32586.44");
 }
@@ -164,7 +174,10 @@ fn the_container_boundaries() {
     assert_eq!(subitem_of(keg(d, "10", "5", "48", false)), "1.10");
     assert_eq!(subitem_of(keg(d, "10", "5", "48", true)), "1.11");
     assert_eq!(subitem_of(beer(d, "10", "5", "48.01")), "1.11");
-    assert_eq!(code(&input("2026-27", json!([beer(d, "10", "5", "8")]))), "input.missing_field");
+    assert_eq!(
+        code(&input("2026-27", json!([beer(d, "10", "5", "8")]))),
+        "input.missing_field"
+    );
     assert_eq!(
         code(&input("2026-27", json!([keg(d, "10", "5", "50", true)]))),
         "input.field_unknown"
@@ -188,7 +201,10 @@ fn the_strength_boundaries() {
     assert_eq!(subitem_of(line(d, o, "10", "10.001")), "3.2");
     assert_eq!(subitem_of(line(d, "spirit", "10", "40")), "3.10");
     for low in [beer(d, "10", "1.15", "0.375"), line(d, o, "10", "1.15")] {
-        assert_eq!(code(&input("2026-27", json!([low]))), "alcohol_excise.not_excisable");
+        assert_eq!(
+            code(&input("2026-27", json!([low]))),
+            "alcohol_excise.not_excisable"
+        );
     }
 }
 
@@ -212,7 +228,11 @@ fn brew_on_premises_beer() {
 fn the_draught_beer_freeze() {
     for d in ["2025-02-03", "2025-08-04", "2026-02-02", "2026-08-03"] {
         let r = one(beer(d, "100", "5.15", "50"));
-        assert_eq!(first_return_line(&r)["rate_per_litre_of_alcohol"], "43.39", "{d}");
+        assert_eq!(
+            first_return_line(&r)["rate_per_litre_of_alcohol"],
+            "43.39",
+            "{d}"
+        );
     }
     let r = one(beer("2025-08-04", "100", "5.15", "0.375"));
     assert_eq!(first_return_line(&r)["rate_per_litre_of_alcohol"], "62.56");
@@ -241,16 +261,86 @@ fn a_higher_labelled_strength_is_charged() {
 /// 2026), per litre of alcohol, by subitem in the order 1.1, 1.2, 1.5, 1.6,
 /// 1.10, 1.11, 1.15, 1.16, 2, 3.1, 3.2, 3.10.
 const NOTICES: [(&str, &str, [&str; 12]); 10] = [
-    ("2022-07-01", "2022-07-31", ["46.02", "9.20", "53.59", "28.82", "53.59", "37.76", "3.24", "3.73", "90.78", "84.78", "90.78", "90.78"]),
-    ("2022-08-01", "2023-01-31", ["47.86", "9.57", "55.73", "29.97", "55.73", "39.27", "3.37", "3.88", "94.41", "88.17", "94.41", "94.41"]),
-    ("2023-02-01", "2023-07-31", ["49.63", "9.92", "57.79", "31.08", "57.79", "40.72", "3.49", "4.02", "97.90", "91.43", "97.90", "97.90"]),
-    ("2023-08-01", "2024-02-04", ["50.72", "10.14", "59.06", "31.76", "59.06", "41.62", "3.57", "4.11", "100.05", "93.44", "100.05", "100.05"]),
-    ("2024-02-05", "2024-08-04", ["51.63", "10.32", "60.12", "32.33", "60.12", "42.37", "3.63", "4.18", "101.85", "95.12", "101.85", "101.85"]),
-    ("2024-08-05", "2025-02-02", ["52.66", "10.53", "61.32", "32.98", "61.32", "43.22", "3.70", "4.26", "103.89", "97.02", "103.89", "103.89"]),
-    ("2025-02-03", "2025-08-03", ["52.87", "10.57", "61.57", "33.11", "61.57", "43.39", "3.71", "4.28", "104.31", "97.41", "104.31", "104.31"]),
-    ("2025-08-04", "2026-02-01", ["53.72", "10.57", "62.56", "33.11", "62.56", "43.39", "3.77", "4.35", "105.98", "98.97", "105.98", "105.98"]),
-    ("2026-02-02", "2026-08-02", ["54.74", "10.57", "63.75", "33.11", "63.75", "43.39", "3.84", "4.43", "107.99", "100.85", "107.99", "107.99"]),
-    ("2026-08-03", "2027-01-31", ["55.83", "10.57", "65.03", "33.11", "65.03", "43.39", "3.92", "4.52", "110.15", "102.87", "110.15", "110.15"]),
+    (
+        "2022-07-01",
+        "2022-07-31",
+        [
+            "46.02", "9.20", "53.59", "28.82", "53.59", "37.76", "3.24", "3.73", "90.78", "84.78",
+            "90.78", "90.78",
+        ],
+    ),
+    (
+        "2022-08-01",
+        "2023-01-31",
+        [
+            "47.86", "9.57", "55.73", "29.97", "55.73", "39.27", "3.37", "3.88", "94.41", "88.17",
+            "94.41", "94.41",
+        ],
+    ),
+    (
+        "2023-02-01",
+        "2023-07-31",
+        [
+            "49.63", "9.92", "57.79", "31.08", "57.79", "40.72", "3.49", "4.02", "97.90", "91.43",
+            "97.90", "97.90",
+        ],
+    ),
+    (
+        "2023-08-01",
+        "2024-02-04",
+        [
+            "50.72", "10.14", "59.06", "31.76", "59.06", "41.62", "3.57", "4.11", "100.05",
+            "93.44", "100.05", "100.05",
+        ],
+    ),
+    (
+        "2024-02-05",
+        "2024-08-04",
+        [
+            "51.63", "10.32", "60.12", "32.33", "60.12", "42.37", "3.63", "4.18", "101.85",
+            "95.12", "101.85", "101.85",
+        ],
+    ),
+    (
+        "2024-08-05",
+        "2025-02-02",
+        [
+            "52.66", "10.53", "61.32", "32.98", "61.32", "43.22", "3.70", "4.26", "103.89",
+            "97.02", "103.89", "103.89",
+        ],
+    ),
+    (
+        "2025-02-03",
+        "2025-08-03",
+        [
+            "52.87", "10.57", "61.57", "33.11", "61.57", "43.39", "3.71", "4.28", "104.31",
+            "97.41", "104.31", "104.31",
+        ],
+    ),
+    (
+        "2025-08-04",
+        "2026-02-01",
+        [
+            "53.72", "10.57", "62.56", "33.11", "62.56", "43.39", "3.77", "4.35", "105.98",
+            "98.97", "105.98", "105.98",
+        ],
+    ),
+    (
+        "2026-02-02",
+        "2026-08-02",
+        [
+            "54.74", "10.57", "63.75", "33.11", "63.75", "43.39", "3.84", "4.43", "107.99",
+            "100.85", "107.99", "107.99",
+        ],
+    ),
+    (
+        "2026-08-03",
+        "2027-01-31",
+        [
+            "55.83", "10.57", "65.03", "33.11", "65.03", "43.39", "3.92", "4.52", "110.15",
+            "102.87", "110.15", "110.15",
+        ],
+    ),
 ];
 
 /// A line of exactly 10 litres of alcohol in each subitem on `date`.
@@ -279,7 +369,9 @@ fn ten_litres_each(date: &str) -> Vec<Value> {
 /// Every rate on the first and last day of every period: 10 LAL x the rate.
 #[test]
 fn every_rate_table_entry_on_each_period_boundary() {
-    let subitems = ["1.1", "1.2", "1.5", "1.6", "1.10", "1.11", "1.15", "1.16", "2", "3.1", "3.2", "3.10"];
+    let subitems = [
+        "1.1", "1.2", "1.5", "1.6", "1.10", "1.11", "1.15", "1.16", "2", "3.1", "3.2", "3.10",
+    ];
     for (from, to, rates) in NOTICES {
         for date in [from, to] {
             let r = run(&input(&year_of(date), json!(ten_litres_each(date))));
@@ -300,19 +392,31 @@ fn every_rate_table_entry_on_each_period_boundary() {
 #[test]
 fn dates_outside_the_held_rates_are_refused() {
     assert_eq!(
-        code(&input("2022-23", json!([line("2022-06-30", "spirit", "1", "40")]))),
+        code(&input(
+            "2022-23",
+            json!([line("2022-06-30", "spirit", "1", "40")])
+        )),
         "alcohol_excise.date_outside_year"
     );
     assert_eq!(
-        code(&input("2026-27", json!([line("2027-02-01", "spirit", "1", "40")]))),
+        code(&input(
+            "2026-27",
+            json!([line("2027-02-01", "spirit", "1", "40")])
+        )),
         "alcohol_excise.rate_unpublished"
     );
     assert_eq!(
-        code(&input("2021-22", json!([line("2022-06-30", "spirit", "1", "40")]))),
+        code(&input(
+            "2021-22",
+            json!([line("2022-06-30", "spirit", "1", "40")])
+        )),
         "period.unsupported"
     );
     assert_eq!(
-        code(&input("2025-26", json!([line("2026-07-01", "spirit", "1", "40")]))),
+        code(&input(
+            "2025-26",
+            json!([line("2026-07-01", "spirit", "1", "40")])
+        )),
         "alcohol_excise.date_outside_year"
     );
 }
@@ -330,11 +434,18 @@ fn products_outside_the_worksheet_are_refused() {
         ("concessional_spirit", "alcohol_excise.product_out_of_scope"),
         ("cider", "alcohol_excise.product_invalid"),
     ] {
-        assert_eq!(code(&input("2026-27", json!([line(d, product, "1", "12")]))), expected, "{product}");
+        assert_eq!(
+            code(&input("2026-27", json!([line(d, product, "1", "12")]))),
+            expected,
+            "{product}"
+        );
     }
     let mut imported = line(d, "spirit", "1", "40");
     imported["imported"] = json!(true);
-    assert_eq!(code(&input("2026-27", json!([imported]))), "alcohol_excise.product_out_of_scope");
+    assert_eq!(
+        code(&input("2026-27", json!([imported]))),
+        "alcohol_excise.product_out_of_scope"
+    );
 }
 
 #[test]
@@ -344,21 +455,45 @@ fn malformed_lines_are_refused() {
         (json!([]), "alcohol_excise.lines_invalid"),
         (json!("x"), "alcohol_excise.lines_invalid"),
         (json!([1]), "alcohol_excise.line_invalid"),
-        (json!([line(d, "spirit", "0", "40")]), "alcohol_excise.quantity_invalid"),
-        (json!([line(d, "spirit", "1", "100.1")]), "alcohol_excise.quantity_invalid"),
-        (json!([line(d, "spirit", "1.00001", "40")]), "alcohol_excise.quantity_invalid"),
-        (json!([line("2026-13-01", "spirit", "1", "40")]), "input.date_invalid"),
-        (json!([{"date": d, "product": "spirit", "strength_percent": "40"}]), "input.missing_field"),
-        (json!([{"date": d, "volume_litres": "1", "strength_percent": "40"}]), "input.missing_field"),
+        (
+            json!([line(d, "spirit", "0", "40")]),
+            "alcohol_excise.quantity_invalid",
+        ),
+        (
+            json!([line(d, "spirit", "1", "100.1")]),
+            "alcohol_excise.quantity_invalid",
+        ),
+        (
+            json!([line(d, "spirit", "1.00001", "40")]),
+            "alcohol_excise.quantity_invalid",
+        ),
+        (
+            json!([line("2026-13-01", "spirit", "1", "40")]),
+            "input.date_invalid",
+        ),
+        (
+            json!([{"date": d, "product": "spirit", "strength_percent": "40"}]),
+            "input.missing_field",
+        ),
+        (
+            json!([{"date": d, "volume_litres": "1", "strength_percent": "40"}]),
+            "input.missing_field",
+        ),
     ] {
         assert_eq!(code(&input("2026-27", lines.clone())), expected, "{lines}");
     }
     let mut spirit = line(d, "spirit", "1", "40");
     spirit["container_litres"] = json!("0.7");
-    assert_eq!(code(&input("2026-27", json!([spirit]))), "input.field_unknown");
+    assert_eq!(
+        code(&input("2026-27", json!([spirit]))),
+        "input.field_unknown"
+    );
     let mut bad_flag = line(d, "spirit", "1", "40");
     bad_flag["remission"] = json!("yes");
-    assert_eq!(code(&input("2026-27", json!([bad_flag]))), "input.flag_invalid");
+    assert_eq!(
+        code(&input("2026-27", json!([bad_flag]))),
+        "input.flag_invalid"
+    );
     let mut i = input("2026-27", json!([line(d, "spirit", "1", "40")]));
     i["scope_confirmed"] = json!(false);
     assert_eq!(code(&i), "scope.not_confirmed");
@@ -381,14 +516,22 @@ fn remission_line(date: &str, volume: &str) -> Value {
 #[test]
 fn the_remission_cap_by_year() {
     // 4,000 x $110.15 = $440,600; capped at $400,000.
-    let r = run(&remitted("2026-27", json!([remission_line("2026-09-15", "10000")]), "0"));
+    let r = run(&remitted(
+        "2026-27",
+        json!([remission_line("2026-09-15", "10000")]),
+        "0",
+    ));
     assert_eq!(amount(&r, "excise_duty"), "440600.00");
     assert_eq!(amount(&r, "remission"), "400000.00");
     assert_eq!(amount(&r, "over_cap"), "40600.00");
     assert_eq!(amount(&r, "net_duty"), "40600.00");
     assert_eq!(r["rates"]["remission_cap"], "400000");
     // 30 June 2026: 4,000 x $107.99 = $431,960; capped at $350,000.
-    let r = run(&remitted("2025-26", json!([remission_line("2026-06-30", "10000")]), "0"));
+    let r = run(&remitted(
+        "2025-26",
+        json!([remission_line("2026-06-30", "10000")]),
+        "0",
+    ));
     assert_eq!(amount(&r, "remission"), "350000.00");
     assert_eq!(amount(&r, "net_duty"), "81960.00");
 }
@@ -396,7 +539,10 @@ fn the_remission_cap_by_year() {
 /// The cap left after earlier remissions, and lines without the remission.
 #[test]
 fn the_remission_uses_the_cap_left() {
-    let lines = json!([remission_line("2026-09-15", "100"), line("2026-09-15", "spirit", "100", "40")]);
+    let lines = json!([
+        remission_line("2026-09-15", "100"),
+        line("2026-09-15", "spirit", "100", "40")
+    ]);
     // Each line is 40 LAL x $110.15 = $4,406.00.
     let r = run(&remitted("2026-27", lines.clone(), "398000.00"));
     assert_eq!(amount(&r, "excise_duty"), "8812.00");
@@ -413,7 +559,11 @@ fn the_remission_uses_the_cap_left() {
 /// $267,397.26 (the ATO shows $267,397).
 #[test]
 fn the_part_year_cap() {
-    let mut i = remitted("2026-27", json!([remission_line("2026-11-02", "10000")]), "0");
+    let mut i = remitted(
+        "2026-27",
+        json!([remission_line("2026-11-02", "10000")]),
+        "0",
+    );
     i["manufacturer_from"] = json!("2026-10-30");
     let r = run(&i);
     assert_eq!(r["rates"]["remission_cap"], "267397.26");
@@ -442,7 +592,10 @@ fn duty_paid_is_a_refund() {
 #[test]
 fn remission_inputs_go_with_a_remission_line() {
     let d = "2026-09-15";
-    assert_eq!(code(&input("2026-27", json!([remission_line(d, "1")]))), "input.missing_field");
+    assert_eq!(
+        code(&input("2026-27", json!([remission_line(d, "1")]))),
+        "input.missing_field"
+    );
     let mut i = remitted("2026-27", json!([line(d, "spirit", "1", "40")]), "0");
     assert_eq!(code(&i), "input.field_unknown");
     i = input("2026-27", json!([line(d, "spirit", "1", "40")]));

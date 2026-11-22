@@ -367,7 +367,8 @@ fn with_remission(
     let mut authority = vec![REMISSION, CAP];
     if let Some((from, days)) = facts.part_year {
         authority.push(PART_YEAR);
-        out["part_year_cap"] = json!({"manufacturer_from": dates::format(from), "eligible_days": days});
+        out["part_year_cap"] =
+            json!({"manufacturer_from": dates::format(from), "eligible_days": days});
     }
     if facts.duty_paid {
         authority.push(REFUND);

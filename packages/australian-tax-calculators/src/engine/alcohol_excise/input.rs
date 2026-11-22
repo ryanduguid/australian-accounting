@@ -133,9 +133,7 @@ fn product(fields: &Map<String, Value>, n: usize) -> Result<&'static str> {
     }
     refuse(
         "alcohol_excise.product_invalid",
-        format!(
-            "line {n}: product must be beer, brandy, spirit or other_excisable_beverage."
-        ),
+        format!("line {n}: product must be beer, brandy, spirit or other_excisable_beverage."),
     )
 }
 
@@ -181,8 +179,16 @@ pub(super) fn parse_line(value: &Value, n: usize) -> Result<Line> {
         ),
         &format!("line {n}: date"),
     )?;
-    let volume = required(number(fields, n, "volume_litres", "1e12", 4)?, n, "volume_litres")?;
-    let actual = required(number(fields, n, "strength_percent", "100", 3)?, n, "strength_percent")?;
+    let volume = required(
+        number(fields, n, "volume_litres", "1e12", 4)?,
+        n,
+        "volume_litres",
+    )?;
+    let actual = required(
+        number(fields, n, "strength_percent", "100", 3)?,
+        n,
+        "strength_percent",
+    )?;
     let subitem = classify(fields, n, product, &actual)?;
     let (strength, labelled) = charged_strength(fields, n, product, actual, subitem)?;
     Ok(Line {
@@ -294,9 +300,7 @@ fn draught(fields: &Map<String, Value>, n: usize) -> Result<bool> {
     match (middle, fields.get("pressurised_system")) {
         (true, None) => refuse(
             "input.missing_field",
-            format!(
-                "line {n}: pressurised_system is required for a container of 8 to 48 litres"
-            ),
+            format!("line {n}: pressurised_system is required for a container of 8 to 48 litres"),
         ),
         (true, Some(_)) => boolean(fields, n, "pressurised_system"),
         (false, None) => Ok(container.gt(&int(48))?),
