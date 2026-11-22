@@ -1866,8 +1866,7 @@ pub fn evaluate_coded(command: &str, v: &Value) -> Result<Value> {
             // Optional: absent unless the performer claimed tax offsets.
             let offsets = optional(v, "tax_offsets", Dec)?;
             engine::entertainer_withholding(
-                (&a[0], &a[1]),
-                &a[2],
+                [&a[0], &a[1], &a[2]],
                 &a[3],
                 &a[4],
                 &a[5],

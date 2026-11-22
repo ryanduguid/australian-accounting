@@ -76,6 +76,17 @@ const SCHEDULE_3_FROM_JULY_2026: [&[CoefficientRow]; 2] = [
 /// The performances in the week and in the day.
 type Performances = (i64, i64);
 
+/// Schedule 3's table for the year: A when the tax-free threshold is claimed,
+/// otherwise B.
+fn schedule_3_rows(year: &str, threshold: bool) -> &'static [CoefficientRow] {
+    let tables = if year == "2026-27" {
+        SCHEDULE_3_FROM_JULY_2026
+    } else {
+        SCHEDULE_3_FROM_JULY_2024
+    };
+    tables[usize::from(!threshold)]
+}
+
 /// Schedule 3's eligibility, and who may claim tax offsets: not a working
 /// holiday maker, no foreign resident with a TFN (the schedule gives weekly
 /// foreign resident rates with no step from performance earnings), and tax
@@ -117,12 +128,7 @@ fn entertainer_steps(
     (week, day): Performances,
     threshold: bool,
 ) -> Result<(Vec<Step>, Rates)> {
-    let tables = if year == "2026-27" {
-        SCHEDULE_3_FROM_JULY_2026
-    } else {
-        SCHEDULE_3_FROM_JULY_2024
-    };
-    let rows = tables[usize::from(!threshold)];
+    let rows = schedule_3_rows(year, threshold);
     let (week, day) = (int(week), int(day));
     precise(|| {
         let x = earnings
@@ -232,11 +238,12 @@ fn entertainer_no_tfn(earnings: &Decimal, day: i64, foreign: bool) -> Result<Vec
     Ok(steps)
 }
 
-/// Schedule 3: the amount to withhold from a day's performances.
+/// Schedule 3: the amount to withhold from a payment for a day's
+/// performances. `pay` is the performances in the week and in the day, and
+/// the earnings for one performance.
 #[allow(clippy::too_many_arguments)]
 pub fn entertainer_withholding(
-    performances: (&Arg, &Arg),
-    earnings: &Arg,
+    pay: [&Arg; 3],
     tfn_quoted: &Arg,
     foreign_resident: &Arg,
     tax_free_threshold_claimed: &Arg,
@@ -246,9 +253,10 @@ pub fn entertainer_withholding(
     tax_offsets: Option<&Arg>,
 ) -> Result<Value> {
     let year = scope(scope_confirmed, year, ENTERTAINER)?;
+    let [per_week, per_day, earnings] = pay;
+    let week = count(per_week, "performances_per_week", 1, 1000)?;
+    let day = count(per_day, "performances_per_day", 1, week)?;
     let earnings = money(earnings)?;
-    let week = count(performances.0, "performances_per_week", 1, 1000)?;
-    let day = count(performances.1, "performances_per_day", 1, week)?;
     let tfn = flag(tfn_quoted, "tfn_quoted")?;
     let foreign = flag(foreign_resident, "foreign_resident")?;
     let threshold = flag(tax_free_threshold_claimed, "tax_free_threshold_claimed")?;
