@@ -6161,8 +6161,12 @@ mod ppsr_timing;
 pub use ppsr_timing::ppsr_timing;
 mod sb_cgt_concessions;
 pub use sb_cgt_concessions::{SB_CGT_OPTIONAL, SbCgtConcessionsArgs, sb_cgt_concessions};
+mod depreciation_pools;
+pub use depreciation_pools::{
+    capital_works, depreciation_low_value_pool, depreciation_small_business_pool,
+};
 
-const KINDS: [&str; 66] = [
+const KINDS: [&str; 69] = [
     "gst",
     "gst_margin_scheme",
     "fuel_tax_credits",
@@ -6229,6 +6233,9 @@ const KINDS: [&str; 66] = [
     "ppsr_timing",
     "wine_equalisation_tax",
     "sb_cgt_concessions",
+    "depreciation_low_value_pool",
+    "depreciation_small_business_pool",
+    "capital_works",
 ];
 
 /// `periods(kind)`: accepted period arguments and inclusive calendar boundaries.
