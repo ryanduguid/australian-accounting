@@ -433,6 +433,52 @@ const COMMAND_ARGS: &[(&str, &[(&str, Kind)])] = &[
         ],
     ),
     (
+        "horticulture-shearing-withholding",
+        &[
+            ("earnings", Dec),
+            ("tfn_quoted", Raw),
+            ("foreign_resident", Raw),
+            ("tax_free_threshold_claimed", Raw),
+            ("working_holiday_maker", Raw),
+            ("labour_mobility_scheme", Raw),
+            ("year", Raw),
+            ("scope_confirmed", Raw),
+        ],
+    ),
+    (
+        "upward-variation-withholding",
+        &[
+            ("earnings", Dec),
+            ("pay_period", Raw),
+            ("scale", Raw),
+            ("additional_amount", Dec),
+            ("year", Raw),
+            ("scope_confirmed", Raw),
+        ],
+    ),
+    (
+        "daily-casual-withholding",
+        &[
+            ("daily_earnings", Dec),
+            ("tfn_quoted", Raw),
+            ("foreign_resident", Raw),
+            ("tax_free_threshold_claimed", Raw),
+            ("working_holiday_maker", Raw),
+            ("year", Raw),
+            ("scope_confirmed", Raw),
+        ],
+    ),
+    (
+        "no-abn-withholding",
+        &[
+            ("payment", Dec),
+            ("gst_included", Dec),
+            ("supply_total_excluding_gst", Dec),
+            ("year", Raw),
+            ("scope_confirmed", Raw),
+        ],
+    ),
+    (
         "quarterly-sg",
         &[
             ("ordinary_time_earnings", Dec),
@@ -794,7 +840,7 @@ pub fn commands() -> Vec<&'static str> {
 /// command on its `gross_pay` shows that withholding. The classifier's amounts
 /// are totals over lines whose shares a decision table sets, not a formula;
 /// each line and class carries the authority for its row instead.
-const DERIVED: [&str; 57] = [
+const DERIVED: [&str; 61] = [
     "fbt",
     "fbt-car-statutory",
     "fbt-car-operating-cost",
@@ -839,6 +885,10 @@ const DERIVED: [&str; 57] = [
     "depreciation-low-value-pool",
     "depreciation-small-business-pool",
     "capital-works",
+    "horticulture-shearing-withholding",
+    "upward-variation-withholding",
+    "daily-casual-withholding",
+    "no-abn-withholding",
     "hire-purchase-schedule",
     "chattel-mortgage-schedule",
     "loan-transactions",
@@ -1002,6 +1052,31 @@ fn float_repr(value: f64) -> String {
         )
     };
     format!("{sign}{body}")
+}
+
+/// `payg-withholding`'s optional inputs, which `upward-variation-withholding`
+/// takes too: each is absent unless the payee's declarations call for it.
+fn payg_option_args(v: &Value) -> Result<[Option<Arg>; 4]> {
+    let offsets = match v.get("tax_offsets") {
+        None => None,
+        Some(_) => Some(argument(v, "tax_offsets", Dec)?),
+    };
+    let [foreign, children, extra] = [
+        "foreign_resident",
+        "medicare_adjustment_children",
+        "extra_pay_withholding",
+    ]
+    .map(|key| v.get(key).map(arg));
+    Ok([foreign, offsets, children, extra])
+}
+
+fn payg_options(o: &[Option<Arg>; 4]) -> engine::PaygOptions<'_> {
+    engine::PaygOptions {
+        foreign_resident: o[0].as_ref(),
+        tax_offsets: o[1].as_ref(),
+        medicare_adjustment_children: o[2].as_ref(),
+        extra_pay_withholding: o[3].as_ref(),
+    }
 }
 
 fn argument(v: &Value, key: &str, kind: Kind) -> Result<Arg> {
@@ -1232,6 +1307,10 @@ pub fn evaluate_coded(command: &str, v: &Value) -> Result<Value> {
             | "depreciation-low-value-pool"
             | "depreciation-small-business-pool"
             | "capital-works"
+            | "horticulture-shearing-withholding"
+            | "upward-variation-withholding"
+            | "daily-casual-withholding"
+            | "no-abn-withholding"
             | "business-capital-expenditure"
             | "balancing-adjustment"
             | "trade-in"
@@ -1711,26 +1790,40 @@ pub fn evaluate_coded(command: &str, v: &Value) -> Result<Value> {
         "capital-works" => {
             engine::capital_works(&a[0], &a[1], &a[2], &a[3], &a[4], &a[5], &a[6], &a[7])
         }
+        "horticulture-shearing-withholding" => engine::horticulture_shearing_withholding(
+            &a[0], &a[1], &a[2], &a[3], &a[4], &a[5], &a[6], &a[7],
+        ),
+        "upward-variation-withholding" => {
+            let o = payg_option_args(v)?;
+            engine::upward_variation_withholding(
+                &a[0],
+                &a[1],
+                &a[2],
+                &a[3],
+                &a[4],
+                &a[5],
+                &payg_options(&o),
+            )
+        }
+        "daily-casual-withholding" => {
+            // Optional: absent unless the payee claimed tax offsets.
+            let offsets = optional(v, "tax_offsets", Dec)?;
+            engine::daily_casual_withholding(
+                &a[0],
+                &a[1],
+                &a[2],
+                &a[3],
+                &a[4],
+                &a[5],
+                &a[6],
+                offsets.as_ref(),
+            )
+        }
+        "no-abn-withholding" => engine::no_abn_withholding(&a[0], &a[1], &a[2], &a[3], &a[4]),
         "quarterly-sg" => engine::quarterly_sg(&a[0], &a[1], &a[2], &a[3], &a[4]),
         "payg-withholding" => {
-            // Optional: each is absent unless the payee's declarations call for it.
-            let offsets = match v.get("tax_offsets") {
-                None => None,
-                Some(_) => Some(argument(v, "tax_offsets", Dec)?),
-            };
-            let [foreign, children, extra] = [
-                "foreign_resident",
-                "medicare_adjustment_children",
-                "extra_pay_withholding",
-            ]
-            .map(|key| v.get(key).map(arg));
-            let options = engine::PaygOptions {
-                foreign_resident: foreign.as_ref(),
-                tax_offsets: offsets.as_ref(),
-                medicare_adjustment_children: children.as_ref(),
-                extra_pay_withholding: extra.as_ref(),
-            };
-            engine::payg_withholding(&a[0], &a[1], &a[2], &a[3], &a[4], &options)
+            let o = payg_option_args(v)?;
+            engine::payg_withholding(&a[0], &a[1], &a[2], &a[3], &a[4], &payg_options(&o))
         }
         "payg-gross-up" => {
             // Optional: scale 4's residency, as payg-withholding takes it, and

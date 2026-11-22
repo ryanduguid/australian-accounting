@@ -6,6 +6,22 @@
 
 ### Added
 
+- `horticulture-shearing-withholding`, `upward-variation-withholding`,
+  `daily-casual-withholding` and `no-abn-withholding` work out Schedule 2
+  (horticulture and shearing), Schedule 14 (an agreed additional amount on
+  the Schedule 1 amount), the tax table for daily and casual workers and
+  withholding where no ABN is quoted (TAA 1953 Sch 1 s 12-190, Taxation
+  Administration Regulations 2017 s 38), each for 2024-25 to 2026-27. New
+  codes: `daily_casual_withholding.foreign_resident_tfn`,
+  `daily_casual_withholding.offsets_exceed_withholding`,
+  `daily_casual_withholding.tax_offsets_not_allowed`,
+  `daily_casual_withholding.threshold_not_claimed`,
+  `horticulture_shearing_withholding.labour_mobility_scheme`,
+  `horticulture_shearing_withholding.threshold_not_claimed`,
+  `no_abn_withholding.gst_above_payment`,
+  `no_abn_withholding.total_below_payment` and
+  `withholding.working_holiday_maker`. `tests/withholding_schedules.rs` holds
+  them to the published examples.
 - `depreciation-low-value-pool`, `depreciation-small-business-pool` and
   `capital-works` work out a low-value pool (ITAA 1997 ss 40-440 and
   40-445), a general small business pool with each year's low pool value

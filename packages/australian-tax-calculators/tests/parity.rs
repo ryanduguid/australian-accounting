@@ -30,9 +30,9 @@ use std::process::{Command, Stdio};
 /// `tests/fbt_entertainment_classifier.rs`, `tests/fbt_minor_benefit.rs`,
 /// `tests/fhss.rs`, `tests/ppsr_timing.rs`, `tests/dasp_tax.rs`, `tests/income_tests.rs`,
 /// `tests/franking_account.rs`, `tests/wine_equalisation_tax.rs`,
-/// `tests/luxury_car_tax.rs`, `tests/sb_cgt_concessions.rs` and
-/// `tests/depreciation_pools.rs` cover them.
-const NEW_KINDS: [(&str, &str); 55] = [
+/// `tests/luxury_car_tax.rs`, `tests/sb_cgt_concessions.rs`,
+/// `tests/depreciation_pools.rs` and `tests/withholding_schedules.rs` cover them.
+const NEW_KINDS: [(&str, &str); 59] = [
     ("fhss", "fhss"),
     ("ppsr-timing", "ppsr_timing"),
     ("dasp-tax", "dasp_tax"),
@@ -70,6 +70,16 @@ const NEW_KINDS: [(&str, &str); 55] = [
         "depreciation_small_business_pool",
     ),
     ("capital-works", "capital_works"),
+    (
+        "horticulture-shearing-withholding",
+        "horticulture_shearing_withholding",
+    ),
+    (
+        "upward-variation-withholding",
+        "upward_variation_withholding",
+    ),
+    ("daily-casual-withholding", "daily_casual_withholding"),
+    ("no-abn-withholding", "no_abn_withholding"),
     ("division-296", "division_296"),
     ("termination-payment", "termination_payment"),
     ("etp-tax-free-component", "etp_tax_free_component"),

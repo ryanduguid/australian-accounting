@@ -16,10 +16,10 @@ keeps the calculator release and MCP integration separate.
 
 </div>
 
-69 calculation worksheets for established facts: ordinary GST, fuel tax credits at the ATO's rate for each day from 1 July 2022 with the simplified methods for small claimants, resident and foreign
+73 calculation worksheets for established facts: ordinary GST, fuel tax credits at the ATO's rate for each day from 1 July 2022 with the simplified methods for small claimants, resident and foreign
 resident basic income tax, CGT losses and discount, the gains and losses from parcels of shares or units, the small business CGT concessions open for a gain, the main residence exemption's taxable share of a gain or loss, one loan's borrowing expenses deduction and a schedule of several loans' deductions over every year, a hire purchase agreement's notional interest, a chattel mortgage's interest schedule and input tax credit, a loan's statement with daily interest at changing rates, business capital expenditure (black hole and start-up costs) under s 40-880, ordinary employer FBT, car fringe benefit taxable values
 under the statutory formula and operating cost methods, loan, meal entertainment, car parking, debt waiver, expense payment, property, residual, housing, living-away-from-home allowance, board and tax-exempt body entertainment fringe benefit taxable values, the FBT, deduction and GST credit treatment of entertainment expense lines, whether a 12 week meal entertainment register is valid, depreciation in the start year and later years, a depreciating asset's balancing adjustment with its reduction for private use and CGT event K7, a trade-in's GST on both sides with the old asset's balancing adjustment and the replacement's cost, whether an electric car's fringe benefits are exempt, one employer's payroll tax in each state and territory, a company's franking account with franking deficit tax, its offset and the benchmark rule, wine equalisation tax with the producer rebate under its yearly cap and BAS labels 1C and 1D, luxury car tax on sales and importations with its adjustments, refunds and BAS labels 1E and 1F,
-quarterly super guarantee, Schedule 1 PAYG withholding and the gross pay that leaves a stated net, Schedule 5 withholding from back payments, commissions and bonuses by Methods A, B(i) and B(ii), Schedule 15 withholding for working holiday makers, Schedule 9 withholding for seniors and pensioners, super contribution caps,
+quarterly super guarantee, Schedule 1 PAYG withholding and the gross pay that leaves a stated net, Schedule 5 withholding from back payments, commissions and bonuses by Methods A, B(i) and B(ii), Schedule 15 withholding for working holiday makers, Schedule 9 withholding for seniors and pensioners, Schedule 2 withholding for horticulture and shearing, Schedule 14 additional amounts, daily and casual withholding, withholding where no ABN is quoted, super contribution caps,
 account-based pension minimums, study and training loan repayments, Schedule 8 study
 loan withholding, the Medicare levy with its low-income, SAPTO and family reductions and full or half exemptions, the Medicare levy surcharge, the low income tax offset, the seniors and pensioners tax offset, the lump sum payment in arrears tax offset,
 Division 293 tax, an estimate of Division 296 tax on large super balances and the tax-free part of a genuine redundancy payment with Schedule 11 withholding from an employment termination payment, the invalidity and pre-July 83 segments of an employment termination payment's tax free component, the assessable share, Schedule 7 withholding and income statement label of unused leave paid on termination, and the income measures the surcharge, Division 293 tax, the offsets, study loan repayments and the super co-contribution are tested against. Callers must establish every scope condition before calculating. `personal-tax-estimate` composes the personal ones into one year's tax and levies,
@@ -179,6 +179,10 @@ booleans and counts, ages, days, quarters and scales are JSON integers.
 | `depreciation-low-value-pool` | `previous_closing_pool_balance`, `low_cost_assets`, `low_value_assets`, `second_element_costs`, `termination_values`, `year`, `scope_confirmed`; see [Depreciation pools and capital works](#depreciation-pools-and-capital-works) |
 | `depreciation-small-business-pool` | `opening_pool_balance`, `additions`, `cost_additions`, `termination_values`, `year`, `scope_confirmed` |
 | `capital-works` | `construction_expenditure`, `construction_start`, `four_percent_manner`, `days_used`, `taxable_use`, `undeducted_construction_expenditure`, `year`, `scope_confirmed` |
+| `horticulture-shearing-withholding` | `earnings`, `tfn_quoted`, `foreign_resident`, `tax_free_threshold_claimed`, `working_holiday_maker`, `labour_mobility_scheme`, `year`, `scope_confirmed`; see [Other withholding schedules](#other-withholding-schedules) |
+| `upward-variation-withholding` | `earnings`, `pay_period`, `scale`, `additional_amount`, `year`, `scope_confirmed`; optional as `payg-withholding` |
+| `daily-casual-withholding` | `daily_earnings`, `tfn_quoted`, `foreign_resident`, `tax_free_threshold_claimed`, `working_holiday_maker`, `year`, `scope_confirmed`; optional `tax_offsets` |
+| `no-abn-withholding` | `payment`, `gst_included`, `supply_total_excluding_gst`, `year`, `scope_confirmed` |
 | `quarterly-sg` | `ordinary_time_earnings`, `qualifying_contributions`, `year`, `quarter`, `scope_confirmed` |
 | `payg-withholding` | `earnings`, `pay_period`, `scale`, `year`, `scope_confirmed`; optional `foreign_resident` (scale 4), `tax_offsets`, `medicare_adjustment_children`, `extra_pay_withholding` |
 | `payg-gross-up` | `net_pay`, `pay_period`, `scale`, `year`, `scope_confirmed`; optional `foreign_resident` (scale 4), `study_loan`; `pay_date` with `study_loan`, required for 2025-26 |
@@ -208,7 +212,7 @@ booleans and counts, ages, days, quarters and scales are JSON integers.
 | `dgr-check` | `donations`, a list of 1 to 10,000 objects, each with `abn` or `name` or both, and optional `date` and `amount`; see [DGR check](#dgr-check) |
 | `personal-tax-estimate` | `year`, `scope_confirmed`, `residency`, `taxable_income` or `assessable_labour_income` (then optional `other_assessable_income`, `work_related_deductions`, `other_deductions`), optional `tax_withheld` or, to work it out, one of `payg-withholding`, `study-loan-withholding` and `seniors-pensioners-withholding` with `pays_in_year` and optional `schedule-5-method-a`, for a resident from 2027-28 `net_labour_income` (required beside `taxable_income`), and for a full-year resident `medicare-levy` and `medicare-levy-surcharge`; optional `seniors-pensioners-tax-offset`, `study-loan-repayment` and `division-293`; see [Personal tax estimate](#personal-tax-estimate) |
 | `fbt-return` | `employer`, `year_ended`, `scope_confirmed` and `benefits`, a list of objects each with `employee`, `command` (an FBT benefit worksheet), `input` (that worksheet's arguments), `gst_type` (`type_1` or `type_2`) and `excluded`; see [FBT return](#fbt-return) |
-| `derive` | `command`, one of `fbt`, `fbt-car-statutory`, `fbt-car-operating-cost`, `fbt-loan`, `fbt-meal-entertainment`, `fbt-car-parking`, `fbt-debt-waiver`, `fbt-expense-payment`, `fbt-property`, `division-293`, `pension-minimum`, `payg-withholding`, `schedule-5-method-a`, `schedule-5-method-b-i`, `schedule-5-method-b-ii`, `termination-payment`, `etp-tax-free-component`, `unused-leave-payment`, `working-holiday-maker-withholding`, `study-loan-withholding`, `seniors-pensioners-withholding`, `quarterly-sg`, `borrowing-expenses`, `borrowing-expenses-schedule`, `resident-tax`, `foreign-resident-tax`, `low-income-tax-offset`, `seniors-pensioners-tax-offset`, `medicare-levy`, `medicare-levy-surcharge`, `division-296`, `contribution-caps`, `study-loan-repayment`, `capital-gains`, `main-residence`, `fbt-residual`, `fbt-housing`, `fbt-lafha`, `fbt-board`, `fbt-tax-exempt-body-entertainment`, `gst`, `depreciation`, `depreciation-low-value-pool`, `depreciation-small-business-pool`, `capital-works`, `hire-purchase-schedule`, `chattel-mortgage-schedule`, `loan-transactions`, `lump-sum-arrears-tax-offset`, `income-tests`, `business-capital-expenditure`, `balancing-adjustment`, `trade-in`, `dasp-tax`, `gst-margin-scheme`, `payroll-tax` and `cgt-parcels`, and `input`, that command's arguments; see [Derivations](#derivations) |
+| `derive` | `command`, one of `fbt`, `fbt-car-statutory`, `fbt-car-operating-cost`, `fbt-loan`, `fbt-meal-entertainment`, `fbt-car-parking`, `fbt-debt-waiver`, `fbt-expense-payment`, `fbt-property`, `division-293`, `pension-minimum`, `payg-withholding`, `schedule-5-method-a`, `schedule-5-method-b-i`, `schedule-5-method-b-ii`, `termination-payment`, `etp-tax-free-component`, `unused-leave-payment`, `working-holiday-maker-withholding`, `study-loan-withholding`, `seniors-pensioners-withholding`, `quarterly-sg`, `borrowing-expenses`, `borrowing-expenses-schedule`, `resident-tax`, `foreign-resident-tax`, `low-income-tax-offset`, `seniors-pensioners-tax-offset`, `medicare-levy`, `medicare-levy-surcharge`, `division-296`, `contribution-caps`, `study-loan-repayment`, `capital-gains`, `main-residence`, `fbt-residual`, `fbt-housing`, `fbt-lafha`, `fbt-board`, `fbt-tax-exempt-body-entertainment`, `gst`, `depreciation`, `depreciation-low-value-pool`, `depreciation-small-business-pool`, `capital-works`, `horticulture-shearing-withholding`, `upward-variation-withholding`, `daily-casual-withholding`, `no-abn-withholding`, `hire-purchase-schedule`, `chattel-mortgage-schedule`, `loan-transactions`, `lump-sum-arrears-tax-offset`, `income-tests`, `business-capital-expenditure`, `balancing-adjustment`, `trade-in`, `dasp-tax`, `gst-margin-scheme`, `payroll-tax` and `cgt-parcels`, and `input`, that command's arguments; see [Derivations](#derivations) |
 
 The 2 car commands, the 11 FBT benefit commands (`fbt-loan`, `fbt-meal-entertainment`, `fbt-car-parking`, `fbt-debt-waiver`, `fbt-expense-payment`, `fbt-property`, `fbt-residual`, `fbt-housing`, `fbt-lafha`, `fbt-board` and `fbt-tax-exempt-body-entertainment`), `main-residence`, `borrowing-expenses`, `borrowing-expenses-schedule`, `fuel-tax-credits`, `division-296`, `termination-payment`, `etp-tax-free-component`, `unused-leave-payment`, the 3 `schedule-5` commands, `working-holiday-maker-withholding`, `seniors-pensioners-withholding`, `seniors-pensioners-tax-offset`, `medicare-levy-surcharge`, `foreign-resident-tax`, `payg-gross-up`, `hire-purchase-schedule`, `chattel-mortgage-schedule`, `loan-transactions`, `lump-sum-arrears-tax-offset`, `fbt-entertainment-classifier`, `fbt-meal-entertainment-register`, `fbt-minor-benefit-check`, `fhss`, `ppsr-timing`, `income-tests`, `business-capital-expenditure`, `balancing-adjustment`, `trade-in`, `gst-margin-scheme`, `franking-account`, `wine-equalisation-tax`, `luxury-car-tax`, `payroll-tax`, `dasp-tax`, `cgt-parcels`, `fbt-ev-exemption-check` and `sb-cgt-concessions` have no Python original; their arguments follow the same
 rules. `division-296` alone takes a negative amount, in `total_super_earnings`. `main-residence` also takes dates as `YYYY-MM-DD` strings, lists of
@@ -390,6 +394,7 @@ own dates and figures.
 | Unused leave payment | 2026-27; unused leave paid on one termination to an employee who is not a working holiday maker; established reason, accrual start, accrual parts and normal earnings; Schedule 7 withholding and assessable shares, not the tax assessed |
 | Schedule 5 withholding | Weekly, fortnightly or monthly pays made from 1 July 2024 to 30 June 2027 that include back payments, commissions or bonuses, on scale 1, 2, 3, 5 or 6; the study and training support loan component for pays from 24 September 2025, and from 1 July 2026 in Method B(i) |
 | Working holiday makers | 2024-25 to 2026-27; one weekly, fortnightly or monthly payment to an established working holiday maker; no TFN exemption claimants or labour mobility schemes |
+| Other withholding schedules | 2024-25 to 2026-27; one payment under Schedule 2 or the daily and casual table, Schedule 1 plus a Schedule 14 additional amount, or a supply with no ABN quoted |
 | Seniors and pensioners | 2024-25 to 2026-27; one weekly, fortnightly or monthly payment to an established senior or pensioner who gave a TFN, by status and Medicare levy exemption; no other tax offsets or Medicare levy adjustment |
 | Personal tax estimate | Each part's own periods: 2024-25 to 2026-27, or 2025-26 and 2026-27 with a study loan, and 2027-28 without a study loan or a day without hospital cover; a full-year resident's or full-year foreign resident's tax and levies before credits, and the refund or amount payable against tax withheld when given |
 
@@ -463,6 +468,36 @@ examples; see [calculation evidence](docs/calculation-evidence.md#payg-withholdi
 This worksheet was first published in the 0.1.5 wheel. The 0.2.0 wheel, which
 the MCP server uses, covers weekly, fortnightly and monthly 2026-27 pays on
 scales 1, 2, 3, 5 and 6 only; no release publishes the rest yet.
+
+## Other withholding schedules
+
+These take the payee's facts as established and work out one payment, for
+payments made from 1 July 2024 to 30 June 2027 (2024-25 to 2026-27). 2021-22
+to 2023-24 are refused: their schedules were not read for these commands, and
+Schedule 14 and the daily and casual table also need Schedule 1 coefficients
+this crate does not hold for those years.
+
+- `horticulture-shearing-withholding` (Schedule 2): 13% of the earnings for
+  the pay period, ignoring cents, or 30% for a foreign resident, rounded to the
+  dollar; without a TFN, 47% or 45% with cents ignored. It refuses a working
+  holiday maker, a Seasonal Worker Programme, Pacific Labour Scheme or Pacific
+  Australia Labour Mobility worker, and a TFN-quoting worker who has not
+  claimed the tax-free threshold.
+- `upward-variation-withholding` (Schedule 14): `payg-withholding`'s amount
+  for the same inputs, options included, plus the `additional_amount` the
+  payee asked for in writing.
+- `daily-casual-withholding` (the tax table for daily and casual workers):
+  Schedule 1 scale 2 on 5 times the day's earnings, ignoring cents, plus 99
+  cents, rounded to the dollar, divided by 5 and rounded again, less 0.38% of
+  any yearly `tax_offsets` rounded to the dollar; without a TFN, 47% or 45%.
+  It refuses a working holiday maker, a TFN-quoting payee who has not claimed
+  the tax-free threshold and a foreign resident who quoted a TFN.
+- `no-abn-withholding` (TAA 1953 Sch 1 s 12-190): 47% (the top rate of 45%
+  plus the 2% Medicare levy) of the payment, cents in the payment and the
+  result disregarded; nil when the supply's payments, disregarding GST, are $75
+  or less. The other s 12-190 exceptions are the operator's to establish.
+
+See [calculation evidence](docs/calculation-evidence.md#horticulture-shearing-withholding).
 
 ## PAYG gross-up
 

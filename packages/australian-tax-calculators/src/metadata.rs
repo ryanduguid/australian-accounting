@@ -1140,6 +1140,13 @@ pub fn supported_periods(kind: &str) -> Vec<&'static str> {
             ]
         }
         "sb_cgt_concessions" => vec!["2025-26", "2026-27"],
+        // The years payg_withholding's Schedule 1 holds: Schedule 14 and the
+        // daily and casual table use it, and Schedule 2 and s 12-190 were read
+        // for the same years only.
+        "horticulture_shearing_withholding"
+        | "upward_variation_withholding"
+        | "daily_casual_withholding"
+        | "no_abn_withholding" => keys(PAYG_WITHHOLDING_COEFFICIENTS),
         _ => Vec::new(),
     }
 }
@@ -1399,6 +1406,22 @@ pub fn source_review(kind: &str) -> (&'static str, &'static str) {
         "capital_works" => (
             "2026-11-22",
             "ITAA 1997 ss 43-140, 43-145, 43-210 and 43-215 (ATO legal database); ATO Rental properties guide 2026, Capital works deductions, tables 1 and 2 and example 29; Guide to depreciating assets 2026, days held in a leap year",
+        ),
+        "horticulture_shearing_withholding" => (
+            "2026-11-22",
+            "Schedule 2 (NAT 1013, horticultural or shearing industry) of F2024L00664, F2025L00647, F2025L01016 and F2026L00716: using this schedule, working out the withholding amount and its example, resident and foreign resident workers, pay period, using a formula, Table A, rounding and TFN declarations",
+        ),
+        "upward_variation_withholding" => (
+            "2026-11-22",
+            "Schedule 14 (NAT 5441, an agreement to increase withholding) of F2024L00664, F2025L00647, F2025L01016 and F2026L00716: using this schedule, how to work out the withholding amount and its example; Schedule 1 as payg_withholding records",
+        ),
+        "daily_casual_withholding" => (
+            "2026-11-22",
+            "Schedule 1, 'Calculating withholding amounts for payments made on a daily or casual basis', of F2024L00664, F2025L01016 and F2026L00716; the tax table for daily and casual workers (NAT 1024) from 1 July 2024 and from 1 July 2026: using this tax table, working out the withholding amount and its example, using a formula, TFN declarations, claiming tax offsets and foreign residents",
+        ),
+        "no_abn_withholding" => (
+            "2026-11-22",
+            "TAA 1953 Sch 1 ss 12-190 and 15-10 (ATO legal database); Taxation Administration Regulations 2017 ss 4 ('top rate'), 26 and 38, compilations 12 (1 July 2024) and 18 (14 November 2026); A New Tax System (Goods and Services Tax) Regulations 2019 s 29-80.01, compilations 4 and 5; ATO Payments you don't withhold from (last updated 11 June 2025); Rental expenses (Rental properties 2025)",
         ),
         "sb_cgt_concessions" => (
             "2026-11-19",
@@ -1764,6 +1787,30 @@ pub fn library_evidence(kind: &str) -> [(&'static str, &'static str); 4] {
             "2026-06-30",
             "2026-11-22",
         ),
+        "horticulture_shearing_withholding" => (
+            "ATO Schedule 2 tax table for the horticultural or shearing industry (NAT 1013)",
+            "Example: earnings of $231.50, $30, $108, $69 and $103 by residency and TFN",
+            "2026-06-17",
+            "2026-11-22",
+        ),
+        "upward_variation_withholding" => (
+            "ATO Schedule 14 table of additional amounts to withhold (NAT 5441)",
+            "Example: $563.00 weekly, $33 plus $50, $83 (2026-27); $39 plus $50 in the 2024 and 2025 schedules",
+            "2026-06-17",
+            "2026-11-22",
+        ),
+        "daily_casual_withholding" => (
+            "ATO Tax table for daily and casual workers (NAT 1024)",
+            "Example: $193.62 with $500 of tax offsets, $25 less $2 (2026-27); $26 less $2 from 1 July 2024",
+            "2026-06-17",
+            "2026-11-22",
+        ),
+        "no_abn_withholding" => (
+            "ATO Rental expenses (Rental properties 2025) and Payments you don't withhold from",
+            "Derek's $1,800 cash job, $846 withheld; Ana's $150 sign and $40 flowers",
+            "2025-06-11",
+            "2026-11-22",
+        ),
         "sb_cgt_concessions" => (
             "tax-examples-capital-gains-tax-cgt",
             "2-280",
@@ -1789,6 +1836,11 @@ pub fn library_evidence(kind: &str) -> [(&'static str, &'static str); 4] {
 /// Inputs a worksheet takes but does not require, with their units.
 pub fn optional_inputs(kind: &str) -> Vec<(&'static str, &'static str)> {
     match kind {
+        "upward_variation_withholding" => optional_inputs("payg_withholding"),
+        "daily_casual_withholding" => vec![(
+            "tax_offsets",
+            "AUD, with a TFN only: the yearly total the payee claimed at the tax offsets questions on their Withholding declaration; the daily value is 0.38% of it",
+        )],
         "fuel_tax_credits" => vec![
             (
                 "small_claimant",
@@ -3489,6 +3541,31 @@ pub fn input_units(kind: &str) -> Vec<(&'static str, &'static str)> {
             ("taxable_use", "fraction, decimal string from 0 to 1: the extent of the part's use for producing assessable income over those days; use for R&D activities counts too only at 2.5% for capital works other than a hotel or apartment building (s 43-210 step 4(b), s 43-215 step 3(b)), never in the 4% manner (s 43-210 step 2)"),
             ("undeducted_construction_expenditure", "AUD: the undeducted construction expenditure for your area (s 43-235), at most construction_expenditure; the deduction cannot exceed it"),
         ],
+        "horticulture_shearing_withholding" => vec![
+            ("earnings", "AUD: the worker's total earnings for the pay period, whatever its length"),
+            ("tfn_quoted", "boolean: the worker has given a valid TFN (false when no TFN, exemption or application has been given, or 28 days have passed since an application)"),
+            ("foreign_resident", "boolean: the worker answered that they are a foreign resident for tax purposes"),
+            ("tax_free_threshold_claimed", "boolean: the worker's TFN declaration claims the tax-free threshold; false with a TFN is refused (Schedule 1 applies)"),
+            ("working_holiday_maker", "boolean: the worker is a working holiday maker; true is refused (Schedule 15)"),
+            ("labour_mobility_scheme", "boolean: the worker is employed under the Seasonal Worker Programme, Pacific Labour Scheme or Pacific Australia Labour Mobility scheme; true is refused"),
+        ],
+        "upward_variation_withholding" => {
+            let mut units = input_units("payg_withholding");
+            units.push(("additional_amount", "AUD: the additional amount for the pay period the payee asked, in writing, to have withheld"));
+            units
+        }
+        "daily_casual_withholding" => vec![
+            ("daily_earnings", "AUD: the payee's earnings for the day"),
+            ("tfn_quoted", "boolean: the payee has given a valid TFN"),
+            ("foreign_resident", "boolean: the payee answered that they are a foreign resident; true with a TFN is refused"),
+            ("tax_free_threshold_claimed", "boolean: the payee has claimed the tax-free threshold, which this table requires when a TFN is quoted"),
+            ("working_holiday_maker", "boolean: the payee is a working holiday maker; true is refused (Schedule 15)"),
+        ],
+        "no_abn_withholding" => vec![
+            ("payment", "AUD: the payment for the supply, including any GST in it"),
+            ("gst_included", "AUD: the GST included in the payment, 0.00 for none; at most the payment"),
+            ("supply_total_excluding_gst", "AUD: the total of all payments made or to be made for the supply, this one included, disregarding GST (TAA 1953 Sch 1 s 12-190(4)(b))"),
+        ],
         "sb_cgt_concessions" => vec![
             ("entity", "individual, company or trust: the entity that made the capital gain"),
             ("share_or_trust_interest", "boolean: the asset is a share in a company or an interest in a trust; true is refused (ITAA 1997 s 152-10(2))"),
@@ -4159,6 +4236,40 @@ pub fn examples(kind: &str) -> Vec<(&'static str, Example)> {
             ("days_used", Whole(346)),
             ("taxable_use", Text("1")),
             ("undeducted_construction_expenditure", Text("20000.00")),
+        ],
+        // Schedule 2's example: a resident with a TFN earning $231.50.
+        "horticulture_shearing_withholding" => vec![
+            ("year", Text("2026-27")),
+            ("earnings", Text("231.50")),
+            ("tfn_quoted", Flag(true)),
+            ("foreign_resident", Flag(false)),
+            ("tax_free_threshold_claimed", Flag(true)),
+            ("working_holiday_maker", Flag(false)),
+            ("labour_mobility_scheme", Flag(false)),
+        ],
+        // Schedule 14's example: $563.00 weekly on scale 2 and $50 more.
+        "upward_variation_withholding" => vec![
+            ("year", Text("2026-27")),
+            ("earnings", Text("563.00")),
+            ("pay_period", Text("weekly")),
+            ("scale", Whole(2)),
+            ("additional_amount", Text("50.00")),
+        ],
+        // The daily and casual table's example, without its tax offsets.
+        "daily_casual_withholding" => vec![
+            ("year", Text("2026-27")),
+            ("daily_earnings", Text("193.62")),
+            ("tfn_quoted", Flag(true)),
+            ("foreign_resident", Flag(false)),
+            ("tax_free_threshold_claimed", Flag(true)),
+            ("working_holiday_maker", Flag(false)),
+        ],
+        // Rental expenses: Derek's $1,800 cash job with no ABN quoted.
+        "no_abn_withholding" => vec![
+            ("year", Text("2025-26")),
+            ("payment", Text("1800.00")),
+            ("gst_included", Text("0.00")),
+            ("supply_total_excluding_gst", Text("1800.00")),
         ],
         "sb_cgt_concessions" => vec![
             ("year", Text("2025-26")),
