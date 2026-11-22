@@ -13,7 +13,11 @@ use serde_json::{Value, json};
 use std::io::Write;
 use std::process::{Command, Stdio};
 
-/// The commands `derive` explains.
+/// The commands `derive` explains, except `rental-property`: its workings name
+/// each expense line as `apportioned` and `rental_only`, the rent lines nested
+/// under `income` (an absent line as 0) and, given other taxable income,
+/// `resident_tax`, none of which `named` or the evaluator reads, so
+/// `tests/rental_property.rs` checks its workings instead.
 const DERIVED: [&str; 77] = [
     "fbt",
     "fbt-car-statutory",
