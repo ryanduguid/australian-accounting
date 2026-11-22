@@ -77,7 +77,7 @@ const BENEFIT_AMOUNT: &str = "Income Tax Assessment (1936 Act) Regulations 2025 
 const BENEFIT_OFFSET: &str = "ITAA 1936 s 160AAA(3) and the regulations s 13(2), (3) and (5): 0.15 x (amount - $6,000), plus 0.15 x (amount - $45,000) where the amount is greater than $45,000, the top of the lowest marginal rate in Income Tax Rates Act 1986 Sch 7 Part I item 1; nil at or below $6,000; rounded up to the whole dollar";
 
 /// The beneficiary tax offset (ITAA 1936 s 160AAA(3)).
-pub fn beneficiary_tax_offset(benefit: &Arg, year: &Arg, scope_confirmed: &Arg) -> Result<Value> {
+pub fn rebatable_benefit_offset(benefit: &Arg, year: &Arg, scope_confirmed: &Arg) -> Result<Value> {
     let year = scope(scope_confirmed, year, BENEFICIARY)?;
     let benefit = money(benefit)?;
     precise(|| {
@@ -306,7 +306,7 @@ fn medical_threshold(spouse: bool, children: i64) -> (bool, Decimal) {
 
 /// The net medical expenses tax offset for 2016-17 to 2018-19 (ITAA 1936
 /// ss 159P and 159Q).
-pub fn net_medical_expenses_tax_offset(a: &MedicalArgs) -> Result<Value> {
+pub fn disability_expenses_offset(a: &MedicalArgs) -> Result<Value> {
     let year = medical_year(a)?;
     let net = money(a.net_medical_expenses)?;
     let own = money(a.adjusted_taxable_income)?;

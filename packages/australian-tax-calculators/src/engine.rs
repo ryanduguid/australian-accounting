@@ -6161,8 +6161,8 @@ mod ppsr_timing;
 pub use ppsr_timing::ppsr_timing;
 mod individual_offsets;
 pub use individual_offsets::{
-    InvalidCarerArgs, MedicalArgs, ZoneArgs, beneficiary_tax_offset, invalid_carer_tax_offset,
-    net_medical_expenses_tax_offset, zone_tax_offset,
+    InvalidCarerArgs, MedicalArgs, ZoneArgs, disability_expenses_offset, invalid_carer_tax_offset,
+    rebatable_benefit_offset, zone_tax_offset,
 };
 mod sb_cgt_concessions;
 pub use sb_cgt_concessions::{SB_CGT_OPTIONAL, SbCgtConcessionsArgs, sb_cgt_concessions};

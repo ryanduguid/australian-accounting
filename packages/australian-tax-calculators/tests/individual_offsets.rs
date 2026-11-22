@@ -244,13 +244,13 @@ fn invalid_carer_offset_refusals() {
     );
     // The limit is strict: a spouse's $3.65 for 1 day of 365 is $0.01,
     // reaching $120,007 exactly; $3.66 goes over it.
-    for (spouse, eligible) in [("3.65", true), ("3.66", false)] {
+    for (income, eligible) in [("3.65", true), ("3.66", false)] {
         let facts = carer(
             "2025-26",
             json!({"adjusted_taxable_income": "120006.99",
-                "spouse_adjusted_taxable_income": spouse, "spouse_days": 1}),
+                "spouse_adjusted_taxable_income": income, "spouse_days": 1}),
         );
-        assert_eq!(run(CARER, &facts)["eligible"], json!(eligible), "{spouse}");
+        assert_eq!(run(CARER, &facts)["eligible"], json!(eligible), "{income}");
     }
     let shared_false = carer(
         "2025-26",

@@ -1789,7 +1789,7 @@ pub fn evaluate_coded(command: &str, v: &Value) -> Result<Value> {
             };
             engine::seniors_pensioners_tax_offset(&a[0], &a[1], &a[2], &a[3], spouse)
         }
-        "beneficiary-tax-offset" => engine::beneficiary_tax_offset(&a[0], &a[1], &a[2]),
+        "beneficiary-tax-offset" => engine::rebatable_benefit_offset(&a[0], &a[1], &a[2]),
         "invalid-carer-tax-offset" => {
             // Optional: the part-year days, a spouse who is not the dependant
             // and the refused shared cases.
@@ -1849,7 +1849,7 @@ pub fn evaluate_coded(command: &str, v: &Value) -> Result<Value> {
                 optional(v, "spouse_adjusted_taxable_income", Dec)?,
                 optional(v, "dependent_children", Raw)?,
             ];
-            engine::net_medical_expenses_tax_offset(&engine::MedicalArgs {
+            engine::disability_expenses_offset(&engine::MedicalArgs {
                 net_medical_expenses: &a[0],
                 adjusted_taxable_income: &a[1],
                 year: &a[2],
