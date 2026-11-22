@@ -12,6 +12,7 @@
   (return to work payments), Schedule 6 (annuities, on `payg-withholding`'s
   Schedule 1 amount) and Schedule 10 (voluntary agreements), each for 2024-25
   to 2026-27. New codes: `annuity_withholding.deductible_above_payment`,
+  `annuity_withholding.extra_pay_without_tfn`,
   `annuity_withholding.income_not_whole_cents`,
   `entertainer_withholding.foreign_resident_tfn`,
   `entertainer_withholding.offsets_exceed_withholding`,

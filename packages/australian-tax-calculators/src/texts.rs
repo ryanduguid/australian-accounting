@@ -292,7 +292,7 @@ pub const SCOPES: &[(&str, &str)] = &[
     ),
     (
         "entertainer_withholding",
-        "Schedule 3 withholding (TAA 1953 Sch 1 s 12-35) for payments made from 1 July 2024 to 30 June 2027 to an employee who is an actor, variety artist or other entertainer, for performances: the earnings for one performance with cents ignored, times the performances in the week, plus 99 cents; Table A (tax-free threshold claimed) or Table B, rounded to the dollar; divided by the week's performances and multiplied by the day's, rounded to the dollar; less any tax offsets claimed divided by 52 and by the week's performances, rounded to the dollar. Without a TFN, 47%, or 45% for a foreign resident, of the day's earnings with cents ignored. No study and training support loan amount or Medicare levy variation applies. Refuses a working holiday maker (Schedule 15), a foreign resident who quoted a TFN (the schedule gives weekly foreign resident rates with no step from performance earnings), tax offsets without a TFN or the tax-free threshold, and tax offsets with more than one performance a day, for which the schedule gives no daily value. Excludes a promotional activity, for which the Commissioner has varied the rate to 20%, a foreign resident engaged as a contractor (foreign resident withholding), the Withholding lookup tool's amounts, a Commissioner's variation and 2021-22 to 2023-24, whose schedules were not read for this worksheet.",
+        "Schedule 3 withholding (TAA 1953 Sch 1 s 12-35) for payments made from 1 July 2024 to 30 June 2027 to an employee who is an actor, variety artist or other entertainer, for performances: the earnings for one performance with cents ignored, times the performances in the week, plus 99 cents; Table A (tax-free threshold claimed) or Table B, rounded to the dollar; divided by the week's performances and multiplied by the day's, rounded to the dollar; less any tax offsets claimed divided by 52 and by the week's performances, rounded to the dollar. Without a TFN, 47%, or 45% for a foreign resident, of the payment for the day's performances with cents ignored. Each result is for one payment covering performances_per_day performances; give 1 when each performance is paid separately. No study and training support loan amount or Medicare levy variation applies. Refuses a working holiday maker (Schedule 15), a foreign resident who quoted a TFN (the schedule gives weekly foreign resident rates with no step from performance earnings), tax offsets without a TFN or the tax-free threshold, and tax offsets with more than one performance a day, for which the schedule gives no daily value. Excludes a promotional activity, for which the Commissioner has varied the rate to 20%, a foreign resident engaged as a contractor (foreign resident withholding), the Withholding lookup tool's amounts, a Commissioner's variation and 2021-22 to 2023-24, whose schedules were not read for this worksheet.",
     ),
     (
         "return_to_work_withholding",
@@ -300,11 +300,11 @@ pub const SCOPES: &[(&str, &str)] = &[
     ),
     (
         "annuity_withholding",
-        "Schedule 6 withholding (TAA 1953 Sch 1 s 12-80(b)) for a payment made from 1 July 2024 to 30 June 2027 of an annuity bought with non-superannuation money: the payment less the deductible amount (ITAA 1936 s 27H) divided by the instalments payable in the income year, then the Schedule 1 amount on that income for the pay period, as payg-withholding works it out from the same scale and options; without a TFN (scale 4), 47%, or 45% for a foreign resident, of the annuity payment with cents ignored. The operator establishes the deductible amount, the payee's share where 2 or more people hold the annuity. Refuses a deductible amount per instalment above the payment, and an income amount not in whole cents, which the schedule does not round. Excludes an annuity bought with superannuation money (Schedule 13), a payee claiming the seniors and pensioners tax offset (Schedule 9 on the income amount, seniors-pensioners-withholding), a Commissioner's variation and 2021-22 to 2023-24, for which the Schedule 1 coefficients are not held.",
+        "Schedule 6 withholding (TAA 1953 Sch 1 s 12-80(b)) for a payment made from 1 July 2024 to 30 June 2027 of an annuity bought with non-superannuation money: the payment less the deductible amount (ITAA 1936 s 27H) divided by the instalments payable in the income year, then the Schedule 1 amount on that income for the pay period, as payg-withholding works it out from the same scale and options; without a TFN (scale 4), 47%, or 45% for a foreign resident, of the annuity payment with cents ignored. The operator establishes the deductible amount, the payee's share where 2 or more people hold the annuity. Refuses a deductible amount per instalment above the payment, an income amount not in whole cents, which the schedule does not round, and the additional amount for 53 or 27 pays on scale 4, of which the no TFN rule says nothing. Excludes an annuity bought with superannuation money (Schedule 13), a payee claiming the seniors and pensioners tax offset (Schedule 9 on the income amount, seniors-pensioners-withholding), a Commissioner's variation and 2021-22 to 2023-24, for which the Schedule 1 coefficients are not held.",
     ),
     (
         "voluntary_agreement_withholding",
-        "Schedule 10 withholding (TAA 1953 Sch 1 s 12-55) for a payment made from 1 July 2024 to 30 June 2027 to an individual under an arrangement involving work or services that no other provision of Division 12 covers, under a voluntary agreement: the payee's Commissioner's instalment rate when it is 20% or more or the agreement says it applies, otherwise 20%, of the payment excluding GST, rounded to the dollar. Refuses an agreement that is not in force (s 12-55(1)(c), or terminated under s 12-55(3)), a payee whose ABN is not in force and quoted in the agreement (s 12-55(1)(d)), and an agreement applying the instalment rate with no rate given. The operator establishes that the agreement is in the approved form and covers the arrangement, and that no other provision requires withholding. Excludes a Commissioner's variation and 2021-22 to 2023-24, whose schedules were not read for this worksheet.",
+        "Schedule 10 withholding (TAA 1953 Sch 1 s 12-55) for a payment made from 1 July 2024 to 30 June 2027 to an individual under an arrangement involving work or services that no other provision of Division 12 covers, under a voluntary agreement: the payee's Commissioner's instalment rate when it is 20% or more or the agreement says it applies, otherwise 20%, of the payment excluding GST, rounded to the dollar. Refuses an agreement that is not in force (s 12-55(1)(c), or terminated under s 12-55(3)), a payee whose ABN is not in force or not quoted in the agreement (s 12-55(1)(d)), and an agreement applying the instalment rate with no rate given. The operator establishes that the agreement is in the approved form and covers the arrangement, and that no other provision requires withholding. Excludes a Commissioner's variation and 2021-22 to 2023-24, whose schedules were not read for this worksheet.",
     ),
     (
         "income_tests",
@@ -1650,6 +1650,10 @@ pub const REFUSAL_CODES: &[(&str, &str)] = &[
         "The deductible amount divided by the instalments exceeds the annuity payment.",
     ),
     (
+        "annuity_withholding.extra_pay_without_tfn",
+        "The additional amount for 53 weekly or 27 fortnightly pays was asked for on scale 4, for which Schedule 6 gives only the no TFN rate.",
+    ),
+    (
         "annuity_withholding.income_not_whole_cents",
         "The annuity payment less the deductible amount divided by the instalments does not come to whole cents, which Schedule 6 does not round.",
     ),
@@ -2814,7 +2818,7 @@ pub const REFUSAL_CODES: &[(&str, &str)] = &[
     ),
     (
         "voluntary_agreement_withholding.abn_not_quoted",
-        "The payee's ABN is not in force and quoted in the voluntary agreement (TAA 1953 Sch 1 s 12-55(1)(d)).",
+        "The payee's ABN is not in force or not quoted in the voluntary agreement (TAA 1953 Sch 1 s 12-55(1)(d)).",
     ),
     (
         "voluntary_agreement_withholding.agreement_not_in_force",

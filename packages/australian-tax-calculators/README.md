@@ -505,7 +505,8 @@ coefficients this crate does not hold for those years.
   (tax-free threshold claimed) or B, rounded to the dollar; divided by the
   week's performances and times `performances_per_day`, rounded again; less
   any yearly `tax_offsets` / 52 / the week's performances, rounded to the
-  dollar. Without a TFN, 47% or 45% of the day's earnings. It refuses a
+  dollar. Without a TFN, 47% or 45% of the payment for the day's
+  performances. It refuses a
   working holiday maker, a foreign resident who quoted a TFN, and tax offsets
   without a TFN or the threshold or with more than one performance a day.
 - `return-to-work-withholding` (Schedule 4): 32% of the payment, rounded to
@@ -514,14 +515,15 @@ coefficients this crate does not hold for those years.
 - `annuity-withholding` (Schedule 6): `payg-withholding`'s amount, options
   included, on the payment less `deductible_amount` / `instalments`; on scale
   4 (no TFN), 47% or 45% of the payment. It refuses an income amount below
-  nil or not in whole cents. Annuities bought with super money (Schedule 13)
+  nil or not in whole cents, and the 53 or 27 pay option on scale 4.
+  Annuities bought with super money (Schedule 13)
   and payees claiming the seniors and pensioners tax offset (Schedule 9) are
   outside it.
 - `voluntary-agreement-withholding` (Schedule 10): the payee's optional
   `instalment_rate` (a percentage) when it is 20% or more or
   `agreement_applies_instalment_rate`, otherwise 20%, of the payment less its
   GST, rounded to the dollar. It refuses an agreement not in force and an ABN
-  not in force and quoted in it (TAA 1953 Sch 1 s 12-55(1)(c) and (d)).
+  not in force or not quoted in it (TAA 1953 Sch 1 s 12-55(1)(c) and (d)).
 
 See [calculation evidence](docs/calculation-evidence.md#horticulture-shearing-withholding).
 

@@ -133,6 +133,12 @@ fn schedule_3_without_a_tfn() {
     let r = run(ENTERTAINER, &input);
     assert_eq!(amount(&r, "day_earnings"), "201.00");
     assert_eq!(amount(&r, "withholding"), "94.00");
+    // One payment for 3 performances at $3: 47% of $9 is $4, where 3
+    // separate payments would give $1 each.
+    let input = performer(json!({
+        "tfn_quoted": false, "earnings": "3.00", "performances_per_week": 3, "performances_per_day": 3,
+    }));
+    assert_eq!(amount(&run(ENTERTAINER, &input), "withholding"), "4.00");
 }
 
 #[test]
@@ -267,6 +273,7 @@ fn schedule_6_is_schedule_1_on_the_income() {
         json!({"pay_period": "monthly", "scale": 1, "payment": "4000.00", "deductible_amount": "6000.00", "instalments": 12}),
         json!({"pay_period": "quarterly", "scale": 6, "payment": "9000.00", "instalments": 4}),
         json!({"scale": 3}),
+        json!({"scale": 5, "tax_offsets": "300.00"}),
         json!({"deductible_amount": "5226.00"}),
         json!({"tax_offsets": "1200.00", "medicare_adjustment_children": 1}),
         json!({"extra_pay_withholding": true}),
@@ -314,6 +321,10 @@ fn schedule_6_refusals() {
             (
                 json!({"deductible_amount": "100.00", "instalments": 3}),
                 "annuity_withholding.income_not_whole_cents",
+            ),
+            (
+                json!({"scale": 4, "foreign_resident": false, "extra_pay_withholding": true}),
+                "annuity_withholding.extra_pay_without_tfn",
             ),
             (json!({"instalments": 0}), "input.count_invalid"),
             (json!({"pay_period": "daily"}), "input.pay_period_invalid"),

@@ -3622,7 +3622,7 @@ pub fn input_units(kind: &str) -> Vec<(&'static str, &'static str)> {
         ],
         "entertainer_withholding" => vec![
             ("performances_per_week", "integer from 1: the performer's performances for the week"),
-            ("performances_per_day", "integer from 1 to performances_per_week: the performances in the day being paid for"),
+            ("performances_per_day", "integer from 1 to performances_per_week: the performances on the day this payment covers; 1 when each performance is paid separately"),
             ("earnings", "AUD: the performer's earnings for one performance"),
             ("tfn_quoted", "boolean: the performer has given a valid TFN"),
             ("foreign_resident", "boolean: the performer answered that they are a foreign resident; true with a TFN is refused"),
@@ -3646,7 +3646,7 @@ pub fn input_units(kind: &str) -> Vec<(&'static str, &'static str)> {
             ("payment", "AUD: the payment, including any GST in it"),
             ("gst_included", "AUD: the GST included in the payment, 0.00 for none; at most the payment"),
             ("agreement_in_force", "boolean: a voluntary agreement in the approved form covering the payment is in force (not terminated under s 12-55(3)); false is refused"),
-            ("abn_quoted", "boolean: the payee's ABN is in force and quoted in the agreement; false is refused"),
+            ("abn_quoted", "boolean: the payee has an ABN in force and it is quoted in the agreement; false is refused"),
             ("agreement_applies_instalment_rate", "boolean: the agreement says the payee's Commissioner's instalment rate applies; true needs instalment_rate"),
         ],
         "sb_cgt_concessions" => vec![

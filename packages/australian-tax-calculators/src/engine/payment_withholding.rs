@@ -351,6 +351,12 @@ pub fn annuity_withholding(
     let instalments = count(instalments, "instalments", 1, 366)?;
     let choices = payg_options(options, scale, &period)?;
     if scale == 4 {
+        if choices.extra {
+            return refuse(
+                "annuity_withholding.extra_pay_without_tfn",
+                "Schedule 6's rule for a payee without a TFN takes 47% or 45% of the payment and says nothing of the additional amount for 53 weekly or 27 fortnightly pays.",
+            );
+        }
         let foreign = choices.foreign == Some(true);
         let steps = no_tfn_steps(
             ("payment", &payment),
@@ -389,7 +395,7 @@ fn agreement_applies(in_force: &Arg, abn_quoted: &Arg) -> Result<()> {
     if !flag(abn_quoted, "abn_quoted")? {
         return refuse(
             "voluntary_agreement_withholding.abn_not_quoted",
-            "Schedule 10 applies only when the payee's ABN is in force and quoted in the voluntary agreement (TAA 1953 Sch 1 s 12-55(1)(d)).",
+            "Schedule 10 applies only when the payee has an ABN in force and it is quoted in the voluntary agreement (TAA 1953 Sch 1 s 12-55(1)(d)).",
         );
     }
     Ok(())
