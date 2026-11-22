@@ -34,13 +34,10 @@ from ..errors import InputError
 
 CALCULATORS = "australian-tax-calculators"
 #: The only calculators release this server accepts.
-CALCULATORS_VERSION = "1.1.0"
+CALCULATORS_VERSION = "1.2.0"
 #: SHA-256 of the executables in that release's x86_64 Linux and Windows archives,
 #: whose own digests its SHA256SUMS lists. Change them with CALCULATORS_VERSION.
-RELEASED_DIGESTS = frozenset({
-    "389da6c9ac497c6040633603e92740fda01739bacdf59ce2944ddcd4251a6f3a",  # linux-musl
-    "1e7fe8731058f673ef52584a3bd3bceb2ec0ada28fa3119c0a0f8f7df5f7999c",  # windows-msvc
-})
+RELEASED_DIGESTS: frozenset[str] = frozenset()
 BINARY_VARIABLE = "AUS_TAX_CALCULATORS_BIN"
 DIGEST_VARIABLE = "AUS_TAX_CALCULATORS_SHA256"
 INSTALL = (

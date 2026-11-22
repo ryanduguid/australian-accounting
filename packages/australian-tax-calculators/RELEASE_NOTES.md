@@ -1,3 +1,27 @@
+# v1.2.0
+
+The standalone calculator now serves 102 worksheet kinds, up from 66 in
+1.1.0. New commands cover work expenses, rental property, the private
+health insurance rebate, superannuation lump sums and their withholding,
+the R&D tax offset, deferred tax under AASB 112, CGT cost base
+adjustments, low-value and small business pools, capital works, GST going
+concerns, second-hand goods, bad debts and apportionment, further PAYG
+withholding schedules, individual tax offsets, government super amounts,
+non-commercial losses, the PSI test, ATO interest and penalties, residency
+and whether an individual must lodge.
+
+Worksheet amounts and ratios must now be plain decimal strings, such as
+`"1000.00"` rather than `"1e3"`. `fuel-tax-credits` uses each acquisition
+date under Method 2 when the applicable rates stay flat. The calculator is
+now licensed under AGPL-3.0-or-later with section 7(b) attribution terms.
+See [CHANGELOG.md](CHANGELOG.md) for each command's scope, sources and
+refusal codes.
+
+GitHub Releases provides attested x86-64 Linux (static musl) and Windows
+executables. Other platforms can build from source. The command
+`australian-tax-calculators --version` prints `australian-tax-calculators 1.2.0`.
+See [README.md](README.md) for installation and verification.
+
 # v1.1.0
 
 The standalone calculator now serves 66 worksheet kinds. Additions since
