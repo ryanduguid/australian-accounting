@@ -485,6 +485,42 @@ const COMMAND_ARGS: &[(&str, &[(&str, Kind)])] = &[
         ],
     ),
     (
+        "beneficiary-tax-offset",
+        &[
+            ("rebatable_benefit", Dec),
+            ("year", Raw),
+            ("scope_confirmed", Raw),
+        ],
+    ),
+    (
+        "invalid-carer-tax-offset",
+        &[
+            ("dependant", Raw),
+            ("adjusted_taxable_income", Dec),
+            ("dependant_adjusted_taxable_income", Dec),
+            ("year", Raw),
+            ("scope_confirmed", Raw),
+        ],
+    ),
+    (
+        "zone-tax-offset",
+        &[
+            ("area", Raw),
+            ("days", Raw),
+            ("year", Raw),
+            ("scope_confirmed", Raw),
+        ],
+    ),
+    (
+        "net-medical-expenses-tax-offset",
+        &[
+            ("net_medical_expenses", Dec),
+            ("adjusted_taxable_income", Dec),
+            ("year", Raw),
+            ("scope_confirmed", Raw),
+        ],
+    ),
+    (
         "lump-sum-arrears-tax-offset",
         &[
             ("taxable_income", Dec),
@@ -708,6 +744,10 @@ const COMMAND_ARGS: &[(&str, &[(&str, Kind)])] = &[
         &[("lines", Json), ("year", Raw), ("scope_confirmed", Raw)],
     ),
     (
+        "ato-interest-penalties",
+        &[("question", Raw), ("year", Raw), ("scope_confirmed", Raw)],
+    ),
+    (
         "sb-cgt-concessions",
         &[
             ("entity", Raw),
@@ -747,6 +787,53 @@ const COMMAND_ARGS: &[(&str, &[(&str, Kind)])] = &[
         ],
     ),
     (
+        "non-commercial-losses",
+        &[
+            ("activity", Raw),
+            ("assessable_income", Dec),
+            ("deductions", Dec),
+            ("brought_forward", Dec),
+            ("part_year", Raw),
+            ("earlier_years", Json),
+            ("real_property_value", Dec),
+            ("other_assets_value", Dec),
+            ("taxable_income", Dec),
+            ("business_losses", Dec),
+            ("assessable_fhss_released_amount", Dec),
+            ("reportable_fringe_benefits", Dec),
+            ("reportable_super_contributions", Dec),
+            ("total_net_investment_loss", Dec),
+            ("net_exempt_income", Dec),
+            ("year", Raw),
+            ("scope_confirmed", Raw),
+        ],
+    ),
+    (
+        "psi-test",
+        &[
+            ("earner", Raw),
+            ("mainly_personal_efforts", Raw),
+            ("determination_in_force", Raw),
+            ("payers", Json),
+            ("agent", Raw),
+            ("principal_work_by_others", Dec),
+            ("apprentice", Raw),
+            ("premises", Json),
+            ("year", Raw),
+            ("scope_confirmed", Raw),
+        ],
+    ),
+    (
+        "work-expenses",
+        &[
+            ("method", Raw),
+            ("reimbursed", Raw),
+            ("allowance_received", Raw),
+            ("year", Raw),
+            ("scope_confirmed", Raw),
+        ],
+    ),
+    (
         "income-tests",
         &[
             ("taxable_income", Dec),
@@ -766,6 +853,38 @@ const COMMAND_ARGS: &[(&str, &[(&str, Kind)])] = &[
             ("assessable_income", Dec),
             ("business_deductions", Dec),
             ("residency", Raw),
+            ("year", Raw),
+            ("scope_confirmed", Raw),
+        ],
+    ),
+    (
+        "government-super-amounts",
+        &[
+            ("taxable_income", Dec),
+            ("assessable_fhss_released_amount", Dec),
+            ("family_trust_distribution_amounts", Dec),
+            ("reportable_fringe_benefits_section_57a", Dec),
+            ("reportable_fringe_benefits_other", Dec),
+            ("reportable_employer_super_contributions", Dec),
+            ("deductible_personal_super_contributions", Dec),
+            ("excess_concessional_contributions", Dec),
+            ("net_financial_investment_loss", Dec),
+            ("net_rental_property_loss", Dec),
+            ("tax_free_government_pensions", Dec),
+            ("target_foreign_income", Dec),
+            ("exempt_foreign_employment_income", Dec),
+            ("child_support_paid", Dec),
+            ("assessable_income", Dec),
+            ("business_deductions", Dec),
+            ("residency", Raw),
+            ("eligible_income", Dec),
+            ("personal_contributions", Dec),
+            ("concessional_contributions", Dec),
+            ("return_lodged", Raw),
+            ("under_71", Raw),
+            ("temporary_visa_held", Raw),
+            ("non_concessional_within_cap", Raw),
+            ("total_super_balance_below_cap", Raw),
             ("year", Raw),
             ("scope_confirmed", Raw),
         ],
@@ -807,7 +926,7 @@ pub fn commands() -> Vec<&'static str> {
 /// command on its `gross_pay` shows that withholding. The classifier's amounts
 /// are totals over lines whose shares a decision table sets, not a formula;
 /// each line and class carries the authority for its row instead.
-const DERIVED: [&str; 57] = [
+const DERIVED: [&str; 59] = [
     "fbt",
     "fbt-car-statutory",
     "fbt-car-operating-cost",
@@ -857,6 +976,7 @@ const DERIVED: [&str; 57] = [
     "loan-transactions",
     "lump-sum-arrears-tax-offset",
     "income-tests",
+    "government-super-amounts",
     "business-capital-expenditure",
     "balancing-adjustment",
     "trade-in",
@@ -865,6 +985,7 @@ const DERIVED: [&str; 57] = [
     "etp-tax-free-component",
     "payroll-tax",
     "cgt-parcels",
+    "work-expenses",
 ];
 
 /// `derive`: `{"command", "input"}` gives the command's result with the step
@@ -1218,6 +1339,10 @@ pub fn evaluate_coded(command: &str, v: &Value) -> Result<Value> {
             | "seniors-pensioners-withholding"
             | "seniors-pensioners-tax-offset"
             | "lump-sum-arrears-tax-offset"
+            | "beneficiary-tax-offset"
+            | "invalid-carer-tax-offset"
+            | "zone-tax-offset"
+            | "net-medical-expenses-tax-offset"
             | "fbt-loan"
             | "fbt-meal-entertainment"
             | "fbt-car-parking"
@@ -1242,10 +1367,15 @@ pub fn evaluate_coded(command: &str, v: &Value) -> Result<Value> {
             | "income-tests"
             | "luxury-car-tax"
             | "sb-cgt-concessions"
+            | "work-expenses"
+            | "ato-interest-penalties"
             | "depreciation-low-value-pool"
             | "depreciation-small-business-pool"
             | "capital-works"
             | "small-business-income-offset"
+            | "non-commercial-losses"
+            | "psi-test"
+            | "government-super-amounts"
             | "business-capital-expenditure"
             | "balancing-adjustment"
             | "trade-in"
@@ -1814,6 +1944,75 @@ pub fn evaluate_coded(command: &str, v: &Value) -> Result<Value> {
             };
             engine::seniors_pensioners_tax_offset(&a[0], &a[1], &a[2], &a[3], spouse)
         }
+        "beneficiary-tax-offset" => engine::rebatable_benefit_offset(&a[0], &a[1], &a[2]),
+        "invalid-carer-tax-offset" => {
+            // Optional: the part-year days, a spouse who is not the dependant
+            // and the refused shared cases.
+            let o = [
+                optional(v, "days", Raw)?,
+                optional(v, "spouse_adjusted_taxable_income", Dec)?,
+                optional(v, "spouse_days", Raw)?,
+                optional(v, "maintained_by_others", Raw)?,
+                optional(v, "ftb_b_shared_care", Raw)?,
+                optional(v, "different_spouses", Raw)?,
+            ];
+            engine::invalid_carer_tax_offset(&engine::InvalidCarerArgs {
+                dependant: &a[0],
+                adjusted_taxable_income: &a[1],
+                dependant_adjusted_taxable_income: &a[2],
+                year: &a[3],
+                scope_confirmed: &a[4],
+                days: o[0].as_ref(),
+                spouse_adjusted_taxable_income: o[1].as_ref(),
+                spouse_days: o[2].as_ref(),
+                maintained_by_others: o[3].as_ref(),
+                ftb_b_shared_care: o[4].as_ref(),
+                different_spouses: o[5].as_ref(),
+            })
+        }
+        "zone-tax-offset" => {
+            // Optional: the days carried from an earlier year, the base
+            // amount's parts and the remote area allowance.
+            let o = [
+                optional(v, "prior_year", Raw)?,
+                optional(v, "prior_days", Raw)?,
+                optional(v, "continuous_residence", Raw)?,
+                optional(v, "includes_first_day", Raw)?,
+                optional(v, "dependants", Json)?,
+                optional(v, "sole_parent_days", Raw)?,
+                optional(v, "invalid_carer_tax_offset", Dec)?,
+                optional(v, "remote_area_allowance", Dec)?,
+            ];
+            engine::zone_tax_offset(&engine::ZoneArgs {
+                area: &a[0],
+                days: &a[1],
+                year: &a[2],
+                scope_confirmed: &a[3],
+                prior_year: o[0].as_ref(),
+                prior_days: o[1].as_ref(),
+                continuous_residence: o[2].as_ref(),
+                includes_first_day: o[3].as_ref(),
+                dependants: o[4].as_ref(),
+                sole_parent_days: o[5].as_ref(),
+                invalid_carer_tax_offset: o[6].as_ref(),
+                remote_area_allowance: o[7].as_ref(),
+            })
+        }
+        "net-medical-expenses-tax-offset" => {
+            // Optional: a spouse on 30 June and dependent children.
+            let o = [
+                optional(v, "spouse_adjusted_taxable_income", Dec)?,
+                optional(v, "dependent_children", Raw)?,
+            ];
+            engine::disability_expenses_offset(&engine::MedicalArgs {
+                net_medical_expenses: &a[0],
+                adjusted_taxable_income: &a[1],
+                year: &a[2],
+                scope_confirmed: &a[3],
+                spouse_adjusted_taxable_income: o[0].as_ref(),
+                dependent_children: o[1].as_ref(),
+            })
+        }
         "lump-sum-arrears-tax-offset" => {
             engine::lump_sum_arrears_tax_offset(&a[0], &a[1], &a[2], &a[3], &a[4])
         }
@@ -1912,6 +2111,17 @@ pub fn evaluate_coded(command: &str, v: &Value) -> Result<Value> {
             engine::contribution_caps(&a[0], &a[1], &a[2], &a[3], &a[4], &a[5], &a[6])
         }
         "pension-minimum" => engine::pension_minimum(&a[0], &a[1], &a[2], &a[3], &a[4]),
+        "ato-interest-penalties" => {
+            // The question's own facts, by name, as JSON.
+            let facts: serde_json::Map<String, Value> = v
+                .as_object()
+                .into_iter()
+                .flatten()
+                .filter(|(key, _)| !params.iter().any(|(p, _)| p == key))
+                .map(|(key, value)| (key.clone(), value.clone()))
+                .collect();
+            engine::ato_interest_penalties(&a[0], &a[1], &a[2], &facts)
+        }
         "sb-cgt-concessions" => {
             // Optional: the facts only some answers call for.
             let given = engine::SB_CGT_OPTIONAL.map(|key| {
@@ -1949,6 +2159,16 @@ pub fn evaluate_coded(command: &str, v: &Value) -> Result<Value> {
                 optional: given.each_ref().map(Option::as_ref),
             })
         }
+        "work-expenses" => {
+            // The method's and the year's own inputs, by name.
+            let mut given = Vec::new();
+            for (key, decimal) in engine::WORK_EXPENSES_OPTIONAL {
+                if let Some(arg) = optional(v, key, if decimal { Dec } else { Raw })? {
+                    given.push((key.to_string(), arg));
+                }
+            }
+            engine::work_expenses(&a[0], &a[1], &a[2], &given, &a[3], &a[4])
+        }
         "income-tests" => {
             let named: Vec<(&str, &Arg)> = params.iter().map(|(key, _)| *key).zip(&a).collect();
             engine::income_tests(&named)
@@ -1972,6 +2192,63 @@ pub fn evaluate_coded(command: &str, v: &Value) -> Result<Value> {
                 scope_confirmed: &a[7],
                 optional: given.each_ref().map(Option::as_ref),
             })
+        }
+        "non-commercial-losses" => {
+            // Optional: the estimate for a part year and the other income of
+            // an excepted activity.
+            let [estimate, other] = engine::NCL_OPTIONAL.map(|key| optional(v, key, Dec));
+            let given = [estimate?, other?];
+            engine::non_commercial_losses(&engine::NonCommercialLossesArgs {
+                activity: &a[0],
+                assessable_income: &a[1],
+                deductions: &a[2],
+                brought_forward: &a[3],
+                part_year: &a[4],
+                earlier_years: &a[5],
+                real_property_value: &a[6],
+                other_assets_value: &a[7],
+                taxable_income: &a[8],
+                business_losses: &a[9],
+                assessable_fhss_released_amount: &a[10],
+                reportable_fringe_benefits: &a[11],
+                reportable_super_contributions: &a[12],
+                total_net_investment_loss: &a[13],
+                net_exempt_income: &a[14],
+                year: &a[15],
+                scope_confirmed: &a[16],
+                optional: given.each_ref().map(Option::as_ref),
+            })
+        }
+        "psi-test" => {
+            // Optional: an agent's commission and the principal's payments.
+            let [commission, principal] = engine::PSI_OPTIONAL.map(|key| optional(v, key, Dec));
+            let given = [commission?, principal?];
+            engine::psi_test(&engine::PsiTestArgs {
+                earner: &a[0],
+                mainly_personal_efforts: &a[1],
+                determination_in_force: &a[2],
+                payers: &a[3],
+                agent: &a[4],
+                principal_work_by_others: &a[5],
+                apprentice: &a[6],
+                premises: &a[7],
+                year: &a[8],
+                scope_confirmed: &a[9],
+                optional: given.each_ref().map(Option::as_ref),
+            })
+        }
+        "government-super-amounts" => {
+            // Optional: the spouse inputs, all or none.
+            let spouse = engine::SPOUSE_INPUTS
+                .iter()
+                .map(|key| {
+                    let kind = if key.ends_with("_cap") { Raw } else { Dec };
+                    Ok(optional(v, key, kind)?.map(|arg| (*key, arg)))
+                })
+                .collect::<Result<Vec<_>>>()?;
+            let mut named: Vec<(&str, &Arg)> = params.iter().map(|(key, _)| *key).zip(&a).collect();
+            named.extend(spouse.iter().flatten().map(|(key, arg)| (*key, arg)));
+            engine::government_super_amounts(&named)
         }
         "luxury-car-tax" => engine::luxury_car_tax(&engine::LctArgs {
             lines: &a[0],

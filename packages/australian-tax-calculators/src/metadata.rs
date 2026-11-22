@@ -989,6 +989,36 @@ pub const PENSION_MINIMUM_FACTORS: [(i64, &str); 7] = [
     (0, "0.04"),
 ];
 
+/// The beneficiary tax offset's amounts (Income Tax Assessment (1936 Act)
+/// Regulations 2025 s 13(2) and (3), and the 2015 Regulation s 13): $6,000,
+/// and the threshold at the upper conclusion of the lowest marginal tax rate,
+/// the top of item 1 of Income Tax Rates Act 1986 Sch 7 Part I, $45,000 for
+/// each year 2020-21 to 2026-27 (compilations 61 and 66).
+pub const BENEFICIARY_LOWER_THRESHOLD: i64 = 6_000;
+pub const BENEFICIARY_UPPER_THRESHOLD: i64 = 45_000;
+
+/// The invalid and invalid carer tax offset by year: the indexed amount
+/// (ITAA 1997 s 61-30), the ATO's daily rate for part of the year and the
+/// FTB Part B income limit (s 61-20), from the ATO's T5 Invalid and invalid
+/// carer instructions for 2021 to 2026, read on 22 November 2026.
+pub const INVALID_CARER_OFFSET: &[(&str, [&str; 3])] = &[
+    ("2020-21", ["2816", "7.72", "100000"]),
+    ("2021-22", ["2833", "7.76", "100900"]),
+    ("2022-23", ["2943", "8.06", "104432"]),
+    ("2023-24", ["3152", "8.61", "112578"]),
+    ("2024-25", ["3300", "9.04", "117194"]),
+    ("2025-26", ["3396", "9.30", "120007"]),
+];
+
+/// The net medical expenses tax offset's lower and higher phase-in limits
+/// (ITAA 1936 s 159Q(5) and (6), indexed), from the ATO's T5 Total net medical
+/// expenses instructions for 2017, 2018 and 2019, read on 22 November 2026.
+pub const NET_MEDICAL_LIMITS: &[(&str, [&str; 2])] = &[
+    ("2016-17", ["2299", "5423"]),
+    ("2017-18", ["2333", "5504"]),
+    ("2018-19", ["2377", "5609"]),
+];
+
 fn keys<T>(table: &[(&'static str, T)]) -> Vec<&'static str> {
     table.iter().map(|(k, _)| *k).collect()
 }
@@ -1098,6 +1128,15 @@ pub fn supported_periods(kind: &str) -> Vec<&'static str> {
         // The years checked against the regulations; the thresholds follow each
         // year's Schedule 7 rates, but a new year needs its own review.
         "seniors_pensioners_tax_offset" => vec!["2024-25", "2025-26", "2026-27", "2027-28"],
+        // The years whose rates the ATO's return instructions publish (the
+        // beneficiary and zone amounts are fixed in the law); the invalid carer
+        // amount for 2026-27 is unpublished, and the net medical expenses
+        // offset ran to 2018-19 (ITAA 1936 s 159P(1A)).
+        "beneficiary_tax_offset" | "zone_tax_offset" => vec![
+            "2020-21", "2021-22", "2022-23", "2023-24", "2024-25", "2025-26", "2026-27",
+        ],
+        "invalid_carer_tax_offset" => keys(INVALID_CARER_OFFSET),
+        "net_medical_expenses_tax_offset" => keys(NET_MEDICAL_LIMITS),
         // The years of receipt with rates for an earlier, recent accrual year,
         // to 2026-27: later years have not been checked against their law.
         "lump_sum_arrears_tax_offset" => [&PRIOR_RESIDENT_TAX_SCALES[1..], RESIDENT_TAX_SCALES]
@@ -1136,7 +1175,23 @@ pub fn supported_periods(kind: &str) -> Vec<&'static str> {
         "small_business_income_offset" => vec![
             "2020-21", "2021-22", "2022-23", "2023-24", "2024-25", "2025-26", "2026-27",
         ],
+        // Division 35 reads the same in compilations 210 (1 July 2020), 223
+        // (1 July 2021) and 268 (1 October 2026).
+        "non_commercial_losses" => vec![
+            "2020-21", "2021-22", "2022-23", "2023-24", "2024-25", "2025-26", "2026-27",
+        ],
+        // Part 2-42 reads the same in compilations 210 (1 July 2020), 223
+        // (1 July 2021) and 268 (1 October 2026).
+        "psi_test" => vec![
+            "2020-21", "2021-22", "2022-23", "2023-24", "2024-25", "2025-26", "2026-27",
+        ],
         "income_tests" => vec!["2024-25", "2025-26", "2026-27"],
+        // Each year's rates were read at the ATO, the Commissioner's
+        // instruments and PCG 2023/1 on 22 November 2026; 2027-28 has no cents
+        // per kilometre rate yet.
+        "work_expenses" => vec![
+            "2020-21", "2021-22", "2022-23", "2023-24", "2024-25", "2025-26", "2026-27",
+        ],
         // The pools' rates and the capital works rates do not change in these
         // years; the small business pool's low pool value threshold does, by year.
         "depreciation_low_value_pool" | "depreciation_small_business_pool" | "capital_works" => {
@@ -1144,7 +1199,20 @@ pub fn supported_periods(kind: &str) -> Vec<&'static str> {
                 "2020-21", "2021-22", "2022-23", "2023-24", "2024-25", "2025-26", "2026-27",
             ]
         }
+        // The ATO's co-contribution thresholds from 2020-21, under the Act's
+        // compilation 28 (1 July 2018 to 30 June 2027); income-tests'
+        // definitions read the same in the compilations of 1 July 2020.
+        "government_super_amounts" => vec![
+            "2020-21", "2021-22", "2022-23", "2023-24", "2024-25", "2025-26", "2026-27",
+        ],
         "sb_cgt_concessions" => vec!["2025-26", "2026-27"],
+        // The question's end date. GIC days run back to 1 July 1999 and SIC
+        // days to 1 April 2005; the penalty unit holds at $364 until the next
+        // indexation day, 1 July 2029 (Crimes Act s 4AA(3)); GIC days after
+        // 31 December 2026 need an assumed rate.
+        "ato_interest_penalties" => vec![
+            "2020-21", "2021-22", "2022-23", "2023-24", "2024-25", "2025-26", "2026-27", "2027-28",
+        ],
         _ => Vec::new(),
     }
 }
@@ -1353,6 +1421,22 @@ pub fn source_review(kind: &str) -> (&'static str, &'static str) {
             "2026-11-14",
             "ITAA 1936 ss 6(1) (rebate income) and 160AAAA, compilation 193 (1 October 2026); Income Tax Assessment (1936 Act) Regulations 2025 ss 4 and 9 to 12 and 23 (F2025L01060), and the Income Tax Assessment (1936 Act) Regulation 2015 ss 4 and 9 to 12, compilation 8; ATO Seniors and pensioners tax offset: income limits, rates and thresholds for 2025-26, tax offset reduction and rounding, examples and transferring unused SAPTO with example 9; Do you need to lodge a tax return? 2025, reason 2",
         ),
+        "beneficiary_tax_offset" => (
+            "2026-11-22",
+            "ITAA 1936 s 160AAA(1) to (4), compilation 193 (1 October 2026); Income Tax Assessment (1936 Act) Regulations 2025 ss 4, 13 and 23 (F2025L01060) and Regulation 2015 s 13, compilation 8 (9 December 2022); Income Tax Rates Act 1986 Sch 7 Part I, compilations 61 (20 October 2023) and 66 (1 July 2026); ITAA 1997 s 63-10(1) item 15; ATO Beneficiary tax offset (QC72199, 8 June 2026)",
+        ),
+        "invalid_carer_tax_offset" => (
+            "2026-11-22",
+            "ITAA 1997 Subdivision 61-A, ss 61-10 to 61-45, compilation 268 (1 October 2026); ATO T5 Invalid and invalid carer, supplementary tax return instructions 2021 to 2026 (worksheets 1A to 3C, the amounts, daily rates and FTB Part B limits); Offset for maintaining an invalid or invalid carer (QC72202, 8 June 2026)",
+        ),
+        "zone_tax_offset" => (
+            "2026-11-22",
+            "ITAA 1936 ss 79A and 79B and Schedule 2, compilation 193 (1 October 2026); ITAA 1997 Subdivisions 961-A and 961-B, compilation 268; ATO T4 Zone or overseas forces, supplementary tax return instructions 2021 to 2026 (tables 1 to 3, worksheets 1 to 7, the Garry and Sharon examples); Zone tax offset (QC105018, 8 June 2026, the Narendra example); Australian zone list (1 July 2026)",
+        ),
+        "net_medical_expenses_tax_offset" => (
+            "2026-11-22",
+            "ITAA 1936 ss 159P and 159Q, compilation 161 (6 April 2019); ATO T5 Total net medical expenses for disability aids, attendant care or aged care, supplementary tax return instructions 2017, 2018 and 2019 (tables 1 and 2); Medical expenses tax offset (16 June 2025)",
+        ),
         "lump_sum_arrears_tax_offset" => (
             "2026-11-16",
             "ITAA 1936 Part III Division 17 Subdivision AB, ss 159ZR to 159ZRD, compilation 193 (1 October 2026), with the endnotes' amendment history (ss 159ZRA to 159ZRD as added by Act No. 153, 1988; s 159ZR last amended by Act No. 112, 2015); ATO Lump sum payment in arrears: qualifying payments, multiple payments in one income year and the Yan example, the 10% threshold test, the LSPIA tax offset and the Sudeep, Anthony and Heather examples, the Medicare levy exemption and the MLS tax offset; ATO Tax rates – Australian resident, 2012-13 to 2026-27; Income Tax (Transitional Provisions) Act 1997 s 4-11, compilation 104 (1 October 2026), and the Income Tax Rates Amendment (Temporary Budget Repair Levy) Act 2014, as made",
@@ -1393,6 +1477,14 @@ pub fn source_review(kind: &str) -> (&'static str, &'static str) {
             "2026-11-16",
             "ITAA 1997 Division 32, s 27-5 and s 995-1, compilation 268 (1 October 2026); FBTAA ss 5E, 20, 37A to 37CF, 40, 41, 45, 58P and 135P(1) and s 136(1), compilation 97 (1 July 2026); Fringe Benefits Tax Assessment Regulations 2018, regulations 6 to 11, as made; ITAA 1936 ss 51AEA and 51AEB, compilation 193 (1 October 2026); GST Act s 69-5, compilation 96 (1 January 2026); TR 97/17, paras 7 to 143 and the Part A table, and TR 2007/12, paras 8 to 22 and examples 1 to 3, as the Commissioner's view",
         ),
+        "work_expenses" => (
+            "2026-11-22",
+            "ITAA 1997 ss 28-12, 28-25, 28-90, 28-95, 28-100, 28-110, 28-115, 28-120 and 28-125 (ATO legal database); the cents per kilometre instruments of 2020 (F2020L00676), 2022 (F2022L00813), 2023 (F2023L00767), 2024 (F2024L00697) and 2026 (F2026L00785); PCG 2023/1 as updated 16 April 2025, paras 14 to 28, 45 to 89 and Table 1; the ATO's 52 cent fixed rate, shortcut (PCG 2020/3), fixed rate, actual cost, cents per kilometre, log book and self-education pages; the 2022 D4 instructions; TR 98/9 paras 25 to 30 and 119 to 155 on ITAA 1936 s 82A; Act No. 84, 2022, Schedule 3 items 26 and 33",
+        ),
+        "ato_interest_penalties" => (
+            "2026-11-22",
+            "TAA 1953 ss 8AAC and 8AAD and Sch 1 ss 280-100, 280-105, 284-75, 284-80, 284-85, 284-90, 284-220, 284-224, 284-225, 286-75, 286-80 and 298-20, ITAA 1997 s 5-15 and Crimes Act 1914 s 4AA at the ATO's legal database; Taxation (Interest on Overpayments and Early Payments) Act 1983 ss 3, 3C, 8A to 8C, 9, 10, 12D and 12E (compilation 58, 14 October 2024, at the Federal Register of Legislation, and the ATO's legal database); the ATO's 'General interest charge (GIC) rates' and 'Shortfall interest charge (SIC) rates' (last updated 4 September 2026), 'Credit interest rates and calculation' (QC58284, 19 June 2026), 'Penalty units' (QC71196, 26 June 2026) and 'Significant global entities - penalties' (1 July 2026); PS LA 2006/8, PS LA 2011/19 paras 15 to 30, PS LA 2011/23 para 4, PS LA 2012/5 paras 95 to 137, MT 2008/2 paras 33 and 55 to 63 and MT 2012/3 paras 35 and 88 to 89",
+        ),
         "depreciation_low_value_pool" => (
             "2026-11-22",
             "ITAA 1997 ss 40-425, 40-430, 40-435, 40-440 and 40-445 (ATO legal database); ATO Low-value pool (last updated 26 June 2025), examples 1 to 3 and the closing balance example; Guide to depreciating assets 2026, Working out the decline in value of depreciating assets in a low-value pool and its examples",
@@ -1413,9 +1505,21 @@ pub fn source_review(kind: &str) -> (&'static str, &'static str) {
             "2026-11-22",
             "ITAA 1997 ss 328-110, 328-355 to 328-375, 4-10(3) and 63-10, compilation 268 (1 October 2026), against compilations 210 (1 July 2020; s 328-360(1) at 13%) and 223 (1 July 2021; 16%); the ATO's 'Small business income tax offset' page (last updated 7 May 2025)",
         ),
+        "non_commercial_losses" => (
+            "2026-11-22",
+            "ITAA 1997 Division 35 (ss 35-10 to 35-55), compilation 268 (1 October 2026), against compilations 210 (1 July 2020) and 223 (1 July 2021), which read the same; the ATO's non-commercial loss pages 'Four tests', 'The income requirement', 'Excepted business activities' and 'How to defer your losses' (each last updated 7 April 2025)",
+        ),
+        "psi_test" => (
+            "2026-11-22",
+            "ITAA 1997 Part 2-42 (ss 84-5, 85-30, 85-35, 87-15 to 87-40, 87-60 and 87-65), compilation 268 (1 October 2026), against compilations 210 (1 July 2020) and 223 (1 July 2021), which read the same; TR 2022/3, examples 20, 29, 30 and 40 and paragraph 118; the site's PSI page and its 19 cases (checked 17 November 2026)",
+        ),
         "income_tests" => (
             "2026-11-16",
             "ITAA 1997 s 995-1 (income for surcharge purposes, reportable superannuation contributions, total net investment loss, adjusted taxable income for offsets, exempt foreign employment income, assessable FHSS released amount) and ss 4-15, 61-580, 291-15, 293-20, 301-20 and 313-20, compilation 268 (1 October 2026); Medicare Levy Act 1986 s 3(1), compilation 53 (1 July 2026); A New Tax System (Medicare Levy Surcharge—Fringe Benefits) Act 1999 s 3(1), compilation 42 (1 July 2026); ITAA 1936 s 6(1) (rebate income, adjusted taxable income for rebates, adjusted fringe benefits total) and s 251S, compilation 193 (1 October 2026); HESA ss 154-5, 154-16 and 154-17, compilation 105 (17 October 2026); A New Tax System (Family Assistance) Act 1999 Sch 3 cls 2, 4, 5, 7 and 8, compilation 124 (1 July 2026); FBTAA ss 135N, 135P and 135Q (1 July 2026); SISR reg 6.01(2) preservation age, compilation 159 (1 July 2026); Superannuation (Government Co-contribution for Low Income Earners) Act 2003 s 8, compilation 28 (1 July 2018); and the 1 July 2024 compilations of the ITAA 1997 (250), ITAA 1936 (184) and Family Assistance Act (119), compared; ATO Income tests (last updated 8 June 2026), Rebate income and Adjusted taxable income for you and your dependants for 2025 and 2026, IT1 Total reportable fringe benefits amounts 2025 and 2026, A3 Government super contributions 2025 and 2026, Medicare levy surcharge income, thresholds and rates (22 June 2026), When you must repay your loan (13 October 2026), Division 293 tax on concessional contributions by high-income earners (24 August 2026), Exempt income and other tax obligations (3 June 2026) and Fringe benefits tax - rates and thresholds (20 May 2026)",
+        ),
+        "government_super_amounts" => (
+            "2026-11-22",
+            "Superannuation (Government Co-contribution for Low Income Earners) Act 2003 ss 6 to 11, 12C and 12E, compilation 28 (1 July 2018 to 30 June 2027); its Regulations 2004 reg 24(2), compilation 8, and Regulations 2022 reg 15(2); ITAA 1997 ss 290-230 and 290-235, compilation 268 (1 October 2026), compared with compilation 210 (1 July 2020); income-tests' definitions in A New Tax System (Family Assistance) Act 1999 Sch 3 and ITAA 1997 s 995-1 compared with the 1 July 2020 compilations (101 and 210); Treasury Laws Amendment (Building a Stronger and Fairer Super System) Act 2026 Sch 4; ATO Government contributions (Table 25, 27 April 2026), Super co-contribution and Low income super tax offset (2 August 2023), Superannuation-related tax offsets (8 June 2026), myTax 2026 Government super contributions (1 June 2026) and the FBT rates pages (20 May 2026 and 1 April 2026)",
         ),
         _ => ("", ""),
     }
@@ -1737,6 +1841,30 @@ pub fn library_evidence(kind: &str) -> [(&'static str, &'static str); 4] {
             "2026-10-02",
             "2026-11-14",
         ),
+        "beneficiary_tax_offset" => (
+            "Income Tax Assessment (1936 Act) Regulations 2025 s 13; ATO Beneficiary tax offset",
+            "the formula and its rounding; no worked example is published",
+            "2026-06-08",
+            "2026-11-22",
+        ),
+        "invalid_carer_tax_offset" => (
+            "ATO T5 Invalid and invalid carer 2021 to 2026",
+            "the amounts, daily rates, FTB Part B limits and worksheets 1A to 3C",
+            "2026-05-30",
+            "2026-11-22",
+        ),
+        "zone_tax_offset" => (
+            "ATO T4 Zone or overseas forces 2021 to 2026; Zone tax offset",
+            "tables 1 to 3, worksheets 1 to 7, examples (Garry, Sharon, Narendra)",
+            "2026-05-30",
+            "2026-11-22",
+        ),
+        "net_medical_expenses_tax_offset" => (
+            "ATO T5 Total net medical expenses for disability aids, attendant care or aged care 2017 to 2019",
+            "tables 1 and 2: the phase-in limits and thresholds",
+            "2019-05-30",
+            "2026-11-22",
+        ),
         "lump_sum_arrears_tax_offset" => (
             "ATO Lump sum payment in arrears",
             "the 10% threshold test and the Sudeep, Anthony, Heather and Yan examples",
@@ -1754,6 +1882,12 @@ pub fn library_evidence(kind: &str) -> [(&'static str, &'static str); 4] {
             "3-160, 3-180",
             "2026-06-30",
             "2026-11-15",
+        ),
+        "work_expenses" => (
+            "ATO working from home, car and self-education pages; PCG 2023/1; TR 98/9",
+            "Keisha, Yang and Wanda (fixed rate method), PCG 2023/1 examples 1 (Gerry) and 8 (Piruntha), Johan (cents per kilometre), Lana (log book), Maureen (self-education reduction) and TR 98/9 paras 145 to 155 (Con)",
+            "2026-08-12",
+            "2026-11-22",
         ),
         "depreciation_low_value_pool" => (
             "ATO Low-value pool page and Guide to depreciating assets 2026",
@@ -1785,11 +1919,29 @@ pub fn library_evidence(kind: &str) -> [(&'static str, &'static str); 4] {
             "2025-05-07",
             "2026-11-22",
         ),
+        "non_commercial_losses" => (
+            "ATO non-commercial loss pages",
+            "Slaide's estimate, Nguyen's profits test, Joe's, Fred's and Alex's income requirement and Michael's deferred loss",
+            "2025-04-07",
+            "2026-11-22",
+        ),
+        "psi_test" => (
+            "TR 2022/3",
+            "Example 20 (Joe's ducts, the results test), 29 (Tom's 23.07%), 30 (Ian's 18.57%) and 40 (Chris, an agent on 70% commission)",
+            "2022-08-10",
+            "2026-11-22",
+        ),
         "income_tests" => (
             "ATO income test pages",
             "Christina's repayment income (When you must repay your loan) and Tom's income for MLS purposes (Medicare levy surcharge income, thresholds and rates)",
             "2026-10-13",
             "2026-11-16",
+        ),
+        "government_super_amounts" => (
+            "ATO super pages",
+            "Angelo (Super co-contribution), Julie (Low income super tax offset) and Examples 1 to 3 (Superannuation-related tax offsets)",
+            "2026-06-08",
+            "2026-11-22",
         ),
         _ => ("", "", "", ""),
     };
@@ -1804,6 +1956,40 @@ pub fn library_evidence(kind: &str) -> [(&'static str, &'static str); 4] {
 /// Inputs a worksheet takes but does not require, with their units.
 pub fn optional_inputs(kind: &str) -> Vec<(&'static str, &'static str)> {
     match kind {
+        "government_super_amounts" => vec![
+            (
+                "spouse_contributions",
+                "AUD, with the other spouse inputs: the contributions you made in the income year to a super fund or RSA for your spouse that s 290-230 counts: made whilst married or de facto, both Australian residents and not living separately and apart on a permanent basis, to a complying fund, not deductible under s 290-60 and not a Family Law Act payment (ITAA 1997 s 290-230(1) to (4))",
+            ),
+            (
+                "spouse_assessable_income",
+                "AUD, with the other spouse inputs: the spouse's assessable income for the year, including any assessable FHSS released amount",
+            ),
+            (
+                "spouse_assessable_fhss_released_amount",
+                "AUD, with the other spouse inputs: the spouse's assessable FHSS released amount (s 290-230(2)(c)(i))",
+            ),
+            (
+                "spouse_reportable_fringe_benefits_total",
+                "AUD, with the other spouse inputs: the spouse's reportable fringe benefits total (s 290-230(2)(c)(ii))",
+            ),
+            (
+                "spouse_reportable_employer_super_contributions",
+                "AUD, with the other spouse inputs: the spouse's reportable employer superannuation contributions (s 290-230(2)(c)(iii))",
+            ),
+            (
+                "spouse_excess_concessional_contributions",
+                "AUD, with the other spouse inputs: the spouse's excess concessional contributions for the financial year (s 290-230(5))",
+            ),
+            (
+                "spouse_non_concessional_within_cap",
+                "boolean, or null if not established, with the other spouse inputs: the spouse's non-concessional contributions for the financial year do not exceed the spouse's cap (s 290-230(4A)(a)); null is refused where it decides the offset",
+            ),
+            (
+                "spouse_total_super_balance_below_cap",
+                "boolean, or null if not established, with the other spouse inputs: the spouse's total superannuation balance immediately before the start of the financial year is less than the general transfer balance cap (s 290-230(4A)(b)); null is refused where it decides the offset",
+            ),
+        ],
         "fuel_tax_credits" => vec![
             (
                 "small_claimant",
@@ -1816,6 +2002,206 @@ pub fn optional_inputs(kind: &str) -> Vec<(&'static str, &'static str)> {
             (
                 "return_date",
                 "YYYY-MM-DD, the day the return taking these credits into account is given, not before any line's acquisition: lines acquired more than 4 years before it are listed in time_limit_lines, with the s 47-5(2) warning",
+            ),
+        ],
+        "work_expenses" => vec![
+            (
+                "hours",
+                "hours, at most 2 decimal places, for home_office only, and then required: the actual hours worked from home in the year, from a record kept at the time (PCG 2023/1 paras 56 to 59), at most 24 x the days in the year",
+            ),
+            (
+                "energy",
+                "AUD, for home_office only, and then required: the work-related portion of electricity and gas for heating, cooling, lighting and electronic items used whilst working from home; the 52c rate before 2022-23 is taken to cover all of it, as the ATO lists no energy claimed beside that rate",
+            ),
+            (
+                "phone",
+                "AUD, for home_office only, and then required: the work-related portion of mobile and home phone usage",
+            ),
+            (
+                "internet",
+                "AUD, for home_office only, and then required: the work-related portion of home and mobile internet and data",
+            ),
+            (
+                "stationery",
+                "AUD, for home_office only, and then required: the work-related portion of stationery and computer consumables",
+            ),
+            (
+                "cleaning",
+                "AUD, for home_office only, and then required: the work-related portion of cleaning a dedicated home office",
+            ),
+            (
+                "furniture_decline",
+                "AUD, for home_office only, and then required: the work-related decline in value (or immediate deduction at $300 or less) of home office furniture and furnishings",
+            ),
+            (
+                "asset_decline",
+                "AUD, for home_office only, and then required: the work-related decline in value of other depreciating assets used whilst working from home, such as computers and phones",
+            ),
+            (
+                "repairs",
+                "AUD, for home_office only, and then required: the work-related portion of repairs to those depreciating assets",
+            ),
+            (
+                "running_expenses_incurred",
+                "boolean, for home_office only, and then required: the taxpayer paid or became liable for at least one additional running expense as a result of working from home, which every hourly rate needs; from 2022-23 it must be energy, phone, internet, stationery or computer consumables, the kinds the fixed rate covers (PCG 2023/1 paras 14, 18(b) and 49 to 55), and before then any running expense (the ATO's 52 cent and shortcut pages); false leaves only the actual cost, and conflicts with an amount for such an expense",
+            ),
+            (
+                "dedicated_home_office",
+                "boolean, for home_office in 2020-21 or 2021-22 only, and then required: the taxpayer had a dedicated home office, which the 52c fixed rate needs",
+            ),
+            (
+                "owned_or_leased",
+                "boolean, for car_cents_per_kilometre and car_log_book only, and then required: the taxpayer owned or leased the car (ITAA 1997 s 28-12(1)); false is refused",
+            ),
+            (
+                "business_kilometres",
+                "kilometres, at most 2 decimal places, for car_cents_per_kilometre and car_log_book only, and then required: the reasonable estimate of business kilometres the car travelled in the year, or for car_log_book in the period held in the year (ss 28-25(3) and 28-90(5))",
+            ),
+            (
+                "total_kilometres",
+                "kilometres above 0, for car_log_book only, and then required: the total kilometres the car travelled in the period held in the year, from odometer records (s 28-90(3))",
+            ),
+            (
+                "car_expenses",
+                "AUD, for car_log_book only, and then required: the car expenses for the period held in the year that are deductible outside Division 28, decline in value included (s 28-90(2))",
+            ),
+            (
+                "log_book_year",
+                "income year YYYY-YY, for car_log_book only, and then required: the year the log book was kept for, the year claimed or one of the 4 before it (s 28-115(2))",
+            ),
+            (
+                "log_book_weeks",
+                "integer, for car_log_book only, and then required: the continuous weeks the log book covers, at least 12 (s 28-120(1))",
+            ),
+            (
+                "log_book_representative",
+                "boolean, for car_log_book only, and then required: the log book still represents the car's business use in the year claimed; false, as after a change of job or home, is refused (ATO 'Logbook method')",
+            ),
+            (
+                "connection",
+                "for self_education only, and then required: maintains_or_improves_skills, increases_income, general_only or new_employment, the self-education's connection to current employment when incurred (TR 2024/3)",
+            ),
+            (
+                "employed_when_incurred",
+                "boolean, for self_education only, and then required: the taxpayer was employed when the expenses were incurred",
+            ),
+            (
+                "prescribed_course",
+                "boolean, for self_education in 2020-21 or 2021-22 only, and then required: the expenses were for a course of education at a school, college, university or other place of education, which ITAA 1936 s 82A reduces; a short-term refresher or staff development course, seminar, conference or workshop is not one (TR 98/9 para 129)",
+            ),
+            (
+                "category_a",
+                "AUD, for self_education only, and then required: category A, deductible general expenses such as fees, textbooks, stationery, fares and log book car expenses other than decline in value",
+            ),
+            (
+                "category_b",
+                "AUD, for self_education only, and then required: category B, decline in value of depreciating assets used for the self-education",
+            ),
+            (
+                "category_c",
+                "AUD, for self_education only, and then required: category C, repairs to assets used for the self-education, not car repairs",
+            ),
+            (
+                "category_d",
+                "AUD, for self_education only, and then required: category D, car expenses by the cents per kilometre method",
+            ),
+            (
+                "log_book_car_in_category_a",
+                "boolean, for self_education with category_d above 0 only, and then required: category_a includes log book car expenses; true is refused, as a car's expenses take one method",
+            ),
+            (
+                "category_e",
+                "AUD, for self_education with prescribed_course true only, and then required: category E, expenses incurred for the course that are not deductible, such as child care for attendance or the capital cost of a computer",
+            ),
+        ],
+        "ato_interest_penalties" => vec![
+            (
+                "amount",
+                "AUD: gic, the unpaid amount; sic, the additional income tax from the amendment; early_payment_interest, the payment (no more than the amount due)",
+            ),
+            (
+                "due_date",
+                "YYYY-MM-DD: gic, the day the amount was due, the first day of GIC (ITAA 1997 s 5-15); sic, the day the first assessment's tax was due (or the earlier amended assessment's for a reinstated liability, s 280-100(3)); failure_to_lodge, the day the document was due (the deferred day if deferred); early_payment_interest, the day the amount is due and payable",
+            ),
+            (
+                "to",
+                "YYYY-MM-DD, gic only and required: the last day of GIC, the day before payment in full or an as-at day",
+            ),
+            (
+                "payments",
+                "gic: optional list of objects with date (YYYY-MM-DD, from due_date to to) and amount (AUD), each applied before that day's charge; overpayment_interest: required list of objects with paid_on and amount, each instalment of the relevant tax paid",
+            ),
+            (
+                "assumed_annual_rate",
+                "percentage above 0 and at most 100, gic only: the annual rate for days after 31 December 2026, the last published quarter; without it such days are refused",
+            ),
+            (
+                "notice_date",
+                "YYYY-MM-DD, sic only and required: the day the Commissioner gave notice of the amended assessment; SIC runs to the day before",
+            ),
+            (
+                "given_on",
+                "YYYY-MM-DD, failure_to_lodge only and required: the day the document was given, or an as-at day for one not yet given (s 286-80(6))",
+            ),
+            (
+                "size",
+                "failure_to_lodge only and required: small, medium (x2, s 286-80(3)), large (x5, s 286-80(4)) or significant_global (x500, s 286-80(4A) or (4C)), as established",
+            ),
+            (
+                "statement_date",
+                "YYYY-MM-DD, statement_penalty only and required: the day the statement was made; it sets the penalty unit for a statement with no shortfall amount",
+            ),
+            (
+                "significant_global_entity",
+                "boolean, statement_penalty only and required: true when s 284-90(1A) doubles the base penalty amount, as established",
+            ),
+            (
+                "trust_or_partnership",
+                "boolean, statement_penalty only: true for a trust or partnership, whose not reasonably arguable positions (items 5 and 6) are refused",
+            ),
+            (
+                "other_disclosed_before_examination",
+                "AUD, statement_penalty with a part with a shortfall_amount disclosed before_examination only, and then required (0.00 when none): the shortfall amounts for the same accounting period disclosed before an examination in other statements, added to these parts' for s 284-225(3) (MT 2012/3 para 35)",
+            ),
+            (
+                "income_tax_payable",
+                "AUD, statement_penalty with a not_reasonably_arguable part only, and then required: the income tax payable for the year on the basis of the return (s 284-90(3)(a))",
+            ),
+            (
+                "parts",
+                "list of 1 to 100 objects, statement_penalty only and required: the matters in one statement for one accounting period, whose before-examination disclosures are added for s 284-225(3) (a statement for another period is its own question), one matter each, with shortfall_amount (AUD, or null for a false or misleading statement with no shortfall amount), behaviour (intentional_disregard, recklessness, failure_to_take_reasonable_care or reasonable_care) and optionally not_reasonably_arguable (boolean), accepted_way_amount (AUD, the part of the shortfall from treating the law in an accepted way, s 284-224), increase (boolean, a s 284-220 ground) and disclosure (none, before_examination or during_examination, the latter for one that saved significant time or resources, s 284-225)",
+            ),
+            (
+                "liability",
+                "early_payment_interest only and required: income_tax, shortfall_interest_charge, compulsory_study_loan_repayment or fs_assessment_debt (Overpayments Act s 8A(1)(a))",
+            ),
+            (
+                "paid_on",
+                "YYYY-MM-DD, early_payment_interest only and required: the day the payment was made",
+            ),
+            (
+                "full_self_assessment",
+                "boolean, early_payment_interest only and required: true for a full self-assessment taxpayer (ITAA 1936 s 6(1)), such as a company",
+            ),
+            (
+                "notice_issued",
+                "YYYY-MM-DD: early_payment_interest when full_self_assessment is false, and then required, the day the notice of the amount was issued; overpayment_interest, required, the day the notice of the assessment, determination or decision the decision was made about was issued (s 10(1)(a)(i))",
+            ),
+            (
+                "refunded",
+                "AUD, overpayment_interest only and required: the one amount refunded or applied as a result of the decision, attributed to the payments in reverse order, no more than the payments (a later refund of the same payments is not worked)",
+            ),
+            (
+                "refunded_on",
+                "YYYY-MM-DD, overpayment_interest only and required: the day it was refunded or applied",
+            ),
+            (
+                "relevant_tax",
+                "boolean, overpayment_interest only and required: true when the amount paid is relevant tax (Overpayments Act s 3C); false is refused",
+            ),
+            (
+                "decision_to_which_act_applies",
+                "boolean, overpayment_interest only and required: true when the overpayment results from a decision to which the Act applies (s 3(1)); false is refused",
             ),
         ],
         "sb_cgt_concessions" => vec![
@@ -1872,6 +2258,26 @@ pub fn optional_inputs(kind: &str) -> Vec<(&'static str, &'static str)> {
             (
                 "year_turnover",
                 "AUD, with net_small_business_income above nil only, and then required: your aggregated turnover for the year, worked out at its end (s 328-110(4))",
+            ),
+        ],
+        "non_commercial_losses" => vec![
+            (
+                "assessable_income_estimate",
+                "AUD, with part_year true only, and then required: a reasonable estimate of the activity's assessable income had it been carried on for the whole year (s 35-30(b))",
+            ),
+            (
+                "other_income",
+                "AUD, for a primary_production or professional_arts activity only, and then required: your assessable income for the year from other sources not related to the activity, except net capital gain (s 35-10(4)(b))",
+            ),
+        ],
+        "psi_test" => vec![
+            (
+                "commission",
+                "AUD, with agent true only, and then required: the part of the principal's payments to you that is commissions or fees based on your performance (s 87-40(2)(c))",
+            ),
+            (
+                "principal_payments",
+                "AUD, with agent true only, and then required: the principal's payments to you for services to its customers (s 87-40(2)(b))",
             ),
         ],
         "balancing_adjustment" => vec![(
@@ -2288,6 +2694,76 @@ pub fn optional_inputs(kind: &str) -> Vec<(&'static str, &'static str)> {
             (
                 "spouse_taxable_income",
                 "AUD, whole dollars, not for a single person: to transfer the spouse's unused base rebate amount (regulations s 12), the spouse's taxable income for the year with any exempt disability support, carer, invalidity service or partner service pension added (s 12(5)); give it only for a spouse entitled to the offset whose whole taxable income is ordinary taxable income taxed at the resident scale (Income Tax Rates Act 1986 Sch 7 Part I item table, with no superannuation or employment termination remainder taxed at 45%); omit for no transfer",
+            ),
+        ],
+        "invalid_carer_tax_offset" => vec![
+            (
+                "days",
+                "integer from 0 to the days in the year: the days that count for part of the year (ITAA 1997 s 61-40): for a spouse, days the spouse was an invalid or carer when neither of you was eligible for FTB Part B or received parental leave pay; for another dependant, days you maintained them while they qualified; omit for the whole year",
+            ),
+            (
+                "spouse_adjusted_taxable_income",
+                "AUD, the adjusted taxable income for offsets of a spouse who is not the dependant, added for the income limit (s 61-20(1)(b)); not taken when dependant is spouse; omit for no spouse",
+            ),
+            (
+                "spouse_days",
+                "integer, with spouse_adjusted_taxable_income only: the days you had that spouse, which scale their income (s 61-20(2)); omit for the whole year",
+            ),
+            (
+                "maintained_by_others",
+                "boolean: another person also contributed to the dependant's maintenance; true is refused (s 61-40(1)(b))",
+            ),
+            (
+                "ftb_b_shared_care",
+                "boolean: you or your spouse were eligible for FTB Part B at a shared-care rate while the spouse was the dependant; true is refused (s 61-35)",
+            ),
+            (
+                "different_spouses",
+                "boolean: you had a different spouse during different parts of the year; true is refused (s 61-20(3))",
+            ),
+        ],
+        "zone_tax_offset" => vec![
+            (
+                "prior_year",
+                "income year string, zones only, with prior_days: the immediately preceding year (ITAA 1936 s 79A(3B)(d)) or a relevant preceding year 2 to 4 years before (s 79A(3B)(e)) in which you were not a resident of the area",
+            ),
+            (
+                "prior_days",
+                "integer, with prior_year: the days your usual place of residence was in the area in prior_year, not more than one-half of it, without days in a period s 23AB(8) or 79B(3) applied to",
+            ),
+            (
+                "continuous_residence",
+                "boolean, with a relevant preceding year only: your usual place of residence was in the area continuously from the start of prior_days' period to the end of this year's (s 79A(3B)(e)(v))",
+            ),
+            (
+                "includes_first_day",
+                "boolean, with a relevant preceding year only: this year's period in the area included 1 July (s 79A(3B)(e)(i))",
+            ),
+            (
+                "dependants",
+                "list of up to 50 objects, each with kind (\"student\": full-time, under 25; \"child\": not a student, under 21), adjusted_taxable_income (AUD decimal string, for the period you maintained them) and optional days (integer, days you maintained them while they qualified; omit for the whole year): your dependants under ITAA 1997 Subdivision 961-A, non-student children oldest first; a dependant also maintained by another person is refused",
+            ),
+            (
+                "sole_parent_days",
+                "integer: the days you had sole care of a dependant listed in dependants, with no spouse in the year (ITAA 1997 s 961-55)",
+            ),
+            (
+                "invalid_carer_tax_offset",
+                "AUD: the invalid and invalid carer tax offset you are entitled to for the year (ITAA 1997 Subdivision 61-A), as invalid-carer-tax-offset works it out",
+            ),
+            (
+                "remote_area_allowance",
+                "AUD, zones only: the remote area allowance paid to you for the year under the Social Security Act 1991 or the Veterans' Entitlements Act 1986 (s 79A(2A))",
+            ),
+        ],
+        "net_medical_expenses_tax_offset" => vec![
+            (
+                "spouse_adjusted_taxable_income",
+                "AUD, for a person married on 30 June, or on the day the person died for one who died in the year (s 159Q(2)): the spouse's adjusted taxable income for rebates, added and tested against the family threshold (ITAA 1936 s 159Q(1) item 1)",
+            ),
+            (
+                "dependent_children",
+                "integer from 0: dependent children (A New Tax System (Medicare Levy Surcharge - Fringe Benefits) Act 1999 meaning) on any day; one or more puts a person on the family threshold, raised by $1,500 for each after the first",
             ),
         ],
         "unused_leave_payment" => vec![
@@ -3379,6 +3855,44 @@ pub fn input_units(kind: &str) -> Vec<(&'static str, &'static str)> {
                 "single (not a spouse at any time in the year), illness_separated (a member of an illness-separated couple at any time in the year) or couple (a spouse for the whole year, never illness-separated)",
             ),
         ],
+        "beneficiary_tax_offset" => vec![(
+            "rebatable_benefit",
+            "AUD: the rebatable benefit included in assessable income (ITAA 1936 s 160AAA(1)), such as a Social Security Act 1991 Part 2.11, 2.11A, 2.12, 2.15 or 2.23B benefit, as established",
+        )],
+        "invalid_carer_tax_offset" => vec![
+            (
+                "dependant",
+                "spouse, or other (a parent or the spouse's parent, or a child, brother or sister of you or your spouse aged 16 or over): the person maintained, who meets ITAA 1997 s 61-10(2), (3) or (4)",
+            ),
+            (
+                "adjusted_taxable_income",
+                "AUD: your adjusted taxable income for offsets for the year, as income-tests works it out for 2024-25 to 2026-27",
+            ),
+            (
+                "dependant_adjusted_taxable_income",
+                "AUD: the dependant's adjusted taxable income for offsets, including their pension or carer payment, for the period you maintained them",
+            ),
+        ],
+        "zone_tax_offset" => vec![
+            (
+                "area",
+                "special_area, zone_a or zone_b (the zone of your usual place of residence: ITAA 1936 Schedule 2 and the ATO's Australian zone list), or overseas_forces",
+            ),
+            (
+                "days",
+                "integer from 0 to the days in the year: days your usual place of residence was in the area, or for overseas_forces days of service as a Defence Force member at overseas localities, counting service in the prescribed area (s 79B(3)) and not service whose income s 23AD or 23AG exempts",
+            ),
+        ],
+        "net_medical_expenses_tax_offset" => vec![
+            (
+                "net_medical_expenses",
+                "AUD: expenses paid in the year for disability aids, attendant care or aged care for you or a resident dependant, less refunds from the NDIS, a private health insurer or another government, public authority, society, association or fund (ITAA 1936 s 159P(1) and (1B))",
+            ),
+            (
+                "adjusted_taxable_income",
+                "AUD: your adjusted taxable income for rebates for the year",
+            ),
+        ],
         "lump_sum_arrears_tax_offset" => vec![
             (
                 "taxable_income",
@@ -3509,6 +4023,15 @@ pub fn input_units(kind: &str) -> Vec<(&'static str, &'static str)> {
                 "boolean, whether the employer is exempt from income tax; true is refused, as fbt-tax-exempt-body-entertainment applies",
             ),
         ],
+        "work_expenses" => vec![
+            ("method", "home_office, car_cents_per_kilometre, car_log_book or self_education"),
+            ("reimbursed", "boolean: any of the expenses was reimbursed or paid for by an employer or anyone else; true is refused, so an unknown reimbursement is too"),
+            ("allowance_received", "boolean: an allowance was received for the expenses; true is refused"),
+        ],
+        "ato_interest_penalties" => vec![(
+            "question",
+            "gic, sic, failure_to_lodge, statement_penalty, early_payment_interest or overpayment_interest; remission and scheme_penalty are refused",
+        )],
         "depreciation_low_value_pool" => vec![
             ("previous_closing_pool_balance", "AUD: the pool's closing pool balance for the previous income year (ITAA 1997 s 40-440(1) step 3(a)); 0.00 in the year the pool starts"),
             ("low_cost_assets", "AUD: the taxable use percentage of the cost of the low-cost assets (cost under $1,000, s 40-425(2)) allocated to the pool for the year"),
@@ -3559,6 +4082,47 @@ pub fn input_units(kind: &str) -> Vec<(&'static str, &'static str)> {
             ("shares", "list of up to 50 objects, each {amount, deductions} in AUD: a share of a small business entity's net small business income, or an amount s 328-355(c) covers, included in your assessable income (s 328-355(b), (c)), and your deductions attributable to it that s 328-370 covers; [] for none"),
             ("prescribed_person", "boolean: you are a prescribed person under s 102AC of the ITAA 1936 for the year (broadly, under 18 at its end); true is refused (s 328-375)"),
         ],
+        "non_commercial_losses" => vec![
+            ("activity", "other, primary_production or professional_arts: the business activity, or group of similar activities (s 35-10(3)), you carry on as an individual alone or in partnership (s 35-10(1), (4) and (5))"),
+            ("assessable_income", "AUD: your assessable income from the activity for the year, or your share as a partner without the parts s 35-25 ignores"),
+            ("deductions", "AUD: the deductions attributable to the activity for the year apart from s 35-10(2) and (2C), or your share as a partner (s 35-35)"),
+            ("brought_forward", "AUD: amounts from earlier years that s 35-10(2)(b) defers to this year, and pre-business amounts s 35-10(2C) brings into it; nil for none"),
+            ("part_year", "boolean: you started or stopped carrying on the activity during the year (s 35-30(b))"),
+            ("earlier_years", "list of the 4 income years before this one, latest first, each null for a year the activity was not carried on or {assessable_income, deductions} in AUD, the deductions apart from s 35-10(2) and (2C) (s 35-35)"),
+            ("real_property_value", "AUD: the total reduced cost bases, or market values where higher, of real property used on a continuing basis in the activity at the end of the year or when it stopped, without a private dwelling and its land or a tenant's fixtures, apportioned for other use (ss 35-40 and 35-50)"),
+            ("other_assets_value", "AUD: the total values of the assets s 35-45(2) counts used on a continuing basis in the activity, without real property and cars, motor cycles and similar vehicles, apportioned for other use (ss 35-45 and 35-50)"),
+            ("taxable_income", "AUD, may be negative: your taxable income for the year, or the loss as a negative amount, as worked out with business_losses deducted"),
+            ("business_losses", "AUD: the excesses of deductions over assessable income for each business activity that taxable_income deducts (s 35-10(2E), last sentence)"),
+            ("assessable_fhss_released_amount", "AUD: the assessable FHSS released amount included in taxable_income (s 35-10(2E)(a))"),
+            ("reportable_fringe_benefits", "AUD: your reportable fringe benefits total (s 35-10(2E)(b))"),
+            ("reportable_super_contributions", "AUD: your reportable superannuation contributions (s 35-10(2E)(c))"),
+            ("total_net_investment_loss", "AUD: your total net investment losses (s 35-10(2E)(d))"),
+            ("net_exempt_income", "AUD: your net exempt income for the year left after ss 36-10 and 36-15, which reduces an amount deferred (s 35-15); nil for none"),
+        ],
+        "psi_test" => vec![
+            ("earner", "employee, religious_practitioner, sole_trader or entity: who receives the income: the individual as an employee or office holder (s 85-35(1)), as a religious practitioner paid under s 12-47 of Schedule 1 to the TAA 1953 (s 85-35(2)), or as a contractor, or a company, partnership or trust (a personal services entity)"),
+            ("mainly_personal_efforts", "boolean: the income is mainly a reward for the individual's personal efforts or skills (s 84-5(1))"),
+            ("determination_in_force", "boolean: a personal services business determination is in force for the individual's PSI (s 87-15(1)(a) or (b))"),
+            ("payers", "list of 1 to 50 objects, one for each payer with its associates, or for each contract when a payer's contracts differ: amount (AUD, the PSI from it in the year), associate (it is an associate of the individual or entity), offer (it engaged the individual or entity as a direct result of offers to the public, s 87-20), and result, tools and defects (the income is for producing a result, the individual or entity supplies the tools and is liable for defects, s 87-18), each a boolean; and source, an optional label of 1 to 100 characters: rows with the same source are one payer with its associates for the 80% rule and the unrelated clients test (s 87-15(3))"),
+            ("agent", "boolean: the individual or entity is an agent of a principal, not its employee, paid for services to the principal's customers (s 87-40(2)); then commission and principal_payments are required"),
+            ("principal_work_by_others", "AUD: the market value of the principal work performed in the year by entities the individual or entity engaged, not counting associates that are not individuals and, for a personal services entity, individuals whose PSI is in its income; a partner's work counts for a partnership (s 87-25(1), (2) and (2A)); TR 2022/3 paragraph 118 measures it against the PSI"),
+            ("apprentice", "boolean: the individual or entity had one or more apprentices for at least half the year (s 87-25(3))"),
+            ("premises", "object of 5 booleans for the business premises test (s 87-30): at_all_times (maintained and used at all times in the year), mainly_for_psi, exclusive_use, separate_from_private and separate_from_clients"),
+        ],
+        "government_super_amounts" => {
+            let mut units = input_units("income_tests");
+            units.extend([
+                ("eligible_income", "AUD: the part of total income before business deductions attributable to activities that make the person an employee for super guarantee purposes or to carrying on a business (Co-contribution Act s 6(1)(b), (2) and s 8(3)): salary, wages, director fees and business income, not trust or non-business partnership distributions, interest, rent, dividends or lump sums for another year of employment"),
+                ("personal_contributions", "AUD: eligible personal superannuation contributions the fund received in the income year, not deducted and not a downsizer contribution (Co-contribution Act s 7)"),
+                ("concessional_contributions", "AUD: concessional contributions for the financial year, including super guarantee, salary sacrifice and deducted personal contributions (Co-contribution Act s 12C(1)(a) and s 12E(2)(a)); a person with contributions or amounts s 12E(3) disregards (constitutionally protected funds, ITAA 1997 s 291-370(1)(a), and other s 291-165(1)(c) amounts) is outside scope"),
+                ("return_lodged", "boolean: an income tax return for the year is lodged (Co-contribution Act s 6(1)(d))"),
+                ("under_71", "boolean: less than 71 years old at the end of the income year (Co-contribution Act s 6(1)(e))"),
+                ("temporary_visa_held", "boolean: held a temporary visa at any time in the income year; true is refused (Co-contribution Act s 6(1)(f))"),
+                ("non_concessional_within_cap", "boolean, or null if not established: non-concessional contributions for the financial year do not exceed the cap (Co-contribution Act s 6(1)(da)); null is refused where it decides the co-contribution"),
+                ("total_super_balance_below_cap", "boolean, or null if not established: total superannuation balance immediately before the start of the financial year is less than the general transfer balance cap (Co-contribution Act s 6(1)(db)); null is refused where it decides the co-contribution"),
+            ]);
+            units
+        }
         "income_tests" => vec![
             ("taxable_income", "AUD, whole dollars: taxable income, including any assessable FHSS released amount (nil for a loss)"),
             ("assessable_fhss_released_amount", "AUD: the amount ITAA 1997 s 313-20 includes in assessable income for released FHSS amounts"),
@@ -4074,6 +4638,33 @@ pub fn examples(kind: &str) -> Vec<(&'static str, Example)> {
             ("rebate_income", Text("39000")),
             ("status", Text("single")),
         ],
+        // Fabricated: $20,000 of a rebatable benefit in 2025-26.
+        "beneficiary_tax_offset" => vec![
+            ("year", Text("2025-26")),
+            ("rebatable_benefit", Text("20000")),
+        ],
+        // Fabricated: a parent on a disability support pension, 2025-26.
+        "invalid_carer_tax_offset" => vec![
+            ("year", Text("2025-26")),
+            ("dependant", Text("other")),
+            ("adjusted_taxable_income", Text("80000")),
+            ("dependant_adjusted_taxable_income", Text("4282")),
+        ],
+        // The ATO's Narendra example (Zone tax offset, QC105018): Lord Howe
+        // Island for 100 days in 2024-25 and 124 in 2025-26.
+        "zone_tax_offset" => vec![
+            ("year", Text("2025-26")),
+            ("area", Text("special_area")),
+            ("days", Whole(124)),
+            ("prior_year", Text("2024-25")),
+            ("prior_days", Whole(100)),
+        ],
+        // Fabricated: $10,000 of net aged care expenses in 2018-19.
+        "net_medical_expenses_tax_offset" => vec![
+            ("year", Text("2018-19")),
+            ("net_medical_expenses", Text("10000")),
+            ("adjusted_taxable_income", Text("90000")),
+        ],
         // The ATO's Yan example's combined breakdown, received in 2025-26, with
         // made-up taxable incomes.
         "lump_sum_arrears_tax_offset" => vec![
@@ -4179,6 +4770,39 @@ pub fn examples(kind: &str) -> Vec<(&'static str, Example)> {
         // foreign income and her assessable income are fabricated.
         // The Library's Neil Swan (Tax Examples ¶2-280): the days, his
         // birthday, the turnover 2 years back and the net value are fabricated.
+        // Keisha, the ATO's fixed rate method example: 843 hours in 2025-26.
+        // Her actual expenses are fabricated.
+        "work_expenses" => vec![
+            ("year", Text("2025-26")),
+            ("method", Text("home_office")),
+            ("reimbursed", Flag(false)),
+            ("allowance_received", Flag(false)),
+            ("hours", Text("843")),
+            ("energy", Text("180.00")),
+            ("phone", Text("240.00")),
+            ("internet", Text("300.00")),
+            ("stationery", Text("0.00")),
+            ("cleaning", Text("0.00")),
+            ("furniture_decline", Text("0.00")),
+            ("asset_decline", Text("0.00")),
+            ("repairs", Text("0.00")),
+            ("running_expenses_incurred", Flag(true)),
+        ],
+        // The site's GIC payment plan oracle, hand-worked: $1,000 due 1 October
+        // 2026, 2 instalments of $336.56 and a final $336.56 on 1 December.
+        "ato_interest_penalties" => vec![
+            ("question", Text("gic")),
+            ("year", Text("2026-27")),
+            ("amount", Text("1000.00")),
+            ("due_date", Text("2026-10-01")),
+            ("to", Text("2026-11-30")),
+            (
+                "payments",
+                Json(
+                    r#"[{"date": "2026-10-01", "amount": "336.56"}, {"date": "2026-11-01", "amount": "336.56"}]"#,
+                ),
+            ),
+        ],
         // The Guide to depreciating assets 2026's John: $5,000 closing balance
         // for 2024-25 and a $990 printer used 60% for taxable purposes.
         "depreciation_low_value_pool" => vec![
@@ -4248,6 +4872,85 @@ pub fn examples(kind: &str) -> Vec<(&'static str, Example)> {
             ("year_before_turnover", Text("18000.00")),
             ("likely_turnover", Text("22000.00")),
             ("year_turnover", Text("22000.00")),
+        ],
+        // The ATO's Nguyen (profits test) with fabricated income, deductions,
+        // assets and income requirement figures.
+        "non_commercial_losses" => vec![
+            ("year", Text("2025-26")),
+            ("activity", Text("primary_production")),
+            ("assessable_income", Text("10000.00")),
+            ("deductions", Text("17500.00")),
+            ("brought_forward", Text("0.00")),
+            ("part_year", Flag(false)),
+            (
+                "earlier_years",
+                Json(
+                    r#"[{"assessable_income": "40000.00", "deductions": "22500.00"}, {"assessable_income": "35000.00", "deductions": "20000.00"}, {"assessable_income": "20000.00", "deductions": "24000.00"}, {"assessable_income": "36000.00", "deductions": "20000.00"}]"#,
+                ),
+            ),
+            ("real_property_value", Text("300000.00")),
+            ("other_assets_value", Text("40000.00")),
+            ("taxable_income", Text("52500.00")),
+            ("business_losses", Text("7500.00")),
+            ("assessable_fhss_released_amount", Text("0.00")),
+            ("reportable_fringe_benefits", Text("0.00")),
+            ("reportable_super_contributions", Text("0.00")),
+            ("total_net_investment_loss", Text("0.00")),
+            ("net_exempt_income", Text("0.00")),
+            ("other_income", Text("60000.00")),
+        ],
+        // TR 2022/3 example 20: Joe installs ducts to plans with his own tools
+        // and is liable for defects; the amount is the site's.
+        "psi_test" => vec![
+            ("year", Text("2025-26")),
+            ("earner", Text("sole_trader")),
+            ("mainly_personal_efforts", Flag(true)),
+            ("determination_in_force", Flag(false)),
+            (
+                "payers",
+                Json(
+                    r#"[{"amount": "18000.00", "associate": false, "offer": false, "result": true, "tools": true, "defects": true}]"#,
+                ),
+            ),
+            ("agent", Flag(false)),
+            ("principal_work_by_others", Text("0.00")),
+            ("apprentice", Flag(false)),
+            (
+                "premises",
+                Json(
+                    r#"{"at_all_times": false, "mainly_for_psi": false, "exclusive_use": false, "separate_from_private": false, "separate_from_clients": false}"#,
+                ),
+            ),
+        ],
+        // The ATO's Angelo (Super co-contribution): $35,000 of salary and
+        // $1,040 of personal contributions; the year is the page's.
+        "government_super_amounts" => vec![
+            ("year", Text("2023-24")),
+            ("taxable_income", Text("35000")),
+            ("assessable_fhss_released_amount", Text("0")),
+            ("family_trust_distribution_amounts", Text("0")),
+            ("reportable_fringe_benefits_section_57a", Text("0")),
+            ("reportable_fringe_benefits_other", Text("0")),
+            ("reportable_employer_super_contributions", Text("0")),
+            ("deductible_personal_super_contributions", Text("0")),
+            ("excess_concessional_contributions", Text("0")),
+            ("net_financial_investment_loss", Text("0")),
+            ("net_rental_property_loss", Text("0")),
+            ("tax_free_government_pensions", Text("0")),
+            ("target_foreign_income", Text("0")),
+            ("exempt_foreign_employment_income", Text("0")),
+            ("child_support_paid", Text("0")),
+            ("assessable_income", Text("35000")),
+            ("business_deductions", Text("0")),
+            ("residency", Text("full_year_resident")),
+            ("eligible_income", Text("35000")),
+            ("personal_contributions", Text("1040")),
+            ("concessional_contributions", Text("0")),
+            ("return_lodged", Flag(true)),
+            ("under_71", Flag(true)),
+            ("temporary_visa_held", Flag(false)),
+            ("non_concessional_within_cap", Flag(true)),
+            ("total_super_balance_below_cap", Flag(true)),
         ],
         "income_tests" => vec![
             ("year", Text("2025-26")),

@@ -6149,6 +6149,8 @@ mod lump_sum_arrears;
 pub use lump_sum_arrears::lump_sum_arrears_tax_offset;
 mod income_tests;
 pub use income_tests::income_tests;
+mod government_super_amounts;
+pub use government_super_amounts::{SPOUSE_INPUTS, government_super_amounts};
 mod wine_equalisation_tax;
 pub use wine_equalisation_tax::{WetArgs, wine_equalisation_tax};
 mod fbt_minor_benefit;
@@ -6159,8 +6161,18 @@ mod fhss;
 pub use fhss::{FhssArgs, fhss};
 mod ppsr_timing;
 pub use ppsr_timing::ppsr_timing;
+mod individual_offsets;
+pub use individual_offsets::{
+    InvalidCarerArgs, MedicalArgs, ZoneArgs, disability_expenses_offset, invalid_carer_tax_offset,
+    rebatable_benefit_offset, zone_tax_offset,
+};
 mod sb_cgt_concessions;
 pub use sb_cgt_concessions::{SB_CGT_OPTIONAL, SbCgtConcessionsArgs, sb_cgt_concessions};
+mod work_expenses;
+pub use work_expenses::{WORK_EXPENSES_OPTIONAL, work_expenses};
+mod ato_interest_penalties;
+pub use ato_interest_penalties::ato_interest_penalties;
+
 mod depreciation_pools;
 pub use depreciation_pools::{
     capital_works, depreciation_low_value_pool, depreciation_small_business_pool,
@@ -6169,8 +6181,12 @@ mod small_business_income_offset;
 pub use small_business_income_offset::{
     SBITO_OPTIONAL, SmallBusinessIncomeOffsetArgs, small_business_income_offset,
 };
+mod non_commercial_losses;
+pub use non_commercial_losses::{NCL_OPTIONAL, NonCommercialLossesArgs, non_commercial_losses};
+mod psi_test;
+pub use psi_test::{PSI_OPTIONAL, PsiTestArgs, psi_test};
 
-const KINDS: [&str; 70] = [
+const KINDS: [&str; 79] = [
     "gst",
     "gst_margin_scheme",
     "fuel_tax_credits",
@@ -6224,6 +6240,10 @@ const KINDS: [&str; 70] = [
     "seniors_pensioners_withholding",
     "seniors_pensioners_tax_offset",
     "lump_sum_arrears_tax_offset",
+    "beneficiary_tax_offset",
+    "invalid_carer_tax_offset",
+    "zone_tax_offset",
+    "net_medical_expenses_tax_offset",
     "luxury_car_tax",
     "fbt_residual",
     "fbt_housing",
@@ -6237,10 +6257,15 @@ const KINDS: [&str; 70] = [
     "ppsr_timing",
     "wine_equalisation_tax",
     "sb_cgt_concessions",
+    "work_expenses",
+    "ato_interest_penalties",
     "depreciation_low_value_pool",
     "depreciation_small_business_pool",
     "capital_works",
     "small_business_income_offset",
+    "non_commercial_losses",
+    "psi_test",
+    "government_super_amounts",
 ];
 
 /// `periods(kind)`: accepted period arguments and inclusive calendar boundaries.
@@ -6306,6 +6331,7 @@ fn evidence_heading(kind: &str) -> String {
         "seniors_pensioners_withholding" => "seniors-and-pensioners".into(),
         "seniors_pensioners_tax_offset" => "seniors-and-pensioners-tax-offset".into(),
         "sb_cgt_concessions" => "small-business-cgt-concessions".into(),
+        "ato_interest_penalties" => "ato-penalties-and-interest".into(),
         _ => kind.replace('_', "-"),
     }
 }
@@ -6374,6 +6400,8 @@ pub fn worksheet_catalogue() -> Value {
             "methods".into(),
             if kind == "depreciation" {
                 json!(["prime_cost", "diminishing_value"])
+            } else if kind == "work_expenses" {
+                json!(work_expenses::METHODS)
             } else {
                 json!(fbt_benefits::methods(kind))
             },
