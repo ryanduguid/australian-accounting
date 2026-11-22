@@ -238,6 +238,44 @@ fn a_non_refundable_offset_above_the_cap() {
     assert_eq!(split(&result), ["0.00", "81550000.00"]);
 }
 
+/// Non-refundable at exactly $150 million: no excess.
+#[test]
+fn a_non_refundable_offset_at_the_cap() {
+    let result = run(&input(json!({
+        "notional_deductions": "150000000.00", "total_expenses": "2000000000.00",
+        "aggregated_turnover": "500000000.00", "base_rate_entity": false,
+    })));
+    assert_eq!(amount(&result, "excess_offset"), "0.00");
+    assert_eq!(split(&result), ["0.00", "66550000.00"]);
+}
+
+/// A clawback reduces only the s 355-100(1) total: it can move the adjusted
+/// offset from tier 2 into tier 1, or from above the cap to below it, and the
+/// amount included is only the premium given up.
+#[test]
+fn a_clawback_across_the_tier_split_and_the_cap() {
+    let tiers = run(&input(json!({
+        "notional_deductions": "300000.00", "total_expenses": "10000000.00",
+        "aggregated_turnover": "60000000.00", "base_rate_entity": false,
+        "recoupment_clawback": "150000.00",
+    })));
+    assert_eq!(
+        clawback(&tiers),
+        ["123500.00", "57750.00", "45000.00", "69166.67"]
+    );
+    assert_eq!(amount(&tiers, "adjusted_premium_tier_2"), "0.00");
+    let cap = run(&input(json!({
+        "notional_deductions": "160000000.00", "total_expenses": "2000000000.00",
+        "aggregated_turnover": "500000000.00", "base_rate_entity": false,
+        "recoupment_clawback": "20000000.00",
+    })));
+    assert_eq!(
+        clawback(&cap),
+        ["69550000.00", "61900000.00", "6000000.00", "5500000.00"]
+    );
+    assert_eq!(amount(&cap, "adjusted_excess_offset"), "0.00");
+}
+
 /// Item 1 above the cap is still refundable (s 67-30(1) disregards s
 /// 355-100(3)); at exactly $150 million nothing is excess.
 #[test]
@@ -366,6 +404,13 @@ fn each_refusal() {
         (
             json!({"notional_deductions": "30000.00", "recoupment_clawback": "30000.01"}),
             "rd_tax_offset.clawback_above_total",
+        ),
+        (
+            json!({
+                "notional_deductions": "100000.00", "feedstock_revenue": "50000.00",
+                "feedstock_expenditure": "100000.01",
+            }),
+            "rd_tax_offset.feedstock_expenditure_above_total",
         ),
     ];
     for (overrides, want) in cases {

@@ -2298,8 +2298,9 @@ clawback_income = (tax_offset - adjusted_offset - clawback_amount x corporate_ta
                   / present_year_corporate_tax_rate                                  s 355-450(1)
 ```
 
-The corporate tax rate is 25% for a base rate entity and 30% otherwise (Income
-Tax Rates Act 1986 s 23(2)). An item 1 offset is refundable, the part above $150
+The corporate tax rate is 25% where Income Tax Rates Act 1986 s 23(2)(a)
+applies (a base rate entity to which ss 23(3) to (5) and 23A do not apply) and
+30% otherwise (ITAA 1997 s 995-1). An item 1 offset is refundable, the part above $150
 million included (s 67-30(1)); any other is non-refundable (s 63-10(1) item
 35). Earlier years are refused with the reason: Act No. 92 of 2020 set these
 rates and the clawback formula for income years from 1 July 2021. A clawback

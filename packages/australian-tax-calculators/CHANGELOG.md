@@ -12,7 +12,8 @@
   threshold and the $150 million cap) and the amount s 355-450 includes in
   assessable income for a recoupment or feedstock clawback amount, for
   2021-22 to 2026-27. New codes: `rd_tax_offset.clawback_above_total`,
-  `rd_tax_offset.clawback_below_threshold` and
+  `rd_tax_offset.clawback_below_threshold`,
+  `rd_tax_offset.feedstock_expenditure_above_total` and
   `rd_tax_offset.threshold_expenditure_above_total`. `tests/rd_tax_offset.rs`
   holds it to the ATO's clawback examples and the schedule's Part E method.
 - `depreciation-low-value-pool`, `depreciation-small-business-pool` and

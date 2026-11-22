@@ -321,6 +321,12 @@ fn check(e: &Entity, claw: &Clawback) -> Result<()> {
             "rsp_crc_expenditure is part of notional_deductions and cannot exceed it (ITAA 1997 s 355-100(2)).",
         );
     }
+    if claw.expenditure.gt(&e.notional)? {
+        return refuse(
+            "rd_tax_offset.feedstock_expenditure_above_total",
+            "feedstock_expenditure is deductions for this offset year and cannot exceed notional_deductions (ITAA 1997 s 355-445(1)(b) and (2)(b)).",
+        );
+    }
     if claw.amount.gt(&e.notional)? {
         return refuse(
             "rd_tax_offset.clawback_above_total",
@@ -331,7 +337,7 @@ fn check(e: &Entity, claw: &Clawback) -> Result<()> {
     if !claw.amount.is_zero() && reduced.lt(&int(20000))? {
         return refuse(
             "rd_tax_offset.clawback_below_threshold",
-            "With a clawback amount, the s 355-100(1) total or the adjusted total is under $20,000: s 355-100(2) on its face limits the adjusted offset to research service provider and CRC expenditure, which the ATO's feedstock example does not apply; this worksheet does not choose between them.",
+            "With a clawback amount, the s 355-100(1) total or the adjusted total is under $20,000: s 355-100(2) then limits the adjusted offset to research service provider and CRC expenditure, but neither s 355-450 nor the ATO says how the clawback reduces that expenditure, and the ATO's feedstock example applies the full rate below $20,000; this worksheet does not choose between them.",
         );
     }
     Ok(())
