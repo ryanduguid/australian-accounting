@@ -23,8 +23,13 @@ default:
 setup:
     uv sync
 
+# The sum of `just rust-test` and `just python-test`, which a runner with a per-job
+# time limit can queue apart, with one `just rust-test <crate directory>` per crate.
 # Run every component's test suite, plus the repository boundary checks.
-test: setup rust-test
+test: setup rust-test python-test
+
+# The repository boundary checks and each Python component's pytest.
+python-test: setup
     #!/usr/bin/env bash
     set -euo pipefail
     echo "==> repository boundaries"
@@ -95,10 +100,21 @@ check: lint typecheck test
 # the same way, in .github/ci/rust_crates.py.
 rust_manifests := "packages/*/Cargo.toml apps/*/Cargo.toml"
 
-rust-test:
+# For example: just rust-test packages/australian-tax-calculators apps/au-accounting
+# Test every Rust crate, or only the crate directories named.
+rust-test *crates:
     #!/usr/bin/env bash
     set -euo pipefail
-    for manifest in {{ rust_manifests }}; do
+    manifests=({{ rust_manifests }})
+    if [ -n "{{ crates }}" ]; then
+        manifests=()
+        for crate in {{ crates }}; do
+            [ -f "${crate%/}/Cargo.toml" ] || { echo "no Cargo.toml in ${crate}" >&2; exit 1; }
+            manifests+=("${crate%/}/Cargo.toml")
+        done
+    fi
+    for manifest in "${manifests[@]}"; do
+        echo "==> ${manifest%/Cargo.toml}"
         (cd "${manifest%/Cargo.toml}" && cargo test --locked)
     done
 

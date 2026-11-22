@@ -13,7 +13,11 @@ uv sync        # install every component and the shared toolchain
 just test      # every component's suite, plus the repository boundary checks
 ```
 
-`just test` runs `just setup` first, which repeats `uv sync`.
+`just test` runs `just setup` first, which repeats `uv sync`. It is the sum of 2 parts
+that can run apart, for a runner that limits each job's time: `just python-test` (the
+boundary checks and each Python component's pytest) and `just rust-test` (`cargo test
+--locked` in every crate). `just rust-test packages/australian-tax-calculators` tests
+only the crate directories named, so each crate can be its own job.
 
 `uv sync` creates one `.venv` at the root and installs the Python components into it
 as editable workspace members. Australian Tax Calculators, Division 7A Loan
