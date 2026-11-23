@@ -16,96 +16,43 @@ use crate::dates;
 
 const KIND: &str = "asic_fees";
 
-/// One fee: its input key, ASIC's code, what it is, its 2026-27 amount in
-/// dollars (none for a late fee, whose amount turns on the tier) and the
-/// item that imposes it.
+/// One fee: its input key, ASIC's code, its 2026-27 amount in dollars (none
+/// for a late fee, whose amount turns on the tier), what it is and the item
+/// that imposes it.
 struct Fee {
     key: &'static str,
     code: &'static str,
-    name: &'static str,
     amount: Option<i64>,
+    name: &'static str,
     item: &'static str,
 }
 
-const FEES: [Fee; 11] = [
-    Fee {
-        key: "company_share_capital",
-        code: "I02",
-        name: "Register a company with share capital",
-        amount: Some(636),
-        item: "Corporations (Fees) Regulations 2001 (Compilation No. 41), Schedule 2 item 1(a)(i)",
-    },
-    Fee {
-        key: "company_no_share_capital",
-        code: "I01",
-        name: "Register a company without share capital",
-        amount: Some(524),
-        item: "Corporations (Fees) Regulations 2001 (Compilation No. 41), Schedule 2 item 1(a)(ii)",
-    },
-    Fee {
-        key: "name_reservation",
-        code: "R01",
-        name: "Reserve a company name, or extend a reservation",
-        amount: Some(65),
-        item: "Corporations (Fees) Regulations 2001 (Compilation No. 41), Schedule 2 item 8",
-    },
-    Fee {
-        key: "review_public",
-        code: "A51",
-        name: "Annual review fee, public company (not a special purpose company or small transferring financial institution)",
-        amount: Some(1591),
-        item: "Corporations (Review Fees) Regulations 2003 (Compilation No. 11), Schedule 1 Part 1 item 1",
-    },
-    Fee {
-        key: "review_proprietary",
-        code: "A52",
-        name: "Annual review fee, proprietary company (not a special purpose company)",
-        amount: Some(342),
-        item: "Corporations (Review Fees) Regulations 2003 (Compilation No. 11), Schedule 1 Part 1 item 2",
-    },
-    Fee {
-        key: "review_special_public",
-        code: "A53",
-        name: "Annual review fee, special purpose company that is not a proprietary company",
-        amount: Some(65),
-        item: "Corporations (Review Fees) Regulations 2003 (Compilation No. 11), Schedule 1 Part 1 item 4",
-    },
-    Fee {
-        key: "review_special_proprietary",
-        code: "A58",
-        name: "Annual review fee, special purpose company that is a proprietary company",
-        amount: Some(70),
-        item: "Corporations (Review Fees) Regulations 2003 (Compilation No. 11), Schedule 1 Part 1 item 5",
-    },
-    Fee {
-        key: "business_name_1",
-        code: "BZA or BZC",
-        name: "Register or renew a business name for 1 year",
-        amount: Some(47),
-        item: "Business Names Registration (Fees) Regulations 2022, section 6 items 1 and 2",
-    },
-    Fee {
-        key: "business_name_3",
-        code: "BZB or BZD",
-        name: "Register or renew a business name for 3 years",
-        amount: Some(108),
-        item: "Business Names Registration (Fees) Regulations 2022, section 6 items 3 and 4",
-    },
-    Fee {
-        key: "late_review_payment",
-        code: "LPF1_ETM or LPF2_ETM",
-        name: "Late payment of an annual review fee",
-        amount: None,
-        item: "Corporations (Review Fees) Regulations 2003 (Compilation No. 11), Schedule 1 Part 3 items 1 and 2",
-    },
-    Fee {
-        key: "late_lodgement",
-        code: "LPF1_ETM or LPF2_ETM",
-        name: "Late lodgement of a document",
-        amount: None,
-        item: "Corporations (Fees) Regulations 2001 (Compilation No. 41), Schedule 2 item 14",
-    },
+/// The fees as [`Fee`]'s fields separated by `|`, `-` for a late fee's amount.
+const FEES: [&str; 11] = [
+    "company_share_capital|I02|636|Register a company with share capital|Corporations (Fees) Regulations 2001 (Compilation No. 41), Schedule 2 item 1(a)(i)",
+    "company_no_share_capital|I01|524|Register a company without share capital|Corporations (Fees) Regulations 2001 (Compilation No. 41), Schedule 2 item 1(a)(ii)",
+    "name_reservation|R01|65|Reserve a company name, or extend a reservation|Corporations (Fees) Regulations 2001 (Compilation No. 41), Schedule 2 item 8",
+    "review_public|A51|1591|Annual review fee, public company (not a special purpose company or small transferring financial institution)|Corporations (Review Fees) Regulations 2003 (Compilation No. 11), Schedule 1 Part 1 item 1",
+    "review_proprietary|A52|342|Annual review fee, proprietary company (not a special purpose company)|Corporations (Review Fees) Regulations 2003 (Compilation No. 11), Schedule 1 Part 1 item 2",
+    "review_special_public|A53|65|Annual review fee, special purpose company that is not a proprietary company|Corporations (Review Fees) Regulations 2003 (Compilation No. 11), Schedule 1 Part 1 item 4",
+    "review_special_proprietary|A58|70|Annual review fee, special purpose company that is a proprietary company|Corporations (Review Fees) Regulations 2003 (Compilation No. 11), Schedule 1 Part 1 item 5",
+    "business_name_1|BZA or BZC|47|Register or renew a business name for 1 year|Business Names Registration (Fees) Regulations 2022, section 6 items 1 and 2",
+    "business_name_3|BZB or BZD|108|Register or renew a business name for 3 years|Business Names Registration (Fees) Regulations 2022, section 6 items 3 and 4",
+    "late_review_payment|LPF1_ETM or LPF2_ETM|-|Late payment of an annual review fee|Corporations (Review Fees) Regulations 2003 (Compilation No. 11), Schedule 1 Part 3 items 1 and 2",
+    "late_lodgement|LPF1_ETM or LPF2_ETM|-|Late lodgement of a document|Corporations (Fees) Regulations 2001 (Compilation No. 41), Schedule 2 item 14",
 ];
+
+fn fee(row: &'static str) -> Fee {
+    let mut fields = row.splitn(5, '|');
+    let mut next = || fields.next().unwrap_or_default();
+    Fee {
+        key: next(),
+        code: next(),
+        amount: next().parse().ok(),
+        name: next(),
+        item: next(),
+    }
+}
 
 /// The late fees in 2026-27 (LPF1_ETM within one month, LPF2_ETM beyond), in
 /// dollars: Review Fees Regulations Schedule 1 Part 3 items 1 and 2, and
@@ -235,8 +182,8 @@ fn late(fee: &Fee, args: &AsicFeesArgs, out: &mut Value) -> Result<i64> {
 pub fn asic_fees(args: &AsicFeesArgs) -> Result<Value> {
     let year = scope(args.scope_confirmed, args.year, KIND)?;
     let given = args.fee.text().unwrap_or_default();
-    let Some(fee) = FEES.iter().find(|fee| fee.key == given) else {
-        let keys: Vec<&str> = FEES.iter().map(|fee| fee.key).collect();
+    let Some(fee) = FEES.map(fee).into_iter().find(|fee| fee.key == given) else {
+        let keys = FEES.map(|row| fee(row).key);
         return refuse(
             "asic_fees.fee_unknown",
             format!("fee must be one of {}.", keys.join(", ")),
@@ -245,7 +192,7 @@ pub fn asic_fees(args: &AsicFeesArgs) -> Result<Value> {
     let mut out = json!({"code": fee.code, "tier": null, "first_month_ends": null, "steps": []});
     let amount = match fee.amount {
         Some(amount) => amount,
-        None => late(fee, args, &mut out)?,
+        None => late(&fee, args, &mut out)?,
     };
     let mut full = result(KIND, &year, vec![("fee", int(amount))], Vec::new())?;
     full["fee"] = json!(fee.key);
