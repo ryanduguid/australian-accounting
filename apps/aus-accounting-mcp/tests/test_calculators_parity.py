@@ -188,7 +188,8 @@ def test_the_disclaimer_states_the_served_worksheet_scopes() -> None:
     section = "\n".join(f"{kind}: {entry['scope']}" for kind, entry in _catalogue().items())
     assert f"# australian-tax-calculators\n\n{section}\n\n# gst-review" in resources.disclaimer()
     old = dict(line.split(": ", 1) for line in ORACLE["disclaimer_section"].splitlines())
-    assert {kind for kind, scope in old.items() if _catalogue()[kind]["scope"] != scope} == NARROWED | WIDENED_SCOPE
+    changed = {kind for kind, scope in old.items() if _catalogue()[kind]["scope"] != scope}
+    assert changed == NARROWED | WIDENED_SCOPE
 
 
 def test_the_freshness_datasets_change_only_with_the_catalogue() -> None:
