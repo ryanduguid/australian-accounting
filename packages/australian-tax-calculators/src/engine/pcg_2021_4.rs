@@ -496,14 +496,9 @@ fn third(factor_3: bool, given: Option<Factor3>, key: &'static str) -> Factor3 {
 
 /// An input taken only with factor 3: refused without it, read with it.
 fn with_factor_3(factor_3: bool, given: Option<&Arg>, key: &str) -> Result<Option<Decimal>> {
-    when(
-        factor_3 && given.is_some(),
-        given,
-        key,
-        "when factor_3 is true",
-    )?
-    .map(|v| amount(v, key))
-    .transpose()
+    let need = factor_3 && given.is_some();
+    let given = when(need, given, key, "when factor_3 is true")?;
+    given.map(|v| amount(v, key)).transpose()
 }
 
 /// The totals the mode gives, with the amounts the result shows.
