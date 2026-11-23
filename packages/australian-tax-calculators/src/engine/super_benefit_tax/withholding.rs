@@ -8,6 +8,7 @@
 
 use serde_json::{Value, json};
 
+use super::income_stream::{STREAM_OPTIONAL, income_stream};
 use super::parts::{self, Parts};
 use super::{
     Components, SUPER_BENEFIT_OPTIONAL, SuperBenefitTaxArgs, Treatment, components, payment_day,
@@ -27,6 +28,8 @@ pub struct SuperWithholdingArgs<'a> {
     pub base: SuperBenefitTaxArgs<'a>,
     pub tfn_provided: &'a Arg,
     pub foreign_resident: &'a Arg,
+    /// [`STREAM_OPTIONAL`] in order: given only for an income stream payment.
+    pub stream: [Option<&'a Arg>; 4],
 }
 
 const TABLE_A: &str = "Withholding Schedules, Schedule 12, Table A: the rate for the part, which includes the 2% Medicare levy (a foreign resident's rate excludes it); nil where the tax offset's ceiling rate is nil (the ATO's Schedule 12 from 13 October 2020 to 30 June 2024; Schedule 12 of F2024L00664, F2025L00647 and F2026L00716)";
@@ -248,6 +251,17 @@ pub fn super_withholding(args: &SuperWithholdingArgs) -> Result<Value> {
     }
     let tfn = flag(args.tfn_provided, "tfn_provided")?;
     let foreign = flag(args.foreign_resident, "foreign_resident")?;
+    if args.stream[0].is_some() {
+        return income_stream(b, &args.stream, (&year, paid), (tfn, foreign));
+    }
+    for (key, given) in STREAM_OPTIONAL.iter().zip(args.stream) {
+        when(
+            false,
+            given,
+            key,
+            "for an income stream (with income_stream_period)",
+        )?;
+    }
     let recipient = b.recipient.text();
     let known = [
         "member",
@@ -259,7 +273,7 @@ pub fn super_withholding(args: &SuperWithholdingArgs) -> Result<Value> {
     if !recipient.is_some_and(|r| known.contains(&r)) {
         return refuse("super_withholding.recipient_invalid", RECIPIENTS);
     }
-    let c = components(b)?;
+    let c = components(b, false)?;
     let (name, ages, (tail, mut rates)) = match recipient {
         Some("rollover") => ("rollover", None, rollover(b, &c, &year, tfn)?),
         Some("deceased_estate_trustee") => {
