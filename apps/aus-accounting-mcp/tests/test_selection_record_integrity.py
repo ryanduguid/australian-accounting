@@ -66,7 +66,8 @@ def test_a_recording_can_bind_the_reference_snapshot(tmp_path, capsys):
     assert tool_selection.main(["score", str(record), "--reference-sha256", digest]) == 0
     report = capsys.readouterr().out
     assert f"reference_sha256 {digest}" in report
-    assert "1 of 42 recorded calls and answers match the reference." in report
+    count = len(ET.parse(tool_selection.QUESTIONS).getroot().findall("qa_pair"))
+    assert f"1 of {count} recorded calls and answers match the reference." in report
     assert tool_selection.main(["score", str(record), "--reference-sha256", "0" * 64]) == 2
     assert "reference digest differs" in capsys.readouterr().err
 

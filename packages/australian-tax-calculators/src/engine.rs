@@ -1385,8 +1385,10 @@ fn payg_rows(year: &str, scale: i64) -> Option<&'static [CoefficientRow]> {
 }
 
 /// `_payg_checks`: scope, earnings, pay period and scale, in that order. Only
-/// `payg_withholding` and `unused_leave_payment` take scale 4, which Schedules 1
-/// and 7 cover and Schedule 5 does not, and only `payg_withholding` and
+/// the Schedule 1 kinds (`payg_withholding`, and `upward_variation_withholding`
+/// and `annuity_withholding`, which work out its amount) and
+/// `unused_leave_payment` take scale 4, which Schedules 1 and 7 cover and
+/// Schedule 5 does not, and only the Schedule 1 kinds and
 /// `study_loan_withholding` quarterly pays, which Schedules 1 and 8 cover.
 fn payg_checks(
     kind: &str,
@@ -1398,7 +1400,12 @@ fn payg_checks(
 ) -> Result<(String, Decimal, String, i64)> {
     let year = scope(scope_confirmed, year, kind)?;
     let earnings = money(earnings)?;
-    let schedule_1 = kind == "payg_withholding";
+    // Schedules 14 and 6 work out the Schedule 1 amount, so take Schedule 1's
+    // pays and scale 4 (Schedule 6 applies its own no TFN rule to the payment).
+    let schedule_1 = matches!(
+        kind,
+        "payg_withholding" | "upward_variation_withholding" | "annuity_withholding"
+    );
     let quarterly = schedule_1 || kind == "study_loan_withholding";
     let period = match pay_period.text() {
         Some(p @ ("weekly" | "fortnightly" | "monthly")) => p.to_string(),
@@ -3728,6 +3735,7 @@ pub fn contribution_caps(
     under_75_in_year: &Arg,
     year: &Arg,
     scope_confirmed: &Arg,
+    determination_date: Option<&Arg>,
 ) -> Result<Value> {
     let year = scope(scope_confirmed, year, "contribution_caps")?;
     let balance = money(total_super_balance)?;
@@ -3752,6 +3760,7 @@ pub fn contribution_caps(
         steps,
         (&non_concessional, *under_75),
         Vec::new(),
+        determination_date,
     )
 }
 
@@ -3763,25 +3772,14 @@ fn caps_result(
     mut steps: Vec<Step>,
     (non_concessional, under_75): (&Decimal, bool),
     more_rates: Vec<(String, String)>,
+    determination_date: Option<&Arg>,
 ) -> Result<Value> {
     let (cap, transfer) = lookup(meta::CONTRIBUTION_CAPS, year);
+    let mut release_warning = None;
     let rates = precise(|| {
         let (cap, transfer) = (d(cap), d(transfer));
         let annual = cap.mul(&int(4))?;
-        // s 292-85: nil at or above the transfer balance cap; otherwise the
-        // balance band sets how many annual caps the first year can bring forward.
-        let multiple: i64 = if balance.compare(&transfer)?.is_ge() {
-            0
-        } else if !under_75 || balance.compare(&transfer.sub(&annual)?)?.is_ge() {
-            1
-        } else if balance
-            .compare(&transfer.sub(&annual.mul(&int(2))?)?)?
-            .is_ge()
-        {
-            2
-        } else {
-            3
-        };
+        let multiple = bring_forward_multiple(balance, &transfer, &annual, under_75)?;
         let triggered = multiple > 1 && non_concessional.gt(&annual)?;
         steps.extend(non_concessional_steps(
             non_concessional,
@@ -3804,9 +3802,53 @@ fn caps_result(
             ),
         ];
         rates.extend(more_rates);
+        if let Some(date) = determination_date {
+            release_warning = Some(add_release(&mut steps, &mut rates, year, date)?);
+        }
         Ok(rates)
     })?;
-    derived_result("contribution_caps", year, steps, rates)
+    let mut out = derived_result("contribution_caps", year, steps, rates)?;
+    if let Some(warning) = release_warning {
+        ato_interest_penalties::warn(&mut out, warning);
+    }
+    Ok(out)
+}
+
+/// s 292-85: nil at or above the transfer balance cap; otherwise the balance
+/// band sets how many annual caps the first year can bring forward.
+fn bring_forward_multiple(
+    balance: &Decimal,
+    transfer: &Decimal,
+    annual: &Decimal,
+    under_75: bool,
+) -> Result<i64> {
+    Ok(if balance.compare(transfer)?.is_ge() {
+        0
+    } else if !under_75 || balance.compare(&transfer.sub(annual)?)?.is_ge() {
+        1
+    } else if balance
+        .compare(&transfer.sub(&annual.mul(&int(2))?)?)?
+        .is_ge()
+    {
+        2
+    } else {
+        3
+    })
+}
+
+/// Appends the release of the excess non-concessional contributions (the
+/// last step) to `determination_date`, returning the ATO-figures warning.
+fn add_release(
+    steps: &mut Vec<Step>,
+    rates: &mut Vec<(String, String)>,
+    year: &str,
+    date: &Arg,
+) -> Result<String> {
+    let excess = steps.last().expect("the excess").value.clone();
+    let (more, release_rates, warning) = excess_contributions::release_steps(&excess, year, date)?;
+    steps.extend(more);
+    rates.extend(release_rates);
+    Ok(warning)
 }
 
 /// The concessional amounts. s 291-20(3)-(4): the unused cap raises this
@@ -4535,12 +4577,7 @@ fn income_year_start(first: i64) -> i64 {
 /// loan first drawn on 29 February 2024 has its 5 years end on 28 February
 /// 2029, as they would by the anniversary.
 fn five_years_end(start: i64) -> i64 {
-    let same_day = dates::add_months(start, 60);
-    if dates::to_civil(same_day).2 == dates::to_civil(start).2 {
-        same_day - 1
-    } else {
-        same_day
-    }
+    dates::months_end(start, 60)
 }
 
 /// One income year of the spread under s 25-25(4).
@@ -4857,13 +4894,18 @@ mod fbt_ev_exemption;
 pub use fbt_ev_exemption::{EvExemptionArgs, fbt_ev_exemption_check};
 mod dasp_tax;
 pub use dasp_tax::{DaspTaxArgs, dasp_tax};
+mod super_benefit_tax;
+pub use super_benefit_tax::{
+    SUPER_BENEFIT_OPTIONAL, SuperBenefitTaxArgs, SuperWithholdingArgs, super_benefit_tax,
+    super_withholding,
+};
 mod payroll_tax;
 pub use payroll_tax::{PayrollTaxArgs, payroll_tax};
 mod luxury_car_tax;
 mod stated;
 pub use luxury_car_tax::{LctArgs, luxury_car_tax};
 mod cgt_parcels;
-pub use cgt_parcels::{CgtParcelsArgs, cgt_parcels};
+pub use cgt_parcels::{CgtCostBaseArgs, CgtParcelsArgs, cgt_cost_base_adjustments, cgt_parcels};
 
 /// One pay that includes an additional payment, as Schedule 5 (NAT 3348) reads it.
 struct AdditionalPay {
@@ -6153,6 +6195,8 @@ mod government_super_amounts;
 pub use government_super_amounts::{SPOUSE_INPUTS, government_super_amounts};
 mod wine_equalisation_tax;
 pub use wine_equalisation_tax::{WetArgs, wine_equalisation_tax};
+mod alcohol_excise;
+pub use alcohol_excise::{AlcoholExciseArgs, alcohol_excise};
 mod fbt_minor_benefit;
 pub use fbt_minor_benefit::{MinorBenefitArgs, fbt_minor_benefit_check};
 mod gst_margin_scheme;
@@ -6172,6 +6216,13 @@ mod work_expenses;
 pub use work_expenses::{WORK_EXPENSES_OPTIONAL, work_expenses};
 mod ato_interest_penalties;
 pub use ato_interest_penalties::ato_interest_penalties;
+mod excess_contributions;
+pub use excess_contributions::excess_contributions;
+mod transfer_balance;
+pub use transfer_balance::transfer_balance;
+
+mod private_health_insurance_rebate;
+pub use private_health_insurance_rebate::{PhiRebateArgs, private_health_insurance_rebate};
 
 mod depreciation_pools;
 pub use depreciation_pools::{
@@ -6181,14 +6232,55 @@ mod small_business_income_offset;
 pub use small_business_income_offset::{
     SBITO_OPTIONAL, SmallBusinessIncomeOffsetArgs, small_business_income_offset,
 };
+mod trading_stock;
+pub use trading_stock::{TradingStockArgs, trading_stock};
+mod prepayments;
+pub use prepayments::{PrepaymentsArgs, prepayments};
 mod non_commercial_losses;
 pub use non_commercial_losses::{NCL_OPTIONAL, NonCommercialLossesArgs, non_commercial_losses};
 mod psi_test;
 pub use psi_test::{PSI_OPTIONAL, PsiTestArgs, psi_test};
+mod rental_property;
+pub use rental_property::{RentalPropertyArgs, rental_property};
+mod withholding_schedules;
+pub use withholding_schedules::{
+    daily_casual_withholding, horticulture_shearing_withholding, no_abn_withholding,
+    upward_variation_withholding,
+};
+mod payment_withholding;
+pub use payment_withholding::{
+    annuity_withholding, entertainer_withholding, return_to_work_withholding,
+    voluntary_agreement_withholding,
+};
+mod residency_tests;
+pub use residency_tests::{ResidencyTestsArgs, residency_tests};
+mod lodgment_required;
+pub use lodgment_required::{LodgmentRequiredArgs, lodgment_required};
+mod rd_tax_offset;
+pub use rd_tax_offset::{RdTaxOffsetArgs, rd_tax_offset};
+mod gst_adjustments;
+pub use gst_adjustments::{
+    AnnualApportionmentArgs, BadDebtArgs, CreditablePurposeArgs, FinancialAcquisitionsArgs,
+    GoingConcernArgs, SecondHandGoodsArgs, gst_annual_apportionment, gst_bad_debt,
+    gst_creditable_purpose_change, gst_financial_acquisitions_threshold, gst_going_concern,
+    gst_second_hand_goods,
+};
+mod deferred_tax;
+pub use deferred_tax::{DeferredTaxArgs, deferred_tax};
+mod foreign_income_conversion;
+pub use foreign_income_conversion::foreign_income_conversion;
+mod foreign_income_tax_offset;
+pub use foreign_income_tax_offset::{
+    FITO_OPTIONAL, ForeignIncomeTaxOffsetArgs, foreign_income_tax_offset,
+};
+mod minors_income;
+pub use minors_income::{MINORS_OPTIONAL, MinorsIncomeArgs, minors_income};
+mod smsf_tax;
+pub use smsf_tax::smsf_tax;
 mod ess_discount;
 pub use ess_discount::{EssDiscountArgs, ess_discount};
 
-const KINDS: [&str; 80] = [
+const KINDS: [&str; 112] = [
     "gst",
     "gst_margin_scheme",
     "fuel_tax_credits",
@@ -6207,6 +6299,8 @@ const KINDS: [&str; 80] = [
     "trade_in",
     "franking_account",
     "dasp_tax",
+    "super_benefit_tax",
+    "super_withholding",
     "payroll_tax",
     "fbt",
     "fbt_car_statutory",
@@ -6258,9 +6352,13 @@ const KINDS: [&str; 80] = [
     "income_tests",
     "ppsr_timing",
     "wine_equalisation_tax",
+    "alcohol_excise",
     "sb_cgt_concessions",
     "work_expenses",
     "ato_interest_penalties",
+    "transfer_balance",
+    "excess_contributions",
+    "private_health_insurance_rebate",
     "depreciation_low_value_pool",
     "depreciation_small_business_pool",
     "capital_works",
@@ -6268,6 +6366,32 @@ const KINDS: [&str; 80] = [
     "non_commercial_losses",
     "psi_test",
     "government_super_amounts",
+    "rental_property",
+    "horticulture_shearing_withholding",
+    "upward_variation_withholding",
+    "daily_casual_withholding",
+    "no_abn_withholding",
+    "entertainer_withholding",
+    "return_to_work_withholding",
+    "annuity_withholding",
+    "voluntary_agreement_withholding",
+    "residency_tests",
+    "lodgment_required",
+    "rd_tax_offset",
+    "gst_creditable_purpose_change",
+    "gst_annual_apportionment",
+    "gst_financial_acquisitions_threshold",
+    "gst_going_concern",
+    "gst_second_hand_goods",
+    "gst_bad_debt",
+    "deferred_tax",
+    "cgt_cost_base_adjustments",
+    "foreign_income_conversion",
+    "foreign_income_tax_offset",
+    "trading_stock",
+    "prepayments",
+    "minors_income",
+    "smsf_tax",
     "ess_discount",
 ];
 

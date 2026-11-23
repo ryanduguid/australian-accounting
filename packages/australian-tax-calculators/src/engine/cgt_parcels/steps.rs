@@ -20,7 +20,7 @@ const NET_LOSS: &str =
 const CARRIED: &str = "ITAA 1997 ss 102-10(1) and 102-15: the year's net capital loss and the earlier years' net capital losses not applied, carried forward";
 
 /// A sum over the pieces, written out term by term.
-fn total(values: &[&Decimal]) -> Result<(String, Decimal)> {
+pub(super) fn total(values: &[&Decimal]) -> Result<(String, Decimal)> {
     let mut sum = int(0);
     for v in values {
         sum = sum.add(v)?;

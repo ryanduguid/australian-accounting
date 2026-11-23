@@ -13,7 +13,11 @@ uv sync        # install every component and the shared toolchain
 just test      # every component's suite, plus the repository boundary checks
 ```
 
-`just test` runs `just setup` first, which repeats `uv sync`.
+`just test` runs `just setup` first, which repeats `uv sync`. It is the sum of 2 parts
+that can run apart, for a runner that limits each job's time: `just python-test` (the
+boundary checks and each Python component's pytest) and `just rust-test` (`cargo test
+--locked` in every crate). `just rust-test packages/australian-tax-calculators` tests
+only the crate directories named, so each crate can be its own job.
 
 `uv sync` creates one `.venv` at the root and installs the Python components into it
 as editable workspace members. Australian Tax Calculators, Division 7A Loan
@@ -202,16 +206,17 @@ release callers require that test job; no second pytest run is needed.
   input also runs every engine.
   On a push to `main`, an engine whose pyproject version has no `<engine>/v<version>` tag
   yet also runs, whatever changed, so its release can be tagged on `main`'s head.
-- Each engine's `<engine> / gates` job reports on every run: it passes when each gate
-  passed or was skipped by the path filter and fails when any gate failed or was
-  cancelled. `tests-gates` needs every engine's call, so branch protection requires it
-  rather than the per-engine contexts. The individual jobs are not required, because a
-  skipped matrix job never reports under its matrix names and would block every pull
-  request the path filter skips.
+- Each engine's Linux test matrix runs on every pull request. Its gates job requires
+  that matrix to pass and allows the other jobs to skip when their paths are unchanged.
+  The required `tests-gates` check depends on every engine's workflow call.
+- Codecov requires 100% project coverage and a fresh 100% report from each Python
+  component. The MCP application and lodgment calendar each upload their Linux
+  Python 3.14 report on pull requests and pushes to `main`.
 - Application jobs use `.github/ci/app_ci.py` to select PR changes. An application's own
   files, its engine dependencies, root tests, shared policy and workspace files, and any
-  unknown path or comparison run its complete checks. Only known unrelated component
-  paths can skip them. The MCP application includes its 4 engine dependencies; the
+  unknown path or comparison run its complete checks. For known unrelated paths, the MCP
+  application's Linux Python 3.14 test still runs and its other checks can skip.
+  The MCP application includes its 4 engine dependencies; the
   adapter includes the 2 engines its trials link. Root pytest checks these
   dependency lists against each application's manifest on every change. The aggregate requires a
   successful selection and exactly the corresponding successful or skipped app jobs.
