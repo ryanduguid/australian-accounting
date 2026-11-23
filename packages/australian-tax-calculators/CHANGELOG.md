@@ -16,6 +16,19 @@
   `super_withholding.income_stream_period_invalid` and
   `super_withholding.income_stream_year`. `tests/super_income_stream.rs` runs
   each schedule's Veronica example and each rule.
+- `land-tax`: one owner's land tax for a full land tax year in New South
+  Wales and Victoria (2026) and Queensland, Western Australia, South
+  Australia, Tasmania and the ACT (2026-27), at the general or trust rates,
+  with each jurisdiction's foreign or absentee owner surcharge and Western
+  Australia's metropolitan region improvement tax. It mirrors the site's land
+  tax calculator and agrees with it on every case except where the Act
+  differs: Queensland's surcharge over $349,999, South Australia's $20
+  minimum and Tasmania's rounding to 10 cents. New codes:
+  `land_tax.absentee_trust_unsupported`, `land_tax.jurisdiction_invalid`,
+  `land_tax.metropolitan_region_invalid`, `land_tax.metropolitan_region_part`,
+  `land_tax.rounding_unsettled`, `land_tax.surcharge_unavailable`,
+  `land_tax.surcharge_value_above_taxable_value` and
+  `land_tax.trust_rates_unavailable`. `derive` takes it.
 - `trading-stock` works out the change in value of trading stock under ITAA
   1997 s 70-35 for 2020-21 to 2026-27, each closing item valued by its own
   election (cost, market selling value, replacement value, the lowest, or an

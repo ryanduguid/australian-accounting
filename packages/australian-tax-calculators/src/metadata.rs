@@ -1187,6 +1187,9 @@ pub fn supported_periods(kind: &str) -> Vec<&'static str> {
         // tax return 2026 instructions were read for, with the 25% and 30%
         // rates for imputation purposes.
         "franking_account" => vec!["2025-26", "2026-27"],
+        // Each jurisdiction's land tax year current on 23 November 2026: the
+        // 2026 calendar year in nsw and vic, 2026-27 elsewhere.
+        "land_tax" => vec!["2026", "2026-27"],
         // The 2026-27 rates and thresholds each revenue office published, read
         // on 19 November 2026.
         "payroll_tax" => vec!["2026-27"],
@@ -1522,6 +1525,10 @@ pub fn source_review(kind: &str) -> (&'static str, &'static str) {
         "dasp_tax" => (
             "2026-11-19",
             "Superannuation (Departing Australia Superannuation Payments Tax) Act 2007 ss 4 to 6 (compilation 5, 2 December 2016, Federal Register of Legislation); ITAA 1997 ss 301-170 and 301-175, from the ATO's legal database; the ATO's 'Payments from super' rates (last updated 16 September 2026) and 'Departing Australia superannuation payment (DASP)' (last updated 21 April 2026)",
+        ),
+        "land_tax" => (
+            "2026-11-23",
+            "Land Tax Act 2005 (Vic) Sch 1 Tables 1.6, 3.6, 4.5 and 5.5 (authorised version 086, 1 May 2026); Land Tax Act 2010 (Qld) s 32 and Schs 1 to 3 (current reprint); Land Tax Act 2002 (WA) s 5 Table 11 (02-d0-04) and Metropolitan Region Improvement Tax Act 1959 (WA) s 3 Table 3 (04-a0-08); Land Tax Act 1936 (SA) ss 6 and 8A and Sch 1 (version 4.12.2025); Land Tax Rating Act 2000 (Tas) ss 6, 6A and 7 and Sch 1; Land Tax Act 2004 (ACT) ss 9 and 17E (republication 34) with DI2026-152 ss 6 and 7; Revenue NSW's thresholds and rates, trusts and surcharge land tax pages (the NSW Acts were not readable); and each revenue office's rates page",
         ),
         "payroll_tax" => (
             "2026-11-19",
@@ -2008,6 +2015,12 @@ pub fn library_evidence(kind: &str) -> [(&'static str, &'static str); 4] {
             "8-420",
             "2026-06-30",
             "2026-11-19",
+        ),
+        "land_tax" => (
+            "Revenue office land tax pages: Revenue NSW thresholds and rates, trusts and surcharge land tax; SRO Victoria current rates; QRO rates for individuals, companies and trusts, absentees and foreign companies; RevenueSA rates and thresholds; SRO Tasmania foreign investor land tax surcharge guideline",
+            "Revenue NSW's 3-year average, special trust and surcharge examples 1 to 3; SRO Victoria's $5,550 and $44,650; QRO's 6 examples; RevenueSA's $2,670 and $3,550; SRO Tasmania FILTS example 1",
+            "2026-09-29",
+            "2026-11-23",
         ),
         "payroll_tax" => (
             "Revenue office payroll tax pages: Revenue NSW thresholds and rates; SRO Victoria payroll tax surcharges; QRO payroll tax deductions; RevenueWA employer guide; SRO Tasmania annual adjustment return guideline",
@@ -3191,6 +3204,16 @@ pub fn optional_inputs(kind: &str) -> Vec<(&'static str, &'static str)> {
                 "boolean, for a plug_in_hybrid_electric vehicle only and then required: true when a car benefit relating to the car was provided before 1 April 2025 and was exempt under s 8A as it then read (item 5(2)(d) and (e))",
             ),
         ],
+        "land_tax" => vec![
+            (
+                "surcharge_value",
+                "AUD, whole dollars, for a foreign owner in nsw or tas only and then required: in nsw the land value of the residential land the foreign person owns, their share only (surcharge land tax, 5%); in tas the assessed land value of the foreign-owned part of one folio of residential general land that foreign investor land tax applies to (Land Tax Rating Act 2000 (Tas) s 6A, Land Tax Act 2000 (Tas) Pt 3 Div 1A: land a foreign person acquires on or after 1 July 2022, including through a company or trust that becomes foreign; 2%), no more than taxable_value",
+            ),
+            (
+                "metropolitan_region",
+                "all, none or part, in wa only and then required: whether the land is in the Perth metropolitan region, for the metropolitan region improvement tax; part is refused",
+            ),
+        ],
         "payroll_tax" => vec![(
             "regional_employer",
             "boolean, for Victoria only and then required: true when the employer is a regional employer, one that pays at least 85% of its taxable wages to regional employees (Payroll Tax Act 2007 (Vic) s 3A)",
@@ -4280,6 +4303,21 @@ pub fn input_units(kind: &str) -> Vec<(&'static str, &'static str)> {
             (
                 "unclaimed_money_rollover",
                 "boolean, true when the payment is a roll-over superannuation benefit paid under s 20H(2), (2AA) or (2A) of the Superannuation (Unclaimed Money and Lost Members) Act 1999; true with an element untaxed in the fund is refused, as s 5(2) taxes any excess untaxed roll-over amount in it at nil",
+            ),
+        ],
+        "land_tax" => vec![
+            ("jurisdiction", "nsw, vic, qld, wa, sa, tas or act"),
+            (
+                "taxable_value",
+                "AUD, whole dollars: the total taxable value of the owner's land in the jurisdiction after exemptions (nsw the 3-year average land value, vic and sa the site value, act one parcel's average unimproved value, elsewhere the land value)",
+            ),
+            (
+                "trust_rates",
+                "boolean: true for nsw special trust rates, vic trust surcharge rates, qld company and trustee rates (not for the trustees s 33 taxes at Sch 1) or sa trust rates (s 8A(1a), after the exceptions in s 8A(1b) and (1c)); true is refused in wa, tas and act, whose trustees pay the general rates",
+            ),
+            (
+                "foreign_owner",
+                "boolean: true when the owner pays the jurisdiction's foreign or absentee owner surcharge on all of the land (in qld an absentee individual, or with trust_rates a foreign company or trustee; in act a parcel wholly foreign-owned); true is refused in wa and sa, which have none, and for a vic trust (s 46IA)",
             ),
         ],
         "payroll_tax" => vec![
@@ -5686,6 +5724,13 @@ pub fn examples(kind: &str) -> Vec<(&'static str, Example)> {
             ("untaxed_element", Text("0.00")),
             ("working_holiday_maker_contributions", Flag(false)),
             ("unclaimed_money_rollover", Flag(false)),
+        ],
+        "land_tax" => vec![
+            ("year", Text("2026-27")),
+            ("jurisdiction", Text("qld")),
+            ("taxable_value", Text("680000")),
+            ("trust_rates", Flag(false)),
+            ("foreign_owner", Flag(false)),
         ],
         "payroll_tax" => vec![
             ("year", Text("2026-27")),

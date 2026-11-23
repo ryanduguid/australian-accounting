@@ -18,7 +18,7 @@ use std::process::{Command, Stdio};
 /// under `income` (an absent line as 0) and, given other taxable income,
 /// `resident_tax`, none of which `named` or the evaluator reads, so
 /// `tests/rental_property.rs` checks its workings instead.
-const DERIVED: [&str; 81] = [
+const DERIVED: [&str; 82] = [
     "fbt",
     "fbt-car-statutory",
     "fbt-car-operating-cost",
@@ -90,6 +90,7 @@ const DERIVED: [&str; 81] = [
     "gst-margin-scheme",
     "etp-tax-free-component",
     "payroll-tax",
+    "land-tax",
     "cgt-parcels",
     "work-expenses",
     "gst-creditable-purpose-change",
@@ -576,6 +577,20 @@ fn cases() -> Vec<(&'static str, Value)> {
                    "australian_wages": "3000000.00",
                    "group_member": false, "employed_all_year": true,
                    "year": "2026-27", "scope_confirmed": true}),
+        ),
+        // Revenue NSW's surcharge land tax example 1 and Victoria's absentee
+        // owner surcharge on $1,000,000 (the State Revenue Office's table).
+        (
+            "land-tax",
+            json!({"jurisdiction": "nsw", "taxable_value": "1200000",
+                   "trust_rates": false, "foreign_owner": true,
+                   "surcharge_value": "1200000", "year": "2026", "scope_confirmed": true}),
+        ),
+        (
+            "land-tax",
+            json!({"jurisdiction": "vic", "taxable_value": "1000000",
+                   "trust_rates": false, "foreign_owner": true,
+                   "year": "2026", "scope_confirmed": true}),
         ),
         // A strata unit's share of land bought with some consideration unpaid
         // (GST Act ss 75-12 and 75-15), for a supply that cannot use the
@@ -1273,6 +1288,25 @@ impl Evaluator<'_> {
                             down.add(&Decimal::from_int(1)).unwrap()
                         } else {
                             down
+                        }
+                    }
+                    // Land Tax Rating Act 2000 (Tas) s 7: to 10 cents, up
+                    // when more than 5 cents remain.
+                    ("tens", [a]) => {
+                        let cents = a.mul(&Decimal::from_int(100)).unwrap();
+                        let rest = cents.rem(&Decimal::from_int(10)).unwrap();
+                        let mut kept = cents.sub(&rest).unwrap();
+                        if rest.gt(&Decimal::from_int(5)).unwrap() {
+                            kept = kept.add(&Decimal::from_int(10)).unwrap();
+                        }
+                        kept.div(&Decimal::from_int(100)).unwrap()
+                    }
+                    // Land Tax Act 1936 (SA) s 6: nil under $20.
+                    ("nil_below_20", [a]) => {
+                        if a.lt(&Decimal::from_int(20)).unwrap() {
+                            Decimal::from_int(0)
+                        } else {
+                            a.clone()
                         }
                     }
                     other => panic!("unknown function {other:?}"),
@@ -2502,7 +2536,7 @@ fn derive_refuses_what_it_does_not_explain() {
          annuity-withholding, voluntary-agreement-withholding, \
          rd-tax-offset, \
          hire-purchase-schedule, chattel-mortgage-schedule, loan-transactions, \
-         lump-sum-arrears-tax-offset, income-tests, government-super-amounts, smsf-tax, business-capital-expenditure, balancing-adjustment, trade-in, dasp-tax, super-benefit-tax, super-withholding, gst-margin-scheme, etp-tax-free-component, payroll-tax, cgt-parcels, work-expenses, rental-property, gst-creditable-purpose-change, gst-annual-apportionment, gst-financial-acquisitions-threshold, gst-second-hand-goods, gst-bad-debt, cgt-cost-base-adjustments, foreign-income-tax-offset, fbt-instalment, not \"payg-gross-up\""
+         lump-sum-arrears-tax-offset, income-tests, government-super-amounts, smsf-tax, business-capital-expenditure, balancing-adjustment, trade-in, dasp-tax, super-benefit-tax, super-withholding, gst-margin-scheme, etp-tax-free-component, payroll-tax, land-tax, cgt-parcels, work-expenses, rental-property, gst-creditable-purpose-change, gst-annual-apportionment, gst-financial-acquisitions-threshold, gst-second-hand-goods, gst-bad-debt, cgt-cost-base-adjustments, foreign-income-tax-offset, fbt-instalment, not \"payg-gross-up\""
     );
 }
 
