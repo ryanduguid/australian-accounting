@@ -47,9 +47,9 @@ pub(super) fn full_expensing_warning(mut out: Value, year: &str, note: &str) -> 
     out
 }
 
-const DEPRECIATION_FULL_EXPENSING: &str = "2020-21 to 2022-23 are temporary full expensing years: where IT(TP)A 1997 Subdivision 40-BB applied to the asset (held, and first used or installed ready for use, from 7.30 pm AEDT on 6 October 2020 to 30 June 2023, by an entity it covers that did not choose out under s 40-190), its start year's decline in value is its cost (s 40-160(3)) and amounts included in the second element of its cost in that period are deducted in full (s 40-170); this worksheet does not decide whether it applied.";
+const DEPRECIATION_FULL_EXPENSING: &str = "2020-21 to 2022-23 are temporary full expensing years: IT(TP)A 1997 Subdivision 40-BB may apply to an asset held, and first used or installed ready for use, by 30 June 2023 (s 40-150), subject to the entity tests in ss 40-155 and 40-157, the exclusions in ss 40-165 and 40-167 and any choice under s 40-190, and where it applies it works out the decline in value instead of this worksheet (ss 40-145, 40-160 and 40-170); this worksheet does not decide whether it applied.";
 
-const BACKING_BUSINESS: &str = "Backing business investment (IT(TP)A 1997 Subdivision 40-BA) gives an asset held, and first used or installed ready for use, from 12 March 2020 to 30 June 2021 by an entity with turnover under $500 million a different start year decline in value (s 40-130), unless the entity chose out (s 40-137); this worksheet does not model it.";
+const BACKING_BUSINESS: &str = "Backing business investment (IT(TP)A 1997 Subdivision 40-BA) may apply to an asset held, and first used or installed ready for use, from 12 March 2020 to 30 June 2021, subject to ss 40-120 and 40-125 (including s 40-125(7)'s exclusion of an asset another entity held when it was first used) and any choice under s 40-137, and where it applies it changes the start year decline in value (s 40-130); this worksheet does not model it.";
 
 const ADJUSTED_PRIME_COST: &str = "Where backing business investment or temporary full expensing worked out the asset's decline in value for an earlier year, a later prime cost year needs the adjusted formula of ITAA 1997 s 40-75(3) (IT(TP)A 1997 ss 40-135(3) and 40-180(2)), which this worksheet does not apply.";
 

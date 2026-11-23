@@ -651,11 +651,6 @@ fn adapt_depreciation(command: &str, expected: &mut Value) {
 /// 2023-24 inputs refused as an unsupported period now meet the refusals of
 /// their other inputs: a string day count or an effective life of 1001.
 fn adapt_depreciation_years(command: &str, input: &Value, expected: &mut Value) {
-    let added = ["2020-21", "2021-22", "2022-23", "2023-24", "2024-25"].map(|id| {
-        let start: i32 = id[..4].parse().unwrap();
-        json!({"id": id, "basis": "income year", "start": format!("{start}-07-01"),
-            "end": format!("{}-06-30", start + 1), "arguments": {"year": id}})
-    });
     let periods = match command {
         "periods" if input["kind"] == "depreciation" => expected["ok"].as_array_mut(),
         "worksheet-catalogue" => {
@@ -666,6 +661,11 @@ fn adapt_depreciation_years(command: &str, input: &Value, expected: &mut Value) 
         _ => None,
     };
     if let Some(periods) = periods {
+        let added = ["2020-21", "2021-22", "2022-23", "2023-24", "2024-25"].map(|id| {
+            let start: i32 = id[..4].parse().unwrap();
+            json!({"id": id, "basis": "income year", "start": format!("{start}-07-01"),
+                "end": format!("{}-06-30", start + 1), "arguments": {"year": id}})
+        });
         periods.splice(0..0, added);
         return;
     }

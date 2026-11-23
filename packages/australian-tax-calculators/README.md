@@ -2818,16 +2818,19 @@ its cost is less than the limit for its dates, and the deduction is
 | `small_business_simplified` | 1 July 2023 to 30 June 2026 | from 7.30 pm on 12 May 2015 | $20,000 | IT(TP)A s 328-180(4)(d) |
 | `small_business_simplified` | from 1 July 2026 | any day | $20,000 | ITAA 1997 s 328-180(1)(b), Act No. 71 of 2026 Sch 2 item 15(1) |
 | `small_business_simplified` | any other date | | $1,000 | s 328-180(1)(b) before that Act |
-| `medium_business` | 1 July 2020 to 30 June 2021 | from 7.30 pm on 2 April 2019, before 6 October 2020 | $150,000 | ITAA 1997 s 40-82(2A) |
+| `medium_business` | 1 July to 5 October 2020 | from 7.30 pm on 2 April 2019 | $150,000 | ITAA 1997 s 40-82(2A) |
 
 `small_business_simplified` is a small business entity that chose the
 simplified depreciation rules for the year it started to hold the asset and the
-year of first use; `medium_business` is any other entity with aggregated
-turnover under $500 million (s 40-82(4A)); `other` has no write-off. For
-`medium_business` and `other`, an asset acquired from 7.30 pm on
-6 October 2020 and first used by 30 June 2023 is refused: temporary full
-expensing may take it (IT(TP)A Subdivision 40-BB, which displaces s 40-82),
-and whether it does turns on facts the command does not take. An `acquired`
+year of first use; `medium_business` is an entity that was not a small
+business entity, with aggregated turnover under $500 million, for both years
+(s 40-82(4A)), so a small business entity not using simplified depreciation is
+`other`; `other` has no write-off. For `medium_business` and `other`, an asset
+first used from 6 October 2020 to 30 June 2023 is refused, whenever acquired:
+temporary full expensing may take its cost (IT(TP)A s 40-160) or amounts
+included in the second element of its cost from 7.30 pm on 6 October 2020
+(s 40-170), displacing s 40-82, and whether it does turns on facts the command
+does not take. An `acquired`
 date on a budget day the result turns on is refused, as the command takes
 dates, not times. An asset not written off reports its taxable purpose cost and
 where it goes instead: a small business's general small business pool, or

@@ -201,6 +201,13 @@ fn the_2015_budget_time() {
         let budget_day = json!({"year": year, "acquired": "2015-05-12", "first_used": used});
         assert_eq!(code(budget_day), "instant_asset_write_off.budget_time_day");
     }
+    // Where the 2015 budget time cannot change the limit, its day is accepted:
+    // $1,000 for first use in 2021-22 and $20,000 from 1 July 2026 either way.
+    for (year, used, limit) in [("2021-22", "2021-08-01", "1000"), ("2026-27", "2026-08-01", "20000")] {
+        let r = run(json!({"year": year, "acquired": "2015-05-12", "first_used": used,
+            "cost": "500.00", "taxable_use": "1"}));
+        assert_eq!(outcome(&r), ("500.00", limit, "true"), "{year}");
+    }
 }
 
 /// IT(TP)A s 328-181(2): held from 7.30 pm AEDT on 6 October 2020; a date on
@@ -255,6 +262,22 @@ fn a_medium_business_in_2020_21() {
         code(full_expensing),
         "instant_asset_write_off.temporary_full_expensing"
     );
+    // Acquired before the 2020 budget time, the asset can still have amounts
+    // included in the second element of its cost from 7.30 pm on 6 October
+    // 2020 before first use, which IT(TP)A s 40-170 fully expenses: first use
+    // from that day is refused, and the day before is written off.
+    let used = |first_used: &str| {
+        json!({"entity": "medium_business", "year": "2020-21", "acquired": "2020-09-01",
+            "first_used": first_used, "cost": "100000.00", "taxable_use": "1"})
+    };
+    for first_used in ["2020-10-06", "2020-11-01"] {
+        assert_eq!(
+            code(used(first_used)),
+            "instant_asset_write_off.temporary_full_expensing",
+            "{first_used}"
+        );
+    }
+    assert_eq!(outcome(&run(used("2020-10-05"))), ("100000.00", "150000", "true"));
 }
 
 /// From 1 July 2021 s 40-82(5) leaves a medium business no write-off, and an
@@ -264,7 +287,6 @@ fn a_medium_business_in_2020_21() {
 fn other_entities_outside_2020_21() {
     for (entity, year, acquired, used) in [
         ("medium_business", "2023-24", "2021-01-01", "2023-07-01"),
-        ("medium_business", "2021-22", "2020-09-01", "2021-07-01"),
         ("other", "2020-21", "2020-01-01", "2020-07-01"),
         ("other", "2026-27", "2026-07-01", "2026-07-01"),
     ] {
@@ -284,6 +306,9 @@ fn other_entities_outside_2020_21() {
         ("other", "2022-23", "2021-01-01", "2022-07-01"),
         ("medium_business", "2021-22", "2021-07-01", "2021-07-01"),
         ("other", "2020-21", "2020-10-07", "2021-06-30"),
+        // Acquired before or on the budget day: s 40-170 may still apply.
+        ("medium_business", "2021-22", "2020-09-01", "2021-07-01"),
+        ("other", "2021-22", "2020-10-06", "2021-07-01"),
     ] {
         let facts = json!({"entity": entity, "year": year, "acquired": acquired,
             "first_used": used});
@@ -293,9 +318,6 @@ fn other_entities_outside_2020_21() {
             "{entity} {year}"
         );
     }
-    let budget_day = json!({"entity": "other", "year": "2021-22", "acquired": "2020-10-06",
-        "first_used": "2021-07-01"});
-    assert_eq!(code(budget_day), "instant_asset_write_off.budget_time_day");
 }
 
 /// A small business's asset that is not written off in 2020-21 may take

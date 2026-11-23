@@ -94,13 +94,17 @@ fn small_business_limit(acquired: i64, used: i64) -> Result<Limit> {
 
 /// Any other entity: temporary full expensing (IT(TP)A Subdivision 40-BB)
 /// displaces every other rule where it may apply (s 40-145), and is refused;
-/// otherwise s 40-82(2A) for a medium sized business. An asset acquired after
-/// 31 December 2020 is held from the 2020 budget time, so refused before it.
+/// otherwise s 40-82(2A) for a medium sized business. An asset first used
+/// from the 2020 budget day to 30 June 2023 is refused whenever it was
+/// acquired: s 40-170 needs no acquisition after the budget time, only an
+/// amount included in the second element of its cost from that time, which
+/// can precede first use. Earlier first use rules that out, and an asset
+/// acquired after 31 December 2020 is first used after it.
 fn other_limit(entity: Entity, acquired: i64, used: i64) -> Result<Limit> {
-    if used <= day("2023-06-30") && held_from(acquired, BUDGET_2020)? {
+    if (day(BUDGET_2020)..=day("2023-06-30")).contains(&used) {
         return refuse(
             "instant_asset_write_off.temporary_full_expensing",
-            "An asset held, and first used or installed ready for use, from 7.30 pm AEDT on 6 October 2020 to 30 June 2023 may be fully expensed under IT(TP)A 1997 Subdivision 40-BB, which displaces s 40-82 (s 40-145); whether it was turns on the entity's turnover or income, the s 40-165 exclusions and any s 40-190 choice, which this command does not decide.",
+            "An asset first used or installed ready for use from 7.30 pm AEDT on 6 October 2020 to 30 June 2023 may be fully expensed under IT(TP)A 1997 Subdivision 40-BB, which displaces s 40-82 (s 40-145): its cost under s 40-160 if held from that time, or under s 40-170 any amount included in the second element of its cost from that time. Whether it was turns on those amounts, the entity's turnover or income, the s 40-165 and 40-167 exclusions and any s 40-190 choice, which this command does not decide.",
         );
     }
     if entity == Entity::Other {
