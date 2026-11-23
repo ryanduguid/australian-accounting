@@ -16,8 +16,8 @@ keeps the calculator release and MCP integration separate.
 
 </div>
 
-117 calculation worksheets for established facts: ordinary GST, fuel tax credits at the ATO's rate for each day from 1 July 2022 with the simplified methods for small claimants, alcohol excise duty at the rate for each day from 1 July 2022 with the manufacturers' remission cap, resident and foreign
-resident basic income tax, CGT losses and discount, the gains and losses from parcels of shares or units, their cost base after returns of capital, trust and AMIT adjustments and 2 demergers, the small business CGT concessions open for a gain, the foreign resident capital gains withholding a purchaser pays on Australian real property, the small business income tax offset, a HELP debt on each 1 June from 2020 to 2026 with a voluntary repayment's timing, a company's deferred tax under AASB 112 with its tax expense and rate reconciliation, annual and long service leave provisions under AASB 119 with their current and non-current split, whether an individual must lodge a return under each year's lodgment instrument, the 4 residency tests for an individual, the change in value of trading stock with each item's valuation and the small business choice, when a prepaid expense is deductible, whether Division 35 defers a business activity loss, whether the personal services income rules apply, the employee share scheme discount with its taxing points, reductions and forfeiture exclusion, one quarterly PAYG instalment by the amount, a varied amount, the rate or a varied rate, a complying SMSF's annual return tax, levy and amount due, the tax on a minor's unearned income at the Division 6AA rates, an employee's working from home, car and self-education deductions, foreign currency amounts in Australian dollars, the foreign income tax offset with a part-year resident's tax-free threshold, the main residence exemption's taxable share of a gain or loss, one loan's borrowing expenses deduction and a schedule of several loans' deductions over every year, a residential rental property's income, deductions by category and net rent with its effect on tax, a hire purchase agreement's notional interest, a chattel mortgage's interest schedule and input tax credit, a loan's statement with daily interest at changing rates, business capital expenditure (black hole and start-up costs) under s 40-880, ordinary employer FBT, car fringe benefit taxable values
+118 calculation worksheets for established facts: ordinary GST, fuel tax credits at the ATO's rate for each day from 1 July 2022 with the simplified methods for small claimants, alcohol excise duty at the rate for each day from 1 July 2022 with the manufacturers' remission cap, resident and foreign
+resident basic income tax, CGT losses and discount, the gains and losses from parcels of shares or units, their cost base after returns of capital, trust and AMIT adjustments and 2 demergers, the small business CGT concessions open for a gain, the foreign resident capital gains withholding a purchaser pays on Australian real property, the small business income tax offset, a HELP debt on each 1 June from 2020 to 2026 with a voluntary repayment's timing, a company's deferred tax under AASB 112 with its tax expense and rate reconciliation, annual and long service leave provisions under AASB 119 with their current and non-current split, one employee's long service leave under each state and territory's Act, whether an individual must lodge a return under each year's lodgment instrument, the 4 residency tests for an individual, the change in value of trading stock with each item's valuation and the small business choice, when a prepaid expense is deductible, whether Division 35 defers a business activity loss, whether the personal services income rules apply, the employee share scheme discount with its taxing points, reductions and forfeiture exclusion, one quarterly PAYG instalment by the amount, a varied amount, the rate or a varied rate, a complying SMSF's annual return tax, levy and amount due, the tax on a minor's unearned income at the Division 6AA rates, an employee's working from home, car and self-education deductions, foreign currency amounts in Australian dollars, the foreign income tax offset with a part-year resident's tax-free threshold, the main residence exemption's taxable share of a gain or loss, one loan's borrowing expenses deduction and a schedule of several loans' deductions over every year, a residential rental property's income, deductions by category and net rent with its effect on tax, a hire purchase agreement's notional interest, a chattel mortgage's interest schedule and input tax credit, a loan's statement with daily interest at changing rates, business capital expenditure (black hole and start-up costs) under s 40-880, ordinary employer FBT, car fringe benefit taxable values
 under the statutory formula and operating cost methods, loan, meal entertainment, car parking, debt waiver, expense payment, property, residual, housing, living-away-from-home allowance, board and tax-exempt body entertainment fringe benefit taxable values, the FBT, deduction and GST credit treatment of entertainment expense lines, whether a 12 week meal entertainment register is valid, depreciation in the start year and later years, a depreciating asset's balancing adjustment with its reduction for private use and CGT event K7, a trade-in's GST on both sides with the old asset's balancing adjustment and the replacement's cost, whether an electric car's fringe benefits are exempt, one employer's payroll tax in each state and territory, a company's franking account with franking deficit tax, its offset and the benchmark rule, an R&D entity's refundable or non-refundable R&D tax offset with the amount a recoupment or feedstock clawback adds to assessable income, wine equalisation tax with the producer rebate under its yearly cap and BAS labels 1C and 1D, luxury car tax on sales and importations with its adjustments, refunds and BAS labels 1E and 1F, the general and shortfall interest charges, failure to lodge and statement penalties before remission and the interest the ATO pays on early payments and overpayments,
 quarterly super guarantee, Schedule 1 PAYG withholding and the gross pay that leaves a stated net, Schedule 5 withholding from back payments, commissions and bonuses by Methods A, B(i) and B(ii), Schedule 15 withholding for working holiday makers, Schedule 9 withholding for seniors and pensioners, Schedule 2 withholding for horticulture and shearing, Schedule 14 additional amounts, daily and casual withholding, withholding where no ABN is quoted, Schedule 3 withholding for entertainers, Schedule 4 return to work payments, Schedule 6 annuities, Schedule 10 voluntary agreements, super contribution caps, the super co-contribution, the low income super tax offset and the spouse contribution tax offset,
 account-based pension minimums, the transfer balance account with excess transfer balance tax, the excess concessional contributions charge, excess non-concessional contribution release amounts, study and training loan repayments, Schedule 8 study
@@ -239,6 +239,7 @@ booleans and counts, ages, days, quarters and scales are JSON integers.
 | `lodgment-required` | `residency`, `taxable_income`, `dividends_and_franking_credits`, `under_18`, `triggers`, `study_loan`, `working_holiday_maker`, `listed_payment`, `sapto`, `child_support_parent`, `year`, `scope_confirmed`; see [Lodgment required](#lodgment-required) |
 | `deferred-tax` | `items`, `unused_tax_losses`, `opening_unused_tax_losses`, `unrecognised_deductible`, `opening_unrecognised_deductible`, `unrecognised_used`, `accounting_profit`, `non_deductible_expenses`, `non_assessable_income`, `taxable_income`, `tax_offsets`, `base_rate_entity`, `expected_rate`, `opening_expected_rate`, `business_combination`, `uncertain_tax_treatment`, `tax_consolidated_group`, `outside_profit_or_loss`, `year`, `scope_confirmed`; see [Deferred tax](#deferred-tax) |
 | `leave-provisions` | `lines`, `defined_benefit_plan`, `plan_assets`, `year`, `scope_confirmed`; see [Leave provisions](#leave-provisions) |
+| `long-service-leave` | `jurisdiction`, `start`, `end`, `excluded_days`, `leave_taken`, `status`, `weekly_pay`, `year`, `scope_confirmed`; with `status` `ends`, `reason`; optionally `hours_per_week`; see [Long service leave](#long-service-leave) |
 | `foreign-income-conversion` | `items`, `year`, `scope_confirmed`; see [Foreign income conversion](#foreign-income-conversion) |
 | `foreign-income-tax-offset` | `foreign_tax_paid`, `nane_foreign_tax`, `limit_method`, `year`, `scope_confirmed`; the facts the stated or worked limit takes; see [Foreign income tax offset](#foreign-income-tax-offset) |
 | `income-tests` | `taxable_income`, `assessable_fhss_released_amount`, `family_trust_distribution_amounts`, `reportable_fringe_benefits_section_57a`, `reportable_fringe_benefits_other`, `reportable_employer_super_contributions`, `deductible_personal_super_contributions`, `excess_concessional_contributions`, `net_financial_investment_loss`, `net_rental_property_loss`, `tax_free_government_pensions`, `target_foreign_income`, `exempt_foreign_employment_income`, `child_support_paid`, `assessable_income`, `business_deductions`, `residency`, `year`, `scope_confirmed`; see [Income tests](#income-tests) |
@@ -465,6 +466,7 @@ own dates and figures.
 | Lodgment required | 2020-21 to 2025-26; one individual's own return, not as trustee, partner or agent, no substituted accounting period; residency, stated conditions and exception facts as answered; no child support instrument |
 | Deferred tax | 2020-21 to 2026-27; one company at the s 23(2) rates, Australian income tax only; established carrying amounts, tax bases, losses, recognition judgement and taxable income; no business combinations, uncertain tax treatments, tax-consolidated group members or tax outside profit or loss |
 | Leave provisions | Reporting periods ending in 2020-21 to 2026-27; annual and long service leave only; established hours, rates, settlement expectations and rights to defer, and stated discount rate, salary growth and probabilities; no defined benefit plans, plan assets or on-costs |
+| Long service leave | Last days from 1 July 2020 to 30 June 2027 and not before each Act's text as read; one employee under a state or territory's general Act; established dates, excluded days, leave taken, reason and ordinary weekly pay; no award, agreement or portable scheme |
 | SMSF tax | 2020-21 to 2026-27; one complying SMSF that is an Australian superannuation fund; the actuary's proportion, segregated income, non-arm's length income, deductions, offsets and credits established; no tax losses carried forward |
 | ESS discount | 2020-21 to 2026-27; interests acquired from 1 July 2015 by a resident (not a temporary resident) for employment in Australia; established market values, conditions and dates; the regulations' value of an unlisted right on a day from 1 July 2021 |
 | Income tests | 2024-25, 2025-26 and 2026-27; a full-year resident's established and classified components; the measures, not the thresholds and tests they feed |
@@ -4011,6 +4013,61 @@ than annual and long service leave, and years before 2020-21 and after
 2026-27. On-costs, the para 156 split of the expense and the year's movement
 are outside it. See
 [calculation evidence](docs/calculation-evidence.md#leave-provisions).
+
+## Long service leave
+
+`long-service-leave` works out one employee's long service leave under the
+general Act of one state or territory, as the long service leave calculator on
+[ryanduguid.github.io](https://ryanduguid.github.io/tools/business-calculators/long-service-leave/)
+does. It takes the `jurisdiction`, the first day of service (`start`), the
+last day (`end`), the `excluded_days` that do not count as service, the
+`leave_taken` in weeks, whether the employee is still `employed` or
+employment `ends` (and then the `reason`), the ordinary `weekly_pay` and the
+`year` holding `end`. Service is counted in completed years, then months, then
+days.
+
+- New South Wales (Long Service Leave Act 1955 s 4(2)(a)): 8 2/3 weeks for 10
+  years and 4 1/3 for each further 5; on ending after 10 years for any reason a
+  proportion, and after 5 to 10 years only for the employer ending it other
+  than for serious and wilful misconduct, illness, incapacity or a pressing
+  necessity, or death.
+- Victoria (Long Service Leave Act 2018 ss 6, 9 and 10): 1/60 of the
+  continuous employment after 7 years, on any ending.
+- Queensland (Industrial Relations Act 2016 s 95): 8.6667 weeks for 10 years,
+  as the Act writes it, and the proportion for a further period of 5 years or
+  more; on ending after 7 years a proportion, before 10 only for the reasons in
+  s 95(4).
+- Western Australia (Long Service Leave Act 1958 s 8): 8 2/3 weeks for 10
+  years and 4 1/3 for each further 5; on ending, each completed year, or the
+  accrued leave only after serious misconduct; after 7 years a proportion
+  unless for serious misconduct.
+- South Australia (Long Service Leave Act 1987 s 5): 13 weeks for 10 years and
+  1.3 for each completed year after; 1.3 a completed year on ending after 7,
+  unless for serious and wilful misconduct or an unlawful termination by the
+  worker.
+- Tasmania (Long Service Leave Act 1976 ss 8 and 9): 8 2/3 weeks for 10 years
+  and 4 1/3 for each further 5, with a proportion for the years since on
+  ending; after 7 years a proportion for the reasons in s 8(3), and 1/60 of
+  the employment on death.
+- The ACT (Long Service Leave Act 1976 ss 3, 4, 11A and 11C): 1/5 of a month
+  (13/15 weeks) for each completed year after 7; after 5 years completed years
+  and months for the reasons in s 11C.
+- The Northern Territory (Long Service Leave Act 1981 ss 8 and 10): 1.3 weeks
+  a completed year after 10, to take at 10 and each further 5; on ending,
+  completed years, or the completed periods only after serious misconduct;
+  after 7 years 1.3 a completed year for the reasons in s 10(2).
+
+The amount is the `value`, the exact weeks less leave taken times the weekly
+pay, half up to the cent. The rates give the service, the `weeks` and
+`balance` to 4 places, the `provision` applied and, with `hours_per_week`,
+the `hours` a `leave-provisions` line with `leave` `long_service` takes. It
+refuses a fixed term ending before the full period in New South Wales,
+Tasmania, the ACT and the Northern Territory, a death under 10 years in the
+Northern Territory, leave taken above the exact weeks, and a last day before
+1 July 2020, after 30 June 2027 or before the Act's text as read (New South
+Wales 25 March 2021, Victoria 1 July 2021, Western Australia 20 June 2022).
+The tests hold it to the site's page and the regulators' examples; see
+[calculation evidence](docs/calculation-evidence.md#long-service-leave).
 
 ## Foreign income conversion
 

@@ -55,6 +55,7 @@ fn every_code_at_a_refusal_site_is_catalogued_and_every_entry_is_used() {
         "engine/gst_adjustments",
         "engine/deferred_tax",
         "engine/leave_provisions",
+        "engine/long_service_leave",
         "engine/foreign_income_conversion",
         "engine/foreign_income_tax_offset",
         "engine/ess_discount",
@@ -199,7 +200,7 @@ fn every_catalogued_required_input_of_a_strict_command_is_read() {
     // foreign-income-tax-offset, trading-stock, prepayments, minors-income,
     // smsf-tax, ess-discount and help-indexation.
     // With transfer-balance and excess-contributions.
-    assert_eq!(checked, 103);
+    assert_eq!(checked, 104);
 }
 
 /// Every frozen call gives the same answer through either entry point, and

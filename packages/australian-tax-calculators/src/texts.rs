@@ -451,6 +451,10 @@ pub const SCOPES: &[(&str, &str)] = &[
         "One Australian resident company's tax effect worksheet under AASB 112 for an income year from 2020-21 to 2026-27, the company taxed at the Income Tax Rates Act 1986 s 23(2) rates (not a life insurance company, RSA provider, PDF, non-profit company under s 23(6) or credit union under s 23(7)) on Australian income tax alone. Each item's temporary difference is its carrying amount less its tax base for an asset, or its tax base less its carrying amount for a liability (paras 5, 7 and 8): positive is taxable, negative deductible. A deferred tax liability is taken on every taxable difference (para 15) and a deferred tax asset on deductible differences and unused tax losses less those the preparer states have no deferred tax asset, as future taxable profit is not probable (paras 24, 34 to 36 and 56), each at 25% or 30% as the preparer expects the company to be a base rate entity or not when they reverse (paras 47 and 48; s 23(2), s 23AA), undiscounted (para 53). The movement is split into the rate change on opening balances (para 80(d)), the recognition change (para 80(f) and (g)), with previously unrecognised amounts used in the year shown apart (para 80(e)), and origination and reversal (para 80(c)). Current tax is taxable income at the year's s 23(2) rate (25%, 26% in 2020-21, for a base rate entity; 30% otherwise) less non-refundable offsets the preparer has worked out, and the para 81(c)(i) reconciliation starts from accounting profit at that rate, with the average effective tax rate (para 86). The preparer establishes the carrying amounts, tax bases, unused tax losses, the probability judgement, the expected rates, taxable income, non-deductible expenses, non-assessable income and offsets, and leaves out of the items the differences the initial recognition exception covers (paras 15 and 24, as amended by AASB 2021-5 from 1 January 2023) and those on investments in subsidiaries, branches, associates and joint arrangements (paras 39 and 44). Excludes unused tax credits, adjustments for prior periods' current tax (para 80(b)), Pillar Two top-up taxes (para 4A), offsetting in the statement of financial position (para 74) and presentation. Refuses business combinations (paras 19 and 66 to 68), uncertain tax treatments (AASB Interpretation 23), tax-consolidated group members (AASB Interpretation 1052), tax on items outside profit or loss (paras 61A to 63), a change in the expected rate with opening balances when the year's rate is not the closing rate (the reversals in the year need a schedule) and, in 2020-21, opening balances measured at the base rate entity rate.",
     ),
     (
+        "long_service_leave",
+        "One employee's long service leave under the general long service leave Act of one of New South Wales, Victoria, Queensland, Western Australia, South Australia, Tasmania, the Australian Capital Territory and the Northern Territory, at a last day from 1 July 2020 to 30 June 2027 and not before the Act's text as read (New South Wales 25 March 2021, Victoria 1 July 2021, Western Australia 20 June 2022): the weeks an employee still employed can take, or the weeks paid when employment ends for the reason given, less leave already taken or paid, and their value at the weekly pay. Service runs from the first day to the end of the last day, less excluded days, in completed years, then completed months, then days, an anniversary on a missing day falling on the 1st of the next month; a part year is months over 12 plus days over 365.25, or in Queensland days over 364. New South Wales s 4(2)(a): 8 2/3 weeks for 10 years and 4 1/3 for each further 5; on ending after 10 to 15 years for any reason a proportion on 3 months for 15 years, after 15 each completed year at 2 months for 10, and after 5 to 10 years for the employer ending it other than for serious and wilful misconduct, illness, incapacity or a pressing necessity, or death, a proportion on 2 months for 10. Victoria ss 6, 9 and 10: after 7 years 1/60 of the continuous employment. Queensland s 95: 8.6667 weeks for 10 years and the proportion for a further 5 or more, and on ending after 7 years a proportion on 8.6667 weeks for 10, before 10 only for the reasons in s 95(4). Western Australia s 8, South Australia s 5, Tasmania ss 8 and 9, the ACT ss 3, 4, 11A and 11C and the Northern Territory ss 8 and 10 as the README sets out. The operator establishes the dates, the excluded days, the leave taken, the reason and the ordinary weekly pay. Weeks are shown to 4 places, half up; the value is the exact weeks less leave taken times the pay, half up to the cent once. Refuses a fixed term ending before the full period in New South Wales, Tasmania, the ACT and the Northern Territory, a death under 10 years in the Northern Territory, leave taken above the exact weeks, and a last day outside the dates covered. Excludes awards, agreements and portable schemes that displace the Act, seasonal, mining and casual industry schemes, what counts as service or ordinary pay, leave in advance, cashing out and public holidays during leave.",
+    ),
+    (
         "leave_provisions",
         "One entity's annual leave and long service leave provisions under AASB 119 at a reporting date ending in a financial year from 2020-21 to 2026-27, from lines of accumulated unused leave the preparer has established. A line is short-term if the preparer expects the benefit it belongs to to be settled wholly before 12 months after the reporting date, and other long-term otherwise, its part due within 12 months included (para 8; paras 9 and 153). A short-term line's provision is its hours times the hourly rate the entity expects to pay for them times the probability of payment, undiscounted (paras 11, 13(a), 15 and 16). An other long-term line's is its hours times the hourly rate at the reporting date, grown by the stated salary growth rate for its whole years to settlement (1 to 50), times the probability of vesting or payment, and discounted at the stated discount rate for those years (paras 155, 67, 68, 70, 72 and 83 to 87). Each amount is rounded half up to the cent. A short-term line is current (AASB 101 paras 69(a) and 70); a long-term line is current when the entity has no right at the reporting date to defer settling it for 12 months (para 69(d)), and non-current otherwise. For periods beginning before 1 January 2024 that right must be unconditional, unless AASB 2020-1 and AASB 2022-6 were applied early; from 1 January 2024 (AASB 2020-1 and AASB 2022-6) it must have substance and exist at the reporting date (para 72A), whatever the entity expects (para 75A). The probability measures a line and the right to defer classifies it, so a line without a right to defer takes any probability. The preparer establishes the hours, rates, the expectation of settlement, the right to defer and every actuarial assumption: the discount rate from market yields on high quality corporate bonds (government bonds where there is no deep market, and for a not-for-profit public sector entity, Aus83.1) at the reporting date for the term (para 83), and unbiased, mutually compatible salary growth and probabilities (paras 75 to 80); none is defaulted. Excludes on-costs (payroll tax, workers compensation and superannuation on leave), the profit or loss split into service cost, interest and remeasurements (para 156), the year's movement, fractional years to settlement and AASB 18. Refuses defined benefit plans and other post-employment benefits (paras 26 to 152), plan assets and reimbursement rights (paras 113 to 119), leave other than annual and long service leave (sick, parental, jury and military service leave, long-term disability and termination benefits), and a long-term line under 1 year to settlement (1 is the nearest whole year it takes).",
     ),
@@ -909,6 +913,10 @@ pub const SOURCES: &[(&str, &str)] = &[
     (
         "leave_provisions",
         "https://www.aasb.gov.au/admin/file/content105/c9/AASB119_08-15_COMPdec22_01-23.pdf",
+    ),
+    (
+        "long_service_leave",
+        "https://www.legislation.vic.gov.au/in-force/acts/long-service-leave-act-2018",
     ),
     (
         "foreign_income_conversion",
@@ -2039,6 +2047,21 @@ pub const EXTRA_SOURCES: &[(&str, &[&str])] = &[
         ],
     ),
     (
+        "long_service_leave",
+        &[
+            "https://legislation.nsw.gov.au/view/whole/html/inforce/current/act-1955-038",
+            "https://www.nsw.gov.au/employment/rights-responsibilities/leave/long-service-leave",
+            "https://www.legislation.qld.gov.au/view/whole/html/inforce/current/act-2016-063",
+            "https://www.legislation.qld.gov.au/view/whole/html/asmade/act-2020-019",
+            "https://www.legislation.wa.gov.au/legislation/statutes.nsf/main_mrtitle_548_homepage.html",
+            "https://www.legislation.sa.gov.au/lz?path=%2FC%2FA%2FLONG%20SERVICE%20LEAVE%20ACT%201987",
+            "https://www.legislation.tas.gov.au/view/whole/html/inforce/current/act-1976-095",
+            "https://www.legislation.act.gov.au/a/1976-27/",
+            "https://www.worksafe.act.gov.au/__data/assets/pdf_file/0009/1673964/Long-service-leave-calculation-guidelines.pdf",
+            "https://legislation.nt.gov.au/Legislation/LONG-SERVICE-LEAVE-ACT-1981",
+        ],
+    ),
+    (
         "leave_provisions",
         &[
             "https://standards.aasb.gov.au/sites/default/files/2026-11/AASB119_08-15_COMPdec22_07-26.pdf",
@@ -2114,6 +2137,12 @@ const CAR_REPORTABLE_NOTE: &str = "reportable_taxable_value is this car benefit'
 const GST_CREDITABLE_NOTE: &str = "Give taxable_value to fbt as part of type_one_value when the provider, or a member of its GST group, is entitled to a GST credit for providing the benefit (a GST-creditable benefit), and as part of type_two_value otherwise.";
 
 pub const EXTRA_WARNINGS: &[(&str, &[&str])] = &[
+    (
+        "long_service_leave",
+        &[
+            "An award, enterprise agreement, pre-modern federal award or portable long service leave scheme can displace the Act, and what counts as service and ordinary pay are the operator's facts: this worksheet applies the Act to them and does not decide them.",
+        ],
+    ),
     (
         "leave_provisions",
         &[
@@ -3851,7 +3880,7 @@ pub const REFUSAL_CODES: &[(&str, &str)] = &[
     ),
     (
         "input.field_unknown",
-        "A field the worksheet or command does not take, or does not take beside the other inputs given, was given (fbt-loan, fbt-meal-entertainment, fbt-car-parking, fbt-debt-waiver, fbt-expense-payment, fbt-property, fbt-residual, fbt-housing, fbt-lafha, fbt-board, fbt-tax-exempt-body-entertainment, fbt-entertainment-classifier, fbt-meal-entertainment-register and its entries, fbt-minor-benefit-check, ppsr-timing, fhss and its contributions, government-super-amounts, personal_deductions and determination, division-296, depreciation, fuel-tax-credits and its lines, alcohol-excise and its lines, foreign-resident-tax, medicare-levy, medicare-levy-surcharge, payg-withholding, payg-gross-up, termination-payment, etp-tax-free-component, unused-leave-payment, the Schedule 5 methods, working-holiday-maker-withholding, study-loan-withholding, seniors-pensioners-withholding, seniors-pensioners-tax-offset, lump-sum-arrears-tax-offset, hire-purchase-schedule, chattel-mortgage-schedule, loan-transactions and its transactions and rate_changes, borrowing-expenses-schedule and its loans, business-capital-expenditure and its items, balancing-adjustment, its years and car_limit, trade-in, franking-account and its events, distributions and income_tax, dasp-tax, super-benefit-tax, super-withholding, gst-margin-scheme, wine-equalisation-tax and its dealings, luxury-car-tax and its lines, foreign-resident-withholding and its vendors, payroll-tax, cgt-parcels, its parcels and disposals, cgt-cost-base-adjustments, its parcels and events, fbt-ev-exemption-check, fbt-instalment, sb-cgt-concessions, small-business-income-offset, ess-discount, residency-tests, lodgment-required, trading-stock and its items, prepayments, depreciation-low-value-pool, gst-creditable-purpose-change, gst-annual-apportionment, gst-financial-acquisitions-threshold, gst-going-concern, gst-second-hand-goods, gst-bad-debt, depreciation-small-business-pool, capital-works, non-commercial-losses, psi-test, minors-income, smsf-tax, payg-instalment, beneficiary-tax-offset, invalid-carer-tax-offset, zone-tax-offset and its dependants, net-medical-expenses-tax-offset, work-expenses, ato-interest-penalties and its payments and parts, private-health-insurance-rebate, rental-property and its loans, capital_works and depreciating_assets, horticulture-shearing-withholding, upward-variation-withholding, daily-casual-withholding, no-abn-withholding, entertainer-withholding, return-to-work-withholding, annuity-withholding, voluntary-agreement-withholding, rd-tax-offset, deferred-tax, leave-provisions, foreign-income-conversion, foreign-income-tax-offset, transfer-balance and its events, excess-contributions, help-indexation and its debts and repayments, contribution-caps given a carry-forward input, derive, personal-tax-estimate, dgr-check, income-tests and fbt-return only).",
+        "A field the worksheet or command does not take, or does not take beside the other inputs given, was given (fbt-loan, fbt-meal-entertainment, fbt-car-parking, fbt-debt-waiver, fbt-expense-payment, fbt-property, fbt-residual, fbt-housing, fbt-lafha, fbt-board, fbt-tax-exempt-body-entertainment, fbt-entertainment-classifier, fbt-meal-entertainment-register and its entries, fbt-minor-benefit-check, ppsr-timing, fhss and its contributions, government-super-amounts, personal_deductions and determination, division-296, depreciation, fuel-tax-credits and its lines, alcohol-excise and its lines, foreign-resident-tax, medicare-levy, medicare-levy-surcharge, payg-withholding, payg-gross-up, termination-payment, etp-tax-free-component, unused-leave-payment, the Schedule 5 methods, working-holiday-maker-withholding, study-loan-withholding, seniors-pensioners-withholding, seniors-pensioners-tax-offset, lump-sum-arrears-tax-offset, hire-purchase-schedule, chattel-mortgage-schedule, loan-transactions and its transactions and rate_changes, borrowing-expenses-schedule and its loans, business-capital-expenditure and its items, balancing-adjustment, its years and car_limit, trade-in, franking-account and its events, distributions and income_tax, dasp-tax, super-benefit-tax, super-withholding, gst-margin-scheme, wine-equalisation-tax and its dealings, luxury-car-tax and its lines, foreign-resident-withholding and its vendors, payroll-tax, cgt-parcels, its parcels and disposals, cgt-cost-base-adjustments, its parcels and events, fbt-ev-exemption-check, fbt-instalment, sb-cgt-concessions, small-business-income-offset, ess-discount, residency-tests, lodgment-required, trading-stock and its items, prepayments, depreciation-low-value-pool, gst-creditable-purpose-change, gst-annual-apportionment, gst-financial-acquisitions-threshold, gst-going-concern, gst-second-hand-goods, gst-bad-debt, depreciation-small-business-pool, capital-works, non-commercial-losses, psi-test, minors-income, smsf-tax, payg-instalment, beneficiary-tax-offset, invalid-carer-tax-offset, zone-tax-offset and its dependants, net-medical-expenses-tax-offset, work-expenses, ato-interest-penalties and its payments and parts, private-health-insurance-rebate, rental-property and its loans, capital_works and depreciating_assets, horticulture-shearing-withholding, upward-variation-withholding, daily-casual-withholding, no-abn-withholding, entertainer-withholding, return-to-work-withholding, annuity-withholding, voluntary-agreement-withholding, rd-tax-offset, deferred-tax, leave-provisions, long-service-leave, foreign-income-conversion, foreign-income-tax-offset, transfer-balance and its events, excess-contributions, help-indexation and its debts and repayments, contribution-caps given a carry-forward input, derive, personal-tax-estimate, dgr-check, income-tests and fbt-return only).",
     ),
     ("input.flag_invalid", "A flag is not a JSON boolean."),
     ("input.fraction_invalid", "A fraction is outside 0 to 1."),
@@ -4017,6 +4046,58 @@ pub const REFUSAL_CODES: &[(&str, &str)] = &[
     (
         "lodgment_required.triggers_invalid",
         "triggers is not a list of the conditions the worksheet takes.",
+    ),
+    (
+        "long_service_leave.before_current_text",
+        "The last day is before the Act's text this worksheet read began (New South Wales 25 March 2021, Victoria 1 July 2021, Western Australia 20 June 2022).",
+    ),
+    (
+        "long_service_leave.end_before_start",
+        "The last day is before the first day of service.",
+    ),
+    (
+        "long_service_leave.excluded_invalid",
+        "excluded_days is not a whole number from 0 to 36,500 fewer than the days of service.",
+    ),
+    (
+        "long_service_leave.hours_invalid",
+        "hours_per_week is not above 0 to 168 to at most 2 decimal places.",
+    ),
+    (
+        "long_service_leave.jurisdiction_invalid",
+        "jurisdiction is not nsw, vic, qld, wa, sa, tas, act or nt.",
+    ),
+    (
+        "long_service_leave.pay_invalid",
+        "weekly_pay is more than $1,000,000.",
+    ),
+    (
+        "long_service_leave.reason_invalid",
+        "reason is not one of the 10 endings the worksheet takes.",
+    ),
+    (
+        "long_service_leave.start_too_early",
+        "The first day of service is before 23 June 1990.",
+    ),
+    (
+        "long_service_leave.status_invalid",
+        "status is not employed or ends.",
+    ),
+    (
+        "long_service_leave.taken_above_weeks",
+        "Leave taken or paid is more than the exact weeks of the entitlement.",
+    ),
+    (
+        "long_service_leave.taken_invalid",
+        "leave_taken is not weeks from 0 to 1,000 to at most 4 decimal places.",
+    ),
+    (
+        "long_service_leave.unsettled",
+        "The Act does not settle the ending before its full qualifying period: a fixed term ending in New South Wales, Tasmania, the ACT or the Northern Territory, or a death under 10 years in the Northern Territory.",
+    ),
+    (
+        "long_service_leave.year_mismatch",
+        "The last day does not fall in the year given.",
     ),
     (
         "lump_sum_arrears.accrual_years_invalid",

@@ -1239,6 +1239,20 @@ const COMMAND_ARGS: &[(&str, &[(&str, Kind)])] = &[
         ],
     ),
     (
+        "long-service-leave",
+        &[
+            ("jurisdiction", Raw),
+            ("start", Raw),
+            ("end", Raw),
+            ("excluded_days", Raw),
+            ("leave_taken", Dec),
+            ("status", Raw),
+            ("weekly_pay", Dec),
+            ("year", Raw),
+            ("scope_confirmed", Raw),
+        ],
+    ),
+    (
         "deferred-tax",
         &[
             ("items", Json),
@@ -1928,6 +1942,7 @@ pub fn evaluate_coded(command: &str, v: &Value) -> Result<Value> {
             | "gst-bad-debt"
             | "deferred-tax"
             | "leave-provisions"
+            | "long-service-leave"
             | "foreign-income-conversion"
             | "foreign-income-tax-offset"
             | "minors-income"
@@ -3322,6 +3337,24 @@ pub fn evaluate_coded(command: &str, v: &Value) -> Result<Value> {
             year: &a[3],
             scope_confirmed: &a[4],
         }),
+        "long-service-leave" => {
+            // Optional: why employment ends, and the hours a week for the hours.
+            let reason = optional(v, "reason", Raw)?;
+            let hours = optional(v, "hours_per_week", Dec)?;
+            engine::long_service_leave(&engine::LongServiceLeaveArgs {
+                jurisdiction: &a[0],
+                start: &a[1],
+                end: &a[2],
+                excluded_days: &a[3],
+                leave_taken: &a[4],
+                status: &a[5],
+                reason: reason.as_ref(),
+                weekly_pay: &a[6],
+                hours_per_week: hours.as_ref(),
+                year: &a[7],
+                scope_confirmed: &a[8],
+            })
+        }
         "foreign-income-conversion" => engine::foreign_income_conversion(&a[0], &a[1], &a[2]),
         "foreign-income-tax-offset" => {
             // Optional: the facts only the stated or worked limit takes.
