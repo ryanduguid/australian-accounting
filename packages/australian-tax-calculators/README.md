@@ -3540,8 +3540,9 @@ allowance or educational assistance is exempt under ITAA 1997 s 51-10 item
 employment or a labour contract with the payer (s 51-35(c) and (d)), and
 provided principally for educational purposes (s 51-35(e)). It lists each
 condition with its provision and says how to treat the payment. It refuses
-Commonwealth payments (s 51-35(a), (b) and (f)) and friendly society plans,
-which the ATO's 'Is my scholarship taxable?' tool leaves out. The tests hold
+the Commonwealth payments s 51-35(a), (b) and (f) exclude and friendly
+society plans, which the ATO's 'Is my scholarship taxable?' tool leaves out;
+a scholarship the Commonwealth funds is otherwise tested like any other. The tests hold
 it to the ATO's 6 examples; see
 [calculation evidence](docs/calculation-evidence.md#scholarship-exemption).
 

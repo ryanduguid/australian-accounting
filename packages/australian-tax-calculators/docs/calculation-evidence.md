@@ -4331,9 +4331,11 @@ examples, and the tests reproduce each: Jenny (exempt), Henry (an employment
 condition), Kirra (part time), AAA University's vet students (work experience
 in the course, exempt), Megan (exempt) and Diego (not principally educational).
 
-- Commonwealth payments under s 51-35(a), (b) and (f) fall outside item 2.1A
-  and may be exempt under item 2.1B or Subdivisions 52-E and 52-F; they are
-  refused, as the ATO's tool leaves them out.
+- The Commonwealth payments s 51-35(a), (b) and (f) name fall outside item
+  2.1A and may be exempt under item 2.1B or Subdivisions 52-E and 52-F; they
+  are refused, as the ATO's tool leaves them out. Commonwealth funding alone
+  is not one of them: a scholarship the Commonwealth funds or pays takes
+  `commonwealth_payment: none` and is tested like any other.
 - Friendly society scholarship plans are refused: the ATO says some of their
   benefits are taxable, and its tool does not test them.
 
@@ -4367,8 +4369,10 @@ to the provision it tests as the ATO's legal database gave it that day: ITAA
 and TAA 1953 Sch 1 ss 426-45 and 426-55.
 
 - The worksheet tells an entity without a winding up clause to amend its
-  documents; s 30-125(1)(c) makes the clause a condition of entitlement, and
-  the result says so.
+  documents. s 30-125(1)(c) makes the clause a condition of entitlement, so a
+  'No' gives `not_entitled`, with the notice s 426-45(1) requires and the
+  amendment. An entity established by an Act that does not provide for its
+  winding up meets the condition without a clause and answers yes.
 - A cancelled ABN ends the endorsement without notice from the entity (s
   426-45(3)); every other 'No' that ends entitlement needs written notice.
 - Act No. 58 of 2026 repealed s 30-15 item 1 condition (b), the $2 minimum

@@ -4015,7 +4015,7 @@ pub fn optional_inputs(kind: &str) -> Vec<(&'static str, &'static str)> {
             ),
             (
                 "relevant_number",
-                "object, formula only and required there: {basis: term_years, years: the term of years certain} or {basis: life_expectation_factor, years: the complete expectation of life from the Life Tables the Income Tax Assessment (1936 Act) Regulations 2025 s 7 prescribes, at the start of the period the first payment relates to}; years a decimal string above 0 and at most 150",
+                "object, formula only and required there: {basis: term_years, years: the term of years certain} or {basis: life_expectation_factor, years: the complete expectation of life from the Life Tables the Income Tax Assessment (1936 Act) Regulations 2025 s 7 prescribes, at the start of the period the first payment relates to}; years a decimal string above 0",
             ),
             (
                 "total_annuity_derived",
@@ -5602,7 +5602,7 @@ pub fn input_units(kind: &str) -> Vec<(&'static str, &'static str)> {
             ),
             (
                 "commonwealth_payment",
-                "none, secondary_or_isolated_children, education_or_training_payment or education_entry_payment; anything but none is refused (s 51-35(a), (b) and (f))",
+                "none, secondary_or_isolated_children, education_or_training_payment or education_entry_payment: the Commonwealth payments s 51-35(a), (b) and (f) exclude, each refused; none for any other payment, including a scholarship the Commonwealth funds or pays",
             ),
             (
                 "friendly_society_plan",
@@ -5644,7 +5644,7 @@ pub fn input_units(kind: &str) -> Vec<(&'static str, &'static str)> {
             ),
             (
                 "answers",
-                "object of booleans, the worksheet's yes or no answers: income_tax_exempt_charity {abn_current, registered_charity, meets_a_test, meets_both_conditions}; dgr_whole {abn_current, within_category, winding_up_clause, in_australia, receipts_correct}; dgr_fund {abn_current, within_category, gift_fund_maintained, in_australia, receipts_correct}",
+                "object of booleans, the worksheet's yes or no answers: income_tax_exempt_charity {abn_current, registered_charity, meets_a_test, meets_both_conditions}; dgr_whole {abn_current, within_category, winding_up_clause (true too for an entity established by an Act that does not provide for its winding up, s 30-125(1)(c)), in_australia, receipts_correct}; dgr_fund {abn_current, within_category, gift_fund_maintained, in_australia, receipts_correct}",
             ),
         ],
         _ => Vec::new(),

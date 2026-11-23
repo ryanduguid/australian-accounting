@@ -72,8 +72,8 @@ const DGR_WHOLE: [Question; 5] = [
     (
         "winding_up_clause",
         "ITAA 1997 s 30-125(1)(c), (6) and (7): a law, the constituent documents or the rules must require surplus gifts and deductible contributions, and money received from them, to go to another DGR on winding up or revocation, unless the entity is established by an Act that does not provide for its winding up",
-        ACTION_NEEDED,
-        "Amend the governing documents to include a winding up and revocation clause (the worksheet; the ATO helps on 1300 130 248). Section 30-125(1)(c) makes the clause a condition of entitlement.",
+        NOT_ENTITLED,
+        "Section 30-125(1)(c) makes the clause a condition of entitlement: tell the ATO in writing and give the date entitlement stopped (TAA 1953 Sch 1 s 426-45(1)), and amend the governing documents to include a winding up and revocation clause, as the worksheet says (the ATO helps on 1300 130 248).",
     ),
     (
         "in_australia",

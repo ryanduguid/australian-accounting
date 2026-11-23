@@ -84,7 +84,7 @@ fn relevant_number(value: &Arg) -> Result<(&'static str, Decimal)> {
     let bad = || {
         refuse(
             "foreign_pension_upp.relevant_number_invalid",
-            "relevant_number must be {basis: term_years or life_expectation_factor, years: a decimal string above 0 and at most 150}. For an annuity neither for a term of years certain nor for one person's life, s 27H(4) makes the relevant number the one the Commissioner considers appropriate: request a determination (NAT 16543).",
+            "relevant_number must be {basis: term_years or life_expectation_factor, years: a decimal string above 0}. For an annuity neither for a term of years certain nor for one person's life, s 27H(4) makes the relevant number the one the Commissioner considers appropriate: request a determination (NAT 16543).",
         )
     };
     let Arg::Json(Value::Object(fields)) = value else {
@@ -110,7 +110,7 @@ fn relevant_number(value: &Arg) -> Result<(&'static str, Decimal)> {
         _ => None,
     };
     match years {
-        Some(y) if y.is_finite() && y.gt(&int(0))? && y.le(&int(150))? => Ok((basis, y)),
+        Some(y) if y.is_finite() && y.gt(&int(0))? => Ok((basis, y)),
         _ => bad(),
     }
 }

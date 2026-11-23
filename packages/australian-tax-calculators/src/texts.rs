@@ -480,7 +480,7 @@ pub const SCOPES: &[(&str, &str)] = &[
     ),
     (
         "scholarship_exemption",
-        "Whether one scholarship, bursary, educational allowance or educational assistance paid to or for a student in an income year from 2017-18 to 2026-27 is exempt under ITAA 1997 s 51-10 item 2.1A, given the student's stated facts against s 51-35(c) to (e). Commonwealth payments (s 51-35(a), (b) and (f)), other exempt items and friendly society plans are refused, as the ATO's tool leaves them out.",
+        "Whether one scholarship, bursary, educational allowance or educational assistance paid to or for a student in an income year from 2017-18 to 2026-27 is exempt under ITAA 1997 s 51-10 item 2.1A, given the student's stated facts against s 51-35(c) to (e). The Commonwealth education and training payments s 51-35(a), (b) and (f) exclude, and friendly society plans, are refused, as the ATO's tool leaves them out; a scholarship the Commonwealth funds or pays is otherwise tested like any other.",
     ),
     (
         "super_crystallisation",
@@ -3580,7 +3580,7 @@ pub const REFUSAL_CODES: &[(&str, &str)] = &[
     ),
     (
         "foreign_pension_upp.relevant_number_invalid",
-        "relevant_number is not a term of years or a life expectation factor above 0 and at most 150.",
+        "relevant_number is not a term of years or a life expectation factor above 0.",
     ),
     (
         "foreign_pension_upp.residual_exceeds_price",
@@ -4603,7 +4603,7 @@ pub const REFUSAL_CODES: &[(&str, &str)] = &[
     ),
     (
         "scholarship_exemption.commonwealth_payment",
-        "The payment is a Commonwealth payment outside item 2.1A (ITAA 1997 s 51-35(a), (b) or (f)).",
+        "The payment is one of the Commonwealth payments ITAA 1997 s 51-35(a), (b) or (f) excludes from item 2.1A.",
     ),
     (
         "scholarship_exemption.commonwealth_payment_invalid",

@@ -8,8 +8,9 @@
 //! 2017-18 to 2026-27. Both read the same in compilations 170 (1 July 2017)
 //! and 268 (1 October 2026), read on 24 November 2026 with the ATO's
 //! 'Scholarship payments' page and its 'Is my scholarship taxable?' tool page
-//! (last updated 1 July 2026). Commonwealth payments, which the tool does not
-//! deal with, and friendly society scholarship plans are refused.
+//! (last updated 1 July 2026). The Commonwealth payments s 51-35(a), (b) and
+//! (f) exclude, which the tool does not deal with, and friendly society
+//! scholarship plans are refused; Commonwealth funding alone refuses nothing.
 
 use serde_json::{Value, json};
 
@@ -43,8 +44,8 @@ fn payment_type(value: &Arg) -> Result<&str> {
     }
 }
 
-/// s 51-35(a), (b) and (f): Commonwealth payments are outside item 2.1A, and
-/// the ATO's tool does not deal with them.
+/// s 51-35(a), (b) and (f): the Commonwealth payments they name are outside
+/// item 2.1A, and the ATO's tool does not deal with them.
 fn no_commonwealth_payment(value: &Arg) -> Result<()> {
     let why = match value.text() {
         Some("none") => return Ok(()),
@@ -67,7 +68,7 @@ fn no_commonwealth_payment(value: &Arg) -> Result<()> {
     refuse(
         "scholarship_exemption.commonwealth_payment",
         format!(
-            "{why} The ATO's 'Is my scholarship taxable?' tool does not deal with Commonwealth payments, and neither does this worksheet."
+            "{why} The ATO's 'Is my scholarship taxable?' tool does not deal with these Commonwealth payments, and neither does this worksheet."
         ),
     )
 }

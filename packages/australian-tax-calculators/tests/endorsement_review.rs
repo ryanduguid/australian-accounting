@@ -73,7 +73,9 @@ fn all_yes_continues() {
 
 #[test]
 fn each_no_gives_its_outcome() {
-    let action_needed = ["winding_up_clause", "receipts_correct"];
+    // A missing winding up clause ends entitlement (s 30-125(1)(c)), though
+    // the worksheet only says to amend the documents.
+    let action_needed = ["receipts_correct"];
     for (worksheet, keys) in WORKSHEETS {
         for key in keys {
             let out = run(&review(worksheet, keys, Some(key)));

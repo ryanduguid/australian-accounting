@@ -226,7 +226,8 @@ fn only_a_term_of_years_or_one_life_is_a_relevant_number() {
     for number in [
         json!({"basis": "commissioner", "years": "10"}),
         json!({"basis": "term_years", "years": "0"}),
-        json!({"basis": "term_years", "years": "150.01"}),
+        json!({"basis": "term_years", "years": "-1"}),
+        json!({"basis": "term_years", "years": "Infinity"}),
         json!({"basis": "term_years", "years": 10}),
         json!({"basis": "term_years", "years": "10", "extra": 1}),
         json!("10"),
@@ -236,4 +237,11 @@ fn only_a_term_of_years_or_one_life_is_a_relevant_number() {
             "foreign_pension_upp.relevant_number_invalid"
         );
     }
+    // s 27H(4)(a) sets no longest term: 151 years certain is a relevant number.
+    let long = with(
+        formula("100.00", "15100.00", "0.00", "term_years", "151"),
+        "relevant_number",
+        json!({"basis": "term_years", "years": "151"}),
+    );
+    assert_eq!(amount(&run(&long), "deductible_amount"), "100.00");
 }
