@@ -1858,8 +1858,8 @@ pub fn source_review(kind: &str) -> (&'static str, &'static str) {
             "ITAA 1997 Division 32, s 27-5 and s 995-1, compilation 268 (1 October 2026); FBTAA ss 5E, 20, 37A to 37CF, 40, 41, 45, 58P and 135P(1) and s 136(1), compilation 97 (1 July 2026); Fringe Benefits Tax Assessment Regulations 2018, regulations 6 to 11, as made; ITAA 1936 ss 51AEA and 51AEB, compilation 193 (1 October 2026); GST Act s 69-5, compilation 96 (1 January 2026); TR 97/17, paras 7 to 143 and the Part A table, and TR 2007/12, paras 8 to 22 and examples 1 to 3, as the Commissioner's view",
         ),
         "work_expenses" => (
-            "2026-11-22",
-            "ITAA 1997 ss 28-12, 28-25, 28-90, 28-95, 28-100, 28-110, 28-115, 28-120 and 28-125 (ATO legal database); the cents per kilometre instruments of 2020 (F2020L00676), 2022 (F2022L00813), 2023 (F2023L00767), 2024 (F2024L00697) and 2026 (F2026L00785); PCG 2023/1 as updated 16 April 2025, paras 14 to 28, 45 to 89 and Table 1; the ATO's 52 cent fixed rate, shortcut (PCG 2020/3), fixed rate, actual cost, cents per kilometre, log book and self-education pages; the 2022 D4 instructions; TR 98/9 paras 25 to 30 and 119 to 155 on ITAA 1936 s 82A; Act No. 84, 2022, Schedule 3 items 26 and 33",
+            "2026-11-24",
+            "ITAA 1997 s 25-130 (ATO legal database, and Act No. 49, 2026, Schedule 4 items 3 and 17 as made) with the explanatory memorandum's paras 4.11 to 4.19; ITAA 1997 ss 28-12, 28-25, 28-90, 28-95, 28-100, 28-110, 28-115, 28-120 and 28-125 (ATO legal database); the cents per kilometre instruments of 2020 (F2020L00676), 2022 (F2022L00813), 2023 (F2023L00767), 2024 (F2024L00697) and 2026 (F2026L00785); PCG 2023/1 as updated 16 April 2025, paras 14 to 28, 45 to 89 and Table 1; the ATO's 52 cent fixed rate, shortcut (PCG 2020/3), fixed rate, actual cost, cents per kilometre, log book and self-education pages; the 2022 D4 instructions; TR 98/9 paras 25 to 30 and 119 to 155 on ITAA 1936 s 82A; Act No. 84, 2022, Schedule 3 items 26 and 33",
         ),
         "ato_interest_penalties" => (
             "2026-11-22",
@@ -2499,9 +2499,9 @@ pub fn library_evidence(kind: &str) -> [(&'static str, &'static str); 4] {
         ),
         "work_expenses" => (
             "ATO working from home, car and self-education pages; PCG 2023/1; TR 98/9",
-            "Keisha, Yang and Wanda (fixed rate method), PCG 2023/1 examples 1 (Gerry) and 8 (Piruntha), Johan (cents per kilometre), Lana (log book), Maureen (self-education reduction) and TR 98/9 paras 145 to 155 (Con)",
+            "Keisha, Yang and Wanda (fixed rate method), PCG 2023/1 examples 1 (Gerry) and 8 (Piruntha), Johan (cents per kilometre), Lana (log book), Maureen (self-education reduction), TR 98/9 paras 145 to 155 (Con), the explanatory memorandum's examples 4.1 to 4.4 (Nicky) and the ATO's standard deduction examples (Simon and Yui)",
             "2026-08-12",
-            "2026-11-22",
+            "2026-11-24",
         ),
         "depreciation_low_value_pool" => (
             "ATO Low-value pool page and Guide to depreciating assets 2026",
@@ -3149,6 +3149,18 @@ pub fn optional_inputs(kind: &str) -> Vec<(&'static str, &'static str)> {
             (
                 "category_e",
                 "AUD, for self_education with prescribed_course true only, and then required: category E, expenses incurred for the course that are not deductible, such as child care for attendance or the capital cost of a computer",
+            ),
+            (
+                "assessable_labour_income",
+                "AUD, for 2026-27 only, with the other 2 standard deduction facts or none: the year's assessable labour income (ITAA 1997 s 25-130(4): salary and wages, director and office holder payments, payments to religious practitioners, return to work payments, termination and retirement payments, and parental leave pay)",
+            ),
+            (
+                "other_work_related_deductions",
+                "AUD, for 2026-27 only, with the other 2 standard deduction facts or none: the other deductions the return claims for the year that s 25-130(2)(c) to (g) covers (not expenses left unclaimed), besides this method's (other work expenses under s 8-1, car expenses, travel between workplaces, repairs, decline in value and balancing adjustments for assets used for work, COVID-19 tests); not income protection, sickness or accident premiums or union and association fees (s 25-130(3))",
+            ),
+            (
+                "australian_resident",
+                "boolean, for 2026-27 only, with the other 2 standard deduction facts or none: an Australian resident at any time in the year (s 25-130(1)(b))",
             ),
         ],
         "ato_interest_penalties" => vec![
