@@ -4901,6 +4901,8 @@ pub use super_benefit_tax::{
 };
 mod payroll_tax;
 pub use payroll_tax::{PayrollTaxArgs, payroll_tax};
+mod land_tax;
+pub use land_tax::{LandTaxArgs, land_tax};
 mod luxury_car_tax;
 mod stated;
 pub use luxury_car_tax::{LctArgs, luxury_car_tax};
@@ -6278,7 +6280,7 @@ pub use minors_income::{MINORS_OPTIONAL, MinorsIncomeArgs, minors_income};
 mod smsf_tax;
 pub use smsf_tax::smsf_tax;
 
-const KINDS: [&str; 111] = [
+const KINDS: [&str; 112] = [
     "gst",
     "gst_margin_scheme",
     "fuel_tax_credits",
@@ -6300,6 +6302,7 @@ const KINDS: [&str; 111] = [
     "super_benefit_tax",
     "super_withholding",
     "payroll_tax",
+    "land_tax",
     "fbt",
     "fbt_car_statutory",
     "fbt_car_operating_cost",

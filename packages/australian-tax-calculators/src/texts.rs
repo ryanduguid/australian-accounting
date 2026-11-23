@@ -83,6 +83,10 @@ pub const SCOPES: &[(&str, &str)] = &[
         "Trading in one depreciating asset for a replacement in an income year from 2025-26 to 2026-27, for a taxpayer with an income year from 1 July to 30 June, at arm's length, where the replacement is started to be held and first used in that income year. The traded-in asset's facts are balancing_adjustment's, and the operator establishes them as it states. Its termination value is the trade-in allowance, the amount by which the replacement's price is reduced (ITAA 1997 s 40-305(1)(b) item 2), less the GST payable on the trade-in where it is a taxable supply (1/11 of the allowance: GST Act ss 9-70 and 9-75(1); ITAA 1997 s 27-95(1)), plus the GST Act s 132-5 decreasing adjustment for an asset acquired partly for a private purpose or for making financial supplies, from its input tax credit as adjusted and the full one (s 27-95(3)); its balancing adjustment, reduction for non-taxable use and CGT event K7 amount are then worked as balancing_adjustment works them. The replacement's cost is its price before the trade-in, including GST and any luxury car tax (ss 40-180 and 40-185(1)(b) item 2), less its input tax credit (s 27-80(1)): for a creditable acquisition the GST payable, 1/11 of the price less any luxury car tax, times the extent of creditable purpose (GST Act ss 9-75, 11-25 and 11-30), and for a passenger car no more than 1/11 of the car limit times that extent (s 69-10(1) and (3)). A passenger car's cost is then reduced to the car limit for the year (ITAA 1997 s 40-230(1)): $69,674 for 2025-26 and $69,883 for 2026-27, as the ATO publishes them. Amounts are worked exactly and shown to the cent, half up. Refuses a trade-in not at arm's length (s 40-300(2) item 6, s 27-95(2) and s 40-225 would apply), an involuntary disposal (whose s 40-365 choice is not made), a taxable trade-in with an adjusted input tax credit above the full one, a creditable acquisition with a nil creditable purpose, and luxury car tax above the price. Excludes deciding whether either supply is taxable, the allowance, price, creditable purpose and input tax credits; a car whose purchaser may quote an ABN for luxury car tax, a car that is not a luxury car under s 25-1(2) of the Luxury Car Tax Act, a car leased or hired, and a car excluded from the car limit by s 40-230(2); a trade-in of a luxury car on which luxury car tax is payable; a replacement first held or used in another year; a decreasing adjustment arising in a later income year (s 27-95(5)) and increasing adjustments (s 27-95(4)); assets in a pool or written off under s 328-180 or temporary full expensing; and everything balancing_adjustment excludes.",
     ),
     (
+        "land_tax",
+        "One owner's land tax for a full land tax year in one of New South Wales and Victoria (the 2026 land tax year, on land owned at midnight on 31 December 2025) and Queensland, Western Australia, South Australia, Tasmania and the Australian Capital Territory (2026-27); the Northern Territory has no land tax. The operator establishes the jurisdiction's total taxable value of the owner's land after exemptions and concessions (in New South Wales the 3-year average land value, in Victoria and South Australia the site value, in the ACT one parcel's average unimproved value), whether the owner pays trust rates (a New South Wales special trust, Victorian trust surcharge rates, Queensland company and trustee rates or South Australian trust rates), whether the owner is a foreign person or absentee who pays the jurisdiction's surcharge, the value a New South Wales or Tasmanian surcharge applies to, and in Western Australia whether all of the land is in the Perth metropolitan region. Each scale is the Act's or the revenue office's, with the surcharges of New South Wales (5% of the surcharge value), Victoria (the absentee owner rates less the general or trust rates), Queensland (3.0c for each $1 over $349,999 from $350,000, Land Tax Act 2010 (Qld) Schs 2 and 3), Tasmania (2% of the surcharge value) and the ACT (0.75%), and Western Australia's metropolitan region improvement tax (0.14% over $300,000). Tasmania's amounts are rounded to 10 cents (Land Tax Rating Act 2000 (Tas) s 7) and South Australia's land tax under $20 is nil (Land Tax Act 1936 (SA) s 6); other amounts are worked exactly and shown to the cent, half up. Excludes deciding which land is taxable, exemptions and concessions, who is a foreign person or absentee, and the taxable and surcharge values; joint ownership, grouping of related companies, single holding assessments, New South Wales companies that are not their group's concessional company, the Victorian COVID-19 debt temporary surcharge on single holdings, Queensland trust aggregation, land only partly in the Perth metropolitan region, the ACT's unit entitlement and quarterly instalments, apportionment between properties, and part-year or supplementary assessments.",
+    ),
+    (
         "payroll_tax",
         "One employer's payroll tax for the 2026-27 financial year (1 July 2026 to 30 June 2027) in one of New South Wales, Victoria, Queensland, Western Australia, South Australia, Tasmania, the Australian Capital Territory and the Northern Territory, for an employer that is not a member of a group and paid or was liable to pay wages on every day of the year. The operator establishes the employer's taxable wages in the jurisdiction (the wages its Act makes taxable there, after its exemptions) and its Australian wages (those taxable wages with its interstate wages, the wages taxable in every other jurisdiction), and in Victoria whether it is a regional employer (Payroll Tax Act 2007 (Vic) s 3A). The result is the annual liability under each Act's schedule before any rebate, discount or cap, such as Queensland's regional discount (Payroll Tax Act 1971 (Qld) s 10A) and the 6.85% cap for an eligible university in the ACT (DI2026-151 s 5(c)(i)), and before the amounts paid in periodic returns.",
     ),
@@ -528,6 +532,10 @@ pub const SOURCES: &[(&str, &str)] = &[
     (
         "super_withholding",
         "https://www.legislation.gov.au/F2026L00716/asmade/text",
+    ),
+    (
+        "land_tax",
+        "https://www.legislation.vic.gov.au/in-force/acts/land-tax-act-2005/086",
     ),
     (
         "payroll_tax",
@@ -1052,6 +1060,31 @@ pub const EXTRA_SOURCES: &[(&str, &[&str])] = &[
             "https://www.legislation.gov.au/F2025L00647/asmade/text",
             "https://www.legislation.gov.au/F2025L01016/asmade/text",
             "https://www.ato.gov.au/tax-rates-and-codes/key-superannuation-rates-and-thresholds/payments-from-super",
+        ],
+    ),
+    (
+        "land_tax",
+        &[
+            "https://www.revenue.nsw.gov.au/taxes-duties-levies-royalties/land-tax/understanding-land-tax/thresholds-and-rates",
+            "https://www.revenue.nsw.gov.au/taxes-duties-levies-royalties/land-tax/understanding-land-tax/types-of-landowners/trusts",
+            "https://www.revenue.nsw.gov.au/taxes-duties-levies-royalties/land-tax/surcharge-land-tax/what-is-surcharge-land-tax",
+            "https://www.sro.vic.gov.au/about-us/rates-and-statistics/current-rates/land-tax-current-rates",
+            "https://www.legislation.qld.gov.au/view/whole/html/inforce/current/act-2010-015",
+            "https://qro.qld.gov.au/land-tax/calculate/individual/",
+            "https://qro.qld.gov.au/land-tax/calculate/company-trust/",
+            "https://qro.qld.gov.au/land-tax/calculate/absentee/",
+            "https://qro.qld.gov.au/land-tax/calculate/foreign-company-trust/",
+            "https://www.legislation.wa.gov.au/legislation/prod/filestore.nsf/FileURL/mrdoc_28122.htm/$FILE/Land%20Tax%20Act%202002%20-%20%5B02-d0-04%5D.html",
+            "https://www.legislation.wa.gov.au/legislation/prod/filestore.nsf/FileURL/mrdoc_17548.htm/$FILE/Metropolitan%20Region%20Improvement%20Tax%20Act%201959%20-%20%5B04-a0-08%5D.html",
+            "https://www.wa.gov.au/organisation/department-of-treasury-and-finance/land-tax-assessment",
+            "https://www.legislation.sa.gov.au/_legislation-documents/lz/c/a/land-tax-act-1936/current/1936.2318.auth.pdf",
+            "https://www.revenuesa.sa.gov.au/landtax/rates-and-thresholds",
+            "https://www.legislation.tas.gov.au/view/whole/html/inforce/current/act-2000-073",
+            "https://www.sro.tas.gov.au/land-tax/rates-of-land-tax",
+            "https://www.sro.tas.gov.au/Documents/foreign-investor-land-tax-surcharge-guideline.pdf",
+            "https://legislation.act.gov.au/DownloadFile/a/2004-4/current/PDF/2004-4.PDF",
+            "https://www.legislation.act.gov.au/View/di/2026-152/current/html/2026-152.html",
+            "https://nt.gov.au/property/land/buying-and-selling-land/land-taxes",
         ],
     ),
     (
@@ -2178,6 +2211,13 @@ pub const EXTRA_WARNINGS: &[(&str, &[&str])] = &[
         "super_withholding",
         &[
             "The amount withheld is a credit against the payee's tax, which super-benefit-tax works out; it is not the tax. A payee with a tax treaty that makes the payment assessable only in another country has nothing withheld, which this command does not decide.",
+        ],
+    ),
+    (
+        "land_tax",
+        &[
+            "Each revenue office decides which land is taxable, its value and whether an owner is a foreign person or absentee; this worksheet takes the taxable value and any surcharge value as established.",
+            "The ACT assesses land tax each quarter on the days in the quarter; this worksheet gives the full year's amount, which the quarterly assessments can differ from by cents.",
         ],
     ),
     (
@@ -3592,7 +3632,7 @@ pub const REFUSAL_CODES: &[(&str, &str)] = &[
     ),
     (
         "input.field_unknown",
-        "A field the worksheet or command does not take, or does not take beside the other inputs given, was given (fbt-loan, fbt-meal-entertainment, fbt-car-parking, fbt-debt-waiver, fbt-expense-payment, fbt-property, fbt-residual, fbt-housing, fbt-lafha, fbt-board, fbt-tax-exempt-body-entertainment, fbt-entertainment-classifier, fbt-meal-entertainment-register and its entries, fbt-minor-benefit-check, ppsr-timing, fhss and its contributions, government-super-amounts, personal_deductions and determination, division-296, depreciation, fuel-tax-credits and its lines, alcohol-excise and its lines, foreign-resident-tax, medicare-levy, medicare-levy-surcharge, payg-withholding, payg-gross-up, termination-payment, etp-tax-free-component, unused-leave-payment, the Schedule 5 methods, working-holiday-maker-withholding, study-loan-withholding, seniors-pensioners-withholding, seniors-pensioners-tax-offset, lump-sum-arrears-tax-offset, hire-purchase-schedule, chattel-mortgage-schedule, loan-transactions and its transactions and rate_changes, borrowing-expenses-schedule and its loans, business-capital-expenditure and its items, balancing-adjustment, its years and car_limit, trade-in, franking-account and its events, distributions and income_tax, dasp-tax, super-benefit-tax, super-withholding, gst-margin-scheme, wine-equalisation-tax and its dealings, luxury-car-tax and its lines, payroll-tax, cgt-parcels, its parcels and disposals, cgt-cost-base-adjustments, its parcels and events, fbt-ev-exemption-check, sb-cgt-concessions, small-business-income-offset, residency-tests, lodgment-required, trading-stock and its items, prepayments, depreciation-low-value-pool, gst-creditable-purpose-change, gst-annual-apportionment, gst-financial-acquisitions-threshold, gst-going-concern, gst-second-hand-goods, gst-bad-debt, depreciation-small-business-pool, capital-works, non-commercial-losses, psi-test, minors-income, smsf-tax, beneficiary-tax-offset, invalid-carer-tax-offset, zone-tax-offset and its dependants, net-medical-expenses-tax-offset, work-expenses, ato-interest-penalties and its payments and parts, private-health-insurance-rebate, rental-property and its loans, capital_works and depreciating_assets, horticulture-shearing-withholding, upward-variation-withholding, daily-casual-withholding, no-abn-withholding, entertainer-withholding, return-to-work-withholding, annuity-withholding, voluntary-agreement-withholding, rd-tax-offset, deferred-tax, foreign-income-conversion, foreign-income-tax-offset, transfer-balance and its events, excess-contributions, contribution-caps given a carry-forward input, derive, personal-tax-estimate, dgr-check, income-tests and fbt-return only).",
+        "A field the worksheet or command does not take, or does not take beside the other inputs given, was given (fbt-loan, fbt-meal-entertainment, fbt-car-parking, fbt-debt-waiver, fbt-expense-payment, fbt-property, fbt-residual, fbt-housing, fbt-lafha, fbt-board, fbt-tax-exempt-body-entertainment, fbt-entertainment-classifier, fbt-meal-entertainment-register and its entries, fbt-minor-benefit-check, ppsr-timing, fhss and its contributions, government-super-amounts, personal_deductions and determination, division-296, depreciation, fuel-tax-credits and its lines, alcohol-excise and its lines, foreign-resident-tax, medicare-levy, medicare-levy-surcharge, payg-withholding, payg-gross-up, termination-payment, etp-tax-free-component, unused-leave-payment, the Schedule 5 methods, working-holiday-maker-withholding, study-loan-withholding, seniors-pensioners-withholding, seniors-pensioners-tax-offset, lump-sum-arrears-tax-offset, hire-purchase-schedule, chattel-mortgage-schedule, loan-transactions and its transactions and rate_changes, borrowing-expenses-schedule and its loans, business-capital-expenditure and its items, balancing-adjustment, its years and car_limit, trade-in, franking-account and its events, distributions and income_tax, dasp-tax, super-benefit-tax, super-withholding, gst-margin-scheme, wine-equalisation-tax and its dealings, luxury-car-tax and its lines, payroll-tax, land-tax, cgt-parcels, its parcels and disposals, cgt-cost-base-adjustments, its parcels and events, fbt-ev-exemption-check, sb-cgt-concessions, small-business-income-offset, residency-tests, lodgment-required, trading-stock and its items, prepayments, depreciation-low-value-pool, gst-creditable-purpose-change, gst-annual-apportionment, gst-financial-acquisitions-threshold, gst-going-concern, gst-second-hand-goods, gst-bad-debt, depreciation-small-business-pool, capital-works, non-commercial-losses, psi-test, minors-income, smsf-tax, beneficiary-tax-offset, invalid-carer-tax-offset, zone-tax-offset and its dependants, net-medical-expenses-tax-offset, work-expenses, ato-interest-penalties and its payments and parts, private-health-insurance-rebate, rental-property and its loans, capital_works and depreciating_assets, horticulture-shearing-withholding, upward-variation-withholding, daily-casual-withholding, no-abn-withholding, entertainer-withholding, return-to-work-withholding, annuity-withholding, voluntary-agreement-withholding, rd-tax-offset, deferred-tax, foreign-income-conversion, foreign-income-tax-offset, transfer-balance and its events, excess-contributions, contribution-caps given a carry-forward input, derive, personal-tax-estimate, dgr-check, income-tests and fbt-return only).",
     ),
     ("input.flag_invalid", "A flag is not a JSON boolean."),
     ("input.fraction_invalid", "A fraction is outside 0 to 1."),
@@ -3682,6 +3722,26 @@ pub const REFUSAL_CODES: &[(&str, &str)] = &[
     (
         "invalid_carer_tax_offset.successive_spouses",
         "The person had a different spouse during different parts of the year, whose incomes ITAA 1997 s 61-20(3) adds separately.",
+    ),
+    (
+        "land_tax.jurisdiction_invalid",
+        "jurisdiction is not nsw, vic, qld, wa, sa, tas or act; the Northern Territory has no land tax.",
+    ),
+    (
+        "land_tax.metropolitan_region_invalid",
+        "metropolitan_region is not all, none or part.",
+    ),
+    (
+        "land_tax.metropolitan_region_part",
+        "The land is partly in the Perth metropolitan region, whose improvement tax on that part alone is not worked.",
+    ),
+    (
+        "land_tax.surcharge_unavailable",
+        "A foreign or absentee owner was given in a jurisdiction whose surcharge this worksheet does not hold (wa, sa).",
+    ),
+    (
+        "land_tax.trust_rates_unavailable",
+        "Trust rates were asked for in a jurisdiction whose trust rates this worksheet does not hold (wa, tas, act).",
     ),
     (
         "leave.accrual_split_invalid",

@@ -2136,6 +2136,63 @@ trade-in; the other side and the years held are fabricated.
 | An asset bought without GST (nil full and adjusted credits) traded in for $22,000 | Worked by hand under GST Act s 132-5(3): the adjustment is at most the nil difference between the credits | $2,000.00 GST, nil decreasing adjustment, $20,000.00 termination value |
 | A trade-in that is not a taxable supply | GST Act s 9-5 | No GST; the termination value is the allowance |
 
+## Land tax
+
+This worksheet was added on 23 November 2026. Each source was read that day,
+from 23:15 to 23:35 AEDT:
+
+- Revenue NSW, 'Land tax thresholds and rates' (last updated 16 March 2026):
+  the general threshold of $1,075,000 and premium threshold of $6,571,000 for
+  2024 onwards, the 2 rates and the $500 example on a 3-year average of
+  $1,100,000; 'How trusts are assessed' (a special trust's flat 1.6% to the
+  premium threshold, then 2%; $9,600 on $600,000); 'What is surcharge land tax'
+  (last updated 8 April 2026: 5% from 2025, no threshold; examples 1 to 3).
+  The Land Tax Act 1956 and Land Tax Management Act 1956 (NSW) were not read:
+  legislation.nsw.gov.au answered with a Cloudflare challenge, also after one
+  change of network and a slower retry.
+- Land Tax Act 2005 (Vic), authorised version 086 (1 May 2026), Sch 1 Tables
+  1.6, 3.6, 4.5 and 5.5 for 2024 to 2033; the State Revenue Office's 'Land tax
+  (current rates)' (updated 29 September 2026), the same 4 tables.
+- Land Tax Act 2010 (Qld), current reprint, s 32 and Schs 1, 2 and 3; the
+  Queensland Revenue Office's rates for individuals ($1,300 on $680,000,
+  $87,000 on $6,400,000), companies and trusts ($106,500; $8,420), absentees
+  and foreign companies and trusts ($2,300 with a $1,500 surcharge on
+  $400,000).
+- Land Tax Act 2002 (WA), compilation 02-d0-04, s 5 Table 11 (2015/16 and
+  subsequent financial years); Metropolitan Region Improvement Tax Act 1959
+  (WA), compilation 04-a0-08, s 3 Table 3; the Department of Treasury and
+  Finance's 'Land tax assessment' (last updated 20 May 2026).
+- Land Tax Act 1936 (SA), version 4.12.2025, ss 6 and 8A and Sch 1 Pts 2 and
+  3; RevenueSA's 'Rates and thresholds', the 2026-27 general and trust tables
+  (thresholds $936,000, $1,504,000, $2,188,000 and $3,504,000).
+- Land Tax Rating Act 2000 (Tas), current (authorised 12 July 2024), ss 6, 6A
+  and 7 and Sch 1; the State Revenue Office's 'Rates of land tax' (from 1 July
+  2025) and foreign investor land tax surcharge guideline (December 2025),
+  example 1.
+- Land Tax Act 2004 (ACT), republication 34 (26 December 2025), ss 9 and 17E;
+  the Taxation Administration (Amounts Payable—Land Tax) Determination 2026
+  (DI2026-152), ss 4 to 7.
+- NT Government, 'Property taxes': no land tax in the Northern Territory.
+
+The site's land tax calculator (ryanduguid.github.io, main at 1aa0a6cb) was
+run on its 23 calculated cases, the 2 further worked figures in its Rust
+oracle and every band edge of every scale (each edge less 1, the edge and the
+edge plus 1, under every choice the page offers), 875 rows in
+`tests/data/land_tax_site_cases.json`. The worksheet gives the same 4 figures
+on 767 rows; the other 108 differ only where an Act differs from the page.
+Of the page's own 23 cases, 20 agree and 3 move (South Australia's $936,050
+and the Queensland Revenue Office's 2 surcharge examples, $1,500.03 for
+$1,500); its 2 refused cases are refused alike.
+
+| Rule | Act | Rows moved |
+| --- | --- | --- |
+| Queensland's surcharge is 3.0c for each $1 more than $349,999, from $350,000; the page and the Queensland Revenue Office work 3% of the value over $350,000, 3 cents less | Land Tax Act 2010 (Qld) Sch 2 Pt 2, Sch 3 Pt 2 | 70 |
+| South Australian land tax under $20 is nil; the page shows the amount | Land Tax Act 1936 (SA) s 6 | 3 |
+| Tasmanian amounts are rounded to 10 cents; the page applies no rounding | Land Tax Rating Act 2000 (Tas) s 7 | 35 (42 amounts) |
+
+The tests also work by hand the s 7 rounding ($125,001, $125,011, $125,012
+and $125,013) and the s 6 minimum ($939,900 nil; $940,000, $20).
+
 ## Payroll tax
 
 This worksheet was added on 19 November 2026. The revenue offices' pages were

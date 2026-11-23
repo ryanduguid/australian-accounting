@@ -14,7 +14,7 @@ use std::process::{Command, Stdio};
 /// `tests/borrowing_expenses.rs`, `tests/borrowing_expenses_schedule.rs`, `tests/hire_purchase.rs`,
 /// `tests/chattel_mortgage.rs`, `tests/loan_transactions.rs`,
 /// `tests/business_capital_expenditure.rs`, `tests/balancing_adjustment.rs`, `tests/trade_in.rs`, `tests/fuel_tax_credits.rs`,
-/// `tests/payroll_tax.rs`,
+/// `tests/payroll_tax.rs`, `tests/land_tax.rs`,
 /// `tests/gst_margin_scheme.rs`,
 /// `tests/cgt_parcels.rs`, `tests/cgt_cost_base_adjustments.rs`,
 /// `tests/division_296.rs`,
@@ -43,7 +43,7 @@ use std::process::{Command, Stdio};
 /// `tests/foreign_income_tax_offset.rs`, `tests/trading_stock_prepayments.rs`,
 /// `tests/minors_income.rs` and `tests/smsf_tax.rs` cover them, as `tests/transfer_balance.rs` covers
 /// `transfer-balance` and `excess-contributions`.
-const NEW_KINDS: [(&str, &str); 97] = [
+const NEW_KINDS: [(&str, &str); 98] = [
     ("super-withholding", "super_withholding"),
     ("super-benefit-tax", "super_benefit_tax"),
     ("fhss", "fhss"),
@@ -79,6 +79,7 @@ const NEW_KINDS: [(&str, &str); 97] = [
     ("trade-in", "trade_in"),
     ("fuel-tax-credits", "fuel_tax_credits"),
     ("payroll-tax", "payroll_tax"),
+    ("land-tax", "land_tax"),
     ("wine-equalisation-tax", "wine_equalisation_tax"),
     ("alcohol-excise", "alcohol_excise"),
     ("cgt-parcels", "cgt_parcels"),

@@ -380,6 +380,17 @@ const COMMAND_ARGS: &[(&str, &[(&str, Kind)])] = &[
         ],
     ),
     (
+        "land-tax",
+        &[
+            ("jurisdiction", Raw),
+            ("taxable_value", Dec),
+            ("trust_rates", Raw),
+            ("foreign_owner", Raw),
+            ("year", Raw),
+            ("scope_confirmed", Raw),
+        ],
+    ),
+    (
         "wine-equalisation-tax",
         &[("dealings", Json), ("year", Raw), ("scope_confirmed", Raw)],
     ),
@@ -1341,7 +1352,7 @@ pub fn commands() -> Vec<&'static str> {
 /// command on its `gross_pay` shows that withholding. The classifier's amounts
 /// are totals over lines whose shares a decision table sets, not a formula;
 /// each line and class carries the authority for its row instead.
-const DERIVED: [&str; 80] = [
+const DERIVED: [&str; 81] = [
     "fbt",
     "fbt-car-statutory",
     "fbt-car-operating-cost",
@@ -1412,6 +1423,7 @@ const DERIVED: [&str; 80] = [
     "gst-margin-scheme",
     "etp-tax-free-component",
     "payroll-tax",
+    "land-tax",
     "cgt-parcels",
     "work-expenses",
     "rental-property",
@@ -1876,6 +1888,7 @@ pub fn evaluate_coded(command: &str, v: &Value) -> Result<Value> {
             | "super-benefit-tax"
             | "super-withholding"
             | "payroll-tax"
+            | "land-tax"
             | "gst-margin-scheme"
             | "franking-account"
             | "cgt-parcels"
@@ -2173,6 +2186,22 @@ pub fn evaluate_coded(command: &str, v: &Value) -> Result<Value> {
                 involuntary_disposal: &a[9],
                 year: &a[10],
                 scope_confirmed: &a[11],
+            })
+        }
+        "land-tax" => {
+            // Optional: the separate surcharge value (nsw and tas) and
+            // whether the land is in the Perth metropolitan region (wa).
+            let separate = optional(v, "surcharge_value", Dec)?;
+            let region = optional(v, "metropolitan_region", Raw)?;
+            engine::land_tax(&engine::LandTaxArgs {
+                jurisdiction: &a[0],
+                taxable_value: &a[1],
+                trust_rates: &a[2],
+                foreign_owner: &a[3],
+                surcharge_value: separate.as_ref(),
+                metropolitan_region: region.as_ref(),
+                year: &a[4],
+                scope_confirmed: &a[5],
             })
         }
         "payroll-tax" => {
