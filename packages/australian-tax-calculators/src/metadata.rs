@@ -5662,7 +5662,9 @@ pub fn examples(kind: &str) -> Vec<(&'static str, Example)> {
             ("contribution_deduction", Text("0.00")),
             ("in_house_reduction_available", Text("0.00")),
         ],
+        // 2025-26, the catalogue's example year before 2020-21 to 2024-25 were added.
         "depreciation" => vec![
+            ("year", Text("2025-26")),
             ("cost", Text("3000.00")),
             ("effective_life", Text("4")),
             ("days", Whole(146)),
