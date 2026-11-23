@@ -347,6 +347,12 @@ pub const PAYG_WITHHOLDING_RULES: &[(&str, &Schedule1Rules)] = &[
     ("2026-27", &SCHEDULE_1_RULES_FROM_JULY_2026),
 ];
 
+/// Schedule 13, Part A step 4: the weekly equivalent from which no offset
+/// adjustment applies ('less than $1,181' in F2024L00664, F2025L00647 and
+/// F2025L01016; 'less than $1,216' in F2026L00716).
+pub const SCHEDULE_13_ADJUSTMENT_LIMIT: &[(&str, i64)] =
+    &[("2024-25", 1181), ("2025-26", 1181), ("2026-27", 1216)];
+
 /// Schedule 8 (NAT 3539) study and training support loan component coefficients:
 /// for 2025-26, those of F2025L01016, which commenced on 24 September 2025.
 pub const STUDY_LOAN_WITHHOLDING_COEFFICIENTS: &[(&str, &[(&str, &[CoefficientRow])])] = &[
@@ -1471,8 +1477,8 @@ pub fn source_review(kind: &str) -> (&'static str, &'static str) {
             "ITAA 1997 ss 40-25, 40-85, 40-230, 40-285, 40-290, 40-291A, 40-295, 40-300, 40-305, 40-325, 40-370, 104-235, 104-240, 118-5 and 118-10 (its example) and Subdivision 27-B, compilation 268 (1 October 2026), with the endnotes' amendment history; Treasury Laws Amendment (Tax Reform No. 1) Act 2026 (No 49 of 2026), Schedule 4 item 17 (s 40-291A from 2026-27); Guide to depreciating assets 2026, 'What happens if you no longer hold or use a depreciating asset?', its Bridget, Andrew and Louise examples and the car limit formula",
         ),
         "super_withholding" => (
-            "2026-11-22",
-            "Schedule 12 of the Taxation Administration (Withholding Schedules) Instruments 2024 (F2024L00664), 2025 (F2025L00647), (No. 2) 2025 (F2025L01016) and 2026 (F2026L00716), and the ATO's Schedule 12 from 13 October 2020 to 30 June 2024, with the super-benefit-tax sources for the components, treatments and caps",
+            "2026-11-23",
+            "Schedules 12 and 13 of the Taxation Administration (Withholding Schedules) Instruments 2024 (F2024L00664), 2025 (F2025L00647), (No. 2) 2025 (F2025L01016) and 2026 (F2026L00716), and the ATO's Schedule 12 from 13 October 2020 to 30 June 2024 (read 22 November 2026), with the super-benefit-tax sources for the components, treatments and caps; for income streams, Schedule 13 of those instruments and ITAA 1997 ss 301-10, 301-25 to 301-40, 301-100, 301-110, 302-65 to 302-90, 307-125, 307-145 and 307-150 from the ATO's legal database, read 23 November 2026",
         ),
         "super_benefit_tax" => (
             "2026-11-22",
@@ -2486,19 +2492,19 @@ pub fn optional_inputs(kind: &str) -> Vec<(&'static str, &'static str)> {
         "super_withholding" => vec![
             (
                 "date_of_birth",
-                "YYYY-MM-DD, the member's, for recipient member only, and then required: sets the age on payment_date and the preservation age, as in super-benefit-tax",
+                "YYYY-MM-DD, the member's, for recipient member only, and then required; for an income stream, the payee's, and required: sets the age on payment_date and the preservation age, as in super-benefit-tax",
             ),
             (
                 "terminal_medical_condition",
-                "boolean, for recipient member only, and then required: a terminal medical condition (s 303-10) exists when the payment is received",
+                "boolean, for a lump sum to recipient member only, and then required: a terminal medical condition (s 303-10) exists when the payment is received",
             ),
             (
                 "disability_superannuation_benefit",
-                "boolean, for recipient member only, and then required: true is refused (s 307-145)",
+                "boolean, for recipient member only, and then required: for a lump sum true is refused (s 307-145); for an income stream true is a disability super income stream (Schedule 13 Part A step 3, s 301-40(2))",
             ),
             (
                 "service_before_july_1983",
-                "boolean, required with an untaxed_element above nil except for recipient deceased_estate_trustee, and refused otherwise: true is refused (s 307-150)",
+                "boolean, for a lump sum, required with an untaxed_element above nil except for recipient deceased_estate_trustee, and refused otherwise: true is refused (s 307-150)",
             ),
             (
                 "low_rate_cap_used",
@@ -2511,6 +2517,22 @@ pub fn optional_inputs(kind: &str) -> Vec<(&'static str, &'static str)> {
             (
                 "other_lump_sums_this_year",
                 "boolean, with a TFN for a member at or above preservation age and under 60, and then required: true is refused while any of the low rate cap is left, as in super-benefit-tax",
+            ),
+            (
+                "income_stream_period",
+                "weekly, fortnightly, monthly or quarterly: makes the payment one income stream payment for that period under Schedule 13 Part A (2024-25 to 2026-27) instead of a lump sum under Schedule 12",
+            ),
+            (
+                "tax_free_threshold_claimed",
+                "boolean, for an income stream with a TFN, and then required: Schedule 1 scale 2 if true, scale 1 if false",
+            ),
+            (
+                "capped_defined_benefit",
+                "boolean, for an income stream, and then required: true is refused for a payee 60 or over (Schedule 13 Parts B to E)",
+            ),
+            (
+                "deceased_aged_60_or_over",
+                "boolean, for an income stream to recipient death_benefits_dependant, and then required: the deceased died aged 60 or over (ss 302-65, 302-85); true is refused for a recipient under 60",
             ),
         ],
         "super_benefit_tax" => vec![

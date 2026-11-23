@@ -4,6 +4,18 @@
 
 ### Added
 
+- `super-withholding` takes one superannuation income stream payment with
+  `income_stream_period`: Schedule 13 Part A withholding in 2024-25 to
+  2026-27 for an account-based stream, or a capped defined benefit stream to
+  a payee under 60, paid to a member or a death benefits dependant, with
+  `tax_free_threshold_claimed`, `capped_defined_benefit` and
+  `deceased_aged_60_or_over`. Lump sums are unchanged. New codes:
+  `super_withholding.capped_defined_benefit`,
+  `super_withholding.deceased_60_recipient_under_60`,
+  `super_withholding.income_stream_foreign_resident`,
+  `super_withholding.income_stream_period_invalid` and
+  `super_withholding.income_stream_year`. `tests/super_income_stream.rs` runs
+  each schedule's Veronica example and each rule.
 - `trading-stock` works out the change in value of trading stock under ITAA
   1997 s 70-35 for 2020-21 to 2026-27, each closing item valued by its own
   election (cost, market selling value, replacement value, the lowest, or an

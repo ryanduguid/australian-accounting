@@ -513,6 +513,41 @@ fn cases() -> Vec<(&'static str, Value)> {
                    "tfn_provided": true, "foreign_resident": false,
                    "year": "2026-27", "scope_confirmed": true}),
         ),
+        // Schedule 13 Part A, Veronica (2026-27): a fortnightly disability
+        // stream, the table amount less a 15% offset, and the adjustment.
+        (
+            "super-withholding",
+            json!({"benefit": "1400.00", "interest_value": "1400.00",
+                   "interest_tax_free_component": "300.00", "untaxed_element": "0.00",
+                   "recipient": "member", "payment_date": "2026-09-01",
+                   "date_of_birth": "1968-01-15", "disability_superannuation_benefit": true,
+                   "income_stream_period": "fortnightly", "tax_free_threshold_claimed": true,
+                   "capped_defined_benefit": false, "tfn_provided": true,
+                   "foreign_resident": false, "year": "2026-27", "scope_confirmed": true}),
+        ),
+        // Schedule 13 Part A at 66, monthly: 10% of the untaxed element and
+        // the 2% adjustment converted from the weekly equivalent.
+        (
+            "super-withholding",
+            json!({"benefit": "5000.00", "interest_value": "5000.00",
+                   "interest_tax_free_component": "0.00", "untaxed_element": "4000.33",
+                   "recipient": "member", "payment_date": "2026-09-01",
+                   "date_of_birth": "1960-01-01", "disability_superannuation_benefit": false,
+                   "income_stream_period": "monthly", "tax_free_threshold_claimed": true,
+                   "capped_defined_benefit": false, "tfn_provided": true,
+                   "foreign_resident": false, "year": "2026-27", "scope_confirmed": true}),
+        ),
+        // Schedule 13 without a TFN: 47% of a dependant's taxable component.
+        (
+            "super-withholding",
+            json!({"benefit": "1100.75", "interest_value": "1100.75",
+                   "interest_tax_free_component": "0.00", "untaxed_element": "0.00",
+                   "recipient": "death_benefits_dependant", "payment_date": "2026-09-01",
+                   "date_of_birth": "1990-01-01", "deceased_aged_60_or_over": false,
+                   "income_stream_period": "quarterly", "capped_defined_benefit": false,
+                   "tfn_provided": false, "foreign_resident": false,
+                   "year": "2026-27", "scope_confirmed": true}),
+        ),
         // No TFN: 47% of a member's taxable component under 60, cents ignored.
         (
             "super-withholding",

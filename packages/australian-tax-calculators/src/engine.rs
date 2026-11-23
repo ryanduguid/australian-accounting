@@ -4896,8 +4896,8 @@ mod dasp_tax;
 pub use dasp_tax::{DaspTaxArgs, dasp_tax};
 mod super_benefit_tax;
 pub use super_benefit_tax::{
-    SUPER_BENEFIT_OPTIONAL, SuperBenefitTaxArgs, SuperWithholdingArgs, super_benefit_tax,
-    super_withholding,
+    STREAM_OPTIONAL, SUPER_BENEFIT_OPTIONAL, SuperBenefitTaxArgs, SuperWithholdingArgs,
+    super_benefit_tax, super_withholding,
 };
 mod payroll_tax;
 pub use payroll_tax::{PayrollTaxArgs, payroll_tax};
