@@ -167,6 +167,7 @@ Ask in plain English. Each of these fabricated requests resolves to one tool cal
 | `validate_bsb_format` | Test a BSB against AusPayNet's published 6 digit format, XXX-XXX. It holds no BSB directory, so a valid format proves no institution, branch or account. |
 | `validate_account_number_format` | Test a bank account number against the account number field in AusPayNet's BECS Procedures: up to 9 letters, digits, hyphens or spaces, not all zeros. A valid format proves no account, payee or BSB match. |
 | `get_reviewed_rate` | Return a reviewed ATO rate or threshold for a date, with its source and a verbatim quote. Records cover 2025-26 and 2026-27 only; any other date is refused. |
+| `itr_label` | Look up the paper question and label or the myTax heading for domestic employee union fees in 2025-26. An unmapped item or year stays open. |
 | `search_accounting_library` | Search a configured local Markdown library. |
 | `read_accounting_library` | Read cited lines from that library. |
 | `search_tax_legislation` | Find provisions in a configured local legislation corpus, best match first. A plain question works: stop words are dropped, and provisions holding at least 2 of the words but not all, a modal word's opposite form counting towards the 2, come back labelled as partial hits, never as matches. `as_at` answers for a date from each title's compilation window and refuses by name any title it cannot answer for. |

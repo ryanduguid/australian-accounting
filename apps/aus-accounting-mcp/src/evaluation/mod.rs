@@ -13,7 +13,7 @@ use std::{
     time::Duration,
 };
 
-const REFERENCE: &[u8] = include_bytes!("../../evaluation/questions.xml");
+const REFERENCE: &[u8] = include_bytes!("../../data/evaluation.v1.xml");
 const HELP: &str = "Offline supplementary tool-selection evaluation. Recordings are never executed.\n\nUsage: aus-accounting-mcp-evaluate [--reference PATH] <context|questions|score RECORDING [--reference-sha256 SHA]>\n\ncontext    Print actual native server instructions, tools and preloaded scope.\nquestions  Print questions without tools or answers.\nscore      Compare recorded calls and answers; an imperfect valid score exits 0.\n\nThe default reference is embedded. Context launches the sibling aus-accounting-mcp executable.\n";
 
 const LICENCE_NOTICE: &str = "\n\

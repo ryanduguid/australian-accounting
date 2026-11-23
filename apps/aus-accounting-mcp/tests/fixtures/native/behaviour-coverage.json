@@ -9,8 +9,8 @@
   },
   "counts": {
     "adapted": 60,
-    "covered": 452,
-    "not-yet-ported": 7,
+    "covered": 443,
+    "not-yet-ported": 16,
     "retained-python-distribution": 74
   },
   "original_sources": {
@@ -36,7 +36,7 @@
     "tests/test_industry_pagination.py": "eb0a77a3dac58ca717760afa84d0e41469e13698c3a5ab053cd947f8efcd1243",
     "tests/test_installed_check.py": "d104e7ba353b4f7ace28c426e41158f110692b2931ba7614bdb64331ede7a8f9",
     "tests/test_lodgment_calendar.py": "434f0bed827309525fbefc603bc7b055f1f899d4609d1f0aa30da99b9345e1b8",
-    "tests/test_mcp_evaluation.py": "082ef7d4c2d5fe3f6f16108ba93b135d8fbdc6f6a58031a9ee882e9de6d2c6e3",
+    "tests/test_mcp_evaluation.py": "9d53a40607abb0c7ff9c1a6b7e05098fae29fda2e15d1ee29e61629d304eb8be",
     "tests/test_no_network.py": "97bb73a2684e0692de94ed3f6a4937b619e683b727c01faba815de0af967d0c3",
     "tests/test_output_contracts.py": "225ad0e61a42d8c5566ad31e95daf5dba7627e212199d79b381747c6a445a18e",
     "tests/test_partial_search.py": "2949cf5dad29c62ba78a8cb3a4dfe9a22a3f8396e7536035e8cc754e6b4fe889",
@@ -51,7 +51,7 @@
     "tests/test_reviewed_rates.py": "0b989210abdb46a119fa348b6ef5582cca4a8f3138112b760cc2964539afcc46",
     "tests/test_rulings.py": "027f4b29cafa78244de90d0dbbe965d69201241c2b3c63857688577a585efa40",
     "tests/test_search_relevance.py": "077fd534af5ebfd08968ce1b28cb0e80c41266353343832a435b27d4df489983",
-    "tests/test_selection_record_integrity.py": "db5bdf61a698dd99e0d14803bfcfd05ca0882f2421183f10a2c35790d87b41c2",
+    "tests/test_selection_record_integrity.py": "f59dfad94088cc609bfbe43885ec00dd725cbf2d2e82f7b37be8564e1728df9a",
     "tests/test_server_money.py": "c0803bd54e1b21f03ac4273e89123e4b755db200c9ae04e2b6108f5b3023c6a0",
     "tests/test_server_paths.py": "e127826fc01d0648f207728a293071896d62a36b697198ba8af068c3408e37a8",
     "tests/test_tool_discovery.py": "d3e6c14deac1d9cdf7787885216c991a407a4fedab779b6a0cb56bf95ad59d1e",
@@ -117,15 +117,15 @@
     },
     "SCORE": {
       "test": "tests/native_evaluation.rs::complete_scoring_matches_original_integrity_and_typed_value_oracles",
-      "evidence": "75 original scoring/reference integrity cases, complete stdout/exits and exact values. Additional native parser bounds remain explicit in NATIVE.md."
+      "evidence": "75 original scoring and reference integrity cases, including exact stdout, exit codes and values for the frozen 42-question default. Additional native parser bounds are recorded in NATIVE.md."
     },
     "CONTEXT": {
       "test": "tests/native_evaluation.rs::questions_and_complete_actual_stdio_context_match_original",
-      "evidence": "Exact question-only output and complete actual native stdio context; scorer relocation and parser bounds separately exercised."
+      "evidence": "Exact question-only output for the frozen 42-question native reference and complete native stdio context. Scorer relocation and parser bounds are separately exercised."
     },
     "ANSWER": {
       "test": "tests/wire_contracts.rs::current_evaluation_answers_follow_actual_reference_calls_and_dependent_facts",
-      "evidence": "Current XML calls through one actual process; all 39 derived answers/45 calls, extra original assertions, result-dependent argument relationships and complete published-tool selection. Fabricated files bound to original builder hashes."
+      "evidence": "One native process derives 40 answers from the current 43 Python questions in 46 calls. The replay covers every native tool and records the 3 unavailable cases. Fabricated files are bound to the original builder hashes."
     },
     "WIRE": {
       "test": "tests/wire_contracts.rs::unknown_arguments_and_expected_input_errors_leave_the_session_usable",
@@ -2217,44 +2217,48 @@
     {
       "original": "tests/test_mcp_evaluation.py:260",
       "function": "test_evaluation_answer_is_reproducible",
-      "source_sha256": "082ef7d4c2d5fe3f6f16108ba93b135d8fbdc6f6a58031a9ee882e9de6d2c6e3",
-      "status": "covered",
+      "source_sha256": "9d53a40607abb0c7ff9c1a6b7e05098fae29fda2e15d1ee29e61629d304eb8be",
+      "status": "not-yet-ported",
       "proofs": [
         "ANSWER"
-      ]
+      ],
+      "adaptation_or_limit": "The native wire replay derives 40 of the 43 current Python answers in 46 calls. It identifies the 3 unavailable cases separately."
     },
     {
       "original": "tests/test_mcp_evaluation.py:275",
       "function": "test_every_published_tool_selection_names_a_registered_tool",
-      "source_sha256": "082ef7d4c2d5fe3f6f16108ba93b135d8fbdc6f6a58031a9ee882e9de6d2c6e3",
-      "status": "covered",
+      "source_sha256": "9d53a40607abb0c7ff9c1a6b7e05098fae29fda2e15d1ee29e61629d304eb8be",
+      "status": "not-yet-ported",
       "proofs": [
         "ANSWER"
-      ]
+      ],
+      "adaptation_or_limit": "The wire replay covers all native tools. The supported Python catalogue also has bank-format checks and itr_label."
     },
     {
       "original": "tests/test_mcp_evaluation.py:285",
       "function": "test_the_selection_harness_publishes_questions_without_their_answers",
-      "source_sha256": "082ef7d4c2d5fe3f6f16108ba93b135d8fbdc6f6a58031a9ee882e9de6d2c6e3",
-      "status": "covered",
+      "source_sha256": "9d53a40607abb0c7ff9c1a6b7e05098fae29fda2e15d1ee29e61629d304eb8be",
+      "status": "not-yet-ported",
       "proofs": [
         "CONTEXT",
         "ANSWER"
-      ]
+      ],
+      "adaptation_or_limit": "The native CLI publishes its frozen 42-question set. Python publishes 43 questions."
     },
     {
       "original": "tests/test_mcp_evaluation.py:306",
       "function": "test_the_selection_harness_scores_a_recorded_run",
-      "source_sha256": "082ef7d4c2d5fe3f6f16108ba93b135d8fbdc6f6a58031a9ee882e9de6d2c6e3",
-      "status": "covered",
+      "source_sha256": "9d53a40607abb0c7ff9c1a6b7e05098fae29fda2e15d1ee29e61629d304eb8be",
+      "status": "not-yet-ported",
       "proofs": [
         "SCORE"
-      ]
+      ],
+      "adaptation_or_limit": "Native scoring checks the original result against its 42-question reference. Python scores this assertion against the current 43 questions."
     },
     {
       "original": "tests/test_mcp_evaluation.py:333",
       "function": "test_the_selection_harness_rejects_a_question_it_does_not_know",
-      "source_sha256": "082ef7d4c2d5fe3f6f16108ba93b135d8fbdc6f6a58031a9ee882e9de6d2c6e3",
+      "source_sha256": "9d53a40607abb0c7ff9c1a6b7e05098fae29fda2e15d1ee29e61629d304eb8be",
       "status": "covered",
       "proofs": [
         "SCORE"
@@ -2263,44 +2267,48 @@
     {
       "original": "tests/test_mcp_evaluation.py:340",
       "function": "test_the_selection_harness_context_is_the_whole_tool_definition",
-      "source_sha256": "082ef7d4c2d5fe3f6f16108ba93b135d8fbdc6f6a58031a9ee882e9de6d2c6e3",
-      "status": "covered",
+      "source_sha256": "9d53a40607abb0c7ff9c1a6b7e05098fae29fda2e15d1ee29e61629d304eb8be",
+      "status": "not-yet-ported",
       "proofs": [
         "CONTEXT",
         "ANSWER"
-      ]
+      ],
+      "adaptation_or_limit": "The native context includes its complete frozen tool definitions and scope. It predates itr_label."
     },
     {
       "original": "tests/test_mcp_evaluation.py:382",
       "function": "test_recorded_calls_and_answer_are_scored_together",
-      "source_sha256": "082ef7d4c2d5fe3f6f16108ba93b135d8fbdc6f6a58031a9ee882e9de6d2c6e3",
-      "status": "covered",
+      "source_sha256": "9d53a40607abb0c7ff9c1a6b7e05098fae29fda2e15d1ee29e61629d304eb8be",
+      "status": "not-yet-ported",
       "proofs": [
         "SCORE"
-      ]
+      ],
+      "adaptation_or_limit": "Native scoring checks the original result against its 42-question reference. Python scores this assertion against the current 43 questions."
     },
     {
       "original": "tests/test_mcp_evaluation.py:391",
       "function": "test_correct_tool_names_cannot_hide_wrong_calls_or_answer",
-      "source_sha256": "082ef7d4c2d5fe3f6f16108ba93b135d8fbdc6f6a58031a9ee882e9de6d2c6e3",
-      "status": "covered",
+      "source_sha256": "9d53a40607abb0c7ff9c1a6b7e05098fae29fda2e15d1ee29e61629d304eb8be",
+      "status": "not-yet-ported",
       "proofs": [
         "SCORE"
-      ]
+      ],
+      "adaptation_or_limit": "Native scoring checks the original result against its 42-question reference. Python scores this assertion against the current 43 questions."
     },
     {
       "original": "tests/test_mcp_evaluation.py:411",
       "function": "test_invented_zero_fails_even_when_the_answer_and_tools_are_right",
-      "source_sha256": "082ef7d4c2d5fe3f6f16108ba93b135d8fbdc6f6a58031a9ee882e9de6d2c6e3",
-      "status": "covered",
+      "source_sha256": "9d53a40607abb0c7ff9c1a6b7e05098fae29fda2e15d1ee29e61629d304eb8be",
+      "status": "not-yet-ported",
       "proofs": [
         "SCORE"
-      ]
+      ],
+      "adaptation_or_limit": "Native scoring checks the original result against its 42-question reference. Python scores this assertion against the current 43 questions."
     },
     {
       "original": "tests/test_mcp_evaluation.py:432",
       "function": "test_legacy_tool_names_do_not_claim_argument_or_answer_verification",
-      "source_sha256": "082ef7d4c2d5fe3f6f16108ba93b135d8fbdc6f6a58031a9ee882e9de6d2c6e3",
+      "source_sha256": "9d53a40607abb0c7ff9c1a6b7e05098fae29fda2e15d1ee29e61629d304eb8be",
       "status": "covered",
       "proofs": [
         "SCORE"
@@ -2309,7 +2317,7 @@
     {
       "original": "tests/test_mcp_evaluation.py:444",
       "function": "test_malformed_recordings_return_an_input_error",
-      "source_sha256": "082ef7d4c2d5fe3f6f16108ba93b135d8fbdc6f6a58031a9ee882e9de6d2c6e3",
+      "source_sha256": "9d53a40607abb0c7ff9c1a6b7e05098fae29fda2e15d1ee29e61629d304eb8be",
       "status": "covered",
       "proofs": [
         "SCORE"
@@ -3261,7 +3269,7 @@
     {
       "original": "tests/test_selection_record_integrity.py:22",
       "function": "test_decoded_argument_types_cannot_match_by_python_coercion",
-      "source_sha256": "db5bdf61a698dd99e0d14803bfcfd05ca0882f2421183f10a2c35790d87b41c2",
+      "source_sha256": "f59dfad94088cc609bfbe43885ec00dd725cbf2d2e82f7b37be8564e1728df9a",
       "status": "covered",
       "proofs": [
         "SCORE"
@@ -3270,7 +3278,7 @@
     {
       "original": "tests/test_selection_record_integrity.py:54",
       "function": "test_ambiguous_or_nonfinite_recordings_are_input_errors",
-      "source_sha256": "db5bdf61a698dd99e0d14803bfcfd05ca0882f2421183f10a2c35790d87b41c2",
+      "source_sha256": "f59dfad94088cc609bfbe43885ec00dd725cbf2d2e82f7b37be8564e1728df9a",
       "status": "covered",
       "proofs": [
         "SCORE"
@@ -3279,16 +3287,17 @@
     {
       "original": "tests/test_selection_record_integrity.py:61",
       "function": "test_a_recording_can_bind_the_reference_snapshot",
-      "source_sha256": "db5bdf61a698dd99e0d14803bfcfd05ca0882f2421183f10a2c35790d87b41c2",
-      "status": "covered",
+      "source_sha256": "f59dfad94088cc609bfbe43885ec00dd725cbf2d2e82f7b37be8564e1728df9a",
+      "status": "not-yet-ported",
       "proofs": [
         "SCORE"
-      ]
+      ],
+      "adaptation_or_limit": "The native CLI binds its 42-question reference by digest. The supported Python default now contains 43."
     },
     {
       "original": "tests/test_selection_record_integrity.py:78",
       "function": "test_invalid_reference_keys_cannot_produce_scores",
-      "source_sha256": "db5bdf61a698dd99e0d14803bfcfd05ca0882f2421183f10a2c35790d87b41c2",
+      "source_sha256": "f59dfad94088cc609bfbe43885ec00dd725cbf2d2e82f7b37be8564e1728df9a",
       "status": "covered",
       "proofs": [
         "SCORE"
@@ -3297,7 +3306,7 @@
     {
       "original": "tests/test_selection_record_integrity.py:120",
       "function": "test_finite_float_values_are_not_rounded_before_comparison",
-      "source_sha256": "db5bdf61a698dd99e0d14803bfcfd05ca0882f2421183f10a2c35790d87b41c2",
+      "source_sha256": "f59dfad94088cc609bfbe43885ec00dd725cbf2d2e82f7b37be8564e1728df9a",
       "status": "covered",
       "proofs": [
         "SCORE"
@@ -3306,7 +3315,7 @@
     {
       "original": "tests/test_selection_record_integrity.py:147",
       "function": "test_answer_whitespace_is_symmetric_but_internal_text_is_exact",
-      "source_sha256": "db5bdf61a698dd99e0d14803bfcfd05ca0882f2421183f10a2c35790d87b41c2",
+      "source_sha256": "f59dfad94088cc609bfbe43885ec00dd725cbf2d2e82f7b37be8564e1728df9a",
       "status": "covered",
       "proofs": [
         "SCORE"

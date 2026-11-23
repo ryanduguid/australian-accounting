@@ -42,6 +42,7 @@ from paydaysuper.rates import DATA_DIR as RATES_DATA_DIR, load_gic, load_rates
 from .adapters import tax
 from .errors import InputError
 from .resources import SERVER_DISTRIBUTION, _installed
+from .return_labels import DESTINATIONS
 from .reviewed_rates import covered_years, records
 
 UNKNOWN = "UNKNOWN"
@@ -62,6 +63,7 @@ DataTool = Literal[
     "review_gst_coding",
     "reconcile_bas",
     "get_reviewed_rate",
+    "itr_label",
 ]
 DATA_TOOLS: tuple[str, ...] = get_args(DataTool)
 
@@ -349,6 +351,20 @@ def _reviewed_rates() -> dict[str, Any]:
     )
 
 
+def _return_labels() -> dict[str, Any]:
+    years = sorted({year for year, _, _ in DESTINATIONS})
+    entries = DESTINATIONS.values()
+    return _dataset(
+        "individual_return_destinations", "ATO individual return instructions by year and channel.",
+        ["itr_label"], SERVER_DISTRIBUTION,
+        effective_periods=[_financial_year(year, "income year") for year in years],
+        sources=_urls(entry["source_url"] for entry in entries),
+        retrieved=UNKNOWN,
+        source_checked=min(entry["checked_on"] for entry in entries),
+        provenance={"entries": len(DESTINATIONS)},
+    )
+
+
 def _as_at_status(periods: list[dict[str, str]] | str, as_at: date) -> str:
     if isinstance(periods, str):
         return UNKNOWN
@@ -371,7 +387,7 @@ def data_freshness(as_at: str | None = None, tool: str | None = None) -> dict[st
             raise InputError(f"as_at must be a YYYY-MM-DD date; got {as_at!r}") from exc
     datasets = [
         *_benchmarks(), _div7a(), _gic(), _calendar(), _sg_parameters(), *_worksheets(),
-        _lodgment(), _gst(), _reviewed_rates(),
+        _lodgment(), _gst(), _reviewed_rates(), _return_labels(),
     ]
     if tool is not None:
         datasets = [dataset for dataset in datasets if tool in dataset["tools"]]
