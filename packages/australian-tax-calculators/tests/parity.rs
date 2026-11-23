@@ -14,7 +14,7 @@ use std::process::{Command, Stdio};
 /// `tests/borrowing_expenses.rs`, `tests/borrowing_expenses_schedule.rs`, `tests/hire_purchase.rs`,
 /// `tests/chattel_mortgage.rs`, `tests/loan_transactions.rs`,
 /// `tests/business_capital_expenditure.rs`, `tests/balancing_adjustment.rs`, `tests/trade_in.rs`, `tests/fuel_tax_credits.rs`,
-/// `tests/payroll_tax.rs`,
+/// `tests/payroll_tax.rs`, `tests/land_tax.rs`,
 /// `tests/gst_margin_scheme.rs`,
 /// `tests/cgt_parcels.rs`, `tests/cgt_cost_base_adjustments.rs`,
 /// `tests/division_296.rs`,
@@ -28,8 +28,9 @@ use std::process::{Command, Stdio};
 /// `tests/fbt_lafha.rs`, `tests/fbt_board.rs`,
 /// `tests/fbt_tax_exempt_body_entertainment.rs`, `tests/lump_sum_arrears_offset.rs`,
 /// `tests/fbt_entertainment_classifier.rs`, `tests/fbt_minor_benefit.rs`,
-/// `tests/fhss.rs`, `tests/ppsr_timing.rs`, `tests/dasp_tax.rs`, `tests/super_benefit_tax.rs`, `tests/super_withholding.rs`, `tests/income_tests.rs`,
-/// `tests/franking_account.rs`, `tests/wine_equalisation_tax.rs`, `tests/alcohol_excise.rs`,
+/// `tests/fhss.rs`, `tests/ppsr_timing.rs`, `tests/dasp_tax.rs`, `tests/super_benefit_tax.rs`, `tests/super_withholding.rs`, `tests/super_income_stream.rs`,
+/// `tests/income_tests.rs`,
+/// `tests/franking_account.rs`, `tests/wine_equalisation_tax.rs`, `tests/vic_property_taxes.rs`, `tests/alcohol_excise.rs`,
 /// `tests/luxury_car_tax.rs`, `tests/sb_cgt_concessions.rs`,
 /// `tests/private_health_insurance_rebate.rs`, `tests/depreciation_pools.rs`,
 /// `tests/withholding_schedules.rs`, `tests/payment_withholding.rs`,
@@ -46,7 +47,7 @@ use std::process::{Command, Stdio};
 /// `tests/minors_income.rs`, `tests/smsf_tax.rs`, `tests/fbt_instalment.rs`, `tests/ess_discount.rs` and
 /// `tests/help_indexation.rs` cover them, as `tests/transfer_balance.rs` covers
 /// `transfer-balance` and `excess-contributions`.
-const NEW_KINDS: [(&str, &str); 104] = [
+const NEW_KINDS: [(&str, &str); 106] = [
     ("help-indexation", "help_indexation"),
     ("super-withholding", "super_withholding"),
     ("super-benefit-tax", "super_benefit_tax"),
@@ -84,7 +85,9 @@ const NEW_KINDS: [(&str, &str); 104] = [
     ("trade-in", "trade_in"),
     ("fuel-tax-credits", "fuel_tax_credits"),
     ("payroll-tax", "payroll_tax"),
+    ("land-tax", "land_tax"),
     ("wine-equalisation-tax", "wine_equalisation_tax"),
+    ("vic-property-taxes", "vic_property_taxes"),
     ("alcohol-excise", "alcohol_excise"),
     ("cgt-parcels", "cgt_parcels"),
     ("cgt-cost-base-adjustments", "cgt_cost_base_adjustments"),
