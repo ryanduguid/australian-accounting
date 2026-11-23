@@ -6,8 +6,9 @@
 //! 2026 tax year, on values the operator states. Vacant residential land tax
 //! (Land Tax Act 2005 (Vic) Part 2 Division 6 and s 35(3)), the commercial and
 //! industrial property tax (Commercial and Industrial Property Tax Reform Act
-//! 2024 (Vic)), nil in both years with the land's first tax year, and windfall
-//! gains tax (Windfall Gains Tax Act 2021 (Vic)) on a rezoning in either year.
+//! 2024 (Vic)), nil in both years with the land's earliest possible tax year,
+//! and windfall gains tax (Windfall Gains Tax Act 2021 (Vic)) on a rezoning in
+//! either year.
 //! Every figure was read on 23 and 24 November 2026;
 //! docs/calculation-evidence.md#vic-property-taxes lists the versions.
 
@@ -47,15 +48,27 @@ enum Tax {
 type Rates = Vec<(String, String)>;
 
 const VRLT_2B: &str = "Land Tax Act 2005 (Vic) ss 19(1A), 34A, 37A and 35(3)(a): 1% of the capital improved value of undeveloped land in a residential zone (s 34B(2B))";
-const VRLT_88EB: &str = "Land Tax Act 2005 (Vic) ss 19(1A), 34A, 37A and 88EB: the concessional 1% of the capital improved value of new residential land unused, unoccupied and unsold";
-const VRLT_1: &str = "Land Tax Act 2005 (Vic) ss 19(1A), 34A, 37A and 35(3)(b)(i): 1% of the capital improved value, the land not liable in the preceding tax year";
-const VRLT_2: &str = "Land Tax Act 2005 (Vic) ss 19(1A), 34A, 37A and 35(3)(b)(ii): 2% of the capital improved value, the land liable in the preceding tax year but not the one before";
-const VRLT_3: &str = "Land Tax Act 2005 (Vic) ss 19(1A), 34A, 37A and 35(3)(b)(iii): 3% of the capital improved value, the land liable in the last 2 preceding tax years";
-const CIPT: &str = "Commercial and Industrial Property Tax Reform Act 2024 (Vic) ss 3 and 17: no land is CIPT taxable land while within its 10-year transition period, which starts on its entry date (on or after 1 July 2024, s 2)";
+const VRLT_88EB: &str = "Land Tax Act 2005 (Vic) ss 19(1A), 34A, 37A and 88EB: the concessional 1% of the capital improved value of land that became s 34B(1) residential land in a preceding tax year, was exempt under s 88EA in a later preceding tax year, and has since been neither used, occupied nor sold";
+/// The s 35(3) rates by the land's liable years, cited as each year's text
+/// numbers them: s 35(3)(a) to (c) as substituted from 1 January 2025 by the
+/// State Taxation Acts and Other Acts Amendment Act 2023 (Vic) s 27A, and
+/// s 35(3)(b)(i) to (iii) once Part 10 Division 2 added undeveloped land from
+/// 1 January 2026.
+const VRLT_2025: [&str; 3] = [
+    "Land Tax Act 2005 (Vic) ss 19(1A), 34A, 37A and 35(3)(a) as in force for 2025: 1% of the capital improved value, the land not liable in the preceding tax year",
+    "Land Tax Act 2005 (Vic) ss 19(1A), 34A, 37A and 35(3)(b) as in force for 2025: 2% of the capital improved value, the land liable in the preceding tax year but not the one before",
+    "Land Tax Act 2005 (Vic) ss 19(1A), 34A, 37A and 35(3)(c) as in force for 2025: 3% of the capital improved value, the land liable in the last 2 preceding tax years",
+];
+const VRLT_2026: [&str; 3] = [
+    "Land Tax Act 2005 (Vic) ss 19(1A), 34A, 37A and 35(3)(b)(i): 1% of the capital improved value, the land not liable in the preceding tax year",
+    "Land Tax Act 2005 (Vic) ss 19(1A), 34A, 37A and 35(3)(b)(ii): 2% of the capital improved value, the land liable in the preceding tax year but not the one before",
+    "Land Tax Act 2005 (Vic) ss 19(1A), 34A, 37A and 35(3)(b)(iii): 3% of the capital improved value, the land liable in the last 2 preceding tax years",
+];
+const CIPT: &str = "Commercial and Industrial Property Tax Reform Act 2024 (Vic) ss 3 and 17: CIPT taxable land must, at midnight on the 31 December before the tax year, be tax reform scheme land no longer within its transition period of 10 years starting on its entry date, a period that excludes the entry date itself (Interpretation of Legislation Act 1984 (Vic) s 44(1)); an entry on or after 1 July 2024 (s 2) ends that period no earlier than 1 July 2034, so the tax is nil in 2025 and 2026";
 const UPLIFT: &str = "Windfall Gains Tax Act 2021 (Vic) s 11: value uplift = CIV2 - CIV1, the title's capital improved value after the rezoning less before it";
 const TAXABLE: &str = "Windfall Gains Tax Act 2021 (Vic) ss 10 and 16(1) and (3): the taxable value uplift aggregated over the land the rezoning rezoned, negative uplifts ignored; no deductions are prescribed";
 const WGT: &str = "Windfall Gains Tax Act 2021 (Vic) s 9: nil to $100,000; 62.5% of the part over $100,000 below $500,000; 50% of the whole uplift from $500,000";
-const TOTAL: &str = "The tax for the year, to the cent";
+const TOTAL: &str = "The statutory formula amount to the cent, half up, before any administrative adjustment the Commissioner makes";
 
 fn tax(value: &Arg) -> Result<Tax> {
     match value.text() {
@@ -117,19 +130,17 @@ fn refuse_others(chosen: Tax, args: &VicPropertyTaxesArgs) -> Result<()> {
     Ok(())
 }
 
-/// Whether the land is undeveloped (s 34B(2B)) and whether it is a vacant
-/// home (s 34B(1)), refusing undeveloped land before 2026.
-fn residential_land(args: &VicPropertyTaxesArgs, year: &str) -> Result<(bool, bool)> {
+/// Whether the land is undeveloped (s 34B(2B)), refused before 2026.
+fn undeveloped(args: &VicPropertyTaxesArgs, year: &str) -> Result<bool> {
     let why = "for vacant_residential_land";
     let land = when(true, args.residential_land, "residential_land", why)?.and_then(Arg::text);
     match land {
-        Some("vacant_home") => Ok((false, true)),
-        Some("construction" | "uninhabitable") => Ok((false, false)),
+        Some("vacant_home" | "construction" | "uninhabitable") => Ok(false),
         Some("undeveloped") if year == "2025" => refuse(
             "vic_property_taxes.undeveloped_before_2026",
             "Vacant residential land tax applies to undeveloped land (s 34B(2B)) from the 2026 tax year.",
         ),
-        Some("undeveloped") => Ok((true, false)),
+        Some("undeveloped") => Ok(true),
         _ => refuse(
             "vic_property_taxes.residential_land_invalid",
             "residential_land must be vacant_home, construction, uninhabitable or undeveloped.",
@@ -138,16 +149,18 @@ fn residential_land(args: &VicPropertyTaxesArgs, year: &str) -> Result<(bool, bo
 }
 
 /// Whether the s 88EB concessional rate applies: asked except for
-/// undeveloped land, and only a vacant home may have it.
-fn concession(args: &VicPropertyTaxesArgs, undeveloped: bool, home: bool) -> Result<bool> {
+/// undeveloped land. It needs an s 88EA exemption in a preceding tax year,
+/// and s 88EA commenced on 1 January 2025 (State Taxation Acts and Other Acts
+/// Amendment Act 2023 (Vic) s 2(3)), so no land has it before 2026.
+fn concession(args: &VicPropertyTaxesArgs, undeveloped: bool, year: &str) -> Result<bool> {
     let why = "for vacant_residential_land other than undeveloped land";
     let key = "new_residential_concession";
     let given = when(!undeveloped, args.new_residential_concession, key, why)?;
     let concession = given.map_or(Ok(false), |v| flag(v, key))?;
-    if concession && !home {
+    if concession && year == "2025" {
         return refuse(
             "vic_property_taxes.concession_unavailable",
-            "new_residential_concession applies only to a vacant_home: s 88EB is for land that became residential land within s 34B(1).",
+            "new_residential_concession was claimed for 2025: s 88EB needs an s 88EA exemption in a preceding tax year, and s 88EA commenced on 1 January 2025.",
         );
     }
     Ok(concession)
@@ -155,10 +168,10 @@ fn concession(args: &VicPropertyTaxesArgs, undeveloped: bool, home: bool) -> Res
 
 /// The VRLT rate and its authority: 1% for s 34B(2B) land and under s 88EB;
 /// otherwise 1%, 2% or 3% by the land's liability in the 2 preceding tax
-/// years (s 35(3)(b)), which is asked only then.
+/// years (s 35(3)), which is asked only then.
 fn vrlt_rate(args: &VicPropertyTaxesArgs, year: &str) -> Result<(Decimal, &'static str)> {
-    let (undeveloped, home) = residential_land(args, year)?;
-    let concession = concession(args, undeveloped, home)?;
+    let undeveloped = undeveloped(args, year)?;
+    let concession = concession(args, undeveloped, year)?;
     let why = "for vacant_residential_land at the s 35(3)(b) rates, which depend on it";
     let history = !undeveloped && !concession;
     let previous = when(
@@ -179,10 +192,11 @@ fn vrlt_rate(args: &VicPropertyTaxesArgs, year: &str) -> Result<(Decimal, &'stat
     };
     let previous = flag(previous, "liable_previous_tax_year")?;
     let before = flag(before, "liable_tax_year_before")?;
+    let cited = if year == "2025" { VRLT_2025 } else { VRLT_2026 };
     Ok(match (previous, before) {
-        (false, _) => (d("0.01"), VRLT_1),
-        (true, false) => (d("0.02"), VRLT_2),
-        (true, true) => (d("0.03"), VRLT_3),
+        (false, _) => (d("0.01"), cited[0]),
+        (true, false) => (d("0.02"), cited[1]),
+        (true, true) => (d("0.03"), cited[2]),
     })
 }
 
@@ -210,9 +224,13 @@ fn vacant(args: &VicPropertyTaxesArgs, year: &str) -> Result<(Vec<Step>, Rates)>
     Ok((vec![vrlt], rates))
 }
 
-/// The first tax year after the transition period of 10 years from `entry`:
-/// the year after the year it ends in. Liability is fixed at midnight on the
-/// 31 December before each tax year (s 3, 'CIPT taxable land').
+/// The earliest tax year after the transition period of 10 years starting on
+/// `entry`: Interpretation of Legislation Act 1984 (Vic) s 44(1) leaves the
+/// entry date out, so the period runs from the next day and ends on the
+/// tenth anniversary. Liability is fixed at midnight on the 31 December
+/// before each tax year (s 3, 'CIPT taxable land'), so the earliest year is
+/// the one after the year the period ends in. A period ending on 31 December
+/// ends at that midnight, which the Acts do not settle, so it is refused.
 fn commercial(args: &VicPropertyTaxesArgs) -> Result<(Vec<Step>, Rates)> {
     let why = "for commercial_industrial";
     let given = when(true, args.entry_date, "entry_date", why)?.expect("required above");
@@ -228,14 +246,20 @@ fn commercial(args: &VicPropertyTaxesArgs) -> Result<(Vec<Step>, Rates)> {
             "entry_date is before 1 July 2024, when the Commercial and Industrial Property Tax Reform Act 2024 (Vic) commenced (s 2); no land entered the scheme before then.",
         );
     }
-    let ends = dates::months_end(entry, 120);
-    let first = dates::to_civil(ends).0 + 1;
+    let ends = dates::months_end(entry + 1, 120);
+    let (end_year, end_month, end_day) = dates::to_civil(ends);
+    if (end_month, end_day) == (12, 31) {
+        return refuse(
+            "vic_property_taxes.transition_end_unsettled",
+            "entry_date is 31 December: the transition period ends at midnight on 31 December, the moment that fixes liability, and the Acts do not settle whether the land is still within it then.",
+        );
+    }
     let nil = int(0);
     let cipt = step("cipt", CIPT, "0", &[], nil);
     let rates = vec![
         rate("entry_date", dates::format(entry)),
         rate("transition_period_ends", dates::format(ends)),
-        rate("first_tax_year", first),
+        rate("earliest_possible_tax_year", end_year + 1),
         rate("cipt_rate", "0.01"),
         rate("btr_cipt_rate", "0.005"),
     ];

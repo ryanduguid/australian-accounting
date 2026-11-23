@@ -402,7 +402,7 @@ own dates and figures.
 | Payroll tax | 2026-27; one employer outside a group that pays wages all year in one state or territory; established taxable and Australian wages and, in Victoria, regional status; before exemptions, rebates, discounts and caps |
 | Business capital expenditure | 2020-21 to 2027-28, items incurred from 1 July 2020 under s 40-880 as amended by Act No 92 of 2020; each item's established capital nature, business, taxable purpose extent, start-up facts and exclusions |
 | Alcohol excise | 2022-23 to 2026-27, goods entered for home consumption from 1 July 2022 to 31 January 2027 at the Commissioner's 10 notices of substituted rates; established product, volume, strength, container, entry day and remission conditions other than the cap |
-| Victorian property taxes | The 2025 and 2026 tax years; vacant residential land tax on one established vacant parcel's capital improved value, the commercial and industrial property tax's first year (nil in both years) and windfall gains tax on one rezoning's established values; no exemptions, deferral or interest |
+| Victorian property taxes | The 2025 and 2026 tax years; vacant residential land tax on one established vacant parcel's capital improved value, the commercial and industrial property tax's earliest possible year (nil in both years) and windfall gains tax on one rezoning's established values; no exemptions, deferral or interest |
 | Wine equalisation tax | Dealings in 2023-24 to 2027-28, after the 1 July 2023 end of the transitional rebate rules; the rebate cap of $350,000 to 2025-26 and $400,000 from 2026-27; established dealings, quotes, rebate conditions and earlier claims |
 | FBT | Years ended 31 March 2026 and 2027; established type 1 and type 2 taxable values, ordinary employer |
 | FBT car benefits | Years ended 31 March 2026 and 2027; one car's established base value or operating costs, the 20% statutory percentage and a deemed depreciation rate of 200% over the established effective life |
@@ -1542,23 +1542,34 @@ are out of scope. See
   `capital_improved_value` (Land Tax Act 2005 (Vic) ss 19(1A), 34A, 35(3) and
   37A). `residential_land` is `vacant_home`, `construction`, `uninhabitable` or
   `undeveloped` (s 34B(1), (2), (2A) or (2B); undeveloped land from 2026).
-  Undeveloped land pays 1%; so does a vacant home under the s 88EB concession
-  (`new_residential_concession`). Otherwise `liable_previous_tax_year` and
-  `liable_tax_year_before` set 1%, 2% or 3% (s 35(3)(b)).
+  Undeveloped land pays 1%; so does land eligible for the s 88EB concession
+  (`new_residential_concession`, from 2026: it needs an s 88EA exemption in a
+  preceding year, and s 88EA began on 1 January 2025). Otherwise
+  `liable_previous_tax_year` and `liable_tax_year_before` set 1%, 2% or 3%
+  (s 35(3), numbered (a) to (c) for 2025 and (b)(i) to (iii) for 2026).
 - `commercial_industrial`: the commercial and industrial property tax
-  (Commercial and Industrial Property Tax Reform Act 2024 (Vic)). Land is taxed
-  from the year after its 10-year transition period from `entry_date` ends, so
-  no land pays it before 2035; the worksheet gives nil, the period's end and the
-  first tax year, with the 1% rate (0.5% for build-to-rent land, s 19).
-- `windfall_gains`: windfall gains tax on a rezoning that took effect in the
-  year (Windfall Gains Tax Act 2021 (Vic)). `parcels` lists each title the
-  rezoning rezoned with `civ_before` and `civ_after`; the uplifts are added,
+  (Commercial and Industrial Property Tax Reform Act 2024 (Vic)). Land can be
+  taxed from the year after its 10-year transition period ends; the period
+  leaves out `entry_date` and ends on its tenth anniversary (Interpretation of
+  Legislation Act 1984 (Vic) s 44(1)), so no land pays it before 2035. The
+  worksheet gives nil, the period's end and the earliest possible tax year,
+  which holds only if the land then meets every condition of s 3, with the 1%
+  rate (0.5% for build-to-rent land, s 19). An entry on 31 December is refused:
+  its period ends at the midnight that fixes liability.
+- `windfall_gains`: windfall gains tax on one WGT event that took effect in
+  the year and is not excluded by s 3 (Windfall Gains Tax Act 2021 (Vic)).
+  `parcels` lists each title the event rezoned that one assessment unit owns
+  (ss 17 to 25 settled beforehand), with `civ_before` and `civ_after`; separate
+  occupancies (s 14), land not separately valued (s 15), residential land over
+  2 hectares (s 37(2)) and correcting events (s 38(3A)) are outside it. The
+  uplifts are added,
   falls ignored (s 16), and taxed at nil to $100,000, 62.5% of the part over
   $100,000 below $500,000, and 50% of the whole from $500,000 (s 9). No
   regulations prescribe deductions.
 
 The steps are `vrlt`, `cipt`, or `value_uplift_1` onwards with
-`taxable_value_uplift` and `wgt`, then `total`. It does not decide whether land
+`taxable_value_uplift` and `wgt`, then `total`: the formula amount to the cent,
+half up, before any administrative adjustment. It does not decide whether land
 is vacant, exempt or of a qualifying use, value land, defer windfall gains tax
 or work its interest, or apportion it to titles. See
 [calculation evidence](docs/calculation-evidence.md#vic-property-taxes).

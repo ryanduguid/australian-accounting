@@ -1500,7 +1500,7 @@ pub fn source_review(kind: &str) -> (&'static str, &'static str) {
         ),
         "vic_property_taxes" => (
             "2026-11-24",
-            "Land Tax Act 2005 (Vic) ss 19(1A), 34A to 34C, 35(3), 37A and 88EB (authorised version 086, 1 May 2026); Commercial and Industrial Property Tax Reform Act 2024 (Vic) ss 2, 3, 7, 17, 19 and 22 (authorised version 004); Windfall Gains Tax Act 2021 (Vic) ss 2, 3, 6 to 19 and 36 to 41 (authorised version 010), with no regulations prescribing deductions in force; SRO Victoria's pages on vacant residential land tax (current rates, 13 November 2026), the commercial and industrial property tax (29 September 2026) and windfall gains tax",
+            "Land Tax Act 2005 (Vic) ss 19(1A), 34A to 34C, 35(3), 37A, 88EA and 88EB (authorised version 086, 1 May 2026), with s 35(3) as substituted for 2025 by the State Taxation Acts and Other Acts Amendment Act 2023 (Vic) s 27A and that Act's commencement (s 2(3) and (4)); Commercial and Industrial Property Tax Reform Act 2024 (Vic) ss 2, 3, 7, 17, 19 and 22 (authorised version 004), with Interpretation of Legislation Act 1984 (Vic) s 44(1) and (6)(a) (authorised version 134); Windfall Gains Tax Act 2021 (Vic) ss 2, 3, 6 to 19 and 36 to 41 (authorised version 010), with no regulations prescribing deductions in force; SRO Victoria's pages on vacant residential land tax (current rates, 13 November 2026), the commercial and industrial property tax (29 September 2026) and windfall gains tax",
         ),
         "wine_equalisation_tax" => (
             "2026-11-19",
@@ -1972,7 +1972,7 @@ pub fn library_evidence(kind: &str) -> [(&'static str, &'static str); 4] {
         ),
         "vic_property_taxes" => (
             "SRO Victoria pages: vacant residential land tax current rates, understanding VRLT and its assessment; understanding the commercial and industrial property tax; understanding windfall gains tax",
-            "SRO Victoria's windfall gains tax examples ($187,500 on a $400,000 uplift; $300,000 on $600,000) and its CIPT start years (2035 for a 1 July 2024 entry; 2045 for 1 August 2034)",
+            "SRO Victoria's windfall gains tax examples ($187,500 on a $400,000 uplift; $300,000 on $600,000) and its CIPT start years (2035 for a 1 July 2024 entry; 2045 for 1 August 2034), which the earliest possible tax year matches",
             "2026-11-24",
             "2026-11-24",
         ),
@@ -3041,7 +3041,7 @@ pub fn optional_inputs(kind: &str) -> Vec<(&'static str, &'static str)> {
             ),
             (
                 "new_residential_concession",
-                "boolean, for vacant_residential_land other than undeveloped land and then required: true when the s 88EB concessional rate applies (new residential land unused, unoccupied and unsold); true is refused for anything but a vacant_home",
+                "boolean, for vacant_residential_land other than undeveloped land and then required: true when the land is eligible for the s 88EB concessional rate (it became s 34B(1) residential land in a preceding tax year, was exempt under s 88EA in a later preceding tax year, and has not since been used, occupied or sold); true is refused for 2025, as s 88EA commenced on 1 January 2025",
             ),
             (
                 "liable_previous_tax_year",
@@ -3053,11 +3053,11 @@ pub fn optional_inputs(kind: &str) -> Vec<(&'static str, &'static str)> {
             ),
             (
                 "entry_date",
-                "YYYY-MM-DD, for commercial_industrial only and then required: the date the land entered the tax reform scheme (Commercial and Industrial Property Tax Reform Act 2024 (Vic) s 7(2)), from 1 July 2024",
+                "YYYY-MM-DD, for commercial_industrial only and then required: the date the land entered the tax reform scheme (Commercial and Industrial Property Tax Reform Act 2024 (Vic) s 7(2)), from 1 July 2024; a later date is a hypothetical, and 31 December is refused as its period would end at the midnight that fixes liability",
             ),
             (
                 "parcels",
-                "list of 1 to 100 objects, for windfall_gains only and then required: each title the rezoning rezoned that the taxpayer owned, with civ_before and civ_after (AUD, whole dollars, as strings: the capital improved value before and after the rezoning, Windfall Gains Tax Act 2021 (Vic) ss 11 to 13)",
+                "list of 1 to 100 objects, for windfall_gains only and then required: each title the one WGT event rezoned that the assessment unit owned, valued as a whole title (not by separate occupancy, s 14, or by area, s 15), with civ_before and civ_after (AUD, whole dollars, as strings: the capital improved value before and after the rezoning, Windfall Gains Tax Act 2021 (Vic) ss 11 to 13)",
             ),
         ],
         "wine_equalisation_tax" => vec![

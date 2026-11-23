@@ -87,6 +87,19 @@ fn vacant_residential_land_tax_rises_with_each_liable_year() {
         );
         assert_eq!(amount(&run(&input), "total"), "16000.00");
     }
+    // A $1 value gives exact cents at each rate.
+    for (previous, before, want) in [
+        (false, false, "0.01"),
+        (true, false, "0.02"),
+        (true, true, "0.03"),
+    ] {
+        let input = with(
+            vacant(),
+            json!({"capital_improved_value": "1", "liable_previous_tax_year": previous,
+                   "liable_tax_year_before": before}),
+        );
+        assert_eq!(amount(&run(&input), "total"), want);
+    }
 }
 
 #[test]
@@ -102,24 +115,35 @@ fn undeveloped_land_and_the_concession_pay_one_percent() {
     let result = run(&undeveloped);
     assert_eq!(amount(&result, "total"), "12000.00");
     assert_eq!(result["rates"]["vrlt_rate"], "0.01");
-    // s 88EB: the concessional 1% for new residential land, history not asked.
-    let concession = with(
-        vacant(),
-        json!({"capital_improved_value": "650000", "new_residential_concession": true,
-               "liable_previous_tax_year": null, "liable_tax_year_before": null}),
-    );
-    assert_eq!(amount(&run(&concession), "total"), "6500.00");
+    // s 88EB: the concessional 1%, history not asked, whatever the land's
+    // class now: s 88EB(a) asks only that it became s 34B(1) land before.
+    for land in ["vacant_home", "construction", "uninhabitable"] {
+        let concession = with(
+            vacant(),
+            json!({"capital_improved_value": "650000", "new_residential_concession": true,
+                   "residential_land": land, "liable_previous_tax_year": null,
+                   "liable_tax_year_before": null}),
+        );
+        let result = run(&concession);
+        assert_eq!(amount(&result, "total"), "6500.00");
+        assert_eq!(result["rates"]["vrlt_rate"], "0.01");
+    }
 }
 
 #[test]
 fn commercial_and_industrial_property_tax_is_nil_until_its_first_year() {
     // SRO: a 1 July 2024 entry first pays in 2035, a 1 August 2034 entry in
-    // 2045. A 1 January entry's period ends on 31 December 9 years on.
+    // 2045. The period leaves out the entry date (Interpretation of
+    // Legislation Act 1984 (Vic) s 44(1)) and ends on the tenth anniversary,
+    // so a 1 January entry is still within it at the midnight before that
+    // anniversary's year.
     for (entry, ends, first) in [
-        ("2024-07-01", "2034-06-30", "2035"),
-        ("2034-08-01", "2044-07-31", "2045"),
-        ("2025-01-01", "2034-12-31", "2035"),
-        ("2025-01-02", "2035-01-01", "2036"),
+        ("2024-07-01", "2034-07-01", "2035"),
+        ("2034-08-01", "2044-08-01", "2045"),
+        ("2024-12-30", "2034-12-30", "2035"),
+        ("2025-01-01", "2035-01-01", "2036"),
+        ("2025-01-02", "2035-01-02", "2036"),
+        ("2028-02-28", "2038-02-28", "2039"),
         ("2028-02-29", "2038-02-28", "2039"),
     ] {
         for year in ["2025", "2026"] {
@@ -127,7 +151,7 @@ fn commercial_and_industrial_property_tax_is_nil_until_its_first_year() {
             assert_eq!(amount(&result, "cipt"), "0.00");
             assert_eq!(amount(&result, "total"), "0.00");
             assert_eq!(result["rates"]["transition_period_ends"], ends);
-            assert_eq!(result["rates"]["first_tax_year"], first);
+            assert_eq!(result["rates"]["earliest_possible_tax_year"], first);
             assert_eq!(result["rates"]["cipt_rate"], "0.01");
             assert_eq!(result["rates"]["btr_cipt_rate"], "0.005");
         }
@@ -145,10 +169,13 @@ fn windfall_gains_tax_follows_the_sros_examples_and_edges() {
         ("0", "499999", "249999.38"),
         ("0", "500000", "250000.00"),
         ("700000", "650000", "0.00"),
+        ("300000", "300000", "0.00"),
     ] {
-        let result = run(&wgt(&[(before, after)]));
-        assert_eq!(amount(&result, "wgt"), want, "{before} to {after}");
-        assert_eq!(amount(&result, "total"), want);
+        for year in ["2025", "2026"] {
+            let result = run(&with(wgt(&[(before, after)]), json!({"year": year})));
+            assert_eq!(amount(&result, "wgt"), want, "{before} to {after}");
+            assert_eq!(amount(&result, "total"), want);
+        }
     }
 }
 
@@ -167,6 +194,20 @@ fn windfall_gains_tax_aggregates_titles_and_ignores_falls() {
     // 2 titles of $300,000 each pass $500,000 together: 50% of the whole.
     let result = run(&wgt(&[("0", "300000"), ("100000", "400000")]));
     assert_eq!(amount(&result, "total"), "300000.00");
+    // The threshold and the rounding apply once, to the aggregate: $50,000
+    // and $50,001 give $100,001, so $0.625, shown $0.63.
+    let result = run(&wgt(&[("0", "50000"), ("0", "50001")]));
+    assert_eq!(amount(&result, "taxable_value_uplift"), "100001.00");
+    assert_eq!(amount(&result, "wgt"), "0.63");
+    // All falls: nothing taxable.
+    let result = run(&wgt(&[("400000", "300000"), ("200000", "100000")]));
+    assert_eq!(amount(&result, "taxable_value_uplift"), "0.00");
+    assert_eq!(amount(&result, "total"), "0.00");
+    // 100 titles are taken; 101 are refused below.
+    let hundred: Vec<(&str, &str)> = vec![("0", "1000"); 100];
+    assert_eq!(amount(&run(&wgt(&hundred)), "total"), "0.00");
+    let hundred: Vec<(&str, &str)> = vec![("0", "6000"); 100];
+    assert_eq!(amount(&run(&wgt(&hundred)), "total"), "300000.00");
 }
 
 fn refused(cases: &[(Value, Value, &str)]) {
@@ -211,7 +252,7 @@ fn refuses_other_taxes_years_and_land() {
         ),
         (
             vacant(),
-            json!({"residential_land": "construction", "new_residential_concession": true, "liable_previous_tax_year": null, "liable_tax_year_before": null}),
+            json!({"year": "2025", "new_residential_concession": true, "liable_previous_tax_year": null, "liable_tax_year_before": null}),
             "vic_property_taxes.concession_unavailable",
         ),
         (
@@ -228,7 +269,7 @@ fn refuses_other_taxes_years_and_land() {
 }
 
 #[test]
-fn refuses_bad_entry_dates_and_parcels() {
+fn refuses_bad_entry_dates() {
     refused(&[
         (
             cipt("2024-06-30"),
@@ -237,10 +278,26 @@ fn refuses_bad_entry_dates_and_parcels() {
         ),
         (cipt("2024-13-01"), json!({}), "input.date_invalid"),
         (
+            cipt("2024-12-31"),
+            json!({}),
+            "vic_property_taxes.transition_end_unsettled",
+        ),
+        (
+            cipt("2030-12-31"),
+            json!({"year": "2025"}),
+            "vic_property_taxes.transition_end_unsettled",
+        ),
+        (
             cipt("2025-01-01"),
             json!({"entry_date": null}),
             "input.missing_field",
         ),
+    ]);
+}
+
+#[test]
+fn refuses_bad_parcels() {
+    refused(&[
         (wgt(&[]), json!({}), "vic_property_taxes.parcels_invalid"),
         (
             wgt(&[("1", "2")]),
@@ -345,6 +402,15 @@ fn the_steps_show_their_working() {
             .as_str()
             .unwrap()
             .contains("35(3)(b)(iii)")
+    );
+    // 2025's text numbered the same rates s 35(3)(a) to (c).
+    let input = with(input, json!({"year": "2025"}));
+    let envelope = json!({"command": "vic-property-taxes", "input": input});
+    let doc = api::evaluate("derive", &envelope).unwrap();
+    let authority = doc["steps"][0]["authority"].as_str().unwrap();
+    assert!(
+        authority.contains("35(3)(c) as in force for 2025"),
+        "{authority}"
     );
     let envelope = json!({"command": "vic-property-taxes", "input": wgt(&[("500000", "900000")])});
     let doc = api::evaluate("derive", &envelope).unwrap();

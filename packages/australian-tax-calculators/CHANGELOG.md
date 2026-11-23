@@ -7,14 +7,15 @@
 - `vic-property-taxes`: Victoria's vacant residential land tax (1%, 2% or
   3% of capital improved value by the land's liable years, 1% for
   undeveloped land and the s 88EB concession), the commercial and
-  industrial property tax (nil in 2025 and 2026, with the land's first tax
-  year) and windfall gains tax on a rezoning's aggregated uplift, for the
+  industrial property tax (nil in 2025 and 2026, with the land's earliest
+  possible tax year) and windfall gains tax on a rezoning's aggregated uplift, for the
   2025 and 2026 tax years. New codes:
   `vic_property_taxes.concession_unavailable`,
   `vic_property_taxes.entry_date_before_reform`,
   `vic_property_taxes.parcels_invalid`,
   `vic_property_taxes.residential_land_invalid`,
-  `vic_property_taxes.tax_invalid` and
+  `vic_property_taxes.tax_invalid`,
+  `vic_property_taxes.transition_end_unsettled` and
   `vic_property_taxes.undeveloped_before_2026`. `derive` takes it.
 - `trading-stock` works out the change in value of trading stock under ITAA
   1997 s 70-35 for 2020-21 to 2026-27, each closing item valued by its own
