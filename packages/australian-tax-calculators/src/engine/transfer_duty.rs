@@ -266,10 +266,11 @@ fn queensland(
 fn new_south_wales(
     place: &Place,
     authority: &'static str,
-    (value, limit, exempt_to): (&Decimal, Decimal, Decimal),
+    edges: (&Decimal, Decimal, Decimal),
     general: &Step,
     rates: &mut Rates,
 ) -> Result<Vec<Step>> {
+    let (value, limit, exempt_to) = edges;
     rates.push(rate("first_home_exempt_to", &exempt_to));
     rates.push(rate("first_home_limit", &limit));
     let named = ("duty_on_800000", "exempt_");
