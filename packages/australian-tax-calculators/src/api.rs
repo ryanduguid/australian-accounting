@@ -285,6 +285,14 @@ const COMMAND_ARGS: &[(&str, &[(&str, Kind)])] = &[
         ],
     ),
     (
+        "help-indexation",
+        &[
+            ("location_preferred", Raw),
+            ("year", Raw),
+            ("scope_confirmed", Raw),
+        ],
+    ),
+    (
         "balancing-adjustment",
         &[
             ("cost", Dec),
@@ -1919,6 +1927,7 @@ pub fn evaluate_coded(command: &str, v: &Value) -> Result<Value> {
             | "franking-account"
             | "cgt-parcels"
             | "cgt-cost-base-adjustments"
+            | "help-indexation"
     ) && let Some(key) = v
         .as_object()
         .into_iter()
@@ -2078,6 +2087,27 @@ pub fn evaluate_coded(command: &str, v: &Value) -> Result<Value> {
                 events: &a[2],
                 year: &a[3],
                 scope_confirmed: &a[4],
+            })
+        }
+        "help-indexation" => {
+            // Optional: the balance (refused with its own code when absent),
+            // the dated debts and repayments, and the other step amounts.
+            let given = engine::HELP_INDEXATION_OPTIONAL
+                .iter()
+                .map(|key| {
+                    let kind = match *key {
+                        "earlier_debts" | "current_debts" | "voluntary_repayments" => Json,
+                        "debts_already_reduced" => Raw,
+                        _ => Dec,
+                    };
+                    optional(v, key, kind)
+                })
+                .collect::<Result<Vec<_>>>()?;
+            engine::help_indexation(&engine::HelpIndexationArgs {
+                location_preferred: &a[0],
+                year: &a[1],
+                scope_confirmed: &a[2],
+                optional: std::array::from_fn(|i| given[i].as_ref()),
             })
         }
         "balancing-adjustment" => {

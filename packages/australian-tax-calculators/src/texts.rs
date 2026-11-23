@@ -458,6 +458,10 @@ pub const SCOPES: &[(&str, &str)] = &[
         "income_tests",
         "The income measures of one individual who was an Australian resident for the whole income year and alive at its end, each the person's own for the whole year, from components the operator has established and classified: income for surcharge purposes (ITAA 1997 s 995-1), Division 293 income (s 293-20(1)(a)), rebate income (ITAA 1936 s 6(1)), repayment income for study and training loans (HESA s 154-5), adjusted taxable income for offsets (ITAA 1997 s 995-1, ITAA 1936 s 6(1) and A New Tax System (Family Assistance) Act 1999 Sch 3, disregarding cls 3 and 3A) and total income for the super co-contribution (Superannuation (Government Co-contribution for Low Income Earners) Act 2003 s 8). A spouse's measures come from the spouse's own components. A dependant's adjusted taxable income for part of a year, a deceased person's annualised adjusted taxable income (Sch 3 cl 2(2)), the co-contribution's 10% eligible income test, the combined family amounts and every threshold and eligibility test the measures feed are outside it. Income for surcharge purposes follows s 995-1, which does not add exempt foreign employment income; the ATO's surcharge page adds it where taxable income is $1 or more, and the result warns when that changes the figure. Measures another agency applies are outside it: the Commonwealth Seniors Health Card income test and family assistance adjusted taxable income are Services Australia's (https://www.servicesaustralia.gov.au/income-test-for-commonwealth-seniors-health-card). Refuses part-year residents, working holiday makers and foreign residents, and components that cannot all be true together.",
     ),
+    (
+        "help_indexation",
+        "One person's accumulated HELP debt under HESA Division 140 for 1 June 2020 to 1 June 2026 (financial years 2019-20 to 2025-26): the preceding accumulated debt, debts incurred in the last 6 months of the preceding year, voluntary and compulsory repayments and amended assessments in the period, indexation at the ATO's published factor, the 20% reduction of ss 137-19A and 140-26 for 2025, debts incurred in the first 6 months of the year and the s 140-30 rounding; and what a voluntary repayment's timing does to the result. The operator supplies the balance, debts, repayments and compulsory repayment amounts; the command never estimates them. It does not take a location-preferred HELP debtor's reduced indexation or reduction, other study and training loans (VET Student Loans Act, SSL, ABSTUDY SSL, AASL, SFSS), payment processing time or HELP balance re-credits.",
+    ),
 ];
 
 pub const SOURCES: &[(&str, &str)] = &[
@@ -901,6 +905,10 @@ pub const SOURCES: &[(&str, &str)] = &[
     (
         "smsf_tax",
         "https://www.legislation.gov.au/C2004A05138/2026-10-01/2026-10-01/text/original/epub/OEBPS/document_6/document_6.html",
+    ),
+    (
+        "help_indexation",
+        "https://www.ato.gov.au/tax-rates-and-codes/study-and-training-loan-indexation-rates",
     ),
 ];
 
@@ -2048,6 +2056,16 @@ pub const EXTRA_SOURCES: &[(&str, &[&str])] = &[
             FBT_RATES,
         ],
     ),
+    (
+        "help_indexation",
+        &[
+            "https://www.legislation.gov.au/C2004A01234/2026-10-17/2026-10-17/text/original/epub/OEBPS/document_1/document_1.html",
+            "https://www.legislation.gov.au/C2024A00108/asmade/2024-12-05/text/2/epub/OEBPS/document_1/document_1.html",
+            "https://www.legislation.gov.au/C2025A00030/asmade/2025-08-02/text/original/epub/OEBPS/document_1/document_1.html",
+            "https://www.ato.gov.au/individuals-and-families/study-and-training-support-loans/view-your-study-loan-account-online",
+            "https://www.ato.gov.au/individuals-and-families/study-and-training-support-loans/voluntary-repayments",
+        ],
+    ),
 ];
 
 /// The car worksheets' reportable fringe benefits note, read from the ATO's
@@ -2377,6 +2395,13 @@ pub const EXTRA_WARNINGS: &[(&str, &[&str])] = &[
         &[
             "TR 97/17 and TR 2007/12 are public rulings: the Commissioner's view of the law, not the law, and their paragraphs are cited as that view. FBTAA s 58P(1)(e) requires a minor benefit's notional taxable value to be less than $300, which this classifier applies; the $100 threshold in TR 97/17 para 27 is superseded and not applied.",
             "A minor benefit is shown only as possible: whether it would be unreasonable to treat it as a fringe benefit (FBTAA s 58P(1)(f)) is the employer's judgement, and the totals treat it as a fringe benefit. undetermined_cost is the cost left out of the totals for want of a stated fact.",
+        ],
+    ),
+    (
+        "help_indexation",
+        &[
+            "A repayment counts from the day the ATO receives and processes it: the ATO says electronic and Australia Post payments can take up to 4 business days, and indexation applies if a payment is not received and processed before 1 June. This command takes the dates as given.",
+            "The factors are the ATO's published rates plus one; the CPI and WPI factors behind them were not recomputed from ABS index numbers here.",
         ],
     ),
 ];
@@ -3612,6 +3637,30 @@ pub const REFUSAL_CODES: &[(&str, &str)] = &[
         "The goods consist to any extent of valuable metal, which s 195-1 excludes from second-hand goods unless incidental.",
     ),
     (
+        "help_indexation.date_outside_period",
+        "A debt is dated outside its half-year, or a voluntary repayment outside 1 June of the preceding financial year to 31 May.",
+    ),
+    (
+        "help_indexation.debt_missing",
+        "previous_accumulated_debt was not supplied; the command never estimates a balance.",
+    ),
+    (
+        "help_indexation.entries_invalid",
+        "A debt or repayment list is not a list of at most 100 objects, or an entry's date or group is malformed.",
+    ),
+    (
+        "help_indexation.location_preferred",
+        "A location-preferred HELP debtor's reduced indexation or reduction applies (HESA ss 140-10(1)(a), 142-10, 142-15, 144-5 and 144-10), which the command does not take.",
+    ),
+    (
+        "help_indexation.reduction_already_applied",
+        "Amounts the command reduces by 20% (every amount for 2024-25, and debts incurred from 1 January to 1 June 2025) were given already reduced; it applies HESA ss 140-26 and 137-19A itself.",
+    ),
+    (
+        "help_indexation.repayments_exceed_debt",
+        "The repayments exceed the debts they reduce under HESA s 140-5(1) or s 140-25(1).",
+    ),
+    (
         "hire_purchase.amount_nil",
         "A hire purchase agreement's or chattel mortgage's amount financed or instalment is nil.",
     ),
@@ -3761,7 +3810,7 @@ pub const REFUSAL_CODES: &[(&str, &str)] = &[
     ),
     (
         "input.field_unknown",
-        "A field the worksheet or command does not take, or does not take beside the other inputs given, was given (fbt-loan, fbt-meal-entertainment, fbt-car-parking, fbt-debt-waiver, fbt-expense-payment, fbt-property, fbt-residual, fbt-housing, fbt-lafha, fbt-board, fbt-tax-exempt-body-entertainment, fbt-entertainment-classifier, fbt-meal-entertainment-register and its entries, fbt-minor-benefit-check, ppsr-timing, fhss and its contributions, government-super-amounts, personal_deductions and determination, division-296, depreciation, fuel-tax-credits and its lines, alcohol-excise and its lines, foreign-resident-tax, medicare-levy, medicare-levy-surcharge, payg-withholding, payg-gross-up, termination-payment, etp-tax-free-component, unused-leave-payment, the Schedule 5 methods, working-holiday-maker-withholding, study-loan-withholding, seniors-pensioners-withholding, seniors-pensioners-tax-offset, lump-sum-arrears-tax-offset, hire-purchase-schedule, chattel-mortgage-schedule, loan-transactions and its transactions and rate_changes, borrowing-expenses-schedule and its loans, business-capital-expenditure and its items, balancing-adjustment, its years and car_limit, trade-in, franking-account and its events, distributions and income_tax, dasp-tax, super-benefit-tax, super-withholding, gst-margin-scheme, wine-equalisation-tax and its dealings, luxury-car-tax and its lines, foreign-resident-withholding and its vendors, payroll-tax, cgt-parcels, its parcels and disposals, cgt-cost-base-adjustments, its parcels and events, fbt-ev-exemption-check, fbt-instalment, sb-cgt-concessions, small-business-income-offset, ess-discount, residency-tests, lodgment-required, trading-stock and its items, prepayments, depreciation-low-value-pool, gst-creditable-purpose-change, gst-annual-apportionment, gst-financial-acquisitions-threshold, gst-going-concern, gst-second-hand-goods, gst-bad-debt, depreciation-small-business-pool, capital-works, non-commercial-losses, psi-test, minors-income, smsf-tax, beneficiary-tax-offset, invalid-carer-tax-offset, zone-tax-offset and its dependants, net-medical-expenses-tax-offset, work-expenses, ato-interest-penalties and its payments and parts, private-health-insurance-rebate, rental-property and its loans, capital_works and depreciating_assets, horticulture-shearing-withholding, upward-variation-withholding, daily-casual-withholding, no-abn-withholding, entertainer-withholding, return-to-work-withholding, annuity-withholding, voluntary-agreement-withholding, rd-tax-offset, deferred-tax, foreign-income-conversion, foreign-income-tax-offset, transfer-balance and its events, excess-contributions, contribution-caps given a carry-forward input, derive, personal-tax-estimate, dgr-check, income-tests and fbt-return only).",
+        "A field the worksheet or command does not take, or does not take beside the other inputs given, was given (fbt-loan, fbt-meal-entertainment, fbt-car-parking, fbt-debt-waiver, fbt-expense-payment, fbt-property, fbt-residual, fbt-housing, fbt-lafha, fbt-board, fbt-tax-exempt-body-entertainment, fbt-entertainment-classifier, fbt-meal-entertainment-register and its entries, fbt-minor-benefit-check, ppsr-timing, fhss and its contributions, government-super-amounts, personal_deductions and determination, division-296, depreciation, fuel-tax-credits and its lines, alcohol-excise and its lines, foreign-resident-tax, medicare-levy, medicare-levy-surcharge, payg-withholding, payg-gross-up, termination-payment, etp-tax-free-component, unused-leave-payment, the Schedule 5 methods, working-holiday-maker-withholding, study-loan-withholding, seniors-pensioners-withholding, seniors-pensioners-tax-offset, lump-sum-arrears-tax-offset, hire-purchase-schedule, chattel-mortgage-schedule, loan-transactions and its transactions and rate_changes, borrowing-expenses-schedule and its loans, business-capital-expenditure and its items, balancing-adjustment, its years and car_limit, trade-in, franking-account and its events, distributions and income_tax, dasp-tax, super-benefit-tax, super-withholding, gst-margin-scheme, wine-equalisation-tax and its dealings, luxury-car-tax and its lines, foreign-resident-withholding and its vendors, payroll-tax, cgt-parcels, its parcels and disposals, cgt-cost-base-adjustments, its parcels and events, fbt-ev-exemption-check, fbt-instalment, sb-cgt-concessions, small-business-income-offset, ess-discount, residency-tests, lodgment-required, trading-stock and its items, prepayments, depreciation-low-value-pool, gst-creditable-purpose-change, gst-annual-apportionment, gst-financial-acquisitions-threshold, gst-going-concern, gst-second-hand-goods, gst-bad-debt, depreciation-small-business-pool, capital-works, non-commercial-losses, psi-test, minors-income, smsf-tax, beneficiary-tax-offset, invalid-carer-tax-offset, zone-tax-offset and its dependants, net-medical-expenses-tax-offset, work-expenses, ato-interest-penalties and its payments and parts, private-health-insurance-rebate, rental-property and its loans, capital_works and depreciating_assets, horticulture-shearing-withholding, upward-variation-withholding, daily-casual-withholding, no-abn-withholding, entertainer-withholding, return-to-work-withholding, annuity-withholding, voluntary-agreement-withholding, rd-tax-offset, deferred-tax, foreign-income-conversion, foreign-income-tax-offset, transfer-balance and its events, excess-contributions, help-indexation and its debts and repayments, contribution-caps given a carry-forward input, derive, personal-tax-estimate, dgr-check, income-tests and fbt-return only).",
     ),
     ("input.flag_invalid", "A flag is not a JSON boolean."),
     ("input.fraction_invalid", "A fraction is outside 0 to 1."),
