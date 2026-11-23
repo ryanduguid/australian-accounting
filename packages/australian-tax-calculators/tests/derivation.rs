@@ -18,7 +18,7 @@ use std::process::{Command, Stdio};
 /// under `income` (an absent line as 0) and, given other taxable income,
 /// `resident_tax`, none of which `named` or the evaluator reads, so
 /// `tests/rental_property.rs` checks its workings instead.
-const DERIVED: [&str; 81] = [
+const DERIVED: [&str; 84] = [
     "fbt",
     "fbt-car-statutory",
     "fbt-car-operating-cost",
@@ -100,6 +100,9 @@ const DERIVED: [&str; 81] = [
     "cgt-cost-base-adjustments",
     "foreign-income-tax-offset",
     "fbt-instalment",
+    "defined-benefit-income-cap",
+    "foreign-pension-upp",
+    "super-crystallisation",
 ];
 
 /// (command, input) for each derived kind: the ATO's published examples and
@@ -758,6 +761,41 @@ fn cases() -> Vec<(&'static str, Value)> {
             .extend(facts.as_object().unwrap().clone());
         cases.push(("fbt-instalment", input));
     }
+    // Defined benefit income cap: a full year at the 2026-27 cap, over it
+    // with untaxed income; LCR 2017/1 Example 6 (Ann, other income first).
+    for facts in [
+        json!({"year": "2026-27", "tax_free_and_taxed": "150000.00", "untaxed": "20000.00",
+               "other_defined_benefit_income": "0.00"}),
+        json!({"year": "2017-18", "tax_free_and_taxed": "60000.00", "untaxed": "0.00",
+               "other_defined_benefit_income": "40000.00", "first_day": "2017-07-01"}),
+    ] {
+        let mut input = json!({"scope_confirmed": true});
+        merge(&mut input, facts);
+        cases.push(("defined-benefit-income-cap", input));
+    }
+    // Foreign pension UPP: the s 27H(2) formula on a shared annuity, and the
+    // Dutch SVB fallback.
+    for facts in [
+        json!({"year": "2025-26", "method": "formula", "annuity_derived": "6000.00",
+               "undeducted_purchase_price": "120000.00", "residual_capital_value": "20000.00",
+               "relevant_number": {"basis": "life_expectation_factor", "years": "22.65"},
+               "total_annuity_derived": "12000.00", "commuted": false, "whole_year": true}),
+        json!({"year": "2025-26", "method": "dutch_svb_fallback", "annuity_derived": "9000.00"}),
+    ] {
+        let mut input = json!({"scope_confirmed": true});
+        merge(&mut input, facts);
+        cases.push(("foreign-pension-upp", input));
+    }
+    // Crystallisation: service from 1 July 1977, its pre-July 83 share the
+    // lesser amount.
+    cases.push((
+        "super-crystallisation",
+        json!({"year": "2006-07", "scope_confirmed": true, "eligible_service_start": "1977-07-01",
+               "interest_value": "230000.00", "concessional_component": "0.00",
+               "post_june_1994_invalidity_component": "0.00", "cgt_exempt_component": "0.00",
+               "undeducted_contributions": "0.00", "untaxed_source": false,
+               "income_stream_before_july_2007": false}),
+    ));
     cases
 }
 
@@ -2467,7 +2505,8 @@ fn derive_refuses_what_it_does_not_explain() {
          annuity-withholding, voluntary-agreement-withholding, \
          rd-tax-offset, \
          hire-purchase-schedule, chattel-mortgage-schedule, loan-transactions, \
-         lump-sum-arrears-tax-offset, income-tests, government-super-amounts, smsf-tax, business-capital-expenditure, balancing-adjustment, trade-in, dasp-tax, super-benefit-tax, super-withholding, gst-margin-scheme, etp-tax-free-component, payroll-tax, cgt-parcels, work-expenses, rental-property, gst-creditable-purpose-change, gst-annual-apportionment, gst-financial-acquisitions-threshold, gst-second-hand-goods, gst-bad-debt, cgt-cost-base-adjustments, foreign-income-tax-offset, fbt-instalment, not \"payg-gross-up\""
+         lump-sum-arrears-tax-offset, income-tests, government-super-amounts, smsf-tax, business-capital-expenditure, balancing-adjustment, trade-in, dasp-tax, super-benefit-tax, super-withholding, gst-margin-scheme, etp-tax-free-component, payroll-tax, cgt-parcels, work-expenses, rental-property, gst-creditable-purpose-change, gst-annual-apportionment, gst-financial-acquisitions-threshold, gst-second-hand-goods, gst-bad-debt, cgt-cost-base-adjustments, foreign-income-tax-offset, fbt-instalment, defined-benefit-income-cap, \
+         foreign-pension-upp, super-crystallisation, not \"payg-gross-up\""
     );
 }
 

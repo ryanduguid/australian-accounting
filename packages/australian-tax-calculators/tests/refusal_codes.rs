@@ -197,9 +197,11 @@ fn every_catalogued_required_input_of_a_strict_command_is_read() {
     // cgt-cost-base-adjustments, super-withholding, payg-instalment,
     // foreign-income-conversion,
     // foreign-income-tax-offset, trading-stock, prepayments, minors-income,
-    // smsf-tax, ess-discount and help-indexation.
+    // smsf-tax, ess-discount, help-indexation, defined-benefit-income-cap,
+    // foreign-pension-upp, scholarship-exemption, super-crystallisation and
+    // endorsement-review.
     // With transfer-balance and excess-contributions.
-    assert_eq!(checked, 103);
+    assert_eq!(checked, 108);
 }
 
 /// Every frozen call gives the same answer through either entry point, and

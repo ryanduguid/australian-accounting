@@ -6291,8 +6291,20 @@ mod ess_discount;
 pub use ess_discount::{EssDiscountArgs, ess_discount};
 mod help_indexation;
 pub use help_indexation::{HELP_INDEXATION_OPTIONAL, HelpIndexationArgs, help_indexation};
+mod defined_benefit_income_cap;
+pub use defined_benefit_income_cap::{DefinedBenefitIncomeCapArgs, defined_benefit_income_cap};
+mod foreign_pension_upp;
+pub use foreign_pension_upp::{
+    FOREIGN_PENSION_UPP_OPTIONAL, ForeignPensionUppArgs, foreign_pension_upp,
+};
+mod scholarship_exemption;
+pub use scholarship_exemption::{ScholarshipExemptionArgs, scholarship_exemption};
+mod super_crystallisation;
+pub use super_crystallisation::{SuperCrystallisationArgs, super_crystallisation};
+mod endorsement_review;
+pub use endorsement_review::endorsement_review;
 
-const KINDS: [&str; 117] = [
+const KINDS: [&str; 122] = [
     "gst",
     "gst_margin_scheme",
     "fuel_tax_credits",
@@ -6410,6 +6422,11 @@ const KINDS: [&str; 117] = [
     "smsf_tax",
     "ess_discount",
     "help_indexation",
+    "defined_benefit_income_cap",
+    "foreign_pension_upp",
+    "scholarship_exemption",
+    "super_crystallisation",
+    "endorsement_review",
 ];
 
 /// `periods(kind)`: accepted period arguments and inclusive calendar boundaries.

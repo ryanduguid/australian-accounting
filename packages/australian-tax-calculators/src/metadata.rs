@@ -1457,6 +1457,29 @@ pub fn supported_periods(kind: &str) -> Vec<&'static str> {
         "help_indexation" => vec![
             "2019-20", "2020-21", "2021-22", "2022-23", "2023-24", "2024-25", "2025-26",
         ],
+        // Subdivision 303-A applies from 1 July 2017 (LCR 2017/1); the
+        // general transfer balance caps run to 2026-27.
+        "defined_benefit_income_cap" => vec![
+            "2017-18", "2018-19", "2019-20", "2020-21", "2021-22", "2022-23", "2023-24", "2024-25",
+            "2025-26", "2026-27",
+        ],
+        // ITAA 1936 s 27H reads the same in the compilation of 11 May 2007, as
+        // amended for 1 July 2007, and on 24 November 2026.
+        "foreign_pension_upp" => vec![
+            "2007-08", "2008-09", "2009-10", "2010-11", "2011-12", "2012-13", "2013-14", "2014-15",
+            "2015-16", "2016-17", "2017-18", "2018-19", "2019-20", "2020-21", "2021-22", "2022-23",
+            "2023-24", "2024-25", "2025-26", "2026-27",
+        ],
+        // s 51-10 item 2.1A and s 51-35 read the same in compilations 170
+        // (1 July 2017) and 268 (1 October 2026).
+        "scholarship_exemption" => vec![
+            "2017-18", "2018-19", "2019-20", "2020-21", "2021-22", "2022-23", "2023-24", "2024-25",
+            "2025-26", "2026-27",
+        ],
+        // The crystallised segment is worked out just before 1 July 2007.
+        "super_crystallisation" => vec!["2006-07"],
+        // The provisions as read on 24 November 2026.
+        "endorsement_review" => vec!["2026-27"],
         _ => Vec::new(),
     }
 }
@@ -1916,6 +1939,26 @@ pub fn source_review(kind: &str) -> (&'static str, &'static str) {
         "help_indexation" => (
             "2026-11-22",
             "HESA ss 137-19A, 140-5, 140-10, 140-20, 140-25, 140-26 and 140-30, compilation 105 (17 October 2026); Universities Accord (Student Support and Other Measures) Act 2024 (No. 108, 2024) Sch 1 items 18, 19 and 56; Universities Accord (Cutting Student Debt by 20 Per Cent) Act 2025 (No. 30, 2025) Sch 2 items 33 and 37; the ATO's 'Study and training loan indexation rates' (last updated 17 April 2026), 'View your study loan account online' Examples 1 and 2 (last updated 3 June 2026) and 'Voluntary repayments'",
+        ),
+        "defined_benefit_income_cap" => (
+            "2026-11-24",
+            "ITAA 1997 ss 301-10, 301-100, 302-65, 302-85, 303-2, 303-3, 303-4 and 294-35(3) on the ATO's legal database; LCR 2017/1 paragraphs 23 to 68 and Examples 2 to 6; ATO Schedule 13 supporting information (2025-26 cap $125,000); ATO transfer balance cap page (last updated 27 April 2026)",
+        ),
+        "foreign_pension_upp" => (
+            "2026-11-24",
+            "ITAA 1936 s 27H on the ATO's legal database, against the compilation of 11 May 2007 (C2007C00325), which reads the same; Income Tax Assessment (1936 Act) Regulations 2025 s 7 (Life Tables); ATO individual supplementary tax return instructions 2026, D11 (last updated 30 May 2026); ATO 'Undeducted purchase price of a foreign pension or annuity' and NAT 16543",
+        ),
+        "scholarship_exemption" => (
+            "2026-11-24",
+            "ITAA 1997 s 51-10 item 2.1A and s 51-35, compilation 268 (1 October 2026), against compilation 170 (1 July 2017), which reads the same; ATO 'Scholarship payments' (last updated 8 June 2026) and 'Is my scholarship taxable?' (last updated 1 July 2026)",
+        ),
+        "super_crystallisation" => (
+            "2026-11-24",
+            "ITTPA 1997 s 307-225 and ITAA 1997 ss 307-210 and 307-220 on the ATO's legal database; former ITAA 1936 s 27AA(1)(d), compilation of 19 February 2007 (C2007C00085); ATO 'Calculating components of a super benefit' (last updated 12 November 2025), example 9; ATO 'Super crystallisation calculator'",
+        ),
+        "endorsement_review" => (
+            "2026-11-24",
+            "ITAA 1997 ss 30-15 item 1, 30-125, 30-130, 30-228, 50-5, 50-47, 50-50, 50-52 and 50-110 and TAA 1953 Sch 1 ss 426-45 and 426-55 on the ATO's legal database; ATO worksheets NAT 74110-02.2021, NAT 11685-02.2021 and NAT 11686-02.2021",
         ),
         _ => ("", ""),
     }
@@ -2524,6 +2567,36 @@ pub fn library_evidence(kind: &str) -> [(&'static str, &'static str); 4] {
             "Examples 1 (Maylin) and 2 (Asha)",
             "2026-06-03",
             "2026-11-22",
+        ),
+        "defined_benefit_income_cap" => (
+            "LCR 2017/1",
+            "Examples 2 (Greg), 3 (Sally), 4 (Alastair), 5 (Mary) and 6 (Ann)",
+            "2017-04-28",
+            "2026-11-24",
+        ),
+        "foreign_pension_upp" => (
+            "ATO individual supplementary tax return instructions 2026, D11",
+            "British pensions (category A or B widow's 8%, C or D nil) and Dutch pensions (25% when the amount cannot be determined)",
+            "2026-05-30",
+            "2026-11-24",
+        ),
+        "scholarship_exemption" => (
+            "ATO Scholarship payments",
+            "examples: Jenny, Henry, Kirra, AAA University, Megan and Diego",
+            "2026-06-08",
+            "2026-11-24",
+        ),
+        "super_crystallisation" => (
+            "ATO Calculating components of a super benefit",
+            "example 9 (Chris): the eligible service period's day count and the lesser of the 2 pre-July 1983 amounts",
+            "2025-11-12",
+            "2026-11-24",
+        ),
+        "endorsement_review" => (
+            "ATO endorsement review worksheets NAT 74110, NAT 11685 and NAT 11686",
+            "every question and its outcome",
+            "2021-05-03",
+            "2026-11-24",
         ),
         _ => ("", "", "", ""),
     };
@@ -3925,6 +3998,40 @@ pub fn optional_inputs(kind: &str) -> Vec<(&'static str, &'static str)> {
             (
                 "debts_already_reduced",
                 "boolean: the amounts the command reduces by 20% (every amount for 2024-25 under HESA s 140-26, and earlier_debts incurred from 1 January to 1 June 2025 under s 137-19A) already include that reduction; true is then refused, as the command applies it itself, and has no effect otherwise",
+            ),
+        ],
+        "defined_benefit_income_cap" => vec![(
+            "first_day",
+            "YYYY-MM-DD in the income year: the first day on which ITAA 1997 s 301-10, 301-100, 302-65 or 302-85 applied to your defined benefit income, such as the day you turned 60 or a reversionary pension began; leave it out when that day was in an earlier year (s 303-4(2))",
+        )],
+        "foreign_pension_upp" => vec![
+            (
+                "undeducted_purchase_price",
+                "AUD, formula only and required there: B in s 27H(2), the undeducted purchase price; for a foreign pension, contributions made by you or another person to obtain it, not an employer's (s 27H(4) 'purchase price' and (5))",
+            ),
+            (
+                "residual_capital_value",
+                "AUD, formula only and required there: C, the capital amount payable when the annuity ends, if the agreement specifies it or it can be worked out from the agreement when the annuity is first derived; otherwise 0.00",
+            ),
+            (
+                "relevant_number",
+                "object, formula only and required there: {basis: term_years, years: the term of years certain} or {basis: life_expectation_factor, years: the complete expectation of life from the Life Tables the Income Tax Assessment (1936 Act) Regulations 2025 s 7 prescribes, at the start of the period the first payment relates to}; years a decimal string above 0 and at most 150",
+            ),
+            (
+                "total_annuity_derived",
+                "AUD, formula only: the whole annuity derived in the year by you and others who share it; A is then your whole dollars over its whole dollars (s 27H(4) 'relevant share')",
+            ),
+            (
+                "commuted",
+                "boolean, formula only and required there: part of the annuity has been commuted; true is refused (s 27H(3A))",
+            ),
+            (
+                "whole_year",
+                "boolean, formula only and required there: the annuity was derived for the whole income year; false is refused",
+            ),
+            (
+                "uk_category",
+                "a, b_widow, c or d, uk_state_pension only and required there: the UK State Pension category",
             ),
         ],
         _ => Vec::new(),
@@ -5448,6 +5555,98 @@ pub fn input_units(kind: &str) -> Vec<(&'static str, &'static str)> {
         "help_indexation" => vec![
             ("location_preferred", "boolean: the Secretary has determined that your indexation or debt is reduced as a location-preferred HELP debtor (HESA ss 140-10(1)(a), 142-10, 142-15, 144-5 and 144-10); true is refused"),
         ],
+        "defined_benefit_income_cap" => vec![
+            (
+                "tax_free_and_taxed",
+                "AUD: the tax free components and taxed elements of the year's defined benefit income (benefits from a capped defined benefit income stream) to which ITAA 1997 s 301-10 or 302-65 applies: you were 60 or over, or it is a death benefit from someone who died at 60 or over; from first_day only, when given",
+            ),
+            (
+                "untaxed",
+                "AUD: the untaxed elements of the year's defined benefit income to which s 301-100 or 302-85 applies, from first_day only when given",
+            ),
+            (
+                "other_defined_benefit_income",
+                "AUD: defined benefit income received in the year, or after first_day when given, to which none of ss 301-10, 301-100, 302-65 and 302-85 applies (s 303-4(3)); 0.00 for none",
+            ),
+        ],
+        "foreign_pension_upp" => vec![
+            (
+                "method",
+                "formula (s 27H(2)), uk_state_pension or dutch_svb_fallback (the ATO's 2026 D11 shortcuts, 2025-26 only; dutch_svb_fallback only when the deductible amount cannot be determined)",
+            ),
+            (
+                "annuity_derived",
+                "AUD: your foreign pension or annuity derived in the income year, gross, in Australian dollars",
+            ),
+        ],
+        "scholarship_exemption" => vec![
+            (
+                "payment_type",
+                "scholarship, bursary, educational_allowance or educational_assistance (ITAA 1997 s 51-10 item 2.1A)",
+            ),
+            (
+                "full_time_student",
+                "boolean: you studied a full-time load at a school, college or university (attendance in person is not needed)",
+            ),
+            (
+                "employment_condition",
+                "boolean: the payment is conditional on you becoming or continuing as the payer's employee, or doing so if required (s 51-35(c))",
+            ),
+            (
+                "labour_contract_condition",
+                "boolean: the payment is conditional on a contract with the payer wholly or principally for your labour, now or if required (s 51-35(d))",
+            ),
+            (
+                "principally_educational",
+                "boolean: the scholarship is provided principally for educational purposes; work experience counts when your education, not your output, is the main factor (s 51-35(e))",
+            ),
+            (
+                "commonwealth_payment",
+                "none, secondary_or_isolated_children, education_or_training_payment or education_entry_payment; anything but none is refused (s 51-35(a), (b) and (f))",
+            ),
+            (
+                "friendly_society_plan",
+                "boolean: an education benefit under a friendly society scholarship plan; true is refused",
+            ),
+        ],
+        "super_crystallisation" => vec![
+            (
+                "eligible_service_start",
+                "YYYY-MM-DD, on or before 30 June 2007: the first day of the member's eligible service period (former ITAA 1936 s 27A(1)), counted",
+            ),
+            (
+                "interest_value",
+                "AUD: the value of the superannuation interest just before 1 July 2007; for a defined benefit interest, the value the ATO's 3 steps give (the greater of the retirement and resignation benefit values at 30 June 2007)",
+            ),
+            (
+                "concessional_component",
+                "AUD at 30 June 2007: the concessional component (former ITAA 1936 s 27A(1))",
+            ),
+            (
+                "post_june_1994_invalidity_component",
+                "AUD at 30 June 2007: the post-June 1994 invalidity component",
+            ),
+            ("cgt_exempt_component", "AUD at 30 June 2007: the CGT exempt component"),
+            ("undeducted_contributions", "AUD at 30 June 2007: the undeducted contributions"),
+            (
+                "untaxed_source",
+                "boolean: the interest is from an untaxed source; true is refused (ITTPA 1997 s 307-225(3))",
+            ),
+            (
+                "income_stream_before_july_2007",
+                "boolean: the interest supports an income stream first paid before 1 July 2007; true is refused (ITTPA 1997 s 307-125)",
+            ),
+        ],
+        "endorsement_review" => vec![
+            (
+                "worksheet",
+                "income_tax_exempt_charity (NAT 74110), dgr_whole (Worksheet 1, NAT 11685) or dgr_fund (Worksheet 2, NAT 11686)",
+            ),
+            (
+                "answers",
+                "object of booleans, the worksheet's yes or no answers: income_tax_exempt_charity {abn_current, registered_charity, meets_a_test, meets_both_conditions}; dgr_whole {abn_current, within_category, winding_up_clause, in_australia, receipts_correct}; dgr_fund {abn_current, within_category, gift_fund_maintained, in_australia, receipts_correct}",
+            ),
+        ],
         _ => Vec::new(),
     }
 }
@@ -6803,6 +7002,52 @@ pub fn examples(kind: &str) -> Vec<(&'static str, Example)> {
             (
                 "current_debts",
                 Json(r#"[{"incurred": "2024-11-15", "amount": "11000.00"}]"#),
+            ),
+        ],
+        // LCR 2017/1 Example 5: Mary turns 60 on 12 September 2017.
+        "defined_benefit_income_cap" => vec![
+            ("year", Text("2017-18")),
+            ("tax_free_and_taxed", Text("120000.00")),
+            ("untaxed", Text("0.00")),
+            ("other_defined_benefit_income", Text("0.00")),
+            ("first_day", Text("2017-09-12")),
+        ],
+        // The ATO's UK State Pension shortcut on a fabricated pension.
+        "foreign_pension_upp" => vec![
+            ("year", Text("2025-26")),
+            ("method", Text("uk_state_pension")),
+            ("annuity_derived", Text("10000.00")),
+            ("uk_category", Text("a")),
+        ],
+        // The ATO's example of Jenny's 'Fearless Journalist' award.
+        "scholarship_exemption" => vec![
+            ("payment_type", Text("scholarship")),
+            ("full_time_student", Flag(true)),
+            ("employment_condition", Flag(false)),
+            ("labour_contract_condition", Flag(false)),
+            ("principally_educational", Flag(true)),
+            ("commonwealth_payment", Text("none")),
+            ("friendly_society_plan", Flag(false)),
+        ],
+        // Fabricated: service from 1 July 1980, so 1,095 of 9,861 days fall
+        // before 1 July 1983.
+        "super_crystallisation" => vec![
+            ("eligible_service_start", Text("1980-07-01")),
+            ("interest_value", Text("500000.00")),
+            ("concessional_component", Text("10000.00")),
+            ("post_june_1994_invalidity_component", Text("5000.00")),
+            ("cgt_exempt_component", Text("20000.00")),
+            ("undeducted_contributions", Text("50000.00")),
+            ("untaxed_source", Flag(false)),
+            ("income_stream_before_july_2007", Flag(false)),
+        ],
+        "endorsement_review" => vec![
+            ("worksheet", Text("dgr_whole")),
+            (
+                "answers",
+                Json(
+                    r#"{"abn_current": true, "within_category": true, "winding_up_clause": true, "in_australia": true, "receipts_correct": true}"#,
+                ),
             ),
         ],
         _ => Vec::new(),

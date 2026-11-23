@@ -4,6 +4,34 @@
 
 ### Added
 
+- `defined-benefit-income-cap` works out the defined benefit income cap for
+  2017-18 to 2026-27 (ITAA 1997 s 303-4), with a part year from `first_day`,
+  half the excess as assessable income (s 303-2) and the reduced untaxed
+  offset (s 303-3), held to LCR 2017/1 Examples 2 to 6. New code:
+  `defined_benefit_income_cap.first_day_outside_year`.
+- `foreign-pension-upp` works out the deductible amount of a foreign
+  pension's undeducted purchase price under ITAA 1936 s 27H(2), or the ATO's
+  2026 D11 shortcuts for UK and Dutch pensions, with the excluded and
+  assessable amounts. New codes: `foreign_pension_upp.commuted`,
+  `method_invalid`, `method_year_unsupported`, `part_year`,
+  `relevant_number_invalid`, `residual_exceeds_price`, `share_invalid` and
+  `uk_category_invalid`.
+- `scholarship-exemption` tests a scholarship against ITAA 1997 s 51-10 item
+  2.1A and s 51-35, held to the ATO's 6 examples. New codes:
+  `scholarship_exemption.commonwealth_payment`,
+  `commonwealth_payment_invalid`, `friendly_society_plan` and
+  `payment_type_invalid`.
+- `super-crystallisation` works out a taxed super interest's crystallised
+  segment at 30 June 2007 (ITTPA 1997 s 307-225), with the pre-July 83
+  component under former ITAA 1936 s 27AA(1)(d). New codes:
+  `super_crystallisation.components_exceed_value`, `dates_invalid`,
+  `income_stream_before_july_2007` and `untaxed_source`.
+- `endorsement-review` works through the ATO's 3 endorsement review
+  worksheets for charities and DGRs, each answer tied to its provision,
+  complementing `dgr-check`. New codes: `endorsement_review.answers_invalid`
+  and `worksheet_invalid`.
+- `derive` explains `defined-benefit-income-cap`, `foreign-pension-upp` and
+  `super-crystallisation`.
 - `trading-stock` works out the change in value of trading stock under ITAA
   1997 s 70-35 for 2020-21 to 2026-27, each closing item valued by its own
   election (cost, market selling value, replacement value, the lowest, or an

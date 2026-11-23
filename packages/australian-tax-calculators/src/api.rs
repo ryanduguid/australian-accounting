@@ -293,6 +293,63 @@ const COMMAND_ARGS: &[(&str, &[(&str, Kind)])] = &[
         ],
     ),
     (
+        "defined-benefit-income-cap",
+        &[
+            ("tax_free_and_taxed", Dec),
+            ("untaxed", Dec),
+            ("other_defined_benefit_income", Dec),
+            ("year", Raw),
+            ("scope_confirmed", Raw),
+        ],
+    ),
+    (
+        "foreign-pension-upp",
+        &[
+            ("method", Raw),
+            ("annuity_derived", Dec),
+            ("year", Raw),
+            ("scope_confirmed", Raw),
+        ],
+    ),
+    (
+        "scholarship-exemption",
+        &[
+            ("payment_type", Raw),
+            ("full_time_student", Raw),
+            ("employment_condition", Raw),
+            ("labour_contract_condition", Raw),
+            ("principally_educational", Raw),
+            ("commonwealth_payment", Raw),
+            ("friendly_society_plan", Raw),
+            ("year", Raw),
+            ("scope_confirmed", Raw),
+        ],
+    ),
+    (
+        "super-crystallisation",
+        &[
+            ("eligible_service_start", Raw),
+            ("interest_value", Dec),
+            ("concessional_component", Dec),
+            ("post_june_1994_invalidity_component", Dec),
+            ("cgt_exempt_component", Dec),
+            ("undeducted_contributions", Dec),
+            ("untaxed_source", Raw),
+            ("income_stream_before_july_2007", Raw),
+            ("year", Raw),
+            ("scope_confirmed", Raw),
+        ],
+    ),
+    (
+        "endorsement-review",
+        &[
+            ("worksheet", Raw),
+            ("answers", Json),
+            ("year", Raw),
+            ("scope_confirmed", Raw),
+        ],
+    ),
+    (
         "balancing-adjustment",
         &[
             ("cost", Dec),
@@ -1398,7 +1455,7 @@ pub fn commands() -> Vec<&'static str> {
 /// command on its `gross_pay` shows that withholding. The classifier's amounts
 /// are totals over lines whose shares a decision table sets, not a formula;
 /// each line and class carries the authority for its row instead.
-const DERIVED: [&str; 82] = [
+const DERIVED: [&str; 85] = [
     "fbt",
     "fbt-car-statutory",
     "fbt-car-operating-cost",
@@ -1481,6 +1538,9 @@ const DERIVED: [&str; 82] = [
     "cgt-cost-base-adjustments",
     "foreign-income-tax-offset",
     "fbt-instalment",
+    "defined-benefit-income-cap",
+    "foreign-pension-upp",
+    "super-crystallisation",
 ];
 
 /// `derive`: `{"command", "input"}` gives the command's result with the step
@@ -1945,6 +2005,11 @@ pub fn evaluate_coded(command: &str, v: &Value) -> Result<Value> {
             | "cgt-parcels"
             | "cgt-cost-base-adjustments"
             | "help-indexation"
+            | "defined-benefit-income-cap"
+            | "foreign-pension-upp"
+            | "scholarship-exemption"
+            | "super-crystallisation"
+            | "endorsement-review"
     ) && let Some(key) = v
         .as_object()
         .into_iter()
@@ -2127,6 +2192,69 @@ pub fn evaluate_coded(command: &str, v: &Value) -> Result<Value> {
                 optional: std::array::from_fn(|i| given[i].as_ref()),
             })
         }
+        "defined-benefit-income-cap" => {
+            // Optional: the first day in the year the concessional treatment applied.
+            let first_day = optional(v, "first_day", Raw)?;
+            engine::defined_benefit_income_cap(&engine::DefinedBenefitIncomeCapArgs {
+                tax_free_and_taxed: &a[0],
+                untaxed: &a[1],
+                other_defined_benefit_income: &a[2],
+                first_day: first_day.as_ref(),
+                year: &a[3],
+                scope_confirmed: &a[4],
+            })
+        }
+        "foreign-pension-upp" => {
+            // Optional: the inputs of the formula method and the UK category.
+            let given = engine::FOREIGN_PENSION_UPP_OPTIONAL
+                .iter()
+                .map(|key| {
+                    let kind = match *key {
+                        "undeducted_purchase_price"
+                        | "residual_capital_value"
+                        | "total_annuity_derived" => Dec,
+                        "relevant_number" => Json,
+                        _ => Raw,
+                    };
+                    optional(v, key, kind)
+                })
+                .collect::<Result<Vec<_>>>()?;
+            engine::foreign_pension_upp(&engine::ForeignPensionUppArgs {
+                method: &a[0],
+                annuity_derived: &a[1],
+                year: &a[2],
+                scope_confirmed: &a[3],
+                optional: std::array::from_fn(|i| given[i].as_ref()),
+            })
+        }
+        "scholarship-exemption" => {
+            engine::scholarship_exemption(&engine::ScholarshipExemptionArgs {
+                payment_type: &a[0],
+                full_time_student: &a[1],
+                employment_condition: &a[2],
+                labour_contract_condition: &a[3],
+                principally_educational: &a[4],
+                commonwealth_payment: &a[5],
+                friendly_society_plan: &a[6],
+                year: &a[7],
+                scope_confirmed: &a[8],
+            })
+        }
+        "super-crystallisation" => {
+            engine::super_crystallisation(&engine::SuperCrystallisationArgs {
+                eligible_service_start: &a[0],
+                interest_value: &a[1],
+                concessional_component: &a[2],
+                post_june_1994_invalidity_component: &a[3],
+                cgt_exempt_component: &a[4],
+                undeducted_contributions: &a[5],
+                untaxed_source: &a[6],
+                income_stream_before_july_2007: &a[7],
+                year: &a[8],
+                scope_confirmed: &a[9],
+            })
+        }
+        "endorsement-review" => engine::endorsement_review(&a[0], &a[1], &a[2], &a[3]),
         "balancing-adjustment" => {
             // Optional: a car's s 40-325 facts, or null; refused for any other asset.
             let car_limit = optional(v, "car_limit", Json)?;
