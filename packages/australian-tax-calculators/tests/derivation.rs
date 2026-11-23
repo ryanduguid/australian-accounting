@@ -748,7 +748,10 @@ fn cases() -> Vec<(&'static str, Value)> {
                "previous_credits": "1000.00", "reason_code": 30}),
     ] {
         let mut input = json!({"year_ended": 2027, "scope_confirmed": true});
-        input.as_object_mut().unwrap().extend(facts.as_object().unwrap().clone());
+        input
+            .as_object_mut()
+            .unwrap()
+            .extend(facts.as_object().unwrap().clone());
         cases.push(("fbt-instalment", input));
     }
     cases

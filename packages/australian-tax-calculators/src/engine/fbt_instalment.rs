@@ -142,7 +142,7 @@ const VARIATION_STEPS: [(&str, &str, &str); 6] = [
     ("instalment_formula", FORMULA, NET_FORMULA),
     ("varied_instalment", VARIED, "max(instalment_formula, 0)"),
     ("instalment", VARIED, "varied_instalment"),
-    ("credit", CREDIT, "max(-instalment_formula, 0)"),
+    ("credit", CREDIT, "max(0 - instalment_formula, 0)"),
 ];
 
 /// The s 111(1) formula with s 110(5), then F3 (and 6A) and the 6B credit.
