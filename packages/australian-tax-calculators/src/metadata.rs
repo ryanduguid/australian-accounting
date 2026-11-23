@@ -1347,6 +1347,9 @@ pub fn supported_periods(kind: &str) -> Vec<&'static str> {
         "ess_discount" => vec![
             "2020-21", "2021-22", "2022-23", "2023-24", "2024-25", "2025-26", "2026-27",
         ],
+        // Contracts from 1 July 2025 to 22 November 2026, the day the
+        // site page's rules were read.
+        "first_home_owner_grant" => vec!["2025-26", "2026-27"],
         "psi_test" => vec![
             "2020-21", "2021-22", "2022-23", "2023-24", "2024-25", "2025-26", "2026-27",
         ],
@@ -1927,6 +1930,10 @@ pub fn source_review(kind: &str) -> (&'static str, &'static str) {
         "ess_discount" => (
             "2026-11-22",
             "ITAA 1997 Division 83A (ss 83A-10 to 83A-45, 83A-105 to 83A-125, 83A-305 to 83A-315 and 83A-330), compilation 268 (1 October 2026), against compilations 234 (1 July 2022), the same, and 210 (1 July 2020), with the cessation of employment taxing point; Act No. 8 of 2022 Sch 10 items 3, 6 and 9; Income Tax Assessment (1997 Act) Regulations 2021 ss 83A-315.01 to 83A-315.09 and 1000-1.02, compilation 16 (27 June 2026), the tables checked against the ATO legal database's copy; the ATO's ESS pages on unlisted rights (27 June 2022), the $1,000 reduction and the start-up concession (21 December 2015), deferred taxing points (6 April 2022) and forfeiture (17 September 2020), and question 12 of the 2025 return instructions (27 May 2025)",
+        ),
+        "first_home_owner_grant" => (
+            "2026-11-23",
+            "The First Home Owner Grant Acts of Victoria (version 053), Queensland (22 October 2026), Western Australia (22 October 2026), South Australia (4.12.2025), Tasmania (9 October 2026), the Northern Territory (1 July 2026) and the ACT (republication 37); Revenue NSW, SRO Victoria, QRO, DTF WA, RevenueSA, SRO Tasmania, NT Government and ACT Revenue Office pages; the site's grant page and its 26 cases (checked 23 November 2026)",
         ),
         "psi_test" => (
             "2026-11-22",
@@ -2581,6 +2588,12 @@ pub fn library_evidence(kind: &str) -> [(&'static str, &'static str); 4] {
             "Barry's unlisted rights at 120% and 48 months ($4,000), Lester's and Jane's $1,000 reduction ($500; $1,300), Sarah's start-up shares at a 15% discount, the 30-day rule and the forfeiture examples",
             "2022-06-27",
             "2026-11-22",
+        ),
+        "first_home_owner_grant" => (
+            "Not a Library document: each First Home Owner Grant Act and revenue office page",
+            "RevenueSA's $10,000 example; the site page's 26 cases",
+            "2026-10-22",
+            "2026-11-23",
         ),
         "psi_test" => (
             "TR 2022/3",
@@ -3252,6 +3265,16 @@ pub fn optional_inputs(kind: &str) -> Vec<(&'static str, &'static str)> {
             (
                 "dependent_on_relatives",
                 "boolean, for excepted_person double_orphan_pension, double_orphan_pension_s1003 or permanent_disability_certificate only, and then required: wholly or substantially dependent on relatives for support for the whole period, taken to be so whilst living with relatives unless the contrary is established (ITAA 1936 s 102AC(3) to (5)); true means not excepted",
+            ),
+        ],
+        "first_home_owner_grant" => vec![
+            (
+                "north_of_26th",
+                "boolean, for wa only, and then required: the home is north of the 26th parallel of South latitude (all of Perth is south of it)",
+            ),
+            (
+                "cap_value",
+                "AUD, whole dollars from 1 to 1,000,000,000, for qld and wa only: the value the Act tests against the cap where it differs from total_value. For a home bought, the unencumbered value of the home and land at the contract date (Qld s 5(7), WA s 14AC(2)), tested with the price: the greater of the 2 is tested. For a home built, the consideration for the building contract plus the land's value (Qld s 5(8): its unencumbered value at the contract date; WA s 14AC(3)), tested in place of total_value. It never changes the consideration that limits the grant; without it total_value is tested",
             ),
         ],
         "psi_test" => vec![
@@ -5770,6 +5793,13 @@ pub fn input_units(kind: &str) -> Vec<(&'static str, &'static str)> {
             ("income_test", "null, or an object of AUD amounts for s 83A-35(2)(b): taxable_income (without the reduction and any assessable FHSS released amount), reportable_fringe_benefits_total, reportable_super_contributions and total_net_investment_loss; required with an upfront discount eligible for the reduction"),
             ("foreign_employment", "boolean: any discount relates to employment outside Australia, or you were a foreign or temporary resident from acquisition to the taxing point; true is refused"),
         ],
+        "first_home_owner_grant" => vec![
+            ("jurisdiction", "nsw, vic, qld, wa, sa, tas, act or nt"),
+            ("contract_date", "date, YYYY-MM-DD, from 2025-07-01 to 2026-11-22 and within year: the date the contract to buy or build was made (the commencement date)"),
+            ("home", "bought (a new home, including off the plan), built (under a comprehensive home building contract, including a house and land package) or established"),
+            ("total_value", "AUD, whole dollars from 1 to 1,000,000,000: the consideration, which limits the grant. For a home bought, the price; for a home built, the land and the building contract with its variations. It is also the value tested against the cap unless cap_value is given"),
+            ("facts", "object of booleans, each your statement, not tested: person (every applicant is a person aged 18 or over), citizen (an applicant is an Australian citizen or permanent resident), first_home (no applicant or spouse is excluded by the prior grant and ownership rules) and residence (the residence requirement will be met), all 4 required; building_contract (a home built: the contract price without the land is at least the grant); nt_no_replacement (nt: the contract replaces none signed before 1 October 2024); tas_conditions (tas: the completion and replacement conditions of s 18L or 18M)"),
+        ],
         "psi_test" => vec![
             ("earner", "employee, religious_practitioner, sole_trader or entity: who receives the income: the individual as an employee or office holder (s 85-35(1)), as a religious practitioner paid under s 12-47 of Schedule 1 to the TAA 1953 (s 85-35(2)), or as a contractor, or a company, partnership or trust (a personal services entity)"),
             ("mainly_personal_efforts", "boolean: the income is mainly a reward for the individual's personal efforts or skills (s 84-5(1))"),
@@ -7171,6 +7201,19 @@ pub fn examples(kind: &str) -> Vec<(&'static str, Example)> {
                 ),
             ),
             ("foreign_employment", Flag(false)),
+        ],
+        // The site page's opening example: a new home bought in New South
+        // Wales at the $600,000 cap.
+        "first_home_owner_grant" => vec![
+            ("year", Text("2026-27")),
+            ("jurisdiction", Text("nsw")),
+            ("contract_date", Text("2026-08-01")),
+            ("home", Text("bought")),
+            ("total_value", Text("600000")),
+            (
+                "facts",
+                Json(r#"{"person": true, "citizen": true, "first_home": true, "residence": true}"#),
+            ),
         ],
         "psi_test" => vec![
             ("year", Text("2025-26")),

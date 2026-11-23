@@ -152,6 +152,21 @@
   `rates.exact_duty` gives the unrounded duty. New codes:
   `insurance_duty.class_invalid`, `insurance_duty.date_outside_year`,
   `insurance_duty.jurisdiction_invalid` and `insurance_duty.term_unsettled`.
+- `first-home-owner-grant` gives the first home owner grant in each state
+  and territory for a new home bought or built under a contract made from
+  1 July 2025 to 22 November 2026, as the site's grant page works it, with
+  each First Home Owner Grant Act read on 23 November 2026: the amount on
+  the contract date, the value cap (with an optional `cap_value` where
+  Queensland and Western Australia test a value other than the
+  consideration) and the lesser-of-consideration rule, from eligibility
+  facts the operator states. New codes:
+  `first_home_owner_grant.below_grant`, `first_home_owner_grant.date_invalid`,
+  `first_home_owner_grant.date_uncovered`, `first_home_owner_grant.fact_needed`,
+  `first_home_owner_grant.facts_invalid`, `first_home_owner_grant.facts_not_stated`,
+  `first_home_owner_grant.home_invalid`, `first_home_owner_grant.jurisdiction_invalid`,
+  `first_home_owner_grant.location_needed`, `first_home_owner_grant.value_basis`
+  and `first_home_owner_grant.value_invalid`. `tests/first_home_owner_grant.rs`
+  holds it to the page's 26 cases.
 - `trading-stock` works out the change in value of trading stock under ITAA
   1997 s 70-35 for 2020-21 to 2026-27, each closing item valued by its own
   election (cost, market selling value, replacement value, the lowest, or an

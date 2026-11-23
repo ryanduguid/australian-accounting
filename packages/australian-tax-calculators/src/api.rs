@@ -1165,6 +1165,18 @@ const COMMAND_ARGS: &[(&str, &[(&str, Kind)])] = &[
         ],
     ),
     (
+        "first-home-owner-grant",
+        &[
+            ("jurisdiction", Raw),
+            ("contract_date", Raw),
+            ("home", Raw),
+            ("total_value", Dec),
+            ("facts", Json),
+            ("year", Raw),
+            ("scope_confirmed", Raw),
+        ],
+    ),
+    (
         "psi-test",
         &[
             ("earner", Raw),
@@ -2060,6 +2072,7 @@ pub fn evaluate_coded(command: &str, v: &Value) -> Result<Value> {
             | "trading-stock"
             | "prepayments"
             | "non-commercial-losses"
+            | "first-home-owner-grant"
             | "psi-test"
             | "payg-instalment"
             | "pcg-2021-4"
@@ -3443,6 +3456,22 @@ pub fn evaluate_coded(command: &str, v: &Value) -> Result<Value> {
                 net_exempt_income: &a[14],
                 year: &a[15],
                 scope_confirmed: &a[16],
+                optional: given.each_ref().map(Option::as_ref),
+            })
+        }
+        "first-home-owner-grant" => {
+            // Optional: the Western Australian home's location, and the value
+            // Queensland and Western Australia test against their caps.
+            let [north, cap] = engine::FHOG_OPTIONAL;
+            let given = [optional(v, north, Raw)?, optional(v, cap, Dec)?];
+            engine::first_home_owner_grant(&engine::FirstHomeOwnerGrantArgs {
+                jurisdiction: &a[0],
+                contract_date: &a[1],
+                home: &a[2],
+                total_value: &a[3],
+                facts: &a[4],
+                year: &a[5],
+                scope_confirmed: &a[6],
                 optional: given.each_ref().map(Option::as_ref),
             })
         }

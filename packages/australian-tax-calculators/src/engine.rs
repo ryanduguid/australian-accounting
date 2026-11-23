@@ -6376,6 +6376,8 @@ mod non_commercial_losses;
 pub use non_commercial_losses::{NCL_OPTIONAL, NonCommercialLossesArgs, non_commercial_losses};
 mod psi_test;
 pub use psi_test::{PSI_OPTIONAL, PsiTestArgs, psi_test};
+mod first_home_owner_grant;
+pub use first_home_owner_grant::{FHOG_OPTIONAL, FirstHomeOwnerGrantArgs, first_home_owner_grant};
 mod payg_instalment;
 pub use payg_instalment::{PAYG_INSTALMENT_OPTIONAL, PaygInstalmentArgs, payg_instalment};
 mod pcg_2021_4;
@@ -6440,7 +6442,7 @@ pub use super_crystallisation::{SuperCrystallisationArgs, super_crystallisation}
 mod endorsement_review;
 pub use endorsement_review::endorsement_review;
 
-const KINDS: [&str; 130] = [
+const KINDS: [&str; 131] = [
     "gst",
     "gst_margin_scheme",
     "fuel_tax_credits",
@@ -6571,6 +6573,7 @@ const KINDS: [&str; 130] = [
     "scholarship_exemption",
     "super_crystallisation",
     "endorsement_review",
+    "first_home_owner_grant",
 ];
 
 /// `periods(kind)`: accepted period arguments and inclusive calendar boundaries.
