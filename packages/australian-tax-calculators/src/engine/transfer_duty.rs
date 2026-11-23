@@ -481,7 +481,7 @@ fn buyer(given: &Arg) -> Result<Buyer> {
 
 /// Whether the land is wholly residential, refused where the worksheet holds
 /// no rate for it.
-fn residential(place: &Place, given: &Arg, buyer: Buyer) -> Result<bool> {
+fn residential(place: &Place, given: &Arg, buyer: Buyer, value: &Decimal) -> Result<bool> {
     let residential = flag(given, "residential")?;
     if residential {
         return Ok(true);
@@ -490,6 +490,18 @@ fn residential(place: &Place, given: &Arg, buyer: Buyer) -> Result<bool> {
         return refuse(
             "transfer_duty.first_home_not_residential",
             "A first home buyer concession applies to a home on residential land; residential must be true.",
+        );
+    }
+    // New South Wales: residential land over the premium threshold that s 32A
+    // does not cover may bear premium duty under s 32B or s 32C.
+    let premium = match place.premium {
+        Some((top, _)) => !value.lt(&int(top.from))?,
+        None => false,
+    };
+    if premium {
+        return refuse(
+            "transfer_duty.non_residential_unsupported",
+            "In nsw, land that is not s 32A residential land and is worth more than $3,870,000 may bear premium duty under s 32B (residential land partly used for other purposes) or s 32C (more than 2 hectares), which this worksheet does not work.",
         );
     }
     if matches!(place.code, "sa" | "act") {
@@ -505,9 +517,9 @@ pub fn transfer_duty(args: &TransferDutyArgs) -> Result<Value> {
     let year = scope(args.scope_confirmed, args.year, KIND)?;
     let place = place(args.jurisdiction)?;
     let buyer = buyer(args.buyer)?;
-    let residential = residential(place, args.residential, buyer)?;
     let value = money(args.dutiable_value)?;
     whole_dollars(&value, "dutiable values")?;
+    let residential = residential(place, args.residential, buyer, &value)?;
     if !value.gt(&int(0))? {
         return refuse(
             "transfer_duty.dutiable_value_nil",

@@ -2559,8 +2559,9 @@ Wales' `duty_on_800000`; Queensland's `duty_on_350000` and
 
 It follows the Act where the site's page differs: the page leaves Victoria's
 duty in cents, and s 28(1) charges it to the nearest dollar, 50 cents down. It
-refuses land that is not wholly residential for a first home buyer and in
-South Australia and the ACT, cents and any other year. It does not decide
+refuses land that is not wholly residential for a first home buyer, in
+South Australia and the ACT, and in New South Wales above $3,870,000, where
+s 32B or s 32C may charge premium duty; cents; and any other year. It does not decide
 whether a transaction is dutiable, its value, who is liable or whether a buyer
 is eligible, and applies no other concession, exemption or foreign purchaser
 surcharge. The tests hold it to every case of the site's page and to the

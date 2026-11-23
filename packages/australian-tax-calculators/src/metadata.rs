@@ -4304,7 +4304,7 @@ pub fn input_units(kind: &str) -> Vec<(&'static str, &'static str)> {
             ),
             (
                 "residential",
-                "boolean: true when the dutiable property is wholly residential land (in nsw one parcel of residential land under s 32A(3), no more than 2 hectares and not partly used for other purposes); false is refused for a first home buyer and in sa and act",
+                "boolean: true when the dutiable property is wholly residential land (in nsw one parcel of residential land under s 32A(3), no more than 2 hectares and not partly used for other purposes); false is refused for a first home buyer, in sa and act, and in nsw above $3,870,000 (ss 32B and 32C)",
             ),
         ],
         "gst_margin_scheme" => vec![

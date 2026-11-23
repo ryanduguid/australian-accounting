@@ -186,13 +186,21 @@ fn new_south_wales_agrees_with_revenue_nsw() {
     ] {
         assert_eq!(duty("nsw", value, "general")[0], want, "{value}");
     }
-    // Land that is not residential stays at $5.50 above $3,870,000:
-    // $52,237 + 27,100 x $5.50.
-    let other = with(
-        input("nsw", "4000000", "general"),
-        json!({"residential": false}),
+    // Land that is not s 32A residential land is worked at the general rate
+    // to $3,870,000 ($52,237 + 25,800 x $5.50), and refused above it, where
+    // s 32B or s 32C may charge premium duty.
+    let other = |value| {
+        with(
+            input("nsw", value, "general"),
+            json!({"residential": false}),
+        )
+    };
+    assert_eq!(amount(&run(&other("3870000")), "duty"), "194137.00");
+    assert_eq!(
+        code(&other("3870001")),
+        "transfer_duty.non_residential_unsupported"
     );
-    assert_eq!(amount(&run(&other), "duty"), "201287.00");
+    assert_eq!(duty("nsw", "3870001", "general")[0], "194144.00");
     for (value, want) in [
         ("800000", "0.00"),
         ("800001", "20.00"),
@@ -290,6 +298,7 @@ fn the_other_jurisdictions() {
     assert_eq!(general("wa", "800000"), "32315.50");
     assert_eq!(general("wa", "725001"), "28458.15");
     assert_eq!(duty("wa", "700000", "first_home_new")[0], "16150.00");
+    assert_eq!(duty("wa", "800000", "first_home_new")[0], "32300.00");
     assert_eq!(duty("wa", "800001", "first_home_new")[0], "32320.65");
     assert_eq!(general("sa", "600000"), "26830.00");
     assert_eq!(general("sa", "300000"), "11330.00");
@@ -306,6 +315,9 @@ fn the_other_jurisdictions() {
     );
     assert_eq!(general("act", "650000"), "17880.00");
     assert_eq!(general("act", "1500000"), "68100.00");
+    // Table 2's whole-value band from $1,455,001 gives less than the band below.
+    assert_eq!(general("act", "1455000"), "66070.00");
+    assert_eq!(general("act", "1455001"), "66057.05");
     assert_eq!(duty("act", "3000000", "first_home_established")[0], "0.00");
     // 0.06571441 x 500^2 + 15 x 500 = 23,928.6025; 525^2 gives 25,987.53425625.
     assert_eq!(general("nt", "500000"), "23928.60");
