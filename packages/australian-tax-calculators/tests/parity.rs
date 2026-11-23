@@ -36,14 +36,18 @@ use std::process::{Command, Stdio};
 /// `tests/work_expenses.rs`, `tests/ato_interest_penalties.rs`,
 /// `tests/small_business_income_offset.rs`, `tests/government_super_amounts.rs`,
 /// `tests/individual_offsets.rs`, `tests/non_commercial_losses.rs`,
-/// `tests/psi_test.rs`, `tests/rental_property.rs`, `tests/residency_tests.rs`,
+/// `tests/psi_test.rs`, `tests/rental_property.rs` and
+/// `tests/foreign_resident_withholding.rs`, `tests/residency_tests.rs`,
 /// `tests/lodgment_required.rs`, `tests/rd_tax_offset.rs`,
-/// `tests/gst_adjustments.rs`, `tests/deferred_tax.rs`,
-/// `tests/cgt_cost_base_adjustments.rs`, `tests/foreign_income_conversion.rs`,
+/// `tests/gst_adjustments.rs`, `tests/deferred_tax.rs`, `tests/leave_provisions.rs`,
+/// `tests/cgt_cost_base_adjustments.rs`, `tests/payg_instalment.rs`,
+/// `tests/foreign_income_conversion.rs`,
 /// `tests/foreign_income_tax_offset.rs`, `tests/trading_stock_prepayments.rs`,
-/// `tests/minors_income.rs` and `tests/smsf_tax.rs` cover them, as `tests/transfer_balance.rs` covers
+/// `tests/minors_income.rs`, `tests/smsf_tax.rs`, `tests/fbt_instalment.rs`, `tests/ess_discount.rs` and
+/// `tests/help_indexation.rs` cover them, as `tests/transfer_balance.rs` covers
 /// `transfer-balance` and `excess-contributions`.
-const NEW_KINDS: [(&str, &str); 97] = [
+const NEW_KINDS: [(&str, &str); 103] = [
+    ("help-indexation", "help_indexation"),
     ("super-withholding", "super_withholding"),
     ("super-benefit-tax", "super_benefit_tax"),
     ("fhss", "fhss"),
@@ -59,6 +63,7 @@ const NEW_KINDS: [(&str, &str); 97] = [
     ("fbt-car-statutory", "fbt_car_statutory"),
     ("fbt-car-operating-cost", "fbt_car_operating_cost"),
     ("fbt-ev-exemption-check", "fbt_ev_exemption_check"),
+    ("fbt-instalment", "fbt_instalment"),
     ("fbt-loan", "fbt_loan"),
     ("fbt-meal-entertainment", "fbt_meal_entertainment"),
     ("fbt-car-parking", "fbt_car_parking"),
@@ -101,6 +106,7 @@ const NEW_KINDS: [(&str, &str); 97] = [
     ),
     ("non-commercial-losses", "non_commercial_losses"),
     ("psi-test", "psi_test"),
+    ("payg-instalment", "payg_instalment"),
     ("minors-income", "minors_income"),
     ("smsf-tax", "smsf_tax"),
     ("beneficiary-tax-offset", "beneficiary_tax_offset"),
@@ -112,6 +118,10 @@ const NEW_KINDS: [(&str, &str); 97] = [
     ),
     ("government-super-amounts", "government_super_amounts"),
     ("rental-property", "rental_property"),
+    (
+        "foreign-resident-withholding",
+        "foreign_resident_withholding",
+    ),
     (
         "horticulture-shearing-withholding",
         "horticulture_shearing_withholding",
@@ -145,6 +155,7 @@ const NEW_KINDS: [(&str, &str); 97] = [
     ("gst-second-hand-goods", "gst_second_hand_goods"),
     ("gst-bad-debt", "gst_bad_debt"),
     ("deferred-tax", "deferred_tax"),
+    ("leave-provisions", "leave_provisions"),
     ("foreign-income-conversion", "foreign_income_conversion"),
     ("foreign-income-tax-offset", "foreign_income_tax_offset"),
     ("division-296", "division_296"),
@@ -189,6 +200,7 @@ const NEW_KINDS: [(&str, &str); 97] = [
     ),
     ("franking-account", "franking_account"),
     ("luxury-car-tax", "luxury_car_tax"),
+    ("ess-discount", "ess_discount"),
 ];
 
 /// The JSON boundary's answer in the corpus encoding: `{"ok": value}` or `{"error": message}`.
