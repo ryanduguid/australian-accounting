@@ -270,8 +270,8 @@ booleans and counts, ages, days, quarters and scales are JSON integers.
 | `working-holiday-maker-withholding` | `payment`, `payments_before`, `employer_registered`, `tfn_quoted`, `pay_period`, `year`, `scope_confirmed` |
 | `seniors-pensioners-withholding` | `earnings`, `pay_period`, `status`, `medicare_levy_exemption`, `year`, `scope_confirmed`; optional `study_loan`; `pay_date`, with `study_loan` only and required with it for 2025-26 |
 | `study-loan-repayment` | `repayment_income`, `year`, `scope_confirmed` |
-| `contribution-caps` | `total_super_balance`, `concessional_contributions`, `non_concessional_contributions`, `under_75_in_year`, `year`, `scope_confirmed`, and either `unused_concessional_cap` or `earlier_concessional_contributions` with `defined_benefit_interest`; with the latter, optional `proposed_concessional_contribution`; optional `determination_date` (2024-25 and 2025-26) for the release figures, see [Transfer balance and excess contributions](#transfer-balance-and-excess-contributions) |
-| `pension-minimum` | `account_balance`, `age`, `days`, `year`, `scope_confirmed` |
+| `contribution-caps` | `total_super_balance`, `concessional_contributions`, `non_concessional_contributions`, `under_75_in_year`, `year`, `scope_confirmed`, and either `unused_concessional_cap` or `earlier_concessional_contributions` with `defined_benefit_interest`; with the latter, optional `proposed_concessional_contribution`; optional `determination_date` (2024-25 and 2025-26) for the release figures, see [Transfer balance and excess contributions](#transfer-balance-and-excess-contributions); optional, all or none, `downsizer_contribution`, `downsizer_contribution_date`, `downsizer_age`, `downsizer_contract_date`, `downsizer_settlement_date`, `downsizer_longer_period_allowed`, `downsizer_capital_proceeds`, `downsizer_earlier_own`, `downsizer_earlier_from_proceeds` and `downsizer_conditions_met` |
+| `pension-minimum` | `account_balance`, `age`, `days`, `year`, `scope_confirmed`; optional `transition_to_retirement` |
 | `worksheet-catalogue` | none: send `{}` |
 | `periods` | `kind`, the worksheet name, such as `"payg_withholding"` |
 | `dgr-check` | `donations`, a list of 1 to 10,000 objects, each with `abn` or `name` or both, and optional `date` and `amount`; see [DGR check](#dgr-check) |
@@ -728,11 +728,29 @@ its increase drew on are refused, each naming what to give. The worksheet
 reports cap arithmetic only; it does not say what anyone should contribute.
 The tests hold it to the ATO's Sam example and its carry-forward table.
 
+With the 10 `downsizer_` inputs, all or none, `contribution_caps` also tests
+one downsizer contribution under ITAA 1997 s 292-102: age at least 55 at the
+contribution (contributions from 1 January 2023), a contract entered into on or
+after 1 July 2018, the contribution within 90 days after the change of
+ownership or a longer period the Commissioner allowed, and the other criteria
+as the operator states them. `downsizer_covered` is the contribution up to the
+lesser of $300,000 less the person's earlier downsizer contributions and the
+capital proceeds less the earlier contributions from them by the person or
+their spouse (s 292-102(3)); `downsizer_not_covered` is the rest, which is
+reported and not added to the non-concessional cap, as the fund decides
+whether to accept it as a personal contribution. `downsizer_tests` lists each
+test. The other results do not change. The tests hold it to the ATO's
+'Downsizer super contributions' examples; see
+[calculation evidence](docs/calculation-evidence.md#downsizer-contributions).
+
 `pension_minimum` applies SISR Schedule 7 to one account-based pension: the age
 factor on the balance at 1 July, pro-rated by days in the first year, nil when the
 pension starts on or after 1 June, and rounded to the nearest $10 with an exact $5
-rounding up. The tests check every band boundary against the ATO's published
-tables; see [calculation evidence](docs/calculation-evidence.md#contribution-caps).
+rounding up. With `transition_to_retirement` true it adds `maximum_payment`,
+10% of the same balance, for a transition to retirement income stream (SISR
+reg 6.01(2)), not reduced for a part year and shown down to the cent. The tests check every
+band boundary against the ATO's published tables; see
+[calculation evidence](docs/calculation-evidence.md#contribution-caps).
 These worksheets are published in the 0.1.6 wheel.
 
 ## Transfer balance and excess contributions

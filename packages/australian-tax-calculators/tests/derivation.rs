@@ -678,6 +678,36 @@ fn cases() -> Vec<(&'static str, Value)> {
                    "carried_forward_offsets": "10000.00", "year": "2019-20",
                    "scope_confirmed": true}),
         ),
+        // A downsizer contribution above the proceeds left (Bruce, from the
+        // ATO's 'Downsizer super contributions'), and a transition to
+        // retirement income stream's maximum in a first part year.
+        (
+            "contribution-caps",
+            json!({"total_super_balance": "450000.00", "concessional_contributions": "20000.00",
+                   "unused_concessional_cap": "0.00", "non_concessional_contributions": "0.00",
+                   "under_75_in_year": true, "year": "2025-26", "scope_confirmed": true,
+                   "downsizer_contribution": "100000.01", "downsizer_contribution_date": "2025-10-31",
+                   "downsizer_age": 70, "downsizer_contract_date": "2025-08-01",
+                   "downsizer_settlement_date": "2025-10-01", "downsizer_longer_period_allowed": false,
+                   "downsizer_capital_proceeds": "400000.00", "downsizer_earlier_own": "0.00",
+                   "downsizer_earlier_from_proceeds": "300000.00", "downsizer_conditions_met": true}),
+        ),
+        (
+            "contribution-caps",
+            json!({"total_super_balance": "450000.00", "concessional_contributions": "20000.00",
+                   "unused_concessional_cap": "0.00", "non_concessional_contributions": "0.00",
+                   "under_75_in_year": true, "year": "2025-26", "scope_confirmed": true,
+                   "downsizer_contribution": "50000.00", "downsizer_contribution_date": "2026-03-01",
+                   "downsizer_age": 54, "downsizer_contract_date": "2025-08-01",
+                   "downsizer_settlement_date": "2025-10-01", "downsizer_longer_period_allowed": true,
+                   "downsizer_capital_proceeds": "400000.00", "downsizer_earlier_own": "0.00",
+                   "downsizer_earlier_from_proceeds": "0.00", "downsizer_conditions_met": true}),
+        ),
+        (
+            "pension-minimum",
+            json!({"account_balance": "400000.00", "age": 62, "days": 181,
+                   "transition_to_retirement": true, "year": "2025-26", "scope_confirmed": true}),
+        ),
         // Revenue NSW's surcharge land tax example 1 and Victoria's absentee
         // owner surcharge on $1,000,000 (the State Revenue Office's table).
         (
@@ -1473,6 +1503,7 @@ impl Evaluator<'_> {
                     ("min", [a, b]) => if b.lt(a).unwrap() { b } else { a }.clone(),
                     ("max", [a, b]) => if b.gt(a).unwrap() { b } else { a }.clone(),
                     ("cents", [a]) => a.quantize(-2, Rounding::HalfUp).unwrap(),
+                    ("cents_down", [a]) => a.quantize(-2, Rounding::Down).unwrap(),
                     ("dollars", [a]) => a.quantize(0, Rounding::HalfUp).unwrap(),
                     ("floor", [a]) => a.quantize(0, Rounding::Down).unwrap(),
                     ("dollars_up", [a]) => {

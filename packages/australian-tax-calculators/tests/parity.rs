@@ -732,6 +732,11 @@ fn adapt_depreciation_years(command: &str, input: &Value, expected: &mut Value) 
 /// ATO's concessional contributions cap page and s 291-20, and the catalogue
 /// lists the new optional inputs. A supplied total gives the same amounts.
 fn adapt_contribution_caps(command: &str, expected: &mut Value) {
+    if command == "worksheet-catalogue" {
+        // pension-minimum lists its optional transition_to_retirement input.
+        expected["ok"]["pension_minimum"]["optional_inputs"] =
+            worksheet_catalogue()["pension_minimum"]["optional_inputs"].clone();
+    }
     let old_scope = "unused concessional cap is the established total of unexpired amounts from the previous 5 years. Excludes";
     let record = match command {
         "contribution-caps" => expected.pointer_mut("/ok"),
