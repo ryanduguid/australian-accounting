@@ -18,7 +18,7 @@ use std::process::{Command, Stdio};
 /// under `income` (an absent line as 0) and, given other taxable income,
 /// `resident_tax`, none of which `named` or the evaluator reads, so
 /// `tests/rental_property.rs` checks its workings instead.
-const DERIVED: [&str; 87] = [
+const DERIVED: [&str; 88] = [
     "fbt",
     "fbt-car-statutory",
     "fbt-car-operating-cost",
@@ -92,6 +92,7 @@ const DERIVED: [&str; 87] = [
     "etp-tax-free-component",
     "payroll-tax",
     "land-tax",
+    "motor-vehicle-duty",
     "cgt-parcels",
     "work-expenses",
     "gst-creditable-purpose-change",
@@ -596,6 +597,21 @@ fn cases() -> Vec<(&'static str, Value)> {
             json!({"jurisdiction": "vic", "taxable_value": "1000000",
                    "trust_rates": false, "foreign_owner": true,
                    "year": "2026", "scope_confirmed": true}),
+        ),
+        // Western Australia's sliding rate at $37,500 (R = 4.63) and the ACT's
+        // Table 3 for a new Category B vehicle after 1 February 2027.
+        (
+            "motor-vehicle-duty",
+            json!({"jurisdiction": "wa", "vehicle_class": "passenger",
+                   "dutiable_value": "37500", "duty_date": "2026-09-15",
+                   "year": "2026-27", "scope_confirmed": true}),
+        ),
+        (
+            "motor-vehicle-duty",
+            json!({"jurisdiction": "act", "vehicle_class": "passenger",
+                   "dutiable_value": "90000", "duty_date": "2027-03-01",
+                   "emissions_category": "b", "new_vehicle": true,
+                   "year": "2026-27", "scope_confirmed": true}),
         ),
         // A strata unit's share of land bought with some consideration unpaid
         // (GST Act ss 75-12 and 75-15), for a supply that cannot use the
@@ -2599,7 +2615,7 @@ fn derive_refuses_what_it_does_not_explain() {
          annuity-withholding, voluntary-agreement-withholding, \
          rd-tax-offset, \
          hire-purchase-schedule, chattel-mortgage-schedule, loan-transactions, \
-         lump-sum-arrears-tax-offset, income-tests, government-super-amounts, smsf-tax, business-capital-expenditure, balancing-adjustment, trade-in, dasp-tax, super-benefit-tax, super-withholding, gst-margin-scheme, etp-tax-free-component, payroll-tax, land-tax, cgt-parcels, work-expenses, rental-property, gst-creditable-purpose-change, gst-annual-apportionment, gst-financial-acquisitions-threshold, gst-second-hand-goods, gst-bad-debt, cgt-cost-base-adjustments, foreign-income-tax-offset, fbt-instalment, vic-property-taxes, defined-benefit-income-cap, \
+         lump-sum-arrears-tax-offset, income-tests, government-super-amounts, smsf-tax, business-capital-expenditure, balancing-adjustment, trade-in, dasp-tax, super-benefit-tax, super-withholding, gst-margin-scheme, etp-tax-free-component, payroll-tax, motor-vehicle-duty, land-tax, cgt-parcels, work-expenses, rental-property, gst-creditable-purpose-change, gst-annual-apportionment, gst-financial-acquisitions-threshold, gst-second-hand-goods, gst-bad-debt, cgt-cost-base-adjustments, foreign-income-tax-offset, fbt-instalment, vic-property-taxes, defined-benefit-income-cap, \
          foreign-pension-upp, super-crystallisation, not \"payg-gross-up\""
     );
 }

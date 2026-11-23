@@ -1198,6 +1198,9 @@ pub fn supported_periods(kind: &str) -> Vec<&'static str> {
         "land_tax" => vec!["2026", "2026-27"],
         // The 2026-27 rates and thresholds each revenue office published, read
         // on 19 November 2026.
+        // Duty dates in 2026-27, under the scales in force or made on 24
+        // November 2026 (the ACT's changing on 1 February 2027).
+        "motor_vehicle_duty" => vec!["2026-27"],
         "payroll_tax" => vec!["2026-27"],
         // The premium period each scheme's 2026-27 method was read for on
         // 24 November 2026.
@@ -1581,6 +1584,10 @@ pub fn source_review(kind: &str) -> (&'static str, &'static str) {
         "workers_compensation_premium" => (
             "2026-11-24",
             "WorkCover Premiums Order (No. 34) 2026/2027 (Victoria Government Gazette P1, 29 April 2026) cl 5 to 12 and Gazette S 284 (2 June 2026) items 1 to 3; WorkCover Queensland Notice (No. 1) of 2026 (Queensland Government Gazette No. 43, 26 June 2026) ss 3, 4, 5, 8 and 10; Duties Act 2001 (Qld) ss 356, 361 and 362(3) (current as at 22 October 2026) and QRO public ruling DA356.1; icare's small employer premium formula and premium updates for 2026-27 (9 November 2026); ReturnToWorkSA's premium formula, 2026-27 booklet and premium calculator; NT WorkSafe's premium bulletin (SIRA's 2026 Guidelines and the SA Premium Order 2026-27 were not readable)",
+        ),
+        "motor_vehicle_duty" => (
+            "2026-11-24",
+            "Duties Act 2000 (Vic) ss 3(1), 218 and 219 (authorised version 141, 24 June 2026); Duties Act 2001 (Qld) ss 377 to 383 and Sch 4C (current as at 22 October 2026); Duties Act 2008 (WA) ss 228 to 236 (03-z0-00); Stamp Duties Act 1923 (SA) ss 42A and 42B and Sch 2 cl 2(1) (version 15.9.2026); Duties Act 2001 (Tas) s 197 (in force 24 November 2026); Duties Act 1999 (ACT) ss 203 to 208 (republication 79) with DI2025-152 and DI2026-154; Stamp Duty Act 1978 (NT) ss 57, 59 and 92A and Sch 1 (as in force at 1 July 2025); Revenue NSW's and Service NSW's motor vehicle duty pages (the NSW Act was not readable); and each revenue office's rates page",
         ),
         "payroll_tax" => (
             "2026-11-19",
@@ -2110,6 +2117,12 @@ pub fn library_evidence(kind: &str) -> [(&'static str, &'static str); 4] {
             "Scheme premium pages: icare premium calculation for small employers; ReturnToWorkSA your premium explained; NT WorkSafe understanding workers compensation premiums",
             "icare's Rob's Restaurant; ReturnToWorkSA examples 1 to 3; NT WorkSafe's builder",
             "2026-11-09",
+            "2026-11-24",
+        ),
+        "motor_vehicle_duty" => (
+            "Revenue office motor vehicle duty pages: Revenue NSW and Service NSW; SRO Victoria current rates and drive-away deals 2026-27; TMR vehicle registration duty rates and help; RevenueWA vehicle licence duty; RevenueSA stamp duty on vehicles; SRO Tasmania rates of duty; ACT Revenue Office motor vehicle duty and circular DAA005.9; TRO stamp duty",
+            "TMR's 8 light vehicle examples ($35,600 and $135,600 for each engine row)",
+            "2026-11-13",
             "2026-11-24",
         ),
         "payroll_tax" => (
@@ -3444,6 +3457,36 @@ pub fn optional_inputs(kind: &str) -> Vec<(&'static str, &'static str)> {
                 "AUD, in sa when new_employer is false and then required: the income support paid in 2025-26 on claims with a date of injury in 2023-24 to 2025-26, as ReturnToWorkSA counts them",
             ),
         ],
+        "motor_vehicle_duty" => vec![
+            (
+                "engine",
+                "in qld only and then required: hybrid_or_electric, up_to_4_cylinders (also 2 rotors or steam), 5_or_6_cylinders (also 3 rotors) or 7_or_more_cylinders (Duties Act 2001 (Qld) Sch 4C)",
+            ),
+            (
+                "green_car",
+                "boolean, in vic only and then required: true for a green car, a passenger car of a model with combined tailpipe CO2 emissions of 120 g/km or less (Duties Act 2000 (Vic) s 3(1))",
+            ),
+            (
+                "primary_producer",
+                "boolean, in vic only and then required: true for a primary producer passenger car, registered in a primary producer's name and used primarily in that business (s 3(1))",
+            ),
+            (
+                "emissions_category",
+                "in act only and then required: aaa (zero combined CO2 emissions, a battery electric or hydrogen fuel cell vehicle), aa (1 to 65 g/km), a (66 to 130), b (131 to 175), c (176 to 220), d (221 or more) or non_rated (no combined CO2 emissions under the determination's s 4)",
+            ),
+            (
+                "new_vehicle",
+                "boolean, in act only and then required: true for a new motor vehicle as the determination defines it (not registered before, or a demonstrator within a year of its first ACT registration); a used vehicle other than Category AAA pays the non-rated rates (to 31 January 2027 DI2025-152 classes used eligible hybrids and plug-in hybrids separately, at the same rates)",
+            ),
+            (
+                "fleet_discount",
+                "boolean, in tas only and then required: true for a new motor vehicle bought with a manufacturer's fleet discount (Duties Act 2001 (Tas) s 197(3A) and (6)); a vehicle of $600 or less pays s 197(3)'s $20 either way",
+            ),
+            (
+                "electric",
+                "boolean, in nt only and then required: true for an electric motor vehicle under Stamp Duty Act 1978 (NT) s 92A(5) (an electric motor, charged from an external source, no hydrogen fuel cell; plug-in hybrids included)",
+            ),
+        ],
         "payroll_tax" => vec![(
             "regional_employer",
             "boolean, for Victoria only and then required: true when the employer is a regional employer, one that pays at least 85% of its taxable wages to regional employees (Payroll Tax Act 2007 (Vic) s 3A)",
@@ -4634,6 +4677,21 @@ pub fn input_units(kind: &str) -> Vec<(&'static str, &'static str)> {
             (
                 "group_member",
                 "boolean, true when the employer is a member of a group for premium purposes; true is refused in nsw, vic, qld and sa",
+            ),
+        ],
+        "motor_vehicle_duty" => vec![
+            ("jurisdiction", "nsw, vic, qld, wa, sa, tas, act or nt"),
+            (
+                "vehicle_class",
+                "passenger: the jurisdiction's passenger vehicle (in sa one that is not a commercial motor vehicle or trailer; in qld and wa one of 4.5t GVM or less); any other class is refused",
+            ),
+            (
+                "dutiable_value",
+                "AUD, whole dollars: the dutiable value the jurisdiction's Act sets, as established (generally the greater of the price and the market value, including GST and any luxury car tax)",
+            ),
+            (
+                "duty_date",
+                "YYYY-MM-DD in the year: the date the duty arises, the application to register or transfer or, in the ACT, the registration",
             ),
         ],
         "payroll_tax" => vec![
@@ -6171,6 +6229,13 @@ pub fn examples(kind: &str) -> Vec<(&'static str, Example)> {
             ("wages", Text("400000.00")),
             ("rate", Text("3.5")),
             ("group_member", Flag(false)),
+        ],
+        "motor_vehicle_duty" => vec![
+            ("year", Text("2026-27")),
+            ("jurisdiction", Text("nsw")),
+            ("vehicle_class", Text("passenger")),
+            ("dutiable_value", Text("52000")),
+            ("duty_date", Text("2026-09-15")),
         ],
         "payroll_tax" => vec![
             ("year", Text("2026-27")),
