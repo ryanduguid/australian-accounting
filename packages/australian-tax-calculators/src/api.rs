@@ -388,6 +388,17 @@ const COMMAND_ARGS: &[(&str, &[(&str, Kind)])] = &[
         ],
     ),
     (
+        "workers-compensation-premium",
+        &[
+            ("jurisdiction", Raw),
+            ("wages", Dec),
+            ("rate", Dec),
+            ("group_member", Raw),
+            ("year", Raw),
+            ("scope_confirmed", Raw),
+        ],
+    ),
+    (
         "wine-equalisation-tax",
         &[("dealings", Json), ("year", Raw), ("scope_confirmed", Raw)],
     ),
@@ -1940,6 +1951,7 @@ pub fn evaluate_coded(command: &str, v: &Value) -> Result<Value> {
             | "super-benefit-tax"
             | "super-withholding"
             | "payroll-tax"
+            | "workers-compensation-premium"
             | "gst-margin-scheme"
             | "franking-account"
             | "cgt-parcels"
@@ -2273,6 +2285,48 @@ pub fn evaluate_coded(command: &str, v: &Value) -> Result<Value> {
                 employed_all_year: &a[4],
                 year: &a[5],
                 scope_confirmed: &a[6],
+            })
+        }
+        "workers-compensation-premium" => {
+            // Optional: apprentice and actual wages, and each scheme's own facts.
+            let o = |key, kind| optional(v, key, kind);
+            let [apprentice, actual, dust, reward, claims] = [
+                "apprentice_wages",
+                "actual_wages",
+                "dust_diseases_rate",
+                "safe_employer_reward",
+                "claims_costs",
+            ]
+            .map(|key| o(key, Dec));
+            let [employer, days, buy_out, start, first] = [
+                "employer",
+                "days_registered",
+                "excess_buy_out",
+                "policy_start",
+                "first_full_year",
+            ]
+            .map(|key| o(key, Raw));
+            let [apprentice, actual, dust, reward, claims] =
+                [apprentice?, actual?, dust?, reward?, claims?];
+            let [employer, days, buy_out, start, first] =
+                [employer?, days?, buy_out?, start?, first?];
+            engine::workers_compensation_premium(&engine::WorkersCompensationArgs {
+                jurisdiction: &a[0],
+                wages: &a[1],
+                rate: &a[2],
+                group_member: &a[3],
+                apprentice_wages: apprentice.as_ref(),
+                actual_wages: actual.as_ref(),
+                dust_diseases_rate: dust.as_ref(),
+                safe_employer_reward: reward.as_ref(),
+                employer: employer.as_ref(),
+                days_registered: days.as_ref(),
+                excess_buy_out: buy_out.as_ref(),
+                policy_start: start.as_ref(),
+                first_full_year: first.as_ref(),
+                claims_costs: claims.as_ref(),
+                year: &a[4],
+                scope_confirmed: &a[5],
             })
         }
         "gst-margin-scheme" => {

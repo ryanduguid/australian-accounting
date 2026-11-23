@@ -1184,6 +1184,9 @@ pub fn supported_periods(kind: &str) -> Vec<&'static str> {
         // The 2026-27 rates and thresholds each revenue office published, read
         // on 19 November 2026.
         "payroll_tax" => vec!["2026-27"],
+        // The premium period each scheme's 2026-27 method was read for on
+        // 24 November 2026.
+        "workers_compensation_premium" => vec!["2026-27"],
         // Tax periods from 1 July 2019, when the $10,000 refunds began
         // (Act No. 94 of 2019 Sch 2), to the last year whose thresholds the
         // ATO publishes (QC38161, 1 June 2026).
@@ -1516,6 +1519,10 @@ pub fn source_review(kind: &str) -> (&'static str, &'static str) {
         "dasp_tax" => (
             "2026-11-19",
             "Superannuation (Departing Australia Superannuation Payments Tax) Act 2007 ss 4 to 6 (compilation 5, 2 December 2016, Federal Register of Legislation); ITAA 1997 ss 301-170 and 301-175, from the ATO's legal database; the ATO's 'Payments from super' rates (last updated 16 September 2026) and 'Departing Australia superannuation payment (DASP)' (last updated 21 April 2026)",
+        ),
+        "workers_compensation_premium" => (
+            "2026-11-24",
+            "WorkCover Premiums Order (No. 34) 2026/2027 (Victoria Government Gazette P1, 29 April 2026) cl 5 to 12 and Gazette S 284 (2 June 2026) items 1 to 3; WorkCover Queensland Notice (No. 1) of 2026 (Queensland Government Gazette No. 43, 26 June 2026) ss 3, 4, 5, 8 and 10; Duties Act 2001 (Qld) ss 356, 361 and 362(3) (current as at 22 October 2026) and QRO public ruling DA356.1; icare's small employer premium formula and premium updates for 2026-27 (9 November 2026); ReturnToWorkSA's premium formula, 2026-27 booklet and premium calculator; NT WorkSafe's premium bulletin (SIRA's 2026 Guidelines and the SA Premium Order 2026-27 were not readable)",
         ),
         "payroll_tax" => (
             "2026-11-19",
@@ -2002,6 +2009,12 @@ pub fn library_evidence(kind: &str) -> [(&'static str, &'static str); 4] {
             "8-420",
             "2026-06-30",
             "2026-11-19",
+        ),
+        "workers_compensation_premium" => (
+            "Scheme premium pages: icare premium calculation for small employers; ReturnToWorkSA your premium explained; NT WorkSafe understanding workers compensation premiums",
+            "icare's Rob's Restaurant; ReturnToWorkSA examples 1 to 3; NT WorkSafe's builder",
+            "2026-11-09",
+            "2026-11-24",
         ),
         "payroll_tax" => (
             "Revenue office payroll tax pages: Revenue NSW thresholds and rates; SRO Victoria payroll tax surcharges; QRO payroll tax deductions; RevenueWA employer guide; SRO Tasmania annual adjustment return guideline",
@@ -3169,6 +3182,48 @@ pub fn optional_inputs(kind: &str) -> Vec<(&'static str, &'static str)> {
                 "boolean, for a plug_in_hybrid_electric vehicle only and then required: true when a car benefit relating to the car was provided before 1 April 2025 and was exempt under s 8A as it then read (item 5(2)(d) and (e))",
             ),
         ],
+        "workers_compensation_premium" => vec![
+            (
+                "apprentice_wages",
+                "AUD, in nsw, qld and sa only (nil when absent; above nil elsewhere is refused): the wages of qualifying apprentices included in wages, which the scheme deducts at the rate (icare's apprentice incentive, WorkCover Queensland Notice (No. 1) of 2026 s 8.3, ReturnToWorkSA's apprentice incentive); no more than wages",
+            ),
+            (
+                "actual_wages",
+                "AUD: the wages actually paid in the period; the premium is worked again on them with the same rate and apprentice wages, and the adjustment is the difference",
+            ),
+            (
+                "dust_diseases_rate",
+                "percentage from 0 to 10, to at most 4 decimal places, in nsw only and then required: the dust diseases rate for the WIC, including GST (icare's WIC rate table)",
+            ),
+            (
+                "safe_employer_reward",
+                "percentage from 0 to 100, to at most 4 decimal places, in nsw only and then required: the Safe Employer Reward on the renewal notice, 0 if none",
+            ),
+            (
+                "employer",
+                "new, small or other, in vic only and then required: new (first required to register on or after 1 July 2025, Premiums Order (No. 34) cl 12(5)) or small (total annualised remuneration for 2025-26 of $200,000 or less); other is refused, as its premium is performance rated (cl 12)",
+            ),
+            (
+                "days_registered",
+                "integer from 1 to 365, in vic only and then required: N in Premiums Order (No. 34) cl 11, the days in 2026-27 the employer is or is likely to be required to be registered",
+            ),
+            (
+                "excess_buy_out",
+                "boolean, in vic only and then required: true when the employer has made a buy-out election (Premiums Order (No. 34) cl 10)",
+            ),
+            (
+                "policy_start",
+                "YYYY-MM-DD, in qld only and then required: the day the policy commences to insure, from 1 July 2026 to 30 June 2027; a policy that commenced before 1 July 2026 is refused",
+            ),
+            (
+                "first_full_year",
+                "boolean, in sa only and then required: true in the employer's first full financial year registered, when no discount or claims costs apply",
+            ),
+            (
+                "claims_costs",
+                "AUD, in sa when first_full_year is false and then required: the income support paid in 2025-26 on claims with a date of injury in 2023-24 to 2025-26, as ReturnToWorkSA counts them",
+            ),
+        ],
         "payroll_tax" => vec![(
             "regional_employer",
             "boolean, for Victoria only and then required: true when the employer is a regional employer, one that pays at least 85% of its taxable wages to regional employees (Payroll Tax Act 2007 (Vic) s 3A)",
@@ -4258,6 +4313,24 @@ pub fn input_units(kind: &str) -> Vec<(&'static str, &'static str)> {
             (
                 "unclaimed_money_rollover",
                 "boolean, true when the payment is a roll-over superannuation benefit paid under s 20H(2), (2AA) or (2A) of the Superannuation (Unclaimed Money and Lost Members) Act 1999; true with an element untaxed in the fund is refused, as s 5(2) taxes any excess untaxed roll-over amount in it at nil",
+            ),
+        ],
+        "workers_compensation_premium" => vec![
+            (
+                "jurisdiction",
+                "nsw, vic, qld, wa, sa, tas, act or nt: the scheme that insures the workers",
+            ),
+            (
+                "wages",
+                "AUD: the wages (remuneration) estimated for the 2026-27 period as the scheme defines them, for the workers it covers",
+            ),
+            (
+                "rate",
+                "percentage of wages (the same as dollars per $100 of wages), above 0 to 100, to at most 4 decimal places: the industry or premium rate the insurer gives the employer's classification",
+            ),
+            (
+                "group_member",
+                "boolean, true when the employer is a member of a group for premium purposes; true is refused in nsw, vic, qld and sa",
             ),
         ],
         "payroll_tax" => vec![
@@ -5664,6 +5737,14 @@ pub fn examples(kind: &str) -> Vec<(&'static str, Example)> {
             ("untaxed_element", Text("0.00")),
             ("working_holiday_maker_contributions", Flag(false)),
             ("unclaimed_money_rollover", Flag(false)),
+        ],
+        // NT WorkSafe's builder: $400,000 at 3.50%.
+        "workers_compensation_premium" => vec![
+            ("year", Text("2026-27")),
+            ("jurisdiction", Text("nt")),
+            ("wages", Text("400000.00")),
+            ("rate", Text("3.5")),
+            ("group_member", Flag(false)),
         ],
         "payroll_tax" => vec![
             ("year", Text("2026-27")),
