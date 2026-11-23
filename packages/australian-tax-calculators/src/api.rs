@@ -1639,6 +1639,9 @@ fn benefit_inputs(v: &Value, params: &[(&str, Kind)]) -> Result<Vec<(String, Arg
         .collect()
 }
 
+/// `resident-tax`'s optional inputs for a part-year resident.
+const RESIDENT_PART_YEAR: [&str; 2] = ["part_year_residency_months", "eligible_pensioner"];
+
 /// An optional argument: `None` when `key` is absent.
 fn optional(v: &Value, key: &str, kind: Kind) -> Result<Option<Arg>> {
     v.get(key).map(|_| argument(v, key, kind)).transpose()
@@ -1768,6 +1771,19 @@ pub fn evaluate_coded(command: &str, v: &Value) -> Result<Value> {
             return Ok(engine::periods(kind));
         }
         _ => {}
+    }
+    // resident-tax keeps Python's lenience to unknown fields, but a near miss
+    // of its part-year inputs would silently give the full-year threshold.
+    if command == "resident-tax"
+        && let Some(key) = v.as_object().into_iter().flat_map(|o| o.keys()).find(|k| {
+            (k.contains("part_year") || k.contains("pensioner"))
+                && !RESIDENT_PART_YEAR.contains(&k.as_str())
+        })
+    {
+        return refusal(
+            "input.field_unknown",
+            format!("{key} is not an input of resident-tax"),
+        );
     }
     let Some((_, params)) = COMMAND_ARGS.iter().find(|(c, _)| *c == command) else {
         return refusal("command.unknown", format!("unknown command {command}"));
@@ -1929,7 +1945,13 @@ pub fn evaluate_coded(command: &str, v: &Value) -> Result<Value> {
                 scope_confirmed: &a[2],
             })
         }
-        "resident-tax" => engine::resident_tax(&a[0], &a[1], &a[2]),
+        "resident-tax" => {
+            // Optional: a part-year resident's months, with the eligible
+            // pensioner test that can undo them.
+            let [months, pensioner] = RESIDENT_PART_YEAR.map(|key| optional(v, key, Raw));
+            let (months, pensioner) = (months?, pensioner?);
+            engine::resident_tax_part_year(&a[0], &a[1], &a[2], months.as_ref(), pensioner.as_ref())
+        }
         "foreign-resident-tax" => engine::foreign_resident_tax(&a[0], &a[1], &a[2]),
         "capital-gains" => engine::capital_gains(&a[0], &a[1], &a[2], &a[3], &a[4], &a[5]),
         "main-residence" => engine::main_residence(

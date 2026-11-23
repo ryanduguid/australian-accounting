@@ -283,6 +283,7 @@ fn adapt(command: &str, input: &Value, mut expected: Value) -> Value {
     adapt_medicare(command, input, &mut expected);
     adapt_depreciation(command, &mut expected);
     adapt_contribution_caps(command, &mut expected);
+    adapt_resident_tax(command, &mut expected);
     adapt_2027_28(command, input, &mut expected);
     let study = match command {
         "study-loan-repayment" => expected.pointer_mut("/ok"),
@@ -669,6 +670,34 @@ fn adapt_contribution_caps(command: &str, expected: &mut Value) {
         .unwrap()
         .extend(current["sources"].as_array().unwrap()[1..].iter().cloned());
     record["source_checked"] = json!("2026-11-16");
+    if command == "worksheet-catalogue" {
+        record["source_passage"] = current["source_passage"].clone();
+        record["optional_inputs"] = current["optional_inputs"].clone();
+    }
+}
+
+/// `resident-tax` also pro-rates a part-year resident's tax-free threshold
+/// (CHANGELOG.md): its scope says so, its source passage names Income Tax
+/// Rates Act 1986 ss 16, 18 and 20, and the catalogue lists the 2 optional
+/// inputs. Without them every result is the full-year one.
+fn adapt_resident_tax(command: &str, expected: &mut Value) {
+    let old_scope = "Full-year Australian resident individual, ordinary taxable income only.";
+    let record = match command {
+        "resident-tax" => expected.pointer_mut("/ok"),
+        "worksheet-catalogue" => expected.pointer_mut("/ok/resident_tax"),
+        _ => None,
+    };
+    let Some(record) = record else {
+        return;
+    };
+    let current = &worksheet_catalogue()["resident_tax"];
+    let scope = record["scope"].as_str().unwrap();
+    assert!(
+        scope.starts_with(old_scope),
+        "frozen resident tax scope changed"
+    );
+    record["scope"] = current["scope"].clone();
+    record["source_checked"] = current["source_checked"].clone();
     if command == "worksheet-catalogue" {
         record["source_passage"] = current["source_passage"].clone();
         record["optional_inputs"] = current["optional_inputs"].clone();

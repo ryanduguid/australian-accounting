@@ -4,6 +4,14 @@
 
 ### Added
 
+- `resident-tax` takes a part-year resident: with `part_year_residency_months`
+  (1 to 12) and `eligible_pensioner` it pro-rates the tax-free threshold to
+  $13,464 plus $4,736 x the months / 12 under Income Tax Rates Act 1986
+  s 20(1), or keeps $18,200 for an eligible pensioner (s 18(2)(a)), for
+  2024-25 to 2027-28. A near miss of either input name is refused as
+  `input.field_unknown`; other unknown fields are still ignored.
+  `personal-tax-estimate` still refuses a part-year resident, now citing the
+  Medicare levy's non-resident days (ITAA 1936 s 251U(1)(d)).
 - `trading-stock` works out the change in value of trading stock under ITAA
   1997 s 70-35 for 2020-21 to 2026-27, each closing item valued by its own
   election (cost, market selling value, replacement value, the lowest, or an

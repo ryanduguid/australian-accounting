@@ -177,6 +177,14 @@ fn a_part_year_resident_or_working_holiday_maker_is_refused() {
         let r = refusal(input("2025-26", "50000", json!({"residency": residency})));
         assert_eq!(r.code, "estimate.residency_unsupported", "{residency}");
     }
+    // The reason names the part not taken, the Medicare levy's
+    // non-resident days, not the threshold resident-tax now pro-rates.
+    let r = refusal(input(
+        "2025-26",
+        "50000",
+        json!({"residency": "part_year_resident"}),
+    ));
+    assert!(r.message.contains("s 251U(1)(d)"), "{}", r.message);
     let r = refusal(input("2025-26", "50000", json!({"residency": "resident"})));
     assert_eq!(r.code, "input.residency_invalid");
     let mut facts = input("2025-26", "50000", json!({}));
