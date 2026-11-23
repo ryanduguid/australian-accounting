@@ -222,9 +222,9 @@ fn invalid_lines() {
     }
 }
 
-/// A line expected to be settled within 12 months is short-term (AASB 119
-/// para 8), so a long-term line takes 1 to 50 whole years and a portion due
-/// within months goes on a short-term line (Alcuin r1b S2).
+/// AASB 119 para 8 classifies the whole benefit, so the part of a long-term
+/// benefit due within 12 months stays long-term: 0 years is refused and the
+/// part takes 1, the nearest whole year (Alcuin r1b S2 and r2 S2).
 #[test]
 fn a_long_term_line_takes_at_least_1_year() {
     let l = long(
@@ -233,16 +233,37 @@ fn a_long_term_line_takes_at_least_1_year() {
         0,
         false,
     );
-    assert_eq!(code(&input(json!([l]))), "leave_provisions.line_invalid");
-    let r = run(&input(json!([short(
-        "long_service",
-        "100.00",
-        "50.00",
-        "1"
-    )])));
-    assert_eq!(amount(&r, "total_provision"), "5000.00");
-    assert_eq!(amount(&r, "current_provision"), "5000.00");
-    assert_eq!(line(&r, 0, "category"), "short_term");
+    assert_eq!(
+        code(&input(json!([l.clone()]))),
+        "leave_provisions.line_invalid"
+    );
+    let mut l = l;
+    l["years_to_settlement"] = json!(1);
+    let r = run(&input(json!([l])));
+    assert_eq!(amount(&r, "total_provision"), "4904.76");
+    assert_eq!(amount(&r, "current_provision"), "4904.76");
+    assert_eq!(line(&r, 0, "category"), "other_long_term");
+}
+
+/// AASB 101 para 69(d) has 2 versions: an unconditional right for periods
+/// beginning before 1 January 2024 unless AASB 2020-1 and AASB 2022-6 were
+/// applied early, and a right at the reporting date from then (Alcuin r2 S4).
+#[test]
+fn both_versions_of_the_right_to_defer_are_stated() {
+    let i = input(json!([v1()]));
+    let doc = api::evaluate("derive", &json!({"command": CMD, "input": i})).unwrap();
+    let current = doc["steps"]
+        .as_array()
+        .unwrap()
+        .iter()
+        .find(|s| s["id"] == "current_provision")
+        .unwrap();
+    let scope = run(&i)["scope"].as_str().unwrap().to_string();
+    for text in [current["authority"].as_str().unwrap(), scope.as_str()] {
+        for part in ["unconditional", "1 January 2024", "applied early"] {
+            assert!(text.contains(part), "{part}: {text}");
+        }
+    }
 }
 
 /// Probability is measurement (AASB 119 para 72 through para 155) and the

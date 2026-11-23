@@ -4643,16 +4643,18 @@ para 69(d) needs an 'unconditional right' to defer settlement (the 2020 to
 must have substance (para 72A), whatever the entity expects (para 75A). The
 `year` is the financial year in which the reporting period ends, so every
 period ending in 2020-21 to 2023-24, and a 2024-25 period ending before
-31 December 2024, takes the earlier test; a 2024-25 period ending from
-31 December 2024, and every later one, takes the new one. The caller states
+31 December 2024, takes the earlier test unless the entity applied AASB 2020-1
+and AASB 2022-6 early (paras 139U and 139W, with disclosure); a 2024-25 period
+ending from 31 December 2024, and every later one, takes the new one. The caller states
 `can_defer_settlement` under the test for its period; the calculation is the
 same.
 
 The probability is measurement (AASB 119 para 72, through para 155) and the
 right to defer is classification (AASB 101 para 69(d)), so a long-term line
-without a right to defer takes any probability: V7 below. A line expected to
-be settled within 12 months is short-term (para 8), so a long-term line takes 1
-to 50 whole years. `hourly_rate` is the rate expected to be paid on a
+without a right to defer takes any probability: V7 below. Para 8 classifies
+the whole benefit (IAS 19 Basis for Conclusions BC20(b)), so the part of a
+long-term benefit due within 12 months stays long-term; a long-term line takes
+1 to 50 whole years, and such a part takes 1, the nearest: V8 below. `hourly_rate` is the rate expected to be paid on a
 short-term line (para 16) and the rate at the reporting date on a long-term
 line, which salary growth projects (para 87(b)).
 
@@ -4671,11 +4673,12 @@ the cents dropped.
 | V4 | Annual, long-term, 300 h x $40.00, 1 year, growth 3%, discount 4% | **$11,884.62** current |
 | V6 | Annual, short-term, 80 h x $30.00, probability 0.85 | **$2,040.00** current |
 | V7 | Long service, 400 h x $52.00, 2 years, growth 3%, discount 4.5%, probability 0.9, no right to defer | projected $22,066.72, **$18,186.44** current |
+| V8 | Long service, part due within 12 months, 100 h x $50.00, 1 year, growth 3%, discount 5%, probability 1, no right to defer (0 years refused) | **$4,904.76** current |
 | V1, V2, V3, V4 and V6 together | | annual **$20,840.62**, long service **$21,966.49**, total **$42,807.11**, current **$41,047.78**, non-current **$1,759.33** |
 | P68 | 1 to 4 years' benefit at rates $100.00, $107.00, $114.49 and $122.50, 4 to 1 years | **$89.53**, **$196.96**, **$324.99**, **$476.64** |
 
 `tests/leave_provisions.rs` also covers each year, the year boundaries, each
-assumption's bounds (1 to 50 years; 0 refused, with its short-term line accepted), and every refusal.
+assumption's bounds (1 to 50 years; 0 refused), both versions of the right to defer in the text, and every refusal.
 
 ## Foreign income conversion
 

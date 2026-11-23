@@ -102,7 +102,7 @@ fn d0() -> Decimal {
 const ANNUAL: &str = "AASB 119 paras 11, 13(a) and 16 (short-term, undiscounted) and 155 (other long-term): the annual leave lines' provisions";
 const LONG_SERVICE: &str = "AASB 119 paras 11 and 16 (short-term) and 153(a), 155, 67, 68, 72 and 83 to 87 (other long-term): the long service leave lines' provisions";
 const TOTAL: &str = "AASB 119 paras 11 and 155: the leave provisions recognised as a liability";
-const CURRENT: &str = "AASB 101 para 69: short-term lines (para 69(a) and para 70) and long-term lines the entity has no right to defer settling for 12 months (para 69(d): an unconditional right for periods beginning before 1 January 2024, a right at the end of the reporting period from then)";
+const CURRENT: &str = "AASB 101 para 69: short-term lines (para 69(a) and para 70) and long-term lines the entity has no right to defer settling for 12 months (para 69(d): an unconditional right for periods beginning before 1 January 2024 unless AASB 2020-1 and AASB 2022-6 were applied early, a right at the end of the reporting period from then)";
 const NON_CURRENT: &str = "AASB 101 para 69: every other liability is non-current (for periods beginning from 1 January 2024, whatever settlement is expected, para 75A)";
 
 fn totals(all: &[lines::Line], measured: &[Measured]) -> Calc<Vec<Step>> {

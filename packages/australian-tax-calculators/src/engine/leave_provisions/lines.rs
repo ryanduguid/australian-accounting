@@ -13,8 +13,9 @@ use crate::decimal::Decimal;
 /// The most lines one worksheet takes.
 const MOST: usize = 500;
 /// The most whole years to settlement a long-term line takes. The least is 1:
-/// a line expected to be settled within 12 months is short-term (AASB 119
-/// para 8).
+/// AASB 119 para 8 classifies the whole benefit, so the part of a long-term
+/// benefit expected within 12 months stays long-term at the nearest whole
+/// year the worksheet takes.
 const MOST_YEARS: u64 = 50;
 const SHORT: [&str; 6] = [
     "label",
@@ -127,7 +128,7 @@ fn long_term(fields: &Map<String, Value>, n: usize) -> Result<LongTerm> {
         Some(y) if (1..=MOST_YEARS).contains(&y) => y,
         _ => {
             return invalid(format!(
-                "line {n}: years_to_settlement must be a whole number from 1 to {MOST_YEARS}; a portion expected to be settled within 12 months is a short-term line (AASB 119 para 8)."
+                "line {n}: years_to_settlement must be a whole number from 1 to {MOST_YEARS}; the part of a long-term benefit expected within 12 months stays long-term (AASB 119 para 8) at 1 year, the nearest whole year this worksheet takes."
             ));
         }
     };

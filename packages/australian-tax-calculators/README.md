@@ -3815,8 +3815,9 @@ current_provision   = short-term lines + long-term lines with no right to defer 
 non_current_provision = total_provision - current_provision
 ```
 
-`years_to_settlement` is a whole number of years from 1 to 50; a portion
-expected to be settled within 12 months goes on a short-term line. The discount
+`years_to_settlement` is a whole number of years from 1 to 50. Para 8
+classifies the whole benefit, so the part of a long-term benefit due within 12
+months stays on a long-term line at 1 year, the nearest whole year. The discount
 rate, salary growth and probabilities are the caller's stated assumptions;
 none has a default. The discount rate is the market yield at the reporting
 date on high quality corporate bonds of a consistent term, or government bonds
@@ -3827,8 +3828,8 @@ right at the reporting date to defer settling it for 12 months
 measures the line and the right to defer classifies it. For a period beginning
 before 1 January 2024 only an unconditional right counts (AASB 101 para 69(d)
 before AASB 2020-1): that is every period ending in 2020-21 to 2023-24 and a
-2024-25 period ending before 31 December 2024, unless AASB 2020-1 was applied
-early. From 1 January 2024 the right must have substance and exist at the
+2024-25 period ending before 31 December 2024, unless AASB 2020-1 and AASB
+2022-6 were applied early (AASB 101 paras 139U and 139W). From 1 January 2024 the right must have substance and exist at the
 reporting date (paras 72A and 75A).
 `lines` in the result shows each line's value at the current rate, its
 projected value, its provision and its class.
