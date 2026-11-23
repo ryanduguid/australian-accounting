@@ -5021,6 +5021,8 @@ pub use super_benefit_tax::{
     STREAM_OPTIONAL, SUPER_BENEFIT_OPTIONAL, SuperBenefitTaxArgs, SuperWithholdingArgs,
     super_benefit_tax, super_withholding,
 };
+mod transfer_duty;
+pub use transfer_duty::{TransferDutyArgs, transfer_duty};
 mod payroll_tax;
 pub use payroll_tax::{PayrollTaxArgs, payroll_tax};
 mod land_tax;
@@ -6444,7 +6446,7 @@ pub use super_crystallisation::{SuperCrystallisationArgs, super_crystallisation}
 mod endorsement_review;
 pub use endorsement_review::endorsement_review;
 
-const KINDS: [&str; 132] = [
+const KINDS: [&str; 133] = [
     "gst",
     "gst_margin_scheme",
     "fuel_tax_credits",
@@ -6464,6 +6466,7 @@ const KINDS: [&str; 132] = [
     "franking_account",
     "dasp_tax",
     "super_benefit_tax",
+    "transfer_duty",
     "super_withholding",
     "payroll_tax",
     "land_tax",

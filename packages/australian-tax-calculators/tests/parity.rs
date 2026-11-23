@@ -14,7 +14,7 @@ use std::process::{Command, Stdio};
 /// `tests/borrowing_expenses.rs`, `tests/borrowing_expenses_schedule.rs`, `tests/hire_purchase.rs`,
 /// `tests/chattel_mortgage.rs`, `tests/loan_transactions.rs`,
 /// `tests/business_capital_expenditure.rs`, `tests/balancing_adjustment.rs`, `tests/trade_in.rs`, `tests/fuel_tax_credits.rs`,
-/// `tests/payroll_tax.rs`, `tests/land_tax.rs`, `tests/workers_compensation_premium.rs`, `tests/motor_vehicle_duty.rs`, `tests/insurance_duty.rs`,
+/// `tests/payroll_tax.rs`, `tests/land_tax.rs`, `tests/workers_compensation_premium.rs`, `tests/motor_vehicle_duty.rs`, `tests/insurance_duty.rs`, `tests/transfer_duty.rs`,
 /// `tests/gst_margin_scheme.rs`,
 /// `tests/cgt_parcels.rs`, `tests/cgt_cost_base_adjustments.rs`,
 /// `tests/division_296.rs`,
@@ -50,7 +50,7 @@ use std::process::{Command, Stdio};
 /// `tests/foreign_pension_upp.rs`, `tests/scholarship_exemption.rs`,
 /// `tests/super_crystallisation.rs` and `tests/endorsement_review.rs` cover them, as `tests/transfer_balance.rs` covers
 /// `transfer-balance` and `excess-contributions`.
-const NEW_KINDS: [(&str, &str); 118] = [
+const NEW_KINDS: [(&str, &str); 119] = [
     ("defined-benefit-income-cap", "defined_benefit_income_cap"),
     ("foreign-pension-upp", "foreign_pension_upp"),
     ("scholarship-exemption", "scholarship_exemption"),
@@ -91,6 +91,7 @@ const NEW_KINDS: [(&str, &str); 118] = [
     ),
     ("balancing-adjustment", "balancing_adjustment"),
     ("trade-in", "trade_in"),
+    ("transfer-duty", "transfer_duty"),
     ("fuel-tax-credits", "fuel_tax_credits"),
     ("payroll-tax", "payroll_tax"),
     ("land-tax", "land_tax"),
