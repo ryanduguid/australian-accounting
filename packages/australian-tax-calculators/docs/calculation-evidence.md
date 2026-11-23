@@ -5822,6 +5822,24 @@ Choices the sources leave to the reader:
 | $290 of category A in 2022-23; a seminar in 2021-22 | Act No. 84, 2022 Sch 3; TR 98/9 para 129 | $290 each, no reduction |
 | Category A $500 and D $100, with and without log book car expenses in A | ATO 'Self-education reduction in expenses' | $600; refused |
 | Wendy (new employment), Bert (general only), Callum's second semester (not employed) | ATO 'Self-education expenses' | Nil in every year |
+| Nicky: $200 working from home and $250 of other covered expenses; none claimed; $1,050 claimed; $800 allowed | Explanatory memorandum examples 4.1 to 4.4 | $550 standard deduction; $1,000; nil, $1,050 or $1,000 unclaimed; $200 |
+| Simon, $400 of wages; Yui, $95,000 of wages and $550 of covered expenses | ATO 'Standard deduction for work-related expenses' | $400 limit; $450 standard deduction |
+
+The standard deduction (added on 24 November 2026, when these were read):
+the Treasury Laws Amendment (Tax Reform No. 1) Act 2026 (No. 49 of 2026,
+assented to 26 June 2026; the Parliament's Bills page records it passed both
+Houses on 25 June 2026) as made on the Federal Register of Legislation:
+Schedule 4 item 3 inserts ITAA 1997 s 25-130, commencing 1 July 2026 (s 2
+table item 6), and item 17(1) applies it to assessments for 2026-27 and later
+years. s 25-130 on the ATO legal database reads as made. Its explanatory
+memorandum (paras 4.11 to 4.19 and examples 4.1 to 4.4) and the ATO's
+'Standard deduction for work-related expenses' (last updated 2 November 2026)
+state the choice whether to itemise. The worksheet takes every amount a
+method works out as a covered deduction: the methods are for an employee's
+expenses in gaining salary or wages, under s 8-1 (home office,
+self-education), Division 28 (car), s 25-10 (repairs) or Subdivision 40-B
+(decline in value). Example 4.4 is set in 2027-28, which the worksheet does
+not cover; the test works the same figures in 2026-27.
 
 ## Residency tests
 

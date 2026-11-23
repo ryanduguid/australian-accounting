@@ -9,8 +9,8 @@
 use serde_json::{Value, json};
 
 use super::{
-    Arg, Decimal, KIND, Result, Step, conflict, d, derived_result, flag, int, money, named, rate,
-    step, sum, with_return,
+    Arg, Decimal, Result, Standard, Step, conflict, d, finish, flag, int, money, named, rate, step,
+    sum, with_return,
 };
 
 /// The inputs, in [`Inputs`]' order.
@@ -241,6 +241,7 @@ pub(super) fn home_office(
     when: &str,
     year: &str,
     first: i64,
+    standard: Option<&Standard>,
 ) -> Result<Value> {
     let early = first < 2022;
     let (x, incurred, dedicated) = inputs(given, when, year, first)?;
@@ -264,7 +265,8 @@ pub(super) fn home_office(
     methods.push(("actual_cost", total.value.clone()));
     steps.extend([total, back]);
     let higher = higher(&methods)?;
-    let mut out = derived_result(KIND, year, steps, rates)?;
+    let claimed = format!("{higher}_return_amount");
+    let mut out = finish(year, steps, rates, standard, &claimed)?;
     out["method"] = json!("home_office");
     out["methods_available"] = json!(methods.iter().map(|m| m.0).collect::<Vec<_>>());
     out["fixed_rate_unavailable"] = match (incurred, dedicated) {

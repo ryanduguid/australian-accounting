@@ -275,6 +275,13 @@
   holds Coal LSL to the site parity vectors and checks all 19 state and
   territory schemes.
 
+- `work-expenses` works out the standard deduction for work-related expenses
+  (ITAA 1997 s 25-130, Act No. 49 of 2026) in 2026-27 when given
+  `assessable_labour_income`, `other_work_related_deductions` and
+  `australian_resident`: the $1,000 limit, what is left beside the covered
+  deductions claimed, and what claiming this method adds over relying on
+  the standard deduction. Results without these inputs are unchanged. New
+  code: `work_expenses.standard_deduction_unavailable`.
 - `trading-stock` works out the change in value of trading stock under ITAA
   1997 s 70-35 for 2020-21 to 2026-27, each closing item valued by its own
   election (cost, market selling value, replacement value, the lowest, or an
