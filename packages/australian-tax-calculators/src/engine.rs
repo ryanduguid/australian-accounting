@@ -6279,8 +6279,10 @@ mod minors_income;
 pub use minors_income::{MINORS_OPTIONAL, MinorsIncomeArgs, minors_income};
 mod smsf_tax;
 pub use smsf_tax::smsf_tax;
+mod ess_discount;
+pub use ess_discount::{EssDiscountArgs, ess_discount};
 
-const KINDS: [&str; 112] = [
+const KINDS: [&str; 113] = [
     "gst",
     "gst_margin_scheme",
     "fuel_tax_credits",
@@ -6393,6 +6395,7 @@ const KINDS: [&str; 112] = [
     "prepayments",
     "minors_income",
     "smsf_tax",
+    "ess_discount",
 ];
 
 /// `periods(kind)`: accepted period arguments and inclusive calendar boundaries.

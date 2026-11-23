@@ -1263,6 +1263,16 @@ const COMMAND_ARGS: &[(&str, &[(&str, Kind)])] = &[
         ],
     ),
     (
+        "ess-discount",
+        &[
+            ("interests", Json),
+            ("income_test", Json),
+            ("foreign_employment", Raw),
+            ("year", Raw),
+            ("scope_confirmed", Raw),
+        ],
+    ),
+    (
         "government-super-amounts",
         &[
             ("taxable_income", Dec),
@@ -1854,6 +1864,7 @@ pub fn evaluate_coded(command: &str, v: &Value) -> Result<Value> {
             | "non-commercial-losses"
             | "psi-test"
             | "smsf-tax"
+            | "ess-discount"
             | "government-super-amounts"
             | "rental-property"
             | "horticulture-shearing-withholding"
@@ -3018,6 +3029,13 @@ pub fn evaluate_coded(command: &str, v: &Value) -> Result<Value> {
                 optional: given.each_ref().map(Option::as_ref),
             })
         }
+        "ess-discount" => engine::ess_discount(&engine::EssDiscountArgs {
+            interests: &a[0],
+            income_test: &a[1],
+            foreign_employment: &a[2],
+            year: &a[3],
+            scope_confirmed: &a[4],
+        }),
         "government-super-amounts" => {
             // Optional: the spouse inputs, all or none.
             let spouse = engine::SPOUSE_INPUTS

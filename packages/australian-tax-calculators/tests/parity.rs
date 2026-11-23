@@ -41,9 +41,9 @@ use std::process::{Command, Stdio};
 /// `tests/gst_adjustments.rs`, `tests/deferred_tax.rs`,
 /// `tests/cgt_cost_base_adjustments.rs`, `tests/foreign_income_conversion.rs`,
 /// `tests/foreign_income_tax_offset.rs`, `tests/trading_stock_prepayments.rs`,
-/// `tests/minors_income.rs`, `tests/smsf_tax.rs` and `tests/fbt_instalment.rs` cover them, as `tests/transfer_balance.rs` covers
+/// `tests/minors_income.rs`, `tests/smsf_tax.rs`, `tests/fbt_instalment.rs` and `tests/ess_discount.rs` cover them, as `tests/transfer_balance.rs` covers
 /// `transfer-balance` and `excess-contributions`.
-const NEW_KINDS: [(&str, &str); 98] = [
+const NEW_KINDS: [(&str, &str); 99] = [
     ("super-withholding", "super_withholding"),
     ("super-benefit-tax", "super_benefit_tax"),
     ("fhss", "fhss"),
@@ -190,6 +190,7 @@ const NEW_KINDS: [(&str, &str); 98] = [
     ),
     ("franking-account", "franking_account"),
     ("luxury-car-tax", "luxury_car_tax"),
+    ("ess-discount", "ess_discount"),
 ];
 
 /// The JSON boundary's answer in the corpus encoding: `{"ok": value}` or `{"error": message}`.
