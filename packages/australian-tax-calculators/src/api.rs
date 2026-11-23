@@ -388,8 +388,23 @@ const COMMAND_ARGS: &[(&str, &[(&str, Kind)])] = &[
         ],
     ),
     (
+        "land-tax",
+        &[
+            ("jurisdiction", Raw),
+            ("taxable_value", Dec),
+            ("trust_rates", Raw),
+            ("foreign_owner", Raw),
+            ("year", Raw),
+            ("scope_confirmed", Raw),
+        ],
+    ),
+    (
         "wine-equalisation-tax",
         &[("dealings", Json), ("year", Raw), ("scope_confirmed", Raw)],
+    ),
+    (
+        "vic-property-taxes",
+        &[("tax", Raw), ("year", Raw), ("scope_confirmed", Raw)],
     ),
     (
         "fbt",
@@ -1398,7 +1413,7 @@ pub fn commands() -> Vec<&'static str> {
 /// command on its `gross_pay` shows that withholding. The classifier's amounts
 /// are totals over lines whose shares a decision table sets, not a formula;
 /// each line and class carries the authority for its row instead.
-const DERIVED: [&str; 82] = [
+const DERIVED: [&str; 84] = [
     "fbt",
     "fbt-car-statutory",
     "fbt-car-operating-cost",
@@ -1470,6 +1485,7 @@ const DERIVED: [&str; 82] = [
     "gst-margin-scheme",
     "etp-tax-free-component",
     "payroll-tax",
+    "land-tax",
     "cgt-parcels",
     "work-expenses",
     "rental-property",
@@ -1481,6 +1497,7 @@ const DERIVED: [&str; 82] = [
     "cgt-cost-base-adjustments",
     "foreign-income-tax-offset",
     "fbt-instalment",
+    "vic-property-taxes",
 ];
 
 /// `derive`: `{"command", "input"}` gives the command's result with the step
@@ -1894,6 +1911,7 @@ pub fn evaluate_coded(command: &str, v: &Value) -> Result<Value> {
             | "fbt-meal-entertainment"
             | "fbt-car-parking"
             | "wine-equalisation-tax"
+            | "vic-property-taxes"
             | "fbt-debt-waiver"
             | "fbt-expense-payment"
             | "fbt-property"
@@ -1964,6 +1982,7 @@ pub fn evaluate_coded(command: &str, v: &Value) -> Result<Value> {
             | "super-benefit-tax"
             | "super-withholding"
             | "payroll-tax"
+            | "land-tax"
             | "gst-margin-scheme"
             | "franking-account"
             | "cgt-parcels"
@@ -2212,6 +2231,9 @@ pub fn evaluate_coded(command: &str, v: &Value) -> Result<Value> {
             });
             let [a0, a1, a2, a3, a4, a5, a6] = given;
             let given = [a0?, a1?, a2?, a3?, a4?, a5?, a6?];
+            // Optional: the facts only an income stream payment takes.
+            let [s0, s1, s2, s3] = engine::STREAM_OPTIONAL.map(|key| optional(v, key, Raw));
+            let stream = [s0?, s1?, s2?, s3?];
             engine::super_withholding(&engine::SuperWithholdingArgs {
                 base: engine::SuperBenefitTaxArgs {
                     benefit: &a[0],
@@ -2226,6 +2248,7 @@ pub fn evaluate_coded(command: &str, v: &Value) -> Result<Value> {
                 },
                 tfn_provided: &a[6],
                 foreign_resident: &a[7],
+                stream: stream.each_ref().map(Option::as_ref),
             })
         }
         "dasp-tax" => engine::dasp_tax(&engine::DaspTaxArgs {
@@ -2246,6 +2269,28 @@ pub fn evaluate_coded(command: &str, v: &Value) -> Result<Value> {
                 dealings: &a[0],
                 rebate_claimed_earlier_in_year: earlier.as_ref(),
                 associated_producer: group.as_ref(),
+                year: &a[1],
+                scope_confirmed: &a[2],
+            })
+        }
+        "vic-property-taxes" => {
+            // Optional: each tax's own facts, required for that tax only.
+            let civ = optional(v, "capital_improved_value", Dec)?;
+            let land = optional(v, "residential_land", Raw)?;
+            let concession = optional(v, "new_residential_concession", Raw)?;
+            let previous = optional(v, "liable_previous_tax_year", Raw)?;
+            let before = optional(v, "liable_tax_year_before", Raw)?;
+            let entry = optional(v, "entry_date", Raw)?;
+            let parcels = optional(v, "parcels", Json)?;
+            engine::vic_property_taxes(&engine::VicPropertyTaxesArgs {
+                tax: &a[0],
+                capital_improved_value: civ.as_ref(),
+                residential_land: land.as_ref(),
+                new_residential_concession: concession.as_ref(),
+                liable_previous_tax_year: previous.as_ref(),
+                liable_tax_year_before: before.as_ref(),
+                entry_date: entry.as_ref(),
+                parcels: parcels.as_ref(),
                 year: &a[1],
                 scope_confirmed: &a[2],
             })
@@ -2283,6 +2328,22 @@ pub fn evaluate_coded(command: &str, v: &Value) -> Result<Value> {
                 involuntary_disposal: &a[9],
                 year: &a[10],
                 scope_confirmed: &a[11],
+            })
+        }
+        "land-tax" => {
+            // Optional: the separate surcharge value (nsw and tas) and
+            // whether the land is in the Perth metropolitan region (wa).
+            let separate = optional(v, "surcharge_value", Dec)?;
+            let region = optional(v, "metropolitan_region", Raw)?;
+            engine::land_tax(&engine::LandTaxArgs {
+                jurisdiction: &a[0],
+                taxable_value: &a[1],
+                trust_rates: &a[2],
+                foreign_owner: &a[3],
+                surcharge_value: separate.as_ref(),
+                metropolitan_region: region.as_ref(),
+                year: &a[4],
+                scope_confirmed: &a[5],
             })
         }
         "payroll-tax" => {

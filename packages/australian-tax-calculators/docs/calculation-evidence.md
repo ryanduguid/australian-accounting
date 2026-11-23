@@ -1278,6 +1278,59 @@ found. Test vectors from the oracle: $100,000 for 2024-25 to 15 September
 $1,000.00 for 2020-21 due 1 December 2021, $44.17, and on $2,500.50 for
 2013-14 due 21 November 2014, $205.03.
 
+## Vic property taxes
+
+This worksheet was added on 24 November 2026. Each source was read on 23 or 24
+November 2026:
+
+- Land Tax Act 2005 (Vic), authorised version 086 (1 May 2026): ss 19(1A),
+  34A to 34C, 35(3), 37A, 88EA and 88EB, and Sch 3 cl 21 and 23 (no transitional
+  rule on the 2 preceding years); the State Revenue Office's 'Vacant
+  residential land tax (current rates)' (updated 13 November 2026: 1%, 2% and
+  3% by consecutive liable years; 1% for undeveloped metropolitan land and new
+  residential land unused, unoccupied and unsold for more than 3 years; 'Before
+  2025, VRLT was 1% ... for all properties'), 'Understanding vacant residential
+  land tax' (18 November 2026: undeveloped land from 1 January 2026) and
+  'Understanding your vacant residential land tax assessment' (22 October 2026).
+- State Taxation Acts and Other Acts Amendment Act 2023 (Vic), as made: s 2(3)
+  and (4) (Part 10 Division 1 from 1 January 2025, Division 2 from 1 January
+  2026), s 27A (s 35(3)(a) to (c) as in force for 2025) and s 28A (ss 88EA to
+  88EC). As s 88EB needs an s 88EA exemption in a preceding tax year, the
+  concession is refused for 2025.
+- Interpretation of Legislation Act 1984 (Vic), authorised version 134: s 44(1)
+  (a period expressed to begin on a day leaves that day out) and s 44(6)(a)
+  (midnight is the point at which the day ends). The transition period therefore
+  ends on the tenth anniversary of the entry date; an entry on 31 December, whose
+  period ends at the midnight that fixes liability, is refused.
+- Commercial and Industrial Property Tax Reform Act 2024 (Vic), authorised
+  version 004: ss 2 (commencement 1 July 2024), 3 ('CIPT taxable land',
+  'transition period' of 10 years from the entry date), 7, 17, 19 (1%; 0.5% for
+  BTR land) and 22; the State Revenue Office's 'Understanding commercial and
+  industrial property tax' (29 September 2026): a 1 July 2024 entry first pays
+  in 2035 and a 1 August 2034 entry in 2045.
+- Windfall Gains Tax Act 2021 (Vic), authorised version 010: ss 2, 3, 6 to 19
+  and 36 to 41; no Windfall Gains Tax regulations are in force
+  (legislation.vic.gov.au, statutory rules in force, read 24 November 2026), so
+  no deductions are prescribed under s 10; the State Revenue Office's
+  'Understanding windfall gains tax': $187,500 on a $400,000 uplift and $300,000
+  on $600,000.
+- Planning and Environment Act 1987 (Vic), authorised version 168: Part 9B is
+  the growth areas infrastructure contribution, not windfall gains tax.
+
+| Case | Expected | Source |
+| --- | --- | --- |
+| Windfall gains tax on a $400,000 uplift | $187,500.00 | SRO example |
+| Windfall gains tax on a $600,000 uplift | $300,000.00 | SRO example |
+| Uplifts of $100,000, $100,001, $499,999 and $500,000 | nil, $0.63, $249,999.38, $250,000.00 | s 9 |
+| Titles up $300,000 and $150,000 and down $50,000 | $450,000 taxable, $218,750.00 | ss 9, 16(3) |
+| Entry 1 July 2024 and 1 August 2034 | earliest possible tax years 2035 and 2045, nil in 2025 and 2026 | SRO; s 3 |
+| Entry 1 January 2025 | period ends 1 January 2035, earliest possible tax year 2036 | s 3; ILA s 44(1) |
+| Entry 31 December 2024 | refused: the period ends at the midnight that fixes liability | s 3; ILA s 44(6)(a) |
+| Uplifts of $50,000 and $50,001 on 2 titles | $100,001 taxable, $0.63 | ss 9, 16(1) |
+| Vacant home at $800,000: no, 1 and 2 liable years | $8,000, $16,000, $24,000 | s 35(3)(b) |
+| Undeveloped land at $1,200,000 in 2026 | $12,000 | s 35(3)(a) |
+| s 88EB concession at $650,000 in 2026, whatever the land's class now | $6,500; refused for 2025 | ss 88EA, 88EB |
+
 ## Wine equalisation tax
 
 This worksheet was added on 19 November 2026. The WET Act was read that day
@@ -2177,6 +2230,88 @@ trade-in; the other side and the years held are fabricated.
 | A $11,000 asset (full credit $1,000, $800 claimed) traded in for $22,000 | Worked by hand under GST Act s 132-5(3): $2,000 x 0.2 = $400, capped at $200 | $200.00 decreasing adjustment, $2,000.00 K7 gain |
 | An asset bought without GST (nil full and adjusted credits) traded in for $22,000 | Worked by hand under GST Act s 132-5(3): the adjustment is at most the nil difference between the credits | $2,000.00 GST, nil decreasing adjustment, $20,000.00 termination value |
 | A trade-in that is not a taxable supply | GST Act s 9-5 | No GST; the termination value is the allowance |
+
+## Land tax
+
+This worksheet was added on 23 November 2026. Each source was read that day,
+from 23:15 to 23:35 AEDT:
+
+- Revenue NSW, 'Land tax thresholds and rates' (last updated 16 March 2026):
+  the general threshold of $1,075,000 and premium threshold of $6,571,000 for
+  2024 onwards, the 2 rates and the $500 example on a 3-year average of
+  $1,100,000; 'How trusts are assessed' (a special trust's flat 1.6% to the
+  premium threshold, then 2%; $9,600 on $600,000); 'What is surcharge land tax'
+  (last updated 8 April 2026: 5% from 2025, no threshold; examples 1 to 3).
+  The Land Tax Act 1956 and Land Tax Management Act 1956 (NSW) were not read:
+  legislation.nsw.gov.au answered with a Cloudflare challenge, also after one
+  change of network and a slower retry.
+- Land Tax Act 2005 (Vic), authorised version 086 (1 May 2026), Sch 1 Tables
+  1.6, 3.6, 4.5 and 5.5 for 2024 to 2033; the State Revenue Office's 'Land tax
+  (current rates)' (updated 29 September 2026), the same 4 tables.
+- Land Tax Act 2010 (Qld), current reprint, s 32 and Schs 1, 2 and 3; the
+  Queensland Revenue Office's rates for individuals ($1,300 on $680,000,
+  $87,000 on $6,400,000), companies and trusts ($106,500; $8,420), absentees
+  and foreign companies and trusts ($2,300 with a $1,500 surcharge on
+  $400,000).
+- Land Tax Act 2002 (WA), compilation 02-d0-04, s 5 Table 11 (2015/16 and
+  subsequent financial years); Metropolitan Region Improvement Tax Act 1959
+  (WA), compilation 04-a0-08, s 10 Table 3; the Department of Treasury and
+  Finance's 'Land tax assessment' (last updated 20 May 2026).
+- Land Tax Act 1936 (SA), version 4.12.2025, ss 6 and 8A and Sch 1 Pts 2 and
+  3; RevenueSA's 'Rates and thresholds', the 2026-27 general and trust tables
+  (thresholds $936,000, $1,504,000, $2,188,000 and $3,504,000).
+- Land Tax Rating Act 2000 (Tas), current (authorised 12 July 2024), ss 6, 6A
+  and 7 and Sch 1; the State Revenue Office's 'Rates of land tax' (from 1 July
+  2025) and foreign investor land tax surcharge guideline (December 2025),
+  example 1.
+- Land Tax Act 2004 (ACT), republication 34 (26 December 2025), ss 9 and 17E;
+  the Taxation Administration (Amounts Payable—Land Tax) Determination 2026
+  (DI2026-152), ss 4 to 7.
+- NT Government, 'Property taxes': no land tax in the Northern Territory.
+
+Read on 24 November 2026 after review: Land Tax Act 2005 (Vic) s 46IA
+(version 086: a fixed or unit trust's absentee surcharge is on its absentee
+beneficiaries' share; a discretionary absentee trust pays Table 5.5 on the
+whole); Land Tax Act 2000 (Tas) ss 16A and 16B(1) (foreign investor land tax
+is a component of land tax, assessed for each folio); Metropolitan Region
+Improvement Tax Act 1959 (WA) s 10 (Table 3, for 2009/10 onwards). RevenueSA's
+2026-27 tables were read from the page's own HTML, whose expandable tables
+hold every threshold above.
+
+The site's land tax calculator (ryanduguid.github.io, main at 1aa0a6cb) was
+run on its 23 calculated cases, the 2 further worked figures in its Rust
+oracle and every band edge of every scale (each edge less 1, the edge and the
+edge plus 1, under every choice the page offers), 875 rows in
+`tests/data/land_tax_site_cases.json`. The worksheet gives the same 4 figures
+on 711 rows. The other 164 differ only where an Act differs from the page:
+103 rows move and 61 are refused. Tasmania's figures are worked again in the
+test from Schedule 1 and s 7, apart from the worksheet. Of the page's own 23
+cases, 19 agree, 3 move (South Australia's $936,050 and the Queensland Revenue
+Office's 2 surcharge examples, $1,500.03 for $1,500) and 1 is refused (its
+Victorian absentee trust at $1,800,000); its 2 refused cases are refused
+alike.
+
+| Rule | Act | Rows |
+| --- | --- | --- |
+| Queensland's surcharge is 3.0c for each $1 more than $349,999, from $350,000; the page and the Queensland Revenue Office work 3% of the value over $350,000, 3 cents less | Land Tax Act 2010 (Qld) Sch 2 Pt 2, Sch 3 Pt 2 | 70 moved |
+| South Australian land tax under $20 is nil; the page shows the amount | Land Tax Act 1936 (SA) s 6 | 3 moved |
+| Tasmanian amounts are rounded to 10 cents; the page applies no rounding | Land Tax Rating Act 2000 (Tas) s 7 | 30 moved (36 amounts) |
+| A Victorian absentee trust's surcharge is on its absentee beneficiaries' share; the page charges Table 5.5 on the whole | Land Tax Act 2005 (Vic) s 46IA | 53 refused |
+| Tasmanian foreign investor land tax applies to residential general land, part of the owner's taxable land; the page takes a larger surcharge value | Land Tax Act 2000 (Tas) Pt 3 Div 1A; Land Tax Rating Act 2000 (Tas) s 6A | 8 refused |
+
+Queensland's figure is the Act's, before any rounding the Commissioner
+applies to the amount collected (Taxation Administration Act 2001 (Qld)
+s 152 permits rounding down to 5 cents); the Queensland Revenue Office's
+examples show 3% of the value over $350,000. Where rounding Tasmania's land
+tax and foreign investor land tax to 10 cents each and rounding their sum
+differ, which s 7 requires is unsettled, and the worksheet refuses; no row of
+the fixture does so.
+
+The tests also work by hand the s 7 rounding ($125,001, $125,011, $125,012,
+$125,013, and the 5-cent ties $125,100 and $500,010), the s 6 minimum
+($939,900 nil; $939,901 and $940,000, $20; $940,001, $20.50; trust $25,000
+nil and $25,001, $125.50) and Queensland's absentee and foreign company
+scales at $6,400,000 ($103,000 and $106,500).
 
 ## Payroll tax
 
@@ -3178,6 +3313,34 @@ rounding each part would differ. `tests/super_withholding.rs` holds each case.
 The tests also cover each Table A rate, the total's rounding, a foreign
 resident, death benefits, nil payments, the no-TFN rates ignoring cents, each
 year's untaxed plan cap and each refusal.
+
+Income streams (Schedule 13 Part A) were added on 23 November 2026. Sources
+read that day: Schedule 13 of F2024L00664, F2025L00647, F2025L01016 (the same
+text as F2025L00647) and F2026L00716, and ITAA 1997 ss 301-10, 301-25 to
+301-40, 301-100, 301-110, 302-65 to 302-90, 307-125, 307-145 and 307-150 from
+the ATO's legal database. Each schedule's Case A, Veronica, is the only worked
+Part A example; the PAYG withholding tax table amounts it quotes ($60 and $70)
+come out of the crate's Schedule 1 coefficients unchanged, which checks them
+against each year's instrument, and its fortnightly adjustment
+(($1,100 - $1,076) x 10%) is the weekly band formula converted back to the
+fortnight. The schedules do not say whether the weekly adjustment is rounded
+before it is converted; the command rounds once, at step 5, and Veronica's
+result is the same either way. It converts back exactly: the 10% band is
+(withheld_from x d - threshold x m) x 10% / d and the 2% band is
+withheld_from x 2%, where the weekly equivalent is withheld_from x d / m, so a
+quarter's $7,079 in 2026-27 gives exactly $8.50 and $9 withheld. `tests/super_income_stream.rs` holds each case.
+
+| Example | Facts given | Withheld |
+| --- | --- | --- |
+| Veronica, 58, disability stream, 2024-25 | fortnightly $1,400: $300 tax free, $1,100 taxed | $70 - $165 offset; adjustment **$10** |
+| Veronica, 2025-26 | As 2024-25 | **$10** |
+| Veronica, 2026-27 | As 2024-25 | $60 - $165; adjustment $2.40, **$2** |
+
+The tests also cover scale 1, each offset row, a dependant on each side of 60,
+each band edge of the adjustment in 2026-27 and the upper edge in 2024-25 and
+2025-26, monthly and quarterly
+payments, cents ignored and the 50-cent rounding, the no-TFN rates, the
+proportion at commencement and each refusal.
 
 ## Depreciation low-value pool
 

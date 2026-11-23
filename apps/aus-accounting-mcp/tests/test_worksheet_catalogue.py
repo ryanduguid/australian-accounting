@@ -66,8 +66,8 @@ def test_each_required_input_is_required(kind):
 
 
 def test_an_unknown_kind_is_refused_by_name():
-    with pytest.raises(ToolError, match="kind 'land_tax' is not a worksheet"):
-        _call({"kind": "land_tax", "scope_confirmed": True, "year": "2025-26"})
+    with pytest.raises(ToolError, match="kind 'insurance_duty' is not a worksheet"):
+        _call({"kind": "insurance_duty", "scope_confirmed": True, "year": "2025-26"})
 
 
 def test_unconfirmed_scope_is_refused():
