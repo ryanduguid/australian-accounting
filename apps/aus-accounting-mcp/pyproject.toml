@@ -4,8 +4,8 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "aus-accounting-mcp"
-version = "0.11.0"
-description = "Local accounting reviews, 66 bounded tax and super worksheets and cited retrieval from your configured local Markdown folder. uvx from PyPI; not advice."
+version = "0.12.0"
+description = "Local accounting reviews, 102 bounded tax and super worksheets and cited retrieval from your configured local Markdown folder. uvx from PyPI; not advice."
 readme = "README.md"
 requires-python = ">=3.14"
 license = "AGPL-3.0-or-later"

@@ -19,6 +19,9 @@ use crate::dates;
 use crate::decimal::Decimal;
 
 mod parts;
+mod withholding;
+
+pub use withholding::{SuperWithholdingArgs, super_withholding};
 
 const KIND: &str = "super_benefit_tax";
 

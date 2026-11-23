@@ -109,13 +109,13 @@ benchmark name/year and engine date format. These complement frozen payload
 comparisons; neither a captured call nor this set proves every original assertion.
 
 The source-bound [behaviour record](tests/fixtures/native/behaviour-coverage.json)
-reconciles all 593 original test functions across 43 files. It records 452 with
+reconciles all 593 original test functions across 43 files. It records 443 with
 native observable checks, 60 with explicit native adaptations, 74 retained
 with the supported Python distribution and its release, Registry, documentation
-or media workflow, and 7 not yet ported: the Python server has since served every
-worksheet in the calculators executable's catalogue, which the native build, still
-at the original 14 kinds, does not. Retained checks are active and are not
-retirement approvals.
+or media workflow, and 16 awaiting a port. These cover the Python calculator
+catalogue beyond the original 14 worksheets and the current Python tool selection,
+question set and scores. The native evaluation CLI uses its versioned 42-question
+reference in `data/evaluation.v1.xml`. The supported Python evaluation has 43.
 The record identifies proof symbols and limitations for each function; a Rust
 test refuses changed original source hashes until the reconciliation is reviewed.
 To review a changed file, reread every row the record lists for it against the
@@ -133,7 +133,7 @@ related-payday alignment, current GIC provenance, conformance cases, labour
 warning prerequisites, Division 7A response sizes, current lodgment facts and
 linked versions. Retrieval tests use valid external link targets and an invalid
 manifest to test refusal and parse ordering. The stdio tests execute the current
-39 evaluation questions with fabricated files, derive every reference answer and
+40 evaluation questions with fabricated files, derive their reference answers and
 check result-dependent arguments. Another session tests all 24 unknown-argument
 refusals, partial receipts, input errors, all 11 rejected evidence-pack argument
 variants and recovery, checking for working-directory writes after every reply.

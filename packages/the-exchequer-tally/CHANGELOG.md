@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+- Added `company-tax-statement`: taxable income after prior-year losses (stated
+  continuity outcomes), the calculation statement from gross tax to the amount
+  due or refundable, and the Div 160 loss carry back tax offset for 2020-21 to
+  2022-23 and 2026-27, for 2020-21 to 2026-27.
 - Relicensed Ryan Duguid's code under AGPL-3.0-or-later with section 7(b) attribution terms.
 
 ## 1.0.0 (unreleased)

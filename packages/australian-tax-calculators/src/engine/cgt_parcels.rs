@@ -22,8 +22,13 @@ use super::{
 use crate::dates;
 use crate::decimal::Decimal;
 
+mod adjustments;
+mod demergers;
+mod events;
 mod input;
 mod steps;
+mod work;
+pub use adjustments::{CgtCostBaseArgs, cgt_cost_base_adjustments};
 use input::{objects, read_disposal, read_parcel};
 use steps::amount_steps;
 

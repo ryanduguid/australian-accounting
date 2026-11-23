@@ -109,13 +109,15 @@ def path_selected(paths: list[str], patterns: list[str]) -> bool:
     )
 
 
-def mcp_python_matrix(event: str, ref: str) -> list[dict[str, str]]:
-    """Run the macOS leg on scheduled runs and pushes to the default branch."""
-    rows = [
-        {"os": "ubuntu-latest", "python": "3.14"},
+def mcp_python_matrix(event: str, ref: str, *, selected: bool = True) -> list[dict[str, str]]:
+    """Always produce Linux coverage, expanding the matrix for relevant changes."""
+    rows = [{"os": "ubuntu-latest", "python": "3.14"}]
+    if not selected:
+        return rows
+    rows.extend([
         {"os": "ubuntu-latest", "python": "3.15"},
         {"os": "windows-latest", "python": "3.14"},
-    ]
+    ])
     if event == "schedule" or (event == "push" and ref == "refs/heads/main"):
         rows.append({"os": "macos-latest", "python": "3.14"})
     return rows
@@ -155,6 +157,8 @@ def check_results(results: object, event: str, *apps: str) -> None:
         if not app_jobs <= results.keys():
             raise ValueError("Missing application job results")
         expected.update(dict.fromkeys(app_jobs, "success" if run == "true" else "skipped"))
+        if app == "aus-accounting-mcp":
+            expected["test"] = "success"
     failed = [
         name for name, job in results.items()
         if not isinstance(job, dict) or job.get("result") != expected.get(name, "success")
@@ -181,7 +185,11 @@ def main(argv: list[str]) -> int:
             print(f"Application checks: {reason}", file=sys.stderr)
             print(f"run={'true' if run else 'false'}")
         elif argv[1:] == ["mcp-python-matrix"]:
-            rows = mcp_python_matrix(event, os.environ.get("GITHUB_REF", ""))
+            rows = mcp_python_matrix(
+                event,
+                os.environ.get("GITHUB_REF", ""),
+                selected=os.environ.get("CI_APP_SELECTED") != "false",
+            )
             print("matrix=" + json.dumps({"include": rows}, separators=(",", ":")))
         else:
             print(f"usage: {argv[0]} select <app> | gate <app> [<app> ...] | mcp-python-matrix", file=sys.stderr)

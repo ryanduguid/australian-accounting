@@ -7,26 +7,34 @@
 use super::*;
 
 /// The stated facts of one parcel or disposal, each read once.
-struct Fields<'a> {
+pub(super) struct Fields<'a> {
     what: String,
     fields: &'a Map<String, Value>,
     taken: Vec<&'static str>,
 }
 
 impl<'a> Fields<'a> {
-    fn invalid<T>(&self, key: &str, expected: &str) -> Result<T> {
+    pub(super) fn new(what: String, fields: &'a Map<String, Value>) -> Self {
+        Fields {
+            what,
+            fields,
+            taken: Vec::new(),
+        }
+    }
+
+    pub(super) fn invalid<T>(&self, key: &str, expected: &str) -> Result<T> {
         refuse(
             "cgt_parcels.fact_invalid",
             format!("{}: {key} must be {expected}.", self.what),
         )
     }
 
-    fn get(&mut self, key: &'static str) -> Option<&'a Value> {
+    pub(super) fn get(&mut self, key: &'static str) -> Option<&'a Value> {
         self.taken.push(key);
         self.fields.get(key)
     }
 
-    fn required(&mut self, key: &'static str) -> Result<&'a Value> {
+    pub(super) fn required(&mut self, key: &'static str) -> Result<&'a Value> {
         let fields = self.fields;
         match fields.get(key) {
             Some(value) => {
@@ -40,14 +48,14 @@ impl<'a> Fields<'a> {
         }
     }
 
-    fn text(&mut self, key: &'static str) -> Result<String> {
+    pub(super) fn text(&mut self, key: &'static str) -> Result<String> {
         match self.required(key)?.as_str() {
             Some(text) if !text.trim().is_empty() => Ok(text.to_string()),
             _ => self.invalid(key, "a non-empty string"),
         }
     }
 
-    fn date(&mut self, key: &'static str) -> Result<i64> {
+    pub(super) fn date(&mut self, key: &'static str) -> Result<i64> {
         match self.required(key)?.as_str().and_then(dates::parse) {
             Some(day) => Ok(day),
             None => self.invalid(key, "a YYYY-MM-DD date from 1900 to 2100"),
@@ -61,7 +69,7 @@ impl<'a> Fields<'a> {
     }
 
     /// An amount in AUD; nil when an optional one is absent.
-    fn amount(&mut self, key: &'static str, optional: bool) -> Result<Decimal> {
+    pub(super) fn amount(&mut self, key: &'static str, optional: bool) -> Result<Decimal> {
         let value = if optional {
             match self.get(key) {
                 None => return Ok(int(0)),
@@ -80,7 +88,7 @@ impl<'a> Fields<'a> {
     }
 
     /// A number of shares or units: above nil, at most 6dp and 1e12.
-    fn units(&mut self, key: &'static str) -> Result<Decimal> {
+    pub(super) fn units(&mut self, key: &'static str) -> Result<Decimal> {
         let value = Self::decimal(Some(self.required(key)?));
         match value {
             Some(v) if v.is_finite() && v.exponent() >= -6 => {
@@ -93,7 +101,7 @@ impl<'a> Fields<'a> {
         }
     }
 
-    fn none_left(&self) -> Result<()> {
+    pub(super) fn none_left(&self) -> Result<()> {
         match self
             .fields
             .keys()

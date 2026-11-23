@@ -303,15 +303,41 @@ fn payg_withholding_never_falls_as_earnings_rise() {
 
 #[test]
 fn payg_withholding_never_falls_across_any_bracket_boundary() {
-    // Schedule 1 works on whole-dollar weekly earnings. Whole-dollar steps of a
-    // weekly, fortnightly or monthly payment move those by at most $1, so this
-    // sweep reaches every weekly amount, and every bracket edge, of each scale.
+    // Schedule 1 is piecewise affine in whole-dollar weekly earnings: within a
+    // bracket y = a * x - b with a >= 0 is monotonic, so any drop occurs at a
+    // bracket edge, at the zero floor or across a period-conversion step.
+    // Sweeping $1 steps across a +-10 dollar window around every bracket edge
+    // (spanning more than 2 weekly-dollar transitions on each side even for
+    // monthly payments where 13/3 ~= 4.33), plus the floor, each bracket
+    // midpoint and the top tail, checks every boundary and global monotonicity
+    // without repeating ~425,000 interior calls.
     for (year, scales) in PAYG_WITHHOLDING_COEFFICIENTS {
         for (scale, rows) in *scales {
-            let last_limit = rows.iter().filter_map(|r| r.0).max().unwrap();
-            for (period, weeks) in [("weekly", 1), ("fortnightly", 2), ("monthly", 5)] {
+            let limits: Vec<u64> = rows
+                .iter()
+                .filter_map(|r| r.0)
+                .map(|l| u64::try_from(l).unwrap())
+                .collect();
+            let last_limit = *limits.iter().max().unwrap();
+            for (period, num, den) in [
+                ("weekly", 1_u64, 1_u64),
+                ("fortnightly", 2, 1),
+                ("monthly", 13, 3),
+            ] {
+                let top = ((last_limit + 50) * num).div_ceil(den);
+                let mut points: Vec<u64> = (0..=15).collect();
+                let mut prev_edge = 0_u64;
+                for &limit in &limits {
+                    let edge = (limit * num).div_ceil(den);
+                    points.push((prev_edge + edge) / 2);
+                    points.extend(edge.saturating_sub(10)..=edge + 10);
+                    prev_edge = edge;
+                }
+                points.extend(top.saturating_sub(5)..=top);
+                points.sort_unstable();
+                points.dedup();
                 let mut previous = n(0);
-                for dollars in 0..(last_limit + 50) * weeks {
+                for dollars in points {
                     let amount = withheld(&dollars.to_string(), period, *scale, year, None);
                     assert!(le(&previous, &amount), "{year} {scale} {period} {dollars}");
                     previous = amount;

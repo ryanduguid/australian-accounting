@@ -46,6 +46,9 @@ pub struct CarryForward<'a> {
     pub earlier_contributions: &'a Arg,
     pub proposed_contribution: Option<&'a Arg>,
     pub defined_benefit_interest: &'a Arg,
+    /// The first excess non-concessional contributions determination's day,
+    /// for the release figures; `None` for none.
+    pub determination_date: Option<&'a Arg>,
 }
 
 /// One earlier income year as given: its first calendar year, its
@@ -483,6 +486,7 @@ pub fn contribution_caps_by_year(
         steps,
         (&non_concessional, *under_75),
         rates,
+        carry.determination_date,
     )?;
     out["unused_cap_expiry"] = expiry(&out, current);
     Ok(out)

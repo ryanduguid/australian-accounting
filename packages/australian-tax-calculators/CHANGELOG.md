@@ -2,6 +2,110 @@
 
 ## Unreleased
 
+### Added
+
+- `trading-stock` works out the change in value of trading stock under ITAA
+  1997 s 70-35 for 2020-21 to 2026-27, each closing item valued by its own
+  election (cost, market selling value, replacement value, the lowest, or an
+  obsolescence value under s 70-50), and the s 328-285 choice for a small
+  business entity, or from 2021-22 an entity under $50 million, with the
+  $5,000 test and the s 328-295 values. New codes:
+  `trading_stock.entity_invalid`, `trading_stock.items_invalid`,
+  `trading_stock.method_invalid`, `trading_stock.obsolescence_not_below`,
+  `trading_stock.simplified_unavailable` and `trading_stock.value_missing`.
+- `prepayments` works out when a prepaid amount incurred in 2020-21 to
+  2026-27 is deductible under ITAA 1936 Subdivision H: excluded expenditure,
+  the 12-month rule of s 82KZM, or apportionment by days under s 82KZM,
+  s 82KZMD or s 82KZMF, with each year's deduction. New codes:
+  `prepayments.agreement_before_cutoff`, `prepayments.choice_unavailable`,
+  `prepayments.dates_invalid`, `prepayments.exclusion_invalid`,
+  `prepayments.tax_shelter_conflict` and `prepayments.taxpayer_invalid`. `tests/trading_stock_prepayments.rs` holds
+  both to the ATO's examples.
+- `minors-income` works out the tax on a minor's taxable income under
+  ITAA 1936 Division 6AA and the Income Tax Rates Act 1986 ss 13 and 15 and
+  Schedule 11 for 2024-25 to 2026-27: the prescribed person and excepted
+  person tests (s 102AC, the full-time occupation test on stated facts),
+  excepted income by its s 102AE(2) ground and trust share parts (s 102AG),
+  eligible taxable income with apportionable deductions (s 102AD), and the
+  resident and foreign resident special rates with their phase-in caps.
+  New codes: `minors_income.excepted_income_invalid`,
+  `minors_income.excepted_person_invalid`, `minors_income.facts_inconsistent`,
+  `minors_income.residency_invalid`, `minors_income.special_income_component`
+  and `minors_income.trust_shares_invalid`. `tests/minors_income.rs` holds it
+  to the ATO's under 18 rate tables.
+- `foreign-income-conversion` translates foreign currency income,
+  deductions, asset costs, CGT amounts and foreign tax paid into AUD under
+  ITAA 1997 s 960-50 for 2020-21 to 2026-27, each at the stated rate for the
+  day its item names or an average over at most 12 months (item 12 and
+  Schedule 2 of the 1997 or 2021 Regulations). New codes:
+  `foreign_income_conversion.average_period`, `.basis_invalid`,
+  `.currency_invalid`, `.items_invalid`, `.kind_invalid`, `.rate_date` and
+  `.text_invalid`. `tests/foreign_income_conversion.rs` holds it to the
+  ATO's rental expense and income examples.
+- `foreign-income-tax-offset` works out the foreign income tax offset
+  (ITAA 1997 Division 770) for 2020-21 to 2026-27 with the $1,000 default
+  limit, a limit from stated income tax figures, or, for 2024-25 to 2026-27,
+  one worked at the resident rates with a part-year resident's tax-free
+  threshold (Income Tax Rates Act 1986 ss 18 and 20). New codes:
+  `foreign_income_tax_offset.limit_method_invalid`,
+  `.residency_periods_invalid` and `.worked_year`.
+  `tests/foreign_income_tax_offset.rs` holds it to Examples 16 and 17 of the
+  ATO's foreign income tax offset guides for 2024 to 2026 and its part-year
+  threshold examples.
+- `smsf-tax` works out a complying SMSF's income tax calculation statement
+  (item 13 of the annual return) for 2020-21 to 2026-27: exempt current
+  pension income by the segregated method, the actuary's proportion or both
+  (ITAA 1997 ss 295-385 and 295-390), the non-arm's length component of
+  s 295-545(2A) at 45% and the low tax component at 15%, the 32% extra tax on
+  no-TFN-quoted contributions, the offsets in the return's order, the $259
+  supervisory levy with the new and wound up fund adjustments, and the amount
+  due or refundable. New codes: `smsf_tax.disregarded_small_fund_assets`,
+  `smsf_tax.foreign_fund`, `smsf_tax.non_complying`,
+  `smsf_tax.part_exceeds_total` and `smsf_tax.proportion_invalid`.
+  `tests/smsf_tax.rs` holds it to the ATO's SMSF annual return 2026
+  instructions' examples.
+
+- `alcohol-excise` works out the excise duty on beer, spirits and other
+  excisable beverages entered for home consumption from 1 July 2022 to 31
+  January 2027, line by line at the Commissioner's substituted rate for the
+  day (Excise Tariff Act 1921 Schedule items 1 to 3, ss 6A and 6L), with the
+  remission for alcohol manufacturers under its $350,000 or $400,000 yearly
+  cap and the refund of duty paid where it was available (Excise Regulation
+  2015 Sch 1 cl 2(1) item 10 and cl 2(2)). New codes:
+  `alcohol_excise.classification_unsettled`,
+  `alcohol_excise.date_outside_year`, `alcohol_excise.fact_conflict`,
+  `alcohol_excise.line_invalid`, `alcohol_excise.lines_invalid`,
+  `alcohol_excise.not_excisable`, `alcohol_excise.product_invalid`,
+  `alcohol_excise.product_out_of_scope`, `alcohol_excise.quantity_invalid`
+  and `alcohol_excise.rate_unpublished`. `tests/alcohol_excise.rs` holds it
+  to the ATO's and the Excise guidelines' examples and every notice's rates.
+
+- `transfer-balance` works one person's transfer balance account from
+  1 July 2017 to a day in 2017-18 to 2026-27 from its credits and debits
+  (ITAA 1997 ss 294-25 and 294-80): the personal transfer balance cap with
+  proportional indexation (s 294-40), each day's excess, excess transfer
+  balance earnings at the GIC rate credited daily (s 294-235), and excess
+  transfer balance tax at 15% or 30% for each excess transfer balance period
+  (Imposition Act 2016 s 5), with IT(TP)A 1997 s 294-30. Reversionary, child,
+  capped defined benefit, structured settlement and regulation events and the
+  Commissioner's determinations are refused. `excess-contributions` works
+  the excess concessional contributions charge for 2013-14 to 2020-21 and the
+  release of excess non-concessional contributions with their associated
+  earnings for contributions years 2013-14 to 2025-26 (TAA 1953 Sch 1
+  ss 97-25 and 97-30). `contribution-caps` takes an optional
+  `determination_date` that adds the release figures to its own excess. New
+  codes: `excess_contributions.charge_abolished`,
+  `excess_contributions.date_order`, `excess_contributions.fact_invalid`,
+  `excess_contributions.question_invalid`,
+  `excess_contributions.rate_unpublished`, `transfer_balance.date_order`,
+  `transfer_balance.event_refused`, `transfer_balance.fact_invalid`,
+  `transfer_balance.rate_unpublished`,
+  `transfer_balance.transition_undecided` and
+  `transfer_balance.year_mismatch`. `tests/transfer_balance.rs` holds them to
+  the ATO's examples and to an exact-fraction oracle over the ATO's rates.
+
+## 1.2.0
+
 - Relicensed Ryan Duguid's code under AGPL-3.0-or-later with section 7(b) attribution terms.
 
 ### Added
@@ -50,6 +154,13 @@
   `private_health_insurance_rebate.rate_unpublished`.
   `tests/private_health_insurance_rebate.rs` holds it to the ATO's examples
   and every published percentage and threshold.
+- `super-withholding` gives Schedule 12 withholding from a superannuation lump
+  sum or roll-over paid from 13 October 2020 to 30 June 2027: Table A's rates
+  on the same parts `super-benefit-tax` works, nil payments, roll-overs above
+  the untaxed plan cap and the no-TFN rates. New codes:
+  `super_withholding.no_tfn_unstated`, `super_withholding.recipient_invalid`
+  and `super_withholding.schedule_not_read`. `tests/super_withholding.rs` runs the
+  schedules' Tom, Chloe, Heather and Dean examples.
 - `super-benefit-tax` works out one superannuation lump sum's components by
   the proportioning rule (ITAA 1997 s 307-125) and the most income tax, before
   Medicare levy, each part can bear in 2020-21 to 2026-27: a member's by age
@@ -64,6 +175,111 @@
   ATO's Tony, Suzi, Frankie, Peta, Mei, Howard and Anh examples and
   Schedule 12's Heather, Dean and Chloe.
 
+- `entertainer-withholding`, `return-to-work-withholding`,
+  `annuity-withholding` and `voluntary-agreement-withholding` work out
+  Schedule 3 (actors, variety artists and other entertainers), Schedule 4
+  (return to work payments), Schedule 6 (annuities, on `payg-withholding`'s
+  Schedule 1 amount) and Schedule 10 (voluntary agreements), each for 2024-25
+  to 2026-27. New codes: `annuity_withholding.deductible_above_payment`,
+  `annuity_withholding.extra_pay_without_tfn`,
+  `annuity_withholding.income_not_whole_cents`,
+  `entertainer_withholding.foreign_resident_tfn`,
+  `entertainer_withholding.offsets_exceed_withholding`,
+  `entertainer_withholding.offsets_several_performances`,
+  `entertainer_withholding.tax_offsets_not_allowed`, `input.count_invalid`,
+  `input.percentage_invalid`,
+  `voluntary_agreement_withholding.abn_not_quoted`,
+  `voluntary_agreement_withholding.agreement_not_in_force`,
+  `voluntary_agreement_withholding.gst_above_payment` and
+  `voluntary_agreement_withholding.instalment_rate_missing`.
+  `tests/payment_withholding.rs` holds them to the published examples.
+- `horticulture-shearing-withholding`, `upward-variation-withholding`,
+  `daily-casual-withholding` and `no-abn-withholding` work out Schedule 2
+  (horticulture and shearing), Schedule 14 (an agreed additional amount on
+  the Schedule 1 amount), the tax table for daily and casual workers and
+  withholding where no ABN is quoted (TAA 1953 Sch 1 s 12-190, Taxation
+  Administration Regulations 2017 s 38), each for 2024-25 to 2026-27. New
+  codes: `daily_casual_withholding.foreign_resident_tfn`,
+  `daily_casual_withholding.offsets_exceed_withholding`,
+  `daily_casual_withholding.tax_offsets_not_allowed`,
+  `daily_casual_withholding.threshold_not_claimed`,
+  `horticulture_shearing_withholding.labour_mobility_scheme`,
+  `horticulture_shearing_withholding.threshold_not_claimed`,
+  `no_abn_withholding.gst_above_payment`,
+  `no_abn_withholding.total_below_payment` and
+  `withholding.working_holiday_maker`. `tests/withholding_schedules.rs` holds
+  them to the published examples.
+- `rd-tax-offset` works out an R&D entity's refundable or non-refundable
+  R&D tax offset (ITAA 1997 s 355-100: the corporate tax rate plus 18.5
+  percentage points, or plus 8.5% and 16.5% by intensity, with the $20,000
+  threshold and the $150 million cap) and the amount s 355-450 includes in
+  assessable income for a recoupment or feedstock clawback amount, for
+  2021-22 to 2026-27. New codes: `rd_tax_offset.clawback_above_total`,
+  `rd_tax_offset.clawback_below_threshold`,
+  `rd_tax_offset.feedstock_expenditure_above_total` and
+  `rd_tax_offset.threshold_expenditure_above_total`. `tests/rd_tax_offset.rs`
+  holds it to the ATO's clawback examples and the schedule's Part E method.
+- `gst-going-concern`, `gst-second-hand-goods` and `gst-bad-debt` test
+  whether a supply of a going concern is GST-free (s 38-325), work the
+  Subdivision 66-A credit for second-hand goods and a Division 21 bad debt
+  adjustment reduced under Subdivision 136-A, each for 2020-21 to 2026-27.
+  New codes: `gst_bad_debt.accounting_basis_changed`,
+  `gst_bad_debt.annual_apportionment`, `gst_bad_debt.dates_invalid`,
+  `gst_bad_debt.fact_conflict`, `gst_bad_debt.fact_invalid`,
+  `gst_bad_debt.reduced_credit_acquisition`, `gst_bad_debt.special_rule`,
+  `gst_going_concern.fact_invalid`, `gst_going_concern.farm_land`,
+  `gst_going_concern.part_outside_arrangement`,
+  `gst_second_hand_goods.divided_for_resupply`,
+  `gst_second_hand_goods.fact_invalid`,
+  `gst_second_hand_goods.leased_before_sale` and
+  `gst_second_hand_goods.valuable_metal`. `tests/gst_special_rules.rs` holds
+  them to GSTR 2002/5, GSTD 2012/6 and GSTR 2000/2.
+
+- `gst-creditable-purpose-change`, `gst-annual-apportionment` and
+  `gst-financial-acquisitions-threshold` work a Division 129 adjustment for a
+  change in creditable purpose with its adjustment periods, Division 131
+  annual apportionment eligibility with the credit and s 131-55 adjustment,
+  and the Division 189 financial acquisitions threshold tests, each for
+  2020-21 to 2026-27. New codes: `gst_annual_apportionment.car`,
+  `gst_annual_apportionment.election_status_unsettled`,
+  `gst_annual_apportionment.fact_conflict`,
+  `gst_annual_apportionment.not_partly_creditable`,
+  `gst_annual_apportionment.reduced_credit_acquisition`,
+  `gst_creditable_purpose_change.basis_missing`,
+  `gst_creditable_purpose_change.last_period_unsettled`,
+  `gst_creditable_purpose_change.period_end_invalid`,
+  `gst_creditable_purpose_change.tax_period_unsupported` and
+  `gst_financial_acquisitions_threshold.fact_conflict`.
+  `tests/gst_adjustments.rs` holds them to the examples of GSTR 2000/24, the
+  GST Act and GSTR 2003/9.
+
+- `deferred-tax` works out a company's tax effect worksheet under AASB 112
+  for 2020-21 to 2026-27: temporary differences from carrying amounts and
+  tax bases, the deferred tax liability and asset at 25% or 30% (paras 15,
+  24, 34 and 47; Income Tax Rates Act 1986 s 23(2)), the movement split
+  into rate change, recognition change and origination (para 80), current
+  tax at the year's rate (26% for a base rate entity in 2020-21) and the
+  para 81(c)(i) reconciliation with the average effective tax rate. New
+  codes: `deferred_tax.business_combination`,
+  `deferred_tax.expected_rate_invalid`, `deferred_tax.item_invalid`,
+  `deferred_tax.offsets_above_tax`, `deferred_tax.opening_rate_unscheduled`,
+  `deferred_tax.outside_profit_or_loss`,
+  `deferred_tax.rate_change_unscheduled`,
+  `deferred_tax.tax_consolidated_group`,
+  `deferred_tax.uncertain_tax_treatment`,
+  `deferred_tax.unrecognised_above_deductible` and
+  `deferred_tax.unrecognised_used_above_opening`.
+- `cgt-cost-base-adjustments` applies returns of capital (CGT event G1, ITAA
+  1997 s 104-135), a non-AMIT trust's non-assessable parts (CGT event E4,
+  ss 104-70 and 104-71), AMIT cost base net amounts (ss 104-107A to 104-107C,
+  CGT event E10) and the Coles (2018) and Endeavour (2021) demergers
+  (Subdivision 125-B, CR 2018/59 and CR 2021/50) to `cgt-parcels`' parcels,
+  for 2018-19 to 2026-27, and returns the gains and the adjusted parcels. New
+  codes: `cgt_cost_base.below_reduced_cost_base`,
+  `cgt_cost_base.company_indexation`, `cgt_cost_base.demerger_unknown`,
+  `cgt_cost_base.event_year_unsupported` and `cgt_cost_base.pre_cgt`.
+  `derive` covers it. `tests/cgt_cost_base_adjustments.rs` holds it to the
+  ATO's examples. `cgt-parcels` is unchanged.
 - `depreciation-low-value-pool`, `depreciation-small-business-pool` and
   `capital-works` work out a low-value pool (ITAA 1997 ss 40-440 and
   40-445), a general small business pool with each year's low pool value
@@ -171,8 +387,33 @@
   `ato_interest_penalties.scheme_penalty`,
   `ato_interest_penalties.sge_before_2017` and
   `ato_interest_penalties.year_mismatch`.
+- `residency-tests` says whether an individual was a resident of Australia
+  for an income year from 2020-21 to 2026-27 under each test in ITAA 1936
+  s 6(1), resident (a): resides, domicile, 183 days (counted from the dates
+  in Australia, 184 in 2023-24) and the Commonwealth superannuation fund
+  test. Residing, domicile, places of abode and intention are the
+  operator's answers. New codes: `residency_tests.presence_invalid`,
+  `residency_tests.super_invalid` and `residency_tests.treaty_tie_breaker`.
+  `tests/residency_tests.rs` holds it to TR 2023/1's examples.
+- `lodgment-required` says whether an individual must lodge their own
+  income tax return for 2020-21 to 2025-26 under that year's lodgment
+  instrument (the Notices for 2020-21 to 2022-23, the Taxation Laws
+  instruments from 2023-24): s 6(2), 6(3) and 6(10), the exceptions in
+  s 7(1)(f), 7(2) and 7(3), and the 31 October due date. New codes:
+  `lodgment_required.child_support_parent`,
+  `lodgment_required.group_invalid`,
+  `lodgment_required.instrument_not_made`,
+  `lodgment_required.residency_invalid` and
+  `lodgment_required.triggers_invalid`. `tests/lodgment_required.rs` holds it
+  to each year's thresholds.
 
 ### Fixed
+
+- `fuel-tax-credits` with `rate_at_period_end` (PCG 2016/2 Method 2) takes each
+  line at the rate for its acquisition date when every applicable rate stays
+  flat across the period. It still takes the period's last day when
+  indexation changes an applicable rate, and still refuses a period across
+  any other rate change.
 
 - Both borrowing expenses worksheets identify their deduction amounts as
   section 25-25 calculations before the vacant land and residential limits.

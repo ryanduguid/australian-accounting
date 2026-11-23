@@ -16,6 +16,7 @@ apps/aus-accounting-mcp/aus_accounting_mcp/fixtures/synthetic_sbr.py tfn 2223334
 apps/aus-accounting-mcp/aus_accounting_mcp/identifiers.py abn 00000090000 placeholder in a comment on why the ABN check rejects a leading zero
 apps/aus-accounting-mcp/docs/quick-proof.txt tfn 222333444 last 9 digits of the placeholder ABN 11 222 333 444, which fails the ABN check
 apps/aus-accounting-mcp/evaluation/questions.xml acn 004085616 ACN of B P Australia Pty Ltd, a company's public register number used as an ACN check digit example; checked on ABN Lookup on 4 November 2026
+apps/aus-accounting-mcp/data/evaluation.v1.xml acn 004085616 Same public ACN check-digit example as evaluation/questions.xml in the frozen native reference, byte-identical to its previous version.
 apps/aus-accounting-mcp/tests/test_identifiers.py abn 00000090000 placeholder the test shows the ABN check rejects
 apps/aus-accounting-mcp/tests/test_identifiers.py abn 51824753556 the ATO's own ABN, a public register number; checked on ABN Lookup on 4 November 2026
 apps/aus-accounting-mcp/tests/test_identifiers.py abn ٥١824753556 the ATO's own ABN, a public register number; checked on ABN Lookup on 4 November 2026, with Arabic-Indic digits the validator must reject
