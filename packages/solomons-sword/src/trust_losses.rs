@@ -272,6 +272,42 @@ fn injection_test(v: &Value, para: Option<&str>) -> Result<Test> {
     })
 }
 
+fn deduction(v: &Value) -> Result<()> {
+    match text(v, "deduction")? {
+        "prior_year_tax_loss" => Ok(()),
+        "bad_debt" => Err(refuse(
+            "a bad debt or debt/equity swap deduction is not modelled",
+            "ss 266-35, 267-25 Sch 2F ITAA 1936",
+        )),
+        "current_year_loss" => Err(refuse(
+            "working out net income and a tax loss by periods is not modelled",
+            "s 266-30, Subdiv 267-C, Div 268 Sch 2F ITAA 1936",
+        )),
+        _ => Err("deduction must be prior_year_tax_loss, bad_debt or current_year_loss".into()),
+    }
+}
+
+const WIDELY_HELD: [&str; 4] = [
+    "unlisted_widely_held",
+    "listed_widely_held",
+    "unlisted_very_widely_held",
+    "wholesale_widely_held",
+];
+
+fn trust_kind(v: &Value) -> Result<&str> {
+    let kind = text(v, "trust_kind")?;
+    if kind == "fixed" || kind == "non_fixed" {
+        Ok(kind)
+    } else if WIDELY_HELD.contains(&kind) {
+        Err(refuse(
+            format!("a {} trust is not modelled", kind.replace('_', " ")),
+            "Subdivs 266-C, 266-D, 266-E Sch 2F ITAA 1936",
+        ))
+    } else {
+        Err("trust_kind must be fixed, non_fixed, unlisted_widely_held, listed_widely_held, unlisted_very_widely_held or wholesale_widely_held".into())
+    }
+}
+
 fn scope(v: &Value) -> Result<(i64, i64, &str)> {
     let fy = year(v)?;
     let loss_year = integer(v, "loss_year")?;
@@ -280,35 +316,8 @@ fn scope(v: &Value) -> Result<(i64, i64, &str)> {
             "loss_year {loss_year} must be earlier than financial_year {fy}"
         ));
     }
-    match text(v, "deduction")? {
-        "prior_year_tax_loss" => {}
-        "bad_debt" => {
-            return Err(refuse(
-                "a bad debt or debt/equity swap deduction is not modelled",
-                "ss 266-35, 267-25 Sch 2F ITAA 1936",
-            ));
-        }
-        "current_year_loss" => {
-            return Err(refuse(
-                "working out net income and a tax loss by periods is not modelled",
-                "s 266-30, Subdiv 267-C, Div 268 Sch 2F ITAA 1936",
-            ));
-        }
-        _ => {
-            return Err(
-                "deduction must be prior_year_tax_loss, bad_debt or current_year_loss".into(),
-            );
-        }
-    }
-    let kind = text(v, "trust_kind")?;
-    match kind {
-        "fixed" | "non_fixed" => Ok((fy, loss_year, kind)),
-        "unlisted_widely_held" | "listed_widely_held" | "unlisted_very_widely_held" | "wholesale_widely_held" => Err(refuse(
-            format!("a {} trust is not modelled", kind.replace('_', " ")),
-            "Subdivs 266-C, 266-D, 266-E Sch 2F ITAA 1936",
-        )),
-        _ => Err("trust_kind must be fixed, non_fixed, unlisted_widely_held, listed_widely_held, unlisted_very_widely_held or wholesale_widely_held".into()),
-    }
+    deduction(v)?;
+    Ok((fy, loss_year, trust_kind(v)?))
 }
 
 /// True when every applicable test passes, false when an applicable one fails, otherwise not established.
