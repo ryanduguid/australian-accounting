@@ -206,16 +206,17 @@ release callers require that test job; no second pytest run is needed.
   input also runs every engine.
   On a push to `main`, an engine whose pyproject version has no `<engine>/v<version>` tag
   yet also runs, whatever changed, so its release can be tagged on `main`'s head.
-- Each engine's `<engine> / gates` job reports on every run: it passes when each gate
-  passed or was skipped by the path filter and fails when any gate failed or was
-  cancelled. `tests-gates` needs every engine's call, so branch protection requires it
-  rather than the per-engine contexts. The individual jobs are not required, because a
-  skipped matrix job never reports under its matrix names and would block every pull
-  request the path filter skips.
+- Each engine's Linux test matrix runs on every pull request. Its gates job requires
+  that matrix to pass and allows the other jobs to skip when their paths are unchanged.
+  The required `tests-gates` check depends on every engine's workflow call.
+- Codecov requires 100% project coverage and a fresh 100% report from each Python
+  component. The MCP application and lodgment calendar each upload their Linux
+  Python 3.14 report on pull requests and pushes to `main`.
 - Application jobs use `.github/ci/app_ci.py` to select PR changes. An application's own
   files, its engine dependencies, root tests, shared policy and workspace files, and any
-  unknown path or comparison run its complete checks. Only known unrelated component
-  paths can skip them. The MCP application includes its 4 engine dependencies; the
+  unknown path or comparison run its complete checks. For known unrelated paths, the MCP
+  application's Linux Python 3.14 test still runs and its other checks can skip.
+  The MCP application includes its 4 engine dependencies; the
   adapter includes the 2 engines its trials link. Root pytest checks these
   dependency lists against each application's manifest on every change. The aggregate requires a
   successful selection and exactly the corresponding successful or skipped app jobs.
