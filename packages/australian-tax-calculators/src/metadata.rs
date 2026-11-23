@@ -4264,15 +4264,15 @@ pub fn input_units(kind: &str) -> Vec<(&'static str, &'static str)> {
             ),
             (
                 "foreign_purchaser",
-                "boolean: the buyer is a foreign person, foreign corporation or foreign trust under the jurisdiction's duty surcharge test, as established",
+                "boolean: the buyer is a foreign person, foreign corporation or foreign trust under the jurisdiction's duty surcharge test, as established, not merely a non-resident or non-citizen",
             ),
             (
                 "land_value",
-                "AUD, whole dollars, nil or more: in nsw the residential land's taxable value; in vic and qld the owner's total taxable value; in tas the foreign-owned residential land's assessed value; in act the parcel's AUV",
+                "AUD, whole dollars, nil or more: in nsw the foreign owner's share of the residential land's taxable value; in vic and qld the owner's total taxable value; in tas the foreign-owned residential land's assessed value; in act the parcel's AUV",
             ),
             (
                 "foreign_owner",
-                "boolean: the owner is a foreign person (nsw, tas, act) or an absentee or foreign company or trust (vic, qld) under the land tax surcharge test, as established",
+                "boolean: the owner is a foreign person (nsw, tas, act) or an absentee or foreign company or trust (vic, qld) under the land tax surcharge test, as established; in tas, also that the land is subject to the surcharge (acquired by a foreign person, or held by a company or trust that became foreign, on or after 1 July 2022)",
             ),
             (
                 "owner",

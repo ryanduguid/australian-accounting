@@ -2656,12 +2656,12 @@ does. It takes:
   the jurisdiction's duty surcharge test and the owner foreign or absent under
   its land tax surcharge test, as established;
 - `land_value`: the value the land tax surcharge is charged on, in whole
-  dollars;
+  dollars (in New South Wales, the foreign owner's share);
 - `owner`: `individual`, `company` or `trust`.
 
 | Jurisdiction | Duty surcharge | Land tax surcharge |
 | --- | --- | --- |
-| New South Wales | 9% (Duties Act 1997 s 104U) | 5% of the residential land's value |
+| New South Wales | 9% (Duties Act 1997 s 104U) | 5% of the foreign owner's share of the residential land's value |
 | Victoria | 8% (Duties Act 2000 s 28A) | 4% of the whole taxable value from $50,000 (Land Tax Act 2005 Sch 1 Table 4.5 less Table 1.6) |
 | Queensland | 8% (Duties Act 2001 s 244) | 3.0c for each $1 more than $349,999, from $350,000 (Land Tax Act 2010 Schs 2 and 3) |
 | Western Australia | 7% (Duties Act 2008 s 205O) | None |
@@ -2671,7 +2671,9 @@ does. It takes:
 | Northern Territory | None | None |
 
 New South Wales, Tasmania and the ACT charge the land tax surcharge on
-residential land only. The steps are `duty_surcharge` and
+residential land only, and Tasmania only on land acquired by a foreign
+person, or held by a company or trust that became foreign, on or after
+1 July 2022: `foreign_owner` there means both. The steps are `duty_surcharge` and
 `land_tax_surcharge`, which are not added: one is paid on the transaction, the
 other every land tax year. The land tax surcharge is the same amount
 `land-tax` works as its `surcharge` step.
@@ -2680,6 +2682,10 @@ It does not decide who is foreign or absent: the site's page asks 16 questions
 for that, and the command takes the answers as established. It follows the Act
 where the page differs: Queensland's surcharge counts from $349,999, 3 cents
 more than the page's 3% over $350,000, and Tasmania's is rounded to 10 cents.
+It leaves out Tasmania's lower rates for agreements made before 1 April 2020,
+surcharge charged or reassessed after a buyer becomes foreign or the use
+changes (South Australia s 72(7), Tasmania ss 30D and 30F) and the ACT's
+quarterly surcharge for part of a year or on units.
 It refuses a trust that is a foreign owner in Victoria, whose surcharge turns
 on its absentee beneficiaries' interests (s 46IA), cents and any other year.
 The tests hold it to every case of the site's page and to the revenue offices'
