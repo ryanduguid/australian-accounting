@@ -157,7 +157,7 @@ booleans and counts, ages, days, quarters and scales are JSON integers.
 | `trade-in` | `cost`, `asset`, `years`, `trade_in_allowance`, `trade_in_taxable`, `replacement_price`, `replacement_asset`, `replacement_creditable_acquisition`, `arms_length`, `involuntary_disposal`, `year`, `scope_confirmed`; `car_limit`, `adjusted_input_tax_credit`, `full_input_tax_credit`, `replacement_luxury_car_tax` and `creditable_purpose` where the facts need them; see [Trade-in](#trade-in) |
 | `dasp-tax` | `tax_free_component`, `taxed_element`, `untaxed_element`, `working_holiday_maker_contributions`, `unclaimed_money_rollover`, `year`, `scope_confirmed`; see [DASP tax](#dasp-tax) |
 | `super-benefit-tax` | `benefit`, `interest_value`, `interest_tax_free_component`, `untaxed_element`, `recipient`, `payment_date`, `year`, `scope_confirmed`; optionally `date_of_birth`, `terminal_medical_condition`, `disability_superannuation_benefit`, `service_before_july_1983`, `low_rate_cap_used`, `untaxed_plan_cap_used`, `other_lump_sums_this_year`; see [Super benefit tax](#super-benefit-tax) |
-| `super-withholding` | `benefit`, `interest_value`, `interest_tax_free_component`, `untaxed_element`, `recipient`, `payment_date`, `tfn_provided`, `foreign_resident`, `year`, `scope_confirmed`; optionally the same facts as `super-benefit-tax`; see [Super withholding](#super-withholding) |
+| `super-withholding` | `benefit`, `interest_value`, `interest_tax_free_component`, `untaxed_element`, `recipient`, `payment_date`, `tfn_provided`, `foreign_resident`, `year`, `scope_confirmed`; optionally the same facts as `super-benefit-tax`, and for an income stream `income_stream_period`, `tax_free_threshold_claimed`, `capped_defined_benefit` and `deceased_aged_60_or_over`; see [Super withholding](#super-withholding) |
 | `payroll-tax` | `jurisdiction`, `taxable_wages`, `australian_wages`, `group_member`, `employed_all_year`, `year`, `scope_confirmed`; in Victoria, `regional_employer`; see [Payroll tax](#payroll-tax) |
 | `fbt` | `type_one_value`, `type_two_value`, `year_ended`, `scope_confirmed` |
 | `fbt-car-statutory` | `cost_price`, `later_accessories`, `one_third_reduction`, `days_available`, `employee_contribution`, `electric_car_exempt`, `year_ended`, `scope_confirmed` |
@@ -2744,9 +2744,40 @@ no TFN        floor(floor(taxable component) x 47%) under 60; untaxed element on
 
 It refuses a payment before 13 October 2020 (the schedule then was not read),
 no TFN for a non-dependant or a member benefit under $200, for which the
-schedule states no rate, as well as everything `super-benefit-tax` refuses. Tax treaties, income streams
-(Schedule 13), departing Australia superannuation payments (`dasp-tax`) and
-the tax itself (`super-benefit-tax`) are outside it. See
+schedule states no rate, as well as everything `super-benefit-tax` refuses. Tax treaties, departing
+Australia superannuation payments (`dasp-tax`) and the tax itself
+(`super-benefit-tax`) are outside it.
+
+With `income_stream_period` (`weekly`, `fortnightly`, `monthly` or
+`quarterly`) the payment is one superannuation income stream payment in
+2024-25 to 2026-27 under Schedule 13 Part A, to `member` or
+`death_benefits_dependant`. `interest_value` and `interest_tax_free_component`
+are then the interest's figures when the stream commenced (s 307-125(3)(a)),
+`date_of_birth` is the payee's, `disability_superannuation_benefit` marks a
+disability super income stream, and the command adds
+`tax_free_threshold_claimed`, `capped_defined_benefit` and
+`deceased_aged_60_or_over` (dependants only):
+
+```text
+step 1  withheld_from      floor(taxable component) under 60; floor(untaxed element) at 60 or over
+step 2  withholding_amount Schedule 1 on withheld_from for the period: scale 2 with the threshold, scale 1 without
+step 3  tax_offset         disability under 60, or dependant under 60 of a deceased under 60: floor(taxed) x 15%
+                           60 or over (member or dependant): floor(untaxed) x 10%; otherwise nil
+step 4  offset_adjustment  only when tax_offset > 0, on W = withheld_from x d / m, the weekly equivalent
+                           (d / m: weekly 1 / 1, fortnightly 1 / 2, monthly 3 / 13, quarterly 1 / 13):
+                           W < threshold: nil; < shade-in: (W - threshold) x 10%; < limit: W x 2%; else nil
+                           (2024-25, 2025-26: $500, $625, $1,181; 2026-27: $538, $673, $1,216), back to the period
+                           exactly: (withheld_from x d - threshold x m) x 10% / d, or withheld_from x 2%
+step 5  withholding        dollars(max(withholding_amount - tax_offset, offset_adjustment))
+no TFN  floor(withheld_from x 47%), 45% for a foreign resident
+```
+
+It refuses an income stream payment before 2024-25, a capped defined benefit
+stream to a payee 60 or over (Parts B to E), a dependant under 60 whose
+deceased died aged 60 or over, a foreign resident with a TFN and an annual
+payment. A SAPTO claim through withholding (Schedule 9), Medicare levy
+variation declarations and study and training support loan debts (Schedule 8)
+are outside it. See
 [calculation evidence](docs/calculation-evidence.md#super-withholding).
 
 ## Depreciation pools and capital works

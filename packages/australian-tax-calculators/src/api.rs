@@ -2188,6 +2188,9 @@ pub fn evaluate_coded(command: &str, v: &Value) -> Result<Value> {
             });
             let [a0, a1, a2, a3, a4, a5, a6] = given;
             let given = [a0?, a1?, a2?, a3?, a4?, a5?, a6?];
+            // Optional: the facts only an income stream payment takes.
+            let [s0, s1, s2, s3] = engine::STREAM_OPTIONAL.map(|key| optional(v, key, Raw));
+            let stream = [s0?, s1?, s2?, s3?];
             engine::super_withholding(&engine::SuperWithholdingArgs {
                 base: engine::SuperBenefitTaxArgs {
                     benefit: &a[0],
@@ -2202,6 +2205,7 @@ pub fn evaluate_coded(command: &str, v: &Value) -> Result<Value> {
                 },
                 tfn_provided: &a[6],
                 foreign_resident: &a[7],
+                stream: stream.each_ref().map(Option::as_ref),
             })
         }
         "dasp-tax" => engine::dasp_tax(&engine::DaspTaxArgs {

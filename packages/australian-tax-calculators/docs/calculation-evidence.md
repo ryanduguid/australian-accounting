@@ -3179,6 +3179,34 @@ The tests also cover each Table A rate, the total's rounding, a foreign
 resident, death benefits, nil payments, the no-TFN rates ignoring cents, each
 year's untaxed plan cap and each refusal.
 
+Income streams (Schedule 13 Part A) were added on 23 November 2026. Sources
+read that day: Schedule 13 of F2024L00664, F2025L00647, F2025L01016 (the same
+text as F2025L00647) and F2026L00716, and ITAA 1997 ss 301-10, 301-25 to
+301-40, 301-100, 301-110, 302-65 to 302-90, 307-125, 307-145 and 307-150 from
+the ATO's legal database. Each schedule's Case A, Veronica, is the only worked
+Part A example; the PAYG withholding tax table amounts it quotes ($60 and $70)
+come out of the crate's Schedule 1 coefficients unchanged, which checks them
+against each year's instrument, and its fortnightly adjustment
+(($1,100 - $1,076) x 10%) is the weekly band formula converted back to the
+fortnight. The schedules do not say whether the weekly adjustment is rounded
+before it is converted; the command rounds once, at step 5, and Veronica's
+result is the same either way. It converts back exactly: the 10% band is
+(withheld_from x d - threshold x m) x 10% / d and the 2% band is
+withheld_from x 2%, where the weekly equivalent is withheld_from x d / m, so a
+quarter's $7,079 in 2026-27 gives exactly $8.50 and $9 withheld. `tests/super_income_stream.rs` holds each case.
+
+| Example | Facts given | Withheld |
+| --- | --- | --- |
+| Veronica, 58, disability stream, 2024-25 | fortnightly $1,400: $300 tax free, $1,100 taxed | $70 - $165 offset; adjustment **$10** |
+| Veronica, 2025-26 | As 2024-25 | **$10** |
+| Veronica, 2026-27 | As 2024-25 | $60 - $165; adjustment $2.40, **$2** |
+
+The tests also cover scale 1, each offset row, a dependant on each side of 60,
+each band edge of the adjustment in 2026-27 and the upper edge in 2024-25 and
+2025-26, monthly and quarterly
+payments, cents ignored and the 50-cent rounding, the no-TFN rates, the
+proportion at commencement and each refusal.
+
 ## Depreciation low-value pool
 
 Added on 22 November 2026, with the 2 sections after it. The sources were read
