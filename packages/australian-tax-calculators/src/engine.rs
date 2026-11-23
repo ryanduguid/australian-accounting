@@ -6216,6 +6216,8 @@ mod sb_cgt_concessions;
 pub use sb_cgt_concessions::{SB_CGT_OPTIONAL, SbCgtConcessionsArgs, sb_cgt_concessions};
 mod work_expenses;
 pub use work_expenses::{WORK_EXPENSES_OPTIONAL, work_expenses};
+mod notice_period;
+pub use notice_period::{NoticePeriodArgs, notice_period};
 mod ato_interest_penalties;
 pub use ato_interest_penalties::ato_interest_penalties;
 mod excess_contributions;
@@ -6292,7 +6294,7 @@ pub use ess_discount::{EssDiscountArgs, ess_discount};
 mod help_indexation;
 pub use help_indexation::{HELP_INDEXATION_OPTIONAL, HelpIndexationArgs, help_indexation};
 
-const KINDS: [&str; 117] = [
+const KINDS: [&str; 118] = [
     "gst",
     "gst_margin_scheme",
     "fuel_tax_credits",
@@ -6368,6 +6370,7 @@ const KINDS: [&str; 117] = [
     "alcohol_excise",
     "sb_cgt_concessions",
     "work_expenses",
+    "notice_period",
     "ato_interest_penalties",
     "transfer_balance",
     "excess_contributions",

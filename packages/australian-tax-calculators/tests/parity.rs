@@ -46,7 +46,7 @@ use std::process::{Command, Stdio};
 /// `tests/minors_income.rs`, `tests/smsf_tax.rs`, `tests/fbt_instalment.rs`, `tests/ess_discount.rs` and
 /// `tests/help_indexation.rs` cover them, as `tests/transfer_balance.rs` covers
 /// `transfer-balance` and `excess-contributions`.
-const NEW_KINDS: [(&str, &str); 103] = [
+const NEW_KINDS: [(&str, &str); 104] = [
     ("help-indexation", "help_indexation"),
     ("super-withholding", "super_withholding"),
     ("super-benefit-tax", "super_benefit_tax"),
@@ -90,6 +90,7 @@ const NEW_KINDS: [(&str, &str); 103] = [
     ("cgt-cost-base-adjustments", "cgt_cost_base_adjustments"),
     ("sb-cgt-concessions", "sb_cgt_concessions"),
     ("work-expenses", "work_expenses"),
+    ("notice-period", "notice_period"),
     (
         "private-health-insurance-rebate",
         "private_health_insurance_rebate",
