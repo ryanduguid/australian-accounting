@@ -8,8 +8,8 @@
 use serde_json::{Value, json};
 
 use super::{
-    Arg, COMMAND, Decimal, KIND, Result, Step, conflict, d, derived_result, flag, int, invalid,
-    money, named, py_max, rate, refuse, step, sum, with_return,
+    Arg, COMMAND, Decimal, Result, Standard, Step, conflict, d, finish, flag, int, invalid, money,
+    named, py_max, rate, refuse, step, sum, with_return,
 };
 
 const SELF_EDUCATION_REDUCTION: &str = "250";
@@ -137,6 +137,7 @@ pub(super) fn self_education(
     when: &str,
     year: &str,
     first: i64,
+    standard: Option<&Standard>,
 ) -> Result<Value> {
     let early = first < 2022;
     let names = names(given, early);
@@ -174,7 +175,7 @@ pub(super) fn self_education(
         )
     };
     steps.extend(with_return(total, "return_amount")?);
-    let mut out = derived_result(KIND, year, steps, rates)?;
+    let mut out = finish(year, steps, rates, standard, "return_amount")?;
     out["method"] = json!("self_education");
     out["deductible"] = json!(connected);
     out["reduction_applies"] = json!(connected && prescribed);

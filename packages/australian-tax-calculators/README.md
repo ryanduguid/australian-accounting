@@ -3750,6 +3750,23 @@ tests hold it to the ATO's Keisha, Yang, Wanda, Johan, Lana and Maureen
 examples, PCG 2023/1's Gerry and Piruntha and TR 98/9's Con; see
 [calculation evidence](docs/calculation-evidence.md#work-expenses).
 
+In 2026-27 it also works out the standard deduction for work-related
+expenses (ITAA 1997 s 25-130, inserted by the Treasury Laws Amendment (Tax
+Reform No. 1) Act 2026) when given `assessable_labour_income`,
+`other_work_related_deductions` (the year's other deductions s 25-130(2)(c)
+to (g) covers) and `australian_resident`, all 3 or none:
+`standard_deduction_limit`, the lesser of $1,000 and that income (nil for a
+non-resident); `work_related_deductions_claimed`, this method's return amount
+(the higher one for `home_office`) plus the others; `standard_deduction`,
+the limit less those, not below nil; `deductions_if_claimed` and, leaving
+this method out, `standard_deduction_if_not_claimed` and
+`deductions_if_not_claimed`; and `claiming_adds`, the difference, which is
+what itemising this method's claim (with its records) gains over relying on
+the standard deduction. Given before 2026-27 they are refused. Its tests
+hold it to the explanatory memorandum's examples 4.1 to 4.4 and the ATO's
+Simon and Yui. `personal-tax-estimate` applies the same deduction to a whole
+year's labour income.
+
 ## Residency tests
 
 `residency_tests` says whether an individual was a resident of Australia for

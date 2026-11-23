@@ -8,8 +8,8 @@
 use serde_json::{Value, json};
 
 use super::{
-    Arg, COMMAND, KIND, Result, conflict, d, derived_result, flag, int, invalid, money, named,
-    py_min, rate, refuse, step, with_return,
+    Arg, COMMAND, Result, Standard, conflict, d, finish, flag, int, invalid, money, named, py_min,
+    rate, refuse, step, with_return,
 };
 
 const KILOMETRE_CAP: &str = "5000";
@@ -48,6 +48,7 @@ pub(super) fn cents_per_kilometre(
     when: &str,
     year: &str,
     first: i64,
+    standard: Option<&Standard>,
 ) -> Result<Value> {
     let names = ["owned_or_leased", "business_kilometres"];
     let get = named(given, COMMAND, when, &names)?;
@@ -76,7 +77,7 @@ pub(super) fn cents_per_kilometre(
         rate("rate_per_kilometre", &per_kilometre),
         rate("kilometre_cap", &cap),
     ];
-    let mut out = derived_result(KIND, year, steps, rates)?;
+    let mut out = finish(year, steps, rates, standard, "return_amount")?;
     out["method"] = json!("car_cents_per_kilometre");
     out["kilometres_discarded"] = json!(kilometres.gt(&cap)?);
     Ok(out)
@@ -132,22 +133,25 @@ fn log_book_kept<'a>(get: impl Fn(&str) -> &'a Arg, year: &str, first: i64) -> R
     Ok(kept)
 }
 
+/// The log book method's inputs.
+const LOG_BOOK_INPUTS: [&str; 7] = [
+    "owned_or_leased",
+    "business_kilometres",
+    "total_kilometres",
+    "car_expenses",
+    "log_book_year",
+    "log_book_weeks",
+    "log_book_representative",
+];
+
 pub(super) fn log_book(
     given: &[(String, Arg)],
     when: &str,
     year: &str,
     first: i64,
+    standard: Option<&Standard>,
 ) -> Result<Value> {
-    let names = [
-        "owned_or_leased",
-        "business_kilometres",
-        "total_kilometres",
-        "car_expenses",
-        "log_book_year",
-        "log_book_weeks",
-        "log_book_representative",
-    ];
-    let get = named(given, COMMAND, when, &names)?;
+    let get = named(given, COMMAND, when, &LOG_BOOK_INPUTS)?;
     car_held(get("owned_or_leased"))?;
     let kept = log_book_kept(&get, year, first)?;
     let business = money(get("business_kilometres"))?;
@@ -176,7 +180,7 @@ pub(super) fn log_book(
         deduction,
     );
     steps.extend(with_return(total, "return_amount")?);
-    let mut out = derived_result(KIND, year, steps, Vec::new())?;
+    let mut out = finish(year, steps, Vec::new(), standard, "return_amount")?;
     out["method"] = json!("car_log_book");
     out["log_book_valid_to"] = json!(format!("{}-{:02}", kept + 4, (kept + 5) % 100));
     Ok(out)

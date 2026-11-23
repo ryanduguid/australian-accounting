@@ -549,3 +549,151 @@ fn derive_explains_each_method() {
         );
     }
 }
+
+/// `input` with the standard deduction facts for 2026-27: a resident with
+/// `labour` of assessable labour income and `other` work-related deductions.
+fn standard(input: Value, labour: &str, other: &str) -> Value {
+    with(
+        input,
+        json!({"assessable_labour_income": labour,
+               "other_work_related_deductions": other, "australian_resident": true}),
+    )
+}
+
+/// The 7 standard deduction amounts, in step order.
+fn standard_amounts(result: &Value) -> [&str; 7] {
+    [
+        "standard_deduction_limit",
+        "work_related_deductions_claimed",
+        "standard_deduction",
+        "deductions_if_claimed",
+        "standard_deduction_if_not_claimed",
+        "deductions_if_not_claimed",
+        "claiming_adds",
+    ]
+    .map(|id| amount(result, id))
+}
+
+#[test]
+fn the_explanatory_memorandums_nicky_examples_match() {
+    // Example 4.1: $200 working from home (286 hours at 70c, $200.20, $200
+    // claimed) and $250 of other covered expenses (stationery $50, a
+    // subscription $50, travel between workplaces $150): the $450 reduces
+    // the $1,000 to $550, for $1,000 in all either way. Example 4.2: not
+    // claiming the $200 leaves $250 claimed and a $750 standard deduction.
+    let nicky = run(&standard(home("2026-27", "286"), "60000.00", "250.00"));
+    assert_eq!(nicky["higher_method"], "fixed_rate");
+    assert_eq!(
+        standard_amounts(&nicky),
+        [
+            "1000.00", "450.00", "550.00", "1000.00", "750.00", "1000.00", "0.00"
+        ]
+    );
+    // Example 4.3: $1,050 of covered expenses (1,000 km at 91c, $910, and
+    // $140 more) leaves no standard deduction if claimed; not claiming the
+    // car gives the $1,000, so claiming adds $50.
+    let car = run(&standard(cents("2026-27", "1000"), "60000.00", "140.00"));
+    assert_eq!(
+        standard_amounts(&car),
+        [
+            "1000.00", "1050.00", "0.00", "1050.00", "860.00", "1000.00", "50.00"
+        ]
+    );
+    // Example 4.4: $800 allowed after review (a log book claim of 40% of
+    // $2,000) gives a $200 standard deduction, $1,000 in all.
+    let reviewed = run(&standard(
+        log_book(json!({"year": "2026-27", "business_kilometres": "40",
+                        "car_expenses": "2000.00"})),
+        "60000.00",
+        "0.00",
+    ));
+    assert_eq!(
+        standard_amounts(&reviewed),
+        [
+            "1000.00", "800.00", "200.00", "1000.00", "1000.00", "1000.00", "0.00"
+        ]
+    );
+}
+
+#[test]
+fn the_atos_simon_and_yui_examples_match() {
+    // Simon: $400 of wages caps the standard deduction at $400.
+    let simon = run(&standard(education("2026-27", json!({})), "400.00", "0.00"));
+    assert_eq!(amount(&simon, "standard_deduction_limit"), "400.00");
+    assert_eq!(amount(&simon, "standard_deduction"), "400.00");
+    // Yui: $95,000 of wages; a $200 course claimed beside $350 of working
+    // from home and client travel leaves a $450 standard deduction.
+    let yui = run(&standard(
+        education("2026-27", json!({"category_a": "200.00"})),
+        "95000.00",
+        "350.00",
+    ));
+    assert_eq!(
+        standard_amounts(&yui),
+        [
+            "1000.00", "550.00", "450.00", "1000.00", "650.00", "1000.00", "0.00"
+        ]
+    );
+}
+
+#[test]
+fn a_non_resident_has_no_standard_deduction() {
+    let input = with(
+        standard(
+            education("2026-27", json!({"category_a": "300.00"})),
+            "50000.00",
+            "0.00",
+        ),
+        json!({"australian_resident": false}),
+    );
+    let result = run(&input);
+    assert_eq!(
+        standard_amounts(&result),
+        ["0.00", "300.00", "0.00", "300.00", "0.00", "0.00", "300.00"]
+    );
+    let doc = api::evaluate(
+        "derive",
+        &json!({"command": "work-expenses", "input": input}),
+    )
+    .unwrap();
+    let limit = &doc["steps"].as_array().unwrap()[2];
+    assert_eq!(limit["id"], "standard_deduction_limit");
+    assert!(
+        limit["authority"]
+            .as_str()
+            .unwrap()
+            .contains("25-130(1)(b)")
+    );
+}
+
+#[test]
+fn the_standard_deduction_needs_2026_27_and_all_3_facts() {
+    for year in &YEARS[..6] {
+        let early = standard(education(year, json!({})), "1000.00", "0.00");
+        assert_eq!(
+            code(&early),
+            "work_expenses.standard_deduction_unavailable",
+            "{year}"
+        );
+    }
+    let full = standard(education("2026-27", json!({})), "1000.00", "0.00");
+    for key in [
+        "assessable_labour_income",
+        "other_work_related_deductions",
+        "australian_resident",
+    ] {
+        let partial = with(full.clone(), json!({ key: "remove" }));
+        assert_eq!(code(&partial), "input.missing_field", "{key}");
+    }
+    let bad_flag = with(full.clone(), json!({"australian_resident": "yes"}));
+    assert_eq!(code(&bad_flag), "input.flag_invalid");
+    let bad_amount = with(full, json!({"assessable_labour_income": "-1"}));
+    assert_eq!(code(&bad_amount), "input.amount_invalid");
+}
+
+#[test]
+fn without_the_facts_a_2026_27_result_is_unchanged() {
+    let plain = run(&education("2026-27", json!({"category_a": "300.00"})));
+    assert!(plain["amounts"].get("standard_deduction").is_none());
+    assert_eq!(plain["amounts"].as_object().unwrap().len(), 2);
+}
