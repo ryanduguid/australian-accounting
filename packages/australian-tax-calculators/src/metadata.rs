@@ -1129,7 +1129,7 @@ pub fn supported_periods(kind: &str) -> Vec<&'static str> {
         // The financial years holding the substituted rates bundled in
         // data/alcohol-excise-rates.json, 1 July 2022 to 31 January 2027.
         "alcohol_excise" => vec!["2022-23", "2023-24", "2024-25", "2025-26", "2026-27"],
-        "capital_gains" | "depreciation" => vec!["2025-26", "2026-27"],
+        "capital_gains" => vec!["2025-26", "2026-27"],
         "quarterly_sg" => vec!["2025-26"],
         "resident_tax" => keys(RESIDENT_TAX_SCALES),
         "foreign_resident_tax" => keys(FOREIGN_RESIDENT_TAX_SCALES),
@@ -1365,9 +1365,15 @@ pub fn supported_periods(kind: &str) -> Vec<&'static str> {
         "private_health_insurance_rebate" => {
             [keys(PHI_EARLIER_THRESHOLDS), keys(SURCHARGE_THRESHOLDS)].concat()
         }
-        // The pools' rates and the capital works rates do not change in these
-        // years; the small business pool's low pool value threshold does, by year.
-        "depreciation_low_value_pool" | "depreciation_small_business_pool" | "capital_works" => {
+        // The pools' rates, the capital works rates and the single-asset
+        // methods do not change in these years; the small business pool's low
+        // pool value threshold and the instant asset write-off limit do, by year
+        // and by date of first use.
+        "depreciation"
+        | "depreciation_low_value_pool"
+        | "depreciation_small_business_pool"
+        | "capital_works"
+        | "instant_asset_write_off" => {
             vec![
                 "2020-21", "2021-22", "2022-23", "2023-24", "2024-25", "2025-26", "2026-27",
             ]
@@ -1567,8 +1573,8 @@ pub fn source_review(kind: &str) -> (&'static str, &'static str) {
             "FBTAA ss 40, 42, 43, 44 and 62 and s 136(1), notional value, compilation 97 (1 July 2026); Fringe benefits tax - a guide for employers, 17.2 to 17.5 and their examples and 19.5; FBT return 2026 instructions, item 23K and example 14",
         ),
         "depreciation" => (
-            "2026-11-13",
-            "Decline in value: diminishing value and prime cost methods, with the later-year diminishing value example; taxable use; ITAA 1997 ss 40-70(1), 40-72 and 40-75(1) and (7), base value and the limit on decline in a later year",
+            "2026-11-23",
+            "Decline in value: diminishing value and prime cost methods, with the later-year diminishing value example; taxable use; ITAA 1997 ss 40-70(1), 40-72 and 40-75(1) and (7), base value and the limit on decline in a later year; Guides to depreciating assets 2021 to 2026, the methods and days held in a leap year, with Laura's photocopier in the 2021 and 2024 guides and Paul's refrigerator in the 2023 guide; IT(TP)A 1997 Subdivisions 40-BA and 40-BB, flagged",
         ),
         "quarterly_sg" => (
             "2026-09-10",
@@ -1729,6 +1735,10 @@ pub fn source_review(kind: &str) -> (&'static str, &'static str) {
         "depreciation_small_business_pool" => (
             "2026-11-22",
             "ITAA 1997 ss 328-185, 328-190, 328-195, 328-200, 328-210 and 328-215 (ATO legal database); IT(TP)A 1997 ss 328-180(6) and 328-181(5); Treasury Laws Amendment (Tax Reform No. 2) Act 2026 (No. 71 of 2026) Sch 2 items 7 and 15; ATO Small business pool calculations (last updated 16 June 2025), examples 2 and 3; Instant asset write-off for eligible businesses (last updated 28 August 2026), table 1; LCR 2021/3, example 13",
+        ),
+        "instant_asset_write_off" => (
+            "2026-11-23",
+            "ITAA 1997 ss 40-25, 40-82 and 328-180 (ATO legal database); IT(TP)A 1997 ss 40-145, 40-150, 40-160, 40-165, 40-190, 328-180 and 328-181; Treasury Laws Amendment (Tax Reform No. 2) Act 2026 (No. 71 of 2026) Sch 2 items 3 and 15; ATO Instant asset write-off for eligible businesses (last updated 28 August 2026), tables 1 and 2 and the examples; ATO TFE for small business entities using simplified depreciation, example 1",
         ),
         "capital_works" => (
             "2026-11-22",
@@ -2249,6 +2259,12 @@ pub fn library_evidence(kind: &str) -> [(&'static str, &'static str); 4] {
             "Loretta's 2018-19 pool ($30,000 and $4,200, closing $85,800), Cassidy's Gardens ($15,700 written off) and example 13 ($200,000 written off in 2020-21)",
             "2025-06-16",
             "2026-11-22",
+        ),
+        "instant_asset_write_off" => (
+            "ATO Instant asset write-off for eligible businesses; TFE for small business entities using simplified depreciation",
+            "Fiona's $6,800 computer at 80% ($5,440) and $700 printer, Jack's $4,500 welder and $220,000 excavator, Daryl's $40,000 ute ($16,000 to the pool) and X Co's $35,000 van",
+            "2026-08-28",
+            "2026-11-23",
         ),
         "capital_works" => (
             "ATO Rental properties guide 2026",
@@ -4368,7 +4384,7 @@ pub fn input_units(kind: &str) -> Vec<(&'static str, &'static str)> {
         "depreciation" => vec![
             ("cost", "AUD"),
             ("effective_life", "years, decimal string from 0.01 to 1000"),
-            ("days", "integer from 0 to 365"),
+            ("days", "integer from 0 to 365, or to 366 in 2023-24"),
             ("taxable_use", "fraction, decimal string from 0 to 1"),
             ("method", "method name"),
         ],
@@ -4891,6 +4907,13 @@ pub fn input_units(kind: &str) -> Vec<(&'static str, &'static str)> {
             ("additions", "AUD: the taxable purpose proportions of the adjustable values of assets first used, or installed ready for use, for a taxable purpose in the year and allocated to the pool (s 328-185(4)), not those written off under s 328-180 or temporary full expensing"),
             ("cost_additions", "AUD: the taxable purpose proportion of cost addition amounts for the year for pooled assets (s 328-190(3))"),
             ("termination_values", "AUD: the taxable purpose proportions of the termination values of pooled assets for which a balancing adjustment event happened in the year"),
+        ],
+        "instant_asset_write_off" => vec![
+            ("entity", "small_business_simplified (a small business entity that chose the simplified depreciation rules, Subdivision 328-D, for the year it started to hold the asset and the year of first use), medium_business (not a small business entity, with aggregated turnover under $500 million under Subdivision 328-C's tests, for both years; ITAA 1997 s 40-82(4A)) or other"),
+            ("acquired", "YYYY-MM-DD: when you first acquired, or started to hold, the asset"),
+            ("first_used", "YYYY-MM-DD: when you first used the asset, or had it installed ready for use, for a taxable purpose; in the income year, and not before acquired"),
+            ("cost", "AUD: the asset's Division 40 cost at the end of the year of first use (for a medium_business, at the earlier of that and 31 December 2020), GST credits excluded"),
+            ("taxable_use", "fraction, decimal string from 0 to 1: the taxable purpose proportion"),
         ],
         "capital_works" => vec![
             ("construction_expenditure", "AUD: your construction expenditure attributable to the part of your area this deduction is for (ITAA 1997 s 43-210 'portion of your CE')"),
@@ -6019,6 +6042,15 @@ pub fn examples(kind: &str) -> Vec<(&'static str, Example)> {
         ],
         // Rental properties guide 2026, example 29; the day in August 1991 and
         // the undeducted construction expenditure are fabricated.
+        // The ATO's Fiona: a $6,800 computer used 80% for business.
+        "instant_asset_write_off" => vec![
+            ("year", Text("2025-26")),
+            ("entity", Text("small_business_simplified")),
+            ("acquired", Text("2025-11-18")),
+            ("first_used", Text("2025-11-18")),
+            ("cost", Text("6800.00")),
+            ("taxable_use", Text("0.8")),
+        ],
         "capital_works" => vec![
             ("year", Text("2025-26")),
             ("construction_expenditure", Text("115800.00")),

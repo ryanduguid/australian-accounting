@@ -191,10 +191,10 @@ fn every_catalogued_required_input_of_a_strict_command_is_read() {
     // gst-financial-acquisitions-threshold, gst-going-concern,
     // gst-second-hand-goods, gst-bad-debt, deferred-tax,
     // cgt-cost-base-adjustments, super-withholding, foreign-income-conversion,
-    // foreign-income-tax-offset, trading-stock, prepayments, minors-income and
-    // smsf-tax.
+    // foreign-income-tax-offset, trading-stock, prepayments, minors-income,
+    // smsf-tax and instant-asset-write-off.
     // With transfer-balance and excess-contributions.
-    assert_eq!(checked, 97);
+    assert_eq!(checked, 98);
 }
 
 /// Every frozen call gives the same answer through either entry point, and

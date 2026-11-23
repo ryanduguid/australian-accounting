@@ -331,6 +331,10 @@ pub const SCOPES: &[(&str, &str)] = &[
         "One area's capital works deduction under ITAA 1997 Division 43 for an income year from 2020-21 to 2026-27, for capital works begun on or after 16 September 1987 that qualify for a deduction for their start date and type (the operator establishes this, for example from the Rental properties guide 2026 table 1: structural improvements begun before 27 February 1992 do not). The rate is 4% for the part used in the 4% manner (s 43-145, including the 4% build to rent manner) for works begun after 26 February 1992, and 2.5% otherwise (s 43-210 steps 1 and 3; s 43-215 step 1(b) for works begun 16 September 1987 to 26 February 1992), on the construction expenditure for the part, for the days in the year it was owned or leased and used in that way over 365 (366 days are allowed in 2023-24), reduced for use only partly for producing assessable income, and limited to the undeducted construction expenditure (s 43-210 step 6, s 43-215 step 4). The operator establishes the construction expenditure attributable to their own area (a co-owner's own part), the days, the taxable use and the undeducted construction expenditure (s 43-235). Excludes works begun before 16 September 1987, works taken by s 43-220 to have begun before then, hotel and apartment buildings begun before 27 February 1992 (s 43-215 step 2), the calculation of undeducted construction expenditure, destruction (s 43-40) and splitting expenditure amongst co-owners.",
     ),
     (
+        "instant_asset_write_off",
+        "One asset's instant asset write-off for the income year from 2020-21 to 2026-27 in which it is first used, or installed ready for use, for a taxable purpose: for a small business entity that chose the simplified depreciation rules (ITAA 1997 s 328-180) for that year and the year it started to hold the asset, with the cost limit for its dates (IT(TP)A 1997 ss 328-180(4) and (4A) and 328-181(2), Act No. 71 of 2026 Sch 2), or for a medium sized business under s 40-82(2A). The operator establishes the entity's status and turnover for both years, the dates, the asset's Division 40 cost at the test time and its taxable purpose proportion. Excludes assets excluded from the simplified depreciation rules (s 328-175), cars whose cost the car limit reduces, an asset first used for any purpose in an earlier year, later second element amounts, balancing adjustments, split ownership and, for other than a small business entity, any asset temporary full expensing may take.",
+    ),
+    (
         "small_business_income_offset",
         "The small business income tax offset (ITAA 1997 Subdivision 328-F) of one individual, not as a trustee, who is not a prescribed person under s 102AC of the ITAA 1936, for an income year from 2020-21 to 2026-27: net small business income (s 328-365), each partnership or trust amount and its s 328-370 deductions, the basic income tax liability and the offsets applied before this one are the operator's established figures, and each partnership or trust is a small business entity at $5 million that is not a corporate tax entity.",
     ),
@@ -768,6 +772,10 @@ pub const SOURCES: &[(&str, &str)] = &[
     (
         "capital_works",
         "https://www.ato.gov.au/law/view/document?docid=PAC/19970038/43-210",
+    ),
+    (
+        "instant_asset_write_off",
+        "https://www.ato.gov.au/businesses-and-organisations/income-deductions-and-concessions/depreciation-and-capital-expenses-and-allowances/simpler-depreciation-for-small-business/instant-asset-write-off",
     ),
     (
         "small_business_income_offset",
@@ -1677,6 +1685,18 @@ pub const EXTRA_SOURCES: &[(&str, &[&str])] = &[
         ],
     ),
     (
+        "instant_asset_write_off",
+        &[
+            "https://www.ato.gov.au/law/view/document?docid=PAC/19970038/328-180",
+            "https://www.ato.gov.au/law/view/document?docid=PAC/19970038/40-82",
+            "https://www.ato.gov.au/law/view/document?docid=PAC/19970040/328-180",
+            "https://www.ato.gov.au/law/view/document?docid=PAC/19970040/328-181",
+            "https://www.ato.gov.au/law/view/document?docid=PAC/19970040/40-160",
+            "https://www.ato.gov.au/law/view/pdf/acts/20260071.pdf",
+            "https://www.ato.gov.au/businesses-and-organisations/income-deductions-and-concessions/depreciation-and-capital-expenses-and-allowances/temporary-full-expensing/tfe-for-small-business-entities-using-simplified-depreciation",
+        ],
+    ),
+    (
         "rental_property",
         &[
             "https://www.ato.gov.au/law/view/document?docid=PAC/19970038/8-1",
@@ -2421,7 +2441,7 @@ pub const UNPUBLISHED_2027_28: &[(&str, &str)] = &[
     ),
     (
         "depreciation",
-        "2027-28 has 366 days, and this worksheet takes at most 365 days held.",
+        "2027-28 has 366 days, and this worksheet has been checked for a year of 366 days only in 2023-24.",
     ),
     ("payg_withholding", WITHHOLDING_2027_28),
     ("horticulture_shearing_withholding", WITHHOLDING_2027_28),
@@ -3587,12 +3607,16 @@ pub const REFUSAL_CODES: &[(&str, &str)] = &[
         "An effective life is outside 0.01 to 1000 years.",
     ),
     (
+        "input.entity_invalid",
+        "The entity is not one of the kinds the command takes.",
+    ),
+    (
         "input.fbt_method_invalid",
         "An FBT benefit worksheet's method is not one it offers.",
     ),
     (
         "input.field_unknown",
-        "A field the worksheet or command does not take, or does not take beside the other inputs given, was given (fbt-loan, fbt-meal-entertainment, fbt-car-parking, fbt-debt-waiver, fbt-expense-payment, fbt-property, fbt-residual, fbt-housing, fbt-lafha, fbt-board, fbt-tax-exempt-body-entertainment, fbt-entertainment-classifier, fbt-meal-entertainment-register and its entries, fbt-minor-benefit-check, ppsr-timing, fhss and its contributions, government-super-amounts, personal_deductions and determination, division-296, depreciation, fuel-tax-credits and its lines, alcohol-excise and its lines, foreign-resident-tax, medicare-levy, medicare-levy-surcharge, payg-withholding, payg-gross-up, termination-payment, etp-tax-free-component, unused-leave-payment, the Schedule 5 methods, working-holiday-maker-withholding, study-loan-withholding, seniors-pensioners-withholding, seniors-pensioners-tax-offset, lump-sum-arrears-tax-offset, hire-purchase-schedule, chattel-mortgage-schedule, loan-transactions and its transactions and rate_changes, borrowing-expenses-schedule and its loans, business-capital-expenditure and its items, balancing-adjustment, its years and car_limit, trade-in, franking-account and its events, distributions and income_tax, dasp-tax, super-benefit-tax, super-withholding, gst-margin-scheme, wine-equalisation-tax and its dealings, luxury-car-tax and its lines, payroll-tax, cgt-parcels, its parcels and disposals, cgt-cost-base-adjustments, its parcels and events, fbt-ev-exemption-check, sb-cgt-concessions, small-business-income-offset, residency-tests, lodgment-required, trading-stock and its items, prepayments, depreciation-low-value-pool, gst-creditable-purpose-change, gst-annual-apportionment, gst-financial-acquisitions-threshold, gst-going-concern, gst-second-hand-goods, gst-bad-debt, depreciation-small-business-pool, capital-works, non-commercial-losses, psi-test, minors-income, smsf-tax, beneficiary-tax-offset, invalid-carer-tax-offset, zone-tax-offset and its dependants, net-medical-expenses-tax-offset, work-expenses, ato-interest-penalties and its payments and parts, private-health-insurance-rebate, rental-property and its loans, capital_works and depreciating_assets, horticulture-shearing-withholding, upward-variation-withholding, daily-casual-withholding, no-abn-withholding, entertainer-withholding, return-to-work-withholding, annuity-withholding, voluntary-agreement-withholding, rd-tax-offset, deferred-tax, foreign-income-conversion, foreign-income-tax-offset, transfer-balance and its events, excess-contributions, contribution-caps given a carry-forward input, derive, personal-tax-estimate, dgr-check, income-tests and fbt-return only).",
+        "A field the worksheet or command does not take, or does not take beside the other inputs given, was given (fbt-loan, fbt-meal-entertainment, fbt-car-parking, fbt-debt-waiver, fbt-expense-payment, fbt-property, fbt-residual, fbt-housing, fbt-lafha, fbt-board, fbt-tax-exempt-body-entertainment, fbt-entertainment-classifier, fbt-meal-entertainment-register and its entries, fbt-minor-benefit-check, ppsr-timing, fhss and its contributions, government-super-amounts, personal_deductions and determination, division-296, depreciation, fuel-tax-credits and its lines, alcohol-excise and its lines, foreign-resident-tax, medicare-levy, medicare-levy-surcharge, payg-withholding, payg-gross-up, termination-payment, etp-tax-free-component, unused-leave-payment, the Schedule 5 methods, working-holiday-maker-withholding, study-loan-withholding, seniors-pensioners-withholding, seniors-pensioners-tax-offset, lump-sum-arrears-tax-offset, hire-purchase-schedule, chattel-mortgage-schedule, loan-transactions and its transactions and rate_changes, borrowing-expenses-schedule and its loans, business-capital-expenditure and its items, balancing-adjustment, its years and car_limit, trade-in, franking-account and its events, distributions and income_tax, dasp-tax, super-benefit-tax, super-withholding, gst-margin-scheme, wine-equalisation-tax and its dealings, luxury-car-tax and its lines, payroll-tax, cgt-parcels, its parcels and disposals, cgt-cost-base-adjustments, its parcels and events, fbt-ev-exemption-check, sb-cgt-concessions, small-business-income-offset, residency-tests, lodgment-required, trading-stock and its items, prepayments, depreciation-low-value-pool, gst-creditable-purpose-change, gst-annual-apportionment, gst-financial-acquisitions-threshold, gst-going-concern, gst-second-hand-goods, gst-bad-debt, depreciation-small-business-pool, capital-works, instant-asset-write-off, non-commercial-losses, psi-test, minors-income, smsf-tax, beneficiary-tax-offset, invalid-carer-tax-offset, zone-tax-offset and its dependants, net-medical-expenses-tax-offset, work-expenses, ato-interest-penalties and its payments and parts, private-health-insurance-rebate, rental-property and its loans, capital_works and depreciating_assets, horticulture-shearing-withholding, upward-variation-withholding, daily-casual-withholding, no-abn-withholding, entertainer-withholding, return-to-work-withholding, annuity-withholding, voluntary-agreement-withholding, rd-tax-offset, deferred-tax, foreign-income-conversion, foreign-income-tax-offset, transfer-balance and its events, excess-contributions, contribution-caps given a carry-forward input, derive, personal-tax-estimate, dgr-check, income-tests and fbt-return only).",
     ),
     ("input.flag_invalid", "A flag is not a JSON boolean."),
     ("input.fraction_invalid", "A fraction is outside 0 to 1."),
@@ -3662,6 +3686,26 @@ pub const REFUSAL_CODES: &[(&str, &str)] = &[
     (
         "input.years_of_service_invalid",
         "A count of completed years of service is not a whole number from 0 to 150.",
+    ),
+    (
+        "instant_asset_write_off.acquired_after_first_use",
+        "The asset's acquisition date is after its first use.",
+    ),
+    (
+        "instant_asset_write_off.budget_time_day",
+        "The asset was acquired on the day of a 7.30 pm budget time the result turns on, and the command takes dates only.",
+    ),
+    (
+        "instant_asset_write_off.first_use_outside_year",
+        "The asset's first use for a taxable purpose is outside the income year.",
+    ),
+    (
+        "instant_asset_write_off.precision_exceeded",
+        "taxable_use has more than 26 significant digits.",
+    ),
+    (
+        "instant_asset_write_off.temporary_full_expensing",
+        "Temporary full expensing (IT(TP)A 1997 Subdivision 40-BB) may take the asset, which displaces s 40-82, and the command does not decide whether it does.",
     ),
     (
         "invalid_carer_tax_offset.dependant_invalid",
