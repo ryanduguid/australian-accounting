@@ -4,6 +4,19 @@
 
 ### Added
 
+- `first-home-owner-grant` gives the first home owner grant in each state
+  and territory for a new home bought or built under a contract made from
+  1 July 2025 to 22 November 2026, as the site's grant page works it, with
+  each First Home Owner Grant Act read on 23 November 2026: the amount on
+  the contract date, the value cap and the lesser-of-consideration rule,
+  from eligibility facts the operator states. New codes:
+  `first_home_owner_grant.below_grant`, `first_home_owner_grant.date_invalid`,
+  `first_home_owner_grant.date_uncovered`, `first_home_owner_grant.fact_needed`,
+  `first_home_owner_grant.facts_invalid`, `first_home_owner_grant.facts_not_stated`,
+  `first_home_owner_grant.home_invalid`, `first_home_owner_grant.jurisdiction_invalid`,
+  `first_home_owner_grant.location_needed`, `first_home_owner_grant.value_basis`
+  and `first_home_owner_grant.value_invalid`. `tests/first_home_owner_grant.rs`
+  holds it to the page's 26 cases.
 - `trading-stock` works out the change in value of trading stock under ITAA
   1997 s 70-35 for 2020-21 to 2026-27, each closing item valued by its own
   election (cost, market selling value, replacement value, the lowest, or an

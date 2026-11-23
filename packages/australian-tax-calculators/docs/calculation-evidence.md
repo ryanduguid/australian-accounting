@@ -4215,6 +4215,70 @@ Choices the Act leaves to the reader:
 | A $5,000 trust share with a $3,000 Division 6AA part | s 102AE(4), s 102AG | $1,260.00 |
 | Full-time 3 months, intending full-time study next year | s 102AC(8)(b) | prescribed |
 
+## First home owner grant
+
+This worksheet was added on 23 November 2026. That day these were read:
+
+- Victoria: First Home Owner Grant and Home Buyer Schemes Act 2000,
+  authorised version 053 (amendments as at 26 November 2025), ss 13(1)(ab),
+  13(1A), 13(7) and 18(1A); the State Revenue Office's current rates and
+  'Understanding the First Home Owner Grant' pages.
+- Queensland: First Home Owner Grant and Other Home Owner Grants Act 2000,
+  current as at 22 October 2026, ss 5(1), 5(6) to (8), 15 and 20(1); the
+  Queensland Revenue Office's eligibility page ($30,000 for contracts from
+  20 November 2023).
+- Western Australia: First Home Owner Grant Act 2000, as at 22 October 2026,
+  ss 14AC, 14AD and 19(2CA); the Department of Treasury and Finance fact sheet
+  as at 28 July 2026 (the $800,000 cap south of the 26th parallel from 7 May
+  2026, which s 14AD lets regulations prescribe; the regulations were not
+  read).
+- South Australia: First Home and Housing Construction Grants Act 2000,
+  version 4.12.2025, ss 7(1a) and 18(1); RevenueSA's grant details, eligible
+  properties and residence requirement pages.
+- Tasmania: First Home Owner Grant Act 2000, authorised version as at
+  9 October 2026, ss 18(1), 18(2)(al) and (am), 18L and 18M; the State
+  Revenue Office's eligibility page.
+- Northern Territory: First Home Owner Grant Act 2000, as in force at 1 July
+  2026, ss 12(2), 13(1)(a), 13AA, 18 and 56; the NT Government's HomeGrown
+  Territory Grant page.
+- ACT: First Home Owner Grant Act 2000, republication 37 (16 November 2025),
+  s 18; the ACT Revenue Office's page (no grant from 1 July 2019; the
+  Minister's determination was not read).
+- New South Wales: Revenue NSW's 'First Home Owner (New Homes) Grant' page.
+  The First Home Owner Grant and Shared Equity Act 2000 returned HTTP 403 to
+  every route that day, so its lesser-of rule, if any, is not applied and a
+  value below $10,000 is refused.
+
+The worksheet follows ryanduguid.github.io's first home owner grant page
+(`assets/first-home-owner-grant.mjs`, rules read 22 November 2026) and agrees
+with it on all 26 of the page's cases
+(`tests/data/first_home_owner_grant_page_cases.json`). Where an Act read
+differs, the Act is followed:
+
+- a Northern Territory established home under a contract from 1 July to
+  30 September 2025 gets $10,000 (s 13(1)(a)(iii), s 18(3D)(b)); the page
+  pays nil;
+- a Victorian, Western Australian or Northern Territory home bought for less
+  than the grant gets the price (Vic s 18(1A), WA s 19(2CA), NT s 18(1));
+  the page refuses;
+- a Victorian home built over $750,000 in total is refused, as the cap is on
+  the consideration for the building work (s 13(1A) and (7)(b)); the page
+  pays nil.
+
+The page's transfer duty rows are not part of the worksheet.
+`tests/first_home_owner_grant.rs` runs the page's cases and every
+jurisdiction, home and edge date at each amount and cap against an oracle
+typed from the rules above.
+
+| Case | Source | Worksheet |
+|---|---|---|
+| NSW bought at $600,000 and $600,001 | Revenue NSW | $10,000; nil |
+| Qld bought at $749,999, $750,000 and $20,000 | Qld Act ss 5(6), 20(1) | $30,000; nil; $20,000 |
+| WA south at $780,000 on 6 and 7 May 2026 | DTF fact sheet | nil; $10,000 |
+| SA bought for $10,000 | RevenueSA's example | $10,000 |
+| Tas built on 30 June and 1 July 2026 | Tas Act ss 18L, 18M | $30,000; $20,000 |
+| NT established on 30 September and 1 October 2025 | NT Act ss 13(1)(a), 18(3D) | $10,000; nil |
+
 ## PSI test
 
 This worksheet was added on 22 November 2026. ITAA 1997 Part 2-42 was read
