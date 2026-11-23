@@ -210,7 +210,7 @@ fn only_where_asked(place: &str, args: &MotorVehicleDutyArgs) -> Result<()> {
 }
 
 /// The rule for `place`, once its conditional inputs are where they belong.
-fn rule(place: &str, args: &MotorVehicleDutyArgs, day: i64, value: &Decimal) -> Result<Rule> {
+fn rule(place: &str, args: &MotorVehicleDutyArgs, day: i64) -> Result<Rule> {
     only_where_asked(place, args)?;
     Ok(match place {
         "nsw" => Rule::Banded(NSW),
@@ -348,7 +348,7 @@ pub fn motor_vehicle_duty(args: &MotorVehicleDutyArgs) -> Result<Value> {
     let day = duty_date(args.duty_date, &year)?;
     let value = money(args.dutiable_value)?;
     whole_dollars(&value, "dutiable values")?;
-    let (step, rates) = precise(|| match rule(place, args, day, &value)? {
+    let (step, rates) = precise(|| match rule(place, args, day)? {
         Rule::Banded(scale) => banded(&scale, &value),
         Rule::WesternAustralia => western_australia(&value),
     })?;
