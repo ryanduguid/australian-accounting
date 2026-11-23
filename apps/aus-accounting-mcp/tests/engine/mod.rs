@@ -231,6 +231,9 @@ pub fn catalogue(kind: &str, entry: &mut Value) {
             );
             evidence["checked"] = json!(review.checked);
         }
+        "depreciation" => {
+            entry["required_inputs"]["days"] = json!("integer from 0 to 365, or to 366 in 2023-24");
+        }
         _ => {}
     }
 }
