@@ -295,7 +295,7 @@ at the end. Limits must be integers from 1 to 100 and offsets non-negative integ
 Omitting `limit` or setting it to null preserves full-list calls; an offset still
 skips that many matching entries. Source metadata accompanies every page.
 
-Forty fabricated, read-only agent evaluation questions are in
+Forty-three fabricated, read-only agent evaluation questions are in
 [evaluation/questions.xml](https://github.com/ryanduguid/australian-accounting/blob/main/apps/aus-accounting-mcp/evaluation/questions.xml), each with its exact expected
 answer and the tools a correct answer needs. The normal pytest suite replays them
 through a real stdio MCP session using the locked engines, checking both the
@@ -452,11 +452,11 @@ excludes state and territory payroll tax. Broader classifications, exemptions,
 BAS/returns, trusts, partnerships, SMSF fund tax and audit, and the transfer
 balance cap remain unsupported. Reference text cannot establish calculation support.
 
-The evaluation includes 42 cases: 10 original workflows, 10 unsupported-topic
+The evaluation includes 43 cases: 10 original workflows, 10 unsupported-topic
 questions, grouped Payday, a tax worksheet, synthetic library retrieval, the
 Payday evidence pack, which needs checker evidence-pack support, a synthetic ruling
 paragraph, GST coding, BAS reconciliation, a lodgment due date, data freshness, a refused
-rate lookup, 2 identifier check digits, a BSB format, an account number format and 8 synthetic legislation corpus cases covering citation, ranking, reading a long provision in
+rate lookup, an individual return destination, 2 identifier check digits, a BSB format, an account number format and 8 synthetic legislation corpus cases covering citation, ranking, reading a long provision in
 parts, rates, definitions, an injected instruction, an undefined term and a
 stored rate's date.
 The unsupported-topic answers require no tool calls. The

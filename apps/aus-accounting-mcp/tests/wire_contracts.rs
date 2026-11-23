@@ -376,7 +376,11 @@ fn current_evaluation_answers_follow_actual_reference_calls_and_dependent_facts(
     }
     assert_eq!(
         unanswered,
-        BTreeSet::from(["account-number-format".to_owned(), "bsb-format".to_owned()])
+        BTreeSet::from([
+            "account-number-format".to_owned(),
+            "bsb-format".to_owned(),
+            "union-fees-paper-question".to_owned()
+        ])
     );
     assert_eq!(questions.len(), 40);
     assert_eq!(calls, 46);

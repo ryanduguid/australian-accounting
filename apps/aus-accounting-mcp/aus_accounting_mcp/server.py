@@ -197,6 +197,8 @@ classification of the facts the operator supplied, not a determination.
 - get_data_freshness reports each bundled dataset's recorded periods, engine version
   and source dates, with UNKNOWN where none is recorded. It never establishes that
   data is current; retain its statement when presenting a rate or date.
+- itr_label looks up domestic employee union fees by income year and return channel.
+  Keep an unmapped destination open and check the amount and evidence separately.
 - get_reviewed_rate returns one bundled ATO record for a date, with its source page
   and verbatim quote. The records cover 2025-26 and 2026-27 only. REFUSED carries no
   figure: never answer with a nearby year, and use covering_ids or known_ids to choose

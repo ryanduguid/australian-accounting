@@ -39,6 +39,17 @@ def test_mytax_uses_its_own_heading_and_source():
     assert "union and professional fees" in destination["source_quote"]
 
 
+def test_freshness_reports_the_year_and_both_sources():
+    arguments = {"tool": "itr_label", "as_at": "2026-07-01"}
+    report = asyncio.run(mcp.call_tool("get_data_freshness", arguments)).structured_content
+    dataset, = report["datasets"]
+    assert dataset["as_at_status"] == "OUTSIDE_RECORDED_PERIOD"
+    assert dataset["source_checked"] == "2026-11-23"
+    assert set(dataset["sources"]) == {
+        lookup(channel=channel)["destination"]["source_url"] for channel in ("paper", "mytax")
+    }
+
+
 @pytest.mark.parametrize("overrides", [{"year": "2026-27"}, {"item": "foreign_employment_fees"}])
 def test_absent_combination_keeps_destination_open(overrides):
     result = lookup(**overrides)
