@@ -131,8 +131,8 @@ fn whole(amount: &Decimal) -> Result<Decimal> {
     Ok(amount.quantize(0, Rounding::Down)?)
 }
 
-/// An unrounded amount shown to the cent toward nil, so it never exceeds the
-/// instalment or credit taken from it.
+/// An unrounded amount shown to the cent toward nil, so it never shows more
+/// than the amount the instalment or credit is cut from.
 fn shown(amount: &Decimal) -> Result<Decimal> {
     Ok(amount.quantize(-2, Rounding::Down)?)
 }

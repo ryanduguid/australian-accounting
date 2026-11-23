@@ -3980,7 +3980,7 @@ pub const REFUSAL_CODES: &[(&str, &str)] = &[
     ),
     (
         "payg_instalment.rate_invalid",
-        "instalment_rate is not a per cent from 0 to 100 with at most 2 decimal places.",
+        "instalment_rate or previous_rate is not a per cent from 0 to 100 with at most 2 decimal places.",
     ),
     (
         "payg_instalment.tax_exceeds_income",

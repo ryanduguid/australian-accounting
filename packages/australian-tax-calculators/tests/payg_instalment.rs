@@ -406,6 +406,14 @@ fn a_negative_second_instalment_is_added_back_in_the_third() {
     assert_eq!(amounts(&fourth), ["8000.00", "2000.00", "2000.00", "0.00"]);
 }
 
+/// Alcuin r3 I4: a negative sub-cent amount shows toward nil and its credit
+/// drops the cents: 50% of $200.01 is $100.005, less $200 is -$99.995.
+#[test]
+fn a_negative_sub_cent_amount_shows_toward_nil() {
+    let out = run(&varied_amount(2, "200.01", "200", "0"));
+    assert_eq!(amounts(&out), ["100.00", "-99.99", "0.00", "99.00"]);
+}
+
 /// Alcuin r2 I2: nil estimated income gives a nil rate, so the credit is the
 /// earlier instalments less credits claimed: $3,000 less $500.
 #[test]
