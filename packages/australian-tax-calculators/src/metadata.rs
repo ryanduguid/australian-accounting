@@ -2991,11 +2991,11 @@ pub fn optional_inputs(kind: &str) -> Vec<(&'static str, &'static str)> {
             ),
             (
                 "remuneration",
-                "AUD, for the scorer with factor_3 true only, and then required: the remuneration returned in the IPP's hands (paragraphs 100 and 101)",
+                "AUD, for the scorer with factor_3 true only, and then required unless returned equals entitlement (paragraph 81): the remuneration returned in the IPP's hands (paragraphs 100 and 101)",
             ),
             (
                 "benchmark",
-                "AUD, with factor_3 true only, and then required: the commercial benchmark for the IPP's services (paragraph 101)",
+                "AUD, with factor_3 true only, and then required unless the IPP returns all of the entitlement (paragraph 81): the commercial benchmark for the IPP's services (paragraph 101)",
             ),
         ],
         "foreign_income_tax_offset" => vec![

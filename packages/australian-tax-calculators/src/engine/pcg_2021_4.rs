@@ -173,7 +173,7 @@ fn factor(
 fn third_factor(
     (remuneration, benchmark): &(Decimal, Decimal),
     steps: &mut Vec<Value>,
-) -> Result<(Value, Value)> {
+) -> Result<(Value, i64)> {
     if benchmark.is_zero() {
         return refuse(
             "pcg_2021_4.benchmark_nil",
@@ -184,7 +184,7 @@ fn third_factor(
     let scored = score(remuneration, benchmark, 2)?;
     let working = (remuneration, benchmark);
     steps.push(factor("factor_3", FACTOR_3, working, (&shown, scored)));
-    Ok((json!(shown.to_string()), json!(scored)))
+    Ok((json!(shown.to_string()), scored))
 }
 
 /// Paragraphs 76 to 81 on the totals: the percentages, scores and zone.
@@ -216,11 +216,14 @@ fn assess(t: &Totals, out: &mut Map<String, Value>) -> Result<()> {
         (&rate, second),
     ));
     let (share, third) = match &t.benchmark {
-        Some(pair) => third_factor(pair, &mut steps)?,
-        None => (Value::Null, Value::Null),
+        Some(pair) => {
+            let (share, scored) = third_factor(pair, &mut steps)?;
+            (share, Some(scored))
+        }
+        None => (Value::Null, None),
     };
-    let aggregate = first + second + third.as_i64().unwrap_or(0);
-    let factors = if t.benchmark.is_some() { 3 } else { 2 };
+    let aggregate = first + second + third.unwrap_or(0);
+    let factors = if third.is_some() { 3 } else { 2 };
     let rated = zone(aggregate, factors);
     let working = format!("aggregate {aggregate} on {factors} factors: {}", rated.0);
     steps.push(json!({"id": "zone", "authority": ZONE, "working": working}));
@@ -424,36 +427,51 @@ fn allocate(
 }
 
 /// The facts scored: the allocation's recipients, or the scorer's
-/// entitlement, returned, tax and remuneration (nil without factor 3).
+/// entitlement, returned and tax.
 enum Mode {
     Allocation(Vec<Recipient>),
-    Scorer(Box<[Decimal; 4]>),
+    Scorer(Box<[Decimal; 3]>),
 }
 
-/// The mode's inputs, and the benchmark with factor 3.
-fn mode(args: &PcgArgs, factor_3: bool) -> Result<(Mode, Option<Decimal>)> {
+/// Factor 3's inputs: off, the benchmark (the allocation takes the IPP's
+/// firm income as its remuneration), the scorer's remuneration and
+/// benchmark, or the input factor 3 needs that was left out.
+enum Factor3 {
+    Off,
+    Benchmark(Decimal),
+    Scorer(Decimal, Decimal),
+    Missing(&'static str),
+}
+
+/// The mode's inputs, and the benchmark with factor 3. With factor 3 the
+/// benchmark (and the scorer's remuneration) may be left out only where the
+/// IPP returns all of the entitlement, as paragraph 81 then scores nothing
+/// else: the input left out is named, and refused once the totals show it is
+/// needed.
+fn mode(args: &PcgArgs, factor_3: bool) -> Result<(Mode, Factor3)> {
     let [entitlement, returned, tax, remuneration, benchmark, list] = args.optional;
-    let why = "when factor_3 is true";
-    let benchmark = when(factor_3, benchmark, "benchmark", why)?
-        .map(|b| amount(b, "benchmark"))
-        .transpose()?;
+    let benchmark = with_factor_3(factor_3, benchmark, "benchmark")?;
     match (list, [entitlement, returned, tax]) {
         (Some(list), [None, None, None]) => {
             let why =
                 "with entitlement, returned and tax; the allocation uses the IPP's firm income";
             when(false, remuneration, "remuneration", why)?;
-            Ok((Mode::Allocation(recipients(list)?), benchmark))
+            let third = third(factor_3, benchmark.map(Factor3::Benchmark), "benchmark");
+            Ok((Mode::Allocation(recipients(list)?), third))
         }
         (None, [Some(e), Some(r), Some(t)]) => {
-            let paid = when(factor_3, remuneration, "remuneration", why)?
-                .map_or(Ok(int(0)), |v| amount(v, "remuneration"))?;
+            let paid = with_factor_3(factor_3, remuneration, "remuneration")?;
             let totals = [
                 amount(e, "entitlement")?,
                 amount(r, "returned")?,
                 amount(t, "tax")?,
-                paid,
             ];
-            Ok((Mode::Scorer(Box::new(totals)), benchmark))
+            let third = match (benchmark, paid) {
+                (Some(b), Some(p)) => Factor3::Scorer(p, b),
+                (None, _) => third(factor_3, None, "benchmark"),
+                (Some(_), None) => third(factor_3, None, "remuneration"),
+            };
+            Ok((Mode::Scorer(Box::new(totals)), third))
         }
         (Some(_), _) => refuse(
             "input.field_unknown",
@@ -466,32 +484,61 @@ fn mode(args: &PcgArgs, factor_3: bool) -> Result<(Mode, Option<Decimal>)> {
     }
 }
 
+/// Factor 3's inputs when given; otherwise off, or, with factor 3, `key`
+/// as the input left out.
+fn third(factor_3: bool, given: Option<Factor3>, key: &'static str) -> Factor3 {
+    match given {
+        Some(given) => given,
+        None if factor_3 => Factor3::Missing(key),
+        None => Factor3::Off,
+    }
+}
+
+/// An input taken only with factor 3: refused without it, read with it.
+fn with_factor_3(factor_3: bool, given: Option<&Arg>, key: &str) -> Result<Option<Decimal>> {
+    when(
+        factor_3 && given.is_some(),
+        given,
+        key,
+        "when factor_3 is true",
+    )?
+    .map(|v| amount(v, key))
+    .transpose()
+}
+
 /// The totals the mode gives, with the amounts the result shows.
 fn totals<'a>(
     mode: Mode,
     year: &str,
-    benchmark: Option<Decimal>,
+    third: &Factor3,
     extra: &mut Map<String, Value>,
 ) -> Result<(Totals, Vec<(&'a str, Decimal)>)> {
     let mut amounts = Vec::new();
     let totals = match mode {
         Mode::Allocation(list) => {
-            let t = allocate(&list, year, benchmark.clone(), extra)?;
+            let benchmark = match third {
+                Factor3::Benchmark(b) => Some(b.clone()),
+                _ => None,
+            };
+            let t = allocate(&list, year, benchmark, extra)?;
             amounts.push(("firm_income", t.entitlement.clone()));
             amounts.push(("tax", t.tax.clone()));
             t
         }
         Mode::Scorer(given) => {
-            let [entitlement, returned, tax, paid] = *given;
+            let [entitlement, returned, tax] = *given;
             amounts.extend([
                 ("entitlement", entitlement.clone()),
                 ("returned", returned.clone()),
                 ("tax", tax.clone()),
             ]);
-            if benchmark.is_some() {
-                amounts.push(("remuneration", paid.clone()));
-            }
-            let benchmark = benchmark.clone().map(|b| (paid, b));
+            let benchmark = match third {
+                Factor3::Scorer(paid, b) => {
+                    amounts.push(("remuneration", paid.clone()));
+                    Some((paid.clone(), b.clone()))
+                }
+                _ => None,
+            };
             Totals {
                 entitlement,
                 returned,
@@ -500,8 +547,8 @@ fn totals<'a>(
             }
         }
     };
-    if let Some(b) = benchmark {
-        amounts.push(("benchmark", b));
+    if let Some((_, b)) = &totals.benchmark {
+        amounts.push(("benchmark", b.clone()));
     }
     Ok((totals, amounts))
 }
@@ -519,10 +566,20 @@ pub fn pcg_2021_4(args: &PcgArgs) -> Result<Value> {
         }
     }
     let factor_3 = flag(args.factor_3, "factor_3")?;
-    let (mode, benchmark) = mode(args, factor_3)?;
+    let (mode, third) = mode(args, factor_3)?;
     let mut extra = Map::new();
-    let (totals, amounts) = totals(mode, &year, benchmark, &mut extra)?;
+    let (totals, amounts) = totals(mode, &year, &third, &mut extra)?;
     checked(&totals)?;
+    if let Factor3::Missing(key) = third
+        && !totals.returned.equals(&totals.entitlement)?
+    {
+        return refuse(
+            "input.missing_field",
+            format!(
+                "{key} is required when factor_3 is true, unless the IPP returns all of the entitlement (paragraph 81)."
+            ),
+        );
+    }
     assess(&totals, &mut extra)?;
     let mut out = result(KIND, &year, amounts, Vec::new())?;
     for (key, value) in extra {

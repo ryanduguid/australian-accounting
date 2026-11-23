@@ -304,6 +304,33 @@ fn refuses_what_the_guideline_does_not_score() {
     ]);
 }
 
+/// Paragraph 81: an IPP that returns all of it scores nothing else, so
+/// factor 3 then needs no benchmark or remuneration; short of that it does.
+#[test]
+fn factor_3_needs_no_benchmark_when_everything_is_returned() {
+    let three = json!({"factor_3": true});
+    let whole = with(scorer("65000", "65000", "11592"), three.clone());
+    let alone = allocation("2020-21", json!([person("individual", "65000")]));
+    for input in [whole, with(alone, three.clone())] {
+        let out = run(&input).unwrap();
+        assert_eq!(
+            out["scores"],
+            json!({"factor_1": 1, "factor_2": null, "factor_3": null, "aggregate": null})
+        );
+        assert_eq!(out["zone"], "green");
+    }
+    let short = scorer("65000", "64999", "11592");
+    for given in [json!({"benchmark": "10"}), json!({"remuneration": "10"})] {
+        let input = with(with(short.clone(), three.clone()), given);
+        let refusal = api::evaluate_coded("pcg-2021-4", &input).unwrap_err();
+        assert_eq!(refusal.code, "input.missing_field");
+        assert!(refusal.message.contains("paragraph 81"));
+    }
+    let shared = json!([person("individual", "65000"), person("company", "1")]);
+    let shared = with(allocation("2020-21", shared), three);
+    assert_eq!(run(&shared), Err("input.missing_field"));
+}
+
 #[test]
 fn refuses_amounts_and_inputs_out_of_place() {
     let base = scorer("1000", "500", "300");
