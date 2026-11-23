@@ -2280,17 +2280,38 @@ impl Family {
 pub struct MedicareExemption<'a> {
     pub full_days: Option<&'a Arg>,
     pub half_days: Option<&'a Arg>,
+    pub non_resident_days: Option<&'a Arg>,
 }
 
 /// The days in the year a person was in a Medicare levy exemption category.
 struct Exemption {
     full: i64,
     half: i64,
+    /// The days a non-resident and so a prescribed person (ITAA 1936
+    /// s 251U(1)(d)), each a whole day: s 251U(3) gives no half under para (d).
+    non_resident: i64,
     days_in_year: i64,
 }
 
+/// The non-resident days, from 0 to the days in the year less 1: a person not
+/// resident at any time pays no Medicare levy (ITAA 1936 s 251S(1)(a)).
+fn non_resident_days(value: Option<&Arg>, days_in_year: i64) -> Result<i64> {
+    let Some(value) = value else {
+        return Ok(0);
+    };
+    if value.int() == Some(Some(days_in_year)) {
+        return refuse(
+            "input.day_count_invalid",
+            format!(
+                "non_resident_days of {days_in_year} is the whole year: ITAA 1936 s 251S(1)(a) levies the Medicare levy only on a person resident at some time in the year, so a person not resident at any time pays none (see foreign-resident-tax)."
+            ),
+        );
+    }
+    day_count(value, days_in_year - 1, "non_resident_days")
+}
+
 /// The days in an income year such as "2025-26": 366 when it holds 29 February.
-fn income_year_days(year: &str) -> i64 {
+pub(crate) fn income_year_days(year: &str) -> i64 {
     let start: i64 = year[..4].parse().expect("income year");
     if is_leap(start + 1) { 366 } else { 365 }
 }
@@ -2303,6 +2324,15 @@ fn medicare_exemption(exemption: &MedicareExemption, year: &str) -> Result<Optio
         |value: Option<&Arg>, name| value.map_or(Ok(0), |v| day_count(v, days_in_year, name));
     let full = count(exemption.full_days, "medicare_levy_exemption_full_days")?;
     let half = count(exemption.half_days, "medicare_levy_exemption_half_days")?;
+    let non_resident = non_resident_days(exemption.non_resident_days, days_in_year)?;
+    if non_resident > 0 && full + half + non_resident > days_in_year {
+        return refuse(
+            "input.day_count_invalid",
+            format!(
+                "medicare_levy_exemption_full_days, medicare_levy_exemption_half_days and non_resident_days together must be no more than {days_in_year}; count each day once, a non-resident day as non-resident only."
+            ),
+        );
+    }
     if full + half > days_in_year {
         return refuse(
             "input.day_count_invalid",
@@ -2312,9 +2342,10 @@ fn medicare_exemption(exemption: &MedicareExemption, year: &str) -> Result<Optio
             ),
         );
     }
-    Ok((full + half > 0).then_some(Exemption {
+    Ok((full + half + non_resident > 0).then_some(Exemption {
         full,
         half,
+        non_resident,
         days_in_year,
     }))
 }
@@ -2325,7 +2356,9 @@ fn medicare_exemption(exemption: &MedicareExemption, year: &str) -> Result<Optio
 /// levy after ss 7 and 8, which each work out the levy 'but for' s 9.
 fn levy_after_exemption(levy: &Decimal, scale: &Decimal, exemption: &Exemption) -> Calc<Decimal> {
     let halves = int(2 * exemption.days_in_year);
-    let kept = halves.sub(&int(2 * exemption.full + exemption.half))?;
+    let kept = halves.sub(&int(
+        2 * (exemption.full + exemption.non_resident) + exemption.half
+    ))?;
     levy.mul(&kept)?.div(&scale.mul(&halves)?)
 }
 
@@ -2786,36 +2819,75 @@ fn medicare_working(
         ));
         return Ok((steps, rates, shared));
     };
+    let levy = (
+        &before,
+        &scale,
+        before_formula.as_str(),
+        times_family_income,
+    );
+    steps.extend(exemption_working(levy, exemption, values, &mut rates)?);
+    Ok((steps, rates, shared))
+}
+
+const EXEMPTION_AUTHORITY: &str = "Medicare Levy Act 1986 s 9(1) and ITAA 1936 s 251U(3): the share of the levy for each full exemption day and half of each half exemption day";
+const NON_RESIDENT_AUTHORITY: &str = "Medicare Levy Act 1986 s 9(1) and ITAA 1936 s 251U(1)(d), (2) and (3): the share of the levy for each full exemption day, each non-resident day on which every dependant was also a prescribed person (a whole day: s 251U(3) gives no half under para (d)) and half of each half exemption day";
+
+/// The s 9(1) steps: the share of the levy before s 9 (`levy`: the levy times
+/// `scale` and its formula, times family income where the last is true) for
+/// the prescribed days, and the levy left.
+fn exemption_working(
+    levy: (&Decimal, &Decimal, &str, bool),
+    exemption: &Exemption,
+    mut values: Vec<(&str, Decimal)>,
+    rates: &mut Vec<(String, String)>,
+) -> Calc<Vec<Step>> {
+    let (before, scale, before_formula, times_family_income) = levy;
     rates.push(rate("exemption_full_days", exemption.full));
     rates.push(rate("exemption_half_days", exemption.half));
-    rates.push(rate("days_in_year", exemption.days_in_year));
     values.push(("exemption_full_days", int(exemption.full)));
     values.push(("exemption_half_days", int(exemption.half)));
+    let (full_days, authority) = if exemption.non_resident > 0 {
+        rates.push(rate("non_resident_days", exemption.non_resident));
+        values.push(("non_resident_days", int(exemption.non_resident)));
+        (
+            "(exemption_full_days + non_resident_days)",
+            NON_RESIDENT_AUTHORITY,
+        )
+    } else {
+        ("exemption_full_days", EXEMPTION_AUTHORITY)
+    };
+    rates.push(rate("days_in_year", exemption.days_in_year));
     values.push(("days_in_year", int(exemption.days_in_year)));
     let halves = if times_family_income {
         "family_income x 2 x days_in_year"
     } else {
         "2 x days_in_year"
     };
-    let after = levy_after_exemption(&before, &scale, exemption)?;
+    let after = levy_after_exemption(before, scale, exemption)?;
+    let scaled = if times_family_income {
+        format!("({before_formula}) / family_income")
+    } else {
+        before_formula.to_string()
+    };
     let after_formula = format!(
-        "({before_formula}) x (2 x days_in_year - (2 x exemption_full_days + exemption_half_days)) / ({halves})"
+        "({before_formula}) x (2 x days_in_year - (2 x {full_days} + exemption_half_days)) / ({halves})"
     );
-    steps.push(step_by_name(
-        "exemption_reduction",
-        "Medicare Levy Act 1986 s 9(1) and ITAA 1936 s 251U(3): the share of the levy for each full exemption day and half of each half exemption day",
-        &format!("{} - {after_formula}", scaled(&before_formula)),
-        &values,
-        before.div(&scale)?.sub(&after)?,
-    ));
-    steps.push(step_by_name(
-        "medicare_levy",
-        "Medicare Levy Act 1986 s 9(1): the levy after ss 7 and 8 for the days the person was not a prescribed person",
-        &after_formula,
-        &values,
-        after,
-    ));
-    Ok((steps, rates, shared))
+    Ok(vec![
+        step_by_name(
+            "exemption_reduction",
+            authority,
+            &format!("{scaled} - {after_formula}"),
+            &values,
+            before.div(scale)?.sub(&after)?,
+        ),
+        step_by_name(
+            "medicare_levy",
+            "Medicare Levy Act 1986 s 9(1): the levy after ss 7 and 8 for the days the person was not a prescribed person",
+            &after_formula,
+            &values,
+            after,
+        ),
+    ])
 }
 
 pub fn medicare_levy(

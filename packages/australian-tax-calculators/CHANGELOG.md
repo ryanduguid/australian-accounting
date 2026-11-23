@@ -10,9 +10,15 @@
   s 20(1), or keeps $18,200 for an eligible pensioner (s 18(2)(a)), for
   2024-25 to 2027-28. A near miss of either input name is refused as
   `input.field_unknown`; other unknown fields are still ignored.
-  `personal-tax-estimate` still refuses a part-year resident, now citing the
-  Medicare levy's non-resident days (ITAA 1936 s 251U(1)(d), subject to
-  s 251U(2)).
+- `medicare-levy` takes `non_resident_days`: a part-year resident's days not
+  resident on which every dependant was also a prescribed person (ITAA 1936
+  s 251U(1)(d) and (2)), each a whole day off the levy under Medicare Levy Act
+  1986 s 9(1). `personal-tax-estimate` composes a part-year resident before
+  2027-28 with `part_year_residency_months`, `eligible_pensioner` and those
+  days, and refuses for one the surcharge, the seniors and pensioners tax
+  offset, the private health insurance rebate, a study loan repayment, worked
+  tax withheld and every year from 2027-28. Full-year and foreign resident
+  results do not change.
 - `trading-stock` works out the change in value of trading stock under ITAA
   1997 s 70-35 for 2020-21 to 2026-27, each closing item valued by its own
   election (cost, market selling value, replacement value, the lowest, or an

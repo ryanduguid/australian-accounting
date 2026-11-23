@@ -241,6 +241,127 @@ const NOT_FOR_FOREIGN: [(&str, &str, &str); 8] = [
     ),
 ];
 
+/// A part-year resident's inputs to `resident-tax`, for the pro-rated tax-free
+/// threshold (Income Tax Rates Act 1986 ss 18 and 20(1)).
+const PART_YEAR_INPUTS: [&str; 2] = ["part_year_residency_months", "eligible_pensioner"];
+
+/// `medicare-levy`'s days a part-year resident was a non-resident prescribed
+/// person (ITAA 1936 s 251U(1)(d) and (2)).
+const NON_RESIDENT_DAYS: &str = "non_resident_days";
+
+/// The parts not composed for a part-year resident, and why.
+const NOT_FOR_PART_YEAR: [(&str, &str); 8] = [
+    (
+        "medicare-levy-surcharge",
+        "the surcharge worksheet's scope is a full-year resident",
+    ),
+    (
+        SAPTO,
+        "the estimate composes the seniors and pensioners tax offset for a full-year resident only",
+    ),
+    (
+        PHI,
+        "the offset needs every person insured to be an eligible person (ITAA 1997 s 61-205(1)(c); Health Insurance Act 1973 s 3), which the estimate does not test for a part-year resident",
+    ),
+    (
+        "study-loan-repayment",
+        "the estimate composes a study loan repayment for a full-year resident only",
+    ),
+    (
+        "study-loan-withholding",
+        "its study and training support loan component goes towards the repayment, which the estimate composes for a full-year resident only",
+    ),
+    (
+        "seniors-pensioners-withholding",
+        "Schedule 9 is for payees who declare that they are Australian residents for tax purposes, and a part-year resident's pays can fall on both sides of the change; give tax_withheld",
+    ),
+    (
+        "payg-withholding",
+        "the tax withheld is worked out from one regular pay at one scale for the whole year, and a part-year resident's pays can fall under resident and foreign resident scales; give tax_withheld",
+    ),
+    (
+        BONUS,
+        "the tax withheld is worked out from one regular pay at one scale for the whole year, and a part-year resident's pays can fall under resident and foreign resident scales; give tax_withheld",
+    ),
+];
+
+/// A part-year resident's line that differs from [`WORKING`].
+const PART_YEAR_WORKING: [(&str, &str); 1] = [(
+    "medicare_levy_surcharge",
+    "nil: not composed for a part-year resident, as the surcharge worksheet's scope is a full-year resident",
+)];
+
+fn part_year(v: &Value) -> bool {
+    v["residency"] == "part_year_resident"
+}
+
+const PART_YEAR_WATO: &str = "from 2027-28 the working Australians tax offset is the lesser of $250 and the basic income tax liability on net labour income (ITAA 1997 s 61-160), and whether a part-year resident's pro-rated tax-free threshold (Income Tax Rates Act 1986 s 20(1)) applies to that liability is not settled here";
+
+fn part_year_unsupported(reason: String) -> Result<(), Refusal> {
+    Err(Refusal::new(
+        "estimate.residency_unsupported",
+        format!("{COMMAND} does not compose this for a part-year resident: {reason}"),
+    ))
+}
+
+/// A part-year resident: `resident-tax`'s inputs given, no part listed in
+/// [`NOT_FOR_PART_YEAR`], a year before the working Australians tax offset, and
+/// no more non-resident days than the residency months leave: the person was
+/// resident on at least 1 day of each (s 18(1)).
+fn check_part_year(v: &Value) -> Result<(), Refusal> {
+    if let Some(key) = PART_YEAR_INPUTS.iter().find(|k| v.get(**k).is_none()) {
+        return Err(Refusal::new(
+            "input.missing_field",
+            format!("{key} is required for a part_year_resident"),
+        ));
+    }
+    if let Some((command, why)) = NOT_FOR_PART_YEAR.iter().find(|(c, _)| v.get(*c).is_some()) {
+        return part_year_unsupported(format!("{command}: {why}"));
+    }
+    let year = v["year"]
+        .as_str()
+        .filter(|y| y.len() == 7 && y[..4].parse::<u16>().is_ok());
+    if year.is_some_and(|y| y >= WATO_FROM) {
+        return part_year_unsupported(PART_YEAR_WATO.into());
+    }
+    let months = v["part_year_residency_months"].as_i64();
+    let days = v["medicare-levy"][NON_RESIDENT_DAYS].as_i64();
+    if let (Some(year), Some(months @ 1..=12), Some(days)) = (year, months, days) {
+        let most = engine::income_year_days(year) - months;
+        if days > most {
+            return Err(Refusal::new(
+                "input.day_count_invalid",
+                format!(
+                    "medicare-levy: non_resident_days must be no more than {most}: the person was resident on at least 1 day in each of the {months} part_year_residency_months (Income Tax Rates Act 1986 s 18(1))"
+                ),
+            ));
+        }
+    }
+    Ok(())
+}
+
+/// A full-year resident or foreign resident gives no part-year input.
+fn not_part_year(v: &Value, residency: &str) -> Result<bool, Refusal> {
+    let given = PART_YEAR_INPUTS
+        .iter()
+        .find(|k| v.get(**k).is_some())
+        .map(|k| k.to_string())
+        .or_else(|| {
+            v["medicare-levy"]
+                .get(NON_RESIDENT_DAYS)
+                .map(|_| format!("medicare-levy {NON_RESIDENT_DAYS}"))
+        });
+    match given {
+        Some(key) => Err(Refusal::new(
+            "input.field_unknown",
+            format!(
+                "{key} is not an input of {COMMAND} for a {residency}: it is for a part_year_resident"
+            ),
+        )),
+        None => Ok(false),
+    }
+}
+
 /// The part that runs for `command` (a [`PARTS`] entry), or `None` when it is
 /// not composed for this residency.
 fn part_for(command: &'static str, foreign: bool) -> Option<&'static str> {
@@ -259,7 +380,7 @@ fn takes_object(command: &str) -> bool {
     )
 }
 
-const SCOPE: &str = "One individual who was an Australian resident for the full income year and not a working holiday maker, or a foreign resident for the full year, with established whole-dollar taxable income, or with established whole-dollar assessable labour income (ITAA 1997 s 25-130(4)), other assessable income, work-related deductions of the kinds s 25-130(2)(c) to (g) count and other deductions, from which taxable income is worked out (s 4-15(1)), with the standard deduction for work-related expenses (s 25-130) for a resident from 2026-27. For a resident, composes resident-tax, low-income-tax-offset, medicare-levy and medicare-levy-surcharge, and seniors-pensioners-tax-offset, study-loan-repayment, division-293 and private-health-insurance-rebate when their inputs are given; confirming scope confirms the scope each of them states under components, where each keeps its own sources and warnings. For a foreign resident, composes foreign-resident-tax and, when its inputs are given, division-293: a foreign resident has no low income tax offset (ITAA 1997 s 61-110(1)(a)) and pays no Medicare levy or surcharge (ITAA 1936 s 251S(1)(a)); the estimate refuses the private health insurance rebate for one, whose offset needs every person insured to be an eligible person (s 61-205(1)(c)), the seniors and pensioners tax offset, and a study loan repayment, which for a foreign resident includes the overseas levy on worldwide income that no worksheet here works out. Applies the seniors and pensioners tax offset, then the low income tax offset, against basic income tax only, never below nil (ITAA 1997 s 63-10(1) items 5 and 20); neither reduces the Medicare levy or the surcharge. For a resident from 2027-28, first applies the working Australians tax offset (s 63-10(1) item 3): the lesser of $250 and the basic income tax at the resident rates on net labour income (ss 61-155 and 61-160), given as net_labour_income or, with assessable_labour_income, worked out as it less work_related_deductions and the standard deduction, taking other_assessable_income and other_deductions to hold no labour amounts or labour deductions under s 61-155(2), such as business or personal services income, or the union fees and income protection premiums s 25-130(3) leaves out of work-related deductions; give net_labour_income where they do. From 2027-28 the scope excludes a minimum tax capital gain: the extra income tax on one (s 119-10, for CGT events from 1 July 2027) is not worked out. private-health-insurance-rebate takes income_for_surcharge_purposes, spouse_income_for_surcharge_purposes and dependent_children from medicare-levy-surcharge, the person married on 30 June being the spouse of the whole year; when it is composed, the total takes off its private health insurance tax offset, which is refundable (ITAA 1997 s 67-23 item 5) and can take the total below nil, and adds its excess premium reduction (Private Health Insurance Act 2007 s 282-18). The total is before PAYG withholding and other credits, every other refundable offset, every other tax offset (such as the franking and foreign income tax offsets), the transfer of unused SAPTO to a spouse and any refund or amount payable. Division 293 tax is shown but left out of the total, because it is assessed on its own notice. When tax_withheld is given, or worked out from one employer's regular pays, the total is compared with it (TAA 1953 Sch 1 s 18-15(1)) to give a refund or an amount payable before every other credit, refundable offset and amount owed. The tax withheld worked out is the withholding payg-withholding, study-loan-withholding or seniors-pensioners-withholding gives for one pay, times the established number of pays in the year at that same pay, plus Schedule 5 Method A's withholding on one bonus, commission or back payment paid with one of them; pays of other amounts, other payers' withholding and withholding variations are not in it. Classifying income and deductions, any tax loss and the limits on deductions that would create one are the operator's. Refuses part-year residents and working holiday makers, and parts that describe different families: a spouse in one part but not another, 2 spouse taxable incomes, or dependants without a spouse, whom the surcharge worksheet excludes.";
+const SCOPE: &str = "One individual who was an Australian resident for the full income year or part of it and not a working holiday maker, or a foreign resident for the full year, with established whole-dollar taxable income, or with established whole-dollar assessable labour income (ITAA 1997 s 25-130(4)), other assessable income, work-related deductions of the kinds s 25-130(2)(c) to (g) count and other deductions, from which taxable income is worked out (s 4-15(1)), with the standard deduction for work-related expenses (s 25-130) for a resident from 2026-27. For a resident, composes resident-tax, low-income-tax-offset, medicare-levy and medicare-levy-surcharge, and seniors-pensioners-tax-offset, study-loan-repayment, division-293 and private-health-insurance-rebate when their inputs are given; confirming scope confirms the scope each of them states under components, where each keeps its own sources and warnings. For a foreign resident, composes foreign-resident-tax and, when its inputs are given, division-293: a foreign resident has no low income tax offset (ITAA 1997 s 61-110(1)(a)) and pays no Medicare levy or surcharge (ITAA 1936 s 251S(1)(a)); the estimate refuses the private health insurance rebate for one, whose offset needs every person insured to be an eligible person (s 61-205(1)(c)), the seniors and pensioners tax offset, and a study loan repayment, which for a foreign resident includes the overseas levy on worldwide income that no worksheet here works out. Applies the seniors and pensioners tax offset, then the low income tax offset, against basic income tax only, never below nil (ITAA 1997 s 63-10(1) items 5 and 20); neither reduces the Medicare levy or the surcharge. For a resident from 2027-28, first applies the working Australians tax offset (s 63-10(1) item 3): the lesser of $250 and the basic income tax at the resident rates on net labour income (ss 61-155 and 61-160), given as net_labour_income or, with assessable_labour_income, worked out as it less work_related_deductions and the standard deduction, taking other_assessable_income and other_deductions to hold no labour amounts or labour deductions under s 61-155(2), such as business or personal services income, or the union fees and income protection premiums s 25-130(3) leaves out of work-related deductions; give net_labour_income where they do. From 2027-28 the scope excludes a minimum tax capital gain: the extra income tax on one (s 119-10, for CGT events from 1 July 2027) is not worked out. private-health-insurance-rebate takes income_for_surcharge_purposes, spouse_income_for_surcharge_purposes and dependent_children from medicare-levy-surcharge, the person married on 30 June being the spouse of the whole year; when it is composed, the total takes off its private health insurance tax offset, which is refundable (ITAA 1997 s 67-23 item 5) and can take the total below nil, and adds its excess premium reduction (Private Health Insurance Act 2007 s 282-18). The total is before PAYG withholding and other credits, every other refundable offset, every other tax offset (such as the franking and foreign income tax offsets), the transfer of unused SAPTO to a spouse and any refund or amount payable. Division 293 tax is shown but left out of the total, because it is assessed on its own notice. When tax_withheld is given, or worked out from one employer's regular pays, the total is compared with it (TAA 1953 Sch 1 s 18-15(1)) to give a refund or an amount payable before every other credit, refundable offset and amount owed. The tax withheld worked out is the withholding payg-withholding, study-loan-withholding or seniors-pensioners-withholding gives for one pay, times the established number of pays in the year at that same pay, plus Schedule 5 Method A's withholding on one bonus, commission or back payment paid with one of them; pays of other amounts, other payers' withholding and withholding variations are not in it. Classifying income and deductions, any tax loss and the limits on deductions that would create one are the operator's. For a part-year resident before 2027-28, composes resident-tax with the tax-free threshold pro-rated by the residency months (Income Tax Rates Act 1986 ss 18 and 20(1); part_year_residency_months and eligible_pensioner), the low income tax offset in full (ITAA 1997 s 61-110(1)(a)), medicare-levy less the share of the days not resident on which every dependant was also a prescribed person (ITAA 1936 s 251U(1)(d) and (2); Medicare Levy Act 1986 s 9(1)), and division-293; it refuses for a part-year resident the Medicare levy surcharge, whose worksheet is for a full-year resident, the seniors and pensioners tax offset, the private health insurance rebate, a study loan repayment and tax withheld worked out from a regular pay (give tax_withheld), and from 2027-28 the whole estimate, as whether the pro-rated threshold applies to the working Australians tax offset's tax on net labour income (s 61-160) is not settled here. Refuses working holiday makers, and parts that describe different families: a spouse in one part but not another, 2 spouse taxable incomes, or dependants without a spouse, whom the surcharge worksheet excludes.";
 
 const SOURCES: [&str; 12] = [
     "https://www.ato.gov.au/law/view/document?docid=PAC/19970038/4-15",
@@ -332,13 +453,15 @@ fn signal(signal: Signal) -> Refusal {
 }
 
 /// `residency`: whether the person is a foreign resident, who gives no input
-/// for a part not composed for one; part-year residents and working holiday
-/// makers are refused.
+/// for a part not composed for one; a part-year resident's inputs are checked
+/// ([`check_part_year`]) and working holiday makers are refused.
 fn check_residency(v: &Value) -> Result<bool, Refusal> {
     let reason = match v.get("residency").map(|r| r.as_str()) {
         None => return Err(Refusal::new("input.missing_field", "residency is required")),
-        Some(Some("full_year_resident")) => return Ok(false),
+        Some(Some("full_year_resident")) => return not_part_year(v, "full_year_resident"),
+        Some(Some("part_year_resident")) => return check_part_year(v).map(|()| false),
         Some(Some("foreign_resident")) => {
+            not_part_year(v, "foreign_resident")?;
             return match NOT_FOR_FOREIGN.iter().find(|(c, ..)| v.get(*c).is_some()) {
                 Some((command, code, why)) => Err(Refusal::new(
                     code,
@@ -346,9 +469,6 @@ fn check_residency(v: &Value) -> Result<bool, Refusal> {
                 )),
                 None => Ok(true),
             };
-        }
-        Some(Some("part_year_resident")) => {
-            "resident-tax pro-rates a part-year resident's tax-free threshold (part_year_residency_months), but the days of non-residence can make the person a prescribed person for the Medicare levy (ITAA 1936 s 251U(1)(d), unless a dependant who is not one prevents it under s 251U(2)), which medicare-levy and medicare-levy-surcharge do not take"
         }
         Some(Some("working_holiday_maker")) => {
             "a working holiday maker's income is taxed at the working holiday maker rates, which no worksheet here works out"
@@ -363,7 +483,7 @@ fn check_residency(v: &Value) -> Result<bool, Refusal> {
     Err(Refusal::new(
         "estimate.residency_unsupported",
         format!(
-            "{COMMAND} composes a full-year resident or a full-year foreign resident only: {reason}"
+            "{COMMAND} composes a full-year or part-year resident or a full-year foreign resident only: {reason}"
         ),
     ))
 }
@@ -377,6 +497,7 @@ fn check_fields(v: &Value) -> Result<(), Refusal> {
             key,
             "residency" | "tax_withheld" | "pays_in_year" | BONUS | "net_labour_income"
         ) || INCOME_INPUTS.contains(&key)
+            || PART_YEAR_INPUTS.contains(&key)
             || SHARED.contains(&key)
             || PAY_PARTS.contains(&key)
             || PARTS.iter().any(|(c, ..)| *c == key && takes_object(c))
@@ -549,7 +670,9 @@ fn run_parts(v: &Value, foreign: bool) -> Result<Map<String, Value>, Refusal> {
         let Some(command) = part_for(command, foreign) else {
             continue;
         };
-        if !required && v.get(command).is_none() {
+        if (!required && v.get(command).is_none())
+            || (command == "medicare-levy-surcharge" && part_year(v))
+        {
             continue;
         }
         if required && takes_object(command) && v.get(command).is_none() {
@@ -559,6 +682,17 @@ fn run_parts(v: &Value, foreign: bool) -> Result<Map<String, Value>, Refusal> {
             ));
         }
         let mut input = part_input(v, command, with_income);
+        // A part-year resident's tax-free threshold (Income Tax Rates Act 1986
+        // s 20(1)): only a part-year resident gives these.
+        if command == "resident-tax"
+            && let Some(object) = input.as_object_mut()
+        {
+            for key in PART_YEAR_INPUTS {
+                if let Some(value) = v.get(key) {
+                    object.insert(key.into(), value.clone());
+                }
+            }
+        }
         // The Medicare levy's SAPTO thresholds follow the offset worked out
         // above: entitlement at more than nil, as its scope requires.
         if command == "medicare-levy"
@@ -1076,6 +1210,7 @@ pub fn compose(v: &Value) -> Result<Value, Refusal> {
     let overrides = match (foreign, &wato) {
         (true, _) => FOREIGN_WORKING.as_slice(),
         (false, Some(_)) => WATO_PART_WORKING.as_slice(),
+        (false, None) if part_year(v) => PART_YEAR_WORKING.as_slice(),
         (false, None) => &[],
     };
     for (key, line) in overrides {
