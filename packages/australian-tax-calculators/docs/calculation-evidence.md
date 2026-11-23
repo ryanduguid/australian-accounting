@@ -4989,13 +4989,23 @@ The site's long service leave calculator (ryanduguid.github.io, main at
 dcc7ecbe) was run on its 39 page cases, its unit tests' inputs and a sweep of
 every place, status, reason and threshold, 3,016 rows in
 `tests/data/long_service_leave_site_cases.json`. The worksheet gives the same
-service, weeks, balance and value on 2,521 rows and refuses the 69 the page
-refuses. It departs on 426:
+service, weeks, balance and value on 2,485 rows and refuses the 69 the page
+refuses. It departs on 462:
 
 | Rule | Source | Rows |
 | --- | --- | --- |
 | Queensland uses 8.6667 weeks for 10 years, not 8 2/3 | Industrial Relations Act 2016 s 95(2)(a) and (7) | 241 differ in the fourth place of the weeks or in cents (3 page cases) |
-| A last day before 1 July 2020, after 30 June 2027 or before the Act's text as read is refused | each Act's commencement and amendment history above | 185 refused (2 page cases) |
+| A last day before 1 July 2020, after 30 June 2027 or before the earliest text read is refused | each Act's commencement and amendment history above | 185 refused (2 page cases) |
+| A Queensland fixed term ending before 10 years, a South Australian departure without notice between 7 and 10 years, and Tasmanian leave taken with service from before 1 July 2012 are refused | Industrial Relations Act 2016 (Qld) s 95(4)(d); Long Service Leave Act 1987 (SA) s 5(4); Long Service Leave Act 1976 (Tas) Schedule 3 cl 2(4) | 42 refused (6, 6 and 30; 2 page cases) |
+
+The Queensland row count falls to 235 (2 page cases) because 6 of its rows
+are now refused. WorkSafe ACT's guidance note 067A rounds 7 years to 6.0667
+weeks before multiplying, giving $3,397.35 at $560 a week; the Act's 1/5 of a
+month a year gives 91/15 weeks exactly, $3,397.33, which the worksheet uses.
+The part year as days over 365.25 (over 364 in Queensland, as Business
+Queensland's example of 18 years, 3 months and 16 days giving 15.8548 weeks
+requires) is the worksheet's convention: the Acts give a proportion of years
+without a day count.
 
 ## Foreign income conversion
 

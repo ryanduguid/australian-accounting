@@ -4031,6 +4031,13 @@ days.
   proportion, and after 5 to 10 years only for the employer ending it other
   than for serious and wilful misconduct, illness, incapacity or a pressing
   necessity, or death.
+
+The `reason` codes are `resign`, `pressing` (illness, incapacity or a domestic
+or other pressing necessity), `no_notice`, `retire`, `redundancy`,
+`illness_dismissal`, `performance` (a dismissal for conduct, capacity or
+performance short of the Act's misconduct), `unfair_dismissal` (Queensland
+only), `misconduct` (serious misconduct; serious and wilful in New South
+Wales, South Australia, Tasmania and the ACT), `fixed_term` and `death`.
 - Victoria (Long Service Leave Act 2018 ss 6, 9 and 10): 1/60 of the
   continuous employment after 7 years, on any ending.
 - Queensland (Industrial Relations Act 2016 s 95): 8.6667 weeks for 10 years,
@@ -4062,11 +4069,19 @@ pay, half up to the cent. The rates give the service, the `weeks` and
 `balance` to 4 places, the `provision` applied and, with `hours_per_week`,
 the `hours` a `leave-provisions` line with `leave` `long_service` takes. It
 refuses a fixed term ending before the full period in New South Wales,
-Tasmania, the ACT and the Northern Territory, a death under 10 years in the
-Northern Territory, leave taken above the exact weeks, and a last day before
-1 July 2020, after 30 June 2027 or before the Act's text as read (New South
-Wales 25 March 2021, Victoria 1 July 2021, Western Australia 20 June 2022).
-The tests hold it to the site's page and the regulators' examples; see
+Queensland (s 95(4)(d) needs facts it does not take), Tasmania, the ACT and the
+Northern Territory, a death under 10 years in the Northern Territory, leaving
+without notice between 7 and 10 years in South Australia (s 5(4)), a
+dismissal found unfair outside Queensland where the reason decides, leave
+taken in Tasmania with service from before 1 July 2012 (Schedule 3 cl 2(4)),
+leave taken above the exact weeks, a start before 23 June 1990, and a last
+day before 1 July 2020, after 30 June 2027 or before the earliest text read
+(New South Wales 25 March 2021, Victoria 1 July 2021, Western Australia
+20 June 2022). The operator establishes the excluded days (taken off the end
+of the period), the leave taken that the Act deducts, and the ordinary pay and
+hours as the Act measures them. The tests hold it to the site's page and the
+regulators' examples, except WorkSafe ACT's, which rounds the weeks first and
+so is 2 cents higher; see
 [calculation evidence](docs/calculation-evidence.md#long-service-leave).
 
 ## Foreign income conversion

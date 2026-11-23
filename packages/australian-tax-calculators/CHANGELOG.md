@@ -9,7 +9,10 @@
   with the hours a `leave-provisions` line takes. It mirrors the site's long
   service leave calculator, except that Queensland uses the 8.6667 weeks the
   Industrial Relations Act 2016 s 95 states and the last day must fall from
-  1 July 2020 to 30 June 2027 and within each Act's text as read. New codes:
+  1 July 2020 to 30 June 2027 and within each Act's text as read, and it
+  refuses endings the Acts leave to facts the page does not ask (a Queensland
+  fixed term before 10 years, a South Australian departure without notice,
+  Tasmanian leave taken across the 2012 transition). New codes:
   `long_service_leave.before_current_text`, `end_before_start`,
   `excluded_invalid`, `hours_invalid`, `jurisdiction_invalid`,
   `pay_invalid`, `reason_invalid`, `start_too_early`, `status_invalid`,

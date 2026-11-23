@@ -110,6 +110,9 @@ fn checked(row: &Value) -> &'static str {
                     "outside the dates covered"
                 }
                 "long_service_leave.taken_above_weeks" => "leave taken above the exact weeks",
+                "long_service_leave.unsettled" => {
+                    "refused where the Act needs a fact the page does not ask"
+                }
                 other => panic!("{other}: {row}"),
             };
         }
@@ -155,17 +158,25 @@ fn the_site_cases_agree_except_where_a_source_decides_otherwise() {
     assert_eq!(tally, BTreeMap::from(TALLY));
 }
 
-const PAGE: [(&str, usize); 4] = [
-    ("identical", 28),
+const PAGE: [(&str, usize); 5] = [
+    ("identical", 27),
     ("refused alike", 6),
-    ("Queensland at 8.6667 weeks", 3),
+    ("Queensland at 8.6667 weeks", 2),
     ("outside the dates covered", 2),
+    (
+        "refused where the Act needs a fact the page does not ask",
+        2,
+    ),
 ];
-const TALLY: [(&str, usize); 4] = [
-    ("identical", 2521),
+const TALLY: [(&str, usize); 5] = [
+    ("identical", 2485),
     ("refused alike", 69),
-    ("Queensland at 8.6667 weeks", 241),
+    ("Queensland at 8.6667 weeks", 235),
     ("outside the dates covered", 185),
+    (
+        "refused where the Act needs a fact the page does not ask",
+        42,
+    ),
 ];
 
 /// The regulators' examples: place, start, end, reason (empty while
@@ -307,7 +318,7 @@ fn hours_feed_leave_provisions() {
 
 /// Endings and dates the worksheet refuses: place, start, end, year, reason
 /// (empty while employed) and the code.
-const REFUSED: [(&str, &str, &str, &str, &str, &str); 9] = [
+const REFUSED: [(&str, &str, &str, &str, &str, &str); 13] = [
     (
         "nsw",
         "2016-01-01",
@@ -322,6 +333,42 @@ const REFUSED: [(&str, &str, &str, &str, &str, &str); 9] = [
         "2024-12-31",
         "2024-25",
         "death",
+        "long_service_leave.unsettled",
+    ),
+    // Section 95(4)(d) needs facts the worksheet does not take.
+    (
+        "qld",
+        "2016-01-01",
+        "2023-12-31",
+        "2023-24",
+        "fixed_term",
+        "long_service_leave.unsettled",
+    ),
+    // Leaving without notice may or may not be the unlawful termination
+    // s 5(4) refuses.
+    (
+        "sa",
+        "2016-01-01",
+        "2024-12-31",
+        "2024-25",
+        "no_notice",
+        "long_service_leave.unsettled",
+    ),
+    // Outside Queensland the employer's reason decides, not unfairness.
+    (
+        "nsw",
+        "2016-01-01",
+        "2023-12-31",
+        "2023-24",
+        "unfair_dismissal",
+        "long_service_leave.unsettled",
+    ),
+    (
+        "wa",
+        "2011-01-01",
+        "2025-12-31",
+        "2025-26",
+        "unfair_dismissal",
         "long_service_leave.unsettled",
     ),
     (
@@ -400,6 +447,43 @@ fn unsettled_endings_and_dates_outside_the_text_are_refused() {
         let v = input(place, "2011-01-01", end, year);
         assert!(api::evaluate("long-service-leave", &v).is_ok(), "{place}");
     }
+}
+
+#[test]
+fn qualifying_dismissals_and_the_tasmanian_transition() {
+    // Queensland: an unfair dismissal at 8 years qualifies, s 95(4)(c)(iii);
+    // 8 x 8.6667 / 10 weeks at $1,500.
+    let qld = ends(
+        input("qld", "2016-01-01", "2023-12-31", "2023-24"),
+        "unfair_dismissal",
+    );
+    assert_eq!(figures(&run(&qld)), ["6.9334", "6.9334", "10400.04"]);
+    // A dismissal for conduct short of serious misconduct qualifies in South
+    // Australia (1.3 weeks for each of 8 years) but not in Queensland.
+    let sa = ends(
+        input("sa", "2016-01-01", "2023-12-31", "2023-24"),
+        "performance",
+    );
+    assert_eq!(figures(&run(&sa)), ["10.4000", "10.4000", "15600.00"]);
+    let qld = ends(
+        input("qld", "2016-01-01", "2023-12-31", "2023-24"),
+        "performance",
+    );
+    assert_eq!(figures(&run(&qld)), ["0.0000", "0.0000", "0.00"]);
+    // Tasmania: leave taken with service from before 1 July 2012 is refused
+    // (Schedule 3 cl 2(4)); none taken, or service from that day, is worked.
+    let tas = |start: &str, taken: &str| {
+        with(
+            input("tas", start, "2025-12-31", "2025-26"),
+            json!({"leave_taken": taken}),
+        )
+    };
+    assert_eq!(
+        code(&tas("2012-06-30", "1")),
+        "long_service_leave.unsettled"
+    );
+    assert_eq!(figures(&run(&tas("2012-06-30", "0")))[0], "8.6667");
+    assert_eq!(figures(&run(&tas("2012-07-01", "1")))[1], "7.6667");
 }
 
 /// Changes to a valid input and the code each gives.

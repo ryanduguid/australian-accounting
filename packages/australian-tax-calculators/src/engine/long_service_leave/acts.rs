@@ -79,12 +79,13 @@ pub(super) enum Reason {
     Redundancy,
     IllnessDismissal,
     Performance,
+    UnfairDismissal,
     Misconduct,
     FixedTerm,
     Death,
 }
 
-const REASONS: [(&str, Reason); 10] = [
+const REASONS: [(&str, Reason); 11] = [
     ("resign", Reason::Resign),
     ("pressing", Reason::Pressing),
     ("no_notice", Reason::NoNotice),
@@ -92,6 +93,7 @@ const REASONS: [(&str, Reason); 10] = [
     ("redundancy", Reason::Redundancy),
     ("illness_dismissal", Reason::IllnessDismissal),
     ("performance", Reason::Performance),
+    ("unfair_dismissal", Reason::UnfairDismissal),
     ("misconduct", Reason::Misconduct),
     ("fixed_term", Reason::FixedTerm),
     ("death", Reason::Death),
@@ -103,7 +105,8 @@ pub(super) fn reason(value: &Arg) -> Result<Reason> {
         None => refuse(
             "long_service_leave.reason_invalid",
             "reason must be resign, pressing, no_notice, retire, redundancy, \
-             illness_dismissal, performance, misconduct, fixed_term or death.",
+             illness_dismissal, performance, unfair_dismissal, misconduct, fixed_term or \
+             death.",
         ),
     }
 }
@@ -252,6 +255,9 @@ pub(super) fn on_ending(
         return pro_rata(place, s, reason);
     }
     match (place, reason) {
+        (Place::Wa | Place::Nt, Reason::UnfairDismissal) => {
+            refuse("long_service_leave.unsettled", UNFAIR)
+        }
         (Place::Wa, Reason::Misconduct) => outcome(
             two_months(whole(blocks(s)), place),
             "Leave accrued only, after dismissal for serious misconduct, s 8(2)",
@@ -314,10 +320,10 @@ fn qualifies(place: Place, reason: Reason) -> bool {
         ),
         Place::Qld => matches!(
             reason,
-            Redundancy | IllnessDismissal | Pressing | FixedTerm | Death
+            Redundancy | IllnessDismissal | Pressing | UnfairDismissal | Death
         ),
         Place::Wa => !matches!(reason, Misconduct),
-        Place::Sa => !matches!(reason, NoNotice | Misconduct),
+        Place::Sa => !matches!(reason, Misconduct),
         Place::Tas | Place::Act => matches!(
             reason,
             Pressing | Retire | Redundancy | IllnessDismissal | Performance | Death
@@ -365,9 +371,25 @@ fn pro_rata(place: Place, s: &Service, reason: Reason) -> Result<Outcome> {
     }
 }
 
+/// Why a dismissal found unfair is refused where the Act turns on the
+/// employer's reason instead.
+const UNFAIR: &str = "Outside Queensland the Act turns on the employer's reason for the \
+    dismissal, not on whether it was unfair: give that reason instead.";
+
 /// Endings an Act does not settle before its full qualifying period.
 fn unsettled(place: Place, reason: Reason) -> Result<()> {
+    use Place::*;
     let why = match (place, reason) {
+        (Qld, Reason::FixedTerm) => {
+            "Section 95(4)(d) pays on a fixed term ending before 10 years only if the employee \
+             reasonably expected the employment to continue to 10 years and was prepared to \
+             continue it, facts this worksheet does not take."
+        }
+        (Sa, Reason::NoNotice) => {
+            "Section 5(4) refuses a worker who unlawfully terminated the contract, and leaving \
+             without the notice the contract requires may or may not be that."
+        }
+        (Nsw | Wa | Sa | Tas | Act | Nt, Reason::UnfairDismissal) => UNFAIR,
         (Place::Nsw | Place::Tas | Place::Act | Place::Nt, Reason::FixedTerm) => {
             "The Act pays pro rata leave before the full period when the employer ends the \
              employment and does not say whether a fixed term ending is that."
@@ -379,4 +401,19 @@ fn unsettled(place: Place, reason: Reason) -> Result<()> {
         _ => return Ok(()),
     };
     refuse("long_service_leave.unsettled", why)
+}
+
+/// Tasmania's 2011 transition: an employee with service before 1 July 2012
+/// who exhausted the old entitlements for a period gets no new leave for it
+/// (Schedule 3 cl 2(4)), which leave taken in weeks alone cannot show.
+pub(super) fn transition(place: Place, start: i64, taken: i128) -> Result<()> {
+    let transition_day = dates::parse("2012-07-01").expect("a literal date");
+    if place == Place::Tas && taken > 0 && start < transition_day {
+        return refuse(
+            "long_service_leave.unsettled",
+            "Schedule 3 cl 2(4) gives no new leave for a period whose old entitlements were \
+             exhausted, and leave taken in weeks does not show which periods those were.",
+        );
+    }
+    Ok(())
 }

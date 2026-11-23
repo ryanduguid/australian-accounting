@@ -86,7 +86,7 @@ fn service_dates(args: &LongServiceLeaveArgs, place: Place, year: &str) -> Resul
     if start < on(EARLIEST_START) {
         return refuse(
             "long_service_leave.start_too_early",
-            "start is before 23 June 1990, before which Queensland counts service under the repealed 1961 Act: give a later start.",
+            "start is before 23 June 1990: Queensland counts earlier service under the repealed 1961 Act, and the other Acts' treatment of service that old was not read.",
         );
     }
     if end < start {
@@ -198,6 +198,7 @@ pub fn long_service_leave(args: &LongServiceLeaveArgs) -> Result<Value> {
     let (start, end) = service_dates(args, place, &year)?;
     let until = until(args.excluded_days, start, end)?;
     let (taken, pay, hours) = amounts_given(args)?;
+    acts::transition(place, start, taken)?;
     let service = acts::measure(start, until);
     let outcome = match reason {
         Some(reason) => acts::on_ending(place, &service, reason, start, until)?,

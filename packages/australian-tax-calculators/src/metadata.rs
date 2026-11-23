@@ -2556,11 +2556,11 @@ pub fn optional_inputs(kind: &str) -> Vec<(&'static str, &'static str)> {
         "long_service_leave" => vec![
             (
                 "reason",
-                "with status ends only and then required: resign, pressing (illness, incapacity, or a domestic or other pressing necessity), no_notice (resignation without the notice the contract requires), retire (at or after the retiring age), redundancy (or another dismissal not about conduct, capacity or performance), illness_dismissal, performance (dismissal short of serious misconduct), misconduct (serious misconduct; serious and wilful in nsw, sa, tas and act), fixed_term or death",
+                "with status ends only and then required: resign, pressing (illness, incapacity, or a domestic or other pressing necessity), no_notice (resignation without the notice the contract requires), retire (at or after the retiring age), redundancy (or another dismissal not about conduct, capacity or performance), illness_dismissal, performance (dismissal for conduct, capacity or performance short of the misconduct below), unfair_dismissal (a dismissal found unfair: qld only, s 95(4)(c)(iii); elsewhere give the employer's reason), misconduct (serious misconduct; serious and wilful in nsw, sa, tas and act), fixed_term or death",
             ),
             (
                 "hours_per_week",
-                "decimal above 0 to 168, to at most 2 decimal places: the ordinary hours a week, which gives hours, the weeks left times it rounded half up to 2 places, for a leave-provisions line with leave long_service",
+                "decimal above 0 to 168, to at most 2 decimal places: the ordinary hours a week as the Act measures them, which gives hours, the weeks left times it rounded half up to 2 places, for a leave-provisions line with leave long_service",
             ),
         ],
         "government_super_amounts" => vec![
@@ -5422,10 +5422,10 @@ pub fn input_units(kind: &str) -> Vec<(&'static str, &'static str)> {
             ("jurisdiction", "nsw, vic, qld, wa, sa, tas, act or nt: the state or territory whose general long service leave Act applies"),
             ("start", "YYYY-MM-DD from 1990-06-23: the first day of continuous service with the employer"),
             ("end", "YYYY-MM-DD in the year given, on or after start: the last day of employment, or the day to work the leave out at while still employed"),
-            ("excluded_days", "whole number from 0 to 36,500, fewer than the days from start to end: days that do not count as service but do not break it (such as unpaid leave)"),
-            ("leave_taken", "weeks from 0 to 1,000, to at most 4 decimal places: long service leave already taken or paid for this service"),
+            ("excluded_days", "whole number from 0 to 36,500, fewer than the days from start to end: the days the Act says do not count as service but do not break it, as the operator has established them; the worksheet takes them off the end of the period"),
+            ("leave_taken", "weeks from 0 to 1,000, to at most 4 decimal places: long service leave already taken or paid that the Act deducts from this entitlement; leave in advance is not covered"),
             ("status", "employed or ends: whether the employee is still employed at end or employment ends on it"),
-            ("weekly_pay", "AUD, no more than 1,000,000: the ordinary pay for a week as the Act defines it"),
+            ("weekly_pay", "AUD, no more than 1,000,000: the ordinary pay for a week as the Act defines it, already averaged where the Act averages hours or pay"),
         ],
         "leave_provisions" => vec![
             ("lines", "list of 1 to 500 objects, each {label, leave, hours, hourly_rate, probability, settled_within_12_months} and, when settled_within_12_months is false, {years_to_settlement, salary_growth, discount_rate, can_defer_settlement}: leave is annual or long_service; hours the unused entitlement accumulated at the reporting date (AASB 119 paras 13(a) and 15); hourly_rate in AUD: on a short-term line the rate the entity expects to pay for the leave (para 16), on a long-term line the rate at the reporting date before future salary growth, which salary_growth projects (para 87(b)); probability from 0 to 1 that the entitlement vests and is paid (paras 15 and 72); settled_within_12_months whether the benefit the line belongs to is expected to be settled wholly before 12 months after the reporting date (para 8): the part of a benefit that is not, due within 12 months, is false; years_to_settlement a whole number from 1 to 50 (the part of a long-term benefit due within 12 months takes 1, the nearest whole year); salary_growth and discount_rate decimal fractions from 0 to 1 a year (paras 83 to 87); can_defer_settlement whether the entity has the right at the reporting date to defer settlement for at least 12 months (AASB 101 para 69(d)): for a period beginning before 1 January 2024 only an unconditional right counts (the earlier para 69(d)), and from 1 January 2024 a right with substance that exists at the reporting date (paras 72A and 75A, AASB 2020-1 and AASB 2022-6), so for every period ending in 2020-21 to 2023-24, and a 2024-25 period ending before 31 December 2024, a conditional right is false unless AASB 2020-1 and AASB 2022-6 were applied early"),
