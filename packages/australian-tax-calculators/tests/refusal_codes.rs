@@ -199,7 +199,7 @@ fn every_catalogued_required_input_of_a_strict_command_is_read() {
     // foreign-income-tax-offset, trading-stock, prepayments, minors-income,
     // smsf-tax, ess-discount and help-indexation.
     // With transfer-balance and excess-contributions.
-    assert_eq!(checked, 103);
+    assert_eq!(checked, 104);
 }
 
 /// Every frozen call gives the same answer through either entry point, and

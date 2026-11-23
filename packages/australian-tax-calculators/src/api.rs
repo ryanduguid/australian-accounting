@@ -388,6 +388,17 @@ const COMMAND_ARGS: &[(&str, &[(&str, Kind)])] = &[
         ],
     ),
     (
+        "insurance-duty",
+        &[
+            ("jurisdiction", Raw),
+            ("class", Raw),
+            ("premium", Dec),
+            ("effected_date", Raw),
+            ("year", Raw),
+            ("scope_confirmed", Raw),
+        ],
+    ),
+    (
         "wine-equalisation-tax",
         &[("dealings", Json), ("year", Raw), ("scope_confirmed", Raw)],
     ),
@@ -1398,7 +1409,7 @@ pub fn commands() -> Vec<&'static str> {
 /// command on its `gross_pay` shows that withholding. The classifier's amounts
 /// are totals over lines whose shares a decision table sets, not a formula;
 /// each line and class carries the authority for its row instead.
-const DERIVED: [&str; 82] = [
+const DERIVED: [&str; 83] = [
     "fbt",
     "fbt-car-statutory",
     "fbt-car-operating-cost",
@@ -1470,6 +1481,7 @@ const DERIVED: [&str; 82] = [
     "gst-margin-scheme",
     "etp-tax-free-component",
     "payroll-tax",
+    "insurance-duty",
     "cgt-parcels",
     "work-expenses",
     "rental-property",
@@ -1940,6 +1952,7 @@ pub fn evaluate_coded(command: &str, v: &Value) -> Result<Value> {
             | "super-benefit-tax"
             | "super-withholding"
             | "payroll-tax"
+            | "insurance-duty"
             | "gst-margin-scheme"
             | "franking-account"
             | "cgt-parcels"
@@ -2259,6 +2272,19 @@ pub fn evaluate_coded(command: &str, v: &Value) -> Result<Value> {
                 involuntary_disposal: &a[9],
                 year: &a[10],
                 scope_confirmed: &a[11],
+            })
+        }
+        "insurance-duty" => {
+            // Optional: the Northern Territory's policy term, required there only.
+            let term = optional(v, "term_over_one_year", Raw)?;
+            engine::insurance_duty(&engine::InsuranceDutyArgs {
+                jurisdiction: &a[0],
+                class: &a[1],
+                premium: &a[2],
+                effected_date: &a[3],
+                term_over_one_year: term.as_ref(),
+                year: &a[4],
+                scope_confirmed: &a[5],
             })
         }
         "payroll-tax" => {

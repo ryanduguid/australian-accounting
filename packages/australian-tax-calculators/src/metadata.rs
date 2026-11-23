@@ -1183,6 +1183,9 @@ pub fn supported_periods(kind: &str) -> Vec<&'static str> {
         "franking_account" => vec!["2025-26", "2026-27"],
         // The 2026-27 rates and thresholds each revenue office published, read
         // on 19 November 2026.
+        // Contracts effected or renewed in 2026-27, at the rates in force on
+        // 24 November 2026.
+        "insurance_duty" => vec!["2026-27"],
         "payroll_tax" => vec!["2026-27"],
         // Tax periods from 1 July 2019, when the $10,000 refunds began
         // (Act No. 94 of 2019 Sch 2), to the last year whose thresholds the
@@ -1516,6 +1519,10 @@ pub fn source_review(kind: &str) -> (&'static str, &'static str) {
         "dasp_tax" => (
             "2026-11-19",
             "Superannuation (Departing Australia Superannuation Payments Tax) Act 2007 ss 4 to 6 (compilation 5, 2 December 2016, Federal Register of Legislation); ITAA 1997 ss 301-170 and 301-175, from the ATO's legal database; the ATO's 'Payments from super' rates (last updated 16 September 2026) and 'Departing Australia superannuation payment (DASP)' (last updated 21 April 2026)",
+        ),
+        "insurance_duty" => (
+            "2026-11-24",
+            "Duties Act 2000 (Vic) ss 3(1) and 179 (authorised version 141); Duties Act 2001 (Qld) s 362 (current as at 22 October 2026); Duties Act 2008 (WA) s 215 (03-z0-00); Stamp Duties Act 1923 (SA) s 34 (version 15.9.2026); Duties Act 2001 (Tas) s 166 (in force 24 November 2026); Duties Act 1999 (ACT) republication 79 endnotes (ch 8 omitted by A2017-11 from 1 July 2017); Stamp Duty Act 1978 (NT) Sch 1 cl 6(3) (as in force at 1 July 2025); Revenue NSW's 'Types of insurance' (the NSW Act was not readable); and each revenue office's insurance duty page",
         ),
         "payroll_tax" => (
             "2026-11-19",
@@ -2002,6 +2009,12 @@ pub fn library_evidence(kind: &str) -> [(&'static str, &'static str); 4] {
             "8-420",
             "2026-06-30",
             "2026-11-19",
+        ),
+        "insurance_duty" => (
+            "Revenue office insurance duty pages: Revenue NSW types of insurance; SRO Victoria insurance policies current rates; QRO insurance duty rates; RevenueWA self-assess and pay insurance duty; RevenueSA stamp duty on insurance; SRO Tasmania rates of duty; TRO stamp duty",
+            "No revenue office publishes a worked general insurance example with figures; each rate is applied to hand-worked premiums",
+            "2026-11-24",
+            "2026-11-24",
         ),
         "payroll_tax" => (
             "Revenue office payroll tax pages: Revenue NSW thresholds and rates; SRO Victoria payroll tax surcharges; QRO payroll tax deductions; RevenueWA employer guide; SRO Tasmania annual adjustment return guideline",
@@ -3169,6 +3182,10 @@ pub fn optional_inputs(kind: &str) -> Vec<(&'static str, &'static str)> {
                 "boolean, for a plug_in_hybrid_electric vehicle only and then required: true when a car benefit relating to the car was provided before 1 April 2025 and was exempt under s 8A as it then read (item 5(2)(d) and (e))",
             ),
         ],
+        "insurance_duty" => vec![(
+            "term_over_one_year",
+            "boolean, in nt only and then required: true for a policy issued or renewed for more than one year, which is refused (Stamp Duty Act 1978 (NT) Sch 1 cl 6(3)(b)(ii))",
+        )],
         "payroll_tax" => vec![(
             "regional_employer",
             "boolean, for Victoria only and then required: true when the employer is a regional employer, one that pays at least 85% of its taxable wages to regional employees (Payroll Tax Act 2007 (Vic) s 3A)",
@@ -4258,6 +4275,21 @@ pub fn input_units(kind: &str) -> Vec<(&'static str, &'static str)> {
             (
                 "unclaimed_money_rollover",
                 "boolean, true when the payment is a roll-over superannuation benefit paid under s 20H(2), (2AA) or (2A) of the Superannuation (Unclaimed Money and Lost Members) Act 1999; true with an element untaxed in the fund is refused, as s 5(2) taxes any excess untaxed roll-over amount in it at nil",
+            ),
+        ],
+        "insurance_duty" => vec![
+            ("jurisdiction", "nsw, vic, qld, wa, sa, tas, act or nt"),
+            (
+                "class",
+                "nsw type_a, type_b or type_c; vic general or business (s 3(1) 'business insurance'); qld class_1, class_2 or ctp; general elsewhere (in the act, nil since 1 July 2017)",
+            ),
+            (
+                "premium",
+                "AUD, cents allowed: the premium the jurisdiction's Act charges, already apportioned to the jurisdiction and the class (generally including GST and any fire or emergency services levy, excluding the duty)",
+            ),
+            (
+                "effected_date",
+                "YYYY-MM-DD in the year: the day the contract of insurance was effected or renewed",
             ),
         ],
         "payroll_tax" => vec![
@@ -5664,6 +5696,13 @@ pub fn examples(kind: &str) -> Vec<(&'static str, Example)> {
             ("untaxed_element", Text("0.00")),
             ("working_holiday_maker_contributions", Flag(false)),
             ("unclaimed_money_rollover", Flag(false)),
+        ],
+        "insurance_duty" => vec![
+            ("year", Text("2026-27")),
+            ("jurisdiction", Text("vic")),
+            ("class", Text("business")),
+            ("premium", Text("1234.56")),
+            ("effected_date", Text("2026-09-15")),
         ],
         "payroll_tax" => vec![
             ("year", Text("2026-27")),
