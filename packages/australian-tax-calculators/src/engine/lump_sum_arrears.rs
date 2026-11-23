@@ -231,7 +231,7 @@ fn named(values: &[(&str, Decimal)], id: &str) -> Decimal {
 
 /// The tax on `income`, written `x`, at `scale`: each row's part of the
 /// income at its rate.
-fn scale_tax(
+pub(super) fn scale_tax(
     scale: &[(i64, Option<i64>, &str)],
     income: &Decimal,
     x: &str,

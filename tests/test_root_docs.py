@@ -5,8 +5,12 @@
 """The root first screen and llms.txt must agree with the MCP application they describe."""
 
 import re
+import shutil
+import subprocess
 import tomllib
 from pathlib import Path
+
+import pytest
 
 ROOT = Path(__file__).resolve().parents[1]
 PROJECT = tomllib.loads((ROOT / "apps/aus-accounting-mcp/pyproject.toml").read_text(encoding="utf-8"))["project"]
@@ -62,3 +66,21 @@ def test_root_docs_do_not_call_the_rust_engines_python() -> None:
             "native build in this repository links the Rust crates of all 6 instead "
             "and is not released yet"
         ) in text
+
+
+def test_just_test_is_the_sum_of_parts_a_runner_can_queue_apart() -> None:
+    # A runner that caps each job's time cannot finish the whole of `just test`,
+    # so its parts stay separate recipes, and the Rust part takes crate directories.
+    justfile = _text("justfile")
+    assert re.search(r"^test: setup rust-test python-test\n\n", justfile, flags=re.MULTILINE)
+    assert re.search(r"^python-test: setup\n", justfile, flags=re.MULTILINE)
+    assert re.search(r"^rust-test \*crates:\n", justfile, flags=re.MULTILINE)
+    assert "just python-test" in _text("CONTRIBUTING.md")
+
+
+@pytest.mark.skipif(shutil.which("just") is None, reason="needs just")
+def test_rust_test_refuses_a_directory_that_is_not_a_crate() -> None:
+    result = subprocess.run(
+        ["just", "rust-test", "tests"], cwd=ROOT, capture_output=True, text=True, check=False)
+    assert result.returncode != 0
+    assert "no Cargo.toml in tests" in result.stderr

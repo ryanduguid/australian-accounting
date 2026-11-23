@@ -106,11 +106,17 @@ jobs:
         run: |
           floor="$(jq --exit-status --arg crate "$CRATE" '.[$crate]' "$GITHUB_WORKSPACE/.github/ci/rust_coverage_floors.json")"
           cargo llvm-cov --locked --fail-under-lines "$floor"
-      - run: cargo build --locked --release
+      - name: Build the release executable
+        env:
+          CARGO_PROFILE_RELEASE_LTO: ${{ github.event_name == 'pull_request' && 'false' || 'true' }}
+          CARGO_PROFILE_RELEASE_CODEGEN_UNITS: ${{ github.event_name == 'pull_request' && '16' || '1' }}
+        run: cargo build --locked --release
       - name: Build portable examples
         if: inputs.extra-examples != ''
         env:
           EXTRA_EXAMPLES: ${{ inputs.extra-examples }}
+          CARGO_PROFILE_RELEASE_LTO: ${{ github.event_name == 'pull_request' && 'false' || 'true' }}
+          CARGO_PROFILE_RELEASE_CODEGEN_UNITS: ${{ github.event_name == 'pull_request' && '16' || '1' }}
         run: |
           set -euo pipefail
           read -r -a examples <<< "$EXTRA_EXAMPLES"
@@ -209,6 +215,11 @@ jobs:
           cargo clippy --manifest-path wasm/Cargo.toml --locked --target wasm32-unknown-unknown --lib -- -D warnings
           cargo build --manifest-path wasm/Cargo.toml --locked --release --target wasm32-unknown-unknown
           node ../../.github/ci/check_engine_wasm.mjs "$ENGINE" "target/release/$BINARY"
+      - name: Check the library compiles for WebAssembly
+        if: runner.os == 'Linux' && inputs.package == 'australian-tax-calculators'
+        run: |
+          rustup target add wasm32-unknown-unknown
+          cargo check --locked --lib --target wasm32-unknown-unknown
       - name: Extract the native candidate
         if: inputs.candidate-test != ''
         env:
@@ -236,7 +247,7 @@ jobs:
           echo "NATIVE_CANDIDATE_COMMIT=$GITHUB_SHA" >> "$GITHUB_ENV"
       - name: Verify the extracted native candidate
         if: inputs.candidate-test == 'native_candidate'
-        run: cargo test --locked --release --test native_candidate -- --ignored --nocapture
+        run: cargo test --locked --test native_candidate -- --ignored --nocapture
       - name: Keep native candidate
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:

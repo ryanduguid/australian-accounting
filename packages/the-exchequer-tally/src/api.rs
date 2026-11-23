@@ -10,6 +10,7 @@ use serde_json::{Value, json};
 
 pub const COMMANDS: &[&str] = &[
     "corporate-tax",
+    "company-tax-statement",
     "bre-properties",
     "turnover-threshold",
     "max-franking-rate",
@@ -69,7 +70,7 @@ fn reference(v: &Value) -> Result<Option<String>> {
         Some(_) => Ok(Some(text(v, "statutory_reference")?.into())),
     }
 }
-fn array<'a>(v: &'a Value, key: &str) -> Result<&'a [Value]> {
+pub(crate) fn array<'a>(v: &'a Value, key: &str) -> Result<&'a [Value]> {
     match v.get(key) {
         None => Ok(&[]),
         Some(Value::Array(a)) => Ok(a),
@@ -150,6 +151,7 @@ pub fn evaluate(command: &str, v: &Value) -> Result<Value> {
     }
     match command {
         "corporate-tax" => Ok(bre(v)?.corporate_tax()?.json()),
+        "company-tax-statement" => crate::company_tax::evaluate(v),
         "bre-properties" => {
             let b = bre(v)?;
             Ok(

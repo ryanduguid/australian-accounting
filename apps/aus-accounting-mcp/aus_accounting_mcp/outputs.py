@@ -97,6 +97,24 @@ class ResultObject(TypedDict):
     """Preserve additional engine fields and reject coercion of declared values."""
 
 
+class ReturnDestination(ResultObject):
+    heading: Annotated[str, Field(description="Heading used in this channel's instructions.")]
+    question: Annotated[str | None, Field(description="Paper question, or null for myTax.")]
+    label: Annotated[str | None, Field(description="Paper amount label, or null for myTax.")]
+    source_url: Annotated[str, Field(description="ATO instructions for this year and channel.")]
+    source_quote: Annotated[str, Field(description="Short passage identifying the expense.")]
+    checked_on: Annotated[DateText, Field(description="Date the ATO instructions were checked.")]
+
+
+class ReturnLabelLookup(ResultObject):
+    year: YearText
+    channel: str
+    item: str
+    status: Literal["FOUND", "UNVERIFIED"]
+    destination: ReturnDestination | None
+    review_note: str
+
+
 class EngineResult(ResultObject):
     ok: Annotated[
         Literal[True],

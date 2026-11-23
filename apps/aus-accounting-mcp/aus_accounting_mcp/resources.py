@@ -125,6 +125,8 @@ def scope() -> dict[str, Any]:
             "validate_account_number_format": "Test a bank account number against the 9 "
             "character BECS field; proves no account, payee or BSB match.",
             "calculate_tax_worksheet": "Run one of the bounded calculation_worksheets below.",
+            "itr_label": "Find a sourced individual return destination by income year, "
+            "channel and item. Keep unmapped destinations open.",
             "get_reviewed_rate": "Return one reviewed ATO record for a date in 2025-26 or "
             "2026-27 with its source and verbatim quote; any other date is refused.",
             "get_data_freshness": "Report each bundled dataset's recorded periods, engine "
