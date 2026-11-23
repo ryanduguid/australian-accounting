@@ -1060,6 +1060,35 @@ fn salary_sacrificed_rights_and_the_5000() {
     assert_eq!(row(&r, 1)["rule"], "s 83A-105(3)");
 }
 
+/// s 83A-105(4)(b)(ii): a scheme offering a right without a real risk of
+/// forfeiture is not one s 83A-105(4) applies to, so a right stated as
+/// salary sacrificed without that risk contradicts itself. Beside a $3,000
+/// share relying on s 83A-105(4) it is refused, not left out of the $5,000.
+#[test]
+fn a_salary_sacrificed_right_needs_a_real_risk() {
+    let mut share = with_conditions(
+        share("2025-08-01", "0.00", "3000.00"),
+        json!({"salary_sacrifice": true}),
+    );
+    share["restrictions_lifted"] = json!("2027-08-01");
+    share["disposed"] = Value::Null;
+    share["cost_base"] = json!("0.00");
+    share["taxing_point_value"] = Value::Null;
+    let mut right = early_right(Value::Null, "2027-08-01");
+    right["acquired"] = json!("2025-08-01");
+    right["market_value"] = json!("3000.00");
+    right["conditions"]["salary_sacrifice"] = json!(true);
+    right["conditions"]["real_risk_of_forfeiture"] = json!(false);
+    right["conditions"]["deferral_stated"] = json!(true);
+    right["restrictions_lifted"] = json!("2027-08-01");
+    right["taxing_point_value"] = Value::Null;
+    right.as_object_mut().unwrap().remove("employment_ended");
+    for interests in [json!([share, right.clone()]), json!([right])] {
+        let refused = call("2025-26", interests, Value::Null);
+        assert_eq!(code(&refused), "ess_discount.interests_invalid");
+    }
+}
+
 /// s 83A-315.08(2): a calculation percentage on each column's upper edge
 /// and a period of exactly each row's months take the lower range.
 #[test]

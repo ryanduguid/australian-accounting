@@ -146,7 +146,7 @@ pub(super) struct Conditions {
     /// Shares only: s 83A-105(2).
     pub broad_availability: bool,
     /// s 83A-105(4)(a), (b)(ii) and (iii); a right's counts only toward the
-    /// $5,000 of s 83A-105(4)(c).
+    /// $5,000 of s 83A-105(4)(c) and needs a real risk for (b)(ii).
     pub salary_sacrifice: bool,
     /// Rights only: s 83A-105(6)(b).
     pub deferral_stated: bool,
@@ -314,6 +314,17 @@ fn conditions(mut c: Reader<'_>, kind: Kind) -> Result<Conditions> {
     } else {
         "the conditions of a right"
     })?;
+    // s 83A-105(4)(b)(ii): a scheme offering this right is not one
+    // subsection (4) applies to, so the right cannot count toward $5,000.
+    if !share && out.salary_sacrifice && !out.real_risk {
+        return refuse(
+            INVALID,
+            format!(
+                "{}: a right without a real risk of forfeiture cannot meet s 83A-105(4)(b)(ii), which salary_sacrifice states.",
+                c.name
+            ),
+        );
+    }
     Ok(out)
 }
 

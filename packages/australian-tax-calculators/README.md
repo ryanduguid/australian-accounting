@@ -2879,7 +2879,8 @@ of the return groups it. `interests` lists up to 50 parcels; each gives
 and `ten_percent_limit` for s 83A-45(1) to (4) and (6), `non_discriminatory`
 for s 83A-35(6), `real_risk_of_forfeiture` for s 83A-105(3),
 `salary_sacrifice` (s 83A-105(4)(a), (b)(ii) and (iii); a right's counts
-only toward the $5,000), for a share `broad_availability` (s 83A-105(2)),
+only toward the $5,000, and a right needs `real_risk_of_forfeiture` for
+(b)(ii)), for a share `broad_availability` (s 83A-105(2)),
 for a right `deferral_stated` (s 83A-105(6))) and
 `start_up` (`null`, or `unlisted`, `incorporated_under_10_years`,
 `aggregated_turnover` and `employer_australian_resident` for s 83A-33(2) to
