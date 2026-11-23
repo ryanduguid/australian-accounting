@@ -4,6 +4,44 @@
 
 ### Added
 
+- `super-withholding` takes one superannuation income stream payment with
+  `income_stream_period`: Schedule 13 Part A withholding in 2024-25 to
+  2026-27 for an account-based stream, or a capped defined benefit stream to
+  a payee under 60, paid to a member or a death benefits dependant, with
+  `tax_free_threshold_claimed`, `capped_defined_benefit` and
+  `deceased_aged_60_or_over`. Lump sums are unchanged. New codes:
+  `super_withholding.capped_defined_benefit`,
+  `super_withholding.deceased_60_recipient_under_60`,
+  `super_withholding.income_stream_foreign_resident`,
+  `super_withholding.income_stream_period_invalid` and
+  `super_withholding.income_stream_year`. `tests/super_income_stream.rs` runs
+  each schedule's Veronica example and each rule.
+- `land-tax`: one owner's land tax for a full land tax year in New South
+  Wales and Victoria (2026) and Queensland, Western Australia, South
+  Australia, Tasmania and the ACT (2026-27), at the general or trust rates,
+  with each jurisdiction's foreign or absentee owner surcharge and Western
+  Australia's metropolitan region improvement tax. It mirrors the site's land
+  tax calculator and agrees with it on every case except where the Act
+  differs: Queensland's surcharge over $349,999, South Australia's $20
+  minimum and Tasmania's rounding to 10 cents. New codes:
+  `land_tax.absentee_trust_unsupported`, `land_tax.jurisdiction_invalid`,
+  `land_tax.metropolitan_region_invalid`, `land_tax.metropolitan_region_part`,
+  `land_tax.rounding_unsettled`, `land_tax.surcharge_unavailable`,
+  `land_tax.surcharge_value_above_taxable_value` and
+  `land_tax.trust_rates_unavailable`. `derive` takes it.
+- `vic-property-taxes`: Victoria's vacant residential land tax (1%, 2% or
+  3% of capital improved value by the land's liable years, 1% for
+  undeveloped land and the s 88EB concession), the commercial and
+  industrial property tax (nil in 2025 and 2026, with the land's earliest
+  possible tax year) and windfall gains tax on a rezoning's aggregated uplift, for the
+  2025 and 2026 tax years. New codes:
+  `vic_property_taxes.concession_unavailable`,
+  `vic_property_taxes.entry_date_before_reform`,
+  `vic_property_taxes.parcels_invalid`,
+  `vic_property_taxes.residential_land_invalid`,
+  `vic_property_taxes.tax_invalid`,
+  `vic_property_taxes.transition_end_unsettled` and
+  `vic_property_taxes.undeveloped_before_2026`. `derive` takes it.
 - `trading-stock` works out the change in value of trading stock under ITAA
   1997 s 70-35 for 2020-21 to 2026-27, each closing item valued by its own
   election (cost, market selling value, replacement value, the lowest, or an

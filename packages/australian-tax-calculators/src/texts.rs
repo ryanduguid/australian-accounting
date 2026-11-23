@@ -3,6 +3,10 @@
 
 pub const SCOPES: &[(&str, &str)] = &[
     (
+        "vic_property_taxes",
+        "One Victorian tax on land for the 2025 or 2026 tax year, on values the operator states: vacant residential land tax on one parcel of residential land that met the classification and vacancy conditions of Land Tax Act 2005 (Vic) ss 34B and 34C as in force for that tax year, is not exempt and is not in an alpine resort as defined for that year (including Sch 3 cl 23), as the tax on the parcel for its liable assessed owner (not a deemed owner's personal liability, s 34E); the commercial and industrial property tax on land that entered the tax reform scheme on a stated date, with the earliest tax year it could be taxed if it then meets every condition of s 3; or windfall gains tax on one WGT event that took effect in that year and is not a rezoning excluded by Windfall Gains Tax Act 2021 (Vic) s 3 or a Gazette declaration, with no exemption under ss 37 to 40A or waiver under s 41, on every title rezoned by that one event owned by one assessment unit (one owner, the same joint owners, one trust or a complete group) whose grouping and capacity are already settled under ss 17 to 25. Excluded: separate occupancy valuations (s 14), land not separately valued (s 15), residential land of more than 2 hectares (s 37(2)) and events with a correcting component (s 38(3A)). Values are the Valuer-General's; deferral, interest and apportionment of the tax to titles (s 16(2)) are not worked.",
+    ),
+    (
         "alcohol_excise",
         "Excise duty on beer, spirits and other excisable beverages manufactured in Australia and entered for home consumption from 1 July 2022 to 31 January 2027, in one financial year from 2022-23 to 2026-27, at the substituted rate the Commissioner published for the day (Excise Tariff Act 1921 Schedule items 1 to 3, s 6A), with the remission for alcohol manufacturers under its yearly cap and the refund of duty paid where it was available (Excise Regulation 2015 Sch 1 cl 2(1) item 10). The operator establishes each line's product, dutiable volume and strength at 20 degrees Celsius under the measurement determinations, container and entry day, and the remission conditions other than the cap. Excludes licences, approvals and the free subitems 3.5 to 3.8, quotas in a declared period, other remissions, refunds and drawbacks, imported goods (customs duty), wine (wine equalisation tax), tobacco and fuel.",
     ),
@@ -52,7 +56,7 @@ pub const SCOPES: &[(&str, &str)] = &[
     ),
     (
         "super_withholding",
-        "The amount a payer withholds under Schedule 12 of the PAYG withholding schedules from one superannuation lump sum or roll-over paid from 13 October 2020 to 30 June 2027 in a financial year from 2020-21 to 2026-27. The operator establishes the facts super-benefit-tax takes, whether the payee had given the payer their TFN, whether the payee is a foreign resident and, if so, that no tax treaty makes the payment assessable only in another country. The components, ages, treatments and caps are those of super-benefit-tax. With a TFN, each part is withheld at Table A's rate: the tax offset's ceiling rate plus the 2% Medicare levy for an Australian resident (22% on a member's element taxed in the fund under preservation age; nil up to the low rate cap left and 17% above it from preservation age to 59, possible only to 2023-24; nil at 60 and above; on the element untaxed in the fund 32% under preservation age, 17% up to the low rate cap left then 32% from preservation age to 59, 17% at 60 and above, each up to the untaxed plan cap left, and 47% above it; 17% and 32% on a non-dependant's elements), the ceiling rate itself for a foreign resident, and the total is rounded to the nearest dollar, 50 cents up. Nothing is withheld from a terminal medical condition payment, a member benefit under $200 that is the payee's entire benefit, a death benefit to a dependant or a death benefit to the trustee of a deceased estate. A roll-over has 47% withheld from the element untaxed in the fund above the untaxed plan cap left and nothing else, with or without a TFN and for a foreign resident; without a TFN, cents are ignored. Without a TFN, 47% (45% for a foreign resident) of the taxable component is withheld from a member under 60, or of the element untaxed in the fund from a member 60 or over, ignoring cents. Refused: a payment before 13 October 2020; no TFN for a non-dependant or a member benefit under $200, for which the schedule states no rate; and everything super-benefit-tax refuses. Excluded: tax treaties, commutations of income streams, departing Australia superannuation payments (dasp-tax), superannuation income streams (Schedule 13), the tax on the payment (super-benefit-tax) and study and training support loans, from which nothing is withheld for these payments.",
+        "The amount a payer withholds under Schedule 12 of the PAYG withholding schedules from one superannuation lump sum or roll-over paid from 13 October 2020 to 30 June 2027 in a financial year from 2020-21 to 2026-27. The operator establishes the facts super-benefit-tax takes, whether the payee had given the payer their TFN, whether the payee is a foreign resident and, if so, that no tax treaty makes the payment assessable only in another country. The components, ages, treatments and caps are those of super-benefit-tax. With a TFN, each part is withheld at Table A's rate: the tax offset's ceiling rate plus the 2% Medicare levy for an Australian resident (22% on a member's element taxed in the fund under preservation age; nil up to the low rate cap left and 17% above it from preservation age to 59, possible only to 2023-24; nil at 60 and above; on the element untaxed in the fund 32% under preservation age, 17% up to the low rate cap left then 32% from preservation age to 59, 17% at 60 and above, each up to the untaxed plan cap left, and 47% above it; 17% and 32% on a non-dependant's elements), the ceiling rate itself for a foreign resident, and the total is rounded to the nearest dollar, 50 cents up. Nothing is withheld from a terminal medical condition payment, a member benefit under $200 that is the payee's entire benefit, a death benefit to a dependant or a death benefit to the trustee of a deceased estate. A roll-over has 47% withheld from the element untaxed in the fund above the untaxed plan cap left and nothing else, with or without a TFN and for a foreign resident; without a TFN, cents are ignored. Without a TFN, 47% (45% for a foreign resident) of the taxable component is withheld from a member under 60, or of the element untaxed in the fund from a member 60 or over, ignoring cents. Refused: a payment before 13 October 2020; no TFN for a non-dependant or a member benefit under $200, for which the schedule states no rate; and everything super-benefit-tax refuses. Excluded: tax treaties, commutations of income streams, departing Australia superannuation payments (dasp-tax), the tax on the payment (super-benefit-tax) and study and training support loans, from which nothing is withheld for these payments. With income_stream_period (weekly, fortnightly, monthly or quarterly), the payment is instead one superannuation income stream payment in 2024-25 to 2026-27 under Schedule 13 Part A: an account-based stream, or a capped defined benefit stream to a payee under 60, paid to the member or a death benefits dependant. Its components are proportioned on the interest's value and tax free component when the stream commenced (s 307-125(3)(a)). Cents in the stream are ignored; withholding applies to the taxable component under 60 and the element untaxed in the fund at 60 or over; the PAYG withholding tax table (Schedule 1, scale 2 with the tax-free threshold, scale 1 without) gives the withholding amount; the tax offset per payment is 15% of the element taxed in the fund for a disability stream under 60 or a dependant under 60 whose deceased died under 60, 10% of the element untaxed in the fund at 60 or over, and otherwise nil; where it is above nil, the offset adjustment on the weekly equivalent covers the Medicare levy; the greater of the withholding amount less the offset and the adjustment is withheld, rounded to the nearest dollar, 50 cents up. Without a TFN, 47% (45% for a foreign resident) of the amount withholding applies to, ignoring cents; for an income stream, tfn_provided is false only when the payee has not quoted a TFN, has not claimed an exemption from quoting one and has not told the payer of a TFN application or enquiry (or 28 days have passed since), and true for an exemption or an application within the 28 days, which Schedule 13 withholds from like a quoted TFN. Refused for an income stream: years before 2024-25, a capped defined benefit stream to a payee 60 or over (Parts B to E), a dependant under 60 whose deceased died aged 60 or over, a foreign resident with a TFN and an annual payment. Excluded for an income stream: a SAPTO claim through withholding (Schedule 9), Medicare levy variation declarations, study and training support loan debts (Schedule 8) and tax treaties.",
     ),
     (
         "gst_margin_scheme",
@@ -81,6 +85,10 @@ pub const SCOPES: &[(&str, &str)] = &[
     (
         "trade_in",
         "Trading in one depreciating asset for a replacement in an income year from 2025-26 to 2026-27, for a taxpayer with an income year from 1 July to 30 June, at arm's length, where the replacement is started to be held and first used in that income year. The traded-in asset's facts are balancing_adjustment's, and the operator establishes them as it states. Its termination value is the trade-in allowance, the amount by which the replacement's price is reduced (ITAA 1997 s 40-305(1)(b) item 2), less the GST payable on the trade-in where it is a taxable supply (1/11 of the allowance: GST Act ss 9-70 and 9-75(1); ITAA 1997 s 27-95(1)), plus the GST Act s 132-5 decreasing adjustment for an asset acquired partly for a private purpose or for making financial supplies, from its input tax credit as adjusted and the full one (s 27-95(3)); its balancing adjustment, reduction for non-taxable use and CGT event K7 amount are then worked as balancing_adjustment works them. The replacement's cost is its price before the trade-in, including GST and any luxury car tax (ss 40-180 and 40-185(1)(b) item 2), less its input tax credit (s 27-80(1)): for a creditable acquisition the GST payable, 1/11 of the price less any luxury car tax, times the extent of creditable purpose (GST Act ss 9-75, 11-25 and 11-30), and for a passenger car no more than 1/11 of the car limit times that extent (s 69-10(1) and (3)). A passenger car's cost is then reduced to the car limit for the year (ITAA 1997 s 40-230(1)): $69,674 for 2025-26 and $69,883 for 2026-27, as the ATO publishes them. Amounts are worked exactly and shown to the cent, half up. Refuses a trade-in not at arm's length (s 40-300(2) item 6, s 27-95(2) and s 40-225 would apply), an involuntary disposal (whose s 40-365 choice is not made), a taxable trade-in with an adjusted input tax credit above the full one, a creditable acquisition with a nil creditable purpose, and luxury car tax above the price. Excludes deciding whether either supply is taxable, the allowance, price, creditable purpose and input tax credits; a car whose purchaser may quote an ABN for luxury car tax, a car that is not a luxury car under s 25-1(2) of the Luxury Car Tax Act, a car leased or hired, and a car excluded from the car limit by s 40-230(2); a trade-in of a luxury car on which luxury car tax is payable; a replacement first held or used in another year; a decreasing adjustment arising in a later income year (s 27-95(5)) and increasing adjustments (s 27-95(4)); assets in a pool or written off under s 328-180 or temporary full expensing; and everything balancing_adjustment excludes.",
+    ),
+    (
+        "land_tax",
+        "One owner's land tax for a full land tax year in one of New South Wales and Victoria (the 2026 land tax year, on land owned at midnight on 31 December 2025) and Queensland, Western Australia, South Australia, Tasmania and the Australian Capital Territory (2026-27); the Northern Territory has no land tax. The operator establishes the jurisdiction's total taxable value of the owner's land after exemptions and concessions (in New South Wales the 3-year average land value, in Victoria and South Australia the site value, in the ACT one parcel's average unimproved value), whether the owner pays trust rates (a New South Wales special trust, Victorian trust surcharge rates, Queensland company and trustee rates other than for the trustees Land Tax Act 2010 (Qld) s 33 taxes at Sch 1, or South Australian trust rates under Land Tax Act 1936 (SA) s 8A(1a) after the exceptions in s 8A(1b) and (1c)), whether the owner is a foreign person or absentee who pays the jurisdiction's surcharge on all of the land (in the ACT, a parcel wholly foreign-owned: s 17F apportions), the value a New South Wales or Tasmanian surcharge applies to (in Tasmania the foreign-owned part of one folio, Land Tax Act 2000 (Tas) s 16B(1)), and in Western Australia whether all of the land is in the Perth metropolitan region. Each scale is the Act's or the revenue office's, with the surcharges of New South Wales (5% of the surcharge value), Victoria (the absentee owner rates less the general or trust rates), Queensland (3.0c for each $1 over $349,999 from $350,000, Land Tax Act 2010 (Qld) Schs 2 and 3), Tasmania (2% of the surcharge value) and the ACT (0.75%), and Western Australia's metropolitan region improvement tax (0.14% over $300,000). Tasmania's amounts are rounded to 10 cents (Land Tax Rating Act 2000 (Tas) s 7), and a case where rounding each amount and their sum differ is refused; South Australia's land tax under $20 is nil (Land Tax Act 1936 (SA) s 6); other amounts are worked exactly and shown to the cent, half up, the worksheet's convention, before any rounding a revenue office applies to the amount it collects (such as Taxation Administration Act 2001 (Qld) s 152). The ACT figure is for a taxable parcel liable in all 4 quarters. Excludes deciding which land is taxable, exemptions and concessions, who is a foreign person or absentee, and the taxable and surcharge values; joint ownership, grouping of related companies, single holding assessments, New South Wales companies that are not their group's concessional company, Victorian absentee trusts (s 46IA), Queensland build-to-rent land (s 58B), an exempt ACT parcel, the Victorian COVID-19 debt temporary surcharge on single holdings, Queensland trust aggregation, land only partly in the Perth metropolitan region, the ACT's unit entitlement and quarterly instalments, apportionment between properties, and part-year or supplementary assessments.",
     ),
     (
         "payroll_tax",
@@ -474,6 +482,10 @@ pub const SCOPES: &[(&str, &str)] = &[
 
 pub const SOURCES: &[(&str, &str)] = &[
     (
+        "vic_property_taxes",
+        "https://www.legislation.vic.gov.au/in-force/acts/windfall-gains-tax-act-2021/010",
+    ),
+    (
         "alcohol_excise",
         "https://www.ato.gov.au/businesses-and-organisations/gst-excise-and-indirect-taxes/excise-on-alcohol/excise-duty-rates-for-alcohol",
     ),
@@ -552,6 +564,10 @@ pub const SOURCES: &[(&str, &str)] = &[
     (
         "super_withholding",
         "https://www.legislation.gov.au/F2026L00716/asmade/text",
+    ),
+    (
+        "land_tax",
+        "https://www.legislation.vic.gov.au/in-force/acts/land-tax-act-2005/086",
     ),
     (
         "payroll_tax",
@@ -953,6 +969,19 @@ const FBT_GUIDE_REDUCTIONS: &str =
 
 pub const EXTRA_SOURCES: &[(&str, &[&str])] = &[
     (
+        "vic_property_taxes",
+        &[
+            "https://www.legislation.vic.gov.au/in-force/acts/land-tax-act-2005/086",
+            "https://www.legislation.vic.gov.au/in-force/acts/commercial-and-industrial-property-tax-reform-act-2024/004",
+            "https://www.legislation.vic.gov.au/in-force/acts/interpretation-legislation-act-1984/134",
+            "https://www.legislation.vic.gov.au/as-made/acts/state-taxation-acts-and-other-acts-amendment-act-2023",
+            "https://www.sro.vic.gov.au/about-us/rates-and-statistics/current-rates/vacant-residential-land-tax-current-rates",
+            "https://www.sro.vic.gov.au/owning-property/vacant-residential-land-tax/understanding-vacant-residential-land-tax",
+            "https://www.sro.vic.gov.au/businesses-and-organisations/commercial-and-industrial-property-tax/understanding-commercial-and-industrial-property-tax",
+            "https://www.sro.vic.gov.au/owning-property/windfall-gains-tax/understanding-windfall-gains-tax",
+        ],
+    ),
+    (
         "alcohol_excise",
         &[
             "https://www.ato.gov.au/businesses-and-organisations/gst-excise-and-indirect-taxes/excise-on-alcohol/calculating-alcohol-excise-duty",
@@ -1097,6 +1126,31 @@ pub const EXTRA_SOURCES: &[(&str, &[&str])] = &[
             "https://www.legislation.gov.au/F2025L00647/asmade/text",
             "https://www.legislation.gov.au/F2025L01016/asmade/text",
             "https://www.ato.gov.au/tax-rates-and-codes/key-superannuation-rates-and-thresholds/payments-from-super",
+        ],
+    ),
+    (
+        "land_tax",
+        &[
+            "https://www.revenue.nsw.gov.au/taxes-duties-levies-royalties/land-tax/understanding-land-tax/thresholds-and-rates",
+            "https://www.revenue.nsw.gov.au/taxes-duties-levies-royalties/land-tax/understanding-land-tax/types-of-landowners/trusts",
+            "https://www.revenue.nsw.gov.au/taxes-duties-levies-royalties/land-tax/surcharge-land-tax/what-is-surcharge-land-tax",
+            "https://www.sro.vic.gov.au/about-us/rates-and-statistics/current-rates/land-tax-current-rates",
+            "https://www.legislation.qld.gov.au/view/whole/html/inforce/current/act-2010-015",
+            "https://qro.qld.gov.au/land-tax/calculate/individual/",
+            "https://qro.qld.gov.au/land-tax/calculate/company-trust/",
+            "https://qro.qld.gov.au/land-tax/calculate/absentee/",
+            "https://qro.qld.gov.au/land-tax/calculate/foreign-company-trust/",
+            "https://www.legislation.wa.gov.au/legislation/prod/filestore.nsf/FileURL/mrdoc_28122.htm/$FILE/Land%20Tax%20Act%202002%20-%20%5B02-d0-04%5D.html",
+            "https://www.legislation.wa.gov.au/legislation/prod/filestore.nsf/FileURL/mrdoc_17548.htm/$FILE/Metropolitan%20Region%20Improvement%20Tax%20Act%201959%20-%20%5B04-a0-08%5D.html",
+            "https://www.wa.gov.au/organisation/department-of-treasury-and-finance/land-tax-assessment",
+            "https://www.legislation.sa.gov.au/_legislation-documents/lz/c/a/land-tax-act-1936/current/1936.2318.auth.pdf",
+            "https://www.revenuesa.sa.gov.au/landtax/rates-and-thresholds",
+            "https://www.legislation.tas.gov.au/view/whole/html/inforce/current/act-2000-073",
+            "https://www.sro.tas.gov.au/land-tax/rates-of-land-tax",
+            "https://www.sro.tas.gov.au/Documents/foreign-investor-land-tax-surcharge-guideline.pdf",
+            "https://legislation.act.gov.au/DownloadFile/a/2004-4/current/PDF/2004-4.PDF",
+            "https://www.legislation.act.gov.au/View/di/2026-152/current/html/2026-152.html",
+            "https://nt.gov.au/property/land/buying-and-selling-land/land-taxes",
         ],
     ),
     (
@@ -2121,6 +2175,14 @@ pub const EXTRA_WARNINGS: &[(&str, &[&str])] = &[
         ],
     ),
     (
+        "vic_property_taxes",
+        &[
+            "The State Revenue Office decides whether land is vacant residential land, has a qualifying use or is exempt, and the Valuer-General sets its values; this worksheet takes those facts and values as established.",
+            "No land leaves the commercial and industrial property tax's 10-year transition period before 1 July 2034, so the tax is nil in 2025 and 2026. The earliest possible tax year shown is not a finding of future liability: the land must then still be tax reform scheme land with a qualifying use that is taxable for land tax (s 3), and a future entry date is a hypothetical.",
+            "Each amount is the statutory formula amount shown to the cent, half up, before any administrative adjustment the Commissioner makes; it is not an assessed amount.",
+        ],
+    ),
+    (
         "fuel_tax_credits",
         &[
             "Each line's rate is the one the ATO publishes for its acquisition day; the ATO's fuel tax credit calculator remains the authority for an amount claimed.",
@@ -2310,6 +2372,13 @@ pub const EXTRA_WARNINGS: &[(&str, &[&str])] = &[
         "super_withholding",
         &[
             "The amount withheld is a credit against the payee's tax, which super-benefit-tax works out; it is not the tax. A payee with a tax treaty that makes the payment assessable only in another country has nothing withheld, which this command does not decide.",
+        ],
+    ),
+    (
+        "land_tax",
+        &[
+            "Each revenue office decides which land is taxable, its value and whether an owner is a foreign person or absentee; this worksheet takes the taxable value and any surcharge value as established.",
+            "The ACT assesses land tax each quarter on the days in the quarter; this worksheet gives the full year's amount, which the quarterly assessments can differ from by cents.",
         ],
     ),
     (
@@ -3851,7 +3920,7 @@ pub const REFUSAL_CODES: &[(&str, &str)] = &[
     ),
     (
         "input.field_unknown",
-        "A field the worksheet or command does not take, or does not take beside the other inputs given, was given (fbt-loan, fbt-meal-entertainment, fbt-car-parking, fbt-debt-waiver, fbt-expense-payment, fbt-property, fbt-residual, fbt-housing, fbt-lafha, fbt-board, fbt-tax-exempt-body-entertainment, fbt-entertainment-classifier, fbt-meal-entertainment-register and its entries, fbt-minor-benefit-check, ppsr-timing, fhss and its contributions, government-super-amounts, personal_deductions and determination, division-296, depreciation, fuel-tax-credits and its lines, alcohol-excise and its lines, foreign-resident-tax, medicare-levy, medicare-levy-surcharge, payg-withholding, payg-gross-up, termination-payment, etp-tax-free-component, unused-leave-payment, the Schedule 5 methods, working-holiday-maker-withholding, study-loan-withholding, seniors-pensioners-withholding, seniors-pensioners-tax-offset, lump-sum-arrears-tax-offset, hire-purchase-schedule, chattel-mortgage-schedule, loan-transactions and its transactions and rate_changes, borrowing-expenses-schedule and its loans, business-capital-expenditure and its items, balancing-adjustment, its years and car_limit, trade-in, franking-account and its events, distributions and income_tax, dasp-tax, super-benefit-tax, super-withholding, gst-margin-scheme, wine-equalisation-tax and its dealings, luxury-car-tax and its lines, foreign-resident-withholding and its vendors, payroll-tax, cgt-parcels, its parcels and disposals, cgt-cost-base-adjustments, its parcels and events, fbt-ev-exemption-check, fbt-instalment, sb-cgt-concessions, small-business-income-offset, ess-discount, residency-tests, lodgment-required, trading-stock and its items, prepayments, depreciation-low-value-pool, gst-creditable-purpose-change, gst-annual-apportionment, gst-financial-acquisitions-threshold, gst-going-concern, gst-second-hand-goods, gst-bad-debt, depreciation-small-business-pool, capital-works, non-commercial-losses, psi-test, minors-income, smsf-tax, payg-instalment, beneficiary-tax-offset, invalid-carer-tax-offset, zone-tax-offset and its dependants, net-medical-expenses-tax-offset, work-expenses, ato-interest-penalties and its payments and parts, private-health-insurance-rebate, rental-property and its loans, capital_works and depreciating_assets, horticulture-shearing-withholding, upward-variation-withholding, daily-casual-withholding, no-abn-withholding, entertainer-withholding, return-to-work-withholding, annuity-withholding, voluntary-agreement-withholding, rd-tax-offset, deferred-tax, leave-provisions, foreign-income-conversion, foreign-income-tax-offset, transfer-balance and its events, excess-contributions, help-indexation and its debts and repayments, contribution-caps given a carry-forward input, derive, personal-tax-estimate, dgr-check, income-tests and fbt-return only).",
+        "A field the worksheet or command does not take, or does not take beside the other inputs given, was given (fbt-loan, fbt-meal-entertainment, fbt-car-parking, fbt-debt-waiver, fbt-expense-payment, fbt-property, fbt-residual, fbt-housing, fbt-lafha, fbt-board, fbt-tax-exempt-body-entertainment, fbt-entertainment-classifier, fbt-meal-entertainment-register and its entries, fbt-minor-benefit-check, ppsr-timing, fhss and its contributions, government-super-amounts, personal_deductions and determination, division-296, depreciation, fuel-tax-credits and its lines, alcohol-excise and its lines, foreign-resident-tax, medicare-levy, medicare-levy-surcharge, payg-withholding, payg-gross-up, termination-payment, etp-tax-free-component, unused-leave-payment, the Schedule 5 methods, working-holiday-maker-withholding, study-loan-withholding, seniors-pensioners-withholding, seniors-pensioners-tax-offset, lump-sum-arrears-tax-offset, hire-purchase-schedule, chattel-mortgage-schedule, loan-transactions and its transactions and rate_changes, borrowing-expenses-schedule and its loans, business-capital-expenditure and its items, balancing-adjustment, its years and car_limit, trade-in, franking-account and its events, distributions and income_tax, dasp-tax, super-benefit-tax, super-withholding, gst-margin-scheme, wine-equalisation-tax and its dealings, luxury-car-tax and its lines, foreign-resident-withholding and its vendors, payroll-tax, land-tax, vic-property-taxes and its parcels, cgt-parcels, its parcels and disposals, cgt-cost-base-adjustments, its parcels and events, fbt-ev-exemption-check, fbt-instalment, sb-cgt-concessions, small-business-income-offset, ess-discount, residency-tests, lodgment-required, trading-stock and its items, prepayments, depreciation-low-value-pool, gst-creditable-purpose-change, gst-annual-apportionment, gst-financial-acquisitions-threshold, gst-going-concern, gst-second-hand-goods, gst-bad-debt, depreciation-small-business-pool, capital-works, non-commercial-losses, psi-test, minors-income, smsf-tax, payg-instalment, beneficiary-tax-offset, invalid-carer-tax-offset, zone-tax-offset and its dependants, net-medical-expenses-tax-offset, work-expenses, ato-interest-penalties and its payments and parts, private-health-insurance-rebate, rental-property and its loans, capital_works and depreciating_assets, horticulture-shearing-withholding, upward-variation-withholding, daily-casual-withholding, no-abn-withholding, entertainer-withholding, return-to-work-withholding, annuity-withholding, voluntary-agreement-withholding, rd-tax-offset, deferred-tax, leave-provisions, foreign-income-conversion, foreign-income-tax-offset, transfer-balance and its events, excess-contributions, help-indexation and its debts and repayments, contribution-caps given a carry-forward input, derive, personal-tax-estimate, dgr-check, income-tests and fbt-return only).",
     ),
     ("input.flag_invalid", "A flag is not a JSON boolean."),
     ("input.fraction_invalid", "A fraction is outside 0 to 1."),
@@ -3941,6 +4010,38 @@ pub const REFUSAL_CODES: &[(&str, &str)] = &[
     (
         "invalid_carer_tax_offset.successive_spouses",
         "The person had a different spouse during different parts of the year, whose incomes ITAA 1997 s 61-20(3) adds separately.",
+    ),
+    (
+        "land_tax.absentee_trust_unsupported",
+        "A Victorian trust was given as an absentee owner: s 46IA charges a fixed or unit trust's surcharge on its absentee beneficiaries' share, which this worksheet does not take.",
+    ),
+    (
+        "land_tax.jurisdiction_invalid",
+        "jurisdiction is not nsw, vic, qld, wa, sa, tas or act; the Northern Territory has no land tax.",
+    ),
+    (
+        "land_tax.metropolitan_region_invalid",
+        "metropolitan_region is not all, none or part.",
+    ),
+    (
+        "land_tax.metropolitan_region_part",
+        "The land is partly in the Perth metropolitan region, whose improvement tax on that part alone is not worked.",
+    ),
+    (
+        "land_tax.rounding_unsettled",
+        "Tasmania's s 7 rounding to 10 cents gives a different total applied to the land tax and the foreign investor land tax apart than to their sum, and which it requires is unsettled.",
+    ),
+    (
+        "land_tax.surcharge_unavailable",
+        "A foreign or absentee owner was given in a jurisdiction whose surcharge this worksheet does not hold (wa, sa).",
+    ),
+    (
+        "land_tax.surcharge_value_above_taxable_value",
+        "A Tasmanian surcharge value is more than the taxable value, though the land it applies to is part of the owner's taxable land.",
+    ),
+    (
+        "land_tax.trust_rates_unavailable",
+        "Trust rates were asked for in a jurisdiction whose trust rates this worksheet does not hold (wa, tas, act).",
     ),
     (
         "leave.accrual_split_invalid",
@@ -4505,6 +4606,26 @@ pub const REFUSAL_CODES: &[(&str, &str)] = &[
         "recipient is not member, death_benefits_dependant or non_dependant.",
     ),
     (
+        "super_withholding.capped_defined_benefit",
+        "A capped defined benefit income stream was given for a payee 60 or over; Schedule 13 Parts B to E and the defined benefit income cap are outside the command.",
+    ),
+    (
+        "super_withholding.deceased_60_recipient_under_60",
+        "A death benefit income stream was given to a dependant under 60 whose deceased died aged 60 or over; Schedule 13 Part A and ITAA 1997 s 302-65(b) treat its element taxed in the fund differently, and the command does not choose between them.",
+    ),
+    (
+        "super_withholding.income_stream_foreign_resident",
+        "An income stream payment to a foreign resident with a TFN was given; Schedule 13 names no scale for it.",
+    ),
+    (
+        "super_withholding.income_stream_period_invalid",
+        "income_stream_period is not weekly, fortnightly, monthly or quarterly.",
+    ),
+    (
+        "super_withholding.income_stream_year",
+        "An income stream payment was given for a year before 2024-25; Schedule 13 as it stood then was not read for this command.",
+    ),
+    (
         "super_withholding.no_tfn_unstated",
         "No TFN was given for a payment the no-TFN rates of Schedule 12 do not state: a non-dependant's death benefit or a member benefit under $200.",
     ),
@@ -4579,6 +4700,34 @@ pub const REFUSAL_CODES: &[(&str, &str)] = &[
     (
         "transfer_balance.year_mismatch",
         "The year is not the financial year of the last day worked.",
+    ),
+    (
+        "vic_property_taxes.concession_unavailable",
+        "The s 88EB concessional rate of vacant residential land tax was claimed for 2025; it needs an s 88EA exemption in a preceding tax year, and s 88EA commenced on 1 January 2025.",
+    ),
+    (
+        "vic_property_taxes.entry_date_before_reform",
+        "The land's entry date into the commercial and industrial property tax reform scheme is before 1 July 2024, when the Act commenced.",
+    ),
+    (
+        "vic_property_taxes.parcels_invalid",
+        "parcels is not a list of 1 to 100 objects, each with civ_before and civ_after as whole-dollar amounts of 0 or more.",
+    ),
+    (
+        "vic_property_taxes.residential_land_invalid",
+        "residential_land is not vacant_home, construction, uninhabitable or undeveloped.",
+    ),
+    (
+        "vic_property_taxes.tax_invalid",
+        "tax is not vacant_residential_land, commercial_industrial or windfall_gains.",
+    ),
+    (
+        "vic_property_taxes.transition_end_unsettled",
+        "The entry date is 31 December, so the transition period ends at the midnight that fixes liability; the Acts do not settle whether the land is still within it then.",
+    ),
+    (
+        "vic_property_taxes.undeveloped_before_2026",
+        "Vacant residential land tax on undeveloped land (s 34B(2B)) was asked for the 2025 tax year; it applies from 2026.",
     ),
     (
         "voluntary_agreement_withholding.abn_not_quoted",
