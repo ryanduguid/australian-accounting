@@ -179,6 +179,25 @@ fn a_rebatable_employer_takes_an_exempt_electric_car_as_nil() {
         with_car["capping"]["employees"]["Sam"],
         without["capping"]["employees"]["Sam"]
     );
+    // Exempt benefits are not on the return, so 23A holds Mark's car alone
+    // either way; s 135P(3) still puts the car's $15,000 into Sam's
+    // individual fringe benefits amount, and so his reportable amount.
+    assert_eq!(
+        with_car["return_labels"]["23A"],
+        without["return_labels"]["23A"]
+    );
+    let individual = |result: &Value| {
+        result["employees"]["Sam"]["individual_fringe_benefits_amount"]
+            .as_str()
+            .unwrap()
+            .parse::<f64>()
+            .unwrap()
+    };
+    assert!((individual(&with_car) - individual(&without) - 15000.0).abs() < 0.005);
+    assert_ne!(
+        with_car["employees"]["Sam"]["reportable_fringe_benefits_amount"],
+        without["employees"]["Sam"]["reportable_fringe_benefits_amount"]
+    );
 }
 
 /// Worked examples 2 and 3: cars of $2,000 and $25,000 for Louise and Wendy
