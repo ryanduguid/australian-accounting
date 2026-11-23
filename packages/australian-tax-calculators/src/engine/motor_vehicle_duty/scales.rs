@@ -70,45 +70,28 @@ pub(super) const VIC_CONCESSION: Scale = Scale {
 
 const QLD_AUTHORITY: &str = "Duties Act 2001 (Qld) s 383(1) and Sch 4C (current as at 22 October 2026): the Schedule 4C rate for each $100, and each part of $100, of the dutiable value, plus $2 for each $100, and each part of $100, of the whole dutiable value if it is more than $100,000 (a vehicle with a GVM of 4.5t or less, s 383(2)), read on 24 November 2026";
 
+/// One Schedule 4C row: its rate to $100,000 and, $2 more, above it.
+macro_rules! qld_row {
+    ($row:literal, $low:literal, $high:literal) => {
+        (
+            $row,
+            Scale {
+                authority: QLD_AUTHORITY,
+                per: 100,
+                minimum: None,
+                bands: Cow::Borrowed(&[band(0, "0", $low, 0), band(100_001, "0", $high, 0)]),
+            },
+        )
+    };
+}
+
 /// Queensland, by the Schedule 4C row: hybrid or electric; 1 to 4 cylinders,
 /// 2 rotors or steam; 5 or 6 cylinders or 3 rotors; 7 or more cylinders.
 pub(super) const QLD: [(&str, Scale); 4] = [
-    (
-        "hybrid_or_electric",
-        Scale {
-            authority: QLD_AUTHORITY,
-            per: 100,
-            minimum: None,
-            bands: Cow::Borrowed(&[band(0, "0", "2", 0), band(100_001, "0", "4", 0)]),
-        },
-    ),
-    (
-        "up_to_4_cylinders",
-        Scale {
-            authority: QLD_AUTHORITY,
-            per: 100,
-            minimum: None,
-            bands: Cow::Borrowed(&[band(0, "0", "3", 0), band(100_001, "0", "5", 0)]),
-        },
-    ),
-    (
-        "5_or_6_cylinders",
-        Scale {
-            authority: QLD_AUTHORITY,
-            per: 100,
-            minimum: None,
-            bands: Cow::Borrowed(&[band(0, "0", "3.50", 0), band(100_001, "0", "5.50", 0)]),
-        },
-    ),
-    (
-        "7_or_more_cylinders",
-        Scale {
-            authority: QLD_AUTHORITY,
-            per: 100,
-            minimum: None,
-            bands: Cow::Borrowed(&[band(0, "0", "4", 0), band(100_001, "0", "6", 0)]),
-        },
-    ),
+    qld_row!("hybrid_or_electric", "2", "4"),
+    qld_row!("up_to_4_cylinders", "3", "5"),
+    qld_row!("5_or_6_cylinders", "3.50", "5.50"),
+    qld_row!("7_or_more_cylinders", "4", "6"),
 ];
 
 pub(super) const WA: &str = "Duties Act 2008 (WA) s 236(1) and (2) (03-z0-00, as at 22 October 2026): for a vehicle that is not a heavy vehicle, 2.75% of a dutiable value to $25,000; over $25,000 to $50,000, R% where R = 2.75 + (DV - 25,000) / 6,666.66 rounded to 2 decimal places; over $50,000, 6.5%; the amount rounded down to the nearest 5 cents; read on 24 November 2026";
