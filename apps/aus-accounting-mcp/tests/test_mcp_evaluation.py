@@ -77,7 +77,8 @@ async def _answer(session, case):
                 "injected-instruction", "undefined-term", "stored-rate-date",
                 "ranked-provision", "long-provision", "ruling-paragraph",
                 "gst-coding", "bas-reconciliation", "lodgment-due-date",
-                "data-freshness", "reviewed-rate-outside-years", "abn-check-digit",
+                "data-freshness", "reviewed-rate-outside-years", "union-fees-paper-question",
+                "abn-check-digit",
                 "acn-check-digit", "bsb-format", "account-number-format"}:
         reference = QUESTIONS.find(f"qa_pair[@id='{case}']/calls")
         results = [await call(c["name"], **c["arguments"])
@@ -89,6 +90,8 @@ async def _answer(session, case):
         if case == "data-freshness":
             assert results[0]["currency"] == "NOT_ESTABLISHED"
             return results[0]["datasets"][0]["as_at_status"]
+        if case == "union-fees-paper-question":
+            return results[0]["destination"]["question"]
         if case == "reviewed-rate-outside-years":
             assert results[0]["record"] is None
             return results[0]["refusal"]

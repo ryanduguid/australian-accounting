@@ -2,7 +2,7 @@
   "manifest_version": "0.4",
   "name": "aus-accounting-mcp",
   "display_name": "Aus Accounting MCP",
-  "version": "0.11.0",
+  "version": "0.12.0",
   "description": "Reviews, 102 bounded tax and super worksheets, cited retrieval from your local Markdown. Not advice.",
   "long_description": "Australian accounting tools that run on your machine: ATO small business benchmarks, Payday Super and Division 7A reviews, 102 bounded tax and super worksheets, GST and BAS checks, lodgment due dates, reviewed ATO rates and cited search of folders you choose. The server makes no network calls once installed, but Claude still sends tool arguments and results to its model provider, so use fabricated data.\n\nThe bundle includes the pinned australian-tax-calculators executable for x86-64 Linux and Windows. On other platforms, build the matching calculators from source as described in the server release notes and make them available to Claude Desktop. Without a usable calculator, the tax worksheets give an install message and the other tools work.\n\nNot tax, legal or financial advice. Results need human review before consequential accounting action. See the [disclaimer](https://github.com/ryanduguid/australian-accounting/blob/main/apps/aus-accounting-mcp/DISCLAIMER.md).",
   "author": {
@@ -47,6 +47,7 @@
     { "name": "validate_bsb_format", "description": "Test a BSB's 6 digit format. Proves no institution, branch or account." },
     { "name": "validate_account_number_format", "description": "Test a bank account number's format. Proves no account, payee or BSB match." },
     { "name": "get_reviewed_rate", "description": "Return a reviewed ATO rate or threshold for a date, with its source." },
+    { "name": "itr_label", "description": "Look up a sourced individual return destination by income year, channel and item." },
     { "name": "search_accounting_library", "description": "Search the configured local Markdown library." },
     { "name": "read_accounting_library", "description": "Read cited lines from that library." },
     { "name": "search_tax_legislation", "description": "Find provisions in the configured local legislation corpus." },

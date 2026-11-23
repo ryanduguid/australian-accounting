@@ -1,5 +1,109 @@
 # Changes
 
+## Unreleased
+
+### Added
+
+- `trading-stock` works out the change in value of trading stock under ITAA
+  1997 s 70-35 for 2020-21 to 2026-27, each closing item valued by its own
+  election (cost, market selling value, replacement value, the lowest, or an
+  obsolescence value under s 70-50), and the s 328-285 choice for a small
+  business entity, or from 2021-22 an entity under $50 million, with the
+  $5,000 test and the s 328-295 values. New codes:
+  `trading_stock.entity_invalid`, `trading_stock.items_invalid`,
+  `trading_stock.method_invalid`, `trading_stock.obsolescence_not_below`,
+  `trading_stock.simplified_unavailable` and `trading_stock.value_missing`.
+- `prepayments` works out when a prepaid amount incurred in 2020-21 to
+  2026-27 is deductible under ITAA 1936 Subdivision H: excluded expenditure,
+  the 12-month rule of s 82KZM, or apportionment by days under s 82KZM,
+  s 82KZMD or s 82KZMF, with each year's deduction. New codes:
+  `prepayments.agreement_before_cutoff`, `prepayments.choice_unavailable`,
+  `prepayments.dates_invalid`, `prepayments.exclusion_invalid`,
+  `prepayments.tax_shelter_conflict` and `prepayments.taxpayer_invalid`. `tests/trading_stock_prepayments.rs` holds
+  both to the ATO's examples.
+- `minors-income` works out the tax on a minor's taxable income under
+  ITAA 1936 Division 6AA and the Income Tax Rates Act 1986 ss 13 and 15 and
+  Schedule 11 for 2024-25 to 2026-27: the prescribed person and excepted
+  person tests (s 102AC, the full-time occupation test on stated facts),
+  excepted income by its s 102AE(2) ground and trust share parts (s 102AG),
+  eligible taxable income with apportionable deductions (s 102AD), and the
+  resident and foreign resident special rates with their phase-in caps.
+  New codes: `minors_income.excepted_income_invalid`,
+  `minors_income.excepted_person_invalid`, `minors_income.facts_inconsistent`,
+  `minors_income.residency_invalid`, `minors_income.special_income_component`
+  and `minors_income.trust_shares_invalid`. `tests/minors_income.rs` holds it
+  to the ATO's under 18 rate tables.
+- `foreign-income-conversion` translates foreign currency income,
+  deductions, asset costs, CGT amounts and foreign tax paid into AUD under
+  ITAA 1997 s 960-50 for 2020-21 to 2026-27, each at the stated rate for the
+  day its item names or an average over at most 12 months (item 12 and
+  Schedule 2 of the 1997 or 2021 Regulations). New codes:
+  `foreign_income_conversion.average_period`, `.basis_invalid`,
+  `.currency_invalid`, `.items_invalid`, `.kind_invalid`, `.rate_date` and
+  `.text_invalid`. `tests/foreign_income_conversion.rs` holds it to the
+  ATO's rental expense and income examples.
+- `foreign-income-tax-offset` works out the foreign income tax offset
+  (ITAA 1997 Division 770) for 2020-21 to 2026-27 with the $1,000 default
+  limit, a limit from stated income tax figures, or, for 2024-25 to 2026-27,
+  one worked at the resident rates with a part-year resident's tax-free
+  threshold (Income Tax Rates Act 1986 ss 18 and 20). New codes:
+  `foreign_income_tax_offset.limit_method_invalid`,
+  `.residency_periods_invalid` and `.worked_year`.
+  `tests/foreign_income_tax_offset.rs` holds it to Examples 16 and 17 of the
+  ATO's foreign income tax offset guides for 2024 to 2026 and its part-year
+  threshold examples.
+- `smsf-tax` works out a complying SMSF's income tax calculation statement
+  (item 13 of the annual return) for 2020-21 to 2026-27: exempt current
+  pension income by the segregated method, the actuary's proportion or both
+  (ITAA 1997 ss 295-385 and 295-390), the non-arm's length component of
+  s 295-545(2A) at 45% and the low tax component at 15%, the 32% extra tax on
+  no-TFN-quoted contributions, the offsets in the return's order, the $259
+  supervisory levy with the new and wound up fund adjustments, and the amount
+  due or refundable. New codes: `smsf_tax.disregarded_small_fund_assets`,
+  `smsf_tax.foreign_fund`, `smsf_tax.non_complying`,
+  `smsf_tax.part_exceeds_total` and `smsf_tax.proportion_invalid`.
+  `tests/smsf_tax.rs` holds it to the ATO's SMSF annual return 2026
+  instructions' examples.
+
+- `alcohol-excise` works out the excise duty on beer, spirits and other
+  excisable beverages entered for home consumption from 1 July 2022 to 31
+  January 2027, line by line at the Commissioner's substituted rate for the
+  day (Excise Tariff Act 1921 Schedule items 1 to 3, ss 6A and 6L), with the
+  remission for alcohol manufacturers under its $350,000 or $400,000 yearly
+  cap and the refund of duty paid where it was available (Excise Regulation
+  2015 Sch 1 cl 2(1) item 10 and cl 2(2)). New codes:
+  `alcohol_excise.classification_unsettled`,
+  `alcohol_excise.date_outside_year`, `alcohol_excise.fact_conflict`,
+  `alcohol_excise.line_invalid`, `alcohol_excise.lines_invalid`,
+  `alcohol_excise.not_excisable`, `alcohol_excise.product_invalid`,
+  `alcohol_excise.product_out_of_scope`, `alcohol_excise.quantity_invalid`
+  and `alcohol_excise.rate_unpublished`. `tests/alcohol_excise.rs` holds it
+  to the ATO's and the Excise guidelines' examples and every notice's rates.
+
+- `transfer-balance` works one person's transfer balance account from
+  1 July 2017 to a day in 2017-18 to 2026-27 from its credits and debits
+  (ITAA 1997 ss 294-25 and 294-80): the personal transfer balance cap with
+  proportional indexation (s 294-40), each day's excess, excess transfer
+  balance earnings at the GIC rate credited daily (s 294-235), and excess
+  transfer balance tax at 15% or 30% for each excess transfer balance period
+  (Imposition Act 2016 s 5), with IT(TP)A 1997 s 294-30. Reversionary, child,
+  capped defined benefit, structured settlement and regulation events and the
+  Commissioner's determinations are refused. `excess-contributions` works
+  the excess concessional contributions charge for 2013-14 to 2020-21 and the
+  release of excess non-concessional contributions with their associated
+  earnings for contributions years 2013-14 to 2025-26 (TAA 1953 Sch 1
+  ss 97-25 and 97-30). `contribution-caps` takes an optional
+  `determination_date` that adds the release figures to its own excess. New
+  codes: `excess_contributions.charge_abolished`,
+  `excess_contributions.date_order`, `excess_contributions.fact_invalid`,
+  `excess_contributions.question_invalid`,
+  `excess_contributions.rate_unpublished`, `transfer_balance.date_order`,
+  `transfer_balance.event_refused`, `transfer_balance.fact_invalid`,
+  `transfer_balance.rate_unpublished`,
+  `transfer_balance.transition_undecided` and
+  `transfer_balance.year_mismatch`. `tests/transfer_balance.rs` holds them to
+  the ATO's examples and to an exact-fraction oracle over the ATO's rates.
+
 ## 1.2.0
 
 - Relicensed Ryan Duguid's code under AGPL-3.0-or-later with section 7(b) attribution terms.

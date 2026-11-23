@@ -52,6 +52,18 @@ pub fn months_before(day: i64, months: i64) -> i64 {
     }
 }
 
+/// The last day of a period of `months` months starting on `day` (Acts
+/// Interpretation Act 1901 s 2G(2)): the day before the same day of the month
+/// `months` on or, where that month has no such day, its last day.
+pub fn months_end(day: i64, months: i64) -> i64 {
+    let same_day = add_months(day, months);
+    if to_civil(same_day).2 == to_civil(day).2 {
+        same_day - 1
+    } else {
+        same_day
+    }
+}
+
 fn is_leap(y: i64) -> bool {
     (y % 4 == 0 && y % 100 != 0) || y % 400 == 0
 }
@@ -132,5 +144,10 @@ mod tests {
         assert_eq!(before("2026-05-01", 6), "2025-11-01");
         assert_eq!(before("2026-08-31", 6), "2026-03-01");
         assert_eq!(before("2026-02-28", 12), "2025-02-28");
+        let end = |t: &str, n| format(months_end(parse(t).unwrap(), n));
+        assert_eq!(end("2026-12-15", 1), "2027-01-14");
+        assert_eq!(end("2026-08-31", 1), "2026-09-30");
+        assert_eq!(end("2024-02-29", 12), "2025-02-28");
+        assert_eq!(end("2026-07-01", 120), "2036-06-30");
     }
 }
