@@ -384,6 +384,10 @@ const COMMAND_ARGS: &[(&str, &[(&str, Kind)])] = &[
         &[("dealings", Json), ("year", Raw), ("scope_confirmed", Raw)],
     ),
     (
+        "vic-property-taxes",
+        &[("tax", Raw), ("year", Raw), ("scope_confirmed", Raw)],
+    ),
+    (
         "fbt",
         &[
             ("type_one_value", Dec),
@@ -1341,7 +1345,7 @@ pub fn commands() -> Vec<&'static str> {
 /// command on its `gross_pay` shows that withholding. The classifier's amounts
 /// are totals over lines whose shares a decision table sets, not a formula;
 /// each line and class carries the authority for its row instead.
-const DERIVED: [&str; 80] = [
+const DERIVED: [&str; 81] = [
     "fbt",
     "fbt-car-statutory",
     "fbt-car-operating-cost",
@@ -1422,6 +1426,7 @@ const DERIVED: [&str; 80] = [
     "gst-bad-debt",
     "cgt-cost-base-adjustments",
     "foreign-income-tax-offset",
+    "vic-property-taxes",
 ];
 
 /// `derive`: `{"command", "input"}` gives the command's result with the step
@@ -1811,6 +1816,7 @@ pub fn evaluate_coded(command: &str, v: &Value) -> Result<Value> {
             | "fbt-meal-entertainment"
             | "fbt-car-parking"
             | "wine-equalisation-tax"
+            | "vic-property-taxes"
             | "fbt-debt-waiver"
             | "fbt-expense-payment"
             | "fbt-property"
@@ -2136,6 +2142,28 @@ pub fn evaluate_coded(command: &str, v: &Value) -> Result<Value> {
                 dealings: &a[0],
                 rebate_claimed_earlier_in_year: earlier.as_ref(),
                 associated_producer: group.as_ref(),
+                year: &a[1],
+                scope_confirmed: &a[2],
+            })
+        }
+        "vic-property-taxes" => {
+            // Optional: each tax's own facts, required for that tax only.
+            let civ = optional(v, "capital_improved_value", Dec)?;
+            let land = optional(v, "residential_land", Raw)?;
+            let concession = optional(v, "new_residential_concession", Raw)?;
+            let previous = optional(v, "liable_previous_tax_year", Raw)?;
+            let before = optional(v, "liable_tax_year_before", Raw)?;
+            let entry = optional(v, "entry_date", Raw)?;
+            let parcels = optional(v, "parcels", Json)?;
+            engine::vic_property_taxes(&engine::VicPropertyTaxesArgs {
+                tax: &a[0],
+                capital_improved_value: civ.as_ref(),
+                residential_land: land.as_ref(),
+                new_residential_concession: concession.as_ref(),
+                liable_previous_tax_year: previous.as_ref(),
+                liable_tax_year_before: before.as_ref(),
+                entry_date: entry.as_ref(),
+                parcels: parcels.as_ref(),
                 year: &a[1],
                 scope_confirmed: &a[2],
             })
