@@ -3956,6 +3956,62 @@ from the provisions: the 53% rounding, excess concessional contributions,
 the FHSS amount, family trust distribution amounts, child support and
 business deductions.
 
+## Foreign resident withholding
+
+`foreign_resident_withholding` was checked on 22 November 2026 against TAA 1953
+Schedule 1 ss 14-200, 14-210, 14-215, 14-220 and 14-235 in compilation 227
+(1 October 2026), compilations 148 (1 July 2017) and 215 (11 December 2024)
+and the compilation of 1 January 2025; the Treasury Laws Amendment (Foreign
+Resident Capital Gains Withholding Payments) Act 2017 (No. 57) Schedule 1 items
+1 to 4 (12.5% and $750,000 for acquisitions on or after 1 July 2017); the
+Treasury Laws Amendment (2024 Tax and Other Measures No. 1) Act 2024 (No. 135)
+s 2 and Schedule 1 items 1 to 7 (15% and no threshold for acquisitions on or
+after 1 January 2025); ITAA 1997 ss 108-7 and 109-5 (compilation 268); the
+multiple vendor class variation F2016L01123 (from 1 July 2016) and LI 2026/38
+(F2026L01231, which repealed it and the other 4 class variations); and the
+ATO's foreign resident capital gains withholding pages (last updated 22 June
+to 9 October 2026).
+
+Choices the law leaves to the reader:
+
+- Every document is the operator's fact: whether a clearance certificate was
+  given before payment and covers the contract date, whether a notice of
+  variation applies to the asset, and whether a class variation or a s 14-215
+  exclusion applies.
+- The ATO's notices state a varied rate and a maximum sale price; the
+  worksheet applies the rate to the vendor's share and the full rate when 'the
+  sale price of the asset (or its market value, if not at arm's length)'
+  exceeds the maximum, as the ATO's purchaser page says (reread 23 November
+  2026). That page lets a purchaser entitled to an input tax credit take it off
+  only 'in determining how much withholding is required', so the maximum is
+  compared with `sale_price` as contracted, GST inclusive. Neither page says
+  whether a notice's maximum is GST inclusive, so a maximum at or above the
+  base (the price net of the credit) but below `sale_price` is refused; the
+  operator settles it from the notice.
+- Where every vendor gave a document and one is a notice of variation, the
+  class variations' 'not all' condition is not met; the worksheet follows the
+  ATO's Zac and Jen example and treats each vendor alike.
+- The law sets no rounding; each vendor's amount is rounded half up to the
+  cent, except that with no document at all no class variation applies and
+  the single s 14-200(3)(a) amount is rounded once; its vendor rows are
+  rounded down and the cents left over go to the largest remainders, marked,
+  so the rows add up to it.
+- With an exercised option the first element includes the option fee (ITAA
+  1997 s 134-1(1) item 1); the sale price does not.
+- s 14-215(2) (compilation 215, reread 23 November 2026) adds similar
+  interests only where 'the CGT asset is an interest in real property, or an
+  interest in a mining, quarrying or prospecting right'. A company title
+  interest is an indirect Australian real property interest (shares) under
+  s 14-215(1)(a)(ii), so its market value is its own.
+
+| Case | Source | Worksheet |
+| --- | --- | --- |
+| Jane and Toni, contract 16 December 2024, $1.2 million | $150,000 (12.5%); $180,000 after 1 January 2025 | $150,000.00; $180,000.00 |
+| Willow and Stanley, 8 January 2025, $600,000, one certificate | $45,000 | $45,000.00 |
+| Maisie and Max, $650,000, both certificates; neither | nil; $97,500 ($48,750 each) | $0.00; $97,500.00 |
+| Zac and Jen, $1 million, Jen's certificate; Zac's 5% notice | $75,000; $25,000 | $75,000.00; $25,000.00 |
+| Kim, 3 vendors, $1.3 million, no certificates | $195,000 ($65,000 each) | $195,000.00 |
+
 ## Rental property
 
 `rental_property` was checked on 22 November 2026 against ITAA 1997 ss 6-5,

@@ -36,14 +36,15 @@ use std::process::{Command, Stdio};
 /// `tests/work_expenses.rs`, `tests/ato_interest_penalties.rs`,
 /// `tests/small_business_income_offset.rs`, `tests/government_super_amounts.rs`,
 /// `tests/individual_offsets.rs`, `tests/non_commercial_losses.rs`,
-/// `tests/psi_test.rs`, `tests/rental_property.rs`, `tests/residency_tests.rs`,
+/// `tests/psi_test.rs`, `tests/rental_property.rs` and
+/// `tests/foreign_resident_withholding.rs`, `tests/residency_tests.rs`,
 /// `tests/lodgment_required.rs`, `tests/rd_tax_offset.rs`,
 /// `tests/gst_adjustments.rs`, `tests/deferred_tax.rs`,
 /// `tests/cgt_cost_base_adjustments.rs`, `tests/foreign_income_conversion.rs`,
 /// `tests/foreign_income_tax_offset.rs`, `tests/trading_stock_prepayments.rs`,
 /// `tests/minors_income.rs`, `tests/smsf_tax.rs`, `tests/fbt_instalment.rs` and `tests/ess_discount.rs` cover them, as `tests/transfer_balance.rs` covers
 /// `transfer-balance` and `excess-contributions`.
-const NEW_KINDS: [(&str, &str); 99] = [
+const NEW_KINDS: [(&str, &str); 100] = [
     ("super-withholding", "super_withholding"),
     ("super-benefit-tax", "super_benefit_tax"),
     ("fhss", "fhss"),
@@ -113,6 +114,10 @@ const NEW_KINDS: [(&str, &str); 99] = [
     ),
     ("government-super-amounts", "government_super_amounts"),
     ("rental-property", "rental_property"),
+    (
+        "foreign-resident-withholding",
+        "foreign_resident_withholding",
+    ),
     (
         "horticulture-shearing-withholding",
         "horticulture_shearing_withholding",

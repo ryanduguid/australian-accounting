@@ -315,6 +315,10 @@ pub const SCOPES: &[(&str, &str)] = &[
         "One residential rental property for one owner and one income year from 2020-21 to 2026-27: the owner's share of rent and other rental income (ITAA 1997 s 6-5) and of the expenses by the ATO worksheet's lines, apportioned by the days let or available for rent on commercial terms over the days held except those relating solely to renting (s 8-1; Rental properties guide 2026, 'Time-based method'), travel shown and denied (s 26-31); interest on the owner's own loans at the share of principal used for the rental (TR 2000/2); borrowing expenses through borrowing-expenses-schedule (s 25-25); capital works at 2.5% or 4% by when they began, for the days used and within the undeducted construction expenditure (Division 43); each depreciating asset's decline in value as given, nil where s 40-27 reduces it; the net rent; and, with other taxable income for 2024-25 to 2026-27, the tax at the resident scale without and with it. The operator establishes that the owner is an individual not carrying on a business of letting and not an entity excepted by ss 26-31(2), 40-27(3) or 26-102(5); the owner's legal interest; that the property is in Australia and the whole dwelling is let as residential accommodation at a market rent, with no area-based apportionment and no non-commercial letting; that the days counted as available exclude any day the land was vacant under s 26-102 and any private use; the line each expense belongs on, that it is revenue (not capital, an initial repair or an improvement) and whether it relates solely to renting; each loan's interest and principal split with no redraw or further drawing in the year; the construction expenditure from a builder's contract or a qualified estimate, whether each item is a building or a structural improvement (not earthworks s 43-20(4) excludes), when it began and was first used and whether s 43-220 applies; and each asset's decline in value and the facts s 40-27 turns on. Excludes holiday homes whose costs s 26-50 denies (refused); the 4% manner (build to rent and short-term traveller accommodation); GST on short-stay letting; s 26-155 from 2027-28; Medicare levy, the surcharge, offsets and tax losses in the effect on tax; and working out the decline in value or the construction expenditure.",
     ),
     (
+        "foreign_resident_withholding",
+        "Foreign resident capital gains withholding only: the amount a purchaser pays the Commissioner under TAA 1953 Sch 1 s 14-200 on acquiring taxable Australian real property or a company title interest from one or more vendors, the acquisition (contract) date from 1 July 2017 to 30 June 2027, at 12.5% with the $750,000 market value exclusion before 1 January 2025 and 15% with none from then; clearance certificates, notices of variation (varied rate and maximum price), class variations to nil and s 14-215 exclusions are stated facts. Excludes other indirect Australian real property interests, options or rights as the asset, look-through earnouts (s 14-205), and interest, dividend, royalty, managed investment trust and s 12-315 withholding.",
+    ),
+    (
         "sb_cgt_concessions",
         "A capital gain from CGT event A1 (a disposal, ITAA 1997 s 104-10) of a CGT asset acquired from 20 September 1985 that is not a share in a company, an interest in a trust (s 152-10(2)) or a right or interest in a partnership's income or capital (s 152-10(2C)), under a contract made in the 2025-26 or 2026-27 income year, before Act No. 49 of 2026's changes to Division 152 from the income year that includes 1 July 2027 (Schedule 1 item 82), by an individual, a company or a trust that is not a public entity (s 152-305(3)), none of them acting for a deceased estate (s 152-80). The operator establishes whether the business entity (you; the partnership for an interest in a partnership asset; or the affiliate, connected entity or partnership whose business uses a passively held asset) carried on a business in the year, its aggregated turnovers (s 328-115, with connected entities and affiliates), the net value of the CGT assets under ss 152-15 and 152-20, the total days in the test period on which the asset was an active asset (s 152-40), whether the business ceased and when, and the retirement, incapacity and significant individual facts. The CGT small business entity test is s 328-110 with $2 million for each $10 million (s 152-10(1AA)). The test period counts both its first and last days; a total that may or may not be 7.5 years (2,737 to 2,740 days) is refused, as is an asset acquired on the same date 15 years before the event. The 15-year exemption, the 50% active asset reduction, the retirement exemption and the roll-over are each shown open or not, with the conditions not met; the amounts, the choices (ss 103-25, 152-220 and 152-315), the payments a company or trust must make (s 152-325), each stakeholder's limit (s 152-320(2)), the replacement asset (s 152-420), CGT events J2, J5 and J6, and look-through earnout rights other than their extension of the replacement asset period (s 104-190(1A)(b)(ii)) are outside it.",
     ),
@@ -809,6 +813,10 @@ pub const SOURCES: &[(&str, &str)] = &[
     (
         "rental_property",
         "https://www.ato.gov.au/forms-and-instructions/rental-properties-2026",
+    ),
+    (
+        "foreign_resident_withholding",
+        "https://www.legislation.gov.au/C1953A00001/latest/text",
     ),
     (
         "horticulture_shearing_withholding",
@@ -1712,6 +1720,16 @@ pub const EXTRA_SOURCES: &[(&str, &[&str])] = &[
         ],
     ),
     (
+        "foreign_resident_withholding",
+        &[
+            "https://www.legislation.gov.au/C2017A00057/asmade/text",
+            "https://www.legislation.gov.au/C2024A00135/asmade/text",
+            "https://www.legislation.gov.au/F2016L01123/asmade/text",
+            "https://www.legislation.gov.au/F2026L01231/asmade/text",
+            "https://www.ato.gov.au/individuals-and-families/investments-and-assets/capital-gains-tax/foreign-residents-and-capital-gains-tax/foreign-resident-capital-gains-withholding",
+        ],
+    ),
+    (
         "horticulture_shearing_withholding",
         &[
             "https://www.legislation.gov.au/F2026L00716/asmade/text",
@@ -2084,6 +2102,14 @@ pub const EXTRA_WARNINGS: &[(&str, &[&str])] = &[
         &[
             "Each line is the operator's classification: an expense that is capital, an initial repair or an improvement is not deductible under s 8-1 and goes to the cost base or capital works instead.",
             "The amounts are to the cent; a return shows whole dollars, and the ATO's examples round the same figures to the dollar.",
+        ],
+    ),
+    (
+        "foreign_resident_withholding",
+        &[
+            "A clearance certificate counts only if the vendor gave it before you pay and its period covers the contract date (s 14-210(2)); a notice of variation only for the asset and up to its maximum price. Check each document's names against the title.",
+            "Where every vendor gave a document and one is a notice of variation, the class variations' 'not all' condition is not met; this follows the ATO's joint owner example and works each vendor's share alike.",
+            "The amount is due on or before the day you become the owner (s 14-200(2)), with the purchaser payment notification; the vendor claims it as a credit in their return.",
         ],
     ),
     (
@@ -3346,6 +3372,38 @@ pub const REFUSAL_CODES: &[(&str, &str)] = &[
         "The worked limit was asked for a year resident-tax has no rates for.",
     ),
     (
+        "foreign_resident_withholding.asset_unsupported",
+        "The asset is not taxable Australian real property or a company title interest.",
+    ),
+    (
+        "foreign_resident_withholding.date_outside_year",
+        "acquisition_date is outside the income year given.",
+    ),
+    (
+        "foreign_resident_withholding.exclusion_invalid",
+        "exclusion is not null or one of the s 14-215 paragraphs the command names.",
+    ),
+    (
+        "foreign_resident_withholding.option_exceeds_price",
+        "option_payments exceed the first element of the cost base.",
+    ),
+    (
+        "foreign_resident_withholding.payment_unsupported",
+        "The payment is not capital_gains: the s 14-205 earnout amount, Subdivisions 12-F and 12-H and s 12-315 withholding are not built.",
+    ),
+    (
+        "foreign_resident_withholding.variation_invalid",
+        "A varied rate exceeds the full rate for the acquisition date.",
+    ),
+    (
+        "foreign_resident_withholding.variation_maximum_unsettled",
+        "A notice's maximum sale price lies between the base and the GST inclusive sale_price, so whether it applies turns on the maximum's GST basis.",
+    ),
+    (
+        "foreign_resident_withholding.vendors_invalid",
+        "vendors is not a list of 1 to 50 vendor objects with an interest above nil and a known document.",
+    ),
+    (
         "franking_account.distribution_invalid",
         "A distribution is not an object of date (in the income year, in date order), amount above nil and franking_credit, with optional permitted_percentage (from 0 to 100, after the first in its franking period) and statement_after_distribution (a private company's only), or distributions is not a list of at most 10,000.",
     ),
@@ -3703,7 +3761,7 @@ pub const REFUSAL_CODES: &[(&str, &str)] = &[
     ),
     (
         "input.field_unknown",
-        "A field the worksheet or command does not take, or does not take beside the other inputs given, was given (fbt-loan, fbt-meal-entertainment, fbt-car-parking, fbt-debt-waiver, fbt-expense-payment, fbt-property, fbt-residual, fbt-housing, fbt-lafha, fbt-board, fbt-tax-exempt-body-entertainment, fbt-entertainment-classifier, fbt-meal-entertainment-register and its entries, fbt-minor-benefit-check, ppsr-timing, fhss and its contributions, government-super-amounts, personal_deductions and determination, division-296, depreciation, fuel-tax-credits and its lines, alcohol-excise and its lines, foreign-resident-tax, medicare-levy, medicare-levy-surcharge, payg-withholding, payg-gross-up, termination-payment, etp-tax-free-component, unused-leave-payment, the Schedule 5 methods, working-holiday-maker-withholding, study-loan-withholding, seniors-pensioners-withholding, seniors-pensioners-tax-offset, lump-sum-arrears-tax-offset, hire-purchase-schedule, chattel-mortgage-schedule, loan-transactions and its transactions and rate_changes, borrowing-expenses-schedule and its loans, business-capital-expenditure and its items, balancing-adjustment, its years and car_limit, trade-in, franking-account and its events, distributions and income_tax, dasp-tax, super-benefit-tax, super-withholding, gst-margin-scheme, wine-equalisation-tax and its dealings, luxury-car-tax and its lines, payroll-tax, cgt-parcels, its parcels and disposals, cgt-cost-base-adjustments, its parcels and events, fbt-ev-exemption-check, fbt-instalment, sb-cgt-concessions, small-business-income-offset, ess-discount, residency-tests, lodgment-required, trading-stock and its items, prepayments, depreciation-low-value-pool, gst-creditable-purpose-change, gst-annual-apportionment, gst-financial-acquisitions-threshold, gst-going-concern, gst-second-hand-goods, gst-bad-debt, depreciation-small-business-pool, capital-works, non-commercial-losses, psi-test, minors-income, smsf-tax, beneficiary-tax-offset, invalid-carer-tax-offset, zone-tax-offset and its dependants, net-medical-expenses-tax-offset, work-expenses, ato-interest-penalties and its payments and parts, private-health-insurance-rebate, rental-property and its loans, capital_works and depreciating_assets, horticulture-shearing-withholding, upward-variation-withholding, daily-casual-withholding, no-abn-withholding, entertainer-withholding, return-to-work-withholding, annuity-withholding, voluntary-agreement-withholding, rd-tax-offset, deferred-tax, foreign-income-conversion, foreign-income-tax-offset, transfer-balance and its events, excess-contributions, contribution-caps given a carry-forward input, derive, personal-tax-estimate, dgr-check, income-tests and fbt-return only).",
+        "A field the worksheet or command does not take, or does not take beside the other inputs given, was given (fbt-loan, fbt-meal-entertainment, fbt-car-parking, fbt-debt-waiver, fbt-expense-payment, fbt-property, fbt-residual, fbt-housing, fbt-lafha, fbt-board, fbt-tax-exempt-body-entertainment, fbt-entertainment-classifier, fbt-meal-entertainment-register and its entries, fbt-minor-benefit-check, ppsr-timing, fhss and its contributions, government-super-amounts, personal_deductions and determination, division-296, depreciation, fuel-tax-credits and its lines, alcohol-excise and its lines, foreign-resident-tax, medicare-levy, medicare-levy-surcharge, payg-withholding, payg-gross-up, termination-payment, etp-tax-free-component, unused-leave-payment, the Schedule 5 methods, working-holiday-maker-withholding, study-loan-withholding, seniors-pensioners-withholding, seniors-pensioners-tax-offset, lump-sum-arrears-tax-offset, hire-purchase-schedule, chattel-mortgage-schedule, loan-transactions and its transactions and rate_changes, borrowing-expenses-schedule and its loans, business-capital-expenditure and its items, balancing-adjustment, its years and car_limit, trade-in, franking-account and its events, distributions and income_tax, dasp-tax, super-benefit-tax, super-withholding, gst-margin-scheme, wine-equalisation-tax and its dealings, luxury-car-tax and its lines, foreign-resident-withholding and its vendors, payroll-tax, cgt-parcels, its parcels and disposals, cgt-cost-base-adjustments, its parcels and events, fbt-ev-exemption-check, fbt-instalment, sb-cgt-concessions, small-business-income-offset, ess-discount, residency-tests, lodgment-required, trading-stock and its items, prepayments, depreciation-low-value-pool, gst-creditable-purpose-change, gst-annual-apportionment, gst-financial-acquisitions-threshold, gst-going-concern, gst-second-hand-goods, gst-bad-debt, depreciation-small-business-pool, capital-works, non-commercial-losses, psi-test, minors-income, smsf-tax, beneficiary-tax-offset, invalid-carer-tax-offset, zone-tax-offset and its dependants, net-medical-expenses-tax-offset, work-expenses, ato-interest-penalties and its payments and parts, private-health-insurance-rebate, rental-property and its loans, capital_works and depreciating_assets, horticulture-shearing-withholding, upward-variation-withholding, daily-casual-withholding, no-abn-withholding, entertainer-withholding, return-to-work-withholding, annuity-withholding, voluntary-agreement-withholding, rd-tax-offset, deferred-tax, foreign-income-conversion, foreign-income-tax-offset, transfer-balance and its events, excess-contributions, contribution-caps given a carry-forward input, derive, personal-tax-estimate, dgr-check, income-tests and fbt-return only).",
     ),
     ("input.flag_invalid", "A flag is not a JSON boolean."),
     ("input.fraction_invalid", "A fraction is outside 0 to 1."),

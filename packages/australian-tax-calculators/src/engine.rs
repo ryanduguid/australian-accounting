@@ -6244,6 +6244,10 @@ mod psi_test;
 pub use psi_test::{PSI_OPTIONAL, PsiTestArgs, psi_test};
 mod rental_property;
 pub use rental_property::{RentalPropertyArgs, rental_property};
+mod foreign_resident_withholding;
+pub use foreign_resident_withholding::{
+    ForeignResidentWithholdingArgs, foreign_resident_withholding,
+};
 mod withholding_schedules;
 pub use withholding_schedules::{
     daily_casual_withholding, horticulture_shearing_withholding, no_abn_withholding,
@@ -6282,7 +6286,7 @@ pub use smsf_tax::smsf_tax;
 mod ess_discount;
 pub use ess_discount::{EssDiscountArgs, ess_discount};
 
-const KINDS: [&str; 113] = [
+const KINDS: [&str; 114] = [
     "gst",
     "gst_margin_scheme",
     "fuel_tax_credits",
@@ -6370,6 +6374,7 @@ const KINDS: [&str; 113] = [
     "psi_test",
     "government_super_amounts",
     "rental_property",
+    "foreign_resident_withholding",
     "horticulture_shearing_withholding",
     "upward_variation_withholding",
     "daily_casual_withholding",
