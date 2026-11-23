@@ -16,7 +16,7 @@ pub const SCOPES: &[(&str, &str)] = &[
     ),
     (
         "resident_tax",
-        "Australian resident individual, ordinary taxable income only; for a part-year resident (part_year_residency_months, with eligible_pensioner), the tax-free threshold pro-rated under Income Tax Rates Act 1986 s 20 unless s 18(2)(a) applies. Excludes minors' special rates, working holiday makers, offsets, Medicare levy, surcharge, HELP, PAYG credits and tax payable/refundable. Supply established whole-dollar taxable income; this is basic tax before offsets and levies.",
+        "Australian resident individual, ordinary taxable income only; for a part-year resident (part_year_residency_months, with eligible_pensioner), the tax-free threshold pro-rated under Income Tax Rates Act 1986 s 20 unless s 18(2)(a) applies; with no part-year residency period under s 18(1) (residency beginning and ending within one month, or a 1 July resident ceasing during July) the inputs are omitted and the full threshold applies. Excludes minors' special rates, working holiday makers, offsets, Medicare levy, surcharge, HELP, PAYG credits and tax payable/refundable. Supply established whole-dollar taxable income; this is basic tax before offsets and levies.",
     ),
     (
         "foreign_resident_tax",

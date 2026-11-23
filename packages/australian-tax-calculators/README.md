@@ -496,6 +496,7 @@ threshold is then $13,464 plus $4,736 x the months / 12 (s 20(1)), kept exact,
 so 3 months gives $14,648; only the first band's lower limit moves. An eligible
 pensioner (s 16) has no part-year residency period and keeps $18,200
 (s 18(2)(a)); whether a payment makes the person one is yours to establish.
+Section 18(1) gives no period when residency begins and ends within one month, or when a person resident on 1 July ceases to be one during July; omit both inputs then, and the full threshold applies.
 `eligible_pensioner` without the months, a near miss of either name, or months
 outside 1 to 12 are refused; other unknown fields are ignored, as the Python
 original ignores them. See
@@ -3993,8 +3994,9 @@ whole year and no study loan.
 A refusal from a part keeps the part's code, and its message starts with the
 part's command, such as a sole parent's `medicare-levy-surcharge:
 dependent_children is not an input ...`: there is no partial total. The
-estimate itself refuses a part-year resident, whose Medicare levy and surcharge
-exclude the days of non-residence (ITAA 1936 s 251U(1)(d)) as `medicare-levy`
+estimate itself refuses a part-year resident, whose days of non-residence can
+make them a prescribed person for the Medicare levy (ITAA 1936 s 251U(1)(d),
+subject to s 251U(2) for dependants), which `medicare-levy`
 and `medicare-levy-surcharge` cannot yet take (`resident-tax` alone pro-rates
 the threshold), and a working holiday maker, whose rates no worksheet here
 works out, as

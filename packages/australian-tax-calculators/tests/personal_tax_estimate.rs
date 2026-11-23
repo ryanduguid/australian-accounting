@@ -184,7 +184,9 @@ fn a_part_year_resident_or_working_holiday_maker_is_refused() {
         "50000",
         json!({"residency": "part_year_resident"}),
     ));
-    assert!(r.message.contains("s 251U(1)(d)"), "{}", r.message);
+    for cited in ["s 251U(1)(d)", "s 251U(2)"] {
+        assert!(r.message.contains(cited), "{}", r.message);
+    }
     let r = refusal(input("2025-26", "50000", json!({"residency": "resident"})));
     assert_eq!(r.code, "input.residency_invalid");
     let mut facts = input("2025-26", "50000", json!({}));

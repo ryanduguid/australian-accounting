@@ -265,7 +265,10 @@ $4,736) plus $4,736 x the months in the year with a part-year residency period
 / 12. Section 18(1) counts each period from the start of the month residency
 began to the end of the month it ended; s 18(2)(a) gives an eligible pensioner
 (s 16) no part-year residency period, and s 18(2)(b) excludes a period of the
-whole year. Division 4 reads the same in the compilations of 1 July 2024 and
+whole year. Under s 18(1) as written, residency that begins and ends within
+one month, or a 1 July resident's residency that ends during July, is no
+period, so the threshold stays $18,200 and the inputs are omitted. Division 4
+reads the same in the compilations of 1 July 2024 and
 28 March 2025, apart from s 16's list of excluded Social Security Act parts.
 The Act states no rounding, so the threshold stays exact.
 
@@ -279,8 +282,9 @@ The Act states no rounding, so the threshold stays exact.
 
 The ATO's John page says the thresholds for the other rates do not change, so
 only the first band's lower limit moves. `personal-tax-estimate` still refuses
-a part-year resident: ITAA 1936 s 251U(1)(d) makes a person a prescribed person
-for the Medicare levy whilst a non-resident, which `medicare-levy` and
+a part-year resident: under ITAA 1936 s 251U(1)(d) the days of non-residence
+can make the person a prescribed person for the Medicare levy, unless a
+dependant who is not one prevents it (s 251U(2)), which `medicare-levy` and
 `medicare-levy-surcharge` do not take. Tests: `tests/part_year_resident.rs`.
 
 ## Foreign resident tax

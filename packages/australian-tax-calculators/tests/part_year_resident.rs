@@ -56,6 +56,9 @@ fn an_uneven_month_is_kept_exact() {
     let v = facts("2026-27", "20000", json!(1));
     assert_eq!(amount(&v, "tax_free_threshold"), "13858.67");
     assert_eq!(amount(&v, "basic_income_tax"), "921.20");
+    // 2 months: (20,000 - 14,253.333...) x 16% = 919.4666..., shown to the cent.
+    let two = facts("2025-26", "20000", json!(2));
+    assert_eq!(amount(&two, "basic_income_tax"), "919.47");
     // Income at or below the pro-rated threshold bears no tax.
     let below = facts("2027-28", "16000", json!(8));
     assert_eq!(amount(&below, "tax_free_threshold"), "16621.33");
@@ -87,7 +90,15 @@ fn eligible_pensioners_and_a_full_year() {
 
 #[test]
 fn refusals() {
-    for months in [json!(0), json!(13), json!(2.5), json!("3"), json!(true)] {
+    for months in [
+        json!(0),
+        json!(13),
+        json!(2.5),
+        json!(3.0),
+        json!("3"),
+        json!(true),
+        Value::Null,
+    ] {
         assert_eq!(
             code(&facts("2025-26", "20000", months.clone())),
             "input.count_invalid",
@@ -107,8 +118,10 @@ fn refusals() {
         .remove("part_year_residency_months");
     assert_eq!(code(&alone), "input.field_unknown");
     let mut flag = facts("2025-26", "20000", json!(3));
-    flag["eligible_pensioner"] = json!("no");
-    assert_eq!(code(&flag), "input.flag_invalid");
+    for given in [json!("no"), Value::Null] {
+        flag["eligible_pensioner"] = given;
+        assert_eq!(code(&flag), "input.flag_invalid");
+    }
     // A near miss of either input is refused, not ignored.
     for key in [
         "part_year_resident_months",

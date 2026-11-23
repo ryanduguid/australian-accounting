@@ -2452,7 +2452,7 @@ pub fn optional_inputs(kind: &str) -> Vec<(&'static str, &'static str)> {
         "resident_tax" => vec![
             (
                 "part_year_residency_months",
-                "integer from 1 to 12, for a person resident for part of the year only: the number of months in the year of income during which there is a part-year residency period (Income Tax Rates Act 1986 ss 18(1) and 20(1)), counting the month the person became or ceased to be a resident; pro-rates the tax-free threshold",
+                "integer from 1 to 12, for a person resident for part of the year only: the number of months in the year of income during which there is a part-year residency period (Income Tax Rates Act 1986 ss 18(1) and 20(1)), counting the month the person became or ceased to be a resident; pro-rates the tax-free threshold. s 18(1) gives no period when residency begins and ends within one month, or when a person resident on 1 July ceases to be one during July; omit both inputs then, and the full threshold applies",
             ),
             (
                 "eligible_pensioner",

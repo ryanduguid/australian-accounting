@@ -348,7 +348,7 @@ fn check_residency(v: &Value) -> Result<bool, Refusal> {
             };
         }
         Some(Some("part_year_resident")) => {
-            "resident-tax pro-rates a part-year resident's tax-free threshold (part_year_residency_months), but the person is a prescribed person for the Medicare levy whilst a non-resident (ITAA 1936 s 251U(1)(d)), which medicare-levy and medicare-levy-surcharge do not take"
+            "resident-tax pro-rates a part-year resident's tax-free threshold (part_year_residency_months), but the days of non-residence can make the person a prescribed person for the Medicare levy (ITAA 1936 s 251U(1)(d), unless a dependant who is not one prevents it under s 251U(2)), which medicare-levy and medicare-levy-surcharge do not take"
         }
         Some(Some("working_holiday_maker")) => {
             "a working holiday maker's income is taxed at the working holiday maker rates, which no worksheet here works out"

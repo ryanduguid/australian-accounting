@@ -11,7 +11,8 @@
   2024-25 to 2027-28. A near miss of either input name is refused as
   `input.field_unknown`; other unknown fields are still ignored.
   `personal-tax-estimate` still refuses a part-year resident, now citing the
-  Medicare levy's non-resident days (ITAA 1936 s 251U(1)(d)).
+  Medicare levy's non-resident days (ITAA 1936 s 251U(1)(d), subject to
+  s 251U(2)).
 - `trading-stock` works out the change in value of trading stock under ITAA
   1997 s 70-35 for 2020-21 to 2026-27, each closing item valued by its own
   election (cost, market selling value, replacement value, the lowest, or an
