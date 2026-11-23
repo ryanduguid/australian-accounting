@@ -139,12 +139,6 @@
   `ess_discount.taxing_point_value` and `ess_discount.valuation_unavailable`.
   `tests/ess_discount.rs` holds it to the ATO's examples and every table entry.
 
-## 1.2.0
-
-- Relicensed Ryan Duguid's code under AGPL-3.0-or-later with section 7(b) attribution terms.
-
-### Added
-
 - `foreign-resident-withholding` works out the foreign resident capital gains
   withholding amount under TAA 1953 Sch 1 s 14-200 for taxable Australian real
   property or a company title interest acquired from 1 July 2017 to 30 June
@@ -174,6 +168,13 @@
   `help_indexation.reduction_already_applied` and
   `help_indexation.repayments_exceed_debt`. `tests/help_indexation.rs` holds
   it to the ATO's rates and its 2 reduction examples.
+
+## 1.2.0
+
+- Relicensed Ryan Duguid's code under AGPL-3.0-or-later with section 7(b) attribution terms.
+
+### Added
+
 - `work-expenses` works out an employee's working from home, car or
   self-education deduction for 2020-21 to 2026-27, one `method` a call: the
   fixed rate (52c with a dedicated home office to 2021-22, then PCG 2023/1's
