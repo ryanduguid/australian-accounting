@@ -84,7 +84,7 @@ pub const SCOPES: &[(&str, &str)] = &[
     ),
     (
         "land_tax",
-        "One owner's land tax for a full land tax year in one of New South Wales and Victoria (the 2026 land tax year, on land owned at midnight on 31 December 2025) and Queensland, Western Australia, South Australia, Tasmania and the Australian Capital Territory (2026-27); the Northern Territory has no land tax. The operator establishes the jurisdiction's total taxable value of the owner's land after exemptions and concessions (in New South Wales the 3-year average land value, in Victoria and South Australia the site value, in the ACT one parcel's average unimproved value), whether the owner pays trust rates (a New South Wales special trust, Victorian trust surcharge rates, Queensland company and trustee rates or South Australian trust rates), whether the owner is a foreign person or absentee who pays the jurisdiction's surcharge, the value a New South Wales or Tasmanian surcharge applies to, and in Western Australia whether all of the land is in the Perth metropolitan region. Each scale is the Act's or the revenue office's, with the surcharges of New South Wales (5% of the surcharge value), Victoria (the absentee owner rates less the general or trust rates), Queensland (3.0c for each $1 over $349,999 from $350,000, Land Tax Act 2010 (Qld) Schs 2 and 3), Tasmania (2% of the surcharge value) and the ACT (0.75%), and Western Australia's metropolitan region improvement tax (0.14% over $300,000). Tasmania's amounts are rounded to 10 cents (Land Tax Rating Act 2000 (Tas) s 7) and South Australia's land tax under $20 is nil (Land Tax Act 1936 (SA) s 6); other amounts are worked exactly and shown to the cent, half up. Excludes deciding which land is taxable, exemptions and concessions, who is a foreign person or absentee, and the taxable and surcharge values; joint ownership, grouping of related companies, single holding assessments, New South Wales companies that are not their group's concessional company, the Victorian COVID-19 debt temporary surcharge on single holdings, Queensland trust aggregation, land only partly in the Perth metropolitan region, the ACT's unit entitlement and quarterly instalments, apportionment between properties, and part-year or supplementary assessments.",
+        "One owner's land tax for a full land tax year in one of New South Wales and Victoria (the 2026 land tax year, on land owned at midnight on 31 December 2025) and Queensland, Western Australia, South Australia, Tasmania and the Australian Capital Territory (2026-27); the Northern Territory has no land tax. The operator establishes the jurisdiction's total taxable value of the owner's land after exemptions and concessions (in New South Wales the 3-year average land value, in Victoria and South Australia the site value, in the ACT one parcel's average unimproved value), whether the owner pays trust rates (a New South Wales special trust, Victorian trust surcharge rates, Queensland company and trustee rates other than for the trustees Land Tax Act 2010 (Qld) s 33 taxes at Sch 1, or South Australian trust rates under Land Tax Act 1936 (SA) s 8A(1a) after the exceptions in s 8A(1b) and (1c)), whether the owner is a foreign person or absentee who pays the jurisdiction's surcharge on all of the land (in the ACT, a parcel wholly foreign-owned: s 17F apportions), the value a New South Wales or Tasmanian surcharge applies to (in Tasmania the foreign-owned part of one folio, Land Tax Act 2000 (Tas) s 16B(1)), and in Western Australia whether all of the land is in the Perth metropolitan region. Each scale is the Act's or the revenue office's, with the surcharges of New South Wales (5% of the surcharge value), Victoria (the absentee owner rates less the general or trust rates), Queensland (3.0c for each $1 over $349,999 from $350,000, Land Tax Act 2010 (Qld) Schs 2 and 3), Tasmania (2% of the surcharge value) and the ACT (0.75%), and Western Australia's metropolitan region improvement tax (0.14% over $300,000). Tasmania's amounts are rounded to 10 cents (Land Tax Rating Act 2000 (Tas) s 7), and a case where rounding each amount and their sum differ is refused; South Australia's land tax under $20 is nil (Land Tax Act 1936 (SA) s 6); other amounts are worked exactly and shown to the cent, half up, the worksheet's convention, before any rounding a revenue office applies to the amount it collects (such as Taxation Administration Act 2001 (Qld) s 152). The ACT figure is for a taxable parcel liable in all 4 quarters. Excludes deciding which land is taxable, exemptions and concessions, who is a foreign person or absentee, and the taxable and surcharge values; joint ownership, grouping of related companies, single holding assessments, New South Wales companies that are not their group's concessional company, Victorian absentee trusts (s 46IA), Queensland build-to-rent land (s 58B), an exempt ACT parcel, the Victorian COVID-19 debt temporary surcharge on single holdings, Queensland trust aggregation, land only partly in the Perth metropolitan region, the ACT's unit entitlement and quarterly instalments, apportionment between properties, and part-year or supplementary assessments.",
     ),
     (
         "payroll_tax",
@@ -3724,6 +3724,10 @@ pub const REFUSAL_CODES: &[(&str, &str)] = &[
         "The person had a different spouse during different parts of the year, whose incomes ITAA 1997 s 61-20(3) adds separately.",
     ),
     (
+        "land_tax.absentee_trust_unsupported",
+        "A Victorian trust was given as an absentee owner: s 46IA charges a fixed or unit trust's surcharge on its absentee beneficiaries' share, which this worksheet does not take.",
+    ),
+    (
         "land_tax.jurisdiction_invalid",
         "jurisdiction is not nsw, vic, qld, wa, sa, tas or act; the Northern Territory has no land tax.",
     ),
@@ -3736,8 +3740,16 @@ pub const REFUSAL_CODES: &[(&str, &str)] = &[
         "The land is partly in the Perth metropolitan region, whose improvement tax on that part alone is not worked.",
     ),
     (
+        "land_tax.rounding_unsettled",
+        "Tasmania's s 7 rounding to 10 cents gives a different total applied to the land tax and the foreign investor land tax apart than to their sum, and which it requires is unsettled.",
+    ),
+    (
         "land_tax.surcharge_unavailable",
         "A foreign or absentee owner was given in a jurisdiction whose surcharge this worksheet does not hold (wa, sa).",
+    ),
+    (
+        "land_tax.surcharge_value_above_taxable_value",
+        "A Tasmanian surcharge value is more than the taxable value, though the land it applies to is part of the owner's taxable land.",
     ),
     (
         "land_tax.trust_rates_unavailable",

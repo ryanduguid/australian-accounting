@@ -12,8 +12,10 @@
   tax calculator and agrees with it on every case except where the Act
   differs: Queensland's surcharge over $349,999, South Australia's $20
   minimum and Tasmania's rounding to 10 cents. New codes:
-  `land_tax.jurisdiction_invalid`, `land_tax.metropolitan_region_invalid`,
-  `land_tax.metropolitan_region_part`, `land_tax.surcharge_unavailable` and
+  `land_tax.absentee_trust_unsupported`, `land_tax.jurisdiction_invalid`,
+  `land_tax.metropolitan_region_invalid`, `land_tax.metropolitan_region_part`,
+  `land_tax.rounding_unsettled`, `land_tax.surcharge_unavailable`,
+  `land_tax.surcharge_value_above_taxable_value` and
   `land_tax.trust_rates_unavailable`. `derive` takes it.
 - `trading-stock` works out the change in value of trading stock under ITAA
   1997 s 70-35 for 2020-21 to 2026-27, each closing item valued by its own

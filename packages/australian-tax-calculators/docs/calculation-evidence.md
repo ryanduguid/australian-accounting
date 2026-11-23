@@ -2160,7 +2160,7 @@ from 23:15 to 23:35 AEDT:
   $400,000).
 - Land Tax Act 2002 (WA), compilation 02-d0-04, s 5 Table 11 (2015/16 and
   subsequent financial years); Metropolitan Region Improvement Tax Act 1959
-  (WA), compilation 04-a0-08, s 3 Table 3; the Department of Treasury and
+  (WA), compilation 04-a0-08, s 10 Table 3; the Department of Treasury and
   Finance's 'Land tax assessment' (last updated 20 May 2026).
 - Land Tax Act 1936 (SA), version 4.12.2025, ss 6 and 8A and Sch 1 Pts 2 and
   3; RevenueSA's 'Rates and thresholds', the 2026-27 general and trust tables
@@ -2174,24 +2174,49 @@ from 23:15 to 23:35 AEDT:
   (DI2026-152), ss 4 to 7.
 - NT Government, 'Property taxes': no land tax in the Northern Territory.
 
+Read on 24 November 2026 after review: Land Tax Act 2005 (Vic) s 46IA
+(version 086: a fixed or unit trust's absentee surcharge is on its absentee
+beneficiaries' share; a discretionary absentee trust pays Table 5.5 on the
+whole); Land Tax Act 2000 (Tas) ss 16A and 16B(1) (foreign investor land tax
+is a component of land tax, assessed for each folio); Metropolitan Region
+Improvement Tax Act 1959 (WA) s 10 (Table 3, for 2009/10 onwards). RevenueSA's
+2026-27 tables were read from the page's own HTML, whose expandable tables
+hold every threshold above.
+
 The site's land tax calculator (ryanduguid.github.io, main at 1aa0a6cb) was
 run on its 23 calculated cases, the 2 further worked figures in its Rust
 oracle and every band edge of every scale (each edge less 1, the edge and the
 edge plus 1, under every choice the page offers), 875 rows in
 `tests/data/land_tax_site_cases.json`. The worksheet gives the same 4 figures
-on 767 rows; the other 108 differ only where an Act differs from the page.
-Of the page's own 23 cases, 20 agree and 3 move (South Australia's $936,050
-and the Queensland Revenue Office's 2 surcharge examples, $1,500.03 for
-$1,500); its 2 refused cases are refused alike.
+on 711 rows. The other 164 differ only where an Act differs from the page:
+103 rows move and 61 are refused. Tasmania's figures are worked again in the
+test from Schedule 1 and s 7, apart from the worksheet. Of the page's own 23
+cases, 19 agree, 3 move (South Australia's $936,050 and the Queensland Revenue
+Office's 2 surcharge examples, $1,500.03 for $1,500) and 1 is refused (its
+Victorian absentee trust at $1,800,000); its 2 refused cases are refused
+alike.
 
-| Rule | Act | Rows moved |
+| Rule | Act | Rows |
 | --- | --- | --- |
-| Queensland's surcharge is 3.0c for each $1 more than $349,999, from $350,000; the page and the Queensland Revenue Office work 3% of the value over $350,000, 3 cents less | Land Tax Act 2010 (Qld) Sch 2 Pt 2, Sch 3 Pt 2 | 70 |
-| South Australian land tax under $20 is nil; the page shows the amount | Land Tax Act 1936 (SA) s 6 | 3 |
-| Tasmanian amounts are rounded to 10 cents; the page applies no rounding | Land Tax Rating Act 2000 (Tas) s 7 | 35 (42 amounts) |
+| Queensland's surcharge is 3.0c for each $1 more than $349,999, from $350,000; the page and the Queensland Revenue Office work 3% of the value over $350,000, 3 cents less | Land Tax Act 2010 (Qld) Sch 2 Pt 2, Sch 3 Pt 2 | 70 moved |
+| South Australian land tax under $20 is nil; the page shows the amount | Land Tax Act 1936 (SA) s 6 | 3 moved |
+| Tasmanian amounts are rounded to 10 cents; the page applies no rounding | Land Tax Rating Act 2000 (Tas) s 7 | 30 moved (36 amounts) |
+| A Victorian absentee trust's surcharge is on its absentee beneficiaries' share; the page charges Table 5.5 on the whole | Land Tax Act 2005 (Vic) s 46IA | 53 refused |
+| Tasmanian foreign investor land tax applies to residential general land, part of the owner's taxable land; the page takes a larger surcharge value | Land Tax Act 2000 (Tas) Pt 3 Div 1A; Land Tax Rating Act 2000 (Tas) s 6A | 8 refused |
 
-The tests also work by hand the s 7 rounding ($125,001, $125,011, $125,012
-and $125,013) and the s 6 minimum ($939,900 nil; $940,000, $20).
+Queensland's figure is the Act's, before any rounding the Commissioner
+applies to the amount collected (Taxation Administration Act 2001 (Qld)
+s 152 permits rounding down to 5 cents); the Queensland Revenue Office's
+examples show 3% of the value over $350,000. Where rounding Tasmania's land
+tax and foreign investor land tax to 10 cents each and rounding their sum
+differ, which s 7 requires is unsettled, and the worksheet refuses; no row of
+the fixture does so.
+
+The tests also work by hand the s 7 rounding ($125,001, $125,011, $125,012,
+$125,013, and the 5-cent ties $125,100 and $500,010), the s 6 minimum
+($939,900 nil; $939,901 and $940,000, $20; $940,001, $20.50; trust $25,000
+nil and $25,001, $125.50) and Queensland's absentee and foreign company
+scales at $6,400,000 ($103,000 and $106,500).
 
 ## Payroll tax
 

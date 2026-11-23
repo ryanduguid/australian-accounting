@@ -243,7 +243,7 @@ const WA: Place = Place {
 
 /// Metropolitan region improvement tax.
 pub(super) static MRIT: Scale = scale(
-    "Metropolitan Region Improvement Tax Act 1959 (WA) s 3 Table 3, for 2009/10 and subsequent years of assessment: nil to $300,000, then 0.14 cent for each $1 in excess of $300,000 (compilation 04-a0-08), read on 23 November 2026",
+    "Metropolitan Region Improvement Tax Act 1959 (WA) s 10 Table 3, for 2009/10 and subsequent years of assessment: nil to $300,000, then 0.14 cent for each $1 in excess of $300,000 (compilation 04-a0-08), read on 23 November 2026",
     &[NIL, band(300_001, "0", "0.0014", 300_000)],
 );
 

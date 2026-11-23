@@ -190,6 +190,12 @@ fn choices(place: &Place, args: &LandTaxArgs) -> Result<Choices> {
             "trust_rates is true, but this worksheet has trust rates only for nsw (a special trust), vic (trust surcharge rates), qld (companies and trustees) and sa (land held on trust); Western Australia taxes a trustee's land at the general rates.",
         );
     }
+    if foreign && trust && place.code == "vic" {
+        return refuse(
+            "land_tax.absentee_trust_unsupported",
+            "A Victorian absentee trust's surcharge turns on its absentee beneficiaries' interests (Land Tax Act 2005 (Vic) s 46IA), which this worksheet does not take.",
+        );
+    }
     if foreign && place.surcharge.is_none() {
         return refuse(
             "land_tax.surcharge_unavailable",
@@ -259,6 +265,44 @@ fn surcharge(
     })
 }
 
+/// Tasmania's FILTS land is residential general land, so for one owner its
+/// value is part of the taxable value. Section 7 rounds 'the amount of land
+/// tax payable', and FILTS is a component of land tax assessed folio by folio
+/// (Land Tax Act 2000 (Tas) ss 16A and 16B(1)): whether s 7 rounds each amount
+/// or their sum is unsettled, so a case where the 2 readings differ is refused.
+fn tasmanian_surcharge(place: &'static Place, value: &Decimal, c: &Choices) -> Result<()> {
+    let Some(Surcharge::Separate(applied, _)) = &place.surcharge else {
+        return Ok(());
+    };
+    if place.payable != Payable::TenCents || !c.foreign {
+        return Ok(());
+    }
+    if c.separate.gt(value)? {
+        return refuse(
+            "land_tax.surcharge_value_above_taxable_value",
+            "surcharge_value is more than taxable_value: in Tasmania the foreign investor land tax applies to residential general land, part of the owner's taxable land.",
+        );
+    }
+    let (land, _) = scale_step(
+        ("land_tax", ""),
+        main_scale(place, c),
+        value,
+        (None, Payable::Cents),
+    )?;
+    let surcharge = c.separate.mul(&d(applied))?;
+    let apart = tens(&land.value)?.add(&tens(&surcharge)?)?;
+    let together = tens(&land.value.add(&surcharge)?)?;
+    if apart.equals(&together)? {
+        return Ok(());
+    }
+    refuse(
+        "land_tax.rounding_unsettled",
+        format!(
+            "Rounding the land tax and the foreign investor land tax to 10 cents each gives {apart}, rounding their sum gives {together}; which Land Tax Rating Act 2000 (Tas) s 7 requires is unsettled."
+        ),
+    )
+}
+
 const TOTAL: &str = "The land tax and any surcharge and metropolitan region improvement tax, each to the cent, for the full land tax year";
 
 /// Every step, with `total` last, and the rates applied.
@@ -313,6 +357,9 @@ pub fn land_tax(args: &LandTaxArgs) -> Result<Value> {
     }
     let c = choices(place, args)?;
     let value = dollars(args.taxable_value, "taxable values")?;
-    let (steps, rates) = precise(|| worked(place, &value, &c))?;
+    let (steps, rates) = precise(|| {
+        tasmanian_surcharge(place, &value, &c)?;
+        worked(place, &value, &c)
+    })?;
     derived_result(KIND, &year, steps, rates)
 }

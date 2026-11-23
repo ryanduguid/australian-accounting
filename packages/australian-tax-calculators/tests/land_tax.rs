@@ -75,26 +75,76 @@ fn shown(cents: i64) -> String {
 }
 
 /// Why the command's figure differs from the site's on a row, if it does.
-#[derive(Debug, PartialEq, Eq, Hash, Clone, Copy)]
+#[derive(Debug, PartialEq, Eq, Hash, Clone, Copy, PartialOrd, Ord)]
 enum Deviation {
     /// Land Tax Act 2010 (Qld) Schs 2 Pt 2 and 3 Pt 2: 3.0c for each $1 over
     /// $349,999, 3 cents more than the page's 3% over $350,000.
     QueenslandSurcharge,
     /// Land Tax Act 1936 (SA) s 6: nil below $20.
     SouthAustraliaMinimum,
-    /// Land Tax Rating Act 2000 (Tas) s 7: rounded to 10 cents.
+    /// Land Tax Rating Act 2000 (Tas) s 7: rounded to 10 cents (one per
+    /// amount moved).
     TasmaniaTenCents,
+    /// Refused: a Victorian absentee trust's surcharge turns on its
+    /// beneficiaries (Land Tax Act 2005 (Vic) s 46IA).
+    VictoriaAbsenteeTrust,
+    /// Refused: a Tasmanian surcharge value above the taxable value.
+    TasmaniaSurchargeAboveValue,
+    /// Refused: s 7 on each amount and on their sum differ.
+    TasmaniaRoundingUnsettled,
+}
+
+/// Tasmania's land tax on `value` from Sch 1, in hundredths of a cent.
+fn tasmania_exact(value: i64) -> i64 {
+    match value {
+        ..125_000 => 0,
+        125_000..500_000 => 500_000 + 45 * (value - 125_000),
+        _ => 17_375_000 + 150 * (value - 500_000),
+    }
+}
+
+/// Section 7 on hundredths of a cent, in cents: up to 10 cents when more
+/// than 5 cents remain, otherwise down.
+fn section_7(hundredths: i64) -> i64 {
+    let rest = hundredths % 1000;
+    (hundredths - rest + if rest > 500 { 1000 } else { 0 }) / 100
+}
+
+fn whole(row: &Value, key: &str) -> i64 {
+    row[key].as_str().map_or(0, |v| v.parse().unwrap())
+}
+
+/// The refusal an Act or the worksheet's scope gives a row the page works.
+fn refusal(row: &Value) -> Option<(&'static str, Deviation)> {
+    let (value, separate) = (whole(row, "value"), whole(row, "surcharge_value"));
+    match row["place"].as_str().unwrap() {
+        "vic" if row["trust"] == true && row["foreign"] == true => Some((
+            "land_tax.absentee_trust_unsupported",
+            Deviation::VictoriaAbsenteeTrust,
+        )),
+        "tas" if row["foreign"] == true && separate > value => Some((
+            "land_tax.surcharge_value_above_taxable_value",
+            Deviation::TasmaniaSurchargeAboveValue,
+        )),
+        "tas" if row["foreign"] == true => {
+            let (land, surcharge) = (tasmania_exact(value), 200 * separate);
+            (section_7(land) + section_7(surcharge) != section_7(land + surcharge)).then_some((
+                "land_tax.rounding_unsettled",
+                Deviation::TasmaniaRoundingUnsettled,
+            ))
+        }
+        _ => None,
+    }
 }
 
 /// The site's figures moved by each rule the Act adds, and the rules that
-/// moved them. Tasmania's s 7 works on the exact amount, which the page has
-/// already rounded to the cent, so its figure is checked to within 6 cents
-/// and to a multiple of 10 cents.
-fn expected(row: &Value, got: &[String; 4]) -> ([i64; 4], Vec<Deviation>) {
+/// moved them. Tasmania's are worked independently from Sch 1 and s 7, after
+/// checking the page's figure is the exact amount to the cent.
+fn expected(row: &Value) -> ([i64; 4], Vec<Deviation>) {
     let site = &row["site"];
     let mut want = ["tax", "surcharge", "mrit", "total"].map(|k| cents(site[k].as_str().unwrap()));
     let mut why = Vec::new();
-    let value: i64 = row["value"].as_str().unwrap().parse().unwrap();
+    let value = whole(row, "value");
     match row["place"].as_str().unwrap() {
         "qld" if row["foreign"] == true && value >= 350_000 => {
             want[1] += 3;
@@ -106,16 +156,22 @@ fn expected(row: &Value, got: &[String; 4]) -> ([i64; 4], Vec<Deviation>) {
             why.push(Deviation::SouthAustraliaMinimum);
         }
         "tas" => {
-            for (i, figure) in [(0, &got[0]), (1, &got[1])] {
-                let got = cents(figure);
-                assert_eq!(got % 10, 0, "{row}: {figure} is not a multiple of 10 cents");
-                assert!((got - want[i]).abs() <= 6, "{row}: {figure}");
-                if got != want[i] {
-                    want[3] += got - want[i];
-                    want[i] = got;
+            let surcharge = if row["foreign"] == true {
+                200 * whole(row, "surcharge_value")
+            } else {
+                0
+            };
+            for (i, exact) in [(0, tasmania_exact(value)), (1, surcharge)] {
+                assert!(
+                    (want[i] * 100 - exact).abs() <= 50,
+                    "{row}: the page's cents"
+                );
+                if section_7(exact) != want[i] {
+                    want[i] = section_7(exact);
                     why.push(Deviation::TasmaniaTenCents);
                 }
             }
+            want[3] = want[0] + want[1];
         }
         _ => {}
     }
@@ -136,22 +192,43 @@ fn site_input(row: &Value) -> Value {
     v
 }
 
+/// The rules that move or refuse `row`, after checking the worksheet's answer.
+fn checked(row: &Value) -> Vec<Deviation> {
+    if let Some((want, why)) = refusal(row) {
+        assert_eq!(code(&site_input(row)), want, "{row}");
+        return vec![why];
+    }
+    let got = figures(&run(&site_input(row)));
+    let (want, why) = expected(row);
+    assert_eq!(got, want.map(shown), "{row}");
+    why
+}
+
+/// Rows giving the page's 4 figures, and the rows or amounts each rule moves
+/// or refuses, worked out apart from the worksheet from the fixture alone.
+const SAME: usize = 711;
+const MOVED: [(Deviation, usize); 5] = [
+    (Deviation::QueenslandSurcharge, 70),
+    (Deviation::SouthAustraliaMinimum, 3),
+    (Deviation::TasmaniaTenCents, 36),
+    (Deviation::VictoriaAbsenteeTrust, 53),
+    (Deviation::TasmaniaSurchargeAboveValue, 8),
+];
+
 /// Every row of the site's fixture agrees, or differs only by a rule above.
 #[test]
 fn the_site_cases_agree_except_where_an_act_differs() {
     let data: Value = serde_json::from_str(include_str!("data/land_tax_site_cases.json")).unwrap();
     let rows = data["rows"].as_array().unwrap();
     let mut same = 0;
-    let mut moved = std::collections::BTreeMap::<String, usize>::new();
+    let mut moved = std::collections::BTreeMap::<Deviation, usize>::new();
     for row in rows {
-        let got = figures(&run(&site_input(row)));
-        let (want, why) = expected(row, &got);
-        assert_eq!(got, want.map(shown), "{row}");
+        let why = checked(row);
         if why.is_empty() {
             same += 1;
         }
         for reason in why {
-            *moved.entry(format!("{reason:?}")).or_default() += 1;
+            *moved.entry(reason).or_default() += 1;
         }
     }
     eprintln!(
@@ -160,17 +237,21 @@ fn the_site_cases_agree_except_where_an_act_differs() {
     );
     assert_eq!(rows.len(), 875);
     assert_eq!(data["page_rows"], 23);
+    assert_eq!(same, SAME);
+    assert_eq!(moved.into_iter().collect::<Vec<_>>(), MOVED);
     // The page's own 23 cases: South Australia's $936,050 and the 2
-    // Queensland surcharge examples move.
+    // Queensland surcharge examples move, and its Victorian absentee trust
+    // case is refused.
     let page_moved = rows[..23]
         .iter()
-        .filter(|row| !expected(row, &figures(&run(&site_input(row)))).1.is_empty())
+        .filter(|row| !checked(row).is_empty())
         .map(|row| row["case"].as_str().unwrap())
         .collect::<Vec<_>>();
     assert_eq!(
         page_moved,
         [
             "page: Part of $100 over the South Australian threshold counts as a whole $100",
+            "page: The Victorian SRO’s trust surcharge rates with the absentee owner surcharge at $1,800,000",
             "page: The Queensland Revenue Office’s absentee example",
             "page: The Queensland Revenue Office’s foreign company example",
         ]
@@ -236,13 +317,31 @@ fn queensland_surcharge_follows_the_act() {
     assert_eq!(figures(&run(&below)), ["0.00", "0.00", "0.00", "0.00"]);
     let company = with(input("qld", "6400000"), json!({"trust_rates": true}));
     assert_eq!(figures(&run(&company))[0], "106500.00");
+    // Above $5 million an absentee (Sch 3) pays 2%, a foreign company or
+    // trustee (Sch 2) 2.25%, each with the same surcharge.
+    let absentee = with(input("qld", "6400000"), json!({"foreign_owner": true}));
+    let foreign_company = with(absentee.clone(), json!({"trust_rates": true}));
+    assert_eq!(
+        figures(&run(&absentee)),
+        ["103000.00", "181500.03", "0.00", "284500.03"]
+    );
+    assert_eq!(
+        figures(&run(&foreign_company)),
+        ["106500.00", "181500.03", "0.00", "288000.03"]
+    );
 }
 
 /// South Australia's s 6: a total under $20 is nil; $20 itself is payable.
 #[test]
 fn south_australia_charges_nothing_under_twenty_dollars() {
     assert_eq!(figures(&run(&input("sa", "939900")))[0], "0.00");
+    // Part of $100 counts as $100: $939,901 is the first $20.
+    assert_eq!(figures(&run(&input("sa", "939901")))[0], "20.00");
     assert_eq!(figures(&run(&input("sa", "940000")))[0], "20.00");
+    assert_eq!(figures(&run(&input("sa", "940001")))[0], "20.50");
+    let trust = |value: &str| with(input("sa", value), json!({"trust_rates": true}));
+    assert_eq!(figures(&run(&trust("25000")))[0], "0.00");
+    assert_eq!(figures(&run(&trust("25001")))[0], "125.50");
     let out = run(&input("sa", "1470000"));
     assert_eq!(figures(&out)[0], "2670.00");
     assert_eq!(out["rates"]["rate_per_100"], "0.50");
@@ -260,6 +359,9 @@ fn tasmania_rounds_to_ten_cents() {
         ("125011", "50.00"),
         ("125012", "50.10"),
         ("125013", "50.10"),
+        // Exactly 5 cents remain: down.
+        ("125100", "50.40"),
+        ("500010", "1737.60"),
     ] {
         assert_eq!(figures(&run(&input("tas", value)))[0], want, "{value}");
     }
@@ -272,8 +374,23 @@ fn tasmania_rounds_to_ten_cents() {
         ["1287.50", "8000.00", "0.00", "9287.50"]
     );
     // 2% of $1,234,567 is $24,691.34: 4 cents remain, so down.
-    let odd = with(filts, json!({"surcharge_value": "1234567"}));
-    assert_eq!(figures(&run(&odd))[1], "24691.30");
+    let odd = with(
+        filts.clone(),
+        json!({"taxable_value": "1300000", "surcharge_value": "1234567"}),
+    );
+    assert_eq!(
+        figures(&run(&odd)),
+        ["13737.50", "24691.30", "0.00", "38428.80"]
+    );
+    // FILTS land is part of the taxable land.
+    let above = with(filts.clone(), json!({"surcharge_value": "400001"}));
+    assert_eq!(code(&above), "land_tax.surcharge_value_above_taxable_value");
+    // $50.018 and $2,000.04 round to $2,050.00 apart but $2,050.10 together.
+    let unsettled = with(
+        filts,
+        json!({"taxable_value": "125004", "surcharge_value": "100002"}),
+    );
+    assert_eq!(code(&unsettled), "land_tax.rounding_unsettled");
 }
 
 /// The ACT's fixed charge of $1,778 with Table 1, and the 0.75% surcharge.
@@ -305,6 +422,32 @@ fn victoria_and_western_australia() {
     let out = run(&metro);
     assert_eq!(figures(&out), ["6250.00", "0.00", "1680.00", "7930.00"]);
     assert_eq!(out["rates"]["mrit_rate"], "0.0014");
+    // A Victorian absentee trust is refused: s 46IA charges its absentee
+    // beneficiaries' share, which the worksheet does not take.
+    let trust = with(
+        input("vic", "1000000"),
+        json!({"foreign_owner": true, "trust_rates": true}),
+    );
+    assert_eq!(code(&trust), "land_tax.absentee_trust_unsupported");
+}
+
+/// At a band's edge the band itself changes, not only the amount.
+#[test]
+fn each_band_starts_where_its_act_says() {
+    for (place, value, base, threshold) in [
+        ("nsw", "6571000", "100", "1075000"),
+        ("nsw", "6571001", "88036", "6571000"),
+        ("wa", "420000", "300", "300000"),
+        ("wa", "420001", "300", "420000"),
+        ("qld", "999999", "500", "600000"),
+        ("qld", "1000000", "4500", "1000000"),
+        ("act", "150000", "0", "0"),
+        ("act", "150001", "810", "150000"),
+    ] {
+        let rates = &run(&input(place, value))["rates"];
+        assert_eq!(rates["base"], base, "{place} {value}");
+        assert_eq!(rates["threshold"], threshold, "{place} {value}");
+    }
 }
 
 fn refused(cases: &[(&str, Value, &str)]) {

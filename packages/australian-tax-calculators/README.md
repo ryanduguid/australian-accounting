@@ -2476,9 +2476,10 @@ does. It takes:
   dollars, after exemptions;
 - `trust_rates`: a New South Wales special trust, Victorian trust surcharge
   rates, Queensland company and trustee rates or South Australian trust rates;
-- `foreign_owner`: the jurisdiction's foreign or absentee owner surcharge,
-  with `surcharge_value` in New South Wales (5% of the residential land value)
-  and Tasmania (2% of the foreign-owned share of residential general land);
+- `foreign_owner`: the jurisdiction's foreign or absentee owner surcharge on
+  all of the land, with `surcharge_value` in New South Wales (5% of the
+  residential land value) and Tasmania (2% of the foreign-owned part of one
+  folio, no more than `taxable_value`);
 - in Western Australia, `metropolitan_region`: `all` adds the metropolitan
   region improvement tax of 0.14% over $300,000, `none` does not and `part`
   is refused.
@@ -2494,9 +2495,11 @@ Table 1 of DI2026-152. The steps are `land_tax`, for Victoria's surcharge
 It follows the Act where the site's page differs: Queensland's surcharge is
 3.0c for each $1 over $349,999 from $350,000 (Schedules 2 and 3), 3 cents more
 than the revenue office's formula; South Australian land tax under $20 is nil
-(s 6); and Tasmanian amounts are rounded to 10 cents (s 7). It refuses trust
+(s 6); and Tasmanian amounts are rounded to 10 cents (s 7), with a case
+refused where rounding each amount and their sum differ. It refuses trust
 rates in Western Australia, Tasmania and the ACT, a foreign owner in Western
-Australia and South Australia, land partly in the Perth metropolitan region,
+Australia and South Australia, a Victorian absentee trust (s 46IA charges its
+absentee beneficiaries' share), land partly in the Perth metropolitan region,
 cents and any other year. It does not decide which land is taxable, the
 values, who is a foreign person or absentee, grouping or joint ownership.
 The tests hold it to every case of the site's page and to the revenue

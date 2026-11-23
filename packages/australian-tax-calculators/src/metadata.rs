@@ -3028,7 +3028,7 @@ pub fn optional_inputs(kind: &str) -> Vec<(&'static str, &'static str)> {
         "land_tax" => vec![
             (
                 "surcharge_value",
-                "AUD, whole dollars, for a foreign owner in nsw or tas only and then required: in nsw the land value of the residential land the foreign person owns, their share only (surcharge land tax, 5%); in tas the assessed land value of the foreign-owned share of residential general land acquired on or after 1 July 2022 (foreign investor land tax, 2%)",
+                "AUD, whole dollars, for a foreign owner in nsw or tas only and then required: in nsw the land value of the residential land the foreign person owns, their share only (surcharge land tax, 5%); in tas the assessed land value of the foreign-owned part of one folio of residential general land that foreign investor land tax applies to (Land Tax Rating Act 2000 (Tas) s 6A, Land Tax Act 2000 (Tas) Pt 3 Div 1A: land a foreign person acquires on or after 1 July 2022, including through a company or trust that becomes foreign; 2%), no more than taxable_value",
             ),
             (
                 "metropolitan_region",
@@ -4077,11 +4077,11 @@ pub fn input_units(kind: &str) -> Vec<(&'static str, &'static str)> {
             ),
             (
                 "trust_rates",
-                "boolean: true for nsw special trust rates, vic trust surcharge rates, qld company and trustee rates or sa trust rates; true is refused in wa, tas and act",
+                "boolean: true for nsw special trust rates, vic trust surcharge rates, qld company and trustee rates (not for the trustees s 33 taxes at Sch 1) or sa trust rates (s 8A(1a), after the exceptions in s 8A(1b) and (1c)); true is refused in wa, tas and act, whose trustees pay the general rates",
             ),
             (
                 "foreign_owner",
-                "boolean: true when the owner is a foreign person or absentee who pays the jurisdiction's surcharge; true is refused in wa and sa",
+                "boolean: true when the owner pays the jurisdiction's foreign or absentee owner surcharge on all of the land (in qld an absentee individual, or with trust_rates a foreign company or trustee; in act a parcel wholly foreign-owned); true is refused in wa and sa, which have none, and for a vic trust (s 46IA)",
             ),
         ],
         "payroll_tax" => vec![
