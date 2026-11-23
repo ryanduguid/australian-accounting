@@ -347,6 +347,12 @@ pub const PAYG_WITHHOLDING_RULES: &[(&str, &Schedule1Rules)] = &[
     ("2026-27", &SCHEDULE_1_RULES_FROM_JULY_2026),
 ];
 
+/// Schedule 13, Part A step 4: the weekly equivalent from which no offset
+/// adjustment applies ('less than $1,181' in F2024L00664, F2025L00647 and
+/// F2025L01016; 'less than $1,216' in F2026L00716).
+pub const SCHEDULE_13_ADJUSTMENT_LIMIT: &[(&str, i64)] =
+    &[("2024-25", 1181), ("2025-26", 1181), ("2026-27", 1216)];
+
 /// Schedule 8 (NAT 3539) study and training support loan component coefficients:
 /// for 2025-26, those of F2025L01016, which commenced on 24 September 2025.
 pub const STUDY_LOAN_WITHHOLDING_COEFFICIENTS: &[(&str, &[(&str, &[CoefficientRow])])] = &[
@@ -1157,6 +1163,10 @@ pub fn supported_periods(kind: &str) -> Vec<&'static str> {
         // 2026 pointing to the s 40-291A choice from 2026-27. 2027-28 is refused:
         // Schedule 1 to that Act changes capital gains from 1 July 2027.
         "balancing_adjustment" => vec!["2024-25", "2025-26", "2026-27"],
+        // The 2025 and 2026 tax years, the 2 under the 1%, 2% and 3% vacant
+        // residential land tax rates; windfall gains tax on a rezoning in
+        // either year.
+        "vic_property_taxes" => vec!["2025", "2026"],
         // Dealings from 1 July 2023, after the transitional rebate rules for
         // 2017 and earlier vintages ended (WETR 2009/2; the ATO's QC22756
         // and QC22757); the rate and cap are set by the Act, not indexed.
@@ -1185,6 +1195,9 @@ pub fn supported_periods(kind: &str) -> Vec<&'static str> {
         // tax return 2026 instructions were read for, with the 25% and 30%
         // rates for imputation purposes.
         "franking_account" => vec!["2025-26", "2026-27"],
+        // Each jurisdiction's land tax year current on 23 November 2026: the
+        // 2026 calendar year in nsw and vic, 2026-27 elsewhere.
+        "land_tax" => vec!["2026", "2026-27"],
         // The 2026-27 rates and thresholds each revenue office published, read
         // on 19 November 2026.
         "payroll_tax" => vec!["2026-27"],
@@ -1510,8 +1523,8 @@ pub fn source_review(kind: &str) -> (&'static str, &'static str) {
             "ITAA 1997 ss 40-25, 40-85, 40-230, 40-285, 40-290, 40-291A, 40-295, 40-300, 40-305, 40-325, 40-370, 104-235, 104-240, 118-5 and 118-10 (its example) and Subdivision 27-B, compilation 268 (1 October 2026), with the endnotes' amendment history; Treasury Laws Amendment (Tax Reform No. 1) Act 2026 (No 49 of 2026), Schedule 4 item 17 (s 40-291A from 2026-27); Guide to depreciating assets 2026, 'What happens if you no longer hold or use a depreciating asset?', its Bridget, Andrew and Louise examples and the car limit formula",
         ),
         "super_withholding" => (
-            "2026-11-22",
-            "Schedule 12 of the Taxation Administration (Withholding Schedules) Instruments 2024 (F2024L00664), 2025 (F2025L00647), (No. 2) 2025 (F2025L01016) and 2026 (F2026L00716), and the ATO's Schedule 12 from 13 October 2020 to 30 June 2024, with the super-benefit-tax sources for the components, treatments and caps",
+            "2026-11-23",
+            "Schedules 12 and 13 of the Taxation Administration (Withholding Schedules) Instruments 2024 (F2024L00664), 2025 (F2025L00647), (No. 2) 2025 (F2025L01016) and 2026 (F2026L00716), and the ATO's Schedule 12 from 13 October 2020 to 30 June 2024 (read 22 November 2026), with the super-benefit-tax sources for the components, treatments and caps; for income streams, Schedule 13 of those instruments and ITAA 1997 ss 301-10, 301-25 to 301-40, 301-100, 301-110, 302-65 to 302-90, 307-125, 307-145 and 307-150 from the ATO's legal database, read 23 November 2026",
         ),
         "super_benefit_tax" => (
             "2026-11-22",
@@ -1525,6 +1538,10 @@ pub fn source_review(kind: &str) -> (&'static str, &'static str) {
             "2026-11-19",
             "Superannuation (Departing Australia Superannuation Payments Tax) Act 2007 ss 4 to 6 (compilation 5, 2 December 2016, Federal Register of Legislation); ITAA 1997 ss 301-170 and 301-175, from the ATO's legal database; the ATO's 'Payments from super' rates (last updated 16 September 2026) and 'Departing Australia superannuation payment (DASP)' (last updated 21 April 2026)",
         ),
+        "land_tax" => (
+            "2026-11-23",
+            "Land Tax Act 2005 (Vic) Sch 1 Tables 1.6, 3.6, 4.5 and 5.5 (authorised version 086, 1 May 2026); Land Tax Act 2010 (Qld) s 32 and Schs 1 to 3 (current reprint); Land Tax Act 2002 (WA) s 5 Table 11 (02-d0-04) and Metropolitan Region Improvement Tax Act 1959 (WA) s 3 Table 3 (04-a0-08); Land Tax Act 1936 (SA) ss 6 and 8A and Sch 1 (version 4.12.2025); Land Tax Rating Act 2000 (Tas) ss 6, 6A and 7 and Sch 1; Land Tax Act 2004 (ACT) ss 9 and 17E (republication 34) with DI2026-152 ss 6 and 7; Revenue NSW's thresholds and rates, trusts and surcharge land tax pages (the NSW Acts were not readable); and each revenue office's rates page",
+        ),
         "payroll_tax" => (
             "2026-11-19",
             "Payroll Tax Act 2007 (NSW) Sch 1 cl 1 (version current from 10 July 2026); Payroll Tax Act 2007 (Vic) s 3A and Sch 1 cl 1, 1A, 1B and 5 (authorised version 041, 1 May 2026); Payroll Tax Act 1971 (Qld) ss 10, 29 and 43I (reprint current as at 22 October 2026); Pay-roll Tax Assessment Act 2002 (WA) ss 8 and 13 (04-d0-03) and Pay-roll Tax Act 2002 (WA) s 5(4) (00-d0-02); Payroll Tax Act 2009 (SA) Sch 1 cl 1, 4 and 5 (version 31.3.2026); Payroll Tax Act 2008 (Tas) Sch 1 cl 1 and 4; Payroll Tax Act 2011 (ACT) Sch 1 (R20) with DI2026-151 s 5; Payroll Tax Act 2009 (NT) s 7A and Sch 1 cl 1, 3 and 5 (as in force at 1 July 2026); and each revenue office's rates and thresholds page",
@@ -1536,6 +1553,10 @@ pub fn source_review(kind: &str) -> (&'static str, &'static str) {
         "franking_account" => (
             "2026-11-19",
             "ITAA 1997 ss 202-60, 202-65, 202-75, 203-20 to 203-55, 204-70, 204-75, 205-15, 205-25, 205-30, 205-40, 205-45, 205-50, 205-70, 214-15 to 214-25, 214-150 and 214-155, on the ATO's legal database; New Business Tax System (Franking Deficit Tax) Act 2002 s 5 (C2004A00982) and (Over-franking Tax) Act 2002 s 5 (C2004A00981), latest versions on the Federal Register of Legislation; the ATO's Franking account tax return 2026 instructions (published 30 May 2026): How to get, About (example 2), How to lodge and pay, and sections A, B (examples 4 and 5) and C (examples 7 to 9)",
+        ),
+        "vic_property_taxes" => (
+            "2026-11-24",
+            "Land Tax Act 2005 (Vic) ss 19(1A), 34A to 34C, 35(3), 37A, 88EA and 88EB (authorised version 086, 1 May 2026), with s 35(3) as substituted for 2025 by the State Taxation Acts and Other Acts Amendment Act 2023 (Vic) s 27A and that Act's commencement (s 2(3) and (4)); Commercial and Industrial Property Tax Reform Act 2024 (Vic) ss 2, 3, 7, 17, 19 and 22 (authorised version 004), with Interpretation of Legislation Act 1984 (Vic) s 44(1) and (6)(a) (authorised version 134); Windfall Gains Tax Act 2021 (Vic) ss 2, 3, 6 to 19 and 36 to 41 (authorised version 010), with no regulations prescribing deductions in force; SRO Victoria's pages on vacant residential land tax (current rates, 13 November 2026), the commercial and industrial property tax (29 September 2026) and windfall gains tax",
         ),
         "wine_equalisation_tax" => (
             "2026-11-19",
@@ -2017,6 +2038,12 @@ pub fn library_evidence(kind: &str) -> [(&'static str, &'static str); 4] {
             "2026-06-30",
             "2026-11-19",
         ),
+        "land_tax" => (
+            "Revenue office land tax pages: Revenue NSW thresholds and rates, trusts and surcharge land tax; SRO Victoria current rates; QRO rates for individuals, companies and trusts, absentees and foreign companies; RevenueSA rates and thresholds; SRO Tasmania foreign investor land tax surcharge guideline",
+            "Revenue NSW's 3-year average, special trust and surcharge examples 1 to 3; SRO Victoria's $5,550 and $44,650; QRO's 6 examples; RevenueSA's $2,670 and $3,550; SRO Tasmania FILTS example 1",
+            "2026-09-29",
+            "2026-11-23",
+        ),
         "payroll_tax" => (
             "Revenue office payroll tax pages: Revenue NSW thresholds and rates; SRO Victoria payroll tax surcharges; QRO payroll tax deductions; RevenueWA employer guide; SRO Tasmania annual adjustment return guideline",
             "Revenue NSW's 2 examples; SRO Victoria example 2; QRO's annual deduction example; RevenueWA's $1,104,000; SRO Tasmania examples 1 and 2",
@@ -2034,6 +2061,12 @@ pub fn library_evidence(kind: &str) -> [(&'static str, &'static str); 4] {
             "About example 2; section B examples 4 and 5; section C examples 7 to 9",
             "2026-05-30",
             "2026-11-19",
+        ),
+        "vic_property_taxes" => (
+            "SRO Victoria pages: vacant residential land tax current rates, understanding VRLT and its assessment; understanding the commercial and industrial property tax; understanding windfall gains tax",
+            "SRO Victoria's windfall gains tax examples ($187,500 on a $400,000 uplift; $300,000 on $600,000) and its CIPT start years (2035 for a 1 July 2024 entry; 2045 for 1 August 2034), which the earliest possible tax year matches",
+            "2026-11-24",
+            "2026-11-24",
         ),
         "wine_equalisation_tax" => (
             "gst-wine-equalisation-tax",
@@ -2589,19 +2622,19 @@ pub fn optional_inputs(kind: &str) -> Vec<(&'static str, &'static str)> {
         "super_withholding" => vec![
             (
                 "date_of_birth",
-                "YYYY-MM-DD, the member's, for recipient member only, and then required: sets the age on payment_date and the preservation age, as in super-benefit-tax",
+                "YYYY-MM-DD, the member's, for recipient member only, and then required; for an income stream, the payee's, and required: sets the age on payment_date and the preservation age, as in super-benefit-tax",
             ),
             (
                 "terminal_medical_condition",
-                "boolean, for recipient member only, and then required: a terminal medical condition (s 303-10) exists when the payment is received",
+                "boolean, for a lump sum to recipient member only, and then required: a terminal medical condition (s 303-10) exists when the payment is received",
             ),
             (
                 "disability_superannuation_benefit",
-                "boolean, for recipient member only, and then required: true is refused (s 307-145)",
+                "boolean, for recipient member only, and then required: for a lump sum true is refused (s 307-145); for an income stream true is a disability super income stream (Schedule 13 Part A step 3, s 301-40(2))",
             ),
             (
                 "service_before_july_1983",
-                "boolean, required with an untaxed_element above nil except for recipient deceased_estate_trustee, and refused otherwise: true is refused (s 307-150)",
+                "boolean, for a lump sum, required with an untaxed_element above nil except for recipient deceased_estate_trustee, and refused otherwise: true is refused (s 307-150)",
             ),
             (
                 "low_rate_cap_used",
@@ -2614,6 +2647,22 @@ pub fn optional_inputs(kind: &str) -> Vec<(&'static str, &'static str)> {
             (
                 "other_lump_sums_this_year",
                 "boolean, with a TFN for a member at or above preservation age and under 60, and then required: true is refused while any of the low rate cap is left, as in super-benefit-tax",
+            ),
+            (
+                "income_stream_period",
+                "weekly, fortnightly, monthly or quarterly: makes the payment one income stream payment for that period under Schedule 13 Part A (2024-25 to 2026-27) instead of a lump sum under Schedule 12",
+            ),
+            (
+                "tax_free_threshold_claimed",
+                "boolean, for an income stream with a TFN, and then required: Schedule 1 scale 2 if true, scale 1 if false",
+            ),
+            (
+                "capped_defined_benefit",
+                "boolean, for an income stream, and then required: true is refused for a payee 60 or over (Schedule 13 Parts B to E)",
+            ),
+            (
+                "deceased_aged_60_or_over",
+                "boolean, for an income stream to recipient death_benefits_dependant, and then required: the deceased died aged 60 or over (ss 302-65, 302-85); true is refused for a recipient under 60",
             ),
         ],
         "super_benefit_tax" => vec![
@@ -3183,10 +3232,50 @@ pub fn optional_inputs(kind: &str) -> Vec<(&'static str, &'static str)> {
                 "boolean, for a plug_in_hybrid_electric vehicle only and then required: true when a car benefit relating to the car was provided before 1 April 2025 and was exempt under s 8A as it then read (item 5(2)(d) and (e))",
             ),
         ],
+        "land_tax" => vec![
+            (
+                "surcharge_value",
+                "AUD, whole dollars, for a foreign owner in nsw or tas only and then required: in nsw the land value of the residential land the foreign person owns, their share only (surcharge land tax, 5%); in tas the assessed land value of the foreign-owned part of one folio of residential general land that foreign investor land tax applies to (Land Tax Rating Act 2000 (Tas) s 6A, Land Tax Act 2000 (Tas) Pt 3 Div 1A: land a foreign person acquires on or after 1 July 2022, including through a company or trust that becomes foreign; 2%), no more than taxable_value",
+            ),
+            (
+                "metropolitan_region",
+                "all, none or part, in wa only and then required: whether the land is in the Perth metropolitan region, for the metropolitan region improvement tax; part is refused",
+            ),
+        ],
         "payroll_tax" => vec![(
             "regional_employer",
             "boolean, for Victoria only and then required: true when the employer is a regional employer, one that pays at least 85% of its taxable wages to regional employees (Payroll Tax Act 2007 (Vic) s 3A)",
         )],
+        "vic_property_taxes" => vec![
+            (
+                "capital_improved_value",
+                "AUD, whole dollars, for vacant_residential_land only and then required: the land's capital improved value at the relevant date (Land Tax Act 2005 (Vic) s 19(1A))",
+            ),
+            (
+                "residential_land",
+                "vacant_home, construction, uninhabitable or undeveloped, for vacant_residential_land only and then required: the kind of residential land (s 34B(1), (2), (2A) or (2B)) that was vacant under s 34C; undeveloped is refused for 2025",
+            ),
+            (
+                "new_residential_concession",
+                "boolean, for vacant_residential_land other than undeveloped land and then required: true when the land is eligible for the s 88EB concessional rate (it became s 34B(1) residential land in a preceding tax year, was exempt under s 88EA in a later preceding tax year, and has not since been used, occupied or sold); true is refused for 2025, as s 88EA commenced on 1 January 2025",
+            ),
+            (
+                "liable_previous_tax_year",
+                "boolean, required for vacant_residential_land other than undeveloped land without the s 88EB concession: whether the land was liable for vacant residential land tax in the preceding tax year",
+            ),
+            (
+                "liable_tax_year_before",
+                "boolean, required with liable_previous_tax_year: whether the land was liable for vacant residential land tax in the tax year before the preceding one",
+            ),
+            (
+                "entry_date",
+                "YYYY-MM-DD, for commercial_industrial only and then required: the date the land entered the tax reform scheme (Commercial and Industrial Property Tax Reform Act 2024 (Vic) s 7(2)), from 1 July 2024; a later date is a hypothetical, and 31 December is refused as its period would end at the midnight that fixes liability",
+            ),
+            (
+                "parcels",
+                "list of 1 to 100 objects, for windfall_gains only and then required: each title the one WGT event rezoned that the assessment unit owned, valued as a whole title (not by separate occupancy, s 14, or by area, s 15), with civ_before and civ_after (AUD, whole dollars, as strings: the capital improved value before and after the rezoning, Windfall Gains Tax Act 2021 (Vic) ss 11 to 13)",
+            ),
+        ],
         "wine_equalisation_tax" => vec![
             (
                 "rebate_claimed_earlier_in_year",
@@ -4219,7 +4308,7 @@ pub fn input_units(kind: &str) -> Vec<(&'static str, &'static str)> {
             ),
             (
                 "tfn_provided",
-                "boolean: the payee had given the payer their TFN before the payment",
+                "boolean: the payee had given the payer their TFN before the payment; for an income stream, also true when the payee claimed an exemption from quoting a TFN or told the payer of a TFN application or enquiry within the last 28 days (Schedule 13)",
             ),
             (
                 "foreign_resident",
@@ -4301,6 +4390,21 @@ pub fn input_units(kind: &str) -> Vec<(&'static str, &'static str)> {
                 "boolean, true when the payment is a roll-over superannuation benefit paid under s 20H(2), (2AA) or (2A) of the Superannuation (Unclaimed Money and Lost Members) Act 1999; true with an element untaxed in the fund is refused, as s 5(2) taxes any excess untaxed roll-over amount in it at nil",
             ),
         ],
+        "land_tax" => vec![
+            ("jurisdiction", "nsw, vic, qld, wa, sa, tas or act"),
+            (
+                "taxable_value",
+                "AUD, whole dollars: the total taxable value of the owner's land in the jurisdiction after exemptions (nsw the 3-year average land value, vic and sa the site value, act one parcel's average unimproved value, elsewhere the land value)",
+            ),
+            (
+                "trust_rates",
+                "boolean: true for nsw special trust rates, vic trust surcharge rates, qld company and trustee rates (not for the trustees s 33 taxes at Sch 1) or sa trust rates (s 8A(1a), after the exceptions in s 8A(1b) and (1c)); true is refused in wa, tas and act, whose trustees pay the general rates",
+            ),
+            (
+                "foreign_owner",
+                "boolean: true when the owner pays the jurisdiction's foreign or absentee owner surcharge on all of the land (in qld an absentee individual, or with trust_rates a foreign company or trustee; in act a parcel wholly foreign-owned); true is refused in wa and sa, which have none, and for a vic trust (s 46IA)",
+            ),
+        ],
         "payroll_tax" => vec![
             ("jurisdiction", "nsw, vic, qld, wa, sa, tas, act or nt"),
             (
@@ -4380,6 +4484,10 @@ pub fn input_units(kind: &str) -> Vec<(&'static str, &'static str)> {
                 "list of at most 10000 objects in date order, one for each frankable distribution the entity made in the income year, each with date (YYYY-MM-DD), amount (AUD above nil, the frankable distribution) and franking_credit (AUD, the franking credit its distribution statement allocates), and optional permitted_percentage (decimal string from 0 to 100: a franking percentage the Commissioner permitted for it under s 203-55; not for the first distribution in its franking period) and statement_after_distribution (boolean, a private company's only: the statement was given after the distribution, s 202-75(3))",
             ),
         ],
+        "vic_property_taxes" => vec![(
+            "tax",
+            "vacant_residential_land (vacant residential land tax), commercial_industrial (the commercial and industrial property tax) or windfall_gains (windfall gains tax)",
+        )],
         "wine_equalisation_tax" => vec![(
             "dealings",
             "list of 1 to 1,000 objects, the tax period's dealings in wine, each with kind and its inputs: wholesale_sale (a sale to an entity that buys to resell: AD1a, AD1b or AD11b) with price_excluding_wet_and_gst (AUD, net of trade discounts, volume rebates and settlement discounts); retail_sale (a retail sale taxed at the notional wholesale selling price, such as a manufacturer's cellar door or mail order sale) with retail_price_including_wet_and_gst (AUD) and, to choose the average wholesale price method for grape wine, average_wholesale; own_use (an application to own use connected with retail sales: consuming or giving the wine away in connection with retail sales, such as tastings) with either retail_price_including_wet_and_gst (the price for which it would normally be sold by retail) or average_wholesale; quoted_sale (a sale for which the purchaser quoted its ABN, not taxable: s 7-10) with price_excluding_wet_and_gst and purchaser_intention (taxable_dealing where the quote states none of the intentions in s 5-50(1)(b), or manufacture, gst_free_supply or sale_under_quote); or own_use_purchased_under_quote (an application to own use of wine purchased under quote: AD3c(a) or AD13c(a)) with purchase_price_excluding_gst. average_wholesale is an object with grape_wine (true: grape wine, s 31-2), wholesale_share_at_least_10_percent (true: at least 10% by value of the tax period's sales of grape wine of that vintage and grape varieties are wholesale sales, s 9-25(3)), quantity (this dealing's quantity, a decimal string above 0 with at most 4 decimal places, in the wholesale sales' unit) and wholesale_sales (1 to 1,000 objects, the tax period's wholesale sales of that vintage and those grape varieties, exports included, each with quantity and price_excluding_wet_and_gst). Any kind but own_use_purchased_under_quote may add rebate_conditions, an object of the booleans producer (s 19-5(1)(a)), source_product_owned_85_percent (s 19-5(1)(d)) and container_and_trade_mark (s 19-5(1)(e) and (7)), to claim the producer rebate on that dealing",
@@ -5717,6 +5825,13 @@ pub fn examples(kind: &str) -> Vec<(&'static str, Example)> {
             ("working_holiday_maker_contributions", Flag(false)),
             ("unclaimed_money_rollover", Flag(false)),
         ],
+        "land_tax" => vec![
+            ("year", Text("2026-27")),
+            ("jurisdiction", Text("qld")),
+            ("taxable_value", Text("680000")),
+            ("trust_rates", Flag(false)),
+            ("foreign_owner", Flag(false)),
+        ],
         "payroll_tax" => vec![
             ("year", Text("2026-27")),
             ("jurisdiction", Text("nsw")),
@@ -5760,6 +5875,14 @@ pub fn examples(kind: &str) -> Vec<(&'static str, Example)> {
                 Json(
                     r#"[{"date": "2025-09-30", "amount": "1190000.00", "franking_credit": "510000.00"}]"#,
                 ),
+            ),
+        ],
+        "vic_property_taxes" => vec![
+            ("year", Text("2026")),
+            ("tax", Text("windfall_gains")),
+            (
+                "parcels",
+                Json(r#"[{"civ_before": "900000", "civ_after": "1300000"}]"#),
             ),
         ],
         // A dozen bottles sold by wholesale for $120 and a dozen at the
