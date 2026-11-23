@@ -4055,6 +4055,17 @@ Choices the law leaves to the reader:
   rate part (15%, 10% and 30% for an information exchange country, or one 30%
   amount otherwise) is rounded half up to the cent and summed so the
   components always add up to `withholding`.
+- For Subdivision 12-H, s 12-385(5) and s 12-390(10)(b) exclude payments to
+  the extent no MIT withholding tax is payable, and s 12-390(10)(a) excludes
+  a company under s 12-390 unless it would (apart from s 12-420) be acting in
+  the capacity as agent for the recipient (`company_not_acting_as_agent`).
+- For Subdivision 12-FB, s 12-319(1) to (5) allows the Commissioner to grant
+  a written exemption based on established and likely future tax compliance
+  (having regard to Div 45 instalments, unpaid tax-related liabilities and
+  associates' compliance over the current and previous 2 income years).
+- For Subdivision 12-FB `construction`, TAR 2017 s 33(1) prescribes only a
+  payment made under a contract entered into after 30 June 2004, so
+  `contract_date` on or before `2004-06-30` is refused.
 - For Subdivision 12-FB `entertainment_or_sports`, TAR 2017 s 50(2)(a) cites
   ITRA 1986 s 23 (company) and s 50(2)(b) cites ITRA 1986 Schedule 7 Part II
   (individual). Special company classes under s 23(3) to (7) and s 23A and

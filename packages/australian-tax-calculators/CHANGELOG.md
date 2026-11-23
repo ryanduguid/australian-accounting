@@ -151,6 +151,7 @@
   variations and s 48 prior-withholding reductions). New codes:
   `non_resident_withholding.already_withheld_exceeds_payment`,
   `non_resident_withholding.base_rate_entity_invalid`,
+  `non_resident_withholding.construction_contract_before_cutoff`,
   `non_resident_withholding.exempt_exceeds_payment`,
   `non_resident_withholding.mit_parts_exceed_payment`,
   `non_resident_withholding.payee_entity_unsupported`,

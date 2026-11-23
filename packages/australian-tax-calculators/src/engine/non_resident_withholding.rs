@@ -21,8 +21,9 @@
 use serde_json::{Value, json};
 
 use super::{
-    Arg, Result, cents, d, flag, int, lookup, money, precise, rate, refuse, result, scope,
+    Arg, Result, cents, d, date_arg, flag, int, lookup, money, precise, rate, refuse, result, scope,
 };
+use crate::dates;
 use crate::decimal::{Decimal, Rounding};
 use crate::metadata as meta;
 
@@ -41,18 +42,23 @@ const GAMING_JUNKET_RATE: &str = "0.03";
 const CONSTRUCTION_RATE: &str = "0.05";
 const COMPANY_BRE_RATE: &str = "0.25";
 const COMPANY_STANDARD_RATE: &str = "0.30";
+/// TAR 2017 s 33(1): construction withholding applies only to contracts
+/// entered into after 30 June 2004.
+const CONSTRUCTION_CONTRACT_CUTOFF: &str = "2004-06-30";
 
 /// The per-payment-type facts beside `payment_type`, `payment`, `year` and
 /// `scope_confirmed`, in [`NonResidentWithholdingArgs::optional`].
-pub const NON_RESIDENT_WITHHOLDING_OPTIONAL: [&str; 11] = [
+pub const NON_RESIDENT_WITHHOLDING_OPTIONAL: [&str; 13] = [
     "franked_amount",
     "conduit_foreign_income",
     "treaty_rate",
     "information_exchange_country",
     "clean_building_mit_amount",
     "non_concessional_mit_income",
+    "company_not_acting_as_agent",
     "payee_entity",
     "base_rate_entity",
+    "contract_date",
     "variation_rate",
     "exempt",
     "already_withheld",
@@ -64,17 +70,18 @@ pub struct NonResidentWithholdingArgs<'a> {
     pub payment: &'a Arg,
     pub year: &'a Arg,
     pub scope_confirmed: &'a Arg,
-    pub optional: [Option<&'a Arg>; 11],
+    pub optional: [Option<&'a Arg>; 13],
 }
 
 /// The indices into [`NON_RESIDENT_WITHHOLDING_OPTIONAL`] each payment type takes.
 fn fields(payment_type: &str) -> Option<&'static [usize]> {
     Some(match payment_type {
-        "dividend" => &[0, 1, 2, 9, 10],
-        "interest" | "royalty" => &[2, 9, 10],
-        "mit_fund_payment" => &[3, 4, 5, 9],
-        "gaming_junket" | "construction" => &[8, 9, 10],
-        "entertainment_or_sports" => &[6, 7, 8, 9, 10],
+        "dividend" => &[0, 1, 2, 11, 12],
+        "interest" | "royalty" => &[2, 11, 12],
+        "mit_fund_payment" => &[3, 4, 5, 6, 11],
+        "gaming_junket" => &[10, 11, 12],
+        "construction" => &[9, 10, 11, 12],
+        "entertainment_or_sports" => &[7, 8, 10, 11, 12],
         _ => return None,
     })
 }
@@ -83,7 +90,7 @@ fn fields(payment_type: &str) -> Option<&'static [usize]> {
 fn checked<'a>(
     args: &NonResidentWithholdingArgs<'a>,
     wanted: &[usize],
-) -> Result<[Option<&'a Arg>; 11]> {
+) -> Result<[Option<&'a Arg>; 13]> {
     for (i, (key, given)) in NON_RESIDENT_WITHHOLDING_OPTIONAL
         .iter()
         .zip(args.optional)
@@ -109,7 +116,7 @@ fn checked<'a>(
 }
 
 /// The payment type's optional facts, each present once [`checked`] has passed.
-struct Facts<'a>([Option<&'a Arg>; 11]);
+struct Facts<'a>([Option<&'a Arg>; 13]);
 
 impl<'a> Facts<'a> {
     fn get(&self, i: usize) -> &'a Arg {
@@ -202,8 +209,8 @@ fn subdivision_12_f(payment_type: &str, payment: &Decimal, facts: &Facts) -> Res
             ),
         );
     };
-    let exempt = flag(facts.get(9), "exempt")?;
-    let already = money(facts.get(10))?;
+    let exempt = flag(facts.get(11), "exempt")?;
+    let already = money(facts.get(12))?;
     check_already_withheld(&already, payment)?;
 
     let mut steps = Vec::new();
@@ -337,7 +344,8 @@ fn subdivision_12_h(payment: &Decimal, facts: &Facts) -> Result<Worked> {
     let eoi = flag(facts.get(3), "information_exchange_country")?;
     let clean = money(facts.get(4))?;
     let ncmi = money(facts.get(5))?;
-    let exempt = flag(facts.get(9), "exempt")?;
+    let company_non_agent = flag(facts.get(6), "company_not_acting_as_agent")?;
+    let exempt = flag(facts.get(11), "exempt")?;
 
     let special = clean.add(&ncmi)?;
     if special.gt(payment)? {
@@ -354,7 +362,25 @@ fn subdivision_12_h(payment: &Decimal, facts: &Facts) -> Result<Worked> {
         &standard,
     )];
 
-    let (withholding, components, rates) = if exempt {
+    let (withholding, components, rates) = if company_non_agent {
+        let zero = int(0);
+        steps.push(step(
+            "withholding",
+            "TAA Sch 1 s 12-390(10)(a): section 12-390 does not apply to a company unless the company would, apart from section 12-420, be acting in the capacity as agent for the recipient",
+            &zero,
+        ));
+        (
+            zero,
+            json!([{
+                "component": "company_not_acting_as_agent_exception",
+                "amount": cents(payment.clone())?.to_string(),
+                "rate": "0",
+                "withholding": "0.00",
+                "authority": "TAA Sch 1 s 12-390(10)(a)"
+            }]),
+            vec![rate("applied_rate", "0")],
+        )
+    } else if exempt {
         let zero = int(0);
         steps.push(step(
             "withholding",
@@ -505,18 +531,28 @@ fn subdivision_12_fb(
     year: &str,
     facts: &Facts,
 ) -> Result<Worked> {
-    let Some(variation) = parse_optional_rate(facts.get(8), &int(1))? else {
+    if payment_type == "construction" {
+        let day = date_arg(facts.get(9), "contract_date")?;
+        let cutoff = dates::parse(CONSTRUCTION_CONTRACT_CUTOFF).expect("a date");
+        if day <= cutoff {
+            return refuse(
+                "non_resident_withholding.construction_contract_before_cutoff",
+                "Construction and related activities withholding under TAR 2017 s 33(1) applies only to a payment made under a contract entered into after 30 June 2004.",
+            );
+        }
+    }
+    let Some(variation) = parse_optional_rate(facts.get(10), &int(1))? else {
         return refuse(
             "non_resident_withholding.variation_rate_invalid",
             "variation_rate must be null or a decimal string from 0 to 1 (TAA Sch 1 s 15-15).",
         );
     };
-    let exempt = flag(facts.get(9), "exempt")?;
-    let already = money(facts.get(10))?;
+    let exempt = flag(facts.get(11), "exempt")?;
+    let already = money(facts.get(12))?;
     check_already_withheld(&already, payment)?;
 
     let entity_and_bre = if payment_type == "entertainment_or_sports" {
-        let entity = match facts.get(6).text() {
+        let entity = match facts.get(7).text() {
             Some(e @ ("individual" | "company")) => e,
             _ => {
                 return refuse(
@@ -525,7 +561,7 @@ fn subdivision_12_fb(
                 );
             }
         };
-        let bre_raw = facts.get(7);
+        let bre_raw = facts.get(8);
         let bre = match entity {
             "company" => match bre_raw {
                 Arg::Bool(b) => Some(*b),

@@ -235,7 +235,7 @@ booleans and counts, ages, days, quarters and scales are JSON integers.
 | `work-expenses` | `method` (`home_office`, `car_cents_per_kilometre`, `car_log_book` or `self_education`), `reimbursed`, `allowance_received`, `year`, `scope_confirmed`, and the inputs the method and year take; see [Work expenses](#work-expenses) |
 | `rental-property` | `ownership_share`, `acquired`, `disposed`, `days_available`, `section_26_50_applies`, `income`, `expenses`, `rental_only_expenses`, `loans`, `borrowing_loans`, `capital_works`, `depreciating_assets`, `year`, `scope_confirmed`; optional `other_taxable_income`; see [Rental property](#rental-property) |
 | `foreign-resident-withholding` | `payment`, `acquisition_date`, `asset`, `market_value`, `cost_base_first_element`, `option_payments`, `sale_price`, `vendors`, `exclusion`, `class_variation_to_nil`, `year`, `scope_confirmed`; see [Foreign resident withholding](#foreign-resident-withholding) |
-| `non-resident-withholding` | `payment_type`, `payment`, `year`, `scope_confirmed` plus the payment type's own facts (`franked_amount`, `conduit_foreign_income`, `treaty_rate`, `information_exchange_country`, `clean_building_mit_amount`, `non_concessional_mit_income`, `payee_entity`, `base_rate_entity`, `variation_rate`, `exempt`, `already_withheld`); see [Non-resident withholding](#non-resident-withholding) |
+| `non-resident-withholding` | `payment_type`, `payment`, `year`, `scope_confirmed` plus the payment type's own facts (`franked_amount`, `conduit_foreign_income`, `treaty_rate`, `information_exchange_country`, `clean_building_mit_amount`, `non_concessional_mit_income`, `company_not_acting_as_agent`, `payee_entity`, `base_rate_entity`, `contract_date`, `variation_rate`, `exempt`, `already_withheld`); see [Non-resident withholding](#non-resident-withholding) |
 | `residency-tests` | `resides`, `domicile_in_australia`, `permanent_place_of_abode_outside`, `presence`, `usual_place_of_abode_outside`, `intends_to_take_up_residence`, `commonwealth_super`, `resident_elsewhere`, `year`, `scope_confirmed`; see [Residency tests](#residency-tests) |
 | `lodgment-required` | `residency`, `taxable_income`, `dividends_and_franking_credits`, `under_18`, `triggers`, `study_loan`, `working_holiday_maker`, `listed_payment`, `sapto`, `child_support_parent`, `year`, `scope_confirmed`; see [Lodgment required](#lodgment-required) |
 | `deferred-tax` | `items`, `unused_tax_losses`, `opening_unused_tax_losses`, `unrecognised_deductible`, `opening_unrecognised_deductible`, `unrecognised_used`, `accounting_profit`, `non_deductible_expenses`, `non_assessable_income`, `taxable_income`, `tax_offsets`, `base_rate_entity`, `expected_rate`, `opening_expected_rate`, `business_combination`, `uncertain_tax_treatment`, `tax_consolidated_group`, `outside_profit_or_loss`, `year`, `scope_confirmed`; see [Deferred tax](#deferred-tax) |
@@ -3265,12 +3265,16 @@ to the Taxation Administration Act 1953:
   `clean_building_mit_amount` and 30% on `non_concessional_mit_income` (with
   active build to rent income excluded from NCMI under s 12-450(5) from
   1 January 2025 as an operator fact); otherwise 30% applies to the whole fund
-  payment. Subdivision 12-H does not engage TAR 2017 s 26 (s 15-10(3)), so
-  each statutory rate part is rounded half up to the cent.
+  payment. Under s 12-390(10)(a), `company_not_acting_as_agent: true` gives
+  nil where a company withholding under s 12-390 is not acting as agent for
+  the recipient. Subdivision 12-H does not engage TAR 2017 s 26 (s 15-10(3)),
+  so each statutory rate part is rounded half up to the cent.
 - **Subdivision 12-FB (`gaming_junket`, `entertainment_or_sports`,
   `construction`):** TAA Sch 1 ss 12-315, 12-317, 12-319 and 15-15 and TAR
   2017 ss 26, 31 to 33 and 48 to 51. Rates are 3% for casino gaming junkets,
-  5% for construction and related activities, and for entertainment or sports
+  5% for construction and related activities under contracts entered into
+  after 30 June 2004 (`contract_date` on or before 30 June 2004 is refused,
+  TAR 2017 s 33(1)), and for entertainment or sports
   activities either the ordinary company rate (25% if `base_rate_entity` is
   `true`, 30% if `false`, ITRA 1986 s 23(2)) or foreign resident individual
   marginal rates (ITRA 1986 Sch 7 Pt II: 30% to $135,000, 37% to $190,000,

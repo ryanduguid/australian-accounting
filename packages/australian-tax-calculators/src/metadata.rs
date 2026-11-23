@@ -3086,12 +3086,20 @@ pub fn optional_inputs(kind: &str) -> Vec<(&'static str, &'static str)> {
                 "AUD, payment_type mit_fund_payment only, and then required: the part of payment attributable to non-concessional MIT income (s 12-435, excluding affordable housing under s 12-450(3) and active build to rent income under s 12-450(5) from 1 January 2025)",
             ),
             (
+                "company_not_acting_as_agent",
+                "boolean, payment_type mit_fund_payment only, and then required: true where the entity withholding under s 12-390 is a company not acting in the capacity as agent for the recipient (apart from s 12-420), which s 12-390(10)(a) exempts from withholding; false for a withholding MIT under s 12-385, a non-company entity, or a company acting as agent",
+            ),
+            (
                 "payee_entity",
                 "individual or company, payment_type entertainment_or_sports only, and then required (TAR 2017 s 50(2)); trusts, partnerships and other entities are refused",
             ),
             (
                 "base_rate_entity",
                 "boolean when payee_entity is company (25% if true, 30% if false, ITRA 1986 s 23(2)), or null when payee_entity is individual; payment_type entertainment_or_sports only, and then required",
+            ),
+            (
+                "contract_date",
+                "YYYY-MM-DD, payment_type construction only, and then required: date the contract for works or related activities was entered into; contracts on or before 30 June 2004 are refused (TAR 2017 s 33(1))",
             ),
             (
                 "variation_rate",
