@@ -46,7 +46,7 @@ use std::process::{Command, Stdio};
 /// `tests/foreign_income_conversion.rs`,
 /// `tests/foreign_income_tax_offset.rs`, `tests/trading_stock_prepayments.rs`,
 /// `tests/minors_income.rs`, `tests/smsf_tax.rs`, `tests/fbt_instalment.rs`, `tests/ess_discount.rs`,
-/// `tests/help_indexation.rs` and `tests/first_home_owner_grant.rs`, `tests/defined_benefit_income_cap.rs`,
+/// `tests/help_indexation.rs`, `tests/first_home_owner_grant.rs`, `tests/defined_benefit_income_cap.rs`,
 /// `tests/foreign_pension_upp.rs`, `tests/scholarship_exemption.rs`,
 /// `tests/super_crystallisation.rs` and `tests/endorsement_review.rs` cover them, as `tests/transfer_balance.rs` covers
 /// `transfer-balance` and `excess-contributions`.
