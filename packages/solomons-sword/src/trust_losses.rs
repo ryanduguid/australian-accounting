@@ -300,7 +300,7 @@ fn trust_kind(v: &Value) -> Result<&str> {
         Ok(kind)
     } else if WIDELY_HELD.contains(&kind) {
         Err(refuse(
-            format!("a {} trust is not modelled", kind.replace('_', " ")),
+            format!("trust_kind {kind} is not modelled"),
             "Subdivs 266-C, 266-D, 266-E Sch 2F ITAA 1936",
         ))
     } else {
