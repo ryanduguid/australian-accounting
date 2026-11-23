@@ -205,8 +205,8 @@ fn every_catalogued_required_input_of_a_strict_command_is_read() {
     // foreign-pension-upp, scholarship-exemption, super-crystallisation and
     // endorsement-review.
     // With transfer-balance, excess-contributions, asic-fees, vic-property-taxes, land-tax, pcg-2021-4 and
-    // workers-compensation-premium.
-    assert_eq!(checked, 118);
+    // workers-compensation-premium and transfer-duty.
+    assert_eq!(checked, 119);
 }
 
 /// Every frozen call gives the same answer through either entry point, and

@@ -1208,6 +1208,9 @@ pub fn supported_periods(kind: &str) -> Vec<&'static str> {
         // The premium period each scheme's 2026-27 method was read for on
         // 24 November 2026.
         "workers_compensation_premium" => vec!["2026-27"],
+        // Each Act, determination and revenue office's rates for transactions
+        // in 2026-27, read on 24 November 2026.
+        "transfer_duty" => vec!["2026-27"],
         // Tax periods from 1 July 2019, when the $10,000 refunds began
         // (Act No. 94 of 2019 Sch 2), to the last year whose thresholds the
         // ATO publishes (QC38161, 1 June 2026).
@@ -1607,6 +1610,10 @@ pub fn source_review(kind: &str) -> (&'static str, &'static str) {
         "payroll_tax" => (
             "2026-11-19",
             "Payroll Tax Act 2007 (NSW) Sch 1 cl 1 (version current from 10 July 2026); Payroll Tax Act 2007 (Vic) s 3A and Sch 1 cl 1, 1A, 1B and 5 (authorised version 041, 1 May 2026); Payroll Tax Act 1971 (Qld) ss 10, 29 and 43I (reprint current as at 22 October 2026); Pay-roll Tax Assessment Act 2002 (WA) ss 8 and 13 (04-d0-03) and Pay-roll Tax Act 2002 (WA) s 5(4) (00-d0-02); Payroll Tax Act 2009 (SA) Sch 1 cl 1, 4 and 5 (version 31.3.2026); Payroll Tax Act 2008 (Tas) Sch 1 cl 1 and 4; Payroll Tax Act 2011 (ACT) Sch 1 (R20) with DI2026-151 s 5; Payroll Tax Act 2009 (NT) s 7A and Sch 1 cl 1, 3 and 5 (as in force at 1 July 2026); and each revenue office's rates and thresholds page",
+        ),
+        "transfer_duty" => (
+            "2026-11-24",
+            "Duties Act 1997 (NSW) ss 32, 32A, 33AC to 33AF, 74, 78A and 273 (AustLII, as at 29 June 2026; legislation.nsw.gov.au served a challenge) with Revenue NSW's 2026-27 rates and First Home Buyers Assistance Scheme pages; Duties Act 2000 (Vic) ss 28 and 57JA (authorised version 141, 24 June 2026); Duties Act 2001 (Qld) ss 24, 91, 92 and 92A and Schs 3 and 4A (current as at 22 October 2026); Duties Act 2008 (WA) s 143 and Sch 2 (AustLII, with No. 18 of 2026); Stamp Duties Act 1923 (SA) s 71DD and Sch 2 (version 15.9.2026); Duties Act 2001 (Tas) ss 29, 57C and 57G; DI2026-155 and DI2026-157 (ACT, from 1 July 2026); Stamp Duty Act 1978 (NT) s 88A and Sch 1 cl 1(2) (reprint REPS013, as in force at 1 July 2025); and each revenue office's rates and first home pages",
         ),
         "gst_margin_scheme" => (
             "2026-11-19",
@@ -2165,6 +2172,12 @@ pub fn library_evidence(kind: &str) -> [(&'static str, &'static str); 4] {
             "Revenue NSW's 2 examples; SRO Victoria example 2; QRO's annual deduction example; RevenueWA's $1,104,000; SRO Tasmania examples 1 and 2",
             "2026-07-01",
             "2026-11-19",
+        ),
+        "transfer_duty" => (
+            "Revenue office transfer duty pages: Revenue NSW 'How to calculate transfer duty' and the NSW Government's First Home Buyers Assistance Scheme table; SRO Victoria non-principal place of residence rates; QRO transfer duty and home concession rates; RevenueSA rate of stamp duty",
+            "Revenue NSW's $55,537, $203,237 and $14,437 and the 4 reduced rates from $9,796.75; SRO Victoria's $28,070 and $19,070; QRO's $31,275, $6,555 and $24,100; RevenueSA's $26,830 and $11,330",
+            "2026-10-06",
+            "2026-11-24",
         ),
         "gst_margin_scheme" => (
             "tax-examples-gst-and-other-indirect-taxes",
@@ -4799,6 +4812,21 @@ pub fn input_units(kind: &str) -> Vec<(&'static str, &'static str)> {
                 "boolean, true when the employer paid or was liable to pay wages on every day of the financial year; false is refused",
             ),
         ],
+        "transfer_duty" => vec![
+            ("jurisdiction", "nsw, vic, qld, wa, sa, tas, act or nt"),
+            (
+                "dutiable_value",
+                "AUD, whole dollars, more than nil: the dutiable value as the revenue office decides it (generally the greater of the consideration and the property's unencumbered or market value)",
+            ),
+            (
+                "buyer",
+                "general (the general rate), first_home_established or first_home_new: an eligible first home buyer of a home, established or new, bought as their principal place of residence, the dutiable property being that home and its land",
+            ),
+            (
+                "residential",
+                "boolean: true when the dutiable property is wholly residential land (in nsw one parcel of residential land under s 32A(3), no more than 2 hectares and not partly used for other purposes); false is refused for a first home buyer, in sa and act, and in nsw above $3,870,000 (ss 32B and 32C)",
+            ),
+        ],
         "gst_margin_scheme" => vec![
             (
                 "interest",
@@ -6353,6 +6381,14 @@ pub fn examples(kind: &str) -> Vec<(&'static str, Example)> {
             ("australian_wages", Text("3000000.00")),
             ("group_member", Flag(false)),
             ("employed_all_year", Flag(true)),
+        ],
+        // The NSW Government's first home buyer figure: $19,593.50 on $900,000.
+        "transfer_duty" => vec![
+            ("year", Text("2026-27")),
+            ("jurisdiction", Text("nsw")),
+            ("dutiable_value", Text("900000")),
+            ("buyer", Text("first_home_established")),
+            ("residential", Flag(true)),
         ],
         // The Library's Joanne Black example (Tax Examples, GST, 12-200):
         // land bought in January 2000, worth $448,000 on 1 July 2000, sold
