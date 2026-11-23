@@ -40,7 +40,7 @@ use std::process::{Command, Stdio};
 /// `tests/small_business_income_offset.rs`, `tests/government_super_amounts.rs`,
 /// `tests/individual_offsets.rs`, `tests/non_commercial_losses.rs`,
 /// `tests/psi_test.rs`, `tests/pcg_2021_4.rs`, `tests/rental_property.rs` and
-/// `tests/foreign_resident_withholding.rs`, `tests/non_resident_withholding.rs`, `tests/residency_tests.rs`,
+/// `tests/foreign_resident_withholding.rs`, `tests/non_resident_withholding.rs`, `tests/residential_vacancy_fee.rs`, `tests/residency_tests.rs`,
 /// `tests/lodgment_required.rs`, `tests/rd_tax_offset.rs`, `tests/esic.rs`,
 /// `tests/gst_adjustments.rs`, `tests/deferred_tax.rs`, `tests/leave_provisions.rs`,
 /// `tests/cgt_cost_base_adjustments.rs`, `tests/payg_instalment.rs`,
@@ -51,7 +51,7 @@ use std::process::{Command, Stdio};
 /// `tests/foreign_pension_upp.rs`, `tests/scholarship_exemption.rs`,
 /// `tests/super_crystallisation.rs` and `tests/endorsement_review.rs` cover them, as `tests/transfer_balance.rs` covers
 /// `transfer-balance` and `excess-contributions`.
-const NEW_KINDS: [(&str, &str); 122] = [
+const NEW_KINDS: [(&str, &str); 123] = [
     ("defined-benefit-income-cap", "defined_benefit_income_cap"),
     ("foreign-pension-upp", "foreign_pension_upp"),
     ("scholarship-exemption", "scholarship_exemption"),
@@ -147,6 +147,7 @@ const NEW_KINDS: [(&str, &str); 122] = [
         "foreign_resident_withholding",
     ),
     ("non-resident-withholding", "non_resident_withholding"),
+    ("residential-vacancy-fee", "residential_vacancy_fee"),
     (
         "horticulture-shearing-withholding",
         "horticulture_shearing_withholding",

@@ -189,7 +189,7 @@ fn every_catalogued_required_input_of_a_strict_command_is_read() {
     // net-medical-expenses-tax-offset, non-commercial-losses, psi-test,
     // first-home-owner-grant,
     // fbt-instalment, private-health-insurance-rebate, rental-property, super-benefit-tax and
-    // foreign-resident-withholding, non-resident-withholding,
+    // foreign-resident-withholding, non-resident-withholding, residential-vacancy-fee,
     // horticulture-shearing-withholding, upward-variation-withholding,
     // daily-casual-withholding, no-abn-withholding, entertainer-withholding,
     // return-to-work-withholding, annuity-withholding,
@@ -207,7 +207,7 @@ fn every_catalogued_required_input_of_a_strict_command_is_read() {
     // With transfer-balance, excess-contributions, asic-fees, vic-property-taxes, land-tax, pcg-2021-4 and
     // workers-compensation-premium and transfer-duty
     // and foreign-purchaser-surcharge and esic.
-    assert_eq!(checked, 122);
+    assert_eq!(checked, 123);
 }
 
 /// Every frozen call gives the same answer through either entry point, and
