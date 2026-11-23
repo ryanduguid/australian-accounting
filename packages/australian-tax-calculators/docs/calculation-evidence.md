@@ -951,6 +951,45 @@ the $20 million turnover boundary, exempt entity control, the 2% boundary, the
 cap at and above $150 million for both offsets, the present year's rate, each
 year boundary and each refusal.
 
+## Early stage investor tax offset
+
+Added on 24 November 2026. The sources were read that day: ITAA 1997 ss
+360-10 to 360-50 with their history notes, from the ATO's legal database. Act
+No. 54 of 2016 inserted Subdivision 360-A for equity interests issued on or
+after 1 July 2016; Act No. 8 of 2020 Sch 2 (effective 1 April 2020, for income
+years commencing on or after 1 July 2018) added the ESVCLP exclusion, the 30%
+income, capital and voting test, the non-cash benefit, 'before the current
+year' in s 360-40(1)(a)(ii) and the foreign company test; Act No. 92 of 2020
+Sch 5 item 37 added the s 355-450(1) disregard for assessments for income
+years commencing on or after 1 July 2021. Nothing is prescribed under ss
+360-40(3), 360-40(4) or 360-45(2): Part 3-45 of the Income Tax Assessment
+(1997 Act) Regulations 2021 (compilation C16, 27 June 2026) holds Divisions
+393, 418 and 419 only, and the Income Tax Assessment Regulations 1997 (1 April
+2020) hold no Division 360 provision. The ATO's 'Calculating the early stage
+investor tax offset', 'Limits for investors who don't meet the sophisticated
+investor test' (both last updated 16 August 2024) and 'Qualifying as an early
+stage innovation company' (9 September 2024) give the examples.
+
+| Example | Facts given | Result |
+| --- | --- | --- |
+| Thomas, 2016-17 | **$100,000**, sophisticated | **$20,000** |
+| Savannah, 2016-17 | **$4 million**, sophisticated | **$800,000** capped at **$200,000** |
+| Georgia Co, Savannah's affiliate | **$2 million** | Combined with Savannah's, no more than **$200,000**: **$0** after her **$200,000**, the CGT treatment kept |
+| Jason, 2017-18 | **$950,000**, **$50,000** carried forward | **$190,000**, of which **$150,000** |
+| Tim, 2016-17, not sophisticated | **$50,000**; then **$10,000** more | **$10,000**; then nothing |
+
+Tim's further $10,000 goes to 'an ESIC or shares in any other company'. Section
+360-20(1)(b) counts the amount paid for 'the shares' of 'the company', so a
+further $10,000 to another company leaves $50,000 for this one; the command
+refuses that case (`esic.retail_limit_unsettled`) and the test holds Tim's
+loss with the $10,000 paid to the same company. It refuses, too, a case where a
+non-cash benefit alone takes the amount over $50,000, as s 360-20 counts what
+was 'paid'. `tests/esic.rs` also covers each incorporation route and year
+boundary, the $1 million, $200,000 and $50,000 limits at and a cent over, the
+grant and clawback disregard by year, each points combination crossing 100,
+the cap with affiliates and carried forward offsets, each investor kind and
+each refusal.
+
 ## Fuel tax credits
 
 This worksheet was added on 19 November 2026. The Fuel Tax Act 2006 ss 41-5,

@@ -419,6 +419,10 @@ pub const SCOPES: &[(&str, &str)] = &[
         "Whether one individual must lodge their own income tax return for an income year from 2020-21 to 2025-26 under that year's lodgment instrument, made under ITAA 1936 s 161: not as a trustee, partner, agent, ship's master or person controlling a non-resident's money, not a full self-assessment taxpayer and without a substituted accounting period. The residency status, the conditions in s 6(2) that need a judgement and the exceptions' facts are the operator's answers. It does not apply the separate instrument for parents liable for or entitled to child support, or say whether lodging would be worthwhile.",
     ),
     (
+        "esic",
+        "One investor's early stage investor tax offset under ITAA 1997 Subdivision 360-A for shares one company issued to it in an income year from 2016-17 to 2026-27, the investor being an individual or a company that is not widely held, and the investor's and the company's income years running from 1 July to 30 June. The company is an early stage innovation company immediately after the issue (s 360-40(1)) where it was incorporated in Australia or registered in the Australian Business Register within the last 3 income years, or incorporated in Australia within the last 6 with total expenses of $1 million or less across the 3 income years before the current year (from 2018-19; refused where it decides an earlier year); its total expenses in the previous income year were $1 million or less and its assessable income $200,000 or less, disregarding an Accelerating Commercialisation Grant and, from 2022-23, a s 355-450(1) amount (s 360-40(2)); it is not listed; it is not a foreign company (from 2018-19); and it has at least 100 points under s 360-45(1) from the table items the operator states apply, or meets the principles-based test as the operator states. The investor is not an affiliate of the company, the issue is not of ESS interests and the investor does not hold more than 30% (s 360-15(1)); without a disclosure exemption under s 708(8), (10) or (11) of the Corporations Act 2001 for an offer, more than $50,000 paid takes away the offset and the modified CGT treatment (s 360-20), and a case where this company's amount and the ATO's count across all companies, or the money and a non-cash benefit, fall on different sides of $50,000 is refused. The offset is 20% of the money and the market value of non-cash benefits for the issue (s 360-25(1); before 2018-19 the total amount paid, and a non-cash benefit is refused), reduced so that it, the other offsets for the year of the investor and its affiliates and the offsets they carry forward to the year do not exceed $200,000 (s 360-25(2)). Amounts are worked exactly and shown to the cent, half up. The modified CGT treatment (s 360-50) is reported as applying whenever the investor is entitled, however much the cap reduces the offset. The operator establishes every fact: the company's figures with its 100% subsidiaries, the points items, the principles-based test, affiliates, the 30% holding, disclosure exemptions and the other and carried forward offsets. Excludes members of trusts and partnerships and trustees (ss 360-15(2), (3), 360-30 and 360-35), ESVCLPs before 2018-19, substituted accounting periods, applying or carrying forward the non-refundable offset (Division 65), the CGT consequences themselves, and schemes to obtain the offset.",
+    ),
+    (
         "rd_tax_offset",
         "One R&D entity's tax offset under ITAA 1997 s 355-100 for an income year starting on or after 1 July 2021, from 2021-22 to 2026-27 (Act No. 92 of 2020 Sch 4 item 14), and the amount s 355-450 includes in assessable income for a clawback amount attributable to that year. The entity is a company whose corporate tax rate is 25% where Income Tax Rates Act 1986 s 23(2)(a) applies to it (a base rate entity to which ss 23(3) to (5) and 23A do not apply) and otherwise 30% (ITAA 1997 s 995-1 'corporate tax rate'). The offset is worked on the s 355-100(1) total, or under $20,000 on the research service provider and CRC expenditure only (s 355-100(2)): where aggregated turnover is under $20 million and no exempt entity control applies, the corporate tax rate plus 18.5 percentage points, refundable (item 1, s 67-30(1)); otherwise the corporate tax rate plus 8.5% of the part up to 2% of total expenses (s 355-115) and 16.5% of the part above it, non-refundable (items 2 and 3, s 355-100(1A), s 63-10(1) item 35); the part above $150 million at the corporate tax rate (s 355-100(3)). The clawback amount is the s 355-440 recoupment amount given plus the lesser of feedstock revenue and the attributable feedstock expenditure (s 355-445(2)); the adjusted offset reduces the s 355-100(1) total by it, the deduction amount is it at the offset year's corporate tax rate, and the amount included is the starting offset less both, over the present year's corporate tax rate (s 355-450(1)). Amounts are worked exactly and shown to the cent, half up. The operator establishes the notional deductions, total expenses, turnover, control and the clawback inputs. Excludes deciding whether activities are core or supporting R&D activities or registered with AusIndustry (ss 355-20 to 355-35; Industry Research and Development Act 1986 s 27A), whether the entity is an R&D entity, whether expenditure to an associate was paid (s 355-480) or was on activities overseas or under an overseas finding, the s 355-440 amount itself (including the grant cap and repayments), balancing adjustment clawbacks (ss 355-446 to 355-449) and catch up deductions (s 355-475), an offset year with an earlier clawback or catch up amount (s 355-450(2)), R&D partnerships, entities that are not companies, substituted accounting periods starting before 1 July 2021, earlier years' offsets and carrying forward a non-refundable offset (Division 65).",
     ),
@@ -873,6 +877,10 @@ pub const SOURCES: &[(&str, &str)] = &[
     (
         "lodgment_required",
         "https://www.legislation.gov.au/F2026L00618/asmade/text",
+    ),
+    (
+        "esic",
+        "https://www.ato.gov.au/law/view/document?docid=PAC/19970038/360-15",
     ),
     (
         "rd_tax_offset",
@@ -1846,6 +1854,19 @@ pub const EXTRA_SOURCES: &[(&str, &[&str])] = &[
         ],
     ),
     (
+        "esic",
+        &[
+            "https://www.ato.gov.au/law/view/document?docid=PAC/19970038/360-20",
+            "https://www.ato.gov.au/law/view/document?docid=PAC/19970038/360-25",
+            "https://www.ato.gov.au/law/view/document?docid=PAC/19970038/360-40",
+            "https://www.ato.gov.au/law/view/document?docid=PAC/19970038/360-45",
+            "https://www.ato.gov.au/law/view/document?docid=PAC/19970038/360-50",
+            "https://www.ato.gov.au/businesses-and-organisations/income-deductions-and-concessions/incentives-and-concessions/tax-incentives-for-innovation/tax-incentives-for-early-stage-investors/calculating-the-early-stage-investor-tax-offset",
+            "https://www.ato.gov.au/businesses-and-organisations/income-deductions-and-concessions/incentives-and-concessions/tax-incentives-for-innovation/tax-incentives-for-early-stage-investors/qualifying-as-an-early-stage-innovation-company",
+            "https://www.ato.gov.au/businesses-and-organisations/income-deductions-and-concessions/incentives-and-concessions/tax-incentives-for-innovation/tax-incentives-for-early-stage-investors/limits-for-investors-who-dont-meet-the-sophisticated-investor-test",
+        ],
+    ),
+    (
         "rd_tax_offset",
         &[
             "https://www.ato.gov.au/law/view/document?docid=PAC/19970038/355-115",
@@ -2114,6 +2135,13 @@ const CAR_REPORTABLE_NOTE: &str = "reportable_taxable_value is this car benefit'
 const GST_CREDITABLE_NOTE: &str = "Give taxable_value to fbt as part of type_one_value when the provider, or a member of its GST group, is entitled to a GST credit for providing the benefit (a GST-creditable benefit), and as part of type_two_value otherwise.";
 
 pub const EXTRA_WARNINGS: &[(&str, &[&str])] = &[
+    (
+        "esic",
+        &[
+            "The investor must work out whether the company qualifies at the test time; the ATO can rule on the principles-based test, and this worksheet takes it and the points items as stated.",
+            "The offset is non-refundable and can be carried forward (Division 65); this worksheet does not apply it against tax.",
+        ],
+    ),
     (
         "leave_provisions",
         &[
@@ -3086,6 +3114,54 @@ pub const REFUSAL_CODES: &[(&str, &str)] = &[
         "Tax offsets were given for a performer who has not provided a TFN or has not claimed the tax-free threshold.",
     ),
     (
+        "esic.amount_above_income",
+        "accelerating_commercialisation_grant and rd_clawback_income together are more than assessable_income_previous_year, of which they are part.",
+    ),
+    (
+        "esic.clawback_year_unsettled",
+        "A s 355-450(1) amount is given for a 2021-22 test, where whether s 360-40(2)(b) (assessments for income years commencing on or after 1 July 2021) disregards it is unsettled.",
+    ),
+    (
+        "esic.incorporation_after_year",
+        "incorporated_year or abr_registered_year is after the income year of the test.",
+    ),
+    (
+        "esic.innovation_items_conflict",
+        "innovation_items gives both item 1 (at least 50% of total expenses) and item 3 (at least 15% but less than 50%).",
+    ),
+    (
+        "esic.innovation_items_invalid",
+        "innovation_items is not a list of distinct whole numbers from 1 to 8.",
+    ),
+    (
+        "esic.investor_invalid",
+        "investor is not individual, company, widely_held_company, esvclp, trust or partnership.",
+    ),
+    (
+        "esic.no_incorporation_or_registration",
+        "incorporated_year and abr_registered_year are both none.",
+    ),
+    (
+        "esic.non_cash_before_2018_19",
+        "A non-cash benefit is given before 2018-19, when s 360-25(1) took the total amount paid for the shares.",
+    ),
+    (
+        "esic.retail_limit_unsettled",
+        "Without a disclosure exemption, this company's amount and the ATO's count across all companies, or the money and a non-cash benefit, fall on different sides of the $50,000 limit.",
+    ),
+    (
+        "esic.six_year_route_before_2018_19",
+        "Before 2018-19 the 6-year route of s 360-40(1)(a)(ii) counted expenses across 3 years including the current one, which this worksheet does not take.",
+    ),
+    (
+        "esic.trust_or_partnership_unsupported",
+        "The investor is a trust or partnership (or an ESVCLP before 2018-19), whose members and trustee take ss 360-15(2), (3), 360-30 and 360-35, not worked.",
+    ),
+    (
+        "esic.year_invalid",
+        "incorporated_year or abr_registered_year is not an income year such as 2024-25 or none.",
+    ),
+    (
         "ess_discount.acquired_before_2015",
         "An interest was acquired before 1 July 2015, when the 7-year deferral, no start-up concession and a narrower forfeiture rule applied.",
     ),
@@ -3851,7 +3927,7 @@ pub const REFUSAL_CODES: &[(&str, &str)] = &[
     ),
     (
         "input.field_unknown",
-        "A field the worksheet or command does not take, or does not take beside the other inputs given, was given (fbt-loan, fbt-meal-entertainment, fbt-car-parking, fbt-debt-waiver, fbt-expense-payment, fbt-property, fbt-residual, fbt-housing, fbt-lafha, fbt-board, fbt-tax-exempt-body-entertainment, fbt-entertainment-classifier, fbt-meal-entertainment-register and its entries, fbt-minor-benefit-check, ppsr-timing, fhss and its contributions, government-super-amounts, personal_deductions and determination, division-296, depreciation, fuel-tax-credits and its lines, alcohol-excise and its lines, foreign-resident-tax, medicare-levy, medicare-levy-surcharge, payg-withholding, payg-gross-up, termination-payment, etp-tax-free-component, unused-leave-payment, the Schedule 5 methods, working-holiday-maker-withholding, study-loan-withholding, seniors-pensioners-withholding, seniors-pensioners-tax-offset, lump-sum-arrears-tax-offset, hire-purchase-schedule, chattel-mortgage-schedule, loan-transactions and its transactions and rate_changes, borrowing-expenses-schedule and its loans, business-capital-expenditure and its items, balancing-adjustment, its years and car_limit, trade-in, franking-account and its events, distributions and income_tax, dasp-tax, super-benefit-tax, super-withholding, gst-margin-scheme, wine-equalisation-tax and its dealings, luxury-car-tax and its lines, foreign-resident-withholding and its vendors, payroll-tax, cgt-parcels, its parcels and disposals, cgt-cost-base-adjustments, its parcels and events, fbt-ev-exemption-check, fbt-instalment, sb-cgt-concessions, small-business-income-offset, ess-discount, residency-tests, lodgment-required, trading-stock and its items, prepayments, depreciation-low-value-pool, gst-creditable-purpose-change, gst-annual-apportionment, gst-financial-acquisitions-threshold, gst-going-concern, gst-second-hand-goods, gst-bad-debt, depreciation-small-business-pool, capital-works, non-commercial-losses, psi-test, minors-income, smsf-tax, payg-instalment, beneficiary-tax-offset, invalid-carer-tax-offset, zone-tax-offset and its dependants, net-medical-expenses-tax-offset, work-expenses, ato-interest-penalties and its payments and parts, private-health-insurance-rebate, rental-property and its loans, capital_works and depreciating_assets, horticulture-shearing-withholding, upward-variation-withholding, daily-casual-withholding, no-abn-withholding, entertainer-withholding, return-to-work-withholding, annuity-withholding, voluntary-agreement-withholding, rd-tax-offset, deferred-tax, leave-provisions, foreign-income-conversion, foreign-income-tax-offset, transfer-balance and its events, excess-contributions, help-indexation and its debts and repayments, contribution-caps given a carry-forward input, derive, personal-tax-estimate, dgr-check, income-tests and fbt-return only).",
+        "A field the worksheet or command does not take, or does not take beside the other inputs given, was given (fbt-loan, fbt-meal-entertainment, fbt-car-parking, fbt-debt-waiver, fbt-expense-payment, fbt-property, fbt-residual, fbt-housing, fbt-lafha, fbt-board, fbt-tax-exempt-body-entertainment, fbt-entertainment-classifier, fbt-meal-entertainment-register and its entries, fbt-minor-benefit-check, ppsr-timing, fhss and its contributions, government-super-amounts, personal_deductions and determination, division-296, depreciation, fuel-tax-credits and its lines, alcohol-excise and its lines, foreign-resident-tax, medicare-levy, medicare-levy-surcharge, payg-withholding, payg-gross-up, termination-payment, etp-tax-free-component, unused-leave-payment, the Schedule 5 methods, working-holiday-maker-withholding, study-loan-withholding, seniors-pensioners-withholding, seniors-pensioners-tax-offset, lump-sum-arrears-tax-offset, hire-purchase-schedule, chattel-mortgage-schedule, loan-transactions and its transactions and rate_changes, borrowing-expenses-schedule and its loans, business-capital-expenditure and its items, balancing-adjustment, its years and car_limit, trade-in, franking-account and its events, distributions and income_tax, dasp-tax, super-benefit-tax, super-withholding, gst-margin-scheme, wine-equalisation-tax and its dealings, luxury-car-tax and its lines, foreign-resident-withholding and its vendors, payroll-tax, cgt-parcels, its parcels and disposals, cgt-cost-base-adjustments, its parcels and events, fbt-ev-exemption-check, fbt-instalment, sb-cgt-concessions, small-business-income-offset, ess-discount, residency-tests, lodgment-required, trading-stock and its items, prepayments, depreciation-low-value-pool, gst-creditable-purpose-change, gst-annual-apportionment, gst-financial-acquisitions-threshold, gst-going-concern, gst-second-hand-goods, gst-bad-debt, depreciation-small-business-pool, capital-works, non-commercial-losses, psi-test, minors-income, smsf-tax, payg-instalment, beneficiary-tax-offset, invalid-carer-tax-offset, zone-tax-offset and its dependants, net-medical-expenses-tax-offset, work-expenses, ato-interest-penalties and its payments and parts, private-health-insurance-rebate, rental-property and its loans, capital_works and depreciating_assets, horticulture-shearing-withholding, upward-variation-withholding, daily-casual-withholding, no-abn-withholding, entertainer-withholding, return-to-work-withholding, annuity-withholding, voluntary-agreement-withholding, rd-tax-offset, esic, deferred-tax, leave-provisions, foreign-income-conversion, foreign-income-tax-offset, transfer-balance and its events, excess-contributions, help-indexation and its debts and repayments, contribution-caps given a carry-forward input, derive, personal-tax-estimate, dgr-check, income-tests and fbt-return only).",
     ),
     ("input.flag_invalid", "A flag is not a JSON boolean."),
     ("input.fraction_invalid", "A fraction is outside 0 to 1."),

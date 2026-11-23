@@ -38,7 +38,7 @@ use std::process::{Command, Stdio};
 /// `tests/individual_offsets.rs`, `tests/non_commercial_losses.rs`,
 /// `tests/psi_test.rs`, `tests/rental_property.rs` and
 /// `tests/foreign_resident_withholding.rs`, `tests/residency_tests.rs`,
-/// `tests/lodgment_required.rs`, `tests/rd_tax_offset.rs`,
+/// `tests/lodgment_required.rs`, `tests/rd_tax_offset.rs`, `tests/esic.rs`,
 /// `tests/gst_adjustments.rs`, `tests/deferred_tax.rs`, `tests/leave_provisions.rs`,
 /// `tests/cgt_cost_base_adjustments.rs`, `tests/payg_instalment.rs`,
 /// `tests/foreign_income_conversion.rs`,
@@ -46,7 +46,7 @@ use std::process::{Command, Stdio};
 /// `tests/minors_income.rs`, `tests/smsf_tax.rs`, `tests/fbt_instalment.rs`, `tests/ess_discount.rs` and
 /// `tests/help_indexation.rs` cover them, as `tests/transfer_balance.rs` covers
 /// `transfer-balance` and `excess-contributions`.
-const NEW_KINDS: [(&str, &str); 103] = [
+const NEW_KINDS: [(&str, &str); 104] = [
     ("help-indexation", "help_indexation"),
     ("super-withholding", "super_withholding"),
     ("super-benefit-tax", "super_benefit_tax"),
@@ -142,6 +142,7 @@ const NEW_KINDS: [(&str, &str); 103] = [
     ("residency-tests", "residency_tests"),
     ("lodgment-required", "lodgment_required"),
     ("rd-tax-offset", "rd_tax_offset"),
+    ("esic", "esic"),
     (
         "gst-creditable-purpose-change",
         "gst_creditable_purpose_change",

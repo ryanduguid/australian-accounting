@@ -18,7 +18,7 @@ use std::process::{Command, Stdio};
 /// under `income` (an absent line as 0) and, given other taxable income,
 /// `resident_tax`, none of which `named` or the evaluator reads, so
 /// `tests/rental_property.rs` checks its workings instead.
-const DERIVED: [&str; 81] = [
+const DERIVED: [&str; 82] = [
     "fbt",
     "fbt-car-statutory",
     "fbt-car-operating-cost",
@@ -72,6 +72,7 @@ const DERIVED: [&str; 81] = [
     "annuity-withholding",
     "voluntary-agreement-withholding",
     "rd-tax-offset",
+    "esic",
     "deferred-tax",
     "leave-provisions",
     "hire-purchase-schedule",
@@ -541,6 +542,42 @@ fn cases() -> Vec<(&'static str, Value)> {
                    "australian_wages": "3000000.00",
                    "group_member": false, "employed_all_year": true,
                    "year": "2026-27", "scope_confirmed": true}),
+        ),
+        // Calculating the early stage investor tax offset: Savannah's
+        // $4 million capped at $200,000, with a non-cash benefit from 2018-19;
+        // and a company over the previous year's income limit before 2021-22.
+        (
+            "esic",
+            json!({"investor": "individual", "affiliate_of_company": false,
+                   "ess_interests": false, "more_than_30_percent": false,
+                   "amount_paid": "3999000.00", "non_cash_benefit": "1000.00",
+                   "disclosure_exemption": true, "incorporated_year": "2023-24",
+                   "abr_registered_year": "none", "expenses_three_prior_years": "0.00",
+                   "total_expenses_previous_year": "900000.00",
+                   "assessable_income_previous_year": "260000.00",
+                   "accelerating_commercialisation_grant": "10000.00",
+                   "rd_clawback_income": "50000.00", "listed": false,
+                   "foreign_company": false, "innovation_items": [2, 7],
+                   "principles_test": false, "other_offsets": "0.00",
+                   "carried_forward_offsets": "0.00", "year": "2025-26",
+                   "scope_confirmed": true}),
+        ),
+        (
+            "esic",
+            json!({"investor": "company", "affiliate_of_company": false,
+                   "ess_interests": false, "more_than_30_percent": false,
+                   "amount_paid": "40000.00", "non_cash_benefit": "0.00",
+                   "disclosure_exemption": false, "other_companies_paid": "0.00",
+                   "incorporated_year": "2015-16", "abr_registered_year": "none",
+                   "expenses_three_prior_years": "800000.00",
+                   "total_expenses_previous_year": "300000.00",
+                   "assessable_income_previous_year": "260000.00",
+                   "accelerating_commercialisation_grant": "10000.00",
+                   "rd_clawback_income": "50000.00", "listed": false,
+                   "foreign_company": false, "innovation_items": [],
+                   "principles_test": true, "other_offsets": "150000.00",
+                   "carried_forward_offsets": "10000.00", "year": "2019-20",
+                   "scope_confirmed": true}),
         ),
         // A strata unit's share of land bought with some consideration unpaid
         // (GST Act ss 75-12 and 75-15), for a supply that cannot use the
@@ -2465,7 +2502,7 @@ fn derive_refuses_what_it_does_not_explain() {
          daily-casual-withholding, no-abn-withholding, \
          entertainer-withholding, return-to-work-withholding, \
          annuity-withholding, voluntary-agreement-withholding, \
-         rd-tax-offset, \
+         rd-tax-offset, esic, \
          hire-purchase-schedule, chattel-mortgage-schedule, loan-transactions, \
          lump-sum-arrears-tax-offset, income-tests, government-super-amounts, smsf-tax, business-capital-expenditure, balancing-adjustment, trade-in, dasp-tax, super-benefit-tax, super-withholding, gst-margin-scheme, etp-tax-free-component, payroll-tax, cgt-parcels, work-expenses, rental-property, gst-creditable-purpose-change, gst-annual-apportionment, gst-financial-acquisitions-threshold, gst-second-hand-goods, gst-bad-debt, cgt-cost-base-adjustments, foreign-income-tax-offset, fbt-instalment, not \"payg-gross-up\""
     );

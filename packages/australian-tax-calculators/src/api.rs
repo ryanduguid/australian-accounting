@@ -588,6 +588,33 @@ const COMMAND_ARGS: &[(&str, &[(&str, Kind)])] = &[
         ],
     ),
     (
+        "esic",
+        &[
+            ("investor", Raw),
+            ("affiliate_of_company", Raw),
+            ("ess_interests", Raw),
+            ("more_than_30_percent", Raw),
+            ("amount_paid", Dec),
+            ("non_cash_benefit", Dec),
+            ("disclosure_exemption", Raw),
+            ("incorporated_year", Raw),
+            ("abr_registered_year", Raw),
+            ("expenses_three_prior_years", Dec),
+            ("total_expenses_previous_year", Dec),
+            ("assessable_income_previous_year", Dec),
+            ("accelerating_commercialisation_grant", Dec),
+            ("rd_clawback_income", Dec),
+            ("listed", Raw),
+            ("foreign_company", Raw),
+            ("innovation_items", Json),
+            ("principles_test", Raw),
+            ("other_offsets", Dec),
+            ("carried_forward_offsets", Dec),
+            ("year", Raw),
+            ("scope_confirmed", Raw),
+        ],
+    ),
+    (
         "quarterly-sg",
         &[
             ("ordinary_time_earnings", Dec),
@@ -1398,7 +1425,7 @@ pub fn commands() -> Vec<&'static str> {
 /// command on its `gross_pay` shows that withholding. The classifier's amounts
 /// are totals over lines whose shares a decision table sets, not a formula;
 /// each line and class carries the authority for its row instead.
-const DERIVED: [&str; 82] = [
+const DERIVED: [&str; 83] = [
     "fbt",
     "fbt-car-statutory",
     "fbt-car-operating-cost",
@@ -1454,6 +1481,7 @@ const DERIVED: [&str; 82] = [
     "annuity-withholding",
     "voluntary-agreement-withholding",
     "rd-tax-offset",
+    "esic",
     "hire-purchase-schedule",
     "chattel-mortgage-schedule",
     "loan-transactions",
@@ -1920,6 +1948,7 @@ pub fn evaluate_coded(command: &str, v: &Value) -> Result<Value> {
             | "residency-tests"
             | "lodgment-required"
             | "rd-tax-offset"
+            | "esic"
             | "gst-creditable-purpose-change"
             | "gst-annual-apportionment"
             | "gst-financial-acquisitions-threshold"
@@ -2607,6 +2636,35 @@ pub fn evaluate_coded(command: &str, v: &Value) -> Result<Value> {
             year: &a[10],
             scope_confirmed: &a[11],
         }),
+        "esic" => {
+            // Optional: what other companies were paid, for the $50,000 limit.
+            let elsewhere = optional(v, "other_companies_paid", Dec)?;
+            engine::esic(&engine::EsicArgs {
+                investor: &a[0],
+                affiliate_of_company: &a[1],
+                ess_interests: &a[2],
+                more_than_30_percent: &a[3],
+                amount_paid: &a[4],
+                non_cash_benefit: &a[5],
+                disclosure_exemption: &a[6],
+                incorporated_year: &a[7],
+                abr_registered_year: &a[8],
+                expenses_three_prior_years: &a[9],
+                total_expenses_previous_year: &a[10],
+                assessable_income_previous_year: &a[11],
+                accelerating_commercialisation_grant: &a[12],
+                rd_clawback_income: &a[13],
+                listed: &a[14],
+                foreign_company: &a[15],
+                innovation_items: &a[16],
+                principles_test: &a[17],
+                other_offsets: &a[18],
+                carried_forward_offsets: &a[19],
+                year: &a[20],
+                scope_confirmed: &a[21],
+                other_companies_paid: elsewhere.as_ref(),
+            })
+        }
         "quarterly-sg" => engine::quarterly_sg(&a[0], &a[1], &a[2], &a[3], &a[4]),
         "payg-withholding" => {
             let o = payg_option_args(v)?;
