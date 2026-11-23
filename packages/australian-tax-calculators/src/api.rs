@@ -2290,9 +2290,10 @@ pub fn evaluate_coded(command: &str, v: &Value) -> Result<Value> {
         "workers-compensation-premium" => {
             // Optional: apprentice and actual wages, and each scheme's own facts.
             let o = |key, kind| optional(v, key, kind);
-            let [apprentice, actual, dust, reward, claims] = [
+            let [apprentice, actual, actual_apprentice, dust, reward, claims] = [
                 "apprentice_wages",
                 "actual_wages",
+                "actual_apprentice_wages",
                 "dust_diseases_rate",
                 "safe_employer_reward",
                 "claims_costs",
@@ -2303,11 +2304,17 @@ pub fn evaluate_coded(command: &str, v: &Value) -> Result<Value> {
                 "days_registered",
                 "excess_buy_out",
                 "policy_start",
-                "first_full_year",
+                "new_employer",
             ]
             .map(|key| o(key, Raw));
-            let [apprentice, actual, dust, reward, claims] =
-                [apprentice?, actual?, dust?, reward?, claims?];
+            let [apprentice, actual, actual_apprentice, dust, reward, claims] = [
+                apprentice?,
+                actual?,
+                actual_apprentice?,
+                dust?,
+                reward?,
+                claims?,
+            ];
             let [employer, days, buy_out, start, first] =
                 [employer?, days?, buy_out?, start?, first?];
             engine::workers_compensation_premium(&engine::WorkersCompensationArgs {
@@ -2317,13 +2324,14 @@ pub fn evaluate_coded(command: &str, v: &Value) -> Result<Value> {
                 group_member: &a[3],
                 apprentice_wages: apprentice.as_ref(),
                 actual_wages: actual.as_ref(),
+                actual_apprentice_wages: actual_apprentice.as_ref(),
                 dust_diseases_rate: dust.as_ref(),
                 safe_employer_reward: reward.as_ref(),
                 employer: employer.as_ref(),
                 days_registered: days.as_ref(),
                 excess_buy_out: buy_out.as_ref(),
                 policy_start: start.as_ref(),
-                first_full_year: first.as_ref(),
+                new_employer: first.as_ref(),
                 claims_costs: claims.as_ref(),
                 year: &a[4],
                 scope_confirmed: &a[5],

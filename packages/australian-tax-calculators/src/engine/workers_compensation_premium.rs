@@ -34,13 +34,14 @@ pub struct WorkersCompensationArgs<'a> {
     pub group_member: &'a Arg,
     pub apprentice_wages: Option<&'a Arg>,
     pub actual_wages: Option<&'a Arg>,
+    pub actual_apprentice_wages: Option<&'a Arg>,
     pub dust_diseases_rate: Option<&'a Arg>,
     pub safe_employer_reward: Option<&'a Arg>,
     pub employer: Option<&'a Arg>,
     pub days_registered: Option<&'a Arg>,
     pub excess_buy_out: Option<&'a Arg>,
     pub policy_start: Option<&'a Arg>,
-    pub first_full_year: Option<&'a Arg>,
+    pub new_employer: Option<&'a Arg>,
     pub claims_costs: Option<&'a Arg>,
     pub year: &'a Arg,
     pub scope_confirmed: &'a Arg,
@@ -210,27 +211,30 @@ fn qld(asked: bool, given: Option<&Arg>) -> Result<Option<Qld>> {
 }
 
 fn sa(asked: bool, args: &WorkersCompensationArgs) -> Result<Option<Sa>> {
-    let Some(first) = when(asked, args.first_full_year, "first_full_year", "in sa")? else {
-        return Ok(None);
-    };
-    let first = flag(first, "first_full_year")?;
-    let why = "in sa when first_full_year is false";
+    let first = when(asked, args.new_employer, "new_employer", "in sa")?;
+    let first = first.map_or(Ok(false), |given| flag(given, "new_employer"))?;
+    let why = "in sa when new_employer is false";
     let claims = when(asked && !first, args.claims_costs, "claims_costs", why)?;
     let claims = claims.map_or(Ok(0), amount)?;
-    Ok(Some(Sa { first, claims }))
+    Ok(asked.then_some(Sa { first, claims }))
 }
 
-/// Apprentice wages, which only nsw, qld and sa deduct.
+/// Apprentice wages, which qld and sa deduct at the rate.
 fn apprentice(place: Place, given: Option<&Arg>) -> Result<i128> {
     let wages = given.map_or(Ok(0), amount)?;
-    let deducts = matches!(place, Place::Nsw | Place::Qld | Place::Sa);
-    if !deducts && wages > 0 {
+    if wages == 0 || matches!(place, Place::Qld | Place::Sa) {
+        return Ok(wages);
+    }
+    if place == Place::Nsw {
         return refuse(
-            "workers_compensation_premium.apprentice_unavailable",
-            "apprentice_wages is above nil, but only nsw, qld and sa deduct apprentice wages: give nil (in vic, leave exempt apprentice and trainee pay out of the remuneration).",
+            "workers_compensation_premium.apprentice_unsettled",
+            "icare discounts the apprentice incentive 'after premium payable is calculated' and does not say whether before or after GST: use the renewal notice.",
         );
     }
-    Ok(wages)
+    refuse(
+        "workers_compensation_premium.apprentice_unavailable",
+        "apprentice_wages is above nil, but only qld and sa deduct apprentice wages at the rate: give nil and the wages as the scheme defines them.",
+    )
 }
 
 /// The refusal on the actual wages, said of them.
@@ -284,17 +288,33 @@ fn ungrouped(place: Place, group_member: &Arg) -> Result<()> {
     Ok(())
 }
 
-/// The premium on the actual wages, when they are given.
+/// The premium on the actual wages, when they are given, with the actual
+/// apprentice wages in sa.
 fn on_actual_wages(
     facts: &Facts,
-    given: Option<&Arg>,
+    args: &WorkersCompensationArgs,
     rate: i128,
-    apprentice: i128,
 ) -> Result<Option<Premium>> {
+    let sa = matches!(facts, Facts::Sa(_));
+    let why = "in sa with actual_wages";
+    let given = args.actual_wages;
+    let apprentice = when(
+        sa && given.is_some(),
+        args.actual_apprentice_wages,
+        "actual_apprentice_wages",
+        why,
+    )?;
     let Some(given) = given else {
         return Ok(None);
     };
+    if matches!(facts, Facts::Qld(_)) {
+        return refuse(
+            "workers_compensation_premium.adjustment_unsettled",
+            "WorkCover Queensland Notice (No. 1) of 2026 sets no year-end adjustment on actual wages for a policy commencing in 2026-27: give no actual_wages.",
+        );
+    }
     let wages = amount(given)?;
+    let apprentice = apprentice.map_or(Ok(0), amount)?;
     let premium = schemes::premium(facts, wages, rate, apprentice).map_err(on_actual)?;
     Ok(Some(premium))
 }
@@ -309,7 +329,7 @@ pub fn workers_compensation_premium(args: &WorkersCompensationArgs) -> Result<Va
     schemes::within(apprentice, wages)?;
     let facts = facts(place, args)?;
     let estimate = schemes::premium(&facts, wages, applied, apprentice)?;
-    let actual = on_actual_wages(&facts, args.actual_wages, applied, apprentice)?;
+    let actual = on_actual_wages(&facts, args, applied)?;
     let mut rates = vec![
         rate("rate_percent", scaled_text(applied)),
         rate("gst_rate", "0.1"),

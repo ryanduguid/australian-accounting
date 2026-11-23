@@ -23,7 +23,7 @@ fn input(place: &str, wages: &str, rate: &str) -> Value {
         "nsw" => json!({"dust_diseases_rate": "0", "safe_employer_reward": "0"}),
         "vic" => json!({"employer": "new", "days_registered": 365, "excess_buy_out": false}),
         "qld" => json!({"policy_start": "2026-07-01"}),
-        "sa" => json!({"first_full_year": false, "claims_costs": "0"}),
+        "sa" => json!({"new_employer": false, "claims_costs": "0"}),
         _ => json!({}),
     };
     for (key, value) in facts.as_object().unwrap() {
@@ -93,11 +93,14 @@ fn site_input(row: &Value) -> Value {
         }
         "sa" => {
             let first = text("firstYear") == "yes";
-            v["first_full_year"] = json!(first);
+            v["new_employer"] = json!(first);
             if first {
                 v.as_object_mut().unwrap().remove("claims_costs");
             } else {
                 v["claims_costs"] = json!(text("claims"));
+            }
+            if !text("actual").is_empty() {
+                v["actual_apprentice_wages"] = json!(apprentice);
             }
         }
         _ => {}
@@ -131,33 +134,54 @@ const FIGURES: [&str; 6] = [
     "adjustment",
 ];
 
+/// The refusals where a source is unsettled or departs from the page, by the
+/// tally's name for them.
+const DEPARTURES: [(&str, &str); 6] = [
+    ("band_edge_unsettled", "SA band edge refused"),
+    ("rounding_unsettled", "Qld rounding order refused"),
+    ("adjustment_unsettled", "Qld actual wages refused"),
+    ("apprentice_unsettled", "NSW apprentice incentive refused"),
+    ("remuneration_nil", "Vic nil remuneration refused"),
+    ("experience_rated", "NSW exact APP over $30,000 refused"),
+];
+
+fn departure(code: &str) -> Option<&'static str> {
+    let code = code.strip_prefix("workers_compensation_premium.")?;
+    DEPARTURES
+        .iter()
+        .find(|(c, _)| *c == code)
+        .map(|(_, name)| *name)
+}
+
 /// How one row of the site's fixture came out: the same figures, the same
-/// refusal, or a refusal where a source is unsettled.
+/// refusal, or a counted departure where a source is unsettled or decides
+/// otherwise.
 fn checked(row: &Value) -> &'static str {
     let v = site_input(row);
     let site = &row["site"];
+    let got = api::evaluate_coded("workers-compensation-premium", &v);
     if let Some(message) = site["refused"].as_str() {
-        let err = api::evaluate_coded("workers-compensation-premium", &v).unwrap_err();
+        let err = got.unwrap_err();
         let want = format!("workers_compensation_premium.{}", site_code(message));
-        assert_eq!(err.code, want, "{row}");
-        if message.starts_with("On the actual wages") {
+        if err.code != want {
+            assert!(departure(err.code).is_some(), "{}: {row}", err.code);
+        } else if message.starts_with("On the actual wages") {
             assert!(err.message.starts_with("On the actual wages"), "{row}");
         }
         return "refused alike";
     }
-    match api::evaluate_coded("workers-compensation-premium", &v) {
+    match got {
         Ok(result) => {
-            for key in FIGURES {
-                let got = result["amounts"][key].as_str();
-                assert_eq!(got, site[key].as_str(), "{key}: {row}");
+            let same = FIGURES
+                .iter()
+                .all(|key| result["amounts"][key].as_str() == site[key].as_str());
+            if same {
+                return "identical";
             }
-            "identical"
+            assert_eq!(v["jurisdiction"], "vic", "{row}");
+            "Vic deductible with N / 365 to 6 places"
         }
-        Err(err) => match err.code {
-            "workers_compensation_premium.band_edge_unsettled" => "SA band edge refused",
-            "workers_compensation_premium.rounding_unsettled" => "Vic cl 6(1) refused",
-            other => panic!("{other}: {row}"),
-        },
+        Err(err) => departure(err.code).unwrap_or_else(|| panic!("{}: {row}", err.code)),
     }
 }
 
@@ -186,18 +210,18 @@ fn the_site_cases_agree_except_where_a_source_is_unsettled() {
         page,
         BTreeMap::from([("identical", 18), ("refused alike", 7)])
     );
-    assert_eq!(
-        tally,
-        BTreeMap::from([
-            ("identical", IDENTICAL),
-            ("refused alike", 308),
-            ("SA band edge refused", SA_EDGE),
-        ])
-    );
+    assert_eq!(tally, BTreeMap::from(TALLY));
 }
 
-const IDENTICAL: usize = 994;
-const SA_EDGE: usize = 24;
+const TALLY: [(&str, usize); 7] = [
+    ("identical", 849),
+    ("refused alike", 308),
+    ("NSW apprentice incentive refused", 61),
+    ("NSW exact APP over $30,000 refused", 12),
+    ("Qld actual wages refused", 48),
+    ("SA band edge refused", 24),
+    ("Vic nil remuneration refused", 24),
+];
 
 #[test]
 fn each_scheme_matches_its_published_example() {
@@ -224,6 +248,10 @@ fn each_scheme_matches_its_published_example() {
         ));
         assert_eq!(amount(&sa, "premium"), premium, "{wages} {claims}");
     }
+}
+
+#[test]
+fn icare_and_worksafe_victoria_examples_agree() {
     // icare's Rob's Restaurant: $1,200,000 at 2.250%, APP $27,000 less the
     // $2,025 Safe Employer Reward.
     let rob = run(&with(
@@ -234,9 +262,18 @@ fn each_scheme_matches_its_published_example() {
         "average_performance_premium",
         "safe_employer_reward",
         "premium",
+        "dust_diseases_contribution",
+        "gst",
+        "total",
     ]
     .map(|k| amount(&rob, k));
-    assert_eq!(figures, ["27000.00", "2025.00", "24975.00"]);
+    // The gst amount excludes the GST within the dust diseases contribution.
+    assert_eq!(
+        figures,
+        [
+            "27000.00", "2025.00", "24975.00", "264.00", "2497.50", "27736.50"
+        ]
+    );
     // Premiums Order (No. 34) with Gazette S 284: 2% of $150,000 less 2% of
     // $15,500.
     let vic = run(&input("vic", "150000", "2"));
@@ -258,6 +295,7 @@ fn queensland_minimums_follow_the_quarter_the_policy_commences_in() {
         ("2026-10-01", "150.00"),
         ("2026-12-31", "150.00"),
         ("2027-01-01", "100.00"),
+        ("2027-03-31", "100.00"),
         ("2027-04-01", "50.00"),
         ("2027-06-30", "50.00"),
     ] {
@@ -266,6 +304,24 @@ fn queensland_minimums_follow_the_quarter_the_policy_commences_in() {
             json!({"policy_start": start}),
         ));
         assert_eq!(amount(&qld, "total"), total, "{start}");
+    }
+}
+
+#[test]
+fn queensland_minimums_split_into_premium_gst_and_duty() {
+    // Each minimum's premium, GST and duty: the premium is the minimum / 1.155.
+    for (start, parts) in [
+        ("2026-07-01", ["173.16", "17.32", "9.52"]),
+        ("2026-10-01", ["129.87", "12.99", "7.14"]),
+        ("2027-01-01", ["86.58", "8.66", "4.76"]),
+        ("2027-04-01", ["43.29", "4.33", "2.38"]),
+    ] {
+        let qld = run(&with(
+            input("qld", "0", "1.343"),
+            json!({"policy_start": start}),
+        ));
+        let got = ["premium", "gst", "duty"].map(|k| amount(&qld, k));
+        assert_eq!(got, parts, "{start}");
     }
     let late = with(
         input("qld", "0", "1.343"),
@@ -303,32 +359,116 @@ fn a_south_australian_base_premium_just_under_a_band_bound_is_refused() {
         assert_eq!(amount(&sa, "discount"), discount, "{wages}");
     }
     // The first full year takes no discount, so no edge applies.
-    let first = with(edge, json!({"first_full_year": true, "claims_costs": null}));
+    let first = with(edge, json!({"new_employer": true, "claims_costs": null}));
     assert_eq!(amount(&run(&first), "premium"), "9999.00");
 }
 
 #[test]
-fn a_victorian_deductible_that_six_place_rounding_moves_is_refused() {
-    // 1% x 15,500 x 1 / 365 is $0.424657..., $0.42; with 1 / 365 to 6 places
-    // (0.002740) it is $0.4247, the same cent. Find a case that moves.
-    let mut moved = None;
-    'search: for days in 1..=365 {
-        for rate in ["0.83", "1.807", "2", "3.5", "7.123"] {
-            let v = with(
-                input("vic", "150000", rate),
-                json!({"days_registered": days}),
-            );
-            if api::evaluate_coded("workers-compensation-premium", &v).is_err() {
-                moved = Some(v);
-                break 'search;
-            }
-        }
-    }
-    let moved = moved.expect("a case where the 2 readings differ");
+fn victoria_rounds_n_over_365_to_6_places_and_truncates_the_premiums() {
+    // 7.123% x 15,500 x 0.002740 (1 / 365 to 6 places, cl 6(1)) is
+    // $3.0251381, $3.03 (cl 6(4)); exactly, 1 / 365 gives $3.02.
+    let vic = run(&with(
+        input("vic", "150000", "7.123"),
+        json!({"days_registered": 1}),
+    ));
+    let figures = [
+        "preliminary_premium",
+        "deductible_benefit",
+        "workcover_premium",
+        "gst",
+        "total",
+    ]
+    .map(|k| amount(&vic, k));
     assert_eq!(
-        code(&moved),
+        figures,
+        ["10684.50", "3.03", "10681.47", "1068.15", "11749.62"]
+    );
+    // $2,710.51807 less $280.09 is $2,430.42807, down to $2,430.42 (cl 6(2));
+    // the buy-out is 0.1 of it down to the cent, $243.04.
+    let vic = run(&with(
+        input("vic", "150001", "1.807"),
+        json!({"excess_buy_out": true}),
+    ));
+    let figures =
+        ["deductible_benefit", "workcover_premium", "buy_out_premium"].map(|k| amount(&vic, k));
+    assert_eq!(figures, ["280.09", "2430.42", "243.04"]);
+    // Remuneration is to the dollar (cl 6(6)): $0.49 is nil, which cl 11
+    // divides by, and $0.50 is $1, on the $400 minimum.
+    for wages in ["0", "0.49"] {
+        assert_eq!(
+            code(&input("vic", wages, "2")),
+            "workers_compensation_premium.remuneration_nil",
+            "{wages}"
+        );
+    }
+    let one = run(&input("vic", "0.50", "2"));
+    assert_eq!(amount(&one, "workcover_premium"), "400.00");
+}
+
+#[test]
+fn unsettled_new_south_wales_and_queensland_cases_are_refused() {
+    // $1,500,000.01 at 2% is $30,000.0002 of APP, over the limit; $1,500,000
+    // is exactly $30,000, which is not.
+    assert_eq!(
+        code(&input("nsw", "1500000.01", "2")),
+        "workers_compensation_premium.experience_rated"
+    );
+    let at_limit = run(&input("nsw", "1500000", "2"));
+    assert_eq!(amount(&at_limit, "premium"), "30000.00");
+    let apprentice = with(
+        input("nsw", "400000", "2"),
+        json!({"apprentice_wages": "1"}),
+    );
+    assert_eq!(
+        code(&apprentice),
+        "workers_compensation_premium.apprentice_unsettled"
+    );
+    // $1,000.005 less $200.0002 is $800.01 rounded step by step and $800.00
+    // rounded once.
+    let qld = with(
+        input("qld", "50000.25", "2"),
+        json!({"apprentice_wages": "10000.01"}),
+    );
+    assert_eq!(
+        code(&qld),
         "workers_compensation_premium.rounding_unsettled"
     );
+    let actual = with(
+        input("qld", "500000", "1.343"),
+        json!({"actual_wages": "1"}),
+    );
+    assert_eq!(
+        code(&actual),
+        "workers_compensation_premium.adjustment_unsettled"
+    );
+}
+
+#[test]
+fn south_australia_caps_claims_on_gross_base_premium_and_takes_actual_apprentices() {
+    // BP $9,000, discount $450, claims $2,500 capped at $1,350, apprentices
+    // $1,000: $8,900.
+    let sa = run(&with(
+        input("sa", "450000", "2"),
+        json!({"claims_costs": "2500", "apprentice_wages": "50000"}),
+    ));
+    assert_eq!(amount(&sa, "premium"), "8900.00");
+    // Estimate $100,000 with $10,000 of apprentices; actual $120,000 with
+    // $20,000: $1,870 then $2,068, $198 more.
+    let sa = run(&with(
+        input("sa", "100000", "2"),
+        json!({
+            "apprentice_wages": "10000",
+            "actual_wages": "120000",
+            "actual_apprentice_wages": "20000",
+        }),
+    ));
+    let figures = ["total", "actual_total", "adjustment"].map(|k| amount(&sa, k));
+    assert_eq!(figures, ["1870.00", "2068.00", "198.00"]);
+    let missing = with(
+        input("sa", "100000", "2"),
+        json!({"actual_wages": "120000"}),
+    );
+    assert_eq!(code(&missing), "input.missing_field");
 }
 
 #[test]
@@ -338,7 +478,8 @@ fn each_scheme_asks_only_for_its_own_facts() {
         ("dust_diseases_rate", json!("0")),
         ("employer", json!("new")),
         ("policy_start", json!("2026-07-01")),
-        ("first_full_year", json!(true)),
+        ("new_employer", json!(true)),
+        ("actual_apprentice_wages", json!("0")),
     ] {
         assert_eq!(
             code(&with(nt.clone(), json!({key: value}))),
@@ -346,12 +487,16 @@ fn each_scheme_asks_only_for_its_own_facts() {
             "{key}"
         );
     }
+    for place in ["nsw", "vic", "qld", "wa", "tas", "act", "nt"] {
+        let claims = with(input(place, "400000", "3.5"), json!({"claims_costs": "0"}));
+        assert_eq!(code(&claims), "input.field_unknown", "{place}");
+    }
     let nsw = with(
         input("nsw", "400000", "3.5"),
         json!({"dust_diseases_rate": null}),
     );
     assert_eq!(code(&nsw), "input.missing_field");
-    let first = with(input("sa", "450000", "2"), json!({"first_full_year": true}));
+    let first = with(input("sa", "450000", "2"), json!({"new_employer": true}));
     assert_eq!(code(&first), "input.field_unknown");
     let wa = with(
         input("wa", "400000", "3.5"),

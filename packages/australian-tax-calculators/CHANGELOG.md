@@ -10,14 +10,17 @@
   (No. 34) for a new or small employer, WorkCover Queensland's notice for a
   policy commencing in 2026-27 with insurance duty, ReturnToWorkSA's formula,
   and the insurer's rate elsewhere. It mirrors the site's workers
-  compensation calculator and agrees with it on every case, refusing a South
-  Australian base premium just under a band's bound and a Victorian
-  deductible that 6-place rounding would move. New codes:
-  `workers_compensation_premium.apprentice_above_wages`,
-  `apprentice_unavailable`, `band_edge_unsettled`, `below_minimum`,
+  compensation calculator and agrees with it on every page case, refusing
+  where a source does not settle a case: a South Australian base premium
+  just under a band's bound, a New South Wales apprentice incentive, a
+  Queensland premium that rounding order would move and Queensland actual
+  wages. New
+  codes: `workers_compensation_premium.adjustment_unsettled`,
+  `apprentice_above_wages`, `apprentice_unavailable`,
+  `apprentice_unsettled`, `band_edge_unsettled`, `below_minimum`,
   `days_invalid`, `employer_invalid`, `experience_rated`, `group_rated`,
   `jurisdiction_invalid`, `policy_after_year`, `policy_before_year`,
-  `rate_invalid` and `rounding_unsettled`.
+  `rate_invalid`, `remuneration_nil` and `rounding_unsettled`.
 - `trading-stock` works out the change in value of trading stock under ITAA
   1997 s 70-35 for 2020-21 to 2026-27, each closing item valued by its own
   election (cost, market selling value, replacement value, the lowest, or an

@@ -2220,16 +2220,20 @@ The site's workers compensation calculator (ryanduguid.github.io, main at
 dcc7ecbe) was run on its 25 page cases, the 31 edge inputs of its unit tests
 and a sweep of each scheme's edges, 1,326 rows in
 `tests/data/workers_compensation_site_cases.json`. The worksheet gives the
-same 6 figures on 994 rows and the same refusal on 308; it refuses the other
-24, each a South Australian base premium above a band's bound less a cent and
-below the bound, where ReturnToWorkSA's page and table ('$0 to <$10k') put it
-in the lower band and its calculator's lookup in the higher. Of the page's own
-25 cases, 18 agree and 7 are refused alike.
+same 6 figures on 849 rows and the same refusal on 308; it refuses the other
+169, where a source does not settle the case or the page goes further than
+its source (table below). Of the page's own 25 cases, 18 agree and 7 are
+refused alike.
 
 | Rule | Source | Rows |
 | --- | --- | --- |
 | A South Australian base premium above $9,999.99 and below $10,000 (and at each other bound) is refused | ReturnToWorkSA's table and calculator differ | 24 refused |
-| A Victorian deductible that differs by a cent with N / 365 rounded to 6 places is refused | Premiums Order (No. 34) cl 6(1) | none in the fixture; found by search in the tests |
+| A New South Wales apprentice incentive is refused | icare says it is 'discounted from premium after premium payable is calculated', not whether before or after GST | 61 refused |
+| A New South Wales average performance premium is compared with $30,000 unrounded | icare does not say APP is rounded before the test; the page rounds it first | 12 refused |
+| Queensland actual wages are refused | the 2026-27 notice sets no year-end adjustment for a policy commencing in 2026-27 | 48 refused |
+| A Victorian remuneration that rounds to $0 is refused | Premiums Order (No. 34) cl 11 divides by the remuneration | 24 refused |
+| N / 365 is rounded to 6 places before the deductible | Premiums Order (No. 34) cl 6(1) and (4); the page uses the exact fraction | none in the fixture; $150,000 at 7.123% for 1 day gives $3.03, not $3.02, in the tests |
+| A Queensland premium that rounding the estimated premium and the apprentice discount first would move is refused | the notice does not say which is rounded | none in the fixture; in the tests |
 
 ## Payroll tax
 

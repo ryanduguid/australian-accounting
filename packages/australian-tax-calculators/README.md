@@ -159,7 +159,7 @@ booleans and counts, ages, days, quarters and scales are JSON integers.
 | `super-benefit-tax` | `benefit`, `interest_value`, `interest_tax_free_component`, `untaxed_element`, `recipient`, `payment_date`, `year`, `scope_confirmed`; optionally `date_of_birth`, `terminal_medical_condition`, `disability_superannuation_benefit`, `service_before_july_1983`, `low_rate_cap_used`, `untaxed_plan_cap_used`, `other_lump_sums_this_year`; see [Super benefit tax](#super-benefit-tax) |
 | `super-withholding` | `benefit`, `interest_value`, `interest_tax_free_component`, `untaxed_element`, `recipient`, `payment_date`, `tfn_provided`, `foreign_resident`, `year`, `scope_confirmed`; optionally the same facts as `super-benefit-tax`; see [Super withholding](#super-withholding) |
 | `payroll-tax` | `jurisdiction`, `taxable_wages`, `australian_wages`, `group_member`, `employed_all_year`, `year`, `scope_confirmed`; in Victoria, `regional_employer`; see [Payroll tax](#payroll-tax) |
-| `workers-compensation-premium` | `jurisdiction`, `wages`, `rate`, `group_member`, `year`, `scope_confirmed`; optionally `apprentice_wages` (nsw, qld, sa) and `actual_wages`; in New South Wales `dust_diseases_rate` and `safe_employer_reward`, in Victoria `employer`, `days_registered` and `excess_buy_out`, in Queensland `policy_start`, in South Australia `first_full_year` and, outside the first year, `claims_costs`; see [Workers compensation premium](#workers-compensation-premium) |
+| `workers-compensation-premium` | `jurisdiction`, `wages`, `rate`, `group_member`, `year`, `scope_confirmed`; optionally `apprentice_wages` (qld, sa) and `actual_wages` (not qld); in New South Wales `dust_diseases_rate` and `safe_employer_reward`, in Victoria `employer`, `days_registered` and `excess_buy_out`, in Queensland `policy_start`, in South Australia `new_employer`, once established `claims_costs` and with actual wages `actual_apprentice_wages`; see [Workers compensation premium](#workers-compensation-premium) |
 | `fbt` | `type_one_value`, `type_two_value`, `year_ended`, `scope_confirmed` |
 | `fbt-car-statutory` | `cost_price`, `later_accessories`, `one_third_reduction`, `days_available`, `employee_contribution`, `electric_car_exempt`, `year_ended`, `scope_confirmed` |
 | `fbt-car-operating-cost` | `running_costs`, `lease_charges`, `depreciated_value`, `effective_life_years`, `days_held`, `business_use`, `employee_contribution`, `statutory_formula_taxable_value`, `electric_car_exempt`, `year_ended`, `scope_confirmed` |
@@ -2478,35 +2478,45 @@ compensation calculator on
 [ryanduguid.github.io](https://ryanduguid.github.io/tools/business-calculators/workers-compensation/)
 does. It takes the `wages` the scheme defines, the `rate` (per cent of wages)
 the insurer gives the employer's classification, whether the employer is a
-`group_member`, and optionally `apprentice_wages` (New South Wales,
-Queensland and South Australia deduct them at the rate) and `actual_wages`,
-on which it works the premium again and gives the `adjustment`. Each scheme
-adds its own facts:
+`group_member`, and optionally `apprentice_wages` (Queensland and South
+Australia deduct them at the rate) and `actual_wages`, on which it works the
+premium again with the same scheme facts and gives the `adjustment`. Each
+scheme adds its own facts:
 
 - New South Wales: `dust_diseases_rate` (including GST) and
-  `safe_employer_reward`, under icare's small employer formula; an average
-  performance premium over $30,000 and a premium under icare's $240 minimum
-  are refused;
+  `safe_employer_reward`, under icare's small employer formula for a
+  12-month policy; an average performance premium (wages x rate, unrounded)
+  over $30,000, a premium under icare's $240 minimum and apprentice wages
+  above nil (icare does not say whether its apprentice incentive comes off
+  before or after GST) are refused, and `gst` excludes the GST within the dust
+  diseases contribution;
 - Victoria: `employer` (`new`, `small` or `other`, which is refused),
   `days_registered` and `excess_buy_out`, under the WorkCover Premiums Order
   (No. 34) 2026/2027 with Gazette S 284's $400 minimum, 0.1 buy-out value and
-  15,500 deductible amount;
+  15,500 deductible amount, for one rate and one remuneration figure, with
+  N / 365 rounded to 6 places (clause 6(1)) and the deductible to the cent
+  (clause 6(4)); a remuneration that rounds to $0 is refused;
 - Queensland: `policy_start`, from 1 July 2026 to 30 June 2027, under
   WorkCover Queensland Notice (No. 1) of 2026, with 5% insurance duty on the
-  premium and its GST and the section 4.1 minimum for the quarter;
-- South Australia: `first_full_year` and `claims_costs`, under
+  premium and its GST and the section 4.1 minimum for the quarter, for a new
+  policy with no further premium; a premium that rounding the estimated
+  premium and the apprentice discount first would move, and actual wages, are
+  refused;
+- South Australia: `new_employer` (true until the employer has completed a
+  full financial year registered; a business transfer brings its history),
+  `claims_costs` and, with actual wages, `actual_apprentice_wages`, under
   ReturnToWorkSA's BP x (1 - D) + C - A with the $200 minimum, rounded down to
   the dollar;
 - Western Australia, Tasmania, the ACT and the Northern Territory: the
-  insurer's rate times wages, plus GST.
+  insurer's rate times wages, plus GST, for a policy with no minimum, fixed
+  charge, other adjustment or group allocation.
 
 The amounts are each scheme's steps, then `premium`, `gst`, `duty`, `total`
 and, with actual wages, `actual_total` and `adjustment`. It refuses group
 members in the 4 public schemes, experience-rated premiums, a Queensland
-policy that commenced before 1 July 2026, a South Australian base premium
+policy that commenced before 1 July 2026 and a South Australian base premium
 above a band's bound less a cent and below the bound (ReturnToWorkSA's table
-and calculator differ there) and a Victorian deductible that rounding N / 365
-to 6 places would move. The tests hold it to every case of the site's page
+and calculator differ there). The tests hold it to every case of the site's page
 and to the schemes' examples; see
 [calculation evidence](docs/calculation-evidence.md#workers-compensation-premium).
 

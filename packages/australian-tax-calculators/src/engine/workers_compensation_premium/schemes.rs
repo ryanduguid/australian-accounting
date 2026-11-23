@@ -92,7 +92,7 @@ pub(super) fn within(apprentice: i128, wages: i128) -> Result<()> {
 pub(super) fn premium(facts: &Facts, wages: i128, rate: i128, apprentice: i128) -> Result<Premium> {
     within(apprentice, wages)?;
     match facts {
-        Facts::Nsw { dust, reward } => nsw(wages, rate, apprentice, (*dust, *reward)),
+        Facts::Nsw { dust, reward } => nsw(wages, rate, (*dust, *reward)),
         Facts::Vic(vic) => victoria(wages, rate, vic),
         Facts::Qld(qld) => queensland(wages, rate, apprentice, qld),
         Facts::Sa(sa) => south_australia(wages, rate, apprentice, sa),
@@ -104,22 +104,19 @@ const NSW_SMALL_LIMIT: i128 = 3_000_000;
 const NSW_MINIMUM: i128 = 24_000;
 
 /// New South Wales, a small employer (icare): the average performance
-/// premium less the Safe Employer Reward on it and the apprentice incentive,
-/// plus GST, then the dust diseases contribution, whose rate includes GST.
-fn nsw(wages: i128, rate: i128, apprentice: i128, (dust, reward): (i128, i128)) -> Result<Premium> {
-    let app = at(wages, rate);
-    if app > NSW_SMALL_LIMIT {
+/// premium less the Safe Employer Reward on it, plus GST, then the dust
+/// diseases contribution, whose rate includes GST. The small employer limit
+/// is tested on the exact product: icare does not say APP is rounded first.
+fn nsw(wages: i128, rate: i128, (dust, reward): (i128, i128)) -> Result<Premium> {
+    if wages * rate > NSW_SMALL_LIMIT * 1_000_000 {
         return refuse(
             "workers_compensation_premium.experience_rated",
-            format!(
-                "The average performance premium of {} is more than $30,000, so icare experience-rates the premium on its claims model: use the renewal notice.",
-                shown(app)
-            ),
+            "The average performance premium (wages x the WIC rate) is more than $30,000, so icare experience-rates the premium on its claims model: use the renewal notice.",
         );
     }
+    let app = at(wages, rate);
     let ser = at(app, reward);
-    let incentive = at(apprentice, rate);
-    let premium = app - ser - incentive;
+    let premium = app - ser;
     if premium < NSW_MINIMUM {
         return refuse(
             "workers_compensation_premium.below_minimum",
@@ -135,7 +132,6 @@ fn nsw(wages: i128, rate: i128, apprentice: i128, (dust, reward): (i128, i128)) 
         lines: vec![
             ("average_performance_premium", app),
             ("safe_employer_reward", ser),
-            ("apprentice_incentive", incentive),
             ("dust_diseases_contribution", contribution),
         ],
         premium,
@@ -153,28 +149,22 @@ const VIC_MINIMUM: i128 = 40_000;
 const VIC_DEDUCTIBLE_DOLLARS: i128 = 15_500;
 
 /// Victoria, a new or small employer: Premiums Order (No. 34) clauses 6 and
-/// 8 to 11 with Gazette S 284's values, remuneration to the dollar, the
-/// deductible to the cent, the WorkCover and buy-out premiums down to it.
+/// 8 to 11 with Gazette S 284's values, remuneration to the dollar, N / 365
+/// to 6 places (cl 6(1)), the deductible to the cent (cl 6(4)), the WorkCover
+/// and buy-out premiums down to it.
 fn victoria(wages: i128, rate: i128, vic: &Vic) -> Result<Premium> {
     let remuneration = half(wages, 100);
-    // Clause 9(2), in millionths of a dollar; clause 11 is the premium rate
-    // x 15,500 x N / 365 for one rate, to the cent.
-    let preliminary = remuneration * rate;
-    let deductible = half(rate * VIC_DEDUCTIBLE_DOLLARS * vic.days, 365 * 10_000);
-    // Clause 6(1) rounds 'all numbers' to 6 places; with N / 365 so rounded
-    // the deductible can move a cent, and which reading holds is unsettled.
-    let ratio = half(vic.days * 1_000_000, 365);
-    let six_places = half(rate * VIC_DEDUCTIBLE_DOLLARS * ratio, 10_000_000_000);
-    if six_places != deductible {
+    if remuneration == 0 {
         return refuse(
-            "workers_compensation_premium.rounding_unsettled",
-            format!(
-                "The deductible is {} worked exactly and {} with N / 365 rounded to 6 decimal places; which Premiums Order (No. 34) clause 6(1) requires is unsettled.",
-                shown(deductible),
-                shown(six_places)
-            ),
+            "workers_compensation_premium.remuneration_nil",
+            "The remuneration rounds to $0, and clause 11's deductible divides by it: the Premiums Order gives no figure, so use WorkSafe's premium notice.",
         );
     }
+    // Clause 9(2), in millionths of a dollar; clause 11 is the premium rate
+    // x 15,500 x N / 365 for one rate, with N / 365 in millionths.
+    let preliminary = remuneration * rate;
+    let ratio = half(vic.days * 1_000_000, 365);
+    let deductible = half(rate * VIC_DEDUCTIBLE_DOLLARS * ratio, 10_000_000_000);
     let worked = (preliminary - deductible * 10_000) / 10_000;
     let workcover = worked.max(VIC_MINIMUM);
     let buy_out = if vic.buy_out { workcover / 10 } else { 0 };
@@ -207,6 +197,18 @@ fn queensland(wages: i128, rate: i128, apprentice: i128, qld: &Qld) -> Result<Pr
     let estimated = at(wages, rate);
     let discount = at(apprentice, rate);
     let mut premium = estimated - discount;
+    let unrounded = at(wages - apprentice, rate);
+    let charged = |p: i128| p + gst(p) + half((p + gst(p)) * 5, 100);
+    if premium != unrounded && charged(premium.max(unrounded)) >= qld.minimum {
+        return refuse(
+            "workers_compensation_premium.rounding_unsettled",
+            format!(
+                "The premium is {} with the estimated premium and the apprentice discount each rounded to the cent and {} with neither rounded first; the notice does not say which.",
+                shown(premium),
+                shown(unrounded)
+            ),
+        );
+    }
     let mut gst = gst(premium);
     let mut duty = half((premium + gst) * 5, 100);
     if premium + gst + duty < qld.minimum {

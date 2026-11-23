@@ -84,7 +84,7 @@ pub const SCOPES: &[(&str, &str)] = &[
     ),
     (
         "workers_compensation_premium",
-        "One employer's workers compensation premium for a policy or premium period in 2026-27 in one of New South Wales, Victoria, Queensland, Western Australia, South Australia, Tasmania, the Australian Capital Territory and the Northern Territory, on the wages it estimates and the industry or premium rate its insurer gives it, with the premium worked again on its actual wages and the adjustment. The operator establishes the wages as the scheme defines them, the rate, the apprentice wages and each scheme's facts. New South Wales: a small employer (average performance premium of $30,000 or less) under icare's formula, the average performance premium less the Safe Employer Reward and the apprentice incentive, plus GST, then the dust diseases contribution at a rate that includes GST; a premium under icare's $240 minimum is refused. Victoria: a new or small employer under the WorkCover Premiums Order (No. 34) 2026/2027 cl 6 to 12 with the $400 minimum premium, 0.1 buy-out value and 15,500 deductible amount of Gazette S 284, plus GST. Queensland: a policy that commences to insure in 2026-27 under WorkCover Queensland Notice (No. 1) of 2026 ss 3.2, 4.1, 5.2, 8.3 and 10.1, plus GST and insurance duty of 5% of the premium and its GST (Duties Act 2001 (Qld) s 362(3)), with s 4.1's minimum including both. South Australia: ReturnToWorkSA's BP x (1 - D) + C - A with its discount bands, claims costs capped at 3 x D x BP and no discount or claims costs in the first full year, at least $200 and rounded down to the dollar, plus GST; the supplementary underwriting rate is nil. Western Australia, Tasmania, the ACT and the Northern Territory: the insurer's rate times wages, plus GST. Each step is worked exactly and shown to the cent, half up, except where a scheme rounds otherwise. Refuses experience-rated and performance-rated premiums, group members in New South Wales, Victoria, Queensland and South Australia, a Queensland policy that commenced before 1 July 2026, a South Australian base premium above a band's bound less a cent and below the bound (ReturnToWorkSA's table and calculator differ), and a Victorian deductible that rounding N / 365 to 6 places would move. Excludes the industry classification and rate, what counts as wages, exemption from holding a policy, the Mine Safety Fund adjustment, catastrophic claims contribution and performance discount in New South Wales, default assessments, policies carried on from an earlier policy, the South Australian work health and safety fee, Comcare and self-insurers, household workers, early payment discounts and instalment interest.",
+        "One employer's workers compensation premium for a 12-month policy or premium period in 2026-27 in one of New South Wales, Victoria, Queensland, Western Australia, South Australia, Tasmania, the Australian Capital Territory and the Northern Territory, on the wages it estimates and the industry or premium rate its insurer gives it, with the premium worked again on its actual wages and the same scheme facts and the adjustment. The operator establishes the wages as the scheme defines them, the rate, the apprentice wages and each scheme's facts. New South Wales: a small employer (average performance premium, wages x the WIC rate, of $30,000 or less) under icare's formula with no apprentice incentive, the average performance premium less the Safe Employer Reward, plus GST, then the dust diseases contribution at a rate that includes GST (the gst amount excludes the GST within that contribution); a premium under icare's $240 minimum is refused. Victoria: a new employer (cl 12(5), including its related-employer and predecessor conditions) or small employer under the WorkCover Premiums Order (No. 34) 2026/2027 cl 6 to 12, with one premium rate and one remuneration figure (one workplace and coverage period), N / 365 to 6 places and the $400 minimum premium, 0.1 buy-out value and 15,500 deductible amount of Gazette S 284, plus GST. Queensland: a new policy (not reinstated under s 11 or carried on by a successor under s 12) that commences to insure in 2026-27 under WorkCover Queensland Notice (No. 1) of 2026 ss 3.2, 4.1, 5.2, 8.3 and 10.1 with no further premium under s 3.1, plus GST and insurance duty of 5% of the premium and its GST (Duties Act 2001 (Qld) s 362(3)), with s 4.1's minimum including both. South Australia: ReturnToWorkSA's BP x (1 - D) + C - A with its discount bands, claims costs capped at 3 x D x BP and no discount or claims costs while the employer has not completed a full financial year registered, at least $200 and rounded down to the dollar, plus GST; the supplementary underwriting rate is nil. Western Australia, Tasmania, the ACT and the Northern Territory: a policy whose premium is the insurer's rate times this employer's wages, plus GST, with no minimum, fixed charge, other adjustment or group allocation. Each step is worked exactly and shown to the cent, half up, except where a scheme rounds otherwise. Refuses experience-rated and performance-rated premiums, group members in New South Wales, Victoria, Queensland and South Australia, a New South Wales apprentice incentive, a Victorian remuneration that rounds to $0, a Queensland policy that commenced before 1 July 2026, a Queensland premium that rounding the estimated premium and apprentice discount first would move, Queensland actual wages, and a South Australian base premium above a band's bound less a cent and below the bound (ReturnToWorkSA's table and calculator differ). Excludes the industry classification and rate, what counts as wages, exemption from holding a policy, the Mine Safety Fund adjustment, catastrophic claims contribution and performance discount in New South Wales, default assessments, policies carried on from an earlier policy, business transfers in South Australia, the South Australian work health and safety fee, Comcare and self-insurers, household workers, early payment discounts and instalment interest.",
     ),
     (
         "payroll_tax",
@@ -4696,12 +4696,20 @@ pub const REFUSAL_CODES: &[(&str, &str)] = &[
         "The expenses were reimbursed or paid for by someone else, so the taxpayer did not bear them.",
     ),
     (
+        "workers_compensation_premium.adjustment_unsettled",
+        "Actual wages were given for a Queensland policy commencing in 2026-27, for which the notice sets no year-end adjustment.",
+    ),
+    (
         "workers_compensation_premium.apprentice_above_wages",
         "Apprentice wages are more than the wages they are part of.",
     ),
     (
         "workers_compensation_premium.apprentice_unavailable",
         "Apprentice wages above nil were given for a scheme this worksheet deducts none for (vic, wa, tas, act, nt).",
+    ),
+    (
+        "workers_compensation_premium.apprentice_unsettled",
+        "Apprentice wages above nil were given in New South Wales, where icare does not say whether its apprentice incentive comes off before or after GST.",
     ),
     (
         "workers_compensation_premium.band_edge_unsettled",
@@ -4744,8 +4752,12 @@ pub const REFUSAL_CODES: &[(&str, &str)] = &[
         "A rate is not a percentage in its range to at most 4 decimal places.",
     ),
     (
+        "workers_compensation_premium.remuneration_nil",
+        "A Victorian remuneration rounds to $0, and the Premiums Order's deductible divides by it.",
+    ),
+    (
         "workers_compensation_premium.rounding_unsettled",
-        "A Victorian deductible differs by a cent with N / 365 rounded to 6 decimal places (Premiums Order (No. 34) cl 6(1)), and which reading holds is unsettled.",
+        "A Queensland premium differs by a cent with the estimated premium and apprentice discount each rounded to the cent first, and the notice does not say which.",
     ),
     (
         "working_holiday_maker.band_unsettled",

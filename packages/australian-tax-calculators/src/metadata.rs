@@ -3185,11 +3185,11 @@ pub fn optional_inputs(kind: &str) -> Vec<(&'static str, &'static str)> {
         "workers_compensation_premium" => vec![
             (
                 "apprentice_wages",
-                "AUD, in nsw, qld and sa only (nil when absent; above nil elsewhere is refused): the wages of qualifying apprentices included in wages, which the scheme deducts at the rate (icare's apprentice incentive, WorkCover Queensland Notice (No. 1) of 2026 s 8.3, ReturnToWorkSA's apprentice incentive); no more than wages",
+                "AUD, in qld and sa only (nil when absent; above nil elsewhere is refused, in nsw because icare's text does not settle whether its apprentice incentive comes off before or after GST): the wages of qualifying apprentices included in wages, which the scheme deducts at the rate (WorkCover Queensland Notice (No. 1) of 2026 s 8.3, ReturnToWorkSA's apprentice incentive); no more than wages",
             ),
             (
                 "actual_wages",
-                "AUD: the wages actually paid in the period; the premium is worked again on them with the same rate and apprentice wages, and the adjustment is the difference",
+                "AUD, outside qld (refused there: the 2026-27 notice sets no year-end adjustment for a new policy): the wages actually paid in the period; the premium is worked again on them with the same rate and scheme facts (in sa with actual_apprentice_wages), and the adjustment is the difference",
             ),
             (
                 "dust_diseases_rate",
@@ -3216,12 +3216,16 @@ pub fn optional_inputs(kind: &str) -> Vec<(&'static str, &'static str)> {
                 "YYYY-MM-DD, in qld only and then required: the day the policy commences to insure, from 1 July 2026 to 30 June 2027; a policy that commenced before 1 July 2026 is refused",
             ),
             (
-                "first_full_year",
-                "boolean, in sa only and then required: true in the employer's first full financial year registered, when no discount or claims costs apply",
+                "new_employer",
+                "boolean, in sa only and then required: true while the employer has not completed a full financial year registered with ReturnToWorkSA (its initial part year and first full year), when it pays the base premium with no discount or claims costs; false once it has, or when it took over a business whose history transfers",
+            ),
+            (
+                "actual_apprentice_wages",
+                "AUD, in sa with actual_wages and then required: the apprentice remuneration in the actual wages",
             ),
             (
                 "claims_costs",
-                "AUD, in sa when first_full_year is false and then required: the income support paid in 2025-26 on claims with a date of injury in 2023-24 to 2025-26, as ReturnToWorkSA counts them",
+                "AUD, in sa when new_employer is false and then required: the income support paid in 2025-26 on claims with a date of injury in 2023-24 to 2025-26, as ReturnToWorkSA counts them",
             ),
         ],
         "payroll_tax" => vec![(
