@@ -8,7 +8,7 @@
 //! (ryanduguid.github.io `assets/first-home-owner-grant.mjs`, 22 November
 //! 2026) works it, with each First Home Owner Grant Act read on 23 November
 //! 2026: Vic version 053 ss 13 and 18; Qld as at 22 October 2026 ss 5, 15 and
-//! 20; WA as at 22 October 2026 ss 14AD and 19; SA version 4.12.2025 ss 7 and
+//! 20; WA as at 22 October 2026 ss 14AC, 14AD and 19; SA version 4.12.2025 ss 7 and
 //! 18; Tas as at 9 October 2026 ss 18, 18L and 18M; NT as in force at 1 July
 //! 2026 ss 13, 18 and 56; ACT republication 37 s 18. The NSW Act could not be
 //! read that day, so NSW rests on Revenue NSW's page. Where an Act differs
@@ -30,8 +30,10 @@ const LAST: &str = "2026-11-22";
 const NEW_ONLY: &str = "the grant is for a new home only";
 const LESSER: &str = "the grant cannot be more than the consideration";
 
-/// The input taken only in Western Australia.
-pub const FHOG_OPTIONAL: [&str; 1] = ["north_of_26th"];
+/// The inputs taken only in some jurisdictions: Western Australia's
+/// location, and the value Queensland and Western Australia test against
+/// their caps where it is not the consideration.
+pub const FHOG_OPTIONAL: [&str; 2] = ["north_of_26th", "cap_value"];
 
 /// The 4 facts every grant needs, then the facts some transactions need.
 const FACTS: [(&str, &str); 4] = [
@@ -70,7 +72,7 @@ pub struct FirstHomeOwnerGrantArgs<'a> {
     pub facts: &'a Arg,
     pub year: &'a Arg,
     pub scope_confirmed: &'a Arg,
-    pub optional: [Option<&'a Arg>; 1],
+    pub optional: [Option<&'a Arg>; 2],
 }
 
 /// One amount for contracts made from `from` until the next rule's `from`. `bought`,
@@ -372,16 +374,30 @@ fn facts(given: &Arg) -> Result<Vec<&'static str>> {
     Ok(stated)
 }
 
-fn value(given: &Arg) -> Result<Decimal> {
+fn value(given: &Arg, name: &str) -> Result<Decimal> {
     let dollars = money(given)?;
-    whole_dollars(&dollars, "total_value")?;
+    whole_dollars(&dollars, name)?;
     if dollars.lt(&int(1))? || dollars.gt(&int(1_000_000_000))? {
         return refuse(
             "first_home_owner_grant.value_invalid",
-            "total_value must be whole dollars from 1 to 1,000,000,000.",
+            format!("{name} must be whole dollars from 1 to 1,000,000,000."),
         );
     }
     Ok(dollars)
+}
+
+/// The value Queensland (s 5(7) and (8)) and Western Australia (s 14AC)
+/// test against the cap where it differs from the consideration: taken
+/// there and refused elsewhere.
+fn cap_value(s: &Scheme, given: Option<&Arg>) -> Result<Option<Decimal>> {
+    match given {
+        Some(given) if matches!(s.code, "qld" | "wa") => value(given, "cap_value").map(Some),
+        Some(_) => refuse(
+            "input.field_unknown",
+            "cap_value is an input only for Queensland and Western Australia",
+        ),
+        None => Ok(None),
+    }
 }
 
 /// Western Australia's location: required there and refused elsewhere.
@@ -448,15 +464,16 @@ pub fn first_home_owner_grant(args: &FirstHomeOwnerGrantArgs) -> Result<Value> {
     let house = home(args.home)?;
     let date = contract_date(args.contract_date, &year)?;
     let stated = facts(args.facts)?;
-    let dollars = value(args.total_value)?;
+    let dollars = value(args.total_value, "total_value")?;
     let north = north(s, args.optional[0])?;
+    let tested = tested(house, &dollars, cap_value(s, args.optional[1])?)?;
     // Every scheme has a rule from 1 July 2025 or earlier.
     let r = s
         .rules
         .iter()
         .rfind(|r| r.from <= date.as_str())
         .unwrap_or(&s.rules[0]);
-    let worked = work(s, r, house, &dollars, north, &stated)?;
+    let worked = work(s, r, house, (&dollars, &tested), north, &stated)?;
     let mut out = result(KIND, &year, vec![("grant", worked.grant)], Vec::new())?;
     out["jurisdiction"] = json!(s.name);
     out["contract_date"] = json!(date);
@@ -467,11 +484,24 @@ pub fn first_home_owner_grant(args: &FirstHomeOwnerGrantArgs) -> Result<Value> {
     Ok(out)
 }
 
+/// The value tested against the cap: for a home bought, the greater of the
+/// consideration and `cap_value` (Qld s 5(6) and (7), WA s 14AC(2)); for a
+/// home built, `cap_value` in place of the land and contract total (Qld
+/// s 5(8), WA s 14AC(3)); otherwise `total_value`.
+fn tested(house: Home, dollars: &Decimal, cap: Option<Decimal>) -> Result<Decimal> {
+    Ok(match cap {
+        Some(cap) if house == Home::Built || cap.gt(dollars)? => cap,
+        _ => dollars.clone(),
+    })
+}
+
+/// The pair is the consideration, which limits the grant, and the value
+/// tested against the cap.
 fn work(
     s: &Scheme,
     r: &Rule,
     house: Home,
-    dollars: &Decimal,
+    (dollars, tested): (&Decimal, &Decimal),
     north: Option<bool>,
     stated: &[&str],
 ) -> Result<Grant> {
@@ -499,7 +529,7 @@ fn work(
         Some(limit) => format!("up to {}", whole(limit)),
     };
     if let Some(limit) = limit
-        && dollars.gt(&int(limit))?
+        && tested.gt(&int(limit))?
     {
         return over_cap(s, house, &cap);
     }

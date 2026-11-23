@@ -4425,11 +4425,17 @@ differs, the Act is followed:
   the consideration for the building work (s 13(1A) and (7)(b)); the page
   pays nil.
 
-The value tested is the one each source names: the price for a home bought,
-but in Queensland the unencumbered value of the home and land as well as the
-consideration (s 5(6) and (7)) and in Western Australia the greater of the
-consideration and the value (s 14AC), so there `total_value` is the greater
-of the price and the unencumbered value. Each residence requirement is stated
+The value tested against the cap is the one each source names, kept apart
+from the consideration that limits the grant (`total_value`). In Queensland
+and Western Australia the optional `cap_value` carries the value the Act
+tests where it differs: for a home bought, the unencumbered value of the home
+and land at the contract date, tested with the price as the greater of the 2
+(Qld s 5(6) and (7), WA s 14AC(2)); for a home built, the building contract
+plus the land's value, tested in place of `total_value` (Qld s 5(8), WA
+s 14AC(3)). The grant stays the lesser of the consideration and the amount
+(Qld s 20(1), WA s 19(2CA)): a Queensland home bought for $20,000 and valued
+at $100,000 gets $20,000, and a Western Australian one bought for $5,000 and
+valued at $100,000 gets $5,000. Each residence requirement is stated
 with its principal place of residence condition, period and starting event.
 The page's transfer duty rows are not part of the worksheet.
 `tests/first_home_owner_grant.rs` runs the page's cases and every

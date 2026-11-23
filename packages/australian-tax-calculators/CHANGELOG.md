@@ -8,8 +8,10 @@
   and territory for a new home bought or built under a contract made from
   1 July 2025 to 22 November 2026, as the site's grant page works it, with
   each First Home Owner Grant Act read on 23 November 2026: the amount on
-  the contract date, the value cap and the lesser-of-consideration rule,
-  from eligibility facts the operator states. New codes:
+  the contract date, the value cap (with an optional `cap_value` where
+  Queensland and Western Australia test a value other than the
+  consideration) and the lesser-of-consideration rule, from eligibility
+  facts the operator states. New codes:
   `first_home_owner_grant.below_grant`, `first_home_owner_grant.date_invalid`,
   `first_home_owner_grant.date_uncovered`, `first_home_owner_grant.fact_needed`,
   `first_home_owner_grant.facts_invalid`, `first_home_owner_grant.facts_not_stated`,

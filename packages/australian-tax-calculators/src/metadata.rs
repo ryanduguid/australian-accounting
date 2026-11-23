@@ -3048,10 +3048,16 @@ pub fn optional_inputs(kind: &str) -> Vec<(&'static str, &'static str)> {
                 "boolean, for excepted_person double_orphan_pension, double_orphan_pension_s1003 or permanent_disability_certificate only, and then required: wholly or substantially dependent on relatives for support for the whole period, taken to be so whilst living with relatives unless the contrary is established (ITAA 1936 s 102AC(3) to (5)); true means not excepted",
             ),
         ],
-        "first_home_owner_grant" => vec![(
-            "north_of_26th",
-            "boolean, for wa only, and then required: the home is north of the 26th parallel of South latitude (all of Perth is south of it)",
-        )],
+        "first_home_owner_grant" => vec![
+            (
+                "north_of_26th",
+                "boolean, for wa only, and then required: the home is north of the 26th parallel of South latitude (all of Perth is south of it)",
+            ),
+            (
+                "cap_value",
+                "AUD, whole dollars from 1 to 1,000,000,000, for qld and wa only: the value the Act tests against the cap where it differs from total_value. For a home bought, the unencumbered value of the home and land at the contract date (Qld s 5(7), WA s 14AC(2)), tested with the price: the greater of the 2 is tested. For a home built, the consideration for the building contract plus the land's value (Qld s 5(8): its unencumbered value at the contract date; WA s 14AC(3)), tested in place of total_value. It never changes the consideration that limits the grant; without it total_value is tested",
+            ),
+        ],
         "psi_test" => vec![
             (
                 "commission",
@@ -5308,7 +5314,7 @@ pub fn input_units(kind: &str) -> Vec<(&'static str, &'static str)> {
             ("jurisdiction", "nsw, vic, qld, wa, sa, tas, act or nt"),
             ("contract_date", "date, YYYY-MM-DD, from 2025-07-01 to 2026-11-22 and within year: the date the contract to buy or build was made (the commencement date)"),
             ("home", "bought (a new home, including off the plan), built (under a comprehensive home building contract, including a house and land package) or established"),
-            ("total_value", "AUD, whole dollars from 1 to 1,000,000,000: the value the jurisdiction tests against its cap. For a home bought, the price, except in Queensland (s 5(6) and (7)) and Western Australia (s 14AC), where it is the greater of the price and the unencumbered value of the home and land at the contract date; for a home built, the land and the building contract with its variations. A value below the grant is taken as the consideration"),
+            ("total_value", "AUD, whole dollars from 1 to 1,000,000,000: the consideration, which limits the grant. For a home bought, the price; for a home built, the land and the building contract with its variations. It is also the value tested against the cap unless cap_value is given"),
             ("facts", "object of booleans, each your statement, not tested: person (every applicant is a person aged 18 or over), citizen (an applicant is an Australian citizen or permanent resident), first_home (no applicant or spouse is excluded by the prior grant and ownership rules) and residence (the residence requirement will be met), all 4 required; building_contract (a home built: the contract price without the land is at least the grant); nt_no_replacement (nt: the contract replaces none signed before 1 October 2024); tas_conditions (tas: the completion and replacement conditions of s 18L or 18M)"),
         ],
         "psi_test" => vec![

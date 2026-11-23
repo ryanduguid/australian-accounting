@@ -226,7 +226,7 @@ booleans and counts, ages, days, quarters and scales are JSON integers.
 | `prepayments` | `taxpayer`, `individual`, `business_expenditure`, `chose_82kzmd`, `expenditure`, `incurred`, `service_start`, `service_end`, `agreement_date`, `exclusion`, `tax_shelter`, `year`, `scope_confirmed`; see [Prepayments](#prepayments) |
 | `non-commercial-losses` | `activity`, `assessable_income`, `deductions`, `brought_forward`, `part_year`, `earlier_years`, `real_property_value`, `other_assets_value`, `taxable_income`, `business_losses`, `assessable_fhss_released_amount`, `reportable_fringe_benefits`, `reportable_super_contributions`, `total_net_investment_loss`, `net_exempt_income`, `year`, `scope_confirmed`; `assessable_income_estimate` for a part year and `other_income` for an excepted activity; see [Non-commercial losses](#non-commercial-losses) |
 | `minors-income` | `taxable_income`, `residency`, `under_18_on_30_june`, `excepted_person`, `excepted_income`, `trust_shares`, `other_assessable_income`, `deductions_exclusive`, `deductions_related`, `apportionable_deductions`, `special_income_component`, `year`, `scope_confirmed`; `full_time_occupation` or `dependent_on_relatives` for some grounds; see [Minors income](#minors-income) |
-| `first-home-owner-grant` | `jurisdiction`, `contract_date`, `home`, `total_value`, `facts`, `year`, `scope_confirmed`; in Western Australia, `north_of_26th`; see [First home owner grant](#first-home-owner-grant) |
+| `first-home-owner-grant` | `jurisdiction`, `contract_date`, `home`, `total_value`, `facts`, `year`, `scope_confirmed`; in Western Australia, `north_of_26th`; in Queensland and Western Australia, optionally `cap_value`; see [First home owner grant](#first-home-owner-grant) |
 | `psi-test` | `earner`, `mainly_personal_efforts`, `determination_in_force`, `payers`, `agent`, `principal_work_by_others`, `apprentice`, `premises`, `year`, `scope_confirmed`; `commission` and `principal_payments` for an agent; see [PSI test](#psi-test) |
 | `payg-instalment` | `method`, `year`, `scope_confirmed`; then `notified_amount` for `amount`; `instalment_number`, `estimated_tax`, `earlier_instalments` and `credits_entitled` for `varied_amount`; `instalment_income` and `instalment_rate` for `rate`; `instalment_income`, `previous_rate`, `estimated_tax`, `estimated_instalment_income`, `earlier_instalments`, `credits_claimed` and `earlier_instalment_income` for `varied_rate`; see [PAYG instalments](#payg-instalments) |
 | `smsf-tax` | `complying_fund`, `australian_superannuation_fund`, `assessable_contributions`, `no_tfn_contributions`, `net_non_arms_length_income`, `general_expense_non_arms_length_income`, `segregated_pension_income`, `unsegregated_income`, `segregated_non_current_income`, `exempt_proportion`, `disregarded_small_fund_assets`, `deductions`, `contribution_deductions`, `non_refundable_offsets`, `carry_forward_offsets`, `refundable_offsets`, `eligible_credits`, `payg_instalments`, `interest_charge`, `newly_registered`, `wound_up`, `year`, `scope_confirmed`; see [SMSF tax](#smsf-tax) |
@@ -3531,11 +3531,16 @@ building work alone, s 13(1A) and (7)(b)), a Northern Territory or
 Tasmanian contract without its conditions, and a Western Australian home
 without its location. Owner-builders, substantially renovated homes,
 exemptions, the Commissioner's discretions and transfer duty are outside it.
-`total_value` is the value the jurisdiction tests against its cap: for a home bought,
-the price, but in Queensland and Western Australia the greater of the price and the
-unencumbered value of the home and land at the contract date (Qld s 5(6) and (7), WA
-s 14AC); for a home built, the land and the building contract with its variations. A
-value below the grant is taken as the consideration. The tests hold it to the site page's 26 cases; see
+`total_value` is the consideration: for a home bought, the price; for a home
+built, the land and the building contract with its variations. It limits the
+grant and is the value tested against the cap, except that in Queensland and
+Western Australia `cap_value` gives the value the Act tests where it differs:
+for a home bought, the unencumbered value of the home and land at the
+contract date, tested with the price (the greater of the 2; Qld s 5(6) and
+(7), WA s 14AC(2)); for a home built, the building contract plus the land's
+value, tested in place of `total_value` (Qld s 5(8), WA s 14AC(3)). A home
+bought for $20,000 and valued at $100,000 in Queensland gets $20,000.
+The tests hold it to the site page's 26 cases; see
 [calculation evidence](docs/calculation-evidence.md#first-home-owner-grant).
 
 ## PSI test

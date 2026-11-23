@@ -386,6 +386,62 @@ fn the_acts_where_the_page_refuses_or_pays_nil() {
     );
 }
 
+/// Qld s 5(6) to (8) and WA s 14AC test a value that can differ from the
+/// consideration, which still limits the grant (Qld s 20(1), WA s 19(2CA)).
+#[test]
+fn the_cap_value_is_kept_apart_from_the_consideration() {
+    let lesser = "the grant cannot be more than the consideration";
+    let qld = |home, value, cap: u64| {
+        with(
+            case("qld", "2026-08-01", home, value, &["building_contract"]),
+            json!({"cap_value": cap.to_string()}),
+        )
+    };
+    let wa = |value, cap: u64| {
+        with(
+            case("wa", "2026-08-01", "bought", value, &[]),
+            json!({"north_of_26th": false, "cap_value": cap.to_string()}),
+        )
+    };
+    // A value above the price raises no grant above the consideration.
+    assert_eq!(
+        grant(&qld("bought", 20_000, 100_000)),
+        ("20000.00".into(), lesser.into())
+    );
+    assert_eq!(
+        grant(&wa(5_000, 100_000)),
+        ("5000.00".into(), lesser.into())
+    );
+    // Qld s 5(7): a price under $750,000 on a home and land valued at
+    // $750,000 or more.
+    assert_eq!(
+        grant(&qld("bought", 700_000, 750_000)),
+        ("0.00".into(), "the value is $750,000 or more".into())
+    );
+    assert_eq!(grant(&qld("bought", 700_000, 749_999)).0, "30000.00");
+    // A home bought is tested on the greater of the price and the value
+    // (Qld s 5(6) and (7); WA s 14AC(2)).
+    assert_eq!(grant(&qld("bought", 750_000, 600_000)).0, "0.00");
+    assert_eq!(grant(&wa(800_001, 700_000)).0, "0.00");
+    assert_eq!(
+        grant(&wa(700_000, 800_001)),
+        (
+            "0.00".into(),
+            "the value is over the Western Australia cap".into()
+        )
+    );
+    assert_eq!(grant(&wa(700_000, 800_000)).0, "10000.00");
+    // A home built is tested on the Act's total alone (Qld s 5(8), WA
+    // s 14AC(3)): the contract and the land's value, not its price.
+    assert_eq!(grant(&qld("built", 760_000, 740_000)).0, "30000.00");
+    assert_eq!(grant(&qld("built", 700_000, 750_000)).0, "0.00");
+    // Without it, the value tested is total_value, as on the page.
+    assert_eq!(
+        grant(&case("qld", "2026-08-01", "bought", 20_000, &[])),
+        ("20000.00".into(), lesser.into())
+    );
+}
+
 #[test]
 fn established_homes_get_nothing_without_their_facts() {
     for place in ["nsw", "vic", "qld", "sa", "tas"] {
@@ -466,6 +522,7 @@ fn refusals() {
         ),
         (json!({"total_value": "-1"}), "input.amount_invalid"),
         (json!({"north_of_26th": false}), "input.field_unknown"),
+        (json!({"cap_value": "700000"}), "input.field_unknown"),
         (json!({"total_value": "remove"}), "input.missing_field"),
         (json!({"suburb": "Parramatta"}), "input.field_unknown"),
     ] {
@@ -482,6 +539,19 @@ fn refusals() {
         )),
         "input.flag_invalid"
     );
+    let qld = case("qld", "2026-08-01", "bought", 600_000, &[]);
+    for (cap, want) in [
+        ("0", "first_home_owner_grant.value_invalid"),
+        ("1000000001", "first_home_owner_grant.value_invalid"),
+        ("700000.50", "input.amount_not_whole_dollars"),
+        ("-1", "input.amount_invalid"),
+    ] {
+        assert_eq!(
+            code(&with(qld.clone(), json!({"cap_value": cap}))),
+            want,
+            "{cap}"
+        );
+    }
     assert_eq!(
         code(&case("nsw", "2026-08-01", "built", 600_000, &[])),
         "first_home_owner_grant.fact_needed"

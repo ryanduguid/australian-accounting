@@ -3472,7 +3472,7 @@ pub const REFUSAL_CODES: &[(&str, &str)] = &[
     ),
     (
         "first_home_owner_grant.value_invalid",
-        "total_value is not whole dollars from 1 to 1,000,000,000.",
+        "total_value or cap_value is not whole dollars from 1 to 1,000,000,000.",
     ),
     (
         "foreign_income_conversion.average_period",
