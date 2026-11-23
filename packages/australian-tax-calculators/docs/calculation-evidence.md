@@ -4323,7 +4323,11 @@ Choices the Act leaves to the reader:
 - Salary sacrificed shares or rights at a real risk of forfeiture, their
   discount equal to their market value, beside shares relying on
   s 83A-105(4) in one year are refused: whether the first count toward the
-  $5,000 is not settled here.
+  $5,000 is not settled here. So are forfeited interests acquired in that
+  year, which state no conditions. Only a salary sacrificed share relies on
+  s 83A-105(4); a share beside it that is not is treated on its own facts.
+- A salary sacrificed right without a real risk of forfeiture is refused:
+  its scheme fails s 83A-105(4)(b)(ii), which `salary_sacrifice` states.
 - Act No. 8, 2022 Sch 10 item 9 is applied to the taxing point after the
   30-day rule: ending employment before 1 July 2022 counts only where that
   point is before then.

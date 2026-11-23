@@ -153,30 +153,32 @@ fn may_count(kind: Kind, held: &Held<'_>, assessed: &Assessed) -> Result<bool> {
 
 /// s 83A-105(4)(c) and (5): the total market value at acquisition of the
 /// salary sacrificed shares in each income year, and whether it is within
-/// $5,000.
+/// $5,000. A forfeited interest states no conditions, so whether it counts is
+/// unknown, as for a salary sacrificed interest at a real risk.
 fn sacrifice_years(
     interests: &[Interest<'_>],
     assessed: &[Option<Assessed>],
 ) -> Result<BTreeMap<String, bool>> {
     let mut totals: BTreeMap<String, Decimal> = BTreeMap::new();
-    let mut at_risk: Vec<String> = Vec::new();
+    let mut unsettled: Vec<String> = Vec::new();
     for (interest, assessed) in interests.iter().zip(assessed) {
+        let year = income_year(interest.acquired);
         let (State::Held(held), Some(assessed)) = (&interest.state, assessed) else {
+            unsettled.push(year);
             continue;
         };
-        let year = income_year(interest.acquired);
         if sacrificed(interest, assessed)? {
             let total = totals.remove(&year).unwrap_or_else(|| int(0));
             totals.insert(year, total.add(&held.value)?);
         } else if may_count(interest.kind, held, assessed)? {
-            at_risk.push(year);
+            unsettled.push(year);
         }
     }
-    if let Some(year) = at_risk.iter().find(|y| totals.contains_key(*y)) {
+    if let Some(year) = unsettled.iter().find(|y| totals.contains_key(*y)) {
         return refuse(
             "ess_discount.salary_sacrifice_unclear",
             format!(
-                "In {year} salary sacrificed interests at a real risk of forfeiture sit beside shares relying on s 83A-105(4); whether the first count toward the $5,000 of s 83A-105(4)(c) is not settled here: work them separately."
+                "In {year} salary sacrificed interests at a real risk of forfeiture, or forfeited interests, sit beside shares relying on s 83A-105(4); whether the first count toward the $5,000 of s 83A-105(4)(c) is not settled here: work them separately."
             ),
         );
     }
@@ -185,6 +187,23 @@ fn sacrifice_years(
         .into_iter()
         .map(|(year, total)| Ok((year, !total.gt(&limit)?)))
         .collect()
+}
+
+/// s 83A-105(4) defers only a salary sacrificed share itself, in a year
+/// within $5,000.
+fn relies_on_4(
+    interest: &Interest<'_>,
+    assessed: Option<&Assessed>,
+    years: &BTreeMap<String, bool>,
+) -> Result<bool> {
+    let Some(a) = assessed else {
+        return Ok(false);
+    };
+    Ok(sacrificed(interest, a)?
+        && years
+            .get(&income_year(interest.acquired))
+            .copied()
+            .unwrap_or(false))
 }
 
 pub fn ess_discount(args: &EssDiscountArgs) -> Result<Value> {
@@ -198,12 +217,9 @@ pub fn ess_discount(args: &EssDiscountArgs) -> Result<Value> {
     let mut totals = Totals::new();
     let mut rows = Vec::new();
     for (interest, assessed) in interests.iter_mut().zip(&assessed) {
+        let ok = relies_on_4(interest, assessed.as_ref(), &sacrifice)?;
         let row = match (&mut interest.state, assessed) {
             (State::Held(held), Some(a)) => {
-                let ok = sacrifice
-                    .get(&income_year(interest.acquired))
-                    .copied()
-                    .unwrap_or(false);
                 let ctx = Context {
                     number: interest.number,
                     kind: interest.kind,

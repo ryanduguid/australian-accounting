@@ -3001,7 +3001,7 @@ pub const REFUSAL_CODES: &[(&str, &str)] = &[
     ),
     (
         "ess_discount.salary_sacrifice_unclear",
-        "In one income year salary sacrificed interests at a real risk of forfeiture, whose discount equals their market value, sit beside shares relying on s 83A-105(4), whose $5,000 limit the worksheet does not settle for them together.",
+        "In one income year salary sacrificed interests at a real risk of forfeiture, whose discount equals their market value, or forfeited interests sit beside shares relying on s 83A-105(4), whose $5,000 limit the worksheet does not settle for them together.",
     ),
     (
         "ess_discount.taxing_point_value",

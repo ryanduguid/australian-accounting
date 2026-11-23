@@ -1083,10 +1083,59 @@ fn a_salary_sacrificed_right_needs_a_real_risk() {
     right["restrictions_lifted"] = json!("2027-08-01");
     right["taxing_point_value"] = Value::Null;
     right.as_object_mut().unwrap().remove("employment_ended");
-    for interests in [json!([share, right.clone()]), json!([right])] {
-        let refused = call("2025-26", interests, Value::Null);
-        assert_eq!(code(&refused), "ess_discount.interests_invalid");
+    for stated in [true, false] {
+        right["conditions"]["deferral_stated"] = json!(stated);
+        for interests in [
+            json!([share.clone(), right.clone()]),
+            json!([right.clone()]),
+        ] {
+            let refused = call("2025-26", interests, Value::Null);
+            assert_eq!(code(&refused), "ess_discount.interests_invalid");
+        }
     }
+}
+
+/// A $3,000 share relying on s 83A-105(4) and, from the same income year, a
+/// forfeited interest: a forfeited parcel states no conditions, so whether it
+/// counted toward the $5,000 is unknown and the pair is refused.
+#[test]
+fn a_forfeited_interest_beside_a_salary_sacrificed_share() {
+    let mut share = with_conditions(
+        share("2025-08-01", "0.00", "3000.00"),
+        json!({"salary_sacrifice": true}),
+    );
+    share["restrictions_lifted"] = json!("2027-08-01");
+    share["disposed"] = Value::Null;
+    share["cost_base"] = json!("0.00");
+    share["taxing_point_value"] = Value::Null;
+    let mut lost = forfeited("right", "cancellation_allowed", false);
+    lost["acquired"] = json!("2025-08-01");
+    lost["forfeiture"]["consideration_received"] = json!(true);
+    lost["forfeiture"]["year_included"] = json!("2025-26");
+    let mixed = call("2025-26", json!([share.clone(), lost.clone()]), Value::Null);
+    assert_eq!(code(&mixed), "ess_discount.salary_sacrifice_unclear");
+    lost["acquired"] = json!("2024-08-01");
+    let r = run(&call("2025-26", json!([share, lost]), Value::Null));
+    assert_eq!(row(&r, 0)["rule"], "s 83A-105(4)");
+}
+
+/// s 83A-105(4) defers only the salary sacrificed share: a share beside it in
+/// the same year, not salary sacrificed and at no real risk, is taxed upfront.
+#[test]
+fn only_the_salary_sacrificed_share_relies_on_section_83a_105_4() {
+    let mut sacrificed = with_conditions(
+        share("2025-08-01", "0.00", "3000.00"),
+        json!({"salary_sacrifice": true}),
+    );
+    sacrificed["restrictions_lifted"] = json!("2027-08-01");
+    sacrificed["disposed"] = Value::Null;
+    sacrificed["cost_base"] = json!("0.00");
+    sacrificed["taxing_point_value"] = Value::Null;
+    let plain = share("2025-09-01", "500.00", "1500.00");
+    let r = run(&call("2025-26", json!([sacrificed, plain]), income("1.00")));
+    assert_eq!(row(&r, 0)["rule"], "s 83A-105(4)");
+    assert_eq!(row(&r, 1)["treatment"], "upfront_eligible");
+    assert_eq!(amount(&r, "upfront_eligible_discounts"), "1000.00");
 }
 
 /// s 83A-315.08(2): a calculation percentage on each column's upper edge
