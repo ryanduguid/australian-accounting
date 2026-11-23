@@ -4012,6 +4012,66 @@ Choices the law leaves to the reader:
 | Zac and Jen, $1 million, Jen's certificate; Zac's 5% notice | $75,000; $25,000 | $75,000.00; $25,000.00 |
 | Kim, 3 vendors, $1.3 million, no certificates | $195,000 ($65,000 each) | $195,000.00 |
 
+## Non-resident withholding
+
+`non_resident_withholding` was checked on 24 November 2026 against the Federal
+Register of Legislation compilations in force that day: Taxation
+Administration Act 1953 Schedule 1 Subdivisions 12-F (ss 12-210 to 12-300),
+12-FB (ss 12-315 to 12-319), 12-H (ss 12-383 to 12-453) and ss 12-1, 15-10,
+15-15, 18-15, 18-30 and 18-32 in compilation 227 (C2026C00468, 1 October
+2026), including Act No. 138 of 2024 Schedule 1 (active build to rent
+exclusion in s 12-450(5) from 1 January 2025); Income Tax Assessment Act 1936
+Division 11A ss 128B to 128D in compilation 193 (C2026C00454, 1 October 2026);
+Income Tax (Dividends, Interest and Royalties Withholding Tax) Act 1974 s 7
+(C2007C00596, 24 September 2007); Income Tax (Managed Investment Trust
+Withholding Tax) Act 2008 s 4 in compilation 3 (C2019C00219, 1 July 2019);
+Taxation Administration Regulations 2017 ss 26, 31 to 34, 39 to 45 and 48 to
+51 in compilation 18 (F2026C01210, 14 November 2026, sunsetting 1 October 2027
+under Legislation Act 2003 s 50); and Income Tax Rates Act 1986 s 23(2) and
+Schedule 7 Part II clause 1 in compilation 66 (C2026C00300, 1 July 2026).
+
+Choices the law leaves to the reader:
+
+- Every legal classification is the operator's fact: residency, treaty
+  entitlement and rate (including TAR 2017 s 40(3) for US tax-exempt
+  dividends), permanent establishment attribution, information exchange
+  country status (TAR 2017 s 34), clean building MIT and NCMI/active build to
+  rent classification, statutory exemptions (s 128B(3), ss 128F/128FA/128GB,
+  Div 880, s 12-319) and Commissioner variations (s 15-15).
+- Under TAA Sch 1 s 15-10(2), Subdivision 12-F (TAR 2017 ss 39 to 42) and
+  Subdivision 12-FB (TAR 2017 ss 48 to 51) are worked out under Division 3 of
+  Part 3 of TAR 2017, so TAR 2017 s 26 applies to both the payment and the
+  worked-out withholding amount: amounts under $1 and cents above whole
+  dollars are disregarded.
+- Under TAA Sch 1 s 12-300(b), Subdivision 12-F cannot require withholding
+  exceeding the Division 11A withholding tax payable less amounts already
+  withheld under Subdivision 12-F. Where that statutory cap binds (for
+  example, an interest payment with a treaty rate below TAR 2017 s 41's 10%,
+  or an intermediary with `already_withheld` above nil), the cap is floored to
+  whole cents so the withheld amount never exceeds the statutory ceiling.
+- Under TAA Sch 1 s 15-10(3), Subdivision 12-H is worked out directly under
+  ss 12-385(2), 12-390(2) and 12-390(5) rather than under TAR 2017, and the
+  law sets no rounding rule. By the worksheet's convention, each statutory
+  rate part (15%, 10% and 30% for an information exchange country, or one 30%
+  amount otherwise) is rounded half up to the cent and summed so the
+  components always add up to `withholding`.
+- For Subdivision 12-FB `entertainment_or_sports`, TAR 2017 s 50(2)(a) cites
+  ITRA 1986 s 23 (company) and s 50(2)(b) cites ITRA 1986 Schedule 7 Part II
+  (individual). Special company classes under s 23(3) to (7) and s 23A and
+  non-company non-individual payees (such as trusts and partnerships) are
+  outside scope; non-individual non-company payees are refused.
+
+| Case | Basis | Worksheet |
+| --- | --- | --- |
+| Dividend $10,000 ($4,000 franked, $1,000 CFI), 15% treaty | 15% x $5,000 (s 128B(3)(ga), s 802-15, TAR s 40) | $750.00 |
+| Interest $1,000.90, domestic 10%; 5% treaty cap | TAR s 26 + s 41: $100; s 12-300(b) cap: floor_cents($50.045) = $50.04 | $100.00; $50.04 |
+| Royalty $25,000.95, no treaty (30%); 10% treaty | floor(0.30 x $25,000) = $7,500; floor(0.10 x $25,000) = $2,500 | $7,500.00; $2,500.00 |
+| MIT fund payment $100,000 EOI ($50,000 std, $30,000 clean, $20,000 NCMI) | $7,500 + $3,000 + $6,000 (s 12-385(3)(a), IT(MITWHT)A s 4) | $16,500.00 |
+| MIT fund payment $100,000 non-EOI | 30% x $100,000 (s 12-385(3)(b)) | $30,000.00 |
+| Gaming junket $33.99; $34.00; $10,000.90 (3%) | TAR s 26 + s 49: $0 (< $1), $1 ($1.02), $300 | $0.00; $1.00; $300.00 |
+| Construction $80,000.75 (5%), $1,000 already withheld | TAR ss 26, 48, 51: $4,000 - $1,000 | $3,000.00 |
+| Entertainment/sports: individual $200,000.75; BRE company $50,000; standard company $50,000 | Sch 7 Pt II: $40,500 + $20,350 + $4,500 = $65,350; 25% = $12,500; 30% = $15,000 | $65,350.00; $12,500.00; $15,000.00 |
+
 ## Rental property
 
 `rental_property` was checked on 22 November 2026 against ITAA 1997 ss 6-5,
