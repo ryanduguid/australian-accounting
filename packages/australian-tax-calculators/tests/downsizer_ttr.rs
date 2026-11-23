@@ -307,7 +307,8 @@ fn the_ttr_maximum() {
     // Within the last 30 days nothing is required, and the maximum stays.
     let late = call("123456.78", 58, 30, Some(true));
     assert_eq!(late["amounts"]["minimum_payment"], "0.00");
-    assert_eq!(late["amounts"]["maximum_payment"], "12345.68");
+    // 10% is $12,345.678: down to the cent, so a payment of it stays within.
+    assert_eq!(late["amounts"]["maximum_payment"], "12345.67");
     let mut bad = json!({"account_balance": "1.00", "age": 60, "days": 365,
         "year": "2025-26", "scope_confirmed": true, "transition_to_retirement": "yes"});
     assert_eq!(code("pension-minimum", &bad), "input.flag_invalid");

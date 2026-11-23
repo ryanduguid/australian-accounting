@@ -2654,7 +2654,7 @@ pub const TTR_MAXIMUM_SCOPE: &[(&str, &str)] = &[
     ),
     ("the transition to retirement 10% maximum, ", ""),
 ];
-pub const TTR_MAXIMUM_WARNING: &str = "maximum_payment is 10% of the account balance on 1 July, or on the commencement day in the first year, under SISR reg 6.01(2) 'transition to retirement income stream'; it is not reduced for a part year or rounded, it excludes commutations and includes payment splits, and it ends once the pensioner satisfies a condition of release with a nil cashing restriction.";
+pub const TTR_MAXIMUM_WARNING: &str = "maximum_payment is 10% of the account balance on 1 July, or on the commencement day in the first year, under SISR reg 6.01(2) 'transition to retirement income stream'; it is not reduced for a part year, it is shown down to the cent so a payment of it stays within the limit, it excludes commutations and includes payment splits, and it ends once the pensioner satisfies a condition of release with a nil cashing restriction.";
 
 pub const REFUSAL_CODES: &[(&str, &str)] = &[
     (

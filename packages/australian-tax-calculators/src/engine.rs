@@ -4117,15 +4117,16 @@ fn minimum_steps(
 }
 
 /// SISR reg 6.01(2) 'transition to retirement income stream': the maximum
-/// payment, 10% of the balance the minimum uses, after the minimum's steps.
+/// payment, 10% of the balance the minimum uses, down to the cent so that
+/// what is paid stays within it, after the minimum's steps.
 fn ttr_maximum(mut steps: Vec<Step>, balance: &Decimal, ttr: bool) -> Result<Vec<Step>> {
     if ttr {
         steps.push(step(
             "maximum_payment",
             "SISR reg 6.01(2) 'transition to retirement income stream' paras (a)(ii) and (b)(ii): no more than 10% of the account balance on 1 July, or on the commencement day in the first year, not reduced for a part year",
-            "account_balance_used x 0.10",
+            "cents_down(account_balance_used x 0.10)",
             &[balance],
-            precise(|| Ok(balance.mul(&d("0.10"))?))?,
+            precise(|| Ok(balance.mul(&d("0.10"))?.quantize(-2, Rounding::Down)?))?,
         ));
     }
     Ok(steps)

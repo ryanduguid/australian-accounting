@@ -3930,7 +3930,8 @@ a condition of release with a nil cashing restriction. Read on 24 November
 2026 in compilation 159 (1 July 2026) and, word for word the same, compilation
 148 (1 July 2024). The definition neither pro-rates nor rounds it, and the
 ATO's 'Transition to retirement income streams' page for SMSFs (last updated
-2 April 2025) says the same. `tests/downsizer_ttr.rs` checks $500,000 at age
+2 April 2025) says the same. The command shows it down to the cent, so a
+payment of the amount shown stays within 10%: $123,456.78 gives $12,345.67. `tests/downsizer_ttr.rs` checks $500,000 at age
 60 (minimum $20,000, maximum $50,000) and a pension commencing on 1 January
 2026 with $400,000 (minimum pro-rated to $7,930, maximum $40,000).
 

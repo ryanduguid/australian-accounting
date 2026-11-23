@@ -696,7 +696,7 @@ factor on the balance at 1 July, pro-rated by days in the first year, nil when t
 pension starts on or after 1 June, and rounded to the nearest $10 with an exact $5
 rounding up. With `transition_to_retirement` true it adds `maximum_payment`,
 10% of the same balance, for a transition to retirement income stream (SISR
-reg 6.01(2)), not reduced for a part year or rounded. The tests check every
+reg 6.01(2)), not reduced for a part year and shown down to the cent. The tests check every
 band boundary against the ATO's published tables; see
 [calculation evidence](docs/calculation-evidence.md#contribution-caps).
 These worksheets are published in the 0.1.6 wheel.

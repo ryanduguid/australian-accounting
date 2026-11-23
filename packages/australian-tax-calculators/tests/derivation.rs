@@ -1260,6 +1260,7 @@ impl Evaluator<'_> {
                     ("min", [a, b]) => if b.lt(a).unwrap() { b } else { a }.clone(),
                     ("max", [a, b]) => if b.gt(a).unwrap() { b } else { a }.clone(),
                     ("cents", [a]) => a.quantize(-2, Rounding::HalfUp).unwrap(),
+                    ("cents_down", [a]) => a.quantize(-2, Rounding::Down).unwrap(),
                     ("dollars", [a]) => a.quantize(0, Rounding::HalfUp).unwrap(),
                     ("floor", [a]) => a.quantize(0, Rounding::Down).unwrap(),
                     ("dollars_up", [a]) => {
