@@ -89,6 +89,7 @@ from .outputs import (
     PaydayGroupReview,
     PaydayReview,
     RateSearch,
+    ReturnLabelLookup,
     ReviewedRate,
     RulingExcerpt,
     RulingsSearch,
@@ -104,6 +105,7 @@ from .resources import (
     payday_coverage,
     scope,
 )
+from .return_labels import DESTINATIONS
 from .reviewed_rates import reviewed_rate
 from .rulings import read_ruling, search_rulings
 
@@ -1150,6 +1152,40 @@ def get_reviewed_rate(
     a calculation. Reads no network.
     """
     return cast(ReviewedRate, reviewed_rate(record_id, as_at))
+
+
+@mcp.tool(annotations=LOCAL_READ_ONLY, title="Look up an individual return destination")
+def itr_label(
+    year: Annotated[str, Field(
+        max_length=7, pattern=r"^[0-9]{4}-[0-9]{2}$",
+        description="Australian income year, for example 2025-26.")],
+    channel: Annotated[Literal["paper", "mytax"], Field(
+        description="Use paper for the printed individual return or mytax for the online form.")],
+    item: Annotated[str, Field(min_length=1, max_length=80, pattern=r"^[a-z][a-z0-9_]*$",
+        description="Workpaper item key. The first mapped item is employee_union_fees for "
+                    "Australian employment income.")],
+) -> ReturnLabelLookup:
+    """Look up an ATO destination for a year, channel and item without client data.
+
+    Covers domestic employee union fees for 2025-26. Compare the proposed destination
+    against the source for that channel. Leave an unmapped destination open. The
+    lookup neither calculates the amount nor establishes substantiation or eligibility.
+    """
+    destination = DESTINATIONS.get((year, channel, item))
+    return {
+        "year": year,
+        "channel": channel,
+        "item": item,
+        "status": "FOUND" if destination else "UNVERIFIED",
+        "destination": destination,
+        "review_note": (
+            "Confirm the destination against the cited instructions. Check substantiation, "
+            "eligibility and any pre-filled amount separately."
+            if destination else
+            "Leave the destination open until the ATO instructions establish it for this "
+            "year, channel and item."
+        ),
+    }
 
 
 @mcp.tool(annotations=LOCAL_READ_ONLY, title="Test an ABN check digit")

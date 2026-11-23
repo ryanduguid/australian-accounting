@@ -183,6 +183,7 @@ copy without a download until the uv cache is cleaned.
 | `validate_bsb_format` | Test a BSB's 6 digit format; proves no institution, branch or account | local format test |
 | `validate_account_number_format` | Test a bank account number against the 9 character BECS field; proves no account, payee or BSB match | local format test |
 | `get_reviewed_rate` | Return a reviewed ATO rate or threshold for a date, with its source and a verbatim quote, or refuse | bundled reviewed records |
+| `itr_label` | Look up an individual return workpaper destination by year, channel and item | ATO return instructions |
 | `get_data_freshness` | Report each bundled dataset's recorded periods, engine version, source URLs and retrieval and review dates, or `UNKNOWN` | every engine above |
 
 `validate_abn` and `validate_acn` return `CHECK_DIGIT_VALID`, `CHECK_DIGIT_INVALID` or
@@ -225,6 +226,15 @@ its online services for digital service providers or on request
 ([Obtaining member TFNs](https://www.ato.gov.au/tax-and-super-professionals/for-superannuation-professionals/apra-regulated-funds/managing-member-benefits/taxation-of-member-super-benefits/tax-file-numbers-and-super-contributions/obtaining-member-tfns);
 section 9 of the [TFN declaration reporting specification 4.0.3](https://softwaredevelopers.ato.gov.au/TFNspecification);
 both read on 15 November 2026), so no published source fixes the check this server would run.
+
+`itr_label(year="2025-26", channel="paper", item="employee_union_fees")` returns
+the destination for union fees relating to Australian employment income. Compare a
+proposed D3 entry with the returned question D5 and amount label E. The same item
+with `channel="mytax"` returns the heading ‘Other work-related expenses’. Check
+whether the fees already appear there before proposing an amount. Each result
+identifies the instructions for that channel, the passage and the date checked.
+An unsupported year or item returns `UNVERIFIED` with a null destination. Retain
+the figure and its evidence in the workpaper for separate review.
 
 `get_reviewed_rate` takes a `record_id`, such as `concessional-cap-2026-27`, and an
 `as_at` date, and needs no folder. It reads a bundled copy of the records in

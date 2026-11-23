@@ -47,6 +47,7 @@
     { "name": "validate_bsb_format", "description": "Test a BSB's 6 digit format. Proves no institution, branch or account." },
     { "name": "validate_account_number_format", "description": "Test a bank account number's format. Proves no account, payee or BSB match." },
     { "name": "get_reviewed_rate", "description": "Return a reviewed ATO rate or threshold for a date, with its source." },
+    { "name": "itr_label", "description": "Look up a sourced individual return destination by income year, channel and item." },
     { "name": "search_accounting_library", "description": "Search the configured local Markdown library." },
     { "name": "read_accounting_library", "description": "Read cited lines from that library." },
     { "name": "search_tax_legislation", "description": "Find provisions in the configured local legislation corpus." },
