@@ -1278,6 +1278,59 @@ found. Test vectors from the oracle: $100,000 for 2024-25 to 15 September
 $1,000.00 for 2020-21 due 1 December 2021, $44.17, and on $2,500.50 for
 2013-14 due 21 November 2014, $205.03.
 
+## Vic property taxes
+
+This worksheet was added on 24 November 2026. Each source was read on 23 or 24
+November 2026:
+
+- Land Tax Act 2005 (Vic), authorised version 086 (1 May 2026): ss 19(1A),
+  34A to 34C, 35(3), 37A, 88EA and 88EB, and Sch 3 cl 21 and 23 (no transitional
+  rule on the 2 preceding years); the State Revenue Office's 'Vacant
+  residential land tax (current rates)' (updated 13 November 2026: 1%, 2% and
+  3% by consecutive liable years; 1% for undeveloped metropolitan land and new
+  residential land unused, unoccupied and unsold for more than 3 years; 'Before
+  2025, VRLT was 1% ... for all properties'), 'Understanding vacant residential
+  land tax' (18 November 2026: undeveloped land from 1 January 2026) and
+  'Understanding your vacant residential land tax assessment' (22 October 2026).
+- State Taxation Acts and Other Acts Amendment Act 2023 (Vic), as made: s 2(3)
+  and (4) (Part 10 Division 1 from 1 January 2025, Division 2 from 1 January
+  2026), s 27A (s 35(3)(a) to (c) as in force for 2025) and s 28A (ss 88EA to
+  88EC). As s 88EB needs an s 88EA exemption in a preceding tax year, the
+  concession is refused for 2025.
+- Interpretation of Legislation Act 1984 (Vic), authorised version 134: s 44(1)
+  (a period expressed to begin on a day leaves that day out) and s 44(6)(a)
+  (midnight is the point at which the day ends). The transition period therefore
+  ends on the tenth anniversary of the entry date; an entry on 31 December, whose
+  period ends at the midnight that fixes liability, is refused.
+- Commercial and Industrial Property Tax Reform Act 2024 (Vic), authorised
+  version 004: ss 2 (commencement 1 July 2024), 3 ('CIPT taxable land',
+  'transition period' of 10 years from the entry date), 7, 17, 19 (1%; 0.5% for
+  BTR land) and 22; the State Revenue Office's 'Understanding commercial and
+  industrial property tax' (29 September 2026): a 1 July 2024 entry first pays
+  in 2035 and a 1 August 2034 entry in 2045.
+- Windfall Gains Tax Act 2021 (Vic), authorised version 010: ss 2, 3, 6 to 19
+  and 36 to 41; no Windfall Gains Tax regulations are in force
+  (legislation.vic.gov.au, statutory rules in force, read 24 November 2026), so
+  no deductions are prescribed under s 10; the State Revenue Office's
+  'Understanding windfall gains tax': $187,500 on a $400,000 uplift and $300,000
+  on $600,000.
+- Planning and Environment Act 1987 (Vic), authorised version 168: Part 9B is
+  the growth areas infrastructure contribution, not windfall gains tax.
+
+| Case | Expected | Source |
+| --- | --- | --- |
+| Windfall gains tax on a $400,000 uplift | $187,500.00 | SRO example |
+| Windfall gains tax on a $600,000 uplift | $300,000.00 | SRO example |
+| Uplifts of $100,000, $100,001, $499,999 and $500,000 | nil, $0.63, $249,999.38, $250,000.00 | s 9 |
+| Titles up $300,000 and $150,000 and down $50,000 | $450,000 taxable, $218,750.00 | ss 9, 16(3) |
+| Entry 1 July 2024 and 1 August 2034 | earliest possible tax years 2035 and 2045, nil in 2025 and 2026 | SRO; s 3 |
+| Entry 1 January 2025 | period ends 1 January 2035, earliest possible tax year 2036 | s 3; ILA s 44(1) |
+| Entry 31 December 2024 | refused: the period ends at the midnight that fixes liability | s 3; ILA s 44(6)(a) |
+| Uplifts of $50,000 and $50,001 on 2 titles | $100,001 taxable, $0.63 | ss 9, 16(1) |
+| Vacant home at $800,000: no, 1 and 2 liable years | $8,000, $16,000, $24,000 | s 35(3)(b) |
+| Undeveloped land at $1,200,000 in 2026 | $12,000 | s 35(3)(a) |
+| s 88EB concession at $650,000 in 2026, whatever the land's class now | $6,500; refused for 2025 | ss 88EA, 88EB |
+
 ## Wine equalisation tax
 
 This worksheet was added on 19 November 2026. The WET Act was read that day

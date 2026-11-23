@@ -3,6 +3,10 @@
 
 pub const SCOPES: &[(&str, &str)] = &[
     (
+        "vic_property_taxes",
+        "One Victorian tax on land for the 2025 or 2026 tax year, on values the operator states: vacant residential land tax on one parcel of residential land that met the classification and vacancy conditions of Land Tax Act 2005 (Vic) ss 34B and 34C as in force for that tax year, is not exempt and is not in an alpine resort as defined for that year (including Sch 3 cl 23), as the tax on the parcel for its liable assessed owner (not a deemed owner's personal liability, s 34E); the commercial and industrial property tax on land that entered the tax reform scheme on a stated date, with the earliest tax year it could be taxed if it then meets every condition of s 3; or windfall gains tax on one WGT event that took effect in that year and is not a rezoning excluded by Windfall Gains Tax Act 2021 (Vic) s 3 or a Gazette declaration, with no exemption under ss 37 to 40A or waiver under s 41, on every title rezoned by that one event owned by one assessment unit (one owner, the same joint owners, one trust or a complete group) whose grouping and capacity are already settled under ss 17 to 25. Excluded: separate occupancy valuations (s 14), land not separately valued (s 15), residential land of more than 2 hectares (s 37(2)) and events with a correcting component (s 38(3A)). Values are the Valuer-General's; deferral, interest and apportionment of the tax to titles (s 16(2)) are not worked.",
+    ),
+    (
         "alcohol_excise",
         "Excise duty on beer, spirits and other excisable beverages manufactured in Australia and entered for home consumption from 1 July 2022 to 31 January 2027, in one financial year from 2022-23 to 2026-27, at the substituted rate the Commissioner published for the day (Excise Tariff Act 1921 Schedule items 1 to 3, s 6A), with the remission for alcohol manufacturers under its yearly cap and the refund of duty paid where it was available (Excise Regulation 2015 Sch 1 cl 2(1) item 10). The operator establishes each line's product, dutiable volume and strength at 20 degrees Celsius under the measurement determinations, container and entry day, and the remission conditions other than the cap. Excludes licences, approvals and the free subitems 3.5 to 3.8, quotas in a declared period, other remissions, refunds and drawbacks, imported goods (customs duty), wine (wine equalisation tax), tobacco and fuel.",
     ),
@@ -481,6 +485,10 @@ pub const SCOPES: &[(&str, &str)] = &[
 ];
 
 pub const SOURCES: &[(&str, &str)] = &[
+    (
+        "vic_property_taxes",
+        "https://www.legislation.vic.gov.au/in-force/acts/windfall-gains-tax-act-2021/010",
+    ),
     (
         "alcohol_excise",
         "https://www.ato.gov.au/businesses-and-organisations/gst-excise-and-indirect-taxes/excise-on-alcohol/excise-duty-rates-for-alcohol",
@@ -968,6 +976,19 @@ const FBT_GUIDE_REDUCTIONS: &str =
     "https://www.ato.gov.au/law/view/document?DocID=SAV/FBTGEMP/00020";
 
 pub const EXTRA_SOURCES: &[(&str, &[&str])] = &[
+    (
+        "vic_property_taxes",
+        &[
+            "https://www.legislation.vic.gov.au/in-force/acts/land-tax-act-2005/086",
+            "https://www.legislation.vic.gov.au/in-force/acts/commercial-and-industrial-property-tax-reform-act-2024/004",
+            "https://www.legislation.vic.gov.au/in-force/acts/interpretation-legislation-act-1984/134",
+            "https://www.legislation.vic.gov.au/as-made/acts/state-taxation-acts-and-other-acts-amendment-act-2023",
+            "https://www.sro.vic.gov.au/about-us/rates-and-statistics/current-rates/vacant-residential-land-tax-current-rates",
+            "https://www.sro.vic.gov.au/owning-property/vacant-residential-land-tax/understanding-vacant-residential-land-tax",
+            "https://www.sro.vic.gov.au/businesses-and-organisations/commercial-and-industrial-property-tax/understanding-commercial-and-industrial-property-tax",
+            "https://www.sro.vic.gov.au/owning-property/windfall-gains-tax/understanding-windfall-gains-tax",
+        ],
+    ),
     (
         "alcohol_excise",
         &[
@@ -2178,6 +2199,14 @@ pub const EXTRA_WARNINGS: &[(&str, &[&str])] = &[
         "leave_provisions",
         &[
             "The discount rate, salary growth, probabilities, settlement expectations and rights to defer are the preparer's stated assumptions and judgements (AASB 119 paras 75 to 87; AASB 101 para 69); the worksheet applies them and does not test them.",
+        ],
+    ),
+    (
+        "vic_property_taxes",
+        &[
+            "The State Revenue Office decides whether land is vacant residential land, has a qualifying use or is exempt, and the Valuer-General sets its values; this worksheet takes those facts and values as established.",
+            "No land leaves the commercial and industrial property tax's 10-year transition period before 1 July 2034, so the tax is nil in 2025 and 2026. The earliest possible tax year shown is not a finding of future liability: the land must then still be tax reform scheme land with a qualifying use that is taxable for land tax (s 3), and a future entry date is a hypothetical.",
+            "Each amount is the statutory formula amount shown to the cent, half up, before any administrative adjustment the Commissioner makes; it is not an assessed amount.",
         ],
     ),
     (
@@ -3968,7 +3997,7 @@ pub const REFUSAL_CODES: &[(&str, &str)] = &[
     ),
     (
         "input.field_unknown",
-        "A field the worksheet or command does not take, or does not take beside the other inputs given, was given (fbt-loan, fbt-meal-entertainment, fbt-car-parking, fbt-debt-waiver, fbt-expense-payment, fbt-property, fbt-residual, fbt-housing, fbt-lafha, fbt-board, fbt-tax-exempt-body-entertainment, fbt-entertainment-classifier, fbt-meal-entertainment-register and its entries, fbt-minor-benefit-check, ppsr-timing, fhss and its contributions, government-super-amounts, personal_deductions and determination, division-296, depreciation, fuel-tax-credits and its lines, alcohol-excise and its lines, foreign-resident-tax, medicare-levy, medicare-levy-surcharge, payg-withholding, payg-gross-up, termination-payment, etp-tax-free-component, unused-leave-payment, the Schedule 5 methods, working-holiday-maker-withholding, study-loan-withholding, seniors-pensioners-withholding, seniors-pensioners-tax-offset, lump-sum-arrears-tax-offset, hire-purchase-schedule, chattel-mortgage-schedule, loan-transactions and its transactions and rate_changes, borrowing-expenses-schedule and its loans, business-capital-expenditure and its items, balancing-adjustment, its years and car_limit, trade-in, franking-account and its events, distributions and income_tax, dasp-tax, super-benefit-tax, super-withholding, gst-margin-scheme, wine-equalisation-tax and its dealings, luxury-car-tax and its lines, foreign-resident-withholding and its vendors, payroll-tax, land-tax, cgt-parcels, its parcels and disposals, cgt-cost-base-adjustments, its parcels and events, fbt-ev-exemption-check, fbt-instalment, sb-cgt-concessions, small-business-income-offset, ess-discount, residency-tests, lodgment-required, trading-stock and its items, prepayments, depreciation-low-value-pool, gst-creditable-purpose-change, gst-annual-apportionment, gst-financial-acquisitions-threshold, gst-going-concern, gst-second-hand-goods, gst-bad-debt, depreciation-small-business-pool, capital-works, non-commercial-losses, first-home-owner-grant, psi-test, minors-income, smsf-tax, payg-instalment, beneficiary-tax-offset, invalid-carer-tax-offset, zone-tax-offset and its dependants, net-medical-expenses-tax-offset, work-expenses, ato-interest-penalties and its payments and parts, private-health-insurance-rebate, rental-property and its loans, capital_works and depreciating_assets, horticulture-shearing-withholding, upward-variation-withholding, daily-casual-withholding, no-abn-withholding, entertainer-withholding, return-to-work-withholding, annuity-withholding, voluntary-agreement-withholding, rd-tax-offset, deferred-tax, leave-provisions, foreign-income-conversion, foreign-income-tax-offset, transfer-balance and its events, excess-contributions, help-indexation and its debts and repayments, contribution-caps given a carry-forward input, derive, personal-tax-estimate, dgr-check, income-tests and fbt-return only).",
+        "A field the worksheet or command does not take, or does not take beside the other inputs given, was given (fbt-loan, fbt-meal-entertainment, fbt-car-parking, fbt-debt-waiver, fbt-expense-payment, fbt-property, fbt-residual, fbt-housing, fbt-lafha, fbt-board, fbt-tax-exempt-body-entertainment, fbt-entertainment-classifier, fbt-meal-entertainment-register and its entries, fbt-minor-benefit-check, ppsr-timing, fhss and its contributions, government-super-amounts, personal_deductions and determination, division-296, depreciation, fuel-tax-credits and its lines, alcohol-excise and its lines, foreign-resident-tax, medicare-levy, medicare-levy-surcharge, payg-withholding, payg-gross-up, termination-payment, etp-tax-free-component, unused-leave-payment, the Schedule 5 methods, working-holiday-maker-withholding, study-loan-withholding, seniors-pensioners-withholding, seniors-pensioners-tax-offset, lump-sum-arrears-tax-offset, hire-purchase-schedule, chattel-mortgage-schedule, loan-transactions and its transactions and rate_changes, borrowing-expenses-schedule and its loans, business-capital-expenditure and its items, balancing-adjustment, its years and car_limit, trade-in, franking-account and its events, distributions and income_tax, dasp-tax, super-benefit-tax, super-withholding, gst-margin-scheme, wine-equalisation-tax and its dealings, luxury-car-tax and its lines, foreign-resident-withholding and its vendors, payroll-tax, land-tax, vic-property-taxes and its parcels, cgt-parcels, its parcels and disposals, cgt-cost-base-adjustments, its parcels and events, fbt-ev-exemption-check, fbt-instalment, sb-cgt-concessions, small-business-income-offset, ess-discount, residency-tests, lodgment-required, trading-stock and its items, prepayments, depreciation-low-value-pool, gst-creditable-purpose-change, gst-annual-apportionment, gst-financial-acquisitions-threshold, gst-going-concern, gst-second-hand-goods, gst-bad-debt, depreciation-small-business-pool, capital-works, non-commercial-losses, first-home-owner-grant, psi-test, minors-income, smsf-tax, payg-instalment, beneficiary-tax-offset, invalid-carer-tax-offset, zone-tax-offset and its dependants, net-medical-expenses-tax-offset, work-expenses, ato-interest-penalties and its payments and parts, private-health-insurance-rebate, rental-property and its loans, capital_works and depreciating_assets, horticulture-shearing-withholding, upward-variation-withholding, daily-casual-withholding, no-abn-withholding, entertainer-withholding, return-to-work-withholding, annuity-withholding, voluntary-agreement-withholding, rd-tax-offset, deferred-tax, leave-provisions, foreign-income-conversion, foreign-income-tax-offset, transfer-balance and its events, excess-contributions, help-indexation and its debts and repayments, contribution-caps given a carry-forward input, derive, personal-tax-estimate, dgr-check, income-tests and fbt-return only).",
     ),
     ("input.flag_invalid", "A flag is not a JSON boolean."),
     ("input.fraction_invalid", "A fraction is outside 0 to 1."),
@@ -4748,6 +4777,34 @@ pub const REFUSAL_CODES: &[(&str, &str)] = &[
     (
         "transfer_balance.year_mismatch",
         "The year is not the financial year of the last day worked.",
+    ),
+    (
+        "vic_property_taxes.concession_unavailable",
+        "The s 88EB concessional rate of vacant residential land tax was claimed for 2025; it needs an s 88EA exemption in a preceding tax year, and s 88EA commenced on 1 January 2025.",
+    ),
+    (
+        "vic_property_taxes.entry_date_before_reform",
+        "The land's entry date into the commercial and industrial property tax reform scheme is before 1 July 2024, when the Act commenced.",
+    ),
+    (
+        "vic_property_taxes.parcels_invalid",
+        "parcels is not a list of 1 to 100 objects, each with civ_before and civ_after as whole-dollar amounts of 0 or more.",
+    ),
+    (
+        "vic_property_taxes.residential_land_invalid",
+        "residential_land is not vacant_home, construction, uninhabitable or undeveloped.",
+    ),
+    (
+        "vic_property_taxes.tax_invalid",
+        "tax is not vacant_residential_land, commercial_industrial or windfall_gains.",
+    ),
+    (
+        "vic_property_taxes.transition_end_unsettled",
+        "The entry date is 31 December, so the transition period ends at the midnight that fixes liability; the Acts do not settle whether the land is still within it then.",
+    ),
+    (
+        "vic_property_taxes.undeveloped_before_2026",
+        "Vacant residential land tax on undeveloped land (s 34B(2B)) was asked for the 2025 tax year; it applies from 2026.",
     ),
     (
         "voluntary_agreement_withholding.abn_not_quoted",

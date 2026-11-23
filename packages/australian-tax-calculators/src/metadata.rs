@@ -1166,6 +1166,10 @@ pub fn supported_periods(kind: &str) -> Vec<&'static str> {
         // Dealings from 1 July 2023, after the transitional rebate rules for
         // 2017 and earlier vintages ended (WETR 2009/2; the ATO's QC22756
         // and QC22757); the rate and cap are set by the Act, not indexed.
+        // The 2025 and 2026 tax years, the 2 under the 1%, 2% and 3% vacant
+        // residential land tax rates; windfall gains tax on a rezoning in
+        // either year.
+        "vic_property_taxes" => vec!["2025", "2026"],
         "wine_equalisation_tax" => vec!["2023-24", "2024-25", "2025-26", "2026-27", "2027-28"],
         // s 5 sets fixed rates; the temporary budget repair levy of s 6 ended
         // with 2016-17. The years are the other superannuation worksheets'.
@@ -1544,6 +1548,10 @@ pub fn source_review(kind: &str) -> (&'static str, &'static str) {
         "franking_account" => (
             "2026-11-19",
             "ITAA 1997 ss 202-60, 202-65, 202-75, 203-20 to 203-55, 204-70, 204-75, 205-15, 205-25, 205-30, 205-40, 205-45, 205-50, 205-70, 214-15 to 214-25, 214-150 and 214-155, on the ATO's legal database; New Business Tax System (Franking Deficit Tax) Act 2002 s 5 (C2004A00982) and (Over-franking Tax) Act 2002 s 5 (C2004A00981), latest versions on the Federal Register of Legislation; the ATO's Franking account tax return 2026 instructions (published 30 May 2026): How to get, About (example 2), How to lodge and pay, and sections A, B (examples 4 and 5) and C (examples 7 to 9)",
+        ),
+        "vic_property_taxes" => (
+            "2026-11-24",
+            "Land Tax Act 2005 (Vic) ss 19(1A), 34A to 34C, 35(3), 37A, 88EA and 88EB (authorised version 086, 1 May 2026), with s 35(3) as substituted for 2025 by the State Taxation Acts and Other Acts Amendment Act 2023 (Vic) s 27A and that Act's commencement (s 2(3) and (4)); Commercial and Industrial Property Tax Reform Act 2024 (Vic) ss 2, 3, 7, 17, 19 and 22 (authorised version 004), with Interpretation of Legislation Act 1984 (Vic) s 44(1) and (6)(a) (authorised version 134); Windfall Gains Tax Act 2021 (Vic) ss 2, 3, 6 to 19 and 36 to 41 (authorised version 010), with no regulations prescribing deductions in force; SRO Victoria's pages on vacant residential land tax (current rates, 13 November 2026), the commercial and industrial property tax (29 September 2026) and windfall gains tax",
         ),
         "wine_equalisation_tax" => (
             "2026-11-19",
@@ -2046,6 +2054,12 @@ pub fn library_evidence(kind: &str) -> [(&'static str, &'static str); 4] {
             "About example 2; section B examples 4 and 5; section C examples 7 to 9",
             "2026-05-30",
             "2026-11-19",
+        ),
+        "vic_property_taxes" => (
+            "SRO Victoria pages: vacant residential land tax current rates, understanding VRLT and its assessment; understanding the commercial and industrial property tax; understanding windfall gains tax",
+            "SRO Victoria's windfall gains tax examples ($187,500 on a $400,000 uplift; $300,000 on $600,000) and its CIPT start years (2035 for a 1 July 2024 entry; 2045 for 1 August 2034), which the earliest possible tax year matches",
+            "2026-11-24",
+            "2026-11-24",
         ),
         "wine_equalisation_tax" => (
             "gst-wine-equalisation-tax",
@@ -3235,6 +3249,36 @@ pub fn optional_inputs(kind: &str) -> Vec<(&'static str, &'static str)> {
             "regional_employer",
             "boolean, for Victoria only and then required: true when the employer is a regional employer, one that pays at least 85% of its taxable wages to regional employees (Payroll Tax Act 2007 (Vic) s 3A)",
         )],
+        "vic_property_taxes" => vec![
+            (
+                "capital_improved_value",
+                "AUD, whole dollars, for vacant_residential_land only and then required: the land's capital improved value at the relevant date (Land Tax Act 2005 (Vic) s 19(1A))",
+            ),
+            (
+                "residential_land",
+                "vacant_home, construction, uninhabitable or undeveloped, for vacant_residential_land only and then required: the kind of residential land (s 34B(1), (2), (2A) or (2B)) that was vacant under s 34C; undeveloped is refused for 2025",
+            ),
+            (
+                "new_residential_concession",
+                "boolean, for vacant_residential_land other than undeveloped land and then required: true when the land is eligible for the s 88EB concessional rate (it became s 34B(1) residential land in a preceding tax year, was exempt under s 88EA in a later preceding tax year, and has not since been used, occupied or sold); true is refused for 2025, as s 88EA commenced on 1 January 2025",
+            ),
+            (
+                "liable_previous_tax_year",
+                "boolean, required for vacant_residential_land other than undeveloped land without the s 88EB concession: whether the land was liable for vacant residential land tax in the preceding tax year",
+            ),
+            (
+                "liable_tax_year_before",
+                "boolean, required with liable_previous_tax_year: whether the land was liable for vacant residential land tax in the tax year before the preceding one",
+            ),
+            (
+                "entry_date",
+                "YYYY-MM-DD, for commercial_industrial only and then required: the date the land entered the tax reform scheme (Commercial and Industrial Property Tax Reform Act 2024 (Vic) s 7(2)), from 1 July 2024; a later date is a hypothetical, and 31 December is refused as its period would end at the midnight that fixes liability",
+            ),
+            (
+                "parcels",
+                "list of 1 to 100 objects, for windfall_gains only and then required: each title the one WGT event rezoned that the assessment unit owned, valued as a whole title (not by separate occupancy, s 14, or by area, s 15), with civ_before and civ_after (AUD, whole dollars, as strings: the capital improved value before and after the rezoning, Windfall Gains Tax Act 2021 (Vic) ss 11 to 13)",
+            ),
+        ],
         "wine_equalisation_tax" => vec![
             (
                 "rebate_claimed_earlier_in_year",
@@ -4416,6 +4460,10 @@ pub fn input_units(kind: &str) -> Vec<(&'static str, &'static str)> {
                 "list of at most 10000 objects in date order, one for each frankable distribution the entity made in the income year, each with date (YYYY-MM-DD), amount (AUD above nil, the frankable distribution) and franking_credit (AUD, the franking credit its distribution statement allocates), and optional permitted_percentage (decimal string from 0 to 100: a franking percentage the Commissioner permitted for it under s 203-55; not for the first distribution in its franking period) and statement_after_distribution (boolean, a private company's only: the statement was given after the distribution, s 202-75(3))",
             ),
         ],
+        "vic_property_taxes" => vec![(
+            "tax",
+            "vacant_residential_land (vacant residential land tax), commercial_industrial (the commercial and industrial property tax) or windfall_gains (windfall gains tax)",
+        )],
         "wine_equalisation_tax" => vec![(
             "dealings",
             "list of 1 to 1,000 objects, the tax period's dealings in wine, each with kind and its inputs: wholesale_sale (a sale to an entity that buys to resell: AD1a, AD1b or AD11b) with price_excluding_wet_and_gst (AUD, net of trade discounts, volume rebates and settlement discounts); retail_sale (a retail sale taxed at the notional wholesale selling price, such as a manufacturer's cellar door or mail order sale) with retail_price_including_wet_and_gst (AUD) and, to choose the average wholesale price method for grape wine, average_wholesale; own_use (an application to own use connected with retail sales: consuming or giving the wine away in connection with retail sales, such as tastings) with either retail_price_including_wet_and_gst (the price for which it would normally be sold by retail) or average_wholesale; quoted_sale (a sale for which the purchaser quoted its ABN, not taxable: s 7-10) with price_excluding_wet_and_gst and purchaser_intention (taxable_dealing where the quote states none of the intentions in s 5-50(1)(b), or manufacture, gst_free_supply or sale_under_quote); or own_use_purchased_under_quote (an application to own use of wine purchased under quote: AD3c(a) or AD13c(a)) with purchase_price_excluding_gst. average_wholesale is an object with grape_wine (true: grape wine, s 31-2), wholesale_share_at_least_10_percent (true: at least 10% by value of the tax period's sales of grape wine of that vintage and grape varieties are wholesale sales, s 9-25(3)), quantity (this dealing's quantity, a decimal string above 0 with at most 4 decimal places, in the wholesale sales' unit) and wholesale_sales (1 to 1,000 objects, the tax period's wholesale sales of that vintage and those grape varieties, exports included, each with quantity and price_excluding_wet_and_gst). Any kind but own_use_purchased_under_quote may add rebate_conditions, an object of the booleans producer (s 19-5(1)(a)), source_product_owned_85_percent (s 19-5(1)(d)) and container_and_trade_mark (s 19-5(1)(e) and (7)), to claim the producer rebate on that dealing",
@@ -5803,6 +5851,14 @@ pub fn examples(kind: &str) -> Vec<(&'static str, Example)> {
         ],
         // A dozen bottles sold by wholesale for $120 and a dozen at the
         // cellar door for $140: $34.80 + $20.30 of wine tax.
+        "vic_property_taxes" => vec![
+            ("year", Text("2026")),
+            ("tax", Text("windfall_gains")),
+            (
+                "parcels",
+                Json(r#"[{"civ_before": "900000", "civ_after": "1300000"}]"#),
+            ),
+        ],
         "wine_equalisation_tax" => vec![
             ("year", Text("2026-27")),
             (
