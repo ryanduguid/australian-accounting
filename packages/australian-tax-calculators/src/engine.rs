@@ -3856,6 +3856,7 @@ pub fn contribution_caps(
     year: &Arg,
     scope_confirmed: &Arg,
     determination_date: Option<&Arg>,
+    downsizer: Option<&DownsizerArgs>,
 ) -> Result<Value> {
     let year = scope(scope_confirmed, year, "contribution_caps")?;
     let balance = money(total_super_balance)?;
@@ -3880,7 +3881,7 @@ pub fn contribution_caps(
         steps,
         (&non_concessional, *under_75),
         Vec::new(),
-        determination_date,
+        (determination_date, downsizer),
     )
 }
 
@@ -3892,7 +3893,7 @@ fn caps_result(
     mut steps: Vec<Step>,
     (non_concessional, under_75): (&Decimal, bool),
     more_rates: Vec<(String, String)>,
-    determination_date: Option<&Arg>,
+    (determination_date, downsizer): (Option<&Arg>, Option<&DownsizerArgs>),
 ) -> Result<Value> {
     let (cap, transfer) = lookup(meta::CONTRIBUTION_CAPS, year);
     let mut release_warning = None;
@@ -3927,7 +3928,9 @@ fn caps_result(
         }
         Ok(rates)
     })?;
+    let tests = downsizer::extend(downsizer, year, &mut steps)?;
     let mut out = derived_result("contribution_caps", year, steps, rates)?;
+    downsizer::record(&mut out, tests);
     if let Some(warning) = release_warning {
         ato_interest_penalties::warn(&mut out, warning);
     }
@@ -4091,6 +4094,8 @@ fn non_concessional_steps(
 
 mod carry_forward;
 pub use carry_forward::{CarryForward, contribution_caps_by_year};
+mod downsizer;
+pub use downsizer::{DOWNSIZER_INPUTS, DownsizerArgs};
 
 fn is_leap(year: i64) -> bool {
     year % 4 == 0 && (year % 100 != 0 || year % 400 == 0)
@@ -4102,8 +4107,11 @@ pub fn pension_minimum(
     days: &Arg,
     year: &Arg,
     scope_confirmed: &Arg,
+    transition_to_retirement: Option<&Arg>,
 ) -> Result<Value> {
     let year = scope(scope_confirmed, year, "pension_minimum")?;
+    let ttr = transition_to_retirement
+        .map_or(Ok(false), |given| flag(given, "transition_to_retirement"))?;
     let balance = money(account_balance)?;
     let Some(Some(age)) = age
         .int()
@@ -4114,6 +4122,36 @@ pub fn pension_minimum(
             "age must be an integer number of years from 0 to 150.",
         );
     };
+    let (days, days_in_year) = held_days(days, &year)?;
+    let factor = d(meta::PENSION_MINIMUM_FACTORS
+        .iter()
+        .find(|(lowest, _)| age >= *lowest)
+        .expect("age 0 band")
+        .1);
+    let steps = minimum_steps(&balance, &factor, days, days_in_year)?;
+    let steps = ttr_maximum(steps, &balance, ttr)?;
+    let mut out = derived_result(
+        "pension_minimum",
+        &year,
+        steps,
+        vec![
+            rate("percentage_factor", &factor),
+            rate("days", days),
+            rate("days_in_year", days_in_year),
+        ],
+    )?;
+    if ttr {
+        texts::add_note(
+            &mut out,
+            (texts::TTR_MAXIMUM_SOURCE, texts::TTR_MAXIMUM_WARNING),
+            texts::TTR_MAXIMUM_SCOPE,
+        );
+    }
+    Ok(out)
+}
+
+/// The days the pension is held in `year`, checked, and the days in it.
+fn held_days(days: &Arg, year: &str) -> Result<(i64, i64)> {
     let start: i64 = year[..4].parse().expect("supported period");
     let days_in_year: i64 = if is_leap(start + 1) { 366 } else { 365 };
     let Some(Some(days)) = days
@@ -4125,13 +4163,19 @@ pub fn pension_minimum(
             format!("days must be an integer from 1 to {days_in_year} for {year}."),
         );
     };
-    let factor = d(meta::PENSION_MINIMUM_FACTORS
-        .iter()
-        .find(|(lowest, _)| age >= *lowest)
-        .expect("age 0 band")
-        .1);
+    Ok((days, days_in_year))
+}
+
+/// SISR Schedule 7 cl 1(1), 3 and 4: the minimum for `days` of a
+/// `days_in_year` year, before rounding.
+fn minimum_before_rounding(
+    balance: &Decimal,
+    factor: &Decimal,
+    days: i64,
+    days_in_year: i64,
+) -> Result<Step> {
     let (held, length) = (int(days), int(days_in_year));
-    let steps = precise(|| {
+    precise(|| {
         // cl 4: nothing is required for a pension commencing on or after 1 June,
         // which is within the last 30 days of the income year. Otherwise cl 3
         // pro-rates the factor over a first year that starts after 1 July.
@@ -4141,56 +4185,71 @@ pub fn pension_minimum(
             (
                 "SISR Schedule 7 cl 1(1) and cl 3",
                 "account_balance_used x percentage_factor x days / days_in_year",
-                &[&balance, &factor, &held, &length],
-                balance.mul(&factor)?.mul(&held)?.div(&length)?,
+                &[balance, factor, &held, &length],
+                balance.mul(factor)?.mul(&held)?.div(&length)?,
             )
         } else {
             (
                 "SISR Schedule 7 cl 1(1)",
                 "account_balance_used x percentage_factor",
-                &[&balance, &factor],
-                balance.mul(&factor)?,
+                &[balance, factor],
+                balance.mul(factor)?,
             )
         };
-        let minimum = exact
+        let id = "minimum_before_rounding";
+        Ok(step(id, authority, formula, operands, exact))
+    })
+}
+
+/// SISR Schedule 7: the minimum for `days` of a `days_in_year` year, before
+/// and after rounding.
+fn minimum_steps(
+    balance: &Decimal,
+    factor: &Decimal,
+    days: i64,
+    days_in_year: i64,
+) -> Result<Vec<Step>> {
+    let before = minimum_before_rounding(balance, factor, days, days_in_year)?;
+    let exact = before.value.clone();
+    let minimum = precise(|| {
+        Ok(exact
             .div(&int(10))?
             .quantize(0, Rounding::HalfUp)?
-            .mul(&int(10))?;
-        let rounding = "dollars(minimum_before_rounding / 10) x 10";
-        Ok(vec![
-            step(
-                "account_balance_used",
-                "SISR Schedule 7 cl 1(2)",
-                "account_balance",
-                &[&balance],
-                balance.clone(),
-            ),
-            step(
-                "minimum_before_rounding",
-                authority,
-                formula,
-                operands,
-                exact.clone(),
-            ),
-            step(
-                "minimum_payment",
-                "SISR Schedule 7 cl 5",
-                rounding,
-                &[&exact],
-                minimum,
-            ),
-        ])
+            .mul(&int(10))?)
     })?;
-    derived_result(
-        "pension_minimum",
-        &year,
-        steps,
-        vec![
-            rate("percentage_factor", &factor),
-            rate("days", days),
-            rate("days_in_year", days_in_year),
-        ],
-    )
+    Ok(vec![
+        step(
+            "account_balance_used",
+            "SISR Schedule 7 cl 1(2)",
+            "account_balance",
+            &[balance],
+            balance.clone(),
+        ),
+        before,
+        step(
+            "minimum_payment",
+            "SISR Schedule 7 cl 5",
+            "dollars(minimum_before_rounding / 10) x 10",
+            &[&exact],
+            minimum,
+        ),
+    ])
+}
+
+/// SISR reg 6.01(2) 'transition to retirement income stream': the maximum
+/// payment, 10% of the balance the minimum uses, down to the cent so that
+/// what is paid stays within it, after the minimum's steps.
+fn ttr_maximum(mut steps: Vec<Step>, balance: &Decimal, ttr: bool) -> Result<Vec<Step>> {
+    if ttr {
+        steps.push(step(
+            "maximum_payment",
+            "SISR reg 6.01(2) 'transition to retirement income stream' paras (a)(ii) and (b)(ii): no more than 10% of the account balance on 1 July, or on the commencement day in the first year, not reduced for a part year",
+            "cents_down(account_balance_used x 0.10)",
+            &[balance],
+            precise(|| Ok(balance.mul(&d("0.10"))?.quantize(-2, Rounding::Down)?))?,
+        ));
+    }
+    Ok(steps)
 }
 
 /// A period of days, both ends included, and for income use the part of the

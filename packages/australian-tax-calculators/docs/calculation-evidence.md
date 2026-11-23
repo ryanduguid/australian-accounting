@@ -4486,6 +4486,40 @@ $450,000. Table 2's later rows (the cap available each year) need each year's
 balance and are years this worksheet does not run as the current year, so the
 test checks its unused amounts and the 5-year expiry.
 
+## Downsizer contributions
+
+ITAA 1997 s 292-102, read on 24 November 2026 in the ATO's legal database with
+its history notes: Act No. 132 of 2017 Sch 2 item 4 applies it to a disposal
+under a contract entered into on or after 1 July 2018; the age in (1)(a) fell
+from 65 to 60 for contributions from 1 July 2022 and to 55 for contributions
+from 1 January 2023 (Act No. 84 of 2022 Sch 5 item 1), so every contribution
+in the years `contribution_caps` takes (2024-25 to 2026-27) needs 55. The 90
+days of s 292-102(1)(g) run from the day after the change of ownership (Acts
+Interpretation Act 1901 s 36(1)), so day 90 is in and day 91 is out unless the
+Commissioner allowed longer. Subsection (3) limits the covered amount to the
+lesser of $300,000 less the person's other downsizer contributions and the
+capital proceeds less the contributions already covered from them for the
+person or their spouse. The ATO's page 'Downsizer super contributions' (last
+updated 20 January 2026) says a downsizer contribution does not count towards
+the contribution caps.
+
+`tests/downsizer_ttr.rs` holds these cases from that page, and
+`tests/derivation.rs` checks every step of 2 more:
+
+| Case | Worksheet | Published |
+| --- | --- | --- |
+| George and Jane sell for $800,000 and each contribute $300,000 | each $300,000 covered | each may contribute up to $300,000 |
+| Bruce and Betty sell for $400,000; Betty contributes $300,000, then Bruce $100,000 | $300,000, then $100,000; Bruce at $100,000.01 has $0.01 not covered | a combined total of $400,000 |
+| Alisha sells for $1,500,000 and offers $400,000 | $300,000 covered, $100,000 not | her limit is $300,000 |
+| Robert and Wendy sell a 20% share for $100,000; Robert contributes $60,000, then Wendy $60,000 | $60,000, then $40,000 covered and $20,000 not | a combined total of $100,000 |
+| Ben settles on 1 August 2024 and has an extension to 1 February 2025 | covered with the extension; 184 days without it, not covered | the Commissioner may allow a longer period |
+| Rebecca is 54 and James 60 at the contribution | Rebecca not covered, James covered | James is eligible, Rebecca is not |
+
+The other criteria (an Australian dwelling, the main residence exemption, 10
+years' ownership, the choice given to the fund and no earlier downsizer
+contribution from another dwelling) are the operator's statement in
+`downsizer_conditions_met`.
+
 ## Pension minimum
 
 Paragraph ¶18-500 gives the Schedule 7 factors from 4% under 65 to 14% at 95 or
@@ -4499,8 +4533,22 @@ SISR Schedule 7 in compilation 159 (in force from 1 July 2026), read on
 from the commencement day (cl 3), requires nothing for a pension starting on or
 after 1 June (cl 4) and rounds any amount under the Schedule to the nearest $10,
 an exact $5 rounding up (cl 5). Because cl 3 pro-rates the factor, the engine
-rounds once, after pro-rating. The transition to retirement 10% maximum and the
-other pension schedules are outside this worksheet.
+rounds once, after pro-rating. The other pension schedules are outside this
+worksheet.
+
+For a transition to retirement income stream, `transition_to_retirement` adds
+the 10% maximum from the definition in SISR reg 6.01(2), paras (a)(ii) and
+(b)(ii): total payments in a financial year, excluding commutations and
+including payment splits, of no more than 10% of the account balance on 1 July
+or, in the first year, on the commencement day, until the pensioner satisfies
+a condition of release with a nil cashing restriction. Read on 24 November
+2026 in compilation 159 (1 July 2026) and, word for word the same, compilation
+148 (1 July 2024). The definition neither pro-rates nor rounds it, and the
+ATO's 'Transition to retirement income streams' page for SMSFs (last updated
+2 April 2025) says the same. The command shows it down to the cent, so a
+payment of the amount shown stays within 10%: $123,456.78 gives $12,345.67. `tests/downsizer_ttr.rs` checks $500,000 at age
+60 (minimum $20,000, maximum $50,000) and a pension commencing on 1 January
+2026 with $400,000 (minimum pro-rated to $7,930, maximum $40,000).
 
 ## Income tests
 

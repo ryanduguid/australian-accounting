@@ -29,6 +29,14 @@
   `esic.retail_limit_unsettled`, `esic.six_year_route_before_2018_19`,
   `esic.trust_or_partnership_unsupported` and `esic.year_invalid`.
 
+- `contribution-caps` takes 10 optional downsizer inputs, all or none, and
+  tests one downsizer contribution under ITAA 1997 s 292-102: age 55, a
+  contract from 1 July 2018, 90 days after the change of ownership and the
+  $300,000 and capital proceeds limits, with the other criteria stated.
+  `pension-minimum` takes an optional `transition_to_retirement` and adds the
+  10% maximum of SISR reg 6.01(2). Without the new inputs both commands answer
+  as before. New codes: `downsizer.contribution_before_settlement`,
+  `downsizer.date_outside_year` and `downsizer.settlement_before_contract`.
 - `super-withholding` takes one superannuation income stream payment with
   `income_stream_period`: Schedule 13 Part A withholding in 2024-25 to
   2026-27 for an account-based stream, or a capped defined benefit stream to
