@@ -1286,6 +1286,18 @@ const COMMAND_ARGS: &[(&str, &[(&str, Kind)])] = &[
         ],
     ),
     (
+        "notice-period",
+        &[
+            ("notice_date", Raw),
+            ("service_start", Raw),
+            ("excluded_days", Raw),
+            ("date_of_birth", Raw),
+            ("exclusion", Raw),
+            ("year", Raw),
+            ("scope_confirmed", Raw),
+        ],
+    ),
+    (
         "work-expenses",
         &[
             ("method", Raw),
@@ -2153,6 +2165,7 @@ pub fn evaluate_coded(command: &str, v: &Value) -> Result<Value> {
             | "luxury-car-tax"
             | "sb-cgt-concessions"
             | "work-expenses"
+            | "notice-period"
             | "ato-interest-penalties"
             | "transfer-balance"
             | "excess-contributions"
@@ -3511,6 +3524,24 @@ pub fn evaluate_coded(command: &str, v: &Value) -> Result<Value> {
                 year: &a[19],
                 scope_confirmed: &a[20],
                 optional: given.each_ref().map(Option::as_ref),
+            })
+        }
+        "notice-period" => {
+            // Optional: the avoidance fact with specified_period, and the pay.
+            let avoid = optional(v, "to_avoid_division", Raw)?;
+            let rate_of_pay = optional(v, "full_rate_of_pay", Dec)?;
+            let hours = optional(v, "weekly_hours", Dec)?;
+            engine::notice_period(&engine::NoticePeriodArgs {
+                notice_date: &a[0],
+                service_start: &a[1],
+                excluded_days: &a[2],
+                date_of_birth: &a[3],
+                exclusion: &a[4],
+                to_avoid_division: avoid.as_ref(),
+                full_rate_of_pay: rate_of_pay.as_ref(),
+                weekly_hours: hours.as_ref(),
+                year: &a[5],
+                scope_confirmed: &a[6],
             })
         }
         "work-expenses" => {
